@@ -16,8 +16,8 @@ O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
      tattoo.o religion.o playback.o  
 
 aeaea: $(O_FILES)
-	rm -f testo 
-	$(CC) $(L_FLAGS) -lm -o testo $(O_FILES) -lcrypt
+	rm -f aeaea 
+	$(CC) $(L_FLAGS) -lm -o aeaea $(O_FILES) -lcrypt
 
 .c.o: merc.h
 	$(CC) -c $(C_FLAGS) $<
