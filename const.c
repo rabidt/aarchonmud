@@ -619,18 +619,11 @@ struct align_type align_table [] =
 	},
 //6
 
-	{
-	"chrysalies",        TRUE,
-	{},      {AFF_FLYING,AFF_DARK_VISION},   {},
-	{},      {RES_CHARM,RES_PIERCE}, {VULN_DROWNING},
-	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
-	},
-
-	{
-	"frost-giant",        TRUE,
-	{},      {},   {},
-	{},      {RES_COLD}, {VULN_MENTAL,VULN_CHARM},
-	{A,H,M,V,hh},    {A,B,C,D,E,F,G,H,I,J,K}
+       {
+	"vampire",          TRUE,
+	{},      {AFF_DARK_VISION}, {},
+	{},      {RES_COLD,RES_SLASH,RES_NEGATIVE}, {VULN_LIGHT,VULN_HOLY,VULN_WOOD,VULN_FIRE},
+	{A,H,I,M,V,cc,ff},    {A,B,C,D,E,F,G,H,I,J,K,V}
 	},
 
 	{
@@ -641,20 +634,35 @@ struct align_type align_table [] =
 	},
 
 	{
+	"frost-giant",        TRUE,
+	{},      {},   {},
+	{},      {RES_COLD}, {VULN_MENTAL,VULN_CHARM},
+	{A,H,M,V,hh},    {A,B,C,D,E,F,G,H,I,J,K}
+	},
+
+	{
 	"illithid",        TRUE,
 	{},      {AFF_DETECT_MAGIC, AFF_DARK_VISION},   {},
 	{},      {RES_CHARM,RES_MENTAL}, {VULN_LIGHT,VULN_SOUND},
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
-        {
-	"vampire",          TRUE,
-	{},      {AFF_DARK_VISION}, {},
-	{},      {RES_COLD,RES_SLASH,RES_NEGATIVE}, {VULN_LIGHT,VULN_HOLY,VULN_WOOD,VULN_FIRE},
-	{A,H,I,M,V,cc,ff},    {A,B,C,D,E,F,G,H,I,J,K,V}
+
+	{
+	"chrysalies",        TRUE,
+	{},      {AFF_FLYING,AFF_DARK_VISION},   {},
+	{},      {RES_CHARM,RES_PIERCE}, {VULN_DROWNING},
+	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
 //7
+	{
+	"lich",        TRUE,
+	{},      {AFF_DARK_VISION,AFF_DETECT_MAGIC},   {},
+	{},      {RES_NEGATIVE,RES_MENTAL}, {VULN_HOLY,VULN_LIGHT},
+//undead,wise
+	{B,H,I,M,cc,jj},    {A,B,C,D,E,F,G,H,I,J,K}
+	},
 
 	{
 	"ahazu",        TRUE,
@@ -671,13 +679,6 @@ struct align_type align_table [] =
 	},
 
 	{
-	"dryad",        TRUE,
-	{},      {},   {},
-	{},      {RES_MAGIC,RES_DISEASE,RES_DROWNING,RES_LIGHT}, {VULN_NEGATIVE},
-	{A,H,V,M,jj},    {A,B,C,D,E,F,G,H,I,J,K}
-	},
-
-	{
 	"gargoyle",        TRUE,
 	{},      {AFF_FLYING,AFF_DARK_VISION},   {},
 	{},      {RES_BASH}, {VULN_LIGHT},
@@ -685,41 +686,12 @@ struct align_type align_table [] =
 	},
 
 	{
-	"lich",        TRUE,
-	{},      {AFF_DARK_VISION,AFF_DETECT_MAGIC},   {},
-	{},      {RES_NEGATIVE,RES_MENTAL}, {VULN_HOLY,VULN_LIGHT},
-           //undead,wise
-	{B,H,I,M,cc,jj},    {A,B,C,D,E,F,G,H,I,J,K}
+	"dryad",        TRUE,
+	{},      {},   {},
+	{},      {RES_MAGIC,RES_DISEASE,RES_DROWNING,RES_LIGHT}, {VULN_NEGATIVE},
+	{A,H,V,M,jj},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 //8
-	{
-	"android",        TRUE,
-	{},      {AFF_DETECT_HIDDEN,AFF_INFRARED,AFF_BATTLE_METER},   {},
-	{},      {RES_CHARM, RES_COLD, RES_POISON, RES_NEGATIVE, RES_HOLY, RES_MENTAL, RES_DISEASE}, {VULN_FIRE},
-	{H,J,M,cc,hh},    {A,B,C,D,E,F,G,H,I,J,K}
-	},
-
-	{
-	"naiad",        TRUE,
-	{},      {AFF_DETECT_MAGIC,AFF_BREATHE_WATER,AFF_FLYING},   {},
-	{IMM_DROWNING},      {RES_MAGIC}, {VULN_LIGHTNING},
-	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K,P}
-	},
-
-	{
-	"phantom",        TRUE,
-	{},      {AFF_FLYING,AFF_PASS_DOOR,AFF_MINOR_FADE},   {},
-	{},      {RES_NEGATIVE,RES_BASH,RES_ENERGY,RES_MENTAL}, {VULN_HOLY},
-	{D,H,K,N},    {D}
-	},
-
-        {
-        "tengu",    TRUE,
-        {},      {},        {},
-        {},      {RES_LIGHTNING, RES_MENTAL, RES_CHARM},    {},
-	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K}
-        },
-
 	{
 	"titan",        TRUE,
 	{},      {},   {},
@@ -733,6 +705,34 @@ struct align_type align_table [] =
 	{IMM_POISON},      {RES_DISEASE,RES_COLD,RES_POISON,RES_BASH}, {VULN_SOUND},
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K,Q,W}
 	},
+
+	{
+	"android",        TRUE,
+	{},      {AFF_DETECT_HIDDEN,AFF_INFRARED,AFF_BATTLE_METER},   {},
+	{},      {RES_CHARM, RES_COLD, RES_POISON, RES_NEGATIVE, RES_HOLY, RES_MENTAL, RES_DISEASE}, {VULN_FIRE},
+	{H,J,M,cc,hh},    {A,B,C,D,E,F,G,H,I,J,K}
+	},
+
+	{
+	"phantom",        TRUE,
+	{},      {AFF_FLYING,AFF_PASS_DOOR,AFF_MINOR_FADE},   {},
+	{},      {RES_NEGATIVE,RES_BASH,RES_ENERGY,RES_MENTAL}, {VULN_HOLY},
+	{D,H,K,N},    {D}
+	},
+
+	{
+	"naiad",        TRUE,
+	{},      {AFF_DETECT_MAGIC,AFF_BREATHE_WATER,AFF_FLYING},   {},
+	{IMM_DROWNING},      {RES_MAGIC}, {VULN_LIGHTNING},
+	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K,P}
+	},
+
+        {
+        "tengu",    TRUE,
+        {},      {},        {},
+        {},      {RES_LIGHTNING, RES_MENTAL, RES_CHARM},    {},
+	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K}
+        },
 //10
 	{
 	"behemoth",        TRUE,
@@ -1437,27 +1437,16 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 //6        
         { 
-          "chrysalies",   "Chrysl",
-          { 245, 220, 230, 230, 245, 240, 240, 225, 220, 235, 235, 235, 240, 220, 240 },
-          5, { "pass without trace", "faerie fog", "sanctuary", "sticks to snakes", "avoidance" },
-          { 1, 10, 40, 52, 58}, {100, 100, 80, 70, 90},
-          {  55,  25,  70,  65,  65,      30,  50,  25,  60,  60 },
-          { 105, 115, 140, 140, 145,     130, 135, 125, 130, 135 },   
-          {   2,   2,   3,   4,   4,       3,   4,   3,   2,   3 },
-          SIZE_TINY, SEX_BOTH, 6
+          "vampire",   "Vampir",
+          { 225, 220, 230, 245, 220, 235, 225, 220, 225, 220, 225, 225, 225, 235, 225 },
+          5, { "drain life", "vampiric bite", "sneak", "charm person", "shroud of darkness"},
+          {1,1,10,40,60},{100,100,95,90,100},
+          {  65,  25,  45,  65,  55,      35,  55,  25,  75,  75 },
+          { 130, 140, 100, 130, 140,     135, 125, 145, 135, 120 },   
+          {   3,   3,   2,   3,   3,       3,   3,   4,   3,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 6
         },
                
-        { 
-          "frost-giant",   "FrostG",
-          { 225, 240, 230, 220, 225, 220, 230, 235, 225, 230, 225, 230, 230, 220, 230 },
-          5, { "chill touch", "hailstorm", "frost breath", "control weather", "absolute zero" },
-          {1,40,60,70,80},{100,95,90,85,80},
-          {  60,  70,  45,  45,  50,      45,  50,  55,  40,  50 },
-          { 140, 140, 125, 125, 120,     125, 130, 135, 120, 130 },   
-          {   4,   4,   3,   3,   2,       3,   3,   3,   2,   3 },
-          SIZE_GIANT, SEX_BOTH, 6
-        },
-
         { 
           "gholam",   "Gholam",
           { 230, 225, 235, 250, 230, 230, 235, 210, 225, 230, 210, 240, 230, 230, 240 },
@@ -1469,8 +1458,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           SIZE_MEDIUM, SEX_BOTH, 6
         },
         
+        { 
+          "frost-giant",   "FrostG",
+          { 225, 240, 230, 220, 225, 220, 230, 235, 225, 230, 225, 230, 230, 220, 230 },
+          5, { "chill touch", "hailstorm", "frost breath", "control weather", "absolute zero" },
+          {1,40,60,70,80},{100,95,90,85,80},
+          {  60,  70,  45,  45,  50,      45,  50,  55,  40,  50 },
+          { 140, 140, 125, 125, 120,     125, 130, 135, 120, 130 },   
+          {   4,   4,   3,   3,   2,       3,   3,   3,   2,   3 },
+          SIZE_GIANT, SEX_BOTH, 6
+        },
 // race 50 ^
-
         { 
           "illithid",   "Illith",
           { 240, 230, 225, 220, 250, 235, 245, 230, 230, 230, 235, 225, 220, 240, 235, 230 },
@@ -1483,17 +1481,27 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         { 
-          "vampire",   "Vampir",
-          { 225, 220, 230, 245, 220, 235, 225, 220, 225, 220, 225, 225, 225, 235, 225 },
-          5, { "drain life", "vampiric bite", "sneak", "charm person", "shroud of darkness"},
-          {1,1,10,40,60},{100,100,95,90,100},
-          {  65,  25,  45,  65,  55,      35,  55,  25,  75,  75 },
-          { 130, 140, 100, 130, 140,     135, 125, 145, 135, 120 },   
-          {   3,   3,   2,   3,   3,       3,   3,   4,   3,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 6
+          "chrysalies",   "Chrysl",
+          { 245, 220, 230, 230, 245, 240, 240, 225, 220, 235, 235, 235, 240, 220, 240 },
+          5, { "pass without trace", "faerie fog", "sanctuary", "sticks to snakes", "avoidance" },
+          { 1, 10, 40, 52, 58}, {100, 100, 80, 70, 90},
+          {  55,  25,  70,  65,  65,      30,  50,  25,  60,  60 },
+          { 105, 115, 140, 140, 145,     130, 135, 125, 130, 135 },   
+          {   2,   2,   3,   4,   4,       3,   4,   3,   2,   3 },
+          SIZE_TINY, SEX_BOTH, 6
         },
-
-//r7                      
+//r7              
+        { 
+          "lich",   "Lich  ",
+          { 260, 255, 270, 240, 260, 255, 275, 255, 255, 265, 250, 250, 260, 270, 230 },
+          4, { "necrosis", "decompose", "mana burn", "iron maiden"},
+          {5,15,25,65},{80,75,70,50},
+          {  55,  40,  25,  50,  50,      90,  75,  60,  55,  50 },
+          { 135, 130, 125, 130, 130,     150, 145, 140, 135, 130 },   
+          {   3,   2,   1,   3,   3,       5,   4,   3,   3,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 7
+        },
+        
         //  War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec
         { 
           "ahazu",   "Ahazu ",
@@ -1516,17 +1524,6 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           {   4,   3,   3,   3,   2,       3,   3,   3,   2,   3 },
           SIZE_LARGE, SEX_BOTH, 7
         },
-
-        { 
-          "dryad",   "Dryad ",
-          { 260, 250, 235, 240, 270, 255, 265, 250, 250, 255, 245, 260, 260, 255, 250 },
-          5, { "cure critical", "woodland combat", "gate", "hide", "charm person" },
-          {20, 35, 50, 55, 70}, {85, 90, 80, 60, 85},
-          {  90,  90,  15,  45,  45,      40,  65,  40,  90,  45 },
-          { 140, 125, 130, 140, 145,     140, 125, 140, 140, 130 },   
-          {   3,   3,   3,   4,   3,       3,   3,   3,   3,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 7
-        },
 // race 55 ^
         { 
           "gargoyle",   "Gargoy",
@@ -1540,62 +1537,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         { 
-          "lich",   "Lich  ",
-          { 260, 255, 270, 240, 260, 255, 275, 255, 255, 265, 250, 250, 260, 270, 230 },
-          4, { "necrosis", "decompose", "mana burn", "iron maiden"},
-          {5,15,25,65},{80,75,70,50},
-          {  55,  40,  25,  50,  50,      90,  75,  60,  55,  50 },
-          { 135, 130, 125, 130, 130,     150, 145, 140, 135, 130 },   
-          {   3,   2,   1,   3,   3,       5,   4,   3,   3,   3 },
+          "dryad",   "Dryad ",
+          { 260, 250, 235, 240, 270, 255, 265, 250, 250, 255, 245, 260, 260, 255, 250 },
+          5, { "cure critical", "woodland combat", "gate", "hide", "charm person" },
+          {20, 35, 50, 55, 70}, {85, 90, 80, 60, 85},
+          {  90,  90,  15,  45,  45,      40,  65,  40,  90,  45 },
+          { 140, 125, 130, 140, 145,     140, 125, 140, 140, 130 },   
+          {   3,   3,   3,   4,   3,       3,   3,   3,   3,   3 },
           SIZE_MEDIUM, SEX_BOTH, 7
         },
 
-
-//r8  android naiad phantom tengu titan unitaur     
-        { 
-          "android",   "Androi",
-          { 265, 275, 290, 285, 265, 275, 275, 265, 275, 280, 290, 290, 270, 275, 285 },
-          2, { "lightning bolt", "electrocution" },
-          {1, 30}, {100, 75},
-          {  75,  70,  70,  75,  75,      70,  65,  70,  70,  70 },
-          { 140, 140, 140, 140, 140,     130, 130, 140, 130, 130 },   
-          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 8
-        },
-
-        { 
-          "naiad",   "Naiad ",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "swimming", "monsoon", "charm person", "anatomy" },
-          {1, 11, 39, 75, }, {100,100,70,10},
-          {  40,  55,  50,  60,  50,      75,  65,  65,  65,  60 },
-          { 125, 135, 135, 145, 140,     155, 150, 135, 140, 145 },   
-          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
-          SIZE_SMALL, SEX_FEMALE, 8
-        },
-        
-        { 
-          "phantom",   "Phantm",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "invis", "shadow soul", "shadow shroud", "dispel magic" },
-          {1, 4, 20, 60, }, {100,90,90,80},
-          {  40,  45,  50,  65,  65,      65,  65,  65,  45,  60 },
-          { 135, 140, 135, 150, 150,     145, 140, 140, 130, 140 },   
-          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 8
-        },
-
-        { 
-          "tengu",   "Tengu ",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "leadership", "finesse", "twohand weapons", "renewal" },
-          {5, 19, 25, 60, }, {100,95,85,25},
-          {  45,  55,  55,  60,  50,      75,  65,  65,  65,  60 },
-          { 130, 135, 135, 140, 145,     150, 150, 135, 145, 140 },   
-          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 8
-        },
-
+//r8        
          /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
         { 
           "titan",   "Titan ",
@@ -1617,6 +1569,50 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 140, 145, 140, 145, 145,     135, 140, 140, 130, 145 },   
           {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
           SIZE_LARGE, SEX_MALE, 8
+        },
+        
+        { 
+          "android",   "Androi",
+          { 265, 275, 290, 285, 265, 275, 275, 265, 275, 280, 290, 290, 270, 275, 285 },
+          2, { "lightning bolt", "electrocution" },
+          {1, 30}, {100, 75},
+          {  75,  70,  70,  75,  75,      70,  65,  70,  70,  70 },
+          { 140, 140, 140, 140, 140,     130, 130, 140, 130, 130 },   
+          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 8
+        },
+        
+        { 
+          "phantom",   "Phantm",
+          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
+          4, { "invis", "shadow soul", "shadow shroud", "dispel magic" },
+          {1, 4, 20, 60, }, {100,90,90,80},
+          {  40,  45,  50,  65,  65,      65,  65,  65,  45,  60 },
+          { 135, 140, 135, 150, 150,     145, 140, 140, 130, 140 },   
+          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 8
+        },
+
+        { 
+          "naiad",   "Naiad ",
+          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
+          4, { "swimming", "monsoon", "charm person", "anatomy" },
+          {1, 11, 39, 75, }, {100,100,70,10},
+          {  40,  55,  50,  60,  50,      75,  65,  65,  65,  60 },
+          { 125, 135, 135, 145, 140,     155, 150, 135, 140, 145 },   
+          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
+          SIZE_SMALL, SEX_FEMALE, 8
+        },
+
+        { 
+          "tengu",   "Tengu ",
+          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
+          4, { "leadership", "finesse", "twohand weapons", "renewal" },
+          {5, 19, 25, 60, }, {100,95,85,25},
+          {  45,  55,  55,  60,  50,      75,  65,  65,  65,  60 },
+          { 130, 135, 135, 140, 145,     150, 150, 135, 145, 140 },   
+          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 8
         },
    
         { 
