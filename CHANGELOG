@@ -1,3 +1,4 @@
 12/7/2012 Odoth
 -Added CHANGELOG.
-
+12/12/2012 oDOTH
+-Remove handle_web call in comm.c
