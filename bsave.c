@@ -56,7 +56,8 @@ extern  int     _filbuf         args( (FILE *) );
 
 int fingertime;
 /*int rename(const char *oldfname, const char *newfname);*/
-MEMFILE *mem_save_storage_box(CHAR_DATA *ch);
+//MEMFILE *mem_save_storage_box(CHAR_DATA *ch);
+void mem_save_storage_box( CHAR_DATA *ch );
 char *time_format args((time_t, char *));
 int get_pkgrade_level( int pts );
 void save_quest( CHAR_DATA *ch, DBUFFER *buf );
@@ -187,10 +188,14 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     bprintf( mf->buf, "#END\n" );
 
     /* check if has a storage box */
-    if (ch->pcdata->box_data[0] != NULL)
-     mf->storage_box = mem_save_storage_box(ch);
-    else
-     mf->storage_box = NULL;
+//    if (ch->pcdata->box_data[0] != NULL)
+// will return null if doesn't have one
+//     mf->storage_box = mem_save_storage_box(ch);
+//    else
+//     mf->storage_box = NULL;
+    /* mem_save_storage_box will now make the storage_box mf and add it to
+      box_mf_list*/
+    mem_save_storage_box(ch);
 
     /* check for overflow */
     if (mf->buf->overflowed)
@@ -206,7 +211,8 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
 }
 
 
-MEMFILE *mem_save_storage_box( CHAR_DATA *ch )
+//MEMFILE *mem_save_storage_box( CHAR_DATA *ch )
+void mem_save_storage_box( CHAR_DATA *ch )
 {
     char strsave[MAX_INPUT_LENGTH];
     MEMFILE *mf;
@@ -215,8 +221,20 @@ MEMFILE *mem_save_storage_box( CHAR_DATA *ch )
    log_string("mem_save_char_obj: start");
 #endif
 
+    /*if they don't got a box but they already have a save file, grab
+      storage_box from the save file (could be NULL)*/
+
     if (ch->pcdata->storage_boxes<1 || ch->pcdata->box_data[0] == NULL)
-	return NULL;
+    {/*
+       if (mf = memfile_from_list( capitalize(ch->name), player_quit_list))
+         if (mf->storage_box != NULL)
+           return mf->storage_box;
+       if (mf = memfile_from_list( capitalize(ch->name), player_save_list))
+         if (mf->storage_box != NULL)
+           return mf->storage_box;
+*/
+           return NULL;
+    }
 /*
     if ( ch->desc != NULL && ch->desc->original != NULL )
         ch = ch->desc->original;
@@ -291,7 +309,11 @@ MEMFILE *mem_save_storage_box( CHAR_DATA *ch )
 #if defined(SIM_DEBUG)
    log_string("mem_save_storage_box: done");
 #endif
-    return mf;
+    //return mf;
+    remove_from_box_list(mf->filename);
+    mf->next = box_mf_list;
+    box_mf_list = mf;
+
 } 
 
 /*

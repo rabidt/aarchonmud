@@ -1403,6 +1403,12 @@ void close_socket( DESCRIPTOR_DATA *dclose )
             act( "$n has lost $s link.", ch, NULL, NULL, TO_ROOM );
             wiznet("Net death has claimed $N.",ch,NULL,WIZ_LINKS,0,0);
 
+            /* Sweep linkdead players out of box rooms*/
+            if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))
+            {
+                char_from_room( ch );
+                char_to_room( ch, get_room_index( ROOM_VNUM_RECALL ) );
+            }
 	    /* Removed:  probably won't be too probematic, since the person would be
                removed from war if they (a) disappear into the void, or (b) get removed from game */
             /* war_remove( ch, FALSE );  */
@@ -3339,7 +3345,7 @@ void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj,
 #if defined (WIN32)
 #define EXE_FILE	  "../src/aarchon.exe"
 #else
-#define EXE_FILE	  "../src/testo"
+#define EXE_FILE	  "../src/aeaea"
 #endif
 
 
@@ -3423,7 +3429,7 @@ void do_copyover (CHAR_DATA *ch, char * argument)
 #if defined (WIN32)
     sprintf (arg0, "%s", "aarchon.exe");
 #else
-    sprintf (arg0, "%s", "testo");
+    sprintf (arg0, "%s", "aeaea");
 #endif
     sprintf (arg1, "%d", port);
     sprintf (arg2, "%s", "copyover");

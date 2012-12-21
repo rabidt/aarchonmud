@@ -39,6 +39,8 @@
 #include "tables.h"
 #include "lookup.h"
 #include "magic.h"
+#include "simsave.h"
+#include "buffer_util.h"
 
 #if defined(linux)
 int     execl           args( ( const char *path, const char *arg, ... ) );
@@ -3843,3 +3845,42 @@ void do_otype(CHAR_DATA *ch, char *argument)
         else
             send_to_char(buffer,ch);
 }   
+
+void do_printlist(CHAR_DATA *ch, char *argument)
+{
+    char arg [MAX_INPUT_LENGTH];
+    MEMFILE *mf;
+
+    argument = one_argument(argument, arg);
+
+    if (!strcmp(arg, "quit") || (arg[0]=='\0'))
+    {
+       send_to_char("player_quit_list:\n\r", ch);
+       for (mf=player_quit_list ; mf != NULL ; mf = mf->next)
+       {
+           send_to_char(mf->filename, ch);
+           send_to_char("\n\r",ch);
+       }
+       send_to_char("\n\r",ch);
+    }
+    if (!strcmp(arg, "save") || (arg[0]=='\0') )
+    {
+        send_to_char("player_save_list:\n\r", ch);
+        for (mf=player_save_list ; mf != NULL ; mf = mf->next)
+        {
+            send_to_char(mf->filename, ch);
+            send_to_char("\n\r",ch);
+        }
+       send_to_char("\n\r",ch);
+    }
+    if (!strcmp(arg, "box") || (arg[0]=='\0'))
+    {
+        send_to_char("box_mf_list:\n\r", ch);
+        for (mf=box_mf_list ; mf != NULL ; mf = mf->next)
+        {
+            send_to_char(mf->filename, ch);
+            send_to_char("\n\r",ch);
+        }
+       send_to_char("\n\r",ch);
+    }
+}

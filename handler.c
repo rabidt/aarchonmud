@@ -826,18 +826,20 @@ char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype)
 	{
 	    if( PLR_ACT(looker, PLR_HOLYLIGHT) )
 	    {
-	        char buf[MAX_STRING_LENGTH];
+		/* static since we're returning it*/
+	        static char buf[MAX_STRING_LENGTH];
 
 	        sprintf( buf, "(%s) %s", ch->name, mimic->short_descr );
-		return strdup(buf);
+		return buf;
 	    }
 	    else
 	        return mimic->short_descr;
 	}
     }
-    char buf[MAX_STRING_LENGTH];
+    /* static since we're returning it*/
+    static char buf[MAX_STRING_LENGTH];
     sprintf( buf, "%s%s%s{x", ch->pcdata->name_color, ch->pcdata->pre_title, ch->name);
-    return strdup(buf);
+    return buf;
 }
 
 
@@ -1447,6 +1449,7 @@ void char_from_room( CHAR_DATA *ch )
 	    bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
 	    ch->in_room->area->nplayer = 0;
 	}
+	 /*only make this check for players or we get a crash*/
 	if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) && ch->pcdata->storage_boxes>0)
         {
             quit_save_char_obj(ch);

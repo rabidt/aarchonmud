@@ -41,6 +41,7 @@
 /* #define FLAG_DEBUG */
 /* #define ASSERT_DEBUG */
 /* #define MPROG_DEBUG */
+#define BOX_LOG
 
 #ifdef ASSERT_DEBUG
 #include <assert.h>
@@ -3597,7 +3598,7 @@ struct achievement_entry
 #define IS_OBJ_STAT(obj, stat)  (IS_SET((obj)->extra_flags, (stat)))
 #define IS_WEAPON_STAT(obj,stat)(I_IS_SET((obj)->value[4],(stat)))
 #define SET_WEAPON_STAT(obj,stat) (I_SET_BIT((obj)->value[4],(stat)))
-#define WEIGHT_MULT(obj)    ((obj)->item_type == ITEM_CONTAINER ? (obj)->value[4] : 100)
+#define WEIGHT_MULT(obj)    ((obj)->item_type == ITEM_CONTAINER ? (obj)->value[4] : -1)
 
 
 /*

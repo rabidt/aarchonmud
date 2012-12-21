@@ -439,6 +439,27 @@ void do_get( CHAR_DATA *ch, char *argument )
 			return;
 		 }
 		 get_obj( ch, obj, container );
+                 #ifdef BOX_LOG
+                 if (container->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
+                 {
+                     char buf[MSL];
+                     sprintf(buf, "BOX_LOG:%s got %s (%d) from storage box.",
+                        ch->name, obj->short_descr, obj->pIndexData->vnum);
+                     log_string(buf);
+                     if (obj->contains)
+                     {
+                        OBJ_DATA *content;
+                        for (content=obj->contains; content !=NULL; content=content->next_content)
+                        {
+                            sprintf(buf, "BOX_LOG:%s contains %s (%d).",
+                                obj->short_descr,
+                                content->short_descr,
+                                content->pIndexData->vnum);
+                            log_string(buf);
+                        }
+                     }
+                 }
+                 #endif
 	  }
 	  else
 	  {
@@ -452,6 +473,29 @@ void do_get( CHAR_DATA *ch, char *argument )
 			{
 			   found = TRUE;
 			   get_obj( ch, obj, container );
+                           #ifdef BOX_LOG
+                           if (container->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
+                           {
+                                char buf[MSL];
+                                sprintf(buf, "BOX_LOG:%s got %s (%d) from storage box.",
+                                   ch->name, obj->short_descr,
+                                   obj->pIndexData->vnum);
+                                log_string(buf);
+                                if (obj->contains)
+                                {
+                                    OBJ_DATA *content;
+                                    for (content=obj->contains; content !=NULL; content=content->next_content)
+                                    {
+                                        sprintf(buf, "BOX_LOG:%s contains %s (%d).",
+                                            obj->short_descr,
+                                            content->short_descr,
+                                            content->pIndexData->vnum);
+                                        log_string(buf);
+                                    }
+                                }
+                           }
+                           #endif
+
 			}
 		 }
 		 
@@ -536,8 +580,10 @@ void do_put( CHAR_DATA *ch, char *argument )
 		 send_to_char( "You can't let go of it.\n\r", ch );
 		 return;
 	  }
-	  
-	  if (WEIGHT_MULT(obj) != 100)
+	 
+          /* changed by Vodur
+          if (WEIGHT_MULT(obj) != 100)*/
+          if (WEIGHT_MULT(obj) != -1) /* returns -1 for non containers*/ 
 	  {
 		 send_to_char("You have a feeling that would be a bad idea.\n\r",ch);
 		 return;
@@ -545,7 +591,11 @@ void do_put( CHAR_DATA *ch, char *argument )
 	  
 	  if ( get_obj_weight(obj) + get_true_weight(container)
 	       > (container->value[0] * 10) 
-	       || get_obj_weight(obj) > (container->value[3] * 10) 
+          /* v3 is capacity, should have nothing to do with weight
+                -Vodur
+               || get_obj_weight(obj) > (container->value[3] * 10)*/
+               || ((get_obj_number(obj)+get_obj_number(container))
+                                       > container->value[3])
 	       || is_relic_obj(obj) )
 	  {
 		 send_to_char( "It won't fit.\n\r", ch );
@@ -554,6 +604,27 @@ void do_put( CHAR_DATA *ch, char *argument )
 	  
 	  obj_from_char( obj );
 	  obj_to_obj( obj, container );
+          #ifdef BOX_LOG
+          if (container->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
+          {
+              char buf[MSL];
+              sprintf(buf, "BOX_LOG:%s put %s (%d) in storage box.",
+                     ch->name, obj->short_descr, obj->pIndexData->vnum);
+              log_string(buf);
+              if (obj->contains)
+              {
+               OBJ_DATA *content;
+                for (content=obj->contains; content !=NULL; content=content->next_content)
+                {
+                    sprintf(buf, "BOX_LOG:%s contains %s (%d).",
+                       obj->short_descr,
+                        content->short_descr,
+                        content->pIndexData->vnum);
+                        log_string(buf);
+                }
+              }
+          }
+          #endif
 	  
 	  if (I_IS_SET(container->value[1],CONT_PUT_ON))
 	  {
@@ -575,17 +646,43 @@ void do_put( CHAR_DATA *ch, char *argument )
 		 
 		 if ( ( arg1[3] == '\0' || is_name( &arg1[4], obj->name ) )
 		      &&   can_see_obj( ch, obj )
-		      &&   WEIGHT_MULT(obj) == 100
+                      /* Changed by Vodur
+                      &&   WEIGHT_MULT(obj) == 100*/
+                      &&   WEIGHT_MULT(obj) == -1 /*not a container*/
 		      &&   obj->wear_loc == WEAR_NONE
 		      &&   obj != container
 		      &&   can_drop_obj( ch, obj )
 		      &&   get_obj_weight( obj ) + get_true_weight( container )
 		      <= (container->value[0] * 10) 
-		      &&   get_obj_weight(obj) < (container->value[3] * 10)
+                      /* v3 is capacity, should have nothing to do with weight
+                      &&   get_obj_weight(obj) < (container->value[3] * 10)*/
+                      && ((get_obj_number(obj)+get_obj_number(container))
+                                        <= container->value[3])
 		      &&   !is_relic_obj(obj) )
 		 {
 			obj_from_char( obj );
 			obj_to_obj( obj, container );
+                        #ifdef BOX_LOG
+                        if (container->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
+                        {
+                            char buf[MSL];
+                            sprintf(buf, "BOX_LOG:%s put %s (%d) in storage box.",
+                                    ch->name, obj->short_descr, obj->pIndexData->vnum);
+                            log_string(buf);
+                            if (obj->contains)
+                            {
+                                OBJ_DATA *content;
+                                for (content=obj->contains; content !=NULL; content=content->next_content)
+                                {
+                                    sprintf(buf, "BOX_LOG:%s contains %s (%d).",
+                                        obj->short_descr,
+                                        content->short_descr,
+                                        content->pIndexData->vnum);
+                                    log_string(buf);
+                                }
+                            }
+                        }
+                        #endif
 			
 			if (I_IS_SET(container->value[1],CONT_PUT_ON))
 			{
@@ -598,8 +695,12 @@ void do_put( CHAR_DATA *ch, char *argument )
 			   act_gag( "$n puts $p in $P.", ch, obj, container, TO_ROOM, GAG_EQUIP );
 			}
 		 }
-	  }
-   }
+
+         }/*end of for loop*/
+      /*let people know when it's full*/
+      if (get_obj_number(container) >= container->value[3])
+        printf_to_char(ch, "%s is full.\n\r", container->short_descr);
+   }/*end of else (put all)*/
    
    return;
 }
@@ -3144,6 +3245,7 @@ void do_buy( CHAR_DATA *ch, char *argument )
 		return;
 	    }
 	    deduct_cost(ch, cost);
+	    ch->pcdata->questpoints -= qpcost;
 	    ch->pcdata->storage_boxes += 1;
 	    sprintf(buf, "Congratulations, %s, you bought a new storage box.",
 			ch->name);

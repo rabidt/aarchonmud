@@ -1902,7 +1902,10 @@ bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
                 wiznet("$N groks the fullness of $S link.",
                     ch,NULL,WIZ_LINKS,0,0);
                 d->connected = CON_PLAYING;
-		remove_from_quit_list( ch->name );
+       /* Removed by Vodur, messes with box saving
+          no downside to keeping it on the list*/
+	//	remove_from_quit_list( ch->name );
+
                 /* Inform the character of a note in progress and the possibility of continuation */ 
                 if (ch->pcdata->in_progress)
                     send_to_char ("You have a note in progress. Type NOTE WRITE to continue it.\n\r",ch);
