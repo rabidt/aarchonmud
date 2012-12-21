@@ -2611,6 +2611,17 @@ void quit_char( CHAR_DATA *ch )
     quit_save_char_obj( ch );
 /*    if ( ch->pcdata->box_data[0] != NULL)
         quit_save_storage_box( ch );*/
+
+    if (!IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))
+       quit_save_char_obj( ch );
+    else
+    {
+       char_from_room(ch);/*this will force a quit_save_char_obj,
+                            don't want to save twice
+                            -Vodur*/
+       char_to_room( ch, get_room_index( ROOM_VNUM_RECALL ));
+    }
+
     remove_bounty(ch);
     id = ch->id;
     d = ch->desc;
@@ -2901,7 +2912,7 @@ void do_group( CHAR_DATA *ch, char *argument )
         CHAR_DATA *leader;
         
         leader = (ch->leader != NULL) ? ch->leader : ch;
-        sprintf( buf, "%s's group:\n\r", PERS(leader, ch) );
+        sprintf( buf, "%s's group:\n\r", leader->name );
         send_to_char( buf, ch );
         
         for ( gch = char_list; gch != NULL; gch = gch->next )

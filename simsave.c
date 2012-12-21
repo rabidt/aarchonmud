@@ -19,6 +19,7 @@ bool boxtemp = FALSE;//track if there are temp box files needing to be moved
 MEMFILE *player_quit_list = NULL;
 //MEMFILE *box_quit_list	  = NULL;
 MEMFILE *player_save_list = NULL;
+MEMFILE *box_mf_list     = NULL;
 //MEMFILE *box_save_list	  = NULL;
 MEMFILE *other_save_list = NULL;
 
@@ -33,6 +34,7 @@ static bool bootup_temp_clean_done = FALSE;
 bool ready_to_save( CHAR_DATA *ch );
 bool remove_from_quit_list( char *name );
 bool remove_from_save_list( char *name );
+bool remove_from_box_list( char *name  );
 MEMFILE *memfile_from_list( char *filename, MEMFILE *list );
 void sim_save_to_mem();
 void mem_sim_save_other();
@@ -45,8 +47,9 @@ void sim_save_other();
 void handle_player_save()
 {
   MEMFILE *mf;
+  MEMFILE *box_mf;
   char command[MSL];
-
+  char buf[MSL];
 #if defined(SIM_DEBUG)
   sprintf(command, "handle_player_save: start, state = %d", player_save_state);
   log_string(command);
@@ -95,18 +98,19 @@ void handle_player_save()
 	    /* we don't want corrupt player files */
 	    exit(1);
 	}
-	if (mf->storage_box != NULL)
-	{
-	  if (!save_to_dir( mf->storage_box, BOX_TEMP_DIR))
-	  {
-              bugf( "handle_player_save: couldn't save %s's box, exit to avoid corruption",
-                  mf->filename );
+       sprintf(buf, "%s_box", mf->filename);
+       if ( box_mf = memfile_from_list(buf,box_mf_list) )
+       {
+           if (!save_to_dir(box_mf, BOX_TEMP_DIR))
+           {
+               bugf( "handle_player_save: couldn't save %s's box (%s), exit to avoid corruption",
+                mf->filename, box_mf->filename );
             /* we don't want corrupt box files */
-            exit(1);
-	  }
-	  boxtemp=TRUE;
-	  memfile_free(mf->storage_box);
-	} 
+               exit(1);
+           }
+
+           remove_from_box_list(box_mf->filename);
+       }
 	memfile_free( mf );
     }
     /*storage box stuff*/
@@ -255,7 +259,7 @@ void sim_save_to_mem()
 	  return;
       }
       
-      old_mf = memfile_from_list(mf->filename, player_save_list );
+ /*     old_mf = memfile_from_list(mf->filename, player_save_list );
       if (old_mf != NULL )
 	if (old_mf->storage_box != NULL)
 	{
@@ -263,7 +267,7 @@ void sim_save_to_mem()
 	}
 	else
 	  mf->storage_box = NULL;
-	    
+*/	    
       /* make sure player not already in save list */
       if (remove_from_save_list(mf->filename))
       {
@@ -373,13 +377,20 @@ bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
   /* search player_quit_list */
   for (mf = player_quit_list; mf != NULL; mf = mf->next)
     if (!strcmp(mf->filename, filename))
-      break;
+      {
+//      log_string("load_char_obj: found in player_quit_list");
+        break;
+      }
 
   /* search player_save_list */
   if (mf == NULL)
     for (mf = player_save_list; mf != NULL; mf = mf->next)
       if (!strcmp(mf->filename, filename))
-	break;
+      {
+//     log_string("load_char_obj: found in player_save_list");
+       break;
+
+      }
 
   found_in_mem = (mf != NULL);
 
@@ -461,6 +472,12 @@ bool load_storage_boxes(CHAR_DATA *ch )
   OBJ_DATA *obj;
   sh_int i;
 
+ if (IS_NPC(ch))
+ {
+     bugf("load_storage_boxes called on NPC",0);
+     return;
+ }
+
   if (ch->pcdata->storage_boxes<1)
     return;
 
@@ -478,23 +495,28 @@ bool load_storage_boxes(CHAR_DATA *ch )
   sprintf(filename, "%s_box", ch->name);
   //strcpy(filename, ch->name);
   /* search player_quit_list */
-  for (mf = player_quit_list; mf != NULL; mf = mf->next)
+/*  for (mf = player_quit_list; mf != NULL; mf = mf->next)
       if ( mf->storage_box != NULL)
 	  if ( !strcmp( mf->storage_box->filename, filename))
 	  {
+//          log_string("load_storage_box: load from player_quit_list");
+
 	      mf=mf->storage_box;
 	      break;
 	  }
-
+*/
   /* search player_save_list */
-  if (mf == NULL)
+/*  if (mf == NULL)
     for (mf = player_save_list; mf != NULL; mf = mf->next)
       if ( mf->storage_box != NULL)
           if ( !strcmp( mf->storage_box->filename, filename))
           {
+//          log_string("load_storage_box: load from player_save_list");
 	      mf=mf->storage_box;
 	      break;
 	  }
+*/
+  mf=memfile_from_list(filename, box_mf_list);
 
   found_in_mem = (mf != NULL);
 
@@ -502,7 +524,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
   if (mf == NULL)
   {
 #if defined(SIM_DEBUG)
-   log_string("load_char_obj: search temp player dir");
+   log_string("load_storager_box: search temp player dir");
 #endif
     fclose( fpReserve );
     sprintf( strsave, "%s%s", BOX_TEMP_DIR, filename );
@@ -513,7 +535,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
       fpReserve = fopen( NULL_FILE, "r" );
       if (buf == NULL)
       {
-        sprintf( bug_buf, "load_char_obj: error loading %s", strsave );
+        sprintf( bug_buf, "load_storage_box: error loading %s", strsave );
 		        bug( bug_buf, 0 );
         return FALSE;
       }
@@ -525,7 +547,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
   if (mf == NULL)
   {
 #if defined(SIM_DEBUG)
-   log_string("load_char_obj: search player dir");
+   log_string("load_storage_box: search player dir");
 #endif
     sprintf( strsave, "%s%s", BOX_DIR, filename );
     if ( ( fp = fopen( strsave, "r" ) ) != NULL )
@@ -535,7 +557,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
       fpReserve = fopen( NULL_FILE, "r" );
       if (buf == NULL)
       {
-        sprintf( bug_buf, "load_char_obj: error loading %s", strsave );
+        sprintf( bug_buf, "load_storage_box: error loading %s", strsave );
         bug( bug_buf, 0 );
         return FALSE;
       }
@@ -546,7 +568,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
   }
 
 #if defined(SIM_DEBUG)
-   log_string("load_char_obj: search done");
+   log_string("load_storage_box: search done");
 #endif
   if (mf == NULL)
   {
@@ -702,10 +724,21 @@ bool remove_from_list( char *name, MEMFILE **list )
   return FALSE;
 }
 
+bool remove_from_box_list( char *name )
+{
+#if defined(SIM_DEBUG)
+  char log_buf[MSL];
+  sprintf(log_buf, "remove_from_box_list: start (%s)", name);
+  log_string(log_buf);
+#endif
+  return remove_from_list( name, &box_mf_list );
+}
+
 /*
  * removes a file from the player_quit_list;
  * returns wether file was found and removed
  */
+
 bool remove_from_quit_list( char *name )
 {
 #if defined(SIM_DEBUG)
@@ -870,6 +903,7 @@ void sim_save_other()
 int unlink_pfile( char *filename )
 {
     char strsave[MIL];
+    char buf[MIL];
     int result;
 
 #if defined(SIM_DEBUG)
@@ -877,9 +911,16 @@ int unlink_pfile( char *filename )
 #endif
     remove_from_quit_list( filename );
     remove_from_save_list( filename );
+    sprintf( buf, "%s_box", filename);
+    remove_from_box_list( buf);
     sprintf( strsave, "%s%s", PLAYER_DIR, filename );
     result = unlink(strsave);
     sprintf( strsave, "%s%s", PLAYER_TEMP_DIR, filename );
+    unlink(strsave);
+    /*Kill boxes when deleting too*/
+    sprintf( strsave, "%s%s", BOX_DIR, buf );
+    unlink(strsave);
+    sprintf( strsave, "%s%s", BOX_TEMP_DIR, buf );
     unlink(strsave);
 #if defined(SIM_DEBUG)
    log_string("unlink_pfile: end");

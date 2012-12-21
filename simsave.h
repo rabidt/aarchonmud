@@ -10,6 +10,7 @@
  */
 extern MEMFILE *player_quit_list;
 extern MEMFILE *player_save_list;
+extern MEMFILE *box_mf_list;
 extern MEMFILE *remort_memfile;
 
 void handle_player_save();

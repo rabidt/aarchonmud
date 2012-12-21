@@ -32,7 +32,7 @@ struct mem_file_type
      storage_box is null, if not also save 
      storage_box
      WHAT COULD GO WRONG*/
-  MEMFILE *storage_box;
+  //MEMFILE *storage_box;
 };
 
 /* read-buffer methods */
