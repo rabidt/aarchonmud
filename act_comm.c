@@ -3999,7 +3999,6 @@ void do_gag( CHAR_DATA *ch, char *argument )
 	print_gag("immune", GAG_IMMUNE, ch);
 	print_gag(" equip", GAG_EQUIP, ch);
 	print_gag("  aura", GAG_AURA, ch);
-	print_gag("  ncolchan", GAG_NCOL_CHAN, ch);
         return;
     }
     

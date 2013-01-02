@@ -454,15 +454,17 @@ char *format_string( char *oldstring /*, bool fSpace */)
         if (*(rdesc+1) != '\"')
         {
           xbuf[i+1]=' ';
-          xbuf[i+2]=' ';
-          i += 3;
+          //xbuf[i+2]=' ';
+          //i += 3;
+	  i +=2;
         }
         else
         {
           xbuf[i+1]='\"';
           xbuf[i+2]=' ';
-          xbuf[i+3]=' ';
-          i += 4;
+          //xbuf[i+3]=' ';
+          //i += 4;
+	  i += 3;
           rdesc++;
         }
       }

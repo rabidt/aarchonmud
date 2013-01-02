@@ -945,7 +945,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
     -- Astark Feb 2012 */
 
                 reward = number_range(15*ch->level,50*ch->level*ch_luc_quest(ch));
-                pointreward = number_range(get_curr_stat(ch,STAT_CHA)/20,20+ch_luc_quest(ch));
+                pointreward = number_range(get_curr_stat(ch,STAT_CHA)/12,20+ch_luc_quest(ch));
                 pointreward += pointreward * get_religion_bonus(ch) / 100;
                 sprintf(buf, "Congratulations on completing your quest!");
                 do_say(questman,buf);
@@ -1062,7 +1062,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 
  /* Reduced maximum QPS to 40 from 45 with 200 luc -- Astark Feb 2012 */
 
-                pointreward = number_range(get_curr_stat(ch,STAT_CHA)/15,5+ch_luc_quest(ch));
+                pointreward = number_range(get_curr_stat(ch,STAT_CHA)/15,10+ch_luc_quest(ch));
                 pointreward += pointreward * get_religion_bonus(ch) / 100;
                 sprintf(buf, "Congratulations on completing your quest!");
                 do_say(questman,buf);
