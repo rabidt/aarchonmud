@@ -1,0 +1,169 @@
+2/2/2012 Astark
+- Dice command added so that players can roll a dice in order to decide on who gets equipment, or to just have fun.
+
+3/18/2012 Astark
+- Adjust cost/shop added for building objects. Gives a predetermined value to objects to ensure consistency and to make building easier
+
+6/1/2012 Astark
+- EXP gains for hero level increased by 25%. Stops the huge fall-off in EXP gains after you hit level 90. Old rate would require players to kill roughly 35 mobs with 50,000 hp each, in order to gain 1 level (97 to 98). Change in fight.c
+
+7/1/2012 Astark
+- Added crafting code
+- Added achievements to the game
+
+9/1/2012 Astark
+- Basic and Holy apparation added to Illusionists
+- Conviction spell added for Paladins. Heals targets of same alignment, damages those of opposite alignment
+- Added quivering palm, a monk skill used to engage combat. Has a chance to afflict opponent with maledictions
+- Added deep sleep. Each tick that you are asleep there is a chance to fall into a deep sleep, which then increases your regeneration rate
+- Critical strike added. When you have greater than 95% effective rate with a weapon there is a chance to do a critical strike which deals high damage
+- Added grep shopkeeper so we can find all shop mobs when needed
+
+10/1/2012 Astark
+- Continual light will now get rid of dark flag on objects
+- Giant strength now cancels weaken
+- Wandering sages will now do a full lore of all items, even those with random or hidden stats
+- Weapons made with hand of siva do less damage than other weapons of the same level, however 2H weapons have been improved so that they actually do more damage than 1H weapons. It should still be less than other 2H weapons of the same level
+- Count command has been replaced with a snippet I found online. It writes to a maxwho.txt file and actually keeps better track of players that are online
+- Added tight grouping, a gunslinger skill that reduces jam rates when using burst with a twohanded weapon
+- Shops are always open to immortals
+- You can no longer void if you're being attacked by a pkiller
+- When players die, the EQ that goes to their corpse is logged to make for easier reimbursement
+
+11/14/2012 Astark
+- Exploration code added. Had to tweak a few things to get it to work. In merc.h I uncommented out one of the aliases and changed its name so that it wouldn't mess anything else up.
+- Iron hide skill added for fighter types. Adds a permanent AC bonus that scales with level and is shown in affects. 
+- Charmed mobs can no longer equip weapons
+- Immortals don't see the 'you're drowning' message when under water
+- Added a column to omni command for immortals so they can see if a playes are on a quest. This allows for complaint-free copyovers
+- Updated the do_score command to match main port. All display issues have been fixed including behead count, deaths, pkills, etc.
+- Added achievements to show worth, which is included in do_score
+- Many spells will no longer consume mana when they're unsuccessfully cast. Weather spells when used indoors, enchant armor when used on a weapon, etc.
+- Iron maiden no longer will be triggered by NPCs. For example, if you have an army of zombies and you're fighting a mob, the mob will not take iron maiden damage when hitting an NPC
+- Paralysis Poison created for thieves. This is like envenom (targets a weapon and then does damage over time when an opponent becomes afflicted)
+- Envenom fixed to actually work. Can't remember what I changed.
+- Fixed almost every spell to scale with level now (in terms of duration and damage)
+- Malediction durations reduced.. no more 100 tick curse afflictions.
+- Increased the number of in-game aliases a player can have from 30 to 35
+- The set command for immortals now lets us change a players remort. Useful for testing
+
+11/21/2012 Astark
+- Arrow stack increased from 250 to 300
+- Doubled the number of arrows that are created with fledge
+- Added exploration check to the achievement code.
+- Increased the maximum prompt length from 100 characters to 110
+- The number of rooms you have explored can now be displayed in your prompt using %E. This needs to be added to the help file
+- Warfares will start automatically now, using a random level and type. Most wars will be for characters above level 90. Armageddon is the most common type
+
+11/25/2012 Astark
+- Added mindflay and hallow based on my best interpretation of how they're coded on the main port. Some flavor text may be missing, but nothing critical from what I have seen
+
+11/27/2012 Astark
+- Increased the damage, decreased frequency of critical strike (passive fighter skill)
+- Changed ops formulas to be more balanced. Ratings less powerful. Each remort is naturally better. We will need to revise all hero level EQ now.
+- Updated crafting - it now uses physical or mental parameters to make better objs
+- Added disguise to update.c near soothe. Chance to sneak past aggro mobs
+
+11/28/2012 Astark
+- Blackjack can be used in combat, and has a chance to stun (the bigger you are, the better the chance)
+- Legsweep skill now does more damage
+- Net skill is slightly better
+- Tumble skill no longer hurts HR/DR so drastically
+- Control weather spell now has a chance to force a weather_update, whereas before the player could cast the spell 50 times without the weather updating, giving the impression that it was a broken spell
+- Made some changes to qadvance to work better with qset timer (you can use qadvance with no value for timer slot, and it will still work)
+- Updated hard-quests to be a bit more fair. They now check level ranges and remorts better so that low level players can actually have a chance at completing them
+- Miniquest added to Skatt in Marienburg Zoo. Uses qset timer
+- Replenish spell added for Sylph Race
+- Minor_fade passive bonus added for Sylph Race
+- Sylph race updated. Now in spec but needs testing
+- Titan race updated. Now in spec but needs testing
+
+11/29/2012 Astark
+- Practices earned for leveling are now based on each classes' prime stats, instead of every class using Discipline
+
+12/1/2012 Astark
+- You can now recruit clans at any level after you've remorted
+- Added serpent stance for monks at level 92. Does drowning damage
+- Miniquest added to Elven Shopkeeper in Everlund Park. Uses qset timer
+- Miniquest added to Loony Horace/Golden Octopus in Briney. Uses qset timer
+- These are in changelog to remind me to test them before going live
+
+12/2/2012 Astark
+- Reverted all ETLS back to what we have on main port currently
+
+12/6/2012 Astark
+- Added tengu race (Bird like creatures. Upgrade from Avian)
+- Fixed bug where no message was shown when targeting yourself with choke and guard
+- Added grep room name to the grep command for immortals
+
+12/7/2012 Odoth
+- Added CHANGELOG.
+
+12/8/2012 Astark
+- Added a check for room_safe in flee functions (several different files I believe) so that mobs won't flee to a safe room
+
+12/12/2012 oDOTH
+- Remove handle_web call in comm.c
+
+12/13/2012 Astark
+- List command is better formatted now, to accomodate items that are level 100 or above and also for high costs (just more spacing)
+
+12/20/2012 Odoth
+- Linkdead players swept from box rooms.
+- Change "testo" back to "aeaea" in comm.c for copyover.
+- Fix so container "capacity" (v3) actually prevents too many items in a container.
+- Boxes weren't deducting qp, now they are.
+- Fixed bug where quitting in box room cleans out a char's eq and inventory.
+- Added logging for all items put in and taken out of boxes, includes character name and item short descr and vnum.
+- Fixed bug allowing some bags to be put in other bags.
+- Static bufs, return bufs instread of str_dup in get_mimic_PERS_new.
+- Removed "remove_from_quit_list" when logging in, causes issues with box saving. (VODUR)
+- Various other box/saving cleanup while tracking down the bug.
+- Contents of containers put in storage boxes are logged.
+- Revamped box saving slightly so that instead of tracking it "storage_box" pointer attached to the player memfile, just keep a separate list of storage_box mfs. When player is saved, their boxes (if any) are saved and put on the list, when char is being written to file, their box (if found on list) is written then both mfs are removed from list and freed.
+- Added 'printlist' command for lvl 110 which tracks status of mf lists (player_save_list, box_mf_list, player_quit_list).
+- Check for storage box in char_from_room put inside if(!IS_NPC) bracket to avoid crashes in case a mob sneaks in somehow.
+- container full message when using put all.
+
+
+12/21/2012 Astark
+- Added remorts 6 and 7. Also matched chambers on our port to main port although I'm not certain speed chambers are assigned to the right clone of each remort, but this shouldn't matter unless someone is in remort when the change is made
+
+12/22/2012 Vodur
+- ".f" (format) updated to use 1 space after periods instead of two.
+
+1/2/13 Vodur
+
+- Fix for quest rewards (normal and hard).
+- Removed extra '.' from a hogtie message.
+- Added \n\r to estimate failure message.
+- Typo in do_estimate ("unpredicatable")
+- Arrow description is also updated when enchanted.
+- Extra /n/r before item count in storage boxes.
+
+- Quest buy exp gives all real exp.
+- You can 'quest buy color list' without qp now.
+
+- 'playback clear' 'playback imm clear' and 'playback savant clear'.
+- You can put containers ONLY in storage boxes (count is accurate).
+- TO_ROOM fail messages for brew and preserve.
+- Tell color was still cleared for buffered stuff for replay.
+- Typoing scroll target won't use up the scroll.
+
+- Timestamp in cheatlog.
+- Drunken fury without drunk at hero only, not at 90+.
+- Success and full heal messages for heal.
+
+- Fixed A memory leak in playback (free_buf).
+- Fixed playback clear (free_string doesn't mean NULL).
+- Added NPC check for logchan, otherwise crash from NPC comms.
+- Desert rose and Wind Whisper now same rarity as Faerie Wing
+  and Dragon's Bane.
+- Alchemy fail messages.
+- REAL_NUM_STRINGS in 'memory' command which is just the # of
+  str_dup's - free_strings.
+- Success and full refresh messages for refresh.
+- "M" and "O" shows in 'vnum' command (Astar).
+
+- Success and full heal messages for restore.
+

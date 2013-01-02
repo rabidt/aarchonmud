@@ -583,7 +583,8 @@ void do_put( CHAR_DATA *ch, char *argument )
 	 
           /* changed by Vodur
           if (WEIGHT_MULT(obj) != 100)*/
-          if (WEIGHT_MULT(obj) != -1) /* returns -1 for non containers*/ 
+          if ((WEIGHT_MULT(obj) != -1) /* returns -1 for non containers*/ 
+	     && container->pIndexData->vnum != OBJ_VNUM_STORAGE_BOX)
 	  {
 		 send_to_char("You have a feeling that would be a bad idea.\n\r",ch);
 		 return;
@@ -1653,10 +1654,14 @@ void do_eat( CHAR_DATA *ch, char *argument )
 	return;
 	}
 
-	if (obj->level>ch->level+5)
-	{
-		send_to_char("Its too hard to swallow.\n\r",ch);
-		return; 
+      /* Added a check so that immortals can eat anything - Astark 12-23-12 */
+        if (!IS_IMMORTAL(ch))
+        {
+            if (obj->level>ch->level+5)
+            {
+            send_to_char("Its too hard to swallow.\n\r",ch);
+            return; 
+            }
 	}
 
 	if ( !IS_IMMORTAL(ch) )
@@ -2600,11 +2605,15 @@ void do_recite( CHAR_DATA *ch, char *argument )
     }
     else
     {
-        obj_cast_spell( scroll->value[1], scroll->value[0], ch, scroll, argument );
-        obj_cast_spell( scroll->value[2], scroll->value[0], ch, scroll, argument );
-        obj_cast_spell( scroll->value[3], scroll->value[0], ch, scroll, argument );
-        obj_cast_spell( scroll->value[4], scroll->value[0], ch, scroll, argument );
-        check_improve(ch,gsn_scrolls,TRUE,2);
+	if (
+            obj_cast_spell( scroll->value[1], scroll->value[0], ch, scroll, argument ) ||
+            obj_cast_spell( scroll->value[2], scroll->value[0], ch, scroll, argument ) ||
+            obj_cast_spell( scroll->value[3], scroll->value[0], ch, scroll, argument ) ||
+            obj_cast_spell( scroll->value[4], scroll->value[0], ch, scroll, argument ) )
+	{
+	    extract_obj( scroll );
+            check_improve(ch,gsn_scrolls,TRUE,2);
+	}
     }
     
     extract_obj( scroll );
@@ -3603,11 +3612,17 @@ void do_list( CHAR_DATA *ch, char *argument )
 		if ( !found )
 		{
 			found = TRUE;
-			send_to_char( "[Lv Price Qty] Item\n\r", ch );
+                    /* send_to_char( "[Lv Price Qty] Item\n\r", ch ); 
+                     * Making this look better - Astark 
+                     */
+                        send_to_char("[ Lvl  Price     Qty] Item\n\r", ch);
 		}
 
 		if (IS_OBJ_STAT(obj,ITEM_INVENTORY))
-			sprintf(buf,"[%2d %5d -- ] %s\n\r",
+		    /* sprintf(buf,"[%2d %5d -- ] %s\n\r",
+                     * Making this look better - Astark
+                     */
+                       sprintf(buf,"[ %-3d  %-9d -- ] %s\n\r",
 			obj->level,cost,obj->short_descr);
 		else
 		{
@@ -3621,7 +3636,9 @@ void do_list( CHAR_DATA *ch, char *argument )
 			obj = obj->next_content;
 			count++;
 			}
-			sprintf(buf,"[%2d %5d %2d ] %s\n\r",
+                    /* sprintf(buf,"[%2d %5d %2d ] %s\n\r",
+                     */
+                        sprintf(buf,"[ %-3d  %-9d %-3d ] %s\n\r",
 			obj->level,cost,count,obj->short_descr);
 		}
 		send_to_char( buf, ch );
@@ -3629,8 +3646,16 @@ void do_list( CHAR_DATA *ch, char *argument )
 	}
 
 	if ( !found )
-		send_to_char( "You can't buy anything here.\n\r", ch );
-	return;
+        {
+	    send_to_char( "You can't buy anything here.\n\r", ch );
+
+       /* Helps immortals if they can't figure out why 
+          the shop isn't working - Astark */
+
+            if (IS_IMMORTAL(ch))
+                send_to_char( "Make sure all items are assigned a value.\n\r", ch );
+        }
+        return;
 	}
 }
 

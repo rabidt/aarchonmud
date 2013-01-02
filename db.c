@@ -81,6 +81,8 @@ extern  DESCRIPTOR_DATA *descriptor_free;
 extern  PC_DATA     *pcdata_free;
 extern  AFFECT_DATA *affect_free;
 
+extern  REAL_NUM_STRINGS=0;
+
 void format_init_flags( void );
 void format_race_flags( void );
 void load_area_file( FILE *fp, bool clone );
@@ -4077,6 +4079,7 @@ char *str_dup( const char *str )
     
     str_new = alloc_mem( strlen(str) + 1 );
     strcpy( str_new, str );
+    REAL_NUM_STRINGS += 1;
     return str_new;
 }
 
@@ -4095,6 +4098,7 @@ void free_string( char *pstr )
         return;
     
     free_mem( pstr, strlen(pstr) + 1 );
+    REAL_NUM_STRINGS -= 1;
     return;
 }
 
@@ -4263,6 +4267,8 @@ void do_memory( CHAR_DATA *ch, char *argument )
     sprintf( buf, "Perms   %5d blocks  of %7d bytes.\n\r",
         nAllocPerm, sAllocPerm );
     send_to_char( buf, ch );
+    sprintf( buf, "REAL_NUM_STRINGS    %d\n\r",REAL_NUM_STRINGS);
+    send_to_char( buf, ch);
     
     return;
 }
@@ -5015,6 +5021,7 @@ void log_error( const char *str )
 void cheat_log( const char *str )
 {
     FILE *fp;
+    char ts[MSL];
 
     fclose(fpReserve);
     fp = fopen (CHEAT_LIST, "a");
@@ -5027,7 +5034,12 @@ void cheat_log( const char *str )
     }
     
     /* this is the main thing ;) */
-    fprintf( fp, "%s\n", str );
+    //fprintf( fp, "%s\n", str );
+
+    /* have to add the EOL to timestamp or it won't have one, weird */
+    strcpy( ts, ctime(&current_time));
+    ts[strlen(ts)-1] = '\0';
+    fprintf( fp, "%s::%s\n",ts, str );
 
     fclose (fp);
     fpReserve = fopen( NULL_FILE, "r" );    

@@ -1231,7 +1231,7 @@ void do_hogtie(CHAR_DATA *ch, char *argument )
     }
     else
     {
-        send_to_char ("Your wily opponent evades your attempts to hogtie.\n\r.", ch);
+        send_to_char ("Your wily opponent evades your attempts to hogtie.\n\r", ch);
         act("$n attempts to hogtie you, but you twist out of the way.",ch,NULL,victim,TO_VICT);
         check_improve(ch,gsn_hogtie,FALSE,2);
         WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
@@ -3836,6 +3836,8 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
     else
     {
         act("You try to wring $N's neck but fail.",ch,NULL,victim,TO_CHAR);
+        /*fail starts fight too -Vodur*/
+        damage(ch,victim,0,gsn_choke_hold,DAM_NONE,FALSE);
         
         WAIT_STATE(ch,skill_table[gsn_choke_hold].beats*2/3);
         check_improve(ch,gsn_choke_hold,FALSE,1);
