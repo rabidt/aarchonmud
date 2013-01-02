@@ -213,6 +213,9 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
     COMM_HISTORY * history;    
     char buf[MSL];
 
+    if IS_NPC(ch)
+      return;
+
     /* Assign the correct history based on which channel.
     All public channels using public_history, immtalk uses
     immtalk history, etc. */
@@ -389,4 +392,5 @@ void do_playback(CHAR_DATA *ch, char * argument)
         pos = (pos == MAX_COMM_HISTORY-1)?0:pos+1;
     }
     page_to_char(buf_string(output),ch);
+    free_buf(output);
 }

@@ -21,3 +21,9 @@
 - Added 'printlist' command for lvl 110 which tracks status of mf lists (player_save_list, box_mf_list, player_quit_list).
 - Check for storage box in char_from_room put inside if(!IS_NPC) bracket to avoid crashes in case a mob sneaks in somehow.
 - container full message when using put all.
+12/22/2012 Vodur
+- ".f" (format) updated to use 1 space after periods instead of two.
+- Fixed a memory leak in playback (free_buf)
+- Added NPC check for logchan, otherwise crash for NPC comms 
+1/2/13 Vodur
+- Fix for quest rewards (normal and hard).
