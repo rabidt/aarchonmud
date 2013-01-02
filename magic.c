@@ -2828,6 +2828,7 @@ void spell_enchant_arrow( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     /* give new name according to type */
     free_string( obj->name );
     free_string( obj->short_descr );
+    free_string( obj->description  );
     switch ( type )
     {
     default:
@@ -3545,9 +3546,25 @@ void spell_heal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
     victim->hit = UMIN( victim->hit + heal, victim->max_hit );
     update_pos( victim );
-    send_to_char( "A warm feeling fills your body.\n\r", victim );
+    /*send_to_char( "A warm feeling fills your body.\n\r", victim );
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
++       printf_to_char( ch, "You heal %s.", PERS(victim) );
++       if (victim->hit >= victim->max_hit)
++          printf_to_char(ch, "%s is at full health.",PERS(victim));
++*/
+    if ( victim->max_hit <= victim->hit )
+    {
+        send_to_char( "You feel excellent!\n\r", victim );
+        if ( ch != victim )
+            act( "$E is fully healed.", ch, NULL, victim, TO_CHAR );
+    }
+    else
+    {
+        send_to_char( "A warm feeling fills your body.\n\r", victim );
+        if ( ch != victim )
+            act( "You heal $E.", ch, NULL, victim, TO_CHAR );
+    }
     return;
 }
 
@@ -4644,12 +4661,25 @@ void spell_refresh( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int heal = get_sn_heal( sn, level, ch, victim );
     victim->move = UMIN( victim->move + heal, victim->max_move );
-    if (victim->max_move == victim->move)
+    /*if (victim->max_move == victim->move)
         send_to_char("You feel fully refreshed!\n\r",victim);
     else
         send_to_char( "You feel less tired.\n\r", victim );
     if ( ch != victim )
-        act( "$N sighs in relief.", ch, NULL,victim,TO_CHAR );
+        act( "$N sighs in relief.", ch, NULL,victim,TO_CHAR );*/
+    if ( victim->max_move <= victim->move )
+    {
+        send_to_char( "You feel fully refreshed!\n\r", victim );
+        if ( ch != victim )
+            act( "$E is fully refreshed.", ch, NULL, victim, TO_CHAR );
+    }
+    else
+    {
+        send_to_char( "You feel less tired!\n\r", victim );
+        if ( ch != victim )
+            act( "You refresh $E.", ch, NULL, victim, TO_CHAR );
+    }
+
     return;
 }
 

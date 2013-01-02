@@ -213,8 +213,6 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
     COMM_HISTORY * history;    
     char buf[MSL];
 
-    if IS_NPC(ch)
-      return;
 
     /* Assign the correct history based on which channel.
     All public channels using public_history, immtalk uses
@@ -233,13 +231,9 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
     }
 
     /* Free all the strings before we overwrite an entry */
-    if (ENTRY[POSITION].text != NULL)
      free_string(ENTRY[POSITION].text);
-    if (ENTRY[POSITION].timestamp != NULL)
      free_string(ENTRY[POSITION].timestamp);
-    if (ENTRY[POSITION].name != NULL)
      free_string(ENTRY[POSITION].name);
-    if (ENTRY[POSITION].mimic_name != NULL)
      free_string(ENTRY[POSITION].mimic_name);
 
 
@@ -249,7 +243,12 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
     ENTRY[POSITION].timestamp= str_dup(ctime( &current_time ));
     //have to add the EOL to timestamp or it won't have one, weird
     ENTRY[POSITION].timestamp[strlen(ENTRY[POSITION].timestamp)-1] = '\0';
-    sprintf(buf,"%s%s", ch->pcdata->pre_title, ch->name);
+
+    if (!IS_NPC(ch))
+      sprintf(buf,"%s%s",/*ch->pcdata->name_color,*/ ch->pcdata->pre_title,ch->name);
+    else
+      sprintf(buf,"%s",ch->short_descr);
+
     ENTRY[POSITION].name = str_dup(buf);
     //check visibility
     ENTRY[POSITION].invis=(IS_AFFECTED(ch, AFF_ASTRAL) || IS_AFFECTED(ch, AFF_INVISIBLE) || IS_WIZI(ch) || room_is_dark( ch->in_room));
@@ -259,7 +258,7 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
         MOB_INDEX_DATA *mimic;
 	mimic = get_mimic(ch);
         if (mimic != NULL)
-         ENTRY[POSITION].mimic_name = strdup(mimic->short_descr);
+         ENTRY[POSITION].mimic_name = str_dup(mimic->short_descr);
     }
     else 
      ENTRY[POSITION].mimic_name = NULL;
@@ -305,6 +304,23 @@ void do_playback(CHAR_DATA *ch, char * argument)
             pos += MAX_COMM_HISTORY-arg_number;
 	}
     }
+    else if (!strcmp(arg, "clear") && !IS_NPC(ch))
+    {
+       history = &public_history;
+       if (get_trust(ch) == IMPLEMENTOR)
+       {
+       /*delete latest comm, decrement position*/
+
+         POSITION -= 1;
+          if (POSITION < 0)
+          POSITION = MAX_COMM_HISTORY -1;
+         free_string(ENTRY[POSITION].timestamp);
+         ENTRY[POSITION].timestamp = NULL;
+         /*NULL timestamp means can't display*/
+       }
+        pos= POSITION;
+        pos += MAX_COMM_HISTORY - DEFAULT_RESULTS;
+    }
     else if (!strcmp(arg,"imm") && IS_IMMORTAL(ch))
     {
 	history = &immtalk_history;
@@ -312,6 +328,22 @@ void do_playback(CHAR_DATA *ch, char * argument)
 	argument = one_argument(argument,arg);
 	if ( arg[0] == '\0')
 	 pos += MAX_COMM_HISTORY - DEFAULT_RESULTS;
+        else if (!strcmp(arg, "clear") && !IS_NPC(ch))
+        {
+           /*level 110?*/
+            if (get_trust(ch) == IMPLEMENTOR)
+            {
+                /*delete latest comm, decrement position*/
+                POSITION -= 1;
+                 if (POSITION < 0)
+                     POSITION = MAX_COMM_HISTORY -1;
+                free_string(ENTRY[POSITION].timestamp);
+                ENTRY[POSITION].timestamp = NULL;
+                /*no timestamp means won't display*/
+            }
+            pos= POSITION;
+            pos += MAX_COMM_HISTORY - DEFAULT_RESULTS;
+        }
 	else if (is_number(arg))
 	{
 	    arg_number = atoi(arg);
@@ -332,6 +364,22 @@ void do_playback(CHAR_DATA *ch, char * argument)
         argument = one_argument(argument,arg);
         if ( arg[0] == '\0')
          pos += MAX_COMM_HISTORY - DEFAULT_RESULTS;
+        else if (!strcmp(arg, "clear") && !IS_NPC(ch))
+        {
+            /*level 110?*/
+            if (get_trust(ch) == IMPLEMENTOR)
+            {
+                /*delete latest comm, decrement position*/
+                POSITION -= 1;
+                if (POSITION < 0)
+                    POSITION = MAX_COMM_HISTORY -1;
+               free_string(ENTRY[POSITION].timestamp);
+               ENTRY[POSITION].timestamp=NULL;
+               /*no timestamp means won't display*/
+           }
+            pos= POSITION;
+            pos += MAX_COMM_HISTORY - DEFAULT_RESULTS;
+        }
         else if (is_number(arg))
         {
             arg_number = atoi(arg);

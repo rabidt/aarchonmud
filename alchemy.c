@@ -338,7 +338,79 @@ void do_brew( CHAR_DATA *ch, char *argument )
     }
     else
     {
-	send_to_char( "Hmm.. seems something went wrong.\n\r", ch );
+	//send_to_char( "Hmm.. seems something went wrong.\n\r", ch );
+       /*Lots of stuff can go wrong with failed potions...*/
+
+       switch (number_range(1,8))
+       {
+           case 1:
+               act("Hair begins to grow from your eyeballs...guess the potion backfired.",ch,NULL,NULL,TO_CHAR);
+               act("Hair begins to grow from $n's eyeballs...guess the potion backfired.",ch,NULL,NULL,TO_ROOM);
+               break;
+           case 2:
+               act("{RBACKFIRE!!!!{x No, really, your back is on {RFIRE{x...guess that potion fizzled.",ch,NULL,NULL,TO_CHAR);
+               act("{RBACKFIRE!!!!{x No, really, $n's back is on {RFIRE{x...guess that potion fizzled.",ch,NULL,NULL,TO_ROOM);
+               break;
+           case 3:
+               act("You drop a potion on your foot and scream as it singes your toes!",ch,NULL,NULL,TO_CHAR);
+               act("$n drops a potion on $s foot and screams as it singes $s toes.",ch,NULL,NULL,TO_ROOM);
+               break;
+           case 4:
+               act("You blink in bewilderment as a potion explodes and envelopes your face in black smoke.",ch, NULL, NULL, TO_CHAR);
+               act("$n blinks in bewilderment as a potion explodes and envelopes $s face in black smoke.",ch,NULL,NULL,TO_ROOM);
+               spell_blindness(gsn_blindness, 8, ch, (void *) ch,TARGET_CHAR);
+               break;
+           case 5:
+               i = find_spell(ch,"change sex");
+               if ( is_affected( ch, i ))
+               {
+                    send_to_char("You've already been changed.\n\r",ch);
+                   return;
+               }
+               AFFECT_DATA af;
+               af.where     = TO_AFFECTS;
+               af.type      = i;
+               af.level     = 50;
+               af.duration  = 2;
+               af.location  = APPLY_SEX;
+               do
+               {
+                   af.modifier  = number_range( 0, 2 ) - ch->sex;
+               }
+               while ( af.modifier == 0 );
+               af.bitvector = 0;
+               /* affect_to_char( victim, &af ); moved */
+                       //send_to_char( "You feel different.\n\r", victim );
+               //act("$n doesn't look like $mself anymore...",victim,NULL,NULL,TO_ROOM);
+               affect_to_char( ch, &af ); /* moved */
+
+
+
+               act("Your plans for the evening have changed as has your sex. More alraune maybe?", ch, NULL, NULL, TO_CHAR);
+//             spell_change_sex( 82, 50, ch, *(ch), TAR_CHAR_NEUTRAL);
+
+               act("$n's plans for the night have changed along with $s sex. More alraune maybe?", ch, NULL, NULL, TO_ROOM);
+
+               break;
+
+           case 6:
+               act("POOF! Your potion disappears in a flash of light, leaving a {Rrose{x in its place!",ch,NULL,NULL, TO_CHAR);
+               act("POOF! $n's potion disappears in a flash of light, leaving a {Rrose{x in its place!", ch, NULL, NULL, TO_ROOM);
+               spell_create_rose( 0, 50, ch, NULL, 0);
+               break;
+
+           case 7:
+               act("This one doesn't taste quite right...Improvising with guano wasn't your best idea.",ch,NULL,NULL, TO_CHAR);
+               act("$n takes a sip of $s potion and begins to vomit...Improvising with guano wasn't $s best idea.",ch,NULL,NULL,TO_ROOM);
+               break;
+           case 8:
+               act("As you awake you remember that \"Shaken, not stirred\" applies to Martinis only.",ch,NULL,NULL,TO_CHAR);
+               act("As $n awakes next to $s failed potion mutterng something about \"shaken not stirred.\"",ch,NULL,NULL,TO_ROOM);
+
+
+
+
+       }
 	check_improve( ch, gsn_alchemy, FALSE, 1 );
 	return;
     }

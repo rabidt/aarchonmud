@@ -112,7 +112,10 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
                 ||   pexit->u1.to_room == NULL
                 ||   IS_SET(pexit->exit_info, EX_CLOSED)
                 || ( IS_NPC(ch)
-                &&   IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB) ) )
+                &&   IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB) 
+        /* Check added so that mobs can't flee into a safe room. Causes problems
+           with resets, quests, and leveling - Astark Dec 2012 */
+                ||   IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE) ) ) 
                 continue;
             door=d;
             break;
@@ -1373,7 +1376,7 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 
     if (!IS_NPC(victim))
     {
-	send_to_char("That being is completely unpredicatable.\n\r",ch); 
+	send_to_char("That being is completely unpredictable.\n\r",ch); 
 	return;
     }
    
@@ -1385,7 +1388,7 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 
     if ( (ch->level + chance) < victim->level )
     {
-	sprintf( buf, "%s is too powerful for you to identify." , victim->short_descr);
+	sprintf( buf, "%s is too powerful for you to identify.\n\r" , victim->short_descr);
 	send_to_char(buf, ch);
 	return;
     }

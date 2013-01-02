@@ -111,8 +111,6 @@ char *  format_obj_to_char  args( ( OBJ_DATA *obj, CHAR_DATA *ch,
                                  bool fShort ) );
 void    show_list_to_char   args( ( OBJ_DATA *list, CHAR_DATA *ch,
                                  bool fShort, bool fShowNothing ) );
-void    show_list_to_char_new   args( ( OBJ_DATA *list, CHAR_DATA *ch,
-                                 bool fShort, bool fShowNothing , bool showCount) );
 void    show_char_to_char_0 args( ( CHAR_DATA *victim, CHAR_DATA *ch ) );
 void    show_char_to_char_1 args( ( CHAR_DATA *victim, CHAR_DATA *ch, bool glance ) );
 void    show_char_to_char   args( ( CHAR_DATA *list, CHAR_DATA *ch ) );
@@ -164,13 +162,6 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
 */
 
 void show_list_to_char( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fShowNothing )
-{
-    show_list_to_char_new( list, ch, fShort, fShowNothing, FALSE);
-}
-    
-
-
-void show_list_to_char_new( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fShowNothing, bool showCount )
 {
     char buf[MAX_STRING_LENGTH];
     BUFFER *output;
@@ -274,8 +265,6 @@ void show_list_to_char_new( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fSh
     }
     page_to_char(buf_string(output),ch);
 
-    if ( showCount)
-      printf_to_char(ch, "%d items.", count);
     
     /*
     * Clean up.
@@ -1769,8 +1758,14 @@ void do_look( CHAR_DATA *ch, char *argument )
             }
             
             act( "$p holds:", ch, obj, NULL, TO_CHAR );
-            show_list_to_char_new( obj->contains, ch, TRUE, TRUE,
-	    (obj->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX )?TRUE:FALSE);
+            show_list_to_char( obj->contains, ch, TRUE, TRUE );
+            /* Show item count in storage boxes*/
+            if (obj->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
+            {
+                sh_int num_items=get_obj_number(obj);
+                printf_to_char(ch,"\n\r%d %s.\n\r",num_items,
+                        num_items==1?"item":"items");
+            }
             break;
         }
         return;

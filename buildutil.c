@@ -2123,7 +2123,7 @@ void do_mset( CHAR_DATA *ch, char *argument )
                     return;
                 }
                 
-                victim->hunting = strdup(hunted->name);
+                victim->hunting = str_dup(hunted->name);
                 return;
         }
         

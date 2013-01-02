@@ -140,6 +140,7 @@ extern  int malloc_debug    args( ( int  ) );
 extern  int malloc_verify   args( ( void ) );
 #endif
 
+extern int REAL_NUM_STRINGS;
 
 
 /*
@@ -477,7 +478,7 @@ int main( int argc, char **argv )
 	/*
 	* Get the port number.
 	*/
-	port = 7001;
+	port = 7100;
 	ftpport = port + 6;
 
 	if ( argc > 1 )

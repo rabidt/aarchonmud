@@ -2663,10 +2663,11 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                         obj->value[1] = 0;
 		    }
 
-		    if (storage_box != NULL)
-		        obj_to_obj( obj, storage_box);
-                    else if ( iNest == 0 || rgObjNest[iNest-1] == NULL )
-                        obj_to_char( obj, ch );
+                    if ( iNest == 0 || rgObjNest[iNest-1] == NULL )
+                       if (storage_box != NULL)
+                           obj_to_obj( obj, storage_box);
+                       else
+                            obj_to_char( obj, ch );
                     else
                         obj_to_obj( obj, rgObjNest[iNest-1] );
                     return;

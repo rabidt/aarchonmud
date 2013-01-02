@@ -40,22 +40,47 @@ struct remort_chamber
 #define R3  4
 #define R4  8
 #define R5  16
+#define R6  32 // Astark added 12-21-12. Testing.
+#define R7  64 // Astark added 12-21-12. Testing.
+#define R8  128 // Astark added 12-22-12. Testing.
 
-#define MAX_CHAMBER 15
+/* Changed this from 15 to 16 to accommodate remort 7. We'll likely
+   need to up it again when we start testing remort 8 - Astark 12-21-12 */
+#define MAX_CHAMBER 20
+
 const struct remort_chamber chambers[] =
 {
-    {"Remort: Eight Trials     ",	 6600, R1+R2, FALSE},
-    {"Remort: Eight Trials     ",	 6650, R1+R2, TRUE},
-    {"Remort: Afterlife        ",	 6800, R3+R4, FALSE},
-    {"Remort: Afterlife        ",	22500, R3+R4, TRUE},
+    {"Remort: Eight Trials            ",   5350, R1+R2, FALSE},
+    {"Remort: Eight Trials            ",   6600, R1+R2, FALSE},
+    {"Remort: Eight Trials            ",   6650, R1+R2, TRUE},
+    {"Remort: Afterlife               ",   3000, R3+R4, FALSE},
+    {"Remort: Afterlife               ",   6800, R3+R4, FALSE},
+    {"Remort: Afterlife               ",  22500, R3+R4, TRUE},
+    {"Remort: Counterintuition        ",  13700,    R5, FALSE},
+    {"Remort: Counterintuition        ",  27300,    R5, FALSE},
+    {"Remort: Counterintuition        ",  27450,    R5, TRUE},
+    {"Remort: Lost Library            ",    101,    R6, FALSE},
+    {"Remort: Lost Library            ",  16700,    R6, FALSE},
+    {"Remort: Lost Library            ",  24451,    R6, TRUE},
+ /* Note that the starting vnums for remort 7 is not the first vnum for the
+    area. This is because the zone was built with mapmaker, and it somehow
+    assigned a weird vnum to the first room */
+    {"Remort: Tribulations of Dakaria ",  31394,    R7, FALSE},
+    {"Remort: Tribulations of Dakaria ",   4694,    R7, FALSE},
+    {"Remort: Tribulations of Dakaria ",   3444,    R7, FALSE},
+    {"Remort: Tribulations of Dakaria ",   3344,    R7, TRUE},
+    {"Remort: Urban Wasteland         ",   9000,    R8, FALSE},
+    {NULL,			0, 0}
+};
+
+/* These entries were previously in the table above. I've left them in tact
+   to use as a reference, however I've moved them so that the above table
+   is easier to read - Astark 12-21-12 */
     /*    
     {"Remort: Afterlife        ",	22600, R3+R4, FALSE},
     {"Remort: Afterlife        ",	22700, R3+R4, TRUE},
     {"Remort: Afterlife        ",	22800, R3+R4, TRUE},
     */
-    {"Remort: Counterintuition ",	13700, R5, FALSE},
-    {"Remort: Counterintuition ",	27300, R5, FALSE},
-    {"Remort: Counterintuition ",	27450, R5, TRUE},
     /*
     {"Remort: Counterintuition ",	27600, R5, FALSE},
     {"Remort: Counterintuition ",	27750, R5, FALSE},
@@ -63,8 +88,7 @@ const struct remort_chamber chambers[] =
     {"Remort: Counterintuition ",	28050, R5, TRUE},
     {"Remort: Counterintuition ",	28200, R5, TRUE},
     */
-    {NULL,			0, 0}
-};
+
 
 REMORT_TABLE *chamber_list[MAX_CHAMBER];
 REMORT_TABLE *wait_list;

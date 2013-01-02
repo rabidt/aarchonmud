@@ -727,38 +727,39 @@ void do_quest(CHAR_DATA *ch, char *argument)
             if (ch->pcdata->questpoints >= 100)
             {
                 ch->pcdata->questpoints -= 100;
-		/* section of gain_exp reproduced here in order to bypass
-		field exp -Vodur
+               /* section of gain_exp reproduced here in order to bypass
+               field exp -Vodur
                 gain_exp(ch, exp_per_level(ch, 50)/4);*/
-		int gain = 1+exp_per_level(ch, 50)/4;/* 1+ so whiners don't lose a couple of exp points per level  from rounding :)  -Vodur*/
-		ch->exp = UMAX( exp_per_level(ch,ch->pcdata->points), ch->exp + gain );
-		sprintf(buf, "You earn %d applied experience.\n\r", gain);
-          	send_to_char(buf,ch);
+               int gain = 1+exp_per_level(ch, 50)/4;/* 1+ so whiners don't lose a couple of exp points per level  from rounding :)  -Vodur*/
+               ch->exp = UMAX( exp_per_level(ch,ch->pcdata->points), ch->exp + gain );
+               sprintf(buf, "You earn %d applied experience.\n\r", gain);
+               send_to_char(buf,ch);
 
-   		if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch,ch->pcdata->points) * (ch->level+1)
-        	&& ch->level >= LEVEL_UNAUTHED )
-   		{
-       		    send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
-       		    ch->exp = (exp_per_level(ch, ch->pcdata->points) * (ch->level+1));
-       		    return;
-   		}
+               if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch,ch->pcdata->points) * (ch->level+1)
+               && ch->level >= LEVEL_UNAUTHED )
+               {
+                           send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
+                           ch->exp = (exp_per_level(ch, ch->pcdata->points) * (ch->level+1));
+                           return;
+               }
 
-   		while ( !IS_HERO(ch) && ch->exp >=
-          	    exp_per_level(ch,ch->pcdata->points) * (ch->level+1) )
-   		{
-          	    send_to_char( "You raise a level!!  ", ch );
-          	    ch->level += 1;
+               while ( !IS_HERO(ch) && ch->exp >=
+                   exp_per_level(ch,ch->pcdata->points) * (ch->level+1) )
+               {
+                   send_to_char( "You raise a level!!  ", ch );
+                   ch->level += 1;
 
-          	    sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
-          	    log_string(buf);
-          	    info_message(ch, buf, FALSE);
+                   sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
+                   log_string(buf);
+                   info_message(ch, buf, FALSE);
 
-          	    sprintf(buf,"$N has attained level %d!",ch->level);
-          	    wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
+                   sprintf(buf,"$N has attained level %d!",ch->level);
+                   wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
 
-          	    advance_level(ch,FALSE);
-		/*end of modified secion from gain_exp*/
-   		}
+                   advance_level(ch,FALSE);
+               /*end of modified secion from gain_exp*/
+               }
+
 		
                 act( "$N grants experience to $n.", ch, NULL, questman, TO_ROOM );
                 act( "$N grants you experience.",   ch, NULL, questman, TO_CHAR );
@@ -786,21 +787,21 @@ void do_quest(CHAR_DATA *ch, char *argument)
 
 	else if 
 	(!strcmp(arg2,"color") )
-    	{
-	    if (*argument == '\0')
-	    {
-		do_say(questman, "Use 'quest buy color list' to see your options.");
-	    }
-      	    else if (!IS_IMMORTAL(ch) &&(ch->pcdata->questpoints < 200) 
-		&& (strcmp(argument,"list") ) )
-	    {
-		sprintf(buf, "Sorry, %s, but you dont have enough quest points for that.",ch->name);
-        	do_say(questman,buf);
-      	    }
-	    else
-		color_name(ch,argument,ch);
+        {
+            if (*argument == '\0')
+            {
+                do_say(questman, "Use 'quest buy color list' to see your options.");
+            }
+            else if (!IS_IMMORTAL(ch) &&(ch->pcdata->questpoints < 200)
+                && (strcmp(argument,"list") ) )
+            {
+                sprintf(buf, "Sorry, %s, but you dont have enough quest points for that.",ch->name);
+                do_say(questman,buf);
+            }
+            else
+                color_name(ch,argument,ch);
             return;
-	}
+        }
         else if (!strcmp(arg2, "ptitle"))
 	{
 	    set_pre_title(ch,argument,ch);
