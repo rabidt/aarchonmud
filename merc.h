@@ -186,8 +186,15 @@ bool is_drop_obj( OBJ_DATA *obj );
 /*
  * String and memory management parameters.
  */
+
+/* 
+ * Increased MSL to 10000 from 4096.. allows us to see long pages of
+ * information like vlist obj in bastion, and grep obj world extra 
+ * remort. - Astark 1-3-13 
+ */
+
 #define MAX_KEY_HASH         1024
-#define MAX_STRING_LENGTH    7500
+#define MAX_STRING_LENGTH    10000
 #define MAX_INPUT_LENGTH      300
 #define PAGELEN                33
 #define MAX_MEM_LIST           16
@@ -1939,7 +1946,7 @@ struct  kill_data
 #define ROOM_NO_SCOUT       (E)
 #define ROOM_TATTOO_SHOP    (F)
 #define ROOM_NO_RANDOM      (G)
-
+#define ROOM_NO_QUEst 
 #define ROOM_PRIVATE        (J)
 #define ROOM_SAFE           (K)
 #define ROOM_SOLITARY       (L)
@@ -3081,7 +3088,7 @@ extern sh_int  gsn_sword;
 extern sh_int  gsn_whip;
 extern sh_int  gsn_fire_breath;
  
-extern sh_int  gsn_crafting;
+extern sh_int  gsn_craft;
 extern sh_int  gsn_crush;
 extern sh_int  gsn_bash;
 extern sh_int  gsn_berserk;
