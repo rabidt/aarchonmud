@@ -4930,13 +4930,13 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	},
 
 	{
-	"crafting",
+	"craft",
 	{ 102, 102, 102,  10, 102, 102, 102, 102, 102, 102, 102, 102, 102,  20, 102 },
 	{   0,   0,   0,   5,   0,   0,   0,   0,   0,   0,   0,   0,   0,   6,   0 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,  90, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_STANDING,
-	&gsn_crafting,       SLOT( 0),   0,  36,
+	&gsn_craft,       SLOT( 0),   0,  36,
 	"",         "!crafting!",        "", NULL
 	},
 

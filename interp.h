@@ -129,7 +129,7 @@ DECLARE_DO_FUN( do_consent  );
 DECLARE_DO_FUN( do_copyove  );
 DECLARE_DO_FUN( do_copyover );
 DECLARE_DO_FUN( do_count    );
-DECLARE_DO_FUN( do_crafting );
+DECLARE_DO_FUN( do_craft    );
 DECLARE_DO_FUN( do_crash    );
 DECLARE_DO_FUN( do_credits  );
 DECLARE_DO_FUN( do_crimelist);

@@ -132,7 +132,7 @@ void do_supplies( CHAR_DATA *ch, char *argument )
 /* Updated November 2012 - Includes a second argument so players can specifiy
 whether or not they want Physical or Mental stats - Astark */
 
-void do_crafting( CHAR_DATA *ch, char *argument )
+void do_craft( CHAR_DATA *ch, char *argument )
 {
     int i, j, skill, craft, type;
     char buf[MSL];
@@ -144,7 +144,7 @@ void do_crafting( CHAR_DATA *ch, char *argument )
     argument=one_argument(argument, arg1);
     argument=one_argument(argument, arg2);
 
-    if ( (skill = get_skill(ch, gsn_crafting)) == 0 )
+    if ( (skill = get_skill(ch, gsn_craft)) == 0 )
     {
 	send_to_char( "You should learn to craft before trying this.\n\r", ch );
 	return;
@@ -223,7 +223,7 @@ void do_crafting( CHAR_DATA *ch, char *argument )
 	    extract_obj( obj_on_char(ch,  crafting_table[craft].materials_vnum[j]) );
      
     /* Creates the crafted object */
-    WAIT_STATE( ch, skill_table[gsn_crafting].beats );
+    WAIT_STATE( ch, skill_table[gsn_craft].beats );
     if ( chance(skill) )
     {
 	crafting = create_object( get_obj_index(crafting_table[craft].crafting_vnum), 0 ); 
@@ -245,12 +245,12 @@ void do_crafting( CHAR_DATA *ch, char *argument )
 	obj_to_char( crafting, ch );
 	act( "You craft : $p.", ch, crafting, NULL, TO_CHAR );
 	act( "$n crafts : $p.", ch, crafting, NULL, TO_ROOM );
-	check_improve( ch, gsn_crafting, TRUE, 1 );
+	check_improve( ch, gsn_craft, TRUE, 1 );
     }
     else
     {
 	send_to_char( "Hmmm.. That didn't go as planned.\n\r", ch );
-	check_improve( ch, gsn_crafting, FALSE, 1 );
+	check_improve( ch, gsn_craft, FALSE, 1 );
 	return;
     }
 }
@@ -269,7 +269,7 @@ void do_extract( CHAR_DATA *ch, char *argument)
 
     one_argument( argument, arg );
 
-    if ( (skill = get_skill(ch, gsn_crafting)) == 0 )
+    if ( (skill = get_skill(ch, gsn_craft)) == 0 )
     {
 	send_to_char( "You need to learn crafting before you can extract anything.\n\r", ch );
 	return;
@@ -462,19 +462,19 @@ void do_extract( CHAR_DATA *ch, char *argument)
     extracted = material;
     extract_obj( obj );
 
-    WAIT_STATE( ch, skill_table[gsn_crafting].beats );
+    WAIT_STATE( ch, skill_table[gsn_craft].beats );
     if ( chance(skill-5) )
     {
         sprintf(buf, "%s vanishses as you extract %s from it.\n\r", obj->short_descr, extracted->short_descr);
         send_to_char(buf,ch);
         act( "$n extracts $p from $P.", ch, extracted, obj, TO_ROOM );
         obj_to_char(material, ch);
-	check_improve( ch, gsn_crafting, TRUE, 1 );
+	check_improve( ch, gsn_craft, TRUE, 1 );
     }
     else
     {
 	send_to_char( "Hmmm.. That didn't go as planned..\n\r", ch );
-	check_improve( ch, gsn_crafting, FALSE, 1 );
+	check_improve( ch, gsn_craft, FALSE, 1 );
 	return;
     }
 

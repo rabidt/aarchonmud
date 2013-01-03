@@ -42,7 +42,7 @@ struct remort_chamber
 #define R5  16
 #define R6  32 // Astark added 12-21-12. Testing.
 #define R7  64 // Astark added 12-21-12. Testing.
-#define R8  128 // Astark added 12-22-12. Testing.
+// #define R8  128 // Astark added 12-22-12. Testing.
 
 /* Changed this from 15 to 16 to accommodate remort 7. We'll likely
    need to up it again when we start testing remort 8 - Astark 12-21-12 */
@@ -69,7 +69,7 @@ const struct remort_chamber chambers[] =
     {"Remort: Tribulations of Dakaria ",   4694,    R7, FALSE},
     {"Remort: Tribulations of Dakaria ",   3444,    R7, FALSE},
     {"Remort: Tribulations of Dakaria ",   3344,    R7, TRUE},
-    {"Remort: Urban Wasteland         ",   9000,    R8, FALSE},
+//    {"Remort: Urban Wasteland         ",   9000,    R8, FALSE},
     {NULL,			0, 0}
 };
 

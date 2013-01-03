@@ -266,7 +266,7 @@ sh_int  gsn_sword;
 sh_int  gsn_whip;
 
 sh_int  gsn_crush;
-sh_int  gsn_crafting;
+sh_int  gsn_craft;
 sh_int  gsn_bash;
 sh_int  gsn_beheading;
 sh_int  gsn_berserk;

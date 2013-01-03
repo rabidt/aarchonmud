@@ -247,7 +247,7 @@ const   struct  cmd_type    cmd_table   [] =
    /*
     * Object manipulation commands.
     */
-    { "craft",      do_crafting,    POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "craft",      do_craft,    POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "brandish",   do_brandish,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "close",      do_close,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "donate",     do_donate,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
