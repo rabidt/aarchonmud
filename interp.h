@@ -110,6 +110,7 @@ DECLARE_DO_FUN( do_buy      );
 DECLARE_DO_FUN( do_cast     );
 DECLARE_DO_FUN( do_channels );
 DECLARE_DO_FUN( do_charge   );
+DECLARE_DO_FUN( do_charloadtest);
 DECLARE_DO_FUN( do_cheatlog );
 DECLARE_DO_FUN( do_chop     );
 DECLARE_DO_FUN( do_clanwar  );
