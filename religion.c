@@ -1,4 +1,3 @@
-
 /* 
  * Religion Code
  * by Henning Koehler <koehlerh@in.tum.de>
@@ -2389,6 +2388,32 @@ void do_religion_set( CHAR_DATA *ch, char *argument )
 	rel->guard_vnum = value1;
 	send_to_char( "Temple Guard set.\n\r", ch );
     }
+  /* IMPs can set value to religion power. Primarily for testing
+     purposes - Astark 12-23-12 */
+    else if ( !strcmp(arg1, "power") )
+    {
+        if ( ch->level < MAX_LEVEL )
+        {
+            send_to_char( "This action is reserved for implementors", ch );
+        }
+        else
+       {
+	if ( !is_number(arg2) )
+	{
+	    send_to_char( "Syntax: power <value>\n\r", ch );
+	    return;	    
+	}
+	value1 = atoi(arg2);
+	if ( rel->god_power != NULL )
+	{
+	    send_to_char( "That religion doesn't exist.\n\r", ch );
+	    return;
+	}
+	/* set it */
+	rel->god_power = value1;
+	send_to_char( "Power set.\n\r", ch );
+       }
+    }
     else if ( !strcmp(arg1, "relic") )
     {
 	if ( !is_number(arg2) )
@@ -2424,6 +2449,8 @@ void do_religion_set( CHAR_DATA *ch, char *argument )
 	send_to_char( "Syntax: align <min_align> <max_align>\n\r", ch );
 	send_to_char( "        altar <vnum>\n\r", ch );
 	send_to_char( "        guard <vnum>\n\r", ch );
+    /* Added power field - Astark 12-23-12 */
+        send_to_char( "        power <value>\n\r", ch );
 	send_to_char( "        relic <vnum>\n\r", ch );
 	send_to_char( "        conserve <cutoff value for prayer granting>\n\r", ch );
     }
@@ -2458,6 +2485,7 @@ bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
 bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
 bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
 bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
+bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
 bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
 bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
 bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
@@ -2474,6 +2502,7 @@ GOD_ACTION god_table[] =
     { "heal",      3, &god_heal,	"heals over time", 		FALSE },
     { "enlighten", 3, &god_enlighten,	"improved exp gain and learning", FALSE },
     { "protect",   3, &god_protect,	"improved AC and protection from magic", FALSE },
+    { "fortune",   3, &god_fortune,     "improved CHA, LUC, and gold from mobs", FALSE },
     { "haunt",     4, &god_haunt,	"send ghosts to haunt",		TRUE },
     { "cleanse",   5, &god_cleanse,	"remove divine curses",		FALSE },
     { "defy",      5, &god_defy,	"remove divine blessings",	TRUE },
@@ -2940,6 +2969,46 @@ bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
         sprintf( buf, "%s protects you.\n\r", god_name );
+	send_to_char( buf, victim );
+    }
+
+    return TRUE;
+}
+
+bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+{
+    AFFECT_DATA af;
+    char buf[MSL];
+
+    if ( is_affected(victim, gsn_god_bless) )
+    {
+	act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
+	return FALSE;
+    }
+
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_god_bless;
+    af.level     = 100;
+    af.duration  = 100;
+    af.location  = APPLY_CHA;
+    af.modifier  = 50;
+    af.bitvector = AFF_FORTUNE;
+    affect_to_char( victim, &af );
+    af.location  = APPLY_LUC;
+    af.modifier  = 50;
+    affect_to_char( victim, &af );
+    
+    /* When called through auto-granting, there is no ch */
+    if( ch != NULL )
+    {
+    act( "You enlighten $N.", ch, NULL, victim, TO_CHAR );
+    act( "$N enlightens you.", victim, NULL, ch, TO_CHAR );
+    }
+    else
+    {
+	if( god_name[0] == '\0' )
+	    god_name = "Rimbol";
+        sprintf( buf, "%s grants you good fortune.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 

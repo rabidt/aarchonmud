@@ -4769,12 +4769,13 @@ void do_score( CHAR_DATA *ch, char *argument )
     *       int x = get_curr_stat(ch,STAT_DIS)/16; */
 
             int x1 = get_curr_stat(ch,class_table[ch->class].attr_prime)/30;
-            int x2 = get_curr_stat(ch,class_table[ch->class].attr_second[1])/45;
-            int x3 = get_curr_stat(ch,class_table[ch->class].attr_second[2])/45;
+            int x2 = get_curr_stat(ch,class_table[ch->class].attr_second[0])/45;
+            int x3 = get_curr_stat(ch,class_table[ch->class].attr_second[1])/45;
             int x = x1+x2+x3;
             int bonus = 1;
             if( ch->level >= (LEVEL_HERO-10) )  bonus += ch->level + 1 - (LEVEL_HERO-10);
             sprintf( temp, "{c(Expect to gain about{x %d {cnext level.)", x*bonus ); 
+            sprintf( temp, "x1=%d x2=%d x3=%d x=%d", x1,x2,x3,x);
         }
         else sprintf( temp, "" );
 

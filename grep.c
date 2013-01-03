@@ -1375,6 +1375,10 @@ int get_obj_index_ops( OBJ_INDEX_DATA *obj )
 	    sum += 5;
 	if ( I_IS_SET(obj->value[4], WEAPON_PUNCTURE) )
 	    sum += 5;
+	if ( I_IS_SET(obj->value[4], WEAPON_PARALYSIS_POISON) )
+	    sum += 5;
+	if ( I_IS_SET(obj->value[4], WEAPON_STORMING) )
+	    sum += 15;
     }
 
     return (int) (sum);

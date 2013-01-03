@@ -284,9 +284,26 @@ int ch_int_learn(CHAR_DATA *ch)
     return (int_app_learn(get_curr_stat(ch, STAT_INT)));
 };
 
+/* Leaving this in tact, although it should not be called
+   by any code any longer. Practices are now calculated by
+   primary and secondary stats instead of just DIS - Astark 1-2-13 */
+
 int ch_dis_practice(CHAR_DATA *ch)
 {
     return (dis_app_practice(get_curr_stat(ch, STAT_DIS)));
+};
+
+
+/* New function for pracitce calculations. Uses prime and secondary
+   stats to determine the gains - Astark 1-2-13 */
+
+int ch_prac_gains(CHAR_DATA *ch)
+{
+    int x1 = get_curr_stat(ch,class_table[ch->class].attr_prime)/30;
+    int x2 = get_curr_stat(ch,class_table[ch->class].attr_second[0])/45;
+    int x3 = get_curr_stat(ch,class_table[ch->class].attr_second[1])/45;
+    int x = x1+x2+x3;
+    return x;
 };
 
 int ch_agi_defensive(CHAR_DATA *ch)

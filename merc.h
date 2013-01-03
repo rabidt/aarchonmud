@@ -1544,6 +1544,7 @@ struct  kill_data
 #define AFF_HALLOW            74
 #define AFF_MINOR_FADE        75
 #define AFF_REPLENISH         76
+#define AFF_FORTUNE           77
 
 
 /*
@@ -1737,6 +1738,7 @@ struct  kill_data
 #define ITEM_REMORT	    (dd)
 #define ITEM_TRAPPED        (ee)
 #define ITEM_EASY_DROP      (ff)
+#define ITEM_NO_EXTRACT      34
 
 /* class restriction flags */
 #define ITEM_ALLOW_WARRIOR        100
@@ -1764,7 +1766,6 @@ struct  kill_data
 #define ITEM_CLASS_GUNSLINGER     120
 #define ITEM_CLASS_RANGER         121
 #define ITEM_CLASS_NECROMANCER    122
-#define ITEM_NO_EXTRACT           123
 
 /*
  * Wear flags.
@@ -1816,6 +1817,7 @@ struct  kill_data
 #define WEAPON_DUMB         (K)
 #define WEAPON_PUNCTURE     (L)  
 #define WEAPON_PARALYSIS_POISON (M)
+#define WEAPON_STORMING     (N)
 
 /* gate flags */
 #define GATE_NORMAL_EXIT    (A)
@@ -4345,6 +4347,7 @@ int ch_str_carry        args( (CHAR_DATA *ch) );
 int ch_str_wield        args( (CHAR_DATA *ch) );
 int ch_int_learn        args( (CHAR_DATA *ch) );
 int ch_dis_practice args( (CHAR_DATA *ch) );
+int ch_prac_gains       args( (CHAR_DATA *ch) );
 int ch_agi_defensive    args( (CHAR_DATA *ch) );
 int ch_dex_extrahit args( (CHAR_DATA *ch) );
 int ch_con_shock        args( (CHAR_DATA *ch) );

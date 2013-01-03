@@ -3859,12 +3859,8 @@ void spell_basic_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     char buf[MAX_STRING_LENGTH];
     int mlevel, mhp, chance;
     int charmed, max;
-    
-    send_to_char( "You summon a ghostly apparition to help you out!\n\r", ch );
-    act( "$n summons a ghostly apparation.", ch, NULL, NULL, TO_ROOM );
-    
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) 
-	|| IS_SET(ch->in_room->room_flags,ROOM_LAW))
+     
+    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE))
     {
         send_to_char("You can't do that here.\n\r",ch);
         return;
@@ -3882,10 +3878,6 @@ void spell_basic_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targ
 	return;
     }
     
-    /* Check number of charmees against cha*/ 
-    if ( !check_cha_follow(ch) )
-	return;
-    
     chance = (get_curr_stat(ch, STAT_LUC));
     
     if ( number_percent() > chance ) 
@@ -3896,6 +3888,9 @@ void spell_basic_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_BASIC_APPARITION)))==NULL) 
         return;
+
+    send_to_char( "You summon a ghostly apparition to help you out!\n\r", ch );
+    act( "$n summons a ghostly apparation.", ch, NULL, NULL, TO_ROOM );
     
     if (get_skill(ch,gsn_basic_apparition) >= 95)
         set_mob_level( mob, ((ch->level/3*2)+5) );
@@ -3909,8 +3904,6 @@ void spell_basic_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     
     char_to_room( mob, ch->in_room );
     
-    send_to_char( "Your apparition is here.\n\r", ch );
-    act( "$n's apparition fades into existence!", ch, NULL, NULL, TO_ROOM );
     add_follower( mob, ch );
     mob->leader = ch;
     af.where     = TO_AFFECTS;
@@ -3937,8 +3930,7 @@ void spell_holy_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targe
     int mlevel, mhp, chance;
     int charmed, max;
       
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) 
-	|| IS_SET(ch->in_room->room_flags,ROOM_LAW))
+    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE))
     {
         send_to_char("You can't do that here.\n\r",ch);
         return;
@@ -3961,13 +3953,6 @@ void spell_holy_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targe
 	send_to_char("You aren't holy enough for that.\n\r",ch);
         return;
     }
-
-    send_to_char( "You summon a holy apparition to help you out!\n\r", ch );
-    act( "$n summons a holy apparation.", ch, NULL, NULL, TO_ROOM );
-    
-    /* Check number of charmees against cha*/ 
-    if ( !check_cha_follow(ch) )
-	return;
     
     chance = (get_curr_stat(ch, STAT_LUC));
     
@@ -3979,6 +3964,9 @@ void spell_holy_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targe
     
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_HOLY_APPARITION)))==NULL) 
         return;
+
+    send_to_char( "You summon a holy apparition to help you out!\n\r", ch );
+    act( "$n summons a holy apparation.", ch, NULL, NULL, TO_ROOM );
     
     if (get_skill(ch,gsn_basic_apparition) >= 95)
         set_mob_level( mob, ((ch->level*4/5)+5) );
@@ -3992,7 +3980,6 @@ void spell_holy_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targe
     
     char_to_room( mob, ch->in_room );
     
-    act( "$n's apparition fades into existence!", ch, NULL, NULL, TO_ROOM );
     add_follower( mob, ch );
     mob->leader = ch;
     af.where     = TO_AFFECTS;

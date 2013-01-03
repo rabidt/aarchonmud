@@ -289,11 +289,14 @@ void do_extract( CHAR_DATA *ch, char *argument)
 
     obj = get_obj_carry(ch, arg, ch);
 
-    if (is_sticky_obj(obj))
-    {
-        send_to_char("You can't extract materials from sticky items.\n\r",ch);
-        return;
-    }
+ /* We should allow sticky items to be extracted, as many of them are worthless
+    depending on the players' class. No_extract now working - Astark 12-23-12 
+    if (is_sticky_obj(obj)) */
+    if (IS_SET(obj->extra_flags, ITEM_NO_EXTRACT))
+     {
+         send_to_char("You can't extract materials from that item.\n\r",ch);
+         return;
+     }
    
     /* Only weapons and armor can be extracted */
     if ( obj->item_type != ITEM_ARMOR && obj->item_type != ITEM_WEAPON )

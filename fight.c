@@ -2275,6 +2275,27 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 		victim,wield,NULL,TO_CHAR, GAG_WFLAG);
     }
 
+  /* New weapon flag added by Astark 12-28-12. Chance to cast 3 different
+     spells with each hit.. low chance. Heavy damage */
+    if ( IS_WEAPON_STAT(wield,WEAPON_STORMING))
+    {
+        int level = wield->level;
+        dam = number_range(10 + wield->level*3/4, 10 + wield->level*4/3);
+        if (!number_bits(4))
+   	    full_dam(ch,victim,dam,gsn_lightning_bolt, DAM_LIGHTNING, TRUE);
+
+        if (!number_bits(4))
+            full_dam(ch,victim,dam,gsn_meteor_swarm, DAM_FIRE, TRUE);
+
+        if (!number_bits(4))
+            full_dam(ch,victim,dam,gsn_monsoon, DAM_DROWNING, TRUE);
+
+        CHECK_RETURN( ch, victim);
+    }
+
+
+
+
     /* remove temporary weapon flags 
      * also solves problem with old weapons with different flags
      */
@@ -4406,9 +4427,22 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         
         if ( victim->gold > 0 || victim->silver > 0 )
         {
-            obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
-            victim->gold = 0;
-            victim->silver = 0;
+
+         /* Added a check for the fortune bit. This is assigned by the new god_fortune
+            blessing, and increases gold/silver drops by 50% - Astark 12-23-12 */
+
+            if (IS_AFFECTED(killer, AFF_FORTUNE))
+            {
+                obj_to_obj( create_money( victim->gold*3/2, victim->silver*3/2 ), corpse );
+                victim->gold = 0;
+                victim->silver = 0;
+            }
+            else
+            {
+                obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
+                victim->gold = 0;
+                victim->silver = 0;
+            }
         }
         corpse->cost = 0;
     }
@@ -4513,10 +4547,14 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         
         /* Logs all EQ that goes to corpses for easier and more accurate
            reimbursing. - Astark Oct 2012 */
-        sprintf( buf, "%s died in room %d. EQ To Corpse = %d", victim->name, 
-            victim->in_room->vnum, obj->pIndexData->vnum );
-	log_string( buf );
-        
+
+        if (!IS_NPC(victim))
+        {
+            sprintf( buf, "%s died in room %d. EQ To Corpse = %d", victim->name, 
+                victim->in_room->vnum, obj->pIndexData->vnum );
+    	    log_string( buf );
+        }
+
 	/* extract sticky eq from of container */
 	if ( !IS_NPC(victim) )
 	    extract_char_obj( victim, &is_sticky_obj, TO_CHAR, obj );
@@ -5248,10 +5286,10 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
     if (gch->level > 60 )
         xp =  40 * xp / (gch->level - 20 );
     if (gch->level > 90 )
-        xp= (3*xp)/(gch->level-87);
+        xp= (4*xp)/(gch->level-87);
 
 /* The above number, 4 x XP was changed from a 3. This gives more XP at hero level 
-   Astark June 2012 */
+   Astark 6-1-12 */
     
     /* reduce for playing time 
        {
@@ -5547,7 +5585,10 @@ void do_flee( CHAR_DATA *ch, char *argument )
 		  || (IS_SET(pexit->exit_info, EX_CLOSED)
 		      && (IS_SET(pexit->exit_info, EX_NOPASS)
 			  || !IS_AFFECTED(ch, AFF_PASS_DOOR)))
-		  || (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB))))
+		  || (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB)
+        /* Check added so that mobs can't flee into a safe room. Causes problems
+           with resets, quests, and leveling - Astark Dec 2012 */
+                  || IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE))))
 	    {
 		if ( number_range(0, num) == 0 )
 		    choice = dir;

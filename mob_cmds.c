@@ -1449,6 +1449,7 @@ void do_mpflee( CHAR_DATA *ch, char *argument )
     if ( (was_in = ch->in_room) == NULL )
 	return;
 
+  /* Part of check to make sure mobs can't flee into safe room */
     if (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE) )
         return;
 

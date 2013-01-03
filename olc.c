@@ -1641,6 +1641,8 @@ Name:      do_alist
 Purpose:   Normal command to list areas and display area information.
 Called by:   interpreter(interp.c)
 ****************************************************************************/
+/* Commented out and replaced with new alist function below. New function
+   allows for sorting, better formatting, and easier reading - Astark Dec 2012
 void do_alist( CHAR_DATA *ch, char *argument )
 {
    char buf    [ MAX_STRING_LENGTH ];
@@ -1672,7 +1674,193 @@ void do_alist( CHAR_DATA *ch, char *argument )
    free_buf(output);
    
    return;
+} 
+
+*/
+
+
+
+
+
+/* Used for sorting by area_vnum */
+int alist_area_vnum (const void *v1, const void *v2)
+{
+	AREA_DATA *a1 = *(AREA_DATA**)v1;
+	AREA_DATA *a2 = *(AREA_DATA**)v2;
+
+	if (a1->vnum < a2->vnum )
+		return -1; 
+	else if (a1->vnum > a2->vnum )
+		return +1;
+	else
+		return 0;
 }
+ 
+/* This is for sorting by the area's min_vnum */
+int alist_min_vnum (const void *v1, const void *v2)
+{
+    AREA_DATA *a1 = *(AREA_DATA**)v1;
+    AREA_DATA *a2 = *(AREA_DATA**)v2;
+
+    if (a2->max_vnum < a2->max_vnum )
+        return -1;
+    else if (a1->max_vnum > a2->max_vnum )
+        return +1;
+    else
+        return 0;
+}
+
+/* This is for sorting by the area's max_vnum */
+int alist_max_vnum (const void *v1, const void *v2)
+{
+    AREA_DATA *a1 = *(AREA_DATA**)v1;
+    AREA_DATA *a2 = *(AREA_DATA**)v2;
+
+    if (a2->min_vnum > a2->min_vnum )
+        return -1;
+    else if (a1->min_vnum < a2->min_vnum )
+        return +1;
+    else
+        return 0;
+}
+
+/* This is for sorting by the area's security */
+int alist_security (const void *v1, const void *v2)
+{
+    AREA_DATA *a1 = *(AREA_DATA**)v1;
+    AREA_DATA *a2 = *(AREA_DATA**)v2;
+
+    if (a2->security > a2->security  )
+        return -1;
+    else if (a1->security < a2->security  )
+        return +1;
+    else
+        return 0;
+}
+
+
+/* Also declared in db.c near do_areas. Lets make this global eventually. 
+   Would prefer to find a way to make this number dynamic so that it
+   updates on its own without us having to change it manually */
+
+#define MAX_AREAS 1000
+
+void do_alist( CHAR_DATA *ch, char *argument) 
+{
+    char buf[MSL];
+    AREA_DATA *pArea1;
+    AREA_DATA *sorted_areas[MAX_AREAS];
+    BUFFER *output;
+    int count=0;
+    int i;
+    char arg[MIL];
+    char arg2[MIL];
+
+    output = new_buf();
+
+    argument = one_argument( argument, arg );
+    argument = one_argument( argument, arg2 );
+
+    /* Different than the areas command, in alist we want all areas
+       to show up, so we will accept any security, unless 'ingame'
+       is specified */
+
+    if ( arg2[0] == '\0' )
+    {
+        for ( pArea1 = area_first; pArea1 != NULL ; pArea1 = pArea1->next )
+        {
+            sorted_areas[count] = pArea1;
+            count++;
+        }
+    }
+    else if ( !str_cmp(arg2, "ingame") )
+    {
+        for ( pArea1 = area_first; pArea1 != NULL ; pArea1 = pArea1->next )
+        {
+            if (pArea1->security>4)
+            {
+                sorted_areas[count] = pArea1;
+                count++;
+            }
+        }
+    }
+    else
+    {
+        send_to_char("Please see 'help alist' for the correct usage.\n\r",ch);
+        return;
+    }
+
+
+    if ( arg[0] == '\0' )
+    { 
+        qsort(
+            sorted_areas,            /* Where does the data to sort start? */
+            count,                   /* How many elements? */
+            sizeof(sorted_areas[0]), /* How big is each element? */
+            alist_area_vnum);        /* Use the above 'int' for sorting */
+    }
+    else if ( !str_cmp(arg, "minvnum") )
+    {
+        qsort(
+            sorted_areas,
+            count,
+            sizeof(sorted_areas[0]),
+            alist_min_vnum);
+    }
+    else if ( !str_cmp(arg, "maxvnum") )
+    {
+
+        qsort(
+            sorted_areas,
+            count,
+            sizeof(sorted_areas[0]),
+            alist_max_vnum);
+    }
+    else if ( !str_cmp(arg, "security") )
+    {
+
+        qsort(
+            sorted_areas,
+            count,
+            sizeof(sorted_areas[0]),
+            alist_security);
+    }
+    else
+    {
+        send_to_char("Please see 'help alist' for the correct usage.\n\r",ch);
+        return;
+    }
+
+
+    /* Be sure to add a credits column once everything is fixed up
+       and pretty-fied in game */
+
+    sprintf( buf, "[%3s] [%-26s] [%-20s] (%-6s-%6s) [%-3s]\n\r",
+        "Num", "Name", "Builders", "Lvnum", "Mvnum", "Sec" );
+    add_buf(output, buf);
+
+
+    /* Loop for displaying the information. Color gets stripped from area name
+       for formatting purposes */
+
+    for (i=0; i != count; i++)
+    {
+        sprintf(buf,"[%3d] [%-26s] [%-20s] (%-6d-%6d) [%-3d]\n\r",
+            sorted_areas[i]->vnum,
+            remove_color(sorted_areas[i]->name),
+            sorted_areas[i]->builders,
+            sorted_areas[i]->min_vnum,
+            sorted_areas[i]->max_vnum,
+            sorted_areas[i]->security);
+
+        add_buf(output, buf);
+    }
+    page_to_char(buf_string(output),ch);
+    free_buf(output);
+      
+    return;
+} 
+
 
 
 /* Help Editor - kermit 1/98 */

@@ -354,6 +354,12 @@ void do_pkill( CHAR_DATA *ch, char *argument)
 		info_message(ch, log_buf, TRUE);
 		log_string( log_buf );
 		wiznet("$N has turned on $S pkill flag.", ch, NULL, WIZ_FLAGS, 0, 0);
+
+                /* Pulled from flags.c and moved over here. Stop people from turning on
+                   pkill just to get a cheap kill. - Astark 12-23-12 */
+                if ( ch->pcdata != NULL )
+                    ch->pcdata->pkill_timer = -10 * PULSE_VIOLENCE;
+
 		update_bounty(ch);
 	    }
 	    else
@@ -364,6 +370,12 @@ void do_pkill( CHAR_DATA *ch, char *argument)
 		info_message(ch, log_buf, TRUE);
 		log_string( log_buf );
 		wiznet("$N has turned on $S hardcore flag.", ch, NULL, WIZ_FLAGS, 0, 0);
+
+                /* Pulled from flags.c and moved over here. Stop people from turning on
+                   pkill just to get a cheap kill. - Astark 12-23-12 */
+                if ( ch->pcdata != NULL )
+                    ch->pcdata->pkill_timer = -10 * PULSE_VIOLENCE;
+
 		update_bounty(ch);
 	    }
 	}

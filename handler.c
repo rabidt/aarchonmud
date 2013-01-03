@@ -643,7 +643,8 @@ int can_carry_n( CHAR_DATA *ch )
 	    return 0;
 	*/
 
-	return MAX_WEAR + ch->level;
+    /* Added a base value of 5 to the number of items that can be carried - Astark 12-27-12 */
+	return MAX_WEAR + ch->level + 5;
 }
 
 
@@ -661,7 +662,11 @@ int can_carry_w( CHAR_DATA *ch )
         return 0;
     */
     
-    return ch_str_carry(ch) * 10 + ch->level * 25;
+
+    /* Added a base value of 100 to the maximum weight that can be carried. Currently 
+       low strength characters are at a severe disadvantage - Astark 12-27-12  */
+
+    return ch_str_carry(ch) * 10 + ch->level * 25 + 100;
 }
 
 
