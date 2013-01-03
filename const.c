@@ -204,52 +204,52 @@ const   struct attack_type  attack_table    [MAX_DAMAGE_MESSAGE]    =
     {   "fiery",        "fiery blast",          DAM_FIRE        },
     {   "coldray",      "freeze ray",           DAM_COLD        },  
     {   "stream",       "acid stream",          DAM_ACID        },
-    {   "shells",       "shell",                DAM_OTHER       },
+    {   "shells",       "shell",                DAM_OTHER       },  /* 55 */
     {   "laser",        "laser ray",            DAM_ENERGY      },
     {   "sonic",        "sonic boom",           DAM_SOUND       },
     {   "spray",        "spray",                DAM_SLASH       },  
     {   "dumdums",      "dum dum",              DAM_BASH        },
-    {   "frag",         "fragmenting round",    DAM_SLASH       },
+    {   "frag",         "fragmenting round",    DAM_SLASH       },  /* 60 */
     {   "hollowpt",     "hollow point",         DAM_SLASH       },
     {   "concussion",   "concussion blast",     DAM_BASH        },
     {   "btalon",       "black talon",          DAM_NEGATIVE    },
     {   "blesbul",      "blessed bullet",       DAM_HOLY        },
-    {   "pwhip",        "pistol whip",          DAM_BASH        },
+    {   "pwhip",        "pistol whip",          DAM_BASH        },  /* 65 */
     {	"psionic",      "psionic blast",        DAM_MENTAL      },
     {   "hack",         "hack",                 DAM_MENTAL      },
     {   "acidrain",     "acid rain",            DAM_ACID        },
     {   "blizzard",     "blizzard",             DAM_COLD        },
-    {   "shiver",       "shiver",               DAM_COLD        },
+    {   "shiver",       "shiver",               DAM_COLD        },  /* 70 */
     {   "charm",        "charm",                DAM_CHARM       },
     {   "song",         "song",                 DAM_SOUND       },
     {   "lure",         "lure",                 DAM_CHARM       },
     {   "infection",    "infection",            DAM_DISEASE     },
-    {   "blaze",        "blaze",                DAM_FIRE        },
+    {   "blaze",        "blaze",                DAM_FIRE        },  /* 75 */
     {   "exaltation",   "exaltation",           DAM_HOLY        },
     {   "glare",        "glare",                DAM_LIGHT       },
     {   "shine",        "shine",                DAM_LIGHT       },
     {   "luster",       "luster",               DAM_LIGHT       },
-    {   "bolt",         "bolt",                 DAM_LIGHTNING   },
+    {   "bolt",         "bolt",                 DAM_LIGHTNING   },  /* 80 */
     {   "static",       "static",               DAM_LIGHTNING   },
     {   "psych",        "psych",                DAM_MENTAL      },
     {   "mania",        "mania",                DAM_MENTAL      },
     {   "paralysis",    "paralysis",            DAM_MENTAL      },
-    {   "souldrain",    "soul drain",           DAM_NEGATIVE    },
+    {   "souldrain",    "soul drain",           DAM_NEGATIVE    },  /* 85 */
     {   "venom",        "venom",                DAM_POISON      },
     {   "corrosion",    "corrosion",            DAM_ACID        },
     {   "screech",      "screech",              DAM_SOUND       },
     {   "virus",        "virus",                DAM_DISEASE     },
-    {   "howl",         "howl",                 DAM_SOUND       },
+    {   "howl",         "howl",                 DAM_SOUND       },  /* 90 */
     {   "flooding",     "flooding",             DAM_DROWNING    },
     {   "drenching",    "drenching",            DAM_DROWNING    },
     {   "beam",         "beam",                 DAM_ENERGY      },
     {   "inferno",      "inferno",              DAM_FIRE        },
-    {   "blessing",     "blessing",             DAM_HOLY        },
+    {   "blessing",     "blessing",             DAM_HOLY        },  /* 95 */
     {  "contamination", "contamination",        DAM_POISON      },
     {   "demonicrage",  "demonic rage",         DAM_HOLY        },
     {"enlightenedfury", "enlightened fury",     DAM_HOLY        },
     {"darkinspiration", "dark inspiration",     DAM_HOLY        },
-    {   "holyblast",    "holy blast",           DAM_HOLY        },
+    {   "holyblast",    "holy blast",           DAM_HOLY        },  /* 100 */
     {   "evilblast",    "evil blast",           DAM_HOLY        },
     {   NULL,           NULL,                   0               }
 };
@@ -618,19 +618,11 @@ struct align_type align_table [] =
         {D,H,I,M,cc},    {D}
 	},
 //6
-
-       {
-	"vampire",          TRUE,
-	{},      {AFF_DARK_VISION}, {},
-	{},      {RES_COLD,RES_SLASH,RES_NEGATIVE}, {VULN_LIGHT,VULN_HOLY,VULN_WOOD,VULN_FIRE},
-	{A,H,I,M,V,cc,ff},    {A,B,C,D,E,F,G,H,I,J,K,V}
-	},
-
 	{
-	"gholam",        TRUE,
-	{},      {AFF_DETECT_MAGIC,AFF_DETECT_INVIS,AFF_DETECT_ASTRAL,AFF_PROTECT_MAGIC},   {},
-	{},      {RES_MAGIC}, {VULN_SILVER,VULN_PIERCE},
-	{A,H,M,V,gg},    {A,B,C,D,E,F,G,H,I,J,K}
+	"chrysalies",        TRUE,
+	{},      {AFF_FLYING,AFF_DARK_VISION},   {},
+	{},      {RES_CHARM,RES_PIERCE}, {VULN_DROWNING},
+	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
 	{
@@ -638,6 +630,13 @@ struct align_type align_table [] =
 	{},      {},   {},
 	{},      {RES_COLD}, {VULN_MENTAL,VULN_CHARM},
 	{A,H,M,V,hh},    {A,B,C,D,E,F,G,H,I,J,K}
+	},
+	{
+
+	"gholam",        TRUE,
+	{},      {AFF_DETECT_MAGIC,AFF_DETECT_INVIS,AFF_DETECT_ASTRAL,AFF_PROTECT_MAGIC},   {},
+	{},      {RES_MAGIC}, {VULN_SILVER,VULN_PIERCE},
+	{A,H,M,V,gg},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
 	{
@@ -647,23 +646,14 @@ struct align_type align_table [] =
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
-
-	{
-	"chrysalies",        TRUE,
-	{},      {AFF_FLYING,AFF_DARK_VISION},   {},
-	{},      {RES_CHARM,RES_PIERCE}, {VULN_DROWNING},
-	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
+        {
+	"vampire",          TRUE,
+	{},      {AFF_DARK_VISION}, {},
+	{},      {RES_COLD,RES_SLASH,RES_NEGATIVE}, {VULN_LIGHT,VULN_HOLY,VULN_WOOD,VULN_FIRE},
+	{A,H,I,M,V,cc,ff},    {A,B,C,D,E,F,G,H,I,J,K,V}
 	},
 
 //7
-	{
-	"lich",        TRUE,
-	{},      {AFF_DARK_VISION,AFF_DETECT_MAGIC},   {},
-	{},      {RES_NEGATIVE,RES_MENTAL}, {VULN_HOLY,VULN_LIGHT},
-//undead,wise
-	{B,H,I,M,cc,jj},    {A,B,C,D,E,F,G,H,I,J,K}
-	},
-
 	{
 	"ahazu",        TRUE,
 	{},      {},   {},
@@ -679,6 +669,13 @@ struct align_type align_table [] =
 	},
 
 	{
+	"dryad",        TRUE,
+	{},      {},   {},
+	{},      {RES_MAGIC,RES_DISEASE,RES_DROWNING,RES_LIGHT}, {VULN_NEGATIVE},
+	{A,H,V,M,jj},    {A,B,C,D,E,F,G,H,I,J,K}
+	},
+
+	{
 	"gargoyle",        TRUE,
 	{},      {AFF_FLYING,AFF_DARK_VISION},   {},
 	{},      {RES_BASH}, {VULN_LIGHT},
@@ -686,12 +683,43 @@ struct align_type align_table [] =
 	},
 
 	{
-	"dryad",        TRUE,
-	{},      {},   {},
-	{},      {RES_MAGIC,RES_DISEASE,RES_DROWNING,RES_LIGHT}, {VULN_NEGATIVE},
-	{A,H,V,M,jj},    {A,B,C,D,E,F,G,H,I,J,K}
+	"lich",        TRUE,
+	{},      {AFF_DARK_VISION,AFF_DETECT_MAGIC},   {},
+	{},      {RES_NEGATIVE,RES_MENTAL}, {VULN_HOLY,VULN_LIGHT},
+//undead,wise
+	{B,H,I,M,cc,jj},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
+
 //8
+
+	{
+	"android",        TRUE,
+	{},      {AFF_DETECT_HIDDEN,AFF_INFRARED,AFF_BATTLE_METER},   {},
+	{},      {RES_CHARM, RES_COLD, RES_POISON, RES_NEGATIVE, RES_HOLY, RES_MENTAL, RES_DISEASE}, {VULN_FIRE},
+	{H,J,M,cc,hh},    {A,B,C,D,E,F,G,H,I,J,K}
+	},
+
+	{
+	"naiad",        TRUE,
+	{},      {AFF_DETECT_MAGIC,AFF_BREATHE_WATER,AFF_FLYING},   {},
+	{IMM_DROWNING},      {RES_MAGIC}, {VULN_LIGHTNING},
+	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K,P}
+	},
+
+	{
+	"phantom",        TRUE,
+	{},      {AFF_FLYING,AFF_PASS_DOOR,AFF_MINOR_FADE},   {},
+	{},      {RES_NEGATIVE,RES_BASH,RES_ENERGY,RES_MENTAL}, {VULN_HOLY},
+	{D,H,K,N},    {D}
+	},
+
+        {
+        "tengu",    TRUE,
+        {},      {},        {},
+        {},      {RES_LIGHTNING, RES_MENTAL, RES_CHARM},    {},
+	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K}
+        },
+
 	{
 	"titan",        TRUE,
 	{},      {},   {},
@@ -705,34 +733,6 @@ struct align_type align_table [] =
 	{IMM_POISON},      {RES_DISEASE,RES_COLD,RES_POISON,RES_BASH}, {VULN_SOUND},
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K,Q,W}
 	},
-
-	{
-	"android",        TRUE,
-	{},      {AFF_DETECT_HIDDEN,AFF_INFRARED,AFF_BATTLE_METER},   {},
-	{},      {RES_CHARM, RES_COLD, RES_POISON, RES_NEGATIVE, RES_HOLY, RES_MENTAL, RES_DISEASE}, {VULN_FIRE},
-	{H,J,M,cc,hh},    {A,B,C,D,E,F,G,H,I,J,K}
-	},
-
-	{
-	"phantom",        TRUE,
-	{},      {AFF_FLYING,AFF_PASS_DOOR,AFF_MINOR_FADE},   {},
-	{},      {RES_NEGATIVE,RES_BASH,RES_ENERGY,RES_MENTAL}, {VULN_HOLY},
-	{D,H,K,N},    {D}
-	},
-
-	{
-	"naiad",        TRUE,
-	{},      {AFF_DETECT_MAGIC,AFF_BREATHE_WATER,AFF_FLYING},   {},
-	{IMM_DROWNING},      {RES_MAGIC}, {VULN_LIGHTNING},
-	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K,P}
-	},
-
-        {
-        "tengu",    TRUE,
-        {},      {},        {},
-        {},      {RES_LIGHTNING, RES_MENTAL, RES_CHARM},    {},
-	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K}
-        },
 //10
 	{
 	"behemoth",        TRUE,
@@ -1435,18 +1435,30 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           {   3,   3,   2,   4,   4,       4,   3,   3,   2,   2 },
           SIZE_MEDIUM, SEX_BOTH, 5
         },
-//6        
+//6       
+
         { 
-          "vampire",   "Vampir",
-          { 225, 220, 230, 245, 220, 235, 225, 220, 225, 220, 225, 225, 225, 235, 225 },
-          5, { "drain life", "vampiric bite", "sneak", "charm person", "shroud of darkness"},
-          {1,1,10,40,60},{100,100,95,90,100},
-          {  65,  25,  45,  65,  55,      35,  55,  25,  75,  75 },
-          { 130, 140, 100, 130, 140,     135, 125, 145, 135, 120 },   
-          {   3,   3,   2,   3,   3,       3,   3,   4,   3,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 6
+          "chrysalies",   "Chrysl",
+          { 245, 220, 230, 230, 245, 240, 240, 225, 220, 235, 235, 235, 240, 220, 240 },
+          5, { "pass without trace", "faerie fog", "sanctuary", "sticks to snakes", "avoidance" },
+          { 1, 10, 40, 52, 58}, {100, 100, 80, 70, 90},
+          {  55,  25,  70,  65,  65,      30,  50,  25,  60,  60 },
+          { 105, 115, 140, 140, 145,     130, 135, 125, 130, 135 },   
+          {   2,   2,   3,   4,   4,       3,   4,   3,   2,   3 },
+          SIZE_TINY, SEX_BOTH, 6
         },
-               
+                 
+        { 
+          "frost-giant",   "FrostG",
+          { 225, 240, 230, 220, 225, 220, 230, 235, 225, 230, 225, 230, 230, 220, 230 },
+          5, { "chill touch", "hailstorm", "frost breath", "control weather", "absolute zero" },
+          {1,40,60,70,80},{100,95,90,85,80},
+          {  60,  70,  45,  45,  50,      45,  50,  55,  40,  50 },
+          { 140, 140, 125, 125, 120,     125, 130, 135, 120, 130 },   
+          {   4,   4,   3,   3,   2,       3,   3,   3,   2,   3 },
+          SIZE_GIANT, SEX_BOTH, 6
+        },
+
         { 
           "gholam",   "Gholam",
           { 230, 225, 235, 250, 230, 230, 235, 210, 225, 230, 210, 240, 230, 230, 240 },
@@ -1458,16 +1470,6 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           SIZE_MEDIUM, SEX_BOTH, 6
         },
         
-        { 
-          "frost-giant",   "FrostG",
-          { 225, 240, 230, 220, 225, 220, 230, 235, 225, 230, 225, 230, 230, 220, 230 },
-          5, { "chill touch", "hailstorm", "frost breath", "control weather", "absolute zero" },
-          {1,40,60,70,80},{100,95,90,85,80},
-          {  60,  70,  45,  45,  50,      45,  50,  55,  40,  50 },
-          { 140, 140, 125, 125, 120,     125, 130, 135, 120, 130 },   
-          {   4,   4,   3,   3,   2,       3,   3,   3,   2,   3 },
-          SIZE_GIANT, SEX_BOTH, 6
-        },
 // race 50 ^
         { 
           "illithid",   "Illith",
@@ -1481,27 +1483,18 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         { 
-          "chrysalies",   "Chrysl",
-          { 245, 220, 230, 230, 245, 240, 240, 225, 220, 235, 235, 235, 240, 220, 240 },
-          5, { "pass without trace", "faerie fog", "sanctuary", "sticks to snakes", "avoidance" },
-          { 1, 10, 40, 52, 58}, {100, 100, 80, 70, 90},
-          {  55,  25,  70,  65,  65,      30,  50,  25,  60,  60 },
-          { 105, 115, 140, 140, 145,     130, 135, 125, 130, 135 },   
-          {   2,   2,   3,   4,   4,       3,   4,   3,   2,   3 },
-          SIZE_TINY, SEX_BOTH, 6
+          "vampire",   "Vampir",
+          { 225, 220, 230, 245, 220, 235, 225, 220, 225, 220, 225, 225, 225, 235, 225 },
+          5, { "drain life", "vampiric bite", "sneak", "charm person", "shroud of darkness"},
+          {1,1,10,40,60},{100,100,95,90,100},
+          {  65,  25,  45,  65,  55,      35,  55,  25,  75,  75 },
+          { 130, 140, 100, 130, 140,     135, 125, 145, 135, 120 },   
+          {   3,   3,   2,   3,   3,       3,   3,   4,   3,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 6
         },
+
 //r7              
-        { 
-          "lich",   "Lich  ",
-          { 260, 255, 270, 240, 260, 255, 275, 255, 255, 265, 250, 250, 260, 270, 230 },
-          4, { "necrosis", "decompose", "mana burn", "iron maiden"},
-          {5,15,25,65},{80,75,70,50},
-          {  55,  40,  25,  50,  50,      90,  75,  60,  55,  50 },
-          { 135, 130, 125, 130, 130,     150, 145, 140, 135, 130 },   
-          {   3,   2,   1,   3,   3,       5,   4,   3,   3,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 7
-        },
-        
+
         //  War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec
         { 
           "ahazu",   "Ahazu ",
@@ -1524,17 +1517,6 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           {   4,   3,   3,   3,   2,       3,   3,   3,   2,   3 },
           SIZE_LARGE, SEX_BOTH, 7
         },
-// race 55 ^
-        { 
-          "gargoyle",   "Gargoy",
-          { 250, 255, 255, 270, 250, 250, 255, 230, 255, 250, 230, 260, 250, 250, 260 },
-          4, { "stone skin", "rage", "hurl", "bash" },
-          {1, 15, 40, 65}, {100, 85, 90, 70},
-          {  90,  90,  15,  45,  45,      40,  65,  40,  90,  45 },
-          { 140, 125, 130, 140, 145,     140, 125, 140, 140, 130 },   
-          {   3,   3,   3,   4,   3,       3,   3,   3,   3,   3 },
-          SIZE_LARGE, SEX_BOTH, 7
-        },
 
         { 
           "dryad",   "Dryad ",
@@ -1547,8 +1529,77 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           SIZE_MEDIUM, SEX_BOTH, 7
         },
 
+// race 55 ^
+
+        { 
+          "gargoyle",   "Gargoy",
+          { 250, 255, 255, 270, 250, 250, 255, 230, 255, 250, 230, 260, 250, 250, 260 },
+          4, { "stone skin", "rage", "hurl", "bash" },
+          {1, 15, 40, 65}, {100, 85, 90, 70},
+          {  90,  90,  15,  45,  45,      40,  65,  40,  90,  45 },
+          { 140, 125, 130, 140, 145,     140, 125, 140, 140, 130 },   
+          {   3,   3,   3,   4,   3,       3,   3,   3,   3,   3 },
+          SIZE_LARGE, SEX_BOTH, 7
+        },
+
+        { 
+          "lich",   "Lich  ",
+          { 260, 255, 270, 240, 260, 255, 275, 255, 255, 265, 250, 250, 260, 270, 230 },
+          4, { "necrosis", "decompose", "mana burn", "iron maiden"},
+          {5,15,25,65},{80,75,70,50},
+          {  55,  40,  25,  50,  50,      90,  75,  60,  55,  50 },
+          { 135, 130, 125, 130, 130,     150, 145, 140, 135, 130 },   
+          {   3,   2,   1,   3,   3,       5,   4,   3,   3,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 7
+        },        
+
 //r8        
          /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
+
+        { 
+          "android",   "Androi",
+          { 265, 275, 290, 285, 265, 275, 275, 265, 275, 280, 290, 290, 270, 275, 285 },
+          2, { "lightning bolt", "electrocution" },
+          {1, 30}, {100, 75},
+          {  75,  70,  70,  75,  75,      70,  65,  70,  70,  70 },
+          { 140, 140, 140, 140, 140,     130, 130, 140, 130, 130 },   
+          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 8
+        },
+
+        { 
+          "naiad",   "Naiad ",
+          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
+          4, { "swimming", "monsoon", "charm person", "anatomy" },
+          {1, 11, 39, 75, }, {100,100,70,10},
+          {  40,  55,  50,  60,  50,      75,  65,  65,  65,  60 },
+          { 125, 135, 135, 145, 140,     155, 150, 135, 140, 145 },   
+          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
+          SIZE_SMALL, SEX_FEMALE, 8
+        },
+        
+        { 
+          "phantom",   "Phantm",
+          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
+          4, { "invis", "shadow soul", "shadow shroud", "dispel magic" },
+          {1, 4, 20, 60, }, {100,90,90,80},
+          {  40,  45,  50,  65,  65,      65,  65,  65,  45,  60 },
+          { 135, 140, 135, 150, 150,     145, 140, 140, 130, 140 },   
+          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 8
+        },
+
+        { 
+          "tengu",   "Tengu ",
+          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
+          4, { "leadership", "finesse", "twohand weapons", "renewal" },
+          {5, 19, 25, 60, }, {100,95,85,25},
+          {  45,  55,  55,  60,  50,      75,  65,  65,  65,  60 },
+          { 130, 135, 135, 140, 145,     150, 150, 135, 145, 140 },   
+          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
+          SIZE_MEDIUM, SEX_BOTH, 8
+        },
+
         { 
           "titan",   "Titan ",
           { 265, 280, 285, 285, 265, 270, 270, 280, 275, 275, 285, 285, 275, 270, 280 },
@@ -1569,50 +1620,6 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 140, 145, 140, 145, 145,     135, 140, 140, 130, 145 },   
           {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
           SIZE_LARGE, SEX_MALE, 8
-        },
-        
-        { 
-          "android",   "Androi",
-          { 265, 275, 290, 285, 265, 275, 275, 265, 275, 280, 290, 290, 270, 275, 285 },
-          2, { "lightning bolt", "electrocution" },
-          {1, 30}, {100, 75},
-          {  75,  70,  70,  75,  75,      70,  65,  70,  70,  70 },
-          { 140, 140, 140, 140, 140,     130, 130, 140, 130, 130 },   
-          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 8
-        },
-        
-        { 
-          "phantom",   "Phantm",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "invis", "shadow soul", "shadow shroud", "dispel magic" },
-          {1, 4, 20, 60, }, {100,90,90,80},
-          {  40,  45,  50,  65,  65,      65,  65,  65,  45,  60 },
-          { 135, 140, 135, 150, 150,     145, 140, 140, 130, 140 },   
-          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 8
-        },
-
-        { 
-          "naiad",   "Naiad ",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "swimming", "monsoon", "charm person", "anatomy" },
-          {1, 11, 39, 75, }, {100,100,70,10},
-          {  40,  55,  50,  60,  50,      75,  65,  65,  65,  60 },
-          { 125, 135, 135, 145, 140,     155, 150, 135, 140, 145 },   
-          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
-          SIZE_SMALL, SEX_FEMALE, 8
-        },
-
-        { 
-          "tengu",   "Tengu ",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "leadership", "finesse", "twohand weapons", "renewal" },
-          {5, 19, 25, 60, }, {100,95,85,25},
-          {  45,  55,  55,  60,  50,      75,  65,  65,  65,  60 },
-          { 130, 135, 135, 140, 145,     150, 150, 135, 145, 140 },   
-          {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 8
         },
    
         { 
@@ -1701,6 +1708,25 @@ struct pc_race_type morph_pc_race_table[] =
  */
 const   struct  class_type  class_table [MAX_CLASS] =
 {
+
+/* Added the struct info from merc.h to make it easier to read
+   the below information - Astark 12-27-12 */
+//    char *  name;           /* the full name of the class */
+//    char    who_name    [4];    /* Three-letter name for 'who'  */
+//    sh_int  attr_prime;     /* Prime attribute      */
+//    sh_int  attr_second[2]; /* Secondary attributes  */
+//    sh_int  stat_priority[MAX_STATS-3];
+//    sh_int  weapon;         /* First weapon         */
+//    sh_int  guild[MAX_GUILD];   /* Vnum of guild rooms      */
+//    sh_int  skill_adept;        /* Maximum skill level      */
+//    sh_int  attack_factor;      /* replace the old thac0 values --Bobble */
+//    sh_int  defense_factor;
+//    sh_int  hp_gain;
+//    sh_int  mana_gain;          /* Class gains mana on level    */
+//    sh_int  move_gain;
+//    char *  base_group;     /* base skills gained       */
+//    char *  default_group;      /* default skills gained    */
+
 	{
 	"warrior", "War",  STAT_STR, {STAT_CON, STAT_DIS},
 	{STAT_DEX,STAT_VIT,STAT_AGI,STAT_WIS,STAT_LUC,STAT_CHA,STAT_INT},
@@ -7262,6 +7288,14 @@ const   struct  group_type      group_table     [MAX_GROUP]     =
 	{ "animate dead", "cannibalism", "chill touch", "damned blade", 
 	  "dominate soul", "energy drain", "necrosis", "ritual sacrifice" }
 	},
+
+        /* War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec */
+
+        {
+        "protective",    { -1, 4, 3, 4, -1, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4 },
+        { "armor", "cancellation", "dispel magic", "fireproof", "protection evil",
+          "protection good", "sanctuary", "shield", "stone skin", "mana shield" }
+        },
 	
 	{
 	"transportation",   { 15, 10, 6, 6, -1, 9, 8, 13, 8, 8, 7, 9, 15, 10, 6 },

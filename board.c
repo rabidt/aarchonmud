@@ -124,7 +124,9 @@ static bool next_board (CHAR_DATA *ch);
 const static char* note_line = 
 "===============================================================================\n\r";
 
-
+/* In the section below, I made the following changes. Added Druids board, Mechanics board,
+   Roleplay and Immortal hold notes for 300 days instead of 200. Immortal board holds 90
+   notes instead of 30. News board has 500 days expiration instead of 200. Astark 1-2-13 */
 
 /* Short name, long name, read level, write level, special access, default recipient, 
    default action, default expiration(days), max message count, NULL, FALSE */
@@ -133,13 +135,15 @@ BOARD_DATA boards[MAX_BOARD] =
    { "General",  "General discussion",           0, 2, BOARD_NONE, "all", DEF_INCLUDE, 20, 200, NULL, FALSE },
    { "Personal", "Personal messages",            0, 2, BOARD_NONE, "all", DEF_EXCLUDE, 20, 500, NULL, FALSE },
    { "Ideas",    "Suggestions for improvement",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE }, 
+   { "Druids",   "Druid Development",            0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE },
+   { "Mechanics","Game Mechanics",               0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Bugs",     "Typos, bugs, errors",          0, 2, BOARD_NONE, "imm", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Pkill",    "Player killers only!",         0, 2, BOARD_PKILL, "pkill", DEF_NORMAL,  20, 200, NULL, FALSE }, 
-   { "Roleplay", "Role Playing / Family notes",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE }, 
+   { "Roleplay", "Role Playing / Family notes",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 300, NULL, FALSE }, 
    { "Quest",    "Quest-related messages",       0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Builder",  "Area building",                0, 2, BOARD_BUILDER, "builder", DEF_NORMAL,  30, 200, NULL, FALSE }, 
-   { "News",     "Announcements from Immortals", 0, DEMIGOD, BOARD_NONE, "all", DEF_NORMAL, 90, 200, NULL, FALSE },
-   { "Immortal", "Immortals only",            DEMIGOD, DEMIGOD, BOARD_NONE, "imm", DEF_NORMAL, 30, 200, NULL, FALSE },
+   { "News",     "Announcements from Immortals", 0, DEMIGOD, BOARD_NONE, "all", DEF_NORMAL, 90, 500, NULL, FALSE },
+   { "Immortal", "Immortals only",            DEMIGOD, DEMIGOD, BOARD_NONE, "imm", DEF_NORMAL, 90, 300, NULL, FALSE },
    { "Penalty",  "Penalty notes (imm only)",     0, DEMIGOD, BOARD_NONE, "imm", DEF_NORMAL, 20, 200, NULL, FALSE },
 };
 

@@ -101,7 +101,14 @@ void advance_level( CHAR_DATA *ch, bool hide )
    /* make sure player gets prac/trains only once (e.g. level-loss punishment) */
    if ( ch->pcdata->highest_level < ch->level )
    {
-       add_prac    = ch_dis_practice(ch);
+
+   /*  Commented out to replace with new stat gain formula, basing 
+    *  gains on prime and secondary stats instead of just DIS - Astark 1-2-13
+    *
+    *  add_prac    = ch_dis_practice(ch); 
+    */
+
+       add_prac    = ch_prac_gains(ch);
        if (ch->level > (LEVEL_HERO-10))
        {
 	   bonus= ch->level-(LEVEL_HERO-10);
@@ -315,13 +322,13 @@ int adjust_gain( CHAR_DATA *ch, int gain )
 
         /* PCs benefit from deep sleep */
 	if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 0 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 2 )
-	    gain *= 4/3;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 2 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 4 )
 	    gain *= 3/2;
+	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 2 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 4 )
+	    gain *= 7/4;
 	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 4 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 6 )
-	    gain *= 5/3;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 6 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 8 )
 	    gain *= 2;
+	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 6 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 8 )
+	    gain *= 5/2;
 	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 8 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 10 )
 	    gain *= 3;
     }
@@ -346,7 +353,10 @@ int hit_gain( CHAR_DATA *ch )
 	return 0;
     }
     
-    gain = (10 + ch->level) * get_curr_stat(ch, STAT_VIT);
+
+/* Increase the baseline gains by 33% - Astark 12-27-12 
+    gain = (10 + ch->level) * get_curr_stat(ch, STAT_VIT); */
+    gain = (10 + ch->level*4/3) * get_curr_stat(ch, STAT_VIT);
     if ( !IS_NPC(ch) )
 	gain = gain * class_table[ch->class].hp_gain / 100;
     
@@ -392,7 +402,10 @@ int mana_gain( CHAR_DATA *ch )
 	return 0;
     }
 
-    gain = (10 + ch->level) * get_curr_stat(ch, STAT_INT);
+
+/* Increase the baseline gains by 33% - Astark 12-27-12 
+    gain = (10 + ch->level) * get_curr_stat(ch, STAT_INT); */
+    gain = (10 + ch->level*4/3) * get_curr_stat(ch, STAT_INT);
     if ( !IS_NPC(ch) )
 	gain = gain * class_table[ch->class].mana_gain / 100;
     
@@ -431,7 +444,9 @@ int move_gain( CHAR_DATA *ch )
     if (ch->in_room == NULL)
         return 0;
     
-    gain = (20 + ch->level) * get_curr_stat(ch, STAT_VIT);
+/* Increase the baseline gains by 33% - Astark 12-27-12 
+    gain = (20 + ch->level) * get_curr_stat(ch, STAT_VIT); */
+    gain = (20 + ch->level*4/3) * get_curr_stat(ch, STAT_VIT);
     if ( !IS_NPC(ch) )
 	gain = gain * class_table[ch->class].move_gain / 100;
     

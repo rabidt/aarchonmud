@@ -329,6 +329,7 @@ const struct flag_type affect_flags[] =
     { "hallow",            AFF_HALLOW,               TRUE  },
     { "minor_fade",        AFF_MINOR_FADE,           TRUE  },
     { "replenish",         AFF_REPLENISH,            TRUE  },
+    { "fortune",           AFF_FORTUNE,              TRUE  },
     { NULL,                0,                        0     }
 };
 
@@ -934,7 +935,9 @@ const struct flag_type weapon_type2[] =
 	{   "exhaustion",    WEAPON_MOVESUCK,      TRUE    },
 	{   "mind numbing",  WEAPON_DUMB,      TRUE    },
 	{   "armor piercing",WEAPON_PUNCTURE,      TRUE    },
-        { "paralysis poison",WEAPON_PARALYSIS_POISON, TRUE},
+ /* Two new weapon flags - Astark */
+        {   "paralysis poison",WEAPON_PARALYSIS_POISON, TRUE},
+        {   "storming",      WEAPON_STORMING,      TRUE    },
 	{   NULL,              0,                    0       }
 };
 

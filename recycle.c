@@ -704,9 +704,12 @@ void free_mem_data(MEM_DATA *memory)
 
 
 /* buffer sizes */
+/* Added 32767 on 12-21-12 - Astark. Not certain what affects this will
+   have on memory usage, but it allows a full output from the alist
+   command using the new formatting */
 const int buf_size[MAX_BUF_LIST] =
 {
-	16,32,64,128,256,1024,2048,4096,8192,16384
+	16,32,64,128,256,1024,2048,4096,8192,16384,32767
 };
 
 /* local procedure for finding the next acceptable size */

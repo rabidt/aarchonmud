@@ -31,8 +31,15 @@ extern int mobile_count;
 
 /* stuff for providing a crash-proof buffer */
 
-#define MAX_BUF		16384
-#define MAX_BUF_LIST 	10
+/* Changed to reflect the max value of a short integer. Not sure what affects
+   this will have our on memory usage, but it allows paging of longer files like
+   the output of alist - Astark 12-21-12 */
+
+/* Changed this from 10 to 11 to reflect the addition of 32767 in
+   recycle.c - Astark 12-21-12 */
+
+#define MAX_BUF		32767
+#define MAX_BUF_LIST 	11
 #define BASE_BUF 	1024
 
 /* valid states */

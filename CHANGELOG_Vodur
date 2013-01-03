@@ -167,3 +167,10 @@
 
 - Success and full heal messages for restore.
 
+1/2/13 Astark
+- Added Druid and Mechanics Board
+- Roleplay expiration is now 300 days instead of 200
+- Immortal expiration is now 300 days instead of 200
+- Immortal board holds notes for 90 days instead of 30
+- News board has 500 days expiration instead of 200
+- Added protective group. Still needs appropriate group costs
