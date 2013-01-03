@@ -3884,3 +3884,35 @@ void do_printlist(CHAR_DATA *ch, char *argument)
        send_to_char("\n\r",ch);
     }
 }
+
+void do_charloadtest(CHAR_DATA *ch, char *argument)
+{
+   char buf[100000];
+   char chName[MSL];
+   FILE *fp;
+
+   fp = popen( "ls -1 ../player", "r" );
+
+   fgetf( buf, 100000, fp );
+
+   //page_to_char( buf, ch );
+
+   pclose( fp );
+
+   char * pch;
+   pch = strtok (buf, "\n\r");
+
+   while (pch != NULL)
+   {
+	//printf_to_char(ch,"%s\n\rbreak\n\r",pch);
+	do_pload(ch, pch);
+	do_punload(ch,pch);	
+
+	pch = strtok( NULL, "\n\r");
+   }
+
+
+   //page_to_char(buf,ch);
+  
+   return;
+}

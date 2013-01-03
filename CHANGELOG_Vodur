@@ -174,3 +174,7 @@
 - Immortal board holds notes for 90 days instead of 30
 - News board has 500 days expiration instead of 200
 - Added protective group. Still needs appropriate group costs
+
+1/3/2012 Vodur
+- Tested using charloadtest command, disabled after finished. Can be re-enabled in 
+  interp.c if needed again.
