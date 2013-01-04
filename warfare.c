@@ -84,7 +84,7 @@ void auto_war(void)
     war.on = TRUE;
     war.started = FALSE;
     war.combatants = 0;
-    war.war_time_left = 1;
+    war.war_time_left = 4;
     war.first_combatant = NULL;
     war.reward = 4;
     war.owner = 0;
