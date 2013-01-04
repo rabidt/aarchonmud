@@ -2155,7 +2155,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 
 	act( "$n appears in the room.", ch, NULL, NULL, TO_ROOM );
 	do_look( ch, "auto" );
-        do_loginquote(ch);
+        //do_loginquote(ch);
 	if (ch->pet != NULL)
 	{
 		char_to_room(ch->pet,ch->in_room);

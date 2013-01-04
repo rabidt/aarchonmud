@@ -1653,7 +1653,7 @@ void do_say( CHAR_DATA *ch, char *argument )
     if (!IS_NPC(ch))
     {
         sprintf(buf, "{w%s %s '%s'\n", ch->name, mid2, argument);
-        log_say(ch,buf);
+        //log_say(ch,buf);
     }
 
     

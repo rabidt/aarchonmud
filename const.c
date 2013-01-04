@@ -7292,7 +7292,7 @@ const   struct  group_type      group_table     [MAX_GROUP]     =
         /* War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec */
 
         {
-        "protective",    { -1, 4, 3, 4, -1, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4 },
+        "protective",    { -1, -1, 3, 4, -1, 8, 6, -1, 8, 4, 4, 6, -1, -1, 5 },
         { "armor", "cancellation", "dispel magic", "fireproof", "protection evil",
           "protection good", "sanctuary", "shield", "stone skin", "mana shield" }
         },
