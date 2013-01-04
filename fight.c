@@ -1458,12 +1458,45 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     if ( wield != NULL && (wield->value[0] == WEAPON_GUN
 			   || wield->value[0] == WEAPON_BOW) )
     {
-	if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto
-	     && !number_bits(3) && chance(get_skill(ch, gsn_sharp_shooting)) )
+      /* Added snipe and aim here so that they aren't checked until further down - Astark 1-3-13 */
+	if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto && dt != gsn_snipe
+	     && dt != gsn_aim && !number_bits(3) && chance(get_skill(ch, gsn_sharp_shooting)) )
 	{
 	    dam *= 2;
 	    check_improve (ch, gsn_sharp_shooting, TRUE, 5);
 	}
+    
+       /* Added this little hack in to improve damage on aim and snipe. We should fully test
+          it later and compare damage numbers to the old aeaea binary. Works for now - Astark 1-3-13 */
+ 
+        if ( dt == gsn_snipe )
+        {
+            if (number_bits(1))
+            {
+                dam *= 5;
+                check_improve (ch, gsn_sharp_shooting, TRUE, 5);
+            }
+            else
+            {
+                dam *= 4;
+                check_improve (ch, gsn_sharp_shooting, TRUE, 5);
+            }
+        }
+
+        if ( dt == gsn_aim )
+        {
+            if (number_bits(2))
+            {
+                dam *= 3;
+                check_improve (ch, gsn_sharp_shooting, TRUE, 5);
+            }
+            else
+            {
+                dam *= 5/2;
+                check_improve (ch, gsn_sharp_shooting, TRUE, 5);
+            }
+        }
+
     }
     else
     {
