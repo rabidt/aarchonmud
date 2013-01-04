@@ -138,3 +138,6 @@ Astark's changelog
 - Fixed do_score display issue (it was showing some stuff from testing)
 - Fixed the 'you heal she' grammar issue
 - Changed religion set power to level 108 command for now
+- Fixed dryad stats to match original values
+- Changed max stats back to 200 until further notice
+- Changed back EQ ratings to original values until further notice.

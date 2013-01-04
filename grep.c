@@ -1417,10 +1417,10 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj )
             spec = (obj->level * 19)/90 + 5;
 
         /* Added by Astark, Nov 2012. Makes eq with RANDOM 
-           flag have a few more OPs (15-20% or so) */
+           flag have a few more OPs (15-20% or so) - Disabled 1-4-13 Astark
 
         if ( IS_SET(obj->extra_flags, ITEM_RANDOM))
-            spec = spec * 15 / 14;
+            spec = spec * 15 / 14; */
     }
     else /* These are objects above level 90 */
     {
@@ -1431,14 +1431,16 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj )
 	    spec -= 18 + (obj->level - 90);
 
         /* Added by Astark, Nov 2012. Makes eq with RANDOM 
-           flag have a few more OPs (15-20% or so) */
+           flag have a few more OPs (15-20% or so) - Disabled 1-4-13 Astark
 
         if ( IS_SET(obj->extra_flags, ITEM_RANDOM))
-            spec = spec * 15 / 14;
+            spec = spec * 15 / 14; */
     }
 
     return spec;
 }
+
+/* disabled 1-4-13 Astark 
 
 int get_obj_spec( OBJ_DATA *obj )
 {
@@ -1465,9 +1467,10 @@ int get_obj_spec( OBJ_DATA *obj )
             spec = spec * 6 / 5;
     }
     return spec;
-}
+} */
 
-/* THIS IS THE OLD GET_OBJ_SPEC.. commented out but preserved for review 
+/* THIS IS THE OLD GET_OBJ_SPEC.. commented out but preserved for review */
+/* re-enabled 1-4-13 */
 int get_obj_spec( OBJ_DATA *obj )
 {
     int spec;
@@ -1492,7 +1495,6 @@ int get_obj_spec( OBJ_DATA *obj )
     return spec;
 }
 
-*/
 
 int average_weapon_dam( OBJ_INDEX_DATA *obj )
 {
