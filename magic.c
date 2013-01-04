@@ -1960,6 +1960,13 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 	act( "Isn't $n just so nice?", ch, NULL, victim, TO_VICT );
 	if ( ch != victim )
 	act("$N looks at you with adoring eyes.",ch,NULL,victim,TO_CHAR);
+
+     /* Added a check so that charmed NPCs aren't aggressive. Was getting errors in
+        the shell saying "Bad MPKill ... - Astark 1-4-13 
+        if (IS_NPC(victim))
+            REMOVE_BIT(ch->act, ACT_AGGRESSIVE); */
+  
+
 	return;
 }
 
@@ -3563,8 +3570,8 @@ void spell_heal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     {
         send_to_char( "A warm feeling fills your body.\n\r", victim );
         if ( ch != victim )
-  /* Changed this from E to K to fix grammar error - Astark */
-            act( "You heal $K.", ch, NULL, victim, TO_CHAR );
+  /* Changed this from E to M to fix grammar error - Astark */
+            act( "You heal $M.", ch, NULL, victim, TO_CHAR );
     }
     return;
 }
