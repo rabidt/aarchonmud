@@ -803,7 +803,7 @@ struct  shop_data
 
 #define MAX_GUILD   2
 #define MAX_STATS   10
-#define MAX_CURRSTAT 225
+#define MAX_CURRSTAT 200
 #define STAT_STR        0
 #define STAT_CON        1
 #define STAT_VIT        2
