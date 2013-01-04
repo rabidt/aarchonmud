@@ -1680,7 +1680,9 @@ void qset_update( CHAR_DATA *ch )
     {	
         if ( qdata->timer > 0 && (qdata->limit < current_time) )
 	{
-             qdata->limit = current_time + 55; /* 1 minute */ 
+           /* Changed this value from 55 (55 seconds or about 1 real life minute) to
+              3600 seconds or about 1 real life hour - Astark 1-3-13 */
+             qdata->limit = current_time + 3600; /* 1 real life hour */ 
              qdata->timer -= 1;
 	}
     }

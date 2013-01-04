@@ -129,3 +129,12 @@ Astark's changelog
 - News board has 500 days expiration instead of 200
 - Added protective group. Still needs appropriate group costs
 - Disabled remort 8 for now.
+
+1/3/13 Astark
+- Changed snipe and aim to consider sharp shooting and do more damage.
+
+1/4/13 Astark
+- Changed default roll back to 925 from 1065 (stats.c)
+- Fixed do_score display issue (it was showing some stuff from testing)
+- Fixed the 'you heal she' grammar issue
+- 
