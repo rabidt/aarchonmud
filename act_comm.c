@@ -581,8 +581,9 @@ void do_newbie( CHAR_DATA *ch, char *argument )
                 }
                 if (!found)
                 {
-                    act_new( "{n[Newbie] $n{n: {N'$t{N'{x",
-                        ch,argument, d->character, TO_VICT,POS_DEAD );
+                    act_new_gag( "{n[Newbie] $n{n: {N'$t{N'{x",
+                        ch,argument, d->character, TO_VICT,POS_DEAD,
+			GAG_NCOL_CHAN, FALSE );
                 }
             }
         }
@@ -674,8 +675,9 @@ void do_bitch( CHAR_DATA *ch, char *argument )
                 }
                 if (!found)
                 {
-                    act_new( "{f$n{f bitches {F'$t{F'{x",
-                        ch,argument, d->character, TO_VICT,POS_SLEEPING );
+                    act_new_gag( "{f$n{f bitches {F'$t{F'{x",
+                        ch,argument, d->character, TO_VICT,POS_SLEEPING,
+			GAG_NCOL_CHAN, FALSE );
                 }
             }
         }
@@ -912,8 +914,9 @@ void do_gratz( CHAR_DATA *ch, char *argument )
                 if (!found)
                 {
                     
-                    act_new( "{z$n{z gratzes {Z'$t{Z'{x",
-                        ch,argument, d->character, TO_VICT,POS_SLEEPING );
+                    act_new_gag( "{z$n{z gratzes {Z'$t{Z'{x",
+                        ch,argument, d->character, TO_VICT,POS_SLEEPING, 
+			GAG_NCOL_CHAN, FALSE);
                 }
             }
         }
@@ -1002,8 +1005,9 @@ void do_quote( CHAR_DATA *ch, char *argument )
                 if (!found)
                 {
                     
-                    act_new( "{h$n{h quotes {H'$t{H'{x",
-                        ch,argument, d->character, TO_VICT,POS_SLEEPING );
+                    act_new_gag( "{h$n{h quotes {H'$t{H'{x",
+                        ch,argument, d->character, TO_VICT,POS_SLEEPING,
+			GAG_NCOL_CHAN, FALSE);
                 }
             }
         }
@@ -1093,8 +1097,9 @@ void do_question( CHAR_DATA *ch, char *argument )
                 if (!found)
                 {
                     
-                    act_new("{q$n{q questions {Q'$t{Q'{x",
-                        ch,argument,d->character,TO_VICT,POS_SLEEPING);
+                    act_new_gag("{q$n{q questions {Q'$t{Q'{x",
+                        ch,argument,d->character,TO_VICT,POS_SLEEPING,
+			GAG_NCOL_CHAN, FALSE);
                 }
             }
         }
@@ -1183,8 +1188,9 @@ void do_answer( CHAR_DATA *ch, char *argument )
                 }
                 if (!found)
                 {
-                    act_new("{j$n{j answers {J'$t{J'{x",
-                        ch,argument,d->character,TO_VICT,POS_SLEEPING);
+                    act_new_gag("{j$n{j answers {J'$t{J'{x",
+                        ch,argument,d->character,TO_VICT,POS_SLEEPING,
+			GAG_NCOL_CHAN, FALSE);
                 }
             }
         }
@@ -1275,8 +1281,9 @@ void do_music( CHAR_DATA *ch, char *argument )
                 }
                 if (!found)
                 {
-                    act_new("{e$n{e MUSIC: {E'$t{E'{x",
-                        ch,argument,d->character,TO_VICT,POS_SLEEPING);
+                    act_new_gag("{e$n{e MUSIC: {E'$t{E'{x",
+                        ch,argument,d->character,TO_VICT,POS_SLEEPING,
+			GAG_NCOL_CHAN, FALSE);
                 }
             }
         }
@@ -3891,8 +3898,9 @@ void do_auction( CHAR_DATA *ch, char *argument )
                 if (!found)
                 {
                     
-                    act_new("{a$n auctions {A'$t{A'{x",
-                        ch,argument,d->character,TO_VICT,POS_DEAD);
+                    act_new_gag("{a$n auctions {A'$t{A'{x",
+                        ch,argument,d->character,TO_VICT,POS_DEAD,
+			GAG_NCOL_CHAN, FALSE);
                 }
             }
         }
@@ -3955,7 +3963,7 @@ void do_savantalk( CHAR_DATA *ch, char *argument )
             if (!found)
             {
                 
-                act_new("{7$n-> {8$t{x",ch,argument,d->character,TO_VICT,POS_DEAD);
+                act_new_gag("{7$n-> {8$t{x",ch,argument,d->character,TO_VICT,POS_DEAD,GAG_NCOL_CHAN, FALSE);
             }
         }
     }
