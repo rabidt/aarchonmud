@@ -137,4 +137,4 @@ Astark's changelog
 - Changed default roll back to 925 from 1065 (stats.c)
 - Fixed do_score display issue (it was showing some stuff from testing)
 - Fixed the 'you heal she' grammar issue
-- 
+- Changed religion set power to level 108 command for now

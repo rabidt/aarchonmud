@@ -130,7 +130,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "sticky",     do_sticky, POS_DEAD,       L2,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "tell",       do_tell,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "unlock",     do_unlock,      POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "wield",      do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE },
+    { "wield",      do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE },
     { "wizhelp",    do_wizhelp, POS_DEAD,   IM,  LOG_NORMAL, 1, FALSE, FALSE  },
     
    /*
@@ -258,7 +258,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "fill",       do_fill,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "give",       do_give,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "heal",       do_heal,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "hold",       do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE },
+    { "hold",       do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE   },
     { "list",       do_list,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "lock",       do_lock,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "merge",      do_merge,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -276,7 +276,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "junk",       do_sacrifice,   POS_RESTING,     0,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "value",      do_value,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "browse",     do_browse,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "wear",       do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE },
+    { "wear",       do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE },
     { "appraise",   do_appraise, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, FALSE  },
     { "lore",       do_lore, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "zap",        do_zap,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },

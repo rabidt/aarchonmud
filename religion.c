@@ -2390,11 +2390,13 @@ void do_religion_set( CHAR_DATA *ch, char *argument )
     }
   /* IMPs can set value to religion power. Primarily for testing
      purposes - Astark 12-23-12 */
+ 
+  /* Changed to level 108 command for now - Astark 1-4-13 */
     else if ( !strcmp(arg1, "power") )
     {
-        if ( ch->level < MAX_LEVEL )
+        if ( ch->level < MAX_LEVEL - 2 )
         {
-            send_to_char( "This action is reserved for implementors", ch );
+            send_to_char( "This action is reserved for 108+ IMMs", ch );
         }
         else
        {
