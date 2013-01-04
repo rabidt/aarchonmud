@@ -1951,27 +1951,27 @@ struct quote_type
 
 const struct quote_type quote_table[MAX_QUOTES] =
 {
-    { "{W{vYou will move slower when encumbered (Carrying too much weight).{x\n\r"                            }, /* 1 */
-    { "{W{vMaledictions such as poison and plague will slow down your HP, mana, and move regeneration.{x\n\r" },
-    { "{W{vBeing affected by 'Fly' will reduces the moves used moving from room to room.{x\n\r"               },
-    { "{W{vThe lemonade fountain 2N from Palace Square (recall) will satisfy thirst and hunger.{x\n\r"        },
-    { "{W{vDon't forget to eat and drink. Being hungry or thirsty reduces your regeneration rates.{x\n\r"     }, /* 5 */
-    { "{W{vYou can heal faster by sleeping or resting at the fireplace in the Inne of the Last Home.{x\n\r"   },
-    { "{W{vBe sure to practice your new skills and spells after leveling up.{x\n\r"                           },
-    { "{W{vYou can earn a lot of extra gold by selling items that you don't need or have outgrown.{x\n\r"     },
-    { "{W{vDeposit your gold at the bank NW,W from Palace Square. It will stay safe in the bank.{x\n\r"       },
-    { "{W{vLenny the banker can exchange your silver for gold. (give <amount> silver lenny).{x\n\r"           }, /* 10 */
-    { "{W{vMost storage containers will reduce the effective weight of the items in your inventory.{x\n\r"    },
-    { "{W{vType AUTOLIST to see what commands you can automate (such as looting corpses with autoloot.{x\n\r" },
-    { "{W{vYou can automate a single combat command using ACTION. Read 'help action' for more info.{x\n\r"    },
-    { "{W{vRead 'help train' to find out why training DISCIPLINE is so important.{x\n\r"                      },
-    { "{W{vThe CONSIDER command will give you a -rough- idea of how hard a fight may be.{x\n\r"               }, /* 15 */
-    { "{W{vThere are maps available on our website of many areas. http://www.aarchonmud.com{x "           }, 
-    { "{W{vThe Wandering Sages that roam Bastion will lore any item for you. Just hand it to them!{x\n\r"     },
-    { "{W{vIf you lose your newbie guide, you can buy another one at Herman the Gnome (SE,E){x\n\r"           },
-    { "{W{vTake time to explore. There are many mini-quests throughout Aarchon.{x\n\r"                        }, /* 20 */
-    { "{W{vField experience is EXP that you absorb over time. Read 'help field xp' for more info.{x\n\r"      },
-    { "{W{vDid you know, that if you type '!' it will repeat the last command you typed?{x\n\r"               },
+    { "{WYou will move slower when encumbered (Carrying too much weight).{x\n\r"                            }, /* 1 */
+    { "{WMaledictions such as poison and plague will slow down your HP, mana, and move regeneration.{x\n\r" },
+    { "{WBeing affected by 'Fly' will reduces the moves used moving from room to room.{x\n\r"               },
+    { "{WThe lemonade fountain 2N from Palace Square (recall) will satisfy thirst and hunger.{x\n\r"        },
+    { "{WDon't forget to eat and drink. Being hungry or thirsty reduces your regeneration rates.{x\n\r"     }, /* 5 */
+    { "{WYou can heal faster by sleeping or resting at the fireplace in the Inne of the Last Home.{x\n\r"   },
+    { "{WBe sure to practice your new skills and spells after leveling up.{x\n\r"                           },
+    { "{WYou can earn a lot of extra gold by selling items that you don't need or have outgrown.{x\n\r"     },
+    { "{WDeposit your gold at the bank NW,W from Palace Square. It will stay safe in the bank.{x\n\r"       },
+    { "{WLenny the banker can exchange your silver for gold. (give <amount> silver lenny).{x\n\r"           }, /* 10 */
+    { "{WMost storage containers will reduce the effective weight of the items in your inventory.{x\n\r"    },
+    { "{WType AUTOLIST to see what commands you can automate (such as looting corpses with autoloot.{x\n\r" },
+    { "{WYou can automate a single combat command using ACTION. Read 'help action' for more info.{x\n\r"    },
+    { "{WRead 'help train' to find out why training DISCIPLINE is so important.{x\n\r"                      },
+    { "{WThe CONSIDER command will give you a -rough- idea of how hard a fight may be.{x\n\r"               }, /* 15 */
+    { "{WThere are maps available on our website of many areas. http://www.aarchonmud.com{x "               }, 
+    { "{WThe Wandering Sages that roam Bastion will lore any item for you. Just hand it to them!{x\n\r"     },
+    { "{WIf you lose your newbie guide, you can buy another one at Herman the Gnome (SE,E){x\n\r"           },
+    { "{WTake time to explore. There are many mini-quests throughout Aarchon.{x\n\r"                        }, /* 20 */
+    { "{WField experience is EXP that you absorb over time. Read 'help field xp' for more info.{x\n\r"      },
+    { "{WDid you know, that if you type '!' it will repeat the last command you typed?{x\n\r"               },
 };
 
 
@@ -1981,7 +1981,7 @@ void do_loginquote( CHAR_DATA *ch )
     char buf[MAX_STRING_LENGTH];
     int number;
 
-    number = number_range( 0, MAX_QUOTES);
+    number = number_range( 1, MAX_QUOTES);
 
     sprintf ( buf, "\n\r%s\n\r", quote_table[number].text);
     send_to_char ( buf, ch );

@@ -4775,7 +4775,7 @@ void do_score( CHAR_DATA *ch, char *argument )
             int bonus = 1;
             if( ch->level >= (LEVEL_HERO-10) )  bonus += ch->level + 1 - (LEVEL_HERO-10);
             sprintf( temp, "{c(Expect to gain about{x %d {cnext level.)", x*bonus ); 
-            sprintf( temp, "x1=%d x2=%d x3=%d x=%d", x1,x2,x3,x);
+//            sprintf( temp, "x1=%d x2=%d x3=%d x=%d", x1,x2,x3,x);
         }
         else sprintf( temp, "" );
 

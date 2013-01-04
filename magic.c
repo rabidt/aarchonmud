@@ -3563,7 +3563,8 @@ void spell_heal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     {
         send_to_char( "A warm feeling fills your body.\n\r", victim );
         if ( ch != victim )
-            act( "You heal $E.", ch, NULL, victim, TO_CHAR );
+  /* Changed this from E to K to fix grammar error - Astark */
+            act( "You heal $K.", ch, NULL, victim, TO_CHAR );
     }
     return;
 }
