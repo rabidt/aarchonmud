@@ -1785,7 +1785,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     {
         act("$N seems to have misplaced $S link...$E'll get your tell upon returning.",
             ch,NULL,victim,TO_CHAR);
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",get_mimic_PERS(ch,victim,GAG_NCOL_CHAN),argument);
+        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",get_mimic_PERS_new(ch,victim,GAG_NCOL_CHAN),argument);
         buf[2] = UPPER(buf[2]);
         add_buf(victim->pcdata->buffer,buf);
 	if( victim != ch )
@@ -1839,7 +1839,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
         
         act("$E is AFK, but your tell will go through when $E returns.",
             ch,NULL,victim,TO_CHAR);
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",PERS(ch,victim),argument);
+        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",ch->name,argument);
         buf[2] = UPPER(buf[2]);
         add_buf(victim->pcdata->buffer,buf);
 	if( victim != ch )
@@ -1858,7 +1858,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
         
         act("$E is AFK, but your tell will go through when $E returns.",
             ch,NULL,victim,TO_CHAR);
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",PERS(ch,victim),argument);
+        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",ch->name,argument);
         buf[2] = UPPER(buf[2]);
         add_buf(victim->pcdata->buffer,buf);
 	if( victim != ch )
@@ -1872,7 +1872,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     {
         act("$N is writing a note, but your tell will go through when $E finishes.",
             ch,NULL,victim,TO_CHAR);
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",PERS(ch,victim),argument);
+        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",ch->name,argument);
         buf[2] = UPPER(buf[2]);
         add_buf(victim->pcdata->buffer,buf);
 	if( victim != ch )
@@ -1884,10 +1884,13 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     send_to_char( buf, ch );
     argument = makedrunk(argument,ch);
     nt_act_new( "{t$n {ttells you {T'$t{T'{x", ch, argument, victim, TO_VICT, POS_DEAD);
-
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",PERS(ch,victim),argument);
+    
+    if (!IS_NPC(victim))
+    {
+        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",ch->name,argument);
         buf[2] = UPPER(buf[2]);
         add_buf(victim->pcdata->buffer,buf);
+    }
 
     if( victim != ch )
         victim->reply = ch;

@@ -843,7 +843,8 @@ char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype)
     }
     /* static since we're returning it*/
     static char buf[MAX_STRING_LENGTH];
-    sprintf( buf, "%s%s%s{x", ch->pcdata->name_color, ch->pcdata->pre_title, ch->name);
+    //sprintf( buf, "%s%s%s{x", ch->pcdata->name_color, ch->pcdata->pre_title, ch->name);
+    sprintf (buf, "%s%s%s{x", (gagtype==GAG_NCOL_CHAN)?"":ch->pcdata->name_color, ch->pcdata->pre_title, ch->name);
     return buf;
 }
 
