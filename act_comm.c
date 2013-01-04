@@ -1493,8 +1493,8 @@ void do_immtalk( CHAR_DATA *ch, char *argument )
     
     REMOVE_BIT(ch->comm,COMM_NOWIZ);
     
-    sprintf( buf, "{i$n: {I%s{x", argument );
-    act_new("{i$n: {I$t{x",ch,argument,NULL,TO_CHAR,POS_DEAD);
+    sprintf( buf, "{i$n{i: {I%s{x", argument );
+    act_new_gag("{i$n{i: {I$t{x",ch,argument,NULL,TO_CHAR,POS_DEAD, GAG_NCOL_CHAN, FALSE);
 
 
         sprintf(buf,"{i: {I'%s{I'", argument);
@@ -1519,7 +1519,7 @@ void do_immtalk( CHAR_DATA *ch, char *argument )
             }
             if (!found)
             {
-                act_new("{i$n{i: {I$t{x",ch,argument,d->character,TO_VICT,POS_DEAD);
+                act_new_gag("{i$n{i: {I$t{x",ch,argument,d->character,TO_VICT,POS_DEAD, GAG_NCOL_CHAN, FALSE);
             }
         }
     }
