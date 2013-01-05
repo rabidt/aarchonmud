@@ -1390,7 +1390,7 @@ void char_update( void )
             if (IS_IMMORTAL(ch))
                 ch->timer = 0;
 
-            if (ch->position != POS_SLEEPING)
+            if (!IS_NPC(ch) && ch->position != POS_SLEEPING)
                 gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
 
  //   sprintf(buf, "time = %s\n\r", current_time);
@@ -1443,6 +1443,8 @@ void char_update( void )
                  This is then used in the int hit_gain/mana_gain/move_gain to give the player a 
                  bonus to their regeneration. Added by Astark - September 2012 */
 //&& number_bits(2)
+               if (!IS_NPC(ch))
+               {
                     if ((ch->position == POS_SLEEPING) && ch->pcdata->condition[COND_DEEP_SLEEP] < 10)
                     {
                         ch->pcdata->condition[COND_DEEP_SLEEP] += 1;
@@ -1450,6 +1452,7 @@ void char_update( void )
                     }
                     else if (ch->position != POS_SLEEPING)
                         gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
+               }
 
 		    if ((ch->pcdata->condition[COND_HUNGER]>=20) || curr_tick>2)
 			gain_condition( ch, COND_HUNGER, 

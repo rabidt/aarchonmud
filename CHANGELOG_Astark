@@ -141,3 +141,6 @@ Astark's changelog
 - Fixed dryad stats to match original values
 - Changed max stats back to 200 until further notice
 - Changed back EQ ratings to original values until further notice.
+- Added overcharge to heroic rites group
+- Added heroic rites group at 8 points for mages so they can gain unearth and overcharge
+- Fixed bug in act_move.c , setting deep sleep to 0 on mobs was crashing MUD. Needed and npc check

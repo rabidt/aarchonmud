@@ -2000,7 +2000,8 @@ void do_stand( CHAR_DATA *ch, char *argument )
 		 }
 	  
 	  ch->position = POS_STANDING;
-          ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          if (!IS_NPC(ch))
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
 	  do_look(ch,"auto");
 	  break;
 	  
@@ -2119,7 +2120,8 @@ void do_rest( CHAR_DATA *ch, char *argument )
 		 act("$n wakes up and rests in $p.",ch,obj,NULL,TO_ROOM);
 	  }
 	  ch->position = POS_RESTING;
-          ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          if (!IS_NPC(ch))
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
 
          if ( IS_AFFECTED(ch, AFF_SHELTER) )
                  for (gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
@@ -2163,7 +2165,8 @@ void do_rest( CHAR_DATA *ch, char *argument )
 	  }
 	  /*ch->stance = 0;*/
 	  ch->position = POS_RESTING;
-          ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          if (!IS_NPC(ch))
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
 	  break;
 	  
    case POS_SITTING:
@@ -2188,7 +2191,8 @@ void do_rest( CHAR_DATA *ch, char *argument )
 		 act("$n rests in $p.",ch,obj,NULL,TO_ROOM);
 	  }
 	  ch->position = POS_RESTING;
-          ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          if (!IS_NPC(ch))
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
 	  break;
    }
    
@@ -2282,7 +2286,8 @@ void do_sit (CHAR_DATA *ch, char *argument )
                                          act_new("The group's shelter was revealed by $N.", gch, NULL, ch, TO_CHAR, POS_STANDING);
                          }
 	  ch->position = POS_SITTING;
-          ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          if (!IS_NPC(ch))
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
 	  break;
    case POS_RESTING:
 	  if (obj == NULL)
@@ -2299,7 +2304,8 @@ void do_sit (CHAR_DATA *ch, char *argument )
 		 act("$n sits on $p.",ch,obj,NULL,TO_ROOM);
 	  }
 	  ch->position = POS_SITTING;
-          ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          if (!IS_NPC(ch))
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
 	  break;
    case POS_SITTING:
 	  send_to_char("You are already sitting down.\n\r",ch);
@@ -2326,7 +2332,8 @@ void do_sit (CHAR_DATA *ch, char *argument )
 		 act("$n sits down in $p.",ch,obj,NULL,TO_ROOM);
 	  }
 	  ch->position = POS_SITTING;
-          ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          if (!IS_NPC(ch))
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
 	  /*ch->stance = 0;*/
 	  break;
    }
