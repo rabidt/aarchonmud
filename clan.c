@@ -552,7 +552,7 @@ void do_rank( CHAR_DATA *ch, char *argument )
     }
     else if (victim->pcdata->clan_rank < rank)  /* Trying to promote */
     {
-        if (victim->level < clan_table[victim->clan].rank_list[rank].min_level || victim->pcdata->remorts >= 1) /* Add check for remort count > 0 here later */
+        if (victim->level < clan_table[victim->clan].rank_list[rank].min_level || victim->pcdata->remorts < 1) /* Add check for remort count > 0 here later */
         {
             printf_to_char(ch, "%s must attain level %d before they may be promoted to %s.\n\r",
                 victim->name, clan_table[victim->clan].rank_list[rank].min_level, capitalize(clan_table[victim->clan].rank_list[rank].name));

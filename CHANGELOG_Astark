@@ -144,3 +144,9 @@ Astark's changelog
 - Added overcharge to heroic rites group
 - Added heroic rites group at 8 points for mages so they can gain unearth and overcharge
 - Fixed bug in act_move.c , setting deep sleep to 0 on mobs was crashing MUD. Needed and npc check
+
+1/5/13 Astark
+- Fixed grammar on spell_refresh ($E to $M)
+
+1/613  Astark
+- Fixed clan rank bug. Wasn't allowing certain characters to get promoted based on remort.
