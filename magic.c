@@ -4685,7 +4685,7 @@ void spell_refresh( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     {
         send_to_char( "You feel less tired!\n\r", victim );
         if ( ch != victim )
-            act( "You refresh $E.", ch, NULL, victim, TO_CHAR );
+            act( "You refresh $M.", ch, NULL, victim, TO_CHAR );
     }
 
     return;
