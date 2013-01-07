@@ -1224,6 +1224,8 @@ void char_update( void )
     {
         AFFECT_DATA af;
         affect_strip (ch, gsn_natural_resistance);
+ /* Added this in to stop immortals from bugging when using avatar and set skill - Astark 1-6-13 */
+        affect_strip (ch, skill_lookup("reserved") );
     }
         if ( get_skill(ch, gsn_natural_resistance) > 0)
     {   
@@ -1243,6 +1245,8 @@ void char_update( void )
     {
         AFFECT_DATA af;
         affect_strip (ch, gsn_iron_hide);
+ /* Added this in to stop immortals from bugging when using avatar and set skill - Astark 1-6-13 */
+        affect_strip (ch, skill_lookup("reserved") );
     }
         if ( get_skill(ch, gsn_iron_hide) > 0)
     {   
@@ -1448,7 +1452,7 @@ void char_update( void )
                     if ((ch->position == POS_SLEEPING) && ch->pcdata->condition[COND_DEEP_SLEEP] < 10)
                     {
                         ch->pcdata->condition[COND_DEEP_SLEEP] += 1;
-                        send_to_char("You fall into a deeper sleep.",ch);
+                        send_to_char("You fall into a deeper sleep.\n\r",ch);
                     }
                     else if (ch->position != POS_SLEEPING)
                         gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));

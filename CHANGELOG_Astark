@@ -148,5 +148,18 @@ Astark's changelog
 1/5/13 Astark
 - Fixed grammar on spell_refresh ($E to $M)
 
-1/613  Astark
-- Fixed clan rank bug. Wasn't allowing certain characters to get promoted based on remort.
+1/6/13  Astark
+- Fixed clan rank bug. Wasn't allowing certain characters to get promoted based on remort. (clan.c)
+- Fixed how names display in groups, I think. (act_info.c)
+- Fixed interp.c so that charmed mobs can't use "wear, wield, etc". This is in the last column of the table (values from true to false)
+- Added conviction to heroic rites (const.c) 
+- Added heroic rites to paladins (const.c)
+- Changed serpent stance to level 89 (setskill command)
+- Added serpent stance to three seas group for monks (const.c)
+- Changed some of the debugging/test messages I put into calm to only display to immortals (magic2.c)
+- Updated a ton of help files to correspond to the new changes (help.are)
+- Temporary (or permanent?) fix to backstab/circle not checking anatomy for damage (fight.c in void one_hit)
+- Made it so you can't be dessicated / starving, and also too full to eat or drink at the same time because of a drac spell. (effects.c)
+- Added a carriage return to the 'You feel into a deeper sleep' message. (update.c)
+- Small fix to iron-hide and natural resistance to ensure characters don't get a double affect (update.c)
+- Made some more tweaks to the snipe/aim fix to check sharp shooting percentage instead of just using a simple value (fight.c)

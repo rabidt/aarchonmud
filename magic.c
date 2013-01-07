@@ -1583,11 +1583,17 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 	/* compute chance of stopping combat */
 	chance = 2 * level /*- high_level + 2 * count*/;
 
-        sprintf( buf, "%d = chance\n\r", chance );
-        send_to_char(buf, ch);
+        if (IS_IMMORTAL(ch)) /* always works */
+        {
+            sprintf( buf, "%d = chance\n\r", chance );
+            send_to_char(buf, ch);
+        }
 
-        sprintf( buf2, "%d = mlevel\n\r", mlevel );
-        send_to_char(buf2, ch);
+        if (IS_IMMORTAL(ch)) /* always works */
+        {
+            sprintf( buf2, "%d = mlevel\n\r", mlevel );
+            send_to_char(buf2, ch);
+        }
 
 
 	if (IS_IMMORTAL(ch)) /* always works */
@@ -1607,6 +1613,7 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 		||  is_affected(vch,skill_lookup("frenzy")) || is_safe(vch,ch) )
 		  continue;
 
+        if (IS_IMMORTAL(ch)) /* always works */
           send_to_char("You're in the for loop\n\r",ch);
 
 		if (IS_NPC(vch))
@@ -1616,8 +1623,12 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 		}
 		
 		count++;
+
+        if (IS_IMMORTAL(ch)) /* always works */
+        {
             sprintf( buf3, "%d = count\n\r", count );
             send_to_char(buf3, ch);
+        }
 
 		send_to_char("A wave of calm passes over you.\n\r",vch);
 		act( "A wave of calm passes over $n.", vch, NULL, NULL, TO_ROOM );

@@ -1468,32 +1468,34 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     
        /* Added this little hack in to improve damage on aim and snipe. We should fully test
           it later and compare damage numbers to the old aeaea binary. Works for now - Astark 1-3-13 */
+  
+       /* Updated on 1-6-13 to check for sharp shooting skill percentage */
  
         if ( dt == gsn_snipe )
         {
             if (number_bits(1))
             {
-                dam *= 5;
-                check_improve (ch, gsn_sharp_shooting, TRUE, 5);
+                dam *= get_skill(ch, gsn_sharp_shooting) / 20;
+                check_improve (ch, gsn_sharp_shooting, TRUE, 6);
             }
             else
             {
-                dam *= 4;
-                check_improve (ch, gsn_sharp_shooting, TRUE, 5);
+                dam *= get_skill(ch, gsn_sharp_shooting) / 25;
+                check_improve (ch, gsn_sharp_shooting, TRUE, 6);
             }
         }
 
         if ( dt == gsn_aim )
         {
-            if (number_bits(2))
+            if (number_bits(1))
             {
-                dam *= 3;
-                check_improve (ch, gsn_sharp_shooting, TRUE, 5);
+                dam *= get_skill(ch, gsn_sharp_shooting) / 33;
+                check_improve (ch, gsn_sharp_shooting, TRUE, 8);
             }
             else
             {
-                dam *= 5/2;
-                check_improve (ch, gsn_sharp_shooting, TRUE, 5);
+                dam *= get_skill(ch, gsn_sharp_shooting) / 40;
+                check_improve (ch, gsn_sharp_shooting, TRUE, 8);
             }
         }
 
@@ -1800,6 +1802,14 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
     if ( check_critical(ch,victim) )
         dam *= 2;
+
+ /* Temporary fix for backstab and circle to check anatomy for
+    damage boost - Astark 1-6-13 */
+    if ( dt == gsn_backstab || dt == gsn_circle )
+    {
+       dam *= get_skill(ch, gsn_anatomy) / 25;
+       check_improve( ch, gsn_anatomy, TRUE, 8 );
+    } 
     
     /* leadership and charisma of group leader */
     if ( ch->leader != NULL
@@ -2818,7 +2828,8 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
 	int iron_dam;
         int dam_cap;
 
-        if (IS_NPC(victim))
+ /* Added the IS_NPC(ch) check because it wasn't working properly - Astark 1-6-13 */
+        if (IS_NPC(victim) && IS_NPC(ch))
             dam = 0;
 
 	if ( IS_NPC(ch) )
@@ -2835,6 +2846,8 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
 	else
 	    direct_damage( ch, ch, iron_dam, 0 );
     }
+
+
 
     /*
      * Hurt the victim.

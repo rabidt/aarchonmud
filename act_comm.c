@@ -2954,7 +2954,9 @@ void do_group( CHAR_DATA *ch, char *argument )
 			 "[%3d %s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %c%c%c%c%c%c %5d etl\n\r",
 			 gch->level,
 			 IS_NPC(gch) ? "Mob" : class_table[gch->class].who_name,
-			 capitalize( PERS(gch, ch) ),
+//			 capitalize( PERS(gch, ch) ),
+/* I think this is the appropriate fix for displaying names in group - Astark 1-6-13 */
+			 get_mimic_PERS_new(gch, ch,GAG_NCOL_CHAN), /* end fix */
 			 hp_col, gch->hit,   gch->max_hit,
 			 mn_col, gch->mana,  gch->max_mana,
 			 mv_col, gch->move,  gch->max_move,
