@@ -163,3 +163,10 @@ Astark's changelog
 - Added a carriage return to the 'You feel into a deeper sleep' message. (update.c)
 - Small fix to iron-hide and natural resistance to ensure characters don't get a double affect (update.c)
 - Made some more tweaks to the snipe/aim fix to check sharp shooting percentage instead of just using a simple value (fight.c)
+
+1/7/13  Astark
+- Corrected OPs again (to original value). Forgot a small change previously (grep.c)
+- Wrote a small loop for mobs to check if they have a weapon they need to re-equip after getting disarmed. Disabled for now (update.c)
+- Fixed guard/choke messages for good. (fight2.c)
+- You can hide in remort now (the consensus was that this was possible before) (fight.c)
+- Auth enabled by default now

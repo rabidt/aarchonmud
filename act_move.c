@@ -2523,11 +2523,13 @@ void do_hide( CHAR_DATA *ch, char *argument )
     
     send_to_char( "You attempt to hide.\n\r", ch );
     
-    if (IS_REMORT(ch))
-    {
-        send_to_char("There is noplace to hide in remort.\n\r",ch);
-        return;
-    }
+ /* Commented out because I believe this was changed long ago - Astark 1-7-13
+  *    if (IS_REMORT(ch))
+  *    {
+  *        send_to_char("There is noplace to hide in remort.\n\r",ch);
+  *        return;
+  *    } 
+  */
 
     if (IS_TAG(ch))
     {

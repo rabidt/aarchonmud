@@ -743,6 +743,7 @@ static void do_nlist (CHAR_DATA *ch, char *argument)
    time_t last_note;
    NOTE_DATA *p;
    char buf[MAX_STRING_LENGTH];
+   char ts_buf[80]; /* New, for dates */
    BUFFER *output;
 
    output = new_buf();
@@ -757,7 +758,7 @@ static void do_nlist (CHAR_DATA *ch, char *argument)
    }
    
    add_buf(output,"{+Notes on this board:{x\n\r");
-   add_buf(output,"{rNum> Author        Subject{x\n\r");
+   add_buf(output,"{rNum> Author        Date        Subject{x\n\r");
    
    last_note = ch->pcdata->last_note[board_number (ch->pcdata->board)];
    
@@ -769,10 +770,14 @@ static void do_nlist (CHAR_DATA *ch, char *argument)
          has_shown++; /* note that we want to see X VISIBLE note, not just last X */
          if (!show || ((count-show) < has_shown))
          {
-            sprintf (buf, "{+%3d{x>{B%c{Y%-13s{x{y %s{x \n\r",
+          /* The next line here is used to display the date properly - Vodur 1-7-13 */
+	    strftime(ts_buf,sizeof(ts_buf),"%x", localtime(&(p->date_stamp)));
+            sprintf (buf, "{+%3d{x>{B%c{Y%-13s{x{y%-12s %s{x \n\r",
                num, 
                (last_note < p->date_stamp && !is_exact_name(ch->name, p->sender)) ? '*' : ' ',
-               p->sender, p->subject);
+               p->sender, 
+	       ts_buf,
+               p->subject);
             add_buf(output,buf);
          }
       }

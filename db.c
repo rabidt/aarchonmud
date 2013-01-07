@@ -117,8 +117,8 @@ WEATHER_DATA    weather_info;
 SORT_TABLE *    bounty_table;
 int             jail_room_list[MAX_JAIL_ROOM];
 /* bool            wait_for_auth = AUTH_STATUS_IMM_ON; */
-//bool            wait_for_auth = AUTH_STATUS_ENABLED;
-bool            wait_for_auth = AUTH_STATUS_DISABLED;
+bool            wait_for_auth = AUTH_STATUS_ENABLED;
+//bool            wait_for_auth = AUTH_STATUS_DISABLED;
 bool            exits_fixed = FALSE;
 
 sh_int  gsn_mindflay;
