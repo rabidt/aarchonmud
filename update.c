@@ -849,6 +849,7 @@ void mobile_update( void )
    CHAR_DATA *ch;
    CHAR_DATA *ch_next;
    EXIT_DATA *pexit;
+   OBJ_DATA *obj, *obj_next;
    int door;
    bool success;
    
@@ -912,6 +913,27 @@ void mobile_update( void )
 		      continue;
 	      }
 	  }
+
+       /* This if check was added to make mobs that were recently disarmed
+          have a chance to re-equip their weapons. The mobile_update gets
+          called pretty frequently, and this check will make sure the mobs
+          are indeed fighting before having them equip anything. It's possible
+          that a few rare mobs are holding weapons that they aren't meant to
+          equip, but we'll cross that bridge if and when we come to it 
+          - Astark 1-7-13 
+
+          if ( ch->position == POS_FIGHTING && !number_bits(2))
+          {
+              for ( obj = ch->carrying; obj != NULL; obj = obj_next )
+              {
+                  if (obj->item_type == ITEM_WEAPON)
+                  {
+                      do_wear(ch,obj->name);
+                      break;
+                  }
+              }
+          }
+        */
 		 
 	  /* That's all for sleeping / busy monster, and empty zones */
 	  if ( ch->position != POS_STANDING )
@@ -2417,7 +2439,10 @@ void update_handler( void )
        else if ( --pulse_mobile_special   <= 0 )
        {
 	   pulse_mobile_special = PULSE_MOBILE_SPECIAL;
-	   mobile_special_update   ( );
+/* Commented out. We don't have active temple guard mobs. Shouldn't cause
+   us any problems and might let us see what is happening to cause copyovers
+   on random occasions - Astark 1-7-13 */
+/*	   mobile_special_update   ( );  */
        }
    }
    

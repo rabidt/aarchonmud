@@ -1424,8 +1424,13 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj )
     }
     else /* These are objects above level 90 */
     {
-	spec = 40 + 4 * (obj->level - 90);
-	spec = ((spec * 6 + 9) / 10) + obj->diff_rating*2;
+    /* These are Astark's proposed new values that help with eq rating
+     *	spec = 40 + 4 * (obj->level - 90);
+     *	spec = ((spec * 6 + 9) / 10) + obj->diff_rating*2;
+     */
+
+        spec = 40 + 2 * (obj->level - 90);
+        spec = (spec * (6 + obj->diff_rating) + 9) / 10;
 
 	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
 	    spec -= 18 + (obj->level - 90);

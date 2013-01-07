@@ -57,7 +57,7 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet )
     {
         obj_to_room( obj, victim->in_room );
         if (IS_NPC(victim) && victim->wait == 0 && can_see_obj(victim,obj))
-            get_obj(victim,obj,NULL);
+            get_obj(victim,obj,NULL);        
     }
     
     return TRUE;
@@ -2825,10 +2825,16 @@ void do_guard( CHAR_DATA *ch, char *argument )
     */
 
     if (is_safe(ch,victim))
+    {
         send_to_char( "You can't guard your opponent in a safe room.\n\r", ch);
+        return;
+    }
  
     if (ch == victim)
+    {
         send_to_char( "You try to guard yourself but just end up looking like a fool.\n\r", ch);
+        return;
+    }
  
    /* Error messages fixed - Astark */
     
@@ -3771,10 +3777,16 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
     */
 
     if (is_safe(ch,victim))
+    {
         send_to_char( "You can't choke your opponent in a safe room.\n\r", ch);
+        return;
+    }
  
     if (ch == victim)
+    {
         send_to_char( "You try to choke yourself but just end up looking like a fool.\n\r", ch);
+        return;
+    }
  
    /* Error messages fixed - Astark */
     
