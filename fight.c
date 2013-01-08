@@ -5634,7 +5634,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
 		  || (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB)
         /* Check added so that mobs can't flee into a safe room. Causes problems
            with resets, quests, and leveling - Astark Dec 2012 */
-                  || IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE))))
+                  || (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE)))))
 	    {
 		if ( number_range(0, num) == 0 )
 		    choice = dir;

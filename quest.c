@@ -1619,9 +1619,11 @@ bool quest_level_diff_hard( CHAR_DATA *ch, int mlevel)
 {
     if (ch->level < 90)
     {
-        int clevel = ch->level + (2 * ch->pcdata->remorts);
+  /* added plus 5 to minimum level - Astark 1-7-13 */
+        int clevel = ch->level + 5 + (2 * ch->pcdata->remorts);
         int min_level = URANGE( 1, clevel, 110 );
-        int max_level = (min_level + 25 + ch->pcdata->remorts );
+  /* increased from 25 to 30 - Astark 1-7-13 */
+        int max_level = (min_level + 30 + ch->pcdata->remorts );
 
         return IS_BETWEEN( min_level, mlevel, 119 ); 
     }
