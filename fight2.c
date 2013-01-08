@@ -4905,7 +4905,14 @@ void do_fervent_rage( CHAR_DATA *ch, char *argument )
 {
     int hp_percent;
     int cost = 250;
+    int chance;
     
+    if ((chance = get_skill(ch,gsn_fervent_rage)) < 1)
+    {
+        send_to_char("You don't know how to do that.\n\r",ch);
+        return;
+    }
+
     if (is_affected(ch,gsn_fervent_rage_cooldown))
     {
         send_to_char("You're still wound up from your last bout of rage.\n\r",ch);
