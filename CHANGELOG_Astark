@@ -172,3 +172,4 @@ Astark's changelog
 - Auth enabled by default now
 - Fixed teleport (magic.c) it needed the IS_SET check added to the room flags
 - Fixed circle/backstab damage. Players with low anatomy were doing almost no damage (fight.c)
+- Added a check to fervent rage so that it couldn't be used without having the skill (fight2.c)
