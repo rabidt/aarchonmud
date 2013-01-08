@@ -5136,12 +5136,14 @@ void spell_teleport( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     
     pRoomIndex = get_random_room(victim);
 
-    if ( pRoomIndex == NULL
+    if ( pRoomIndex == NULL 
 	 || pRoomIndex->area->security < 5
-	 || !can_see_room(ch,pRoomIndex)
-	 || pRoomIndex->room_flags, ROOM_PRIVATE
-	 || pRoomIndex->room_flags, ROOM_SOLITARY
-	 || pRoomIndex->room_flags, ROOM_JAIL )
+         || pRoomIndex->area->security > 8 /* Added this - Astark 1-7-13 */ 
+	 || !can_see_room(ch,pRoomIndex) 
+ /* Teleport wasn't working because the IS_SET check was missing - Astark 1-7-13 */
+	 || IS_SET(pRoomIndex->room_flags, ROOM_PRIVATE)
+	 || IS_SET(pRoomIndex->room_flags, ROOM_SOLITARY)
+	 || IS_SET(pRoomIndex->room_flags, ROOM_JAIL) ) 
     {
         send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
         return;

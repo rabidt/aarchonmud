@@ -3641,7 +3641,8 @@ void spell_unearth( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
         if ( !is_affected(victim, gsn_fly) )
         {
-        victim->stance = 0;
+            if (victim->stance != 0)
+                victim->stance = 0;
 
 	act("As $n shifts the earth, you lose your stance!",
 	    ch,NULL,victim,TO_VICT);

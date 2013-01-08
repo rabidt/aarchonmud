@@ -1807,7 +1807,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     damage boost - Astark 1-6-13 */
     if ( dt == gsn_backstab || dt == gsn_circle )
     {
-       dam *= get_skill(ch, gsn_anatomy) / 25;
+       dam += dam * get_skill(ch, gsn_anatomy) / 20;
        check_improve( ch, gsn_anatomy, TRUE, 8 );
     } 
     
