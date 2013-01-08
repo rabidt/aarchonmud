@@ -1753,7 +1753,7 @@ void do_circle( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    chance = chance / 2;
+    chance = chance * 3/4;
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
     if ( !can_see(victim, ch) )
 	chance += 10;
