@@ -4475,13 +4475,18 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         {
 
          /* Added a check for the fortune bit. This is assigned by the new god_fortune
-            blessing, and increases gold/silver drops by 50% - Astark 12-23-12 */
+            blessing, and increases gold/silver drops by 50 percent - Astark 12-23-12 */
 
-            if (IS_AFFECTED(killer, AFF_FORTUNE))
+         /* This was causing a crash from commands like slay, that have a null killer
+            value. Fixed by adding a killer null check. 1-8-13 - Astark */
+            if (killer != NULL)
             {
-                obj_to_obj( create_money( victim->gold*3/2, victim->silver*3/2 ), corpse );
-                victim->gold = 0;
-                victim->silver = 0;
+                if (IS_AFFECTED(killer, AFF_FORTUNE))
+                {
+                    obj_to_obj( create_money( victim->gold*3/2, victim->silver*3/2 ), corpse );
+                    victim->gold = 0;
+                    victim->silver = 0;
+                }
             }
             else
             {

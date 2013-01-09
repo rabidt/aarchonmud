@@ -2880,6 +2880,7 @@ void do_slay( CHAR_DATA *ch, char *argument )
     act( "$n slays you in cold blood!", ch, NULL, victim, TO_VICT    );
     act( "$n slays $N in cold blood!",  ch, NULL, victim, TO_NOTVICT );
     raw_kill( victim, NULL, TRUE);
+
     return;
 }
 
