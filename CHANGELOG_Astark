@@ -176,3 +176,8 @@ Astark's changelog
 - Fixed flee (wasn't letting players flee if rooms were safe) (fight.c)
 - Increased hard_quest difficulty very, very slightly for players under level 90 (quest.c)
 - Changed patron of Discordia to Astark
+
+1/8/13 Astark
+- Fixed crafting to log items properly (crafting.c)
+- Fixed typo in crafting ... vanishses (crafting.c)
+- Fixed bug in make_corpse causing slay to crash (fight.c)

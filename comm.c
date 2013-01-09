@@ -478,7 +478,7 @@ int main( int argc, char **argv )
 	/*
 	* Get the port number.
 	*/
-	port = 7000;
+	port = 7100;
 	ftpport = port + 6;
 
 	if ( argc > 1 )

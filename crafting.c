@@ -305,7 +305,7 @@ void do_extract( CHAR_DATA *ch, char *argument)
         return;
     } 
 
-    logpf( "%s extracted %s", ch->name, obj);
+    logpf( "%s extracted %s", ch->name, remove_color(obj->short_descr));
 
     /* The materials you get are dependent on the level and rating of the object that you extract */
     if ( obj->level < 90)
@@ -465,7 +465,7 @@ void do_extract( CHAR_DATA *ch, char *argument)
     WAIT_STATE( ch, skill_table[gsn_craft].beats );
     if ( chance(skill-5) )
     {
-        sprintf(buf, "%s vanishses as you extract %s from it.\n\r", obj->short_descr, extracted->short_descr);
+        sprintf(buf, "%s vanishes as you extract %s from it.\n\r", obj->short_descr, extracted->short_descr);
         send_to_char(buf,ch);
         act( "$n extracts $p from $P.", ch, extracted, obj, TO_ROOM );
         obj_to_char(material, ch);
