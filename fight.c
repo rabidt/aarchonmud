@@ -4487,12 +4487,12 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
                     victim->gold = 0;
                     victim->silver = 0;
                 }
-            }
-            else
-            {
-                obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
-                victim->gold = 0;
-                victim->silver = 0;
+                else
+                {
+                    obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
+                    victim->gold = 0;
+                    victim->silver = 0;
+                }
             }
         }
         corpse->cost = 0;
