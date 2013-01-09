@@ -3646,9 +3646,9 @@ void spell_unearth( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
 	act("As $n shifts the earth, you lose your stance!",
 	    ch,NULL,victim,TO_VICT);
-	act("You shift the earth causing $N to lose $m stance!",
+	act("You shift the earth causing $N to lose $S stance!",
 	    ch,NULL,victim,TO_CHAR);
-	act("$n shifts the earth causing $N to lose $m stance!",
+	act("$n shifts the earth causing $N to lose $S stance!",
 	    ch,NULL,victim,TO_NOTVICT);
         }
     }  
