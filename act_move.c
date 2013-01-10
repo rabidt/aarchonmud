@@ -2468,12 +2468,12 @@ void do_sneak( CHAR_DATA *ch, char *argument )
         send_to_char("You cannot sneak while playing Freeze Tag.\n\r",ch);
         return;
     }
-    
+    /* Disabled 1-10-13, as we believe it was previously disabled. Astark
     if (IS_REMORT(ch))
     {
         send_to_char("There is noplace to hide in remort.\n\r",ch);
         return;
-    }
+    } */
 
     if (ch->fighting != NULL)
     {

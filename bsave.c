@@ -2967,12 +2967,12 @@ void do_finger(CHAR_DATA *ch, char *argument)
     
     if ( get_trust(ch) > LEVEL_IMMORTAL )
     {
-        sprintf( buf2, "        Hours: {c%d{x      ", ((int)wch->played)/3600);
+        sprintf( buf2, "     Hours: {c%d{x   ", ((int)wch->played)/3600);
         strcat( buf, buf2 );
     }
     if ( wch->pcdata->bounty )
     {
-        sprintf( buf2, "Bounty: %d", wch->pcdata->bounty );
+        sprintf( buf2, "     Bounty: %d", wch->pcdata->bounty );
         strcat( buf, buf2 );
     }
     for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));

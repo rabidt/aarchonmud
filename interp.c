@@ -49,8 +49,8 @@ DISABLED_DATA *disabled_first;
 char last_command[MSL] = ""; /* Global variable to hold the last input line */
 
 /*
-* Command logging types.
-*/
+ * Command logging types.
+ */
 #define LOG_NORMAL  0
 #define LOG_ALWAYS  1
 #define LOG_NEVER   2
@@ -58,19 +58,19 @@ char last_command[MSL] = ""; /* Global variable to hold the last input line */
 
 
 /*
-* Log-all switch.
-*/
+ * Log-all switch.
+ */
 bool                fLogAll     = FALSE;
 
 
 
 /*
-* Command table.
-*/
+ * Command table.
+ */
 const   struct  cmd_type    cmd_table   [] =
 {
-/*
-* Common movement commands.
+   /*
+    * Common movement commands.
     */
 //    { "eqdb",      do_eqdb,   POS_STANDING,    0,  LOG_NEVER, 0, FALSE, TRUE},
     { "north",      do_north,   POS_STANDING,    0,  LOG_NEVER, 0, FALSE, TRUE},
@@ -227,7 +227,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "gratz",      do_gratz,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "gtell",      do_gtell,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { ";",          do_gtell,   POS_DEAD,    0,  LOG_NORMAL, 0, FALSE, TRUE  },
-    { "quest",      do_quest,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "quest",      do_quest,   POS_SLEEPING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "newbie",     do_newbie,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, TRUE },
     { "note",       do_note,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "pose",       do_pose,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -1211,11 +1211,13 @@ void do_commands( CHAR_DATA *ch, char *argument )
     return;
 }
 
+
 void do_wizhelp( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH];
     int cmd;
     int col;
+    int i;
     
     col = 0;
     for ( cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
@@ -1235,7 +1237,7 @@ void do_wizhelp( CHAR_DATA *ch, char *argument )
         send_to_char( "\n\r", ch );
     
     return;
-}
+} 
 
 void do_disable (CHAR_DATA *ch, char *argument)
 {
@@ -1536,36 +1538,3 @@ void save_disabled()
 
     fpReserve = fopen( NULL_FILE, "r" );
 }
-
-
-
-/*
-void do_wizhelp( CHAR_DATA *ch, char *argument )
-{
-char buf[ MAX_STRING_LENGTH ];
-int cmd;
-int col;
-int level;
-
-for ( level = get_trust( ch ) ; level &gt;= LEVEL_IMMORTAL ; level-- )
-{
-sprintf( buf, &quot;#r----------------------------------- #WLevel %2d #r-----------------------------------#n\n\r&quot;, level );
-send_to_char( buf, ch );
-
-col = 0;
-for ( cmd = 0; cmd_table[ cmd ].name[ 0 ] != '\0'; cmd++ )
-{
-if ( cmd_table[ cmd ].level == level )
-{
-sprintf( buf, &quot;%-12s&quot;, cmd_table[ cmd ].name );
-send_to_char( buf, ch );
-if ( ++col % 6 == 0 )
-send_to_char( &quot;\n\r&quot;, ch );
-}
-}
-
-if ( col % 6 != 0 )
-send_to_char( &quot;\n\r&quot;, ch );
-}
-return ;
-} */

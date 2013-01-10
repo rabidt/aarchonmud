@@ -7415,6 +7415,11 @@ const   struct  group_type      group_table     [MAX_GROUP]     =
 	"heroic rites", { -1, -1, 9, 8, -1, -1, 6, 7, -1, -1, 8, -1, -1, -1, -1 },
 	{ "shadow shroud", "unearth", "hallow", "astarks rejuvenation", "rupture", 
           "overcharge", "conviction" }
-	}
+	},
+
+        {
+        "advanced illusions", { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 5, -1, -1, -1 },
+        { "basic apparition", "holy apparition", "phantasmal image" }
+        }
 
 };

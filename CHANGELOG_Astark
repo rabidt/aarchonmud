@@ -181,3 +181,9 @@ Astark's changelog
 - Fixed crafting to log items properly (crafting.c)
 - Fixed typo in crafting ... vanishses (crafting.c)
 - Fixed bug in make_corpse causing slay to crash (fight.c)
+
+1/10/13 Astark
+- Added Advanced Illusions group for Illusionists so they could gain Basic and Holy Apparition, and Phantasmal Image (const.c)
+- You can sneak in remort once again (act_move.c)
+- You can check quest time, points, info, giveup in your sleep (quest.c)
+- Fixed some spacing in finger so bounty displays better (bsave.c)

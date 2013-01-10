@@ -210,11 +210,11 @@ bool is_drop_obj( OBJ_DATA *obj );
  * Adjust the pulse numbers to suit yourself.
  */
 #define MAX_SKILL         415  /* believe this is accurate nov 28 2012 */
-#define MAX_GROUP          75
+#define MAX_GROUP          76 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
 #define MAX_CLASS          15
-#define MAX_PC_RACE        65 /*accurate dec 2012 */
+#define MAX_PC_RACE        65 /*accurate jan 2013 */
 #define MAX_BOARD          13
 #define MAX_CLAN           12
 #define MAX_CLAN_RANK      13

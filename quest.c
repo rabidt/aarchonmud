@@ -411,6 +411,8 @@ void do_quest(CHAR_DATA *ch, char *argument)
     
     if (!strcmp(arg1, "list"))
     {
+      if (ch->position >= POS_RESTING)
+      {
         act( "$n asks $N for a list of quest items.", ch, NULL, questman, TO_ROOM); 
         act ("You ask $N for a list of quest items.",ch, NULL, questman, TO_CHAR);
         sprintf(buf, "Current Quest Items available for Purchase:\n\r");
@@ -442,10 +444,18 @@ void do_quest(CHAR_DATA *ch, char *argument)
         strcat(buf, "To see a list of items, type 'HELP QUESTITEMS'\n\r");
         send_to_char(buf, ch);
         return;
+      }
+      else
+      {
+          send_to_char("In your dreams, or what?\n\r",ch);
+          return;
+      }
     }
     
     else if (!strcmp(arg1, "sell"))
     {
+      if (ch->position >= POS_RESTING)
+      {
         if (arg2[0] == '\0')
         {
             send_to_char("To sell a quest item, type 'QUEST SELL <item>'.\n\r",ch);
@@ -458,9 +468,17 @@ void do_quest(CHAR_DATA *ch, char *argument)
         }
 	sell_quest_item(ch, obj, questman);
 	return;
+      }
+      else
+      {
+          send_to_char("In your dreams, or what?\n\r",ch);
+          return;
+      }
     }
     else if (!strcmp(arg1, "buy"))
     {
+      if (ch->position >= POS_RESTING)
+      {
         if (arg2[0] == '\0')
         {
             send_to_char("To buy an item, type 'QUEST BUY <item>'.\n\r",ch);
@@ -823,9 +841,17 @@ void do_quest(CHAR_DATA *ch, char *argument)
             obj_to_char(obj, ch);
         }
         return;
+      }
+      else
+      {
+          send_to_char("In your dreams, or what?\n\r",ch);
+          return;
+      }
     }
     else if (!strcmp(arg1, "request"))
     {
+      if (ch->position >= POS_RESTING)
+      {
         act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
         act ("You ask $N for a quest.",ch, NULL, questman, TO_CHAR);
         if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
@@ -870,6 +896,12 @@ void do_quest(CHAR_DATA *ch, char *argument)
             do_say(questman, buf);
         }
         return;
+      }
+      else
+      {
+          send_to_char("In your dreams, or what?\n\r",ch);
+          return;
+      }
     }
 
 /* Used for requesting difficult quests. The code here is nearly
@@ -880,6 +912,8 @@ void do_quest(CHAR_DATA *ch, char *argument)
 
     else if (!strcmp(arg1, "requesthard"))
     {
+      if (ch->position >= POS_RESTING)
+      {
         act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
         act ("You ask $N for a quest.",ch, NULL, questman, TO_CHAR);
         if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
@@ -919,9 +953,17 @@ void do_quest(CHAR_DATA *ch, char *argument)
             do_say(questman, buf);
         }
         return;
+      }
+      else
+      {
+          send_to_char("In your dreams, or what?\n\r",ch);
+          return;
+      }
     }
     else if (!strcmp(arg1, "complete"))
     {
+      if (ch->position >= POS_RESTING)
+      {
         act( "$n informs $N $e has completed $s quest.", ch, NULL, questman, TO_ROOM); 
         act ("You inform $N you have completed $s quest.",ch, NULL, questman, TO_CHAR);
 //        check_achievement(ch);
@@ -1173,6 +1215,12 @@ void do_quest(CHAR_DATA *ch, char *argument)
         else sprintf(buf, "You have to REQUEST a quest first, %s.",ch->name);
         do_say(questman, buf);
         return;
+      }
+      else
+      {
+          send_to_char("In your dreams, or what?\n\r",ch);
+          return;
+      }
     }
     
     send_to_char("QUEST commands: POINTS INFO TIME REQUEST COMPLETE LIST BUY.\n\r",ch);
