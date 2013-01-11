@@ -2587,14 +2587,6 @@ void do_recite( CHAR_DATA *ch, char *argument )
         send_to_char( "You come out of hiding.\n\r", ch );
     }
 
-    /* No target, no cast! - Astark */
-    if ( arg1[0] != '\0' )
-        if ( (victim = get_char_room( ch, arg1 )) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-    
     act( "$n recites $p.", ch, scroll, NULL, TO_ROOM );
     act( "You recite $p.", ch, scroll, NULL, TO_CHAR );
     
@@ -2616,7 +2608,6 @@ void do_recite( CHAR_DATA *ch, char *argument )
 	}
     }
     
-    extract_obj( scroll );
     WAIT_STATE( ch, skill_table[gsn_scrolls].beats );
     return;
 }
