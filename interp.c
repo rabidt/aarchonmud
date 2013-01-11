@@ -72,7 +72,6 @@ const   struct  cmd_type    cmd_table   [] =
    /*
     * Common movement commands.
     */
-//    { "eqdb",      do_eqdb,   POS_STANDING,    0,  LOG_NEVER, 0, FALSE, TRUE},
     { "north",      do_north,   POS_STANDING,    0,  LOG_NEVER, 0, FALSE, TRUE},
     { "east",       do_east,    POS_STANDING,    0,  LOG_NEVER, 0, FALSE, TRUE},
     { "south",      do_south,   POS_STANDING,    0,  LOG_NEVER, 0, FALSE, TRUE},

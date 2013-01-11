@@ -39,8 +39,6 @@ MEMFILE *memfile_from_list( char *filename, MEMFILE *list );
 void sim_save_to_mem();
 void mem_sim_save_other();
 void sim_save_other();
-//bool remove_from_box_list( char *name  );
-//bool remove_from_box_quit_list( char *name);
 
 /* perform one step in the continious player autosave
  */
@@ -98,9 +96,12 @@ void handle_player_save()
 	    /* we don't want corrupt player files */
 	    exit(1);
 	}
+       
+       /* See if corresponding box in box_mf_list */
        sprintf(buf, "%s_box", mf->filename);
        if ( box_mf = memfile_from_list(buf,box_mf_list) )
        {
+	   boxtemp = TRUE;
            if (!save_to_dir(box_mf, BOX_TEMP_DIR))
            {
                bugf( "handle_player_save: couldn't save %s's box (%s), exit to avoid corruption",
@@ -111,24 +112,9 @@ void handle_player_save()
 
            remove_from_box_list(box_mf->filename);
        }
-	memfile_free( mf );
+       memfile_free( mf );
     }
-    /*storage box stuff*/
-/*    if (box_save_list != NULL)
-    {
-        mf = box_save_list;
-        box_save_list = box_save_list->next;
-        if (!save_to_dir( mf, BOX_TEMP_DIR ))
-        {
-            bugf( "handle_player_save: couldn't save %s, exit to avoid corruption",
-                  mf->filename );
-            /* we don't want corrupt player files */
-/*            exit(1);
-        }
-        memfile_free( mf );
-    }
-*/
-    if (player_save_list == NULL /* && box_save_list == NULL*/)
+    if (player_save_list == NULL )
       player_save_state = SAVE_STATE_TEMPCOPY;
     break;
 
@@ -242,9 +228,7 @@ void sim_save_to_mem()
   /* move files in player_quit_list to player_save_list */
   player_save_list = player_quit_list;
   player_quit_list = NULL;
-/*  box_save_list = box_quit_list;
-  box_quit_list = NULL;
-*/
+
   /* save players online */
   //for (d = descriptor_list; d != NULL; d = d->next)
   for ( ch = char_list; ch != NULL; ch = ch->next )
@@ -259,15 +243,6 @@ void sim_save_to_mem()
 	  return;
       }
       
- /*     old_mf = memfile_from_list(mf->filename, player_save_list );
-      if (old_mf != NULL )
-	if (old_mf->storage_box != NULL)
-	{
-	  mf->storage_box = old_mf->storage_box;	
-	}
-	else
-	  mf->storage_box = NULL;
-*/	    
       /* make sure player not already in save list */
       if (remove_from_save_list(mf->filename))
       {
@@ -278,27 +253,6 @@ void sim_save_to_mem()
       /* add pfile to player_save_list */
       mf->next = player_save_list;
       player_save_list = mf;
-/* storage box stuff */
-/*      if (ch->pcdata->box_data[0] != NULL)
-      {
-
-          mf = mem_save_storage_box( ch );
-          if (mf == NULL)
-          {
-              bug("sim_save_to_mem: out of memory, save aborted", 0);
-              return;
-          }
-      /* make sure box  not already in save list */
-/*          if (remove_from_box_list(mf->filename))
-          {
-              sprintf(bug_buf, "sim_save_to_mem: file <%s> already in player_save_list",
-              mf->filename);
-              bug(bug_buf, 0);
-          }
-      /* add box to box_save_list */
-      /*    mf->next = box_save_list;
-          box_save_list = mf;
-      }*/
   }
 
 #if defined(SIM_DEBUG)
@@ -492,30 +446,8 @@ bool load_storage_boxes(CHAR_DATA *ch )
 #if defined(SIM_DEBUG)
    log_string("load_storage_box: start");
 #endif
-  sprintf(filename, "%s_box", ch->name);
-  //strcpy(filename, ch->name);
-  /* search player_quit_list */
-/*  for (mf = player_quit_list; mf != NULL; mf = mf->next)
-      if ( mf->storage_box != NULL)
-	  if ( !strcmp( mf->storage_box->filename, filename))
-	  {
-//          log_string("load_storage_box: load from player_quit_list");
+  sprintf(filename, "%s_box", capitalize(ch->name));
 
-	      mf=mf->storage_box;
-	      break;
-	  }
-*/
-  /* search player_save_list */
-/*  if (mf == NULL)
-    for (mf = player_save_list; mf != NULL; mf = mf->next)
-      if ( mf->storage_box != NULL)
-          if ( !strcmp( mf->storage_box->filename, filename))
-          {
-//          log_string("load_storage_box: load from player_save_list");
-	      mf=mf->storage_box;
-	      break;
-	  }
-*/
   mf=memfile_from_list(filename, box_mf_list);
 
   found_in_mem = (mf != NULL);
@@ -580,7 +512,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
     return FALSE;
   }
   
-  /* player file found, now try to load player from it */
+  /* box file found, now try to load player from it */
   mem_load_storage_box( ch, mf );
   if (!found_in_mem)
     memfile_free( mf );
@@ -619,61 +551,10 @@ void quit_save_char_obj( CHAR_DATA *ch )
   /* add to list */
   mf->next = player_quit_list;
   player_quit_list = mf;
-/* stuff for storage boxes saving */
-/*  mf=mem_save_storage_box( ch );
-  if (mf == NULL)
-  {
-    bug("quit_save_char_obj: out of memory", 0);
-    return;
-  }
-  mf->next = box_quit_list;
-  box_quit_list= mf;
-/* end storage box stuff*/
   
 #if defined(SIM_DEBUG)
    log_string("quit_save_char_obj: done");
 #endif
-}
-/*to run when char leaves box room or if player quits in box room*/
-/*void quit_save_storage_box( CHAR_DATA *ch )
-{
-  MEMFILE *mf;
-  sh_int i;
-#if defined(SIM_DEBUG)
-   log_string("quit_save_storage_box: start");
-#endif
-  mf = mem_save_storage_box( ch );
-  if (mf == NULL)
-  {
-    bug("quit_save_storage_box: out of memory", 0);
-    return;
-  }
-  /* if already in player_quit_list, remove old entry */
-  /* can happen to ploaded chars */
-/*  remove_from_box_quit_list( ch->name );
-  /* add to list */
-/*  mf->next = box_quit_list;
-  player_quit_list = mf;
-/* stuff for storage boxes saving */
-/*  mf=mem_save_storage_box( ch );
-  if (mf == NULL)
-  {
-    bug("quit_save_storage_box: out of memory", 0);
-    return;
-  }
-  mf->next = box_quit_list;
-  box_quit_list= mf;
-/* end storage box stuff*/
-
-/*#if defined(SIM_DEBUG)
-   log_string("quit_save_storage_box: done");
-#endif
-/* any time the storage boxes "quit" means they need to be purged*/
-/*        for (i=0;i<ch->pcdata->storage_boxes;i++)
-        {
-            extract_obj(ch->pcdata->box_data[i]);
-            ch->pcdata->box_data[i]=NULL;
-        }
 }
 /*
  * removes a file from a list;

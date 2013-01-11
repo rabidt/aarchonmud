@@ -1458,6 +1458,14 @@ void char_from_room( CHAR_DATA *ch )
 	 /*only make this check for players or we get a crash*/
 	if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) && ch->pcdata->storage_boxes>0)
         {
+	    /* quit_save_char_obj will put player mf on player_quit_list and box mf on
+               box_mf_list. We need to remove from player_save_list so this box mf
+               and player mf are saved together. If there's an existing mf on
+               player_quit_list and we put mf on box_mf_list then box will save with
+               existing player mf, which is not likely to cause problems, but we
+               should protect against it anyway.
+               We don't want to do this in all quit cases, only when leaving box_room.*/
+	    remove_from_save_list(capitalize(ch->name));
             quit_save_char_obj(ch);
 	    unload_storage_boxes(ch);
             send_to_char( "As you leave the room, an employee takes your boxes back down to the basement.\n\r",ch);

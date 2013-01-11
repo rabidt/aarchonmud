@@ -162,7 +162,6 @@ DECLARE_DO_FUN( do_echo     );
 DECLARE_DO_FUN( do_emote    );
 DECLARE_DO_FUN( do_enter    );
 DECLARE_DO_FUN( do_envenom  );
-DECLARE_DO_FUN( do_eqdb);
 DECLARE_DO_FUN( do_eqset     );
 DECLARE_DO_FUN( do_equipment);
 DECLARE_DO_FUN( do_etls     );

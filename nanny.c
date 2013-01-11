@@ -2005,7 +2005,9 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	ch->next    = char_list;
 	char_list   = ch;
 	d->connected    = CON_PLAYING;
-	remove_from_quit_list( ch->name );
+      /* Removed by Vodur, messes with box saving
+          no downside to keeping it on the list*/
+	//remove_from_quit_list( ch->name );
 	
 	free_string(ch->pcdata->last_host);
 	ch->pcdata->last_host = str_dup(d->host);

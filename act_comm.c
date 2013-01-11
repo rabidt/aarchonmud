@@ -406,7 +406,7 @@ void do_replay (CHAR_DATA *ch, char *argument)
     }
     
     page_to_char(buf_string(ch->pcdata->buffer),ch);
-    //clear_buf(ch->pcdata->buffer);
+    clear_buf(ch->pcdata->buffer);
 }
 
 
@@ -1572,7 +1572,6 @@ void do_info( CHAR_DATA *ch, char *argument )
                     act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
                 }
             }
-	//log_comm(NULL,buf);
         }
         else
             do_groups(ch, argument);
@@ -1657,13 +1656,6 @@ void do_say( CHAR_DATA *ch, char *argument )
     else
         nt_act( buf, ch, NULL, argument, TO_ROOM );
 
-    if (!IS_NPC(ch))
-    {
-        sprintf(buf, "{w%s %s '%s'\n", ch->name, mid2, argument);
-        //log_say(ch,buf);
-    }
-
-    
     if ( !IS_NPC(ch) )
     {
         CHAR_DATA *mob, *mob_next;
@@ -1736,9 +1728,6 @@ void do_shout( CHAR_DATA *ch, char *argument )
     smash_beep_n_blink( argument );
         
     act( "{uYou shout {U'$T{U'{x", ch, NULL, argument, TO_CHAR );
-
-     //   sprintf(buf,"{y%s shouts '%s'\n", ch->name,argument);
-     //   log_comm(ch,buf);
 
 
     argument = makedrunk(argument,ch);
@@ -1892,13 +1881,14 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     argument = makedrunk(argument,ch);
     nt_act_new( "{t$n {ttells you {T'$t{T'{x", ch, argument, victim, TO_VICT, POS_DEAD);
     
+/* this was introduced to make replay a simple 'playback tell' but taking it back out - Vodur 1/10/13 
     if (!IS_NPC(victim))
     {
         sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",ch->name,argument);
         buf[2] = UPPER(buf[2]);
         add_buf(victim->pcdata->buffer,buf);
     }
-
+*/
     if( victim != ch )
         victim->reply = ch;
     
@@ -3211,7 +3201,7 @@ void do_gtell( CHAR_DATA *ch, char *argument )
     for ( gch = char_list; gch != NULL; gch = gch->next )
     {
         if ( is_same_group( gch, ch ) )
-            nt_act_new( "{3$n tells the group {4'$t'{x", ch, argument, gch, TO_VICT, POS_SLEEPING );
+            nt_act_new( "{3$n{3 tells the group {4'$t'{x", ch, argument, gch, TO_VICT, POS_SLEEPING );
     }
     
     return;
@@ -3900,7 +3890,7 @@ void do_auction( CHAR_DATA *ch, char *argument )
                 if (!found)
                 {
                     
-                    act_new_gag("{a$n auctions {A'$t{A'{x",
+                    act_new_gag("{a$n {aauctions {A'$t{A'{x",
                         ch,argument,d->character,TO_VICT,POS_DEAD,
 			GAG_NCOL_CHAN, FALSE);
                 }
@@ -4194,37 +4184,3 @@ void do_noreply( CHAR_DATA *ch, char *argument )
 	return;
     }
 }
-/*playback of logged comm channels by odoth*/
-/*void do_playback( CHAR_DATA *ch, char * argument)
-{
-        char buf[MAX_STRING_LENGTH];
-        char * buf2;
-        FILE *fp;
-        struct tm * timeinfo = localtime(&current_time);
-        BUFFER *output;
-
-
-        fclose(fpReserve);
-
-        sprintf(buf,"../log/comm/comm_%d_%d_%d", timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_year + 1900);
-        if (!(fp = fopen(buf, "r")))
-        {
-                send_to_char("No playback for today.",ch);
-                fpReserve = fopen( NULL_FILE, "r" );
-                return;
-        }
-        fseek(fp, -12000, SEEK_END);
-        output = new_buf();
-        for ( ; ;)
-        {
-                if (!(buf2 = fread_string(fp)))
-                 break;
-                add_buf(output,buf2);
-        }
-        page_to_char(buf_string(output),ch);
-        fclose( fp );
-        fpReserve = fopen( NULL_FILE, "r" );
-        return;
-
-}
-*/
