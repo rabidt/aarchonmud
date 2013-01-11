@@ -181,3 +181,22 @@
 
 1/7/2013 Vodur
 - Added date section to note_list (board.c)
+
+1/11/2013 Vodur
+- Fix for boxes:
+  * Was missing 'boxtemp=TRUE' making temp files never move to main folder.
+  * Leaving box room removes from player_save_list to make sure correct player
+    mf and box mf are saved synchronously.
+  * Removed remove_from_quit_list from enter_game.
+  * Verified no other unaccounted for remove_from_player_list or
+    remove_from_quit_list statements elsewhere.
+  * Made sure usec capitalize() in all case when creating "%s_box" names for
+    creation or reference.
+  * Cleaned out old commented out sections.
+- Cleaned up some old useless commented out stuff.
+- Reverted changes to tell buffer. Was adding every tell to buffer and never
+  clearing. Now operating normally.
+- Fix for auction channel coloring.
+- Fix for group tell coloring.
+
+  

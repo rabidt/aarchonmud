@@ -431,22 +431,6 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
 	check_bleed( ch, door );
     }
 
-/*storage box stuff*/
-/*put this in char_to_room func
-   if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) && ch->pcdata->storage_boxes>0)
-   {
-        quit_save_storage_box(ch);
-	send_to_char( "As you leave the room, an employee takes your boxes back down to the basement.\n\r",ch);
- put this in quit_save_storage_box(ch)
-	int i;
-	for (i=0;i<ch->pcdata->storage_boxes;i++)
-	{
-	    extract_obj(ch->pcdata->box_data[i]);
-	    ch->pcdata->box_data[i]=NULL;
-	}
-
-    }*/
-	
 
 
     char_from_room( ch );
@@ -539,10 +523,6 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    if ( ch->in_room != to_room )
        return door;
 
-   /* storage box stuff */
-//   if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))  
-//	load_storage_boxes(ch);
-//put this in char_to_room func   
    /*checks for a snare -- Siva*/
    if (IS_SET(ch->in_room->room_flags,ROOM_SNARE))
    {

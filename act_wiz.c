@@ -3853,7 +3853,8 @@ void do_printlist(CHAR_DATA *ch, char *argument)
     MEMFILE *mf;
 
     argument = one_argument(argument, arg);
-
+    
+    send_to_char("\n\r", ch);
     if (!strcmp(arg, "quit") || (arg[0]=='\0'))
     {
        send_to_char("player_quit_list:\n\r", ch);

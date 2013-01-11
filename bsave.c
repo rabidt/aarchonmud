@@ -187,12 +187,6 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
       bwrite_pet(ch->pet, mf->buf);
     bprintf( mf->buf, "#END\n" );
 
-    /* check if has a storage box */
-//    if (ch->pcdata->box_data[0] != NULL)
-// will return null if doesn't have one
-//     mf->storage_box = mem_save_storage_box(ch);
-//    else
-//     mf->storage_box = NULL;
     /* mem_save_storage_box will now make the storage_box mf and add it to
       box_mf_list*/
     mem_save_storage_box(ch);
@@ -210,60 +204,28 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     return mf;
 }
 
-
-//MEMFILE *mem_save_storage_box( CHAR_DATA *ch )
+/* Saves storage box for char if any and adds to box_mf_list */
 void mem_save_storage_box( CHAR_DATA *ch )
 {
     char strsave[MAX_INPUT_LENGTH];
     MEMFILE *mf;
     sh_int i;
 #if defined(SIM_DEBUG)
-   log_string("mem_save_char_obj: start");
+   log_string("mem_save_storage_box: start");
 #endif
 
-    /*if they don't got a box but they already have a save file, grab
-      storage_box from the save file (could be NULL)*/
-
-    if (ch->pcdata->storage_boxes<1 || ch->pcdata->box_data[0] == NULL)
-    {/*
-       if (mf = memfile_from_list( capitalize(ch->name), player_quit_list))
-         if (mf->storage_box != NULL)
-           return mf->storage_box;
-       if (mf = memfile_from_list( capitalize(ch->name), player_save_list))
-         if (mf->storage_box != NULL)
-           return mf->storage_box;
-*/
-           return NULL;
-    }
-/*
-    if ( ch->desc != NULL && ch->desc->original != NULL )
-        ch = ch->desc->original;
-*/
     if ( IS_NPC(ch) )
         return NULL;
-/*
-#if defined(unix)
-    /* create god log */
-/*    if (IS_IMMORTAL(ch) || ch->level >= LEVEL_IMMORTAL)
+
+
+/* If they don't have any storage boxes at all or none are loaded
+   then don't need to save.
+   Old box mfs will be on box_mf_list */
+
+    if (ch->pcdata->storage_boxes<1 || ch->pcdata->box_data[0] == NULL)
     {
-        FILE *fp;
-        fclose(fpReserve);
-        sprintf(strsave, "%s%s",GOD_DIR, capitalize(ch->name));
-        if ((fp = fopen(strsave,"w")) == NULL)
-        {
-            bug("mem_save_char_obj: fopen",0);
-            log_error(strsave);
-        }
-        else
-        {
-            fprintf(fp,"Lev %2d Trust %2d  %s%s\n",
-                    ch->level, get_trust(ch), ch->name, ch->pcdata->title);
-            fclose( fp );
-			        }
-        fpReserve = fopen( NULL_FILE, "r" );
+           return;
     }
-#endif
-*/
     /* alloc memory file */
     sprintf(strsave,"%s_box", capitalize(ch->name));
     /* 16k should do for most players;
@@ -274,12 +236,11 @@ void mem_save_storage_box( CHAR_DATA *ch )
       char msg[MSL];
       sprintf(msg, "mem_save_storage_box: couldn't open memory file for %s", strsave);
       bug(msg, 0);
-      return NULL;
+      return;
     }
 
 /*  loop from 1 to ch->pcdata->storage_boxes
     write identifying stuff for box
-    bwrite_obj(ch,ch->pcdata->box_data[i-1]->contents);
 */
     for (i=1;i<=ch->pcdata->storage_boxes;i++)
     {
@@ -288,16 +249,6 @@ void mem_save_storage_box( CHAR_DATA *ch )
           bwrite_obj(ch,ch->pcdata->box_data[i-1]->contains, mf->buf, 0);
     }
     bprintf( mf->buf, "#END\n" );
-
-    /* now save to memory file */
-//    bprintf( mf->buf, "#VER %d\n", CURR_PFILE_VERSION );
-//    if ( ch->carrying != NULL )
-//      bwrite_obj( ch, ch->carrying, mf->buf, 0 );
-//    if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) )
-    /* save the pets */
- /*   if (ch->pet != NULL && ch->pet->in_room == ch->in_room)
-      bwrite_pet(ch->pet, mf->buf);
-    bprintf( mf->buf, "#END\n" );*/
 
     /* check for overflow */
     if (mf->buf->overflowed)
@@ -309,7 +260,6 @@ void mem_save_storage_box( CHAR_DATA *ch )
 #if defined(SIM_DEBUG)
    log_string("mem_save_storage_box: done");
 #endif
-    //return mf;
     remove_from_box_list(mf->filename);
     mf->next = box_mf_list;
     box_mf_list = mf;
@@ -1340,12 +1290,15 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
             }
 
             word = bread_word( buf );
-//            if      ( !str_cmp( word, "VER"    ) ) pfile_version = bread_number ( buf );
-//            else if ( !str_cmp( word, "PLAYER" ) ) bread_char ( ch, buf );
-	    if (!str_cmp( word, "BOX") ) box_number = bread_number(buf);
-            else if ( !str_cmp( word, "OBJECT" ) ) bread_obj  ( ch, buf,ch->pcdata->box_data[box_number-1]);
-            else if ( !str_cmp( word, "O"      ) ) bread_obj  ( ch, buf,ch->pcdata->box_data[box_number-1]);
-//			            else if ( !str_cmp( word, "PET"    ) ) bread_pet  ( ch, buf );
+	    if (!str_cmp( word, "BOX") ) 
+              box_number = bread_number(buf);
+
+            else if ( !str_cmp( word, "OBJECT" ) ) 
+	      bread_obj( ch, buf,ch->pcdata->box_data[box_number-1]);
+
+            else if ( !str_cmp( word, "O"      ) ) 
+	      bread_obj  ( ch, buf,ch->pcdata->box_data[box_number-1]);
+
             else if ( !str_cmp( word, "END"    ) ) break;
             else
             {
@@ -1355,10 +1308,6 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
         }
 
 }
-#if defined(SIM_DEBUG)
-   log_string("mem_load_char_obj: start");
-#endif
-
 
 /*
  * Read in a char.
