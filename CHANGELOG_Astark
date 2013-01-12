@@ -187,3 +187,6 @@ Astark's changelog
 - You can sneak in remort once again (act_move.c)
 - You can check quest time, points, info, giveup in your sleep (quest.c)
 - Fixed some spacing in finger so bounty displays better (bsave.c)
+
+1/11/13 Astark
+- Removed extra newline from slow spell

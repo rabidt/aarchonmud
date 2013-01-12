@@ -4921,7 +4921,7 @@ void spell_slow( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         ||  IS_SET(victim->imm_flags,IMM_MAGIC))
     {
         if (victim != ch)
-	    act( "Spell failed to slow $m down.\n\r", ch, victim, NULL, TO_CHAR );
+	    act( "Spell failed to slow $m down.", ch, victim, NULL, TO_CHAR );
         send_to_char("You feel momentarily lethargic.\n\r",victim);
         return;
     }
@@ -4931,7 +4931,7 @@ void spell_slow( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         if (!check_dispel(level,victim,skill_lookup("haste")))
         {
             if (victim != ch)
-		act( "Spell failed to reduce $S speed.\n\r", ch, victim, NULL, TO_CHAR );
+		act( "Spell failed to reduce $s speed.", ch, victim, NULL, TO_CHAR );
             send_to_char("You feel momentarily slower.\n\r",victim);
             return;
         }
