@@ -638,7 +638,9 @@ void do_headbutt( CHAR_DATA *ch, char *argument )
 
     if (check_hit(ch, victim, gsn_headbutt, dam_type, chance) )
     {
-        if ( number_bits(2) == 0 )
+	/* horns prevent brain damage */
+        if ( ( number_bits(2) == 0 ) && 
+	     ( !IS_SET(ch->parts, PART_HORNS) ) )
         {
             send_to_char( "You suffer from brain damage. Ouch!\n\r", ch );
             ch->mana = UMAX(0, ch->mana - dam/3);
