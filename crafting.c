@@ -287,8 +287,6 @@ void do_extract( CHAR_DATA *ch, char *argument)
         return;
     }
 
-    obj = get_obj_carry(ch, arg, ch);
-
  /* We should allow sticky items to be extracted, as many of them are worthless
     depending on the players' class. No_extract now working - Astark 12-23-12 
     if (is_sticky_obj(obj)) */

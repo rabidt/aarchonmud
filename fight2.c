@@ -141,22 +141,22 @@ void do_berserk( CHAR_DATA *ch, char *argument )
         }
         else
         {        
-        af.where    = TO_AFFECTS;
-        af.type     = gsn_berserk;
-        af.level    = ch->level;
-        af.duration = number_fuzzy(ch->level / 8);
-        af.modifier = UMAX(1,ch->level/5);
-        af.bitvector    = AFF_BERSERK;
+            af.where    = TO_AFFECTS;
+            af.type     = gsn_berserk;
+            af.level    = ch->level;
+            af.duration = number_fuzzy(ch->level / 8);
+            af.modifier = UMAX(1,ch->level/5);
+            af.bitvector    = AFF_BERSERK;
         
-        af.location = APPLY_HITROLL;
-        affect_to_char(ch,&af);
+            af.location = APPLY_HITROLL;
+            affect_to_char(ch,&af);
         
-        af.location = APPLY_DAMROLL;
-        affect_to_char(ch,&af);
+            af.location = APPLY_DAMROLL;
+            affect_to_char(ch,&af);
         
-        af.modifier = 10 * UMAX(1, ch->level/10);
-        af.location = APPLY_AC;
-        affect_to_char(ch,&af);
+            af.modifier = 10 * UMAX(1, ch->level/10);
+            af.location = APPLY_AC;
+            affect_to_char(ch,&af);
         }
     }
     
@@ -4909,7 +4909,7 @@ void do_fervent_rage( CHAR_DATA *ch, char *argument )
     int cost = 250;
     int chance;
     
-    if ((chance = get_skill(ch,gsn_fervent_rage)) < 1)
+    if ( (chance = get_skill(ch,gsn_fervent_rage) ) < 1)
     {
         send_to_char("You don't know how to do that.\n\r",ch);
         return;
@@ -4923,7 +4923,7 @@ void do_fervent_rage( CHAR_DATA *ch, char *argument )
     
     if (IS_AFFECTED(ch,AFF_CALM))
     {
-        send_to_char("You're feeling to mellow to do that.\n\r",ch);
+        send_to_char("You're feeling too mellow to do that.\n\r",ch);
         return;
     }
     

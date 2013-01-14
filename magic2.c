@@ -3635,21 +3635,21 @@ void spell_unearth( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     {
         if (victim->position < POS_FIGHTING)
         {
-            act("You shift the earth but $M is already down.",ch,NULL,victim,TO_CHAR);
+            act("You shift the earth but $E is already down.",ch,NULL,victim,TO_CHAR);
             return;
         }
 
-        if ( !is_affected(victim, gsn_fly) )
+        if ( !IS_AFFECTED(victim,AFF_FLYING) 
+           && (victim->stance != STANCE_DEFAULT) )
         {
-            if (victim->stance != 0)
-                victim->stance = 0;
+            victim->stance = STANCE_DEFAULT;
 
-	act("As $n shifts the earth, you lose your stance!",
-	    ch,NULL,victim,TO_VICT);
-	act("You shift the earth causing $N to lose $S stance!",
-	    ch,NULL,victim,TO_CHAR);
-	act("$n shifts the earth causing $N to lose $S stance!",
-	    ch,NULL,victim,TO_NOTVICT);
+	    act("As $n shifts the earth, you lose your stance!",
+	    	ch,NULL,victim,TO_VICT);
+	    act("You shift the earth causing $N to lose $S stance!",
+	        ch,NULL,victim,TO_CHAR);
+	    act("$n shifts the earth causing $N to lose $S stance!",
+	        ch,NULL,victim,TO_NOTVICT);
         }
     }  
 
