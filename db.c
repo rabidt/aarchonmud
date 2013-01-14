@@ -2481,6 +2481,10 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
 		if ( pObj != NULL && pObj->item_type == ITEM_WEAPON
 		     && pObj->value[0] == WEAPON_BOW )
 		    equip_new_arrows( LastMob );
+		/* Restore hit,mana,move in case the eq changes them */
+                LastMob->hit     =       LastMob->max_hit;
+                LastMob->mana    =       LastMob->max_mana;
+                LastMob->move    =       LastMob->max_move;
 	    }
             last = TRUE;
             break;
