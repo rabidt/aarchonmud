@@ -7412,7 +7412,7 @@ const   struct  group_type      group_table     [MAX_GROUP]     =
 
         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
 	{
-	"heroic rites", { -1, -1, 9, 8, -1, -1, 6, 7, -1, -1, 8, -1, -1, -1, -1 },
+	"heroic rites", { -1, 6, 9, 8, -1, -1, 6, 7, -1, -1, 8, -1, -1, -1, -1 },
 	{ "shadow shroud", "unearth", "hallow", "astarks rejuvenation", "rupture", 
           "overcharge", "conviction" }
 	},
