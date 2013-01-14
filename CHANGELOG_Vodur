@@ -201,3 +201,5 @@
 
 1/13/2013 Vodur
 - Horns prevent brain damage on headbutt.  
+- Fervent rage typo fix.
+- Remove extra get_obj_carry from do_craft.
