@@ -5588,6 +5588,11 @@ void check_achievement( CHAR_DATA *ch )
 
    for (i = 0; achievement_table[i].bit_vector != 0; i++)
     {	
+        /* Recommendation from Vodur to make the check more efficient. No point in checking
+           that in which we've already earned. Added 1-15-13 */
+        if (IS_SET(ch->pcdata->achievements, achievement_table[i].bit_vector)) 
+            continue;
+
 	/*for whatever index we're on, is the type "level"? if so, we check limit vs ch-> level. We'll have other if checks for other types
           so we'll know what to check the 'limit' against*/
 	current=0;//so numbers don't carry over from previous loops
