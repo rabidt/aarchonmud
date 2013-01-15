@@ -4674,9 +4674,9 @@ void do_rolldice (CHAR_DATA * ch, char * argument)
  
     result = dice (num, size);
  
-    sprintf (buf, "You roll %d on %d %d-sided dice.\n\r", result, num, size);
+    sprintf (buf, "Rolldice: You roll %d on %d %d-sided dice.\n\r", result, num, size);
     send_to_char (buf, ch);
-    sprintf (buf, "$n rolls %d on %d %d-sided dice.\n\r", result, num, size);
+    sprintf (buf, "Rolldice: $n rolls %d on %d %d-sided dice.\n\r", result, num, size);
     act (buf, ch, NULL, NULL, TO_ROOM);
 }
 
