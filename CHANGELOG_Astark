@@ -195,3 +195,5 @@ Astark's changelog
 1/15/13 Astark
 - Fixed Achievements Bug. When you hit the 10k hp achievement it was unlocking the 15k hp achievement as well due to a duplicate define, and table entry. (merc.h, tables.c)
 - Added a check to the for-loop in achievements to break iteration if achievement is already unlocked. A recommendation from Vodur on efficiency (act_info.c)
+- Count command uses proper grammar (act_info.c)
+- Rolldice command output is no longer emotable (fight2.c)

@@ -5727,5 +5727,11 @@ void do_count ( CHAR_DATA *ch, char *argument )
 
 	ptc(ch,"The largest number of active players today was %d.\n\r", max_on );
 	ptc(ch,"The largest number of active players ever was %d.\n\r", max );
-	ptc(ch,"You can see %d characters.\n\rSome characters may be invisible to you.\n\r\n\r", count );
+
+      /* Added a check to make the word character plural only if there is more
+         than 1 visible character - Astark 1-15-13 */
+        if (count == 1)
+            ptc(ch,"You can see %d character.\n\rSome characters may be invisible to you.\n\r\n\r", count );
+        else
+            ptc(ch,"You can see %d characters.\n\rSome characters may be invisible to you.\n\r\n\r", count );
 }
