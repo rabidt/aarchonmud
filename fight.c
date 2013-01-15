@@ -1635,7 +1635,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     bool result, arrow_used = FALSE;
     /* prevent attack chains through re-retributions */
     static bool is_retribute = FALSE;
-    
+
     sn = -1;
     
     if ( (dt == TYPE_UNDEFINED || is_normal_hit(dt))

@@ -3446,7 +3446,10 @@ struct achievement_entry
 #define    ACHIEVE_MAXHP_2 85
 #define    ACHIEVE_MAXHP_3 86
 #define    ACHIEVE_MAXHP_5 87
-#define    ACHIEVE_MAXHP_5 88
+#define    ACHIEVE_MAXHP_4 88 /* MAXHP_4 and MAXHP_5 have been inversed due to the numbers
+                                 being set to the same value during the initial relase of
+                                 the code. This gave anyone with 10k hp, the 15k hp achievement
+                                 as well. - Astark */
 #define    ACHIEVE_MAXMN_1 89
 #define    ACHIEVE_MAXMN_2 90
 #define    ACHIEVE_MAXMN_3 91

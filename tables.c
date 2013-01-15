@@ -1350,7 +1350,7 @@ const ACHIEVEMENT achievement_table [] =
     { ACHV_MAXHP,     500,  10,   25,    50,     5,       0,    ACHIEVE_MAXHP_1},
     { ACHV_MAXHP,    1000,  15,   50,   100,    10,       0,    ACHIEVE_MAXHP_2},
     { ACHV_MAXHP,    5000,  20,  100,   500,    15,       0,    ACHIEVE_MAXHP_3},
-    { ACHV_MAXHP,   10000,  25,  150,  1000,    20,       0,    ACHIEVE_MAXHP_5},
+    { ACHV_MAXHP,   10000,  25,  150,  1000,    20,       0,    ACHIEVE_MAXHP_4},
     { ACHV_MAXHP,   15000,  50,  300,  2500,    25,       0,    ACHIEVE_MAXHP_5},
     /*                     120,  625,  4150,    75,      NA,               */
     /*      type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
