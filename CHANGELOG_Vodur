@@ -208,3 +208,8 @@
 - Disabled pipe in interp.c
 - When loading, mobs hp/mana/moves are restored after eq is loaded in case eq
   affects those. 
+
+1/16/2013
+- Fix in fight.c for dt=1024 crash bug to prevent accessing out of bounds indexing
+  of skill_table.
+
