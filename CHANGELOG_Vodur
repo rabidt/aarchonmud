@@ -203,6 +203,7 @@
 - Horns prevent brain damage on headbutt.  
 - Fervent rage typo fix.
 - Remove extra get_obj_carry from do_craft.
+- Unearth only destances if you're stanced.
 
 1/14/2013 Vodur
 - Disabled pipe in interp.c
