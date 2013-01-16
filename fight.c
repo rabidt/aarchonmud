@@ -5520,16 +5520,18 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     if ( immune )
 	gag_type = GAG_IMMUNE;
 
-    if( skill_table[dt].pgsn != NULL )
-    {
-	sn = *skill_table[dt].pgsn;
-        if( sn == gsn_electrocution
-	|| sn == gsn_immolation
-	|| sn == gsn_absolute_zero
-	|| sn == gsn_epidemic
-	|| sn == gsn_quirkys_insanity )
-	gag_type = GAG_AURA;
-    }
+    if ( dt < MAX_SKILL ) /* Make sure in bounds of array before we check! */
+      if( skill_table[dt].pgsn != NULL )
+    
+      {
+	  sn = *skill_table[dt].pgsn;
+          if( sn == gsn_electrocution
+	  || sn == gsn_immolation
+	  || sn == gsn_absolute_zero
+	  || sn == gsn_epidemic
+	  || sn == gsn_quirkys_insanity )
+	  gag_type = GAG_AURA;
+      }
 
     if (ch == victim)
     {
