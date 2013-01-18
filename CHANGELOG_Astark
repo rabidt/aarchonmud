@@ -200,3 +200,4 @@ Astark's changelog
 
 1/17/2013 Astark
 - Added IS_NPC check to behead_cnt to stop mobs that behead from causing crash (fight2.c)
+- Added IS_NPC check to exploration code showing in prompt to stop bug with switch crashing mud (comm.c)
