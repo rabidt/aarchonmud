@@ -1946,8 +1946,12 @@ void bust_a_prompt( CHAR_DATA *ch )
 			i = buf2; break;
                 /* Players can track new rooms that they've visited - Astark Nov 2012 */
                 case 'E' :
-                        sprintf(buf2,"%d", ch->pcdata->explored->set );
-                        i = buf2; break;
+                       /* Oops! forgot the NPC check here. Was causing a crash. Astark 1-17-13 */
+                        if (!IS_NPC(ch))
+                        {
+                            sprintf(buf2,"%d", ch->pcdata->explored->set );
+                            i = buf2; break;
+                        }
 		case 'c' :
 			sprintf(buf2,"%s","\n\r");
 			i = buf2; break;
