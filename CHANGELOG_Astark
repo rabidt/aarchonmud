@@ -197,3 +197,6 @@ Astark's changelog
 - Added a check to the for-loop in achievements to break iteration if achievement is already unlocked. A recommendation from Vodur on efficiency (act_info.c)
 - Count command uses proper grammar (act_info.c)
 - Rolldice command output is no longer emotable (fight2.c)
+
+1/17/2013 Astark
+- Added IS_NPC check to behead_cnt to stop mobs that behead from causing crash (fight2.c)
