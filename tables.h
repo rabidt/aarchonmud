@@ -96,6 +96,7 @@ extern  const   struct  flag_type       imm_flags[];
 extern  const   struct  flag_type       form_flags[];
 extern  const   struct  flag_type       part_flags[];
 extern  const   struct  flag_type       comm_flags[];
+extern        const   struct  flag_type       togg_flags[];
 extern  const   struct  flag_type       extra_flags[];
 extern  const   struct  flag_type       wear_flags[];
 extern  const   struct  flag_type       weapon_flags[];

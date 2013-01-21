@@ -36,6 +36,8 @@
 #endif
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include "merc.h"
 #include "tables.h"
 #include <malloc.h>
@@ -2422,7 +2424,7 @@ void do_wake( CHAR_DATA *ch, char *argument )
    { act( "You can't wake $M!",   ch, NULL, victim, TO_CHAR );  return; }
    
    act_new( "$n wakes you.", ch, NULL, victim, TO_VICT,POS_SLEEPING );
-   do_rest(victim,"");
+   do_stand(victim,"");
    return;
 }
 
@@ -2448,12 +2450,6 @@ void do_sneak( CHAR_DATA *ch, char *argument )
         send_to_char("You cannot sneak while playing Freeze Tag.\n\r",ch);
         return;
     }
-    /* Disabled 1-10-13, as we believe it was previously disabled. Astark
-    if (IS_REMORT(ch))
-    {
-        send_to_char("There is noplace to hide in remort.\n\r",ch);
-        return;
-    } */
 
     if (ch->fighting != NULL)
     {
@@ -2511,6 +2507,11 @@ void do_hide( CHAR_DATA *ch, char *argument )
   *    } 
   */
 
+    if (IS_NOHIDE(ch))
+    {
+        send_to_char("There is no place to hide.\n\r",ch);
+        return;
+    }
     if (IS_TAG(ch))
     {
         send_to_char("There is noplace to hide in freeze tag.\n\r",ch);
@@ -3182,35 +3183,6 @@ void check_bleed( CHAR_DATA *ch, int dir )
     }
 }
 
-/*
-void load_storage_boxes( CHAR_DATA *ch)
-{
-	OBJ_DATA *obj;
-	int i;
-	if (ch->pcdata->storage_boxes<1)
-	  return;
-
-	send_to_char("As you enter, an employee brings in your boxes and sets them before you.\n\r",ch);
-	for (i=1;i<=ch->pcdata->storage_boxes;i++)
-	{
-	    ch->pcdata->box_data[i-1] = create_object(get_obj_index(OBJ_VNUM_STORAGE_BOX), 0);
-	    obj_to_room( ch->pcdata->box_data[i-1], ch->in_room);   
-	}
-	load_storage_box(ch);
-}
-*/
-/*void unload_storage_boxes( CHAR_DATA *ch)
-{
-	sh_int i;
-
-        for (i=0;i<ch->pcdata->storage_boxes;i++)
-        {
-            extract_obj(ch->pcdata->box_data[i]);
-            ch->pcdata->box_data[i]=NULL;
-        }
-}
-	
-*/
 
 
 
@@ -3291,3 +3263,173 @@ void do_explored(CHAR_DATA *ch, char *argument )
 */
 	return;
 }
+
+//RUN COMMAND by SIVA 2/14/04
+void do_run(CHAR_DATA * ch, char *argument)
+{
+	//local variables
+	CHAR_DATA *wch;
+	char *p;	//pointer to iterate argument
+	int i; //counter for for loops
+	int last = 0; //holds last character of argument
+	int par_counter = 0; // for turning chars into ints	
+	int move_counter = 0;
+	char nbr_parser[3] = "\0";
+
+	p = argument;
+	
+	//Not for the pkillers! (change this if flag is different)
+	if (IS_SET (ch->act, PLR_KILLER))
+		{
+		send_to_char("Running is for cowards. Killers stand and fight!\r\n", ch);
+		WAIT_STATE(ch, 8);
+		return;
+		}
+
+	if (IS_SET (ch->act, PLR_THIEF))
+		{
+		send_to_char("The weight of your crimes prevents you from running.\r\n", ch);
+		WAIT_STATE(ch, 8);
+		return;
+		}
+
+	//add similar check to prevent use during warfare!
+	//add similar check to prevent use during freeze tag!
+
+	//do we have valid string of input?
+	if (argument[0] == '\0')
+		{
+		send_to_char("Run where?\r\n", ch);
+		return;
+		}
+	else if (strlen (argument) > MAX_INPUT_LENGTH)
+		{
+		send_to_char("Requested path too long. Try something shorter.\r\n", ch);
+		return;
+		}
+
+	//make sure argument is valid
+	for (i=0; p[i]; i++)
+		{
+			switch(p[i]) {
+			case 'n':
+			case 's':
+			case 'e':
+			case 'w':
+			case 'u':
+			case 'd':
+			case 'N':
+			case 'S':
+			case 'E':
+			case 'W':
+				{
+				if (nbr_parser[0] != '\0') 
+					{
+					strcpy (nbr_parser, "\0");
+					}
+				break;
+				}
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				{
+				if (nbr_parser[0] == '\0') par_counter = 0;
+				nbr_parser[par_counter] = p[i];
+				par_counter += 1;
+				if ( (atoi(nbr_parser) > 99) || (atoi(nbr_parser) < 1) )
+					{
+					send_to_char("Only numbers 1 through 99 are acceptable for \"run\".\r\n", ch);
+					return;
+					}
+				break;
+				}
+			default:
+				{
+				send_to_char("Invalid run directions. Try again.\r\n", ch);
+				return;
+				}
+			} //end switch
+		last = i;	
+		} //end for loop
+
+	//If last character of argument is a number, that doesn't work either!
+	if ( isdigit(p[last]) )
+				{
+				send_to_char("A number must be followed by a direction for \"run\".\r\n", ch);
+				return;
+				}
+
+	//reset number parser for actual movements
+	par_counter = 0;
+	nbr_parser[0] = '\0';
+	nbr_parser[1] = '\0';
+		
+	//execute the run movements
+	for (i = 0; p[i]; i++)
+	{
+		//make a number from the string
+		if (isdigit(p[i])) 
+		{
+			nbr_parser[par_counter] = p[i];
+			par_counter++;
+			continue;
+		}
+		move_counter = 1;
+
+		if (	(!isdigit(p[i])) && (nbr_parser[0] != '\0')	) 
+			{
+			move_counter = (atoi(nbr_parser));
+			nbr_parser[0] = '\0';
+			nbr_parser[1] = '\0';
+			par_counter = 0;
+			}
+			
+		
+			for ( ; move_counter > 0; move_counter--)
+				{
+				if (p[i] == 'n') do_north(ch, NULL);
+				else if (p[i] == 's') do_south(ch, NULL);
+				else if (p[i] == 'e') do_east(ch, NULL);
+				else if (p[i] == 'w') do_west(ch, NULL);
+				else if (p[i] == 'u') do_up(ch, NULL);
+				else if (p[i] == 'd') do_down(ch, NULL);
+				else if (p[i] == 'd') do_down(ch, NULL);
+				else if (p[i] == 'N') 
+					{
+					if (p[i+1] == 'E') do_northeast(ch, NULL);
+					else if (p[i+1] == 'W') do_northwest(ch, NULL);
+					}
+				else if (p[i] == 'S') 
+					{
+					if (p[i+1] == 'E') do_southeast(ch, NULL);
+					else if (p[i+1] == 'W') do_southwest(ch, NULL);
+					}
+
+				//check for aggro mobs, can't run past them!
+				for (wch = ch->in_room->people; wch != NULL; wch = wch->next_in_room)
+					{
+					if (IS_SET (wch->act, ACT_AGGRESSIVE) 
+					&& ch->level < LEVEL_IMMORTAL
+					&& ch->level <= wch->level - 5
+					&& IS_AWAKE (wch)
+					&& can_see (wch, ch)   )
+						{
+						send_to_char("{yPotential aggression stops you in your tracks!{x\r\n", ch);
+						return;
+						}
+					} //end of aggro for
+				WAIT_STATE(ch, 8);
+				
+				} //end of for
+		
+	} //end of big for
+	return;
+} // end of run function
+

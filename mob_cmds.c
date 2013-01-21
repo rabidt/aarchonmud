@@ -1522,7 +1522,7 @@ void do_mpremove( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj, *obj_next;
-    sh_int vnum = 0;
+    int vnum = 0;
     bool fAll = FALSE;
     char arg[MIL], arg2[MIL];
 

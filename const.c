@@ -37,6 +37,8 @@
 #include "song.h"
 #include "interp.h"
 
+extern int nAllocString;
+extern int nAllocPerm;
 
 /* item type list */
 /* used in are files - DON'T CHANGE NAMES */
@@ -143,6 +145,9 @@ const   struct wiznet_type      wiznet_table    []              =
 	{    "auth",         WIZ_AUTH,       L8 },
 	{    "cheat",        WIZ_CHEAT,      L8 },
 	{    "religion",     WIZ_RELIGION,   L4 },
+#if defined(MEMCHECK_ENABLE)
+	{    "memcheck",     WIZ_MEMCHECK,   ML },
+#endif
 	{    NULL,           0,              0  }
 };
 
@@ -298,7 +303,7 @@ struct align_type align_table [] =
 	{
 	"drow",          TRUE,
 	{},      {AFF_DARK_VISION},   {},
-	{},      {RES_MAGIC},  {VULN_LIGHT,VULN_IRON},
+	{},      {RES_MAGIC},  {VULN_LIGHT,VULN_POISON},
 		  {A,H,M,V,cc},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
@@ -312,7 +317,7 @@ struct align_type align_table [] =
 	{
 	"elf",          TRUE,
 	{},      {AFF_INFRARED},   {},
-	{},      {RES_CHARM,RES_DISEASE},  {VULN_IRON,VULN_COLD},
+	{},      {RES_CHARM,RES_DISEASE},  {VULN_POISON,VULN_COLD},
 	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
@@ -622,7 +627,7 @@ struct align_type align_table [] =
 	"chrysalies",        TRUE,
 	{},      {AFF_FLYING,AFF_DARK_VISION},   {},
 	{},      {RES_CHARM,RES_PIERCE}, {VULN_DROWNING},
-	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
+	{G,H,M,O}, {A,B,C,D,E,F,G,H,I,J,K,P}
 	},
 
 	{
@@ -643,7 +648,7 @@ struct align_type align_table [] =
 	"illithid",        TRUE,
 	{},      {AFF_DETECT_MAGIC, AFF_DARK_VISION},   {},
 	{},      {RES_CHARM,RES_MENTAL}, {VULN_LIGHT,VULN_SOUND},
-	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
+	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K,N}
 	},
 
         {
@@ -665,21 +670,21 @@ struct align_type align_table [] =
 	"djinn",        TRUE,
 	{},      {},   {},
 	{},      {RES_FIRE}, {VULN_DROWNING,VULN_SOUND},
-	{A,H,V,M,ii},    {A,B,C,D,E,F,G,H,I,J,K}
+	{C,K,S,ii},	{A,B,C,D,E,F,G,H,I,J,K},
 	},
 
 	{
 	"dryad",        TRUE,
-	{},      {},   {},
+	{},	{AFF_DETECT_MAGIC,AFF_DETECT_HIDDEN},	{},
 	{},      {RES_MAGIC,RES_DISEASE,RES_DROWNING,RES_LIGHT}, {VULN_NEGATIVE},
-	{A,H,V,M,jj},    {A,B,C,D,E,F,G,H,I,J,K}
+	{A,H,M,V,jj},	{A,B,C,D,E,F,G,H,I,J,K}
 	},
 
 	{
 	"gargoyle",        TRUE,
 	{},      {AFF_FLYING,AFF_DARK_VISION},   {},
 	{},      {RES_BASH}, {VULN_LIGHT},
-	{A,H,V,M,N,ee},    {A,B,C,D,E,F,G,H,I,J,K,U,V}
+	{A,H,M,V,N,ee},	{A,B,C,D,E,F,G,H,I,J,K,U,V},
 	},
 
 	{
@@ -695,8 +700,8 @@ struct align_type align_table [] =
 	{
 	"android",        TRUE,
 	{},      {AFF_DETECT_HIDDEN,AFF_INFRARED,AFF_BATTLE_METER},   {},
-	{},      {RES_CHARM, RES_COLD, RES_POISON, RES_NEGATIVE, RES_HOLY, RES_MENTAL, RES_DISEASE}, {VULN_FIRE},
-	{H,J,M,cc,hh},    {A,B,C,D,E,F,G,H,I,J,K}
+	{},		{RES_FIRE,RES_LIGHT,RES_MENTAL},		{},
+	{H,J,M,cc},   {A,B,C,G,H,I,J,K}
 	},
 
 	{
@@ -928,6 +933,13 @@ struct align_type align_table [] =
 	    {A,B,G,Z},        {A,C,D,E,F,H,J,K,Q,V,X}
 	},
 	
+	{
+	"unicorn",        FALSE,
+	{},      {},   {},
+	{},      {RES_HOLY}, {VULN_NEGATIVE},
+	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K,W}
+	},
+
 	{
 	"unique",       FALSE,
 	{},      {},      {},
@@ -1428,7 +1440,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         {
           "wraith", "Wraith",
           {220, 215, 215, 210, 235, 220, 220, 215, 215, 240, 235, 210, 230, 225, 180},
-          5, {"invis", "energy drain", "fear", "deaths door", "intimidation"},
+          5, {"invisibility", "energy drain", "fear", "deaths door", "intimidation"},
           {1, 90, 20, 1, 45}, {100, 80, 85, 75, 80},
           {  70,  40,  25,  75,  90,      95,  60,  55,  70,  30 },
           { 115, 120, 105, 135, 135,     135, 120, 115, 100, 110 },
@@ -1450,7 +1462,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
                  
         { 
           "frost-giant",   "FrostG",
-          { 225, 240, 230, 220, 225, 220, 230, 235, 225, 230, 225, 230, 230, 220, 230 },
+          { 225, 240, 230, 220, 225, 220, 230, 235, 230, 230, 225, 230, 230, 220, 230 },
           5, { "chill touch", "hailstorm", "frost breath", "control weather", "absolute zero" },
           {1,40,60,70,80},{100,95,90,85,80},
           {  60,  70,  45,  45,  50,      45,  50,  55,  40,  50 },
@@ -1473,7 +1485,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
 // race 50 ^
         { 
           "illithid",   "Illith",
-          { 240, 230, 225, 220, 250, 235, 245, 230, 230, 230, 235, 225, 220, 240, 235, 230 },
+          { 240, 230, 225, 220, 250, 235, 245, 230, 230, 235, 225, 220, 240, 235, 230 },
           4, { "feeblemind", "mindflay", "charm", "confusion" },
           { 20, 40, 60, 80}, {100, 100, 80, 75},
           {  45,  60,  60,  70,  70,      95,  80,  60,  70,  50 },
@@ -1525,7 +1537,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           {20, 35, 50, 55, 70}, {85, 90, 80, 60, 85},
           {  50,  50,  50,  60,  65,      85,  80,  70,  60,  65 },
           { 130, 140, 125, 130, 135,     135, 135, 130, 140, 125 },   
-          {   3,   3,   3,   4,   3,       3,   3,   3,   3,   3 },
+          {   2,   3,   3,   3,   3,       4,   4,   3,   3,   2 },
           SIZE_MEDIUM, SEX_BOTH, 7
         },
 
@@ -1536,7 +1548,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 250, 255, 255, 270, 250, 250, 255, 230, 255, 250, 230, 260, 250, 250, 260 },
           4, { "stone skin", "rage", "hurl", "bash" },
           {1, 15, 40, 65}, {100, 85, 90, 70},
-          {  90,  90,  15,  45,  45,      40,  65,  40,  90,  45 },
+          {  90,  90,  15,  45,  45,      40,  65,  40,  90,  40 },
           { 140, 125, 130, 140, 145,     140, 125, 140, 140, 130 },   
           {   3,   3,   3,   4,   3,       3,   3,   3,   3,   3 },
           SIZE_LARGE, SEX_BOTH, 7
@@ -1548,8 +1560,8 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           4, { "necrosis", "decompose", "mana burn", "iron maiden"},
           {5,15,25,65},{80,75,70,50},
           {  55,  40,  25,  50,  50,      90,  75,  60,  55,  50 },
-          { 135, 130, 125, 130, 130,     150, 145, 140, 135, 130 },   
-          {   3,   2,   1,   3,   3,       5,   4,   3,   3,   3 },
+          { 135, 130, 130, 130, 130,     150, 150, 140, 125, 125 },   
+          {   3,   2,   1,   3,   3,       5,   4,   3,   2,   2 },
           SIZE_MEDIUM, SEX_BOTH, 7
         },        
 
@@ -1558,13 +1570,13 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
 
         { 
           "android",   "Androi",
-          { 265, 275, 290, 285, 265, 275, 275, 265, 275, 280, 290, 290, 270, 275, 285 },
-          2, { "lightning bolt", "electrocution" },
-          {1, 30}, {100, 75},
-          {  75,  70,  70,  75,  75,      70,  65,  70,  70,  70 },
-          { 140, 140, 140, 140, 140,     130, 130, 140, 130, 130 },   
+	{ 245, 255, 265, 270, 245, 240, 260, 250, 240, 260, 265, 270, 250, 250, 270 },
+	0, {},
+	{},	{},
+	{  60,  55,  55,  60,  65,			 55,  45,  60,  45,  55 },
+	{ 140, 145, 155, 145, 150,			135, 125, 150, 125, 135 },
           {   3,   3,   3,   4,   5,       2,   2,   3,   2,   3 },
-          SIZE_MEDIUM, SEX_BOTH, 8
+          SIZE_MEDIUM, SEX_NEUTRAL,8
         },
 
         { 
@@ -1581,7 +1593,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "phantom",   "Phantm",
           { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "invis", "shadow soul", "shadow shroud", "dispel magic" },
+          4, { "invisibility", "shadow soul", "shadow shroud", "dispel magic" },
           {1, 4, 20, 60, }, {100,90,90,80},
           {  40,  45,  50,  65,  65,      65,  65,  65,  45,  60 },
           { 135, 140, 135, 150, 150,     145, 140, 140, 130, 140 },   
@@ -3144,7 +3156,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_feeblemind,   TAR_VIS_CHAR_OFF, POS_FIGHTING,
-	NULL,           SLOT(1001), 30, 12,
+	&gsn_feeblemind,           SLOT(1001), 30, 12,
 	"spell",        "You feel smarter.",    "", NULL
 	},
 
@@ -3617,13 +3629,13 @@ struct  skill_type  skill_table [MAX_SKILL] =
 
 	{
 	"mindflay",  
-	{ 102, 27, 102, 102, 102, 102, 102, 33, 102, 102, 102, 102, 102, 60, 102 },
-	{  0, 11,  0,  0,  0,  0,  0, 12,  0,  0,  0,  0,  0,  15, 0 },
+	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+	{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_null,             TAR_CHAR_OFFENSIVE,             POS_FIGHTING,
+	spell_null,    TAR_IGNORE,     POS_FIGHTING,
 	&gsn_mindflay,              SLOT( 0),       0,      12,
-	"mindflay",                 "!mindflay!",       "", NULL
+	"mindflaying",         "You mind starts working again.",  "", NULL
 	},
 
 	{
@@ -3969,8 +3981,8 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_shroud_of_darkness,             TAR_CHAR_SELF,             POS_STANDING,
-	NULL,           SLOT(5121),       0,      0,
-	"",     "!You are no longer encased in darkness!",   "", NULL
+	NULL,           SLOT(2110),  80,    40,
+	"shroud of darkness",   "You are no longer protected by darkness.", "", NULL
 	},
 
 
@@ -3998,12 +4010,12 @@ struct  skill_type  skill_table [MAX_SKILL] =
     
 	{
 	"solar flare", 
-	{ 102, 102,  90,  90, 102,  38,  70, 102, 102, 102,  90, 102, 102,  90, 102 },
-	{   3,   3,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6 },
+	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+	{   0,   0,   3,   3,   0,   0,   0,   0,   0,   0,   3,   0,   0,   3,   0 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_WIS, STAT_INT, STAT_CHA,
 	spell_solar_flare,  TAR_VIS_CHAR_OFF, POS_FIGHTING,
-	&gsn_solar_flare,           SLOT(651),   95, 18,
+	&gsn_solar_flare,		SLOT(100),			  60,		20,
 	"solar flare",      "!Solar Flare!",        "", NULL
 	},
 
@@ -6894,7 +6906,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"rustle grub", 
 	{ 102, 102, 102, 102, 102, 102, 102,  20, 102, 102, 102, 102,  12, 102, 102 },
-	{   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   2,   0 },
+	{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, 0, 0 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,    TAR_IGNORE,     POS_STANDING,
@@ -7293,8 +7305,9 @@ const   struct  group_type      group_table     [MAX_GROUP]     =
 
         {
         "protective",    { -1, -1, 3, 4, -1, 8, 6, -1, 8, 4, 4, 6, -1, -1, 5 },
-        { "armor", "cancellation", "dispel magic", "fireproof", "protection evil",
-          "protection good", "sanctuary", "shield", "stone skin", "mana shield" }
+        { "armor", "cancellation", "dispel magic", "fireproof",
+		  "protection evil", "protection good", "sanctuary", "shield", 
+	      "stone skin", "mana shield" }
         },
 	
 	{
@@ -7351,9 +7364,9 @@ const   struct  group_type      group_table     [MAX_GROUP]     =
 	},
 	
 	{
-	"weather",      { -1, -1, 4, 6, -1, -1, -1, -1, -1, -1, 5, 1, -1, 10, -1 },
+	"weather",      { -1, -1, 5, 7, -1, -1, -1, -1, -1, -1, 6, 1, -1, 10, -1 },
 	{ "call lightning", "control weather", "faerie fire", "faerie fog",
-	  "lightning bolt", "monsoon", "hailstorm", "meteor swarm" }
+	  "lightning bolt", "monsoon", "hailstorm", "meteor swarm", "solar flare" }
 	},
 
 	{
