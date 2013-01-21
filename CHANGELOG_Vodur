@@ -214,3 +214,5 @@
 - Fix in fight.c for dt=1024 crash bug to prevent accessing out of bounds indexing
   of skill_table.
 
+1/20/2013
+- Merge from Maed's code (2/26/2012).

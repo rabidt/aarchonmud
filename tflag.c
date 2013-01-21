@@ -31,7 +31,7 @@ bool flag_is_set( tflag f, int bit )
 {
     if ( !BIT_IN_RANGE( bit ) )
     {
-	bug( "flag_is_set: bit out of range (%d), %d", bit );
+	bug( "flag_is_set: bit out of range (%d)", bit );
 	return FALSE;
     }
     return (f[bit / 8] & (1 << (bit % 8))) != 0;
