@@ -242,9 +242,11 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define PULSE_AREA        (120 * PULSE_PER_SECOND)
 #define PULSE_SAVE            ( 2 * PULSE_PER_SECOND )
 #define PULSE_HERB            ( 15 * 60 * PULSE_PER_SECOND )
+#define PULSE_PER_MINUTE	( 60 * PULSE_PER_SECOND )
 /* #define PULSE_HERB            ( 15 * PULSE_PER_SECOND ) */
 
 /* times */
+#define MINUTE 60
 #define HOUR 3600
 #define DAY (24*HOUR)
 #define WEEK (7*DAY)
@@ -2246,6 +2248,65 @@ typedef int tattoo_list[MAX_WEAR];
 #define CHAN_IMMTALK 'i'
 #define CHAN_SAVANT '7'
 
+/* defines for lboard type 
+ used for args to functions
+ such as update_lboard 	*/
+/* Why not replace all the ones below with just this?
+   We might want to have daily/weekly/monthly/overall boards differ
+   in what is tracked and order in the list so
+   let's keep it all separate for now.
+   Yes, it's kind of messy, but it's functional and flexible. */
+
+#define LBOARD_MKILL	0
+#define LBOARD_QCOMP	1
+#define LBOARD_BHD		2
+#define LBOARD_QPNT		3
+#define LBOARD_WKILL	4
+#define LBOARD_EXPL		5
+#define LBOARD_QFAIL	6
+
+/* defines for lboard DAILY boards */
+/* these will correspond with the order saved
+   in lboard.txt so ver VERY careful when modifying */
+#define MAX_LBOARD_DAILY	5
+   
+#define LBOARD_MKILL_DAILY	0
+#define LBOARD_QCOMP_DAILY	1
+#define LBOARD_QPNT_DAILY	2
+#define LBOARD_EXPL_DAILY	3
+#define LBOARD_QFAIL_DAILY	4
+
+/* defines for lboard WEEKLY boards */
+/* these will correspond with the order saved
+   in lboard.txt so ver VERY careful when modifying */
+#define MAX_LBOARD_WEEKLY	5
+   
+#define LBOARD_MKILL_WEEKLY	0
+#define LBOARD_QCOMP_WEEKLY	1
+#define LBOARD_QPNT_WEEKLY	2
+#define LBOARD_EXPL_WEEKLY	3
+#define LBOARD_QFAIL_WEEKLY	4
+/* defines for lboard MONTHLY boards */
+/* these will correspond with the order saved
+   in lboard.txt so ver VERY careful when modifying */
+#define MAX_LBOARD_MONTHLY	5
+   
+#define LBOARD_MKILL_MONTHLY	0
+#define LBOARD_QCOMP_MONTHLY	1
+#define LBOARD_QPNT_MONTHLY		2
+#define LBOARD_EXPL_MONTHLY		3
+#define LBOARD_QFAIL_MONTHLY	4
+/* defines for lboard OVERALL boards */
+/* these will correspond with the order saved
+   in lboard.txt so ver VERY careful when modifying */
+#define MAX_LBOARD_OVERALL	6
+   
+#define LBOARD_MKILL_OVERALL	0
+#define LBOARD_QCOMP_OVERALL	1
+#define LBOARD_BHD_OVERALL		2
+#define LBOARD_WKILL_OVERALL	3
+#define LBOARD_EXPL_OVERALL		4
+#define LBOARD_QFAIL_OVERALL	5
 /*
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.
@@ -3924,6 +3985,8 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define PLAYER_TEMP_DIR "../player/temp/"  /* for simultanious saves */
 #define PORTAL_FILE    "portal.txt"
 #define RELIGION_FILE  "religion.txt"
+#define LBOARD_FILE    "lboard.txt"
+#define LBOARD_RESULT_FILE "lboard_result.txt"
 #define CHEAT_LIST     "../log/cheatlog.txt"
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
