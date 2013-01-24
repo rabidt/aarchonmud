@@ -553,4 +553,5 @@ DECLARE_DO_FUN( do_rdoor        );
 DECLARE_DO_FUN( do_findlock     );
 DECLARE_DO_FUN( do_rforce       );
 
+DECLARE_DO_FUN( do_lboard);
 DECLARE_DO_FUN( do_dummy);

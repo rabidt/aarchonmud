@@ -41,7 +41,7 @@
 #include "magic.h"
 #include "simsave.h"
 #include "buffer_util.h"
-
+#include "leaderboard.h"
 #if defined(linux)
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
@@ -3149,6 +3149,13 @@ void do_pload( CHAR_DATA *ch, char *argument )
     /* store old room, then move to imm */
     d.character->was_in_room = d.character->in_room;
     char_to_room(d.character, ch->in_room);
+
+    update_lboard( LBOARD_MKILL, d.character, d.character->pcdata->mob_kills, 0);
+update_lboard( LBOARD_BHD, d.character, d.character->pcdata->behead_cnt, 0);
+update_lboard( LBOARD_QCOMP, d.character, d.character->pcdata->quest_success, 0);
+  update_lboard( LBOARD_WKILL, d.character, d.character->pcdata->war_kills, 0);
+  update_lboard( LBOARD_EXPL, d.character, d.character->pcdata->explored->set, 0);
+	update_lboard( LBOARD_QFAIL, d.character, d.character->pcdata->quest_failed, 0);
     
     if (d.character->pet != NULL)
     {
@@ -3164,6 +3171,7 @@ void do_pload( CHAR_DATA *ch, char *argument )
         add_follower(d.character->mount,d.character);
         do_mount(d.character, d.character->mount->name);
     }
+
 #endif
 } /* end do_pload */
 
@@ -3605,11 +3613,71 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 void do_dummy( CHAR_DATA *ch, char *argument)
 {
-char buf[MAX_STRING_LENGTH];
+	char arg1[MIL];
+	char arg2[MIL];
+	
+	argument = one_argument( argument, arg1 );
+    argument = one_argument( argument, arg2 );
+	
+	LBOARD_RESULT *result;
 
-printf_to_char(ch,"ROOM_JAIL %d",ROOM_JAIL);
-printf_to_char(ch,"ROOM_DARK %d",ROOM_DARK);
 
+	if ( arg1[0] == '\0')
+	{
+		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
+		return;
+	}
+	else if ( !strcmp( arg1, "daily" ) )
+	{
+		result=daily_results;
+	}
+	else if ( !strcmp( arg1, "weekly" ) )
+	{
+		result=weekly_results;
+	}
+	else if ( !strcmp( arg1, "monthly" ) )
+	{
+		result=monthly_results;
+	}
+	else
+	{
+		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
+		return;
+	}
+	
+	if ( arg2[0] == '\0' )
+	{
+		int i=1;
+		for ( ; result != NULL ; result=result->next )
+		{
+			printf_to_char(ch, "%3d: %-25s", i, ctime(&(result->end_time)) );
+			i++;
+		}
+		return;
+	}
+	
+	int index = atoi( arg2 );
+	if ( index > 0 )
+	{
+		int i=1;
+		for ( result; result != NULL ; result=result->next )
+		{
+			if ( i == index)
+			{
+				printf_to_char(ch, "Ended:%s\n\r%s\n\r", ctime(&(result->end_time)), result->text );
+				return;
+			}
+			i++;
+		}
+		send_to_char("Invalid index.\n\r",ch);
+		return;
+	}
+	else
+	{
+		send_to_char("Invalid index.\n\r",ch);
+		return;
+	}
+	
 }
 
 

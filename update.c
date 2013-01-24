@@ -42,6 +42,7 @@
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
+#include "leaderboard.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -2467,6 +2468,30 @@ void update_handler( void )
 	  all_religions( &religion_create_relic );
 	  update_relic_bonus();
    }
+
+	/* check LBOARDS */
+	if (current_time > daily_reset)
+	{
+		#ifdef LBOARD_DEBUG
+		log_string("reset daily boards");
+		#endif
+		reset_daily_lboards();
+	}
+	if (current_time > weekly_reset)
+	{
+		#ifdef LBOARD_DEBUG
+		log_string("reset weekly boards");
+		#endif
+		reset_weekly_lboards();
+	}
+	if (current_time > monthly_reset)
+	{
+		#ifdef LBOARD_DEBUG
+		log_string("reset monthly board");
+		#endif
+		reset_monthly_lboards();
+	}
+		
 
    /* update some things once per hour */
    if ( current_time % HOUR == 0 )
