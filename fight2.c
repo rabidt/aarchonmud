@@ -3330,7 +3330,10 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim)
         
         /* Vodur and Astark bug fix 1-17-13. Mobs beheading players caused a crash */
         if(!IS_NPC(ch))
+	{
             ch->pcdata->behead_cnt += 1;
+	    update_lboard( LBOARD_BHD, ch, ch->pcdata->behead_cnt, 1);
+	}
 					 
 	name = IS_NPC(victim) ? victim->short_descr : victim->name;
 	obj  = create_object( get_obj_index( OBJ_VNUM_SEVERED_HEAD ), 0 );

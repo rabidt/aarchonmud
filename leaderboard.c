@@ -93,26 +93,31 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
 			monthly=lboard_monthly[LBOARD_QCOMP_MONTHLY];
 			overall=lboard_overall[LBOARD_QCOMP_OVERALL];
 			break;
-		case LBOARD_BHD:
-			overall=lboard_overall[LBOARD_BHD_OVERALL];
-			break;
-		case LBOARD_EXPL:
-			overall=lboard_overall[LBOARD_EXPL_OVERALL];
-			break;
-		case LBOARD_QPNT:
-			daily=lboard_daily[LBOARD_QPNT_DAILY];
-			weekly=lboard_weekly[LBOARD_QPNT_WEEKLY];
-			monthly=lboard_monthly[LBOARD_QPNT_MONTHLY];
-			break;
-		case LBOARD_WKILL:
-			overall=lboard_overall[LBOARD_WKILL_OVERALL];
-			break;
 		case LBOARD_QFAIL:
 			daily=lboard_daily[LBOARD_QFAIL_DAILY];
 			weekly=lboard_weekly[LBOARD_QFAIL_WEEKLY];
 			monthly=lboard_monthly[LBOARD_QFAIL_MONTHLY];
 			overall=lboard_overall[LBOARD_QFAIL_OVERALL];
 			break;
+		
+		/* periodic only */
+		case LBOARD_QPNT:
+			daily=lboard_daily[LBOARD_QPNT_DAILY];
+			weekly=lboard_weekly[LBOARD_QPNT_WEEKLY];
+			monthly=lboard_monthly[LBOARD_QPNT_MONTHLY];
+			break;
+
+		/* overall only */
+		case LBOARD_BHD:
+			overall=lboard_overall[LBOARD_BHD_OVERALL];
+			break;
+		case LBOARD_WKILL:
+			overall=lboard_overall[LBOARD_WKILL_OVERALL];
+			break;
+		case LBOARD_EXPL:
+			overall=lboard_overall[LBOARD_EXPL_OVERALL];
+			break;
+
 
 	}
 	
@@ -148,7 +153,7 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
     if ( entry->previous == NULL )
 	return;
 	
-	update_lboard_order( &board , &entry); 
+	update_lboard_order( &(*board) , &entry); 
 }
 
 void update_lboard_overall( LBOARD **board, CHAR_DATA *ch, int current, int increment)
@@ -246,7 +251,7 @@ void update_lboard_overall( LBOARD **board, CHAR_DATA *ch, int current, int incr
 		return;
 	}
 	
-	update_lboard_order( &board , &entry); 
+	update_lboard_order( &(*board) , &entry); 
 }
 	
 void update_lboard_order( LBOARD **board, LBOARD_ENTRY **entry)
@@ -261,12 +266,19 @@ void update_lboard_order( LBOARD **board, LBOARD_ENTRY **entry)
 	log_string(buf);
 	sprintf(buf, "entry->previous->value : %d",(*entry)->previous->value);
 	log_string(buf);
+	
+/*	LBOARD_ENTRY *temp;
+	for (temp=(*board)->head ; temp!= NULL ; temp=temp->next)
+	{
+		sprintf( buf, "%d %s %d", temp->rank, temp->name, temp->value );
+		log_string(buf);
+	}*/
 	#endif
 	
 	while ( (*entry)->value > (*entry)->previous->value )
     {
 		#ifdef LBOARD_DEBUG	
-		log_string("Rerdering linked list.");
+		log_string("Reordering linked list.");
 		#endif
 		LBOARD_ENTRY *one,*two,*three,*four;
 		/* Represents the new order
@@ -282,17 +294,19 @@ void update_lboard_order( LBOARD **board, LBOARD_ENTRY **entry)
 		if ( one != NULL )
 		{
 			one->next = two;
+			two->rank = one->rank+1;
 		}
 		else
 		{
 			/* This means three is current head */
 			/* so let's make two the head */
 			(*board)->head = two;
+			two->rank= 1;
 		}
 	
 		two->previous = one;
 		two->next = three;
-		two->rank= one->rank+1;
+		
 
 		three->previous = two;
 		three->next = four;
@@ -309,7 +323,7 @@ void update_lboard_order( LBOARD **board, LBOARD_ENTRY **entry)
 			(*board)->tail=three;
 		}
 		if ( (*entry)->previous == NULL )
-		break;
+			break;
 	}
     return;
 
@@ -789,6 +803,7 @@ MEMFILE* save_lboard_results()
 	{
 		bprintf( fp->buf, "#RESULT %d\n", result->end_time );
 		bprintf( fp->buf, "%s~", result->text );
+		bprintf( fp->buf, "End" );
 		bprintf( fp->buf, "\n" );
     }
 
@@ -849,6 +864,8 @@ void load_lboard_results()
     int i;
 	int max;
 	LBOARD_RESULT **results_list;
+	LBOARD_RESULT *temp_list;
+	
     while ( TRUE )
     {
         word = feof( fp ) ? "#END" : fread_word( fp );
@@ -880,9 +897,24 @@ void load_lboard_results()
 			LBOARD_RESULT *rslt= lboard_result_new();
 			rslt->end_time = fread_number( fp );
 			rslt->text = fread_string( fp );
-			
+
 			rslt->next=(*results_list);
 			(*results_list)=rslt;
+		}
+		else if ( !strcmp(word, "End") )
+		{
+			/* need to reverse the list */
+			LBOARD_RESULT *ptr=(*results_list);
+			LBOARD_RESULT *temp;
+			LBOARD_RESULT *previous=NULL;
+			while ( ptr != NULL )
+			{
+				temp=ptr->next;
+				ptr->next=previous;
+				previous=ptr;
+				ptr=temp;
+			}
+			(*results_list)=previous;
 		}
 		else if ( !strcmp(word, "#END") )
 			break;
@@ -947,7 +979,7 @@ void reset_daily_lboards()
 	rslt->next = daily_results;
 	daily_results = rslt;	
 	
-	int i,j;
+	int i;
 	do
 	{
 		i=1;
@@ -1068,4 +1100,71 @@ void reset_lboard( LBOARD **board)
 	(*board)->tail = NULL;
 }
 
+void do_lhistory( CHAR_DATA *ch, char *argument)
+{
+	char arg1[MIL];
+	char arg2[MIL];
+	
+	argument = one_argument( argument, arg1 );
+    argument = one_argument( argument, arg2 );
+	
+	LBOARD_RESULT *result;
+
+
+	if ( arg1[0] == '\0')
+	{
+		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
+		return;
+	}
+	else if ( !strcmp( arg1, "daily" ) )
+	{
+		result=daily_results;
+	}
+	else if ( !strcmp( arg1, "weekly" ) )
+	{
+		result=weekly_results;
+	}
+	else if ( !strcmp( arg1, "monthly" ) )
+	{
+		result=monthly_results;
+	}
+	else
+	{
+		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
+		return;
+	}
+	
+	if ( arg2[0] == '\0' )
+	{
+		int i=1;
+		for ( ; result != NULL ; result=result->next )
+		{
+			printf_to_char(ch, "%3d: %-25s", i, ctime(&(result->end_time)) );
+			i++;
+		}
+		return;
+	}
+	
+	int index = atoi( arg2 );
+	if ( index > 0 )
+	{
+		int i=1;
+		for ( result; result != NULL ; result=result->next )
+		{
+			if ( i == index)
+			{
+				printf_to_char(ch, "Ended:%s\n\r%s\n\r", ctime(&(result->end_time)), result->text );
+				return;
+			}
+			i++;
+		}
+		send_to_char("Invalid index.\n\r",ch);
+		return;
+	}
+	else
+	{
+		send_to_char("Invalid index.\n\r",ch);
+		return;
+	}
+}
 

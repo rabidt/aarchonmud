@@ -165,16 +165,6 @@ typedef bool SONG_FUN   args((int sn,int level,CHAR_DATA *singer,
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 
-typedef struct explore_holder
-{	struct explore_holder *next;
-	unsigned int bits;
-	int mask;
-} EXPLORE_HOLDER;
-
-typedef struct exploration_data
-{	EXPLORE_HOLDER *bits;
-	int set;
-} EXPLORE_DATA;
 
 
 bool is_remort_obj( OBJ_DATA *obj );
@@ -352,6 +342,21 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define FLAG_MAX_BIT           (8 * FLAG_MAX_BYTE) 
 typedef char tflag[FLAG_MAX_BYTE];
 typedef char msl_string[MSL];
+
+typedef struct explore_holder
+{	
+	struct explore_holder *next;
+	unsigned int bits;
+	int mask;
+} EXPLORE_HOLDER;
+
+typedef struct exploration_data
+{	
+	EXPLORE_HOLDER *buckets;
+	int set;
+} EXPLORE_DATA;
+
+
 
 struct  ban_data
 {
@@ -2248,14 +2253,15 @@ typedef int tattoo_list[MAX_WEAR];
 #define CHAN_IMMTALK 'i'
 #define CHAN_SAVANT '7'
 
-/* defines for lboard type 
- used for args to functions
- such as update_lboard 	*/
 /* Why not replace all the ones below with just this?
    We might want to have daily/weekly/monthly/overall boards differ
    in what is tracked and order in the list so
    let's keep it all separate for now.
    Yes, it's kind of messy, but it's functional and flexible. */
+
+/* defines for lboard type 
+ used for args to functions
+ such as update_lboard 	*/
 
 #define LBOARD_MKILL	0
 #define LBOARD_QCOMP	1
@@ -2268,34 +2274,32 @@ typedef int tattoo_list[MAX_WEAR];
 /* defines for lboard DAILY boards */
 /* these will correspond with the order saved
    in lboard.txt so ver VERY careful when modifying */
-#define MAX_LBOARD_DAILY	5
+#define MAX_LBOARD_DAILY	4
    
 #define LBOARD_MKILL_DAILY	0
 #define LBOARD_QCOMP_DAILY	1
 #define LBOARD_QPNT_DAILY	2
-#define LBOARD_EXPL_DAILY	3
-#define LBOARD_QFAIL_DAILY	4
+#define LBOARD_QFAIL_DAILY	3
 
 /* defines for lboard WEEKLY boards */
 /* these will correspond with the order saved
    in lboard.txt so ver VERY careful when modifying */
-#define MAX_LBOARD_WEEKLY	5
+#define MAX_LBOARD_WEEKLY	4
    
 #define LBOARD_MKILL_WEEKLY	0
 #define LBOARD_QCOMP_WEEKLY	1
 #define LBOARD_QPNT_WEEKLY	2
-#define LBOARD_EXPL_WEEKLY	3
-#define LBOARD_QFAIL_WEEKLY	4
+#define LBOARD_QFAIL_WEEKLY	3
+
 /* defines for lboard MONTHLY boards */
 /* these will correspond with the order saved
    in lboard.txt so ver VERY careful when modifying */
-#define MAX_LBOARD_MONTHLY	5
+#define MAX_LBOARD_MONTHLY	4
    
 #define LBOARD_MKILL_MONTHLY	0
 #define LBOARD_QCOMP_MONTHLY	1
 #define LBOARD_QPNT_MONTHLY		2
-#define LBOARD_EXPL_MONTHLY		3
-#define LBOARD_QFAIL_MONTHLY	4
+#define LBOARD_QFAIL_MONTHLY	3
 /* defines for lboard OVERALL boards */
 /* these will correspond with the order saved
    in lboard.txt so ver VERY careful when modifying */
@@ -2303,10 +2307,10 @@ typedef int tattoo_list[MAX_WEAR];
    
 #define LBOARD_MKILL_OVERALL	0
 #define LBOARD_QCOMP_OVERALL	1
-#define LBOARD_BHD_OVERALL		2
-#define LBOARD_WKILL_OVERALL	3
-#define LBOARD_EXPL_OVERALL		4
-#define LBOARD_QFAIL_OVERALL	5
+#define LBOARD_QFAIL_OVERALL	2
+#define LBOARD_BHD_OVERALL		3
+#define LBOARD_WKILL_OVERALL	4
+#define LBOARD_EXPL_OVERALL		5
 /*
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.
@@ -3562,8 +3566,6 @@ struct achievement_entry
 #define IS_SET(var, bit)  ((bit) > 0 ? ((var) & (bit)) : (*((&((var))) + 1) & (bit) & 2147483647)) 
 */
 /* integer flags - used on objects in the value field */
-#define IS_SET_EXPLORE(var, bit)  ((bit) > 0 ? ((var) & (bit)) : (*((&((var))) + 1) & (bit) & 2147483647)) 
-#define SET_BIT_EXPLORE(var, bit)  ((bit) > 0 ? ((var) |= (bit)) : (*((&((var))) + 1) |= (bit))) 
 #define I_BIT(bit)             (1L << ((bit)-1))
 #ifdef ASSERT_DEBUG
 #define I_SET_BIT(var, bit)    assert(0 < (bit)), ((var) |= I_BIT(bit)) 

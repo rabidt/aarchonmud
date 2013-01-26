@@ -344,6 +344,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
         REMOVE_BIT(ch->act, PLR_QUESTOR);
         REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         ch->pcdata->quest_failed++;
+		update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
         ch->pcdata->questgiver = NULL;
         ch->pcdata->countdown = 0;
         ch->pcdata->questmob = 0;
@@ -1689,6 +1690,7 @@ void quest_update(void)
                     REMOVE_BIT(ch->act, PLR_QUESTOR);
                     REMOVE_BIT(ch->act, PLR_QUESTORHARD);
                     ch->pcdata->quest_failed++;
+					update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
                     ch->pcdata->questgiver = NULL;
                     ch->pcdata->countdown = 0;
                     ch->pcdata->questmob = 0;
