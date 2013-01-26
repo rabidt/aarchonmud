@@ -155,7 +155,32 @@ void do_gain(CHAR_DATA *ch, char *argument)
 					send_to_char("\n\r",ch);
 				}
 			}
-            if (col % 3 != 0)
+                        /* You can now gain skills and spells -Astark Feb 2012 
+                        if (col % 3 != 0)
+				send_to_char("\n\r",ch);
+			send_to_char("\n\r",ch);
+			col = 0;
+			sprintf(buf, "%-16slvl/%-5s %-16slvl/%-5s %-16slvl/%-5s\n\r",
+				"spell","cost","spell","cost","spell","cost");
+			send_to_char(buf,ch);
+			for (sn = 0; sn < MAX_SKILL; sn++)
+			{
+				if (skill_table[sn].name == NULL)
+					break;
+				if (!ch->pcdata->learned[sn]
+				    && can_gain_skill(ch, sn))
+				{
+				    sprintf(buf,"%-17s%2d/%-5d ",
+					    skill_table[sn].name,
+					    skill_table[sn].skill_level[ch->class],
+					    skill_table[sn].rating[ch->class]);
+				    send_to_char(buf,ch);
+				    if (++col % 3 == 0)
+					send_to_char("\n\r",ch);
+				}
+			} */
+
+			if (col % 3 != 0)
 				send_to_char("\n\r",ch);
 			sprintf( buf, "\n\rYou have %d training sessions left.\n\r",
 				 ch->train );
@@ -403,15 +428,6 @@ void do_gain(CHAR_DATA *ch, char *argument)
 		}
 		else if ((sn = skill_lookup(argument)) > -1)
 		{			
-			if (skill_table[sn].spell_fun != spell_null)
-			{
-				if ( introspect )
-					send_to_char("You must learn the full group.\n\r",ch);
-				else
-					act( "$N tells you 'You must learn the full group.'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
 			if (ch->pcdata->learned[sn])
 			{
 				if ( introspect )
@@ -802,6 +818,36 @@ void list_group_costs(CHAR_DATA *ch)
         send_to_char( "\n\r", ch );
     send_to_char("\n\r",ch);
 
+/* You can now gain skills and spells separately - Astark May 2012
+    
+    col = 0;
+    
+    sprintf(buf,"%-16s%-6s    %-16s%-6s    %-16s%-6s\n\r","spell","lvl/cp","spell","lvl/cp","spell","lvl/cp");
+    send_to_char(buf,ch);
+    
+    for (sn = 0; sn < MAX_SKILL; sn++)
+    {
+        if (skill_table[sn].name == NULL)
+            break;
+        
+        if (!ch->gen_data->skill_chosen[sn]
+            &&  ch->pcdata->learned[sn] == 0
+            &&  skill_table[sn].spell_fun != spell_null
+            &&  can_gain_skill(ch, sn) )
+        {
+            sprintf(buf,"%-16s %2d/%-5d ",
+                skill_table[sn].name,
+                skill_table[sn].skill_level[ch->class],
+                skill_table[sn].rating[ch->class]);
+            send_to_char(buf,ch);
+            if (++col % 3 == 0)
+                send_to_char("\n\r",ch);
+        }
+    } */ 
+    if ( col % 3 != 0 )
+        send_to_char( "\n\r", ch );
+    send_to_char("\n\r",ch);
+    
     sprintf(buf,"Creation points: %d\n\r",ch->pcdata->points);
     send_to_char(buf,ch);
     sprintf(buf,"Experience per level: %d\n\r",
@@ -1013,9 +1059,9 @@ bool parse_gen_groups(CHAR_DATA *ch,char *argument)
 			   return TRUE;
 			}
 		 }
-		 if ( ( ch->pcdata->points + group_table[gn].rating[ch->class] )> MAX_CP)
+		 if ( ( ch->pcdata->points + group_table[gn].rating[ch->class] )> 60)
 		 {
-		     printf_to_char(ch,"You can't exceed %d creation points, but you will be able to gain new skills later.\n\r", MAX_CP);
+		     send_to_char("You can't exceed 60 creation points.\n\r", ch);
 		     return TRUE;
 		 }
 		
@@ -1038,16 +1084,15 @@ bool parse_gen_groups(CHAR_DATA *ch,char *argument)
 			return TRUE;
 		 }
 		
-		 if ( !can_gain_skill(ch, sn)
-		      || skill_table[sn].spell_fun != spell_null)
+		 if ( !can_gain_skill(ch, sn))
 		 {
 			send_to_char("That skill is not available.\n\r",ch);
 			return TRUE;
 		 }
-		 if ( ( ch->pcdata->points + skill_table[sn].rating[ch->class]) > MAX_CP)
+		 if ( ( ch->pcdata->points + skill_table[sn].rating[ch->class]) > 60)
 		 {
-			printf_to_char(ch,"You can't exceed %d creation points, but you will be able to gain new skills later.\n\r",MAX_CP);
-			return TRUE;
+		     send_to_char("You can't exceed 60 creation points.\n\r",ch);
+		     return TRUE;
 		 }
 		 sprintf(buf, "%s skill added\n\r",skill_table[sn].name);
 		 send_to_char(buf,ch);
@@ -1216,9 +1261,9 @@ void do_groups(CHAR_DATA *ch, char *argument)
 	  else
 	  {
 	      if ( IS_SPELL(i) )
-		  sprintf(buf,"[level %3d, max %3d%%] %-20s\n\r",
+		  sprintf(buf,"[level %3d, cost %2d, max %3d%%] %-20s\n\r",
 			  skill_table[i].skill_level[ch->class],
-			  //skill_table[i].rating[ch->class],
+			  skill_table[sn].rating[ch->class],
 			  skill_table[i].cap[ch->class],
 			  group_table[gn].spells[sn]);
 	      else
@@ -1420,7 +1465,6 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
     if ( (sn==gsn_shield_block)
 	 || (sn==gsn_wrist_shield)
 	 || (sn==gsn_dual_wield)
-	 || (sn==gsn_two_handed)
 	 || (sn==gsn_rescue)
 	 || (sn==gsn_flee)
 	 || (sn==gsn_sneak)
@@ -2062,9 +2106,9 @@ void show_skill(char *argument, BUFFER *buffer)
         else
         {
 	    if ( is_spell )
-		sprintf( log_buf, "{g%5d     --    %3d{x\n\r",
+		sprintf( log_buf, "{g%5d    %3d    %3d{x\n\r",
 			 skill_table[skill].skill_level[cls],
-			 //skill_table[skill].rating[cls],
+			 skill_table[skill].rating[cls],
 			 skill_table[skill].cap[cls] );
 	    else
 		sprintf( log_buf, "{g%5d    %3d    %3d{x\n\r",
@@ -2278,7 +2322,7 @@ void count_stat(FILE *f, int sn)
 {
 	int i;
 
-	fprintf(f, "\n%d %s, ",sn, skill_table[sn].name);
+	fprintf(f, "\n%s, ", skill_table[sn].name);
 	fprintf(f, "%d, %d, %d\n", skill_table[sn].stat_prime,
 			skill_table[sn].stat_second, skill_table[sn].stat_third);
 }

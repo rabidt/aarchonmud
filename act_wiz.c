@@ -41,14 +41,14 @@
 #include "magic.h"
 #include "simsave.h"
 #include "buffer_util.h"
-#include "leaderboard.h"
+
 #if defined(linux)
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
 bool    write_to_descriptor args( ( int desc, char *txt, int length ) );
 #endif
 
-
+/* ftp test */
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_mload     );
@@ -67,7 +67,6 @@ DECLARE_DO_FUN(do_revoke    );
 int   flag_value     args( ( const struct flag_type *flag_table, char *argument) );
 void  sort_reserved  args( ( RESERVED_DATA *pRes ) );
 void  raw_kill       args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
-void do_qset(CHAR_DATA *ch, char *argument);
 
 void do_wiznet( CHAR_DATA *ch, char *argument )
 {
@@ -1671,7 +1670,11 @@ void do_purge( CHAR_DATA *ch, char *argument )
         act("$n disintegrates $N.",ch,0,victim,TO_NOTVICT);
         
         if (victim->level > 1)
+	{
             quit_save_char_obj( victim );
+	    /*if ( victim->pcdata->box_data[0] != NULL)
+	        quit_save_storage_box( victim);*/
+	}
         d = victim->desc;
         extract_char( victim, TRUE );
         if ( d != NULL )
@@ -1717,9 +1720,9 @@ void do_advance( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( level = atoi( arg2 ) ) < 1 || level >= IMPLEMENTOR )
+    if ( ( level = atoi( arg2 ) ) < 1 || level > 110 )
     {
-        send_to_char( "Level must be 1 to 109.\n\r", ch );
+        send_to_char( "Level must be 1 to 110.\n\r", ch );
         return;
     }
     
@@ -2081,8 +2084,8 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
     if ( arg1[0] == '\0')
     {
         send_to_char("Syntax:\n\r",ch);
-		send_to_char("  ptitle <name> <title>\n\r",ch);
-		send_to_char("  ptitle list\n\r",ch);
+        send_to_char("  pretitle <name> <title>\n\r",ch);
+        send_to_char("  pretitle list\n\r",ch);
         return;
     }
     if (!strcmp(arg1, "list"))
@@ -2106,7 +2109,7 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
             word = fread_word( fp );
             if (!strcmp(word, "End"))
              break;
-            cost =fread_number(fp);
+            cost =fread_number(fp);//Skip cost
             printf_to_char(ch, "%-15s %4d\n\r",word,cost);
         }
         send_to_char("\n\r",victim);
@@ -2126,7 +2129,6 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
         return;
     }
     set_pre_title(ch,argument,victim);
-	return;
 }
 
 void do_namecolor( CHAR_DATA *ch, char *argument)
@@ -2135,6 +2137,7 @@ void do_namecolor( CHAR_DATA *ch, char *argument)
     char arg2 [MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
 
+    //smash_tilde( argument );
     argument = one_argument( argument, arg1 );
 
     if ( arg1[0] == '\0'  )
@@ -3149,13 +3152,6 @@ void do_pload( CHAR_DATA *ch, char *argument )
     /* store old room, then move to imm */
     d.character->was_in_room = d.character->in_room;
     char_to_room(d.character, ch->in_room);
-
- //   update_lboard( LBOARD_MKILL, d.character, d.character->pcdata->mob_kills, 0);
-//update_lboard( LBOARD_BHD, d.character, d.character->pcdata->behead_cnt, 0);
-//update_lboard( LBOARD_QCOMP, d.character, d.character->pcdata->quest_success, 0);
-//  update_lboard( LBOARD_WKILL, d.character, d.character->pcdata->war_kills, 0);
-  update_lboard( LBOARD_EXPL, d.character, d.character->pcdata->explored->set, 0);
-//	update_lboard( LBOARD_QFAIL, d.character, d.character->pcdata->quest_failed, 0);
     
     if (d.character->pet != NULL)
     {
@@ -3171,7 +3167,6 @@ void do_pload( CHAR_DATA *ch, char *argument )
         add_follower(d.character->mount,d.character);
         do_mount(d.character, d.character->mount->name);
     }
-
 #endif
 } /* end do_pload */
 
@@ -3226,6 +3221,8 @@ void do_punload( CHAR_DATA *ch, char *argument )
     }
 
     quit_save_char_obj(victim);
+    /*if ( victim->pcdata->box_data[0] != NULL)
+        quit_save_storage_box( victim);*/
     extract_char(victim, TRUE);
     
 } /* end do_punload */
@@ -3613,71 +3610,11 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 void do_dummy( CHAR_DATA *ch, char *argument)
 {
-	char arg1[MIL];
-	char arg2[MIL];
-	
-	argument = one_argument( argument, arg1 );
-    argument = one_argument( argument, arg2 );
-	
-	LBOARD_RESULT *result;
+char buf[MAX_STRING_LENGTH];
 
+printf_to_char(ch,"ROOM_JAIL %d",ROOM_JAIL);
+printf_to_char(ch,"ROOM_DARK %d",ROOM_DARK);
 
-	if ( arg1[0] == '\0')
-	{
-		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
-		return;
-	}
-	else if ( !strcmp( arg1, "daily" ) )
-	{
-		result=daily_results;
-	}
-	else if ( !strcmp( arg1, "weekly" ) )
-	{
-		result=weekly_results;
-	}
-	else if ( !strcmp( arg1, "monthly" ) )
-	{
-		result=monthly_results;
-	}
-	else
-	{
-		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
-		return;
-	}
-	
-	if ( arg2[0] == '\0' )
-	{
-		int i=1;
-		for ( ; result != NULL ; result=result->next )
-		{
-			printf_to_char(ch, "%3d: %-25s", i, ctime(&(result->end_time)) );
-			i++;
-		}
-		return;
-	}
-	
-	int index = atoi( arg2 );
-	if ( index > 0 )
-	{
-		int i=1;
-		for ( result; result != NULL ; result=result->next )
-		{
-			if ( i == index)
-			{
-				printf_to_char(ch, "Ended:%s\n\r%s\n\r", ctime(&(result->end_time)), result->text );
-				return;
-			}
-			i++;
-		}
-		send_to_char("Invalid index.\n\r",ch);
-		return;
-	}
-	else
-	{
-		send_to_char("Invalid index.\n\r",ch);
-		return;
-	}
-	
 }
 
 
@@ -3763,10 +3700,7 @@ void do_avatar( CHAR_DATA *ch, char *argument ) /* Procedure Avatar */
 	for ( obj = ch->carrying; obj != NULL; obj = obj_next )
 	{
 	    obj_next = obj->next_content;
-	  if (obj->wear_loc != WEAR_NONE && can_see_obj (ch, obj))
-      {
-        remove_obj (ch, obj->wear_loc, TRUE);
-	  }
+	    if(obj->wear_loc != WEAR_NONE) remove_obj(ch,obj->wear_loc, TRUE);
 	}
 
 /* old code has some weird display bug where it tries to remove obj in your inventory even though it's not
@@ -3963,8 +3897,7 @@ void do_charloadtest(CHAR_DATA *ch, char *argument)
 
    fgetf( buf, 100000, fp );
 
-
-
+   //page_to_char( buf, ch );
 
    pclose( fp );
 
@@ -3981,92 +3914,7 @@ void do_charloadtest(CHAR_DATA *ch, char *argument)
    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    //page_to_char(buf,ch);
   
    return;
 }
-
-void do_lag(CHAR_DATA *ch, char *argument)
-{
-  char arg[MAX_INPUT_LENGTH];
-  char buf[MAX_STRING_LENGTH];
-  int x;
-  CHAR_DATA *victim;
-
-  argument = one_argument(argument, arg);
-
-  if (arg[0] == '\0')
-  {
-    send_to_char("Syntax : lag {M<char> {W<0-200>{x\n\r", ch);
-    send_to_char("{R                    100 and above use sparingly!{x\n\r", ch);
-    return;
-  }
-
-  if ((x = atoi(argument)) <=0)
-  {
-    send_to_char("{RNumerical arguments only please!{x\n\r", ch);
-    return;
-  }
-
-
-  if ((victim = get_char_world(ch, arg)) ==NULL)
-  {
-    send_to_char("{RThey aren't of this world!{x\n\r", ch);
-    return;
-  }
-  else
-  {
-    if (get_trust (victim) >= get_trust(ch))
-    {
-      send_to_char("You failed.\r\n", ch);
-      return;
-    }
-
-    if (ch == victim)
-    {
-      send_to_char("{RDon't lag yourself! {WDoh!{x\n\r",ch);
-    }
-    else if (x > 200)
-    {
-      send_to_char("{RDon't be that mean!{x", ch);
-      return;
-    }
-    else
-    {
-     /* send_to_char("{RSomeone doesn't like you!{x", victim); */
-      victim->wait = victim->wait + x;
-      sprintf(buf, "{RYou add lag to {W%s{x", victim->name);
-      send_to_char( buf, ch );
-      return;
-    }
-  }
-}
-

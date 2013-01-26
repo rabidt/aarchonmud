@@ -7,7 +7,7 @@
  *                                                                         *
  *  In order to use any part of this Merc Diku Mud, you must comply with   *
  *  both the original Diku license in 'license.doc' as well the Merc       *
- *  license in 'license.txt'.  In particular, you may not remove either of *
+ <F4>*  license in 'license.txt'.  In particular, you may not remove either of *
  *  these copyright notices.                                               *
  *                                                                         *
  *  Much time and thought has gone into this software and you are          *
@@ -204,13 +204,13 @@ const struct flag_type act_flags[] =
 	{   "gain",         bb, TRUE    },
 	{   "update_always",    cc, TRUE    },
 	{   "changer",      dd, TRUE    },
-	{   "no_quest",     ACT_NO_QUEST,    TRUE    },
+	{   "no_quest",     ee, ACT_NO_QUEST,    TRUE    },
+	{   "hard_quest",   oo, ACT_HARD_QUEST,    TRUE    },
 	{   "safe",         ACT_SAFE,        TRUE    },
 	{   "ignore_safe",  ACT_IGNORE_SAFE, TRUE    },
 	{   "judge",        ACT_JUDGE,       TRUE    },
 	{   "noexp",       ACT_NOEXP,      TRUE    },
 	{   "nomimic",      ACT_NOMIMIC,     TRUE    },
-	{   "hard_quest",   ACT_HARD_QUEST,    TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 
@@ -525,7 +525,6 @@ const struct flag_type area_flags[] =
 	{   "remort",       AREA_REMORT,        TRUE    },
 	{   "clone",        AREA_CLONE,         FALSE   },
 	{   "noquest",      AREA_NOQUEST,       TRUE    },
-	{   "nohide",       AREA_NOHIDE,        TRUE    },
 	{   "norepop",      AREA_NOREPOP,       TRUE    },
 	{   NULL,           0,          0   }
 };
@@ -1419,10 +1418,4 @@ msl_string achievement_display [] =
 #define ACHV_EXPLORED   13
 #define ACHV_TATT       14
 */
-const struct flag_type togg_flags[] =
-{
-  { "oldscore",		TOGG_OLDSCORE,	TRUE },
-  { "oldfinger",	TOGG_OLDFINGER,	TRUE },
-  { NULL,		0,		0    }
-};
 

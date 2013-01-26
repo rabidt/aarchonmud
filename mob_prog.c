@@ -276,26 +276,19 @@ int num_eval( int lval, int oper, int rval )
     {
         case EVAL_EQ:
              return ( lval == rval );
-	     break;
         case EVAL_GE:
              return ( lval >= rval );
-	     break;
         case EVAL_LE:
              return ( lval <= rval );
-	     break;
         case EVAL_NE:
              return ( lval != rval );
-	     break;
         case EVAL_GT:
              return ( lval > rval );
-	     break;
         case EVAL_LT:
              return ( lval < rval );
-	     break;
         default:
              bug( "num_eval: invalid oper", 0 );
              return 0;
-	     break;
     }
 }
 
@@ -604,8 +597,7 @@ int cmd_eval( sh_int vnum, char *line, int check,
 	    bug( buf, 0 );
 	    return FALSE;
 	} 
-	break;	
-    default: break;
+    default:;
     }
 
     /*

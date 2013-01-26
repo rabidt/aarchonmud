@@ -1486,9 +1486,7 @@ int get_obj_spec( OBJ_DATA *obj )
 	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
 	    spec = (obj->level + 19) / 20;
 	else
-	   /* spec = (obj->level + 3) / 4; */
-	   /* increased ops slightly for lower level eq */
-	    spec = (obj->level * 19 /90 ) + 5; 
+	    spec = (obj->level + 3) / 4;
     }
     else
     {
