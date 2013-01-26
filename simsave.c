@@ -17,8 +17,10 @@ bool boxtemp = FALSE;//track if there are temp box files needing to be moved
 /* player files kept in memory
  */
 MEMFILE *player_quit_list = NULL;
+//MEMFILE *box_quit_list	  = NULL;
 MEMFILE *player_save_list = NULL;
 MEMFILE *box_mf_list     = NULL;
+//MEMFILE *box_save_list	  = NULL;
 MEMFILE *other_save_list = NULL;
 
 /* states for player saves */
@@ -30,7 +32,6 @@ MEMFILE *other_save_list = NULL;
 static int player_save_state = SAVE_STATE_SIMSAVE;
 static bool bootup_temp_clean_done = FALSE;
 bool ready_to_save( CHAR_DATA *ch );
-char* first_line( char* str );
 bool remove_from_quit_list( char *name );
 bool remove_from_save_list( char *name );
 bool remove_from_box_list( char *name  );
@@ -604,10 +605,6 @@ bool remove_from_list( char *name, MEMFILE **list )
   return FALSE;
 }
 
-/*
- * removes a file from box_mf_list;
- * returns wether file was found and removed
- */
 bool remove_from_box_list( char *name )
 {
 #if defined(SIM_DEBUG)
@@ -634,6 +631,20 @@ bool remove_from_quit_list( char *name )
 }
 
 /*
+ * removes a file from the box_quit_list;
+ * returns wether file was found and removed
+ */
+/*bool remove_from_box_quit_list( char *name )
+{
+#if defined(SIM_DEBUG)
+  char log_buf[MSL];
+  sprintf(log_buf, "remove_from_box_quit_list: start (%s)", name);
+  log_string(log_buf);
+#endif
+  return remove_from_list( name, &box_quit_list );
+}
+
+/*
  * removes a file from the player_save_list;
  * returns wether file was found and removed
  */
@@ -647,6 +658,20 @@ bool remove_from_save_list( char *name )
   return remove_from_list( name, &player_save_list );
 }
 
+/*
+ * removes a file from the box_save_list;
+ * returns wether file was found and removed
+ */
+/*bool remove_from_box_list( char *name )
+{
+#if defined(SIM_DEBUG)
+  char log_buf[MSL];
+  sprintf(log_buf, "remove_from_box_list: start (%s)", name);
+  log_string(log_buf);
+#endif
+  return remove_from_list( name, &box_save_list );
+}
+*/
 /* returns wether a file of name <filename> is in <list>
  */
 bool memfile_in_list( char *filename, MEMFILE *list )
@@ -672,11 +697,11 @@ MEMFILE *memfile_from_list( char *filename, MEMFILE *list )
 {
    MEMFILE *mf;
 #if defined(SIM_DEBUG)
-   log_string("memfile_from_list: start");
+   log_string("memfile_in_list: start");
 #endif
   if (filename == NULL || filename[0] == '\0')
   {
-    bug("memfile_from_list: invalid filename", 0);
+    bug("memfile_in_list: invalid filename", 0);
     return FALSE;
   }
 

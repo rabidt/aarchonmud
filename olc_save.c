@@ -57,7 +57,7 @@ Purpose:	Returns a string without \r and ~.
 ****************************************************************************/
 char *fix_string( const char *str )
 {
-    static char strfix[MAX_STRING_LENGTH * 3];
+    static char strfix[MAX_STRING_LENGTH * 2];
     int i;
     int o;
     
@@ -66,9 +66,9 @@ char *fix_string( const char *str )
     
     for ( o = i = 0; str[i+o] != '\0'; i++ )
     {
-        if (i == MAX_STRING_LENGTH * 3)
+        if (i == MAX_STRING_LENGTH * 2)
         {
-            bug( "Fix_string: String too long!", 0 );
+            bug( "Fix_string: String too long! (%d)", 0 );
             i--;
             break;
         }
@@ -1036,8 +1036,6 @@ void save_area( AREA_DATA *pArea )
         fprintf( fp, "Remort\n");
     if (IS_SET(pArea->area_flags,AREA_NOQUEST))
         fprintf( fp, "NoQuest\n");
-    if (IS_SET(pArea->area_flags,AREA_NOHIDE))
-        fprintf( fp, "NoHide\n");
     fprintf( fp, "End\n\n\n\n" );
     
     save_mobiles( fp, pArea );

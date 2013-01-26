@@ -48,6 +48,7 @@
 #include <string.h>
 #include "merc.h"
 
+/* test comment in auth.c file from Astark */
 
 /* Function declarations */
 bool check_parse_name	    args( ( char *name, bool newchar ) );
@@ -493,16 +494,7 @@ void check_auth_state( CHAR_DATA *ch )
         if( old_auth->authed_by )
         {
             ch->pcdata->authed_by = str_dup( old_auth->authed_by );
-    
-            /* Characters who were authorized while offline and/or linkdead */
-	    /* no longer hang the MUD after they log back on, quit, and/or  */
-	    /* delete.  "free_string(old_auth->authed_by);", below, was     */
-	    /* replaced with "remove_from_auth(ch->name);", which seems to  */
-	    /* do the trick - Elik, Jan 16, 2006 */  
-	    /* 
-	    free_string( old_auth->authed_by );
-            */ 
-	    remove_from_auth(ch->name);
+            free_string( old_auth->authed_by );
         }
         else
             ch->pcdata->authed_by = str_dup("(Auto)");
@@ -568,17 +560,9 @@ void do_authorize( CHAR_DATA *ch, char *argument )
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim = NULL;
     AUTH_LIST *auth;
-    /* offline doesn't seem to actually get used - Elik, Jan 16, 2006 */
-    /*
     bool offline, authed, changename, denied, pending;
-    */ 
-    bool authed, changename, denied, pending;
-
-    /* offline doesn't seem to actually get used - Elik, Jan 16, 2006 */
-    /* 
+    
     offline = authed = changename = denied = pending = FALSE;
-    */ 
-    authed = changename = denied = pending = FALSE;
     
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
@@ -736,10 +720,7 @@ void do_authorize( CHAR_DATA *ch, char *argument )
     {
 	if ( auth->state == AUTH_OFFLINE || auth->state == AUTH_LINK_DEAD )
         {
-            /* this offline = TRUE doesn't get used - Elik, Jan 16, 2006 */
-	    /*
-	    offline = TRUE;
-            */ 
+            offline = TRUE;
             if ( arg2[0]=='\0' || !str_cmp( arg2,"accept" ) || !str_cmp( arg2,"yes" ))
             {
                 auth->state = AUTH_AUTHED;
@@ -967,12 +948,8 @@ void auth_update( void )
     char buf [MAX_STRING_LENGTH], log_buf [MAX_STRING_LENGTH];
     bool found_hit = FALSE;       /* was at least one found? */
     
-
-    /* Auth notification no longer beeps - Elik, Jan 16, 2006. */
     /* beep imms.. */
-    /* Readded the beep too many auths going unnoticed */
-      strcpy( log_buf, "{*{+--- Characters awaiting approval ---{x\n\r" ); 
-    /* strcpy(log_buf, "{+--- Characters awaiting approval ---{x\n\r"); */
+    strcpy( log_buf, "{*{+--- Characters awaiting approval ---{x\n\r" );
 
     for ( auth = first_auth_name; auth; auth = auth->next )
     {
