@@ -3150,12 +3150,12 @@ void do_pload( CHAR_DATA *ch, char *argument )
     d.character->was_in_room = d.character->in_room;
     char_to_room(d.character, ch->in_room);
 
-    update_lboard( LBOARD_MKILL, d.character, d.character->pcdata->mob_kills, 0);
-update_lboard( LBOARD_BHD, d.character, d.character->pcdata->behead_cnt, 0);
-update_lboard( LBOARD_QCOMP, d.character, d.character->pcdata->quest_success, 0);
-  update_lboard( LBOARD_WKILL, d.character, d.character->pcdata->war_kills, 0);
+ //   update_lboard( LBOARD_MKILL, d.character, d.character->pcdata->mob_kills, 0);
+//update_lboard( LBOARD_BHD, d.character, d.character->pcdata->behead_cnt, 0);
+//update_lboard( LBOARD_QCOMP, d.character, d.character->pcdata->quest_success, 0);
+//  update_lboard( LBOARD_WKILL, d.character, d.character->pcdata->war_kills, 0);
   update_lboard( LBOARD_EXPL, d.character, d.character->pcdata->explored->set, 0);
-	update_lboard( LBOARD_QFAIL, d.character, d.character->pcdata->quest_failed, 0);
+//	update_lboard( LBOARD_QFAIL, d.character, d.character->pcdata->quest_failed, 0);
     
     if (d.character->pet != NULL)
     {
