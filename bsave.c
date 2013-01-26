@@ -702,8 +702,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	if(ch->pcdata->explored->set > 0 )
 	{	EXPLORE_HOLDER *pExp;
 
-		bprintf(buf, "Explored %d\n", ch->pcdata->explored->set);
-		for(pExp = ch->pcdata->explored->bits ; pExp ; pExp = pExp->next )
+		bprintf(buf, "ExploredN %d\n", ch->pcdata->explored->set);
+		for(pExp = ch->pcdata->explored->buckets ; pExp ; pExp = pExp->next )
 			bprintf(buf, "%d %d\n", pExp->mask, pExp->bits );
 		bprintf(buf, "-1 -1\n" );
 	}
@@ -1753,29 +1753,72 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
 
         KEY( "Exp",     ch->exp,        bread_number( buf ) );
-
+		
+		/* New ExploredN keyword to be used after version changeover (from bugged version to non bugged version).
+		   Older Explored keyword will recalculate explored->set based on number of entries.*/
         if(!str_cmp(word, "Explored") )
-	{	int mask, bit;
-		EXPLORE_HOLDER *pExp;
-		ch->pcdata->explored->set = bread_number(buf);
-		while(1)
-		{	mask = bread_number(buf);
-			bit = bread_number(buf);
-			if(mask == -1)
-				break;
-			for(pExp = ch->pcdata->explored->bits ; pExp ; pExp = pExp->next )
-				if(pExp->mask == mask)
+		{	
+			int mask;
+			int bits;
+			EXPLORE_HOLDER *pExp;
+			
+			bread_number(buf); // This is "set". Don't want it, going to recalculate
+			int set=0;
+			while(1)
+			{	
+				mask = bread_number(buf);
+				bits = bread_number(buf);
+				if(mask == -1)
 					break;
-			if(!pExp)
-			{	pExp = (EXPLORE_HOLDER *)calloc(1, sizeof(*pExp) );
-				pExp->next = ch->pcdata->explored->bits;
-				ch->pcdata->explored->bits = pExp;
-				pExp->mask = mask;
+				if(mask < 0 )
+					continue; /*old junk data, we don't want or count this */
+				for(pExp = ch->pcdata->explored->buckets ; pExp ; pExp = pExp->next )
+					if(pExp->mask == mask)
+						break;
+				if(!pExp)
+				{	pExp = (EXPLORE_HOLDER *)calloc(1, sizeof(*pExp) );
+					pExp->next = ch->pcdata->explored->buckets;
+					ch->pcdata->explored->buckets = pExp;
+					pExp->mask = mask;
+					pExp->bits = bits;
+				}
+				int bit;
+				for ( bit=0 ; bit <32 ; bit++ )
+				{
+					if ( ( ( bits >> bit) & 1 ) == 1 )
+						set++;
+				}
 			}
-			pExp->bits = bit;
+			ch->pcdata->explored->set=set;
+			fMatch = TRUE;
+			
 		}
-		fMatch = TRUE;
-	}
+		else if(!str_cmp(word, "ExploredN") )
+		{
+			ch->pcdata->explored->set=bread_number(buf);
+			int mask;
+			int bits;
+		
+			EXPLORE_HOLDER *pExp;
+			
+			while(1)
+			{	mask = bread_number(buf);
+				bits = bread_number(buf);
+				if(mask == -1)
+					break;
+				for(pExp = ch->pcdata->explored->buckets ; pExp ; pExp = pExp->next )
+					if(pExp->mask == mask)
+						break;
+				if(!pExp)
+				{	pExp = (EXPLORE_HOLDER *)calloc(1, sizeof(*pExp) );
+					pExp->next = ch->pcdata->explored->buckets;
+					ch->pcdata->explored->buckets = pExp;
+					pExp->mask = mask;
+					pExp->bits = bits;
+				}
+			}
+			fMatch = TRUE;
+		}
         break;
         
     case 'F':

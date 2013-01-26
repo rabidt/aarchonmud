@@ -5377,7 +5377,7 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
 	xp += xp/2;
 
     if ( IS_AFFECTED(gch, AFF_HALLOW) )
-        xp += xp;
+        xp += xp/5;
 
     return xp;
 }
