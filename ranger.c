@@ -311,7 +311,7 @@ void do_firstaid( CHAR_DATA *ch, char *argument )
 	    }
 	}
 
-	anatomy_bonus = 1 + get_skill(ch, gsn_anatomy)/200.0;
+	anatomy_bonus = 1 + get_skill(ch, gsn_anatomy)/200;
 
 	switch ( ch->in_room->sector_type )
 	{

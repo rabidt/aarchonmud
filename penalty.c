@@ -385,7 +385,8 @@ int show_penalties_by_player(CHAR_DATA *ch, char *victim_name, int victim_played
 {
     PENALTY_DATA *p;
     int i = 0, pen;
-    
+    CHAR_DATA *victim;
+
     if (format == 3)
         send_to_char("{+Active Penalty Report:\n\r----------------------{x\n\r",ch);
 
@@ -430,6 +431,7 @@ int show_penalties_by_player(CHAR_DATA *ch, char *victim_name, int victim_played
             }
             else if (format == 3)
             {
+                victim = p->victim_name;
                 i++;
                 printf_to_char(ch, "{+%d{x. {c%s{x: {r%s{x of {c%s{x by {c%s{x, severity {c%d{x, {c%d{x points",
                    i,

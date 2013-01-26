@@ -475,16 +475,9 @@ void spell_astral( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     if ( IS_AFFECTED(victim, AFF_ASTRAL) )
         return;
     
-    /*if (IS_REMORT(victim))
+    if (IS_REMORT(victim))
     {
         send_to_char("The Astral plane doesnt intersect with remort.\n\r",victim);
-        return;
-    }
-    */
-
-    if (IS_NOHIDE(ch))
-    {
-        send_to_char("The astral plane cannot be reached from here.\n\r",ch);
         return;
     }
 
@@ -1173,12 +1166,8 @@ void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
     ch->mana -= heal/factor;
     victim->hit = UMIN(victim->hit + heal, victim->max_hit );
-/*
     update_pos( victim );
 
-    send_to_char("You feel better.\n\r", victim );
-    if ( ch != victim )
-        send_to_char("Ok.\n\r", ch );*/
     if ( victim->max_hit <= victim->hit )
     {
         send_to_char( "You feel excellent!\n\r", victim );
@@ -1189,7 +1178,7 @@ void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     {
        send_to_char( "Your health is partially restored!\n\r", victim );
        if ( ch != victim )
-            act( "You restore some of $N's health.", ch, NULL, victim, TO_CHAR );
+            act( "You restore some of $M's health.", ch, NULL, victim, TO_CHAR );
     }
     return;
 }
@@ -1305,11 +1294,6 @@ void spell_goodberry( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 	{
 	    send_to_char( "Berry level can't be higher than spell level!\n\r", ch );
 	    berry_level = level;
-	}
-	if (berry_level <= 0)
-	{
-	  send_to_char("These are supposed to heal not kill, you idiot!\n\r", ch);
-	  return;
 	}
     }
     berry = create_object( get_obj_index( OBJ_VNUM_GOODBERRY ), 0 );
@@ -1543,7 +1527,6 @@ void spell_electrocution(int sn,int level,CHAR_DATA *ch,void *vo, int target)
         act("Electricity runs through $N's body.",ch,NULL,victim,TO_CHAR);
     return;
 }
-
 
 
 void spell_absolute_zero(int sn,int level,CHAR_DATA *ch,void *vo, int target)
