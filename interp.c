@@ -62,6 +62,8 @@ char last_command[MSL] = ""; /* Global variable to hold the last input line */
  */
 bool                fLogAll     = FALSE;
 
+int nAllocString;
+int nAllocPerm;
 
 
 /*
@@ -93,6 +95,7 @@ const   struct  cmd_type    cmd_table   [] =
     * Placed here so one and two letter abbreviations work.
     */
     
+	/*command      function name    position     level  log level  show olc charm */
     { "as",         do_as,          POS_DEAD,       L2,  LOG_ALWAYS, 1, FALSE, FALSE },
     { "at",         do_at,          POS_DEAD,       L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "attributes", do_attributes,  POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -129,7 +132,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "sticky",     do_sticky, POS_DEAD,       L2,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "tell",       do_tell,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "unlock",     do_unlock,      POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "wield",      do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE },
+    { "wield",      do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wizhelp",    do_wizhelp, POS_DEAD,   IM,  LOG_NORMAL, 1, FALSE, FALSE  },
     
    /*
@@ -152,6 +155,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "report",     do_report,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "rules",      do_rules,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "score",      do_score,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "lboard",     do_lboard,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+	{ "lhistory",   do_lhistory,POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "scan",       do_scan,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "survey",     do_survey,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "skill",      do_skill,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -207,6 +212,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "rolldice",   do_rolldice,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "scroll",     do_scroll,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "title",      do_title,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+	{ "toggle",	    do_toggle,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "unalias",    do_unalias, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "wimpy",      do_wimpy,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "triggersafe", do_trigger_safe, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -257,7 +263,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "fill",       do_fill,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "give",       do_give,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "heal",       do_heal,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "hold",       do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "hold",       do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE   },
     { "list",       do_list,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "lock",       do_lock,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "merge",      do_merge,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -275,7 +281,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "junk",       do_sacrifice,   POS_RESTING,     0,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "value",      do_value,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "browse",     do_browse,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "wear",       do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE },
+    { "wear",       do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "appraise",   do_appraise, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, FALSE  },
     { "lore",       do_lore, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "zap",        do_zap,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -302,7 +308,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "distract",   do_distract, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "feint",      do_feint, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "backstab",   do_backstab,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "blackjack",  do_blackjack,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+        { "blackjack",  do_blackjack,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "circle",     do_circle,      POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "slash",      do_slash_throat,POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "bash",       do_bash,        POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -472,10 +478,10 @@ const   struct  cmd_type    cmd_table   [] =
     */
     { "advance",    do_advance, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "authorize",  do_authorize, POS_DEAD, L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "avatar",     do_avatar,  POS_DEAD,   L2,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "avatar",	    do_avatar,  POS_DEAD,   L9,	 LOG_ALWAYS, 1, FALSE, FALSE  },
     { "printlist",  do_printlist,POS_DEAD,  ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-/* Used only for some pfile testing
-    { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },*/
+/* Used only for some pfile testing */
+    { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },
     /*  { "dump",       do_dump,    POS_DEAD,   ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     /*	{ "newdump",    do_new_dump, POS_DEAD,  ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     { "trust",      do_trust,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -489,7 +495,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "disable",    do_disable, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "disconnect", do_disconnect,  POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "divorce",    do_divorce, POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "flag",       do_flag,    POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    /* No legitimate in game use for this -- Maedhros 12/12/2011 */
+		/*    { "flag",       do_flag,    POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  }, */
     { "freeze",     do_freeze,  POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "jail",       do_jail,    POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "penlist",    do_penlist, POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -550,8 +557,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "vnum",       do_vnum,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "zecho",      do_zecho,   POS_DEAD,   L6,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "pflag",      do_pflag,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "namecolor",  do_namecolor,POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "ptitle",     do_ptitle,POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "namecolor",  do_namecolor,POS_DEAD,  L4,	 LOG_NORMAL, 1, FALSE, FALSE },
+    { "ptitle",	    do_ptitle,  POS_DEAD,   L4,  LOG_NORMAL, 1, FALSE, FALSE },
 
     
     { "clone",      do_clone,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -578,13 +585,14 @@ const   struct  cmd_type    cmd_table   [] =
     { "flush",      do_flush,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "qlist",      do_qlist,   POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "grep",       do_grep,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "ashift",     do_ashift,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "rvnum",      do_rvnum,   POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "ashift",     do_ashift,  POS_DEAD,   ML,  LOG_ALWAYS, 0, FALSE, FALSE  },
+    { "rvnum",      do_rvnum,   POS_DEAD,   ML,  LOG_ALWAYS, 0, FALSE, FALSE  },
     { "crash",      do_crash,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "god",        do_god,     POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "cheatlog",   do_cheatlog,POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "qset",       do_qset    ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "dummy",      do_dummy    ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "mortlag",    do_lag,     POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
 
     /*
     * OLC
@@ -708,6 +716,13 @@ void interpret( CHAR_DATA *ch, char *argument )
     int cmd;
     int trust;
     bool found;
+    
+    /*memleak additions*/
+    int string_count = nAllocString ;
+    int perm_count = nAllocPerm ;
+    char cmd_copy[MAX_INPUT_LENGTH] ;
+    char buf[MAX_STRING_LENGTH] ;
+    strcpy(cmd_copy, argument) ;
     
     /*
     * Strip leading spaces.
@@ -851,6 +866,26 @@ void interpret( CHAR_DATA *ch, char *argument )
         * Dispatch the command.
         */
         (*cmd_table[cmd].do_fun) ( ch, argument );
+
+	/* memleak tracker additions*/
+#if defined(MEMCHECK_ENABLE)
+	if (string_count < nAllocString)
+	{
+	    sprintf(buf,
+	    "Memcheck : Increase in strings :: %s : %s (from %d to %d)"
+	    , ch->name, cmd_copy, string_count, nAllocString) ;
+	    wiznet(buf, NULL, NULL, WIZ_MEMCHECK,0,0) ;
+	}
+
+	if (perm_count < nAllocPerm)
+	{
+	    sprintf(buf,
+	    "Increase in perms :: %s : %s (from %d to %d)"
+	    , ch->name, cmd_copy, perm_count, nAllocPerm) ;
+	    wiznet(buf, NULL, NULL, WIZ_MEMCHECK, 0,0) ;
+	}
+#endif
+
 	/* reset variables that are only set for one command */
 	helper_visible = FALSE;
 	ignore_invisible = FALSE;

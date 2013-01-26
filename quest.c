@@ -344,6 +344,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
         REMOVE_BIT(ch->act, PLR_QUESTOR);
         REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         ch->pcdata->quest_failed++;
+		update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
         ch->pcdata->questgiver = NULL;
         ch->pcdata->countdown = 0;
         ch->pcdata->questmob = 0;
@@ -411,8 +412,6 @@ void do_quest(CHAR_DATA *ch, char *argument)
     
     if (!strcmp(arg1, "list"))
     {
-      if (ch->position >= POS_RESTING)
-      {
         act( "$n asks $N for a list of quest items.", ch, NULL, questman, TO_ROOM); 
         act ("You ask $N for a list of quest items.",ch, NULL, questman, TO_CHAR);
         sprintf(buf, "Current Quest Items available for Purchase:\n\r");
@@ -445,17 +444,9 @@ void do_quest(CHAR_DATA *ch, char *argument)
         send_to_char(buf, ch);
         return;
       }
-      else
-      {
-          send_to_char("In your dreams, or what?\n\r",ch);
-          return;
-      }
-    }
     
     else if (!strcmp(arg1, "sell"))
     {
-      if (ch->position >= POS_RESTING)
-      {
         if (arg2[0] == '\0')
         {
             send_to_char("To sell a quest item, type 'QUEST SELL <item>'.\n\r",ch);
@@ -469,16 +460,8 @@ void do_quest(CHAR_DATA *ch, char *argument)
 	sell_quest_item(ch, obj, questman);
 	return;
       }
-      else
-      {
-          send_to_char("In your dreams, or what?\n\r",ch);
-          return;
-      }
-    }
     else if (!strcmp(arg1, "buy"))
     {
-      if (ch->position >= POS_RESTING)
-      {
         if (arg2[0] == '\0')
         {
             send_to_char("To buy an item, type 'QUEST BUY <item>'.\n\r",ch);
@@ -842,16 +825,8 @@ void do_quest(CHAR_DATA *ch, char *argument)
         }
         return;
       }
-      else
-      {
-          send_to_char("In your dreams, or what?\n\r",ch);
-          return;
-      }
-    }
     else if (!strcmp(arg1, "request"))
     {
-      if (ch->position >= POS_RESTING)
-      {
         act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
         act ("You ask $N for a quest.",ch, NULL, questman, TO_CHAR);
         if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
@@ -897,13 +872,6 @@ void do_quest(CHAR_DATA *ch, char *argument)
         }
         return;
       }
-      else
-      {
-          send_to_char("In your dreams, or what?\n\r",ch);
-          return;
-      }
-    }
-
 /* Used for requesting difficult quests. The code here is nearly
    the same as up above but a separate function is used. Could be
    solved I think by adding another argument to the quest request
@@ -962,8 +930,6 @@ void do_quest(CHAR_DATA *ch, char *argument)
     }
     else if (!strcmp(arg1, "complete"))
     {
-      if (ch->position >= POS_RESTING)
-      {
         act( "$n informs $N $e has completed $s quest.", ch, NULL, questman, TO_ROOM); 
         act ("You inform $N you have completed $s quest.",ch, NULL, questman, TO_CHAR);
 //        check_achievement(ch);
@@ -995,7 +961,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                 do_say(questman,buf);
                 ch->pcdata->quest_success++;
-
+				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
  /* Hard quests have 1/5 instead of 1/6 chance of giving practices as 
     part of the reward. They also give an average of 3 more practices
     and the maximum is raised to 20 from 17. . -- Astark Feb 2012 */
@@ -1018,7 +984,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 		ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                 ch->silver += reward;
                 ch->pcdata->questpoints += pointreward;
-
+				update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
  /* Hard quests also give 50 - 135xp instead of 10 - 155 -- Astark Feb 2012 */
 
                 gain_exp(ch, number_range(50,ch_luc_quest(ch)+100));
@@ -1054,6 +1020,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                     sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                     do_say(questman,buf);
                     ch->pcdata->quest_success++;
+					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                     if (chance(20))
                     {
                         pracreward = number_range(4,(ch_luc_quest(ch)/2)+3);
@@ -1073,6 +1040,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 		    ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                     ch->silver += reward;
                     ch->pcdata->questpoints += pointreward;
+					update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
                     gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
                     extract_obj(obj);
                     return;
@@ -1112,6 +1080,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                 do_say(questman,buf);
                 ch->pcdata->quest_success++;
+				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                 if (chance(15))
                 {
                     pracreward = number_range(1,ch_luc_quest(ch)/2);
@@ -1135,6 +1104,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 		ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                 ch->silver += reward;
                 ch->pcdata->questpoints += pointreward;
+				update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
                 gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
                 
                 return;
@@ -1168,6 +1138,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                     sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                     do_say(questman,buf);
                     ch->pcdata->quest_success++;
+					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                     if (chance(15))
                     {
                         pracreward = number_range(1,ch_luc_quest(ch)/2);
@@ -1191,6 +1162,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 		    ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                     ch->silver += reward;
                     ch->pcdata->questpoints += pointreward;
+					update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
                     gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
                     extract_obj(obj);
                     return;
@@ -1216,12 +1188,6 @@ void do_quest(CHAR_DATA *ch, char *argument)
         do_say(questman, buf);
         return;
       }
-      else
-      {
-          send_to_char("In your dreams, or what?\n\r",ch);
-          return;
-      }
-    }
     
     send_to_char("QUEST commands: POINTS INFO TIME REQUEST COMPLETE LIST BUY.\n\r",ch);
     send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
@@ -1724,6 +1690,7 @@ void quest_update(void)
                     REMOVE_BIT(ch->act, PLR_QUESTOR);
                     REMOVE_BIT(ch->act, PLR_QUESTORHARD);
                     ch->pcdata->quest_failed++;
+					update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
                     ch->pcdata->questgiver = NULL;
                     ch->pcdata->countdown = 0;
                     ch->pcdata->questmob = 0;

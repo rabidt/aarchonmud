@@ -42,6 +42,7 @@
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
+#include "leaderboard.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -849,7 +850,7 @@ void mobile_update( void )
    CHAR_DATA *ch;
    CHAR_DATA *ch_next;
    EXIT_DATA *pexit;
-   OBJ_DATA *obj, *obj_next;
+   
    int door;
    bool success;
    
@@ -1095,8 +1096,8 @@ void weather_update( void )
 	  diff = weather_info.mmhg > 1015 ? -2 : 2;
    
    weather_info.change   += diff * dice(1, 4) + dice(2, 6) - dice(2, 6);
-   weather_info.change    = UMAX(weather_info.change, -120);
-   weather_info.change    = UMIN(weather_info.change,  120);
+   weather_info.change    = UMAX(weather_info.change, -12);
+   weather_info.change    = UMIN(weather_info.change,  12);
    
    weather_info.mmhg += weather_info.change;
    weather_info.mmhg  = UMAX(weather_info.mmhg,  960);
@@ -1419,11 +1420,6 @@ void char_update( void )
             if (!IS_NPC(ch) && ch->position != POS_SLEEPING)
                 gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
 
- //   sprintf(buf, "time = %s\n\r", current_time);
-//    send_to_char(buf,ch);
-//asdf
-
-
             if ( ++ch->timer >= 12 )
             {
                 if ( ch->was_in_room == NULL && ch->in_room != NULL && !in_pkill_battle(ch))
@@ -1600,6 +1596,9 @@ void char_update( void )
 
 	affect_update( ch );
         qset_update( ch );
+		
+	if ( IS_AFFECTED(ch, AFF_HAUNTED) )
+	    create_haunt( ch );		
    }
    
   /*
@@ -1798,7 +1797,7 @@ void affect_update( CHAR_DATA *ch )
 	af.duration = 0;
 	af.type = gsn_decompose;
 	af.bitvector = 0;
-	af.modifier = - dice( 1, level*2 );
+	af.modifier = - dice( 1, level/2 );
 	affect_join( ch, &af );
     }
 
@@ -2439,10 +2438,7 @@ void update_handler( void )
        else if ( --pulse_mobile_special   <= 0 )
        {
 	   pulse_mobile_special = PULSE_MOBILE_SPECIAL;
-/* Commented out. We don't have active temple guard mobs. Shouldn't cause
-   us any problems and might let us see what is happening to cause copyovers
-   on random occasions - Astark 1-7-13 */
-/*	   mobile_special_update   ( );  */
+	   mobile_special_update   ( );
        }
    }
    
@@ -2463,14 +2459,39 @@ void update_handler( void )
 	  auth_update();
 	  weather_update  ( );
 	  char_update ( );
-	  obj_update  ( );
+	  /* obj_update  ( ); */  /* Original spot for obj_update() */
 
 	  war_update  ( );  
 	  quest_update( );  
+	  obj_update();     /* Added this here - Elik, Feb 8, 2006 */ 
 	  /* clan_update(); */
 	  all_religions( &religion_create_relic );
 	  update_relic_bonus();
    }
+
+	/* check LBOARDS */
+	if (current_time > daily_reset)
+	{
+		#ifdef LBOARD_DEBUG
+		log_string("reset daily boards");
+		#endif
+		reset_daily_lboards();
+	}
+	if (current_time > weekly_reset)
+	{
+		#ifdef LBOARD_DEBUG
+		log_string("reset weekly boards");
+		#endif
+		reset_weekly_lboards();
+	}
+	if (current_time > monthly_reset)
+	{
+		#ifdef LBOARD_DEBUG
+		log_string("reset monthly board");
+		#endif
+		reset_monthly_lboards();
+	}
+		
 
    /* update some things once per hour */
    if ( current_time % HOUR == 0 )
