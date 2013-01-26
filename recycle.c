@@ -566,7 +566,7 @@ void free_pcdata(PC_DATA *pcdata)
     }
 
     {   EXPLORE_HOLDER *pExp, *e_next;
-        for(pExp = pcdata->explored->bits ; pExp ; pExp = e_next )
+        for(pExp = pcdata->explored->buckets ; pExp ; pExp = e_next )
         {    e_next = pExp->next;
              free(pExp);
         }
