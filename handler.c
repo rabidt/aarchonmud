@@ -65,8 +65,7 @@ ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, char *arg, bool area );
 CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact );
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, char *argument, bool exact );
 char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype);
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list, 
-	    int *number, bool exact );
+//char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker);
 
 /* friend stuff -- for NPC's mostly */
 bool is_friend(CHAR_DATA *ch,CHAR_DATA *victim)
@@ -1673,11 +1672,6 @@ void char_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
  */
 void obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch )
 {
-    if (obj == NULL || ch == NULL) {
-	bugf("obj_to_char: NULL pointer");
-	return;
-    }
-	
     obj->next_content = ch->carrying;
     ch->carrying     = obj;
     obj->carried_by  = ch;
@@ -1806,12 +1800,6 @@ void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
     AFFECT_DATA *paf;
     int i;
     
-    if (ch == NULL || obj == NULL) {
-	bugf("Equip_char: NULL pointer");
-	return;
-    }
-
-	
     if ( get_eq_char( ch, iWear ) != NULL )
     {
         bugf( "Equip_char: %d wears %d at %d: already equipped",
@@ -2219,6 +2207,7 @@ bool is_drop_obj( OBJ_DATA *obj )
 void extract_char_eq( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc )
 {
     OBJ_DATA *obj, *obj_next;
+    char buf[MSL];
 
     if ( ch == NULL || extract_it == NULL )
     {
@@ -3376,17 +3365,12 @@ bool check_see( CHAR_DATA *ch, CHAR_DATA *victim )
 	{
 	case LIGHT_DARK:
 	    roll_victim *= 2;
-		break;
 	case LIGHT_NORMAL: 
 	    roll_victim *= 2;
-		break;
 	case LIGHT_GLOW: 
 	    roll_victim *= 2;
-		break;
-	case LIGHT_BRIGHT: 
-		break;
-	default:
-		break;
+	case LIGHT_BRIGHT:; 
+	default:;
 	}
     
     /* small races can hide better */
@@ -3609,15 +3593,6 @@ char* act_bits_name( tflag flag )
 	return flag_bits_name( plr_flags, flag );	
 }
 
-char *togg_bit_name (int togg_flags)
-{
-  static char buf[512];
-  buf[0] = '\0';
-  if (togg_flags & TOGG_OLDSCORE	) strcat (buf, "oldscore");
-    return ( buf[0] != '\0' ) ? buf+1 : "none";
-  if (togg_flags & TOGG_OLDFINGER       ) strcat (buf, "oldfinger");
-    return ( buf[0] != '\0' ) ? buf+1 : "none";
-}
 char* comm_bit_name( int flag )
 {
     return flag_bit_name( comm_flags, flag );
@@ -4133,3 +4108,10 @@ void all_colour( CHAR_DATA *ch, char *argument )
     
     return;
 }
+
+
+
+
+
+
+

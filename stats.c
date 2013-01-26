@@ -1206,7 +1206,6 @@ void do_racelist(CHAR_DATA *ch, char *argument)
     send_to_char("\n\r", ch);
 }
 
-extern u_short port;
 void roll_dice (CHAR_DATA *ch, bool take_default)
 {
     int default_roll[15] = {100,95,90,85,80,75,70,65,60,55,50,40,30,20,10};
@@ -1216,7 +1215,7 @@ void roll_dice (CHAR_DATA *ch, bool take_default)
     
     if ( take_default )
     {
-	if (  ch->pcdata->remorts <= MAX_REMORT && port == 7000)
+	if (  ch->pcdata->remorts <= MAX_REMORT )
 	    for ( i = 0; i < 15; i++ )
 		ch->gen_data->unused_die[i] = default_roll[i];
 	else

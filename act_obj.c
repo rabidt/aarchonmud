@@ -1109,8 +1109,7 @@ void do_give( CHAR_DATA *ch, char *argument )
        mp_give_trigger( victim, ch, obj );
 
    /* imms giving stuff to alts.. */
-   /* if ( IS_IMMORTAL(ch) && !IS_NPC(victim) && is_same_player(ch, victim) ) */
-   if ( IS_IMMORTAL(ch) && !IS_NPC(victim))
+   if ( IS_IMMORTAL(ch) && !IS_NPC(victim) && is_same_player(ch, victim) )
        logpf( "do_give: %s giving obj %d to %s",
 	      ch->name, obj->pIndexData->vnum, victim->name );
 
@@ -2430,21 +2429,12 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
 
        if ( skill > 0 && ch->hit < ch->max_hit && !PLR_ACT(ch, PLR_WAR) )
        {
-		if (obj->timer == -1)
-		{
-	     int hp = 0;
-	     sprintf(buf,"You drain %d hp from the corpse.\n\r", hp);
-	     send_to_char(buf, ch);
-		}
-		else
-		{
-	     int hp = 2 + 2 * power * skill/100;
-	     ch->hit = UMIN(ch->hit + hp, ch->max_hit);
-	     sprintf(buf,"You drain %d hp from the corpse.\n\r", hp);
-	     send_to_char(buf, ch);
-	     change_align(ch,-2);
-        }
-	   }
+	   int hp = 10 + 2 * power * skill/100;
+	   ch->hit = UMIN(ch->hit + hp, ch->max_hit);
+	   sprintf(buf,"You drain %d hp from the corpse.\n\r", hp);
+	   send_to_char(buf, ch);
+	   change_align(ch,-2);
+       }
 
        if ( IS_AFFECTED(ch, AFF_RITUAL) ) 
        {
@@ -2604,7 +2594,6 @@ void do_recite( CHAR_DATA *ch, char *argument )
     {
         send_to_char("You mispronounce a syllable.\n\r",ch);
         check_improve(ch,gsn_scrolls,FALSE,2);
-		extract_obj(scroll);
     }
     else
     {
@@ -2613,8 +2602,6 @@ void do_recite( CHAR_DATA *ch, char *argument )
             obj_cast_spell( scroll->value[2], scroll->value[0], ch, scroll, argument ) ||
             obj_cast_spell( scroll->value[3], scroll->value[0], ch, scroll, argument ) ||
             obj_cast_spell( scroll->value[4], scroll->value[0], ch, scroll, argument ) )
-	/*if it didn't go, probably typoed the argument, no reason to
-	  kill the scroll or to check_improve -Vodur*/
 	{
 	    extract_obj( scroll );
             check_improve(ch,gsn_scrolls,TRUE,2);
@@ -3267,10 +3254,8 @@ void do_buy( CHAR_DATA *ch, char *argument )
 	    return;
 	}
 	else
-	{
 	    sprintf(buf, "Sorry, %s, you can't buy any more boxes.", ch->name);
 	    do_say(banker, buf);
-	}
  	return;
    }
 
@@ -4514,7 +4499,7 @@ void do_sire( CHAR_DATA *ch, char *argument )
         return;
     
     WAIT_STATE( ch, PULSE_VIOLENCE );
-	set_mob_level( mob, URANGE(1, corpse->level, ch->level + 10 ) );
+    set_mob_level( mob, URANGE(1, corpse->level, 2*ch->level) );
     char_to_room( mob, ch->in_room );
 
     /* wear eq from corpse */

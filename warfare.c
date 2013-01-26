@@ -414,6 +414,9 @@ void war_update( void )
     BUFFER *output;
     int count = 0;
     
+//    if ( war.on == FALSE )
+//        return;
+
     if (current_time > auto_war_time && war.on == FALSE)
         auto_war();
     else if (war.on == FALSE)
@@ -471,8 +474,8 @@ void war_update( void )
         
 	last_war_time = current_time;
 
-	war.reward += war.combatants*9;
-	war.reward = UMIN(90, war.reward);
+	war.reward += war.combatants*12;
+	war.reward = UMIN(50, war.reward);
 
         sprintf( buf, "The battle begins with %d combatants in the war!\n\r", war.combatants );
         warfare( buf );
