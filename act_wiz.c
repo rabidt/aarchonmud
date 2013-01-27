@@ -3153,12 +3153,13 @@ void do_pload( CHAR_DATA *ch, char *argument )
     d.character->was_in_room = d.character->in_room;
     char_to_room(d.character, ch->in_room);
 
- //   update_lboard( LBOARD_MKILL, d.character, d.character->pcdata->mob_kills, 0);
-//update_lboard( LBOARD_BHD, d.character, d.character->pcdata->behead_cnt, 0);
-//update_lboard( LBOARD_QCOMP, d.character, d.character->pcdata->quest_success, 0);
-//  update_lboard( LBOARD_WKILL, d.character, d.character->pcdata->war_kills, 0);
-  update_lboard( LBOARD_EXPL, d.character, d.character->pcdata->explored->set, 0);
-//	update_lboard( LBOARD_QFAIL, d.character, d.character->pcdata->quest_failed, 0);
+	update_lboard( LBOARD_MKILL, d.character, d.character->pcdata->mob_kills, 0);
+	update_lboard( LBOARD_BHD, d.character, d.character->pcdata->behead_cnt, 0);
+	update_lboard( LBOARD_QCOMP, d.character, d.character->pcdata->quest_success, 0);
+	update_lboard( LBOARD_WKILL, d.character, d.character->pcdata->war_kills, 0);
+	update_lboard( LBOARD_EXPL, d.character, d.character->pcdata->explored->set, 0);
+	update_lboard( LBOARD_QFAIL, d.character, d.character->pcdata->quest_failed, 0);
+	update_lboard( LBOARD_PKILL, d.character, d.character->pcdata->pkill_count, 0);
     
     if (d.character->pet != NULL)
     {
@@ -3618,71 +3619,49 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 void do_dummy( CHAR_DATA *ch, char *argument)
 {
-	char arg1[MIL];
-	char arg2[MIL];
+	int count;
 	
-	argument = one_argument( argument, arg1 );
-    argument = one_argument( argument, arg2 );
+	for (count=0;count<6;count++)
+	{
 	
-	LBOARD_RESULT *result;
-
-
-	if ( arg1[0] == '\0')
-	{
-		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
-		return;
-	}
-	else if ( !strcmp( arg1, "daily" ) )
-	{
-		result=daily_results;
-	}
-	else if ( !strcmp( arg1, "weekly" ) )
-	{
-		result=weekly_results;
-	}
-	else if ( !strcmp( arg1, "monthly" ) )
-	{
-		result=monthly_results;
-	}
-	else
-	{
-		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
-		return;
-	}
+	LBOARD_RESULT *rslt;
 	
-	if ( arg2[0] == '\0' )
+	rslt=make_result( daily_reset+count*60, lboard_daily, MAX_LBOARD_DAILY);
+	
+	rslt->next = daily_results;
+	daily_results = rslt;	
+	
+	int i;
+	do
 	{
-		int i=1;
-		for ( ; result != NULL ; result=result->next )
-		{
-			printf_to_char(ch, "%3d: %-25s", i, ctime(&(result->end_time)) );
+		i=1;
+		rslt=daily_results;
+		LBOARD_RESULT *next=rslt->next;
+		if ( next == NULL)
+			break;
+		else
 			i++;
-		}
-		return;
-	}
-	
-	int index = atoi( arg2 );
-	if ( index > 0 )
-	{
-		int i=1;
-		for ( result; result != NULL ; result=result->next )
+		
+		while ( TRUE )
 		{
-			if ( i == index)
+			if ( next->next != NULL )
 			{
-				printf_to_char(ch, "Ended:%s\n\r%s\n\r", ctime(&(result->end_time)), result->text );
-				return;
+				i++;
+				rslt=next;
+				next=rslt->next;
 			}
-			i++;
+			else
+				break;
 		}
-		send_to_char("Invalid index.\n\r",ch);
-		return;
+		if ( i > MAX_LBOARD_RESULT )
+		{
+			free_mem( next, sizeof(LBOARD_RESULT) );
+			rslt->next=NULL;
+			i--;
+		}
+		
+	} while ( i > MAX_LBOARD_RESULT );
 	}
-	else
-	{
-		send_to_char("Invalid index.\n\r",ch);
-		return;
-	}
-	
 }
 
 

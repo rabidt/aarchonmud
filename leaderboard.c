@@ -37,9 +37,16 @@ LBOARD_ENTRY *lboard_entry_new( char *name, int value )
   entry->value = value;
   entry->next = NULL;
   entry->previous = NULL;
-  strcpy(entry->name, name);
+  entry->name =str_dup(name);
   return entry;
 }
+
+void lboard_entry_free(LBOARD_ENTRY *entry)
+{
+	free_string(entry->name);
+	free_mem(entry, sizeof(LBOARD_ENTRY) );
+}
+
 
 /* allocate a new leaderboard
  */
@@ -52,7 +59,13 @@ LBOARD *lboard_new()
 	board = alloc_mem(sizeof(LBOARD));
 	board->head = NULL;
 	board->tail = NULL;
+	board->board_name = NULL;
 	return board;
+}
+void lboard_free(LBOARD *board)
+{
+	free_string(board->board_name);
+	free_mem(board, sizeof(LBOARD) );
 }
 
 LBOARD_RESULT *lboard_result_new()
@@ -67,6 +80,11 @@ LBOARD_RESULT *lboard_result_new()
 	result->end_time = 0;
 	return result;
 }
+void lboard_result_free(LBOARD_RESULT *result)
+{
+	free_mem(result, sizeof(LBOARD_RESULT) );
+}
+
 	
 void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
 {
@@ -106,7 +124,16 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
 			weekly=lboard_weekly[LBOARD_QPNT_WEEKLY];
 			monthly=lboard_monthly[LBOARD_QPNT_MONTHLY];
 			break;
+		case LBOARD_LEVEL:
+			daily=lboard_daily[LBOARD_LEVEL_DAILY];
+			weekly=lboard_weekly[LBOARD_LEVEL_WEEKLY];
+			monthly=lboard_monthly[LBOARD_LEVEL_MONTHLY];
+			break;
 
+		case LBOARD_PKILL:
+			monthly=lboard_monthly[LBOARD_PKILL_MONTHLY];
+			overall=lboard_overall[LBOARD_PKILL_OVERALL];
+			break;
 		/* overall only */
 		case LBOARD_BHD:
 			overall=lboard_overall[LBOARD_BHD_OVERALL];
@@ -205,7 +232,7 @@ void update_lboard_overall( LBOARD **board, CHAR_DATA *ch, int current, int incr
 					(*board)->tail->previous=(*board)->tail->previous->previous;
 					
 					(*board)->tail->rank=(*board)->tail->previous->rank+1;
-					free_mem(tmp, sizeof(LBOARD_ENTRY) );
+					lboard_entry_free(tmp);
 				}
 				else
 				{
@@ -410,22 +437,22 @@ void do_lboard( CHAR_DATA *ch, char *argument)
 	
 	LBOARD **board_array;
 	int max;
-	if ( !strcmp( arg1, "daily" ) )
+	if ( arg1[0]== 'd' )
 	{
 		board_array=lboard_daily;
 		max=MAX_LBOARD_DAILY;
 	}
-	else if ( !strcmp ( arg1, "weekly" ) )
+	else if ( arg1[0]== 'w' )
 	{
 		board_array=lboard_weekly;
 		max=MAX_LBOARD_WEEKLY;
 	}
-	else if ( !strcmp ( arg1, "monthly" ) )
+	else if ( arg1[0]== 'm' )
 	{
 		board_array=lboard_monthly;
 		max=MAX_LBOARD_MONTHLY;
 	}
-	else if ( !strcmp ( arg1, "overall" ) )
+	else if ( arg1[0]== 'o' )
 	{
 		board_array=lboard_overall;
 		max=MAX_LBOARD_OVERALL;
@@ -513,7 +540,7 @@ void print_lboard_list_to_char( LBOARD **list, int max, CHAR_DATA *ch )
 	{
 		if ( list[i] == NULL )
 		{
-			bugf("NULL daily board in print_lboard_list_to_char.");
+			bugf("NULL board in print_lboard_list_to_char.");
 			return;
 		}
 		/* print as i+1, we'll index as arg-1 when the time comes */
@@ -584,34 +611,30 @@ MEMFILE* save_lboards()
 	bprintf( fp->buf, "#DAILY %d\n", daily_reset );
 	for ( i=0 ; i<MAX_LBOARD_DAILY ; i++ )
 	{
-		bprintf( fp->buf, "#LBOARD\n" );
 		lboard_save_to_buffer( lboard_daily[i], fp->buf );
-		bprintf( fp->buf, "\n" );
     }
+	bprintf( fp->buf, "EndSect\n" );
 	
 	bprintf( fp->buf, "#WEEKLY %d\n", weekly_reset );
 	for ( i=0 ; i<MAX_LBOARD_WEEKLY ; i++ )
 	{
-		bprintf( fp->buf, "#LBOARD\n" );
 		lboard_save_to_buffer( lboard_weekly[i], fp->buf );
-		bprintf( fp->buf, "\n" );
     }
+	bprintf( fp->buf, "EndSect\n" );
 	
 	bprintf( fp->buf, "#MONTHLY %d\n", monthly_reset );
 	for ( i=0 ; i<MAX_LBOARD_MONTHLY ; i++ )
 	{
-		bprintf( fp->buf, "#LBOARD\n" );
 		lboard_save_to_buffer( lboard_monthly[i], fp->buf );
-		bprintf( fp->buf, "\n" );
     }
+	bprintf( fp->buf, "EndSect\n" );
 	
 	bprintf( fp->buf, "#OVERALL\n" );
 	for ( i=0 ; i<MAX_LBOARD_OVERALL ; i++ )
 	{
-		bprintf( fp->buf, "#LBOARD\n" );
 		lboard_save_to_buffer( lboard_overall[i], fp->buf );
-		bprintf( fp->buf, "\n" );
     }
+	bprintf( fp->buf, "EndSect\n" );
 	
 	bprintf( fp->buf, "#END\n" );
 	/* check for overflow */
@@ -632,18 +655,22 @@ void lboard_save_to_buffer( LBOARD *board, DBUFFER *fp )
 {
 	LBOARD_ENTRY *entry;
 	
-    if ( board == NULL )
-		return;
-	
-	bprintf( fp, "BoardName %s~\n", board->board_name);
-	
-	for ( entry=board->head ; entry != NULL ; entry=entry->next )
+	bprintf( fp, "#LBOARD\n" );
+	if ( board != NULL )
 	{
-		bprintf( fp, "Entry %s %d\n", entry->name, entry->value );
+		bprintf( fp, "BoardName %s~\n", board->board_name);
+		
+		for ( entry=board->head ; entry != NULL ; entry=entry->next )
+		{
+			bprintf( fp, "Entry %s %d\n", entry->name, entry->value );
+		}
+		
 	}
-	
+	else
+	{
+		bugf("lboard_save_to_buffer: NULL board");
+	}
 	bprintf( fp, "End\n" );
-
 #ifdef LBOARD_DEBUG	
     log_string( "lboard_save_to_buffer: done" );
 #endif
@@ -661,9 +688,7 @@ void load_lboards()
     log_string( "load_lboards: start" );
 #endif
 
-    //religion_list = NULL;
-
-    /* open file */
+     /* open file */
     fclose( fpReserve );
     if ( ( fp = fopen( LBOARD_FILE, "r" ) ) == NULL )
     {
@@ -673,7 +698,7 @@ void load_lboards()
     }
 
     /* load the lboards */
-    int i;
+    int count;
 	int max;
 	LBOARD **lboard_array;
     while ( TRUE )
@@ -686,7 +711,7 @@ void load_lboards()
 			#endif
 			daily_reset= (time_t)fread_number( fp );
 			lboard_array=lboard_daily;
-			i=0;
+			count=0;
 			max= MAX_LBOARD_DAILY;
 		}
 		else if ( !strcmp(word, "#WEEKLY") )
@@ -696,20 +721,20 @@ void load_lboards()
 			#endif
 			weekly_reset= (time_t)fread_number( fp );
 			lboard_array=lboard_weekly;
-			i=0;
+			count=0;
 			max= MAX_LBOARD_WEEKLY;
 		}
 		else if ( !strcmp(word, "#MONTHLY") )
 		{
 			monthly_reset= (time_t)fread_number( fp );
 			lboard_array=lboard_monthly;
-			i=0;
+			count=0;
 			max= MAX_LBOARD_MONTHLY;
 		}
 		else if ( !strcmp(word, "#OVERALL") )
 		{
 			lboard_array=lboard_overall;
-			i=0;
+			count=0;
 			max= MAX_LBOARD_OVERALL;
 		}
 		else if ( !strcmp(word, "#LBOARD") )
@@ -719,13 +744,31 @@ void load_lboards()
 				bugf( "load_lboards: NULL lboard_array" );
 				break;
 			}
-			lboard_array[i]=lboard_load_from_file( fp );
+			if ( count > max )
+			{
+				bugf( "load_lboards: index outside bounds of array");
+				continue;
+			}
+			lboard_array[count]=lboard_load_from_file( fp );
 			if ( lboard_array == NULL )
 			{
 				bugf( "load_lboards: NULL lboard returned" );
 				break;
 			}
-			i++;
+			count++;
+		}
+		else if ( !strcmp(word, "EndSect") )
+		{
+			while (count < max)
+			{
+				bugf("load_lboards: didn't fill table, creating new board");
+				
+				lboard_array[count]=lboard_new();
+				lboard_array[count]->board_name=str_dup("NO NAME");
+				
+				count++;
+			}
+				
 		}
 		else if ( !strcmp(word, "#END") )
 			break;
@@ -763,10 +806,12 @@ LBOARD* lboard_load_from_file( FILE *fp )
     {
         word   = feof( fp ) ? "End" : fread_word( fp );
 		if (!strcmp(word, "End") )
+		{
 			return board;
+		}
 		else if ( !strcmp(word, "BoardName") )
 		{
-			strcpy( board->board_name, fread_string(fp) );
+			board->board_name=fread_string(fp);
 		}
 		else if ( !strcmp(word, "Entry") )
 		{
@@ -775,7 +820,6 @@ LBOARD* lboard_load_from_file( FILE *fp )
 			add_to_lboard( &board, name, val );
 		}
 	}
-	
 }
 
 MEMFILE* save_lboard_results()
@@ -812,6 +856,7 @@ MEMFILE* save_lboard_results()
 	{
 		bprintf( fp->buf, "#RESULT %d\n", result->end_time );
 		bprintf( fp->buf, "%s~", result->text );
+		bprintf( fp->buf, "End" );
 		bprintf( fp->buf, "\n" );
     }
 
@@ -820,6 +865,7 @@ MEMFILE* save_lboard_results()
 	{
 		bprintf( fp->buf, "#RESULT %d\n", result->end_time );
 		bprintf( fp->buf, "%s~", result->text );
+		bprintf( fp->buf, "End" );
 		bprintf( fp->buf, "\n" );
     }
 	
@@ -898,23 +944,31 @@ void load_lboard_results()
 			rslt->end_time = fread_number( fp );
 			rslt->text = fread_string( fp );
 
-			rslt->next=(*results_list);
-			(*results_list)=rslt;
+			LBOARD_RESULT *tmp=(*results_list);
+			if (tmp==NULL)
+			{
+				(*results_list)=rslt;
+				rslt->next=NULL;
+			}
+			else
+			{
+				while(1)
+				{
+					if (tmp->next==NULL)
+					{
+						tmp->next=rslt;
+						rslt->next=NULL;
+						break;
+					}
+					else
+						tmp=tmp->next;
+				}
+			}
+
 		}
 		else if ( !strcmp(word, "End") )
 		{
-			/* need to reverse the list */
-			LBOARD_RESULT *ptr=(*results_list);
-			LBOARD_RESULT *temp;
-			LBOARD_RESULT *previous=NULL;
-			while ( ptr != NULL )
-			{
-				temp=ptr->next;
-				ptr->next=previous;
-				previous=ptr;
-				ptr=temp;
-			}
-			(*results_list)=previous;
+			//nuffin
 		}
 		else if ( !strcmp(word, "#END") )
 			break;
@@ -1003,7 +1057,7 @@ void reset_daily_lboards()
 		}
 		if ( i > MAX_LBOARD_RESULT )
 		{
-			free_mem( next, sizeof(LBOARD_RESULT) );
+			lboard_result_free(next);
 			rslt->next=NULL;
 			i--;
 		}
@@ -1093,7 +1147,7 @@ void reset_lboard( LBOARD **board)
 	for ( entry=(*board)->head ; entry != NULL ; entry=entry->next )
 	{
 		if (entry->previous != NULL)
-			free_mem( entry->previous, sizeof(LBOARD_ENTRY) );
+			lboard_entry_free(entry->previous);
 	}
 	
 	(*board)->head = NULL;
@@ -1116,21 +1170,21 @@ void do_lhistory( CHAR_DATA *ch, char *argument)
 		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
 		return;
 	}
-	else if ( !strcmp( arg1, "daily" ) )
+	else if ( arg1[0]=='d' )
 	{
 		result=daily_results;
 	}
-	else if ( !strcmp( arg1, "weekly" ) )
+	else if ( arg1[0]=='w' )
 	{
 		result=weekly_results;
 	}
-	else if ( !strcmp( arg1, "monthly" ) )
+	else if ( arg1[0]=='m' )
 	{
 		result=monthly_results;
 	}
 	else
 	{
-		send_to_char("lhistory [daily|weekly|monthly] <index>\n\r",ch);
+		send_to_char("lhistory [d|w|m] <index>\n\r",ch);
 		return;
 	}
 	

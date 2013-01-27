@@ -1,10 +1,10 @@
 #ifndef LEADERBOARD_H
 #define LEADERBOARD_H
 
-#define LBOARD_DEBUG
+//#define LBOARD_DEBUG
 
 #define MAX_DISPLAY_ENTRY 20
-#define MAX_LBOARD_RESULT 4
+#define MAX_LBOARD_RESULT 7
 #define RESULT_NUM_RANK		3
 
 typedef struct lboard_entry LBOARD_ENTRY;
@@ -19,9 +19,12 @@ extern LBOARD *daily_results;
 extern LBOARD *weekly_results;
 extern LBOARD *monthly_results;
 
+extern LBOARD *lboard_daily[];
+
+
 struct lboard
 {
-    char board_name[MSL];
+    char *board_name;
 	LBOARD_ENTRY *head;
     LBOARD_ENTRY *tail;
 };
@@ -30,7 +33,7 @@ struct lboard_entry
 {
     LBOARD_ENTRY *previous;
     LBOARD_ENTRY *next;
-    char name[MAX_INPUT_LENGTH];
+    char *name;
     int value;
 	int rank;
 };
