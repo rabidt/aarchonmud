@@ -5370,14 +5370,16 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
 	bonus += 10;
 
     /* religion bonus */
-    xp += xp * get_religion_bonus(gch) / 100;
+    bonus += get_religion_bonus(gch);
     
     /* bonus for AFF_LEARN */
     if ( IS_AFFECTED(gch, AFF_LEARN) )
-	xp += xp/2;
+	bonus += 50;
 
     if ( IS_AFFECTED(gch, AFF_HALLOW) )
-        xp += xp/5;
+        bonus += 20;
+
+    xp += xp * bonus / 100;
 
     return xp;
 }
