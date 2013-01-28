@@ -3328,7 +3328,7 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     bool gate_pet;
     ROOM_INDEX_DATA *to_room;
     OBJ_DATA *stone;
-    bool has_warpstone;
+    bool has_warpstone=FALSE;
     
     if ( !can_cast_transport(ch) )
 	return;
@@ -3415,7 +3415,7 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 	to_room = victim->in_room;
 	if( has_warpstone && chance(15) )
 	{
-	    act("$p flares brightly and vanishes!",ch,stone,NULL,TO_CHAR);
+	    printf_to_char(ch,"%s flares brightly and vanishes!\n\r", stone->short_descr);
 	    extract_obj(stone);
 	}
     }
