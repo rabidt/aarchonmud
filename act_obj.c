@@ -2594,6 +2594,7 @@ void do_recite( CHAR_DATA *ch, char *argument )
     {
         send_to_char("You mispronounce a syllable.\n\r",ch);
         check_improve(ch,gsn_scrolls,FALSE,2);
+	extract_obj(scroll);
     }
     else
     {
@@ -3254,8 +3255,10 @@ void do_buy( CHAR_DATA *ch, char *argument )
 	    return;
 	}
 	else
+	{
 	    sprintf(buf, "Sorry, %s, you can't buy any more boxes.", ch->name);
 	    do_say(banker, buf);
+	}
  	return;
    }
 

@@ -2261,9 +2261,10 @@ void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
+    int i;
 
-    for (sn = 1; skill_table[sn].name != NULL; sn++)
-	if ( is_mental(sn) && check_dispel(level, victim, sn) )
+    for (i = 1; skill_table[i].name != NULL; i++)
+	if ( is_mental(i) && check_dispel(level, victim, i ) )
 	    found = TRUE;
 
     if (found)
