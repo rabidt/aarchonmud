@@ -957,13 +957,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
 /* Check for overcharge (less lag) */
     if (IS_AFFECTED(ch, AFF_OVERCHARGE))
     {
-        if ( ch->position == POS_FIGHTING )
-        {
-            affect_strip_flag( ch, AFF_OVERCHARGE );
-            send_to_char( "Your mana calms down as you refocus and ready for battle.\n\r", ch );
-            return;
-        }
-
         WAIT_STATE( ch, (200-chance)*skill_table[sn].beats/400 );
     }
     else
@@ -973,10 +966,16 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
 
 /* mana burn */
-    if ( IS_AFFECTED(ch, AFF_MANA_BURN) || IS_AFFECTED(ch, AFF_OVERCHARGE) && number_bits(1) == 0)
+    if ( IS_AFFECTED(ch, AFF_MANA_BURN) )
     {
 	direct_damage( ch, ch, 2*mana, skill_lookup("mana burn") );
 	if ( IS_DEAD(ch) )
+	    return;
+    }
+    else if ( IS_AFFECTED(ch, AFF_OVERCHARGE) && number_bits(1) == 0 )
+    {
+	direct_damage( ch, ch, mana, skill_lookup("mana burn") );
+        if ( IS_DEAD(ch) )
 	    return;
     }
  
