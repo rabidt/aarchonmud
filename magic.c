@@ -813,29 +813,24 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
         return FALSE;
     }
 
-    if ((sn == gsn_hailstorm || 
+    if (sn == gsn_hailstorm || 
         sn == gsn_meteor_swarm || 
         sn == gsn_call_lightning || 
         sn == gsn_monsoon || 
-        sn == gsn_solar_flare) && 
-        !IS_OUTSIDE(ch))
-    {
-        send_to_char( "INDOORS? I think not.\n\r", ch );
-        return FALSE;
-    } 
+        sn == gsn_solar_flare)
+    { 
+        if (!IS_OUTSIDE(ch))
+    	{
+            send_to_char( "INDOORS? I think not.\n\r", ch );
+       	    return FALSE;
+    	} 
 
-    if ((sn == gsn_hailstorm || 
-        sn == gsn_meteor_swarm || 
-        sn == gsn_call_lightning || 
-        sn == gsn_monsoon || 
-        sn == gsn_solar_flare) && 
-        (ch->in_room->sector_type == SECT_WATER_DEEP || 
-        ch->in_room->sector_type == SECT_UNDERGROUND))
-    {
-        send_to_char( "There is no weather down here...\n\r", ch );
-        return FALSE;
-    } 
-
+        if ( ch->in_room->sector_type == SECT_UNDERGROUND )
+    	{
+            send_to_char( "There is no weather down here...\n\r", ch );
+            return FALSE;
+        } 
+    }
         
     /* Smote's Anachronsm can't use mana/lag player outside of combat
        -- Astark Oct 2012 */
@@ -941,6 +936,8 @@ void do_cast( CHAR_DATA *ch, char *argument )
     }
     
     mana = mana_cost(ch, sn, chance);
+    if (IS_AFFECTED(ch, AFF_OVERCHARGE))
+	mana=mana*2;
     
 /* Locate targets */
     if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
@@ -1004,11 +1001,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
     else
     {
-        if (IS_AFFECTED(ch, AFF_OVERCHARGE))
-        {
-        ch->mana -= mana;
-        }
-
         ch->mana -= mana;
 	level = ch->level;
 	if (!IS_NPC(ch))
