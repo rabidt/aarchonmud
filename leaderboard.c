@@ -161,14 +161,14 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
  void update_lboard_periodic( LBOARD **board, CHAR_DATA *ch, int increment)
  {
 	LBOARD_ENTRY *entry;
-    entry = find_in_lboard( &(*board), ch->name );
+    entry = find_in_lboard( board, ch->name );
 
     if ( entry == NULL )
     {
 		#ifdef LBOARD_DEBUG	
 		log_string("update_lboard: entry == NULL");
 		#endif
-		add_to_lboard( &(*board), ch->name, increment);
+		add_to_lboard( board, ch->name, increment);
 		return;
     }
 
@@ -180,13 +180,13 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
     if ( entry->previous == NULL )
 	return;
 	
-	update_lboard_order( &(*board) , &entry); 
+	update_lboard_order( board , &entry); 
 }
 
 void update_lboard_overall( LBOARD **board, CHAR_DATA *ch, int current, int increment)
  {
 	LBOARD_ENTRY *entry;
-    entry = find_in_lboard( &(*board), ch->name );
+    entry = find_in_lboard( board, ch->name );
 
     if ( entry == NULL )
     {
@@ -201,7 +201,7 @@ void update_lboard_overall( LBOARD **board, CHAR_DATA *ch, int current, int incr
 			#endif
 
 			/* empty board, let's add it */
-			entry=add_to_lboard( &(*board), ch->name, current);
+			entry=add_to_lboard( board, ch->name, current);
 		}
 		else
 		{
@@ -214,17 +214,17 @@ void update_lboard_overall( LBOARD **board, CHAR_DATA *ch, int current, int incr
 			Bump the tail from the list every time we 
 			add somebody and it's already full*/
 			int cnt=(*board)->tail->rank;
-			if (cnt > 19)
+			if (cnt >= MAX_DISPLAY_ENTRY)
 			{
 				/* already at 20, let's see if this even qualifies */
 				#ifdef LBOARD_DEBUG	
-				log_string("update_lboard_overall: cnt > 19");
+				log_string("update_lboard_overall: cnt >= MAX_DISPLAY_ENTRY");
 				#endif
 
 				if (current > (*board)->tail->value )
 				{
 					LBOARD_ENTRY *tmp;
-					entry = add_to_lboard( &(*board), ch->name, current);
+					entry = add_to_lboard( board, ch->name, current);
 					/* Means we need to kill the 20th entry (penultimate now)
 						and push 21 (new one) up to 20 */
 					tmp=(*board)->tail->previous;
@@ -243,11 +243,11 @@ void update_lboard_overall( LBOARD **board, CHAR_DATA *ch, int current, int incr
 			else
 			{
 				#ifdef LBOARD_DEBUG	
-				log_string("update_lboard_overall: cnt not > 20");
+				log_string("update_lboard_overall: cnt not >= MAX_DISPLAY_ENTRY");
 				#endif
 
 				/* board not full yet anyway */
-				entry = add_to_lboard( &(*board), ch->name, current);
+				entry = add_to_lboard( board, ch->name, current);
 			}
 		}
     }
@@ -278,7 +278,7 @@ void update_lboard_overall( LBOARD **board, CHAR_DATA *ch, int current, int incr
 		return;
 	}
 	
-	update_lboard_order( &(*board) , &entry); 
+	update_lboard_order( board , &entry); 
 }
 	
 void update_lboard_order( LBOARD **board, LBOARD_ENTRY **entry)
@@ -354,6 +354,67 @@ void update_lboard_order( LBOARD **board, LBOARD_ENTRY **entry)
 	}
     return;
 
+}
+
+void remove_from_all_lboards( char *name )
+{
+	int i;
+	
+	for (i=0; i < MAX_LBOARD_DAILY; i++)
+	{
+		remove_from_lboard( &lboard_daily[i], name );
+	}
+
+	for (i=0; i < MAX_LBOARD_WEEKLY; i++)
+	{
+		remove_from_lboard( &lboard_weekly[i], name );
+	}
+	
+	for (i=0; i < MAX_LBOARD_MONTHLY; i++)
+	{
+		remove_from_lboard( &lboard_monthly[i], name );
+	}
+	
+	for (i=0; i < MAX_LBOARD_OVERALL; i++)
+	{
+		remove_from_lboard( &lboard_overall[i], name );
+	}
+	
+}
+
+
+void remove_from_lboard( LBOARD **board, char *name )
+{
+	LBOARD_ENTRY *entry = find_in_lboard( board, name);
+	
+	if ( entry == NULL)
+		return;
+	
+	if ( (*board)->head == entry )
+	{
+		(*board)->head = entry->next;
+	}
+	else
+	{
+		entry->previous->next=entry->next;
+	}
+	
+	if ( entry->next != NULL )
+	{
+		entry->next->previous=entry->previous;
+	}
+	
+	LBOARD_ENTRY *temp;
+	for ( temp=entry->next ; temp != NULL; temp=temp->next )
+	{
+		if ( temp->previous == NULL)
+			temp->rank=1;
+		else
+			temp->rank = temp->previous->rank + 1;
+	}
+		
+	lboard_entry_free( entry );
+	return;
 }
 
 LBOARD *add_to_lboard( LBOARD **board, char *name, int increment )
@@ -481,7 +542,7 @@ void do_lboard( CHAR_DATA *ch, char *argument)
 		}
 		else
 		{
-			strcpy( name, capitalize(arg3) );
+			strcpy( name, arg3 );
 		}
 		
 		LBOARD_ENTRY *entry=find_in_lboard( &board_array[index-1], name );

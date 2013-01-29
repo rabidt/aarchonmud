@@ -4,7 +4,7 @@
 //#define LBOARD_DEBUG
 
 #define MAX_DISPLAY_ENTRY 20
-#define MAX_LBOARD_RESULT 7
+#define MAX_LBOARD_RESULT 10
 #define RESULT_NUM_RANK		3
 
 typedef struct lboard_entry LBOARD_ENTRY;
