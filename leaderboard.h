@@ -10,6 +10,7 @@
 typedef struct lboard_entry LBOARD_ENTRY;
 typedef struct lboard LBOARD;
 typedef struct lboard_result LBOARD_RESULT;
+typedef struct lboard_table_entry LBOARD_TABLE_ENTRY;
 
 extern time_t daily_reset;
 extern time_t weekly_reset;
@@ -19,8 +20,11 @@ extern LBOARD *daily_results;
 extern LBOARD *weekly_results;
 extern LBOARD *monthly_results;
 
-extern LBOARD *lboard_daily[];
-
+struct lboard_table_entry
+{
+	bool enabled;
+	LBOARD *board;
+};
 
 struct lboard
 {
@@ -51,7 +55,7 @@ LBOARD *add_to_lboard( LBOARD **board, char *name, int increment );
 void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment );
 LBOARD_ENTRY *lboard_entry_new( char *name, int value );
 void do_lboard( CHAR_DATA *ch, char *argument);
-LBOARD* lboard_load_from_file( FILE *fp );
+LBOARD* lboard_load_from_file( FILE *fp, int type );
 void reset_daily_lboards();
 void reset_weekly_lboards();
 void reset_monthly_lboards();
