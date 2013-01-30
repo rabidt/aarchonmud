@@ -3619,49 +3619,18 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 void do_dummy( CHAR_DATA *ch, char *argument)
 {
-	int count;
+	int value=12345;
 	
-	for (count=0;count<6;count++)
-	{
+	int *vptr=&value;
 	
-	LBOARD_RESULT *rslt;
+	int **vpptr=&vptr;
 	
-	rslt=make_result( daily_reset+count*60, lboard_daily, MAX_LBOARD_DAILY);
-	
-	rslt->next = daily_results;
-	daily_results = rslt;	
-	
-	int i;
-	do
-	{
-		i=1;
-		rslt=daily_results;
-		LBOARD_RESULT *next=rslt->next;
-		if ( next == NULL)
-			break;
-		else
-			i++;
-		
-		while ( TRUE )
-		{
-			if ( next->next != NULL )
-			{
-				i++;
-				rslt=next;
-				next=rslt->next;
-			}
-			else
-				break;
-		}
-		if ( i > MAX_LBOARD_RESULT )
-		{
-			free_mem( next, sizeof(LBOARD_RESULT) );
-			rslt->next=NULL;
-			i--;
-		}
-		
-	} while ( i > MAX_LBOARD_RESULT );
-	}
+	printf_to_char(ch, "value: %d\n\r", value);
+	printf_to_char(ch, "vptr: %d\n\r", vptr);
+	printf_to_char(ch, "*vptr: %d\n\r", *vptr);
+	printf_to_char(ch, "vpptr: %d\n\r", vpptr);
+	printf_to_char(ch, "*vpptr: %d\n\r", *vpptr);
+	printf_to_char(ch, "**vpptr: %d\n\r", **vpptr);
 }
 
 

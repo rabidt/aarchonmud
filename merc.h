@@ -2276,53 +2276,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define LBOARD_QFAIL	6
 #define LBOARD_LEVEL	7
 #define LBOARD_PKILL	8
-
-/* defines for lboard DAILY boards */
-/* these will correspond with the order saved
-   in lboard.txt so ver VERY careful when modifying */
-#define MAX_LBOARD_DAILY	5
-   
-#define LBOARD_MKILL_DAILY	0
-#define LBOARD_QCOMP_DAILY	1
-#define LBOARD_QPNT_DAILY	2
-#define LBOARD_QFAIL_DAILY	3
-#define	LBOARD_LEVEL_DAILY	4
-
-/* defines for lboard WEEKLY boards */
-/* these will correspond with the order saved
-   in lboard.txt so ver VERY careful when modifying */
-#define MAX_LBOARD_WEEKLY	5
-   
-#define LBOARD_MKILL_WEEKLY	0
-#define LBOARD_QCOMP_WEEKLY	1
-#define LBOARD_QPNT_WEEKLY	2
-#define LBOARD_QFAIL_WEEKLY	3
-#define	LBOARD_LEVEL_WEEKLY	4
-
-/* defines for lboard MONTHLY boards */
-/* these will correspond with the order saved
-   in lboard.txt so ver VERY careful when modifying */
-#define MAX_LBOARD_MONTHLY	6
-   
-#define LBOARD_MKILL_MONTHLY	0
-#define LBOARD_QCOMP_MONTHLY	1
-#define LBOARD_QPNT_MONTHLY		2
-#define LBOARD_QFAIL_MONTHLY	3
-#define	LBOARD_LEVEL_MONTHLY	4
-#define LBOARD_PKILL_MONTHLY	5
-
-/* defines for lboard OVERALL boards */
-/* these will correspond with the order saved
-   in lboard.txt so ver VERY careful when modifying */
-#define MAX_LBOARD_OVERALL	7
-   
-#define LBOARD_MKILL_OVERALL	0
-#define LBOARD_QCOMP_OVERALL	1
-#define LBOARD_QFAIL_OVERALL	2
-#define LBOARD_BHD_OVERALL		3
-#define LBOARD_WKILL_OVERALL	4
-#define LBOARD_EXPL_OVERALL		5
-#define LBOARD_PKILL_OVERALL	6
+#define MAX_LBOARD 		9
 /*
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.
