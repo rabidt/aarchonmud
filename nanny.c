@@ -1893,8 +1893,8 @@ bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
 		add_to_who_list(d);
 
                 send_to_char( "Reconnecting.\n\r", ch );
-                if (buf_string(ch->pcdata->buffer)[0] != '\0')
-                    send_to_char( "Type 'replay' to see missed tells.\n\r", ch );
+                if (ch->pcdata->new_tells)
+                    send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
                 act( "$n has reconnected.", ch, NULL, NULL, TO_ROOM );
 
                 sprintf( buf, "%s@%s reconnected.", ch->name, d->host );

@@ -492,7 +492,7 @@ PC_DATA *new_pcdata(void)
         pcdata->history_stats[i] = 0;
     }
     
-    pcdata->buffer = new_buf();
+//    pcdata->buffer = new_buf();
     pcdata->pkill_count = 0;
     pcdata->pkill_deaths = 0;
     pcdata->pkpoints = 0;
@@ -517,6 +517,9 @@ PC_DATA *new_pcdata(void)
     pcdata->gender_kills            = 0;
     pcdata->gender_lost             = 0;
     pcdata->gender_won              = 0;
+    pcdata->gtell_history	    = pers_history_new();
+    pcdata->tell_history	    = pers_history_new();
+    pcdata->clan_history	    = pers_history_new();
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
     VALIDATE(pcdata);
 
@@ -538,7 +541,7 @@ void free_pcdata(PC_DATA *pcdata)
     free_string(pcdata->bamfout);
     free_string(pcdata->title);
     free_string(pcdata->authed_by);
-    free_buf(pcdata->buffer);
+   // free_buf(pcdata->buffer);
 
     for (i = 0; i < MAX_CLAN; i++)
         free_string(pcdata->invitation[i]);
@@ -571,6 +574,10 @@ void free_pcdata(PC_DATA *pcdata)
              free(pExp);
         }
     }
+
+    pers_history_free(pcdata->gtell_history);
+    pers_history_free(pcdata->tell_history);
+    pers_history_free(pcdata->clan_history);
 
     INVALIDATE(pcdata);
     pcdata->next = pcdata_free;

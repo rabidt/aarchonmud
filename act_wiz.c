@@ -1296,8 +1296,8 @@ void do_return( CHAR_DATA *ch, char *argument )
         ch->prompt = NULL;
     }
     
-    if ( buf_string(ch->desc->original->pcdata->buffer)[0] != '\0')
-        send_to_char( "Type 'replay' to see missed tells.\n\r", ch );
+    if ( ch->pcdata->new_tells)
+        send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
     
     
     sprintf(buf,"$N returns from %s.",ch->short_descr);
@@ -3622,12 +3622,56 @@ void do_qset( CHAR_DATA *ch, char *argument )
 }
 
 void do_dummy( CHAR_DATA *ch, char *argument)
-{
-char buf[MAX_STRING_LENGTH];
+{	
 
-printf_to_char(ch,"ROOM_JAIL %d",ROOM_JAIL);
-printf_to_char(ch,"ROOM_DARK %d",ROOM_DARK);
 
+    int k=5;
+	
+    int i=2;
+	int j;
+    int orig;
+
+    int bonus;
+
+    int amount;
+    for (orig=6; orig < 40 ; orig++)
+    {
+	if (orig<5)
+	{
+//	    result=orig;
+	}
+	else
+	while (k<orig)
+	{
+	    k += 5*i;
+	    j = k-5*i;
+	    i+=1;
+	    amount=(k-j)/5;
+	}
+	printf_to_char(ch, "orig: %5d needed: %5d\n\r", orig, amount-((bonus-j)%amount) );
+    }
+
+  /*  const int step = 5;
+
+    if (stat == STAT_NONE)
+        return 100;
+
+    xbonus = ch->mod_stat[stat];
+
+    if (bonus > step)
+    {
+        int i = step, j = step;
+
+        while (j < bonus)
+        {
+            i += step;
+            j += i;
+        }
+
+        bonus = i - step + ((bonus + i - j) * step) / i;
+    }
+*/
+    
 }
 
 

@@ -5,141 +5,6 @@ Written by Clayton Richey (Odoth/Vodur) <clayton.richey@gmail.com>
 for Aarchon MUD
 (aarchonmud.com:7000).
 Version date: 1/30/2013
-
-
-Summary:
-This file contains log_chan and do_playback functions along with
-structure definition/declarations neccessary for their use.
-
-log_chan stores all neccessary info about a public channel 
-communication for later playback.
-
-do_playback is a command used to playback the saved comms.
-
-As it is, it is set up to log all public channels in one 
-COMM_HISTORY structure, and all immtalk in a 2nd. More can be
-added through the follwing steps:
-
-1. declare a new COMM_HISTORY structure
-2. add cases as need in the switch statement in log_chan to 
-   decide which channels go to it.
-3. add calls to log_chan to the appropriate do_ function(s)
-   in act_comm.c (see installation instructions)
-4. duplicate the if (!strcmp(arg, "imm") section in do_playback
-
-
-Other notes:
-Invisible/astral/dark chars are stored as someone no matter what
-and will appear as 'someone' on playback EXCEPT for imms with
-holylight. This is not to be lazy but because it doesn't make
-sense to see 'someone gossips', turn on detects then hit
-playback and see who it was, and somehow tracking who had detects
-when an invis person did a channel is unrealistic. 
-
-Limitations:
-Wizi levels are not taken into account. Holylight means you will
-see the name in playback no matter what.
-
-I probably forgot somethin, good luck!
-***************************************************************
-
-Installation instructions:
-
-Add playback.c to makefile or duplicate its contents in
-appropriate .c file.
-
-Add these definitions to merc.h, or duplicate in act_comm.c
-and playback.c
-Was going to pass color and channel identifier separately but no
-reason not to use color char for both!
-
-#define CHAN_GOSSIP 'p'
-#define CHAN_AUCTION 'a'
-#define CHAN_MUSIC 'e'
-#define CHAN_QUESTION 'q'
-#define CHAN_ANSWER 'j'
-#define CHAN_QUOTE 'h'
-#define CHAN_GRATZ 'z'
-#define CHAN_GAMETALK 'k'
-#define CHAN_BITCH 'f'
-#define CHAN_NEWBIE 'n'
-#define CHAN_IMMTALK 'i'
-*************
-in act_comm.c
-
-add a call to log_chan in each channel function fight after
-call to makedrunk, or right after "You <channel>" message if
-not. 
-****
-        sprintf( buf, "{fYou bitch {F'%s{F'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-        argument = makedrunk(argument,ch);
-+        sprintf(buf,"{f bitches {F'%s{F'",argument);
-+        log_chan(ch,buf,CHAN_BITCH);
-****
-        sprintf( buf, "{kYou gametalk {K'%s{K'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-        argument = makedrunk(argument,ch);
-+        sprintf(buf,"{k gametalks {K'%s{K'",argument);
-+        log_chan(ch,buf,CHAN_GAMETALK);
-****
-        sprintf( buf, "{zYou gratz {Z'%s{Z'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-+        sprintf(buf,"{z gratzes {Z'%s{Z'", argument);
-+        log_chan(ch,buf,CHAN_GRATZ);
-****
-        sprintf( buf, "{hYou quote {H'%s{H'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-+        sprintf(buf,"{h quotes {H'%s{H'{x",argument);
-+        log_chan(ch,buf,CHAN_QUOTE);
-****
-        sprintf( buf, "{qYou question {Q'%s{Q'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-+        sprintf(buf,"{q questions {Q'%s{Q'", argument);
-+        log_chan(ch,buf,CHAN_QUESTION);
-****
-        sprintf( buf, "{jYou answer {J'%s{J'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-+        sprintf(buf,"{j answers {J'%s{J'",argument);
-+        log_chan(ch,buf,CHAN_ANSWER);
-****
-        sprintf( buf, "{eYou MUSIC: {E'%s{E'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-        argument = makedrunk(argument,ch);
-+        sprintf(buf,"{e MUSIC: {E'%s{E'", argument);
-+        log_chan(ch,buf,CHAN_MUSIC);
-****
-    sprintf( buf, "{i$n: {I%s{x", argument );
-    act_new("{i$n: {I$t{x",ch,argument,NULL,TO_CHAR,POS_DEAD);
-
-+    sprintf(buf,"{i: {I'%s{I'", argument);
-+    log_chan(ch,buf,CHAN_IMMTALK);
-****
-        sprintf( buf, "{aYou auction {A'%s{A'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-+        sprintf(buf,"{a auctions {A'%s{A'", argument);
-+        log_chan(ch,buf,CHAN_AUCTION);
-
-***********
-in interp.c
-
-    { "noreply",    do_noreply, POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
-+    { "playback",   do_playback, POS_SLEEPING,   0,  LOG_NORMAL, 1, FALSE, FALSE},
-***********
-in interp.h
-
-DECLARE_DO_FUN( do_play     );
-+DECLARE_DO_FUN( do_playback );
-DECLARE_DO_FUN( do_pload    );
-
 **************************************************************/
 
 
@@ -156,40 +21,44 @@ DECLARE_DO_FUN( do_pload    );
 
 #define MAX_COMM_HISTORY 70
 /* Default number of results, needs to  be <=MAX_COMM_HISTORY */
-#define DEFAULT_RESULTS 35 
+#define DEFAULT_RESULTS 35
 
-typedef struct comm_history_entry COMM_ENTRY;
-typedef struct comm_history_type COMM_HISTORY;
+#define MAX_PERS_HISTORY 20
+#define DEFAULT_PERS_RESULTS 20
 
-struct comm_history_entry
-{
-    COMM_ENTRY *next;
-    COMM_ENTRY *prev;
 
-    char *timestamp;
-    char channel;
-    char *text;
-    bool invis;
-    char *mimic_name;
-    char *name;
-};
-
-struct comm_history_type
-{
-    sh_int size;
-    COMM_ENTRY *head; /* most recent */
-    COMM_ENTRY *tail; /* oldest */
-};
 
 
 /* declare the actual structures we will use*/
-COMM_HISTORY public_history;
-COMM_HISTORY immtalk_history;
-COMM_HISTORY savant_history;
+COMM_HISTORY public_history={0, NULL, NULL};
+COMM_HISTORY immtalk_history={0, NULL, NULL};
+COMM_HISTORY savant_history={0, NULL, NULL};
 
 COMM_ENTRY *comm_entry_new()
 {
-	return alloc_mem(sizeof(COMM_ENTRY));
+	COMM_ENTRY *entry=alloc_mem(sizeof(COMM_ENTRY));
+	entry->next=NULL;
+	entry->prev=NULL;
+	entry->text=NULL;
+	return entry;
+}
+
+PERS_ENTRY *pers_entry_new()
+{
+	PERS_ENTRY *entry=alloc_mem(sizeof(PERS_ENTRY));
+	entry->next=NULL;
+	entry->prev=NULL;
+	entry->text=NULL;
+	return entry;
+}
+
+PERS_HISTORY *pers_history_new()
+{
+	PERS_HISTORY *history=alloc_mem(sizeof(PERS_HISTORY));
+	history->head=NULL;
+	history->tail=NULL;
+	history->size=0;
+	return history;
 }
 
 void comm_entry_free(COMM_ENTRY *entry)
@@ -200,6 +69,59 @@ void comm_entry_free(COMM_ENTRY *entry)
 	free_string(entry->name);
 	free_mem(entry, sizeof(COMM_ENTRY) );
 }
+
+void pers_entry_free(PERS_ENTRY *entry)
+{
+	free_string(entry->text);
+	free_mem(entry, sizeof(PERS_ENTRY) );
+}
+
+void pers_history_free(PERS_HISTORY *history)
+{
+	free_mem(history, sizeof(PERS_HISTORY) );
+}
+
+void log_pers( PERS_HISTORY *history, char *text )
+{
+	PERS_ENTRY *entry=pers_entry_new();
+	char time[MSL];
+	char buf[MSL*2];
+	
+	strcpy(time, ctime( &current_time ) );
+	time[strlen(time)-1] = '\0';
+	sprintf(buf, "%s:::%s", time, text );
+	entry->text=str_dup(buf);
+	
+		/* add it to the history */
+	if ( history->head == NULL )
+	{
+		/* empty history */
+		history->head=entry;
+		history->tail=entry;
+		history->size=1;
+		entry->prev=NULL;
+		entry->next=NULL;
+	}
+	else
+	{
+		entry->next=history->head;
+		history->head->prev=entry;
+		history->head=entry;
+		history->size+=1;
+	}
+	
+	if ( history->size > MAX_PERS_HISTORY )
+	{
+		/* It's over full, pop off the tail */
+		PERS_ENTRY *destroy=history->tail;
+		history->tail=destroy->prev;
+		destroy->prev->next=NULL;
+		history->size -= 1;
+		pers_entry_free(destroy);
+	}
+		
+}
+
 
 void log_chan(CHAR_DATA * ch, char * text , char channel)
 {
@@ -286,6 +208,9 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
 void do_playback(CHAR_DATA *ch, char * argument)
 {
     
+	if ( IS_NPC(ch) )
+		return;
+	
     BUFFER *output;
     char arg[MSL];
     sh_int arg_number;
@@ -318,7 +243,9 @@ void do_playback(CHAR_DATA *ch, char * argument)
 	else
 	{
 		/* specify channel and argument */
-		COMM_HISTORY *history;
+		COMM_HISTORY *history=NULL;
+		PERS_HISTORY *phistory=NULL;
+		
 		if (!strcmp(arg, "imm" ) )
 		{
 			history=&immtalk_history;
@@ -326,6 +253,19 @@ void do_playback(CHAR_DATA *ch, char * argument)
 		else if (!strcmp(arg, "savant" ) )
 		{
 			history=&savant_history;
+		}
+		else if (!strcmp(arg, "gtell" ) )
+		{
+			phistory= ch->pcdata->gtell_history;
+		}
+		else if (!strcmp(arg, "tell" ) )
+		{
+			phistory= ch->pcdata->tell_history;
+			ch->pcdata->new_tells=FALSE;
+		}
+		else if (!strcmp(arg, "clan" ) )
+		{
+			phistory= ch->pcdata->clan_history;
 		}
 		else
 		{
@@ -337,7 +277,10 @@ void do_playback(CHAR_DATA *ch, char * argument)
 		argument=one_argument(argument,arg2);
 		if (arg2[0] == '\0')
 		{
-			playback_to_char( ch, history, DEFAULT_RESULTS );
+			if (history)
+				playback_to_char( ch, history, DEFAULT_RESULTS );
+			else if (phistory)
+				playback_pers( ch, phistory);
 			return;
 		}
 		else if (is_number(arg2))
@@ -384,7 +327,7 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 	output = new_buf();
 	COMM_ENTRY *entry;
 	int entry_num=0;
-    for ( entry=history->head ; entry != NULL ; entry=entry->next )
+    for ( entry=history->tail ; entry != NULL ; entry=entry->prev )
     {
 		entry_num+=1;
 		if ( entry_num > entries )
@@ -424,4 +367,23 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 	
     page_to_char(buf_string(output),ch);
     free_buf(output);
+}
+
+void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history)
+{
+	if (history==NULL)
+	{	
+		bugf("NULL history passed to playback_pers.");
+		return;
+	}
+	if ( history->tail == NULL )
+		return;
+		
+	PERS_ENTRY *entry;
+	
+	for ( entry=history->tail ; entry != NULL ; entry=entry->prev )
+	{
+		send_to_char( entry->text, ch);
+	}
+
 }
