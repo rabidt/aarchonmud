@@ -984,8 +984,6 @@ void remort_complete(CHAR_DATA *ch)
     
     do_outfit(ch,"");
     obj_to_char(create_object(get_obj_index(OBJ_VNUM_MAP),0),ch);
-		/* Load newbie guide on char -- Maedhros 1/11/12 */
-		obj_to_char(create_object(get_obj_index(OBJ_VNUM_NEWBIE_GUIDE),0),ch);
     
     ch->next    = char_list;
     char_list   = ch;
