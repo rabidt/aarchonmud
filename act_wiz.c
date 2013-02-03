@@ -3895,9 +3895,6 @@ void do_charloadtest(CHAR_DATA *ch, char *argument)
 
    fgetf( buf, 100000, fp );
 
-
-
-
    pclose( fp );
 
    char * pch;
@@ -3911,36 +3908,6 @@ void do_charloadtest(CHAR_DATA *ch, char *argument)
 
 	pch = strtok( NULL, "\n\r");
    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    //page_to_char(buf,ch);
   
    return;

@@ -979,14 +979,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
 /* mana burn */
     if ( IS_AFFECTED(ch, AFF_MANA_BURN) || ( IS_AFFECTED(ch, AFF_OVERCHARGE) && number_bits(1) == 0 ) )
     {
-        if ( str_cmp( skill_table[sn].name, "cure mortal" )  ||
-	     str_cmp( skill_table[sn].name, "heal" ) )
-	{    
-	    direct_damage( ch, ch, (4*mana)/3, skill_lookup("mana_burn") );
-	    if ( IS_DEAD(ch) )
-	        return;
-	}
-	
 	direct_damage( ch, ch, 2*mana, skill_lookup("mana burn") );
 	if ( IS_DEAD(ch) )
 	    return;

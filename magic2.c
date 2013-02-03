@@ -1173,12 +1173,8 @@ void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
     ch->mana -= heal/factor;
     victim->hit = UMIN(victim->hit + heal, victim->max_hit );
-/*
     update_pos( victim );
 
-    send_to_char("You feel better.\n\r", victim );
-    if ( ch != victim )
-        send_to_char("Ok.\n\r", ch );*/
     if ( victim->max_hit <= victim->hit )
     {
         send_to_char( "You feel excellent!\n\r", victim );
@@ -1308,7 +1304,7 @@ void spell_goodberry( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 	}
 	if (berry_level <= 0)
 	{
-	  send_to_char("These are supposed to heal not kill, you idiot!\n\r", ch);
+	  send_to_char("These are supposed to heal, not kill!\n\r", ch);
 	  return;
 	}
     }

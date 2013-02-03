@@ -471,8 +471,9 @@ void special_affect_update(CHAR_DATA *ch)
 			case SKY_LIGHTNING: sunlight = 50; break;
 			default: sunlight = 100; break;
 		}
-		if ( weather_info.sunlight == SUN_LIGHT )
-	    sunlight /= 2;
+		// reduce damage during sunrise
+		if ( weather_info.sunlight != SUN_LIGHT )
+                    sunlight /= 2;
 
 		/* tune to fit char level */
 		sunlight = (ch->level + 10) * sunlight/100;
@@ -482,13 +483,11 @@ void special_affect_update(CHAR_DATA *ch)
 			if ( IS_AFFECTED(ch, AFF_SHROUD))
 			{
 				sunlight /= 2;
-				/* send_to_char( "Your shroud absorbs part of the sunlight.\r\n",ch ); */
 				act_gag("Your shroud absorbs part of the sunlight.",ch,NULL,NULL,TO_CHAR,GAG_SUNBURN);
 				full_dam( ch, ch, sunlight, gsn_torch, DAM_LIGHT, TRUE );
 			}
 			else
 			{
-/*	        send_to_char( "The sunlight burns your skin!\n\r", ch ); */
 				act_gag("The sunlight burns your skin.",ch,NULL,NULL,TO_CHAR,GAG_SUNBURN);
 				/* misuse torch skill damage message */
 				full_dam( ch, ch, sunlight, gsn_torch, DAM_LIGHT, TRUE );
@@ -506,7 +505,7 @@ void special_affect_update(CHAR_DATA *ch)
         af.type     = gsn_shan_ya;
         af.level    = ch->level;
         af.duration = 1;
-        af.modifier = 45 + ch->level;
+        af.modifier = 2 * (10 + ch->level);
         af.bitvector = AFF_BERSERK;
         
         af.location = APPLY_HITROLL;
@@ -5540,14 +5539,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 
     if (ch == victim)
     {
-    if (IS_SET (ch->form, FORM_SUNBURN)
-		    && (!IS_NPC(ch) || ch->pIndexData->vnum == MOB_VNUM_VAMPIRE)
-		    && !IS_AFFECTED(ch, AFF_SHELTER)
-		    && (IS_NPC(ch) || ch->desc != NULL || ch->fighting != NULL)
-		    && room_is_sunlit(ch->in_room) )
-	gag_type = GAG_SUNBURN;
+        if (IS_SET (ch->form, FORM_SUNBURN) && dt == gsn_torch)
+            gag_type = GAG_SUNBURN;
 
-	
         act_gag(buf1,ch,NULL,NULL,TO_ROOM, gag_type);
         act_gag(buf2,ch,NULL,NULL,TO_CHAR, gag_type);
     }
