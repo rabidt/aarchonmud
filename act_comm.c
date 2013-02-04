@@ -41,7 +41,6 @@
 #include "recycle.h"
 #include "tables.h"
 #include "signal.h"
-//#include <signal.h>
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit  );
@@ -131,7 +130,7 @@ void do_delete( CHAR_DATA *ch, char *argument)
 void do_channels( CHAR_DATA *ch, char *argument)
 {
     char buf[MAX_STRING_LENGTH];
-    /* test */
+
     /* lists all channels and their status */
     send_to_char("   channel     status\n\r",ch);
     send_to_char("---------------------\n\r",ch);
@@ -1345,7 +1344,7 @@ void do_clantalk( CHAR_DATA *ch, char *argument )
     argument = makedrunk(argument,ch);
     /* ACT is just unneccessary overhead here! Memnoch 03/98 */
     
-    sprintf(buf,"{l%s clans {L'%s{L'{x\n\r",ch->name,argument);
+    sprintf(buf,"{l%s {lclans {L'%s{L'{x\n\r",ch->name,argument);
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
@@ -1501,7 +1500,7 @@ void do_immtalk( CHAR_DATA *ch, char *argument )
     
     REMOVE_BIT(ch->comm,COMM_NOWIZ);
     
-    sprintf( buf, "{i$n{i: {I%s{x", argument );
+    sprintf( buf, "{i$n: {I%s{x", argument );
     act_new_gag("{i$n{i: {I$t{x",ch,argument,NULL,TO_CHAR,POS_DEAD, GAG_NCOL_CHAN, FALSE);
 
 
@@ -1677,7 +1676,7 @@ void do_shout( CHAR_DATA *ch, char *argument )
     DESCRIPTOR_DATA *d;
     bool found;
     sh_int pos;
-    char buf[MSL]; 
+
     if (NOT_AUTHED(ch))
     {
         send_to_char("Huh?\n\r", ch);
@@ -2557,6 +2556,12 @@ void do_quit( CHAR_DATA *ch, char *argument )
         return;
     }
 
+    if (IS_SET( ch->act, PLR_WAR ))
+   {
+     send_to_char( "You cannot quit out of a warfare!\n\r", ch);
+     return;
+   }
+
     quit_char( ch );
 }
 
@@ -2590,9 +2595,6 @@ void quit_char( CHAR_DATA *ch )
     info_message_new(ch, log_buf, FALSE, FALSE);
 
     strcat(log_buf, "\n");
-    //log_comm(NULL,log_buf);
-
-    
     /*
     * After extract_char the ch is no longer valid!
     */
@@ -2608,10 +2610,6 @@ void quit_char( CHAR_DATA *ch )
 	REMOVE_BIT( ch->act, PLR_QUESTORHARD );
 	ch->pcdata->quest_failed++;
     }
-
-    quit_save_char_obj( ch );
-/*    if ( ch->pcdata->box_data[0] != NULL)
-        quit_save_storage_box( ch );*/
 
     if (!IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))
        quit_save_char_obj( ch );
@@ -2945,9 +2943,9 @@ void do_group( CHAR_DATA *ch, char *argument )
 			 "[%3d %s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %c%c%c%c%c%c %5d etl\n\r",
 			 gch->level,
 			 IS_NPC(gch) ? "Mob" : class_table[gch->class].who_name,
-//			 capitalize( PERS(gch, ch) ),
-/* I think this is the appropriate fix for displaying names in group - Astark 1-6-13 */
-			 get_mimic_PERS_new(gch, ch,GAG_NCOL_CHAN), /* end fix */
+			 /* Commented out so colored names work -- Maedhros 11/27/11 */
+			 /*capitalize( PERS(gch, ch) ), */
+			 IS_NPC(gch)?gch->short_descr:gch->name,
 			 hp_col, gch->hit,   gch->max_hit,
 			 mn_col, gch->mana,  gch->max_mana,
 			 mv_col, gch->move,  gch->max_move,
@@ -3931,9 +3929,7 @@ void do_savantalk( CHAR_DATA *ch, char *argument )
     
     REMOVE_BIT(ch->comm,COMM_NOSAVANT);
     
-    sprintf( buf, "{7$n-> {8%s{x", argument );
-    act_new("{7$n-> {8$t{x",ch,argument,NULL,TO_CHAR,POS_DEAD);
-
+    act_new_gag("{7$n{7-> {8$t{x",ch,argument,NULL,TO_CHAR,POS_DEAD,GAG_NCOL_CHAN,FALSE);
     sprintf( buf, "{7-> {8'%s'{x", argument );
     log_chan(ch,buf,CHAN_SAVANT);
     
@@ -3956,7 +3952,7 @@ void do_savantalk( CHAR_DATA *ch, char *argument )
             if (!found)
             {
                 
-                act_new_gag("{7$n-> {8$t{x",ch,argument,d->character,TO_VICT,POS_DEAD,GAG_NCOL_CHAN, FALSE);
+                act_new_gag("{7$n{7-> {8$t{x",ch,argument,d->character,TO_VICT,POS_DEAD,GAG_NCOL_CHAN,FALSE);
             }
         }
     }
@@ -4003,6 +3999,7 @@ void do_gag( CHAR_DATA *ch, char *argument )
 	print_gag("immune", GAG_IMMUNE, ch);
 	print_gag(" equip", GAG_EQUIP, ch);
 	print_gag("  aura", GAG_AURA, ch);
+	print_gag("sunburn", GAG_SUNBURN, ch);
         return;
     }
     
@@ -4020,11 +4017,11 @@ void do_gag( CHAR_DATA *ch, char *argument )
         return;
     if (check_gag_arg(argument, "aura", GAG_AURA, ch))
 	return;
-    if (check_gag_arg(argument, "ncolchan", GAG_NCOL_CHAN, ch))
+    if (check_gag_arg(argument, "sunburn", GAG_SUNBURN, ch))
 	return;
     
     send_to_char("Syntax: gag\n\r", ch);
-    send_to_char("Syntax: gag [miss|wflag|fade|bleed|immune|equip]\n\r", ch);
+    send_to_char("Syntax: gag [miss|wflag|fade|bleed|immune|equip|sunburn]\n\r", ch);
 }
 
 void do_try ( CHAR_DATA *ch, char *argument )

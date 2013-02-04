@@ -155,7 +155,6 @@ extern int REAL_NUM_STRINGS;
 #if defined(unix) || defined( WIN32 )
 #if defined(SOCR)
 #include "signal.h"
-//#include <signal.h>
 #else
 #include <signal.h>
 #endif
@@ -3546,6 +3545,19 @@ void copyover_recover ()
                 char_to_room(d->character->pet,d->character->in_room);
                 act("$n materializes!.",d->character->pet,NULL,NULL,TO_ROOM);
             }
+
+	    /* Auth list status now updates correctly after a copyover. */
+	    /* Also, authorizing a character who was online during a */
+	    /* copyover, after the copyover, now works correctly. */
+	    /* Jan 14, 2006 - Elik */
+	    /* This does have the side effects of repeating, for instance, */
+	    /* the name change message, and such.  The option, I guess, is */
+	    /* to rip some guts out of check_auth_state and put them here, */
+	    /* mostly the check for the character having been offline,     */
+	    /* but I'd rather have a small function in auth that did that, */
+	    /* and call it from check_auth_state, and from here, than      */
+	    /* spread code around. */
+	    check_auth_state(d->character);
         }
         
     }
@@ -3683,6 +3695,18 @@ void install_other_handlers ()
         exit (1);
     }
 
+    // make sure we don't use BSD style of signal handling..
+    static struct sigaction act;
+    act.sa_handler = nasty_signal_handler;
+    //act.sa_mask = ???;
+    act.sa_flags = SA_NOMASK;
+
+    sigaction (SIGSEGV, &act, NULL);
+    sigaction (SIGFPE, &act, NULL);
+    sigaction (SIGBUS, &act, NULL);
+    sigaction (SIGABRT, &act, NULL);
+    sigaction (SIGILL, &act, NULL);
+    sigaction (SIGINT, &act, NULL);
     /* should probably check return code here */
     signal (SIGSEGV, nasty_signal_handler);
 

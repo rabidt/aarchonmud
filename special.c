@@ -754,6 +754,9 @@ bool spec_executioner( CHAR_DATA *ch )
     if ( !IS_AWAKE(ch) || ch->fighting != NULL )
 	return FALSE;
 
+    if ( !IS_NPC(ch))
+        return FALSE;
+
     /*
     if ( IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
 	return FALSE;
