@@ -3185,10 +3185,23 @@ void do_punload( CHAR_DATA *ch, char *argument )
     
     argument = one_argument(argument, who);
     
+    if (who[0] == '\0')
+    {
+	send_to_char( "Punload who?\n\r", ch);
+	return;
+    }
+
+
     if ( ( victim = get_char_world( ch, who ) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
+    }
+
+    if ( IS_NPC(victim) )
+    {
+	send_to_char( "Can't punload an NPC!\n\r", ch);
+	return;
     }
     
     /** Person is legitimately logged on... was not ploaded.

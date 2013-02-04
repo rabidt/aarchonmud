@@ -2595,7 +2595,7 @@ void do_recite( CHAR_DATA *ch, char *argument )
     {
         send_to_char("You mispronounce a syllable.\n\r",ch);
         check_improve(ch,gsn_scrolls,FALSE,2);
-		extract_obj(scroll);
+	extract_obj(scroll);
     }
     else
     {
