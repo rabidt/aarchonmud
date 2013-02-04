@@ -18,3 +18,5 @@ review & changes after merge with Maedhros code
 - merged/fixed acid_blast, was way overpowered.
 - made conviction TARGET_OFFENSIVE and removed healing. Uses standard damage formula now.
 - reduced power of Astark's rejuvenation. Now heals standard amount (*2/3 for group) and dispels maledictions at half level.
+- fixed type conflict in do_mpcall
+- firstaid now based on standard healing formula

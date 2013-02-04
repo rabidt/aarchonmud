@@ -6469,7 +6469,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_STANDING,
-	&gsn_firstaid,  SLOT(0),    0,  24,
+	&gsn_firstaid,  SLOT(0),   40,  24,
 	"",         "!FirstAid!",   ""
 	},
 
