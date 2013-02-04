@@ -46,7 +46,6 @@ void reverse_char_list();
 void check_rescue( CHAR_DATA *ch );
 void check_jump_up( CHAR_DATA *ch );
 void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam );
-bool check_critical(CHAR_DATA *ch, CHAR_DATA *victim);
 void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
@@ -118,7 +117,7 @@ DECLARE_SPEC_FUN(   spec_guard          );
 /*
 * Local functions.
 */
-bool check_critical  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+bool check_critical  args( ( CHAR_DATA *ch, bool secondary ) );
 bool check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
 bool stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -167,23 +166,27 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
 
 
-bool check_critical(CHAR_DATA *ch, CHAR_DATA *victim)
+bool check_critical(CHAR_DATA *ch, bool secondary)
 {
     OBJ_DATA *obj;
+    
+    if (!secondary)
+        obj = get_eq_char( ch, WEAR_WIELD );
+    else
+        obj = get_eq_char( ch, WEAR_SECONDARY );
 
-    obj = get_eq_char(ch,WEAR_WIELD);
-
-    if ( get_eq_char(ch,WEAR_WIELD) == NULL || get_skill(ch,gsn_critical) <  1 || get_weapon_skill(ch,get_weapon_sn(ch)) < 95 || number_range(0,100) > get_skill(ch,gsn_critical)) 
+    if ( obj == NULL 
+	|| get_skill(ch,gsn_critical) <  1 
+	|| get_weapon_skill( ch, get_weapon_sn_new( ch, secondary ) ) < 95 
+	|| number_range(0,100) > get_skill(ch,gsn_critical) )
                   return FALSE;
         
-        if ( number_range(0,100) > 3 )
-                return FALSE;
-
-        /* Now, if it passed all the tests... */
-
-        act("$p {RCRITICALLY STRIKES{x $n!",victim,obj,NULL,TO_NOTVICT);
-        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
-        check_improve(ch,gsn_critical,TRUE,4);
+	/* 3% chance to work */
+     int roll=number_percent();
+     if ( roll < 98 )
+        return FALSE;
+	
+     else	
         return TRUE;
 }
 
@@ -472,8 +475,9 @@ void special_affect_update(CHAR_DATA *ch)
 			case SKY_LIGHTNING: sunlight = 50; break;
 			default: sunlight = 100; break;
 		}
-		if ( weather_info.sunlight == SUN_LIGHT )
-	    sunlight /= 2;
+		// reduce damage during sunrise
+		if ( weather_info.sunlight != SUN_LIGHT )
+                    sunlight /= 2;
 
 		/* tune to fit char level */
 		sunlight = (ch->level + 10) * sunlight/100;
@@ -483,13 +487,11 @@ void special_affect_update(CHAR_DATA *ch)
 			if ( IS_AFFECTED(ch, AFF_SHROUD))
 			{
 				sunlight /= 2;
-				/* send_to_char( "Your shroud absorbs part of the sunlight.\r\n",ch ); */
 				act_gag("Your shroud absorbs part of the sunlight.",ch,NULL,NULL,TO_CHAR,GAG_SUNBURN);
 				full_dam( ch, ch, sunlight, gsn_torch, DAM_LIGHT, TRUE );
 			}
 			else
 			{
-/*	        send_to_char( "The sunlight burns your skin!\n\r", ch ); */
 				act_gag("The sunlight burns your skin.",ch,NULL,NULL,TO_CHAR,GAG_SUNBURN);
 				/* misuse torch skill damage message */
 				full_dam( ch, ch, sunlight, gsn_torch, DAM_LIGHT, TRUE );
@@ -503,21 +505,25 @@ void special_affect_update(CHAR_DATA *ch)
     {
 	AFFECT_DATA af;
 
-        af.where    = TO_AFFECTS;
-        af.type     = gsn_shan_ya;
-        af.level    = ch->level;
-        af.duration = 1;
-        af.modifier = 45 + ch->level;
-        af.bitvector = AFF_BERSERK;
-        
-        af.location = APPLY_HITROLL;
-        affect_to_char(ch,&af);
+        // increasing chance of activation with lower health
+        int chance_act = 50 + 50 * (ch->max_hit - ch->hit) / UMAX(1, ch->max_hit);
+        if (chance(chance_act)) {            
+            af.where    = TO_AFFECTS;
+            af.type     = gsn_shan_ya;
+            af.level    = ch->level;
+            af.duration = 1;
+            af.modifier = 2 * (10 + ch->level);
+            af.bitvector = AFF_BERSERK;
+            
+            af.location = APPLY_HITROLL;
+            affect_to_char(ch,&af);
 
-        af.location = APPLY_DAMROLL;
-        affect_to_char(ch,&af);
- 	
-        send_to_char( "{WYou're enraged with shan-ya battle madness!{x\n\r", ch);
-        act( "{W$n {Wis enraged with shan-ya battle madness!{x", ch,NULL,NULL,TO_ROOM);
+            af.location = APPLY_DAMROLL;
+            affect_to_char(ch,&af);
+
+            send_to_char( "{WYou're enraged with shan-ya battle madness!{x\n\r", ch);
+            act( "{W$n {Wis enraged with shan-ya battle madness!{x", ch,NULL,NULL,TO_ROOM);
+        }
     }
 
     /* divine healing */
@@ -1787,8 +1793,13 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
 	dam = dam * 9/10;
 
-    if ( check_critical(ch,victim) )
+    if ( check_critical(ch,secondary) == TRUE )
+    {
+	act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
+        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
+        check_improve(ch,gsn_critical,TRUE,4);
         dam *= 2;
+    }
 
  /* Temporary fix for backstab and circle to check anatomy for
     damage boost - Astark 1-6-13 */
@@ -4342,6 +4353,12 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
     }
     */
 
+    if ( IS_AFFECTED( ch, AFF_OVERCHARGE))
+    {
+	affect_strip_flag( ch, AFF_OVERCHARGE );
+        send_to_char( "Your mana calms down as you refocus and ready for battle.\n\r", ch );
+    }
+
     if (victim && IS_NPC(ch) && IS_SET(ch->off_flags, OFF_HUNT))
 	set_hunting(ch, victim);
     
@@ -5362,14 +5379,16 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
 	bonus += 10;
 
     /* religion bonus */
-    xp += xp * get_religion_bonus(gch) / 100;
+    bonus += get_religion_bonus(gch);
     
     /* bonus for AFF_LEARN */
     if ( IS_AFFECTED(gch, AFF_LEARN) )
-	xp += xp/2;
+	bonus += 50;
 
     if ( IS_AFFECTED(gch, AFF_HALLOW) )
-        xp += xp/5;
+        bonus += 20;
+
+    xp += xp * bonus / 100;
 
     return xp;
 }
@@ -5543,14 +5562,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 
     if (ch == victim)
     {
-    if (IS_SET (ch->form, FORM_SUNBURN)
-		    && (!IS_NPC(ch) || ch->pIndexData->vnum == MOB_VNUM_VAMPIRE)
-		    && !IS_AFFECTED(ch, AFF_SHELTER)
-		    && (IS_NPC(ch) || ch->desc != NULL || ch->fighting != NULL)
-		    && room_is_sunlit(ch->in_room) )
-	gag_type = GAG_SUNBURN;
+        if (IS_SET (ch->form, FORM_SUNBURN) && dt == gsn_torch)
+            gag_type = GAG_SUNBURN;
 
-	
         act_gag(buf1,ch,NULL,NULL,TO_ROOM, gag_type);
         act_gag(buf2,ch,NULL,NULL,TO_CHAR, gag_type);
     }

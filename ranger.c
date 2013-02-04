@@ -296,9 +296,16 @@ void do_firstaid( CHAR_DATA *ch, char *argument )
 	int heal = 0;
 	int skill;
 	int max_heal;
-	double anatomy_bonus;  /* added July 2003 .. rangers don't even have anatomy yet though */
+	int mana_cost = skill_table[gsn_firstaid].min_mana;
+        char buf[MAX_STRING_LENGTH];
 
-	argument = one_argument( argument, arg1 );
+        skill = get_skill(ch, gsn_firstaid);
+        if (skill < 1)
+        {
+           send_to_char("You don't know how to give first aid.\n\r", ch);
+        }
+
+        argument = one_argument( argument, arg1 );
 
 	if ( arg1[0] == '\0' )
 	    target = ch;
@@ -311,44 +318,34 @@ void do_firstaid( CHAR_DATA *ch, char *argument )
 	    }
 	}
 
-	anatomy_bonus = 1 + get_skill(ch, gsn_anatomy)/200.0;
+        if (ch->mana < mana_cost)
+        {
+           send_to_char("You don't have enough mana to focus properly.\n\r", ch);
+           return;
+        }
+
+        max_heal = get_sn_heal( gsn_firstaid, ch->level, ch, target );
 
 	switch ( ch->in_room->sector_type )
 	{
 	case SECT_FOREST:
-	    max_heal = (int)(400*anatomy_bonus);
+	    max_heal = max_heal * 2;
 	    break;
 	case SECT_FIELD:
 	case SECT_HILLS:
 	case SECT_MOUNTAIN:
-	    max_heal = (int)(350*anatomy_bonus);
+	    max_heal = max_heal * 3/2;
 	    break;
 	default:
-	    max_heal = (int)(300*anatomy_bonus);
+            break;
 	}
 	
-	if ( target != ch )
-	    max_heal += (int)(100*anatomy_bonus);
-
-	skill = get_skill(ch, gsn_firstaid);
-
-	if (skill < 1)
+	if (number_percent() < skill)
 	{
-	   send_to_char("You don't know how to give first aid.\n\r",ch);
-	}
-	else if (ch->mana < 40)
-	{
-	   send_to_char("You don't have enough mana to focus properly.\n\r",ch);
-	}
-	else if (number_percent() < skill)
-	{
-	   target->hit = UMIN(target->hit, target->max_hit);
-	   heal = number_fuzzy(max_heal * (target->max_hit - target->hit)/target->max_hit);
-
-	   target->hit = (short)UMAX(target->hit, UMIN( target->hit + heal, target->max_hit * .9 ));
+           ch->mana -= mana_cost;
+	   target->hit = UMIN(target->hit + heal, target->max_hit);
 	   update_pos( target );
-		
-	   if (ch == target)
+           if (ch == target)
 	   {
 		  send_to_char("You draw healing energy from the earth and give yourself first aid.\n\r", ch);
 		  act("$n draws healing energy from the earth and gives $mself first aid.",
@@ -363,17 +360,17 @@ void do_firstaid( CHAR_DATA *ch, char *argument )
 		  act("$n draws healing energy from the earth and gives $N first aid.",
 			 ch, NULL, target, TO_NOTVICT);
 	   }
+           if (IS_IMMORTAL(ch) || IS_AFFECTED(ch, AFF_BATTLE_METER)) {
+               sprintf(buf, "Healed %dhp.\n\r", heal);
+               send_to_char(buf, ch);
+           }
 
-	   ch->mana -= 40;
-		
-	   send_to_char( "You feel better!\n\r", target);
-	   check_improve(ch, gsn_firstaid, TRUE, 2);
-	   check_improve(ch, gsn_anatomy, TRUE, 1);
+           check_improve(ch, gsn_firstaid, TRUE, 2);
 	   WAIT_STATE(ch, skill_table[gsn_firstaid].beats);
 	}
 	else
 	{
-	   ch->mana -= 20;
+	   ch->mana -= mana_cost / 2;
 	   send_to_char("You lose concentration and fumble your bandages into the muck.\n\r", ch);
 	   check_improve(ch, gsn_firstaid, FALSE, 2);
 	   WAIT_STATE(ch, skill_table[gsn_firstaid].beats);

@@ -471,8 +471,9 @@ void war_update( void )
         
 	last_war_time = current_time;
 
-	war.reward += war.combatants*9;
-	war.reward = UMIN(90, war.reward);
+	war.reward += war.combatants*12;
+        // limit to 50 to prevent exploit via quest buy warfare
+	war.reward = UMIN(50, war.reward);
 
         sprintf( buf, "The battle begins with %d combatants in the war!\n\r", war.combatants );
         warfare( buf );

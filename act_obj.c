@@ -2428,23 +2428,14 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
        int power = dice( obj->level, obj->level ) / 10;
        int skill = get_skill( ch, gsn_drain_life );
 
-       if ( skill > 0 && ch->hit < ch->max_hit && !PLR_ACT(ch, PLR_WAR) )
+       if ( skill > 0 && ch->hit < ch->max_hit && !PLR_ACT(ch, PLR_WAR) && obj->timer != -1 )
        {
-		if (obj->timer == -1)
-		{
-	     int hp = 0;
-	     sprintf(buf,"You drain %d hp from the corpse.\n\r", hp);
-	     send_to_char(buf, ch);
-		}
-		else
-		{
 	     int hp = 2 + 2 * power * skill/100;
 	     ch->hit = UMIN(ch->hit + hp, ch->max_hit);
 	     sprintf(buf,"You drain %d hp from the corpse.\n\r", hp);
 	     send_to_char(buf, ch);
 	     change_align(ch,-2);
-        }
-	   }
+       }
 
        if ( IS_AFFECTED(ch, AFF_RITUAL) ) 
        {
@@ -2604,7 +2595,7 @@ void do_recite( CHAR_DATA *ch, char *argument )
     {
         send_to_char("You mispronounce a syllable.\n\r",ch);
         check_improve(ch,gsn_scrolls,FALSE,2);
-		extract_obj(scroll);
+	extract_obj(scroll);
     }
     else
     {
