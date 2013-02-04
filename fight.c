@@ -465,33 +465,37 @@ void special_affect_update(CHAR_DATA *ch)
 	 && (IS_NPC(ch) || ch->desc != NULL || ch->fighting != NULL)
 	 && room_is_sunlit(ch->in_room) )
     {
-	int sunlight;
-	switch ( weather_info.sky )
-	{
-	case SKY_CLOUDLESS: sunlight = 200; break;
-	case SKY_CLOUDY: sunlight = 150; break;
-	case SKY_RAINING: sunlight = 100; break;
-	case SKY_LIGHTNING: sunlight = 50; break;
-	default: sunlight = 100; break;
-	}
-	if ( weather_info.sunlight == SUN_LIGHT )
-	    sunlight /= 2;
+		int sunlight;
+		switch ( weather_info.sky )
+		{
+			case SKY_CLOUDLESS: sunlight = 150; break;
+			case SKY_CLOUDY: sunlight = 125; break;
+			case SKY_RAINING: sunlight = 100; break;
+			case SKY_LIGHTNING: sunlight = 50; break;
+			default: sunlight = 100; break;
+		}
+		// reduce damage during sunrise
+		if ( weather_info.sunlight != SUN_LIGHT )
+                    sunlight /= 2;
 
-	/* tune to fit char level */
-	sunlight = (ch->level + 10) * sunlight/100;
+		/* tune to fit char level */
+		sunlight = (ch->level + 10) * sunlight/100;
         
-        if ( IS_AFFECTED(ch, AFF_SHROUD))
-        {
-            sunlight /= 2;
-            send_to_char( "Your shroud absorbs part of the sunlight.\n\r", ch );
-	    full_dam( ch, ch, sunlight, gsn_torch, DAM_LIGHT, TRUE );
-        }
-	else if ( !saves_spell(sunlight, ch, DAM_LIGHT) )
-	{
-	    send_to_char( "The sunlight burns your skin!\n\r", ch );
-	    /* misuse torch skill damage message */
-	    full_dam( ch, ch, sunlight, gsn_torch, DAM_LIGHT, TRUE );
-	}
+		if ( !saves_spell(sunlight, ch, DAM_LIGHT) )
+		{
+			if ( IS_AFFECTED(ch, AFF_SHROUD))
+			{
+				sunlight /= 2;
+				act_gag("Your shroud absorbs part of the sunlight.",ch,NULL,NULL,TO_CHAR,GAG_SUNBURN);
+				full_dam( ch, ch, sunlight, gsn_torch, DAM_LIGHT, TRUE );
+			}
+			else
+			{
+				act_gag("The sunlight burns your skin.",ch,NULL,NULL,TO_CHAR,GAG_SUNBURN);
+				/* misuse torch skill damage message */
+				full_dam( ch, ch, sunlight, gsn_torch, DAM_LIGHT, TRUE );
+			}
+		}
     }
 
     /* shan-ya battle madness */
@@ -500,21 +504,25 @@ void special_affect_update(CHAR_DATA *ch)
     {
 	AFFECT_DATA af;
 
-        af.where    = TO_AFFECTS;
-        af.type     = gsn_shan_ya;
-        af.level    = ch->level;
-        af.duration = 1;
-        af.modifier = 2 * (10 + ch->level);
-        af.bitvector = AFF_BERSERK;
-        
-        af.location = APPLY_HITROLL;
-        affect_to_char(ch,&af);
+        // increasing chance of activation with lower health
+        int chance_act = 50 + 50 * (ch->max_hit - ch->hit) / UMAX(1, ch->max_hit);
+        if (chance(chance_act)) {            
+            af.where    = TO_AFFECTS;
+            af.type     = gsn_shan_ya;
+            af.level    = ch->level;
+            af.duration = 1;
+            af.modifier = 2 * (10 + ch->level);
+            af.bitvector = AFF_BERSERK;
+            
+            af.location = APPLY_HITROLL;
+            affect_to_char(ch,&af);
 
-        af.location = APPLY_DAMROLL;
-        affect_to_char(ch,&af);
- 	
-        send_to_char( "{WYou're enraged with shan-ya battle madness!{x\n\r", ch);
-        act( "{W$n is enraged with shan-ya battle madness!{x", ch,NULL,NULL,TO_ROOM);
+            af.location = APPLY_DAMROLL;
+            affect_to_char(ch,&af);
+
+            send_to_char( "{WYou're enraged with shan-ya battle madness!{x\n\r", ch);
+            act( "{W$n {Wis enraged with shan-ya battle madness!{x", ch,NULL,NULL,TO_ROOM);
+        }
     }
 
     /* divine healing */
@@ -1461,47 +1469,12 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     if ( wield != NULL && (wield->value[0] == WEAPON_GUN
 			   || wield->value[0] == WEAPON_BOW) )
     {
-      /* Added snipe and aim here so that they aren't checked until further down - Astark 1-3-13 */
-	if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto && dt != gsn_snipe
-	     && dt != gsn_aim && !number_bits(3) && chance(get_skill(ch, gsn_sharp_shooting)) )
+	if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto
+	     && !number_bits(3) && chance(get_skill(ch, gsn_sharp_shooting)) )
 	{
 	    dam *= 2;
 	    check_improve (ch, gsn_sharp_shooting, TRUE, 5);
 	}
-    
-       /* Added this little hack in to improve damage on aim and snipe. We should fully test
-          it later and compare damage numbers to the old aeaea binary. Works for now - Astark 1-3-13 */
-  
-       /* Updated on 1-6-13 to check for sharp shooting skill percentage */
- 
-        if ( dt == gsn_snipe )
-        {
-            if (number_bits(1))
-            {
-                dam *= get_skill(ch, gsn_sharp_shooting) / 20;
-                check_improve (ch, gsn_sharp_shooting, TRUE, 6);
-            }
-            else
-            {
-                dam *= get_skill(ch, gsn_sharp_shooting) / 25;
-                check_improve (ch, gsn_sharp_shooting, TRUE, 6);
-            }
-        }
-
-        if ( dt == gsn_aim )
-        {
-            if (number_bits(1))
-            {
-                dam *= get_skill(ch, gsn_sharp_shooting) / 33;
-                check_improve (ch, gsn_sharp_shooting, TRUE, 8);
-            }
-            else
-            {
-                dam *= get_skill(ch, gsn_sharp_shooting) / 40;
-                check_improve (ch, gsn_sharp_shooting, TRUE, 8);
-            }
-        }
-
     }
     else
     {
@@ -1511,10 +1484,26 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
 	check_improve (ch, gsn_brutal_damage, TRUE, 10);
     }
 
+    /* special attacks */
+    if ( dt == gsn_backstab || dt == gsn_back_leap || dt == gsn_snipe ) 
+	dam *= 3; 
+    else if ( dt == gsn_aim || dt == gsn_circle || dt == gsn_slash_throat )
+	dam *= 2;
+    else if ( dt == gsn_parry )
+	dam /= 2;
+
+    /* anatomy */
+    if ( (dt == gsn_backstab || dt == gsn_back_leap
+	  || dt == gsn_circle || dt == gsn_slash_throat)
+	 && chance(get_skill(ch, gsn_anatomy)) )
+    {
+	dam += dam/2;
+	check_improve(ch, gsn_anatomy, TRUE, 1);
+    }
     return number_range( dam * 2/3, dam );
 }
 
-int martial_damage( CHAR_DATA *ch, int sn, CHAR_DATA *victim)
+int martial_damage( CHAR_DATA *ch, int sn )
 {
     int dam = one_hit_damage( ch, sn, NULL );
 
@@ -2881,7 +2870,8 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
 		 *	with a gradual gradient between the two extremes.
 		 */
 		if( victim->hit < victim->max_hit/4 ) dam = 0;
-		else dam -= (victim->hit/victim->max_hit - .25) * 2/3;
+		//else dam -= (victim->hit/victim->max_hit - .25) * 2/3; Quirky, Quirky.. :P
+		else dam = dam * victim->hit/victim->max_hit * 2/3 - dam/6;
 	    }
 	}
 
@@ -5094,7 +5084,9 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
             xp = (xp*(low_level+99))/(high_level+99);
         }
 
-/*	if ( ch != gch && is_same_player(ch, gch) )
+/* Removed since we are allowing certain people to play from same IP
+ *	-Vodur 12/11/2011 
+	  if ( ch != gch && is_same_player(ch, gch) )
 	{
 	    sprintf( buf, "Multiplay: %s gaining experience from %s's kill",
 		     gch->name, ch->name );
@@ -5410,6 +5402,11 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     long gag_type = 0;
     int sn;
     
+#ifdef DEBUG_DAMTYPE
+    if (dt == 1000 + DEBUG_DAMTYPE) {
+	logpf("critical damage(A): %s dealing full %d damage to %s at %d", ch->name, dam, victim->name, ch->in_room->vnum);
+    }
+#endif
     if (ch == NULL || victim == NULL)
         return;
 
@@ -5470,6 +5467,11 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     
     punct   = (dam < 31) ? '.' : '!';
     
+#ifdef DEBUG_DAMTYPE
+    if (dt == 1000 + DEBUG_DAMTYPE) {
+	logpf("critical damage(B): %s dealing full %d damage to %s at %d", ch->name, dam, victim->name, ch->in_room->vnum);
+    }
+#endif
     if ( dt == TYPE_HIT )
     {
         if (ch  == victim)
@@ -5533,6 +5535,12 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
         }
     }
     
+#ifdef DEBUG_DAMTYPE
+    if (dt == 1000 + DEBUG_DAMTYPE) {
+	logpf("critical damage(C): %s dealing full %d damage to %s at %d", ch->name, dam, victim->name, ch->in_room->vnum);
+    }
+#endif
+    
     if ( immune )
 	gag_type = GAG_IMMUNE;
 
@@ -5551,6 +5559,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 
     if (ch == victim)
     {
+        if (IS_SET (ch->form, FORM_SUNBURN) && dt == gsn_torch)
+            gag_type = GAG_SUNBURN;
+
         act_gag(buf1,ch,NULL,NULL,TO_ROOM, gag_type);
         act_gag(buf2,ch,NULL,NULL,TO_CHAR, gag_type);
     }
@@ -5561,6 +5572,12 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
         act_gag( buf3, ch, NULL, victim, TO_VICT, gag_type);
     }
     
+#ifdef DEBUG_DAMTYPE
+    if (dt == 1000 + DEBUG_DAMTYPE) {
+	logpf("critical damage(D): %s dealing full %d damage to %s at %d", ch->name, dam, victim->name, ch->in_room->vnum);
+    }
+#endif
+
     return;
 }
 

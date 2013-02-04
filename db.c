@@ -118,7 +118,6 @@ SORT_TABLE *    bounty_table;
 int             jail_room_list[MAX_JAIL_ROOM];
 /* bool            wait_for_auth = AUTH_STATUS_IMM_ON; */
 bool            wait_for_auth = AUTH_STATUS_ENABLED;
-//bool            wait_for_auth = AUTH_STATUS_DISABLED;
 bool            exits_fixed = FALSE;
 
 sh_int  gsn_mindflay;
@@ -246,6 +245,7 @@ sh_int  gsn_word_of_recall;
 sh_int  gsn_fear;
 sh_int  gsn_confusion;
 sh_int  gsn_mass_confusion;
+sh_int  gsn_feeblemind;
 sh_int  gsn_haste;
 sh_int  gsn_giant_strength;
 sh_int  gsn_slow;
@@ -488,9 +488,9 @@ const int       rgSizeList  [MAX_MEM_LIST]  =
     128*1024, 256*1024, 512*1024, 1024*1024-64
 };
 
-int         nAllocString;
+extern int         nAllocString;
 int         sAllocString;
-int         nAllocPerm;
+extern int         nAllocPerm;
 int         sAllocPerm;
 
 /* version numbers for downward compatibility */
@@ -970,6 +970,8 @@ void new_load_area( FILE *fp )
             SKEY( "Name", pArea->name );
             if ( !str_cmp(word, "NoQuest"))
                 SET_BIT(pArea->area_flags,AREA_NOQUEST);
+            if ( !str_cmp(word, "NoHide"))
+                SET_BIT(pArea->area_flags,AREA_NOHIDE);
             break;
         case 'R':
             if ( !str_cmp(word, "Remort"))
@@ -2048,7 +2050,7 @@ void load_mobprogs( FILE *fp )
     
     for ( ; ; )
     {
-        sh_int vnum;
+        int vnum;
         char letter;
         
         letter        = fread_letter( fp );
@@ -4903,109 +4905,7 @@ void log_string( const char *str )
     return;
 }
 
-void log_comm(CHAR_DATA *ch, const char *str)
-{
-        FILE *fp;
-        char buf[MAX_STRING_LENGTH];
-        char *strtime;
-        bool new_file = FALSE;
 
-//this works//  system("mail -s \"caaa\" \"clayton.richey@gmail.com\" < ../log/1059.log");
-
-        struct tm * timeinfo = localtime(&current_time);
-        strtime = ctime( &current_time );
-        strtime[strlen(strtime)-1] = '\0';
-        sprintf(buf,"../log/comm/comm_%d_%d_%d", timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_year + 1900);
-        fclose( fpReserve );
-        if ( !(fp = fopen(buf, "r") ))
-        {
-                fp = fopen( buf, "w" );
-                new_file = TRUE;
-        }
-        else
-        {
-                fclose(fp);
-                fp = fopen( buf, "a" );
-        // bug( "Log_comm: fopen", 0 );
-        }
-        fprintf(fp,"%s :: %s{x~",strtime,str);
-
-
-        fclose( fp );
-        fpReserve = fopen( NULL_FILE, "r" );
-        if (new_file)
-        {
-/* If it's a new file, email the old one out then delete it */
-                fclose( fpReserve);
-                sprintf(buf,"../log/comm/comm_%d_%d_%d", timeinfo->tm_mon+1, timeinfo->tm_mday - 1, timeinfo->tm_year + 1900);
-                if (( fp = fopen( buf, "r" )))
-                {
-                        char buf2[MAX_STRING_LENGTH];
-//                        sprintf(buf2,"mail -s \"%s\" %s < %s",buf, "\"clayton.richey@gmail.com\"", buf);
-//                        system(buf2);
-                        sprintf(buf2,"mail -s \"%s\" %s < %s",buf, "\"crimsonsage@gmail.com\"", buf);
-                        system(buf2);
-
-//                        sprintf(buf2, "rm %s", buf);
-//                        system(buf2);
-                        fclose( fp );
-                }
-                fpReserve = fopen( NULL_FILE, "r" );
-                return;
-        }
-}
-
-/* log_say by odoth, called to save public communications in log files */
-
-void log_say(CHAR_DATA *ch, const char *str)
-{
-        FILE *fp;
-        char buf[MAX_STRING_LENGTH];
-        char *strtime;
-        bool new_file = FALSE;
-
-        struct tm * timeinfo = localtime(&current_time);
-        strtime = ctime( &current_time );
-        strtime[strlen(strtime)-1] = '\0';
-        sprintf(buf,"../log/comm/comm_%d_%d_%d", timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_year + 1900);
-        fclose( fpReserve );
-        if ( !(fp = fopen(buf, "r") ))
-        {
-                fp = fopen( buf, "w" );
-                new_file = TRUE;
-        }
-        else
-        {
-                fclose(fp);
-                fp = fopen( buf, "a" );
-        // bug( "Log_comm: fopen", 0 );
-        }
-        fprintf(fp,"%s : %s : %s{x~",strtime,ch->in_room->name,str);
-
-
-        fclose( fp );
-        fpReserve = fopen( NULL_FILE, "r" );
-        if (new_file)
-        {
-/* If it's a new file, email the old one out then delete it */
-                fclose( fpReserve);
-                sprintf(buf,"../log/comm/comm_%d_%d_%d", timeinfo->tm_mon+1, timeinfo->tm_mday - 1, timeinfo->tm_year + 1900);
-                if (( fp = fopen( buf, "r" )))
-                                                                         {
-                        char buf2[MAX_STRING_LENGTH];
-                        sprintf(buf2,"mail -s \"%s\" %s < %s",buf, "\"clayton.richey@gmail.com\"", buf);
-                        system(buf2);
-                        sprintf(buf2,"mail -s \"%s\" %s < %s",buf, "\"crimsonsage@gmail.com\"", buf);
-                        system(buf2);
-
-//                        sprintf(buf2, "rm %s", buf);
-//                        system(buf2);
-                        fclose( fp );
-                }
-                fpReserve = fopen( NULL_FILE, "r" );
-                return;
-        } 
-}
 
 
 
@@ -5038,8 +4938,7 @@ void cheat_log( const char *str )
     }
     
     /* this is the main thing ;) */
-    //fprintf( fp, "%s\n", str );
-
+    
     /* have to add the EOL to timestamp or it won't have one, weird */
     strcpy( ts, ctime(&current_time));
     ts[strlen(ts)-1] = '\0';

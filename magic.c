@@ -52,6 +52,10 @@ DECLARE_DO_FUN(do_recall    );
  */
 void    say_spell   args( ( CHAR_DATA *ch, int sn ) );
 
+bool is_offensive( int sn );
+bool can_cast_transport( CHAR_DATA *ch );
+void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target );
+
 /* imported functions */
 bool    remove_obj  args( ( CHAR_DATA *ch, int iWear, bool fReplace ) );
 void    wear_obj    args( ( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace ) );
@@ -307,7 +311,8 @@ bool can_cast_transport( CHAR_DATA *ch )
 
     return TRUE;
 }
-
+/* returns wether a skill is offensive
+ */
 bool is_offensive( int sn )
 {
     int target = skill_table[sn].target;
@@ -480,10 +485,6 @@ bool can_dispel(int sn)
 
   return TRUE;
 }
-
-/* returns wether a skill is offensive
- */
-
 
 /* check whether one player is allowed to spell up another */
 bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
@@ -1191,7 +1192,7 @@ int get_spell_heal( int mana, int lag, int level )
 int adjust_spell_damage( int dam, CHAR_DATA *ch )
 {
     OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
-    OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
+    //OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
     bool has_focus = (obj != NULL && obj->item_type != ITEM_ARROWS);
 
     if ( was_obj_cast )
@@ -1210,14 +1211,6 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     {
 	dam += dam * (10 + ch->level - LEVEL_MIN_HERO) / 100;
     }
-
-    /* Mages wielding a dagger have a chance to do more damage when casting
-       based on dagger mastery skill -Astark Oct 2012 
-    if (ch->class == class_lookup("mage") && weapon->value[0] == WEAPON_DAGGER )
-    {
-        dam *= 1.10;
-    } */
-
 
     /* focus obj makes for more steady damage */
     if ( has_focus )
@@ -1277,12 +1270,9 @@ void spell_acid_blast( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
-    dam = get_sn_damage( sn, level*2, ch );
+    dam = get_sn_damage( sn, level, ch );
     if ( saves_spell( level, victim, DAM_ACID ) )
         dam /= 2;
-
-    if (get_skill(ch, gsn_acid_blast) >= 95 )
-        dam *= 1.15;
 
     full_dam( ch, victim, dam, sn,DAM_ACID,TRUE);
     return;
@@ -2081,9 +2071,14 @@ void spell_control_weather(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 }
 
 /* Explosives ala Rimbol.  Original idea from Wurm. */
+/* Added if check to make sure a player had room in there inventory for the item
+ *  * before casting it. Assholes were using this to core the mud 
+ *   */
 void spell_create_bomb( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
 	OBJ_DATA *bomb;
+  if ( ch->carry_number < can_carry_n(ch) )
+  {
 	bomb = create_object( get_obj_index( OBJ_VNUM_BOMB ), 0 );
 	act( "$n has created $p.", ch, bomb, NULL, TO_ROOM );
 	act( "You create $p.", ch, bomb, NULL, TO_CHAR );
@@ -2092,6 +2087,9 @@ void spell_create_bomb( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 	bomb->value[0] = UMAX(1, level/10) + 3;
 	bomb->level = level;
 	obj_to_char(bomb,ch);
+  }
+  else
+  send_to_char("You have no room in your inventory for that!\r\n", ch);
 	return;
 }
 
@@ -2113,9 +2111,14 @@ void spell_create_rose( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
 	OBJ_DATA *rose;
 	rose = create_object(get_obj_index(OBJ_VNUM_ROSE), 0);
+  if ( ch->carry_number < can_carry_n(ch) )
+  {
 	act("$n has created a beautiful red rose.",ch,rose,NULL,TO_ROOM);
 	send_to_char("You create a beautiful red rose.\n\r",ch);
 	obj_to_char(rose,ch);
+  }
+  else
+  send_to_char("You have no room in your inventory for that!\n\r",ch);
 	return;
 }
 
@@ -2253,7 +2256,8 @@ bool is_mental( int sn )
 	|| sn == gsn_charm_person
 	|| sn == gsn_sleep
 	|| sn == gsn_fear
-	|| sn == skill_lookup("feeblemind");
+    || sn == gsn_mindflay
+	|| sn == gsn_feeblemind;
 }
 
 void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target )
@@ -2261,9 +2265,8 @@ void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
     int i;
-
     for (i = 1; skill_table[i].name != NULL; i++)
-	if ( is_mental(i) && check_dispel(level, victim, i ) )
+	if ( is_mental(i) && check_dispel(level, victim, i) )
 	    found = TRUE;
 
     if (found)
@@ -2880,14 +2883,14 @@ void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     int result;
-    int mana;
-    int skill;
+    //int mana;
+    //int skill;
     
     if (obj->item_type != ITEM_ARMOR)
     {
         send_to_char("That isn't an armor.\n\r",ch);
-	mana = (200-skill)*mana/1000;
-        ch->mana += mana;
+		//mana = (200-skill)*mana/1000;
+        //ch->mana += mana;
         return;
     }
     
@@ -3573,8 +3576,7 @@ void spell_heal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     {
         send_to_char( "A warm feeling fills your body.\n\r", victim );
         if ( ch != victim )
-  /* Changed this from E to M to fix grammar error - Astark */
-            act( "You heal $M.", ch, NULL, victim, TO_CHAR );
+		act( "You heal $N.", ch, NULL, victim, TO_CHAR );
     }
     return;
 }
@@ -4053,9 +4055,16 @@ void spell_invis( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     /* character invisibility */
     victim = (CHAR_DATA *) vo;
     
-    if (IS_REMORT(ch))
+    /*if (IS_REMORT(ch))
     {
         send_to_char("There is no place to hide in remort.\n\r",ch);
+        return;
+    }
+    */
+
+    if (IS_NOHIDE(ch))
+    {
+        send_to_char("There is no place to hide.\n\r",ch);
         return;
     }
     
@@ -4251,6 +4260,12 @@ void spell_mass_invis( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     AFFECT_DATA af;
     CHAR_DATA *gch;
     
+    if (IS_NOHIDE(ch))
+    {
+        send_to_char("There is no place to hide.\n\r",ch);
+        return;
+    }
+
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( !is_same_group( gch, ch )
@@ -4688,7 +4703,7 @@ void spell_refresh( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     {
         send_to_char( "You feel less tired!\n\r", victim );
         if ( ch != victim )
-            act( "You refresh $M.", ch, NULL, victim, TO_CHAR );
+            act( "You refresh $N.", ch, NULL, victim, TO_CHAR );
     }
 
     return;
@@ -4913,7 +4928,7 @@ void spell_slow( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         ||  IS_SET(victim->imm_flags,IMM_MAGIC))
     {
         if (victim != ch)
-	    act( "Spell failed to slow $m down.", ch, victim, NULL, TO_CHAR );
+	    act( "Spell failed to slow $N down.\n\r", ch, NULL, victim,TO_CHAR);
         send_to_char("You feel momentarily lethargic.\n\r",victim);
         return;
     }
@@ -4923,7 +4938,7 @@ void spell_slow( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         if (!check_dispel(level,victim,skill_lookup("haste")))
         {
             if (victim != ch)
-		act( "Spell failed to reduce $s speed.", ch, victim, NULL, TO_CHAR );
+		act( "Spell failed to reduce $N speed.\n\r", ch, NULL, victim, TO_CHAR );
             send_to_char("You feel momentarily slower.\n\r",victim);
             return;
         }
@@ -5135,7 +5150,9 @@ void spell_teleport( int sn, int level, CHAR_DATA *ch, void *vo,int target )
  /* Teleport wasn't working because the IS_SET check was missing - Astark 1-7-13 */
 	 || IS_SET(pRoomIndex->room_flags, ROOM_PRIVATE)
 	 || IS_SET(pRoomIndex->room_flags, ROOM_SOLITARY)
-	 || IS_SET(pRoomIndex->room_flags, ROOM_JAIL) ) 
+	 || IS_SET(pRoomIndex->room_flags, ROOM_JAIL)
+	 || is_guild_room(pRoomIndex->vnum)
+	 || room_is_private(pRoomIndex) )
     {
         send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
         return;
