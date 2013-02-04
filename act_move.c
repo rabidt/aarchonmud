@@ -3187,62 +3187,92 @@ void check_bleed( CHAR_DATA *ch, int dir )
 
 
 bool explored_vnum(CHAR_DATA *ch, int vnum)
-{	int mask = vnum / 32; //Get which bucket the bit is in
-	unsigned int bit = vnum % 32; //Get which bit in the bucket we're playing with
+{	
+	int mask = vnum / 32; //Get which bucket the bit is in
+	int bit = vnum % 32; //Get which bit to set, 0 to 31
 	EXPLORE_HOLDER *pExp; //The buckets bucket.
-
-	if(bit == 0 ) // % 32 will return 0 if vnum == 32, instead make it the last bit of the previous mask
-	{	mask--;
-		bit = 32;
-	}
-
-	for(pExp = ch->pcdata->explored->bits ; pExp ; pExp = pExp->next ) //Iterate through the buckets
-	{	if(pExp->mask != mask)
+#ifdef EXPLORE_DEBUG
+	send_to_char("explored_vnum: start\n\r",ch);
+	printf_to_char(ch,"mask: %d\n\rbit: %d\n\r", mask,bit);
+#endif
+	
+	for(pExp = ch->pcdata->explored->buckets ; pExp ; pExp = pExp->next ) //Iterate through the buckets
+	{	
+		if(pExp->mask != mask)
 			continue;
 		//Found the right bucket, might be explored.
-		if(IS_SET_EXPLORE(pExp->bits, ( 1 << bit ) ) ) //Convert bit to 2^(bit-1) and see if it's set.
+		if ( ( ( pExp->bits >> bit) & 1 ) == 1 ) 
+		{
+#ifdef EXPLORE_DEBUG
+			send_to_char("IS_SET_EXPLORE returned true\n\r",ch);
+#endif
 			return TRUE;
+		}
 		return FALSE; //Return immediately. This value wont be in any other bucket.
 	}
 	return FALSE;
+#ifdef EXPLORE_DEBUG
+	send_to_char("explore_vnum: finish\n\r",ch);
+#endif
 }
 //Explore a vnum. Assume it's not explored and just set it.
 void explore_vnum(CHAR_DATA *ch, int vnum )
 {	int mask = vnum / 32; //Get which bucket it will be in
-	unsigned int bit = vnum % 32; // Get which bit to set
+	int bit = vnum % 32; // Get which bit to set, 0 to 31
 	EXPLORE_HOLDER *pExp; //The buckets bucket.
 
-	if(bit == 0 ) // % 32 will return 0 if vnum is a multiple 32, instead make it the last bit of the previous mask
-	{	mask--;
-		bit = 32;
-	}
+#ifdef EXPLORE_DEBUG
+	send_to_char("explore_vnum: start\n\r",ch);
+	printf_to_char(ch,"mask: %d\n\rbit: %d\n\r", mask,bit);
+#endif
 
 	//Find the bucket.
-	for(pExp = ch->pcdata->explored->bits ; pExp ; pExp = pExp->next )
+	for(pExp = ch->pcdata->explored->buckets ; pExp ; pExp = pExp->next )
 		if(pExp->mask == mask)
 			break;
 
 	if(!pExp) //If it's null, bucket not found, we'll whip one up.
-	{	pExp = (EXPLORE_HOLDER *)calloc(sizeof(*pExp), 1); //Alloc and zero
+	{
+#ifdef EXPLORE_DEBUG	
+		send_to_char("creating pExp\n\r", ch);
+#endif
+		pExp = (EXPLORE_HOLDER *)calloc(sizeof(*pExp), 1); //Alloc and zero
 		pExp->mask = mask;
-		pExp->next = ch->pcdata->explored->bits; //Add to
-		ch->pcdata->explored->bits = pExp;       //the list
+		pExp->next = ch->pcdata->explored->buckets; //Add to
+		ch->pcdata->explored->buckets = pExp;       //the list
 	}
-
-	SET_BIT_EXPLORE(pExp->bits, ( 1 << bit ) ); //Convert bit to 2^(bit-1) and set
+	
+	pExp->bits = pExp->bits | ( 1 << bit) ;
 	ch->pcdata->explored->set++; //Tell how many rooms we've explored
+#ifdef EXPLORE_DEBUG
+	send_to_char("explore_vnum: finish\n\r",ch);
+#endif
 }
 
 
 //Explore a vnum.
 void check_explore( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
-{	if(IS_NPC(ch) ) return;
-
+{	
+	if(IS_NPC(ch) ) return;
+#ifdef EXPLORE_DEBUG
+	send_to_char("check_explore: start\n\r",ch);
+#endif
 	
+	EXPLORE_HOLDER *pExp;
+#ifdef EXPLORE_DEBUG
+/*	for( pExp = ch->pcdata->explored->buckets ; pExp ; pExp = pExp->next )
+	{
+		printf_to_char( ch, "mask: %d\n\rbits: %u\n\r", pExp->mask, pExp->bits );
+	}
+	printf_to_char( ch, "vnum: %d\n\r", pRoom->vnum );*/
+#endif
 	if(explored_vnum(ch, pRoom->vnum) )
 		return;
 
 	explore_vnum(ch, pRoom->vnum);
+#ifdef EXPLORE_DEBUG
+	send_to_char("check_explore: finish\n\r",ch);
+#endif
 }
 
 void do_explored(CHAR_DATA *ch, char *argument )

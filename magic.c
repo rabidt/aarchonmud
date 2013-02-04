@@ -814,29 +814,24 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
         return FALSE;
     }
 
-    if ((sn == gsn_hailstorm || 
+    if (sn == gsn_hailstorm || 
         sn == gsn_meteor_swarm || 
         sn == gsn_call_lightning || 
         sn == gsn_monsoon || 
-        sn == gsn_solar_flare) && 
-        !IS_OUTSIDE(ch))
-    {
-        send_to_char( "INDOORS? I think not.\n\r", ch );
-        return FALSE;
-    } 
+        sn == gsn_solar_flare)
+    { 
+        if (!IS_OUTSIDE(ch))
+    	{
+            send_to_char( "INDOORS? I think not.\n\r", ch );
+       	    return FALSE;
+    	} 
 
-    if ((sn == gsn_hailstorm || 
-        sn == gsn_meteor_swarm || 
-        sn == gsn_call_lightning || 
-        sn == gsn_monsoon || 
-        sn == gsn_solar_flare) && 
-        (ch->in_room->sector_type == SECT_WATER_DEEP || 
-        ch->in_room->sector_type == SECT_UNDERGROUND))
-    {
-        send_to_char( "There is no weather down here...\n\r", ch );
-        return FALSE;
-    } 
-
+        if ( ch->in_room->sector_type == SECT_UNDERGROUND )
+    	{
+            send_to_char( "There is no weather down here...\n\r", ch );
+            return FALSE;
+        } 
+    }
         
     /* Smote's Anachronsm can't use mana/lag player outside of combat
        -- Astark Oct 2012 */
@@ -942,6 +937,8 @@ void do_cast( CHAR_DATA *ch, char *argument )
     }
     
     mana = mana_cost(ch, sn, chance);
+    if (IS_AFFECTED(ch, AFF_OVERCHARGE))
+	mana=mana*2;
     
 /* Locate targets */
     if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
@@ -961,13 +958,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
 /* Check for overcharge (less lag) */
     if (IS_AFFECTED(ch, AFF_OVERCHARGE))
     {
-        if ( ch->position == POS_FIGHTING )
-        {
-            affect_strip_flag( ch, AFF_OVERCHARGE );
-            send_to_char( "Your mana calms down as you refocus and ready for battle.\n\r", ch );
-            return;
-        }
-
         WAIT_STATE( ch, (200-chance)*skill_table[sn].beats/400 );
     }
     else
@@ -977,10 +967,16 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
 
 /* mana burn */
-    if ( IS_AFFECTED(ch, AFF_MANA_BURN) || ( IS_AFFECTED(ch, AFF_OVERCHARGE) && number_bits(1) == 0 ) )
+    if ( IS_AFFECTED(ch, AFF_MANA_BURN) )
     {
 	direct_damage( ch, ch, 2*mana, skill_lookup("mana burn") );
 	if ( IS_DEAD(ch) )
+	    return;
+    }
+    else if ( IS_AFFECTED(ch, AFF_OVERCHARGE) && number_bits(1) == 0 )
+    {
+	direct_damage( ch, ch, mana, skill_lookup("mana burn") );
+        if ( IS_DEAD(ch) )
 	    return;
     }
  
@@ -1005,11 +1001,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
     else
     {
-        if (IS_AFFECTED(ch, AFF_OVERCHARGE))
-        {
-        ch->mana -= mana;
-        }
-
         ch->mana -= mana;
 	level = ch->level;
 	if (!IS_NPC(ch))
@@ -2273,8 +2264,7 @@ void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
-	int i;
-
+    int i;
     for (i = 1; skill_table[i].name != NULL; i++)
 	if ( is_mental(i) && check_dispel(level, victim, i) )
 	    found = TRUE;
@@ -3333,7 +3323,7 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     bool gate_pet;
     ROOM_INDEX_DATA *to_room;
     OBJ_DATA *stone;
-    bool has_warpstone = FALSE;
+    bool has_warpstone=FALSE;
     
     if ( !can_cast_transport(ch) )
 	return;
@@ -3420,7 +3410,7 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 	to_room = victim->in_room;
 	if( has_warpstone && chance(15) )
 	{
-	    act("$p flares brightly and vanishes!",ch,stone,NULL,TO_CHAR);
+	    printf_to_char(ch,"%s flares brightly and vanishes!\n\r", stone->short_descr);
 	    extract_obj(stone);
 	}
     }

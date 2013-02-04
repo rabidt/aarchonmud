@@ -45,7 +45,6 @@ void reverse_char_list();
 void check_rescue( CHAR_DATA *ch );
 void check_jump_up( CHAR_DATA *ch );
 void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam );
-bool check_critical(CHAR_DATA *ch, CHAR_DATA *victim);
 void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
@@ -117,7 +116,7 @@ DECLARE_SPEC_FUN(   spec_guard          );
 /*
 * Local functions.
 */
-bool check_critical  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+bool check_critical  args( ( CHAR_DATA *ch, bool secondary ) );
 bool check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
 bool stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -166,23 +165,27 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
 
 
-bool check_critical(CHAR_DATA *ch, CHAR_DATA *victim)
+bool check_critical(CHAR_DATA *ch, bool secondary)
 {
     OBJ_DATA *obj;
+    
+    if (!secondary)
+        obj = get_eq_char( ch, WEAR_WIELD );
+    else
+        obj = get_eq_char( ch, WEAR_SECONDARY );
 
-    obj = get_eq_char(ch,WEAR_WIELD);
-
-    if ( get_eq_char(ch,WEAR_WIELD) == NULL || get_skill(ch,gsn_critical) <  1 || get_weapon_skill(ch,get_weapon_sn(ch)) < 95 || number_range(0,100) > get_skill(ch,gsn_critical)) 
+    if ( obj == NULL 
+	|| get_skill(ch,gsn_critical) <  1 
+	|| get_weapon_skill( ch, get_weapon_sn_new( ch, secondary ) ) < 95 
+	|| number_range(0,100) > get_skill(ch,gsn_critical) )
                   return FALSE;
         
-        if ( number_range(0,100) > 3 )
-                return FALSE;
-
-        /* Now, if it passed all the tests... */
-
-        act("$p {RCRITICALLY STRIKES{x $n!",victim,obj,NULL,TO_NOTVICT);
-        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
-        check_improve(ch,gsn_critical,TRUE,4);
+	/* 3% chance to work */
+     int roll=number_percent();
+     if ( roll < 98 )
+        return FALSE;
+	
+     else	
         return TRUE;
 }
 
@@ -1789,8 +1792,13 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
 	dam = dam * 9/10;
 
-    if ( check_critical(ch,victim) )
+    if ( check_critical(ch,secondary) == TRUE )
+    {
+	act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
+        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
+        check_improve(ch,gsn_critical,TRUE,4);
         dam *= 2;
+    }
 
  /* Temporary fix for backstab and circle to check anatomy for
     damage boost - Astark 1-6-13 */
@@ -4342,6 +4350,12 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
     }
     */
 
+    if ( IS_AFFECTED( ch, AFF_OVERCHARGE))
+    {
+	affect_strip_flag( ch, AFF_OVERCHARGE );
+        send_to_char( "Your mana calms down as you refocus and ready for battle.\n\r", ch );
+    }
+
     if (victim && IS_NPC(ch) && IS_SET(ch->off_flags, OFF_HUNT))
 	set_hunting(ch, victim);
     
@@ -5362,14 +5376,16 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
 	bonus += 10;
 
     /* religion bonus */
-    xp += xp * get_religion_bonus(gch) / 100;
+    bonus += get_religion_bonus(gch);
     
     /* bonus for AFF_LEARN */
     if ( IS_AFFECTED(gch, AFF_LEARN) )
-	xp += xp/2;
+	bonus += 50;
 
     if ( IS_AFFECTED(gch, AFF_HALLOW) )
-        xp += xp/4;
+        bonus += 20;
+
+    xp += xp * bonus / 100;
 
     return xp;
 }

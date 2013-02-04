@@ -165,16 +165,6 @@ typedef bool SONG_FUN   args((int sn,int level,CHAR_DATA *singer,
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 
-typedef struct explore_holder
-{	struct explore_holder *next;
-	unsigned int bits;
-	int mask;
-} EXPLORE_HOLDER;
-
-typedef struct exploration_data
-{	EXPLORE_HOLDER *bits;
-	int set;
-} EXPLORE_DATA;
 
 
 bool is_remort_obj( OBJ_DATA *obj );
@@ -350,6 +340,21 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define FLAG_MAX_BIT           (8 * FLAG_MAX_BYTE) 
 typedef char tflag[FLAG_MAX_BYTE];
 typedef char msl_string[MSL];
+
+typedef struct explore_holder
+{	
+	struct explore_holder *next;
+	unsigned int bits;
+	int mask;
+} EXPLORE_HOLDER;
+
+typedef struct exploration_data
+{	
+	EXPLORE_HOLDER *buckets;
+	int set;
+} EXPLORE_DATA;
+
+
 
 struct  ban_data
 {
@@ -3501,8 +3506,6 @@ struct achievement_entry
 #define IS_SET(var, bit)  ((bit) > 0 ? ((var) & (bit)) : (*((&((var))) + 1) & (bit) & 2147483647)) 
 */
 /* integer flags - used on objects in the value field */
-#define IS_SET_EXPLORE(var, bit)  ((bit) > 0 ? ((var) & (bit)) : (*((&((var))) + 1) & (bit) & 2147483647)) 
-#define SET_BIT_EXPLORE(var, bit)  ((bit) > 0 ? ((var) |= (bit)) : (*((&((var))) + 1) |= (bit))) 
 #define I_BIT(bit)             (1L << ((bit)-1))
 #ifdef ASSERT_DEBUG
 #define I_SET_BIT(var, bit)    assert(0 < (bit)), ((var) |= I_BIT(bit)) 
