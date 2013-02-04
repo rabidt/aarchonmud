@@ -3741,10 +3741,10 @@ void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int
         if ( !is_same_group( gch, ch ) )
             continue;
 
-	heal = get_sn_heal( sn, level, ch, gch ) * 6/10;
+	heal = get_sn_heal( sn, level, ch, gch ) * 6/15;
         gch->hit = UMIN( gch->hit + heal, gch->max_hit );
         
-        refr = get_sn_heal( sn, level, ch, gch ) * 4/10;
+        refr = get_sn_heal( sn, level, ch, gch ) * 4/15;
         gch->move = UMIN( gch->move + refr, gch->max_move );
 
         update_pos( gch );
@@ -3756,9 +3756,8 @@ void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int
         {
             if (IS_SPELL(sn1)
                && is_offensive(sn1)
-               && check_dispel(level, gch, sn1) )
-            found = TRUE;   
-
+               && check_dispel(level/2, gch, sn1) )
+            found = TRUE;
         }
 
     }
@@ -3794,22 +3793,8 @@ void spell_phase(int sn,int level,CHAR_DATA *ch,void *vo, int target)
 void spell_conviction (int sn, int level, CHAR_DATA *ch, void *vo, int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int dam;
-    int align_diff;
-    int abs_align;
     char buf[MSL];
 
-    int heal = get_sn_heal( sn, level, ch, victim );
-
-    align_diff = (ch->alignment - victim->alignment);
-
-    abs_align = abs(align_diff);
-
-/* For testing purposes 
-    sprintf( buf, "Align diff = %d.\n\r", abs_align );
-    send_to_char (buf, ch);
-*/
-    
     if (victim == ch)
     {
         send_to_char("How much conviction can one really have against themselves?\n\r", ch);
@@ -3822,46 +3807,27 @@ void spell_conviction (int sn, int level, CHAR_DATA *ch, void *vo, int target)
         return;
     }
 
-    if (abs_align >= 0 && abs_align <= 250)
+    // same-aligned targets are safe
+    if ((IS_GOOD(ch) && IS_GOOD(victim)) || (IS_EVIL(ch) && IS_EVIL(victim))) 
     {
-        heal *= 4;
-        victim->hit = UMIN( victim->hit + heal, victim->max_hit );
-        update_pos( victim );
-        send_to_char( "A warm feeling fills your body.\n\r", victim );
-        if ( ch != victim )
-            send_to_char( "Ok.\n\r", ch );
+        act_new( "$N's beliefs do not conflict with yours.", ch, NULL, victim, TO_CHAR, POS_RESTING);  
         return;
     }
-
-    if (abs_align > 250 && abs_align < 750)
-    {
-        dam = abs_align + 7;
-        dam = number_range( dam, dam*4/3 );
-  
-        if (saves_spell(level, victim, DAM_MENTAL) )
-            dam /= 2;
-        full_dam(ch, victim, dam, sn, DAM_MENTAL, TRUE);
-        return;
-    }
-
-    if (abs_align >= 750)
-    {
-        dam = abs_align + 11;
-        dam = number_range( dam, dam*3/2 );
-
-        if (abs_align >= 1000)
-        {
-            abs_align = 900;
-            abs_align += (abs_align/8);
-        }
-
-   
-        if (saves_spell(level, victim, DAM_MENTAL) )
-            dam /= 2;
-        full_dam(ch, victim, dam, sn, DAM_MENTAL, TRUE);
-        return;
-    }    
-
+    
+    // opposite aligned targets get hurt
+    int align_diff = abs(ch->alignment - victim->alignment);
+    int dam = get_sn_damage( sn, level, ch, victim );
+    if (IS_GOOD(ch))
+        dam = dam * align_diff / 1000;
+    else 
+        dam = dam * align_diff / 1350;
+    
+    if ( saves_spell(level, victim, DAM_MENTAL) )
+        dam /= 2;
+    
+    full_dam(ch, victim, dam, sn, DAM_MENTAL, TRUE);
+    
+    return;
 }
 
 

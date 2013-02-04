@@ -1221,14 +1221,6 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
 	dam += dam * (10 + ch->level - LEVEL_MIN_HERO) / 100;
     }
 
-    /* Mages wielding a dagger have a chance to do more damage when casting
-       based on dagger mastery skill -Astark Oct 2012 
-    if (ch->class == class_lookup("mage") && weapon->value[0] == WEAPON_DAGGER )
-    {
-        dam *= 1.10;
-    } */
-
-
     /* focus obj makes for more steady damage */
     if ( has_focus )
 	return dam * number_range(100, 120) / 100;
@@ -1287,12 +1279,9 @@ void spell_acid_blast( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
-    dam = get_sn_damage( sn, level*2, ch );
+    dam = get_sn_damage( sn, level, ch );
     if ( saves_spell( level, victim, DAM_ACID ) )
         dam /= 2;
-
-    if (get_skill(ch, gsn_acid_blast) >= 95 )
-        dam *= 1.15;
 
     full_dam( ch, victim, dam, sn,DAM_ACID,TRUE);
     return;
