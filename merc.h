@@ -629,7 +629,7 @@ struct penalty_data
     long duration;                /* End time for penalty (ch->played) */
     sh_int points;                /* # of penalty (demerit) points this imposes on player */
 
-    sh_int jail_room;             /* If this is a jail penalty, the jail room vnum */
+    int jail_room;                /* If this is a jail penalty, the jail room vnum */
 
     char *changed_by;             /* Name of character changing this record last */
     long changed_time;            /* Actual date/time of last change to this record */
@@ -2728,7 +2728,7 @@ struct  obj_index_data
 	char *      name;
 	char *      short_descr;
 	char *      description;
-	int      vnum;
+	int         vnum;
 	sh_int      reset_num;
 	char *      material;
 	sh_int      item_type;
@@ -2743,7 +2743,7 @@ struct  obj_index_data
 	sh_int      durability;
 	sh_int	    clan;
 	sh_int	    rank;
-        sh_int      combine_vnum;
+        int         combine_vnum;
         sh_int      diff_rating; /* difficulty to get object */
 };
 
@@ -3003,7 +3003,7 @@ struct mprog_list
 {
 	int         trig_type;
 	char *      trig_phrase;
-	sh_int      vnum;
+	int         vnum;
 	char *          code;
 	MPROG_LIST *    next;
 	bool        valid;
@@ -3011,7 +3011,7 @@ struct mprog_list
 
 struct mprog_code
 {
-	sh_int      vnum;
+	int         vnum;
 	char *      code;
 	MPROG_CODE *    next;
 };
@@ -4286,7 +4286,7 @@ bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
-void    program_flow    args( ( sh_int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
+void    program_flow    args( ( int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, const void *arg2 ) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, const void *arg2, int type ) );

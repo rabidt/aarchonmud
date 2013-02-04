@@ -1791,7 +1791,6 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	"paladin", "Pal",  STAT_CHA, {STAT_WIS, STAT_STR},
 	{STAT_CON,STAT_DIS,STAT_VIT,STAT_DEX,STAT_LUC,STAT_AGI,STAT_INT},
 	OBJ_VNUM_SCHOOL_MACE, { 9633, 10344 },
-/* adjust paladin hp calc mana move calc by astark 	75, 100, 110,  105, 90, 100, */
         75, 100, 110,  105, 90, 100,
 	"paladin basics", "paladin default"
 	},
@@ -2700,7 +2699,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3, 3 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_conviction,   TAR_CHAR_DEFENSIVE,   POS_FIGHTING,
+	spell_conviction,   TAR_CHAR_OFFENSIVE,   POS_FIGHTING,
 	NULL,           SLOT(593),   125, 18,
 	"conviction",   "!conviction!", "", NULL
 	},
@@ -6470,7 +6469,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_STANDING,
-	&gsn_firstaid,  SLOT(0),    0,  24,
+	&gsn_firstaid,  SLOT(0),   40,  24,
 	"",         "!FirstAid!",   ""
 	},
 

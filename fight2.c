@@ -625,23 +625,23 @@ void do_headbutt( CHAR_DATA *ch, char *argument )
     if ( !can_see(ch, victim) && blind_penalty(ch) )
         chance /= 2;
         
-         check_killer(ch,victim);
-         WAIT_STATE( ch, skill_table[gsn_headbutt].beats );
-         if ( check_hit(ch, victim, gsn_headbutt, DAM_BASH, chance) )
-         {
-           int dam_type = DAM_BASH;
-			dam = one_hit_damage( ch, gsn_headbutt, NULL ) * 3;
+    check_killer(ch,victim);
+    WAIT_STATE( ch, skill_table[gsn_headbutt].beats );
+    if ( check_hit(ch, victim, gsn_headbutt, DAM_BASH, chance) )
+    {
+        int dam_type = DAM_BASH;
+        dam = one_hit_damage( ch, gsn_headbutt, NULL ) * 3;
 
-			if( IS_SET(ch->parts, PART_HORNS) )
-			{
-				dam += dam / 5;
-				dam_type = DAM_PIERCE;
-			}
-			else if ( number_bits(2) == 0 )
-			{
-				send_to_char( "You suffer from brain damage. Ouch!\n\r", ch );
-				ch->mana = UMAX(0, ch->mana - dam/3);
-			}
+        if( IS_SET(ch->parts, PART_HORNS) )
+        {
+            dam += dam / 5;
+            dam_type = DAM_PIERCE;
+        }
+        else if ( number_bits(2) == 0 )
+        {
+            send_to_char( "You suffer from brain damage. Ouch!\n\r", ch );
+            ch->mana = UMAX(0, ch->mana - dam/3);
+        }
 
         full_dam(ch,victim, dam, gsn_headbutt,dam_type,TRUE);
         check_improve(ch,gsn_headbutt,TRUE,1);
@@ -3021,11 +3021,13 @@ void do_feint( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    /*
     if (in_pkill_battle (ch))
     {
 	send_to_char( "You cannot feint from a pk battle.\n\r", ch );
 	return;
     }
+    */
     
     for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
     {

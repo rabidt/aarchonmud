@@ -53,8 +53,8 @@ ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, char *arg );
 
 bool is_r_number( char *arg );
 int r_atoi( CHAR_DATA *ch, char *arg );
-bool check_in_container( OBJ_DATA *container, sh_int vnum, char *obj_name );
-int cmd_eval( sh_int vnum, char *line, int check,
+bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name );
+int cmd_eval( int vnum, char *line, int check,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, const void *arg2, CHAR_DATA *rch );
 
@@ -276,26 +276,19 @@ int num_eval( int lval, int oper, int rval )
     {
         case EVAL_EQ:
              return ( lval == rval );
-	     break;
         case EVAL_GE:
              return ( lval >= rval );
-	     break;
         case EVAL_LE:
              return ( lval <= rval );
-	     break;
         case EVAL_NE:
              return ( lval != rval );
-	     break;
         case EVAL_GT:
              return ( lval > rval );
-	     break;
         case EVAL_LT:
              return ( lval < rval );
-	     break;
         default:
              bug( "num_eval: invalid oper", 0 );
              return 0;
-	     break;
     }
 }
 
@@ -376,7 +369,7 @@ int get_order( CHAR_DATA *ch )
  * item_type: item type or -1
  * fWear: TRUE: item must be worn, FALSE: don't care
  */
-bool has_item( CHAR_DATA *ch, sh_int vnum, sh_int item_type, bool fWear )
+bool has_item( CHAR_DATA *ch, int vnum, int item_type, bool fWear )
 {
     OBJ_DATA *obj;
     for ( obj = ch->carrying; obj; obj = obj->next_content )
@@ -393,7 +386,7 @@ bool has_item( CHAR_DATA *ch, sh_int vnum, sh_int item_type, bool fWear )
  * obj_name: string that is compared to the name of the item, or ""
  */
 
-bool has_item_in_container( CHAR_DATA *ch, sh_int vnum, char *obj_name )
+bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
 {
 	OBJ_DATA *container;
 	OBJ_DATA *obj;
@@ -416,7 +409,7 @@ bool has_item_in_container( CHAR_DATA *ch, sh_int vnum, char *obj_name )
 	return FALSE;
 }
 
-bool check_in_container( OBJ_DATA *container, sh_int vnum, char *obj_name )
+bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
 {
 	OBJ_DATA *obj;
 
@@ -435,7 +428,7 @@ bool check_in_container( OBJ_DATA *container, sh_int vnum, char *obj_name )
 /*
  * Check if there's a mob with given vnum in the room
  */
-bool get_mob_vnum_room( CHAR_DATA *ch, sh_int vnum )
+bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
 {
     CHAR_DATA *mob;
     for ( mob = ch->in_room->people; mob; mob = mob->next_in_room )
@@ -447,7 +440,7 @@ bool get_mob_vnum_room( CHAR_DATA *ch, sh_int vnum )
 /*
  * Check if there's an object with given vnum in the room
  */
-bool get_obj_vnum_room( CHAR_DATA *ch, sh_int vnum )
+bool get_obj_vnum_room( CHAR_DATA *ch, int vnum )
 {
     OBJ_DATA *obj;
     for ( obj = ch->in_room->contents; obj; obj = obj->next_content )
@@ -484,7 +477,7 @@ bool is_affected_parse( CHAR_DATA *ch, char *buf )
  *
  *----------------------------------------------------------------------
  */
-int cmd_eval( sh_int vnum, char *line, int check,
+int cmd_eval( int vnum, char *line, int check,
 	CHAR_DATA *mob, CHAR_DATA *ch, 
 	const void *arg1, const void *arg2, CHAR_DATA *rch )
 {
@@ -520,12 +513,12 @@ int cmd_eval( sh_int vnum, char *line, int check,
 	    return( number_percent() <= atoi( buf ));
 	case CHK_MOBHERE:
 	    if ( is_r_number( buf ) )
-		return( (bool) get_mob_vnum_room( mob, (sh_int)r_atoi(mob, buf) ) );
+		return( (bool) get_mob_vnum_room( mob, r_atoi(mob, buf) ) );
 	    else
 		return( (bool) (get_char_room( mob, buf) != NULL) );
 	case CHK_OBJHERE:
 	    if ( is_r_number( buf ) )
-		return( get_obj_vnum_room( mob, (sh_int)r_atoi(mob, buf) ) );
+		return( get_obj_vnum_room( mob, r_atoi(mob, buf) ) );
 	    else
 		return( (bool) (get_obj_here( mob, buf) != NULL) );
         case CHK_MOBEXISTS:
@@ -737,23 +730,23 @@ int cmd_eval( sh_int vnum, char *line, int check,
 		&&  IS_SET(lval_char->off_flags, flag_lookup(buf, off_flags)) );
 	case CHK_CARRIES:
 	    if ( is_r_number( buf ) )
-		return( lval_char != NULL && has_item( lval_char, (sh_int)r_atoi(mob, buf), -1, FALSE ) );
+		return( lval_char != NULL && has_item( lval_char, r_atoi(mob, buf), -1, FALSE ) );
 	    else
 		return( lval_char != NULL && (get_obj_carry( lval_char, buf, lval_char ) != NULL) );
 	case CHK_CCARRIES:
 	    if ( is_r_number( buf ) )
-		return( lval_char != NULL && has_item_in_container( lval_char, (sh_int)r_atoi(mob, buf), "zzyzzxzzyxyx" ) );
+		return( lval_char != NULL && has_item_in_container( lval_char, r_atoi(mob, buf), "zzyzzxzzyxyx" ) );
 	    else
 		return( lval_char != NULL && has_item_in_container( lval_char, -1, buf ) );
 	case CHK_WEARS:
 	    if ( is_r_number( buf ) )
-		return( lval_char != NULL && has_item( lval_char, (sh_int)r_atoi(mob, buf), -1, TRUE ) );
+		return( lval_char != NULL && has_item( lval_char, r_atoi(mob, buf), -1, TRUE ) );
 	    else
 		return( lval_char != NULL && (get_obj_wear( lval_char, buf ) != NULL) );
 	case CHK_HAS:
-	    return( lval_char != NULL && has_item( lval_char, -1, (sh_int)item_lookup(buf), FALSE ) );
+	    return( lval_char != NULL && has_item( lval_char, -1, item_lookup(buf), FALSE ) );
 	case CHK_USES:
-	    return( lval_char != NULL && has_item( lval_char, -1, (sh_int)item_lookup(buf), TRUE ) );
+	    return( lval_char != NULL && has_item( lval_char, -1, item_lookup(buf), TRUE ) );
 	case CHK_NAME:
             switch( code )
             {
@@ -1087,7 +1080,7 @@ void expand_arg( char *buf,
 #define MAX_CALL_LEVEL    5 /* Maximum nested calls */
 
 void program_flow( 
-    sh_int pvnum,  /* For diagnostic purposes */
+    int pvnum,  /* For diagnostic purposes */
     char *source,  /* the actual MOBprog code */
     CHAR_DATA *mob, CHAR_DATA *ch, const void *arg1, const void *arg2 )
 {
@@ -1102,7 +1095,7 @@ void program_flow(
     int state[MAX_NESTED_LEVEL], /* Block state (BEGIN,IN,END) */
 	cond[MAX_NESTED_LEVEL];  /* Boolean value based on the last if-check */
     
-    sh_int mvnum = mob->pIndexData->vnum;
+    int mvnum = mob->pIndexData->vnum;
     
 #ifdef MPROG_DEBUG
     logpf( "program_flow: mob %d executing mprog %d:", mvnum, pvnum );
