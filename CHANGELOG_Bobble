@@ -1,0 +1,22 @@
+03/02/2013 - Booble
+review & changes after merge with Maedhros code
+- tweak to makefile to make it work on my system (moved -lm option to the end)
+- Shan-ya battle madness bonus change reversed. 2*(10+lvl) is the original and intended amount.
+- fixed bug with sunburn: should half damage during sunrise, not during midday
+- fixed potential bug with non-sunburn damage getting gagged
+- ensure vnums are consistently of type int, not sh_int
+- fixed bug with restoration not working on dying target
+- removed insult from goodberry message
+- reverted adding of unnecessary break statements in mob_prog.c
+- no need for newbie guide after remorting
+- reversed special treatment of cure mortal and heal for mana burn
+- reversed change to warfare qp reward to avoid exploit via quest buy warfare
+- simplified check for life drain exploit
+- reversed "no feinting during pkill" check
+03/03/2013 - Bobble
+- did the numbers, Shan-ya was too powerful. Reduced chance to activate based on health.
+- merged/fixed acid_blast, was way overpowered.
+- made conviction TARGET_OFFENSIVE and removed healing. Uses standard damage formula now.
+- reduced power of Astark's rejuvenation. Now heals standard amount (*2/3 for group) and dispels maledictions at half level.
+- fixed type conflict in do_mpcall
+- firstaid now based on standard healing formula

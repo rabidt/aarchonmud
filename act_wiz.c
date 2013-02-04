@@ -48,7 +48,7 @@ int close       args( ( int fd ) );
 bool    write_to_descriptor args( ( int desc, char *txt, int length ) );
 #endif
 
-/* ftp test */
+
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_mload     );
@@ -67,6 +67,7 @@ DECLARE_DO_FUN(do_revoke    );
 int   flag_value     args( ( const struct flag_type *flag_table, char *argument) );
 void  sort_reserved  args( ( RESERVED_DATA *pRes ) );
 void  raw_kill       args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
+void do_qset(CHAR_DATA *ch, char *argument);
 
 void do_wiznet( CHAR_DATA *ch, char *argument )
 {
@@ -1670,11 +1671,7 @@ void do_purge( CHAR_DATA *ch, char *argument )
         act("$n disintegrates $N.",ch,0,victim,TO_NOTVICT);
         
         if (victim->level > 1)
-	{
             quit_save_char_obj( victim );
-	    /*if ( victim->pcdata->box_data[0] != NULL)
-	        quit_save_storage_box( victim);*/
-	}
         d = victim->desc;
         extract_char( victim, TRUE );
         if ( d != NULL )
@@ -1720,9 +1717,9 @@ void do_advance( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( level = atoi( arg2 ) ) < 1 || level > 110 )
+    if ( ( level = atoi( arg2 ) ) < 1 || level >= IMPLEMENTOR )
     {
-        send_to_char( "Level must be 1 to 110.\n\r", ch );
+        send_to_char( "Level must be 1 to 109.\n\r", ch );
         return;
     }
     
@@ -2084,8 +2081,8 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
     if ( arg1[0] == '\0')
     {
         send_to_char("Syntax:\n\r",ch);
-        send_to_char("  pretitle <name> <title>\n\r",ch);
-        send_to_char("  pretitle list\n\r",ch);
+		send_to_char("  ptitle <name> <title>\n\r",ch);
+		send_to_char("  ptitle list\n\r",ch);
         return;
     }
     if (!strcmp(arg1, "list"))
@@ -2109,7 +2106,7 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
             word = fread_word( fp );
             if (!strcmp(word, "End"))
              break;
-            cost =fread_number(fp);//Skip cost
+            cost =fread_number(fp);
             printf_to_char(ch, "%-15s %4d\n\r",word,cost);
         }
         send_to_char("\n\r",victim);
@@ -2129,6 +2126,7 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
         return;
     }
     set_pre_title(ch,argument,victim);
+	return;
 }
 
 void do_namecolor( CHAR_DATA *ch, char *argument)
@@ -2137,7 +2135,6 @@ void do_namecolor( CHAR_DATA *ch, char *argument)
     char arg2 [MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
 
-    //smash_tilde( argument );
     argument = one_argument( argument, arg1 );
 
     if ( arg1[0] == '\0'  )
@@ -3234,8 +3231,6 @@ void do_punload( CHAR_DATA *ch, char *argument )
     }
 
     quit_save_char_obj(victim);
-    /*if ( victim->pcdata->box_data[0] != NULL)
-        quit_save_storage_box( victim);*/
     extract_char(victim, TRUE);
     
 } /* end do_punload */
@@ -3621,34 +3616,53 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 }
 
+int dum(int bonus)
+{
+
+ if (bonus<5)
+  return 1;
+
+ int k=5;
+ int i=2;
+ int amount=1;
+ int j=0;
+ while ( k<=bonus)
+ {
+   k+=5*i;
+   j=k-5*i;
+   i+=1;
+   amount= (k-j)/5;
+ }
+ return amount- ((bonus -j ) % amount );
+
+
+}
+
+int dum2(int bonus)
+{
+    const int step=5;
+
+    if (bonus > step)
+    {
+        int i = step, j = step;
+
+        while (j < bonus)
+        {
+            i += step;
+            j += i;
+        }
+
+        return  i - step + ((bonus + i - j) * step) / i;
+    }
+}
+
 void do_dummy( CHAR_DATA *ch, char *argument)
 {	
-
-
-    int k=5;
-	
-    int i=2;
-	int j;
     int orig;
 
-    int bonus;
-
-    int amount;
-    for (orig=6; orig < 40 ; orig++)
+    for (orig=0; orig < 40 ; orig++)
     {
-	if (orig<5)
-	{
-//	    result=orig;
-	}
-	else
-	while (k<orig)
-	{
-	    k += 5*i;
-	    j = k-5*i;
-	    i+=1;
-	    amount=(k-j)/5;
-	}
-	printf_to_char(ch, "orig: %5d needed: %5d\n\r", orig, amount-((bonus-j)%amount) );
+	printf_to_char(ch, "orig: %5d bonus: %5d needed: %5d\n\r", orig, dum2(orig), dum(orig) );
     }
 
   /*  const int step = 5;
@@ -3757,7 +3771,10 @@ void do_avatar( CHAR_DATA *ch, char *argument ) /* Procedure Avatar */
 	for ( obj = ch->carrying; obj != NULL; obj = obj_next )
 	{
 	    obj_next = obj->next_content;
-	    if(obj->wear_loc != WEAR_NONE) remove_obj(ch,obj->wear_loc, TRUE);
+	  if (obj->wear_loc != WEAR_NONE && can_see_obj (ch, obj))
+      {
+        remove_obj (ch, obj->wear_loc, TRUE);
+	  }
 	}
 
 /* old code has some weird display bug where it tries to remove obj in your inventory even though it's not
@@ -3954,8 +3971,6 @@ void do_charloadtest(CHAR_DATA *ch, char *argument)
 
    fgetf( buf, 100000, fp );
 
-   //page_to_char( buf, ch );
-
    pclose( fp );
 
    char * pch;
@@ -3969,9 +3984,64 @@ void do_charloadtest(CHAR_DATA *ch, char *argument)
 
 	pch = strtok( NULL, "\n\r");
    }
-
-
    //page_to_char(buf,ch);
   
    return;
 }
+
+void do_lag(CHAR_DATA *ch, char *argument)
+{
+  char arg[MAX_INPUT_LENGTH];
+  char buf[MAX_STRING_LENGTH];
+  int x;
+  CHAR_DATA *victim;
+
+  argument = one_argument(argument, arg);
+
+  if (arg[0] == '\0')
+  {
+    send_to_char("Syntax : lag {M<char> {W<0-200>{x\n\r", ch);
+    send_to_char("{R                    100 and above use sparingly!{x\n\r", ch);
+    return;
+  }
+
+  if ((x = atoi(argument)) <=0)
+  {
+    send_to_char("{RNumerical arguments only please!{x\n\r", ch);
+    return;
+  }
+
+
+  if ((victim = get_char_world(ch, arg)) ==NULL)
+  {
+    send_to_char("{RThey aren't of this world!{x\n\r", ch);
+    return;
+  }
+  else
+  {
+    if (get_trust (victim) >= get_trust(ch))
+    {
+      send_to_char("You failed.\r\n", ch);
+      return;
+    }
+
+    if (ch == victim)
+    {
+      send_to_char("{RDon't lag yourself! {WDoh!{x\n\r",ch);
+    }
+    else if (x > 200)
+    {
+      send_to_char("{RDon't be that mean!{x", ch);
+      return;
+    }
+    else
+    {
+     /* send_to_char("{RSomeone doesn't like you!{x", victim); */
+      victim->wait = victim->wait + x;
+      sprintf(buf, "{RYou add lag to {W%s{x", victim->name);
+      send_to_char( buf, ch );
+      return;
+    }
+  }
+}
+

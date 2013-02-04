@@ -1540,7 +1540,7 @@ bool	gen_groups ( DESCRIPTOR_DATA *d, char *argument )
 		list_group_costs(ch);
 		write_to_buffer(d,"You already have the following skills:\n\r",0);
 		do_skills(ch,"");
-                do_spells(ch,"");
+                //do_spells(ch,"");
 		send_to_char("{CList, learned, premise, add, drop, info, help, or done?{x ",ch);
 		set_con_state(d, CON_GEN_GROUPS);
 		return FALSE;		
@@ -2054,6 +2054,8 @@ void enter_game ( DESCRIPTOR_DATA *d )
 
 	    do_outfit(ch,"");
 	    obj_to_char(create_object(get_obj_index(OBJ_VNUM_MAP),0),ch);
+			/* Load newbie guide on char -- Maedhros 1/11/12 */
+	    obj_to_char(create_object(get_obj_index(OBJ_VNUM_NEWBIE_GUIDE),0),ch);
 
 	    if (wait_for_auth == AUTH_STATUS_ENABLED)
 	    {

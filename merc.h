@@ -237,7 +237,7 @@ bool is_drop_obj( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         415  /* believe this is accurate nov 28 2012 */
+#define MAX_SKILL         416 
 #define MAX_GROUP          76 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
@@ -255,6 +255,7 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define MAX_LEVEL          110
 #define MAX_STORAGE_BOX	   5
 #define MAX_QUOTES         22 /* This must equal the # of quotes you have */
+#define MAX_CP						 60
 #define LEVEL_IMMORTAL     (MAX_LEVEL - 9)
 #define LEVEL_HERO         (MAX_LEVEL - 10)
 #define LEVEL_MIN_HERO     (MAX_LEVEL - 20)
@@ -277,7 +278,6 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define WEEK (7*DAY)
 #define MONTH (30*DAY)
 #define YEAR (365*DAY)
-#define QSTEST 60
 
 /* maximum current remort level - update when adding new remorts */
 #define MAX_REMORT 7
@@ -665,7 +665,7 @@ struct penalty_data
     long duration;                /* End time for penalty (ch->played) */
     sh_int points;                /* # of penalty (demerit) points this imposes on player */
 
-    sh_int jail_room;             /* If this is a jail penalty, the jail room vnum */
+    int jail_room;                /* If this is a jail penalty, the jail room vnum */
 
     char *changed_by;             /* Name of character changing this record last */
     long changed_time;            /* Actual date/time of last change to this record */
@@ -1303,11 +1303,7 @@ struct  kill_data
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
 #define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
-#define ACT_HERO_CLERIC (kk)
-#define ACT_HERO_MAGE   (ll)
-#define ACT_HERO_THIEF  (mm)
-#define ACT_HERO_WARRIOR (nn)
-#define ACT_HARD_QUEST    (oo)
+#define ACT_HARD_QUEST    (kk)
 
 /* damage classes */
 #define DAM_NONE                0
@@ -1788,7 +1784,7 @@ struct  kill_data
 #define ITEM_REMORT	    (dd)
 #define ITEM_TRAPPED        (ee)
 #define ITEM_EASY_DROP      (ff)
-#define ITEM_NO_EXTRACT      34
+#define ITEM_NO_EXTRACT     (gg)
 
 /* class restriction flags */
 #define ITEM_ALLOW_WARRIOR        100
@@ -1989,7 +1985,6 @@ struct  kill_data
 #define ROOM_NO_SCOUT       (E)
 #define ROOM_TATTOO_SHOP    (F)
 #define ROOM_NO_RANDOM      (G)
-#define ROOM_NO_QUEst 
 #define ROOM_PRIVATE        (J)
 #define ROOM_SAFE           (K)
 #define ROOM_SOLITARY       (L)
@@ -2250,6 +2245,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define WIZ_AUTH        (W)
 #define WIZ_CHEAT       (X)
 #define WIZ_RELIGION	(Y)
+#define WIZ_MEMCHECK	(Z)
 
 /* Freeze Tag flags */
 #define TAG_PLAYING     (A)
@@ -2274,8 +2270,8 @@ typedef int tattoo_list[MAX_WEAR];
 #define GAG_IMMUNE     (E)
 #define GAG_EQUIP      (F)
 #define GAG_AURA       (G)
-#define GAG_NCOL_CHAN  (H)
-#define GAG_NCOL_BATT  (I)
+#define GAG_SUNBURN    (H)
+#define GAG_NCOL_CHAN  (I)
 
 #define song_null       -1
 
@@ -2292,7 +2288,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define CHAN_NEWBIE 'n'
 #define CHAN_IMMTALK 'i'
 #define CHAN_SAVANT '7'
-#define CHAN_INFO '1'
+
 /*
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.
@@ -2305,7 +2301,7 @@ struct  mob_index_data
 	MPROG_LIST *        mprogs;
 	AREA_DATA *     area;       /* OLC */
 	int      vnum;
-	int      group;
+	sh_int      group;
 	bool        new_format;
 	sh_int      count;
 	sh_int      killed;
@@ -2753,8 +2749,8 @@ struct  obj_index_data
 	char *      name;
 	char *      short_descr;
 	char *      description;
-	int      vnum;
-	int      reset_num;
+	int         vnum;
+	sh_int      reset_num;
 	char *      material;
 	sh_int      item_type;
 	tflag       extra_flags;
@@ -2768,7 +2764,7 @@ struct  obj_index_data
 	sh_int      durability;
 	sh_int	    clan;
 	sh_int	    rank;
-        sh_int      combine_vnum;
+        int         combine_vnum;
         sh_int      diff_rating; /* difficulty to get object */
 };
 
@@ -2820,7 +2816,7 @@ struct  exit_data
 	union
 	{
 	    ROOM_INDEX_DATA * to_room;
-	    sh_int          vnum;
+	    int          vnum;
 	} u1;
 	tflag       exit_info;
 	sh_int      key;
@@ -3028,7 +3024,7 @@ struct mprog_list
 {
 	int         trig_type;
 	char *      trig_phrase;
-	int      vnum;
+	int         vnum;
 	char *          code;
 	MPROG_LIST *    next;
 	bool        valid;
@@ -3036,7 +3032,7 @@ struct mprog_list
 
 struct mprog_code
 {
-	int      vnum;
+	int         vnum;
 	char *      code;
 	MPROG_CODE *    next;
 };
@@ -3364,6 +3360,7 @@ extern sh_int  gsn_enchant_weapon;
 extern sh_int  gsn_enchant_arrow;
 extern sh_int  gsn_solar_flare;
 extern sh_int  gsn_iron_hide;
+extern sh_int  gsn_feeblemind;
 
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
@@ -3636,6 +3633,7 @@ struct achievement_entry
 #define IS_SWITCHED( ch )       ( ch->desc && ch->desc->original )
 #define IS_BUILDER(ch, Area)    ( !IS_NPC(ch) && !IS_SWITCHED( ch ) && (ch->pcdata->security >= Area->security || strstr( Area->builders, ch->name ) || strstr( Area->builders, "All" ) ) )
 #define IS_REMORT(ch)			(!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT)) 
+#define IS_NOHIDE(ch)           (!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_NOHIDE))
 
 #define IS_WRITING_NOTE(con)  (((con >= CON_NOTE_TO && con <= CON_NOTE_FINISH)||(con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH)||((con-con%MAX_CON_STATE)/MAX_CON_STATE==CREATION_BLACKSMITH)) ? TRUE : FALSE)
 
@@ -4277,6 +4275,7 @@ char *  form_bit_name   args( ( int form_flags ) );
 char *  part_bit_name   args( ( int part_flags ) );
 char *  weapon_bit_name args( ( int weapon_flags ) );
 char *  comm_bit_name   args( ( int comm_flags ) );
+char *  togg_bit_name	args( ( int togg_flags ) );
 char *  penalty_bit_name args( (int penalty_flags) );
 char *  cont_bit_name   args( ( int cont_flags) );
 
@@ -4306,7 +4305,7 @@ bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
-void    program_flow    args( ( sh_int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
+void    program_flow    args( ( int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, const void *arg2 ) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, const void *arg2, int type ) );
@@ -4317,6 +4316,7 @@ bool    mp_exit_trigger   args( ( CHAR_DATA *ch, int dir ) );
 void    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
 void    mp_greet_trigger  args( ( CHAR_DATA *ch ) );
 void    mp_hprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
+void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 bool    mp_try_trigger    args( ( char *argument, CHAR_DATA *mob ) );
 bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob ) );
 
@@ -4496,6 +4496,7 @@ void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );
 #define		AREA_CLONE      (E)
 #define		AREA_NOQUEST    (F)
 #define         AREA_NOREPOP    (G)
+#define         AREA_NOHIDE     (H)
 
 #define MAX_DIR  10
 #define NO_FLAG -99 /* Must not be used in flags or stats. */
