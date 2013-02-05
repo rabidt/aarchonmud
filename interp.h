@@ -229,7 +229,7 @@ DECLARE_DO_FUN( do_invite   );
 DECLARE_DO_FUN( do_jail     );
 DECLARE_DO_FUN( do_kick     );
 DECLARE_DO_FUN( do_kill     );
-DECLARE_DO_FUN( do_lag      );
+DECLARE_DO_FUN( do_mortlag      );
 DECLARE_DO_FUN( do_leg_sweep);
 DECLARE_DO_FUN( do_lfind    );
 DECLARE_DO_FUN( do_list     );

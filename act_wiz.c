@@ -3926,7 +3926,7 @@ void do_charloadtest(CHAR_DATA *ch, char *argument)
    return;
 }
 
-void do_lag(CHAR_DATA *ch, char *argument)
+void do_mortlag(CHAR_DATA *ch, char *argument)
 {
   char arg[MAX_INPUT_LENGTH];
   char buf[MAX_STRING_LENGTH];
@@ -3937,7 +3937,7 @@ void do_lag(CHAR_DATA *ch, char *argument)
 
   if (arg[0] == '\0')
   {
-    send_to_char("Syntax : lag {M<char> {W<0-200>{x\n\r", ch);
+    send_to_char("Syntax : mortlag {M<char> {W<0-200>{x\n\r", ch);
     send_to_char("{R                    100 and above use sparingly!{x\n\r", ch);
     return;
   }
