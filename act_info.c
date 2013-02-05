@@ -3840,7 +3840,8 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-	do_say( ch, "It's translucent, allowing tattoos to shine through." );
+	sprintf( buf, "It's translucent, allowing tattoos to shine through."); 
+	do_say( ch, buf );
     }
     
     switch ( obj->item_type )
