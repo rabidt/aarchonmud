@@ -589,8 +589,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "god",        do_god,     POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "cheatlog",   do_cheatlog,POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "qset",       do_qset    ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "dummy",      do_dummy    ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "mortlag",    do_lag,     POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "dummy",      do_dummy   ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "mortlag",    do_mortlag, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
 
     /*
     * OLC
