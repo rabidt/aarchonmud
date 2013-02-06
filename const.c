@@ -676,7 +676,7 @@ struct align_type align_table [] =
 	{
 	"dryad",        TRUE,
 	{},	{AFF_DETECT_MAGIC,AFF_DETECT_HIDDEN},	{},
-	{},      {RES_MAGIC,RES_DISEASE,RES_DROWNING,RES_LIGHT}, {VULN_NEGATIVE},
+	{},      {RES_MAGIC}, {VULN_NEGATIVE},
 	{A,H,M,V,jj},	{A,B,C,D,E,F,G,H,I,J,K}
 	},
 
