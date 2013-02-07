@@ -74,6 +74,8 @@ const struct remort_chamber chambers[] =
     {"Remort: Tribulations of Dakaria ",   3344,    R7, TRUE},
 #ifdef TESTER
     {"Remort: Urban Wasteland         ",   9000,    R8, FALSE},
+    {"Remort: Urban Wasteland         ",  18500,    R8, FALSE},
+    {"Remort: Urban Wasteland         ",  18700,    R8, FALSE},
 #endif
     {NULL,			0, 0}
 };

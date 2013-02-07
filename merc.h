@@ -242,8 +242,11 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define YEAR (365*DAY)
 
 /* maximum current remort level - update when adding new remorts */
-#define MAX_REMORT 7
-
+#ifdef TESTER
+#define MAX_REMORT 8
+#else
+#define MAX_REMORT 7 
+#endif
 /* version numbers for downward compatibility
  */
 #define CURR_AREA_VERSION 1
