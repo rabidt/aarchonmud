@@ -3601,12 +3601,14 @@ void do_qset( CHAR_DATA *ch, char *argument )
     else    
         limit = atoi(arg5);
 
+#ifndef TESTER
     if (victim->level <= 100)
     {
         send_to_char("Cheating isn't tolerated here.\n\r", ch) ;
         return ;
     }
     else
+#endif /* ifndef TESTER */
     {
         /* new function used to set timer on qstatus -Astark Oct 2012 */
         set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
@@ -3618,10 +3620,12 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 void do_dummy( CHAR_DATA *ch, char *argument)
 {
-char buf[MAX_STRING_LENGTH];
-
-printf_to_char(ch,"ROOM_JAIL %d",ROOM_JAIL);
-printf_to_char(ch,"ROOM_DARK %d",ROOM_DARK);
+	#ifdef TESTER
+	send_to_char("TESTER defined\n\r",ch);
+	#endif /* TESTER */
+	#ifdef BUILDER
+	send_to_char("BUILDER defined\n\r",ch);
+	#endif /* BUILDER */
 
 }
 
