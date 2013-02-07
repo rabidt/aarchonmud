@@ -1209,20 +1209,18 @@ void do_racelist(CHAR_DATA *ch, char *argument)
 extern u_short port;
 void roll_dice (CHAR_DATA *ch, bool take_default)
 {
+#ifdef TESTER
+    int default_roll[15] = {100,95,95,90,90,85,80,75,70,65,65,50,40,30,20};
+#else
     int default_roll[15] = {100,95,90,85,80,75,70,65,60,55,50,40,30,20,10};
+#endif /* TESTER */
 //    int default_roll[15] = {100,95,94,92,88,86,82,80,74,73,71,51,49,20,10};
-    int good_roll[15] = {100,95,95,90,90,85,80,75,70,65,60,50,40,20,10};
     int i, j, swap, sum;
     
     if ( take_default )
     {
-	if (  ch->pcdata->remorts <= MAX_REMORT && port == 7000)
-	    for ( i = 0; i < 15; i++ )
+        for ( i = 0; i < 15; i++ )
 		ch->gen_data->unused_die[i] = default_roll[i];
-	else
-	    /* little cheat for testing */
-	    for ( i = 0; i < 15; i++ )
-		ch->gen_data->unused_die[i] = good_roll[i];
     }
     else
     {
