@@ -42,7 +42,10 @@ struct remort_chamber
 #define R5  16
 #define R6  32 // Astark added 12-21-12. Testing.
 #define R7  64 // Astark added 12-21-12. Testing.
-// #define R8  128 // Astark added 12-22-12. Testing.
+
+#ifdef TESTER
+#define R8  128 // Astark added 12-22-12. Testing.
+#endif
 
 /* Changed this from 15 to 16 to accommodate remort 7. We'll likely
    need to up it again when we start testing remort 8 - Astark 12-21-12 */
@@ -69,7 +72,9 @@ const struct remort_chamber chambers[] =
     {"Remort: Tribulations of Dakaria ",   4694,    R7, FALSE},
     {"Remort: Tribulations of Dakaria ",   3444,    R7, FALSE},
     {"Remort: Tribulations of Dakaria ",   3344,    R7, TRUE},
-//    {"Remort: Urban Wasteland         ",   9000,    R8, FALSE},
+#ifdef TESTER
+    {"Remort: Urban Wasteland         ",   9000,    R8, FALSE},
+#endif
     {NULL,			0, 0}
 };
 
@@ -219,8 +224,13 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
         }
     }
     
+#ifdef TESTER
+    qpcost = 1;
+    goldcost=1;
+#else
     qpcost = 200 + 50 * ch->pcdata->remorts;
     goldcost = 1000 * ( 20 + 8 * ch->pcdata->remorts + (1<<(ch->pcdata->remorts)));
+#endif /*TESTER*/
     
     if (ch->pcdata->questpoints < qpcost)
     {
