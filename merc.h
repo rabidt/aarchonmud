@@ -232,9 +232,11 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define PULSE_AREA        (120 * PULSE_PER_SECOND)
 #define PULSE_SAVE            ( 2 * PULSE_PER_SECOND )
 #define PULSE_HERB            ( 15 * 60 * PULSE_PER_SECOND )
+#define PULSE_PER_MINUTE	( 60 * PULSE_PER_SECOND )
 /* #define PULSE_HERB            ( 15 * PULSE_PER_SECOND ) */
 
 /* times */
+#define MINUTE 60
 #define HOUR 3600
 #define DAY (24*HOUR)
 #define WEEK (7*DAY)
@@ -2254,6 +2256,26 @@ typedef int tattoo_list[MAX_WEAR];
 #define CHAN_IMMTALK 'i'
 #define CHAN_SAVANT '7'
 
+/* Why not replace all the ones below with just this?
+   We might want to have daily/weekly/monthly/overall boards differ
+   in what is tracked and order in the list so
+   let's keep it all separate for now.
+   Yes, it's kind of messy, but it's functional and flexible. */
+
+/* defines for lboard type 
+ used for args to functions
+ such as update_lboard 	*/
+
+#define LBOARD_MKILL	0
+#define LBOARD_QCOMP	1
+#define LBOARD_BHD		2
+#define LBOARD_QPNT		3
+#define LBOARD_WKILL	4
+#define LBOARD_EXPL		5
+#define LBOARD_QFAIL	6
+#define LBOARD_LEVEL	7
+#define LBOARD_PKILL	8
+#define MAX_LBOARD 		9
 /*
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.
@@ -3930,6 +3952,8 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define PLAYER_TEMP_DIR "../player/temp/"  /* for simultanious saves */
 #define PORTAL_FILE    "portal.txt"
 #define RELIGION_FILE  "religion.txt"
+#define LBOARD_FILE    "lboard.txt"
+#define LBOARD_RESULT_FILE "lboard_result.txt"
 #define CHEAT_LIST     "../log/cheatlog.txt"
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
