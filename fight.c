@@ -504,25 +504,22 @@ void special_affect_update(CHAR_DATA *ch)
     {
 	AFFECT_DATA af;
 
-        // increasing chance of activation with lower health
-        int chance_act = 50 + 50 * (ch->max_hit - ch->hit) / UMAX(1, ch->max_hit);
-        if (chance(chance_act)) {            
-            af.where    = TO_AFFECTS;
-            af.type     = gsn_shan_ya;
-            af.level    = ch->level;
-            af.duration = 1;
-            af.modifier = 2 * (10 + ch->level);
-            af.bitvector = AFF_BERSERK;
-            
-            af.location = APPLY_HITROLL;
-            affect_to_char(ch,&af);
+	af.where    = TO_AFFECTS;
+	af.type     = gsn_shan_ya;
+	af.level    = ch->level;
+	af.duration = 1;
+	af.modifier = 10 + ch->level;
+	af.bitvector = AFF_BERSERK;
+	
+	af.location = APPLY_HITROLL;
+	affect_to_char(ch,&af);
 
-            af.location = APPLY_DAMROLL;
-            affect_to_char(ch,&af);
+	af.location = APPLY_DAMROLL;
+	af.modifier = 2*(10 + ch->level);
+	affect_to_char(ch,&af);
 
-            send_to_char( "{WYou're enraged with shan-ya battle madness!{x\n\r", ch);
-            act( "{W$n {Wis enraged with shan-ya battle madness!{x", ch,NULL,NULL,TO_ROOM);
-        }
+	send_to_char( "{WYou're enraged with shan-ya battle madness!{x\n\r", ch);
+	act( "{W$n {Wis enraged with shan-ya battle madness!{x", ch,NULL,NULL,TO_ROOM);
     }
 
     /* divine healing */

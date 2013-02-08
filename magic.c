@@ -799,10 +799,8 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
        specific parameters aren't met -- Astark Oct 2012 */
 
     if ((sn == gsn_hailstorm ||
-        sn == gsn_meteor_swarm ||
         sn == gsn_call_lightning ||
         sn == gsn_monsoon) && (weather_info.sky < SKY_RAINING))
-
     {
         send_to_char( "The weather is much too nice for that!\n\r", ch );
         return FALSE;
