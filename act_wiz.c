@@ -1307,8 +1307,8 @@ void do_return( CHAR_DATA *ch, char *argument )
         ch->prompt = NULL;
     }
     
-    if ( buf_string(ch->desc->original->pcdata->buffer)[0] != '\0')
-        send_to_char( "Type 'replay' to see missed tells.\n\r", ch );
+    if ( ch->pcdata->new_tells)
+        send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
     
     
     sprintf(buf,"$N returns from %s.",ch->short_descr);
