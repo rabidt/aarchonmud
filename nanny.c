@@ -2053,10 +2053,6 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    set_title( ch, buf );
 
 	    do_outfit(ch,"");
-	    obj_to_char(create_object(get_obj_index(OBJ_VNUM_MAP),0),ch);
-			/* Load newbie guide on char -- Maedhros 1/11/12 */
-	    obj_to_char(create_object(get_obj_index(OBJ_VNUM_NEWBIE_GUIDE),0),ch);
-
 	    if (wait_for_auth == AUTH_STATUS_ENABLED)
 	    {
 		char_to_room( ch, get_room_index( ROOM_VNUM_AUTH_START ) );
