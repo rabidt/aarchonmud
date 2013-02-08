@@ -3309,7 +3309,6 @@ void do_oldfinger(CHAR_DATA *ch, char *argument)
             wch->pcdata->total_wars );
         for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
         strcat( buf, "|\n\r" );
-        add_buf( output, buf );
 
 	/* Pkill grading system removed - killed pk players hated it - Maedhros */
         /* sprintf(buf,
