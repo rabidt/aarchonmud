@@ -1800,14 +1800,6 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         dam *= 2;
     }
 
- /* Temporary fix for backstab and circle to check anatomy for
-    damage boost - Astark 1-6-13 */
-    if ( dt == gsn_backstab || dt == gsn_circle )
-    {
-       dam += dam * get_skill(ch, gsn_anatomy) / 20;
-       check_improve( ch, gsn_anatomy, TRUE, 8 );
-    } 
-    
     /* leadership and charisma of group leader */
     if ( ch->leader != NULL
 	 && ch->leader != ch 
