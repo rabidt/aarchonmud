@@ -212,11 +212,21 @@ void do_outfit ( CHAR_DATA *ch, char *argument )
         equip_char( ch, obj, WEAR_TORSO );
     }
 
-    if ( ( obj = get_obj_carry( ch, "newbie", ch ) ) == NULL )
+
+    if ( ch->pcdata->remorts < 1 )
     {
-        obj = create_object( get_obj_index(OBJ_VNUM_NEWBIE_GUIDE), 0 );
-        obj->cost = 0;
-        obj_to_char( obj, ch );
+    	if ( ( obj = get_obj_carry( ch, "guide", ch ) ) == NULL )
+    	{
+        	obj = create_object( get_obj_index(OBJ_VNUM_NEWBIE_GUIDE), 0 );
+        	obj->cost = 0;
+       		obj_to_char( obj, ch );
+    	}
+	if ( ( obj = get_obj_carry( ch, "map", ch ) ) == NULL )
+        {
+                obj = create_object( get_obj_index(OBJ_VNUM_MAP), 0 );
+                obj->cost = 0;
+                obj_to_char( obj, ch );
+        }
     }
 
     
