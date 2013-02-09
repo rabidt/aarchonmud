@@ -230,7 +230,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "gratz",      do_gratz,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "gtell",      do_gtell,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { ";",          do_gtell,   POS_DEAD,    0,  LOG_NORMAL, 0, FALSE, TRUE  },
-    { "quest",      do_quest,   POS_SLEEPING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "quest",      do_quest,   POS_RESTING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "newbie",     do_newbie,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, TRUE },
     { "note",       do_note,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "pose",       do_pose,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },

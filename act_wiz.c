@@ -212,11 +212,21 @@ void do_outfit ( CHAR_DATA *ch, char *argument )
         equip_char( ch, obj, WEAR_TORSO );
     }
 
-    if ( ( obj = get_obj_carry( ch, "newbie", ch ) ) == NULL )
+
+    if ( ch->pcdata->remorts < 1 )
     {
-        obj = create_object( get_obj_index(OBJ_VNUM_NEWBIE_GUIDE), 0 );
-        obj->cost = 0;
-        obj_to_char( obj, ch );
+    	if ( ( obj = get_obj_carry( ch, "guide", ch ) ) == NULL )
+    	{
+        	obj = create_object( get_obj_index(OBJ_VNUM_NEWBIE_GUIDE), 0 );
+        	obj->cost = 0;
+       		obj_to_char( obj, ch );
+    	}
+	if ( ( obj = get_obj_carry( ch, "map", ch ) ) == NULL )
+        {
+                obj = create_object( get_obj_index(OBJ_VNUM_MAP), 0 );
+                obj->cost = 0;
+                obj_to_char( obj, ch );
+        }
     }
 
     
@@ -3601,12 +3611,14 @@ void do_qset( CHAR_DATA *ch, char *argument )
     else    
         limit = atoi(arg5);
 
+#ifndef TESTER
     if (victim->level <= 100)
     {
         send_to_char("Cheating isn't tolerated here.\n\r", ch) ;
         return ;
     }
     else
+#endif /* ifndef TESTER */
     {
         /* new function used to set timer on qstatus -Astark Oct 2012 */
         set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
@@ -3618,10 +3630,12 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 void do_dummy( CHAR_DATA *ch, char *argument)
 {
-char buf[MAX_STRING_LENGTH];
-
-printf_to_char(ch,"ROOM_JAIL %d",ROOM_JAIL);
-printf_to_char(ch,"ROOM_DARK %d",ROOM_DARK);
+	#ifdef TESTER
+	send_to_char("TESTER defined\n\r",ch);
+	#endif /* TESTER */
+	#ifdef BUILDER
+	send_to_char("BUILDER defined\n\r",ch);
+	#endif /* BUILDER */
 
 }
 
