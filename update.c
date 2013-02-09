@@ -1016,6 +1016,20 @@ void weather_update( void )
    switch ( ++time_info.hour )
    {
    case  5:
+	  weather_info.sunlight = SUN_RISE;
+	  strcat( buf, "The sun rises in the east.\n\r" );
+	  for ( d = descriptor_list; d != NULL; d = d->next )
+	  {
+	     if ( d->character != NULL && IS_AFFECTED( d->character, AFF_DARKNESS ) )
+	     {
+                send_to_char("The rising of the sun drains the energy from your body.\n\r",d->character); 
+	        REMOVE_BIT( d->character->affect_field, AFF_DARKNESS );
+                affect_strip(d->character, gsn_blessed_darkness);
+             }
+          }
+	  break;
+	  
+   case  6:
 	  weather_info.sunlight = SUN_LIGHT;
 	  for (d=descriptor_list; d!=NULL; d=d->next)
 	      if (d->character && (d->character->race == race_werewolf)
@@ -1031,20 +1045,6 @@ void weather_update( void )
 	      }
 
       strcat( buf, "The day has begun.\n\r" );
-	  break;
-	  
-   case  6:
-	  weather_info.sunlight = SUN_RISE;
-	  strcat( buf, "The sun rises in the east.\n\r" );
-	  for ( d = descriptor_list; d != NULL; d = d->next )
-	  {
-	     if ( d->character != NULL && IS_AFFECTED( d->character, AFF_DARKNESS ) )
-	     {
-                send_to_char("The rising of the sun drains the energy from your body.\n\r",d->character); 
-	        REMOVE_BIT( d->character->affect_field, AFF_DARKNESS );
-                affect_strip(d->character, gsn_blessed_darkness);
-             }
-          }
 	  break;
 	  
    case 19:
