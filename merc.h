@@ -1648,7 +1648,7 @@ struct  kill_data
 #define OBJ_VNUM_SCHOOL_WHIP       18421
 #define OBJ_VNUM_SCHOOL_POLEARM    18422
 #define OBJ_VNUM_SCHOOL_GUN        18423
-/*#define OBJ_VNUM_SCHOOL_BOW        18431*/
+#define OBJ_VNUM_SCHOOL_BOW        18432
 
 #define OBJ_VNUM_SCHOOL_VEST       18403
 #define OBJ_VNUM_SCHOOL_SHIELD     18404
