@@ -356,8 +356,8 @@ void do_afk ( CHAR_DATA *ch, char * argument)
     if (IS_SET(ch->comm,COMM_AFK))
     {
         send_to_char("AFK mode removed.\n\r",ch);
-        if (buf_string(ch->pcdata->buffer)[0] != '\0')
-            send_to_char("Type 'replay' to see missed tells.\n\r", ch );
+        if (ch->pcdata->new_tells)
+            send_to_char("Type 'playback tell' to see missed tells.\n\r", ch );
         REMOVE_BIT(ch->comm,COMM_AFK);
     }
     else
@@ -378,8 +378,8 @@ void do_busy ( CHAR_DATA *ch, char * argument)
     if (IS_SET(ch->comm,COMM_BUSY))
     {
         send_to_char("BUSY mode removed.\n\r",ch);
-        if (buf_string(ch->pcdata->buffer)[0] != '\0')
-            send_to_char("Type 'replay' to see missed tells.\n\r", ch );
+        if (ch->pcdata->new_tells)
+            send_to_char("Type 'playback tell' to see missed tells.\n\r", ch );
         REMOVE_BIT(ch->comm,COMM_BUSY);
     }
     else
@@ -392,7 +392,8 @@ void do_busy ( CHAR_DATA *ch, char * argument)
 
 void do_replay (CHAR_DATA *ch, char *argument)
 {
-    if (IS_NPC(ch))
+	do_playback( ch, "tell" );
+/*    if (IS_NPC(ch))
     {
         send_to_char("You can't replay.\n\r",ch);
         return;
@@ -405,7 +406,7 @@ void do_replay (CHAR_DATA *ch, char *argument)
     }
     
     page_to_char(buf_string(ch->pcdata->buffer),ch);
-    clear_buf(ch->pcdata->buffer);
+    clear_buf(ch->pcdata->buffer);*/
 }
 
 
@@ -466,7 +467,7 @@ void do_gossip( CHAR_DATA *ch, char *argument )
 
         argument = makedrunk(argument,ch);
 
-        sprintf(buf,"{p {P'%s{P'",argument);
+        sprintf(buf,"{p gossips {P'%s{P'",argument);
         log_chan(ch,buf,CHAN_GOSSIP);
 
 
@@ -1340,6 +1341,8 @@ void do_clantalk( CHAR_DATA *ch, char *argument )
     
     sprintf( buf, "{lYou clan {L'%s{L'\n\r{x", argument );
     send_to_char( buf, ch );
+	if ( !IS_NPC(ch) )
+		log_pers(ch->pcdata->clan_history, buf);
     argument = makedrunk(argument,ch);
     /* ACT is just unneccessary overhead here! Memnoch 03/98 */
     
@@ -1367,6 +1370,8 @@ void do_clantalk( CHAR_DATA *ch, char *argument )
             if (!found)
             {
                 send_to_char(buf,d->character);
+				if ( !IS_NPC(ch) )
+					log_pers(d->character->pcdata->clan_history, buf);
             }
         }
     }
@@ -1767,7 +1772,7 @@ void act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     char buf[MAX_STRING_LENGTH];
 
     sprintf( buf, "{t$n {ttells you {T'%s{T'{x", argument );
-    nt_act( buf, ch, NULL, victim, TO_VICT );
+	nt_act( buf, ch, NULL, victim, TO_VICT );
 }
 
 void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
@@ -1776,17 +1781,6 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     bool found;
     int pos;
 
-    if ( victim->desc == NULL && !IS_NPC(victim))
-    {
-        act("$N seems to have misplaced $S link...$E'll get your tell upon returning.",
-            ch,NULL,victim,TO_CHAR);
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",get_mimic_PERS_new(ch,victim,GAG_NCOL_CHAN),argument);
-        buf[2] = UPPER(buf[2]);
-        add_buf(victim->pcdata->buffer,buf);
-	if( victim != ch )
-	    victim->reply = ch;
-        return;
-    }
     
     if ( !IS_IMMORTAL(ch)
 	 && !IS_IMMORTAL(victim)
@@ -1822,72 +1816,52 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
             return;
         }
     }
-    
-    if (IS_SET(victim->comm,COMM_AFK))
+
+	
+	sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
+	send_to_char( buf, ch );
+	if ( !IS_NPC(ch) )
+		log_pers(ch->pcdata->tell_history, buf);
+	argument = makedrunk(argument,ch);
+	
+	
+    if ( victim->desc == NULL && !IS_NPC(victim))
+    {
+        act("$N seems to have misplaced $S link...$E'll get your tell upon returning.",
+            ch,NULL,victim,TO_CHAR);
+		victim->pcdata->new_tells=TRUE;
+    }
+	else if (IS_SET(victim->comm,COMM_AFK))
     {
 	/* NPC's shouldn't be able to go AFK, but .. safety is worth the extra check! */
-        if (IS_NPC(victim))
+        if (!IS_NPC(victim))
         {
             act("$E is AFK, and not receiving tells.",ch,NULL,victim,TO_CHAR);
-            return;
+			victim->pcdata->new_tells=TRUE;
         }
-        
-        act("$E is AFK, but your tell will go through when $E returns.",
-            ch,NULL,victim,TO_CHAR);
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",ch->name,argument);
-        buf[2] = UPPER(buf[2]);
-        add_buf(victim->pcdata->buffer,buf);
-	if( victim != ch )
-	    victim->reply = ch;
-        return;
     }
-
-    if (IS_SET(victim->comm,COMM_AFK))
-    {
-	/* NPC's shouldn't be able to go AFK, but .. safety is worth the extra check! */
-        if (IS_NPC(victim))
-        {
-            act("$E is AFK, and not receiving tells.",ch,NULL,victim,TO_CHAR);
-            return;
-        }
-        
-        act("$E is AFK, but your tell will go through when $E returns.",
-            ch,NULL,victim,TO_CHAR);
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",ch->name,argument);
-        buf[2] = UPPER(buf[2]);
-        add_buf(victim->pcdata->buffer,buf);
-	if( victim != ch )
-	    victim->reply = ch;
-        return;
-    }
-
-    if ( !IS_NPC(victim) /* switched imms */
+	else if ( !IS_NPC(victim) /* switched imms */
 	 && victim->desc != NULL
 	 && IS_WRITING_NOTE(victim->desc->connected) )
     {
         act("$N is writing a note, but your tell will go through when $E finishes.",
             ch,NULL,victim,TO_CHAR);
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",ch->name,argument);
-        buf[2] = UPPER(buf[2]);
-        add_buf(victim->pcdata->buffer,buf);
-	if( victim != ch )
-	    victim->reply = ch;
-        return;
+		victim->pcdata->new_tells=TRUE;
     }
+	else
+	{
+		/* send as regular */
+		sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r", ( IS_NPC(ch) ? ch->short_descr : ch->name ), argument);
+		send_to_char(buf, victim);
+	}
+	
+	/* we'll add to history whether they're available or now */
+	if (!IS_NPC(victim) )
+	{
+		log_pers(victim->pcdata->tell_history, buf);
+	}
     
-    sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", victim->name, argument );
-    send_to_char( buf, ch );
-    argument = makedrunk(argument,ch);
-    nt_act_new( "{t$n {ttells you {T'$t{T'{x", ch, argument, victim, TO_VICT, POS_DEAD);
-    
-/* this was introduced to make replay a simple 'playback tell' but taking it back out - Vodur 1/10/13 
-    if (!IS_NPC(victim))
-    {
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r",ch->name,argument);
-        buf[2] = UPPER(buf[2]);
-        add_buf(victim->pcdata->buffer,buf);
-    }
-*/
+	
     if( victim != ch )
         victim->reply = ch;
     
@@ -3194,12 +3168,24 @@ void do_gtell( CHAR_DATA *ch, char *argument )
     }
     sprintf( buf, "{3You tell the group, {4'%s'{x\n\r", argument );
     send_to_char( buf, ch );
+	if ( !IS_NPC(ch) )
+		log_pers( ch->pcdata->gtell_history, buf);
     argument = makedrunk(argument,ch);
     
     for ( gch = char_list; gch != NULL; gch = gch->next )
     {
         if ( is_same_group( gch, ch ) )
-            nt_act_new( "{3$n{3 tells the group {4'$t'{x", ch, argument, gch, TO_VICT, POS_SLEEPING );
+		{
+            //nt_act_new( "{3$n{3 tells the group {4'$t'{x", ch, argument, gch, TO_VICT, POS_SLEEPING );
+			//sprintf(buf, "{3%s{3 tells the group {4'%s'{x\n\r", get_mimic_PERS_new( ch, gch, 0), argument );
+			sprintf(buf, "{3%s{3 tells the group {4'%s'{x\n\r", (IS_NPC(ch)?ch->short_descr:ch->name), argument );
+			if (gch != ch)
+			{
+				send_to_char(buf, gch);
+				if ( !IS_NPC(gch) )
+					log_pers( gch->pcdata->gtell_history, buf);
+			}
+		}
     }
     
     return;
