@@ -242,8 +242,11 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define YEAR (365*DAY)
 
 /* maximum current remort level - update when adding new remorts */
-#define MAX_REMORT 7
-
+#ifdef TESTER
+#define MAX_REMORT 8
+#else
+#define MAX_REMORT 7 
+#endif
 /* version numbers for downward compatibility
  */
 #define CURR_AREA_VERSION 1
@@ -1645,7 +1648,7 @@ struct  kill_data
 #define OBJ_VNUM_SCHOOL_WHIP       18421
 #define OBJ_VNUM_SCHOOL_POLEARM    18422
 #define OBJ_VNUM_SCHOOL_GUN        18423
-#define OBJ_VNUM_SCHOOL_BOW        18431
+#define OBJ_VNUM_SCHOOL_BOW        18432
 
 #define OBJ_VNUM_SCHOOL_VEST       18403
 #define OBJ_VNUM_SCHOOL_SHIELD     18404
