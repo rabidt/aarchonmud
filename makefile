@@ -15,7 +15,11 @@ O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
      buildutil.o buffer_util.o simsave.o breath.o tflag.o grep.o vshift.o \
      tattoo.o religion.o playback.o  
 
-aeaea: $(O_FILES)
+aeaea: 
+tester: C_FLAGS=-ggdb -w -Wall $(PROF) $(NOCRYPT) -DTESTER
+builder: C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT) -DBUILDER
+
+aeaea tester builder: $(O_FILES)
 	rm -f aeaea 
 	$(CC) $(L_FLAGS) -o aeaea $(O_FILES) -lcrypt -lm
 

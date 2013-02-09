@@ -3093,8 +3093,7 @@ bool room_is_dark( ROOM_INDEX_DATA *pRoomIndex )
         ||   pRoomIndex->sector_type == SECT_CITY )
         return FALSE;
     
-    if ( weather_info.sunlight == SUN_SET
-        ||   weather_info.sunlight == SUN_DARK )
+    if ( weather_info.sunlight == SUN_DARK )
         return TRUE;
     
     return FALSE;
@@ -3112,8 +3111,7 @@ bool room_is_sunlit( ROOM_INDEX_DATA *pRoomIndex )
     if ( pRoomIndex->sector_type == SECT_INSIDE )
         return FALSE;
     
-    if ( weather_info.sunlight == SUN_SET
-	 || weather_info.sunlight == SUN_DARK )
+    if ( weather_info.sunlight == SUN_DARK )
         return FALSE;
     
     return TRUE;
