@@ -2030,6 +2030,8 @@ void show_skill(char *argument, BUFFER *buffer)
 		     skill_table[skill].minimum_position <= POS_FIGHTING ? "yes" : "no" );
 	else if (stances[stance].cost != 0)
 	    sprintf(buf, "Base Move: %d\n\r", stances[stance].cost);
+	else if (skill_table[skill].min_mana != 0)
+	    sprintf(buf, "Base Mana: %d  Lag: %d\n\r", skill_table[skill].min_mana, skill_table[skill].beats);
 	else if (skill_table[skill].beats != 0)
 	    sprintf(buf, "Lag: %d\n\r", skill_table[skill].beats);
 	else
