@@ -4,11 +4,8 @@
 Written by Clayton Richey (Odoth/Vodur) <clayton.richey@gmail.com>
 for Aarchon MUD
 (aarchonmud.com:7000).
-Version date: 1/30/2013
+Version date: 1/31/2013
 **************************************************************/
-
-
-
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -24,9 +21,6 @@ Version date: 1/30/2013
 #define DEFAULT_RESULTS 35
 
 #define MAX_PERS_HISTORY 20
-#define DEFAULT_PERS_RESULTS 20
-
-
 
 
 /* declare the actual structures we will use*/
@@ -89,10 +83,10 @@ void log_pers( PERS_HISTORY *history, char *text )
 	
 	strcpy(time, ctime( &current_time ) );
 	time[strlen(time)-1] = '\0';
-	sprintf(buf, "%s:::%s", time, text );
+	sprintf(buf, "%s::%s", time, text );
 	entry->text=str_dup(buf);
 	
-		/* add it to the history */
+	/* add it to the history */
 	if ( history->head == NULL )
 	{
 		/* empty history */
@@ -133,7 +127,7 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
     entry->text = str_dup(text) ;
     entry->channel = channel;
     entry->timestamp= str_dup(ctime( &current_time ));
-    //have to add the EOL to timestamp or it won't have one, weird
+    /*have to add the EOL to timestamp or it won't have one, weird*/
     entry->timestamp[strlen(entry->timestamp)-1] = '\0';
 
     if (!IS_NPC(ch))
@@ -154,9 +148,6 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
     }
     else 
      entry->mimic_name = NULL;
-
-
-
 
     /* Assign the correct history based on which channel.
     All public channels using public_history, immtalk uses
@@ -214,15 +205,76 @@ void do_playback(CHAR_DATA *ch, char * argument)
     BUFFER *output;
     char arg[MSL];
     sh_int arg_number;
+	bool immortal=IS_IMMORTAL(ch);
 
     argument = one_argument(argument,arg);
     
     if ( arg[0] == '\0')
     {
-		playback_to_char( ch, &public_history, DEFAULT_RESULTS);
+		send_to_char("playback [public|tell|gtell|clan", ch);
+		if ( immortal )
+			send_to_char("|imm|savant",ch);
+		send_to_char("] <#>\n\r",ch);
 		return;
-    }
-    else if (is_number(arg))
+	}
+	
+	COMM_HISTORY *history=NULL;
+	PERS_HISTORY *phistory=NULL;
+	
+	if ( arg[0] == 'p' )
+	{
+		history=&public_history;
+	}
+	else if ( arg[0] == 't' )
+	{
+		phistory=ch->pcdata->tell_history;
+	}
+	else if ( arg[0] == 'g' )
+	{
+		phistory=ch->pcdata->gtell_history;
+	}
+	else if ( arg[0] == 'c' )
+	{
+		phistory=ch->pcdata->clan_history;
+	}
+	else if ( immortal )
+	{
+		if ( arg[0] == 'i' )
+		{
+			history=&immtalk_history;
+		}
+		else if ( arg[0] == 's' )
+		{
+			history=&savant_history;
+		}
+	}
+	else
+	{
+		send_to_char("Invalid syntax.\n\r", ch);
+		return;
+	}
+	
+	
+	if (phistory)
+	{
+		playback_pers( ch, phistory);
+		return;
+	}
+	else if (!history)
+	{
+		bugf("history and phistory NULL in do_playback");
+		return;
+	}
+	
+	/* if we're here, it's a COMM_HISTORY, not PERS_HISTORY, check for 2nd arg */
+	argument=one_argument( argument, arg );
+	
+	if ( arg[0] == '\0' )
+	{
+		playback_to_char( ch, history, DEFAULT_RESULTS);
+		return;
+	}
+	if (is_number(arg))
     {
         arg_number = atoi(arg);
         if (arg_number > MAX_COMM_HISTORY || arg_number < 1)
@@ -232,106 +284,74 @@ void do_playback(CHAR_DATA *ch, char * argument)
         }
         else
 		{
-			playback_to_char( ch, &public_history, arg_number );
+			playback_to_char( ch, history, arg_number );
 			return;
 		}
     }
-	else if (!strcmp(arg, "clear") && !IS_NPC(ch))
+	else if (!strcmp(arg, "clear") && immortal )
     {
-		playback_clear( ch, &public_history );
+		playback_clear( history );
+		return;
     }
 	else
 	{
-		/* specify channel and argument */
-		COMM_HISTORY *history=NULL;
-		PERS_HISTORY *phistory=NULL;
-		
-		if (!strcmp(arg, "imm" ) )
-		{
-			history=&immtalk_history;
-		}
-		else if (!strcmp(arg, "savant" ) )
-		{
-			history=&savant_history;
-		}
-		else if (!strcmp(arg, "gtell" ) )
-		{
-			phistory= ch->pcdata->gtell_history;
-		}
-		else if (!strcmp(arg, "tell" ) )
-		{
-			phistory= ch->pcdata->tell_history;
-			ch->pcdata->new_tells=FALSE;
-		}
-		else if (!strcmp(arg, "clan" ) )
-		{
-			phistory= ch->pcdata->clan_history;
-		}
-		else
-		{
-			send_to_char("Bad syntax.\n\r",ch);
-			return;
-		}
-		
-		char arg2[MSL];
-		argument=one_argument(argument,arg2);
-		if (arg2[0] == '\0')
-		{
-			if (history)
-				playback_to_char( ch, history, DEFAULT_RESULTS );
-			else if (phistory)
-				playback_pers( ch, phistory);
-			return;
-		}
-		else if (is_number(arg2))
-		{	
-			arg_number = atoi(arg2);
-			if (arg_number > MAX_COMM_HISTORY || arg_number < 1)
-			{
-				printf_to_char(ch, "Argument should be a number from 1 to %d.\n\r",MAX_COMM_HISTORY);
-				return;
-			}
-			else
-			{
-				playback_to_char( ch, history, arg_number );
-				return;
-			}
-		}
-		else if (!strcmp(arg2, "clear") && !IS_NPC(ch))
-		{
-			playback_clear( ch, history );
-		}
+		send_to_char("Invalid syntax.\n\r",ch);
+		return;
 	}
 }     
 
-void playback_clear( CHAR_DATA *ch, COMM_HISTORY *history)
+void playback_clear( COMM_HISTORY *history)
 {
 	COMM_ENTRY *destroy=history->head;
 	if (destroy==NULL)
 		return;
-	
-	history->head=destroy->next;
-	if (history->head!=NULL)
-		history->head->prev=NULL;
-	
-	history->size-=1;
-	
+	else if ( destroy==history->tail ) /* head and tail the same, 1 entry */
+	{
+		history->head=NULL;
+		history->tail=NULL;
+		history->size=0;
+	}
+	else
+	{
+		history->head=destroy->next;
+		if (history->head!=NULL)
+			history->head->prev=NULL;
+		history->size-=1;
+	}
 	comm_entry_free(destroy);
 }
 
 
 void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 {
+	if (history == NULL)
+	{
+		bugf("NULL history passed to playback_to_char.");
+		return;
+	}
+	COMM_ENTRY *entry;
+	entry=history->tail;
+	if ( entry == NULL)
+		return;
+		
 	char buf[2*MSL];
 	BUFFER *output;
 	output = new_buf();
-	COMM_ENTRY *entry;
-	int entry_num=0;
-    for ( entry=history->tail ; entry != NULL ; entry=entry->prev )
+		
+	if ( entries < history->size )
+	{
+		entry=history->head;
+		int i;
+		for ( i=1; i < entries; i++)
+		{
+			entry=entry->next;
+			if ( entry == NULL ) /* shouldn't happen */
+				break;
+		}
+	}
+	
+    for ( ; entry != NULL ; entry=entry->prev )
     {
-		entry_num+=1;
-		if ( entry_num > entries )
-			break;
 			
         if (entry->timestamp != NULL && entry->text != NULL && !((entry->channel == CHAN_BITCH && IS_SET(ch->comm,COMM_NOBITCH))))
         {
