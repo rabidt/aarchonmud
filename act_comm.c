@@ -392,6 +392,7 @@ void do_busy ( CHAR_DATA *ch, char * argument)
 
 void do_replay (CHAR_DATA *ch, char *argument)
 {
+	do_playback( ch, "tell" );
 /*    if (IS_NPC(ch))
     {
         send_to_char("You can't replay.\n\r",ch);
@@ -1818,7 +1819,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
 
 	
 	sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
-    send_to_char( buf, ch );
+	send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers(ch->pcdata->tell_history, buf);
 	argument = makedrunk(argument,ch);

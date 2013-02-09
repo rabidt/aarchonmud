@@ -20,7 +20,7 @@ Version date: 1/31/2013
 /* Default number of results, needs to  be <=MAX_COMM_HISTORY */
 #define DEFAULT_RESULTS 35
 
-#define MAX_PERS_HISTORY 20
+#define MAX_PERS_HISTORY 25
 
 
 /* declare the actual structures we will use*/
@@ -199,24 +199,27 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
 void do_playback(CHAR_DATA *ch, char * argument)
 {
     
-	if ( IS_NPC(ch) )
+    if ( IS_NPC(ch) )
 		return;
 	
     BUFFER *output;
     char arg[MSL];
     sh_int arg_number;
-	bool immortal=IS_IMMORTAL(ch);
+    bool immortal=IS_IMMORTAL(ch);
+    bool savant= ( ch->level >= SAVANT );
 
     argument = one_argument(argument,arg);
     
     if ( arg[0] == '\0')
     {
-		send_to_char("playback [public|tell|gtell|clan", ch);
-		if ( immortal )
-			send_to_char("|imm|savant",ch);
-		send_to_char("] <#>\n\r",ch);
-		return;
-	}
+	send_to_char("playback [public|tell|gtell|clan", ch);
+	if ( immortal )
+		send_to_char("|imm",ch);
+	if ( savant )
+		send_to_char("|savant",ch);
+	send_to_char("] <#>\n\r",ch);
+	return;
+    }
 	
 	COMM_HISTORY *history=NULL;
 	PERS_HISTORY *phistory=NULL;
@@ -228,6 +231,7 @@ void do_playback(CHAR_DATA *ch, char * argument)
 	else if ( arg[0] == 't' )
 	{
 		phistory=ch->pcdata->tell_history;
+		ch->pcdata->new_tells=FALSE;
 	}
 	else if ( arg[0] == 'g' )
 	{
@@ -237,16 +241,13 @@ void do_playback(CHAR_DATA *ch, char * argument)
 	{
 		phistory=ch->pcdata->clan_history;
 	}
-	else if ( immortal )
+	else if ( immortal  && arg[0] == 'i' )
 	{
-		if ( arg[0] == 'i' )
-		{
-			history=&immtalk_history;
-		}
-		else if ( arg[0] == 's' )
-		{
-			history=&savant_history;
-		}
+		history=&immtalk_history;
+	}
+	else if ( savant && arg[0] == 's' )
+	{
+		history=&savant_history;
 	}
 	else
 	{
@@ -275,24 +276,24 @@ void do_playback(CHAR_DATA *ch, char * argument)
 		return;
 	}
 	if (is_number(arg))
-    {
-        arg_number = atoi(arg);
-        if (arg_number > MAX_COMM_HISTORY || arg_number < 1)
-        {
-            printf_to_char(ch, "Argument should be a number from 1 to %d.\n\r",MAX_COMM_HISTORY);
-            return;
-        }
-        else
+	{
+        	arg_number = atoi(arg);
+	        if (arg_number > MAX_COMM_HISTORY || arg_number < 1)
+        	{
+			printf_to_char(ch, "Argument should be a number from 1 to %d.\n\r",MAX_COMM_HISTORY);
+            		return;
+        	}
+        	else
 		{
 			playback_to_char( ch, history, arg_number );
 			return;
 		}
-    }
+    	}
 	else if (!strcmp(arg, "clear") && immortal )
-    {
+	{
 		playback_clear( history );
 		return;
-    }
+	}
 	else
 	{
 		send_to_char("Invalid syntax.\n\r",ch);
@@ -403,7 +404,7 @@ void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history)
 	
 	for ( entry=history->tail ; entry != NULL ; entry=entry->prev )
 	{
-		send_to_char( entry->text, ch);
+		send_to_char(  entry->text, ch );
 	}
 
 }
