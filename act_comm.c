@@ -1825,6 +1825,15 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
 	argument = makedrunk(argument,ch);
 	
 	
+        /* send as regular */
+        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r", ( IS_NPC(ch) ? ch->short_descr : ch->name ), argument);
+
+        /* we'll add to history whether they're available or not */
+        if (!IS_NPC(victim) )
+        {
+                log_pers(victim->pcdata->tell_history, buf);
+        }
+
     if ( victim->desc == NULL && !IS_NPC(victim))
     {
         act("$N seems to have misplaced $S link...$E'll get your tell upon returning.",
@@ -1848,18 +1857,12 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
             ch,NULL,victim,TO_CHAR);
 		victim->pcdata->new_tells=TRUE;
     }
-	else
-	{
-		/* send as regular */
-		sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r", ( IS_NPC(ch) ? ch->short_descr : ch->name ), argument);
-		send_to_char(buf, victim);
-	}
+    else
+    {
+	/* send as regular */
+	send_to_char(buf, victim);
+    }   
 	
-	/* we'll add to history whether they're available or now */
-	if (!IS_NPC(victim) )
-	{
-		log_pers(victim->pcdata->tell_history, buf);
-	}
     
 	
     if( victim != ch )
