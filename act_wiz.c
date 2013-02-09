@@ -1307,7 +1307,7 @@ void do_return( CHAR_DATA *ch, char *argument )
         ch->prompt = NULL;
     }
     
-    if ( ch->pcdata->new_tells)
+    if ( ch->desc->original->pcdata->new_tells)
         send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
     
     
