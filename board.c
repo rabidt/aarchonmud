@@ -1420,8 +1420,8 @@ void handle_con_note_finish (DESCRIPTOR_DATA *d, char * argument)
    }
 
    if ( d->connected == CON_PLAYING
-	&& buf_string(ch->pcdata->buffer)[0] != '\0' )
-       send_to_char("Type 'replay' to see missed tells.\n\r", ch );
+	&& ch->pcdata->new_tells )
+       send_to_char("Type 'playback tell' to see missed tells.\n\r", ch );
 }
 
 /* Announces new mail to online recipients.  Toggled off and on just like other
