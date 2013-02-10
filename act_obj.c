@@ -2599,13 +2599,18 @@ void do_recite( CHAR_DATA *ch, char *argument )
     }
     else
     {
-	if (
-            obj_cast_spell( scroll->value[1], scroll->value[0], ch, scroll, argument ) ||
-            obj_cast_spell( scroll->value[2], scroll->value[0], ch, scroll, argument ) ||
-            obj_cast_spell( scroll->value[3], scroll->value[0], ch, scroll, argument ) ||
-            obj_cast_spell( scroll->value[4], scroll->value[0], ch, scroll, argument ) )
-	/*if it didn't go, probably typoed the argument, no reason to
+	bool success=FALSE;
+        if ( obj_cast_spell( scroll->value[1], scroll->value[0], ch, scroll, argument ) )
+	  success=TRUE;
+        if ( obj_cast_spell( scroll->value[2], scroll->value[0], ch, scroll, argument ) )
+	  success=TRUE;
+        if ( obj_cast_spell( scroll->value[3], scroll->value[0], ch, scroll, argument ) )
+	  success=TRUE;
+        if ( obj_cast_spell( scroll->value[4], scroll->value[0], ch, scroll, argument ) )
+	  success=TRUE;
+	/*if it didn't go, probably typoed the target argument, no reason to
 	  kill the scroll or to check_improve -Vodur*/
+	if ( success )
 	{
 	    extract_obj( scroll );
             check_improve(ch,gsn_scrolls,TRUE,2);
