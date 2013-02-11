@@ -334,9 +334,10 @@ void do_firstaid( CHAR_DATA *ch, char *argument )
 	case SECT_FIELD:
 	case SECT_HILLS:
 	case SECT_MOUNTAIN:
-	    max_heal = max_heal * 3/2;
+	    max_heal = max_heal * 7/4;
 	    break;
 	default:
+            max_heal = max_heal * 3/2;
             break;
 	}
 	
