@@ -634,19 +634,19 @@ void print_all_lboard_lists_to_char( CHAR_DATA *ch )
 	int i;
 	LBOARD *board;
 	
-	send_to_char("[---DAILY BOARDS ---]\n\r", ch );
+	send_to_char("[--- DAILY BOARDS -----]\n\r", ch );
 	print_lboard_list_to_char( lboard_daily, ch);
 	printf_to_char(ch, "Resets on: %s\n\r", ctime(&daily_reset) );
 
-	send_to_char("[---WEEKLY BOARDS ---]\n\r", ch );
+	send_to_char("[--- WEEKLY BOARDS  ---]\n\r", ch );
 	print_lboard_list_to_char( lboard_weekly, ch);
 	printf_to_char(ch, "Resets on: %s\n\r", ctime(&weekly_reset) );
 	
-	send_to_char("[---MONTHLY BOARDS ---]\n\r", ch );
+	send_to_char("[--- MONTHLY BOARDS ---]\n\r", ch );
 	print_lboard_list_to_char( lboard_monthly, ch);
 	printf_to_char(ch, "Resets on: %s\n\r", ctime(&monthly_reset) );
 
-	send_to_char("[---OVERALL BOARDS ---]\n\r", ch );
+	send_to_char("[--- OVERALL BOARDS ---]\n\r", ch );
 	print_lboard_list_to_char( lboard_overall, ch);
 	
 }
@@ -894,6 +894,10 @@ void load_lboards()
     /* close file */
     fclose( fp );
     fpReserve = fopen( NULL_FILE, "r" );  
+
+
+
+    check_lboard_reset();
 
 #ifdef LBOARD_DEBUG	
     log_string( "load_lboards: done" );
@@ -1174,7 +1178,6 @@ void reset_daily_lboards()
 		
 	} while ( i > MAX_LBOARD_RESULT );
 	
-	
 	for ( i=0 ; i<MAX_LBOARD ; i++ )
 	{
 		if ( lboard_daily[i].board != NULL )
@@ -1236,7 +1239,7 @@ void reset_monthly_lboards()
 	for ( i=0 ; i<MAX_LBOARD ; i++ )
 	{
 		if ( lboard_monthly[i].board != NULL )
-			reset_lboard( &(lboard_monthly[i]) );
+			reset_lboard( &(lboard_monthly[i].board) );
 	}
 
 	struct tm *timeinfo;
@@ -1334,4 +1337,30 @@ void do_lhistory( CHAR_DATA *ch, char *argument)
 		return;
 	}
 }
+
+void check_lboard_reset()
+{
+        if (current_time > daily_reset)
+        {
+                #ifdef LBOARD_DEBUG
+                log_string("reset daily boards");
+                #endif
+                reset_daily_lboards();
+        }
+        if (current_time > weekly_reset)
+        {
+                #ifdef LBOARD_DEBUG
+                log_string("reset weekly boards");
+                #endif
+                reset_weekly_lboards();
+        }
+        if (current_time > monthly_reset)
+        {
+                #ifdef LBOARD_DEBUG
+                log_string("reset monthly boards");
+                #endif
+                reset_monthly_lboards();
+        }
+}
+
 
