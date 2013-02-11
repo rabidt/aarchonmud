@@ -297,13 +297,13 @@ int ch_dis_practice(CHAR_DATA *ch)
 /* New function for pracitce calculations. Uses prime and secondary
    stats to determine the gains - Astark 1-2-13 */
 
-int ch_prac_gains(CHAR_DATA *ch)
+int ch_prac_gains(CHAR_DATA *ch, int for_level)
 {
-    int x1 = get_curr_stat(ch,class_table[ch->class].attr_prime)/30;
-    int x2 = get_curr_stat(ch,class_table[ch->class].attr_second[0])/45;
-    int x3 = get_curr_stat(ch,class_table[ch->class].attr_second[1])/45;
+    int x1 = 100*get_curr_stat(ch,class_table[ch->class].attr_prime)/30;
+    int x2 = 100*get_curr_stat(ch,class_table[ch->class].attr_second[0])/45;
+    int x3 = 100*get_curr_stat(ch,class_table[ch->class].attr_second[1])/45;
     int x = x1+x2+x3;
-    return x;
+    return x * (1 + UMAX(0, for_level - LEVEL_MIN_HERO));
 };
 
 int ch_agi_defensive(CHAR_DATA *ch)

@@ -4406,7 +4406,7 @@ int ch_str_carry        args( (CHAR_DATA *ch) );
 int ch_str_wield        args( (CHAR_DATA *ch) );
 int ch_int_learn        args( (CHAR_DATA *ch) );
 int ch_dis_practice args( (CHAR_DATA *ch) );
-int ch_prac_gains       args( (CHAR_DATA *ch) );
+int ch_prac_gains       args( (CHAR_DATA *ch, int for_level) );
 int ch_agi_defensive    args( (CHAR_DATA *ch) );
 int ch_dex_extrahit args( (CHAR_DATA *ch) );
 int ch_con_shock        args( (CHAR_DATA *ch) );
