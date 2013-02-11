@@ -5412,7 +5412,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 	    if ( dam < 1 )
 	    { 
 		vs = "miss"; vp = "misses";
-		if ( is_normal_hit(dt) )
+		if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick )
 		    gag_type = GAG_MISS;
 	    }
         else if ( dam <   2 ) { vs = "{mbother{ ";  vp = "{mbothers{ "; }

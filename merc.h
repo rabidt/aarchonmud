@@ -165,6 +165,44 @@ typedef bool SONG_FUN   args((int sn,int level,CHAR_DATA *singer,
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 
+typedef struct comm_history_entry COMM_ENTRY;
+typedef struct comm_history_type COMM_HISTORY;
+typedef struct pers_comm_entry PERS_ENTRY;
+typedef struct pers_comm_history PERS_HISTORY;
+
+struct pers_comm_entry
+{
+	PERS_ENTRY *next;
+	PERS_ENTRY *prev;
+	char *text;
+};
+
+struct pers_comm_history
+{
+	sh_int size;
+	PERS_ENTRY *head;
+	PERS_ENTRY *tail;
+};
+	
+struct comm_history_entry
+{
+    COMM_ENTRY *next;
+    COMM_ENTRY *prev;
+
+    char *timestamp;
+    char channel;
+    char *text;
+    bool invis;
+    char *mimic_name;
+    char *name;
+};
+
+struct comm_history_type
+{
+    sh_int size;
+    COMM_ENTRY *head; /* most recent */
+    COMM_ENTRY *tail; /* oldest */
+};
 
 
 bool is_remort_obj( OBJ_DATA *obj );
@@ -1650,7 +1688,7 @@ struct  kill_data
 #define OBJ_VNUM_SCHOOL_WHIP       18421
 #define OBJ_VNUM_SCHOOL_POLEARM    18422
 #define OBJ_VNUM_SCHOOL_GUN        18423
-/*#define OBJ_VNUM_SCHOOL_BOW        18431*/
+#define OBJ_VNUM_SCHOOL_BOW        18432
 
 #define OBJ_VNUM_SCHOOL_VEST       18403
 #define OBJ_VNUM_SCHOOL_SHIELD     18404
@@ -2490,7 +2528,8 @@ struct  char_data
 struct  pc_data
 {
     PC_DATA *       next;
-    BUFFER *        buffer;
+    /*BUFFER *        buffer; old buffer for replay */
+	bool	new_tells; /* whether there are unread tells */
     COLOUR_DATA *   code;
     SORT_TABLE *    bounty_sort;
     bool        valid;
@@ -2508,6 +2547,10 @@ struct  pc_data
     int      perm_mana;
     int      perm_move;
 
+	PERS_HISTORY *gtell_history;
+	PERS_HISTORY *tell_history;
+	PERS_HISTORY *clan_history;
+	
     int             achpoints; /* Astark September 2012*/
     sh_int          behead_cnt;
     sh_int	    storage_boxes; /*Number of storage boxes the player has*/
@@ -4387,7 +4430,7 @@ int ch_str_carry        args( (CHAR_DATA *ch) );
 int ch_str_wield        args( (CHAR_DATA *ch) );
 int ch_int_learn        args( (CHAR_DATA *ch) );
 int ch_dis_practice args( (CHAR_DATA *ch) );
-int ch_prac_gains       args( (CHAR_DATA *ch) );
+int ch_prac_gains       args( (CHAR_DATA *ch, int for_level) );
 int ch_agi_defensive    args( (CHAR_DATA *ch) );
 int ch_dex_extrahit args( (CHAR_DATA *ch) );
 int ch_con_shock        args( (CHAR_DATA *ch) );

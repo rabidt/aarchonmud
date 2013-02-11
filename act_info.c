@@ -4769,23 +4769,9 @@ void do_score( CHAR_DATA *ch, char *argument )
 
         /* Practices, trains */
         if( !IS_HERO(ch) && ch->pcdata->highest_level <= ch->level )
-        {
-
-   /* This has been changed so that classes rely on their prime and secondary
-    * stats to earn practices when leveling up. No points in using DIS as the
-    * only important stat. It leaves too much EQ in the game unused and areas
-    * unexplored - Astark Nov 2012
-    *       int x = get_curr_stat(ch,STAT_DIS)/16; */
-
-            int x1 = get_curr_stat(ch,class_table[ch->class].attr_prime)/30;
-            int x2 = get_curr_stat(ch,class_table[ch->class].attr_second[0])/45;
-            int x3 = get_curr_stat(ch,class_table[ch->class].attr_second[1])/45;
-            int x = x1+x2+x3;
-            int bonus = 1;
-            if( ch->level >= (LEVEL_HERO-10) )  bonus += ch->level + 1 - (LEVEL_HERO-10);
-            sprintf( temp, "{c(Expect to gain about{x %d {cnext level.)", x*bonus ); 
-        }
-        else sprintf( temp, "" );
+            sprintf( temp, "{c(Expect to gain about{x %.2f {cnext level.)", ch_prac_gains(ch, ch->level + 1)/100.0 );
+        else
+            sprintf( temp, "" );
 
         sprintf( buf, "{D|{x Practices:  {C%-5d{x  %s", ch->practice, temp );
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
