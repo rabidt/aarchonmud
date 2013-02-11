@@ -109,15 +109,11 @@ void advance_level( CHAR_DATA *ch, bool hide )
     *  add_prac    = ch_dis_practice(ch); 
     */
 
-       add_prac    = ch_prac_gains(ch);
-       if (ch->level > (LEVEL_HERO-10))
-       {
-	   bonus= ch->level-(LEVEL_HERO-10);
-	   add_prac *= bonus + 1;
-	   ch->train += bonus;
-       }
+       add_prac    = ch_prac_gains(ch, ch->level);
+       // divide by 100, rounding randomly to preserve average
+       add_prac = add_prac/100 + (chance(add_prac % 100) ? 1 : 0);
        ch->practice    += add_prac;
-       ch->train       += 1;
+       ch->train       += 1 + UMAX(0, ch->level - LEVEL_MIN_HERO);
        ch->pcdata->highest_level = ch->level;
    }
    else
