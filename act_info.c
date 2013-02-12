@@ -5395,6 +5395,15 @@ msl_string achievement_display [] =
 
 void do_achievements( CHAR_DATA *ch, char *argument )
 {
+	if ( IS_NPC(ch) )
+		return;
+
+	if (!strcmp( argument, "rewards") )
+	{
+		print_ach_rewards(ch);
+		return;
+	}
+	
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
     char buf2[MSL];
@@ -5467,11 +5476,43 @@ void do_achievements( CHAR_DATA *ch, char *argument )
 
     sprintf( buf, "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
     add_buf(output,buf);
-
+	add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
     page_to_char(buf_string(output),ch);
     free_buf(output);
-    
+	
 }
+
+void print_ach_rewards(CHAR_DATA *ch)
+{
+	BUFFER *output;
+	char buf[MSL];
+	char header[MSL];
+	int i;
+	 
+	
+	output = new_buf();
+	int type=-1;
+	sprintf(header, "\n\r{w%-10s %6s:{x {W%6s{x|{W%6s{x|{W%6s{x|{W%6s{x\n\r", "Type", "Limit", "QP", "Exp", "Gold", "AchP");
+
+	for (i = 0; achievement_table[i].bit_vector != 0; i++)
+	{
+		ACHIEVEMENT *entry=&achievement_table[i];
+		
+		if ( entry->type != type )
+		{
+			type= entry->type;
+			add_buf(output, header);
+		}
+		
+		sprintf(buf, "{w%-10s %6d{x: {y%6d{x|{c%6d{x|{y%6d{x|{c%6d{x\n\r", achievement_display[entry->type], entry->limit, entry->quest_reward, entry->exp_reward, entry->gold_reward, entry->ach_reward);
+		add_buf(output,buf);
+	}
+	page_to_char( buf_string(output), ch );
+	free_buf( output );
+		
+
+}
+
 
 
 /* For achievement rewards... This gets called at certain times (level up, quest complete, etc. )--Vodur / Astark 3/19/12 */
