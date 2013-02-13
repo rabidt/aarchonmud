@@ -187,7 +187,7 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 	else
 	{
 	    /* refund part of the price on current items*/
-	    qp_gain = qi->cost * 3/4;
+	    qp_gain = qi->cost * 9/10;
 	    do_say( quest_man, "As you like, but I can't refund you the whole cost." );
 	}
 	sprintf( buf, "$N gives you %dqp for $p.", qp_gain );
