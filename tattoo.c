@@ -492,12 +492,12 @@ void do_tattoo( CHAR_DATA *ch, char *argument )
 	tattoo_modify_equip( ch, loc, FALSE, TRUE );
 	tattoo_modify_equip( ch, loc, FALSE, FALSE );
 	remove_tattoo( ch->pcdata->tattoos, loc );
-	cost = tattoo_cost(ID) / 2;
+	cost = tattoo_cost(ID) * 9/10;
 
 	logpf( "%s removed tattoo '%s' at %s for %d qp",
 	       ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc), cost );
 	ch->pcdata->questpoints += cost;
-	send_to_char( "Tattoo removed.\n\r", ch );
+	printf_to_char( ch, "Tattoo removed. Refunded %d quest points.\n\r", cost );
     }
     else
 	show_tattoo_syntax( ch );
