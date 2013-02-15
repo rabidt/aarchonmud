@@ -556,3 +556,4 @@ DECLARE_DO_FUN( do_rforce       );
 DECLARE_DO_FUN( do_lboard);
 DECLARE_DO_FUN( do_lhistory);
 DECLARE_DO_FUN( do_dummy);
+DECLARE_DO_FUN( do_mode);
