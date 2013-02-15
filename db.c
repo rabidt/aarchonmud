@@ -647,6 +647,12 @@ void boot_db()
     log_string( "Loading religions" );
     load_religions();
 
+    log_string( "Loading leaderboards" );
+    load_lboards();
+
+    log_string( "Loading leaderboard results" );
+    load_lboard_results();
+
     log_string( "Loading skills" );
     load_skills();
 
