@@ -826,6 +826,12 @@ void do_quest(CHAR_DATA *ch, char *argument)
       }
     else if (!strcmp(arg1, "request"))
     {
+	if (ch->position < POS_RESTING)
+	{
+	    send_to_char("In your dreams, or what?\n\r",ch);
+            return;
+	}
+		
         act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
         act ("You ask $N for a quest.",ch, NULL, questman, TO_CHAR);
         if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
