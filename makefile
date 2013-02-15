@@ -18,8 +18,10 @@ O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
 aeaea: 
 tester: C_FLAGS=-ggdb -w -Wall $(PROF) $(NOCRYPT) -DTESTER
 builder: C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT) -DBUILDER
+remort: C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT) -DREMORT 
+remort_tester: C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT) -DREMORT -DTESTER
 
-aeaea tester builder: $(O_FILES)
+aeaea tester builder remort remort_tester: $(O_FILES)
 	rm -f aeaea 
 	$(CC) $(L_FLAGS) -o aeaea $(O_FILES) -lcrypt -lm
 

@@ -3647,6 +3647,20 @@ void do_dummy( CHAR_DATA *ch, char *argument)
 	#endif /* BUILDER */
 }
 
+void do_mode( CHAR_DATA *ch, char *argument)
+{
+	send_to_char("Game modes defined:\n\r", ch );
+	#ifdef TESTER
+	send_to_char("TESTER defined\n\r",ch);
+	#endif
+	#ifdef REMORT
+	send_to_char("REMORT defined\n\r",ch);
+	#endif
+	#ifdef BUILDER
+	send_to_char("BUILDER defined\n\r",ch);
+	#endif
+}
+
 
 void do_avatar( CHAR_DATA *ch, char *argument ) /* Procedure Avatar */
 { /* Declaration */
