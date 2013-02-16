@@ -1309,7 +1309,7 @@ void do_lhistory( CHAR_DATA *ch, char *argument)
 		int i=1;
 		for ( ; result != NULL ; result=result->next )
 		{
-			printf_to_char(ch, "%3d: %-25s", i, ctime(&(result->end_time)) );
+			printf_to_char(ch, "%3d: %-25s\n\r", i, ctime(&(result->end_time)) );
 			i++;
 		}
 		return;
