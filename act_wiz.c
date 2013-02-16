@@ -3641,16 +3641,7 @@ void do_dummy( CHAR_DATA *ch, char *argument)
 
 void do_mode( CHAR_DATA *ch, char *argument)
 {
-	send_to_char("Game modes defined:\n\r", ch );
-	#ifdef TESTER
-	send_to_char("TESTER defined\n\r",ch);
-	#endif
-	#ifdef REMORT
-	send_to_char("REMORT defined\n\r",ch);
-	#endif
-	#ifdef BUILDER
-	send_to_char("BUILDER defined\n\r",ch);
-	#endif
+	send_to_char( bin_info_string(), ch);	
 }
 
 
