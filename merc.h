@@ -4156,6 +4156,7 @@ void    append_file args( ( CHAR_DATA *ch, char *file, char *str ) );
 void    bug     args( ( const char *str, int param ) );
 void    log_string  args( ( const char *str ) );
 void    tail_chain  args( ( void ) );
+char *	bin_info_string();
 
 /* effect.c */
 void    acid_effect args( (void *vo, int level, int dam, int target) );
