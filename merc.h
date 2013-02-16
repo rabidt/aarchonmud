@@ -205,6 +205,24 @@ struct comm_history_type
 };
 
 
+
+typedef bool CHAN_CHECK args( ( CHAR_DATA *ch) );
+typedef struct channel_type
+{
+	sh_int *psn;
+	char *name;
+	char *first_pers;
+	char *third_pers;
+	char prime_color;
+	char second_color;
+	sh_int offbit;
+	sh_int min_level;
+	CHAN_CHECK *check; /*pointer to special check func*/
+} CHANNEL;
+extern const CHANNEL public_channel_table[];
+bool check_savant( CHAR_DATA *ch );
+bool check_immtalk( CHAR_DATA *ch );
+
 bool is_remort_obj( OBJ_DATA *obj );
 bool is_sticky_obj( OBJ_DATA *obj );
 bool is_drop_obj( OBJ_DATA *obj );
@@ -2279,6 +2297,18 @@ typedef int tattoo_list[MAX_WEAR];
 #define song_null       -1
 
 /* channel definitions for playback log_chan/playback */
+extern sh_int sn_gossip;
+extern sh_int sn_auction;
+extern sh_int sn_music;
+extern sh_int sn_question;
+extern sh_int sn_answer;
+extern sh_int sn_quote;
+extern sh_int sn_gratz;
+extern sh_int sn_gametalk;
+extern sh_int sn_bitch;
+extern sh_int sn_immtalk;
+extern sh_int sn_savantalk;
+extern sh_int sn_newbie;
 #define CHAN_GOSSIP 'p'
 #define CHAN_AUCTION 'a'
 #define CHAN_MUSIC 'e'
@@ -3784,6 +3814,8 @@ extern  const   struct  group_type      group_table [MAX_GROUP];
 extern          struct  social_type *social_table;
 extern  char *  const           title_table [MAX_CLASS] [23];
 extern	        struct  clan_data       clan_table[MAX_CLAN];
+
+
 
 
 /*

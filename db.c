@@ -435,6 +435,20 @@ sh_int race_naga;
 sh_int race_vampire;
 
 
+/* channel slot numbers */
+sh_int sn_gossip;
+sh_int sn_auction;
+sh_int sn_music;
+sh_int sn_question;
+sh_int sn_answer;
+sh_int sn_quote;
+sh_int sn_gratz;
+sh_int sn_gametalk;
+sh_int sn_bitch;
+sh_int sn_immtalk;
+sh_int sn_savantalk;
+sh_int sn_newbie;
+
 /*
 * Locals.
 */
@@ -641,6 +655,9 @@ void boot_db()
             }
     }
 
+    log_string( "Initializing channels." );
+    channel_init();
+
     log_string( "Loading clans" );
     load_clans();
 
@@ -746,6 +763,22 @@ void boot_db()
     }
     
     return;
+}
+
+
+void channel_init()
+{
+        int sn=0;
+
+        for ( sn ; ; sn++ )
+        {
+            if ( public_channel_table[sn].psn == NULL )
+		break;
+            *public_channel_table[sn].psn = sn;
+        }
+
+
+
 }
 
 /* format all flags correctly --Bobble */
