@@ -287,35 +287,3 @@ void clone_mob( MOB_INDEX_DATA *mob )
     clone-> = mob->;
 
 }
-
-struct  mob_index_data
-{
-	SHOP_DATA *     pShop;
-	MPROG_LIST *        mprogs;
-
-	tflag        act;
-        tflag       affect_field;
-	sh_int      alignment;
-	sh_int      level;
-	sh_int      hitroll;
-	sh_int      hit[3];
-	sh_int      mana[3];
-	sh_int      damage[3];
-	sh_int      ac[4];
-	sh_int      dam_type;
-	tflag        off_flags;
-	tflag        imm_flags;
-	tflag        res_flags;
-	tflag        vuln_flags;
-	sh_int      start_pos;
-	sh_int      default_pos;
-	sh_int      sex;
-	sh_int      race;
-	long        wealth;
-	tflag        form;
-	tflag        parts;
-	sh_int      size;
-	char *      material;
-	tflag        mprog_flags;
-    sh_int      stance;
-};

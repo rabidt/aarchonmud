@@ -59,6 +59,7 @@
 #include "lookup.h"
 #include "olc.h"
 #include "buffer_util.h"
+#include "mob_stats.h"
 
 #if !defined(macintosh)
 extern  int _filbuf     args( (FILE *) );
@@ -812,6 +813,7 @@ void load_area_file( FILE *fp, bool clone )
 	else if ( !str_cmp( word, "HELPS"    ) ) load_helps   (fpArea, strArea);
 	else if ( !str_cmp( word, "MOBOLD"   ) ) load_old_mob (fpArea);
 	else if ( !str_cmp( word, "MOBILES"  ) ) load_mobiles (fpArea);
+        else if ( !str_cmp( word, "MOBBLES"  ) ) load_mobbles (fpArea);
 	else if ( !str_cmp( word, "MOBPROGS" ) ) load_mobprogs(fpArea);
 	else if ( !str_cmp( word, "OBJOLD"   ) ) load_old_obj (fpArea);
 	else if ( !str_cmp( word, "OBJECTS"  ) ) load_objects (fpArea);
@@ -1198,7 +1200,7 @@ void load_helps( FILE *fp, char *fname )
 */
 void load_old_mob( FILE *fp )
 {
-    MOB_INDEX_DATA *pMobIndex;
+    MOB_INDEX_DATA_OLD *pMobIndex;
     /* for race updating */
     int race;
     char name[MAX_STRING_LENGTH];
@@ -1247,7 +1249,7 @@ void load_old_mob( FILE *fp )
         }
         fBootDb = TRUE;
         
-        pMobIndex           = alloc_perm( sizeof(*pMobIndex) );
+        pMobIndex                   = alloc_mem( sizeof(*pMobIndex) );
         pMobIndex->vnum         = vnum;
         pMobIndex->area                 = area_last;               /* OLC */
         pMobIndex->new_format       = FALSE;
@@ -1330,16 +1332,31 @@ void load_old_mob( FILE *fp )
             exit( 1 );
         }
         
+        // convert to ROM-style mobile
         convert_mobile( pMobIndex );                           /* ROM OLC */
+        // convert to Bobble-style mobile
+        MOB_INDEX_DATA *pMobbleIndex = convert_to_mobble( pMobIndex );
+        free_mem( pMobIndex, sizeof(*pMobIndex) );
         
-        iHash           = vnum % MAX_KEY_HASH;
-        pMobIndex->next     = mob_index_hash[iHash];
-        mob_index_hash[iHash]   = pMobIndex;
-        top_mob_index++;
-        top_vnum_mob = top_vnum_mob < vnum ? vnum : top_vnum_mob;  /* OLC */
-        assign_area_vnum( vnum );                                  /* OLC */
-        kill_table[URANGE(0, pMobIndex->level, MAX_LEVEL-1)].number++;
+        index_mobile ( pMobbleIndex );
     }
+    
+    return;
+}
+
+/**
+ * Add mobile template to global indices
+ */
+void index_mobile( MOB_INDEX_DATA *pMobIndex )
+{
+    int vnum = pMobIndex->vnum;
+    int iHash = vnum % MAX_KEY_HASH;    
+    pMobIndex->next = mob_index_hash[iHash];
+    mob_index_hash[iHash] = pMobIndex;
+    top_mob_index++;
+    top_vnum_mob = top_vnum_mob < vnum ? vnum : top_vnum_mob;  /* OLC */
+    assign_area_vnum( vnum );                                  /* OLC */
+    kill_table[URANGE(0, pMobIndex->level, MAX_LEVEL-1)].number++;
     
     return;
 }
@@ -2801,176 +2818,67 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mob->prompt        = NULL;
     mob->mprog_target   = NULL;
     
-    if (pMobIndex->wealth == 0)
-    {
-        mob->silver = 0;
-        mob->gold   = 0;
-    }
-    else
-    {
-        long wealth;
-        
-        wealth = number_range(pMobIndex->wealth/2, 3 * pMobIndex->wealth/2);
-        mob->gold = number_range(wealth/200,wealth/100);
-        mob->silver = wealth - (mob->gold * 100);
-    } 
-    
-    /* set some decend moves --Bobble */
-    mob->max_move = 100 + 10 * pMobIndex->level;
-    mob->move = mob->max_move;
+    /* read from prototype */
+    mob->group      = pMobIndex->group;
+    flag_copy( mob->act, pMobIndex->act );
+    flag_copy( mob->penalty, mob_pen );
+    flag_copy( mob->affect_field, pMobIndex->affect_field );
+    mob->alignment      = pMobIndex->alignment;
+    mob->level          = UMAX( 1, pMobIndex->level );
 
-    if (pMobIndex->new_format)
-        /* load in new style */
-    {
-        /* read from prototype */
-        mob->group      = pMobIndex->group;
-        flag_copy( mob->act, pMobIndex->act );
-        flag_copy( mob->penalty, mob_pen );
-        flag_copy( mob->affect_field, pMobIndex->affect_field );
-        mob->alignment      = pMobIndex->alignment;
-        mob->level          = UMAX( 1, pMobIndex->level );
-        mob->hitroll        = pMobIndex->hitroll;
-        mob->damroll        = pMobIndex->damage[DICE_BONUS];
-        mob->max_hit        = dice(pMobIndex->hit[DICE_NUMBER],
-				   pMobIndex->hit[DICE_TYPE])
-            + pMobIndex->hit[DICE_BONUS];
-        mob->hit        = mob->max_hit;
-        mob->max_mana       = dice(pMobIndex->mana[DICE_NUMBER],
-				   pMobIndex->mana[DICE_TYPE])
-            + pMobIndex->mana[DICE_BONUS];
-        mob->mana       = mob->max_mana;
-        mob->damage[DICE_NUMBER]= pMobIndex->damage[DICE_NUMBER];
-        mob->damage[DICE_TYPE]  = pMobIndex->damage[DICE_TYPE];
-        mob->dam_type       = pMobIndex->dam_type;
-        mob->song_hearing = song_null;
-        mob->song_delay = 0;
-        mob->song_singing = song_null;
-        if (mob->dam_type == 0)
-            switch(number_range(1,3))
-        {
-                case (1): mob->dam_type = 3;        break;  /* slash */
-                case (2): mob->dam_type = 7;        break;  /* pound */
-                case (3): mob->dam_type = 11;       break;  /* pierce */
-        }
-        for (i = 0; i < 4; i++)
-            mob->armor[i]   = pMobIndex->ac[i]; 
-        flag_copy( mob->off_flags, pMobIndex->off_flags );
-        flag_copy( mob->imm_flags, pMobIndex->imm_flags );
-        flag_copy( mob->res_flags, pMobIndex->res_flags );
-        flag_copy( mob->vuln_flags, pMobIndex->vuln_flags );
-        mob->start_pos      = pMobIndex->start_pos;
-        mob->default_pos    = pMobIndex->default_pos;
-        mob->sex        = pMobIndex->sex;
-        if (mob->sex == 3) /* random sex */
-            mob->sex = number_range(1,2);
-        mob->race       = pMobIndex->race;
-        flag_copy( mob->form, pMobIndex->form );
-        flag_copy( mob->parts, pMobIndex->parts );
-        mob->size       = pMobIndex->size;
-        mob->material       = str_dup(pMobIndex->material);
-        
-        /* computed on the spot */
-        compute_mob_stats(mob);
-        
-        /* let's get some spell action */
-	affect_spellup_mob( mob );
-
-	/*
-        if (IS_AFFECTED(mob,AFF_SANCTUARY))
-        {
-            af.where     = TO_AFFECTS;
-            af.type      = skill_lookup("sanctuary");
-            af.level     = mob->level;
-            af.duration  = -1;
-            af.location  = APPLY_NONE;
-            af.modifier  = 0;
-            af.bitvector = AFF_SANCTUARY;
-            affect_to_char( mob, &af );
-        }
-        
-        if (IS_AFFECTED(mob,AFF_HASTE))
-        {
-            af.where     = TO_AFFECTS;
-            af.type      = skill_lookup("haste");
-            af.level     = mob->level;
-            af.duration  = -1;
-            af.location  = APPLY_AGI;
-            af.modifier  = 1 + (mob->level >= 18) + (mob->level >= 25) + 
-                (mob->level >= 32);
-            af.bitvector = AFF_HASTE;
-            affect_to_char( mob, &af );
-        }
-        
-        if (IS_AFFECTED(mob,AFF_PROTECT_EVIL))
-        {
-            af.where     = TO_AFFECTS;
-            af.type  = skill_lookup("protection evil");
-            af.level     = mob->level;
-            af.duration  = -1;
-            af.location  = APPLY_SAVES;
-            af.modifier  = -1;
-            af.bitvector = AFF_PROTECT_EVIL;
-            affect_to_char(mob,&af);
-        }
-        
-        if (IS_AFFECTED(mob,AFF_PROTECT_GOOD))
-        {
-            af.where     = TO_AFFECTS;
-            af.type      = skill_lookup("protection good");
-            af.level     = mob->level;
-            af.duration  = -1;
-            af.location  = APPLY_SAVES;
-            af.modifier  = -1;
-            af.bitvector = AFF_PROTECT_GOOD;
-            affect_to_char(mob,&af);
-        }
-	*/
-    }
-    else /* read in old format and convert */
-    {
-        flag_copy( mob->act, pMobIndex->act );
-        flag_copy( mob->affect_field, pMobIndex->affect_field );
-        mob->alignment      = pMobIndex->alignment;
-        mob->level      = pMobIndex->level;
-        mob->hitroll        = pMobIndex->hitroll;
-        mob->damroll        = 0;
-        mob->max_hit        = mob->level * 8 + number_range(
-            mob->level * mob->level/4,
-            mob->level * mob->level);
-        mob->song_hearing = song_null;
-        mob->song_delay = 0;
-        mob->song_singing = song_null;
-        mob->max_hit = (int)(mob->max_hit*0.9);
-        mob->hit        = mob->max_hit;
-        mob->max_mana       = 100 + dice(mob->level,10);
-        mob->mana       = mob->max_mana;
+    mob->dam_type       = pMobIndex->dam_type;
+    mob->song_hearing = song_null;
+    mob->song_delay = 0;
+    mob->song_singing = song_null;
+    if (mob->dam_type == 0)
         switch(number_range(1,3))
-        {
-        case (1): mob->dam_type = 3;    break;  /* slash */
-        case (2): mob->dam_type = 7;    break;  /* pound */
-        case (3): mob->dam_type = 11;   break;  /* pierce */
-        }
-        for (i = 0; i < 3; i++)
-            mob->armor[i]   = interpolate(mob->level,100,-100);
-        mob->armor[3]       = interpolate(mob->level,100,0);
-        mob->race       = pMobIndex->race;
-        flag_copy( mob->off_flags, pMobIndex->off_flags );
-        flag_copy( mob->imm_flags, pMobIndex->imm_flags );
-        flag_copy( mob->res_flags, pMobIndex->res_flags );
-        flag_copy( mob->vuln_flags, pMobIndex->vuln_flags );
-        mob->start_pos      = pMobIndex->start_pos;
-        mob->default_pos    = pMobIndex->default_pos;
-        mob->sex        = pMobIndex->sex;
-        flag_copy( mob->form, pMobIndex->form );
-        flag_copy( mob->parts, pMobIndex->parts );
-        mob->size       = SIZE_MEDIUM;
-        mob->material       = "";
-        
-        compute_mob_stats(mob); 
+    {
+            case (1): mob->dam_type = 3;        break;  /* slash */
+            case (2): mob->dam_type = 7;        break;  /* pound */
+            case (3): mob->dam_type = 11;       break;  /* pierce */
     }
+    flag_copy( mob->off_flags, pMobIndex->off_flags );
+    flag_copy( mob->imm_flags, pMobIndex->imm_flags );
+    flag_copy( mob->res_flags, pMobIndex->res_flags );
+    flag_copy( mob->vuln_flags, pMobIndex->vuln_flags );
+    mob->start_pos      = pMobIndex->start_pos;
+    mob->default_pos    = pMobIndex->default_pos;
+    mob->sex            = pMobIndex->sex;
+    if (mob->sex == 3) /* random sex */
+        mob->sex = number_range(1,2);
+    mob->race           = pMobIndex->race;
+    flag_copy( mob->form, pMobIndex->form );
+    flag_copy( mob->parts, pMobIndex->parts );
+    mob->size           = pMobIndex->size;
+    mob->material       = str_dup("none");
+
+    // some defaults for now
+    mob->damage[DICE_NUMBER] = 1;
+    mob->damage[DICE_TYPE]   = 6;
     
-    mob->position = mob->start_pos;
+    // money money money
+    long wealth = get_base_wealth( pMobIndex );
+    wealth = number_range(wealth/2, wealth * 3/2);
+    mob->gold = number_range(wealth/200,wealth/100);
+    mob->silver = wealth - (mob->gold * 100);
     
+    // base stats
+    mob->hit = mob->max_hit = mob_base_hp( pMobIndex, mob->level );
+    mob->mana = mob->max_mana = mob_base_mana( pMobIndex, mob->level );
+    mob->move = mob->max_move = mob_base_move( pMobIndex, mob->level );
+    mob->hitroll = mob_base_hitroll( pMobIndex, mob->level );
+    mob->damroll = mob_base_damroll( pMobIndex, mob->level );
+    mob->saving_throw = mob_base_saves( pMobIndex, mob->level );
+    for (i = 0; i < 4; i++)
+        mob->armor[i] = mob_base_ac( pMobIndex, mob->level );
+
+    /* str ... luc */
+    compute_mob_stats(mob);    
+    
+    /* let's get some spell action */
+    affect_spellup_mob( mob );
+
+    mob->position = mob->start_pos;    
     
     /* link the mob to the world list */
     mob->next       = char_list;
