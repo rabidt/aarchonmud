@@ -393,26 +393,18 @@ void do_busy ( CHAR_DATA *ch, char * argument)
 void do_replay (CHAR_DATA *ch, char *argument)
 {
 	do_playback( ch, "tell" );
-/*    if (IS_NPC(ch))
-    {
-        send_to_char("You can't replay.\n\r",ch);
-        return;
-    }
-    
-    if (buf_string(ch->pcdata->buffer)[0] == '\0')
-    {
-        send_to_char("You have no tells to replay.\n\r",ch);
-        return;
-    }
-    
-    page_to_char(buf_string(ch->pcdata->buffer),ch);
-    clear_buf(ch->pcdata->buffer);*/
 }
 
 
 /* RT chat replaced with ROM gossip */
-void do_gossip( CHAR_DATA *ch, char *argument )
+void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
 {
+	if ( chan == NULL )
+	{
+		bugf("NULL channel sent to public_channel.");
+		return;
+	}
+	
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
     bool found;
@@ -420,21 +412,21 @@ void do_gossip( CHAR_DATA *ch, char *argument )
     
     if (NOT_AUTHED(ch))
     {
-        send_to_char("Huh?\n\r", ch);
+        send_to_char("You can't use that channel yet.\n\r", ch);
         return;
     }
     
     if (argument[0] == '\0' )
     {
-        if (IS_SET(ch->comm,COMM_NOGOSSIP))
+        if (IS_SET(ch->comm,chan->offbit))
         {
-            send_to_char("{pGossip channel{x is now {PON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOGOSSIP);
+			printf_to_char(ch, "{%c%s channel{x is now {%cON{x.\n\r", chan->prime_color, chan->name, chan->second_color);
+            REMOVE_BIT(ch->comm,chan->offbit);
         }
         else
         {
-            send_to_char("{pGossip channel{x is now {POFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOGOSSIP);
+			printf_to_char(ch, "{%c%s channel{x is now {%cOFF{x.\n\r", chan->prime_color, chan->name, chan->second_color);
+            SET_BIT(ch->comm, chan->offbit);
         }
     }
     else  /* gossip message sent, turn gossip on if it isn't already */
@@ -460,15 +452,15 @@ void do_gossip( CHAR_DATA *ch, char *argument )
         
         REMOVE_BIT(ch->comm,COMM_NOGOSSIP);
 
-	smash_beep_n_blink( argument );
+		smash_beep_n_blink( argument );
         
-        sprintf( buf, "{pYou gossip {P'%s{P'{x\n\r", argument );
+        sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
         send_to_char( buf, ch );
 
         argument = makedrunk(argument,ch);
 
-        sprintf(buf,"{p gossips {P'%s{P'",argument);
-        log_chan(ch,buf,CHAN_GOSSIP);
+        sprintf(buf,"{%c %s {%c'%s{%c'", chan->prime_color, chan->third_pers, chan->second_color, argument, chan->second_color);
+        log_chan(ch,buf, chan->prime_color);
 
 
         for ( d = descriptor_list; d != NULL; d = d->next )
@@ -481,7 +473,8 @@ void do_gossip( CHAR_DATA *ch, char *argument )
                 d->character != ch &&
                 !IS_SET(victim->comm,COMM_NOGOSSIP) &&
                 !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim))
+                !NOT_AUTHED(victim) &&
+				(chan->check == NULL ? TRUE : (*(chan->check))(victim) ) ) /* special check for certain channels */
             {
                 found = FALSE;
                 for (pos = 0; pos < MAX_FORGET; pos++)
@@ -495,7 +488,8 @@ void do_gossip( CHAR_DATA *ch, char *argument )
                 }
                 if (!found)
                 {
-                    act_new_gag( "{p$n{p gossips {P'$t{P'{x",
+					sprintf(buf,"{%c$n{%c %s {%c'$t{%c'{x", chan->prime_color, chan->prime_color, chan->third_pers, chan->second_color, chan->second_color);
+                    act_new_gag( buf,
                         ch,argument, d->character, TO_VICT,POS_SLEEPING,
                         GAG_NCOL_CHAN, FALSE );
                     
@@ -504,6 +498,11 @@ void do_gossip( CHAR_DATA *ch, char *argument )
             }
         }
     }
+}
+
+void do_gossip( CHAR_DATA *ch, char *argument )
+{
+	public_channel( &public_channel_table[sn_gossip], ch, argument );
 }
 
 
@@ -594,188 +593,12 @@ void do_newbie( CHAR_DATA *ch, char *argument )
 
 void do_bitch( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if (argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOBITCH))
-        {
-            send_to_char("{fBitching channel{x is now {FON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOBITCH);
-        }
-        else
-        {
-            send_to_char("{fBitching channel{x is now {FOFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOBITCH);
-        }
-    }
-    else  /* gossip message sent, turn gossip on if it isn't already */
-    {
-        if (!IS_NPC(ch) &&  ch->level < 3 && ch->pcdata->remorts == 0 )
-        {
-            send_to_char( "You can only use the NEWBIE channel until level 3.\n\r", ch );
-            return;
-        }
-        
-        if (IS_SET(ch->comm,COMM_QUIET))
-        {
-            send_to_char("You must turn off quiet mode first.\n\r",ch);
-            return;
-        }
-        
-        if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
-        {
-            send_to_char("The gods have revoked your channel priviliges.\n\r",ch);
-            return;
-            
-        }
-        
-        REMOVE_BIT(ch->comm,COMM_NOBITCH);
-        
-	smash_beep_n_blink( argument );
-        
-        sprintf( buf, "{fYou bitch {F'%s{F'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-	argument = makedrunk(argument,ch);
-
-        sprintf(buf,"{f bitches {F'%s{F'",argument);
-        log_chan(ch,buf,CHAN_BITCH);
-
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            CHAR_DATA *victim;
-            
-            victim = d->original ? d->original : d->character;
-            
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
-                d->character != ch &&
-                !IS_SET(victim->comm,COMM_NOBITCH) &&
-                !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim) )
-            {
-                found = FALSE;
-                for (pos = 0; pos < MAX_FORGET; pos++)
-                {
-                    if (IS_NPC(victim))
-                        break;
-                    if (victim->pcdata->forget[pos] == NULL)
-                        break;
-                    if (!str_cmp(ch->name,victim->pcdata->forget[pos]))
-                        found = TRUE; 
-                }
-                if (!found)
-                {
-                    act_new_gag( "{f$n{f bitches {F'$t{F'{x",
-                        ch,argument, d->character, TO_VICT,POS_SLEEPING,
-			GAG_NCOL_CHAN, FALSE );
-                }
-            }
-        }
-    }
+	public_channel( &public_channel_table[sn_bitch], ch, argument );
 }
-
 void do_gametalk( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if (argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOGAME))
-        {
-            send_to_char("{kGames/questing channel{x is now {KON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOGAME);
-        }
-        else
-        {
-            send_to_char("{kGames/questing channel{x is now {KOFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOGAME);
-        }
-    }
-    else  /* gossip message sent, turn gossip on if it isn't already */
-    {
-        if ( !IS_NPC(ch) && ch->level < 3 && ch->pcdata->remorts == 0 )
-        {
-            send_to_char( "You can only use the NEWBIE channel until level 3.\n\r", ch );
-            return;
-        }
-        
-        if (IS_SET(ch->comm,COMM_QUIET))
-        {
-            send_to_char("You must turn off quiet mode first.\n\r",ch);
-            return;
-        }
-        
-        if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
-        {
-            send_to_char("The gods have revoked your channel priviliges.\n\r",ch);
-            return;
-            
-        }
-        
-        REMOVE_BIT(ch->comm,COMM_NOGAME);
-        
-	smash_beep_n_blink( argument );
-        
-        sprintf( buf, "{kYou gametalk {K'%s{K'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-	argument = makedrunk(argument,ch);
-
-        sprintf(buf,"{k gametalks {K'%s{K'",argument);
-        log_chan(ch,buf,CHAN_GAMETALK);
-
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            CHAR_DATA *victim;
-            
-            victim = d->original ? d->original : d->character;
-            
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
-                d->character != ch &&
-                !IS_SET(victim->comm,COMM_NOGAME) &&
-                !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim) )
-            {
-                found = FALSE;
-                for (pos = 0; pos < MAX_FORGET; pos++)
-                {
-                    if (IS_NPC(victim))
-                        break;
-                    if (victim->pcdata->forget[pos] == NULL)
-                        break;
-                    if (!str_cmp(ch->name,victim->pcdata->forget[pos]))
-                        found = TRUE; 
-                }
-                if (!found)
-                {
-                    act_new_gag( "{k$n{k gametalks {K'$t{K'{x",
-                        ch,argument, d->character, TO_VICT,POS_SLEEPING,
-			GAG_NCOL_CHAN, FALSE );
-                }
-            }
-        }
-    }
+	public_channel( &public_channel_table[sn_gametalk], ch, argument );
 }
-
 /* Function info_message is called in a fashion similar to wiznet to
 announce various events to players. -- Rimbol */
 void info_message( CHAR_DATA *ch, char *argument, bool show_to_char )
@@ -831,463 +654,32 @@ void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char,
     }
 }
 
-
 void do_gratz( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if (argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOGRATZ))
-        {
-            send_to_char("{zGratz channel{x is now {ZON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOGRATZ);
-        }
-        else
-        {
-            send_to_char("{zGratz channel{x is now {ZOFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOGRATZ);
-        }
-    }
-    else  /* gratz message sent, turn gratz on if it isn't already */
-    {
-        if ( !IS_NPC(ch) && ch->level < 3 && ch->pcdata->remorts == 0 )
-        {
-            send_to_char( "You can only use the NEWBIE channel until level 3.\n\r", ch );
-            return;
-        }
-        
-        if (IS_SET(ch->comm,COMM_QUIET))
-        {
-            send_to_char("You must turn off quiet mode first.\n\r",ch);
-            return;
-        }
-        
-        if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
-        {
-            send_to_char("The gods have revoked your channel priviliges.\n\r",ch);
-            return;
-            
-        }
-        
-        REMOVE_BIT(ch->comm,COMM_NOGRATZ);
-        
-	smash_beep_n_blink( argument );
-        
-        sprintf( buf, "{zYou gratz {Z'%s{Z'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-        sprintf(buf,"{z gratzes {Z'%s{Z'", argument);
-        log_chan(ch,buf,CHAN_GRATZ);
-
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            CHAR_DATA *victim;
-            
-            victim = d->original ? d->original : d->character;
-            
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
-                d->character != ch &&
-                !IS_SET(victim->comm,COMM_NOGRATZ) &&
-                !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim) )
-            {
-                found = FALSE;
-                for (pos = 0; pos < MAX_FORGET; pos++)
-                {
-                    if (IS_NPC(victim))
-                        break;
-                    if (victim->pcdata->forget[pos] == NULL)
-                        break;
-                    if (!str_cmp(ch->name,victim->pcdata->forget[pos]))
-                        found = TRUE; 
-                }
-                if (!found)
-                {
-                    
-                    act_new_gag( "{z$n{z gratzes {Z'$t{Z'{x",
-                        ch,argument, d->character, TO_VICT,POS_SLEEPING, 
-			GAG_NCOL_CHAN, FALSE);
-                }
-            }
-        }
-    }
+	public_channel( &public_channel_table[sn_gratz], ch, argument );
 }
 
 void do_quote( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if (argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOQUOTE))
-        {
-            send_to_char("{hQuote channel{x is now {HON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOQUOTE);
-        }
-        else
-        {
-            send_to_char("{hQuote channel{x is now {HOFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOQUOTE);
-        }
-    }
-    else  /* quote message sent, turn quote on if it isn't already */
-    {
-        if ( !IS_NPC(ch) && ch->level < 3 && ch->pcdata->remorts == 0 )
-        {
-            send_to_char( "You can only use the NEWBIE channel until level 3.\n\r", ch );
-            return;
-        }
-        
-        if (IS_SET(ch->comm,COMM_QUIET))
-        {
-            send_to_char("You must turn off quiet mode first.\n\r",ch);
-            return;
-        }
-        
-        if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
-        {
-            send_to_char("The gods have revoked your channel priviliges.\n\r",ch);
-            return;
-            
-        }
-        
-        REMOVE_BIT(ch->comm,COMM_NOQUOTE);
-        
-	smash_beep_n_blink( argument );
-        
-        sprintf( buf, "{hYou quote {H'%s{H'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-        sprintf(buf,"{h quotes {H'%s{H'{x",argument);
-        log_chan(ch,buf,CHAN_QUOTE);
-
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            CHAR_DATA *victim;
-            
-            victim = d->original ? d->original : d->character;
-            
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
-                d->character != ch &&
-                !IS_SET(victim->comm,COMM_NOQUOTE) &&
-                !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim) )
-            {
-                found = FALSE;
-                for (pos = 0; pos < MAX_FORGET; pos++)
-                {
-                    if (IS_NPC(victim))
-                        break;
-                    if (victim->pcdata->forget[pos] == NULL)
-                        break;
-                    if (!str_cmp(ch->name,victim->pcdata->forget[pos]))
-                        found = TRUE; 
-                }
-                if (!found)
-                {
-                    
-                    act_new_gag( "{h$n{h quotes {H'$t{H'{x",
-                        ch,argument, d->character, TO_VICT,POS_SLEEPING,
-			GAG_NCOL_CHAN, FALSE);
-                }
-            }
-        }
-    }
+	public_channel( &public_channel_table[sn_quote], ch, argument );
 }
 
 /* RT question channel */
 void do_question( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if (argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOQUESTION))
-        {
-            send_to_char("{qQ/{jA{x channel is now {QON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOQUESTION);
-        }
-        else
-        {
-            send_to_char("{qQ/{jA{x channel is now {QOFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOQUESTION);
-        }
-    }
-    else  /* question sent, turn Q/A on if it isn't already */
-    {
-        if ( !IS_NPC(ch) && ch->level < 3 && ch->pcdata->remorts == 0 )
-        {
-            send_to_char( "You can only use the NEWBIE channel until level 3.\n\r", ch );
-            return;
-        }
-        
-        if (IS_SET(ch->comm,COMM_QUIET))
-        {
-            send_to_char("You must turn off quiet mode first.\n\r",ch);
-            return;
-        }
-        
-        if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
-        {
-            send_to_char("The gods have revoked your channel priviliges.\n\r",ch);
-            return;
-        }
-        
-        REMOVE_BIT(ch->comm,COMM_NOQUESTION);
-        
-	smash_beep_n_blink( argument );
-        
-        sprintf( buf, "{qYou question {Q'%s{Q'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-        sprintf(buf,"{q questions {Q'%s{Q'", argument);
-        log_chan(ch,buf,CHAN_QUESTION);
-
-
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            CHAR_DATA *victim;
-            
-            victim = d->original ? d->original : d->character;
-            
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
-                d->character != ch &&
-                !IS_SET(victim->comm,COMM_NOQUESTION) &&
-                !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim) )
-            {
-                found = FALSE;
-                for (pos = 0; pos < MAX_FORGET; pos++)
-                {
-                    if (IS_NPC(victim))
-                        break;
-                    if (victim->pcdata->forget[pos] == NULL)
-                        break;
-                    if (!str_cmp(ch->name,victim->pcdata->forget[pos]))
-                        found = TRUE; 
-                }
-                if (!found)
-                {
-                    
-                    act_new_gag("{q$n{q questions {Q'$t{Q'{x",
-                        ch,argument,d->character,TO_VICT,POS_SLEEPING,
-			GAG_NCOL_CHAN, FALSE);
-                }
-            }
-        }
-    }
+	public_channel( &public_channel_table[sn_question], ch, argument );
 }
 
 /* RT answer channel - uses same line as questions */
 void do_answer( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if (argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOQUESTION))
-        {
-            send_to_char("{qQ/{jA{x channel is now {JON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOQUESTION);
-        }
-        else
-        {
-            send_to_char("{qQ/{jA{x channel is now {JOFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOQUESTION);
-        }
-    }
-    else  /* answer sent, turn Q/A on if it isn't already */
-    {
-        if ( !IS_NPC(ch) && ch->level < 3 && ch->pcdata->remorts == 0 )
-        {
-            send_to_char( "You can only use the NEWBIE channel until level 3.\n\r", ch );
-            return;
-        }
-        
-        if (IS_SET(ch->comm,COMM_QUIET))
-        {
-            send_to_char("You must turn off quiet mode first.\n\r",ch);
-            return;
-        }
-        
-        if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
-        {
-            send_to_char("The gods have revoked your channel priviliges.\n\r",ch);
-            return;
-        }
-        
-        REMOVE_BIT(ch->comm,COMM_NOQUESTION);
-        
-	smash_beep_n_blink( argument );
-        
-        sprintf( buf, "{jYou answer {J'%s{J'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-        sprintf(buf,"{j answers {J'%s{J'",argument);
-        log_chan(ch,buf,CHAN_ANSWER);
-
-
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            CHAR_DATA *victim;
-            
-            victim = d->original ? d->original : d->character;
-            
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
-                d->character != ch &&
-                !IS_SET(victim->comm,COMM_NOQUESTION) &&
-                !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim) )
-            {
-                found = FALSE;
-                for (pos = 0; pos < MAX_FORGET; pos++)
-                {
-                    if (IS_NPC(victim))
-                        break;
-                    if (victim->pcdata->forget[pos] == NULL)
-                        break;
-                    if (!str_cmp(ch->name,victim->pcdata->forget[pos]))
-                        found = TRUE; 
-                }
-                if (!found)
-                {
-                    act_new_gag("{j$n{j answers {J'$t{J'{x",
-                        ch,argument,d->character,TO_VICT,POS_SLEEPING,
-			GAG_NCOL_CHAN, FALSE);
-                }
-            }
-        }
-    }
+	public_channel( &public_channel_table[sn_answer], ch, argument );
 }
 
 /* RT music channel */
 void do_music( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if (argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOMUSIC))
-        {
-            send_to_char("{eMusic channel{x is now {EON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOMUSIC);
-        }
-        else
-        {
-            send_to_char("{eMusic channel{x is now {EOFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOMUSIC);
-        }
-    }
-    else  /* music sent, turn music on if it isn't already */
-    {
-        if ( !IS_NPC(ch) && ch->level < 3 && ch->pcdata->remorts == 0 )
-        {
-            send_to_char( "You can only use the NEWBIE channel until level 3.\n\r", ch );
-            return;
-        }
-        
-        if (IS_SET(ch->comm,COMM_QUIET))
-        {
-            send_to_char("You must turn off quiet mode first.\n\r",ch);
-            return;
-        }
-        
-        if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
-        {
-            send_to_char("The gods have revoked your channel priviliges.\n\r",ch);
-            return;
-        }
-        
-        REMOVE_BIT(ch->comm,COMM_NOMUSIC);
-        
-	smash_beep_n_blink( argument );
-        
-        sprintf( buf, "{eYou MUSIC: {E'%s{E'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-	argument = makedrunk(argument,ch);
-
-        sprintf(buf,"{e MUSIC: {E'%s{E'", argument);
-        log_chan(ch,buf,CHAN_MUSIC);
-
-
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            CHAR_DATA *victim;
-            
-            victim = d->original ? d->original : d->character;
-            
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
-                d->character != ch &&
-                !IS_SET(victim->comm,COMM_NOMUSIC) &&
-                !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim) )
-            {
-                found = FALSE;
-                for (pos = 0; pos < MAX_FORGET; pos++)
-                {
-                    if (IS_NPC(victim))
-                        break;
-                    if (victim->pcdata->forget[pos] == NULL)
-                        break;
-                    if (!str_cmp(ch->name,victim->pcdata->forget[pos]))
-                        found = TRUE; 
-                }
-                if (!found)
-                {
-                    act_new_gag("{e$n{e MUSIC: {E'$t{E'{x",
-                        ch,argument,d->character,TO_VICT,POS_SLEEPING,
-			GAG_NCOL_CHAN, FALSE);
-                }
-            }
-        }
-    }
+	public_channel( &public_channel_table[sn_music], ch, argument );
 }
 
 /* clan channels */
@@ -1476,66 +868,12 @@ void do_religion_talk( CHAR_DATA *ch, char *argument )
 
 void do_immtalk( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if ( argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOWIZ))
-        {
-            send_to_char("{iImmortal channel{x is now {ION{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOWIZ);
-        }
-        else
-        {
-            send_to_char("{iImmortal channel{x is now {IOFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOWIZ);
-        }
-        return;
-    }
-    
-    REMOVE_BIT(ch->comm,COMM_NOWIZ);
-    
-    sprintf( buf, "{i$n: {I%s{x", argument );
-    act_new_gag("{i$n{i: {I$t{x",ch,argument,NULL,TO_CHAR,POS_DEAD, GAG_NCOL_CHAN, FALSE);
+	public_channel( &public_channel_table[sn_immtalk], ch, argument );
+}
 
-
-        sprintf(buf,"{i: {I'%s{I'", argument);
-        log_chan(ch,buf,CHAN_IMMTALK);
-
-    
-    for ( d = descriptor_list; d != NULL; d = d->next )
-    {
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
-            &&  (is_granted_name(d->character,"immtalk") || is_granted_name(d->character,":")) 
-            &&  !IS_SET(d->character->comm,COMM_NOWIZ) )
-        {
-            found = FALSE;  
-            for (pos = 0; pos < MAX_FORGET; pos++)
-            {
-                if (IS_NPC(d->character))
-                    break;
-                if (d->character->pcdata->forget[pos] == NULL)
-                    break;
-                if (!str_cmp(ch->name,d->character->pcdata->forget[pos]))
-                    found = TRUE; 
-            }
-            if (!found)
-            {
-                act_new_gag("{i$n{i: {I$t{x",ch,argument,d->character,TO_VICT,POS_DEAD, GAG_NCOL_CHAN, FALSE);
-            }
-        }
-    }
-    
-    return;
+bool check_immtalk( CHAR_DATA *ch )
+{
+	return (is_granted_name(ch,"immtalk") || is_granted_name(ch,":"));
 }
 
 /* Function do_info corresponds to the player command info (no
@@ -3796,156 +3134,17 @@ char * makedrunk (char *string, CHAR_DATA * ch)
 /* RT auction rewritten in ROM style */
 void do_auction( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;    
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if (argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOAUCTION))
-        {
-            send_to_char("{aAuction{x channel is now {AON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOAUCTION);
-        }
-        else
-        {
-            send_to_char("{aAuction{x channel is now {AOFF.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOAUCTION);
-        }
-    }
-    else  /* auction message sent, turn auction on if it is off */
-    {
-        if (!IS_NPC(ch) && ch->level < 3 && ch->pcdata->remorts == 0 )
-        {
-            send_to_char( "You can only use the NEWBIE channel until level 3.\n\r", ch );
-            return;
-        }
-        
-        
-        if (IS_SET(ch->comm,COMM_QUIET))
-        {
-            send_to_char("You must turn off quiet mode first.\n\r",ch);
-            return;
-        }
-        
-        if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
-        {
-            send_to_char("The gods have revoked your channel priviliges.\n\r",ch);
-            return;
-            
-            REMOVE_BIT(ch->comm,COMM_NOAUCTION);
-        }
-        
-	smash_beep_n_blink( argument );
-
-        sprintf( buf, "{aYou auction {A'%s{A'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-        sprintf(buf,"{a auctions {A'%s{A'", argument);
-        log_chan(ch,buf,CHAN_AUCTION);
-
-
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            CHAR_DATA *victim;
-            
-            victim = d->original ? d->original : d->character;
-            
-            if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
-                d->character != ch &&
-                !IS_SET(victim->comm,COMM_NOAUCTION) &&
-                !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim)  )
-            {
-                found = FALSE; 
-                for (pos = 0; pos < MAX_FORGET; pos++)
-                {
-                    if (IS_NPC(victim))
-                        break;
-                    if (victim->pcdata->forget[pos] == NULL)
-                        break;
-                    if (!str_cmp(ch->name,victim->pcdata->forget[pos]))
-                        found = TRUE; 
-                }
-                if (!found)
-                {
-                    
-                    act_new_gag("{a$n {aauctions {A'$t{A'{x",
-                        ch,argument,d->character,TO_VICT,POS_DEAD,
-			GAG_NCOL_CHAN, FALSE);
-                }
-            }
-        }
-    }
+	public_channel( &public_channel_table[sn_auction], ch, argument );
 }
 
 /* Sardonic 10/99 */
 void do_savantalk( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if ( argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NOSAVANT))
-        {
-            send_to_char("{7Savant channel{x is now {8ON{x.\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NOSAVANT);
-        }
-        else
-        {
-            send_to_char("{7Savant channel{x is now {8OFF{x.\n\r",ch);
-            SET_BIT(ch->comm,COMM_NOSAVANT);
-        }
-        return;
-    }
-    
-    REMOVE_BIT(ch->comm,COMM_NOSAVANT);
-    
-    act_new_gag("{7$n{7-> {8$t{x",ch,argument,NULL,TO_CHAR,POS_DEAD,GAG_NCOL_CHAN,FALSE);
-    sprintf( buf, "{7-> {8'%s'{x", argument );
-    log_chan(ch,buf,CHAN_SAVANT);
-    
-    for ( d = descriptor_list; d != NULL; d = d->next )
-    {
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
-            &&  (is_granted_name(d->character,"savantalk")) 
-            &&  !IS_SET(d->character->comm,COMM_NOSAVANT) )
-        {
-            found = FALSE;  
-            for (pos = 0; pos < MAX_FORGET; pos++)
-            {
-                if (IS_NPC(d->character))
-                    break;
-                if (d->character->pcdata->forget[pos] == NULL)
-                    break;
-                if (!str_cmp(ch->name,d->character->pcdata->forget[pos]))
-                    found = TRUE; 
-            }
-            if (!found)
-            {
-                
-                act_new_gag("{7$n{7-> {8$t{x",ch,argument,d->character,TO_VICT,POS_DEAD,GAG_NCOL_CHAN,FALSE);
-            }
-        }
-    }
-    
-    return;
+   public_channel( &public_channel_table[sn_savantalk], ch, argument );
+}
+bool check_savant( CHAR_DATA *ch )
+{
+	return (is_granted_name(ch,"savantalk"));
 }
 
 /* Gag code by Bobble */
