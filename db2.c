@@ -300,7 +300,7 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
     pMobIndex->mana_percent         = 100;
     pMobIndex->move_percent         = 100;
     pMobIndex->hitroll_percent      = 100;
-    pMobIndex->damroll_percent      = 100;
+    pMobIndex->damage_percent       = 100;
     pMobIndex->ac_percent           = 100;
     pMobIndex->saves_percent        = 100;
     pMobIndex->wealth_percent       = 100;
@@ -359,7 +359,7 @@ void load_mobbles( FILE *fp )
         pMobIndex->mana_percent         = 100;
         pMobIndex->move_percent         = 100;
         pMobIndex->hitroll_percent      = 100;
-        pMobIndex->damroll_percent      = 100;
+        pMobIndex->damage_percent       = 100;
         pMobIndex->ac_percent           = 100;
         pMobIndex->saves_percent        = 100;
         pMobIndex->wealth_percent       = 100;
@@ -433,7 +433,7 @@ void load_mobbles( FILE *fp )
             else if KEY("HIT")
                 pMobIndex->hitroll_percent = fread_number( fp );
             else if KEY("DAM")
-                pMobIndex->damroll_percent = fread_number( fp );
+                pMobIndex->damage_percent = fread_number( fp );
             else if KEY("AC")
                 pMobIndex->ac_percent = fread_number( fp );
             else if KEY("SAVES")
