@@ -273,7 +273,7 @@ void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
     FPRINT_FIELD_INT("MANA",    pMobIndex->mana_percent, 100);
     FPRINT_FIELD_INT("MOVE",    pMobIndex->move_percent, 100);
     FPRINT_FIELD_INT("HIT",     pMobIndex->hitroll_percent, 100);
-    FPRINT_FIELD_INT("DAM",     pMobIndex->damroll_percent, 100);
+    FPRINT_FIELD_INT("DAM",     pMobIndex->damage_percent, 100);
     FPRINT_FIELD_INT("AC",      pMobIndex->ac_percent, 100);
     FPRINT_FIELD_INT("SAVES",   pMobIndex->saves_percent, 100);
     FPRINT_FIELD_INT("WEALTH",  pMobIndex->wealth_percent, 100);

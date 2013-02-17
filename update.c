@@ -42,6 +42,7 @@
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
+#include "mob_stats.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -882,12 +883,14 @@ void mobile_update( void )
 	  }
 	  
 	  if (ch->pIndexData->pShop != NULL) /* give him some gold */
-		 if ((ch->gold * 100 + ch->silver) < ch->pIndexData->wealth)
-		 {
-			ch->gold += ch->pIndexData->wealth * number_range(1,20)/5000000;
-			ch->silver += ch->pIndexData->wealth * number_range(1,20)/50000;
-		 }
-		 
+          {
+            long base_wealth = mob_base_wealth(ch->pIndexData);
+            if ((ch->gold * 100 + ch->silver) < base_wealth)
+            {
+                ch->gold += base_wealth * number_range(1,20)/5000000;
+                ch->silver += base_wealth * number_range(1,20)/50000;
+            }
+          }
 	  /*
 	   * Check triggers only if mobile still in default position
 	   */

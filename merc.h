@@ -2368,7 +2368,7 @@ struct  mob_index_data
     sh_int      mana_percent;
     sh_int      move_percent;
     sh_int      hitroll_percent;
-    sh_int      damroll_percent;
+    sh_int      damage_percent;
     sh_int      ac_percent;
     sh_int      saves_percent;
     sh_int      dam_type;
@@ -4254,7 +4254,6 @@ long    wiznet_lookup   args( ( const char *name) );
 int class_lookup    args( ( const char *name) );
 bool    is_clan     args( (CHAR_DATA *ch) );
 bool    is_same_clan    args( (CHAR_DATA *ch, CHAR_DATA *victim));
-bool    is_old_mob  args ( (CHAR_DATA *ch) );
 int     get_weapon_sn   args( ( CHAR_DATA *ch ) );
 int     get_weapon_sn_new args( (CHAR_DATA *ch, bool secondary) );
 int     get_age         args( ( CHAR_DATA *ch ) );

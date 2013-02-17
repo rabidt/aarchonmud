@@ -2852,12 +2852,20 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mob->size           = pMobIndex->size;
     mob->material       = str_dup("none");
 
-    // some defaults for now
-    mob->damage[DICE_NUMBER] = 1;
-    mob->damage[DICE_TYPE]   = 6;
+    // damage dice
+    int base_damage = mob_base_damage( pMobIndex, mob->level );
+    if (base_damage < 7) {
+        mob->damage[DICE_NUMBER] = 1;
+        mob->damage[DICE_TYPE]   = UMAX(1, base_damage - 1) * 2;
+    }
+    else
+    {
+        mob->damage[DICE_NUMBER] = 2;
+        mob->damage[DICE_TYPE]   = UMAX(1, base_damage - 1);
+    }
     
     // money money money
-    long wealth = get_base_wealth( pMobIndex );
+    long wealth = mob_base_wealth( pMobIndex );
     wealth = number_range(wealth/2, wealth * 3/2);
     mob->gold = number_range(wealth/200,wealth/100);
     mob->silver = wealth - (mob->gold * 100);

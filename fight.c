@@ -1408,7 +1408,7 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     int dam;
 
     /* basic damage */
-    if ( IS_NPC(ch) && ch->pIndexData->new_format )
+    if ( IS_NPC(ch) )
 	dam = dice(ch->damage[DICE_NUMBER], ch->damage[DICE_TYPE]);
     else
 	dam = ch->level + dice( 1, 4 );

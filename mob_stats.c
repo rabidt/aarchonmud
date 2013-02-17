@@ -65,7 +65,7 @@ int level_base_move( int level )
 
 int mob_base_move( MOB_INDEX_DATA *pMobIndex, int level )
 {    
-    int move = level_base_moves( level ) * pMobIndex->move_percent / 100;
+    int move = level_base_move( level ) * pMobIndex->move_percent / 100;
     return move;
 }
 
@@ -93,4 +93,43 @@ int mob_base_saves( MOB_INDEX_DATA *pMobIndex, int level )
 {    
     int saves = level_base_saves( level ) * pMobIndex->saves_percent / 100;
     return saves;
+}
+
+// hitroll
+
+int level_base_hitroll( int level )
+{
+    return 100;
+}
+
+int mob_base_hitroll( MOB_INDEX_DATA *pMobIndex, int level )
+{    
+    int hitroll = level_base_hitroll( level ) * pMobIndex->hitroll_percent / 100;
+    return hitroll;
+}
+
+// damroll
+
+int level_base_damroll( int level )
+{
+    return 100;
+}
+
+int mob_base_damroll( MOB_INDEX_DATA *pMobIndex, int level )
+{    
+    int damroll = level_base_damroll( level ) * pMobIndex->damage_percent / 100;
+    return damroll;
+}
+
+// damage
+
+int level_base_damage( int level )
+{
+    return 100;
+}
+
+int mob_base_damage( MOB_INDEX_DATA *pMobIndex, int level )
+{    
+    int damage = level_base_damage( level ) * pMobIndex->damage_percent / 100;
+    return damage;
 }
