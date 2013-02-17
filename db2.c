@@ -265,7 +265,10 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
     // identical fields, just copy
     MCOPY(vnum);
     MCOPY(area);
+    MCOPY(spec_fun);
     MCOPY(pShop);
+    MCOPY(mprogs);
+    MCOPY_FLAGS(mprog_flags);
 
     MCOPY(player_name);
     MCOPY(short_descr);
@@ -293,8 +296,6 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
     MCOPY(start_pos);
     MCOPY(default_pos);
 
-    MCOPY(mprogs);
-
     // new fields
     pMobIndex->hitpoint_percent     = 100;
     pMobIndex->mana_percent         = 100;
@@ -307,13 +308,13 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
 
     return pMobIndex;
 }
-
-#define KEY(keystring) \
-    (strcmp(key,keystring) == 0)
+#undef MCOPY
+#undef MCOPY_FLAGS
 
 /*
  * Snarf a mob section. xtra-new style -- Bobble
  */
+#define KEY(keystring) (strcmp(key,keystring) == 0)
 void load_mobbles( FILE *fp )
 {
     MOB_INDEX_DATA *pMobIndex;
@@ -488,6 +489,7 @@ void load_mobbles( FILE *fp )
     
     return;
 }
+#undef KEY
 
 /*
  * Snarf an obj section. new style
