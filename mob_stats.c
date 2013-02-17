@@ -12,18 +12,18 @@
 
 long level_base_wealth( int level )
 {
-    return (long)(level * level * (level / 15.0 + 2));
+    return (long)(level * level * (level / 15.0 + 2) * 0.2);
 }
 
 long mob_base_wealth( MOB_INDEX_DATA *pMobIndex )
 {  
     int level = pMobIndex->level;
-    float factor = 0.2;
+    float factor = 1;
     
     if ( pMobIndex->pShop != NULL )
     {
         level = 120;
-        factor = 1.0;
+        factor = 5;
     }
     factor = factor * pMobIndex->wealth_percent / 100;    
 
