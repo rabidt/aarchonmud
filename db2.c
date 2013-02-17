@@ -43,6 +43,7 @@
 #include "db.h"
 #include "tables.h"
 #include "lookup.h"
+#include "mob_stats.h"
 
 
 int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
@@ -258,7 +259,9 @@ void load_mobiles( FILE *fp )
 #define MCOPY_FLAGS(field) flag_copy(pMobIndex->field, pMobIndexOld->field)
 MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
 {
-    MOB_INDEX_DATA *pMobIndex;    
+    MOB_INDEX_DATA *pMobIndex;
+    long actual;
+    long spec;
     
     pMobIndex = alloc_perm( sizeof(*pMobIndex) );
     
@@ -297,15 +300,34 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
     MCOPY(default_pos);
 
     // new fields
-    pMobIndex->hitpoint_percent     = 100;
-    pMobIndex->mana_percent         = 100;
-    pMobIndex->move_percent         = 100;
-    pMobIndex->hitroll_percent      = 100;
-    pMobIndex->damage_percent       = 100;
-    pMobIndex->ac_percent           = 100;
-    pMobIndex->saves_percent        = 100;
-    pMobIndex->wealth_percent       = 100;
+    
+    // hitpoints
+    actual = average_roll(pMobIndexOld->hit[DICE_NUMBER], pMobIndexOld->hit[DICE_TYPE], pMobIndexOld->hit[DICE_BONUS]);
+    spec = average_mob_hp(pMobIndexOld->level);
+    pMobIndex->hitpoint_percent = URANGE(50, 100 * actual / UMAX(1,spec), 200);
 
+    pMobIndex->mana_percent     = 100;
+    pMobIndex->move_percent     = 100;
+    
+    // hitroll
+    actual = pMobIndexOld->hitroll;
+    spec = pMobIndex->level;
+    pMobIndex->hitroll_percent  = URANGE(50, 100 + 100 * actual / UMAX(1,spec), 200);
+    
+    // damage
+    actual = average_roll(pMobIndexOld->damage[DICE_NUMBER], pMobIndexOld->damage[DICE_TYPE], 0) + pMobIndexOld->damage[DICE_BONUS] / 4;
+    spec = average_mob_damage(pMobIndexOld->level);
+    pMobIndex->damage_percent   = URANGE(50, 100 * actual / UMAX(1,spec), 200);
+    
+    pMobIndex->ac_percent       = 100;
+    pMobIndex->saves_percent    = 100;
+    
+    // wealth - as we don't have shops loaded yet, this will result in excessive wealth percent for shopkeepers
+    // however, we cap at 200%, so no big deal
+    actual = pMobIndexOld->wealth;
+    spec = level_base_wealth(pMobIndex->level);
+    pMobIndex->wealth_percent   = URANGE(0, 100 * actual / UMAX(1,spec), 200);
+    
     return pMobIndex;
 }
 #undef MCOPY

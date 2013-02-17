@@ -2890,36 +2890,14 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mob->size           = pMobIndex->size;
     mob->material       = str_dup("none");
 
-    // damage dice
-    int base_damage = mob_base_damage( pMobIndex, mob->level );
-    if (base_damage < 7) {
-        mob->damage[DICE_NUMBER] = 1;
-        mob->damage[DICE_TYPE]   = UMAX(1, base_damage - 1) * 2;
-    }
-    else
-    {
-        mob->damage[DICE_NUMBER] = 2;
-        mob->damage[DICE_TYPE]   = UMAX(1, base_damage - 1);
-    }
-    
     // money money money
     long wealth = mob_base_wealth( pMobIndex );
     wealth = number_range(wealth/2, wealth * 3/2);
     mob->gold = number_range(wealth/200,wealth/100);
     mob->silver = wealth - (mob->gold * 100);
     
-    // base stats
-    mob->hit = mob->max_hit = mob_base_hp( pMobIndex, mob->level );
-    mob->mana = mob->max_mana = mob_base_mana( pMobIndex, mob->level );
-    mob->move = mob->max_move = mob_base_move( pMobIndex, mob->level );
-    mob->hitroll = mob_base_hitroll( pMobIndex, mob->level );
-    mob->damroll = mob_base_damroll( pMobIndex, mob->level );
-    mob->saving_throw = mob_base_saves( pMobIndex, mob->level );
-    for (i = 0; i < 4; i++)
-        mob->armor[i] = mob_base_ac( pMobIndex, mob->level );
-
-    /* str ... luc */
-    compute_mob_stats(mob);    
+    // level dependent stats (hp, damage, ...)
+    set_mob_level( mob, mob-> level );
     
     /* let's get some spell action */
     affect_spellup_mob( mob );
