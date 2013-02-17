@@ -695,6 +695,9 @@ void boot_db()
         fclose( fpList );
     }
     
+    // debug
+    //log_mob_index();
+    
     /*
     * Fix up exits.
     * Declare db booting over.
@@ -1344,7 +1347,7 @@ void load_old_mob( FILE *fp )
     return;
 }
 
-/**
+/*
  * Add mobile template to global indices
  */
 void index_mobile( MOB_INDEX_DATA *pMobIndex )
@@ -1359,6 +1362,35 @@ void index_mobile( MOB_INDEX_DATA *pMobIndex )
     kill_table[URANGE(0, pMobIndex->level, MAX_LEVEL-1)].number++;
     
     return;
+}
+
+/*
+ * Debug: log state of mob_index_hash
+ */
+void log_mob_index()
+{
+    int mob_count = 0;
+    int max_bucket_size = 0;
+    long square_bucket_size = 0;
+    int bucket_size;
+    
+    int iHash;
+    MOB_INDEX_DATA* pMobIndex;
+    
+    for ( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
+    {
+        bucket_size = 0;
+        for ( pMobIndex = mob_index_hash[iHash]; pMobIndex != NULL; pMobIndex = pMobIndex->next )
+        {
+            bucket_size++;
+            mob_count++;
+        }
+        if (bucket_size > max_bucket_size)
+            max_bucket_size = bucket_size;
+        square_bucket_size += bucket_size * bucket_size;
+    }
+    logpf( "mob_index_hash: buckets = %d, mobs = %d, max_bucket_size = %d, ave_access = %.2f",
+           MAX_KEY_HASH, mob_count, max_bucket_size, (float)(square_bucket_size) / mob_count );
 }
 
 /*
@@ -2113,6 +2145,7 @@ void fix_mobprogs( void )
     MPROG_LIST        *list;
     MPROG_CODE        *prog;
     int iHash;
+    int mprog_count = 0;
     
     for ( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
@@ -2123,7 +2156,10 @@ void fix_mobprogs( void )
             for( list = pMobIndex->mprogs; list != NULL; list = list->next )
             {
                 if ( ( prog = get_mprog_index( list->vnum ) ) != NULL )
+                {
+                    mprog_count++;
                     list->code = prog->code;
+                }
                 else
                 {
                     bug( "Fix_mobprogs: code vnum %d not found.", list->vnum );
@@ -2132,6 +2168,8 @@ void fix_mobprogs( void )
             }
         }
     }
+    //debug
+    //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
 
 
@@ -3887,6 +3925,8 @@ void *alloc_mem( int sMem )
     {
         pMem              = rgFreeList[iList];
         rgFreeList[iList] = * ((void **) rgFreeList[iList]);
+        // clear memory before usage - alloc_perm does it too, so the two can be used (more or less) interchangeably
+        memset(pMem, 0, sMem);
     }
     
 #ifdef MAGIC_CHECKING
