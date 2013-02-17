@@ -4462,7 +4462,7 @@ MEDIT( medit_show )
         flag_string( act_flags, pMob->act ) );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Vnum:        [%5d] Sex:   [%s]   Race: [%s]\n\r",
+    sprintf( buf, "Vnum:        [%5d]   Sex: [%s]     Race: [%s]\n\r",
         pMob->vnum,
         pMob->sex == SEX_MALE    ? "male   " :
     pMob->sex == SEX_FEMALE  ? "female " : 
@@ -4471,22 +4471,27 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     sprintf( buf,
-        "Level:       [%2d]    Align: [%4d]      Hitroll: [%2d\%]  Damage: [%2d\%]  Dam Type:    [%s]\n\r",
+        "Level:       [%3d]   Align: [%4d]\n\r",
         pMob->level,
-        pMob->alignment,
-        pMob->hitroll_percent,
-        pMob->damage_percent,
-        attack_table[pMob->dam_type].name );
+        pMob->alignment);
     send_to_char( buf, ch );
     
-    sprintf( buf, "Hitpoints:   [%2d\%]   Mana:      [%2d\%]    Move:      [%2d\%]\n\r",
+    sprintf( buf,
+        "Hitroll:     [%2d\%] Damage: [%2d\%]    Dam Type: [%s]\n\r",
+        pMob->hitroll_percent,
+        pMob->damage_percent,
+        attack_table[pMob->dam_type].name );         
+    send_to_char( buf, ch );
+    
+    sprintf( buf,
+        "Hitpoints:   [%2d\%]   Mana: [%2d\%]        Move: [%2d\%]\n\r",
         pMob->hitpoint_percent,
         pMob->mana_percent,
         pMob->move_percent
     );
     send_to_char( buf, ch );
 
-    sprintf( buf, "Armor:       [%2d\%]   Saves:     [%2d\%]\n\r",
+    sprintf( buf, "Armor:       [%2d\%]  Saves: [%2d\%]\n\r",
         pMob->ac_percent,
         pMob->saves_percent
     );
@@ -4866,27 +4871,62 @@ int* get_level_stats( int level )
     return stats;
 }
 
+/*
 void set_mob_level( CHAR_DATA *mob, int level )
 {
     int *stats = get_level_stats( level );
 
     mob->level = level;
-    /* hp */
+
     mob->damage[DICE_NUMBER] = stats[LVL_STAT_DAM_DICE_NUMBER];
     mob->damage[DICE_TYPE]   = stats[LVL_STAT_DAM_DICE_TYPE];
     mob->damroll             = stats[LVL_STAT_DAM_DICE_BONUS];
-    /* damage */
+
     mob->max_hit = dice(stats[LVL_STAT_HP_DICE_NUMBER],
 			stats[LVL_STAT_HP_DICE_TYPE])
 	+ stats[LVL_STAT_HP_DICE_BONUS];
     mob->hit = mob->max_hit;
-    /* armor */
+
     mob->armor[AC_PIERCE] = stats[LVL_STAT_AC_WEAPON];
     mob->armor[AC_BASH]   = stats[LVL_STAT_AC_WEAPON];
     mob->armor[AC_SLASH]  = stats[LVL_STAT_AC_WEAPON];
     mob->armor[AC_EXOTIC] = stats[LVL_STAT_AC_EXOTIC];
-    /* stats */
+
     compute_mob_stats(mob);
+}
+*/
+
+void set_mob_level( CHAR_DATA *mob, int level )
+{
+    MOB_INDEX_DATA *pMobIndex = mob->pIndexData;
+    int i;
+    
+    mob->level = level;
+
+    // damage dice
+    int base_damage = mob_base_damage( pMobIndex, level );
+    if (base_damage < 7) {
+        mob->damage[DICE_NUMBER] = 1;
+        mob->damage[DICE_TYPE]   = UMAX(1, base_damage - 1) * 2;
+    }
+    else
+    {
+        mob->damage[DICE_NUMBER] = 2;
+        mob->damage[DICE_TYPE]   = UMAX(1, base_damage - 1);
+    }
+
+    // base stats
+    mob->hit = mob->max_hit = mob_base_hp( pMobIndex, level );
+    mob->mana = mob->max_mana = mob_base_mana( pMobIndex, level );
+    mob->move = mob->max_move = mob_base_move( pMobIndex, level );
+    mob->hitroll = mob_base_hitroll( pMobIndex, level );
+    mob->damroll = mob_base_damroll( pMobIndex, level );
+    mob->saving_throw = mob_base_saves( pMobIndex, level );
+    for (i = 0; i < 4; i++)
+        mob->armor[i] = mob_base_ac( pMobIndex, level );
+
+    /* str ... luc */
+    compute_mob_stats(mob);    
 }
 
 /* methods for spec checking - needed for grep command 
@@ -4904,6 +4944,14 @@ int average_mob_hp( int level )
     return average_roll( stats[LVL_STAT_HP_DICE_NUMBER],
 			 stats[LVL_STAT_HP_DICE_TYPE],
 			 stats[LVL_STAT_HP_DICE_BONUS] );
+}
+
+int average_mob_damage( int level )
+{
+    int *stats;
+
+    stats = get_level_stats( level );
+    return average_roll( stats[LVL_STAT_DAM_DICE_NUMBER], stats[LVL_STAT_DAM_DICE_TYPE], 0 ) + stats[LVL_STAT_DAM_DICE_BONUS] / 4;
 }
 
 MEDIT( medit_damtype )
@@ -6141,11 +6189,18 @@ bool medit_percent ( CHAR_DATA *ch, char *argument, char* command)
         
     if ( !is_number( arg ) )
     {
-        send_to_char( "percentage must be a number\n\r", ch );
+        send_to_char( "Percentage must be a number\n\r", ch );
         return FALSE;        
     }
     
     percent = atoi( arg );
+    
+    if ( percent < 0 || percent > 1000 )
+    {
+        send_to_char( "Percentage must be a number between 0 and 1000.\n\r", ch );
+        return FALSE;        
+    }
+    
     if CMD("hitpoints")
         pMob->hitpoint_percent = percent;
     else if CMD("mana")

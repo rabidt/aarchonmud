@@ -1178,30 +1178,37 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
     /* check level */
     if ( mob->level < 1 || mob->level > 200 )
     {
-	sprintf( msg, "lvl" );
+	sprintf( msg, "lvl=%d", mob->level );
 	return FALSE;
-    }
-
-    /* check hp */
-    if ( mob->hitpoint_percent < 100 )
-    {
-        sprintf( msg, "hp" );
-        return FALSE;
-    }
-
-    /* check damage */
-    if ( mob->damage_percent < 100 )
-    {
-        sprintf( msg, "damage" );
-        return FALSE;
     }
 
     /* check wealth */
 
-    if ( mob->wealth_percent > 250 )
+    if ( mob->wealth_percent > 200 )
     {
-	sprintf( msg, "wealth" );
-	return FALSE;
+        sprintf( msg, "wealth=%d\%", mob->wealth_percent );
+        return FALSE;
+    }
+
+    /* check hp */
+    if ( mob->hitpoint_percent != 100 )
+    {
+        sprintf( msg, "hp=%d\%", mob->hitpoint_percent );
+        return FALSE;
+    }
+
+    /* check damage */
+    if ( mob->damage_percent != 100 )
+    {
+        sprintf( msg, "damage=%d\%", mob->damage_percent );
+        return FALSE;
+    }
+
+    /* check hitroll */
+    if ( mob->hitroll_percent != 100 )
+    {
+        sprintf( msg, "hitroll=%d\%", mob->hitroll_percent );
+        return FALSE;
     }
 
     /* otherwise it's ok */
