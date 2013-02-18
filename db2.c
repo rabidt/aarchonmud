@@ -301,33 +301,40 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
 
     // new fields
     
-    // hitpoints
-    actual = average_roll(pMobIndexOld->hit[DICE_NUMBER], pMobIndexOld->hit[DICE_TYPE], pMobIndexOld->hit[DICE_BONUS]);
-    spec = average_mob_hp(pMobIndexOld->level);
-    pMobIndex->hitpoint_percent = URANGE(50, 100 * actual / UMAX(1,spec), 200);
-
+    pMobIndex->hitpoint_percent = 100;
     pMobIndex->mana_percent     = 100;
     pMobIndex->move_percent     = 100;
-    
-    // hitroll
-    actual = pMobIndexOld->hitroll;
-    spec = pMobIndex->level;
-    pMobIndex->hitroll_percent  = URANGE(50, 100 + 100 * actual / UMAX(1,spec), 200);
-    
-    // damage
-    actual = average_roll(pMobIndexOld->damage[DICE_NUMBER], pMobIndexOld->damage[DICE_TYPE], 0) + pMobIndexOld->damage[DICE_BONUS] / 4;
-    spec = average_mob_damage(pMobIndexOld->level);
-    pMobIndex->damage_percent   = URANGE(50, 100 * actual / UMAX(1,spec), 200);
-    
+    pMobIndex->hitroll_percent  = 100;
+    pMobIndex->damage_percent   = 100;
     pMobIndex->ac_percent       = 100;
     pMobIndex->saves_percent    = 100;
-    
-    // wealth - as we don't have shops loaded yet, this will result in excessive wealth percent for shopkeepers
-    // however, we cap at 200%, so no big deal
-    actual = pMobIndexOld->wealth;
-    spec = level_base_wealth(pMobIndex->level);
-    pMobIndex->wealth_percent   = URANGE(0, 100 * actual / UMAX(1,spec), 200);
-    
+    pMobIndex->wealth_percent   = 0;
+
+    if (pMobIndex->level > 0)
+    {
+        // hitpoints
+        actual = average_roll(pMobIndexOld->hit[DICE_NUMBER], pMobIndexOld->hit[DICE_TYPE], pMobIndexOld->hit[DICE_BONUS]);
+        spec = average_mob_hp(pMobIndexOld->level);
+        pMobIndex->hitpoint_percent = URANGE(50, 100 * actual / UMAX(1,spec), 200);
+
+        // hitroll
+        pMobIndex->hitroll_percent  = 100;
+        actual = pMobIndexOld->hitroll;
+        spec = pMobIndex->level;
+        pMobIndex->hitroll_percent  = URANGE(50, 100 + 100 * actual / UMAX(1,spec), 200);
+
+        // damage
+        actual = average_roll(pMobIndexOld->damage[DICE_NUMBER], pMobIndexOld->damage[DICE_TYPE], 0) + pMobIndexOld->damage[DICE_BONUS] / 4;
+        spec = average_mob_damage(pMobIndexOld->level);
+        pMobIndex->damage_percent   = URANGE(50, 100 * actual / UMAX(1,spec), 200);
+
+        // wealth - as we don't have shops loaded yet, this will result in excessive wealth percent for shopkeepers
+        // however, we cap at 200%, so no big deal
+        actual = pMobIndexOld->wealth;
+        spec = level_base_wealth(pMobIndex->level);
+        pMobIndex->wealth_percent   = URANGE(0, 100 * actual / UMAX(1,spec), 200);
+    }
+
     return pMobIndex;
 }
 #undef MCOPY
