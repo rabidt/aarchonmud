@@ -4905,14 +4905,19 @@ void set_mob_level( CHAR_DATA *mob, int level )
 
     // damage dice
     int base_damage = mob_base_damage( pMobIndex, level );
-    if (base_damage < 7) {
+    if (base_damage <= 7) {
         mob->damage[DICE_NUMBER] = 1;
-        mob->damage[DICE_TYPE]   = UMAX(1, base_damage - 1) * 2;
+        mob->damage[DICE_TYPE]   = UMAX(2, base_damage*2 - 1);
+    }
+    else if (base_damage <= 21)
+    {
+        mob->damage[DICE_NUMBER] = 2;
+        mob->damage[DICE_TYPE]   = UMAX(2, base_damage - 1);
     }
     else
     {
-        mob->damage[DICE_NUMBER] = 2;
-        mob->damage[DICE_TYPE]   = UMAX(1, base_damage - 1);
+        mob->damage[DICE_NUMBER] = 4;
+        mob->damage[DICE_TYPE]   = UMAX(2, base_damage/2 - 1);
     }
 
     // base stats
