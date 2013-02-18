@@ -4901,6 +4901,7 @@ void set_mob_level( CHAR_DATA *mob, int level )
     MOB_INDEX_DATA *pMobIndex = mob->pIndexData;
     int i;
     
+    level = URANGE(1, level, 200);
     mob->level = level;
 
     // damage dice

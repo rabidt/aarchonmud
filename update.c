@@ -1623,7 +1623,7 @@ void char_update( void )
 void create_haunt( CHAR_DATA *ch )
 {
     CHAR_DATA *mob;
-    int level;
+    int level, rand, i;
 
     /* only chance to be haunted.. unless you're sleeping ;P */
     if ( ch->position != POS_SLEEPING && number_bits(2) )
@@ -1633,16 +1633,13 @@ void create_haunt( CHAR_DATA *ch )
         return;
     
     /* small tiny ghost or big nasty? */
-    if ( number_bits(1) )
-	level = number_range( 1, ch->level/2 );
-    else if ( number_bits(2) )
-	level = number_range( ch->level/2, ch->level );
-    else if ( number_bits(2) )
-	level = number_range( ch->level, ch->level * 3/2 );
-    else
-	level = number_range( ch->level * 3/2, ch->level * 2 );
-	
-    level = URANGE( 1, level, 200 );
+    level = 200;
+    for (i = 0; i < 3; i++)
+    {
+        rand = number_range( 1, ch->level * 2 );
+        level = UMIN(level, rand);            
+    }
+
     set_mob_level( mob, level );
     char_to_room( mob, ch->in_room );
     
