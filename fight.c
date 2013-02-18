@@ -1215,7 +1215,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
 {
     int i,chance,number;
+    int attacks;
     CHAR_DATA *vch, *vch_next;
+    bool slow = IS_AFFECTED(ch, AFF_SLOW);
     
     if (ch->stop>0)
     {
@@ -1233,11 +1235,11 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
 	return;
 
     /* high level mobs get extra attacks */
-    for ( i = 120; i < ch->level; i += 20 )
+    for ( attacks = ch->level * (slow ? 2 : 5) / 3; attacks > 0; attacks -= 100 )
     {
-	if ( number_bits(1) || number_range(1,20) > ch->level - i )
-	    continue;
-
+        if (number_percent() > attacks)
+            continue;
+            
 	one_hit(ch,victim,dt,FALSE);
 
 	if (ch->fighting != victim)
@@ -1265,7 +1267,7 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
 	return;
 
     chance = get_skill(ch,gsn_second_attack) * 2/3;
-    if ( IS_AFFECTED(ch, AFF_SLOW) )
+    if ( slow )
 	chance /= 2;
 
     if (number_percent() < chance)
@@ -1276,7 +1278,7 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     }
     
     chance = get_skill(ch,gsn_third_attack) * 2/3;
-    if ( IS_AFFECTED(ch, AFF_SLOW) )
+    if ( slow )
 	chance /= 2;
     
     if (number_percent() < chance)
