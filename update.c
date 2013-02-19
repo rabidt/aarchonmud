@@ -151,6 +151,9 @@ void gain_exp( CHAR_DATA *ch, int gain)
    
    if ( IS_NPC(ch) || IS_HERO(ch) )
 	  return;
+
+   if ( IS_SET(ch->act,PLR_NOEXP))
+       return;
    
    field = UMAX((ch_wis_field(ch)*gain)/100,0);
    gain-=field;
