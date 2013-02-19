@@ -724,6 +724,11 @@ void do_quest(CHAR_DATA *ch, char *argument)
         }*/
         else if (is_name(arg2, "experience xp"))
         {
+          if ( IS_SET(ch->act,PLR_NOEXP))
+          {
+              send_to_char("Toggle 'noexp' to allow you to gain experience before purchasing this.\n\r",ch);
+              return;
+          }
             if (ch->pcdata->questpoints >= 100)
             {
                 ch->pcdata->questpoints -= 100;
