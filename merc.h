@@ -3959,7 +3959,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define TYPO_FILE       "../log/typos.txt" /* For 'typo'*/
 #define SHUTDOWN_FILE   "shutdown.txt"/* For 'shutdown'*/
 #define BAN_FILE    "ban.txt"
-#define MUSIC_FILE  "music.txt"
 #define DISABLED_FILE   "disabled.txt"  /* disabled commands */
 #define CLANWAR_FILE   "clanwar.txt"
 #define REMORT_FILE    "remort.txt"

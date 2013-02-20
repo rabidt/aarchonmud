@@ -54,7 +54,6 @@
 #include "merc.h"
 #include "db.h"
 #include "recycle.h"
-#include "music.h"
 #include "tables.h"
 #include "lookup.h"
 #include "olc.h"
@@ -739,8 +738,6 @@ void boot_db()
         load_wizlist();
         log_string("Loading bans");
         load_bans();
-        log_string("Loading songs");
-        load_songs();
         log_string("Loading portals");
         load_portal_list();
     }

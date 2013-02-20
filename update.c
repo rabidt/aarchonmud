@@ -35,7 +35,6 @@
 #include <math.h>
 #include <time.h>
 #include "merc.h"
-#include "music.h"
 #include "recycle.h"
 #include "tables.h"
 #include "lookup.h"
@@ -2415,14 +2414,6 @@ void update_handler( void )
        pulse_herb  = PULSE_HERB;
        reset_herbs_world();
    }
-   
-   /* Removed 4/6/98 due to inf. loop.  Rim
-   if ( --pulse_music    <= 0 )
-   {
-	  pulse_music = PULSE_MUSIC;
-	  song_update();
-   }
-   */
    
    if ( update_all )
    {
