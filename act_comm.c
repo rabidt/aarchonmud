@@ -2547,8 +2547,6 @@ void quit_char( CHAR_DATA *ch )
     int id;
     AUTH_LIST *old_auth;    
     
-    stop_singing(ch);
-    
     if (IS_SET( ch->act, PLR_WAR ))
         war_remove( ch, FALSE );
     

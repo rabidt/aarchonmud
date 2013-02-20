@@ -285,9 +285,6 @@ int adjust_gain( CHAR_DATA *ch, int gain )
     /* encumberance can half healing speed */
     gain -= gain * get_encumberance( ch ) / 200;
 
-    if ( ch->song_hearing == gsn_lust_life )
-	gain += gain/2;
-
     if ( IS_AFFECTED(ch, AFF_POISON) )
         gain /= 2;
     
