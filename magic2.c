@@ -278,8 +278,7 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     CHAR_DATA *mob;
     CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
-    int mlevel, mhp, chance;
-    int charmed, max;
+    int mlevel, chance;
     
     send_to_char( "You call out to your noble sidekick!\n\r", ch );
     act( "$n calls out to $s noble sidekick.", ch, NULL, NULL, TO_ROOM );
@@ -301,7 +300,7 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     if ( !check_cha_follow(ch) )
 	return;
     
-    chance = (get_curr_stat(ch, STAT_LUC));
+    chance = (get_curr_stat(ch, STAT_LUC)) / 2;
     
     if ( number_percent() > chance ) 
     {
@@ -312,7 +311,8 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_SIDEKICK)))==NULL) 
         return;
     
-    set_mob_level( mob, ch->level/2 );
+    mlevel = URANGE(1, level * 2/3, ch->level);
+    set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rThis sidekick faithfully follows %s.\n\r\n\r",
         mob->description,ch->name);
@@ -910,8 +910,9 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     /* bonus for puppetry skill */
     puppet_skill = get_skill( ch, gsn_puppetry );
     check_improve( ch, gsn_puppetry, TRUE, 1 );
-    mlevel = cor->level * (200 + puppet_skill) / 400;
-
+    
+    mlevel = level * 3/4 + (cor->level - level) / 5;
+    mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
     if ( number_percent() <= puppet_skill )
 	SET_BIT( mob->off_flags, OFF_RESCUE );
 	
@@ -945,7 +946,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     {
         send_to_char( "You raise a zombie and it turns on you!\n\r", ch );
         act( "$n raises a zombie which attacks!", ch, NULL, NULL, TO_ROOM );
-        full_dam( mob, ch, mlevel*2, sn, DAM_NEGATIVE, TRUE);
+        mob_hit( mob, ch, TYPE_UNDEFINED );
     } 
     else 
     {
@@ -1923,19 +1924,12 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     /* Check number of charmees against cha*/ 
     if ( !check_cha_follow(ch) )
 	return;
-
-    chance = (get_curr_stat(ch, STAT_LUC));
-    
-    if ( number_percent() > chance ) 
-    {
-        send_to_char( "Nothing answers your call.\n\r", ch);
-        return;
-    }
-    
+   
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_TREEGOLEM)))==NULL) 
         return;
     
-    set_mob_level( mob, (level * 12/13) + 10 );
+    mlevel = URANGE(1, level * 3/4, ch->level);
+    set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rA tree springs to life and follows %s.\n\r\n\r",
         mob->description,ch->name);
@@ -2033,8 +2027,8 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     CHAR_DATA *mob;
     CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
-    int mlevel, mhp, chance;
-    int charmed, max, snake, snake_count = 0, max_snake, flag=0;
+    int mlevel, chance;
+    int snake_count, max_snake;
     
     if ( ch->in_room->sector_type != SECT_FOREST)
     {
@@ -2056,44 +2050,21 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
         send_to_char("No sticks could be transmogrified.\n\r",ch);
         return;
     }
-    
+        
     /* Check number of charmees against cha*/
-    charmed=0;
-    max = get_curr_stat(ch,STAT_CHA) / 10;
+    max_snake = check_cha_follow( ch );
+    if ( max_snake == 0 )
+        return;
     
-    for ( check=char_list ; check != NULL; check = check->next )
-    {
-        if (IS_NPC(check) && IS_AFFECTED(check,AFF_CHARM) &&
-            check->master == ch)
-        {
-            charmed++;
-            if (charmed >= max)
-            {
-                send_to_char("You are not charismatic enough to attract more followers.\n\r",ch);
-                
-                return;
-            }
-        }
-    }
-    max_snake=0;
-    max_snake= max - charmed;       
-    chance = (get_curr_stat(ch, STAT_LUC));
-    snake = 0;
-    for (snake =0; snake <= max_snake; snake++)
-    {
-        if ( number_percent() > chance ) 
-        {    
-            if (flag == 0)
-            {   
-                send_to_char("Nothing answers your call!\n\r", ch);	
-                return;
-            }
-            break;
-        }
+    mlevel = URANGE(1, level/2, ch->level);
+    chance = 100;
+    snake_count = 0;
+    while ( snake_count * mlevel < max_snake && number_percent() <= chance ) {
+        
         if ((mob = create_mobile(get_mob_index(MOB_VNUM_SNAKE)))==NULL)
             return;  
         
-	set_mob_level( mob, level/3 );
+	set_mob_level( mob, mlevel );
 
         sprintf(buf,"%s\n\rA snake that was once a stick is following %s.\n\r\n\r", mob->description,ch->name);   
         free_string(mob->description);
@@ -2111,8 +2082,8 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
         af.modifier  = 0;
         af.bitvector = AFF_CHARM;
         affect_to_char( mob, &af );
-        flag = 1;	
-        chance -= 10;
+
+        chance -= 20;
         snake_count += 1;
     }
     if (snake_count == 1)
@@ -3858,7 +3829,7 @@ void spell_basic_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targ
 	return;
     }
     
-    chance = (get_curr_stat(ch, STAT_LUC));
+    chance = (get_curr_stat(ch, STAT_LUC)) / 2;
     
     if ( number_percent() > chance ) 
     {
@@ -3872,10 +3843,8 @@ void spell_basic_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     send_to_char( "You summon a ghostly apparition to help you out!\n\r", ch );
     act( "$n summons a ghostly apparation.", ch, NULL, NULL, TO_ROOM );
     
-    if (get_skill(ch,gsn_basic_apparition) >= 95)
-        set_mob_level( mob, ((ch->level/3*2)+5) );
-    else
-        set_mob_level( mob, ch->level/3*2 );
+    mlevel = URANGE(1, level * 3/4, ch->level);
+    set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rThis apparition belongs to %s.\n\r\n\r",
         mob->description,ch->name);
@@ -3907,7 +3876,7 @@ void spell_holy_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targe
     CHAR_DATA *mob;
     CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
-    int mlevel, mhp, chance;
+    int mlevel, chance;
     int charmed, max;
       
     if (IS_SET(ch->in_room->room_flags,ROOM_SAFE))
@@ -3934,7 +3903,7 @@ void spell_holy_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targe
         return;
     }
     
-    chance = (get_curr_stat(ch, STAT_LUC));
+    chance = (get_curr_stat(ch, STAT_LUC)) / 2;
     
     if ( number_percent() > chance ) 
     {
@@ -3947,11 +3916,9 @@ void spell_holy_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targe
 
     send_to_char( "You summon a holy apparition to help you out!\n\r", ch );
     act( "$n summons a holy apparation.", ch, NULL, NULL, TO_ROOM );
-    
-    if (get_skill(ch,gsn_basic_apparition) >= 95)
-        set_mob_level( mob, ((ch->level*4/5)+5) );
-    else
-        set_mob_level( mob, ch->level*4/5 );
+
+    mlevel = URANGE(1, level * 4/5, ch->level);
+    set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rThis apparition belongs to %s.\n\r\n\r",
         mob->description,ch->name);
