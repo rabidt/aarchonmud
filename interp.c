@@ -412,7 +412,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "pkil",       do_pkil,    POS_DEAD,       10,  LOG_NEVER, 0, FALSE, FALSE  },
     { "pkill",      do_pkill,   POS_SLEEPING,    0,  LOG_NEVER,  1, FALSE, FALSE  },
     { "roleplay",   do_roleplay,POS_SLEEPING,    0,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "play",       do_play,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "qui",        do_qui,     POS_DEAD,    0,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "quit",       do_quit,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "recall",     do_recall,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
