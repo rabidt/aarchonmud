@@ -4462,38 +4462,46 @@ MEDIT( medit_show )
         flag_string( act_flags, pMob->act ) );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Vnum:        [%5d]   Sex: [%s]     Race: [%s]\n\r",
+    sprintf( buf,
+        "Vnum:        [%5d]         Sex: [%s]     Race: [%s]\n\r",
         pMob->vnum,
         pMob->sex == SEX_MALE    ? "male   " :
-    pMob->sex == SEX_FEMALE  ? "female " : 
-    pMob->sex == SEX_BOTH    ? "random " : "neutral",
+        pMob->sex == SEX_FEMALE  ? "female " : 
+        pMob->sex == SEX_BOTH    ? "random " : "neutral",
         race_table[pMob->race].name );
     send_to_char( buf, ch );
     
     sprintf( buf,
-        "Level:       [%3d]   Align: [%4d]\n\r",
+        "Level:       [%3d]         Align: [%4d]\n\r",
         pMob->level,
         pMob->alignment);
     send_to_char( buf, ch );
     
     sprintf( buf,
-        "Hitroll:     [%2d\%] Damage: [%2d\%]    Dam Type: [%s]\n\r",
+        "Hitroll:     [%3d\%=%5d] Damage: [%3d\%=%5d] Dam Type: [%s]\n\r",
         pMob->hitroll_percent,
+        mob_base_hitroll(pMob, pMob->level),
         pMob->damage_percent,
+        mob_base_damage(pMob, pMob->level),
         attack_table[pMob->dam_type].name );         
     send_to_char( buf, ch );
     
     sprintf( buf,
-        "Hitpoints:   [%2d\%]   Mana: [%2d\%]        Move: [%2d\%]\n\r",
+        "Hitpoints:   [%3d\%=%5d]   Mana: [%3d\%=%5d]     Move: [%3d\%=%5d]\n\r",
         pMob->hitpoint_percent,
+        mob_base_hp(pMob, pMob->level),
         pMob->mana_percent,
-        pMob->move_percent
+        mob_base_mana(pMob, pMob->level),
+        pMob->move_percent,
+        mob_base_move(pMob, pMob->level)
     );
     send_to_char( buf, ch );
 
-    sprintf( buf, "Armor:       [%2d\%]  Saves: [%2d\%]\n\r",
+    sprintf( buf, "Armor:       [%3d\%=%5d]  Saves: [%3d\%=%5d]\n\r",
         pMob->ac_percent,
-        pMob->saves_percent
+        mob_base_ac(pMob, pMob->level),
+        pMob->saves_percent,
+        mob_base_saves(pMob, pMob->level)
     );
     send_to_char( buf, ch );
     
@@ -4547,8 +4555,10 @@ MEDIT( medit_show )
         flag_stat_string( position_flags, pMob->default_pos ) );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Wealth:      [%2d\%]\n\r",
-        pMob->wealth_percent );
+    sprintf( buf, "Wealth:      [%d\%=%d]\n\r",
+        pMob->wealth_percent,
+        mob_base_wealth(pMob, pMob->level)
+    );
     send_to_char( buf, ch );
     
     /* ROM values end */
