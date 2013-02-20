@@ -61,7 +61,6 @@ DECLARE_DO_FUN( do_exits    );
 DECLARE_DO_FUN( do_look     );
 DECLARE_DO_FUN( do_help     );
 DECLARE_DO_FUN( do_affects  );
-DECLARE_DO_FUN( do_play     );
 DECLARE_DO_FUN(do_lore);
 DECLARE_DO_FUN(do_appraise); 
 DECLARE_DO_FUN(do_say);
@@ -1972,10 +1971,6 @@ void do_examine( CHAR_DATA *ch, char *argument )
     switch ( obj->item_type )
     {
     default:
-	break;
-	
-    case ITEM_JUKEBOX:
-	do_play(ch,"list");
 	break;
 	
     case ITEM_ARROWS:
