@@ -1092,7 +1092,6 @@ void game_loop_unix( int control )
 		* Autonomous game motion.
 		*/
 		update_handler( );
-                //handle_web(); /* Keeps the webserver updated */
 		
 		/*
 		 * Output.

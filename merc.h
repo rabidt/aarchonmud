@@ -4544,10 +4544,3 @@ extern      OBJ_INDEX_DATA *    obj_index_hash  [MAX_KEY_HASH];
 extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
 
-
-
-
-/* websvr.c */
-void init_web(int port);
-void handle_web(void);
-void shutdown_web(void);
