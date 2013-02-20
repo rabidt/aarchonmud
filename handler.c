@@ -1443,12 +1443,6 @@ void char_from_room( CHAR_DATA *ch )
         return;
     }
     
-    if (ch->in_room->singer != NULL)
-    {
-        song_from_char(ch);
-        stop_singing(ch);
-    }
-    
     if ( !IS_NPC(ch) )
     {
         if( --ch->in_room->area->nplayer < 0 )
@@ -1559,7 +1553,6 @@ void char_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
     if ( IS_SET(ch->form, FORM_BRIGHT) )
 	++ch->in_room->light;
     
-    song_to_char(ch);
     
     if (IS_AFFECTED(ch,AFF_PLAGUE))
     {

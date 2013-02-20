@@ -603,7 +603,6 @@ void boot_db()
     }
     
     bounty_table = NULL;
-    calc_song_sns();
 
     format_init_flags();
 
@@ -1694,7 +1693,6 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          pRoomIndex->people      = NULL;
          pRoomIndex->contents    = NULL;
          pRoomIndex->extra_descr = NULL;
-         pRoomIndex->singer      = NULL;
          pRoomIndex->area        = area_last;
          pRoomIndex->vnum        = vnum;
          pRoomIndex->name        = fread_string( fp );
@@ -2839,9 +2837,6 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
         mob->damage[DICE_NUMBER]= pMobIndex->damage[DICE_NUMBER];
         mob->damage[DICE_TYPE]  = pMobIndex->damage[DICE_TYPE];
         mob->dam_type       = pMobIndex->dam_type;
-        mob->song_hearing = song_null;
-        mob->song_delay = 0;
-        mob->song_singing = song_null;
         if (mob->dam_type == 0)
             switch(number_range(1,3))
         {
@@ -2934,9 +2929,6 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
         mob->max_hit        = mob->level * 8 + number_range(
             mob->level * mob->level/4,
             mob->level * mob->level);
-        mob->song_hearing = song_null;
-        mob->song_delay = 0;
-        mob->song_singing = song_null;
         mob->max_hit = (int)(mob->max_hit*0.9);
         mob->hit        = mob->max_hit;
         mob->max_mana       = 100 + dice(mob->level,10);
