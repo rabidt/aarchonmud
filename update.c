@@ -43,6 +43,7 @@
 #include "religion.h"
 #include "olc.h"
 #include "leaderboard.h"
+#include "mob_stats.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -109,15 +110,11 @@ void advance_level( CHAR_DATA *ch, bool hide )
     *  add_prac    = ch_dis_practice(ch); 
     */
 
-       add_prac    = ch_prac_gains(ch);
-       if (ch->level > (LEVEL_HERO-10))
-       {
-	   bonus= ch->level-(LEVEL_HERO-10);
-	   add_prac *= bonus + 1;
-	   ch->train += bonus;
-       }
+       add_prac    = ch_prac_gains(ch, ch->level);
+       // divide by 100, rounding randomly to preserve average
+       add_prac = add_prac/100 + (chance(add_prac % 100) ? 1 : 0);
        ch->practice    += add_prac;
-       ch->train       += 1;
+       ch->train       += 1 + UMAX(0, ch->level - LEVEL_MIN_HERO);
        ch->pcdata->highest_level = ch->level;
    }
    else
@@ -888,12 +885,14 @@ void mobile_update( void )
 	  }
 	  
 	  if (ch->pIndexData->pShop != NULL) /* give him some gold */
-		 if ((ch->gold * 100 + ch->silver) < ch->pIndexData->wealth)
-		 {
-			ch->gold += ch->pIndexData->wealth * number_range(1,20)/5000000;
-			ch->silver += ch->pIndexData->wealth * number_range(1,20)/50000;
-		 }
-		 
+          {
+            long base_wealth = mob_base_wealth(ch->pIndexData);
+            if ((ch->gold * 100 + ch->silver) < base_wealth)
+            {
+                ch->gold += base_wealth * number_range(1,20)/5000000;
+                ch->silver += base_wealth * number_range(1,20)/50000;
+            }
+          }
 	  /*
 	   * Check triggers only if mobile still in default position
 	   */
@@ -1626,7 +1625,7 @@ void char_update( void )
 void create_haunt( CHAR_DATA *ch )
 {
     CHAR_DATA *mob;
-    int level;
+    int level, rand, i;
 
     /* only chance to be haunted.. unless you're sleeping ;P */
     if ( ch->position != POS_SLEEPING && number_bits(2) )
@@ -1636,16 +1635,13 @@ void create_haunt( CHAR_DATA *ch )
         return;
     
     /* small tiny ghost or big nasty? */
-    if ( number_bits(1) )
-	level = number_range( 1, ch->level/2 );
-    else if ( number_bits(2) )
-	level = number_range( ch->level/2, ch->level );
-    else if ( number_bits(2) )
-	level = number_range( ch->level, ch->level * 3/2 );
-    else
-	level = number_range( ch->level * 3/2, ch->level * 2 );
-	
-    level = URANGE( 1, level, 200 );
+    level = 200;
+    for (i = 0; i < 3; i++)
+    {
+        rand = number_range( 1, ch->level * 2 );
+        level = UMIN(level, rand);            
+    }
+
     set_mob_level( mob, level );
     char_to_room( mob, ch->in_room );
     

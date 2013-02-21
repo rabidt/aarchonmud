@@ -1451,15 +1451,12 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 	     );
     send_to_char( buf, ch );
 
-    if ( victim->pIndexData->new_format)
-    {
-	sprintf( buf, "Damage: %dd%d  Type: %s\n\r",
-		 victim->damage[DICE_NUMBER], victim->damage[DICE_TYPE],
-		 attack_table[victim->dam_type].noun
-		 );
-	send_to_char(buf,ch);
-    }
-	
+    sprintf( buf, "Damage: %dd%d  Type: %s\n\r",
+                victim->damage[DICE_NUMBER], victim->damage[DICE_TYPE],
+                attack_table[victim->dam_type].noun
+                );
+    send_to_char(buf,ch);
+
     NLRETURN
 
     sprintf(buf, "Knows how to: %s\n\r", off_bits_name(victim->off_flags));

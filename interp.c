@@ -232,7 +232,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "gratz",      do_gratz,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "gtell",      do_gtell,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { ";",          do_gtell,   POS_DEAD,    0,  LOG_NORMAL, 0, FALSE, TRUE  },
-    { "quest",      do_quest,   POS_RESTING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "quest",      do_quest,   POS_SLEEPING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "newbie",     do_newbie,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, TRUE },
     { "note",       do_note,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "pose",       do_pose,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -529,7 +529,11 @@ const   struct  cmd_type    cmd_table   [] =
     { "pardon",     do_pardon,  POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "parole",     do_parole,  POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "purge",      do_purge,   POS_DEAD,   L9,  LOG_ALWAYS, 1, FALSE, FALSE  },
+#ifdef TESTER
+    { "restore",    do_restore, POS_DEAD,   0,  LOG_ALWAYS, 1, FALSE, FALSE  },
+#else
     { "restore",    do_restore, POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
+#endif
     { "sedit",      do_sedit,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "sla",        do_sla,     POS_DEAD,   L3,  LOG_NORMAL, 0, TRUE, FALSE },
     { "slay",       do_slay,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -593,6 +597,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "qset",       do_qset    ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "dummy",      do_dummy   ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mortlag",    do_mortlag, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "mode",	    do_mode,	POS_DEAD,   L9,	 LOG_NORMAL, 1, FALSE, FALSE  },
 
     /*
     * OLC
