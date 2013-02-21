@@ -379,25 +379,25 @@ void remove_from_all_lboards( char *name )
 	for (i=0; i < MAX_LBOARD; i++)
 	{
 		if ( lboard_daily[i].board != NULL )
-			remove_from_lboard( *lboard_daily[i].board, name );
+			remove_from_lboard( &(lboard_daily[i].board), name );
 	}
 
 	for (i=0; i < MAX_LBOARD; i++)
 	{
 		if ( lboard_weekly[i].board != NULL )
-			remove_from_lboard( *lboard_weekly[i].board, name );
+			remove_from_lboard( &(lboard_weekly[i].board), name );
 	}
 	
 	for (i=0; i < MAX_LBOARD; i++)
 	{
 		if ( lboard_monthly[i].board != NULL )
-			remove_from_lboard( *lboard_monthly[i].board, name );
+			remove_from_lboard( &(lboard_monthly[i].board), name );
 	}
 	
 	for (i=0; i < MAX_LBOARD; i++)
 	{
 		if ( lboard_overall[i].board != NULL )
-		remove_from_lboard( *lboard_overall[i].board, name );
+		remove_from_lboard( &(lboard_overall[i].board), name );
 	}
 	
 }
