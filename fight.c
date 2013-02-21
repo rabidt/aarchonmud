@@ -38,6 +38,7 @@
 #include "tables.h"
 #include "warfare.h"
 #include "lookup.h"
+#include "leaderboard.h"
 
 extern WAR_DATA war;
 
@@ -1215,6 +1216,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
 {
     int i,chance,number;
+    int attacks;
     CHAR_DATA *vch, *vch_next;
     
     if (ch->stop>0)
@@ -1233,11 +1235,20 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
 	return;
 
     /* high level mobs get extra attacks */
-    for ( i = 120; i < ch->level; i += 20 )
+    attacks =  ch->level * 5/3;
+    if ( IS_SET(ch->off_flags, OFF_FAST) )
+        attacks += 100;
+    if ( IS_AFFECTED(ch,AFF_HASTE) )
+        attacks += 100;    
+    if ( IS_AFFECTED(ch, AFF_SLOW) )
+        attacks /= 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
+    for ( ; attacks > 0; attacks -= 100 )
     {
-	if ( number_bits(1) || number_range(1,20) > ch->level - i )
-	    continue;
-
+        if (number_percent() > attacks)
+            continue;
+            
 	one_hit(ch,victim,dt,FALSE);
 
 	if (ch->fighting != victim)
@@ -1258,39 +1269,18 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         }
     }
     
-    if ( IS_AFFECTED(ch,AFF_HASTE) )
-        one_hit(ch,victim,dt,FALSE);
-
-    if (ch->fighting != victim)
-	return;
-
-    chance = get_skill(ch,gsn_second_attack) * 2/3;
-    if ( IS_AFFECTED(ch, AFF_SLOW) )
-	chance /= 2;
-
-    if (number_percent() < chance)
-    {
-        one_hit(ch,victim,dt, FALSE);
-        if (ch->fighting != victim)
-            return;
-    }
-    
-    chance = get_skill(ch,gsn_third_attack) * 2/3;
-    if ( IS_AFFECTED(ch, AFF_SLOW) )
-	chance /= 2;
-    
-    if (number_percent() < chance)
-    {
-        one_hit(ch,victim,dt,FALSE);
-        if (ch->fighting != victim)
-            return;
-    } 
-
     if ( get_eq_char(ch, WEAR_SECONDARY) )
     {
         one_hit(ch,victim,dt, TRUE);
         if (ch->fighting != victim)
             return;
+        // bonus off-hand attack for haste
+        if ( IS_AFFECTED(ch,AFF_HASTE) && number_bits(1) )
+        {
+            one_hit(ch,victim,dt, TRUE);
+            if (ch->fighting != victim)
+                return;            
+        }
     }	
     
     /* oh boy!  Fun stuff! */
@@ -1408,7 +1398,7 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     int dam;
 
     /* basic damage */
-    if ( IS_NPC(ch) && ch->pIndexData->new_format )
+    if ( IS_NPC(ch) )
 	dam = dice(ch->damage[DICE_NUMBER], ch->damage[DICE_TYPE]);
     else
 	dam = ch->level + dice( 1, 4 );
@@ -3093,6 +3083,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !IS_NPC(ch) && IS_NPC(victim) )
     {
 	ch->pcdata->mob_kills++;
+	update_lboard( LBOARD_MKILL, ch, ch->pcdata->mob_kills, 1);
         check_achievement(ch);
     }
 
@@ -3142,6 +3133,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	    if (!IS_SET(victim->act, PLR_WAR)) 
             {
 		ch->pcdata->pkill_count++;
+		update_lboard( LBOARD_PKILL, ch, ch->pcdata->pkill_count, 1);
 		adjust_pkgrade( ch, victim, FALSE );
 		
 		if (!clan_table[ch->clan].active)
@@ -5177,37 +5169,6 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
 
     level_range = victim->level - level_power(gch);
     
-    /* compute the base exp */
-    /*
-    switch (level_range)
-    {
-    default :   base_exp =   0;     break;
-    case -15 :  base_exp =   1;     break;
-    case -14 :  base_exp =   2;     break;
-    case -13 :  base_exp =   3;     break;
-    case -12 :  base_exp =   4;     break;
-    case -11 :  base_exp =   5;     break;
-    case -10 :  base_exp =   6;     break;
-    case -9 :   base_exp =   7;     break;
-    case -8 :   base_exp =   9;     break;
-    case -7 :   base_exp =  11;     break;
-    case -6 :   base_exp =  17;     break;
-    case -5 :   base_exp =  26;     break;
-    case -4 :   base_exp =  35;     break;
-    case -3 :   base_exp =  44;     break;
-    case -2 :   base_exp =  53;     break;
-    case -1 :   base_exp =  62;     break;
-    case  0 :   base_exp =  70;     break;
-    case  1 :   base_exp =  78;     break;
-    case  2 :   base_exp =  86;     break;
-    case  3 :   base_exp =  93;     break;
-    case  4 :   base_exp = 100;     break;
-    } 
-    
-    if (level_range > 4)
-        base_exp = 97 + 12 * (level_range - 4);
-    */
-
     /* Don't force players to kill super-strong mobs --Bobble */
     base_exp = 100 + 10 * level_range;
     base_exp = UMAX(0, base_exp);
@@ -5247,6 +5208,24 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
     if ( IS_SET(victim->pIndexData->act, ACT_AGGRESSIVE) )
 	base_exp += base_exp/10;
 
+    /* hp adjustments */
+    if (victim->pIndexData->hitpoint_percent <= 100)
+        base_exp = base_exp * victim->pIndexData->hitpoint_percent / 100;
+    else
+        base_exp = base_exp * (50 + victim->pIndexData->hitpoint_percent) / 150;
+    
+    /* damage adjustments */
+    if (victim->pIndexData->damage_percent <= 100)
+        base_exp = base_exp * (50 + victim->pIndexData->damage_percent) / 150;
+    else
+        base_exp = base_exp * (100 + victim->pIndexData->damage_percent) / 200;
+
+    /* hitroll adjustments */
+    if (victim->pIndexData->hitroll_percent <= 100)
+        base_exp = base_exp * (200 + victim->pIndexData->hitroll_percent) / 300;
+    else
+        base_exp += base_exp * UMIN(100, victim->pIndexData->hitroll_percent - 100) / 600;
+    
     /* do alignment computations */
     galign = gch->alignment;
     valign = victim->alignment;
