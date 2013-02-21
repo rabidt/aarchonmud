@@ -113,7 +113,9 @@ typedef struct  help_data        HELP_DATA;
 typedef struct  help_area_data   HELP_AREA;
 typedef struct  kill_data        KILL_DATA;
 typedef struct  mem_data         MEM_DATA;
+typedef struct  mob_index_data_old MOB_INDEX_DATA_OLD;
 typedef struct  mob_index_data   MOB_INDEX_DATA;
+typedef struct  mobble_index_data MOBBLE_INDEX_DATA;
 typedef struct  note_data        NOTE_DATA;
 typedef struct  obj_data         OBJ_DATA;
 typedef struct  obj_index_data   OBJ_INDEX_DATA;
@@ -165,6 +167,44 @@ typedef bool SONG_FUN   args((int sn,int level,CHAR_DATA *singer,
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 
+typedef struct comm_history_entry COMM_ENTRY;
+typedef struct comm_history_type COMM_HISTORY;
+typedef struct pers_comm_entry PERS_ENTRY;
+typedef struct pers_comm_history PERS_HISTORY;
+
+struct pers_comm_entry
+{
+	PERS_ENTRY *next;
+	PERS_ENTRY *prev;
+	char *text;
+};
+
+struct pers_comm_history
+{
+	sh_int size;
+	PERS_ENTRY *head;
+	PERS_ENTRY *tail;
+};
+	
+struct comm_history_entry
+{
+    COMM_ENTRY *next;
+    COMM_ENTRY *prev;
+
+    char *timestamp;
+    char channel;
+    char *text;
+    bool invis;
+    char *mimic_name;
+    char *name;
+};
+
+struct comm_history_type
+{
+    sh_int size;
+    COMM_ENTRY *head; /* most recent */
+    COMM_ENTRY *tail; /* oldest */
+};
 
 
 bool is_remort_obj( OBJ_DATA *obj );
@@ -1650,7 +1690,7 @@ struct  kill_data
 #define OBJ_VNUM_SCHOOL_WHIP       18421
 #define OBJ_VNUM_SCHOOL_POLEARM    18422
 #define OBJ_VNUM_SCHOOL_GUN        18423
-/*#define OBJ_VNUM_SCHOOL_BOW        18431*/
+#define OBJ_VNUM_SCHOOL_BOW        18432
 
 #define OBJ_VNUM_SCHOOL_VEST       18403
 #define OBJ_VNUM_SCHOOL_SHIELD     18404
@@ -2280,9 +2320,9 @@ typedef int tattoo_list[MAX_WEAR];
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.
  */
-struct  mob_index_data
+struct  mob_index_data_old
 {
-	MOB_INDEX_DATA *    next;
+	MOB_INDEX_DATA_OLD *    next;
 	SPEC_FUN *      spec_fun;
 	SHOP_DATA *     pShop;
 	MPROG_LIST *        mprogs;
@@ -2323,7 +2363,52 @@ struct  mob_index_data
     sh_int      stance;
 };
 
-
+/*
+ * Prototype for a mob (new-style).
+ * This is the in-memory version of #MOBBLES.
+ */
+struct  mob_index_data
+{
+    MOB_INDEX_DATA* next;
+    SPEC_FUN*   spec_fun;
+    SHOP_DATA*  pShop;
+    MPROG_LIST* mprogs;
+    AREA_DATA*  area;
+    int         vnum;
+    sh_int      group;
+    sh_int      count;
+    sh_int      killed;
+    char*       player_name;
+    char*       short_descr;
+    char*       long_descr;
+    char*       description;
+    tflag       act;
+    tflag       affect_field;
+    sh_int      alignment;
+    sh_int      level;
+    sh_int      hitpoint_percent;
+    sh_int      mana_percent;
+    sh_int      move_percent;
+    sh_int      hitroll_percent;
+    sh_int      damage_percent;
+    sh_int      ac_percent;
+    sh_int      saves_percent;
+    sh_int      dam_type;
+    tflag       off_flags;
+    tflag       imm_flags;
+    tflag       res_flags;
+    tflag       vuln_flags;
+    sh_int      start_pos;
+    sh_int      default_pos;
+    sh_int      sex;
+    sh_int      race;
+    sh_int      wealth_percent;
+    tflag       form;
+    tflag       parts;
+    sh_int      size;
+    tflag       mprog_flags;
+    sh_int      stance;
+};
 
 /* memory settings */
 #define MEM_CUSTOMER    A   
@@ -2490,7 +2575,8 @@ struct  char_data
 struct  pc_data
 {
     PC_DATA *       next;
-    BUFFER *        buffer;
+    /*BUFFER *        buffer; old buffer for replay */
+	bool	new_tells; /* whether there are unread tells */
     COLOUR_DATA *   code;
     SORT_TABLE *    bounty_sort;
     bool        valid;
@@ -2508,6 +2594,10 @@ struct  pc_data
     int      perm_mana;
     int      perm_move;
 
+	PERS_HISTORY *gtell_history;
+	PERS_HISTORY *tell_history;
+	PERS_HISTORY *clan_history;
+	
     int             achpoints; /* Astark September 2012*/
     sh_int          behead_cnt;
     sh_int	    storage_boxes; /*Number of storage boxes the player has*/
@@ -4188,7 +4278,6 @@ long    wiznet_lookup   args( ( const char *name) );
 int class_lookup    args( ( const char *name) );
 bool    is_clan     args( (CHAR_DATA *ch) );
 bool    is_same_clan    args( (CHAR_DATA *ch, CHAR_DATA *victim));
-bool    is_old_mob  args ( (CHAR_DATA *ch) );
 int     get_weapon_sn   args( ( CHAR_DATA *ch ) );
 int     get_weapon_sn_new args( (CHAR_DATA *ch, bool secondary) );
 int     get_age         args( ( CHAR_DATA *ch ) );
@@ -4387,7 +4476,7 @@ int ch_str_carry        args( (CHAR_DATA *ch) );
 int ch_str_wield        args( (CHAR_DATA *ch) );
 int ch_int_learn        args( (CHAR_DATA *ch) );
 int ch_dis_practice args( (CHAR_DATA *ch) );
-int ch_prac_gains       args( (CHAR_DATA *ch) );
+int ch_prac_gains       args( (CHAR_DATA *ch, int for_level) );
 int ch_agi_defensive    args( (CHAR_DATA *ch) );
 int ch_dex_extrahit args( (CHAR_DATA *ch) );
 int ch_con_shock        args( (CHAR_DATA *ch) );

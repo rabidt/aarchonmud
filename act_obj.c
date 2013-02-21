@@ -2599,13 +2599,18 @@ void do_recite( CHAR_DATA *ch, char *argument )
     }
     else
     {
-	if (
-            obj_cast_spell( scroll->value[1], scroll->value[0], ch, scroll, argument ) ||
-            obj_cast_spell( scroll->value[2], scroll->value[0], ch, scroll, argument ) ||
-            obj_cast_spell( scroll->value[3], scroll->value[0], ch, scroll, argument ) ||
-            obj_cast_spell( scroll->value[4], scroll->value[0], ch, scroll, argument ) )
-	/*if it didn't go, probably typoed the argument, no reason to
+	bool success=FALSE;
+        if ( obj_cast_spell( scroll->value[1], scroll->value[0], ch, scroll, argument ) )
+	  success=TRUE;
+        if ( obj_cast_spell( scroll->value[2], scroll->value[0], ch, scroll, argument ) )
+	  success=TRUE;
+        if ( obj_cast_spell( scroll->value[3], scroll->value[0], ch, scroll, argument ) )
+	  success=TRUE;
+        if ( obj_cast_spell( scroll->value[4], scroll->value[0], ch, scroll, argument ) )
+	  success=TRUE;
+	/*if it didn't go, probably typoed the target argument, no reason to
 	  kill the scroll or to check_improve -Vodur*/
+	if ( success )
 	{
 	    extract_obj( scroll );
             check_improve(ch,gsn_scrolls,TRUE,2);
@@ -4440,6 +4445,7 @@ void do_sire( CHAR_DATA *ch, char *argument )
     OBJ_DATA *corpse;
     CHAR_DATA *mob;
     AFFECT_DATA af;
+    int mlevel;
 
     if ( IS_NPC(ch) || ch->race != race_vampire )
     {
@@ -4462,10 +4468,6 @@ void do_sire( CHAR_DATA *ch, char *argument )
 
     if ( argument[0] == '\0' )
     {
-	/*
-	send_to_char( "Sire which corpse?\n\r", ch );
-	return;
-	*/
 	argument = "corpse";
     }
 
@@ -4482,18 +4484,6 @@ void do_sire( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    /*
-    if ( corpse->timer <= 0 )
-    {
-	send_to_char( "This corpse isn't fresh anymore.\n\r", ch );
-	return;
-    }
-    */
-
-    /*
-    if ( !check_cha_follow(ch) )
-	return;
-    */
     if ( ch->pet != NULL )
     {
 	send_to_char("You already control a pet.\n\r",ch);
@@ -4505,7 +4495,9 @@ void do_sire( CHAR_DATA *ch, char *argument )
         return;
     
     WAIT_STATE( ch, PULSE_VIOLENCE );
-	set_mob_level( mob, URANGE(1, corpse->level, ch->level + 10 ) );
+    
+    mlevel = ch->level + (corpse->level - ch->level) / 5;
+    set_mob_level( mob, URANGE(1, mlevel, ch->level + 20 ) );
     char_to_room( mob, ch->in_room );
 
     /* wear eq from corpse */

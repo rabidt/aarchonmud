@@ -1307,8 +1307,8 @@ void do_return( CHAR_DATA *ch, char *argument )
         ch->prompt = NULL;
     }
     
-    if ( buf_string(ch->desc->original->pcdata->buffer)[0] != '\0')
-        send_to_char( "Type 'replay' to see missed tells.\n\r", ch );
+    if ( ch->desc->original->pcdata->new_tells)
+        send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
     
     
     sprintf(buf,"$N returns from %s.",ch->short_descr);
@@ -3645,6 +3645,20 @@ void do_dummy( CHAR_DATA *ch, char *argument)
 	#ifdef BUILDER
 	send_to_char("BUILDER defined\n\r",ch);
 	#endif /* BUILDER */
+}
+
+void do_mode( CHAR_DATA *ch, char *argument)
+{
+	send_to_char("Game modes defined:\n\r", ch );
+	#ifdef TESTER
+	send_to_char("TESTER defined\n\r",ch);
+	#endif
+	#ifdef REMORT
+	send_to_char("REMORT defined\n\r",ch);
+	#endif
+	#ifdef BUILDER
+	send_to_char("BUILDER defined\n\r",ch);
+	#endif
 }
 
 
