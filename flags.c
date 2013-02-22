@@ -415,6 +415,18 @@ void try_remove_pkill( CHAR_DATA *ch)
 	return;
     }
 
+    if ( IS_SET(ch->act, PLR_KILLER) )
+    {
+	send_to_char( "You can't do this with a KILLER flag!\n\r", ch);
+	return;
+    }
+   
+    if ( IS_SET(ch->act, PLR_THIEF) )
+    {
+	send_to_char( "You can't do this with a THIEF flag!\n\r", ch);
+	return;
+    }
+
     REMOVE_BIT( ch->act, PLR_PERM_PKILL );
     REMOVE_BIT( ch->act, PLR_HARDCORE );
     
