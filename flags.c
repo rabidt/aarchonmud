@@ -408,6 +408,13 @@ void try_remove_pkill( CHAR_DATA *ch)
 	send_to_char("Assassins cannot remove pkill status.\n\r", ch );
 	return;
     }
+
+    if ( ! IS_SET( ch->in_room->room_flags, ROOM_SAFE ) )
+    {
+	send_to_char("You must do this in a safe room!\n\r", ch);
+	return;
+    }
+
     REMOVE_BIT( ch->act, PLR_PERM_PKILL );
     REMOVE_BIT( ch->act, PLR_HARDCORE );
     
