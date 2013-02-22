@@ -190,7 +190,7 @@ struct comm_history_entry
     COMM_ENTRY *prev;
 
     char *timestamp;
-    char channel;
+    sh_int channel;
     char *text;
     bool invis;
     char *mimic_name;
@@ -2296,7 +2296,7 @@ typedef int tattoo_list[MAX_WEAR];
 
 #define song_null       -1
 
-/* channel definitions for playback log_chan/playback */
+/* channel definitions for log_chan/playback */
 extern sh_int sn_gossip;
 extern sh_int sn_auction;
 extern sh_int sn_music;
@@ -2309,18 +2309,6 @@ extern sh_int sn_bitch;
 extern sh_int sn_immtalk;
 extern sh_int sn_savantalk;
 extern sh_int sn_newbie;
-#define CHAN_GOSSIP 'p'
-#define CHAN_AUCTION 'a'
-#define CHAN_MUSIC 'e'
-#define CHAN_QUESTION 'q'
-#define CHAN_ANSWER 'j'
-#define CHAN_QUOTE 'h'
-#define CHAN_GRATZ 'z'
-#define CHAN_GAMETALK 'k'
-#define CHAN_BITCH 'f'
-#define CHAN_NEWBIE 'n'
-#define CHAN_IMMTALK 'i'
-#define CHAN_SAVANT '7'
 
 /*
  * Prototype for a mob.
@@ -3615,6 +3603,7 @@ struct achievement_entry
 #define IS_BETWEEN(min,num,max) ( ((min) <= (num)) && ((num) <= (max)) )
 #define CHECK_POS(a, b, c)  { (a) = (b); if ( (a) < 0 ) bug( "CHECK_POS : " c " == %d < 0", a ); }
 #define IS_SPELL(sn) (skill_table[sn].spell_fun != spell_null)
+#define IS_CHAN_OFF(ch, sn)	(IS_SET( ch->comm, public_channel_table[sn].offbit))
 
 
 /*
