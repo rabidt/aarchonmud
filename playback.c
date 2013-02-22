@@ -341,14 +341,12 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 	{
 		entry=history->head;
 		int i;
-		for ( i=0; i < entries && entry != NULL; )
+		for ( i=1; i < entries && entry != NULL; )
 		{
-			entry=entry->next;
 		
-			if IS_CHAN_OFF(ch, (entry->channel))
-			  continue;
-			else
+			if ( !IS_CHAN_OFF(ch, (entry->channel)) )
 			  i++;
+			entry=entry->next;
 
 		}
 	}
