@@ -1051,6 +1051,11 @@ void do_autolist(CHAR_DATA *ch, char *argument)
         send_to_char("You do not accept surrenders from other players.\n\r",ch);
     else
         send_to_char("You accept surrenders from other players.\n\r",ch);
+
+    if (IS_SET(ch->act,PLR_NOEXP))
+        send_to_char("You do not wish to gain experience points.\n\r",ch);
+    else
+        send_to_char("You can gain experience points.\n\r",ch);
 }
 
 void do_autoassist(CHAR_DATA *ch, char *argument)
@@ -1493,6 +1498,28 @@ void do_nosurrender( CHAR_DATA *ch, char *argument )
         {
             send_to_char("You no longer accept surrenders from other players.\n\r",ch);
             SET_BIT(ch->act,PLR_NOSURR);
+        }
+    }    
+}
+
+/* Lets players disable exp gains so that they can stay
+   at a constant level - Astark 2-18-13 */
+
+void do_noexp( CHAR_DATA *ch, char *argument )
+{
+    if (IS_NPC(ch))
+        return;
+    else
+    {
+        if (IS_SET(ch->act,PLR_NOEXP))
+        {
+            send_to_char("You can now gain experience points.\n\r",ch);
+            REMOVE_BIT(ch->act,PLR_NOEXP);
+        }
+        else
+        {
+            send_to_char("You will no longer be able to gain experience points.\n\r",ch);
+            SET_BIT(ch->act,PLR_NOEXP);
         }
     }    
 }

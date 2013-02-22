@@ -4462,45 +4462,54 @@ MEDIT( medit_show )
         flag_string( act_flags, pMob->act ) );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Vnum:        [%5d] Sex:   [%s]   Race: [%s]\n\r",
+    sprintf( buf,
+        "Vnum:        [%5d]         Sex: [%s]     Race: [%s]\n\r",
         pMob->vnum,
         pMob->sex == SEX_MALE    ? "male   " :
-    pMob->sex == SEX_FEMALE  ? "female " : 
-    pMob->sex == SEX_BOTH    ? "random " : "neutral",
+        pMob->sex == SEX_FEMALE  ? "female " : 
+        pMob->sex == SEX_BOTH    ? "random " : "neutral",
         race_table[pMob->race].name );
     send_to_char( buf, ch );
     
     sprintf( buf,
-        "Level:       [%2d]    Align: [%4d]      Hitroll: [%2d] Dam Type:    [%s]\n\r",
+        "Level:       [%3d]         Align: [%4d]\n\r",
         pMob->level,
-        pMob->alignment,
-        pMob->hitroll,
-        attack_table[pMob->dam_type].name );
+        pMob->alignment);
+    send_to_char( buf, ch );
+    
+    sprintf( buf,
+        "Hitroll:     [%3d\%=%5d] Damage: [%3d\%=%5d] Dam Type: [%s]\n\r",
+        pMob->hitroll_percent,
+        mob_base_hitroll(pMob, pMob->level),
+        pMob->damage_percent,
+        mob_base_damage(pMob, pMob->level),
+        attack_table[pMob->dam_type].name );         
+    send_to_char( buf, ch );
+    
+    sprintf( buf,
+        "Hitpoints:   [%3d\%=%5d]   Mana: [%3d\%=%5d]     Move: [%3d\%=%5d]\n\r",
+        pMob->hitpoint_percent,
+        mob_base_hp(pMob, pMob->level),
+        pMob->mana_percent,
+        mob_base_mana(pMob, pMob->level),
+        pMob->move_percent,
+        mob_base_move(pMob, pMob->level)
+    );
+    send_to_char( buf, ch );
+
+    sprintf( buf, "Armor:       [%3d\%=%5d]  Saves: [%3d\%=%5d]\n\r",
+        pMob->ac_percent,
+        mob_base_ac(pMob, pMob->level),
+        pMob->saves_percent,
+        mob_base_saves(pMob, pMob->level)
+    );
     send_to_char( buf, ch );
     
     if ( pMob->group )
     {
         sprintf( buf, "Group:       [%5d]\n\r", pMob->group );
         send_to_char( buf, ch );
-    }
-    
-    sprintf( buf, "Hit dice:    [%2dd%-3d+%4d] ",
-        pMob->hit[DICE_NUMBER],
-        pMob->hit[DICE_TYPE],
-        pMob->hit[DICE_BONUS] );
-    send_to_char( buf, ch );
-    
-    sprintf( buf, "Damage dice: [%2dd%-3d+%4d] ",
-        pMob->damage[DICE_NUMBER],
-        pMob->damage[DICE_TYPE],
-        pMob->damage[DICE_BONUS] );
-    send_to_char( buf, ch );
-    
-    sprintf( buf, "Mana dice:   [%2dd%-3d+%4d]\n\r",
-        pMob->mana[DICE_NUMBER],
-        pMob->mana[DICE_TYPE],
-        pMob->mana[DICE_BONUS] );
-    send_to_char( buf, ch );
+    }    
     
     /* ROM values end */
     
@@ -4509,11 +4518,6 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     /* ROM values: */
-    
-    sprintf( buf, "Armor:       [pierce: %d  bash: %d  slash: %d  magic: %d]\n\r",
-        pMob->ac[AC_PIERCE], pMob->ac[AC_BASH],
-        pMob->ac[AC_SLASH], pMob->ac[AC_EXOTIC] );
-    send_to_char( buf, ch );
     
     sprintf( buf, "Form:        [%s]\n\r",
         flag_string( form_flags, pMob->form ) );
@@ -4543,10 +4547,6 @@ MEDIT( medit_show )
         flag_stat_string( size_flags, pMob->size ) );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Material:    [%s]\n\r",
-        pMob->material );
-    send_to_char( buf, ch );
-    
     sprintf( buf, "Start pos.   [%s]\n\r",
         flag_stat_string( position_flags, pMob->start_pos ) );
     send_to_char( buf, ch );
@@ -4555,8 +4555,10 @@ MEDIT( medit_show )
         flag_stat_string( position_flags, pMob->default_pos ) );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Wealth:      [%5ld]\n\r",
-        pMob->wealth );
+    sprintf( buf, "Wealth:      [%d\%=%d]\n\r",
+        pMob->wealth_percent,
+        mob_base_wealth(pMob, pMob->level)
+    );
     send_to_char( buf, ch );
     
     /* ROM values end */
@@ -4879,27 +4881,68 @@ int* get_level_stats( int level )
     return stats;
 }
 
+/*
 void set_mob_level( CHAR_DATA *mob, int level )
 {
     int *stats = get_level_stats( level );
 
     mob->level = level;
-    /* hp */
+
     mob->damage[DICE_NUMBER] = stats[LVL_STAT_DAM_DICE_NUMBER];
     mob->damage[DICE_TYPE]   = stats[LVL_STAT_DAM_DICE_TYPE];
     mob->damroll             = stats[LVL_STAT_DAM_DICE_BONUS];
-    /* damage */
+
     mob->max_hit = dice(stats[LVL_STAT_HP_DICE_NUMBER],
 			stats[LVL_STAT_HP_DICE_TYPE])
 	+ stats[LVL_STAT_HP_DICE_BONUS];
     mob->hit = mob->max_hit;
-    /* armor */
+
     mob->armor[AC_PIERCE] = stats[LVL_STAT_AC_WEAPON];
     mob->armor[AC_BASH]   = stats[LVL_STAT_AC_WEAPON];
     mob->armor[AC_SLASH]  = stats[LVL_STAT_AC_WEAPON];
     mob->armor[AC_EXOTIC] = stats[LVL_STAT_AC_EXOTIC];
-    /* stats */
+
     compute_mob_stats(mob);
+}
+*/
+
+void set_mob_level( CHAR_DATA *mob, int level )
+{
+    MOB_INDEX_DATA *pMobIndex = mob->pIndexData;
+    int i;
+    
+    level = URANGE(1, level, 200);
+    mob->level = level;
+
+    // damage dice
+    int base_damage = mob_base_damage( pMobIndex, level );
+    if (base_damage <= 7) {
+        mob->damage[DICE_NUMBER] = 1;
+        mob->damage[DICE_TYPE]   = UMAX(2, base_damage*2 - 1);
+    }
+    else if (base_damage <= 21)
+    {
+        mob->damage[DICE_NUMBER] = 2;
+        mob->damage[DICE_TYPE]   = UMAX(2, base_damage - 1);
+    }
+    else
+    {
+        mob->damage[DICE_NUMBER] = 4;
+        mob->damage[DICE_TYPE]   = UMAX(2, base_damage/2 - 1);
+    }
+
+    // base stats
+    mob->hit = mob->max_hit = mob_base_hp( pMobIndex, level );
+    mob->mana = mob->max_mana = mob_base_mana( pMobIndex, level );
+    mob->move = mob->max_move = mob_base_move( pMobIndex, level );
+    mob->hitroll = mob_base_hitroll( pMobIndex, level );
+    mob->damroll = mob_base_damroll( pMobIndex, level );
+    mob->saving_throw = mob_base_saves( pMobIndex, level );
+    for (i = 0; i < 4; i++)
+        mob->armor[i] = mob_base_ac( pMobIndex, level );
+
+    /* str ... luc */
+    compute_mob_stats(mob);    
 }
 
 /* methods for spec checking - needed for grep command 
@@ -4919,109 +4962,13 @@ int average_mob_hp( int level )
 			 stats[LVL_STAT_HP_DICE_BONUS] );
 }
 
-/* sets a mobs stats according to its level
-* if parameter 'mana' given, will adjust mana for a spellcaster mob
-*/
-MEDIT( medit_adjust )
+int average_mob_damage( int level )
 {
-    MOB_INDEX_DATA *pMob;
-    char arg1[MAX_INPUT_LENGTH];
-    char arg2[MAX_INPUT_LENGTH];
     int *stats;
-    bool set_mana = FALSE;
-    bool set_wealth = FALSE;
-    
-    EDIT_MOB(ch, pMob);
-    
-    argument = one_argument(argument, arg1);
-    argument = one_argument(argument, arg2);
 
-    if (arg1[0] != '\0')
-    {
-        if (strcmp(arg1, "mana") == 0)
-            set_mana = TRUE;
-        else if (strcmp(arg1, "wealth") == 0)
-            set_wealth = TRUE;
-        else
-        {
-            send_to_char("Syntax: adjust\n\r", ch);
-            send_to_char("        adjust mana (for spellcaster mobs)\n\r", ch);
-	    send_to_char("        adjust wealth [poor|normal|rich]\n\r", ch);
-            return FALSE;
-        }
-    }
-    
-    if (pMob->level < 1 || pMob->level > 200)
-    {
-        send_to_char("You must set the mob's level first (1-200).\n\r", ch);
-        return FALSE;
-    }
-    
-    if (set_mana)
-    {
-        pMob->mana[DICE_NUMBER] = pMob->level;
-	if ( IS_SET(pMob->act, ACT_MAGE) || IS_SET(pMob->act, ACT_CLERIC) )
-	    pMob->mana[DICE_TYPE] = 20;
-	else
-	    pMob->mana[DICE_TYPE] = 10;
-
-        pMob->mana[DICE_BONUS] = 100;
-        send_to_char("Mana set according to level.\n\r", ch);
-        return TRUE;
-    }    
-    
-    if (set_wealth)
-    {
-	int level = pMob->level;
-	float factor = 0.2;
-	
-	if ( pMob->pShop != NULL )
-	{
-	    level = 120;
-	    factor = 1.0;
-	}
-	else if ( !IS_SET(pMob->form, FORM_SENTIENT) )
-	    factor = 0;
-
-	if ( arg2[0] != '\0' )
-	    if ( !str_cmp(arg2, "poor") )
-		factor = 0.1;
-	    else if ( !str_cmp(arg2, "normal") )
-		factor = 0.2;
-	    else if ( !str_cmp(arg2, "rich") )
-		factor = 0.5;
-	    else
-	    {
-		send_to_char( "Valid options are poor, normal or rich.\n\r", ch );
-		return FALSE;
-	    }
-
-        pMob->wealth = (int)(level * level * factor * (level / 15.0 + 2));
-        send_to_char("Wealth set according to level.\n\r", ch);
-        return TRUE;
-    }    
-    
-    stats = get_level_stats( pMob->level );
-    
-    pMob->hit[DICE_NUMBER]    = stats[LVL_STAT_HP_DICE_NUMBER];
-    pMob->hit[DICE_TYPE]      = stats[LVL_STAT_HP_DICE_TYPE];
-    pMob->hit[DICE_BONUS]     = stats[LVL_STAT_HP_DICE_BONUS];
-    pMob->damage[DICE_NUMBER] = stats[LVL_STAT_DAM_DICE_NUMBER];
-    pMob->damage[DICE_TYPE]   = stats[LVL_STAT_DAM_DICE_TYPE];
-    pMob->damage[DICE_BONUS]  = stats[LVL_STAT_DAM_DICE_BONUS];
-    pMob->ac[AC_PIERCE]       = stats[LVL_STAT_AC_WEAPON];
-    pMob->ac[AC_BASH]         = stats[LVL_STAT_AC_WEAPON];
-    pMob->ac[AC_SLASH]        = stats[LVL_STAT_AC_WEAPON];
-    pMob->ac[AC_EXOTIC]       = stats[LVL_STAT_AC_EXOTIC];
-    
-    pMob->mana[DICE_NUMBER] = 1;
-    pMob->mana[DICE_TYPE] = 1;
-    pMob->mana[DICE_BONUS] = 99;
-    
-    send_to_char("Stats set according to level.\n\r", ch);
-    return TRUE;
+    stats = get_level_stats( level );
+    return average_roll( stats[LVL_STAT_DAM_DICE_NUMBER], stats[LVL_STAT_DAM_DICE_TYPE], 0 ) + stats[LVL_STAT_DAM_DICE_BONUS] / 4;
 }
-
 
 MEDIT( medit_damtype )
 {
@@ -5471,64 +5418,6 @@ MEDIT( medit_affect )      /* Moved out of medit() due to naming conflicts -- Hu
 }
 
 
-
-MEDIT( medit_ac )
-{
-    MOB_INDEX_DATA *pMob;
-    char arg[MAX_INPUT_LENGTH];
-    int pierce, bash, slash, exotic;
-    
-    do   /* So that I can use break and send the syntax in one place */
-    {
-        if ( argument[0] == '\0' )  break;
-        
-        EDIT_MOB(ch, pMob);
-        argument = one_argument( argument, arg );
-        
-        if ( !is_number( arg ) )  break;
-        pierce = atoi( arg );
-        argument = one_argument( argument, arg );
-        
-        if ( arg[0] != '\0' )
-        {
-            if ( !is_number( arg ) )  break;
-            bash = atoi( arg );
-            argument = one_argument( argument, arg );
-        }
-        else
-            bash = pMob->ac[AC_BASH];
-        
-        if ( arg[0] != '\0' )
-        {
-            if ( !is_number( arg ) )  break;
-            slash = atoi( arg );
-            argument = one_argument( argument, arg );
-        }
-        else
-            slash = pMob->ac[AC_SLASH];
-        
-        if ( arg[0] != '\0' )
-        {
-            if ( !is_number( arg ) )  break;
-            exotic = atoi( arg );
-        }
-        else
-            exotic = pMob->ac[AC_EXOTIC];
-        
-        pMob->ac[AC_PIERCE] = pierce;
-        pMob->ac[AC_BASH]   = bash;
-        pMob->ac[AC_SLASH]  = slash;
-        pMob->ac[AC_EXOTIC] = exotic;
-        
-        send_to_char( "Ac set.\n\r", ch );
-        return TRUE;
-    } while ( FALSE );    /* Just do it once.. */
-    
-    send_to_char( "Syntax:  ac [ac-pierce [ac-bash [ac-slash [ac-exotic]]]]\n\r"
-        "help MOB_AC  gives a list of reasonable ac-values.\n\r", ch );
-    return FALSE;
-}
-
 MEDIT( medit_form )
 {
     MOB_INDEX_DATA *pMob;
@@ -5639,6 +5528,7 @@ MEDIT( medit_vuln )
     return FALSE;
 }
 
+/*
 MEDIT( medit_material )
 {
     MOB_INDEX_DATA *pMob;
@@ -5657,6 +5547,7 @@ MEDIT( medit_material )
     send_to_char( "Material set.\n\r", ch);
     return TRUE;
 }
+*/
 
 MEDIT( medit_off )
 {
@@ -5701,154 +5592,6 @@ MEDIT( medit_size )
         "Type '? size' for a list of sizes.\n\r", ch );
     return FALSE;
 }
-
-MEDIT( medit_hitdice )
-{
-    static char syntax[] = "Syntax:  hitdice <number> d <type> + <bonus>\n\r";
-    char *num, *type, *bonus, *cp;
-    MOB_INDEX_DATA *pMob;
-    
-    EDIT_MOB( ch, pMob );
-    
-    if ( argument[0] == '\0' )
-    {
-        send_to_char( syntax, ch );
-        return FALSE;
-    }
-    
-    num = cp = argument;
-    
-    while ( isdigit( *cp ) ) ++cp;
-    while ( *cp != '\0' && !isdigit( *cp ) )  *(cp++) = '\0';
-    
-    type = cp;
-    
-    while ( isdigit( *cp ) ) ++cp;
-    while ( *cp != '\0' && !isdigit( *cp ) ) *(cp++) = '\0';
-    
-    bonus = cp;
-    
-    while ( isdigit( *cp ) ) ++cp;
-    if ( *cp != '\0' ) *cp = '\0';
-    
-    if ( ( !is_number( num   ) || atoi( num   ) < 1 )
-        ||   ( !is_number( type  ) || atoi( type  ) < 1 ) 
-        ||   ( !is_number( bonus ) || atoi( bonus ) < 0 ) )
-    {
-        send_to_char( syntax, ch );
-        return FALSE;
-    }
-    
-    pMob->hit[DICE_NUMBER] = atoi( num   );
-    pMob->hit[DICE_TYPE]   = atoi( type  );
-    pMob->hit[DICE_BONUS]  = atoi( bonus );
-    
-    send_to_char( "Hitdice set.\n\r", ch );
-    return TRUE;
-}
-
-MEDIT( medit_manadice )
-{
-    static char syntax[] = "Syntax:  manadice <number> d <type> + <bonus>\n\r";
-    char *num, *type, *bonus, *cp;
-    MOB_INDEX_DATA *pMob;
-    
-    EDIT_MOB( ch, pMob );
-    
-    if ( argument[0] == '\0' )
-    {
-        send_to_char( syntax, ch );
-        return FALSE;
-    }
-    
-    num = cp = argument;
-    
-    while ( isdigit( *cp ) ) ++cp;
-    while ( *cp != '\0' && !isdigit( *cp ) )  *(cp++) = '\0';
-    
-    type = cp;
-    
-    while ( isdigit( *cp ) ) ++cp;
-    while ( *cp != '\0' && !isdigit( *cp ) ) *(cp++) = '\0';
-    
-    bonus = cp;
-    
-    while ( isdigit( *cp ) ) ++cp;
-    if ( *cp != '\0' ) *cp = '\0';
-    
-    if ( !( is_number( num ) && is_number( type ) && is_number( bonus ) ) )
-    {
-        send_to_char( syntax, ch );
-        return FALSE;
-    }
-    
-    if ( ( !is_number( num   ) || atoi( num   ) < 1 )
-        ||   ( !is_number( type  ) || atoi( type  ) < 1 ) 
-        ||   ( !is_number( bonus ) || atoi( bonus ) < 0 ) )
-    {
-        send_to_char( syntax, ch );
-        return FALSE;
-    }
-    
-    pMob->mana[DICE_NUMBER] = atoi( num   );
-    pMob->mana[DICE_TYPE]   = atoi( type  );
-    pMob->mana[DICE_BONUS]  = atoi( bonus );
-    
-    send_to_char( "Manadice set.\n\r", ch );
-    return TRUE;
-}
-
-MEDIT( medit_damdice )
-{
-    static char syntax[] = "Syntax:  damdice <number> d <type> + <bonus>\n\r";
-    char *num, *type, *bonus, *cp;
-    MOB_INDEX_DATA *pMob;
-    
-    EDIT_MOB( ch, pMob );
-    
-    if ( argument[0] == '\0' )
-    {
-        send_to_char( syntax, ch );
-        return FALSE;
-    }
-    
-    num = cp = argument;
-    
-    while ( isdigit( *cp ) ) ++cp;
-    while ( *cp != '\0' && !isdigit( *cp ) )  *(cp++) = '\0';
-    
-    type = cp;
-    
-    while ( isdigit( *cp ) ) ++cp;
-    while ( *cp != '\0' && !isdigit( *cp ) ) *(cp++) = '\0';
-    
-    bonus = cp;
-    
-    while ( isdigit( *cp ) ) ++cp;
-    if ( *cp != '\0' ) *cp = '\0';
-    
-    if ( !( is_number( num ) && is_number( type ) && is_number( bonus ) ) )
-    {
-        send_to_char( syntax, ch );
-        return FALSE;
-    }
-    
-    if ( ( !is_number( num   ) || atoi( num   ) < 1 )
-        ||   ( !is_number( type  ) || atoi( type  ) < 1 ) 
-        ||   ( !is_number( bonus ) || atoi( bonus ) < 0 ) )
-    {
-        send_to_char( syntax, ch );
-        return FALSE;
-    }
-    
-    pMob->damage[DICE_NUMBER] = atoi( num   );
-    pMob->damage[DICE_TYPE]   = atoi( type  );
-    pMob->damage[DICE_BONUS]  = atoi( bonus );
-    
-    send_to_char( "Damdice set.\n\r", ch );
-    return TRUE;
-}
-
 
 MEDIT( medit_race )
 {
@@ -5946,42 +5689,6 @@ MEDIT( medit_position )
     return FALSE;
 }
 
-
-MEDIT( medit_gold )
-{
-    MOB_INDEX_DATA *pMob;
-    
-    EDIT_MOB(ch, pMob);
-    
-    if ( argument[0] == '\0' || !is_number( argument ) )
-    {
-        send_to_char( "Syntax:  wealth [number]\n\r", ch );
-        return FALSE;
-    }
-    
-    pMob->wealth = atoi( argument );
-    
-    send_to_char( "Wealth set.\n\r", ch);
-    return TRUE;
-}
-
-MEDIT( medit_hitroll )
-{
-    MOB_INDEX_DATA *pMob;
-    
-    EDIT_MOB(ch, pMob);
-    
-    if ( argument[0] == '\0' || !is_number( argument ) )
-    {
-        send_to_char( "Syntax:  hitroll [number]\n\r", ch );
-        return FALSE;
-    }
-    
-    pMob->hitroll = atoi( argument );
-    
-    send_to_char( "Hitroll set.\n\r", ch);
-    return TRUE;
-}
 
 /* sets the stance for a mob 
  */
@@ -6476,5 +6183,105 @@ HEDIT( hedit_delete)
     pHelp->delete = FALSE;
     send_to_char("Help is no longer marked for deletion.\n\r",ch);
     return TRUE;
+}
+
+/* percentage values */
+
+#define CMD(cmd) (strcmp(command, cmd)==0)
+bool medit_percent ( CHAR_DATA *ch, char *argument, char* command)
+{
+    MOB_INDEX_DATA *pMob;
+    char arg[MAX_INPUT_LENGTH];
+    int percent;
+    
+    if ( argument[0] == '\0' )
+    {
+        printf_to_char( ch, "Syntax:  %s [percentage]\n\r", command );
+        return FALSE;
+    }
+       
+    EDIT_MOB(ch, pMob);
+    argument = one_argument( argument, arg );
+        
+    if ( !is_number( arg ) )
+    {
+        send_to_char( "Percentage must be a number\n\r", ch );
+        return FALSE;        
+    }
+    
+    percent = atoi( arg );
+    
+    if ( percent < 0 || percent > 1000 )
+    {
+        send_to_char( "Percentage must be a number between 0 and 1000.\n\r", ch );
+        return FALSE;        
+    }
+    
+    if CMD("hitpoints")
+        pMob->hitpoint_percent = percent;
+    else if CMD("mana")
+        pMob->mana_percent = percent;
+    else if CMD("move")
+        pMob->move_percent = percent;
+    else if CMD("hitroll")
+        pMob->hitroll_percent = percent;
+    else if CMD("damage")
+        pMob->damage_percent = percent;
+    else if CMD("armor")
+        pMob->ac_percent = percent;
+    else if CMD("saves")
+        pMob->saves_percent = percent;
+    else if CMD("wealth")
+        pMob->wealth_percent = percent;
+    else
+    {
+        printf_to_char( ch, "BUG: invalid command '%s'.\n\r", command );
+        return FALSE;
+    }
+    
+    printf_to_char( ch, "Set %s.\n\r", command );
+    return TRUE;    
+    
+}
+#undef CMD
+
+MEDIT( medit_hitpoints )
+{
+    return medit_percent( ch, argument, "hitpoints" );
+}
+
+MEDIT( medit_mana )
+{
+    return medit_percent( ch, argument, "mana" );
+}
+
+MEDIT( medit_move )
+{
+    return medit_percent( ch, argument, "move" );
+}
+
+MEDIT( medit_hitroll )
+{
+    return medit_percent( ch, argument, "hitroll" );
+}
+
+MEDIT( medit_damage )
+{
+    return medit_percent( ch, argument, "damage" );
+}
+
+MEDIT( medit_armor )
+{
+    return medit_percent( ch, argument, "armor" );
+}
+
+MEDIT( medit_saves )
+{
+    return medit_percent( ch, argument, "saves" );
+}
+
+MEDIT( medit_wealth )
+{
+    return medit_percent( ch, argument, "wealth" );
 }
 
