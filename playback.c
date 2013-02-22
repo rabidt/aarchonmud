@@ -117,12 +117,12 @@ void log_pers( PERS_HISTORY *history, char *text )
 }
 
 
-void log_chan(CHAR_DATA * ch, char * text , char channel)
+void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
 {
     char buf[MSL];
 
     /* write all the info for the new entry */
-	COMM_ENTRY *entry=comm_entry_new();
+    COMM_ENTRY *entry=comm_entry_new();
 	
     entry->text = str_dup(text) ;
     entry->channel = channel;
@@ -153,19 +153,17 @@ void log_chan(CHAR_DATA * ch, char * text , char channel)
     All public channels using public_history, immtalk uses
     immtalk history, etc. */
     	
-	COMM_HISTORY * history;    
-    switch (channel)
-    {
-		case CHAN_IMMTALK:
-			history=&immtalk_history;
-			break;
-		case CHAN_SAVANT:
-			history=&savant_history;
-			break;
-		default:
-			history=&public_history;
-    }
+    COMM_HISTORY * history;    
+    
+    if (channel == sn_immtalk)
+	history=&immtalk_history;
+    else if ( channel == sn_savantalk )
+	history=&savant_history;
+    else
+	history=&public_history;
 	
+
+
 	/* add it to the history */
 	if ( history->head == NULL )
 	{
@@ -343,42 +341,42 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 	{
 		entry=history->head;
 		int i;
-		for ( i=1; i < entries; i++)
+		for ( i=0; i < entries && entry != NULL; )
 		{
 			entry=entry->next;
-			if ( entry == NULL ) /* shouldn't happen */
-				break;
+		
+			if IS_CHAN_OFF(ch, (entry->channel))
+			  continue;
+			else
+			  i++;
+
 		}
 	}
 	
     for ( ; entry != NULL ; entry=entry->prev )
     {
 			
-        if (entry->timestamp != NULL && entry->text != NULL && !((entry->channel == CHAN_BITCH && IS_SET(ch->comm,COMM_NOBITCH))))
+        if (! IS_CHAN_OFF(ch, (entry->channel)) )
         {
             if (IS_SET(ch->act, PLR_HOLYLIGHT) && entry->mimic_name != NULL)
-             sprintf(buf,"%s::%s(%s{x){%c%s%s",entry->timestamp,
-                                         entry->channel==CHAN_NEWBIE?"{n[Newbie] ":"",
+             sprintf(buf,"%s::(%s{x){%c%s%s",entry->timestamp,
                                          entry->name,
-                                         entry->channel,
+                                         public_channel_table[entry->channel].prime_color,
                                          entry->mimic_name,
                                          entry->text);
             else if (entry->invis==TRUE && !IS_SET(ch->act, PLR_HOLYLIGHT))
-             sprintf(buf, "%s::%s{%c%s%s", entry->timestamp,
-                                         entry->channel==CHAN_NEWBIE?"{n[Newbie] ":"",
+             sprintf(buf, "%s::{%c%s%s", entry->timestamp,
                                          entry->channel,
                                          "someone",
                                          entry->text);
             else if (entry->mimic_name != NULL)
-             sprintf(buf,"%s::%s{%c%s%s", entry->timestamp,
-                                        entry->channel==CHAN_NEWBIE?"{n[Newbie] ":"",
-                                        entry->channel,
+             sprintf(buf,"%s::{%c%s%s", entry->timestamp,
+                                        public_channel_table[entry->channel].prime_color,
                                         entry->mimic_name,
                                         entry->text);
             else
-             sprintf(buf,"%s::%s{%c%s%s", entry->timestamp,
-                                        entry->channel==CHAN_NEWBIE?"{n[Newbie] ":"",
-                                        entry->channel,
+             sprintf(buf,"%s::{%c%s%s", entry->timestamp,
+                                        public_channel_table[entry->channel].prime_color,
                                         entry->name,
                                         entry->text);
             add_buf(output,buf);
