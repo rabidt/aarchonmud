@@ -427,6 +427,12 @@ void try_remove_pkill( CHAR_DATA *ch)
 	return;
     }
 
+    if ( current_time < ch->pcdata->pkill_expire )
+    {
+	print_pkill_expire( ch );
+	return;
+    }
+
     REMOVE_BIT( ch->act, PLR_PERM_PKILL );
     REMOVE_BIT( ch->act, PLR_HARDCORE );
     
