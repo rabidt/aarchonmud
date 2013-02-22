@@ -124,6 +124,23 @@ void do_delete( CHAR_DATA *ch, char *argument)
 }
 
 
+print_pub_chan( sh_int sn, CHAR_DATA *ch)
+{
+    CHANNEL *chan=&(public_channel_table[sn]);
+    char buf[MSL];
+    sprintf(buf, "{%c%s{%c",
+		chan->prime_color,
+		chan->name,
+		chan->second_color);
+    while (strlen_color(buf) < 15)
+	strcat(buf, " ");
+
+    strcat(buf, IS_SET( ch->comm, chan->offbit) ? "OFF" : "ON");
+    strcat(buf, "\n\r");
+
+    send_to_char(buf, ch);
+}
+
 /* RT code to display channel status */
 
 void do_channels( CHAR_DATA *ch, char *argument)
@@ -150,54 +167,16 @@ void do_channels( CHAR_DATA *ch, char *argument)
         else
             send_to_char("{2OFF{x\n\r",ch);
         
-        send_to_char("{pGossip{x         ",ch);
-        if (!IS_SET(ch->comm,COMM_NOGOSSIP))
-            send_to_char("{PON{x\n\r",ch);
-        else
-            send_to_char("{POFF{x\n\r",ch);
-        
-        send_to_char("{aAuction{x        ",ch);
-        if (!IS_SET(ch->comm,COMM_NOAUCTION))
-            send_to_char("{AON{x\n\r",ch);
-        else
-            send_to_char("{AOFF{x\n\r",ch);
-        
-        send_to_char("{eMusic{x          ",ch);
-        if (!IS_SET(ch->comm,COMM_NOMUSIC))
-            send_to_char("{EON{x\n\r",ch);
-        else
-            send_to_char("{EOFF{x\n\r",ch);
-        
-        send_to_char("{qQ{x/{jA{x            ",ch);
-        if (!IS_SET(ch->comm,COMM_NOQUESTION))
-            send_to_char("{QO{JN{x\n\r",ch);
-        else
-            send_to_char("{QO{JFF{x\n\r",ch);
-        
-        send_to_char("{hQuote{x          ",ch);
-        if (!IS_SET(ch->comm,COMM_NOQUOTE))
-            send_to_char("{HON{x\n\r",ch);
-        else
-            send_to_char("{HOFF{x\n\r",ch);
-        
-        send_to_char("{zGratz{x          ",ch);
-        if (!IS_SET(ch->comm,COMM_NOGRATZ))
-            send_to_char("{ZON{x\n\r",ch);
-        else
-            send_to_char("{ZOFF{x\n\r",ch);
-        
-        send_to_char("{kGame{x           ",ch);
-        if (!IS_SET(ch->comm,COMM_NOGAME))
-            send_to_char("{KON{x\n\r",ch);
-        else
-            send_to_char("{KOFF{x\n\r",ch);
-        
-        send_to_char("{fBitching{x       ",ch);
-        if (!IS_SET(ch->comm,COMM_NOBITCH))
-            send_to_char("{FON{x\n\r",ch);
-        else
-            send_to_char("{FOFF{x\n\r",ch);
-
+	print_pub_chan(sn_gossip, ch);
+        print_pub_chan(sn_auction, ch);
+	print_pub_chan(sn_music, ch);
+	print_pub_chan(sn_question, ch);
+	print_pub_chan(sn_quote, ch);
+	print_pub_chan(sn_gratz, ch);
+	print_pub_chan(sn_gametalk, ch);
+	print_pub_chan(sn_bitch, ch);
+	print_pub_chan(sn_newbie, ch);
+ 
         if( ch->clan > 0 )
 	{
           send_to_char("{lClan{x           ",ch);
@@ -216,12 +195,6 @@ void do_channels( CHAR_DATA *ch, char *argument)
             send_to_char("{0OFF{x\n\r",ch);
 	}
 
-        send_to_char("{nNewbie{x         ", ch);
-        if (!IS_SET(ch->comm,COMM_NONEWBIE))
-            send_to_char("{NON{x\n\r", ch );
-        else
-            send_to_char("{NOFF{x\n\r", ch );
-        
         send_to_char("{5War{x            ",ch);
         if (!IS_SET(ch->comm,COMM_NOWAR))
             send_to_char("{6ON{x\n\r", ch);
@@ -230,20 +203,12 @@ void do_channels( CHAR_DATA *ch, char *argument)
         
         if (is_granted_name(ch,"immtalk") || is_granted_name(ch,":"))
         {
-            send_to_char("{iImmtalk{x        ",ch);
-            if(!IS_SET(ch->comm,COMM_NOWIZ))
-                send_to_char("{ION{x\n\r",ch);
-            else
-                send_to_char("{IOFF{x\n\r",ch);
+	    print_pub_chan(sn_immtalk, ch);
         }
         
         if (is_granted_name(ch,"savantalk"))
         {
-            send_to_char("{7Savantalk{x      ",ch);
-            if(!IS_SET(ch->comm,COMM_NOSAVANT))
-                send_to_char("{8ON{x\n\r",ch);
-            else
-                send_to_char("{8OFF{x\n\r",ch);
+	    print_pub_chan(sn_savantalk, ch);
         }
         
 	if (IS_SET(ch->penalty,PENALTY_NOSHOUT))
