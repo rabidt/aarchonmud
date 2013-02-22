@@ -465,6 +465,9 @@ int main( int argc, char **argv )
 	cecho2file( "log file", 1, stderr );
 #endif
 	
+	/* Log some info about the binary if present */
+	log_string(bin_info_string());
+	
 	/*
 	* Reserve one channel for our use.
 	*/
@@ -3719,3 +3722,35 @@ void install_other_handlers ()
     signal (SIGINT, nasty_signal_handler);
 }
 
+char *bin_info_string()
+{
+	static char buf[MSL];
+	strcpy( buf, "\n\r" );
+
+        #ifdef MKTIME
+	strcat(buf, "Make time: ");
+	strcat(buf, MKTIME);
+	strcat(buf, "\n\r");
+        #endif
+        #ifdef BRANCH
+	strcat(buf, "Branch: ");
+        strcat(buf, BRANCH);
+        strcat(buf, "\n\r");
+        #endif
+        #ifdef PARENT
+	strcat(buf, "Parent: ");
+        strcat(buf, PARENT);
+        strcat(buf, "\n\r");
+        #endif
+	strcat(buf, "Game modes defined:\n\r");
+        #ifdef TESTER
+        strcat(buf, "TESTER defined\n\r");
+        #endif
+        #ifdef REMORT
+        strcat(buf, "REMORT defined\n\r");
+        #endif
+        #ifdef BUILDER
+        strcat(buf,"BUILDER defined\n\r");
+        #endif
+	return buf;
+}

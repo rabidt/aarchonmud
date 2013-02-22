@@ -266,6 +266,7 @@ DECLARE_DO_FUN( do_noaccept );
 DECLARE_DO_FUN( do_nocancel );
 DECLARE_DO_FUN( do_nochannel);
 DECLARE_DO_FUN( do_noemote  );
+DECLARE_DO_FUN( do_noexp    );
 DECLARE_DO_FUN( do_nofollow );
 DECLARE_DO_FUN( do_nolocate );
 DECLARE_DO_FUN( do_noloot   );
@@ -553,5 +554,7 @@ DECLARE_DO_FUN( do_rdoor        );
 DECLARE_DO_FUN( do_findlock     );
 DECLARE_DO_FUN( do_rforce       );
 
+DECLARE_DO_FUN( do_lboard);
+DECLARE_DO_FUN( do_lhistory);
 DECLARE_DO_FUN( do_dummy);
 DECLARE_DO_FUN( do_mode);

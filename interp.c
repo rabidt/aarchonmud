@@ -155,6 +155,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "report",     do_report,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "rules",      do_rules,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "score",      do_score,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "lboard",     do_lboard,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+	{ "lhistory",   do_lhistory,POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "scan",       do_scan,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "survey",     do_survey,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "skill",      do_skill,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -214,6 +216,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "unalias",    do_unalias, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "wimpy",      do_wimpy,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "triggersafe", do_trigger_safe, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "noexp",      do_noexp,       POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
     
    /*
     * Communication commands.
@@ -478,8 +481,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "authorize",  do_authorize, POS_DEAD, L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "avatar",	    do_avatar,  POS_DEAD,   L9,	 LOG_ALWAYS, 1, FALSE, FALSE  },
     { "printlist",  do_printlist,POS_DEAD,  ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-/* Used only for some pfile testing
-    { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },*/
+/* Used only for some pfile testing */
+    { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },
     /*  { "dump",       do_dump,    POS_DEAD,   ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     /*	{ "newdump",    do_new_dump, POS_DEAD,  ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     { "trust",      do_trust,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -527,7 +530,11 @@ const   struct  cmd_type    cmd_table   [] =
     { "pardon",     do_pardon,  POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "parole",     do_parole,  POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "purge",      do_purge,   POS_DEAD,   L9,  LOG_ALWAYS, 1, FALSE, FALSE  },
+#ifdef TESTER
+    { "restore",    do_restore, POS_DEAD,   0,  LOG_ALWAYS, 1, FALSE, FALSE  },
+#else
     { "restore",    do_restore, POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
+#endif
     { "sedit",      do_sedit,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "sla",        do_sla,     POS_DEAD,   L3,  LOG_NORMAL, 0, TRUE, FALSE },
     { "slay",       do_slay,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },

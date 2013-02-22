@@ -1,7 +1,11 @@
 CC      = gcc
 PROF	= -O
 NOCRYPT =
-C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT)
+MKTIME	:= \""$(shell date)"\"
+BRANCH	:= \""$(shell hg branch)"\"
+PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
+
+C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 L_FLAGS =  $(PROF)
 
 O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
@@ -13,13 +17,13 @@ O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
      smith.o social-edit.o song.o special.o stats.o string.o tables.o update.o \
      freeze.o warfare.o  grant.o wizlist.o marry.o forget.o clan.o \
      buildutil.o buffer_util.o simsave.o breath.o tflag.o grep.o vshift.o \
-     tattoo.o religion.o playback.o  
+     tattoo.o religion.o playback.o leaderboard.o mob_stats.o
 
-aeaea: 
-tester: C_FLAGS=-ggdb -w -Wall $(PROF) $(NOCRYPT) -DTESTER
-builder: C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT) -DBUILDER
-remort: C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT) -DREMORT 
-remort_tester: C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT) -DREMORT -DTESTER
+aeaea:  
+tester: C_FLAGS += -DTESTER
+builder: C_FLAGS += -DBUILDER
+remort: C_FLAGS += -DREMORT 
+remort_tester: C_FLAGS += -DREMORT -DTESTER
 
 aeaea tester builder remort remort_tester: $(O_FILES)
 	rm -f aeaea 
