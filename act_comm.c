@@ -429,7 +429,7 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
             SET_BIT(ch->comm, chan->offbit);
         }
     }
-    else  /* gossip message sent, turn gossip on if it isn't already */
+    else  /* channel message sent, turn channel on if it isn't already */
     {
         if (!IS_NPC(ch) && ch->level < 3 && ch->pcdata->remorts == 0 )
         {
@@ -450,9 +450,14 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
             
         }
         
-        REMOVE_BIT(ch->comm,COMM_NOGOSSIP);
+	/* If it's off, turn it on, and TELL them */
+	if (IS_SET( ch->comm, chan->offbit) )
+	{
+            REMOVE_BIT(ch->comm, chan->offbit);
+	    printf_to_char(ch, "{%c%s channel{x is now {%cON{x.\n\r", chan->prime_color, chan->name, chan->second_color);
+	}
 
-		smash_beep_n_blink( argument );
+	smash_beep_n_blink( argument );
         
         sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
         send_to_char( buf, ch );
@@ -460,7 +465,7 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
         argument = makedrunk(argument,ch);
 
         sprintf(buf,"{%c %s {%c'%s{%c'", chan->prime_color, chan->third_pers, chan->second_color, argument, chan->second_color);
-        log_chan(ch,buf, chan->prime_color);
+        log_chan(ch, buf, *(chan->psn));
 
 
         for ( d = descriptor_list; d != NULL; d = d->next )
@@ -471,10 +476,10 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
             
             if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
                 d->character != ch &&
-                !IS_SET(victim->comm,COMM_NOGOSSIP) &&
+                !IS_SET(victim->comm,chan->offbit) &&
                 !IS_SET(victim->comm,COMM_QUIET) &&
                 !NOT_AUTHED(victim) &&
-				(chan->check == NULL ? TRUE : (*(chan->check))(victim) ) ) /* special check for certain channels */
+		(chan->check == NULL ? TRUE : (*(chan->check))(victim) ) ) /* special check for certain channels */
             {
                 found = FALSE;
                 for (pos = 0; pos < MAX_FORGET; pos++)
@@ -508,85 +513,7 @@ void do_gossip( CHAR_DATA *ch, char *argument )
 
 void do_newbie( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    bool found;
-    sh_int pos;
-    
-    if (NOT_AUTHED(ch))
-    {
-        send_to_char("Huh?\n\r", ch);
-        return;
-    }
-    
-    if (argument[0] == '\0' )
-    {
-        if (IS_SET(ch->comm,COMM_NONEWBIE))
-        {
-            send_to_char("Thank you for turning {NON{x your {nNEWBIE channel{x!{x\n\r",ch);
-            REMOVE_BIT(ch->comm,COMM_NONEWBIE);
-        }
-        else
-        {
-            send_to_char("{nNewbie channel{x is now {NOFF{x. :(\n\r",ch);
-            SET_BIT(ch->comm,COMM_NONEWBIE);
-        }
-    }
-    else  /* message sent, turn channel on if it isn't already */
-    {
-        if (IS_SET(ch->comm,COMM_QUIET))
-        {
-            send_to_char("You must turn off quiet mode first.\n\r",ch);
-            return;
-        }
-        
-        if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
-        {
-            send_to_char("The gods have revoked your channel priviliges.\n\r",ch);
-            return;
-        }
-        
-        REMOVE_BIT(ch->comm,COMM_NONEWBIE);
-        
-	smash_beep_n_blink( argument );
-        
-        sprintf( buf, "{n[Newbie]: {N'%s{N'{x\n\r", argument );
-        send_to_char( buf, ch );
-
-        sprintf(buf,"{n: '%s'",argument);
-        log_chan(ch,buf,CHAN_NEWBIE);
-        
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            CHAR_DATA *victim;
-            
-            victim = d->original ? d->original : d->character;
-            
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
-                d->character != ch &&
-                !IS_SET(victim->comm,COMM_NONEWBIE) &&
-                !IS_SET(victim->comm,COMM_QUIET) &&
-                !NOT_AUTHED(victim) )
-            {
-                found = FALSE;
-                for (pos = 0; pos < MAX_FORGET; pos++)
-                {
-                    if (IS_NPC(victim))
-                        break;
-                    if (victim->pcdata->forget[pos] == NULL)
-                        break;
-                    if (!str_cmp(ch->name,victim->pcdata->forget[pos]))
-                        found = TRUE; 
-                }
-                if (!found)
-                {
-                    act_new_gag( "{n[Newbie] $n{n: {N'$t{N'{x",
-                        ch,argument, d->character, TO_VICT,POS_DEAD,
-			GAG_NCOL_CHAN, FALSE );
-                }
-            }
-        }
-    }
+	public_channel( &public_channel_table[sn_newbie], ch, argument );
 }
 
 
