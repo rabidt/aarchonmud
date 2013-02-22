@@ -2676,6 +2676,8 @@ struct  pc_data
     time_t prayed_at;
     PRAYER_DATA *prayer_request;
 
+    time_t pkill_expire; /* timestamp when you can turn it off */
+
 };
 
 /* Data for special quests */
