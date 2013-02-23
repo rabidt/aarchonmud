@@ -1627,8 +1627,7 @@ struct  kill_data
 /* toggle for old score and finger */
 #define TOGG_OLDSCORE       1
 #define TOGG_OLDFINGER      2
-
-
+#define TOGG_STATBARS       3
 
 /*
  * Well known object virtual numbers.
