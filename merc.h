@@ -3619,6 +3619,7 @@ struct achievement_entry
 #define URANGE(a, b, c)     ((b) < (a) ? (a) : ((b) > (c) ? (c) : (b)))
 #define LOWER(c)        ((c) >= 'A' && (c) <= 'Z' ? (c)+'a'-'A' : (c))
 #define UPPER(c)        ((c) >= 'a' && (c) <= 'z' ? (c)+'A'-'a' : (c))
+#define ABS(a)          ((a) >= 0 ? (a) : -(a))
 /*
 #define SET_BIT(var, bit)  ((bit) > 0 ? ((var) |= (bit)) : (*((&((var))) + 1) |= (bit))) 
 #define REMOVE_BIT(var, bit)  ((bit) > 0 ? ((var) &= ~(bit)) : (*((&((var))) + 1) &= ~(bit))) 
