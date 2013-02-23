@@ -1153,9 +1153,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
         ch->pcdata->history_stats[stat]     = 0;
     ch->pcdata->bounty          = 0;
     ch->pcdata->demerit_points  = 0;
-    ch->song_singing    = song_null;
-    ch->song_hearing = song_null;
-    ch->song_delay = 0;
     ch->slow_move = 0;
 
     ch->pcdata->bounty_sort         = NULL;

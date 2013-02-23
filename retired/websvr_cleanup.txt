@@ -1,0 +1,37 @@
+diff -r 73578f279f72 comm.c
+--- a/comm.c	Tue Feb 19 17:29:18 2013 -0700
++++ b/comm.c	Tue Feb 19 17:37:04 2013 -0700
+@@ -1092,7 +1092,6 @@
+ 		* Autonomous game motion.
+ 		*/
+ 		update_handler( );
+-                //handle_web(); /* Keeps the webserver updated */
+ 		
+ 		/*
+ 		 * Output.
+diff -r 73578f279f72 makefile
+--- a/makefile	Tue Feb 19 17:29:18 2013 -0700
++++ b/makefile	Tue Feb 19 17:37:04 2013 -0700
+@@ -9,7 +9,7 @@
+ L_FLAGS =  $(PROF)
+ 
+ O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
+-     websvr.o alchemy.o alias.o auth.o ban.o bit.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
++     alchemy.o alias.o auth.o ban.o bit.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
+      enchant.o effects.o fight.o fight2.o flags.o ftp.o handler.o healer.o hunt.o \
+      interp.o lookup.o magic.o magic2.o mem.o mob_cmds.o mob_prog.o \
+      nanny.o olc.o olc_act.o olc_mpcode.o olc_save.o passive.o penalty.o pipe.o quest.o \
+diff -r 73578f279f72 merc.h
+--- a/merc.h	Tue Feb 19 17:29:18 2013 -0700
++++ b/merc.h	Tue Feb 19 17:37:04 2013 -0700
+@@ -4544,10 +4544,3 @@
+ extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
+ 
+ 
+-
+-
+-
+-/* websvr.c */
+-void init_web(int port);
+-void handle_web(void);
+-void shutdown_web(void);
