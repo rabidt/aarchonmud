@@ -311,8 +311,9 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_SIDEKICK)))==NULL) 
         return;
     
-    mlevel = URANGE(1, level * 2/3, ch->level);
+    mlevel = URANGE(1, level / 2, ch->level);
     set_mob_level( mob, mlevel );
+    arm_npc( mob );
 
     sprintf(buf,"%s\n\rThis sidekick faithfully follows %s.\n\r\n\r",
         mob->description,ch->name);
@@ -911,7 +912,10 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     puppet_skill = get_skill( ch, gsn_puppetry );
     check_improve( ch, gsn_puppetry, TRUE, 1 );
     
-    mlevel = level * 3/4 + (cor->level - level) / 5;
+    if (cor->level <= level)
+        mlevel = (level + cor->level * 2) / 4;
+    else
+        mlevel = (level * 2 + cor->level) / 4;
     mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
     if ( number_percent() <= puppet_skill )
 	SET_BIT( mob->off_flags, OFF_RESCUE );
