@@ -54,7 +54,6 @@
 #include "merc.h"
 #include "db.h"
 #include "recycle.h"
-#include "music.h"
 #include "tables.h"
 #include "lookup.h"
 #include "olc.h"
@@ -436,6 +435,20 @@ sh_int race_naga;
 sh_int race_vampire;
 
 
+/* channel slot numbers */
+sh_int sn_gossip;
+sh_int sn_auction;
+sh_int sn_music;
+sh_int sn_question;
+sh_int sn_answer;
+sh_int sn_quote;
+sh_int sn_gratz;
+sh_int sn_gametalk;
+sh_int sn_bitch;
+sh_int sn_immtalk;
+sh_int sn_savantalk;
+sh_int sn_newbie;
+
 /*
 * Locals.
 */
@@ -605,7 +618,6 @@ void boot_db()
     }
     
     bounty_table = NULL;
-    calc_song_sns();
 
     format_init_flags();
 
@@ -642,11 +654,20 @@ void boot_db()
             }
     }
 
+    log_string( "Initializing channels." );
+    channel_init();
+
     log_string( "Loading clans" );
     load_clans();
 
     log_string( "Loading religions" );
     load_religions();
+
+    log_string( "Loading leaderboards" );
+    load_lboards();
+
+    log_string( "Loading leaderboard results" );
+    load_lboard_results();
 
     log_string( "Loading skills" );
     load_skills();
@@ -743,13 +764,27 @@ void boot_db()
         load_wizlist();
         log_string("Loading bans");
         load_bans();
-        log_string("Loading songs");
-        load_songs();
         log_string("Loading portals");
         load_portal_list();
     }
     
     return;
+}
+
+
+void channel_init()
+{
+        int sn=0;
+
+        for ( sn ; ; sn++ )
+        {
+            if ( public_channel_table[sn].psn == NULL )
+		break;
+            *public_channel_table[sn].psn = sn;
+        }
+
+
+
 }
 
 /* format all flags correctly --Bobble */
@@ -1746,7 +1781,6 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          pRoomIndex->people      = NULL;
          pRoomIndex->contents    = NULL;
          pRoomIndex->extra_descr = NULL;
-         pRoomIndex->singer      = NULL;
          pRoomIndex->area        = area_last;
          pRoomIndex->vnum        = vnum;
          pRoomIndex->name        = fread_string( fp );
@@ -2865,9 +2899,6 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mob->level          = UMAX( 1, pMobIndex->level );
 
     mob->dam_type       = pMobIndex->dam_type;
-    mob->song_hearing = song_null;
-    mob->song_delay = 0;
-    mob->song_singing = song_null;
     if (mob->dam_type == 0)
         switch(number_range(1,3))
     {

@@ -496,9 +496,6 @@ bool spec_cast_adept( CHAR_DATA *ch )
 	if ( !IS_AWAKE(ch) )
 	return FALSE;
 
-	if ( ch->song_hearing == gsn_white_noise )
-	return FALSE;
-
 	for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
 	{
 	v_next = victim->next_in_room;
@@ -564,9 +561,6 @@ bool spec_cast_cleric( CHAR_DATA *ch )
 	int sn;
 
 	if ( ch->position != POS_FIGHTING )
-	return FALSE;
-
-	if ( ch->song_hearing == gsn_white_noise )
 	return FALSE;
 
 	for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
@@ -647,9 +641,6 @@ bool spec_cast_mage( CHAR_DATA *ch )
 	int sn;
 
 	if ( ch->position != POS_FIGHTING )
-	return FALSE;
-
-	if ( ch->song_hearing == gsn_white_noise )
 	return FALSE;
 
 	for ( victim = ch->in_room->people; victim != NULL; victim = v_next )

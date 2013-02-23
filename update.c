@@ -35,13 +35,13 @@
 #include <math.h>
 #include <time.h>
 #include "merc.h"
-#include "music.h"
 #include "recycle.h"
 #include "tables.h"
 #include "lookup.h"
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
+#include "leaderboard.h"
 #include "mob_stats.h"
 
 /* command procedures needed */
@@ -152,6 +152,9 @@ void gain_exp( CHAR_DATA *ch, int gain)
    
    if ( IS_NPC(ch) || IS_HERO(ch) )
 	  return;
+
+   if ( IS_SET(ch->act,PLR_NOEXP))
+       return;
    
    field = UMAX((ch_wis_field(ch)*gain)/100,0);
    gain-=field;
@@ -186,6 +189,7 @@ void gain_exp( CHAR_DATA *ch, int gain)
    {
 	  send_to_char( "You raise a level!!  ", ch );
 	  ch->level += 1;
+	  update_lboard( LBOARD_LEVEL, ch, ch->level, 1);
 	  
 	  sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
 	  log_string(buf);
@@ -283,9 +287,6 @@ int adjust_gain( CHAR_DATA *ch, int gain )
 
     /* encumberance can half healing speed */
     gain -= gain * get_encumberance( ch ) / 200;
-
-    if ( ch->song_hearing == gsn_lust_life )
-	gain += gain/2;
 
     if ( IS_AFFECTED(ch, AFF_POISON) )
         gain /= 2;
@@ -2413,14 +2414,6 @@ void update_handler( void )
        reset_herbs_world();
    }
    
-   /* Removed 4/6/98 due to inf. loop.  Rim
-   if ( --pulse_music    <= 0 )
-   {
-	  pulse_music = PULSE_MUSIC;
-	  song_update();
-   }
-   */
-   
    if ( update_all )
    {
        if ( --pulse_mobile <= 0 )
@@ -2464,9 +2457,13 @@ void update_handler( void )
 	  update_relic_bonus();
    }
 
+
    /* update some things once per hour */
    if ( current_time % HOUR == 0 )
    {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
        if ( hour_update )
        {
 	   /* update herb_resets every 6 hours */
