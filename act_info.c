@@ -5269,6 +5269,7 @@ void do_attributes( CHAR_DATA *ch, char *argument )
 /* Show Str..Luc bonuses as a bar graph -- Bobble 02/2013 */
 void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
 {
+    const int MAX_COST = 8;
     char bar_buf[256], buf[MAX_STRING_LENGTH];
     int bar_next;
     int si, bonus, cost, partial, i;
@@ -5282,7 +5283,7 @@ void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
         // generate string for bar graph
         bar_next = 0;
         color_switched = FALSE;
-        for (cost = 1; cost <= 9; cost++)
+        for (cost = 1; cost <= MAX_COST; cost++)
         {
             for (i = 0; i < 5; i++)
             {
@@ -5297,15 +5298,17 @@ void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
                 }
                 bar_buf[bar_next++] = '0' + partial;
             }
-            if (cost < 9)
+            if (cost < MAX_COST)
                 bar_buf[bar_next++] = ' ';
         }
         // terminate string
         bar_buf[bar_next++] = 0;
         // now send it to output
-        sprintf( buf, "{D|{x {b%s:{x %3d(%3d)  [{g%s{x]    {D|{x\n\r"
+        sprintf( buf, "{D|{x {b%s: {x%3d %s %3d => %3d  [{g%s{x]  {D|{x\n\r"
             , stat_table[si].abbreviation
             , ch->perm_stat[stat->stat]
+            , ch->mod_stat[stat->stat] < 0 ? "-" : "+"
+            , ABS(ch->mod_stat[stat->stat])
             , get_curr_stat(ch,stat->stat)
             , bar_buf
         );
