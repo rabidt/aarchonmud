@@ -4496,8 +4496,11 @@ void do_sire( CHAR_DATA *ch, char *argument )
     
     WAIT_STATE( ch, PULSE_VIOLENCE );
     
-    mlevel = ch->level + (corpse->level - ch->level) / 5;
-    set_mob_level( mob, URANGE(1, mlevel, ch->level + 20 ) );
+    if (corpse->level <= ch->level)
+        mlevel = (ch->level + corpse->level * 3) / 4;
+    else
+        mlevel = (ch->level * 3 + corpse->level) / 4;
+    set_mob_level( mob, URANGE(1, mlevel, ch->level + 25) );
     char_to_room( mob, ch->in_room );
 
     /* wear eq from corpse */
