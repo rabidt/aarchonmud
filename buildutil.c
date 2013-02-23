@@ -494,12 +494,6 @@ void do_rstat( CHAR_DATA *ch, char *argument )
 	}
 	send_to_char( ".\n\r", ch);
 
-	if (location->singer!=NULL)
-	{
-		sprintf(buf, "Singer: %s\n\r", location->singer->name);
-		send_to_char(buf,ch);
-	}
-
 	send_to_char( "Objects:   ", ch );
 	for ( obj = location->contents; obj; obj = obj->next_content )
 	{
@@ -891,9 +885,8 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 	send_to_char( buf, ch );
 
 	sprintf( buf, 
-	"Vnum: %d  Format: %s  Race: %s  Group: %d  Sex: %s  Room: %d\n\r",
+	"Vnum: %d  Race: %s  Group: %d  Sex: %s  Room: %d\n\r",
 	IS_NPC(victim) ? victim->pIndexData->vnum : 0,
-	IS_NPC(victim) ? victim->pIndexData->new_format ? "new" : "old" : "pc",
 	race_table[victim->race].name,
 	IS_NPC(victim) ? victim->group : 0, sex_table[victim->sex].name,
 	victim->in_room == NULL    ?        0 : victim->in_room->vnum
@@ -1013,7 +1006,7 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 	victim->wimpy );
 	send_to_char( buf, ch );
 
-	if (IS_NPC(victim) && victim->pIndexData->new_format)
+	if (IS_NPC(victim))
 	{
 	sprintf(buf, "Damage: %dd%d  Message:  %s\n\r",
 		victim->damage[DICE_NUMBER],victim->damage[DICE_TYPE],
@@ -1141,14 +1134,6 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 
 	}
 	
-	sprintf( buf, "Singing: %s   Hearing: %s   Song Delay: %d\n\r",
-		(victim->song_singing > song_null) ?
-			skill_table[victim->song_singing].msg_off : "Null",
-		(victim->song_hearing > song_null) ?
-			skill_table[victim->song_hearing].msg_off : "Null",
-		victim->song_delay);
-	send_to_char(buf,ch);
-
 	for ( paf = victim->affected; paf != NULL; paf = paf->next )
 	{
 	sprintf( buf,
