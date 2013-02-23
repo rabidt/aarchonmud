@@ -42,6 +42,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
+#include <execinfo.h>
 
 #if defined(macintosh) || defined(WIN32)
 #include <sys/types.h>
@@ -4891,6 +4892,46 @@ void bug( const char *str, int param )
 }
 
 
+void log_trace()
+{
+    const int MAX_TRACE = 32;
+    void* buffer[MAX_TRACE];
+    int trace_size = backtrace (buffer, MAX_TRACE);
+    char **trace_msg = backtrace_symbols (buffer, trace_size);
+    char *addr_start, *addr_end;
+    char address_buf[MAX_STRING_LENGTH];
+    char cmd[MAX_STRING_LENGTH];
+    int i, addr_length;
+    
+    if (trace_msg != NULL)
+    {
+        // we start at 1 to skip call of log_trace        
+        for (i = 1; i < trace_size; i++)
+        {
+            // trace_msg[i] contains the address in hexadecimal in the form "..aeaea() [0x12345678]"
+            // we need to feed that into addr2line to get readable information
+            if (strstr(trace_msg[i], "aeaea") != NULL)
+            {                
+                //log_string(trace_msg[i]);
+                addr_start = strstr(trace_msg[i], "[0x");
+                if (addr_start == NULL)
+                    continue;
+                addr_start = strstr(trace_msg[i], "[0x");
+                addr_end = strstr(addr_start, "]");
+                if (addr_end == NULL)
+                    continue;
+                addr_length = addr_end - addr_start - 1;
+                strcpy(address_buf, addr_start + 1);
+                address_buf[addr_length] = 0;
+                sprintf(cmd, "addr2line -pf -e ../src/aeaea %s | sed -e 's/ at .*\\// at /'", address_buf);
+                system(cmd);
+            }
+            else
+                break;
+        }
+        free(trace_msg);
+    }
+}
 
 /*
 * Writes a string to the log.
