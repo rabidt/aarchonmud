@@ -4156,6 +4156,7 @@ char *  capitalize  args( ( const char *str ) );
 void    append_file args( ( CHAR_DATA *ch, char *file, char *str ) );
 void    bug     args( ( const char *str, int param ) );
 void    log_string  args( ( const char *str ) );
+void    log_trace();
 void    tail_chain  args( ( void ) );
 char *	bin_info_string();
 

@@ -1737,6 +1737,7 @@ void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf )
 	      paf->where,
 	      paf->type > 0 ? skill_table[paf->type].name : "?",
 	      ch->name );
+        log_trace();
 	break;
     }    
 }
