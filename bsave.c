@@ -26,7 +26,7 @@
 ***************************************************************************/
 
 /* 
-   changed to buffered save by Henning Koehler <koehlerh@in.tum.de> 
+   changed to buffered save by Henning Koehler (aka Bobble)
 */
 
 #if defined(macintosh)
@@ -893,13 +893,9 @@ void bwrite_pet( CHAR_DATA *pet, DBUFFER *buf)
         bprintf(buf, "Save %d\n", pet->saving_throw);
     if (pet->alignment != pet->pIndexData->alignment)
         bprintf(buf, "Alig %d\n", pet->alignment);
-    if (pet->hitroll != pet->pIndexData->hitroll)
-        bprintf(buf, "Hit  %d\n", pet->hitroll);
-    if ( pet->damage[DICE_NUMBER] != pet->pIndexData->damage[DICE_NUMBER]
-	 || pet->damage[DICE_TYPE] != pet->pIndexData->damage[DICE_TYPE] )
-	bprintf( buf, "DamDice %d %d\n", pet->damage[DICE_NUMBER], pet->damage[DICE_TYPE] );
-    if (pet->damroll != pet->pIndexData->damage[DICE_BONUS])
-        bprintf(buf, "Dam  %d\n", pet->damroll);
+    bprintf( buf, "Hit  %d\n", pet->hitroll );
+    bprintf( buf, "DamDice %d %d\n", pet->damage[DICE_NUMBER], pet->damage[DICE_TYPE] );
+    bprintf(buf, "Dam  %d\n", pet->damroll);
     bprintf(buf, "ACs  %d %d %d %d\n",
         pet->armor[0],pet->armor[1],pet->armor[2],pet->armor[3]);
     bprintf( buf, "Attr %d %d %d %d %d %d %d %d %d %d\n",
@@ -1157,9 +1153,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
         ch->pcdata->history_stats[stat]     = 0;
     ch->pcdata->bounty          = 0;
     ch->pcdata->demerit_points  = 0;
-    ch->song_singing    = song_null;
-    ch->song_hearing = song_null;
-    ch->song_delay = 0;
     ch->slow_move = 0;
 
     ch->pcdata->bounty_sort         = NULL;

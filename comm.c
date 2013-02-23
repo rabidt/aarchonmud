@@ -748,14 +748,6 @@ void game_loop_mac_msdos( void )
 			if (d->character != NULL && d->character->slow_move > 0)
 				--d->character->slow_move;
 			
-			if ((d->character != NULL) && (d->character->song_singing != song_null))
-			{
-				if (d->character->song_delay >0)
-					--d->character->song_delay;
-				else
-					update_song(d->character);
-			}
-			
 			if ( d->character != NULL && d->character->wait > 0 )
 			{
 				--d->character->wait;
@@ -1019,14 +1011,6 @@ void game_loop_unix( int control )
 			if (d->character != NULL && d->character->slow_move > 0)
 				--d->character->slow_move;
 			
-			if ((d->character != NULL) && (d->character->song_singing != song_null))
-			{
-				if (d->character->song_delay >0)
-					--d->character->song_delay;
-				else
-					update_song(d->character);
-			}
-			
 			if ( d->character != NULL && d->character->wait > 0 )
 			{
 				--d->character->wait;
@@ -1092,7 +1076,6 @@ void game_loop_unix( int control )
 		* Autonomous game motion.
 		*/
 		update_handler( );
-                //handle_web(); /* Keeps the webserver updated */
 		
 		/*
 		 * Output.
