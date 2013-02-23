@@ -1424,6 +1424,7 @@ const struct flag_type togg_flags[] =
 {
   { "oldscore",		TOGG_OLDSCORE,	TRUE },
   { "oldfinger",	TOGG_OLDFINGER,	TRUE },
+  { "statbars",         TOGG_STATBARS,  TRUE },
   { NULL,		0,		0    }
 };
 
