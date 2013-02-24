@@ -344,6 +344,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
         REMOVE_BIT(ch->act, PLR_QUESTOR);
         REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         ch->pcdata->quest_failed++;
+		update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
         ch->pcdata->questgiver = NULL;
         ch->pcdata->countdown = 0;
         ch->pcdata->questmob = 0;
@@ -971,7 +972,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                 do_say(questman,buf);
                 ch->pcdata->quest_success++;
-
+				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
  /* Hard quests have 1/5 instead of 1/6 chance of giving practices as 
     part of the reward. They also give an average of 3 more practices
     and the maximum is raised to 20 from 17. . -- Astark Feb 2012 */
@@ -994,7 +995,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 		ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                 ch->silver += reward;
                 ch->pcdata->questpoints += pointreward;
-
+				update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
  /* Hard quests also give 50 - 135xp instead of 10 - 155 -- Astark Feb 2012 */
 
                 gain_exp(ch, number_range(50,ch_luc_quest(ch)+100));
@@ -1030,6 +1031,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                     sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                     do_say(questman,buf);
                     ch->pcdata->quest_success++;
+					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                     if (chance(20))
                     {
                         pracreward = number_range(4,(ch_luc_quest(ch)/2)+3);
@@ -1049,6 +1051,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 		    ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                     ch->silver += reward;
                     ch->pcdata->questpoints += pointreward;
+					update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
                     gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
                     extract_obj(obj);
                     return;
@@ -1088,6 +1091,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                 do_say(questman,buf);
                 ch->pcdata->quest_success++;
+				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                 if (chance(15))
                 {
                     pracreward = number_range(1,ch_luc_quest(ch)/2);
@@ -1111,6 +1115,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 		ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                 ch->silver += reward;
                 ch->pcdata->questpoints += pointreward;
+				update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
                 gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
                 
                 return;
@@ -1144,6 +1149,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                     sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                     do_say(questman,buf);
                     ch->pcdata->quest_success++;
+					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                     if (chance(15))
                     {
                         pracreward = number_range(1,ch_luc_quest(ch)/2);
@@ -1167,6 +1173,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 		    ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                     ch->silver += reward;
                     ch->pcdata->questpoints += pointreward;
+					update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
                     gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
                     extract_obj(obj);
                     return;
@@ -1694,6 +1701,7 @@ void quest_update(void)
                     REMOVE_BIT(ch->act, PLR_QUESTOR);
                     REMOVE_BIT(ch->act, PLR_QUESTORHARD);
                     ch->pcdata->quest_failed++;
+					update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
                     ch->pcdata->questgiver = NULL;
                     ch->pcdata->countdown = 0;
                     ch->pcdata->questmob = 0;

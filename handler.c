@@ -340,16 +340,6 @@ bool is_same_clan(CHAR_DATA *ch, CHAR_DATA *victim)
 }
 
 
-/* checks mob format */
-bool is_old_mob(CHAR_DATA *ch)
-{
-    if (ch->pIndexData == NULL)
-        return FALSE;
-    else if (ch->pIndexData->new_format)
-        return FALSE;
-    return TRUE;
-}
-
 /* for returning weapon information of the primary weapon */
 int get_weapon_sn(CHAR_DATA *ch)
 {
@@ -1443,12 +1433,6 @@ void char_from_room( CHAR_DATA *ch )
         return;
     }
     
-    if (ch->in_room->singer != NULL)
-    {
-        song_from_char(ch);
-        stop_singing(ch);
-    }
-    
     if ( !IS_NPC(ch) )
     {
         if( --ch->in_room->area->nplayer < 0 )
@@ -1559,7 +1543,6 @@ void char_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
     if ( IS_SET(ch->form, FORM_BRIGHT) )
 	++ch->in_room->light;
     
-    song_to_char(ch);
     
     if (IS_AFFECTED(ch,AFF_PLAGUE))
     {
@@ -3607,15 +3590,6 @@ char* act_bits_name( tflag flag )
 	return flag_bits_name( plr_flags, flag );	
 }
 
-char *togg_bit_name (int togg_flags)
-{
-  static char buf[512];
-  buf[0] = '\0';
-  if (togg_flags & TOGG_OLDSCORE	) strcat (buf, "oldscore");
-    return ( buf[0] != '\0' ) ? buf+1 : "none";
-  if (togg_flags & TOGG_OLDFINGER       ) strcat (buf, "oldfinger");
-    return ( buf[0] != '\0' ) ? buf+1 : "none";
-}
 char* comm_bit_name( int flag )
 {
     return flag_bit_name( comm_flags, flag );

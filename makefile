@@ -5,19 +5,19 @@ MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
-C_FLAGS =  -ggdb -w -Wall $(PROF) $(NOCRYPT) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+C_FLAGS =  -ggdb -rdynamic -w -Wall $(PROF) $(NOCRYPT) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 L_FLAGS =  $(PROF)
 
 O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
-     websvr.o alchemy.o alias.o auth.o ban.o bit.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
+     alchemy.o alias.o auth.o ban.o bit.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
      enchant.o effects.o fight.o fight2.o flags.o ftp.o handler.o healer.o hunt.o \
-     interp.o lookup.o magic.o magic2.o mem.o mob_cmds.o mob_prog.o music.o \
+     interp.o lookup.o magic.o magic2.o mem.o mob_cmds.o mob_prog.o \
      nanny.o olc.o olc_act.o olc_mpcode.o olc_save.o passive.o penalty.o pipe.o quest.o \
      ranger.o recycle.o redit-ilab.o remort.o bsave.o scan.o skills.o\
-     smith.o social-edit.o song.o special.o stats.o string.o tables.o update.o \
+     smith.o social-edit.o special.o stats.o string.o tables.o update.o \
      freeze.o warfare.o  grant.o wizlist.o marry.o forget.o clan.o \
      buildutil.o buffer_util.o simsave.o breath.o tflag.o grep.o vshift.o \
-     tattoo.o religion.o playback.o  
+     tattoo.o religion.o playback.o leaderboard.o mob_stats.o
 
 aeaea:  
 tester: C_FLAGS += -DTESTER
