@@ -140,8 +140,6 @@ extern  int malloc_debug    args( ( int  ) );
 extern  int malloc_verify   args( ( void ) );
 #endif
 
-extern int REAL_NUM_STRINGS;
-
 
 /*
 * Signal handling.
