@@ -137,3 +137,25 @@ int mob_base_damage( MOB_INDEX_DATA *pMobIndex, int level )
     int damage = level_base_damage( level ) * pMobIndex->damage_percent / 100;
     return damage;
 }
+
+// number of attacks (in percent)
+
+int level_base_attacks( int level )
+{
+    return 100 + level * 5/3;
+}
+
+// note: this should match the calculation in mob_hit (fight.c)
+int mob_base_attacks( MOB_INDEX_DATA *pMobIndex, int level )
+{
+    int attacks = level_base_attacks( level );
+    if ( IS_SET(pMobIndex->off_flags, OFF_FAST) )
+        attacks = attacks * 3/2;
+    if ( IS_SET(pMobIndex->affect_field, AFF_GUARD) )
+        attacks -= 50;
+    if ( IS_SET(pMobIndex->affect_field, AFF_HASTE) )
+        attacks += 100;    
+    if ( IS_SET(pMobIndex->affect_field, AFF_SLOW) )
+        attacks -= UMAX(0, attacks - 100) / 2;
+    return attacks;
+}
