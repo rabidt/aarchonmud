@@ -7,3 +7,5 @@ int mob_base_ac( MOB_INDEX_DATA *pMobIndex, int level );
 int mob_base_saves( MOB_INDEX_DATA *pMobIndex, int level );
 long level_base_wealth( int level );
 long mob_base_wealth( MOB_INDEX_DATA *pMobIndex );
+int level_base_attacks( int level );
+int mob_base_attacks( MOB_INDEX_DATA *pMobIndex, int level );
