@@ -2807,6 +2807,9 @@ void change_align (CHAR_DATA *ch, int change_by)
    }
 
    check_religion_align( ch );
+   check_clan_align( ch );
+   check_equipment_align( ch );
+   return;
 }
 
 void drop_align( CHAR_DATA *ch )
@@ -2818,7 +2821,53 @@ void drop_align( CHAR_DATA *ch )
        ch->alignment -= 1;
 
    check_religion_align( ch );
+   check_clan_align( ch );
+   check_equipment_align( ch );
+   return;
 }
 
+void check_clan_align( CHAR_DATA *gch )
+{
+    if (!IS_NPC(gch) && !IS_IMMORTAL(gch) &&
+        (  gch->alignment < clan_table[gch->clan].min_align 
+        || gch->alignment > clan_table[gch->clan].max_align))
+    {
+        send_to_char("Your alignment has made you unwelcome in your clan!\n\r", gch);
+        sprintf(log_buf, "%s has become too %s for clan %s!",
+            gch->name, 
+            gch->alignment < clan_table[gch->clan].min_align ? "{rEvil{x" : "{wGood{x", 
+            capitalize(clan_table[gch->clan].name));
+        
+        info_message(gch, log_buf, TRUE);
 
+        gch->clan = 0;
+        gch->pcdata->clan_rank = 0;
 
+        check_clan_eq(gch);
+    }
+    return;
+}
+
+void check_equipment_align( CHAR_DATA *gch )
+{
+    OBJ_DATA *obj;
+    OBJ_DATA *obj_next;
+    
+    for ( obj = gch->carrying; obj != NULL; obj = obj_next )
+    {
+        obj_next = obj->next_content;
+        if ( obj->wear_loc == WEAR_NONE )
+            continue;
+        
+        if ( ( IS_OBJ_STAT(obj, ITEM_ANTI_EVIL)    && IS_EVIL(gch)    )
+            ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_GOOD)    && IS_GOOD(gch)    )
+            ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_NEUTRAL) && IS_NEUTRAL(gch) ) )
+        {
+            act( "You are zapped by $p.", gch, obj, NULL, TO_CHAR );
+            act( "$n is zapped by $p.",   gch, obj, NULL, TO_ROOM );
+            obj_from_char( obj );
+            obj_to_char( obj, gch );
+        }        
+    }
+    return;
+}
