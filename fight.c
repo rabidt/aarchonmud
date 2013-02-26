@@ -5011,7 +5011,9 @@ int level_power( CHAR_DATA *ch )
 	return ch->level;
     else
     {
-	pow = ch->level * (50 + ch->pcdata->remorts) / 50;
+	pow = ch->level;
+        // remort adjustment
+        pow += ch->pcdata->remorts * (ch->level + 30) / 60;
 	if ( ch->level > 90 )
 	    pow += (ch->level - 90);
 	return pow;
@@ -5068,21 +5070,21 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     // mobs with unusual hitroll/ac/saves
     mob_value = victim->pIndexData->hitroll_percent;
     if (mob_value < 100)
-        base_exp += base_exp * (mob_value - 100) / 3;
+        base_exp += base_exp * (mob_value - 100) / 300;
     else
-        base_exp += base_exp * UMIN(100, mob_value - 100) / 5;
+        base_exp += base_exp * UMIN(100, mob_value - 100) / 500;
     
     mob_value = victim->pIndexData->ac_percent;
     if (mob_value < 100)
-        base_exp += base_exp * (mob_value - 100) / 3;
+        base_exp += base_exp * (mob_value - 100) / 300;
     else
-        base_exp += base_exp * UMIN(100, mob_value - 100) / 5;
+        base_exp += base_exp * UMIN(100, mob_value - 100) / 500;
     
     mob_value = victim->pIndexData->saves_percent;
     if (mob_value < 100)
-        base_exp += base_exp * (mob_value - 100) / 10;
+        base_exp += base_exp * (mob_value - 100) / 1000;
     else
-        base_exp += base_exp * UMIN(100, mob_value - 100) / 20;
+        base_exp += base_exp * UMIN(100, mob_value - 100) / 2000;
 
     // adjustments for non-level dependent things
     
@@ -5114,10 +5116,11 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 2 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0,3*victim->size - 5) : 0;
     base_exp += base_exp * off_bonus / 100;
-    
+
     if (victim->pIndexData->spec_fun != NULL)
     {
         char* spec = spec_name(victim->pIndexData->spec_fun);
@@ -5163,6 +5166,10 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         }
         base_exp += base_exp * stance_bonus / 60;
     }
+
+    // reduce extreme amounts of base xp
+    if (base_exp > 300)
+        base_exp = (300 + base_exp) / 2; 
     
     return (int)base_exp;
 }
@@ -5189,7 +5196,7 @@ float calculate_exp_factor( CHAR_DATA *gch )
     }
     // bonus for newbies
     if ( gch->pcdata->remorts == 0 )
-        xp_factor += (100 - gch->level) / 100.0;
+        xp_factor += (100 - gch->level) / 200.0;
 
     // additive bonuses
     
