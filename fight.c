@@ -4894,16 +4894,20 @@ void death_penalty( CHAR_DATA *ch )
     }
 }
 
+float calculate_exp_factor( CHAR_DATA *gch );
+int calculate_base_exp( int power, CHAR_DATA *victim );
+float get_vulnerability( CHAR_DATA *victim );
+void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor );
+
 void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     MEM_DATA *m;
-    CHAR_DATA *gch;
-    int xp;
+    CHAR_DATA *gch, *leader;
     int members;
-    int min_xp;
+    int power, max_power, base_exp, min_base_exp, xp;
     int high_level, low_level;
     int high_align, low_align;
-    int leadership;
+    float group_factor, leadership, ch_factor;
     int total_dam, group_dam;
     char buf[MSL];
 
@@ -4921,7 +4925,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     low_level = 100;
     high_align = -1000;
     low_align = 1000;
-    min_xp = 1000;
+    max_power = 1;
 
     total_dam=0;
     group_dam=0;
@@ -4932,61 +4936,57 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        if ( is_same_group( gch, ch ) )
-        {
-            members++;
+        if ( IS_NPC(gch) || !is_same_group( gch, ch ) )
+            continue;
 
-            if (!IS_NPC(gch))
-	    {
-		xp = xp_compute(gch, victim, 0);
-		min_xp = UMIN(xp, min_xp);
+        members++;
 
-		high_align = UMAX(high_align, gch->alignment);
-		low_align = UMIN(low_align, gch->alignment);
-		high_level = UMAX(high_level, gch->level);
-		low_level = UMIN(low_level, gch->level);
-		for (m=victim->aggressors; m; m=m->next)
-		    if (gch->id == m->id)
-		    {
-			group_dam += m->reaction;
-			/* m->reaction = 0; */
-		    }
-	    }
-        }
+        power = level_power( gch );
+        max_power = UMAX(max_power, power);
+
+        high_align = UMAX(high_align, gch->alignment);
+        low_align = UMIN(low_align, gch->alignment);
+        high_level = UMAX(high_level, gch->level);
+        low_level = UMIN(low_level, gch->level);
+        for (m=victim->aggressors; m; m=m->next)
+            if (gch->id == m->id)
+            {
+                group_dam += m->reaction;
+            }
     }
-
-    /* reduce high/low align and level range by charisma */
-    {
-	CHAR_DATA *leader = ch->leader ? ch->leader : ch;
-        leadership = (get_curr_stat(leader,STAT_CHA) + get_skill(leader, gsn_leadership)) / 3;
-    }
-    
+        
+    // NPC killing NPC without being in group. Happens e.g. when charm wears off.
     if ( members == 0 )
-    {
-        bug( "Group_gain: members.", members );
-        members = 1;
-    }
+        return;        
+
+    min_base_exp = calculate_base_exp( max_power, victim );
+
+    // group penalty for large group, high/low align and level range
+    leader = ch->leader ? ch->leader : ch;
+    leadership = (get_curr_stat(leader,STAT_CHA) + get_skill(leader, gsn_leadership)) / 300.0;
+    group_factor = 1 - (high_align - low_align) / 4000.0 * (1 - leadership);
+    group_factor *= 1 - (high_level - low_level) / 200.0 * (1 - leadership);
+    group_factor *= 1.0/3 + 2.0/(2+members);
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
 	int dam_done;
         
-        if ( !is_same_group(gch, ch) || IS_NPC(gch))
+        if ( IS_NPC(gch) || !is_same_group(gch, ch) )
             continue;
         
-	dam_done = get_reaction( victim, gch );
-        xp = xp_compute( gch, victim, 100 * dam_done/total_dam );
-	/* partly exp from own, partly from group */ 
-	xp = (min_xp * group_dam + (xp - min_xp) * dam_done)/total_dam;
-	xp = number_range( xp * 9/10, xp * 11/10 );
+        base_exp = calculate_base_exp( level_power(gch), victim );
+        dam_done = get_reaction( victim, gch );
+        ch_factor = calculate_exp_factor( gch );
         
-        if (members>1)
-        {
-            xp -= xp * (high_align - low_align) / 4000 * (100 - leadership) / 100;
-            xp -= xp * (high_level - low_level) / 200 * (100 - leadership) / 100;
-            // penalty for large groups
-            xp = xp/3 + xp * 2/(2+members);
-        }
+        // alignment change
+        if ( dam_done > 0 && !IS_SET(victim->act,ACT_NOALIGN) && victim->pIndexData->vnum != gch->pcdata->questmob )
+            adjust_alignment( gch, victim, base_exp, ((float) dam_done)/total_dam );
+        
+        // partly exp from own, partly from group
+        xp = (min_base_exp * group_dam + (base_exp - min_base_exp) * dam_done) / total_dam;
+        xp = number_range( xp * 9/10, xp * 11/10 );
+        xp *= group_factor * ch_factor;
 
 /* Removed since we are allowing certain people to play from same IP
  *	-Vodur 12/11/2011 
@@ -5018,26 +5018,18 @@ int level_power( CHAR_DATA *ch )
     }
 }
 
-/*
- * Compute xp for a kill.
- * Also adjust alignment of killer ( by gain_align percentage )
- * Edit this function to change xp computations.
- */
-int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
+// compute baseline xp for character of given level_power killing victim
+int calculate_base_exp( int power, CHAR_DATA *victim )
 {
-    const int PRECISION_FACTOR = 10;
-    long xp, base_exp;
-    int power, base_value, mob_value;
-    int stance, stance_bonus, off_bonus, vuln, bonus;
+    float base_exp, vuln;
+    int base_value, mob_value, stance, stance_bonus, off_bonus;
 
     /* safety net */
-    if ( IS_NPC(gch) || !IS_NPC(victim) || IS_SET(victim->act, ACT_NOEXP) )
-	return 0;
+    if ( !IS_NPC(victim) || IS_SET(victim->act, ACT_NOEXP) )
+        return 0;
 
-    power = level_power(gch);
-    
     // general base bonus/penalty
-    base_exp = (100 + victim->level - power) * PRECISION_FACTOR;
+    base_exp = 100 + (victim->level - power);
     
     // reduce xp further for virtually risk-free fights
     if (victim->level < power)
@@ -5073,11 +5065,30 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
     else
         base_exp += base_exp * (mob_value - base_value) / base_value * 1/2;    
 
+    // mobs with unusual hitroll/ac/saves
+    mob_value = victim->pIndexData->hitroll_percent;
+    if (mob_value < 100)
+        base_exp += base_exp * (mob_value - 100) / 3;
+    else
+        base_exp += base_exp * UMIN(100, mob_value - 100) / 5;
+    
+    mob_value = victim->pIndexData->ac_percent;
+    if (mob_value < 100)
+        base_exp += base_exp * (mob_value - 100) / 3;
+    else
+        base_exp += base_exp * UMIN(100, mob_value - 100) / 5;
+    
+    mob_value = victim->pIndexData->saves_percent;
+    if (mob_value < 100)
+        base_exp += base_exp * (mob_value - 100) / 10;
+    else
+        base_exp += base_exp * UMIN(100, mob_value - 100) / 20;
+
     // adjustments for non-level dependent things
     
-    /* shoot down super-levelling mobs */
+    /* reduce xp for mobs with lots of vulnerabilities */
     vuln = get_vulnerability( victim );
-    base_exp -= base_exp * vuln * (200 - vuln) / 40000;
+    base_exp -= base_exp * vuln * (2 - vuln) / 4;
 
     /* reward for tough mobs */
     if ( IS_SET(victim->res_flags, RES_WEAPON) || IS_SET(victim->imm_flags, IMM_WEAPON) )
@@ -5152,25 +5163,35 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
         }
         base_exp += base_exp * stance_bonus / 60;
     }
-   
-    // alignment change
-    if ( gain_align > 0 && !IS_SET(victim->act,ACT_NOALIGN) && victim->pIndexData->vnum != gch->pcdata->questmob )
-        adjust_alignment( gch, victim, base_exp/PRECISION_FACTOR, gain_align );
     
-    xp = base_exp;
+    return (int)base_exp;
+}
+
+/*
+ * Compute xp for a kill.
+ * Also adjust alignment of killer ( by gain_align percentage )
+ * Edit this function to change xp computations.
+ */
+float calculate_exp_factor( CHAR_DATA *gch )
+{
+    float xp_factor = 1;
+    int bonus = 0;
+
+    /* safety net */
+    if ( IS_NPC(gch) )
+	return 0;
 
     // penalty for high-level chars - levels above 90 provide bonus-dice, so harder to achieve
     if ( gch->level >= 90 )
     {
         int hitdice_gained = gch->level - 88;
-        xp = xp * 5 / (4 + hitdice_gained);
+        xp_factor *= 5.0 / (4 + hitdice_gained);
     }
     // bonus for newbies
     if ( gch->pcdata->remorts == 0 )
-        bonus = (100 - gch->level) / 2;
+        xp_factor += (100 - gch->level) / 100.0;
 
-    // addative bonuses
-    bonus = 0;
+    // additive bonuses
     
     /* normal pkillers get 10% exp bonus, hardcore pkillers 20% */
     if ( IS_SET(gch->act, PLR_PERM_PKILL) )
@@ -5193,13 +5214,13 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
     if ( IS_AFFECTED(gch, AFF_HALLOW) )
         bonus += 20;
 
-    xp += xp * bonus / 100;
+    xp_factor *=  1 + bonus / 100.0;
 
-    return xp / PRECISION_FACTOR;
+    return xp_factor;
 }
 
-// returns "degree of of vulnerability" (0-100) - for xp calculation
-int get_vulnerability( CHAR_DATA *victim )
+// returns "degree of of vulnerability" (0-1) - for xp calculation
+float get_vulnerability( CHAR_DATA *victim )
 {
     int vuln = 0;
     if (IS_SET(victim->vuln_flags, VULN_WEAPON))
@@ -5245,10 +5266,10 @@ int get_vulnerability( CHAR_DATA *victim )
             vuln += 1;
     }
     
-    return vuln * 2;
+    return vuln / 50.0;
 }
 
-void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, int gain_align )
+void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor )
 {
     int galign = gch->alignment;
     int valign = victim->alignment;
@@ -5268,7 +5289,7 @@ void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, int gain_
     // scaling
     change = change / 50;
         
-    change_align(gch, change * gain_align/100);
+    change_align(gch, change * gain_factor);
     return;
 }        
 
