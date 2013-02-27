@@ -61,6 +61,7 @@ void load_clans( )
         clan_table[i].mobkills        = 0;
         clan_table[i].name            = str_dup( "" );
         clan_table[i].patron          = str_dup( "" );
+	clan_table[i].motd	      = str_dup( "default motd" );
         clan_table[i].pdeaths         = 0;
         clan_table[i].pkills          = 0;
         clan_table[i].rank_count      = 0;
@@ -255,6 +256,7 @@ void fread_clan( FILE *fp, int clannum )
             KEY( "MinAlign",    clan->min_align, fread_number ( fp ) );
             KEY( "MobDeaths",   clan->mobdeaths, fread_number ( fp ) );
             KEY( "MobKills",    clan->mobkills,  fread_number ( fp ) );
+	    KEY( "Motd",	clan->motd,	 fread_string ( fp ) );
             break;
             
         case 'N':
@@ -341,7 +343,11 @@ void fread_clan_rank( FILE *fp, int clannum, int ranknum )
             KEY( "Name",       rank->name,             fread_string( fp ) );
             KEY( "Note",       rank->can_note,         fread_number( fp ) );
             break;
-            
+
+	case 'S':
+	    KEY( "SetMotd",    rank->can_set_motd,     fread_number( fp ) );
+	    break;
+
         case 'W':
             KEY( "WhoName",    rank->who_name,         fread_string( fp ) );
             break;
@@ -913,10 +919,10 @@ void do_clanreport( CHAR_DATA *ch, char *argument )
         add_buf(buffer, buf);
         sprintf(buf, "{+Join Warfare clan wars{x: %3s\n\r", clan_table[clan].rank_list[j].can_warfare ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+         Invite others{x: %7s\n\r", clan_table[clan].rank_list[j].can_invite ? "{gYes{x" : "{rNo{x");
+        sprintf(buf, "{+         Invite others{x: %7s \t", clan_table[clan].rank_list[j].can_invite ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        
-        
+	sprintf(buf, "{+              Set MOTD{x: %3s\n\r", clan_table[clan].rank_list[j].can_set_motd ? "{gYes{x" : "{rNo{x");
+	add_buf(buffer, buf);
         sprintf(buf, "{+         Clanwar pkill{x: %7s \t", clan_table[clan].rank_list[j].clanwar_pkill ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
         sprintf(buf, "{+       Declare Clanwar{x: %3s\n\r", clan_table[clan].rank_list[j].can_declare_war ? "{gYes{x" : "{rNo{x");
@@ -1099,6 +1105,7 @@ MEMFILE* mem_save_clan_file( int clannum )
     bprintf(buf, "WhoName        %s~\n", clan->who_name);
     bprintf(buf, "WhoColor       %s~\n", clan->who_color);
     bprintf(buf, "Patron         %s~\n", clan->patron);
+    bprintf(buf, "Motd           %s~\n", clan->motd);
     bprintf(buf, "Recall         %d\n",  clan->hall);
     bprintf(buf, "Donation       %d\n",  clan->donation);
     bprintf(buf, "CreationDate   %ld\n", clan->creation_date);
@@ -1124,6 +1131,7 @@ MEMFILE* mem_save_clan_file( int clannum )
         bprintf(buf, "ClanwarPK      %d\n",  rank->clanwar_pkill);
         bprintf(buf, "Clantalk       %d\n",  rank->can_use_clantalk);
         bprintf(buf, "Invite         %d\n",  rank->can_invite);
+	bprintf(buf, "SetMotd        %d\n",  rank->can_set_motd);
         bprintf(buf, "Marry          %d\n",  rank->can_marry);
         bprintf(buf, "Note           %d\n",  rank->can_note);
         bprintf(buf, "Warfare        %d\n",  rank->can_warfare);
@@ -1280,7 +1288,7 @@ void do_cset( CHAR_DATA *ch, char *argument )
         send_to_char("    minlevel available (numeric)\n\r",ch);
         send_to_char("    maxpromote (rank)\n\r",ch);
         send_to_char("    clantalk notes marry warfare invite ('yes' or 'no')\n\r",ch);
-        send_to_char("    clanwar declare truce treaty ('yes' or 'no')\n\r",ch);
+        send_to_char("    clanwar declare truce treaty motd ('yes' or 'no')\n\r",ch);
         return;
     }
 
@@ -1375,6 +1383,8 @@ void do_cset( CHAR_DATA *ch, char *argument )
 		clan->rank_list[rank].can_warfare = value;
 	    else if ( !strcmp(arg1, "invite") )
 		clan->rank_list[rank].can_invite = value;
+	    else if ( !strcmp(arg1, "setmotd") )
+		clan->rank_list[rank].can_set_motd = value;
 	    else if ( !strcmp(arg1, "clanwar") )
 		clan->rank_list[rank].clanwar_pkill = value;
 	    else if ( !strcmp(arg1, "declare") )
@@ -1748,3 +1758,9 @@ void clan_dump_room(CHAR_DATA *ch, int clan)
         }
     }
 }
+
+void do_cmotd( CHAR_DATA *ch, char * argument )
+{
+    send_to_char(clan_table[ch->clan].motd,ch);
+}
+
