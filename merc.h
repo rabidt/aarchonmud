@@ -1627,8 +1627,7 @@ struct  kill_data
 /* toggle for old score and finger */
 #define TOGG_OLDSCORE       1
 #define TOGG_OLDFINGER      2
-
-
+#define TOGG_STATBARS       3
 
 /*
  * Well known object virtual numbers.
@@ -3547,6 +3546,7 @@ struct achievement_entry
 #define URANGE(a, b, c)     ((b) < (a) ? (a) : ((b) > (c) ? (c) : (b)))
 #define LOWER(c)        ((c) >= 'A' && (c) <= 'Z' ? (c)+'a'-'A' : (c))
 #define UPPER(c)        ((c) >= 'a' && (c) <= 'z' ? (c)+'A'-'a' : (c))
+#define ABS(a)          ((a) >= 0 ? (a) : -(a))
 /*
 #define SET_BIT(var, bit)  ((bit) > 0 ? ((var) |= (bit)) : (*((&((var))) + 1) |= (bit))) 
 #define REMOVE_BIT(var, bit)  ((bit) > 0 ? ((var) &= ~(bit)) : (*((&((var))) + 1) &= ~(bit))) 

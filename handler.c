@@ -3607,15 +3607,6 @@ char* act_bits_name( tflag flag )
 	return flag_bits_name( plr_flags, flag );	
 }
 
-char *togg_bit_name (int togg_flags)
-{
-  static char buf[512];
-  buf[0] = '\0';
-  if (togg_flags & TOGG_OLDSCORE	) strcat (buf, "oldscore");
-    return ( buf[0] != '\0' ) ? buf+1 : "none";
-  if (togg_flags & TOGG_OLDFINGER       ) strcat (buf, "oldfinger");
-    return ( buf[0] != '\0' ) ? buf+1 : "none";
-}
 char* comm_bit_name( int flag )
 {
     return flag_bit_name( comm_flags, flag );
