@@ -42,6 +42,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
+#include <execinfo.h>
 
 #if defined(macintosh) || defined(WIN32)
 #include <sys/types.h>
@@ -4947,7 +4948,70 @@ void bug( const char *str, int param )
     return;
 }
 
+// return first (minimal) substring of s delimited by c_start and c_end
+char* substr_delim(const char *s, char c_start, char c_end)
+{
+    static char ss_buf[MAX_STRING_LENGTH];
+    int ss_next = 0;
+    bool found = FALSE;
+    
+    while (*s != 0)
+    {
+        if (!found)
+            found = (*s == c_start);
+        else
+        {
+            if (*s == c_end)
+                break;
+            else
+                ss_buf[ss_next++] = *s; 
+        }
+        s++;
+    }
+    // terminate string
+    ss_buf[ss_next] = 0;
+    
+    return ss_buf;
+}
 
+// logs a backtrace
+void log_trace()
+{
+    const int MAX_TRACE = 32;
+    void* buffer[MAX_TRACE];
+    int trace_size = backtrace (buffer, MAX_TRACE);
+    char **trace_msg = backtrace_symbols (buffer, trace_size);
+    char address_buf[MAX_STRING_LENGTH], cmd[MAX_STRING_LENGTH];
+    int i, addr_length;
+    
+    if (trace_msg == NULL || trace_size < 2)
+        return;
+
+    // trace_msg[i] contains the address in hexadecimal in the form "..aeaea() [0x12345678]"
+    // first, we extract the address information
+    address_buf[0] = 0;
+    // we start at 1 to skip call of log_trace        
+    for (i = 1; i < trace_size; i++)
+    {            
+        if (strstr(trace_msg[i], "aeaea") != NULL)
+        {
+            if ( strlen(address_buf) != 0 )
+                strcat(address_buf, " ");
+            strcat(address_buf, substr_delim(trace_msg[i], '[', ']'));
+        }
+        else
+            break;
+    }    
+    free(trace_msg);
+    
+    // second, we feed the addresses into addr2line to get readable information
+    //sprintf(cmd, "addr2line -pfs -e ../src/aeaea %s", address_buf);
+    sprintf(cmd, "addr2line -fs -e ../src/aeaea %s", address_buf);
+    log_string(cmd);
+    system(cmd);
+
+    return;
+}
 
 /*
 * Writes a string to the log.
