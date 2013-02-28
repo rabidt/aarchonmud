@@ -4908,8 +4908,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     MEM_DATA *m;
     CHAR_DATA *gch, *leader;
     int members;
-    int power, max_power, base_exp, min_base_exp, xp;
-    int high_level, low_level;
+    int power, max_power, min_power, base_exp, min_base_exp, xp;
     int high_align, low_align;
     float group_factor, leadership, ch_factor;
     int total_dam, group_dam;
@@ -4925,11 +4924,10 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         return;
 
     members = 0;
-    high_level = 1;
-    low_level = 100;
     high_align = -1000;
     low_align = 1000;
     max_power = 1;
+    min_power = 130;
 
     total_dam=0;
     group_dam=0;
@@ -4947,11 +4945,11 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 
         power = level_power( gch );
         max_power = UMAX(max_power, power);
+        min_power = UMIN(min_power, power);
 
         high_align = UMAX(high_align, gch->alignment);
         low_align = UMIN(low_align, gch->alignment);
-        high_level = UMAX(high_level, gch->level);
-        low_level = UMIN(low_level, gch->level);
+
         for (m=victim->aggressors; m; m=m->next)
             if (gch->id == m->id)
             {
@@ -4969,7 +4967,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     leader = ch->leader ? ch->leader : ch;
     leadership = (get_curr_stat(leader,STAT_CHA) + get_skill(leader, gsn_leadership)) / 300.0;
     group_factor = 1 - (high_align - low_align) / 4000.0 * (1 - leadership);
-    group_factor *= 1 - (high_level - low_level) / 200.0 * (1 - leadership);
+    group_factor *= 1 - (max_power - min_power) / 200.0 * (1 - leadership);
     group_factor *= 1.0/3 + 2.0/(2+members);
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
