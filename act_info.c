@@ -5198,24 +5198,26 @@ void do_attributes( CHAR_DATA *ch, char *argument )
     add_buf( output, buf );
 
     /* ** Stats ** */
-    sprintf( buf,
-   "{D|{x {bStr:{x %3d(%3d)  {bCon:{x %3d(%3d)  {bVit:{x %3d(%3d)  {bAgi:{x %3d(%3d)  {bDex:{x %3d(%3d) {D|{x\n\r",
-         ch->perm_stat[STAT_STR], get_curr_stat(ch,STAT_STR),
-         ch->perm_stat[STAT_CON], get_curr_stat(ch,STAT_CON),
-         ch->perm_stat[STAT_VIT], get_curr_stat(ch,STAT_VIT),
-         ch->perm_stat[STAT_AGI], get_curr_stat(ch,STAT_AGI),
-         ch->perm_stat[STAT_DEX], get_curr_stat(ch,STAT_DEX)  );
-    add_buf( output, buf );
+    if (IS_SET(ch->togg, TOGG_STATBARS))
+        print_stat_bars( ch, output );
+    else
+    {
+        sprintf( buf, "{D|{x {bStr:{x %3d(%3d)  {bCon:{x %3d(%3d)  {bVit:{x %3d(%3d)  {bAgi:{x %3d(%3d)  {bDex:{x %3d(%3d) {D|{x\n\r",
+            ch->perm_stat[STAT_STR], get_curr_stat(ch,STAT_STR),
+            ch->perm_stat[STAT_CON], get_curr_stat(ch,STAT_CON),
+            ch->perm_stat[STAT_VIT], get_curr_stat(ch,STAT_VIT),
+            ch->perm_stat[STAT_AGI], get_curr_stat(ch,STAT_AGI),
+            ch->perm_stat[STAT_DEX], get_curr_stat(ch,STAT_DEX)  );
+        add_buf( output, buf );
 
-    sprintf( buf,
-   "{D|{x {bInt:{x %3d(%3d)  {bWis:{x %3d(%3d)  {bDis:{x %3d(%3d)  {bCha:{x %3d(%3d)  {bLuc:{x %3d(%3d) {D|{x\n\r",
-         ch->perm_stat[STAT_INT], get_curr_stat(ch,STAT_INT),
-         ch->perm_stat[STAT_WIS], get_curr_stat(ch,STAT_WIS),
-         ch->perm_stat[STAT_DIS], get_curr_stat(ch,STAT_DIS),
-         ch->perm_stat[STAT_CHA], get_curr_stat(ch,STAT_CHA),
-         ch->perm_stat[STAT_LUC], get_curr_stat(ch,STAT_LUC)  );
-    add_buf( output, buf );
-
+        sprintf( buf, "{D|{x {bInt:{x %3d(%3d)  {bWis:{x %3d(%3d)  {bDis:{x %3d(%3d)  {bCha:{x %3d(%3d)  {bLuc:{x %3d(%3d) {D|{x\n\r",
+            ch->perm_stat[STAT_INT], get_curr_stat(ch,STAT_INT),
+            ch->perm_stat[STAT_WIS], get_curr_stat(ch,STAT_WIS),
+            ch->perm_stat[STAT_DIS], get_curr_stat(ch,STAT_DIS),
+            ch->perm_stat[STAT_CHA], get_curr_stat(ch,STAT_CHA),
+            ch->perm_stat[STAT_LUC], get_curr_stat(ch,STAT_LUC)  );
+        add_buf( output, buf );
+    }
     /* ** Armor Class ** */
     if( IS_NPC(ch) || ch->level >= 25 )
     {
@@ -5267,8 +5269,58 @@ void do_attributes( CHAR_DATA *ch, char *argument )
     free_buf(output);
 
     return;
-
 }
+
+/* Show Str..Luc bonuses as a bar graph -- Bobble 02/2013 */
+void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
+{
+    const int MAX_COST = 8;
+    char bar_buf[256], buf[MAX_STRING_LENGTH];
+    int bar_next;
+    int si, bonus, cost, partial, i;
+    bool color_switched;
+    struct stat_type *stat;
+    
+    for (si = 0; si < MAX_STATS; si++)
+    {
+        stat = &stat_table[si];
+        bonus = ch->mod_stat[stat->stat];
+        // generate string for bar graph
+        bar_next = 0;
+        color_switched = FALSE;
+        for (cost = 1; cost <= MAX_COST; cost++)
+        {
+            for (i = 0; i < 5; i++)
+            {
+                partial = URANGE(0, bonus, cost);
+                bonus -= partial;
+                if (partial < cost && !color_switched)
+                {
+                    // red color
+                    bar_buf[bar_next++] = '{';
+                    bar_buf[bar_next++] = 'r';
+                    color_switched = TRUE;
+                }
+                bar_buf[bar_next++] = '0' + partial;
+            }
+            if (cost < MAX_COST)
+                bar_buf[bar_next++] = ' ';
+        }
+        // terminate string
+        bar_buf[bar_next++] = 0;
+        // now send it to output
+        sprintf( buf, "{D|{x {b%s: {x%3d %s %3d => %3d  [{g%s{x]  {D|{x\n\r"
+            , stat_table[si].abbreviation
+            , ch->perm_stat[stat->stat]
+            , ch->mod_stat[stat->stat] < 0 ? "-" : "+"
+            , ABS(ch->mod_stat[stat->stat])
+            , get_curr_stat(ch,stat->stat)
+            , bar_buf
+        );
+        add_buf( output, buf );        
+    }
+}
+
 void do_helper( CHAR_DATA *ch, char *argument )
 {
         CHAR_DATA *victim;
@@ -5702,57 +5754,39 @@ void do_count ( CHAR_DATA *ch, char *argument )
             ptc(ch,"You can see %d characters.\n\rSome characters may be invisible to you.\n\r\n\r", count );
 }
 
+
 void do_toggle( CHAR_DATA *ch, char *argument )
 {
   char arg[MIL];
-
-
-
   one_argument( argument, arg);
+  int ti, toggle;
+
   if (argument[0] == '\0')
   {
     send_to_char("\n\r{cToggleable Commands{x / {cCurrent Setting{x\n\r",ch);
     send_to_char("{c-------------------{x   {c----------------{x\n\r",ch);
-    send_to_char("      {wScore {x", ch);
-    if (!IS_SET(ch->togg,TOGG_OLDSCORE))
-      send_to_char("		{wNew Score{x\r\n",ch);
-      else
-      send_to_char("		{wOld Score{x\r\n",ch);
-    send_to_char("      {wFinger {x", ch);
-    if (!IS_SET(ch->togg,TOGG_OLDFINGER))
-      send_to_char("           {wNew Finger{x\r\n",ch);
-      else
-      send_to_char("           {wOld Finger{x\r\n",ch);
+    for (ti=0; togg_flags[ti].name != NULL; ti++)
+    {
+        printf_to_char(ch, "{w%18s    %s{x\n\r",
+            togg_flags[ti].name
+            , IS_SET(ch->togg,togg_flags[ti].bit) ? "ON" : "OFF"
+        );
+    }
+    return;
   }
 
-
-  if (!str_cmp(arg,"score"))
+  toggle = flag_lookup(argument, togg_flags);
+  if (toggle == NO_FLAG)
   {
-    if (IS_SET(ch->togg,TOGG_OLDSCORE))
-    {
-      send_to_char("\n\rNew Score Enabled.\r\n", ch);
-      REMOVE_BIT(ch->togg,TOGG_OLDSCORE);
-    }
-    else
-    {
-      send_to_char("\n\rOld Score Enabled.\r\n", ch);
-      SET_BIT(ch->togg,TOGG_OLDSCORE);
-    }
+      printf_to_char(ch, "Unknown toggle '%s'. Type toggle without arguments for available toggles.", argument);
+      return;
   }
+  
+  // all good, let's do it
+  TOGGLE_BIT(ch->togg, toggle);
+  printf_to_char(ch, "Toggled %s.\n\r", IS_SET(ch->togg,toggle) ? "ON" : "OFF");
 
-  if (!str_cmp(arg,"finger"))
-  {
-    if (IS_SET(ch->togg,TOGG_OLDFINGER))
-    {
-      send_to_char("\n\rNew Finger Enabled.\r\n", ch);
-      REMOVE_BIT(ch->togg,TOGG_OLDFINGER);
-    }
-    else
-    { 
-      send_to_char("\n\rOld Finger Enabled.\r\n", ch);
-      SET_BIT(ch->togg,TOGG_OLDFINGER);
-    }
-  }
+  return;
 }
 /* NEW worth function by Quirky: July 6, 1998 */
 void do_oldworth( CHAR_DATA *ch, char *argument )
