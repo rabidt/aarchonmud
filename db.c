@@ -2867,7 +2867,6 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
         flag_copy( mob->form, pMobIndex->form );
         flag_copy( mob->parts, pMobIndex->parts );
         mob->size       = pMobIndex->size;
-        mob->material       = str_dup(pMobIndex->material);
         
         /* computed on the spot */
         compute_mob_stats(mob);
@@ -2964,7 +2963,6 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
         flag_copy( mob->form, pMobIndex->form );
         flag_copy( mob->parts, pMobIndex->parts );
         mob->size       = SIZE_MEDIUM;
-        mob->material       = "";
         
         compute_mob_stats(mob); 
     }
@@ -3060,7 +3058,6 @@ void clone_mobile(CHAR_DATA *parent, CHAR_DATA *clone)
     flag_copy( clone->form, parent->form );
     flag_copy( clone->parts, parent->parts );
     clone->size     = parent->size;
-    clone->material = str_dup(parent->material);
     flag_copy( clone->off_flags, parent->off_flags );
     clone->dam_type = parent->dam_type;
     clone->start_pos    = parent->start_pos;
