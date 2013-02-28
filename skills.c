@@ -1403,16 +1403,17 @@ void group_remove(CHAR_DATA *ch, const char *name)
 
 int get_injury_penalty( CHAR_DATA *ch )
 {
-    int penalty = 500 * (ch->max_hit - ch->hit) / UMAX(1, ch->max_hit) - 2 * get_curr_stat(ch,STAT_DIS);
+    int penalty = 1000 * (ch->max_hit - ch->hit) / UMAX(1, ch->max_hit) - 5 * get_curr_stat(ch,STAT_DIS);
     // check if further reduction is needed at all (for efficiency)
     if ( penalty > 0 )
     {
-        penalty -= get_skill(ch, gsn_ashura);
         if (ch->stance == STANCE_KAMIKAZE || IS_AFFECTED(ch, AFF_BERSERK))
             penalty /= 2;
+        else
+            penalty -= penalty * get_skill(ch, gsn_ashura) / 200;
     }
     
-    return URANGE(0, penalty / 10, 50);
+    return URANGE(0, penalty / 20, 50);
 }
 
 int mob_has_skill(CHAR_DATA *ch, int sn)
