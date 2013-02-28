@@ -1245,6 +1245,7 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     }
 
     stance_hit(ch, victim, dt);
+    CHECK_RETURN(ch, victim);
     
     /* Area attack -- BALLS nasty! */
     
