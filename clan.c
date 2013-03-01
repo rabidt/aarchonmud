@@ -1775,6 +1775,7 @@ void do_cmotd( CHAR_DATA *ch, char * argument )
 	if ( !strcmp( clan_table[ch->clan].motd , "" ) )
 	    return;
 
+	send_to_char("\n",ch);
     	send_to_char("{D***********************************{yClan MOTD{D************************************{x\n\r",ch);
     	send_to_char(clan_table[ch->clan].motd,ch);
     	send_to_char("{x\n\r",ch);
@@ -1801,6 +1802,7 @@ void do_cmotd( CHAR_DATA *ch, char * argument )
 	    free_string( clan_table[ch->clan].motd );
 	    clan_table[ch->clan].motd = str_dup(argument);
 	    clan_table[ch->clan].changed = TRUE;
+	    printf_to_char(ch, "Clan MOTD set to: %s", argument);
 	    return;
 	}
     }
