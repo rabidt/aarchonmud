@@ -2924,7 +2924,6 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     flag_copy( mob->form, pMobIndex->form );
     flag_copy( mob->parts, pMobIndex->parts );
     mob->size           = pMobIndex->size;
-    mob->material       = str_dup("none");
 
     // money money money
     long wealth = mob_base_wealth( pMobIndex );
