@@ -385,20 +385,20 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
     {
         if (IS_SET(ch->comm,chan->offbit))
         {
-			printf_to_char(ch, "{%c%s channel{x is now {%cON{x.\n\r", chan->prime_color, chan->name, chan->second_color);
+		printf_to_char(ch, "{%c%s channel{x is now {%cON{x.\n\r", chan->prime_color, chan->name, chan->second_color);
             REMOVE_BIT(ch->comm,chan->offbit);
         }
         else
         {
-			printf_to_char(ch, "{%c%s channel{x is now {%cOFF{x.\n\r", chan->prime_color, chan->name, chan->second_color);
+		printf_to_char(ch, "{%c%s channel{x is now {%cOFF{x.\n\r", chan->prime_color, chan->name, chan->second_color);
             SET_BIT(ch->comm, chan->offbit);
         }
     }
     else  /* channel message sent, turn channel on if it isn't already */
     {
-        if (!IS_NPC(ch) && ch->level < 3 && ch->pcdata->remorts == 0 )
+        if (!IS_NPC(ch) && ch->level < chan->min_level && ch->pcdata->remorts == 0 )
         {
-            send_to_char( "You can only use the NEWBIE channel until level 3.\n\r", ch );
+	    printf_to_char( ch, "You can't use %s channel until level %d.\n\r", chan->name, chan->min_level);
             return;
         }
         
