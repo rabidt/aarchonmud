@@ -61,7 +61,7 @@ void load_clans( )
         clan_table[i].mobkills        = 0;
         clan_table[i].name            = str_dup( "" );
         clan_table[i].patron          = str_dup( "" );
-	clan_table[i].motd	      = str_dup( "default motd" );
+	clan_table[i].motd	      = str_dup( "" );
         clan_table[i].pdeaths         = 0;
         clan_table[i].pkills          = 0;
         clan_table[i].rank_count      = 0;
@@ -1383,7 +1383,7 @@ void do_cset( CHAR_DATA *ch, char *argument )
 		clan->rank_list[rank].can_warfare = value;
 	    else if ( !strcmp(arg1, "invite") )
 		clan->rank_list[rank].can_invite = value;
-	    else if ( !strcmp(arg1, "setmotd") )
+	    else if ( !strcmp(arg1, "motd") )
 		clan->rank_list[rank].can_set_motd = value;
 	    else if ( !strcmp(arg1, "clanwar") )
 		clan->rank_list[rank].clanwar_pkill = value;
@@ -1761,6 +1761,48 @@ void clan_dump_room(CHAR_DATA *ch, int clan)
 
 void do_cmotd( CHAR_DATA *ch, char * argument )
 {
-    send_to_char(clan_table[ch->clan].motd,ch);
+    if ( IS_NPC(ch) )
+	return;
+
+    if (!is_clan(ch) || !clan_table[ch->clan].active)
+    {
+        send_to_char("You aren't in a clan.\n\r",ch);
+        return;
+    }
+
+    if ( argument[0] == '\0' )
+    {
+	if ( !strcmp( clan_table[ch->clan].motd , "" ) )
+	    return;
+
+    	send_to_char("{D***********************************{yClan MOTD{D************************************{x\n\r",ch);
+    	send_to_char(clan_table[ch->clan].motd,ch);
+    	send_to_char("{x\n\r",ch);
+    	send_to_char("{D********************************************************************************{x\n\r",ch);
+	return;
+    }
+    else
+    {
+	/* Set the cmotd if they can */
+	if (!clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].can_set_motd)
+	{
+	    send_to_char("You don't have the authority to set the clan MOTD.\n\r",ch);
+	    return;
+	}
+	else if ( !str_prefix( argument, "clear" ) )
+	{
+	    free_string( clan_table[ch->clan].motd) ;
+	    clan_table[ch->clan].motd = str_dup("");
+	    send_to_char("Clan MOTD is cleared.\n", ch);
+	    clan_table[ch->clan].changed = TRUE;
+	}
+	else
+	{
+	    free_string( clan_table[ch->clan].motd );
+	    clan_table[ch->clan].motd = str_dup(argument);
+	    clan_table[ch->clan].changed = TRUE;
+	    return;
+	}
+    }
 }
 
