@@ -42,6 +42,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
+#include <execinfo.h>
 
 #if defined(macintosh) || defined(WIN32)
 #include <sys/types.h>
@@ -54,11 +55,11 @@
 #include "merc.h"
 #include "db.h"
 #include "recycle.h"
-#include "music.h"
 #include "tables.h"
 #include "lookup.h"
 #include "olc.h"
 #include "buffer_util.h"
+#include "mob_stats.h"
 
 #if !defined(macintosh)
 extern  int _filbuf     args( (FILE *) );
@@ -81,7 +82,8 @@ extern  DESCRIPTOR_DATA *descriptor_free;
 extern  PC_DATA     *pcdata_free;
 extern  AFFECT_DATA *affect_free;
 
-extern  REAL_NUM_STRINGS=0;
+static int REAL_NUM_STRINGS = 0;
+static int HIGHEST_REAL_NUM_STRINGS = 0;
 
 void format_init_flags( void );
 void format_race_flags( void );
@@ -435,6 +437,20 @@ sh_int race_naga;
 sh_int race_vampire;
 
 
+/* channel slot numbers */
+sh_int sn_gossip;
+sh_int sn_auction;
+sh_int sn_music;
+sh_int sn_question;
+sh_int sn_answer;
+sh_int sn_quote;
+sh_int sn_gratz;
+sh_int sn_gametalk;
+sh_int sn_bitch;
+sh_int sn_immtalk;
+sh_int sn_savantalk;
+sh_int sn_newbie;
+
 /*
 * Locals.
 */
@@ -604,7 +620,6 @@ void boot_db()
     }
     
     bounty_table = NULL;
-    calc_song_sns();
 
     format_init_flags();
 
@@ -641,11 +656,20 @@ void boot_db()
             }
     }
 
+    log_string( "Initializing channels." );
+    channel_init();
+
     log_string( "Loading clans" );
     load_clans();
 
     log_string( "Loading religions" );
     load_religions();
+
+    log_string( "Loading leaderboards" );
+    load_lboards();
+
+    log_string( "Loading leaderboard results" );
+    load_lboard_results();
 
     log_string( "Loading skills" );
     load_skills();
@@ -694,6 +718,9 @@ void boot_db()
         fclose( fpList );
     }
     
+    // debug
+    //log_mob_index();
+    
     /*
     * Fix up exits.
     * Declare db booting over.
@@ -739,13 +766,30 @@ void boot_db()
         load_wizlist();
         log_string("Loading bans");
         load_bans();
-        log_string("Loading songs");
-        load_songs();
         log_string("Loading portals");
         load_portal_list();
     }
     
+    // start checking for memory leaks now that we're ready
+    reset_str_dup();
+    
     return;
+}
+
+
+void channel_init()
+{
+        int sn=0;
+
+        for ( sn ; ; sn++ )
+        {
+            if ( public_channel_table[sn].psn == NULL )
+		break;
+            *public_channel_table[sn].psn = sn;
+        }
+
+
+
 }
 
 /* format all flags correctly --Bobble */
@@ -812,6 +856,7 @@ void load_area_file( FILE *fp, bool clone )
 	else if ( !str_cmp( word, "HELPS"    ) ) load_helps   (fpArea, strArea);
 	else if ( !str_cmp( word, "MOBOLD"   ) ) load_old_mob (fpArea);
 	else if ( !str_cmp( word, "MOBILES"  ) ) load_mobiles (fpArea);
+        else if ( !str_cmp( word, "MOBBLES"  ) ) load_mobbles (fpArea);
 	else if ( !str_cmp( word, "MOBPROGS" ) ) load_mobprogs(fpArea);
 	else if ( !str_cmp( word, "OBJOLD"   ) ) load_old_obj (fpArea);
 	else if ( !str_cmp( word, "OBJECTS"  ) ) load_objects (fpArea);
@@ -1198,7 +1243,7 @@ void load_helps( FILE *fp, char *fname )
 */
 void load_old_mob( FILE *fp )
 {
-    MOB_INDEX_DATA *pMobIndex;
+    MOB_INDEX_DATA_OLD *pMobIndex;
     /* for race updating */
     int race;
     char name[MAX_STRING_LENGTH];
@@ -1247,7 +1292,7 @@ void load_old_mob( FILE *fp )
         }
         fBootDb = TRUE;
         
-        pMobIndex           = alloc_perm( sizeof(*pMobIndex) );
+        pMobIndex                   = alloc_mem( sizeof(*pMobIndex) );
         pMobIndex->vnum         = vnum;
         pMobIndex->area                 = area_last;               /* OLC */
         pMobIndex->new_format       = FALSE;
@@ -1330,18 +1375,62 @@ void load_old_mob( FILE *fp )
             exit( 1 );
         }
         
+        // convert to ROM-style mobile
         convert_mobile( pMobIndex );                           /* ROM OLC */
+        // convert to Bobble-style mobile
+        MOB_INDEX_DATA *pMobbleIndex = convert_to_mobble( pMobIndex );
+        free_mem( pMobIndex, sizeof(*pMobIndex) );
         
-        iHash           = vnum % MAX_KEY_HASH;
-        pMobIndex->next     = mob_index_hash[iHash];
-        mob_index_hash[iHash]   = pMobIndex;
-        top_mob_index++;
-        top_vnum_mob = top_vnum_mob < vnum ? vnum : top_vnum_mob;  /* OLC */
-        assign_area_vnum( vnum );                                  /* OLC */
-        kill_table[URANGE(0, pMobIndex->level, MAX_LEVEL-1)].number++;
+        index_mobile ( pMobbleIndex );
     }
     
     return;
+}
+
+/*
+ * Add mobile template to global indices
+ */
+void index_mobile( MOB_INDEX_DATA *pMobIndex )
+{
+    int vnum = pMobIndex->vnum;
+    int iHash = vnum % MAX_KEY_HASH;    
+    pMobIndex->next = mob_index_hash[iHash];
+    mob_index_hash[iHash] = pMobIndex;
+    top_mob_index++;
+    top_vnum_mob = top_vnum_mob < vnum ? vnum : top_vnum_mob;  /* OLC */
+    assign_area_vnum( vnum );                                  /* OLC */
+    kill_table[URANGE(0, pMobIndex->level, MAX_LEVEL-1)].number++;
+    
+    return;
+}
+
+/*
+ * Debug: log state of mob_index_hash
+ */
+void log_mob_index()
+{
+    int mob_count = 0;
+    int max_bucket_size = 0;
+    long square_bucket_size = 0;
+    int bucket_size;
+    
+    int iHash;
+    MOB_INDEX_DATA* pMobIndex;
+    
+    for ( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
+    {
+        bucket_size = 0;
+        for ( pMobIndex = mob_index_hash[iHash]; pMobIndex != NULL; pMobIndex = pMobIndex->next )
+        {
+            bucket_size++;
+            mob_count++;
+        }
+        if (bucket_size > max_bucket_size)
+            max_bucket_size = bucket_size;
+        square_bucket_size += bucket_size * bucket_size;
+    }
+    logpf( "mob_index_hash: buckets = %d, mobs = %d, max_bucket_size = %d, ave_access = %.2f",
+           MAX_KEY_HASH, mob_count, max_bucket_size, (float)(square_bucket_size) / mob_count );
 }
 
 /*
@@ -1697,7 +1786,6 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          pRoomIndex->people      = NULL;
          pRoomIndex->contents    = NULL;
          pRoomIndex->extra_descr = NULL;
-         pRoomIndex->singer      = NULL;
          pRoomIndex->area        = area_last;
          pRoomIndex->vnum        = vnum;
          pRoomIndex->name        = fread_string( fp );
@@ -2096,6 +2184,7 @@ void fix_mobprogs( void )
     MPROG_LIST        *list;
     MPROG_CODE        *prog;
     int iHash;
+    int mprog_count = 0;
     
     for ( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
@@ -2106,7 +2195,10 @@ void fix_mobprogs( void )
             for( list = pMobIndex->mprogs; list != NULL; list = list->next )
             {
                 if ( ( prog = get_mprog_index( list->vnum ) ) != NULL )
+                {
+                    mprog_count++;
                     list->code = prog->code;
+                }
                 else
                 {
                     bug( "Fix_mobprogs: code vnum %d not found.", list->vnum );
@@ -2115,6 +2207,8 @@ void fix_mobprogs( void )
             }
         }
     }
+    //debug
+    //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
 
 
@@ -2801,176 +2895,50 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mob->prompt        = NULL;
     mob->mprog_target   = NULL;
     
-    if (pMobIndex->wealth == 0)
-    {
-        mob->silver = 0;
-        mob->gold   = 0;
-    }
-    else
-    {
-        long wealth;
-        
-        wealth = number_range(pMobIndex->wealth/2, 3 * pMobIndex->wealth/2);
-        mob->gold = number_range(wealth/200,wealth/100);
-        mob->silver = wealth - (mob->gold * 100);
-    } 
-    
-    /* set some decend moves --Bobble */
-    mob->max_move = 100 + 10 * pMobIndex->level;
-    mob->move = mob->max_move;
+    /* read from prototype */
+    mob->group      = pMobIndex->group;
+    flag_copy( mob->act, pMobIndex->act );
+    flag_copy( mob->penalty, mob_pen );
+    flag_copy( mob->affect_field, pMobIndex->affect_field );
+    mob->alignment      = pMobIndex->alignment;
+    mob->level          = UMAX( 1, pMobIndex->level );
 
-    if (pMobIndex->new_format)
-        /* load in new style */
-    {
-        /* read from prototype */
-        mob->group      = pMobIndex->group;
-        flag_copy( mob->act, pMobIndex->act );
-        flag_copy( mob->penalty, mob_pen );
-        flag_copy( mob->affect_field, pMobIndex->affect_field );
-        mob->alignment      = pMobIndex->alignment;
-        mob->level          = UMAX( 1, pMobIndex->level );
-        mob->hitroll        = pMobIndex->hitroll;
-        mob->damroll        = pMobIndex->damage[DICE_BONUS];
-        mob->max_hit        = dice(pMobIndex->hit[DICE_NUMBER],
-				   pMobIndex->hit[DICE_TYPE])
-            + pMobIndex->hit[DICE_BONUS];
-        mob->hit        = mob->max_hit;
-        mob->max_mana       = dice(pMobIndex->mana[DICE_NUMBER],
-				   pMobIndex->mana[DICE_TYPE])
-            + pMobIndex->mana[DICE_BONUS];
-        mob->mana       = mob->max_mana;
-        mob->damage[DICE_NUMBER]= pMobIndex->damage[DICE_NUMBER];
-        mob->damage[DICE_TYPE]  = pMobIndex->damage[DICE_TYPE];
-        mob->dam_type       = pMobIndex->dam_type;
-        mob->song_hearing = song_null;
-        mob->song_delay = 0;
-        mob->song_singing = song_null;
-        if (mob->dam_type == 0)
-            switch(number_range(1,3))
-        {
-                case (1): mob->dam_type = 3;        break;  /* slash */
-                case (2): mob->dam_type = 7;        break;  /* pound */
-                case (3): mob->dam_type = 11;       break;  /* pierce */
-        }
-        for (i = 0; i < 4; i++)
-            mob->armor[i]   = pMobIndex->ac[i]; 
-        flag_copy( mob->off_flags, pMobIndex->off_flags );
-        flag_copy( mob->imm_flags, pMobIndex->imm_flags );
-        flag_copy( mob->res_flags, pMobIndex->res_flags );
-        flag_copy( mob->vuln_flags, pMobIndex->vuln_flags );
-        mob->start_pos      = pMobIndex->start_pos;
-        mob->default_pos    = pMobIndex->default_pos;
-        mob->sex        = pMobIndex->sex;
-        if (mob->sex == 3) /* random sex */
-            mob->sex = number_range(1,2);
-        mob->race       = pMobIndex->race;
-        flag_copy( mob->form, pMobIndex->form );
-        flag_copy( mob->parts, pMobIndex->parts );
-        mob->size       = pMobIndex->size;
-        mob->material       = str_dup(pMobIndex->material);
-        
-        /* computed on the spot */
-        compute_mob_stats(mob);
-        
-        /* let's get some spell action */
-	affect_spellup_mob( mob );
-
-	/*
-        if (IS_AFFECTED(mob,AFF_SANCTUARY))
-        {
-            af.where     = TO_AFFECTS;
-            af.type      = skill_lookup("sanctuary");
-            af.level     = mob->level;
-            af.duration  = -1;
-            af.location  = APPLY_NONE;
-            af.modifier  = 0;
-            af.bitvector = AFF_SANCTUARY;
-            affect_to_char( mob, &af );
-        }
-        
-        if (IS_AFFECTED(mob,AFF_HASTE))
-        {
-            af.where     = TO_AFFECTS;
-            af.type      = skill_lookup("haste");
-            af.level     = mob->level;
-            af.duration  = -1;
-            af.location  = APPLY_AGI;
-            af.modifier  = 1 + (mob->level >= 18) + (mob->level >= 25) + 
-                (mob->level >= 32);
-            af.bitvector = AFF_HASTE;
-            affect_to_char( mob, &af );
-        }
-        
-        if (IS_AFFECTED(mob,AFF_PROTECT_EVIL))
-        {
-            af.where     = TO_AFFECTS;
-            af.type  = skill_lookup("protection evil");
-            af.level     = mob->level;
-            af.duration  = -1;
-            af.location  = APPLY_SAVES;
-            af.modifier  = -1;
-            af.bitvector = AFF_PROTECT_EVIL;
-            affect_to_char(mob,&af);
-        }
-        
-        if (IS_AFFECTED(mob,AFF_PROTECT_GOOD))
-        {
-            af.where     = TO_AFFECTS;
-            af.type      = skill_lookup("protection good");
-            af.level     = mob->level;
-            af.duration  = -1;
-            af.location  = APPLY_SAVES;
-            af.modifier  = -1;
-            af.bitvector = AFF_PROTECT_GOOD;
-            affect_to_char(mob,&af);
-        }
-	*/
-    }
-    else /* read in old format and convert */
-    {
-        flag_copy( mob->act, pMobIndex->act );
-        flag_copy( mob->affect_field, pMobIndex->affect_field );
-        mob->alignment      = pMobIndex->alignment;
-        mob->level      = pMobIndex->level;
-        mob->hitroll        = pMobIndex->hitroll;
-        mob->damroll        = 0;
-        mob->max_hit        = mob->level * 8 + number_range(
-            mob->level * mob->level/4,
-            mob->level * mob->level);
-        mob->song_hearing = song_null;
-        mob->song_delay = 0;
-        mob->song_singing = song_null;
-        mob->max_hit = (int)(mob->max_hit*0.9);
-        mob->hit        = mob->max_hit;
-        mob->max_mana       = 100 + dice(mob->level,10);
-        mob->mana       = mob->max_mana;
+    mob->dam_type       = pMobIndex->dam_type;
+    if (mob->dam_type == 0)
         switch(number_range(1,3))
-        {
-        case (1): mob->dam_type = 3;    break;  /* slash */
-        case (2): mob->dam_type = 7;    break;  /* pound */
-        case (3): mob->dam_type = 11;   break;  /* pierce */
-        }
-        for (i = 0; i < 3; i++)
-            mob->armor[i]   = interpolate(mob->level,100,-100);
-        mob->armor[3]       = interpolate(mob->level,100,0);
-        mob->race       = pMobIndex->race;
-        flag_copy( mob->off_flags, pMobIndex->off_flags );
-        flag_copy( mob->imm_flags, pMobIndex->imm_flags );
-        flag_copy( mob->res_flags, pMobIndex->res_flags );
-        flag_copy( mob->vuln_flags, pMobIndex->vuln_flags );
-        mob->start_pos      = pMobIndex->start_pos;
-        mob->default_pos    = pMobIndex->default_pos;
-        mob->sex        = pMobIndex->sex;
-        flag_copy( mob->form, pMobIndex->form );
-        flag_copy( mob->parts, pMobIndex->parts );
-        mob->size       = SIZE_MEDIUM;
-        mob->material       = "";
-        
-        compute_mob_stats(mob); 
+    {
+            case (1): mob->dam_type = 3;        break;  /* slash */
+            case (2): mob->dam_type = 7;        break;  /* pound */
+            case (3): mob->dam_type = 11;       break;  /* pierce */
     }
+    flag_copy( mob->off_flags, pMobIndex->off_flags );
+    flag_copy( mob->imm_flags, pMobIndex->imm_flags );
+    flag_copy( mob->res_flags, pMobIndex->res_flags );
+    flag_copy( mob->vuln_flags, pMobIndex->vuln_flags );
+    mob->start_pos      = pMobIndex->start_pos;
+    mob->default_pos    = pMobIndex->default_pos;
+    mob->sex            = pMobIndex->sex;
+    if (mob->sex == 3) /* random sex */
+        mob->sex = number_range(1,2);
+    mob->race           = pMobIndex->race;
+    flag_copy( mob->form, pMobIndex->form );
+    flag_copy( mob->parts, pMobIndex->parts );
+    mob->size           = pMobIndex->size;
+    mob->material       = str_dup("none");
+
+    // money money money
+    long wealth = mob_base_wealth( pMobIndex );
+    wealth = number_range(wealth/2, wealth * 3/2);
+    mob->gold = number_range(wealth/200,wealth/100);
+    mob->silver = wealth - (mob->gold * 100);
     
-    mob->position = mob->start_pos;
+    // level dependent stats (hp, damage, ...)
+    set_mob_level( mob, mob-> level );
     
+    /* let's get some spell action */
+    affect_spellup_mob( mob );
+
+    mob->position = mob->start_pos;    
     
     /* link the mob to the world list */
     mob->next       = char_list;
@@ -3971,6 +3939,8 @@ void *alloc_mem( int sMem )
     {
         pMem              = rgFreeList[iList];
         rgFreeList[iList] = * ((void **) rgFreeList[iList]);
+        // clear memory before usage - alloc_perm does it too, so the two can be used (more or less) interchangeably
+        memset(pMem, 0, sMem);
     }
     
 #ifdef MAGIC_CHECKING
@@ -4068,6 +4038,61 @@ void *alloc_perm( int sMem )
 }
 
 
+/*
+* Hashtable of strings recently allocated and not freed
+* Used for debugging memory leaks
+*/
+#define MAX_STR_DUP_KEY 1009
+static char* str_dup_hash[MAX_STR_DUP_KEY];
+static bool str_dup_ready = FALSE;
+
+void reset_str_dup()
+{
+    memset(str_dup_hash, 0, MAX_STR_DUP_KEY * sizeof(char*));
+    str_dup_ready = TRUE;
+    return;    
+}
+
+void remember_str_dup(const char *str)
+{
+    int key = ((unsigned long)str) % MAX_STR_DUP_KEY;
+    
+    if (str_dup_hash[key] == NULL)
+        str_dup_hash[key] = str;
+    REAL_NUM_STRINGS += 1;
+    // auto-dump recently duplicated strings when memory leak is suspected
+    if (HIGHEST_REAL_NUM_STRINGS < REAL_NUM_STRINGS)
+    {
+        HIGHEST_REAL_NUM_STRINGS = REAL_NUM_STRINGS;
+        if (HIGHEST_REAL_NUM_STRINGS % 5000 == 0 && str_dup_ready)
+            dump_str_dup();
+    }
+    return;
+}
+
+void forget_str_dup(const char *str)
+{
+    int key = ((unsigned long)str) % MAX_STR_DUP_KEY;
+    
+    if (str_dup_hash[key] == str)
+        str_dup_hash[key] = NULL;
+    REAL_NUM_STRINGS -= 1;
+    return;
+}
+
+void dump_str_dup()
+{
+    int key;
+    
+    log_string("Strings duplicated but never freed (sample):");
+    for (key = 0; key < MAX_STR_DUP_KEY; key++)
+    {
+        if (str_dup_hash[key] != NULL)
+            fprintf(stdout, "> %s\n\r", str_dup_hash[key]);
+    }
+    reset_str_dup();
+    return;
+}
 
 /*
 * Duplicate a string into dynamic memory.
@@ -4085,11 +4110,9 @@ char *str_dup( const char *str )
     
     str_new = alloc_mem( strlen(str) + 1 );
     strcpy( str_new, str );
-    REAL_NUM_STRINGS += 1;
+    remember_str_dup( str_new );
     return str_new;
 }
-
-
 
 /*
 * Free a string.
@@ -4103,8 +4126,8 @@ void free_string( char *pstr )
         || ( pstr >= string_space && pstr < top_string ) )
         return;
     
+    forget_str_dup( pstr );
     free_mem( pstr, strlen(pstr) + 1 );
-    REAL_NUM_STRINGS -= 1;
     return;
 }
 
@@ -4890,7 +4913,70 @@ void bug( const char *str, int param )
     return;
 }
 
+// return first (minimal) substring of s delimited by c_start and c_end
+char* substr_delim(const char *s, char c_start, char c_end)
+{
+    static char ss_buf[MAX_STRING_LENGTH];
+    int ss_next = 0;
+    bool found = FALSE;
+    
+    while (*s != 0)
+    {
+        if (!found)
+            found = (*s == c_start);
+        else
+        {
+            if (*s == c_end)
+                break;
+            else
+                ss_buf[ss_next++] = *s; 
+        }
+        s++;
+    }
+    // terminate string
+    ss_buf[ss_next] = 0;
+    
+    return ss_buf;
+}
 
+// logs a backtrace
+void log_trace()
+{
+    const int MAX_TRACE = 32;
+    void* buffer[MAX_TRACE];
+    int trace_size = backtrace (buffer, MAX_TRACE);
+    char **trace_msg = backtrace_symbols (buffer, trace_size);
+    char address_buf[MAX_STRING_LENGTH], cmd[MAX_STRING_LENGTH];
+    int i, addr_length;
+    
+    if (trace_msg == NULL || trace_size < 2)
+        return;
+
+    // trace_msg[i] contains the address in hexadecimal in the form "..aeaea() [0x12345678]"
+    // first, we extract the address information
+    address_buf[0] = 0;
+    // we start at 1 to skip call of log_trace        
+    for (i = 1; i < trace_size; i++)
+    {            
+        if (strstr(trace_msg[i], "aeaea") != NULL)
+        {
+            if ( strlen(address_buf) != 0 )
+                strcat(address_buf, " ");
+            strcat(address_buf, substr_delim(trace_msg[i], '[', ']'));
+        }
+        else
+            break;
+    }    
+    free(trace_msg);
+    
+    // second, we feed the addresses into addr2line to get readable information
+    //sprintf(cmd, "addr2line -pfs -e ../src/aeaea %s", address_buf);
+    sprintf(cmd, "addr2line -fs -e ../src/aeaea %s", address_buf);
+    log_string(cmd);
+    system(cmd);
+
+    return;
+}
 
 /*
 * Writes a string to the log.
