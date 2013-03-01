@@ -35,6 +35,10 @@
 #endif
 #endif
 
+
+#ifdef TESTER
+#define FSTAT
+#endif
 /* debugging macros */
 /* #define SIM_DEBUG */
 /* #define FLUSH_DEBUG */
@@ -2534,7 +2538,6 @@ struct  char_data
 	tflag        form;
 	tflag        parts;
 	sh_int      size;
-	char*       material;
 	/* mobile stuff */
 	tflag        off_flags;
 	sh_int      damage[3];
@@ -2547,37 +2550,17 @@ struct  char_data
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
-/*
-	CHAR_DATA *         questgiver;
-	int                 questpoints;
-	sh_int              nextquest;
-	sh_int              countdown;
-	sh_int              questobj;
-	long		bank;
-	sh_int      clan_rank;
-	tflag        tag_flags;
-	int                 total_wars;
-	int                 war_kills;
-	int                 armageddon_won;
-	int                 armageddon_lost;
-	int                 armageddon_kills;
-	int                 class_won;
-	int                 class_lost;
-	int                 class_kills;
-	int                 race_won;
-	int                 race_lost;
-	int                 race_kills;
-	int                 clan_won;
-	int                 clan_lost;
-	int                 clan_kills;
-	long                mob_kills;
-	int                 mob_deaths;
-	int                 quest_failed;
-	int                 quest_success;
-	int                 gender_won;
-	int                 gender_lost;
-	int                 gender_kills;
-*/
+	#ifdef FSTAT
+	/* Stuff for fight statistics*/
+	int	attacks_attempts;
+	int	attacks_success;
+	int	attacks_misses;
+	int	damage_dealt;
+	int	fight_rounds;
+	int	damage_taken;
+	int	mana_used;
+	int	moves_used;
+	#endif
 };
 
 

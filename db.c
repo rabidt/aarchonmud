@@ -3028,7 +3028,6 @@ void clone_mobile(CHAR_DATA *parent, CHAR_DATA *clone)
     flag_copy( clone->form, parent->form );
     flag_copy( clone->parts, parent->parts );
     clone->size     = parent->size;
-    clone->material = str_dup(parent->material);
     flag_copy( clone->off_flags, parent->off_flags );
     clone->dam_type = parent->dam_type;
     clone->start_pos    = parent->start_pos;
