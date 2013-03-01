@@ -1,0 +1,418 @@
+diff -r 17c64a361c7c act_comm.c
+--- a/act_comm.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/act_comm.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -2547,8 +2547,6 @@
+     int id;
+     AUTH_LIST *old_auth;    
+     
+-    stop_singing(ch);
+-    
+     if (IS_SET( ch->act, PLR_WAR ))
+         war_remove( ch, FALSE );
+     
+diff -r 17c64a361c7c act_move.c
+--- a/act_move.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/act_move.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -84,11 +84,9 @@
+ {
+     CHAR_DATA *fch;
+     CHAR_DATA *fch_next;
+-    CHAR_DATA *old_singer;
+     ROOM_INDEX_DATA *in_room;
+     ROOM_INDEX_DATA *to_room;
+     EXIT_DATA *pexit;
+-    bool singing_in_room;
+     char buf[MAX_STRING_LENGTH];
+     int chance, d, inwater, towater;
+     
+@@ -418,13 +416,6 @@
+ 	}
+     }
+     
+-    old_singer = in_room->singer;
+-    singing_in_room = (old_singer != NULL) && (to_room->singer == NULL)
+-        && (to_room != in_room);
+-    
+-    if (singing_in_room)
+-       in_room->singer = NULL;
+-   
+     /* check fighting - no cross-room combat */
+     if ( in_room != to_room )
+     {
+@@ -439,13 +430,7 @@
+     char_to_room( ch, to_room );
+    
+    
+-    if (ch->song_singing != song_null)
+-    {
+-	sprintf( buf, "%s has arrived, singing %s.\n\r",
+-		 ch->name, skill_table[ch->song_singing].msg_off);
+-	act(buf, ch, NULL, NULL, TO_ROOM);
+-    }
+-    else if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
++    if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
+     {
+ 	if ( !IS_AFFECTED(ch, AFF_SNEAK) && !IS_TAG(ch) )
+ 	    act( "$n has arrived.", ch, NULL, NULL, TO_ROOM );
+@@ -493,25 +478,6 @@
+        }
+    }
+    
+-   if (singing_in_room)
+-   {
+-       in_room->singer = old_singer;
+-       if (old_singer->in_room == to_room)
+-       {
+-           old_singer->in_room = in_room;
+-           song_from_room(old_singer);
+-           old_singer->in_room = to_room;
+-           song_to_room(old_singer);
+-       }
+-       else
+-       {
+-           old_singer->in_room = to_room;
+-           to_room->singer = old_singer;
+-           song_from_room(old_singer);
+-           old_singer->in_room = in_room;
+-       }
+-   }
+-   
+    /* 
+    * If someone is following the char, these triggers get activated
+    * for the followers before the char, but it's safer this way...
+diff -r 17c64a361c7c bsave.c
+--- a/bsave.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/bsave.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -1157,9 +1157,6 @@
+         ch->pcdata->history_stats[stat]     = 0;
+     ch->pcdata->bounty          = 0;
+     ch->pcdata->demerit_points  = 0;
+-    ch->song_singing    = song_null;
+-    ch->song_hearing = song_null;
+-    ch->song_delay = 0;
+     ch->slow_move = 0;
+ 
+     ch->pcdata->bounty_sort         = NULL;
+diff -r 17c64a361c7c buildutil.c
+--- a/buildutil.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/buildutil.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -494,12 +494,6 @@
+ 	}
+ 	send_to_char( ".\n\r", ch);
+ 
+-	if (location->singer!=NULL)
+-	{
+-		sprintf(buf, "Singer: %s\n\r", location->singer->name);
+-		send_to_char(buf,ch);
+-	}
+-
+ 	send_to_char( "Objects:   ", ch );
+ 	for ( obj = location->contents; obj; obj = obj->next_content )
+ 	{
+@@ -1141,14 +1135,6 @@
+ 
+ 	}
+ 	
+-	sprintf( buf, "Singing: %s   Hearing: %s   Song Delay: %d\n\r",
+-		(victim->song_singing > song_null) ?
+-			skill_table[victim->song_singing].msg_off : "Null",
+-		(victim->song_hearing > song_null) ?
+-			skill_table[victim->song_hearing].msg_off : "Null",
+-		victim->song_delay);
+-	send_to_char(buf,ch);
+-
+ 	for ( paf = victim->affected; paf != NULL; paf = paf->next )
+ 	{
+ 	sprintf( buf,
+diff -r 17c64a361c7c comm.c
+--- a/comm.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/comm.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -748,14 +748,6 @@
+ 			if (d->character != NULL && d->character->slow_move > 0)
+ 				--d->character->slow_move;
+ 			
+-			if ((d->character != NULL) && (d->character->song_singing != song_null))
+-			{
+-				if (d->character->song_delay >0)
+-					--d->character->song_delay;
+-				else
+-					update_song(d->character);
+-			}
+-			
+ 			if ( d->character != NULL && d->character->wait > 0 )
+ 			{
+ 				--d->character->wait;
+@@ -1019,14 +1011,6 @@
+ 			if (d->character != NULL && d->character->slow_move > 0)
+ 				--d->character->slow_move;
+ 			
+-			if ((d->character != NULL) && (d->character->song_singing != song_null))
+-			{
+-				if (d->character->song_delay >0)
+-					--d->character->song_delay;
+-				else
+-					update_song(d->character);
+-			}
+-			
+ 			if ( d->character != NULL && d->character->wait > 0 )
+ 			{
+ 				--d->character->wait;
+diff -r 17c64a361c7c const.c
+--- a/const.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/const.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -34,7 +34,6 @@
+ #include <time.h>
+ #include "merc.h"
+ #include "magic.h"
+-#include "song.h"
+ #include "interp.h"
+ 
+ extern int nAllocString;
+diff -r 17c64a361c7c db.c
+--- a/db.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/db.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -603,7 +603,6 @@
+     }
+     
+     bounty_table = NULL;
+-    calc_song_sns();
+ 
+     format_init_flags();
+ 
+@@ -1694,7 +1693,6 @@
+          pRoomIndex->people      = NULL;
+          pRoomIndex->contents    = NULL;
+          pRoomIndex->extra_descr = NULL;
+-         pRoomIndex->singer      = NULL;
+          pRoomIndex->area        = area_last;
+          pRoomIndex->vnum        = vnum;
+          pRoomIndex->name        = fread_string( fp );
+@@ -2839,9 +2837,6 @@
+         mob->damage[DICE_NUMBER]= pMobIndex->damage[DICE_NUMBER];
+         mob->damage[DICE_TYPE]  = pMobIndex->damage[DICE_TYPE];
+         mob->dam_type       = pMobIndex->dam_type;
+-        mob->song_hearing = song_null;
+-        mob->song_delay = 0;
+-        mob->song_singing = song_null;
+         if (mob->dam_type == 0)
+             switch(number_range(1,3))
+         {
+@@ -2934,9 +2929,6 @@
+         mob->max_hit        = mob->level * 8 + number_range(
+             mob->level * mob->level/4,
+             mob->level * mob->level);
+-        mob->song_hearing = song_null;
+-        mob->song_delay = 0;
+-        mob->song_singing = song_null;
+         mob->max_hit = (int)(mob->max_hit*0.9);
+         mob->hit        = mob->max_hit;
+         mob->max_mana       = 100 + dice(mob->level,10);
+diff -r 17c64a361c7c fight.c
+--- a/fight.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/fight.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -3106,7 +3106,6 @@
+     */
+     
+     check_kill_quest_completed( ch, victim );
+-    stop_singing(victim);
+         
+     if (!IS_NPC(victim))
+     {
+diff -r 17c64a361c7c handler.c
+--- a/handler.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/handler.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -1443,12 +1443,6 @@
+         return;
+     }
+     
+-    if (ch->in_room->singer != NULL)
+-    {
+-        song_from_char(ch);
+-        stop_singing(ch);
+-    }
+-    
+     if ( !IS_NPC(ch) )
+     {
+         if( --ch->in_room->area->nplayer < 0 )
+@@ -1559,7 +1553,6 @@
+     if ( IS_SET(ch->form, FORM_BRIGHT) )
+ 	++ch->in_room->light;
+     
+-    song_to_char(ch);
+     
+     if (IS_AFFECTED(ch,AFF_PLAGUE))
+     {
+diff -r 17c64a361c7c interp.c
+--- a/interp.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/interp.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -124,7 +124,6 @@
+     { "order",      do_order,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
+     { "practice",   do_practice,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+     { "rest",       do_rest,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+-    { "sing",       do_sing,    POS_RESTING,       0,    LOG_NORMAL, 1, FALSE, TRUE  },
+     { "sit",        do_sit,     POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+     { "sockets",    do_sockets, POS_DEAD,       L4,  LOG_NORMAL, 1, FALSE, FALSE  },
+     { "stand",      do_stand,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+diff -r 17c64a361c7c magic.c
+--- a/magic.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/magic.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -892,11 +892,6 @@
+         return;
+     }
+     
+-    if (ch->song_hearing == gsn_white_noise)
+-    {
+-        send_to_char("Your incantation is muffled by white noise.\n\r", ch);
+-        return;
+-    }
+ /*
+     if ((sn == gsn_hailstorm || gsn_meteor_swarm || gsn_call_lightning ||
+             gsn_control_weather || gsn_monsoon ) && (weather_info.sky < SKY_RAINING 
+diff -r 17c64a361c7c makefile
+--- a/makefile	Tue Feb 19 17:41:06 2013 -0700
++++ b/makefile	Wed Feb 20 10:55:08 2013 -0700
+@@ -14,7 +14,7 @@
+      interp.o lookup.o magic.o magic2.o mem.o mob_cmds.o mob_prog.o \
+      nanny.o olc.o olc_act.o olc_mpcode.o olc_save.o passive.o penalty.o pipe.o quest.o \
+      ranger.o recycle.o redit-ilab.o remort.o bsave.o scan.o skills.o\
+-     smith.o social-edit.o song.o special.o stats.o string.o tables.o update.o \
++     smith.o social-edit.o special.o stats.o string.o tables.o update.o \
+      freeze.o warfare.o  grant.o wizlist.o marry.o forget.o clan.o \
+      buildutil.o buffer_util.o simsave.o breath.o tflag.o grep.o vshift.o \
+      tattoo.o religion.o playback.o  
+diff -r 17c64a361c7c mem.c
+--- a/mem.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/mem.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -219,7 +219,6 @@
+     pRoom->clan		    =	0;
+     pRoom->heal_rate	    =   100;
+     pRoom->mana_rate	    =   100;
+-    pRoom->singer           =   NULL;
+ 
+     return pRoom;
+ }
+diff -r 17c64a361c7c merc.h
+--- a/merc.h	Tue Feb 19 17:41:06 2013 -0700
++++ b/merc.h	Wed Feb 20 10:55:08 2013 -0700
+@@ -160,8 +160,6 @@
+ typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
+ typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo,
+ 				int target ) );
+-typedef bool SONG_FUN   args((int sn,int level,CHAR_DATA *singer,
+-				CHAR_DATA *target,int task));
+ /* for object extracting in handler.c */
+ typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
+ 
+@@ -2277,8 +2275,6 @@
+ #define GAG_SUNBURN    (H)
+ #define GAG_NCOL_CHAN  (I)
+ 
+-#define song_null       -1
+-
+ /* channel definitions for playback log_chan/playback */
+ #define CHAN_GOSSIP 'p'
+ #define CHAN_AUCTION 'a'
+@@ -2459,9 +2455,6 @@
+ 	  sh_int        mprog_delay;
+ 	char *hunting;
+ 	sh_int  stance;
+-	sh_int      song_hearing;
+-	sh_int      song_singing;
+-	sh_int      song_delay;
+ 	sh_int      slow_move;
+         bool        just_killed; /* for checking if char was just killed */
+         bool        must_extract; /* for delayed char purging */
+@@ -2915,7 +2908,6 @@
+     sh_int      mana_rate;
+     sh_int      clan;
+     sh_int      clan_rank;
+-    CHAR_DATA * singer;
+ };
+ 
+ 
+@@ -2985,7 +2977,6 @@
+ 	char *  noun_damage;        /* Damage message       */
+ 	char *  msg_off;        /* Wear off message     */
+ 	char *  msg_obj;        /* Wear off message for obects  */
+-	SONG_FUN * song_fun;
+ };
+ 
+ 
+@@ -3173,12 +3164,6 @@
+ extern sh_int  gsn_retreat;
+ extern sh_int  gsn_entrapment;
+ 
+-extern sh_int gsn_pied_piper;
+-extern sh_int gsn_shafts_theme;
+-extern sh_int gsn_cacophony;
+-extern sh_int gsn_lust_life;
+-extern sh_int gsn_white_noise;
+-
+ extern sh_int  gsn_mug;
+ extern sh_int  gsn_headbutt;
+ extern sh_int  gsn_net;
+@@ -4381,18 +4366,6 @@
+ void load_social_table();
+ void save_social_table();
+ 
+-/* song.c */
+-void song_from_char args(( CHAR_DATA *ch ));
+-void song_to_char       args(( CHAR_DATA *ch ));
+-void song_from_room args(( CHAR_DATA *ch ));
+-void song_to_room       args(( CHAR_DATA *ch ));
+-void update_song        args(( CHAR_DATA *ch ));
+-void stop_singing       args(( CHAR_DATA *ch ));
+-bool saves_song     args((int level,CHAR_DATA *ch,CHAR_DATA *victim,int base_chance));
+-int calc_song_sns       args((void));
+-int song_level      args(( CHAR_DATA *ch, int sn ));
+-
+-
+ /* special.c */
+ SF *    spec_lookup args( ( const char *name ) );
+ char *  spec_name   args( ( SPEC_FUN *function ) );
+diff -r 17c64a361c7c special.c
+--- a/special.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/special.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -496,9 +496,6 @@
+ 	if ( !IS_AWAKE(ch) )
+ 	return FALSE;
+ 
+-	if ( ch->song_hearing == gsn_white_noise )
+-	return FALSE;
+-
+ 	for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
+ 	{
+ 	v_next = victim->next_in_room;
+@@ -566,9 +563,6 @@
+ 	if ( ch->position != POS_FIGHTING )
+ 	return FALSE;
+ 
+-	if ( ch->song_hearing == gsn_white_noise )
+-	return FALSE;
+-
+ 	for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
+ 	{
+ 	v_next = victim->next_in_room;
+@@ -649,9 +643,6 @@
+ 	if ( ch->position != POS_FIGHTING )
+ 	return FALSE;
+ 
+-	if ( ch->song_hearing == gsn_white_noise )
+-	return FALSE;
+-
+ 	for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
+ 	{
+ 	v_next = victim->next_in_room;
+diff -r 17c64a361c7c update.c
+--- a/update.c	Tue Feb 19 17:41:06 2013 -0700
++++ b/update.c	Wed Feb 20 10:55:08 2013 -0700
+@@ -285,9 +285,6 @@
+     /* encumberance can half healing speed */
+     gain -= gain * get_encumberance( ch ) / 200;
+ 
+-    if ( ch->song_hearing == gsn_lust_life )
+-	gain += gain/2;
+-
+     if ( IS_AFFECTED(ch, AFF_POISON) )
+         gain /= 2;
+     

@@ -249,6 +249,7 @@ const struct flag_type plr_flags[] =
 	{   "roleplay",     PLR_RP,        TRUE    },
 	{   "trigger_safe", PLR_TRIG_SAFE, FALSE   },
 	{   "inactive_helper", PLR_INACTIVE_HELPER, TRUE },
+        {   "noexp",        PLR_NOEXP,     FALSE   },
 	{   NULL,           0,  0   }
 };
 
@@ -1423,6 +1424,7 @@ const struct flag_type togg_flags[] =
 {
   { "oldscore",		TOGG_OLDSCORE,	TRUE },
   { "oldfinger",	TOGG_OLDFINGER,	TRUE },
+  { "statbars",         TOGG_STATBARS,  TRUE },
   { NULL,		0,		0    }
 };
 
