@@ -2177,7 +2177,8 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    ch->pcdata->group_known[gn] = TRUE;
     }
 
-    do_cmotd(ch, "");
+    if ( is_clan(ch) )
+        do_cmotd(ch, "");
 
     return;
 }
