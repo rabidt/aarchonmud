@@ -982,11 +982,17 @@ void do_cast( CHAR_DATA *ch, char *argument )
     {
 	send_to_char( "You choke and your spell fumbles.\n\r", ch);
         ch->mana -= mana / 2;
+	#ifdef FSTAT 
+	ch->mana_used += mana / 2;
+	#endif
     }
     else if (is_affected(ch, gsn_slash_throat) && number_bits(2) == 0)
     {
 	send_to_char( "You can't speak and your spell fails.\n\r", ch);
         ch->mana -= mana / 2;
+	#ifdef FSTAT
+        ch->mana_used += mana / 2;
+        #endif
     }
     else if ( 2*number_percent() > (chance+100)
 	      || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(10)
@@ -995,11 +1001,17 @@ void do_cast( CHAR_DATA *ch, char *argument )
         send_to_char( "You lost your concentration.\n\r", ch );
         check_improve(ch,sn,FALSE,2);
         ch->mana -= mana / 2;
+	#ifdef FSTAT
+        ch->mana_used += mana / 2;
+        #endif
     }
 
     else
     {
         ch->mana -= mana;
+	#ifdef FSTAT
+        ch->mana_used += mana;
+        #endif
 	level = ch->level;
 	if (!IS_NPC(ch))
 	    level -= (100-class_table[ch->class].mana_gain)*level/500;
