@@ -35,6 +35,10 @@
 #endif
 #endif
 
+
+#ifdef TESTER
+#define FSTAT
+#endif
 /* debugging macros */
 /* #define SIM_DEBUG */
 /* #define FLUSH_DEBUG */
@@ -2463,6 +2467,17 @@ struct  char_data
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
+	#ifdef FSTAT
+	/* Stuff for fight statistics*/
+	int	attacks_attempts;
+	int	attacks_success;
+	int	attacks_misses;
+	int	damage_dealt;
+	int	fight_rounds;
+	int	damage_taken;
+	int	mana_used;
+	int	moves_used;
+	#endif
 };
 
 
