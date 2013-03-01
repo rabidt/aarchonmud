@@ -5031,14 +5031,6 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     // general base bonus/penalty
     base_exp = 100 + (victim->level - power);
     
-    // reduce xp further for virtually risk-free fights
-    if (victim->level < power)
-    {
-        base_exp -= base_exp * (power - victim->level) / 20;
-        if (base_exp <= 0)
-            return 0;
-    }    
-
     // adjust based on hp & damage dealt by mob compared to average mob at character's level
 
     // hitpoints - penalty or bonus
@@ -5166,8 +5158,8 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     }
 
     // reduce extreme amounts of base xp
-    if (base_exp > 300)
-        base_exp = (300 + base_exp) / 2; 
+    if (base_exp > 100)
+        base_exp = sqrt(base_exp) * 20 - 100;
     
     return (int)base_exp;
 }
