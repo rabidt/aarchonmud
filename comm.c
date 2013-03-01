@@ -140,8 +140,6 @@ extern  int malloc_debug    args( ( int  ) );
 extern  int malloc_verify   args( ( void ) );
 #endif
 
-extern int REAL_NUM_STRINGS;
-
 
 /*
 * Signal handling.
@@ -465,6 +463,9 @@ int main( int argc, char **argv )
 	cecho2file( "log file", 1, stderr );
 #endif
 	
+	/* Log some info about the binary if present */
+	log_string(bin_info_string());
+	
 	/*
 	* Reserve one channel for our use.
 	*/
@@ -745,14 +746,6 @@ void game_loop_mac_msdos( void )
 			if (d->character != NULL && d->character->slow_move > 0)
 				--d->character->slow_move;
 			
-			if ((d->character != NULL) && (d->character->song_singing != song_null))
-			{
-				if (d->character->song_delay >0)
-					--d->character->song_delay;
-				else
-					update_song(d->character);
-			}
-			
 			if ( d->character != NULL && d->character->wait > 0 )
 			{
 				--d->character->wait;
@@ -1016,14 +1009,6 @@ void game_loop_unix( int control )
 			if (d->character != NULL && d->character->slow_move > 0)
 				--d->character->slow_move;
 			
-			if ((d->character != NULL) && (d->character->song_singing != song_null))
-			{
-				if (d->character->song_delay >0)
-					--d->character->song_delay;
-				else
-					update_song(d->character);
-			}
-			
 			if ( d->character != NULL && d->character->wait > 0 )
 			{
 				--d->character->wait;
@@ -1089,7 +1074,6 @@ void game_loop_unix( int control )
 		* Autonomous game motion.
 		*/
 		update_handler( );
-                //handle_web(); /* Keeps the webserver updated */
 		
 		/*
 		 * Output.
@@ -3719,3 +3703,35 @@ void install_other_handlers ()
     signal (SIGINT, nasty_signal_handler);
 }
 
+char *bin_info_string()
+{
+	static char buf[MSL];
+	strcpy( buf, "\n\r" );
+
+        #ifdef MKTIME
+	strcat(buf, "Make time: ");
+	strcat(buf, MKTIME);
+	strcat(buf, "\n\r");
+        #endif
+        #ifdef BRANCH
+	strcat(buf, "Branch: ");
+        strcat(buf, BRANCH);
+        strcat(buf, "\n\r");
+        #endif
+        #ifdef PARENT
+	strcat(buf, "Parent: ");
+        strcat(buf, PARENT);
+        strcat(buf, "\n\r");
+        #endif
+	strcat(buf, "Game modes defined:\n\r");
+        #ifdef TESTER
+        strcat(buf, "TESTER defined\n\r");
+        #endif
+        #ifdef REMORT
+        strcat(buf, "REMORT defined\n\r");
+        #endif
+        #ifdef BUILDER
+        strcat(buf,"BUILDER defined\n\r");
+        #endif
+	return buf;
+}

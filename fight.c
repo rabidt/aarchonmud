@@ -38,6 +38,7 @@
 #include "tables.h"
 #include "warfare.h"
 #include "lookup.h"
+#include "leaderboard.h"
 
 extern WAR_DATA war;
 
@@ -1215,6 +1216,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
 {
     int i,chance,number;
+    int attacks;
     CHAR_DATA *vch, *vch_next;
     
     if (ch->stop>0)
@@ -1226,18 +1228,25 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     /* mobs must check their stances too */
     check_stance(ch);
 
-    if (!IS_AFFECTED(ch, AFF_GUARD) || number_range(0, 1))
-	one_hit(ch,victim,dt,FALSE);
+    /* high level mobs get more attacks */
+    attacks = level_base_attacks(ch->level);
+    // note: this should match the calculation in mob_base_attacks (mob_stats.c)
+    if ( IS_SET(ch->off_flags, OFF_FAST) )
+        attacks = attacks * 3/2;
+    if ( IS_AFFECTED(ch, AFF_GUARD) )
+        attacks -= 50;
+    if ( IS_AFFECTED(ch, AFF_HASTE) )
+        attacks += 100;    
+    if ( IS_AFFECTED(ch, AFF_SLOW) )
+        attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
 
-    if (ch->fighting != victim)
-	return;
-
-    /* high level mobs get extra attacks */
-    for ( i = 120; i < ch->level; i += 20 )
+    for ( ; attacks > 0; attacks -= 100 )
     {
-	if ( number_bits(1) || number_range(1,20) > ch->level - i )
-	    continue;
-
+        if (number_percent() > attacks)
+            continue;
+            
 	one_hit(ch,victim,dt,FALSE);
 
 	if (ch->fighting != victim)
@@ -1258,39 +1267,18 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         }
     }
     
-    if ( IS_AFFECTED(ch,AFF_HASTE) )
-        one_hit(ch,victim,dt,FALSE);
-
-    if (ch->fighting != victim)
-	return;
-
-    chance = get_skill(ch,gsn_second_attack) * 2/3;
-    if ( IS_AFFECTED(ch, AFF_SLOW) )
-	chance /= 2;
-
-    if (number_percent() < chance)
-    {
-        one_hit(ch,victim,dt, FALSE);
-        if (ch->fighting != victim)
-            return;
-    }
-    
-    chance = get_skill(ch,gsn_third_attack) * 2/3;
-    if ( IS_AFFECTED(ch, AFF_SLOW) )
-	chance /= 2;
-    
-    if (number_percent() < chance)
-    {
-        one_hit(ch,victim,dt,FALSE);
-        if (ch->fighting != victim)
-            return;
-    } 
-
     if ( get_eq_char(ch, WEAR_SECONDARY) )
     {
         one_hit(ch,victim,dt, TRUE);
         if (ch->fighting != victim)
             return;
+        // bonus off-hand attack for haste
+        if ( IS_AFFECTED(ch,AFF_HASTE) && number_bits(1) )
+        {
+            one_hit(ch,victim,dt, TRUE);
+            if (ch->fighting != victim)
+                return;            
+        }
     }	
     
     /* oh boy!  Fun stuff! */
@@ -1328,10 +1316,7 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
 	    break;
 	    
 	case (2) :
-	    if (IS_SET(ch->off_flags,OFF_DISARM) 
-		|| (get_weapon_sn(ch) != gsn_hand_to_hand 
-		    && (IS_SET(ch->act,ACT_WARRIOR)
-			||  IS_SET(ch->act,ACT_THIEF))))
+	    if (IS_SET(ch->off_flags,OFF_DISARM))
 		do_disarm(ch,"");
 	    break;
 	    
@@ -1348,7 +1333,6 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
 	case (5) :
 	    if (IS_SET(ch->off_flags,OFF_TAIL))
 	    {
-		    /*do_tail(ch,"");*/
 		do_leg_sweep(ch, "");
 	    }
 	    break; 
@@ -1408,7 +1392,7 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     int dam;
 
     /* basic damage */
-    if ( IS_NPC(ch) && ch->pIndexData->new_format )
+    if ( IS_NPC(ch) )
 	dam = dice(ch->damage[DICE_NUMBER], ch->damage[DICE_TYPE]);
     else
 	dam = ch->level + dice( 1, 4 );
@@ -3093,6 +3077,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !IS_NPC(ch) && IS_NPC(victim) )
     {
 	ch->pcdata->mob_kills++;
+	update_lboard( LBOARD_MKILL, ch, ch->pcdata->mob_kills, 1);
         check_achievement(ch);
     }
 
@@ -3106,7 +3091,6 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     */
     
     check_kill_quest_completed( ch, victim );
-    stop_singing(victim);
         
     if (!IS_NPC(victim))
     {
@@ -3142,6 +3126,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	    if (!IS_SET(victim->act, PLR_WAR)) 
             {
 		ch->pcdata->pkill_count++;
+		update_lboard( LBOARD_PKILL, ch, ch->pcdata->pkill_count, 1);
 		adjust_pkgrade( ch, victim, FALSE );
 		
 		if (!clan_table[ch->clan].active)
@@ -4913,15 +4898,19 @@ void death_penalty( CHAR_DATA *ch )
     }
 }
 
+float calculate_exp_factor( CHAR_DATA *gch );
+int calculate_base_exp( int power, CHAR_DATA *victim );
+float get_vulnerability( CHAR_DATA *victim );
+void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor );
+
 void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     MEM_DATA *m;
-    CHAR_DATA *gch;
-    int xp;
+    CHAR_DATA *gch, *leader;
     int members;
-    int min_xp;
-    int high_level, low_level;
+    int power, max_power, min_power, base_exp, min_base_exp, xp;
     int high_align, low_align;
+    float group_factor, leadership, ch_factor;
     int total_dam, group_dam;
     char buf[MSL];
 
@@ -4933,19 +4922,12 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     
     if ( victim == ch || !IS_NPC(victim) )
         return;
-    
+
     members = 0;
-    /*
-    high_level = ch->level;
-    low_level = high_level;
-    high_align = ch->alignment;
-    low_align = high_align;
-    */
-    high_level = 1;
-    low_level = 100;
     high_align = -1000;
     low_align = 1000;
-    min_xp = 1000;
+    max_power = 1;
+    min_power = 130;
 
     total_dam=0;
     group_dam=0;
@@ -4956,122 +4938,57 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        if ( is_same_group( gch, ch ) )
-        {
-            members++;
+        if ( IS_NPC(gch) || !is_same_group( gch, ch ) )
+            continue;
 
-            if (!IS_NPC(gch))
-	    {
-		xp = xp_compute(gch, victim, 0);
-		min_xp = UMIN(xp, min_xp);
+        members++;
 
-		high_align = UMAX(high_align, gch->alignment);
-		low_align = UMIN(low_align, gch->alignment);
-		high_level = UMAX(high_level, gch->level);
-		low_level = UMIN(low_level, gch->level);
-		for (m=victim->aggressors; m; m=m->next)
-		    if (gch->id == m->id)
-		    {
-			group_dam += m->reaction;
-			/* m->reaction = 0; */
-		    }
-	    }
-        }
+        power = level_power( gch );
+        max_power = UMAX(max_power, power);
+        min_power = UMIN(min_power, power);
+
+        high_align = UMAX(high_align, gch->alignment);
+        low_align = UMIN(low_align, gch->alignment);
+
+        for (m=victim->aggressors; m; m=m->next)
+            if (gch->id == m->id)
+            {
+                group_dam += m->reaction;
+            }
     }
-    
-    /* exp for chars who helped killing but left the room */
-    /* nice but costs too much resources --Bobble
-    for (m = victim->aggressors; m; m=m->next)
-	if (m->reaction > 0)
-	    for (gch = char_list; gch; gch=gch->next)
-		if (!IS_NPC(gch) && (gch->id==m->id))
-		{
-		    if ((ch!=gch) && 
-			!((ch->in_room == gch->in_room) &&
-			  is_same_group(gch, ch)))
-		    {
-			xp = xp_compute(gch, victim, 100 * m->reaction/total_dam);
-			xp = xp * m->reaction / total_dam;
-			if ( is_same_player(ch, gch) )
-			{
-			    sprintf( buf, "Multiplay: %s gaining experience from %s's kill",
-				     gch->name, ch->name );
-			    wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
-			}
-			else
-			    gain_exp(gch, xp);
-		    }
-		    break;
-		}
-    */
-
-    /* reduce high/low align and level range by charisma */
-    {
-	CHAR_DATA *leader = ch->leader ? ch->leader : ch;
-
-        xp = (high_align-low_align)/2;
-        xp = xp * get_curr_stat(leader,STAT_CHA) / 200;
-        high_align-=xp;
-        low_align+=xp;
         
-        xp = (high_level-low_level)/2;
-        xp = xp * get_curr_stat(leader,STAT_CHA) / 200;
-        high_level-=xp;
-        low_level+=xp;
-    }
-    
+    // NPC killing NPC without being in group. Happens e.g. when charm wears off.
     if ( members == 0 )
-    {
-        bug( "Group_gain: members.", members );
-        members = 1;
-    }
+        return;        
+
+    min_base_exp = calculate_base_exp( max_power, victim );
+
+    // group penalty for large group, high/low align and level range
+    leader = ch->leader ? ch->leader : ch;
+    leadership = (get_curr_stat(leader,STAT_CHA) + get_skill(leader, gsn_leadership)) / 300.0;
+    group_factor = 1 - (high_align - low_align) / 4000.0 * (1 - leadership);
+    group_factor *= 1 - (max_power - min_power) / 200.0 * (1 - leadership);
+    group_factor *= 1.0/3 + 2.0/(2+members);
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        OBJ_DATA *obj;
-        OBJ_DATA *obj_next;
 	int dam_done;
         
-        if ( !is_same_group(gch, ch) || IS_NPC(gch))
+        if ( IS_NPC(gch) || !is_same_group(gch, ch) )
             continue;
         
-	dam_done = get_reaction( victim, gch );
-        xp = xp_compute( gch, victim, 100 * dam_done/total_dam );
-	/* partly exp from own, partly from group */ 
-	xp = (min_xp * group_dam + (xp - min_xp) * dam_done)/total_dam;
-	xp = number_range( xp * 9/10, xp * 11/10 );
+        base_exp = calculate_base_exp( level_power(gch), victim );
+        dam_done = get_reaction( victim, gch );
+        ch_factor = calculate_exp_factor( gch );
         
-	/*
-        if ( gch->level - low_level > 20 )
-        {
-            send_to_char( "You are too high for this group.\n\r", gch );
-            xp = (xp*(low_level+21))/(2*high_level); 
-        }
+        // alignment change
+        if ( dam_done > 0 && !IS_SET(victim->act,ACT_NOALIGN) && victim->pIndexData->vnum != gch->pcdata->questmob )
+            adjust_alignment( gch, victim, base_exp, ((float) dam_done)/total_dam );
         
-        if ( high_level - gch->level > 16 )
-        {
-            send_to_char( "You are too low for this group.\n\r", gch );
-            xp = (xp*(low_level+17))/(2*high_level); 
-        }
-        
-        if ( gch->alignment - low_align > 1200 )
-        {
-            send_to_char( "You are too moral for this group.\n\r", gch );
-            xp/=2;
-        }
-        
-        if ( high_align - gch->alignment > 1500 )
-        {
-            send_to_char( "You are too immoral for this group.\n\r", gch );
-            xp/=2;
-        }
-	*/
-
-        if (members>1)
-        {
-            xp = (xp*(4000-high_align+low_align))/4000;
-            xp = (xp*(low_level+99))/(high_level+99);
-        }
+        // partly exp from own, partly from group
+        xp = (min_base_exp * group_dam + (base_exp - min_base_exp) * dam_done) / total_dam;
+        xp = number_range( xp * 9/10, xp * 11/10 );
+        xp *= group_factor * ch_factor;
 
 /* Removed since we are allowing certain people to play from same IP
  *	-Vodur 12/11/2011 
@@ -5084,57 +5001,6 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 	}
 	else*/
 	    gain_exp( gch, xp );
-
-        if (!IS_NPC(gch) && !IS_IMMORTAL(gch) &&
-            (  gch->alignment < clan_table[gch->clan].min_align 
-            || gch->alignment > clan_table[gch->clan].max_align))
-        {
-            send_to_char("Your alignment has made you unwelcome in your clan!\n\r", gch);
-            sprintf(log_buf, "%s has become too %s for clan %s!",
-                gch->name, 
-                gch->alignment < clan_table[gch->clan].min_align ? "{rEvil{x" : "{wGood{x", 
-                capitalize(clan_table[gch->clan].name));
-            
-            info_message(gch, log_buf, TRUE);
-
-            gch->clan = 0;
-            gch->pcdata->clan_rank = 0;
-
-            check_clan_eq(gch);
-        }
-        
-        for ( obj = gch->carrying; obj != NULL; obj = obj_next )
-        {
-            obj_next = obj->next_content;
-            if ( obj->wear_loc == WEAR_NONE )
-                continue;
-            
-            if ( ( IS_OBJ_STAT(obj, ITEM_ANTI_EVIL)    && IS_EVIL(gch)    )
-                ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_GOOD)    && IS_GOOD(gch)    )
-                ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_NEUTRAL) && IS_NEUTRAL(gch) ) )
-            {
-                act( "You are zapped by $p.", gch, obj, NULL, TO_CHAR );
-                act( "$n is zapped by $p.",   gch, obj, NULL, TO_ROOM );
-                obj_from_char( obj );
-		/* move to inventory --Bobble
-                obj_to_room( obj, gch->in_room );
-		*/
-                obj_to_char( obj, gch );
-            }
-            
-        }
-
-	/* moved to catch kills by NPC groupies  --Bobble
-	if (!IS_NPC(gch) && IS_SET(gch->act, PLR_QUESTOR) && IS_NPC(victim))
-	{
-	    if (gch->pcdata->questmob == victim->pIndexData->vnum)
-	    {
-		send_to_char("You have almost completed your QUEST!\n\r",gch);
-		send_to_char("Return to the questmaster before your time runs out!\n\r",gch);
-		gch->pcdata->questmob = -1;
-	    }
-	}
-	*/
     }
     return;
 }
@@ -5147,11 +5013,167 @@ int level_power( CHAR_DATA *ch )
 	return ch->level;
     else
     {
-	pow = ch->level * (50 + ch->pcdata->remorts) / 50;
-	if ( ch->level >= 90 )
-	    pow += 10;
+	pow = ch->level;
+        // remort adjustment
+        pow += ch->pcdata->remorts * (ch->level + 30) / 60;
+	if ( ch->level > 90 )
+	    pow += (ch->level - 90);
 	return pow;
     }
+}
+
+// compute baseline xp for character of given level_power killing victim
+int calculate_base_exp( int power, CHAR_DATA *victim )
+{
+    float base_exp, vuln;
+    int base_value, mob_value, stance, stance_bonus, off_bonus;
+
+    /* safety net */
+    if ( !IS_NPC(victim) || IS_SET(victim->act, ACT_NOEXP) )
+        return 0;
+
+    // general base bonus/penalty
+    base_exp = 100 + (victim->level - power);
+    
+    // reduce xp further for virtually risk-free fights
+    if (victim->level < power)
+    {
+        base_exp -= base_exp * (power - victim->level) / 20;
+        if (base_exp <= 0)
+            return 0;
+    }    
+
+    // adjust based on hp & damage dealt by mob compared to average mob at character's level
+
+    // hitpoints - penalty or bonus
+    base_value = level_base_hp(power);
+    mob_value = mob_base_hp(victim->pIndexData, victim->level);
+    if (mob_value <= base_value)
+        base_exp += base_exp * (mob_value - base_value) / base_value;
+    else
+        base_exp += base_exp * (mob_value - base_value) / base_value * 3/4;
+    
+    // damage - penalty or bonus
+    base_value = level_base_damage(power);
+    mob_value = mob_base_damage(victim->pIndexData, victim->level);
+    if (mob_value <= base_value)
+        base_exp += base_exp * (mob_value - base_value) / base_value * 3/4;
+    else
+        base_exp += base_exp * (mob_value - base_value) / base_value * 2/3;
+    
+    // number of attacks - penalty or bonus
+    base_value = level_base_attacks(power);
+    mob_value = mob_base_attacks(victim->pIndexData, victim->level);
+    if (mob_value <= base_value)
+        base_exp += base_exp * (mob_value - base_value) / base_value * 2/3;
+    else
+        base_exp += base_exp * (mob_value - base_value) / base_value * 1/2;    
+
+    // mobs with unusual hitroll/ac/saves
+    mob_value = victim->pIndexData->hitroll_percent;
+    if (mob_value < 100)
+        base_exp += base_exp * (mob_value - 100) / 300;
+    else
+        base_exp += base_exp * UMIN(100, mob_value - 100) / 500;
+    
+    mob_value = victim->pIndexData->ac_percent;
+    if (mob_value < 100)
+        base_exp += base_exp * (mob_value - 100) / 300;
+    else
+        base_exp += base_exp * UMIN(100, mob_value - 100) / 500;
+    
+    mob_value = victim->pIndexData->saves_percent;
+    if (mob_value < 100)
+        base_exp += base_exp * (mob_value - 100) / 1000;
+    else
+        base_exp += base_exp * UMIN(100, mob_value - 100) / 2000;
+
+    // adjustments for non-level dependent things
+    
+    /* reduce xp for mobs with lots of vulnerabilities */
+    vuln = get_vulnerability( victim );
+    base_exp -= base_exp * vuln * (2 - vuln) / 4;
+
+    /* reward for tough mobs */
+    if ( IS_SET(victim->res_flags, RES_WEAPON) || IS_SET(victim->imm_flags, IMM_WEAPON) )
+        base_exp += base_exp/20;
+    if ( IS_SET(victim->res_flags, RES_MAGIC) || IS_SET(victim->imm_flags, IMM_MAGIC) )
+        base_exp += base_exp/20;
+    if ( IS_SET(victim->pIndexData->affect_field, AFF_SANCTUARY) )
+        base_exp += base_exp * 2/3;
+    if ( IS_SET(victim->off_flags, OFF_FADE) )
+        base_exp += base_exp/3;
+    else if ( IS_SET(victim->pIndexData->affect_field, AFF_FADE) || IS_SET(victim->pIndexData->affect_field, AFF_CHAOS_FADE) )
+        base_exp += base_exp/4;
+    if ( IS_SET(victim->off_flags, OFF_DODGE) )
+        base_exp += base_exp/10;
+    if ( IS_SET(victim->off_flags, OFF_PARRY) )
+        base_exp += base_exp/10;
+    
+    off_bonus = 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_KICK) ? 2 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 2 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0,3*victim->size - 5) : 0;
+    base_exp += base_exp * off_bonus / 100;
+
+    if (victim->pIndexData->spec_fun != NULL)
+    {
+        char* spec = spec_name(victim->pIndexData->spec_fun);
+        // dragons
+        if ( strcmp(spec, "spec_breath_any") == 0
+            || strcmp(spec, "spec_breath_acid") == 0
+            || strcmp(spec, "spec_breath_fire") == 0
+            || strcmp(spec, "spec_breath_frost") == 0
+            || strcmp(spec, "spec_breath_gas") == 0
+            || strcmp(spec, "spec_breath_lightning") == 0 )
+            base_exp += base_exp / 5;
+        // casters
+        else if ( strcmp(spec, "spec_cast_cleric") == 0
+            || strcmp(spec, "spec_cast_mage") == 0
+            || strcmp(spec, "spec_cast_undead") == 0 )
+            base_exp += base_exp / 5;
+        // other
+        else if ( strcmp(spec, "spec_thief") == 0
+            || strcmp(spec, "spec_nasty") == 0 )
+            base_exp += base_exp / 10;
+    }
+
+    if ( IS_SET(victim->pIndexData->act, ACT_AGGRESSIVE) )
+        base_exp += base_exp/10;
+
+    stance = victim->pIndexData->stance;
+    if ( stance != STANCE_DEFAULT )
+    {
+        // adjust stance cost for purpose of bonus calculation
+        switch (stance) {
+            case STANCE_BLOODBATH:
+                stance_bonus = 10;
+                break;
+            case STANCE_TORTOISE:
+                stance_bonus = 15;
+                break;
+            case STANCE_SHADOWWALK:
+                stance_bonus = 20;
+                break;
+            default:
+                stance_bonus = stances[stance].cost;
+                break;
+        }
+        base_exp += base_exp * stance_bonus / 60;
+    }
+
+    // reduce extreme amounts of base xp
+    if (base_exp > 300)
+        base_exp = (300 + base_exp) / 2; 
+    
+    return (int)base_exp;
 }
 
 /*
@@ -5159,200 +5181,27 @@ int level_power( CHAR_DATA *ch )
  * Also adjust alignment of killer ( by gain_align percentage )
  * Edit this function to change xp computations.
  */
-int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
+float calculate_exp_factor( CHAR_DATA *gch )
 {
-    int xp,base_exp;
-    
-    int valign, galign,level_range;
-    int change;
-    
-    int max, min;
-    float g, v;
-
+    float xp_factor = 1;
     int bonus = 0;
 
     /* safety net */
-    if ( IS_NPC(gch) || !IS_NPC(victim) || IS_SET(victim->act, ACT_NOEXP) )
+    if ( IS_NPC(gch) )
 	return 0;
 
-    level_range = victim->level - level_power(gch);
-    
-    /* compute the base exp */
-    /*
-    switch (level_range)
+    // penalty for high-level chars - levels above 90 provide bonus-dice, so harder to achieve
+    if ( gch->level >= 90 )
     {
-    default :   base_exp =   0;     break;
-    case -15 :  base_exp =   1;     break;
-    case -14 :  base_exp =   2;     break;
-    case -13 :  base_exp =   3;     break;
-    case -12 :  base_exp =   4;     break;
-    case -11 :  base_exp =   5;     break;
-    case -10 :  base_exp =   6;     break;
-    case -9 :   base_exp =   7;     break;
-    case -8 :   base_exp =   9;     break;
-    case -7 :   base_exp =  11;     break;
-    case -6 :   base_exp =  17;     break;
-    case -5 :   base_exp =  26;     break;
-    case -4 :   base_exp =  35;     break;
-    case -3 :   base_exp =  44;     break;
-    case -2 :   base_exp =  53;     break;
-    case -1 :   base_exp =  62;     break;
-    case  0 :   base_exp =  70;     break;
-    case  1 :   base_exp =  78;     break;
-    case  2 :   base_exp =  86;     break;
-    case  3 :   base_exp =  93;     break;
-    case  4 :   base_exp = 100;     break;
-    } 
-    
-    if (level_range > 4)
-        base_exp = 97 + 12 * (level_range - 4);
-    */
-
-    /* Don't force players to kill super-strong mobs --Bobble */
-    base_exp = 100 + 10 * level_range;
-    base_exp = UMAX(0, base_exp);
-
-    /* shoot down super-levelling mobs */
-    if ( IS_SET(victim->vuln_flags, VULN_WEAPON) )
-	base_exp -= base_exp/20;
-    if ( IS_SET(victim->vuln_flags, VULN_MAGIC) )
-	base_exp -= base_exp/20;
-
-    /* reward for tough mobs */
-    if ( IS_SET(victim->res_flags, RES_WEAPON)
-	 || IS_SET(victim->imm_flags, IMM_WEAPON) )
-	base_exp += base_exp/20;
-    if ( IS_SET(victim->res_flags, RES_MAGIC)
-	 || IS_SET(victim->imm_flags, IMM_MAGIC) )
-	base_exp += base_exp/20;
-    if ( IS_SET(victim->pIndexData->affect_field, AFF_SANCTUARY) )
-	base_exp += base_exp/3;
-    if ( IS_SET(victim->pIndexData->affect_field, AFF_HASTE) )
-	base_exp += base_exp/10;
-    if ( IS_SET(victim->off_flags, OFF_FADE) )
-	base_exp += base_exp/4;
-    else if ( IS_SET(victim->pIndexData->affect_field, AFF_FADE)
-	      || IS_SET(victim->pIndexData->affect_field, AFF_CHAOS_FADE) )
-	base_exp += base_exp/5;
-    if ( IS_SET(victim->off_flags, OFF_DODGE) )
-	base_exp += base_exp/10;
-    if ( IS_SET(victim->off_flags, OFF_PARRY) )
-	base_exp += base_exp/10;
-    if ( IS_SET(victim->off_flags, OFF_FAST) )
-	base_exp += base_exp/10;
-    if ( IS_SET(victim->off_flags, OFF_BASH) )
-	base_exp += base_exp/20;
-    if ( IS_SET(victim->off_flags, OFF_TAIL) )
-	base_exp += base_exp/20;
-    if ( IS_SET(victim->pIndexData->act, ACT_AGGRESSIVE) )
-	base_exp += base_exp/10;
-
-    /* do alignment computations */
-    galign = gch->alignment;
-    valign = victim->alignment;
-    
-    if ( IS_SET(victim->act, ACT_NOALIGN) || gain_align == 0
-	 || victim->pIndexData->vnum == gch->pcdata->questmob )
-	change = 0;
-    else if (galign>300)
-    {
-        if (valign>-100) change= ((-100 - valign)*galign)/1600;
-        else if (galign<-valign)
-        {
-            change = (-valign -galign);
-            change = UMIN(change, (change*base_exp)/500);
-        }
-        else change = 0;
+        int hitdice_gained = gch->level - 88;
+        xp_factor *= 5.0 / (4 + hitdice_gained);
     }
-    else if (galign<300)
-    {
-        if (valign<-200) change=((-200 - valign)*base_exp)/(800);
-        else if (galign>(-500-valign/2))
-        {
-            change = (-500-valign/2 -galign);
-            change = UMAX(change, (change*base_exp)/(300));
-        }
-        else change = 0;
-    }
-    else
-    {
-        min = -300 -galign/3;
-        max = 200 - 2*galign/3;
-        if (valign>max)
-        {
-            change = (max - valign);
-            change = UMAX(change, (change*base_exp)/(400));
-        }
-        else if (valign<min)
-        {
-            change = (min - valign);  
-            change = UMAX(change, (change*base_exp)/(600));
-        }
-        else change = 0;
-    }
-    
-    /* general reduction of align change --Bobble */
-    change /= 10;
-
-    if ( gain_align > 0 )
-	change_align(gch, change * gain_align/100);
-    
-    g = (int)(((float)galign)/1000.0);
-    v = (int)(((float)valign)/1000.0);
-    
-    if (IS_SET(victim->act,ACT_NOALIGN))
-        xp = base_exp;
-    /* seems very strange --Bobble
-    else if (galign > 0)
-    {
-        if (valign >0)  xp=(int)(base_exp * (.9 +.2*v -.1*g -.5*g*v));
-        else            xp=(int)(base_exp * (.9 -.2*v -.1*g -.4*g*v));    
-    }
-    else
-    {
-        if (valign>0)   xp=(int)(base_exp * (.9 +.2*v -.1*g));   
-        else            xp=(int)(base_exp * (.9 -.2*v -.1*g -.6*g*v));    
-    }
-    */
-    else if ( g > 0 )
-	xp = (int) (base_exp * (1 - .2*g*v));
-    else
-	xp = (int) (base_exp * (1 - .1*g*v));
-
-    /* reduction of xp */
-    xp = xp * 3/4;
-
-    /* bonus for newbies */
+    // bonus for newbies
     if ( gch->pcdata->remorts == 0 )
-	xp += xp * (100 - gch->level) / 100;
-    /* more exp at the low levels */
-    if (gch->level < 16)
-        xp = 32 * xp / (gch->level + 16);
-    /* less at high */
-    if (gch->level > 60 )
-        xp =  40 * xp / (gch->level - 20 );
-    if (gch->level > 90 )
-        xp= (4*xp)/(gch->level-87);
+        xp_factor += (100 - gch->level) / 200.0;
 
-/* The above number, 4 x XP was changed from a 3. This gives more XP at hero level 
-   Astark 6-1-12 */
+    // additive bonuses
     
-    /* reduce for playing time 
-       {
-       time_per_level = 4 *
-       (gch->played + (int) (current_time - gch->logon))/3600/ gch->level;
-       time_per_level = URANGE(2,time_per_level,12);
-       if (gch->level < 15)  
-       time_per_level = UMAX(time_per_level,(15 - gch->level));
-       xp = xp * time_per_level / 12;
-       } */
-    
-    /* randomize the rewards */
-    /*xp = number_range (xp * 3/4, xp * 5/4);*/
-    
-    /* adjust for grouping */
-    /*xp = xp * gch->level/( UMAX(1,(2*gch->level + total_levels)/3) );*/
-
     /* normal pkillers get 10% exp bonus, hardcore pkillers 20% */
     if ( IS_SET(gch->act, PLR_PERM_PKILL) )
 	if ( IS_SET(gch->act, PLR_HARDCORE) )
@@ -5374,11 +5223,84 @@ int xp_compute( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align )
     if ( IS_AFFECTED(gch, AFF_HALLOW) )
         bonus += 20;
 
-    xp += xp * bonus / 100;
+    xp_factor *=  1 + bonus / 100.0;
 
-    return xp;
+    return xp_factor;
 }
 
+// returns "degree of of vulnerability" (0-1) - for xp calculation
+float get_vulnerability( CHAR_DATA *victim )
+{
+    int vuln = 0;
+    if (IS_SET(victim->vuln_flags, VULN_WEAPON))
+        vuln += 27;
+    else
+    {
+        if (IS_SET(victim->vuln_flags, VULN_BASH))
+            vuln += 9;
+        if (IS_SET(victim->vuln_flags, VULN_PIERCE))
+            vuln += 9;
+        if (IS_SET(victim->vuln_flags, VULN_SLASH))
+            vuln += 9;        
+    }
+    if (IS_SET(victim->vuln_flags, VULN_MAGIC))
+        vuln += 23;
+    else
+    {
+        if (IS_SET(victim->vuln_flags, VULN_FIRE))
+            vuln += 4;
+        if (IS_SET(victim->vuln_flags, VULN_COLD))
+            vuln += 3;
+        if (IS_SET(victim->vuln_flags, VULN_LIGHTNING))
+            vuln += 3;
+        if (IS_SET(victim->vuln_flags, VULN_ACID))
+            vuln += 2;
+        if (IS_SET(victim->vuln_flags, VULN_POISON))
+            vuln += 2;
+        if (IS_SET(victim->vuln_flags, VULN_NEGATIVE))
+            vuln += 1;
+        if (IS_SET(victim->vuln_flags, VULN_HOLY))
+            vuln += 1;
+        if (IS_SET(victim->vuln_flags, VULN_ENERGY))
+            vuln += 1;
+        if (IS_SET(victim->vuln_flags, VULN_MENTAL))
+            vuln += 1;
+        if (IS_SET(victim->vuln_flags, VULN_DISEASE))
+            vuln += 2;
+        if (IS_SET(victim->vuln_flags, VULN_DROWNING))
+            vuln += 1;
+        if (IS_SET(victim->vuln_flags, VULN_LIGHT))
+            vuln += 1;
+        if (IS_SET(victim->vuln_flags, VULN_SOUND))
+            vuln += 1;
+    }
+    
+    return vuln / 50.0;
+}
+
+void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor )
+{
+    int galign = gch->alignment;
+    int valign = victim->alignment;
+    int change;
+
+    // killing neutral-aligned non-sentients or undeads does nothing
+    if ( IS_NEUTRAL(victim) && (!IS_SET(victim->form, FORM_SENTIENT) || IS_UNDEAD(victim)) )
+        return;
+    
+    // killing evil victims makes you good, killing neutral or good victims makes you evil
+    change = - (350 + victim->alignment);
+    // adjust based on xp gained - redemption requires effort, but killing harmless victims is still pretty evil
+    if (change > 0)
+        change = change * UMAX(25, base_xp) / 100;
+    else
+        change = change * UMAX(50, base_xp) / 100;
+    // scaling
+    change = change / 50;
+        
+    change_align(gch, change * gain_factor);
+    return;
+}        
 
 void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 {
