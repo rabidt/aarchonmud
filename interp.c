@@ -172,6 +172,9 @@ const   struct  cmd_type    cmd_table   [] =
     { "whois",      do_whois,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "wizlist",    do_wizlist, POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "worth",      do_worth,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+#ifdef FSTAT 
+    { "fstat",	    do_fstat,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+#endif
 //    { "combo",      do_combo,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     
    /*
