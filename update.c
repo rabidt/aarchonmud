@@ -35,13 +35,13 @@
 #include <math.h>
 #include <time.h>
 #include "merc.h"
-#include "music.h"
 #include "recycle.h"
 #include "tables.h"
 #include "lookup.h"
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
+#include "leaderboard.h"
 #include "mob_stats.h"
 
 /* command procedures needed */
@@ -152,6 +152,9 @@ void gain_exp( CHAR_DATA *ch, int gain)
    
    if ( IS_NPC(ch) || IS_HERO(ch) )
 	  return;
+
+   if ( IS_SET(ch->act,PLR_NOEXP))
+       return;
    
    field = UMAX((ch_wis_field(ch)*gain)/100,0);
    gain-=field;
@@ -186,6 +189,7 @@ void gain_exp( CHAR_DATA *ch, int gain)
    {
 	  send_to_char( "You raise a level!!  ", ch );
 	  ch->level += 1;
+	  update_lboard( LBOARD_LEVEL, ch, ch->level, 1);
 	  
 	  sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
 	  log_string(buf);
@@ -283,9 +287,6 @@ int adjust_gain( CHAR_DATA *ch, int gain )
 
     /* encumberance can half healing speed */
     gain -= gain * get_encumberance( ch ) / 200;
-
-    if ( ch->song_hearing == gsn_lust_life )
-	gain += gain/2;
 
     if ( IS_AFFECTED(ch, AFF_POISON) )
         gain /= 2;
@@ -2413,14 +2414,6 @@ void update_handler( void )
        reset_herbs_world();
    }
    
-   /* Removed 4/6/98 due to inf. loop.  Rim
-   if ( --pulse_music    <= 0 )
-   {
-	  pulse_music = PULSE_MUSIC;
-	  song_update();
-   }
-   */
-   
    if ( update_all )
    {
        if ( --pulse_mobile <= 0 )
@@ -2464,9 +2457,13 @@ void update_handler( void )
 	  update_relic_bonus();
    }
 
+
    /* update some things once per hour */
    if ( current_time % HOUR == 0 )
    {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
        if ( hour_update )
        {
 	   /* update herb_resets every 6 hours */
@@ -2810,6 +2807,9 @@ void change_align (CHAR_DATA *ch, int change_by)
    }
 
    check_religion_align( ch );
+   check_clan_align( ch );
+   check_equipment_align( ch );
+   return;
 }
 
 void drop_align( CHAR_DATA *ch )
@@ -2821,7 +2821,53 @@ void drop_align( CHAR_DATA *ch )
        ch->alignment -= 1;
 
    check_religion_align( ch );
+   check_clan_align( ch );
+   check_equipment_align( ch );
+   return;
 }
 
+void check_clan_align( CHAR_DATA *gch )
+{
+    if (!IS_NPC(gch) && !IS_IMMORTAL(gch) &&
+        (  gch->alignment < clan_table[gch->clan].min_align 
+        || gch->alignment > clan_table[gch->clan].max_align))
+    {
+        send_to_char("Your alignment has made you unwelcome in your clan!\n\r", gch);
+        sprintf(log_buf, "%s has become too %s for clan %s!",
+            gch->name, 
+            gch->alignment < clan_table[gch->clan].min_align ? "{rEvil{x" : "{wGood{x", 
+            capitalize(clan_table[gch->clan].name));
+        
+        info_message(gch, log_buf, TRUE);
 
+        gch->clan = 0;
+        gch->pcdata->clan_rank = 0;
 
+        check_clan_eq(gch);
+    }
+    return;
+}
+
+void check_equipment_align( CHAR_DATA *gch )
+{
+    OBJ_DATA *obj;
+    OBJ_DATA *obj_next;
+    
+    for ( obj = gch->carrying; obj != NULL; obj = obj_next )
+    {
+        obj_next = obj->next_content;
+        if ( obj->wear_loc == WEAR_NONE )
+            continue;
+        
+        if ( ( IS_OBJ_STAT(obj, ITEM_ANTI_EVIL)    && IS_EVIL(gch)    )
+            ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_GOOD)    && IS_GOOD(gch)    )
+            ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_NEUTRAL) && IS_NEUTRAL(gch) ) )
+        {
+            act( "You are zapped by $p.", gch, obj, NULL, TO_CHAR );
+            act( "$n is zapped by $p.",   gch, obj, NULL, TO_ROOM );
+            obj_from_char( obj );
+            obj_to_char( obj, gch );
+        }        
+    }
+    return;
+}
