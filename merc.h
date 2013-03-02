@@ -35,6 +35,10 @@
 #endif
 #endif
 
+
+#ifdef TESTER
+#define FSTAT
+#endif
 /* debugging macros */
 /* #define SIM_DEBUG */
 /* #define FLUSH_DEBUG */
@@ -162,8 +166,6 @@ typedef void DO_FUN args( ( CHAR_DATA *ch, char *argument ) );
 typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
 typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo,
 				int target ) );
-typedef bool SONG_FUN   args((int sn,int level,CHAR_DATA *singer,
-				CHAR_DATA *target,int task));
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 
@@ -192,7 +194,7 @@ struct comm_history_entry
     COMM_ENTRY *prev;
 
     char *timestamp;
-    char channel;
+    sh_int channel;
     char *text;
     bool invis;
     char *mimic_name;
@@ -206,6 +208,24 @@ struct comm_history_type
     COMM_ENTRY *tail; /* oldest */
 };
 
+
+
+typedef bool CHAN_CHECK args( ( CHAR_DATA *ch) );
+typedef struct channel_type
+{
+	sh_int *psn;
+	char *name;
+	char *first_pers;
+	char *third_pers;
+	char prime_color;
+	char second_color;
+	sh_int offbit;
+	sh_int min_level;
+	CHAN_CHECK *check; /*pointer to special check func*/
+} CHANNEL;
+extern const CHANNEL public_channel_table[];
+bool check_savant( CHAR_DATA *ch );
+bool check_immtalk( CHAR_DATA *ch );
 
 bool is_remort_obj( OBJ_DATA *obj );
 bool is_sticky_obj( OBJ_DATA *obj );
@@ -272,9 +292,11 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define PULSE_AREA        (120 * PULSE_PER_SECOND)
 #define PULSE_SAVE            ( 2 * PULSE_PER_SECOND )
 #define PULSE_HERB            ( 15 * 60 * PULSE_PER_SECOND )
+#define PULSE_PER_MINUTE	( 60 * PULSE_PER_SECOND )
 /* #define PULSE_HERB            ( 15 * PULSE_PER_SECOND ) */
 
 /* times */
+#define MINUTE 60
 #define HOUR 3600
 #define DAY (24*HOUR)
 #define WEEK (7*DAY)
@@ -585,6 +607,7 @@ struct clan_rank_data
     bool     can_declare_truce; /* Ability to declare truces in clan wars */
     bool     can_declare_treaty;/* Ability to declare clan treaties  */
     bool     can_invite;        /* Ability to invite others to join the clan */
+    bool     can_set_motd;      /* Ability to set the clan motd */
 };
 
 struct clan_data
@@ -597,6 +620,7 @@ struct clan_data
     char *   who_name;
     char *   who_color;
     char *   patron;            /* Patron name referenced in code. */
+    char *   motd;		/* Special motd displayed for clan members. */
     sh_int   hall;              /* Recall room */
     sh_int   donation;          /* Clan donation room */
     time_t   creation_date;     /* Date clan created */
@@ -1629,8 +1653,7 @@ struct  kill_data
 /* toggle for old score and finger */
 #define TOGG_OLDSCORE       1
 #define TOGG_OLDFINGER      2
-
-
+#define TOGG_STATBARS       3
 
 /*
  * Well known object virtual numbers.
@@ -2187,6 +2210,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_TRIG_SAFE   (ll)
 #define PLR_INACTIVE_HELPER (mm)
 #define PLR_ANTI_HELEPR (nn)
+#define PLR_NOEXP       (oo)
 
 /* RT comm flags -- may be used on both mobs and chars */
 #define COMM_QUIET              (A)
@@ -2278,21 +2302,40 @@ typedef int tattoo_list[MAX_WEAR];
 #define GAG_SUNBURN    (H)
 #define GAG_NCOL_CHAN  (I)
 
-#define song_null       -1
+/* channel definitions for log_chan/playback */
+extern sh_int sn_gossip;
+extern sh_int sn_auction;
+extern sh_int sn_music;
+extern sh_int sn_question;
+extern sh_int sn_answer;
+extern sh_int sn_quote;
+extern sh_int sn_gratz;
+extern sh_int sn_gametalk;
+extern sh_int sn_bitch;
+extern sh_int sn_immtalk;
+extern sh_int sn_savantalk;
+extern sh_int sn_newbie;
 
-/* channel definitions for playback log_chan/playback */
-#define CHAN_GOSSIP 'p'
-#define CHAN_AUCTION 'a'
-#define CHAN_MUSIC 'e'
-#define CHAN_QUESTION 'q'
-#define CHAN_ANSWER 'j'
-#define CHAN_QUOTE 'h'
-#define CHAN_GRATZ 'z'
-#define CHAN_GAMETALK 'k'
-#define CHAN_BITCH 'f'
-#define CHAN_NEWBIE 'n'
-#define CHAN_IMMTALK 'i'
-#define CHAN_SAVANT '7'
+/* Why not replace all the ones below with just this?
+   We might want to have daily/weekly/monthly/overall boards differ
+   in what is tracked and order in the list so
+   let's keep it all separate for now.
+   Yes, it's kind of messy, but it's functional and flexible. */
+
+/* defines for lboard type 
+ used for args to functions
+ such as update_lboard 	*/
+
+#define LBOARD_MKILL	0
+#define LBOARD_QCOMP	1
+#define LBOARD_BHD		2
+#define LBOARD_QPNT		3
+#define LBOARD_WKILL	4
+#define LBOARD_EXPL		5
+#define LBOARD_QFAIL	6
+#define LBOARD_LEVEL	7
+#define LBOARD_PKILL	8
+#define MAX_LBOARD 		9
 
 /*
  * Prototype for a mob.
@@ -2495,7 +2538,6 @@ struct  char_data
 	tflag        form;
 	tflag        parts;
 	sh_int      size;
-	char*       material;
 	/* mobile stuff */
 	tflag        off_flags;
 	sh_int      damage[3];
@@ -2505,43 +2547,20 @@ struct  char_data
 	  sh_int        mprog_delay;
 	char *hunting;
 	sh_int  stance;
-	sh_int      song_hearing;
-	sh_int      song_singing;
-	sh_int      song_delay;
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
-/*
-	CHAR_DATA *         questgiver;
-	int                 questpoints;
-	sh_int              nextquest;
-	sh_int              countdown;
-	sh_int              questobj;
-	long		bank;
-	sh_int      clan_rank;
-	tflag        tag_flags;
-	int                 total_wars;
-	int                 war_kills;
-	int                 armageddon_won;
-	int                 armageddon_lost;
-	int                 armageddon_kills;
-	int                 class_won;
-	int                 class_lost;
-	int                 class_kills;
-	int                 race_won;
-	int                 race_lost;
-	int                 race_kills;
-	int                 clan_won;
-	int                 clan_lost;
-	int                 clan_kills;
-	long                mob_kills;
-	int                 mob_deaths;
-	int                 quest_failed;
-	int                 quest_success;
-	int                 gender_won;
-	int                 gender_lost;
-	int                 gender_kills;
-*/
+	#ifdef FSTAT
+	/* Stuff for fight statistics*/
+	int	attacks_attempts;
+	int	attacks_success;
+	int	attacks_misses;
+	int	damage_dealt;
+	int	fight_rounds;
+	int	damage_taken;
+	int	mana_used;
+	int	moves_used;
+	#endif
 };
 
 
@@ -2961,7 +2980,6 @@ struct  room_index_data
     sh_int      mana_rate;
     sh_int      clan;
     sh_int      clan_rank;
-    CHAR_DATA * singer;
 };
 
 
@@ -3031,7 +3049,6 @@ struct  skill_type
 	char *  noun_damage;        /* Damage message       */
 	char *  msg_off;        /* Wear off message     */
 	char *  msg_obj;        /* Wear off message for obects  */
-	SONG_FUN * song_fun;
 };
 
 
@@ -3218,12 +3235,6 @@ extern sh_int  gsn_recall;
 extern sh_int  gsn_flee;
 extern sh_int  gsn_retreat;
 extern sh_int  gsn_entrapment;
-
-extern sh_int gsn_pied_piper;
-extern sh_int gsn_shafts_theme;
-extern sh_int gsn_cacophony;
-extern sh_int gsn_lust_life;
-extern sh_int gsn_white_noise;
 
 extern sh_int  gsn_mug;
 extern sh_int  gsn_headbutt;
@@ -3593,6 +3604,7 @@ struct achievement_entry
 #define URANGE(a, b, c)     ((b) < (a) ? (a) : ((b) > (c) ? (c) : (b)))
 #define LOWER(c)        ((c) >= 'A' && (c) <= 'Z' ? (c)+'a'-'A' : (c))
 #define UPPER(c)        ((c) >= 'a' && (c) <= 'z' ? (c)+'A'-'a' : (c))
+#define ABS(a)          ((a) >= 0 ? (a) : -(a))
 /*
 #define SET_BIT(var, bit)  ((bit) > 0 ? ((var) |= (bit)) : (*((&((var))) + 1) |= (bit))) 
 #define REMOVE_BIT(var, bit)  ((bit) > 0 ? ((var) &= ~(bit)) : (*((&((var))) + 1) &= ~(bit))) 
@@ -3632,6 +3644,7 @@ struct achievement_entry
 #define IS_BETWEEN(min,num,max) ( ((min) <= (num)) && ((num) <= (max)) )
 #define CHECK_POS(a, b, c)  { (a) = (b); if ( (a) < 0 ) bug( "CHECK_POS : " c " == %d < 0", a ); }
 #define IS_SPELL(sn) (skill_table[sn].spell_fun != spell_null)
+#define IS_CHAN_OFF(ch, sn)	(IS_SET( ch->comm, public_channel_table[sn].offbit))
 
 
 /*
@@ -3833,6 +3846,8 @@ extern  char *  const           title_table [MAX_CLASS] [23];
 extern	        struct  clan_data       clan_table[MAX_CLAN];
 
 
+
+
 /*
  * Global variables.
  */
@@ -4005,7 +4020,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define TYPO_FILE       "../log/typos.txt" /* For 'typo'*/
 #define SHUTDOWN_FILE   "shutdown.txt"/* For 'shutdown'*/
 #define BAN_FILE    "ban.txt"
-#define MUSIC_FILE  "music.txt"
 #define DISABLED_FILE   "disabled.txt"  /* disabled commands */
 #define CLANWAR_FILE   "clanwar.txt"
 #define REMORT_FILE    "remort.txt"
@@ -4020,6 +4034,8 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define PLAYER_TEMP_DIR "../player/temp/"  /* for simultanious saves */
 #define PORTAL_FILE    "portal.txt"
 #define RELIGION_FILE  "religion.txt"
+#define LBOARD_FILE    "lboard.txt"
+#define LBOARD_RESULT_FILE "lboard_result.txt"
 #define CHEAT_LIST     "../log/cheatlog.txt"
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
@@ -4202,7 +4218,9 @@ char *  capitalize  args( ( const char *str ) );
 void    append_file args( ( CHAR_DATA *ch, char *file, char *str ) );
 void    bug     args( ( const char *str, int param ) );
 void    log_string  args( ( const char *str ) );
+void    log_trace();
 void    tail_chain  args( ( void ) );
+char *	bin_info_string();
 
 /* effect.c */
 void    acid_effect args( (void *vo, int level, int dam, int target) );
@@ -4426,18 +4444,6 @@ int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 void load_social_table();
 void save_social_table();
 
-/* song.c */
-void song_from_char args(( CHAR_DATA *ch ));
-void song_to_char       args(( CHAR_DATA *ch ));
-void song_from_room args(( CHAR_DATA *ch ));
-void song_to_room       args(( CHAR_DATA *ch ));
-void update_song        args(( CHAR_DATA *ch ));
-void stop_singing       args(( CHAR_DATA *ch ));
-bool saves_song     args((int level,CHAR_DATA *ch,CHAR_DATA *victim,int base_chance));
-int calc_song_sns       args((void));
-int song_level      args(( CHAR_DATA *ch, int sn ));
-
-
 /* special.c */
 SF *    spec_lookup args( ( const char *name ) );
 char *  spec_name   args( ( SPEC_FUN *function ) );
@@ -4589,10 +4595,3 @@ extern      OBJ_INDEX_DATA *    obj_index_hash  [MAX_KEY_HASH];
 extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
 
-
-
-
-/* websvr.c */
-void init_web(int port);
-void handle_web(void);
-void shutdown_web(void);

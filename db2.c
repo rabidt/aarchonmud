@@ -312,6 +312,7 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
 
     if (pMobIndex->level > 0)
     {
+        /* In most cases we'll WANT the default of 100, but left in here in case we decide otherwise --Bobble
         // hitpoints
         actual = average_roll(pMobIndexOld->hit[DICE_NUMBER], pMobIndexOld->hit[DICE_TYPE], pMobIndexOld->hit[DICE_BONUS]);
         spec = average_mob_hp(pMobIndexOld->level);
@@ -327,6 +328,7 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
         actual = average_roll(pMobIndexOld->damage[DICE_NUMBER], pMobIndexOld->damage[DICE_TYPE], 0) + pMobIndexOld->damage[DICE_BONUS] / 4;
         spec = average_mob_damage(pMobIndexOld->level);
         pMobIndex->damage_percent   = URANGE(50, 100 * actual / UMAX(1,spec), 200);
+        */
 
         // wealth - as we don't have shops loaded yet, this will result in excessive wealth percent for shopkeepers
         // however, we cap at 200%, so no big deal
