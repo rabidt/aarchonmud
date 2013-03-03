@@ -1397,8 +1397,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
         }
         
         /* If ch is writing note or playing, just lose link otherwise clear char */
-        if (!merc_down &&
-            (dclose->connected == CON_PLAYING || IS_WRITING_NOTE(dclose->connected)))
+        if (!merc_down && IS_PLAYING(dclose->connected))
         {
 	    remove_from_who_list(dclose);
             act( "$n has lost $s link.", ch, NULL, NULL, TO_ROOM );
