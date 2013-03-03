@@ -990,9 +990,7 @@ void game_loop_unix( int control )
 				}
 			}
 			
-			if ((d->connected!=CON_PLAYING)
-				&&(!IS_WRITING_NOTE(d->connected))
-				&&(d->inactive>4800))
+			if (!IS_PLAYING(d->connected) && (d->inactive>4800))
 			{
 				write_to_buffer( d, "Logon timed out.\n\r", 0 );
 				close_socket( d );
@@ -1443,6 +1441,8 @@ void close_socket( DESCRIPTOR_DATA *dclose )
         else
             bug( "Close_socket: dclose not found.", 0 );
     }
+    
+    set_con_state(dclose, CON_CLOSED);
     
 #if !defined( WIN32 )
     close( dclose->descriptor );

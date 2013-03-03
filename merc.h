@@ -718,8 +718,9 @@ struct penalty_data
 #define CON_PENALTY_POINTS      31
 #define CON_PENALTY_PENLIST     32
 #define CON_PENALTY_FINISH      33
-#define CON_GET_COLOUR		34
-#define MAX_CON_STATE           35
+#define CON_GET_COLOUR          34
+#define CON_CLOSED              35
+#define MAX_CON_STATE           36
 
 #define CON_SMITH_WELCOME       1
 #define CON_SMITH_TYPE          2
