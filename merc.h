@@ -3623,6 +3623,8 @@ struct achievement_entry
 #define IS_NOHIDE(ch)           (!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_NOHIDE))
 
 #define IS_WRITING_NOTE(con)  (((con >= CON_NOTE_TO && con <= CON_NOTE_FINISH)||(con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH)||((con-con%MAX_CON_STATE)/MAX_CON_STATE==CREATION_BLACKSMITH)) ? TRUE : FALSE)
+#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con))
+#define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
 
 #define NOT_AUTHED(ch)   (!IS_NPC(ch) && get_auth_state( ch ) != AUTH_AUTHED && IS_SET(ch->act, PLR_UNAUTHED) )
 
@@ -3642,7 +3644,6 @@ struct achievement_entry
 #define IS_WEAPON_STAT(obj,stat)(I_IS_SET((obj)->value[4],(stat)))
 #define SET_WEAPON_STAT(obj,stat) (I_SET_BIT((obj)->value[4],(stat)))
 #define WEIGHT_MULT(obj)    ((obj)->item_type == ITEM_CONTAINER ? (obj)->value[4] : -1)
-
 
 /*
  * Description macros.

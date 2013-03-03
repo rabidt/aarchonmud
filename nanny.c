@@ -607,12 +607,14 @@ int creation_mode(DESCRIPTOR_DATA *d)
 void set_con_state(DESCRIPTOR_DATA *d, int cstate)
 {
     d->connected += cstate - d->connected%MAX_CON_STATE;
+    check_who_list_connection();
     return;
 }
 
 void set_creation_state(DESCRIPTOR_DATA *d, int cmode)
 {
     d->connected = d->connected%MAX_CON_STATE + cmode*MAX_CON_STATE;
+    check_who_list_connection();
     return;
 }
 
@@ -2183,11 +2185,13 @@ void enter_game ( DESCRIPTOR_DATA *d )
 void add_to_who_list( DESCRIPTOR_DATA *d )
 {
     WHO_DATA *newwho, *who;
+    CHAR_DATA *new_ch, *who_ch;
 
     if ( d == NULL )
 	return;
 
-    if( d->character == NULL )
+    new_ch = DESC_PC(d);
+    if( new_ch == NULL )
     {
 	bug( "BUG: add_to_who_list, null ch\n", 0 );
 	return;
@@ -2195,17 +2199,51 @@ void add_to_who_list( DESCRIPTOR_DATA *d )
 
     /* safety-net */
     for ( who = who_list; who != NULL; who = who->next )
+    {
+        who_ch = DESC_PC(who->desc);
 	if ( who->desc == d )
 	{
-	    bugf( "add_to_who_list: descriptor already in list: %s",
-		  d->character->name );
+            bugf( "add_to_who_list: descriptor already in list: %s", new_ch->name );
+            log_trace();
 	    return;
 	}
+        if ( strcmp(who_ch->name, new_ch->name) == 0 )
+        {
+            bugf( "add_to_who_list: character already in list: %s", new_ch->name );
+            log_trace();
+            return;
+        }
+    }
+    
+    // second safety-net: only playing/note writing chars should appear in the who list
+    // compare close_socket in comm.c
+    if ( !IS_PLAYING(d->connected) )
+    {
+        bugf( "add_to_who_list: character is not playing: connected = %d", d->connected );
+        log_trace();
+        return;
+    }
 
     newwho = new_who_data();
     newwho->desc = d;
     place_in_who_list( newwho );
     return;
+}
+
+void check_who_list_connection()
+{
+    WHO_DATA *who;
+    CHAR_DATA *who_ch;
+
+    for ( who = who_list; who != NULL; who = who->next )
+    {
+        if ( !IS_PLAYING(who->desc->connected) )
+        {
+            who_ch = DESC_PC(who->desc);
+            bugf( "check_who_list_connection: character %s is not playing: connected = %d",  who_ch->name, who->desc->connected );
+            log_trace();
+        }    
+    }
 }
 
 void remove_from_who_list( DESCRIPTOR_DATA *d )
