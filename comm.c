@@ -3532,8 +3532,6 @@ void copyover_recover ()
             d->character->next = char_list;
             char_list = d->character;
             
-	    add_to_who_list(d);
-
             char_to_room (d->character, d->character->in_room);
             do_look (d->character, "auto");
             act ("$n materializes!", d->character, NULL, NULL, TO_ROOM);
@@ -3545,6 +3543,8 @@ void copyover_recover ()
                 char_to_room(d->character->pet,d->character->in_room);
                 act("$n materializes!.",d->character->pet,NULL,NULL,TO_ROOM);
             }
+
+            add_to_who_list(d);
 
 	    /* Auth list status now updates correctly after a copyover. */
 	    /* Also, authorizing a character who was online during a */

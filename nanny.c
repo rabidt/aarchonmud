@@ -1891,9 +1891,6 @@ bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
                 ch->desc     = d;
                 ch->timer    = 0;
 
-		/* add to the sorted who list */
-		add_to_who_list(d);
-
                 send_to_char( "Reconnecting.\n\r", ch );
                 if (ch->pcdata->new_tells)
                     send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
@@ -1912,6 +1909,9 @@ bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
                 if (ch->pcdata->in_progress)
                     send_to_char ("You have a note in progress. Type NOTE WRITE to continue it.\n\r",ch);
                 
+                /* add to the sorted who list */
+                add_to_who_list(d);
+
                 check_auth_state( ch );
             }
             return TRUE;
