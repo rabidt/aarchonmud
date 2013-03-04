@@ -306,7 +306,6 @@ DECLARE_DO_FUN( do_pick     );
 DECLARE_DO_FUN( do_pipe     );
 DECLARE_DO_FUN( do_pkil     );
 DECLARE_DO_FUN( do_pkill    );
-DECLARE_DO_FUN( do_play     );
 DECLARE_DO_FUN( do_playback );
 DECLARE_DO_FUN( do_pload    );
 DECLARE_DO_FUN( do_infectious_arrow);
@@ -554,8 +553,11 @@ DECLARE_DO_FUN( do_rdoor        );
 DECLARE_DO_FUN( do_findlock     );
 DECLARE_DO_FUN( do_rforce       );
 
+DECLARE_DO_FUN( do_lboard);
+DECLARE_DO_FUN( do_lhistory);
 DECLARE_DO_FUN( do_dummy);
 DECLARE_DO_FUN( do_mode);
+DECLARE_DO_FUN( do_cmotd);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif

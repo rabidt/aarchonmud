@@ -34,7 +34,6 @@
 #include <time.h>
 #include "merc.h"
 #include "magic.h"
-#include "song.h"
 #include "interp.h"
 
 extern int nAllocString;

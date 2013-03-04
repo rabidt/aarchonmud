@@ -118,13 +118,13 @@ const   struct  cmd_type    cmd_table   [] =
     { "look",       do_look,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "glance",     do_glance,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "clan",       do_clantalk,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "cmotd",	    do_cmotd,	POS_SLEEPING, 	0,	LOG_NORMAL,  1, FALSE, TRUE },
     { "[",          do_clantalk, POS_SLEEPING, 0, LOG_NORMAL, 0, FALSE, TRUE  },
     { "proclaim",   do_religion_talk, POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "music",      do_music,       POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "order",      do_order,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "practice",   do_practice,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "rest",       do_rest,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "sing",       do_sing,    POS_RESTING,       0,    LOG_NORMAL, 1, FALSE, TRUE  },
     { "sit",        do_sit,     POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "sockets",    do_sockets, POS_DEAD,       L4,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "stand",      do_stand,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -155,6 +155,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "report",     do_report,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "rules",      do_rules,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "score",      do_score,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "lboard",     do_lboard,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+	{ "lhistory",   do_lhistory,POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "scan",       do_scan,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "survey",     do_survey,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "skill",      do_skill,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -415,7 +417,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "pkil",       do_pkil,    POS_DEAD,       10,  LOG_NEVER, 0, FALSE, FALSE  },
     { "pkill",      do_pkill,   POS_SLEEPING,    0,  LOG_NEVER,  1, FALSE, FALSE  },
     { "roleplay",   do_roleplay,POS_SLEEPING,    0,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "play",       do_play,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "qui",        do_qui,     POS_DEAD,    0,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "quit",       do_quit,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "recall",     do_recall,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -482,8 +483,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "authorize",  do_authorize, POS_DEAD, L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "avatar",	    do_avatar,  POS_DEAD,   L9,	 LOG_ALWAYS, 1, FALSE, FALSE  },
     { "printlist",  do_printlist,POS_DEAD,  ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-/* Used only for some pfile testing
-    { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },*/
+/* Used only for some pfile testing */
+    { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },
     /*  { "dump",       do_dump,    POS_DEAD,   ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     /*	{ "newdump",    do_new_dump, POS_DEAD,  ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     { "trust",      do_trust,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
