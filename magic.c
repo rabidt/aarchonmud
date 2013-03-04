@@ -892,11 +892,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if (ch->song_hearing == gsn_white_noise)
-    {
-        send_to_char("Your incantation is muffled by white noise.\n\r", ch);
-        return;
-    }
 /*
     if ((sn == gsn_hailstorm || gsn_meteor_swarm || gsn_call_lightning ||
             gsn_control_weather || gsn_monsoon ) && (weather_info.sky < SKY_RAINING 

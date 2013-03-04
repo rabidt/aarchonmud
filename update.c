@@ -35,7 +35,6 @@
 #include <math.h>
 #include <time.h>
 #include "merc.h"
-#include "music.h"
 #include "recycle.h"
 #include "tables.h"
 #include "lookup.h"
@@ -285,9 +284,6 @@ int adjust_gain( CHAR_DATA *ch, int gain )
 
     /* encumberance can half healing speed */
     gain -= gain * get_encumberance( ch ) / 200;
-
-    if ( ch->song_hearing == gsn_lust_life )
-	gain += gain/2;
 
     if ( IS_AFFECTED(ch, AFF_POISON) )
         gain /= 2;
@@ -2415,14 +2411,6 @@ void update_handler( void )
        pulse_herb  = PULSE_HERB;
        reset_herbs_world();
    }
-   
-   /* Removed 4/6/98 due to inf. loop.  Rim
-   if ( --pulse_music    <= 0 )
-   {
-	  pulse_music = PULSE_MUSIC;
-	  song_update();
-   }
-   */
    
    if ( update_all )
    {
