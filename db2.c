@@ -43,6 +43,7 @@
 #include "db.h"
 #include "tables.h"
 #include "lookup.h"
+#include "mob_stats.h"
 
 
 int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
@@ -56,7 +57,7 @@ char *flag_stat_string( const struct flag_type *flag_table, int bit );
  */
 void load_mobiles( FILE *fp )
 {
-    MOB_INDEX_DATA *pMobIndex;
+    MOB_INDEX_DATA_OLD *pMobIndex;
     
     if ( !area_last )   /* OLC */
     {
@@ -89,7 +90,7 @@ void load_mobiles( FILE *fp )
         }
         fBootDb = TRUE;
         
-        pMobIndex                       = alloc_perm( sizeof(*pMobIndex) );
+        pMobIndex                       = alloc_mem( sizeof(*pMobIndex) );
         pMobIndex->vnum                 = vnum;
         pMobIndex->area                 = area_last;               /* OLC */
         pMobIndex->new_format		= TRUE;
@@ -241,17 +242,285 @@ void load_mobiles( FILE *fp )
             }
         }
         
-        iHash                   = vnum % MAX_KEY_HASH;
-        pMobIndex->next         = mob_index_hash[iHash];
-        mob_index_hash[iHash]   = pMobIndex;
-        top_mob_index++;
-        top_vnum_mob = top_vnum_mob < vnum ? vnum : top_vnum_mob;  /* OLC */
-        assign_area_vnum( vnum );                                  /* OLC */
-        kill_table[URANGE(0, pMobIndex->level, MAX_LEVEL-1)].number++;
+        // convert to MOB_INDEX_DATA
+        MOB_INDEX_DATA *pMobbleIndex = convert_to_mobble( pMobIndex );
+        free_mem( pMobIndex, sizeof(*pMobIndex) );
+        
+        index_mobile ( pMobbleIndex );
     }
     
     return;
 }
+
+/*
+ * convert new-style mobile to xtra-new style mobile ("mobble")
+ */
+#define MCOPY(field) pMobIndex->field = pMobIndexOld->field
+#define MCOPY_FLAGS(field) flag_copy(pMobIndex->field, pMobIndexOld->field)
+MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
+{
+    MOB_INDEX_DATA *pMobIndex;
+    long actual;
+    long spec;
+    
+    pMobIndex = alloc_perm( sizeof(*pMobIndex) );
+    
+    // identical fields, just copy
+    MCOPY(vnum);
+    MCOPY(area);
+    MCOPY(spec_fun);
+    MCOPY(pShop);
+    MCOPY(mprogs);
+    MCOPY_FLAGS(mprog_flags);
+
+    MCOPY(player_name);
+    MCOPY(short_descr);
+    MCOPY(long_descr);
+    MCOPY(description);
+    MCOPY(race);
+    MCOPY(sex);
+    
+    MCOPY_FLAGS(act);
+    MCOPY_FLAGS(affect_field);
+    MCOPY_FLAGS(off_flags);
+    MCOPY_FLAGS(imm_flags);
+    MCOPY_FLAGS(res_flags);
+    MCOPY_FLAGS(vuln_flags);
+    MCOPY_FLAGS(form);
+    MCOPY_FLAGS(parts);
+    
+    MCOPY(level);
+    MCOPY(dam_type);
+    MCOPY(stance);
+
+    MCOPY(size);
+    MCOPY(alignment);
+    MCOPY(group);
+    MCOPY(start_pos);
+    MCOPY(default_pos);
+
+    // new fields
+    
+    pMobIndex->hitpoint_percent = 100;
+    pMobIndex->mana_percent     = 100;
+    pMobIndex->move_percent     = 100;
+    pMobIndex->hitroll_percent  = 100;
+    pMobIndex->damage_percent   = 100;
+    pMobIndex->ac_percent       = 100;
+    pMobIndex->saves_percent    = 100;
+    pMobIndex->wealth_percent   = 0;
+
+    if (pMobIndex->level > 0)
+    {
+        /* In most cases we'll WANT the default of 100, but left in here in case we decide otherwise --Bobble
+        // hitpoints
+        actual = average_roll(pMobIndexOld->hit[DICE_NUMBER], pMobIndexOld->hit[DICE_TYPE], pMobIndexOld->hit[DICE_BONUS]);
+        spec = average_mob_hp(pMobIndexOld->level);
+        pMobIndex->hitpoint_percent = URANGE(50, 100 * actual / UMAX(1,spec), 200);
+
+        // hitroll
+        pMobIndex->hitroll_percent  = 100;
+        actual = pMobIndexOld->hitroll;
+        spec = pMobIndex->level;
+        pMobIndex->hitroll_percent  = URANGE(50, 100 + 100 * actual / UMAX(1,spec), 200);
+
+        // damage
+        actual = average_roll(pMobIndexOld->damage[DICE_NUMBER], pMobIndexOld->damage[DICE_TYPE], 0) + pMobIndexOld->damage[DICE_BONUS] / 4;
+        spec = average_mob_damage(pMobIndexOld->level);
+        pMobIndex->damage_percent   = URANGE(50, 100 * actual / UMAX(1,spec), 200);
+        */
+
+        // wealth - as we don't have shops loaded yet, this will result in excessive wealth percent for shopkeepers
+        // however, we cap at 200%, so no big deal
+        actual = pMobIndexOld->wealth;
+        spec = level_base_wealth(pMobIndex->level);
+        pMobIndex->wealth_percent   = URANGE(0, 100 * actual / UMAX(1,spec), 200);
+    }
+
+    return pMobIndex;
+}
+#undef MCOPY
+#undef MCOPY_FLAGS
+
+/*
+ * Snarf a mob section. xtra-new style -- Bobble
+ */
+#define KEY(keystring) (strcmp(key,keystring) == 0)
+void load_mobbles( FILE *fp )
+{
+    MOB_INDEX_DATA *pMobIndex;
+    
+    if ( !area_last )
+    {
+        bug( "Load_mobbles: no #AREA seen yet.", 0 );
+        exit( 1 );
+    }
+    
+    for ( ; ; )
+    {
+        int vnum;
+        char letter;
+        int iHash;
+        
+        letter                          = fread_letter( fp );
+        if ( letter != '#' )
+        {
+            bug( "Load_mobbles: # not found.", 0 );
+            exit( 1 );
+        }
+        
+        vnum                            = fread_number( fp );
+        if ( vnum == 0 )
+            break;
+        
+        fBootDb = FALSE;
+        if ( get_mob_index( vnum ) != NULL )
+        {
+            bug( "Load_mobbles: vnum %d duplicated.", vnum );
+            exit( 1 );
+        }
+        fBootDb = TRUE;
+        
+        pMobIndex                       = alloc_perm( sizeof(*pMobIndex) );
+        pMobIndex->vnum                 = vnum;
+        pMobIndex->area                 = area_last;
+        pMobIndex->pShop                = NULL;
+        // set default values
+        pMobIndex->level                = 0;
+        pMobIndex->hitpoint_percent     = 100;
+        pMobIndex->mana_percent         = 100;
+        pMobIndex->move_percent         = 100;
+        pMobIndex->hitroll_percent      = 100;
+        pMobIndex->damage_percent       = 100;
+        pMobIndex->ac_percent           = 100;
+        pMobIndex->saves_percent        = 100;
+        pMobIndex->wealth_percent       = 100;
+        pMobIndex->size                 = SIZE_MEDIUM;
+        pMobIndex->alignment            = 0;
+        pMobIndex->group                = 0;
+        pMobIndex->start_pos            = POS_STANDING;
+        pMobIndex->default_pos          = POS_STANDING;
+        pMobIndex->stance               = STANCE_DEFAULT;
+        
+        // now read required and optional fields until END is encountered
+        char* key;
+        while (TRUE) {
+            key = fread_word(fp);
+
+            if KEY("END")
+                break;
+            else if KEY("NAME")
+                pMobIndex->player_name = fread_string( fp );
+            else if KEY("SDESC")
+                pMobIndex->short_descr = fread_string( fp );
+            else if KEY("LDESC")
+            {
+                pMobIndex->long_descr = fread_string( fp );
+                pMobIndex->long_descr[0] = UPPER(pMobIndex->long_descr[0]);
+            }
+            else if KEY("DESC")
+            {
+                pMobIndex->description = fread_string( fp );
+                pMobIndex->description[0] = UPPER(pMobIndex->description[0]);
+            }
+            else if KEY("RACE")
+            {
+                int race = pMobIndex->race = race_lookup(fread_string( fp ));
+                // init race-specific defaults
+                flag_copy(pMobIndex->act, race_table[race].act);
+                flag_copy(pMobIndex->affect_field, race_table[race].affect_field);
+                flag_copy(pMobIndex->off_flags, race_table[race].off);
+                flag_copy(pMobIndex->imm_flags, race_table[race].imm);
+                flag_copy(pMobIndex->res_flags, race_table[race].res);
+                flag_copy(pMobIndex->vuln_flags, race_table[race].vuln);
+                flag_copy(pMobIndex->form, race_table[race].form);
+                flag_copy(pMobIndex->parts, race_table[race].parts);
+            }
+            else if KEY("SEX")
+                pMobIndex->sex = sex_lookup(fread_word(fp));
+            else if KEY("ACT")
+                fread_tflag(fp, pMobIndex->act);
+            else if KEY("AFF")
+                fread_tflag(fp, pMobIndex->affect_field);
+            else if KEY("OFF")
+                fread_tflag(fp, pMobIndex->off_flags);
+            else if KEY("IMM")
+                fread_tflag(fp, pMobIndex->imm_flags);
+            else if KEY("RES")
+                fread_tflag(fp, pMobIndex->res_flags);
+            else if KEY("VULN")
+                fread_tflag(fp, pMobIndex->vuln_flags);
+            else if KEY("FORM")
+                fread_tflag(fp, pMobIndex->form);
+            else if KEY("PARTS")
+                fread_tflag(fp, pMobIndex->parts);
+            else if KEY("LVL")
+                pMobIndex->level = fread_number( fp );
+            else if KEY("HP")
+                pMobIndex->hitpoint_percent = fread_number( fp );
+            else if KEY("MANA")
+                pMobIndex->mana_percent = fread_number( fp );
+            else if KEY("MOVE")
+                pMobIndex->move_percent = fread_number( fp );
+            else if KEY("HIT")
+                pMobIndex->hitroll_percent = fread_number( fp );
+            else if KEY("DAM")
+                pMobIndex->damage_percent = fread_number( fp );
+            else if KEY("AC")
+                pMobIndex->ac_percent = fread_number( fp );
+            else if KEY("SAVES")
+                pMobIndex->saves_percent = fread_number( fp );
+            else if KEY("WEALTH")
+                pMobIndex->wealth_percent = fread_number( fp );
+            else if KEY("DAMTYPE")
+                pMobIndex->dam_type = attack_lookup(fread_word(fp));
+            else if KEY("STANCE")
+                pMobIndex->stance = fread_number( fp );
+            else if KEY("SIZE")
+                pMobIndex->size = size_lookup(fread_word(fp));
+            else if KEY("ALIGN")
+                pMobIndex->alignment = fread_number( fp );
+            else if KEY("GROUP")
+                pMobIndex->group = fread_number( fp );
+            else if KEY("SPOS")
+                pMobIndex->start_pos = position_lookup(fread_word(fp));
+            else if KEY("DPOS")
+                pMobIndex->default_pos = position_lookup(fread_word(fp));
+            else if KEY("MPROG")
+            {
+                MPROG_LIST *pMprog;
+                char *word;
+                int trigger = 0;
+                
+                pMprog              = alloc_perm(sizeof(*pMprog));
+                word                = fread_word( fp );
+                if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
+                {
+                    bugf("load_mobbles.MPROG: invalid trigger '%s' for mobile %d.", word, vnum);
+                    exit(1);
+                }
+                SET_BIT( pMobIndex->mprog_flags, trigger );
+                pMprog->trig_type   = trigger;
+                pMprog->vnum        = fread_number( fp );
+                pMprog->trig_phrase = fread_string( fp );
+                pMprog->next        = pMobIndex->mprogs;
+                pMobIndex->mprogs   = pMprog;
+            }
+            else
+            {
+                bugf("load_mobbles: unknown key '%s' for mobile %d.", key, vnum);
+                exit(1);                
+            }
+        } // end of single mob 
+                
+        SET_BIT( pMobIndex->act, ACT_IS_NPC );
+
+        index_mobile ( pMobIndex );
+    }
+    
+    return;
+}
+#undef KEY
 
 /*
  * Snarf an obj section. new style
@@ -784,7 +1053,7 @@ void convert_object( OBJ_INDEX_DATA *pObjIndex )
  Note:          Dug out of create_mobile (db.c)
  Author:        Hugin
  ****************************************************************************/
-void convert_mobile( MOB_INDEX_DATA *pMobIndex )
+void convert_mobile( MOB_INDEX_DATA_OLD *pMobIndex )
 {
     int i;
     int type, number, bonus;

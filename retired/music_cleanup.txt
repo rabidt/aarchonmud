@@ -1,0 +1,113 @@
+diff -r aa413d9944f1 act_info.c
+--- a/act_info.c	Tue Feb 19 17:09:31 2013 -0700
++++ b/act_info.c	Tue Feb 19 17:27:29 2013 -0700
+@@ -61,7 +61,6 @@
+ DECLARE_DO_FUN( do_look     );
+ DECLARE_DO_FUN( do_help     );
+ DECLARE_DO_FUN( do_affects  );
+-DECLARE_DO_FUN( do_play     );
+ DECLARE_DO_FUN(do_lore);
+ DECLARE_DO_FUN(do_appraise); 
+ DECLARE_DO_FUN(do_say);
+@@ -1974,10 +1973,6 @@
+     default:
+ 	break;
+ 	
+-    case ITEM_JUKEBOX:
+-	do_play(ch,"list");
+-	break;
+-	
+     case ITEM_ARROWS:
+ 	sprintf( buf, "There are %d arrows in this pack.\n\r", obj->value[0] );
+ 	send_to_char( buf, ch );
+diff -r aa413d9944f1 db.c
+--- a/db.c	Tue Feb 19 17:09:31 2013 -0700
++++ b/db.c	Tue Feb 19 17:27:29 2013 -0700
+@@ -54,7 +54,6 @@
+ #include "merc.h"
+ #include "db.h"
+ #include "recycle.h"
+-#include "music.h"
+ #include "tables.h"
+ #include "lookup.h"
+ #include "olc.h"
+@@ -739,8 +738,6 @@
+         load_wizlist();
+         log_string("Loading bans");
+         load_bans();
+-        log_string("Loading songs");
+-        load_songs();
+         log_string("Loading portals");
+         load_portal_list();
+     }
+diff -r aa413d9944f1 interp.c
+--- a/interp.c	Tue Feb 19 17:09:31 2013 -0700
++++ b/interp.c	Tue Feb 19 17:27:29 2013 -0700
+@@ -412,7 +412,6 @@
+     { "pkil",       do_pkil,    POS_DEAD,       10,  LOG_NEVER, 0, FALSE, FALSE  },
+     { "pkill",      do_pkill,   POS_SLEEPING,    0,  LOG_NEVER,  1, FALSE, FALSE  },
+     { "roleplay",   do_roleplay,POS_SLEEPING,    0,  LOG_ALWAYS, 1, FALSE, FALSE  },
+-    { "play",       do_play,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
+     { "qui",        do_qui,     POS_DEAD,    0,  LOG_NORMAL, 0, FALSE, FALSE  },
+     { "quit",       do_quit,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+     { "recall",     do_recall,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+diff -r aa413d9944f1 interp.h
+--- a/interp.h	Tue Feb 19 17:09:31 2013 -0700
++++ b/interp.h	Tue Feb 19 17:27:29 2013 -0700
+@@ -306,7 +306,6 @@
+ DECLARE_DO_FUN( do_pipe     );
+ DECLARE_DO_FUN( do_pkil     );
+ DECLARE_DO_FUN( do_pkill    );
+-DECLARE_DO_FUN( do_play     );
+ DECLARE_DO_FUN( do_playback );
+ DECLARE_DO_FUN( do_pload    );
+ DECLARE_DO_FUN( do_infectious_arrow);
+diff -r aa413d9944f1 makefile
+--- a/makefile	Tue Feb 19 17:09:31 2013 -0700
++++ b/makefile	Tue Feb 19 17:27:29 2013 -0700
+@@ -11,7 +11,7 @@
+ O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
+      websvr.o alchemy.o alias.o auth.o ban.o bit.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
+      enchant.o effects.o fight.o fight2.o flags.o ftp.o handler.o healer.o hunt.o \
+-     interp.o lookup.o magic.o magic2.o mem.o mob_cmds.o mob_prog.o music.o \
++     interp.o lookup.o magic.o magic2.o mem.o mob_cmds.o mob_prog.o \
+      nanny.o olc.o olc_act.o olc_mpcode.o olc_save.o passive.o penalty.o pipe.o quest.o \
+      ranger.o recycle.o redit-ilab.o remort.o bsave.o scan.o skills.o\
+      smith.o social-edit.o song.o special.o stats.o string.o tables.o update.o \
+diff -r aa413d9944f1 merc.h
+--- a/merc.h	Tue Feb 19 17:09:31 2013 -0700
++++ b/merc.h	Tue Feb 19 17:27:29 2013 -0700
+@@ -3959,7 +3959,6 @@
+ #define TYPO_FILE       "../log/typos.txt" /* For 'typo'*/
+ #define SHUTDOWN_FILE   "shutdown.txt"/* For 'shutdown'*/
+ #define BAN_FILE    "ban.txt"
+-#define MUSIC_FILE  "music.txt"
+ #define DISABLED_FILE   "disabled.txt"  /* disabled commands */
+ #define CLANWAR_FILE   "clanwar.txt"
+ #define REMORT_FILE    "remort.txt"
+diff -r aa413d9944f1 update.c
+--- a/update.c	Tue Feb 19 17:09:31 2013 -0700
++++ b/update.c	Tue Feb 19 17:27:29 2013 -0700
+@@ -35,7 +35,6 @@
+ #include <math.h>
+ #include <time.h>
+ #include "merc.h"
+-#include "music.h"
+ #include "recycle.h"
+ #include "tables.h"
+ #include "lookup.h"
+@@ -2416,14 +2415,6 @@
+        reset_herbs_world();
+    }
+    
+-   /* Removed 4/6/98 due to inf. loop.  Rim
+-   if ( --pulse_music    <= 0 )
+-   {
+-	  pulse_music = PULSE_MUSIC;
+-	  song_update();
+-   }
+-   */
+-   
+    if ( update_all )
+    {
+        if ( --pulse_mobile <= 0 )

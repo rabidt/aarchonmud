@@ -892,11 +892,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if (ch->song_hearing == gsn_white_noise)
-    {
-        send_to_char("Your incantation is muffled by white noise.\n\r", ch);
-        return;
-    }
 /*
     if ((sn == gsn_hailstorm || gsn_meteor_swarm || gsn_call_lightning ||
             gsn_control_weather || gsn_monsoon ) && (weather_info.sky < SKY_RAINING 
@@ -5420,28 +5415,28 @@ void spell_high_explosive(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
 
 
-/* Check number of charmees against cha */
-bool check_cha_follow( CHAR_DATA *ch )
+/* Check number of charmees against cha - returns number of hitdice left over */
+int check_cha_follow( CHAR_DATA *ch )
 {
     CHAR_DATA *check;
     int charmed=0;
-    int max = get_curr_stat(ch, STAT_CHA) / 10;
+    int max = ch->level * get_curr_stat(ch, STAT_CHA) / 20;
     
     for ( check=char_list ; check != NULL; check = check->next )
     {
         if (IS_NPC(check) && IS_AFFECTED(check,AFF_CHARM) && 
             check->master == ch)
         {
-            charmed++;
+            charmed += check->level;
             if (charmed >= max)
             {
                 send_to_char( "You are not charismatic enough to attract more followers.\n\r",ch);
-                return FALSE;
+                return 0;
             }
         }
     }
     
-    return TRUE;
+    return (max - charmed);
 }
 
 void do_scribe( CHAR_DATA *ch, char *argument )
