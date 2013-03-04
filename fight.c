@@ -3125,7 +3125,6 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     */
     
     check_kill_quest_completed( ch, victim );
-    stop_singing(victim);
         
     if (!IS_NPC(victim))
     {

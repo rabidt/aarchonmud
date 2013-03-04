@@ -164,8 +164,6 @@ typedef void DO_FUN args( ( CHAR_DATA *ch, char *argument ) );
 typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
 typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo,
 				int target ) );
-typedef bool SONG_FUN   args((int sn,int level,CHAR_DATA *singer,
-				CHAR_DATA *target,int task));
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 
@@ -2281,8 +2279,6 @@ typedef int tattoo_list[MAX_WEAR];
 #define GAG_SUNBURN    (H)
 #define GAG_NCOL_CHAN  (I)
 
-#define song_null       -1
-
 /* channel definitions for playback log_chan/playback */
 #define CHAN_GOSSIP 'p'
 #define CHAN_AUCTION 'a'
@@ -2462,9 +2458,6 @@ struct  char_data
 	  sh_int        mprog_delay;
 	char *hunting;
 	sh_int  stance;
-	sh_int      song_hearing;
-	sh_int      song_singing;
-	sh_int      song_delay;
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
@@ -2898,7 +2891,6 @@ struct  room_index_data
     sh_int      mana_rate;
     sh_int      clan;
     sh_int      clan_rank;
-    CHAR_DATA * singer;
 };
 
 
@@ -2968,7 +2960,6 @@ struct  skill_type
 	char *  noun_damage;        /* Damage message       */
 	char *  msg_off;        /* Wear off message     */
 	char *  msg_obj;        /* Wear off message for obects  */
-	SONG_FUN * song_fun;
 };
 
 
@@ -3155,12 +3146,6 @@ extern sh_int  gsn_recall;
 extern sh_int  gsn_flee;
 extern sh_int  gsn_retreat;
 extern sh_int  gsn_entrapment;
-
-extern sh_int gsn_pied_piper;
-extern sh_int gsn_shafts_theme;
-extern sh_int gsn_cacophony;
-extern sh_int gsn_lust_life;
-extern sh_int gsn_white_noise;
 
 extern sh_int  gsn_mug;
 extern sh_int  gsn_headbutt;
@@ -3944,7 +3929,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define TYPO_FILE       "../log/typos.txt" /* For 'typo'*/
 #define SHUTDOWN_FILE   "shutdown.txt"/* For 'shutdown'*/
 #define BAN_FILE    "ban.txt"
-#define MUSIC_FILE  "music.txt"
 #define DISABLED_FILE   "disabled.txt"  /* disabled commands */
 #define CLANWAR_FILE   "clanwar.txt"
 #define REMORT_FILE    "remort.txt"
@@ -4368,18 +4352,6 @@ int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 void load_social_table();
 void save_social_table();
 
-/* song.c */
-void song_from_char args(( CHAR_DATA *ch ));
-void song_to_char       args(( CHAR_DATA *ch ));
-void song_from_room args(( CHAR_DATA *ch ));
-void song_to_room       args(( CHAR_DATA *ch ));
-void update_song        args(( CHAR_DATA *ch ));
-void stop_singing       args(( CHAR_DATA *ch ));
-bool saves_song     args((int level,CHAR_DATA *ch,CHAR_DATA *victim,int base_chance));
-int calc_song_sns       args((void));
-int song_level      args(( CHAR_DATA *ch, int sn ));
-
-
 /* special.c */
 SF *    spec_lookup args( ( const char *name ) );
 char *  spec_name   args( ( SPEC_FUN *function ) );
@@ -4531,10 +4503,3 @@ extern      OBJ_INDEX_DATA *    obj_index_hash  [MAX_KEY_HASH];
 extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
 
-
-
-
-/* websvr.c */
-void init_web(int port);
-void handle_web(void);
-void shutdown_web(void);
