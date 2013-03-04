@@ -599,9 +599,6 @@ void do_rank( CHAR_DATA *ch, char *argument )
     if (rank == 0)
         victim->clan = 0;
 
-    /* Quirky, August 2002 */
-    update_who_position( victim->desc );
-
     check_clan_eq(victim);
     
     return;
@@ -695,9 +692,6 @@ void do_recruit( CHAR_DATA *ch, char *argument )
     else
         sprintf(log_buf, "%s has become a recruit of clan %s!", ch->name, capitalize(clan_table[clan].name));
     
-    /* Quirky, August 2002 */
-    update_who_position( ch->desc );
-
     info_message(ch, log_buf, TRUE);
     log_string(log_buf);
 
@@ -765,8 +759,6 @@ void do_reject( CHAR_DATA *ch, char *argument )
     ch->pcdata->clan_rank = 0;
     
     sprintf(log_buf, "%s has rejected clan %s!", ch->name, capitalize(clan_table[clan].name));
-    /* Quirky: August 2002 */
-    update_who_position(ch->desc);
     
     info_message(ch, log_buf, TRUE);
     log_string(log_buf);

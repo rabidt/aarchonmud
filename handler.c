@@ -2397,7 +2397,6 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     
     if ( ch->desc != NULL )
     {
-        remove_from_who_list( ch->desc );
         ch->desc->character = NULL;
     }
 
