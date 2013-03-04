@@ -122,9 +122,6 @@ void advance_level( CHAR_DATA *ch, bool hide )
    tattoo_modify_level( ch, ch->level - 1, ch->level );
    update_perm_hp_mana_move(ch);
    
-   /* Added by Quirky, August 2002 */
-   update_who_position( ch->desc );
-
    if (IS_HERO(ch))
    {
 	  ch->pcdata->condition[COND_DRUNK] = 0;

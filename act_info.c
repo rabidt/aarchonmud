@@ -100,10 +100,6 @@ char *  const   where_name  [] =
 /* for do_count */
 int max_on = 0;
 
-/* to use the sorted who list */
-extern WHO_DATA *who_list;
-
-
 /*
 * Local functions.
 */
@@ -2632,6 +2628,54 @@ void do_whois (CHAR_DATA *ch, char *argument)
     
 }
 
+// for sorting the who_array
+int who_compare( const void* a, const void* b )
+{
+    CHAR_DATA *ch1 = *((CHAR_DATA**) a);
+    CHAR_DATA *ch2 = *((CHAR_DATA**) b);
+    
+    // high-level characters go first
+    if ( ch1->level > ch2->level )
+        return -1;
+    if ( ch1->level < ch2->level )
+        return 1;
+
+    if ( ch1->clan < ch2->clan )
+        return -1;
+    if ( ch1->clan > ch2->clan )
+        return 1;
+
+    // same for clan rank - higher ranks first
+    if ( ch1->pcdata->clan_rank > ch2->pcdata->clan_rank )
+        return -1;
+    if ( ch1->pcdata->clan_rank < ch2->pcdata->clan_rank )
+        return 1;
+
+    return strcmp(ch1->name, ch2->name);
+}
+
+/*
+ * returns number of characters returned in who_array
+ */
+#define MAX_WHO 64
+int create_who_array( CHAR_DATA **who_array )
+{
+    int who_count = 0;
+    DESCRIPTOR_DATA *desc;
+    
+    // gather all characters we want to show
+    for ( desc = descriptor_list; desc != NULL && who_count < MAX_WHO; desc = desc->next )
+    {
+        if ( IS_PLAYING(desc->connected) && desc->character != NULL )
+        {
+            who_array[who_count++] = DESC_PC(desc);
+        }
+    }
+    // now sort it
+    qsort(&who_array[0], who_count, sizeof(CHAR_DATA*), &who_compare);
+    
+    return who_count;
+}
 
 /*
 * New 'who' command originally by Alander of Rivers of Mud.
@@ -2646,7 +2690,8 @@ void do_who( CHAR_DATA *ch, char *argument )
     char levelbuf[8];
     BUFFER *output;
     DESCRIPTOR_DATA *d;
-    WHO_DATA *w;
+    CHAR_DATA* who_array[MAX_WHO];
+    int who_count, w;
     RELIGION_DATA *rel = NULL;
     int iClass;
     int iRace;
@@ -2808,24 +2853,11 @@ void do_who( CHAR_DATA *ch, char *argument )
     buf[0] = '\0';
     output = new_buf();
 
-    for ( w = who_list; w != NULL; w = w->next )
+    who_count = create_who_array( who_array );
+    for ( w = 0; w < who_count; w++ )
     {
-        CHAR_DATA *wch;
-        
-	if( w->desc == NULL )
-	{
-	    bug( "BUG in act_info, do_who:  Null descriptor. %d\n", w->level );
-	    return;
-	}
-        /*
-        * Check for match against restrictions.
-        * Don't use trust as that exposes trusted mortals.
-        */
-        if ( !(w->desc->connected == CON_PLAYING || IS_WRITING_NOTE(w->desc->connected)) )
-            continue;
-        
-        wch = ( w->desc->original != NULL ) ? w->desc->original : w->desc->character;
-        
+        CHAR_DATA *wch = who_array[w];
+                
         if ( !can_see(ch,wch) )
             continue;
         
@@ -2862,6 +2894,7 @@ void do_who( CHAR_DATA *ch, char *argument )
     free_buf(output);
     return;
 }
+#undef MAX_WHO
 
 void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
 {
