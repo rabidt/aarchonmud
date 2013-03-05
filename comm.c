@@ -120,8 +120,6 @@ DECLARE_DO_FUN(do_asave     );
 
 /* external functions */
 void war_remove( CHAR_DATA *ch, bool killed );
-void add_to_who_list( DESCRIPTOR_DATA *d );
-void remove_from_who_list( DESCRIPTOR_DATA *d );
 bool flush_descriptor( DESCRIPTOR_DATA *d );
 bool desc_cmp( DESCRIPTOR_DATA *d1, DESCRIPTOR_DATA *d2 );
 void add_descriptor( DESCRIPTOR_DATA *d );
@@ -379,7 +377,6 @@ int write       args( ( int fd, char *buf, int nbyte ) );
 */
 DESCRIPTOR_DATA *   descriptor_list;    /* All open descriptors     */
 DESCRIPTOR_DATA *   d_next;     /* Next descriptor in loop  */
-WHO_DATA	*   who_list;	/* All players connected, sorted by level */
 FILE *          fpReserve;      /* Reserved file handle     */
 bool            god;        /* All new chars are gods!  */
 bool            merc_down;      /* Shutdown         */
@@ -1380,7 +1377,6 @@ void close_socket( DESCRIPTOR_DATA *dclose )
         /* If ch is writing note or playing, just lose link otherwise clear char */
         if (!merc_down && IS_PLAYING(dclose->connected))
         {
-	    remove_from_who_list(dclose);
             act( "$n has lost $s link.", ch, NULL, NULL, TO_ROOM );
             wiznet("Net death has claimed $N.",ch,NULL,WIZ_LINKS,0,0);
 
@@ -3526,8 +3522,6 @@ void copyover_recover ()
                 char_to_room(d->character->pet,d->character->in_room);
                 act("$n materializes!.",d->character->pet,NULL,NULL,TO_ROOM);
             }
-
-            add_to_who_list(d);
 
 	    /* Auth list status now updates correctly after a copyover. */
 	    /* Also, authorizing a character who was online during a */
