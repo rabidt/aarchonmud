@@ -243,7 +243,7 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define MAX_ALIAS          35
 #define MAX_CLASS          15
 #define MAX_PC_RACE        65 /*accurate jan 2013 */
-#define MAX_BOARD          13
+#define MAX_BOARD          12
 #define MAX_CLAN           12
 #define MAX_CLAN_RANK      13
 #define MAX_PENALTY         8
