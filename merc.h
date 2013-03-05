@@ -152,8 +152,6 @@ typedef struct religion_data RELIGION_DATA;
 typedef struct follower_data FOLLOWER_DATA;
 typedef struct religion_rank_data RELIGION_RANK_DATA;
 typedef struct prayer_data PRAYER_DATA;
-/* who-sorting, by Quirky.  July 29, 2002 */
-typedef struct who_data WHO_DATA;
 /* from buffer_util.h, moved here: */
 typedef struct mem_file_type MEMFILE;
 
@@ -779,16 +777,6 @@ struct  descriptor_data
 		short int   lines_sent; /* Lines sent so far     */
 		ftp_mode    mode;       /* FTP_xxx           */
 	} ftp;
-};
-
-
-/* A linked list of connected players for the "who" list */
-struct  who_data
-{
-	WHO_DATA *next;
-	DESCRIPTOR_DATA *desc;
-	sh_int level;
-	bool valid;
 };
 
 
