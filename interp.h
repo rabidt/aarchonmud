@@ -555,6 +555,10 @@ DECLARE_DO_FUN( do_rforce       );
 
 DECLARE_DO_FUN( do_dummy);
 DECLARE_DO_FUN( do_mode);
+<<<<<<< local
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif
+=======
+DECLARE_DO_FUN( do_cmotd);
+>>>>>>> other
