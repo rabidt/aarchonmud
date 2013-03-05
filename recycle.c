@@ -169,38 +169,6 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 	descriptor_free = d;
 }
 
-/* stuff for recycling who_data */
-WHO_DATA *who_data_free;
-
-WHO_DATA *new_who_data(void)
-{
-	static WHO_DATA who_zero;
-	WHO_DATA *who;
-
-	if( who_data_free == NULL)
-	  who = alloc_perm(sizeof(*who));
-	else
-	{
-	  who = who_data_free;
-	  who_data_free = who_data_free->next;
-	}
-	*who = who_zero;
-	VALIDATE(who);
-	return who;
-}
-
-void free_who_data(WHO_DATA *who)
-{
-	if (!IS_VALID(who))
-	return;
-
-	INVALIDATE(who);
-
-	who->next = who_data_free;
-	who_data_free = who;
-} 
-
-
 /* stuff for recycling gen_data */
 GEN_DATA *gen_data_free;
 

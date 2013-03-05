@@ -1012,8 +1012,6 @@ void remort_complete(CHAR_DATA *ch)
     info_message(ch, buf, FALSE);
 
     force_full_save();
-
-    update_who_position( ch->desc );
 }
 
 void remort_lower( CHAR_DATA *ch, char *arg )
