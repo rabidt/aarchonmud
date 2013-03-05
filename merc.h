@@ -583,6 +583,7 @@ struct clan_rank_data
     bool     can_declare_truce; /* Ability to declare truces in clan wars */
     bool     can_declare_treaty;/* Ability to declare clan treaties  */
     bool     can_invite;        /* Ability to invite others to join the clan */
+    bool     can_set_motd;      /* Ability to set the clan motd */
 };
 
 struct clan_data
@@ -595,6 +596,7 @@ struct clan_data
     char *   who_name;
     char *   who_color;
     char *   patron;            /* Patron name referenced in code. */
+    char *   motd;		/* Special motd displayed for clan members. */
     sh_int   hall;              /* Recall room */
     sh_int   donation;          /* Clan donation room */
     time_t   creation_date;     /* Date clan created */

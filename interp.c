@@ -118,6 +118,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "look",       do_look,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "glance",     do_glance,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "clan",       do_clantalk,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "cmotd",	    do_cmotd,	POS_SLEEPING, 	0,	LOG_NORMAL,  1, FALSE, TRUE },
     { "[",          do_clantalk, POS_SLEEPING, 0, LOG_NORMAL, 0, FALSE, TRUE  },
     { "proclaim",   do_religion_talk, POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "music",      do_music,       POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
