@@ -3611,19 +3611,9 @@ void do_qset( CHAR_DATA *ch, char *argument )
     else    
         limit = atoi(arg5);
 
-#ifndef TESTER
-    if (victim->level <= 100)
-    {
-        send_to_char("Cheating isn't tolerated here.\n\r", ch) ;
-        return ;
-    }
-    else
-#endif /* ifndef TESTER */
-    {
-        /* new function used to set timer on qstatus -Astark Oct 2012 */
-        set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
-        act( "You have successfully changed $N's qstatus.", ch, NULL, victim, TO_CHAR );
-    }
+    /* new function used to set timer on qstatus -Astark Oct 2012 */
+    set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
+    act( "You have successfully changed $N's qstatus.", ch, NULL, victim, TO_CHAR );
     return;
 
 }
