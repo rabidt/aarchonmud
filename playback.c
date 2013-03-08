@@ -363,33 +363,35 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 			
         if (! IS_CHAN_OFF(ch, (entry->channel)) )
         {
-	    if ( !strcmp( ch->name, entry->name ) )
-             sprintf(buf,"%s::{%c%s%s", entry->timestamp,
-                                        public_channel_table[entry->channel].prime_color,
-                                        entry->name,
-                                        entry->text);
-
-            else if (IS_SET(ch->act, PLR_HOLYLIGHT) && entry->mimic_name != NULL)
-             sprintf(buf,"%s::(%s{x){%c%s%s",entry->timestamp,
+            if (IS_SET(ch->act, PLR_HOLYLIGHT) && entry->mimic_name != NULL)
+	    {
+                sprintf(buf,"%s::(%s{x){%c%s%s",entry->timestamp,
                                          entry->name,
                                          public_channel_table[entry->channel].prime_color,
                                          entry->mimic_name,
                                          entry->text);
+	    }
             else if (entry->invis==TRUE && !IS_SET(ch->act, PLR_HOLYLIGHT))
-             sprintf(buf, "%s::{%c%s%s", entry->timestamp,
-                                         entry->channel,
+	    {
+                sprintf(buf, "%s::{%c%s%s", entry->timestamp,
+                                         public_channel_table[entry->channel].prime_color, 
                                          "someone",
                                          entry->text);
+	    }
             else if (entry->mimic_name != NULL)
-             sprintf(buf,"%s::{%c%s%s", entry->timestamp,
+	    {
+                sprintf(buf,"%s::{%c%s%s", entry->timestamp,
                                         public_channel_table[entry->channel].prime_color,
                                         entry->mimic_name,
                                         entry->text);
+	    }
             else
-             sprintf(buf,"%s::{%c%s%s", entry->timestamp,
+	    {
+                 sprintf(buf,"%s::{%c%s%s", entry->timestamp,
                                         public_channel_table[entry->channel].prime_color,
                                         entry->name,
                                         entry->text);
+	    }
             add_buf(output,buf);
             add_buf(output,"{x\n\r");
         }
