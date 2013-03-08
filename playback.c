@@ -363,7 +363,13 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 			
         if (! IS_CHAN_OFF(ch, (entry->channel)) )
         {
-            if (IS_SET(ch->act, PLR_HOLYLIGHT) && entry->mimic_name != NULL)
+	    if ( !strcmp( ch->name, entry->name ) )
+             sprintf(buf,"%s::{%c%s%s", entry->timestamp,
+                                        public_channel_table[entry->channel].prime_color,
+                                        entry->name,
+                                        entry->text);
+
+            else if (IS_SET(ch->act, PLR_HOLYLIGHT) && entry->mimic_name != NULL)
              sprintf(buf,"%s::(%s{x){%c%s%s",entry->timestamp,
                                          entry->name,
                                          public_channel_table[entry->channel].prime_color,
