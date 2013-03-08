@@ -115,7 +115,6 @@ typedef struct  kill_data        KILL_DATA;
 typedef struct  mem_data         MEM_DATA;
 typedef struct  mob_index_data_old MOB_INDEX_DATA_OLD;
 typedef struct  mob_index_data   MOB_INDEX_DATA;
-typedef struct  mobble_index_data MOBBLE_INDEX_DATA;
 typedef struct  note_data        NOTE_DATA;
 typedef struct  obj_data         OBJ_DATA;
 typedef struct  obj_index_data   OBJ_INDEX_DATA;
@@ -1309,6 +1308,7 @@ struct  kill_data
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
 #define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
 #define ACT_HARD_QUEST    (kk)
+#define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 
 /* damage classes */
 #define DAM_NONE                0

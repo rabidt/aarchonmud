@@ -260,8 +260,7 @@ void load_mobiles( FILE *fp )
 MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
 {
     MOB_INDEX_DATA *pMobIndex;
-    long actual;
-    long spec;
+    long actual, spec, base;
     
     pMobIndex = alloc_perm( sizeof(*pMobIndex) );
     
@@ -318,17 +317,29 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
         spec = average_mob_hp(pMobIndexOld->level);
         pMobIndex->hitpoint_percent = URANGE(50, 100 * actual / UMAX(1,spec), 200);
 
-        // hitroll
-        pMobIndex->hitroll_percent  = 100;
-        actual = pMobIndexOld->hitroll;
-        spec = pMobIndex->level;
-        pMobIndex->hitroll_percent  = URANGE(50, 100 + 100 * actual / UMAX(1,spec), 200);
-
         // damage
         actual = average_roll(pMobIndexOld->damage[DICE_NUMBER], pMobIndexOld->damage[DICE_TYPE], 0) + pMobIndexOld->damage[DICE_BONUS] / 4;
         spec = average_mob_damage(pMobIndexOld->level);
         pMobIndex->damage_percent   = URANGE(50, 100 * actual / UMAX(1,spec), 200);
         */
+        
+        // boss mobs should keep their main stats (hp/damage/nr_attacks) unchanged during migration, to adjust later one by one
+        // approximation: boss mob = lvl 120+ with sanc
+        if (pMobIndex->level >= 120 && IS_SET(pMobIndex->affect_field, AFF_SANCTUARY))
+        {
+            // hitpoints
+            actual = average_roll(pMobIndexOld->hit[DICE_NUMBER], pMobIndexOld->hit[DICE_TYPE], pMobIndexOld->hit[DICE_BONUS]);
+            base = level_base_hp(pMobIndex->level);
+            pMobIndex->hitpoint_percent = 100 * actual / base;
+
+            // damage
+            actual = average_roll(pMobIndexOld->damage[DICE_NUMBER], pMobIndexOld->damage[DICE_TYPE], 0) + pMobIndexOld->damage[DICE_BONUS] / 4;
+            base = level_base_damage(pMobIndex->level) + level_base_damroll(pMobIndex->level) / 4;
+            pMobIndex->damage_percent = 100 * actual / base;
+            
+            // number of attacks
+            SET_BIT(pMobIndex->act, ACT_STAGGERED);
+        }
 
         // wealth - as we don't have shops loaded yet, this will result in excessive wealth percent for shopkeepers
         // however, we cap at 200%, so no big deal

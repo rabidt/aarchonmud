@@ -1230,6 +1230,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     /* high level mobs get more attacks */
     attacks = level_base_attacks(ch->level);
     // note: this should match the calculation in mob_base_attacks (mob_stats.c)
+    if ( IS_SET(ch->act, ACT_STAGGERED) )
+        attacks = 100;    
     if ( IS_SET(ch->off_flags, OFF_FAST) )
         attacks = attacks * 3/2;
     if ( IS_AFFECTED(ch, AFF_GUARD) )
