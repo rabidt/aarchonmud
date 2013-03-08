@@ -66,12 +66,19 @@ void comm_entry_free(COMM_ENTRY *entry)
 
 void pers_entry_free(PERS_ENTRY *entry)
 {
+	log_string(entry->text);
 	free_string(entry->text);
 	free_mem(entry, sizeof(PERS_ENTRY) );
 }
 
 void pers_history_free(PERS_HISTORY *history)
 {
+	PERS_ENTRY *entry, *next;
+	for ( entry = history->head ; entry ; entry=next )
+	{
+	    next=entry->next;
+	    pers_entry_free( entry );
+	}
 	free_mem(history, sizeof(PERS_HISTORY) );
 }
 
