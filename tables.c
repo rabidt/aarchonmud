@@ -211,6 +211,7 @@ const struct flag_type act_flags[] =
 	{   "noexp",       ACT_NOEXP,      TRUE    },
 	{   "nomimic",      ACT_NOMIMIC,     TRUE    },
 	{   "hard_quest",   ACT_HARD_QUEST,    TRUE    },
+        {   "staggered",    ACT_STAGGERED,   TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 
