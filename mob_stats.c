@@ -47,14 +47,12 @@ int mob_base_hp( MOB_INDEX_DATA *pMobIndex, int level )
 
 int level_base_mana( int level )
 {
-    return (5 + level) * (10 + level * 3/4);
+    return (5 + level) * (10 + level * 1/4);
 }
 
 int mob_base_mana( MOB_INDEX_DATA *pMobIndex, int level )
 {    
     int mana = level_base_mana( level ) * pMobIndex->mana_percent / 100;
-    if ( !IS_SET(pMobIndex->act,ACT_MAGE) && !IS_SET(pMobIndex->act,ACT_CLERIC) )
-        mana /= 2;
     return mana;
 }
 
@@ -62,14 +60,12 @@ int mob_base_mana( MOB_INDEX_DATA *pMobIndex, int level )
 
 int level_base_move( int level )
 {
-    return (5 + level) * (10 + level * 3/4);
+    return (5 + level) * (10 + level * 1/4);
 }
 
 int mob_base_move( MOB_INDEX_DATA *pMobIndex, int level )
 {    
     int move = level_base_move( level ) * pMobIndex->move_percent / 100;
-    if ( pMobIndex->stance == STANCE_DEFAULT )
-        move /= 2;
     return move;
 }
 
