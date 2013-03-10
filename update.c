@@ -35,7 +35,6 @@
 #include <math.h>
 #include <time.h>
 #include "merc.h"
-#include "music.h"
 #include "recycle.h"
 #include "tables.h"
 #include "lookup.h"
@@ -109,15 +108,11 @@ void advance_level( CHAR_DATA *ch, bool hide )
     *  add_prac    = ch_dis_practice(ch); 
     */
 
-       add_prac    = ch_prac_gains(ch);
-       if (ch->level > (LEVEL_HERO-10))
-       {
-	   bonus= ch->level-(LEVEL_HERO-10);
-	   add_prac *= bonus + 1;
-	   ch->train += bonus;
-       }
+       add_prac    = ch_prac_gains(ch, ch->level);
+       // divide by 100, rounding randomly to preserve average
+       add_prac = add_prac/100 + (chance(add_prac % 100) ? 1 : 0);
        ch->practice    += add_prac;
-       ch->train       += 1;
+       ch->train       += 1 + UMAX(0, ch->level - LEVEL_MIN_HERO);
        ch->pcdata->highest_level = ch->level;
    }
    else
@@ -127,9 +122,6 @@ void advance_level( CHAR_DATA *ch, bool hide )
    tattoo_modify_level( ch, ch->level - 1, ch->level );
    update_perm_hp_mana_move(ch);
    
-   /* Added by Quirky, August 2002 */
-   update_who_position( ch->desc );
-
    if (IS_HERO(ch))
    {
 	  ch->pcdata->condition[COND_DRUNK] = 0;
@@ -156,6 +148,9 @@ void gain_exp( CHAR_DATA *ch, int gain)
    
    if ( IS_NPC(ch) || IS_HERO(ch) )
 	  return;
+
+   if ( IS_SET(ch->act,PLR_NOEXP))
+       return;
    
    field = UMAX((ch_wis_field(ch)*gain)/100,0);
    gain-=field;
@@ -288,9 +283,6 @@ int adjust_gain( CHAR_DATA *ch, int gain )
 
     /* encumberance can half healing speed */
     gain -= gain * get_encumberance( ch ) / 200;
-
-    if ( ch->song_hearing == gsn_lust_life )
-	gain += gain/2;
 
     if ( IS_AFFECTED(ch, AFF_POISON) )
         gain /= 2;
@@ -2418,14 +2410,6 @@ void update_handler( void )
        pulse_herb  = PULSE_HERB;
        reset_herbs_world();
    }
-   
-   /* Removed 4/6/98 due to inf. loop.  Rim
-   if ( --pulse_music    <= 0 )
-   {
-	  pulse_music = PULSE_MUSIC;
-	  song_update();
-   }
-   */
    
    if ( update_all )
    {

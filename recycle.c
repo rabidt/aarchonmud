@@ -169,38 +169,6 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 	descriptor_free = d;
 }
 
-/* stuff for recycling who_data */
-WHO_DATA *who_data_free;
-
-WHO_DATA *new_who_data(void)
-{
-	static WHO_DATA who_zero;
-	WHO_DATA *who;
-
-	if( who_data_free == NULL)
-	  who = alloc_perm(sizeof(*who));
-	else
-	{
-	  who = who_data_free;
-	  who_data_free = who_data_free->next;
-	}
-	*who = who_zero;
-	VALIDATE(who);
-	return who;
-}
-
-void free_who_data(WHO_DATA *who)
-{
-	if (!IS_VALID(who))
-	return;
-
-	INVALIDATE(who);
-
-	who->next = who_data_free;
-	who_data_free = who;
-} 
-
-
 /* stuff for recycling gen_data */
 GEN_DATA *gen_data_free;
 
@@ -492,7 +460,7 @@ PC_DATA *new_pcdata(void)
         pcdata->history_stats[i] = 0;
     }
     
-    pcdata->buffer = new_buf();
+//    pcdata->buffer = new_buf();
     pcdata->pkill_count = 0;
     pcdata->pkill_deaths = 0;
     pcdata->pkpoints = 0;
@@ -517,6 +485,9 @@ PC_DATA *new_pcdata(void)
     pcdata->gender_kills            = 0;
     pcdata->gender_lost             = 0;
     pcdata->gender_won              = 0;
+    pcdata->gtell_history	    = pers_history_new();
+    pcdata->tell_history	    = pers_history_new();
+    pcdata->clan_history	    = pers_history_new();
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
     VALIDATE(pcdata);
 
@@ -538,7 +509,7 @@ void free_pcdata(PC_DATA *pcdata)
     free_string(pcdata->bamfout);
     free_string(pcdata->title);
     free_string(pcdata->authed_by);
-    free_buf(pcdata->buffer);
+   // free_buf(pcdata->buffer);
 
     for (i = 0; i < MAX_CLAN; i++)
         free_string(pcdata->invitation[i]);
@@ -571,6 +542,10 @@ void free_pcdata(PC_DATA *pcdata)
              free(pExp);
         }
     }
+
+    pers_history_free(pcdata->gtell_history);
+    pers_history_free(pcdata->tell_history);
+    pers_history_free(pcdata->clan_history);
 
     INVALIDATE(pcdata);
     pcdata->next = pcdata_free;
