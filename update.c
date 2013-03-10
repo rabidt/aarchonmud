@@ -2458,11 +2458,11 @@ void update_handler( void )
    /* update some things once per hour */
    if ( current_time % HOUR == 0 )
    {
-       /* check for lboard resets at the top of the hour */
-	check_lboard_reset();
-       
        if ( hour_update )
        {
+	   /* check for lboard resets at the top of the hour */
+           check_lboard_reset();
+
 	   /* update herb_resets every 6 hours */
 	   if ( current_time % (6*HOUR) == 0 )
 	       update_herb_reset();
