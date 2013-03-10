@@ -135,7 +135,6 @@ BOARD_DATA boards[MAX_BOARD] =
    { "General",  "General discussion",           0, 2, BOARD_NONE, "all", DEF_INCLUDE, 20, 200, NULL, FALSE },
    { "Personal", "Personal messages",            0, 2, BOARD_NONE, "all", DEF_EXCLUDE, 20, 500, NULL, FALSE },
    { "Ideas",    "Suggestions for improvement",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE }, 
-   { "Druids",   "Druid Development",            0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Mechanics","Game Mechanics",               0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Bugs",     "Typos, bugs, errors",          0, 2, BOARD_NONE, "imm", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Pkill",    "Player killers only!",         0, 2, BOARD_PKILL, "pkill", DEF_NORMAL,  20, 200, NULL, FALSE }, 
@@ -1420,8 +1419,8 @@ void handle_con_note_finish (DESCRIPTOR_DATA *d, char * argument)
    }
 
    if ( d->connected == CON_PLAYING
-	&& buf_string(ch->pcdata->buffer)[0] != '\0' )
-       send_to_char("Type 'replay' to see missed tells.\n\r", ch );
+	&& ch->pcdata->new_tells )
+       send_to_char("Type 'playback tell' to see missed tells.\n\r", ch );
 }
 
 /* Announces new mail to online recipients.  Toggled off and on just like other

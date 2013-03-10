@@ -297,13 +297,13 @@ int ch_dis_practice(CHAR_DATA *ch)
 /* New function for pracitce calculations. Uses prime and secondary
    stats to determine the gains - Astark 1-2-13 */
 
-int ch_prac_gains(CHAR_DATA *ch)
+int ch_prac_gains(CHAR_DATA *ch, int for_level)
 {
-    int x1 = get_curr_stat(ch,class_table[ch->class].attr_prime)/30;
-    int x2 = get_curr_stat(ch,class_table[ch->class].attr_second[0])/45;
-    int x3 = get_curr_stat(ch,class_table[ch->class].attr_second[1])/45;
+    int x1 = 100*get_curr_stat(ch,class_table[ch->class].attr_prime)/30;
+    int x2 = 100*get_curr_stat(ch,class_table[ch->class].attr_second[0])/45;
+    int x3 = 100*get_curr_stat(ch,class_table[ch->class].attr_second[1])/45;
     int x = x1+x2+x3;
-    return x;
+    return x * (1 + UMAX(0, for_level - LEVEL_MIN_HERO));
 };
 
 int ch_agi_defensive(CHAR_DATA *ch)
@@ -1143,8 +1143,6 @@ void do_showrace(CHAR_DATA *ch, char *argument)
     do_stats(ch, argument);
     show_remort_bonus(ch, race);
 
-    /* comment out while not imping new races --Bobble */
-    
     if ( IS_IMMORTAL( ch ) )
 	show_pc_race_ratings( ch, race );
     
@@ -1158,26 +1156,35 @@ void show_pc_race_ratings( CHAR_DATA *ch, int race )
 {
     char buf[MIL];
     int stat;
-    float allowed_rating = (80 + 5 * pc_race_table[race].remorts) * 9.5;
-    float rating = 0;
+    int remorts = pc_race_table[race].remorts;
+    bool construct = IS_SET(race_table[race].form, FORM_CONSTRUCT);
+    
+    int allowed_max = ((construct ? 90 : 100) + 5*remorts) * 10;
+    int allowed_min = (20 + 5*remorts) * 10;
+    int trade_factor = (remorts == 0 ? 3 : 5);
+    int allowed_rating = allowed_min + allowed_max * trade_factor;
+    
+    int min_sum = 0;
+    int max_sum = 0;
 
     /* for each stat */
     for ( stat = 0; stat < MAX_STATS; stat++ )
     {
-	float stat_rating = (pc_race_table[race].min_stats[stat] 
-			     + 3 * pc_race_table[race].max_stats[stat]) / 4.0;
-	if ( stat == STAT_CHA )
-	    stat_rating /= 2;
-	rating += stat_rating;
-
-	sprintf( buf, "%-7.2f", stat_rating );
-	send_to_char( buf, ch );
+        min_sum += pc_race_table[race].min_stats[stat];
+        max_sum += pc_race_table[race].max_stats[stat];
     }
     /* and the total */
-    sprintf( buf, "\n\r=> %.2f/%.2f\n\r", rating, allowed_rating );
-    send_to_char( buf, ch );
+    if (construct) {
+        char min_color = min_sum > allowed_min ? 'r' : min_sum < allowed_min ? 'g' : 'x';
+        char max_color = max_sum > allowed_max ? 'r' : max_sum < allowed_max ? 'g' : 'x';
+        sprintf( buf, "\n\rStat Rating: Min = {%c%d{x/%d, Max = {%c%d{x/%d{x\n\r", min_color, min_sum, allowed_min, max_color, max_sum, allowed_max );
+    } else {
+        int rating = min_sum + max_sum * trade_factor;
+        char rating_color = rating > allowed_rating ? 'r' : rating < allowed_rating ? 'g' : 'x';
+        sprintf( buf, "\n\rStat Rating: {%c%d{x/%d\n\r", rating_color, rating, allowed_rating );
+    }
+    send_to_char( buf, ch );        
 }
-
 
 void do_racelist(CHAR_DATA *ch, char *argument)
 {
@@ -1723,6 +1730,8 @@ void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf )
 	break;
     case TO_OBJECT:
 	break;
+    case TO_WEAPON:
+        break;
     case TO_SPECIAL:
 	break;
     default:
@@ -1730,6 +1739,7 @@ void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf )
 	      paf->where,
 	      paf->type > 0 ? skill_table[paf->type].name : "?",
 	      ch->name );
+        log_trace();
 	break;
     }    
 }

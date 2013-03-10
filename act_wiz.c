@@ -1307,8 +1307,8 @@ void do_return( CHAR_DATA *ch, char *argument )
         ch->prompt = NULL;
     }
     
-    if ( buf_string(ch->desc->original->pcdata->buffer)[0] != '\0')
-        send_to_char( "Type 'replay' to see missed tells.\n\r", ch );
+    if ( ch->desc->original->pcdata->new_tells)
+        send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
     
     
     sprintf(buf,"$N returns from %s.",ch->short_descr);
@@ -3620,19 +3620,9 @@ void do_qset( CHAR_DATA *ch, char *argument )
     else    
         limit = atoi(arg5);
 
-#ifndef TESTER
-    if (victim->level <= 100)
-    {
-        send_to_char("Cheating isn't tolerated here.\n\r", ch) ;
-        return ;
-    }
-    else
-#endif /* ifndef TESTER */
-    {
-        /* new function used to set timer on qstatus -Astark Oct 2012 */
-        set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
-        act( "You have successfully changed $N's qstatus.", ch, NULL, victim, TO_CHAR );
-    }
+    /* new function used to set timer on qstatus -Astark Oct 2012 */
+    set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
+    act( "You have successfully changed $N's qstatus.", ch, NULL, victim, TO_CHAR );
     return;
 
 }
@@ -3645,6 +3635,11 @@ void do_dummy( CHAR_DATA *ch, char *argument)
 	#ifdef BUILDER
 	send_to_char("BUILDER defined\n\r",ch);
 	#endif /* BUILDER */
+}
+
+void do_mode( CHAR_DATA *ch, char *argument)
+{
+	send_to_char( bin_info_string(), ch);	
 }
 
 
