@@ -1142,7 +1142,8 @@ void reset_daily_lboards()
 #endif
 	LBOARD_RESULT *rslt;
 	
-	rslt=make_result( daily_reset, lboard_daily);
+	if ( daily_reset != 0 ) /* Don't make a result if reset time not set */
+	    rslt=make_result( daily_reset, lboard_daily);
 	
 	rslt->next = daily_results;
 	daily_results = rslt;	
@@ -1200,7 +1201,8 @@ void reset_weekly_lboards()
 #endif
 	LBOARD_RESULT *rslt;
 	
-	rslt=make_result( weekly_reset, lboard_weekly);
+	if ( weekly_reset != 0 ) /* Don't make a result if reset time not set */
+	    rslt=make_result( weekly_reset, lboard_weekly);
 	
 	rslt->next = weekly_results;
 	weekly_results = rslt;
@@ -1229,7 +1231,8 @@ void reset_monthly_lboards()
 #endif
 
 	LBOARD_RESULT *rslt;
-	rslt=make_result( monthly_reset, lboard_monthly);
+	if ( daily_reset != 0 ) /* Don't make a result if reset time not set */
+	    rslt=make_result( monthly_reset, lboard_monthly);
 	
 	rslt->next = monthly_results;
 	monthly_results = rslt;
