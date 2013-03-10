@@ -84,11 +84,9 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
 {
     CHAR_DATA *fch;
     CHAR_DATA *fch_next;
-    CHAR_DATA *old_singer;
     ROOM_INDEX_DATA *in_room;
     ROOM_INDEX_DATA *to_room;
     EXIT_DATA *pexit;
-    bool singing_in_room;
     char buf[MAX_STRING_LENGTH];
     int chance, d, inwater, towater;
     
@@ -418,13 +416,6 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
 	}
     }
     
-    old_singer = in_room->singer;
-    singing_in_room = (old_singer != NULL) && (to_room->singer == NULL)
-        && (to_room != in_room);
-    
-    if (singing_in_room)
-       in_room->singer = NULL;
-   
     /* check fighting - no cross-room combat */
     if ( in_room != to_room )
     {
@@ -439,13 +430,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
     char_to_room( ch, to_room );
    
    
-    if (ch->song_singing != song_null)
-    {
-	sprintf( buf, "%s has arrived, singing %s.\n\r",
-		 ch->name, skill_table[ch->song_singing].msg_off);
-	act(buf, ch, NULL, NULL, TO_ROOM);
-    }
-    else if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
+    if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
     {
 	if ( !IS_AFFECTED(ch, AFF_SNEAK) && !IS_TAG(ch) )
 	    act( "$n has arrived.", ch, NULL, NULL, TO_ROOM );
@@ -490,25 +475,6 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
            
            act( "You follow $N.", fch, NULL, ch, TO_CHAR );
            move_char( fch, door, TRUE );
-       }
-   }
-   
-   if (singing_in_room)
-   {
-       in_room->singer = old_singer;
-       if (old_singer->in_room == to_room)
-       {
-           old_singer->in_room = in_room;
-           song_from_room(old_singer);
-           old_singer->in_room = to_room;
-           song_to_room(old_singer);
-       }
-       else
-       {
-           old_singer->in_room = to_room;
-           to_room->singer = old_singer;
-           song_from_room(old_singer);
-           old_singer->in_room = in_room;
        }
    }
    

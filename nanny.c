@@ -47,21 +47,11 @@ DECLARE_DO_FUN(do_unread    );
 extern bool            wizlock;        /* Game is wizlocked        */
 extern bool            newlock;        /* Game is newlocked        */
 
-extern WHO_DATA *who_list;		/* list of chars held separately from descriptor_list */
-
 bool    check_reconnect     args( ( DESCRIPTOR_DATA *d, char *name,
 					bool fConn ) );
 bool    check_playing       args( ( DESCRIPTOR_DATA *d, char *name ) );
 bool check_parse_name( char *name, bool newchar );
-bool clans_sorted( CHAR_DATA *ch1, CHAR_DATA *ch2 );
 void show_races_to_d( DESCRIPTOR_DATA *d );
-
-
-void add_to_who_list  args((DESCRIPTOR_DATA *d));
-void remove_from_who_list  args((DESCRIPTOR_DATA *d));
-void update_who_position  args((DESCRIPTOR_DATA *d));
-/* local procedure */
-void place_in_who_list   args((WHO_DATA *w));
 
 void enter_game args((DESCRIPTOR_DATA *d));
 void take_rom_basics args((DESCRIPTOR_DATA *d));
@@ -1889,12 +1879,9 @@ bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
                 ch->desc     = d;
                 ch->timer    = 0;
 
-		/* add to the sorted who list */
-		add_to_who_list(d);
-
                 send_to_char( "Reconnecting.\n\r", ch );
-                if (buf_string(ch->pcdata->buffer)[0] != '\0')
-                    send_to_char( "Type 'replay' to see missed tells.\n\r", ch );
+                if (ch->pcdata->new_tells)
+                    send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
                 act( "$n has reconnected.", ch, NULL, NULL, TO_ROOM );
 
                 sprintf( buf, "%s@%s reconnected.", ch->name, d->host );
@@ -2150,9 +2137,6 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	}
 	*/
 
-	/* add to the sorted who list */
-	add_to_who_list(d);
-
 	act( "$n appears in the room.", ch, NULL, NULL, TO_ROOM );
 	do_look( ch, "auto" );
         //do_loginquote(ch);
@@ -2177,189 +2161,8 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    ch->pcdata->group_known[gn] = TRUE;
     }
 
+    if ( is_clan(ch) )
+        do_cmotd(ch, "");
+
     return;
-}
-
-void add_to_who_list( DESCRIPTOR_DATA *d )
-{
-    WHO_DATA *newwho, *who;
-
-    if ( d == NULL )
-	return;
-
-    if( d->character == NULL )
-    {
-	bug( "BUG: add_to_who_list, null ch\n", 0 );
-	return;
-    }
-
-    /* safety-net */
-    for ( who = who_list; who != NULL; who = who->next )
-	if ( who->desc == d )
-	{
-	    bugf( "add_to_who_list: descriptor already in list: %s",
-		  d->character->name );
-	    return;
-	}
-
-    newwho = new_who_data();
-    newwho->desc = d;
-    place_in_who_list( newwho );
-    return;
-}
-
-void remove_from_who_list( DESCRIPTOR_DATA *d )
-{
-	WHO_DATA *curr = who_list;
-	WHO_DATA *temp;
-
-	if ( d == NULL )
-	    return;
-
-	/* If d is the top of the list, removal must be handled specially */
-	if( curr->desc == d )
-	{
-	    who_list = curr->next;
-	    free_who_data( curr );
-	    return;
-	}
-
-	/* Search for d in who_list; always look one ahead */
-	while( curr->next != NULL && d != curr->next->desc )
-	    curr = curr->next;
-
-	/* If d was somehow not found.. */
-	if( curr->next == NULL )
-	{
-	    bug( "%s not found for removal from who_list.\n", d->character->name );
-	    return;
-	}
-	temp = curr->next;
-	curr->next = curr->next->next;	
-	free_who_data( temp );
-	return;
-}
-
-void update_who_position( DESCRIPTOR_DATA *d )
-{
-	WHO_DATA *curr_who = who_list;
-	WHO_DATA *d_who;
-	WHO_DATA *next_who;
-
-	CHAR_DATA *curr_ch;
-	CHAR_DATA *d_ch;
-	CHAR_DATA *next_ch;
-
-	/* MUST CHECK THIS!!! */
-	if ( d == NULL )
-	    return;
-
-	/* If d is the only person on the who_list, do not update the list. */
-	if( curr_who->next == NULL )
-	    return;
-
-	/* Find d in who_list, store it, remove it, and add it back into its proper place. */
-
-	/* Check top of list first (special case) */
-	if( curr_who->desc == d )
-	{
-	    d_who = who_list;		/* stored, so that it may be re-added later */
-	    who_list = who_list->next;  /* d_who is removed from who list temporarily */
-	}
-	else
-	{
-	    /* Find the who entry that has d as its next one */
-	    while( curr_who->next != NULL && d != curr_who->next->desc )
-	        curr_who = curr_who->next;
-
-	    /* Right now, curr_who->next is the who_list entry we want to move, i.e., it corresponds to d. */
-	    /* IF d is to remain between the _previous_ (curr_ch) and _next_ (next_ch) on list, DO NOT UPDATE. */
-	    /* The DO NOT UPDATE checks are described below. */
-
-	    curr_ch = curr_who->desc->original ?
-	              curr_who->desc->original : curr_who->desc->character;
-
-	    d_ch = d->original ? d->original : d->character;
-	    d_who = curr_who->next;	/* stored, so that it may be re-added later */
-
-	    /* Better safe than sorry! */
-	    if( d_who == NULL )
-	    {
-		bug( "Somehow, %s was not found in who_list.\n", d_ch->name );
-		return;
-	    }
-
-	    next_who = d_who->next ? d_who->next : NULL;
-
-	    next_ch = next_who ?
-		(next_who->desc->original ? next_who->desc->original : next_who->desc->character) : NULL;
-
-	    /* The "DO NOT UPDATE" if checks, to avoid unnecessary manipulations:
-		- curr_ch is either higher level than d_ch, or the same and with clans in proper order
-		and also:
-	    	- if there is no next_ch
-		- if d is higher level than next_ch
-		- if d is the same level as next_ch, and their clans are in proper order */
-	    if( curr_ch->level > d_ch->level || (curr_ch->level == d_ch->level && clans_sorted(curr_ch, d_ch)) )
-	    {
-		if( next_ch == NULL || d_ch->level > next_ch->level
-		|| (d_ch->level == next_ch->level && clans_sorted(d_ch, next_ch)) )
-		{
-		    return;
-		}
-	    }
-
-	    curr_who->next = next_who;	/* d_who is removed from who_list (of course, it was stored as d_who) */
-	}
-
-	/* Now d_who is added back to the who_list in its proper place */
-	place_in_who_list( d_who );
-}
-
-void place_in_who_list( WHO_DATA *new_who )
-{
-	CHAR_DATA *new_ch = new_who->desc->original ? new_who->desc->original : new_who->desc->character;
-
-	WHO_DATA *curr_who = who_list;
-	CHAR_DATA *curr_ch = curr_who ?
-		(curr_who->desc->original ? curr_who->desc->original : curr_who->desc->character) : NULL;
-	CHAR_DATA *next_ch;
-
-	/* Better safe than sorry */
-	if ( new_who == NULL )
-	    return;
-
-	/* If the new addition belongs on the top of the list... */
-	if( curr_ch == NULL || new_ch->level > curr_ch->level
-	|| (new_ch->level == curr_ch->level && clans_sorted(new_ch, curr_ch)) )
-	{
-	    new_who->next = curr_who;
-	    who_list = new_who;
-	    return;
-	}
-
-	/* Shuffle lower level players towards the bottom to sort.  For same level, sort by clan/rank. */
-	while( curr_who->next != NULL )
-	{
-	    next_ch = curr_who->next->desc->original ? curr_who->next->desc->original : curr_who->next->desc->character;
-	    if ( new_ch->level > next_ch->level ||
-	        (new_ch->level == next_ch->level && clans_sorted(new_ch, next_ch)) )
-	        break;	/* new ch should be placed before next_ch */
-	    curr_who = curr_who->next;
-	}
-
-	/* Now curr_who is pointing to the entry that goes immediately BEFORE new_who should */
-	new_who->next = curr_who->next;
-	curr_who->next = new_who;
-	return;
-}
-
-bool clans_sorted( CHAR_DATA *ch1, CHAR_DATA *ch2 )
-{
-	if( ch1->clan < ch2->clan )
-	    return TRUE;
-	else if( ch1->clan == ch2->clan && ch1->pcdata->clan_rank >= ch2->pcdata->clan_rank )
-	        return TRUE;
-	else
-	    return FALSE;
 }
