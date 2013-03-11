@@ -1,24 +1,18 @@
 #ifndef LEADERBOARD_H
 #define LEADERBOARD_H
 
-//#define LBOARD_DEBUG
+#define LBOARD_DEBUG
 
 #define MAX_DISPLAY_ENTRY 20
 #define MAX_LBOARD_RESULT 10
-#define RESULT_NUM_RANK		3
+#define RESULT_NUM_RANK    3
 
 typedef struct lboard_entry LBOARD_ENTRY;
 typedef struct lboard LBOARD;
 typedef struct lboard_result LBOARD_RESULT;
 typedef struct lboard_table_entry LBOARD_TABLE_ENTRY;
+typedef struct lb_tables_entry LB_TABLES_ENTRY;
 
-extern time_t daily_reset;
-extern time_t weekly_reset;
-extern time_t monthly_reset;
-
-extern LBOARD *daily_results;
-extern LBOARD *weekly_results;
-extern LBOARD *monthly_results;
 
 struct lboard_table_entry
 {
@@ -49,6 +43,17 @@ struct lboard_result
 	char *text;
 };
 
+struct lb_tables_entry
+{
+    sh_int *sn;
+    time_t reset;
+    LBOARD_RESULT *result;
+    char *keyword;
+    time_t (*reset_fun)();
+    LBOARD_TABLE_ENTRY table[MAX_LBOARD];
+};
+    
+
 
 LBOARD_ENTRY *find_in_lboard( LBOARD **board, char *name );
 LBOARD *add_to_lboard( LBOARD **board, char *name, int increment );
@@ -60,5 +65,6 @@ void reset_daily_lboards();
 void reset_weekly_lboards();
 void reset_monthly_lboards();
 void reset_lboard( LBOARD **board);
+void lboard_init();
 
 #endif
