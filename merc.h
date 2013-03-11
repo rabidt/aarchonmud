@@ -2323,6 +2323,12 @@ extern sh_int sn_newbie;
 #define LBOARD_LEVEL	7
 #define LBOARD_PKILL	8
 #define MAX_LBOARD 		9
+
+extern sh_int sn_daily;
+extern sh_int sn_weekly;
+extern sh_int sn_monthly;
+extern sh_int sn_overall;
+
 /*
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.

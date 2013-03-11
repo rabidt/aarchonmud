@@ -664,6 +664,9 @@ void boot_db()
     log_string( "Loading religions" );
     load_religions();
 
+    log_string( "Initialzing leaderboards");
+    lboard_init();
+
     log_string( "Loading leaderboards" );
     load_lboards();
 
