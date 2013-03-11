@@ -399,69 +399,18 @@ void reset_char(CHAR_DATA *ch)
     if (IS_NPC(ch))
         return;
     
-    if (ch->pcdata->perm_hit == 0
-        ||  ch->pcdata->perm_mana == 0
-        ||  ch->pcdata->perm_move == 0
-        ||  ch->pcdata->last_level == 0)
-    {
-        /* do a FULL reset */
-        for (loc = 0; loc < MAX_WEAR; loc++)
-        {
-            obj = get_eq_char(ch,loc);
-            if (obj == NULL)
-                continue;
-                for ( af = obj->pIndexData->affected; af != NULL; af = af->next )
-                {
-                    mod = af->modifier;
-                    switch(af->location)
-                    {
-                    case APPLY_SEX: ch->sex     -= mod;
-                        if (ch->sex < 0 || ch->sex >2)
-                            ch->sex = IS_NPC(ch) ?
-                            0 :
-                        ch->pcdata->true_sex;
-                        break;
-                    case APPLY_MANA:    ch->max_mana    -= mod;     break;
-                    case APPLY_HIT: ch->max_hit -= mod;     break;
-                    case APPLY_MOVE:    ch->max_move    -= mod;     break;
-                    }
-                }
-                
-                for ( af = obj->affected; af != NULL; af = af->next )
-                {
-                    mod = af->modifier;
-                    switch(af->location)
-                    {
-                    case APPLY_SEX:     ch->sex         -= mod;         break;
-                    case APPLY_MANA:    ch->max_mana    -= mod;         break;
-                    case APPLY_HIT:     ch->max_hit     -= mod;         break;
-                    case APPLY_MOVE:    ch->max_move    -= mod;         break;
-                    }
-                }
-        }
-        /* now reset the permanent stats */
-        ch->pcdata->perm_hit    = ch->max_hit;
-        ch->pcdata->perm_mana   = ch->max_mana;
-        ch->pcdata->perm_move   = ch->max_move;
-        ch->pcdata->last_level  = ch->played/3600;
-        if (ch->pcdata->true_sex < 0 || ch->pcdata->true_sex > 2)
-            if (ch->sex > 0 && ch->sex < 3)
-                ch->pcdata->true_sex    = ch->sex;
-            else
-                ch->pcdata->true_sex    = 0;
-            
-    }
-    
-    /* now restore the character to his/her true condition */
+    // reset sex
+    if (ch->pcdata->true_sex < 0 || ch->pcdata->true_sex > 2)
+        ch->pcdata->true_sex = 0;
+    ch->sex = ch->pcdata->true_sex;
+
+    // reset stats
     for (stat = 0; stat < MAX_STATS; stat++)
         ch->mod_stat[stat] = 0;
     
-    if (ch->pcdata->true_sex < 0 || ch->pcdata->true_sex > 2)
-        ch->pcdata->true_sex = 0;
-    ch->sex     = ch->pcdata->true_sex;
-    ch->max_hit     = ch->pcdata->perm_hit;
-    ch->max_mana    = ch->pcdata->perm_mana;
-    ch->max_move    = ch->pcdata->perm_move;
+    ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->trained_hit_bonus = 0;
+    ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
+    ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
     
     for (i = 0; i < 4; i++)
         ch->armor[i]    = 100;
@@ -469,7 +418,6 @@ void reset_char(CHAR_DATA *ch)
     ch->hitroll     = 0;
     ch->damroll     = 0;
     ch->saving_throw    = 0;
-//    ch->combo_points = 0;
     
     /* now start adding back the effects */
     tattoo_modify_reset(ch);
@@ -514,8 +462,6 @@ void reset_char(CHAR_DATA *ch)
                 case APPLY_SAVING_PETRI:    ch->saving_throw += mod; break;
                 case APPLY_SAVING_BREATH:   ch->saving_throw += mod; break;
                 case APPLY_SAVING_SPELL:    ch->saving_throw += mod; break;
-
-//                case APPLY_COMBO:    ch->combo_points += mod; break;
                 }
             }
             
@@ -552,8 +498,6 @@ void reset_char(CHAR_DATA *ch)
                 case APPLY_SAVING_PETRI:        ch->saving_throw += mod; break;
                 case APPLY_SAVING_BREATH:       ch->saving_throw += mod; break;
                 case APPLY_SAVING_SPELL:        ch->saving_throw += mod; break;
-
-//                case APPLY_COMBO:    ch->combo_points += mod; break;
                 }
             }
     }
@@ -592,14 +536,14 @@ void reset_char(CHAR_DATA *ch)
         case APPLY_SAVING_PETRI:        ch->saving_throw += mod; break;
         case APPLY_SAVING_BREATH:       ch->saving_throw += mod; break;
         case APPLY_SAVING_SPELL:        ch->saving_throw += mod; break;
-
-//        case APPLY_COMBO:    ch->combo_points += mod; break;
         }
     }
     
     /* make sure sex is RIGHT!!!! */
     if (ch->sex < 0 || ch->sex > 2)
         ch->sex = ch->pcdata->true_sex;
+    
+    update_perm_hp_mana_move(ch);
 }
 
 
