@@ -1686,6 +1686,38 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     ch->max_move = new_move + move_bonus + trained_move_bonus;
 }
 
+void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap )
+{
+    int base_hp, base_mana, base_move;
+    int train_factor, gain_per_train;
+
+    if (IS_NPC(ch))
+    {
+        *hp_cap = *mana_cap = *move_cap = 0;
+        return;
+    }
+
+    base_hp = ch->max_hit - ch->pcdata->trained_hit_bonus;
+    base_mana = ch->max_mana - ch->pcdata->trained_mana_bonus;
+    base_move = ch->max_move - ch->pcdata->trained_move_bonus;
+
+    train_factor = 100 + get_curr_stat(ch, STAT_DIS);
+    // hp
+    gain_per_train = class_table[ch->class].hp_gain * train_factor;
+    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
+        gain_per_train += 4000;
+    *hp_cap = base_hp * 1000 / gain_per_train;
+    // mana
+    gain_per_train = class_table[ch->class].mana_gain * train_factor;
+    *mana_cap = base_mana * 1000 / gain_per_train;
+    // move
+    gain_per_train = class_table[ch->class].move_gain * train_factor;
+    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
+        gain_per_train += 2000;
+    *move_cap = base_move * 1000 / gain_per_train;
+
+    return;
+}
 
 /* Bobble: update all affect, immune, vuln, resist flags on ch
  */
