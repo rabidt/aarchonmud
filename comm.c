@@ -3516,6 +3516,7 @@ void copyover_recover ()
             act ("$n materializes!", d->character, NULL, NULL, TO_ROOM);
             d->connected = CON_PLAYING;
             update_bounty(d->character);
+            reset_char(d->character);
             
             if (d->character->pet != NULL)
             {

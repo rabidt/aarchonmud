@@ -1610,61 +1610,80 @@ bool parse_roll_stats (CHAR_DATA *ch,char *argument)
 void update_perm_hp_mana_move(CHAR_DATA *ch)
 {
     int new_hp, new_mana, new_move;
+    int trained_hp_bonus, trained_mana_bonus, trained_move_bonus;
+    int hp_bonus, mana_bonus, move_bonus, softcap;
     int level_factor, train_factor, stat_factor, class_factor;
-    int hero_bonus, train_bonus, max_train;
+    int hero_bonus, max_train;
     
     /* PCs only */
     if (IS_NPC(ch) || ch->pcdata == NULL)
 	return;
-     
+
+    // "temporary" bonuses (eq/tattoos/affects with +hp/mana/move)
+    hp_bonus = ch->max_hit - ch->pcdata->perm_hit - ch->pcdata->trained_hit_bonus;
+    mana_bonus = ch->max_mana - ch->pcdata->perm_mana - ch->pcdata->trained_mana_bonus;
+    move_bonus = ch->max_move - ch->pcdata->perm_move - ch->pcdata->trained_move_bonus;
+    
     hero_bonus = UMAX(0, ch->level - (LEVEL_HERO - 10));
     hero_bonus = hero_bonus * (hero_bonus + 1) / 2;
-    level_factor = (ch->level + hero_bonus) * 600;
+    level_factor = ch->level + hero_bonus;
     train_factor = 100 + get_curr_stat(ch, STAT_DIS);
     max_train = max_hmm_train( ch->level );
     
     /* calculate hp */
-    train_bonus = UMIN(max_train,ch->pcdata->trained_hit) * train_factor;
     stat_factor = 100 + get_curr_stat(ch, STAT_CON);
     class_factor = class_table[ch->class].hp_gain;
-    new_hp = (level_factor + train_bonus) * stat_factor / 6000;
-    new_hp = 100 + new_hp * class_factor / 100;
+    new_hp = 100 + level_factor * stat_factor * class_factor / 1000;
     /* size and form bonus */
     new_hp += (ch->level + 10) * (ch->size - SIZE_MEDIUM);
-    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
-	new_hp += 2 * ch->pcdata->trained_hit;
     if ( IS_SET(race_table[ch->race].form, FORM_TOUGH) )
 	new_hp += ch->level * 10;
+    /* train bonus */
+    trained_hp_bonus = UMIN(max_train,ch->pcdata->trained_hit) * train_factor * class_factor / 2000;
+    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
+        trained_hp_bonus += 2 * UMIN(max_train,ch->pcdata->trained_hit);
+    softcap = (new_hp + hp_bonus) / 2;
+    if (trained_hp_bonus > softcap)
+        trained_hp_bonus = softcap + (trained_hp_bonus - softcap) / 5;
     
     /* calculate mana */
-    train_bonus = UMIN(max_train,ch->pcdata->trained_mana) * train_factor;
     stat_factor = 100 + get_curr_stat(ch, STAT_WIS);
     class_factor = class_table[ch->class].mana_gain;
-    new_mana = (level_factor + train_bonus) * stat_factor / 6000;
-    new_mana = 100 + new_mana * class_factor / 100;
+    new_mana = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
     if ( IS_SET(race_table[ch->race].form, FORM_WISE) )
 	new_mana += ch->level * 10;
+    /* train bonus */
+    trained_mana_bonus = UMIN(max_train,ch->pcdata->trained_mana) * train_factor * class_factor / 2000;
+    softcap = (new_mana + mana_bonus) / 2;
+    if (trained_mana_bonus > softcap)
+        trained_mana_bonus = softcap + (trained_mana_bonus - softcap) / 5;
     
     /* calculate move */
-    train_bonus = UMIN(max_train,ch->pcdata->trained_move) * train_factor;
     stat_factor = 100 + get_curr_stat(ch, STAT_AGI);
     class_factor = class_table[ch->class].move_gain;
-    new_move = (level_factor + train_bonus) * stat_factor / 6000;
-    new_move = 100 + new_move * class_factor / 100;
+    new_move = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
-    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
-	new_move += ch->pcdata->trained_move;
     if ( IS_SET(race_table[ch->race].form, FORM_AGILE) )
 	new_move += ch->level * 10;
+    /* train bonus */
+    trained_move_bonus = UMIN(max_train,ch->pcdata->trained_move) * train_factor * class_factor / 2000;
+    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
+        trained_move_bonus += UMIN(max_train,ch->pcdata->trained_move);
+    softcap = (new_move + move_bonus) / 2;
+    if (trained_move_bonus > softcap)
+        trained_move_bonus = softcap + (trained_move_bonus - softcap) / 5;
     
-    /* adjust permanent and max hp/mana/move */
-    ch->max_hit += new_hp - ch->pcdata->perm_hit;
-    ch->max_mana += new_mana - ch->pcdata->perm_mana;
-    ch->max_move += new_move - ch->pcdata->perm_move;
+    /* adjust permanent, trained and max hp/mana/move */
     ch->pcdata->perm_hit = new_hp;
     ch->pcdata->perm_mana = new_mana;
     ch->pcdata->perm_move = new_move;
+    ch->pcdata->trained_hit_bonus = trained_hp_bonus;
+    ch->pcdata->trained_mana_bonus = trained_mana_bonus;
+    ch->pcdata->trained_move_bonus = trained_move_bonus;
+    ch->max_hit = new_hp + hp_bonus + trained_hp_bonus;
+    ch->max_mana = new_mana + mana_bonus + trained_mana_bonus;
+    ch->max_move = new_move + move_bonus + trained_move_bonus;
 }
 
 

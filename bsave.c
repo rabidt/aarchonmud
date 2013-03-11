@@ -521,11 +521,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	if (ch->pcdata->highest_level != ch->level)
         bprintf( buf, "HLev %d\n",   ch->pcdata->highest_level  );
         
-        bprintf( buf, "HMVP %d %d %d\n", ch->pcdata->perm_hit, 
-            ch->pcdata->perm_mana,
-            ch->pcdata->perm_move);
-
-	if (ch->pcdata->trained_hit)
+        if (ch->pcdata->trained_hit)
 	    bprintf(buf, "THit %d\n", ch->pcdata->trained_hit);
         
 	if (ch->pcdata->trained_mana)
@@ -1856,15 +1852,6 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->max_mana    = bread_number( buf );
             ch->move    = bread_number( buf );
             ch->max_move    = bread_number( buf );
-            fMatch = TRUE;
-            break;
-        }
-        
-        if ( !str_cmp( word, "HpManaMovePerm" ) || !str_cmp(word,"HMVP"))
-        {
-            ch->pcdata->perm_hit    = bread_number( buf );
-            ch->pcdata->perm_mana   = bread_number( buf );
-            ch->pcdata->perm_move   = bread_number( buf );
             fMatch = TRUE;
             break;
         }
