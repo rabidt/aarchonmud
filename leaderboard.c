@@ -221,7 +221,8 @@ void update_lboard_periodic( LBOARD **board, CHAR_DATA *ch, int increment)
 #ifdef LBOARD_DEBUG 
         log_string("update_lboard: entry == NULL");
 #endif
-        add_to_lboard( board, ch->name, increment);
+        entry = add_to_lboard( board, ch->name, increment);
+        update_lboard_order( board, &entry);
         return;
     }
 
@@ -462,7 +463,7 @@ void remove_from_lboard( LBOARD **board, char *name )
     return;
 }
 
-LBOARD *add_to_lboard( LBOARD **board, char *name, int increment )
+LBOARD_ENTRY *add_to_lboard( LBOARD **board, char *name, int increment )
 {
 #ifdef LBOARD_DEBUG 
     log_string("add_to_lboard start");
