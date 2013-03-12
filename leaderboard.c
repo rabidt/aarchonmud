@@ -1006,20 +1006,27 @@ void load_lboard_results()
     {
         word = feof( fp ) ? "#END" : fread_word( fp );
 
+        fMatch=FALSE;
         for ( lte=&lb_tables[i=0]; lte->sn ; lte=&lb_tables[++i] )
         {
             if ( !strcmp( word, lte->keyword) )
             {
                 results_list=&lte->result;
                 fMatch = TRUE;
+#ifdef LBOARD_DEBUG
+                log_string(word);
+#endif
                 break;
             }
         }
         if ( fMatch )
-            break;
+            continue;
 
         if ( !strcmp(word, "#RESULT") )
         {
+#ifdef LBOARD_DEBUG
+            log_string(word);
+#endif
             if ( results_list == NULL )
             {
                 bugf( "load_lboard_results: NULL lboard_list" );
@@ -1059,7 +1066,7 @@ void load_lboard_results()
             break;
         else
         {
-            bugf( "load_lboard_resultss: invalid section: %s", word );
+            bugf( "load_lboard_results: invalid section: %s", word );
             break;
         }
     }    
@@ -1069,7 +1076,7 @@ void load_lboard_results()
     fpReserve = fopen( NULL_FILE, "r" );  
 
 #ifdef LBOARD_DEBUG 
-    log_string( "load_lboards: done" );
+    log_string( "load_lboards_results: done" );
 #endif
 
 }
