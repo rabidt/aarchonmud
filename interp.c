@@ -484,7 +484,9 @@ const   struct  cmd_type    cmd_table   [] =
     { "avatar",	    do_avatar,  POS_DEAD,   L9,	 LOG_ALWAYS, 1, FALSE, FALSE  },
     { "printlist",  do_printlist,POS_DEAD,  ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
 /* Used only for some pfile testing */
+#ifdef TESTER
     { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },
+#endif
     /*  { "dump",       do_dump,    POS_DEAD,   ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     /*	{ "newdump",    do_new_dump, POS_DEAD,  ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     { "trust",      do_trust,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
