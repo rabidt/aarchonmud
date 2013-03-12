@@ -41,6 +41,7 @@
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
+#include "leaderboard.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -184,6 +185,7 @@ void gain_exp( CHAR_DATA *ch, int gain)
    {
 	  send_to_char( "You raise a level!!  ", ch );
 	  ch->level += 1;
+	  update_lboard( LBOARD_LEVEL, ch, ch->level, 1);
 	  
 	  sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
 	  log_string(buf);
@@ -2452,11 +2454,15 @@ void update_handler( void )
 	  update_relic_bonus();
    }
 
+
    /* update some things once per hour */
    if ( current_time % HOUR == 0 )
    {
        if ( hour_update )
        {
+	   /* check for lboard resets at the top of the hour */
+           check_lboard_reset();
+
 	   /* update herb_resets every 6 hours */
 	   if ( current_time % (6*HOUR) == 0 )
 	       update_herb_reset();

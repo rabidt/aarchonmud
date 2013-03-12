@@ -38,6 +38,7 @@
 #include "tables.h"
 #include "warfare.h"
 #include "lookup.h"
+#include "leaderboard.h"
 
 extern WAR_DATA war;
 
@@ -3112,6 +3113,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !IS_NPC(ch) && IS_NPC(victim) )
     {
 	ch->pcdata->mob_kills++;
+	update_lboard( LBOARD_MKILL, ch, ch->pcdata->mob_kills, 1);
         check_achievement(ch);
     }
 
@@ -3160,6 +3162,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	    if (!IS_SET(victim->act, PLR_WAR)) 
             {
 		ch->pcdata->pkill_count++;
+		update_lboard( LBOARD_PKILL, ch, ch->pcdata->pkill_count, 1);
 		adjust_pkgrade( ch, victim, FALSE );
 		
 		if (!clan_table[ch->clan].active)

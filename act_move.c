@@ -3178,7 +3178,7 @@ bool explored_vnum(CHAR_DATA *ch, int vnum)
 	}
 	return FALSE;
 #ifdef EXPLORE_DEBUG
-	send_to_char("explore_vnum: finish\n\r",ch);
+	send_to_char("explored_vnum: finish\n\r",ch);
 #endif
 }
 //Explore a vnum. Assume it's not explored and just set it.
@@ -3210,6 +3210,7 @@ void explore_vnum(CHAR_DATA *ch, int vnum )
 	
 	pExp->bits = pExp->bits | ( 1 << bit) ;
 	ch->pcdata->explored->set++; //Tell how many rooms we've explored
+	update_lboard( LBOARD_EXPL, ch, ch->pcdata->explored->set, 1);
 #ifdef EXPLORE_DEBUG
 	send_to_char("explore_vnum: finish\n\r",ch);
 #endif
