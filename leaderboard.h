@@ -1,7 +1,7 @@
 #ifndef LEADERBOARD_H
 #define LEADERBOARD_H
 
-#define LBOARD_DEBUG
+//#define LBOARD_DEBUG
 
 #define MAX_DISPLAY_ENTRY 20
 #define MAX_LBOARD_RESULT 10
