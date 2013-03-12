@@ -117,6 +117,7 @@ typedef struct  help_data        HELP_DATA;
 typedef struct  help_area_data   HELP_AREA;
 typedef struct  kill_data        KILL_DATA;
 typedef struct  mem_data         MEM_DATA;
+typedef struct  mob_index_data_old MOB_INDEX_DATA_OLD;
 typedef struct  mob_index_data   MOB_INDEX_DATA;
 typedef struct  note_data        NOTE_DATA;
 typedef struct  obj_data         OBJ_DATA;
@@ -288,9 +289,11 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define PULSE_AREA        (120 * PULSE_PER_SECOND)
 #define PULSE_SAVE            ( 2 * PULSE_PER_SECOND )
 #define PULSE_HERB            ( 15 * 60 * PULSE_PER_SECOND )
+#define PULSE_PER_MINUTE	( 60 * PULSE_PER_SECOND )
 /* #define PULSE_HERB            ( 15 * PULSE_PER_SECOND ) */
 
 /* times */
+#define MINUTE 60
 #define HOUR 3600
 #define DAY (24*HOUR)
 #define WEEK (7*DAY)
@@ -1318,6 +1321,7 @@ struct  kill_data
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
 #define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
 #define ACT_HARD_QUEST    (kk)
+#define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 
 /* damage classes */
 #define DAM_NONE                0
@@ -2301,13 +2305,34 @@ extern sh_int sn_immtalk;
 extern sh_int sn_savantalk;
 extern sh_int sn_newbie;
 
+/* Why not replace all the ones below with just this?
+   We might want to have daily/weekly/monthly/overall boards differ
+   in what is tracked and order in the list so
+   let's keep it all separate for now.
+   Yes, it's kind of messy, but it's functional and flexible. */
+
+/* defines for lboard type 
+ used for args to functions
+ such as update_lboard 	*/
+
+#define LBOARD_MKILL	0
+#define LBOARD_QCOMP	1
+#define LBOARD_BHD		2
+#define LBOARD_QPNT		3
+#define LBOARD_WKILL	4
+#define LBOARD_EXPL		5
+#define LBOARD_QFAIL	6
+#define LBOARD_LEVEL	7
+#define LBOARD_PKILL	8
+#define MAX_LBOARD 		9
+
 /*
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.
  */
-struct  mob_index_data
+struct  mob_index_data_old
 {
-	MOB_INDEX_DATA *    next;
+	MOB_INDEX_DATA_OLD *    next;
 	SPEC_FUN *      spec_fun;
 	SHOP_DATA *     pShop;
 	MPROG_LIST *        mprogs;
@@ -2348,7 +2373,52 @@ struct  mob_index_data
     sh_int      stance;
 };
 
-
+/*
+ * Prototype for a mob (new-style).
+ * This is the in-memory version of #MOBBLES.
+ */
+struct  mob_index_data
+{
+    MOB_INDEX_DATA* next;
+    SPEC_FUN*   spec_fun;
+    SHOP_DATA*  pShop;
+    MPROG_LIST* mprogs;
+    AREA_DATA*  area;
+    int         vnum;
+    sh_int      group;
+    sh_int      count;
+    sh_int      killed;
+    char*       player_name;
+    char*       short_descr;
+    char*       long_descr;
+    char*       description;
+    tflag       act;
+    tflag       affect_field;
+    sh_int      alignment;
+    sh_int      level;
+    sh_int      hitpoint_percent;
+    sh_int      mana_percent;
+    sh_int      move_percent;
+    sh_int      hitroll_percent;
+    sh_int      damage_percent;
+    sh_int      ac_percent;
+    sh_int      saves_percent;
+    sh_int      dam_type;
+    tflag       off_flags;
+    tflag       imm_flags;
+    tflag       res_flags;
+    tflag       vuln_flags;
+    sh_int      start_pos;
+    sh_int      default_pos;
+    sh_int      sex;
+    sh_int      race;
+    sh_int      wealth_percent;
+    tflag       form;
+    tflag       parts;
+    sh_int      size;
+    tflag       mprog_flags;
+    sh_int      stance;
+};
 
 /* memory settings */
 #define MEM_CUSTOMER    A   
@@ -3954,6 +4024,8 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define PLAYER_TEMP_DIR "../player/temp/"  /* for simultanious saves */
 #define PORTAL_FILE    "portal.txt"
 #define RELIGION_FILE  "religion.txt"
+#define LBOARD_FILE    "lboard.txt"
+#define LBOARD_RESULT_FILE "lboard_result.txt"
 #define CHEAT_LIST     "../log/cheatlog.txt"
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
@@ -4190,7 +4262,6 @@ long    wiznet_lookup   args( ( const char *name) );
 int class_lookup    args( ( const char *name) );
 bool    is_clan     args( (CHAR_DATA *ch) );
 bool    is_same_clan    args( (CHAR_DATA *ch, CHAR_DATA *victim));
-bool    is_old_mob  args ( (CHAR_DATA *ch) );
 int     get_weapon_sn   args( ( CHAR_DATA *ch ) );
 int     get_weapon_sn_new args( (CHAR_DATA *ch, bool secondary) );
 int     get_age         args( ( CHAR_DATA *ch ) );
