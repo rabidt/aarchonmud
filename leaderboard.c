@@ -1213,7 +1213,7 @@ void check_lboard_reset()
     {
         if ( i == sn_overall )
             continue; /* neve reset overall */
-        if (current_time > lte->reset)
+        if (current_time >= lte->reset)
         {
             reset_periodic_lboards(lte);
         }
