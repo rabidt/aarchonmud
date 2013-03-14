@@ -3629,12 +3629,7 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 void do_dummy( CHAR_DATA *ch, char *argument)
 {
-	#ifdef TESTER
-	send_to_char("TESTER defined\n\r",ch);
-	#endif /* TESTER */
-	#ifdef BUILDER
-	send_to_char("BUILDER defined\n\r",ch);
-	#endif /* BUILDER */
+    printf_to_char(ch, "Time: %ld\n\r", current_time);
 }
 
 void do_mode( CHAR_DATA *ch, char *argument)
