@@ -222,17 +222,14 @@ void update_lboard_periodic( LBOARD **board, CHAR_DATA *ch, int increment)
         log_string("update_lboard: entry == NULL");
 #endif
         entry = add_to_lboard( board, ch->name, increment);
-        update_lboard_order( board, &entry);
-        return;
     }
-
+    else
+    {
 #ifdef LBOARD_DEBUG 
-    log_string("entry->value += increment");
+        log_string("entry->value += increment");
 #endif
-    entry->value += increment;
-
-    if ( entry->previous == NULL )
-        return;
+        entry->value += increment;
+    }
 
     update_lboard_order( board , &entry); 
 }
@@ -340,6 +337,11 @@ void update_lboard_order( LBOARD **board, LBOARD_ENTRY **entry)
 #ifdef LBOARD_DEBUG
     log_string("update_lboard_order: start");
 #endif
+
+    /* Nothing to compare to
+       Should be equivalent to being head */
+    if ( (*entry)->previous == NULL )
+        return;
 
 #ifdef LBOARD_DEBUG
     char buf[MSL];

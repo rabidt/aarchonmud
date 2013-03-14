@@ -56,7 +56,7 @@ struct lb_tables_entry
 
 
 LBOARD_ENTRY *find_in_lboard( LBOARD **board, char *name );
-LBOARD *add_to_lboard( LBOARD **board, char *name, int increment );
+LBOARD_ENTRY *add_to_lboard( LBOARD **board, char *name, int increment );
 void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment );
 LBOARD_ENTRY *lboard_entry_new( char *name, int value );
 void do_lboard( CHAR_DATA *ch, char *argument);

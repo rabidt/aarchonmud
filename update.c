@@ -2388,6 +2388,7 @@ void update_handler( void )
    static  int     pulse_save = 3; // "= 3" to reduce CPU peeks
    static  int     pulse_herb;
    static bool hour_update = TRUE;
+   static bool minute_update = TRUE;
    /* if nobody is logged on, update less to safe CPU power */
    bool update_all = (descriptor_list != NULL );
    
@@ -2454,26 +2455,36 @@ void update_handler( void )
 	  update_relic_bonus();
    }
 
+   /* check lboard reset times once a minute
+      could check once an hour or even once a day 
+      but 'current_time % HOUR' doesn't account for local time
+      so doesn't synch up. */
+    if ( current_time % MINUTE == 0 )
+    {
+        if ( minute_update )
+        {
+            check_lboard_reset();
+        }
+    }
+    else
+        minute_update=TRUE;
 
    /* update some things once per hour */
    if ( current_time % HOUR == 0 )
    {
        if ( hour_update )
        {
-	   /* check for lboard resets at the top of the hour */
-           check_lboard_reset();
-
-	   /* update herb_resets every 6 hours */
-	   if ( current_time % (6*HOUR) == 0 )
+	    /* update herb_resets every 6 hours */
+	    if ( current_time % (6*HOUR) == 0 )
 	       update_herb_reset();
 
-	   /* update priests once per day */
-	   if ( current_time % DAY == 0 )
-	   {
+	    /* update priests once per day */
+	    if ( current_time % DAY == 0 )
+	    {
 	       all_religions( &religion_update_followers );
 	       all_religions( &religion_update_priests );
 	       all_religions( &religion_restore_relic );
-	   }
+	    }
        }
        hour_update = FALSE;
    }
