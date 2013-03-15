@@ -146,7 +146,7 @@ int mob_base_attacks( MOB_INDEX_DATA *pMobIndex, int level )
 {
     int attacks = level_base_attacks( level );
     if ( IS_SET(pMobIndex->act, ACT_STAGGERED) )
-        attacks = 100;
+        attacks = UMAX(100, attacks/2);
     if ( IS_SET(pMobIndex->off_flags, OFF_FAST) )
         attacks = attacks * 3/2;
     if ( IS_SET(pMobIndex->affect_field, AFF_GUARD) )
