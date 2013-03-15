@@ -615,6 +615,7 @@ void war_end( bool success )
 void add_war_kills( CHAR_DATA *ch )
 {
     ch->pcdata->war_kills++;
+    update_lboard( LBOARD_WKILL, ch, ch->pcdata->war_kills, 1);
     switch( war.type )
     {
     case ARMAGEDDON_WAR:

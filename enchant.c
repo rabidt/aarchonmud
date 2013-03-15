@@ -185,7 +185,7 @@ void enchant_obj_roll( OBJ_DATA *obj, int ops )
 	    break;
 	case 3:
 	    af.location = APPLY_AC; 
-	    af.modifier *= -5;
+	    af.modifier *= -10;
 	}
 		
 	add_enchant_affect( obj, &af );
