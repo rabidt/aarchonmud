@@ -340,16 +340,6 @@ bool is_same_clan(CHAR_DATA *ch, CHAR_DATA *victim)
 }
 
 
-/* checks mob format */
-bool is_old_mob(CHAR_DATA *ch)
-{
-    if (ch->pIndexData == NULL)
-        return FALSE;
-    else if (ch->pIndexData->new_format)
-        return FALSE;
-    return TRUE;
-}
-
 /* for returning weapon information of the primary weapon */
 int get_weapon_sn(CHAR_DATA *ch)
 {
