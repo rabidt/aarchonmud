@@ -66,7 +66,6 @@ void comm_entry_free(COMM_ENTRY *entry)
 
 void pers_entry_free(PERS_ENTRY *entry)
 {
-	log_string(entry->text);
 	free_string(entry->text);
 	free_mem(entry, sizeof(PERS_ENTRY) );
 }
