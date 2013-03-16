@@ -797,7 +797,6 @@ void format_init_flags( void )
 {
     log_string( "Formatting flags" );
     format_race_flags();
-    format_smithy_flags();
 }
 
 void format_race_flags( void )
