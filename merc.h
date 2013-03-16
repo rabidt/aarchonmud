@@ -300,6 +300,8 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define MONTH (30*DAY)
 #define YEAR (365*DAY)
 
+#define PK_EXPIRE_DAYS 90
+
 /* maximum current remort level - update when adding new remorts */
 #ifdef TESTER
 #define MAX_REMORT 8
@@ -2734,6 +2736,8 @@ struct  pc_data
     FOLLOWER_DATA *ch_rel;
     time_t prayed_at;
     PRAYER_DATA *prayer_request;
+
+    time_t pkill_expire; /* timestamp when you can turn it off */
 
 };
 
