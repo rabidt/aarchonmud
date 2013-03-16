@@ -406,7 +406,6 @@ typedef struct smith_data
 {
     OBJ_DATA *old_obj;
     OBJ_DATA *new_obj;
-    int cost;
 } SMITH_DATA;
 
 typedef struct explore_holder
