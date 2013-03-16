@@ -35,6 +35,7 @@ bool try_pay_smith( CHAR_DATA *ch );
 struct smith_arg
 {
     char * const    name;
+    char * const    hint;
     SMITH_FUN *     fun;
 };
 
@@ -52,12 +53,12 @@ DECLARE_SMITH_FUN( smith_finish);
 
 const struct smith_arg smith_arg_table[] =
 {
-    {   "give",     smith_give      },
-    {   "status",   smith_status    },
-    {   "set",      smith_set       },
-    {   "cancel",   smith_cancel    },
-    {   "finish",   smith_finish    },
-    {   NULL,       NULL            }
+    {   "give",     "Start your order [smith give <object>]",   smith_give      },
+    {   "status",   "See the status of your order.",            smith_status    },
+    {   "set",      "Set options on your order.",               smith_set       },
+    {   "cancel",   "Cancel your order and retrive your item.", smith_cancel    },
+    {   "finish",   "Finish and pay for your order.",           smith_finish    },
+    {   NULL,       NULL,                                       NULL            }
 };
 
 DECLARE_SMITH_SET_FUN( smith_set_short_descr);
@@ -104,7 +105,7 @@ void do_smith( CHAR_DATA *ch, char *argument )
     send_to_char( "Options:\n\r", ch );
     for ( arg_entry=&smith_arg_table[i=0] ; arg_entry->name ; arg_entry=&smith_arg_table[++i] )
     {
-        printf_to_char(ch, "    %s\n\r", arg_entry->name );
+        printf_to_char(ch, "  %-15s%s\n\r", arg_entry->name, arg_entry->hint );
     } 
    
 }
@@ -137,7 +138,7 @@ SMITH_ARG_FUN( smith_set)
     send_to_char( "Options:\n\r", ch );
     for ( arg_entry=&smith_set_table[i=0] ; arg_entry->name ; arg_entry=&smith_set_table[++i] )
     {
-        printf_to_char(ch, "    %s\n\r", arg_entry->name );
+        printf_to_char(ch, "  %s\n\r", arg_entry->name );
     }
 
    
