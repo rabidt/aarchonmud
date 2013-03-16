@@ -1,3 +1,6 @@
+/* originally by Smote (?) for Aarchon MUD */
+/* heavily reworked/rewritten by Vodur 3/16/2013 */
+
 #if defined(macintosh)
 #include <types.h>
 #include <time.h>
