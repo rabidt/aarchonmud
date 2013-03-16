@@ -492,8 +492,7 @@ int get_craft_ops( OBJ_DATA *obj, int level )
     /* no enchanting of quest eq etc. */
     if ( obj == NULL
 	 || IS_OBJ_STAT(obj, ITEM_STICKY)
-	 || obj->pIndexData->vnum == OBJ_VNUM_BLACKSMITH
-         || (IS_SET(obj->extra_flags, ITEM_NO_EXTRACT)))
+     || (IS_SET(obj->extra_flags, ITEM_NO_EXTRACT)))
 	return 0;
 
     /* no enchanting of objects which add special effects */
