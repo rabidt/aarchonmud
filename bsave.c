@@ -180,6 +180,11 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     bwrite_char( ch, mf->buf );
     if ( ch->carrying != NULL )
       bwrite_obj( ch, ch->carrying, mf->buf, 0 );
+
+    /* a little safety in case crash or copyover while smithing */
+    if ( ch->pcdata->smith )
+        bwrite_obj( ch, ch->pcdata->smith->old_obj, mf->buf, 0 );
+
     /* save the pets */
     if (ch->pet != NULL && ch->pet->in_room == ch->in_room)
       bwrite_pet(ch->pet, mf->buf);
