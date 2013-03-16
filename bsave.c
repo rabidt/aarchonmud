@@ -994,16 +994,6 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     if ( obj->material != obj->pIndexData->material)
         bprintf( buf, "Mat %s~\n",   obj->material         );
 
-    if ( obj->pIndexData->vnum == OBJ_VNUM_BLACKSMITH )
-    {
-	if ( !flag_equal(obj->wear_flags, obj->pIndexData->wear_flags) )
-	    bprintf( buf, "WeaF %s\n",   print_tflag(obj->wear_flags) );
-	if ( obj->item_type != obj->pIndexData->item_type)
-	    bprintf( buf, "Ityp %d\n",   obj->item_type           );
-	if ( obj->weight != obj->pIndexData->weight)
-	    bprintf( buf, "Wt   %d\n",   obj->weight          );
-    }
-
     /*
     if ( obj->durability != obj->pIndexData->durability)
         bprintf( buf, "Dur  %d\n",   obj->durability );

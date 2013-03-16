@@ -2338,11 +2338,6 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     {
 	int bit = weapon_type2[flag].bit;
 
-	if ( wield->pIndexData->vnum == OBJ_VNUM_BLACKSMITH
-	     && (bit == WEAPON_SHARP || bit == WEAPON_VORPAL)
-	     || bit == WEAPON_TWO_HANDS )
-	    continue;
-
 	if ( number_bits(10) == 0
 	     && IS_WEAPON_STAT(wield, bit)
 	     && !IS_WEAPON_STAT(wield->pIndexData, bit) )
