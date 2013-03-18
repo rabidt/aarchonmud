@@ -1,15 +1,7 @@
-/* originally by Smote (?) for Aarchon MUD */
-/* heavily reworked/rewritten by Vodur 3/16/2013 */
+/* rewritten by Vodur 3/16/2013 */
 
-#if defined(macintosh)
-#include <types.h>
-#include <time.h>
-#else
 #include <sys/types.h>
-#if !defined(WIN32)
 #include <sys/time.h>
-#endif
-#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -18,18 +10,21 @@
 
 #define SMITH_ARG_FUN( fun )    void fun( CHAR_DATA *ch, char *argument )
 #define SMITH_SET_FUN( fun )    void fun( CHAR_DATA *ch, char *argument )
+#define SMITH_PRICE_FUN( fun )  void fun( CHAR_DATA *ch, int *gold, int *qp )
 SMITH_DATA *smith_new( OBJ_DATA *obj );
 
 DECLARE_DO_FUN(do_smith);
 
 typedef void SMITH_SET_FUN args( ( CHAR_DATA *ch, char *argument) );
 typedef void SMITH_FUN args( ( CHAR_DATA *ch, char *argument ) );
+typedef void SMITH_PRICE_FUN args( ( CHAR_DATA *ch, int *gold, int *qp ) );
 #define DECLARE_SMITH_FUN( fun )        SMITH_FUN       fun
 #define DECLARE_SMITH_SET_FUN( fun )    SMITH_SET_FUN   fun
+#define DECLARE_SMITH_PRICE_FUN( fun )  SMITH_PRICE_FUN fun
 
 /* local functions */
 bool can_smith_obj( OBJ_DATA *obj);
-int calc_smith_cost( CHAR_DATA *ch );
+void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp );
 bool try_pay_smith( CHAR_DATA *ch );
 
 struct smith_arg
@@ -41,8 +36,10 @@ struct smith_arg
 
 struct smith_set_arg
 {
-    char * const    name;
-    SMITH_SET_FUN * fun;
+    char * const            name;
+    SMITH_SET_FUN *         fun;
+    SMITH_PRICE_FUN *       price_fun;
+    char * const            price_string;
 };
 
 DECLARE_SMITH_FUN( smith_give );
@@ -64,13 +61,23 @@ const struct smith_arg smith_arg_table[] =
 DECLARE_SMITH_SET_FUN( smith_set_short_descr);
 DECLARE_SMITH_SET_FUN( smith_set_name);
 DECLARE_SMITH_SET_FUN( smith_set_description);
+DECLARE_SMITH_SET_FUN( smith_set_sticky);
+
+DECLARE_SMITH_PRICE_FUN( smith_set_name_price );
+DECLARE_SMITH_PRICE_FUN( smith_set_sticky_price);
 
 const struct smith_set_arg smith_set_table[] =
 {
-    {   "name",         smith_set_short_descr   },
-    {   "keywords",     smith_set_name          },
-    {   "description",  smith_set_description   },
-    {   NULL,           NULL                    }
+    {   "name",         smith_set_short_descr,  smith_set_name_price,
+        "100qp, 5k gold (name, keywords, desc together)"                },
+    {   "keywords",     smith_set_name,         NULL,                   
+        "100qp, 5k gold (name, keywords, desc together)"                },
+    {   "description",  smith_set_description,  NULL,                   
+        "100qp, 5k gold (name, keywords, desc together)"                },
+    {   "sticky",       smith_set_sticky,       smith_set_sticky_price,
+        "250 qp, 100k gold"                                               },
+    {   NULL,           NULL,                   NULL,                  
+        NULL                                                            }
 };
 
 
@@ -79,6 +86,9 @@ const struct smith_set_arg smith_set_table[] =
 /* new stuff starts here */
 void do_smith( CHAR_DATA *ch, char *argument )
 {
+    if (IS_NPC(ch))
+        return;
+
     char arg1[MIL];
 
     argument=one_argument( argument, arg1);
@@ -138,14 +148,14 @@ SMITH_ARG_FUN( smith_set)
     send_to_char( "Options:\n\r", ch );
     for ( arg_entry=&smith_set_table[i=0] ; arg_entry->name ; arg_entry=&smith_set_table[++i] )
     {
-        printf_to_char(ch, "  %s\n\r", arg_entry->name );
+        printf_to_char(ch, "  %-15s%s\n\r", arg_entry->name, arg_entry->price_string );
     }
 
    
 
 }
 
-void smith_set_name( CHAR_DATA *ch, char *argument )
+SMITH_SET_FUN( smith_set_name)
 {
     if ( !ch->pcdata->smith->new_obj )
     {
@@ -157,7 +167,7 @@ void smith_set_name( CHAR_DATA *ch, char *argument )
     ch->pcdata->smith->new_obj->name = str_dup( argument );
 }
 
-void smith_set_description( CHAR_DATA *ch, char *argument )
+SMITH_SET_FUN( smith_set_description )
 {
     if ( !ch->pcdata->smith->new_obj )
     {
@@ -171,7 +181,7 @@ void smith_set_description( CHAR_DATA *ch, char *argument )
     ch->pcdata->smith->new_obj->description = str_dup( buf );
 }
 
-void smith_set_short_descr( CHAR_DATA *ch, char *argument )
+SMITH_SET_FUN( smith_set_short_descr )
 {
     if ( !ch->pcdata->smith->new_obj )
     {
@@ -185,6 +195,56 @@ void smith_set_short_descr( CHAR_DATA *ch, char *argument )
     ch->pcdata->smith->new_obj->short_descr = str_dup( buf );
 }
 
+SMITH_SET_FUN( smith_set_sticky )
+{
+    if ( !ch->pcdata->smith->new_obj )
+    {
+        bugf("smith_set_sticky: no new_obj found");
+        return;
+    }
+    if ( !strcmp( argument, "on" ) )
+    {
+        if (is_sticky_obj(ch->pcdata->smith->new_obj) )
+        {
+            send_to_char("It's already sticky.", ch);
+            return;
+        }
+        else
+        {
+            SET_BIT(ch->pcdata->smith->new_obj->extra_flags, ITEM_STICKY);
+            if ( ch->pcdata->smith->new_obj->owner )
+            {
+                free_string(ch->pcdata->smith->new_obj->owner);
+            } 
+            ch->pcdata->smith->new_obj->owner= str_dup( ch->name);
+            return;
+        }
+    }
+    else if ( !strcmp( argument, "off" ) )
+    {
+        if (!is_sticky_obj(ch->pcdata->smith->new_obj) )
+        {
+            send_to_char( "It's not sticky.", ch);
+            return;
+        }
+        else
+        {
+            REMOVE_BIT(ch->pcdata->smith->new_obj->extra_flags, ITEM_STICKY);
+            if ( ch->pcdata->smith->new_obj->owner )
+            {
+                free_string(ch->pcdata->smith->new_obj->owner);
+                ch->pcdata->smith->new_obj->owner= NULL;
+            }
+            return;
+        }
+    }
+    else
+    {
+        send_to_char(" Valid arguments: on, off\n\r", ch );
+        return;
+    }
+
+}
 
 
 SMITH_ARG_FUN( smith_status )
@@ -198,19 +258,36 @@ SMITH_ARG_FUN( smith_status )
     send_to_char( "Original\n\r", ch);
     show_smith_obj_to_char( ch->pcdata->smith->old_obj, ch );
     send_to_char( "\n\r", ch );
-    send_to_char( "Altered\n\r", ch );
+    send_to_char( "Modified\n\r", ch );
     show_smith_obj_to_char( ch->pcdata->smith->new_obj, ch );
     send_to_char( "\n\r", ch );
 
-    ptc( ch, "Cost: %d\n\r", calc_smith_cost( ch ) );
+    int qp, gold;
+    calc_smith_cost( ch, &gold, &qp );
+    ptc( ch, "Cost: %d gold, %d qp\n\r",gold, qp );
 
 }
 
-int calc_smith_cost( CHAR_DATA *ch )
+void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp )
 {
-    /* insert some calculation stuff here */
-    /* tbc */
-    return 0;
+
+    *gold=0;
+    *qp=0; 
+
+    struct smith_set_arg * arg_entry;
+    int i;
+    for ( arg_entry=&smith_set_table[i=0] ; arg_entry->name ; arg_entry=&smith_set_table[++i] )
+    {
+        int igold=0;
+        int iqp= 0;
+
+        if (arg_entry->price_fun)
+            ( *(arg_entry->price_fun) ) (ch, &igold, &iqp );
+
+        *qp+=iqp;
+        *gold+=igold;
+
+    } 
 }
 
 void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch )
@@ -224,6 +301,10 @@ void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch )
     ptc( ch, "Keywords: %s\n\r", obj->name );
     ptc( ch, "Name: %s\n\r", obj->short_descr );
     ptc( ch, "Description: %s\n\r", obj->description );
+    if (is_sticky_obj( obj ) )
+        ptc(ch, "Sticky: on    Owner: %s\n\r", ( obj->owner ? obj->owner : "none") );
+    else
+        send_to_char( "Sticky: off\n\r", ch );
 }
 
 SMITH_ARG_FUN( smith_finish )
@@ -256,8 +337,28 @@ SMITH_ARG_FUN( smith_finish )
 bool try_pay_smith( CHAR_DATA *ch )
 {
     /* insert payment logic here */
-    /* tbc */
-    return TRUE;
+    int qp,gold;
+    calc_smith_cost( ch, &gold, &qp);
+
+    if ( gold == 0 && qp == 0 )
+    {
+        send_to_char( "You haven't made any changes!\n\r", ch );
+        return FALSE;
+    }
+
+    if ( ch->gold < gold || ch->pcdata->questpoints < qp )
+    {
+        send_to_char( "You can't afford it!\n\r", ch );
+        return FALSE;
+    }
+    else
+    {
+        ch->gold -= gold;
+        ch->pcdata->questpoints -= qp;
+        ptc(ch, "You pay %d gold and %d quest points to the smith.\n\r", gold, qp);
+
+        return TRUE;
+    }
 }
 
 
@@ -364,3 +465,41 @@ void smith_free( SMITH_DATA *sm )
     free_mem( sm, sizeof( SMITH_DATA ) );
 
 }
+
+SMITH_PRICE_FUN( smith_set_name_price )
+{
+    if ( str_cmp( ch->pcdata->smith->old_obj->short_descr, ch->pcdata->smith->new_obj->short_descr )
+        || str_cmp( ch->pcdata->smith->old_obj->name, ch->pcdata->smith->new_obj->name)
+        || str_cmp( ch->pcdata->smith->old_obj->description, ch->pcdata->smith->new_obj->description ) )
+    {
+        *qp=100;
+        *gold=5000;
+    }
+    else
+    {
+        *qp=0;
+        *gold=0;
+    }
+}
+
+SMITH_PRICE_FUN( smith_set_sticky_price )
+{
+
+    if ( ( is_sticky_obj( ch->pcdata->smith->old_obj) 
+           != is_sticky_obj( ch->pcdata->smith->new_obj ) )
+         ||
+         ( ch->pcdata->smith->old_obj->owner
+           != ch->pcdata->smith->new_obj->owner ) )
+    {
+        *qp=250;
+        *gold=100000;
+    }
+    else
+    {
+        *qp=0;
+        *gold=0;
+    }
+    
+}
+
+
