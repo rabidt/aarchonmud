@@ -3633,7 +3633,6 @@ struct achievement_entry
 
 #define IS_WRITING_NOTE(con)  (( (con >= CON_NOTE_TO && con <= CON_NOTE_FINISH) \
             || (con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH) \
-            || ((con-con%MAX_CON_STATE)/MAX_CON_STATE==CREATION_REMORT) \
             ) ? TRUE : FALSE)
 #define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con))
 #define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
