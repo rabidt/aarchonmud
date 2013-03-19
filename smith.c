@@ -75,7 +75,7 @@ const struct smith_set_arg smith_set_table[] =
     {   "description",  smith_set_description,  NULL,                   
         "100qp, 5k gold (name, keywords, desc together)"                },
     {   "sticky",       smith_set_sticky,       smith_set_sticky_price,
-        "250 qp, 100k gold"                                               },
+        "Based on item power"                                           },
     {   NULL,           NULL,                   NULL,                  
         NULL                                                            }
 };
@@ -146,6 +146,7 @@ SMITH_ARG_FUN( smith_set)
 
     /* didn't catch anything, let's display help */
     send_to_char( "Options:\n\r", ch );
+    ptc( ch, "  %-15s%s\n\r", "Setting", "Cost");
     for ( arg_entry=&smith_set_table[i=0] ; arg_entry->name ; arg_entry=&smith_set_table[++i] )
     {
         printf_to_char(ch, "  %-15s%s\n\r", arg_entry->name, arg_entry->price_string );
@@ -404,6 +405,10 @@ bool can_smith_obj( OBJ_DATA *obj )
     {
         return FALSE;
     }
+    if ( IS_SET( obj->extra_flags, ITEM_QUESTEQ ) )
+    {
+        return FALSE;
+    }
     return TRUE;
 }
 
@@ -484,15 +489,20 @@ SMITH_PRICE_FUN( smith_set_name_price )
 
 SMITH_PRICE_FUN( smith_set_sticky_price )
 {
+    OBJ_DATA *old=ch->pcdata->smith->old_obj;
+    OBJ_DATA *new=ch->pcdata->smith->new_obj;
 
-    if ( ( is_sticky_obj( ch->pcdata->smith->old_obj) 
-           != is_sticky_obj( ch->pcdata->smith->new_obj ) )
+    if ( ( is_sticky_obj( old ) 
+           != is_sticky_obj( new ) )
          ||
-         ( ch->pcdata->smith->old_obj->owner
-           != ch->pcdata->smith->new_obj->owner ) )
+         ( old->owner
+           != new->owner ) )
     {
-        *qp=250;
-        *gold=100000;
+        int ops = UMAX(get_obj_index_ops(new->pIndexData), get_obj_index_spec(new->pIndexData) );
+
+        *gold= ops * UMAX(4, ops-20)/4 * 100;
+        *qp= ops * UMAX(4, ops-20)/4 * 1;
+
     }
     else
     {
