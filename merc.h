@@ -1790,7 +1790,6 @@ struct  kill_data
 #define ITEM_TRAPPED        (ee)
 #define ITEM_EASY_DROP      (ff)
 #define ITEM_NO_EXTRACT     (gg)
-#define ITEM_QUESTEQ        (hh)
 
 /* class restriction flags */
 #define ITEM_ALLOW_WARRIOR        100
