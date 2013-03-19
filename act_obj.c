@@ -4432,6 +4432,7 @@ void do_sire( CHAR_DATA *ch, char *argument )
     OBJ_DATA *corpse;
     CHAR_DATA *mob;
     AFFECT_DATA af;
+    int mlevel;
 
     if ( IS_NPC(ch) || ch->race != race_vampire )
     {
@@ -4454,10 +4455,6 @@ void do_sire( CHAR_DATA *ch, char *argument )
 
     if ( argument[0] == '\0' )
     {
-	/*
-	send_to_char( "Sire which corpse?\n\r", ch );
-	return;
-	*/
 	argument = "corpse";
     }
 
@@ -4474,18 +4471,6 @@ void do_sire( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    /*
-    if ( corpse->timer <= 0 )
-    {
-	send_to_char( "This corpse isn't fresh anymore.\n\r", ch );
-	return;
-    }
-    */
-
-    /*
-    if ( !check_cha_follow(ch) )
-	return;
-    */
     if ( ch->pet != NULL )
     {
 	send_to_char("You already control a pet.\n\r",ch);
@@ -4497,7 +4482,12 @@ void do_sire( CHAR_DATA *ch, char *argument )
         return;
     
     WAIT_STATE( ch, PULSE_VIOLENCE );
-	set_mob_level( mob, URANGE(1, corpse->level, ch->level + 10 ) );
+    
+    if (corpse->level <= ch->level)
+        mlevel = (ch->level + corpse->level * 3) / 4;
+    else
+        mlevel = (ch->level * 3 + corpse->level) / 4;
+    set_mob_level( mob, URANGE(1, mlevel, ch->level + 25) );
     char_to_room( mob, ch->in_room );
 
     /* wear eq from corpse */

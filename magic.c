@@ -1667,18 +1667,45 @@ void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         }
     }
     
+    /* some logic to see if we have an arg*/
+    if ( target_name[0] != '\0' )
+    {
+        char junk[MIL];
+        target_name=one_argument( target_name, junk); /* get rid of first arg */
+    }
+
     /* unlike dispel magic, the victim gets NO save */
-    
-    /* begin running through the spells */
 
-    for (sn = 1; skill_table[sn].name != NULL; sn++)
-	if (can_dispel(sn) && check_dispel(level,victim,sn))
-	    found = TRUE;
+    /* we killed first arg (target), if there's more args then
+       they're trying to cancel a certain spell*/
+    if ( target_name[0] != '\0' )
+    {
+        int sn=skill_lookup( target_name );
 
-       if (found)
+        if ( sn == -1 )
+        {
+            send_to_char("Cancel which spell?\n\r",ch);
+            return;
+        }
+
+        if (can_dispel(sn) && check_dispel(level,victim,sn))
+            send_to_char( "Ok.\n\r", ch);
+        else
+            send_to_char( "Spell failed.\n\r", ch);
+    } 
+    else
+    {
+        /* begin running through the spells */
+
+        for (sn = 1; skill_table[sn].name != NULL; sn++)
+	    if (can_dispel(sn) && check_dispel(level,victim,sn))
+	        found = TRUE;
+
+        if (found)
            send_to_char("Ok.\n\r",ch);
-       else
+        else
            send_to_char("Spell failed.\n\r",ch);
+    }
 }
 
 void spell_cause_light( int sn, int level, CHAR_DATA *ch, void *vo,int target )
@@ -5415,28 +5442,28 @@ void spell_high_explosive(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
 
 
-/* Check number of charmees against cha */
-bool check_cha_follow( CHAR_DATA *ch )
+/* Check number of charmees against cha - returns number of hitdice left over */
+int check_cha_follow( CHAR_DATA *ch )
 {
     CHAR_DATA *check;
     int charmed=0;
-    int max = get_curr_stat(ch, STAT_CHA) / 10;
+    int max = ch->level * get_curr_stat(ch, STAT_CHA) / 20;
     
     for ( check=char_list ; check != NULL; check = check->next )
     {
         if (IS_NPC(check) && IS_AFFECTED(check,AFF_CHARM) && 
             check->master == ch)
         {
-            charmed++;
+            charmed += check->level;
             if (charmed >= max)
             {
                 send_to_char( "You are not charismatic enough to attract more followers.\n\r",ch);
-                return FALSE;
+                return 0;
             }
         }
     }
     
-    return TRUE;
+    return (max - charmed);
 }
 
 void do_scribe( CHAR_DATA *ch, char *argument )
