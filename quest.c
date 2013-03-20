@@ -22,35 +22,35 @@ DECLARE_DO_FUN( do_startwar );
 
 /* Object vnums for Quest Rewards */
 
-#define QUEST_ITEM1 10387 //Sword of Kings
-#define QUEST_ITEM2 10389 //Staff of Ancients
+#define SOK 10387 //Sword of Kings
+#define SOA 10389 //Staff of Ancients
 #define QUEST_ITEM3 10386 
-#define QUEST_ITEM4 10380 //Old Smote's
-#define QUEST_ITEM5 10381 //Old Rimbol's
-#define QUEST_ITEM6 10382 //Old Meph's
-#define QUEST_ITEM7 10383 //Old Swayde
-#define QUEST_ITEM8 10384 //Old Para
-#define QUEST_ITEM9 10385 //Old Firewitch
-#define QUEST_ITEM10 22050 //Old Lilith
-#define QUEST_ITEM11 10388 //Old Quirky
-#define QUEST_ITEM12 10398 //Old Siva
-#define QUEST_ITEM13 22051 //Old Eris
-#define QUEST_ITEM14 22052 //Old Bobble
-#define QUEST_ITEM15 22053 //Old Drexl
-#define QUEST_ITEM16 4700 //New Quirky
-#define QUEST_ITEM17 4701 //New Lilith
-#define QUEST_ITEM18 4702 //New Firewitch
-#define QUEST_ITEM19 4703 //New Eris
-#define QUEST_ITEM20 4704 //New Drexl
-#define QUEST_ITEM21 4705 //New Parademia
-#define QUEST_ITEM22 4706 //New Swayde
-#define QUEST_ITEM23 4707 //New Siva
-#define QUEST_ITEM24 4708 //New Mephison
-#define QUEST_ITEM25 4709 //New Bobble
-#define QUEST_ITEM26 4710 //New Rimbol
-#define QUEST_ITEM27 4711 //New Smote
-#define QUEST_ITEM28 4712 //Maedhros Leggings
-#define QUEST_ITEM29 4726 //Quantum Shield
+#define SMOTE_OLD 10380 //Old Smote's
+#define RIMBOL_OLD 10381 //Old Rimbol's
+#define MEPH_OLD 10382 //Old Meph's
+#define SWAYDE_OLD 10383 //Old Swayde
+#define PARA_OLD 10384 //Old Para
+#define FIREWITCH_OLD 10385 //Old Firewitch
+#define LILITH_OLD 22050 //Old Lilith
+#define QUIRKY_OLD 10388 //Old Quirky
+#define SIVA_OLD 10398 //Old Siva
+#define ERIS_OLD 22051 //Old Eris
+#define BOBBLE_OLD 22052 //Old Bobble
+#define DREXL_OLD 22053 //Old Drexl
+#define QUIRKY_NEW 4700 //New Quirky
+#define LILITH_NEW 4701 //New Lilith
+#define FIREWITCH_NEW 4702 //New Firewitch
+#define ERIS_NEW 4703 //New Eris
+#define DREXL_NEW 4704 //New Drexl
+#define PARA_NEW 4705 //New Parademia
+#define SWAYDE_NEW 4706 //New Swayde
+#define SIVA_NEW 4707 //New Siva
+#define MEPH_NEW 4708 //New Mephison
+#define BOBBLE_NEW 4709 //New Bobble
+#define RIMBOL_NEW 4710 //New Rimbol
+#define SMOTE_NEW 4711 //New Smote
+#define MAED_NEW 4712 //Maedhros Leggings
+#define QUANT_SHIELD 4726 //Quantum Shield
 
 /* Quest timer defines - Maedhros, Feb 8, 2007 */ 
 
@@ -58,6 +58,8 @@ DECLARE_DO_FUN( do_startwar );
 #define QUEST_COUNTDOWN_MAX 30           /* Original value: 30 */
 #define QUEST_NEXTQUEST_MIN 1            /* Original value: 2 */
 #define QUEST_NEXTQUEST_MAX 10           /* Original value: 10 */
+
+#define QBUY( fun ) void fun( CHAR_DATA *ch, char *argument, 
 
 #define QFUN( fun ) void fun( CHAR_DATA *ch, char *argument, CHAR_DATA *questman)
 typedef void QUEST_FUN args( ( CHAR_DATA *ch, char *argument, CHAR_DATA *questman) );
@@ -105,35 +107,35 @@ typedef struct quest_item QUEST_ITEM;
 
 QUEST_ITEM quest_item_table[] =
 {
-    { QUEST_ITEM1,  2500, "sword kings" },
-    { QUEST_ITEM2,  2000, "staff ancient" },
-    { QUEST_ITEM29, 2000, "quantum shield"},
-    { QUEST_ITEM27,  700, "smotes blessing" },
-    { QUEST_ITEM26,  700, "rimbols orb insight" },
-    { QUEST_ITEM25,  600, "bobbles bughouse suit" },
-    { QUEST_ITEM24,   600, "mephistons identity crisis" },
-    { QUEST_ITEM23,  600, "sivas mighty bracer" },
-    { QUEST_ITEM22,   525, "swaydes cloak temptation" },
-    { QUEST_ITEM21,   525, "parademias glove plague slain" },
-    { QUEST_ITEM20,  525, "drexls skin malice" },
-    { QUEST_ITEM28,  525, "maedhros leggings discord"},
-    { QUEST_ITEM19,  425, "eris chastity belt" },
-    { QUEST_ITEM18,   425, "firewitches ring fire" },
-    { QUEST_ITEM17,  350, "liliths web lies" },
-    { QUEST_ITEM16,  350, "quirkys clog calamity" },
+    { SOK,          2500, "sword kings" },
+    { SOA,          2000, "staff ancient" },
+    { QUANT_SHIELD, 2000, "quantum shield"},
+    { SMOTE_NEW,    700, "smotes blessing" },
+    { RIMBOL_NEW,   700, "rimbols orb insight" },
+    { BOBBLE_NEW,   600, "bobbles bughouse suit" },
+    { MEPH_NEW,     600, "mephistons identity crisis" },
+    { SIVA_NEW,     600, "sivas mighty bracer" },
+    { SWAYDE_NEW,   525, "swaydes cloak temptation" },
+    { PARA_NEW,     525, "parademias glove plague slain" },
+    { DREXL_NEW,    525, "drexls skin malice" },
+    { MAED_NEW,     525, "maedhros leggings discord"},
+    { ERIS_NEW,     425, "eris chastity belt" },
+    { FIREWITCH_NEW,425, "firewitches ring fire" },
+    { LILITH_NEW,   350, "liliths web lies" },
+    { QUIRKY_NEW,   350, "quirkys clog calamity" },
     /* Old versions of quest eq, can't be bought, sells for full price*/
-    { QUEST_ITEM4,  1000, "" },
-    { QUEST_ITEM5,  1000, "" },
-    { QUEST_ITEM14,  850, "" },
-    { QUEST_ITEM6,   850, "" },
-    { QUEST_ITEM12,  850, "" },
-    { QUEST_ITEM7,   750, "" },
-    { QUEST_ITEM8,   750, "" },
-    { QUEST_ITEM15,  750, "" },
-    { QUEST_ITEM13,  600, "" },
-    { QUEST_ITEM9,   600, "" },
-    { QUEST_ITEM10,  500, "" },
-    { QUEST_ITEM11,  500, "" },
+    { SMOTE_OLD,    1000, "" },
+    { RIMBOL_OLD,   1000, "" },
+    { BOBBLE_OLD,   850, "" },
+    { MEPH_OLD,     850, "" },
+    { SIVA_OLD,     850, "" },
+    { SWAYDE_OLD,   750, "" },
+    { PARA_OLD,     750, "" },
+    { DREXL_OLD,    750, "" },
+    { ERIS_OLD,     600, "" },
+    { FIREWITCH_OLD,600, "" },
+    { LILITH_OLD,   500, "" },
+    { QUIRKY_OLD,   500, "" },
     { 0, 0, NULL }
 };
 
