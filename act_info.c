@@ -4160,30 +4160,29 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     */
 
     /* now let's see if someone else learned something of it --Bobble */
-    /* Slight change... You can learn on your own or from others - Astark 3-14-13 */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     if ( IS_NPC(ch) )
-        return; // prevent easy learning by spamming sage
+	return; // prevent easy learning by spamming sage
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-        if ( IS_NPC(rch) || !IS_AWAKE(rch))
-        {
-            continue;
-        }
-        if (rch == ch)
-        {
-            check_improve( ch, gsn_lore, 5, TRUE );
-            if ( weapon )
-                check_improve( ch, gsn_weapons_lore, 5, TRUE );
-        }
+	if ( IS_NPC(rch) || !IS_AWAKE(rch) )
+	    continue;
         else
         {
-            check_improve(rch,gsn_lore,TRUE,3);
-            if ( weapon )
-	        check_improve(rch,gsn_weapons_lore,TRUE,3);
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
+                if ( weapon )
+                    check_improve(ch, gsn_weapons_lore, 5, TRUE);
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
         }
     }
-
-
 }
 
 /* Bobble: used by do_lore & spell_identify */
