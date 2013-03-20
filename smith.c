@@ -8,9 +8,9 @@
 #include "merc.h"
 #include "recycle.h"
 
-#define SMITH_ARG_FUN( fun )    void fun( CHAR_DATA *ch, char *argument )
-#define SMITH_SET_FUN( fun )    void fun( CHAR_DATA *ch, char *argument )
-#define SMITH_PRICE_FUN( fun )  void fun( CHAR_DATA *ch, int *gold, int *qp )
+#define SM_FUN( fun )    void fun( CHAR_DATA *ch, char *argument )
+#define SM_SET_FUN( fun )    void fun( CHAR_DATA *ch, char *argument )
+#define SM_PRICE_FUN( fun )  void fun( CHAR_DATA *ch, int *gold, int *qp )
 SMITH_DATA *smith_new( OBJ_DATA *obj );
 
 DECLARE_DO_FUN(do_smith);
@@ -18,9 +18,6 @@ DECLARE_DO_FUN(do_smith);
 typedef void SMITH_SET_FUN args( ( CHAR_DATA *ch, char *argument) );
 typedef void SMITH_FUN args( ( CHAR_DATA *ch, char *argument ) );
 typedef void SMITH_PRICE_FUN args( ( CHAR_DATA *ch, int *gold, int *qp ) );
-#define DECLARE_SMITH_FUN( fun )        SMITH_FUN       fun
-#define DECLARE_SMITH_SET_FUN( fun )    SMITH_SET_FUN   fun
-#define DECLARE_SMITH_PRICE_FUN( fun )  SMITH_PRICE_FUN fun
 
 /* local functions */
 bool can_smith_obj( OBJ_DATA *obj);
@@ -42,11 +39,11 @@ struct smith_set_arg
     char * const            price_string;
 };
 
-DECLARE_SMITH_FUN( smith_give );
-DECLARE_SMITH_FUN( smith_status);
-DECLARE_SMITH_FUN( smith_set);
-DECLARE_SMITH_FUN( smith_cancel);
-DECLARE_SMITH_FUN( smith_finish);
+SM_FUN( smith_give );
+SM_FUN( smith_status);
+SM_FUN( smith_set);
+SM_FUN( smith_cancel);
+SM_FUN( smith_finish);
 
 const struct smith_arg smith_arg_table[] =
 {
@@ -58,13 +55,13 @@ const struct smith_arg smith_arg_table[] =
     {   NULL,       NULL,                                       NULL            }
 };
 
-DECLARE_SMITH_SET_FUN( smith_set_short_descr);
-DECLARE_SMITH_SET_FUN( smith_set_name);
-DECLARE_SMITH_SET_FUN( smith_set_description);
-DECLARE_SMITH_SET_FUN( smith_set_sticky);
+SM_SET_FUN( smith_set_short_descr);
+SM_SET_FUN( smith_set_name);
+SM_SET_FUN( smith_set_description);
+SM_SET_FUN( smith_set_sticky);
 
-DECLARE_SMITH_PRICE_FUN( smith_set_name_price );
-DECLARE_SMITH_PRICE_FUN( smith_set_sticky_price);
+SM_PRICE_FUN( smith_set_name_price );
+SM_PRICE_FUN( smith_set_sticky_price);
 
 const struct smith_set_arg smith_set_table[] =
 {
@@ -121,7 +118,7 @@ void do_smith( CHAR_DATA *ch, char *argument )
 }
 
 
-SMITH_ARG_FUN( smith_set)
+SM_FUN( smith_set)
 {
     if ( !ch->pcdata->smith )
     {
@@ -156,7 +153,7 @@ SMITH_ARG_FUN( smith_set)
 
 }
 
-SMITH_SET_FUN( smith_set_name)
+SM_SET_FUN( smith_set_name)
 {
     if ( !ch->pcdata->smith->new_obj )
     {
@@ -168,7 +165,7 @@ SMITH_SET_FUN( smith_set_name)
     ch->pcdata->smith->new_obj->name = str_dup( argument );
 }
 
-SMITH_SET_FUN( smith_set_description )
+SM_SET_FUN( smith_set_description )
 {
     if ( !ch->pcdata->smith->new_obj )
     {
@@ -182,7 +179,7 @@ SMITH_SET_FUN( smith_set_description )
     ch->pcdata->smith->new_obj->description = str_dup( buf );
 }
 
-SMITH_SET_FUN( smith_set_short_descr )
+SM_SET_FUN( smith_set_short_descr )
 {
     if ( !ch->pcdata->smith->new_obj )
     {
@@ -196,7 +193,7 @@ SMITH_SET_FUN( smith_set_short_descr )
     ch->pcdata->smith->new_obj->short_descr = str_dup( buf );
 }
 
-SMITH_SET_FUN( smith_set_sticky )
+SM_SET_FUN( smith_set_sticky )
 {
     if ( !ch->pcdata->smith->new_obj )
     {
@@ -248,7 +245,7 @@ SMITH_SET_FUN( smith_set_sticky )
 }
 
 
-SMITH_ARG_FUN( smith_status )
+SM_FUN( smith_status )
 {
     if ( !ch->pcdata->smith )
     {
@@ -308,7 +305,7 @@ void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch )
         send_to_char( "Sticky: off\n\r", ch );
 }
 
-SMITH_ARG_FUN( smith_finish )
+SM_FUN( smith_finish )
 {
     if ( !ch->pcdata->smith )
     {
@@ -363,7 +360,7 @@ bool try_pay_smith( CHAR_DATA *ch )
 }
 
 
-SMITH_ARG_FUN( smith_give )
+SM_FUN( smith_give )
 {
 
     if ( argument[0] == '\0' )
@@ -412,7 +409,7 @@ bool can_smith_obj( OBJ_DATA *obj )
     return TRUE;
 }
 
-SMITH_ARG_FUN( smith_cancel )
+SM_FUN( smith_cancel )
 {
 
     if ( ch->pcdata->smith )
@@ -471,7 +468,7 @@ void smith_free( SMITH_DATA *sm )
 
 }
 
-SMITH_PRICE_FUN( smith_set_name_price )
+SM_PRICE_FUN( smith_set_name_price )
 {
     if ( str_cmp( ch->pcdata->smith->old_obj->short_descr, ch->pcdata->smith->new_obj->short_descr )
         || str_cmp( ch->pcdata->smith->old_obj->name, ch->pcdata->smith->new_obj->name)
@@ -487,7 +484,7 @@ SMITH_PRICE_FUN( smith_set_name_price )
     }
 }
 
-SMITH_PRICE_FUN( smith_set_sticky_price )
+SM_PRICE_FUN( smith_set_sticky_price )
 {
     OBJ_DATA *old=ch->pcdata->smith->old_obj;
     OBJ_DATA *new=ch->pcdata->smith->new_obj;
