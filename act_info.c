@@ -4168,11 +4168,23 @@ void do_lore ( CHAR_DATA *ch, char *argument )
 	return; // prevent easy learning by spamming sage
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-	if ( IS_NPC(rch) || !IS_AWAKE(rch) || rch == ch )
+	if ( IS_NPC(rch) || !IS_AWAKE(rch) )
 	    continue;
-	check_improve( rch, gsn_lore, 2, TRUE );
-	if ( weapon )
-	    check_improve( rch, gsn_weapons_lore, 2, TRUE );
+        else
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 2, TRUE);
+                if ( weapon )
+                    check_improve(ch, gsn_weapons_lore, 2, TRUE);
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 2, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 2, TRUE );
+             }
+        }
     }
 }
 
