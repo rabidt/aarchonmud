@@ -1,14 +1,14 @@
 /****************************************************************************
-*  Automated Quest code written by Vassago of MOONGATE, moongate.ams.com    *
-*  4000. Copyright (c) 1996 Ryan Addams, All Rights Reserved. Use of this   * 
-*  code is allowed provided you add a credit line to the effect of:         *
-*  "Quest Code (c) 1996 Ryan Addams" to your logon screen with the rest     *
-*  of the standard diku/rom credits. If you use this or a modified version  *
-*  of this code, let me know via email: moongate@moongate.ams.com. Further  *
-*  updates will be posted to the rom mailing list. If you'd like to get     *
-*  the latest version of quest.c, please send a request to the above add-   *
-*  ress. Quest Code v2.01. Please do not remove this notice from this file. *
-****************************************************************************/
+ *  Automated Quest code written by Vassago of MOONGATE, moongate.ams.com    *
+ *  4000. Copyright (c) 1996 Ryan Addams, All Rights Reserved. Use of this   * 
+ *  code is allowed provided you add a credit line to the effect of:         *
+ *  "Quest Code (c) 1996 Ryan Addams" to your logon screen with the rest     *
+ *  of the standard diku/rom credits. If you use this or a modified version  *
+ *  of this code, let me know via email: moongate@moongate.ams.com. Further  *
+ *  updates will be posted to the rom mailing list. If you'd like to get     *
+ *  the latest version of quest.c, please send a request to the above add-   *
+ *  ress. Quest Code v2.01. Please do not remove this notice from this file. *
+ ****************************************************************************/
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -53,7 +53,7 @@ DECLARE_DO_FUN( do_startwar );
 #define QUEST_ITEM29 4726 //Quantum Shield
 
 /* Quest timer defines - Maedhros, Feb 8, 2007 */ 
- 
+
 #define QUEST_COUNTDOWN_MIN 15           /* Original value: 15 */
 #define QUEST_COUNTDOWN_MAX 30           /* Original value: 30 */
 #define QUEST_NEXTQUEST_MIN 1            /* Original value: 2 */
@@ -64,7 +64,7 @@ typedef void QUEST_FUN args( ( CHAR_DATA *ch, char *argument, CHAR_DATA *questma
 typedef struct quest_arg
 {
     char * const name;
-	bool require_questmaster;
+    bool require_questmaster;
     QUEST_FUN * fun;
 } QUEST_ARG;
 
@@ -80,7 +80,7 @@ QFUN( q_sell);
 QFUN( q_giveup);
 
 QUEST_ARG quest_arg_table[] = 
-{
+{   /* name,        qmaster?, function */
     { "points",     FALSE,    q_points},
     { "info",       FALSE,    q_info},
     { "time",       FALSE,    q_time},
@@ -91,7 +91,7 @@ QUEST_ARG quest_arg_table[] =
     { "buy",        TRUE,     q_buy},
     { "sell",       TRUE,     q_sell},
     { "giveup",     TRUE,     q_giveup},
-	{ NULL,         NULL,     NULL}
+    { NULL,         NULL,     NULL}
 };
 
 /* quest item table */
@@ -121,7 +121,7 @@ QUEST_ITEM quest_item_table[] =
     { QUEST_ITEM18,   425, "firewitches ring fire" },
     { QUEST_ITEM17,  350, "liliths web lies" },
     { QUEST_ITEM16,  350, "quirkys clog calamity" },
-/* Old versions of quest eq, can't be bought, sells for full price*/
+    /* Old versions of quest eq, can't be bought, sells for full price*/
     { QUEST_ITEM4,  1000, "" },
     { QUEST_ITEM5,  1000, "" },
     { QUEST_ITEM14,  850, "" },
@@ -144,15 +144,15 @@ char* list_quest_items()
     QUEST_ITEM *qi;
     OBJ_INDEX_DATA *obj;
     int i;
-    
+
     list_buf[0] = '\0';
     for ( i = 0; quest_item_table[i].vnum != 0; i++ )
     {
-	qi = &(quest_item_table[i]);
-	if ( (obj = get_obj_index(qi->vnum)) == NULL || !strcmp(qi->name,"") )
-	    continue;
-	sprintf( buf, "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
-	strcat( list_buf, buf );
+        qi = &(quest_item_table[i]);
+        if ( (obj = get_obj_index(qi->vnum)) == NULL || !strcmp(qi->name,"") )
+            continue;
+        sprintf( buf, "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
+        strcat( list_buf, buf );
     }
     return list_buf;
 }
@@ -165,28 +165,28 @@ bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 
     for ( i = 0; quest_item_table[i].vnum != 0; i++ )
     {
-	qi = &(quest_item_table[i]);
-	if ( get_obj_index(qi->vnum) == NULL
-	     || !is_name(name, qi->name) )
-	    continue;
+        qi = &(quest_item_table[i]);
+        if ( get_obj_index(qi->vnum) == NULL
+                || !is_name(name, qi->name) )
+            continue;
 
-	/* ok, we found it */
-	if ( ch->pcdata->questpoints < qi->cost )
-	{
-	    send_to_char( "You don't have enough quest points for that.\n\r", ch );
-	    return TRUE;
-	}
+        /* ok, we found it */
+        if ( ch->pcdata->questpoints < qi->cost )
+        {
+            send_to_char( "You don't have enough quest points for that.\n\r", ch );
+            return TRUE;
+        }
 
-	*obj = create_object(get_obj_index(qi->vnum), ch->level);
-	if ( *obj != NULL )
-	{
-	    ch->pcdata->questpoints -= qi->cost;
-	    logpf( "%s bought %s for %dqp",
-	            ch->name, remove_color((*obj)->short_descr), qi->cost );
-	}
-	else
-	    bug( "create_quest_item: couldn't create obj %d", qi->vnum );
-	return TRUE;
+        *obj = create_object(get_obj_index(qi->vnum), ch->level);
+        if ( *obj != NULL )
+        {
+            ch->pcdata->questpoints -= qi->cost;
+            logpf( "%s bought %s for %dqp",
+                    ch->name, remove_color((*obj)->short_descr), qi->cost );
+        }
+        else
+            bug( "create_quest_item: couldn't create obj %d", qi->vnum );
+        return TRUE;
     }
     return FALSE;
 }
@@ -196,51 +196,51 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
     QUEST_ITEM *qi;
     int i, qp_gain;
     char buf[MSL];
-    
+
     if ( ch == NULL || IS_NPC(ch) || obj == NULL )
-	return;
+        return;
 
     /* is obj a quest item? which? */
     for ( i = 0; quest_item_table[i].vnum != 0; i++ )
     {
-	qi = &(quest_item_table[i]);
-	if ( obj->pIndexData->vnum != qi->vnum )
-	    continue;
+        qi = &(quest_item_table[i]);
+        if ( obj->pIndexData->vnum != qi->vnum )
+            continue;
 
-	/* ok, we found it - owner? */
-	if ( !is_obj_owner(ch, obj) )
-	{
-	    send_to_char( "You don't own that quest item!\n\r", ch );
-	    return FALSE;
-	}
-	
-	if (!strcmp(qi->name,""))
-	{
-	    qp_gain = qi->cost;//refund full cost on old items
+        /* ok, we found it - owner? */
+        if ( !is_obj_owner(ch, obj) )
+        {
+            send_to_char( "You don't own that quest item!\n\r", ch );
+            return FALSE;
+        }
+
+        if (!strcmp(qi->name,""))
+        {
+            qp_gain = qi->cost;//refund full cost on old items
             do_say( quest_man, "As you like, I can refund you the whole cost!" );
-	}
-	else
-	{
-	    /* refund part of the price on current items*/
-	    qp_gain = qi->cost * 9/10;
-	    do_say( quest_man, "As you like, but I can't refund you the whole cost." );
-	}
-	sprintf( buf, "$N gives you %dqp for $p.", qp_gain );
-	act( buf, ch, obj, quest_man, TO_CHAR );
-	ch->pcdata->questpoints += qp_gain;
-	logpf( "%s sold %s for %dqp",
-	       ch->name, remove_color(obj->short_descr), qp_gain );
-	extract_obj(obj);
-	return TRUE;
+        }
+        else
+        {
+            /* refund part of the price on current items*/
+            qp_gain = qi->cost * 9/10;
+            do_say( quest_man, "As you like, but I can't refund you the whole cost." );
+        }
+        sprintf( buf, "$N gives you %dqp for $p.", qp_gain );
+        act( buf, ch, obj, quest_man, TO_CHAR );
+        ch->pcdata->questpoints += qp_gain;
+        logpf( "%s sold %s for %dqp",
+                ch->name, remove_color(obj->short_descr), qp_gain );
+        extract_obj(obj);
+        return TRUE;
     }
     act( "$p is not a quest item.", ch, obj, ch, TO_CHAR );
     return FALSE;
 }
 
 /* Object vnums for object quest 'tokens'. In Moongate, the tokens are
-things like 'the Shield of Moongate', 'the Sceptre of Moongate'. These
-items are worthless and have the rot-death flag, as they are placed
-into the world when a player receives an object quest. */
+   things like 'the Shield of Moongate', 'the Sceptre of Moongate'. These
+   items are worthless and have the rot-death flag, as they are placed
+   into the world when a player receives an object quest. */
 
 #define QUEST_OBJQUEST1 10375
 #define QUEST_OBJQUEST2 10376
@@ -250,9 +250,10 @@ into the world when a player receives an object quest. */
 
 /* Local functions */
 
-void generate_quest args(( CHAR_DATA *ch, CHAR_DATA *questman ));
+void generate_quest args(( CHAR_DATA *ch, CHAR_DATA *questman, bool ishardquest ));
 void quest_update   args(( void ));
 bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
+bool quest_level_diff_hard   args(( CHAR_DATA *ch, int mlevel));
 bool chance     args(( int num ));
 
 /* Added for Vodurs ptitle and name color -- Maedhros 11/12/11 */
@@ -260,28 +261,23 @@ void color_name( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
 void set_pre_title ( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
 /* End of ptitle and color */
 
-/* Added for "hard" quest option -- Astark Feb2012 */
-void generate_quest_hard args(( CHAR_DATA *ch, CHAR_DATA *questman ));
-bool quest_level_diff_hard   args(( CHAR_DATA *ch, int mlevel));
-/* End of hard quests */
-
 int quest_timer;
 
 /* CHANCE function. I use this everywhere in my code, very handy :> */
 bool chance(int num)
 {
     if (number_range(1,100) <= num)
-	return TRUE;
+        return TRUE;
     else 
-	return FALSE;
+        return FALSE;
 }
 
 bool per_chance(int num)
 {
     if (number_range(1,100) <= num)
-	return TRUE;
+        return TRUE;
     else 
-	return FALSE;
+        return FALSE;
 }
 
 QFUN( q_info)
@@ -291,133 +287,133 @@ QFUN( q_info)
     AREA_DATA *questinfoarea;
     MOB_INDEX_DATA *questinfo;
     char buf [MAX_STRING_LENGTH];
-    
+
     if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
+    {
+        if (ch->pcdata->questmob == -1 && ch->pcdata->questgiver->short_descr != NULL)
         {
-            if (ch->pcdata->questmob == -1 && ch->pcdata->questgiver->short_descr != NULL)
+            sprintf(buf, "Your quest is ALMOST complete!\n\rGet back to %s before your time runs out!\n\r",ch->pcdata->questgiver->short_descr);
+            send_to_char(buf, ch);
+        }
+        else if (ch->pcdata->questobj > 0)
+        {
+            questinfoobj = get_obj_index(ch->pcdata->questobj);
+            questinforoom = get_room_index(ch->pcdata->questroom);
+            questinfoarea = get_area_data(ch->pcdata->questarea);
+            if (questinfoobj != NULL && questinforoom != NULL && questinfoarea != NULL)
             {
-                sprintf(buf, "Your quest is ALMOST complete!\n\rGet back to %s before your time runs out!\n\r",ch->pcdata->questgiver->short_descr);
+                sprintf(buf, "You are on a quest to recover the fabled %s!\n\r"
+                        "Look in the general area of %s for %s!\n\r", questinfoobj->name, 
+                        questinfoarea->name, questinforoom->name);
                 send_to_char(buf, ch);
             }
-            else if (ch->pcdata->questobj > 0)
-            {
-                questinfoobj = get_obj_index(ch->pcdata->questobj);
-		questinforoom = get_room_index(ch->pcdata->questroom);
-		questinfoarea = get_area_data(ch->pcdata->questarea);
-                if (questinfoobj != NULL && questinforoom != NULL && questinfoarea != NULL)
-                {
-                    sprintf(buf, "You are on a quest to recover the fabled %s!\n\r"
-		    	"Look in the general area of %s for %s!\n\r", questinfoobj->name, 
-			questinfoarea->name, questinforoom->name);
-                    send_to_char(buf, ch);
-                }
-                else send_to_char("You aren't currently on a quest.\n\r",ch);
-                return;
-            }
-            else if (ch->pcdata->questmob > 0)
-            {
-                questinfo = get_mob_index(ch->pcdata->questmob);
-		questinforoom = get_room_index(ch->pcdata->questroom);
-		questinfoarea = get_area_data(ch->pcdata->questarea);
-                if (questinfo != NULL && questinforoom != NULL && questinfoarea != NULL)
-                {
-                    sprintf(buf, "You are on a quest to slay the dreaded %s!\n\r"
-			"Look in the general area of %s for %s!\n\r",
-			questinfo->short_descr, questinfoarea->name, questinforoom->name);
-                    send_to_char(buf, ch);
-                }
-                else send_to_char("You aren't currently on a quest.\n\r",ch);
-                return;
-            }
+            else send_to_char("You aren't currently on a quest.\n\r",ch);
+            return;
         }
-        else
-            send_to_char("You aren't currently on a quest.\n\r",ch);
-        return;
+        else if (ch->pcdata->questmob > 0)
+        {
+            questinfo = get_mob_index(ch->pcdata->questmob);
+            questinforoom = get_room_index(ch->pcdata->questroom);
+            questinfoarea = get_area_data(ch->pcdata->questarea);
+            if (questinfo != NULL && questinforoom != NULL && questinfoarea != NULL)
+            {
+                sprintf(buf, "You are on a quest to slay the dreaded %s!\n\r"
+                        "Look in the general area of %s for %s!\n\r",
+                        questinfo->short_descr, questinfoarea->name, questinforoom->name);
+                send_to_char(buf, ch);
+            }
+            else send_to_char("You aren't currently on a quest.\n\r",ch);
+            return;
+        }
+    }
+    else
+        send_to_char("You aren't currently on a quest.\n\r",ch);
+    return;
 }
 
 QFUN( q_points )
 {
     char buf [MAX_STRING_LENGTH];
-        sprintf(buf, "You have %d quest points.\n\r",ch->pcdata->questpoints);
-        send_to_char(buf, ch);
-        return;
+    sprintf(buf, "You have %d quest points.\n\r",ch->pcdata->questpoints);
+    send_to_char(buf, ch);
+    return;
 }
 
 QFUN( q_giveup )
 {
 
- /* Added the questorhard bitsector to be checked when giving up a quest --Astark Feb 2012 */
+    /* Added the questorhard bitsector to be checked when giving up a quest --Astark Feb 2012 */
 
-        if (!IS_SET(ch->act,PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD))
-        {
-            send_to_char("You're not on a quest!\n\r",ch);
-            return;
-        }
-        
-        act("$n admits defeat and fails $s quest.",ch,NULL,NULL,TO_ROOM);
-        send_to_char("You shamefully admit defeat before your questmaster.\n\r",ch);
-        send_to_char("You will be given the chance to redeem yourself in 10 minutes.\n\r",ch);
-        REMOVE_BIT(ch->act, PLR_QUESTOR);
-        REMOVE_BIT(ch->act, PLR_QUESTORHARD);
-        ch->pcdata->quest_failed++;
-		update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
-        ch->pcdata->questgiver = NULL;
-        ch->pcdata->countdown = 0;
-        ch->pcdata->questmob = 0;
-        ch->pcdata->questobj = 0;
-	ch->pcdata->questroom = 0;
-	ch->pcdata->questarea = 0;
-        
-        /* Changed to include a define - Maedhros, Feb 7, 2006 */
-	/* ch->pcdata->nextquest = 10; */
-	ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
+    if (!IS_SET(ch->act,PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD))
+    {
+        send_to_char("You're not on a quest!\n\r",ch);
         return;
+    }
+
+    act("$n admits defeat and fails $s quest.",ch,NULL,NULL,TO_ROOM);
+    send_to_char("You shamefully admit defeat before your questmaster.\n\r",ch);
+    send_to_char("You will be given the chance to redeem yourself in 10 minutes.\n\r",ch);
+    REMOVE_BIT(ch->act, PLR_QUESTOR);
+    REMOVE_BIT(ch->act, PLR_QUESTORHARD);
+    ch->pcdata->quest_failed++;
+    update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
+    ch->pcdata->questgiver = NULL;
+    ch->pcdata->countdown = 0;
+    ch->pcdata->questmob = 0;
+    ch->pcdata->questobj = 0;
+    ch->pcdata->questroom = 0;
+    ch->pcdata->questarea = 0;
+
+    /* Changed to include a define - Maedhros, Feb 7, 2006 */
+    /* ch->pcdata->nextquest = 10; */
+    ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
+    return;
 }
 
 QFUN( q_time )
 {
     char buf [MAX_STRING_LENGTH];
-       if (!IS_SET(ch->act, PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD))
+    if (!IS_SET(ch->act, PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD))
+    {
+        send_to_char("You aren't currently on a quest.\n\r",ch);
+        if (ch->pcdata->nextquest > 1)
         {
-            send_to_char("You aren't currently on a quest.\n\r",ch);
-            if (ch->pcdata->nextquest > 1)
-            {
-                sprintf(buf, "There are %d minutes remaining until you can go on another quest.\n\r",ch->pcdata->nextquest);
-                send_to_char(buf, ch);
-            }
-            else if (ch->pcdata->nextquest == 1)
-            {
-                sprintf(buf, "There is less than a minute remaining until you can go on another quest.\n\r");
-                send_to_char(buf, ch);
-            }
-        }
-        else if (ch->pcdata->countdown > 0)
-        {
-            sprintf(buf, "Time left for current quest: %d\n\r",ch->pcdata->countdown);
+            sprintf(buf, "There are %d minutes remaining until you can go on another quest.\n\r",ch->pcdata->nextquest);
             send_to_char(buf, ch);
         }
-        return;
+        else if (ch->pcdata->nextquest == 1)
+        {
+            sprintf(buf, "There is less than a minute remaining until you can go on another quest.\n\r");
+            send_to_char(buf, ch);
+        }
+    }
+    else if (ch->pcdata->countdown > 0)
+    {
+        sprintf(buf, "Time left for current quest: %d\n\r",ch->pcdata->countdown);
+        send_to_char(buf, ch);
+    }
+    return;
 }
 
 QFUN( q_list )
 {
     /* And, of course, you will need to change the following lines for YOUR
-    quest item information. Quest items on Moongate are unbalanced, very
-    very nice items, and no one has one yet, because it takes awhile to
-    build up quest points :> Make the item worth their while. */
+       quest item information. Quest items on Moongate are unbalanced, very
+       very nice items, and no one has one yet, because it takes awhile to
+       build up quest points :> Make the item worth their while. */
 
     char buf [MAX_STRING_LENGTH];
-    
+
     act( "$n asks $N for a list of quest items.", ch, NULL, questman, TO_ROOM); 
     act ("You ask $N for a list of quest items.",ch, NULL, questman, TO_CHAR);
     sprintf(buf, "Current Quest Items available for Purchase:\n\r");
-	strcat( buf, list_quest_items() );
+    strcat( buf, list_quest_items() );
 
     strcat(buf, "  250qp..........50 practices\n\r");
-	strcat(buf, "  200qp..........Change name 'color'.\n\r");
-	strcat(buf, "  200qp..........Change pretitle (ptitle).\n\r");
+    strcat(buf, "  200qp..........Change name 'color'.\n\r");
+    strcat(buf, "  200qp..........Change pretitle (ptitle).\n\r");
     strcat(buf, "  100qp..........Experience (1/4 exp per level)\n\r");
-	strcat(buf, "   50qp..........Warfare\n\r");
+    strcat(buf, "   50qp..........Warfare\n\r");
     strcat(buf, "To buy an item, type 'QUEST BUY <item>'.\n\r");
     strcat(buf, "To see a list of items, type 'HELP QUESTITEMS'\n\r");
     send_to_char(buf, ch);
@@ -430,19 +426,19 @@ QFUN( q_sell )
     OBJ_DATA *obj=NULL;
     char arg1[MIL];
     one_argument( argument, arg1 );
-    
-        if (arg1[0] == '\0')
-        {
-            send_to_char("To sell a quest item, type 'QUEST SELL <item>'.\n\r",ch);
-            return;
-        }
-	if ( (obj = get_obj_carry(ch, arg1, ch)) == NULL )
-        {
-            send_to_char("You don't have that object.\n\r",ch);
-            return;
-        }
-	sell_quest_item(ch, obj, questman);
-	return;
+
+    if (arg1[0] == '\0')
+    {
+        send_to_char("To sell a quest item, type 'QUEST SELL <item>'.\n\r",ch);
+        return;
+    }
+    if ( (obj = get_obj_carry(ch, arg1, ch)) == NULL )
+    {
+        send_to_char("You don't have that object.\n\r",ch);
+        return;
+    }
+    sell_quest_item(ch, obj, questman);
+    return;
 } 
 
 QFUN( q_buy )
@@ -450,113 +446,113 @@ QFUN( q_buy )
     char arg1[MIL];
     OBJ_DATA *obj=NULL;
     char buf[MSL];
-    
+
     one_argument( argument, arg1 );
-    
-        if (arg1[0] == '\0')
-        {
-            send_to_char("To buy an item, type 'QUEST BUY <item>'.\n\r",ch);
-            return;
-        }
 
-	if ( create_quest_item(ch, arg1, &obj) )
-	{
-	    if ( obj == NULL )
-		return;
-	}
-        else if (is_name(arg1, "practices pracs prac practice"))
+    if (arg1[0] == '\0')
+    {
+        send_to_char("To buy an item, type 'QUEST BUY <item>'.\n\r",ch);
+        return;
+    }
+
+    if ( create_quest_item(ch, arg1, &obj) )
+    {
+        if ( obj == NULL )
+            return;
+    }
+    else if (is_name(arg1, "practices pracs prac practice"))
+    {
+        if (ch->pcdata->questpoints >= 250)
         {
-            if (ch->pcdata->questpoints >= 250)
-            {
-                ch->pcdata->questpoints -= 250;
-                ch->practice += 50;
-                act( "$N gives 50 practices to $n.", ch, NULL, questman, TO_ROOM );
-                act( "$N gives you 50 practices.",   ch, NULL, questman, TO_CHAR );
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-            }
+            ch->pcdata->questpoints -= 250;
+            ch->practice += 50;
+            act( "$N gives 50 practices to $n.", ch, NULL, questman, TO_ROOM );
+            act( "$N gives you 50 practices.",   ch, NULL, questman, TO_CHAR );
+        }
+        else
+        {
+            sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
+            do_say(questman,buf);
+        }
+        return;
+    }
+    else if (is_name(arg1, "experience xp"))
+    {
+        if ( IS_SET(ch->act,PLR_NOEXP))
+        {
+            send_to_char("Toggle 'noexp' to allow you to gain experience before purchasing this.\n\r",ch);
             return;
         }
-        else if (is_name(arg1, "experience xp"))
+        if (ch->pcdata->questpoints >= 100)
         {
-          if ( IS_SET(ch->act,PLR_NOEXP))
-          {
-              send_to_char("Toggle 'noexp' to allow you to gain experience before purchasing this.\n\r",ch);
-              return;
-          }
-            if (ch->pcdata->questpoints >= 100)
-            {
-                ch->pcdata->questpoints -= 100;
-               /* section of gain_exp reproduced here in order to bypass
+            ch->pcdata->questpoints -= 100;
+            /* section of gain_exp reproduced here in order to bypass
                field exp -Vodur
-                gain_exp(ch, exp_per_level(ch, 50)/4);*/
-               int gain = 1+exp_per_level(ch, 50)/4;/* 1+ so whiners don't lose a couple of exp points per level  from rounding :)  -Vodur*/
-               ch->exp = UMAX( exp_per_level(ch,ch->pcdata->points), ch->exp + gain );
-               sprintf(buf, "You earn %d applied experience.\n\r", gain);
-               send_to_char(buf,ch);
+               gain_exp(ch, exp_per_level(ch, 50)/4);*/
+            int gain = 1+exp_per_level(ch, 50)/4;/* 1+ so whiners don't lose a couple of exp points per level  from rounding :)  -Vodur*/
+            ch->exp = UMAX( exp_per_level(ch,ch->pcdata->points), ch->exp + gain );
+            sprintf(buf, "You earn %d applied experience.\n\r", gain);
+            send_to_char(buf,ch);
 
-               if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch,ch->pcdata->points) * (ch->level+1)
-               && ch->level >= LEVEL_UNAUTHED )
-               {
-                           send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
-                           ch->exp = (exp_per_level(ch, ch->pcdata->points) * (ch->level+1));
-                           return;
-               }
-
-               while ( !IS_HERO(ch) && ch->exp >=
-                   exp_per_level(ch,ch->pcdata->points) * (ch->level+1) )
-               {
-                   send_to_char( "You raise a level!!  ", ch );
-                   ch->level += 1;
-
-                   sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
-                   log_string(buf);
-                   info_message(ch, buf, FALSE);
-
-                   sprintf(buf,"$N has attained level %d!",ch->level);
-                   wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
-
-                   advance_level(ch,FALSE);
-               /*end of modified secion from gain_exp*/
-               }
-
-		
-                act( "$N grants experience to $n.", ch, NULL, questman, TO_ROOM );
-                act( "$N grants you experience.",   ch, NULL, questman, TO_CHAR );
-            }
-            else
+            if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch,ch->pcdata->points) * (ch->level+1)
+                    && ch->level >= LEVEL_UNAUTHED )
             {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
+                send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
+                ch->exp = (exp_per_level(ch, ch->pcdata->points) * (ch->level+1));
+                return;
             }
-            return;
+
+            while ( !IS_HERO(ch) && ch->exp >=
+                    exp_per_level(ch,ch->pcdata->points) * (ch->level+1) )
+            {
+                send_to_char( "You raise a level!!  ", ch );
+                ch->level += 1;
+
+                sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
+                log_string(buf);
+                info_message(ch, buf, FALSE);
+
+                sprintf(buf,"$N has attained level %d!",ch->level);
+                wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
+
+                advance_level(ch,FALSE);
+                /*end of modified secion from gain_exp*/
+            }
+
+
+            act( "$N grants experience to $n.", ch, NULL, questman, TO_ROOM );
+            act( "$N grants you experience.",   ch, NULL, questman, TO_CHAR );
         }
-	else if (is_name(arg1, "warfare"))
-	{
-	    if (ch->pcdata->questpoints >= 50)
-	    proc_startwar(ch, argument, TRUE);
-	    else
-	    {
-		sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-		do_say(questman,buf);
-	    }
-	    return;
-	}
+        else
+        {
+            sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
+            do_say(questman,buf);
+        }
+        return;
+    }
+    else if (is_name(arg1, "warfare"))
+    {
+        if (ch->pcdata->questpoints >= 50)
+            proc_startwar(ch, argument, TRUE);
+        else
+        {
+            sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
+            do_say(questman,buf);
+        }
+        return;
+    }
 
-		/* Added for Vodurs ptitle and color name 11/25/11 -- Maedhros */
+    /* Added for Vodurs ptitle and color name 11/25/11 -- Maedhros */
 
-	else if 
-	(!strcmp(arg1,"color") )
+    else if 
+        (!strcmp(arg1,"color") )
         {
             if (*argument == '\0')
             {
                 do_say(questman, "Use 'quest buy color list' to see your options.");
             }
             else if (!IS_IMMORTAL(ch) &&(ch->pcdata->questpoints < 200)
-                && (strcmp(argument,"list") ) )
+                    && (strcmp(argument,"list") ) )
             {
                 sprintf(buf, "Sorry, %s, but you dont have enough quest points for that.",ch->name);
                 do_say(questman,buf);
@@ -565,466 +561,410 @@ QFUN( q_buy )
                 color_name(ch,argument,ch);
             return;
         }
-        else if (!strcmp(arg1, "ptitle"))
-	{
-	    set_pre_title(ch,argument,ch);
-	}		 
-		 /* End of Vodurs ptitle */
+    else if (!strcmp(arg1, "ptitle"))
+    {
+        set_pre_title(ch,argument,ch);
+    }		 
+    /* End of Vodurs ptitle */
 
-        else
-        {
-            sprintf(buf, "I don't have that item, %s.",ch->name);
-            do_say(questman, buf);
-        }
-        if (obj != NULL)
-        {
-            act( "$N gives $p to $n.", ch, obj, questman, TO_ROOM );
-            act( "$N gives you $p.",   ch, obj, questman, TO_CHAR );
-            free_string(obj->owner);
-            obj->owner = str_dup(ch->name);
-            SET_BIT(obj->extra_flags, ITEM_STICKY);
-            obj_to_char(obj, ch);
-        }
-        return;
+    else
+    {
+        sprintf(buf, "I don't have that item, %s.",ch->name);
+        do_say(questman, buf);
+    }
+    if (obj != NULL)
+    {
+        act( "$N gives $p to $n.", ch, obj, questman, TO_ROOM );
+        act( "$N gives you $p.",   ch, obj, questman, TO_CHAR );
+        free_string(obj->owner);
+        obj->owner = str_dup(ch->name);
+        SET_BIT(obj->extra_flags, ITEM_STICKY);
+        obj_to_char(obj, ch);
+    }
+    return;
 }
-
-QFUN( q_request )
+void request_quest( CHAR_DATA *ch, CHAR_DATA *questman, bool ishardquest)
 {
     char buf[MSL];
     
-	if (ch->position < POS_RESTING)
-	{
-	    send_to_char("In your dreams, or what?\n\r",ch);
-            return;
-	}
-		
-        act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
-        act ("You ask $N for a quest.",ch, NULL, questman, TO_CHAR);
-        if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
-        {
-            sprintf(buf, "But you're already on a quest!");
-            do_say(questman, buf);
-            return;
-        }
-        if (ch->pcdata->nextquest > 0 && !IS_IMMORTAL(ch))
-        {
-            sprintf(buf, "You're very brave, %s, but let someone else have a chance.",ch->name);
-            do_say(questman, buf);
-            sprintf(buf, "Come back later.");
-            do_say(questman, buf);
-            return;
-        }
-        
-        sprintf(buf, "Thank you, brave %s!",ch->name);
+    sprintf( buf, "$n asks $N for a %s quest.", ishardquest ? "hard" : "");
+    act( buf, ch, NULL, questman, TO_ROOM); 
+    sprintf( buf, "You ask $N for a %s quest.", ishardquest ? "hard" : "");
+    act (buf, ch, NULL, questman, TO_CHAR);
+    if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
+    {
+        sprintf(buf, "But you're already on a quest!");
         do_say(questman, buf);
-        ch->pcdata->questmob = 0;
-        ch->pcdata->questobj = 0;
-	ch->pcdata->questroom = 0;
-	ch->pcdata->questarea = 0;
-        /* How about ch->pcdata->nextquest = 0;, for Immortals? - Maedhros */ 
-
-        generate_quest(ch, questman);
-        
-        if (ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0)
-        {
-	    /* This line was removed (commented out), and similar lines moved to the bottom
-	     * of each of the mob and item quest creation sections in generate_quest(), so
-	     * that the quest item's timer could be based on the countdown timer, and scaled
-	     * so that the item barely outlasts the countdown timer - Maedhros, Feb 7, 2006.
-	     *
-	     *  ch->pcdata->countdown = number_range(15,30);
-	     */
-
-	    SET_BIT(ch->act, PLR_QUESTOR);
-            sprintf(buf, "You have %d minutes to complete this quest.",ch->pcdata->countdown);
-            do_say(questman, buf);
-            sprintf(buf, "May the gods go with you!");
-            do_say(questman, buf);
-        }
         return;
+    }
+    if (ch->pcdata->nextquest > 0 && !IS_IMMORTAL(ch))
+    {
+        sprintf(buf, "You're very brave, %s, but let someone else have a chance.",ch->name);
+        do_say(questman, buf);
+        sprintf(buf, "Come back later.");
+        do_say(questman, buf);
+        return;
+    }
 
+    sprintf(buf, "Thank you, brave %s!",ch->name);
+    do_say(questman, buf);
+    ch->pcdata->questmob = 0;
+    ch->pcdata->questobj = 0;
+    ch->pcdata->questroom = 0;
+    ch->pcdata->questarea = 0;
+    /* How about ch->pcdata->nextquest = 0;, for Immortals? - Maedhros */ 
+
+    generate_quest(ch, questman, ishardquest);
+
+    if (ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0)
+    {
+        /* This line was removed (commented out), and similar lines moved to the bottom
+         * of each of the mob and item quest creation sections in generate_quest(), so
+         * that the quest item's timer could be based on the countdown timer, and scaled
+         * so that the item barely outlasts the countdown timer - Maedhros, Feb 7, 2006.
+         *
+         *  ch->pcdata->countdown = number_range(15,30);
+         */
+        if ( ishardquest)
+            SET_BIT( ch->act, PLR_QUESTORHARD );
+        else
+            SET_BIT(ch->act, PLR_QUESTOR);
+            
+        sprintf(buf, "You have %d minutes to complete this quest.",ch->pcdata->countdown);
+        do_say(questman, buf);
+        sprintf(buf, "May the gods go with you!");
+        do_say(questman, buf);
+    }
+    return;
+
+}
+QFUN( q_request )
+{
+    request_quest( ch, questman, FALSE );
 }
 
 QFUN( q_requesthard )
 {
-/* Used for requesting difficult quests. The code here is nearly
-   the same as up above but a separate function is used. Could be
-   solved I think by adding another argument to the quest request
-   command but this was the easiest solution for me. 
-   -- Astark Feb 2012 */
-    char buf[MSL];
-    
-      if (ch->position >= POS_RESTING)
-      {
-        act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
-        act ("You ask $N for a quest.",ch, NULL, questman, TO_CHAR);
-        if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
-        {
-            sprintf(buf, "But you're already on a quest!");
-            do_say(questman, buf);
-            return;
-        }
-        if (ch->pcdata->nextquest > 0 && !IS_IMMORTAL(ch))
-        {
-            sprintf(buf, "You're very brave, %s, but let someone else have a chance.",ch->name);
-            do_say(questman, buf);
-            sprintf(buf, "Come back later.");
-            do_say(questman, buf);
-            return;
-        }
-        
-        sprintf(buf, "Thank you, brave %s!",ch->name);
-        do_say(questman, buf);
-        ch->pcdata->questmob = 0;
-        ch->pcdata->questobj = 0;
-	ch->pcdata->questroom = 0;
-	ch->pcdata->questarea = 0;
-        
-        generate_quest_hard(ch, questman);
-        
-        if (ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0)
-        {
-
- /* Sets a different bit (questorhard) to differentiate between
-    easy and hard quests. -- Astark feb 2012 */
-
-            SET_BIT(ch->act, PLR_QUESTORHARD);
-            sprintf(buf, "You have %d minutes to complete this quest.",ch->pcdata->countdown);
-            do_say(questman, buf);
-            sprintf(buf, "May the gods go with you!");
-            do_say(questman, buf);
-        }
-        return;
-      }
-      else
-      {
-          send_to_char("In your dreams, or what?\n\r",ch);
-          return;
-      }
-
+    /* Used for requesting difficult quests. The code here is nearly
+       the same as up above but a separate function is used. Could be
+       solved I think by adding another argument to the quest request
+       command but this was the easiest solution for me. 
+       -- Astark Feb 2012 */
+    request_quest( ch, questman, TRUE );
 }
 
 QFUN( q_complete )
 {
     char buf[MSL];
-        act( "$n informs $N $e has completed $s quest.", ch, NULL, questman, TO_ROOM); 
-        act ("You inform $N you have completed $s quest.",ch, NULL, questman, TO_CHAR);
-//        check_achievement(ch);
-        if (ch->pcdata->questgiver != questman)
+    act( "$n informs $N $e has completed $s quest.", ch, NULL, questman, TO_ROOM); 
+    act ("You inform $N you have completed $s quest.",ch, NULL, questman, TO_CHAR);
+    //        check_achievement(ch);
+    if (ch->pcdata->questgiver != questman)
+    {
+        sprintf(buf, "I never sent you on a quest! Perhaps you're thinking of someone else.");
+        do_say(questman,buf);
+        return;
+    }
+
+    /* Quest Rewards for HARD quests are here */
+
+    if (IS_SET(ch->act, PLR_QUESTORHARD))
+    {
+        if (ch->pcdata->questmob == -1 && ch->pcdata->countdown > 0)
         {
-            sprintf(buf, "I never sent you on a quest! Perhaps you're thinking of someone else.");
+            int reward, pointreward, pracreward;
+
+            /* Hard quests give 2-5x greater silver as part of the reward (1.5k gold)
+               and the quest point minimum is increased slightly (7 qps with
+               200 CHA), and the maximum is raised to 55 instead of 45 (200 LUC).
+               -- Astark Feb 2012 */
+
+            reward = number_range(15*ch->level,50*ch->level*ch_luc_quest(ch));
+            pointreward = number_range(get_curr_stat(ch,STAT_CHA)/12,20+ch_luc_quest(ch));
+            pointreward += pointreward * get_religion_bonus(ch) / 100;
+            sprintf(buf, "Congratulations on completing your quest!");
             do_say(questman,buf);
+            sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
+            do_say(questman,buf);
+            ch->pcdata->quest_success++;
+            update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
+            /* Hard quests have 1/5 instead of 1/6 chance of giving practices as 
+               part of the reward. They also give an average of 3 more practices
+               and the maximum is raised to 20 from 17. . -- Astark Feb 2012 */
+
+            if (chance(20))
+            {
+                pracreward = number_range(4,(ch_luc_quest(ch)/2)+3);
+                sprintf(buf, "You gain %d practice%s!\n\r", pracreward, pracreward > 1 ? "s" : "" );
+                send_to_char(buf, ch);
+                ch->practice += pracreward;
+            }
+
+            REMOVE_BIT(ch->act, PLR_QUESTORHARD);
+            ch->pcdata->questgiver = NULL;
+            ch->pcdata->countdown = 0;
+            ch->pcdata->questmob = 0;
+            ch->pcdata->questobj = 0;
+            ch->pcdata->questroom = 0;
+            ch->pcdata->questarea = 0;
+            ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
+            ch->silver += reward;
+            ch->pcdata->questpoints += pointreward;
+            update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
+            /* Hard quests also give 50 - 135xp instead of 10 - 155 -- Astark Feb 2012 */
+
+            gain_exp(ch, number_range(50,ch_luc_quest(ch)+100));
+
             return;
-        }
-
- /* Quest Rewards for HARD quests are here */
-
-        if (IS_SET(ch->act, PLR_QUESTORHARD))
+        }   
+        else if (ch->pcdata->questobj > 0 && ch->pcdata->countdown > 0)
         {
-            if (ch->pcdata->questmob == -1 && ch->pcdata->countdown > 0)
+            bool obj_found = FALSE;
+
+            OBJ_DATA *obj=NULL, *obj_next;
+            for (obj = ch->carrying; obj != NULL; obj= obj_next)
+            {
+                obj_next = obj->next_content;
+
+                if (obj != NULL && obj->pIndexData->vnum == ch->pcdata->questobj)
+                {
+                    obj_found = TRUE;
+                    break;
+                }
+            }
+            if (obj_found == TRUE)
             {
                 int reward, pointreward, pracreward;
-                
- /* Hard quests give 2-5x greater silver as part of the reward (1.5k gold)
-    and the quest point minimum is increased slightly (7 qps with
-    200 CHA), and the maximum is raised to 55 instead of 45 (200 LUC).
-    -- Astark Feb 2012 */
 
-                reward = number_range(15*ch->level,50*ch->level*ch_luc_quest(ch));
+                reward = number_range(ch->level,30*ch->level*ch_luc_quest(ch));
                 pointreward = number_range(get_curr_stat(ch,STAT_CHA)/12,20+ch_luc_quest(ch));
-                pointreward += pointreward * get_religion_bonus(ch) / 100;
+
+                act("You hand $p to $N.",ch, obj, questman, TO_CHAR);
+                act("$n hands $p to $N.",ch, obj, questman, TO_ROOM);
+
                 sprintf(buf, "Congratulations on completing your quest!");
                 do_say(questman,buf);
                 sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                 do_say(questman,buf);
                 ch->pcdata->quest_success++;
-				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
- /* Hard quests have 1/5 instead of 1/6 chance of giving practices as 
-    part of the reward. They also give an average of 3 more practices
-    and the maximum is raised to 20 from 17. . -- Astark Feb 2012 */
-
+                update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                 if (chance(20))
                 {
                     pracreward = number_range(4,(ch_luc_quest(ch)/2)+3);
-                    sprintf(buf, "You gain %d practice%s!\n\r", pracreward, pracreward > 1 ? "s" : "" );
+                    sprintf(buf, "You gain %d practice%s!\n\r",pracreward, pracreward > 1 ? "s" : "");
                     send_to_char(buf, ch);
                     ch->practice += pracreward;
                 }
-                
+
+                REMOVE_BIT(ch->act, PLR_QUESTOR);
                 REMOVE_BIT(ch->act, PLR_QUESTORHARD);
                 ch->pcdata->questgiver = NULL;
                 ch->pcdata->countdown = 0;
                 ch->pcdata->questmob = 0;
                 ch->pcdata->questobj = 0;
-		ch->pcdata->questroom = 0;
-		ch->pcdata->questarea = 0;
-		ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
+                ch->pcdata->questroom = 0;
+                ch->pcdata->questarea = 0;
+                ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                 ch->silver += reward;
                 ch->pcdata->questpoints += pointreward;
-				update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
- /* Hard quests also give 50 - 135xp instead of 10 - 155 -- Astark Feb 2012 */
-
-                gain_exp(ch, number_range(50,ch_luc_quest(ch)+100));
-                
-                return;
-            }   
-            else if (ch->pcdata->questobj > 0 && ch->pcdata->countdown > 0)
-            {
-                bool obj_found = FALSE;
-                
-                OBJ_DATA *obj=NULL, *obj_next;
-                for (obj = ch->carrying; obj != NULL; obj= obj_next)
-                {
-                    obj_next = obj->next_content;
-                    
-                    if (obj != NULL && obj->pIndexData->vnum == ch->pcdata->questobj)
-                    {
-                        obj_found = TRUE;
-                        break;
-                    }
-                }
-                if (obj_found == TRUE)
-                {
-                    int reward, pointreward, pracreward;
-                    
-                    reward = number_range(ch->level,30*ch->level*ch_luc_quest(ch));
-                    pointreward = number_range(get_curr_stat(ch,STAT_CHA)/12,20+ch_luc_quest(ch));
-                    
-                    act("You hand $p to $N.",ch, obj, questman, TO_CHAR);
-                    act("$n hands $p to $N.",ch, obj, questman, TO_ROOM);
-                    
-                    sprintf(buf, "Congratulations on completing your quest!");
-                    do_say(questman,buf);
-                    sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
-                    do_say(questman,buf);
-                    ch->pcdata->quest_success++;
-					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
-                    if (chance(20))
-                    {
-                        pracreward = number_range(4,(ch_luc_quest(ch)/2)+3);
-                        sprintf(buf, "You gain %d practice%s!\n\r",pracreward, pracreward > 1 ? "s" : "");
-                        send_to_char(buf, ch);
-                        ch->practice += pracreward;
-                    }
-                    
-                    REMOVE_BIT(ch->act, PLR_QUESTOR);
-                    REMOVE_BIT(ch->act, PLR_QUESTORHARD);
-                    ch->pcdata->questgiver = NULL;
-                    ch->pcdata->countdown = 0;
-                    ch->pcdata->questmob = 0;
-                    ch->pcdata->questobj = 0;
-		    ch->pcdata->questroom = 0;
-		    ch->pcdata->questarea = 0;
-		    ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
-                    ch->silver += reward;
-                    ch->pcdata->questpoints += pointreward;
-					update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
-                    gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
-                    extract_obj(obj);
-                    return;
-                }
-                else
-                {
-                    sprintf(buf, "You haven't completed the quest yet, but there is still time!");
-                    do_say(questman, buf);
-                    return;
-                }
+                update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
+                gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
+                extract_obj(obj);
                 return;
             }
-            else if ((ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0) && ch->pcdata->countdown > 0)
+            else
             {
                 sprintf(buf, "You haven't completed the quest yet, but there is still time!");
                 do_say(questman, buf);
                 return;
             }
+            return;
         }
-
-/* This is the section for normal quests */
-
-        if (IS_SET(ch->act, PLR_QUESTOR))
+        else if ((ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0) && ch->pcdata->countdown > 0)
         {
-            if (ch->pcdata->questmob == -1 && ch->pcdata->countdown > 0)
+            sprintf(buf, "You haven't completed the quest yet, but there is still time!");
+            do_say(questman, buf);
+            return;
+        }
+    }
+
+    /* This is the section for normal quests */
+
+    if (IS_SET(ch->act, PLR_QUESTOR))
+    {
+        if (ch->pcdata->questmob == -1 && ch->pcdata->countdown > 0)
+        {
+            int reward, pointreward, pracreward;
+
+            reward = number_range(1,12*ch->level*ch_luc_quest(ch));
+
+            /* Reduced maximum QPS to 40 from 45 with 200 luc -- Astark Feb 2012 */
+
+            pointreward = number_range(get_curr_stat(ch,STAT_CHA)/15,10+ch_luc_quest(ch));
+            pointreward += pointreward * get_religion_bonus(ch) / 100;
+            sprintf(buf, "Congratulations on completing your quest!");
+            do_say(questman,buf);
+            sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
+            do_say(questman,buf);
+            ch->pcdata->quest_success++;
+            update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
+            if (chance(15))
+            {
+                pracreward = number_range(1,ch_luc_quest(ch)/2);
+                sprintf(buf, "You gain %d practice%s!\n\r", pracreward, pracreward > 1 ? "s" : "" );
+                send_to_char(buf, ch);
+                ch->practice += pracreward;
+            }
+
+            REMOVE_BIT(ch->act, PLR_QUESTOR);
+            /* Just a fail safe --Astark Feb 2012 */
+            REMOVE_BIT(ch->act, PLR_QUESTOR);
+            ch->pcdata->questgiver = NULL;
+            ch->pcdata->countdown = 0;
+            ch->pcdata->questmob = 0;
+            ch->pcdata->questobj = 0;
+            ch->pcdata->questroom = 0;
+            ch->pcdata->questarea = 0;
+
+            /* Changed to include a define - Maedhros, Feb 7, 2006 */
+            /* ch->pcdata->nextquest = 10; */
+            ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
+            ch->silver += reward;
+            ch->pcdata->questpoints += pointreward;
+            update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
+            gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
+
+            return;
+        }
+        else if (ch->pcdata->questobj > 0 && ch->pcdata->countdown > 0)
+        {
+            bool obj_found = FALSE;
+
+            OBJ_DATA *obj=NULL, *obj_next;
+            for (obj = ch->carrying; obj != NULL; obj= obj_next)
+            {
+                obj_next = obj->next_content;
+
+                if (obj != NULL && obj->pIndexData->vnum == ch->pcdata->questobj)
+                {
+                    obj_found = TRUE;
+                    break;
+                }
+            }
+            if (obj_found == TRUE)
             {
                 int reward, pointreward, pracreward;
-                
+
                 reward = number_range(1,12*ch->level*ch_luc_quest(ch));
-
- /* Reduced maximum QPS to 40 from 45 with 200 luc -- Astark Feb 2012 */
-
                 pointreward = number_range(get_curr_stat(ch,STAT_CHA)/15,10+ch_luc_quest(ch));
-                pointreward += pointreward * get_religion_bonus(ch) / 100;
+
+                act("You hand $p to $N.",ch, obj, questman, TO_CHAR);
+                act("$n hands $p to $N.",ch, obj, questman, TO_ROOM);
+
                 sprintf(buf, "Congratulations on completing your quest!");
                 do_say(questman,buf);
                 sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                 do_say(questman,buf);
                 ch->pcdata->quest_success++;
-				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
+                update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                 if (chance(15))
                 {
                     pracreward = number_range(1,ch_luc_quest(ch)/2);
-                    sprintf(buf, "You gain %d practice%s!\n\r", pracreward, pracreward > 1 ? "s" : "" );
+                    sprintf(buf, "You gain %d practice%s!\n\r",pracreward, pracreward > 1 ? "s" : "");
                     send_to_char(buf, ch);
                     ch->practice += pracreward;
                 }
-                
+
                 REMOVE_BIT(ch->act, PLR_QUESTOR);
- /* Just a fail safe --Astark Feb 2012 */
-                REMOVE_BIT(ch->act, PLR_QUESTOR);
+                /* Another fail safe.. -- Astark Feb 2012 */
+                REMOVE_BIT(ch->act, PLR_QUESTORHARD);
                 ch->pcdata->questgiver = NULL;
                 ch->pcdata->countdown = 0;
                 ch->pcdata->questmob = 0;
                 ch->pcdata->questobj = 0;
-		ch->pcdata->questroom = 0;
-		ch->pcdata->questarea = 0;
-                
-	        /* Changed to include a define - Maedhros, Feb 7, 2006 */
-		/* ch->pcdata->nextquest = 10; */
-		ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
+                ch->pcdata->questroom = 0;
+                ch->pcdata->questarea = 0;
+
+                /* Changed to include a define - Maedhros, Feb 8, 2006 */
+                /* ch->pcdata->nextquest = 10; */
+                ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                 ch->silver += reward;
                 ch->pcdata->questpoints += pointreward;
-				update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
+                update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
                 gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
-                
+                extract_obj(obj);
                 return;
             }
-            else if (ch->pcdata->questobj > 0 && ch->pcdata->countdown > 0)
-            {
-                bool obj_found = FALSE;
-                
-                OBJ_DATA *obj=NULL, *obj_next;
-                for (obj = ch->carrying; obj != NULL; obj= obj_next)
-                {
-                    obj_next = obj->next_content;
-                    
-                    if (obj != NULL && obj->pIndexData->vnum == ch->pcdata->questobj)
-                    {
-                        obj_found = TRUE;
-                        break;
-                    }
-                }
-                if (obj_found == TRUE)
-                {
-                    int reward, pointreward, pracreward;
-                    
-                    reward = number_range(1,12*ch->level*ch_luc_quest(ch));
-                    pointreward = number_range(get_curr_stat(ch,STAT_CHA)/15,10+ch_luc_quest(ch));
-                    
-                    act("You hand $p to $N.",ch, obj, questman, TO_CHAR);
-                    act("$n hands $p to $N.",ch, obj, questman, TO_ROOM);
-                    
-                    sprintf(buf, "Congratulations on completing your quest!");
-                    do_say(questman,buf);
-                    sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
-                    do_say(questman,buf);
-                    ch->pcdata->quest_success++;
-					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
-                    if (chance(15))
-                    {
-                        pracreward = number_range(1,ch_luc_quest(ch)/2);
-                        sprintf(buf, "You gain %d practice%s!\n\r",pracreward, pracreward > 1 ? "s" : "");
-                        send_to_char(buf, ch);
-                        ch->practice += pracreward;
-                    }
-                    
-                    REMOVE_BIT(ch->act, PLR_QUESTOR);
- /* Another fail safe.. -- Astark Feb 2012 */
-                    REMOVE_BIT(ch->act, PLR_QUESTORHARD);
-                    ch->pcdata->questgiver = NULL;
-                    ch->pcdata->countdown = 0;
-                    ch->pcdata->questmob = 0;
-                    ch->pcdata->questobj = 0;
-		    ch->pcdata->questroom = 0;
-		    ch->pcdata->questarea = 0;
-                    
-		    /* Changed to include a define - Maedhros, Feb 8, 2006 */
-                    /* ch->pcdata->nextquest = 10; */
-		    ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
-                    ch->silver += reward;
-                    ch->pcdata->questpoints += pointreward;
-					update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
-                    gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
-                    extract_obj(obj);
-                    return;
-                }
-                else
-                {
-                    sprintf(buf, "You haven't completed the quest yet, but there is still time!");
-                    do_say(questman, buf);
-                    return;
-                }
-                return;
-            }
-            else if ((ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0) && ch->pcdata->countdown > 0)
+            else
             {
                 sprintf(buf, "You haven't completed the quest yet, but there is still time!");
                 do_say(questman, buf);
                 return;
             }
+            return;
         }
-        if (ch->pcdata->nextquest > 0)
-            sprintf(buf,"But you didn't complete your quest in time!");
-        else sprintf(buf, "You have to REQUEST a quest first, %s.",ch->name);
-        do_say(questman, buf);
-        return;
+        else if ((ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0) && ch->pcdata->countdown > 0)
+        {
+            sprintf(buf, "You haven't completed the quest yet, but there is still time!");
+            do_say(questman, buf);
+            return;
+        }
+    }
+    if (ch->pcdata->nextquest > 0)
+        sprintf(buf,"But you didn't complete your quest in time!");
+    else sprintf(buf, "You have to REQUEST a quest first, %s.",ch->name);
+    do_say(questman, buf);
+    return;
 
 }
 /* The main quest function */
 void do_quest(CHAR_DATA *ch, char *argument)
 {
-/*    CHAR_DATA *questman;
-    OBJ_DATA *obj=NULL, *obj_next;
-    OBJ_INDEX_DATA *questinfoobj;
-    MOB_INDEX_DATA *questinfo;
-    ROOM_INDEX_DATA *questinforoom;
-    AREA_DATA *questinfoarea;
-    char buf [MAX_STRING_LENGTH];*/
-    char arg1 [MAX_INPUT_LENGTH];
-    //char arg2 [MAX_INPUT_LENGTH];
-    
-    argument = one_argument(argument, arg1);
-    //argument = one_argument(argument, arg2);
     
     if (IS_NPC(ch))
     {
         send_to_char( "NPC's cannot quest!\n\r", ch );
         return;
     }
-    
-    if (arg1[0] == '\0')
-    {
-        send_to_char("QUEST commands: POINTS INFO TIME REQUEST REQUESTHARD COMPLETE LIST BUY SELL GIVEUP.\n\r",ch);
-        send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
-        return;
-    }
+
+    char arg1 [MAX_INPUT_LENGTH];
+    argument = one_argument(argument, arg1);
+
     int i;
     QUEST_ARG *arg;
-    
+
     for ( arg=&quest_arg_table[i=0] ; arg->name ; arg=&quest_arg_table[++i] )
     {
         if ( !strcmp( arg1, arg->name) )
         {
             /* need to pass questmaster along */
             CHAR_DATA *questman=NULL;
-            
+
             if ( arg->require_questmaster )
             {
-                
+                /* can't talk to a questmaster while sleeping */
+                if (ch->position < POS_RESTING)
+                {
+                    send_to_char("In your dreams, or what?\n\r",ch);
+                    return;
+                }
+
                 /* Checks for a character in the room with spec_questmaster set. This special
-                    procedure must be defined in special.c. You could instead use an 
-                    ACT_QUESTMASTER flag instead of a special procedure. */
-    
+                   procedure must be defined in special.c. You could instead use an 
+                   ACT_QUESTMASTER flag instead of a special procedure. */
+
                 for ( questman = ch->in_room->people; questman != NULL; questman = questman->next_in_room )
                 {
                     if (!IS_NPC(questman)) continue;
                     if (questman->spec_fun == spec_lookup( "spec_questmaster" )) break;
                 }
-    
+
                 if (questman == NULL || questman->spec_fun != spec_lookup( "spec_questmaster" ))
                 {
                     send_to_char("You can't do that here.\n\r",ch);
                     return;
                 }
-    
+
                 if ( questman->fighting != NULL)
                 {
                     send_to_char("Wait until the fighting stops.\n\r",ch);
@@ -1032,12 +972,12 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 }
                 ch->pcdata->questgiver = questman;
             }
-            
+
             ( *(arg->fun) )( ch, argument, questman);
             return;
         }
     }
-   
+
     send_to_char("QUEST commands: POINTS INFO TIME REQUEST COMPLETE LIST BUY.\n\r",ch);
     send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
     return;
@@ -1048,15 +988,18 @@ bool is_guild_room( int vnum )
     int iClass, iGuild;
 
     for ( iClass = 0; iClass < MAX_CLASS; iClass++ )
-	for ( iGuild = 0; iGuild < MAX_GUILD; iGuild ++)    
-	    if ( vnum == class_table[iClass].guild[iGuild] )
-		return TRUE;
+        for ( iGuild = 0; iGuild < MAX_GUILD; iGuild ++)    
+            if ( vnum == class_table[iClass].guild[iGuild] )
+                return TRUE;
 
     return FALSE;
 }
 
-void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
+void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman, bool ishardquest)
 {
+    if ( ch == NULL || IS_NPC(ch) )
+        return;
+    
     CHAR_DATA *victim;
     MOB_INDEX_DATA *vsearch;
     ROOM_INDEX_DATA *room;
@@ -1065,191 +1008,211 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
     long mcounter;
     int mob_vnum;
     bool found = FALSE;
- 
-    /* Added - Maedhros, Feb 10, 2006 */ 
-    int i;
-    int* iPtr;
 
-    if ( ch == NULL || IS_NPC(ch) )
-	return;
+    
+    /* some differences between normal and hard quests*/
+    int item_chance;
+    bool (*level_diff_fun)(CHAR_DATA *, int);
+
+    if ( ishardquest )
+    {
+        /* hard quest */
+        level_diff_fun=quest_level_diff_hard;
+        item_chance=30;
+    }
+    else
+    {
+        /* normal quest */
+        level_diff_fun=quest_level_diff;
+        item_chance=40;
+    }
+    
 
     /*  Randomly selects a mob from the world mob list. If you don't
-    want a mob to be selected, make sure it is immune to summon.
-    Or, you could add a new mob flag called ACT_NOQUEST. The mob
-    is selected for both mob and obj quests, even tho in the obj
-    quest the mob is not used. This is done to assure the level
-    of difficulty for the area isn't too great for the player. */
-    
+        want a mob to be selected, make sure it is immune to summon.
+        Or, you could add a new mob flag called ACT_NOQUEST. The mob
+        is selected for both mob and obj quests, even tho in the obj
+        quest the mob is not used. This is done to assure the level
+        of difficulty for the area isn't too great for the player. */
+
     for (mcounter = 0; mcounter < 10000; mcounter ++)
     {
         mob_vnum = number_range(50, 32600);
-        
+
         if ( (vsearch = get_mob_index(mob_vnum) ) != NULL )
         {
-            if ( !quest_level_diff(ch, vsearch->level)
-		 || vsearch->pShop != NULL
-		 /* || IS_SET(vsearch->imm_flags, IMM_SUMMON) */
-		 || IS_SET(vsearch->act, ACT_TRAIN)
-                 || IS_SET(vsearch->act, ACT_HARD_QUEST)
-		 || IS_SET(vsearch->act, ACT_PRACTICE)
-		 || IS_SET(vsearch->act, ACT_IS_HEALER)
-		 || IS_SET(vsearch->act, ACT_IS_CHANGER)
-		 || IS_SET(vsearch->act, ACT_PET)
-		 || IS_SET(vsearch->act, ACT_SAFE)
-		 || IS_SET(vsearch->act, ACT_WIZI)
-		 || IS_SET(vsearch->act, ACT_NO_QUEST)
-		 || IS_SET(vsearch->affect_field, AFF_CHARM)
-		 || IS_SET(vsearch->affect_field, AFF_INVISIBLE)
-		 || IS_SET(vsearch->affect_field, AFF_ASTRAL)
-		 || IS_SET(vsearch->area->area_flags, AREA_REMORT)
-		 || IS_SET(vsearch->area->area_flags, AREA_NOQUEST)
-		 || (IS_SET(vsearch->imm_flags, IMM_WEAPON)
-		     && IS_SET(vsearch->imm_flags, IMM_MAGIC))
-		 || chance(60))
+            if ( !(*level_diff_fun)(ch, vsearch->level) 
+                    || vsearch->pShop != NULL
+                    /* || IS_SET(vsearch->imm_flags, IMM_SUMMON) */
+                    || IS_SET(vsearch->act, ACT_TRAIN)
+                    || (!ishardquest && IS_SET(vsearch->act, ACT_HARD_QUEST)) 
+                    || IS_SET(vsearch->act, ACT_PRACTICE)
+                    || IS_SET(vsearch->act, ACT_IS_HEALER)
+                    || IS_SET(vsearch->act, ACT_IS_CHANGER)
+                    || IS_SET(vsearch->act, ACT_PET)
+                    || IS_SET(vsearch->act, ACT_SAFE)
+                    || IS_SET(vsearch->act, ACT_WIZI)
+                    || IS_SET(vsearch->act, ACT_NO_QUEST)
+                    || IS_SET(vsearch->affect_field, AFF_CHARM)
+                    || (!ishardquest && IS_SET(vsearch->affect_field, AFF_INVISIBLE))
+                    || IS_SET(vsearch->affect_field, AFF_ASTRAL)
+                    || IS_SET(vsearch->area->area_flags, AREA_REMORT)
+                    /* for normal quest, kick if noquest area */
+                    || (!ishardquest && IS_SET(vsearch->area->area_flags, AREA_NOQUEST))
+                    /* for hard quest, kick if noquest and not a hard_quest flag */
+                    || (ishardquest && IS_SET(vsearch->area->area_flags, AREA_NOQUEST) && !IS_SET(vsearch->act, ACT_HARD_QUEST) )
+                    || (IS_SET(vsearch->imm_flags, IMM_WEAPON)
+                        && IS_SET(vsearch->imm_flags, IMM_MAGIC))
+                    || chance(60))
             {
                 vsearch = NULL;
                 continue;
             }
-            
+
             if (( victim = get_mob_vnum_world( mob_vnum ) ) == NULL
-                || ( room = victim->in_room ) == NULL
-                || (IS_GOOD(ch) && IS_GOOD(victim))
-                || victim->in_room->area->security<5
-		|| is_guild_room( room->vnum )
-                || IS_SET(victim->in_room->room_flags, ROOM_SAFE)
-                || IS_SET(victim->in_room->room_flags, ROOM_JAIL)
-                || IS_SET(victim->in_room->room_flags, ROOM_NOWHERE)
-                || IS_SET(victim->in_room->room_flags, ROOM_NO_QUEST)
-                || IS_SET(victim->in_room->room_flags, ROOM_GODS_ONLY)
-                || IS_SET(victim->in_room->room_flags, ROOM_IMP_ONLY)
-                || IS_SET(victim->in_room->room_flags, ROOM_SOLITARY)
-                || (ch->level < LEVEL_HERO && 
-                    IS_SET(victim->in_room->room_flags, ROOM_HEROES_ONLY))
-                || (ch->level > 5 && 
-                    IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
+                    || ( room = victim->in_room ) == NULL
+                    || (IS_GOOD(ch) && IS_GOOD(victim))
+                    || victim->in_room->area->security<5
+                    || is_guild_room( room->vnum )
+                    || IS_SET(victim->in_room->room_flags, ROOM_SAFE)
+                    || IS_SET(victim->in_room->room_flags, ROOM_JAIL)
+                    || IS_SET(victim->in_room->room_flags, ROOM_NOWHERE)
+                    || (!ishardquest && IS_SET(victim->in_room->room_flags, ROOM_NO_QUEST) )
+                    || (ishardquest && IS_SET(victim->in_room->room_flags, ROOM_NO_QUEST) && !IS_SET(victim->act, ACT_HARD_QUEST) )
+                    || IS_SET(victim->in_room->room_flags, ROOM_GODS_ONLY)
+                    || IS_SET(victim->in_room->room_flags, ROOM_IMP_ONLY)
+                    || IS_SET(victim->in_room->room_flags, ROOM_SOLITARY)
+                    || (ch->level < LEVEL_HERO && 
+                        IS_SET(victim->in_room->room_flags, ROOM_HEROES_ONLY))
+                    || (ch->level > 5 && 
+                        IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
                 continue;
-            
-	    found = TRUE;
+
+            found = TRUE;
             break;
         }
     }
-    
+
     if ( !found || chance(20-ch_luc_quest(ch)) )
     {
         sprintf(buf, "I'm sorry, I don't have a good quest for you right now.");
         do_say(questman, buf);
         sprintf(buf, "Please come back in a few minutes, maybe something will come up.");
         do_say(questman, buf);
-        
+
         /* Changed to include a define - Maedhros, Feb 7, 2006 */
-	/* ch->pcdata->nextquest = 2; */
-	ch->pcdata->nextquest = QUEST_NEXTQUEST_MIN;
+        /* ch->pcdata->nextquest = 2; */
+
+        ch->pcdata->nextquest = QUEST_NEXTQUEST_MIN;
         return;
     }
-    
-    /*  40% chance it will send the player on a 'recover item' quest. */
-    
-    if (chance(40) || (ch->level < 10 && !IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
+
+    /*  normal quest 40% chance, hard 30% it will send the player on a 'recover item' quest. */
+
+    if (chance(item_chance) || (ch->level < 10 && !IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
     {
         int objvnum = 0;
-        
+
         switch(number_range(0,4))
         {
-        case 0:
-            objvnum = QUEST_OBJQUEST1;
-            break;
-            
-        case 1:
-            objvnum = QUEST_OBJQUEST2;
-            break;
-            
-        case 2:
-            objvnum = QUEST_OBJQUEST3;
-            break;
-            
-        case 3:
-            objvnum = QUEST_OBJQUEST4;
-            break;
-            
-        case 4:
-            objvnum = QUEST_OBJQUEST5;
-            break;
+            case 0:
+                objvnum = QUEST_OBJQUEST1;
+                break;
+
+            case 1:
+                objvnum = QUEST_OBJQUEST2;
+                break;
+
+            case 2:
+                objvnum = QUEST_OBJQUEST3;
+                break;
+
+            case 3:
+                objvnum = QUEST_OBJQUEST4;
+                break;
+
+            case 4:
+                objvnum = QUEST_OBJQUEST5;
+                break;
         }
-        
+
         questitem = create_object( get_obj_index(objvnum), ch->level );
-    
+
         /* Removed (commented out) the following line, and replaced it with the next two,
-	 * one of which was previously outside of generate_quest(), so that the quest item
-	 * timer could be based on countdown, and also scaled, since countdown runs more
-	 * slowly than the quest item timer. - Maedhros, Feb 7, 2006.
-	 *
+         * one of which was previously outside of generate_quest(), so that the quest item
+         * timer could be based on countdown, and also scaled, since countdown runs more
+         * slowly than the quest item timer. - Maedhros, Feb 7, 2006.
+         *
          * questitem->timer=30;
          */ 
+
         ch->pcdata->countdown = number_range(QUEST_COUNTDOWN_MIN, QUEST_COUNTDOWN_MAX);	
-	/* ch->pcdata->countdown = number_range(15, 30); */ 
-	questitem->timer = (ch->pcdata->countdown * 2) + 1;
+
+        /* ch->pcdata->countdown = number_range(15, 30); */ 
+
+        questitem->timer = (ch->pcdata->countdown * 2) + 1;
 
         obj_to_room(questitem, room);
         ch->pcdata->questobj = questitem->pIndexData->vnum;
-        
+
         sprintf(buf, "Vile pilferers have stolen %s from the royal treasury!",questitem->short_descr);
         do_say(questman, buf);
         do_say(questman, "My court wizardess, with her magic mirror, has pinpointed its location.");
-        
+
         /* I changed my area names so that they have just the name of the area
-        and none of the level stuff. You may want to comment these next two
-        lines. - Vassago */
-        
+           and none of the level stuff. You may want to comment these next two
+           lines. - Vassago */
+
         sprintf(buf, "Look in the general area of %s for %s!",room->area->name, room->name);
-	ch->pcdata->questroom = room->vnum;
-	ch->pcdata->questarea = room->area->vnum;
+        ch->pcdata->questroom = room->vnum;
+        ch->pcdata->questarea = room->area->vnum;
         do_say(questman, buf);
         return;
     }
-    
+
     /* Quest to kill a mob */
-    
+
     else 
     {
         switch(number_range(0,1))
         {
-        case 0:
-            sprintf(buf, "An enemy of mine, %s, is making vile threats against the crown.",victim->short_descr);
-            do_say(questman, buf);
-            sprintf(buf, "This threat must be eliminated!");
-            do_say(questman, buf);
-            break;
-            
-        case 1:
-            sprintf(buf, "Aarchon's most heinous criminal, %s, has escaped from the dungeon!",victim->short_descr);
-            do_say(questman, buf);
-            /* Typo fix: "civillians" to "civilians" - Maedhros, Jan 16, 2006 */ 
-	    sprintf(buf, "Since the escape, %s has murdered %d civilians!",victim->short_descr, number_range(2,20));
-            do_say(questman, buf);
-            do_say(questman,"The penalty for this crime is death, and you are to deliver the sentence!");
-            break;
+            case 0:
+                sprintf(buf, "An enemy of mine, %s, is making vile threats against the crown.",victim->short_descr);
+                do_say(questman, buf);
+                sprintf(buf, "This threat must be eliminated!");
+                do_say(questman, buf);
+                break;
+
+            case 1:
+                sprintf(buf, "Aarchon's most heinous criminal, %s, has escaped from the dungeon!",victim->short_descr);
+                do_say(questman, buf);
+                /* Typo fix: "civillians" to "civilians" - Maedhros, Jan 16, 2006 */ 
+                sprintf(buf, "Since the escape, %s has murdered %d civilians!",victim->short_descr, number_range(2,20));
+                do_say(questman, buf);
+                do_say(questman,"The penalty for this crime is death, and you are to deliver the sentence!");
+                break;
         }
-        
+
         if (room->name != NULL)
         {
             sprintf(buf, "Seek %s out somewhere in the vicinity of %s!",victim->short_descr,room->name);
             do_say(questman, buf);
-            
+
             /* I changed my area names so that they have just the name of the area
-            and none of the level stuff. You may want to comment these next two
-            lines. - Vassago */
-            
+               and none of the level stuff. You may want to comment these next two
+               lines. - Vassago */
+
             sprintf(buf, "That location is in the general area of %s.",room->area->name);
-	    ch->pcdata->questroom = room->vnum;
-	    ch->pcdata->questarea = room->area->vnum;
+            ch->pcdata->questroom = room->vnum;
+            ch->pcdata->questarea = room->area->vnum;
             do_say(questman, buf);
         }
         ch->pcdata->questmob = victim->pIndexData->vnum;
 
         /* Added this line.  It replaces an identical line that was just outside of the call
-	 * to generate_quest().  This was done so that the quest item timer could be based on
-	 * the countdown timer, easily. - Maedhros, Feb 7, 2006
-	 */
+         * to generate_quest().  This was done so that the quest item timer could be based on
+         * the countdown timer, easily. - Maedhros, Feb 7, 2006
+         */
         ch->pcdata->countdown = number_range(QUEST_COUNTDOWN_MIN, QUEST_COUNTDOWN_MAX); 	
         /* ch->pcdata->countdown = number_range(15, 30); */
 
@@ -1257,202 +1220,6 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
     return;
 }
 
-/* This gives players much more difficult quests than they'd normally
-receive. They also will be rewarded appropriately due to the QUESTORHARD
-flag they are assigned. Allows for invisible mobs and for mobs with the
-flag "ACT hard_quest", even if they're in a no_quest room/area  -- Astark Feb2012 */
-
-void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
-{
-    CHAR_DATA *victim;
-    MOB_INDEX_DATA *vsearch;
-    ROOM_INDEX_DATA *room;
-    OBJ_DATA *questitem;
-    char buf [MAX_STRING_LENGTH];
-    long mcounter;
-    int mob_vnum;
-    bool found = FALSE;
-    
-    if ( ch == NULL || IS_NPC(ch) )
-	return;
-
-    /*  Randomly selects a mob from the world mob list. If you don't
-    want a mob to be selected, make sure it is immune to summon.
-    Or, you could add a new mob flag called ACT_NOQUEST. The mob
-    is selected for both mob and obj quests, even tho in the obj
-    quest the mob is not used. This is done to assure the level
-    of difficulty for the area isn't too great for the player. */
-    
-    for (mcounter = 0; mcounter < 10000; mcounter ++)
-    {
-        mob_vnum = number_range(50, 32600);
-        
-        if ( (vsearch = get_mob_index(mob_vnum) ) != NULL )
-        {
-            if ( !quest_level_diff_hard(ch, vsearch->level)
-		 || vsearch->pShop != NULL
-		 /* || IS_SET(vsearch->imm_flags, IMM_SUMMON) */
-		 || IS_SET(vsearch->act, ACT_TRAIN)
-		 || IS_SET(vsearch->act, ACT_PRACTICE)
-		 || IS_SET(vsearch->act, ACT_IS_HEALER)
-		 || IS_SET(vsearch->act, ACT_IS_CHANGER)
-		 || IS_SET(vsearch->act, ACT_PET)
-		 || IS_SET(vsearch->act, ACT_SAFE)
-		 || IS_SET(vsearch->act, ACT_WIZI)
-		 || IS_SET(vsearch->act, ACT_NO_QUEST)
-		 || IS_SET(vsearch->affect_field, AFF_CHARM)
-		 || IS_SET(vsearch->affect_field, AFF_ASTRAL)
-		 || IS_SET(vsearch->area->area_flags, AREA_REMORT)
-		 || (IS_SET(vsearch->area->area_flags, AREA_NOQUEST) && !IS_SET(vsearch->act, ACT_HARD_QUEST))
-		 || (IS_SET(vsearch->imm_flags, IMM_WEAPON)
-		     && IS_SET(vsearch->imm_flags, IMM_MAGIC))
-		 || chance(60))
-            {
-                vsearch = NULL;
-                continue;
-            }
-            
-            if (( victim = get_mob_vnum_world( mob_vnum ) ) == NULL
-                || ( room = victim->in_room ) == NULL
-                || (IS_GOOD(ch) && IS_GOOD(victim))
-                || victim->in_room->area->security<5
-		|| is_guild_room( room->vnum )
-                || IS_SET(victim->in_room->room_flags, ROOM_SAFE)
-                || IS_SET(victim->in_room->room_flags, ROOM_JAIL)
-                || IS_SET(victim->in_room->room_flags, ROOM_NOWHERE)
-                || (IS_SET(victim->in_room->room_flags, ROOM_NO_QUEST) && !IS_SET(victim->act, ACT_HARD_QUEST))
-                || IS_SET(victim->in_room->room_flags, ROOM_GODS_ONLY)
-                || IS_SET(victim->in_room->room_flags, ROOM_IMP_ONLY)
-                || IS_SET(victim->in_room->room_flags, ROOM_SOLITARY)
-                || (ch->level < LEVEL_HERO && 
-                    IS_SET(victim->in_room->room_flags, ROOM_HEROES_ONLY))
-                || (ch->level > 5 && 
-                    IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
-                continue;
-            
-	    found = TRUE;
-            break;
-        }
-    }
-    
-    if ( !found || chance(20-ch_luc_quest(ch)) )
-    {
-        sprintf(buf, "I'm sorry, I don't have a good quest for you right now.");
-        do_say(questman, buf);
-        sprintf(buf, "Please come back in a few minutes, maybe something will come up.");
-        do_say(questman, buf);
-
-        /* Changed to include a define - Maedhros, Feb 7, 2006 */
-	/* ch->pcdata->nextquest = 2; */
-
-	ch->pcdata->nextquest = QUEST_NEXTQUEST_MIN;
-        return;
-    }
-    
-    /*  30% chance it will send the player on a 'recover item' quest. */
-    
-    if (chance(30) || (ch->level < 10 && !IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
-    {
-        int objvnum = 0;
-        
-        switch(number_range(0,4))
-        {
-        case 0:
-            objvnum = QUEST_OBJQUEST1;
-            break;
-            
-        case 1:
-            objvnum = QUEST_OBJQUEST2;
-            break;
-            
-        case 2:
-            objvnum = QUEST_OBJQUEST3;
-            break;
-            
-        case 3:
-            objvnum = QUEST_OBJQUEST4;
-            break;
-            
-        case 4:
-            objvnum = QUEST_OBJQUEST5;
-            break;
-        }
-        
-        questitem = create_object( get_obj_index(objvnum), ch->level );
-    
-        /* Removed (commented out) the following line, and replaced it with the next two,
-	 * one of which was previously outside of generate_quest(), so that the quest item
-	 * timer could be based on countdown, and also scaled, since countdown runs more
-	 * slowly than the quest item timer. - Maedhros, Feb 7, 2006.
-	 *
-         * questitem->timer=30;
-         */ 
-
-        ch->pcdata->countdown = number_range(QUEST_COUNTDOWN_MIN, QUEST_COUNTDOWN_MAX);	
-
- 	/* ch->pcdata->countdown = number_range(15, 30); */ 
-
-	questitem->timer = (ch->pcdata->countdown * 2) + 1;
-
-        obj_to_room(questitem, room);
-        ch->pcdata->questobj = questitem->pIndexData->vnum;
-        
-        sprintf(buf, "Vile pilferers have stolen %s from the royal treasury!",questitem->short_descr);
-        do_say(questman, buf);
-        do_say(questman, "My court wizardess, with her magic mirror, has pinpointed its location.");
-        
-        /* I changed my area names so that they have just the name of the area
-        and none of the level stuff. You may want to comment these next two
-        lines. - Vassago */
-        
-        sprintf(buf, "Look in the general area of %s for %s!",room->area->name, room->name);
-	ch->pcdata->questroom = room->vnum;
-	ch->pcdata->questarea = room->area->vnum;
-        do_say(questman, buf);
-        return;
-    }
-    
-    /* Quest to kill a mob */
-    
-    else 
-    {
-        switch(number_range(0,1))
-        {
-        case 0:
-            sprintf(buf, "An enemy of mine, %s, is making vile threats against the crown.",victim->short_descr);
-            do_say(questman, buf);
-            sprintf(buf, "This threat must be eliminated!");
-            do_say(questman, buf);
-            break;
-            
-        case 1:
-            sprintf(buf, "Aarchon's most heinous criminal, %s, has escaped from the dungeon!",victim->short_descr);
-            do_say(questman, buf);
-            sprintf(buf, "Since the escape, %s has murdered %d civillians!",victim->short_descr, number_range(2,20));
-            do_say(questman, buf);
-            do_say(questman,"The penalty for this crime is death, and you are to deliver the sentence!");
-            break;
-        }
-        
-        if (room->name != NULL)
-        {
-            sprintf(buf, "Seek %s out somewhere in the vicinity of %s!",victim->short_descr,room->name);
-            do_say(questman, buf);
-            
-            /* I changed my area names so that they have just the name of the area
-            and none of the level stuff. You may want to comment these next two
-            lines. - Vassago */
-            
-            sprintf(buf, "That location is in the general area of %s.",room->area->name);
-	    ch->pcdata->questroom = room->vnum;
-	    ch->pcdata->questarea = room->area->vnum;
-            do_say(questman, buf);
-        }
-        ch->pcdata->questmob = victim->pIndexData->vnum;
-        ch->pcdata->countdown = number_range(QUEST_COUNTDOWN_MIN, QUEST_COUNTDOWN_MAX); 
-    }
-    return;
-}
 /* Level differences to search for. Moongate has 350
    levels, so you will want to tweak these greater or
    less than statements for yourself. - Vassago */
@@ -1482,10 +1249,10 @@ bool quest_level_diff_hard( CHAR_DATA *ch, int mlevel)
 {
     if (ch->level < 90)
     {
-  /* added plus 5 to minimum level - Astark 1-7-13 */
+        /* added plus 5 to minimum level - Astark 1-7-13 */
         int clevel = ch->level + 5 + (2 * ch->pcdata->remorts);
         int min_level = URANGE( 1, clevel, 110 );
-  /* increased from 25 to 30 - Astark 1-7-13 */
+        /* increased from 25 to 30 - Astark 1-7-13 */
         int max_level = (min_level + 30 + ch->pcdata->remorts );
 
         return IS_BETWEEN( min_level, mlevel, 119 ); 
@@ -1507,19 +1274,19 @@ void quest_update(void)
 {
     DESCRIPTOR_DATA *d;
     CHAR_DATA *ch;
-    
+
     quest_timer++;
-     
+
     if (quest_timer%2) return;
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         if (d->character != NULL && !IS_NPC(d->character)
-            && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
+                && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
         {
-            
+
             ch = d->character;
-            
+
             if (ch->pcdata->nextquest > 0)
             {
                 ch->pcdata->nextquest--;
@@ -1530,16 +1297,16 @@ void quest_update(void)
                 if (--ch->pcdata->countdown <= 0)
                 {
                     char buf [MAX_STRING_LENGTH];
-                   
-		    /* Changed to include a define - Maedhros, Feb 7, 2006 */
-		    /* ch->pcdata->nextquest = 10; */
+
+                    /* Changed to include a define - Maedhros, Feb 7, 2006 */
+                    /* ch->pcdata->nextquest = 10; */
                     ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                     sprintf(buf, "You have run out of time for your quest!\n\rYou may quest again in %d minutes.\n\r",ch->pcdata->nextquest);
                     send_to_char(buf, ch);
                     REMOVE_BIT(ch->act, PLR_QUESTOR);
                     REMOVE_BIT(ch->act, PLR_QUESTORHARD);
                     ch->pcdata->quest_failed++;
-					update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
+                    update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
                     ch->pcdata->questgiver = NULL;
                     ch->pcdata->countdown = 0;
                     ch->pcdata->questmob = 0;
@@ -1557,20 +1324,20 @@ void check_kill_quest_completed( CHAR_DATA *ch, CHAR_DATA *victim )
     CHAR_DATA *gch;
 
     if ( !IS_NPC(victim) )
-	return;
+        return;
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( !is_same_group( gch, ch ) || IS_NPC(gch) )
             continue;
 
-	if ( (IS_SET(gch->act, PLR_QUESTOR) || IS_SET(gch->act, PLR_QUESTORHARD))
-	     && gch->pcdata->questmob == victim->pIndexData->vnum )
-	{
-	    send_to_char("You have almost completed your QUEST!\n\r",gch);
-	    send_to_char("Return to the questmaster before your time runs out!\n\r",gch);
-	    gch->pcdata->questmob = -1;
-	}
+        if ( (IS_SET(gch->act, PLR_QUESTOR) || IS_SET(gch->act, PLR_QUESTORHARD))
+                && gch->pcdata->questmob == victim->pIndexData->vnum )
+        {
+            send_to_char("You have almost completed your QUEST!\n\r",gch);
+            send_to_char("Return to the questmaster before your time runs out!\n\r",gch);
+            gch->pcdata->questmob = -1;
+        }
     }    
 }
 
@@ -1590,16 +1357,16 @@ int quest_status( CHAR_DATA *ch, int id )
 
     if ( ch == NULL )
     {
-	bug( "quest_status: NULL character given for quest %d", id );
-	return QUEST_STATUS_NONE;
+        bug( "quest_status: NULL character given for quest %d", id );
+        return QUEST_STATUS_NONE;
     }
 
     if ( IS_NPC(ch) || ch->pcdata == NULL )
-	return QUEST_STATUS_NONE;
-    
+        return QUEST_STATUS_NONE;
+
     for ( qdata = ch->pcdata->qdata; qdata != NULL; qdata = qdata->next )
-	if ( qdata->id == id )
-	    return qdata->status;
+        if ( qdata->id == id )
+            return qdata->status;
 
     return QUEST_STATUS_NONE;
 }
@@ -1613,16 +1380,16 @@ int qset_timer( CHAR_DATA *ch, int id )
 
     if ( ch == NULL )
     {
-	bug( "qset_timer: NULL character given for quest %d", id );
-	return 0;
+        bug( "qset_timer: NULL character given for quest %d", id );
+        return 0;
     }
 
     if ( IS_NPC(ch) || ch->pcdata == NULL )
-	return 0;
-    
+        return 0;
+
     for ( qdata = ch->pcdata->qdata; qdata != NULL; qdata = qdata->next )
-	if ( qdata->id == id )
-	    return qdata->timer;
+        if ( qdata->id == id )
+            return qdata->timer;
 
     return 0;
 }
@@ -1637,35 +1404,35 @@ void clear_quests( CHAR_DATA *ch, int min_id, int max_id )
 
     if ( ch == NULL )
     {
-	bug( "clear_quests: NULL character given", 0 );
-	return;
+        bug( "clear_quests: NULL character given", 0 );
+        return;
     }
 
     if ( ch->pcdata == NULL || ch->pcdata->qdata == NULL )
-	return;
+        return;
 
     /* check quests that come after first */
     last = ch->pcdata->qdata;
     qdata = last->next;
     while ( qdata != NULL )
-	if ( IS_BETWEEN(min_id, qdata->id, max_id) )
-	{
-	    last->next = qdata->next;
-	    free_quest( qdata );
-	    qdata = last->next;
-	}
-	else
-	{
-	    last = qdata;
-	    qdata = last->next;
-	}
+        if ( IS_BETWEEN(min_id, qdata->id, max_id) )
+        {
+            last->next = qdata->next;
+            free_quest( qdata );
+            qdata = last->next;
+        }
+        else
+        {
+            last = qdata;
+            qdata = last->next;
+        }
 
     /* check first quest */
     qdata = ch->pcdata->qdata;
     if ( IS_BETWEEN(min_id, qdata->id, max_id) )
     {
-	ch->pcdata->qdata = qdata->next;
-	free_quest( qdata );
+        ch->pcdata->qdata = qdata->next;
+        free_quest( qdata );
     }
 }
 
@@ -1674,8 +1441,8 @@ void clear_area_quests( CHAR_DATA *ch, AREA_DATA *area )
 {
     if ( area == NULL )
     {
-	bug( "clear_area_quests: NULL area", 0 );
-	return;
+        bug( "clear_area_quests: NULL area", 0 );
+        return;
     }
     clear_quests( ch, area->min_vnum, area->max_vnum );    
 }
@@ -1687,23 +1454,23 @@ void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch )
 
     if ( ch == NULL || to_ch == NULL )
     {
-	bug( "show_quests: NULL pointer", 0 );
-	return;
+        bug( "show_quests: NULL pointer", 0 );
+        return;
     }
-    
+
     if ( ch->pcdata == NULL || ch->pcdata->qdata == NULL )
     {
-	send_to_char( "No Quests.\n\r", to_ch );
-	return;
+        send_to_char( "No Quests.\n\r", to_ch );
+        return;
     }
 
     send_to_char( "Quest     Status  Timer\n\r", to_ch );
     send_to_char( "=======================\n\r", to_ch );
-    
+
     for ( qdata = ch->pcdata->qdata; qdata != NULL; qdata = qdata->next )
     {
-	sprintf( buf, "%-10d%-9d%d\n\r", qdata->id, qdata->status, qdata->timer);
-	send_to_char( buf, to_ch );
+        sprintf( buf, "%-10d%-9d%d\n\r", qdata->id, qdata->status, qdata->timer);
+        send_to_char( buf, to_ch );
     }
 }
 
@@ -1712,227 +1479,227 @@ void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch )
 
 void color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
 {
-  char arg2 [MAX_INPUT_LENGTH];
-  char buf [3] = "";
+    char arg2 [MAX_INPUT_LENGTH];
+    char buf [3] = "";
 
-  argument = one_argument( argument, arg2);
+    argument = one_argument( argument, arg2);
 
-  if (victim == NULL)
-    victim=ch;
+    if (victim == NULL)
+        victim=ch;
 
-  if ( !strcmp(arg2, "" ))
-  {
-    send_to_char("Available colors: {rred{x, {yyellow{x, {ggreen{x, {Bhi-blue{x, {mmagenta{x, {wwhite{x, {ccyan{x and {Dgrey{x.  \n\r'clear' argument removes current color at no cost. \n\r",ch);
+    if ( !strcmp(arg2, "" ))
+    {
+        send_to_char("Available colors: {rred{x, {yyellow{x, {ggreen{x, {Bhi-blue{x, {mmagenta{x, {wwhite{x, {ccyan{x and {Dgrey{x.  \n\r'clear' argument removes current color at no cost. \n\r",ch);
+        return;
+    }
+
+    if ( IS_NPC(victim) )
+    {
+        return;
+    }
+
+    if (!strcmp(arg2, "clear"))
+    {
+        free_string(victim->pcdata->name_color);
+        victim->pcdata->name_color = str_dup("");
+        send_to_char("Name color cleared.",ch);
+        return;
+    }
+
+    if (!strcmp(arg2, "red"))
+    {
+        strcpy(buf,"{r");
+    }
+
+    if (!strcmp(arg2, "magenta"))
+    {
+        strcpy(buf,"{m");
+    }
+
+    if (!strcmp(arg2, "white"))
+    {
+        strcpy(buf,"{w");
+    }
+
+    if (!strcmp(arg2, "hi-blue"))
+    {
+        strcpy(buf,"{B");
+    }
+
+    if (!strcmp(arg2, "green"))
+    {
+        strcpy(buf,"{g");
+    }
+
+    if (!strcmp(arg2, "yellow"))
+    {
+        strcpy(buf, "{y");
+    }
+
+    if (!strcmp(arg2, "cyan"))
+    {
+        strcpy(buf,"{c");
+    }
+
+    if (!strcmp(arg2, "grey"))
+    {
+        strcpy(buf, "{D");
+    }
+
+    if (!strcmp(arg2, "gray"))
+    {
+        strcpy(buf, "{D");
+    }
+
+    if (!strcmp(buf, ""))
+    {
+        send_to_char("Available colors: {rred{x, {yyellow{x, {ggreen{x, {Bhi-blue{x, {mmagenta{x, {wwhite{x, {ccyan{x and {Dgrey{x.  \n\r'clear' argument removes current color at no cost. \n\r",ch);
+
+        return;
+    }
+
+    if (!strcmp(victim->pcdata->name_color,buf))
+    {
+        send_to_char("That color is already set!\n\r",ch);
+        return;
+    }
+
+    free_string( victim->pcdata->name_color );
+    victim->pcdata->name_color = str_dup(buf);
+    send_to_char("Name color changed.\n\r",ch);
+
+    if (!IS_IMMORTAL(ch))
+    {
+        victim->pcdata->questpoints -= 200;
+    }
+
     return;
-  }
-
-  if ( IS_NPC(victim) )
-  {
-    return;
-  }
-
-  if (!strcmp(arg2, "clear"))
-  {
-    free_string(victim->pcdata->name_color);
-    victim->pcdata->name_color = str_dup("");
-    send_to_char("Name color cleared.",ch);
-    return;
-  }
-
-  if (!strcmp(arg2, "red"))
-  {
-    strcpy(buf,"{r");
-  }
-
-  if (!strcmp(arg2, "magenta"))
-  {
-    strcpy(buf,"{m");
-  }
-
-  if (!strcmp(arg2, "white"))
-  {
-    strcpy(buf,"{w");
-  }
-
-  if (!strcmp(arg2, "hi-blue"))
-  {
-    strcpy(buf,"{B");
-  }
-  
-  if (!strcmp(arg2, "green"))
-  {
-    strcpy(buf,"{g");
-  }
-
-  if (!strcmp(arg2, "yellow"))
-  {
-    strcpy(buf, "{y");
-  }
-
-  if (!strcmp(arg2, "cyan"))
-  {
-    strcpy(buf,"{c");
-  }
-
-  if (!strcmp(arg2, "grey"))
-  {
-    strcpy(buf, "{D");
-  }
-
-  if (!strcmp(arg2, "gray"))
-  {
-    strcpy(buf, "{D");
-  }
-
-  if (!strcmp(buf, ""))
-  {
-	  send_to_char("Available colors: {rred{x, {yyellow{x, {ggreen{x, {Bhi-blue{x, {mmagenta{x, {wwhite{x, {ccyan{x and {Dgrey{x.  \n\r'clear' argument removes current color at no cost. \n\r",ch);
-	 
-    return;
-  }
-
-  if (!strcmp(victim->pcdata->name_color,buf))
-  {
-    send_to_char("That color is already set!\n\r",ch);
-    return;
-  }
-
-  free_string( victim->pcdata->name_color );
-  victim->pcdata->name_color = str_dup(buf);
-  send_to_char("Name color changed.\n\r",ch);
-  
-  if (!IS_IMMORTAL(ch))
-  {
-    victim->pcdata->questpoints -= 200;
-  }
-
-  return;
 }
 
 void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
 {
-  char arg2 [MAX_STRING_LENGTH];
-  char buf [MSL];
-  char * buf2;
-  FILE *fp;
-  char * word;
-  int cost;
+    char arg2 [MAX_STRING_LENGTH];
+    char buf [MSL];
+    char * buf2;
+    FILE *fp;
+    char * word;
+    int cost;
 
-  if (victim == NULL)
-    victim = ch;
+    if (victim == NULL)
+        victim = ch;
 
-  argument = one_argument( argument, arg2);
+    argument = one_argument( argument, arg2);
 
-  if ( !strcmp(arg2, "" ))
-  {
-    if (!IS_IMMORTAL(ch))
-      send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
-    else
-      send_to_char("Title not found. 'ptitle list' for titles.\n\r",ch);
-    return;
-  }
+    if ( !strcmp(arg2, "" ))
+    {
+        if (!IS_IMMORTAL(ch))
+            send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
+        else
+            send_to_char("Title not found. 'ptitle list' for titles.\n\r",ch);
+        return;
+    }
 
-  if ( IS_NPC(victim) )
-  {
-    return FALSE;
-  }
+    if ( IS_NPC(victim) )
+    {
+        return FALSE;
+    }
 
-  if (!strcmp(arg2, "clear"))
-  {
-    free_string(victim->pcdata->pre_title);
-    victim->pcdata->pre_title= str_dup("");
-    send_to_char("Pretitle cleared.\n\r",ch);
-    return TRUE;
-  }
+    if (!strcmp(arg2, "clear"))
+    {
+        free_string(victim->pcdata->pre_title);
+        victim->pcdata->pre_title= str_dup("");
+        send_to_char("Pretitle cleared.\n\r",ch);
+        return TRUE;
+    }
 
-  if (!strcmp(arg2, "list"))
-  {
+    if (!strcmp(arg2, "list"))
+    {
+        fclose(fpReserve);
+        strcpy(buf, "../area/pre_titles.txt");
+        if (!(fp = fopen(buf, "r")))
+        {
+            bug("Can't open pre_titles.txt",0);
+            return FALSE;
+        }
+
+        printf_to_char(ch,"%-15s %4s\n\r","Title", "Cost");
+        for ( ; ; )
+        {
+            word=fread_word( fp );
+            if (!strcmp(word, "End"))
+                break;
+            cost = fread_number( fp );
+            sprintf(buf, "%-15s %4d\n\r",word,cost);
+            send_to_char(buf,ch);
+
+        }
+        send_to_char("Use 'clear' argument to remove pretitle at no cost.\n\r",ch);
+        fclose (fp);
+        fpReserve = fopen( NULL_FILE, "r" );
+        return FALSE;
+    }
+
+
     fclose(fpReserve);
     strcpy(buf, "../area/pre_titles.txt");
     if (!(fp = fopen(buf, "r")))
     {
-      bug("Can't open pre_titles.txt",0);
-      return FALSE;
+        bug("Can't open pre_titles.txt",0);
+        return FALSE;
     }
-    
-    printf_to_char(ch,"%-15s %4s\n\r","Title", "Cost");
+
+    /* Capitalize first letter of title */
+    arg2[0] = UPPER(arg2[0]);
+
     for ( ; ; )
     {
-      word=fread_word( fp );
-      if (!strcmp(word, "End"))
-        break;
-      cost = fread_number( fp );
-      sprintf(buf, "%-15s %4d\n\r",word,cost);
-      send_to_char(buf,ch);
-
+        word = fread_word( fp);
+        if (!strcmp(word, "End") || !strcmp(word,arg2))
+            break;
     }
-    send_to_char("Use 'clear' argument to remove pretitle at no cost.\n\r",ch);
-    fclose (fp);
+
+    if (!strcmp(word, "End"))
+    {
+        if (!IS_IMMORTAL(ch))
+            send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
+        else
+            send_to_char("Title not found. 'ptitle list' for titles,\n\r",ch);
+        return;
+    }
+
+    cost = fread_number( fp );
+    strcat(arg2, " ");
+
+    if (!strcmp(arg2,victim->pcdata->pre_title))
+    {
+        send_to_char("That's the same as the current title!\n\r",ch);
+    }
+
+    else
+    {
+        if (!IS_IMMORTAL(ch))
+        {
+            if (victim->pcdata->questpoints >= cost)
+            {
+                victim->pcdata->questpoints -= cost;
+                free_string(victim->pcdata->pre_title);
+                victim->pcdata->pre_title = str_dup(arg2);
+                send_to_char("Pretitle changed.\n\r",ch);
+            }
+            else
+            {
+                send_to_char("Not enough quest points.\n\r",ch);
+            }
+        }
+        else
+        {
+            victim->pcdata->pre_title = str_dup(arg2);
+            send_to_char("Pretitle changed.\n\r",ch);
+        }
+    }
+    fclose(fp);
     fpReserve = fopen( NULL_FILE, "r" );
-    return FALSE;
-  }
-
-
-  fclose(fpReserve);
-  strcpy(buf, "../area/pre_titles.txt");
-  if (!(fp = fopen(buf, "r")))
-  {
-    bug("Can't open pre_titles.txt",0);
-    return FALSE;
-  }
-
-  /* Capitalize first letter of title */
-  arg2[0] = UPPER(arg2[0]);
-
-  for ( ; ; )
-  {
-    word = fread_word( fp);
-    if (!strcmp(word, "End") || !strcmp(word,arg2))
-      break;
-  }
-
-  if (!strcmp(word, "End"))
-  {
-    if (!IS_IMMORTAL(ch))
-      send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
-    else
-      send_to_char("Title not found. 'ptitle list' for titles,\n\r",ch);
-    return;
-  }
-
-  cost = fread_number( fp );
-  strcat(arg2, " ");
-  
-  if (!strcmp(arg2,victim->pcdata->pre_title))
-  {
-    send_to_char("That's the same as the current title!\n\r",ch);
-  }
-
-  else
-  {
-    if (!IS_IMMORTAL(ch))
-    {
-      if (victim->pcdata->questpoints >= cost)
-      {
-        victim->pcdata->questpoints -= cost;
-	free_string(victim->pcdata->pre_title);
-	victim->pcdata->pre_title = str_dup(arg2);
-	send_to_char("Pretitle changed.\n\r",ch);
-      }
-      else
-      {
-        send_to_char("Not enough quest points.\n\r",ch);
-      }
-    }
-    else
-    {
-      victim->pcdata->pre_title = str_dup(arg2);
-      send_to_char("Pretitle changed.\n\r",ch);
-    }
-  }
-  fclose(fp);
-  fpReserve = fopen( NULL_FILE, "r" );
-  return TRUE;
+    return TRUE;
 }
 /* End of Vodurs Pretitle and name color */
 
@@ -1944,46 +1711,46 @@ void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit )
 
     if ( ch == NULL )
     {
-	bug( "set_quest_status: NULL character given for quest %d", id );
-	return;
+        bug( "set_quest_status: NULL character given for quest %d", id );
+        return;
     }
 
     if ( IS_NPC(ch) || ch->pcdata == NULL )
-	return;
+        return;
 
     /* remove quest data if found */
     if ( status == QUEST_STATUS_NONE )
     {
-	qdata = ch->pcdata->qdata;
-	if ( qdata == NULL )
-	    return;
-	if ( qdata->id == id )
-	{
-	    ch->pcdata->qdata = qdata->next;
-	    free_quest( qdata );
-	    return;
-	}
-	/* search for it */
-	last = qdata;
-	for ( qdata = qdata->next; qdata != NULL; last = qdata, qdata = qdata->next )
-	    if ( qdata->id == id )
-	    {
-		last->next = qdata->next;
-		free_quest( qdata );
-		return;
-	    }
-	return;
+        qdata = ch->pcdata->qdata;
+        if ( qdata == NULL )
+            return;
+        if ( qdata->id == id )
+        {
+            ch->pcdata->qdata = qdata->next;
+            free_quest( qdata );
+            return;
+        }
+        /* search for it */
+        last = qdata;
+        for ( qdata = qdata->next; qdata != NULL; last = qdata, qdata = qdata->next )
+            if ( qdata->id == id )
+            {
+                last->next = qdata->next;
+                free_quest( qdata );
+                return;
+            }
+        return;
     }
 
     /* add quest data if not found */
     for ( qdata = ch->pcdata->qdata; qdata != NULL; qdata = qdata->next )
-	if ( qdata->id == id )
-	{
-	    qdata->status = status;
+        if ( qdata->id == id )
+        {
+            qdata->status = status;
             qdata->timer = timer; /* Number of hours before it hits 0 */
             qdata->limit = current_time + 55; /* 1 minute before timer will drop 1 point. */
-	    return;
-	}
+            return;
+        }
 
     /* create new quest data */
     qdata = new_quest();
