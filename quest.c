@@ -59,6 +59,41 @@ DECLARE_DO_FUN( do_startwar );
 #define QUEST_NEXTQUEST_MIN 1            /* Original value: 2 */
 #define QUEST_NEXTQUEST_MAX 10           /* Original value: 10 */
 
+#define QFUN( fun ) void fun( CHAR_DATA *ch, char *argument, CHAR_DATA *questman)
+typedef void QUEST_FUN args( ( CHAR_DATA *ch, char *argument, CHAR_DATA *questman) );
+typedef struct quest_arg
+{
+    char * const name;
+	bool require_questmaster;
+    QUEST_FUN * fun;
+} QUEST_ARG;
+
+QFUN( q_points);
+QFUN( q_info);
+QFUN( q_time);
+QFUN( q_request);
+QFUN( q_requesthard);
+QFUN( q_complete);
+QFUN( q_list);
+QFUN( q_buy);
+QFUN( q_sell);
+QFUN( q_giveup);
+
+QUEST_ARG quest_arg_table[] = 
+{
+    { "points",     FALSE,    q_points},
+    { "info",       FALSE,    q_info},
+    { "time",       FALSE,    q_time},
+    { "request",    TRUE,     q_request},
+    { "requesthard",TRUE,     q_requesthard},
+    { "complete",   TRUE,     q_complete},
+    { "list",       TRUE,     q_list},
+    { "buy",        TRUE,     q_buy},
+    { "sell",       TRUE,     q_sell},
+    { "giveup",     TRUE,     q_giveup},
+	{ NULL,         NULL,     NULL}
+};
+
 /* quest item table */
 struct quest_item
 {
@@ -249,37 +284,15 @@ bool per_chance(int num)
 	return FALSE;
 }
 
-/* The main quest function */
-void do_quest(CHAR_DATA *ch, char *argument)
+QFUN( q_info)
 {
-    CHAR_DATA *questman;
-    OBJ_DATA *obj=NULL, *obj_next;
     OBJ_INDEX_DATA *questinfoobj;
-    MOB_INDEX_DATA *questinfo;
     ROOM_INDEX_DATA *questinforoom;
     AREA_DATA *questinfoarea;
+    MOB_INDEX_DATA *questinfo;
     char buf [MAX_STRING_LENGTH];
-    char arg1 [MAX_INPUT_LENGTH];
-    char arg2 [MAX_INPUT_LENGTH];
     
-    argument = one_argument(argument, arg1);
-    argument = one_argument(argument, arg2);
-    
-    if (IS_NPC(ch))
-    {
-        send_to_char( "NPC's cannot quest!\n\r", ch );
-        return;
-    }
-    
-    if (arg1[0] == '\0')
-    {
-        send_to_char("QUEST commands: POINTS INFO TIME REQUEST REQUESTHARD COMPLETE LIST BUY SELL GIVEUP.\n\r",ch);
-        send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
-        return;
-    }
-    if (!strcmp(arg1, "info"))
-    {
-        if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
+    if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
         {
             if (ch->pcdata->questmob == -1 && ch->pcdata->questgiver->short_descr != NULL)
             {
@@ -320,15 +333,18 @@ void do_quest(CHAR_DATA *ch, char *argument)
         else
             send_to_char("You aren't currently on a quest.\n\r",ch);
         return;
-    }
-    if (!strcmp(arg1, "points"))
-    {
+}
+
+QFUN( q_points )
+{
+    char buf [MAX_STRING_LENGTH];
         sprintf(buf, "You have %d quest points.\n\r",ch->pcdata->questpoints);
         send_to_char(buf, ch);
         return;
-    }
-    else if (!strcmp(arg1, "giveup"))
-    {
+}
+
+QFUN( q_giveup )
+{
 
  /* Added the questorhard bitsector to be checked when giving up a quest --Astark Feb 2012 */
 
@@ -356,10 +372,12 @@ void do_quest(CHAR_DATA *ch, char *argument)
 	/* ch->pcdata->nextquest = 10; */
 	ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
         return;
-    }
-    else if (!strcmp(arg1, "time"))
-    {
-        if (!IS_SET(ch->act, PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD))
+}
+
+QFUN( q_time )
+{
+    char buf [MAX_STRING_LENGTH];
+       if (!IS_SET(ch->act, PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD))
         {
             send_to_char("You aren't currently on a quest.\n\r",ch);
             if (ch->pcdata->nextquest > 1)
@@ -379,318 +397,74 @@ void do_quest(CHAR_DATA *ch, char *argument)
             send_to_char(buf, ch);
         }
         return;
-    }
-    
-    /* Checks for a character in the room with spec_questmaster set. This special
-    procedure must be defined in special.c. You could instead use an 
-    ACT_QUESTMASTER flag instead of a special procedure. */
-    
-    for ( questman = ch->in_room->people; questman != NULL; questman = questman->next_in_room )
-    {
-        if (!IS_NPC(questman)) continue;
-        if (questman->spec_fun == spec_lookup( "spec_questmaster" )) break;
-    }
-    
-    if (questman == NULL || questman->spec_fun != spec_lookup( "spec_questmaster" ))
-    {
-        send_to_char("You can't do that here.\n\r",ch);
-        return;
-    }
-    
-    if ( questman->fighting != NULL)
-    {
-        send_to_char("Wait until the fighting stops.\n\r",ch);
-        return;
-    }
-    
-    ch->pcdata->questgiver = questman;
-    
+}
+
+QFUN( q_list )
+{
     /* And, of course, you will need to change the following lines for YOUR
     quest item information. Quest items on Moongate are unbalanced, very
     very nice items, and no one has one yet, because it takes awhile to
     build up quest points :> Make the item worth their while. */
+
+    char buf [MAX_STRING_LENGTH];
     
-    if (!strcmp(arg1, "list"))
-    {
-        act( "$n asks $N for a list of quest items.", ch, NULL, questman, TO_ROOM); 
-        act ("You ask $N for a list of quest items.",ch, NULL, questman, TO_CHAR);
-        sprintf(buf, "Current Quest Items available for Purchase:\n\r");
+    act( "$n asks $N for a list of quest items.", ch, NULL, questman, TO_ROOM); 
+    act ("You ask $N for a list of quest items.",ch, NULL, questman, TO_CHAR);
+    sprintf(buf, "Current Quest Items available for Purchase:\n\r");
 	strcat( buf, list_quest_items() );
-	/*
-        strcat(buf, "2500qp..........The Sword of Kings\n\r");
-        strcat(buf, "2000qp..........The Staff of Ancients\n\r");
-	//      strcat(buf, "1200qp..........The Comfy Chair\n\r");
-        strcat(buf, "1000qp..........Smote's Blessing\n\r");
-        strcat(buf, "1000qp..........Rimbol's Orb of Insight\n\r");
-        strcat(buf, "850qp...........Bobble's Bughouse Suit\n\r");
-        strcat(buf, "850qp...........Mephiston's Identity Crisis\n\r");
-        strcat(buf, "850qp...........Siva's Mighty Bracer\n\r");
-        strcat(buf, "750qp...........Swayde's Cloak of Temptation\n\r");
-        strcat(buf, "750qp...........Parademia's Gloves of the Plague Slain\n\r");
-        strcat(buf, "750qp...........Drexl's Skin of Malice\n\r");
-        strcat(buf, "600qp...........Eris' Chastity Belt\n\r");
-        strcat(buf, "600qp...........Firewitch's Ring of Fire\n\r");
-        strcat(buf, "500qp...........Lilith's Web of Lies\n\r");
-        strcat(buf, "500qp...........Quirky's Clogs of Calamity\n\r");
-	*/
-/*      strcat(buf, "500qp...........100,000 gold\n\r");  */
-        strcat(buf, "  250qp..........50 practices\n\r");
+
+    strcat(buf, "  250qp..........50 practices\n\r");
 	strcat(buf, "  200qp..........Change name 'color'.\n\r");
 	strcat(buf, "  200qp..........Change pretitle (ptitle).\n\r");
-        strcat(buf, "  100qp..........Experience (1/4 exp per level)\n\r");
+    strcat(buf, "  100qp..........Experience (1/4 exp per level)\n\r");
 	strcat(buf, "   50qp..........Warfare\n\r");
-        strcat(buf, "To buy an item, type 'QUEST BUY <item>'.\n\r");
-        strcat(buf, "To see a list of items, type 'HELP QUESTITEMS'\n\r");
-        send_to_char(buf, ch);
-        return;
-      }
+    strcat(buf, "To buy an item, type 'QUEST BUY <item>'.\n\r");
+    strcat(buf, "To see a list of items, type 'HELP QUESTITEMS'\n\r");
+    send_to_char(buf, ch);
+
+    return;
+}
+
+QFUN( q_sell )
+{
+    OBJ_DATA *obj=NULL;
+    char arg1[MIL];
+    one_argument( argument, arg1 );
     
-    else if (!strcmp(arg1, "sell"))
-    {
-        if (arg2[0] == '\0')
+        if (arg1[0] == '\0')
         {
             send_to_char("To sell a quest item, type 'QUEST SELL <item>'.\n\r",ch);
             return;
         }
-	if ( (obj = get_obj_carry(ch, arg2, ch)) == NULL )
+	if ( (obj = get_obj_carry(ch, arg1, ch)) == NULL )
         {
             send_to_char("You don't have that object.\n\r",ch);
             return;
         }
 	sell_quest_item(ch, obj, questman);
 	return;
-      }
-    else if (!strcmp(arg1, "buy"))
-    {
-        if (arg2[0] == '\0')
+} 
+
+QFUN( q_buy )
+{
+    char arg1[MIL];
+    OBJ_DATA *obj=NULL;
+    char buf[MSL];
+    
+    one_argument( argument, arg1 );
+    
+        if (arg1[0] == '\0')
         {
             send_to_char("To buy an item, type 'QUEST BUY <item>'.\n\r",ch);
             return;
         }
 
-	if ( create_quest_item(ch, arg2, &obj) )
+	if ( create_quest_item(ch, arg1, &obj) )
 	{
 	    if ( obj == NULL )
 		return;
 	}
-	/*
-        if (is_name(arg2, "mephistons identity crisis"))
-        {
-            if (ch->pcdata->questpoints >= 850)
-            {
-                ch->pcdata->questpoints -= 850;
-                obj = create_object(get_obj_index(QUEST_ITEM6),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "bobbles bughouse suit"))
-        {
-            if (ch->pcdata->questpoints >= 850)
-            {
-                ch->pcdata->questpoints -= 850;
-                obj = create_object(get_obj_index(QUEST_ITEM14),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "staff ancients"))
-        {
-            if (ch->pcdata->questpoints >= 2000)
-            {
-                ch->pcdata->questpoints -= 2000;
-                obj = create_object(get_obj_index(QUEST_ITEM2),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "sivas mighty bracer"))
-        {
-            if (ch->pcdata->questpoints >= 850)
-            {
-                ch->pcdata->questpoints -= 850;
-                obj = create_object(get_obj_index(QUEST_ITEM12),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        
-        else if (is_name(arg2, "rimbols orb insight"))
-        {
-            if (ch->pcdata->questpoints >= 1000)
-            {
-                ch->pcdata->questpoints -= 1000;
-                obj = create_object(get_obj_index(QUEST_ITEM5),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "quirkys clogs calamity"))
-        {
-            if (ch->pcdata->questpoints >= 500)
-            {
-                ch->pcdata->questpoints -= 500;
-                obj = create_object(get_obj_index(QUEST_ITEM11),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "liliths web lies"))
-        {
-            if (ch->pcdata->questpoints >= 500)
-            {
-                ch->pcdata->questpoints -= 500;
-                obj = create_object(get_obj_index(QUEST_ITEM10),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "smotes blessing"))
-        {
-            if (ch->pcdata->questpoints >= 1000)
-            {
-                ch->pcdata->questpoints -= 1000;
-                obj = create_object(get_obj_index(QUEST_ITEM4),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "firewitchs ring fire"))
-        {
-            if (ch->pcdata->questpoints >= 600)
-            {
-                ch->pcdata->questpoints -= 600;
-                obj = create_object(get_obj_index(QUEST_ITEM9),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "eris chastity belt"))
-        {
-            if (ch->pcdata->questpoints >= 600)
-            {
-                ch->pcdata->questpoints -= 600;
-                obj = create_object(get_obj_index(QUEST_ITEM13),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "swaydes cloak temptation"))
-        {
-            if (ch->pcdata->questpoints >= 750)
-            {
-                ch->pcdata->questpoints -= 750;
-                obj = create_object(get_obj_index(QUEST_ITEM7),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "parademias gloves plague slain"))
-        {
-            if (ch->pcdata->questpoints >= 750)
-            {
-                ch->pcdata->questpoints -= 750;
-                obj = create_object(get_obj_index(QUEST_ITEM8),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "drexl skin malice"))
-        {
-            if (ch->pcdata->questpoints >= 750)
-            {
-                ch->pcdata->questpoints -= 750;
-                obj = create_object(get_obj_index(QUEST_ITEM15),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "kings sword"))
-        {
-            if (ch->pcdata->questpoints >= 2500)
-            {
-                ch->pcdata->questpoints -= 2500;
-                obj = create_object(get_obj_index(QUEST_ITEM1),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "chair comfy"))
-        {
-            sprintf(buf, "Sorry %s, I'm out of chairs right now.\n\r",ch->name);
-            do_say(questman,buf);
-            return;
-            
-            if (ch->pcdata->questpoints >= 1200)
-            {
-                ch->pcdata->questpoints -= 1200;
-                obj = create_object(get_obj_index(QUEST_ITEM3),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-	*/
-        else if (is_name(arg2, "practices pracs prac practice"))
+        else if (is_name(arg1, "practices pracs prac practice"))
         {
             if (ch->pcdata->questpoints >= 250)
             {
@@ -706,24 +480,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             }
             return;
         }
-/*      else if (is_name(arg2, "gold gp"))
-        {
-            if (ch->pcdata->questpoints >= 500)
-            {
-                ch->pcdata->questpoints -= 500;
-                ch->gold += 100000;
-                act( "$N gives 100,000 gold pieces to $n.", ch, NULL, questman, TO_ROOM );
-                act( "$N has 100,000 in gold transfered from $s Swiss account to your balance.",   ch, NULL, questman, TO_CHAR );
-                return;
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }*/
-        else if (is_name(arg2, "experience xp"))
+        else if (is_name(arg1, "experience xp"))
         {
           if ( IS_SET(ch->act,PLR_NOEXP))
           {
@@ -777,7 +534,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             }
             return;
         }
-	else if (is_name(arg2, "warfare"))
+	else if (is_name(arg1, "warfare"))
 	{
 	    if (ch->pcdata->questpoints >= 50)
 	    proc_startwar(ch, argument, TRUE);
@@ -792,7 +549,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 		/* Added for Vodurs ptitle and color name 11/25/11 -- Maedhros */
 
 	else if 
-	(!strcmp(arg2,"color") )
+	(!strcmp(arg1,"color") )
         {
             if (*argument == '\0')
             {
@@ -808,7 +565,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 color_name(ch,argument,ch);
             return;
         }
-        else if (!strcmp(arg2, "ptitle"))
+        else if (!strcmp(arg1, "ptitle"))
 	{
 	    set_pre_title(ch,argument,ch);
 	}		 
@@ -829,9 +586,12 @@ void do_quest(CHAR_DATA *ch, char *argument)
             obj_to_char(obj, ch);
         }
         return;
-      }
-    else if (!strcmp(arg1, "request"))
-    {
+}
+
+QFUN( q_request )
+{
+    char buf[MSL];
+    
 	if (ch->position < POS_RESTING)
 	{
 	    send_to_char("In your dreams, or what?\n\r",ch);
@@ -882,15 +642,18 @@ void do_quest(CHAR_DATA *ch, char *argument)
             do_say(questman, buf);
         }
         return;
-      }
+
+}
+
+QFUN( q_requesthard )
+{
 /* Used for requesting difficult quests. The code here is nearly
    the same as up above but a separate function is used. Could be
    solved I think by adding another argument to the quest request
    command but this was the easiest solution for me. 
    -- Astark Feb 2012 */
-
-    else if (!strcmp(arg1, "requesthard"))
-    {
+    char buf[MSL];
+    
       if (ch->position >= POS_RESTING)
       {
         act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
@@ -938,9 +701,12 @@ void do_quest(CHAR_DATA *ch, char *argument)
           send_to_char("In your dreams, or what?\n\r",ch);
           return;
       }
-    }
-    else if (!strcmp(arg1, "complete"))
-    {
+
+}
+
+QFUN( q_complete )
+{
+    char buf[MSL];
         act( "$n informs $N $e has completed $s quest.", ch, NULL, questman, TO_ROOM); 
         act ("You inform $N you have completed $s quest.",ch, NULL, questman, TO_CHAR);
 //        check_achievement(ch);
@@ -1006,6 +772,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 bool obj_found = FALSE;
                 
+                OBJ_DATA *obj=NULL, *obj_next;
                 for (obj = ch->carrying; obj != NULL; obj= obj_next)
                 {
                     obj_next = obj->next_content;
@@ -1124,6 +891,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 bool obj_found = FALSE;
                 
+                OBJ_DATA *obj=NULL, *obj_next;
                 for (obj = ch->carrying; obj != NULL; obj= obj_next)
                 {
                     obj_next = obj->next_content;
@@ -1198,8 +966,78 @@ void do_quest(CHAR_DATA *ch, char *argument)
         else sprintf(buf, "You have to REQUEST a quest first, %s.",ch->name);
         do_say(questman, buf);
         return;
-      }
+
+}
+/* The main quest function */
+void do_quest(CHAR_DATA *ch, char *argument)
+{
+/*    CHAR_DATA *questman;
+    OBJ_DATA *obj=NULL, *obj_next;
+    OBJ_INDEX_DATA *questinfoobj;
+    MOB_INDEX_DATA *questinfo;
+    ROOM_INDEX_DATA *questinforoom;
+    AREA_DATA *questinfoarea;
+    char buf [MAX_STRING_LENGTH];*/
+    char arg1 [MAX_INPUT_LENGTH];
+    //char arg2 [MAX_INPUT_LENGTH];
     
+    argument = one_argument(argument, arg1);
+    //argument = one_argument(argument, arg2);
+    
+    if (IS_NPC(ch))
+    {
+        send_to_char( "NPC's cannot quest!\n\r", ch );
+        return;
+    }
+    
+    if (arg1[0] == '\0')
+    {
+        send_to_char("QUEST commands: POINTS INFO TIME REQUEST REQUESTHARD COMPLETE LIST BUY SELL GIVEUP.\n\r",ch);
+        send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
+        return;
+    }
+    int i;
+    QUEST_ARG *arg;
+    
+    for ( arg=&quest_arg_table[i=0] ; arg->name ; arg=&quest_arg_table[++i] )
+    {
+        if ( !strcmp( arg1, arg->name) )
+        {
+            /* need to pass questmaster along */
+            CHAR_DATA *questman=NULL;
+            
+            if ( arg->require_questmaster )
+            {
+                
+                /* Checks for a character in the room with spec_questmaster set. This special
+                    procedure must be defined in special.c. You could instead use an 
+                    ACT_QUESTMASTER flag instead of a special procedure. */
+    
+                for ( questman = ch->in_room->people; questman != NULL; questman = questman->next_in_room )
+                {
+                    if (!IS_NPC(questman)) continue;
+                    if (questman->spec_fun == spec_lookup( "spec_questmaster" )) break;
+                }
+    
+                if (questman == NULL || questman->spec_fun != spec_lookup( "spec_questmaster" ))
+                {
+                    send_to_char("You can't do that here.\n\r",ch);
+                    return;
+                }
+    
+                if ( questman->fighting != NULL)
+                {
+                    send_to_char("Wait until the fighting stops.\n\r",ch);
+                    return;
+                }
+                ch->pcdata->questgiver = questman;
+            }
+            
+            ( *(arg->fun) )( ch, argument, questman);
+            return;
+        }
+    }
+   
     send_to_char("QUEST commands: POINTS INFO TIME REQUEST COMPLETE LIST BUY.\n\r",ch);
     send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
     return;
