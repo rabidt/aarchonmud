@@ -59,10 +59,10 @@ DECLARE_DO_FUN( do_startwar );
 #define QUEST_NEXTQUEST_MIN 1            /* Original value: 2 */
 #define QUEST_NEXTQUEST_MAX 10           /* Original value: 10 */
 
-#define QBUY( fun ) void fun( CHAR_DATA *ch, char *argument, 
-
+#define QBUY( fun ) bool fun( CHAR_DATA *ch, char *argument, CHAR_DATA *questman)
 #define QFUN( fun ) void fun( CHAR_DATA *ch, char *argument, CHAR_DATA *questman)
 typedef void QUEST_FUN args( ( CHAR_DATA *ch, char *argument, CHAR_DATA *questman) );
+typedef bool QUEST_BUY_FUN args( ( CHAR_DATA *ch, char *argument, CHAR_DATA *questman) );
 typedef struct quest_arg
 {
     char * const name;
@@ -97,79 +97,71 @@ QUEST_ARG quest_arg_table[] =
 };
 
 /* quest item table */
-struct quest_item
+struct quest_buy_entry
 {
     int vnum;
+    char * const desc;
     int cost;
-    char name[MIL];
+    char * const keywords;
+    QUEST_BUY_FUN *fun;
 };
-typedef struct quest_item QUEST_ITEM;
+typedef struct quest_buy_entry QUEST_BUY_ENTRY;
 
-QUEST_ITEM quest_item_table[] =
+QBUY( q_buy_prac);
+QBUY( q_buy_color);
+QBUY( q_buy_ptitle);
+QBUY( q_buy_exp);
+QBUY( q_buy_warfare);
+QUEST_BUY_ENTRY quest_buy_table[] =
 {
-    { SOK,          2500, "sword kings" },
-    { SOA,          2000, "staff ancient" },
-    { QUANT_SHIELD, 2000, "quantum shield"},
-    { SMOTE_NEW,    700, "smotes blessing" },
-    { RIMBOL_NEW,   700, "rimbols orb insight" },
-    { BOBBLE_NEW,   600, "bobbles bughouse suit" },
-    { MEPH_NEW,     600, "mephistons identity crisis" },
-    { SIVA_NEW,     600, "sivas mighty bracer" },
-    { SWAYDE_NEW,   525, "swaydes cloak temptation" },
-    { PARA_NEW,     525, "parademias glove plague slain" },
-    { DREXL_NEW,    525, "drexls skin malice" },
-    { MAED_NEW,     525, "maedhros leggings discord"},
-    { ERIS_NEW,     425, "eris chastity belt" },
-    { FIREWITCH_NEW,425, "firewitches ring fire" },
-    { LILITH_NEW,   350, "liliths web lies" },
-    { QUIRKY_NEW,   350, "quirkys clog calamity" },
+    { SOK,          NULL, 2500, "sword kings",                    NULL },
+    { SOA,          NULL, 2000, "staff ancient",                  NULL },
+    { QUANT_SHIELD, NULL, 2000, "quantum shield",                 NULL },
+    { SMOTE_NEW,    NULL, 700, "smotes blessing",                 NULL },
+    { RIMBOL_NEW,   NULL, 700, "rimbols orb insight",             NULL },
+    { BOBBLE_NEW,   NULL, 600, "bobbles bughouse suit",           NULL },
+    { MEPH_NEW,     NULL, 600, "mephistons identity crisis",      NULL },
+    { SIVA_NEW,     NULL, 600, "sivas mighty bracer",             NULL },
+    { SWAYDE_NEW,   NULL, 525, "swaydes cloak temptation",        NULL },
+    { PARA_NEW,     NULL, 525, "parademias glove plague slain",   NULL },
+    { DREXL_NEW,    NULL, 525, "drexls skin malice",              NULL },
+    { MAED_NEW,     NULL, 525, "maedhros leggings discord",       NULL },
+    { ERIS_NEW,     NULL, 425, "eris chastity belt",              NULL },
+    { FIREWITCH_NEW,NULL, 425, "firewitches ring fire",           NULL },
+    { LILITH_NEW,   NULL, 350, "liliths web lies",                NULL },
+    { QUIRKY_NEW,   NULL, 350, "quirkys clog calamity",           NULL },
     /* Old versions of quest eq, can't be bought, sells for full price*/
-    { SMOTE_OLD,    1000, "" },
-    { RIMBOL_OLD,   1000, "" },
-    { BOBBLE_OLD,   850, "" },
-    { MEPH_OLD,     850, "" },
-    { SIVA_OLD,     850, "" },
-    { SWAYDE_OLD,   750, "" },
-    { PARA_OLD,     750, "" },
-    { DREXL_OLD,    750, "" },
-    { ERIS_OLD,     600, "" },
-    { FIREWITCH_OLD,600, "" },
-    { LILITH_OLD,   500, "" },
-    { QUIRKY_OLD,   500, "" },
-    { 0, 0, NULL }
+    { SMOTE_OLD,    NULL, 1000, "",   NULL },
+    { RIMBOL_OLD,   NULL, 1000, "",   NULL  },
+    { BOBBLE_OLD,   NULL, 850, "",   NULL  },
+    { MEPH_OLD,     NULL, 850, "",   NULL  },
+    { SIVA_OLD,     NULL, 850, "",   NULL  },
+    { SWAYDE_OLD,   NULL, 750, "",   NULL  },
+    { PARA_OLD,     NULL, 750, "",   NULL  },
+    { DREXL_OLD,    NULL, 750, "",   NULL  },
+    { ERIS_OLD,     NULL, 600, "",   NULL  },
+    { FIREWITCH_OLD,NULL, 600, "",   NULL  },
+    { LILITH_OLD,   NULL, 500, "",   NULL  },
+    { QUIRKY_OLD,   NULL, 500, "",   NULL  },
+    { NULL, "50 practices",                  250, "practices pracs prac practice",   q_buy_prac },
+    { NULL, "Change name 'color'.",          200, "color",                           q_buy_color},
+    { NULL, "Change pretitle (ptitle).",     200, "ptitle pretitle",                 q_buy_ptitle},
+    { NULL, "Experience (1/4 exp per level)",100, "experience xp",                   q_buy_exp  },
+    { NULL, "Warfare",                       50,  "warfare",                         q_buy_warfare},
+    { NULL, NULL, NULL, NULL }
 };
 
-char* list_quest_items()
-{
-    static char list_buf[MSL];
-    char buf[MIL];
-    QUEST_ITEM *qi;
-    OBJ_INDEX_DATA *obj;
-    int i;
-
-    list_buf[0] = '\0';
-    for ( i = 0; quest_item_table[i].vnum != 0; i++ )
-    {
-        qi = &(quest_item_table[i]);
-        if ( (obj = get_obj_index(qi->vnum)) == NULL || !strcmp(qi->name,"") )
-            continue;
-        sprintf( buf, "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
-        strcat( list_buf, buf );
-    }
-    return list_buf;
-}
 
 bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 {
     char buf[MIL];
-    QUEST_ITEM *qi;
+    QUEST_BUY_ENTRY *qi;
     int i;
 
-    for ( i = 0; quest_item_table[i].vnum != 0; i++ )
+    for ( qi=&quest_buy_table[i=0]; qi->keywords ; qi=&quest_buy_table[++i] )
     {
-        qi = &(quest_item_table[i]);
         if ( get_obj_index(qi->vnum) == NULL
-                || !is_name(name, qi->name) )
+                || !is_name(name, qi->keywords) )
             continue;
 
         /* ok, we found it */
@@ -195,7 +187,7 @@ bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 
 bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 {
-    QUEST_ITEM *qi;
+    QUEST_BUY_ENTRY *qi;
     int i, qp_gain;
     char buf[MSL];
 
@@ -203,9 +195,8 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
         return;
 
     /* is obj a quest item? which? */
-    for ( i = 0; quest_item_table[i].vnum != 0; i++ )
+    for ( qi=&quest_buy_table[i=0]; qi->keywords; qi=&quest_buy_table[++i] )
     {
-        qi = &(quest_item_table[i]);
         if ( obj->pIndexData->vnum != qi->vnum )
             continue;
 
@@ -216,7 +207,7 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
             return FALSE;
         }
 
-        if (!strcmp(qi->name,""))
+        if (!strcmp(qi->keywords,""))
         {
             qp_gain = qi->cost;//refund full cost on old items
             do_say( quest_man, "As you like, I can refund you the whole cost!" );
@@ -409,17 +400,25 @@ QFUN( q_list )
     act( "$n asks $N for a list of quest items.", ch, NULL, questman, TO_ROOM); 
     act ("You ask $N for a list of quest items.",ch, NULL, questman, TO_CHAR);
     sprintf(buf, "Current Quest Items available for Purchase:\n\r");
-    strcat( buf, list_quest_items() );
 
-    strcat(buf, "  250qp..........50 practices\n\r");
-    strcat(buf, "  200qp..........Change name 'color'.\n\r");
-    strcat(buf, "  200qp..........Change pretitle (ptitle).\n\r");
-    strcat(buf, "  100qp..........Experience (1/4 exp per level)\n\r");
-    strcat(buf, "   50qp..........Warfare\n\r");
-    strcat(buf, "To buy an item, type 'QUEST BUY <item>'.\n\r");
-    strcat(buf, "To see a list of items, type 'HELP QUESTITEMS'\n\r");
-    send_to_char(buf, ch);
+    QUEST_BUY_ENTRY *qi;
+    OBJ_INDEX_DATA *obj;
+    int i;
 
+    for ( qi=&quest_buy_table[i=0]; qi->keywords; qi=&quest_buy_table[++i] )
+    {
+        if (qi->vnum)
+        {   
+            if ( (obj = get_obj_index(qi->vnum)) == NULL || !strcmp(qi->keywords,"") )
+                continue;
+            ptc( ch, "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
+        }
+        else
+        {
+            ptc( ch, "%5dqp..........%s\n\r", qi->cost, qi->desc );
+        }
+
+    }
     return;
 }
 
@@ -457,138 +456,160 @@ QFUN( q_buy )
         return;
     }
 
-    if ( create_quest_item(ch, arg1, &obj) )
+    int i;
+    QUEST_BUY_ENTRY *qi;
+    for ( qi=&quest_buy_table[i=0] ; qi->keywords ; qi = &quest_buy_table[++i] )
     {
-        if ( obj == NULL )
-            return;
-    }
-    else if (is_name(arg1, "practices pracs prac practice"))
-    {
-        if (ch->pcdata->questpoints >= 250)
+        if (is_name(arg1, qi->keywords) )
         {
-            ch->pcdata->questpoints -= 250;
-            ch->practice += 50;
-            act( "$N gives 50 practices to $n.", ch, NULL, questman, TO_ROOM );
-            act( "$N gives you 50 practices.",   ch, NULL, questman, TO_CHAR );
-        }
-        else
-        {
-            sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-            do_say(questman,buf);
-        }
-        return;
-    }
-    else if (is_name(arg1, "experience xp"))
-    {
-        if ( IS_SET(ch->act,PLR_NOEXP))
-        {
-            send_to_char("Toggle 'noexp' to allow you to gain experience before purchasing this.\n\r",ch);
-            return;
-        }
-        if (ch->pcdata->questpoints >= 100)
-        {
-            ch->pcdata->questpoints -= 100;
-            /* section of gain_exp reproduced here in order to bypass
-               field exp -Vodur
-               gain_exp(ch, exp_per_level(ch, 50)/4);*/
-            int gain = 1+exp_per_level(ch, 50)/4;/* 1+ so whiners don't lose a couple of exp points per level  from rounding :)  -Vodur*/
-            ch->exp = UMAX( exp_per_level(ch,ch->pcdata->points), ch->exp + gain );
-            sprintf(buf, "You earn %d applied experience.\n\r", gain);
-            send_to_char(buf,ch);
-
-            if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch,ch->pcdata->points) * (ch->level+1)
-                    && ch->level >= LEVEL_UNAUTHED )
+            /* match, let's see what to do */
+            if (ch->pcdata->questpoints < qi->cost)
             {
-                send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
-                ch->exp = (exp_per_level(ch, ch->pcdata->points) * (ch->level+1));
+                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
+                do_say(questman,buf);
                 return;
             }
 
-            while ( !IS_HERO(ch) && ch->exp >=
-                    exp_per_level(ch,ch->pcdata->points) * (ch->level+1) )
+            if ( qi->vnum )
             {
-                send_to_char( "You raise a level!!  ", ch );
-                ch->level += 1;
+                /* it's an item */
+                OBJ_DATA *obj;
+                obj=create_object(get_obj_index(qi->vnum), ch->level);
 
-                sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
-                log_string(buf);
-                info_message(ch, buf, FALSE);
+                if ( !obj )
+                {
+                    bug( "create_quest_item: couldn't create obj %d", qi->vnum );
+                    return;
+                }
+                act( "$N gives $p to $n.", ch, obj, questman, TO_ROOM );
+                act( "$N gives you $p.",   ch, obj, questman, TO_CHAR );
+                free_string(obj->owner);
+                obj->owner = str_dup(ch->name);
+                SET_BIT(obj->extra_flags, ITEM_STICKY);
+                obj_to_char(obj, ch);
 
-                sprintf(buf,"$N has attained level %d!",ch->level);
-                wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
-
-                advance_level(ch,FALSE);
-                /*end of modified secion from gain_exp*/
             }
-
-
-            act( "$N grants experience to $n.", ch, NULL, questman, TO_ROOM );
-            act( "$N grants you experience.",   ch, NULL, questman, TO_CHAR );
-        }
-        else
-        {
-            sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-            do_say(questman,buf);
-        }
-        return;
-    }
-    else if (is_name(arg1, "warfare"))
-    {
-        if (ch->pcdata->questpoints >= 50)
-            proc_startwar(ch, argument, TRUE);
-        else
-        {
-            sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-            do_say(questman,buf);
-        }
-        return;
-    }
-
-    /* Added for Vodurs ptitle and color name 11/25/11 -- Maedhros */
-
-    else if 
-        (!strcmp(arg1,"color") )
-        {
-            if (*argument == '\0')
+            else if ( qi->fun )
             {
-                do_say(questman, "Use 'quest buy color list' to see your options.");
-            }
-            else if (!IS_IMMORTAL(ch) &&(ch->pcdata->questpoints < 200)
-                    && (strcmp(argument,"list") ) )
-            {
-                sprintf(buf, "Sorry, %s, but you dont have enough quest points for that.",ch->name);
-                do_say(questman,buf);
+
+                if ( !(*(qi->fun))( ch, argument, questman ) )
+                {
+                    /* fun returns false if there was a problem
+                       need to return so they don't pay in that
+                       case. */
+                    return;
+                }
+
             }
             else
-                color_name(ch,argument,ch);
+            {
+                bug( "No vnum or function for quest_buy_entry %d.", i );
+                return;
+            }
+
+            /* if we get here then it went through, need to extract payment */
+            ch->pcdata->questpoints -= qi->cost;
             return;
         }
-    else if (!strcmp(arg1, "ptitle"))
-    {
-        set_pre_title(ch,argument,ch);
-    }		 
-    /* End of Vodurs ptitle */
+    }
 
+    /* if we get here then didn't find a match */   
+    sprintf(buf, "I don't have that item, %s.",ch->name);
+    do_say(questman, buf);
+}
+
+QBUY( q_buy_prac )
+{
+
+    ch->practice += 50;
+    act( "$N gives 50 practices to $n.", ch, NULL, questman, TO_ROOM );
+    act( "$N gives you 50 practices.",   ch, NULL, questman, TO_CHAR );
+    return TRUE;
+}
+
+QBUY( q_buy_exp )
+{
+
+    char buf[MSL];
+    if ( IS_SET(ch->act,PLR_NOEXP))
+    {
+        send_to_char("Toggle 'noexp' to allow you to gain experience before purchasing this.\n\r",ch);
+        return FALSE;
+    }
+    /* section of gain_exp reproduced here in order to bypass
+       field exp -Vodur
+       gain_exp(ch, exp_per_level(ch, 50)/4);*/
+    int gain = 1+exp_per_level(ch, 50)/4;/* 1+ so whiners don't lose a couple of exp points per level  from rounding :)  -Vodur*/
+    ch->exp = UMAX( exp_per_level(ch,ch->pcdata->points), ch->exp + gain );
+    sprintf(buf, "You earn %d applied experience.\n\r", gain);
+    send_to_char(buf,ch);
+
+    if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch,ch->pcdata->points) * (ch->level+1)
+            && ch->level >= LEVEL_UNAUTHED )
+    {
+        send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
+        ch->exp = (exp_per_level(ch, ch->pcdata->points) * (ch->level+1));
+        return TRUE;
+    }
+
+    while ( !IS_HERO(ch) && ch->exp >=
+            exp_per_level(ch,ch->pcdata->points) * (ch->level+1) )
+    {
+        send_to_char( "You raise a level!!  ", ch );
+        ch->level += 1;
+
+        sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
+        log_string(buf);
+        info_message(ch, buf, FALSE);
+
+        sprintf(buf,"$N has attained level %d!",ch->level);
+        wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
+
+        advance_level(ch,FALSE);
+        /*end of modified secion from gain_exp*/
+    }
+
+
+    act( "$N grants experience to $n.", ch, NULL, questman, TO_ROOM );
+    act( "$N grants you experience.",   ch, NULL, questman, TO_CHAR );
+    return TRUE;
+}
+
+QBUY( q_buy_warfare )
+{
+    /* tbc */
+    proc_startwar(ch, argument, FALSE);
+}
+
+QBUY( q_buy_color )
+{
+    /* tbc */
+    /* Added for Vodurs ptitle and color name 11/25/11 -- Maedhros */
+    if (*argument == '\0')
+    {
+        do_say(questman, "Use 'quest buy color list' to see your options.");
+    }
+    else if (!IS_IMMORTAL(ch) &&(ch->pcdata->questpoints < 200)
+            && (strcmp(argument,"list") ) )
+    {
+        char buf[MSL];
+        sprintf(buf, "Sorry, %s, but you dont have enough quest points for that.",ch->name);
+        do_say(questman,buf);
+    }
     else
-    {
-        sprintf(buf, "I don't have that item, %s.",ch->name);
-        do_say(questman, buf);
-    }
-    if (obj != NULL)
-    {
-        act( "$N gives $p to $n.", ch, obj, questman, TO_ROOM );
-        act( "$N gives you $p.",   ch, obj, questman, TO_CHAR );
-        free_string(obj->owner);
-        obj->owner = str_dup(ch->name);
-        SET_BIT(obj->extra_flags, ITEM_STICKY);
-        obj_to_char(obj, ch);
-    }
+        color_name(ch,argument,ch);
     return;
+}
+
+QBUY ( q_buy_ptitle )
+{
+    /* tbc */
+    set_pre_title(ch,argument,ch);
 }
 void request_quest( CHAR_DATA *ch, CHAR_DATA *questman, bool ishardquest)
 {
     char buf[MSL];
-    
+
     sprintf( buf, "$n asks $N for a %s quest.", ishardquest ? "hard" : "");
     act( buf, ch, NULL, questman, TO_ROOM); 
     sprintf( buf, "You ask $N for a %s quest.", ishardquest ? "hard" : "");
@@ -631,7 +652,7 @@ void request_quest( CHAR_DATA *ch, CHAR_DATA *questman, bool ishardquest)
             SET_BIT( ch->act, PLR_QUESTORHARD );
         else
             SET_BIT(ch->act, PLR_QUESTOR);
-            
+
         sprintf(buf, "You have %d minutes to complete this quest.",ch->pcdata->countdown);
         do_say(questman, buf);
         sprintf(buf, "May the gods go with you!");
@@ -922,7 +943,7 @@ QFUN( q_complete )
 /* The main quest function */
 void do_quest(CHAR_DATA *ch, char *argument)
 {
-    
+
     if (IS_NPC(ch))
     {
         send_to_char( "NPC's cannot quest!\n\r", ch );
@@ -1001,7 +1022,7 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman, bool ishardquest)
 {
     if ( ch == NULL || IS_NPC(ch) )
         return;
-    
+
     CHAR_DATA *victim;
     MOB_INDEX_DATA *vsearch;
     ROOM_INDEX_DATA *room;
@@ -1011,7 +1032,7 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman, bool ishardquest)
     int mob_vnum;
     bool found = FALSE;
 
-    
+
     /* some differences between normal and hard quests*/
     int item_chance;
     bool (*level_diff_fun)(CHAR_DATA *, int);
@@ -1028,7 +1049,7 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman, bool ishardquest)
         level_diff_fun=quest_level_diff;
         item_chance=40;
     }
-    
+
 
     /*  Randomly selects a mob from the world mob list. If you don't
         want a mob to be selected, make sure it is immune to summon.
@@ -1066,10 +1087,10 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman, bool ishardquest)
                     || (IS_SET(vsearch->imm_flags, IMM_WEAPON)
                         && IS_SET(vsearch->imm_flags, IMM_MAGIC))
                     || chance(60))
-            {
-                vsearch = NULL;
-                continue;
-            }
+                    {
+                        vsearch = NULL;
+                        continue;
+                    }
 
             if (( victim = get_mob_vnum_world( mob_vnum ) ) == NULL
                     || ( room = victim->in_room ) == NULL
@@ -1762,3 +1783,4 @@ void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit )
     qdata->status = status;
     qdata->timer = timer;
 }
+
