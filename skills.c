@@ -1401,6 +1401,21 @@ void group_remove(CHAR_DATA *ch, const char *name)
 	}
 }
 
+int get_injury_penalty( CHAR_DATA *ch )
+{
+    int penalty = 1000 * (ch->max_hit - ch->hit) / UMAX(1, ch->max_hit) - 5 * get_curr_stat(ch,STAT_DIS);
+    // check if further reduction is needed at all (for efficiency)
+    if ( penalty > 0 )
+    {
+        if (ch->stance == STANCE_KAMIKAZE || IS_AFFECTED(ch, AFF_BERSERK))
+            penalty /= 2;
+        else
+            penalty -= penalty * get_skill(ch, gsn_ashura) / 200;
+    }
+    
+    return URANGE(0, penalty / 20, 50);
+}
+
 int mob_has_skill(CHAR_DATA *ch, int sn)
 {
     bool charmed;
@@ -1501,7 +1516,12 @@ int mob_get_skill(CHAR_DATA *ch, int sn)
 	/* encumberance */
 	skill = skill * (1000 - get_encumberance(ch)) / 1000;
 
-	return URANGE(0,skill,100);
+        skill = URANGE(0,skill,100);
+        /* injury */
+        if (sn != gsn_ashura) // needed to avoid infinite recursion
+            skill = skill * (100 - get_injury_penalty(ch)) / 100;
+
+        return skill;
 }
 
 int get_race_skill( CHAR_DATA *ch, int sn )
@@ -1612,8 +1632,13 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	if (ch->pcdata->condition[COND_SMOKE]<-1 )
 		skill = 9 * skill / 10;
 
-	skill/=10;
-	return URANGE(0,skill,100);
+        skill = URANGE(0,skill/10,100);
+
+        /* injury */
+        if (sn != gsn_ashura) // needed to avoid infinite recursion
+            skill = skill * (100 - get_injury_penalty(ch)) / 100;
+
+        return skill;
 }
 
 
@@ -1660,6 +1685,10 @@ int get_weapon_skill(CHAR_DATA *ch, int sn)
 		skill = ch->level;
 	    else
 		skill = 40 + ch->level/2;
+	    
+	    skill = URANGE(0, skill, 100);
+	    /* injury */
+	    skill = skill * (100 - get_injury_penalty(ch)) / 100;
 	}
 	
 	else

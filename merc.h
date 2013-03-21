@@ -117,6 +117,7 @@ typedef struct  help_data        HELP_DATA;
 typedef struct  help_area_data   HELP_AREA;
 typedef struct  kill_data        KILL_DATA;
 typedef struct  mem_data         MEM_DATA;
+typedef struct  mob_index_data_old MOB_INDEX_DATA_OLD;
 typedef struct  mob_index_data   MOB_INDEX_DATA;
 typedef struct  note_data        NOTE_DATA;
 typedef struct  obj_data         OBJ_DATA;
@@ -299,6 +300,8 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define MONTH (30*DAY)
 #define YEAR (365*DAY)
 
+#define PK_EXPIRE_DAYS 90
+
 /* maximum current remort level - update when adding new remorts */
 #ifdef TESTER
 #define MAX_REMORT 8
@@ -401,6 +404,12 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define FLAG_MAX_BIT           (8 * FLAG_MAX_BYTE) 
 typedef char tflag[FLAG_MAX_BYTE];
 typedef char msl_string[MSL];
+
+typedef struct smith_data 
+{
+    OBJ_DATA *old_obj;
+    OBJ_DATA *new_obj;
+} SMITH_DATA;
 
 typedef struct explore_holder
 {	
@@ -740,24 +749,11 @@ struct penalty_data
 #define CON_CLOSED              35
 #define MAX_CON_STATE           36
 
-#define CON_SMITH_WELCOME       1
-#define CON_SMITH_TYPE          2
-#define CON_SMITH_SUBTYPE       3
-#define CON_SMITH_PURCHASE      4
-#define CON_SMITH_MATERIAL      5
-#define CON_SMITH_QUALITY       6
-#define CON_SMITH_COLOR         7
-#define CON_SMITH_PERSONAL      8
-#define CON_SMITH_LEVEL         9
-#define CON_SMITH_KEYWORDS      10
-#define CON_SMITH_SELECT        11
-#define CON_SMITH_INVENTORY     12
 #define CREATION_UNKNOWN         0
 #define CREATION_INSTANT         1
 #define CREATION_QUICK           2
 #define CREATION_NORMAL          3
 #define CREATION_REMORT          4
-#define CREATION_BLACKSMITH     5
 
 
 typedef enum { FTP_NORMAL, FTP_PUSH, FTP_PUSH_WAIT } ftp_mode;
@@ -1320,6 +1316,7 @@ struct  kill_data
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
 #define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
 #define ACT_HARD_QUEST    (kk)
+#define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 
 /* damage classes */
 #define DAM_NONE                0
@@ -1711,14 +1708,7 @@ struct  kill_data
 #define OBJ_VNUM_WHISTLE       2116
 #define OBJ_VNUM_SIVA_WEAPON    34
 #define OBJ_VNUM_GOODBERRY      35
-#define OBJ_VNUM_BLACKSMITH     36
-
 #define OBJ_VNUM_STORAGE_BOX    48	
-
-/*
-#define OBJ_VNUM_BLACKSMITH_WEAPON     36
-#define OBJ_VNUM_BLACKSMITH_ARMOR      46
-*/
 
 /*
  * Item types.
@@ -1800,6 +1790,7 @@ struct  kill_data
 #define ITEM_TRAPPED        (ee)
 #define ITEM_EASY_DROP      (ff)
 #define ITEM_NO_EXTRACT     (gg)
+#define ITEM_QUESTEQ        (hh)
 
 /* class restriction flags */
 #define ITEM_ALLOW_WARRIOR        100
@@ -2013,7 +2004,7 @@ struct  kill_data
 #define ROOM_NOWHERE        (T)
 #define ROOM_DONATION       (U)
 #define ROOM_SNARE          (V)
-#define ROOM_BLACKSMITH     (W)       
+#define ROOM_BLACKSMITH     (W)
 #define ROOM_PEEL           (X)
 #define ROOM_JAIL           (Y)
 #define ROOM_NO_QUEST       (Z)
@@ -2333,9 +2324,9 @@ extern sh_int sn_overall;
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.
  */
-struct  mob_index_data
+struct  mob_index_data_old
 {
-	MOB_INDEX_DATA *    next;
+	MOB_INDEX_DATA_OLD *    next;
 	SPEC_FUN *      spec_fun;
 	SHOP_DATA *     pShop;
 	MPROG_LIST *        mprogs;
@@ -2376,7 +2367,52 @@ struct  mob_index_data
     sh_int      stance;
 };
 
-
+/*
+ * Prototype for a mob (new-style).
+ * This is the in-memory version of #MOBBLES.
+ */
+struct  mob_index_data
+{
+    MOB_INDEX_DATA* next;
+    SPEC_FUN*   spec_fun;
+    SHOP_DATA*  pShop;
+    MPROG_LIST* mprogs;
+    AREA_DATA*  area;
+    int         vnum;
+    sh_int      group;
+    sh_int      count;
+    sh_int      killed;
+    char*       player_name;
+    char*       short_descr;
+    char*       long_descr;
+    char*       description;
+    tflag       act;
+    tflag       affect_field;
+    sh_int      alignment;
+    sh_int      level;
+    sh_int      hitpoint_percent;
+    sh_int      mana_percent;
+    sh_int      move_percent;
+    sh_int      hitroll_percent;
+    sh_int      damage_percent;
+    sh_int      ac_percent;
+    sh_int      saves_percent;
+    sh_int      dam_type;
+    tflag       off_flags;
+    tflag       imm_flags;
+    tflag       res_flags;
+    tflag       vuln_flags;
+    sh_int      start_pos;
+    sh_int      default_pos;
+    sh_int      sex;
+    sh_int      race;
+    sh_int      wealth_percent;
+    tflag       form;
+    tflag       parts;
+    sh_int      size;
+    tflag       mprog_flags;
+    sh_int      stance;
+};
 
 /* memory settings */
 #define MEM_CUSTOMER    A   
@@ -2574,7 +2610,7 @@ struct  pc_data
     sh_int      original_stats[MAX_STATS];
     sh_int      history_stats[MAX_STATS];
     long        field;
-    OBJ_DATA    *smith;
+    SMITH_DATA  *smith;
     PENALTY_DATA *new_penalty;
     int         demerit_points;
     sh_int      auth_state;
@@ -2687,6 +2723,8 @@ struct  pc_data
     FOLLOWER_DATA *ch_rel;
     time_t prayed_at;
     PRAYER_DATA *prayer_request;
+
+    time_t pkill_expire; /* timestamp when you can turn it off */
 
 };
 
@@ -3645,7 +3683,9 @@ struct achievement_entry
 #define IS_REMORT(ch)			(!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT)) 
 #define IS_NOHIDE(ch)           (!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_NOHIDE))
 
-#define IS_WRITING_NOTE(con)  (((con >= CON_NOTE_TO && con <= CON_NOTE_FINISH)||(con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH)||((con-con%MAX_CON_STATE)/MAX_CON_STATE==CREATION_BLACKSMITH)) ? TRUE : FALSE)
+#define IS_WRITING_NOTE(con)  (( (con >= CON_NOTE_TO && con <= CON_NOTE_FINISH) \
+            || (con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH) \
+            ) ? TRUE : FALSE)
 #define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con))
 #define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
 
@@ -4220,7 +4260,6 @@ long    wiznet_lookup   args( ( const char *name) );
 int class_lookup    args( ( const char *name) );
 bool    is_clan     args( (CHAR_DATA *ch) );
 bool    is_same_clan    args( (CHAR_DATA *ch, CHAR_DATA *victim));
-bool    is_old_mob  args ( (CHAR_DATA *ch) );
 int     get_weapon_sn   args( ( CHAR_DATA *ch ) );
 int     get_weapon_sn_new args( (CHAR_DATA *ch, bool secondary) );
 int     get_age         args( ( CHAR_DATA *ch ) );
