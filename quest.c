@@ -249,10 +249,9 @@ bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
 bool quest_level_diff_hard   args(( CHAR_DATA *ch, int mlevel));
 bool chance     args(( int num ));
 
-/* Added for Vodurs ptitle and name color -- Maedhros 11/12/11 */
-void color_name( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
-void set_pre_title ( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
-/* End of ptitle and color */
+bool color_name( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
+bool set_pre_title ( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
+
 
 int quest_timer;
 
@@ -577,8 +576,7 @@ QBUY( q_buy_exp )
 
 QBUY( q_buy_warfare )
 {
-    /* tbc */
-    proc_startwar(ch, argument, FALSE);
+    return proc_startwar(ch, argument, FALSE);
 }
 
 QBUY( q_buy_color )
@@ -588,17 +586,11 @@ QBUY( q_buy_color )
     if (*argument == '\0')
     {
         do_say(questman, "Use 'quest buy color list' to see your options.");
+        return FALSE;
     }
-    else if (!IS_IMMORTAL(ch) &&(ch->pcdata->questpoints < 200)
-            && (strcmp(argument,"list") ) )
-    {
-        char buf[MSL];
-        sprintf(buf, "Sorry, %s, but you dont have enough quest points for that.",ch->name);
-        do_say(questman,buf);
-    }
-    else
-        color_name(ch,argument,ch);
-    return;
+
+    
+    return color_name(ch,argument,ch);
 }
 
 QBUY ( q_buy_ptitle )
@@ -1500,7 +1492,7 @@ void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch )
 /* Added for code submitted by Vodur to change name color and give a title */
 /* Maedhros 11-12-11 */
 
-void color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
+bool color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
 {
     char arg2 [MAX_INPUT_LENGTH];
     char buf [3] = "";
@@ -1513,7 +1505,7 @@ void color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
     if ( !strcmp(arg2, "" ))
     {
         send_to_char("Available colors: {rred{x, {yyellow{x, {ggreen{x, {Bhi-blue{x, {mmagenta{x, {wwhite{x, {ccyan{x and {Dgrey{x.  \n\r'clear' argument removes current color at no cost. \n\r",ch);
-        return;
+        return FALSE;
     }
 
     if ( IS_NPC(victim) )
@@ -1526,7 +1518,7 @@ void color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
         free_string(victim->pcdata->name_color);
         victim->pcdata->name_color = str_dup("");
         send_to_char("Name color cleared.",ch);
-        return;
+        return FALSE;
     }
 
     if (!strcmp(arg2, "red"))
@@ -1578,28 +1570,23 @@ void color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
     {
         send_to_char("Available colors: {rred{x, {yyellow{x, {ggreen{x, {Bhi-blue{x, {mmagenta{x, {wwhite{x, {ccyan{x and {Dgrey{x.  \n\r'clear' argument removes current color at no cost. \n\r",ch);
 
-        return;
+        return FALSE;
     }
 
     if (!strcmp(victim->pcdata->name_color,buf))
     {
         send_to_char("That color is already set!\n\r",ch);
-        return;
+        return FALSE;
     }
 
     free_string( victim->pcdata->name_color );
     victim->pcdata->name_color = str_dup(buf);
     send_to_char("Name color changed.\n\r",ch);
 
-    if (!IS_IMMORTAL(ch))
-    {
-        victim->pcdata->questpoints -= 200;
-    }
-
-    return;
+    return TRUE;
 }
 
-void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
+bool set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
 {
     char arg2 [MAX_STRING_LENGTH];
     char buf [MSL];
@@ -1619,7 +1606,7 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
             send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
         else
             send_to_char("Title not found. 'ptitle list' for titles.\n\r",ch);
-        return;
+        return FALSE;
     }
 
     if ( IS_NPC(victim) )
@@ -1632,7 +1619,7 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
         free_string(victim->pcdata->pre_title);
         victim->pcdata->pre_title= str_dup("");
         send_to_char("Pretitle cleared.\n\r",ch);
-        return TRUE;
+        return FALSE;
     }
 
     if (!strcmp(arg2, "list"))
@@ -1687,46 +1674,30 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
             send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
         else
             send_to_char("Title not found. 'ptitle list' for titles,\n\r",ch);
-        return;
+        fclose(fp);
+        fpReserve = fopen( NULL_FILE, "r" );    
+        return FALSE;
     }
 
     cost = fread_number( fp );
+    fclose(fp);
+    fpReserve = fopen( NULL_FILE, "r" );
+    
     strcat(arg2, " ");
 
     if (!strcmp(arg2,victim->pcdata->pre_title))
     {
         send_to_char("That's the same as the current title!\n\r",ch);
+        return FALSE;
     }
-
     else
     {
-        if (!IS_IMMORTAL(ch))
-        {
-            if (victim->pcdata->questpoints >= cost)
-            {
-                victim->pcdata->questpoints -= cost;
-                free_string(victim->pcdata->pre_title);
-                victim->pcdata->pre_title = str_dup(arg2);
-                send_to_char("Pretitle changed.\n\r",ch);
-            }
-            else
-            {
-                send_to_char("Not enough quest points.\n\r",ch);
-            }
-        }
-        else
-        {
-            victim->pcdata->pre_title = str_dup(arg2);
-            send_to_char("Pretitle changed.\n\r",ch);
-        }
+        free_string(victim->pcdata->pre_title);
+        victim->pcdata->pre_title = str_dup(arg2);
+        send_to_char("Pretitle changed.\n\r",ch);
+        return TRUE;
     }
-    fclose(fp);
-    fpReserve = fopen( NULL_FILE, "r" );
-    return TRUE;
 }
-/* End of Vodurs Pretitle and name color */
-
-
 
 void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit )
 {
