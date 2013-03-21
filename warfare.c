@@ -24,7 +24,7 @@
 DECLARE_DO_FUN(do_restore);
 DECLARE_DO_FUN(do_look);
 
-void proc_startwar( CHAR_DATA *ch, char *argument, bool pay );
+bool proc_startwar( CHAR_DATA *ch, char *argument, bool pay );
 
 char * war_list[] =
 {
@@ -103,13 +103,13 @@ void auto_war(void)
     
 }
 
-void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
+bool proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
 {
     char buf[MSL];
     char arg1[MIL], arg2[MIL], arg3[MIL];
 
     if (IS_NPC(ch))
-	return;
+	return FALSE;
     
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
@@ -121,13 +121,13 @@ void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
 	    send_to_char("Syntax: startwar <type> <min level> <max level>\n\r", ch);
 	else
 	    send_to_char("Syntax: quest buy warfare <type> <max level>\n\r", ch);
-        return;
+        return FALSE;
     }
     
     if ( war.on == TRUE )
     {
         send_to_char("There is already a war running!\n\r", ch );
-        return;
+        return FALSE;
     }
 
     if (current_time < last_war_time + 600 && get_trust(ch) < MAX_LEVEL)
@@ -136,7 +136,7 @@ void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
         send_to_char("{YWarfare games are limited to once every 10 minutes.{x\n\r",ch);
         printf_to_char(ch, "   {+Next opportunity: {Y%d{x{+ minute%s.{x\n\r",
             time, time == 1 ? "" : "s" );
-        return;
+        return FALSE;
     }
     
     if (ch->level>100)
@@ -170,19 +170,19 @@ void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
     else
     {
         send_to_char("Valid war types are: armageddon, class, race, clan, religion, and gender.\n\r", ch );
-        return;
+        return FALSE;
     }
     
     if ( war.max_level <= war.min_level )
     {
         send_to_char("Min level must be lower than max level.\n\r", ch );
-        return;
+        return FALSE;
     }
     
     if ( war.min_level < 1 || war.max_level > 100 )
     {
         send_to_char("The level range is 1 to 100.\n\r", ch );
-        return;
+        return FALSE;
     }
 
     if (war.min_level + 50 < war.max_level)
@@ -190,7 +190,7 @@ void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
 	sprintf(buf, "Dont you think a %d spread is a little excessive?\n\r",
 		war.max_level - war.min_level);
 	send_to_char(buf, ch);
-	return;
+	return FALSE;
     }
     
     war.on = TRUE;
@@ -232,7 +232,7 @@ void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
     warfare( buf );
     sprintf( buf, "Type 'combat' to join or read 'help warfare' for info.\n\r" );
     warfare( buf );
-    return;
+    return TRUE;
 }
 
 void do_stopwar( CHAR_DATA *ch, char *argument )
