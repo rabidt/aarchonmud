@@ -168,7 +168,6 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "obj stats: name    <name>\n\r", ch );
     send_to_char( "           type    <item type>\n\r", ch );
     send_to_char( "           cost    <minimum gold>\n\r", ch );
-    send_to_char( "           nocost  <specific 0 gold>\n\r", ch );
     send_to_char( "           ops     <minimum OPs>\n\r", ch );
     send_to_char( "           lvl     <minimum level>\n\r", ch );
     send_to_char( "           wear    <location>\n\r", ch );
@@ -180,6 +179,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           addflag\n\r", ch );
     send_to_char( "           spec\n\r", ch );
     send_to_char( "           ingame\n\r", ch );
+    send_to_char( "           combine\n\r", ch );
     send_to_char( "mob stats: name    <name>\n\r", ch );
     send_to_char( "           wealth  <minimum gold>\n\r", ch );
     send_to_char( "           act     <act flag>\n\r", ch );
@@ -220,7 +220,7 @@ void show_grep_syntax( CHAR_DATA *ch )
 #define GREP_OBJ_HEAL     11
 #define GREP_OBJ_AFF      12
 #define GREP_OBJ_EXTRA    13
-#define GREP_OBJ_NOCOST    14
+#define GREP_OBJ_COMBINE  14
 #define NO_SHORT_DESC "(no short description)"
 
 /* parses argument into a list of grep_data */
@@ -254,6 +254,10 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
     else if ( !str_cmp(arg1, "ingame") )
     {
 	stat = GREP_OBJ_INGAME;
+    }
+    else if ( !str_cmp(arg1, "combine") )
+    {
+        stat = GREP_OBJ_COMBINE;
     }
     /* ..now stats with parameter */
     else
@@ -296,21 +300,6 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
 	    }
 	    value *= 100; // value in silver
 	    stat = GREP_OBJ_COST;
-	}
-        else if ( !str_cmp(arg1, "nocost") )
-	{
-	    if ( !is_number(arg2) )
-	    {
-		send_to_char( "Please specify 0 as the argument.\n\r", ch );
-		return NULL;
-	    }
-	    if ( (value = atoi(arg2)) > 1 )
-	    {
-		send_to_char( "Please specify 0 as the argument.\n\r", ch );
-		return NULL;
-	    }
-	    value *= 100; // value in silver
-	    stat = GREP_OBJ_NOCOST;
 	}
 	else if ( !str_cmp(arg1, "ops") )
 	{
@@ -459,18 +448,6 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	sprintf( buf, "(%d gold)", obj_value / 100 );
 	strcat( info, buf );
 	break;
-    case GREP_OBJ_NOCOST:
-        if ( obj->item_type == ITEM_MONEY )
-	{
-	    obj_value = obj->value[0] + obj->value[1];
-	    obj_value = UMAX(obj_value, obj->cost);
-	}
-	else
-	    obj_value = obj->cost;
-	match = (obj_value <= gd->value);
-	sprintf( buf, "(%d silver)", obj_value);
-	strcat( info, buf );
-	break;
     case GREP_OBJ_OPS:
 	obj_value = get_obj_index_ops( obj );
 	match = (obj_value >= gd->value);
@@ -530,6 +507,14 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
     case GREP_OBJ_INGAME:
 	match = is_obj_ingame( obj );
 	break;
+    case GREP_OBJ_COMBINE:
+        match = (obj->combine_vnum > 0);
+        if (match)
+        {
+            sprintf( buf, "(combine=%d)", obj->combine_vnum );
+            strcat( info, buf );
+        }
+        break;
     default: 
 	break;
     }
