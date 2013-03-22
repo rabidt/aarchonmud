@@ -292,6 +292,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "smoke",      do_smoke,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "tdisarm",    do_disarm_trap, POS_STANDING, 0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "spellup",    do_spellup, POS_STANDING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "smith",      do_smith,   POS_STANDING, 0, LOG_NORMAL, 1, FALSE, FALSE },
     
    /*
     * Combat commands.
