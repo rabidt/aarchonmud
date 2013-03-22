@@ -405,6 +405,12 @@ SM_FUN( smith_give )
     act( "You hand $p over to the smith.", ch, obj, NULL, TO_CHAR    );
     act( "$n hands $p over to the smith.", ch, obj, NULL, TO_ROOM    );
 
+#ifdef SMITH_LOG
+    char buf[MSL];
+    sprintf( buf, "%s gave %s (%d) to smith.", ch->name,
+            obj->short_descr, obj->pIndexData->vnum);
+    log_string(buf);
+#endif
 }
 
 bool can_smith_obj( OBJ_DATA *obj )
@@ -446,6 +452,13 @@ void cancel_smith( CHAR_DATA *ch )
                 ch, ch->pcdata->smith->old_obj, NULL, TO_ROOM    );
         
         obj_to_char( ch->pcdata->smith->old_obj, ch );
+#ifdef SMITH_LOG
+    char buf[MSL];
+    sprintf(buf, "%s got %s (%d) back from smith.",
+           ch->name, ch->pcdata->smith->old_obj->short_descr,
+           ch->pcdata->smith->old_obj->pIndexData->vnum);
+    log_string(buf);
+#endif
 
         if ( ch->pcdata->smith->new_obj )
             extract_obj( ch->pcdata->smith->new_obj );
