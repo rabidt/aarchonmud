@@ -565,9 +565,14 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (6,30);
         infect += ch->level/6;
 
-        send_to_char( "Your festering wound oozes blood.\n\r", ch );
-        full_dam( ch, ch, infect, gsn_infectious_arrow, DAM_DISEASE, TRUE );
-	update_pos( ch );
+        if (infect > ch->hit)
+            return;
+        else
+        {
+            send_to_char( "Your festering wound oozes blood.\n\r", ch );
+            full_dam( ch, ch, infect, gsn_infectious_arrow, DAM_DISEASE, TRUE );
+	    update_pos( ch );
+        }
     }
 
 
