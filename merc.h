@@ -46,6 +46,7 @@
 /* #define ASSERT_DEBUG */
 /* #define MPROG_DEBUG */
 #define BOX_LOG
+#define SMITH_LOG
 
 #ifdef ASSERT_DEBUG
 #include <assert.h>

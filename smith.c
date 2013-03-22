@@ -71,8 +71,8 @@ const struct smith_set_arg smith_set_table[] =
         "100qp, 5k gold (name, keywords, desc together)"                },
     {   "description",  smith_set_description,  NULL,                   
         "100qp, 5k gold (name, keywords, desc together)"                },
-    {   "sticky",       smith_set_sticky,       smith_set_sticky_price,
-        "Based on item power"                                           },
+/*    {   "sticky",       smith_set_sticky,       smith_set_sticky_price,
+        "Based on item power"                                           },*/
     {   NULL,           NULL,                   NULL,                  
         NULL                                                            }
 };
@@ -299,10 +299,11 @@ void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch )
     ptc( ch, "Keywords: %s\n\r", obj->name );
     ptc( ch, "Name: %s\n\r", obj->short_descr );
     ptc( ch, "Description: %s\n\r", obj->description );
-    if (is_sticky_obj( obj ) )
+/*    if (is_sticky_obj( obj ) )
         ptc(ch, "Sticky: on    Owner: %s\n\r", ( obj->owner ? obj->owner : "none") );
     else
         send_to_char( "Sticky: off\n\r", ch );
+        */
 }
 
 SM_FUN( smith_finish )
@@ -323,6 +324,16 @@ SM_FUN( smith_finish )
     act( "The smith hands $p back to $n with modifications!", 
             ch, ch->pcdata->smith->new_obj, NULL, TO_ROOM    );
     obj_to_char( ch->pcdata->smith->new_obj, ch );
+
+#ifdef SMITH_LOG
+    char buf[MSL];
+    int gold,qp;
+    calc_smith_cost( ch, &gold, &qp );
+    sprintf(buf, "%s paid %d gold and %d quest points to smith for %s (%d)",
+           ch->name, gold, qp, ch->pcdata->smith->new_obj->short_descr, 
+           ch->pcdata->smith->new_obj->pIndexData->vnum);
+    log_string(buf);
+#endif 
 
     if ( ch->pcdata->smith->old_obj )
         extract_obj( ch->pcdata->smith->old_obj );
