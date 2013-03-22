@@ -1667,18 +1667,45 @@ void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         }
     }
     
+    /* some logic to see if we have an arg*/
+    if ( target_name[0] != '\0' )
+    {
+        char junk[MIL];
+        target_name=one_argument( target_name, junk); /* get rid of first arg */
+    }
+
     /* unlike dispel magic, the victim gets NO save */
-    
-    /* begin running through the spells */
 
-    for (sn = 1; skill_table[sn].name != NULL; sn++)
-	if (can_dispel(sn) && check_dispel(level,victim,sn))
-	    found = TRUE;
+    /* we killed first arg (target), if there's more args then
+       they're trying to cancel a certain spell*/
+    if ( target_name[0] != '\0' )
+    {
+        int sn=skill_lookup( target_name );
 
-       if (found)
+        if ( sn == -1 )
+        {
+            send_to_char("Cancel which spell?\n\r",ch);
+            return;
+        }
+
+        if (can_dispel(sn) && check_dispel(level,victim,sn))
+            send_to_char( "Ok.\n\r", ch);
+        else
+            send_to_char( "Spell failed.\n\r", ch);
+    } 
+    else
+    {
+        /* begin running through the spells */
+
+        for (sn = 1; skill_table[sn].name != NULL; sn++)
+	    if (can_dispel(sn) && check_dispel(level,victim,sn))
+	        found = TRUE;
+
+        if (found)
            send_to_char("Ok.\n\r",ch);
-       else
+        else
            send_to_char("Spell failed.\n\r",ch);
+    }
 }
 
 void spell_cause_light( int sn, int level, CHAR_DATA *ch, void *vo,int target )
