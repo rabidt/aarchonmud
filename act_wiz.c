@@ -238,14 +238,14 @@ void do_outfit ( CHAR_DATA *ch, char *argument )
         
         for (i = 0; weapon_table[i].name != NULL; i++)
         {
-            if (ch->pcdata->learned[sn] < 
-                ch->pcdata->learned[*weapon_table[i].gsn])
+            if ( get_skill(ch, sn) < 
+                get_skill(ch, *weapon_table[i].gsn) )
             {
                 sn = *weapon_table[i].gsn;
                 vnum = weapon_table[i].vnum;
             }
         }
-        if (ch->pcdata->learned[sn]>ch->pcdata->learned[gsn_hand_to_hand])
+        if (get_skill(ch, sn) > get_skill( ch, gsn_hand_to_hand) )
         {
             obj = create_object(get_obj_index(vnum),0);
             obj_to_char(obj,ch);
