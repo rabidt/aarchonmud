@@ -180,6 +180,11 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     bwrite_char( ch, mf->buf );
     if ( ch->carrying != NULL )
       bwrite_obj( ch, ch->carrying, mf->buf, 0 );
+
+    /* a little safety in case crash or copyover while smithing */
+    if ( ch->pcdata->smith )
+        bwrite_obj( ch, ch->pcdata->smith->old_obj, mf->buf, 0 );
+
     /* save the pets */
     if (ch->pet != NULL && ch->pet->in_room == ch->in_room)
       bwrite_pet(ch->pet, mf->buf);
@@ -993,16 +998,6 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
         bprintf( buf, "ExtF %s\n",   print_tflag(obj->extra_flags) );
     if ( obj->material != obj->pIndexData->material)
         bprintf( buf, "Mat %s~\n",   obj->material         );
-
-    if ( obj->pIndexData->vnum == OBJ_VNUM_BLACKSMITH )
-    {
-	if ( !flag_equal(obj->wear_flags, obj->pIndexData->wear_flags) )
-	    bprintf( buf, "WeaF %s\n",   print_tflag(obj->wear_flags) );
-	if ( obj->item_type != obj->pIndexData->item_type)
-	    bprintf( buf, "Ityp %d\n",   obj->item_type           );
-	if ( obj->weight != obj->pIndexData->weight)
-	    bprintf( buf, "Wt   %d\n",   obj->weight          );
-    }
 
     /*
     if ( obj->durability != obj->pIndexData->durability)
