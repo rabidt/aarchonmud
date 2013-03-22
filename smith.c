@@ -50,7 +50,7 @@ const struct smith_arg smith_arg_table[] =
     {   "give",     "Start your order [smith give <object>]",   smith_give      },
     {   "status",   "See the status of your order.",            smith_status    },
     {   "set",      "Set options on your order.",               smith_set       },
-    {   "cancel",   "Cancel your order and retrive your item.", smith_cancel    },
+    {   "cancel",   "Cancel your order and retrieve your item.", smith_cancel    },
     {   "finish",   "Finish and pay for your order.",           smith_finish    },
     {   NULL,       NULL,                                       NULL            }
 };
