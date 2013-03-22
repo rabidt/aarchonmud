@@ -86,19 +86,6 @@ bool	get_stat_priority		args( ( DESCRIPTOR_DATA *d, char *argument ) );
 /* It would be nice to have colour in creation!!  Added by Quirky, June 2003 */
 bool	get_colour		args( ( DESCRIPTOR_DATA *d, char *argument ) );
 
-bool	smith_welcome		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_type			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_subtype		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_purchase		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_material		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_quality		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_color			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_personal		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_level			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_keywords		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_select		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_inventory		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-
 void  handle_con_note_to      args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  handle_con_note_subject args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  handle_con_note_expire  args( (DESCRIPTOR_DATA *d, char * argument ) );
@@ -405,66 +392,6 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		    
 		}
 	    break;
-	    
-	case CREATION_BLACKSMITH:
-	    switch ( con_state(d) )
-		{
-		    
-		default:
-		    bug( "Nanny: bad d->connected %d.", d->connected );
-		    close_socket( d );
-		    return;
-		    
-		case CON_SMITH_WELCOME:
-		    if (smith_welcome(d, argument)) smith_level(d, "");
-		    break;
-		    
-		case CON_SMITH_LEVEL:
-		    if (smith_level(d, argument)) smith_type(d, "");
-		    break;
-		    
-		case CON_SMITH_TYPE:
-		    if (smith_type(d, argument)) smith_subtype(d, "");
-		    break;
-		    
-		case CON_SMITH_SUBTYPE:
-		    if (smith_subtype(d, argument)) smith_quality(d, "");
-		    break;
-		    
-		case CON_SMITH_QUALITY:
-		    if (smith_quality(d, argument)) smith_material(d, "");
-		    break;
-		    
-		case CON_SMITH_MATERIAL:
-		    if (smith_material(d, argument)) smith_purchase(d, "");
-		    break;
-		    
-		case CON_SMITH_PURCHASE:
-		    if (smith_purchase(d, argument)) d->connected=CON_PLAYING;
-		    break;
-		    
-		case CON_SMITH_COLOR:
-		    if (smith_color(d, argument)) smith_purchase(d, "");
-		    break;
-		    
-		case CON_SMITH_PERSONAL:
-		    if (smith_personal(d, argument)) smith_keywords(d, "");
-		    break;
-		    
-		case CON_SMITH_KEYWORDS:
-		    if (smith_keywords(d, argument)) smith_purchase(d, "");
-		    break;
-		    
-		case CON_SMITH_SELECT:
-		    if (smith_select(d, argument)) smith_inventory(d, "");
-		    break;
-		    
-		case CON_SMITH_INVENTORY:
-		    if (smith_inventory(d, argument)) d->connected=CON_PLAYING;
-		    break;
-		    
-		}
-	    break;		
 	    
 	}
 	return;

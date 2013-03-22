@@ -65,7 +65,6 @@ int get_cost    args( (CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy ) );
 void    obj_to_keeper   args( (OBJ_DATA *obj, CHAR_DATA *ch ) );
 OD *    get_obj_keeper  args( (CHAR_DATA *ch,CHAR_DATA *keeper,char *argument));
 bool    expl_in_container args( ( OBJ_DATA *obj) );
-bool    smith_welcome       args( ( DESCRIPTOR_DATA *d, char *argument ) );
 
 
 #undef OD
@@ -3207,12 +3206,6 @@ void do_buy( CHAR_DATA *ch, char *argument )
    char buf[MAX_STRING_LENGTH];
    int cost,roll, chance;
    
-   if ( IS_SET(ch->in_room->room_flags, ROOM_BLACKSMITH) )
-   {
-       smith_welcome(ch->desc, "");
-       return;
-   }
-   
    if ( argument[0] == '\0' )
    {
 	  send_to_char( "Buy what?\n\r", ch );
@@ -3520,12 +3513,6 @@ void do_list( CHAR_DATA *ch, char *argument )
 {
 	char buf[MAX_STRING_LENGTH];
 
-	if ( IS_SET(ch->in_room->room_flags, ROOM_BLACKSMITH) )
-	{
-		smith_welcome(ch->desc, "");
-		return;
-	}
- 
    if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_SHOP))
    {
         CHAR_DATA *banker;
