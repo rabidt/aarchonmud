@@ -250,6 +250,7 @@ const struct flag_type plr_flags[] =
 	{   "roleplay",     PLR_RP,        TRUE    },
 	{   "trigger_safe", PLR_TRIG_SAFE, FALSE   },
 	{   "inactive_helper", PLR_INACTIVE_HELPER, TRUE },
+        {   "noexp",        PLR_NOEXP,     FALSE   },
 	{   NULL,           0,  0   }
 };
 
@@ -597,7 +598,7 @@ const struct flag_type room_flags[] =
     {   "donation",     ROOM_DONATION,      TRUE    },
     {   "nowhere",      ROOM_NOWHERE,       TRUE    },
     {   "snare",        ROOM_SNARE,         FALSE   },   
-    {   "blacksmith",   ROOM_BLACKSMITH,    TRUE    },   
+    {   "blacksmith",   ROOM_BLACKSMITH,    FALSE   },   
     {   "peel",         ROOM_PEEL,          FALSE   },   
     {   "jail",         ROOM_JAIL,          TRUE    },   
     {   "no_quest",     ROOM_NO_QUEST,      TRUE    },   
@@ -730,6 +731,7 @@ const struct flag_type extra_flags[] =
 	{   "class_ranger",        ITEM_CLASS_RANGER         , TRUE },
 	{   "class_necromancer",   ITEM_CLASS_NECROMANCER    , TRUE },
 	{   "no_extract",          ITEM_NO_EXTRACT           , TRUE },
+    {   "questeq",             ITEM_QUESTEQ              , TRUE },
 	{   NULL,           0,          0   }
 };
 
@@ -1424,6 +1426,24 @@ const struct flag_type togg_flags[] =
 {
   { "oldscore",		TOGG_OLDSCORE,	TRUE },
   { "oldfinger",	TOGG_OLDFINGER,	TRUE },
+  { "statbars",         TOGG_STATBARS,  TRUE },
   { NULL,		0,		0    }
 };
 
+const CHANNEL public_channel_table[] =
+{
+	/*sn		name		1st pers	3rd pers	color	color2	offbit			minlvl	extra check*/
+	{&sn_gossip,	"Gossip",	"gossip",	"gossips",	'p',	'P',	COMM_NOGOSSIP,		3,	NULL},
+	{&sn_auction,	"Auction",	"auction",	"auctions", 	'a',	'A',	COMM_NOAUCTION,		3,	NULL},
+	{&sn_music,	"Music",	"MUSIC:",	"MUSIC:",	'e',	'E',	COMM_NOMUSIC,		3,	NULL},
+	{&sn_question,	"Q/{jA",	"question",	"questions",	'q',	'Q',	COMM_NOQUESTION,	3,	NULL},
+	{&sn_answer,	"Q/{jA",	"answer",	"answers",	'j',	'J',	COMM_NOQUESTION,	3,	NULL},
+	{&sn_quote,	"Quote",	"quote",	"quotes",	'h',	'H',	COMM_NOQUOTE,		3,	NULL},
+	{&sn_gratz,	"Gratz",	"gratz",	"gratzes",	'z',	'Z',	COMM_NOGRATZ,		3,	NULL},
+	{&sn_gametalk,	"Gametalk",	"gametalk",	"gametalks",	'k',	'K',	COMM_NOGAME,		3,	NULL},
+	{&sn_bitch,	"Bitch",	"bitch",	"bitches",	'f',	'F',	COMM_NOBITCH,		3,	NULL},
+	{&sn_newbie,	"Newbie",	"[Newbie]:",	"[Newbie]:",	'n',	'N',	COMM_NONEWBIE,		0,	NULL},
+	{&sn_immtalk,	"Immtalk",	"immtalk",	"immtalks",	'i',	'I',	COMM_NOWIZ,		0,	check_immtalk},
+	{&sn_savantalk,	"Savantalk",	"savant",	"savants",	'7',	'8',	COMM_NOSAVANT,		0,	check_savant},
+	NULL,
+};

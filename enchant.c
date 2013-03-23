@@ -25,8 +25,7 @@ int get_enchant_ops( OBJ_DATA *obj, int level )
 
     /* no enchanting of quest eq etc. */
     if ( obj == NULL
-	 || IS_OBJ_STAT(obj, ITEM_STICKY)
-	 || obj->pIndexData->vnum == OBJ_VNUM_BLACKSMITH)
+	 || IS_OBJ_STAT(obj, ITEM_STICKY) )
 	return 0;
 
     /* no enchanting of objects which add special effects */
@@ -185,7 +184,7 @@ void enchant_obj_roll( OBJ_DATA *obj, int ops )
 	    break;
 	case 3:
 	    af.location = APPLY_AC; 
-	    af.modifier *= -5;
+	    af.modifier *= -10;
 	}
 		
 	add_enchant_affect( obj, &af );

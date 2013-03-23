@@ -41,7 +41,7 @@
 #include "magic.h"
 #include "simsave.h"
 #include "buffer_util.h"
-
+#include "leaderboard.h"
 #if defined(linux)
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
@@ -238,14 +238,14 @@ void do_outfit ( CHAR_DATA *ch, char *argument )
         
         for (i = 0; weapon_table[i].name != NULL; i++)
         {
-            if (ch->pcdata->learned[sn] < 
-                ch->pcdata->learned[*weapon_table[i].gsn])
+            if ( get_skill(ch, sn) < 
+                get_skill(ch, *weapon_table[i].gsn) )
             {
                 sn = *weapon_table[i].gsn;
                 vnum = weapon_table[i].vnum;
             }
         }
-        if (ch->pcdata->learned[sn]>ch->pcdata->learned[gsn_hand_to_hand])
+        if (get_skill(ch, sn) > get_skill( ch, gsn_hand_to_hand) )
         {
             obj = create_object(get_obj_index(vnum),0);
             obj_to_char(obj,ch);
@@ -3159,6 +3159,14 @@ void do_pload( CHAR_DATA *ch, char *argument )
     /* store old room, then move to imm */
     d.character->was_in_room = d.character->in_room;
     char_to_room(d.character, ch->in_room);
+
+	update_lboard( LBOARD_MKILL, d.character, d.character->pcdata->mob_kills, 0);
+	update_lboard( LBOARD_BHD, d.character, d.character->pcdata->behead_cnt, 0);
+	update_lboard( LBOARD_QCOMP, d.character, d.character->pcdata->quest_success, 0);
+	update_lboard( LBOARD_WKILL, d.character, d.character->pcdata->war_kills, 0);
+	update_lboard( LBOARD_EXPL, d.character, d.character->pcdata->explored->set, 0);
+	update_lboard( LBOARD_QFAIL, d.character, d.character->pcdata->quest_failed, 0);
+	update_lboard( LBOARD_PKILL, d.character, d.character->pcdata->pkill_count, 0);
     
     if (d.character->pet != NULL)
     {
@@ -3174,6 +3182,7 @@ void do_pload( CHAR_DATA *ch, char *argument )
         add_follower(d.character->mount,d.character);
         do_mount(d.character, d.character->mount->name);
     }
+
 #endif
 } /* end do_pload */
 
@@ -3611,32 +3620,21 @@ void do_qset( CHAR_DATA *ch, char *argument )
     else    
         limit = atoi(arg5);
 
-#ifndef TESTER
-    if (victim->level <= 100)
-    {
-        send_to_char("Cheating isn't tolerated here.\n\r", ch) ;
-        return ;
-    }
-    else
-#endif /* ifndef TESTER */
-    {
-        /* new function used to set timer on qstatus -Astark Oct 2012 */
-        set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
-        act( "You have successfully changed $N's qstatus.", ch, NULL, victim, TO_CHAR );
-    }
+    /* new function used to set timer on qstatus -Astark Oct 2012 */
+    set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
+    act( "You have successfully changed $N's qstatus.", ch, NULL, victim, TO_CHAR );
     return;
 
 }
 
 void do_dummy( CHAR_DATA *ch, char *argument)
 {
-	#ifdef TESTER
-	send_to_char("TESTER defined\n\r",ch);
-	#endif /* TESTER */
-	#ifdef BUILDER
-	send_to_char("BUILDER defined\n\r",ch);
-	#endif /* BUILDER */
+    printf_to_char(ch, "Time: %ld\n\r", current_time);
+}
 
+void do_mode( CHAR_DATA *ch, char *argument)
+{
+	send_to_char( bin_info_string(), ch);	
 }
 
 
