@@ -42,6 +42,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
+#include <execinfo.h>
 
 #if defined(macintosh) || defined(WIN32)
 #include <sys/types.h>
@@ -54,7 +55,6 @@
 #include "merc.h"
 #include "db.h"
 #include "recycle.h"
-#include "music.h"
 #include "tables.h"
 #include "lookup.h"
 #include "olc.h"
@@ -82,7 +82,8 @@ extern  DESCRIPTOR_DATA *descriptor_free;
 extern  PC_DATA     *pcdata_free;
 extern  AFFECT_DATA *affect_free;
 
-extern  REAL_NUM_STRINGS=0;
+static int REAL_NUM_STRINGS = 0;
+static int HIGHEST_REAL_NUM_STRINGS = 0;
 
 void format_init_flags( void );
 void format_race_flags( void );
@@ -436,6 +437,20 @@ sh_int race_naga;
 sh_int race_vampire;
 
 
+/* channel slot numbers */
+sh_int sn_gossip;
+sh_int sn_auction;
+sh_int sn_music;
+sh_int sn_question;
+sh_int sn_answer;
+sh_int sn_quote;
+sh_int sn_gratz;
+sh_int sn_gametalk;
+sh_int sn_bitch;
+sh_int sn_immtalk;
+sh_int sn_savantalk;
+sh_int sn_newbie;
+
 /*
 * Locals.
 */
@@ -605,7 +620,6 @@ void boot_db()
     }
     
     bounty_table = NULL;
-    calc_song_sns();
 
     format_init_flags();
 
@@ -642,11 +656,23 @@ void boot_db()
             }
     }
 
+    log_string( "Initializing channels." );
+    channel_init();
+
     log_string( "Loading clans" );
     load_clans();
 
     log_string( "Loading religions" );
     load_religions();
+
+    log_string( "Initialzing leaderboards");
+    lboard_init();
+
+    log_string( "Loading leaderboards" );
+    load_lboards();
+
+    log_string( "Loading leaderboard results" );
+    load_lboard_results();
 
     log_string( "Loading skills" );
     load_skills();
@@ -743,13 +769,30 @@ void boot_db()
         load_wizlist();
         log_string("Loading bans");
         load_bans();
-        log_string("Loading songs");
-        load_songs();
         log_string("Loading portals");
         load_portal_list();
     }
     
+    // start checking for memory leaks now that we're ready
+    reset_str_dup();
+    
     return;
+}
+
+
+void channel_init()
+{
+        int sn=0;
+
+        for ( sn ; ; sn++ )
+        {
+            if ( public_channel_table[sn].psn == NULL )
+		break;
+            *public_channel_table[sn].psn = sn;
+        }
+
+
+
 }
 
 /* format all flags correctly --Bobble */
@@ -758,7 +801,6 @@ void format_init_flags( void )
 {
     log_string( "Formatting flags" );
     format_race_flags();
-    format_smithy_flags();
 }
 
 void format_race_flags( void )
@@ -1746,7 +1788,6 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          pRoomIndex->people      = NULL;
          pRoomIndex->contents    = NULL;
          pRoomIndex->extra_descr = NULL;
-         pRoomIndex->singer      = NULL;
          pRoomIndex->area        = area_last;
          pRoomIndex->vnum        = vnum;
          pRoomIndex->name        = fread_string( fp );
@@ -2865,9 +2906,6 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mob->level          = UMAX( 1, pMobIndex->level );
 
     mob->dam_type       = pMobIndex->dam_type;
-    mob->song_hearing = song_null;
-    mob->song_delay = 0;
-    mob->song_singing = song_null;
     if (mob->dam_type == 0)
         switch(number_range(1,3))
     {
@@ -2888,14 +2926,11 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     flag_copy( mob->form, pMobIndex->form );
     flag_copy( mob->parts, pMobIndex->parts );
     mob->size           = pMobIndex->size;
-    mob->material       = str_dup("none");
-
     // money money money
     long wealth = mob_base_wealth( pMobIndex );
     wealth = number_range(wealth/2, wealth * 3/2);
     mob->gold = number_range(wealth/200,wealth/100);
     mob->silver = wealth - (mob->gold * 100);
-    
     // level dependent stats (hp, damage, ...)
     set_mob_level( mob, mob-> level );
     
@@ -2992,7 +3027,6 @@ void clone_mobile(CHAR_DATA *parent, CHAR_DATA *clone)
     flag_copy( clone->form, parent->form );
     flag_copy( clone->parts, parent->parts );
     clone->size     = parent->size;
-    clone->material = str_dup(parent->material);
     flag_copy( clone->off_flags, parent->off_flags );
     clone->dam_type = parent->dam_type;
     clone->start_pos    = parent->start_pos;
@@ -4002,6 +4036,61 @@ void *alloc_perm( int sMem )
 }
 
 
+/*
+* Hashtable of strings recently allocated and not freed
+* Used for debugging memory leaks
+*/
+#define MAX_STR_DUP_KEY 1009
+static char* str_dup_hash[MAX_STR_DUP_KEY];
+static bool str_dup_ready = FALSE;
+
+void reset_str_dup()
+{
+    memset(str_dup_hash, 0, MAX_STR_DUP_KEY * sizeof(char*));
+    str_dup_ready = TRUE;
+    return;    
+}
+
+void remember_str_dup(const char *str)
+{
+    int key = ((unsigned long)str) % MAX_STR_DUP_KEY;
+    
+    if (str_dup_hash[key] == NULL)
+        str_dup_hash[key] = str;
+    REAL_NUM_STRINGS += 1;
+    // auto-dump recently duplicated strings when memory leak is suspected
+    if (HIGHEST_REAL_NUM_STRINGS < REAL_NUM_STRINGS)
+    {
+        HIGHEST_REAL_NUM_STRINGS = REAL_NUM_STRINGS;
+        if (HIGHEST_REAL_NUM_STRINGS % 5000 == 0 && str_dup_ready)
+            dump_str_dup();
+    }
+    return;
+}
+
+void forget_str_dup(const char *str)
+{
+    int key = ((unsigned long)str) % MAX_STR_DUP_KEY;
+    
+    if (str_dup_hash[key] == str)
+        str_dup_hash[key] = NULL;
+    REAL_NUM_STRINGS -= 1;
+    return;
+}
+
+void dump_str_dup()
+{
+    int key;
+    
+    log_string("Strings duplicated but never freed (sample):");
+    for (key = 0; key < MAX_STR_DUP_KEY; key++)
+    {
+        if (str_dup_hash[key] != NULL)
+            fprintf(stdout, "> %s\n\r", str_dup_hash[key]);
+    }
+    reset_str_dup();
+    return;
+}
 
 /*
 * Duplicate a string into dynamic memory.
@@ -4019,11 +4108,9 @@ char *str_dup( const char *str )
     
     str_new = alloc_mem( strlen(str) + 1 );
     strcpy( str_new, str );
-    REAL_NUM_STRINGS += 1;
+    remember_str_dup( str_new );
     return str_new;
 }
-
-
 
 /*
 * Free a string.
@@ -4037,8 +4124,8 @@ void free_string( char *pstr )
         || ( pstr >= string_space && pstr < top_string ) )
         return;
     
+    forget_str_dup( pstr );
     free_mem( pstr, strlen(pstr) + 1 );
-    REAL_NUM_STRINGS -= 1;
     return;
 }
 
@@ -4824,7 +4911,70 @@ void bug( const char *str, int param )
     return;
 }
 
+// return first (minimal) substring of s delimited by c_start and c_end
+char* substr_delim(const char *s, char c_start, char c_end)
+{
+    static char ss_buf[MAX_STRING_LENGTH];
+    int ss_next = 0;
+    bool found = FALSE;
+    
+    while (*s != 0)
+    {
+        if (!found)
+            found = (*s == c_start);
+        else
+        {
+            if (*s == c_end)
+                break;
+            else
+                ss_buf[ss_next++] = *s; 
+        }
+        s++;
+    }
+    // terminate string
+    ss_buf[ss_next] = 0;
+    
+    return ss_buf;
+}
 
+// logs a backtrace
+void log_trace()
+{
+    const int MAX_TRACE = 32;
+    void* buffer[MAX_TRACE];
+    int trace_size = backtrace (buffer, MAX_TRACE);
+    char **trace_msg = backtrace_symbols (buffer, trace_size);
+    char address_buf[MAX_STRING_LENGTH], cmd[MAX_STRING_LENGTH];
+    int i, addr_length;
+    
+    if (trace_msg == NULL || trace_size < 2)
+        return;
+
+    // trace_msg[i] contains the address in hexadecimal in the form "..aeaea() [0x12345678]"
+    // first, we extract the address information
+    address_buf[0] = 0;
+    // we start at 1 to skip call of log_trace        
+    for (i = 1; i < trace_size; i++)
+    {            
+        if (strstr(trace_msg[i], "aeaea") != NULL)
+        {
+            if ( strlen(address_buf) != 0 )
+                strcat(address_buf, " ");
+            strcat(address_buf, substr_delim(trace_msg[i], '[', ']'));
+        }
+        else
+            break;
+    }    
+    free(trace_msg);
+    
+    // second, we feed the addresses into addr2line to get readable information
+    //sprintf(cmd, "addr2line -pfs -e ../src/aeaea %s", address_buf);
+    sprintf(cmd, "addr2line -fs -e ../src/aeaea %s", address_buf);
+    log_string(cmd);
+    system(cmd);
+
+    return;
+}
 
 /*
 * Writes a string to the log.

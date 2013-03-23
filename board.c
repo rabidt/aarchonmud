@@ -135,7 +135,6 @@ BOARD_DATA boards[MAX_BOARD] =
    { "General",  "General discussion",           0, 2, BOARD_NONE, "all", DEF_INCLUDE, 20, 200, NULL, FALSE },
    { "Personal", "Personal messages",            0, 2, BOARD_NONE, "all", DEF_EXCLUDE, 20, 500, NULL, FALSE },
    { "Ideas",    "Suggestions for improvement",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE }, 
-   { "Druids",   "Druid Development",            0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Mechanics","Game Mechanics",               0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Bugs",     "Typos, bugs, errors",          0, 2, BOARD_NONE, "imm", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Pkill",    "Player killers only!",         0, 2, BOARD_PKILL, "pkill", DEF_NORMAL,  20, 200, NULL, FALSE }, 

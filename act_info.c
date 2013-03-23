@@ -61,7 +61,6 @@ DECLARE_DO_FUN( do_exits    );
 DECLARE_DO_FUN( do_look     );
 DECLARE_DO_FUN( do_help     );
 DECLARE_DO_FUN( do_affects  );
-DECLARE_DO_FUN( do_play     );
 DECLARE_DO_FUN(do_lore);
 DECLARE_DO_FUN(do_appraise); 
 DECLARE_DO_FUN(do_say);
@@ -99,10 +98,6 @@ char *  const   where_name  [] =
 
 /* for do_count */
 int max_on = 0;
-
-/* to use the sorted who list */
-extern WHO_DATA *who_list;
-
 
 /*
 * Local functions.
@@ -1051,6 +1046,11 @@ void do_autolist(CHAR_DATA *ch, char *argument)
         send_to_char("You do not accept surrenders from other players.\n\r",ch);
     else
         send_to_char("You accept surrenders from other players.\n\r",ch);
+
+    if (IS_SET(ch->act,PLR_NOEXP))
+        send_to_char("You do not wish to gain experience points.\n\r",ch);
+    else
+        send_to_char("You can gain experience points.\n\r",ch);
 }
 
 void do_autoassist(CHAR_DATA *ch, char *argument)
@@ -1493,6 +1493,28 @@ void do_nosurrender( CHAR_DATA *ch, char *argument )
         {
             send_to_char("You no longer accept surrenders from other players.\n\r",ch);
             SET_BIT(ch->act,PLR_NOSURR);
+        }
+    }    
+}
+
+/* Lets players disable exp gains so that they can stay
+   at a constant level - Astark 2-18-13 */
+
+void do_noexp( CHAR_DATA *ch, char *argument )
+{
+    if (IS_NPC(ch))
+        return;
+    else
+    {
+        if (IS_SET(ch->act,PLR_NOEXP))
+        {
+            send_to_char("You can now gain experience points.\n\r",ch);
+            REMOVE_BIT(ch->act,PLR_NOEXP);
+        }
+        else
+        {
+            send_to_char("You will no longer be able to gain experience points.\n\r",ch);
+            SET_BIT(ch->act,PLR_NOEXP);
         }
     }    
 }
@@ -1945,10 +1967,6 @@ void do_examine( CHAR_DATA *ch, char *argument )
     switch ( obj->item_type )
     {
     default:
-	break;
-	
-    case ITEM_JUKEBOX:
-	do_play(ch,"list");
 	break;
 	
     case ITEM_ARROWS:
@@ -2605,6 +2623,54 @@ void do_whois (CHAR_DATA *ch, char *argument)
     
 }
 
+// for sorting the who_array
+int who_compare( const void* a, const void* b )
+{
+    CHAR_DATA *ch1 = *((CHAR_DATA**) a);
+    CHAR_DATA *ch2 = *((CHAR_DATA**) b);
+    
+    // high-level characters go first
+    if ( ch1->level > ch2->level )
+        return -1;
+    if ( ch1->level < ch2->level )
+        return 1;
+
+    if ( ch1->clan < ch2->clan )
+        return -1;
+    if ( ch1->clan > ch2->clan )
+        return 1;
+
+    // same for clan rank - higher ranks first
+    if ( ch1->pcdata->clan_rank > ch2->pcdata->clan_rank )
+        return -1;
+    if ( ch1->pcdata->clan_rank < ch2->pcdata->clan_rank )
+        return 1;
+
+    return strcmp(ch1->name, ch2->name);
+}
+
+/*
+ * returns number of characters returned in who_array
+ */
+#define MAX_WHO 64
+int create_who_array( CHAR_DATA **who_array )
+{
+    int who_count = 0;
+    DESCRIPTOR_DATA *desc;
+    
+    // gather all characters we want to show
+    for ( desc = descriptor_list; desc != NULL && who_count < MAX_WHO; desc = desc->next )
+    {
+        if ( IS_PLAYING(desc->connected) && desc->character != NULL )
+        {
+            who_array[who_count++] = DESC_PC(desc);
+        }
+    }
+    // now sort it
+    qsort(&who_array[0], who_count, sizeof(CHAR_DATA*), &who_compare);
+    
+    return who_count;
+}
 
 /*
 * New 'who' command originally by Alander of Rivers of Mud.
@@ -2619,7 +2685,8 @@ void do_who( CHAR_DATA *ch, char *argument )
     char levelbuf[8];
     BUFFER *output;
     DESCRIPTOR_DATA *d;
-    WHO_DATA *w;
+    CHAR_DATA* who_array[MAX_WHO];
+    int who_count, w;
     RELIGION_DATA *rel = NULL;
     int iClass;
     int iRace;
@@ -2781,24 +2848,11 @@ void do_who( CHAR_DATA *ch, char *argument )
     buf[0] = '\0';
     output = new_buf();
 
-    for ( w = who_list; w != NULL; w = w->next )
+    who_count = create_who_array( who_array );
+    for ( w = 0; w < who_count; w++ )
     {
-        CHAR_DATA *wch;
-        
-	if( w->desc == NULL )
-	{
-	    bug( "BUG in act_info, do_who:  Null descriptor. %d\n", w->level );
-	    return;
-	}
-        /*
-        * Check for match against restrictions.
-        * Don't use trust as that exposes trusted mortals.
-        */
-        if ( !(w->desc->connected == CON_PLAYING || IS_WRITING_NOTE(w->desc->connected)) )
-            continue;
-        
-        wch = ( w->desc->original != NULL ) ? w->desc->original : w->desc->character;
-        
+        CHAR_DATA *wch = who_array[w];
+                
         if ( !can_see(ch,wch) )
             continue;
         
@@ -2835,6 +2889,7 @@ void do_who( CHAR_DATA *ch, char *argument )
     free_buf(output);
     return;
 }
+#undef MAX_WHO
 
 void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
 {
@@ -4065,11 +4120,7 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
     
     ch->mana -= skill_table[sn].min_mana;
-    /*
-    check_improve(ch,gsn_lore,FALSE,2);
-    if ( weapon )
-	check_improve(ch,gsn_weapons_lore,FALSE,2);
-    */
+
 
     /* ok, he knows something.. */
     say_basic_obj_index_data( ch, org_obj );
@@ -4109,15 +4160,28 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     */
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     if ( IS_NPC(ch) )
 	return; // prevent easy learning by spamming sage
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-	if ( IS_NPC(rch) || !IS_AWAKE(rch) || rch == ch )
+	if ( IS_NPC(rch) || !IS_AWAKE(rch) )
 	    continue;
-	check_improve( rch, gsn_lore, 2, TRUE );
-	if ( weapon )
-	    check_improve( rch, gsn_weapons_lore, 2, TRUE );
+        else
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
+                if ( weapon )
+                    check_improve(ch, gsn_weapons_lore, 5, TRUE);
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+        }
     }
 }
 
@@ -5171,24 +5235,26 @@ void do_attributes( CHAR_DATA *ch, char *argument )
     add_buf( output, buf );
 
     /* ** Stats ** */
-    sprintf( buf,
-   "{D|{x {bStr:{x %3d(%3d)  {bCon:{x %3d(%3d)  {bVit:{x %3d(%3d)  {bAgi:{x %3d(%3d)  {bDex:{x %3d(%3d) {D|{x\n\r",
-         ch->perm_stat[STAT_STR], get_curr_stat(ch,STAT_STR),
-         ch->perm_stat[STAT_CON], get_curr_stat(ch,STAT_CON),
-         ch->perm_stat[STAT_VIT], get_curr_stat(ch,STAT_VIT),
-         ch->perm_stat[STAT_AGI], get_curr_stat(ch,STAT_AGI),
-         ch->perm_stat[STAT_DEX], get_curr_stat(ch,STAT_DEX)  );
-    add_buf( output, buf );
+    if (IS_SET(ch->togg, TOGG_STATBARS))
+        print_stat_bars( ch, output );
+    else
+    {
+        sprintf( buf, "{D|{x {bStr:{x %3d(%3d)  {bCon:{x %3d(%3d)  {bVit:{x %3d(%3d)  {bAgi:{x %3d(%3d)  {bDex:{x %3d(%3d) {D|{x\n\r",
+            ch->perm_stat[STAT_STR], get_curr_stat(ch,STAT_STR),
+            ch->perm_stat[STAT_CON], get_curr_stat(ch,STAT_CON),
+            ch->perm_stat[STAT_VIT], get_curr_stat(ch,STAT_VIT),
+            ch->perm_stat[STAT_AGI], get_curr_stat(ch,STAT_AGI),
+            ch->perm_stat[STAT_DEX], get_curr_stat(ch,STAT_DEX)  );
+        add_buf( output, buf );
 
-    sprintf( buf,
-   "{D|{x {bInt:{x %3d(%3d)  {bWis:{x %3d(%3d)  {bDis:{x %3d(%3d)  {bCha:{x %3d(%3d)  {bLuc:{x %3d(%3d) {D|{x\n\r",
-         ch->perm_stat[STAT_INT], get_curr_stat(ch,STAT_INT),
-         ch->perm_stat[STAT_WIS], get_curr_stat(ch,STAT_WIS),
-         ch->perm_stat[STAT_DIS], get_curr_stat(ch,STAT_DIS),
-         ch->perm_stat[STAT_CHA], get_curr_stat(ch,STAT_CHA),
-         ch->perm_stat[STAT_LUC], get_curr_stat(ch,STAT_LUC)  );
-    add_buf( output, buf );
-
+        sprintf( buf, "{D|{x {bInt:{x %3d(%3d)  {bWis:{x %3d(%3d)  {bDis:{x %3d(%3d)  {bCha:{x %3d(%3d)  {bLuc:{x %3d(%3d) {D|{x\n\r",
+            ch->perm_stat[STAT_INT], get_curr_stat(ch,STAT_INT),
+            ch->perm_stat[STAT_WIS], get_curr_stat(ch,STAT_WIS),
+            ch->perm_stat[STAT_DIS], get_curr_stat(ch,STAT_DIS),
+            ch->perm_stat[STAT_CHA], get_curr_stat(ch,STAT_CHA),
+            ch->perm_stat[STAT_LUC], get_curr_stat(ch,STAT_LUC)  );
+        add_buf( output, buf );
+    }
     /* ** Armor Class ** */
     if( IS_NPC(ch) || ch->level >= 25 )
     {
@@ -5240,8 +5306,58 @@ void do_attributes( CHAR_DATA *ch, char *argument )
     free_buf(output);
 
     return;
-
 }
+
+/* Show Str..Luc bonuses as a bar graph -- Bobble 02/2013 */
+void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
+{
+    const int MAX_COST = 8;
+    char bar_buf[256], buf[MAX_STRING_LENGTH];
+    int bar_next;
+    int si, bonus, cost, partial, i;
+    bool color_switched;
+    struct stat_type *stat;
+    
+    for (si = 0; si < MAX_STATS; si++)
+    {
+        stat = &stat_table[si];
+        bonus = ch->mod_stat[stat->stat];
+        // generate string for bar graph
+        bar_next = 0;
+        color_switched = FALSE;
+        for (cost = 1; cost <= MAX_COST; cost++)
+        {
+            for (i = 0; i < 5; i++)
+            {
+                partial = URANGE(0, bonus, cost);
+                bonus -= partial;
+                if (partial < cost && !color_switched)
+                {
+                    // red color
+                    bar_buf[bar_next++] = '{';
+                    bar_buf[bar_next++] = 'r';
+                    color_switched = TRUE;
+                }
+                bar_buf[bar_next++] = '0' + partial;
+            }
+            if (cost < MAX_COST)
+                bar_buf[bar_next++] = ' ';
+        }
+        // terminate string
+        bar_buf[bar_next++] = 0;
+        // now send it to output
+        sprintf( buf, "{D|{x {b%s: {x%3d %s %3d => %3d  [{g%s{x]  {D|{x\n\r"
+            , stat_table[si].abbreviation
+            , ch->perm_stat[stat->stat]
+            , ch->mod_stat[stat->stat] < 0 ? "-" : "+"
+            , ABS(ch->mod_stat[stat->stat])
+            , get_curr_stat(ch,stat->stat)
+            , bar_buf
+        );
+        add_buf( output, buf );        
+    }
+}
+
 void do_helper( CHAR_DATA *ch, char *argument )
 {
         CHAR_DATA *victim;
@@ -5675,57 +5791,39 @@ void do_count ( CHAR_DATA *ch, char *argument )
             ptc(ch,"You can see %d characters.\n\rSome characters may be invisible to you.\n\r\n\r", count );
 }
 
+
 void do_toggle( CHAR_DATA *ch, char *argument )
 {
   char arg[MIL];
-
-
-
   one_argument( argument, arg);
+  int ti, toggle;
+
   if (argument[0] == '\0')
   {
     send_to_char("\n\r{cToggleable Commands{x / {cCurrent Setting{x\n\r",ch);
     send_to_char("{c-------------------{x   {c----------------{x\n\r",ch);
-    send_to_char("      {wScore {x", ch);
-    if (!IS_SET(ch->togg,TOGG_OLDSCORE))
-      send_to_char("		{wNew Score{x\r\n",ch);
-      else
-      send_to_char("		{wOld Score{x\r\n",ch);
-    send_to_char("      {wFinger {x", ch);
-    if (!IS_SET(ch->togg,TOGG_OLDFINGER))
-      send_to_char("           {wNew Finger{x\r\n",ch);
-      else
-      send_to_char("           {wOld Finger{x\r\n",ch);
+    for (ti=0; togg_flags[ti].name != NULL; ti++)
+    {
+        printf_to_char(ch, "{w%18s    %s{x\n\r",
+            togg_flags[ti].name
+            , IS_SET(ch->togg,togg_flags[ti].bit) ? "ON" : "OFF"
+        );
+    }
+    return;
   }
 
-
-  if (!str_cmp(arg,"score"))
+  toggle = flag_lookup(argument, togg_flags);
+  if (toggle == NO_FLAG)
   {
-    if (IS_SET(ch->togg,TOGG_OLDSCORE))
-    {
-      send_to_char("\n\rNew Score Enabled.\r\n", ch);
-      REMOVE_BIT(ch->togg,TOGG_OLDSCORE);
-    }
-    else
-    {
-      send_to_char("\n\rOld Score Enabled.\r\n", ch);
-      SET_BIT(ch->togg,TOGG_OLDSCORE);
-    }
+      printf_to_char(ch, "Unknown toggle '%s'. Type toggle without arguments for available toggles.", argument);
+      return;
   }
+  
+  // all good, let's do it
+  TOGGLE_BIT(ch->togg, toggle);
+  printf_to_char(ch, "Toggled %s.\n\r", IS_SET(ch->togg,toggle) ? "ON" : "OFF");
 
-  if (!str_cmp(arg,"finger"))
-  {
-    if (IS_SET(ch->togg,TOGG_OLDFINGER))
-    {
-      send_to_char("\n\rNew Finger Enabled.\r\n", ch);
-      REMOVE_BIT(ch->togg,TOGG_OLDFINGER);
-    }
-    else
-    { 
-      send_to_char("\n\rOld Finger Enabled.\r\n", ch);
-      SET_BIT(ch->togg,TOGG_OLDFINGER);
-    }
-  }
+  return;
 }
 /* NEW worth function by Quirky: July 6, 1998 */
 void do_oldworth( CHAR_DATA *ch, char *argument )

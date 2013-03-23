@@ -120,8 +120,6 @@ DECLARE_DO_FUN(do_asave     );
 
 /* external functions */
 void war_remove( CHAR_DATA *ch, bool killed );
-void add_to_who_list( DESCRIPTOR_DATA *d );
-void remove_from_who_list( DESCRIPTOR_DATA *d );
 bool flush_descriptor( DESCRIPTOR_DATA *d );
 bool desc_cmp( DESCRIPTOR_DATA *d1, DESCRIPTOR_DATA *d2 );
 void add_descriptor( DESCRIPTOR_DATA *d );
@@ -139,8 +137,6 @@ void install_other_handlers ();
 extern  int malloc_debug    args( ( int  ) );
 extern  int malloc_verify   args( ( void ) );
 #endif
-
-extern int REAL_NUM_STRINGS;
 
 
 /*
@@ -381,7 +377,6 @@ int write       args( ( int fd, char *buf, int nbyte ) );
 */
 DESCRIPTOR_DATA *   descriptor_list;    /* All open descriptors     */
 DESCRIPTOR_DATA *   d_next;     /* Next descriptor in loop  */
-WHO_DATA	*   who_list;	/* All players connected, sorted by level */
 FILE *          fpReserve;      /* Reserved file handle     */
 bool            god;        /* All new chars are gods!  */
 bool            merc_down;      /* Shutdown         */
@@ -464,6 +459,9 @@ int main( int argc, char **argv )
 	csetmode( C_RAW, stdin );
 	cecho2file( "log file", 1, stderr );
 #endif
+	
+	/* Log some info about the binary if present */
+	log_string(bin_info_string());
 	
 	/*
 	* Reserve one channel for our use.
@@ -745,14 +743,6 @@ void game_loop_mac_msdos( void )
 			if (d->character != NULL && d->character->slow_move > 0)
 				--d->character->slow_move;
 			
-			if ((d->character != NULL) && (d->character->song_singing != song_null))
-			{
-				if (d->character->song_delay >0)
-					--d->character->song_delay;
-				else
-					update_song(d->character);
-			}
-			
 			if ( d->character != NULL && d->character->wait > 0 )
 			{
 				--d->character->wait;
@@ -989,9 +979,7 @@ void game_loop_unix( int control )
 				}
 			}
 			
-			if ((d->connected!=CON_PLAYING)
-				&&(!IS_WRITING_NOTE(d->connected))
-				&&(d->inactive>4800))
+			if (!IS_PLAYING(d->connected) && (d->inactive>4800))
 			{
 				write_to_buffer( d, "Logon timed out.\n\r", 0 );
 				close_socket( d );
@@ -1015,14 +1003,6 @@ void game_loop_unix( int control )
 
 			if (d->character != NULL && d->character->slow_move > 0)
 				--d->character->slow_move;
-			
-			if ((d->character != NULL) && (d->character->song_singing != song_null))
-			{
-				if (d->character->song_delay >0)
-					--d->character->song_delay;
-				else
-					update_song(d->character);
-			}
 			
 			if ( d->character != NULL && d->character->wait > 0 )
 			{
@@ -1089,7 +1069,6 @@ void game_loop_unix( int control )
 		* Autonomous game motion.
 		*/
 		update_handler( );
-                //handle_web(); /* Keeps the webserver updated */
 		
 		/*
 		 * Output.
@@ -1396,10 +1375,8 @@ void close_socket( DESCRIPTOR_DATA *dclose )
         }
         
         /* If ch is writing note or playing, just lose link otherwise clear char */
-        if (!merc_down &&
-            (dclose->connected == CON_PLAYING || IS_WRITING_NOTE(dclose->connected)))
+        if (!merc_down && IS_PLAYING(dclose->connected))
         {
-	    remove_from_who_list(dclose);
             act( "$n has lost $s link.", ch, NULL, NULL, TO_ROOM );
             wiznet("Net death has claimed $N.",ch,NULL,WIZ_LINKS,0,0);
 
@@ -1443,6 +1420,8 @@ void close_socket( DESCRIPTOR_DATA *dclose )
         else
             bug( "Close_socket: dclose not found.", 0 );
     }
+    
+    set_con_state(dclose, CON_CLOSED);
     
 #if !defined( WIN32 )
     close( dclose->descriptor );
@@ -3532,8 +3511,6 @@ void copyover_recover ()
             d->character->next = char_list;
             char_list = d->character;
             
-	    add_to_who_list(d);
-
             char_to_room (d->character, d->character->in_room);
             do_look (d->character, "auto");
             act ("$n materializes!", d->character, NULL, NULL, TO_ROOM);
@@ -3719,3 +3696,35 @@ void install_other_handlers ()
     signal (SIGINT, nasty_signal_handler);
 }
 
+char *bin_info_string()
+{
+	static char buf[MSL];
+	strcpy( buf, "\n\r" );
+
+        #ifdef MKTIME
+	strcat(buf, "Make time: ");
+	strcat(buf, MKTIME);
+	strcat(buf, "\n\r");
+        #endif
+        #ifdef BRANCH
+	strcat(buf, "Branch: ");
+        strcat(buf, BRANCH);
+        strcat(buf, "\n\r");
+        #endif
+        #ifdef PARENT
+	strcat(buf, "Parent: ");
+        strcat(buf, PARENT);
+        strcat(buf, "\n\r");
+        #endif
+	strcat(buf, "Game modes defined:\n\r");
+        #ifdef TESTER
+        strcat(buf, "TESTER defined\n\r");
+        #endif
+        #ifdef REMORT
+        strcat(buf, "REMORT defined\n\r");
+        #endif
+        #ifdef BUILDER
+        strcat(buf,"BUILDER defined\n\r");
+        #endif
+	return buf;
+}

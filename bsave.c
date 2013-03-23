@@ -180,6 +180,11 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     bwrite_char( ch, mf->buf );
     if ( ch->carrying != NULL )
       bwrite_obj( ch, ch->carrying, mf->buf, 0 );
+
+    /* a little safety in case crash or copyover while smithing */
+    if ( ch->pcdata->smith )
+        bwrite_obj( ch, ch->pcdata->smith->old_obj, mf->buf, 0 );
+
     /* save the pets */
     if (ch->pet != NULL && ch->pet->in_room == ch->in_room)
       bwrite_pet(ch->pet, mf->buf);
@@ -493,6 +498,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "PKPoints %d\n",   ch->pcdata->pkpoints );
         
         bprintf( buf, "PKCount %d\n",    ch->pcdata->pkill_count );
+	bprintf( buf, "PKExpire %ld\n",  ch->pcdata->pkill_expire);
 
         bprintf( buf, "Remort %d\n",  ch->pcdata->remorts);
         
@@ -990,16 +996,6 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     if ( obj->material != obj->pIndexData->material)
         bprintf( buf, "Mat %s~\n",   obj->material         );
 
-    if ( obj->pIndexData->vnum == OBJ_VNUM_BLACKSMITH )
-    {
-	if ( !flag_equal(obj->wear_flags, obj->pIndexData->wear_flags) )
-	    bprintf( buf, "WeaF %s\n",   print_tflag(obj->wear_flags) );
-	if ( obj->item_type != obj->pIndexData->item_type)
-	    bprintf( buf, "Ityp %d\n",   obj->item_type           );
-	if ( obj->weight != obj->pIndexData->weight)
-	    bprintf( buf, "Wt   %d\n",   obj->weight          );
-    }
-
     /*
     if ( obj->durability != obj->pIndexData->durability)
         bprintf( buf, "Dur  %d\n",   obj->durability );
@@ -1153,9 +1149,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
         ch->pcdata->history_stats[stat]     = 0;
     ch->pcdata->bounty          = 0;
     ch->pcdata->demerit_points  = 0;
-    ch->song_singing    = song_null;
-    ch->song_hearing = song_null;
-    ch->song_delay = 0;
     ch->slow_move = 0;
 
     ch->pcdata->bounty_sort         = NULL;
@@ -2006,6 +1999,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 	    fMatch = TRUE;
 	    break;
 	}
+	
+	KEY( "PKExpire", ch->pcdata->pkill_expire, bread_number( buf) );
 
         break;
         
