@@ -1398,7 +1398,7 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     if ( IS_NPC(ch) )
 	dam = dice(ch->damage[DICE_NUMBER], ch->damage[DICE_TYPE]);
     else
-	dam = ch->level + dice( 1, 4 );
+	dam = ch->level + dice( 2, 4 );
 
     /* weapon damage */
     if ( wield != NULL )
