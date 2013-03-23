@@ -4589,7 +4589,12 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
             if (IS_NPC(victim))
             {
                 if (obj->owner == NULL && killer)
-                    obj->owner = str_dup(killer->name);
+                {
+                    if ( IS_NPC(killer) && killer->master )
+                        obj->owner = str_dup(killer->master->name);
+                    else
+                        obj->owner = str_dup(killer->name);
+                }
             }
             else
                 continue;
