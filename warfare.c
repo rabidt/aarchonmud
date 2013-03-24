@@ -56,30 +56,66 @@ warfares automatically. Astark Nov 2012 */
 
 void auto_war(void)
 {
+    const int level_range = 30;
     char buf[MSL];
-    int toplevel;
-    auto_war_time = current_time + 3600;
+    int toplevel, level;
+    int player_count[LEVEL_HERO+1];
+    long prob_sum = 0;
+    DESCRIPTOR_DATA *desc;
+    
+    // 2 hours till next automatic warfare
+    auto_war_time = current_time + 2*3600;
 
-    if (number_bits(3))
+    war.type = ARMAGEDDON_WAR;
+
+    // collect online characters elligible for warfare
+    for ( level = 0; level <= LEVEL_HERO; level++)
+        player_count[level] = 0;
+    for ( desc = descriptor_list; desc != NULL; desc = desc->next )
     {
-        switch ( number_range(0, 3) )
-        {
-        case 0: war.type = CLASS_WAR; break;
-        case 1: war.type = RACE_WAR; break;
-        case 2: war.type = CLAN_WAR; break;
-        case 3: war.type = GENDER_WAR; break;
-        }
+        if ( IS_PLAYING(desc->connected)
+            && desc->character != NULL
+            && !IS_NPC(desc->character)
+            && !IS_IMMORTAL(desc->character)
+            && desc->character->in_room != NULL
+            && !IS_SET( desc->character->in_room->area->area_flags, AREA_REMORT )
+        )
+        for ( level = desc->character->level; level <= UMIN(LEVEL_HERO, desc->character->level+level_range); level++ )
+            player_count[level] += 1;
     }
-    else
-        war.type = ARMAGEDDON_WAR;
-
-    if (number_bits(1))
-        toplevel = number_range(40,100);
-    else
-        toplevel = number_range(90,100);
+    // compute relative probabilities for a level to be selected - eliminating single-player cases
+    for ( level = level_range; level <= LEVEL_HERO; level++ )
+    {
+        player_count[level] *= player_count[level] - 1;
+        prob_sum += player_count[level];
+    }
+    // not enough players to get a warfare going?
+    if ( prob_sum == 0 )
+    {
+        // try again in 5 minutes
+        auto_war_time = current_time + 300;
+        return;
+    }
+    // now select a level based on relative probabilities stored in player_count
+    toplevel = 0;
+    for ( level = level_range; level <= LEVEL_HERO; level++ )
+    {
+        if ( number_range(1, prob_sum) <= player_count[level] )
+        {
+            toplevel = level;
+            break;
+        }
+        prob_sum -= player_count[level];
+    }
+    // safety-net
+    if (toplevel == 0)
+    {
+        bugf("auto_war: no top_level selected");
+        return;
+    }
 
     war.max_level = toplevel;
-    war.min_level = toplevel - 30;
+    war.min_level = toplevel - level_range;
 
     war.on = TRUE;
     war.started = FALSE;
