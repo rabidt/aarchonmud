@@ -561,3 +561,4 @@ DECLARE_DO_FUN( do_mode);
 DECLARE_DO_FUN( do_fstat);
 #endif
 DECLARE_DO_FUN( do_cmotd);
+DECLARE_DO_FUN( do_pgrep);
