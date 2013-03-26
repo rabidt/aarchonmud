@@ -3994,3 +3994,15 @@ void do_mortlag(CHAR_DATA *ch, char *argument)
   }
 }
 
+void do_pgrep( CHAR_DATA *ch, char *argument)
+{
+    if ( argument[0] == '\0' )
+    {
+        send_to_char(" pgrep <text> -- searches for the text in the player folder\n\r", ch );
+        return;
+    }
+
+    char buf[MSL];
+    sprintf( buf, "grep \"%s\" ../player/*", argument);
+    do_pipe(ch, buf);
+} 
