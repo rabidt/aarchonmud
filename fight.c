@@ -584,9 +584,14 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (5, 25);
         infect += ch->level/5;
 
+        if (infect > ch->hit)
+            return;
+        else
+        {
 	send_to_char( "Your ruptured wound oozes blood.\n\r", ch ); 
         full_dam( ch, ch, infect, gsn_rupture, DAM_PIERCE, TRUE );
 	update_pos( ch );
+        }
     }
 
     /* Paralysis - DOT - Damage over time - Astark Oct 2012 */
@@ -597,9 +602,14 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (20, 40);
         infect += ch->level/5;
 
+        if (infect > ch->hit)
+            return;
+        else
+        {
 	send_to_char( "The paralyzing poison cripples you.\n\r", ch ); 
         full_dam( ch, ch, infect, gsn_paralysis_poison, DAM_POISON, TRUE );
 	update_pos( ch );
+        }
     }
     
 }
@@ -2342,11 +2352,6 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     for ( flag = 0; weapon_type2[flag].name != NULL; flag++ )
     {
 	int bit = weapon_type2[flag].bit;
-
-	if ( wield->pIndexData->vnum == OBJ_VNUM_BLACKSMITH
-	     && (bit == WEAPON_SHARP || bit == WEAPON_VORPAL)
-	     || bit == WEAPON_TWO_HANDS )
-	    continue;
 
 	if ( number_bits(10) == 0
 	     && IS_WEAPON_STAT(wield, bit)
@@ -4584,7 +4589,12 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
             if (IS_NPC(victim))
             {
                 if (obj->owner == NULL && killer)
-                    obj->owner = str_dup(killer->name);
+                {
+                    if ( IS_NPC(killer) && killer->master )
+                        obj->owner = str_dup(killer->master->name);
+                    else
+                        obj->owner = str_dup(killer->name);
+                }
             }
             else
                 continue;
