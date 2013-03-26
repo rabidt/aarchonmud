@@ -1534,14 +1534,14 @@ void do_cset( CHAR_DATA *ch, char *argument )
         }
 
         if (   IS_SET(pRoom->room_flags, ROOM_NOWHERE)
-            && IS_SET(pRoom->room_flags, ROOM_PRIVATE)
-            && IS_SET(pRoom->room_flags, ROOM_SOLITARY)
-            && IS_SET(pRoom->room_flags, ROOM_IMP_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_PET_SHOP)
-            && IS_SET(pRoom->room_flags, ROOM_GODS_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_HEROES_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_JAIL)
-            && IS_SET(pRoom->room_flags, ROOM_NEWBIES_ONLY))
+            || IS_SET(pRoom->room_flags, ROOM_PRIVATE)
+            || IS_SET(pRoom->room_flags, ROOM_SOLITARY)
+            || IS_SET(pRoom->room_flags, ROOM_IMP_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_PET_SHOP)
+            || IS_SET(pRoom->room_flags, ROOM_GODS_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_HEROES_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_JAIL)
+            || IS_SET(pRoom->room_flags, ROOM_NEWBIES_ONLY))
         {
             send_to_char("That is not an acceptable room.\n\r", ch);
             return;
@@ -1565,14 +1565,14 @@ void do_cset( CHAR_DATA *ch, char *argument )
         }
 
         if (   IS_SET(pRoom->room_flags, ROOM_NOWHERE)
-            && IS_SET(pRoom->room_flags, ROOM_PRIVATE)
-            && IS_SET(pRoom->room_flags, ROOM_SOLITARY)
-            && IS_SET(pRoom->room_flags, ROOM_IMP_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_PET_SHOP)
-            && IS_SET(pRoom->room_flags, ROOM_GODS_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_HEROES_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_JAIL)
-            && IS_SET(pRoom->room_flags, ROOM_NEWBIES_ONLY))
+            || IS_SET(pRoom->room_flags, ROOM_PRIVATE)
+            || IS_SET(pRoom->room_flags, ROOM_SOLITARY)
+            || IS_SET(pRoom->room_flags, ROOM_IMP_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_PET_SHOP)
+            || IS_SET(pRoom->room_flags, ROOM_GODS_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_HEROES_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_JAIL)
+            || IS_SET(pRoom->room_flags, ROOM_NEWBIES_ONLY))
         {
             send_to_char("That is not an acceptable room.\n\r", ch);
             return;
