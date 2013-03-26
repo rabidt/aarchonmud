@@ -1931,6 +1931,10 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	/* assassins are ALWAYS pkillers */
 	if (ch->class == class_lookup("assassin"))
 	    SET_BIT(ch->act, PLR_PERM_PKILL);
+	/* Set expire date for PK chars with none set yet */
+	if ( IS_SET( ch->act, PLR_PERM_PKILL) 
+	   &&  ch->pcdata->pkill_expire == 0 )
+		reset_pkill_expire(ch);
 
 	/* fix in case someone was in warfare when crash happened */
 	if ( !IS_IMMORTAL(ch) && ch->in_room != NULL

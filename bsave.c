@@ -498,6 +498,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "PKPoints %d\n",   ch->pcdata->pkpoints );
         
         bprintf( buf, "PKCount %d\n",    ch->pcdata->pkill_count );
+	bprintf( buf, "PKExpire %ld\n",  ch->pcdata->pkill_expire);
 
         bprintf( buf, "Remort %d\n",  ch->pcdata->remorts);
         
@@ -2002,6 +2003,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 	    fMatch = TRUE;
 	    break;
 	}
+	
+	KEY( "PKExpire", ch->pcdata->pkill_expire, bread_number( buf) );
 
         break;
         
