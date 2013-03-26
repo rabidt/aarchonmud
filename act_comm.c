@@ -1013,15 +1013,6 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     int pos;
 
     
-    if ( !IS_IMMORTAL(ch)
-	 && !IS_IMMORTAL(victim)
-	 && !IS_HELPER(ch)
-	 && !IS_HELPER(victim) )
-    {
-        act( "$E can't hear you.", ch, 0, victim, TO_CHAR );
-        return;
-    }
-    
     if ((IS_SET(victim->comm,COMM_QUIET) || IS_SET(victim->comm,COMM_DEAF))
         && !IS_IMMORTAL(ch))
     {
