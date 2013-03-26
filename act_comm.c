@@ -1016,8 +1016,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     if ( !IS_IMMORTAL(ch)
 	 && !IS_IMMORTAL(victim)
 	 && !IS_HELPER(ch)
-	 && !IS_HELPER(victim)
-	 && !IS_AWAKE(victim) )
+	 && !IS_HELPER(victim) )
     {
         act( "$E can't hear you.", ch, 0, victim, TO_CHAR );
         return;
