@@ -547,6 +547,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
             ch->pcdata->condition[3],
             ch->pcdata->condition[4],
             ch->pcdata->condition[5] );
+
+    bprintf( buf, "Stance %d", ch->stance );
         
        /*
         * Write Colour Config Information.
@@ -2084,6 +2086,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 ch->pcdata->learned[sn] = value;
             fMatch = TRUE;
         }
+
+        KEY( "Stance",  ch->stance, bread_number( buf ) );
         
         break;
         
