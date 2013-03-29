@@ -2197,6 +2197,25 @@ void do_group( CHAR_DATA *ch, char *argument )
     
     if ( is_same_group( victim, ch ) && ch != victim )
     {
+        char arg2[MIL];
+        char *remain;
+        remain=one_argument( argument, arg2 );
+        remain=one_argument( remain, arg2 ); /*twice to get 2nd argument*/
+        if ( arg2[0] != '\0' );
+        {
+            if ( !strcmp( arg2, "leader") )
+            {
+                try_set_leader( ch, victim );
+                return;
+            }
+            else
+            {
+                send_to_char("  group <player> - add a player to your group\n\r"
+                             "  group <player> leader - pass leadership of your group to a player\n\r", ch);
+                ptc( ch, "%s\n\r", arg2);
+                return;
+            }
+        }
         victim->leader = NULL;
         act_new("$n removes $N from $s group.",
             ch,NULL,victim,TO_NOTVICT,POS_RESTING);
@@ -2220,6 +2239,50 @@ void do_group( CHAR_DATA *ch, char *argument )
     }
     return;
 }
+
+void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( !ch )
+    {
+        bug("Null ch in try_set_leader.",0);
+        return;
+    }
+
+    if ( !victim )
+    {
+        bug( "Null victim in try_set_leader.",0);
+        return;
+    }
+
+    if (IS_NPC(ch))
+        return;
+
+    if (IS_NPC(victim))
+    {
+        send_to_char( "Leader must be a player.", ch);
+        return;
+    }
+
+    if ( victim->leader != ch )
+    {
+        send_to_char( "You can't pass leadership to somebody you don't lead.\n\r", ch );
+        return;
+    }
+    CHAR_DATA *gch;
+
+    for ( gch = char_list; gch != NULL; gch = gch->next )
+    {
+        if ( IS_NPC(gch) )
+            continue;
+        if ( gch->leader=ch )
+        {
+            gch->leader=victim;
+            gch->master=victim;
+            ptc( gch, "%s now leads your group.", victim->name );
+        }
+    }
+}
+
 
 /* command for releasing charmed followers */
 void do_release( CHAR_DATA *ch, char *argument )
