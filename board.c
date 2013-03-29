@@ -887,6 +887,7 @@ void do_note (CHAR_DATA *ch, char *argument)
       "        note list            - List all notes on the current board.\n\r"
       "        note remove <number> - Remove a specific note on the current board.\n\r"
       "        note catchup         - Skip all unread notes on the current board.\n\r"
+      "        note catchup all     - Skip all unread notes on all boards.\n\r"
       "        note help            - Same as HELP NOTE.\n\r",ch);
    
 }
