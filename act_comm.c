@@ -2163,9 +2163,9 @@ void do_group( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ch->master != NULL || ( ch->leader != NULL && ch->leader != ch ) )
+    if ( ch->leader != NULL && ch->leader != ch  )
     {
-        send_to_char( "But you are following someone else!\n\r", ch );
+        send_to_char( "Only the leader may add to the group!\n\r", ch );
         return;
     }
     

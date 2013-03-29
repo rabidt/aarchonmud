@@ -2062,6 +2062,9 @@ void bust_a_prompt( CHAR_DATA *ch )
 				sprintf( buf2, "%s", IS_GOOD(ch) ? "good" : IS_EVIL(ch) ?
 				"evil" : "neutral" );
 			i = buf2; break;
+        case 'l' :
+            sprintf( buf2, "%d", ch->level);
+            i = buf2; break;
 		case 'r' :
 			if( ch->in_room != NULL )
 				sprintf( buf2, "%s", 
