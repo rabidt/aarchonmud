@@ -38,6 +38,7 @@
 #include "tables.h"
 #include "warfare.h"
 #include "lookup.h"
+#include "leaderboard.h"
 
 extern WAR_DATA war;
 
@@ -55,6 +56,7 @@ void adjust_pkgrade( CHAR_DATA *killer, CHAR_DATA *victim, bool theft );
 void adjust_wargrade( CHAR_DATA *killer, CHAR_DATA *victim );
 
 /* command procedures needed */
+DECLARE_DO_FUN(do_fstat	    );
 DECLARE_DO_FUN(do_backstab  );
 DECLARE_DO_FUN(do_circle    );
 DECLARE_DO_FUN(do_emote     );
@@ -449,6 +451,9 @@ void special_affect_update(CHAR_DATA *ch)
 	    /* resist roll to half damage */
 	    if ( ch->move > 0 && number_percent() <= chance )
 		dam /= 2;
+	    #ifdef FSTAT
+	    ch->moves_used += (UMIN( ch->move, dam) );
+	    #endif
 	    ch->move = UMAX(0, ch->move - dam);
 	    /* resist roll to avoid hp loss */
 	    if ( (ch->move == 0) /* no more air :) */
@@ -560,9 +565,14 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (6,30);
         infect += ch->level/6;
 
-        send_to_char( "Your festering wound oozes blood.\n\r", ch );
-        full_dam( ch, ch, infect, gsn_infectious_arrow, DAM_DISEASE, TRUE );
-	update_pos( ch );
+        if (infect > ch->hit)
+            return;
+        else
+        {
+            send_to_char( "Your festering wound oozes blood.\n\r", ch );
+            full_dam( ch, ch, infect, gsn_infectious_arrow, DAM_DISEASE, TRUE );
+	    update_pos( ch );
+        }
     }
 
 
@@ -574,9 +584,14 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (5, 25);
         infect += ch->level/5;
 
+        if (infect > ch->hit)
+            return;
+        else
+        {
 	send_to_char( "Your ruptured wound oozes blood.\n\r", ch ); 
         full_dam( ch, ch, infect, gsn_rupture, DAM_PIERCE, TRUE );
 	update_pos( ch );
+        }
     }
 
     /* Paralysis - DOT - Damage over time - Astark Oct 2012 */
@@ -587,9 +602,14 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (20, 40);
         infect += ch->level/5;
 
+        if (infect > ch->hit)
+            return;
+        else
+        {
 	send_to_char( "The paralyzing poison cripples you.\n\r", ch ); 
         full_dam( ch, ch, infect, gsn_paralysis_poison, DAM_POISON, TRUE );
 	update_pos( ch );
+        }
     }
     
 }
@@ -1253,6 +1273,7 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     }
 
     stance_hit(ch, victim, dt);
+    CHECK_RETURN(ch, victim);
     
     /* Area attack -- BALLS nasty! */
     
@@ -2319,11 +2340,6 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     {
 	int bit = weapon_type2[flag].bit;
 
-	if ( wield->pIndexData->vnum == OBJ_VNUM_BLACKSMITH
-	     && (bit == WEAPON_SHARP || bit == WEAPON_VORPAL)
-	     || bit == WEAPON_TWO_HANDS )
-	    continue;
-
 	if ( number_bits(10) == 0
 	     && IS_WEAPON_STAT(wield, bit)
 	     && !IS_WEAPON_STAT(wield->pIndexData, bit) )
@@ -2784,7 +2800,15 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
         dam_message( ch, victim, dam, dt, immune );
     
     if (dam == 0)
+    {
+	#ifdef FSTAT
+	ch->attacks_misses += 1;
+	#endif
         return FALSE;
+    }
+    #ifdef FSTAT
+    ch->attacks_success += 1;
+    #endif
     
     if ( is_affected(victim, gsn_disguise)
 	 && chance( 100 * dam / victim->level )
@@ -2860,6 +2884,12 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
     }
 
     victim->hit -= dam;
+    #ifdef FSTAT 
+    victim->damage_taken += dam;
+    ch->damage_dealt += dam;
+    if ( dam < 1 )
+	ch->attacks_misses +=1;
+    #endif
     remember_attack(victim, ch, dam);
     
     /* deaths door check Added by Tryste */
@@ -3080,6 +3110,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !IS_NPC(ch) && IS_NPC(victim) )
     {
 	ch->pcdata->mob_kills++;
+	update_lboard( LBOARD_MKILL, ch, ch->pcdata->mob_kills, 1);
         check_achievement(ch);
     }
 
@@ -3093,7 +3124,6 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     */
     
     check_kill_quest_completed( ch, victim );
-    stop_singing(victim);
         
     if (!IS_NPC(victim))
     {
@@ -3129,6 +3159,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	    if (!IS_SET(victim->act, PLR_WAR)) 
             {
 		ch->pcdata->pkill_count++;
+		update_lboard( LBOARD_PKILL, ch, ch->pcdata->pkill_count, 1);
 		adjust_pkgrade( ch, victim, FALSE );
 		
 		if (!clan_table[ch->clan].active)
@@ -4545,7 +4576,12 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
             if (IS_NPC(victim))
             {
                 if (obj->owner == NULL && killer)
-                    obj->owner = str_dup(killer->name);
+                {
+                    if ( IS_NPC(killer) && killer->master )
+                        obj->owner = str_dup(killer->master->name);
+                    else
+                        obj->owner = str_dup(killer->name);
+                }
             }
             else
                 continue;
@@ -4656,7 +4692,7 @@ void death_cry( CHAR_DATA *ch )
     {
     case  0: msg  = "$n hits the ground ... DEAD.";         break;
     case  1: 
-        if (ch->material == 0)
+        if (!IS_SET(ch->form, FORM_CONSTRUCT) && !IS_SET(ch->form, FORM_INTANGIBLE))
         {
             msg  = "$n splatters blood on your armor.";     
             break;
@@ -5360,7 +5396,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     const char *vs;
     const char *vp;
     const char *attack;
-	char *victmeter, *chmeter;
+    char *victmeter, *chmeter;
     char punct;
     long gag_type = 0;
     int sn;
@@ -5374,8 +5410,13 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
         return;
 
 	sprintf(buf, " for %d damage", dam);
+	#ifdef TESTER
+	chmeter = buf;
+	victmeter = buf;
+	#else
 	chmeter = ((IS_AFFECTED(ch, AFF_BATTLE_METER) && (dam>0)) ? buf : "");
 	victmeter = ((IS_AFFECTED(victim, AFF_BATTLE_METER) && (dam>0)) ? buf : "");
+	#endif
 
 	if (dam<100)
 	if (dam < 39)
@@ -6288,6 +6329,9 @@ void check_stance(CHAR_DATA *ch)
     check_improve(ch,*(stances[ch->stance].gsn),TRUE,3);
     
     ch->move -= cost;
+    #ifdef FSTAT
+    ch->moves_used += cost;
+    #endif
 
     /*Added by Korinn 1-19-99 */
     if (ch->stance == STANCE_FIREWITCHS_SEANCE)
@@ -6503,3 +6547,31 @@ int get_pkgrade_level( int pts )
     return grade_level;
 }
 
+#ifdef TESTER
+void do_fstat( CHAR_DATA *ch, char *argument)
+{
+    if ( argument[0] != '\0' && !str_prefix( argument, "clear" ) )
+    {
+	ch->attacks_success=0;
+        ch->attacks_misses=0;
+        ch->damage_dealt=0;
+        ch->damage_taken=0;
+        ch->mana_used=0;
+        ch->moves_used=0;
+	send_to_char("Fstat cleared.\n\r",ch);
+    }
+	
+	send_to_char("\n",ch);
+	printf_to_char(ch, "%-30s %20d\n", "Hits:", ch->attacks_success);
+	printf_to_char(ch, "%-30s %20d\n", "Misses:", ch->attacks_misses);
+	printf_to_char(ch, "%-30s %20d\n", "Damage dealt:", ch->damage_dealt);
+	printf_to_char(ch, "%-30s %20f\n", "Avg damage per hit:", (float)ch->damage_dealt/ch->attacks_success ); 
+	printf_to_char(ch, "%-30s %20f\n", "Avg damage per attempt:", (float)ch->damage_dealt/(ch->attacks_success + ch->attacks_misses) );
+
+	send_to_char("\n",ch);
+	printf_to_char(ch, "%-30s %20d\n", "Damage taken:", ch->damage_taken);
+	printf_to_char(ch, "%-30s %20d\n", "Mana used:", ch->mana_used);
+	printf_to_char(ch, "%-30s %20d\n", "Moves used:", ch->moves_used);
+}
+	
+#endif

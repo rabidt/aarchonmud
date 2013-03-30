@@ -3332,7 +3332,10 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim)
         
         /* Vodur and Astark bug fix 1-17-13. Mobs beheading players caused a crash */
         if(!IS_NPC(ch))
+	{
             ch->pcdata->behead_cnt += 1;
+	    update_lboard( LBOARD_BHD, ch, ch->pcdata->behead_cnt, 1);
+	}
 					 
 	name = IS_NPC(victim) ? victim->short_descr : victim->name;
 	obj  = create_object( get_obj_index( OBJ_VNUM_SEVERED_HEAD ), 0 );
@@ -4877,7 +4880,7 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
         one_hit( ch, victim, gsn_paroxysm, FALSE);
 	CHECK_RETURN(ch, victim);
 
-	check_assassinate( ch, victim, obj, 1 );
+	check_assassinate( ch, victim, obj, 6 );
 	CHECK_RETURN(ch, victim);
 
 	act("$n lashes out in a paroxysm of rage preventing you from stancing!",ch,NULL,victim,TO_VICT);
@@ -5039,7 +5042,7 @@ void do_rupture( CHAR_DATA *ch, char *argument )
         one_hit( ch, victim, gsn_rupture, FALSE);
 	CHECK_RETURN(ch, victim);
 
-	check_assassinate( ch, victim, obj, 1 );
+	check_assassinate( ch, victim, obj, 6 );
 	CHECK_RETURN(ch, victim);
 
 	act("$n ruptures your body causing serious pain!",ch,NULL,victim,TO_VICT);
