@@ -219,7 +219,6 @@ ROOM_INDEX_DATA *new_room_index( void )
     pRoom->clan		    =	0;
     pRoom->heal_rate	    =   100;
     pRoom->mana_rate	    =   100;
-    pRoom->singer           =   NULL;
 
     return pRoom;
 }

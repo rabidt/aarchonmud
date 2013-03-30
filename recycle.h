@@ -78,10 +78,6 @@ DESCRIPTOR_DATA	*new_descriptor args( (void) );
 void	free_descriptor args( (DESCRIPTOR_DATA *d) );
 //#undef DD
 
-/* who_data recycling */
-WHO_DATA	*new_who_data args( (void) );
-void		free_who_data args( (WHO_DATA *who) );
-
 /* char gen data recycling */
 #define GD GEN_DATA
 GD 	*new_gen_data args( (void) );

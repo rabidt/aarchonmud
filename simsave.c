@@ -731,6 +731,20 @@ void mem_sim_save_other()
 	other_save_list = mf;
     }
 
+    /* leaderboards */
+    mf = save_lboards();
+    {
+        mf->next = other_save_list;
+        other_save_list = mf;
+    }
+
+    /* leaderboard results */
+    mf = save_lboard_results();
+    {
+        mf->next = other_save_list;
+        other_save_list = mf;
+    }
+
 #if defined(SIM_DEBUG)
    log_string("mem_sim_save_other: done");
 #endif
