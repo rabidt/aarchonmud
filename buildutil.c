@@ -494,12 +494,6 @@ void do_rstat( CHAR_DATA *ch, char *argument )
 	}
 	send_to_char( ".\n\r", ch);
 
-	if (location->singer!=NULL)
-	{
-		sprintf(buf, "Singer: %s\n\r", location->singer->name);
-		send_to_char(buf,ch);
-	}
-
 	send_to_char( "Objects:   ", ch );
 	for ( obj = location->contents; obj; obj = obj->next_content )
 	{
@@ -1140,14 +1134,6 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 
 	}
 	
-	sprintf( buf, "Singing: %s   Hearing: %s   Song Delay: %d\n\r",
-		(victim->song_singing > song_null) ?
-			skill_table[victim->song_singing].msg_off : "Null",
-		(victim->song_hearing > song_null) ?
-			skill_table[victim->song_hearing].msg_off : "Null",
-		victim->song_delay);
-	send_to_char(buf,ch);
-
 	for ( paf = victim->affected; paf != NULL; paf = paf->next )
 	{
 	sprintf( buf,

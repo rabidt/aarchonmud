@@ -309,7 +309,7 @@ Called by:      save_area(olc_save.c).
 void save_mobbles( FILE *fp, AREA_DATA *pArea )
 {
     int i;
-    MOBBLE_INDEX_DATA *pMob;
+    MOB_INDEX_DATA *pMob;
     
     fprintf( fp, "#MOBBLES\n" );
     
