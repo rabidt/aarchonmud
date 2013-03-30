@@ -94,6 +94,7 @@ static void do_nread (CHAR_DATA *ch, char *argument);
 static void do_nremove (CHAR_DATA *ch, char *argument);
 static void do_nlist (CHAR_DATA *ch, char *argument);
 static void do_ncatchup (CHAR_DATA *ch, char *argument);
+static void do_ncatchup_all (CHAR_DATA *ch);
 
 void do_note (CHAR_DATA *ch, char *argument);
 void do_board (CHAR_DATA *ch, char *argument);
@@ -135,7 +136,6 @@ BOARD_DATA boards[MAX_BOARD] =
    { "General",  "General discussion",           0, 2, BOARD_NONE, "all", DEF_INCLUDE, 20, 200, NULL, FALSE },
    { "Personal", "Personal messages",            0, 2, BOARD_NONE, "all", DEF_EXCLUDE, 20, 500, NULL, FALSE },
    { "Ideas",    "Suggestions for improvement",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE }, 
-   { "Druids",   "Druid Development",            0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Mechanics","Game Mechanics",               0, 2, BOARD_NONE, "all", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Bugs",     "Typos, bugs, errors",          0, 2, BOARD_NONE, "imm", DEF_NORMAL,  20, 200, NULL, FALSE },
    { "Pkill",    "Player killers only!",         0, 2, BOARD_PKILL, "pkill", DEF_NORMAL,  20, 200, NULL, FALSE }, 
@@ -331,7 +331,8 @@ static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num)
       "{YDate{x:  %s\n\r"
       "{YTo{x:    %s\n\r"
       "{g==========================================================================={x\n\r"
-      "%s\n\r",
+      "%s\n\r"
+      "{g==========================================================================={x\n\r",
       num, note->sender, note->subject,
       note->date,
       note->to_list,
@@ -795,6 +796,21 @@ static void do_nlist (CHAR_DATA *ch, char *argument)
 /* catch up with some notes */
 static void do_ncatchup (CHAR_DATA *ch, char *argument)
 {
+    if (argument[0] != '\0')
+    {
+        if ( strcmp( argument, "all" ) )
+        {
+            send_to_char( "Invalid argument.", ch );
+            return;
+        }
+        else
+        {
+            do_ncatchup_all( ch );
+            return;
+        }
+    }
+
+    /* else no arg */
    NOTE_DATA *p;
    
    /* Find last note */	
@@ -807,6 +823,19 @@ static void do_ncatchup (CHAR_DATA *ch, char *argument)
       ch->pcdata->last_note[board_number(ch->pcdata->board)] = p->date_stamp;
       send_to_char ("All messages skipped.\n\r",ch);
    }
+}
+
+static void do_ncatchup_all ( CHAR_DATA *ch)
+{
+    int i=0;
+    for ( ch->pcdata->board=&boards[0] ; ++i < MAX_BOARD ; ch->pcdata->board=&boards[i] )
+    {
+        ptc( ch, "Catching up %s notes.\n\r", boards[i].short_name );
+        do_ncatchup( ch, "" );
+    }
+    
+    ch->pcdata->board=&boards[0];
+       
 }
 
 /* Dispatch function for backwards compatibility */
@@ -858,6 +887,7 @@ void do_note (CHAR_DATA *ch, char *argument)
       "        note list            - List all notes on the current board.\n\r"
       "        note remove <number> - Remove a specific note on the current board.\n\r"
       "        note catchup         - Skip all unread notes on the current board.\n\r"
+      "        note catchup all     - Skip all unread notes on all boards.\n\r"
       "        note help            - Same as HELP NOTE.\n\r",ch);
    
 }
