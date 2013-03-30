@@ -4367,7 +4367,7 @@ OEDIT( oedit_adjust )
     OBJ_INDEX_DATA *pObj;
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
-    int *ovalue;
+    int *ovalue, weight;
     bool set_drop = FALSE;
     bool set_shop = FALSE;
     
@@ -4396,48 +4396,57 @@ OEDIT( oedit_adjust )
         send_to_char("You must set the object's level first (1-100).\n\r", ch);
         return FALSE;
     }
+
+    ovalue = get_obj_ovalue( pObj->level );
+
+    // AC
+    if (pObj->item_type == ITEM_ARMOR)
+    {
+        pObj->value[0]     = ovalue[OBJ_STAT_AC_WEAPON];
+        pObj->value[1]     = ovalue[OBJ_STAT_AC_WEAPON];
+        pObj->value[2]     = ovalue[OBJ_STAT_AC_WEAPON];
+        pObj->value[3]     = ovalue[OBJ_STAT_AC_EXOTIC];
+    }
     
+    // cost
     if (set_drop)
-    { 
+        pObj->cost         = ovalue[OBJ_STAT_DROP_COST];
+    else if (set_shop)
+        pObj->cost         = ovalue[OBJ_STAT_SHOP_COST];
+    
+    // weight
+    weight = pObj->weight;
     if (pObj->item_type == ITEM_ARMOR)
+    {
+        weight = 50;
+        if ( CAN_WEAR(pObj,ITEM_WEAR_FLOAT) )
+            weight = 0;
+        else if ( CAN_WEAR(pObj,ITEM_WEAR_TORSO) )
+            weight = 100;
+    }
+    else if (pObj->item_type == ITEM_WEAPON)
+    {
+        switch (pObj->value[0])
         {
-        ovalue = get_obj_ovalue( pObj->level );
-        pObj->value[0]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[1]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[2]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[3]     = ovalue[OBJ_STAT_AC_EXOTIC];
-        pObj->cost         = ovalue[OBJ_STAT_DROP_COST];
+            case WEAPON_SWORD:  weight = 60; break;
+            case WEAPON_DAGGER: weight = 20; break;
+            case WEAPON_SPEAR:  weight = 50; break;
+            case WEAPON_MACE:   weight = 100; break;
+            case WEAPON_AXE:    weight = 80; break;
+            case WEAPON_FLAIL:  weight = 90; break;
+            case WEAPON_WHIP:   weight = 30; break;
+            case WEAPON_POLEARM:weight = 70; break;
+            case WEAPON_GUN:    weight = 40; break;
+            case WEAPON_BOW:    weight = 50; break;
+            default:            weight = 60; break;
         }
-    else
-        {
-        ovalue = get_obj_ovalue( pObj->level );
-        pObj->cost         = ovalue[OBJ_STAT_DROP_COST];
-        }
+        if ( IS_WEAPON_STAT(pObj, WEAPON_TWO_HANDS) )
+            weight += weight / 2;
+    }
+    pObj->weight = weight;
     
     send_to_char("Stats set according to level.\n\r", ch);
     return TRUE;
-    }
-    
-    if (set_shop)
-    {    
-    if (pObj->item_type == ITEM_ARMOR)
-        {
-        ovalue = get_obj_ovalue( pObj->level );
-        pObj->value[0]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[1]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[2]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[3]     = ovalue[OBJ_STAT_AC_EXOTIC];
-        pObj->cost         = ovalue[OBJ_STAT_SHOP_COST];
-        }
-    else
-        {
-        ovalue = get_obj_ovalue( pObj->level );
-        pObj->cost         = ovalue[OBJ_STAT_SHOP_COST];
-        }
-    
-    send_to_char("Stats set according to level.\n\r", ch);
-    return TRUE;
-    }
 }
 
 
