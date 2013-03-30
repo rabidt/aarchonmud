@@ -290,8 +290,9 @@ int adjust_gain( CHAR_DATA *ch, int gain )
     if ( IS_AFFECTED(ch, AFF_PLAGUE) )
         gain /= 2;
     
-    if ( IS_AFFECTED(ch, AFF_HASTE) 
-	 && !IS_SET(get_morph_race_type(ch)->affect_field, AFF_HASTE))
+    if ( IS_AFFECTED(ch, AFF_HASTE)
+        && !IS_SET(get_morph_race_type(ch)->affect_field, AFF_HASTE)
+        && ch->fighting != NULL )
         gain /= 2 ;
 
 
@@ -315,16 +316,7 @@ int adjust_gain( CHAR_DATA *ch, int gain )
 
 
         /* PCs benefit from deep sleep */
-	if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 0 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 2 )
-	    gain *= 3/2;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 2 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 4 )
-	    gain *= 7/4;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 4 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 6 )
-	    gain *= 2;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 6 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 8 )
-	    gain *= 5/2;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 8 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 10 )
-	    gain *= 3;
+        gain += gain * URANGE(0, ch->pcdata->condition[COND_DEEP_SLEEP], 10) / 5;
     }
 
     return gain;
@@ -1385,6 +1377,19 @@ void char_update( void )
             }
         }
         
+        /* If a character stays asleep without being waken up, they can fall into a deep sleep.
+            This is then used in the int hit_gain/mana_gain/move_gain to give the player a 
+            bonus to their regeneration. Added by Astark - September 2012 */
+        if (!IS_NPC(ch))
+        {
+            if ((ch->position == POS_SLEEPING) && ch->pcdata->condition[COND_DEEP_SLEEP] < 10)
+            {
+                ch->pcdata->condition[COND_DEEP_SLEEP] += 1;
+                send_to_char("You fall into a deeper sleep.\n\r",ch);
+            }
+            else if (ch->position != POS_SLEEPING)
+                gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
+        }
         
         if ( !IS_NPC(ch) && ch->level < LEVEL_IMMORTAL )
         {
@@ -1409,9 +1414,6 @@ void char_update( void )
             
             if (IS_IMMORTAL(ch))
                 ch->timer = 0;
-
-            if (!IS_NPC(ch) && ch->position != POS_SLEEPING)
-                gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
 
             if ( ++ch->timer >= 12 )
             {
@@ -1453,21 +1455,6 @@ void char_update( void )
 		    gain_condition( ch, COND_THIRST, 
 				    IS_AFFECTED(ch, AFF_BREATHE_WATER) ? 
 				    -1 : -(curr_tick%2) );
-
-              /* If a character stays asleep without being waken up, they can fall into a deep sleep.
-                 This is then used in the int hit_gain/mana_gain/move_gain to give the player a 
-                 bonus to their regeneration. Added by Astark - September 2012 */
-//&& number_bits(2)
-               if (!IS_NPC(ch))
-               {
-                    if ((ch->position == POS_SLEEPING) && ch->pcdata->condition[COND_DEEP_SLEEP] < 10)
-                    {
-                        ch->pcdata->condition[COND_DEEP_SLEEP] += 1;
-                        send_to_char("You fall into a deeper sleep.\n\r",ch);
-                    }
-                    else if (ch->position != POS_SLEEPING)
-                        gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
-               }
 
 		    if ((ch->pcdata->condition[COND_HUNGER]>=20) || curr_tick>2)
 			gain_condition( ch, COND_HUNGER, 
