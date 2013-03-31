@@ -311,21 +311,11 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
 
     if (pMobIndex->level > 0)
     {
-        /* In most cases we'll WANT the default of 100, but left in here in case we decide otherwise --Bobble
-        // hitpoints
-        actual = average_roll(pMobIndexOld->hit[DICE_NUMBER], pMobIndexOld->hit[DICE_TYPE], pMobIndexOld->hit[DICE_BONUS]);
-        spec = average_mob_hp(pMobIndexOld->level);
-        pMobIndex->hitpoint_percent = URANGE(50, 100 * actual / UMAX(1,spec), 200);
-
-        // damage
-        actual = average_roll(pMobIndexOld->damage[DICE_NUMBER], pMobIndexOld->damage[DICE_TYPE], 0) + pMobIndexOld->damage[DICE_BONUS] / 4;
-        spec = average_mob_damage(pMobIndexOld->level);
-        pMobIndex->damage_percent   = URANGE(50, 100 * actual / UMAX(1,spec), 200);
-        */
-        
         // boss mobs should keep their main stats (hp/damage/nr_attacks) unchanged during migration, to adjust later one by one
-        // approximation: boss mob = lvl 120+ with sanc
-        if (pMobIndex->level >= 120 && IS_SET(pMobIndex->affect_field, AFF_SANCTUARY))
+        // approximation: boss mob = lvl 120+ with sanc or level 80+ in remort
+        if ((pMobIndex->level >= 120 && IS_SET(pMobIndex->affect_field, AFF_SANCTUARY))
+            || (pMobIndex->level >= 80 && IS_SET(pMobIndex->area->area_flags, AREA_REMORT))
+        )
         {
             // hitpoints
             actual = average_roll(pMobIndexOld->hit[DICE_NUMBER], pMobIndexOld->hit[DICE_TYPE], pMobIndexOld->hit[DICE_BONUS]);
