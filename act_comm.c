@@ -2278,7 +2278,10 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
         {
             gch->leader=victim;
             gch->master=victim;
-            ptc( gch, "%s now leads your group.\n\r", victim->name );
+            if ( gch=ch)
+                ptc( gch, "You now lead the group.\n\r");
+            else
+                ptc( gch, "%s now leads your group.\n\r", victim->name );
         }
     }
 }
