@@ -40,10 +40,6 @@ extern AREA_DATA 	* area_first;
 /* Values from Social-edit.c */
 extern int	maxSocial; /* Max number of socials */
 
-/* conversion from db.h */
-void	convert_mob(MOB_INDEX_DATA *mob);
-void	convert_obj(OBJ_INDEX_DATA *obj);
-
 /* macro for flag swapping */
 #define GET_UNSET(flag1,flag2)	(~(flag1)&((flag1)|(flag2)))
 
@@ -51,10 +47,12 @@ void	convert_obj(OBJ_INDEX_DATA *obj);
 #define MAGIC_NUM 52571214
 
 /* func from db.c */
-extern void assign_area_vnum( int vnum );                    /* OLC */
+void assign_area_vnum( int vnum );                    /* OLC */
+void index_mobile( MOB_INDEX_DATA *pMobIndex );
 
 /* from db2.c */
  
-void convert_mobile( MOB_INDEX_DATA *pMobIndex );            /* OLC ROM */
+void convert_mobile( MOB_INDEX_DATA_OLD *pMobIndex );        /* OLC ROM */
 void convert_objects( void );                                /* OLC ROM */
 void convert_object( OBJ_INDEX_DATA *pObjIndex );            /* OLC ROM */
+MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld );
