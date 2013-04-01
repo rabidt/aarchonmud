@@ -957,13 +957,7 @@ void remort_complete(CHAR_DATA *ch)
     ch->pcdata->trained_move /= 2;
     ch->pcdata->trained_mana /= 2;
 
-    ch->pcdata->perm_hit = 0;
-    ch->pcdata->perm_mana = 0;
-    ch->pcdata->perm_move = 0;
-    ch->max_hit = 0;
-    ch->max_mana = 0;
-    ch->max_move = 0;
-    update_perm_hp_mana_move(ch);
+    reset_char(ch);
     ch->hit = ch->max_hit;
     ch->mana = ch->max_mana;
     ch->move = ch->max_move;
