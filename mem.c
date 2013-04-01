@@ -405,34 +405,24 @@ MOB_INDEX_DATA *new_mob_index( void )
     flag_clear( pMob->act ); SET_BIT( pMob->act, ACT_IS_NPC );
     flag_clear( pMob->affect_field );
     pMob->alignment     =   0;
-    pMob->hitroll	=   0;
     pMob->race          =   race_lookup( "human" ); /* - Hugin */
     flag_clear( pMob->form );
     flag_clear( pMob->parts );
     flag_clear( pMob->imm_flags );
     flag_clear( pMob->res_flags );
     flag_clear( pMob->vuln_flags );
-    pMob->material      =   str_dup("unknown"); /* -- Hugin */
     flag_clear( pMob->off_flags );
     pMob->size          =   SIZE_MEDIUM; /* ROM patch -- Hugin */
-    pMob->ac[AC_PIERCE]	=   0;           /* ROM patch -- Hugin */
-    pMob->ac[AC_BASH]	=   0;           /* ROM patch -- Hugin */
-    pMob->ac[AC_SLASH]	=   0;           /* ROM patch -- Hugin */
-    pMob->ac[AC_EXOTIC]	=   0;           /* ROM patch -- Hugin */
-    pMob->hit[DICE_NUMBER]	=   0;   /* ROM patch -- Hugin */
-    pMob->hit[DICE_TYPE]	=   0;   /* ROM patch -- Hugin */
-    pMob->hit[DICE_BONUS]	=   0;   /* ROM patch -- Hugin */
-    pMob->mana[DICE_NUMBER]	=   0;   /* ROM patch -- Hugin */
-    pMob->mana[DICE_TYPE]	=   0;   /* ROM patch -- Hugin */
-    pMob->mana[DICE_BONUS]	=   0;   /* ROM patch -- Hugin */
-    pMob->damage[DICE_NUMBER]	=   0;   /* ROM patch -- Hugin */
-    pMob->damage[DICE_TYPE]	=   0;   /* ROM patch -- Hugin */
-    pMob->damage[DICE_NUMBER]	=   0;   /* ROM patch -- Hugin */
+    pMob->hitpoint_percent      = 100;
+    pMob->mana_percent          = 100;
+    pMob->move_percent          = 100;
+    pMob->hitroll_percent       = 100;
+    pMob->damage_percent        = 100;
+    pMob->ac_percent            = 100;
+    pMob->saves_percent         = 100;
     pMob->start_pos             =   POS_STANDING; /*  -- Hugin */
     pMob->default_pos           =   POS_STANDING; /*  -- Hugin */
-    pMob->wealth                =   0;
-
-    pMob->new_format            = TRUE;  /* ROM */
+    pMob->wealth_percent        = 100;
 
     return pMob;
 }
