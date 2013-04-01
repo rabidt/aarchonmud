@@ -4842,9 +4842,10 @@ void do_score( CHAR_DATA *ch, char *argument )
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
 
-        /* Reduced spacing so that players who max all 3 stats don't lose formatting - Astark Oct 2012 */
-        sprintf( buf, "{D|{x Trains:     {C%-5d{x {cTrains Spent:{x %d {con hp,{x %d {con mn,{x %d{x {con mv{x  {c(MAX %d){x",
-            ch->train, ch->pcdata->trained_hit,  ch->pcdata->trained_mana,  ch->pcdata->trained_move, max_hmm_train(ch->level) );
+        int hp_cap, mana_cap, move_cap;
+        get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
+        sprintf( buf, "{D|{x Trains:     {C%-5d {cSpent:{x %d/%d {chp,{x %d/%d {cmn,{x %d/%d {cmv  {c(MAX %d){x",
+            ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
