@@ -113,6 +113,7 @@ const int weapon_base_damage[] =
     DAM_SLASH,   /* whip    */
     DAM_SLASH,   /* polearm */
     DAM_PIERCE,  /* gun     */
+    DAM_PIERCE,  /* bow     */
 };
 
  
