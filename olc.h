@@ -265,22 +265,23 @@ DECLARE_OLC_FUN( medit_part      );  /* ROM */
 DECLARE_OLC_FUN( medit_imm       );  /* ROM */
 DECLARE_OLC_FUN( medit_res       );  /* ROM */
 DECLARE_OLC_FUN( medit_vuln      );  /* ROM */
-DECLARE_OLC_FUN( medit_material  );  /* ROM */
 DECLARE_OLC_FUN( medit_off       );  /* ROM */
 DECLARE_OLC_FUN( medit_size      );  /* ROM */
-DECLARE_OLC_FUN( medit_hitdice   );  /* ROM */
-DECLARE_OLC_FUN( medit_manadice  );  /* ROM */
-DECLARE_OLC_FUN( medit_damdice   );  /* ROM */
 DECLARE_OLC_FUN( medit_race      );  /* ROM */
 DECLARE_OLC_FUN( medit_position  );  /* ROM */
-DECLARE_OLC_FUN( medit_gold      );  /* ROM */
-DECLARE_OLC_FUN( medit_hitroll   );  /* ROM */
 DECLARE_OLC_FUN( medit_damtype   );  /* ROM */
 DECLARE_OLC_FUN( medit_group     );  /* ROM */
 DECLARE_OLC_FUN( medit_addmprog  );  /* ROM */
 DECLARE_OLC_FUN( medit_delmprog  );  /* ROM */
-DECLARE_OLC_FUN( medit_adjust    );
 DECLARE_OLC_FUN( medit_stance    );
+DECLARE_OLC_FUN( medit_hitpoints );
+DECLARE_OLC_FUN( medit_mana      );
+DECLARE_OLC_FUN( medit_move      );
+DECLARE_OLC_FUN( medit_hitroll   );
+DECLARE_OLC_FUN( medit_damage    );
+DECLARE_OLC_FUN( medit_armor     );
+DECLARE_OLC_FUN( medit_saves     );
+DECLARE_OLC_FUN( medit_wealth    );
 
 /* Mobprog editor */
 
