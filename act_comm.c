@@ -2274,7 +2274,7 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         if ( IS_NPC(gch) )
             continue;
-        if ( gch->leader=ch )
+        if ( gch->leader==ch || gch==ch)
         {
             gch->leader=victim;
             gch->master=victim;
