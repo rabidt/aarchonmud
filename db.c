@@ -2926,11 +2926,13 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     flag_copy( mob->form, pMobIndex->form );
     flag_copy( mob->parts, pMobIndex->parts );
     mob->size           = pMobIndex->size;
+
     // money money money
     long wealth = mob_base_wealth( pMobIndex );
     wealth = number_range(wealth/2, wealth * 3/2);
     mob->gold = number_range(wealth/200,wealth/100);
     mob->silver = wealth - (mob->gold * 100);
+    
     // level dependent stats (hp, damage, ...)
     set_mob_level( mob, mob-> level );
     
