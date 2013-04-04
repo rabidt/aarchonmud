@@ -40,7 +40,7 @@ int level_base_hp( int level )
 int mob_base_hp( MOB_INDEX_DATA *pMobIndex, int level )
 {    
     int hp = level_base_hp( level ) * pMobIndex->hitpoint_percent / 100;
-    return hp;
+    return UMAX(1, hp);
 }
 
 // mana
