@@ -642,9 +642,15 @@ void do_skills(CHAR_DATA *ch, char *argument)
 	{
 	fAll = TRUE;
 
-	if (str_prefix(argument,"all"))
+    argument = one_argument(argument,arg);
+    if (!strcmp(arg, "class" ) )
+    {
+        show_class_skills( ch, argument);
+        return;
+    }
+
+	if (str_prefix(arg,"all"))
 	{
-		argument = one_argument(argument,arg);
 		if (!is_number(arg))
 		{
 		send_to_char("Arguments must be numerical or all.\n\r",ch);
@@ -738,6 +744,37 @@ void do_skills(CHAR_DATA *ch, char *argument)
 	add_buf(buffer,"\n\r");
 	page_to_char(buf_string(buffer),ch);
 	free_buf(buffer);
+}
+
+void show_class_skills( CHAR_DATA *ch, char *argument )
+{
+    int class = class_lookup( argument );
+    if ( class == -1 )
+    {
+        send_to_char("Invalid class.\n\r", ch);
+        return;
+    }
+
+    BUFFER *buffer=new_buf();
+    int i=0;
+
+    char buf[MSL];
+    sprintf( buf, "\n\r%-20s %5s    %3s    %3s{x\n\r", "Skill", "Lvl", "Rtg", "Max");
+    add_buf( buffer, buf );
+    for ( i=0; skill_table[i].name != NULL ; i++ )
+    {
+        if ( skill_table[i].skill_level[class] <= HERO )
+        {
+           sprintf( buf, "%-20s {g%5d    %3d    %3d{x\n\r",
+                         capitalize( skill_table[i].name ),
+                         skill_table[i].skill_level[class],
+                         skill_table[i].rating[class],
+                         skill_table[i].cap[class] );
+           add_buf( buffer, buf );
+        }
+    }
+    page_to_char( buf_string(buffer), ch );
+
 }
 
 /* shows skills, groups and costs (only if not bought) */
