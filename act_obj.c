@@ -1189,8 +1189,13 @@ void do_envenom(CHAR_DATA *ch, char *argument)
     if (obj->item_type == ITEM_WEAPON)
     {
 
-	if (obj->value[3] < 0 
-	||  attack_table[obj->value[3]].damage == DAM_BASH)
+        if (obj->value[0] == WEAPON_GUN || obj->value[0] == WEAPON_BOW)
+        {
+            send_to_char("You can only envenom melee weapons.\n\r",ch);
+            return;
+        }        
+        
+        if (obj->value[0] < 0 || (weapon_base_damage[obj->value[0]] == DAM_BASH))
 	{
 		send_to_char("You can only envenom edged weapons.\n\r",ch);
 		return;
@@ -1214,9 +1219,6 @@ void do_envenom(CHAR_DATA *ch, char *argument)
 	    af.modifier  = 0;
 	    af.bitvector = WEAPON_POISON;
 	    affect_to_obj(obj,&af);
-            /* This sets the bit vector but doesn't set the gsn_poison on the obj
-               This breaks detoxify, hence commenting it out Astark Oct 2012 
-	    SET_WEAPON_STAT( obj, WEAPON_POISON ); */
 
 	    act("You coat $p with venom.",ch,obj,NULL,TO_CHAR);
 	    act("$n coats $p with deadly venom.",ch,obj,NULL,TO_ROOM);
