@@ -565,7 +565,7 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (6,30);
         infect += ch->level/6;
 
-        if (infect > ch->hit)
+        if (infect >= ch->hit)
             return;
         else
         {
@@ -584,7 +584,7 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (5, 25);
         infect += ch->level/5;
 
-        if (infect > ch->hit)
+        if (infect >= ch->hit)
             return;
         else
         {
@@ -602,7 +602,7 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (20, 40);
         infect += ch->level/5;
 
-        if (infect > ch->hit)
+        if (infect >= ch->hit)
             return;
         else
         {
