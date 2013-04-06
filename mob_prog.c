@@ -1386,7 +1386,7 @@ bool mp_percent_trigger(
     for ( prg = mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
     {
     	if ( prg->trig_type == type 
-	&&   number_percent() < atoi( prg->trig_phrase ) )
+	&&   number_percent() <= atoi( prg->trig_phrase ) )
         {
 	    program_flow( prg->vnum, prg->code, mob, ch, arg1, arg2 );
 	    return ( TRUE );
