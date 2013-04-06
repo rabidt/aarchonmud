@@ -565,7 +565,7 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (6,30);
         infect += ch->level/6;
 
-        if (infect > ch->hit)
+        if (infect >= ch->hit)
             return;
         else
         {
@@ -584,7 +584,7 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (5, 25);
         infect += ch->level/5;
 
-        if (infect > ch->hit)
+        if (infect >= ch->hit)
             return;
         else
         {
@@ -602,7 +602,7 @@ void special_affect_update(CHAR_DATA *ch)
         infect = number_range (20, 40);
         infect += ch->level/5;
 
-        if (infect > ch->hit)
+        if (infect >= ch->hit)
             return;
         else
         {
@@ -5550,6 +5550,22 @@ extern char *const dir_name[];
 bool check_lasso( CHAR_DATA *victim );
 void check_back_leap( CHAR_DATA *victim );
 
+int direction_lookup( char *arg1 )
+{
+    if (!str_cmp(arg1, "n") || !str_cmp(arg1, "north")) return DIR_NORTH;
+    if (!str_cmp(arg1, "e") || !str_cmp(arg1, "east"))  return DIR_EAST;
+    if (!str_cmp(arg1, "s") || !str_cmp(arg1, "south")) return DIR_SOUTH;
+    if (!str_cmp(arg1, "w") || !str_cmp(arg1, "west"))  return DIR_WEST;
+    if (!str_cmp(arg1, "u") || !str_cmp(arg1, "up" ))   return DIR_UP;
+    if (!str_cmp(arg1, "d") || !str_cmp(arg1, "down"))  return DIR_DOWN;
+    if (!str_cmp(arg1, "ne") || !str_cmp(arg1, "northeast")) return DIR_NORTHEAST;
+    if (!str_cmp(arg1, "se") || !str_cmp(arg1, "southeast")) return DIR_SOUTHEAST;
+    if (!str_cmp(arg1, "sw") || !str_cmp(arg1, "southwest")) return DIR_SOUTHWEST;
+    if (!str_cmp(arg1, "nw") || !str_cmp(arg1, "northwest")) return DIR_NORTHWEST;
+
+    return -1;
+    
+}
 void do_flee( CHAR_DATA *ch, char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
@@ -5594,18 +5610,17 @@ void do_flee( CHAR_DATA *ch, char *argument )
     
     if (arg[0] && (number_percent()<=get_skill(ch, gsn_retreat)))
     {
-	for (dir=0; dir<MAX_DIR; dir++)
-	    if (!str_prefix(arg, dir_name[dir]))
-		break;
+        dir = direction_lookup( arg );
 
-	if (dir >= MAX_DIR)
-	{
-	    send_to_char("That isnt a direction!\n\r", ch);
-	    return;
-	}
 
-	check_improve(ch, gsn_retreat, TRUE, 4);
-	chance = 5;
+	    if (dir == -1)
+	    {
+	        send_to_char("That isnt a direction!\n\r", ch);
+	        return;
+	    }
+
+	    check_improve(ch, gsn_retreat, TRUE, 4);
+	    chance = 5;
     }
     else
     {
