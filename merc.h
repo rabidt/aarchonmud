@@ -1497,6 +1497,7 @@ struct  kill_data
 #define FORM_FROST              (hh) //frost aura
 #define FORM_BURN               (ii) //burning aura
 #define FORM_WISE               (jj) //10 mana per level
+#define FORM_CONDUCTIVE         (kk) //electric aura
 
 /* body parts */
 #define PART_HEAD               (A)

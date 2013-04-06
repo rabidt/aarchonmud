@@ -700,8 +700,8 @@ struct align_type align_table [] =
 	{
 	"android",        TRUE,
 	{},      {AFF_DETECT_HIDDEN,AFF_INFRARED,AFF_BATTLE_METER},   {},
-	{},      {RES_FIRE,RES_MENTAL}, {VULN_ACID},
-	{H,J,M,cc},   {A,B,C,G,H,I,J,K}
+	{},      {RES_FIRE,RES_LIGHTNING,RES_MENTAL}, {VULN_ACID},
+	{H,J,M,cc,kk},   {A,B,C,G,H,I,J,K}
 	},
 
 	{
