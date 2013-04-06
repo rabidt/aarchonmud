@@ -700,42 +700,42 @@ struct align_type align_table [] =
 	{
 	"android",        TRUE,
 	{},      {AFF_DETECT_HIDDEN,AFF_INFRARED,AFF_BATTLE_METER},   {},
-	{},		{RES_FIRE,RES_LIGHT,RES_MENTAL},		{},
-	{H,J,M,cc},   {A,B,C,G,H,I,J,K}
+	{},      {RES_FIRE,RES_LIGHTNING,RES_MENTAL}, {VULN_ACID},
+	{H,J,M,cc,kk},   {A,B,C,G,H,I,J,K}
 	},
 
 	{
 	"naiad",        TRUE,
-	{},      {AFF_DETECT_MAGIC,AFF_BREATHE_WATER,AFF_FLYING},   {},
-	{IMM_DROWNING},      {RES_MAGIC}, {VULN_LIGHTNING},
+	{},      {AFF_DETECT_MAGIC,AFF_BREATHE_WATER},   {},
+	{},      {RES_DROWNING}, {},
 	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K,P}
 	},
 
 	{
 	"phantom",        TRUE,
 	{},      {AFF_FLYING,AFF_PASS_DOOR,AFF_MINOR_FADE},   {},
-	{},      {RES_NEGATIVE,RES_BASH,RES_ENERGY,RES_MENTAL}, {VULN_HOLY},
+	{},      {RES_WEAPON}, {VULN_MAGIC},
 	{D,H,K,N},    {D}
 	},
 
         {
         "tengu",    TRUE,
         {},      {},        {},
-        {},      {RES_LIGHTNING, RES_MENTAL, RES_CHARM},    {},
+        {},      {},    {},
 	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K}
         },
 
 	{
 	"titan",        TRUE,
 	{},      {},   {},
-	{},      {RES_ENERGY,RES_COLD,RES_BASH}, {VULN_CHARM,VULN_MENTAL},
+	{},      {RES_LIGHTNING}, {},
 	{A,H,V,M,ee},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
 	{
 	"unitaur",        TRUE,
 	{},      {},   {},
-	{IMM_POISON},      {RES_DISEASE,RES_COLD,RES_POISON,RES_BASH}, {VULN_SOUND},
+	{},      {RES_HOLY}, {VULN_NEGATIVE},
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K,Q,W}
 	},
 //10
@@ -1570,9 +1570,9 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
 
         { 
           "android",   "Androi",
-          { 265, 275, 290, 285, 265, 275, 275, 265, 275, 280, 290, 290, 270, 275, 285 },
-          2, { "lightning bolt", "electrocution" },
-          {1, 30}, {100, 75},
+          { 265, 270, 270, 270, 270, 265, 270, 270, 270, 270, 270, 270, 270, 270, 270 },
+          3, { "lightning bolt", "chain lightning", "electrocution" },
+          {10, 20, 30}, {100, 95, 75},
           {  70,  70,  60,  70,  70,      50,  50,  60,  50,  50 },
           { 140, 140, 130, 140, 140,     120, 120, 130, 120, 120 },   
           {   5,   5,   4,   5,   5,       3,   3,   4,   3,   3 },
@@ -1581,31 +1581,31 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
 
         { 
           "naiad",   "Naiad ",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "swimming", "monsoon", "charm person", "anatomy" },
-          {1, 11, 39, 75, }, {100,100,70,10},
+          { 275, 265, 260, 270, 275, 270, 270, 265, 265, 270, 265, 270, 270, 265, 270 },
+          5, { "swimming", "charm person", "sticks to snakes", "monsoon",  "cure critical" },
+          {1, 20, 30, 50, 60}, {100, 100, 90, 90, 70},
           {  40,  55,  50,  60,  50,      75,  65,  65,  60,  55 },
-          { 125, 135, 135, 145, 140,     155, 150, 135, 140, 145 },   
-          {   3,   4,   3,   4,   4,       5,   5,   4,   4,   4 },
+          { 125, 135, 135, 145, 140,     145, 150, 135, 150, 145 },   
+          {   2,   4,   4,   4,   4,       4,   5,   4,   5,   4 },
           SIZE_SMALL, SEX_FEMALE, 8
         },
         
         { 
           "phantom",   "Phantm",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "invis", "shadow soul", "shadow shroud", "dispel magic" },
-          {1, 4, 20, 60, }, {100,90,90,80},
+          { 270, 265, 270, 270, 270, 275, 275, 265, 260, 270, 270, 255, 270, 270, 270 },
+          5, { "invis", "shadowclaw", "shadowsoul", "basic apparition", "mirror image" },
+          {1, 10, 20, 40, 50}, {100, 90, 90, 85, 80},
           {  45,  50,  50,  65,  65,      65,  65,  65,  45,  60 },
-          { 135, 140, 135, 150, 150,     145, 140, 140, 130, 140 },   
+          { 135, 135, 135, 150, 150,     145, 140, 140, 135, 140 },   
           {   3,   4,   4,   5,   5,       4,   4,   4,   3,   4 },
           SIZE_MEDIUM, SEX_BOTH, 8
         },
 
         { 
           "tengu",   "Tengu ",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "leadership", "finesse", "twohand weapons", "renewal" },
-          {5, 19, 25, 60, }, {100,95,85,25},
+          { 260, 270, 270, 265, 270, 265, 265, 270, 270, 270, 270, 265, 270, 260, 265 },
+          5, { "sword", "dual sword", "finesse", "mana shield", "leadership" },
+          {1, 10, 20, 40, 50}, {100, 95, 95, 90, 90},
           {  45,  55,  55,  60,  50,      60,  60,  65,  65,  60 },
           { 130, 135, 135, 140, 145,     150, 150, 135, 145, 140 },   
           {   3,   3,   4,   4,   4,       5,   5,   4,   4,   4 },
@@ -1614,9 +1614,9 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
 
         { 
           "titan",   "Titan ",
-          { 265, 280, 285, 285, 265, 270, 270, 280, 275, 275, 285, 285, 275, 270, 280 },
-          5, { "bash", "iron hide", "uppercut", "third attack", "meteor swarm"},
-          {1, 19, 32, 47, 75}, {100,85,80,65,80},
+          { 260, 270, 270, 275, 260, 265, 260, 270, 270, 265, 270, 275, 270, 270, 275 },
+          5, { "lightning bolt", "twohand weapons", "rage", "uppercut", "enhanced damage"},
+          {10, 20, 30, 40, 60}, {100, 90, 90, 90, 80},
           {  75,  65,  50,  60,  60,      40,  40,  65,  60,  60 },
           { 155, 155, 140, 140, 140,     130, 130, 145, 130, 140 },   
           {   5,   5,   4,   4,   4,       3,   3,   4,   4,   4 },
@@ -1625,13 +1625,13 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         
         { 
           "unitaur",   "Unitau",
-          { 270, 285, 280, 280, 275, 270, 275, 280, 285, 275, 280, 285, 275, 265, 285 },
-          5, { "headbutt", "bow", "fledging", "hunt", "sanctuary" },
-          { 3, 17, 17, 43, 64 }, {100,80,80,70,70},
+          { 270, 270, 260, 265, 270, 270, 260, 270, 270, 260, 260, 265, 270, 260, 270 },
+          5, { "headbutt", "unicorn", "firstaid", "hunt", "sanctuary" },
+          { 1, 20, 30, 40, 50 }, {100, 90, 70, 70, 70},
           {  60,  65,  55,  65,  65,      55,  50,  55,  50,  55 },
           { 140, 145, 140, 145, 145,     135, 140, 140, 130, 145 },   
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
-          SIZE_LARGE, SEX_MALE, 8
+          SIZE_LARGE, SEX_BOTH, 8
         },
    
         { 

@@ -2477,6 +2477,8 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
 	    dam += dam/3;
 	else if ( dam_type == DAM_COLD )
 	    dam -= dam/4;
+    if ( IS_SET(ch->form, FORM_CONDUCTIVE) && dam_type == DAM_LIGHTNING )
+        dam += dam/4;
 
     switch(check_immune(victim,dam_type))
     {
