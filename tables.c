@@ -428,6 +428,7 @@ const struct flag_type form_flags[] =
 	{   "frost_aura",   FORM_FROST, TRUE    },
 	{   "burning_aura", FORM_BURN,  TRUE    },
 	{   "wise",         FORM_WISE,  TRUE    },
+        {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
 	{   NULL,           0,          0   }
 };
 
@@ -598,7 +599,7 @@ const struct flag_type room_flags[] =
     {   "donation",     ROOM_DONATION,      TRUE    },
     {   "nowhere",      ROOM_NOWHERE,       TRUE    },
     {   "snare",        ROOM_SNARE,         FALSE   },   
-    {   "blacksmith",   ROOM_BLACKSMITH,    TRUE    },   
+    {   "blacksmith",   ROOM_BLACKSMITH,    FALSE   },   
     {   "peel",         ROOM_PEEL,          FALSE   },   
     {   "jail",         ROOM_JAIL,          TRUE    },   
     {   "no_quest",     ROOM_NO_QUEST,      TRUE    },   
