@@ -5224,7 +5224,10 @@ float calculate_exp_factor( CHAR_DATA *gch )
     }
     // bonus for newbies
     if ( gch->pcdata->remorts == 0 )
-        xp_factor += (100 - gch->level) / 200.0;
+        xp_factor *= (300 - gch->level) / 200.0;
+    // bonus for first 5 levels
+    if ( gch->level <= 5 )
+        xp_factor *= 1.5;
 
     // additive bonuses
     
