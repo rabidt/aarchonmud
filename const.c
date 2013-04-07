@@ -728,7 +728,7 @@ struct align_type align_table [] =
 	{
 	"titan",        TRUE,
 	{},      {},   {},
-	{},      {RES_LIGHTNING}, {},
+	{},      {RES_LIGHTNING}, {VULN_MENTAL},
 	{A,H,V,M,ee},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
@@ -1573,9 +1573,9 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 265, 270, 270, 270, 270, 265, 270, 270, 270, 270, 270, 270, 270, 270, 270 },
           3, { "lightning bolt", "chain lightning", "electrocution" },
           {10, 20, 30}, {100, 95, 75},
-          {  70,  70,  60,  70,  70,      50,  50,  60,  50,  50 },
-          { 140, 140, 130, 140, 140,     120, 120, 130, 120, 120 },   
-          {   5,   5,   4,   5,   5,       3,   3,   4,   3,   3 },
+          {  70,  70,  60,  60,  70,      60,  50,  60,  50,  50 },
+          { 140, 140, 130, 130, 140,     130, 120, 130, 120, 120 },   
+          {   5,   5,   4,   4,   5,       4,   3,   4,   3,   3 },
           SIZE_MEDIUM, SEX_BOTH, 8
         },
 
@@ -1594,7 +1594,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           "phantom",   "Phantm",
           { 270, 265, 270, 270, 270, 275, 275, 265, 260, 270, 270, 255, 270, 270, 270 },
           5, { "invis", "shadowclaw", "shadowsoul", "basic apparition", "mirror image" },
-          {1, 10, 20, 40, 50}, {100, 90, 90, 85, 80},
+          {1, 10, 20, 40, 50}, {100, 95, 95, 90, 85},
           {  45,  50,  50,  65,  65,      65,  65,  65,  45,  60 },
           { 135, 135, 135, 150, 150,     145, 140, 140, 135, 140 },   
           {   3,   4,   4,   5,   5,       4,   4,   4,   3,   4 },
@@ -1615,12 +1615,12 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "titan",   "Titan ",
           { 260, 270, 270, 275, 260, 265, 260, 270, 270, 265, 270, 275, 270, 270, 275 },
-          5, { "lightning bolt", "twohand weapons", "rage", "uppercut", "enhanced damage"},
-          {10, 20, 30, 40, 60}, {100, 90, 90, 90, 80},
+          5, { "lightning bolt", "twohand weapons", "rage", "uppercut", "brutal damage"},
+          {10, 20, 30, 40, 50}, {100, 90, 90, 90, 70},
           {  75,  65,  50,  60,  60,      40,  40,  65,  60,  60 },
           { 155, 155, 140, 140, 140,     130, 130, 145, 130, 140 },   
           {   5,   5,   4,   4,   4,       3,   3,   4,   4,   4 },
-          SIZE_HUGE, SEX_BOTH, 8
+          SIZE_GIANT, SEX_BOTH, 8
         },
         
         { 
