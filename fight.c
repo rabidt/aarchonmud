@@ -1260,6 +1260,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -2475,6 +2477,8 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
 	    dam += dam/3;
 	else if ( dam_type == DAM_COLD )
 	    dam -= dam/4;
+    if ( IS_SET(ch->form, FORM_CONDUCTIVE) && dam_type == DAM_LIGHTNING )
+        dam += dam/4;
 
     switch(check_immune(victim,dam_type))
     {
