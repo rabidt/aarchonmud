@@ -478,6 +478,9 @@ void do_mpasound( CHAR_DATA *ch, char *argument )
     if ( argument[0] == '\0' )
 	return;
 
+    if ( ch->in_room == NULL )
+        return;
+
     was_in_room = ch->in_room;
     for ( door = 0; door < 10; door++ )
     {
@@ -786,6 +789,9 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim;
     OBJ_DATA  *obj;
 
+    if ( ch->in_room == NULL )
+        return;
+
     one_argument( argument, arg );
 
     if ( arg[0] == '\0' )
@@ -962,6 +968,9 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
     CHAR_DATA       *victim;
     DESCRIPTOR_DATA *d;
     
+    if ( ch->in_room == NULL )
+        return;
+
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     
@@ -1057,6 +1066,9 @@ void do_mpgtransfer( CHAR_DATA *ch, char *argument )
     char	     buf[MAX_STRING_LENGTH];
     CHAR_DATA       *who, *victim, *victim_next;
 
+    if ( ch->in_room == NULL )
+        return;
+
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
 
@@ -1143,6 +1155,9 @@ void do_mpgforce( CHAR_DATA *ch, char *argument )
 {
     char arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim, *vch, *vch_next;
+
+    if ( ch->in_room == NULL )
+        return;
 
     argument = one_argument( argument, arg );
 
@@ -1268,6 +1283,9 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
 	 max[ MAX_INPUT_LENGTH ];
     int low, high, dam;
     bool fAll = FALSE, fKill = FALSE;
+
+    if ( ch->in_room == NULL )
+        return;
 
     argument = one_argument( argument, target );
     argument = one_argument( argument, min );
