@@ -453,9 +453,9 @@ bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
 {
     CHAR_DATA *mob;
 
-    if ( mob->in_room == NULL )
+    if (ch->in_room == NULL )
     {
-        bugf( "get_mob_vnum_room: NULL room for mob %d", mob->pIndexData->vnum );
+        bugf( "get_mob_vnum_room: NULL room for ch %d", mob->pIndexData->vnum );
         return NULL;
     }
 
