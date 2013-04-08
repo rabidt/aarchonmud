@@ -3961,7 +3961,7 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     af.modifier  = -10;
     af.location  = APPLY_AC;
     af.where     = TO_SPECIAL;
-    af.bitvector = dice(2,4) + level/16; // number of images
+    af.bitvector = dice(2,4) + level/8; // number of images
 
     affect_to_char( ch, &af );
 
