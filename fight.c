@@ -3735,7 +3735,7 @@ bool blind_penalty( CHAR_DATA *ch )
 /* checks for dodge, parry, etc. */
 bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 {
-    bool finesse, autohit;
+    bool finesse, autohit, try_avoid;
     int stance = ch->stance;
     int vstance = victim->stance;
     int sector = ch->in_room->sector_type;
@@ -3746,12 +3746,6 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     /* only normal attacks can be faded, no spells */
     if ( check_fade( ch, victim, show ) )
 	return TRUE;
-    if ( check_mirror( ch, victim, show ) )
-	return TRUE;
-    if ( check_phantasmal( ch, victim, show ) )
-	return TRUE;
-    if ( IS_AFFECTED(victim, AFF_FLEE) )
-	return FALSE;
     
     /* chance for dodge, parry etc. ? */
     autohit =
@@ -3785,7 +3779,8 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	    check_improve( ch, gsn_woodland_combat, FALSE, 10 );
     }
 
-    if ( !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) )
+    try_avoid = !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) && !IS_AFFECTED(victim, AFF_FLEE);
+    if ( try_avoid )
     {
 	if ( check_outmaneuver( ch, victim ) )
 	    return TRUE;
@@ -3793,13 +3788,19 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
             return TRUE;
         if ( check_dodge( ch, victim ) )
             return TRUE;
-        if ( check_parry( ch, victim ) )
-            return TRUE;
     }
-    
+
+    if ( check_mirror( ch, victim, show ) )
+        return TRUE;
+    if ( check_phantasmal( ch, victim, show ) )
+        return TRUE;
+
     if ( check_shield_block(ch,victim) )
 	return TRUE;
-    
+
+    if ( try_avoid && check_parry( ch, victim ) )
+        return TRUE;
+
     return FALSE;
 }
 
@@ -3876,7 +3877,7 @@ bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	return FALSE;
 
     if ( number_range(0, aff->bitvector) == 0
-	 || chance(get_skill(ch, gsn_alertness)/2) )
+	 || chance(25 + get_skill(ch, gsn_alertness)/2) )
 	return FALSE;
 
     /* ok, we hit a mirror image */
@@ -3910,22 +3911,26 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	return FALSE;
 
     if ( number_range(0, aff->bitvector) == 0
-	 || chance(get_skill(ch, gsn_alertness)/2) )
+	 || chance(25 + get_skill(ch, gsn_alertness)/2) )
 	return FALSE;
 
     /* ok, we hit a phantasmal image */
     if ( show )
     {
-        act_gag( "$n's attack hits one of your phantasmal images.", 
+        act_gag( "$n hits one of your phantasmal images, which exlodes in a flash of light.",
 		 ch, NULL, victim, TO_VICT, GAG_FADE );
-        act_gag( "You hit one of $N's phantasmal images, which dissolves.",
+        act_gag( "You hit one of $N's phantasmal images, which explodes in a flash of light.",
 		 ch, NULL, victim, TO_CHAR, GAG_FADE );
-        act_gag( "$n hits one of $N's phantasmal images, which dissolves.",
+        act_gag( "$n hits one of $N's phantasmal images, which explodes in a flash of light.",
 		 ch, NULL, victim, TO_NOTVICT, GAG_FADE );
 
-	dam = dice(11, 7);
-	full_dam(victim, ch, dam, gsn_phantasmal_image, DAM_FIRE, TRUE);
-	        
+        // like auras, ranged attackers don't take damage from exploding images
+        int ch_weapon = get_weapon_sn(ch);
+        if ( ch_weapon != gsn_gun && ch_weapon != gsn_bow )
+        {
+            dam = dice(4, aff->level);
+            full_dam(victim, ch, dam, gsn_phantasmal_image, DAM_LIGHT, TRUE);
+        }
     }
 
     /* lower number of images */
