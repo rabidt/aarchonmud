@@ -3437,7 +3437,7 @@ void spell_mirror_image( int sn, int level, CHAR_DATA *ch, void *vo, int target 
     af.modifier  = -10;
     af.location  = APPLY_AC;
     af.where     = TO_SPECIAL;
-    af.bitvector = 1 + level/10;
+    af.bitvector = dice(2,4) + level/16; // number of images
 
     affect_to_char( ch, &af );
 
@@ -4017,7 +4017,7 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     af.modifier  = -10;
     af.location  = APPLY_AC;
     af.where     = TO_SPECIAL;
-    af.bitvector = 1 + level/8;
+    af.bitvector = dice(2,4) + level/8; // number of images
 
     affect_to_char( ch, &af );
 
