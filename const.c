@@ -1582,8 +1582,8 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "naiad",   "Naiad ",
           { 275, 265, 260, 270, 275, 270, 270, 265, 265, 270, 265, 270, 270, 265, 270 },
-          5, { "swimming", "charm person", "sticks to snakes", "monsoon",  "cure critical" },
-          {1, 20, 30, 50, 60}, {100, 100, 90, 90, 70},
+          5, { "swimming", "charm person", "monsoon", "cure critical", "water elemental" },
+          {1, 20, 40, 50, 60}, {100, 100, 90, 80, 80},
           {  40,  55,  50,  60,  50,      75,  65,  65,  60,  55 },
           { 125, 135, 135, 145, 140,     145, 150, 135, 150, 145 },   
           {   2,   4,   4,   4,   4,       4,   5,   4,   5,   4 },
@@ -4420,7 +4420,18 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	NULL,           SLOT(2000),   200, 24,
 	"tree golem",     "!Tree Golem!",       "", NULL
 	},
-	
+
+        {
+        "water elemental",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0 },
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_NONE, STAT_NONE, STAT_NONE,
+        spell_water_elemental,  TAR_IGNORE, POS_STANDING,
+        NULL,           SLOT(2116),   200, 24,
+        "water elemental",     "!Water Elemental!",       "", NULL
+        },
+
 	{
 	"wendigo",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 70, 102 },
