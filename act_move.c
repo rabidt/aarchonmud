@@ -1058,7 +1058,7 @@ void do_lock( CHAR_DATA *ch, char *argument )
 			return;
 		 }
 		 
-		 if (obj->value[4] < 0 || I_IS_SET(obj->value[1],EX_NOLOCK))
+		 if (obj->value[4] < 1 || I_IS_SET(obj->value[1],EX_NOLOCK))
 		 {
 			send_to_char("It can't be locked.\n\r",ch);
 			return;
@@ -1095,7 +1095,7 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	  { send_to_char( "That's not a container.\n\r", ch ); return; }
 	  if ( !I_IS_SET(obj->value[1], CONT_CLOSED) )
 	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
-	  if ( obj->value[2] < 0 )
+	  if ( obj->value[2] < 1 )
 	  { send_to_char( "It can't be locked.\n\r",     ch ); return; }
 
 	  if ( !has_key( ch, obj->value[2] ) )
@@ -1128,7 +1128,7 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	  pexit   = ch->in_room->exit[door];
 	  if ( !IS_SET(pexit->exit_info, EX_CLOSED) )
 	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
-	  if ( pexit->key < 0 )
+	  if ( pexit->key < 1 )
 	  { send_to_char( "It can't be locked.\n\r",     ch ); return; }
 	  if ( !has_key( ch, pexit->key) )
 	  { send_to_char( "You lack the key.\n\r",       ch ); return; }
@@ -1191,8 +1191,14 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 			send_to_char("It's not closed.\n\r",ch);
 			return;
 		 }
+
+         if (!I_IS_SET(obj->value[1],EX_LOCKED))
+         {
+            send_to_char("It's not locked.\n\r",ch);
+            return;
+         }
 		 
-		 if (obj->value[4] < 0)
+		 if (obj->value[4] < 1)
 		 {
 			send_to_char("It can't be unlocked.\n\r",ch);
 			return;
@@ -1232,7 +1238,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	  { send_to_char( "That's not a container.\n\r", ch ); return; }
 	  if ( !I_IS_SET(obj->value[1], CONT_CLOSED) )
 	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
-	  if ( obj->value[2] < 0 )
+      if ( !I_IS_SET(obj->value[1], CONT_LOCKED) )
+      { send_to_char( "It's not locked.\n\r",        ch ); return; }
+	  if ( obj->value[2] < 1 )
 	  { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
 	  if ( !has_key( ch, obj->value[2] ) )
 	  { send_to_char( "You lack the key.\n\r",       ch ); return; }
@@ -1263,6 +1271,8 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	  pexit = ch->in_room->exit[door];
 	  if ( !IS_SET(pexit->exit_info, EX_CLOSED) )
 	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
+      if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
+      { send_to_char( "It's not locked.\n\r",        ch ); return; }
 	  if ( pexit->key < 0 )
 	  { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
 	  if ( !has_key( ch, pexit->key) )
@@ -1417,15 +1427,12 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 	     );
     send_to_char( buf, ch );
 
-    if ( victim->pIndexData->new_format)
-    {
-	sprintf( buf, "Damage: %dd%d  Type: %s\n\r",
-		 victim->damage[DICE_NUMBER], victim->damage[DICE_TYPE],
-		 attack_table[victim->dam_type].noun
-		 );
-	send_to_char(buf,ch);
-    }
-	
+    sprintf( buf, "Damage: %dd%d  Type: %s\n\r",
+                victim->damage[DICE_NUMBER], victim->damage[DICE_TYPE],
+                attack_table[victim->dam_type].noun
+                );
+    send_to_char(buf,ch);
+
     NLRETURN
 
     sprintf(buf, "Knows how to: %s\n\r", off_bits_name(victim->off_flags));

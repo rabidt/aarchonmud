@@ -452,9 +452,9 @@ void war_update( void )
     
     if (current_time > auto_war_time && war.on == FALSE)
         auto_war();
-    else if (war.on == FALSE)
+    
+    if (war.on == FALSE)
         return;
-
     
     output = new_buf();
     if ( war.war_time_left > 0 )

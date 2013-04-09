@@ -1189,8 +1189,13 @@ void do_envenom(CHAR_DATA *ch, char *argument)
     if (obj->item_type == ITEM_WEAPON)
     {
 
-	if (obj->value[3] < 0 
-	||  attack_table[obj->value[3]].damage == DAM_BASH)
+        if (obj->value[0] == WEAPON_GUN || obj->value[0] == WEAPON_BOW)
+        {
+            send_to_char("You can only envenom melee weapons.\n\r",ch);
+            return;
+        }        
+        
+        if (obj->value[0] < 0 || (weapon_base_damage[obj->value[0]] == DAM_BASH))
 	{
 		send_to_char("You can only envenom edged weapons.\n\r",ch);
 		return;
@@ -1214,9 +1219,6 @@ void do_envenom(CHAR_DATA *ch, char *argument)
 	    af.modifier  = 0;
 	    af.bitvector = WEAPON_POISON;
 	    affect_to_obj(obj,&af);
-            /* This sets the bit vector but doesn't set the gsn_poison on the obj
-               This breaks detoxify, hence commenting it out Astark Oct 2012 
-	    SET_WEAPON_STAT( obj, WEAPON_POISON ); */
 
 	    act("You coat $p with venom.",ch,obj,NULL,TO_CHAR);
 	    act("$n coats $p with deadly venom.",ch,obj,NULL,TO_ROOM);
@@ -4432,6 +4434,7 @@ void do_sire( CHAR_DATA *ch, char *argument )
     OBJ_DATA *corpse;
     CHAR_DATA *mob;
     AFFECT_DATA af;
+    int mlevel;
 
     if ( IS_NPC(ch) || ch->race != race_vampire )
     {
@@ -4454,10 +4457,6 @@ void do_sire( CHAR_DATA *ch, char *argument )
 
     if ( argument[0] == '\0' )
     {
-	/*
-	send_to_char( "Sire which corpse?\n\r", ch );
-	return;
-	*/
 	argument = "corpse";
     }
 
@@ -4474,18 +4473,6 @@ void do_sire( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    /*
-    if ( corpse->timer <= 0 )
-    {
-	send_to_char( "This corpse isn't fresh anymore.\n\r", ch );
-	return;
-    }
-    */
-
-    /*
-    if ( !check_cha_follow(ch) )
-	return;
-    */
     if ( ch->pet != NULL )
     {
 	send_to_char("You already control a pet.\n\r",ch);
@@ -4497,7 +4484,12 @@ void do_sire( CHAR_DATA *ch, char *argument )
         return;
     
     WAIT_STATE( ch, PULSE_VIOLENCE );
-	set_mob_level( mob, URANGE(1, corpse->level, ch->level + 10 ) );
+    
+    if (corpse->level <= ch->level)
+        mlevel = (ch->level + corpse->level * 3) / 4;
+    else
+        mlevel = (ch->level * 3 + corpse->level) / 4;
+    set_mob_level( mob, URANGE(1, mlevel, ch->level + 25) );
     char_to_room( mob, ch->in_room );
 
     /* wear eq from corpse */
