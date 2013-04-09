@@ -5709,7 +5709,7 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
     {    
         ch->pcdata->questpoints += achievement_table[table_index].quest_reward;
         ch->gold += achievement_table[table_index].gold_reward;
-        ch->exp += achievement_table[table_index].exp_reward;
+        gain_exp(ch, achievement_table[table_index].exp_reward);
         ch->pcdata->achpoints += achievement_table[table_index].ach_reward;
         //send_to_char("Achievement unlocked -- TEST.\n\r",ch);
 	printf_to_char(ch, "Achievement %s %d unlocked.\n\r", achievement_display[achievement_table[table_index].type], achievement_table[table_index].limit);
