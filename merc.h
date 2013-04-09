@@ -1084,6 +1084,7 @@ struct  kill_data
 #define MOB_VNUM_GHOST          9
 #define MOB_VNUM_BASIC_APPARITION 11
 #define MOB_VNUM_HOLY_APPARITION 12
+#define MOB_VNUM_WATER_ELEMENTAL 13
 
 /* RT ASCII conversions -- used so we can have letters in this file */
 
