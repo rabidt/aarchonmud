@@ -713,7 +713,7 @@ struct align_type align_table [] =
 
 	{
 	"phantom",        TRUE,
-	{},      {AFF_FLYING,AFF_PASS_DOOR,AFF_MINOR_FADE},   {},
+	{},      {AFF_FLYING,AFF_PASS_DOOR,AFF_MINOR_FADE,AFF_NO_TRACE},   {},
 	{},      {RES_WEAPON}, {VULN_MAGIC},
 	{D,H,K,N},    {D}
 	},
@@ -734,7 +734,7 @@ struct align_type align_table [] =
 
 	{
 	"unitaur",        TRUE,
-	{},      {},   {},
+	{},      {AFF_PROTECT_MAGIC},   {},
 	{},      {RES_HOLY}, {VULN_NEGATIVE},
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K,Q,W}
 	},
@@ -1593,7 +1593,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "phantom",   "Phantm",
           { 270, 265, 270, 270, 270, 275, 275, 265, 260, 270, 270, 255, 270, 270, 270 },
-          5, { "invis", "shadowclaw", "shadowsoul", "basic apparition", "mirror image" },
+          5, { "invis", "shadowclaw", "shadowsoul", "basic apparition", "phantasmal image" },
           {1, 10, 20, 40, 50}, {100, 95, 95, 90, 85},
           {  45,  50,  50,  65,  65,      65,  65,  65,  45,  60 },
           { 135, 135, 135, 150, 150,     145, 140, 140, 135, 140 },   
@@ -1627,9 +1627,9 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           "unitaur",   "Unitau",
           { 270, 270, 260, 265, 270, 270, 260, 270, 270, 260, 260, 265, 270, 260, 270 },
           5, { "headbutt", "unicorn", "firstaid", "hunt", "sanctuary" },
-          { 1, 20, 30, 40, 50 }, {100, 90, 70, 70, 70},
+          { 1, 20, 30, 40, 50 }, {100, 90, 80, 80, 80},
           {  60,  65,  55,  65,  65,      55,  50,  55,  50,  55 },
-          { 140, 145, 140, 145, 145,     135, 140, 140, 130, 145 },   
+          { 140, 145, 145, 135, 145,     135, 140, 140, 135, 145 },   
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
           SIZE_LARGE, SEX_BOTH, 8
         },
