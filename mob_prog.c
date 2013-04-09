@@ -305,6 +305,13 @@ CHAR_DATA *get_random_char( CHAR_DATA *mob )
 {
     CHAR_DATA *vch, *victim = NULL;
     int now = 0, highest = 0;
+
+    if ( mob->in_room == NULL )
+    {
+        bugf( "get_random_char: NULL room for mob %d", mob->pIndexData->vnum );
+        return NULL;
+    }
+
     for( vch = mob->in_room->people; vch; vch = vch->next_in_room )
     {
         if ( mob != vch 
@@ -327,6 +334,13 @@ int count_people_room( CHAR_DATA *mob, int iFlag )
 {
     CHAR_DATA *vch;
     int count;
+
+    if ( mob->in_room == NULL )
+    {
+        bugf( "count_people_room: NULL room for mob %d", mob->pIndexData->vnum );
+        return 0;
+    }
+
     for ( count = 0, vch = mob->in_room->people; vch; vch = vch->next_in_room )
 	if ( mob != vch 
 	&&   (iFlag == 0
@@ -352,6 +366,13 @@ int get_order( CHAR_DATA *ch )
 
     if ( !IS_NPC(ch) )
 	return 0;
+
+    if ( ch->in_room == NULL )
+    {
+        bugf( "get_order: NULL room for mob %d", ch->pIndexData->vnum );
+        return 0;
+    }
+
     for ( i = 0, vch = ch->in_room->people; vch; vch = vch->next_in_room )
     {
 	if ( vch == ch )
@@ -431,6 +452,13 @@ bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
 bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
 {
     CHAR_DATA *mob;
+
+    if ( mob->in_room == NULL )
+    {
+        bugf( "get_mob_vnum_room: NULL room for mob %d", mob->pIndexData->vnum );
+        return NULL;
+    }
+
     for ( mob = ch->in_room->people; mob; mob = mob->next_in_room )
 	if ( IS_NPC( mob ) && mob->pIndexData->vnum == vnum )
 	    return TRUE;
@@ -443,6 +471,13 @@ bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
 bool get_obj_vnum_room( CHAR_DATA *ch, int vnum )
 {
     OBJ_DATA *obj;
+
+    if ( ch->in_room == NULL )
+    {
+        bugf( "get_obj_vnum_room: NULL room for mob %d", ch->pIndexData->vnum );
+        return 0;
+    }
+
     for ( obj = ch->in_room->contents; obj; obj = obj->next_content )
 	if ( obj->pIndexData->vnum == vnum )
 	    return TRUE;
@@ -1386,7 +1421,7 @@ bool mp_percent_trigger(
     for ( prg = mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
     {
     	if ( prg->trig_type == type 
-	&&   number_percent() < atoi( prg->trig_phrase ) )
+	&&   number_percent() <= atoi( prg->trig_phrase ) )
         {
 	    program_flow( prg->vnum, prg->code, mob, ch, arg1, arg2 );
 	    return ( TRUE );
