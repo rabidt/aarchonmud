@@ -140,6 +140,8 @@ char last_debug[MSL] = "";
 #define CHK_QTIMER      (69)
 #define CHK_MPCNT       (70)
 
+#define CHK_REMORT      (71)
+
 /*
  * These defines correspond to the entries in fn_evals[] table.
  */
@@ -239,6 +241,7 @@ const keyword_list fn_keyword =
 			"if ccarries $n 1233    - does $n have obj 1233 in a container" },
     { "qtimer",         "if qtimer 3877 $n > 0  - qstatus timer check" },
     { "mpcnt",          "if mpcnt $i > 15       - mana point percent check" },
+    { "remort",     "if remort $n > 0    - if $n's remort is above 0 (remort value is -1 for mobs)"},
 
     { "\n",		"Table terminator" }
 };
@@ -903,6 +906,15 @@ int cmd_eval( int vnum, char *line, int check,
             if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_CHA); break;
 	case CHK_STATLUC:
             if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_LUC); break;
+    case CHK_REMORT:
+            if ( lval_char != NULL )
+            {
+                if IS_NPC(ch)
+                   lval = -1;
+                else
+                   lval = lval_char->pcdata->remorts;
+            }
+            break;
 	default:
             return FALSE;
     }
