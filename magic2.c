@@ -1932,7 +1932,8 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_TREEGOLEM)))==NULL) 
         return;
     
-    mlevel = URANGE(1, level * 3/4, ch->level);
+    mlevel = (6*level + get_skill(ch, gsn_beast_mastery)) / 8;
+    mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rA tree springs to life and follows %s.\n\r\n\r",
@@ -2116,7 +2117,8 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     if ( max_snake == 0 )
         return;
     
-    mlevel = URANGE(1, level/2, ch->level);
+    mlevel = (5*level + get_skill(ch, gsn_beast_mastery)) / 10;
+    mlevel = URANGE(1, mlevel, ch->level);
     chance = 100;
     snake_count = 0;
     while ( snake_count * mlevel < max_snake && number_percent() <= chance ) {

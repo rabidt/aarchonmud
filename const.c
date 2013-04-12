@@ -733,10 +733,10 @@ struct align_type align_table [] =
 	},
 
 	{
-	"unitaur",        TRUE,
-	{},      {AFF_PROTECT_MAGIC},   {},
-	{},      {RES_HOLY}, {VULN_NEGATIVE},
-	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K,Q,W}
+	"voadkin",        TRUE,
+	{},      {},   {},
+	{},      {RES_DISEASE}, {},
+	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 //10
 	{
@@ -1624,12 +1624,12 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
         
         { 
-          "unitaur",   "Unitau",
-          { 270, 270, 260, 265, 270, 270, 260, 270, 270, 260, 260, 265, 270, 260, 270 },
-          5, { "headbutt", "unicorn", "firstaid", "hunt", "sanctuary" },
-          { 1, 20, 30, 40, 50 }, {100, 90, 80, 80, 80},
-          {  60,  65,  55,  65,  65,      55,  50,  55,  50,  55 },
-          { 140, 145, 145, 135, 145,     135, 140, 140, 135, 145 },   
+          "voadkin",   "Voadki",
+          { 270, 265, 270, 270, 270, 270, 270, 265, 265, 270, 265, 270, 265, 260, 275 },
+          5, { "bow", "fledging", "woodlandcombat", "hunt", "beast mastery" },
+          { 10, 10, 20, 30, 40 }, {100, 100, 90, 80, 80},
+          {  55,  55,  55,  55,  55,      55,  55,  55,  55,  55 },
+          { 140, 140, 140, 140, 145,     140, 145, 140, 140, 140 },   
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
           SIZE_LARGE, SEX_BOTH, 8
         },
@@ -4267,7 +4267,18 @@ struct  skill_type  skill_table [MAX_SKILL] =
 		"",                     "!blindfighting!",    "", NULL
 	},
 
-	{
+        {
+        "beast mastery", 
+        {  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0 },
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_NONE, STAT_NONE, STAT_NONE,
+                spell_null,             TAR_IGNORE,             POS_FIGHTING,
+                &gsn_beast_mastery,   SLOT( 0),        0,     0,
+                "",                     "!beast mastery!",    "", NULL
+        },
+
+        {
 	"camp fire",
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 26, 102 },
 	{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 1, 0 },
