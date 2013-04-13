@@ -2911,7 +2911,7 @@ void check_beast_mastery( CHAR_DATA *ch )
     
     mob = create_mobile(mobIndex);
     
-    mlevel = dice(2,6) + ch->level * 2/3;
+    mlevel = dice(2,6) + ch->level * (100 + skill) / 300;
     mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 
