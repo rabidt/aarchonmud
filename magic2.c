@@ -1903,6 +1903,7 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     char buf[MAX_STRING_LENGTH];
     int mlevel, mhp, chance;
     int charmed, max;
+    int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     if ( ch->in_room->sector_type != SECT_FOREST)
     {
@@ -1932,7 +1933,7 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_TREEGOLEM)))==NULL) 
         return;
     
-    mlevel = (6*level + get_skill(ch, gsn_beast_mastery)) / 8;
+    mlevel = (6*level + beast_skill) / 8;
     mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 
@@ -1950,7 +1951,7 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level   = level;
-    af.duration  = number_fuzzy( level );
+    af.duration  = (100 + level) * (100 + beast_skill) / 200;
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_CHARM;
@@ -2090,6 +2091,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     int snake_count, max_snake;
+    int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     if ( ch->in_room->sector_type != SECT_FOREST)
     {
@@ -2117,7 +2119,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     if ( max_snake == 0 )
         return;
     
-    mlevel = (5*level + get_skill(ch, gsn_beast_mastery)) / 10;
+    mlevel = (5*level + beast_skill) / 10;
     mlevel = URANGE(1, mlevel, ch->level);
     chance = 100;
     snake_count = 0;
@@ -2139,7 +2141,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
         af.where     = TO_AFFECTS;
         af.type      = sn;
         af.level   = level;
-        af.duration  = number_fuzzy( level );
+        af.duration  = (100 + level) * (100 + beast_skill) / 200;
         af.location  = 0;
         af.modifier  = 0;
         af.bitvector = AFF_CHARM;
