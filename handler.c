@@ -377,6 +377,17 @@ int get_weapon_sn_new(CHAR_DATA *ch, bool secondary)
     return sn;
 }
 
+int get_base_sex(CHAR_DATA *ch)
+{
+    if (IS_NPC(ch))
+        return SEX_NEUTRAL;
+    
+    // male/female only races force base gender
+    if (pc_race_table[ch->race].gender != SEX_BOTH)
+        return pc_race_table[ch->race].gender;
+    
+    return ch->pcdata->true_sex;
+}
 
 /* used to de-screw characters */
 void reset_char(CHAR_DATA *ch)
@@ -406,10 +417,8 @@ void reset_char(CHAR_DATA *ch)
                     switch(af->location)
                     {
                     case APPLY_SEX: ch->sex     -= mod;
-                        if (ch->sex < 0 || ch->sex >2)
-                            ch->sex = IS_NPC(ch) ?
-                            0 :
-                        ch->pcdata->true_sex;
+                        if (ch->sex < 0 || ch->sex > 2)
+                            ch->sex = get_base_sex(ch);
                         break;
                     case APPLY_MANA:    ch->max_mana    -= mod;     break;
                     case APPLY_HIT: ch->max_hit -= mod;     break;
@@ -448,7 +457,7 @@ void reset_char(CHAR_DATA *ch)
     
     if (ch->pcdata->true_sex < 0 || ch->pcdata->true_sex > 2)
         ch->pcdata->true_sex = 0;
-    ch->sex     = ch->pcdata->true_sex;
+    ch->sex         = get_base_sex(ch);
     ch->max_hit     = ch->pcdata->perm_hit;
     ch->max_mana    = ch->pcdata->perm_mana;
     ch->max_move    = ch->pcdata->perm_move;
@@ -589,7 +598,7 @@ void reset_char(CHAR_DATA *ch)
     
     /* make sure sex is RIGHT!!!! */
     if (ch->sex < 0 || ch->sex > 2)
-        ch->sex = ch->pcdata->true_sex;
+        ch->sex = get_base_sex(ch);
 }
 
 
