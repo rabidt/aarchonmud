@@ -720,7 +720,7 @@ struct align_type align_table [] =
 
         {
         "tengu",    TRUE,
-        {},      {},        {},
+        {},      {AFF_FLYING},        {},
         {},      {},    {},
 	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K}
         },
