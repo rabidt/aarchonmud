@@ -204,6 +204,7 @@ sh_int  gsn_taxidermy;
 sh_int  gsn_introspection;
 sh_int  gsn_climbing;
 sh_int  gsn_blindfighting;
+sh_int  gsn_beast_mastery;
 sh_int  gsn_camp_fire;
 sh_int  gsn_treat_weapon;
 sh_int  gsn_soothe;

@@ -1581,7 +1581,9 @@ void char_update( void )
         qset_update( ch );
 		
 	if ( IS_AFFECTED(ch, AFF_HAUNTED) )
-	    create_haunt( ch );		
+	    create_haunt( ch );
+        if ( !IS_NPC(ch) )
+            check_beast_mastery( ch );
    }
    
   /*
@@ -2867,5 +2869,76 @@ void check_equipment_align( CHAR_DATA *gch )
             obj_to_char( obj, gch );
         }        
     }
+    return;
+}
+
+// chance to summon best pet with beast mastery
+void check_beast_mastery( CHAR_DATA *ch )
+{
+    AFFECT_DATA af;
+    CHAR_DATA *mob;
+    MOB_INDEX_DATA *mobIndex;
+    char buf[MAX_STRING_LENGTH];
+    int mlevel, sector;
+    int skill = get_skill(ch, gsn_beast_mastery);
+    
+    if ( skill == 0 )
+        return;
+    
+    // safety net
+    if ( ch->in_room == NULL )
+        return;
+
+    // must be in the wild for this to work
+    sector = ch->in_room->sector_type;
+    if ( sector == SECT_INSIDE || sector == SECT_CITY )
+        return;
+    
+    // must be playing and not in warfare
+    if ( IS_SET( ch->act, PLR_WAR ) || ch->desc == NULL || !IS_PLAYING(ch->desc->connected))
+        return;
+    
+    // only a chance to happen each tick - more likely in the forest, less likely during combat
+    if ( number_bits(2)
+        || (sector != SECT_FOREST && number_bits(1))
+        || (ch->fighting != NULL && number_bits(2))
+        || !chance(skill) )
+        return;
+    
+    // must not have a pet already, and must accept them
+    if ( ch->pet != NULL || IS_SET(ch->act, PLR_NOFOLLOW))
+        return;
+       
+    if ( (mobIndex = get_mob_index(MOB_VNUM_BEAST)) == NULL )
+        return;
+    
+    mob = create_mobile(mobIndex);
+    
+    mlevel = dice(2,6) + ch->level * (100 + skill) / 300;
+    mlevel = URANGE(1, mlevel, ch->level);
+    set_mob_level( mob, mlevel );
+
+    sprintf(buf,"This wild animal follows %s.\n\r", ch->name);
+    free_string(mob->description);
+    mob->description = str_dup(buf);
+    
+    char_to_room( mob, ch->in_room );
+    
+    send_to_char( "A wild animal comes up to you and starts following you around.\n\r", ch );
+    act( "A wild animal trods up and follows $n.", ch, NULL, NULL, TO_ROOM );
+    
+    add_follower( mob, ch );
+    mob->leader = ch;
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_beast_mastery;
+    af.level     = ch->level;
+    af.duration  = -1;
+    af.location  = 0;
+    af.modifier  = 0;
+    af.bitvector = AFF_CHARM;
+    affect_to_char( mob, &af );
+    SET_BIT(mob->act, ACT_PET);
+    ch->pet = mob;
+    
     return;
 }

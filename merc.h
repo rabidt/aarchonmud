@@ -257,7 +257,7 @@ bool is_drop_obj( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         417 
+#define MAX_SKILL         418
 #define MAX_GROUP          76 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
@@ -1085,6 +1085,7 @@ struct  kill_data
 #define MOB_VNUM_BASIC_APPARITION 11
 #define MOB_VNUM_HOLY_APPARITION 12
 #define MOB_VNUM_WATER_ELEMENTAL 13
+#define MOB_VNUM_BEAST           14
 
 /* RT ASCII conversions -- used so we can have letters in this file */
 
@@ -3318,6 +3319,7 @@ extern sh_int  gsn_taxidermy;
 extern sh_int  gsn_introspection;
 extern sh_int  gsn_climbing;
 extern sh_int  gsn_blindfighting;
+extern sh_int  gsn_beast_mastery;
 extern sh_int  gsn_camp_fire;
 extern sh_int  gsn_treat_weapon;
 extern sh_int  gsn_soothe;
