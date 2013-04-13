@@ -966,26 +966,9 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
 	return FALSE;
     }
 
-    if (pc_race_table[race].gender == SEX_NEUTRAL)
+    if (pc_race_table[race].gender != SEX_BOTH)
     {
-	ch->sex = SEX_NEUTRAL;
-    }
-    else if (pc_race_table[race].gender != SEX_BOTH
-	     && ch->pcdata->true_sex!=pc_race_table[race].gender)
-    {
-	write_to_buffer(d,"You are the wrong gender for that race.\n\r",0);
-	write_to_buffer(d,"The following races are available:\n\r  ",0);
-	show_races_to_d(d);
-
-	if (ch->pcdata->remorts>0)
-	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
-
-	sprintf( msg, "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
-	write_to_buffer(d,buffer,0);
-
-	return FALSE;
+	ch->sex = pc_race_table[race].gender;
     }
 
     ch->race = race;
