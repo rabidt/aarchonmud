@@ -2198,7 +2198,7 @@ void do_affects( CHAR_DATA *ch, char *argument )
     else 
         send_to_char("You are not affected by any spells.\n\r",ch);
 
-    if (ch->leader != NULL)
+    if (ch->leader != NULL && ch->leader != ch && ch->leader->in_room == ch->in_room)
         printf_to_char(ch, "You receive a %d%% damage %s from %s's leadership.\n\r",
             leadership,
             leadership >= 0 ? "bonus" : "penalty",
