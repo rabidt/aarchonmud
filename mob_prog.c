@@ -140,6 +140,8 @@ char last_debug[MSL] = "";
 #define CHK_QTIMER      (69)
 #define CHK_MPCNT       (70)
 
+#define CHK_REMORT      (71)
+
 /*
  * These defines correspond to the entries in fn_evals[] table.
  */
@@ -239,6 +241,7 @@ const keyword_list fn_keyword =
 			"if ccarries $n 1233    - does $n have obj 1233 in a container" },
     { "qtimer",         "if qtimer 3877 $n > 0  - qstatus timer check" },
     { "mpcnt",          "if mpcnt $i > 15       - mana point percent check" },
+    { "remort",     "if remort $n > 0    - if $n's remort is above 0 (remort value is -1 for mobs)"},
 
     { "\n",		"Table terminator" }
 };
@@ -305,6 +308,13 @@ CHAR_DATA *get_random_char( CHAR_DATA *mob )
 {
     CHAR_DATA *vch, *victim = NULL;
     int now = 0, highest = 0;
+
+    if ( mob->in_room == NULL )
+    {
+        bugf( "get_random_char: NULL room for mob %d", mob->pIndexData->vnum );
+        return NULL;
+    }
+
     for( vch = mob->in_room->people; vch; vch = vch->next_in_room )
     {
         if ( mob != vch 
@@ -327,6 +337,13 @@ int count_people_room( CHAR_DATA *mob, int iFlag )
 {
     CHAR_DATA *vch;
     int count;
+
+    if ( mob->in_room == NULL )
+    {
+        bugf( "count_people_room: NULL room for mob %d", mob->pIndexData->vnum );
+        return 0;
+    }
+
     for ( count = 0, vch = mob->in_room->people; vch; vch = vch->next_in_room )
 	if ( mob != vch 
 	&&   (iFlag == 0
@@ -352,6 +369,13 @@ int get_order( CHAR_DATA *ch )
 
     if ( !IS_NPC(ch) )
 	return 0;
+
+    if ( ch->in_room == NULL )
+    {
+        bugf( "get_order: NULL room for mob %d", ch->pIndexData->vnum );
+        return 0;
+    }
+
     for ( i = 0, vch = ch->in_room->people; vch; vch = vch->next_in_room )
     {
 	if ( vch == ch )
@@ -431,6 +455,13 @@ bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
 bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
 {
     CHAR_DATA *mob;
+
+    if (ch->in_room == NULL )
+    {
+        bugf( "get_mob_vnum_room: NULL room for ch %d", ch->pIndexData->vnum );
+        return NULL;
+    }
+
     for ( mob = ch->in_room->people; mob; mob = mob->next_in_room )
 	if ( IS_NPC( mob ) && mob->pIndexData->vnum == vnum )
 	    return TRUE;
@@ -443,6 +474,13 @@ bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
 bool get_obj_vnum_room( CHAR_DATA *ch, int vnum )
 {
     OBJ_DATA *obj;
+
+    if ( ch->in_room == NULL )
+    {
+        bugf( "get_obj_vnum_room: NULL room for mob %d", ch->pIndexData->vnum );
+        return 0;
+    }
+
     for ( obj = ch->in_room->contents; obj; obj = obj->next_content )
 	if ( obj->pIndexData->vnum == vnum )
 	    return TRUE;
@@ -868,6 +906,15 @@ int cmd_eval( int vnum, char *line, int check,
             if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_CHA); break;
 	case CHK_STATLUC:
             if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_LUC); break;
+    case CHK_REMORT:
+            if ( lval_char != NULL )
+            {
+                if IS_NPC(ch)
+                   lval = -1;
+                else
+                   lval = lval_char->pcdata->remorts;
+            }
+            break;
 	default:
             return FALSE;
     }
@@ -1386,7 +1433,7 @@ bool mp_percent_trigger(
     for ( prg = mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
     {
     	if ( prg->trig_type == type 
-	&&   number_percent() < atoi( prg->trig_phrase ) )
+	&&   number_percent() <= atoi( prg->trig_phrase ) )
         {
 	    program_flow( prg->vnum, prg->code, mob, ch, arg1, arg2 );
 	    return ( TRUE );

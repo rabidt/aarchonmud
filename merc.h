@@ -1317,8 +1317,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 
 /* damage classes */
@@ -2587,9 +2587,12 @@ struct  pc_data
     sh_int	    storage_boxes; /*Number of storage boxes the player has*/
     OBJ_DATA *	box_data[MAX_STORAGE_BOX];/*So we know if boxes are loaded and have easy access to them for saving purposes*/
 
-    sh_int		trained_hit;
-    sh_int		trained_mana;
-    sh_int		trained_move;
+    sh_int      trained_hit;
+    sh_int      trained_mana;
+    sh_int      trained_move;
+    int         trained_hit_bonus;
+    int         trained_mana_bonus;
+    int         trained_move_bonus;
     sh_int      true_sex;
     int         last_level;
     sh_int      highest_level; /* highest level reached during current remort */
