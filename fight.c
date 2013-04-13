@@ -365,6 +365,10 @@ void check_rescue( CHAR_DATA *ch )
 
   if (ch->position <= POS_SLEEPING || !can_see(ch, target))
     return;
+  
+  /* NPCs only rescue if they aren't worse-off than the target */
+  if (ch->hit * target->max_hit < target->hit * ch->max_hit)
+      return;
 
   /* lag-free rescue */
   if (number_percent() < get_skill(ch, gsn_bodyguard))
