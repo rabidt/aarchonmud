@@ -1617,6 +1617,23 @@ void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, bool hit )
     one_hit( victim, ch, TYPE_UNDEFINED, FALSE );
 }
 
+int get_leadership_bonus( CHAR_DATA *ch, bool improve )
+{
+    int bonus;
+    
+    if ( ch->leader == NULL || ch->leader == ch || ch->in_room != ch->leader->in_room )
+        return 0;
+
+    bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
+    bonus += get_skill( ch->leader, gsn_leadership );
+    bonus += ch->leader->level - ch->level;
+
+    if (improve)
+        check_improve( ch->leader, gsn_leadership, TRUE, 14 );
+
+    return bonus / 10;
+}
+
 /*
 * Hit one guy once.
 */
@@ -1804,17 +1821,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
 
     /* leadership and charisma of group leader */
-    if ( ch->leader != NULL
-	 && ch->leader != ch 
-	 && ch->in_room == ch->leader->in_room )
-    {
-	int bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
-	bonus += get_skill( ch->leader, gsn_leadership );
-	bonus += ch->leader->level - ch->level;
-	dam += dam * bonus / 1000;
-	if ( number_bits(4) == 0 )
-	    check_improve( ch->leader, gsn_leadership, TRUE, 10 );
-    }
+    dam += dam * get_leadership_bonus(ch, TRUE) / 100;
     
     if ( dam <= 0 )
 	dam = 1;
@@ -3001,9 +3008,10 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
         for (m = ch->in_room->people; m != NULL; m = m->next_in_room)
             if (IS_NPC(m) && HAS_TRIGGER(m, TRIG_DEFEAT))
             {
-                mp_percent_trigger( m, victim, NULL, NULL, TRIG_DEFEAT );
                 victim->hit = 1;
-		set_pos( victim, POS_STUNNED );
+                set_pos( victim, POS_STUNNED );
+                // trigger must come AFTER death-prevention, as mob remort can cause character to save
+                mp_percent_trigger( m, victim, NULL, NULL, TRIG_DEFEAT );
                 return FALSE;
             }
     }
