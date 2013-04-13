@@ -5003,7 +5003,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     leadership = (get_curr_stat(leader,STAT_CHA) + get_skill(leader, gsn_leadership)) / 300.0;
     group_factor = 1 - (high_align - low_align) / 4000.0 * (1 - leadership);
     group_factor *= 1 - (max_power - min_power) / 200.0 * (1 - leadership);
-    group_factor *= 1.0/3 + 2.0/(2+members);
+    group_factor *= 1.0/3 + 2.0/(3*members);
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
@@ -5223,6 +5223,9 @@ float calculate_exp_factor( CHAR_DATA *gch )
         int hitdice_gained = gch->level - 88;
         xp_factor *= 5.0 / (4 + hitdice_gained);
     }
+    // and bonus for low-ish characters
+    else
+        xp_factor *= (300 - gch->level) / 200.0;
     // bonus for newbies
     if ( gch->pcdata->remorts == 0 )
         xp_factor *= (300 - gch->level) / 200.0;
