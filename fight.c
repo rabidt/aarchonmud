@@ -1615,6 +1615,23 @@ void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, bool hit )
     one_hit( victim, ch, TYPE_UNDEFINED, FALSE );
 }
 
+int get_leadership_bonus( CHAR_DATA *ch, bool improve )
+{
+    int bonus;
+    
+    if ( ch->leader == NULL || ch->leader == ch || ch->in_room != ch->leader->in_room )
+        return 0;
+
+    bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
+    bonus += get_skill( ch->leader, gsn_leadership );
+    bonus += ch->leader->level - ch->level;
+
+    if (improve)
+        check_improve( ch->leader, gsn_leadership, TRUE, 14 );
+
+    return bonus / 10;
+}
+
 /*
 * Hit one guy once.
 */
@@ -1802,17 +1819,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
 
     /* leadership and charisma of group leader */
-    if ( ch->leader != NULL
-	 && ch->leader != ch 
-	 && ch->in_room == ch->leader->in_room )
-    {
-	int bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
-	bonus += get_skill( ch->leader, gsn_leadership );
-	bonus += ch->leader->level - ch->level;
-	dam += dam * bonus / 1000;
-	if ( number_bits(4) == 0 )
-	    check_improve( ch->leader, gsn_leadership, TRUE, 10 );
-    }
+    dam += dam * get_leadership_bonus(ch, TRUE) / 100;
     
     if ( dam <= 0 )
 	dam = 1;
