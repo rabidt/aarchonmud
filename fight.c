@@ -2997,9 +2997,10 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
         for (m = ch->in_room->people; m != NULL; m = m->next_in_room)
             if (IS_NPC(m) && HAS_TRIGGER(m, TRIG_DEFEAT))
             {
-                mp_percent_trigger( m, victim, NULL, NULL, TRIG_DEFEAT );
                 victim->hit = 1;
-		set_pos( victim, POS_STUNNED );
+                set_pos( victim, POS_STUNNED );
+                // trigger must come AFTER death-prevention, as mob remort can cause character to save
+                mp_percent_trigger( m, victim, NULL, NULL, TRIG_DEFEAT );
                 return FALSE;
             }
     }
@@ -5224,7 +5225,10 @@ float calculate_exp_factor( CHAR_DATA *gch )
     }
     // bonus for newbies
     if ( gch->pcdata->remorts == 0 )
-        xp_factor += (100 - gch->level) / 200.0;
+        xp_factor *= (300 - gch->level) / 200.0;
+    // bonus for first 5 levels
+    if ( gch->level <= 5 )
+        xp_factor *= 1.5;
 
     // additive bonuses
     
