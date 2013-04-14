@@ -62,6 +62,7 @@ bool can_gain_skill( CHAR_DATA *ch, int sn )
 void do_gain(CHAR_DATA *ch, char *argument)
 {
 	char buf[MAX_STRING_LENGTH];
+    char *argPtr;
 	char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 	CHAR_DATA *trainer;
 	int gn = 0, sn = 0;
@@ -99,8 +100,8 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			}
 		}
 		
-                argument = one_argument( argument, arg );
-                argument = one_argument( argument, arg2 );
+                argPtr = one_argument( argument, arg );
+                argPtr = one_argument( argPtr, arg2 );
 
 		if (arg[0] == '\0')
 		{
