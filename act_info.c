@@ -4153,11 +4153,7 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
     
     ch->mana -= skill_table[sn].min_mana;
-    /*
-    check_improve(ch,gsn_lore,FALSE,2);
-    if ( weapon )
-	check_improve(ch,gsn_weapons_lore,FALSE,2);
-    */
+
 
     /* ok, he knows something.. */
     say_basic_obj_index_data( ch, org_obj );
@@ -4197,15 +4193,28 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     */
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     if ( IS_NPC(ch) )
 	return; // prevent easy learning by spamming sage
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-	if ( IS_NPC(rch) || !IS_AWAKE(rch) || rch == ch )
+	if ( IS_NPC(rch) || !IS_AWAKE(rch) )
 	    continue;
-	check_improve( rch, gsn_lore, 2, TRUE );
-	if ( weapon )
-	    check_improve( rch, gsn_weapons_lore, 2, TRUE );
+        else
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
+                if ( weapon )
+                    check_improve(ch, gsn_weapons_lore, 5, TRUE);
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+        }
     }
 }
 
@@ -4866,9 +4875,10 @@ void do_score( CHAR_DATA *ch, char *argument )
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
 
-        /* Reduced spacing so that players who max all 3 stats don't lose formatting - Astark Oct 2012 */
-        sprintf( buf, "{D|{x Trains:     {C%-5d{x {cTrains Spent:{x %d {con hp,{x %d {con mn,{x %d{x {con mv{x  {c(MAX %d){x",
-            ch->train, ch->pcdata->trained_hit,  ch->pcdata->trained_mana,  ch->pcdata->trained_move, max_hmm_train(ch->level) );
+        int hp_cap, mana_cap, move_cap;
+        get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
+        sprintf( buf, "{D|{x Trains:     {C%-5d {cSpent:{x %d/%d {chp,{x %d/%d {cmn,{x %d/%d {cmv  {c(MAX %d){x",
+            ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
