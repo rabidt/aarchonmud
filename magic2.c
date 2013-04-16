@@ -1903,6 +1903,7 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     char buf[MAX_STRING_LENGTH];
     int mlevel, mhp, chance;
     int charmed, max;
+    int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     if ( ch->in_room->sector_type != SECT_FOREST)
     {
@@ -1932,7 +1933,8 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_TREEGOLEM)))==NULL) 
         return;
     
-    mlevel = URANGE(1, level * 3/4, ch->level);
+    mlevel = (6*level + beast_skill) / 8;
+    mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rA tree springs to life and follows %s.\n\r\n\r",
@@ -1949,7 +1951,63 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level   = level;
-    af.duration  = number_fuzzy( level );
+    af.duration  = (100 + level) * (100 + beast_skill) / 200;
+    af.location  = 0;
+    af.modifier  = 0;
+    af.bitvector = AFF_CHARM;
+    affect_to_char( mob, &af );
+    
+    return;
+}
+
+void spell_water_elemental( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+{
+    AFFECT_DATA af;
+    CHAR_DATA *mob;
+    MOB_INDEX_DATA *mobIndex;
+    char buf[MAX_STRING_LENGTH];
+    int mlevel;
+    int sector = ch->in_room->sector_type;
+    
+    if ( sector != SECT_WATER_SHALLOW
+        && sector != SECT_WATER_DEEP
+        && sector != SECT_UNDERWATER )
+    {
+        send_to_char("You need water to summon water elementals.\n\r",ch);
+        return; 
+    }
+    
+    if ( IS_SET( ch->act, PLR_WAR ) )
+    {
+        send_to_char( "This war does not concern the elemental spirits.\n\r", ch );
+        return;
+    }
+    
+    /* Check number of charmees against cha*/ 
+    if ( !check_cha_follow(ch) )
+        return;
+       
+    if ( (mobIndex = get_mob_index(MOB_VNUM_WATER_ELEMENTAL)) == NULL ) 
+        return;
+    mob = create_mobile(mobIndex);
+    
+    mlevel = URANGE(1, level * 3/4, ch->level);
+    set_mob_level( mob, mlevel );
+
+    sprintf(buf,"%s\n\rThis water elemental follows %s.\n\r", mob->description, ch->name);
+    free_string(mob->description);
+    mob->description = str_dup(buf);
+    
+    char_to_room( mob, ch->in_room );
+    
+    send_to_char( "An elemental spirit imbues the water with life!\n\r", ch );
+    act( "$n's spells gives life to a water elemental!", ch, NULL, NULL, TO_ROOM );
+    add_follower( mob, ch );
+    mob->leader  = ch;
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = (100 + level) / 2;
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_CHARM;
@@ -2033,6 +2091,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     int snake_count, max_snake;
+    int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     if ( ch->in_room->sector_type != SECT_FOREST)
     {
@@ -2060,7 +2119,8 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     if ( max_snake == 0 )
         return;
     
-    mlevel = URANGE(1, level/2, ch->level);
+    mlevel = (5*level + beast_skill) / 10;
+    mlevel = URANGE(1, mlevel, ch->level);
     chance = 100;
     snake_count = 0;
     while ( snake_count * mlevel < max_snake && number_percent() <= chance ) {
@@ -2081,7 +2141,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
         af.where     = TO_AFFECTS;
         af.type      = sn;
         af.level   = level;
-        af.duration  = number_fuzzy( level );
+        af.duration  = (100 + level) * (100 + beast_skill) / 200;
         af.location  = 0;
         af.modifier  = 0;
         af.bitvector = AFF_CHARM;
@@ -3381,7 +3441,7 @@ void spell_mirror_image( int sn, int level, CHAR_DATA *ch, void *vo, int target 
     af.modifier  = -10;
     af.location  = APPLY_AC;
     af.where     = TO_SPECIAL;
-    af.bitvector = 1 + level/10;
+    af.bitvector = dice(2,4) + level/16; // number of images
 
     affect_to_char( ch, &af );
 
@@ -3961,7 +4021,7 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     af.modifier  = -10;
     af.location  = APPLY_AC;
     af.where     = TO_SPECIAL;
-    af.bitvector = 1 + level/8;
+    af.bitvector = dice(2,4) + level/8; // number of images
 
     affect_to_char( ch, &af );
 

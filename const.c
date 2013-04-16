@@ -700,43 +700,43 @@ struct align_type align_table [] =
 	{
 	"android",        TRUE,
 	{},      {AFF_DETECT_HIDDEN,AFF_INFRARED,AFF_BATTLE_METER},   {},
-	{},		{RES_FIRE,RES_LIGHT,RES_MENTAL},		{},
-	{H,J,M,cc},   {A,B,C,G,H,I,J,K}
+	{},      {RES_FIRE,RES_LIGHTNING,RES_MENTAL}, {VULN_ACID},
+	{H,J,M,cc,kk},   {A,B,C,G,H,I,J,K}
 	},
 
 	{
 	"naiad",        TRUE,
-	{},      {AFF_DETECT_MAGIC,AFF_BREATHE_WATER,AFF_FLYING},   {},
-	{IMM_DROWNING},      {RES_MAGIC}, {VULN_LIGHTNING},
+	{},      {AFF_DETECT_MAGIC,AFF_BREATHE_WATER},   {},
+	{},      {RES_DROWNING}, {},
 	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K,P}
 	},
 
 	{
 	"phantom",        TRUE,
-	{},      {AFF_FLYING,AFF_PASS_DOOR,AFF_MINOR_FADE},   {},
-	{},      {RES_NEGATIVE,RES_BASH,RES_ENERGY,RES_MENTAL}, {VULN_HOLY},
+	{},      {AFF_FLYING,AFF_PASS_DOOR,AFF_MINOR_FADE,AFF_NO_TRACE},   {},
+	{},      {RES_PIERCE,RES_SLASH}, {VULN_ENERGY,VULN_LIGHT},
 	{D,H,K,N},    {D}
 	},
 
         {
         "tengu",    TRUE,
-        {},      {},        {},
-        {},      {RES_LIGHTNING, RES_MENTAL, RES_CHARM},    {},
+        {},      {AFF_FLYING},        {},
+        {},      {},    {},
 	{A,H,M,V,jj},    {A,B,C,D,E,F,G,H,I,J,K}
         },
 
 	{
 	"titan",        TRUE,
 	{},      {},   {},
-	{},      {RES_ENERGY,RES_COLD,RES_BASH}, {VULN_CHARM,VULN_MENTAL},
+	{},      {RES_HOLY,RES_NEGATIVE}, {VULN_LIGHTNING},
 	{A,H,V,M,ee},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
 	{
-	"unitaur",        TRUE,
+	"voadkin",        TRUE,
 	{},      {},   {},
-	{IMM_POISON},      {RES_DISEASE,RES_COLD,RES_POISON,RES_BASH}, {VULN_SOUND},
-	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K,Q,W}
+	{},      {RES_DISEASE}, {},
+	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 //10
 	{
@@ -1570,42 +1570,42 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
 
         { 
           "android",   "Androi",
-          { 265, 275, 290, 285, 265, 275, 275, 265, 275, 280, 290, 290, 270, 275, 285 },
-          2, { "lightning bolt", "electrocution" },
-          {1, 30}, {100, 75},
-          {  70,  70,  60,  70,  70,      50,  50,  60,  50,  50 },
-          { 140, 140, 130, 140, 140,     120, 120, 130, 120, 120 },   
-          {   5,   5,   4,   5,   5,       3,   3,   4,   3,   3 },
+          { 265, 270, 270, 270, 270, 265, 270, 270, 270, 270, 270, 270, 270, 270, 270 },
+          4, { "shocking grasp", "lightning bolt", "chain lightning", "electrocution" },
+          {10, 20, 30, 40}, {100, 95, 95, 75},
+          {  70,  70,  60,  60,  70,      60,  50,  60,  50,  50 },
+          { 135, 135, 130, 130, 135,     130, 125, 130, 125, 125 },   
+          {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
           SIZE_MEDIUM, SEX_BOTH, 8
         },
 
         { 
           "naiad",   "Naiad ",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "swimming", "monsoon", "charm person", "anatomy" },
-          {1, 11, 39, 75, }, {100,100,70,10},
+          { 275, 270, 260, 270, 275, 270, 265, 270, 270, 265, 265, 270, 270, 260, 270 },
+          5, { "swimming", "charm person", "monsoon", "water elemental", "heal" },
+          {1, 20, 40, 50, 60}, {100, 100, 90, 80, 70},
           {  40,  55,  50,  60,  50,      75,  65,  65,  60,  55 },
-          { 125, 135, 135, 145, 140,     155, 150, 135, 140, 145 },   
-          {   3,   4,   3,   4,   4,       5,   5,   4,   4,   4 },
+          { 125, 135, 135, 145, 140,     145, 150, 135, 150, 145 },   
+          {   2,   4,   4,   4,   4,       4,   5,   4,   5,   4 },
           SIZE_SMALL, SEX_FEMALE, 8
         },
         
         { 
           "phantom",   "Phantm",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "invis", "shadow soul", "shadow shroud", "dispel magic" },
-          {1, 4, 20, 60, }, {100,90,90,80},
+          { 270, 265, 270, 270, 270, 275, 275, 265, 260, 270, 270, 255, 270, 270, 270 },
+          5, { "invis", "shadowclaw", "shadowsoul", "basic apparition", "phantasmal image" },
+          {1, 10, 20, 40, 50}, {100, 95, 95, 90, 80},
           {  45,  50,  50,  65,  65,      65,  65,  65,  45,  60 },
-          { 135, 140, 135, 150, 150,     145, 140, 140, 130, 140 },   
+          { 135, 135, 135, 150, 150,     145, 140, 140, 135, 140 },   
           {   3,   4,   4,   5,   5,       4,   4,   4,   3,   4 },
           SIZE_MEDIUM, SEX_BOTH, 8
         },
 
         { 
           "tengu",   "Tengu ",
-          { 270, 265, 280, 280, 275, 270, 275, 270, 270, 275, 280, 270, 275, 270, 290 },
-          4, { "leadership", "finesse", "twohand weapons", "renewal" },
-          {5, 19, 25, 60, }, {100,95,85,25},
+          { 260, 270, 270, 265, 265, 265, 265, 265, 270, 270, 270, 265, 270, 260, 265 },
+          5, { "sword", "dual sword", "retribution", "mana shield", "leadership" },
+          {1, 10, 20, 40, 50}, {100, 95, 90, 90, 90},
           {  45,  55,  55,  60,  50,      60,  60,  65,  65,  60 },
           { 130, 135, 135, 140, 145,     150, 150, 135, 145, 140 },   
           {   3,   3,   4,   4,   4,       5,   5,   4,   4,   4 },
@@ -1614,24 +1614,24 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
 
         { 
           "titan",   "Titan ",
-          { 265, 280, 285, 285, 265, 270, 270, 280, 275, 275, 285, 285, 275, 270, 280 },
-          5, { "bash", "iron hide", "uppercut", "third attack", "meteor swarm"},
-          {1, 19, 32, 47, 75}, {100,85,80,65,80},
+          { 260, 275, 270, 275, 260, 265, 265, 270, 275, 265, 270, 275, 265, 270, 275 },
+          5, { "bash", "twohand weapons", "uppercut", "bloodbath", "brutal damage"},
+          {10, 20, 30, 40, 50}, {100, 90, 90, 80, 60},
           {  75,  65,  50,  60,  60,      40,  40,  65,  60,  60 },
           { 155, 155, 140, 140, 140,     130, 130, 145, 130, 140 },   
           {   5,   5,   4,   4,   4,       3,   3,   4,   4,   4 },
-          SIZE_HUGE, SEX_BOTH, 8
+          SIZE_GIANT, SEX_BOTH, 8
         },
         
         { 
-          "unitaur",   "Unitau",
-          { 270, 285, 280, 280, 275, 270, 275, 280, 285, 275, 280, 285, 275, 265, 285 },
-          5, { "headbutt", "bow", "fledging", "hunt", "sanctuary" },
-          { 3, 17, 17, 43, 64 }, {100,80,80,70,70},
-          {  60,  65,  55,  65,  65,      55,  50,  55,  50,  55 },
-          { 140, 145, 140, 145, 145,     135, 140, 140, 130, 145 },   
+          "voadkin",   "Voadki",
+          { 270, 265, 270, 270, 270, 270, 270, 265, 265, 270, 265, 270, 265, 260, 275 },
+          5, { "bow", "fledging", "woodlandcombat", "hunt", "beast mastery" },
+          { 10, 10, 20, 30, 40 }, { 95, 95, 90, 80, 80 },
+          {  55,  55,  55,  55,  55,      55,  55,  55,  55,  55 },
+          { 140, 140, 140, 140, 145,     140, 145, 140, 140, 140 },   
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
-          SIZE_LARGE, SEX_MALE, 8
+          SIZE_LARGE, SEX_BOTH, 8
         },
    
         { 
@@ -4267,7 +4267,18 @@ struct  skill_type  skill_table [MAX_SKILL] =
 		"",                     "!blindfighting!",    "", NULL
 	},
 
-	{
+        {
+        "beast mastery", 
+        {  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0 },
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_NONE, STAT_NONE, STAT_NONE,
+                spell_null,             TAR_IGNORE,             POS_FIGHTING,
+                &gsn_beast_mastery,   SLOT( 0),        0,     0,
+                "",                     "!beast mastery!",    "", NULL
+        },
+
+        {
 	"camp fire",
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 26, 102 },
 	{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 1, 0 },
@@ -4420,7 +4431,18 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	NULL,           SLOT(2000),   200, 24,
 	"tree golem",     "!Tree Golem!",       "", NULL
 	},
-	
+
+        {
+        "water elemental",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0 },
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_NONE, STAT_NONE, STAT_NONE,
+        spell_water_elemental,  TAR_IGNORE, POS_STANDING,
+        NULL,           SLOT(2116),   200, 24,
+        "water elemental",     "!Water Elemental!",       "", NULL
+        },
+
 	{
 	"wendigo",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 70, 102 },
