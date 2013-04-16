@@ -1428,10 +1428,13 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
 	/* twohanded weapons */
 	if ( wield->value[0] == WEAPON_BOW )
 	{
-	    if ( has_shield )
-		weapon_dam *= 1;
-	    else
-		weapon_dam *= 3;
+        if ( has_shield )
+        {
+            weapon_dam += weapon_dam * get_skill(ch, gsn_wrist_shield) / 100;
+            check_improve(ch, gsn_wrist_shield, TRUE, 10);
+        }
+        else
+            weapon_dam *= 3;
 	}
 	else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
 	{
