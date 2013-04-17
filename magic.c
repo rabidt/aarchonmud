@@ -5445,28 +5445,23 @@ void spell_high_explosive(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
 
 
-/* Check number of charmees against cha - returns number of hitdice left over */
-int check_cha_follow( CHAR_DATA *ch )
+/* Check number of charmees against cha - returns number of hitdice left over
+ * Also send error message when this number is below required amount
+ */
+int check_cha_follow( CHAR_DATA *ch, int required )
 {
     CHAR_DATA *check;
     int charmed=0;
-    int max = ch->level * get_curr_stat(ch, STAT_CHA) / 20;
+    int max = ch->level * get_curr_stat(ch, STAT_CHA) / 40;
     
     for ( check=char_list ; check != NULL; check = check->next )
-    {
-        if (IS_NPC(check) && IS_AFFECTED(check,AFF_CHARM) && 
-            check->master == ch)
-        {
+        if (IS_NPC(check) && IS_AFFECTED(check,AFF_CHARM) && check->master == ch && ch->pet != check)
             charmed += check->level;
-            if (charmed >= max)
-            {
-                send_to_char( "You are not charismatic enough to attract more followers.\n\r",ch);
-                return 0;
-            }
-        }
-    }
     
-    return (max - charmed);
+    if (required > 0 && charmed + required > max)
+        send_to_char("You are not charismatic enough to attract more followers.\n\r",ch);
+
+    return UMAX(0, max - charmed);
 }
 
 void do_scribe( CHAR_DATA *ch, char *argument )
