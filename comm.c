@@ -2531,13 +2531,6 @@ void show_string(struct descriptor_data *d, char *input)
 }
 
 
-/* quick sex fixer */
-void fix_sex(CHAR_DATA *ch)
-{
-	if (ch->sex < 0 || ch->sex > 2)
-		ch->sex = IS_NPC(ch) ? 0 : ch->pcdata->true_sex;
-}
-
 /* non-trigger act */
 void nt_act ( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2,
 	      int type )
@@ -3526,6 +3519,7 @@ void copyover_recover ()
             act ("$n materializes!", d->character, NULL, NULL, TO_ROOM);
             d->connected = CON_PLAYING;
             update_bounty(d->character);
+            reset_char(d->character);
             
             if (d->character->pet != NULL)
             {
