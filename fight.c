@@ -1428,10 +1428,13 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
 	/* twohanded weapons */
 	if ( wield->value[0] == WEAPON_BOW )
 	{
-	    if ( has_shield )
-		weapon_dam *= 1;
-	    else
-		weapon_dam *= 3;
+        if ( has_shield )
+        {
+            weapon_dam += weapon_dam * get_skill(ch, gsn_wrist_shield) / 100;
+            check_improve(ch, gsn_wrist_shield, TRUE, 10);
+        }
+        else
+            weapon_dam *= 3;
 	}
 	else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
 	{
@@ -1613,6 +1616,23 @@ void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, bool hit )
 	 || victim->fighting != ch || IS_AFFECTED(victim, AFF_FLEE) )
 	return;
     one_hit( victim, ch, TYPE_UNDEFINED, FALSE );
+}
+
+int get_leadership_bonus( CHAR_DATA *ch, bool improve )
+{
+    int bonus;
+    
+    if ( ch->leader == NULL || ch->leader == ch || ch->in_room != ch->leader->in_room )
+        return 0;
+
+    bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
+    bonus += get_skill( ch->leader, gsn_leadership );
+    bonus += ch->leader->level - ch->level;
+
+    if (improve)
+        check_improve( ch->leader, gsn_leadership, TRUE, 14 );
+
+    return bonus / 10;
 }
 
 /*
@@ -1802,17 +1822,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
 
     /* leadership and charisma of group leader */
-    if ( ch->leader != NULL
-	 && ch->leader != ch 
-	 && ch->in_room == ch->leader->in_room )
-    {
-	int bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
-	bonus += get_skill( ch->leader, gsn_leadership );
-	bonus += ch->leader->level - ch->level;
-	dam += dam * bonus / 1000;
-	if ( number_bits(4) == 0 )
-	    check_improve( ch->leader, gsn_leadership, TRUE, 10 );
-    }
+    dam += dam * get_leadership_bonus(ch, TRUE) / 100;
     
     if ( dam <= 0 )
 	dam = 1;
@@ -2999,9 +3009,10 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
         for (m = ch->in_room->people; m != NULL; m = m->next_in_room)
             if (IS_NPC(m) && HAS_TRIGGER(m, TRIG_DEFEAT))
             {
-                mp_percent_trigger( m, victim, NULL, NULL, TRIG_DEFEAT );
                 victim->hit = 1;
-		set_pos( victim, POS_STUNNED );
+                set_pos( victim, POS_STUNNED );
+                // trigger must come AFTER death-prevention, as mob remort can cause character to save
+                mp_percent_trigger( m, victim, NULL, NULL, TRIG_DEFEAT );
                 return FALSE;
             }
     }
@@ -3737,7 +3748,7 @@ bool blind_penalty( CHAR_DATA *ch )
 /* checks for dodge, parry, etc. */
 bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 {
-    bool finesse, autohit;
+    bool finesse, autohit, try_avoid;
     int stance = ch->stance;
     int vstance = victim->stance;
     int sector = ch->in_room->sector_type;
@@ -3748,12 +3759,6 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     /* only normal attacks can be faded, no spells */
     if ( check_fade( ch, victim, show ) )
 	return TRUE;
-    if ( check_mirror( ch, victim, show ) )
-	return TRUE;
-    if ( check_phantasmal( ch, victim, show ) )
-	return TRUE;
-    if ( IS_AFFECTED(victim, AFF_FLEE) )
-	return FALSE;
     
     /* chance for dodge, parry etc. ? */
     autohit =
@@ -3787,7 +3792,8 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	    check_improve( ch, gsn_woodland_combat, FALSE, 10 );
     }
 
-    if ( !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) )
+    try_avoid = !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) && !IS_AFFECTED(victim, AFF_FLEE);
+    if ( try_avoid )
     {
 	if ( check_outmaneuver( ch, victim ) )
 	    return TRUE;
@@ -3795,13 +3801,19 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
             return TRUE;
         if ( check_dodge( ch, victim ) )
             return TRUE;
-        if ( check_parry( ch, victim ) )
-            return TRUE;
     }
-    
+
+    if ( check_mirror( ch, victim, show ) )
+        return TRUE;
+    if ( check_phantasmal( ch, victim, show ) )
+        return TRUE;
+
     if ( check_shield_block(ch,victim) )
 	return TRUE;
-    
+
+    if ( try_avoid && check_parry( ch, victim ) )
+        return TRUE;
+
     return FALSE;
 }
 
@@ -3878,7 +3890,7 @@ bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	return FALSE;
 
     if ( number_range(0, aff->bitvector) == 0
-	 || chance(get_skill(ch, gsn_alertness)/2) )
+	 || chance(25 + get_skill(ch, gsn_alertness)/2) )
 	return FALSE;
 
     /* ok, we hit a mirror image */
@@ -3912,22 +3924,26 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	return FALSE;
 
     if ( number_range(0, aff->bitvector) == 0
-	 || chance(get_skill(ch, gsn_alertness)/2) )
+	 || chance(25 + get_skill(ch, gsn_alertness)/2) )
 	return FALSE;
 
     /* ok, we hit a phantasmal image */
     if ( show )
     {
-        act_gag( "$n's attack hits one of your phantasmal images.", 
+        act_gag( "$n hits one of your phantasmal images, which exlodes in a flash of light.",
 		 ch, NULL, victim, TO_VICT, GAG_FADE );
-        act_gag( "You hit one of $N's phantasmal images, which dissolves.",
+        act_gag( "You hit one of $N's phantasmal images, which explodes in a flash of light.",
 		 ch, NULL, victim, TO_CHAR, GAG_FADE );
-        act_gag( "$n hits one of $N's phantasmal images, which dissolves.",
+        act_gag( "$n hits one of $N's phantasmal images, which explodes in a flash of light.",
 		 ch, NULL, victim, TO_NOTVICT, GAG_FADE );
 
-	dam = dice(11, 7);
-	full_dam(victim, ch, dam, gsn_phantasmal_image, DAM_FIRE, TRUE);
-	        
+        // like auras, ranged attackers don't take damage from exploding images
+        int ch_weapon = get_weapon_sn(ch);
+        if ( ch_weapon != gsn_gun && ch_weapon != gsn_bow )
+        {
+            dam = dice(4, aff->level);
+            full_dam(victim, ch, dam, gsn_phantasmal_image, DAM_LIGHT, TRUE);
+        }
     }
 
     /* lower number of images */
@@ -5226,7 +5242,10 @@ float calculate_exp_factor( CHAR_DATA *gch )
     }
     // bonus for newbies
     if ( gch->pcdata->remorts == 0 )
-        xp_factor += (100 - gch->level) / 200.0;
+        xp_factor *= (300 - gch->level) / 200.0;
+    // bonus for first 5 levels
+    if ( gch->level <= 5 )
+        xp_factor *= 1.5;
 
     // additive bonuses
     
@@ -5488,18 +5507,17 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     if ( immune )
 	gag_type = GAG_IMMUNE;
 
-    if ( dt < MAX_SKILL ) /* Make sure in bounds of array before we check! */
-      if( skill_table[dt].pgsn != NULL )
-    
-      {
-	  sn = *skill_table[dt].pgsn;
-          if( sn == gsn_electrocution
-	  || sn == gsn_immolation
-	  || sn == gsn_absolute_zero
-	  || sn == gsn_epidemic
-	  || sn == gsn_quirkys_insanity )
-	  gag_type = GAG_AURA;
-      }
+    if ( dt < MAX_SKILL && skill_table[dt].pgsn != NULL )    
+    {
+        sn = *skill_table[dt].pgsn;
+        if ( sn == gsn_electrocution
+            || sn == gsn_immolation
+            || sn == gsn_absolute_zero
+            || sn == gsn_epidemic
+            || sn == gsn_quirkys_insanity
+            || sn == gsn_phantasmal_image )
+        gag_type = GAG_AURA;
+    }
 
     if (ch == victim)
     {
