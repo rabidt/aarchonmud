@@ -1262,6 +1262,9 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     {
 	heal += heal / 3;
     }
+    
+    /* bonus/penalty for target's vitality */
+    heal = heal * (200 + get_curr_stat(victim, STAT_VIT)) / 300;
 
     return heal;
 }
