@@ -4725,9 +4725,9 @@ void do_strafe( CHAR_DATA *ch, char *argument )
     else
     {
 	act( "You strafe toward $N rapidly firing arrows!", ch, NULL, victim, TO_CHAR );
-	one_hit( ch, victim, gsn_strafe, TRUE );
-	one_hit( ch, victim, gsn_strafe, TRUE );
-	one_hit( ch, victim, gsn_strafe, TRUE );
+	one_hit( ch, victim, gsn_strafe, FALSE );
+	one_hit( ch, victim, gsn_strafe, FALSE );
+	one_hit( ch, victim, gsn_strafe, FALSE );
 	check_improve( ch, gsn_strafe, TRUE, 3 );
     }
 }
