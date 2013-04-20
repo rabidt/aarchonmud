@@ -728,7 +728,7 @@ void show_class_skills( CHAR_DATA *ch, char *argument )
         }
     }
     page_to_char( buf_string(buffer), ch );
-
+    free_buf(buffer);
 }
 
 /* shows skills, groups and costs (only if not bought) */
