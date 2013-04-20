@@ -105,6 +105,7 @@ const   char    go_ahead_str    [] = { IAC, GA, '\0' };
 
 #include "merc.h"
 #include "recycle.h"
+#include "tables.h"
 
 #if defined( WIN32 )
 void    gettimeofday    args( ( struct timeval *tp, void *tzp ) );
@@ -2061,6 +2062,9 @@ void bust_a_prompt( CHAR_DATA *ch )
 				sprintf( buf2, "%s", IS_GOOD(ch) ? "good" : IS_EVIL(ch) ?
 				"evil" : "neutral" );
 			i = buf2; break;
+        case 'l' :
+            sprintf( buf2, "%d", ch->level);
+            i = buf2; break;
 		case 'r' :
 			if( ch->in_room != NULL )
 				sprintf( buf2, "%s", 
@@ -2083,6 +2087,12 @@ void bust_a_prompt( CHAR_DATA *ch )
 			else
 				sprintf( buf2, " " );
 			i = buf2; break;
+        case 'Z' :
+            if ( ch->in_room != NULL )
+                sprintf( buf2, "%s", flag_bit_name(sector_flags, ch->in_room->sector_type));
+            else
+                sprintf( buf2, " " );
+            i = buf2; break;
 		case '%' :
 			sprintf( buf2, "%%" );
 			i = buf2; break;
