@@ -297,8 +297,9 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     }
     
     /* Check number of charmees against cha*/ 
-    if ( !check_cha_follow(ch) )
-	return;
+    mlevel = URANGE(1, level / 2, ch->level);
+    if ( check_cha_follow(ch, mlevel) < mlevel )
+        return;
     
     chance = (get_curr_stat(ch, STAT_LUC)) / 2;
     
@@ -311,7 +312,6 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_SIDEKICK)))==NULL) 
         return;
     
-    mlevel = URANGE(1, level / 2, ch->level);
     set_mob_level( mob, mlevel );
     arm_npc( mob );
 
@@ -866,7 +866,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
-    int puppet_skill;
+    int puppet_skill = get_skill( ch, gsn_puppetry );
 
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_WAR) )
     {
@@ -892,10 +892,16 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
     
+    if (cor->level <= level)
+        mlevel = (level + cor->level * 2) / 4;
+    else
+        mlevel = (level * 2 + cor->level) / 4;    
+    /* bonus for puppetry skill */
+    mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
     
     /* Check number of charmees against cha */
-    if ( !check_cha_follow(ch) )
-	return;
+    if ( check_cha_follow(ch, mlevel) < mlevel )
+        return;
     
     chance = 100 + (level - cor->level) / 4;
     
@@ -908,18 +914,11 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_ZOMBIE)))==NULL) 
         return;
     
-    /* bonus for puppetry skill */
-    puppet_skill = get_skill( ch, gsn_puppetry );
     check_improve( ch, gsn_puppetry, TRUE, 1 );
     
-    if (cor->level <= level)
-        mlevel = (level + cor->level * 2) / 4;
-    else
-        mlevel = (level * 2 + cor->level) / 4;
-    mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
     if ( number_percent() <= puppet_skill )
-	SET_BIT( mob->off_flags, OFF_RESCUE );
-	
+    SET_BIT( mob->off_flags, OFF_RESCUE );
+    
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"%sThis zombie was reincarnated by the might of %s.\n\r\n\r",
@@ -1927,8 +1926,9 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
     
     /* Check number of charmees against cha*/ 
-    if ( !check_cha_follow(ch) )
-	return;
+    mlevel = URANGE(1, level * 3/4, ch->level);
+    if ( check_cha_follow(ch, mlevel) < mlevel )
+        return;
    
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_TREEGOLEM)))==NULL) 
         return;
@@ -2115,20 +2115,21 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     }
         
     /* Check number of charmees against cha*/
-    max_snake = check_cha_follow( ch );
-    if ( max_snake == 0 )
+    mlevel = URANGE(1, level/2, ch->level);
+    max_snake = check_cha_follow( ch, mlevel );
+    if ( max_snake < mlevel )
         return;
     
     mlevel = (5*level + beast_skill) / 10;
     mlevel = URANGE(1, mlevel, ch->level);
     chance = 100;
     snake_count = 0;
-    while ( snake_count * mlevel < max_snake && number_percent() <= chance ) {
+    while ( (snake_count + 1) * mlevel < max_snake && number_percent() <= chance ) {
         
         if ((mob = create_mobile(get_mob_index(MOB_VNUM_SNAKE)))==NULL)
             return;  
         
-	set_mob_level( mob, mlevel );
+        set_mob_level( mob, mlevel );
 
         sprintf(buf,"%s\n\rA snake that was once a stick is following %s.\n\r\n\r", mob->description,ch->name);   
         free_string(mob->description);
