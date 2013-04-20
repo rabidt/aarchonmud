@@ -229,7 +229,8 @@ DECLARE_DO_FUN( do_invite   );
 DECLARE_DO_FUN( do_jail     );
 DECLARE_DO_FUN( do_kick     );
 DECLARE_DO_FUN( do_kill     );
-DECLARE_DO_FUN( do_mortlag      );
+DECLARE_DO_FUN( do_mortlag  );
+DECLARE_DO_FUN( do_leadership );
 DECLARE_DO_FUN( do_leg_sweep);
 DECLARE_DO_FUN( do_lfind    );
 DECLARE_DO_FUN( do_list     );
@@ -553,9 +554,13 @@ DECLARE_DO_FUN( do_rdoor        );
 DECLARE_DO_FUN( do_findlock     );
 DECLARE_DO_FUN( do_rforce       );
 
+DECLARE_DO_FUN( do_lboard);
+DECLARE_DO_FUN( do_lhistory);
 DECLARE_DO_FUN( do_dummy);
 DECLARE_DO_FUN( do_mode);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif
 DECLARE_DO_FUN( do_cmotd);
+DECLARE_DO_FUN( do_smith);
+DECLARE_DO_FUN( do_pgrep);
