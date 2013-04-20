@@ -62,7 +62,8 @@ bool can_gain_skill( CHAR_DATA *ch, int sn )
 void do_gain(CHAR_DATA *ch, char *argument)
 {
 	char buf[MAX_STRING_LENGTH];
-	char arg[MAX_INPUT_LENGTH];
+    char *argPtr;
+	char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 	CHAR_DATA *trainer;
 	int gn = 0, sn = 0;
 	bool introspect = FALSE;
@@ -99,8 +100,9 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			}
 		}
 		
-		
-		one_argument(argument,arg);
+                argPtr = one_argument( argument, arg );
+                argPtr = one_argument( argPtr, arg2 );
+
 		if (arg[0] == '\0')
 		{
 			if ( introspect )
@@ -164,7 +166,25 @@ void do_gain(CHAR_DATA *ch, char *argument)
 		}
 		else if (!str_cmp(arg,"convert"))
 		{
-			if (ch->practice < 10)
+                    int train_count = 0;
+                    if ( strcmp(arg2, "") == 0 )
+                        train_count = 1;
+                    else if ( strcmp(arg2, "all") == 0 )
+                        train_count = ch->practice/10;
+                    else if ( is_number(arg2) )
+                        train_count = atoi(arg2);
+                    else
+                    {
+                        send_to_char("Syntax: convert <#|all>.\n\r",ch);
+                        return;
+                    }
+                    if (train_count < 0)
+                    {
+                        send_to_char("Use revert to to change trains back into practices.\n\r", ch);
+                        return;                        
+                    }
+                    
+			if (ch->practice < 10 * train_count)
 			{
 				if ( introspect )
 					send_to_char("You are not ready.\n\r",ch);
@@ -177,9 +197,9 @@ void do_gain(CHAR_DATA *ch, char *argument)
 				send_to_char("You apply your practice to training.\n\r",ch);
 			else
 				act("$N helps you apply your practice to training.",
-				ch,NULL,trainer,TO_CHAR );
-			ch->practice -= 10;
-			ch->train +=1 ;
+				ch,NULL,trainer,TO_CHAR );                        
+			ch->practice -= 10 * train_count;
+			ch->train += train_count;
 			return;
 		}
 		else if (!str_cmp(arg,"revert"))
@@ -576,9 +596,15 @@ void do_skills(CHAR_DATA *ch, char *argument)
 	{
 	fAll = TRUE;
 
-	if (str_prefix(argument,"all"))
+    argument = one_argument(argument,arg);
+    if (!strcmp(arg, "class" ) )
+    {
+        show_class_skills( ch, argument);
+        return;
+    }
+
+	if (str_prefix(arg,"all"))
 	{
-		argument = one_argument(argument,arg);
 		if (!is_number(arg))
 		{
 		send_to_char("Arguments must be numerical or all.\n\r",ch);
@@ -672,6 +698,37 @@ void do_skills(CHAR_DATA *ch, char *argument)
 	add_buf(buffer,"\n\r");
 	page_to_char(buf_string(buffer),ch);
 	free_buf(buffer);
+}
+
+void show_class_skills( CHAR_DATA *ch, char *argument )
+{
+    int class = class_lookup( argument );
+    if ( class == -1 )
+    {
+        send_to_char("Invalid class.\n\r", ch);
+        return;
+    }
+
+    BUFFER *buffer=new_buf();
+    int i=0;
+
+    char buf[MSL];
+    sprintf( buf, "\n\r%-20s %5s    %3s    %3s{x\n\r", "Skill", "Lvl", "Rtg", "Max");
+    add_buf( buffer, buf );
+    for ( i=0; skill_table[i].name != NULL ; i++ )
+    {
+        if ( skill_table[i].skill_level[class] <= HERO )
+        {
+           sprintf( buf, "%-20s {g%5d    %3d    %3d{x\n\r",
+                         capitalize( skill_table[i].name ),
+                         skill_table[i].skill_level[class],
+                         skill_table[i].rating[class],
+                         skill_table[i].cap[class] );
+           add_buf( buffer, buf );
+        }
+    }
+    page_to_char( buf_string(buffer), ch );
+
 }
 
 /* shows skills, groups and costs (only if not bought) */
@@ -1335,6 +1392,21 @@ void group_remove(CHAR_DATA *ch, const char *name)
 	}
 }
 
+int get_injury_penalty( CHAR_DATA *ch )
+{
+    int penalty = 1000 * (ch->max_hit - ch->hit) / UMAX(1, ch->max_hit) - 5 * get_curr_stat(ch,STAT_DIS);
+    // check if further reduction is needed at all (for efficiency)
+    if ( penalty > 0 )
+    {
+        if (ch->stance == STANCE_KAMIKAZE || IS_AFFECTED(ch, AFF_BERSERK))
+            penalty /= 2;
+        else
+            penalty -= penalty * get_skill(ch, gsn_ashura) / 200;
+    }
+    
+    return URANGE(0, penalty / 20, 50);
+}
+
 int mob_has_skill(CHAR_DATA *ch, int sn)
 {
     bool charmed;
@@ -1435,7 +1507,12 @@ int mob_get_skill(CHAR_DATA *ch, int sn)
 	/* encumberance */
 	skill = skill * (1000 - get_encumberance(ch)) / 1000;
 
-	return URANGE(0,skill,100);
+        skill = URANGE(0,skill,100);
+        /* injury */
+        if (sn != gsn_ashura) // needed to avoid infinite recursion
+            skill = skill * (100 - get_injury_penalty(ch)) / 100;
+
+        return skill;
 }
 
 int get_race_skill( CHAR_DATA *ch, int sn )
@@ -1546,8 +1623,13 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	if (ch->pcdata->condition[COND_SMOKE]<-1 )
 		skill = 9 * skill / 10;
 
-	skill/=10;
-	return URANGE(0,skill,100);
+        skill = URANGE(0,skill/10,100);
+
+        /* injury */
+        if (sn != gsn_ashura) // needed to avoid infinite recursion
+            skill = skill * (100 - get_injury_penalty(ch)) / 100;
+
+        return skill;
 }
 
 
@@ -1594,6 +1676,10 @@ int get_weapon_skill(CHAR_DATA *ch, int sn)
 		skill = ch->level;
 	    else
 		skill = 40 + ch->level/2;
+	    
+	    skill = URANGE(0, skill, 100);
+	    /* injury */
+	    skill = skill * (100 - get_injury_penalty(ch)) / 100;
 	}
 	
 	else

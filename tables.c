@@ -211,6 +211,7 @@ const struct flag_type act_flags[] =
 	{   "noexp",       ACT_NOEXP,      TRUE    },
 	{   "nomimic",      ACT_NOMIMIC,     TRUE    },
 	{   "hard_quest",   ACT_HARD_QUEST,    TRUE    },
+        {   "staggered",    ACT_STAGGERED,   TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 
@@ -730,6 +731,7 @@ const struct flag_type extra_flags[] =
 	{   "class_ranger",        ITEM_CLASS_RANGER         , TRUE },
 	{   "class_necromancer",   ITEM_CLASS_NECROMANCER    , TRUE },
 	{   "no_extract",          ITEM_NO_EXTRACT           , TRUE },
+    {   "questeq",             ITEM_QUESTEQ              , TRUE },
 	{   NULL,           0,          0   }
 };
 

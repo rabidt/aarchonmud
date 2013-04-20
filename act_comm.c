@@ -95,6 +95,7 @@ void do_delete( CHAR_DATA *ch, char *argument)
 	    if ( IS_AUTHED(ch) )
 		add_auto_auth( ch->name );
             remove_from_auth( ch->name );
+	    remove_from_all_lboards( ch->name);
             rank_available(ch->clan, ch->pcdata->clan_rank, 0);
 	    religion_remove_follower( ch );
             sprintf( filename, "%s", capitalize( ch->name ) );
@@ -1011,16 +1012,6 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     bool found;
     int pos;
 
-    
-    if ( !IS_IMMORTAL(ch)
-	 && !IS_IMMORTAL(victim)
-	 && !IS_HELPER(ch)
-	 && !IS_HELPER(victim)
-	 && !IS_AWAKE(victim) )
-    {
-        act( "$E can't hear you.", ch, 0, victim, TO_CHAR );
-        return;
-    }
     
     if ((IS_SET(victim->comm,COMM_QUIET) || IS_SET(victim->comm,COMM_DEAF))
         && !IS_IMMORTAL(ch))
@@ -2172,9 +2163,9 @@ void do_group( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ch->master != NULL || ( ch->leader != NULL && ch->leader != ch ) )
+    if ( ch->leader != NULL && ch->leader != ch  )
     {
-        send_to_char( "But you are following someone else!\n\r", ch );
+        send_to_char( "Only the leader may add to the group!\n\r", ch );
         return;
     }
     
@@ -2206,6 +2197,25 @@ void do_group( CHAR_DATA *ch, char *argument )
     
     if ( is_same_group( victim, ch ) && ch != victim )
     {
+        char arg2[MIL];
+        char *remain;
+        remain=one_argument( argument, arg2 );
+        remain=one_argument( remain, arg2 ); /*twice to get 2nd argument*/
+        if ( arg2[0] != '\0' );
+        {
+            if ( !strcmp( arg2, "leader") )
+            {
+                try_set_leader( ch, victim );
+                return;
+            }
+            else
+            {
+                send_to_char("  group <player> - add a player to your group\n\r"
+                             "  group <player> leader - pass leadership of your group to a player\n\r", ch);
+                ptc( ch, "%s\n\r", arg2);
+                return;
+            }
+        }
         victim->leader = NULL;
         act_new("$n removes $N from $s group.",
             ch,NULL,victim,TO_NOTVICT,POS_RESTING);
@@ -2229,6 +2239,53 @@ void do_group( CHAR_DATA *ch, char *argument )
     }
     return;
 }
+
+void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( !ch )
+    {
+        bug("Null ch in try_set_leader.",0);
+        return;
+    }
+
+    if ( !victim )
+    {
+        bug( "Null victim in try_set_leader.",0);
+        return;
+    }
+
+    if (IS_NPC(ch))
+        return;
+
+    if (IS_NPC(victim))
+    {
+        send_to_char( "Leader must be a player.", ch);
+        return;
+    }
+
+    if ( victim->leader != ch )
+    {
+        send_to_char( "You can't pass leadership to somebody you don't lead.\n\r", ch );
+        return;
+    }
+    CHAR_DATA *gch;
+
+    for ( gch = char_list; gch != NULL; gch = gch->next )
+    {
+        if ( IS_NPC(gch) )
+            continue;
+        if ( gch->leader==ch || gch==ch)
+        {
+            gch->leader=victim;
+            gch->master=victim;
+            if ( gch==victim)
+                ptc( gch, "You now lead the group.\n\r");
+            else
+                ptc( gch, "%s now leads your group.\n\r", victim->name );
+        }
+    }
+}
+
 
 /* command for releasing charmed followers */
 void do_release( CHAR_DATA *ch, char *argument )

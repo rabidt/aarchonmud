@@ -26,7 +26,7 @@
 ***************************************************************************/
 
 /* 
-   changed to buffered save by Henning Koehler <koehlerh@in.tum.de> 
+   changed to buffered save by Henning Koehler (aka Bobble)
 */
 
 #if defined(macintosh)
@@ -180,6 +180,11 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     bwrite_char( ch, mf->buf );
     if ( ch->carrying != NULL )
       bwrite_obj( ch, ch->carrying, mf->buf, 0 );
+
+    /* a little safety in case crash or copyover while smithing */
+    if ( ch->pcdata->smith )
+        bwrite_obj( ch, ch->pcdata->smith->old_obj, mf->buf, 0 );
+
     /* save the pets */
     if (ch->pet != NULL && ch->pet->in_room == ch->in_room)
       bwrite_pet(ch->pet, mf->buf);
@@ -493,6 +498,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "PKPoints %d\n",   ch->pcdata->pkpoints );
         
         bprintf( buf, "PKCount %d\n",    ch->pcdata->pkill_count );
+	bprintf( buf, "PKExpire %ld\n",  ch->pcdata->pkill_expire);
 
         bprintf( buf, "Remort %d\n",  ch->pcdata->remorts);
         
@@ -537,6 +543,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
             ch->pcdata->condition[3],
             ch->pcdata->condition[4],
             ch->pcdata->condition[5] );
+
+    bprintf( buf, "Stance %d", ch->stance );
         
        /*
         * Write Colour Config Information.
@@ -889,13 +897,9 @@ void bwrite_pet( CHAR_DATA *pet, DBUFFER *buf)
         bprintf(buf, "Save %d\n", pet->saving_throw);
     if (pet->alignment != pet->pIndexData->alignment)
         bprintf(buf, "Alig %d\n", pet->alignment);
-    if (pet->hitroll != pet->pIndexData->hitroll)
-        bprintf(buf, "Hit  %d\n", pet->hitroll);
-    if ( pet->damage[DICE_NUMBER] != pet->pIndexData->damage[DICE_NUMBER]
-	 || pet->damage[DICE_TYPE] != pet->pIndexData->damage[DICE_TYPE] )
-	bprintf( buf, "DamDice %d %d\n", pet->damage[DICE_NUMBER], pet->damage[DICE_TYPE] );
-    if (pet->damroll != pet->pIndexData->damage[DICE_BONUS])
-        bprintf(buf, "Dam  %d\n", pet->damroll);
+    bprintf( buf, "Hit  %d\n", pet->hitroll );
+    bprintf( buf, "DamDice %d %d\n", pet->damage[DICE_NUMBER], pet->damage[DICE_TYPE] );
+    bprintf(buf, "Dam  %d\n", pet->damroll);
     bprintf(buf, "ACs  %d %d %d %d\n",
         pet->armor[0],pet->armor[1],pet->armor[2],pet->armor[3]);
     bprintf( buf, "Attr %d %d %d %d %d %d %d %d %d %d\n",
@@ -989,16 +993,6 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
         bprintf( buf, "ExtF %s\n",   print_tflag(obj->extra_flags) );
     if ( obj->material != obj->pIndexData->material)
         bprintf( buf, "Mat %s~\n",   obj->material         );
-
-    if ( obj->pIndexData->vnum == OBJ_VNUM_BLACKSMITH )
-    {
-	if ( !flag_equal(obj->wear_flags, obj->pIndexData->wear_flags) )
-	    bprintf( buf, "WeaF %s\n",   print_tflag(obj->wear_flags) );
-	if ( obj->item_type != obj->pIndexData->item_type)
-	    bprintf( buf, "Ityp %d\n",   obj->item_type           );
-	if ( obj->weight != obj->pIndexData->weight)
-	    bprintf( buf, "Wt   %d\n",   obj->weight          );
-    }
 
     /*
     if ( obj->durability != obj->pIndexData->durability)
@@ -1994,6 +1988,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 	    fMatch = TRUE;
 	    break;
 	}
+	
+	KEY( "PKExpire", ch->pcdata->pkill_expire, bread_number( buf) );
 
         break;
         
@@ -2073,6 +2069,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 ch->pcdata->learned[sn] = value;
             fMatch = TRUE;
         }
+
+        KEY( "Stance",  ch->stance, bread_number( buf ) );
         
         break;
         

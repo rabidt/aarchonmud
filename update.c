@@ -41,6 +41,8 @@
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
+#include "leaderboard.h"
+#include "mob_stats.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -148,7 +150,7 @@ void gain_exp( CHAR_DATA *ch, int gain)
    if ( IS_NPC(ch) || IS_HERO(ch) )
 	  return;
 
-   if ( IS_SET(ch->act,PLR_NOEXP))
+   if ( IS_SET(ch->act,PLR_NOEXP) && gain > 0 )
        return;
    
    field = UMAX((ch_wis_field(ch)*gain)/100,0);
@@ -184,6 +186,7 @@ void gain_exp( CHAR_DATA *ch, int gain)
    {
 	  send_to_char( "You raise a level!!  ", ch );
 	  ch->level += 1;
+	  update_lboard( LBOARD_LEVEL, ch, ch->level, 1);
 	  
 	  sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
 	  log_string(buf);
@@ -288,8 +291,9 @@ int adjust_gain( CHAR_DATA *ch, int gain )
     if ( IS_AFFECTED(ch, AFF_PLAGUE) )
         gain /= 2;
     
-    if ( IS_AFFECTED(ch, AFF_HASTE) 
-	 && !IS_SET(get_morph_race_type(ch)->affect_field, AFF_HASTE))
+    if ( IS_AFFECTED(ch, AFF_HASTE)
+        && !IS_SET(get_morph_race_type(ch)->affect_field, AFF_HASTE)
+        && ch->fighting != NULL )
         gain /= 2 ;
 
 
@@ -313,16 +317,7 @@ int adjust_gain( CHAR_DATA *ch, int gain )
 
 
         /* PCs benefit from deep sleep */
-	if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 0 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 2 )
-	    gain *= 3/2;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 2 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 4 )
-	    gain *= 7/4;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 4 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 6 )
-	    gain *= 2;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 6 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 8 )
-	    gain *= 5/2;
-	else if ( ch->pcdata->condition[COND_DEEP_SLEEP] > 8 && ch->pcdata->condition[COND_DEEP_SLEEP] <= 10 )
-	    gain *= 3;
+        gain += gain * URANGE(0, ch->pcdata->condition[COND_DEEP_SLEEP], 10) / 5;
     }
 
     return gain;
@@ -878,12 +873,14 @@ void mobile_update( void )
 	  }
 	  
 	  if (ch->pIndexData->pShop != NULL) /* give him some gold */
-		 if ((ch->gold * 100 + ch->silver) < ch->pIndexData->wealth)
-		 {
-			ch->gold += ch->pIndexData->wealth * number_range(1,20)/5000000;
-			ch->silver += ch->pIndexData->wealth * number_range(1,20)/50000;
-		 }
-		 
+          {
+            long base_wealth = mob_base_wealth(ch->pIndexData);
+            if ((ch->gold * 100 + ch->silver) < base_wealth)
+            {
+                ch->gold += base_wealth * number_range(1,20)/5000000;
+                ch->silver += base_wealth * number_range(1,20)/50000;
+            }
+          }
 	  /*
 	   * Check triggers only if mobile still in default position
 	   */
@@ -1383,6 +1380,19 @@ void char_update( void )
             }
         }
         
+        /* If a character stays asleep without being waken up, they can fall into a deep sleep.
+            This is then used in the int hit_gain/mana_gain/move_gain to give the player a 
+            bonus to their regeneration. Added by Astark - September 2012 */
+        if (!IS_NPC(ch))
+        {
+            if ((ch->position == POS_SLEEPING) && ch->pcdata->condition[COND_DEEP_SLEEP] < 10)
+            {
+                ch->pcdata->condition[COND_DEEP_SLEEP] += 1;
+                send_to_char("You fall into a deeper sleep.\n\r",ch);
+            }
+            else if (ch->position != POS_SLEEPING)
+                gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
+        }
         
         if ( !IS_NPC(ch) && ch->level < LEVEL_IMMORTAL )
         {
@@ -1407,9 +1417,6 @@ void char_update( void )
             
             if (IS_IMMORTAL(ch))
                 ch->timer = 0;
-
-            if (!IS_NPC(ch) && ch->position != POS_SLEEPING)
-                gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
 
             if ( ++ch->timer >= 12 )
             {
@@ -1451,21 +1458,6 @@ void char_update( void )
 		    gain_condition( ch, COND_THIRST, 
 				    IS_AFFECTED(ch, AFF_BREATHE_WATER) ? 
 				    -1 : -(curr_tick%2) );
-
-              /* If a character stays asleep without being waken up, they can fall into a deep sleep.
-                 This is then used in the int hit_gain/mana_gain/move_gain to give the player a 
-                 bonus to their regeneration. Added by Astark - September 2012 */
-//&& number_bits(2)
-               if (!IS_NPC(ch))
-               {
-                    if ((ch->position == POS_SLEEPING) && ch->pcdata->condition[COND_DEEP_SLEEP] < 10)
-                    {
-                        ch->pcdata->condition[COND_DEEP_SLEEP] += 1;
-                        send_to_char("You fall into a deeper sleep.\n\r",ch);
-                    }
-                    else if (ch->position != POS_SLEEPING)
-                        gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
-               }
 
 		    if ((ch->pcdata->condition[COND_HUNGER]>=20) || curr_tick>2)
 			gain_condition( ch, COND_HUNGER, 
@@ -1616,7 +1608,7 @@ void char_update( void )
 void create_haunt( CHAR_DATA *ch )
 {
     CHAR_DATA *mob;
-    int level;
+    int level, rand, i;
 
     /* only chance to be haunted.. unless you're sleeping ;P */
     if ( ch->position != POS_SLEEPING && number_bits(2) )
@@ -1626,16 +1618,13 @@ void create_haunt( CHAR_DATA *ch )
         return;
     
     /* small tiny ghost or big nasty? */
-    if ( number_bits(1) )
-	level = number_range( 1, ch->level/2 );
-    else if ( number_bits(2) )
-	level = number_range( ch->level/2, ch->level );
-    else if ( number_bits(2) )
-	level = number_range( ch->level, ch->level * 3/2 );
-    else
-	level = number_range( ch->level * 3/2, ch->level * 2 );
-	
-    level = URANGE( 1, level, 200 );
+    level = 200;
+    for (i = 0; i < 3; i++)
+    {
+        rand = number_range( 1, ch->level * 2 );
+        level = UMIN(level, rand);            
+    }
+
     set_mob_level( mob, level );
     char_to_room( mob, ch->in_room );
     
@@ -2386,6 +2375,7 @@ void update_handler( void )
    static  int     pulse_save = 3; // "= 3" to reduce CPU peeks
    static  int     pulse_herb;
    static bool hour_update = TRUE;
+   static bool minute_update = TRUE;
    /* if nobody is logged on, update less to safe CPU power */
    bool update_all = (descriptor_list != NULL );
    
@@ -2452,22 +2442,36 @@ void update_handler( void )
 	  update_relic_bonus();
    }
 
+   /* check lboard reset times once a minute
+      could check once an hour or even once a day 
+      but 'current_time % HOUR' doesn't account for local time
+      so doesn't synch up. */
+    if ( current_time % MINUTE == 0 )
+    {
+        if ( minute_update )
+        {
+            check_lboard_reset();
+        }
+    }
+    else
+        minute_update=TRUE;
+
    /* update some things once per hour */
    if ( current_time % HOUR == 0 )
    {
        if ( hour_update )
        {
-	   /* update herb_resets every 6 hours */
-	   if ( current_time % (6*HOUR) == 0 )
+	    /* update herb_resets every 6 hours */
+	    if ( current_time % (6*HOUR) == 0 )
 	       update_herb_reset();
 
-	   /* update priests once per day */
-	   if ( current_time % DAY == 0 )
-	   {
+	    /* update priests once per day */
+	    if ( current_time % DAY == 0 )
+	    {
 	       all_religions( &religion_update_followers );
 	       all_religions( &religion_update_priests );
 	       all_religions( &religion_restore_relic );
-	   }
+	    }
        }
        hour_update = FALSE;
    }
@@ -2798,6 +2802,9 @@ void change_align (CHAR_DATA *ch, int change_by)
    }
 
    check_religion_align( ch );
+   check_clan_align( ch );
+   check_equipment_align( ch );
+   return;
 }
 
 void drop_align( CHAR_DATA *ch )
@@ -2809,7 +2816,53 @@ void drop_align( CHAR_DATA *ch )
        ch->alignment -= 1;
 
    check_religion_align( ch );
+   check_clan_align( ch );
+   check_equipment_align( ch );
+   return;
 }
 
+void check_clan_align( CHAR_DATA *gch )
+{
+    if (!IS_NPC(gch) && !IS_IMMORTAL(gch) &&
+        (  gch->alignment < clan_table[gch->clan].min_align 
+        || gch->alignment > clan_table[gch->clan].max_align))
+    {
+        send_to_char("Your alignment has made you unwelcome in your clan!\n\r", gch);
+        sprintf(log_buf, "%s has become too %s for clan %s!",
+            gch->name, 
+            gch->alignment < clan_table[gch->clan].min_align ? "{rEvil{x" : "{wGood{x", 
+            capitalize(clan_table[gch->clan].name));
+        
+        info_message(gch, log_buf, TRUE);
 
+        gch->clan = 0;
+        gch->pcdata->clan_rank = 0;
 
+        check_clan_eq(gch);
+    }
+    return;
+}
+
+void check_equipment_align( CHAR_DATA *gch )
+{
+    OBJ_DATA *obj;
+    OBJ_DATA *obj_next;
+    
+    for ( obj = gch->carrying; obj != NULL; obj = obj_next )
+    {
+        obj_next = obj->next_content;
+        if ( obj->wear_loc == WEAR_NONE )
+            continue;
+        
+        if ( ( IS_OBJ_STAT(obj, ITEM_ANTI_EVIL)    && IS_EVIL(gch)    )
+            ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_GOOD)    && IS_GOOD(gch)    )
+            ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_NEUTRAL) && IS_NEUTRAL(gch) ) )
+        {
+            act( "You are zapped by $p.", gch, obj, NULL, TO_CHAR );
+            act( "$n is zapped by $p.",   gch, obj, NULL, TO_ROOM );
+            obj_from_char( obj );
+            obj_to_char( obj, gch );
+        }        
+    }
+    return;
+}

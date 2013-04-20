@@ -61,6 +61,7 @@ DECLARE_DO_FUN( do_exits    );
 DECLARE_DO_FUN( do_look     );
 DECLARE_DO_FUN( do_help     );
 DECLARE_DO_FUN( do_affects  );
+DECLARE_DO_FUN(do_leadership);
 DECLARE_DO_FUN(do_lore);
 DECLARE_DO_FUN(do_appraise); 
 DECLARE_DO_FUN(do_say);
@@ -2185,16 +2186,48 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
     }
 }
 
-void do_affects(CHAR_DATA *ch, char *argument )
+void do_affects( CHAR_DATA *ch, char *argument )
 {
-  if ( ch->affected != NULL )
-  {
-    send_to_char( "You are affected by the following spells:\n\r", ch );
-    show_affects(ch, ch, ch->level >= 5, TRUE);
-//    show_affects(ch, ch, ch->level >= 20 /*|| IS_AFFECTED(ch, AFF_DETECT_MAGIC)*/, TRUE);
-  }
-  else 
-    send_to_char("You are not affected by any spells.\n\r",ch);
+    int leadership = get_leadership_bonus(ch, FALSE);
+    
+    if ( ch->affected != NULL )
+    {
+        send_to_char( "You are affected by the following spells:\n\r", ch );
+        show_affects(ch, ch, ch->level >= 5, TRUE);
+    }
+    else 
+        send_to_char("You are not affected by any spells.\n\r",ch);
+
+    if (ch->leader != NULL && ch->leader != ch && ch->leader->in_room == ch->in_room)
+        printf_to_char(ch, "You receive a %d%% damage %s from %s's leadership.\n\r",
+            leadership,
+            leadership >= 0 ? "bonus" : "penalty",
+            PERS(ch->leader, ch)
+        );
+}
+
+void do_leadership( CHAR_DATA *ch, char *argument )
+{
+    CHAR_DATA *fol;
+    bool found = FALSE;
+    
+    if (ch->in_room == NULL)
+        return;
+    
+    for ( fol = ch->in_room->people; fol != NULL; fol = fol->next_in_room )
+        if ( fol != ch && fol->leader == ch )
+        {
+            int leadership = get_leadership_bonus(fol, FALSE);
+            found = TRUE;
+            printf_to_char(ch, "Your leadership grants a %d%% damage %s to %s.\n\r",
+                leadership,
+                leadership >= 0 ? "bonus" : "penalty",
+                PERS(fol, ch)
+            );
+        }
+    
+    if (!found)
+        send_to_char("You don't have any followers here.\n\r", ch);
 }
 
 char *  const   day_name    [] =
@@ -5710,7 +5743,7 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
     {    
         ch->pcdata->questpoints += achievement_table[table_index].quest_reward;
         ch->gold += achievement_table[table_index].gold_reward;
-        ch->exp += achievement_table[table_index].exp_reward;
+        gain_exp(ch, achievement_table[table_index].exp_reward);
         ch->pcdata->achpoints += achievement_table[table_index].ach_reward;
         //send_to_char("Achievement unlocked -- TEST.\n\r",ch);
 	printf_to_char(ch, "Achievement %s %d unlocked.\n\r", achievement_display[achievement_table[table_index].type], achievement_table[table_index].limit);

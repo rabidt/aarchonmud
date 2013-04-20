@@ -340,16 +340,6 @@ bool is_same_clan(CHAR_DATA *ch, CHAR_DATA *victim)
 }
 
 
-/* checks mob format */
-bool is_old_mob(CHAR_DATA *ch)
-{
-    if (ch->pIndexData == NULL)
-        return FALSE;
-    else if (ch->pIndexData->new_format)
-        return FALSE;
-    return TRUE;
-}
-
 /* for returning weapon information of the primary weapon */
 int get_weapon_sn(CHAR_DATA *ch)
 {
@@ -1390,12 +1380,12 @@ void char_from_room( CHAR_DATA *ch )
     if ( !IS_NPC(ch) )
     {
         if( --ch->in_room->area->nplayer < 0 )
-	{
-	    bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
-	    ch->in_room->area->nplayer = 0;
-	}
-	 /*only make this check for players or we get a crash*/
-	if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) && ch->pcdata->storage_boxes>0)
+	    {
+	        bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
+	        ch->in_room->area->nplayer = 0;
+	    }
+	    /*only make this check for players or we get a crash*/
+    	if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) && ch->pcdata->storage_boxes>0)
         {
 	    /* quit_save_char_obj will put player mf on player_quit_list and box mf on
                box_mf_list. We need to remove from player_save_list so this box mf
@@ -1404,10 +1394,15 @@ void char_from_room( CHAR_DATA *ch )
                existing player mf, which is not likely to cause problems, but we
                should protect against it anyway.
                We don't want to do this in all quit cases, only when leaving box_room.*/
-	    remove_from_save_list(capitalize(ch->name));
+	        remove_from_save_list(capitalize(ch->name));
             quit_save_char_obj(ch);
-	    unload_storage_boxes(ch);
+	        unload_storage_boxes(ch);
             send_to_char( "As you leave the room, an employee takes your boxes back down to the basement.\n\r",ch);
+        }
+        if ( IS_SET(ch->in_room->room_flags, ROOM_BLACKSMITH) ) 
+        {
+            /* leaving a smithy, might need to cancel transaction */
+            cancel_smith(ch);
         }
     }
     
