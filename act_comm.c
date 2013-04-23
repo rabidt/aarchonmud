@@ -2108,7 +2108,52 @@ void do_order( CHAR_DATA *ch, char *argument )
     return;
 }
 
+void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
+{
+    char buf[MAX_STRING_LENGTH];
+    char hp_col, mn_col, mv_col;   /* Colours that vary depending on the group member's current hp/mana/mv */
+    
+    hp_col = (gch->hit == gch->max_hit) ? 'W' :
+        (gch->hit >= gch->max_hit*.85) ? 'G' :
+        (gch->hit >= gch->max_hit*.66) ? 'g' :
+        (gch->hit >= gch->max_hit*.50) ? 'Y' :
+        (gch->hit >= gch->max_hit*.33) ? 'y' :
+        (gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
 
+    mn_col = (gch->mana == gch->max_mana) ? 'W' :
+        (gch->mana >= gch->max_mana*.85) ? 'G' :
+        (gch->mana >= gch->max_mana*.66) ? 'g' :
+        (gch->mana >= gch->max_mana*.50) ? 'Y' :
+        (gch->mana >= gch->max_mana*.33) ? 'y' :
+        (gch->mana >= gch->max_mana*.16) ? 'R' : 'r';
+
+    mv_col = (gch->move == gch->max_move) ? 'W' :
+        (gch->move >= gch->max_move*.85) ? 'G' :
+        (gch->move >= gch->max_move*.66) ? 'g' :
+        (gch->move >= gch->max_move*.50) ? 'Y' :
+        (gch->move >= gch->max_move*.33) ? 'y' :
+        (gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
+
+    sprintf( buf,
+        "[%3d %s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %c%c%c%c%c%c %5d etl\n\r",
+        gch->level,
+        IS_NPC(gch) ? "Mob" : class_table[gch->class].who_name,
+        /* Commented out so colored names work -- Maedhros 11/27/11 */
+        /*capitalize( PERS(gch, ch) ), */
+        IS_NPC(gch)?gch->short_descr:gch->name,
+        hp_col, gch->hit,   gch->max_hit,
+        mn_col, gch->mana,  gch->max_mana,
+        mv_col, gch->move,  gch->max_move,
+        IS_AFFECTED(gch, AFF_FLYING)         ? 'F' : ' ',
+        IS_AFFECTED(gch, AFF_SANCTUARY)      ? 'S' : ' ',
+        IS_AFFECTED(gch, AFF_HASTE)          ? 'H' : ' ',
+        is_affected(gch, gsn_giant_strength) ? 'G' : ' ',
+        is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? 'B' : ' ',
+        is_affected(gch, gsn_war_cry)        ? 'W' : ' ',
+        (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1)*exp_per_level(gch,gch->pcdata->points)-gch->exp
+    );
+    send_to_char( buf, ch );
+}
 
 void do_group( CHAR_DATA *ch, char *argument )
 {
@@ -2126,51 +2171,21 @@ void do_group( CHAR_DATA *ch, char *argument )
         leader = (ch->leader != NULL) ? ch->leader : ch;
         sprintf( buf, "%s's group:\n\r", leader->name );
         send_to_char( buf, ch );
-        
+
+        // show group members in room first to ensure same targeting order as for other commands
+        if ( ch->in_room != NULL )
+        {
+            for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+            {
+                if ( is_same_group( gch, ch ) )
+                    show_group_member( ch, gch );
+            }
+        }
+        // afterwards pick up all group members not in room
         for ( gch = char_list; gch != NULL; gch = gch->next )
         {
-            if ( is_same_group( gch, ch ) )
-            {
-		hp_col = (gch->hit == gch->max_hit)    ? 'W' :
-			(gch->hit >= gch->max_hit*.85) ? 'G' :
-			(gch->hit >= gch->max_hit*.66) ? 'g' :
-			(gch->hit >= gch->max_hit*.50) ? 'Y' :
-			(gch->hit >= gch->max_hit*.33) ? 'y' :
-			(gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
-
-		mn_col = (gch->mana == gch->max_mana)    ? 'W' :
-			(gch->mana >= gch->max_mana*.85) ? 'G' :
-			(gch->mana >= gch->max_mana*.66) ? 'g' :
-			(gch->mana >= gch->max_mana*.50) ? 'Y' :
-			(gch->mana >= gch->max_mana*.33) ? 'y' :
-			(gch->mana >= gch->max_mana*.16) ? 'R' : 'r';
-
-		mv_col = (gch->move == gch->max_move)    ? 'W' :
-			(gch->move >= gch->max_move*.85) ? 'G' :
-			(gch->move >= gch->max_move*.66) ? 'g' :
-			(gch->move >= gch->max_move*.50) ? 'Y' :
-			(gch->move >= gch->max_move*.33) ? 'y' :
-			(gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
-
-                sprintf( buf,
-			 "[%3d %s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %c%c%c%c%c%c %5d etl\n\r",
-			 gch->level,
-			 IS_NPC(gch) ? "Mob" : class_table[gch->class].who_name,
-			 /* Commented out so colored names work -- Maedhros 11/27/11 */
-			 /*capitalize( PERS(gch, ch) ), */
-			 IS_NPC(gch)?gch->short_descr:gch->name,
-			 hp_col, gch->hit,   gch->max_hit,
-			 mn_col, gch->mana,  gch->max_mana,
-			 mv_col, gch->move,  gch->max_move,
-			 IS_AFFECTED(gch, AFF_FLYING)         ? 'F' : ' ',
-			 IS_AFFECTED(gch, AFF_SANCTUARY)      ? 'S' : ' ',
-			 IS_AFFECTED(gch, AFF_HASTE)          ? 'H' : ' ',
-			 is_affected(gch, gsn_giant_strength) ? 'G' : ' ',
-			 is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer)         ? 'B' : ' ',
-			 is_affected(gch, gsn_war_cry)        ? 'W' : ' ',
-			 (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1)*exp_per_level(gch,gch->pcdata->points)-gch->exp );
-                send_to_char( buf, ch );
-            }
+            if ( is_same_group( gch, ch ) && ch->in_room != gch->in_room)
+                show_group_member( ch, gch );
         }
         return;
     }
