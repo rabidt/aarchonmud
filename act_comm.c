@@ -51,8 +51,26 @@ void smash_beep_n_blink( char *str );
 void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char, bool check_visible );
 void quit_char( CHAR_DATA *ch );
 
-#define ALTER_COLOUR( type ) if( !str_prefix( argument, "red" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = RED; } else if ( !str_prefix( argument, "hi-red" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = RED; } else if ( !str_prefix( argument, "green" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = GREEN; } else if ( !str_prefix( argument, "hi-green" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = GREEN;} else if ( !str_prefix( argument, "yellow" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = YELLOW; } else if ( !str_prefix( argument, "hi-yellow" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = YELLOW; } else if ( !str_prefix( argument, "blue" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = BLUE; } else if ( !str_prefix( argument, "hi-blue" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = BLUE; } else if ( !str_prefix( argument, "magenta" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = MAGENTA; } else if ( !str_prefix( argument, "hi-magenta" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = MAGENTA; } else if ( !str_prefix( argument, "cyan" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = CYAN; } else if ( !str_prefix( argument, "hi-cyan" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = CYAN; } else if ( !str_prefix( argument, "white" ) ){ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = WHITE; } else if ( !str_prefix( argument, "hi-white" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = WHITE; } else if ( !str_prefix( argument, "grey" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = BLACK; } else if ( !str_prefix( argument, "clear" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = COLOUR_NONE; } else if ( !str_prefix( argument, "beep" ) ) {ch->pcdata->type[2] = 1;} else if ( !str_prefix( argument, "nobeep" ) ) {ch->pcdata->type[2] = 0; } else {  send_to_char_bw( "Unrecognized colour. Unchanged.\n\r", ch ); return;}
-
+#define ALTER_COLOUR( type ) \
+if( !str_prefix( argument, "red" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = RED;} \
+else if ( !str_prefix( argument, "hi-red" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = RED;} \
+else if ( !str_prefix( argument, "green" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = GREEN;} \
+else if ( !str_prefix( argument, "hi-green" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = GREEN;} \
+else if ( !str_prefix( argument, "yellow" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = YELLOW;} \
+else if ( !str_prefix( argument, "hi-yellow" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = YELLOW;} \
+else if ( !str_prefix( argument, "blue" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = BLUE;} \
+else if ( !str_prefix( argument, "hi-blue" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = BLUE;} \
+else if ( !str_prefix( argument, "magenta" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = MAGENTA;} \
+else if ( !str_prefix( argument, "hi-magenta" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = MAGENTA;} \
+else if ( !str_prefix( argument, "cyan" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = CYAN;} \
+else if ( !str_prefix( argument, "hi-cyan" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = CYAN;} \
+else if ( !str_prefix( argument, "white" ) ){ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = WHITE;} \
+else if ( !str_prefix( argument, "hi-white" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = WHITE;} \
+else if ( !str_prefix( argument, "grey" ) ) {ch->pcdata->type[0] = BRIGHT;ch->pcdata->type[1] = BLACK;} \
+else if ( !str_prefix( argument, "clear" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = COLOUR_NONE;} \
+else if ( !str_prefix( argument, "beep" ) ) {ch->pcdata->type[2] = 1;} \
+else if ( !str_prefix( argument, "nobeep" ) ) {ch->pcdata->type[2] = 0;} \
+else { send_to_char_bw( "Unrecognized colour. Unchanged.\n\r", ch ); return;}
 
 
 void do_delet( CHAR_DATA *ch, char *argument)
