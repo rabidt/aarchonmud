@@ -47,7 +47,7 @@ struct remort_chamber
 
 /* Changed this from 15 to 16 to accommodate remort 7. We'll likely
    need to up it again when we start testing remort 8 - Astark 12-21-12 */
-#define MAX_CHAMBER 20
+#define MAX_CHAMBER 21
 
 const struct remort_chamber chambers[] =
 {
@@ -73,6 +73,7 @@ const struct remort_chamber chambers[] =
     {"Remort: Urban Wasteland         ",   9000,    R8, FALSE},
     {"Remort: Urban Wasteland         ",  18500,    R8, FALSE},
     {"Remort: Urban Wasteland         ",  18700,    R8, FALSE},
+    {"Remort: Urban Wasteland         ",  12800,    R8, FALSE},
     {NULL,			0, 0}
 };
 
