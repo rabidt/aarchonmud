@@ -2536,6 +2536,52 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
     return NULL;
 }
 
+CHAR_DATA *get_char_group_new( CHAR_DATA *ch, char *argument, bool exact )
+{
+    char arg[MAX_INPUT_LENGTH];
+    CHAR_DATA *gch;
+    int number;
+    int count;
+    
+    if ( !ch || !ch->in_room )
+        return NULL;
+
+    number = number_argument( argument, arg );
+    count  = 0;
+
+    // check in room first
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( !is_ch_name(arg, gch, exact, ch) || !is_same_group(gch, ch) )
+            continue;
+
+        if ( ++count == number )
+            return gch;
+    }    
+    // then all others
+    for ( gch = char_list; gch != NULL ; gch = gch->next )
+    {
+        if ( gch->in_room == ch->in_room || !is_ch_name(arg, gch, exact, ch) || !is_same_group(gch, ch) )
+            continue;
+        
+        if ( ++count == number )
+            return gch;
+    }
+    
+    return NULL;    
+}
+
+CHAR_DATA *get_char_group( CHAR_DATA *ch, char *argument )
+{
+    CHAR_DATA *gch;
+
+    gch = get_char_group_new( ch, argument, TRUE );
+    if ( gch == NULL )
+        gch = get_char_group_new( ch, argument, FALSE );
+
+    return gch;    
+}
+
 CHAR_DATA* get_mob_vnum_world( int vnum )
 {
     CHAR_DATA *mob;
