@@ -2161,8 +2161,11 @@ void do_group( CHAR_DATA *ch, char *argument )
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     char hp_col, mn_col, mv_col;   /* Colours that vary depending on the group member's current hp/mana/mv */
-    one_argument( argument, arg );
+    char *remain;
+
+    remain = one_argument( argument, arg );
     
+    // show group
     if ( arg[0] == '\0' )
     {
         CHAR_DATA *gch;
@@ -2190,15 +2193,50 @@ void do_group( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ch->leader != NULL && ch->leader != ch  )
     {
-        send_to_char( "They aren't here.\n\r", ch );
+        send_to_char( "Only the leader may add to or remove from the group!\n\r", ch );
         return;
     }
     
-    if ( ch->leader != NULL && ch->leader != ch  )
+    // remove from group
+    if ( !strcmp(arg, "remove") )
     {
-        send_to_char( "Only the leader may add to the group!\n\r", ch );
+        victim = get_char_group( ch, remain );
+        if ( !victim )
+        {
+            send_to_char( "Nobody like that in your group.\n\r", ch );
+            return;
+        }
+        if ( IS_AFFECTED(victim,AFF_CHARM) && victim->leader != ch )
+        {
+            act_new("$N does not listen to you.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+            return;
+        }
+        stop_follower(victim);
+        act_new("$n removes $N from $s group.",ch,NULL,victim,TO_NOTVICT,POS_RESTING);
+        act_new("$n removes you from $s group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
+        act_new("You remove $N from your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+        return;
+    }
+    
+    // pass on leadership
+    if ( !strcmp(arg, "leader") )
+    {
+        victim = get_char_group( ch, remain );
+        if ( !victim )
+        {
+            send_to_char( "Nobody like that in your group.\n\r", ch );
+            return;
+        }
+        try_set_leader( ch, victim );
+        return;
+    }
+    
+    // add to group
+    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    {
+        send_to_char( "They aren't here.\n\r", ch );
         return;
     }
     
@@ -2208,54 +2246,15 @@ void do_group( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( (PLR_ACT(ch, PLR_WAR) || PLR_ACT(victim, PLR_WAR))
-	 && !is_same_team(ch, victim) )
+    if ( (PLR_ACT(ch, PLR_WAR) || PLR_ACT(victim, PLR_WAR)) && !is_same_team(ch, victim) )
     {
-	send_to_char("You cannot group during Warfare.\n\r",ch);
-	return;
-    }
-    
-    if (IS_AFFECTED(victim,AFF_CHARM))
-    {
-        send_to_char("You can't remove charmed mobs from your group.\n\r",ch);
+        send_to_char("You cannot group during Warfare.\n\r",ch);
         return;
     }
     
-    if (IS_AFFECTED(ch,AFF_CHARM))
+    if ( is_same_group( victim, ch ) )
     {
-        act_new("You like your master too much to leave $m!",
-            ch,NULL,victim,TO_VICT,POS_SLEEPING);
-        return;
-    }
-    
-    if ( is_same_group( victim, ch ) && ch != victim )
-    {
-        char arg2[MIL];
-        char *remain;
-        remain=one_argument( argument, arg2 );
-        remain=one_argument( remain, arg2 ); /*twice to get 2nd argument*/
-        if ( arg2[0] != '\0' );
-        {
-            if ( !strcmp( arg2, "leader") )
-            {
-                try_set_leader( ch, victim );
-                return;
-            }
-            else
-            {
-                send_to_char("  group <player> - add a player to your group\n\r"
-                             "  group <player> leader - pass leadership of your group to a player\n\r", ch);
-                ptc( ch, "%s\n\r", arg2);
-                return;
-            }
-        }
-        victim->leader = NULL;
-        act_new("$n removes $N from $s group.",
-            ch,NULL,victim,TO_NOTVICT,POS_RESTING);
-        act_new("$n removes you from $s group.",
-            ch,NULL,victim,TO_VICT,POS_SLEEPING);
-        act_new("You remove $N from your group.",
-            ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+        act_new("$N is already in your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
         return;
     }
     
@@ -2266,9 +2265,8 @@ void do_group( CHAR_DATA *ch, char *argument )
 
     if ( ch != victim && is_same_player(ch, victim) )
     {
-	sprintf( buf, "Multiplay: %s joins %s's group",
-		 victim->name, ch->name );
-	wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
+        sprintf( buf, "Multiplay: %s joins %s's group", victim->name, ch->name );
+        wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
     }
     return;
 }
