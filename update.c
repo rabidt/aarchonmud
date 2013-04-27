@@ -235,6 +235,7 @@ void update_field( CHAR_DATA *ch)
     {
         send_to_char( "You raise a level!!  ", ch );
         ch->level += 1;
+	update_lboard( LBOARD_LEVEL, ch, ch->level, 1);
         
         sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
         log_string(buf);
