@@ -6,7 +6,7 @@ BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
 C_FLAGS =  -ggdb -rdynamic -w -Wall $(PROF) $(NOCRYPT) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
-L_FLAGS =  $(PROF)
+L_FLAGS =  $(PROF) -llua
 
 O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
      alchemy.o alias.o auth.o ban.o bit.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
@@ -17,7 +17,8 @@ O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
      smith.o social-edit.o special.o stats.o string.o tables.o update.o \
      freeze.o warfare.o  grant.o wizlist.o marry.o forget.o clan.o \
      buildutil.o buffer_util.o simsave.o breath.o tflag.o grep.o vshift.o \
-     tattoo.o religion.o playback.o leaderboard.o mob_stats.o
+     tattoo.o religion.o playback.o leaderboard.o mob_stats.o \
+     lua_scripting.o lua_bits.o
 
 aeaea:  
 tester: C_FLAGS += -DTESTER

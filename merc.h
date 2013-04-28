@@ -25,6 +25,8 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
+#include <lua.h>
+
 /* change this value to 0 for running on darkhorse */
 #define SOCR 1
 
@@ -2537,6 +2539,7 @@ struct  char_data
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
+    lua_State *LS;
 	#ifdef FSTAT
 	/* Stuff for fight statistics*/
 	int	attacks_attempts;
@@ -4000,6 +4003,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define NOTE_DIR        "../notes/"
 #define GOD_DIR         "../gods/"
 #define CLAN_DIR	"../clans/"
+#define LUA_DIR     "../lua/"
 #endif
 
 #if defined(unix)
@@ -4009,6 +4013,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define NULL_FILE   "/dev/null"     /* To reserve one stream */
 #define NOTE_DIR    "../notes/"
 #define CLAN_DIR	"../clans/"
+#define LUA_DIR     "../lua/"
 #endif
 
 #define AREA_LIST       "area.lst"  /* List of areas*/
@@ -4037,6 +4042,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
 #define MAX_WHO_FILE   "maxwho.txt"
+#define LUA_STARTUP    LUA_DIR "startup.lua"
 #define ptc printf_to_char
 
 /* string constants */
