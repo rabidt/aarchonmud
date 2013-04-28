@@ -31,6 +31,7 @@ const struct olc_cmd_type mpedit_table[] =
    {  "if",       mpedit_if      },
    {  "mob",      mpedit_mob     },
    {  "?",        show_help      },
+   {  "lua",      mpedit_lua     },
    
    {  NULL,       0              }
 };
@@ -219,11 +220,24 @@ MPEDIT(mpedit_show)
 
     sprintf(buf,
            "Vnum:       [%d]\n\r"
+           "Lua:        %s\n\r"
            "Code:\n\r%s\n\r",
-           pMcode->vnum, pMcode->code);
+           pMcode->vnum,
+           pMcode->is_lua ? "True" : "False",
+           pMcode->code);
     send_to_char(buf, ch);
 
     return FALSE;
+}
+
+MPEDIT(mpedit_lua)
+{
+    MPROG_CODE *pMcode;
+    EDIT_MPCODE(ch, pMcode);
+
+    pMcode->is_lua = !pMcode->is_lua;
+    ptc( ch, "LUA set to %s\n\r", pMcode->is_lua ? "TRUE" : "FALSE" );
+    return TRUE;
 }
 
 MPEDIT(mpedit_code)
