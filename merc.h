@@ -3091,6 +3091,7 @@ struct mprog_list
 
 struct mprog_code
 {
+    bool        is_lua;
 	int         vnum;
 	char *      code;
 	MPROG_CODE *    next;

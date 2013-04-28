@@ -291,6 +291,7 @@ DECLARE_OLC_FUN( mpedit_show     );
 DECLARE_OLC_FUN( mpedit_list     );
 DECLARE_OLC_FUN( mpedit_if       );
 DECLARE_OLC_FUN( mpedit_mob      );
+DECLARE_OLC_FUN( mpedit_lua      );
 
 /* Help Editor - kermit 1/98 */
 DECLARE_OLC_FUN( hedit_create    );

@@ -225,6 +225,7 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
         if ( (pMprog = get_mprog_index(i) ) != NULL)
         {
 		          fprintf(fp, "#%d\n", i);
+                  fprintf(fp, "%s~\n", pMprog->is_lua ? "IS_LUA" : "NOT_LUA" );
                   fprintf(fp, "%s~\n", fix_string(pMprog->code));
         }
     }
