@@ -231,6 +231,7 @@ void string_add( CHAR_DATA *ch, char *argument )
                         sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
                         send_to_char( buf, ch );
                         mpl->code = mpc->code;
+                        mpl->is_lua = mpc->is_lua;
                      }
       }
       

@@ -2078,5 +2078,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
     if ( is_clan(ch) )
         do_cmotd(ch, "");
 
+    //open_lua(ch);
+
     return;
 }
