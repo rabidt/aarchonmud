@@ -6264,3 +6264,26 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
            show_penalties_by_player(ch, ch->name, TIME_PLAYED(ch), 2);
 
 }
+
+void do_task( CHAR_DATA * ch, char *argument )
+{
+call_lua (ch, "task", argument);
+}
+
+void do_whereis( CHAR_DATA * ch, char *argument )
+{
+call_lua (ch, "whereis", argument);
+}
+
+void do_lload( CHAR_DATA *ch, char * argument)
+{
+        lua_close(ch->LS);
+            open_lua(ch);
+}
+
+void do_ltest( CHAR_DATA *ch, char *argument)
+{
+        char arg1[MSL];
+            argument=one_argument(argument, arg1);
+                call_lua (ch, arg1, argument);
+}

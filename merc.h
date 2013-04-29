@@ -3090,6 +3090,7 @@ struct mprog_list
 	char *          code;
 	MPROG_LIST *    next;
 	bool        valid;
+    bool is_lua;
 };
 
 struct mprog_code
@@ -4042,6 +4043,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
 #define MAX_WHO_FILE   "maxwho.txt"
+#define LUA_MUD_STARTUP   LUA_DIR "startup_mud.lua"  /* script initialization - mud */
 #define LUA_STARTUP    LUA_DIR "startup.lua"
 #define ptc printf_to_char
 
@@ -4375,7 +4377,7 @@ bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
-void    program_flow    args( ( int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
+void    program_flow    args( ( bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, const void *arg2 ) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, const void *arg2, int type ) );
@@ -4598,3 +4600,9 @@ extern      OBJ_INDEX_DATA *    obj_index_hash  [MAX_KEY_HASH];
 extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
 
+/*
+    * Lua stuff (Nick Gammon)
+     */
+
+ void open_lua  (CHAR_DATA * ch);  /* set up Lua state */
+  void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
