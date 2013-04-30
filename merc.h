@@ -2257,6 +2257,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define WIZ_CHEAT       (X)
 #define WIZ_RELIGION	(Y)
 #define WIZ_MEMCHECK	(Z)
+#define WIZ_BUGS        (aa)
 
 /* Freeze Tag flags */
 #define TAG_PLAYING     (A)
