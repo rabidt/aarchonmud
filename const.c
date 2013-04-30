@@ -148,6 +148,7 @@ const   struct wiznet_type      wiznet_table    []              =
 #if defined(MEMCHECK_ENABLE)
 	{    "memcheck",     WIZ_MEMCHECK,   ML },
 #endif
+    {    "bugs",         WIZ_BUGS,       L8 },
 	{    NULL,           0,              0  }
 };
 
