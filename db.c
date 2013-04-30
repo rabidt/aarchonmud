@@ -2966,7 +2966,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
 
     /* decide if it's using lua */
     /* TBC */
-    open_lua(mob);
+    //open_lua(mob);
 
     return mob;
 }

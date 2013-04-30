@@ -190,7 +190,7 @@ const keyword_list fn_keyword =
     { "isvisible",	"if isvisible $n        - can mob see $n" },
     { "hastarget",	"if hastarget $i        - does $i have a valid target" },
     { "istarget",	"if istarget $n	        - is $n mob's target" },
-    { "exists",		"if exists $n           - does $n exist somewhere" },
+    { "exists",		"if exists $n           - does not work" },
 
     { "affected",	"if affected $n blind   - is $n affected by blind" },
     { "act",		"if act $i sentinel     - is $i flagged sentinel" },
@@ -1139,7 +1139,39 @@ void program_flow(
     {
         /* TBC */
         /* Do lua stuff here */
-        luaL_dostring(mob->LS, source);
+        if ( mob->LS == NULL )
+            open_lua(mob);
+
+       // luaL_dostring(mob->LS, source);
+          /* run initialiation script */
+          make_char_ud (mob->LS, mob);
+          lua_setglobal(mob->LS, "mob");
+          if (ch)
+          {
+             make_char_ud (mob->LS, ch);
+             lua_setglobal(mob->LS, "ch");
+          }
+          /*
+          if (arg1)
+          {
+            make_obj_ud (mob->LS, ch);
+            lua_setglobal(mob->LS, "obj1");
+          }
+          if (arg2)
+          {
+              make_obj_ud (mob->LS, ch);
+              lua_setglobal(mob->LS, "obj2");
+          }
+            */
+          if (luaL_loadstring (mob->LS, source) ||
+                        CallLuaWithTraceBack (mob->LS, 0, 0))
+                    {
+                         bugf ( "LUA mprog error for vnum %d:\n %s",
+                            pvnum,
+                            lua_tostring(mob->LS, -1));
+                    }
+
+            lua_settop (mob->LS, 0);    /* get rid of stuff lying around */
         return;
     }
 
