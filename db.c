@@ -4911,6 +4911,7 @@ void bug( const char *str, int param )
         
         sprintf( buf, "[*****] FILE: %s LINE: %d", strArea, iLine );
         log_string( buf );
+        wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
         /* RT removed because we don't want bugs shutting the mud 
         if ( ( fp = fopen( "shutdown.txt", "a" ) ) != NULL )
         {
@@ -4923,6 +4924,7 @@ void bug( const char *str, int param )
     strcpy( buf, "[*****] BUG: " );
     sprintf( buf + strlen(buf), str, param );
     log_string( buf );
+    wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
     /* RT removed due to bug-file spamming 
     fclose( fpReserve );
     if ( ( fp = fopen( BUG_FILE, "a" ) ) != NULL )
