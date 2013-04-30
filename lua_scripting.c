@@ -561,38 +561,6 @@ static int L_inventory (lua_State *LS)
     return 1;  /* the table itself */
 }  /* end of L_inventory */
 
-static int L_level (lua_State *LS)
-{
-    CHAR_DATA * ch = L_find_character (LS);
-
-    if (!ch)
-        return 0;
-
-    lua_pushnumber (LS, ch->level);
-    return 1;
-}  /* end of L_level */
-
-static int L_race (lua_State *LS)
-{
-    CHAR_DATA * ch = L_find_character (LS);
-
-    if (!ch)
-        return 0;
-
-    lua_pushstring (LS, race_table[ch->race].name);
-    return 1;
-}  /* end of L_race */
-
-static int L_class (lua_State *LS)
-{
-    CHAR_DATA * ch = L_find_character (LS);
-
-    if (!ch)
-        return 0;
-
-    lua_pushstring (LS, IS_NPC(ch) ? "mobile" : class_table[ch->class].name);
-    return 1;
-}  /* end of L_class */
 
 static int L_equipped (lua_State *LS)
 {
@@ -825,7 +793,6 @@ static int L_area_info (lua_State *LS)
     AREA_NUM_ITEM (minlevel);
     AREA_NUM_ITEM (maxlevel);
     return 1;  /* the table itself */
-    /* TBC */
 }  /* end of L_area_info */
 
 static int L_area_list (lua_State *LS)
@@ -1095,20 +1062,6 @@ static int L_gain_gold (lua_State *LS)
     lua_pushnumber (LS, ch->gold);
     return 1;
 }  /* end of L_gain_gold */
-
-static int L_room (lua_State *LS)
-{
-
-    CHAR_DATA * ch = L_find_character (LS); /* get character pointer */
-
-    if (!ch)
-        return 0;
-
-    ROOM_INDEX_DATA * room = ch->in_room;  /* which room s/he is in */
-
-    lua_pushnumber (LS, room->vnum); 
-    return 1;
-}  /* end of L_room */
 
 static int L_char_name (lua_State *LS)
 {
@@ -1487,7 +1440,7 @@ static int L_restore (lua_State *LS)
      return 1;
 }
 
-static int L_act (lua_State *LS)
+static int L_mpact (lua_State *LS)
 {
      CHAR_DATA * ud_ch = check_character (LS, 1);
      const char *argument = luaL_checkstring (LS, 2);
@@ -1704,6 +1657,263 @@ static int L_affected (lua_State *LS)
     return 1;
 }
 
+static int L_act (lua_State *LS)
+{
+/* TBC
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS, ud_ch != NULL
+        &&  IS_SET(ud_ch->act, flag_lookup(argument, act_flags)) );
+
+    return 1; */
+}
+
+static int L_off (lua_State *LS)
+{/* TBC
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS,
+        IS_SET(ud_ch->off_flags, flag_lookup(argument, off_flags)) );
+
+    return 1; */
+}
+
+static int L_imm (lua_State *LS)
+{ /* TBC
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS, ud_ch != NULL
+        &&  IS_SET(ud_ch->imm_flags, flag_lookup(argument, imm_flags)) );
+
+    return 1; */
+}
+
+static int L_carries (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    if ( is_r_number( argument ) )
+        lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, r_atoi(ud_ch, argument), -1, FALSE ) );
+    else
+        lua_pushboolean( LS, ud_ch != NULL && (get_obj_carry( ud_ch, argument, ud_ch ) != NULL) );
+    
+    return 1;
+}
+
+static int L_wears (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    if ( is_r_number( argument ) )
+        lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, r_atoi(ud_ch, argument), -1, TRUE ) );
+    else
+        lua_pushboolean( LS, ud_ch != NULL && (get_obj_wear( ud_ch, argument ) != NULL) );
+
+    return 1;
+}
+
+static int L_has (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, -1, item_lookup(argument), FALSE ) );
+
+    return 1;
+}
+
+static int L_uses (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, -1, item_lookup(argument), TRUE ) );
+
+    return 1;
+}
+
+static int L_name (lua_State *LS)
+{
+/* TBC
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS, lval_char != NULL && has_item( lval_char, -1, item_lookup(buf), TRUE ) );
+
+    return 1;
+    */
+}
+
+static int L_pos (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->position == position_lookup( argument ) ); 
+
+    return 1;
+}
+
+static int L_clan (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->clan == clan_lookup( argument ) );
+
+    return 1;
+}
+
+static int L_race (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->race == race_lookup( argument ) );
+
+    return 1;
+}
+
+static int L_class (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->class == class_lookup( argument ) );
+
+    return 1;
+}
+
+static int L_objtype (lua_State *LS)
+{/* TBC
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->class == class_lookup( argument ) );
+
+    return 1;
+*/}
+
+static int L_vnum (lua_State *LS)
+{
+/* TBC
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->class == class_lookup( argument ) );
+
+    return 1;
+*/}
+
+static int L_hpcnt (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    
+    lua_pushnumber( LS,  ( ud_ch != NULL ) ? ((ud_ch->hit * 100)/(UMAX(1,ud_ch->max_hit))) : 0 );
+
+    return 1;
+}
+
+static int L_room (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+
+    if ( ud_ch != NULL && ud_ch->in_room != NULL )
+        lua_pushnumber( LS, ud_ch->in_room->vnum);
+    else
+        lua_pushnumber( LS, 0);
+
+    return 1;
+}
+
+static int L_sex (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+ 
+    if ( ud_ch != NULL )
+        lua_pushnumber( LS, ud_ch->sex);
+    else
+        lua_pushnumber( LS, 0);
+
+    return 1;
+}
+
+static int L_level (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+ 
+    if ( ud_ch != NULL )
+        lua_pushnumber( LS, ud_ch->level);
+    else
+        lua_pushnumber( LS, 0);
+
+    return 1;
+}
+
+static int L_align (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+ 
+    if ( ud_ch != NULL )
+        lua_pushnumber( LS, ud_ch->alignment);
+    else
+        lua_pushnumber( LS, 0);
+
+    return 1;
+}
+
+static int L_money (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+ 
+    if ( ud_ch != NULL )
+        lua_pushnumber( LS, (ud_ch->gold * 100) + ud_ch->silver);
+    else
+        lua_pushnumber( LS, 0);
+
+    return 1;
+}
+
+static int L_grpsize (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+ 
+    if ( ud_ch != NULL )
+        lua_pushnumber( LS, count_people_room( ud_ch, 4 ) );
+    else
+        lua_pushnumber( LS, 0);
+
+    return 1;
+}
+
+static int L_clanrank (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    lua_pushboolean( LS, ud_ch != NULL && !IS_NPC(ud_ch) && ud_ch->pcdata->clan_rank == clan_rank_lookup(ud_ch->clan, argument ) );
+
+    return 1;
+}
+
+static int L_qstatus (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    int num = luaL_checknumber (LS, 2);
+ 
+    if ( ud_ch != NULL )
+        lua_pushnumber( LS, quest_status( ud_ch, num ) );
+    else
+        lua_pushnumber( LS, 0);
+
+    return 1;
+}
+
 static const struct luaL_reg mudlib [] = 
 {
     {"system_info", L_system_info}, 
@@ -1720,9 +1930,9 @@ static const struct luaL_reg mudlib [] =
     {"object_name", L_object_name},   /* short, long object name */
     {"mob_name", L_mob_name},   /* short, long mob name */
     {"level", L_level},                /* what is my level? */
-    {"race", L_race},                  /* what is my race? */
+    //{"race", L_race},                  /* what is my race? */
     {"class", L_class},                /* what is my class? */
-    {"room", L_room},                  /* what room am I in? */
+    //{"room", L_room},                  /* what room am I in? */
     {"char_name", L_char_name},        /* what is my name? */
     {"char_exists", L_char_exists},    /* does character exist (now)? */
 
@@ -1842,7 +2052,7 @@ static const struct luaL_reg cmdlib_m [] =
     {"reward",      L_reward},
     {"peace",       L_peace},
     {"restore",     L_restore},
-    {"act",         L_act},
+    {"act",         L_mpact},
     {"hit",         L_hit},
     {NULL, NULL}
 };
@@ -1869,9 +2079,8 @@ static const struct luaL_reg checklib_m [] =
     {"isvisible",       L_isvisible },
     {"hastarget",       L_hastarget },
     {"istarget",          L_istarget },
-    //{"exists",          L_exists },
+    //{"exists",          L_exists }, //never actually worked in original
     {"affected",          L_affected },
-#if 0
     {"act",          L_act },
     {"off",          L_off },
     {"imm",          L_imm },
@@ -1896,6 +2105,7 @@ static const struct luaL_reg checklib_m [] =
     {"grpsize",          L_grpsize },
     {"clanrank",          L_clanrank },
     {"qstatus",          L_qstatus },
+#if 0
     {"vuln",          L_vuln },
     {"res",          L_res },
     /*{"statstr",          L_statstr}, TBC */
