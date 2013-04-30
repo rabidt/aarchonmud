@@ -233,11 +233,25 @@ MPEDIT(mpedit_show)
 MPEDIT(mpedit_lua)
 {
     MPROG_CODE *pMcode;
+    MPROG_LIST *mpl;
     EDIT_MPCODE(ch, pMcode);
+    MOB_INDEX_DATA *mob;
+    int hash;
+    char buf[MSL];
 
     pMcode->is_lua = !pMcode->is_lua;
     ptc( ch, "LUA set to %s\n\r", pMcode->is_lua ? "TRUE" : "FALSE" );
-    return TRUE;
+
+            for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
+               for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
+                  for ( mpl = mob->mprogs; mpl; mpl = mpl->next )
+                     if ( mpl->vnum == pMcode->vnum )
+                     {
+                        sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
+                        send_to_char( buf, ch );
+                        mpl->code = pMcode->code;
+                        mpl->is_lua = pMcode->is_lua;
+                     }
 }
 
 MPEDIT(mpedit_code)
