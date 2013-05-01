@@ -483,6 +483,7 @@ int  top_vnum_room;      /* OLC */
 int  top_vnum_mob;       /* OLC */
 int  top_vnum_obj;       /* OLC */
 int  top_mprog_index;    /* OLC */
+int  lua_mprogs=0;
 int  mobile_count = 0;
 int  newmobs = 0;
 int  newobjs = 0;
@@ -2171,6 +2172,7 @@ void load_mobprogs( FILE *fp )
         {
             pMprog->is_lua = TRUE;
             pMprog->code = fread_string( fp );
+            lua_mprogs++;
         }
         else if ( !strcmp( tempStr, "NOT_LUA" ) )
         {
@@ -4306,6 +4308,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     sprintf( buf, "Mobs    %5d(%d new format)\n\r", top_mob_index,newmobs ); 
     send_to_char( buf, ch );
     sprintf( buf, "(in use)%5d\n\r", mobile_count  ); send_to_char( buf, ch );
+    sprintf( buf, "Mprogs  %5d(%d lua)\n\r", top_mprog_index, lua_mprogs); send_to_char( buf, ch);
     sprintf( buf, "Objs    %5d(%d new format)\n\r", top_obj_index,newobjs ); 
     send_to_char( buf, ch );
     sprintf( buf, "Resets  %5d\n\r", top_reset     ); send_to_char( buf, ch );

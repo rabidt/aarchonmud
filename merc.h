@@ -4593,7 +4593,7 @@ extern      int         top_jail_room;
 extern      int         top_vnum_mob;
 extern      int         top_vnum_obj;
 extern      int         top_vnum_room;
-
+extern      int         lua_mprogs;
 extern      char            str_empty       [1];
 
 extern      MOB_INDEX_DATA *    mob_index_hash  [MAX_KEY_HASH];
