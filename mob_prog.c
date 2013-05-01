@@ -41,9 +41,6 @@
 #include <time.h>
 #include <sys/types.h>
 #include <ctype.h>
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
 #include "merc.h"
 #include "tables.h"
 #include "lookup.h"
