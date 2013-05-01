@@ -4184,7 +4184,7 @@ void check_bomb( CHAR_DATA *ch, OBJ_DATA *obj )
 		if ( IS_NPC( vch ) && HAS_TRIGGER ( vch, TRIG_DRBOMB ) && (ch!=vch))
 		{
 		    set_pos( vch, POS_STANDING );
-		    mp_percent_trigger( vch, ch, obj, NULL, NULL, TRIG_DRBOMB );
+		    mp_percent_trigger( vch, ch, obj, NULL, TRIG_DRBOMB );
 		}
 	}
 

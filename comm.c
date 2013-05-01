@@ -2575,8 +2575,8 @@ void act_see( const char *format, CHAR_DATA *ch, const void *arg1,
 
 /* like act_new, but checks if the information should be gagged
  */
-void act_new_gag( const char *format, CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2, 
-		  OBJ_DATA *vch, int type, int min_pos, long gag_type,
+void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1, 
+		  const void *arg2, int type, int min_pos, long gag_type,
 		  bool see_only )
 {
 	static char * const he_she  [] = { "it",  "he",  "she" };
