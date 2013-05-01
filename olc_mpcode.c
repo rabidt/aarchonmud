@@ -240,6 +240,10 @@ MPEDIT(mpedit_lua)
 
     pMcode->is_lua = !pMcode->is_lua;
     ptc( ch, "LUA set to %s\n\r", pMcode->is_lua ? "TRUE" : "FALSE" );
+    if ( pMcode->is_lua )
+        lua_mprogs++;
+    else
+        lua_mprogs--;
 
             for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
                for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
