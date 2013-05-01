@@ -215,7 +215,6 @@ MPEDIT(mpedit_show)
 {
     MPROG_CODE *pMcode;
     char buf[MAX_STRING_LENGTH];
-
     EDIT_MPCODE(ch,pMcode);
 
     sprintf(buf,
@@ -224,7 +223,7 @@ MPEDIT(mpedit_show)
            "Code:\n\r%s\n\r",
            pMcode->vnum,
            pMcode->is_lua ? "True" : "False",
-           pMcode->code);
+           double_bracket(pMcode->code ) );
     send_to_char(buf, ch);
 
     return FALSE;
