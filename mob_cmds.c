@@ -1420,7 +1420,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     CHAR_DATA *vch;
     OBJ_DATA *obj1, *obj2;
     MPROG_CODE *prg;
-    extern void program_flow( bool, int, char *, CHAR_DATA *, CHAR_DATA *, const void *, const void * );
+    extern void program_flow( char *, bool, int, char *, CHAR_DATA *, CHAR_DATA *, const void *, const void * );
 
     argument = one_argument( argument, arg );
     if ( arg[0] == '\0' )
@@ -1446,7 +1446,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     argument = one_argument( argument, arg );
     if ( arg[0] != '\0' )
     	obj2 = get_obj_here( ch, arg );
-    program_flow( prg->is_lua,prg->vnum, prg->code, ch, vch, (void *)obj1, (void *)obj2 );
+    program_flow( argument, prg->is_lua,prg->vnum, prg->code, ch, vch, (void *)obj1, (void *)obj2 );
 }
 
 /*

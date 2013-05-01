@@ -92,7 +92,7 @@ static int check_vnum (lua_State *LS)
 }  /* end of check_vnum */
 
 /* given a character pointer makes a userdata for it */
-/*static*/ void make_char_ud (lua_State *LS, CHAR_DATA * ch)  
+static void make_char_ud (lua_State *LS, CHAR_DATA * ch)  
 {
     if (!ch)
         luaL_error (LS, "make_char_ud called with NULL character");
@@ -1468,6 +1468,16 @@ static int L_hit (lua_State *LS)
 
 }
 
+static int L_exec (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    interpret( ud_ch, argument);
+
+    return 1;
+}
+
 static int L_mobhere (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
@@ -1929,7 +1939,7 @@ static const struct luaL_reg mudlib [] =
     {"equipped", L_equipped},        /* invoked objects */
     {"object_name", L_object_name},   /* short, long object name */
     {"mob_name", L_mob_name},   /* short, long mob name */
-    {"level", L_level},                /* what is my level? */
+    //{"level", L_level},                /* what is my level? */
     //{"race", L_race},                  /* what is my race? */
     {"class", L_class},                /* what is my class? */
     //{"room", L_room},                  /* what room am I in? */
@@ -2054,6 +2064,8 @@ static const struct luaL_reg cmdlib_m [] =
     {"restore",     L_restore},
     {"act",         L_mpact},
     {"hit",         L_hit},
+    /* special cmd for executing normal commands */
+    {"exec",        L_exec},
     {NULL, NULL}
 };
 
@@ -2489,3 +2501,64 @@ void call_mud_lua_char_num (const char * fname,
     call_mud_lua_function (fname, 2);
 
 }  /* end of call_mud_lua_char_num */
+
+
+/* lua_program
+   lua equivalent of program_flow
+ */
+void lua_program( char *text, int pvnum, char *source, 
+        CHAR_DATA *mob, CHAR_DATA *ch, 
+        const void *arg1, const void *arg2 ) 
+{
+
+    /* Do lua stuff here */
+    if ( mob->LS == NULL )
+        open_lua(mob);
+
+    // luaL_dostring(mob->LS, source);
+    /* run initialiation script */
+    make_char_ud (mob->LS, mob);
+    lua_setglobal(mob->LS, "mob");
+    if (ch)
+    {
+        make_char_ud (mob->LS, ch);
+        lua_setglobal(mob->LS, "ch");
+    }
+    else
+    {
+        luaL_loadstring( mob->LS, "ch=nil");
+        CallLuaWithTraceBack (mob->LS, 0, 0);
+    }
+
+    if (text)
+    {
+        lua_pushstring ( mob->LS, text );
+        lua_setglobal(mob->LS, "text");
+    }
+    else
+    {
+        luaL_loadstring( mob->LS, "text=nil");
+        CallLuaWithTraceBack (mob->LS, 0, 0);
+    }
+    /*
+       if (arg1)
+       {
+       make_obj_ud (mob->LS, ch);
+       lua_setglobal(mob->LS, "obj1");
+       }
+       if (arg2)
+       {
+       make_obj_ud (mob->LS, ch);
+       lua_setglobal(mob->LS, "obj2");
+       }
+     */
+    if (luaL_loadstring (mob->LS, source) ||
+            CallLuaWithTraceBack (mob->LS, 0, 0))
+    {
+        bugf ( "LUA mprog error for vnum %d:\n %s",
+                pvnum,
+                lua_tostring(mob->LS, -1));
+    }
+
+    lua_settop (mob->LS, 0);    /* get rid of stuff lying around */
+}
