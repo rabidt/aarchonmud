@@ -1533,7 +1533,7 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 	    {
 		if ( obj->pIndexData->vnum == r_atoi(mob, p) )
 		{
-		    program_flow( p, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, NULL);
+		    program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, NULL);
 		    return;
 		}
 	    }
