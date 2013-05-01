@@ -5938,7 +5938,6 @@ MEDIT ( medit_addmprog )
     list->trig_type       = value;
     list->trig_phrase     = str_dup(phrase);
     list->code            = code->code;
-    list->is_lua          = code->is_lua;
     SET_BIT(pMob->mprog_flags,value);
     list->next            = pMob->mprogs;
     pMob->mprogs          = list;
