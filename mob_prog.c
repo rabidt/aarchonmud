@@ -58,8 +58,8 @@ bool is_r_number( char *arg );
 int r_atoi( CHAR_DATA *ch, char *arg );
 bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name );
 int cmd_eval( int vnum, char *line, int check,
-            CHAR_DATA *mob, CHAR_DATA *ch,
-            OBJ_DATA *obj1, OBJ_DATA *obj2, CHAR_DATA *vch, CHAR_DATA *rch );
+        CHAR_DATA *mob, CHAR_DATA *ch,
+        const void *arg1, const void *arg2, CHAR_DATA *rch );
 
 /* crash debugging */
 char last_mprog[MSL] = "";
@@ -520,9 +520,12 @@ bool is_affected_parse( CHAR_DATA *ch, char *buf )
  */
 int cmd_eval( int vnum, char *line, int check,
 	CHAR_DATA *mob, CHAR_DATA *ch, 
-	OBJ_DATA *obj1, OBJ_DATA *obj2, CHAR_DATA *vch, CHAR_DATA *rch )
+	const void *arg1, const void *arg2, CHAR_DATA *rch )
 {
     CHAR_DATA *lval_char = mob;
+    CHAR_DATA *vch = (CHAR_DATA *) arg2;
+    OBJ_DATA *obj1 = (OBJ_DATA  *) arg1;
+    OBJ_DATA *obj2 = (OBJ_DATA  *) arg2;
     OBJ_DATA  *lval_obj = NULL;
 
     char *original, buf[MAX_INPUT_LENGTH], code;
@@ -931,7 +934,7 @@ int cmd_eval( int vnum, char *line, int check,
 void expand_arg( char *buf, 
 	const char *format, 
 	CHAR_DATA *mob, CHAR_DATA *ch, 
-	OBJ_DATA *obj1, OBJ_DATA *obj2, CHAR_DATA *vch, CHAR_DATA *rch )
+	const void *arg1, const void *arg2, CHAR_DATA *rch )
 {
     static char * const he_she  [] = { "it",  "he",  "she" };
     static char * const him_her [] = { "it",  "him", "her" };
@@ -941,6 +944,9 @@ void expand_arg( char *buf,
     const char *someones = "someone's";
  
     char fname[MAX_INPUT_LENGTH];
+    CHAR_DATA *vch = (CHAR_DATA *) arg2;
+    OBJ_DATA *obj1 = (OBJ_DATA  *) arg1;
+    OBJ_DATA *obj2 = (OBJ_DATA  *) arg2;
     const char *str;
     const char *i;
     char *point;
@@ -1124,15 +1130,48 @@ void expand_arg( char *buf,
 #define MAX_CALL_LEVEL    5 /* Maximum nested calls */
 
 void program_flow( 
-    char *text,
     bool is_lua,
     int pvnum,  /* For diagnostic purposes */
     char *source,  /* the actual MOBprog code */
-    CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2, CHAR_DATA *vch )
+    CHAR_DATA *mob, CHAR_DATA *ch, const void *arg1, const void *arg2 )
 {
     if ( is_lua )
     {
-        lua_program( text, pvnum, source, mob, ch, obj1, obj2, vch );
+        /* TBC */
+        /* Do lua stuff here */
+        if ( mob->LS == NULL )
+            open_lua(mob);
+
+       // luaL_dostring(mob->LS, source);
+          /* run initialiation script */
+          make_char_ud (mob->LS, mob);
+          lua_setglobal(mob->LS, "mob");
+          if (ch)
+          {
+             make_char_ud (mob->LS, ch);
+             lua_setglobal(mob->LS, "ch");
+          }
+          /*
+          if (arg1)
+          {
+            make_obj_ud (mob->LS, ch);
+            lua_setglobal(mob->LS, "obj1");
+          }
+          if (arg2)
+          {
+              make_obj_ud (mob->LS, ch);
+              lua_setglobal(mob->LS, "obj2");
+          }
+            */
+          if (luaL_loadstring (mob->LS, source) ||
+                        CallLuaWithTraceBack (mob->LS, 0, 0))
+                    {
+                         bugf ( "LUA mprog error for vnum %d:\n %s",
+                            pvnum,
+                            lua_tostring(mob->LS, -1));
+                    }
+
+            lua_settop (mob->LS, 0);    /* get rid of stuff lying around */
         return;
     }
 
@@ -1253,7 +1292,7 @@ void program_flow(
           line = one_argument( line, control );
           if ( ( check = keyword_lookup( fn_keyword, control ) ) >= 0 )
           {
-             cond[level] = cmd_eval( pvnum, line, check, mob, ch, obj1, obj2, vch, rch );
+             cond[level] = cmd_eval( pvnum, line, check, mob, ch, arg1, arg2, rch );
           }
           else
           {
@@ -1279,7 +1318,7 @@ void program_flow(
           line = one_argument( line, control );
           if ( ( check = keyword_lookup( fn_keyword, control ) ) >= 0 )
           {
-             eval = cmd_eval( pvnum, line, check, mob, ch, obj1, obj2, vch, rch );
+             eval = cmd_eval( pvnum, line, check, mob, ch, arg1, arg2, rch );
           }
           else
           {
@@ -1304,7 +1343,7 @@ void program_flow(
           line = one_argument( line, control );
           if ( ( check = keyword_lookup( fn_keyword, control ) ) >= 0 )
           {
-             eval = cmd_eval( pvnum, line, check, mob, ch, obj1, obj2, vch, rch );
+             eval = cmd_eval( pvnum, line, check, mob, ch, arg1, arg2, rch );
           }
           else
           {
@@ -1353,7 +1392,7 @@ void program_flow(
        else if ( (!level || cond[level] == TRUE) && buf[0] != '\0' )
        {
           state[level] = IN_BLOCK;
-          expand_arg( data, buf, mob, ch, obj1, obj2, vch, rch );
+          expand_arg( data, buf, mob, ch, arg1, arg2, rch );
 
 #ifdef MPROG_DEBUG
     logpf( "program_flow: starting command <%s>", data );
@@ -1405,8 +1444,8 @@ void program_flow(
  * phrase.
  */
 bool mp_act_trigger( 
-    char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
-    OBJ_DATA *obj1, OBJ_DATA *obj2, CHAR_DATA *vch, int type )
+	char *argument, CHAR_DATA *mob, CHAR_DATA *ch, 
+	const void *arg1, const void *arg2, int type )
 {
     MPROG_LIST *prg;
 
@@ -1416,10 +1455,9 @@ bool mp_act_trigger(
 	     /* should be case-insensitive --Bobble
 	     && strstr( argument, prg->trig_phrase ) != NULL )
 	     */
-	     && ( strstr(cap_all(argument), cap_all(prg->trig_phrase)) != NULL 
-         ||   !strcmp(prg->trig_phrase, "*") ) )
+	     && strstr(cap_all(argument), cap_all(prg->trig_phrase)) != NULL )
         {
-	    program_flow( argument, prg->is_lua, prg->vnum, prg->code, mob, ch, obj1, obj2, vch );
+	    program_flow( prg->is_lua, prg->vnum, prg->code, mob, ch, arg1, arg2 );
 	    return TRUE;
 	}
     }
@@ -1431,8 +1469,8 @@ bool mp_act_trigger(
  * number is less than trigger phrase
  */
 bool mp_percent_trigger( 
-    char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
-    OBJ_DATA *obj1, OBJ_DATA *obj2, CHAR_DATA *vch, int type )
+	CHAR_DATA *mob, CHAR_DATA *ch, 
+	const void *arg1, const void *arg2, int type )
 {
     MPROG_LIST *prg;
 
@@ -1441,7 +1479,7 @@ bool mp_percent_trigger(
     	if ( prg->trig_type == type 
 	&&   number_percent() <= atoi( prg->trig_phrase ) )
         {
-	    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, arg1, arg2 );
+	    program_flow( prg->is_lua, prg->vnum, prg->code, mob, ch, arg1, arg2 );
 	    return ( TRUE );
 	}
     }
@@ -1462,9 +1500,7 @@ void mp_bribe_trigger( CHAR_DATA *mob, CHAR_DATA *ch, int amount )
 	if ( prg->trig_type == TRIG_BRIBE
 	&&   amount >= atoi( prg->trig_phrase ) )
 	{
-        char buf[MSL];
-        sprintf(buf, "%d", amount);
-	    program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL, NULL );
+	    program_flow( prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
 	    break;
 	}
     }
@@ -1494,14 +1530,14 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
 			mob->position == POS_FIGHTING)
 		&&  check_see( mob, ch ) )
 		{
-		    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL, NULL );
+		    program_flow( prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
 		    return TRUE;
 		}
 		else
 		if ( prg->trig_type == TRIG_EXALL
 		&&   dir == atoi( prg->trig_phrase ) )
 		{
-		    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL, NULL );
+		    program_flow( prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
 		    return TRUE;
 		}
 	    }
@@ -1527,9 +1563,7 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 	    {
 		if ( obj->pIndexData->vnum == r_atoi(mob, p) )
 		{
-            char buf[MSL];
-            sprintf(buf, "%d", obj->pIndexData->vnum);
-		    program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, obj, NULL, NULL);
+		    program_flow(prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, NULL);
 		    return;
 		}
 	    }
@@ -1545,7 +1579,7 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 		    if ( is_name( buf, obj->name )
 		    ||   !str_cmp( "all", buf ) )
 		    {
-		    	program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, obj, NULL, NULL);
+		    	program_flow( prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, NULL);
 		    	return;
 		    }
 		}
@@ -1591,9 +1625,7 @@ void mp_hprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	if ( ( prg->trig_type == TRIG_HPCNT )
 	&& ( (100 * mob->hit / mob->max_hit) < atoi( prg->trig_phrase ) ) )
 	{
-        char buf[MSL];
-        sprintf( buf, "%d", (100 * mob->hit / mob->max_hit) );
-	    program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL, NULL );
+	    program_flow( prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
 	    break;
 	}
 }
@@ -1606,9 +1638,7 @@ void mp_mprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	if ( ( prg->trig_type == TRIG_MPCNT )
 	&& ( (100 * mob->mana / mob->max_mana) < atoi( prg->trig_phrase ) ) )
 	{
-        char buf[MSL];
-        sprintf(buf, "%d", (100 * mob->mana / mob->max_mana) );
-	    program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL, NULL );
+	    program_flow( prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
 	    break;
 	}
 }
@@ -1625,7 +1655,7 @@ bool mp_spell_trigger( char* argument, CHAR_DATA *ch )
    
         if (IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_SPELL) )
         {
-            if (mp_act_trigger(argument, mob, ch, NULL, NULL, NULL, TRIG_SPELL) )
+            if (mp_act_trigger(argument, mob, ch, NULL, NULL, TRIG_SPELL) )
                 found = TRUE;
         }
     }
@@ -1646,7 +1676,7 @@ bool mp_try_trigger( char* argument, CHAR_DATA *ch )
     
     if ( IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_TRY) )
     {
-      if ( mp_act_trigger(argument, mob, ch, NULL, NULL, NULL, TRIG_TRY) )
+      if ( mp_act_trigger(argument, mob, ch, NULL, NULL, TRIG_TRY) )
 	found = TRUE;
     }
   }
