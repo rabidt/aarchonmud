@@ -893,13 +893,13 @@ void mobile_update( void )
 	      {
 		  if ( --ch->mprog_delay <= 0 )
 		  {
-		      mp_percent_trigger( ch, NULL, NULL, NULL, TRIG_DELAY );
+		      mp_percent_trigger( ch, NULL, NULL,0, NULL,0, TRIG_DELAY );
 		      continue;
 		  }
 	      } 
 	      if ( HAS_TRIGGER( ch, TRIG_RANDOM) )
 	      {
-		  if( mp_percent_trigger( ch, NULL, NULL, NULL, TRIG_RANDOM ) )
+		  if( mp_percent_trigger( ch, NULL, NULL,0, NULL,0, TRIG_RANDOM ) )
 		      continue;
 	      }
 	  }
@@ -2554,7 +2554,7 @@ void explode(OBJ_DATA *obj)
                 {
                     affect_strip_flag(to, AFF_SLEEP);
                     set_pos( to, POS_STANDING );
-                    mp_percent_trigger( to, to, obj, NULL, TRIG_EXBOMB );
+                    mp_percent_trigger( to, to, obj, ACT_ARG_OBJ, NULL,0, TRIG_EXBOMB );
                 } 
                 else if (obj->owner && str_cmp(obj->owner, to->name)
 			 && !IS_SET(to->act, ACT_WIMPY))
@@ -2614,7 +2614,7 @@ void explode(OBJ_DATA *obj)
                     {
                         affect_strip_flag(to, AFF_SLEEP);
                         set_pos( to, POS_STANDING );
-                        mp_percent_trigger( to, to, obj, NULL, TRIG_EXBOMB );
+                        mp_percent_trigger( to, to, obj,ACT_ARG_OBJ, NULL,0, TRIG_EXBOMB );
                     } 
                     else if (obj->owner && str_cmp(obj->owner, to->name)
 			     && !IS_SET(to->act, ACT_WIMPY))

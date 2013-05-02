@@ -1029,7 +1029,7 @@ bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact 
 	     && MOBtrigger
 	     && HAS_TRIGGER(victim, TRIG_SOCIAL)
 	     && mp_act_trigger(social_table[cmd].name, victim, ch,
-			       NULL, NULL, TRIG_SOCIAL) )
+			       NULL,0, NULL,0, TRIG_SOCIAL) )
 	    ;
 	else
 	{

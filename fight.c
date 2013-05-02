@@ -248,7 +248,7 @@ void violence_update( void )
         if ( IS_NPC( ch ) )
         {
             if ( HAS_TRIGGER( ch, TRIG_FIGHT ) )
-                mp_percent_trigger( ch, victim, NULL, NULL, TRIG_FIGHT );
+                mp_percent_trigger( ch, victim, NULL,0, NULL,0, TRIG_FIGHT );
             if ( HAS_TRIGGER( ch, TRIG_HPCNT ) )
                 mp_hprct_trigger( ch, victim );
             if ( HAS_TRIGGER( ch, TRIG_MPCNT ) )
@@ -3012,7 +3012,7 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
                 victim->hit = 1;
                 set_pos( victim, POS_STUNNED );
                 // trigger must come AFTER death-prevention, as mob remort can cause character to save
-                mp_percent_trigger( m, victim, NULL, NULL, TRIG_DEFEAT );
+                mp_percent_trigger( m, victim, NULL,0, NULL,0, TRIG_DEFEAT );
                 return FALSE;
             }
     }
@@ -3265,7 +3265,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( IS_NPC( victim ) && HAS_TRIGGER( victim, TRIG_DEATH) )
     {
 	set_pos( victim, POS_STANDING );
-	mp_percent_trigger( victim, ch, NULL, NULL, TRIG_DEATH );
+	mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_DEATH );
     }
 
     remort_remove(victim, FALSE);
@@ -4403,7 +4403,7 @@ bool check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim )
 
     ch->fighting = victim;
     if ( IS_NPC( victim ) && HAS_TRIGGER( victim, TRIG_KILL ) )
-	mp_percent_trigger( victim, ch, NULL, NULL, TRIG_KILL );
+	mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_KILL );
     if ( ch->fighting != victim )
 	return TRUE;
 

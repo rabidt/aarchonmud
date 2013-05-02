@@ -41,8 +41,6 @@ http://www.gammon.com.au/forum/?id=8015
 #include "tables.h"
 
 lua_State *LS_mud = NULL;  /* Lua state for entire MUD */
-
-
 /* Mersenne Twister stuff - see mt19937ar.c */
 
 void init_genrand(unsigned long s);
@@ -55,6 +53,7 @@ void add_lua_tables (lua_State *LS);
 
 #define CHARACTER_STATE "character.state"
 #define CHARACTER_META "character.metadata"
+#define OBJECT_META "object.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 
@@ -63,7 +62,8 @@ void add_lua_tables (lua_State *LS);
 
 /* void RegisterLuaCommands (lua_State *LS); */ /* Implemented in lua_commands.c */
 LUALIB_API int luaopen_bits(lua_State *LS);  /* Implemented in lua_bits.c */
-
+static OBJ_DATA *obj1=NULL;
+static OBJ_DATA *obj2=NULL;
 
 
 static int optboolean (lua_State *LS, const int narg, const int def) 
@@ -104,10 +104,21 @@ static void make_char_ud (lua_State *LS, CHAR_DATA * ch)
 
     /* returns with userdata on the stack */
 }
+/*
+static void make_obj_ud (lua_State *LS, OBJ_DATA * obj)
+{
+    if (!obj)
+        luaL_error (LS, "make_obj_ud called with NULL object");
 
+    lua_pushlightuserdata( LS, (void *)obj);
+    luaL_getmetatable (LS, OBJECT_META);
+    lua_setmetatable (LS, -2);
+}
+#define check_object(LS, arg) \
+    (OBJ_DATA *) luaL_checkudata (LS, arg, OBJECT_META)
+    */
 #define check_character(LS, arg)  \
     (CHAR_DATA *) luaL_checkudata (LS, arg, CHARACTER_META)
-
 /* Given a Lua state, return the character it belongs to */
 
 CHAR_DATA * L_getchar (lua_State *LS)
@@ -410,61 +421,6 @@ lua_setfield (LS, -2, #arg)
 #define PC_NUM_ITEM(arg) \
     lua_pushnumber (LS, pc->arg);  \
 lua_setfield (LS, -2, #arg)
-
-static int L_character_info (lua_State *LS)
-{
-    CHAR_DATA * ch = L_find_character (LS);
-
-    if (!ch)
-        return 0;
-
-    PC_DATA *pc = ch->pcdata;
-
-    lua_newtable(LS);  /* table for the info */
-
-    /* strings */
-
-    CH_STR_ITEM (name);
-    CH_STR_ITEM (short_descr);
-    CH_STR_ITEM (long_descr);
-    CH_STR_ITEM (description);
-
-    /* numbers */
-
-    CH_NUM_ITEM (sex);
-    CH_NUM_ITEM (class);
-    CH_NUM_ITEM (race);
-    CH_NUM_ITEM (level);
-    CH_NUM_ITEM (trust);
-    CH_NUM_ITEM (played);
-    CH_NUM_ITEM (logon);
-    CH_NUM_ITEM (timer);
-    CH_NUM_ITEM (wait);
-    CH_NUM_ITEM (hit);
-    CH_NUM_ITEM (max_hit);
-    CH_NUM_ITEM (mana);
-    CH_NUM_ITEM (max_mana);
-    CH_NUM_ITEM (move);
-    CH_NUM_ITEM (max_move);
-    CH_NUM_ITEM (practice);
-    CH_NUM_ITEM (gold);
-    CH_NUM_ITEM (exp);
-    CH_NUM_ITEM (carry_weight);
-    CH_NUM_ITEM (carry_number);
-    /* player characters have extra stuff (in "pc" sub table)  */
-    if (pc)
-    {
-        lua_newtable(LS);  /* table for the info */
-
-        PC_STR_ITEM (bamfin);
-        PC_STR_ITEM (bamfout);
-        PC_STR_ITEM (title);
-        lua_setfield (LS, -2, "pc");  
-    }
-
-    return 1;  /* the table itself */
-}  /* end of L_character_info */
-
 #define OBJ_STR_ITEM(arg) \
     if (obj->arg)  \
 {   \
@@ -979,6 +935,21 @@ static int L_force (lua_State *LS)
     return 0;
 }  /* end of L_force */
 
+static int L_say (lua_State *LS)
+{
+    do_say( L_getchar(LS), luaL_checkstring (LS, 1) );
+
+   return 0;
+}
+
+static int L_emote (lua_State *LS)
+{
+    do_emote( L_getchar(LS), luaL_checkstring (LS, 1) );
+
+    return 0;
+}
+
+
 /* transfer character or mob to somewhere (default is here) */
 static int L_transfer (lua_State *LS)
 {
@@ -1109,7 +1080,7 @@ static int L_cmd_asound (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
-    do_mpecho( ud_ch, argument);
+    do_mpasound( ud_ch, argument);
 
     return 1; 
 }
@@ -2139,7 +2110,7 @@ static int L_remort (lua_State *LS)
 static const struct luaL_reg mudlib [] = 
 {
     {"system_info", L_system_info}, 
-    {"character_info", L_character_info},
+    //{"character_info", L_character_info},
     {"area_info", L_area_info},
     {"area_list", L_area_list},
     {"mob_info", L_mob_info},
@@ -2230,6 +2201,41 @@ static int char2string (lua_State *LS)
     return 1;
 }
 
+static int obj2string (lua_State *LS)
+{
+    lua_pushliteral (LS, "mud_object");
+    return 1;
+}
+
+static OBJ_DATA *find_pointer( char *id)
+{
+    /* TBC laterzzzz */
+    if ( !strcmp(id, "obj1") )
+        return obj1;
+    if ( !strcmp(id, "obj2") )
+        return obj2;
+    
+
+    return NULL;
+}
+
+static int get_object_field ( lua_State *LS )
+{
+    lua_getfield(LS, 1, "tableid") ;
+    OBJ_DATA * ud_obj = find_pointer(luaL_checkstring (LS, 3 ));
+    const char *argument = luaL_checkstring (LS, 2 );
+
+    if ( !ud_obj )
+        return 0;
+
+    if ( !strcmp( argument, "name" ) )
+    {
+        lua_pushstring( LS, ud_obj->name );
+        return 1;
+    }
+
+    return 0;
+}
 
 #define CHSTR(key,value) \
     if ( !strcmp( argument, key ) ) \
@@ -2293,7 +2299,12 @@ static int get_character_field ( lua_State *LS)
 
 }
 
-
+static const struct luaL_reg object_meta [] =
+{
+    //{"__tostring", obj2string},
+    {"__index", get_object_field},
+    {NULL, NULL}
+};
 
 static const struct luaL_reg character_meta [] = 
 {
@@ -2446,10 +2457,18 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, "cmd", cmdlib_m);
     luaL_register (LS, "check", checklib_m);
 
+    lua_pushcfunction ( LS, L_say );
+    lua_setglobal( LS, "say" );
+
+    lua_pushcfunction ( LS, L_emote );
+    lua_setglobal( LS, "emote");
+
     /* meta table to identify character types */
     luaL_newmetatable(LS, CHARACTER_META);
     luaL_register (LS, NULL, character_meta);  /* give us a __tostring function */
 
+    luaL_newmetatable(LS, OBJECT_META);
+    luaL_register (LS, NULL, object_meta);
 
     return 0;
 
@@ -2790,7 +2809,8 @@ void call_mud_lua_char_num (const char * fname,
  */
 void lua_program( char *text, int pvnum, char *source, 
         CHAR_DATA *mob, CHAR_DATA *ch, 
-        const void *arg1, const void *arg2 ) 
+        const void *arg1, sh_int arg1type, 
+        const void *arg2, sh_int arg2type ) 
 {
     /* Open lua if it isn't */
     if ( mob->LS == NULL )
@@ -2820,6 +2840,33 @@ void lua_program( char *text, int pvnum, char *source,
         luaL_loadstring( mob->LS, "text=nil");
         CallLuaWithTraceBack (mob->LS, 0, 0);
     }
+
+    if (arg1type== ACT_ARG_OBJ)
+    {
+        obj1= (OBJ_DATA *) arg1;
+        lua_newtable( mob->LS);
+        luaL_getmetatable (mob->LS, OBJECT_META);           
+        lua_setmetatable (mob->LS, -2);  /* set metatable for object data */
+        lua_pushstring( mob->LS, "obj1"); // give it a name field
+        lua_setfield( mob->LS, -2, "tableid" );
+        lua_setglobal( mob->LS, "obj1");
+    }/*
+    else
+    {
+        luaL_loadstring( mob->LS, "obj1=nil");
+        CallLuaWithTraceBack (mob->LS, 0, 0);
+    }
+    if (arg2type== ACT_ARG_OBJ)
+    {
+        make_obj_ud (mob->LS, (OBJ_DATA *)arg2);
+        lua_setglobal( mob->LS, "obj2");
+    }
+    else
+    {
+        luaL_loadstring( mob->LS, "obj2=nil");
+        CallLuaWithTraceBack (mob->LS, 0, 0);
+    }
+
     /*
        if (arg1)
        {

@@ -4379,11 +4379,16 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg 
 
 /* mob_prog.c */
 void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
-				const void *arg1, const void *arg2 ) );
+				const void *arg1, sh_int arg1type,
+                const void *arg2, sh_int arg2type) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
-				const void *arg1, const void *arg2, int type ) );
+				const void *arg1, sh_int arg1type, 
+                const void *arg2, sh_int arg2type,
+                int type ) );
 bool    mp_percent_trigger args( ( CHAR_DATA *mob, CHAR_DATA *ch,               
-				const void *arg1, const void *arg2, int type ) );
+				const void *arg1, sh_int arg1type,
+                const void *arg2, sh_int arg2type,
+                int type ) );
 void    mp_bribe_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch, int amount ) );
 bool    mp_exit_trigger   args( ( CHAR_DATA *ch, int dir ) );
 void    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
@@ -4607,3 +4612,9 @@ extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
  void open_lua  (CHAR_DATA * ch);  /* set up Lua state */
   void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
+
+#define ACT_ARG_UNDEFINED 0
+#define ACT_ARG_OBJ 1
+#define ACT_ARG_TEXT 2
+#define ACT_ARG_CHARACTER 3
+
