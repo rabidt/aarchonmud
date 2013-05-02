@@ -1026,6 +1026,13 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
         (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
         check_improve(ch,sn,TRUE,3);
+
+        /* check for spell mprog triggers */
+        CHAR_DATA *vic = (CHAR_DATA *) vo;
+
+        if ( vic != NULL && IS_NPC(vic) )
+            mp_spell_trigger( skill_table[sn].name, vic, ch );
+
     }
     
     victim = (CHAR_DATA*) vo;
