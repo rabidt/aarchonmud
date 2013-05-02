@@ -2243,7 +2243,7 @@ void do_surrender( CHAR_DATA *ch, char *argument )
 
     if ( PLR_ACT(mob, PLR_NOSURR)
 	 || PLR_ACT(mob, PLR_WAR)
-	 || (IS_NPC(mob) && !mp_percent_trigger(mob, ch, NULL, NULL, TRIG_SURR)) )
+	 || (IS_NPC(mob) && !mp_percent_trigger(mob, ch, NULL,0, NULL,0, TRIG_SURR)) )
     {
 	act( "$N seems to ignore your cowardly act!", ch, NULL, mob, TO_CHAR );
         multi_hit( mob, ch, TYPE_UNDEFINED );

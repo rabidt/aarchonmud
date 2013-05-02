@@ -1131,11 +1131,13 @@ void program_flow(
     bool is_lua,
     int pvnum,  /* For diagnostic purposes */
     char *source,  /* the actual MOBprog code */
-    CHAR_DATA *mob, CHAR_DATA *ch, const void *arg1, const void *arg2 )
+    CHAR_DATA *mob, CHAR_DATA *ch, 
+    const void *arg1, sh_int arg1type,
+    const void *arg2, sh_int arg2type )
 {
     if ( is_lua )
     {
-        lua_program(text, pvnum, source, mob, ch, arg1, arg2);
+        lua_program(text, pvnum, source, mob, ch, arg1, arg1type, arg2, arg2type);
         return;
     }
 
@@ -1409,7 +1411,8 @@ void program_flow(
  */
 bool mp_act_trigger( 
 	char *argument, CHAR_DATA *mob, CHAR_DATA *ch, 
-	const void *arg1, const void *arg2, int type )
+	const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type,
+    int type )
 {
     MPROG_LIST *prg;
 
@@ -1422,7 +1425,7 @@ bool mp_act_trigger(
             && ( strstr(cap_all(argument), cap_all(prg->trig_phrase)) != NULL 
             ||   !strcmp(prg->trig_phrase, "*") ) )
         {
-	    program_flow( argument, prg->is_lua, prg->vnum, prg->code, mob, ch, arg1, arg2 );
+	    program_flow( argument, prg->is_lua, prg->vnum, prg->code, mob, ch, arg1, arg1type, arg2, arg2type );
 	    return TRUE;
 	}
     }
@@ -1435,7 +1438,8 @@ bool mp_act_trigger(
  */
 bool mp_percent_trigger( 
 	CHAR_DATA *mob, CHAR_DATA *ch, 
-	const void *arg1, const void *arg2, int type )
+	const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type,
+    int type )
 {
     MPROG_LIST *prg;
 
@@ -1444,7 +1448,7 @@ bool mp_percent_trigger(
     	if ( prg->trig_type == type 
 	&&   number_percent() <= atoi( prg->trig_phrase ) )
         {
-	    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, arg1, arg2 );
+	    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, arg1, arg1type, arg2, arg2type );
 	    return ( TRUE );
 	}
     }
@@ -1467,7 +1471,7 @@ void mp_bribe_trigger( CHAR_DATA *mob, CHAR_DATA *ch, int amount )
 	{
         char buf[MSL];
         sprintf( buf, "%d", amount);
-	    program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
+	    program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
 	    break;
 	}
     }
@@ -1497,14 +1501,14 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
 			mob->position == POS_FIGHTING)
 		&&  check_see( mob, ch ) )
 		{
-		    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
+		    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
 		    return TRUE;
 		}
 		else
 		if ( prg->trig_type == TRIG_EXALL
 		&&   dir == atoi( prg->trig_phrase ) )
 		{
-		    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
+		    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
 		    return TRUE;
 		}
 	    }
@@ -1530,7 +1534,7 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 	    {
 		if ( obj->pIndexData->vnum == r_atoi(mob, p) )
 		{
-		    program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, NULL);
+		    program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0);
 		    return;
 		}
 	    }
@@ -1546,7 +1550,7 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 		    if ( is_name( buf, obj->name )
 		    ||   !str_cmp( "all", buf ) )
 		    {
-		    	program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, NULL);
+		    	program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0);
 		    	return;
 		    }
 		}
@@ -1575,10 +1579,10 @@ void mp_greet_trigger( CHAR_DATA *ch )
             if ( HAS_TRIGGER( mob,TRIG_GREET )
                 &&   mob->position == mob->pIndexData->default_pos
                 &&   check_see( mob, ch ) )
-                mp_percent_trigger( mob, ch, NULL, NULL, TRIG_GREET );
+                mp_percent_trigger( mob, ch, NULL,0, NULL,0, TRIG_GREET );
             else                 
                 if ( HAS_TRIGGER( mob, TRIG_GRALL ) )
-                    mp_percent_trigger( mob, ch, NULL, NULL, TRIG_GRALL );
+                    mp_percent_trigger( mob, ch, NULL,0, NULL,0, TRIG_GRALL );
         }
     }
     return;
@@ -1594,7 +1598,7 @@ void mp_hprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	{
         char buf[MSL];
         sprintf( buf, "%d", (100 * mob->hit / mob->max_hit) );
-        program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
+        program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, 0, NULL, 0 );
 	    break;
 	}
 }
@@ -1609,7 +1613,7 @@ void mp_mprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	{
         char buf[MSL];
         sprintf(buf, "%d", (100 * mob->mana / mob->max_mana) );
-        program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, NULL );
+        program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, 0, NULL, 0 );
 	    break;
 	}
 }
@@ -1621,7 +1625,7 @@ bool mp_spell_trigger( char* argument, CHAR_DATA *mob, CHAR_DATA *ch)
    
     if (IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_SPELL) )
     {
-        if (mp_act_trigger(argument, mob, ch, NULL, NULL, TRIG_SPELL) )
+        if (mp_act_trigger(argument, mob, ch, NULL, 0, NULL, 0, TRIG_SPELL) )
             found = TRUE;
     }
     return found;
@@ -1641,7 +1645,7 @@ bool mp_try_trigger( char* argument, CHAR_DATA *ch )
     
     if ( IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_TRY) )
     {
-      if ( mp_act_trigger(argument, mob, ch, NULL, NULL, TRIG_TRY) )
+      if ( mp_act_trigger(argument, mob, ch, NULL,0, NULL,0, TRIG_TRY) )
 	found = TRUE;
     }
   }

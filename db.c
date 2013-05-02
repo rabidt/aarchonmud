@@ -2392,7 +2392,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
 
 		if ( HAS_TRIGGER(pMob, TRIG_RESET) )
 		{
-		    mp_percent_trigger( pMob, NULL, NULL, NULL, TRIG_RESET );
+		    mp_percent_trigger( pMob, NULL, NULL, 0, NULL, 0,TRIG_RESET );
 		    /* safety-net if mob kills himself with mprog */
 		    if ( IS_DEAD(pMob) )
 		    {
