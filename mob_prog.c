@@ -1614,21 +1614,15 @@ void mp_mprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	}
 }
 
-bool mp_spell_trigger( char* argument, CHAR_DATA *ch )
+
+bool mp_spell_trigger( char* argument, CHAR_DATA *mob, CHAR_DATA *ch)
 {
-    CHAR_DATA *mob;
-    CHAR_DATA *next_char;
     bool found = FALSE;
    
-    for ( mob = ch->in_room->people; mob != NULL; mob = next_char )
+    if (IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_SPELL) )
     {
-        next_char = mob->next_in_room;
-   
-        if (IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_SPELL) )
-        {
-            if (mp_act_trigger(argument, mob, ch, NULL, NULL, TRIG_SPELL) )
-                found = TRUE;
-        }
+        if (mp_act_trigger(argument, mob, ch, NULL, NULL, TRIG_SPELL) )
+            found = TRUE;
     }
     return found;
 }
