@@ -4391,7 +4391,7 @@ void    mp_greet_trigger  args( ( CHAR_DATA *ch ) );
 void    mp_hprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 bool    mp_try_trigger    args( ( char *argument, CHAR_DATA *mob ) );
-bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob ) );
+bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch ) );
 
 /* mob_cmds.c */
 void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );

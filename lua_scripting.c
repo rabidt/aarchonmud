@@ -1107,41 +1107,41 @@ static int L_char_exists (lua_State *LS)
 
 static int L_cmd_asound (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpecho( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpecho( ud_ch, argument);
 
-     return 1; 
+    return 1; 
 }
 
 static int L_cmd_gecho (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpgecho( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpgecho( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_zecho (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpzecho( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpzecho( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_kill (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     CHAR_DATA * ud_vic = check_character (LS, 2);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_vic = check_character (LS, 2);
 
     if ( !ud_ch || !ud_vic )
-     {
+    {
         bugf("NULL pointer in L_kill.");
-         return;
-     }
+        return;
+    }
     if ( ud_ch->in_room != ud_vic->in_room )
     {
         bugf("Trying to assist char not in room.");
@@ -1150,9 +1150,9 @@ static int L_cmd_kill (lua_State *LS)
 
     if ( IS_AFFECTED( ud_ch, AFF_CHARM ) && ud_ch->master == ud_vic )
     {
-    bug( "MpKill - Charmed mob attacking master from vnum %d.",
-        IS_NPC(ud_ch) ? ud_ch->pIndexData->vnum : 0 );
-    return;
+        bug( "MpKill - Charmed mob attacking master from vnum %d.",
+                IS_NPC(ud_ch) ? ud_ch->pIndexData->vnum : 0 );
+        return;
     }
 
     multi_hit( ud_ch, ud_vic, TYPE_UNDEFINED );
@@ -1162,14 +1162,14 @@ static int L_cmd_kill (lua_State *LS)
 
 static int L_cmd_assist (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     CHAR_DATA * ud_vic = check_character (LS, 2);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_vic = check_character (LS, 2);
 
     if ( !ud_ch || !ud_vic )
-     {
+    {
         bugf("NULL pointer in L_assist.");
-         return;
-     }
+        return;
+    }
     if ( ud_ch->in_room != ud_vic->in_room )
     {
         bugf("Trying to assist char not in room.");
@@ -1177,309 +1177,309 @@ static int L_cmd_assist (lua_State *LS)
     }
 
     if ( ud_vic == ud_ch || ud_ch->fighting != NULL || ud_vic->fighting == NULL )
-    return;
+        return;
 
     multi_hit( ud_ch, ud_vic->fighting, TYPE_UNDEFINED );
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_junk (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpjunk( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpjunk( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_echo (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpecho( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpecho( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_echoaround (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpechoaround( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpechoaround( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_echoat (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpechoat( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpechoat( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_mload (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpmload( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpmload( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_oload (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpoload( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpoload( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_purge (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mppurge( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mppurge( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_goto (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpgoto( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpgoto( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_at (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpat( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpat( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_transfer (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mptransfer( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mptransfer( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_gtransfer (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpgtransfer( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpgtransfer( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_otransfer (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpotransfer( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpotransfer( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_force (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpotransfer( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpotransfer( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 
 static int L_cmd_gforce (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpgforce( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpgforce( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_vforce (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpvforce( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpvforce( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_cast (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpcast( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpcast( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_damage (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpdamage( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpdamage( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_remember (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpremember( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpremember( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_forget (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpforget( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpforget( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_delay (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpdelay( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpdelay( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_cancel (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpcancel( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpcancel( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_call (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpcall( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpcall( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_flee (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpflee( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpflee( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_remove (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpremove( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpremove( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_remort (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpremort( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpremort( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_qset (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpqset( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpqset( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_qadvance (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpqadvance( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpqadvance( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_reward (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpreward( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpreward( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_peace (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mppeace( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mppeace( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_restore (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mprestore( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mprestore( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_act (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     const char *argument = luaL_checkstring (LS, 2);
-     do_mpact( ud_ch, argument);
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    do_mpact( ud_ch, argument);
 
-     return 1;
+    return 1;
 }
 
 static int L_cmd_hit (lua_State *LS)
 {
-     CHAR_DATA * ud_ch = check_character (LS, 1);
-     CHAR_DATA * ud_vic = check_character (LS, 2);
-    
-     if ( !ud_ch || !ud_vic )
-     {
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_vic = check_character (LS, 2);
+
+    if ( !ud_ch || !ud_vic )
+    {
         bugf("NULL pointer in L_hit.");
-         return;
-     }
+        return;
+    }
 
-     one_hit( ud_ch, ud_vic, TYPE_UNDEFINED, FALSE );
-     //const char *argument = luaL_checkstring (LS, 2);
-     //do_mphit( ud_ch, argument);
+    one_hit( ud_ch, ud_vic, TYPE_UNDEFINED, FALSE );
+    //const char *argument = luaL_checkstring (LS, 2);
+    //do_mphit( ud_ch, argument);
 
-     return 1;
+    return 1;
 
 }
 
@@ -1497,7 +1497,7 @@ static int L_mobhere (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
-    
+
     if ( is_r_number( argument ) )
         lua_pushboolean( LS, (bool) get_mob_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) ); 
     else
@@ -1510,22 +1510,22 @@ static int L_objhere (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
-    
+
     if ( is_r_number( argument ) )
         return( get_obj_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) );
     else
         lua_pushboolean( LS,(bool) (get_obj_here( ud_ch, argument) != NULL) );
-      
-     return 1;
+
+    return 1;
 }
 
 static int L_mobexists (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
-    
+
     lua_pushboolean( LS,(bool) (get_mp_char( ud_ch, argument) != NULL) );
-      
+
     return 1;
 }
 
@@ -1533,18 +1533,18 @@ static int L_objexists (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
-    
+
     lua_pushboolean( LS, (bool) (get_mp_obj( ud_ch, argument) != NULL) );
-      
+
     return 1;
 }
 
 static int L_people (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-      
+
     lua_pushnumber( LS, count_people_room( ud_ch, 0 ) );
-      
+
     return 1;
 }
 
@@ -1557,7 +1557,7 @@ static int L_hour (lua_State *LS)
 static int L_ispc (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean( LS, ud_ch != NULL && !IS_NPC( ud_ch ) );
     return 1;
 }
@@ -1565,7 +1565,7 @@ static int L_ispc (lua_State *LS)
 static int L_isnpc (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean( LS, ud_ch != NULL && IS_NPC( ud_ch ) );
     return 1;
 }
@@ -1573,7 +1573,7 @@ static int L_isnpc (lua_State *LS)
 static int L_isgood (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean(  LS, ud_ch != NULL && IS_GOOD( ud_ch ) ) ;
     return 1;
 }
@@ -1581,7 +1581,7 @@ static int L_isgood (lua_State *LS)
 static int L_isevil (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean(  LS, ud_ch != NULL && IS_EVIL( ud_ch ) ) ;
     return 1;
 }
@@ -1589,7 +1589,7 @@ static int L_isevil (lua_State *LS)
 static int L_isneutral (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean(  LS, ud_ch != NULL && IS_NEUTRAL( ud_ch ) ) ;
     return 1;
 }
@@ -1597,7 +1597,7 @@ static int L_isneutral (lua_State *LS)
 static int L_isimmort (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean( LS, ud_ch != NULL && IS_IMMORTAL( ud_ch ) ) ;
     return 1;
 }
@@ -1605,7 +1605,7 @@ static int L_isimmort (lua_State *LS)
 static int L_ischarm (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean( LS, ud_ch != NULL && IS_AFFECTED( ud_ch, AFF_CHARM ) ) ;
     return 1;
 }
@@ -1613,7 +1613,7 @@ static int L_ischarm (lua_State *LS)
 static int L_isfollow (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->master != NULL ) ;
     return 1;
 }
@@ -1621,7 +1621,7 @@ static int L_isfollow (lua_State *LS)
 static int L_isactive (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->position > POS_SLEEPING ) ;
     return 1;
 }
@@ -1629,7 +1629,7 @@ static int L_isactive (lua_State *LS)
 static int L_isdelay (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->mprog_delay > 0 ) ;
     return 1;
 }
@@ -1638,27 +1638,27 @@ static int L_isvisible (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     CHAR_DATA * ud_vic = check_character (LS, 2);
-    
+
     lua_pushboolean( LS, ud_ch != NULL && ud_vic != NULL && can_see( ud_ch, ud_vic ) ) ;
-    
+
     return 1;
 }
 
 static int L_hastarget (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean( LS,  ud_ch != NULL && ud_ch->mprog_target != NULL
-        &&  ud_ch->in_room == ud_ch->mprog_target->in_room );
+            &&  ud_ch->in_room == ud_ch->mprog_target->in_room );
     return 1;
 }
 
 static int L_istarget (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->mprog_target == ud_ch );
-    
+
     return 1;
 }
 
@@ -1668,7 +1668,7 @@ static int L_affected (lua_State *LS)
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,  ud_ch != NULL
-                            &&  is_affected_parse(ud_ch, argument) );
+            &&  is_affected_parse(ud_ch, argument) );
 
     return 1;
 }
@@ -1679,7 +1679,7 @@ static int L_act (lua_State *LS)
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, ud_ch != NULL
-        &&  IS_SET(ud_ch->act, flag_lookup(argument, act_flags)) );
+            &&  IS_SET(ud_ch->act, flag_lookup(argument, act_flags)) );
 
     return 1;
 }
@@ -1690,7 +1690,7 @@ static int L_off (lua_State *LS)
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,
-        IS_SET(ud_ch->off_flags, flag_lookup(argument, off_flags)) );
+            IS_SET(ud_ch->off_flags, flag_lookup(argument, off_flags)) );
 
     return 1;
 }
@@ -1701,7 +1701,7 @@ static int L_imm (lua_State *LS)
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, ud_ch != NULL
-        &&  IS_SET(ud_ch->imm_flags, flag_lookup(argument, imm_flags)) );
+            &&  IS_SET(ud_ch->imm_flags, flag_lookup(argument, imm_flags)) );
 
     return 1;
 }
@@ -1715,7 +1715,7 @@ static int L_carries (lua_State *LS)
         lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, r_atoi(ud_ch, argument), -1, FALSE ) );
     else
         lua_pushboolean( LS, ud_ch != NULL && (get_obj_carry( ud_ch, argument, ud_ch ) != NULL) );
-    
+
     return 1;
 }
 
@@ -1756,9 +1756,9 @@ static int L_name (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
-   
+
     lua_pushboolean( LS,  ud_ch != NULL && is_name( argument, ud_ch->name ) ); 
-   
+
     return 1;
 }
 
@@ -1810,21 +1810,21 @@ static int L_objtype (lua_State *LS)
     lua_pushboolean( LS,  ud_ch != NULL && ud_ch->class == class_lookup( argument ) );
 
     return 1;
-*/}
+  */}
 
 static int L_vnum (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushnumber( LS,  ( ud_ch != NULL && IS_NPC(ud_ch) ) ? ud_ch->pIndexData->vnum : 0 );
-    
+
     return 1;
 }
 
 static int L_hpcnt (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     lua_pushnumber( LS,  ( ud_ch != NULL ) ? ((ud_ch->hit * 100)/(UMAX(1,ud_ch->max_hit))) : 0 );
 
     return 1;
@@ -1845,7 +1845,7 @@ static int L_room (lua_State *LS)
 static int L_sex (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, ud_ch->sex);
     else
@@ -1857,7 +1857,7 @@ static int L_sex (lua_State *LS)
 static int L_level (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, ud_ch->level);
     else
@@ -1869,7 +1869,7 @@ static int L_level (lua_State *LS)
 static int L_align (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, ud_ch->alignment);
     else
@@ -1881,7 +1881,7 @@ static int L_align (lua_State *LS)
 static int L_money (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, (ud_ch->gold * 100) + ud_ch->silver);
     else
@@ -1893,7 +1893,7 @@ static int L_money (lua_State *LS)
 static int L_grpsize (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, count_people_room( ud_ch, 4 ) );
     else
@@ -1916,7 +1916,7 @@ static int L_qstatus (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     int num = luaL_checknumber (LS, 2);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, quest_status( ud_ch, num ) );
     else
@@ -1929,8 +1929,8 @@ static int L_vuln (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
- 
-   lua_pushboolean( LS, ud_ch != NULL
+
+    lua_pushboolean( LS, ud_ch != NULL
             && IS_SET(ud_ch->vuln_flags, flag_lookup(argument, vuln_flags)) );
 
     return 1;
@@ -1940,8 +1940,8 @@ static int L_res (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
- 
-   lua_pushboolean( LS, ud_ch != NULL
+
+    lua_pushboolean( LS, ud_ch != NULL
             && IS_SET(ud_ch->res_flags, flag_lookup(argument, res_flags)) );
 
     return 1;
@@ -1950,7 +1950,7 @@ static int L_res (lua_State *LS)
 static int L_statstr (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-  
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_STR) );
     else
@@ -1962,7 +1962,7 @@ static int L_statstr (lua_State *LS)
 static int L_statcon (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-  
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_CON) );
     else
@@ -1974,7 +1974,7 @@ static int L_statcon (lua_State *LS)
 static int L_statvit (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_VIT) );
     else
@@ -1986,7 +1986,7 @@ static int L_statvit (lua_State *LS)
 static int L_statagi (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-  
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_AGI) );
     else
@@ -1998,7 +1998,7 @@ static int L_statagi (lua_State *LS)
 static int L_statdex (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-  
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_DEX) );
     else
@@ -2010,7 +2010,7 @@ static int L_statdex (lua_State *LS)
 static int L_statint (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-   
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_INT) );
     else
@@ -2022,7 +2022,7 @@ static int L_statint (lua_State *LS)
 static int L_statwis (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-  
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_WIS) );
     else
@@ -2034,7 +2034,7 @@ static int L_statwis (lua_State *LS)
 static int L_statdis (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_DIS) );
     else
@@ -2046,7 +2046,7 @@ static int L_statdis (lua_State *LS)
 static int L_statcha (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_CHA) );
     else
@@ -2103,7 +2103,7 @@ static int L_qtimer (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
     int num = luaL_checknumber (LS, 2);
- 
+
     if ( ud_ch != NULL )
         lua_pushnumber( LS, qset_timer( ud_ch, num ) );
     else
@@ -2127,7 +2127,7 @@ static int L_mpcnt (lua_State *LS)
 static int L_remort (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
-    
+
     if ( ud_ch != NULL && !IS_NPC(ud_ch) )
         lua_pushnumber( LS, ud_ch->pcdata->remorts );
     else
@@ -2230,9 +2230,75 @@ static int char2string (lua_State *LS)
     return 1;
 }
 
+
+#define CHSTR(key,value) \
+    if ( !strcmp( argument, key ) ) \
+{lua_pushstring( LS, value ); return 1;} 
+#define CHNUM(key,value) \
+    if ( !strcmp( argument, key ) ) \
+{lua_pushnumber( LS, value ); return 1;}
+static int get_character_field ( lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_character (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    if ( !ud_ch)
+        return 0;
+
+    CHSTR("name", ud_ch->name);
+    CHNUM("level", ud_ch->level);
+    CHNUM("hp", ud_ch->hit);
+    CHNUM("maxhp", ud_ch->max_hit);
+    CHNUM("mana", ud_ch->mana);
+    CHNUM("maxmana", ud_ch->max_mana);
+    CHNUM("move", ud_ch->move);
+    CHNUM("maxmove", ud_ch->max_move);
+    CHNUM("gold", ud_ch->gold);
+    CHNUM("silver", ud_ch->silver);
+    CHNUM("money", (ud_ch->silver + ud_ch->gold * 100 ) );
+    CHSTR("sex", ( sex_table[ud_ch->sex].name ) );
+    CHSTR("size", ( size_table[ud_ch->size].name ) );
+    CHSTR("position", ( position_table[ud_ch->position].short_name ) );
+    CHNUM("align", ud_ch->alignment);
+    CHNUM("str", get_curr_stat( ud_ch, STAT_STR ) );
+    CHNUM("con", get_curr_stat( ud_ch, STAT_CON ) );
+    CHNUM("vit", get_curr_stat( ud_ch, STAT_VIT ) );
+    CHNUM("agi", get_curr_stat( ud_ch, STAT_AGI ) );
+    CHNUM("dex", get_curr_stat( ud_ch, STAT_DEX ) );
+    CHNUM("int", get_curr_stat( ud_ch, STAT_INT ) );
+    CHNUM("wis", get_curr_stat( ud_ch, STAT_WIS ) );
+    CHNUM("dis", get_curr_stat( ud_ch, STAT_DIS ) );
+    CHNUM("cha", get_curr_stat( ud_ch, STAT_CHA ) );
+    CHNUM("luc", get_curr_stat( ud_ch, STAT_LUC ) );
+    CHSTR("clan", clan_table[ud_ch->clan].name );
+    CHSTR("class", IS_NPC(ud_ch) ? "mobile" : class_table[ud_ch->class].name );
+    CHNUM("room", ud_ch->in_room->vnum );
+    CHNUM("groupsize", count_people_room( ud_ch, 4 ) );
+    if ( !IS_NPC(ud_ch) )
+    {
+        CHNUM("clanrank", ud_ch->pcdata->clan_rank );
+        CHNUM("remorts", ud_ch->pcdata->remorts);
+        CHNUM("explored", ud_ch->pcdata->explored->set);
+        CHNUM("beheads", ud_ch->pcdata->behead_cnt);
+        CHNUM("pkills", ud_ch->pcdata->pkill_count);
+        CHNUM("pkdeaths", ud_ch->pcdata->pkill_deaths);
+        CHNUM("questpoints", ud_ch->pcdata->questpoints );
+        CHNUM("bank", ud_ch->pcdata->bank );
+        CHNUM("mobkills", ud_ch->pcdata->mob_kills);
+        CHNUM("mobdeaths", ud_ch->pcdata->mob_deaths);
+    }
+
+
+    return 0;
+
+}
+
+
+
 static const struct luaL_reg character_meta [] = 
 {
     {"__tostring", char2string},
+    {"__index", get_character_field},
     {NULL, NULL}
 };
 
@@ -2379,7 +2445,7 @@ static int RegisterLuaRoutines (lua_State *LS)
 
     luaL_register (LS, "cmd", cmdlib_m);
     luaL_register (LS, "check", checklib_m);
-    
+
     /* meta table to identify character types */
     luaL_newmetatable(LS, CHARACTER_META);
     luaL_register (LS, NULL, character_meta);  /* give us a __tostring function */
@@ -2727,10 +2793,10 @@ void lua_program( char *text, int pvnum, char *source,
         const void *arg1, const void *arg2 ) 
 {
     /* Open lua if it isn't */
-     if ( mob->LS == NULL )
+    if ( mob->LS == NULL )
         open_lua(mob);
 
-     /* some init stuff before we run the prog */
+    /* some init stuff before we run the prog */
     make_char_ud (mob->LS, mob);
     lua_setglobal(mob->LS, "mob");
     if (ch)
