@@ -2625,7 +2625,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 			return;
 		
 		to = vch->in_room->people;
-        arg1_type=ACT_ARG_CHARACTER;
+        arg2_type=ACT_ARG_CHARACTER;
 	}
 
     act_wizi = IS_NPC(ch) && IS_SET(ch->act, ACT_WIZI);
@@ -2691,8 +2691,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 		default:  bug( "Act: bad code %d.", *str );
 		    i = " <@@@> ";                                break;
 		    /* Thx alex for 't' idea */
-        case 't': i = (arg1 == NULL ? " <@@@> " : (char *) arg1);  break;
-                  if ( arg1 == NULL ) { i = " <@@@> ";}
+        case 't': if ( arg1 == NULL ) { i = " <@@@> ";}
                   else { i = (char *) arg1; arg1_type=ACT_ARG_TEXT;}
                   break;
         case 'T': i = (char *) arg2; arg2_type=ACT_ARG_TEXT;    break;

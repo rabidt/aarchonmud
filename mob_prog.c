@@ -1501,14 +1501,14 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
 			mob->position == POS_FIGHTING)
 		&&  check_see( mob, ch ) )
 		{
-		    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
+		    program_flow( dir_name[dir], prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
 		    return TRUE;
 		}
 		else
 		if ( prg->trig_type == TRIG_EXALL
 		&&   dir == atoi( prg->trig_phrase ) )
 		{
-		    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
+		    program_flow( dir_name[dir], prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
 		    return TRUE;
 		}
 	    }
@@ -1548,7 +1548,8 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 		    p = one_argument( p, buf );
 
 		    if ( is_name( buf, obj->name )
-		    ||   !str_cmp( "all", buf ) )
+		    ||   !str_cmp( "all", buf ) 
+            ||   !str_cmp( "*", buf ) )
 		    {
 		    	program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0);
 		    	return;

@@ -64,12 +64,15 @@ void add_lua_tables (lua_State *LS);
 #define CLEANUP_FUNCTION "cleanup"
 #define REGISTER_UD_FUNCTION "RegisterUd"
 
-#define NUM_MPROG_ARGS 5
+#define NUM_MPROG_ARGS 8 
 #define MOB_ARG "mob"
 #define CH_ARG "ch"
-#define OBJ1_ARG "obj"
+#define OBJ1_ARG "obj1"
 #define OBJ2_ARG "obj2"
-#define TEXT_ARG "text"
+#define TRIG_ARG "trigger"
+#define TEXT1_ARG "text1"
+#define TEXT2_ARG "text2"
+#define VICTIM_ARG "victim"
 
 #define UDTYPE_UNDEFINED 0
 #define UDTYPE_CHARACTER 1
@@ -1566,10 +1569,12 @@ void lua_program( char *text, int pvnum, char *source,
     if ( lua_isnil( mob->LS, -1) )
     {
         /* not loaded yet */
-        sprintf(buf, "function P_%d (%s,%s,%s,%s,%s)\n"
+        sprintf(buf, "function P_%d (%s,%s,%s,%s,%s,%s,%s,%s)\n"
                 "%s\n"
                 "end",
-                pvnum,MOB_ARG, CH_ARG, TEXT_ARG, OBJ1_ARG, OBJ2_ARG, 
+                pvnum,
+                MOB_ARG, CH_ARG, TRIG_ARG, OBJ1_ARG, 
+                OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG,
                 source);  
 
     
@@ -1594,7 +1599,7 @@ void lua_program( char *text, int pvnum, char *source,
         make_ud_table (mob->LS,(void *) ch, CHARACTER_META);
     else lua_pushnil(mob->LS);
 
-    /* TEXT_ARG */
+    /* TRIG_ARG */
     if (text)
         lua_pushstring ( mob->LS, text);
     else lua_pushnil(mob->LS);
@@ -1607,6 +1612,21 @@ void lua_program( char *text, int pvnum, char *source,
     /* OBJ2_ARG */
     if (arg2type== ACT_ARG_OBJ && arg2)
         make_ud_table( mob->LS, arg2, OBJECT_META);
+    else lua_pushnil(mob->LS);
+
+    /* TEXT1_ARG */
+    if (arg1type== ACT_ARG_TEXT && arg1)
+        lua_pushstring ( mob->LS, (char *)arg1);
+    else lua_pushnil(mob->LS);
+
+    /* TEXT2_ARG */
+    if (arg2type== ACT_ARG_TEXT && arg2)
+        lua_pushstring ( mob->LS, (char *)arg2);
+    else lua_pushnil(mob->LS);
+
+    /* VICTIM_ARG */
+    if (arg2type== ACT_ARG_CHARACTER)
+        make_ud_table( mob->LS, arg2, CHARACTER_META);
     else lua_pushnil(mob->LS);
    
 
