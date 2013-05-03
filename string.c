@@ -229,6 +229,7 @@ void string_add( CHAR_DATA *ch, char *argument )
                      if ( mpl->vnum == mpc->vnum )
                      {
                         sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
+                        close_lua(mob);
                         send_to_char( buf, ch );
                         mpl->code = mpc->code;
                         mpl->is_lua = mpc->is_lua;
