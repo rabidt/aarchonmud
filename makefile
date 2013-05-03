@@ -18,7 +18,7 @@ O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
      freeze.o warfare.o  grant.o wizlist.o marry.o forget.o clan.o \
      buildutil.o buffer_util.o simsave.o breath.o tflag.o grep.o vshift.o \
      tattoo.o religion.o playback.o leaderboard.o mob_stats.o \
-     mt19937ar.o lua_scripting.o lua_bits.o lua_tables.o
+     mt19937ar.o lua_scripting.o lua_bits.o
 
 aeaea:  
 tester: C_FLAGS += -DTESTER
