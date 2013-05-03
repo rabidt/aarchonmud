@@ -209,7 +209,6 @@ struct comm_history_type
 };
 
 
-
 typedef bool CHAN_CHECK args( ( CHAR_DATA *ch) );
 typedef struct channel_type
 {
