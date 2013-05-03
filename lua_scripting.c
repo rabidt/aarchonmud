@@ -47,6 +47,8 @@ void init_genrand(unsigned long s);
 void init_by_array(unsigned long init_key[], int key_length);
 double genrand(void);
 
+static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
+
 /* in lua_tables.c */
 
 void add_lua_tables (lua_State *LS);
@@ -59,11 +61,21 @@ void add_lua_tables (lua_State *LS);
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 
+#define CLEANUP_FUNCTION "cleanup"
+#define REGISTER_UD_FUNCTION "RegisterUd"
+
+#define NUM_MPROG_ARGS 5
+#define MOB_ARG "mob"
+#define CH_ARG "ch"
+#define OBJ1_ARG "obj"
+#define OBJ2_ARG "obj2"
+#define TEXT_ARG "text"
 
 #define UDTYPE_UNDEFINED 0
 #define UDTYPE_CHARACTER 1
 #define UDTYPE_OBJECT    2
 #define UDTYPE_ROOM      3
+
 
 // number of items in an array
 #define NUMITEMS(arg) (sizeof (arg) / sizeof (arg [0]))
@@ -145,9 +157,14 @@ static void make_ud_table ( lua_State *LS, void *ptr, char *meta)
     lua_setmetatable(LS, -2);
     lua_setfield( LS, -2, "tableid" );
 
-    lua_getfield( LS, LUA_GLOBALSINDEX, "RegisterUd");
+    lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
     lua_pushvalue( LS, -2);
-    lua_call( LS, 1, 0 );
+    if (CallLuaWithTraceBack( LS, 1, 0) )
+    {
+        bugf ( "Error registering UD:\n %s",
+                lua_tostring(LS, -1));
+    }
+
 
 }
 /* Given a Lua state, return the character it belongs to */
@@ -1556,45 +1573,70 @@ void lua_program( char *text, int pvnum, char *source,
     if ( mob->LS == NULL )
         open_lua(mob);
 
-    /* some init stuff before we run the prog */
-    make_ud_table (mob->LS, (void *)mob, CHARACTER_META);
-    lua_setglobal(mob->LS, "mob");
+    /* TBC add some logic to check for P_%d and don't relead if not necessary)*/
+    /* load up the script as a function so args will be local */
+    char buf[MSL*2];
+    sprintf(buf, "P_%d", pvnum);
+    lua_getglobal( mob->LS, buf);
+
+    if ( lua_isnil( mob->LS, -1) )
+    {
+        /* not loaded yet */
+        sprintf(buf, "function P_%d (%s,%s,%s,%s,%s)\n"
+                "%s\n"
+                "end",
+                pvnum,MOB_ARG, CH_ARG, TEXT_ARG, OBJ1_ARG, OBJ2_ARG, 
+                source);  
+
     
+        if (luaL_loadstring (mob->LS, buf) ||
+            CallLuaWithTraceBack (mob->LS, 0, 0))
+        { 
+            bugf ( "LUA mprog error loading vnum %d:\n %s",
+                    pvnum,
+                    lua_tostring(mob->LS, -1));
+        }
+        
+        /* now get it on the stack */
+        sprintf(buf,"P_%d", pvnum);
+        lua_getglobal(mob->LS,buf); 
+    }
+    
+    /* MOB_ARG */
+    make_ud_table (mob->LS, (void *)mob, CHARACTER_META);
+
+    /* CH_ARG */
     if (ch)
-    {
         make_ud_table (mob->LS,(void *) ch, CHARACTER_META);
-        lua_setglobal(mob->LS, "ch");
-    }
+    else lua_pushnil(mob->LS);
+
+    /* TEXT_ARG */
     if (text)
-    {
         lua_pushstring ( mob->LS, text );
-        lua_setglobal(mob->LS, "text");
-    }
+    else lua_pushnil(mob->LS);
+
+    /* OBJ1_ARG */
     if (arg1type== ACT_ARG_OBJ)
-    {
         make_ud_table( mob->LS, arg1, OBJECT_META);
-        lua_setglobal( mob->LS, "obj");
-    }
+    else lua_pushnil(mob->LS);
+    
+    /* OBJ2_ARG */
     if (arg2type== ACT_ARG_OBJ)
-    {
         make_ud_table( mob->LS, arg2, OBJECT_META);
-        lua_setglobal( mob->LS, "obj2");
-    }
+    else lua_pushnil(mob->LS);
    
 
-
-
-    if (luaL_loadstring (mob->LS, source) ||
-            CallLuaWithTraceBack (mob->LS, 0, 0))
+    if ( CallLuaWithTraceBack (mob->LS, NUM_MPROG_ARGS, 0))
     {
         bugf ( "LUA mprog error for vnum %d:\n %s",
                 pvnum,
                 lua_tostring(mob->LS, -1));
     }
 
+
     /* cleanup routines */
-    if (luaL_loadstring (mob->LS, "cleanup()") ||
-                CallLuaWithTraceBack (mob->LS, 0, 0))
+    lua_getfield( mob->LS, LUA_GLOBALSINDEX, CLEANUP_FUNCTION);
+    if ( CallLuaWithTraceBack (mob->LS, 0, 0))
     {
         bugf ( "Cleanup error for vnum %d:\n %s",
                 pvnum,
@@ -1603,3 +1645,5 @@ void lua_program( char *text, int pvnum, char *source,
 
     lua_settop (mob->LS, 0);    /* get rid of stuff lying around */
 }
+
+
