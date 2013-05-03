@@ -58,6 +58,12 @@ void add_lua_tables (lua_State *LS);
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 
+
+#define UDTYPE_UNDEFINED 0
+#define UDTYPE_CHARACTER 1
+#define UDTYPE_OBJECT    2
+#define UDTYPE_ROOM      3
+
 // number of items in an array
 #define NUMITEMS(arg) (sizeof (arg) / sizeof (arg [0]))
 
@@ -81,45 +87,35 @@ static int optboolean (lua_State *LS, const int narg, const int def)
     return luaL_checknumber (LS, narg) != 0;
 }
 
-static int check_vnum (lua_State *LS)
+
+OBJ_DATA *check_object( lua_State *LS, int arg)
 {
-
-    int vnum = luaL_checknumber (LS, 1);
-    //if ( vnum < 1 || vnum > MAX_VNUM )
-    //luaL_error (LS, "Vnum %d is out of range 1 to %d", vnum, MAX_VNUM);
-    /* TBC */
-    return vnum;
-}  /* end of check_vnum */
-
-/* given a character pointer makes a userdata for it */
-/*static void make_char_ud (lua_State *LS, CHAR_DATA * ch)  
-{
-    if (!ch)
-        luaL_error (LS, "make_char_ud called with NULL character");
-
-    lua_pushlightuserdata(LS, (void *)ch);    /* push value */
- /*   luaL_getmetatable (LS, CHARACTER_META);
-    lua_setmetatable (LS, -2);  /* set metatable for userdata */
-
-    /* returns with userdata on the stack */
-//}
-
-static void make_char_table (lua_State *LS, CHAR_DATA *ch)
-{
-    if (!ch)
-        luaL_error (LS, "make_char_table called with NULL object");
-
-    lua_newtable( LS);
-    luaL_getmetatable (LS, CHARACTER_META);
-    lua_setmetatable (LS, -2);
-    lua_pushlightuserdata( LS, (void *)ch);
-    luaL_getmetatable(LS, UD_META);
-    lua_setmetatable(LS, -2);
-    lua_setfield( LS, -2, "tableid" );
-    //lua_pushvalue( LS, -2); 
-    //lua_pcall("RegisterUd",1,0,NULL);
-
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    if ( type != UDTYPE_OBJECT )
+    {
+        luaL_error(LS,"Bad parameter %d. Expected OBJECT.", arg );
+        return NULL;
+    }
+    
+        lua_getfield(LS, arg, "tableid");
+        return(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META);
 }
+
+CHAR_DATA *check_character( lua_State *LS, int arg)
+{
+      lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    if ( type != UDTYPE_CHARACTER )
+    {
+        luaL_error(LS, "Bad parameter %d. Expected OBJECT.", arg );
+        return NULL;
+    }
+
+        lua_getfield(LS, arg, "tableid");
+        return(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META); 
+}
+
 
 static void make_ud_table ( lua_State *LS, void *ptr, char *meta)
 {
@@ -133,35 +129,14 @@ static void make_ud_table ( lua_State *LS, void *ptr, char *meta)
     luaL_getmetatable(LS, UD_META);
     lua_setmetatable(LS, -2);
     lua_setfield( LS, -2, "tableid" );
+
     lua_getfield( LS, LUA_GLOBALSINDEX, "RegisterUd");
     lua_pushvalue( LS, -2);
     lua_call( LS, 1, 0 );
 
 }
-/*
-static void make_obj_table (lua_State *LS, OBJ_DATA * obj)
-{
-    if (!obj)
-        luaL_error (LS, "make_obj_table called with NULL object");
-
-
-
-    lua_newtable( LS);
-    luaL_getmetatable (LS, OBJECT_META);
-    lua_setmetatable (LS, -2);  /* set metatable for object data */
-  /*  lua_pushlightuserdata( LS, (void *)obj);
-    luaL_getmetatable(LS, UD_META);
-    lua_setmetatable(LS, -2);
-    lua_setfield( LS, -2, "tableid" );
-    lua_getfield( LS, LUA_GLOBALSINDEX, "RegisterUd");
-    lua_pushvalue( LS, -2);
-    lua_call( LS, 1, 0 );
-}
-#define check_object(LS, arg) \
-    (OBJ_DATA *) luaL_checkudata (LS, arg, OBJECT_META) */
-#define check_character(LS, arg)  \
-    (CHAR_DATA *) luaL_checkudata (LS, arg, CHARACTER_META)
 /* Given a Lua state, return the character it belongs to */
+
 
 CHAR_DATA * L_getchar (lua_State *LS)
 {
@@ -211,7 +186,7 @@ static void GetTracebackFunction (lua_State *LS)
     lua_remove (LS, -2);   /* remove debug table, leave traceback function  */
 }  /* end of GetTracebackFunction */
 
-/*static*/ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
+static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
 {
 
     int error;
@@ -277,439 +252,312 @@ static int L_system_info (lua_State *LS)
     return 1;  /* the table itself */
 }  /* end of L_system_info */
 
-#define CH_STR_ITEM(arg) \
-    if (ch->arg)  \
-{   \
-    lua_pushstring (LS, ch->arg);  \
-    lua_setfield (LS, -2, #arg); \
-}
-
-#define CH_NUM_ITEM(arg) \
-    lua_pushnumber (LS, ch->arg);  \
-lua_setfield (LS, -2, #arg)
-
-#define PC_STR_ITEM(arg) \
-    if (pc->arg)  \
-{   \
-    lua_pushstring (LS, pc->arg);  \
-    lua_setfield (LS, -2, #arg); \
-}
-
-#define PC_NUM_ITEM(arg) \
-    lua_pushnumber (LS, pc->arg);  \
-lua_setfield (LS, -2, #arg)
-#define OBJ_STR_ITEM(arg) \
-    if (obj->arg)  \
-{   \
-    lua_pushstring (LS, obj->arg);  \
-    lua_setfield (LS, -2, #arg); \
-}
-
-#define OBJ_NUM_ITEM(arg) \
-    lua_pushnumber (LS, obj->arg);  \
-lua_setfield (LS, -2, #arg)
-
-
 static int L_say (lua_State *LS)
 {
     do_say( L_getchar(LS), luaL_checkstring (LS, 1) );
-
     return 0;
 }
 
 static int L_emote (lua_State *LS)
 {
     do_emote( L_getchar(LS), luaL_checkstring (LS, 1) );
-
     return 0;
 }
 
 static int L_cmd_asound (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpasound( ud_ch, argument);
-
+    do_mpasound( L_getchar(LS), luaL_checkstring (LS, 1));
     return 1; 
 }
 
 static int L_cmd_gecho (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpgecho( ud_ch, argument);
-
-    return 1;
+    do_mpgecho( L_getchar(LS), luaL_checkstring (LS, 1));
+    return 0;
 }
 
 static int L_cmd_zecho (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpzecho( ud_ch, argument);
+   
+    do_mpzecho( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_kill (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    CHAR_DATA * ud_vic = check_character (LS, 2);
+   
+    do_mpkill( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    if ( !ud_ch || !ud_vic )
-    {
-        bugf("NULL pointer in L_kill.");
-        return;
-    }
-    if ( ud_ch->in_room != ud_vic->in_room )
-    {
-        bugf("Trying to assist char not in room.");
-        return;
-    }
-
-    if ( IS_AFFECTED( ud_ch, AFF_CHARM ) && ud_ch->master == ud_vic )
-    {
-        bug( "MpKill - Charmed mob attacking master from vnum %d.",
-                IS_NPC(ud_ch) ? ud_ch->pIndexData->vnum : 0 );
-        return;
-    }
-
-    multi_hit( ud_ch, ud_vic, TYPE_UNDEFINED );
-
-    return 1;
+    return 0;
 }
 
 static int L_cmd_assist (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    CHAR_DATA * ud_vic = check_character (LS, 2);
-
-    if ( !ud_ch || !ud_vic )
-    {
-        bugf("NULL pointer in L_assist.");
-        return;
-    }
-    if ( ud_ch->in_room != ud_vic->in_room )
-    {
-        bugf("Trying to assist char not in room.");
-        return;
-    }
-
-    if ( ud_vic == ud_ch || ud_ch->fighting != NULL || ud_vic->fighting == NULL )
-        return;
-
-    multi_hit( ud_ch, ud_vic->fighting, TYPE_UNDEFINED );
-
-    return 1;
+    do_mpkill( L_getchar(LS) , luaL_checkstring (LS, 1));
+    return 0;
 }
 
 static int L_cmd_junk (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpjunk( ud_ch, argument);
+  
+    do_mpjunk( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_echo (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpecho( ud_ch, argument);
+   
+    do_mpecho( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_echoaround (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpechoaround( ud_ch, argument);
+  
+    do_mpechoaround( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_echoat (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpechoat( ud_ch, argument);
+   
+    do_mpechoat( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_mload (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpmload( ud_ch, argument);
+  
+    do_mpmload( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_oload (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpoload( ud_ch, argument);
+  
+    do_mpoload( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_purge (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mppurge( ud_ch, argument);
+   
+    do_mppurge( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_goto (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpgoto( ud_ch, argument);
+  
+    do_mpgoto( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_at (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpat( ud_ch, argument);
+   
+    do_mpat( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_transfer (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mptransfer( ud_ch, argument);
+   
+    do_mptransfer( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_gtransfer (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpgtransfer( ud_ch, argument);
+  
+    do_mpgtransfer( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_otransfer (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpotransfer( ud_ch, argument);
+  
+    do_mpotransfer( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_force (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpotransfer( ud_ch, argument);
+  
+    do_mpotransfer( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 
 static int L_cmd_gforce (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpgforce( ud_ch, argument);
+   
+    do_mpgforce( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+   return 0;
 }
 
 static int L_cmd_vforce (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpvforce( ud_ch, argument);
+  
+    do_mpvforce( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_cast (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpcast( ud_ch, argument);
+  
+    do_mpcast( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_damage (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpdamage( ud_ch, argument);
+   
+    do_mpdamage( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_remember (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpremember( ud_ch, argument);
+   
+    do_mpremember( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_forget (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpforget( ud_ch, argument);
+   
+    do_mpforget( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_delay (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpdelay( ud_ch, argument);
+   
+    do_mpdelay( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_cancel (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpcancel( ud_ch, argument);
+  
+    do_mpcancel( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_call (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpcall( ud_ch, argument);
+   
+    do_mpcall( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_flee (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpflee( ud_ch, argument);
+   
+    do_mpflee( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_remove (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpremove( ud_ch, argument);
+   
+    do_mpremove( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_remort (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpremort( ud_ch, argument);
+   
+    do_mpremort( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_qset (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpqset( ud_ch, argument);
+   
+    do_mpqset( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_qadvance (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpqadvance( ud_ch, argument);
+   
+    do_mpqadvance( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_reward (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpreward( ud_ch, argument);
+   
+    do_mpreward( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_peace (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mppeace( ud_ch, argument);
+    
+    do_mppeace( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_restore (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mprestore( ud_ch, argument);
+    do_mprestore( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_act (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    do_mpact( ud_ch, argument);
+    do_mpact( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    return 1;
+    return 0;
 }
 
 static int L_cmd_hit (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    CHAR_DATA * ud_vic = check_character (LS, 2);
+    do_mphit( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    if ( !ud_ch || !ud_vic )
-    {
-        bugf("NULL pointer in L_hit.");
-        return;
-    }
-
-    one_hit( ud_ch, ud_vic, TYPE_UNDEFINED, FALSE );
-    //const char *argument = luaL_checkstring (LS, 2);
-    //do_mphit( ud_ch, argument);
-
-    return 1;
+    return 0;
 
 }
 
 static int L_cmd_exec (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    interpret( L_getchar(LS), luaL_checkstring (LS, 1));
 
-    interpret( ud_ch, argument);
-
-    return 1;
+    return 0;
 }
 
 static int L_mobhere (lua_State *LS)
@@ -1455,6 +1303,9 @@ static int obj2string (lua_State *LS)
     return 1;
 }
 
+
+
+
 #define FLDSTR(key,value) \
     if ( !strcmp( argument, key ) ) \
 {lua_pushstring( LS, value ); return 1;}
@@ -1464,14 +1315,15 @@ static int obj2string (lua_State *LS)
 
 static int get_object_field ( lua_State *LS )
 {
-    /* not going to check metadata,
-       just hope it gives us the right kind of table...*/
-    lua_getfield(LS, 1, "tableid") ;
     const char *argument = luaL_checkstring (LS, 2 );
-    OBJ_DATA *ud_obj = (OBJ_DATA*)luaL_checkudata(LS, 3, UD_META );
+
+    FLDNUM("UDTYPE",UDTYPE_OBJECT); /* Need this for type checking */
+
+    OBJ_DATA *ud_obj = check_object(LS, 1);
 
     if ( !ud_obj )
         return 0;
+
 
     FLDSTR("name", ud_obj->name);
     FLDSTR("shortdescr", ud_obj->short_descr);
@@ -1493,9 +1345,11 @@ static int get_object_field ( lua_State *LS )
 
 static int get_character_field ( lua_State *LS)
 {
-    lua_getfield(LS, 1, "tableid") ;
     const char *argument = luaL_checkstring (LS, 2 );
-    CHAR_DATA * ud_ch = (CHAR_DATA *)luaL_checkudata(LS, 3, UD_META);
+
+    FLDNUM("UDTYPE",UDTYPE_CHARACTER); /* Need this for type checking */
+
+    CHAR_DATA *ud_ch = check_character(LS, 1);
 
     if ( !ud_ch)
         return 0;
