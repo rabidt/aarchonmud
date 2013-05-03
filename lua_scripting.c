@@ -129,7 +129,7 @@ CHAR_DATA *check_character( lua_State *LS, int arg)
 
 CHAR_DATA *check_room( lua_State *LS, int arg)
 {
-      lua_getfield(LS, arg, "UDTYPE");
+    lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
     if ( type != UDTYPE_ROOM )
     {
@@ -145,7 +145,7 @@ CHAR_DATA *check_room( lua_State *LS, int arg)
 static void make_ud_table ( lua_State *LS, void *ptr, char *meta)
 {
     if ( !ptr )
-        luaL_error (LS, "make_ud_table called with NULL object");
+        luaL_error (LS, "make_ud_table called with NULL object. meta: %s", meta);
 
     lua_newtable( LS);
     luaL_getmetatable (LS, meta);
@@ -285,6 +285,33 @@ static int L_randchar (lua_State *LS)
 
 }
 
+
+static int L_loadprog (lua_State *LS)
+{
+    int num = luaL_checknumber (LS, 1);
+    MPROG_CODE *pMcode;
+
+    if ( (pMcode = get_mprog_index(num)) == NULL )
+       {
+          luaL_error(LS, "loadprog: vnum %d doesn't exist", num);
+          return 0;
+       }
+
+    if ( !pMcode->is_lua)
+    {
+        luaL_error(LS, "loadprog: vnum %d is not lua code", num);
+        return 0;
+    }
+    
+    if (luaL_loadstring (LS, pMcode->code) ||
+            CallLuaWithTraceBack (LS, 0, 0))
+        {
+            bugf ( "loadprog error loading vnum %d:\n %s",
+                    num,
+                    lua_tostring(LS, -1));
+        } 
+    return 0;
+}
 
 static int L_say (lua_State *LS)
 {
@@ -1306,6 +1333,8 @@ void RegisterGlobalFunctions(lua_State *LS)
     /* other */
     lua_register(LS,"getroom",     L_getroom);
     lua_register(LS,"randchar",    L_randchar);
+
+    lua_register(LS,"loadprog",    L_loadprog);
     
 }
  
@@ -1567,16 +1596,16 @@ void lua_program( char *text, int pvnum, char *source,
 
     /* TEXT_ARG */
     if (text)
-        lua_pushstring ( mob->LS, text );
+        lua_pushstring ( mob->LS, text);
     else lua_pushnil(mob->LS);
 
     /* OBJ1_ARG */
-    if (arg1type== ACT_ARG_OBJ)
+    if (arg1type== ACT_ARG_OBJ && arg1)
         make_ud_table( mob->LS, arg1, OBJECT_META);
     else lua_pushnil(mob->LS);
     
     /* OBJ2_ARG */
-    if (arg2type== ACT_ARG_OBJ)
+    if (arg2type== ACT_ARG_OBJ && arg2)
         make_ud_table( mob->LS, arg2, OBJECT_META);
     else lua_pushnil(mob->LS);
    
