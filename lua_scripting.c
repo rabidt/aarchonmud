@@ -80,9 +80,7 @@ void add_lua_tables (lua_State *LS);
 // number of items in an array
 #define NUMITEMS(arg) (sizeof (arg) / sizeof (arg [0]))
 
-/* void RegisterLuaCommands (lua_State *LS); */ /* Implemented in lua_commands.c */
 LUALIB_API int luaopen_bits(lua_State *LS);  /* Implemented in lua_bits.c */
-
 
 static int optboolean (lua_State *LS, const int narg, const int def) 
 {
@@ -275,6 +273,18 @@ static int L_getroom (lua_State *LS)
     make_ud_table( LS, room, ROOM_META);
     return 1;
 }
+
+static int L_randchar (lua_State *LS)
+{
+    CHAR_DATA *ch=get_random_char(L_getchar(LS) );
+    if ( ! ch )
+        return 0;
+
+    make_ud_table( LS, ch, CHARACTER_META);
+    return 1;
+
+}
+
 
 static int L_say (lua_State *LS)
 {
@@ -586,8 +596,8 @@ static int L_mdo (lua_State *LS)
 
 static int L_mobhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    CHAR_DATA * ud_ch = L_getchar(LS);
+    const char *argument = luaL_checkstring (LS, 1);
 
     if ( is_r_number( argument ) )
         lua_pushboolean( LS, (bool) get_mob_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) ); 
@@ -599,8 +609,8 @@ static int L_mobhere (lua_State *LS)
 
 static int L_objhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    CHAR_DATA * ud_ch = L_getchar(LS);
+    const char *argument = luaL_checkstring (LS, 1);
 
     if ( is_r_number( argument ) )
         return( get_obj_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) );
@@ -612,8 +622,8 @@ static int L_objhere (lua_State *LS)
 
 static int L_mobexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    CHAR_DATA * ud_ch = L_getchar(LS);
+    const char *argument = luaL_checkstring (LS, 1);
 
     lua_pushboolean( LS,(bool) (get_mp_char( ud_ch, argument) != NULL) );
 
@@ -622,8 +632,8 @@ static int L_mobexists (lua_State *LS)
 
 static int L_objexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    CHAR_DATA * ud_ch = L_getchar(LS);
+    const char *argument = luaL_checkstring (LS, 1);
 
     lua_pushboolean( LS, (bool) (get_mp_obj( ud_ch, argument) != NULL) );
 
@@ -718,8 +728,8 @@ static int L_isdelay (lua_State *LS)
 
 static int L_isvisible (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    CHAR_DATA * ud_vic = check_character (LS, 2);
+    CHAR_DATA * ud_ch = L_getchar(LS);
+    CHAR_DATA * ud_vic = check_character (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_vic != NULL && can_see( ud_ch, ud_vic ) ) ;
 
@@ -844,27 +854,6 @@ static int L_name (lua_State *LS)
     return 1;
 }
 
-static int L_pos (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-
-    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->position == position_lookup( argument ) ); 
-
-    return 1;
-}
-
-static int L_clan (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-
-    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->clan == clan_lookup( argument ) );
-
-    return 1;
-}
-
-
 static int L_vnum (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
@@ -873,19 +862,6 @@ static int L_vnum (lua_State *LS)
 
     return 1;
 }
-
-static int L_grpsize (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, count_people_room( ud_ch, 4 ) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
 
 static int L_qstatus (lua_State *LS)
 {
@@ -918,17 +894,6 @@ static int L_res (lua_State *LS)
 
     lua_pushboolean( LS, ud_ch != NULL
             && IS_SET(ud_ch->res_flags, flag_lookup(argument, res_flags)) );
-
-    return 1;
-}
-
-static int L_religion (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-
-    lua_pushboolean( LS,  ud_ch != NULL && get_religion(ud_ch) != NULL
-            && get_religion(ud_ch) == get_religion_by_name(argument) );
 
     return 1;
 }
@@ -994,7 +959,6 @@ static int L_remort (lua_State *LS)
 static const struct luaL_reg mudlib [] = 
 {
     {"system_info", L_system_info}, 
-    {"getroom", L_getroom},
     {NULL, NULL}
 };  /* end of mudlib */
 
@@ -1102,9 +1066,15 @@ static int get_object_field ( lua_State *LS )
     FLDSTR("material", ud_obj->material);
     FLDNUM("vnum", ud_obj->pIndexData->vnum);
     FLDSTR("type", type_flags[ud_obj->item_type].name);
-    FLDNUM("inroom", ud_obj->in_room ?
-                     ud_obj->in_room->vnum:
-                     0);
+    if (!strcmp(argument, "inroom") )
+    {
+        if (!ud_obj->in_room)
+            return 0;
+            
+        make_ud_table(LS, ud_obj->in_room, ROOM_META);
+        return 1;
+    }
+    
     if (!strcmp(argument, "carriedby") )
     {
         if (!ud_obj->carried_by )
@@ -1133,7 +1103,6 @@ static int get_room_field ( lua_State *LS )
 
     if ( !ud_room )
         return 0;
-
 
     FLDSTR("name", ud_room->name);
     FLDNUM("vnum", ud_room->vnum);
@@ -1200,6 +1169,8 @@ static int get_character_field ( lua_State *LS)
     FLDSTR("clan", clan_table[ud_ch->clan].name );
     FLDSTR("class", IS_NPC(ud_ch) ? "mobile" : class_table[ud_ch->class].name );
     FLDSTR("race", race_table[ud_ch->race].name );
+    FLDSTR("shortdescr", ud_ch->short_descr ? ud_ch->short_descr : "");
+    FLDSTR("longdescr", ud_ch->long_descr ? ud_ch->long_descr : "");
     if ( !strcmp(argument, "room" ) )
     {
         make_ud_table(LS, ud_ch->in_room, ROOM_META);
@@ -1219,6 +1190,12 @@ static int get_character_field ( lua_State *LS)
         FLDNUM("mobkills", ud_ch->pcdata->mob_kills);
         FLDNUM("mobdeaths", ud_ch->pcdata->mob_deaths);
     }
+    else
+    /* MOB specific stuff */
+    {
+        FLDNUM("vnum", ud_ch->pIndexData->vnum);
+    }
+        
 
 
     return 0;
@@ -1246,90 +1223,92 @@ static const struct luaL_reg character_meta [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg cmdlib_m [] =
+void RegisterGlobalFunctions(lua_State *LS)
 {
-    /* the originals */
-    {"asound",      L_cmd_asound},
-    {"gecho",       L_cmd_gecho},
-    {"zecho",       L_cmd_zecho},
-    {"kill",        L_cmd_kill},
-    {"assist",      L_cmd_assist},
-    {"junk",        L_cmd_junk},
-    {"echo",        L_cmd_echo},
-    {"echoaround",  L_cmd_echoaround},
-    {"echoat",      L_cmd_echoat},
-    {"mload",       L_cmd_mload},
-    {"oload",       L_cmd_oload},
-    {"purge",       L_cmd_purge},
-    {"goto",        L_cmd_goto},
-    {"at",          L_cmd_at},
-    {"transfer",    L_cmd_transfer},
-    {"gtransfer",   L_cmd_gtransfer},
-    {"otransfer",   L_cmd_otransfer},
-    {"force",       L_cmd_force},
-    {"gforce",      L_cmd_gforce},
-    {"vforce",      L_cmd_vforce},
-    {"cast",        L_cmd_cast},
-    {"damage",      L_cmd_damage},
-    {"remember",    L_cmd_remember},
-    {"forget",      L_cmd_forget},
-    {"delay",       L_cmd_delay},
-    {"cancel",      L_cmd_cancel},
-    {"call",        L_cmd_call},
-    {"flee",        L_cmd_flee},
-    {"remove",      L_cmd_remove},
-    {"remort",      L_cmd_remort},
-    {"qset",        L_cmd_qset},
-    {"qadvance",    L_cmd_qadvance},
-    {"reward",      L_cmd_reward},
-    {"peace",       L_cmd_peace},
-    {"restore",     L_cmd_restore},
-    {"act",         L_cmd_act},
-    {"hit",         L_cmd_hit},
-    {NULL, NULL}
-};
-
-static const struct luaL_reg checklib_m [] =
-{
-    /* the originals */
-    {"mobhere",     L_mobhere},
-    {"objhere",     L_objhere},
-    {"mobexists",   L_mobexists},
-    {"objexists",   L_objexists },
-    {"hour",        L_hour },
-    {"ispc",        L_ispc },
-    {"isnpc",       L_isnpc },
-    {"isgood",      L_isgood },
-    {"isevil",      L_isevil },
-    {"isneutral",   L_isneutral },
-    {"isimmort",    L_isimmort },
-    {"ischarm",     L_ischarm },
-    {"isfollow",     L_isfollow },
-    {"isactive",       L_isactive },
-    {"isdelay",       L_isdelay },
-    {"isvisible",       L_isvisible },
-    {"hastarget",       L_hastarget },
-    {"istarget",          L_istarget },
-    {"affected",          L_affected },
-    {"act",          L_act },
-    {"off",          L_off },
-    {"imm",          L_imm },
-    {"carries",          L_carries },
-    {"wears",          L_wears },
-    {"has",          L_has },
-    {"uses",          L_uses },
-    {"vnum",          L_vnum },
-    {"grpsize",          L_grpsize },
-    {"qstatus",          L_qstatus },
-    {"vuln",          L_vuln },
-    {"res",          L_res },
-    {"religion",          L_religion },
-    {"skilled",          L_skilled },
-    {"ccarries",          L_ccarries },
-    {"qtimer",          L_qtimer },
-    {NULL, NULL}
-};
-
+    lua_register(LS,"say",         L_say);
+    lua_register(LS,"emote",       L_emote);
+    lua_register(LS,"mdo",         L_mdo);
+        
+    /* mob commands */
+    lua_register(LS,"asound",      L_cmd_asound);
+    lua_register(LS,"gecho",       L_cmd_gecho);
+    lua_register(LS,"zecho",       L_cmd_zecho);
+    lua_register(LS,"kill",        L_cmd_kill);
+    lua_register(LS,"assist",      L_cmd_assist);
+    lua_register(LS,"junk",        L_cmd_junk);
+    lua_register(LS,"echo",        L_cmd_echo);
+    lua_register(LS,"echoaround",  L_cmd_echoaround);
+    lua_register(LS,"echoat",      L_cmd_echoat);
+    lua_register(LS,"mload",       L_cmd_mload);
+    lua_register(LS,"oload",       L_cmd_oload);
+    lua_register(LS,"purge",       L_cmd_purge);
+    lua_register(LS,"goto",        L_cmd_goto);
+    lua_register(LS,"at",          L_cmd_at);
+    lua_register(LS,"transfer",    L_cmd_transfer);
+    lua_register(LS,"gtransfer",   L_cmd_gtransfer);
+    lua_register(LS,"otransfer",   L_cmd_otransfer);
+    lua_register(LS,"force",       L_cmd_force);
+    lua_register(LS,"gforce",      L_cmd_gforce);
+    lua_register(LS,"vforce",      L_cmd_vforce);
+    lua_register(LS,"cast",        L_cmd_cast);
+    lua_register(LS,"damage",      L_cmd_damage);
+    lua_register(LS,"remember",    L_cmd_remember);
+    lua_register(LS,"forget",      L_cmd_forget);
+    lua_register(LS,"delay",       L_cmd_delay);
+    lua_register(LS,"cancel",      L_cmd_cancel);
+    lua_register(LS,"call",        L_cmd_call);
+    lua_register(LS,"flee",        L_cmd_flee);
+    lua_register(LS,"remove",      L_cmd_remove);
+    lua_register(LS,"remort",      L_cmd_remort);
+    lua_register(LS,"qset",        L_cmd_qset);
+    lua_register(LS,"qadvance",    L_cmd_qadvance);
+    lua_register(LS,"reward",      L_cmd_reward);
+    lua_register(LS,"peace",       L_cmd_peace);
+    lua_register(LS,"restore",     L_cmd_restore);
+    lua_register(LS,"act",         L_cmd_act);
+    lua_register(LS,"hit",         L_cmd_hit);
+    
+    /* checks */
+    lua_register(LS,"mobhere",     L_mobhere);
+    lua_register(LS,"objhere",     L_objhere);
+    lua_register(LS,"mobexists",   L_mobexists);
+    lua_register(LS,"objexists",   L_objexists);
+    lua_register(LS,"hour",        L_hour);
+    lua_register(LS,"ispc",        L_ispc);
+    lua_register(LS,"isnpc",       L_isnpc);
+    lua_register(LS,"isgood",      L_isgood);
+    lua_register(LS,"isevil",      L_isevil);
+    lua_register(LS,"isneutral",   L_isneutral);
+    lua_register(LS,"isimmort",    L_isimmort);
+    lua_register(LS,"ischarm",     L_ischarm);
+    lua_register(LS,"isfollow",    L_isfollow);
+    lua_register(LS,"isactive",    L_isactive);
+    lua_register(LS,"isdelay",     L_isdelay);
+    lua_register(LS,"isvisible",   L_isvisible);
+    lua_register(LS,"hastarget",   L_hastarget);
+    lua_register(LS,"istarget",    L_istarget);
+    lua_register(LS,"affected",    L_affected);
+    lua_register(LS,"act",         L_act);
+    lua_register(LS,"off",         L_off);
+    lua_register(LS,"imm",         L_imm);
+    lua_register(LS,"carries",     L_carries);
+    lua_register(LS,"wears",       L_wears);
+    lua_register(LS,"has",         L_has);
+    lua_register(LS,"uses",        L_uses);
+    lua_register(LS,"name",        L_name);
+    lua_register(LS,"qstatus",     L_qstatus);
+    lua_register(LS,"vuln",        L_vuln);
+    lua_register(LS,"res",         L_res);
+    lua_register(LS,"skilled",     L_skilled);
+    lua_register(LS,"ccarries",    L_ccarries);
+    lua_register(LS,"qtimer",      L_qtimer);
+    
+    /* other */
+    lua_register(LS,"getroom",     L_getroom);
+    lua_register(LS,"randchar",    L_randchar);
+    
+}
+ 
 static int RegisterLuaRoutines (lua_State *LS)
 {
     time_t timer;
@@ -1344,37 +1323,23 @@ static int RegisterLuaRoutines (lua_State *LS)
     /* register all mud.xxx routines */
     luaL_register (LS, MUD_LIBRARY, mudlib);
 
-    /* using interpret now
-       RegisterLuaCommands (LS);
-     */
-
     luaopen_bits (LS);     /* bit manipulation */
     luaL_register (LS, MT_LIBRARY, mtlib);  /* Mersenne Twister */
 
     /* Marsenne Twister generator  */
     init_genrand (timer);
 
-    luaL_register (LS, "cmd", cmdlib_m);
-    luaL_register (LS, "check", checklib_m);
+    RegisterGlobalFunctions(LS);
 
-    lua_pushcfunction ( LS, L_say );
-    lua_setglobal( LS, "say" );
-
-    lua_pushcfunction ( LS, L_emote );
-    lua_setglobal( LS, "emote");
-
-    lua_pushcfunction ( LS, L_mdo );
-    lua_setglobal( LS, "mdo" );
-
-    /* meta table to identify character types */
+    /* meta table to identify object types */
     luaL_newmetatable(LS, CHARACTER_META);
-    luaL_register (LS, NULL, character_meta);  /* give us a __tostring function */
+    luaL_register (LS, NULL, character_meta); 
     luaL_newmetatable(LS, OBJECT_META);
     luaL_register (LS, NULL, object_meta);
-
     luaL_newmetatable(LS, ROOM_META);
     luaL_register (LS, NULL, room_meta);
 
+    /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
 
     return 0;
