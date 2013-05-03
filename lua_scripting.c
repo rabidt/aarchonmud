@@ -55,6 +55,7 @@ void add_lua_tables (lua_State *LS);
 #define CHARACTER_META "character.metadata"
 #define UD_META "ud.meta"
 #define OBJECT_META "object.meta"
+#define ROOM_META "room.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 
@@ -108,12 +109,26 @@ CHAR_DATA *check_character( lua_State *LS, int arg)
     sh_int type= luaL_checknumber(LS, -1);
     if ( type != UDTYPE_CHARACTER )
     {
-        luaL_error(LS, "Bad parameter %d. Expected OBJECT.", arg );
+        luaL_error(LS, "Bad parameter %d. Expected CHARACTER.", arg );
         return NULL;
     }
 
         lua_getfield(LS, arg, "tableid");
         return(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META); 
+}
+
+CHAR_DATA *check_room( lua_State *LS, int arg)
+{
+      lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    if ( type != UDTYPE_ROOM )
+    {
+        luaL_error(LS, "Bad parameter %d. Expected ROOM.", arg );
+        return NULL;
+    }
+
+        lua_getfield(LS, arg, "tableid");
+        return(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META);
 }
 
 
@@ -553,7 +568,7 @@ static int L_cmd_hit (lua_State *LS)
 
 }
 
-static int L_cmd_exec (lua_State *LS)
+static int L_mdo (lua_State *LS)
 {
     interpret( L_getchar(LS), luaL_checkstring (LS, 1));
 
@@ -849,110 +864,12 @@ static int L_clan (lua_State *LS)
     return 1;
 }
 
-static int L_race (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-
-    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->race == race_lookup( argument ) );
-
-    return 1;
-}
-
-static int L_class (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-
-    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->class == class_lookup( argument ) );
-
-    return 1;
-}
-
-static int L_objtype (lua_State *LS)
-{/* TBC
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-
-    lua_pushboolean( LS,  ud_ch != NULL && ud_ch->class == class_lookup( argument ) );
-
-    return 1;
-  */}
 
 static int L_vnum (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_character (LS, 1);
 
     lua_pushnumber( LS,  ( ud_ch != NULL && IS_NPC(ud_ch) ) ? ud_ch->pIndexData->vnum : 0 );
-
-    return 1;
-}
-
-static int L_hpcnt (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    lua_pushnumber( LS,  ( ud_ch != NULL ) ? ((ud_ch->hit * 100)/(UMAX(1,ud_ch->max_hit))) : 0 );
-
-    return 1;
-}
-
-static int L_room (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL && ud_ch->in_room != NULL )
-        lua_pushnumber( LS, ud_ch->in_room->vnum);
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_sex (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, ud_ch->sex);
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_level (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, ud_ch->level);
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_align (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, ud_ch->alignment);
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_money (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, (ud_ch->gold * 100) + ud_ch->silver);
-    else
-        lua_pushnumber( LS, 0);
 
     return 1;
 }
@@ -969,15 +886,6 @@ static int L_grpsize (lua_State *LS)
     return 1;
 }
 
-static int L_clanrank (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-
-    lua_pushboolean( LS, ud_ch != NULL && !IS_NPC(ud_ch) && ud_ch->pcdata->clan_rank == clan_rank_lookup(ud_ch->clan, argument ) );
-
-    return 1;
-}
 
 static int L_qstatus (lua_State *LS)
 {
@@ -1010,126 +918,6 @@ static int L_res (lua_State *LS)
 
     lua_pushboolean( LS, ud_ch != NULL
             && IS_SET(ud_ch->res_flags, flag_lookup(argument, res_flags)) );
-
-    return 1;
-}
-
-static int L_statstr (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_STR) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_statcon (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_CON) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_statvit (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_VIT) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_statagi (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_AGI) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_statdex (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_DEX) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_statint (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_INT) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_statwis (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_WIS) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_statdis (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_DIS) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_statcha (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_CHA) );
-    else
-        lua_pushnumber( LS, 0);
-
-    return 1;
-}
-
-static int L_statluc (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    if ( ud_ch != NULL )
-        lua_pushnumber( LS, get_curr_stat(ud_ch, STAT_LUC) );
-    else
-        lua_pushnumber( LS, 0);
 
     return 1;
 }
@@ -1206,36 +994,6 @@ static int L_remort (lua_State *LS)
 static const struct luaL_reg mudlib [] = 
 {
     {"system_info", L_system_info}, 
-    //{"character_info", L_character_info},
-    /*{"area_info", L_area_info},
-    {"area_list", L_area_list},
-    {"mob_info", L_mob_info},
-    {"room_info", L_room_info},
-    {"room_name", L_room_name},
-    {"room_exits", L_room_exits},
-    {"object_info", L_object_info},  /* object prototype */
-   // {"inventory", L_inventory},      /* invoked objects */
-   // {"equipped", L_equipped},        /* invoked objects */
-   // {"object_name", L_object_name},   /* short, long object name */
-    //{"mob_name", L_mob_name},   /* short, long mob name */
-    //{"level", L_level},                /* what is my level? */
-    //{"race", L_race},                  /* what is my race? */
-    //{"class", L_class},                /* what is my class? */
-    //{"room", L_room},                  /* what room am I in? */
-    //{"char_name", L_char_name},        /* what is my name? */
-    //{"char_exists", L_char_exists},    /* does character exist (now)? */
-
-    /* do stuff to the character or others */
-
-    //{"interpret", L_interpret},        /* interpret command, as if we typed it */
-    //{"force", L_force},                /* force another character or mob to do something */
-    //{"transfer", L_transfer},          /* transfer arg1 to arg2 location */
-
-    /* alter character state */
-
-    //{"gain_exp", L_gain_exp},         /* give character xp */
-    //{"gain_gold", L_gain_gold},       /* give character gold */
-
     {NULL, NULL}
 };  /* end of mudlib */
 
@@ -1313,6 +1071,8 @@ static int obj2string (lua_State *LS)
     if ( !strcmp( argument, key ) ) \
 {lua_pushnumber( LS, value ); return 1;}
 
+
+
 static int get_object_field ( lua_State *LS )
 {
     const char *argument = luaL_checkstring (LS, 2 );
@@ -1334,12 +1094,50 @@ static int get_object_field ( lua_State *LS )
     FLDNUM("cost", ud_obj->cost);
     FLDSTR("material", ud_obj->material);
     FLDNUM("vnum", ud_obj->pIndexData->vnum);
+    FLDSTR("type", type_flags[ud_obj->item_type].name);
     FLDNUM("inroom", ud_obj->in_room ?
                      ud_obj->in_room->vnum:
                      0);
-    FLDSTR("carriedby", ud_obj->carried_by ?
-                        ud_obj->carried_by->name :
-                        "");
+    if (!strcmp(argument, "carriedby") )
+    {
+        if (!ud_obj->carried_by )
+            return 0;
+
+        make_ud_table(LS, ud_obj->carried_by, CHARACTER_META);
+        return 1;
+    }
+       
+    FLDNUM("v0", ud_obj->value[0]);
+    FLDNUM("v1", ud_obj->value[1]);
+    FLDNUM("v2", ud_obj->value[2]);
+    FLDNUM("v3", ud_obj->value[3]);
+    FLDNUM("v4", ud_obj->value[4]);
+    FLDNUM("v5", ud_obj->value[5]);
+    return 0;
+}
+
+static int get_room_field ( lua_State *LS )
+{
+    const char *argument = luaL_checkstring (LS, 2 );
+
+    FLDNUM("UDTYPE",UDTYPE_ROOM); /* Need this for type checking */
+
+    ROOM_INDEX_DATA *ud_room = check_room(LS, 1);
+
+    if ( !ud_room )
+        return 0;
+
+
+    FLDSTR("name", ud_room->name);
+    FLDNUM("vnum", ud_room->vnum);
+    FLDSTR("clan", clan_table[ud_room->clan].name);
+    FLDNUM("clanrank", ud_room->clan_rank);
+    FLDNUM("healrate", ud_room->heal_rate);
+    FLDNUM("manarate", ud_room->mana_rate);
+    FLDSTR("owner", ud_room->owner ? ud_room->owner : "");
+    FLDSTR("description", ud_room->description);
+    FLDSTR("area", ud_room->area->name );
+
     return 0;
 }
 
@@ -1381,7 +1179,12 @@ static int get_character_field ( lua_State *LS)
     FLDNUM("luc", get_curr_stat( ud_ch, STAT_LUC ) );
     FLDSTR("clan", clan_table[ud_ch->clan].name );
     FLDSTR("class", IS_NPC(ud_ch) ? "mobile" : class_table[ud_ch->class].name );
-    FLDNUM("room", ud_ch->in_room->vnum );
+    FLDSTR("race", race_table[ud_ch->race].name );
+    if ( !strcmp(argument, "room" ) )
+    {
+        make_ud_table(LS, ud_ch->in_room, ROOM_META);
+        return 1;
+    }
     FLDNUM("groupsize", count_people_room( ud_ch, 4 ) );
     if ( !IS_NPC(ud_ch) )
     {
@@ -1406,6 +1209,13 @@ static const struct luaL_reg object_meta [] =
 {
     {"__tostring", obj2string},
     {"__index", get_object_field},
+    {NULL, NULL}
+};
+
+static const struct luaL_reg room_meta [] =
+{
+    {"__tostring", obj2string},
+    {"__index", get_room_field},
     {NULL, NULL}
 };
 
@@ -1456,8 +1266,6 @@ static const struct luaL_reg cmdlib_m [] =
     {"restore",     L_cmd_restore},
     {"act",         L_cmd_act},
     {"hit",         L_cmd_hit},
-    /* special cmd for executing normal commands */
-    {"exec",        L_cmd_exec},
     {NULL, NULL}
 };
 
@@ -1483,7 +1291,6 @@ static const struct luaL_reg checklib_m [] =
     {"isvisible",       L_isvisible },
     {"hastarget",       L_hastarget },
     {"istarget",          L_istarget },
-    //{"exists",          L_exists }, //never actually worked in original
     {"affected",          L_affected },
     {"act",          L_act },
     {"off",          L_off },
@@ -1492,41 +1299,15 @@ static const struct luaL_reg checklib_m [] =
     {"wears",          L_wears },
     {"has",          L_has },
     {"uses",          L_uses },
-    {"name",          L_name },
-    {"pos",          L_pos },
-    {"clan",          L_clan },
-    {"race",          L_race },
-    {"class",          L_class },
-    {"objtype",          L_objtype },
     {"vnum",          L_vnum },
-    {"hpcnt",          L_hpcnt },
-    {"room",          L_room },
-    {"sex",          L_sex },
-    {"level",          L_level },
-    {"align",          L_align },
-    {"money",          L_money },
-    /*{"objval0",          L_objval0 }, TBC */
     {"grpsize",          L_grpsize },
-    {"clanrank",          L_clanrank },
     {"qstatus",          L_qstatus },
     {"vuln",          L_vuln },
     {"res",          L_res },
-    {"statstr",          L_statstr},
-    {"statcon",          L_statcon},
-    {"statvit",          L_statvit},
-    {"statagi",          L_statagi},
-    {"statdex",          L_statdex},
-    {"statint",          L_statint},
-    {"statwis",          L_statwis},
-    {"statdis",          L_statdis},
-    {"statcha",          L_statcha},
-    {"statluc",          L_statluc},
     {"religion",          L_religion },
     {"skilled",          L_skilled },
     {"ccarries",          L_ccarries },
     {"qtimer",          L_qtimer },
-    {"mpcnt",          L_mpcnt },
-    {"remort",          L_remort },
     {NULL, NULL}
 };
 
@@ -1566,12 +1347,17 @@ static int RegisterLuaRoutines (lua_State *LS)
     lua_pushcfunction ( LS, L_emote );
     lua_setglobal( LS, "emote");
 
+    lua_pushcfunction ( LS, L_mdo );
+    lua_setglobal( LS, "mdo" );
+
     /* meta table to identify character types */
     luaL_newmetatable(LS, CHARACTER_META);
     luaL_register (LS, NULL, character_meta);  /* give us a __tostring function */
-
     luaL_newmetatable(LS, OBJECT_META);
     luaL_register (LS, NULL, object_meta);
+
+    luaL_newmetatable(LS, ROOM_META);
+    luaL_register (LS, NULL, room_meta);
 
     luaL_newmetatable(LS, UD_META);
 
@@ -1597,12 +1383,6 @@ void open_lua  ( CHAR_DATA * ch)
     lua_pushstring(LS, CHARACTER_STATE);  /* push address */
     lua_pushlightuserdata(LS, (void *)ch);    /* push value */
     lua_call(LS, 2, 0);
-
-    //lua_getglobal (LS, MUD_LIBRARY);
-    //make_char_ud (LS, ch);
-    //lua_setfield (LS, -2, "self");
-    //lua_pop (LS, 1);  /* pop mud table */    
-
 
     /* run initialiation script */
     if (luaL_loadfile (LS, LUA_STARTUP) ||
