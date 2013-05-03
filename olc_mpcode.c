@@ -251,7 +251,6 @@ MPEDIT(mpedit_lua)
                      if ( mpl->vnum == pMcode->vnum )
                      {
                         sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
-                        close_lua(mob);
                         send_to_char( buf, ch );
                         mpl->code = pMcode->code;
                         mpl->is_lua = pMcode->is_lua;
