@@ -239,31 +239,9 @@ static int L_system_info (lua_State *LS)
 
     /* directories */
 
-    INFO_STR_ITEM (PLAYER_DIR);
-    INFO_STR_ITEM (CLAN_DIR);
     INFO_STR_ITEM (LUA_DIR);
-    INFO_STR_ITEM (AREA_LIST);
-    INFO_STR_ITEM (RESERVED_LIST);
-    INFO_STR_ITEM (CLAN_LIST);
-    INFO_STR_ITEM (SHUTDOWN_FILE);
-    INFO_STR_ITEM (SKILL_FILE);
     INFO_STR_ITEM (LUA_STARTUP);
     INFO_STR_ITEM (LUA_MUD_STARTUP);
-
-    /* levels */
-    INFO_NUM_ITEM (MAX_LEVEL);
-    INFO_NUM_ITEM (MAX_CLAN);
-    INFO_NUM_ITEM (LEVEL_HERO);
-    INFO_NUM_ITEM (LEVEL_IMMORTAL);
-
-    /* other numbers */
-
-    INFO_NUM_ITEM (PULSE_PER_SECOND);
-    INFO_NUM_ITEM (PULSE_VIOLENCE	);
-    INFO_NUM_ITEM (PULSE_MOBILE		);
-    INFO_NUM_ITEM (PULSE_TICK		  );
-    INFO_NUM_ITEM (PULSE_AREA			);
-
     return 1;  /* the table itself */
 }  /* end of L_system_info */
 
@@ -1061,6 +1039,12 @@ static int obj2string (lua_State *LS)
     return 1;
 }
 
+static int room2string (lua_State *LS)
+{
+    lua_pushliteral (LS, "mud_room");
+    return 1;
+}
+
 
 
 
@@ -1214,7 +1198,7 @@ static const struct luaL_reg object_meta [] =
 
 static const struct luaL_reg room_meta [] =
 {
-    {"__tostring", obj2string},
+    {"__tostring", room2string},
     {"__index", get_room_field},
     {NULL, NULL}
 };
