@@ -1347,9 +1347,6 @@ static int RegisterLuaRoutines (lua_State *LS)
     /* Marsenne Twister generator  */
     init_genrand (timer);
 
-    /* colours, and other constants */
-    add_lua_tables (LS);
-
     luaL_register (LS, "cmd", cmdlib_m);
     luaL_register (LS, "check", checklib_m);
 
@@ -1440,8 +1437,7 @@ static lua_State * find_lua_function (CHAR_DATA * ch, const char * fname)
     return L;  
 }
 
-extern char lastplayercmd[MAX_INPUT_LENGTH * 2];
-
+extern      char last_command [MSL];
 static void call_lua_function (CHAR_DATA * ch, 
         lua_State *LS, 
         const char * fname, 
@@ -1454,7 +1450,7 @@ static void call_lua_function (CHAR_DATA * ch,
         bugf ("Error executing Lua function %s:\n %s\n** Last player command: %s", 
                 fname, 
                 lua_tostring(LS, -1),
-                "Unknown (TBC)");
+                last_command);
 
         if (ch && !IS_IMMORTAL(ch))
         {
@@ -1546,159 +1542,6 @@ void call_lua_mob_num (CHAR_DATA * ch,
     call_lua_function (ch, L, fname, 2);
 
 }  /* end of call_lua_mob_num */
-
-
-static int RegisterGlobalLuaRoutines (lua_State *LS)
-{
-    time_t timer;
-    time (&timer);
-
-    /* register all mud.xxx routines */
-    luaL_register (LS, MUD_LIBRARY, mudlib);
-
-    luaopen_bits (LS);     /* bit manipulation */
-    luaL_register (LS, MT_LIBRARY, mtlib);  /* Mersenne Twister */
-
-    /* Marsenne Twister generator  */
-    init_genrand (timer);
-
-    /* colours, and other constants */
-    add_lua_tables (LS);
-
-    /* meta table to identify character types */
-    luaL_newmetatable(LS, CHARACTER_META);
-    luaL_register (LS, NULL, character_meta);  /* give us a __tostring function */
-
-    return 0;
-
-}  /* end of RegisterLuaRoutines */
-
-void open_mud_lua (void)    /* set up Lua state - entire MUD */
-{
-
-    LS_mud = luaL_newstate ();   /* opens Lua */
-
-    if (LS_mud == NULL)
-    {
-        bugf ("Cannot open Lua state");
-        exit (1);  /* catastrophic failure */
-    }
-
-    luaL_openlibs (LS_mud);    /* open all standard libraries */
-
-    /* call as Lua function because we need the environment  */
-    lua_pushcfunction(LS_mud, RegisterGlobalLuaRoutines);
-    lua_call(LS_mud, 0, 0);
-
-
-    /* run initialiation script */
-    if (luaL_loadfile (LS_mud, LUA_MUD_STARTUP) ||
-            CallLuaWithTraceBack (LS_mud, 0, 0))
-    {
-        bugf ( "Error loading Lua startup file %s:\n %s", 
-                LUA_MUD_STARTUP,
-                lua_tostring(LS_mud, -1));
-        exit (1);  /* catastrophic failure */
-    }
-
-    lua_settop (LS_mud, 0);    /* get rid of stuff lying around */    
-
-}  /* end of open_mud_lua */
-
-void close_mud_lua (void)   /* close Lua state - entire MUD */  
-{
-    if (LS_mud == NULL)
-        return;  /* never opened */
-
-    lua_close (LS_mud);
-    LS_mud = NULL;   
-}  /* end of close_mud_lua */
-
-static int find_mud_lua_function (const char * fname)
-{
-
-    if (!fname)
-        return FALSE;
-
-    /* find requested function */
-
-    lua_getglobal (LS_mud, fname);  
-    if (!lua_isfunction (LS_mud, -1))
-    {
-        lua_pop (LS_mud, 1);
-        bug ("Warning: Lua mud-wide script function '%s' does not exist", fname);
-        return FALSE;  /* not there */
-    }
-
-    return TRUE;  
-}  /* end of find_mud_lua_function */
-
-static int call_mud_lua_function (const char * fname, 
-        const int nArgs)
-
-{
-    int iResult = 0;
-
-    if (CallLuaWithTraceBack (LS_mud, nArgs, 1))
-    {
-        bugf ("Error executing mud-wide Lua function %s:\n %s\n** Last player command: %s", 
-                fname, 
-                lua_tostring(LS_mud, -1),
-                "Unknown, TBC.");
-
-        lua_pop(LS_mud, 1);  /* pop error */
-
-    }  /* end of error */
-
-    if (lua_isnumber (LS_mud, -1))
-        iResult = luaL_checknumber (LS_mud, -1);
-    else if (lua_isboolean (LS_mud, -1))
-        iResult = lua_toboolean (LS_mud, -1);
-
-    return iResult;
-}  /* end of call_lua_function */
-
-int call_mud_lua (const char * fname, const char * argument)
-{
-
-    int nArgs = 0;
-
-    if (!argument || !fname)
-        return FALSE;
-
-    lua_settop (LS_mud, 0);    /* get rid of stuff lying around */
-
-    if (!find_mud_lua_function (fname))
-        return 0;
-
-    /* if they want to send an argument, push it now */  
-    if (argument)
-    {
-        lua_pushstring(LS_mud, argument);  /* push argument, if any */
-        nArgs++;
-    }
-
-    return call_mud_lua_function (fname, nArgs);
-
-}  /* end of call_mud_lua */
-
-/* call lua function with a string and numeric argument */
-void call_mud_lua_char_num (const char * fname, 
-        const char * str, 
-        const int num)
-{
-    if (!str || !fname)
-        return;
-
-    if (!find_mud_lua_function (fname))
-        return;
-
-    lua_pushstring (LS_mud, str);  /* push string */
-    lua_pushnumber (LS_mud, num);  /* and number */
-
-    call_mud_lua_function (fname, 2);
-
-}  /* end of call_mud_lua_char_num */
 
 
 /* lua_program
