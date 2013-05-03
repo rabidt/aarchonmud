@@ -245,6 +245,20 @@ static int L_system_info (lua_State *LS)
     return 1;  /* the table itself */
 }  /* end of L_system_info */
 
+static int L_getroom (lua_State *LS)
+{
+    // do some if is number thing here eventually
+    int num = luaL_checknumber (LS, 1);
+
+    ROOM_INDEX_DATA *room=get_room_index(num);
+
+    if (!room)
+        return 0;
+
+    make_ud_table( LS, room, ROOM_META);
+    return 1;
+}
+
 static int L_say (lua_State *LS)
 {
     do_say( L_getchar(LS), luaL_checkstring (LS, 1) );
@@ -972,6 +986,7 @@ static int L_remort (lua_State *LS)
 static const struct luaL_reg mudlib [] = 
 {
     {"system_info", L_system_info}, 
+    {"getroom", L_getroom},
     {NULL, NULL}
 };  /* end of mudlib */
 
@@ -1121,6 +1136,19 @@ static int get_room_field ( lua_State *LS )
     FLDSTR("owner", ud_room->owner ? ud_room->owner : "");
     FLDSTR("description", ud_room->description);
     FLDSTR("area", ud_room->area->name );
+    if ( !strcmp(argument, "people") )
+    {   
+        int index=1;
+        lua_newtable(LS);
+        CHAR_DATA *people;
+        for (people=ud_room->people ; people ; people=people->next_in_room)
+        {
+            make_ud_table(LS, people, CHARACTER_META);
+            lua_rawseti(LS, -2, index++);
+        }
+        return 1;
+    }
+            
 
     return 0;
 }
