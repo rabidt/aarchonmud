@@ -630,15 +630,6 @@ static int L_objexists (lua_State *LS)
     return 1;
 }
 
-static int L_people (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_character (LS, 1);
-
-    lua_pushnumber( LS, count_people_room( ud_ch, 0 ) );
-
-    return 1;
-}
-
 static int L_hour (lua_State *LS)
 {
     lua_pushnumber( LS, time_info.hour );
@@ -1305,7 +1296,6 @@ static const struct luaL_reg checklib_m [] =
     {"objhere",     L_objhere},
     {"mobexists",   L_mobexists},
     {"objexists",   L_objexists },
-    {"people",      L_people },
     {"hour",        L_hour },
     {"ispc",        L_ispc },
     {"isnpc",       L_isnpc },
