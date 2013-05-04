@@ -39,20 +39,6 @@ function cleanup()
     udtbl={}
 end
 
-function same(tbl1, tbl2)
-    if tbl1==nil then
-        return false
-    elseif tbl2==nil then
-        return false
-    end
-
-    if tbl1.tableid~= nil and tbl2~=nil and tbl1.tableid==tbl2.tableid then
-      return true
-    else
-      return false
-    end
-end
-
 function rand(pcnt)
     return ( (mt.rand()*100) < pcnt)
 end
