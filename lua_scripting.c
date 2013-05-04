@@ -1087,6 +1087,23 @@ static int get_object_field ( lua_State *LS )
     FLDSTR("material", ud_obj->material);
     FLDNUM("vnum", ud_obj->pIndexData->vnum);
     FLDSTR("type", type_flags[ud_obj->item_type].name);
+
+    if ( !strcmp(argument, "contents") )
+    {
+        if (!ud_obj->contains)
+            return 0;
+       
+        int index=1;
+        lua_newtable(LS);
+        OBJ_DATA *obj;
+        for (obj=ud_obj->contains ; obj ; obj=obj->next_content)
+        {
+            make_ud_table(LS, obj, OBJECT_META);
+            lua_rawseti(LS, -2, index++);
+        }
+        return 1;
+    }
+ 
     if (!strcmp(argument, "inroom") )
     {
         if (!ud_obj->in_room)
@@ -1204,6 +1221,23 @@ static int get_character_field ( lua_State *LS)
     FLDSTR("race", race_table[ud_ch->race].name );
     FLDSTR("shortdescr", ud_ch->short_descr ? ud_ch->short_descr : "");
     FLDSTR("longdescr", ud_ch->long_descr ? ud_ch->long_descr : "");
+
+    if ( !strcmp(argument, "inventory") )
+    {
+        if (!ud_ch->carrying)
+            return 0;
+
+        int index=1;
+        lua_newtable(LS);
+        OBJ_DATA *obj;
+        for (obj=ud_ch->carrying ; obj ; obj=obj->next_content)
+        {
+            make_ud_table(LS, obj, OBJECT_META);
+            lua_rawseti(LS, -2, index++);
+        }
+        return 1;
+    } 
+
     if ( !strcmp(argument, "room" ) )
     {
         make_ud_table(LS, ud_ch->in_room, ROOM_META);
@@ -1581,7 +1615,7 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
         return FALSE;
     }
     else return TRUE;
-    
+
 }
 
 /* lua_program
