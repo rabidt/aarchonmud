@@ -221,18 +221,7 @@ void string_add( CHAR_DATA *ch, char *argument )
          MPROG_CODE *mpc;
          
          EDIT_MPCODE(ch, mpc);
-         
-         if ( mpc != NULL )
-            for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
-               for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
-                  for ( mpl = mob->mprogs; mpl; mpl = mpl->next )
-                     if ( mpl->vnum == mpc->vnum )
-                     {
-                        sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
-                        send_to_char( buf, ch );
-                        mpl->code = mpc->code;
-                        mpl->is_lua = mpc->is_lua;
-                     }
+         fix_mprog_mobs( ch, mpc);
       }
       
       ch->desc->pString = NULL;
