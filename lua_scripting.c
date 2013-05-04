@@ -1059,6 +1059,11 @@ static int room2string (lua_State *LS)
 {lua_pushnumber( LS, value ); return 1;}
 
 
+static int check_object_equal( lua_State *LS)
+{
+    lua_pushboolean( LS, check_object(LS, 1) == check_object(LS, 2) );
+    return 1;
+}
 
 static int get_object_field ( lua_State *LS )
 {
@@ -1109,6 +1114,12 @@ static int get_object_field ( lua_State *LS )
     return 0;
 }
 
+static int check_room_equal( lua_State *LS)
+{
+    lua_pushboolean( LS, check_room(LS, 1) == check_room(LS, 2) );
+    return 1;
+}
+
 static int get_room_field ( lua_State *LS )
 {
     const char *argument = luaL_checkstring (LS, 2 );
@@ -1144,6 +1155,12 @@ static int get_room_field ( lua_State *LS )
 
 
     return 0;
+}
+
+static int check_character_equal ( lua_State *LS)
+{
+    lua_pushboolean( LS, check_character(LS,1) == check_character(LS,2) );
+    return 1;
 }
 
 static int get_character_field ( lua_State *LS)
@@ -1222,6 +1239,7 @@ static const struct luaL_reg object_meta [] =
 {
     {"__tostring", obj2string},
     {"__index", get_object_field},
+    {"__eq", check_object_equal},
     {NULL, NULL}
 };
 
@@ -1229,6 +1247,7 @@ static const struct luaL_reg room_meta [] =
 {
     {"__tostring", room2string},
     {"__index", get_room_field},
+    {"__eq", check_room_equal},
     {NULL, NULL}
 };
 
@@ -1236,6 +1255,7 @@ static const struct luaL_reg character_meta [] =
 {
     {"__tostring", char2string},
     {"__index", get_character_field},
+    {"__eq", check_character_equal},
     {NULL, NULL}
 };
 
