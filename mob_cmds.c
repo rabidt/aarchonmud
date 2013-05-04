@@ -81,7 +81,7 @@ const	struct	mob_cmd_type	mob_cmd_table	[] =
   { "remort",     do_mpremort,     "[victim] : remort a player"                             },
   { "qset",       do_mpqset,       "[victim] [id] [value] [time limit] : set quest-state for player"     },
   { "qadvance",   do_mpqadvance,   "[victim] [id] (increment) : increase quest-state"       },
-  { "reward",     do_mpreward,     "[victim] [exp|qp] [ammount] : give exp or qp reward"    },
+  { "reward",     do_mpreward,     "[victim] [exp|qp|gold] [ammount] : give exp or qp reward"    },
   { "peace",      do_mppeace,      "(victim) : stop combat and make mobs non-aggro"         },
   { "restore",    do_mprestore,    "[victim] : restore victim"                              },
   { "act",        do_mpact,        "(not) [flag] : set or remove an act-flag"               },
@@ -1839,7 +1839,8 @@ void do_mpqadvance( CHAR_DATA *ch, char *argument )
 
 #define REWARD_EXP     0
 #define REWARD_QP      1
-/* Syntax: mob reward $n [exp|qp] [ammount] */
+#define REWARD_GOLD    2 
+/* Syntax: mob reward $n [exp|qp|gold] [ammount] */
 void do_mpreward( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
@@ -1865,6 +1866,8 @@ void do_mpreward( CHAR_DATA *ch, char *argument )
 	reward = REWARD_EXP;
     else if ( !str_cmp(arg2, "qp") )
 	reward = REWARD_QP;
+    else if ( !str_cmp(arg2, "gold") )
+    reward = REWARD_GOLD;
     else
     {
 	bug( "do_mpreward: unknown reward type from vnum %d.", 
@@ -1906,6 +1909,10 @@ void do_mpreward( CHAR_DATA *ch, char *argument )
 	send_to_char( buf, victim );
 	victim->pcdata->questpoints += ammount;
 	break;
+    case REWARD_GOLD:
+    ptc( victim, "You are rewarded %d gold!\n\r", ammount);
+    victim->gold += ammount;
+    break;
     default:
 	bug( "do_mpreward: unknown reward type (%d)", reward );
     }
