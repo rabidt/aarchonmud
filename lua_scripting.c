@@ -134,7 +134,7 @@ CHAR_DATA *check_character( lua_State *LS, int arg)
     return(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META); 
 }
 
-CHAR_DATA *check_room( lua_State *LS, int arg)
+ROOM_INDEX_DATA *check_room( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
@@ -145,7 +145,7 @@ CHAR_DATA *check_room( lua_State *LS, int arg)
     }
 
     lua_getfield(LS, arg, "tableid");
-    return(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META);
+    return(ROOM_INDEX_DATA *)luaL_checkudata(LS, -1, UD_META);
 }
 
 
