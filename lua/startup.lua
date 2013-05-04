@@ -1,5 +1,4 @@
-systeminfo=mud.system_info()
-package.path = systeminfo.LUA_DIR .. "?.lua"
+package.path = mud.luadir() .. "?.lua"
 
 require "tprint"
 require "serialize"
@@ -54,3 +53,6 @@ function same(tbl1, tbl2)
     end
 end
 
+function rand(pcnt)
+    return ( (mt.rand()*100) < pcnt)
+end

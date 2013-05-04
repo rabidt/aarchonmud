@@ -28,6 +28,10 @@ Description of functions in this file is at:
 
 http://www.gammon.com.au/forum/?id=8015
 
+****************************************
+Highly modified and adapted for Aarchon MUD by
+Clayton Richey, May 2013
+
  */
 
 #include <stdio.h>
@@ -54,10 +58,10 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
 void add_lua_tables (lua_State *LS);
 
 #define CHARACTER_STATE "character.state"
-#define CHARACTER_META "character.metadata"
-#define UD_META "ud.meta"
-#define OBJECT_META "object.meta"
-#define ROOM_META "room.meta"
+#define CHARACTER_META "CH.meta"
+#define UD_META "UD.meta"
+#define OBJECT_META "OBJ.meta"
+#define ROOM_META "ROOM.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 
@@ -239,29 +243,6 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
 
     return error;
 }  /* end of CallLuaWithTraceBack  */
-
-
-/* let scripters find our directories and file names */
-
-#define INFO_STR_ITEM(arg) \
-    lua_pushstring (LS, arg);  \
-lua_setfield (LS, -2, #arg)
-
-#define INFO_NUM_ITEM(arg) \
-    lua_pushnumber (LS, arg);  \
-lua_setfield (LS, -2, #arg)
-
-static int L_system_info (lua_State *LS)
-{
-    lua_newtable(LS);  /* table for the info */
-
-    /* directories */
-
-    INFO_STR_ITEM (LUA_DIR);
-    INFO_STR_ITEM (LUA_STARTUP);
-    INFO_STR_ITEM (LUA_MUD_STARTUP);
-    return 1;  /* the table itself */
-}  /* end of L_system_info */
 
 static int L_getroom (lua_State *LS)
 {
@@ -986,12 +967,17 @@ static int L_remort (lua_State *LS)
     return 1;
 }
 
+static int L_mud_luadir( lua_State *LS)
+{
+    lua_pushliteral( LS, LUA_DIR);
+    return 1;
+}
+
 static const struct luaL_reg mudlib [] = 
 {
-    {"system_info", L_system_info}, 
+    {"luadir", L_mud_luadir}, 
     {NULL, NULL}
 };  /* end of mudlib */
-
 
 /* Mersenne Twister pseudo-random number generator */
 
