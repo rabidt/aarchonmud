@@ -229,6 +229,44 @@ MPEDIT(mpedit_show)
     return FALSE;
 }
 
+void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
+{
+    MPROG_LIST *mpl;
+    int hash;
+    char buf[MSL];
+    MOB_INDEX_DATA *mob;
+
+    if ( pMcode != NULL )
+        for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
+            for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
+                for ( mpl = mob->mprogs; mpl; mpl = mpl->next )
+                    if ( mpl->vnum == pMcode->vnum )
+                    {
+                        sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
+                        send_to_char( buf, ch );
+                        mpl->code = pMcode->code;
+                        mpl->is_lua = pMcode->is_lua;
+
+                        if ( mpl->is_lua )
+                        {
+                            /* find instances of the mob and */
+                            /* reload the script to mob's script space */
+                            sh_int cnt=0;
+                            CHAR_DATA *tch;
+                            for ( tch=char_list ; tch ; tch=tch->next )
+                            {
+                                if (tch->pIndexData == mob  
+                                    && tch->LS )
+                                {
+                                    lua_load_mprog( tch->LS, pMcode->vnum, pMcode->code);
+                                    cnt++;
+                                }
+                            }
+                            ptc(ch, "Fixed lua script for %d mob instances.\n\r", cnt);
+                        }
+                    } 
+}
+
 MPEDIT(mpedit_lua)
 {
     MPROG_CODE *pMcode;
@@ -245,17 +283,11 @@ MPEDIT(mpedit_lua)
     else
         lua_mprogs--;
 
-            for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
-               for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
-                  for ( mpl = mob->mprogs; mpl; mpl = mpl->next )
-                     if ( mpl->vnum == pMcode->vnum )
-                     {
-                        sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
-                        send_to_char( buf, ch );
-                        mpl->code = pMcode->code;
-                        mpl->is_lua = pMcode->is_lua;
-                     }
+    fix_mprog_mobs( ch, pMcode);
 }
+
+/* Procedure to run when MPROG is changed and needs to be updated
+   on mobs using it */
 
 MPEDIT(mpedit_code)
 {
