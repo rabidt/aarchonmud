@@ -1248,6 +1248,7 @@ void char_update( void )
         af.location  = APPLY_SAVES;
         af.duration = -1;
         af.modifier = get_skill(ch, gsn_natural_resistance) / -7;
+        af.bitvector= 0;
         affect_to_char(ch,&af);
         check_improve( ch, gsn_natural_resistance, TRUE, 10 );
     } 
@@ -1269,6 +1270,7 @@ void char_update( void )
         af.location  = APPLY_AC;
         af.duration = -1;
         af.modifier = -5 - (ch->pcdata->remorts * 3) - get_skill(ch, gsn_iron_hide);
+        af.bitvector=0;
         affect_to_char(ch,&af);
         check_improve( ch, gsn_iron_hide, TRUE, 10 );
     } 

@@ -52,6 +52,10 @@ void init_by_array(unsigned long init_key[], int key_length);
 double genrand(void);
 
 static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
+static const struct luaL_reg chlib [];
+static const struct luaL_reg objlib [];
+static const struct luaL_reg roomlib [];
+static const struct luaL_reg exitlib [];
 
 /* in lua_tables.c */
 
@@ -165,12 +169,30 @@ EXIT_DATA *check_exit( lua_State *LS, int arg)
 }
 
 
-static void make_ud_table ( lua_State *LS, void *ptr, char *meta)
+static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
 {
     if ( !ptr )
-        luaL_error (LS, "make_ud_table called with NULL object. meta: %s", meta);
+        luaL_error (LS, "make_ud_table called with NULL object. UDTYPE: %s", UDTYPE);
+    char *meta;
+
+
 
     lua_newtable( LS);
+    switch (UDTYPE)
+    {
+        case UDTYPE_CHARACTER:
+            meta=CHARACTER_META; luaL_register(LS,NULL,chlib); break;
+        case UDTYPE_OBJECT:
+            meta=OBJECT_META; luaL_register(LS,NULL,objlib); break;
+        case UDTYPE_ROOM:
+            meta=ROOM_META; luaL_register(LS,NULL,roomlib); break;
+        case UDTYPE_EXIT:
+            meta=EXIT_META; luaL_register(LS,NULL,exitlib); break;
+        default:
+            luaL_error (LS, "make_ud_table called with unknown UD_TYPE: %d", UDTYPE);
+            break;
+    }
+            
     luaL_getmetatable (LS, meta);
     lua_setmetatable (LS, -2);  /* set metatable for object data */
     lua_pushlightuserdata( LS, ptr);
@@ -270,7 +292,7 @@ static int L_getroom (lua_State *LS)
     if (!room)
         return 0;
 
-    make_ud_table( LS, room, ROOM_META);
+    make_ud_table( LS, room, UDTYPE_ROOM);
     return 1;
 
 }
@@ -281,7 +303,7 @@ static int L_randchar (lua_State *LS)
     if ( ! ch )
         return 0;
 
-    make_ud_table( LS, ch, CHARACTER_META);
+    make_ud_table( LS, ch, UDTYPE_CHARACTER);
     return 1;
 
 }
@@ -990,11 +1012,94 @@ static int L_mud_luadir( lua_State *LS)
     return 1;
 }
 
+static int L_exit_flag( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_exit(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, exit_flags);
+    if ( flag==NO_FLAG )
+        return 0;
+
+    lua_pushboolean( LS, IS_SET( ud_exit->exit_info, flag));
+    return 1;
+}
+
+static int L_room_flag( lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room = check_room(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, room_flags);
+    if ( flag==NO_FLAG )
+        return 0;
+
+    lua_pushboolean( LS, IS_SET( ud_room->room_flags, flag));
+    return 1;
+}
+
+static int L_obj_wear( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_object(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, wear_flags);
+    if ( flag==NO_FLAG )
+        return 0;
+
+    lua_pushboolean( LS, IS_SET( ud_obj->wear_flags, flag));
+    return 1;
+}
+
+static int L_obj_extra( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_object(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, extra_flags);
+    if ( flag==NO_FLAG )
+        return 0;
+
+    lua_pushboolean( LS, IS_SET( ud_obj->extra_flags, flag));
+    return 1;
+}
+
 static const struct luaL_reg mudlib [] = 
 {
     {"luadir", L_mud_luadir}, 
     {NULL, NULL}
 };  /* end of mudlib */
+
+
+static const struct luaL_reg chlib [] =
+{
+    {"affected", L_affected},
+    {"offensive", L_off},
+    {"immune", L_imm},
+    {"resist", L_res},
+    {"vuln", L_vuln},
+
+    {NULL, NULL}
+};
+
+static const struct luaL_reg roomlib [] =
+{
+    {"flag", L_room_flag},
+    {NULL, NULL}
+};
+
+static const struct luaL_reg objlib [] =
+{
+    {"extra", L_obj_extra},
+    {"wear", L_obj_wear},
+    {NULL, NULL}
+};
+
+static const struct luaL_reg exitlib [] =
+{
+    {"flag", L_exit_flag},
+    {NULL, NULL}
+}; 
 
 /* Mersenne Twister pseudo-random number generator */
 
@@ -1122,7 +1227,7 @@ static int get_object_field ( lua_State *LS )
         OBJ_DATA *obj;
         for (obj=ud_obj->contains ; obj ; obj=obj->next_content)
         {
-            make_ud_table(LS, obj, OBJECT_META);
+            make_ud_table(LS, obj, UDTYPE_OBJECT);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1133,7 +1238,7 @@ static int get_object_field ( lua_State *LS )
         if (!ud_obj->in_room)
             return 0;
 
-        make_ud_table(LS, ud_obj->in_room, ROOM_META);
+        make_ud_table(LS, ud_obj->in_room, UDTYPE_ROOM);
         return 1;
     }
 
@@ -1142,7 +1247,7 @@ static int get_object_field ( lua_State *LS )
         if (!ud_obj->carried_by )
             return 0;
 
-        make_ud_table(LS, ud_obj->carried_by, CHARACTER_META);
+        make_ud_table(LS, ud_obj->carried_by, UDTYPE_CHARACTER);
         return 1;
     }
 
@@ -1174,7 +1279,7 @@ static int get_exit_field ( lua_State *LS )
 
     if (!strcmp(argument, "toroom"))
     {
-        make_ud_table( LS, ud_exit->u1.to_room, ROOM_META );
+        make_ud_table( LS, ud_exit->u1.to_room, UDTYPE_ROOM );
         return 1;
     }
     FLDSTR("keyword", ud_exit->keyword ? ud_exit->keyword : "");
@@ -1218,7 +1323,7 @@ static int get_room_field ( lua_State *LS )
         CHAR_DATA *people;
         for (people=ud_room->people ; people ; people=people->next_in_room)
         {
-            make_ud_table(LS, people, CHARACTER_META);
+            make_ud_table(LS, people, UDTYPE_CHARACTER);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1234,7 +1339,7 @@ static int get_room_field ( lua_State *LS )
                 return 0;
 
             lua_newtable(LS);
-            make_ud_table(LS, ud_room->exit[i], EXIT_META);
+            make_ud_table(LS, ud_room->exit[i], UDTYPE_EXIT);
             return 1;
         }
     }
@@ -1297,7 +1402,7 @@ static int get_character_field ( lua_State *LS)
         OBJ_DATA *obj;
         for (obj=ud_ch->carrying ; obj ; obj=obj->next_content)
         {
-            make_ud_table(LS, obj, OBJECT_META);
+            make_ud_table(LS, obj, UDTYPE_OBJECT);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1305,7 +1410,7 @@ static int get_character_field ( lua_State *LS)
 
     if ( !strcmp(argument, "room" ) )
     {
-        make_ud_table(LS, ud_ch->in_room, ROOM_META);
+        make_ud_table(LS, ud_ch->in_room, UDTYPE_ROOM);
         return 1;
     }
     FLDNUM("groupsize", count_people_room( ud_ch, 4 ) );
@@ -1724,11 +1829,11 @@ void lua_program( char *text, int pvnum, char *source,
     }
 
     /* MOB_ARG */
-    make_ud_table (mob->LS, (void *)mob, CHARACTER_META);
+    make_ud_table (mob->LS, (void *)mob, UDTYPE_CHARACTER);
 
     /* CH_ARG */
     if (ch)
-        make_ud_table (mob->LS,(void *) ch, CHARACTER_META);
+        make_ud_table (mob->LS,(void *) ch, UDTYPE_CHARACTER);
     else lua_pushnil(mob->LS);
 
     /* TRIG_ARG */
@@ -1738,12 +1843,12 @@ void lua_program( char *text, int pvnum, char *source,
 
     /* OBJ1_ARG */
     if (arg1type== ACT_ARG_OBJ && arg1)
-        make_ud_table( mob->LS, arg1, OBJECT_META);
+        make_ud_table( mob->LS, arg1, UDTYPE_OBJECT);
     else lua_pushnil(mob->LS);
 
     /* OBJ2_ARG */
     if (arg2type== ACT_ARG_OBJ && arg2)
-        make_ud_table( mob->LS, arg2, OBJECT_META);
+        make_ud_table( mob->LS, arg2, UDTYPE_OBJECT);
     else lua_pushnil(mob->LS);
 
     /* TEXT1_ARG */
@@ -1758,7 +1863,7 @@ void lua_program( char *text, int pvnum, char *source,
 
     /* VICTIM_ARG */
     if (arg2type== ACT_ARG_CHARACTER)
-        make_ud_table( mob->LS, arg2, CHARACTER_META);
+        make_ud_table( mob->LS, arg2, UDTYPE_CHARACTER);
     else lua_pushnil(mob->LS);
 
 
