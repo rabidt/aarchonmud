@@ -2406,6 +2406,11 @@ void page_to_char_bw( const char *txt, CHAR_DATA *ch )
 #define MAX_BUF_INDEX (MAX_STRING_LENGTH*4)
 void page_to_char( const char *txt, CHAR_DATA *ch )
 {
+    page_to_char_new( txt, ch, FALSE );
+}
+
+void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
+{
 	const  char    *point;
 	char    *point2;
 	char    buf[ MAX_STRING_LENGTH * 5 ]; // some safety space
@@ -2435,7 +2440,7 @@ void page_to_char( const char *txt, CHAR_DATA *ch )
 			   return;
 		       }
 
-		       if( *point == '{' )
+		       if( *point == '{' && !raw)
 		       {
 			   point++;
 			   skip = colour( *point, ch, point2 );
@@ -2457,7 +2462,7 @@ void page_to_char( const char *txt, CHAR_DATA *ch )
 		   {
 			   for( point = txt ; *point ; point++ )
 			   {
-				   if( *point == '{' )
+				   if( *point == '{' && !raw )
 				   {
 					   point++;
 					   continue;
