@@ -4005,6 +4005,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define GOD_DIR         "../gods/"
 #define CLAN_DIR	"../clans/"
 #define LUA_DIR     "../src/lua/"
+#define USER_DIR    "../user/"
 #endif
 
 #if defined(unix)
@@ -4015,6 +4016,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define NOTE_DIR    "../notes/"
 #define CLAN_DIR	"../clans/"
 #define LUA_DIR     "../src/lua/"
+#define USER_DIR    "../user/"
 #endif
 
 #define AREA_LIST       "area.lst"  /* List of areas*/
