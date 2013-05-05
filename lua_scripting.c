@@ -59,9 +59,10 @@ void add_lua_tables (lua_State *LS);
 
 #define CHARACTER_STATE "character.state"
 #define CHARACTER_META "CH.meta"
-#define UD_META "UD.meta"
-#define OBJECT_META "OBJ.meta"
-#define ROOM_META "ROOM.meta"
+#define UD_META        "UD.meta"
+#define OBJECT_META    "OBJ.meta"
+#define ROOM_META      "ROOM.meta"
+#define EXIT_META      "EXIT.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 
@@ -82,6 +83,7 @@ void add_lua_tables (lua_State *LS);
 #define UDTYPE_CHARACTER 1
 #define UDTYPE_OBJECT    2
 #define UDTYPE_ROOM      3
+#define UDTYPE_EXIT      4
 
 
 // number of items in an array
@@ -146,6 +148,20 @@ ROOM_INDEX_DATA *check_room( lua_State *LS, int arg)
 
     lua_getfield(LS, arg, "tableid");
     return(ROOM_INDEX_DATA *)luaL_checkudata(LS, -1, UD_META);
+}
+
+EXIT_DATA *check_exit( lua_State *LS, int arg)
+{
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    if ( type != UDTYPE_EXIT )
+    {
+        luaL_error(LS, "Bad parameter %d. Expected EXIT.", arg );
+        return NULL;
+    }
+
+    lua_getfield(LS, arg, "tableid");
+    return(EXIT_DATA *)luaL_checkudata(LS, -1, UD_META);
 }
 
 
@@ -256,6 +272,7 @@ static int L_getroom (lua_State *LS)
 
     make_ud_table( LS, room, ROOM_META);
     return 1;
+
 }
 
 static int L_randchar (lua_State *LS)
@@ -312,7 +329,7 @@ static int L_emote (lua_State *LS)
 static int L_cmd_asound (lua_State *LS)
 {
     do_mpasound( L_getchar(LS), luaL_checkstring (LS, 1));
-    return 1; 
+    return 0; 
 }
 
 static int L_cmd_gecho (lua_State *LS)
@@ -1048,15 +1065,25 @@ static int room2string (lua_State *LS)
     return 1;
 }
 
+static int exit2string (lua_State *LS)
+{
+    lua_pushliteral (LS, "mud_exit");
+    return 1;
+}
+
 
 
 
 #define FLDSTR(key,value) \
     if ( !strcmp( argument, key ) ) \
-{lua_pushstring( LS, value ); return 1;}
+        {lua_pushstring( LS, value ); return 1;}
 #define FLDNUM(key,value) \
     if ( !strcmp( argument, key ) ) \
-{lua_pushnumber( LS, value ); return 1;}
+        {lua_pushnumber( LS, value ); return 1;}
+#define FLDBOOL(key,value) \
+    if ( !strcmp( argument, key ) ) \
+        {lua_pushboolean( LS, value ); return 1;}
+    
 
 
 static int check_object_equal( lua_State *LS)
@@ -1128,6 +1155,35 @@ static int get_object_field ( lua_State *LS )
     return 0;
 }
 
+static int check_exit_equal( lua_State *LS)
+{
+    lua_pushboolean( LS, check_exit(LS, 1) == check_exit(LS, 2) );
+    return 1;
+}
+
+static int get_exit_field ( lua_State *LS )
+{
+    const char *argument = luaL_checkstring (LS, 2 );
+
+    FLDNUM("UDTYPE",UDTYPE_EXIT); /* Need this for type checking */
+
+    EXIT_DATA *ud_exit = check_exit(LS, 1);
+
+    if ( !ud_exit )
+        return 0;
+
+    if (!strcmp(argument, "toroom"))
+    {
+        make_ud_table( LS, ud_exit->u1.to_room, ROOM_META );
+        return 1;
+    }
+    FLDSTR("keyword", ud_exit->keyword ? ud_exit->keyword : "");
+    FLDSTR("description", ud_exit->description ? ud_exit->description : "");
+    FLDNUM("key", ud_exit->key);
+
+    return 0;
+
+}
 static int check_room_equal( lua_State *LS)
 {
     lua_pushboolean( LS, check_room(LS, 1) == check_room(LS, 2) );
@@ -1154,6 +1210,7 @@ static int get_room_field ( lua_State *LS )
     FLDSTR("owner", ud_room->owner ? ud_room->owner : "");
     FLDSTR("description", ud_room->description);
     FLDSTR("area", ud_room->area->name );
+
     if ( !strcmp(argument, "people") )
     {   
         int index=1;
@@ -1167,6 +1224,20 @@ static int get_room_field ( lua_State *LS )
         return 1;
     }
 
+    /* EXITs*/
+    sh_int i;
+    for (i=0; i<MAX_DIR; i++)
+    {
+        if (!strcmp(dir_name[i], argument) )
+        {
+            if (!ud_room->exit[i])
+                return 0;
+
+            lua_newtable(LS);
+            make_ud_table(LS, ud_room->exit[i], EXIT_META);
+            return 1;
+        }
+    }
 
     return 0;
 }
@@ -1287,6 +1358,14 @@ static const struct luaL_reg character_meta [] =
     {NULL, NULL}
 };
 
+static const struct luaL_reg exit_meta [] =
+{
+    {"__tostring", exit2string},
+    {"__index", get_exit_field},
+    {"__eq", check_exit_equal},
+    {NULL, NULL}
+};
+
 void RegisterGlobalFunctions(lua_State *LS)
 {
     lua_register(LS,"say",         L_say);
@@ -1404,6 +1483,8 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, NULL, object_meta);
     luaL_newmetatable(LS, ROOM_META);
     luaL_register (LS, NULL, room_meta);
+    luaL_newmetatable(LS, EXIT_META);
+    luaL_register (LS, NULL, exit_meta);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
