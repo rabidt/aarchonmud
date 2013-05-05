@@ -1329,7 +1329,25 @@ static int get_room_field ( lua_State *LS )
         return 1;
     }
 
-    /* EXITs*/
+    /* array of valid exit names*/
+    if ( !strcmp(argument, "exits") )
+    {
+        lua_newtable(LS);
+        sh_int i;
+        sh_int index=1;
+        for ( i=0; i<MAX_DIR ; i++)
+        {
+            if (ud_room->exit[i])
+            {
+                lua_pushstring(LS,dir_name[i]);
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
+            
+
+    /* specific EXITs*/
     sh_int i;
     for (i=0; i<MAX_DIR; i++)
     {
