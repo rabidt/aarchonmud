@@ -400,7 +400,7 @@ void do_mpdump( CHAR_DATA *ch, char *argument )
        return;
    }
 
-   page_to_char( double_bracket(mprg->code), ch );
+   page_to_char_new( mprg->code, ch, TRUE );
 }
 
 /*
