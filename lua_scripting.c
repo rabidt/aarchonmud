@@ -1090,9 +1090,6 @@ static int get_object_field ( lua_State *LS )
 
     if ( !strcmp(argument, "contents") )
     {
-        if (!ud_obj->contains)
-            return 0;
-       
         int index=1;
         lua_newtable(LS);
         OBJ_DATA *obj;
@@ -1224,9 +1221,6 @@ static int get_character_field ( lua_State *LS)
 
     if ( !strcmp(argument, "inventory") )
     {
-        if (!ud_ch->carrying)
-            return 0;
-
         int index=1;
         lua_newtable(LS);
         OBJ_DATA *obj;
