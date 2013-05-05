@@ -223,8 +223,8 @@ MPEDIT(mpedit_show)
            "Code:\n\r%s\n\r",
            pMcode->vnum,
            pMcode->is_lua ? "True" : "False",
-           double_bracket(pMcode->code ) );
-    send_to_char(buf, ch);
+           pMcode->code  );
+    page_to_char_new(buf, ch, TRUE);
 
     return FALSE;
 }
