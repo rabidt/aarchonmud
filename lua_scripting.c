@@ -1012,6 +1012,12 @@ static int L_mud_luadir( lua_State *LS)
     return 1;
 }
 
+static int L_mud_userdir( lua_State *LS)
+{
+    lua_pushliteral( LS, USER_DIR);
+    return 1;
+}
+
 static int L_exit_flag( lua_State *LS)
 {
     EXIT_DATA *ud_exit = check_exit(LS, 1);
@@ -1067,6 +1073,7 @@ static int L_obj_extra( lua_State *LS)
 static const struct luaL_reg mudlib [] = 
 {
     {"luadir", L_mud_luadir}, 
+    {"userdir",L_mud_userdir},
     {NULL, NULL}
 };  /* end of mudlib */
 
