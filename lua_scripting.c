@@ -320,7 +320,7 @@ static int L_getobjproto (lua_State *LS)
 {
     int num = luaL_checknumber (LS, 1);
 
-    OBJ_INDEX_DATA *obj=get_object_index(num);
+    OBJ_INDEX_DATA *obj=get_obj_index(num);
 
     if (!obj)
         return 0;
@@ -513,7 +513,7 @@ static int L_cmd_otransfer (lua_State *LS)
 static int L_cmd_force (lua_State *LS)
 {
 
-    do_mpotransfer( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpforce( L_getchar(LS), luaL_checkstring (LS, 1));
 
     return 0;
 }
@@ -1537,6 +1537,16 @@ static int get_CH_field ( lua_State *LS)
     FLDSTR("race", race_table[ud_ch->race].name );
     FLDSTR("shortdescr", ud_ch->short_descr ? ud_ch->short_descr : "");
     FLDSTR("longdescr", ud_ch->long_descr ? ud_ch->long_descr : "");
+
+    if ( !strcmp(argument, "mprogtarget") )
+    {
+        if (!ud_ch->mprog_target)
+            return 0;
+       
+        make_ud_table(LS, ud_ch->mprog_target, UDTYPE_CH);
+        return 1;
+    }
+
     if ( !strcmp(argument, "inventory") )
     {
         int index=1;
@@ -1677,7 +1687,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"reward",      L_cmd_reward);
     lua_register(LS,"peace",       L_cmd_peace);
     lua_register(LS,"restore",     L_cmd_restore);
-    lua_register(LS,"act",         L_cmd_act);
+    lua_register(LS,"setact",      L_cmd_act);
     lua_register(LS,"hit",         L_cmd_hit);
 
     /* checks */
@@ -1720,6 +1730,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"randchar",    L_randchar);
 
     lua_register(LS,"loadprog",    L_loadprog);
+    lua_register(LS,"getobjproto", L_getobjproto);
 
 }
 
