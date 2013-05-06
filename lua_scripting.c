@@ -52,19 +52,21 @@ void init_by_array(unsigned long init_key[], int key_length);
 double genrand(void);
 
 static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
-static const struct luaL_reg chlib [];
-static const struct luaL_reg objlib [];
-static const struct luaL_reg roomlib [];
-static const struct luaL_reg exitlib [];
+static const struct luaL_reg CH_lib [];
+static const struct luaL_reg OBJ_lib [];
+static const struct luaL_reg OBJPROTO_lib[];
+static const struct luaL_reg ROOM_lib [];
+static const struct luaL_reg EXIT_lib [];
 
 /* in lua_tables.c */
 
 void add_lua_tables (lua_State *LS);
 
 #define CHARACTER_STATE "character.state"
-#define CHARACTER_META "CH.meta"
+#define CH_META        "CH.meta"
 #define UD_META        "UD.meta"
-#define OBJECT_META    "OBJ.meta"
+#define OBJ_META       "OBJ.meta"
+#define OBJPROTO_META  "OBJPROTO.meta"
 #define ROOM_META      "ROOM.meta"
 #define EXIT_META      "EXIT.meta"
 #define MUD_LIBRARY "mud"
@@ -84,10 +86,11 @@ void add_lua_tables (lua_State *LS);
 #define VICTIM_ARG "victim"
 
 #define UDTYPE_UNDEFINED 0
-#define UDTYPE_CHARACTER 1
-#define UDTYPE_OBJECT    2
+#define UDTYPE_CH        1
+#define UDTYPE_OBJ       2
 #define UDTYPE_ROOM      3
 #define UDTYPE_EXIT      4
+#define UDTYPE_OBJPROTO  5
 
 
 // number of items in an array
@@ -111,14 +114,27 @@ static int optboolean (lua_State *LS, const int narg, const int def)
     return luaL_checknumber (LS, narg) != 0;
 }
 
-
-OBJ_DATA *check_object( lua_State *LS, int arg)
+OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
-    if ( type != UDTYPE_OBJECT )
+    if ( type != UDTYPE_OBJPROTO )
     {
-        luaL_error(LS,"Bad parameter %d. Expected OBJECT.", arg );
+        luaL_error(LS,"Bad parameter %d. Expected OBJPROTO.", arg );
+        return NULL;
+    }
+
+    lua_getfield(LS, arg, "tableid");
+    return(OBJ_INDEX_DATA *)luaL_checkudata(LS, -1, UD_META);
+}
+
+OBJ_DATA *check_OBJ( lua_State *LS, int arg)
+{
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    if ( type != UDTYPE_OBJ )
+    {
+        luaL_error(LS,"Bad parameter %d. Expected OBJ.", arg );
         return NULL;
     }
 
@@ -126,21 +142,21 @@ OBJ_DATA *check_object( lua_State *LS, int arg)
     return(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META);
 }
 
-CHAR_DATA *check_character( lua_State *LS, int arg)
+CHAR_DATA *check_CH( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
-    if ( type != UDTYPE_CHARACTER )
+    if ( type != UDTYPE_CH )
     {
-        luaL_error(LS, "Bad parameter %d. Expected CHARACTER.", arg );
+        luaL_error(LS, "Bad parameter %d. Expected CH.", arg );
         return NULL;
     }
 
     lua_getfield(LS, arg, "tableid");
-    return(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META); 
+    return(CHAR_DATA *)luaL_checkudata(LS, -1, UD_META); 
 }
 
-ROOM_INDEX_DATA *check_room( lua_State *LS, int arg)
+ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
@@ -180,14 +196,16 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
     lua_newtable( LS);
     switch (UDTYPE)
     {
-        case UDTYPE_CHARACTER:
-            meta=CHARACTER_META; luaL_register(LS,NULL,chlib); break;
-        case UDTYPE_OBJECT:
-            meta=OBJECT_META; luaL_register(LS,NULL,objlib); break;
+        case UDTYPE_CH:
+            meta=CH_META; luaL_register(LS,NULL,CH_lib); break;
+        case UDTYPE_OBJ:
+            meta=OBJ_META; luaL_register(LS,NULL,OBJ_lib); break;
         case UDTYPE_ROOM:
-            meta=ROOM_META; luaL_register(LS,NULL,roomlib); break;
+            meta=ROOM_META; luaL_register(LS,NULL,ROOM_lib); break;
         case UDTYPE_EXIT:
-            meta=EXIT_META; luaL_register(LS,NULL,exitlib); break;
+            meta=EXIT_META; luaL_register(LS,NULL,EXIT_lib); break;
+        case UDTYPE_OBJPROTO:
+            meta=OBJPROTO_META; luaL_register(LS,NULL, OBJPROTO_lib); break;
         default:
             luaL_error (LS, "make_ud_table called with unknown UD_TYPE: %d", UDTYPE);
             break;
@@ -303,7 +321,7 @@ static int L_randchar (lua_State *LS)
     if ( ! ch )
         return 0;
 
-    make_ud_table( LS, ch, UDTYPE_CHARACTER);
+    make_ud_table( LS, ch, UDTYPE_CH);
     return 1;
 
 }
@@ -698,7 +716,7 @@ static int L_hour (lua_State *LS)
 
 static int L_ispc (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && !IS_NPC( ud_ch ) );
     return 1;
@@ -706,7 +724,7 @@ static int L_ispc (lua_State *LS)
 
 static int L_isnpc (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && IS_NPC( ud_ch ) );
     return 1;
@@ -714,7 +732,7 @@ static int L_isnpc (lua_State *LS)
 
 static int L_isgood (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean(  LS, ud_ch != NULL && IS_GOOD( ud_ch ) ) ;
     return 1;
@@ -722,7 +740,7 @@ static int L_isgood (lua_State *LS)
 
 static int L_isevil (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean(  LS, ud_ch != NULL && IS_EVIL( ud_ch ) ) ;
     return 1;
@@ -730,7 +748,7 @@ static int L_isevil (lua_State *LS)
 
 static int L_isneutral (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean(  LS, ud_ch != NULL && IS_NEUTRAL( ud_ch ) ) ;
     return 1;
@@ -738,7 +756,7 @@ static int L_isneutral (lua_State *LS)
 
 static int L_isimmort (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && IS_IMMORTAL( ud_ch ) ) ;
     return 1;
@@ -746,7 +764,7 @@ static int L_isimmort (lua_State *LS)
 
 static int L_ischarm (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && IS_AFFECTED( ud_ch, AFF_CHARM ) ) ;
     return 1;
@@ -754,7 +772,7 @@ static int L_ischarm (lua_State *LS)
 
 static int L_isfollow (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->master != NULL ) ;
     return 1;
@@ -762,7 +780,7 @@ static int L_isfollow (lua_State *LS)
 
 static int L_isactive (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->position > POS_SLEEPING ) ;
     return 1;
@@ -770,7 +788,7 @@ static int L_isactive (lua_State *LS)
 
 static int L_isdelay (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->mprog_delay > 0 ) ;
     return 1;
@@ -779,7 +797,7 @@ static int L_isdelay (lua_State *LS)
 static int L_isvisible (lua_State *LS)
 {
     CHAR_DATA * ud_ch = L_getchar(LS);
-    CHAR_DATA * ud_vic = check_character (LS, 1);
+    CHAR_DATA * ud_vic = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_vic != NULL && can_see( ud_ch, ud_vic ) ) ;
 
@@ -788,7 +806,7 @@ static int L_isvisible (lua_State *LS)
 
 static int L_hastarget (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS,  ud_ch != NULL && ud_ch->mprog_target != NULL
             &&  ud_ch->in_room == ud_ch->mprog_target->in_room );
@@ -797,7 +815,7 @@ static int L_hastarget (lua_State *LS)
 
 static int L_istarget (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->mprog_target == ud_ch );
 
@@ -806,7 +824,7 @@ static int L_istarget (lua_State *LS)
 
 static int L_affected (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,  ud_ch != NULL
@@ -817,7 +835,7 @@ static int L_affected (lua_State *LS)
 
 static int L_act (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, ud_ch != NULL
@@ -828,7 +846,7 @@ static int L_act (lua_State *LS)
 
 static int L_off (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,
@@ -839,7 +857,7 @@ static int L_off (lua_State *LS)
 
 static int L_imm (lua_State *LS)
 { 
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, ud_ch != NULL
@@ -850,7 +868,7 @@ static int L_imm (lua_State *LS)
 
 static int L_carries (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     if ( is_r_number( argument ) )
@@ -863,7 +881,7 @@ static int L_carries (lua_State *LS)
 
 static int L_wears (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     if ( is_r_number( argument ) )
@@ -876,7 +894,7 @@ static int L_wears (lua_State *LS)
 
 static int L_has (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, -1, item_lookup(argument), FALSE ) );
@@ -886,7 +904,7 @@ static int L_has (lua_State *LS)
 
 static int L_uses (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, -1, item_lookup(argument), TRUE ) );
@@ -896,7 +914,7 @@ static int L_uses (lua_State *LS)
 
 static int L_name (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,  ud_ch != NULL && is_name( argument, ud_ch->name ) ); 
@@ -906,7 +924,7 @@ static int L_name (lua_State *LS)
 
 static int L_vnum (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushnumber( LS,  ( ud_ch != NULL && IS_NPC(ud_ch) ) ? ud_ch->pIndexData->vnum : 0 );
 
@@ -915,7 +933,7 @@ static int L_vnum (lua_State *LS)
 
 static int L_qstatus (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     int num = luaL_checknumber (LS, 2);
 
     if ( ud_ch != NULL )
@@ -928,7 +946,7 @@ static int L_qstatus (lua_State *LS)
 
 static int L_vuln (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, ud_ch != NULL
@@ -939,7 +957,7 @@ static int L_vuln (lua_State *LS)
 
 static int L_res (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, ud_ch != NULL
@@ -950,7 +968,7 @@ static int L_res (lua_State *LS)
 
 static int L_skilled (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,  ud_ch != NULL && skill_lookup(argument) != -1
@@ -961,7 +979,7 @@ static int L_skilled (lua_State *LS)
 
 static int L_ccarries (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,  ud_ch != NULL && has_item_in_container( ud_ch, r_atoi(ud_ch, argument), "zzyzzxzzyxyx" ) );
@@ -971,7 +989,7 @@ static int L_ccarries (lua_State *LS)
 
 static int L_qtimer (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
     int num = luaL_checknumber (LS, 2);
 
     if ( ud_ch != NULL )
@@ -984,7 +1002,7 @@ static int L_qtimer (lua_State *LS)
 
 static int L_mpcnt (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     if ( ud_ch != NULL )
         lua_pushnumber( LS, (ud_ch->mana * 100)/(UMAX(1,ud_ch->max_mana)));
@@ -996,7 +1014,7 @@ static int L_mpcnt (lua_State *LS)
 
 static int L_remort (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_character (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     if ( ud_ch != NULL && !IS_NPC(ud_ch) )
         lua_pushnumber( LS, ud_ch->pcdata->remorts );
@@ -1033,7 +1051,7 @@ static int L_exit_flag( lua_State *LS)
 
 static int L_room_flag( lua_State *LS)
 {
-    ROOM_INDEX_DATA *ud_room = check_room(LS, 1);
+    ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     sh_int flag=flag_lookup( argument, room_flags);
@@ -1044,9 +1062,35 @@ static int L_room_flag( lua_State *LS)
     return 1;
 }
 
+static int L_objproto_wear( lua_State *LS)
+{
+    OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, wear_flags);
+    if ( flag==NO_FLAG )
+        return 0;
+
+    lua_pushboolean( LS, IS_SET( ud_objp->wear_flags, flag));
+    return 1;
+}
+
+static int L_objproto_extra( lua_State *LS)
+{
+    OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, extra_flags);
+    if ( flag==NO_FLAG )
+        return 0;
+
+    lua_pushboolean( LS, IS_SET( ud_objp->extra_flags, flag));
+    return 1;
+}
+
 static int L_obj_wear( lua_State *LS)
 {
-    OBJ_DATA *ud_obj = check_object(LS, 1);
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     sh_int flag=flag_lookup( argument, wear_flags);
@@ -1059,7 +1103,7 @@ static int L_obj_wear( lua_State *LS)
 
 static int L_obj_extra( lua_State *LS)
 {
-    OBJ_DATA *ud_obj = check_object(LS, 1);
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     sh_int flag=flag_lookup( argument, extra_flags);
@@ -1078,7 +1122,7 @@ static const struct luaL_reg mudlib [] =
 };  /* end of mudlib */
 
 
-static const struct luaL_reg chlib [] =
+static const struct luaL_reg CH_lib [] =
 {
     {"affected", L_affected},
     {"offensive", L_off},
@@ -1089,20 +1133,27 @@ static const struct luaL_reg chlib [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg roomlib [] =
+static const struct luaL_reg ROOM_lib [] =
 {
     {"flag", L_room_flag},
     {NULL, NULL}
 };
 
-static const struct luaL_reg objlib [] =
+static const struct luaL_reg OBJ_lib [] =
 {
     {"extra", L_obj_extra},
     {"wear", L_obj_wear},
     {NULL, NULL}
 };
 
-static const struct luaL_reg exitlib [] =
+static const struct luaL_reg OBJPROTO_lib [] =
+{
+    {"extra", L_objproto_extra},
+    {"wear", L_objproto_wear},
+    {NULL, NULL}
+};
+
+static const struct luaL_reg EXIT_lib [] =
 {
     {"flag", L_exit_flag},
     {NULL, NULL}
@@ -1159,25 +1210,31 @@ static const struct luaL_reg mtlib[] = {
     {NULL, NULL}
 };
 
-static int char2string (lua_State *LS) 
+static int CH2string (lua_State *LS) 
 {
     lua_pushliteral (LS, "mud_character");
     return 1;
 }
 
-static int obj2string (lua_State *LS)
+static int OBJ2string (lua_State *LS)
 {
     lua_pushliteral (LS, "mud_object");
     return 1;
 }
 
-static int room2string (lua_State *LS)
+static int OBJPROTO2string (lua_State *LS)
+{
+    lua_pushliteral (LS, "mud_object_prototype");
+    return 1;
+}
+
+static int ROOM2string (lua_State *LS)
 {
     lua_pushliteral (LS, "mud_room");
     return 1;
 }
 
-static int exit2string (lua_State *LS)
+static int EXIT2string (lua_State *LS)
 {
     lua_pushliteral (LS, "mud_exit");
     return 1;
@@ -1198,19 +1255,57 @@ static int exit2string (lua_State *LS)
     
 
 
-static int check_object_equal( lua_State *LS)
+static int check_OBJ_equal( lua_State *LS)
 {
-    lua_pushboolean( LS, check_object(LS, 1) == check_object(LS, 2) );
+    lua_pushboolean( LS, check_OBJ(LS, 1) == check_OBJ(LS, 2) );
     return 1;
 }
 
-static int get_object_field ( lua_State *LS )
+static int check_OBJPROTO_equal( lua_State *LS)
+{
+    lua_pushboolean( LS, check_OBJPROTO(LS, 1) == check_OBJPROTO(LS, 2) );
+    return 1;
+}
+
+static int get_OBJPROTO_field ( lua_State *LS )
 {
     const char *argument = luaL_checkstring (LS, 2 );
 
-    FLDNUM("UDTYPE",UDTYPE_OBJECT); /* Need this for type checking */
+    FLDNUM("UDTYPE",UDTYPE_OBJPROTO); /* Need this for type checking */
 
-    OBJ_DATA *ud_obj = check_object(LS, 1);
+    OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
+
+    if ( !ud_objp )
+        return 0;
+
+
+    FLDSTR("name", ud_objp->name);
+    FLDSTR("shortdescr", ud_objp->short_descr);
+    FLDSTR("clan", clan_table[ud_objp->clan].name);
+    FLDNUM("clanrank", ud_objp->rank);
+    FLDNUM("level", ud_objp->level);
+    FLDNUM("cost", ud_objp->cost);
+    FLDSTR("material", ud_objp->material);
+    FLDNUM("vnum", ud_objp->vnum);
+    FLDSTR("type", type_flags[ud_objp->item_type].name);
+    FLDNUM("weight", ud_objp->weight);
+    FLDNUM("v0", ud_objp->value[0]);
+    FLDNUM("v1", ud_objp->value[1]);
+    FLDNUM("v2", ud_objp->value[2]);
+    FLDNUM("v3", ud_objp->value[3]);
+    FLDNUM("v4", ud_objp->value[4]);
+    FLDNUM("v5", ud_objp->value[5]);
+    
+    return 0;
+}
+
+static int get_OBJ_field ( lua_State *LS )
+{
+    const char *argument = luaL_checkstring (LS, 2 );
+
+    FLDNUM("UDTYPE",UDTYPE_OBJ); /* Need this for type checking */
+
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
 
     if ( !ud_obj )
         return 0;
@@ -1226,7 +1321,17 @@ static int get_object_field ( lua_State *LS )
     FLDSTR("material", ud_obj->material);
     FLDNUM("vnum", ud_obj->pIndexData->vnum);
     FLDSTR("type", type_flags[ud_obj->item_type].name);
-
+    FLDNUM("weight", ud_obj->weight);
+    
+    if ( !strcmp(argument, "proto" ) )
+    {
+        if ( !ud_obj->pIndexData )
+          return 0;
+          
+        make_ud_table(LS, ud_obj->pIndexData, UDTYPE_OBJPROTO);
+        return 1;
+    }
+    
     if ( !strcmp(argument, "contents") )
     {
         int index=1;
@@ -1234,7 +1339,7 @@ static int get_object_field ( lua_State *LS )
         OBJ_DATA *obj;
         for (obj=ud_obj->contains ; obj ; obj=obj->next_content)
         {
-            make_ud_table(LS, obj, UDTYPE_OBJECT);
+            make_ud_table(LS, obj, UDTYPE_OBJ);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1254,7 +1359,7 @@ static int get_object_field ( lua_State *LS )
         if (!ud_obj->carried_by )
             return 0;
 
-        make_ud_table(LS, ud_obj->carried_by, UDTYPE_CHARACTER);
+        make_ud_table(LS, ud_obj->carried_by, UDTYPE_CH);
         return 1;
     }
 
@@ -1267,13 +1372,13 @@ static int get_object_field ( lua_State *LS )
     return 0;
 }
 
-static int check_exit_equal( lua_State *LS)
+static int check_EXIT_equal( lua_State *LS)
 {
     lua_pushboolean( LS, check_exit(LS, 1) == check_exit(LS, 2) );
     return 1;
 }
 
-static int get_exit_field ( lua_State *LS )
+static int get_EXIT_field ( lua_State *LS )
 {
     const char *argument = luaL_checkstring (LS, 2 );
 
@@ -1296,19 +1401,19 @@ static int get_exit_field ( lua_State *LS )
     return 0;
 
 }
-static int check_room_equal( lua_State *LS)
+static int check_ROOM_equal( lua_State *LS)
 {
-    lua_pushboolean( LS, check_room(LS, 1) == check_room(LS, 2) );
+    lua_pushboolean( LS, check_ROOM(LS, 1) == check_ROOM(LS, 2) );
     return 1;
 }
 
-static int get_room_field ( lua_State *LS )
+static int get_ROOM_field ( lua_State *LS )
 {
     const char *argument = luaL_checkstring (LS, 2 );
 
     FLDNUM("UDTYPE",UDTYPE_ROOM); /* Need this for type checking */
 
-    ROOM_INDEX_DATA *ud_room = check_room(LS, 1);
+    ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
 
     if ( !ud_room )
         return 0;
@@ -1330,7 +1435,7 @@ static int get_room_field ( lua_State *LS )
         CHAR_DATA *people;
         for (people=ud_room->people ; people ; people=people->next_in_room)
         {
-            make_ud_table(LS, people, UDTYPE_CHARACTER);
+            make_ud_table(LS, people, UDTYPE_CH);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1372,19 +1477,19 @@ static int get_room_field ( lua_State *LS )
     return 0;
 }
 
-static int check_character_equal ( lua_State *LS)
+static int check_CH_equal ( lua_State *LS)
 {
-    lua_pushboolean( LS, check_character(LS,1) == check_character(LS,2) );
+    lua_pushboolean( LS, check_CH(LS,1) == check_CH(LS,2) );
     return 1;
 }
 
-static int get_character_field ( lua_State *LS)
+static int get_CH_field ( lua_State *LS)
 {
     const char *argument = luaL_checkstring (LS, 2 );
 
-    FLDNUM("UDTYPE",UDTYPE_CHARACTER); /* Need this for type checking */
+    FLDNUM("UDTYPE",UDTYPE_CH); /* Need this for type checking */
 
-    CHAR_DATA *ud_ch = check_character(LS, 1);
+    CHAR_DATA *ud_ch = check_CH(LS, 1);
 
     if ( !ud_ch)
         return 0;
@@ -1419,7 +1524,6 @@ static int get_character_field ( lua_State *LS)
     FLDSTR("race", race_table[ud_ch->race].name );
     FLDSTR("shortdescr", ud_ch->short_descr ? ud_ch->short_descr : "");
     FLDSTR("longdescr", ud_ch->long_descr ? ud_ch->long_descr : "");
-
     if ( !strcmp(argument, "inventory") )
     {
         int index=1;
@@ -1427,7 +1531,7 @@ static int get_character_field ( lua_State *LS)
         OBJ_DATA *obj;
         for (obj=ud_ch->carrying ; obj ; obj=obj->next_content)
         {
-            make_ud_table(LS, obj, UDTYPE_OBJECT);
+            make_ud_table(LS, obj, UDTYPE_OBJ);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1464,35 +1568,43 @@ static int get_character_field ( lua_State *LS)
 
 }
 
-static const struct luaL_reg object_meta [] =
+static const struct luaL_reg OBJ_meta [] =
 {
-    {"__tostring", obj2string},
-    {"__index", get_object_field},
-    {"__eq", check_object_equal},
+    {"__tostring", OBJ2string},
+    {"__index", get_OBJ_field},
+    {"__eq", check_OBJ_equal},
     {NULL, NULL}
 };
 
-static const struct luaL_reg room_meta [] =
+static const struct luaL_reg OBJPROTO_meta [] =
 {
-    {"__tostring", room2string},
-    {"__index", get_room_field},
-    {"__eq", check_room_equal},
+    {"__tostring", OBJPROTO2string},
+    {"__index", get_OBJPROTO_field},
+    {"__eq", check_OBJPROTO_equal},
     {NULL, NULL}
 };
 
-static const struct luaL_reg character_meta [] = 
+static const struct luaL_reg ROOM_meta [] =
 {
-    {"__tostring", char2string},
-    {"__index", get_character_field},
-    {"__eq", check_character_equal},
+    {"__tostring", ROOM2string},
+    {"__index", get_ROOM_field},
+    {"__eq", check_ROOM_equal},
     {NULL, NULL}
 };
 
-static const struct luaL_reg exit_meta [] =
+static const struct luaL_reg CH_meta [] = 
 {
-    {"__tostring", exit2string},
-    {"__index", get_exit_field},
-    {"__eq", check_exit_equal},
+    {"__tostring", CH2string},
+    {"__index", get_CH_field},
+    {"__eq", check_CH_equal},
+    {NULL, NULL}
+};
+
+static const struct luaL_reg EXIT_meta [] =
+{
+    {"__tostring", EXIT2string},
+    {"__index", get_EXIT_field},
+    {"__eq", check_EXIT_equal},
     {NULL, NULL}
 };
 
@@ -1607,14 +1719,14 @@ static int RegisterLuaRoutines (lua_State *LS)
     RegisterGlobalFunctions(LS);
 
     /* meta table to identify object types */
-    luaL_newmetatable(LS, CHARACTER_META);
-    luaL_register (LS, NULL, character_meta); 
-    luaL_newmetatable(LS, OBJECT_META);
-    luaL_register (LS, NULL, object_meta);
+    luaL_newmetatable(LS, CH_META);
+    luaL_register (LS, NULL, CH_meta); 
+    luaL_newmetatable(LS, OBJ_META);
+    luaL_register (LS, NULL, OBJ_meta);
     luaL_newmetatable(LS, ROOM_META);
-    luaL_register (LS, NULL, room_meta);
+    luaL_register (LS, NULL, ROOM_meta);
     luaL_newmetatable(LS, EXIT_META);
-    luaL_register (LS, NULL, exit_meta);
+    luaL_register (LS, NULL, EXIT_meta);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
@@ -1854,11 +1966,11 @@ void lua_program( char *text, int pvnum, char *source,
     }
 
     /* MOB_ARG */
-    make_ud_table (mob->LS, (void *)mob, UDTYPE_CHARACTER);
+    make_ud_table (mob->LS, (void *)mob, UDTYPE_CH);
 
     /* CH_ARG */
     if (ch)
-        make_ud_table (mob->LS,(void *) ch, UDTYPE_CHARACTER);
+        make_ud_table (mob->LS,(void *) ch, UDTYPE_CH);
     else lua_pushnil(mob->LS);
 
     /* TRIG_ARG */
@@ -1868,12 +1980,12 @@ void lua_program( char *text, int pvnum, char *source,
 
     /* OBJ1_ARG */
     if (arg1type== ACT_ARG_OBJ && arg1)
-        make_ud_table( mob->LS, arg1, UDTYPE_OBJECT);
+        make_ud_table( mob->LS, arg1, UDTYPE_OBJ);
     else lua_pushnil(mob->LS);
 
     /* OBJ2_ARG */
     if (arg2type== ACT_ARG_OBJ && arg2)
-        make_ud_table( mob->LS, arg2, UDTYPE_OBJECT);
+        make_ud_table( mob->LS, arg2, UDTYPE_OBJ);
     else lua_pushnil(mob->LS);
 
     /* TEXT1_ARG */
@@ -1888,7 +2000,7 @@ void lua_program( char *text, int pvnum, char *source,
 
     /* VICTIM_ARG */
     if (arg2type== ACT_ARG_CHARACTER)
-        make_ud_table( mob->LS, arg2, UDTYPE_CHARACTER);
+        make_ud_table( mob->LS, arg2, UDTYPE_CH);
     else lua_pushnil(mob->LS);
 
 
