@@ -2172,12 +2172,11 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
 	    sprintf( buf,
 		     ": modifies %s by %d ",
 		     affect_loc_name( paf->location ),
-		     paf->modifier);
-	    send_to_char( buf, to_ch );
+		     paf->modifier);	    send_to_char( buf, to_ch );
 	    if ( paf->duration == -1 )
-		sprintf( buf, "indefinitely" );
+	        sprintf( buf, "indefinitely (Lvl %d)", paf->level );
 	    else
-		sprintf( buf, "for %d hours", paf->duration );
+                sprintf( buf, "for %d hours (Lvl %d)", paf->duration, paf->level );
 	    send_to_char( buf, to_ch );
 	}
 	
