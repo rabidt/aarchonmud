@@ -42,3 +42,10 @@ end
 function rand(pcnt)
     return ( (mt.rand()*100) < pcnt)
 end
+
+io=nil
+os.execute=nil
+os.rename=nil
+os.remove=nil
+os.exit=nil
+os.setlocale=nil
