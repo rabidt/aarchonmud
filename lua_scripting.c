@@ -213,10 +213,11 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
             
     luaL_getmetatable (LS, meta);
     lua_setmetatable (LS, -2);  /* set metatable for object data */
+    lua_pushstring( LS, "tableid");
     lua_pushlightuserdata( LS, ptr);
     luaL_getmetatable(LS, UD_META);
     lua_setmetatable(LS, -2);
-    lua_setfield( LS, -2, "tableid" );
+    lua_rawset( LS, -3 );
 
     lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
     lua_pushvalue( LS, -2);
@@ -313,6 +314,19 @@ static int L_getroom (lua_State *LS)
     make_ud_table( LS, room, UDTYPE_ROOM);
     return 1;
 
+}
+
+static int L_getobjproto (lua_State *LS)
+{
+    int num = luaL_checknumber (LS, 1);
+
+    OBJ_INDEX_DATA *obj=get_object_index(num);
+
+    if (!obj)
+        return 0;
+
+    make_ud_table( LS, obj, UDTYPE_OBJPROTO);
+    return 1;
 }
 
 static int L_randchar (lua_State *LS)
@@ -1567,10 +1581,20 @@ static int get_CH_field ( lua_State *LS)
 
 }
 
+static int newindex_error ( lua_State *LS)
+{
+    lua_getfield(LS, 1, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    luaL_error( LS,"Cannot set values on game objects. UDTYPE: %d", type);
+    return 0;
+
+}
+
 static const struct luaL_reg OBJ_metatable [] =
 {
     {"__tostring", OBJ2string},
     {"__index", get_OBJ_field},
+    {"__newindex", newindex_error},
     {"__eq", check_OBJ_equal},
     {NULL, NULL}
 };
@@ -1579,6 +1603,7 @@ static const struct luaL_reg OBJPROTO_metatable [] =
 {
     {"__tostring", OBJPROTO2string},
     {"__index", get_OBJPROTO_field},
+    {"__newindex", newindex_error},
     {"__eq", check_OBJPROTO_equal},
     {NULL, NULL}
 };
@@ -1587,6 +1612,7 @@ static const struct luaL_reg ROOM_metatable [] =
 {
     {"__tostring", ROOM2string},
     {"__index", get_ROOM_field},
+    {"__newindex", newindex_error},
     {"__eq", check_ROOM_equal},
     {NULL, NULL}
 };
@@ -1595,6 +1621,7 @@ static const struct luaL_reg CH_metatable [] =
 {
     {"__tostring", CH2string},
     {"__index", get_CH_field},
+    {"__newindex", newindex_error},
     {"__eq", check_CH_equal},
     {NULL, NULL}
 };
@@ -1603,6 +1630,7 @@ static const struct luaL_reg EXIT_metatable [] =
 {
     {"__tostring", EXIT2string},
     {"__index", get_EXIT_field},
+    {"__newindex", newindex_error},
     {"__eq", check_EXIT_equal},
     {NULL, NULL}
 };
