@@ -1278,7 +1278,6 @@ static int get_OBJPROTO_field ( lua_State *LS )
     if ( !ud_objp )
         return 0;
 
-
     FLDSTR("name", ud_objp->name);
     FLDSTR("shortdescr", ud_objp->short_descr);
     FLDSTR("clan", clan_table[ud_objp->clan].name);
@@ -1568,7 +1567,7 @@ static int get_CH_field ( lua_State *LS)
 
 }
 
-static const struct luaL_reg OBJ_meta [] =
+static const struct luaL_reg OBJ_metatable [] =
 {
     {"__tostring", OBJ2string},
     {"__index", get_OBJ_field},
@@ -1576,7 +1575,7 @@ static const struct luaL_reg OBJ_meta [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg OBJPROTO_meta [] =
+static const struct luaL_reg OBJPROTO_metatable [] =
 {
     {"__tostring", OBJPROTO2string},
     {"__index", get_OBJPROTO_field},
@@ -1584,7 +1583,7 @@ static const struct luaL_reg OBJPROTO_meta [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg ROOM_meta [] =
+static const struct luaL_reg ROOM_metatable [] =
 {
     {"__tostring", ROOM2string},
     {"__index", get_ROOM_field},
@@ -1592,7 +1591,7 @@ static const struct luaL_reg ROOM_meta [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg CH_meta [] = 
+static const struct luaL_reg CH_metatable [] = 
 {
     {"__tostring", CH2string},
     {"__index", get_CH_field},
@@ -1600,7 +1599,7 @@ static const struct luaL_reg CH_meta [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg EXIT_meta [] =
+static const struct luaL_reg EXIT_metatable [] =
 {
     {"__tostring", EXIT2string},
     {"__index", get_EXIT_field},
@@ -1720,13 +1719,15 @@ static int RegisterLuaRoutines (lua_State *LS)
 
     /* meta table to identify object types */
     luaL_newmetatable(LS, CH_META);
-    luaL_register (LS, NULL, CH_meta); 
+    luaL_register (LS, NULL, CH_metatable); 
     luaL_newmetatable(LS, OBJ_META);
-    luaL_register (LS, NULL, OBJ_meta);
+    luaL_register (LS, NULL, OBJ_metatable);
     luaL_newmetatable(LS, ROOM_META);
-    luaL_register (LS, NULL, ROOM_meta);
+    luaL_register (LS, NULL, ROOM_metatable);
     luaL_newmetatable(LS, EXIT_META);
-    luaL_register (LS, NULL, EXIT_meta);
+    luaL_register (LS, NULL, EXIT_metatable);
+    luaL_newmetatable(LS, OBJPROTO_META);
+    luaL_register (LS, NULL, OBJPROTO_metatable);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
