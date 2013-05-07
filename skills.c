@@ -200,6 +200,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 				ch,NULL,trainer,TO_CHAR );                        
 			ch->practice -= 10 * train_count;
 			ch->train += train_count;
+                        printf_to_char(ch,"You gain %d train(s).\n\r", train_count);
 			return;
 		}
 		else if (!str_cmp(arg,"revert"))
