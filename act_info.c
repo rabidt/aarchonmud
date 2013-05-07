@@ -4152,11 +4152,7 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
     
     ch->mana -= skill_table[sn].min_mana;
-    /*
-    check_improve(ch,gsn_lore,FALSE,2);
-    if ( weapon )
-	check_improve(ch,gsn_weapons_lore,FALSE,2);
-    */
+
 
     /* ok, he knows something.. */
     say_basic_obj_index_data( ch, org_obj );
@@ -4196,15 +4192,28 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     */
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     if ( IS_NPC(ch) )
 	return; // prevent easy learning by spamming sage
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-	if ( IS_NPC(rch) || !IS_AWAKE(rch) || rch == ch )
+	if ( IS_NPC(rch) || !IS_AWAKE(rch) )
 	    continue;
-	check_improve( rch, gsn_lore, 2, TRUE );
-	if ( weapon )
-	    check_improve( rch, gsn_weapons_lore, 2, TRUE );
+        else
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
+                if ( weapon )
+                    check_improve(ch, gsn_weapons_lore, 5, TRUE);
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+        }
     }
 }
 
