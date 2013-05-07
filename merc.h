@@ -276,6 +276,8 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define MAX_STORAGE_BOX	   5
 #define MAX_QUOTES         22 /* This must equal the # of quotes you have */
 #define MAX_CP						 60
+#define MAX_ARROWS 300
+
 #define LEVEL_IMMORTAL     (MAX_LEVEL - 9)
 #define LEVEL_HERO         (MAX_LEVEL - 10)
 #define LEVEL_MIN_HERO     (MAX_LEVEL - 20)
@@ -1317,8 +1319,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 
 /* damage classes */
