@@ -4323,7 +4323,6 @@ void do_second (CHAR_DATA *ch, char *argument)
     return;
 }
 
-#define MAX_ARROWS 300
 void merge_arrows( CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2 )
 {
     int sum, max;
