@@ -3010,26 +3010,29 @@ CHAR_DATA *find_keeper( CHAR_DATA *ch )
 	/*
 	 * Undesirables.
 	 */
-	if ( !is_disguised(ch) )
-	{
-	    if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_KILLER) )
+        if (ch->in_room->clan == NULL)
+        {
+            if ( !is_disguised(ch) )
 	    {
-		do_say( keeper, "Killers are not welcome!" );
-		sprintf( buf, "%s the KILLER is over here!", ch->name );
-		REMOVE_BIT( keeper->penalty, PENALTY_NOSHOUT );
-		do_yell( keeper, buf );
-		return NULL;
-	    }
+	        if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_KILLER) )
+	        {
+		    do_say( keeper, "Killers are not welcome!" );
+		    sprintf( buf, "%s the KILLER is over here!", ch->name );
+		    REMOVE_BIT( keeper->penalty, PENALTY_NOSHOUT );
+		    do_yell( keeper, buf );
+		    return NULL;
+ 	        }
 
-	    if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_THIEF) )
-	    {
-		do_say( keeper, "Thieves are not welcome!" );
-		sprintf( buf, "%s the THIEF is over here!\n\r", ch->name );
-		REMOVE_BIT( keeper->penalty, PENALTY_NOSHOUT );
-		do_yell( keeper, buf );
-		return NULL;
+	        if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_THIEF) )
+	        {
+		    do_say( keeper, "Thieves are not welcome!" );
+		    sprintf( buf, "%s the THIEF is over here!\n\r", ch->name );
+		    REMOVE_BIT( keeper->penalty, PENALTY_NOSHOUT );
+		    do_yell( keeper, buf );
+		    return NULL;
+	        }
 	    }
-	}
+        }
 	
 	/*
 	 * Shop hours.
