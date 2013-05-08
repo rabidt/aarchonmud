@@ -329,6 +329,23 @@ static int L_getobjproto (lua_State *LS)
     return 1;
 }
 
+static int L_log (lua_State *LS)
+{
+    char buf[MSL];
+    CHAR_DATA *ch=L_getchar(LS);
+    if (IS_NPC(ch))
+    {
+        sprintf(buf, "LUA::(%d)%s:%s",
+                ch->pIndexData->vnum, ch->short_descr, luaL_checkstring (LS, 1) );
+    }
+    else
+    {
+        sprintf(buf, "LUA::%s:%s", ch->name);
+    }
+
+    log_string(buf);
+}
+
 static int L_randchar (lua_State *LS)
 {
     CHAR_DATA *ch=get_random_char(L_getchar(LS) );
@@ -1731,6 +1748,7 @@ void RegisterGlobalFunctions(lua_State *LS)
 
     lua_register(LS,"loadprog",    L_loadprog);
     lua_register(LS,"getobjproto", L_getobjproto);
+    lua_register(LS,"log",         L_log);
 
 }
 
