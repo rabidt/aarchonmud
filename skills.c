@@ -655,6 +655,20 @@ void do_skills(CHAR_DATA *ch, char *argument)
 		skill_list[level][0] = '\0';
 	}
 
+    /* let's show exotic */
+        int max=0;
+        int total=0;
+        int i;
+        int skill;
+        for (i=gsn_axe; i<=gsn_whip; i++)
+        {
+            skill = get_weapon_skill(ch, i);
+            total+=skill;
+            if (skill>max) max=skill;
+        }
+        skill=(total/(gsn_whip-gsn_axe)+2*max)/3;
+    ptc( ch, "          %-21s     (%3d%%)", "exotic", skill);
+
 	for (sn = 0; sn < MAX_SKILL; sn++)
 	{
 	    if (skill_table[sn].name == NULL )
