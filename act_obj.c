@@ -3859,8 +3859,11 @@ void do_donate( CHAR_DATA *ch, char *argument)
    OBJ_DATA *obj;
 
    char arg[MAX_INPUT_LENGTH];
+   char arg1[MIL]; 
+   int location;
    
    argument = one_argument(argument, arg);
+   argument = one_argument(argument, arg1);
 
    if (IS_REMORT(ch))
    {
@@ -3873,6 +3876,13 @@ void do_donate( CHAR_DATA *ch, char *argument)
 	  send_to_char("Donate what?\n\r",ch);
 	  return;
    }
+
+ /* Second parameter to specify clan versus public - Astark 4-23-13 */
+   if (!strcmp(arg1, "clan"))
+       location = get_room_index(clan_table[ch->clan].donation);
+   else
+       location = get_room_index(ROOM_VNUM_DONATION);
+
    
    if (ch->position == POS_FIGHTING)
    {
@@ -3910,18 +3920,29 @@ void do_donate( CHAR_DATA *ch, char *argument)
 	  return;
    }
    
-   act("$n donates {Y$p{x.",ch,obj,NULL,TO_ROOM);
-   act("You donate {Y$p{x.",ch,obj,NULL,TO_CHAR);
-   
+   /* More accurate donation message with new change */
+   if (!strcmp(arg1, "clan"))
+   {
+       act("$n donates {Y$p{x to $s clanhall.",ch,obj,NULL,TO_ROOM);
+       act("You donate {Y$p{x to your clanhall.",ch,obj,NULL,TO_CHAR);
+   }
+   else
+   {
+       act("$n donates {Y$p{x.",ch,obj,NULL,TO_ROOM);
+       act("You donate {Y$p{x.",ch,obj,NULL,TO_CHAR);      
+   }
+
+/* Commented out per January 2013 discussion on forums - Astark 4-23-13
    if (obj->timer)
 	  SET_BIT(obj->extra_flags,ITEM_HAD_TIMER);
    else
 	  obj->timer = number_range(100,200);
 
    obj->cost = 0;
+ */
    
    obj_from_char(obj);
-   obj_to_room(obj, get_room_index(clan_table[ch->clan].donation));
+   obj_to_room(obj, location);
 
    return;
 }
