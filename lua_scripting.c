@@ -1554,6 +1554,63 @@ static int get_CH_field ( lua_State *LS)
     FLDSTR("race", race_table[ud_ch->race].name );
     FLDSTR("shortdescr", ud_ch->short_descr ? ud_ch->short_descr : "");
     FLDSTR("longdescr", ud_ch->long_descr ? ud_ch->long_descr : "");
+    
+    if ( !strcmp(argument, "heshe") )
+    {
+        if ( ud_ch->sex==SEX_MALE )
+        {
+            lua_pushstring( LS, "he");
+            return 1;
+        }
+        else if ( ud_ch->sex==SEX_FEMALE )
+        {
+            lua_pushstring( LS, "she");
+            return 1;
+        }
+        else
+        {
+            lua_pushstring( LS, "it");
+            return 1;
+        }
+    }
+
+    if ( !strcmp(argument, "himher") )
+    {
+        if ( ud_ch->sex==SEX_MALE )
+        {
+            lua_pushstring( LS, "him");
+            return 1;
+        }
+        else if ( ud_ch->sex==SEX_FEMALE )
+        {
+            lua_pushstring( LS, "her");
+            return 1;
+        }
+        else
+        {
+            lua_pushstring( LS, "it");
+            return 1;
+        }
+    }
+
+    if ( !strcmp(argument, "hisher") )
+    {
+        if ( ud_ch->sex==SEX_MALE )
+        {
+            lua_pushstring( LS, "his");
+            return 1;
+        }
+        else if ( ud_ch->sex==SEX_FEMALE )
+        {
+            lua_pushstring( LS, "her");
+            return 1;
+        }
+        else
+        {
+            lua_pushstring( LS, "its");
+            return 1;
+        }
+    }
 
     if ( !strcmp(argument, "mprogtarget") )
     {
