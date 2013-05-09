@@ -416,7 +416,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 void do_skill( CHAR_DATA *ch, char *argument )
 {
     char buf[MSL];
-    int sn, level, skill;
+    int sn, level, skill, mana;
     
     if (IS_NPC(ch))
 	return;
@@ -443,19 +443,40 @@ void do_skill( CHAR_DATA *ch, char *argument )
     level = skill_table[sn].skill_level[ch->class];
     skill = get_skill(ch,sn);
 
-    if( level > 100 )
+  /* Now uses existing functions to display mana on spells - Astark 4-23-13 */
+
+    if (!IS_SPELL(sn))
     {
-	if( skill > 0 )
-	{
-	    sprintf( buf, "Proficiency for raceskill %s:  %3d%% practiced  %3d%% effective\n\r",
-		skill_table[sn].name, ch->pcdata->learned[sn], skill );
-	}
-	else
-	    sprintf( buf, "You do not have the %s skill.\n\r", skill_table[sn].name );
+        if( level > 100 )
+        {
+	    if( skill > 0 )
+            {
+                sprintf( buf, "Proficiency for raceskill %s:  %3d%% practiced  %3d%% effective\n\r",
+                    skill_table[sn].name, ch->pcdata->learned[sn], skill );
+            }
+            else
+                sprintf( buf, "You do not have the %s skill.\n\r", skill_table[sn].name );
+        }
+        else
+	    sprintf( buf, "Proficiency for lvl %d skill %s:  %3d%% practiced  %3d%% effective\n\r",
+                level, skill_table[sn].name, ch->pcdata->learned[sn], skill );
     }
     else
-	sprintf( buf, "Proficiency for lvl %d skill %s:  %3d%% practiced  %3d%% effective\n\r",
-			level, skill_table[sn].name, ch->pcdata->learned[sn], skill );
+    {
+        if( level > 100 )
+        {
+	    if( skill > 0 )
+            {
+                sprintf( buf, "Proficiency for raceskill %s:  %3d%% practiced  %3d%% effective %3d mana\n\r",
+                    skill_table[sn].name, ch->pcdata->learned[sn], skill, mana_cost(ch, sn, skill));
+            }
+            else
+                sprintf( buf, "You do not have the %s skill.\n\r", skill_table[sn].name );
+        }
+        else
+            sprintf( buf, "Proficiency for lvl %d skill %s:  %3d%% practiced  %3d%% effective %3d mana\n\r",
+                level, skill_table[sn].name, ch->pcdata->learned[sn], skill, mana_cost(ch, sn, skill));  
+    }
 
     send_to_char( buf, ch );
 }
