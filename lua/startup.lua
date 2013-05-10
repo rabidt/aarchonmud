@@ -25,6 +25,19 @@ function RegisterUd(ud)
     return
 end
 
+function UnregisterUd(lightud)
+    for k,v in pairs (udtbl) do
+        if v.tableid == lightud then
+        -- DESTROY
+            setmetatable(v,nil)
+            rawset(v,"tableid",nil)
+            v=nil
+        end
+    end
+end
+
+
+
 function cleanup()
     if udtbl==nil then
         return
