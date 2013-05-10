@@ -48,10 +48,10 @@ http://www.gammon.com.au/forum/?id=8015
 lua_State *LS_mud = NULL;  /* Lua state for entire MUD */
 /* Mersenne Twister stuff - see mt19937ar.c */
 
-static bool g_LuaScriptInProgress=FALSE;
-static lua_State *g_ActiveLuaScriptSpace=NULL;
-static bool g_CloseActiveLuaScriptSpace=FALSE;
-static jmp_buf g_place;
+extern bool        g_LuaScriptInProgress=FALSE;
+extern lua_State  *g_ActiveLuaScriptSpace=NULL;
+extern bool        g_CloseActiveLuaScriptSpace=FALSE;
+jmp_buf     g_place;
 
 
 void init_genrand(unsigned long s);
@@ -81,6 +81,7 @@ void add_lua_tables (lua_State *LS);
 
 #define CLEANUP_FUNCTION "cleanup"
 #define REGISTER_UD_FUNCTION "RegisterUd"
+#define UNREGISTER_UD_FUNCTION "UnregisterUd"
 
 #define NUM_MPROG_ARGS 8 
 #define MOB_ARG "mob"
@@ -236,9 +237,39 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
 
 
 }
+
+static void unregister_UD( lua_State *LS,  void *ptr )
+{
+    if (!LS)
+    {
+        bugf("NULL LS passed to unregister_UD.");
+        return;
+    }
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, UNREGISTER_UD_FUNCTION);
+    lua_pushlightuserdata( LS, ptr );
+    if (CallLuaWithTraceBack( LS, 1, 0) )
+    {
+        bugf ( "Error unregistering UD:\n %s",
+                lua_tostring(LS, -1));
+    }
+}
+
+void unregister_lua( void *ptr )
+{
+    if (ptr == NULL)
+    {
+        bugf("NULL ptr in unregister_lua.");
+        return;
+    }
+
+    if (g_LuaScriptInProgress && g_ActiveLuaScriptSpace)
+    {
+        unregister_UD( g_ActiveLuaScriptSpace, ptr );
+    }
+}
+    
 /* Given a Lua state, return the character it belongs to */
-
-
 CHAR_DATA * L_getchar (lua_State *LS)
 {
     /* retrieve our character */
@@ -299,6 +330,27 @@ void function_return_hook( lua_State *LS, lua_Debug *ar)
 
 static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
 {
+    int error;
+
+    int base = lua_gettop (LS) - iArguments;  /* function index */
+    GetTracebackFunction (LS);
+    if (lua_isnil (LS, -1))
+    {
+        lua_pop (LS, 1);   /* pop non-existent function  */
+        error = lua_pcall (LS, iArguments, iReturn, 0);
+    }  
+    else
+    {
+        lua_insert (LS, base);  /* put it under chunk and args */
+        error = lua_pcall (LS, iArguments, iReturn, base);
+        lua_remove (LS, base);  /* remove traceback function */
+    }
+
+    return error;
+}  /* end of CallLuaWithTraceBack  */
+
+static int CallLuaMprogWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
+{
     g_ActiveLuaScriptSpace=LS;
     g_LuaScriptInProgress=TRUE;
 
@@ -314,7 +366,7 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
           error = lua_pcall (LS, iArguments, iReturn, 0);
         else
           error = -1;
-    }  
+    }
     else
     {
         lua_insert (LS, base);  /* put it under chunk and args */
@@ -334,8 +386,7 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
     g_CloseActiveLuaScriptSpace=FALSE;
 
     return error;
-}  /* end of CallLuaWithTraceBack  */
-
+}  /* end of CallLuaMprogWithTraceBack  */
 
 static int L_getroom (lua_State *LS)
 {
@@ -2171,7 +2222,7 @@ void lua_program( char *text, int pvnum, char *source,
 
 
     /* a couple of options here*/
-    int error=CallLuaWithTraceBack (mob->LS, NUM_MPROG_ARGS, 0) ;
+    int error=CallLuaMprogWithTraceBack (mob->LS, NUM_MPROG_ARGS, 0) ;
     if (error > 0 )
     {
         bugf ( "LUA mprog error for vnum %d:\n %s",
