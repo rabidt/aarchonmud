@@ -48,10 +48,18 @@ http://www.gammon.com.au/forum/?id=8015
 lua_State *LS_mud = NULL;  /* Lua state for entire MUD */
 /* Mersenne Twister stuff - see mt19937ar.c */
 
-extern bool        g_LuaScriptInProgress=FALSE;
-extern lua_State  *g_ActiveLuaScriptSpace=NULL;
-extern bool        g_CloseActiveLuaScriptSpace=FALSE;
-jmp_buf     g_place;
+#define LUA_LOOP_CHECK_MAX_CNT 1000 /* give 100000 instructions */
+#define LUA_LOOP_CHECK_INCREMENT 100
+#define ERR_MOB_DESTROYED -1
+#define ERR_INF_LOOP      -2
+
+/* file scope variables */
+static bool        s_LuaScriptInProgress=FALSE;
+static lua_State  *s_ActiveLuaScriptSpace=NULL;
+//static bool        s_CloseActiveLuaScriptSpace=FALSE;
+static bool        s_LuaMobDestroyed=FALSE;
+static jmp_buf     s_place;
+static int         s_LoopCheckCounter;
 
 
 void init_genrand(unsigned long s);
@@ -218,7 +226,7 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
             luaL_error (LS, "make_ud_table called with unknown UD_TYPE: %d", UDTYPE);
             break;
     }
-            
+
     luaL_getmetatable (LS, meta);
     lua_setmetatable (LS, -2);  /* set metatable for object data */
     lua_pushstring( LS, "tableid");
@@ -263,12 +271,12 @@ void unregister_lua( void *ptr )
         return;
     }
 
-    if (g_LuaScriptInProgress && g_ActiveLuaScriptSpace)
+    if (s_LuaScriptInProgress && s_ActiveLuaScriptSpace)
     {
-        unregister_UD( g_ActiveLuaScriptSpace, ptr );
+        unregister_UD( s_ActiveLuaScriptSpace, ptr );
     }
 }
-    
+
 /* Given a Lua state, return the character it belongs to */
 CHAR_DATA * L_getchar (lua_State *LS)
 {
@@ -321,10 +329,28 @@ static void GetTracebackFunction (lua_State *LS)
 /* We'll set hook in at function return to see if we need to abort*/
 void function_return_hook( lua_State *LS, lua_Debug *ar)
 {
-    if (g_CloseActiveLuaScriptSpace)
+    if (s_LuaMobDestroyed)
     {
-        /* Somebody is telling us to exit */
-        longjmp(g_place,1);
+        /* Mobby died? */
+        longjmp(s_place,ERR_MOB_DESTROYED);
+    }
+}
+
+void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
+{
+    if (!s_LuaScriptInProgress)
+        return;
+
+    if ( s_LoopCheckCounter < LUA_LOOP_CHECK_MAX_CNT)
+    {
+        s_LoopCheckCounter++;
+        return;
+    }
+    else
+    {
+        /* exit */
+        longjmp(s_place,ERR_INF_LOOP);
+        return;
     }
 }
 
@@ -348,45 +374,6 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
 
     return error;
 }  /* end of CallLuaWithTraceBack  */
-
-static int CallLuaMprogWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
-{
-    g_ActiveLuaScriptSpace=LS;
-    g_LuaScriptInProgress=TRUE;
-
-    int error;
-
-    lua_sethook(LS, function_return_hook, LUA_MASKRET, 0);
-    int base = lua_gettop (LS) - iArguments;  /* function index */
-    GetTracebackFunction (LS);
-    if (lua_isnil (LS, -1))
-    {
-        lua_pop (LS, 1);   /* pop non-existent function  */
-        if ( setjmp(g_place) == 0 )
-          error = lua_pcall (LS, iArguments, iReturn, 0);
-        else
-          error = -1;
-    }
-    else
-    {
-        lua_insert (LS, base);  /* put it under chunk and args */
-        if ( setjmp(g_place) == 0 )
-          error = lua_pcall (LS, iArguments, iReturn, base);
-        else
-          error = -1;
-        lua_remove (LS, base);  /* remove traceback function */
-    }
-
-    g_LuaScriptInProgress=FALSE;
-    if (g_CloseActiveLuaScriptSpace==TRUE && g_ActiveLuaScriptSpace==LS)
-    {
-        lua_close(g_ActiveLuaScriptSpace);
-    }
-    g_ActiveLuaScriptSpace=NULL;
-    g_CloseActiveLuaScriptSpace=FALSE;
-
-    return error;
-}  /* end of CallLuaMprogWithTraceBack  */
 
 static int L_getroom (lua_State *LS)
 {
@@ -1362,14 +1349,14 @@ static int EXIT2string (lua_State *LS)
 
 #define FLDSTR(key,value) \
     if ( !strcmp( argument, key ) ) \
-        {lua_pushstring( LS, value ); return 1;}
+{lua_pushstring( LS, value ); return 1;}
 #define FLDNUM(key,value) \
     if ( !strcmp( argument, key ) ) \
-        {lua_pushnumber( LS, value ); return 1;}
+{lua_pushnumber( LS, value ); return 1;}
 #define FLDBOOL(key,value) \
     if ( !strcmp( argument, key ) ) \
-        {lua_pushboolean( LS, value ); return 1;}
-    
+{lua_pushboolean( LS, value ); return 1;}
+
 
 
 static int check_OBJ_equal( lua_State *LS)
@@ -1411,7 +1398,7 @@ static int get_OBJPROTO_field ( lua_State *LS )
     FLDNUM("v3", ud_objp->value[3]);
     FLDNUM("v4", ud_objp->value[4]);
     FLDNUM("v5", ud_objp->value[5]);
-    
+
     return 0;
 }
 
@@ -1438,16 +1425,16 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("vnum", ud_obj->pIndexData->vnum);
     FLDSTR("type", item_name(ud_obj->item_type));
     FLDNUM("weight", ud_obj->weight);
-    
+
     if ( !strcmp(argument, "proto" ) )
     {
         if ( !ud_obj->pIndexData )
-          return 0;
-          
+            return 0;
+
         make_ud_table(LS, ud_obj->pIndexData, UDTYPE_OBJPROTO);
         return 1;
     }
-    
+
     if ( !strcmp(argument, "contents") )
     {
         int index=1;
@@ -1460,7 +1447,7 @@ static int get_OBJ_field ( lua_State *LS )
         }
         return 1;
     }
- 
+
     if (!strcmp(argument, "inroom") )
     {
         if (!ud_obj->in_room)
@@ -1582,7 +1569,7 @@ static int get_ROOM_field ( lua_State *LS )
         }
         return 1;
     }
-            
+
 
     /* specific EXITs*/
     sh_int i;
@@ -1649,7 +1636,7 @@ static int get_CH_field ( lua_State *LS)
     FLDSTR("race", race_table[ud_ch->race].name );
     FLDSTR("shortdescr", ud_ch->short_descr ? ud_ch->short_descr : "");
     FLDSTR("longdescr", ud_ch->long_descr ? ud_ch->long_descr : "");
-    
+
     if ( !strcmp(argument, "heshe") )
     {
         if ( ud_ch->sex==SEX_MALE )
@@ -1711,7 +1698,7 @@ static int get_CH_field ( lua_State *LS)
     {
         if (!ud_ch->mprog_target)
             return 0;
-       
+
         make_ud_table(LS, ud_ch->mprog_target, UDTYPE_CH);
         return 1;
     }
@@ -1964,6 +1951,8 @@ void open_lua  ( CHAR_DATA * ch)
     lua_pushlightuserdata(LS, (void *)ch);    /* push value */
     lua_call(LS, 2, 0);
 
+    lua_sethook(LS, function_return_hook, LUA_MASKRET, 0);
+    lua_sethook(LS, infinite_loop_check_hook, LUA_MASKCOUNT, LUA_LOOP_CHECK_INCREMENT);
     /* run initialiation script */
     if (luaL_loadfile (LS, LUA_STARTUP) ||
             CallLuaWithTraceBack (LS, 0, 0))
@@ -1983,10 +1972,10 @@ void close_lua ( CHAR_DATA * ch)
     if (ch->LS == NULL)
         return;  /* never opened */
 
-    if ( g_LuaScriptInProgress == TRUE && g_ActiveLuaScriptSpace == ch->LS)
+    if ( s_LuaScriptInProgress == TRUE && s_ActiveLuaScriptSpace == ch->LS)
     {
         /* script in progress, we need to delay closing */  
-        g_CloseActiveLuaScriptSpace=TRUE;
+        s_LuaMobDestroyed=TRUE;
         return;
     }
 
@@ -2221,33 +2210,59 @@ void lua_program( char *text, int pvnum, char *source,
     else lua_pushnil(mob->LS);
 
 
-    /* a couple of options here*/
-    int error=CallLuaMprogWithTraceBack (mob->LS, NUM_MPROG_ARGS, 0) ;
-    if (error > 0 )
+    /* some snazzy stuff to prevent crashes and other bad things*/
+    int error;
+    s_LoopCheckCounter=0;
+    s_ActiveLuaScriptSpace=mob->LS;
+    s_LuaScriptInProgress=TRUE;
+    s_LuaMobDestroyed=FALSE;
+
+    setjmp(s_place);
+    switch ( setjmp(s_place) )   
     {
-        bugf ( "LUA mprog error for vnum %d:\n %s",
-                pvnum,
-                lua_tostring(mob->LS, -1));
+        case 0: /* the actual code we are executing */
+
+            error=CallLuaWithTraceBack (mob->LS, NUM_MPROG_ARGS, 0) ;
+            if (error > 0 )
+            {
+                bugf ( "LUA mprog error for vnum %d:\n %s",
+                        pvnum,
+                        lua_tostring(mob->LS, -1));
+            }
+            lua_settop(mob->LS, 0);
+
+            /* cleanup routines */
+            lua_getfield( mob->LS, LUA_GLOBALSINDEX, CLEANUP_FUNCTION);
+            if ( CallLuaWithTraceBack (mob->LS, 0, 0))
+            {
+                bugf ( "Cleanup error for vnum %d:\n %s",
+                        pvnum,
+                        lua_tostring(mob->LS, -1));
+            }
+
+            lua_settop (mob->LS, 0);    /* get rid of stuff lying around */
+            break;
+
+            /* Error handling */ 
+        case ERR_INF_LOOP:
+            bugf("Infinite loop interrupted in mprog: %d on mob %d",
+                    pvnum, mob->pIndexData->vnum);
+            /* close the script space */
+            close_lua(mob);
+            lua_close(mob->LS);
+            mob->LS=NULL;
+            break;
+        case ERR_MOB_DESTROYED:
+            /* We don't treat as a bug, mob might have destroyed itself
+               so we forced the script to exit.*/
+            /* close using this var since mob doesn't exist anymore */
+            lua_close(s_ActiveLuaScriptSpace);
+            break;
     }
 
-    if (error < 0 ) 
-    {
-        /* Special case if mob was destroyed during script and it exited*/
-        /* Means LS was already closed, so we need to get out of here. */
+    s_ActiveLuaScriptSpace=NULL;
+    s_LuaScriptInProgress=FALSE;
 
-        return;
-    }
-
-    /* cleanup routines */
-    lua_getfield( mob->LS, LUA_GLOBALSINDEX, CLEANUP_FUNCTION);
-    if ( CallLuaWithTraceBack (mob->LS, 0, 0))
-    {
-        bugf ( "Cleanup error for vnum %d:\n %s",
-                pvnum,
-                lua_tostring(mob->LS, -1));
-    }
-
-    lua_settop (mob->LS, 0);    /* get rid of stuff lying around */
 }
 
 
