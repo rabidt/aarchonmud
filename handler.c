@@ -2109,7 +2109,9 @@ void extract_obj( OBJ_DATA *obj )
         obj_next = obj_content->next_content;
         extract_obj( obj_content );
     }
-    
+
+    unregister_lua( obj );
+
     if ( object_list == obj )
     {
         object_list = obj->next;
@@ -2313,6 +2315,8 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
         if ( ch->mprog_target == wch )
             wch->mprog_target = NULL;
     }
+
+    unregister_lua( ch );
     
     if ( ch == char_list )
     {
