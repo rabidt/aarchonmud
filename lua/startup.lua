@@ -31,6 +31,7 @@ function UnregisterUd(lightud)
         -- DESTROY
             setmetatable(v,nil)
             rawset(v,"tableid",nil)
+            v={}
             v=nil
         end
     end
@@ -47,6 +48,7 @@ function cleanup()
     for _,v in ipairs (udtbl) do
         setmetatable(v,nil)
         rawset(v,"tableid",nil) 
+        v={}
         v=nil
     end
     udtbl={}
@@ -54,6 +56,10 @@ end
 
 function rand(pcnt)
     return ( (mt.rand()*100) < pcnt)
+end
+
+function randnum(low, high)
+    return math.floor( (mt.rand()*(high+1-low) + low)) -- people usually want inclusive
 end
 
 io=nil
