@@ -4757,7 +4757,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-		spell_null,             TAR_CHAR_OFFENSIVE,      POS_FIGHTING,
+		spell_null,             TAR_IGNORE,      POS_FIGHTING,
 		&gsn_blackjack,          SLOT( 0),        0,     24,
 		"blackjack",    "The pain in your head subsides.",   "", NULL
 	},
