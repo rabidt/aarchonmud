@@ -1031,7 +1031,12 @@ void do_cast( CHAR_DATA *ch, char *argument )
         CHAR_DATA *vic = (CHAR_DATA *) vo;
 
         if ( vic != NULL && IS_NPC(vic) )
-            mp_spell_trigger( skill_table[sn].name, vic, ch );
+        {
+            if (mp_spell_trigger( skill_table[sn].name, vic, ch ) )
+                return; //Return because it might have killed the vic or ch
+        }
+
+
 
     }
     

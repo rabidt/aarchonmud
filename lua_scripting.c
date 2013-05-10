@@ -39,6 +39,7 @@ http://www.gammon.com.au/forum/?id=8015
 #include <time.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#include <setjmp.h>
 
 #include "merc.h"
 #include "mob_cmds.h"
@@ -46,6 +47,12 @@ http://www.gammon.com.au/forum/?id=8015
 
 lua_State *LS_mud = NULL;  /* Lua state for entire MUD */
 /* Mersenne Twister stuff - see mt19937ar.c */
+
+static bool g_LuaScriptInProgress=FALSE;
+static lua_State *g_ActiveLuaScriptSpace=NULL;
+static bool g_CloseActiveLuaScriptSpace=FALSE;
+static jmp_buf g_place;
+
 
 void init_genrand(unsigned long s);
 void init_by_array(unsigned long init_key[], int key_length);
@@ -280,26 +287,55 @@ static void GetTracebackFunction (lua_State *LS)
     lua_remove (LS, -2);   /* remove debug table, leave traceback function  */
 }  /* end of GetTracebackFunction */
 
+/* We'll set hook in at function return to see if we need to abort*/
+void function_return_hook( lua_State *LS, lua_Debug *ar)
+{
+    if (g_CloseActiveLuaScriptSpace)
+    {
+        /* Somebody is telling us to exit */
+        longjmp(g_place,1);
+    }
+}
+
 static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
 {
+    g_ActiveLuaScriptSpace=LS;
+    g_LuaScriptInProgress=TRUE;
 
     int error;
+
+    lua_sethook(LS, function_return_hook, LUA_MASKRET, 0);
     int base = lua_gettop (LS) - iArguments;  /* function index */
     GetTracebackFunction (LS);
     if (lua_isnil (LS, -1))
     {
         lua_pop (LS, 1);   /* pop non-existent function  */
-        error = lua_pcall (LS, iArguments, iReturn, 0);
+        if ( setjmp(g_place) == 0 )
+          error = lua_pcall (LS, iArguments, iReturn, 0);
+        else
+          error = -1;
     }  
     else
     {
         lua_insert (LS, base);  /* put it under chunk and args */
-        error = lua_pcall (LS, iArguments, iReturn, base);
+        if ( setjmp(g_place) == 0 )
+          error = lua_pcall (LS, iArguments, iReturn, base);
+        else
+          error = -1;
         lua_remove (LS, base);  /* remove traceback function */
     }
 
+    g_LuaScriptInProgress=FALSE;
+    if (g_CloseActiveLuaScriptSpace==TRUE && g_ActiveLuaScriptSpace==LS)
+    {
+        lua_close(g_ActiveLuaScriptSpace);
+    }
+    g_ActiveLuaScriptSpace=NULL;
+    g_CloseActiveLuaScriptSpace=FALSE;
+
     return error;
 }  /* end of CallLuaWithTraceBack  */
+
 
 static int L_getroom (lua_State *LS)
 {
@@ -562,7 +598,6 @@ static int L_cmd_cast (lua_State *LS)
 
 static int L_cmd_damage (lua_State *LS)
 {
-
     do_mpdamage( L_getchar(LS), luaL_checkstring (LS, 1));
 
     return 0;
@@ -1317,7 +1352,7 @@ static int get_OBJPROTO_field ( lua_State *LS )
     FLDNUM("cost", ud_objp->cost);
     FLDSTR("material", ud_objp->material);
     FLDNUM("vnum", ud_objp->vnum);
-    FLDSTR("type", type_flags[ud_objp->item_type].name);
+    FLDSTR("type", item_name(ud_objp->item_type));
     FLDNUM("weight", ud_objp->weight);
     FLDNUM("v0", ud_objp->value[0]);
     FLDNUM("v1", ud_objp->value[1]);
@@ -1350,7 +1385,7 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("cost", ud_obj->cost);
     FLDSTR("material", ud_obj->material);
     FLDNUM("vnum", ud_obj->pIndexData->vnum);
-    FLDSTR("type", type_flags[ud_obj->item_type].name);
+    FLDSTR("type", item_name(ud_obj->item_type));
     FLDNUM("weight", ud_obj->weight);
     
     if ( !strcmp(argument, "proto" ) )
@@ -1381,6 +1416,15 @@ static int get_OBJ_field ( lua_State *LS )
             return 0;
 
         make_ud_table(LS, ud_obj->in_room, UDTYPE_ROOM);
+        return 1;
+    }
+
+    if (!strcmp(argument, "inobj") )
+    {
+        if (!ud_obj->in_obj)
+            return 0;
+
+        make_ud_table(LS, ud_obj->in_obj, UDTYPE_OBJ);
         return 1;
     }
 
@@ -1888,6 +1932,13 @@ void close_lua ( CHAR_DATA * ch)
     if (ch->LS == NULL)
         return;  /* never opened */
 
+    if ( g_LuaScriptInProgress == TRUE && g_ActiveLuaScriptSpace == ch->LS)
+    {
+        /* script in progress, we need to delay closing */  
+        g_CloseActiveLuaScriptSpace=TRUE;
+        return;
+    }
+
     lua_close (ch->LS);
     ch->LS = NULL;
 
@@ -2119,13 +2170,22 @@ void lua_program( char *text, int pvnum, char *source,
     else lua_pushnil(mob->LS);
 
 
-    if ( CallLuaWithTraceBack (mob->LS, NUM_MPROG_ARGS, 0))
+    /* a couple of options here*/
+    int error=CallLuaWithTraceBack (mob->LS, NUM_MPROG_ARGS, 0) ;
+    if (error > 0 )
     {
         bugf ( "LUA mprog error for vnum %d:\n %s",
                 pvnum,
                 lua_tostring(mob->LS, -1));
     }
 
+    if (error < 0 ) 
+    {
+        /* Special case if mob was destroyed during script and it exited*/
+        /* Means LS was already closed, so we need to get out of here. */
+
+        return;
+    }
 
     /* cleanup routines */
     lua_getfield( mob->LS, LUA_GLOBALSINDEX, CLEANUP_FUNCTION);
