@@ -2805,7 +2805,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
     one_argument(argument,arg);
     
     /* Added by Maedhros to toggle old version of finger */
-
     if (IS_SET(ch->togg, TOGG_OLDFINGER))
     {
       do_oldfinger (ch, arg);
@@ -2814,7 +2813,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
     else
 
     /* end of toggle code */
-    
     if (arg[0] == '\0')
     {
         send_to_char("You must provide a name.\n\r",ch);
@@ -2907,35 +2905,44 @@ void do_finger(CHAR_DATA *ch, char *argument)
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
 
-    /* religion */
-    if ( (rel = get_religion(wch)) != NULL )
+    /* revised religion */
+    if ((rel = get_religion(wch)) != NULL)
     {
-        if( !str_cmp(wch->name, rel->god) )
-            sprintf( buf, "{D|{x {W%s of %-25s{x", wch->pcdata->true_sex == 2 ? "Goddess" : "God", rel->name );
-        else if( !str_cmp(ch->name, rel->god) )
-            sprintf( buf, "{D|{x God: %-11s Faith: %-10d ", rel->god, get_faith(wch) );
+        if (!str_cmp(wch->name, rel->god))
+            sprintf(buf, "{D|{x {W%s of %-25s{x", wch->pcdata->true_sex == 2 ? "Goddess" : "God", rel->name);
+        else if (IS_IMMORTAL(ch))
+            sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
             sprintf( buf, "{D|{x God: %-11s  Rank: %-11s", rel->god, get_ch_rank_name(wch) );
-
-	if( wch->pcdata && wch->pcdata->spouse )
-	{
-	    sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
-	    strcat( buf, buf2 );
-	}
-
+        
+        if( wch->pcdata && wch->pcdata->spouse )
+            sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
+        else
+            sprintf( buf2, "Spouse: None" );
+        	
+        strcat( buf, buf2 );
+        
         for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+        add_buf( output, buf );		
     }
-    else if ( wch->pcdata && wch->pcdata->spouse )
+    else
     {
-	sprintf( buf, "{D|{x Religion: atheism                  Spouse: %-12s", wch->pcdata->spouse );
-	for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-	strcat( buf, "{D|{x\n\r" );
-	add_buf( output, buf );
+        sprintf( buf, "{D|{x God: None    Rank: None              ");
+        
+        if( wch->pcdata && wch->pcdata->spouse )
+            sprintf( buf2, "Spouse: %-9s", wch->pcdata->spouse );
+        else
+            sprintf( buf2, "Spouse: None" );
+        	
+        strcat( buf, buf2 );
+        
+        for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+        strcat( buf, "{D|{x\n\r" );
+        add_buf( output, buf );	
     }
     
-    /* ** Remorts, Age, Hours, Bounty ** */
+    /* Remorts, Age, Hours, Bounty */
     sprintf(buf, "{D|{x ");
     if ( wch->level <= LEVEL_HERO )
     {
@@ -2964,7 +2971,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
     
-    /* ** Last on ** */
+    /* Last on */
     if ( wch->level < LEVEL_IMMORTAL || IS_IMMORTAL(ch) )
     {
         if ( IS_IMMORTAL(wch) && ch->level <= wch->level )
@@ -2978,7 +2985,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
         add_buf( output, buf );
         }
     }
-    
+	
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
@@ -2993,6 +3000,13 @@ void do_finger(CHAR_DATA *ch, char *argument)
             add_buf( output, buf );
         }
     }
+
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     
     if (wch->level <= LEVEL_HERO)
