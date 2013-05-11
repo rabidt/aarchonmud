@@ -1306,7 +1306,7 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
 	low = atoi( min );
     else
     {
-	bug( "MpDamage - Bad damage min vnum %d.", 
+	bug( "MpDamage - Bad damage min, vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	return;
     }
@@ -1314,7 +1314,7 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
 	high = atoi( max );
     else
     {
-	bug( "MpDamage - Bad damage max vnum %d.", 
+	bug( "MpDamage - Bad damage max, vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	return;
     }
