@@ -2378,6 +2378,15 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     if ( number_bits(10) != 69 )
 	return;
 
+    if (IS_SET(victim->act, ACT_NOBEHEAD))
+    {
+        act("You try to cut $N's head off, but it won't budge!",
+            ch,NULL,victim,TO_CHAR);
+        act("$n tries to cut $N's head off, but it won't budge!",
+            ch,NULL,victim,TO_ROOM);
+        return;
+    }
+
     if ( wield == NULL )
     {
 	if ( !IS_NPC(ch) && /* active AND passive skill => mobs have it */
@@ -2459,11 +2468,22 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
 	 && (ch->stance == STANCE_AMBUSH || number_bits(1))
 	 && number_percent() <= get_skill(ch, gsn_assassination) )
     {
-	act("You sneak up behind $N, and slash $S throat!",ch,NULL,victim,TO_CHAR);
-	act("$n sneaks up behind you and slashes your throat!",ch,NULL,victim,TO_VICT);
-	act("$n sneaks up behind $N, and slashes $S throat!",ch,NULL,victim,TO_NOTVICT);
-	behead(ch,victim);
-	check_improve(ch,gsn_assassination,TRUE,0);
+        if (IS_SET(victim->act, ACT_NOBEHEAD))
+        {
+            act("You try to cut $N's head off, but it won't budge!",
+                ch,NULL,victim,TO_CHAR);
+            act("$n tries to cut $N's head off, but it won't budge!",
+                ch,NULL,victim,TO_ROOM);
+            return;
+        }
+        else
+        {
+	    act("You sneak up behind $N, and slash $S throat!",ch,NULL,victim,TO_CHAR);
+	    act("$n sneaks up behind you and slashes your throat!",ch,NULL,victim,TO_VICT);
+	    act("$n sneaks up behind $N, and slashes $S throat!",ch,NULL,victim,TO_NOTVICT);
+	    behead(ch,victim);
+	    check_improve(ch,gsn_assassination,TRUE,0);
+        }
     }
     else
 	check_improve(ch,gsn_assassination,FALSE,3);
