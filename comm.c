@@ -3286,26 +3286,6 @@ char* remove_color( const char *txt )
     buffer[bi] = '\0';
     return buffer;
 }
-/* double brackets in case you want to display brackets instead
-   of making color codes */
-char* double_bracket( const char *txt )
-{
-    int ti, bi; /* txt- and buffer index */
-    static char buffer[MSL];
-
-    bi = 0;
-    for( ti = 0 ; txt[ti] != '\0'; ti++ )
-    {
-        buffer[bi++] = txt[ti];
-        if( txt[ti] == '{' )
-        {
-            buffer[bi++] = txt[ti];
-        }   
-    }
-    buffer[bi] = '\0';
-    return buffer;
-}
-
 
 void logpf (char * fmt, ...)
 {

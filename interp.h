@@ -564,7 +564,3 @@ DECLARE_DO_FUN( do_fstat);
 DECLARE_DO_FUN( do_cmotd);
 DECLARE_DO_FUN( do_smith);
 DECLARE_DO_FUN( do_pgrep);
-DECLARE_DO_FUN( do_task);
-DECLARE_DO_FUN( do_whereis);
-DECLARE_DO_FUN( do_ltest);
-DECLARE_DO_FUN( do_lload);
