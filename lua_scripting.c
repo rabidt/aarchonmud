@@ -375,6 +375,48 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
+static int L_getmobworld (lua_State *LS)
+{
+    int num = luaL_checknumber (LS, 1);
+
+    CHAR_DATA *ch;
+
+    int index=1;
+    lua_newtable(LS);
+    for ( ch = char_list; ch != NULL; ch = ch->next )
+    {
+        if ( ch->pIndexData )
+        {
+            if ( ch->pIndexData->vnum == num )
+            {
+                make_ud_table( LS, ch, UDTYPE_CH );
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+    }
+    return 1;
+}
+
+static int L_getobjworld (lua_State *LS)
+{
+    int num = luaL_checknumber (LS, 1);
+    
+    OBJ_DATA *obj;
+
+    int index=1;
+    lua_newtable(LS);
+    for ( obj = object_list; obj != NULL; obj = obj->next )
+    {
+        if ( obj->pIndexData->vnum == num )
+        {
+            make_ud_table( LS, obj, UDTYPE_OBJ );
+            lua_rawseti(LS, -2, index++);
+        }
+    }
+    return 1;
+}
+        
+
 static int L_getroom (lua_State *LS)
 {
     // do some if is number thing here eventually
@@ -1888,6 +1930,8 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"loadprog",    L_loadprog);
     lua_register(LS,"getobjproto", L_getobjproto);
     lua_register(LS,"log",         L_log);
+    lua_register(LS,"getobjworld", L_getobjworld );
+    lua_register(LS,"getmobworld", L_getmobworld );
 
 }
 
