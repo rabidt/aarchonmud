@@ -277,6 +277,8 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define MAX_STORAGE_BOX	   5
 #define MAX_QUOTES         22 /* This must equal the # of quotes you have */
 #define MAX_CP						 60
+#define MAX_ARROWS 300
+
 #define LEVEL_IMMORTAL     (MAX_LEVEL - 9)
 #define LEVEL_HERO         (MAX_LEVEL - 10)
 #define LEVEL_MIN_HERO     (MAX_LEVEL - 20)
