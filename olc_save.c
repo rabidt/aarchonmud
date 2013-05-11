@@ -68,13 +68,18 @@ char *fix_string( const char *str )
     {
         if (i == MAX_STRING_LENGTH * 3)
         {
-            bug( "Fix_string: String too long!", 0 );
+            bugf( "Fix_string: String too long!" );
+            log_string(str);
             i--;
             break;
         }
         
-        if (str[i+o] == '\r' || str[i+o] == '~')
+        while (str[i+o] == '\r' || str[i+o] == '~')
             o++;
+
+        if (str[i+o]== '\0')
+            break;
+
         strfix[i] = str[i+o];
     }
     strfix[i] = '\0';
