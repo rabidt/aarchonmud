@@ -4047,7 +4047,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
 #define MAX_WHO_FILE   "maxwho.txt"
-#define LUA_MUD_STARTUP   LUA_DIR "startup_mud.lua"  /* script initialization - mud */
 #define LUA_STARTUP    LUA_DIR "startup.lua"
 #define ptc printf_to_char
 
