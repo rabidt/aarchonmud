@@ -1106,14 +1106,14 @@ static int L_ch_destroy (lua_State *LS)
         luaL_error(LS, "Trying to destroy player");
         return 0;
     }
-
+/*
     char buf[MSL];
     sprintf(buf, "Destroy mob %d in room %d", ud_ch->pIndexData->vnum,
             ud_ch->in_room ? ud_ch->in_room->vnum : -1);
     lua_getfield(LS, LUA_GLOBALSINDEX, "log");
     lua_pushstring( LS, buf);
     lua_call(LS,1,0);
-
+*/
     extract_char(ud_ch,TRUE);
     return 0;
 }
@@ -1271,13 +1271,13 @@ static int L_obj_destroy( lua_State *LS)
         luaL_error(LS, "Null pointer in L_obj_destroy.");
         return 0;
     }
-
+/*
     char buf[MSL];
     sprintf(buf, "Destroy object %d", ud_obj->pIndexData->vnum);
     lua_getfield(LS, LUA_GLOBALSINDEX, "log"); 
     lua_pushstring(LS, buf);
     lua_call(LS,1,0);
-
+*/
     extract_obj(ud_obj);
     return 0;
 }
