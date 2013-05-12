@@ -1091,6 +1091,24 @@ static int L_qstatus (lua_State *LS)
     return 1;
 }
 
+static int L_ch_oload (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    int num = luaL_checknumber (LS, 2);
+    OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
+
+    if (!pObjIndex)
+        luaL_error(LS, "No object with vnum: %d", num);
+
+    OBJ_DATA *obj=create_object( pObjIndex, 0);
+    check_enchant_obj( obj );
+    obj_to_char(obj,ud_ch);
+
+    make_ud_table(LS, obj, UDTYPE_OBJ);
+    return 1;
+    
+}
+
 static int L_ch_destroy (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1223,6 +1241,24 @@ static int L_exit_flag( lua_State *LS)
     return 1;
 }
 
+static int L_room_oload (lua_State *LS)
+{
+    ROOM_INDEX_DATA * ud_room = check_ROOM (LS, 1);
+    int num = luaL_checknumber (LS, 2);
+    OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
+
+    if (!pObjIndex)
+        luaL_error(LS, "No object with vnum: %d", num);
+
+    OBJ_DATA *obj=create_object( pObjIndex, 0);
+    check_enchant_obj( obj );
+    obj_to_room(obj,ud_room);
+
+    make_ud_table(LS, obj, UDTYPE_OBJ);
+    return 1;
+
+}
+
 static int L_room_flag( lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
@@ -1324,13 +1360,14 @@ static const struct luaL_reg CH_lib [] =
     {"resist", L_res},
     {"vuln", L_vuln},
     {"destroy",L_ch_destroy},
-
+    {"oload", L_ch_oload},
     {NULL, NULL}
 };
 
 static const struct luaL_reg ROOM_lib [] =
 {
     {"flag", L_room_flag},
+    {"oload", L_room_oload},
     {NULL, NULL}
 };
 
