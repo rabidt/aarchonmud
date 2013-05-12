@@ -1323,6 +1323,7 @@ struct  kill_data
 #define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
 #define ACT_HARD_QUEST  (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
+#define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 
 /* damage classes */
 #define DAM_NONE                0

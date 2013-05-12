@@ -2838,20 +2838,20 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
 	if ( area )
 	{
 	    if ( obj->carried_by != NULL )
+        {
+            if ( !obj->carried_by->in_room )
             {
-                if ( !obj->carried_by->in_room )
-                {
-                    bugf("get_obj_new: %s carried_by not NULL but in_room is.", obj->carried_by->name);
-		    return NULL;
-		}
-		if ( !ch->in_room )
-                {
-                    bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
-                    return NULL;
-                }
-		if ( obj->carried_by->in_room->area != ch->in_room->area )
-		  continue;
+                bugf("get_obj_new: %s carried_by not NULL but in_room is.", obj->carried_by->name);
+		        continue;
+		    }
+		    if ( !ch->in_room )
+            {
+                bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
+                continue;
             }
+		    if ( obj->carried_by->in_room->area != ch->in_room->area )
+		        continue;
+        }
 
 	    if ( obj->in_room != NULL
 		 && obj->in_room->area != ch->in_room->area )

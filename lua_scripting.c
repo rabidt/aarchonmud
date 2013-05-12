@@ -460,6 +460,7 @@ static int L_log (lua_State *LS)
     }
 
     log_string(buf);
+    return 0;
 }
 
 static int L_randchar (lua_State *LS)
@@ -1090,6 +1091,33 @@ static int L_qstatus (lua_State *LS)
     return 1;
 }
 
+static int L_ch_destroy (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+
+    if (!ud_ch)
+    {
+        luaL_error(LS, "Null pointer in L_ch_destroy");
+        return 0;
+    }
+
+    if (!IS_NPC(ud_ch))
+    {
+        luaL_error(LS, "Trying to destroy player");
+        return 0;
+    }
+/*
+    char buf[MSL];
+    sprintf(buf, "Destroy mob %d in room %d", ud_ch->pIndexData->vnum,
+            ud_ch->in_room ? ud_ch->in_room->vnum : -1);
+    lua_getfield(LS, LUA_GLOBALSINDEX, "log");
+    lua_pushstring( LS, buf);
+    lua_call(LS,1,0);
+*/
+    extract_char(ud_ch,TRUE);
+    return 0;
+}
+
 static int L_vuln (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1234,6 +1262,26 @@ static int L_objproto_extra( lua_State *LS)
     return 1;
 }
 
+static int L_obj_destroy( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+    
+    if (!ud_obj)
+    {
+        luaL_error(LS, "Null pointer in L_obj_destroy.");
+        return 0;
+    }
+/*
+    char buf[MSL];
+    sprintf(buf, "Destroy object %d", ud_obj->pIndexData->vnum);
+    lua_getfield(LS, LUA_GLOBALSINDEX, "log"); 
+    lua_pushstring(LS, buf);
+    lua_call(LS,1,0);
+*/
+    extract_obj(ud_obj);
+    return 0;
+}
+
 static int L_obj_wear( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
@@ -1275,6 +1323,7 @@ static const struct luaL_reg CH_lib [] =
     {"immune", L_imm},
     {"resist", L_res},
     {"vuln", L_vuln},
+    {"destroy",L_ch_destroy},
 
     {NULL, NULL}
 };
@@ -1289,6 +1338,7 @@ static const struct luaL_reg OBJ_lib [] =
 {
     {"extra", L_obj_extra},
     {"wear", L_obj_wear},
+    {"destroy", L_obj_destroy},
     {NULL, NULL}
 };
 
