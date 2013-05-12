@@ -420,7 +420,7 @@ bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
 	    if( container->item_type != ITEM_CONTAINER )
 		continue;
 
-	    for( obj = container->contains; obj; obj->next_content )
+	    for( obj = container->contains; obj; obj=obj->next_content )
 	    {
 		if( vnum < 0 && is_either_name(obj_name, obj->name) )
 		    return TRUE;
@@ -437,7 +437,7 @@ bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
 {
 	OBJ_DATA *obj;
 
-	for( obj = container->contains; obj; obj->next_content )
+	for( obj = container->contains; obj; obj=obj->next_content )
 	{
 	    if( vnum < 0 && is_either_name(obj_name, obj->name) )
 		return TRUE;

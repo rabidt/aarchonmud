@@ -4370,8 +4370,12 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
     
     if (arg[0] == '\0')
     {
-        send_to_char("Blackjack whom?\n\r",ch);
-        return;
+        victim = ch->fighting;
+        if (victim == NULL)
+        {
+            send_to_char("But you aren't fighting anyone!\n\r",ch);
+            return;
+        }
     }
     
     else if ((victim = get_char_room(ch,arg)) == NULL)
