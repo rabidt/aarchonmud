@@ -3,6 +3,7 @@ package.path = mud.luadir() .. "?.lua"
 require "tprint"
 require "serialize"
 require "utilities"
+require "commands"
 
 function send_nocr (...)
     say (table.concat {...})
