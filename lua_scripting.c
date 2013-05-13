@@ -478,7 +478,6 @@ static int L_ch_randchar (lua_State *LS)
 
 }
 
-
 static int L_loadprog (lua_State *LS)
 {
     int num = luaL_checknumber (LS, 1);
@@ -864,6 +863,12 @@ static int L_ispc (lua_State *LS)
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && !IS_NPC( ud_ch ) );
+    return 1;
+}
+
+static int L_canattack (lua_State *LS)
+{
+    lua_pushboolean( LS, !is_safe(check_CH (LS, 1), check_CH (LS, 2)) );
     return 1;
 }
 
@@ -2039,6 +2044,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"skilled",     L_skilled);
     lua_register(LS,"ccarries",    L_ccarries);
     lua_register(LS,"qtimer",      L_qtimer);
+    lua_register(LS,"canattack",   L_canattack);
 
     /* other */
     lua_register(LS,"getroom",     L_getroom);
