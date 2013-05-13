@@ -91,8 +91,8 @@ void add_lua_tables (lua_State *LS);
 #define REGISTER_UD_FUNCTION "RegisterUd"
 #define UNREGISTER_UD_FUNCTION "UnregisterUd"
 
-#define NUM_MPROG_ARGS 8 
-#define MOB_ARG "mob"
+#define MOB_ARG "mob" /* this one isn't passed to the function */
+#define NUM_MPROG_ARGS 7 
 #define CH_ARG "ch"
 #define OBJ1_ARG "obj1"
 #define OBJ2_ARG "obj2"
@@ -201,13 +201,11 @@ EXIT_DATA *check_exit( lua_State *LS, int arg)
 }
 
 
-static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
+static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
 {
     if ( !ptr )
         luaL_error (LS, "make_ud_table called with NULL object. UDTYPE: %s", UDTYPE);
     char *meta;
-
-
 
     lua_newtable( LS);
     switch (UDTYPE)
@@ -235,14 +233,16 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
     lua_setmetatable(LS, -2);
     lua_rawset( LS, -3 );
 
-    lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
-    lua_pushvalue( LS, -2);
-    if (CallLuaWithTraceBack( LS, 1, 0) )
+    if ( reg )
     {
-        bugf ( "Error registering UD:\n %s",
-                lua_tostring(LS, -1));
+        lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
+        lua_pushvalue( LS, -2);
+        if (CallLuaWithTraceBack( LS, 1, 0) )
+        {
+            bugf ( "Error registering UD:\n %s",
+                    lua_tostring(LS, -1));
+        }
     }
-
 
 }
 
@@ -263,6 +263,8 @@ static void unregister_UD( lua_State *LS,  void *ptr )
     }
 }
 
+/* unregister_lua, to be called when destroying in game structures that may
+   be registered in an active lua state*/
 void unregister_lua( void *ptr )
 {
     if (ptr == NULL)
@@ -285,10 +287,12 @@ CHAR_DATA * L_getchar (lua_State *LS)
     CHAR_DATA * ch;
 
     /* retrieve the character */
-    lua_pushstring(LS, CHARACTER_STATE);  /* push address */
-    lua_gettable(LS, LUA_ENVIRONINDEX);  /* retrieve value */
+    //lua_pushstring(LS, CHARACTER_STATE);  /* push address */
+    //lua_gettable(LS, LUA_ENVIRONINDEX);  /* retrieve value */
 
-    ch = (CHAR_DATA *) lua_touserdata(LS, -1);  /* convert to data */
+    //ch = (CHAR_DATA *) lua_touserdata(LS, -1);  /* convert to data */
+    lua_getfield(LS, LUA_GLOBALSINDEX, MOB_ARG);
+    ch = check_CH(LS, -1);
 
     if (!ch)  
         luaL_error (LS, "No current character");
@@ -389,7 +393,7 @@ static int L_getmobworld (lua_State *LS)
         {
             if ( ch->pIndexData->vnum == num )
             {
-                make_ud_table( LS, ch, UDTYPE_CH );
+                make_ud_table( LS, ch, UDTYPE_CH, TRUE);
                 lua_rawseti(LS, -2, index++);
             }
         }
@@ -400,7 +404,7 @@ static int L_getmobworld (lua_State *LS)
 static int L_getobjworld (lua_State *LS)
 {
     int num = luaL_checknumber (LS, 1);
-    
+
     OBJ_DATA *obj;
 
     int index=1;
@@ -409,13 +413,13 @@ static int L_getobjworld (lua_State *LS)
     {
         if ( obj->pIndexData->vnum == num )
         {
-            make_ud_table( LS, obj, UDTYPE_OBJ );
+            make_ud_table( LS, obj, UDTYPE_OBJ, TRUE);
             lua_rawseti(LS, -2, index++);
         }
     }
     return 1;
 }
-        
+
 
 static int L_getroom (lua_State *LS)
 {
@@ -427,7 +431,7 @@ static int L_getroom (lua_State *LS)
     if (!room)
         return 0;
 
-    make_ud_table( LS, room, UDTYPE_ROOM);
+    make_ud_table( LS, room, UDTYPE_ROOM, TRUE);
     return 1;
 
 }
@@ -441,7 +445,7 @@ static int L_getobjproto (lua_State *LS)
     if (!obj)
         return 0;
 
-    make_ud_table( LS, obj, UDTYPE_OBJPROTO);
+    make_ud_table( LS, obj, UDTYPE_OBJPROTO, TRUE);
     return 1;
 }
 
@@ -463,13 +467,13 @@ static int L_log (lua_State *LS)
     return 0;
 }
 
-static int L_randchar (lua_State *LS)
+static int L_ch_randchar (lua_State *LS)
 {
-    CHAR_DATA *ch=get_random_char(L_getchar(LS) );
+    CHAR_DATA *ch=get_random_char(check_CH(LS,1) );
     if ( ! ch )
         return 0;
 
-    make_ud_table( LS, ch, UDTYPE_CH);
+    make_ud_table( LS, ch, UDTYPE_CH, TRUE);
     return 1;
 
 }
@@ -502,309 +506,303 @@ static int L_loadprog (lua_State *LS)
     return 0;
 }
 
-static int L_say (lua_State *LS)
+static int L_ch_emote (lua_State *LS)
 {
-    do_say( L_getchar(LS), luaL_checkstring (LS, 1) );
+    do_emote( check_CH(LS, 1), luaL_checkstring (LS, 2) );
     return 0;
 }
 
-static int L_emote (lua_State *LS)
+static int L_ch_asound (lua_State *LS)
 {
-    do_emote( L_getchar(LS), luaL_checkstring (LS, 1) );
-    return 0;
-}
-
-static int L_cmd_asound (lua_State *LS)
-{
-    do_mpasound( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpasound( check_CH(LS, 1), luaL_checkstring (LS, 2));
     return 0; 
 }
 
-static int L_cmd_gecho (lua_State *LS)
+static int L_ch_gecho (lua_State *LS)
 {
-    do_mpgecho( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpgecho( check_CH(LS, 1), luaL_checkstring(LS, 2));
     return 0;
 }
 
-static int L_cmd_zecho (lua_State *LS)
+static int L_ch_zecho (lua_State *LS)
 {
 
-    do_mpzecho( L_getchar(LS), luaL_checkstring (LS, 1));
-
-    return 0;
-}
-
-static int L_cmd_kill (lua_State *LS)
-{
-
-    do_mpkill( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpzecho( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_assist (lua_State *LS)
-{
-    do_mpkill( L_getchar(LS) , luaL_checkstring (LS, 1));
-    return 0;
-}
-
-static int L_cmd_junk (lua_State *LS)
+static int L_ch_kill (lua_State *LS)
 {
 
-    do_mpjunk( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpkill( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_echo (lua_State *LS)
+static int L_ch_assist (lua_State *LS)
+{
+    do_mpkill( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    return 0;
+}
+
+static int L_ch_junk (lua_State *LS)
 {
 
-    do_mpecho( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpjunk( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_echoaround (lua_State *LS)
+static int L_ch_echo (lua_State *LS)
 {
 
-    do_mpechoaround( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpecho( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_echoat (lua_State *LS)
+static int L_ch_echoaround (lua_State *LS)
 {
 
-    do_mpechoat( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpechoaround( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_mload (lua_State *LS)
+static int L_ch_echoat (lua_State *LS)
 {
 
-    do_mpmload( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpechoat( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_oload (lua_State *LS)
+static int L_ch_mload (lua_State *LS)
 {
 
-    do_mpoload( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpmload( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_purge (lua_State *LS)
+/*static int L_ch_oload (lua_State *LS)
 {
 
-    do_mppurge( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpoload( check_CH(LS, 1), luaL_checkstring(LS, 2));
+
+    return 0;
+}*/
+
+static int L_ch_purge (lua_State *LS)
+{
+
+    do_mppurge( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_goto (lua_State *LS)
+static int L_ch_goto (lua_State *LS)
 {
 
-    do_mpgoto( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpgoto( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_at (lua_State *LS)
+static int L_ch_at (lua_State *LS)
 {
 
-    do_mpat( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpat( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_transfer (lua_State *LS)
+static int L_ch_transfer (lua_State *LS)
 {
 
-    do_mptransfer( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mptransfer( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_gtransfer (lua_State *LS)
+static int L_ch_gtransfer (lua_State *LS)
 {
 
-    do_mpgtransfer( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpgtransfer( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_otransfer (lua_State *LS)
+static int L_ch_otransfer (lua_State *LS)
 {
 
-    do_mpotransfer( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpotransfer( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_force (lua_State *LS)
+static int L_ch_force (lua_State *LS)
 {
 
-    do_mpforce( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpforce( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
 
-static int L_cmd_gforce (lua_State *LS)
+static int L_ch_gforce (lua_State *LS)
 {
 
-    do_mpgforce( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpgforce( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_vforce (lua_State *LS)
+static int L_ch_vforce (lua_State *LS)
 {
 
-    do_mpvforce( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpvforce( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_cast (lua_State *LS)
+static int L_ch_cast (lua_State *LS)
 {
 
-    do_mpcast( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpcast( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_damage (lua_State *LS)
+static int L_ch_damage (lua_State *LS)
 {
-    do_mpdamage( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpdamage( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_remember (lua_State *LS)
+static int L_ch_remember (lua_State *LS)
 {
 
-    do_mpremember( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpremember( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_forget (lua_State *LS)
+static int L_ch_forget (lua_State *LS)
 {
 
-    do_mpforget( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpforget( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_delay (lua_State *LS)
+static int L_ch_delay (lua_State *LS)
 {
 
-    do_mpdelay( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpdelay( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_cancel (lua_State *LS)
+static int L_ch_cancel (lua_State *LS)
 {
 
-    do_mpcancel( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpcancel( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_call (lua_State *LS)
+static int L_ch_call (lua_State *LS)
 {
 
-    do_mpcall( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpcall( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_flee (lua_State *LS)
+static int L_ch_flee (lua_State *LS)
 {
 
-    do_mpflee( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpflee( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_remove (lua_State *LS)
+static int L_ch_remove (lua_State *LS)
 {
 
-    do_mpremove( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpremove( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_remort (lua_State *LS)
+static int L_ch_remort (lua_State *LS)
 {
 
-    do_mpremort( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpremort( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_qset (lua_State *LS)
+static int L_ch_qset (lua_State *LS)
 {
 
-    do_mpqset( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpqset( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_qadvance (lua_State *LS)
+static int L_ch_qadvance (lua_State *LS)
 {
 
-    do_mpqadvance( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpqadvance( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_reward (lua_State *LS)
+static int L_ch_reward (lua_State *LS)
 {
 
-    do_mpreward( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpreward( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_peace (lua_State *LS)
+static int L_ch_peace (lua_State *LS)
 {
 
-    do_mppeace( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mppeace( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_restore (lua_State *LS)
+static int L_ch_restore (lua_State *LS)
 {
-    do_mprestore( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mprestore( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_act (lua_State *LS)
+static int L_ch_setact (lua_State *LS)
 {
-    do_mpact( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mpact( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
 
-static int L_cmd_hit (lua_State *LS)
+static int L_ch_hit (lua_State *LS)
 {
-    do_mphit( L_getchar(LS), luaL_checkstring (LS, 1));
+    do_mphit( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 
 }
 
-static int L_mdo (lua_State *LS)
+static int L_ch_mdo (lua_State *LS)
 {
-    interpret( L_getchar(LS), luaL_checkstring (LS, 1));
+    interpret( check_CH(LS, 1), luaL_checkstring (LS, 2));
 
     return 0;
 }
@@ -1091,6 +1089,25 @@ static int L_qstatus (lua_State *LS)
     return 1;
 }
 
+static int L_ch_say (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    do_say( ud_ch, luaL_checkstring(LS, 2) );
+    return 0;
+}
+
+
+static int L_ch_setlevel (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Cannot set level on PC.");
+
+    int num = luaL_checknumber (LS, 2);
+    set_mob_level( ud_ch, num );
+    return 0;
+}
+
 static int L_ch_oload (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1104,9 +1121,9 @@ static int L_ch_oload (lua_State *LS)
     check_enchant_obj( obj );
     obj_to_char(obj,ud_ch);
 
-    make_ud_table(LS, obj, UDTYPE_OBJ);
+    make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
     return 1;
-    
+
 }
 
 static int L_ch_destroy (lua_State *LS)
@@ -1124,14 +1141,14 @@ static int L_ch_destroy (lua_State *LS)
         luaL_error(LS, "Trying to destroy player");
         return 0;
     }
-/*
-    char buf[MSL];
-    sprintf(buf, "Destroy mob %d in room %d", ud_ch->pIndexData->vnum,
-            ud_ch->in_room ? ud_ch->in_room->vnum : -1);
-    lua_getfield(LS, LUA_GLOBALSINDEX, "log");
-    lua_pushstring( LS, buf);
-    lua_call(LS,1,0);
-*/
+    /*
+       char buf[MSL];
+       sprintf(buf, "Destroy mob %d in room %d", ud_ch->pIndexData->vnum,
+       ud_ch->in_room ? ud_ch->in_room->vnum : -1);
+       lua_getfield(LS, LUA_GLOBALSINDEX, "log");
+       lua_pushstring( LS, buf);
+       lua_call(LS,1,0);
+     */
     extract_char(ud_ch,TRUE);
     return 0;
 }
@@ -1241,6 +1258,24 @@ static int L_exit_flag( lua_State *LS)
     return 1;
 }
 
+static int L_room_mload (lua_State *LS)
+{
+    ROOM_INDEX_DATA * ud_room = check_ROOM (LS, 1);
+    int num = luaL_checknumber (LS, 2);
+    MOB_INDEX_DATA *pObjIndex = get_mob_index( num );
+
+    if (!pObjIndex)
+        luaL_error(LS, "No mob with vnum: %d", num);
+
+    CHAR_DATA *mob=create_mobile( pObjIndex);
+    arm_npc( mob );
+    char_to_room(mob,ud_room);
+
+    make_ud_table(LS, mob, UDTYPE_CH, TRUE);
+    return 1;
+
+}
+
 static int L_room_oload (lua_State *LS)
 {
     ROOM_INDEX_DATA * ud_room = check_ROOM (LS, 1);
@@ -1254,7 +1289,7 @@ static int L_room_oload (lua_State *LS)
     check_enchant_obj( obj );
     obj_to_room(obj,ud_room);
 
-    make_ud_table(LS, obj, UDTYPE_OBJ);
+    make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
     return 1;
 
 }
@@ -1301,19 +1336,19 @@ static int L_objproto_extra( lua_State *LS)
 static int L_obj_destroy( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
-    
+
     if (!ud_obj)
     {
         luaL_error(LS, "Null pointer in L_obj_destroy.");
         return 0;
     }
-/*
-    char buf[MSL];
-    sprintf(buf, "Destroy object %d", ud_obj->pIndexData->vnum);
-    lua_getfield(LS, LUA_GLOBALSINDEX, "log"); 
-    lua_pushstring(LS, buf);
-    lua_call(LS,1,0);
-*/
+    /*
+       char buf[MSL];
+       sprintf(buf, "Destroy object %d", ud_obj->pIndexData->vnum);
+       lua_getfield(LS, LUA_GLOBALSINDEX, "log"); 
+       lua_pushstring(LS, buf);
+       lua_call(LS,1,0);
+     */
     extract_obj(ud_obj);
     return 0;
 }
@@ -1361,6 +1396,43 @@ static const struct luaL_reg CH_lib [] =
     {"vuln", L_vuln},
     {"destroy",L_ch_destroy},
     {"oload", L_ch_oload},
+    {"setlevel", L_ch_setlevel},
+    {"say", L_ch_say},
+    {"emote", L_ch_emote},
+    {"mdo", L_ch_mdo},
+    {"asound", L_ch_asound},
+    {"gecho", L_ch_gecho},
+    {"zecho", L_ch_zecho},
+    {"kill", L_ch_kill},
+    {"assist", L_ch_assist},
+    {"junk", L_ch_junk},
+    {"echo", L_ch_echo},
+    {"echoaround", L_ch_echoaround},
+    {"echoat", L_ch_echoat},
+    {"mload", L_ch_mload},
+    {"oload", L_ch_oload},
+    {"purge", L_ch_purge},
+    {"goto", L_ch_goto},
+    {"at", L_ch_at},
+    {"transfer", L_ch_transfer},
+    {"gtransfer", L_ch_gtransfer},
+    {"otransfer", L_ch_otransfer},
+    {"force", L_ch_force},
+    {"gforce", L_ch_gforce},
+    {"vforce", L_ch_vforce},
+    {"cast", L_ch_cast},
+    {"damage", L_ch_damage},
+    {"flee", L_ch_flee},
+    {"remove", L_ch_remove},
+    {"remort", L_ch_remort},
+    {"qset", L_ch_qset},
+    {"qadvance", L_ch_qadvance},
+    {"reward", L_ch_reward},
+    {"peace", L_ch_peace},
+    {"restore", L_ch_restore},
+    {"setact", L_ch_setact},
+    {"hit", L_ch_hit},
+    {"randchar", L_ch_randchar},
     {NULL, NULL}
 };
 
@@ -1368,6 +1440,7 @@ static const struct luaL_reg ROOM_lib [] =
 {
     {"flag", L_room_flag},
     {"oload", L_room_oload},
+    {"mload", L_room_mload},
     {NULL, NULL}
 };
 
@@ -1560,7 +1633,7 @@ static int get_OBJ_field ( lua_State *LS )
         if ( !ud_obj->pIndexData )
             return 0;
 
-        make_ud_table(LS, ud_obj->pIndexData, UDTYPE_OBJPROTO);
+        make_ud_table(LS, ud_obj->pIndexData, UDTYPE_OBJPROTO, TRUE);
         return 1;
     }
 
@@ -1571,7 +1644,7 @@ static int get_OBJ_field ( lua_State *LS )
         OBJ_DATA *obj;
         for (obj=ud_obj->contains ; obj ; obj=obj->next_content)
         {
-            make_ud_table(LS, obj, UDTYPE_OBJ);
+            make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1582,7 +1655,7 @@ static int get_OBJ_field ( lua_State *LS )
         if (!ud_obj->in_room)
             return 0;
 
-        make_ud_table(LS, ud_obj->in_room, UDTYPE_ROOM);
+        make_ud_table(LS, ud_obj->in_room, UDTYPE_ROOM, TRUE);
         return 1;
     }
 
@@ -1591,7 +1664,7 @@ static int get_OBJ_field ( lua_State *LS )
         if (!ud_obj->in_obj)
             return 0;
 
-        make_ud_table(LS, ud_obj->in_obj, UDTYPE_OBJ);
+        make_ud_table(LS, ud_obj->in_obj, UDTYPE_OBJ, TRUE);
         return 1;
     }
 
@@ -1600,7 +1673,7 @@ static int get_OBJ_field ( lua_State *LS )
         if (!ud_obj->carried_by )
             return 0;
 
-        make_ud_table(LS, ud_obj->carried_by, UDTYPE_CH);
+        make_ud_table(LS, ud_obj->carried_by, UDTYPE_CH, TRUE);
         return 1;
     }
 
@@ -1632,7 +1705,7 @@ static int get_EXIT_field ( lua_State *LS )
 
     if (!strcmp(argument, "toroom"))
     {
-        make_ud_table( LS, ud_exit->u1.to_room, UDTYPE_ROOM );
+        make_ud_table( LS, ud_exit->u1.to_room, UDTYPE_ROOM , TRUE);
         return 1;
     }
     FLDSTR("keyword", ud_exit->keyword ? ud_exit->keyword : "");
@@ -1676,7 +1749,7 @@ static int get_ROOM_field ( lua_State *LS )
         CHAR_DATA *people;
         for (people=ud_room->people ; people ; people=people->next_in_room)
         {
-            make_ud_table(LS, people, UDTYPE_CH);
+            make_ud_table(LS, people, UDTYPE_CH, TRUE);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1710,7 +1783,7 @@ static int get_ROOM_field ( lua_State *LS )
                 return 0;
 
             lua_newtable(LS);
-            make_ud_table(LS, ud_room->exit[i], UDTYPE_EXIT);
+            make_ud_table(LS, ud_room->exit[i], UDTYPE_EXIT, TRUE);
             return 1;
         }
     }
@@ -1828,7 +1901,7 @@ static int get_CH_field ( lua_State *LS)
         if (!ud_ch->mprog_target)
             return 0;
 
-        make_ud_table(LS, ud_ch->mprog_target, UDTYPE_CH);
+        make_ud_table(LS, ud_ch->mprog_target, UDTYPE_CH, TRUE);
         return 1;
     }
 
@@ -1839,7 +1912,7 @@ static int get_CH_field ( lua_State *LS)
         OBJ_DATA *obj;
         for (obj=ud_ch->carrying ; obj ; obj=obj->next_content)
         {
-            make_ud_table(LS, obj, UDTYPE_OBJ);
+            make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1847,7 +1920,7 @@ static int get_CH_field ( lua_State *LS)
 
     if ( !strcmp(argument, "room" ) )
     {
-        make_ud_table(LS, ud_ch->in_room, UDTYPE_ROOM);
+        make_ud_table(LS, ud_ch->in_room, UDTYPE_ROOM, TRUE);
         return 1;
     }
     FLDNUM("groupsize", count_people_room( ud_ch, 4 ) );
@@ -1932,49 +2005,6 @@ static const struct luaL_reg EXIT_metatable [] =
 
 void RegisterGlobalFunctions(lua_State *LS)
 {
-    lua_register(LS,"say",         L_say);
-    lua_register(LS,"emote",       L_emote);
-    lua_register(LS,"mdo",         L_mdo);
-
-    /* mob commands */
-    lua_register(LS,"asound",      L_cmd_asound);
-    lua_register(LS,"gecho",       L_cmd_gecho);
-    lua_register(LS,"zecho",       L_cmd_zecho);
-    lua_register(LS,"kill",        L_cmd_kill);
-    lua_register(LS,"assist",      L_cmd_assist);
-    lua_register(LS,"junk",        L_cmd_junk);
-    lua_register(LS,"echo",        L_cmd_echo);
-    lua_register(LS,"echoaround",  L_cmd_echoaround);
-    lua_register(LS,"echoat",      L_cmd_echoat);
-    lua_register(LS,"mload",       L_cmd_mload);
-    lua_register(LS,"oload",       L_cmd_oload);
-    lua_register(LS,"purge",       L_cmd_purge);
-    lua_register(LS,"goto",        L_cmd_goto);
-    lua_register(LS,"at",          L_cmd_at);
-    lua_register(LS,"transfer",    L_cmd_transfer);
-    lua_register(LS,"gtransfer",   L_cmd_gtransfer);
-    lua_register(LS,"otransfer",   L_cmd_otransfer);
-    lua_register(LS,"force",       L_cmd_force);
-    lua_register(LS,"gforce",      L_cmd_gforce);
-    lua_register(LS,"vforce",      L_cmd_vforce);
-    lua_register(LS,"cast",        L_cmd_cast);
-    lua_register(LS,"damage",      L_cmd_damage);
-    lua_register(LS,"remember",    L_cmd_remember);
-    lua_register(LS,"forget",      L_cmd_forget);
-    lua_register(LS,"delay",       L_cmd_delay);
-    lua_register(LS,"cancel",      L_cmd_cancel);
-    lua_register(LS,"call",        L_cmd_call);
-    lua_register(LS,"flee",        L_cmd_flee);
-    lua_register(LS,"remove",      L_cmd_remove);
-    lua_register(LS,"remort",      L_cmd_remort);
-    lua_register(LS,"qset",        L_cmd_qset);
-    lua_register(LS,"qadvance",    L_cmd_qadvance);
-    lua_register(LS,"reward",      L_cmd_reward);
-    lua_register(LS,"peace",       L_cmd_peace);
-    lua_register(LS,"restore",     L_cmd_restore);
-    lua_register(LS,"setact",      L_cmd_act);
-    lua_register(LS,"hit",         L_cmd_hit);
-
     /* checks */
     lua_register(LS,"mobhere",     L_mobhere);
     lua_register(LS,"objhere",     L_objhere);
@@ -2012,8 +2042,6 @@ void RegisterGlobalFunctions(lua_State *LS)
 
     /* other */
     lua_register(LS,"getroom",     L_getroom);
-    lua_register(LS,"randchar",    L_randchar);
-
     lua_register(LS,"loadprog",    L_loadprog);
     lua_register(LS,"getobjproto", L_getobjproto);
     lua_register(LS,"log",         L_log);
@@ -2027,11 +2055,11 @@ static int RegisterLuaRoutines (lua_State *LS)
     time_t timer;
     time (&timer);
 
-    lua_newtable (LS);  /* environment */
-    lua_replace (LS, LUA_ENVIRONINDEX);
+    //lua_newtable (LS);  /* environment */
+    //lua_replace (LS, LUA_ENVIRONINDEX);
 
     /* this makes environment variable "character.state" by the pointer to our character */
-    lua_settable(LS, LUA_ENVIRONINDEX);
+    //lua_settable(LS, LUA_ENVIRONINDEX);
 
     /* register all mud.xxx routines */
     luaL_register (LS, MUD_LIBRARY, mudlib);
@@ -2044,7 +2072,7 @@ static int RegisterLuaRoutines (lua_State *LS)
 
     RegisterGlobalFunctions(LS);
 
-    /* meta table to identify object types */
+    /* meta tables to identify object types */
     luaL_newmetatable(LS, CH_META);
     luaL_register (LS, NULL, CH_metatable); 
     luaL_newmetatable(LS, OBJ_META);
@@ -2078,9 +2106,10 @@ void open_lua  ( CHAR_DATA * ch)
 
     /* call as Lua function because we need the environment  */
     lua_pushcfunction(LS, RegisterLuaRoutines);
-    lua_pushstring(LS, CHARACTER_STATE);  /* push address */
-    lua_pushlightuserdata(LS, (void *)ch);    /* push value */
-    lua_call(LS, 2, 0);
+    //lua_pushstring(LS, CHARACTER_STATE);  /* push address */
+    //lua_pushlightuserdata(LS, (void *)ch);    /* push value */
+    //lua_call(LS, 2, 0);
+    lua_call(LS, 0, 0);
 
     lua_sethook(LS, function_return_hook, LUA_MASKRET, 0);
     lua_sethook(LS, infinite_loop_check_hook, LUA_MASKCOUNT, LUA_LOOP_CHECK_INCREMENT);
@@ -2092,6 +2121,10 @@ void open_lua  ( CHAR_DATA * ch)
                 LUA_STARTUP,
                 lua_tostring(LS, -1));
     }
+
+    /* make the mob variable after startup so it will register */
+    make_ud_table(LS, ch, UDTYPE_CH, FALSE);
+    lua_setfield(LS, LUA_GLOBALSINDEX, MOB_ARG);
 
     lua_settop (LS, 0);    /* get rid of stuff lying around */
 
@@ -2246,11 +2279,11 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
 
-    sprintf(buf, "function P_%d (%s,%s,%s,%s,%s,%s,%s,%s)"
+    sprintf(buf, "function P_%d (%s,%s,%s,%s,%s,%s,%s)"
             "%s\n"
             "end",
             vnum,
-            MOB_ARG, CH_ARG, TRIG_ARG, OBJ1_ARG,
+            /*MOB_ARG,*/ CH_ARG, TRIG_ARG, OBJ1_ARG,
             OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG,
             code);
 
@@ -2303,11 +2336,11 @@ void lua_program( char *text, int pvnum, char *source,
     }
 
     /* MOB_ARG */
-    make_ud_table (mob->LS, (void *)mob, UDTYPE_CH);
+    //make_ud_table (mob->LS, (void *)mob, UDTYPE_CH);
 
     /* CH_ARG */
     if (ch)
-        make_ud_table (mob->LS,(void *) ch, UDTYPE_CH);
+        make_ud_table (mob->LS,(void *) ch, UDTYPE_CH, TRUE);
     else lua_pushnil(mob->LS);
 
     /* TRIG_ARG */
@@ -2317,12 +2350,12 @@ void lua_program( char *text, int pvnum, char *source,
 
     /* OBJ1_ARG */
     if (arg1type== ACT_ARG_OBJ && arg1)
-        make_ud_table( mob->LS, arg1, UDTYPE_OBJ);
+        make_ud_table( mob->LS, arg1, UDTYPE_OBJ, TRUE);
     else lua_pushnil(mob->LS);
 
     /* OBJ2_ARG */
     if (arg2type== ACT_ARG_OBJ && arg2)
-        make_ud_table( mob->LS, arg2, UDTYPE_OBJ);
+        make_ud_table( mob->LS, arg2, UDTYPE_OBJ, TRUE);
     else lua_pushnil(mob->LS);
 
     /* TEXT1_ARG */
@@ -2337,7 +2370,7 @@ void lua_program( char *text, int pvnum, char *source,
 
     /* VICTIM_ARG */
     if (arg2type== ACT_ARG_CHARACTER)
-        make_ud_table( mob->LS, arg2, UDTYPE_CH);
+        make_ud_table( mob->LS, arg2, UDTYPE_CH, TRUE);
     else lua_pushnil(mob->LS);
 
 
