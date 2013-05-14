@@ -63,7 +63,33 @@ function randnum(low, high)
     return math.floor( (mt.rand()*(high+1-low) + low)) -- people usually want inclusive
 end
 
+local lio=io
 io=nil
+
+function savetbl(name, tbl)
+  if string.find(name, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
+  local f=lio.open(mud.userdir() .. name .. ".lua", "w")
+  out,saved=serialize.save(name,tbl)
+  f:write(out)
+
+  f:close()
+end
+
+function loadtbl(name)
+  if string.find(name, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
+  local f=loadfile(mud.userdir() .. name .. ".lua")
+  if f==nil then 
+    return nil 
+  end
+  return f()
+end
+ 
 os.execute=nil
 os.rename=nil
 os.remove=nil
