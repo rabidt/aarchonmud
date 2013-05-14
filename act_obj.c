@@ -3411,6 +3411,11 @@ void do_buy( CHAR_DATA *ch, char *argument )
 			return;
 		 }
 	  }
+
+          if (IS_EVIL(ch))
+              cost = haggle_cost( ch, cost, obj->cost*4/5 );
+          else
+              cost = haggle_cost( ch, cost, obj->cost );
 	  
 	  if ( (ch->silver + ch->gold * 100) < cost * number )
 	  {
@@ -3465,12 +3470,6 @@ void do_buy( CHAR_DATA *ch, char *argument )
 		 check_improve(ch,gsn_haggle,TRUE,4);
 	  }
 	  */
-
-          if (IS_EVIL(ch))
-              cost = haggle_cost( ch, cost, obj->cost*4/5 );
-          else
-              cost = haggle_cost( ch, cost, obj->cost );
-
 	  
 	  if (number > 1)
 	  {
@@ -3700,6 +3699,11 @@ void do_sell( CHAR_DATA *ch, char *argument )
 	return;
 	}
 
+        if (IS_GOOD(ch))
+            cost = haggle_cost( ch, cost*5/4, obj->cost );
+        else
+            cost = haggle_cost( ch, cost, obj->cost );
+
 	if ( ( cost = get_cost( keeper, obj, FALSE ) ) <= 0 )
 	{
 	act( "$n looks uninterested in $p.", keeper, obj, ch, TO_VICT );
@@ -3731,10 +3735,6 @@ void do_sell( CHAR_DATA *ch, char *argument )
 	  check_improve(ch,gsn_haggle,TRUE,4);
 	}
 	*/
-        if (IS_GOOD(ch))
-            cost = haggle_cost( ch, cost*5/4, obj->cost );
-        else
-            cost = haggle_cost( ch, cost, obj->cost );
  
 	sprintf( buf, "You sell $p for %d silver and %d gold piece%s.",
 	cost - (cost/100) * 100, cost/100, cost == 1 ? "" : "s" );
