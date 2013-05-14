@@ -3411,6 +3411,11 @@ void do_buy( CHAR_DATA *ch, char *argument )
 			return;
 		 }
 	  }
+
+          if (IS_EVIL(ch))
+              cost = haggle_cost( ch, cost, obj->cost*4/5 );
+          else
+              cost = haggle_cost( ch, cost, obj->cost );
 	  
 	  if ( (ch->silver + ch->gold * 100) < cost * number )
 	  {
@@ -3465,12 +3470,6 @@ void do_buy( CHAR_DATA *ch, char *argument )
 		 check_improve(ch,gsn_haggle,TRUE,4);
 	  }
 	  */
-
-          if (IS_EVIL(ch))
-              cost = haggle_cost( ch, cost, obj->cost*4/5 );
-          else
-              cost = haggle_cost( ch, cost, obj->cost );
-
 	  
 	  if (number > 1)
 	  {
