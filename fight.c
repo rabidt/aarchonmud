@@ -562,8 +562,8 @@ void special_affect_update(CHAR_DATA *ch)
     {
 
 	int infect;
-        infect = number_range (6,30);
-        infect += ch->level/6;
+        infect = number_range (5, 25);
+        infect += ch->level*3/2;
 
         if (infect >= ch->hit)
             return;
@@ -582,7 +582,7 @@ void special_affect_update(CHAR_DATA *ch)
 	int infect;
 
         infect = number_range (5, 25);
-        infect += ch->level/5;
+        infect += ch->level*3/2;
 
         if (infect >= ch->hit)
             return;
@@ -599,8 +599,8 @@ void special_affect_update(CHAR_DATA *ch)
     {
 	int infect;
 
-        infect = number_range (20, 40);
-        infect += ch->level/5;
+        infect = number_range (5, 25);
+        infect += ch->level*3/2;
 
         if (infect >= ch->hit)
             return;
@@ -1260,6 +1260,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
