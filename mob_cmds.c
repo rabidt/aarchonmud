@@ -788,6 +788,7 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
     char       arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim;
     OBJ_DATA  *obj;
+    char buf[MSL];
 
     if ( ch->in_room == NULL )
         return;
@@ -836,8 +837,13 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
 	}
 	else
 	{
-	    bug( "Mppurge - Bad argument from vnum %d.",
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	    bug( "Mppurge - Bad argument from vnum %d.",
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+            sprintf( buf, "Mppurge - Bad argument from mob: %d, room: %d, argument: %s",
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+                ch->in_room->vnum != NULL ? ch->in_room->vnum : 0, 
+                arg != NULL ? arg : "null");
+            bug( buf, 0 );
 	}
 	return;
     }
@@ -865,6 +871,7 @@ void do_mpgoto( CHAR_DATA *ch, char *argument )
 {
     char             arg[ MAX_INPUT_LENGTH ];
     ROOM_INDEX_DATA *location;
+    char buf[MSL];
 
     one_argument( argument, arg );
     if ( arg[0] == '\0' )
@@ -876,8 +883,12 @@ void do_mpgoto( CHAR_DATA *ch, char *argument )
 
     if ( ( location = find_mp_location( ch, arg ) ) == NULL )
     {
-	bug( "Mpgoto - No such location from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpgoto - No such location from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "Mpgoto - No such location. mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -902,6 +913,7 @@ void do_mpat( CHAR_DATA *ch, char *argument )
     ROOM_INDEX_DATA *original;
     CHAR_DATA       *wch;
     OBJ_DATA 	    *on;
+    char buf[MSL];
 
     argument = one_argument( argument, arg );
 
@@ -912,16 +924,24 @@ void do_mpat( CHAR_DATA *ch, char *argument )
     sprintf( last_debug, "mpat: start" );
     if ( arg[0] == '\0' || argument[0] == '\0' )
     {
-	bug( "Mpat - Bad argument from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpat - Bad argument from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );*/
+        sprintf( buf, "Mpat - Bad argument from mob: %d, argument: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
     sprintf( last_debug, "mpat: find_mp_location" );
     if ( ( location = find_mp_location( ch, arg ) ) == NULL )
     {
-	bug( "Mpat - No such location from vnum %d.",
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpat - No such location from vnum %d.",
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "Mpat - Bad location from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -1029,8 +1049,12 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
     {
         if ( ( location = find_mp_location( ch, arg2 ) ) == NULL )
         {
-            bug( "Mptransfer - No such location from vnum %d.",
-                IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*            bug( "Mptransfer - No such location from vnum %d.",
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+            sprintf( buf, "Mptransfer - Bad location from mob: %d, target room: %s",
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+                arg2 != NULL ? arg2 : "null");
+            bug( buf, 0 );
             return;
         }
         
@@ -1074,8 +1098,12 @@ void do_mpgtransfer( CHAR_DATA *ch, char *argument )
 
     if ( arg1[0] == '\0' )
     {
-	bug( "Mpgtransfer - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpgtransfer - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "Mptransfer - Bad location from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg2 != NULL ? arg2 : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -1103,13 +1131,18 @@ void do_mpgtransfer( CHAR_DATA *ch, char *argument )
 void do_mpforce( CHAR_DATA *ch, char *argument )
 {
     char arg[ MAX_INPUT_LENGTH ];
+    char buf[MSL];
 
     argument = one_argument( argument, arg );
 
     if ( arg[0] == '\0' || argument[0] == '\0' )
     {
-	bug( "Mpforce - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpforce - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "Mpforce - Bad syntax from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -1155,6 +1188,7 @@ void do_mpgforce( CHAR_DATA *ch, char *argument )
 {
     char arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim, *vch, *vch_next;
+    char buf[MSL];
 
     if ( ch->in_room == NULL )
         return;
@@ -1163,8 +1197,12 @@ void do_mpgforce( CHAR_DATA *ch, char *argument )
 
     if ( arg[0] == '\0' || argument[0] == '\0' )
     {
-	bug( "MpGforce - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "MpGforce - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "MpGforce - Bad syntax from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -1196,13 +1234,18 @@ void do_mpvforce( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim, *victim_next;
     char arg[ MAX_INPUT_LENGTH ];
     int vnum;
+    char buf[MSL];
 
     argument = one_argument( argument, arg );
 
     if ( arg[0] == '\0' || argument[0] == '\0' )
     {
-	bug( "MpVforce - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "MpVforce - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "MpVforce - Bad syntax from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -1244,20 +1287,29 @@ void do_mpcast( CHAR_DATA *ch, char *argument )
     void *victim = NULL;
     char spell[ MAX_INPUT_LENGTH ];
     int sn, target_type;
+    char buf[MSL];
 
     target_name = one_argument( argument, spell );
 
     if ( spell[0] == '\0' )
     {
-	bug( "MpCast - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "MpCast - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "MpCast - Bad syntax from mob: %d, spell name: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            spell != NULL ? spell : "null");
+        bug( buf, 0 );
 	return;
     }
 
     if ( ( sn = skill_lookup( spell ) ) < 0 )
     {
-	bug( "MpCast - No such spell from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "MpCast - No such spell from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "MpCast - Bad syntax from mob: %d, spell name: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            spell != NULL ? spell : "null");
+        bug( buf, 0 );
 	return;
     }
     
