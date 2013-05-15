@@ -57,9 +57,9 @@ function save (what, v, saved)
   assert (type (saved) == "table" or saved == nil, 
           "3rd argument to serialize.save should be a table or nil")
 
-  local out = {}  -- output to this table
+  local out = {"local "}  -- output to this table
   save_item (what, v, out, 0, saved)   -- do serialization
-  return table.concat (out, "\n"), saved  -- turn into a string (also return our table)
+  return table.concat (out, "\n") .. "\nreturn " .. what, saved  -- turn into a string (also return our table)
 end -- serialize.save
 
 --- below are local functions for this module -------------
