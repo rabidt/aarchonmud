@@ -31,6 +31,7 @@ const struct olc_cmd_type mpedit_table[] =
    {  "if",       mpedit_if      },
    {  "mob",      mpedit_mob     },
    {  "?",        show_help      },
+   {  "lua",      mpedit_lua     },
    
    {  NULL,       0              }
 };
@@ -214,17 +215,79 @@ MPEDIT(mpedit_show)
 {
     MPROG_CODE *pMcode;
     char buf[MAX_STRING_LENGTH];
-
     EDIT_MPCODE(ch,pMcode);
 
     sprintf(buf,
            "Vnum:       [%d]\n\r"
+           "Lua:        %s\n\r"
            "Code:\n\r%s\n\r",
-           pMcode->vnum, pMcode->code);
-    send_to_char(buf, ch);
+           pMcode->vnum,
+           pMcode->is_lua ? "True" : "False",
+           pMcode->code  );
+    page_to_char_new(buf, ch, TRUE);
 
     return FALSE;
 }
+
+void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
+{
+    MPROG_LIST *mpl;
+    int hash;
+    char buf[MSL];
+    MOB_INDEX_DATA *mob;
+
+    if ( pMcode != NULL )
+        for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
+            for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
+                for ( mpl = mob->mprogs; mpl; mpl = mpl->next )
+                    if ( mpl->vnum == pMcode->vnum )
+                    {
+                        sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
+                        send_to_char( buf, ch );
+                        mpl->code = pMcode->code;
+                        mpl->is_lua = pMcode->is_lua;
+
+                        if ( mpl->is_lua )
+                        {
+                            /* find instances of the mob and */
+                            /* reload the script to mob's script space */
+                            sh_int cnt=0;
+                            CHAR_DATA *tch;
+                            for ( tch=char_list ; tch ; tch=tch->next )
+                            {
+                                if (tch->pIndexData == mob  
+                                    && tch->LS )
+                                {
+                                    lua_load_mprog( tch->LS, pMcode->vnum, pMcode->code);
+                                    cnt++;
+                                }
+                            }
+                            ptc(ch, "Fixed lua script for %d mob instances.\n\r", cnt);
+                        }
+                    } 
+}
+
+MPEDIT(mpedit_lua)
+{
+    MPROG_CODE *pMcode;
+    MPROG_LIST *mpl;
+    EDIT_MPCODE(ch, pMcode);
+    MOB_INDEX_DATA *mob;
+    int hash;
+    char buf[MSL];
+
+    pMcode->is_lua = !pMcode->is_lua;
+    ptc( ch, "LUA set to %s\n\r", pMcode->is_lua ? "TRUE" : "FALSE" );
+    if ( pMcode->is_lua )
+        lua_mprogs++;
+    else
+        lua_mprogs--;
+
+    fix_mprog_mobs( ch, pMcode);
+}
+
+/* Procedure to run when MPROG is changed and needs to be updated
+   on mobs using it */
 
 MPEDIT(mpedit_code)
 {

@@ -400,7 +400,7 @@ void do_mpdump( CHAR_DATA *ch, char *argument )
        return;
    }
 
-   page_to_char( mprg->code, ch );
+   page_to_char_new( mprg->code, ch, TRUE );
 }
 
 /*
@@ -1306,7 +1306,7 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
 	low = atoi( min );
     else
     {
-	bug( "MpDamage - Bad damage min vnum %d.", 
+	bug( "MpDamage - Bad damage min, vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	return;
     }
@@ -1314,7 +1314,7 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
 	high = atoi( max );
     else
     {
-	bug( "MpDamage - Bad damage max vnum %d.", 
+	bug( "MpDamage - Bad damage max, vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	return;
     }
@@ -1420,7 +1420,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     CHAR_DATA *vch;
     OBJ_DATA *obj1, *obj2;
     MPROG_CODE *prg;
-    extern void program_flow( int, char *, CHAR_DATA *, CHAR_DATA *, const void *, const void * );
+    extern void program_flow( char *, bool, int, char *, CHAR_DATA *, CHAR_DATA *, const void *, sh_int, const void *, sh_int );
 
     argument = one_argument( argument, arg );
     if ( arg[0] == '\0' )
@@ -1446,7 +1446,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     argument = one_argument( argument, arg );
     if ( arg[0] != '\0' )
     	obj2 = get_obj_here( ch, arg );
-    program_flow( prg->vnum, prg->code, ch, vch, (void *)obj1, (void *)obj2 );
+    program_flow( argument, prg->is_lua,prg->vnum, prg->code, ch, vch, (void *)obj1, ACT_ARG_OBJ, (void *)obj2, ACT_ARG_OBJ );
 }
 
 /*

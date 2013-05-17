@@ -2406,6 +2406,11 @@ void page_to_char_bw( const char *txt, CHAR_DATA *ch )
 #define MAX_BUF_INDEX (MAX_STRING_LENGTH*4)
 void page_to_char( const char *txt, CHAR_DATA *ch )
 {
+    page_to_char_new( txt, ch, FALSE );
+}
+
+void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
+{
 	const  char    *point;
 	char    *point2;
 	char    buf[ MAX_STRING_LENGTH * 5 ]; // some safety space
@@ -2435,7 +2440,7 @@ void page_to_char( const char *txt, CHAR_DATA *ch )
 			   return;
 		       }
 
-		       if( *point == '{' )
+		       if( *point == '{' && !raw)
 		       {
 			   point++;
 			   skip = colour( *point, ch, point2 );
@@ -2457,7 +2462,7 @@ void page_to_char( const char *txt, CHAR_DATA *ch )
 		   {
 			   for( point = txt ; *point ; point++ )
 			   {
-				   if( *point == '{' )
+				   if( *point == '{' && !raw )
 				   {
 					   point++;
 					   continue;
@@ -2573,6 +2578,7 @@ void act_see( const char *format, CHAR_DATA *ch, const void *arg1,
     act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, 0, TRUE);
 }
 
+
 /* like act_new, but checks if the information should be gagged
  */
 void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1, 
@@ -2582,7 +2588,10 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 	static char * const he_she  [] = { "it",  "he",  "she" };
 	static char * const him_her [] = { "it",  "him", "her" };
 	static char * const his_her [] = { "its", "his", "her" };
-	
+    
+    sh_int arg1_type=ACT_ARG_UNDEFINED;
+    sh_int arg2_type=ACT_ARG_UNDEFINED;
+
 	CHAR_DATA      *to;
 	CHAR_DATA      *vch = ( CHAR_DATA * ) arg2;
 	OBJ_DATA       *obj1 = ( OBJ_DATA  * ) arg1;
@@ -2621,6 +2630,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 			return;
 		
 		to = vch->in_room->people;
+        arg2_type=ACT_ARG_CHARACTER;
 	}
 
     act_wizi = IS_NPC(ch) && IS_SET(ch->act, ACT_WIZI);
@@ -2686,8 +2696,10 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 		default:  bug( "Act: bad code %d.", *str );
 		    i = " <@@@> ";                                break;
 		    /* Thx alex for 't' idea */
-                case 't': i = (arg1 == NULL ? " <@@@> " : (char *) arg1);  break;
-		case 'T': i = (char *) arg2;                            break;
+        case 't': if ( arg1 == NULL ) { i = " <@@@> ";}
+                  else { i = (char *) arg1; arg1_type=ACT_ARG_TEXT;}
+                  break;
+        case 'T': i = (char *) arg2; arg2_type=ACT_ARG_TEXT;    break;
 //		case 'n': i = PERS( ch,  to  );                         break;
 //		case 'N': i = PERS( vch, to  );                         break;
 		case 'n': i = get_mimic_PERS_new( ch,  to, gag_type  );                         break;
@@ -2703,12 +2715,14 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 		    i = can_see_obj( to, obj1 )
 			? obj1->short_descr
 			: "something";
+            arg1_type=ACT_ARG_OBJ;
 		    break;
 		    
 		case 'P':
 		    i = can_see_obj( to, obj2 )
 			? obj2->short_descr
 			: "something";
+            arg2_type=ACT_ARG_OBJ;
 		    break;
 		    
 		case 'd':
@@ -2720,6 +2734,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 			{
 			    one_argument( (char *) arg2, fname );
 			    i = fname;
+                arg2_type=ACT_ARG_TEXT;
 			}
 		    break;
 		}
@@ -2740,7 +2755,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 	    write_to_buffer( to->desc, buffer, 0 );
 	else
 	    if ( MOBtrigger )
-		mp_act_trigger( buf, to, ch, arg1, arg2, TRIG_ACT );
+		mp_act_trigger( buf, to, ch, arg1, arg1_type, arg2, arg2_type, TRIG_ACT );
     }
     
     return;

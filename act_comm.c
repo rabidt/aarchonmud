@@ -916,7 +916,7 @@ void do_say( CHAR_DATA *ch, char *argument )
         {
             mob_next = mob->next_in_room;
             if ( can_trigger(mob, TRIG_SPEECH) )
-                mp_act_trigger( argument, mob, ch, NULL, NULL, TRIG_SPEECH );
+                mp_act_trigger( argument, mob, ch, NULL,0, NULL,0, TRIG_SPEECH );
         }
     }
     return;
@@ -1108,7 +1108,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
         victim->reply = ch;
     
     if ( !IS_NPC(ch) && IS_NPC(victim) && HAS_TRIGGER(victim,TRIG_SPEECH) )
-        mp_act_trigger( argument, victim, ch, NULL, NULL, TRIG_SPEECH );
+        mp_act_trigger( argument, victim, ch, NULL,0, NULL,0, TRIG_SPEECH );
 }
 
 void do_tell( CHAR_DATA *ch, char *argument )

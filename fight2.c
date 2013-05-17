@@ -2243,7 +2243,7 @@ void do_surrender( CHAR_DATA *ch, char *argument )
 
     if ( PLR_ACT(mob, PLR_NOSURR)
 	 || PLR_ACT(mob, PLR_WAR)
-	 || (IS_NPC(mob) && !mp_percent_trigger(mob, ch, NULL, NULL, TRIG_SURR)) )
+	 || (IS_NPC(mob) && !mp_percent_trigger(mob, ch, NULL,0, NULL,0, TRIG_SURR)) )
     {
 	act( "$N seems to ignore your cowardly act!", ch, NULL, mob, TO_CHAR );
         multi_hit( mob, ch, TYPE_UNDEFINED );
@@ -4370,8 +4370,12 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
     
     if (arg[0] == '\0')
     {
-        send_to_char("Blackjack whom?\n\r",ch);
-        return;
+        victim = ch->fighting;
+        if (victim == NULL)
+        {
+            send_to_char("But you aren't fighting anyone!\n\r",ch);
+            return;
+        }
     }
     
     else if ((victim = get_char_room(ch,arg)) == NULL)

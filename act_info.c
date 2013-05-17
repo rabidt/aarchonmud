@@ -3025,7 +3025,12 @@ void do_count ( CHAR_DATA *ch, char *argument )
 
 void do_inventory( CHAR_DATA *ch, char *argument )
 {
-    send_to_char( "You are carrying:\n\r", ch );
+    char buf[MSL];
+
+    sprintf( buf, "You are carrying %d / %d items:\n\r", 
+        ch->carry_number, can_carry_n(ch));
+    send_to_char(buf,ch);
+
     show_list_to_char( ch->carrying, ch, TRUE, TRUE );
     return;
 }
@@ -6263,3 +6268,4 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
            show_penalties_by_player(ch, ch->name, TIME_PLAYED(ch), 2);
 
 }
+

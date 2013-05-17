@@ -2109,7 +2109,9 @@ void extract_obj( OBJ_DATA *obj )
         obj_next = obj_content->next_content;
         extract_obj( obj_content );
     }
-    
+
+    unregister_lua( obj );
+
     if ( object_list == obj )
     {
         object_list = obj->next;
@@ -2313,6 +2315,8 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
         if ( ch->mprog_target == wch )
             wch->mprog_target = NULL;
     }
+
+    unregister_lua( ch );
     
     if ( ch == char_list )
     {
@@ -2834,20 +2838,20 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
 	if ( area )
 	{
 	    if ( obj->carried_by != NULL )
+        {
+            if ( !obj->carried_by->in_room )
             {
-                if ( !obj->carried_by->in_room )
-                {
-                    bugf("get_obj_new: %s carried_by not NULL but in_room is.", obj->carried_by->name);
-		    return NULL;
-		}
-		if ( !ch->in_room )
-                {
-                    bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
-                    return NULL;
-                }
-		if ( obj->carried_by->in_room->area != ch->in_room->area )
-		  continue;
+                bugf("get_obj_new: %s carried_by not NULL but in_room is.", obj->carried_by->name);
+		        continue;
+		    }
+		    if ( !ch->in_room )
+            {
+                bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
+                continue;
             }
+		    if ( obj->carried_by->in_room->area != ch->in_room->area )
+		        continue;
+        }
 
 	    if ( obj->in_room != NULL
 		 && obj->in_room->area != ch->in_room->area )

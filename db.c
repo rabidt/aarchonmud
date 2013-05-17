@@ -483,6 +483,7 @@ int  top_vnum_room;      /* OLC */
 int  top_vnum_mob;       /* OLC */
 int  top_vnum_obj;       /* OLC */
 int  top_mprog_index;    /* OLC */
+int  lua_mprogs=0;
 int  mobile_count = 0;
 int  newmobs = 0;
 int  newobjs = 0;
@@ -2165,7 +2166,24 @@ void load_mobprogs( FILE *fp )
         
         pMprog      = alloc_perm( sizeof(*pMprog) );
         pMprog->vnum    = vnum;
-        pMprog->code    = fread_string( fp );
+        /* some funko stuff when loading old files that don't have is_lua data*/
+        char * tempStr = fread_string( fp );
+        if ( !strcmp( tempStr, "IS_LUA" ) )
+        {
+            pMprog->is_lua = TRUE;
+            pMprog->code = fread_string( fp );
+            lua_mprogs++;
+        }
+        else if ( !strcmp( tempStr, "NOT_LUA" ) )
+        {
+            pMprog->is_lua = FALSE;
+            pMprog->code = fread_string( fp );
+        }
+        else
+        {
+            pMprog->code    = tempStr;
+        }
+
         if ( mprog_list == NULL )
             mprog_list = pMprog;
         else
@@ -2201,6 +2219,7 @@ void fix_mobprogs( void )
                 {
                     mprog_count++;
                     list->code = prog->code;
+                    list->is_lua = prog->is_lua;
                 }
                 else
                 {
@@ -2373,7 +2392,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
 
 		if ( HAS_TRIGGER(pMob, TRIG_RESET) )
 		{
-		    mp_percent_trigger( pMob, NULL, NULL, NULL, TRIG_RESET );
+		    mp_percent_trigger( pMob, NULL, NULL, 0, NULL, 0,TRIG_RESET );
 		    /* safety-net if mob kills himself with mprog */
 		    if ( IS_DEAD(pMob) )
 		    {
@@ -2946,6 +2965,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mob->next       = char_list;
     char_list       = mob;
     pMobIndex->count++;
+
     return mob;
 }
 
@@ -4284,6 +4304,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     sprintf( buf, "Mobs    %5d(%d new format)\n\r", top_mob_index,newmobs ); 
     send_to_char( buf, ch );
     sprintf( buf, "(in use)%5d\n\r", mobile_count  ); send_to_char( buf, ch );
+    sprintf( buf, "Mprogs  %5d(%d lua)\n\r", top_mprog_index, lua_mprogs); send_to_char( buf, ch);
     sprintf( buf, "Objs    %5d(%d new format)\n\r", top_obj_index,newobjs ); 
     send_to_char( buf, ch );
     sprintf( buf, "Resets  %5d\n\r", top_reset     ); send_to_char( buf, ch );

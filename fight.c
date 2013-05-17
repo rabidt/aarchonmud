@@ -248,7 +248,7 @@ void violence_update( void )
         if ( IS_NPC( ch ) )
         {
             if ( HAS_TRIGGER( ch, TRIG_FIGHT ) )
-                mp_percent_trigger( ch, victim, NULL, NULL, TRIG_FIGHT );
+                mp_percent_trigger( ch, victim, NULL,0, NULL,0, TRIG_FIGHT );
             if ( HAS_TRIGGER( ch, TRIG_HPCNT ) )
                 mp_hprct_trigger( ch, victim );
             if ( HAS_TRIGGER( ch, TRIG_MPCNT ) )
@@ -2378,6 +2378,15 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     if ( number_bits(10) != 69 )
 	return;
 
+    if (IS_SET(victim->act, ACT_NOBEHEAD))
+    {
+        act("You try to cut $N's head off, but it won't budge!",
+            ch,NULL,victim,TO_CHAR);
+        act("$n tries to cut $N's head off, but it won't budge!",
+            ch,NULL,victim,TO_ROOM);
+        return;
+    }
+
     if ( wield == NULL )
     {
 	if ( !IS_NPC(ch) && /* active AND passive skill => mobs have it */
@@ -2459,11 +2468,22 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
 	 && (ch->stance == STANCE_AMBUSH || number_bits(1))
 	 && number_percent() <= get_skill(ch, gsn_assassination) )
     {
-	act("You sneak up behind $N, and slash $S throat!",ch,NULL,victim,TO_CHAR);
-	act("$n sneaks up behind you and slashes your throat!",ch,NULL,victim,TO_VICT);
-	act("$n sneaks up behind $N, and slashes $S throat!",ch,NULL,victim,TO_NOTVICT);
-	behead(ch,victim);
-	check_improve(ch,gsn_assassination,TRUE,0);
+        if (IS_SET(victim->act, ACT_NOBEHEAD))
+        {
+            act("You try to cut $N's head off, but it won't budge!",
+                ch,NULL,victim,TO_CHAR);
+            act("$n tries to cut $N's head off, but it won't budge!",
+                ch,NULL,victim,TO_ROOM);
+            return;
+        }
+        else
+        {
+	    act("You sneak up behind $N, and slash $S throat!",ch,NULL,victim,TO_CHAR);
+	    act("$n sneaks up behind you and slashes your throat!",ch,NULL,victim,TO_VICT);
+	    act("$n sneaks up behind $N, and slashes $S throat!",ch,NULL,victim,TO_NOTVICT);
+	    behead(ch,victim);
+	    check_improve(ch,gsn_assassination,TRUE,0);
+        }
     }
     else
 	check_improve(ch,gsn_assassination,FALSE,3);
@@ -3012,7 +3032,7 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
                 victim->hit = 1;
                 set_pos( victim, POS_STUNNED );
                 // trigger must come AFTER death-prevention, as mob remort can cause character to save
-                mp_percent_trigger( m, victim, NULL, NULL, TRIG_DEFEAT );
+                mp_percent_trigger( m, victim, NULL,0, NULL,0, TRIG_DEFEAT );
                 return FALSE;
             }
     }
@@ -3265,7 +3285,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( IS_NPC( victim ) && HAS_TRIGGER( victim, TRIG_DEATH) )
     {
 	set_pos( victim, POS_STANDING );
-	mp_percent_trigger( victim, ch, NULL, NULL, TRIG_DEATH );
+	mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_DEATH );
     }
 
     remort_remove(victim, FALSE);
@@ -4403,7 +4423,7 @@ bool check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim )
 
     ch->fighting = victim;
     if ( IS_NPC( victim ) && HAS_TRIGGER( victim, TRIG_KILL ) )
-	mp_percent_trigger( victim, ch, NULL, NULL, TRIG_KILL );
+	mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_KILL );
     if ( ch->fighting != victim )
 	return TRUE;
 

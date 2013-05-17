@@ -68,13 +68,18 @@ char *fix_string( const char *str )
     {
         if (i == MAX_STRING_LENGTH * 3)
         {
-            bug( "Fix_string: String too long!", 0 );
+            bugf( "Fix_string: String too long!" );
+            log_string(str);
             i--;
             break;
         }
         
-        if (str[i+o] == '\r' || str[i+o] == '~')
+        while (str[i+o] == '\r' || str[i+o] == '~')
             o++;
+
+        if (str[i+o]== '\0')
+            break;
+
         strfix[i] = str[i+o];
     }
     strfix[i] = '\0';
@@ -225,6 +230,7 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
         if ( (pMprog = get_mprog_index(i) ) != NULL)
         {
 		          fprintf(fp, "#%d\n", i);
+                  fprintf(fp, "%s~\n", pMprog->is_lua ? "IS_LUA" : "NOT_LUA" );
                   fprintf(fp, "%s~\n", fix_string(pMprog->code));
         }
     }
