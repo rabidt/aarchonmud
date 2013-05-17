@@ -314,7 +314,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "distract",   do_distract, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "feint",      do_feint, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "backstab",   do_backstab,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-        { "blackjack",  do_blackjack,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+        { "blackjack",  do_blackjack,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "circle",     do_circle,      POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "slash",      do_slash_throat,POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "bash",       do_bash,        POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -1025,7 +1025,7 @@ bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact 
 	     && MOBtrigger
 	     && HAS_TRIGGER(victim, TRIG_SOCIAL)
 	     && mp_act_trigger(social_table[cmd].name, victim, ch,
-			       NULL, NULL, TRIG_SOCIAL) )
+			       NULL,0, NULL,0, TRIG_SOCIAL) )
 	    ;
 	else
 	{
