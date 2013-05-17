@@ -25,6 +25,8 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
+#include <lua.h>
+
 /* change this value to 0 for running on darkhorse */
 #define SOCR 1
 
@@ -205,7 +207,6 @@ struct comm_history_type
     COMM_ENTRY *head; /* most recent */
     COMM_ENTRY *tail; /* oldest */
 };
-
 
 
 typedef bool CHAN_CHECK args( ( CHAR_DATA *ch) );
@@ -1322,6 +1323,7 @@ struct  kill_data
 #define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
 #define ACT_HARD_QUEST  (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
+#define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 
 /* damage classes */
 #define DAM_NONE                0
@@ -2540,6 +2542,7 @@ struct  char_data
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
+    lua_State *LS;
 	#ifdef FSTAT
 	/* Stuff for fight statistics*/
 	int	attacks_attempts;
@@ -3090,10 +3093,12 @@ struct mprog_list
 	char *          code;
 	MPROG_LIST *    next;
 	bool        valid;
+    bool is_lua;
 };
 
 struct mprog_code
 {
+    bool        is_lua;
 	int         vnum;
 	char *      code;
 	MPROG_CODE *    next;
@@ -4002,6 +4007,8 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define NOTE_DIR        "../notes/"
 #define GOD_DIR         "../gods/"
 #define CLAN_DIR	"../clans/"
+#define LUA_DIR     "../src/lua/"
+#define USER_DIR    "../user/"
 #endif
 
 #if defined(unix)
@@ -4011,6 +4018,8 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define NULL_FILE   "/dev/null"     /* To reserve one stream */
 #define NOTE_DIR    "../notes/"
 #define CLAN_DIR	"../clans/"
+#define LUA_DIR     "../src/lua/"
+#define USER_DIR    "../user/"
 #endif
 
 #define AREA_LIST       "area.lst"  /* List of areas*/
@@ -4039,6 +4048,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
 #define MAX_WHO_FILE   "maxwho.txt"
+#define LUA_STARTUP    LUA_DIR "startup.lua"
 #define ptc printf_to_char
 
 /* string constants */
@@ -4371,12 +4381,17 @@ bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
-void    program_flow    args( ( int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
-				const void *arg1, const void *arg2 ) );
+void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
+				const void *arg1, sh_int arg1type,
+                const void *arg2, sh_int arg2type) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
-				const void *arg1, const void *arg2, int type ) );
+				const void *arg1, sh_int arg1type, 
+                const void *arg2, sh_int arg2type,
+                int type ) );
 bool    mp_percent_trigger args( ( CHAR_DATA *mob, CHAR_DATA *ch,               
-				const void *arg1, const void *arg2, int type ) );
+				const void *arg1, sh_int arg1type,
+                const void *arg2, sh_int arg2type,
+                int type ) );
 void    mp_bribe_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch, int amount ) );
 bool    mp_exit_trigger   args( ( CHAR_DATA *ch, int dir ) );
 void    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
@@ -4384,7 +4399,7 @@ void    mp_greet_trigger  args( ( CHAR_DATA *ch ) );
 void    mp_hprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 bool    mp_try_trigger    args( ( char *argument, CHAR_DATA *mob ) );
-bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob ) );
+bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch ) );
 
 /* mob_cmds.c */
 void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );
@@ -4586,11 +4601,23 @@ extern      int         top_jail_room;
 extern      int         top_vnum_mob;
 extern      int         top_vnum_obj;
 extern      int         top_vnum_room;
-
+extern      int         lua_mprogs;
 extern      char            str_empty       [1];
 
 extern      MOB_INDEX_DATA *    mob_index_hash  [MAX_KEY_HASH];
 extern      OBJ_INDEX_DATA *    obj_index_hash  [MAX_KEY_HASH];
 extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
+
+/*
+    * Lua stuff (Nick Gammon)
+     */
+
+ void open_lua  (CHAR_DATA * ch);  /* set up Lua state */
+  void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
+
+#define ACT_ARG_UNDEFINED 0
+#define ACT_ARG_OBJ 1
+#define ACT_ARG_TEXT 2
+#define ACT_ARG_CHARACTER 3
 
