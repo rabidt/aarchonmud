@@ -55,7 +55,7 @@ lua_State *mud_LS = NULL;  /* Lua state for entire MUD */
 
 /* file scope variables */
 static bool        s_LuaScriptInProgress=FALSE;
-static lua_State  *s_ActiveLuaScriptSpace=NULL;
+//static lua_State  *s_ActiveLuaScriptSpace=NULL;
 //static bool        s_CloseActiveLuaScriptSpace=FALSE;
 static bool        s_LuaMobDestroyed=FALSE;
 static jmp_buf     s_place;
@@ -79,7 +79,7 @@ void add_lua_tables (lua_State *LS);
 
 #define CHARACTER_STATE "character.state"
 #define CH_META        "CH.meta"
-#define CH_ENV_META    "CH.envmeta"
+#define CH_ENV_META    "CH_env_meta"
 #define UD_META        "UD.meta"
 #define OBJ_META       "OBJ.meta"
 //#define OBJ_ENV_META   "OBJ.envmeta"
@@ -95,8 +95,8 @@ void add_lua_tables (lua_State *LS);
 #define UNREGISTER_UD_FUNCTION "UnregisterUd"
 
 
-#define NUM_MPROG_ARGS 8
 #define MOB_ARG "mob" 
+#define NUM_MPROG_ARGS 7
 #define CH_ARG "ch"
 #define OBJ1_ARG "obj1"
 #define OBJ2_ARG "obj2"
@@ -2189,7 +2189,7 @@ void open_lua  ()
     lua_settop (LS, 0);    /* get rid of stuff lying around */
 
 }  /* end of open_lua */
-
+#if 0
 void close_lua ( CHAR_DATA * ch)
 {
 
@@ -2227,7 +2227,7 @@ static lua_State * find_lua_function (CHAR_DATA * ch, const char * fname)
 
     return L;  
 }
-
+#endif
 extern      char last_command [MSL];
 static void call_lua_function (CHAR_DATA * ch, 
         lua_State *LS, 
@@ -2256,7 +2256,7 @@ static void call_lua_function (CHAR_DATA * ch,
 
 }  /* end of call_lua_function */
 
-
+#if 0
 void call_lua (CHAR_DATA * ch, const char * fname, const char * argument)
 {
 
@@ -2333,17 +2333,17 @@ void call_lua_mob_num (CHAR_DATA * ch,
     call_lua_function (ch, L, fname, 2);
 
 }  /* end of call_lua_mob_num */
-
+#endif
 
 bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
 
-    sprintf(buf, "function P_%d (%s,%s,%s,%s,%s,%s,%s,%s)"
+    sprintf(buf, "function P_%d (%s,%s,%s,%s,%s,%s,%s)"
             "%s\n"
             "end",
             vnum,
-            MOB_ARG, CH_ARG, TRIG_ARG, OBJ1_ARG,
+            /*MOB_ARG,*/ CH_ARG, TRIG_ARG, OBJ1_ARG,
             OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG,
             code);
 
@@ -2365,10 +2365,6 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 
 }
 
-int lua_mob_program()
-{
-}
-
 /* lua_program
    lua equivalent of program_flow
  */
@@ -2377,15 +2373,8 @@ void lua_program( char *text, int pvnum, char *source,
         const void *arg1, sh_int arg1type, 
         const void *arg2, sh_int arg2type ) 
 {
-    /* Open lua if it isn't */
-    /*if ( mud_LS == NULL )
-        open_lua(mob);
-*/
-    //bugf("before make");
-    //stackDump(mud_LS);
+    
     make_ud_table( mud_LS, mob, UDTYPE_CH, TRUE);
-    //bugf("after make");
-    //stackDump(mud_LS);
     if (lua_isnil(mud_LS, -1) )
     {
         bugf("make_ud_table pushed nil to lua_program");
@@ -2399,47 +2388,42 @@ void lua_program( char *text, int pvnum, char *source,
       
     if ( lua_isnil( mud_LS, -1) )
     {
-        //stackDump(mud_LS);
         lua_remove( mud_LS, -1); /* Remove the nil */
-        //log_string("remove nil");
-        //stackDump(mud_LS);
         /* not loaded yet*/
         if ( !lua_load_mprog( mud_LS, pvnum, source) )
         {
             /* don't bother running it if there were errors */
-            log_string("didn't load right");
             return;
         }
-        //stackDump(mud_LS);
         
         /* loaded without errors, now get it on the stack */
         lua_getglobal( mud_LS, buf);
-        //if (lua_isnil( mud_LS, -1) )
-          //log_string("nil after load");
     }
     
-    //stackDump(mud_LS);
     
     /* now the env */   //-2 is CH, -1 is funct
-    lua_getfield( mud_LS, -2, "env"); //-1 is CH.env, -2 is funct, -3 is funct
+    lua_getfield( mud_LS, -2, "env"); //-1 is CH.env, -2 is funct, -3 is CH
     if (lua_isnil(mud_LS, -1) )
     {
-        log_string("env is nil");// -1 is nil, -2 is funct, -3 is CH
         lua_remove(mud_LS, -1); // -1 is funct, -2 is CH
-        lua_pushstring(mud_LS,"env");//-1 is "env", -2 is funct, -3 is CH
+        lua_pushstring(mud_LS, "env");//-1 is "env", -2 is funct, -3 is CH
         lua_newtable(mud_LS); /* the new environment table */ //-1 is {}, -2 is "env", -3 is funct, -4 is CH
-        luaL_getmetatable(mud_LS, CH_ENV_META); // -1 is CH_ENV_META, -2 is {}, -3 is "env", -4 is func, -5 is CH
+        //luaL_getmetatable(mud_LS, CH_ENV_META); // -1 is CH_ENV_META, -2 is {}, -3 is "env", -4 is func, -5 is CH
+        lua_getglobal(mud_LS, CH_ENV_META); // -1 is CH_ENV_META, -2 is {}, -3 is "env", -4 is func, -5 is CH
         lua_setmetatable(mud_LS, -2); //-1 is {}, -2 is "env", -3 is funct, -4 is CH
-        lua_rawset(mud_LS, -4 ); /* set the field */ // -1 is funct, -2 is CH
-        lua_getfield(mud_LS, -2, "env"); /* back on top of stack */ // -1 is CH.env, -2 is funct, -3 is CH
+        lua_pushvalue( mud_LS, -4); // -1 CH, -2 {}, -3, "env", -4 funct, -5 CH
+        lua_setfield( mud_LS, -2, MOB_ARG); // -1 {}, -2 "env", -3 funct, -4 CH
+        
+        lua_rawset(mud_LS, -4 ); /* set the field */ // -1 funct, -2 CH
+        lua_getfield(mud_LS, -2, "env"); /* back on top of stack */ // -1 is CH.env, -2 funct, -3 CH
+        lua_remove(mud_LS, -3); // -1 is CH.env, -2 is funct
     }
-    if (lua_setfenv( mud_LS, -2 )==0) // -1 is funct, -2 is CH
-      log_string("setfenv 0");
-    //lua_remove(mud_LS, -1); /* get rid of something? */
+    if (lua_setfenv( mud_LS, -2 )==0) // -1 is funct
+      bugf("setfenv returned 0");
     
     /* MOB_ARG */
     //make_ud_table (mud_LS, (void *)mob, UDTYPE_CH, TRUE);
-    lua_pushvalue(mud_LS, -2 ); //-1 is CH, -2 is funct
+    //lua_pushvalue(mud_LS, -2 ); //-1 is CH, -2 is funct
     
     /* CH_ARG */
     if (ch)
@@ -2480,7 +2464,7 @@ void lua_program( char *text, int pvnum, char *source,
     /* some snazzy stuff to prevent crashes and other bad things*/
     int error;
     s_LoopCheckCounter=0;
-    s_ActiveLuaScriptSpace=mud_LS;
+    //s_ActiveLuaScriptSpace=mud_LS;
     s_LuaScriptInProgress=TRUE;
     s_LuaMobDestroyed=FALSE;
 
@@ -2498,6 +2482,7 @@ void lua_program( char *text, int pvnum, char *source,
             }
             lua_settop(mud_LS, 0);
 
+            #if 0
             /* cleanup routines */
             lua_getfield( mud_LS, LUA_GLOBALSINDEX, CLEANUP_FUNCTION);
             if ( CallLuaWithTraceBack (mud_LS, 0, 0))
@@ -2506,8 +2491,7 @@ void lua_program( char *text, int pvnum, char *source,
                         pvnum,
                         lua_tostring(mud_LS, -1));
             }
-
-            lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
+            #endif
             break;
 
             /* Error handling */ 
@@ -2515,21 +2499,20 @@ void lua_program( char *text, int pvnum, char *source,
             bugf("Infinite loop interrupted in mprog: %d on mob %d",
                     pvnum, mob->pIndexData->vnum);
             /* close the script space */
-            close_lua(mob);
-            lua_close(mud_LS);
-            mud_LS=NULL;
+            //close_lua(mob);
+            //lua_close(mud_LS);
+            //mud_LS=NULL;
             break;
         case ERR_MOB_DESTROYED:
             /* We don't treat as a bug, mob might have destroyed itself
                so we forced the script to exit.*/
             /* close using this var since mob doesn't exist anymore */
-            lua_close(s_ActiveLuaScriptSpace);
+            //lua_close(s_ActiveLuaScriptSpace);
             break;
     }
 
-    s_ActiveLuaScriptSpace=NULL;
     s_LuaScriptInProgress=FALSE;
-
+    lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
 }
 
 

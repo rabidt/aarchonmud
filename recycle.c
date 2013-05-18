@@ -365,7 +365,6 @@ CHAR_DATA *new_char (void)
 	ch->stance=0;
 	ch->just_killed = FALSE;
 	ch->must_extract = FALSE;
-    ch->LS=NULL;
 	
 	for (i = 0; i < MAX_STATS; i ++)
 	{
@@ -391,7 +390,6 @@ void free_char (CHAR_DATA *ch)
 	if (IS_NPC(ch))
     {
 	   mobile_count--;
-       close_lua (ch);  /* close down Lua state */
     }
 	/* Erwin's suggested fix to light problem */ 
 	else if ( ch->in_room != NULL )
