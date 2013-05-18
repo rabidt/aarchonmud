@@ -22,25 +22,25 @@ function RegisterUd(ud)
         return
     end
 
-    table.insert(udtbl,ud)
+    udtbl[ud.tableid]=ud
     return
 end
 
 function UnregisterUd(lightud)
-    for k,v in pairs (udtbl) do
-        if v.tableid == lightud then
-        -- DESTROY
-            setmetatable(v,nil)
-            rawset(v,"tableid",nil)
-            v={}
-            v=nil
-        end
-    end
+    if not(udtbl[lightud]) then return end
+
+    setmetatable(udtbl[lightud], nil)
+    rawset(udtbl[lightud], "tableid",nil)
+    udtbl[lightud]={}
+    udtbl[lightud]=nil
 end
 
 
-
 function cleanup()
+    end
+
+
+function cleanupold()
     if udtbl==nil then
         return
     end
@@ -97,7 +97,7 @@ function loadtbl(subdir, name)
   end
   return f()
 end
- 
+
 os.execute=nil
 os.rename=nil
 os.remove=nil

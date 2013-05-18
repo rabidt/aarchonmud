@@ -231,6 +231,7 @@ MPEDIT(mpedit_show)
 
 void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
 {
+    log_string("Fix mprog mobs");
     MPROG_LIST *mpl;
     int hash;
     char buf[MSL];
@@ -249,20 +250,8 @@ void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
 
                         if ( mpl->is_lua )
                         {
-                            /* find instances of the mob and */
-                            /* reload the script to mob's script space */
-                            sh_int cnt=0;
-                            CHAR_DATA *tch;
-                            for ( tch=char_list ; tch ; tch=tch->next )
-                            {
-                                if (tch->pIndexData == mob  
-                                    && tch->LS )
-                                {
-                                    lua_load_mprog( tch->LS, pMcode->vnum, pMcode->code);
-                                    cnt++;
-                                }
-                            }
-                            ptc(ch, "Fixed lua script for %d mob instances.\n\r", cnt);
+                            lua_load_mprog( mud_LS, pMcode->vnum, pMcode->code);
+                            ptc(ch, "Fixed lua script for %d.\n\r", pMcode->vnum);
                         }
                     } 
 }
