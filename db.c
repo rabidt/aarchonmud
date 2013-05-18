@@ -682,6 +682,9 @@ void boot_db()
     log_string( "Counting stats" );
     count_stats();
 
+    log_string( "Lua init.");
+    open_lua();
+
     log_string( "Loading areas" );
     /*
     * Read in all the area files.
