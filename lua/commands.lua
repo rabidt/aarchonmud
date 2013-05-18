@@ -1,5 +1,5 @@
 function say(arg)
-    self:say(arg)
+    self.mob:say(arg)
 end
 function emote(arg)
     mob:emote(arg)

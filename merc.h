@@ -2542,7 +2542,6 @@ struct  char_data
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
-    lua_State *LS;
 	#ifdef FSTAT
 	/* Stuff for fight statistics*/
 	int	attacks_attempts;
