@@ -4613,8 +4613,9 @@ extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
     * Lua stuff (Nick Gammon)
      */
 
- void open_lua  (CHAR_DATA * ch);  /* set up Lua state */
-  void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
+void open_lua  ();  /* set up Lua state */
+void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
+extern lua_State *mud_LS;
 
 #define ACT_ARG_UNDEFINED 0
 #define ACT_ARG_OBJ 1
