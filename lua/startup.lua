@@ -3,7 +3,6 @@ package.path = mud.luadir() .. "?.lua"
 require "tprint"
 require "serialize"
 require "utilities"
-require "commands"
 
 function send_nocr (...)
     say (table.concat {...})
@@ -97,6 +96,12 @@ function loadtbl(subdir, name)
   end
   return f()
 end
+
+CH_env_meta={
+    __index=_G
+}
+
+setmetatable(CH_env_meta, CH_env_lib)
 
 os.execute=nil
 os.rename=nil
