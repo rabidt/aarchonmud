@@ -1028,12 +1028,15 @@ void do_cast( CHAR_DATA *ch, char *argument )
         check_improve(ch,sn,TRUE,3);
 
         /* check for spell mprog triggers */
-        CHAR_DATA *vic = (CHAR_DATA *) vo;
-
-        if ( vic != NULL && IS_NPC(vic) )
+        if ( target == TARGET_CHAR )
         {
-            if (mp_spell_trigger( skill_table[sn].name, vic, ch ) )
-                return; //Return because it might have killed the vic or ch
+            CHAR_DATA *vic = (CHAR_DATA *) vo;
+
+            if ( vic != NULL && IS_NPC(vic) )
+            {
+                if (mp_spell_trigger( skill_table[sn].name, vic, ch ) )
+                    return; //Return because it might have killed the vic or ch
+            }
         }
 
 
