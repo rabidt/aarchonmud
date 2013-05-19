@@ -344,7 +344,7 @@ CHAR_DATA * L_getchar (lua_State *LS)
     //lua_gettable(LS, LUA_ENVIRONINDEX);  /* retrieve value */
 
     //ch = (CHAR_DATA *) lua_touserdata(LS, -1);  /* convert to data */
-    lua_getfield(LS, LUA_GLOBALSINDEX, MOB_ARG);
+    lua_getfield(LS, LUA_ENVIRONINDEX, MOB_ARG);
     ch = check_CH(LS, -1);
 
     if (!ch)  
@@ -503,14 +503,14 @@ static int L_getobjproto (lua_State *LS)
     return 1;
 }
 
-static int L_log (lua_State *LS)
+static int L_ch_log (lua_State *LS)
 {
     char buf[MSL];
-    CHAR_DATA *ch=L_getchar(LS);
+    CHAR_DATA *ch=check_CH(LS,1);
     if (IS_NPC(ch))
     {
         sprintf(buf, "LUA::(%d)%s:%s",
-                ch->pIndexData->vnum, ch->short_descr, luaL_checkstring (LS, 1) );
+                ch->pIndexData->vnum, ch->short_descr, luaL_checkstring (LS, 2) );
     }
     else
     {
@@ -1492,6 +1492,7 @@ static const struct luaL_reg CH_lib [] =
     {"setact", L_ch_setact},
     {"hit", L_ch_hit},
     {"randchar", L_ch_randchar},
+    {"log", L_ch_log},
     {NULL, NULL}
 };
 
@@ -2104,7 +2105,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getroom",     L_getroom);
     lua_register(LS,"loadprog",    L_loadprog);
     lua_register(LS,"getobjproto", L_getobjproto);
-    lua_register(LS,"log",         L_log);
+    //lua_register(LS,"log",         L_log);
     lua_register(LS,"getobjworld", L_getobjworld );
     lua_register(LS,"getmobworld", L_getmobworld );
 
@@ -2407,12 +2408,12 @@ void lua_program( char *text, int pvnum, char *source,
     {
         lua_remove(mud_LS, -1); // -1 is funct, -2 is CH
         lua_pushstring(mud_LS, "env");//-1 is "env", -2 is funct, -3 is CH
-        lua_newtable(mud_LS); /* the new environment table */ //-1 is {}, -2 is "env", -3 is funct, -4 is CH
-        //luaL_getmetatable(mud_LS, CH_ENV_META); // -1 is CH_ENV_META, -2 is {}, -3 is "env", -4 is func, -5 is CH
-        lua_getglobal(mud_LS, CH_ENV_META); // -1 is CH_ENV_META, -2 is {}, -3 is "env", -4 is func, -5 is CH
-        lua_setmetatable(mud_LS, -2); //-1 is {}, -2 is "env", -3 is funct, -4 is CH
-        lua_pushvalue( mud_LS, -4); // -1 CH, -2 {}, -3, "env", -4 funct, -5 CH
-        lua_setfield( mud_LS, -2, MOB_ARG); // -1 {}, -2 "env", -3 funct, -4 CH
+        //lua_newtable(mud_LS); /* the new environment table */ //-1 is {}, -2 is "env", -3 is funct, -4 is CH
+        lua_getglobal(mud_LS, "new_CH_env"); // -1 new_CH_env, -2 "env", -3 funct, -4 CH
+        lua_call(mud_LS, 0, 1);// -1 env, -2 "env", -3 funct, -4 CH
+        //lua_setmetatable(mud_LS, -2); //-1 is {}, -2 is "env", -3 is funct, -4 is CH
+        lua_pushvalue( mud_LS, -4); // -1 CH, -2 env, -3, "env", -4 funct, -5 CH
+        lua_setfield( mud_LS, -2, MOB_ARG); // -1 env, -2 "env", -3 funct, -4 CH
         
         lua_rawset(mud_LS, -4 ); /* set the field */ // -1 funct, -2 CH
         lua_getfield(mud_LS, -2, "env"); /* back on top of stack */ // -1 is CH.env, -2 funct, -3 CH
