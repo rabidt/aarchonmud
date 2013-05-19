@@ -3416,7 +3416,7 @@ void do_buy( CHAR_DATA *ch, char *argument )
               cost = haggle_cost( ch, cost, obj->cost*4/5 );
           else
               cost = haggle_cost( ch, cost, obj->cost );
-	  
+  
 	  if ( (ch->silver + ch->gold * 100) < cost * number )
 	  {
 		 if (number > 1)
@@ -3699,16 +3699,18 @@ void do_sell( CHAR_DATA *ch, char *argument )
 	return;
 	}
 
-        if (IS_GOOD(ch))
-            cost = haggle_cost( ch, cost*5/4, obj->cost );
-        else
-            cost = haggle_cost( ch, cost, obj->cost );
 
 	if ( ( cost = get_cost( keeper, obj, FALSE ) ) <= 0 )
 	{
 	act( "$n looks uninterested in $p.", keeper, obj, ch, TO_VICT );
 	return;
 	}
+
+        if (IS_GOOD(ch))
+            cost = haggle_cost( ch, cost*5/4, obj->cost );
+        else
+            cost = haggle_cost( ch, cost, obj->cost );
+
 	if ( cost > (keeper-> silver + 100 * keeper->gold) )
 	{
 	act("$n tells you 'I'm afraid I don't have enough wealth to buy $p.",
