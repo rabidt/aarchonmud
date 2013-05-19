@@ -66,24 +66,32 @@ end
 local lio=io
 io=nil
 
-function savetbl(name, tbl)
+function savetbl(subdir, name, tbl)
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
+ 
+  if string.find(subdir, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
 
-  local f=lio.open(mud.userdir() .. name .. ".lua", "w")
+  local f=lio.open(mud.userdir() .. subdir .. "/" .. name .. ".lua", "w")
   out,saved=serialize.save(name,tbl)
   f:write(out)
 
   f:close()
 end
 
-function loadtbl(name)
+function loadtbl(subdir, name)
+  if string.find(subdir, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
 
-  local f=loadfile(mud.userdir() .. name .. ".lua")
+  local f=loadfile(mud.userdir() .. subdir .. "/"  .. name .. ".lua")
   if f==nil then 
     return nil 
   end
