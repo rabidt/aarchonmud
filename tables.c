@@ -517,7 +517,7 @@ const struct flag_type mprog_flags[] =
 	{   "try",          TRIG_TRY,       TRUE    },
 	{   "reset",        TRIG_RESET,       TRUE    },
 	{   "mpcnt",        TRIG_MPCNT,     TRUE    },
-        {   "spell",        TRIG_SPELL,     TRUE    },
+    {   "spell",        TRIG_SPELL,     TRUE    },
 	{   NULL,           0,          TRUE    }
 };
 
