@@ -2896,6 +2896,7 @@ void add_money( CHAR_DATA *ch, int gold, int silver, CHAR_DATA *source )
 void deduct_cost(CHAR_DATA *ch, int cost)
 {
     int silver = 0, gold = 0;
+    char buf[MSL];
     
     silver = UMIN(ch->silver,cost);
     
@@ -2910,12 +2911,22 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     
     if (ch->gold < 0)
     {
-        bug("deduct costs: gold %d < 0",ch->gold);
+/*        bug("deduct costs: gold %d < 0",ch->gold); */
+        sprintf(buf,"Deduct costs: gold %d < 0, player: %s, room %d",
+            ch->gold != NULL ? ch->gold : 0,
+            ch->name != NULL ? ch->name : "Null",
+            ch->in_room->vnum != NULL ? ch->in_room->vnum : 0);
+        bug(buf,0);
         ch->gold = 0;
     }
     if (ch->silver < 0)
     {
-        bug("deduct costs: silver %d < 0",ch->silver);
+/*        bug("deduct costs: silver %d < 0",ch->silver); */
+        sprintf(buf,"Deduct costs: silver %d < 0, player: %s, room %d",
+            ch->silver != NULL ? ch->silver : 0,
+            ch->name != NULL ? ch->name : "Null",
+            ch->in_room->vnum != NULL ? ch->in_room->vnum : 0);
+        bug(buf,0);
         ch->silver = 0;
     }
 }
