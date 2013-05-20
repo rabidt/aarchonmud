@@ -331,7 +331,6 @@ void unregister_lua( void *ptr )
         unregister_UD( mud_LS, ptr );
     }
 }
-
 /* Given a Lua state, return the character it belongs to */
 CHAR_DATA * L_getchar (lua_State *LS)
 {
@@ -344,7 +343,7 @@ CHAR_DATA * L_getchar (lua_State *LS)
     //lua_gettable(LS, LUA_ENVIRONINDEX);  /* retrieve value */
 
     //ch = (CHAR_DATA *) lua_touserdata(LS, -1);  /* convert to data */
-    lua_getfield(LS, LUA_ENVIRONINDEX, MOB_ARG);
+    lua_getglobal(LS, MOB_ARG);
     ch = check_CH(LS, -1);
 
     if (!ch)  
@@ -354,7 +353,6 @@ CHAR_DATA * L_getchar (lua_State *LS)
 
     return ch;
 } /* end of L_getchar */
-
 /* For debugging, show traceback information */
 
 static void GetTracebackFunction (lua_State *LS)
@@ -862,8 +860,8 @@ static int L_ch_mdo (lua_State *LS)
 
 static int L_mobhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
 
     if ( is_r_number( argument ) )
         lua_pushboolean( LS, (bool) get_mob_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) ); 
@@ -875,8 +873,8 @@ static int L_mobhere (lua_State *LS)
 
 static int L_objhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
 
     if ( is_r_number( argument ) )
         return( get_obj_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) );
@@ -888,8 +886,8 @@ static int L_objhere (lua_State *LS)
 
 static int L_mobexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,(bool) (get_mp_char( ud_ch, argument) != NULL) );
 
@@ -898,7 +896,8 @@ static int L_mobexists (lua_State *LS)
 
 static int L_objexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
+    //CHAR_DATA * ud_ch = check_CH(LS, 1);
+    CHAR_DATA * ud_ch = L_getchar( LS);
     const char *argument = luaL_checkstring (LS, 1);
 
     lua_pushboolean( LS, (bool) (get_mp_obj( ud_ch, argument) != NULL) );
@@ -1000,8 +999,8 @@ static int L_isdelay (lua_State *LS)
 
 static int L_isvisible (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    CHAR_DATA * ud_vic = check_CH (LS, 1);
+    CHAR_DATA * ud_ch = check_CH(LS, 1);
+    CHAR_DATA * ud_vic = check_CH (LS, 2);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_vic != NULL && can_see( ud_ch, ud_vic ) ) ;
 
@@ -1019,9 +1018,10 @@ static int L_hastarget (lua_State *LS)
 
 static int L_istarget (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    CHAR_DATA * mob = check_CH( LS, 1 );
+    CHAR_DATA * ud_ch = check_CH (LS, 2);
 
-    lua_pushboolean( LS, ud_ch != NULL && ud_ch->mprog_target == ud_ch );
+    lua_pushboolean( LS, ud_ch != NULL && mob->mprog_target == ud_ch );
 
     return 1;
 }
@@ -2374,6 +2374,7 @@ void lua_program( char *text, int pvnum, char *source,
         const void *arg1, sh_int arg1type, 
         const void *arg2, sh_int arg2type ) 
 {
+    lua_getglobal( mud_LS, "program_setup");
     
     make_ud_table( mud_LS, mob, UDTYPE_CH, TRUE);
     if (lua_isnil(mud_LS, -1) )
@@ -2401,30 +2402,7 @@ void lua_program( char *text, int pvnum, char *source,
         lua_getglobal( mud_LS, buf);
     }
     
-    
-    /* now the env */   //-2 is CH, -1 is funct
-    lua_getfield( mud_LS, -2, "env"); //-1 is CH.env, -2 is funct, -3 is CH
-    if (lua_isnil(mud_LS, -1) )
-    {
-        lua_remove(mud_LS, -1); // -1 is funct, -2 is CH
-        lua_pushstring(mud_LS, "env");//-1 is "env", -2 is funct, -3 is CH
-        //lua_newtable(mud_LS); /* the new environment table */ //-1 is {}, -2 is "env", -3 is funct, -4 is CH
-        lua_getglobal(mud_LS, "new_CH_env"); // -1 new_CH_env, -2 "env", -3 funct, -4 CH
-        lua_call(mud_LS, 0, 1);// -1 env, -2 "env", -3 funct, -4 CH
-        //lua_setmetatable(mud_LS, -2); //-1 is {}, -2 is "env", -3 is funct, -4 is CH
-        lua_pushvalue( mud_LS, -4); // -1 CH, -2 env, -3, "env", -4 funct, -5 CH
-        lua_setfield( mud_LS, -2, MOB_ARG); // -1 env, -2 "env", -3 funct, -4 CH
-        
-        lua_rawset(mud_LS, -4 ); /* set the field */ // -1 funct, -2 CH
-        lua_getfield(mud_LS, -2, "env"); /* back on top of stack */ // -1 is CH.env, -2 funct, -3 CH
-        lua_remove(mud_LS, -3); // -1 is CH.env, -2 is funct
-    }
-    if (lua_setfenv( mud_LS, -2 )==0) // -1 is funct
-      bugf("setfenv returned 0");
-    
-    /* MOB_ARG */
-    //make_ud_table (mud_LS, (void *)mob, UDTYPE_CH, TRUE);
-    //lua_pushvalue(mud_LS, -2 ); //-1 is CH, -2 is funct
+    lua_call(mud_LS, 2, 1);
     
     /* CH_ARG */
     if (ch)

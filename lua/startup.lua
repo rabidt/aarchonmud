@@ -174,7 +174,8 @@ CH_env_lib={  require=require,
 
     -- okay now our stuff
     getobjworld=getobjworld,
-    mobhere=mobhere
+    mobhere=mobhere,
+    objexists=objexists
 }
 
 CH_env_meta={
@@ -184,141 +185,150 @@ CH_env_meta={
 function new_CH_env()
     local o={}
     setmetatable(o, CH_env_meta)
-    setfenv(1,o)
-    mob={}
-    function send(...)
-        mob:say(table.concat{...})
-    end
-    function send_nocr(...)
-        mob:say(table.concat{...})
-    end
-    function log(arg)
-        mob:log(arg)
-    end
-    function say(arg)
-        mob:say(arg)
-    end
-    function emote(arg)
-        mob:emote(arg)
-    end
-    function mdo(arg)
-        mob:mdo(arg)
-    end
-    function asound(arg)
-        mob:asound(arg)
-    end
-    function gecho(arg)
-        mob:gecho(arg)
-    end
-    function zecho(arg)
-        mob:zecho(arg)
-    end
-    function kill(arg)
-        mob:kill(arg)
-    end
-    function assist(arg)
-        mob:assist(arg)
-    end
-    function junk(arg)
-        mob:junk(arg)
-    end
-    function echo(arg)
-        mob:echo(arg)
-    end
-    function echoaround(arg)
-        mob:echoaround(arg)
-    end
-    function echoat(arg)
-        mob:echoat(arg)
-    end
-    function mload(arg)
-        mob:mload(arg)
-    end
-    function oload(arg)
-        mob:oload(arg)
-    end
-    function purge(arg)
-        mob:purge(arg)
-    end
-    function goto(arg)
-        mob:goto(arg)
-    end
-    function at(arg)
-        mob:at(arg)
-    end
-    function transfer(arg)
-        mob:transfer(arg)
-    end
-    function gtransfer(arg)
-        mob:gtransfer(arg)
-    end
-    function otransfer(arg)
-        mob:otransfer(arg)
-    end
-    function force(arg)
-        mob:force(arg)
-    end
-    function gforce(arg)
-        mob:gforce(arg)
-    end
-    function vforce(arg)
-        mob:vforce(arg)
-    end
-    function cast(arg)
-        mob:cast(arg)
-    end
-    function damage(arg)
-        mob:damage(arg)
-    end
-    function remember(arg)
-        mob:remember(arg)
-    end
-    function forget(arg)
-        mob:forget(arg)
-    end
-    function delay(arg)
-        mob:delay(arg)
-    end
-    function cancel(arg)
-        mob:cancel(arg)
-    end
-    function call(arg)
-        mob:call(arg)
-    end
-    function flee(arg)
-        mob:flee(arg)
-    end
-    function remove(arg)
-        mob:remove(arg)
-    end
-    function remort(arg)
-        mob:remort(arg)
-    end
-    function qset(arg)
-        mob:qset(arg)
-    end
-    function qadvance(arg)
-        mob:qadvance(arg)
-    end
-    function reward(arg)
-        mob:reward(arg)
-    end
-    function peace(arg)
-        mob:peace(arg)
-    end
-    function restore(arg)
-        mob:restore(arg)
-    end
-    function setact(arg)
-        mob:setact(arg)
-    end
-    function hit(arg)
-        mob:hit(arg)
-    end
-    function randchar(arg)
-        mob:randchar(arg)
-    end
+    o={
+    mob={},
+    send=function(...)
+        o.mob:say(table.concat{...})
+    end,
+    send_nocr=function(...)
+        o.mob:say(table.concat{...})
+    end,
+    log=function(arg)
+        o.mob:log(arg)
+    end,
+    say=function(arg)
+        o.mob:say(arg)
+    end,
+    emote=function(arg)
+        o.mob:emote(arg)
+    end,
+    mdo=function(arg)
+        o.mob:mdo(arg)
+    end,
+    asound=function(arg)
+        o.mob:asound(arg)
+    end,
+    gecho=function(arg)
+        o.mob:gecho(arg)
+    end,
+    zecho=function(arg)
+        o.mob:zecho(arg)
+    end,
+    kill=function(arg)
+        o.mob:kill(arg)
+    end,
+    assist=function(arg)
+        o.mob:assist(arg)
+    end,
+    junk=function(arg)
+        o.mob:junk(arg)
+    end,
+    echo=function(arg)
+        o.mob:echo(arg)
+    end,
+    echoaround=function(arg)
+        o.mob:echoaround(arg)
+    end,
+    echoat=function(arg)
+        o.mob:echoat(arg)
+    end,
+    mload=function(arg)
+        o.mob:mload(arg)
+    end,
+    oload=function(arg)
+        o.mob:oload(arg)
+    end,
+    purge=function(arg)
+        o.mob:purge(arg)
+    end,
+    goto=function(arg)
+        o.mob:goto(arg)
+    end,
+    at=function(arg)
+        o.mob:at(arg)
+    end,
+    transfer=function(arg)
+        o.mob:transfer(arg)
+    end,
+    gtransfer=function(arg)
+        o.mob:gtransfer(arg)
+    end,
+    otransfer=function(arg)
+        o.mob:otransfer(arg)
+    end,
+    force=function(arg)
+        o.mob:force(arg)
+    end,
+    gforce=function(arg)
+        o.mob:gforce(arg)
+    end,
+    vforce=function(arg)
+        o.mob:vforce(arg)
+    end,
+    cast=function(arg)
+        o.mob:cast(arg)
+    end,
+    damage=function(arg)
+        o.mob:damage(arg)
+    end,
+    remember=function(arg)
+        o.mob:remember(arg)
+    end,
+    forget=function(arg)
+        o.mob:forget(arg)
+    end,
+    delay=function(arg)
+        o.mob:delay(arg)
+    end,
+    cancel=function(arg)
+        o.mob:cancel(arg)
+    end,
+    call=function(arg)
+        o.mob:call(arg)
+    end,
+    flee=function(arg)
+        o.mob:flee(arg)
+    end,
+    remove=function(arg)
+        o.mob:remove(arg)
+    end,
+    remort=function(arg)
+        o.mob:remort(arg)
+    end,
+    qset=function(arg)
+        o.mob:qset(arg)
+    end,
+    qadvance=function(arg)
+        o.mob:qadvance(arg)
+    end,
+    reward=function(arg)
+        o.mob:reward(arg)
+    end,
+    peace=function(arg)
+        o.mob:peace(arg)
+    end,
+    restore=function(arg)
+        o.mob:restore(arg)
+    end,
+    setact=function(arg)
+        o.mob:setact(arg)
+    end,
+    hit=function(arg)
+        o.mob:hit(arg)
+    end,
+    randchar=function(arg)
+        o.mob:randchar(arg)
+    end}
     return o
+end
+
+function program_setup(ud, f)
+    if ud.env==nil then
+      rawset(ud, "env", new_CH_env())
+      ud.env.mob=ud
+    end
+    setfenv(f, ud.env)
+    return f
 end
 
 os.execute=nil
