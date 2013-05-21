@@ -94,9 +94,8 @@ void add_lua_tables (lua_State *LS);
 #define REGISTER_UD_FUNCTION "RegisterUd"
 #define UNREGISTER_UD_FUNCTION "UnregisterUd"
 
-
-#define MOB_ARG "mob" 
-#define NUM_MPROG_ARGS 7
+#define MOB_ARG "mob"
+#define NUM_MPROG_ARGS 7 
 #define CH_ARG "ch"
 #define OBJ1_ARG "obj1"
 #define OBJ2_ARG "obj2"
@@ -343,7 +342,8 @@ CHAR_DATA * L_getchar (lua_State *LS)
     //lua_gettable(LS, LUA_ENVIRONINDEX);  /* retrieve value */
 
     //ch = (CHAR_DATA *) lua_touserdata(LS, -1);  /* convert to data */
-    lua_getglobal(LS, MOB_ARG);
+    //lua_getglobal(LS, MOB_ARG);
+    lua_getfield( LS, LUA_ENVIRONINDEX, MOB_ARG);
     ch = check_CH(LS, -1);
 
     if (!ch)  
@@ -897,8 +897,11 @@ static int L_mobexists (lua_State *LS)
 static int L_objexists (lua_State *LS)
 {
     //CHAR_DATA * ud_ch = check_CH(LS, 1);
-    CHAR_DATA * ud_ch = L_getchar( LS);
+    //CHAR_DATA * ud_ch = L_getchar( LS);
     const char *argument = luaL_checkstring (LS, 1);
+    lua_getglobal( LS, MOB_ARG );
+    //lua_getfield(LS, LUA_ENVIRONINDEX, MOB_ARG);
+    //'CHAR_DATA * ud_ch=check_CH(LS, -1);
 
     lua_pushboolean( LS, (bool) (get_mp_obj( ud_ch, argument) != NULL) );
 
@@ -2403,6 +2406,9 @@ void lua_program( char *text, int pvnum, char *source,
     }
     
     lua_call(mud_LS, 2, 1);
+
+    /* MOB_ARG */
+    //make_ud_table (mud_LS, (void *) mob, UDTYPE_CH, TRUE); 
     
     /* CH_ARG */
     if (ch)
