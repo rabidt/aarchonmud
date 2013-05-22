@@ -134,6 +134,8 @@ OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
+
     if ( type != UDTYPE_OBJPROTO )
     {
         luaL_error(LS,"Bad parameter %d. Expected OBJPROTO.", arg );
@@ -141,13 +143,16 @@ OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
     }
 
     lua_getfield(LS, arg, "tableid");
-    return(OBJ_INDEX_DATA *)luaL_checkudata(LS, -1, UD_META);
+    OBJ_INDEX_DATA *oid=luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return oid;
 }
 
 OBJ_DATA *check_OBJ( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
     if ( type != UDTYPE_OBJ )
     {
         luaL_error(LS,"Bad parameter %d. Expected OBJ.", arg );
@@ -155,13 +160,16 @@ OBJ_DATA *check_OBJ( lua_State *LS, int arg)
     }
 
     lua_getfield(LS, arg, "tableid");
-    return(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META);
+    OBJ_DATA *obj=(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return obj;
 }
 
 CHAR_DATA *check_CH( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
     if ( type != UDTYPE_CH )
     {
         luaL_error(LS, "Bad parameter %d. Expected CH.", arg );
@@ -169,13 +177,16 @@ CHAR_DATA *check_CH( lua_State *LS, int arg)
     }
 
     lua_getfield(LS, arg, "tableid");
-    return(CHAR_DATA *)luaL_checkudata(LS, -1, UD_META); 
+    CHAR_DATA *ch=luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return ch; 
 }
 
 ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
     if ( type != UDTYPE_ROOM )
     {
         luaL_error(LS, "Bad parameter %d. Expected ROOM.", arg );
@@ -183,13 +194,16 @@ ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
     }
 
     lua_getfield(LS, arg, "tableid");
-    return(ROOM_INDEX_DATA *)luaL_checkudata(LS, -1, UD_META);
+    ROOM_INDEX_DATA *room=(ROOM_INDEX_DATA *)luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return room;
 }
 
 EXIT_DATA *check_exit( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
     if ( type != UDTYPE_EXIT )
     {
         luaL_error(LS, "Bad parameter %d. Expected EXIT.", arg );
@@ -197,7 +211,9 @@ EXIT_DATA *check_exit( lua_State *LS, int arg)
     }
 
     lua_getfield(LS, arg, "tableid");
-    return(EXIT_DATA *)luaL_checkudata(LS, -1, UD_META);
+    EXIT_DATA *exit=(EXIT_DATA *)luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return exit;
 }
 
 
@@ -460,7 +476,7 @@ static int L_log (lua_State *LS)
     }
     else
     {
-        sprintf(buf, "LUA::%s:%s", ch->name);
+        sprintf(buf, "LUA::%s:%s", ch->name, luaL_checkstring (LS, 1));
     }
 
     log_string(buf);
