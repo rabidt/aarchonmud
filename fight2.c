@@ -4608,8 +4608,7 @@ void do_puncture( CHAR_DATA *ch, char *argument )
     act( "$n punctures $N's armor with a powerful blow!",
 	 ch, NULL, victim, TO_NOTVICT );
 
-    dam_message( ch, victim, dam, gsn_puncture, FALSE );
-    damage(ch,victim,0,gsn_puncture,DAM_NONE,FALSE);
+    damage(ch,victim,dam,gsn_puncture,DAM_NONE,FALSE);
 
     af.where    = TO_AFFECTS;
     af.type     = gsn_puncture;
@@ -4785,7 +4784,7 @@ void do_infectious_arrow( CHAR_DATA *ch, char *argument )
     }
 
     /* hit - how much dam? */
-    dam = 2 + number_range( ch->level/2, ch->level );
+    dam = 2 + number_range( ch->level*3/4, ch->level*4/3 );
 
     act( "You fire an infectious arrow at $N!",
 	 ch, NULL, victim, TO_CHAR );
@@ -4794,8 +4793,7 @@ void do_infectious_arrow( CHAR_DATA *ch, char *argument )
     act( "$n fires an infectious arrow at $N!",
 	 ch, NULL, victim, TO_NOTVICT );
 
-    dam_message( ch, victim, dam, gsn_infectious_arrow, FALSE );
-    damage(ch, victim, 0, gsn_infectious_arrow, DAM_DISEASE, FALSE);
+    damage(ch, victim, dam, gsn_infectious_arrow, DAM_DISEASE, TRUE);
 
     af.where    = TO_AFFECTS;
     af.type     = gsn_infectious_arrow;
@@ -4864,10 +4862,10 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
     /* can be used like backstab OR like circle.. */
     if ( ch->fighting != NULL || check_see(victim, ch) )
     {
-	chance = chance / 2;
-	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 6;
+	chance = chance*2/3;
+	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
 	if ( !can_see(victim, ch) )
-	    chance += 20;
+	    chance += 10;
 	if ( IS_AFFECTED(ch, AFF_HASTE) )
 	    chance += 25;
 	if ( IS_AFFECTED(victim, AFF_HASTE) )
@@ -5025,7 +5023,7 @@ void do_rupture( CHAR_DATA *ch, char *argument )
     /* can be used like backstab OR like circle.. */
     if ( ch->fighting != NULL || check_see(victim, ch) )
     {
-	chance = chance / 2;
+	chance = chance*2/3;
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
 	if ( !can_see(victim, ch) )
 	    chance += 10;
