@@ -55,6 +55,9 @@ bool run_olc_editor( DESCRIPTOR_DATA *d )
    case ED_MPCODE:
       mpedit( d->character, d->incomm );
       break;
+   case ED_OPCODE:
+      opedit( d->character, d->incomm );
+      break;
    case ED_HELP:
       hedit( d->character, d->incomm );
       break;
@@ -197,6 +200,9 @@ bool show_commands( CHAR_DATA *ch, char *argument )
    case ED_MPCODE:
       show_olc_cmds( ch, mpedit_table );
       break;
+   case ED_OPCODE:
+      show_olc_cmds( ch, opedit_table );
+      break;
    case ED_HELP:
       show_olc_cmds( ch, hedit_table );
       break;
@@ -327,6 +333,8 @@ const struct olc_cmd_type oedit_table[] =
    {   "combine",    oedit_combine   },
    {   "rating",     oedit_rating    },
    {   "adjust",     oedit_adjust    },
+   {   "addoprog",   oedit_addoprog  },  /* ROM */
+   {   "deloprog",   oedit_deloprog  },  /* ROM */
    
    {   "?",          show_help       },
    {   "version",    show_version    },
@@ -697,6 +705,7 @@ const struct editor_cmd_type editor_table[] =
    {   "object",   do_oedit   },
    {   "mobile",   do_medit   },
    {   "mpcode",   do_mpedit  },
+   {   "opcode",   do_opedit  },
    {   "help",     do_hedit   },
    
    {   NULL,      0,      }

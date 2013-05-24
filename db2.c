@@ -783,7 +783,33 @@ void load_objects( FILE *fp )
                 break;
             }
         }
+        /* load obj progs if any */
+        letter = fread_letter( fp );
+        if ( letter == 'O' ) /* we have oprogs */
+        {
+            OPROG_LIST *pOprog;
+            char *word;
+            int trigger = 0;
 
+            pOprog              = alloc_perm(sizeof(*pOprog));
+            word                = fread_word( fp );
+            if ( (trigger = flag_lookup( word, oprog_flags )) == NO_FLAG )
+            {
+                bugf("load_obj.O: invalid trigger '%s' for object %d.", word, vnum);
+                exit(1);
+            }
+            SET_BIT( pObjIndex->oprog_flags, trigger );
+            pOprog->trig_type   = trigger;
+            pOprog->vnum        = fread_number( fp );
+            pOprog->trig_phrase = fread_string( fp );
+            pOprog->next        = pObjIndex->oprogs;
+            pObjIndex->oprogs   = pOprog;
+        }
+        else
+        {
+            ungetc( letter, fp );
+        }
+        
         iHash                   = vnum % MAX_KEY_HASH;
         pObjIndex->next         = obj_index_hash[iHash];
         obj_index_hash[iHash]   = pObjIndex;
