@@ -912,9 +912,9 @@ static int L_mobexists (lua_State *LS)
 
 static int L_objexists (lua_State *LS)
 {
-    //CHAR_DATA * ud_ch = check_CH(LS, 1);
+    CHAR_DATA * ud_ch = check_CH(LS, 1);
     //CHAR_DATA * ud_ch = L_getchar( LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
     lua_getglobal( LS, MOB_ARG );
     //lua_getfield(LS, LUA_ENVIRONINDEX, MOB_ARG);
     //'CHAR_DATA * ud_ch=check_CH(LS, -1);
@@ -2385,6 +2385,36 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 
 }
 
+/* TBC need to push these to environments, not to global */
+bool lua_load_oprog( lua_State *LS, int vnum, char *code)
+{
+    char buf[MSL];
+
+    sprintf(buf, "function O_%d (%s,%s,%s,%s,%s,%s,%s)"
+            "%s\n"
+            "end",
+            vnum,
+            /*MOB_ARG,*/ CH_ARG, TRIG_ARG, OBJ1_ARG,
+            OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG,
+            code);
+
+
+    if (luaL_loadstring ( LS, buf) ||
+            CallLuaWithTraceBack ( LS, 0, 0))
+    {
+        bugf ( "LUA oprog error loading vnum %d:\n %s",
+                vnum,
+                lua_tostring( LS, -1));
+        /* bad code, let's kill it */
+        sprintf(buf, "O_%d", vnum);
+        lua_pushnil( LS );
+        lua_setglobal( LS, buf);
+
+        return FALSE;
+    }
+    else return TRUE;
+
+}
 /* lua_program
    lua equivalent of program_flow
  */
