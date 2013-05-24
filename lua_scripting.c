@@ -359,13 +359,16 @@ CHAR_DATA * L_getchar (lua_State *LS)
 
     //ch = (CHAR_DATA *) lua_touserdata(LS, -1);  /* convert to data */
     //lua_getglobal(LS, MOB_ARG);
-    lua_getfield( LS, LUA_ENVIRONINDEX, MOB_ARG);
+    //lua_getfield( LS, LUA_ENVIRONINDEX, MOB_ARG);
+    lua_getglobal( LS, "current_env");
+    lua_pushstring( LS, MOB_ARG );
+    lua_gettable( LS, -2);
     ch = check_CH(LS, -1);
 
     if (!ch)  
         luaL_error (LS, "No current character");
 
-    lua_pop(LS, 1);  /* pop result */
+    lua_pop(LS, 2);  /* pop result and current_env*/
 
     return ch;
 } /* end of L_getchar */
@@ -915,7 +918,7 @@ static int L_objexists (lua_State *LS)
     CHAR_DATA * ud_ch = check_CH(LS, 1);
     //CHAR_DATA * ud_ch = L_getchar( LS);
     const char *argument = luaL_checkstring (LS, 2);
-    lua_getglobal( LS, MOB_ARG );
+    //lua_getglobal( LS, MOB_ARG );
     //lua_getfield(LS, LUA_ENVIRONINDEX, MOB_ARG);
     //'CHAR_DATA * ud_ch=check_CH(LS, -1);
 
@@ -2385,7 +2388,6 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 
 }
 
-/* TBC need to push these to environments, not to global */
 bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
