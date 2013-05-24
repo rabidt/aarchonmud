@@ -574,7 +574,7 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
         reverse_oprog_order(pObjIndex);
         for (pOprog = pObjIndex->oprogs; pOprog; pOprog = pOprog->next)
         {
-            fprintf(fp, "OPROG %s %d %s~\n", oprog_type_to_name(pOprog->trig_type), pOprog->vnum, pOprog->trig_phrase);
+            fprintf(fp, "O %s %d %s~\n", oprog_type_to_name(pOprog->trig_type), pOprog->vnum, pOprog->trig_phrase);
         }
         reverse_oprog_order(pObjIndex); 
     }

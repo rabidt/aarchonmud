@@ -223,6 +223,13 @@ void string_add( CHAR_DATA *ch, char *argument )
          EDIT_MPCODE(ch, mpc);
          fix_mprog_mobs( ch, mpc);
       }
+      else if ( ch->desc->editor == ED_OPCODE ) /* for objprogs */
+      {
+          OPROG_CODE *opc;
+          EDIT_OPCODE(ch, opc);
+          fix_oprog_objs( ch, opc);
+      }
+
       
       ch->desc->pString = NULL;
 
