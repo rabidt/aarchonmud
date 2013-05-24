@@ -578,9 +578,10 @@ static int L_loadprog (lua_State *LS)
         luaL_error(LS, "loadprog: vnum %d is not lua code", num);
         return 0;
     }
-
-    if (luaL_loadstring (LS, pMcode->code) ||
-            CallLuaWithTraceBack (LS, 0, 0))
+    luaL_loadstring (LS, pMcode->code);
+    lua_getglobal( LS, "current_env");
+    lua_setfenv(LS, -2); 
+    if (CallLuaWithTraceBack (LS, 0, 0))
     {
         bugf ( "loadprog error loading vnum %d:\n %s",
                 num,
