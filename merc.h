@@ -134,6 +134,8 @@ typedef struct  time_info_data   TIME_INFO_DATA;
 typedef struct  weather_data     WEATHER_DATA;
 typedef struct  mprog_list       MPROG_LIST;
 typedef struct  mprog_code       MPROG_CODE;
+typedef struct  oprog_code       OPROG_CODE;
+typedef struct  oprog_list       OPROG_LIST;
 typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
@@ -2832,6 +2834,8 @@ struct  obj_index_data
 	sh_int	    rank;
         int         combine_vnum;
         sh_int      diff_rating; /* difficulty to get object */
+        OPROG_LIST *oprogs;
+        tflag   oprog_flags;
 };
 
 
@@ -3084,6 +3088,12 @@ struct  group_type
 #define TRIG_MPCNT  (W)
 #define TRIG_SPELL  (X)
 
+/*
+ * OBJprog definitions
+ */
+#define OTRIG_GIVE  (A)
+#define OTRIG_DROP  (B)
+
 struct mprog_list
 {
 	int         trig_type;
@@ -3101,6 +3111,25 @@ struct mprog_code
 	int         vnum;
 	char *      code;
 	MPROG_CODE *    next;
+};
+
+struct oprog_list
+{
+    int         trig_type;
+    char *      trig_phrase;
+    int *       vnum;
+    char *      code;
+    OPROG_LIST *    next;
+    bool        valid;
+    /* always lua */
+};
+
+struct oprog_code
+{
+    /* always lua */
+    int     vnum;
+    char    * code;
+    OPROG_CODE *    next;
 };
 
 extern sh_int race_werewolf;
@@ -3862,6 +3891,7 @@ extern      DESCRIPTOR_DATA   * descriptor_list;
 extern      OBJ_DATA      * object_list;
 
 extern      MPROG_CODE    * mprog_list;
+extern      OPROG_CODE    * oprog_list;
 
 extern      char            bug_buf     [];
 extern      time_t          current_time;
@@ -4066,6 +4096,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define SF  SPEC_FUN
 #define AD  AFFECT_DATA
 #define MPC MPROG_CODE
+#define OPC OPROG_CODE
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
@@ -4196,6 +4227,7 @@ MID *   get_mob_index   args( ( int vnum ) );
 OID *   get_obj_index   args( ( int vnum ) );
 RID *   get_room_index  args( ( int vnum ) );
 MPC *   get_mprog_index args( ( int vnum ) );
+OPC *   get_oprog_index args( ( int vnum ) );
 char    fread_letter    args( ( FILE *fp ) );
 int fread_number    args( ( FILE *fp ) );
 long    fread_flag  args( ( FILE *fp ) );

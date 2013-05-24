@@ -858,6 +858,39 @@ void free_mprog(MPROG_LIST *mp)
    mprog_free = mp;
 }
 
+OPROG_LIST *oprog_free;
+
+OPROG_LIST *new_oprog(void)
+{
+   static OPROG_LIST op_zero;
+   OPROG_LIST *op;
+
+   if (oprog_free == NULL)
+       op = alloc_perm(sizeof(*op));
+   else
+   {
+       op = oprog_free;
+       oprog_free=oprog_free->next;
+   }
+
+   *op = op_zero;
+   op->vnum             = 0;
+   op->trig_type        = 0;
+   op->code             = str_dup("");
+   VALIDATE(op);
+   return op;
+}
+
+void free_oprog(OPROG_LIST *op)
+{
+   if (!IS_VALID(op))
+      return;
+
+   INVALIDATE(op);
+   op->next = oprog_free;
+   oprog_free = op;
+}
+
 
 HELP_AREA * had_free;
 

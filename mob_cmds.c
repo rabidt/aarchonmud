@@ -182,6 +182,16 @@ char *mprog_type_to_name( int type )
     }
 }
 
+char *oprog_type_to_name( int type )
+{
+    switch ( type )
+    {
+    case OTRIG_GIVE:            return "GIVE";
+    case OTRIG_DROP:            return "DROP";
+    default:                    return "ERROR";
+    }
+}
+
 /*
  * Allow wizi mobs to send messages with act
  */
