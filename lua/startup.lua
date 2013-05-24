@@ -13,7 +13,7 @@ require "utilities"
 --end
 
 udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
-
+current_env={}
 
 function RegisterUd(ud)
     if ud == nil then
@@ -62,9 +62,6 @@ function randnum(low, high)
     return math.floor( (mt.rand()*(high+1-low) + low)) -- people usually want inclusive
 end
 
-local lio=io
-io=nil
-
 function savetbl(subdir, name, tbl)
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
@@ -74,7 +71,7 @@ function savetbl(subdir, name, tbl)
     error("Invalid character in name.")
   end
 
-  local f=lio.open(mud.userdir() .. subdir .. "/" .. name .. ".lua", "w")
+  local f=io.open(mud.userdir() .. subdir .. "/" .. name .. ".lua", "w")
   out,saved=serialize.save(name,tbl)
   f:write(out)
 
@@ -326,6 +323,7 @@ function program_setup(ud, f)
       rawset(ud, "env", new_CH_env())
       ud.env.mob=ud
     end
+    current_env=ud.env
     setfenv(f, ud.env)
     return f
 end
