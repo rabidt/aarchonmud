@@ -59,7 +59,7 @@ static bool        s_LuaScriptInProgress=FALSE;
 //static lua_State  *s_ActiveLuaScriptSpace=NULL;
 //static bool        s_CloseActiveLuaScriptSpace=FALSE;
 //static bool        s_LuaMobDestroyed=FALSE;
-static bool        s_LuaActorDestroyed;
+//static bool        s_LuaActorDestroyed;
 static jmp_buf     s_place;
 static int         s_LoopCheckCounter;
 static OBJ_DATA    *s_LuaActiveObj;
@@ -341,7 +341,7 @@ static void unregister_UD( lua_State *LS,  void *ptr )
     
     if (s_LuaActiveObj == ptr || s_LuaActiveCh == ptr ) /* destroying the currently running environment */
     {
-        s_LuaActorDestroyed=TRUE;
+        //s_LuaActorDestroyed=TRUE;
     }
 }
 
@@ -417,10 +417,10 @@ static void GetTracebackFunction (lua_State *LS)
 /* We'll set hook in at function return to see if we need to abort*/
 void function_return_hook( lua_State *LS, lua_Debug *ar)
 {
-    if (s_LuaActorDestroyed)
+    //if (s_LuaActorDestroyed)
     {
         /* Mobby died or object destroyed? */
-        longjmp(s_place,ERR_ACTOR_DESTROYED);
+        //longjmp(s_place,ERR_ACTOR_DESTROYED);
     }
 }
 
@@ -2515,7 +2515,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
     s_LuaActiveCh=mob;
     //s_ActiveLuaScriptSpace=mud_LS;
     s_LuaScriptInProgress=TRUE;
-    s_LuaActorDestroyed=FALSE;
+    //s_LuaActorDestroyed=FALSE;
 
     setjmp(s_place);
     switch ( setjmp(s_place) )   
@@ -2618,7 +2618,7 @@ void lua_obj_program( int pvnum, char *source,
     /* some snazzy stuff to prevent crashes and other bad things*/
     s_LoopCheckCounter=0;
     s_LuaActiveObj=obj;
-    s_LuaActorDestroyed=FALSE;
+    //s_LuaActorDestroyed=FALSE;
     s_LuaScriptInProgress=TRUE;
     
     setjmp(s_place);
