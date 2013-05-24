@@ -893,8 +893,8 @@ static int L_ch_mdo (lua_State *LS)
 
 static int L_mobhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_CH(LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    CHAR_DATA * ud_ch = L_getchar(LS);
+    const char *argument = luaL_checkstring (LS, 1);
 
     if ( is_r_number( argument ) )
         lua_pushboolean( LS, (bool) get_mob_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) ); 
@@ -906,8 +906,8 @@ static int L_mobhere (lua_State *LS)
 
 static int L_objhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_CH(LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    CHAR_DATA * ud_ch = L_getchar(LS);
+    const char *argument = luaL_checkstring (LS, 1);
 
     if ( is_r_number( argument ) )
         return( get_obj_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) );
@@ -919,8 +919,8 @@ static int L_objhere (lua_State *LS)
 
 static int L_mobexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_CH(LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    CHAR_DATA * ud_ch = L_getchar(LS);
+    const char *argument = luaL_checkstring (LS, 1);
 
     lua_pushboolean( LS,(bool) (get_mp_char( ud_ch, argument) != NULL) );
 
@@ -929,12 +929,8 @@ static int L_mobexists (lua_State *LS)
 
 static int L_objexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_CH(LS, 1);
-    //CHAR_DATA * ud_ch = L_getchar( LS);
-    const char *argument = luaL_checkstring (LS, 2);
-    //lua_getglobal( LS, MOB_ARG );
-    //lua_getfield(LS, LUA_ENVIRONINDEX, MOB_ARG);
-    //'CHAR_DATA * ud_ch=check_CH(LS, -1);
+    CHAR_DATA * ud_ch = L_getchar(LS);
+    const char *argument = luaL_checkstring (LS, 1);
 
     lua_pushboolean( LS, (bool) (get_mp_obj( ud_ch, argument) != NULL) );
 
@@ -2141,7 +2137,6 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getroom",     L_getroom);
     lua_register(LS,"loadprog",    L_loadprog);
     lua_register(LS,"getobjproto", L_getobjproto);
-    //lua_register(LS,"log",         L_log);
     lua_register(LS,"getobjworld", L_getobjworld );
     lua_register(LS,"getmobworld", L_getmobworld );
 
