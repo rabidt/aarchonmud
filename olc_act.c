@@ -3255,6 +3255,23 @@ char* get_rating_name( int rating )
 	return rating_name[rating];
 }
 
+/*****************************************************************
+ * Name: update_oprog_flags
+ * Purpose: fix bug that removes valid oprog flags
+ * Called by: oedit_deloprog
+ *****************************************************************/
+void update_oprog_flags( OBJ_INDEX_DATA *pObj )
+{
+    OPROG_LIST *list;
+
+    /* clear flags */
+    flag_clear( pObj->oprog_flags );
+
+    /* re-add all flags needed */
+    for (list = pObj->oprogs; list != NULL; list = list->next)
+        SET_BIT(pObj->oprog_flags, list->trig_type);
+}
+
 OEDIT ( oedit_deloprog )
 {
     OBJ_INDEX_DATA *pObj;
@@ -3310,7 +3327,7 @@ OEDIT ( oedit_deloprog )
         }
     }
 
-    update_mprog_flags(pObj);
+    update_oprog_flags(pObj);
 
     send_to_char("Oprog removed.\n\r", ch);
     return TRUE;
@@ -3531,7 +3548,7 @@ OEDIT( oedit_show )
             }
 
             sprintf(buf, "[%5d] %4d %7s %s\n\r", cnt,
-                list->vnum,oprog_type_to_name(list->trig_type),
+                list->vnum,name_lookup(list->trig_type, oprog_flags),
                 list->trig_phrase);
             send_to_char( buf, ch );
             cnt++;

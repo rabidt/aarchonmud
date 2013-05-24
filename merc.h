@@ -3093,6 +3093,11 @@ struct  group_type
  */
 #define OTRIG_GIVE  (A)
 #define OTRIG_DROP  (B)
+#define OTRIG_EAT   (C)
+#define OTRIG_SACRIFICE (D)
+#define OTRIG_WEAR  (E)
+#define OTRIG_REMOVE (F)
+
 
 struct mprog_list
 {

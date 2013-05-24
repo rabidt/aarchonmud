@@ -374,7 +374,6 @@ void            free_mprog              args ( ( MPROG_LIST *mp ) );
 MPROG_CODE	*new_mpcode		args ( (void) );
 void		free_mpcode		args ( ( MPROG_CODE *pMcode));
 
-char *      oprog_type_to_name  args ( ( int type ) );
 OPROG_LIST      *new_oprog              args ( ( void ) );
 void            free_oprog              args ( ( OPROG_LIST *op ) );
 OPROG_CODE *new_opcode      args ( (void) );
