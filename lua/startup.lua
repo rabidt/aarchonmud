@@ -1,6 +1,6 @@
 package.path = mud.luadir() .. "?.lua"
 
---require "tprint"
+require "tprint"
 require "serialize"
 require "utilities"
 
@@ -36,22 +36,6 @@ end
 
 
 function cleanup()
-end
-
-
-function cleanupold()
-    if udtbl==nil then
-        return
-    end
-
-    -- DESTROY
-    for _,v in ipairs (udtbl) do
-        setmetatable(v,nil)
-        rawset(v,"tableid",nil) 
-        v={}
-        v=nil
-    end
-    udtbl={}
 end
 
 function rand(pcnt)
@@ -170,6 +154,15 @@ CH_env_lib={  require=require,
         difftime=os.difftime},
 
     -- okay now our stuff
+    tprint=function(tbl)
+        local str={}
+        if current_env.mob then
+            tprint(str, tbl)
+            current_env.mob:say(table.concat(str))
+        end
+    end,
+    rand=rand,
+    randnum=randnum,
     getobjworld=getobjworld,
     mobhere=mobhere,
     objexists=objexists
@@ -253,11 +246,24 @@ require=require,
 }
 
 CH_env_meta={
-    __index=CH_env_lib
+    __index=function(table,key)
+        if table.mob[key] then 
+            return function(...) table.mob[key](table.mob, unpack(arg)) end
+        else 
+            return CH_env_lib[key] 
+        end
+    end
+    
 }
 
 OBJ_env_meta={
-    __index=OBJ_env_lib
+    __index=function(table,key)
+        if table.obj[key] then
+            return function(...) table.obj[key](table.obj, unpack(arg)) end
+        else
+            return OBJ_env_lib[key]
+        end
+    end
 }
 
 function new_OBJ_env()
@@ -269,139 +275,6 @@ end
 function new_CH_env()
     local o={}
     setmetatable(o, CH_env_meta)
-    o.mob={}
-    o.send=function(...)
-        o.mob:say(table.concat{...})
-    end
-    o.send_nocr=function(...)
-        o.mob:say(table.concat{...})
-    end
-    o.log=function(arg)
-        o.mob:log(arg)
-    end
-    o.say=function(arg)
-        o.mob:say(arg)
-    end
-    o.emote=function(arg)
-        o.mob:emote(arg)
-    end
-    o.mdo=function(arg)
-        o.mob:mdo(arg)
-    end
-    o.asound=function(arg)
-        o.mob:asound(arg)
-    end
-    o.gecho=function(arg)
-        o.mob:gecho(arg)
-    end
-    o.zecho=function(arg)
-        o.mob:zecho(arg)
-    end
-    o.kill=function(arg)
-        o.mob:kill(arg)
-    end
-    o.assist=function(arg)
-        o.mob:assist(arg)
-    end
-    o.junk=function(arg)
-        o.mob:junk(arg)
-    end
-    o.echo=function(arg)
-        o.mob:echo(arg)
-    end
-    o.echoaround=function(arg)
-        o.mob:echoaround(arg)
-    end
-    o.echoat=function(arg)
-        o.mob:echoat(arg)
-    end
-    o.mload=function(arg)
-        o.mob:mload(arg)
-    end
-    o.oload=function(arg)
-        o.mob:oload(arg)
-    end
-    o.purge=function(arg)
-        o.mob:purge(arg)
-    end
-    o.goto=function(arg)
-        o.mob:goto(arg)
-    end
-    o.at=function(arg)
-        o.mob:at(arg)
-    end
-    o.transfer=function(arg)
-        o.mob:transfer(arg)
-    end
-    o.gtransfer=function(arg)
-        o.mob:gtransfer(arg)
-    end
-    o.otransfer=function(arg)
-        o.mob:otransfer(arg)
-    end
-    o.force=function(arg)
-        o.mob:force(arg)
-    end
-    o.gforce=function(arg)
-        o.mob:gforce(arg)
-    end
-    o.vforce=function(arg)
-        o.mob:vforce(arg)
-    end
-    o.cast=function(arg)
-        o.mob:cast(arg)
-    end
-    o.damage=function(arg)
-        o.mob:damage(arg)
-    end
-    o.remember=function(arg)
-        o.mob:remember(arg)
-    end
-    o.forget=function(arg)
-        o.mob:forget(arg)
-    end
-    o.delay=function(arg)
-        o.mob:delay(arg)
-    end
-    o.cancel=function(arg)
-        o.mob:cancel(arg)
-    end
-    o.call=function(arg)
-        o.mob:call(arg)
-    end
-    o.flee=function(arg)
-        o.mob:flee(arg)
-    end
-    o.remove=function(arg)
-        o.mob:remove(arg)
-    end
-    o.remort=function(arg)
-        o.mob:remort(arg)
-    end
-    o.qset=function(arg)
-        o.mob:qset(arg)
-    end
-    o.qadvance=function(arg)
-        o.mob:qadvance(arg)
-    end
-    o.reward=function(arg)
-        o.mob:reward(arg)
-    end
-    o.peace=function(arg)
-        o.mob:peace(arg)
-    end
-    o.restore=function(arg)
-        o.mob:restore(arg)
-    end
-    o.setact=function(arg)
-        o.mob:setact(arg)
-    end
-    o.hit=function(arg)
-        o.mob:hit(arg)
-    end
-    o.randchar=function(arg)
-        o.mob:randchar(arg)
-    end
     return o
 end
 

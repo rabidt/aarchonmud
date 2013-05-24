@@ -2325,6 +2325,11 @@ void send_to_char_bw( const char *txt, CHAR_DATA *ch )
 */
 void send_to_char( const char *txt, CHAR_DATA *ch )
 {
+    send_to_char_new( txt, ch, FALSE);
+}
+
+void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw)
+{
 	const  char    *point;
 	char    *point2;
 	char    buf[ MAX_STRING_LENGTH*4 ];
@@ -2341,7 +2346,7 @@ void send_to_char( const char *txt, CHAR_DATA *ch )
 		   {
 			   for( point = txt ; *point ; point++ )
 			   {
-				   if( *point == '{' )
+				   if( *point == '{' && !raw )
 				   {
 					   point++;
 					   skip = colour( *point, ch, point2 );
