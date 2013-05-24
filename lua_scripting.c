@@ -2376,7 +2376,7 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
 
-    sprintf(buf, "function P_%d (%s,%s,%s,%s,%s,%s,%s)"
+    sprintf(buf, "function M_%d (%s,%s,%s,%s,%s,%s,%s)"
             "%s\n"
             "end",
             vnum,
@@ -2392,7 +2392,7 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
                 vnum,
                 lua_tostring( LS, -1));
         /* bad code, let's kill it */
-        sprintf(buf, "P_%d", vnum);
+        sprintf(buf, "M_%d", vnum);
         lua_pushnil( LS );
         lua_setglobal( LS, buf);
 
@@ -2449,7 +2449,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
     
     /* load up the script as a function so args will be local */
     char buf[MSL*2];
-    sprintf(buf, "P_%d", pvnum);
+    sprintf(buf, "M_%d", pvnum);
     lua_getglobal( mud_LS, buf);
       
     if ( lua_isnil( mud_LS, -1) )
