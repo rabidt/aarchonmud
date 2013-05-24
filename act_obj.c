@@ -828,6 +828,9 @@ void do_drop( CHAR_DATA *ch, char *argument )
 	  obj_from_char( obj );
 	  check_bomb (ch, obj);
 	  obj_to_room( obj, ch->in_room );
+      
+      op_drop_trigger( obj, ch );
+
 	  act( "You drop $p.", ch, obj, NULL, TO_CHAR );
 	  act_gag( "$n drops $p.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
 	  if (IS_OBJ_STAT(obj,ITEM_MELT_DROP))
@@ -863,6 +866,9 @@ void do_drop( CHAR_DATA *ch, char *argument )
 			check_bomb(ch, obj);
 			obj_from_char( obj );
 			obj_to_room( obj, ch->in_room );
+
+            op_drop_trigger( obj, ch);
+
 			act( "You drop $p.", ch, obj, NULL, TO_CHAR );
 			act_gag( "$n drops $p.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
 			if (IS_OBJ_STAT(obj,ITEM_MELT_DROP))
@@ -1106,6 +1112,8 @@ void do_give( CHAR_DATA *ch, char *argument )
     */
    if ( IS_NPC(victim) && HAS_TRIGGER( victim, TRIG_GIVE ) )
        mp_give_trigger( victim, ch, obj );
+
+   op_give_trigger( obj, ch, victim);
 
    /* imms giving stuff to alts.. */
    /* if ( IS_IMMORTAL(ch) && !IS_NPC(victim) && is_same_player(ch, victim) ) */

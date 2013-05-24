@@ -1,4 +1,4 @@
-/****************************************************************************
+/********************************-********************************************
  * [S]imulated [M]edieval [A]dventure multi[U]ser [G]ame      |   \\._.//   *
  * -----------------------------------------------------------|   (0...0)   *
  * SMAUG 1.4 (C) 1994, 1995, 1996, 1998  by Derek Snider      |    ).:.(    *
@@ -50,17 +50,20 @@ lua_State *mud_LS = NULL;  /* Lua state for entire MUD */
 
 #define LUA_LOOP_CHECK_MAX_CNT 1000 /* give 100000 instructions */
 #define LUA_LOOP_CHECK_INCREMENT 100
-#define ERR_MOB_DESTROYED -1
+#define ERR_ACTOR_DESTROYED -1
 #define ERR_INF_LOOP      -2
+
 
 /* file scope variables */
 static bool        s_LuaScriptInProgress=FALSE;
 //static lua_State  *s_ActiveLuaScriptSpace=NULL;
 //static bool        s_CloseActiveLuaScriptSpace=FALSE;
-static bool        s_LuaMobDestroyed=FALSE;
+//static bool        s_LuaMobDestroyed=FALSE;
+static bool        s_LuaActorDestroyed;
 static jmp_buf     s_place;
 static int         s_LoopCheckCounter;
-
+static OBJ_DATA    *s_LuaActiveObj;
+static CHAR_DATA   *s_LuaActiveCh;
 
 void init_genrand(unsigned long s);
 void init_by_array(unsigned long init_key[], int key_length);
@@ -103,6 +106,12 @@ void add_lua_tables (lua_State *LS);
 #define TEXT1_ARG "text1"
 #define TEXT2_ARG "text2"
 #define VICTIM_ARG "victim"
+
+/* oprogs args */
+#define OBJ_ARG "obj"
+#define NUM_OPROG_ARGS 2
+#define CH1_ARG "ch1"
+#define CH2_ARG "ch2"
 
 #define UDTYPE_UNDEFINED 0
 #define UDTYPE_CH        1
@@ -321,13 +330,18 @@ static void unregister_UD( lua_State *LS,  void *ptr )
         bugf("NULL LS passed to unregister_UD.");
         return;
     }
-
+    
     lua_getfield( LS, LUA_GLOBALSINDEX, UNREGISTER_UD_FUNCTION);
     lua_pushlightuserdata( LS, ptr );
     if (CallLuaWithTraceBack( LS, 1, 0) )
     {
         bugf ( "Error unregistering UD:\n %s",
                 lua_tostring(LS, -1));
+    }
+    
+    if (s_LuaActiveObj == ptr || s_LuaActiveCh == ptr ) /* destroying the currently running environment */
+    {
+        s_LuaActorDestroyed=TRUE;
     }
 }
 
@@ -403,10 +417,10 @@ static void GetTracebackFunction (lua_State *LS)
 /* We'll set hook in at function return to see if we need to abort*/
 void function_return_hook( lua_State *LS, lua_Debug *ar)
 {
-    if (s_LuaMobDestroyed)
+    if (s_LuaActorDestroyed)
     {
-        /* Mobby died? */
-        longjmp(s_place,ERR_MOB_DESTROYED);
+        /* Mobby died or object destroyed? */
+        longjmp(s_place,ERR_ACTOR_DESTROYED);
     }
 }
 
@@ -2392,12 +2406,11 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
 
-    sprintf(buf, "function O_%d (%s,%s,%s,%s,%s,%s,%s)"
+    sprintf(buf, "function O_%d (%s,%s)"
             "%s\n"
             "end",
             vnum,
-            /*MOB_ARG,*/ CH_ARG, TRIG_ARG, OBJ1_ARG,
-            OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG,
+            CH1_ARG, CH2_ARG,
             code);
 
 
@@ -2417,20 +2430,20 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
     else return TRUE;
 
 }
-/* lua_program
+/* lua_mob_program
    lua equivalent of program_flow
  */
-void lua_program( char *text, int pvnum, char *source, 
+void lua_mob_program( char *text, int pvnum, char *source, 
         CHAR_DATA *mob, CHAR_DATA *ch, 
         const void *arg1, sh_int arg1type, 
         const void *arg2, sh_int arg2type ) 
 {
-    lua_getglobal( mud_LS, "program_setup");
+    lua_getglobal( mud_LS, "mob_program_setup");
     
     make_ud_table( mud_LS, mob, UDTYPE_CH, TRUE);
     if (lua_isnil(mud_LS, -1) )
     {
-        bugf("make_ud_table pushed nil to lua_program");
+        bugf("make_ud_table pushed nil to lua_mob_program");
         return;
     }
     
@@ -2455,9 +2468,6 @@ void lua_program( char *text, int pvnum, char *source,
     
     lua_call(mud_LS, 2, 1);
 
-    /* MOB_ARG */
-    //make_ud_table (mud_LS, (void *) mob, UDTYPE_CH, TRUE); 
-    
     /* CH_ARG */
     if (ch)
         make_ud_table (mud_LS,(void *) ch, UDTYPE_CH, TRUE);
@@ -2497,9 +2507,10 @@ void lua_program( char *text, int pvnum, char *source,
     /* some snazzy stuff to prevent crashes and other bad things*/
     int error;
     s_LoopCheckCounter=0;
+    s_LuaActiveCh=mob;
     //s_ActiveLuaScriptSpace=mud_LS;
     s_LuaScriptInProgress=TRUE;
-    s_LuaMobDestroyed=FALSE;
+    s_LuaActorDestroyed=FALSE;
 
     setjmp(s_place);
     switch ( setjmp(s_place) )   
@@ -2536,7 +2547,7 @@ void lua_program( char *text, int pvnum, char *source,
             //lua_close(mud_LS);
             //mud_LS=NULL;
             break;
-        case ERR_MOB_DESTROYED:
+        case ERR_ACTOR_DESTROYED:
             /* We don't treat as a bug, mob might have destroyed itself
                so we forced the script to exit.*/
             /* close using this var since mob doesn't exist anymore */
@@ -2545,7 +2556,99 @@ void lua_program( char *text, int pvnum, char *source,
     }
 
     s_LuaScriptInProgress=FALSE;
+    s_LuaActiveCh=NULL;
     lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
 }
 
+
+void lua_obj_program( int pvnum, char *source, 
+        OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2 ) 
+{
+    lua_getglobal( mud_LS, "obj_program_setup");
+    
+    make_ud_table( mud_LS, obj, UDTYPE_OBJ, TRUE);
+    if (lua_isnil(mud_LS, -1) )
+    {
+        bugf("make_ud_table pushed nil to lua_obj_program");
+        return;
+    }
+    
+    /* load up the script as a function so args will be local */
+    char buf[MSL*2];
+    sprintf(buf, "O_%d", pvnum);
+    lua_getglobal( mud_LS, buf);
+      
+    if ( lua_isnil( mud_LS, -1) )
+    {
+        lua_remove( mud_LS, -1); /* Remove the nil */
+        /* not loaded yet*/
+        if ( !lua_load_oprog( mud_LS, pvnum, source) )
+        {
+            /* don't bother running it if there were errors */
+            return;
+        }
+        
+        /* loaded without errors, now get it on the stack */
+        lua_getglobal( mud_LS, buf);
+    }
+    
+    lua_call(mud_LS, 2, 1);
+
+    /* CH1_ARG */
+    if (ch1)
+        make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
+    else lua_pushnil(mud_LS);
+
+    /* CH2_ARG */
+    if (ch2)
+        make_ud_table (mud_LS,(void *) ch2, UDTYPE_CH, TRUE);
+    else lua_pushnil(mud_LS);
+
+    /* some snazzy stuff to prevent crashes and other bad things*/
+    int error;
+    s_LoopCheckCounter=0;
+    s_LuaActiveObj=obj;
+    s_LuaActorDestroyed=FALSE;
+    s_LuaScriptInProgress=TRUE;
+    
+    setjmp(s_place);
+    switch ( setjmp(s_place) )   
+    {
+        case 0: /* the actual code we are executing */
+
+            error=CallLuaWithTraceBack (mud_LS, NUM_OPROG_ARGS, 0) ;
+            if (error > 0 )
+            {
+                bugf ( "LUA oprog error for vnum %d:\n %s",
+                        pvnum,
+                        lua_tostring(mud_LS, -1));
+            }
+            lua_settop(mud_LS, 0);
+
+            #if 0
+            /* cleanup routines */
+            lua_getfield( mud_LS, LUA_GLOBALSINDEX, CLEANUP_FUNCTION);
+            if ( CallLuaWithTraceBack (mud_LS, 0, 0))
+            {
+                bugf ( "Cleanup error for vnum %d:\n %s",
+                        pvnum,
+                        lua_tostring(mud_LS, -1));
+            }
+            #endif
+            break;
+
+            /* Error handling */ 
+        case ERR_INF_LOOP:
+            bugf("Infinite loop interrupted in oprog: %d on mob %d",
+                    pvnum, obj->pIndexData->vnum);
+            break;
+        case ERR_ACTOR_DESTROYED:
+            /* We don't treat as a bug, mob might have destroyed itself
+               so we forced the script to exit.*/
+            break;
+    }
+    s_LuaScriptInProgress=FALSE;
+    s_LuaActiveObj=NULL;
+    lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
+}
 
