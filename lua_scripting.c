@@ -2466,7 +2466,13 @@ void lua_mob_program( char *text, int pvnum, char *source,
         lua_getglobal( mud_LS, buf);
     }
     
-    lua_call(mud_LS, 2, 1);
+    //lua_call(mud_LS, 2, 1);
+    int error=CallLuaWithTraceBack (mud_LS, 2, 1) ;
+    if (error > 0 )
+    {
+        bugf ( "LUA error for mob_program_setup:\n %s",
+                lua_tostring(mud_LS, -1));
+    } 
 
     /* CH_ARG */
     if (ch)
@@ -2505,7 +2511,6 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    int error;
     s_LoopCheckCounter=0;
     s_LuaActiveCh=mob;
     //s_ActiveLuaScriptSpace=mud_LS;
@@ -2592,7 +2597,13 @@ void lua_obj_program( int pvnum, char *source,
         lua_getglobal( mud_LS, buf);
     }
     
-    lua_call(mud_LS, 2, 1);
+    //lua_call(mud_LS, 2, 1);
+    int error=CallLuaWithTraceBack (mud_LS, 2, 1) ;
+    if (error > 0 )
+    {
+        bugf ( "LUA error running obj_program_setup: %s",
+        lua_tostring(mud_LS, -1));
+    }
 
     /* CH1_ARG */
     if (ch1)
@@ -2605,7 +2616,6 @@ void lua_obj_program( int pvnum, char *source,
     else lua_pushnil(mud_LS);
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    int error;
     s_LoopCheckCounter=0;
     s_LuaActiveObj=obj;
     s_LuaActorDestroyed=FALSE;
