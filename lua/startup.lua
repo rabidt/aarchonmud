@@ -165,13 +165,11 @@ CH_env_lib={  require=require,
             current_env.mob:say(table.concat(str))
         end
     end,
-    rand=rand,
-    randnum=randnum,
+    getobjproto=getobjproto,
     getobjworld=getobjworld,
-    mobhere=mobhere,
-    objexists=objexists,
-    loadtbl=loadtbl,
+    getmobworld=getmobworld,
     savetbl=savetbl,
+    loadtbl=loadtbl
 }
 
 OBJ_env_lib={
