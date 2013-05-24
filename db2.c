@@ -784,6 +784,8 @@ void load_objects( FILE *fp )
             }
         }
         /* load obj progs if any */
+        while (TRUE)
+        {
         letter = fread_letter( fp );
         if ( letter == 'O' ) /* we have oprogs */
         {
@@ -808,6 +810,8 @@ void load_objects( FILE *fp )
         else
         {
             ungetc( letter, fp );
+            break;
+        }
         }
         
         iHash                   = vnum % MAX_KEY_HASH;

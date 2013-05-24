@@ -742,6 +742,9 @@ void boot_db()
         fix_exits( );
         log_string("Fixing mobprogs");
         fix_mobprogs( );
+        log_string("Fixing objprogs");
+        fix_objprogs( );
+
         
         fBootDb = FALSE;
         
@@ -2290,6 +2293,38 @@ void fix_mobprogs( void )
     //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
 
+void fix_objprogs( void )
+{
+    OBJ_INDEX_DATA *pObjIndex;
+    OPROG_LIST        *list;
+    OPROG_CODE        *prog;
+    int iHash;
+    int oprog_count = 0;
+
+    for ( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
+    {
+        for ( pObjIndex   = obj_index_hash[iHash];
+        pObjIndex   != NULL;
+        pObjIndex   = pObjIndex->next )
+        {
+            for( list = pObjIndex->oprogs; list != NULL; list = list->next )
+            {
+                if ( ( prog = get_oprog_index( list->vnum ) ) != NULL )
+                {
+                    oprog_count++;
+                    list->code = prog->code;
+                }
+                else
+                {
+                    bug( "Fix_objprogs: code vnum %d not found.", list->vnum );
+                    exit( 1 );
+                }
+            }
+        }
+    }
+    //debug
+    //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
+}
 
 /*
 * Repopulate areas periodically.
