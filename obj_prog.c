@@ -12,47 +12,26 @@
 bool op_give_trigger(
     OBJ_DATA *obj, CHAR_DATA *giver, CHAR_DATA *receiver)
 {
-    char buf[MSL], *p;
     OPROG_LIST *prg;
 
-    for ( prg = obj->pIndexData->oprogs ; prg ; prg = prg->next )
+    for ( prg=obj->pIndexData->oprogs ; prg ; prg = prg->next )
     {
         if ( prg->trig_type == OTRIG_GIVE )
         {
-            p = prg->trig_phrase;
-            /*
-             * Vnum argument
-             */
-            if ( is_r_number( p ) )
-            {
-                if ( IS_NPC( receiver ) 
-                   && receiver->pIndexData->vnum==r_atoi_obj(obj, p) )
-                {
-                    lua_obj_program( prg->vnum, prg->code, obj, giver, receiver);
-                    return TRUE;
-                }
-            }
-            /*
-             * Character name argument, e.g. 'dragon'
-             */
+            lua_obj_program( prg->vnum, prg->code, obj, giver, receiver);
+            if ( !str_cmp( "true", prg->trig_phrase) )
+                return TRUE;
+            else if ( !str_cmp( "false", prg->trig_phrase) )
+                return FALSE;
             else
             {
-                while (*p)
-                {
-                    p=one_argument( p, buf);
-
-                    if ( is_name( buf, receiver->name ) 
-                        || !str_cmp( "all", buf)
-                        || !str_cmp( "*", buf) )
-                    {
-                        log_string(prg->code);
-                        lua_obj_program( prg->vnum, prg->code, obj, giver, receiver);
-                        return TRUE;
-                    }
-                }
+                bugf("Bad GIVE keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
+                return TRUE;
             }
+
         }
     }
+    return TRUE;
 }
 
 bool op_drop_trigger(
@@ -64,13 +43,93 @@ bool op_drop_trigger(
     {
         if ( prg->trig_type == OTRIG_DROP )
         {
-            /* TBC make a percent trigger for oprogs */
             lua_obj_program( prg->vnum, prg->code, obj, dropper, NULL);
-            return TRUE;
+            if ( !str_cmp( "true", prg->trig_phrase) )
+                return TRUE;
+            else if ( !str_cmp( "false", prg->trig_phrase) )
+                return FALSE;
+            else
+            {
+                bugf("Bad DROP keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
+                return TRUE;
+            }
+
         }
     }
+    return TRUE;
 }
 
+bool op_eat_trigger(
+    OBJ_DATA *obj, CHAR_DATA *eater)
+{
+    OPROG_LIST *prg;
 
+    for ( prg=obj->pIndexData->oprogs ; prg ; prg = prg->next )
+    {
+        if ( prg->trig_type == OTRIG_EAT )
+        {
+            lua_obj_program( prg->vnum, prg->code, obj, eater, NULL);
+            if ( !str_cmp( "true", prg->trig_phrase) )
+                return TRUE;
+            else if ( !str_cmp( "false", prg->trig_phrase) )
+                return FALSE;
+            else
+            {
+                bugf("Bad EAT keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
+                return TRUE;
+            }
 
-    
+        }
+    }
+    return TRUE;
+}
+
+bool op_sacrifice_trigger(
+    OBJ_DATA *obj, CHAR_DATA *saccer)
+{
+    OPROG_LIST *prg;
+
+    for ( prg=obj->pIndexData->oprogs ; prg ; prg = prg->next )
+    {
+        if ( prg->trig_type == OTRIG_SACRIFICE )
+        {
+            lua_obj_program( prg->vnum, prg->code, obj, saccer, NULL);
+            if ( !str_cmp( "true", prg->trig_phrase) )
+                return TRUE;
+            else if ( !str_cmp( "false", prg->trig_phrase) )
+                return FALSE;
+            else
+            {
+                bugf("Bad SACRIFICE keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
+                return TRUE;
+            }
+
+        }
+    }
+    return TRUE;
+}
+
+bool op_wear_trigger(
+    OBJ_DATA *obj, CHAR_DATA *wearer)
+{
+    OPROG_LIST *prg;
+
+    for ( prg=obj->pIndexData->oprogs ; prg ; prg = prg->next )
+    {
+        if ( prg->trig_type == OTRIG_WEAR )
+        {
+            lua_obj_program( prg->vnum, prg->code, obj, wearer, NULL);
+            if ( !str_cmp( "true", prg->trig_phrase) )
+                return TRUE;
+            else if ( !str_cmp( "false", prg->trig_phrase) )
+                return FALSE;
+            else
+            {
+                bugf("Bad WEAR keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
+                return TRUE;
+            }
+
+        }
+    }
+    return TRUE;
+}    
