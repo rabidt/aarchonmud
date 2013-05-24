@@ -154,6 +154,10 @@ CH_env_lib={  require=require,
         difftime=os.difftime},
 
     -- okay now our stuff
+    getroom=getroom,
+    randnum=randnum,
+    rand=rand,
+    loadprog=loadprog,
     tprint=function(tbl)
         local str={}
         if current_env.mob then
@@ -165,7 +169,9 @@ CH_env_lib={  require=require,
     randnum=randnum,
     getobjworld=getobjworld,
     mobhere=mobhere,
-    objexists=objexists
+    objexists=objexists,
+    loadtbl=loadtbl,
+    savetbl=savetbl,
 }
 
 OBJ_env_lib={
