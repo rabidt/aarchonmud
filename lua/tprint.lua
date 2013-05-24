@@ -15,7 +15,7 @@ tprint (some_table)
 
 --]]
 
-function tprint (t, indent, done)
+function tprint (resulttbl, t, indent, done)
   -- show strings differently to distinguish them from numbers
   local function show (val)
     if type (val) == "string" then
@@ -25,21 +25,24 @@ function tprint (t, indent, done)
     end -- if
   end -- show
   if type (t) ~= "table" then
-    send ("tprint got " .. type (t))
+    table.insert( resulttbl, "tprint got " .. type (t) )
+    table.insert( resulttbl, "\n" )
     return
   end -- not table
   -- entry point here
   done = done or {}
   indent = indent or 0
   for key, value in pairs (t) do
-    send_nocr (string.rep (" ", indent)) -- indent it
+    table.insert( resulttbl, (string.rep (" ", indent)) ) -- indent it
     if type (value) == "table" and not done [value] then
       done [value] = true
-      send (show (key), ":");
-      tprint (value, indent + 2, done)
+      table.insert( resulttbl,  table.concat({show (key), ":"}) )
+      table.insert( resulttbl, "\n" )
+      tprint (resulttbl, value, indent + 2, done)
     else
-      send_nocr (show (key), "=")
-      send (show (value))
+      table.insert( resulttbl, table.concat({show (key), "="}) )
+      table.insert( resulttbl, (show (value)) )
+      table.insert( resulttbl, "\n" )
     end
   end
 end

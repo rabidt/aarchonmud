@@ -50,8 +50,7 @@ lua_State *mud_LS = NULL;  /* Lua state for entire MUD */
 
 #define LUA_LOOP_CHECK_MAX_CNT 1000 /* give 100000 instructions */
 #define LUA_LOOP_CHECK_INCREMENT 100
-#define ERR_ACTOR_DESTROYED -1
-#define ERR_INF_LOOP      -2
+#define ERR_INF_LOOP      -1
 
 
 /* file scope variables */
@@ -2552,12 +2551,12 @@ void lua_mob_program( char *text, int pvnum, char *source,
             //lua_close(mud_LS);
             //mud_LS=NULL;
             break;
-        case ERR_ACTOR_DESTROYED:
+        //case ERR_ACTOR_DESTROYED:
             /* We don't treat as a bug, mob might have destroyed itself
                so we forced the script to exit.*/
             /* close using this var since mob doesn't exist anymore */
             //lua_close(s_ActiveLuaScriptSpace);
-            break;
+            //break;
     }
 
     s_LuaScriptInProgress=FALSE;
@@ -2652,10 +2651,10 @@ void lua_obj_program( int pvnum, char *source,
             bugf("Infinite loop interrupted in oprog: %d on mob %d",
                     pvnum, obj->pIndexData->vnum);
             break;
-        case ERR_ACTOR_DESTROYED:
+        //case ERR_ACTOR_DESTROYED:
             /* We don't treat as a bug, mob might have destroyed itself
                so we forced the script to exit.*/
-            break;
+            //break;
     }
     s_LuaScriptInProgress=FALSE;
     s_LuaActiveObj=NULL;

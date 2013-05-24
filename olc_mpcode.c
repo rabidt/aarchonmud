@@ -231,7 +231,6 @@ MPEDIT(mpedit_show)
 
 void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
 {
-    log_string("Fix mprog mobs");
     MPROG_LIST *mpl;
     int hash;
     char buf[MSL];
