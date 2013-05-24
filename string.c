@@ -141,7 +141,7 @@ void string_append( CHAR_DATA *ch, char **pString )
     }
     else
     {
-        send_to_char( numlineas(*pString), ch );
+        send_to_char_new( numlineas(*pString), ch, TRUE );
         if ( *(*pString + strlen( *pString ) - 1) != '\r' )
             send_to_char( "\n\r", ch );
         
