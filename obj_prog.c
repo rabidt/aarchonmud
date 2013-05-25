@@ -18,7 +18,7 @@ bool op_give_trigger(
     {
         if ( prg->trig_type == OTRIG_GIVE )
         {
-            lua_obj_program( prg->vnum, prg->code, obj, giver, receiver);
+            return lua_obj_program( prg->vnum, prg->code, obj, giver, receiver);
             if ( !str_cmp( "true", prg->trig_phrase) )
                 return TRUE;
             else if ( !str_cmp( "false", prg->trig_phrase) )
@@ -43,7 +43,7 @@ bool op_drop_trigger(
     {
         if ( prg->trig_type == OTRIG_DROP )
         {
-            lua_obj_program( prg->vnum, prg->code, obj, dropper, NULL);
+            return lua_obj_program( prg->vnum, prg->code, obj, dropper, NULL);
             if ( !str_cmp( "true", prg->trig_phrase) )
                 return TRUE;
             else if ( !str_cmp( "false", prg->trig_phrase) )
@@ -68,7 +68,7 @@ bool op_eat_trigger(
     {
         if ( prg->trig_type == OTRIG_EAT )
         {
-            lua_obj_program( prg->vnum, prg->code, obj, eater, NULL);
+            return lua_obj_program( prg->vnum, prg->code, obj, eater, NULL);
             if ( !str_cmp( "true", prg->trig_phrase) )
                 return TRUE;
             else if ( !str_cmp( "false", prg->trig_phrase) )
@@ -93,7 +93,7 @@ bool op_sacrifice_trigger(
     {
         if ( prg->trig_type == OTRIG_SACRIFICE )
         {
-            lua_obj_program( prg->vnum, prg->code, obj, saccer, NULL);
+            return lua_obj_program( prg->vnum, prg->code, obj, saccer, NULL);
             if ( !str_cmp( "true", prg->trig_phrase) )
                 return TRUE;
             else if ( !str_cmp( "false", prg->trig_phrase) )
@@ -118,7 +118,7 @@ bool op_wear_trigger(
     {
         if ( prg->trig_type == OTRIG_WEAR )
         {
-            lua_obj_program( prg->vnum, prg->code, obj, wearer, NULL);
+            return lua_obj_program( prg->vnum, prg->code, obj, wearer, NULL);
             if ( !str_cmp( "true", prg->trig_phrase) )
                 return TRUE;
             else if ( !str_cmp( "false", prg->trig_phrase) )
