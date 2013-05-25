@@ -111,6 +111,7 @@ void add_lua_tables (lua_State *LS);
 #define NUM_OPROG_ARGS 2
 #define CH1_ARG "ch1"
 #define CH2_ARG "ch2"
+#define NUM_OPROG_RESULTS 1
 
 #define UDTYPE_UNDEFINED 0
 #define UDTYPE_CH        1
@@ -2561,16 +2562,18 @@ void lua_mob_program( char *text, int pvnum, char *source,
 }
 
 
-void lua_obj_program( int pvnum, char *source, 
+bool lua_obj_program( int pvnum, char *source, 
         OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2 ) 
 {
+    bool result=FALSE;
+
     lua_getglobal( mud_LS, "obj_program_setup");
     
     make_ud_table( mud_LS, obj, UDTYPE_OBJ, TRUE);
     if (lua_isnil(mud_LS, -1) )
     {
         bugf("make_ud_table pushed nil to lua_obj_program");
-        return;
+        return FALSE;
     }
     
     /* load up the script as a function so args will be local */
@@ -2585,7 +2588,7 @@ void lua_obj_program( int pvnum, char *source,
         if ( !lua_load_oprog( mud_LS, pvnum, source) )
         {
             /* don't bother running it if there were errors */
-            return;
+            return FALSE;
         }
         
         /* loaded without errors, now get it on the stack */
@@ -2613,7 +2616,6 @@ void lua_obj_program( int pvnum, char *source,
     /* some snazzy stuff to prevent crashes and other bad things*/
     s_LoopCheckCounter=0;
     s_LuaActiveObj=obj;
-    //s_LuaActorDestroyed=FALSE;
     s_LuaScriptInProgress=TRUE;
     
     setjmp(s_place);
@@ -2621,14 +2623,17 @@ void lua_obj_program( int pvnum, char *source,
     {
         case 0: /* the actual code we are executing */
 
-            error=CallLuaWithTraceBack (mud_LS, NUM_OPROG_ARGS, 0) ;
+            error=CallLuaWithTraceBack (mud_LS, NUM_OPROG_ARGS, NUM_OPROG_RESULTS) ;
             if (error > 0 )
             {
                 bugf ( "LUA oprog error for vnum %d:\n %s",
                         pvnum,
                         lua_tostring(mud_LS, -1));
             }
-            lua_settop(mud_LS, 0);
+            else
+            {
+                result=lua_toboolean (mud_LS, -1);
+            }
 
             #if 0
             /* cleanup routines */
@@ -2655,5 +2660,6 @@ void lua_obj_program( int pvnum, char *source,
     s_LuaScriptInProgress=FALSE;
     s_LuaActiveObj=NULL;
     lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
+    return result;
 }
 
