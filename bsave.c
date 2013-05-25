@@ -2889,7 +2889,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
     add_buf( output, buf );
     
     /* ** Incog, Wizi, AFK, Levelbuf, Sex, Race, Class, pkill ** */
-    sprintf(buf, "{D|{x %s%s%s%s %s %s %s.  %s%s",
+    sprintf(buf, "{D|{x %s%s%s%s %s %s %s.            %s%s",
         get_trust(ch) >= wch->incog_level &&
         wch->incog_level >= LEVEL_HERO ? "(Incog) ": "",
         get_trust(ch) >= wch->invis_level &&
@@ -2913,7 +2913,11 @@ void do_finger(CHAR_DATA *ch, char *argument)
         else if (IS_IMMORTAL(ch))
             sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
+<<<<<<< local
             sprintf( buf, "{D|{x God: %-11s  Rank: %-11s", rel->god, get_ch_rank_name(wch) );
+=======
+            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
+>>>>>>> other
         
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
@@ -2928,7 +2932,11 @@ void do_finger(CHAR_DATA *ch, char *argument)
     }
     else
     {
+<<<<<<< local
         sprintf( buf, "{D|{x God: None    Rank: None              ");
+=======
+        sprintf( buf, "{D|{x God:     None        Rank: None           ");
+>>>>>>> other
         
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-9s", wch->pcdata->spouse );
@@ -2946,7 +2954,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
     sprintf(buf, "{D|{x ");
     if ( wch->level <= LEVEL_HERO )
     {
-        sprintf(buf2, "Remorts: {c%-2d{x        Age: %-3d",
+        sprintf(buf2, "Remorts: {c%-2d{x          Age: %-3d",
             wch->pcdata->remorts,
             get_age(wch));
         strcat( buf, buf2 );
@@ -2959,7 +2967,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
     
     if ( get_trust(ch) > LEVEL_IMMORTAL )
     {
-        sprintf( buf2, "     Hours: {c%d{x   ", ((int)wch->played)/3600);
+        sprintf( buf2, "             Hours: {c%d{x   ", ((int)wch->played)/3600);
         strcat( buf, buf2 );
     }
     if ( wch->pcdata->bounty )
@@ -2978,7 +2986,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
             ;  /* Do nothing. */
         else
         {
-        sprintf(buf, "{D|{x Last on: %s    ",
+        sprintf(buf, "{D|{x Date Last On: %s    ",
             time_format(fingertime, custombuf));
         for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
@@ -2986,6 +2994,16 @@ void do_finger(CHAR_DATA *ch, char *argument)
         }
     }
 	
+<<<<<<< local
+=======
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
+
+>>>>>>> other
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
