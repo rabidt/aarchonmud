@@ -12,6 +12,7 @@ struct war_data
    int reward;
    long owner;
    CHAR_DATA *first_combatant;
+   int total_combatants;
 };
 
 typedef struct war_data WAR_DATA;
