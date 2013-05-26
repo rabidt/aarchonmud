@@ -2913,8 +2913,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
         else if (IS_IMMORTAL(ch))
             sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
-            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
-        
+            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );       
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
         else
@@ -2928,7 +2927,17 @@ void do_finger(CHAR_DATA *ch, char *argument)
     }
     else
     {
+<<<<<<< local
+<<<<<<< local
+        sprintf( buf, "{D|{x God: None    Rank: None              ");
+=======
+=======
+>>>>>>> other
         sprintf( buf, "{D|{x God:     None        Rank: None           ");
+<<<<<<< local
+>>>>>>> other
+=======
+>>>>>>> other
         
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-9s", wch->pcdata->spouse );
@@ -2986,6 +2995,11 @@ void do_finger(CHAR_DATA *ch, char *argument)
         }
     }
 	
+<<<<<<< local
+<<<<<<< local
+=======
+=======
+>>>>>>> other
     /* Date Created */
     sprintf(buf, "{D|{x Date Created: %s   ",
 	    time_format(wch->id, custombuf));
@@ -2993,6 +3007,10 @@ void do_finger(CHAR_DATA *ch, char *argument)
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
 
+<<<<<<< local
+>>>>>>> other
+=======
+>>>>>>> other
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
@@ -3007,6 +3025,13 @@ void do_finger(CHAR_DATA *ch, char *argument)
             add_buf( output, buf );
         }
     }
+
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     
     if (wch->level <= LEVEL_HERO)
