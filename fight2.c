@@ -4608,6 +4608,7 @@ void do_puncture( CHAR_DATA *ch, char *argument )
     act( "$n punctures $N's armor with a powerful blow!",
 	 ch, NULL, victim, TO_NOTVICT );
 
+    dam_message( ch, victim, dam, gsn_puncture, FALSE );
     damage(ch,victim,dam,gsn_puncture,DAM_NONE,FALSE);
 
     af.where    = TO_AFFECTS;
