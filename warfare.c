@@ -120,8 +120,7 @@ void auto_war(void)
     war.on = TRUE;
     war.started = FALSE;
     war.combatants = 0;
-//    war.war_time_left = 4;
-    war.war_time_left = 1;
+    war.war_time_left = 4;
     war.first_combatant = NULL;
     war.reward = 4;
     war.owner = 0;
@@ -233,8 +232,7 @@ void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
     war.on = TRUE;
     war.started = FALSE;
     war.combatants = 0;
-//    war.war_time_left = 3;
-    war.war_time_left = 1;
+    war.war_time_left = 3;
     war.first_combatant = NULL;
 
     if ( !pay )
