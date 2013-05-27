@@ -1971,7 +1971,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Prac",    ch->practice,       bread_number( buf ) );
 	KEY( "Pretitle",ch->pcdata->pre_title, bread_string(buf));
         KEYS( "Prompt",      ch->prompt,             bread_string( buf ) );
-        KEY( "Prom",    ch->prompt,     bread_string( buf ) );
+        KEYS( "Prom",    ch->prompt,     bread_string( buf ) );
 
 	if ( !str_cmp( word, "Pray" ) )
 	{
