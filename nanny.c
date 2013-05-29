@@ -1214,8 +1214,8 @@ bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
 bool	get_alignment ( DESCRIPTOR_DATA *d, char *argument )
 {
 	CHAR_DATA *ch=d->character;
-	char msg[MAX_STRING_LENGTH];
-	char buffer[MAX_STRING_LENGTH*2];
+    char msg[MAX_STRING_LENGTH];
+	char buffer[MAX_STRING_LENGTH*2]="";
 	char *pbuff; 
 	char arg[MAX_STRING_LENGTH];
         int align;
@@ -1243,9 +1243,9 @@ bool	get_alignment ( DESCRIPTOR_DATA *d, char *argument )
 	    do_help(ch,argument);
 
 	pbuff = buffer;
+    sprintf( msg, "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
 	colourconv( pbuff, msg, d->character );
 	write_to_buffer(d,buffer,0);
-	sprintf( msg, "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
 	return FALSE;
     } 
     else if (!strcmp(arg,"angelic"))
