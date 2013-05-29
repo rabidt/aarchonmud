@@ -825,9 +825,13 @@ void do_drop( CHAR_DATA *ch, char *argument )
 			obj->timer = number_range(100,200);
 	  }
 
+      if (!op_drop_trigger( obj, ch ) )//returns FALSE if we need to prevent
+         return;
+
 	  obj_from_char( obj );
 	  check_bomb (ch, obj);
 	  obj_to_room( obj, ch->in_room );
+      
 	  act( "You drop $p.", ch, obj, NULL, TO_CHAR );
 	  act_gag( "$n drops $p.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
 	  if (IS_OBJ_STAT(obj,ITEM_MELT_DROP))
@@ -861,8 +865,15 @@ void do_drop( CHAR_DATA *ch, char *argument )
 			}
 
 			check_bomb(ch, obj);
+
+            /* TBC, add HAS_OTRIG to check bit */
+            if (!op_drop_trigger( obj, ch) ) // return FALSE if we're supposed to prevent the drop
+                continue;
+
 			obj_from_char( obj );
 			obj_to_room( obj, ch->in_room );
+
+
 			act( "You drop $p.", ch, obj, NULL, TO_CHAR );
 			act_gag( "$n drops $p.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
 			if (IS_OBJ_STAT(obj,ITEM_MELT_DROP))
@@ -1094,6 +1105,10 @@ void do_give( CHAR_DATA *ch, char *argument )
        act( "$N can't see it.", ch, NULL, victim, TO_CHAR );
        return;
    }
+
+   /* oprog check */
+   if (!op_give_trigger( obj, ch, victim) ) // Returns FALSE if we are supposed to prevent
+       return;
 	  
    obj_from_char( obj );
    obj_to_char( obj, victim );
@@ -1689,6 +1704,9 @@ void do_eat( CHAR_DATA *ch, char *argument )
 	 return;
    }
    
+    if ( !op_eat_trigger( obj, ch) ) //returns FALSE if we need to prevent
+        return;
+
 	act( "You eat $p.", ch, obj, NULL, TO_CHAR );
 	act( "$n eats $p.",  ch, obj, NULL, TO_ROOM );
 
@@ -2253,7 +2271,8 @@ void do_wear( CHAR_DATA *ch, char *argument )
 	{
 		obj_next = obj->next_content;
 		if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) )
-		wear_obj( ch, obj, FALSE );
+            if ( op_wear_trigger( obj, ch) ) // returns FALSE if we need to prevent
+		        wear_obj( ch, obj, FALSE );
 	}
 	return;
 	}
@@ -2265,7 +2284,10 @@ void do_wear( CHAR_DATA *ch, char *argument )
 		return;
 	}
 
-	wear_obj( ch, obj, TRUE );
+    if ( op_wear_trigger( obj, ch) ) // returns FALSE if we need to prevent
+	    wear_obj( ch, obj, TRUE );
+    else
+        return;
 	}
 
 	return;
@@ -2404,6 +2426,9 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
 	   }
    }
    
+   if ( !op_sacrifice_trigger( obj, ch)) //returns FALSE if we need to prevent
+       return;
+
    silver = UMAX(1,obj->level * 3);
    
    if (obj->item_type != ITEM_CORPSE_NPC && obj->item_type != ITEM_CORPSE_PC)
