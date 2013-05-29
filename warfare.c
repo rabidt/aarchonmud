@@ -513,6 +513,7 @@ void war_update( void )
 
         sprintf( buf, "The battle begins with %d combatants in the war!\n\r", war.combatants );
         warfare( buf );
+        war.total_combatants = war.combatants;
         war.started = TRUE;
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
@@ -737,6 +738,7 @@ void war_remove( CHAR_DATA *ch, bool killed )
 {
     DESCRIPTOR_DATA *d;
     char buf[MSL];
+    int joinbonus;
     
     if (IS_NPC(ch) || !IS_SET( ch->act, PLR_WAR ) )
         return;
@@ -781,6 +783,23 @@ void war_remove( CHAR_DATA *ch, bool killed )
 	char_to_room( ch, get_room_index(ROOM_VNUM_TEMPLE) );
     }
     do_look( ch, "" );
+    
+    /* Small reward for participation - Astark 5-24-13 */
+
+/* Why doesn't this work?
+    joinbonus = UMAX(8 + (war.total_combatants*2), 12); */
+
+    joinbonus = 10 + war.total_combatants*2;
+
+    if (joinbonus < 20)
+        joinbonus = joinbonus;
+    else
+        joinbonus = 20;
+
+    sprintf( buf, "You are awarded %d quest points for your bravery!\n\r", joinbonus);
+    send_to_char(buf,ch);
+ 
+    ch->pcdata->questpoints += joinbonus;
 
     if (!killed)
     {

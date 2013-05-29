@@ -2690,6 +2690,7 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
         {
 	    act("$n stuns you with a crushing right hook!",
 		ch,NULL,victim,TO_VICT);
+            send_to_char("You lose your stance!\n\r",ch);
 	    act("You stun $N with a crushing right hook!",ch,NULL,victim,TO_CHAR);
 	    act("$n stuns $N with a crushing right hook.",
 		ch,NULL,victim,TO_NOTVICT);
@@ -4608,6 +4609,7 @@ void do_puncture( CHAR_DATA *ch, char *argument )
     act( "$n punctures $N's armor with a powerful blow!",
 	 ch, NULL, victim, TO_NOTVICT );
 
+    dam_message( ch, victim, dam, gsn_puncture, FALSE );
     damage(ch,victim,dam,gsn_puncture,DAM_NONE,FALSE);
 
     af.where    = TO_AFFECTS;
