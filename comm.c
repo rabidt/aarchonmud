@@ -1399,6 +1399,18 @@ void close_socket( DESCRIPTOR_DATA *dclose )
         }
         else
         {
+            /* can't do extract_char cause it's not on char list,
+                but we still need to do a little cleanup*/
+            CHAR_DATA *wch;
+            for ( wch = char_list; wch != NULL; wch = wch->next )
+            {
+                if ( wch->reply == ch )
+                    wch->reply = NULL;
+                if ( ch->mprog_target == wch )
+                    wch->mprog_target = NULL;
+            }
+
+            unregister_lua( ch );
             free_char(dclose->original ? dclose->original : dclose->character );
         }
     }
