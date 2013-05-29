@@ -317,6 +317,7 @@ void free_obj(OBJ_DATA *obj)
 	free_string( obj->description );
 	free_string( obj->short_descr );
 	free_string( obj->owner     );
+    free_string( obj->material  );
 	INVALIDATE(obj);
 
 	obj->next   = obj_free;
@@ -526,6 +527,15 @@ void free_pcdata(PC_DATA *pcdata)
     free_string(pcdata->combat_action);
     free_string(pcdata->name_color);
     free_string(pcdata->pre_title);
+    free_string(pcdata->last_host);
+    free_string(pcdata->customflag);
+    free_string(pcdata->spouse);
+
+    
+    for (i=0; i<MAX_FORGET ; i++)
+    {
+        free_string(pcdata->forget[i]);
+    }
 
     for (gran = pcdata->granted; gran != NULL; gran = gran_next)
     {
