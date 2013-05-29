@@ -3655,7 +3655,7 @@ void spell_overcharge( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 //    af.bitvector = 0;
     affect_to_char( ch, &af );
     send_to_char( "You focus intensely as your mana begins to overcharge!\n\r", ch );
-    act("$n begins to focus as $m mana starts to overcharge",ch,NULL,NULL,TO_ROOM);
+    act("$n begins to focus as $s mana starts to overcharge",ch,NULL,NULL,TO_ROOM);
     return;
 }
 

@@ -4472,6 +4472,8 @@ void do_merge( CHAR_DATA *ch, char *argument )
   extract_obj( obj2 );
   combine_obj = create_object( pObjIndex, 0 );
 
+  check_enchant_obj(combine_obj);
+
   if (CAN_WEAR( combine_obj, ITEM_TAKE ))
     obj_to_char( combine_obj, ch );
   else
