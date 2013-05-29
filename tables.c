@@ -521,6 +521,17 @@ const struct flag_type mprog_flags[] =
 	{   NULL,           0,          TRUE    }
 };
 
+const struct flag_type oprog_flags[] =
+{
+    {   "give",         OTRIG_GIVE,      TRUE    },
+    {   "drop",         OTRIG_DROP,      TRUE    },
+    {   "eat",          OTRIG_EAT,       TRUE    },
+    {   "sacrifice",    OTRIG_SACRIFICE, TRUE    },
+    {   "wear",         OTRIG_WEAR,      TRUE    },
+    {   "remove",       OTRIG_REMOVE,    TRUE    },
+    {   NULL,           0,          TRUE    }
+};
+
 const struct flag_type area_flags[] =
 {
 	{   "changed",      AREA_CHANGED,       TRUE    },

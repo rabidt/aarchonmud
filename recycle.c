@@ -366,7 +366,6 @@ CHAR_DATA *new_char (void)
 	ch->stance=0;
 	ch->just_killed = FALSE;
 	ch->must_extract = FALSE;
-    ch->LS=NULL;
 	
 	for (i = 0; i < MAX_STATS; i ++)
 	{
@@ -392,7 +391,6 @@ void free_char (CHAR_DATA *ch)
 	if (IS_NPC(ch))
     {
 	   mobile_count--;
-       close_lua (ch);  /* close down Lua state */
     }
 	/* Erwin's suggested fix to light problem */ 
 	else if ( ch->in_room != NULL )
@@ -877,6 +875,39 @@ void free_mprog(MPROG_LIST *mp)
    INVALIDATE(mp);
    mp->next = mprog_free;
    mprog_free = mp;
+}
+
+OPROG_LIST *oprog_free;
+
+OPROG_LIST *new_oprog(void)
+{
+   static OPROG_LIST op_zero;
+   OPROG_LIST *op;
+
+   if (oprog_free == NULL)
+       op = alloc_perm(sizeof(*op));
+   else
+   {
+       op = oprog_free;
+       oprog_free=oprog_free->next;
+   }
+
+   *op = op_zero;
+   op->vnum             = 0;
+   op->trig_type        = 0;
+   op->code             = str_dup("");
+   VALIDATE(op);
+   return op;
+}
+
+void free_oprog(OPROG_LIST *op)
+{
+   if (!IS_VALID(op))
+      return;
+
+   INVALIDATE(op);
+   op->next = oprog_free;
+   oprog_free = op;
 }
 
 

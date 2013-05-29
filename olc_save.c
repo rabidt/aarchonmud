@@ -216,6 +216,26 @@ void reverse_mprog_order(MOB_INDEX_DATA *pMobIndex)
     pMobIndex->mprogs->next = new_mprog_list;
 }
 
+void reverse_oprog_order(OBJ_INDEX_DATA *pObjIndex)
+{
+    OPROG_LIST
+        *new_oprog_list = NULL,
+        *next_oprog;
+
+    if (pObjIndex->oprogs == NULL || pObjIndex->oprogs->next == NULL)
+        return;
+
+    next_oprog = pObjIndex->oprogs->next;
+    while (next_oprog)
+    {
+        pObjIndex->oprogs->next = new_oprog_list;
+        new_oprog_list = pObjIndex->oprogs;
+        pObjIndex->oprogs = next_oprog;
+        next_oprog = next_oprog->next;
+    }
+    pObjIndex->oprogs->next = new_oprog_list;
+}
+
 
 
 void save_mobprogs( FILE *fp, AREA_DATA *pArea )
@@ -235,6 +255,26 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
         }
     }
     
+    fprintf(fp,"#0\n\n");
+    return;
+}
+
+void save_objprogs( FILE *fp, AREA_DATA *pArea )
+{
+    OPROG_CODE *pOprog;
+    int i;
+
+    fprintf(fp, "#OBJPROGS\n");
+
+    for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
+    {
+        if ( (pOprog = get_oprog_index(i) ) != NULL)
+        {
+                  fprintf(fp, "#%d\n", i);
+                  fprintf(fp, "%s~\n", fix_string(pOprog->code));
+        }
+    }
+
     fprintf(fp,"#0\n\n");
     return;
 }
@@ -525,6 +565,18 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     {
         fprintf( fp, "E\n%s~\n%s~\n", pEd->keyword,
             fix_string( pEd->description ) );
+    }
+
+    /* save oprogs if any */
+    if (pObjIndex->oprogs != NULL)
+    {
+        OPROG_LIST *pOprog;
+        reverse_oprog_order(pObjIndex);
+        for (pOprog = pObjIndex->oprogs; pOprog; pOprog = pOprog->next)
+        {
+            fprintf(fp, "O %s %d %s~\n", name_lookup(pOprog->trig_type, oprog_flags), pOprog->vnum, pOprog->trig_phrase);
+        }
+        reverse_oprog_order(pObjIndex); 
     }
     
     return;
@@ -1034,6 +1086,7 @@ void save_area( AREA_DATA *pArea )
     save_resets( fp, pArea );
     save_shops( fp, pArea );
     save_mobprogs( fp, pArea );
+    save_objprogs( fp, pArea );
     
     if ( pArea->helps && pArea->helps->first )
         save_helps( fp, pArea->helps );

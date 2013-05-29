@@ -141,7 +141,7 @@ void string_append( CHAR_DATA *ch, char **pString )
     }
     else
     {
-        send_to_char( numlineas(*pString), ch );
+        send_to_char_new( numlineas(*pString), ch, TRUE );
         if ( *(*pString + strlen( *pString ) - 1) != '\r' )
             send_to_char( "\n\r", ch );
         
@@ -223,6 +223,13 @@ void string_add( CHAR_DATA *ch, char *argument )
          EDIT_MPCODE(ch, mpc);
          fix_mprog_mobs( ch, mpc);
       }
+      else if ( ch->desc->editor == ED_OPCODE ) /* for objprogs */
+      {
+          OPROG_CODE *opc;
+          EDIT_OPCODE(ch, opc);
+          fix_oprog_objs( ch, opc);
+      }
+
       
       ch->desc->pString = NULL;
 

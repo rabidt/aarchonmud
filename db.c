@@ -107,6 +107,7 @@ SHOP_DATA *     shop_last;
 NOTE_DATA *     note_free;
 
 MPROG_CODE *    mprog_list;
+OPROG_CODE *    oprog_list;
 
 char            bug_buf     [2*MAX_INPUT_LENGTH];
 CHAR_DATA *     char_list;
@@ -483,6 +484,7 @@ int  top_vnum_room;      /* OLC */
 int  top_vnum_mob;       /* OLC */
 int  top_vnum_obj;       /* OLC */
 int  top_mprog_index;    /* OLC */
+int  top_oprog_index;    /* OLC */
 int  lua_mprogs=0;
 int  mobile_count = 0;
 int  newmobs = 0;
@@ -682,6 +684,9 @@ void boot_db()
     log_string( "Counting stats" );
     count_stats();
 
+    log_string( "Lua init.");
+    open_lua();
+
     log_string( "Loading areas" );
     /*
     * Read in all the area files.
@@ -737,6 +742,9 @@ void boot_db()
         fix_exits( );
         log_string("Fixing mobprogs");
         fix_mobprogs( );
+        log_string("Fixing objprogs");
+        fix_objprogs( );
+
         
         fBootDb = FALSE;
         
@@ -862,6 +870,7 @@ void load_area_file( FILE *fp, bool clone )
 	else if ( !str_cmp( word, "MOBILES"  ) ) load_mobiles (fpArea);
         else if ( !str_cmp( word, "MOBBLES"  ) ) load_mobbles (fpArea);
 	else if ( !str_cmp( word, "MOBPROGS" ) ) load_mobprogs(fpArea);
+    else if ( !str_cmp( word, "OBJPROGS" ) ) load_objprogs(fpArea);
 	else if ( !str_cmp( word, "OBJOLD"   ) ) load_old_obj (fpArea);
 	else if ( !str_cmp( word, "OBJECTS"  ) ) load_objects (fpArea);
 	else if ( !str_cmp( word, "RESETS"   ) ) load_resets  (fpArea);
@@ -2126,7 +2135,58 @@ void fix_exits( void )
     return;
 }
 
+/*
+* Load objprogs section
+*/
+void load_objprogs( FILE *fp )
+{
+    OPROG_CODE *pOprog;
 
+    if ( area_last == NULL )
+    {
+        bug( "Load_objprogs: no #AREA seen yet.", 0 );
+        exit( 1 );
+    }
+
+    for ( ; ; )
+    {
+        int vnum;
+        char letter;
+
+        letter        = fread_letter( fp );
+        if ( letter != '#' )
+        {
+            bug( "Load_objprogs: # not found.", 0 );
+            exit( 1 );
+        }
+
+        vnum         = fread_number( fp );
+        if ( vnum == 0 )
+            break;
+
+        fBootDb = FALSE;
+        if ( get_oprog_index( vnum ) != NULL )
+        {
+            bug( "Load_objprogs: vnum %d duplicated.", vnum );
+            exit( 1 );
+        }
+        fBootDb = TRUE;
+
+        pOprog      = alloc_perm( sizeof(*pOprog) );
+        pOprog->vnum    = vnum;
+        pOprog->code    = fread_string( fp );
+
+        if ( oprog_list == NULL )
+            oprog_list = pOprog;
+        else
+        {
+            pOprog->next = oprog_list;
+            oprog_list  = pOprog;
+        }
+        top_oprog_index++;
+    }
+    return;
+}
 /*
 * Load mobprogs section
 */
@@ -2233,6 +2293,38 @@ void fix_mobprogs( void )
     //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
 
+void fix_objprogs( void )
+{
+    OBJ_INDEX_DATA *pObjIndex;
+    OPROG_LIST        *list;
+    OPROG_CODE        *prog;
+    int iHash;
+    int oprog_count = 0;
+
+    for ( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
+    {
+        for ( pObjIndex   = obj_index_hash[iHash];
+        pObjIndex   != NULL;
+        pObjIndex   = pObjIndex->next )
+        {
+            for( list = pObjIndex->oprogs; list != NULL; list = list->next )
+            {
+                if ( ( prog = get_oprog_index( list->vnum ) ) != NULL )
+                {
+                    oprog_count++;
+                    list->code = prog->code;
+                }
+                else
+                {
+                    bug( "Fix_objprogs: code vnum %d not found.", list->vnum );
+                    exit( 1 );
+                }
+            }
+        }
+    }
+    //debug
+    //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
+}
 
 /*
 * Repopulate areas periodically.
@@ -3467,6 +3559,16 @@ MPROG_CODE *get_mprog_index( int vnum )
     return NULL;
 }    
 
+OPROG_CODE *get_oprog_index( int vnum )
+{
+    OPROG_CODE *prg;
+    for( prg = oprog_list; prg; prg = prg->next )
+    {
+        if ( prg->vnum == vnum )
+            return( prg );
+    }
+    return NULL;
+}
 
 /*
 * Read a letter from a file.
