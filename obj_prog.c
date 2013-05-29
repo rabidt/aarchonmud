@@ -19,16 +19,6 @@ bool op_give_trigger(
         if ( prg->trig_type == OTRIG_GIVE )
         {
             return lua_obj_program( prg->vnum, prg->code, obj, giver, receiver);
-            if ( !str_cmp( "true", prg->trig_phrase) )
-                return TRUE;
-            else if ( !str_cmp( "false", prg->trig_phrase) )
-                return FALSE;
-            else
-            {
-                bugf("Bad GIVE keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
-                return TRUE;
-            }
-
         }
     }
     return TRUE;
@@ -44,16 +34,6 @@ bool op_drop_trigger(
         if ( prg->trig_type == OTRIG_DROP )
         {
             return lua_obj_program( prg->vnum, prg->code, obj, dropper, NULL);
-            if ( !str_cmp( "true", prg->trig_phrase) )
-                return TRUE;
-            else if ( !str_cmp( "false", prg->trig_phrase) )
-                return FALSE;
-            else
-            {
-                bugf("Bad DROP keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
-                return TRUE;
-            }
-
         }
     }
     return TRUE;
@@ -69,16 +49,6 @@ bool op_eat_trigger(
         if ( prg->trig_type == OTRIG_EAT )
         {
             return lua_obj_program( prg->vnum, prg->code, obj, eater, NULL);
-            if ( !str_cmp( "true", prg->trig_phrase) )
-                return TRUE;
-            else if ( !str_cmp( "false", prg->trig_phrase) )
-                return FALSE;
-            else
-            {
-                bugf("Bad EAT keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
-                return TRUE;
-            }
-
         }
     }
     return TRUE;
@@ -94,16 +64,6 @@ bool op_sacrifice_trigger(
         if ( prg->trig_type == OTRIG_SACRIFICE )
         {
             return lua_obj_program( prg->vnum, prg->code, obj, saccer, NULL);
-            if ( !str_cmp( "true", prg->trig_phrase) )
-                return TRUE;
-            else if ( !str_cmp( "false", prg->trig_phrase) )
-                return FALSE;
-            else
-            {
-                bugf("Bad SACRIFICE keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
-                return TRUE;
-            }
-
         }
     }
     return TRUE;
@@ -119,16 +79,6 @@ bool op_wear_trigger(
         if ( prg->trig_type == OTRIG_WEAR )
         {
             return lua_obj_program( prg->vnum, prg->code, obj, wearer, NULL);
-            if ( !str_cmp( "true", prg->trig_phrase) )
-                return TRUE;
-            else if ( !str_cmp( "false", prg->trig_phrase) )
-                return FALSE;
-            else
-            {
-                bugf("Bad WEAR keyword on obj %d: %s", prg->vnum, prg->trig_phrase);
-                return TRUE;
-            }
-
         }
     }
     return TRUE;
