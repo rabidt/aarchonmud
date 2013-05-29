@@ -1548,7 +1548,13 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'C':
         KEY( "Class",   ch->class,      bread_number( buf ) );
         KEY( "Cla",     ch->class,      bread_number( buf ) );
-        KEY( "Clan",    ch->clan,   clan_lookup(bread_string(buf)));
+        if ( !str_cmp(word, "Clan") )
+        {
+            char *temp=bread_string(buf);
+            ch->clan=clan_lookup(temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
         KEYS( "CFlag",   ch->pcdata->customflag, bread_string(buf));
         KEY( "CDur",    ch->pcdata->customduration, bread_number(buf));
         
@@ -1573,7 +1579,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             break;
         }
         KEYF("Comm",     ch->comm ); 
-        KEY("CRank",    ch->pcdata->clan_rank, clan_rank_lookup(ch->clan, bread_string(buf)));
+        if (!str_cmp(word, "CRank") )
+        {
+            char *temp=bread_string(buf);
+            ch->pcdata->clan_rank=clan_rank_lookup(ch->clan, temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
+
 	if ( !str_cmp(word, "Crime") )
 	{
 	    CRIME_DATA *cr, *newcr;
@@ -1865,7 +1878,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             i = clan_lookup(bread_word(buf));
 
             if (i > 0)
-                ch->pcdata->invitation[i] = str_dup(bread_string(buf));
+                ch->pcdata->invitation[i] = bread_string(buf);
                                        
             fMatch = TRUE;
         }
@@ -1927,7 +1940,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "MobDeaths",ch->pcdata->mob_deaths,         bread_number( buf ) );
 	if ( !str_cmp(word, "Morph") )
 	{
-	    ch->pcdata->morph_race = race_lookup( bread_string(buf) );
+        char *temp=bread_string(buf);
+	    ch->pcdata->morph_race = race_lookup( temp );
+        free_string(temp);
 	    ch->pcdata->morph_time = bread_number( buf );
 	    fMatch = TRUE;
 	    break;
@@ -2023,8 +2038,13 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         
     case 'R':
-        KEY( "Race",        ch->race,   
-            race_lookup(bread_string( buf )) );
+        if (!str_cmp(word, "Race") )
+        {
+            char *temp=bread_string(buf);
+            ch->race=race_lookup(temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
         KEY( "Remort",  ch->pcdata->remorts,    bread_number(buf));
         
         if ( !str_cmp( word, "Room" ) )
@@ -2304,7 +2324,13 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
             break;
             
         case 'C':
-            KEY( "Clan",       pet->clan,       clan_lookup(bread_string(buf)));
+            if (!str_cmp(word, "Clan") )
+            {
+                char *temp=bread_string(buf);
+                pet->clan=clan_lookup(temp);
+                free_string(temp);
+                fMatch=TRUE;
+            }
             KEYF( "Comm",   pet->comm );
             break;
             
@@ -2317,7 +2343,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
 		break;
 	    }
             KEY( "Dam",    pet->damroll,       bread_number(buf));
-            KEY( "Desc",   pet->description,   bread_string(buf));
+            KEYS( "Desc",   pet->description,   bread_string(buf));
             break;
             
         case 'E':
@@ -2372,12 +2398,12 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
             
         case 'L':
             KEY( "Levl",   pet->level,     bread_number(buf));
-            KEY( "LnD",    pet->long_descr,    bread_string(buf));
+            KEYS( "LnD",    pet->long_descr,    bread_string(buf));
             KEY( "LogO",   lastlogoff,     bread_number(buf));
             break;
             
         case 'N':
-            KEY( "Name",   pet->name,      bread_string(buf));
+            KEYS( "Name",   pet->name,      bread_string(buf));
             break;
             
         case 'P':
@@ -2385,13 +2411,19 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
             break;
             
         case 'R':
-            KEY( "Race",    pet->race, race_lookup(bread_string(buf)));
+            if (!str_cmp(word, "Race") )
+            {
+                char *temp=bread_string(buf);
+                pet->race=race_lookup(temp);
+                free_string(temp);
+                fMatch=TRUE;
+            }
             break;
             
         case 'S' :
             KEY( "Save",    pet->saving_throw,  bread_number(buf));
             KEY( "Sex",     pet->sex,       bread_number(buf));
-            KEY( "ShD",     pet->short_descr,   bread_string(buf));
+            KEYS( "ShD",     pet->short_descr,   bread_string(buf));
             KEY( "Silv",        pet->silver,            bread_number( buf ) );
             break;
             
@@ -2549,13 +2581,25 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 		fMatch = TRUE;
 		break;
 	    }
-            KEY( "Clan",    obj->clan,      clan_lookup(bread_string(buf)));
-            KEY( "CRank",   obj->rank,      clan_rank_lookup(obj->clan, bread_string(buf)));
+        if (!str_cmp(word, "Clan") )
+        {
+            char *temp=bread_string(buf);
+            obj->clan=clan_lookup(temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
+        if (!str_cmp(word, "CRank") )
+        {
+            char *temp=bread_string(buf);
+            obj->rank=clan_rank_lookup(obj->clan, temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
             break;
             
         case 'D':
-            KEY( "Description", obj->description,   bread_string( buf ) );
-            KEY( "Desc",    obj->description,   bread_string( buf ) );
+            KEYS( "Description", obj->description,   bread_string( buf ) );
+            KEYS( "Desc",    obj->description,   bread_string( buf ) );
             KEY( "Dur",    obj->durability,   bread_number( buf ) );
             break;
             
@@ -2661,11 +2705,11 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'M':
-            KEY( "Mat",     obj->material,  bread_string(buf));
+            KEYS( "Mat",     obj->material,  bread_string(buf));
             break;
             
         case 'N':
-            KEY( "Name",    obj->name,      bread_string( buf ) );
+            KEYS( "Name",    obj->name,      bread_string( buf ) );
             
             if ( !str_cmp( word, "Nest" ) )
             {
@@ -2684,7 +2728,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'O':
-            KEY( "Owner",    obj->owner,      bread_string( buf ) );
+            KEYS( "Owner",    obj->owner,      bread_string( buf ) );
             
             if ( !str_cmp( word,"Oldstyle" ) )
             {
@@ -2696,8 +2740,8 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             
             
         case 'S':
-            KEY( "ShortDescr",  obj->short_descr,   bread_string( buf ) );
-            KEY( "ShD",     obj->short_descr,   bread_string( buf ) );
+            KEYS( "ShortDescr",  obj->short_descr,   bread_string( buf ) );
+            KEYS( "ShD",     obj->short_descr,   bread_string( buf ) );
             
             if ( !str_cmp( word, "Spell" ) )
             {
