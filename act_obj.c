@@ -825,7 +825,7 @@ void do_drop( CHAR_DATA *ch, char *argument )
 			obj->timer = number_range(100,200);
 	  }
 
-      if (!op_drop_trigger( obj, ch ) )//returns FALSE if we need to prevent
+      if (!op_percent_trigger( obj, ch, NULL, OTRIG_DROP) )
          return;
 
 	  obj_from_char( obj );
@@ -867,7 +867,7 @@ void do_drop( CHAR_DATA *ch, char *argument )
 			check_bomb(ch, obj);
 
             /* TBC, add HAS_OTRIG to check bit */
-            if (!op_drop_trigger( obj, ch) ) // return FALSE if we're supposed to prevent the drop
+            if (!op_percent_trigger( obj, ch, NULL, OTRIG_DROP) )
                 continue;
 
 			obj_from_char( obj );
@@ -1107,7 +1107,7 @@ void do_give( CHAR_DATA *ch, char *argument )
    }
 
    /* oprog check */
-   if (!op_give_trigger( obj, ch, victim) ) // Returns FALSE if we are supposed to prevent
+   if (!op_percent_trigger( obj, ch, victim, OTRIG_GIVE) )
        return;
 	  
    obj_from_char( obj );
@@ -1704,7 +1704,7 @@ void do_eat( CHAR_DATA *ch, char *argument )
 	 return;
    }
    
-    if ( !op_eat_trigger( obj, ch) ) //returns FALSE if we need to prevent
+   if ( !op_percent_trigger( obj, ch, NULL, OTRIG_EAT) )
         return;
 
 	act( "You eat $p.", ch, obj, NULL, TO_CHAR );
@@ -2271,7 +2271,7 @@ void do_wear( CHAR_DATA *ch, char *argument )
 	{
 		obj_next = obj->next_content;
 		if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) )
-            if ( op_wear_trigger( obj, ch) ) // returns FALSE if we need to prevent
+            if (op_percent_trigger(obj, ch, NULL, OTRIG_WEAR) )
 		        wear_obj( ch, obj, FALSE );
 	}
 	return;
@@ -2284,7 +2284,7 @@ void do_wear( CHAR_DATA *ch, char *argument )
 		return;
 	}
 
-    if ( op_wear_trigger( obj, ch) ) // returns FALSE if we need to prevent
+    if (op_percent_trigger( obj, ch, NULL, OTRIG_WEAR) )
 	    wear_obj( ch, obj, TRUE );
     else
         return;
@@ -2426,7 +2426,7 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
 	   }
    }
    
-   if ( !op_sacrifice_trigger( obj, ch)) //returns FALSE if we need to prevent
+   if ( !op_percent_trigger( obj, ch, NULL, OTRIG_SACRIFICE) )
        return;
 
    silver = UMAX(1,obj->level * 3);

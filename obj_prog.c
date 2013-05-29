@@ -9,6 +9,26 @@
 #include "lookup.h"
 
 
+/*
+ * A general purpose percentage trigger. Checks if a random percentage
+ * number is less than trigger phrase
+ */
+bool op_percent_trigger(
+    OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, int type)
+{
+    OPROG_LIST *prg;
+
+    for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
+    {
+        if ( prg->trig_type == type
+           && number_percent() <= atoi( prg->trig_phrase ) )
+        {
+            return lua_obj_program( prg->vnum, prg->code, obj, ch1, ch2);
+        }
+    }
+    return TRUE;
+}
+#if 0
 bool op_give_trigger(
     OBJ_DATA *obj, CHAR_DATA *giver, CHAR_DATA *receiver)
 {
@@ -83,3 +103,4 @@ bool op_wear_trigger(
     }
     return TRUE;
 }    
+#endif
