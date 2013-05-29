@@ -56,6 +56,7 @@ DECLARE_SPELL_FUN( spell_null );
 #define ED_MOBILE	   4
 #define ED_MPCODE    5
 #define ED_HELP      6
+#define ED_OPCODE    7
 
 
 /*
@@ -66,6 +67,7 @@ void    redit           args( ( CHAR_DATA *ch, char *argument ) );
 void    medit           args( ( CHAR_DATA *ch, char *argument ) );
 void    oedit           args( ( CHAR_DATA *ch, char *argument ) );
 void	  mpedit		      args( ( CHAR_DATA *ch, char *argument ) );
+void    opedit          args( ( CHAR_DATA *ch, char *argument ) );
 void    hedit           args( ( CHAR_DATA *ch, char *argument ) );
 
 
@@ -121,6 +123,7 @@ extern const struct olc_cmd_type	redit_table[];
 extern const struct olc_cmd_type	oedit_table[];
 extern const struct olc_cmd_type	medit_table[];
 extern const struct olc_cmd_type	mpedit_table[];
+extern const struct olc_cmd_type    opedit_table[];
 extern const struct olc_cmd_type	hedit_table[];
 
 
@@ -132,6 +135,7 @@ DECLARE_DO_FUN( do_redit        );
 DECLARE_DO_FUN( do_oedit        );
 DECLARE_DO_FUN( do_medit        );
 DECLARE_DO_FUN( do_mpedit	);
+DECLARE_DO_FUN( do_opedit   );
 DECLARE_DO_FUN( do_hedit       );
 
 
@@ -241,6 +245,8 @@ DECLARE_OLC_FUN( oedit_condition        );  /* ROM */
 DECLARE_OLC_FUN( oedit_combine          );  /* ROM */
 DECLARE_OLC_FUN( oedit_rating           );  /* ROM */
 DECLARE_OLC_FUN( oedit_adjust           );
+DECLARE_OLC_FUN( oedit_addoprog  );  /* ROM */
+DECLARE_OLC_FUN( oedit_deloprog  );  /* ROM */
 
 /*
  * Mobile Editor Prototypes
@@ -293,6 +299,11 @@ DECLARE_OLC_FUN( mpedit_if       );
 DECLARE_OLC_FUN( mpedit_mob      );
 DECLARE_OLC_FUN( mpedit_lua      );
 
+/* Objprog editor */
+DECLARE_OLC_FUN( opedit_create   );
+DECLARE_OLC_FUN( opedit_code     );
+DECLARE_OLC_FUN( opedit_show     );
+
 /* Help Editor - kermit 1/98 */
 DECLARE_OLC_FUN( hedit_create    );
 DECLARE_OLC_FUN( hedit_show      );
@@ -325,6 +336,7 @@ DECLARE_OLC_FUN( raceedit_remskill );
 #define EDIT_AREA(Ch, Area)   ( Area = (AREA_DATA *)Ch->desc->pEdit )
 #define EDIT_HELP(Ch, Help)   ( Help = (HELP_DATA *)Ch->desc->pEdit )
 #define EDIT_MPCODE(Ch, Code) ( Code = (MPROG_CODE*)Ch->desc->pEdit )
+#define EDIT_OPCODE(Ch, Code) ( Code = (OPROG_CODE*)Ch->desc->pEdit )
 
 
 
@@ -361,5 +373,11 @@ MPROG_LIST      *new_mprog              args ( ( void ) );
 void            free_mprog              args ( ( MPROG_LIST *mp ) );
 MPROG_CODE	*new_mpcode		args ( (void) );
 void		free_mpcode		args ( ( MPROG_CODE *pMcode));
+
+OPROG_LIST      *new_oprog              args ( ( void ) );
+void            free_oprog              args ( ( OPROG_LIST *op ) );
+OPROG_CODE *new_opcode      args ( (void) );
+void        free_opcode     args ( ( OPROG_CODE *pOcode));
+
 HELP_DATA *new_help args ( (void) );
 void free_help args ( ( HELP_DATA * pHelp));

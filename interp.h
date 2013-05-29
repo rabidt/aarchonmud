@@ -527,6 +527,9 @@ DECLARE_DO_FUN( do_mpdump   );
 DECLARE_DO_FUN( do_mpedit   );
 DECLARE_DO_FUN( do_mpstat   );
 
+/* Obj Progs */
+DECLARE_DO_FUN( do_opedit   );
+
 /* OLC */
 DECLARE_DO_FUN( do_aedit    );
 DECLARE_DO_FUN( do_alist    );

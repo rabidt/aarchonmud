@@ -305,6 +305,37 @@ int r_atoi( CHAR_DATA *ch, char *arg )
     return area->min_vnum + nr;
 }
 
+int r_atoi_obj( OBJ_DATA *obj, char *arg )
+{
+    AREA_DATA *area;
+    char arg1[MIL];
+    int nr;
+
+    one_argument( arg, arg1 );
+    if ( arg1[0] != 'r' )
+    return atoi(arg1);
+
+    if ( obj == NULL )
+    {
+    bugf( "r_atoi_mob: NULL obj" );
+    return -1;
+    }
+
+    if ( (nr = atoi(arg1 + 1)) < 0 )
+    return nr;
+
+    area = obj->pIndexData->area;
+
+    /* check if the 'r' might be too much */
+    if ( area->min_vnum + nr > area->max_vnum )
+    {
+    bugf( "r_atoi: relative vnum (%s) out of area on obj %d",
+          arg, obj->pIndexData->vnum );
+    return nr;
+    }
+    return area->min_vnum + nr;
+}
+
 /* 
  * Displays MOBprogram triggers of a mobile
  *
