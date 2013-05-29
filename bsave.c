@@ -1352,8 +1352,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             KEY( "AchPts",   ch->pcdata->achpoints, bread_number( buf ) );
             KEY( "Alignment",   ch->alignment,      bread_number( buf ) );
             KEY( "Alig",    ch->alignment,      bread_number( buf ) );
-            KEY( "AuthedBy",	ch->pcdata->authed_by,	bread_string( buf ) );
-            KEY( "Action", ch->pcdata->combat_action,	bread_string( buf ) );
+            KEYS( "AuthedBy",	ch->pcdata->authed_by,	bread_string( buf ) );
+            KEYS( "Action", ch->pcdata->combat_action,	bread_string( buf ) );
             
             if (!str_cmp( word, "Alia"))
             {
@@ -1511,13 +1511,13 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             break;
             
     case 'B':
-        KEY( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
-        KEY( "Bamfout", ch->pcdata->bamfout,    bread_string( buf ) );
+        KEYS( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
+        KEYS( "Bamfout", ch->pcdata->bamfout,    bread_string( buf ) );
         KEY( "Bank",    ch->pcdata->bank,       bread_number( buf ) );       
-	KEY( "Bhds",    ch->pcdata->behead_cnt, bread_number(buf));
-        KEY( "Bin",     ch->pcdata->bamfin, bread_string( buf ) );
-        KEY( "Bout",    ch->pcdata->bamfout,    bread_string( buf ) );
-	KEY( "Boxes",   ch->pcdata->storage_boxes, bread_number(buf) );
+	    KEY( "Bhds",    ch->pcdata->behead_cnt, bread_number(buf));
+        KEYS( "Bin",     ch->pcdata->bamfin, bread_string( buf ) );
+        KEYS( "Bout",    ch->pcdata->bamfout,    bread_string( buf ) );
+	    KEY( "Boxes",   ch->pcdata->storage_boxes, bread_number(buf) );
         KEY( "Bnty",  ch->pcdata->bounty,   bread_number( buf ) );
         
         /* Read in board status */      
@@ -1549,7 +1549,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Class",   ch->class,      bread_number( buf ) );
         KEY( "Cla",     ch->class,      bread_number( buf ) );
         KEY( "Clan",    ch->clan,   clan_lookup(bread_string(buf)));
-        KEY( "CFlag",   ch->pcdata->customflag, bread_string(buf));
+        KEYS( "CFlag",   ch->pcdata->customflag, bread_string(buf));
         KEY( "CDur",    ch->pcdata->customduration, bread_number(buf));
         
         if ( !str_cmp(word,"Cond"))
@@ -1689,8 +1689,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'D':
         KEY( "Damroll", ch->damroll,        bread_number( buf ) );
         KEY( "Dam",     ch->damroll,        bread_number( buf ) );
-        KEY( "Description", ch->description,    bread_string( buf ) );
-        KEY( "Desc",    ch->description,    bread_string( buf ) );
+        KEYS( "Description", ch->description,    bread_string( buf ) );
+        KEYS( "Desc",    ch->description,    bread_string( buf ) );
         KEY( "Demerit", ch->pcdata->demerit_points, bread_number( buf ) );
         break;
         
@@ -1918,8 +1918,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Lev",     ch->level,      bread_number( buf ) );
         KEY( "Levl",    ch->level,      bread_number( buf ) );
         KEY( "LogO",    lastlogoff,     bread_number( buf ) );
-        KEY( "LongDescr",   ch->long_descr,     bread_string( buf ) );
-        KEY( "LnD",     ch->long_descr,     bread_string( buf ) );
+        KEYS( "LongDescr",   ch->long_descr,     bread_string( buf ) );
+        KEYS( "LnD",     ch->long_descr,     bread_string( buf ) );
         break;
         
     case 'M':
@@ -1953,14 +1953,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             fMatch = TRUE;
             break;
         }
-	KEY( "NmCol", ch->pcdata->name_color, bread_string( buf) );
+	KEYS( "NmCol", ch->pcdata->name_color, bread_string( buf) );
         break;
         
     case 'P':
-        KEY( "Password",    ch->pcdata->pwd,    bread_string( buf ) );
-        KEY( "Pass",    ch->pcdata->pwd,    bread_string( buf ) );
+        KEYS( "Password",    ch->pcdata->pwd,    bread_string( buf ) );
+        KEYS( "Pass",    ch->pcdata->pwd,    bread_string( buf ) );
         KEY( "PKPoints", ch->pcdata->pkpoints, bread_number( buf ) );
-	KEY( "PkillDeaths", ch->pcdata->pkill_deaths, bread_number( buf ) );
+	    KEY( "PkillDeaths", ch->pcdata->pkill_deaths, bread_number( buf ) );
         KEY( "Played",  ch->played,     bread_number( buf ) );
         KEY( "Plyd",    ch->played,     bread_number( buf ) );
         KEY( "Points",  ch->pcdata->points, bread_number( buf ) );
@@ -1969,7 +1969,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Pos",     ch->position,       bread_number( buf ) );
         KEY( "Practice",    ch->practice,       bread_number( buf ) );
         KEY( "Prac",    ch->practice,       bread_number( buf ) );
-	KEY( "Pretitle",ch->pcdata->pre_title, bread_string(buf));
+	    KEYS( "Pretitle",ch->pcdata->pre_title, bread_string(buf));
         KEYS( "Prompt",      ch->prompt,             bread_string( buf ) );
         KEYS( "Prom",    ch->prompt,     bread_string( buf ) );
 
@@ -2043,11 +2043,11 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Save",    ch->saving_throw,   bread_number( buf ) );
         KEY( "Scro",    ch->lines,      bread_number( buf ) );
         KEY( "Sex",     ch->sex,        bread_number( buf ) );
-        KEY( "ShortDescr",  ch->short_descr,    bread_string( buf ) );
-        KEY( "ShD",     ch->short_descr,    bread_string( buf ) );
+        KEYS( "ShortDescr",  ch->short_descr,    bread_string( buf ) );
+        KEYS( "ShD",     ch->short_descr,    bread_string( buf ) );
         KEY( "Sec",         ch->pcdata->security,   bread_number( buf ) );   /* OLC */
         KEY( "Silv",        ch->silver,             bread_number( buf ) );
-        KEY( "Spouse",	ch->pcdata->spouse,	bread_string( buf ) );
+        KEYS( "Spouse",	ch->pcdata->spouse,	bread_string( buf ) );
         
         
         if ( !str_cmp( word, "Skill" ) || !str_cmp(word,"Sk"))
@@ -2087,6 +2087,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
+            free_string( ch->pcdata->title );
             ch->pcdata->title = bread_string( buf );
             if (ch->pcdata->title[0] != '.' && ch->pcdata->title[0] != ',' 
                 && ch->pcdata->title[0] != '!' && ch->pcdata->title[0] != '?'
