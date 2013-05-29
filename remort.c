@@ -901,6 +901,18 @@ void remort_begin(CHAR_DATA *ch)
     }
     
     char_from_room( ch );
+    /* need to do a little cleanup*/
+    CHAR_DATA *wch;
+    for ( wch = char_list; wch != NULL; wch = wch->next )
+    {
+        if ( wch->reply == ch )
+            wch->reply = NULL;
+        if ( ch->mprog_target == wch )
+            wch->mprog_target = NULL;
+    }
+    unregister_lua( ch );
+
+
     ch->pcdata->remorts++;
     
     for (i = 0; i < MAX_STATS; i++)
