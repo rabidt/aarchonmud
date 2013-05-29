@@ -561,9 +561,12 @@ void free_pcdata(PC_DATA *pcdata)
     pers_history_free(pcdata->tell_history);
     pers_history_free(pcdata->clan_history);
 
-    CRIME_DATA *crime;
-    for ( crime=pcdata->crimes; crime ; crime=crime->next )
+    CRIME_DATA *crime, *crime_next;
+    for ( crime=pcdata->crimes; crime ; crime=crime_next )
+    {
+        crime_next=crime->next;
         free_crime(crime);
+    }
 
 
 
