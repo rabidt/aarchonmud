@@ -4006,3 +4006,9 @@ void do_pgrep( CHAR_DATA *ch, char *argument)
     sprintf( buf, "grep \"%s\" ../player/*", argument);
     do_pipe(ch, buf);
 } 
+
+void do_luareset( CHAR_DATA *ch, char *argument)
+{
+    lua_reset();
+
+}
