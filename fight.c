@@ -2378,6 +2378,9 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     if ( number_bits(10) != 69 )
 	return;
 
+    if (IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT))
+        return;
+
     if (IS_SET(victim->act, ACT_NOBEHEAD))
     {
         act("You try to cut $N's head off, but it won't budge!",

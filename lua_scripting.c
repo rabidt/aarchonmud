@@ -1743,6 +1743,7 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("v3", ud_obj->value[3]);
     FLDNUM("v4", ud_obj->value[4]);
     FLDNUM("v5", ud_obj->value[5]);
+    FLDSTR("areafname", ud_obj->pIndexData->area->file_name);
     return 0;
 }
 
@@ -2001,6 +2002,7 @@ static int get_CH_field ( lua_State *LS)
         /* MOB specific stuff */
     {
         FLDNUM("vnum", ud_ch->pIndexData->vnum);
+        FLDSTR("areafname", ud_ch->pIndexData->area->file_name);
     }
 
 
@@ -2146,6 +2148,12 @@ static int RegisterLuaRoutines (lua_State *LS)
     return 0;
 
 }  /* end of RegisterLuaRoutines */
+
+void lua_reset ()
+{
+    lua_close(mud_LS);
+    open_lua();
+}
 
 void open_lua  ()
 {
