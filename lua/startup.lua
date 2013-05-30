@@ -175,6 +175,7 @@ CH_env_lib={  require=require,
     randnum=randnum,
     rand=rand,
     loadprog=loadprog,
+    loadscript=loadscript,
     tprint=function(tbl)
         local str={}
         if current_env.mob then
