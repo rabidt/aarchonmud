@@ -2138,6 +2138,12 @@ static int RegisterLuaRoutines (lua_State *LS)
 
 }  /* end of RegisterLuaRoutines */
 
+void lua_reset ()
+{
+    lua_close(mud_LS);
+    open_lua();
+}
+
 void open_lua  ()
 {
     lua_State *LS = luaL_newstate ();   /* opens Lua */
