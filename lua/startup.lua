@@ -62,6 +62,22 @@ function savetbl(subdir, name, tbl)
   f:close()
 end
 
+function loadscript(subdir, name)
+  if string.find(subdir, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
+  if string.find(name, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
+  local f=loadfile(mud.userdir() .. subdir .. "/" .. name .. ".lua")
+  if f==nil then error("Couldn't find " .. subdir .. "/" .. name .. ".lua") end
+
+  setfenv(f, current_env)
+  return f()
+end
+
 function loadtbl(subdir, name)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
