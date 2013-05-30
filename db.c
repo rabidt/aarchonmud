@@ -669,14 +669,12 @@ void boot_db()
     log_string( "Loading religions" );
     load_religions();
 
-    log_string( "Initialzing leaderboards");
-    lboard_init();
+//    log_string( "Initialzing leaderboards");
+  //  lboard_init();
 
-    log_string( "Loading leaderboards" );
-    load_lboards();
 
-    log_string( "Loading leaderboard results" );
-    load_lboard_results();
+    //log_string( "Loading leaderboard results" );
+    //load_lboard_results();
 
     log_string( "Loading skills" );
     load_skills();
@@ -686,6 +684,9 @@ void boot_db()
 
     log_string( "Lua init.");
     open_lua();
+
+    log_string( "Loading leaderboards" );
+    load_lboards();
 
     log_string( "Loading areas" );
     /*

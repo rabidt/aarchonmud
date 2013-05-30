@@ -445,6 +445,15 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
+static int L_sendtochar (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    char *msg=luaL_checkstring(LS, 2);
+
+    send_to_char(msg, ch);
+    return 0;
+}
+
 static int L_getmobworld (lua_State *LS)
 {
     int num = luaL_checknumber (LS, 1);
@@ -2099,6 +2108,8 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getobjworld", L_getobjworld );
     lua_register(LS,"getmobworld", L_getmobworld );
 
+    lua_register(LS,"sendtochar",  L_sendtochar  );
+
 }
 
 static int RegisterLuaRoutines (lua_State *LS)
@@ -2454,3 +2465,65 @@ bool lua_obj_program( int pvnum, char *source,
     return result;
 }
 
+
+void do_lboard( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(mud_LS, "do_lboard");
+    make_ud_table(mud_LS, ch, UDTYPE_CH, TRUE);
+    lua_pushstring(mud_LS, argument);
+    if (CallLuaWithTraceBack( mud_LS, 2, 0) )
+    {
+        bugf ( "Error with do_lboard:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
+{
+    lua_getglobal(mud_LS, "update_lboard");
+    lua_pushnumber( mud_LS, lboard_type);
+    lua_pushstring( mud_LS, ch->name);
+    lua_pushnumber( mud_LS, current);
+    lua_pushnumber( mud_LS, increment);
+
+    if (CallLuaWithTraceBack( mud_LS, 4, 0) )
+    {
+        bugf ( "Error with update_lboard:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void save_lboards()
+{
+    lua_getglobal( mud_LS, "save_lboards");
+    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    {
+        bugf ( "Error with save_lboard:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }  
+}
+
+void load_lboards()
+{
+    lua_getglobal( mud_LS, "load_lboards");
+    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    {
+        bugf ( "Error with load_lboards:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void check_lboard_reset()
+{
+    lua_getglobal( mud_LS, "check_lboard_reset");
+    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    {
+        bugf ( "Error with check_lboard_resets:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
