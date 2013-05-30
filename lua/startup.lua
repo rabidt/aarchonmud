@@ -16,6 +16,19 @@ require "leaderboard"
 udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
 current_env={}
 
+function GetAreaFname()
+    local full
+    if current_env.mob then
+      full= current_env.mob.areafname
+    elseif current_env.obj then
+      full=current_env.obj.areafname
+    else
+      error("Couldn't retrieve area filename.")
+    end
+
+    return string.match(full, "(%w+)\.are")
+end
+
 function RegisterUd(ud)
     if ud == nil then
         error("ud is nil")
@@ -47,23 +60,23 @@ function randnum(low, high)
     return math.floor( (mt.rand()*(high+1-low) + low)) -- people usually want inclusive
 end
 
-function savetbl(subdir, name, tbl)
+function savetbl( name, tbl)
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
  
-  if string.find(subdir, "[^a-zA-Z0-9_]") then
-    error("Invalid character in name.")
+  local dir=GetAreaFname()
+  if not os.rename(dir, dir) then
+    os.execute("mkdir '" .. dir .. "'")
   end
-
-  local f=io.open(mud.userdir() .. subdir .. "/" .. name .. ".lua", "w")
+  local f=io.open( dir .. "/" .. name .. ".lua", "w")
   out,saved=serialize.save(name,tbl)
   f:write(out)
 
   f:close()
 end
 
-function loadtbl(subdir, name)
+function loadscript(subdir, name)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
@@ -72,7 +85,20 @@ function loadtbl(subdir, name)
     error("Invalid character in name.")
   end
 
-  local f=loadfile(mud.userdir() .. subdir .. "/"  .. name .. ".lua")
+  local f=loadfile(mud.userdir() .. subdir .. "/" .. name .. ".lua")
+  if f==nil then error("Couldn't find " .. subdir .. "/" .. name .. ".lua") end
+
+  setfenv(f, current_env)
+  return f()
+end
+
+function loadtbl(name)
+  if string.find(name, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
+  local dir=GetAreaFname()
+  local f=loadfile( dir .. "/"  .. name .. ".lua")
   if f==nil then 
     return nil 
   end
@@ -153,12 +179,14 @@ CH_env_lib={  require=require,
     os={time=os.time,
         clock=os.clock,
         difftime=os.difftime},
+    setmetatable=setmetatable,
 
     -- okay now our stuff
     getroom=getroom,
     randnum=randnum,
     rand=rand,
     loadprog=loadprog,
+    loadscript=loadscript,
     tprint=function(tbl)
         local str={}
         if current_env.mob then
@@ -247,7 +275,8 @@ require=require,
             tanh=math.tanh},
     os={time=os.time,
         clock=os.clock,
-        difftime=os.difftime}
+        difftime=os.difftime},
+    setmetatable=setmetatable
 }
 
 CH_env_meta={
@@ -302,9 +331,3 @@ function obj_program_setup(ud, f)
     setfenv(f, ud.env)
     return f
 end
-
-os.execute=nil
-os.rename=nil
-os.remove=nil
-os.exit=nil
-os.setlocale=nil
