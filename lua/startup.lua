@@ -62,6 +62,22 @@ function savetbl(subdir, name, tbl)
   f:close()
 end
 
+function loadscript(subdir, name)
+  if string.find(subdir, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
+  if string.find(name, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
+  local f=loadfile(mud.userdir() .. subdir .. "/" .. name .. ".lua")
+  if f==nil then error("Couldn't find " .. subdir .. "/" .. name .. ".lua") end
+
+  setfenv(f, current_env)
+  return f()
+end
+
 function loadtbl(subdir, name)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
@@ -152,12 +168,14 @@ CH_env_lib={  require=require,
     os={time=os.time,
         clock=os.clock,
         difftime=os.difftime},
+    setmetatable=setmetatable,
 
     -- okay now our stuff
     getroom=getroom,
     randnum=randnum,
     rand=rand,
     loadprog=loadprog,
+    loadscript=loadscript,
     tprint=function(tbl)
         local str={}
         if current_env.mob then
@@ -246,7 +264,8 @@ require=require,
             tanh=math.tanh},
     os={time=os.time,
         clock=os.clock,
-        difftime=os.difftime}
+        difftime=os.difftime},
+    setmetatable=setmetatable
 }
 
 CH_env_meta={
