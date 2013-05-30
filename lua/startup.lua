@@ -152,6 +152,7 @@ CH_env_lib={  require=require,
     os={time=os.time,
         clock=os.clock,
         difftime=os.difftime},
+    setmetatable=setmetatable,
 
     -- okay now our stuff
     getroom=getroom,
@@ -246,7 +247,8 @@ require=require,
             tanh=math.tanh},
     os={time=os.time,
         clock=os.clock,
-        difftime=os.difftime}
+        difftime=os.difftime},
+    setmetatable=setmetatable
 }
 
 CH_env_meta={
