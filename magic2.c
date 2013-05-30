@@ -698,26 +698,40 @@ void spell_damned_blade( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     OBJ_DATA *obj;
     
-    if ((obj = get_eq_char(victim,WEAR_WIELD)) != NULL) {
-        if (!saves_dispel(level,obj->level,0))
-        {
-            SET_BIT(obj->extra_flags,ITEM_NODROP);
-            SET_BIT(obj->extra_flags,ITEM_NOREMOVE);
-            act("$p is imbued with a curse.",victim,obj,NULL,TO_CHAR);
-            act("$p is imbued with a curse.",victim,obj,NULL,TO_ROOM);
-        }
-	else
-	{
-            act("$p resists the curse.",victim,obj,NULL,TO_CHAR);
-	}
-    }
-    else
+    if((obj = get_eq_char(victim,WEAR_WIELD)) == NULL)
     {
 	if ( ch == victim )
 	    act( "You don't wield a weapon.", ch, NULL, victim, TO_CHAR );
 	else
 	    act( "$N doesn't wield a weapon.", ch, NULL, victim, TO_CHAR );
+
+        return;
     }
+
+    if (IS_SET(obj->extra_flags,ITEM_NOREMOVE) && IS_SET(obj->extra_flags,ITEM_NODROP))
+    {
+        if ( ch == victim )
+            act( "Your weapon is already cursed.", ch, NULL, victim, TO_CHAR );
+        else
+            act( "$N's weapon is already cursed.", ch, NULL, victim, TO_CHAR );
+
+        return;
+    }
+
+    if (!saves_dispel(level,obj->level,0))
+    {
+        SET_BIT(obj->extra_flags,ITEM_NODROP);
+        SET_BIT(obj->extra_flags,ITEM_NOREMOVE);
+        act("$p is imbued with a curse.",victim,obj,NULL,TO_CHAR);
+        act("$p is imbued with a curse.",victim,obj,NULL,TO_ROOM);
+    }
+    else
+    {
+        act("$p resists the curse.",victim,obj,NULL,TO_ROOM);
+        act("$p resists the curse.",victim,obj,NULL,TO_CHAR);
+    }
+    
+    return;
 }
 
 void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
@@ -1642,7 +1656,10 @@ void spell_breathe_water(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     
     if ( IS_AFFECTED(victim, AFF_BREATHE_WATER))
     {
-        send_to_char("You already have gills.\n\r",victim);
+        if (victim == ch)
+            send_to_char("You already have gills.\n\r",victim);
+        else
+            act("$N already has gills.",ch,NULL,victim,TO_CHAR);
         return;
     }
     
