@@ -605,6 +605,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "dummy",      do_dummy   ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mortlag",    do_mortlag, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mode",	    do_mode,	POS_DEAD,   L9,	 LOG_NORMAL, 1, FALSE, FALSE  },
+    { "luareset",   do_luareset,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
 
     /*
     * OLC
