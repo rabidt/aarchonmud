@@ -181,7 +181,7 @@ void lboard_result_free(LBOARD_RESULT *result)
     free_mem(result, sizeof(LBOARD_RESULT) );
 }
 
-
+#if 0
 void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
 {
 #ifdef LBOARD_DEBUG 
@@ -207,6 +207,7 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
     if ( overall != NULL )
         update_lboard_overall( &overall, ch, current,increment);
 }
+#endif
 
 void update_lboard_periodic( LBOARD **board, CHAR_DATA *ch, int increment)
 {
@@ -539,6 +540,7 @@ LBOARD_ENTRY *find_in_lboard( LBOARD **board, char *name )
 
 
 /* do_lboard and related helper functions for displaying data to characters */
+#if 0
 void do_lboard( CHAR_DATA *ch, char *argument)
 {
     char arg1[MIL];
@@ -648,8 +650,12 @@ void do_lboard( CHAR_DATA *ch, char *argument)
         send_to_char("Invalid number, try again.\n\r", ch);
         return;
     }
+    lua_getglobal(mud_LS, "do_lboard");
+    make_ud_table(mud_LS, ch, UDTYPE_CH, TRUE);
+    lua_pushstring(mud_LS, argument);
 
 }
+#endif
 
 void print_all_lboard_lists_to_char( CHAR_DATA *ch )
 {
