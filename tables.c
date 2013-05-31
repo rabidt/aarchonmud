@@ -534,6 +534,7 @@ const struct flag_type oprog_flags[] =
     {   "try",          OTRIG_TRY,       TRUE    },
     {   "get",          OTRIG_GET,       TRUE    },
     {   "rand",         OTRIG_RAND,      TRUE    },
+    {   "greet",        OTRIG_GREET,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
