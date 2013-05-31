@@ -786,6 +786,12 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	|| ch->stance==STANCE_GOBLINCLEAVER)
 	for (i=0; i<3; i++)
 	{
+            if ( ch->in_room == NULL )
+            {
+                bugf("stance_hit: ch->in_room NULL for %s", ch->name);
+		break;
+	    }
+
 	    for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
 	    {
 		vch_next = vch->next_in_room;
