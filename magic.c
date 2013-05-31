@@ -4770,6 +4770,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
+    char buf[MSL]; 
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -4778,8 +4779,13 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
         if (IS_OBJ_STAT(obj,ITEM_NODROP) || IS_OBJ_STAT(obj,ITEM_NOREMOVE))
         {
-            if (!IS_OBJ_STAT(obj,ITEM_NOUNCURSE)
-                    &&  !saves_dispel(level + 2,obj->level,0))
+            if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
+            {
+                act("The curse on $p cannot be removed.",ch,obj,NULL,TO_CHAR);
+                obj = obj->next;
+            }
+            
+            if (!saves_dispel(level + 2,obj->level,0))
             {
                 REMOVE_BIT(obj->extra_flags,ITEM_NODROP);
                 REMOVE_BIT(obj->extra_flags,ITEM_NOREMOVE);
@@ -4788,17 +4794,20 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
             }
 
             act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
+            sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
+            send_to_char(buf,ch);
+        }
+        else
+        {
+            act("There doesn't seem to be a curse on $p.",ch,obj,NULL,TO_CHAR);
             return;
         }
-        act("There doesn't seem to be a curse on $p.",ch,obj,NULL,TO_CHAR);
-        return;
     }
 
     /* characters */
     victim = (CHAR_DATA *) vo;
-
-    if ( check_dispel(level,victim,gsn_curse)
-            || check_dispel(level,victim,gsn_tomb_rot) )
+   
+    if ( check_dispel(level,victim,gsn_curse) || check_dispel(level,victim,gsn_tomb_rot) )
     {
         send_to_char("You feel better.\n\r",victim);
         act("$n looks more relaxed.",victim,NULL,NULL,TO_ROOM);
@@ -4807,8 +4816,14 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     for (obj = victim->carrying; obj != NULL; obj = obj->next_content)
     {
-        if ((IS_OBJ_STAT(obj,ITEM_NODROP) || IS_OBJ_STAT(obj,ITEM_NOREMOVE))
-                &&  !IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
+        if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
+        {
+            act("The curse on $p cannot be removed.",ch,obj,NULL,TO_CHAR);
+            obj = obj->next_content;
+            continue;
+        }
+
+        if (IS_OBJ_STAT(obj,ITEM_NODROP) || IS_OBJ_STAT(obj,ITEM_NOREMOVE))
         {   /* attempt to remove curse */
             if (!saves_dispel(level,obj->level,0))
             {
@@ -4818,12 +4833,16 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 act("$n's $p glows blue.",victim,obj,NULL,TO_ROOM);
                 return;
             }
+
+            sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
+            send_to_char(buf,ch);
+            return;
         }
     }
 
-    send_to_char( "Spell failed.\n\r", ch );
+    send_to_char( "There is nothing to uncurse.\n\r", ch );
     return;
-}
+} 
 
 void spell_sanctuary( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
