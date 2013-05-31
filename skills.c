@@ -1826,11 +1826,20 @@ void do_practice( CHAR_DATA *ch, char *argument )
 
 	if (!str_cmp("field",argument))
 	{
+            /* no more burning practices when you don't have field */
+            if (ch->pcdata->field < 100)
+            {
+                send_to_char("You don't have enough field experience to practice.\n\r",ch);
+                return;
+            }
+            else
+            {
 		ch->practice--;
 		sn = number_range(ch->pcdata->field/2, ch->pcdata->field);
 		ch->pcdata->field-=sn;
 		gain_exp(ch, sn);
 		return;
+            }
 	}
 	
 	  if ( ( sn = find_spell( ch,argument ) ) < 0
