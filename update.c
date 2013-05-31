@@ -1702,6 +1702,7 @@ void qset_update( CHAR_DATA *ch )
 }
 
 
+        op_percent_trigger( obj, NULL, NULL, NULL, OTRIG_RAND);
 
 /* update the affects on a character */
 void affect_update( CHAR_DATA *ch )

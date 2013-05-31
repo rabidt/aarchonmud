@@ -533,6 +533,7 @@ const struct flag_type oprog_flags[] =
     {   "speech",       OTRIG_SPEECH,    TRUE    },
     {   "try",          OTRIG_TRY,       TRUE    },
     {   "get",          OTRIG_GET,       TRUE    },
+    {   "rand",         OTRIG_RAND,      TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
