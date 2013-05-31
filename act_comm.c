@@ -2226,21 +2226,30 @@ void do_group( CHAR_DATA *ch, char *argument )
                 try_set_leader( ch, victim );
                 return;
             }
+            else if ( !strcmp( arg2, "remove") )
+            {
+            victim->leader = NULL;
+            act_new("$n removes $N from $s group.",
+               ch,NULL,victim,TO_NOTVICT,POS_RESTING);
+            act_new("$n removes you from $s group.",
+               ch,NULL,victim,TO_VICT,POS_SLEEPING);
+            act_new("You remove $N from your group.",
+               ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+            return;
+            }
             else
             {
                 send_to_char("  group <player> - add a player to your group\n\r"
-                             "  group <player> leader - pass leadership of your group to a player\n\r", ch);
-                ptc( ch, "%s\n\r", arg2);
+                             "  group <player> leader - pass leadership of your group to a player\n\r"
+                             "  group <player> remove - remove a member from your group\n\r", ch);
+//                ptc( ch, "%s\n\r", arg2);
                 return;
             }
         }
-        victim->leader = NULL;
-        act_new("$n removes $N from $s group.",
-            ch,NULL,victim,TO_NOTVICT,POS_RESTING);
-        act_new("$n removes you from $s group.",
-            ch,NULL,victim,TO_VICT,POS_SLEEPING);
-        act_new("You remove $N from your group.",
-            ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+    }
+    if ( ch == victim)
+    {
+        send_to_char("You can't add or remove yourself from your own group.\n\r",ch);
         return;
     }
     
