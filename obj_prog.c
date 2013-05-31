@@ -58,6 +58,12 @@ bool op_try_trigger( char* argument, CHAR_DATA *ch )
     OBJ_DATA *next_obj;
     bool found = FALSE;
 
+    if ( !ch->in_room )
+    {
+        bugf("op_try_trigger: ch->in_room NULL for %s", ch->name);
+        return;
+    }
+
     for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
     {
         next_obj = obj->next_content;
@@ -87,6 +93,12 @@ void op_speech_trigger( char *argument, CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *next_obj;
+    
+    if ( !ch->in_room )
+    {
+        bugf("op_speech_trigger: ch->in_room NULL for %s", ch->name);
+        return;
+    }
 
     for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
     {
@@ -113,6 +125,12 @@ void op_greet_trigger( CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *next_obj;
+
+    if ( !ch->in_room )
+    {
+        bugf("op_greet_trigger: ch->in_room NULL for %s", ch->name);
+        return;
+    }
 
     for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
     {
