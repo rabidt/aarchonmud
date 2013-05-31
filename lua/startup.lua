@@ -275,7 +275,27 @@ require=require,
     os={time=os.time,
         clock=os.clock,
         difftime=os.difftime},
-    setmetatable=setmetatable
+    setmetatable=setmetatable,
+
+     -- okay now our stuff
+    getroom=getroom,
+    randnum=randnum,
+    rand=rand,
+    loadprog=loadprog,
+    loadscript=loadscript,
+    tprint=function(tbl)
+        local str={}
+        if current_env.obj then
+            tprint(str, tbl)
+            current_env.obj:echo(table.concat(str))
+        end
+    end,
+    getobjproto=getobjproto,
+    getobjworld=getobjworld,
+    getmobworld=getmobworld,
+    savetbl=savetbl,
+    loadtbl=loadtbl
+
 }
 
 CH_env_meta={
