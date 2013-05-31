@@ -4995,11 +4995,7 @@ void spell_slow( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         if (!check_dispel(level,victim,skill_lookup("haste")))
         {
             if (victim != ch)
-<<<<<<< local
-                act( "Spell failed to reduce $N speed.", ch, NULL, victim, TO_CHAR );
-=======
-		act( "Spell failed to reduce $N's speed.", ch, NULL, victim, TO_CHAR );
->>>>>>> other
+		        act( "Spell failed to reduce $N's speed.", ch, NULL, victim, TO_CHAR );
             send_to_char("You feel momentarily slower.\n\r",victim);
             return;
         }
@@ -5307,13 +5303,8 @@ void spell_weaken( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         if (!check_dispel(level,victim,skill_lookup("giant strength")))
         {
             if (victim != ch)
-<<<<<<< local
-                act( "Spell failed to make $S weaker.\n\r", ch, victim, NULL, TO_CHAR );
+		        act( "Spell failed to make $N weaker.\n\r", ch, NULL, victim, TO_CHAR );
             send_to_char("You feel momentarily weaker.\n\r",victim);
-=======
-		act( "Spell failed to make $N weaker.\n\r", ch, NULL, victim, TO_CHAR );
-                send_to_char("You feel momentarily weaker.\n\r",victim);
->>>>>>> other
             return;
         }
 
