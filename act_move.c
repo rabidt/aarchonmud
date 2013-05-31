@@ -487,6 +487,9 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    if ( !IS_NPC( ch ) )
        mp_greet_trigger( ch );
 
+   if ( !IS_NPC( ch ) )
+       op_greet_trigger( ch );
+
    /* mprog might have moved the char */
    if ( ch->in_room != to_room )
        return door;
