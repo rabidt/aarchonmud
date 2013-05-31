@@ -3102,7 +3102,7 @@ struct  group_type
 #define OTRIG_TRY   (I)
 #define OTRIG_PUT   (J)
 #define OTRIG_GET   (K)
-
+#define OTRIG_RAND  (L)
 
 struct mprog_list
 {
