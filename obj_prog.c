@@ -108,3 +108,19 @@ void op_speech_trigger( char *argument, CHAR_DATA *ch )
         }
     }
 }
+
+void op_greet_trigger( CHAR_DATA *ch )
+{
+    OBJ_DATA *obj;
+    OBJ_DATA *next_obj;
+
+    for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
+    {
+        next_obj = obj->next_content;
+
+        if ( HAS_OTRIG(obj, OTRIG_GREET) )
+        {
+            op_percent_trigger(obj, ch, NULL, NULL, OTRIG_GREET);
+        }
+    }
+}
