@@ -1007,6 +1007,13 @@ void do_cast( CHAR_DATA *ch, char *argument )
 #ifdef FSTAT
         ch->mana_used += mana;
 #endif
+
+        if ( target == TARGET_OBJ )
+        {
+            if (!op_act_trigger( (OBJ_DATA *) vo, ch, NULL, skill_table[sn].name, OTRIG_SPELL) ) 
+                return;
+        }
+
         level = ch->level;
         if (!IS_NPC(ch))
             level -= (100-class_table[ch->class].mana_gain)*level/500;
