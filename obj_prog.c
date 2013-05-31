@@ -14,93 +14,97 @@
  * number is less than trigger phrase
  */
 bool op_percent_trigger(
-    OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, int type)
+        OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type)
+{
+    if ( !HAS_OTRIG(obj, type) )
+        return TRUE;
+
+    OPROG_LIST *prg;
+
+    for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
+    {
+        if ( prg->trig_type == type
+                && number_percent() <= atoi( prg->trig_phrase ) )
+        {
+            return lua_obj_program( NULL, prg->vnum, prg->code, obj, obj2, ch1, ch2);
+        }
+    }
+    return TRUE;
+}
+
+bool op_act_trigger(
+        OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
 {
     OPROG_LIST *prg;
 
     for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
     {
         if ( prg->trig_type == type
-           && number_percent() <= atoi( prg->trig_phrase ) )
-        {
-            return lua_obj_program( prg->vnum, prg->code, obj, ch1, ch2);
-        }
-    }
-    return TRUE;
-}
-#if 0
-bool op_give_trigger(
-    OBJ_DATA *obj, CHAR_DATA *giver, CHAR_DATA *receiver)
-{
-    OPROG_LIST *prg;
-
-    for ( prg=obj->pIndexData->oprogs ; prg ; prg = prg->next )
-    {
-        if ( prg->trig_type == OTRIG_GIVE )
-        {
-            return lua_obj_program( prg->vnum, prg->code, obj, giver, receiver);
-        }
+                /* should be case-insensitive --Bobble
+                   && strstr( argument, prg->trig_phrase ) != NULL )
+                 */
+            && ( strstr(cap_all(trigger), cap_all(prg->trig_phrase)) != NULL
+                    ||   !strcmp(prg->trig_phrase, "*") ) )
+                    {
+                        return lua_obj_program( trigger, prg->vnum, prg->code, obj, NULL, ch1, NULL);
+                    }
     }
     return TRUE;
 }
 
-bool op_drop_trigger(
-    OBJ_DATA *obj, CHAR_DATA *dropper)
+bool op_try_trigger( char* argument, CHAR_DATA *ch )
 {
-    OPROG_LIST *prg;
+    OBJ_DATA *obj;
+    OBJ_DATA *next_obj;
+    bool found = FALSE;
 
-    for ( prg=obj->pIndexData->oprogs ; prg ; prg = prg->next )
+    for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
     {
-        if ( prg->trig_type == OTRIG_DROP )
+        next_obj = obj->next_content;
+
+        if ( HAS_OTRIG(obj, OTRIG_TRY) )
         {
-            return lua_obj_program( prg->vnum, prg->code, obj, dropper, NULL);
+            op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
+            found = TRUE;
         }
     }
-    return TRUE;
+
+    for ( obj = ch->carrying; obj != NULL; obj = next_obj )
+    {
+        next_obj = obj->next_content;
+
+        if ( HAS_OTRIG(obj, OTRIG_TRY) )
+        {
+            op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
+            found = TRUE;
+        }
+    }
+
+    return found;
 }
 
-bool op_eat_trigger(
-    OBJ_DATA *obj, CHAR_DATA *eater)
+void op_speech_trigger( char *argument, CHAR_DATA *ch )
 {
-    OPROG_LIST *prg;
+    OBJ_DATA *obj;
+    OBJ_DATA *next_obj;
 
-    for ( prg=obj->pIndexData->oprogs ; prg ; prg = prg->next )
+    for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
     {
-        if ( prg->trig_type == OTRIG_EAT )
+        next_obj = obj->next_content;
+
+        if ( HAS_OTRIG(obj, OTRIG_SPEECH) )
         {
-            return lua_obj_program( prg->vnum, prg->code, obj, eater, NULL);
+            op_act_trigger(obj, ch, NULL, argument, OTRIG_SPEECH);
         }
     }
-    return TRUE;
+
+    for ( obj = ch->carrying; obj != NULL; obj = next_obj )
+    {
+        next_obj = obj->next_content;
+
+        if ( HAS_OTRIG(obj, OTRIG_SPEECH) )
+        {
+            op_act_trigger(obj, ch, NULL, argument, OTRIG_SPEECH);
+        }
+    }
 }
-
-bool op_sacrifice_trigger(
-    OBJ_DATA *obj, CHAR_DATA *saccer)
-{
-    OPROG_LIST *prg;
-
-    for ( prg=obj->pIndexData->oprogs ; prg ; prg = prg->next )
-    {
-        if ( prg->trig_type == OTRIG_SACRIFICE )
-        {
-            return lua_obj_program( prg->vnum, prg->code, obj, saccer, NULL);
-        }
-    }
-    return TRUE;
-}
-
-bool op_wear_trigger(
-    OBJ_DATA *obj, CHAR_DATA *wearer)
-{
-    OPROG_LIST *prg;
-
-    for ( prg=obj->pIndexData->oprogs ; prg ; prg = prg->next )
-    {
-        if ( prg->trig_type == OTRIG_WEAR )
-        {
-            return lua_obj_program( prg->vnum, prg->code, obj, wearer, NULL);
-        }
-    }
-    return TRUE;
-}    
-#endif
