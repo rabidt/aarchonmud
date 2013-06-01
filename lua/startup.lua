@@ -84,8 +84,14 @@ function loadscript(subdir, name)
     error("Invalid character in name.")
   end
 
-  local f=loadfile(mud.userdir() .. subdir .. "/" .. name .. ".lua")
-  if f==nil then error("Couldn't find " .. subdir .. "/" .. name .. ".lua") end
+
+  os.execute("pwd")
+  os.execute("ls")
+  local fname = mud.userdir() .. subdir .. "/" .. name .. ".lua"
+  local f,err=loadfile(fname)
+  if f==nil then 
+    error( fname .. "error: " ..  err) 
+  end
 
   setfenv(f, current_env)
   return f()
