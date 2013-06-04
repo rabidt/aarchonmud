@@ -3097,7 +3097,13 @@ struct  group_type
 #define OTRIG_SACRIFICE (D)
 #define OTRIG_WEAR  (E)
 #define OTRIG_REMOVE (F)
-
+#define OTRIG_SPELL (G)
+#define OTRIG_SPEECH (H)
+#define OTRIG_TRY   (I)
+#define OTRIG_PUT   (J)
+#define OTRIG_GET   (K)
+#define OTRIG_RAND  (L)
+#define OTRIG_GREET (M)
 
 struct mprog_list
 {
@@ -3727,6 +3733,7 @@ struct achievement_entry
 #define DAZE_STATE(ch, npulse)  ((ch)->daze = UMAX((ch)->daze, (npulse)))
 #define get_carry_weight(ch)    ((ch)->carry_weight + (ch)->silver/100 + (ch)->gold/25)
 #define HAS_TRIGGER(ch,trig)    (IS_SET((ch)->pIndexData->mprog_flags,(trig)))
+#define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
 #define IS_SWITCHED( ch )       ( ch->desc && ch->desc->original )
 #define IS_BUILDER(ch, Area)    ( !IS_NPC(ch) && !IS_SWITCHED( ch ) && (ch->pcdata->security >= Area->security || strstr( Area->builders, ch->name ) || strstr( Area->builders, "All" ) ) )
 #define IS_REMORT(ch)			(!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT)) 
@@ -4353,6 +4360,7 @@ CHAR_DATA* get_player( char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_world  args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_area  args( ( CHAR_DATA *ch, char *argument ) );   
+CD *    get_char_group args( ( CHAR_DATA *ch, char *argument ) );
 OD *    get_obj_type    args( ( OBJ_INDEX_DATA *pObjIndexData ) );
 OD *    get_obj_list    args( ( CHAR_DATA *ch, char *argument,
 				OBJ_DATA *list ) );
