@@ -4360,6 +4360,7 @@ CHAR_DATA* get_player( char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_world  args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_area  args( ( CHAR_DATA *ch, char *argument ) );   
+CD *    get_char_group args( ( CHAR_DATA *ch, char *argument ) );
 OD *    get_obj_type    args( ( OBJ_INDEX_DATA *pObjIndexData ) );
 OD *    get_obj_list    args( ( CHAR_DATA *ch, char *argument,
 				OBJ_DATA *list ) );
