@@ -84,8 +84,14 @@ function loadscript(subdir, name)
     error("Invalid character in name.")
   end
 
-  local f=loadfile(mud.userdir() .. subdir .. "/" .. name .. ".lua")
-  if f==nil then error("Couldn't find " .. subdir .. "/" .. name .. ".lua") end
+
+  os.execute("pwd")
+  os.execute("ls")
+  local fname = mud.userdir() .. subdir .. "/" .. name .. ".lua"
+  local f,err=loadfile(fname)
+  if f==nil then 
+    error( fname .. "error: " ..  err) 
+  end
 
   setfenv(f, current_env)
   return f()
@@ -181,6 +187,43 @@ CH_env_lib={  require=require,
     setmetatable=setmetatable,
 
     -- okay now our stuff
+    -- checks
+    mobhere=mobhere,
+    objhere=objhere,
+    mobexists=mobexists,
+    objexists=objexists,
+    hour=hour,
+    ispc=ispc,
+    isnpc=isnpc,
+    isgood=isgood,
+    isevil=isevil,
+    isneutral=isneutral,
+    isimmort=isimmort,
+    ischarm=ischarm,
+    isfollow=isfollow,
+    isactive=isactive,
+    isdelay=isdelay,
+    isvisible=isvisible,
+    hastarget=hastarget,
+    istarget=istarget,
+    affected=affected,
+    act=act,
+    off=off,
+    imm=imm,
+    carries=carries,
+    wears=wears,
+    has=has,
+    uses=uses,
+    name=name,
+    qstatus=qstatus,
+    vuln=vuln,
+    res=res,
+    skilled=skilled,
+    ccarries=ccarries,
+    qtimer=qtimer,
+    canattack=canattack,
+
+    -- other
     getroom=getroom,
     randnum=randnum,
     rand=rand,
@@ -275,7 +318,63 @@ require=require,
     os={time=os.time,
         clock=os.clock,
         difftime=os.difftime},
-    setmetatable=setmetatable
+    setmetatable=setmetatable,
+
+    -- okay now our stuff
+    -- checks
+    mobhere=mobhere,
+    objhere=objhere,
+    mobexists=mobexists,
+    objexists=objexists,
+    hour=hour,
+    ispc=ispc,
+    isnpc=isnpc,
+    isgood=isgood,
+    isevil=isevil,
+    isneutral=isneutral,
+    isimmort=isimmort,
+    ischarm=ischarm,
+    isfollow=isfollow,
+    isactive=isactive,
+    isdelay=isdelay,
+    isvisible=isvisible,
+    hastarget=hastarget,
+    istarget=istarget,
+    affected=affected,
+    act=act,
+    off=off,
+    imm=imm,
+    carries=carries,
+    wears=wears,
+    has=has,
+    uses=uses,
+    name=name,
+    qstatus=qstatus,
+    vuln=vuln,
+    res=res,
+    skilled=skilled,
+    ccarries=ccarries,
+    qtimer=qtimer,
+    canattack=canattack,
+    -- other
+    getroom=getroom,
+    randnum=randnum,
+    rand=rand,
+    loadprog=loadprog,
+    loadscript=loadscript,
+    tprint=function(tbl)
+        local str={}
+        if current_env.obj then
+            tprint(str, tbl)
+            current_env.obj:echo(table.concat(str))
+        end
+    end,
+    getobjproto=getobjproto,
+    getobjworld=getobjworld,
+    getmobworld=getmobworld,
+    savetbl=savetbl,
+    loadtbl=loadtbl
+
 }
 
 CH_env_meta={

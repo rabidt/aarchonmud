@@ -529,6 +529,13 @@ const struct flag_type oprog_flags[] =
     {   "sacrifice",    OTRIG_SACRIFICE, TRUE    },
     {   "wear",         OTRIG_WEAR,      TRUE    },
     {   "remove",       OTRIG_REMOVE,    TRUE    },
+    {   "spell",        OTRIG_SPELL,     TRUE    },
+    {   "speech",       OTRIG_SPEECH,    TRUE    },
+    {   "try",          OTRIG_TRY,       TRUE    },
+    {   "put",          OTRIG_PUT,       TRUE    },
+    {   "get",          OTRIG_GET,       TRUE    },
+    {   "rand",         OTRIG_RAND,      TRUE    },
+    {   "greet",        OTRIG_GREET,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
