@@ -2193,12 +2193,6 @@ void do_group( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ch->leader != NULL && ch->leader != ch  )
-    {
-        send_to_char( "Only the leader may add to or remove from the group!\n\r", ch );
-        return;
-    }
-    
     // remove from group
     if ( !strcmp(arg, "remove") )
     {
@@ -2208,7 +2202,7 @@ void do_group( CHAR_DATA *ch, char *argument )
             send_to_char( "Nobody like that in your group.\n\r", ch );
             return;
         }
-        if ( IS_AFFECTED(victim,AFF_CHARM) && victim->leader != ch )
+        if ( victim->leader != ch )
         {
             act_new("$N does not listen to you.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
             return;
@@ -2217,6 +2211,12 @@ void do_group( CHAR_DATA *ch, char *argument )
         act_new("$n removes $N from $s group.",ch,NULL,victim,TO_NOTVICT,POS_RESTING);
         act_new("$n removes you from $s group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
         act_new("You remove $N from your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+        return;
+    }
+    
+    if ( ch->leader != NULL && ch->leader != ch  )
+    {
+        send_to_char( "Only the leader may add group members or pass on leadership!\n\r", ch );
         return;
     }
     
