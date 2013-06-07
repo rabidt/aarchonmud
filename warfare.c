@@ -509,7 +509,8 @@ void war_update( void )
 
 	war.reward += war.combatants*12;
         // limit to 50 to prevent exploit via quest buy warfare
-	war.reward = UMIN(50 - 2*(war.total_combatants-1), war.reward);
+	war.reward = UMIN(50 - 4*(war.combatants-1), war.reward);
+    war.reward = UMAX(war.reward, 8);
 
         sprintf( buf, "The battle begins with %d combatants in the war!\n\r", war.combatants );
         warfare( buf );
@@ -785,7 +786,7 @@ void war_remove( CHAR_DATA *ch, bool killed )
     do_look( ch, "" );
     
     /* Small reward for participation - Astark 5-24-13 */
-    joinbonus = 2;
+    joinbonus = 4;
 
     sprintf( buf, "You are awarded %d quest points for your bravery!\n\r", joinbonus);
     send_to_char(buf,ch);
