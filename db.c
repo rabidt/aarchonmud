@@ -429,6 +429,8 @@ sh_int  gsn_enchant_armor;
 sh_int  gsn_enchant_weapon;
 sh_int  gsn_enchant_arrow;
 sh_int  gsn_solar_flare;
+sh_int  gsn_battlecry_cooldown;
+sh_int  gsn_safeguard;
 
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;

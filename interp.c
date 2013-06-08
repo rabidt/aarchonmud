@@ -370,6 +370,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "extract",    do_extract,    POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "supplies",   do_supplies,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "quiveringpalm",   do_quivering_palm,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "safeguard",  do_safeguard, POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     
    /*
     * Ranger commands.

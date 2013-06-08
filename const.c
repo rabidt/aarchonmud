@@ -5221,6 +5221,29 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	},
 
 
+	{
+	"safeguard",
+	{ 35, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+	{  5,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 },
+	{100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+	STAT_NONE, STAT_NONE, STAT_NONE,
+		spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+		&gsn_safeguard,           SLOT(0),     0, 12,
+		"",         "You are no longer protected by safeguard.", "", NULL
+	},
+
+	{
+	"battlecry cooldown",  
+	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+	{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0 },
+	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+	STAT_NONE, STAT_NONE, STAT_NONE,
+	spell_null,             TAR_IGNORE,             POS_STANDING,
+	&gsn_battlecry_cooldown,           SLOT( 0),       0,      4,
+	"",     "You're able to use another battlecry.",   "", NULL
+	},
+
+
 
 /* defensive combat skills */
 

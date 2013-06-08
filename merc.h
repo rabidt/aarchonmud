@@ -1614,6 +1614,7 @@ struct  kill_data
 #define AFF_MINOR_FADE        75
 #define AFF_REPLENISH         76
 #define AFF_FORTUNE           77
+#define AFF_BATTLECRY_COOLDOWN 78
 
 
 /*
@@ -3462,6 +3463,8 @@ extern sh_int  gsn_enchant_arrow;
 extern sh_int  gsn_solar_flare;
 extern sh_int  gsn_iron_hide;
 extern sh_int  gsn_feeblemind;
+extern sh_int  gsn_battlecry_cooldown;
+extern sh_int  gsn_safeguard;
 
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
