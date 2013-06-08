@@ -380,6 +380,7 @@ DECLARE_DO_FUN( do_rupture  );
 DECLARE_DO_FUN( do_rustle_grub );
 DECLARE_DO_FUN( do_rvnum    );
 DECLARE_DO_FUN( do_sacrifice);
+DECLARE_DO_FUN( do_safeguard);
 DECLARE_DO_FUN( do_savantalk);
 DECLARE_DO_FUN( do_save     );
 DECLARE_DO_FUN( do_say      );
