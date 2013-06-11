@@ -2205,6 +2205,19 @@ void do_disarm( CHAR_DATA *ch, char *argument )
         
 	chance /= 2;
 
+      /* You no longer can fail disarm a bunch of times before finding
+         out that your opponent's weapon is damned, if you have detect
+         magic - Astark 6-8-13 */
+        if ( IS_OBJ_STAT(obj,ITEM_NOREMOVE) && IS_AFFECTED(ch,AFF_DETECT_MAGIC))
+        {
+            act("$S weapon won't budge!",ch,NULL,victim,TO_CHAR);
+            act("$n tries to disarm you, but your weapon won't budge!",
+                ch,NULL,victim,TO_VICT);
+            act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
+            WAIT_STATE( ch, skill_table[gsn_disarm].beats );
+            return;
+        }
+
         check_killer(ch,victim);
         /* and now the attack */
         if (number_percent() < chance)

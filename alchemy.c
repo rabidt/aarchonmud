@@ -245,12 +245,6 @@ void do_brew( CHAR_DATA *ch, char *argument )
     OBJ_INDEX_DATA *herb;
     OBJ_DATA *potion;
 
-    if ( (skill = get_skill(ch, gsn_alchemy)) == 0 )
-    {
-	send_to_char( "You should study some alchemy before trying this.\n\r", ch );
-	return;
-    }
-
     if ( argument[0] == '\0' )
     {
 	send_to_char( "The following recipies exist:\n\r", ch );
@@ -278,6 +272,13 @@ void do_brew( CHAR_DATA *ch, char *argument )
 
 	    send_to_char( "\n\r", ch );
 	}
+	return;
+    }
+
+
+    if ( (skill = get_skill(ch, gsn_alchemy)) == 0 )
+    {
+	send_to_char( "You should study some alchemy before trying this.\n\r", ch );
 	return;
     }
 
