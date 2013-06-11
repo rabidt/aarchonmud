@@ -2112,7 +2112,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
 {
     char buf[MAX_STRING_LENGTH];
     char hp_col, mn_col, mv_col;   /* Colours that vary depending on the group member's current hp/mana/mv */
-    
+   
     hp_col = (gch->hit == gch->max_hit) ? 'W' :
         (gch->hit >= gch->max_hit*.85) ? 'G' :
         (gch->hit >= gch->max_hit*.66) ? 'g' :
@@ -2135,7 +2135,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         (gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
 
     sprintf( buf,
-        "[%3d %s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %c%c%c%c%c%c %5d etl\n\r",
+        "[%3d %s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s %5d etl\n\r",
         gch->level,
         IS_NPC(gch) ? "Mob" : class_table[gch->class].who_name,
         /* Commented out so colored names work -- Maedhros 11/27/11 */
@@ -2144,12 +2144,20 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         hp_col, gch->hit,   gch->max_hit,
         mn_col, gch->mana,  gch->max_mana,
         mv_col, gch->move,  gch->max_move,
-        IS_AFFECTED(gch, AFF_FLYING)         ? 'F' : ' ',
-        IS_AFFECTED(gch, AFF_SANCTUARY)      ? 'S' : ' ',
-        IS_AFFECTED(gch, AFF_HASTE)          ? 'H' : ' ',
-        is_affected(gch, gsn_giant_strength) ? 'G' : ' ',
-        is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? 'B' : ' ',
-        is_affected(gch, gsn_war_cry)        ? 'W' : ' ',
+       /* Shows what spells you can help your group with */
+        IS_AFFECTED(gch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
+        IS_AFFECTED(gch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
+        IS_AFFECTED(gch, AFF_HASTE) ? "{WH{x" : get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
+        is_affected(gch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
+        is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? "{WB{x" : get_skill(ch, gsn_bless) > 1 ? "{Rb{x" : " ",
+        is_affected(gch, gsn_war_cry) ? "{WW{x" : get_skill(ch, gsn_war_cry) > 1 ? "{Rw{x" : " ",
+
+/*        IS_AFFECTED(gch, AFF_FLYING) ? "F" : "f",
+        IS_AFFECTED(gch, AFF_SANCTUARY)      ? 'S' : 's',
+        IS_AFFECTED(gch, AFF_HASTE)          ? 'H' : 'h',
+        is_affected(gch, gsn_giant_strength) ? 'G' : 'g',
+        is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? 'B' : 'b',
+        is_affected(gch, gsn_war_cry)        ? 'W' : 'w', */
         (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1)*exp_per_level(gch,gch->pcdata->points)-gch->exp
     );
     send_to_char( buf, ch );

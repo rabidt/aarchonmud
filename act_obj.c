@@ -3462,7 +3462,8 @@ void do_buy( CHAR_DATA *ch, char *argument )
             return;
         }
 
-        if ( obj->level > ch->level )
+        /* Now lets you buy stuff a few levels above you */
+        if ( obj->level > ch->level + 10 )
         {
             act( "$n tells you 'You can't use $p yet'.",
                     keeper, obj, ch, TO_VICT );
@@ -4003,6 +4004,8 @@ void do_deposit ( CHAR_DATA *ch, char *argument )
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
     long amnt;
+    CHAR_DATA *changer;
+    long silver;
 
     if (IS_NPC(ch))
         return;
@@ -4039,7 +4042,28 @@ void do_deposit ( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    amnt = atol( arg );
+    for (changer = ch->in_room->people; changer; changer = changer->next_in_room )
+    {
+        if (IS_NPC(changer) && IS_SET(changer->pIndexData->act, ACT_IS_CHANGER))
+            break;
+    }
+
+    /* deposit all, exchanges silver first, then deposits gold - Astark */
+    if ( !str_cmp( arg, "all" ))
+    {
+        if ( !changer )
+        {
+            send_to_char( "The changer isn't available.\n\r", ch );
+        }
+        else
+        {
+            sprintf(buf,"%d silver %s", ch->silver, changer->name);
+            do_give(ch,buf);
+        }
+        amnt = ch->gold;
+    }
+    else
+        amnt = atol( arg );
 
     if (amnt < 1)
         return;
