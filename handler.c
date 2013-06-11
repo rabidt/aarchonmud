@@ -561,8 +561,12 @@ int get_trust( CHAR_DATA *ch )
     
     if ( IS_NPC(ch) && ch->level >= LEVEL_HERO )
         return LEVEL_HERO - 1;
-    else
-        return ch->level;
+
+    // remorted characters have at least trust equal to highest level they reached previously
+    if ( !IS_NPC(ch) && ch->pcdata->remorts > 0 )
+        return UMAX(ch->level, LEVEL_HERO - 11 + ch->pcdata->remorts);
+    
+    return ch->level;
 }
 
 
