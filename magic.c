@@ -523,24 +523,12 @@ bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
     return FALSE;
 }
 
-/* for finding mana costs -- temporary version */
 int mana_cost (CHAR_DATA *ch, int sn, int skill)
 {
     int mana, min_level, max_level;
 
     mana = skill_table[sn].min_mana;
-
-    if (IS_NPC(ch) || (ch->level<
-                (min_level=skill_table[sn].skill_level[ch->class])))
-        return mana;
-
-    max_level = UMIN(min_level+30, 90);
-    mana *= 10;
-
-    if (ch->level < max_level)
-        mana = (max_level-min_level+30)*mana/(ch->level-min_level+30);
-
-    mana = (200-skill)*mana/1000;
+    mana = (200-skill)*mana/100;
 
     return mana;
 }
