@@ -366,13 +366,23 @@ int get_ac( CHAR_DATA *ch, int type )
 
 int get_hitroll( CHAR_DATA *ch )
 {
-    int hitroll = ch->hitroll 
-	+ ch_dex_tohit(ch)
-	+ get_curr_stat(ch, STAT_LUC) / 10;
-    /*
+    int hitroll = ch->hitroll + ch_dex_tohit(ch) + get_curr_stat(ch, STAT_LUC) / 10;
+    int attack_factor = 100;
+    
+    // level bonus
     if ( IS_NPC(ch) )
-	hitroll += ch->level;
-    */
+    {
+        if (IS_SET(ch->act,ACT_WARRIOR))
+            attack_factor += 20;
+        if (IS_SET(ch->act,ACT_MAGE))
+            attack_factor -= 20;
+    }
+    else
+    {
+        attack_factor = class_table[ch->class].attack_factor;
+    }
+    hitroll += (ch->level + 10) * attack_factor/100;
+
     return hitroll;
 }
 
