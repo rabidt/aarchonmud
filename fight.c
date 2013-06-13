@@ -1957,7 +1957,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 
     /* basic values */
     ch_roll = GET_HITROLL(ch);
-    victim_roll = (victim->level + 10) * defense_factor/200 + (10 - victim_ac);
+    victim_roll = 10 - victim_ac;
     
     /* skill-based chance-to-miss */
     /*
