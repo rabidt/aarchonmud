@@ -324,10 +324,29 @@ bool is_offensive( int sn )
 
 int get_save(CHAR_DATA *ch)
 {
+    int saves = ch->saving_throw;
+    int save_factor = 100;
+    
+    // level bonus
     if ( IS_NPC(ch) )
-        return ch->saving_throw - ch->level/2;
+    {
+        if ( IS_SET(ch->act, ACT_MAGE) )
+            save_factor += 30;
+        if ( IS_SET(ch->act, ACT_WARRIOR) )
+            save_factor -= 30;
+    }
     else
-        return ch->saving_throw;
+    {
+        save_factor = 250
+            - class_table[ch->class].attack_factor
+            - class_table[ch->class].defense_factor/2;
+    }
+    saves -= (ch->level + 10) * save_factor/100;
+    
+    // WIS bonus
+    saves -= (ch->level + 10) * get_curr_stat( ch, STAT_WIS ) / 500;
+
+    return saves;
 }
 
 /* hard to make saving throw */
@@ -376,23 +395,7 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
         return TRUE;
 
     /* now the resisted roll */
-    if ( IS_NPC(victim) )
-    {
-        save_factor = 100;
-        if ( IS_SET(victim->act, ACT_MAGE) )
-            save_factor += 40;
-        if ( IS_SET(victim->act, ACT_WARRIOR) )
-            save_factor -= 40;
-    }
-    else
-    {
-        save_factor = 300 
-            - class_table[victim->class].attack_factor
-            - class_table[victim->class].defense_factor;
-    }
-
-    save_roll = (victim->level + 10) * save_factor/100 - get_save(victim);
-    save_roll += get_curr_stat( victim, STAT_WIS ) / 10;
+    save_roll = -get_save(victim);
     hit_roll = (level + 10) * 6/5;
 
     if ( save_roll <= 0 )
@@ -4758,7 +4761,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -4781,7 +4784,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
         }
