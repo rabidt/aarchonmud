@@ -2581,6 +2581,15 @@ bool damage( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
     return full_dam( ch, victim, dam, dt, dam_type, show );
 }
 
+// if ch is a charmed NPC and leader is present, returns leader, otherwise ch
+CHAR_DATA *get_local_leader( CHAR_DATA *ch )
+{
+    if ( ch != NULL && IS_NPC(ch) && IS_AFFECTED(ch, AFF_CHARM) && ch->leader != NULL && ch->leader->in_room == ch->in_room )
+        return ch->leader;
+    else
+        return ch;
+}
+
 /*
 * Inflict full damage from a hit.
 */
@@ -3001,12 +3010,13 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
             send_to_char( "You have been KILLED!!\n\r\n\r", victim );
             
             if (!IS_NPC(victim) && !IS_SET( victim->act, PLR_WAR)) 
-	    {
-	        if( IS_NPC(ch) )
+            {
+                CHAR_DATA *killer = get_local_leader(ch);
+                if( IS_NPC(killer) )
                     victim->pcdata->mob_deaths++;
-		else
+                else
                     victim->pcdata->pkill_deaths++;
-	    }
+            }
         }
         else
         {
@@ -3051,7 +3061,7 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
     */
     if ( victim->position == POS_DEAD )
     {
-	handle_death( ch, victim );
+        handle_death( get_local_leader(ch), victim );
         return TRUE;
     }
    
@@ -3293,8 +3303,8 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
      */
     if ( IS_NPC( victim ) && HAS_TRIGGER( victim, TRIG_DEATH) )
     {
-	set_pos( victim, POS_STANDING );
-	mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_DEATH );
+        set_pos( victim, POS_STANDING );
+        mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_DEATH );
     }
 
     remort_remove(victim, FALSE);
