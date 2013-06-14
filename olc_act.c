@@ -3255,9 +3255,135 @@ char* get_rating_name( int rating )
 	return rating_name[rating];
 }
 
+/*****************************************************************
+ * Name: update_oprog_flags
+ * Purpose: fix bug that removes valid oprog flags
+ * Called by: oedit_deloprog
+ *****************************************************************/
+void update_oprog_flags( OBJ_INDEX_DATA *pObj )
+{
+    OPROG_LIST *list;
+
+    /* clear flags */
+    flag_clear( pObj->oprog_flags );
+
+    /* re-add all flags needed */
+    for (list = pObj->oprogs; list != NULL; list = list->next)
+        SET_BIT(pObj->oprog_flags, list->trig_type);
+}
+
+OEDIT ( oedit_deloprog )
+{
+    OBJ_INDEX_DATA *pObj;
+    OPROG_LIST *list;
+    OPROG_LIST *list_next;
+    char oprog[MAX_STRING_LENGTH];
+    int value;
+    int cnt = 0;
+
+    EDIT_OBJ(ch, pObj);
+
+    one_argument( argument, oprog );
+    if (!is_number( oprog ) || oprog[0] == '\0' )
+    {
+        send_to_char("Syntax:  deloprog [#oprog]\n\r",ch);
+        return FALSE;
+    }
+
+    value = atoi ( oprog );
+
+    if ( value < 0 )
+    {
+        send_to_char("Only non-negative mprog-numbers allowed.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( !(list= pObj->oprogs) )
+    {
+        send_to_char("OEdit:  Non existant mprog.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( value == 0 )
+    {
+        list = pObj->oprogs;
+        pObj->oprogs = list->next;
+        free_oprog( list );
+    }
+    else
+    {
+        while ( (list_next = list->next) && (++cnt < value ) )
+            list = list_next;
+
+        if ( list_next )
+        {
+            list->next = list_next->next;
+            free_oprog(list_next);
+        }
+        else
+        {
+            send_to_char("No such oprog.\n\r",ch);
+            return FALSE;
+        }
+    }
+
+    update_oprog_flags(pObj);
+
+    send_to_char("Oprog removed.\n\r", ch);
+    return TRUE;
+}
+
+OEDIT ( oedit_addoprog )
+{
+    int value;
+    OBJ_INDEX_DATA *pObj;
+    OPROG_LIST *list;
+    OPROG_CODE *code;
+    char trigger[MAX_STRING_LENGTH];
+    char phrase[MAX_STRING_LENGTH];
+    char num[MAX_STRING_LENGTH];
+
+    EDIT_OBJ(ch, pObj);
+    argument=one_argument(argument, num);
+    argument=one_argument(argument, trigger);
+    argument=one_argument(argument, phrase);
+
+    if (!is_number(num) || trigger[0] =='\0' || phrase[0] =='\0' )
+    {
+        send_to_char("Syntax:   addoprog [vnum] [trigger] [phrase]\n\r",ch);
+        return FALSE;
+    }
+
+    if ( (value = flag_value (oprog_flags, trigger) ) == NO_FLAG)
+    {
+        send_to_char("Valid flags are:\n\r",ch);
+        show_help( ch, "oprog");
+        return FALSE;
+    }
+
+    if ( ( code =get_oprog_index (atoi(num) ) ) == NULL)
+    {
+        send_to_char("No such OBJProgram.\n\r",ch);
+        return FALSE;
+    }
+
+    list                  = new_oprog();
+    list->vnum            = atoi(num);
+    list->trig_type       = value;
+    list->trig_phrase     = str_dup(phrase);
+    list->code            = code->code;
+    SET_BIT(pObj->oprog_flags,value);
+    list->next            = pObj->oprogs;
+    pObj->oprogs          = list;
+
+    send_to_char( "Oprog Added.\n\r",ch);
+    return TRUE;
+}
+
 OEDIT( oedit_show )
 {
     OBJ_INDEX_DATA *pObj;
+    OPROG_LIST *list;
     char buf[MAX_STRING_LENGTH];
     AFFECT_DATA *paf;
     int cnt;
@@ -3404,6 +3530,30 @@ OEDIT( oedit_show )
     }
     
     show_obj_values( ch, pObj );
+
+
+    if ( pObj->oprogs )
+    {
+        int cnt;
+
+        sprintf(buf, "\n\rOBJPrograms for [%5d]:\n\r", pObj->vnum);
+        send_to_char( buf, ch );
+
+        for (cnt=0, list=pObj->oprogs; list; list=list->next)
+        {
+            if (cnt ==0)
+            {
+                send_to_char ( " Number Vnum Trigger Phrase\n\r", ch );
+                send_to_char ( " ------ ---- ------- ------\n\r", ch );
+            }
+
+            sprintf(buf, "[%5d] %4d %7s %s\n\r", cnt,
+                list->vnum,name_lookup(list->trig_type, oprog_flags),
+                list->trig_phrase);
+            send_to_char( buf, ch );
+            cnt++;
+        }
+    }
     
     return FALSE;
 }
@@ -5938,6 +6088,7 @@ MEDIT ( medit_addmprog )
     list->trig_type       = value;
     list->trig_phrase     = str_dup(phrase);
     list->code            = code->code;
+    list->is_lua          = code->is_lua;
     SET_BIT(pMob->mprog_flags,value);
     list->next            = pMob->mprogs;
     pMob->mprogs          = list;
