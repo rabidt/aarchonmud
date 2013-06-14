@@ -867,13 +867,16 @@ void do_clanreport( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    
+
     for (j = 1; j <= clan_table[clan].rank_count; j++)
     {
-        sprintf(buf, "\n\rDetail for rank {c%d{x - %s%s{x:\n\r\n\r",
+        sprintf(buf, "\n\rDetail for rank {c%d{x - %s%s{x [%s%s-%s{x]:\n\r\n\r",
             j,
             clan_table[clan].who_color,
-            capitalize(clan_table[clan].rank_list[j].name));
+            capitalize(clan_table[clan].rank_list[j].name),
+            clan_table[clan].who_color,
+            clan_table[clan].who_name,
+            clan_table[clan].rank_list[j].who_name);
         add_buf(buffer, buf);
         
         if (clan_table[clan].rank_list[j].available_slots >= 0)
@@ -1767,7 +1770,7 @@ void do_cmotd( CHAR_DATA *ch, char * argument )
 	if ( !strcmp( clan_table[ch->clan].motd , "" ) )
 	    return;
 
-	send_to_char("\n",ch);
+	send_to_char("\n\r",ch);
     	send_to_char("{D***********************************{yClan MOTD{D************************************{x\n\r",ch);
     	send_to_char(clan_table[ch->clan].motd,ch);
     	send_to_char("{x\n\r",ch);

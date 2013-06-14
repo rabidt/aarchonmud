@@ -192,6 +192,7 @@ DECLARE_SPELL_FUN(      spell_monsoon   );
 DECLARE_SPELL_FUN(  spell_hailstorm );
 DECLARE_SPELL_FUN(  spell_meteor_swarm );
 DECLARE_SPELL_FUN(      spell_tree_golem             );     
+DECLARE_SPELL_FUN(      spell_water_elemental        );     
 DECLARE_SPELL_FUN(      spell_windwar                );   
 DECLARE_SPELL_FUN(      spell_pass_without_trace     );
 DECLARE_SPELL_FUN(      spell_entangle               );

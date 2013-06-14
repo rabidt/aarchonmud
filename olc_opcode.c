@@ -15,30 +15,29 @@
 #include "tables.h"
 #include "olc.h"
 #include "recycle.h"
-#include "mob_cmds.h"
 
-#define MPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
+#define OPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
 
-const struct olc_cmd_type mpedit_table[] =
+const struct olc_cmd_type opedit_table[] =
 {
 /*	{	command		function	      }, */
    
    {  "commands", show_commands  },
-   {  "create",   mpedit_create  },
-   {  "code",     mpedit_code    },
-   {  "show",     mpedit_show    },
-   {  "list",     mpedit_list    },
-   {  "if",       mpedit_if      },
-   {  "mob",      mpedit_mob     },
+   {  "create",   opedit_create  },
+   {  "code",     opedit_code    },
+   {  "show",     opedit_show    },
+   //{  "list",     opedit_list    },
+   //{  "if",       opedit_if      },
+   //{  "mob",      opedit_mob     },
    {  "?",        show_help      },
-   {  "lua",      mpedit_lua     },
+   //{  "lua",      opedit_lua     },
    
    {  NULL,       0              }
 };
 
-void mpedit( CHAR_DATA *ch, char *argument)
+void opedit( CHAR_DATA *ch, char *argument)
 {
-    MPROG_CODE *pMcode;
+    OPROG_CODE *pOcode;
     char arg[MAX_INPUT_LENGTH];
     char command[MAX_INPUT_LENGTH];
     int cmd;
@@ -48,11 +47,11 @@ void mpedit( CHAR_DATA *ch, char *argument)
     strcpy(arg, argument);
     argument = one_argument( argument, command);
 
-    EDIT_MPCODE(ch, pMcode);
+    EDIT_OPCODE(ch, pOcode);
 
-    if (pMcode)
+    if (pOcode)
     {
-       ad = get_vnum_area( pMcode->vnum );
+       ad = get_vnum_area( pOcode->vnum );
        
        if ( ad == NULL ) /* ??? */
        {
@@ -62,7 +61,7 @@ void mpedit( CHAR_DATA *ch, char *argument)
        
        if ( !IS_BUILDER(ch, ad) )
        {
-          send_to_char("MPEdit: Insufficient security to modify code.\n\r", ch);
+          send_to_char("OPEdit: Insufficient security to modify code.\n\r", ch);
           edit_done(ch);
           return;
        }
@@ -71,7 +70,7 @@ void mpedit( CHAR_DATA *ch, char *argument)
 
     if (command[0] == '\0')
     {
-        mpedit_show(ch, argument);
+        opedit_show(ch, argument);
         return;
     }
 
@@ -81,12 +80,12 @@ void mpedit( CHAR_DATA *ch, char *argument)
         return;
     }
 
-    for (cmd = 0; mpedit_table[cmd].name != NULL; cmd++)
+    for (cmd = 0; opedit_table[cmd].name != NULL; cmd++)
     {
-        if (!str_prefix(command, mpedit_table[cmd].name) )
+        if (!str_prefix(command, opedit_table[cmd].name) )
         {
-           if ((*mpedit_table[cmd].olc_fun) (ch, argument) && pMcode)
-              if ((ad = get_vnum_area(pMcode->vnum)) != NULL)
+           if ((*opedit_table[cmd].olc_fun) (ch, argument) && pOcode)
+              if ((ad = get_vnum_area(pOcode->vnum)) != NULL)
                  SET_BIT(ad->area_flags, AREA_CHANGED);
               return;
         }
@@ -97,9 +96,9 @@ void mpedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_mpedit(CHAR_DATA *ch, char *argument)
+void do_opedit(CHAR_DATA *ch, char *argument)
 {
-    MPROG_CODE *pMcode;
+    OPROG_CODE *pOcode;
     char command[MAX_INPUT_LENGTH];
 
     argument = one_argument(argument, command);
@@ -109,9 +108,9 @@ void do_mpedit(CHAR_DATA *ch, char *argument)
        int vnum = atoi(command);
        AREA_DATA *ad;
        
-       if ( (pMcode = get_mprog_index(vnum)) == NULL )
+       if ( (pOcode = get_oprog_index(vnum)) == NULL )
        {
-          send_to_char("MPEdit : That vnum does not exist.\n\r",ch);
+          send_to_char("OPEdit : That vnum does not exist.\n\r",ch);
           return;
        }
        
@@ -119,24 +118,24 @@ void do_mpedit(CHAR_DATA *ch, char *argument)
        
        if ( ad == NULL )
        {
-          send_to_char( "MPEdit : Vnum not assigned to this area.\n\r", ch );
+          send_to_char( "OPEdit : Vnum not assigned to this area.\n\r", ch );
           return;
        }
        
        if ( !IS_BUILDER(ch, ad) )
        {
-          send_to_char("MPEdit : Insufficient security to edit area.\n\r", ch );
+          send_to_char("OPEdit : Insufficient security to edit area.\n\r", ch );
           return;
        }
        
        if ( ch->in_room->area != ad )
        {
-	   send_to_char( "MPEdit: Warning: MobProg lies outside current area.\n\r", ch );
+	   send_to_char( "OPEdit: Warning: MobProg lies outside current area.\n\r", ch );
        }
 
        clone_warning( ch, ad );
-       ch->desc->pEdit  = (void *)pMcode;
-       ch->desc->editor	= ED_MPCODE;
+       ch->desc->pEdit  = (void *)pOcode;
+       ch->desc->editor	= ED_OPCODE;
        
        return;
     }
@@ -145,29 +144,29 @@ void do_mpedit(CHAR_DATA *ch, char *argument)
     {
        if (argument[0] == '\0')
        {
-          send_to_char( "Syntax : mpedit create [vnum]\n\r", ch );
+          send_to_char( "Syntax : opedit create [vnum]\n\r", ch );
           return;
        }
        
-       mpedit_create(ch, argument);
+       opedit_create(ch, argument);
        return;
     }
 
-    send_to_char( "Syntax : mpedit [vnum]\n\r", ch );
-    send_to_char( "         mpedit create [vnum]\n\r", ch );
+    send_to_char( "Syntax : opedit [vnum]\n\r", ch );
+    send_to_char( "         opedit create [vnum]\n\r", ch );
 
     return;
 }
 
-MPEDIT (mpedit_create)
+OPEDIT (opedit_create)
 {
-    MPROG_CODE *pMcode;
+    OPROG_CODE *pOcode;
     int value = atoi(argument);
     AREA_DATA *ad;
 
     if (IS_NULLSTR(argument) || value < 1)
     {
-        send_to_char("Syntax: mpedit create [vnum]\n\r",ch);
+        send_to_char("Syntax: opedit create [vnum]\n\r",ch);
         return FALSE;
     }
 
@@ -175,127 +174,122 @@ MPEDIT (mpedit_create)
 
     if ( ad == NULL )
     {
-       send_to_char( "MPEdit : Vnum not assigned to this area.\n\r", ch );
+       send_to_char( "OPEdit : Vnum not assigned to this area.\n\r", ch );
        return FALSE;
     }
 
     if ( !IS_BUILDER(ch, ad) )
     {
-       send_to_char("MPEdit : Insufficient security to create MobProgs.\n\r", ch);
+       send_to_char("OPEdit : Insufficient security to create MobProgs.\n\r", ch);
        return FALSE;
     }
 
     if ( ch->in_room->area != ad )
     {
-	send_to_char( "MPEdit: MobProg lies outside current area.\n\r", ch );
+	send_to_char( "OPEdit: ObjProg lies outside current area.\n\r", ch );
 	return FALSE;
     }
 
-    if ( get_mprog_index(value) )
+    if ( get_oprog_index(value) )
     {
-       send_to_char("MPEdit: MobProg vnum already exists.\n\r",ch);
+       send_to_char("OPEdit: ObjProg vnum already exists.\n\r",ch);
        return FALSE;
     }
 
     clone_warning( ch, ad );
 
-    pMcode			= new_mpcode();
-    pMcode->vnum		= value;
-    pMcode->next		= mprog_list;
-    mprog_list			= pMcode;
-    ch->desc->pEdit		= (void *)pMcode;
-    ch->desc->editor		= ED_MPCODE;
+    pOcode			= new_opcode();
+    pOcode->vnum		= value;
+    pOcode->next		= oprog_list;
+    oprog_list			= pOcode;
+    ch->desc->pEdit		= (void *)pOcode;
+    ch->desc->editor		= ED_OPCODE;
 
     send_to_char("MobProgram Code Created.\n\r",ch);
 
     return TRUE;
 }
 
-MPEDIT(mpedit_show)
+OPEDIT(opedit_show)
 {
-    MPROG_CODE *pMcode;
+    OPROG_CODE *pOcode;
     char buf[MAX_STRING_LENGTH];
-    EDIT_MPCODE(ch,pMcode);
+    EDIT_OPCODE(ch,pOcode);
 
     sprintf(buf,
            "Vnum:       [%d]\n\r"
-           "Lua:        %s\n\r"
            "Code:\n\r%s\n\r",
-           pMcode->vnum,
-           pMcode->is_lua ? "True" : "False",
-           pMcode->code  );
+           pOcode->vnum,
+           pOcode->code  );
     page_to_char_new(buf, ch, TRUE);
 
     return FALSE;
 }
 
-void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
+void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
 {
-    MPROG_LIST *mpl;
+    OPROG_LIST *mpl;
     int hash;
     char buf[MSL];
-    MOB_INDEX_DATA *mob;
+    OBJ_INDEX_DATA *obj;
 
-    if ( pMcode != NULL )
+    if ( pOcode != NULL )
         for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
-            for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
-                for ( mpl = mob->mprogs; mpl; mpl = mpl->next )
-                    if ( mpl->vnum == pMcode->vnum )
+            for ( obj = obj_index_hash[hash]; obj; obj = obj->next )
+                for ( mpl = obj->oprogs; mpl; mpl = mpl->next )
+                    if ( mpl->vnum == pOcode->vnum )
                     {
-                        sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
+                        sprintf( buf, "Fixing obj %d.\n\r", obj->vnum );
                         send_to_char( buf, ch );
-                        mpl->code = pMcode->code;
-                        mpl->is_lua = pMcode->is_lua;
-
-                        if ( mpl->is_lua )
-                        {
-                            lua_load_mprog( mud_LS, pMcode->vnum, pMcode->code);
-                            ptc(ch, "Fixed lua script for %d.\n\r", pMcode->vnum);
-                        }
+                        mpl->code = pOcode->code;
+                   
+                        lua_load_oprog( mud_LS, pOcode->vnum, pOcode->code);
+                        ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);
+                        
                     } 
 }
-
-MPEDIT(mpedit_lua)
+#if 0
+OPEDIT(opedit_lua)
 {
-    MPROG_CODE *pMcode;
-    MPROG_LIST *mpl;
-    EDIT_MPCODE(ch, pMcode);
-    MOB_INDEX_DATA *mob;
+    OPROG_CODE *pOcode;
+    OPROG_LIST *mpl;
+    EDIT_OPCODE(ch, pOcode);
+    OBJ_INDEX_DATA *mob;
     int hash;
     char buf[MSL];
 
-    pMcode->is_lua = !pMcode->is_lua;
-    ptc( ch, "LUA set to %s\n\r", pMcode->is_lua ? "TRUE" : "FALSE" );
-    if ( pMcode->is_lua )
+    pOcode->is_lua = !pOcode->is_lua;
+    ptc( ch, "LUA set to %s\n\r", pOcode->is_lua ? "TRUE" : "FALSE" );
+    if ( pOcode->is_lua )
         lua_mprogs++;
     else
         lua_mprogs--;
 
-    fix_mprog_mobs( ch, pMcode);
+    fix_mprog_mobs( ch, pOcode);
 }
-
+#endif
 /* Procedure to run when MPROG is changed and needs to be updated
    on mobs using it */
 
-MPEDIT(mpedit_code)
+OPEDIT(opedit_code)
 {
-    MPROG_CODE *pMcode;
-    EDIT_MPCODE(ch, pMcode);
+    OPROG_CODE *pOcode;
+    EDIT_OPCODE(ch, pOcode);
 
     if (argument[0] =='\0')
     {
-       string_append(ch, &pMcode->code);
+       string_append(ch, &pOcode->code);
        return TRUE;
     }
 
     send_to_char("Syntax: code\n\r",ch);
     return FALSE;
 }
-
-MPEDIT( mpedit_list )
+#if 0
+OPEDIT( opedit_list )
 {
    int count = 1;
-   MPROG_CODE *mprg;
+   OPROG_CODE *mprg;
    char buf[MAX_STRING_LENGTH];
    BUFFER *buffer;
    bool fAll = !str_cmp(argument, "all");
@@ -338,12 +332,13 @@ MPEDIT( mpedit_list )
       return FALSE;
       
 }
-
+#endif
+#if 0
 /* define in mob_prog.c and mob_cmd.c */
 typedef char* keyword_list[][2];
 extern const keyword_list fn_keyword;
 /* display valid if-checks */
-MPEDIT( mpedit_if )
+OPEDIT( opedit_if )
 {
     BUFFER *buffer;
     char buf[MSL];
@@ -364,7 +359,7 @@ MPEDIT( mpedit_if )
 }
 
 /* display valid mob commands */
-MPEDIT( mpedit_mob )
+OPEDIT( opedit_mob )
 {
     BUFFER *buffer;
     char buf[MSL];
@@ -383,3 +378,4 @@ MPEDIT( mpedit_mob )
     free_buf(buffer);
     return FALSE;
 }
+#endif

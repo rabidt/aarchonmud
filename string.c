@@ -141,7 +141,7 @@ void string_append( CHAR_DATA *ch, char **pString )
     }
     else
     {
-        send_to_char( numlineas(*pString), ch );
+        send_to_char_new( numlineas(*pString), ch, TRUE );
         if ( *(*pString + strlen( *pString ) - 1) != '\r' )
             send_to_char( "\n\r", ch );
         
@@ -221,18 +221,15 @@ void string_add( CHAR_DATA *ch, char *argument )
          MPROG_CODE *mpc;
          
          EDIT_MPCODE(ch, mpc);
-         
-         if ( mpc != NULL )
-            for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
-               for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
-                  for ( mpl = mob->mprogs; mpl; mpl = mpl->next )
-                     if ( mpl->vnum == mpc->vnum )
-                     {
-                        sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
-                        send_to_char( buf, ch );
-                        mpl->code = mpc->code;
-                     }
+         fix_mprog_mobs( ch, mpc);
       }
+      else if ( ch->desc->editor == ED_OPCODE ) /* for objprogs */
+      {
+          OPROG_CODE *opc;
+          EDIT_OPCODE(ch, opc);
+          fix_oprog_objs( ch, opc);
+      }
+
       
       ch->desc->pString = NULL;
 

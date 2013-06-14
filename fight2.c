@@ -2205,6 +2205,19 @@ void do_disarm( CHAR_DATA *ch, char *argument )
         
 	chance /= 2;
 
+      /* You no longer can fail disarm a bunch of times before finding
+         out that your opponent's weapon is damned, if you have detect
+         magic - Astark 6-8-13 */
+        if ( IS_OBJ_STAT(obj,ITEM_NOREMOVE) && IS_AFFECTED(ch,AFF_DETECT_MAGIC))
+        {
+            act("$S weapon won't budge!",ch,NULL,victim,TO_CHAR);
+            act("$n tries to disarm you, but your weapon won't budge!",
+                ch,NULL,victim,TO_VICT);
+            act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
+            WAIT_STATE( ch, skill_table[gsn_disarm].beats );
+            return;
+        }
+
         check_killer(ch,victim);
         /* and now the attack */
         if (number_percent() < chance)
@@ -2243,7 +2256,7 @@ void do_surrender( CHAR_DATA *ch, char *argument )
 
     if ( PLR_ACT(mob, PLR_NOSURR)
 	 || PLR_ACT(mob, PLR_WAR)
-	 || (IS_NPC(mob) && !mp_percent_trigger(mob, ch, NULL, NULL, TRIG_SURR)) )
+	 || (IS_NPC(mob) && !mp_percent_trigger(mob, ch, NULL,0, NULL,0, TRIG_SURR)) )
     {
 	act( "$N seems to ignore your cowardly act!", ch, NULL, mob, TO_CHAR );
         multi_hit( mob, ch, TYPE_UNDEFINED );
@@ -2690,6 +2703,7 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
         {
 	    act("$n stuns you with a crushing right hook!",
 		ch,NULL,victim,TO_VICT);
+            send_to_char("You lose your stance!\n\r",victim);
 	    act("You stun $N with a crushing right hook!",ch,NULL,victim,TO_CHAR);
 	    act("$n stuns $N with a crushing right hook.",
 		ch,NULL,victim,TO_NOTVICT);
@@ -4370,8 +4384,12 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
     
     if (arg[0] == '\0')
     {
-        send_to_char("Blackjack whom?\n\r",ch);
-        return;
+        victim = ch->fighting;
+        if (victim == NULL)
+        {
+            send_to_char("But you aren't fighting anyone!\n\r",ch);
+            return;
+        }
     }
     
     else if ((victim = get_char_room(ch,arg)) == NULL)
@@ -4605,7 +4623,7 @@ void do_puncture( CHAR_DATA *ch, char *argument )
 	 ch, NULL, victim, TO_NOTVICT );
 
     dam_message( ch, victim, dam, gsn_puncture, FALSE );
-    damage(ch,victim,0,gsn_puncture,DAM_NONE,FALSE);
+    damage(ch,victim,dam,gsn_puncture,DAM_NONE,FALSE);
 
     af.where    = TO_AFFECTS;
     af.type     = gsn_puncture;
@@ -4725,9 +4743,9 @@ void do_strafe( CHAR_DATA *ch, char *argument )
     else
     {
 	act( "You strafe toward $N rapidly firing arrows!", ch, NULL, victim, TO_CHAR );
-	one_hit( ch, victim, gsn_strafe, TRUE );
-	one_hit( ch, victim, gsn_strafe, TRUE );
-	one_hit( ch, victim, gsn_strafe, TRUE );
+	one_hit( ch, victim, gsn_strafe, FALSE );
+	one_hit( ch, victim, gsn_strafe, FALSE );
+	one_hit( ch, victim, gsn_strafe, FALSE );
 	check_improve( ch, gsn_strafe, TRUE, 3 );
     }
 }
@@ -4781,7 +4799,7 @@ void do_infectious_arrow( CHAR_DATA *ch, char *argument )
     }
 
     /* hit - how much dam? */
-    dam = 2 + number_range( ch->level/2, ch->level );
+    dam = 2 + number_range( ch->level*3/4, ch->level*4/3 );
 
     act( "You fire an infectious arrow at $N!",
 	 ch, NULL, victim, TO_CHAR );
@@ -4790,8 +4808,7 @@ void do_infectious_arrow( CHAR_DATA *ch, char *argument )
     act( "$n fires an infectious arrow at $N!",
 	 ch, NULL, victim, TO_NOTVICT );
 
-    dam_message( ch, victim, dam, gsn_infectious_arrow, FALSE );
-    damage(ch, victim, 0, gsn_infectious_arrow, DAM_DISEASE, FALSE);
+    damage(ch, victim, dam, gsn_infectious_arrow, DAM_DISEASE, TRUE);
 
     af.where    = TO_AFFECTS;
     af.type     = gsn_infectious_arrow;
@@ -4860,10 +4877,10 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
     /* can be used like backstab OR like circle.. */
     if ( ch->fighting != NULL || check_see(victim, ch) )
     {
-	chance = chance / 2;
-	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 6;
+	chance = chance*2/3;
+	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
 	if ( !can_see(victim, ch) )
-	    chance += 20;
+	    chance += 10;
 	if ( IS_AFFECTED(ch, AFF_HASTE) )
 	    chance += 25;
 	if ( IS_AFFECTED(victim, AFF_HASTE) )
@@ -5021,7 +5038,7 @@ void do_rupture( CHAR_DATA *ch, char *argument )
     /* can be used like backstab OR like circle.. */
     if ( ch->fighting != NULL || check_see(victim, ch) )
     {
-	chance = chance / 2;
+	chance = chance*2/3;
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
 	if ( !can_see(victim, ch) )
 	    chance += 10;

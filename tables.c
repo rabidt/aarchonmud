@@ -212,6 +212,7 @@ const struct flag_type act_flags[] =
 	{   "nomimic",      ACT_NOMIMIC,     TRUE    },
 	{   "hard_quest",   ACT_HARD_QUEST,    TRUE    },
         {   "staggered",    ACT_STAGGERED,   TRUE    },
+        {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 
@@ -428,6 +429,7 @@ const struct flag_type form_flags[] =
 	{   "frost_aura",   FORM_FROST, TRUE    },
 	{   "burning_aura", FORM_BURN,  TRUE    },
 	{   "wise",         FORM_WISE,  TRUE    },
+        {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
 	{   NULL,           0,          0   }
 };
 
@@ -515,8 +517,26 @@ const struct flag_type mprog_flags[] =
 	{   "try",          TRIG_TRY,       TRUE    },
 	{   "reset",        TRIG_RESET,       TRUE    },
 	{   "mpcnt",        TRIG_MPCNT,     TRUE    },
-        {   "spell",        TRIG_SPELL,     TRUE    },
+    {   "spell",        TRIG_SPELL,     TRUE    },
 	{   NULL,           0,          TRUE    }
+};
+
+const struct flag_type oprog_flags[] =
+{
+    {   "give",         OTRIG_GIVE,      TRUE    },
+    {   "drop",         OTRIG_DROP,      TRUE    },
+    {   "eat",          OTRIG_EAT,       TRUE    },
+    {   "sacrifice",    OTRIG_SACRIFICE, TRUE    },
+    {   "wear",         OTRIG_WEAR,      TRUE    },
+    {   "remove",       OTRIG_REMOVE,    TRUE    },
+    {   "spell",        OTRIG_SPELL,     TRUE    },
+    {   "speech",       OTRIG_SPEECH,    TRUE    },
+    {   "try",          OTRIG_TRY,       TRUE    },
+    {   "put",          OTRIG_PUT,       TRUE    },
+    {   "get",          OTRIG_GET,       TRUE    },
+    {   "rand",         OTRIG_RAND,      TRUE    },
+    {   "greet",        OTRIG_GREET,     TRUE    },
+    {   NULL,           0,          TRUE    }
 };
 
 const struct flag_type area_flags[] =
@@ -598,7 +618,7 @@ const struct flag_type room_flags[] =
     {   "donation",     ROOM_DONATION,      TRUE    },
     {   "nowhere",      ROOM_NOWHERE,       TRUE    },
     {   "snare",        ROOM_SNARE,         FALSE   },   
-    {   "blacksmith",   ROOM_BLACKSMITH,    TRUE    },   
+    {   "blacksmith",   ROOM_BLACKSMITH,    FALSE   },   
     {   "peel",         ROOM_PEEL,          FALSE   },   
     {   "jail",         ROOM_JAIL,          TRUE    },   
     {   "no_quest",     ROOM_NO_QUEST,      TRUE    },   
