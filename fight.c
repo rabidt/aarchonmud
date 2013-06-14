@@ -1879,7 +1879,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill )
 {
     int ch_roll, victim_roll;
-    int attack_factor, defense_factor, victim_ac;
+    int defense_factor, victim_ac;
     int ac_dam_type;
     OBJ_DATA *wield;
 
@@ -1941,20 +1941,6 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
     }
 
-    /* basic attack skill */
-    if ( IS_NPC(ch) )
-    {
-	attack_factor = 100;
-        if (IS_SET(ch->act,ACT_WARRIOR))
-            attack_factor += 20;
-        if (IS_SET(ch->act,ACT_MAGE))
-            attack_factor -= 20;
-    }
-    else
-    {
-        attack_factor = class_table[ch->class].attack_factor;
-    }
-
     /* basic defense skill */
     if ( IS_NPC(victim) )
     {
@@ -1970,8 +1956,8 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     }
 
     /* basic values */
-    ch_roll = (ch->level + 10) * attack_factor/100 + GET_HITROLL(ch);
-    victim_roll = (victim->level + 10) * defense_factor/200 + (10 - victim_ac);
+    ch_roll = GET_HITROLL(ch);
+    victim_roll = 10 - victim_ac;
     
     /* skill-based chance-to-miss */
     /*
