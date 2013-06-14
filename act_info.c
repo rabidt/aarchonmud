@@ -4157,11 +4157,7 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
     
     ch->mana -= skill_table[sn].min_mana;
-    /*
-    check_improve(ch,gsn_lore,FALSE,2);
-    if ( weapon )
-	check_improve(ch,gsn_weapons_lore,FALSE,2);
-    */
+
 
     /* ok, he knows something.. */
     say_basic_obj_index_data( ch, org_obj );
@@ -4201,15 +4197,28 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     */
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     if ( IS_NPC(ch) )
 	return; // prevent easy learning by spamming sage
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-	if ( IS_NPC(rch) || !IS_AWAKE(rch) || rch == ch )
+	if ( IS_NPC(rch) || !IS_AWAKE(rch) )
 	    continue;
-	check_improve( rch, gsn_lore, 2, TRUE );
-	if ( weapon )
-	    check_improve( rch, gsn_weapons_lore, 2, TRUE );
+        else
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
+                if ( weapon )
+                    check_improve(ch, gsn_weapons_lore, 5, TRUE);
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+        }
     }
 }
 
@@ -4319,121 +4328,6 @@ void do_appraise ( CHAR_DATA *ch, char *argument )
     
     return;
 }
-
-/* OLD do_attrib
-void do_attributes(CHAR_DATA *ch, char *argument)
-{
-    char buf[MAX_STRING_LENGTH];
-    
-    sprintf( buf,
-        "{gHit{x: %d/%d  {gMana{x: %d/%d  {gMoves{x: %d/%d\n\r",
-        ch->hit,  ch->max_hit,
-        ch->mana, ch->max_mana,
-        ch->move, ch->max_move);
-    send_to_char( buf, ch );
-    
-    sprintf( buf,
-        "{BStr{x: %3d(%3d)  {BCon{x: %3d(%3d)  {BVit{x: %3d(%3d)  {BAgi{x: %3d(%3d)  {BDex{x: %3d(%3d)\n\r",
-        ch->perm_stat[STAT_STR],
-        get_curr_stat(ch,STAT_STR),
-        ch->perm_stat[STAT_CON],
-        get_curr_stat(ch,STAT_CON),
-        ch->perm_stat[STAT_VIT],
-        get_curr_stat(ch,STAT_VIT),
-        ch->perm_stat[STAT_AGI],
-        get_curr_stat(ch,STAT_AGI),
-        ch->perm_stat[STAT_DEX],
-        get_curr_stat(ch,STAT_DEX) );
-    send_to_char( buf, ch );
-    
-    sprintf( buf,
-        "{BInt{x: %3d(%3d)  {BWis{x: %3d(%3d)  {BDis{x: %3d(%3d)  {BCha{x: %3d(%3d)  {BLuc{x: %3d(%3d)\n\r",
-        ch->perm_stat[STAT_INT],
-        get_curr_stat(ch,STAT_INT),
-        ch->perm_stat[STAT_WIS],
-        get_curr_stat(ch,STAT_WIS),
-        ch->perm_stat[STAT_DIS],
-        get_curr_stat(ch,STAT_DIS),
-        ch->perm_stat[STAT_CHA],
-        get_curr_stat(ch,STAT_CHA),
-        ch->perm_stat[STAT_LUC],
-        get_curr_stat(ch,STAT_LUC) );
-    send_to_char( buf, ch );
-    
-    send_to_char( "{cARMOR:{x  ", ch );
-    if ( ch->level >= 25 )
-    {
-        sprintf( buf,"{cpierce{x: %d {cbash{x: %d {cslash{x: %d {cmagic{x: %d\n\r",
-            GET_AC(ch,AC_PIERCE),
-            GET_AC(ch,AC_BASH),
-            GET_AC(ch,AC_SLASH),
-            GET_AC(ch,AC_EXOTIC));
-        send_to_char(buf, ch);
-    }
-    else
-    {
-        int i;
-        for (i = 0; i < 4; i++)
-        {
-            char * temp;
-            
-            switch(i)
-            {
-            case(AC_PIERCE):    temp = "pierce";  break;
-            case(AC_BASH):      temp = "bash";   break;
-            case(AC_SLASH):     temp = "slash";  break;
-            case(AC_EXOTIC):    temp = "magic";     break;
-            default:            temp = "error";     break;
-            }
-            
-            if ( GET_AC(ch,i) >= 101 )
-                sprintf(buf,"{c%s{x: shameful ",temp);
-            else if ( GET_AC(ch,i) >= 80 )
-                sprintf(buf,"{c%s{x: terrible ", temp);
-            else if ( GET_AC(ch,i) >= 60 )
-                sprintf(buf,"{c%s{x: very weak ",temp);
-            else if ( GET_AC(ch,i) >= 40 )
-                sprintf(buf,"{c%s{x: weak ",temp);
-            else if ( GET_AC(ch,i) >= 20 )
-                sprintf(buf,"{c%s{x: so-so ",temp);
-            else if ( GET_AC(ch,i) >= 0 )
-                sprintf(buf,"{c%s{x: passable ",temp);
-            else if ( GET_AC(ch,i) >= -20 )
-                sprintf(buf,"{c%s{x: alright ",temp);
-            else if ( GET_AC(ch,i) >= -40 )
-                sprintf(buf,"{c%s{x: good ",temp);
-            else if ( GET_AC(ch,i) >= -60 )
-                sprintf(buf,"{c%s{x: great ",temp);
-            else if ( GET_AC(ch,i) >= -80 )
-                sprintf(buf,"{c%s{x: superb ",temp);
-            else if ( GET_AC(ch,i) >= -100 )
-                sprintf(buf,"{c%s{x: excellent ",temp);
-            else
-                sprintf(buf,"{c%s{x: amazing! ",temp);
-            
-            send_to_char( buf, ch );
-        }
-        
-        send_to_char( "\n\r", ch );
-    }
-    
-    if ( ch->level >= 15 )
-    {
-        sprintf( buf, "{rHitroll{x: %d  {rDamroll{x: %d",
-            GET_HITROLL(ch), GET_DAMROLL(ch) );
-        send_to_char( buf, ch );
-    }
-    
-    if ( ch-> level >= 50 )
-    {
-        sprintf( buf, "  {rsaves{x: %d", ch->saving_throw );
-        send_to_char( buf, ch );
-    }
-    send_to_char( "\n\r", ch );
-    
-    return;
-}
-*/
 
 bool is_disguised( CHAR_DATA *ch )
 {
@@ -5295,7 +5189,7 @@ void do_attributes( CHAR_DATA *ch, char *argument )
 
         /* ** Hitroll, damroll ** */
         sprintf( buf, "{D|{x {CHit{croll, {CDam{croll:{x %5d, %d     {CSaves:{x %d",
-            GET_HITROLL(ch),  GET_DAMROLL(ch), ch->saving_throw );
+            GET_HITROLL(ch),  GET_DAMROLL(ch), get_save(ch) );
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
@@ -6002,7 +5896,7 @@ sprintf(buf,"{c%s{x: amazing! ",temp);
     
     if ( ch-> level >= 50 )
     {
-        sprintf( buf, "  {rsaves{x: %d", ch->saving_throw );
+        sprintf( buf, "  {rsaves{x: %d", get_save(ch) );
         send_to_char( buf, ch );
     }
     send_to_char( "\n\r", ch );
