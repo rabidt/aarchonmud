@@ -1727,10 +1727,10 @@ void battle_prompt( DESCRIPTOR_DATA *d )
                 color = 'r';
 
             sprintf(buf,
-                    "{W[{%c                                 {W] ({%c%d%%{W){x\n\r",
+                    "{W[{%c                                {W] ({%c%d%%{W){x\n\r",
                     color, color, percent);
 
-            bars=UMIN(((percent*32)/99), 32);
+            bars=UMIN(((percent*32)/100), 32);
             for (i=0; i<bars; i++)
                 buf[5+i]='|';
         }
