@@ -4070,11 +4070,13 @@ void spell_invis( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     OBJ_DATA *obj;
     AFFECT_DATA af;
 
+    /*
     if (IS_REMORT(ch))
     {
         send_to_char("There is noplace to hide in remort.\n\r",ch);
         return;
     }
+    */
 
     /* object invisibility */
     if (target == TARGET_OBJ)
