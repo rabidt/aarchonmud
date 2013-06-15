@@ -931,7 +931,10 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     check_improve( ch, gsn_puppetry, TRUE, 1 );
     
     if ( number_percent() <= puppet_skill )
-    SET_BIT( mob->off_flags, OFF_RESCUE );
+    {
+        SET_BIT( mob->off_flags, OFF_RESCUE );
+        REMOVE_AFFECT( mob, AFF_SLOW );
+    }
     
     set_mob_level( mob, mlevel );
 
