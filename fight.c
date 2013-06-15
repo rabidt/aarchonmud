@@ -160,8 +160,8 @@ void  check_reset_stance args( ( CHAR_DATA *ch) );
 void  stance_hit    args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
 bool is_normal_hit( int dt );
-bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
-             bool show );
+bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
+bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
 bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -560,56 +560,25 @@ void special_affect_update(CHAR_DATA *ch)
     /* Infectious Arrow - DOT - Damage over time */
     if ( is_affected(ch, gsn_infectious_arrow) )
     {
-
-	int infect;
-        infect = number_range (5, 25);
-        infect += ch->level*3/2;
-
-        if (infect >= ch->hit)
-            return;
-        else
-        {
-            send_to_char( "Your festering wound oozes blood.\n\r", ch );
-            full_dam( ch, ch, infect, gsn_infectious_arrow, DAM_DISEASE, TRUE );
-	    update_pos( ch );
-        }
+        int damage = number_range (5, 25) + ch->level*3/2;
+        send_to_char( "Your festering wound oozes blood.\n\r", ch );
+        deal_damage( ch, ch, damage, gsn_infectious_arrow, DAM_DISEASE, TRUE, FALSE );
     }
-
 
     /* Rupture - DOT - Damage over time */
     if ( is_affected(ch, gsn_rupture) )
     {
-	int infect;
-
-        infect = number_range (5, 25);
-        infect += ch->level*3/2;
-
-        if (infect >= ch->hit)
-            return;
-        else
-        {
-	send_to_char( "Your ruptured wound oozes blood.\n\r", ch ); 
-        full_dam( ch, ch, infect, gsn_rupture, DAM_PIERCE, TRUE );
-	update_pos( ch );
-        }
+        int damage = number_range (5, 25) + ch->level*3/2;
+        send_to_char( "Your ruptured wound oozes blood.\n\r", ch );
+        deal_damage( ch, ch, damage, gsn_rupture, DAM_PIERCE, TRUE, FALSE );
     }
 
     /* Paralysis - DOT - Damage over time - Astark Oct 2012 */
     if ( IS_AFFECTED(ch, AFF_PARALYSIS) )
     {
-	int infect;
-
-        infect = number_range (5, 25);
-        infect += ch->level*3/2;
-
-        if (infect >= ch->hit)
-            return;
-        else
-        {
-	send_to_char( "The paralyzing poison cripples you.\n\r", ch ); 
-        full_dam( ch, ch, infect, gsn_paralysis_poison, DAM_POISON, TRUE );
-	update_pos( ch );
-        }
+        int damage = number_range (5, 25) + ch->level*3/2;
+        send_to_char( "The paralyzing poison cripples you.\n\r", ch );
+        deal_damage( ch, ch, damage, gsn_paralysis_poison, DAM_POISON, TRUE, FALSE );
     }
     
 }
@@ -2564,7 +2533,7 @@ bool damage( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
         }
     }
 
-    return full_dam( ch, victim, dam, dt, dam_type, show );
+    return deal_damage( ch, victim, dam, dt, dam_type, show, TRUE );
 }
 
 // if ch is a charmed NPC and leader is present, returns leader, otherwise ch
@@ -2579,8 +2548,12 @@ CHAR_DATA *get_local_leader( CHAR_DATA *ch )
 /*
 * Inflict full damage from a hit.
 */
-bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
-	     bool show ) 
+bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show )
+{
+    return deal_damage(ch, victim, dam, dt, dam_type, show, TRUE);
+}
+
+bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal )
 {
     bool immune;
     char buf[MAX_STRING_LENGTH];
@@ -2915,7 +2888,11 @@ bool full_dam( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
 	}
     }
 
-    victim->hit -= dam;
+    if (lethal)
+        victim->hit -= dam;
+    else if (victim->hit > 0)
+        victim->hit = UMAX(1, victim->hit - dam);
+        
     #ifdef FSTAT 
     victim->damage_taken += dam;
     ch->damage_dealt += dam;
