@@ -1266,6 +1266,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -3532,56 +3534,57 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
         {
             bool clanwar_valid;
             int level_offset = 5;
+            int ch_power = ch->level + 2 * ch->pcdata->remorts;
+            int victim_power = victim->level + 2 * victim->pcdata->remorts;
             
-	    clanwar_valid = is_clanwar_opp(ch, victim);
-	/*	|| is_religion_opp(ch, victim); */
+            clanwar_valid = is_clanwar_opp(ch, victim);
+            /* || is_religion_opp(ch, victim); */
 
             if (!theory && IS_TAG(ch))
             {
-		if ( !quiet )
-		    send_to_char("You cannot fight while playing Freeze Tag.\n\r",ch);
-		return TRUE;
-	    }
+                if ( !quiet )
+                    send_to_char("You cannot fight while playing Freeze Tag.\n\r",ch);
+                return TRUE;
+            }
             
-	    if( IS_AFFECTED(ch,AFF_CHARM) && ch->master == victim )
-	    {
-		if( !quiet )
-		    act( "But $N is your beloved master!",ch,NULL,victim,TO_CHAR );
-		return TRUE;
-	    }
+            if( IS_AFFECTED(ch,AFF_CHARM) && ch->master == victim )
+            {
+                if( !quiet )
+                    act( "But $N is your beloved master!",ch,NULL,victim,TO_CHAR );
+                return TRUE;
+            }
 
-	    /* hardcore pkillers know no level restrictions -- bad idea!!!
-	    if ( (IS_SET(victim->act, PLR_HARDCORE) && IS_SET(ch->act, PLR_HARDCORE))
-		 || (IS_SET(victim->act, PLR_RP) && IS_SET(ch->act, PLR_RP)) )
-		return FALSE;
-	    removed July 2003 */
+            /* hardcore pkillers know no level restrictions -- bad idea!!!
+            if ( (IS_SET(victim->act, PLR_HARDCORE) && IS_SET(ch->act, PLR_HARDCORE))
+                || (IS_SET(victim->act, PLR_RP) && IS_SET(ch->act, PLR_RP)) )
+                return FALSE;
+            removed July 2003 */
 
-	    if ( !clanwar_valid )
-	    {
-		if (!IS_SET(ch->act, PLR_PERM_PKILL))
-		{
-		    if ( !quiet )
-			send_to_char("You are not a player killer.\n\r",ch);
-		    return TRUE;
-		}
+            if ( !clanwar_valid )
+            {
+                if (!IS_SET(ch->act, PLR_PERM_PKILL))
+                {
+                    if ( !quiet )
+                        send_to_char("You are not a player killer.\n\r",ch);
+                    return TRUE;
+                }
             
-		if (!IS_SET(victim->act, PLR_PERM_PKILL))
-		{
-		    if ( !quiet )
-			send_to_char("That player is not a pkiller.\n\r",ch);
-		    return TRUE;
-		}
-	    }
+                if (!IS_SET(victim->act, PLR_PERM_PKILL))
+                {
+                    if ( !quiet )
+                        send_to_char("That player is not a pkiller.\n\r",ch);
+                    return TRUE;
+                }
+            }
             
-	    /* same clan but different religion => can fight
+            /* same clan but different religion => can fight
             if (is_same_clan(ch, victim))
             {
-		if ( !quiet )
-		    printf_to_char(ch, "%s would frown upon that.\n\r",
-				   clan_table[ch->clan].patron);
-		return TRUE;
-	    }
-	    */
+                if ( !quiet )
+                    printf_to_char(ch, "%s would frown upon that.\n\r", clan_table[ch->clan].patron);
+                return TRUE;
+            }
+            */
             
             if (IS_SET(victim->act,PLR_KILLER))
                 level_offset += 2;
@@ -3589,12 +3592,12 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
             if (IS_SET(victim->act, PLR_THIEF))
                 level_offset += 3;
             
-            if (ch->level > victim->level + level_offset)
+            if (ch_power > victim_power + level_offset)
             {
-		if ( !quiet )
-		    send_to_char("Pick on someone your own size.\n\r",ch);
-		return TRUE;
-	    } 
+                if ( !quiet )
+                    send_to_char("Pick on someone your own size.\n\r",ch);
+                return TRUE;
+            }
             
             /* This was added to curb the ankle-biters. Rim 3/15/98 */
             level_offset = 5;
@@ -3605,12 +3608,12 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
             if (IS_SET(ch->act, PLR_THIEF))
                 level_offset += 3;
 
-            if (victim->level > ch->level + level_offset)
+            if (victim_power > ch_power + level_offset)
             {
-		if ( !quiet )
-		    send_to_char("You might get squashed.\n\r",ch);
-		return TRUE;
-	    } 
+                if ( !quiet )
+                    send_to_char("You might get squashed.\n\r",ch);
+                return TRUE;
+            }
         }
     }
     return FALSE;
@@ -5045,7 +5048,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     leadership = (get_curr_stat(leader,STAT_CHA) + get_skill(leader, gsn_leadership)) / 300.0;
     group_factor = 1 - (high_align - low_align) / 4000.0 * (1 - leadership);
     group_factor *= 1 - (max_power - min_power) / 200.0 * (1 - leadership);
-    group_factor *= 1.0/3 + 2.0/(2+members);
+    group_factor *= 1.0/3 + 2.0/(3*members);
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
@@ -5265,6 +5268,9 @@ float calculate_exp_factor( CHAR_DATA *gch )
         int hitdice_gained = gch->level - 88;
         xp_factor *= 5.0 / (4 + hitdice_gained);
     }
+    // and bonus for low-ish characters
+    else
+        xp_factor *= (300 - gch->level) / 200.0;
     // bonus for newbies
     if ( gch->pcdata->remorts == 0 )
         xp_factor *= (300 - gch->level) / 200.0;
