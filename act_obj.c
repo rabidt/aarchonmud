@@ -3344,6 +3344,7 @@ void do_buy( CHAR_DATA *ch, char *argument )
         }
 
         cost = 10 * pet->level * pet->level;
+        cost = haggle_cost( ch, cost, cost/2 );
 
         if ( (ch->silver + 100 * ch->gold) < cost )
         {
@@ -3357,24 +3358,6 @@ void do_buy( CHAR_DATA *ch, char *argument )
                     "You're not powerful enough to master this pet.\n\r", ch );
             return;
         }
-
-        /* haggle */
-        /*
-           roll = number_percent();
-           if (roll < get_skill(ch,gsn_haggle))
-           {
-           if (roll < (chance = get_skill (ch, gsn_appraise)))
-           roll = (int)(((float)(2.0 * roll + chance)/(200.0 + chance)) * 100);
-
-           cost -= (cost*roll) / 200;
-
-           sprintf(buf,"You haggle the price down to %d coins.\n\r",cost);
-           send_to_char(buf,ch);
-           check_improve(ch,gsn_haggle,TRUE,4);
-           }
-         */
-
-        cost = haggle_cost( ch, cost, cost/2 );
 
         deduct_cost(ch,cost);
         pet         = create_mobile( pet->pIndexData );
@@ -3485,25 +3468,6 @@ void do_buy( CHAR_DATA *ch, char *argument )
             send_to_char( "You can't carry that much weight.\n\r", ch );
             return;
         }
-
-        /* haggle */
-        /*
-           roll = number_percent();
-           if (!IS_OBJ_STAT(obj,ITEM_SELL_EXTRACT) 
-           && roll < get_skill(ch,gsn_haggle))
-           {
-           if (roll < (chance = get_skill (ch, gsn_appraise)))
-           roll = (int)(((float)(2.0 * roll + chance)/(float)(200.0 + chance)) * 100);
-           cost -= (obj->cost * roll) / 200;
-
-           printf_to_char(ch,"You haggle with %s.\n\r",PERS(keeper,ch));
-
-           if (roll > 0)
-           printf_to_char(ch,"%s knocks %d off the price.\n\r",
-           PERS(keeper,ch), (obj->cost * roll)/200);
-           check_improve(ch,gsn_haggle,TRUE,4);
-           }
-         */
 
         if (number > 1)
         {
