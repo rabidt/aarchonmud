@@ -1924,8 +1924,7 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
         sprintf( buf, "You must be level %d to use this object.\n\r",
                 obj->level );
         send_to_char( buf, ch );
-        act( "$n tries to use $p, but is too inexperienced.",
-                ch, obj, NULL, TO_ROOM );
+        act_gag( "$n tries to use $p, but is too inexperienced.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
         return;
     }
 
@@ -3344,6 +3343,7 @@ void do_buy( CHAR_DATA *ch, char *argument )
         }
 
         cost = 10 * pet->level * pet->level;
+        cost = haggle_cost( ch, cost, cost/2 );
 
         if ( (ch->silver + 100 * ch->gold) < cost )
         {
@@ -3357,24 +3357,6 @@ void do_buy( CHAR_DATA *ch, char *argument )
                     "You're not powerful enough to master this pet.\n\r", ch );
             return;
         }
-
-        /* haggle */
-        /*
-           roll = number_percent();
-           if (roll < get_skill(ch,gsn_haggle))
-           {
-           if (roll < (chance = get_skill (ch, gsn_appraise)))
-           roll = (int)(((float)(2.0 * roll + chance)/(200.0 + chance)) * 100);
-
-           cost -= (cost*roll) / 200;
-
-           sprintf(buf,"You haggle the price down to %d coins.\n\r",cost);
-           send_to_char(buf,ch);
-           check_improve(ch,gsn_haggle,TRUE,4);
-           }
-         */
-
-        cost = haggle_cost( ch, cost, cost/2 );
 
         deduct_cost(ch,cost);
         pet         = create_mobile( pet->pIndexData );
@@ -3485,25 +3467,6 @@ void do_buy( CHAR_DATA *ch, char *argument )
             send_to_char( "You can't carry that much weight.\n\r", ch );
             return;
         }
-
-        /* haggle */
-        /*
-           roll = number_percent();
-           if (!IS_OBJ_STAT(obj,ITEM_SELL_EXTRACT) 
-           && roll < get_skill(ch,gsn_haggle))
-           {
-           if (roll < (chance = get_skill (ch, gsn_appraise)))
-           roll = (int)(((float)(2.0 * roll + chance)/(float)(200.0 + chance)) * 100);
-           cost -= (obj->cost * roll) / 200;
-
-           printf_to_char(ch,"You haggle with %s.\n\r",PERS(keeper,ch));
-
-           if (roll > 0)
-           printf_to_char(ch,"%s knocks %d off the price.\n\r",
-           PERS(keeper,ch), (obj->cost * roll)/200);
-           check_improve(ch,gsn_haggle,TRUE,4);
-           }
-         */
 
         if (number > 1)
         {
@@ -4369,7 +4332,7 @@ void do_second (CHAR_DATA *ch, char *argument)
     {
         sprintf( buf, "You must be level %d to use this object.\n\r", obj->level );
         send_to_char( buf, ch );
-        act( "$n tries to use $p, but is too inexperienced.", ch, obj, NULL, TO_ROOM );
+        act_gag( "$n tries to use $p, but is too inexperienced.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
         return;
     }
 
@@ -4395,12 +4358,12 @@ void do_second (CHAR_DATA *ch, char *argument)
         }
 
         unequip_char( ch, second );
-        act( "$n sheaths $p.", ch, second, NULL, TO_ROOM );
+        act_gag( "$n sheaths $p.", ch, second, NULL, TO_ROOM, GAG_EQUIP );
         act( "You sheath $p.", ch, second, NULL, TO_CHAR );
     }
 
 
-    act ("$n wields $p in $s off-hand.",ch,obj,NULL,TO_ROOM);
+    act_gag ("$n wields $p in $s off-hand.",ch,obj,NULL,TO_ROOM,GAG_EQUIP);
     act ("You wield $p in your off-hand.",ch,obj,NULL,TO_CHAR);
     equip_char ( ch, obj, WEAR_SECONDARY);
     return;
