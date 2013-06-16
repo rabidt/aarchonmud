@@ -1924,8 +1924,7 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
         sprintf( buf, "You must be level %d to use this object.\n\r",
                 obj->level );
         send_to_char( buf, ch );
-        act( "$n tries to use $p, but is too inexperienced.",
-                ch, obj, NULL, TO_ROOM );
+        act_gag( "$n tries to use $p, but is too inexperienced.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
         return;
     }
 
@@ -4333,7 +4332,7 @@ void do_second (CHAR_DATA *ch, char *argument)
     {
         sprintf( buf, "You must be level %d to use this object.\n\r", obj->level );
         send_to_char( buf, ch );
-        act( "$n tries to use $p, but is too inexperienced.", ch, obj, NULL, TO_ROOM );
+        act_gag( "$n tries to use $p, but is too inexperienced.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
         return;
     }
 
@@ -4359,12 +4358,12 @@ void do_second (CHAR_DATA *ch, char *argument)
         }
 
         unequip_char( ch, second );
-        act( "$n sheaths $p.", ch, second, NULL, TO_ROOM );
+        act_gag( "$n sheaths $p.", ch, second, NULL, TO_ROOM, GAG_EQUIP );
         act( "You sheath $p.", ch, second, NULL, TO_CHAR );
     }
 
 
-    act ("$n wields $p in $s off-hand.",ch,obj,NULL,TO_ROOM);
+    act_gag ("$n wields $p in $s off-hand.",ch,obj,NULL,TO_ROOM,GAG_EQUIP);
     act ("You wield $p in your off-hand.",ch,obj,NULL,TO_CHAR);
     equip_char ( ch, obj, WEAR_SECONDARY);
     return;
