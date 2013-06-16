@@ -2848,22 +2848,7 @@ void do_guard( CHAR_DATA *ch, char *argument )
         return;
     }
  
-   /* Error messages fixed - Astark */
-    
-/* These checks occur in is_safe: 
-    if ( check_kill_steal(ch,victim) )
-    {
-        send_to_char("Kill stealing is not permitted.\n\r",ch);
-        return;
-    }
-    if (IS_AFFECTED(ch,AFF_CHARM) && ch->master == victim)
-    {
-        act("$N is your beloved master.",ch,NULL,victim,TO_CHAR);
-        return;
-    }
-*/
-
-    if (IS_AFFECTED(victim, AFF_GUARD))
+    if ( is_affected(victim, gsn_guard) )
     {
         act("You are already guarding against $N's attacks.",ch,NULL,victim,TO_CHAR);
         return;
@@ -3813,33 +3798,12 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
         return;
     }
  
-   /* Error messages fixed - Astark */
-    
-/* These checks occur in is_safe: 
-    if ( check_kill_steal(ch,victim) )
-    {
-        send_to_char("Kill stealing is not permitted.\n\r",ch);
-        return;
-    }
-    if (IS_AFFECTED(ch,AFF_CHARM) && ch->master == victim)
-    {
-        act("$N is your beloved master.",ch,NULL,victim,TO_CHAR);
-        return;
-    }
-*/    
-	
     if ( is_affected( victim, gsn_choke_hold ))
     {
         act("$N is already choking.",ch,NULL,victim,TO_CHAR);
         return;
     }
     
-    if ( IS_AFFECTED( victim, AFF_GUARD ))
-    {
-        act("$N can't be choked in $S current state.",ch,NULL,victim,TO_CHAR);
-        return;
-    }
-	
     /* base rolls */
     chance = skill / 2;
     chance += (get_curr_stat(ch,STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
