@@ -245,6 +245,12 @@ void shift_mprog_list( MPROG_LIST *list )
 	SHIFT( list->vnum );
 }
 
+void shift_oprog_list( OPROG_LIST *list )
+{
+    for ( ; list != NULL; list = list->next )
+    SHIFT( list->vnum );
+}
+
 void shift_mob( MOB_INDEX_DATA *mob )
 {
     if ( mob == NULL )
@@ -288,6 +294,9 @@ void shift_obj( OBJ_INDEX_DATA *obj )
     /* container locks */
     if ( obj->item_type == ITEM_CONTAINER )
 	SHIFT( obj->value[2] );
+
+    if ( obj->oprogs != NULL )
+    shift_oprog_list( obj->oprogs );
 }
 
 /***************************** MPROGS **********************/

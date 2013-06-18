@@ -107,6 +107,7 @@ SHOP_DATA *     shop_last;
 NOTE_DATA *     note_free;
 
 MPROG_CODE *    mprog_list;
+OPROG_CODE *    oprog_list;
 
 char            bug_buf     [2*MAX_INPUT_LENGTH];
 CHAR_DATA *     char_list;
@@ -204,6 +205,7 @@ sh_int  gsn_taxidermy;
 sh_int  gsn_introspection;
 sh_int  gsn_climbing;
 sh_int  gsn_blindfighting;
+sh_int  gsn_beast_mastery;
 sh_int  gsn_camp_fire;
 sh_int  gsn_treat_weapon;
 sh_int  gsn_soothe;
@@ -482,6 +484,8 @@ int  top_vnum_room;      /* OLC */
 int  top_vnum_mob;       /* OLC */
 int  top_vnum_obj;       /* OLC */
 int  top_mprog_index;    /* OLC */
+int  top_oprog_index;    /* OLC */
+int  lua_mprogs=0;
 int  mobile_count = 0;
 int  newmobs = 0;
 int  newobjs = 0;
@@ -680,6 +684,9 @@ void boot_db()
     log_string( "Counting stats" );
     count_stats();
 
+    log_string( "Lua init.");
+    open_lua();
+
     log_string( "Loading areas" );
     /*
     * Read in all the area files.
@@ -735,6 +742,9 @@ void boot_db()
         fix_exits( );
         log_string("Fixing mobprogs");
         fix_mobprogs( );
+        log_string("Fixing objprogs");
+        fix_objprogs( );
+
         
         fBootDb = FALSE;
         
@@ -860,6 +870,7 @@ void load_area_file( FILE *fp, bool clone )
 	else if ( !str_cmp( word, "MOBILES"  ) ) load_mobiles (fpArea);
         else if ( !str_cmp( word, "MOBBLES"  ) ) load_mobbles (fpArea);
 	else if ( !str_cmp( word, "MOBPROGS" ) ) load_mobprogs(fpArea);
+    else if ( !str_cmp( word, "OBJPROGS" ) ) load_objprogs(fpArea);
 	else if ( !str_cmp( word, "OBJOLD"   ) ) load_old_obj (fpArea);
 	else if ( !str_cmp( word, "OBJECTS"  ) ) load_objects (fpArea);
 	else if ( !str_cmp( word, "RESETS"   ) ) load_resets  (fpArea);
@@ -2124,7 +2135,58 @@ void fix_exits( void )
     return;
 }
 
+/*
+* Load objprogs section
+*/
+void load_objprogs( FILE *fp )
+{
+    OPROG_CODE *pOprog;
 
+    if ( area_last == NULL )
+    {
+        bug( "Load_objprogs: no #AREA seen yet.", 0 );
+        exit( 1 );
+    }
+
+    for ( ; ; )
+    {
+        int vnum;
+        char letter;
+
+        letter        = fread_letter( fp );
+        if ( letter != '#' )
+        {
+            bug( "Load_objprogs: # not found.", 0 );
+            exit( 1 );
+        }
+
+        vnum         = fread_number( fp );
+        if ( vnum == 0 )
+            break;
+
+        fBootDb = FALSE;
+        if ( get_oprog_index( vnum ) != NULL )
+        {
+            bug( "Load_objprogs: vnum %d duplicated.", vnum );
+            exit( 1 );
+        }
+        fBootDb = TRUE;
+
+        pOprog      = alloc_perm( sizeof(*pOprog) );
+        pOprog->vnum    = vnum;
+        pOprog->code    = fread_string( fp );
+
+        if ( oprog_list == NULL )
+            oprog_list = pOprog;
+        else
+        {
+            pOprog->next = oprog_list;
+            oprog_list  = pOprog;
+        }
+        top_oprog_index++;
+    }
+    return;
+}
 /*
 * Load mobprogs section
 */
@@ -2164,7 +2226,24 @@ void load_mobprogs( FILE *fp )
         
         pMprog      = alloc_perm( sizeof(*pMprog) );
         pMprog->vnum    = vnum;
-        pMprog->code    = fread_string( fp );
+        /* some funko stuff when loading old files that don't have is_lua data*/
+        char * tempStr = fread_string( fp );
+        if ( !strcmp( tempStr, "IS_LUA" ) )
+        {
+            pMprog->is_lua = TRUE;
+            pMprog->code = fread_string( fp );
+            lua_mprogs++;
+        }
+        else if ( !strcmp( tempStr, "NOT_LUA" ) )
+        {
+            pMprog->is_lua = FALSE;
+            pMprog->code = fread_string( fp );
+        }
+        else
+        {
+            pMprog->code    = tempStr;
+        }
+
         if ( mprog_list == NULL )
             mprog_list = pMprog;
         else
@@ -2200,6 +2279,7 @@ void fix_mobprogs( void )
                 {
                     mprog_count++;
                     list->code = prog->code;
+                    list->is_lua = prog->is_lua;
                 }
                 else
                 {
@@ -2213,6 +2293,38 @@ void fix_mobprogs( void )
     //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
 
+void fix_objprogs( void )
+{
+    OBJ_INDEX_DATA *pObjIndex;
+    OPROG_LIST        *list;
+    OPROG_CODE        *prog;
+    int iHash;
+    int oprog_count = 0;
+
+    for ( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
+    {
+        for ( pObjIndex   = obj_index_hash[iHash];
+        pObjIndex   != NULL;
+        pObjIndex   = pObjIndex->next )
+        {
+            for( list = pObjIndex->oprogs; list != NULL; list = list->next )
+            {
+                if ( ( prog = get_oprog_index( list->vnum ) ) != NULL )
+                {
+                    oprog_count++;
+                    list->code = prog->code;
+                }
+                else
+                {
+                    bug( "Fix_objprogs: code vnum %d not found.", list->vnum );
+                    exit( 1 );
+                }
+            }
+        }
+    }
+    //debug
+    //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
+}
 
 /*
 * Repopulate areas periodically.
@@ -2372,7 +2484,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
 
 		if ( HAS_TRIGGER(pMob, TRIG_RESET) )
 		{
-		    mp_percent_trigger( pMob, NULL, NULL, NULL, TRIG_RESET );
+		    mp_percent_trigger( pMob, NULL, NULL, 0, NULL, 0,TRIG_RESET );
 		    /* safety-net if mob kills himself with mprog */
 		    if ( IS_DEAD(pMob) )
 		    {
@@ -2945,6 +3057,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mob->next       = char_list;
     char_list       = mob;
     pMobIndex->count++;
+
     return mob;
 }
 
@@ -3446,6 +3559,16 @@ MPROG_CODE *get_mprog_index( int vnum )
     return NULL;
 }    
 
+OPROG_CODE *get_oprog_index( int vnum )
+{
+    OPROG_CODE *prg;
+    for( prg = oprog_list; prg; prg = prg->next )
+    {
+        if ( prg->vnum == vnum )
+            return( prg );
+    }
+    return NULL;
+}
 
 /*
 * Read a letter from a file.
@@ -4283,6 +4406,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     sprintf( buf, "Mobs    %5d(%d new format)\n\r", top_mob_index,newmobs ); 
     send_to_char( buf, ch );
     sprintf( buf, "(in use)%5d\n\r", mobile_count  ); send_to_char( buf, ch );
+    sprintf( buf, "Mprogs  %5d(%d lua)\n\r", top_mprog_index, lua_mprogs); send_to_char( buf, ch);
     sprintf( buf, "Objs    %5d(%d new format)\n\r", top_obj_index,newobjs ); 
     send_to_char( buf, ch );
     sprintf( buf, "Resets  %5d\n\r", top_reset     ); send_to_char( buf, ch );
@@ -4888,6 +5012,7 @@ void bug( const char *str, int param )
         
         sprintf( buf, "[*****] FILE: %s LINE: %d", strArea, iLine );
         log_string( buf );
+        wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
         /* RT removed because we don't want bugs shutting the mud 
         if ( ( fp = fopen( "shutdown.txt", "a" ) ) != NULL )
         {
@@ -4900,6 +5025,7 @@ void bug( const char *str, int param )
     strcpy( buf, "[*****] BUG: " );
     sprintf( buf + strlen(buf), str, param );
     log_string( buf );
+    wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
     /* RT removed due to bug-file spamming 
     fclose( fpReserve );
     if ( ( fp = fopen( BUG_FILE, "a" ) ) != NULL )

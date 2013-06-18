@@ -22,6 +22,7 @@ EndSect
 #include "merc.h"
 #include "leaderboard.h"
 #include "buffer_util.h"
+#if 0
 
 
 static time_t next_day();
@@ -1285,3 +1286,47 @@ static time_t next_month()
 }
 
 
+#endif
+void do_lboard( CHAR_DATA *ch, char *argument)
+{
+    //nuffin
+    return;
+}
+
+void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
+{
+    //nothin
+    return;
+}
+
+void lboard_init()
+{
+    return;
+}
+
+
+void remove_from_all_lboards( char *name )
+{
+    return;
+}
+
+void check_lboard_reset()
+{
+    return;
+}
+
+
+void do_lhistory()
+{
+    return;
+}
+
+void load_lboards()
+{
+    return;
+}
+
+void load_lboard_results()
+{
+    return;
+}

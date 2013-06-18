@@ -62,7 +62,8 @@ bool can_gain_skill( CHAR_DATA *ch, int sn )
 void do_gain(CHAR_DATA *ch, char *argument)
 {
 	char buf[MAX_STRING_LENGTH];
-	char arg[MAX_INPUT_LENGTH];
+    char *argPtr;
+	char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 	CHAR_DATA *trainer;
 	int gn = 0, sn = 0;
 	bool introspect = FALSE;
@@ -99,8 +100,9 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			}
 		}
 		
-		
-		one_argument(argument,arg);
+                argPtr = one_argument( argument, arg );
+                argPtr = one_argument( argPtr, arg2 );
+
 		if (arg[0] == '\0')
 		{
 			if ( introspect )
@@ -164,7 +166,25 @@ void do_gain(CHAR_DATA *ch, char *argument)
 		}
 		else if (!str_cmp(arg,"convert"))
 		{
-			if (ch->practice < 10)
+                    int train_count = 0;
+                    if ( strcmp(arg2, "") == 0 )
+                        train_count = 1;
+                    else if ( strcmp(arg2, "all") == 0 )
+                        train_count = ch->practice/10;
+                    else if ( is_number(arg2) )
+                        train_count = atoi(arg2);
+                    else
+                    {
+                        send_to_char("Syntax: convert <#|all>.\n\r",ch);
+                        return;
+                    }
+                    if (train_count < 0)
+                    {
+                        send_to_char("Use revert to to change trains back into practices.\n\r", ch);
+                        return;                        
+                    }
+                    
+			if (ch->practice < 10 * train_count)
 			{
 				if ( introspect )
 					send_to_char("You are not ready.\n\r",ch);
@@ -177,9 +197,10 @@ void do_gain(CHAR_DATA *ch, char *argument)
 				send_to_char("You apply your practice to training.\n\r",ch);
 			else
 				act("$N helps you apply your practice to training.",
-				ch,NULL,trainer,TO_CHAR );
-			ch->practice -= 10;
-			ch->train +=1 ;
+				ch,NULL,trainer,TO_CHAR );                        
+			ch->practice -= 10 * train_count;
+			ch->train += train_count;
+                        printf_to_char(ch,"You gain %d train(s).\n\r", train_count);
 			return;
 		}
 		else if (!str_cmp(arg,"revert"))
@@ -232,72 +253,6 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			ch->exp = exp_per_level(ch,ch->pcdata->points) * ch->level;
 			return;
 		}
-/*
-		else if (!str_cmp(arg, "swaphp"))
-		{
-			if (!train_stat(ch->pcdata->trained_mana, ch))
-			{
-				send_to_char("You cant gain anymore mana.\n\r", ch);
-				return;
-			}
-
-			if (ch->pcdata->perm_hit <= 100)
-			{
-				if ( introspect )
-					send_to_char("That wouldn't be prudent.\n\r",ch);             
-				else
-					act("$N does not think that would be prudent.",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
-			if ( introspect )
-				send_to_char("You transfer some hit points to mana.\n\r",ch);   
-			else
-				act( "$N channels power from the gods, and transfers some of your hit points to mana.",
-				ch,NULL,trainer,TO_CHAR );
-			ch->hit = UMAX(1,ch->hit-15);
-			ch->mana += 10;
-			ch->max_hit -= 15;
-			ch->max_mana += 10;
-			ch->pcdata->perm_hit -= 15;
-			ch->pcdata->perm_mana += 10;
-			ch->pcdata->trained_hit--;
-			ch->pcdata->trained_mana++;
-			return;
-		}
-		else if (!str_cmp(arg, "swapmana"))
-		{
-			if (!train_stat(ch->pcdata->trained_hit, ch))
-			{
-				send_to_char("You cant gain anymore health.\n\r", ch);
-				return;
-			}
-
-			if (ch->pcdata->perm_mana <= 100)
-			{
-				if ( introspect )
-					send_to_char("That wouldn't be prudent.\n\r",ch);
-				else
-					act( "$N does not think that would be prudent.",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
-			if ( introspect )
-				send_to_char("You transfer some mana to hit points.\n\r",ch);
-			else
-				act( "$N channels power from the gods, and transfers some of your mana to hit points.",
-				ch,NULL,trainer,TO_CHAR );
-			ch->mana = UMAX(1,ch->mana-15);
-			ch->hit += 10;
-			ch->max_mana -= 15;
-			ch->max_hit += 10;
-			ch->pcdata->perm_mana -= 15;
-			ch->pcdata->perm_hit += 10;
-			ch->pcdata->trained_hit++;
-			ch->pcdata->trained_mana--;
-			return;
-		}
-*/
 		else if (!str_cmp(arg, "losehp"))
 		{
             if (ch->pcdata->trained_hit < 2)
@@ -461,7 +416,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 void do_skill( CHAR_DATA *ch, char *argument )
 {
     char buf[MSL];
-    int sn, level, skill;
+    int sn, level, skill, mana;
     
     if (IS_NPC(ch))
 	return;
@@ -488,19 +443,40 @@ void do_skill( CHAR_DATA *ch, char *argument )
     level = skill_table[sn].skill_level[ch->class];
     skill = get_skill(ch,sn);
 
-    if( level > 100 )
+  /* Now uses existing functions to display mana on spells - Astark 4-23-13 */
+
+    if (!IS_SPELL(sn))
     {
-	if( skill > 0 )
-	{
-	    sprintf( buf, "Proficiency for raceskill %s:  %3d%% practiced  %3d%% effective\n\r",
-		skill_table[sn].name, ch->pcdata->learned[sn], skill );
-	}
-	else
-	    sprintf( buf, "You do not have the %s skill.\n\r", skill_table[sn].name );
+        if( level > 100 )
+        {
+	    if( skill > 0 )
+            {
+                sprintf( buf, "Proficiency for raceskill %s:  %3d%% practiced  %3d%% effective\n\r",
+                    skill_table[sn].name, ch->pcdata->learned[sn], skill );
+            }
+            else
+                sprintf( buf, "You do not have the %s skill.\n\r", skill_table[sn].name );
+        }
+        else
+	    sprintf( buf, "Proficiency for lvl %d skill %s:  %3d%% practiced  %3d%% effective\n\r",
+                level, skill_table[sn].name, ch->pcdata->learned[sn], skill );
     }
     else
-	sprintf( buf, "Proficiency for lvl %d skill %s:  %3d%% practiced  %3d%% effective\n\r",
-			level, skill_table[sn].name, ch->pcdata->learned[sn], skill );
+    {
+        if( level > 100 )
+        {
+	    if( skill > 0 )
+            {
+                sprintf( buf, "Proficiency for raceskill %s:  %3d%% practiced  %3d%% effective %3d mana\n\r",
+                    skill_table[sn].name, ch->pcdata->learned[sn], skill, mana_cost(ch, sn, skill));
+            }
+            else
+                sprintf( buf, "You do not have the %s skill.\n\r", skill_table[sn].name );
+        }
+        else
+            sprintf( buf, "Proficiency for lvl %d skill %s:  %3d%% practiced  %3d%% effective %3d mana\n\r",
+                level, skill_table[sn].name, ch->pcdata->learned[sn], skill, mana_cost(ch, sn, skill));  
+    }
 
     send_to_char( buf, ch );
 }
@@ -701,6 +677,20 @@ void do_skills(CHAR_DATA *ch, char *argument)
 		skill_list[level][0] = '\0';
 	}
 
+    /* let's show exotic */
+        int max=0;
+        int total=0;
+        int i;
+        int skill;
+        for (i=gsn_axe; i<=gsn_whip; i++)
+        {
+            skill = get_weapon_skill(ch, i);
+            total+=skill;
+            if (skill>max) max=skill;
+        }
+        skill=(total/(gsn_whip-gsn_axe)+2*max)/3;
+    ptc( ch, "          %-21s     (%3d%%)", "exotic", skill);
+
 	for (sn = 0; sn < MAX_SKILL; sn++)
 	{
 	    if (skill_table[sn].name == NULL )
@@ -774,7 +764,7 @@ void show_class_skills( CHAR_DATA *ch, char *argument )
         }
     }
     page_to_char( buf_string(buffer), ch );
-
+    free_buf(buffer);
 }
 
 /* shows skills, groups and costs (only if not bought) */
@@ -1438,6 +1428,21 @@ void group_remove(CHAR_DATA *ch, const char *name)
 	}
 }
 
+int get_injury_penalty( CHAR_DATA *ch )
+{
+    int penalty = 1000 * (ch->max_hit - ch->hit) / UMAX(1, ch->max_hit) - 5 * get_curr_stat(ch,STAT_DIS);
+    // check if further reduction is needed at all (for efficiency)
+    if ( penalty > 0 )
+    {
+        if (ch->stance == STANCE_KAMIKAZE || IS_AFFECTED(ch, AFF_BERSERK))
+            penalty /= 2;
+        else
+            penalty -= penalty * get_skill(ch, gsn_ashura) / 200;
+    }
+    
+    return URANGE(0, penalty / 20, 50);
+}
+
 int mob_has_skill(CHAR_DATA *ch, int sn)
 {
     bool charmed;
@@ -1538,7 +1543,12 @@ int mob_get_skill(CHAR_DATA *ch, int sn)
 	/* encumberance */
 	skill = skill * (1000 - get_encumberance(ch)) / 1000;
 
-	return URANGE(0,skill,100);
+        skill = URANGE(0,skill,100);
+        /* injury */
+        if (sn != gsn_ashura) // needed to avoid infinite recursion
+            skill = skill * (100 - get_injury_penalty(ch)) / 100;
+
+        return skill;
 }
 
 int get_race_skill( CHAR_DATA *ch, int sn )
@@ -1649,8 +1659,13 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	if (ch->pcdata->condition[COND_SMOKE]<-1 )
 		skill = 9 * skill / 10;
 
-	skill/=10;
-	return URANGE(0,skill,100);
+        skill = URANGE(0,skill/10,100);
+
+        /* injury */
+        if (sn != gsn_ashura) // needed to avoid infinite recursion
+            skill = skill * (100 - get_injury_penalty(ch)) / 100;
+
+        return skill;
 }
 
 
@@ -1693,10 +1708,17 @@ int get_weapon_skill(CHAR_DATA *ch, int sn)
 	 /* -1 is exotic */
 	if (IS_NPC(ch))
 	{
+        if ( IS_SET(ch->act,ACT_NOWEAPON) && sn != gsn_hand_to_hand )
+            return 0;
+        
 	    if (sn == -1)
 		skill = ch->level;
 	    else
 		skill = 40 + ch->level/2;
+	    
+	    skill = URANGE(0, skill, 100);
+	    /* injury */
+	    skill = skill * (100 - get_injury_penalty(ch)) / 100;
 	}
 	
 	else
@@ -1807,11 +1829,20 @@ void do_practice( CHAR_DATA *ch, char *argument )
 
 	if (!str_cmp("field",argument))
 	{
+            /* no more burning practices when you don't have field */
+            if (ch->pcdata->field < 100)
+            {
+                send_to_char("You don't have enough field experience to practice.\n\r",ch);
+                return;
+            }
+            else
+            {
 		ch->practice--;
 		sn = number_range(ch->pcdata->field/2, ch->pcdata->field);
 		ch->pcdata->field-=sn;
 		gain_exp(ch, sn);
 		return;
+            }
 	}
 	
 	  if ( ( sn = find_spell( ch,argument ) ) < 0

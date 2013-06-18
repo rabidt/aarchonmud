@@ -527,11 +527,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	if (ch->pcdata->highest_level != ch->level)
         bprintf( buf, "HLev %d\n",   ch->pcdata->highest_level  );
         
-        bprintf( buf, "HMVP %d %d %d\n", ch->pcdata->perm_hit, 
-            ch->pcdata->perm_mana,
-            ch->pcdata->perm_move);
-
-	if (ch->pcdata->trained_hit)
+        if (ch->pcdata->trained_hit)
 	    bprintf(buf, "THit %d\n", ch->pcdata->trained_hit);
         
 	if (ch->pcdata->trained_mana)
@@ -1356,8 +1352,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             KEY( "AchPts",   ch->pcdata->achpoints, bread_number( buf ) );
             KEY( "Alignment",   ch->alignment,      bread_number( buf ) );
             KEY( "Alig",    ch->alignment,      bread_number( buf ) );
-            KEY( "AuthedBy",	ch->pcdata->authed_by,	bread_string( buf ) );
-            KEY( "Action", ch->pcdata->combat_action,	bread_string( buf ) );
+            KEYS( "AuthedBy",	ch->pcdata->authed_by,	bread_string( buf ) );
+            KEYS( "Action", ch->pcdata->combat_action,	bread_string( buf ) );
             
             if (!str_cmp( word, "Alia"))
             {
@@ -1515,13 +1511,13 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             break;
             
     case 'B':
-        KEY( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
-        KEY( "Bamfout", ch->pcdata->bamfout,    bread_string( buf ) );
+        KEYS( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
+        KEYS( "Bamfout", ch->pcdata->bamfout,    bread_string( buf ) );
         KEY( "Bank",    ch->pcdata->bank,       bread_number( buf ) );       
-	KEY( "Bhds",    ch->pcdata->behead_cnt, bread_number(buf));
-        KEY( "Bin",     ch->pcdata->bamfin, bread_string( buf ) );
-        KEY( "Bout",    ch->pcdata->bamfout,    bread_string( buf ) );
-	KEY( "Boxes",   ch->pcdata->storage_boxes, bread_number(buf) );
+	    KEY( "Bhds",    ch->pcdata->behead_cnt, bread_number(buf));
+        KEYS( "Bin",     ch->pcdata->bamfin, bread_string( buf ) );
+        KEYS( "Bout",    ch->pcdata->bamfout,    bread_string( buf ) );
+	    KEY( "Boxes",   ch->pcdata->storage_boxes, bread_number(buf) );
         KEY( "Bnty",  ch->pcdata->bounty,   bread_number( buf ) );
         
         /* Read in board status */      
@@ -1552,8 +1548,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'C':
         KEY( "Class",   ch->class,      bread_number( buf ) );
         KEY( "Cla",     ch->class,      bread_number( buf ) );
-        KEY( "Clan",    ch->clan,   clan_lookup(bread_string(buf)));
-        KEY( "CFlag",   ch->pcdata->customflag, bread_string(buf));
+        if ( !str_cmp(word, "Clan") )
+        {
+            char *temp=bread_string(buf);
+            ch->clan=clan_lookup(temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
+        KEYS( "CFlag",   ch->pcdata->customflag, bread_string(buf));
         KEY( "CDur",    ch->pcdata->customduration, bread_number(buf));
         
         if ( !str_cmp(word,"Cond"))
@@ -1577,7 +1579,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             break;
         }
         KEYF("Comm",     ch->comm ); 
-        KEY("CRank",    ch->pcdata->clan_rank, clan_rank_lookup(ch->clan, bread_string(buf)));
+        if (!str_cmp(word, "CRank") )
+        {
+            char *temp=bread_string(buf);
+            ch->pcdata->clan_rank=clan_rank_lookup(ch->clan, temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
+
 	if ( !str_cmp(word, "Crime") )
 	{
 	    CRIME_DATA *cr, *newcr;
@@ -1693,8 +1702,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'D':
         KEY( "Damroll", ch->damroll,        bread_number( buf ) );
         KEY( "Dam",     ch->damroll,        bread_number( buf ) );
-        KEY( "Description", ch->description,    bread_string( buf ) );
-        KEY( "Desc",    ch->description,    bread_string( buf ) );
+        KEYS( "Description", ch->description,    bread_string( buf ) );
+        KEYS( "Desc",    ch->description,    bread_string( buf ) );
         KEY( "Demerit", ch->pcdata->demerit_points, bread_number( buf ) );
         break;
         
@@ -1854,15 +1863,6 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             break;
         }
         
-        if ( !str_cmp( word, "HpManaMovePerm" ) || !str_cmp(word,"HMVP"))
-        {
-            ch->pcdata->perm_hit    = bread_number( buf );
-            ch->pcdata->perm_mana   = bread_number( buf );
-            ch->pcdata->perm_move   = bread_number( buf );
-            fMatch = TRUE;
-            break;
-        }
-        
         break;
         
     case 'I':
@@ -1878,7 +1878,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             i = clan_lookup(bread_word(buf));
 
             if (i > 0)
-                ch->pcdata->invitation[i] = str_dup(bread_string(buf));
+                ch->pcdata->invitation[i] = bread_string(buf);
                                        
             fMatch = TRUE;
         }
@@ -1931,8 +1931,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Lev",     ch->level,      bread_number( buf ) );
         KEY( "Levl",    ch->level,      bread_number( buf ) );
         KEY( "LogO",    lastlogoff,     bread_number( buf ) );
-        KEY( "LongDescr",   ch->long_descr,     bread_string( buf ) );
-        KEY( "LnD",     ch->long_descr,     bread_string( buf ) );
+        KEYS( "LongDescr",   ch->long_descr,     bread_string( buf ) );
+        KEYS( "LnD",     ch->long_descr,     bread_string( buf ) );
         break;
         
     case 'M':
@@ -1940,7 +1940,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "MobDeaths",ch->pcdata->mob_deaths,         bread_number( buf ) );
 	if ( !str_cmp(word, "Morph") )
 	{
-	    ch->pcdata->morph_race = race_lookup( bread_string(buf) );
+        char *temp=bread_string(buf);
+	    ch->pcdata->morph_race = race_lookup( temp );
+        free_string(temp);
 	    ch->pcdata->morph_time = bread_number( buf );
 	    fMatch = TRUE;
 	    break;
@@ -1966,14 +1968,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             fMatch = TRUE;
             break;
         }
-	KEY( "NmCol", ch->pcdata->name_color, bread_string( buf) );
+	KEYS( "NmCol", ch->pcdata->name_color, bread_string( buf) );
         break;
         
     case 'P':
-        KEY( "Password",    ch->pcdata->pwd,    bread_string( buf ) );
-        KEY( "Pass",    ch->pcdata->pwd,    bread_string( buf ) );
+        KEYS( "Password",    ch->pcdata->pwd,    bread_string( buf ) );
+        KEYS( "Pass",    ch->pcdata->pwd,    bread_string( buf ) );
         KEY( "PKPoints", ch->pcdata->pkpoints, bread_number( buf ) );
-	KEY( "PkillDeaths", ch->pcdata->pkill_deaths, bread_number( buf ) );
+	    KEY( "PkillDeaths", ch->pcdata->pkill_deaths, bread_number( buf ) );
         KEY( "Played",  ch->played,     bread_number( buf ) );
         KEY( "Plyd",    ch->played,     bread_number( buf ) );
         KEY( "Points",  ch->pcdata->points, bread_number( buf ) );
@@ -1982,9 +1984,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Pos",     ch->position,       bread_number( buf ) );
         KEY( "Practice",    ch->practice,       bread_number( buf ) );
         KEY( "Prac",    ch->practice,       bread_number( buf ) );
-	KEY( "Pretitle",ch->pcdata->pre_title, bread_string(buf));
+	    KEYS( "Pretitle",ch->pcdata->pre_title, bread_string(buf));
         KEYS( "Prompt",      ch->prompt,             bread_string( buf ) );
-        KEY( "Prom",    ch->prompt,     bread_string( buf ) );
+        KEYS( "Prom",    ch->prompt,     bread_string( buf ) );
 
 	if ( !str_cmp( word, "Pray" ) )
 	{
@@ -2036,8 +2038,13 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         
     case 'R':
-        KEY( "Race",        ch->race,   
-            race_lookup(bread_string( buf )) );
+        if (!str_cmp(word, "Race") )
+        {
+            char *temp=bread_string(buf);
+            ch->race=race_lookup(temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
         KEY( "Remort",  ch->pcdata->remorts,    bread_number(buf));
         
         if ( !str_cmp( word, "Room" ) )
@@ -2056,11 +2063,11 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Save",    ch->saving_throw,   bread_number( buf ) );
         KEY( "Scro",    ch->lines,      bread_number( buf ) );
         KEY( "Sex",     ch->sex,        bread_number( buf ) );
-        KEY( "ShortDescr",  ch->short_descr,    bread_string( buf ) );
-        KEY( "ShD",     ch->short_descr,    bread_string( buf ) );
+        KEYS( "ShortDescr",  ch->short_descr,    bread_string( buf ) );
+        KEYS( "ShD",     ch->short_descr,    bread_string( buf ) );
         KEY( "Sec",         ch->pcdata->security,   bread_number( buf ) );   /* OLC */
         KEY( "Silv",        ch->silver,             bread_number( buf ) );
-        KEY( "Spouse",	ch->pcdata->spouse,	bread_string( buf ) );
+        KEYS( "Spouse",	ch->pcdata->spouse,	bread_string( buf ) );
         
         
         if ( !str_cmp( word, "Skill" ) || !str_cmp(word,"Sk"))
@@ -2100,6 +2107,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
+            free_string( ch->pcdata->title );
             ch->pcdata->title = bread_string( buf );
             if (ch->pcdata->title[0] != '.' && ch->pcdata->title[0] != ',' 
                 && ch->pcdata->title[0] != '!' && ch->pcdata->title[0] != '?'
@@ -2316,7 +2324,13 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
             break;
             
         case 'C':
-            KEY( "Clan",       pet->clan,       clan_lookup(bread_string(buf)));
+            if (!str_cmp(word, "Clan") )
+            {
+                char *temp=bread_string(buf);
+                pet->clan=clan_lookup(temp);
+                free_string(temp);
+                fMatch=TRUE;
+            }
             KEYF( "Comm",   pet->comm );
             break;
             
@@ -2329,7 +2343,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
 		break;
 	    }
             KEY( "Dam",    pet->damroll,       bread_number(buf));
-            KEY( "Desc",   pet->description,   bread_string(buf));
+            KEYS( "Desc",   pet->description,   bread_string(buf));
             break;
             
         case 'E':
@@ -2384,12 +2398,12 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
             
         case 'L':
             KEY( "Levl",   pet->level,     bread_number(buf));
-            KEY( "LnD",    pet->long_descr,    bread_string(buf));
+            KEYS( "LnD",    pet->long_descr,    bread_string(buf));
             KEY( "LogO",   lastlogoff,     bread_number(buf));
             break;
             
         case 'N':
-            KEY( "Name",   pet->name,      bread_string(buf));
+            KEYS( "Name",   pet->name,      bread_string(buf));
             break;
             
         case 'P':
@@ -2397,13 +2411,19 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
             break;
             
         case 'R':
-            KEY( "Race",    pet->race, race_lookup(bread_string(buf)));
+            if (!str_cmp(word, "Race") )
+            {
+                char *temp=bread_string(buf);
+                pet->race=race_lookup(temp);
+                free_string(temp);
+                fMatch=TRUE;
+            }
             break;
             
         case 'S' :
             KEY( "Save",    pet->saving_throw,  bread_number(buf));
             KEY( "Sex",     pet->sex,       bread_number(buf));
-            KEY( "ShD",     pet->short_descr,   bread_string(buf));
+            KEYS( "ShD",     pet->short_descr,   bread_string(buf));
             KEY( "Silv",        pet->silver,            bread_number( buf ) );
             break;
             
@@ -2561,13 +2581,25 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 		fMatch = TRUE;
 		break;
 	    }
-            KEY( "Clan",    obj->clan,      clan_lookup(bread_string(buf)));
-            KEY( "CRank",   obj->rank,      clan_rank_lookup(obj->clan, bread_string(buf)));
+        if (!str_cmp(word, "Clan") )
+        {
+            char *temp=bread_string(buf);
+            obj->clan=clan_lookup(temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
+        if (!str_cmp(word, "CRank") )
+        {
+            char *temp=bread_string(buf);
+            obj->rank=clan_rank_lookup(obj->clan, temp);
+            free_string(temp);
+            fMatch=TRUE;
+        }
             break;
             
         case 'D':
-            KEY( "Description", obj->description,   bread_string( buf ) );
-            KEY( "Desc",    obj->description,   bread_string( buf ) );
+            KEYS( "Description", obj->description,   bread_string( buf ) );
+            KEYS( "Desc",    obj->description,   bread_string( buf ) );
             KEY( "Dur",    obj->durability,   bread_number( buf ) );
             break;
             
@@ -2673,11 +2705,11 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'M':
-            KEY( "Mat",     obj->material,  bread_string(buf));
+            KEYS( "Mat",     obj->material,  bread_string(buf));
             break;
             
         case 'N':
-            KEY( "Name",    obj->name,      bread_string( buf ) );
+            KEYS( "Name",    obj->name,      bread_string( buf ) );
             
             if ( !str_cmp( word, "Nest" ) )
             {
@@ -2696,7 +2728,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'O':
-            KEY( "Owner",    obj->owner,      bread_string( buf ) );
+            KEYS( "Owner",    obj->owner,      bread_string( buf ) );
             
             if ( !str_cmp( word,"Oldstyle" ) )
             {
@@ -2708,8 +2740,8 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             
             
         case 'S':
-            KEY( "ShortDescr",  obj->short_descr,   bread_string( buf ) );
-            KEY( "ShD",     obj->short_descr,   bread_string( buf ) );
+            KEYS( "ShortDescr",  obj->short_descr,   bread_string( buf ) );
+            KEYS( "ShD",     obj->short_descr,   bread_string( buf ) );
             
             if ( !str_cmp( word, "Spell" ) )
             {
@@ -2818,7 +2850,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
     one_argument(argument,arg);
     
     /* Added by Maedhros to toggle old version of finger */
-
     if (IS_SET(ch->togg, TOGG_OLDFINGER))
     {
       do_oldfinger (ch, arg);
@@ -2827,7 +2858,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
     else
 
     /* end of toggle code */
-    
     if (arg[0] == '\0')
     {
         send_to_char("You must provide a name.\n\r",ch);
@@ -2904,7 +2934,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
     add_buf( output, buf );
     
     /* ** Incog, Wizi, AFK, Levelbuf, Sex, Race, Class, pkill ** */
-    sprintf(buf, "{D|{x %s%s%s%s %s %s %s.  %s%s",
+    sprintf(buf, "{D|{x %s%s%s%s %s %s %s.            %s%s",
         get_trust(ch) >= wch->incog_level &&
         wch->incog_level >= LEVEL_HERO ? "(Incog) ": "",
         get_trust(ch) >= wch->invis_level &&
@@ -2920,39 +2950,48 @@ void do_finger(CHAR_DATA *ch, char *argument)
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
 
-    /* religion */
-    if ( (rel = get_religion(wch)) != NULL )
+    /* revised religion */
+    if ((rel = get_religion(wch)) != NULL)
     {
-        if( !str_cmp(wch->name, rel->god) )
-            sprintf( buf, "{D|{x {W%s of %-25s{x", wch->pcdata->true_sex == 2 ? "Goddess" : "God", rel->name );
-        else if( !str_cmp(ch->name, rel->god) )
-            sprintf( buf, "{D|{x God: %-11s Faith: %-10d ", rel->god, get_faith(wch) );
+        if (!str_cmp(wch->name, rel->god))
+            sprintf(buf, "{D|{x {W%s of %-25s{x", wch->pcdata->true_sex == 2 ? "Goddess" : "God", rel->name);
+        else if (IS_IMMORTAL(ch))
+            sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
-            sprintf( buf, "{D|{x God: %-11s  Rank: %-11s", rel->god, get_ch_rank_name(wch) );
-
-	if( wch->pcdata && wch->pcdata->spouse )
-	{
-	    sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
-	    strcat( buf, buf2 );
-	}
-
+            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
+        
+        if( wch->pcdata && wch->pcdata->spouse )
+            sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
+        else
+            sprintf( buf2, "Spouse: None" );
+        	
+        strcat( buf, buf2 );
+        
         for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+        add_buf( output, buf );		
     }
-    else if ( wch->pcdata && wch->pcdata->spouse )
+    else
     {
-	sprintf( buf, "{D|{x Religion: atheism                  Spouse: %-12s", wch->pcdata->spouse );
-	for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-	strcat( buf, "{D|{x\n\r" );
-	add_buf( output, buf );
+        sprintf( buf, "{D|{x God:     None        Rank: None           ");
+        
+        if( wch->pcdata && wch->pcdata->spouse )
+            sprintf( buf2, "Spouse: %-9s", wch->pcdata->spouse );
+        else
+            sprintf( buf2, "Spouse: None" );
+        	
+        strcat( buf, buf2 );
+        
+        for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+        strcat( buf, "{D|{x\n\r" );
+        add_buf( output, buf );	
     }
     
-    /* ** Remorts, Age, Hours, Bounty ** */
+    /* Remorts, Age, Hours, Bounty */
     sprintf(buf, "{D|{x ");
     if ( wch->level <= LEVEL_HERO )
     {
-        sprintf(buf2, "Remorts: {c%-2d{x        Age: %-3d",
+        sprintf(buf2, "Remorts: {c%-2d{x          Age: %-3d",
             wch->pcdata->remorts,
             get_age(wch));
         strcat( buf, buf2 );
@@ -2965,7 +3004,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
     
     if ( get_trust(ch) > LEVEL_IMMORTAL )
     {
-        sprintf( buf2, "     Hours: {c%d{x   ", ((int)wch->played)/3600);
+        sprintf( buf2, "             Hours: {c%d{x   ", ((int)wch->played)/3600);
         strcat( buf, buf2 );
     }
     if ( wch->pcdata->bounty )
@@ -2977,21 +3016,28 @@ void do_finger(CHAR_DATA *ch, char *argument)
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
     
-    /* ** Last on ** */
+    /* Last on */
     if ( wch->level < LEVEL_IMMORTAL || IS_IMMORTAL(ch) )
     {
         if ( IS_IMMORTAL(wch) && ch->level <= wch->level )
             ;  /* Do nothing. */
         else
         {
-        sprintf(buf, "{D|{x Last on: %s    ",
+        sprintf(buf, "{D|{x Date Last On: %s    ",
             time_format(fingertime, custombuf));
         for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
         }
     }
-    
+	
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
+
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
