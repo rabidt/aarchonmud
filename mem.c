@@ -34,6 +34,7 @@ extern          int                     top_exit;
 extern          int                     top_ed;
 extern          int                     top_room;
 extern		int			top_mprog_index;
+extern      int         top_oprog_index;
 
 AREA_DATA		*	area_free;
 EXTRA_DESCR_DATA	*	extra_descr_free;
@@ -461,6 +462,7 @@ MPROG_CODE *new_mpcode(void)
          mpcode_free = mpcode_free->next;
      }
 
+     NewCode->is_lua  = FALSE;
      NewCode->vnum    = 0;
      NewCode->code    = str_dup("");
      NewCode->next    = NULL;
@@ -473,6 +475,38 @@ void free_mpcode(MPROG_CODE *pMcode)
     free_string(pMcode->code);
     pMcode->next = mpcode_free;
     mpcode_free  = pMcode;
+    return;
+}
+
+OPROG_CODE              *       opcode_free;
+
+OPROG_CODE *new_opcode(void)
+{
+     OPROG_CODE *NewCode;
+
+     if (!opcode_free)
+     {
+         NewCode = alloc_perm(sizeof(*NewCode) );
+         top_oprog_index++;
+     }
+     else
+     {
+         NewCode     = opcode_free;
+         opcode_free = opcode_free->next;
+     }
+
+     NewCode->vnum    = 0;
+     NewCode->code    = str_dup("");
+     NewCode->next    = NULL;
+
+     return NewCode;
+}
+
+void free_opcode(OPROG_CODE *pOcode)
+{
+    free_string(pOcode->code);
+    pOcode->next = opcode_free;
+    opcode_free  = pOcode;
     return;
 }
 

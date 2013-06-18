@@ -333,7 +333,7 @@ pkill_confirm(CHAR_DATA *ch, char *arg)
             SET_BIT(ch->act, PLR_PERM_PKILL);
             reset_pkill_expire(ch);
             sprintf(log_buf, "%s has declared %sself to be a pkiller!",
-                    ch->name, (ch->pcdata->true_sex == SEX_FEMALE) ? "her" : "him");
+                    ch->name, (ch->sex == SEX_FEMALE) ? "her" : "him");
             info_message(ch, log_buf, TRUE);
             log_string( log_buf );
             wiznet("$N has turned on $S pkill flag.", ch, NULL, WIZ_FLAGS, 0, 0);
@@ -343,7 +343,7 @@ pkill_confirm(CHAR_DATA *ch, char *arg)
             SET_BIT(ch->act, PLR_HARDCORE);
             reset_pkill_expire(ch);
             sprintf(log_buf, "%s has declared %sself to be a hardcore pkiller!",
-                    ch->name, (ch->pcdata->true_sex == SEX_FEMALE) ? "her" : "him");
+                    ch->name, (ch->sex == SEX_FEMALE) ? "her" : "him");
             info_message(ch, log_buf, TRUE);
             log_string( log_buf );
             wiznet("$N has turned on $S hardcore flag.", ch, NULL, WIZ_FLAGS, 0, 0);
@@ -559,7 +559,7 @@ void do_roleplay( CHAR_DATA *ch, char *argument)
 
     SET_BIT( ch->act, PLR_RP );
     sprintf(log_buf, "%s has declared %sself to be a permanent roleplayer!",
-            ch->name, (ch->pcdata->true_sex == SEX_FEMALE) ? "her" : "him");
+            ch->name, (ch->sex == SEX_FEMALE) ? "her" : "him");
     info_message(ch, log_buf, TRUE);
     wiznet("$N has turned on $S roleplay flag.", ch, NULL, WIZ_FLAGS, 0, 0);
     update_bounty(ch);

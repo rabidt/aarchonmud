@@ -229,7 +229,8 @@ DECLARE_DO_FUN( do_invite   );
 DECLARE_DO_FUN( do_jail     );
 DECLARE_DO_FUN( do_kick     );
 DECLARE_DO_FUN( do_kill     );
-DECLARE_DO_FUN( do_mortlag      );
+DECLARE_DO_FUN( do_mortlag  );
+DECLARE_DO_FUN( do_leadership );
 DECLARE_DO_FUN( do_leg_sweep);
 DECLARE_DO_FUN( do_lfind    );
 DECLARE_DO_FUN( do_list     );
@@ -526,6 +527,9 @@ DECLARE_DO_FUN( do_mpdump   );
 DECLARE_DO_FUN( do_mpedit   );
 DECLARE_DO_FUN( do_mpstat   );
 
+/* Obj Progs */
+DECLARE_DO_FUN( do_opedit   );
+
 /* OLC */
 DECLARE_DO_FUN( do_aedit    );
 DECLARE_DO_FUN( do_alist    );
@@ -563,3 +567,4 @@ DECLARE_DO_FUN( do_fstat);
 DECLARE_DO_FUN( do_cmotd);
 DECLARE_DO_FUN( do_smith);
 DECLARE_DO_FUN( do_pgrep);
+DECLARE_DO_FUN( do_luareset);
