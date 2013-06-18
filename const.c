@@ -5944,6 +5944,17 @@ struct  skill_type  skill_table [MAX_SKILL] =
 		"",                     "!Duck!",      "", NULL
 	},
 
+    {
+    "true grit",
+    { 102, 102, 102, 102,  90, 102, 102, 102, 102, 102, 102, 102,  75, 102, 102 },
+    {   0,   0,   0,   0,   8,   0,   0,   0,   0,   0,   0,   0,   8,   0,  0  },
+    { 100, 100, 100, 100,  80, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_NONE, STAT_NONE, STAT_NONE,
+        spell_null,             TAR_IGNORE,             POS_FIGHTING,
+        &gsn_true_grit,         SLOT( 0),        0,     0,
+        "",                     "!true grit!",      "", NULL
+    },
+
 	{
 	"drunken fury",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 20, 102, 102 },
