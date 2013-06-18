@@ -317,6 +317,7 @@ void free_obj(OBJ_DATA *obj)
 	free_string( obj->description );
 	free_string( obj->short_descr );
 	free_string( obj->owner     );
+    free_string( obj->material  );
 	INVALIDATE(obj);
 
 	obj->next   = obj_free;
@@ -383,12 +384,14 @@ void free_char (CHAR_DATA *ch)
 	AFFECT_DATA *paf;
 	AFFECT_DATA *paf_next;
 
+
 	if (!IS_VALID(ch))
 	    return;
 
 	if (IS_NPC(ch))
+    {
 	   mobile_count--;
-
+    }
 	/* Erwin's suggested fix to light problem */ 
 	else if ( ch->in_room != NULL )
 	{
@@ -522,6 +525,15 @@ void free_pcdata(PC_DATA *pcdata)
     free_string(pcdata->combat_action);
     free_string(pcdata->name_color);
     free_string(pcdata->pre_title);
+    free_string(pcdata->last_host);
+    free_string(pcdata->customflag);
+    free_string(pcdata->spouse);
+
+    
+    for (i=0; i<MAX_FORGET ; i++)
+    {
+        free_string(pcdata->forget[i]);
+    }
 
     for (gran = pcdata->granted; gran != NULL; gran = gran_next)
     {
@@ -546,6 +558,15 @@ void free_pcdata(PC_DATA *pcdata)
     pers_history_free(pcdata->gtell_history);
     pers_history_free(pcdata->tell_history);
     pers_history_free(pcdata->clan_history);
+
+    CRIME_DATA *crime, *crime_next;
+    for ( crime=pcdata->crimes; crime ; crime=crime_next )
+    {
+        crime_next=crime->next;
+        free_crime(crime);
+    }
+
+
 
     INVALIDATE(pcdata);
     pcdata->next = pcdata_free;
@@ -854,6 +875,39 @@ void free_mprog(MPROG_LIST *mp)
    INVALIDATE(mp);
    mp->next = mprog_free;
    mprog_free = mp;
+}
+
+OPROG_LIST *oprog_free;
+
+OPROG_LIST *new_oprog(void)
+{
+   static OPROG_LIST op_zero;
+   OPROG_LIST *op;
+
+   if (oprog_free == NULL)
+       op = alloc_perm(sizeof(*op));
+   else
+   {
+       op = oprog_free;
+       oprog_free=oprog_free->next;
+   }
+
+   *op = op_zero;
+   op->vnum             = 0;
+   op->trig_type        = 0;
+   op->code             = str_dup("");
+   VALIDATE(op);
+   return op;
+}
+
+void free_oprog(OPROG_LIST *op)
+{
+   if (!IS_VALID(op))
+      return;
+
+   INVALIDATE(op);
+   op->next = oprog_free;
+   oprog_free = op;
 }
 
 

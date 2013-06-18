@@ -155,8 +155,9 @@ const   struct  cmd_type    cmd_table   [] =
     { "report",     do_report,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "rules",      do_rules,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "score",      do_score,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "lboard",     do_lboard,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
-	{ "lhistory",   do_lhistory,POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+//    { "lboard",     do_lboard,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "leadership", do_leadership,  POS_RESTING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
+//    { "lhistory",   do_lhistory,POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "scan",       do_scan,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "survey",     do_survey,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "skill",      do_skill,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -313,7 +314,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "distract",   do_distract, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "feint",      do_feint, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "backstab",   do_backstab,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-        { "blackjack",  do_blackjack,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+        { "blackjack",  do_blackjack,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "circle",     do_circle,      POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "slash",      do_slash_throat,POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "bash",       do_bash,        POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -604,6 +605,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "dummy",      do_dummy   ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mortlag",    do_mortlag, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mode",	    do_mode,	POS_DEAD,   L9,	 LOG_NORMAL, 1, FALSE, FALSE  },
+    { "luareset",   do_luareset,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
 
     /*
     * OLC
@@ -617,6 +619,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "aedit",      do_aedit,   POS_DEAD,   L2,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "oedit",      do_oedit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpedit",     do_mpedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
+    { "opedit",     do_opedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "hedit",      do_hedit,   POS_DEAD,   L8,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpdump",     do_mpdump,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "mpstat",     do_mpstat,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
@@ -1024,7 +1027,7 @@ bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact 
 	     && MOBtrigger
 	     && HAS_TRIGGER(victim, TRIG_SOCIAL)
 	     && mp_act_trigger(social_table[cmd].name, victim, ch,
-			       NULL, NULL, TRIG_SOCIAL) )
+			       NULL,0, NULL,0, TRIG_SOCIAL) )
 	    ;
 	else
 	{

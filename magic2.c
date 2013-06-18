@@ -297,8 +297,9 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     }
     
     /* Check number of charmees against cha*/ 
-    if ( !check_cha_follow(ch) )
-	return;
+    mlevel = URANGE(1, level / 2, ch->level);
+    if ( check_cha_follow(ch, mlevel) < mlevel )
+        return;
     
     chance = (get_curr_stat(ch, STAT_LUC)) / 2;
     
@@ -311,7 +312,6 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_SIDEKICK)))==NULL) 
         return;
     
-    mlevel = URANGE(1, level / 2, ch->level);
     set_mob_level( mob, mlevel );
     arm_npc( mob );
 
@@ -698,26 +698,40 @@ void spell_damned_blade( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     OBJ_DATA *obj;
     
-    if ((obj = get_eq_char(victim,WEAR_WIELD)) != NULL) {
-        if (!saves_dispel(level,obj->level,0))
-        {
-            SET_BIT(obj->extra_flags,ITEM_NODROP);
-            SET_BIT(obj->extra_flags,ITEM_NOREMOVE);
-            act("$p is imbued with a curse.",victim,obj,NULL,TO_CHAR);
-            act("$p is imbued with a curse.",victim,obj,NULL,TO_ROOM);
-        }
-	else
-	{
-            act("$p resists the curse.",victim,obj,NULL,TO_CHAR);
-	}
-    }
-    else
+    if((obj = get_eq_char(victim,WEAR_WIELD)) == NULL)
     {
 	if ( ch == victim )
 	    act( "You don't wield a weapon.", ch, NULL, victim, TO_CHAR );
 	else
 	    act( "$N doesn't wield a weapon.", ch, NULL, victim, TO_CHAR );
+
+        return;
     }
+
+    if (IS_SET(obj->extra_flags,ITEM_NOREMOVE) && IS_SET(obj->extra_flags,ITEM_NODROP))
+    {
+        if ( ch == victim )
+            act( "Your weapon is already cursed.", ch, NULL, victim, TO_CHAR );
+        else
+            act( "$N's weapon is already cursed.", ch, NULL, victim, TO_CHAR );
+
+        return;
+    }
+
+    if (!saves_dispel(level,obj->level,0))
+    {
+        SET_BIT(obj->extra_flags,ITEM_NODROP);
+        SET_BIT(obj->extra_flags,ITEM_NOREMOVE);
+        act("$p is imbued with a curse.",victim,obj,NULL,TO_CHAR);
+        act("$p is imbued with a curse.",victim,obj,NULL,TO_ROOM);
+    }
+    else
+    {
+        act("$p resists the curse.",victim,obj,NULL,TO_ROOM);
+        act("$p resists the curse.",victim,obj,NULL,TO_CHAR);
+    }
+    
+    return;
 }
 
 void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
@@ -866,7 +880,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
-    int puppet_skill;
+    int puppet_skill = get_skill( ch, gsn_puppetry );
 
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_WAR) )
     {
@@ -892,10 +906,16 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
     
+    if (cor->level <= level)
+        mlevel = (level + cor->level * 2) / 4;
+    else
+        mlevel = (level * 2 + cor->level) / 4;    
+    /* bonus for puppetry skill */
+    mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
     
     /* Check number of charmees against cha */
-    if ( !check_cha_follow(ch) )
-	return;
+    if ( check_cha_follow(ch, mlevel) < mlevel )
+        return;
     
     chance = 100 + (level - cor->level) / 4;
     
@@ -908,18 +928,14 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_ZOMBIE)))==NULL) 
         return;
     
-    /* bonus for puppetry skill */
-    puppet_skill = get_skill( ch, gsn_puppetry );
     check_improve( ch, gsn_puppetry, TRUE, 1 );
     
-    if (cor->level <= level)
-        mlevel = (level + cor->level * 2) / 4;
-    else
-        mlevel = (level * 2 + cor->level) / 4;
-    mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
     if ( number_percent() <= puppet_skill )
-	SET_BIT( mob->off_flags, OFF_RESCUE );
-	
+    {
+        SET_BIT( mob->off_flags, OFF_RESCUE );
+        REMOVE_AFFECT( mob, AFF_SLOW );
+    }
+    
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"%sThis zombie was reincarnated by the might of %s.\n\r\n\r",
@@ -1643,7 +1659,10 @@ void spell_breathe_water(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     
     if ( IS_AFFECTED(victim, AFF_BREATHE_WATER))
     {
-        send_to_char("You already have gills.\n\r",victim);
+        if (victim == ch)
+            send_to_char("You already have gills.\n\r",victim);
+        else
+            act("$N already has gills.",ch,NULL,victim,TO_CHAR);
         return;
     }
     
@@ -1903,6 +1922,7 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     char buf[MAX_STRING_LENGTH];
     int mlevel, mhp, chance;
     int charmed, max;
+    int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     if ( ch->in_room->sector_type != SECT_FOREST)
     {
@@ -1926,13 +1946,15 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
     
     /* Check number of charmees against cha*/ 
-    if ( !check_cha_follow(ch) )
-	return;
+    mlevel = URANGE(1, level * 3/4, ch->level);
+    if ( check_cha_follow(ch, mlevel) < mlevel )
+        return;
    
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_TREEGOLEM)))==NULL) 
         return;
     
-    mlevel = URANGE(1, level * 3/4, ch->level);
+    mlevel = (6*level + beast_skill) / 8;
+    mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rA tree springs to life and follows %s.\n\r\n\r",
@@ -1949,7 +1971,63 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level   = level;
-    af.duration  = number_fuzzy( level );
+    af.duration  = (100 + level) * (100 + beast_skill) / 200;
+    af.location  = 0;
+    af.modifier  = 0;
+    af.bitvector = AFF_CHARM;
+    affect_to_char( mob, &af );
+    
+    return;
+}
+
+void spell_water_elemental( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+{
+    AFFECT_DATA af;
+    CHAR_DATA *mob;
+    MOB_INDEX_DATA *mobIndex;
+    char buf[MAX_STRING_LENGTH];
+    int mlevel;
+    int sector = ch->in_room->sector_type;
+    
+    if ( sector != SECT_WATER_SHALLOW
+        && sector != SECT_WATER_DEEP
+        && sector != SECT_UNDERWATER )
+    {
+        send_to_char("You need water to summon water elementals.\n\r",ch);
+        return; 
+    }
+    
+    if ( IS_SET( ch->act, PLR_WAR ) )
+    {
+        send_to_char( "This war does not concern the elemental spirits.\n\r", ch );
+        return;
+    }
+    
+    /* Check number of charmees against cha*/ 
+    if ( !check_cha_follow(ch) )
+        return;
+       
+    if ( (mobIndex = get_mob_index(MOB_VNUM_WATER_ELEMENTAL)) == NULL ) 
+        return;
+    mob = create_mobile(mobIndex);
+    
+    mlevel = URANGE(1, level * 3/4, ch->level);
+    set_mob_level( mob, mlevel );
+
+    sprintf(buf,"%s\n\rThis water elemental follows %s.\n\r", mob->description, ch->name);
+    free_string(mob->description);
+    mob->description = str_dup(buf);
+    
+    char_to_room( mob, ch->in_room );
+    
+    send_to_char( "An elemental spirit imbues the water with life!\n\r", ch );
+    act( "$n's spells gives life to a water elemental!", ch, NULL, NULL, TO_ROOM );
+    add_follower( mob, ch );
+    mob->leader  = ch;
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = (100 + level) / 2;
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_CHARM;
@@ -2033,6 +2111,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     int snake_count, max_snake;
+    int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     if ( ch->in_room->sector_type != SECT_FOREST)
     {
@@ -2056,19 +2135,21 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     }
         
     /* Check number of charmees against cha*/
-    max_snake = check_cha_follow( ch );
-    if ( max_snake == 0 )
+    mlevel = URANGE(1, level/2, ch->level);
+    max_snake = check_cha_follow( ch, mlevel );
+    if ( max_snake < mlevel )
         return;
     
-    mlevel = URANGE(1, level/2, ch->level);
+    mlevel = (5*level + beast_skill) / 10;
+    mlevel = URANGE(1, mlevel, ch->level);
     chance = 100;
     snake_count = 0;
-    while ( snake_count * mlevel < max_snake && number_percent() <= chance ) {
+    while ( (snake_count + 1) * mlevel < max_snake && number_percent() <= chance ) {
         
         if ((mob = create_mobile(get_mob_index(MOB_VNUM_SNAKE)))==NULL)
             return;  
         
-	set_mob_level( mob, mlevel );
+        set_mob_level( mob, mlevel );
 
         sprintf(buf,"%s\n\rA snake that was once a stick is following %s.\n\r\n\r", mob->description,ch->name);   
         free_string(mob->description);
@@ -2081,7 +2162,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
         af.where     = TO_AFFECTS;
         af.type      = sn;
         af.level   = level;
-        af.duration  = number_fuzzy( level );
+        af.duration  = (100 + level) * (100 + beast_skill) / 200;
         af.location  = 0;
         af.modifier  = 0;
         af.bitvector = AFF_CHARM;
@@ -3374,6 +3455,7 @@ void spell_mirror_image( int sn, int level, CHAR_DATA *ch, void *vo, int target 
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
+    affect_strip( ch, gsn_phantasmal_image );
 
     af.type      = sn;
     af.level     = level;
@@ -3381,7 +3463,7 @@ void spell_mirror_image( int sn, int level, CHAR_DATA *ch, void *vo, int target 
     af.modifier  = -10;
     af.location  = APPLY_AC;
     af.where     = TO_SPECIAL;
-    af.bitvector = 1 + level/10;
+    af.bitvector = dice(2,4) + level/16; // number of images
 
     affect_to_char( ch, &af );
 
@@ -3593,7 +3675,7 @@ void spell_overcharge( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 //    af.bitvector = 0;
     affect_to_char( ch, &af );
     send_to_char( "You focus intensely as your mana begins to overcharge!\n\r", ch );
-    act("$n begins to focus as $m mana starts to overcharge",ch,NULL,NULL,TO_ROOM);
+    act("$n begins to focus as $s mana starts to overcharge",ch,NULL,NULL,TO_ROOM);
     return;
 }
 
@@ -3954,6 +4036,7 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
+    affect_strip( ch, gsn_mirror_image );
 
     af.type      = sn;
     af.level     = level;
@@ -3961,7 +4044,7 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     af.modifier  = -10;
     af.location  = APPLY_AC;
     af.where     = TO_SPECIAL;
-    af.bitvector = 1 + level/8;
+    af.bitvector = dice(2,4) + level/8; // number of images
 
     affect_to_char( ch, &af );
 
