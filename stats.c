@@ -354,25 +354,54 @@ int ch_luc_quest(CHAR_DATA *ch)
 int get_ac( CHAR_DATA *ch, int type )
 {
     int ac = ch->armor[type];
+    int defense_factor = 100;
+    
     if ( IS_AWAKE(ch) )
-	ac += ch_agi_defensive(ch);
+        ac += ch_agi_defensive(ch);
     else
-	ac += 50;
+        ac += 50;
+
     ac -= get_curr_stat(ch, STAT_LUC) / 2;
+
     if ( IS_SET(ch->parts, PART_SCALES) )
-	ac -= ch->level / 2;
+        ac -= ch->level / 2;
+    
+    // level-based bonus
+    if ( IS_NPC(ch) )
+    {
+        if (IS_SET(ch->act, ACT_WARRIOR))
+            defense_factor += 20;
+        if (IS_SET(ch->act, ACT_MAGE))
+            defense_factor -= 20;
+    }
+    else
+    {
+        defense_factor = class_table[ch->class].defense_factor;
+    }
+    ac -= (ch->level + 10) * defense_factor/20;
+        
     return ac;
 }
 
 int get_hitroll( CHAR_DATA *ch )
 {
-    int hitroll = ch->hitroll 
-	+ ch_dex_tohit(ch)
-	+ get_curr_stat(ch, STAT_LUC) / 10;
-    /*
+    int hitroll = ch->hitroll + ch_dex_tohit(ch) + get_curr_stat(ch, STAT_LUC) / 10;
+    int attack_factor = 100;
+    
+    // level bonus
     if ( IS_NPC(ch) )
-	hitroll += ch->level;
-    */
+    {
+        if (IS_SET(ch->act,ACT_WARRIOR))
+            attack_factor += 20;
+        if (IS_SET(ch->act,ACT_MAGE))
+            attack_factor -= 20;
+    }
+    else
+    {
+        attack_factor = class_table[ch->class].attack_factor;
+    }
+    hitroll += (ch->level + 10) * attack_factor/100;
+
     return hitroll;
 }
 
