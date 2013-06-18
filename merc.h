@@ -260,7 +260,7 @@ bool is_drop_obj( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         418
+#define MAX_SKILL         419
 #define MAX_GROUP          76 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
@@ -3287,6 +3287,7 @@ extern sh_int  gsn_burst;
 extern sh_int  gsn_tight_grouping;
 extern sh_int  gsn_pistol_whip;
 extern sh_int  gsn_duck;
+extern sh_int  gsn_true_grit;
 extern sh_int  gsn_quick_draw;
 extern sh_int  gsn_shoot_lock;
 extern sh_int  gsn_drunken_fury;
