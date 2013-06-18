@@ -195,6 +195,7 @@ sh_int  gsn_burst;
 sh_int  gsn_tight_grouping;
 sh_int  gsn_drunken_fury;
 sh_int  gsn_duck;
+sh_int  gsn_true_grit;
 sh_int  gsn_quick_draw;
 sh_int  gsn_shoot_lock;
 sh_int  gsn_thousand_yard_stare;
