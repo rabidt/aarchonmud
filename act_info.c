@@ -2154,34 +2154,30 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
     
     for ( paf = ch->affected; paf != NULL; paf = paf->next )
     {
-	if ( !show_all && !IS_SPELL(paf->type) )
-	    continue;
-	
-	if (paf_last != NULL && paf->type == paf_last->type)
-	    if (show_long)
-		sprintf( buf, "                      ");
-	    else
-		continue;
-	else
-	    sprintf( buf, "Spell: %-15s", skill_table[paf->type].name );
-	
-	send_to_char( buf, to_ch );
-	
-	if (show_long)
-	{
-	    sprintf( buf,
-		     ": modifies %s by %d ",
-		     affect_loc_name( paf->location ),
-		     paf->modifier);	    send_to_char( buf, to_ch );
-	    if ( paf->duration == -1 )
-	        sprintf( buf, "indefinitely (Lvl %d)", paf->level );
-	    else
-                sprintf( buf, "for %d hours (Lvl %d)", paf->duration, paf->level );
-	    send_to_char( buf, to_ch );
-	}
-	
-	send_to_char( "\n\r", to_ch );
-	paf_last = paf;
+        if ( !show_all && !IS_SPELL(paf->type) )
+            continue;
+
+        if (paf_last != NULL && paf->type == paf_last->type)
+            if (show_long)
+                printf_to_char( to_ch, "                      ");
+            else
+                continue;
+        else
+            printf_to_char( to_ch, "Spell: %-15s", skill_table[paf->type].name );
+
+        if (show_long)
+        {
+            printf_to_char( to_ch, ": modifies %s by %d ", affect_loc_name( paf->location ), paf->modifier);
+            if ( paf->duration == -1 )
+                printf_to_char( to_ch, "indefinitely (Lvl %d)", paf->level );
+            else
+                printf_to_char( to_ch, "for %d hours (Lvl %d)", paf->duration, paf->level );
+            if ( paf->type == gsn_mirror_image || paf->type == gsn_phantasmal_image )
+                printf_to_char( to_ch, " with %d %s remaining", paf->bitvector, paf->bitvector == 1 ? "image" : "images");
+        }
+
+        send_to_char( "\n\r", to_ch );
+        paf_last = paf;
     }
 }
 
