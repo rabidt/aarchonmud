@@ -555,53 +555,29 @@ bool spec_cast_adept( CHAR_DATA *ch )
 
 bool spec_cast_cleric( CHAR_DATA *ch )
 {
-	CHAR_DATA *victim;
-	CHAR_DATA *v_next;
-	char *spell;
-	int sn;
+    char *spell;
 
-	if ( ch->position != POS_FIGHTING )
-	return FALSE;
+    if ( ch->position != POS_FIGHTING )
+        return FALSE;
+    
+    char *spell_list[] = {
+        "dispel magic",
+        "blindness",
+        "curse",
+        "plague",
+        "slow",
+        "flamestrike",
+        "harm",
+        NULL
+    };
+    
+    int max_spell = 0;
+    while (spell_list[max_spell])
+        max_spell++;
+    spell = spell_list[number_range(0, max_spell-1)];
 
-	for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
-	{
-	v_next = victim->next_in_room;
-	if ( victim->fighting == ch && number_bits( 2 ) == 0 )
-		break;
-	}
-
-	if ( victim == NULL )
-	return FALSE;
-
-	for ( ;; )
-	{
-	int min_level;
-
-	switch ( number_bits( 4 ) )
-	{
-	case  0: min_level =  0; spell = "blindness";      break;
-	case  1: min_level =  3; spell = "cause serious";  break;
-	case  2: min_level =  7; spell = "earthquake";     break;
-	case  3: min_level =  9; spell = "cause critical"; break;
-	case  4: min_level = 10; spell = "dispel evil";    break;
-	case  5: min_level = 12; spell = "curse";          break;
-	case  6: min_level = 12; spell = "change sex";     break;
-	case  7: min_level = 13; spell = "flamestrike";    break;
-	case  8:
-	case  9:
-	case 10: min_level = 15; spell = "harm";           break;
-	case 11: min_level = 15; spell = "plague";     break;
-	default: min_level = 16; spell = "dispel magic";   break;
-	}
-
-	if ( ch->level >= min_level )
-		break;
-	}
-
-	if ( ( sn = skill_lookup( spell ) ) < 0 )
-	return FALSE;
-	(*skill_table[sn].spell_fun) ( sn, 4*ch->level/5, ch, victim,TARGET_CHAR);
-	return TRUE;
+    do_cast(ch, spell);
+    return TRUE;
 }
 
 bool spec_cast_judge( CHAR_DATA *ch )
