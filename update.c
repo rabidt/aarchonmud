@@ -853,7 +853,7 @@ void mobile_update( void )
             continue;
 
         /* Examine call for special procedure */
-        if ( ch->spec_fun != 0 )
+        if ( ch->spec_fun != 0 && ch->wait == 0 )
         {
             /* update the last_mprog log */
             sprintf( last_mprog, "mob %d at %d %s",
