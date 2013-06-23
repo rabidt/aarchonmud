@@ -545,6 +545,17 @@ void reset_char(CHAR_DATA *ch)
         ch->sex = get_base_sex(ch);
     
     update_perm_hp_mana_move(ch);
+    
+    // adjust XP to fit within current level range (needed e.g. when racial ETL is adjusted)
+    int epl = exp_per_level(ch, ch->pcdata->points);
+    int min_exp = epl * (ch->level);
+    int max_exp = epl * (ch->level + 1) - 1;
+    if (ch->exp < min_exp || ch->exp > max_exp)
+    {
+        int new_exp = URANGE(min_exp, ch->exp, max_exp);
+        logpf("Resetting %s's experience from %d to %d (level %d).", ch->name, ch->exp, new_exp, ch->level);
+        ch->exp = new_exp;
+    }
 }
 
 

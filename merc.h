@@ -260,7 +260,7 @@ bool is_drop_obj( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         418
+#define MAX_SKILL         419
 #define MAX_GROUP          76 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
@@ -1322,8 +1322,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -3287,6 +3287,7 @@ extern sh_int  gsn_burst;
 extern sh_int  gsn_tight_grouping;
 extern sh_int  gsn_pistol_whip;
 extern sh_int  gsn_duck;
+extern sh_int  gsn_true_grit;
 extern sh_int  gsn_quick_draw;
 extern sh_int  gsn_shoot_lock;
 extern sh_int  gsn_drunken_fury;
