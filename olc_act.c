@@ -3609,8 +3609,7 @@ OEDIT( oedit_addaffect )
     pAf->bitvector  =   0;
     pAf->level      =	pObj->level;
     pAf->detect_level = detect_level;
-    pAf->next       =   pObj->affected;
-    pObj->affected  =   pAf;
+    pObj->affected  =   affect_insert( pObj->affected, pAf );
     
     send_to_char( "Affect added.\n\r", ch);
     return TRUE;
@@ -3679,9 +3678,8 @@ OEDIT( oedit_addapply )
     pAf->duration   =   -1;
     pAf->bitvector  =   bv;
     pAf->level      =	pObj->level;
-    pAf->next       =   pObj->affected;
     pAf->detect_level = detect_level;
-    pObj->affected  =   pAf;
+    pObj->affected  =   affect_insert(pObj->affected, pAf);
     
     send_to_char( "Apply added.\n\r", ch);
     return TRUE;
