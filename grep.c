@@ -1391,104 +1391,36 @@ int get_obj_ops( OBJ_DATA *obj )
     return (int) (sum);
 }
 
-int get_obj_index_spec( OBJ_INDEX_DATA *obj )
+int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
 {
     int spec;
 
     if ( obj == NULL )
-	return 0;
+        return 0;
 
-    if ( obj->level < 90 )
+    if ( level < 90 )
     {
+        spec = 50 + (level * 19/3 + (30+level) * obj->diff_rating)/3;
         if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec = (obj->level + 19) / 20;
-	else
-            spec = (obj->level * 19)/90 + 5;
-
-        /* Added by Astark, Nov 2012. Makes eq with RANDOM 
-           flag have a few more OPs (15-20% or so) - Disabled 1-4-13 Astark
-
-        if ( IS_SET(obj->extra_flags, ITEM_RANDOM))
-            spec = spec * 15 / 14; */
+            spec -= 2 * (10 + level);
+        spec /= 10;
     }
     else /* These are objects above level 90 */
     {
-    /* These are Astark's proposed new values that help with eq rating
-     *	spec = 40 + 4 * (obj->level - 90);
-     *	spec = ((spec * 6 + 9) / 10) + obj->diff_rating*2;
-     */
-
-        spec = 40 + 2 * (obj->level - 90);
-        spec = (spec * (6 + obj->diff_rating) + 9) / 10;
-
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec -= 18 + (obj->level - 90);
-
-        /* Added by Astark, Nov 2012. Makes eq with RANDOM 
-           flag have a few more OPs (15-20% or so) - Disabled 1-4-13 Astark
-
-        if ( IS_SET(obj->extra_flags, ITEM_RANDOM))
-            spec = spec * 15 / 14; */
+        spec = 24 + 2 * (level - 90) + 4 * obj->diff_rating;
+        if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+            spec -= 20 + 2 * (level - 90);
     }
 
     return spec;
 }
 
-/* disabled 1-4-13 Astark 
-
 int get_obj_spec( OBJ_DATA *obj )
 {
-    int spec;
     if ( obj == NULL )
-	return 0;
-    if ( obj->level < 90 )
-    {
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec = (obj->level + 19) / 20;
-	else
-	    spec = (obj->level * 19)/90 + 5;
-        if ( IS_SET(obj->extra_flags, ITEM_RANDOM))
-            spec = spec * 6 / 5;
-    }
-    else
-    {
-	spec = 40 + 4 * (obj->level - 90);
-	spec = ((spec * 6 + 9) / 10) + obj->pIndexData->diff_rating*2;
+        return 0;
 
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec -= 18 + (obj->level - 90);
-        if ( IS_SET(obj->pIndexData->extra_flags, ITEM_RANDOM))
-            spec = spec * 6 / 5;
-    }
-    return spec;
-} */
-
-/* THIS IS THE OLD GET_OBJ_SPEC.. commented out but preserved for review */
-/* re-enabled 1-4-13 */
-int get_obj_spec( OBJ_DATA *obj )
-{
-    int spec;
-    if ( obj == NULL )
-	return 0;
-    if ( obj->level < 90 )
-    {
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec = (obj->level + 19) / 20;
-	else
-	   /* spec = (obj->level + 3) / 4; */
-	   /* increased ops slightly for lower level eq */
-	    spec = (obj->level * 19 /90 ) + 5; 
-    }
-    else
-    {
-	spec = 40 + 2 * (obj->level - 90);
-	spec = (spec * (6 + obj->pIndexData->diff_rating) + 9) / 10;
-
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec -= 18 + (obj->level - 90);
-    }
-
-    return spec;
+    return get_obj_index_spec(obj->pIndexData, obj->level);
 }
 
 
@@ -1510,7 +1442,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 	return TRUE;
 
     /* check ops */
-    spec = get_obj_index_spec( obj );
+    spec = get_obj_index_spec( obj, obj->level );
     value = get_obj_index_ops( obj );
     if ( value > spec )
     {

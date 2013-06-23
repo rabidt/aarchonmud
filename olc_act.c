@@ -3450,7 +3450,7 @@ OEDIT( oedit_show )
 
     /* Info about OPs to spend: */
     sprintf( buf, "OPs:         [%2d/%2d]\n\r",
-	     get_obj_index_ops(pObj), get_obj_index_spec(pObj) );
+        get_obj_index_ops(pObj), get_obj_index_spec(pObj, pObj->level) );
     send_to_char( buf, ch );
 
     if ( pObj->extra_descr )
