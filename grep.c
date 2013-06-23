@@ -1411,7 +1411,19 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
         if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
             spec -= 20 + 2 * (level - 90);
     }
-
+    
+    // bonuses for align restrictions
+    if ( IS_OBJ_STAT(obj, ITEM_ANTI_GOOD) )
+        spec += 1;
+    if ( IS_OBJ_STAT(obj, ITEM_ANTI_NEUTRAL) )
+        spec += 1;
+    if ( IS_OBJ_STAT(obj, ITEM_ANTI_EVIL) )
+        spec += 1;
+    
+    // bonus for randomness
+    if ( IS_OBJ_STAT(obj, ITEM_RANDOM) && get_obj_index_ops(obj) <= spec/2 )
+        spec += 1;
+    
     return spec;
 }
 
