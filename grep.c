@@ -1420,9 +1420,22 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
     if ( IS_OBJ_STAT(obj, ITEM_ANTI_EVIL) )
         spec += 1;
     
-    // bonus for randomness
-    if ( IS_OBJ_STAT(obj, ITEM_RANDOM) && get_obj_index_ops(obj) <= spec/2 )
+    // bonuses for class restrictions
+    int class_count = classes_can_use(obj->extra_flags);
+    if ( class_count <= MAX_CLASS * 2/3 )
         spec += 1;
+    if ( class_count <= MAX_CLASS * 1/3 )
+        spec += 1;
+    
+    // bonus for randomness
+    if ( IS_OBJ_STAT(obj, ITEM_RANDOM) )
+    {
+        int ops = get_obj_index_ops(obj);
+        if ( ops <= spec/2 )
+            spec += 1;
+        if ( ops == 0 )
+            spec += 1;
+    }
     
     return spec;
 }
