@@ -2555,14 +2555,12 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                 paf->modifier   = bread_number( buf );
                 paf->location   = bread_number( buf );
                 paf->bitvector  = bread_number( buf );
-		if ( pfile_version < VER_FLAG_CHANGE )
-		    FLAG_CONVERT( paf->bitvector );
-                paf->next       = obj->affected;
-
-		if (ignore_affects)
-		    free_affect( paf );
-		else
-		    obj->affected = paf;
+                if ( pfile_version < VER_FLAG_CHANGE )
+                    FLAG_CONVERT( paf->bitvector );
+                if (ignore_affects)
+                    free_affect( paf );
+                else
+                    obj->affected = affect_insert( obj->affected, paf );
 
                 fMatch          = TRUE;
                 break;
