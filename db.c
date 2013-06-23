@@ -1539,8 +1539,7 @@ void load_old_obj( FILE *fp )
                 paf->location       = fread_number( fp );
                 paf->modifier       = fread_number( fp );
                 paf->bitvector      = 0;
-                paf->next       = pObjIndex->affected;
-                pObjIndex->affected = paf;
+                pObjIndex->affected = affect_insert( pObjIndex->affected, paf );
                 top_affect++;
             }
             
