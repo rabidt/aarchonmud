@@ -47,6 +47,18 @@ char *name_lookup(const int bit, const struct flag_type *flag_table)
     return NULL;
 }
 
+int index_lookup(const int bit, const struct flag_type *flag_table)
+{
+    int i;
+
+    for (i=0; flag_table[i].name != NULL; i++)
+    {
+        if (flag_table[i].bit == bit)
+            return i;
+    }
+    return -1;
+}
+
 int flag_lookup (const char *name, const struct flag_type *flag_table)
 {
    int flag;

@@ -1384,7 +1384,10 @@ int aff_cmp( AFFECT_DATA *af1, AFFECT_DATA *af2 )
 #define affcmp(X) if (af1->X != af2->X) return (af1->X < af2->X) ? -1 : 1
     affcmp(type);
     affcmp(where);
-    affcmp(location);
+    int loc1 = index_lookup( af1->location, apply_flags );
+    int loc2 = index_lookup( af2->location, apply_flags );
+    if (loc1 != loc2)
+        return (loc1 < loc2) ? -1 : 1;
     affcmp(bitvector);
 #undef affcmp
     return 0;
