@@ -2747,12 +2747,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    immune = (check_immune(victim, dam_type) == IS_IMMUNE);
 	}
 
-    if (dt == gsn_beheading)
-    {
-        immune = FALSE;
-        dam = victim->hit + 100;
-    }
-    
     if ( dam > 0 && is_normal_hit(dt) )
     {
 	if ( stance != 0 )
@@ -2801,6 +2795,21 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	dam += dam * get_religion_bonus(ch) / 100;
     */
 
+    // non-spell damage may be reduced by a saving throw as well
+    if ( dam > 1 && is_normal_hit(dt) )
+    {
+        int victim_roll = -get_save(victim);
+        int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
+        if ( number_range(0,ch_roll) < number_range(0,victim_roll) )
+            dam /= 2;
+    }
+    
+    if (dt == gsn_beheading)
+    {
+        immune = FALSE;
+        dam = victim->hit + 100;
+    }
+    
     if (show)
         dam_message( ch, victim, dam, dt, immune );
     
