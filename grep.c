@@ -1471,7 +1471,22 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
             }
         }
     }
-
+    
+    // affects - check for duplicates circumventing soft/hardcaps
+    int last_loc = -1;
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
+    {
+        if ( aff->where = TO_OBJECT && aff->location != -1)
+        {
+            if ( aff->location == last_loc )
+            {
+                sprintf( msg, "duplicates" );
+                return FALSE;
+            }
+            last_loc = aff->location;
+        }
+    }
+    
     /* check arrows */
     if ( obj->item_type == ITEM_ARROWS )
     {
