@@ -1215,10 +1215,41 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
     return TRUE;
 }
 
-float get_affect_ops( AFFECT_DATA *aff )
+int get_affect_cap( int location, int level )
+{
+    switch ( location )
+    {
+    case APPLY_STR:
+    case APPLY_CON:
+    case APPLY_VIT:
+    case APPLY_AGI:
+    case APPLY_DEX:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_DIS:
+    case APPLY_CHA:
+    case APPLY_LUC:
+        return level < 90 ? 10 : level - 80;
+    case APPLY_MANA:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+        return level < 90 ? 2 * (level + 10) : 10 * (level - 70);
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+        return level < 90 ? (level + 10) / 10 : level - 80;
+    case APPLY_AC:
+        return level < 90 ? -(level + 10) : -10 * (level - 80);
+    case APPLY_SAVES:
+        return level < 90 ? -(level + 10) / 10 : -(level - 80);
+    default:
+        return 0;
+    }
+}
+
+float get_affect_ops( AFFECT_DATA *aff, int level )
 {
     float factor = 0;
-    float result;
+    float result, max_ops;
 
     switch ( aff->location )
     {
@@ -1246,10 +1277,16 @@ float get_affect_ops( AFFECT_DATA *aff )
     default: return 0;
     }
 
-    /* negative stats only give half their OPs value */
     result = aff->modifier * factor;
+    max_ops = get_affect_cap( aff->location, level ) * factor;
+
+    // negative stats only give 2/3 their OPs value
     if ( result < 0 )
-	result /= 2;
+        result = UMAX(result, -max_ops) * 2/3;
+    // bonuses in excess of the soft-cap cost 1/3 extra
+    else if ( result > max_ops )
+        result += (result - max_ops) / 3;
+
     return result;
 }
 
@@ -1337,7 +1374,7 @@ int get_obj_index_ops( OBJ_INDEX_DATA *obj )
 
     /* affects */
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
-	sum += get_affect_ops( aff );
+        sum += get_affect_ops( aff, obj->level );
 
     /* weapon flags */
     if ( obj->item_type == ITEM_WEAPON )
@@ -1370,7 +1407,7 @@ int get_obj_index_ops( OBJ_INDEX_DATA *obj )
 	    sum += 15;
     }
 
-    return (int) (sum);
+    return (int) (sum + 0.9);
 }
 
 int get_obj_ops( OBJ_DATA *obj )
@@ -1386,9 +1423,9 @@ int get_obj_ops( OBJ_DATA *obj )
 
     /* affects */
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
-	sum += get_affect_ops( aff );
+        sum += get_affect_ops( aff, obj->level );
 
-    return (int) (sum);
+    return (int) (sum + 0.9);
 }
 
 int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
