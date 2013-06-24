@@ -1708,6 +1708,9 @@ int get_weapon_skill(CHAR_DATA *ch, int sn)
 	 /* -1 is exotic */
 	if (IS_NPC(ch))
 	{
+        if ( IS_SET(ch->act,ACT_NOWEAPON) && sn != gsn_hand_to_hand )
+            return 0;
+        
 	    if (sn == -1)
 		skill = ch->level;
 	    else

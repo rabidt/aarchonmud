@@ -1326,6 +1326,7 @@ struct  kill_data
 #define ACT_HARD_QUEST  (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
+#define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
 
 /* damage classes */
 #define DAM_NONE                0
