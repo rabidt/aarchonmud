@@ -4789,6 +4789,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
             act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
+            return;
         }
         else
         {
