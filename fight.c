@@ -3475,20 +3475,13 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                 return TRUE;
             }
 
-           /* no pets */
-            if (IS_SET(victim->act,ACT_PET))
+           /* no pets unless you could attack their owner */
+            if (IS_AFFECTED(victim, AFF_CHARM) && victim->leader != NULL && victim->leader != victim)
             {
-		if ( !quiet )
-		    act("But $N looks so cute and cuddly...",ch,NULL,victim,TO_CHAR);
-                return TRUE;
-            }
-            
-            /* no charmed creatures unless owner */
-            if (IS_AFFECTED(victim,AFF_CHARM) && (area || ch != victim->master))
-            {
-		if ( !quiet )
-                send_to_char("You don't own that monster.\n\r",ch);
-                return TRUE;
+                bool is_safe = is_safe_check(ch, victim->leader, area, TRUE, TRUE);
+                if (is_safe && !quiet)
+                    send_to_char("You don't own that monster.\n\r",ch);
+                return is_safe;
             }
         }
         else
@@ -6164,11 +6157,6 @@ void do_murder( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    /*
-    if (IS_AFFECTED(ch,AFF_CHARM) || (IS_NPC(ch) && IS_SET(ch->act,ACT_PET)))
-        return;
-    */    
-
     if ( ( victim = get_char_room( ch, arg ) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
@@ -6183,21 +6171,7 @@ void do_murder( CHAR_DATA *ch, char *argument )
     
     if ( is_safe( ch, victim ) )
         return;
-
-/* These checks occur in is_safe:
-    if ( check_kill_steal(ch,victim) )
-    {
-        send_to_char("Kill stealing is not permitted.\n\r",ch);
-        return;
-    }
-    
-    if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master == victim )
-    {
-        act( "$N is your beloved master.", ch, NULL, victim, TO_CHAR );
-        return;
-    }
-*/
-    
+   
     if ( ch->fighting==victim)
     {
         send_to_char( "You do the best you can!\n\r", ch );
