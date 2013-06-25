@@ -1946,15 +1946,14 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
     
     /* Check number of charmees against cha*/ 
-    mlevel = URANGE(1, level * 3/4, ch->level);
+    mlevel = (6*level + beast_skill) / 8;
+    mlevel = URANGE(1, mlevel, ch->level);
     if ( check_cha_follow(ch, mlevel) < mlevel )
         return;
    
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_TREEGOLEM)))==NULL) 
         return;
     
-    mlevel = (6*level + beast_skill) / 8;
-    mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rA tree springs to life and follows %s.\n\r\n\r",
@@ -2004,14 +2003,14 @@ void spell_water_elemental( int sn, int level, CHAR_DATA *ch, void *vo, int targ
     }
     
     /* Check number of charmees against cha*/ 
-    if ( !check_cha_follow(ch) )
+    mlevel = URANGE(1, level * 3/4, ch->level);
+    if ( check_cha_follow(ch, mlevel) < mlevel )
         return;
        
     if ( (mobIndex = get_mob_index(MOB_VNUM_WATER_ELEMENTAL)) == NULL ) 
         return;
     mob = create_mobile(mobIndex);
     
-    mlevel = URANGE(1, level * 3/4, ch->level);
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rThis water elemental follows %s.\n\r", mob->description, ch->name);
@@ -2135,13 +2134,12 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     }
         
     /* Check number of charmees against cha*/
-    mlevel = URANGE(1, level/2, ch->level);
+    mlevel = (5*level + beast_skill) / 10;
+    mlevel = URANGE(1, mlevel, ch->level);
     max_snake = check_cha_follow( ch, mlevel );
     if ( max_snake < mlevel )
         return;
     
-    mlevel = (5*level + beast_skill) / 10;
-    mlevel = URANGE(1, mlevel, ch->level);
     chance = 100;
     snake_count = 0;
     while ( (snake_count + 1) * mlevel < max_snake && number_percent() <= chance ) {
