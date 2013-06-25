@@ -1308,6 +1308,15 @@ void char_update( void )
                     continue;
                 }
 
+                if ( IS_SET(ch->act, ACT_PET) && ch->leader == NULL
+                        && ch->desc == NULL && ch->fighting == NULL 
+                        && number_bits(3)==0 )
+                {
+                    act("$n wanders off.",ch,NULL,NULL,TO_ROOM);
+                    extract_char(ch,TRUE);
+                    continue;
+                }
+
                 if (ch->aggressors)
                     update_memory(ch);
 
