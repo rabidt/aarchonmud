@@ -1308,7 +1308,7 @@ void char_update( void )
                     continue;
                 }
 
-                if ( IS_SET(ch->act, ACT_PET) && ch->leader == NULL
+                if ( IS_SET(ch->act, ACT_PET) && (ch->leader == NULL || !IS_AFFECTED(ch,AFF_CHARM))
                         && ch->desc == NULL && ch->fighting == NULL 
                         && number_bits(3)==0 )
                 {
