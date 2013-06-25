@@ -599,11 +599,6 @@ int can_carry_n( CHAR_DATA *ch )
 	if ( IS_IMMORTAL(ch) )
 	    return 1000;
 
-	/*
-	if ( IS_NPC(ch) && IS_SET(ch->act, ACT_PET) )
-	    return 0;
-	*/
-
     /* Added a base value of 5 to the number of items that can be carried - Astark 12-27-12 */
 	return MAX_WEAR + ch->level + 5;
 }
@@ -618,12 +613,6 @@ int can_carry_w( CHAR_DATA *ch )
     if ( !IS_NPC(ch) && ch->level >= LEVEL_IMMORTAL )
         return 10000000;
     
-    /*
-    if ( IS_NPC(ch) && IS_SET(ch->act, ACT_PET) )
-        return 0;
-    */
-    
-
     /* Added a base value of 100 to the maximum weight that can be carried. Currently 
        low strength characters are at a severe disadvantage - Astark 12-27-12  */
 
