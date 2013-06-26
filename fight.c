@@ -1235,6 +1235,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -2747,12 +2749,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    immune = (check_immune(victim, dam_type) == IS_IMMUNE);
 	}
 
-    if (dt == gsn_beheading)
-    {
-        immune = FALSE;
-        dam = victim->hit + 100;
-    }
-    
     if ( dam > 0 && is_normal_hit(dt) )
     {
 	if ( stance != 0 )
@@ -2801,6 +2797,21 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	dam += dam * get_religion_bonus(ch) / 100;
     */
 
+    // non-spell damage may be reduced by a saving throw as well
+    if ( dam > 1 && is_normal_hit(dt) )
+    {
+        int victim_roll = -get_save(victim);
+        int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
+        if ( number_range(0,ch_roll) < number_range(0,victim_roll) )
+            dam /= 2;
+    }
+    
+    if (dt == gsn_beheading)
+    {
+        immune = FALSE;
+        dam = victim->hit + 100;
+    }
+    
     if (show)
         dam_message( ch, victim, dam, dt, immune );
     
@@ -2888,6 +2899,16 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	}
     }
 
+    int grit = get_skill(victim, gsn_true_grit);
+    if ( dt != gsn_beheading && grit > 0 && dam > 1 && victim->move > 0 )
+    {
+        int move_loss = dam/2 * grit/100 * victim->move/(victim->move + victim->hit);
+        move_loss = URANGE(0, move_loss, victim->move);
+        victim->move -= move_loss;
+        dam -= move_loss;
+        check_improve(victim, gsn_true_grit, TRUE, 15);
+    }
+    
     if (lethal)
         victim->hit -= dam;
     else if (victim->hit > 0)
