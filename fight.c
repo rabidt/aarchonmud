@@ -3363,6 +3363,7 @@ bool is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 /* mama function for is_safe and is_safe_spell --Bobble */
+#define PKILL_RANGE 6
 bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim, 
 		    bool area, bool quiet, bool theory )
 {
@@ -3520,7 +3521,7 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
         else
         {
             bool clanwar_valid;
-            int level_offset = 5;
+            int level_offset = PKILL_RANGE;
             int ch_power = ch->level + 2 * ch->pcdata->remorts;
             int victim_power = victim->level + 2 * victim->pcdata->remorts;
             
@@ -3587,7 +3588,7 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
             }
             
             /* This was added to curb the ankle-biters. Rim 3/15/98 */
-            level_offset = 5;
+            level_offset = PKILL_RANGE;
             
             if (IS_SET(ch->act,PLR_KILLER))
                 level_offset += 2;
