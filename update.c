@@ -853,7 +853,7 @@ void mobile_update( void )
             continue;
 
         /* Examine call for special procedure */
-        if ( ch->spec_fun != 0 )
+        if ( ch->spec_fun != 0 && ch->wait == 0 )
         {
             /* update the last_mprog log */
             sprintf( last_mprog, "mob %d at %d %s",
@@ -2463,6 +2463,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */

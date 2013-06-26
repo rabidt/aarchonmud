@@ -65,8 +65,8 @@ ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, char *arg, bool area );
 CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact );
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, char *argument, bool exact );
 char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype);
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list, 
-	    int *number, bool exact );
+OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list, int *number, bool exact );
+AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 
 /* friend stuff -- for NPC's mostly */
 bool is_friend(CHAR_DATA *ch,CHAR_DATA *victim)
@@ -545,6 +545,17 @@ void reset_char(CHAR_DATA *ch)
         ch->sex = get_base_sex(ch);
     
     update_perm_hp_mana_move(ch);
+    
+    // adjust XP to fit within current level range (needed e.g. when racial ETL is adjusted)
+    int epl = exp_per_level(ch, ch->pcdata->points);
+    int min_exp = epl * (ch->level);
+    int max_exp = epl * (ch->level + 1) - 1;
+    if (ch->exp < min_exp || ch->exp > max_exp)
+    {
+        int new_exp = URANGE(min_exp, ch->exp, max_exp);
+        logpf("Resetting %s's experience from %d to %d (level %d).", ch->name, ch->exp, new_exp, ch->level);
+        ch->exp = new_exp;
+    }
 }
 
 
@@ -1136,8 +1147,7 @@ void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
     paf_new = new_affect();
     
     *paf_new        = *paf;
-    paf_new->next   = obj->affected;
-    obj->affected   = paf_new;
+    obj->affected   = affect_insert(obj->affected, paf_new);
     
     /* apply any affect vectors to the object's extra_flags */
     if (paf->bitvector)
@@ -1377,7 +1387,43 @@ void affect_join( CHAR_DATA *ch, AFFECT_DATA *paf )
     return;
 }
 
+/*
+ * Return -1, 0 or 1 depending on ordering of af1, af2
+ */
+int aff_cmp( AFFECT_DATA *af1, AFFECT_DATA *af2 )
+{
+#define affcmp(X) if (af1->X != af2->X) return (af1->X < af2->X) ? -1 : 1
+    affcmp(type);
+    affcmp(where);
+    int loc1 = index_lookup( af1->location, apply_flags );
+    int loc2 = index_lookup( af2->location, apply_flags );
+    if (loc1 != loc2)
+        return (loc1 < loc2) ? -1 : 1;
+    affcmp(bitvector);
+#undef affcmp
+    return 0;
+}
 
+/*
+ * inserts an affect into an existing affect list in fixed order
+ */
+AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
+{
+    if ( affect_list == NULL || aff_cmp(paf, affect_list) <= 0 )
+    {
+        paf->next = affect_list;
+        return paf;
+    }
+
+    AFFECT_DATA *prev = affect_list;
+    while ( prev->next && aff_cmp(paf, prev->next) > 0 )
+        prev = prev->next;
+    
+    paf->next = prev->next;
+    prev->next = paf;
+    
+    return affect_list;
+}
 
 /*
  * Move a char out of a room.
