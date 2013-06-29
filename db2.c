@@ -541,6 +541,7 @@ void load_objects( FILE *fp )
         int vnum;
         char letter;
         int iHash;
+        AFFECT_DATA *paf = NULL; // last affect read
 
         letter                          = fread_letter( fp );
         if ( letter != '#' )
@@ -671,10 +672,8 @@ void load_objects( FILE *fp )
 
             if ( letter == 'A' )
             {
-                AFFECT_DATA *paf;
-
                 paf                     = new_affect();
-                paf->where		= TO_OBJECT;
+                paf->where              = TO_OBJECT;
                 paf->type               = -1;
                 paf->level              = pObjIndex->level;
                 paf->duration           = -1;
@@ -699,12 +698,12 @@ void load_objects( FILE *fp )
             {
                 /* set detect_level for last affect -
                    screwy but we must keep old area files valid */
-                if ( pObjIndex->affected == NULL )
+                if ( paf == NULL )
                 {
                     bug( "Load_Objects: No affect for detect_level (#%d)", vnum );
                     fread_number( fp );
                 }
-                pObjIndex->affected->detect_level = fread_number( fp );	
+                paf->detect_level = fread_number( fp );
             }
 
             else if (letter == 'R')
@@ -714,23 +713,21 @@ void load_objects( FILE *fp )
 
             else if (letter == 'F')
             {
-                AFFECT_DATA *paf;
-
-                paf                     = new_affect();
-                letter 			= fread_letter(fp);
+                paf             = new_affect();
+                letter          = fread_letter(fp);
                 switch (letter)
                 {
                     case 'A':
-                        paf->where          = TO_AFFECTS;
+                        paf->where = TO_AFFECTS;
                         break;
                     case 'I':
-                        paf->where		= TO_IMMUNE;
+                        paf->where = TO_IMMUNE;
                         break;
                     case 'R':
-                        paf->where		= TO_RESIST;
+                        paf->where = TO_RESIST;
                         break;
                     case 'V':
-                        paf->where		= TO_VULN;
+                        paf->where = TO_VULN;
                         break;
                     default:
                         bug( "Load_objects: Bad where on flag set.", 0 );
