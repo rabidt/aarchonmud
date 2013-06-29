@@ -1215,10 +1215,61 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
     return TRUE;
 }
 
-float get_affect_ops( AFFECT_DATA *aff )
+int get_affect_cap( int location, int level )
+{
+    switch ( location )
+    {
+    case APPLY_STR:
+    case APPLY_CON:
+    case APPLY_VIT:
+    case APPLY_AGI:
+    case APPLY_DEX:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_DIS:
+    case APPLY_CHA:
+    case APPLY_LUC:
+        return level < 90 ? 10 : level - 80;
+    case APPLY_MANA:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+        return level < 90 ? 2 * (level + 10) : 10 * (level - 70);
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+        return level < 90 ? (level + 10) / 10 : level - 80;
+    case APPLY_AC:
+        return level < 90 ? -(level + 10) : -10 * (level - 80);
+    case APPLY_SAVES:
+        return level < 90 ? -(level + 10) / 10 : -(level - 80);
+    default:
+        return 0;
+    }
+}
+
+bool is_affect_cap_hard( int location )
+{
+    switch ( location )
+    {
+    case APPLY_STR:
+    case APPLY_CON:
+    case APPLY_VIT:
+    case APPLY_AGI:
+    case APPLY_DEX:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_DIS:
+    case APPLY_CHA:
+    case APPLY_LUC:
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
+float get_affect_ops( AFFECT_DATA *aff, int level )
 {
     float factor = 0;
-    float result;
+    float result, max_ops;
 
     switch ( aff->location )
     {
@@ -1246,84 +1297,16 @@ float get_affect_ops( AFFECT_DATA *aff )
     default: return 0;
     }
 
-    /* negative stats only give half their OPs value */
     result = aff->modifier * factor;
+    max_ops = get_affect_cap( aff->location, level ) * factor;
+
+    // negative stats only give 2/3 their OPs value
     if ( result < 0 )
-	result /= 2;
-    return result;
-}
+        result = UMAX(result, -max_ops) * 2/3;
+    // bonuses in excess of the soft-cap cost 1/3 extra
+    else if ( result > max_ops && !is_affect_cap_hard(aff->location) )
+        result += (result - max_ops) / 3;
 
-float get_affect_max_stat( AFFECT_DATA *aff )
-{
-    float factor = 0;
-    float result;
-
-    switch ( aff->location )
-    {
-    case APPLY_STR:
-    case APPLY_CON:
-    case APPLY_VIT:
-    case APPLY_AGI:
-    case APPLY_DEX:
-    case APPLY_INT:
-    case APPLY_WIS:
-    case APPLY_DIS:
-    case APPLY_CHA:
-    case APPLY_LUC: factor = 0.25; break;
-    default: return 0;
-    }
-
-    result = aff->modifier * factor;
-    return result;
-}
-
-
-float get_affect_max_hp( AFFECT_DATA *aff )
-{
-    float factor = 0;
-    float result;
-
-    switch ( aff->location )
-    {
-    case APPLY_MANA:
-    case APPLY_HIT:
-    case APPLY_MOVE: factor = 0.1; break;
-    default: return 0;
-    }
-
-    result = aff->modifier * factor;
-    return result;
-}
-
-
-float get_affect_max_hit( AFFECT_DATA *aff )
-{
-    float factor = 0;
-    float result;
-
-    switch ( aff->location )
-    {    
-    case APPLY_HITROLL:
-    case APPLY_DAMROLL: factor = 1; break;
-    default: return 0;
-    }
-
-    result = aff->modifier * factor;
-    return result;
-}
-
-float get_affect_max_saves( AFFECT_DATA *aff )
-{
-    float factor = 0;
-    float result;
-
-    switch ( aff->location )
-    {    
-    case APPLY_SAVES: factor = -1; break;
-    default: return 0;
-    }
-
-    result = aff->modifier * factor;
     return result;
 }
 
@@ -1337,7 +1320,7 @@ int get_obj_index_ops( OBJ_INDEX_DATA *obj )
 
     /* affects */
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
-	sum += get_affect_ops( aff );
+        sum += get_affect_ops( aff, obj->level );
 
     /* weapon flags */
     if ( obj->item_type == ITEM_WEAPON )
@@ -1386,109 +1369,66 @@ int get_obj_ops( OBJ_DATA *obj )
 
     /* affects */
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
-	sum += get_affect_ops( aff );
+        sum += get_affect_ops( aff, obj->level );
 
     return (int) (sum);
 }
 
-int get_obj_index_spec( OBJ_INDEX_DATA *obj )
+int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
 {
     int spec;
 
     if ( obj == NULL )
-	return 0;
+        return 0;
 
-    if ( obj->level < 90 )
+    if ( level < 90 )
     {
+        spec = 50 + (level * 19/3 + (30+level) * obj->diff_rating)/3;
         if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec = (obj->level + 19) / 20;
-	else
-            spec = (obj->level * 19)/90 + 5;
-
-        /* Added by Astark, Nov 2012. Makes eq with RANDOM 
-           flag have a few more OPs (15-20% or so) - Disabled 1-4-13 Astark
-
-        if ( IS_SET(obj->extra_flags, ITEM_RANDOM))
-            spec = spec * 15 / 14; */
+            spec -= 2 * (10 + level);
+        spec /= 10;
     }
     else /* These are objects above level 90 */
     {
-    /* These are Astark's proposed new values that help with eq rating
-     *	spec = 40 + 4 * (obj->level - 90);
-     *	spec = ((spec * 6 + 9) / 10) + obj->diff_rating*2;
-     */
-
-        spec = 40 + 2 * (obj->level - 90);
-        spec = (spec * (6 + obj->diff_rating) + 9) / 10;
-
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec -= 18 + (obj->level - 90);
-
-        /* Added by Astark, Nov 2012. Makes eq with RANDOM 
-           flag have a few more OPs (15-20% or so) - Disabled 1-4-13 Astark
-
-        if ( IS_SET(obj->extra_flags, ITEM_RANDOM))
-            spec = spec * 15 / 14; */
+        spec = 24 + 2 * (level - 90) + 4 * obj->diff_rating;
+        if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+            spec -= 20 + 2 * (level - 90);
     }
-
+    
+    // bonuses for align restrictions
+    if ( IS_OBJ_STAT(obj, ITEM_ANTI_GOOD) )
+        spec += 1;
+    if ( IS_OBJ_STAT(obj, ITEM_ANTI_NEUTRAL) )
+        spec += 1;
+    if ( IS_OBJ_STAT(obj, ITEM_ANTI_EVIL) )
+        spec += 1;
+    
+    // bonuses for class restrictions
+    int class_count = classes_can_use(obj->extra_flags);
+    if ( class_count <= MAX_CLASS * 2/3 )
+        spec += 1;
+    if ( class_count <= MAX_CLASS * 1/3 )
+        spec += 1;
+    
+    // bonus for randomness
+    if ( IS_OBJ_STAT(obj, ITEM_RANDOM) )
+    {
+        int ops = get_obj_index_ops(obj);
+        if ( ops <= spec/2 )
+            spec += 1;
+        if ( ops == 0 )
+            spec += 1;
+    }
+    
     return spec;
 }
 
-/* disabled 1-4-13 Astark 
-
 int get_obj_spec( OBJ_DATA *obj )
 {
-    int spec;
     if ( obj == NULL )
-	return 0;
-    if ( obj->level < 90 )
-    {
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec = (obj->level + 19) / 20;
-	else
-	    spec = (obj->level * 19)/90 + 5;
-        if ( IS_SET(obj->extra_flags, ITEM_RANDOM))
-            spec = spec * 6 / 5;
-    }
-    else
-    {
-	spec = 40 + 4 * (obj->level - 90);
-	spec = ((spec * 6 + 9) / 10) + obj->pIndexData->diff_rating*2;
+        return 0;
 
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec -= 18 + (obj->level - 90);
-        if ( IS_SET(obj->pIndexData->extra_flags, ITEM_RANDOM))
-            spec = spec * 6 / 5;
-    }
-    return spec;
-} */
-
-/* THIS IS THE OLD GET_OBJ_SPEC.. commented out but preserved for review */
-/* re-enabled 1-4-13 */
-int get_obj_spec( OBJ_DATA *obj )
-{
-    int spec;
-    if ( obj == NULL )
-	return 0;
-    if ( obj->level < 90 )
-    {
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec = (obj->level + 19) / 20;
-	else
-	   /* spec = (obj->level + 3) / 4; */
-	   /* increased ops slightly for lower level eq */
-	    spec = (obj->level * 19 /90 ) + 5; 
-    }
-    else
-    {
-	spec = 40 + 2 * (obj->level - 90);
-	spec = (spec * (6 + obj->pIndexData->diff_rating) + 9) / 10;
-
-	if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	    spec -= 18 + (obj->level - 90);
-    }
-
-    return spec;
+    return get_obj_index_spec(obj->pIndexData, obj->level);
 }
 
 
@@ -1501,8 +1441,7 @@ int average_weapon_dam( OBJ_INDEX_DATA *obj )
 
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 {
-    int value, spec, currstat, maxstat;
-    int maxneg;
+    int value, spec;
     AFFECT_DATA *aff;
 
     if ( obj->level >= LEVEL_IMMORTAL
@@ -1510,7 +1449,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 	return TRUE;
 
     /* check ops */
-    spec = get_obj_index_spec( obj );
+    spec = get_obj_index_spec( obj, obj->level );
     value = get_obj_index_ops( obj );
     if ( value > spec )
     {
@@ -1518,139 +1457,36 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 	return FALSE;
     }
 
-    /* affects - checks for soft caps per guidelines - Astark Oct 2012*/
-    if ( obj->level < LEVEL_IMMORTAL )
+    /* affects - checks for hard caps per guidelines */
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
     {
-        for ( aff = obj->affected; aff != NULL; aff = aff->next )
+        if ( is_affect_cap_hard(aff->location) )
         {
-    	    currstat = get_affect_max_stat(aff);
-           
-            if (obj->level >= 90)
+            spec = get_affect_cap( aff->location, obj->level );
+            value = aff->modifier;
+            if ( value > spec )
             {
-                maxstat = ((obj->level - 90) + 20);   
-
-                if (currstat*4 > maxstat)
-                {
-                    sprintf( msg, "%d = %d/%d", aff->location, currstat*4, maxstat);
-                    return FALSE;
-                }
-            }
-            else
-            {
-                maxstat = 20;   
-                if (currstat*4 > maxstat)
-                {
-                    sprintf( msg, "%d = %d/%d", aff->location, currstat*4, maxstat);
-                    return FALSE;
-                }
-            }
-
-            maxneg = -1*maxstat;
-            if (currstat*4 < maxneg)
-            {
-                sprintf( msg, "%d = %d/%d", aff->location, currstat*4, maxneg);
+                sprintf( msg, "%s = %d/%d", name_lookup(aff->location, apply_flags), value, spec );
                 return FALSE;
             }
         }
     }
-
-    /* hp mana move - checks for soft caps per guidelines - Astark Oct 2012 */
-    if ( obj->level < LEVEL_IMMORTAL )
+    
+    // affects - check for duplicates circumventing soft/hardcaps
+    int last_loc = -1;
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
     {
-        for ( aff = obj->affected; aff != NULL; aff = aff->next )
+        if ( aff->where = TO_OBJECT && aff->location != -1)
         {
-    	    currstat = get_affect_max_hp(aff);
-         
-            if (obj->level >= 90)
+            if ( aff->location == last_loc )
             {
-                maxstat = 200;   
-
-                if (currstat*10 > maxstat)
-                {
-                    sprintf( msg, "%d = %d/%d", aff->location, currstat*10, maxstat);
-                    return FALSE;
-                }
-            }
-            else
-            {
-                maxstat = (obj->level * 2);   
-                if (currstat*10 > maxstat)
-                {
-                    sprintf( msg, "%d = %d/%d", aff->location, currstat*10, maxstat);
-                    return FALSE;
-                }
-            }
-
-            maxneg = -1*maxstat;
-            if (currstat*4 < maxneg)
-            {
-                sprintf( msg, "%d = %d/%d", aff->location, currstat*4, maxneg);
+                sprintf( msg, "duplicates" );
                 return FALSE;
             }
+            last_loc = aff->location;
         }
     }
-
-    /* HR/DR - checks for soft caps per guidelines - Astark Oct 2012 */
-    if ( obj->level < LEVEL_IMMORTAL )
-    {
-        for ( aff = obj->affected; aff != NULL; aff = aff->next )
-        {
-    	    currstat = get_affect_max_hit(aff);
-         
-            if (obj->level >= 90)
-            {
-                maxstat = 20;   
-
-                if (currstat > maxstat)
-                {
-                    sprintf( msg, "%d = %d/%d", aff->location, currstat, maxstat);
-                    return FALSE;
-                }
-            }
-            else
-            {
-                maxstat = (obj->level / 10);   
-                if (currstat > maxstat)
-                {
-                    sprintf( msg, "%d = %d/%d", aff->location, currstat, maxstat);
-                    return FALSE;
-                }
-            }
-        }
-    }
-
-    /* Saves - checks for soft caps per guidelines - Astark Oct 2012 */
-    if ( obj->level < LEVEL_IMMORTAL )
-    {
-        for ( aff = obj->affected; aff != NULL; aff = aff->next )
-        {
-    	    currstat = get_affect_max_saves(aff);
-         
-            if (obj->level >= 90)
-            {
-                maxstat = 10;   
-
-                if (currstat > maxstat)
-                {
-                    sprintf( msg, "%d = %d/%d", aff->location, currstat, maxstat);
-                    return FALSE;
-                }
-            }
-            else
-            {
-                maxstat = (obj->level / 10);   
-                if (currstat > maxstat)
-                {
-                    sprintf( msg, "%d = %d/%d", aff->location, currstat, maxstat);
-                    return FALSE;
-                }
-            }
-        }
-    }
-
-
-
-
+    
     /* check arrows */
     if ( obj->item_type == ITEM_ARROWS )
     {
