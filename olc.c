@@ -55,6 +55,9 @@ bool run_olc_editor( DESCRIPTOR_DATA *d )
    case ED_MPCODE:
       mpedit( d->character, d->incomm );
       break;
+   case ED_OPCODE:
+      opedit( d->character, d->incomm );
+      break;
    case ED_HELP:
       hedit( d->character, d->incomm );
       break;
@@ -197,6 +200,9 @@ bool show_commands( CHAR_DATA *ch, char *argument )
    case ED_MPCODE:
       show_olc_cmds( ch, mpedit_table );
       break;
+   case ED_OPCODE:
+      show_olc_cmds( ch, opedit_table );
+      break;
    case ED_HELP:
       show_olc_cmds( ch, hedit_table );
       break;
@@ -327,6 +333,8 @@ const struct olc_cmd_type oedit_table[] =
    {   "combine",    oedit_combine   },
    {   "rating",     oedit_rating    },
    {   "adjust",     oedit_adjust    },
+   {   "addoprog",   oedit_addoprog  },  /* ROM */
+   {   "deloprog",   oedit_deloprog  },  /* ROM */
    
    {   "?",          show_help       },
    {   "version",    show_version    },
@@ -355,27 +363,27 @@ const struct olc_cmd_type medit_table[] =
    {   "sex",          medit_sex       },  /* ROM */
    {   "act",          medit_act       },  /* ROM */
    {   "affect",       medit_affect    },  /* ROM */
-   {   "armor",        medit_ac        },  /* ROM */
    {   "form",         medit_form      },  /* ROM */
    {   "part",         medit_part      },  /* ROM */
    {   "imm",          medit_imm       },  /* ROM */
    {   "res",          medit_res       },  /* ROM */
    {   "vuln",         medit_vuln      },  /* ROM */
-   {   "material",     medit_material  },  /* ROM */
    {   "off",          medit_off       },  /* ROM */
    {   "size",         medit_size      },  /* ROM */
-   {   "hitdice",      medit_hitdice   },  /* ROM */
-   {   "manadice",     medit_manadice  },  /* ROM */
-   {   "damdice",      medit_damdice   },  /* ROM */
    {   "race",         medit_race      },  /* ROM */
    {   "position",     medit_position  },  /* ROM */
-   {   "wealth",       medit_gold      },  /* ROM */
-   {   "hitroll",      medit_hitroll   },  /* ROM */
+   {   "hitpoints",    medit_hitpoints },
+   {   "mana",         medit_mana      },
+   {   "move",         medit_move      },
+   {   "hitroll",      medit_hitroll   },
+   {   "damage",       medit_damage    },
+   {   "armor",        medit_armor     },
+   {   "saves",        medit_saves     },
+   {   "wealth",       medit_wealth    },
    {   "damtype",      medit_damtype   },  /* ROM */
    {   "group",        medit_group     },  /* ROM */
    {   "addmprog",     medit_addmprog  },  /* ROM */
    {   "delmprog",     medit_delmprog  },  /* ROM */
-   {   "adjust",       medit_adjust    },
    {   "stance",       medit_stance    },
    
    {   "?",            show_help       },
@@ -697,6 +705,7 @@ const struct editor_cmd_type editor_table[] =
    {   "object",   do_oedit   },
    {   "mobile",   do_medit   },
    {   "mpcode",   do_mpedit  },
+   {   "opcode",   do_opedit  },
    {   "help",     do_hedit   },
    
    {   NULL,      0,      }

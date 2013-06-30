@@ -34,6 +34,7 @@ extern          int                     top_exit;
 extern          int                     top_ed;
 extern          int                     top_room;
 extern		int			top_mprog_index;
+extern      int         top_oprog_index;
 
 AREA_DATA		*	area_free;
 EXTRA_DESCR_DATA	*	extra_descr_free;
@@ -405,34 +406,24 @@ MOB_INDEX_DATA *new_mob_index( void )
     flag_clear( pMob->act ); SET_BIT( pMob->act, ACT_IS_NPC );
     flag_clear( pMob->affect_field );
     pMob->alignment     =   0;
-    pMob->hitroll	=   0;
     pMob->race          =   race_lookup( "human" ); /* - Hugin */
     flag_clear( pMob->form );
     flag_clear( pMob->parts );
     flag_clear( pMob->imm_flags );
     flag_clear( pMob->res_flags );
     flag_clear( pMob->vuln_flags );
-    pMob->material      =   str_dup("unknown"); /* -- Hugin */
     flag_clear( pMob->off_flags );
     pMob->size          =   SIZE_MEDIUM; /* ROM patch -- Hugin */
-    pMob->ac[AC_PIERCE]	=   0;           /* ROM patch -- Hugin */
-    pMob->ac[AC_BASH]	=   0;           /* ROM patch -- Hugin */
-    pMob->ac[AC_SLASH]	=   0;           /* ROM patch -- Hugin */
-    pMob->ac[AC_EXOTIC]	=   0;           /* ROM patch -- Hugin */
-    pMob->hit[DICE_NUMBER]	=   0;   /* ROM patch -- Hugin */
-    pMob->hit[DICE_TYPE]	=   0;   /* ROM patch -- Hugin */
-    pMob->hit[DICE_BONUS]	=   0;   /* ROM patch -- Hugin */
-    pMob->mana[DICE_NUMBER]	=   0;   /* ROM patch -- Hugin */
-    pMob->mana[DICE_TYPE]	=   0;   /* ROM patch -- Hugin */
-    pMob->mana[DICE_BONUS]	=   0;   /* ROM patch -- Hugin */
-    pMob->damage[DICE_NUMBER]	=   0;   /* ROM patch -- Hugin */
-    pMob->damage[DICE_TYPE]	=   0;   /* ROM patch -- Hugin */
-    pMob->damage[DICE_NUMBER]	=   0;   /* ROM patch -- Hugin */
+    pMob->hitpoint_percent      = 100;
+    pMob->mana_percent          = 100;
+    pMob->move_percent          = 100;
+    pMob->hitroll_percent       = 100;
+    pMob->damage_percent        = 100;
+    pMob->ac_percent            = 100;
+    pMob->saves_percent         = 100;
     pMob->start_pos             =   POS_STANDING; /*  -- Hugin */
     pMob->default_pos           =   POS_STANDING; /*  -- Hugin */
-    pMob->wealth                =   0;
-
-    pMob->new_format            = TRUE;  /* ROM */
+    pMob->wealth_percent        = 100;
 
     return pMob;
 }
@@ -471,6 +462,7 @@ MPROG_CODE *new_mpcode(void)
          mpcode_free = mpcode_free->next;
      }
 
+     NewCode->is_lua  = FALSE;
      NewCode->vnum    = 0;
      NewCode->code    = str_dup("");
      NewCode->next    = NULL;
@@ -483,6 +475,38 @@ void free_mpcode(MPROG_CODE *pMcode)
     free_string(pMcode->code);
     pMcode->next = mpcode_free;
     mpcode_free  = pMcode;
+    return;
+}
+
+OPROG_CODE              *       opcode_free;
+
+OPROG_CODE *new_opcode(void)
+{
+     OPROG_CODE *NewCode;
+
+     if (!opcode_free)
+     {
+         NewCode = alloc_perm(sizeof(*NewCode) );
+         top_oprog_index++;
+     }
+     else
+     {
+         NewCode     = opcode_free;
+         opcode_free = opcode_free->next;
+     }
+
+     NewCode->vnum    = 0;
+     NewCode->code    = str_dup("");
+     NewCode->next    = NULL;
+
+     return NewCode;
+}
+
+void free_opcode(OPROG_CODE *pOcode)
+{
+    free_string(pOcode->code);
+    pOcode->next = opcode_free;
+    opcode_free  = pOcode;
     return;
 }
 

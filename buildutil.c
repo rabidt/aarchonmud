@@ -885,9 +885,8 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 	send_to_char( buf, ch );
 
 	sprintf( buf, 
-	"Vnum: %d  Format: %s  Race: %s  Group: %d  Sex: %s  Room: %d\n\r",
+	"Vnum: %d  Race: %s  Group: %d  Sex: %s  Room: %d\n\r",
 	IS_NPC(victim) ? victim->pIndexData->vnum : 0,
-	IS_NPC(victim) ? victim->pIndexData->new_format ? "new" : "old" : "pc",
 	race_table[victim->race].name,
 	IS_NPC(victim) ? victim->group : 0, sex_table[victim->sex].name,
 	victim->in_room == NULL    ?        0 : victim->in_room->vnum
@@ -1002,12 +1001,12 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 
 	sprintf( buf, 
 	"Hit: %d  Dam: %d  Saves: %d  Size: %s  Position: %s  Wimpy: %d\n\r",
-	GET_HITROLL(victim), GET_DAMROLL(victim), victim->saving_throw,
+	GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim),
 	size_table[victim->size].name, position_table[victim->position].name,
 	victim->wimpy );
 	send_to_char( buf, ch );
 
-	if (IS_NPC(victim) && victim->pIndexData->new_format)
+	if (IS_NPC(victim))
 	{
 	sprintf(buf, "Damage: %dd%d  Message:  %s\n\r",
 		victim->damage[DICE_NUMBER],victim->damage[DICE_TYPE],
