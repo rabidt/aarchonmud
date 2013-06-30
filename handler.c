@@ -65,8 +65,8 @@ ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, char *arg, bool area );
 CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact );
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, char *argument, bool exact );
 char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype);
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list, 
-	    int *number, bool exact );
+OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list, int *number, bool exact );
+AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 
 /* friend stuff -- for NPC's mostly */
 bool is_friend(CHAR_DATA *ch,CHAR_DATA *victim)
@@ -1136,8 +1136,7 @@ void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
     paf_new = new_affect();
     
     *paf_new        = *paf;
-    paf_new->next   = obj->affected;
-    obj->affected   = paf_new;
+    obj->affected   = affect_insert(obj->affected, paf_new);
     
     /* apply any affect vectors to the object's extra_flags */
     if (paf->bitvector)
@@ -1377,7 +1376,43 @@ void affect_join( CHAR_DATA *ch, AFFECT_DATA *paf )
     return;
 }
 
+/*
+ * Return -1, 0 or 1 depending on ordering of af1, af2
+ */
+int aff_cmp( AFFECT_DATA *af1, AFFECT_DATA *af2 )
+{
+#define affcmp(X) if (af1->X != af2->X) return (af1->X < af2->X) ? -1 : 1
+    affcmp(type);
+    affcmp(where);
+    int loc1 = index_lookup( af1->location, apply_flags );
+    int loc2 = index_lookup( af2->location, apply_flags );
+    if (loc1 != loc2)
+        return (loc1 < loc2) ? -1 : 1;
+    affcmp(bitvector);
+#undef affcmp
+    return 0;
+}
 
+/*
+ * inserts an affect into an existing affect list in fixed order
+ */
+AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
+{
+    if ( affect_list == NULL || aff_cmp(paf, affect_list) <= 0 )
+    {
+        paf->next = affect_list;
+        return paf;
+    }
+
+    AFFECT_DATA *prev = affect_list;
+    while ( prev->next && aff_cmp(paf, prev->next) > 0 )
+        prev = prev->next;
+    
+    paf->next = prev->next;
+    prev->next = paf;
+    
+    return affect_list;
+}
 
 /*
  * Move a char out of a room.
@@ -1792,27 +1827,32 @@ void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
         return;
     }
 
+    // remove current tattoo effect
+    tattoo_modify_equip( ch, iWear, FALSE, FALSE, FALSE );
+    // wear item - this is picked up by tattoo_modify_equip
+    obj->wear_loc = iWear;
+    // add new tattoo effect
+    tattoo_modify_equip( ch, iWear, TRUE, FALSE, FALSE );
+    
+    // add item armor / affects
     for (i = 0; i < 4; i++)
-        ch->armor[i]        -= apply_ac( obj, iWear,i );
-    obj->wear_loc    = iWear;
+        ch->armor[i] -= apply_ac( obj, iWear,i );
     
     for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
-	if ( paf->location != APPLY_SPELL_AFFECT )
-	    affect_modify( ch, paf, TRUE );
+        if ( paf->location != APPLY_SPELL_AFFECT )
+            affect_modify_new( ch, paf, TRUE, FALSE );
+
     for ( paf = obj->affected; paf != NULL; paf = paf->next )
-	if ( paf->location == APPLY_SPELL_AFFECT )
-	    affect_to_char ( ch, paf );
-	else
-	    affect_modify( ch, paf, TRUE );
+        if ( paf->location == APPLY_SPELL_AFFECT )
+            affect_to_char ( ch, paf );
+        else
+            affect_modify_new( ch, paf, TRUE, FALSE );
     
-    if ( obj->item_type == ITEM_LIGHT
-	 &&   obj->value[2] != 0
-	 &&   ch->in_room != NULL )
-	++ch->in_room->light;
-    
-    /* remove tattoo effect */
-    if ( !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	tattoo_modify_equip( ch, iWear, FALSE, FALSE );
+    if ( obj->item_type == ITEM_LIGHT && obj->value[2] != 0 && ch->in_room != NULL )
+        ++ch->in_room->light;
+
+    // we delayed weapon-drop check until all affects (equipment & tattoo) have been applied
+    check_drop_weapon( ch );
 
     check_item_trap_hit(ch, obj);
 
@@ -1829,77 +1869,76 @@ void unequip_char( CHAR_DATA *ch, OBJ_DATA *obj )
     AFFECT_DATA *paf = NULL;
     AFFECT_DATA *lpaf = NULL;
     AFFECT_DATA *lpaf_next = NULL;
-    int i;
+    int i, iWear;
     OBJ_DATA *secondary;
     
     if ((obj->wear_loc == WEAR_WIELD) &&
         ((secondary = get_eq_char(ch, WEAR_SECONDARY)) != NULL))
         secondary->wear_loc = WEAR_WIELD;
     
-    if ( obj->wear_loc == WEAR_NONE )
+    if ( (iWear=obj->wear_loc) == WEAR_NONE )
     {
         bug( "Unequip_char: already unequipped.", 0 );
         return;
     }
     
-    /* add tattoo effect */
-    if ( !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	tattoo_modify_equip( ch, obj->wear_loc, TRUE, FALSE );
+    // remove current tattoo effect
+    tattoo_modify_equip( ch, iWear, FALSE, FALSE, FALSE );
+    // remove item - this is picked up by tattoo_modify_equip
+    obj->wear_loc = WEAR_NONE;
+    // add new tattoo effect
+    tattoo_modify_equip( ch, iWear, TRUE, FALSE, FALSE );
 
+    // add item armor / affects
     for (i = 0; i < 4; i++)
-        ch->armor[i]    += apply_ac( obj, obj->wear_loc,i );
-    obj->wear_loc    = -1;
+        ch->armor[i] += apply_ac( obj, iWear, i );
     
     for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
-	if ( paf->location == APPLY_SPELL_AFFECT )
+        if ( paf->location == APPLY_SPELL_AFFECT )
         {
-	    for ( lpaf = ch->affected; lpaf != NULL; lpaf = lpaf_next )
+            for ( lpaf = ch->affected; lpaf != NULL; lpaf = lpaf_next )
             {
-		lpaf_next = lpaf->next;
-		if ((lpaf->type == paf->type) &&
-		    (lpaf->level == paf->level) &&
-		    (lpaf->location == APPLY_SPELL_AFFECT))
+                lpaf_next = lpaf->next;
+                if ( (lpaf->type == paf->type) && (lpaf->level == paf->level) && (lpaf->location == APPLY_SPELL_AFFECT) )
                 {
-		    affect_remove( ch, lpaf );
-		    lpaf_next = NULL;
-		}
-	    }
-	}
-	else
+                    affect_remove( ch, lpaf );
+                    lpaf_next = NULL;
+                }
+            }
+        }
+        else
         {
-	    affect_modify( ch, paf, FALSE );
-	    affect_check(ch,paf->where,paf->bitvector);
-	}
+            affect_modify_new( ch, paf, FALSE, FALSE );
+            affect_check(ch,paf->where,paf->bitvector);
+        }
             
     for ( paf = obj->affected; paf != NULL; paf = paf->next )
-	if ( paf->location == APPLY_SPELL_AFFECT )
-	{
-	    bug ( "Norm-Apply: %d", 0 );
-	    for ( lpaf = ch->affected; lpaf != NULL; lpaf = lpaf_next )
-	    {
-		lpaf_next = lpaf->next;
-		if ((lpaf->type == paf->type) &&
-		    (lpaf->level == paf->level) &&
-		    (lpaf->location == APPLY_SPELL_AFFECT))
-		{
-		    bug ( "location = %d", lpaf->location );
-		    bug ( "type = %d", lpaf->type );
-		    affect_remove( ch, lpaf );
-		    lpaf_next = NULL;
-		}
-	    }
-	}
-	else
-	{
-	    affect_modify( ch, paf, FALSE );
-	    affect_check(ch,paf->where,paf->bitvector);
-	}
+        if ( paf->location == APPLY_SPELL_AFFECT )
+        {
+            bug ( "Norm-Apply: %d", 0 );
+            for ( lpaf = ch->affected; lpaf != NULL; lpaf = lpaf_next )
+            {
+                lpaf_next = lpaf->next;
+                if ( (lpaf->type == paf->type) && (lpaf->level == paf->level) && (lpaf->location == APPLY_SPELL_AFFECT))
+                {
+                    bug ( "location = %d", lpaf->location );
+                    bug ( "type = %d", lpaf->type );
+                    affect_remove( ch, lpaf );
+                    lpaf_next = NULL;
+                }
+            }
+        }
+        else
+        {
+            affect_modify_new( ch, paf, FALSE, FALSE );
+            affect_check(ch,paf->where,paf->bitvector);
+        }
     
-    if ( obj->item_type == ITEM_LIGHT
-	 &&   obj->value[2] != 0
-	 &&   ch->in_room != NULL
-	 &&   ch->in_room->light > 0 )
-	--ch->in_room->light;
+    if ( obj->item_type == ITEM_LIGHT && obj->value[2] != 0 && ch->in_room != NULL && ch->in_room->light > 0 )
+        --ch->in_room->light;
+    
+    // we delayed weapon-drop check until all affects (equipment & tattoo) have been applied
+    check_drop_weapon( ch );    
     
     return;
 }
@@ -2669,6 +2708,17 @@ OBJ_DATA *get_obj_type( OBJ_INDEX_DATA *pObjIndex )
     return NULL;
 }
 
+// find object of given type in content list
+OBJ_DATA* get_obj_by_type( OBJ_DATA *contents, int item_type )
+{
+    OBJ_DATA *obj;
+
+    for ( obj = contents; obj != NULL; obj = obj->next_content )
+        if ( obj->item_type == item_type )
+            return obj;
+
+    return NULL;
+}
 
 /*
  * Find an obj in a list.
