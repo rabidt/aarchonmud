@@ -68,13 +68,18 @@ char *fix_string( const char *str )
     {
         if (i == MAX_STRING_LENGTH * 3)
         {
-            bug( "Fix_string: String too long!", 0 );
+            bugf( "Fix_string: String too long!" );
+            log_string(str);
             i--;
             break;
         }
         
-        if (str[i+o] == '\r' || str[i+o] == '~')
+        while (str[i+o] == '\r' || str[i+o] == '~')
             o++;
+
+        if (str[i+o]== '\0')
+            break;
+
         strfix[i] = str[i+o];
     }
     strfix[i] = '\0';
@@ -127,7 +132,7 @@ void save_area_list()
 
 /*
 * ROM OLC
-* Used in save_mobile and save_object below.  Writes
+* Used in save_object below.  Writes
 * flags on the form fread_flag reads.
 * 
 * buf[] must hold at least 32+1 characters.
@@ -189,7 +194,7 @@ void reverse_affect_order(OBJ_INDEX_DATA *pObjIndex)
 /*****************************************************************
  * Name: reverse_mprog_order
  * Purpose: fix bug that reverses order of mob mprogs as they save
- * Called by:  save_mobile
+ * Called by:  save_mobble
  *****************************************************************/
 void reverse_mprog_order(MOB_INDEX_DATA *pMobIndex)
 {
@@ -211,6 +216,26 @@ void reverse_mprog_order(MOB_INDEX_DATA *pMobIndex)
     pMobIndex->mprogs->next = new_mprog_list;
 }
 
+void reverse_oprog_order(OBJ_INDEX_DATA *pObjIndex)
+{
+    OPROG_LIST
+        *new_oprog_list = NULL,
+        *next_oprog;
+
+    if (pObjIndex->oprogs == NULL || pObjIndex->oprogs->next == NULL)
+        return;
+
+    next_oprog = pObjIndex->oprogs->next;
+    while (next_oprog)
+    {
+        pObjIndex->oprogs->next = new_oprog_list;
+        new_oprog_list = pObjIndex->oprogs;
+        pObjIndex->oprogs = next_oprog;
+        next_oprog = next_oprog->next;
+    }
+    pObjIndex->oprogs->next = new_oprog_list;
+}
+
 
 
 void save_mobprogs( FILE *fp, AREA_DATA *pArea )
@@ -225,6 +250,7 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
         if ( (pMprog = get_mprog_index(i) ) != NULL)
         {
 		          fprintf(fp, "#%d\n", i);
+                  fprintf(fp, "%s~\n", pMprog->is_lua ? "IS_LUA" : "NOT_LUA" );
                   fprintf(fp, "%s~\n", fix_string(pMprog->code));
         }
     }
@@ -233,114 +259,115 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
     return;
 }
 
-#define PRINT_DIF(a,b,str) DIF(temp,a,b); if (!flag_is_empty(temp)) \
-        fprintf( fp, "F %s %s\n", str, print_tflag(temp) )
+void save_objprogs( FILE *fp, AREA_DATA *pArea )
+{
+    OPROG_CODE *pOprog;
+    int i;
+
+    fprintf(fp, "#OBJPROGS\n");
+
+    for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
+    {
+        if ( (pOprog = get_oprog_index(i) ) != NULL)
+        {
+                  fprintf(fp, "#%d\n", i);
+                  fprintf(fp, "%s~\n", fix_string(pOprog->code));
+        }
+    }
+
+    fprintf(fp,"#0\n\n");
+    return;
+}
+
+#define FPRINT_FIELD_INT(field, value, default) \
+    if (value != default) fprintf( fp, "%s %d\n", field, value )
+#define FPRINT_FIELD_NAMED(field, value, default, name) \
+    if (value != default) fprintf( fp, "%s %s\n", field, name )
+#define FPRINT_FIELD_FLAGS(field, value, default) \
+    if (!flag_equal(value,default)) fprintf( fp, "%s %s\n", field, print_tflag(value) )
 
 /*****************************************************************************
-Name:		save_mobile
-Purpose:	Save one mobile to file, new format -- Hugin
-Called by:	save_mobiles (below).
+Name:           save_mobble
+Purpose:        Save one mobile to file, extra-new format -- Bobble
+Called by:      save_mobbles (below).
 ****************************************************************************/
-void save_mobile( FILE *fp, MOB_INDEX_DATA *pMobIndex )
+void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
 {
     sh_int race = pMobIndex->race;
     MPROG_LIST *pMprog;
-    char buf[MAX_STRING_LENGTH];
-    tflag temp;
     
-    fprintf( fp, "#%d\n",     pMobIndex->vnum );
-    fprintf( fp, "%s~\n",     pMobIndex->player_name );
-    fprintf( fp, "%s~\n",     pMobIndex->short_descr );
-    fprintf( fp, "%s~\n",     fix_string( pMobIndex->long_descr ) );
-    fprintf( fp, "%s~\n",     fix_string( pMobIndex->description) );
-    fprintf( fp, "%s~\n",     race_table[race].name );
-    fprintf( fp, "%s ",       print_tflag( pMobIndex->act ) );
-    fprintf( fp, "%s ",	      print_tflag( pMobIndex->affect_field ) );
-    fprintf( fp, "%d %d\n",   pMobIndex->alignment , pMobIndex->group);
-    fprintf( fp, "%d ",	      pMobIndex->level );
-    fprintf( fp, "%d ",	      pMobIndex->hitroll );
-    fprintf( fp, "%dd%d+%d ", pMobIndex->hit[DICE_NUMBER], 
-        pMobIndex->hit[DICE_TYPE], 
-        pMobIndex->hit[DICE_BONUS] );
-    fprintf( fp, "%dd%d+%d ",	pMobIndex->mana[DICE_NUMBER], 
-        pMobIndex->mana[DICE_TYPE], 
-        pMobIndex->mana[DICE_BONUS] );
-    fprintf( fp, "%dd%d+%d ",	pMobIndex->damage[DICE_NUMBER], 
-        pMobIndex->damage[DICE_TYPE], 
-        pMobIndex->damage[DICE_BONUS] );
-    fprintf( fp, "%s\n",	attack_table[pMobIndex->dam_type].name );
-    fprintf( fp, "%d %d %d %d\n",
-        pMobIndex->ac[AC_PIERCE] / 10, 
-        pMobIndex->ac[AC_BASH]   / 10, 
-        pMobIndex->ac[AC_SLASH]  / 10, 
-        pMobIndex->ac[AC_EXOTIC] / 10 );
-    fprintf( fp, "%s ",		print_tflag( pMobIndex->off_flags ) );
-    fprintf( fp, "%s ",		print_tflag( pMobIndex->imm_flags ) );
-    fprintf( fp, "%s ",		print_tflag( pMobIndex->res_flags ) );
-    fprintf( fp, "%s\n",	print_tflag( pMobIndex->vuln_flags ) );
+    fprintf( fp, "#%d\n",       pMobIndex->vnum );
+    fprintf( fp, "NAME %s~\n",  pMobIndex->player_name );
+    fprintf( fp, "SDESC %s~\n", pMobIndex->short_descr );
+    fprintf( fp, "LDESC %s~\n", fix_string(pMobIndex->long_descr) );
+    fprintf( fp, "DESC %s~\n",  fix_string(pMobIndex->description) );
+    fprintf( fp, "RACE %s~\n",  race_table[race].name );
+    fprintf( fp, "SEX %s\n",    sex_table[pMobIndex->sex].name );
     
-    fprintf( fp, "%s %s %s %ld\n",
-        position_table[pMobIndex->start_pos].short_name,
-        position_table[pMobIndex->default_pos].short_name,
-        sex_table[pMobIndex->sex].name,
-        pMobIndex->wealth );
-    
-    fprintf( fp, "%s ",		print_tflag( pMobIndex->form ) );
-    fprintf( fp, "%s ",		print_tflag( pMobIndex->parts ) );
-    
-    fprintf( fp, "%s ",		size_table[pMobIndex->size].name );
-    fprintf( fp, "%s\n",	IS_NULLSTR(pMobIndex->material) ? pMobIndex->material : "unknown" );
-    
-    PRINT_DIF( race_table[race].act,   pMobIndex->act,        "act" );
-    PRINT_DIF( race_table[race].affect_field, pMobIndex->affect_field, "aff" );
-    PRINT_DIF( race_table[race].off,   pMobIndex->off_flags,  "off" );
-    PRINT_DIF( race_table[race].imm,   pMobIndex->imm_flags,  "imm" );
-    PRINT_DIF( race_table[race].res,   pMobIndex->res_flags,  "res" );
-    PRINT_DIF( race_table[race].vuln,  pMobIndex->vuln_flags, "vul" );
-    PRINT_DIF( race_table[race].form,  pMobIndex->form,       "for" );
-    PRINT_DIF( race_table[race].parts, pMobIndex->parts,      "par" );
+    // flags must come after race, apart from that order does not matter
+    FPRINT_FIELD_FLAGS("ACT",   pMobIndex->act, race_table[race].act );
+    FPRINT_FIELD_FLAGS("AFF",   pMobIndex->affect_field, race_table[race].affect_field );
+    FPRINT_FIELD_FLAGS("OFF",   pMobIndex->off_flags, race_table[race].off );
+    FPRINT_FIELD_FLAGS("IMM",   pMobIndex->imm_flags, race_table[race].imm );
+    FPRINT_FIELD_FLAGS("RES",   pMobIndex->res_flags, race_table[race].res );
+    FPRINT_FIELD_FLAGS("VULN",  pMobIndex->vuln_flags, race_table[race].vuln );
+    FPRINT_FIELD_FLAGS("FORM",  pMobIndex->form, race_table[race].form );
+    FPRINT_FIELD_FLAGS("PARTS", pMobIndex->parts, race_table[race].parts );
 
+    fprintf( fp, "LVL %d\n",    pMobIndex->level );
+    FPRINT_FIELD_INT("HP",      pMobIndex->hitpoint_percent, 100);
+    FPRINT_FIELD_INT("MANA",    pMobIndex->mana_percent, 100);
+    FPRINT_FIELD_INT("MOVE",    pMobIndex->move_percent, 100);
+    FPRINT_FIELD_INT("HIT",     pMobIndex->hitroll_percent, 100);
+    FPRINT_FIELD_INT("DAM",     pMobIndex->damage_percent, 100);
+    FPRINT_FIELD_INT("AC",      pMobIndex->ac_percent, 100);
+    FPRINT_FIELD_INT("SAVES",   pMobIndex->saves_percent, 100);
+    FPRINT_FIELD_INT("WEALTH",  pMobIndex->wealth_percent, 100);
+    
+    fprintf( fp, "DAMTYPE %s\n", attack_table[pMobIndex->dam_type].name );
+    FPRINT_FIELD_INT("STANCE",  pMobIndex->stance, STANCE_DEFAULT);
+    
+    FPRINT_FIELD_NAMED("SIZE",  pMobIndex->size, SIZE_MEDIUM, size_table[pMobIndex->size].name);
+    FPRINT_FIELD_INT("ALIGN",   pMobIndex->alignment, 0);
+    FPRINT_FIELD_INT("GROUP",   pMobIndex->group, 0);
+
+    FPRINT_FIELD_NAMED("SPOS",  pMobIndex->start_pos, POS_STANDING, position_table[pMobIndex->start_pos].short_name);
+    FPRINT_FIELD_NAMED("DPOS",  pMobIndex->default_pos, POS_STANDING, position_table[pMobIndex->default_pos].short_name);
+       
     reverse_mprog_order(pMobIndex);    
     for (pMprog = pMobIndex->mprogs; pMprog; pMprog = pMprog->next)
     {
-        fprintf(fp, "M %s %d %s~\n",
-            mprog_type_to_name(pMprog->trig_type), pMprog->vnum,
-            pMprog->trig_phrase);
+        fprintf(fp, "MPROG %s %d %s~\n", mprog_type_to_name(pMprog->trig_type), pMprog->vnum, pMprog->trig_phrase);
     }
     reverse_mprog_order(pMobIndex);
 
-    if (pMobIndex->stance != STANCE_DEFAULT)
-      fprintf(fp, "S stance %d\n", pMobIndex->stance);
+    fprintf( fp, "END\n\n" );
     
     return;
 }
 
 
 /*****************************************************************************
-Name:		save_mobiles
-Purpose:	Save #MOBILES secion of an area file.
-Called by:	save_area(olc_save.c).
-Notes:         Changed for ROM OLC.
+Name:           save_mobbles
+Purpose:        Save #MOBBLES secion of an area file.
+Called by:      save_area(olc_save.c).
 ****************************************************************************/
-void save_mobiles( FILE *fp, AREA_DATA *pArea )
+void save_mobbles( FILE *fp, AREA_DATA *pArea )
 {
     int i;
     MOB_INDEX_DATA *pMob;
     
-    fprintf( fp, "#MOBILES\n" );
+    fprintf( fp, "#MOBBLES\n" );
     
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pMob = get_mob_index( i )) )
-            save_mobile( fp, pMob );
+            save_mobble( fp, pMob );
     }
     
     fprintf( fp, "#0\n\n\n\n" );
     return;
 }
-
-
-
 
 
 /*****************************************************************************
@@ -538,6 +565,18 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     {
         fprintf( fp, "E\n%s~\n%s~\n", pEd->keyword,
             fix_string( pEd->description ) );
+    }
+
+    /* save oprogs if any */
+    if (pObjIndex->oprogs != NULL)
+    {
+        OPROG_LIST *pOprog;
+        reverse_oprog_order(pObjIndex);
+        for (pOprog = pObjIndex->oprogs; pOprog; pOprog = pOprog->next)
+        {
+            fprintf(fp, "O %s %d %s~\n", name_lookup(pOprog->trig_type, oprog_flags), pOprog->vnum, pOprog->trig_phrase);
+        }
+        reverse_oprog_order(pObjIndex); 
     }
     
     return;
@@ -1040,13 +1079,14 @@ void save_area( AREA_DATA *pArea )
         fprintf( fp, "NoHide\n");
     fprintf( fp, "End\n\n\n\n" );
     
-    save_mobiles( fp, pArea );
+    save_mobbles( fp, pArea );
     save_objects( fp, pArea );
     save_rooms( fp, pArea );
     save_specials( fp, pArea );
     save_resets( fp, pArea );
     save_shops( fp, pArea );
     save_mobprogs( fp, pArea );
+    save_objprogs( fp, pArea );
     
     if ( pArea->helps && pArea->helps->first )
         save_helps( fp, pArea->helps );

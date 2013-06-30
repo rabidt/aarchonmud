@@ -140,6 +140,8 @@ char last_debug[MSL] = "";
 #define CHK_QTIMER      (69)
 #define CHK_MPCNT       (70)
 
+#define CHK_REMORT      (71)
+
 /*
  * These defines correspond to the entries in fn_evals[] table.
  */
@@ -185,7 +187,7 @@ const keyword_list fn_keyword =
     { "isvisible",	"if isvisible $n        - can mob see $n" },
     { "hastarget",	"if hastarget $i        - does $i have a valid target" },
     { "istarget",	"if istarget $n	        - is $n mob's target" },
-    { "exists",		"if exists $n           - does $n exist somewhere" },
+    { "exists",		"if exists $n           - does not work" },
 
     { "affected",	"if affected $n blind   - is $n affected by blind" },
     { "act",		"if act $i sentinel     - is $i flagged sentinel" },
@@ -239,6 +241,7 @@ const keyword_list fn_keyword =
 			"if ccarries $n 1233    - does $n have obj 1233 in a container" },
     { "qtimer",         "if qtimer 3877 $n > 0  - qstatus timer check" },
     { "mpcnt",          "if mpcnt $i > 15       - mana point percent check" },
+    { "remort",     "if remort $n > 0    - if $n's remort is above 0 (remort value is -1 for mobs)"},
 
     { "\n",		"Table terminator" }
 };
@@ -305,6 +308,13 @@ CHAR_DATA *get_random_char( CHAR_DATA *mob )
 {
     CHAR_DATA *vch, *victim = NULL;
     int now = 0, highest = 0;
+
+    if ( mob->in_room == NULL )
+    {
+        bugf( "get_random_char: NULL room for mob %d", mob->pIndexData->vnum );
+        return NULL;
+    }
+
     for( vch = mob->in_room->people; vch; vch = vch->next_in_room )
     {
         if ( mob != vch 
@@ -327,6 +337,13 @@ int count_people_room( CHAR_DATA *mob, int iFlag )
 {
     CHAR_DATA *vch;
     int count;
+
+    if ( mob->in_room == NULL )
+    {
+        bugf( "count_people_room: NULL room for mob %d", mob->pIndexData->vnum );
+        return 0;
+    }
+
     for ( count = 0, vch = mob->in_room->people; vch; vch = vch->next_in_room )
 	if ( mob != vch 
 	&&   (iFlag == 0
@@ -352,6 +369,13 @@ int get_order( CHAR_DATA *ch )
 
     if ( !IS_NPC(ch) )
 	return 0;
+
+    if ( ch->in_room == NULL )
+    {
+        bugf( "get_order: NULL room for mob %d", ch->pIndexData->vnum );
+        return 0;
+    }
+
     for ( i = 0, vch = ch->in_room->people; vch; vch = vch->next_in_room )
     {
 	if ( vch == ch )
@@ -396,7 +420,7 @@ bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
 	    if( container->item_type != ITEM_CONTAINER )
 		continue;
 
-	    for( obj = container->contains; obj; obj->next_content )
+	    for( obj = container->contains; obj; obj=obj->next_content )
 	    {
 		if( vnum < 0 && is_either_name(obj_name, obj->name) )
 		    return TRUE;
@@ -413,7 +437,7 @@ bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
 {
 	OBJ_DATA *obj;
 
-	for( obj = container->contains; obj; obj->next_content )
+	for( obj = container->contains; obj; obj=obj->next_content )
 	{
 	    if( vnum < 0 && is_either_name(obj_name, obj->name) )
 		return TRUE;
@@ -431,6 +455,13 @@ bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
 bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
 {
     CHAR_DATA *mob;
+
+    if (ch->in_room == NULL )
+    {
+        bugf( "get_mob_vnum_room: NULL room for ch %d", ch->pIndexData->vnum );
+        return NULL;
+    }
+
     for ( mob = ch->in_room->people; mob; mob = mob->next_in_room )
 	if ( IS_NPC( mob ) && mob->pIndexData->vnum == vnum )
 	    return TRUE;
@@ -443,6 +474,13 @@ bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
 bool get_obj_vnum_room( CHAR_DATA *ch, int vnum )
 {
     OBJ_DATA *obj;
+
+    if ( ch->in_room == NULL )
+    {
+        bugf( "get_obj_vnum_room: NULL room for mob %d", ch->pIndexData->vnum );
+        return 0;
+    }
+
     for ( obj = ch->in_room->contents; obj; obj = obj->next_content )
 	if ( obj->pIndexData->vnum == vnum )
 	    return TRUE;
@@ -868,6 +906,15 @@ int cmd_eval( int vnum, char *line, int check,
             if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_CHA); break;
 	case CHK_STATLUC:
             if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_LUC); break;
+    case CHK_REMORT:
+            if ( lval_char != NULL )
+            {
+                if IS_NPC(ch)
+                   lval = -1;
+                else
+                   lval = lval_char->pcdata->remorts;
+            }
+            break;
 	default:
             return FALSE;
     }
@@ -1080,10 +1127,20 @@ void expand_arg( char *buf,
 #define MAX_CALL_LEVEL    5 /* Maximum nested calls */
 
 void program_flow( 
+    char *text,
+    bool is_lua,
     int pvnum,  /* For diagnostic purposes */
     char *source,  /* the actual MOBprog code */
-    CHAR_DATA *mob, CHAR_DATA *ch, const void *arg1, const void *arg2 )
+    CHAR_DATA *mob, CHAR_DATA *ch, 
+    const void *arg1, sh_int arg1type,
+    const void *arg2, sh_int arg2type )
 {
+    if ( is_lua )
+    {
+        lua_mob_program(text, pvnum, source, mob, ch, arg1, arg1type, arg2, arg2type);
+        return;
+    }
+
     CHAR_DATA *rch = NULL;
     char *code, *line;
     char buf[MAX_STRING_LENGTH];
@@ -1354,7 +1411,8 @@ void program_flow(
  */
 bool mp_act_trigger( 
 	char *argument, CHAR_DATA *mob, CHAR_DATA *ch, 
-	const void *arg1, const void *arg2, int type )
+	const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type,
+    int type )
 {
     MPROG_LIST *prg;
 
@@ -1364,9 +1422,10 @@ bool mp_act_trigger(
 	     /* should be case-insensitive --Bobble
 	     && strstr( argument, prg->trig_phrase ) != NULL )
 	     */
-	     && strstr(cap_all(argument), cap_all(prg->trig_phrase)) != NULL )
+            && ( strstr(cap_all(argument), cap_all(prg->trig_phrase)) != NULL 
+            ||   !strcmp(prg->trig_phrase, "*") ) )
         {
-	    program_flow( prg->vnum, prg->code, mob, ch, arg1, arg2 );
+	    program_flow( argument, prg->is_lua, prg->vnum, prg->code, mob, ch, arg1, arg1type, arg2, arg2type );
 	    return TRUE;
 	}
     }
@@ -1379,16 +1438,17 @@ bool mp_act_trigger(
  */
 bool mp_percent_trigger( 
 	CHAR_DATA *mob, CHAR_DATA *ch, 
-	const void *arg1, const void *arg2, int type )
+	const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type,
+    int type )
 {
     MPROG_LIST *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
     {
     	if ( prg->trig_type == type 
-	&&   number_percent() < atoi( prg->trig_phrase ) )
+	&&   number_percent() <= atoi( prg->trig_phrase ) )
         {
-	    program_flow( prg->vnum, prg->code, mob, ch, arg1, arg2 );
+	    program_flow( NULL, prg->is_lua, prg->vnum, prg->code, mob, ch, arg1, arg1type, arg2, arg2type );
 	    return ( TRUE );
 	}
     }
@@ -1409,7 +1469,9 @@ void mp_bribe_trigger( CHAR_DATA *mob, CHAR_DATA *ch, int amount )
 	if ( prg->trig_type == TRIG_BRIBE
 	&&   amount >= atoi( prg->trig_phrase ) )
 	{
-	    program_flow( prg->vnum, prg->code, mob, ch, NULL, NULL );
+        char buf[MSL];
+        sprintf( buf, "%d", amount);
+	    program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
 	    break;
 	}
     }
@@ -1439,14 +1501,14 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
 			mob->position == POS_FIGHTING)
 		&&  check_see( mob, ch ) )
 		{
-		    program_flow( prg->vnum, prg->code, mob, ch, NULL, NULL );
+		    program_flow( dir_name[dir], prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
 		    return TRUE;
 		}
 		else
 		if ( prg->trig_type == TRIG_EXALL
 		&&   dir == atoi( prg->trig_phrase ) )
 		{
-		    program_flow( prg->vnum, prg->code, mob, ch, NULL, NULL );
+		    program_flow( dir_name[dir], prg->is_lua, prg->vnum, prg->code, mob, ch, NULL,0, NULL,0 );
 		    return TRUE;
 		}
 	    }
@@ -1472,7 +1534,7 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 	    {
 		if ( obj->pIndexData->vnum == r_atoi(mob, p) )
 		{
-		    program_flow(prg->vnum, prg->code, mob, ch, (void *) obj, NULL);
+		    program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0);
 		    return;
 		}
 	    }
@@ -1486,9 +1548,10 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 		    p = one_argument( p, buf );
 
 		    if ( is_name( buf, obj->name )
-		    ||   !str_cmp( "all", buf ) )
+		    ||   !str_cmp( "all", buf ) 
+            ||   !str_cmp( "*", buf ) )
 		    {
-		    	program_flow(prg->vnum, prg->code, mob, ch, (void *) obj, NULL);
+		    	program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0);
 		    	return;
 		    }
 		}
@@ -1517,10 +1580,10 @@ void mp_greet_trigger( CHAR_DATA *ch )
             if ( HAS_TRIGGER( mob,TRIG_GREET )
                 &&   mob->position == mob->pIndexData->default_pos
                 &&   check_see( mob, ch ) )
-                mp_percent_trigger( mob, ch, NULL, NULL, TRIG_GREET );
+                mp_percent_trigger( mob, ch, NULL,0, NULL,0, TRIG_GREET );
             else                 
                 if ( HAS_TRIGGER( mob, TRIG_GRALL ) )
-                    mp_percent_trigger( mob, ch, NULL, NULL, TRIG_GRALL );
+                    mp_percent_trigger( mob, ch, NULL,0, NULL,0, TRIG_GRALL );
         }
     }
     return;
@@ -1534,7 +1597,9 @@ void mp_hprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	if ( ( prg->trig_type == TRIG_HPCNT )
 	&& ( (100 * mob->hit / mob->max_hit) < atoi( prg->trig_phrase ) ) )
 	{
-	    program_flow( prg->vnum, prg->code, mob, ch, NULL, NULL );
+        char buf[MSL];
+        sprintf( buf, "%d", (100 * mob->hit / mob->max_hit) );
+        program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, 0, NULL, 0 );
 	    break;
 	}
 }
@@ -1547,26 +1612,22 @@ void mp_mprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	if ( ( prg->trig_type == TRIG_MPCNT )
 	&& ( (100 * mob->mana / mob->max_mana) < atoi( prg->trig_phrase ) ) )
 	{
-	    program_flow( prg->vnum, prg->code, mob, ch, NULL, NULL );
+        char buf[MSL];
+        sprintf(buf, "%d", (100 * mob->mana / mob->max_mana) );
+        program_flow( buf, prg->is_lua, prg->vnum, prg->code, mob, ch, NULL, 0, NULL, 0 );
 	    break;
 	}
 }
 
-bool mp_spell_trigger( char* argument, CHAR_DATA *ch )
+
+bool mp_spell_trigger( char* argument, CHAR_DATA *mob, CHAR_DATA *ch)
 {
-    CHAR_DATA *mob;
-    CHAR_DATA *next_char;
     bool found = FALSE;
    
-    for ( mob = ch->in_room->people; mob != NULL; mob = next_char )
+    if (IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_SPELL) )
     {
-        next_char = mob->next_in_room;
-   
-        if (IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_SPELL) )
-        {
-            if (mp_act_trigger(argument, mob, ch, NULL, NULL, TRIG_SPELL) )
-                found = TRUE;
-        }
+        if (mp_act_trigger(argument, mob, ch, NULL, 0, NULL, 0, TRIG_SPELL) )
+            found = TRUE;
     }
     return found;
 }
@@ -1585,7 +1646,7 @@ bool mp_try_trigger( char* argument, CHAR_DATA *ch )
     
     if ( IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_TRY) )
     {
-      if ( mp_act_trigger(argument, mob, ch, NULL, NULL, TRIG_TRY) )
+      if ( mp_act_trigger(argument, mob, ch, NULL,0, NULL,0, TRIG_TRY) )
 	found = TRUE;
     }
   }

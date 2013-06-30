@@ -110,8 +110,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "explored",   do_explored,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "get",        do_get,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "goto",       do_goto,        POS_DEAD,       IM,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "group",      do_group,       POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },      
-    { "release",    do_release,     POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "group",      do_group,       POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "hit",        do_kill,    POS_FIGHTING,    0,  LOG_NORMAL, 0 , FALSE, TRUE },
     { "inventory",  do_inventory,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE },
     { "kill",       do_kill,    POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -130,7 +129,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "stand",      do_stand,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "stat",       do_stat,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "sticky",     do_sticky, POS_DEAD,       L2,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "tell",       do_tell,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "tell",       do_tell,    POS_SLEEPING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "unlock",     do_unlock,      POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wield",      do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wizhelp",    do_wizhelp, POS_DEAD,   IM,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -155,8 +154,9 @@ const   struct  cmd_type    cmd_table   [] =
     { "report",     do_report,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "rules",      do_rules,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "score",      do_score,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "lboard",     do_lboard,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
-	{ "lhistory",   do_lhistory,POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+//    { "lboard",     do_lboard,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "leadership", do_leadership,  POS_RESTING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
+//    { "lhistory",   do_lhistory,POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "scan",       do_scan,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "survey",     do_survey,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "skill",      do_skill,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -292,6 +292,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "smoke",      do_smoke,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "tdisarm",    do_disarm_trap, POS_STANDING, 0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "spellup",    do_spellup, POS_STANDING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "smith",      do_smith,   POS_STANDING, 0, LOG_NORMAL, 1, FALSE, FALSE },
     
    /*
     * Combat commands.
@@ -312,7 +313,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "distract",   do_distract, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "feint",      do_feint, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "backstab",   do_backstab,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-        { "blackjack",  do_blackjack,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+        { "blackjack",  do_blackjack,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "circle",     do_circle,      POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "slash",      do_slash_throat,POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "bash",       do_bash,        POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -414,7 +415,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "bounty",     do_bounty,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "groups",     do_groups,  POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "hide",       do_hide,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "pkil",       do_pkil,    POS_DEAD,       10,  LOG_NEVER, 0, FALSE, FALSE  },
     { "pkill",      do_pkill,   POS_SLEEPING,    0,  LOG_NEVER,  1, FALSE, FALSE  },
     { "roleplay",   do_roleplay,POS_SLEEPING,    0,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "qui",        do_qui,     POS_DEAD,    0,  LOG_NORMAL, 0, FALSE, FALSE  },
@@ -492,6 +492,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "trust",      do_trust,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "violate",    do_violate, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
 //    { "pipe",       do_pipe,    POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "pgrep",      do_pgrep,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "pload",      do_pload,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "punload",    do_punload, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "allow",      do_allow,   POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -603,6 +604,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "dummy",      do_dummy   ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mortlag",    do_mortlag, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mode",	    do_mode,	POS_DEAD,   L9,	 LOG_NORMAL, 1, FALSE, FALSE  },
+    { "luareset",   do_luareset,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
 
     /*
     * OLC
@@ -616,6 +618,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "aedit",      do_aedit,   POS_DEAD,   L2,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "oedit",      do_oedit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpedit",     do_mpedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
+    { "opedit",     do_opedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "hedit",      do_hedit,   POS_DEAD,   L8,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpdump",     do_mpdump,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "mpstat",     do_mpstat,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
@@ -1023,7 +1026,7 @@ bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact 
 	     && MOBtrigger
 	     && HAS_TRIGGER(victim, TRIG_SOCIAL)
 	     && mp_act_trigger(social_table[cmd].name, victim, ch,
-			       NULL, NULL, TRIG_SOCIAL) )
+			       NULL,0, NULL,0, TRIG_SOCIAL) )
 	    ;
 	else
 	{

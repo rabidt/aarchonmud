@@ -25,6 +25,8 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
+#include <lua.h>
+
 /* change this value to 0 for running on darkhorse */
 #define SOCR 1
 
@@ -46,6 +48,7 @@
 /* #define ASSERT_DEBUG */
 /* #define MPROG_DEBUG */
 #define BOX_LOG
+#define SMITH_LOG
 
 #ifdef ASSERT_DEBUG
 #include <assert.h>
@@ -117,6 +120,7 @@ typedef struct  help_data        HELP_DATA;
 typedef struct  help_area_data   HELP_AREA;
 typedef struct  kill_data        KILL_DATA;
 typedef struct  mem_data         MEM_DATA;
+typedef struct  mob_index_data_old MOB_INDEX_DATA_OLD;
 typedef struct  mob_index_data   MOB_INDEX_DATA;
 typedef struct  note_data        NOTE_DATA;
 typedef struct  obj_data         OBJ_DATA;
@@ -130,6 +134,8 @@ typedef struct  time_info_data   TIME_INFO_DATA;
 typedef struct  weather_data     WEATHER_DATA;
 typedef struct  mprog_list       MPROG_LIST;
 typedef struct  mprog_code       MPROG_CODE;
+typedef struct  oprog_code       OPROG_CODE;
+typedef struct  oprog_list       OPROG_LIST;
 typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
@@ -205,7 +211,6 @@ struct comm_history_type
 };
 
 
-
 typedef bool CHAN_CHECK args( ( CHAR_DATA *ch) );
 typedef struct channel_type
 {
@@ -255,7 +260,7 @@ bool is_drop_obj( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         416 
+#define MAX_SKILL         419
 #define MAX_GROUP          76 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
@@ -274,6 +279,8 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define MAX_STORAGE_BOX	   5
 #define MAX_QUOTES         22 /* This must equal the # of quotes you have */
 #define MAX_CP						 60
+#define MAX_ARROWS 300
+
 #define LEVEL_IMMORTAL     (MAX_LEVEL - 9)
 #define LEVEL_HERO         (MAX_LEVEL - 10)
 #define LEVEL_MIN_HERO     (MAX_LEVEL - 20)
@@ -298,6 +305,8 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define WEEK (7*DAY)
 #define MONTH (30*DAY)
 #define YEAR (365*DAY)
+
+#define PK_EXPIRE_DAYS 90
 
 /* maximum current remort level - update when adding new remorts */
 #ifdef TESTER
@@ -401,6 +410,12 @@ bool is_drop_obj( OBJ_DATA *obj );
 #define FLAG_MAX_BIT           (8 * FLAG_MAX_BYTE) 
 typedef char tflag[FLAG_MAX_BYTE];
 typedef char msl_string[MSL];
+
+typedef struct smith_data 
+{
+    OBJ_DATA *old_obj;
+    OBJ_DATA *new_obj;
+} SMITH_DATA;
 
 typedef struct explore_holder
 {	
@@ -740,24 +755,11 @@ struct penalty_data
 #define CON_CLOSED              35
 #define MAX_CON_STATE           36
 
-#define CON_SMITH_WELCOME       1
-#define CON_SMITH_TYPE          2
-#define CON_SMITH_SUBTYPE       3
-#define CON_SMITH_PURCHASE      4
-#define CON_SMITH_MATERIAL      5
-#define CON_SMITH_QUALITY       6
-#define CON_SMITH_COLOR         7
-#define CON_SMITH_PERSONAL      8
-#define CON_SMITH_LEVEL         9
-#define CON_SMITH_KEYWORDS      10
-#define CON_SMITH_SELECT        11
-#define CON_SMITH_INVENTORY     12
 #define CREATION_UNKNOWN         0
 #define CREATION_INSTANT         1
 #define CREATION_QUICK           2
 #define CREATION_NORMAL          3
 #define CREATION_REMORT          4
-#define CREATION_BLACKSMITH     5
 
 
 typedef enum { FTP_NORMAL, FTP_PUSH, FTP_PUSH_WAIT } ftp_mode;
@@ -1087,6 +1089,8 @@ struct  kill_data
 #define MOB_VNUM_GHOST          9
 #define MOB_VNUM_BASIC_APPARITION 11
 #define MOB_VNUM_HOLY_APPARITION 12
+#define MOB_VNUM_WATER_ELEMENTAL 13
+#define MOB_VNUM_BEAST           14
 
 /* RT ASCII conversions -- used so we can have letters in this file */
 
@@ -1318,8 +1322,11 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST    (kk)
+#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST  (kk)
+#define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
+#define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
+#define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
 
 /* damage classes */
 #define DAM_NONE                0
@@ -1499,6 +1506,7 @@ struct  kill_data
 #define FORM_FROST              (hh) //frost aura
 #define FORM_BURN               (ii) //burning aura
 #define FORM_WISE               (jj) //10 mana per level
+#define FORM_CONDUCTIVE         (kk) //electric aura
 
 /* body parts */
 #define PART_HEAD               (A)
@@ -1711,14 +1719,7 @@ struct  kill_data
 #define OBJ_VNUM_WHISTLE       2116
 #define OBJ_VNUM_SIVA_WEAPON    34
 #define OBJ_VNUM_GOODBERRY      35
-#define OBJ_VNUM_BLACKSMITH     36
-
 #define OBJ_VNUM_STORAGE_BOX    48	
-
-/*
-#define OBJ_VNUM_BLACKSMITH_WEAPON     36
-#define OBJ_VNUM_BLACKSMITH_ARMOR      46
-*/
 
 /*
  * Item types.
@@ -1800,6 +1801,7 @@ struct  kill_data
 #define ITEM_TRAPPED        (ee)
 #define ITEM_EASY_DROP      (ff)
 #define ITEM_NO_EXTRACT     (gg)
+#define ITEM_QUESTEQ        (hh)
 
 /* class restriction flags */
 #define ITEM_ALLOW_WARRIOR        100
@@ -2013,7 +2015,7 @@ struct  kill_data
 #define ROOM_NOWHERE        (T)
 #define ROOM_DONATION       (U)
 #define ROOM_SNARE          (V)
-#define ROOM_BLACKSMITH     (W)       
+#define ROOM_BLACKSMITH     (W)
 #define ROOM_PEEL           (X)
 #define ROOM_JAIL           (Y)
 #define ROOM_NO_QUEST       (Z)
@@ -2262,6 +2264,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define WIZ_CHEAT       (X)
 #define WIZ_RELIGION	(Y)
 #define WIZ_MEMCHECK	(Z)
+#define WIZ_BUGS        (aa)
 
 /* Freeze Tag flags */
 #define TAG_PLAYING     (A)
@@ -2333,9 +2336,9 @@ extern sh_int sn_overall;
  * Prototype for a mob.
  * This is the in-memory version of #MOBILES.
  */
-struct  mob_index_data
+struct  mob_index_data_old
 {
-	MOB_INDEX_DATA *    next;
+	MOB_INDEX_DATA_OLD *    next;
 	SPEC_FUN *      spec_fun;
 	SHOP_DATA *     pShop;
 	MPROG_LIST *        mprogs;
@@ -2376,7 +2379,52 @@ struct  mob_index_data
     sh_int      stance;
 };
 
-
+/*
+ * Prototype for a mob (new-style).
+ * This is the in-memory version of #MOBBLES.
+ */
+struct  mob_index_data
+{
+    MOB_INDEX_DATA* next;
+    SPEC_FUN*   spec_fun;
+    SHOP_DATA*  pShop;
+    MPROG_LIST* mprogs;
+    AREA_DATA*  area;
+    int         vnum;
+    sh_int      group;
+    sh_int      count;
+    sh_int      killed;
+    char*       player_name;
+    char*       short_descr;
+    char*       long_descr;
+    char*       description;
+    tflag       act;
+    tflag       affect_field;
+    sh_int      alignment;
+    sh_int      level;
+    sh_int      hitpoint_percent;
+    sh_int      mana_percent;
+    sh_int      move_percent;
+    sh_int      hitroll_percent;
+    sh_int      damage_percent;
+    sh_int      ac_percent;
+    sh_int      saves_percent;
+    sh_int      dam_type;
+    tflag       off_flags;
+    tflag       imm_flags;
+    tflag       res_flags;
+    tflag       vuln_flags;
+    sh_int      start_pos;
+    sh_int      default_pos;
+    sh_int      sex;
+    sh_int      race;
+    sh_int      wealth_percent;
+    tflag       form;
+    tflag       parts;
+    sh_int      size;
+    tflag       mprog_flags;
+    sh_int      stance;
+};
 
 /* memory settings */
 #define MEM_CUSTOMER    A   
@@ -2547,9 +2595,12 @@ struct  pc_data
     sh_int	    storage_boxes; /*Number of storage boxes the player has*/
     OBJ_DATA *	box_data[MAX_STORAGE_BOX];/*So we know if boxes are loaded and have easy access to them for saving purposes*/
 
-    sh_int		trained_hit;
-    sh_int		trained_mana;
-    sh_int		trained_move;
+    sh_int      trained_hit;
+    sh_int      trained_mana;
+    sh_int      trained_move;
+    int         trained_hit_bonus;
+    int         trained_mana_bonus;
+    int         trained_move_bonus;
     sh_int      true_sex;
     int         last_level;
     sh_int      highest_level; /* highest level reached during current remort */
@@ -2574,7 +2625,7 @@ struct  pc_data
     sh_int      original_stats[MAX_STATS];
     sh_int      history_stats[MAX_STATS];
     long        field;
-    OBJ_DATA    *smith;
+    SMITH_DATA  *smith;
     PENALTY_DATA *new_penalty;
     int         demerit_points;
     sh_int      auth_state;
@@ -2688,6 +2739,8 @@ struct  pc_data
     time_t prayed_at;
     PRAYER_DATA *prayer_request;
 
+    time_t pkill_expire; /* timestamp when you can turn it off */
+
 };
 
 /* Data for special quests */
@@ -2782,6 +2835,8 @@ struct  obj_index_data
 	sh_int	    rank;
         int         combine_vnum;
         sh_int      diff_rating; /* difficulty to get object */
+        OPROG_LIST *oprogs;
+        tflag   oprog_flags;
 };
 
 
@@ -3034,6 +3089,23 @@ struct  group_type
 #define TRIG_MPCNT  (W)
 #define TRIG_SPELL  (X)
 
+/*
+ * OBJprog definitions
+ */
+#define OTRIG_GIVE  (A)
+#define OTRIG_DROP  (B)
+#define OTRIG_EAT   (C)
+#define OTRIG_SACRIFICE (D)
+#define OTRIG_WEAR  (E)
+#define OTRIG_REMOVE (F)
+#define OTRIG_SPELL (G)
+#define OTRIG_SPEECH (H)
+#define OTRIG_TRY   (I)
+#define OTRIG_PUT   (J)
+#define OTRIG_GET   (K)
+#define OTRIG_RAND  (L)
+#define OTRIG_GREET (M)
+
 struct mprog_list
 {
 	int         trig_type;
@@ -3042,13 +3114,34 @@ struct mprog_list
 	char *          code;
 	MPROG_LIST *    next;
 	bool        valid;
+    bool is_lua;
 };
 
 struct mprog_code
 {
+    bool        is_lua;
 	int         vnum;
 	char *      code;
 	MPROG_CODE *    next;
+};
+
+struct oprog_list
+{
+    int         trig_type;
+    char *      trig_phrase;
+    int *       vnum;
+    char *      code;
+    OPROG_LIST *    next;
+    bool        valid;
+    /* always lua */
+};
+
+struct oprog_code
+{
+    /* always lua */
+    int     vnum;
+    char    * code;
+    OPROG_CODE *    next;
 };
 
 extern sh_int race_werewolf;
@@ -3194,6 +3287,7 @@ extern sh_int  gsn_burst;
 extern sh_int  gsn_tight_grouping;
 extern sh_int  gsn_pistol_whip;
 extern sh_int  gsn_duck;
+extern sh_int  gsn_true_grit;
 extern sh_int  gsn_quick_draw;
 extern sh_int  gsn_shoot_lock;
 extern sh_int  gsn_drunken_fury;
@@ -3274,6 +3368,7 @@ extern sh_int  gsn_taxidermy;
 extern sh_int  gsn_introspection;
 extern sh_int  gsn_climbing;
 extern sh_int  gsn_blindfighting;
+extern sh_int  gsn_beast_mastery;
 extern sh_int  gsn_camp_fire;
 extern sh_int  gsn_treat_weapon;
 extern sh_int  gsn_soothe;
@@ -3640,12 +3735,15 @@ struct achievement_entry
 #define DAZE_STATE(ch, npulse)  ((ch)->daze = UMAX((ch)->daze, (npulse)))
 #define get_carry_weight(ch)    ((ch)->carry_weight + (ch)->silver/100 + (ch)->gold/25)
 #define HAS_TRIGGER(ch,trig)    (IS_SET((ch)->pIndexData->mprog_flags,(trig)))
+#define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
 #define IS_SWITCHED( ch )       ( ch->desc && ch->desc->original )
 #define IS_BUILDER(ch, Area)    ( !IS_NPC(ch) && !IS_SWITCHED( ch ) && (ch->pcdata->security >= Area->security || strstr( Area->builders, ch->name ) || strstr( Area->builders, "All" ) ) )
 #define IS_REMORT(ch)			(!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT)) 
 #define IS_NOHIDE(ch)           (!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_NOHIDE))
 
-#define IS_WRITING_NOTE(con)  (((con >= CON_NOTE_TO && con <= CON_NOTE_FINISH)||(con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH)||((con-con%MAX_CON_STATE)/MAX_CON_STATE==CREATION_BLACKSMITH)) ? TRUE : FALSE)
+#define IS_WRITING_NOTE(con)  (( (con >= CON_NOTE_TO && con <= CON_NOTE_FINISH) \
+            || (con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH) \
+            ) ? TRUE : FALSE)
 #define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con))
 #define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
 
@@ -3807,6 +3905,7 @@ extern      DESCRIPTOR_DATA   * descriptor_list;
 extern      OBJ_DATA      * object_list;
 
 extern      MPROG_CODE    * mprog_list;
+extern      OPROG_CODE    * oprog_list;
 
 extern      char            bug_buf     [];
 extern      time_t          current_time;
@@ -3951,6 +4050,8 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define NOTE_DIR        "../notes/"
 #define GOD_DIR         "../gods/"
 #define CLAN_DIR	"../clans/"
+#define LUA_DIR     "../src/lua/"
+#define USER_DIR    "../user/"
 #endif
 
 #if defined(unix)
@@ -3960,6 +4061,8 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define NULL_FILE   "/dev/null"     /* To reserve one stream */
 #define NOTE_DIR    "../notes/"
 #define CLAN_DIR	"../clans/"
+#define LUA_DIR     "../src/lua/"
+#define USER_DIR    "../user/"
 #endif
 
 #define AREA_LIST       "area.lst"  /* List of areas*/
@@ -3988,6 +4091,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
 #define MAX_WHO_FILE   "maxwho.txt"
+#define LUA_STARTUP    LUA_DIR "startup.lua"
 #define ptc printf_to_char
 
 /* string constants */
@@ -4006,6 +4110,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define SF  SPEC_FUN
 #define AD  AFFECT_DATA
 #define MPC MPROG_CODE
+#define OPC OPROG_CODE
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
@@ -4136,6 +4241,7 @@ MID *   get_mob_index   args( ( int vnum ) );
 OID *   get_obj_index   args( ( int vnum ) );
 RID *   get_room_index  args( ( int vnum ) );
 MPC *   get_mprog_index args( ( int vnum ) );
+OPC *   get_oprog_index args( ( int vnum ) );
 char    fread_letter    args( ( FILE *fp ) );
 int fread_number    args( ( FILE *fp ) );
 long    fread_flag  args( ( FILE *fp ) );
@@ -4220,7 +4326,6 @@ long    wiznet_lookup   args( ( const char *name) );
 int class_lookup    args( ( const char *name) );
 bool    is_clan     args( (CHAR_DATA *ch) );
 bool    is_same_clan    args( (CHAR_DATA *ch, CHAR_DATA *victim));
-bool    is_old_mob  args ( (CHAR_DATA *ch) );
 int     get_weapon_sn   args( ( CHAR_DATA *ch ) );
 int     get_weapon_sn_new args( (CHAR_DATA *ch, bool secondary) );
 int     get_age         args( ( CHAR_DATA *ch ) );
@@ -4257,6 +4362,7 @@ CHAR_DATA* get_player( char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_world  args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_area  args( ( CHAR_DATA *ch, char *argument ) );   
+CD *    get_char_group args( ( CHAR_DATA *ch, char *argument ) );
 OD *    get_obj_type    args( ( OBJ_INDEX_DATA *pObjIndexData ) );
 OD *    get_obj_list    args( ( CHAR_DATA *ch, char *argument,
 				OBJ_DATA *list ) );
@@ -4321,12 +4427,17 @@ bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
-void    program_flow    args( ( int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
-				const void *arg1, const void *arg2 ) );
+void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
+				const void *arg1, sh_int arg1type,
+                const void *arg2, sh_int arg2type) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
-				const void *arg1, const void *arg2, int type ) );
+				const void *arg1, sh_int arg1type, 
+                const void *arg2, sh_int arg2type,
+                int type ) );
 bool    mp_percent_trigger args( ( CHAR_DATA *mob, CHAR_DATA *ch,               
-				const void *arg1, const void *arg2, int type ) );
+				const void *arg1, sh_int arg1type,
+                const void *arg2, sh_int arg2type,
+                int type ) );
 void    mp_bribe_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch, int amount ) );
 bool    mp_exit_trigger   args( ( CHAR_DATA *ch, int dir ) );
 void    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
@@ -4334,7 +4445,7 @@ void    mp_greet_trigger  args( ( CHAR_DATA *ch ) );
 void    mp_hprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 bool    mp_try_trigger    args( ( char *argument, CHAR_DATA *mob ) );
-bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob ) );
+bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch ) );
 
 /* mob_cmds.c */
 void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );
@@ -4536,11 +4647,24 @@ extern      int         top_jail_room;
 extern      int         top_vnum_mob;
 extern      int         top_vnum_obj;
 extern      int         top_vnum_room;
-
+extern      int         lua_mprogs;
 extern      char            str_empty       [1];
 
 extern      MOB_INDEX_DATA *    mob_index_hash  [MAX_KEY_HASH];
 extern      OBJ_INDEX_DATA *    obj_index_hash  [MAX_KEY_HASH];
 extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
+
+/*
+    * Lua stuff (Nick Gammon)
+     */
+
+void open_lua  ();  /* set up Lua state */
+void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
+extern lua_State *mud_LS;
+
+#define ACT_ARG_UNDEFINED 0
+#define ACT_ARG_OBJ 1
+#define ACT_ARG_TEXT 2
+#define ACT_ARG_CHARACTER 3
 

@@ -18,6 +18,7 @@
 #include "recycle.h"
 #include "tables.h"
 #include "lookup.h"
+#include "mob_stats.h"
 
 bool is_obj_ingame( OBJ_INDEX_DATA *obj );
 bool is_mob_ingame( MOB_INDEX_DATA *mob );
@@ -816,6 +817,7 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
     char buf[MIL] = "",
 	msg[MIL] = "";
     bool match = FALSE;
+    long wealth;
 
     switch ( gd->stat )
     {
@@ -823,11 +825,12 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
 	match = is_name( gd->str_value, mob->player_name );
 	break;
     case GREP_MOB_WEALTH:
-	match = (mob->wealth >= gd->value);
+        wealth = mob_base_wealth(mob);
+	match = (wealth >= gd->value);
 	if ( mob->pShop == NULL )
-	    sprintf( buf, "(%d gold)", mob->wealth / 100 );
+	    sprintf( buf, "(%d gold)", wealth / 100 );
 	else
-	    sprintf( buf, "(S %d gold)", mob->wealth / 100 );
+	    sprintf( buf, "(S %d gold)", wealth / 100 );
 	strcat( info, buf );
 	break;
     case GREP_MOB_AFF:
@@ -1179,51 +1182,37 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
     /* check level */
     if ( mob->level < 1 || mob->level > 200 )
     {
-	sprintf( msg, "lvl" );
-	return FALSE;
-    }
-
-    /* check hp */
-    if ( mob->pShop != NULL 
-	 || IS_SET(mob->act, ACT_PET)
-	 || IS_SET(mob->act, ACT_WIZI)
-	 || IS_SET(mob->act, ACT_TRAIN)
-	 || IS_SET(mob->act, ACT_IS_HEALER)
-	 || IS_SET(mob->act, ACT_IS_CHANGER) 
-	 || mob->level == 1 )
-	spec = 1;
-    else
-	spec = average_mob_hp( mob->level );
-
-    value = average_roll( mob->hit[DICE_NUMBER], 
-			  mob->hit[DICE_TYPE],
-			  mob->hit[DICE_BONUS] );
-    if ( value < spec )
-    {
-	sprintf( msg, "hp" );
+	sprintf( msg, "lvl=%d", mob->level );
 	return FALSE;
     }
 
     /* check wealth */
-    if ( mob->pShop != NULL )
-	factor = 8.0;
-    else if ( IS_SET(mob->affect_field, AFF_SANCTUARY) )
-	factor = 1.2;
-    else
-	factor = 0.7;
 
-    if ( mob->pShop != NULL )
-	level = 120;
-    else
-	level = mob->level;
-
-    spec = (int)( level * level * ( level / 15.0 + 2 ) * factor );
-    spec = UMAX( 100, spec );
-
-    if ( mob->wealth > spec )
+    if ( mob->wealth_percent > 200 )
     {
-	sprintf( msg, "wealth" );
-	return FALSE;
+        sprintf( msg, "wealth=%d\%", mob->wealth_percent );
+        return FALSE;
+    }
+
+    /* check hp */
+    if ( mob->hitpoint_percent != 100 )
+    {
+        sprintf( msg, "hp=%d\%", mob->hitpoint_percent );
+        return FALSE;
+    }
+
+    /* check damage */
+    if ( mob->damage_percent != 100 )
+    {
+        sprintf( msg, "damage=%d\%", mob->damage_percent );
+        return FALSE;
+    }
+
+    /* check hitroll */
+    if ( mob->hitroll_percent != 100 )
+    {
+        sprintf( msg, "hitroll=%d\%", mob->hitroll_percent );
+        return FALSE;
     }
 
     /* otherwise it's ok */

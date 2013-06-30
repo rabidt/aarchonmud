@@ -91,7 +91,7 @@ struct crafting_type crafting_table[] =
     { "master_leggings",     CRFT+29, { CRFT+1,  CRFT+7,   CRFT+8  },    91 }, // Sparkling Essence, Heavy Strap, Metal Scraps
     { "master_polearm",      CRFT+28, { CRFT+3,  CRFT+4,   CRFT+14 },    91 }, // Bronze Smelt, Iron Smelt, Steel Rivet
     { "master_boots",        CRFT+27, { CRFT+0,  CRFT+7,   CRFT+9  },    91 }, // Foul Essence, Heavy Straps, Fastening Bolts
-    { "mighty_polearm",      CRFT+26, { CRFT+0,  CRFT+4 },               50 }, // Foul Essence, Iron Smelt
+    { "mighty_spear",        CRFT+26, { CRFT+0,  CRFT+4 },               50 }, // Foul Essence, Iron Smelt
     { "mighty_breastplate",  CRFT+25, { CRFT+1,  CRFT+8 },               50 }, // Sparkling Essence, Metal Scraps
     { "mighty_vambrace",     CRFT+24, { CRFT+3,  CRFT+7 },               50 }, // Bronze Smelt, Heavy Straps
     { "splendid_shield",     CRFT+23, { CRFT+3,  CRFT+7 },               30 }, // Bronze Smelt, Heavy Straps
@@ -144,12 +144,6 @@ void do_craft( CHAR_DATA *ch, char *argument )
     argument=one_argument(argument, arg1);
     argument=one_argument(argument, arg2);
 
-    if ( (skill = get_skill(ch, gsn_craft)) == 0 )
-    {
-	send_to_char( "You should learn to craft before trying this.\n\r", ch );
-	return;
-    }
-
     /* Prints list of possible materials when no argument is used */
     if ( arg1[0] == '\0' || (arg2[0]==0) )
     {
@@ -179,6 +173,11 @@ void do_craft( CHAR_DATA *ch, char *argument )
 	return;
     }
 
+    if ( (skill = get_skill(ch, gsn_craft)) == 0 )
+    {
+	send_to_char( "You should learn to craft before trying this.\n\r", ch );
+	return;
+    }
 
     /* Check which item is crafted */
     craft = -1;
@@ -210,6 +209,18 @@ void do_craft( CHAR_DATA *ch, char *argument )
 	    return;
 	}
 
+    /* This passes the parameter */
+    if (!strcmp(arg2, "physical"))
+  	type=1;
+    else if (!strcmp(arg2, "mental"))
+	type=2;
+    else
+    {
+	send_to_char("Please specify if you want 'physical' or 'mental' preference for the stats\n\r", ch);
+	send_to_char("Syntax: craft <item_name> <physical | mental> \n\r", ch);
+	return;
+    }
+
     /* make sure the object exists */
     if ( get_obj_index(crafting_table[craft].crafting_vnum) == NULL )
     {
@@ -227,17 +238,6 @@ void do_craft( CHAR_DATA *ch, char *argument )
     if ( chance(skill) )
     {
 	crafting = create_object( get_obj_index(crafting_table[craft].crafting_vnum), 0 ); 
-        /* This passes the parameter */
-	if (!strcmp(arg2, "physical"))
-		type=1;
-	else if (!strcmp(arg2, "mental"))
-		type=2;
-	else
-	{
-		send_to_char("Please specify if you want 'physical' or 'mental' preference for the stats\n\r", ch);
-		send_to_char("Syntax: craft <item_name> <physical | mental> \n\r", ch);
-		return;
-	}
         check_craft_obj( crafting, type );
         /* Hopefully not needed.. but in case */
 	if ( crafting == NULL )
@@ -492,8 +492,7 @@ int get_craft_ops( OBJ_DATA *obj, int level )
     /* no enchanting of quest eq etc. */
     if ( obj == NULL
 	 || IS_OBJ_STAT(obj, ITEM_STICKY)
-	 || obj->pIndexData->vnum == OBJ_VNUM_BLACKSMITH
-         || (IS_SET(obj->extra_flags, ITEM_NO_EXTRACT)))
+     || (IS_SET(obj->extra_flags, ITEM_NO_EXTRACT)))
 	return 0;
 
     /* no enchanting of objects which add special effects */
@@ -580,9 +579,10 @@ void craft_obj_physical( OBJ_DATA *obj, int ops )
 	return;
 
     /* stats */
-    add = number_range( 5, 20 );          /* min of 4, max of 16 ops for stats */
+    add = number_range( 0, ops );          /* min of 4, max of 16 ops for stats */
+    add = number_range( 0, add );
     craft_obj_stat_physical( obj, add );  
-    ops -= add;                           /* lower available ops to keep item in spec */
+    ops -= add;                            /* lower available ops to keep item in spec */
     add = number_range( ops/7, ops/2 );     /* will determine how many ops to spent on HR/DR/AC/Saves */
     craft_obj_roll_physical( obj, add );  
     ops -= add;                     
@@ -790,13 +790,15 @@ void craft_obj_caster( OBJ_DATA *obj, int ops )
 	return;
 
     /* stats */
-    add = number_range( 4, 18 );         /* min of 4, max of 18 ops for stats */
+    add = number_range( 0, ops );         /* min of 4, max of 18 ops for stats */
+    add = number_range( 0, add );
     craft_obj_stat_caster( obj, add );   
     ops -= add;                          /* lower available ops to keep item in spec */
     add = number_range( ops/8, ops/2 );  /* will determine how many ops to spent on HR/DR/AC/Saves */
     craft_obj_roll_caster( obj, add );   
     ops -= add;                          
     craft_obj_max_caster( obj, ops );    /* uses the rest on HP/Mana/Move */
+
 }
 
 /* add str, con, .. */

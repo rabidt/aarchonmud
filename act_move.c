@@ -88,7 +88,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
     ROOM_INDEX_DATA *to_room;
     EXIT_DATA *pexit;
     char buf[MAX_STRING_LENGTH];
-    int chance, d, inwater, towater;
+    int chance, d;
     
     if ( door < 0 || door >= MAX_DIR )
     {
@@ -253,88 +253,79 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
 
 	if ( check_exit_trap_hit(ch, door, TRUE) )
 	    return;
-	
-	if (!IS_IMMORTAL(ch))
-	{
-	    if ((in_room->sector_type == SECT_WATER_DEEP) ||
-		(in_room->sector_type == SECT_UNDERWATER))
-		inwater = in_room->sector_type;
-	    else
-		inwater = 0;
-	    
-	    if ((to_room->sector_type == SECT_WATER_DEEP) ||
-		(to_room->sector_type == SECT_UNDERWATER))
-		towater = to_room->sector_type;
-	    else
-		towater = 0;
 
-	    if ((inwater == 0) && (to_room->sector_type == SECT_WATER_SHALLOW) &&
-		IS_SET(ch->vuln_flags, VULN_DROWNING) &&
-		!IS_AFFECTED(ch, AFF_FLYING))
-	    {
-		OBJ_DATA *obj;
-		
-		for (obj=ch->carrying; obj; obj=obj->next_content)
-		    if (obj->item_type == ITEM_BOAT)
-			break;
-		if (obj==NULL)
-		{
-		    send_to_char("You wade into the water despite your phobia.\n\r", ch);
-		    if (check_drown(ch)) return -1;
-		}
-	    }
+    // swim checks
+    if (!IS_IMMORTAL(ch))
+    {
+        bool afloat;
+        int inwater = 0, towater = 0;
 
-	    while (inwater || towater)
-	    {
-		if ((inwater < SECT_UNDERWATER) && (towater < SECT_UNDERWATER))
-		    {
-			OBJ_DATA *obj;
-			if (IS_AFFECTED(ch, AFF_FLYING)) break;
-			
-			for (obj=ch->carrying; obj; obj=obj->next_content)
-			    if (obj->item_type == ITEM_BOAT)
-				break;
-			if (obj) break;
-		    }
+        if (IS_AFFECTED(ch, AFF_FLYING))
+            afloat = TRUE;
+        else
+        {
+            OBJ_DATA *boat;
+            for ( boat=ch->carrying; boat; boat=boat->next_content )
+                if (boat->item_type == ITEM_BOAT)
+                    break;
+            afloat = (boat != NULL);
+        }
 
-			chance = get_skill(ch, gsn_swimming);
-			if (IS_SET(ch->vuln_flags, VULN_DROWNING))
-				chance -= 15;
+        if ((in_room->sector_type == SECT_WATER_DEEP) || (in_room->sector_type == SECT_UNDERWATER))
+            inwater = in_room->sector_type;
 
-			if (number_percent()*2>(chance+100))
-			{
-			    send_to_char("You paddle around and get nowhere.\n\r", ch);
-			    if (inwater == SECT_UNDERWATER)
-				check_drown(ch);                
-			    return -1;
-			}
-			if ((inwater<SECT_UNDERWATER) && (towater<SECT_UNDERWATER))
-			if (number_percent()>chance)
-			{
-			    send_to_char("You fail to keep your head above water.\n\r", ch);
-			    if (check_drown(ch)) return -1;
-			    check_improve(ch,gsn_swimming,FALSE,2);  
-			}
-			else
-			{
-			    check_improve(ch,gsn_swimming,TRUE,3);
-			    if (IS_SET(ch->vuln_flags, VULN_DROWNING))
-			    {
-				send_to_char("You hate water!\n\r", ch);
-				if (check_drown(ch)) return -1;
-			    }
-			}
-			break;
-		}
+        if ((to_room->sector_type == SECT_WATER_DEEP) || (to_room->sector_type == SECT_UNDERWATER))
+            towater = to_room->sector_type;
 
-		if (((inwater == SECT_UNDERWATER) || (towater == SECT_UNDERWATER))
-				&& !IS_AFFECTED(ch, AFF_BREATHE_WATER))
-		{
-			send_to_char("You cant breathe!\n\r", ch);
-			if (check_drown(ch)) return -1;
-		}
-		}       
-                
+        if (inwater == 0 && to_room->sector_type == SECT_WATER_SHALLOW
+            && IS_SET(ch->vuln_flags, VULN_DROWNING) && !afloat)
+        {
+            send_to_char("You wade into the water despite your phobia.\n\r", ch);
+            if (check_drown(ch)) return -1;
+        }
+
+        if ( inwater == SECT_UNDERWATER || towater == SECT_UNDERWATER
+             || (inwater || towater) && !afloat )
+        {
+            chance = get_skill(ch, gsn_swimming);
+            if (IS_SET(ch->vuln_flags, VULN_DROWNING))
+                chance -= 15;
+
+            if ( number_percent()*2 > (chance+100) )
+            {
+                send_to_char("You paddle around and get nowhere.\n\r", ch);
+                check_improve(ch,gsn_swimming,FALSE,2);
+                if (inwater == SECT_UNDERWATER)
+                    check_drown(ch);                
+                return -1;
+            }
+            else
+                check_improve(ch,gsn_swimming,TRUE,2);
+            
+            if ( (inwater != SECT_UNDERWATER) && (towater != SECT_UNDERWATER) )
+            {
+                if (number_percent()>chance)
+                {
+                    send_to_char("You fail to keep your head above water.\n\r", ch);
+                    if (check_drown(ch)) return -1;
+                }
+                else
+                {
+                    if (IS_SET(ch->vuln_flags, VULN_DROWNING))
+                    {
+                        send_to_char("You hate water!\n\r", ch);
+                        if (check_drown(ch)) return -1;
+                    }
+                }
+            }
+            else if (!IS_AFFECTED(ch, AFF_BREATHE_WATER))
+            {
+                send_to_char("You cant breathe!\n\r", ch);
+                if (check_drown(ch)) return -1;                
+            }
+        }
+    }
+
         move = 2*(movement_loss[UMIN(SECT_MAX-1, in_room->sector_type)]
             + movement_loss[UMIN(SECT_MAX-1, to_room->sector_type)])/3;
         
@@ -483,9 +474,12 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    * for the followers before the char, but it's safer this way...
    */
    if ( IS_NPC( ch ) && HAS_TRIGGER( ch, TRIG_ENTRY ) )
-       mp_percent_trigger( ch, NULL, NULL, NULL, TRIG_ENTRY );
+       mp_percent_trigger( ch, NULL, NULL, 0, NULL, 0, TRIG_ENTRY );
    if ( !IS_NPC( ch ) )
        mp_greet_trigger( ch );
+
+   if ( !IS_NPC( ch ) )
+       op_greet_trigger( ch );
 
    /* mprog might have moved the char */
    if ( ch->in_room != to_room )
@@ -1058,7 +1052,7 @@ void do_lock( CHAR_DATA *ch, char *argument )
 			return;
 		 }
 		 
-		 if (obj->value[4] < 0 || I_IS_SET(obj->value[1],EX_NOLOCK))
+		 if (obj->value[4] < 1 || I_IS_SET(obj->value[1],EX_NOLOCK))
 		 {
 			send_to_char("It can't be locked.\n\r",ch);
 			return;
@@ -1095,7 +1089,7 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	  { send_to_char( "That's not a container.\n\r", ch ); return; }
 	  if ( !I_IS_SET(obj->value[1], CONT_CLOSED) )
 	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
-	  if ( obj->value[2] < 0 )
+	  if ( obj->value[2] < 1 )
 	  { send_to_char( "It can't be locked.\n\r",     ch ); return; }
 
 	  if ( !has_key( ch, obj->value[2] ) )
@@ -1128,7 +1122,7 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	  pexit   = ch->in_room->exit[door];
 	  if ( !IS_SET(pexit->exit_info, EX_CLOSED) )
 	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
-	  if ( pexit->key < 0 )
+	  if ( pexit->key < 1 )
 	  { send_to_char( "It can't be locked.\n\r",     ch ); return; }
 	  if ( !has_key( ch, pexit->key) )
 	  { send_to_char( "You lack the key.\n\r",       ch ); return; }
@@ -1191,8 +1185,14 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 			send_to_char("It's not closed.\n\r",ch);
 			return;
 		 }
+
+         if (!I_IS_SET(obj->value[1],EX_LOCKED))
+         {
+            send_to_char("It's not locked.\n\r",ch);
+            return;
+         }
 		 
-		 if (obj->value[4] < 0)
+		 if (obj->value[4] < 1)
 		 {
 			send_to_char("It can't be unlocked.\n\r",ch);
 			return;
@@ -1232,7 +1232,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	  { send_to_char( "That's not a container.\n\r", ch ); return; }
 	  if ( !I_IS_SET(obj->value[1], CONT_CLOSED) )
 	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
-	  if ( obj->value[2] < 0 )
+      if ( !I_IS_SET(obj->value[1], CONT_LOCKED) )
+      { send_to_char( "It's not locked.\n\r",        ch ); return; }
+	  if ( obj->value[2] < 1 )
 	  { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
 	  if ( !has_key( ch, obj->value[2] ) )
 	  { send_to_char( "You lack the key.\n\r",       ch ); return; }
@@ -1263,6 +1265,8 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	  pexit = ch->in_room->exit[door];
 	  if ( !IS_SET(pexit->exit_info, EX_CLOSED) )
 	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
+      if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
+      { send_to_char( "It's not locked.\n\r",        ch ); return; }
 	  if ( pexit->key < 0 )
 	  { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
 	  if ( !has_key( ch, pexit->key) )
@@ -1417,15 +1421,12 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 	     );
     send_to_char( buf, ch );
 
-    if ( victim->pIndexData->new_format)
-    {
-	sprintf( buf, "Damage: %dd%d  Type: %s\n\r",
-		 victim->damage[DICE_NUMBER], victim->damage[DICE_TYPE],
-		 attack_table[victim->dam_type].noun
-		 );
-	send_to_char(buf,ch);
-    }
-	
+    sprintf( buf, "Damage: %dd%d  Type: %s\n\r",
+                victim->damage[DICE_NUMBER], victim->damage[DICE_TYPE],
+                attack_table[victim->dam_type].noun
+                );
+    send_to_char(buf,ch);
+
     NLRETURN
 
     sprintf(buf, "Knows how to: %s\n\r", off_bits_name(victim->off_flags));
