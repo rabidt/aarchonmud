@@ -397,3 +397,4 @@ void change_wizlist(CHAR_DATA *ch, bool add, int level, char *argument)
     }
     return;
 }
+

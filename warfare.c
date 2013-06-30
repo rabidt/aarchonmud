@@ -56,30 +56,66 @@ warfares automatically. Astark Nov 2012 */
 
 void auto_war(void)
 {
+    const int level_range = 30;
     char buf[MSL];
-    int toplevel;
-    auto_war_time = current_time + 3600;
+    int toplevel, level;
+    int player_count[LEVEL_HERO+1];
+    long prob_sum = 0;
+    DESCRIPTOR_DATA *desc;
+    
+    // 2 hours till next automatic warfare
+    auto_war_time = current_time + 2*3600;
 
-    if (number_bits(3))
+    war.type = ARMAGEDDON_WAR;
+
+    // collect online characters elligible for warfare
+    for ( level = 0; level <= LEVEL_HERO; level++)
+        player_count[level] = 0;
+    for ( desc = descriptor_list; desc != NULL; desc = desc->next )
     {
-        switch ( number_range(0, 3) )
-        {
-        case 0: war.type = CLASS_WAR; break;
-        case 1: war.type = RACE_WAR; break;
-        case 2: war.type = CLAN_WAR; break;
-        case 3: war.type = GENDER_WAR; break;
-        }
+        if ( IS_PLAYING(desc->connected)
+            && desc->character != NULL
+            && !IS_NPC(desc->character)
+            && !IS_IMMORTAL(desc->character)
+            && desc->character->in_room != NULL
+            && !IS_SET( desc->character->in_room->area->area_flags, AREA_REMORT )
+        )
+        for ( level = desc->character->level; level <= UMIN(LEVEL_HERO, desc->character->level+level_range); level++ )
+            player_count[level] += 1;
     }
-    else
-        war.type = ARMAGEDDON_WAR;
-
-    if (number_bits(1))
-        toplevel = number_range(40,100);
-    else
-        toplevel = number_range(90,100);
+    // compute relative probabilities for a level to be selected - eliminating single-player cases
+    for ( level = level_range; level <= LEVEL_HERO; level++ )
+    {
+        player_count[level] *= player_count[level] - 1;
+        prob_sum += player_count[level];
+    }
+    // not enough players to get a warfare going?
+    if ( prob_sum == 0 )
+    {
+        // try again in 5 minutes
+        auto_war_time = current_time + 300;
+        return;
+    }
+    // now select a level based on relative probabilities stored in player_count
+    toplevel = 0;
+    for ( level = level_range; level <= LEVEL_HERO; level++ )
+    {
+        if ( number_range(1, prob_sum) <= player_count[level] )
+        {
+            toplevel = level;
+            break;
+        }
+        prob_sum -= player_count[level];
+    }
+    // safety-net
+    if (toplevel == 0)
+    {
+        bugf("auto_war: no top_level selected");
+        return;
+    }
 
     war.max_level = toplevel;
-    war.min_level = toplevel - 30;
+    war.min_level = toplevel - level_range;
 
     war.on = TRUE;
     war.started = FALSE;
@@ -321,7 +357,7 @@ void do_combat( CHAR_DATA *ch, char *argument )
     if ( war.combatants == 0 )
         war.first_combatant = ch;
     sprintf( buf, "%s (Level %d %s %s %s) has gone to war!\n\r", ch->name, ch->level,
-		ch->pcdata->true_sex == 2 ? "female" : "male",
+		get_base_sex(ch) == 2 ? "female" : get_base_sex(ch) == 1 ? "male" : "sexless",
 		race_table[ch->race].name, class_table[ch->class].name );
     warfare( buf );
     war.combatants++;
@@ -416,9 +452,9 @@ void war_update( void )
     
     if (current_time > auto_war_time && war.on == FALSE)
         auto_war();
-    else if (war.on == FALSE)
+    
+    if (war.on == FALSE)
         return;
-
     
     output = new_buf();
     if ( war.war_time_left > 0 )
@@ -473,10 +509,12 @@ void war_update( void )
 
 	war.reward += war.combatants*12;
         // limit to 50 to prevent exploit via quest buy warfare
-	war.reward = UMIN(50, war.reward);
+	war.reward = UMIN(50 - 4*(war.combatants-1), war.reward);
+    war.reward = UMAX(war.reward, 8);
 
         sprintf( buf, "The battle begins with %d combatants in the war!\n\r", war.combatants );
         warfare( buf );
+        war.total_combatants = war.combatants;
         war.started = TRUE;
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
@@ -681,8 +719,8 @@ void do_warsit( CHAR_DATA *ch, char *argument )
         hp_percent = (d->character->hit*100)/d->character->max_hit;
         sprintf( buf, "%-10s %-8s %-3d%% %-8s %3d %-6s %-3s %-8s %-10s %-10s\n\r",
 		 d->character->name,
-		 d->character->pcdata->true_sex == 2 ? "female"
-		 : d->character->pcdata->true_sex == 1 ? "male" : "sexless",
+		 get_base_sex(d->character) == 2 ? "female"
+		 : get_base_sex(d->character) == 1 ? "male" : "sexless",
 		 hp_percent,
 		 position_table[d->character->position].name,
 		 d->character->level,
@@ -701,6 +739,7 @@ void war_remove( CHAR_DATA *ch, bool killed )
 {
     DESCRIPTOR_DATA *d;
     char buf[MSL];
+    int joinbonus;
     
     if (IS_NPC(ch) || !IS_SET( ch->act, PLR_WAR ) )
         return;
@@ -745,6 +784,14 @@ void war_remove( CHAR_DATA *ch, bool killed )
 	char_to_room( ch, get_room_index(ROOM_VNUM_TEMPLE) );
     }
     do_look( ch, "" );
+    
+    /* Small reward for participation - Astark 5-24-13 */
+    joinbonus = 4;
+
+    sprintf( buf, "You are awarded %d quest points for your bravery!\n\r", joinbonus);
+    send_to_char(buf,ch);
+ 
+    ch->pcdata->questpoints += joinbonus;
 
     if (!killed)
     {
@@ -823,7 +870,7 @@ void check_war_win( void )
             else if ( war.type == RACE_WAR )
                 sprintf( buf, "The %ss have won the war!\n\r", race_table[ch->race].name );
             else if ( war.type == GENDER_WAR )
-                sprintf( buf, "The %s have won the war!\n\r", ch->pcdata->true_sex == 2 ? "females" : ch->pcdata->true_sex == 1 ? "males" : "sexless" );
+                sprintf( buf, "The %s have won the war!\n\r", get_base_sex(ch) == 2 ? "females" : get_base_sex(ch) == 1 ? "males" : "sexless" );
 	    else if ( war.type == RELIGION_WAR )
 	    {
 		RELIGION_DATA *rel = get_religion(ch);
@@ -856,7 +903,7 @@ bool is_same_team( CHAR_DATA *ch1, CHAR_DATA *ch2 )
     if ( war.type == CLASS_WAR )
         return ( ch1->class == ch2->class );
     if ( war.type == GENDER_WAR )
-        return ( ch1->pcdata->true_sex == ch2->pcdata->true_sex );
+        return ( get_base_sex(ch1) == get_base_sex(ch2) );
     if ( war.type == RELIGION_WAR )
         return ( get_religion(ch1) == get_religion(ch2) );
     

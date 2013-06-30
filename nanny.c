@@ -86,19 +86,6 @@ bool	get_stat_priority		args( ( DESCRIPTOR_DATA *d, char *argument ) );
 /* It would be nice to have colour in creation!!  Added by Quirky, June 2003 */
 bool	get_colour		args( ( DESCRIPTOR_DATA *d, char *argument ) );
 
-bool	smith_welcome		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_type			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_subtype		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_purchase		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_material		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_quality		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_color			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_personal		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_level			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_keywords		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_select		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	smith_inventory		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-
 void  handle_con_note_to      args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  handle_con_note_subject args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  handle_con_note_expire  args( (DESCRIPTOR_DATA *d, char * argument ) );
@@ -405,66 +392,6 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		    
 		}
 	    break;
-	    
-	case CREATION_BLACKSMITH:
-	    switch ( con_state(d) )
-		{
-		    
-		default:
-		    bug( "Nanny: bad d->connected %d.", d->connected );
-		    close_socket( d );
-		    return;
-		    
-		case CON_SMITH_WELCOME:
-		    if (smith_welcome(d, argument)) smith_level(d, "");
-		    break;
-		    
-		case CON_SMITH_LEVEL:
-		    if (smith_level(d, argument)) smith_type(d, "");
-		    break;
-		    
-		case CON_SMITH_TYPE:
-		    if (smith_type(d, argument)) smith_subtype(d, "");
-		    break;
-		    
-		case CON_SMITH_SUBTYPE:
-		    if (smith_subtype(d, argument)) smith_quality(d, "");
-		    break;
-		    
-		case CON_SMITH_QUALITY:
-		    if (smith_quality(d, argument)) smith_material(d, "");
-		    break;
-		    
-		case CON_SMITH_MATERIAL:
-		    if (smith_material(d, argument)) smith_purchase(d, "");
-		    break;
-		    
-		case CON_SMITH_PURCHASE:
-		    if (smith_purchase(d, argument)) d->connected=CON_PLAYING;
-		    break;
-		    
-		case CON_SMITH_COLOR:
-		    if (smith_color(d, argument)) smith_purchase(d, "");
-		    break;
-		    
-		case CON_SMITH_PERSONAL:
-		    if (smith_personal(d, argument)) smith_keywords(d, "");
-		    break;
-		    
-		case CON_SMITH_KEYWORDS:
-		    if (smith_keywords(d, argument)) smith_purchase(d, "");
-		    break;
-		    
-		case CON_SMITH_SELECT:
-		    if (smith_select(d, argument)) smith_inventory(d, "");
-		    break;
-		    
-		case CON_SMITH_INVENTORY:
-		    if (smith_inventory(d, argument)) d->connected=CON_PLAYING;
-		    break;
-		    
-		}
-	    break;		
 	    
 	}
 	return;
@@ -1039,26 +966,9 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
 	return FALSE;
     }
 
-    if (pc_race_table[race].gender == SEX_NEUTRAL)
+    if (pc_race_table[race].gender != SEX_BOTH)
     {
-	ch->sex = SEX_NEUTRAL;
-    }
-    else if (pc_race_table[race].gender != SEX_BOTH
-	     && ch->pcdata->true_sex!=pc_race_table[race].gender)
-    {
-	write_to_buffer(d,"You are the wrong gender for that race.\n\r",0);
-	write_to_buffer(d,"The following races are available:\n\r  ",0);
-	show_races_to_d(d);
-
-	if (ch->pcdata->remorts>0)
-	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
-
-	sprintf( msg, "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
-	write_to_buffer(d,buffer,0);
-
-	return FALSE;
+	ch->sex = pc_race_table[race].gender;
     }
 
     ch->race = race;
@@ -1304,8 +1214,8 @@ bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
 bool	get_alignment ( DESCRIPTOR_DATA *d, char *argument )
 {
 	CHAR_DATA *ch=d->character;
-	char msg[MAX_STRING_LENGTH];
-	char buffer[MAX_STRING_LENGTH*2];
+    char msg[MAX_STRING_LENGTH];
+	char buffer[MAX_STRING_LENGTH*2]="";
 	char *pbuff; 
 	char arg[MAX_STRING_LENGTH];
         int align;
@@ -1333,9 +1243,9 @@ bool	get_alignment ( DESCRIPTOR_DATA *d, char *argument )
 	    do_help(ch,argument);
 
 	pbuff = buffer;
+    sprintf( msg, "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
 	colourconv( pbuff, msg, d->character );
 	write_to_buffer(d,buffer,0);
-	sprintf( msg, "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
 	return FALSE;
     } 
     else if (!strcmp(arg,"angelic"))
@@ -2004,6 +1914,10 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	/* assassins are ALWAYS pkillers */
 	if (ch->class == class_lookup("assassin"))
 	    SET_BIT(ch->act, PLR_PERM_PKILL);
+	/* Set expire date for PK chars with none set yet */
+	if ( IS_SET( ch->act, PLR_PERM_PKILL) 
+	   &&  ch->pcdata->pkill_expire == 0 )
+		reset_pkill_expire(ch);
 
 	/* fix in case someone was in warfare when crash happened */
 	if ( !IS_IMMORTAL(ch) && ch->in_room != NULL

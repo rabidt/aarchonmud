@@ -340,16 +340,6 @@ bool is_same_clan(CHAR_DATA *ch, CHAR_DATA *victim)
 }
 
 
-/* checks mob format */
-bool is_old_mob(CHAR_DATA *ch)
-{
-    if (ch->pIndexData == NULL)
-        return FALSE;
-    else if (ch->pIndexData->new_format)
-        return FALSE;
-    return TRUE;
-}
-
 /* for returning weapon information of the primary weapon */
 int get_weapon_sn(CHAR_DATA *ch)
 {
@@ -387,6 +377,17 @@ int get_weapon_sn_new(CHAR_DATA *ch, bool secondary)
     return sn;
 }
 
+int get_base_sex(CHAR_DATA *ch)
+{
+    if (IS_NPC(ch))
+        return SEX_NEUTRAL;
+    
+    // male/female only races force base gender
+    if (pc_race_table[ch->race].gender != SEX_BOTH)
+        return pc_race_table[ch->race].gender;
+    
+    return ch->pcdata->true_sex;
+}
 
 /* used to de-screw characters */
 void reset_char(CHAR_DATA *ch)
@@ -399,69 +400,18 @@ void reset_char(CHAR_DATA *ch)
     if (IS_NPC(ch))
         return;
     
-    if (ch->pcdata->perm_hit == 0
-        ||  ch->pcdata->perm_mana == 0
-        ||  ch->pcdata->perm_move == 0
-        ||  ch->pcdata->last_level == 0)
-    {
-        /* do a FULL reset */
-        for (loc = 0; loc < MAX_WEAR; loc++)
-        {
-            obj = get_eq_char(ch,loc);
-            if (obj == NULL)
-                continue;
-                for ( af = obj->pIndexData->affected; af != NULL; af = af->next )
-                {
-                    mod = af->modifier;
-                    switch(af->location)
-                    {
-                    case APPLY_SEX: ch->sex     -= mod;
-                        if (ch->sex < 0 || ch->sex >2)
-                            ch->sex = IS_NPC(ch) ?
-                            0 :
-                        ch->pcdata->true_sex;
-                        break;
-                    case APPLY_MANA:    ch->max_mana    -= mod;     break;
-                    case APPLY_HIT: ch->max_hit -= mod;     break;
-                    case APPLY_MOVE:    ch->max_move    -= mod;     break;
-                    }
-                }
-                
-                for ( af = obj->affected; af != NULL; af = af->next )
-                {
-                    mod = af->modifier;
-                    switch(af->location)
-                    {
-                    case APPLY_SEX:     ch->sex         -= mod;         break;
-                    case APPLY_MANA:    ch->max_mana    -= mod;         break;
-                    case APPLY_HIT:     ch->max_hit     -= mod;         break;
-                    case APPLY_MOVE:    ch->max_move    -= mod;         break;
-                    }
-                }
-        }
-        /* now reset the permanent stats */
-        ch->pcdata->perm_hit    = ch->max_hit;
-        ch->pcdata->perm_mana   = ch->max_mana;
-        ch->pcdata->perm_move   = ch->max_move;
-        ch->pcdata->last_level  = ch->played/3600;
-        if (ch->pcdata->true_sex < 0 || ch->pcdata->true_sex > 2)
-            if (ch->sex > 0 && ch->sex < 3)
-                ch->pcdata->true_sex    = ch->sex;
-            else
-                ch->pcdata->true_sex    = 0;
-            
-    }
-    
-    /* now restore the character to his/her true condition */
+    // reset sex
+    if (ch->pcdata->true_sex < 0 || ch->pcdata->true_sex > 2)
+        ch->pcdata->true_sex = 0;
+    ch->sex = get_base_sex(ch);
+
+    // reset stats
     for (stat = 0; stat < MAX_STATS; stat++)
         ch->mod_stat[stat] = 0;
     
-    if (ch->pcdata->true_sex < 0 || ch->pcdata->true_sex > 2)
-        ch->pcdata->true_sex = 0;
-    ch->sex     = ch->pcdata->true_sex;
-    ch->max_hit     = ch->pcdata->perm_hit;
-    ch->max_mana    = ch->pcdata->perm_mana;
-    ch->max_move    = ch->pcdata->perm_move;
+    ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->trained_hit_bonus = 0;
+    ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
+    ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
     
     for (i = 0; i < 4; i++)
         ch->armor[i]    = 100;
@@ -469,7 +419,6 @@ void reset_char(CHAR_DATA *ch)
     ch->hitroll     = 0;
     ch->damroll     = 0;
     ch->saving_throw    = 0;
-//    ch->combo_points = 0;
     
     /* now start adding back the effects */
     tattoo_modify_reset(ch);
@@ -514,8 +463,6 @@ void reset_char(CHAR_DATA *ch)
                 case APPLY_SAVING_PETRI:    ch->saving_throw += mod; break;
                 case APPLY_SAVING_BREATH:   ch->saving_throw += mod; break;
                 case APPLY_SAVING_SPELL:    ch->saving_throw += mod; break;
-
-//                case APPLY_COMBO:    ch->combo_points += mod; break;
                 }
             }
             
@@ -552,8 +499,6 @@ void reset_char(CHAR_DATA *ch)
                 case APPLY_SAVING_PETRI:        ch->saving_throw += mod; break;
                 case APPLY_SAVING_BREATH:       ch->saving_throw += mod; break;
                 case APPLY_SAVING_SPELL:        ch->saving_throw += mod; break;
-
-//                case APPLY_COMBO:    ch->combo_points += mod; break;
                 }
             }
     }
@@ -592,14 +537,25 @@ void reset_char(CHAR_DATA *ch)
         case APPLY_SAVING_PETRI:        ch->saving_throw += mod; break;
         case APPLY_SAVING_BREATH:       ch->saving_throw += mod; break;
         case APPLY_SAVING_SPELL:        ch->saving_throw += mod; break;
-
-//        case APPLY_COMBO:    ch->combo_points += mod; break;
         }
     }
     
     /* make sure sex is RIGHT!!!! */
     if (ch->sex < 0 || ch->sex > 2)
-        ch->sex = ch->pcdata->true_sex;
+        ch->sex = get_base_sex(ch);
+    
+    update_perm_hp_mana_move(ch);
+    
+    // adjust XP to fit within current level range (needed e.g. when racial ETL is adjusted)
+    int epl = exp_per_level(ch, ch->pcdata->points);
+    int min_exp = epl * (ch->level);
+    int max_exp = epl * (ch->level + 1) - 1;
+    if (ch->exp < min_exp || ch->exp > max_exp)
+    {
+        int new_exp = URANGE(min_exp, ch->exp, max_exp);
+        logpf("Resetting %s's experience from %d to %d (level %d).", ch->name, ch->exp, new_exp, ch->level);
+        ch->exp = new_exp;
+    }
 }
 
 
@@ -616,8 +572,12 @@ int get_trust( CHAR_DATA *ch )
     
     if ( IS_NPC(ch) && ch->level >= LEVEL_HERO )
         return LEVEL_HERO - 1;
-    else
-        return ch->level;
+
+    // remorted characters have at least trust equal to highest level they reached previously
+    if ( !IS_NPC(ch) && ch->pcdata->remorts > 0 )
+        return UMAX(ch->level, LEVEL_HERO - 11 + ch->pcdata->remorts);
+    
+    return ch->level;
 }
 
 
@@ -639,11 +599,6 @@ int can_carry_n( CHAR_DATA *ch )
 	if ( IS_IMMORTAL(ch) )
 	    return 1000;
 
-	/*
-	if ( IS_NPC(ch) && IS_SET(ch->act, ACT_PET) )
-	    return 0;
-	*/
-
     /* Added a base value of 5 to the number of items that can be carried - Astark 12-27-12 */
 	return MAX_WEAR + ch->level + 5;
 }
@@ -658,12 +613,6 @@ int can_carry_w( CHAR_DATA *ch )
     if ( !IS_NPC(ch) && ch->level >= LEVEL_IMMORTAL )
         return 10000000;
     
-    /*
-    if ( IS_NPC(ch) && IS_SET(ch->act, ACT_PET) )
-        return 0;
-    */
-    
-
     /* Added a base value of 100 to the maximum weight that can be carried. Currently 
        low strength characters are at a severe disadvantage - Astark 12-27-12  */
 
@@ -1446,12 +1395,12 @@ void char_from_room( CHAR_DATA *ch )
     if ( !IS_NPC(ch) )
     {
         if( --ch->in_room->area->nplayer < 0 )
-	{
-	    bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
-	    ch->in_room->area->nplayer = 0;
-	}
-	 /*only make this check for players or we get a crash*/
-	if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) && ch->pcdata->storage_boxes>0)
+	    {
+	        bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
+	        ch->in_room->area->nplayer = 0;
+	    }
+	    /*only make this check for players or we get a crash*/
+    	if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) && ch->pcdata->storage_boxes>0)
         {
 	    /* quit_save_char_obj will put player mf on player_quit_list and box mf on
                box_mf_list. We need to remove from player_save_list so this box mf
@@ -1460,10 +1409,15 @@ void char_from_room( CHAR_DATA *ch )
                existing player mf, which is not likely to cause problems, but we
                should protect against it anyway.
                We don't want to do this in all quit cases, only when leaving box_room.*/
-	    remove_from_save_list(capitalize(ch->name));
+	        remove_from_save_list(capitalize(ch->name));
             quit_save_char_obj(ch);
-	    unload_storage_boxes(ch);
+	        unload_storage_boxes(ch);
             send_to_char( "As you leave the room, an employee takes your boxes back down to the basement.\n\r",ch);
+        }
+        if ( IS_SET(ch->in_room->room_flags, ROOM_BLACKSMITH) ) 
+        {
+            /* leaving a smithy, might need to cancel transaction */
+            cancel_smith(ch);
         }
     }
     
@@ -2159,7 +2113,9 @@ void extract_obj( OBJ_DATA *obj )
         obj_next = obj_content->next_content;
         extract_obj( obj_content );
     }
-    
+
+    unregister_lua( obj );
+
     if ( object_list == obj )
     {
         object_list = obj->next;
@@ -2363,6 +2319,8 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
         if ( ch->mprog_target == wch )
             wch->mprog_target = NULL;
     }
+
+    unregister_lua( ch );
     
     if ( ch == char_list )
     {
@@ -2584,6 +2542,52 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
     }
     
     return NULL;
+}
+
+CHAR_DATA *get_char_group_new( CHAR_DATA *ch, char *argument, bool exact )
+{
+    char arg[MAX_INPUT_LENGTH];
+    CHAR_DATA *gch;
+    int number;
+    int count;
+    
+    if ( !ch || !ch->in_room )
+        return NULL;
+
+    number = number_argument( argument, arg );
+    count  = 0;
+
+    // check in room first
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( !is_ch_name(arg, gch, exact, ch) || !is_same_group(gch, ch) )
+            continue;
+
+        if ( ++count == number )
+            return gch;
+    }    
+    // then all others
+    for ( gch = char_list; gch != NULL ; gch = gch->next )
+    {
+        if ( gch->in_room == ch->in_room || !is_ch_name(arg, gch, exact, ch) || !is_same_group(gch, ch) )
+            continue;
+        
+        if ( ++count == number )
+            return gch;
+    }
+    
+    return NULL;    
+}
+
+CHAR_DATA *get_char_group( CHAR_DATA *ch, char *argument )
+{
+    CHAR_DATA *gch;
+
+    gch = get_char_group_new( ch, argument, TRUE );
+    if ( gch == NULL )
+        gch = get_char_group_new( ch, argument, FALSE );
+
+    return gch;    
 }
 
 CHAR_DATA* get_mob_vnum_world( int vnum )
@@ -2883,9 +2887,22 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
     {
 	if ( area )
 	{
-	    if ( obj->carried_by != NULL 
-		 && obj->carried_by->in_room->area != ch->in_room->area )
-		continue;
+	    if ( obj->carried_by != NULL )
+        {
+            if ( !obj->carried_by->in_room )
+            {
+                bugf("get_obj_new: %s carried_by not NULL but in_room is.", obj->carried_by->name);
+		        continue;
+		    }
+		    if ( !ch->in_room )
+            {
+                bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
+                continue;
+            }
+		    if ( obj->carried_by->in_room->area != ch->in_room->area )
+		        continue;
+        }
+
 	    if ( obj->in_room != NULL
 		 && obj->in_room->area != ch->in_room->area )
 		continue;
@@ -2929,6 +2946,7 @@ void add_money( CHAR_DATA *ch, int gold, int silver, CHAR_DATA *source )
 void deduct_cost(CHAR_DATA *ch, int cost)
 {
     int silver = 0, gold = 0;
+    char buf[MSL];
     
     silver = UMIN(ch->silver,cost);
     
@@ -2943,12 +2961,22 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     
     if (ch->gold < 0)
     {
-        bug("deduct costs: gold %d < 0",ch->gold);
+/*        bug("deduct costs: gold %d < 0",ch->gold); */
+        sprintf(buf,"Deduct costs: gold %d < 0, player: %s, room %d",
+            ch->gold != NULL ? ch->gold : 0,
+            ch->name != NULL ? ch->name : "Null",
+            ch->in_room->vnum != NULL ? ch->in_room->vnum : 0);
+        bug(buf,0);
         ch->gold = 0;
     }
     if (ch->silver < 0)
     {
-        bug("deduct costs: silver %d < 0",ch->silver);
+/*        bug("deduct costs: silver %d < 0",ch->silver); */
+        sprintf(buf,"Deduct costs: silver %d < 0, player: %s, room %d",
+            ch->silver != NULL ? ch->silver : 0,
+            ch->name != NULL ? ch->name : "Null",
+            ch->in_room->vnum != NULL ? ch->in_room->vnum : 0);
+        bug(buf,0);
         ch->silver = 0;
     }
 }

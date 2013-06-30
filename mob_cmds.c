@@ -81,7 +81,7 @@ const	struct	mob_cmd_type	mob_cmd_table	[] =
   { "remort",     do_mpremort,     "[victim] : remort a player"                             },
   { "qset",       do_mpqset,       "[victim] [id] [value] [time limit] : set quest-state for player"     },
   { "qadvance",   do_mpqadvance,   "[victim] [id] (increment) : increase quest-state"       },
-  { "reward",     do_mpreward,     "[victim] [exp|qp] [ammount] : give exp or qp reward"    },
+  { "reward",     do_mpreward,     "[victim] [exp|qp|gold] [ammount] : give exp or qp reward"    },
   { "peace",      do_mppeace,      "(victim) : stop combat and make mobs non-aggro"         },
   { "restore",    do_mprestore,    "[victim] : restore victim"                              },
   { "act",        do_mpact,        "(not) [flag] : set or remove an act-flag"               },
@@ -305,6 +305,37 @@ int r_atoi( CHAR_DATA *ch, char *arg )
     return area->min_vnum + nr;
 }
 
+int r_atoi_obj( OBJ_DATA *obj, char *arg )
+{
+    AREA_DATA *area;
+    char arg1[MIL];
+    int nr;
+
+    one_argument( arg, arg1 );
+    if ( arg1[0] != 'r' )
+    return atoi(arg1);
+
+    if ( obj == NULL )
+    {
+    bugf( "r_atoi_mob: NULL obj" );
+    return -1;
+    }
+
+    if ( (nr = atoi(arg1 + 1)) < 0 )
+    return nr;
+
+    area = obj->pIndexData->area;
+
+    /* check if the 'r' might be too much */
+    if ( area->min_vnum + nr > area->max_vnum )
+    {
+    bugf( "r_atoi: relative vnum (%s) out of area on obj %d",
+          arg, obj->pIndexData->vnum );
+    return nr;
+    }
+    return area->min_vnum + nr;
+}
+
 /* 
  * Displays MOBprogram triggers of a mobile
  *
@@ -400,7 +431,7 @@ void do_mpdump( CHAR_DATA *ch, char *argument )
        return;
    }
 
-   page_to_char( mprg->code, ch );
+   page_to_char_new( mprg->code, ch, TRUE );
 }
 
 /*
@@ -477,6 +508,9 @@ void do_mpasound( CHAR_DATA *ch, char *argument )
 
     if ( argument[0] == '\0' )
 	return;
+
+    if ( ch->in_room == NULL )
+        return;
 
     was_in_room = ch->in_room;
     for ( door = 0; door < 10; door++ )
@@ -785,6 +819,10 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
     char       arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim;
     OBJ_DATA  *obj;
+    char buf[MSL];
+
+    if ( ch->in_room == NULL )
+        return;
 
     one_argument( argument, arg );
 
@@ -830,8 +868,13 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
 	}
 	else
 	{
-	    bug( "Mppurge - Bad argument from vnum %d.",
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	    bug( "Mppurge - Bad argument from vnum %d.",
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+            sprintf( buf, "Mppurge - Bad argument from mob: %d, room: %d, argument: %s",
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+                ch->in_room->vnum != NULL ? ch->in_room->vnum : 0, 
+                arg != NULL ? arg : "null");
+            bug( buf, 0 );
 	}
 	return;
     }
@@ -859,6 +902,7 @@ void do_mpgoto( CHAR_DATA *ch, char *argument )
 {
     char             arg[ MAX_INPUT_LENGTH ];
     ROOM_INDEX_DATA *location;
+    char buf[MSL];
 
     one_argument( argument, arg );
     if ( arg[0] == '\0' )
@@ -870,8 +914,12 @@ void do_mpgoto( CHAR_DATA *ch, char *argument )
 
     if ( ( location = find_mp_location( ch, arg ) ) == NULL )
     {
-	bug( "Mpgoto - No such location from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpgoto - No such location from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "Mpgoto - No such location. mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -896,6 +944,7 @@ void do_mpat( CHAR_DATA *ch, char *argument )
     ROOM_INDEX_DATA *original;
     CHAR_DATA       *wch;
     OBJ_DATA 	    *on;
+    char buf[MSL];
 
     argument = one_argument( argument, arg );
 
@@ -906,16 +955,24 @@ void do_mpat( CHAR_DATA *ch, char *argument )
     sprintf( last_debug, "mpat: start" );
     if ( arg[0] == '\0' || argument[0] == '\0' )
     {
-	bug( "Mpat - Bad argument from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpat - Bad argument from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );*/
+        sprintf( buf, "Mpat - Bad argument from mob: %d, argument: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
     sprintf( last_debug, "mpat: find_mp_location" );
     if ( ( location = find_mp_location( ch, arg ) ) == NULL )
     {
-	bug( "Mpat - No such location from vnum %d.",
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpat - No such location from vnum %d.",
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "Mpat - Bad location from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -962,6 +1019,9 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
     CHAR_DATA       *victim;
     DESCRIPTOR_DATA *d;
     
+    if ( ch->in_room == NULL )
+        return;
+
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     
@@ -1020,8 +1080,12 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
     {
         if ( ( location = find_mp_location( ch, arg2 ) ) == NULL )
         {
-            bug( "Mptransfer - No such location from vnum %d.",
-                IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*            bug( "Mptransfer - No such location from vnum %d.",
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+            sprintf( buf, "Mptransfer - Bad location from mob: %d, target room: %s",
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+                arg2 != NULL ? arg2 : "null");
+            bug( buf, 0 );
             return;
         }
         
@@ -1057,13 +1121,20 @@ void do_mpgtransfer( CHAR_DATA *ch, char *argument )
     char	     buf[MAX_STRING_LENGTH];
     CHAR_DATA       *who, *victim, *victim_next;
 
+    if ( ch->in_room == NULL )
+        return;
+
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
 
     if ( arg1[0] == '\0' )
     {
-	bug( "Mpgtransfer - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpgtransfer - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "Mptransfer - Bad location from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg2 != NULL ? arg2 : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -1091,13 +1162,18 @@ void do_mpgtransfer( CHAR_DATA *ch, char *argument )
 void do_mpforce( CHAR_DATA *ch, char *argument )
 {
     char arg[ MAX_INPUT_LENGTH ];
+    char buf[MSL];
 
     argument = one_argument( argument, arg );
 
     if ( arg[0] == '\0' || argument[0] == '\0' )
     {
-	bug( "Mpforce - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "Mpforce - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "Mpforce - Bad syntax from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -1143,13 +1219,21 @@ void do_mpgforce( CHAR_DATA *ch, char *argument )
 {
     char arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim, *vch, *vch_next;
+    char buf[MSL];
+
+    if ( ch->in_room == NULL )
+        return;
 
     argument = one_argument( argument, arg );
 
     if ( arg[0] == '\0' || argument[0] == '\0' )
     {
-	bug( "MpGforce - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "MpGforce - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "MpGforce - Bad syntax from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -1181,13 +1265,18 @@ void do_mpvforce( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim, *victim_next;
     char arg[ MAX_INPUT_LENGTH ];
     int vnum;
+    char buf[MSL];
 
     argument = one_argument( argument, arg );
 
     if ( arg[0] == '\0' || argument[0] == '\0' )
     {
-	bug( "MpVforce - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "MpVforce - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "MpVforce - Bad syntax from mob: %d, target room: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            arg != NULL ? arg : "null");
+        bug( buf, 0 );
 	return;
     }
 
@@ -1229,20 +1318,29 @@ void do_mpcast( CHAR_DATA *ch, char *argument )
     void *victim = NULL;
     char spell[ MAX_INPUT_LENGTH ];
     int sn, target_type;
+    char buf[MSL];
 
     target_name = one_argument( argument, spell );
 
     if ( spell[0] == '\0' )
     {
-	bug( "MpCast - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "MpCast - Bad syntax from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "MpCast - Bad syntax from mob: %d, spell name: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            spell != NULL ? spell : "null");
+        bug( buf, 0 );
 	return;
     }
 
     if ( ( sn = skill_lookup( spell ) ) < 0 )
     {
-	bug( "MpCast - No such spell from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+/*	bug( "MpCast - No such spell from vnum %d.", 
+		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
+        sprintf( buf, "MpCast - Bad syntax from mob: %d, spell name: %s",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+            spell != NULL ? spell : "null");
+        bug( buf, 0 );
 	return;
     }
     
@@ -1269,6 +1367,9 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
     int low, high, dam;
     bool fAll = FALSE, fKill = FALSE;
 
+    if ( ch->in_room == NULL )
+        return;
+
     argument = one_argument( argument, target );
     argument = one_argument( argument, min );
     argument = one_argument( argument, max );
@@ -1288,7 +1389,7 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
 	low = atoi( min );
     else
     {
-	bug( "MpDamage - Bad damage min vnum %d.", 
+	bug( "MpDamage - Bad damage min, vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	return;
     }
@@ -1296,7 +1397,7 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
 	high = atoi( max );
     else
     {
-	bug( "MpDamage - Bad damage max vnum %d.", 
+	bug( "MpDamage - Bad damage max, vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	return;
     }
@@ -1402,7 +1503,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     CHAR_DATA *vch;
     OBJ_DATA *obj1, *obj2;
     MPROG_CODE *prg;
-    extern void program_flow( int, char *, CHAR_DATA *, CHAR_DATA *, const void *, const void * );
+    extern void program_flow( char *, bool, int, char *, CHAR_DATA *, CHAR_DATA *, const void *, sh_int, const void *, sh_int );
 
     argument = one_argument( argument, arg );
     if ( arg[0] == '\0' )
@@ -1428,7 +1529,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     argument = one_argument( argument, arg );
     if ( arg[0] != '\0' )
     	obj2 = get_obj_here( ch, arg );
-    program_flow( prg->vnum, prg->code, ch, vch, (void *)obj1, (void *)obj2 );
+    program_flow( argument, prg->is_lua,prg->vnum, prg->code, ch, vch, (void *)obj1, ACT_ARG_OBJ, (void *)obj2, ACT_ARG_OBJ );
 }
 
 /*
@@ -1821,7 +1922,8 @@ void do_mpqadvance( CHAR_DATA *ch, char *argument )
 
 #define REWARD_EXP     0
 #define REWARD_QP      1
-/* Syntax: mob reward $n [exp|qp] [ammount] */
+#define REWARD_GOLD    2 
+/* Syntax: mob reward $n [exp|qp|gold] [ammount] */
 void do_mpreward( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
@@ -1847,6 +1949,8 @@ void do_mpreward( CHAR_DATA *ch, char *argument )
 	reward = REWARD_EXP;
     else if ( !str_cmp(arg2, "qp") )
 	reward = REWARD_QP;
+    else if ( !str_cmp(arg2, "gold") )
+    reward = REWARD_GOLD;
     else
     {
 	bug( "do_mpreward: unknown reward type from vnum %d.", 
@@ -1888,6 +1992,10 @@ void do_mpreward( CHAR_DATA *ch, char *argument )
 	send_to_char( buf, victim );
 	victim->pcdata->questpoints += ammount;
 	break;
+    case REWARD_GOLD:
+    ptc( victim, "You are rewarded %d gold!\n\r", ammount);
+    victim->gold += ammount;
+    break;
     default:
 	bug( "do_mpreward: unknown reward type (%d)", reward );
     }

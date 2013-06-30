@@ -867,13 +867,16 @@ void do_clanreport( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    
+
     for (j = 1; j <= clan_table[clan].rank_count; j++)
     {
-        sprintf(buf, "\n\rDetail for rank {c%d{x - %s%s{x:\n\r\n\r",
+        sprintf(buf, "\n\rDetail for rank {c%d{x - %s%s{x [%s%s-%s{x]:\n\r\n\r",
             j,
             clan_table[clan].who_color,
-            capitalize(clan_table[clan].rank_list[j].name));
+            capitalize(clan_table[clan].rank_list[j].name),
+            clan_table[clan].who_color,
+            clan_table[clan].who_name,
+            clan_table[clan].rank_list[j].who_name);
         add_buf(buffer, buf);
         
         if (clan_table[clan].rank_list[j].available_slots >= 0)
@@ -1534,14 +1537,14 @@ void do_cset( CHAR_DATA *ch, char *argument )
         }
 
         if (   IS_SET(pRoom->room_flags, ROOM_NOWHERE)
-            && IS_SET(pRoom->room_flags, ROOM_PRIVATE)
-            && IS_SET(pRoom->room_flags, ROOM_SOLITARY)
-            && IS_SET(pRoom->room_flags, ROOM_IMP_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_PET_SHOP)
-            && IS_SET(pRoom->room_flags, ROOM_GODS_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_HEROES_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_JAIL)
-            && IS_SET(pRoom->room_flags, ROOM_NEWBIES_ONLY))
+            || IS_SET(pRoom->room_flags, ROOM_PRIVATE)
+            || IS_SET(pRoom->room_flags, ROOM_SOLITARY)
+            || IS_SET(pRoom->room_flags, ROOM_IMP_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_PET_SHOP)
+            || IS_SET(pRoom->room_flags, ROOM_GODS_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_HEROES_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_JAIL)
+            || IS_SET(pRoom->room_flags, ROOM_NEWBIES_ONLY))
         {
             send_to_char("That is not an acceptable room.\n\r", ch);
             return;
@@ -1565,14 +1568,14 @@ void do_cset( CHAR_DATA *ch, char *argument )
         }
 
         if (   IS_SET(pRoom->room_flags, ROOM_NOWHERE)
-            && IS_SET(pRoom->room_flags, ROOM_PRIVATE)
-            && IS_SET(pRoom->room_flags, ROOM_SOLITARY)
-            && IS_SET(pRoom->room_flags, ROOM_IMP_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_PET_SHOP)
-            && IS_SET(pRoom->room_flags, ROOM_GODS_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_HEROES_ONLY)
-            && IS_SET(pRoom->room_flags, ROOM_JAIL)
-            && IS_SET(pRoom->room_flags, ROOM_NEWBIES_ONLY))
+            || IS_SET(pRoom->room_flags, ROOM_PRIVATE)
+            || IS_SET(pRoom->room_flags, ROOM_SOLITARY)
+            || IS_SET(pRoom->room_flags, ROOM_IMP_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_PET_SHOP)
+            || IS_SET(pRoom->room_flags, ROOM_GODS_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_HEROES_ONLY)
+            || IS_SET(pRoom->room_flags, ROOM_JAIL)
+            || IS_SET(pRoom->room_flags, ROOM_NEWBIES_ONLY))
         {
             send_to_char("That is not an acceptable room.\n\r", ch);
             return;
