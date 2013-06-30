@@ -3763,7 +3763,7 @@ void spell_shadow_shroud(int sn,int level,CHAR_DATA *ch,void *vo, int target)
 
 void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
-    CHAR_DATA *gch = (CHAR_DATA *) vo;
+    CHAR_DATA *gch;
     bool found = FALSE;
     int heal;
     int refr;
@@ -3774,7 +3774,7 @@ void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int
         if ( !is_same_group( gch, ch ) )
             continue;
 
-	heal = get_sn_heal( sn, level, ch, gch ) * 6/15;
+        heal = get_sn_heal( sn, level, ch, gch ) * 6/15;
         gch->hit = UMIN( gch->hit + heal, gch->max_hit );
         
         refr = get_sn_heal( sn, level, ch, gch ) * 4/15;
@@ -3783,12 +3783,13 @@ void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int
         update_pos( gch );
 
         send_to_char( "You feel much better!\n\r", gch );
-	check_sn_multiplay( ch, gch, sn );
+        check_sn_multiplay( ch, gch, sn );
 
         for (sn1 = 1; skill_table[sn1].name != NULL; sn1++)
         {
             if (IS_SPELL(sn1)
                && is_offensive(sn1)
+               && sn1 != gsn_charm_person
                && check_dispel(level/2, gch, sn1) )
             found = TRUE;
         }
