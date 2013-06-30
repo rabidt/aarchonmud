@@ -1921,7 +1921,7 @@ bool class_group_table[MAX_CLASS][4] =
     { 0, 0, 0, 1 }  // necromancer
 };
 
-bool class_can_use_obj( int class, OBJ_DATA *obj )
+bool class_can_use( int class, tflag extra_flags )
 {
     int group, flag;
     bool allow_found = FALSE;
@@ -1929,36 +1929,51 @@ bool class_can_use_obj( int class, OBJ_DATA *obj )
     /* check anti_group flags */
     for ( group = 0; group < 4; group++ )
     {
-	flag = ITEM_ANTI_WARRIOR + group;
-	if ( IS_SET(obj->extra_flags, flag)
-	     && class_group_table[class][group] )
-	    return FALSE;
+        flag = ITEM_ANTI_WARRIOR + group;
+        if ( IS_SET(extra_flags, flag) && class_group_table[class][group] )
+            return FALSE;
     }
 
     /* check allow_group flags */
     for ( group = 0; group < 4; group++ )
     {
-	flag = ITEM_ALLOW_WARRIOR + group;
-	if ( IS_SET(obj->extra_flags, flag) )
-	    if ( class_group_table[class][group] )
-		return TRUE;
-	    else
-		allow_found = TRUE;
+        flag = ITEM_ALLOW_WARRIOR + group;
+        if ( IS_SET(extra_flags, flag) )
+            if ( class_group_table[class][group] )
+                return TRUE;
+            else
+                allow_found = TRUE;
     }
 
     /* check class_ flags */
     for ( group = 0; group < MAX_CLASS; group++ )
     {
-	flag = ITEM_CLASS_WARRIOR + group;
-	if ( IS_SET(obj->extra_flags, flag) )
-	    if ( class == group )
-		return TRUE;
-	    else
-		allow_found = TRUE;
+        flag = ITEM_CLASS_WARRIOR + group;
+        if ( IS_SET(extra_flags, flag) )
+            if ( class == group )
+                return TRUE;
+            else
+                allow_found = TRUE;
     }
 
     /* if no allow flags found, all classes can use object */
     return !allow_found;
+}
+
+bool class_can_use_obj( int class, OBJ_DATA *obj )
+{
+    return class_can_use( class, obj->extra_flags );
+}
+
+int classes_can_use( tflag extra_flags )
+{
+    int class;
+    int count = 0;
+    
+    for (class = 0; class <= MAX_CLASS; class++)
+        if ( class_can_use(class, extra_flags) )
+            count++;
+    return count;
 }
 
 /* encumberance */

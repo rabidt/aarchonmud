@@ -3450,7 +3450,7 @@ OEDIT( oedit_show )
 
     /* Info about OPs to spend: */
     sprintf( buf, "OPs:         [%2d/%2d]\n\r",
-	     get_obj_index_ops(pObj), get_obj_index_spec(pObj) );
+        get_obj_index_ops(pObj), get_obj_index_spec(pObj, pObj->level) );
     send_to_char( buf, ch );
 
     if ( pObj->extra_descr )
@@ -3609,8 +3609,7 @@ OEDIT( oedit_addaffect )
     pAf->bitvector  =   0;
     pAf->level      =	pObj->level;
     pAf->detect_level = detect_level;
-    pAf->next       =   pObj->affected;
-    pObj->affected  =   pAf;
+    pObj->affected  =   affect_insert( pObj->affected, pAf );
     
     send_to_char( "Affect added.\n\r", ch);
     return TRUE;
@@ -3679,9 +3678,8 @@ OEDIT( oedit_addapply )
     pAf->duration   =   -1;
     pAf->bitvector  =   bv;
     pAf->level      =	pObj->level;
-    pAf->next       =   pObj->affected;
     pAf->detect_level = detect_level;
-    pObj->affected  =   pAf;
+    pObj->affected  =   affect_insert(pObj->affected, pAf);
     
     send_to_char( "Apply added.\n\r", ch);
     return TRUE;
