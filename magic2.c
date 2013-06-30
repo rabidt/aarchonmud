@@ -283,13 +283,6 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     send_to_char( "You call out to your noble sidekick!\n\r", ch );
     act( "$n calls out to $s noble sidekick.", ch, NULL, NULL, TO_ROOM );
     
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) 
-	|| IS_SET(ch->in_room->room_flags,ROOM_LAW))
-    {
-        send_to_char("Your sidekick can't hear you in here.\n\r",ch);
-        return;
-    }
-    
     if (IS_SET(ch->act, PLR_WAR))
     {
         send_to_char("Sidekicks have no place in wars like these.\n\r", ch );
@@ -899,8 +892,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
     
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE)
-	|| IS_SET(ch->in_room->room_flags,ROOM_LAW))
+    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) || IS_SET(ch->in_room->room_flags,ROOM_LAW))
     {
         send_to_char("Not in this room.\n\r",ch);
         return;
@@ -1938,13 +1930,6 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     
     act( "$n tries to summon a woodland spirit into a nearby tree.", ch, NULL, NULL, TO_ROOM );
     
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE)
-	|| IS_SET(ch->in_room->room_flags,ROOM_LAW))
-    {
-        send_to_char("No woodland spirit answers the call.\n\r",ch);
-        return;
-    }
-    
     /* Check number of charmees against cha*/ 
     mlevel = (6*level + beast_skill) / 8;
     mlevel = URANGE(1, mlevel, ch->level);
@@ -2125,14 +2110,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     }
     act( "$n tries to raise snakes from sticks.", ch, NULL, NULL,
         TO_ROOM);
-    
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) ||
-        IS_SET(ch->in_room->room_flags,ROOM_LAW))
-    {
-        send_to_char("No sticks could be transmogrified.\n\r",ch);
-        return;
-    }
-        
+
     /* Check number of charmees against cha*/
     mlevel = (5*level + beast_skill) / 10;
     mlevel = URANGE(1, mlevel, ch->level);
