@@ -1011,7 +1011,7 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
             
             if ( IS_NPC(mob) && mob->spec_fun != 0 )
             {
-                sprintf( buf, "Special procedure: %s\n", spec_name( mob->spec_fun ) );
+                sprintf( buf, "Special procedure: %s\n", spec_name_lookup( mob->spec_fun ) );
                 fprintf( fp, buf );
             }
             

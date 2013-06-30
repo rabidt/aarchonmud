@@ -26,6 +26,7 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg );
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg );
 bool has_mprog( MOB_INDEX_DATA *mob, int vnum );
 bool has_shop( MOB_INDEX_DATA *mob, int vnum );
+bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg );
 bool has_spell( OBJ_INDEX_DATA *obj, int ID );
 bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg );
 void show_grep_syntax( CHAR_DATA *ch );
@@ -188,6 +189,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           lvl     <minimum level>\n\r", ch );
     send_to_char( "           trigger <trigger type>\n\r", ch );
     send_to_char( "           mprog   <mprog vnum>\n\r", ch );
+    send_to_char( "           specfun <any|spec_fun>\n\r", ch );
     send_to_char( "           spec\n\r", ch );
     send_to_char( "           vuln    <vulnerabilities>\n\r", ch );
     send_to_char( "           res     <resists>\n\r", ch );
@@ -596,6 +598,7 @@ void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
 #define GREP_MOB_RES      11
 #define GREP_MOB_IMM      12
 #define GREP_MOB_SHOPMOB  13
+#define GREP_MOB_SPECFUN  14
 
 /* parses argument into a list of grep_data */
 GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
@@ -776,6 +779,15 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
 	    }
 	    stat = GREP_MOB_IMM;
 	}
+    else if ( !str_cmp(arg1, "specfun") )
+    {
+        if ( arg2[0] == '\0' )
+        {
+        send_to_char( "What special function do you want to grep for?\n\r", ch );
+        return NULL;
+        }
+        stat = GREP_MOB_SPECFUN;
+    }
 	else
 	{
 	    show_grep_syntax( ch );
@@ -861,6 +873,13 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
 	break;
     default: 
 	break;
+    case GREP_MOB_SPECFUN:
+        match = has_special( mob, gd->str_value, msg );
+        if ( msg[0] != '\0' )
+        {
+            sprintf( buf, "(%s)", msg );
+            strcat( info, buf );
+        }    
     }
 
     if ( gd->negate )
@@ -1713,7 +1732,21 @@ bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
     return FALSE;
 }
 
+bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg )
+{
+    char *mob_spec_name = spec_name_lookup(mob->spec_fun);
 
+    if ( mob_spec_name == NULL )
+        return FALSE;
+
+    if ( !strcmp(spec_name, "any") )
+    {
+        sprintf( msg, "%s", mob_spec_name );
+        return TRUE;
+    }
+
+    return strcmp(spec_name, mob_spec_name) == 0;
+}
 
 bool has_spell( OBJ_INDEX_DATA *obj, int ID )
 {
