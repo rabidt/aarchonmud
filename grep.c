@@ -191,6 +191,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           trigger <trigger type>\n\r", ch );
     send_to_char( "           mprog   <mprog vnum>\n\r", ch );
     send_to_char( "           specfun <any|spec_fun>\n\r", ch );
+    send_to_char( "           align   <minimum alignment>\n\r", ch );
     send_to_char( "           spec\n\r", ch );
     send_to_char( "           vuln    <vulnerabilities>\n\r", ch );
     send_to_char( "           res     <resists>\n\r", ch );
@@ -600,6 +601,7 @@ void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
 #define GREP_MOB_IMM      12
 #define GREP_MOB_SHOPMOB  13
 #define GREP_MOB_SPECFUN  14
+#define GREP_MOB_ALIGN    15
 
 /* parses argument into a list of grep_data */
 GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
@@ -672,6 +674,16 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
 	    value = atoi(arg2);
 	    stat = GREP_MOB_LEVEL;
 	}
+    else if ( !str_cmp(arg1, "align") || !str_cmp(arg1, "alignment") )
+    {
+        if ( !is_number(arg2) )
+        {
+            send_to_char( "Please specify the minimum alignment.\n\r", ch );
+            return NULL;
+        }
+        value = atoi(arg2);
+        stat = GREP_MOB_ALIGN;
+    }
 	else if ( !str_cmp(arg1, "aff") || !str_cmp(arg1, "affect"))
 	{
 	    if ( arg2[0] == '\0' )
@@ -845,6 +857,9 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
     case GREP_MOB_LEVEL:
 	match = (mob->level >= gd->value);
 	break;
+    case GREP_MOB_ALIGN:
+        match = (mob->alignment >= gd->value);
+        break;
     case GREP_MOB_TRIGGER:
 	match = IS_SET( mob->mprog_flags, gd->value );
 	break;
