@@ -5168,7 +5168,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
 
     if (victim->pIndexData->spec_fun != NULL)
     {
-        char* spec = spec_name(victim->pIndexData->spec_fun);
+        char* spec = spec_name_lookup(victim->pIndexData->spec_fun);
         // dragons
         if ( strcmp(spec, "spec_breath_any") == 0
             || strcmp(spec, "spec_breath_acid") == 0
