@@ -2783,7 +2783,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam += (20 + dam) / 4; 
 	else if ( victim->stance == STANCE_KAMIKAZE )
 	    dam += (18 + dam) / 6;
-	else if ( victim->stance == STANCE_TORTOISE ) 
+    else if ( victim->stance == STANCE_TORTOISE
+            || victim->stance == STANCE_AVERSION )
 	    dam -= dam / 3;
 	else if ( victim->stance == STANCE_WENDIGO )
 	    dam -= dam / 5;
@@ -3998,9 +3999,6 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     chance = get_skill(victim, gsn_parry) / 4 + 10;
     chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_DEX)) / 8;
     
-    if (get_skill(victim, gsn_parry) == 100)
-            chance += 2;
-    
     /* some weapons are better for parrying, some are worse.. */
     if ( victim_weapon == gsn_hand_to_hand )
     {
@@ -4027,15 +4025,9 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	if ( (victim_weapon_obj = get_eq_char(victim, WEAR_WIELD)) == NULL
 	     || !IS_WEAPON_STAT(victim_weapon_obj, WEAPON_TWO_HANDS) )
 	    chance /= 2;
-
-        if (victim->stance == STANCE_AVERSION)
-            chance += 10; 
     }
 
-    if (victim->stance == STANCE_SWAYDES_MERCY)
-        chance += 5 + get_skill( ch, gsn_swaydes_mercy )/10;
-
-    if (victim->stance == STANCE_AVERSION)
+    if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
         chance += 10; 
 
     if (!can_see(ch,victim) && blind_penalty(victim))
@@ -4233,10 +4225,7 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( get_weapon_sn(ch) == gsn_whip )
 	chance -= 10;
     
-    if (victim->stance == STANCE_SWAYDES_MERCY)
-        chance += 5 + get_skill( ch, gsn_swaydes_mercy )/10; 
-
-    if (victim->stance == STANCE_AVERSION)
+    if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
         chance += 10;
     
     if ( !can_see(victim,ch) && blind_penalty(victim) )
@@ -4244,9 +4233,6 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( IS_AFFECTED(victim, AFF_SORE) )
 	chance -= 10;
-
-    if (get_skill(victim, gsn_shield_block) == 100)
-        chance += 2;
 
     if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
         return FALSE;
@@ -4286,16 +4272,11 @@ bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
         chance -= chance / 4;
     
     if ( victim->stance==STANCE_TOAD
-	 || victim->stance==STANCE_SWAYDES_MERCY
-	 || victim->stance==STANCE_BUNNY
-	 || IS_SET(victim->form, FORM_DOUBLE_JOINTED) )
+        || victim->stance==STANCE_SWAYDES_MERCY
+        || victim->stance==STANCE_AVERSION
+        || victim->stance==STANCE_BUNNY
+        || IS_SET(victim->form, FORM_DOUBLE_JOINTED) )
         chance += 15;
-
-    if ( victim->stance==STANCE_AVERSION)
-        chance += 7;
-
-    if ( get_skill(ch, gsn_dodge) == 100)
-        chance += 2;
     
     if ( IS_AFFECTED(victim, AFF_SORE) )
 	chance -= 10;
