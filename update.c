@@ -853,7 +853,7 @@ void mobile_update( void )
             continue;
 
         /* Examine call for special procedure */
-        if ( ch->spec_fun != 0 )
+        if ( ch->spec_fun != 0 && ch->wait == 0 )
         {
             /* update the last_mprog log */
             sprintf( last_mprog, "mob %d at %d %s",
@@ -1304,6 +1304,15 @@ void char_update( void )
                         && number_bits(3)==0 )
                 {
                     act("$n vanishes into the ether.",ch,NULL,NULL,TO_ROOM);
+                    extract_char(ch,TRUE);
+                    continue;
+                }
+
+                if ( IS_SET(ch->act, ACT_PET) && (ch->leader == NULL || !IS_AFFECTED(ch,AFF_CHARM))
+                        && ch->desc == NULL && ch->fighting == NULL 
+                        && number_bits(3)==0 )
+                {
+                    act("$n wanders off.",ch,NULL,NULL,TO_ROOM);
                     extract_char(ch,TRUE);
                     continue;
                 }
