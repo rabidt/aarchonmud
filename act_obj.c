@@ -2683,8 +2683,6 @@ void do_brandish( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    WAIT_STATE( ch, 2 * PULSE_VIOLENCE );
-
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2703,10 +2701,11 @@ void do_brandish( CHAR_DATA *ch, char *argument )
             act ("...and nothing happens.",ch,NULL,NULL,TO_ROOM);
             check_improve(ch,gsn_staves,FALSE,2);
         }
-
         else 
         {
-            obj_cast_spell( staff->value[3], staff->value[0], ch, staff, argument );
+            // unsuccessful cast (e.g. invalid target) does not use up charge
+            if ( !obj_cast_spell(staff->value[3], staff->value[0], ch, staff, argument) )
+                return;
             check_improve(ch,gsn_staves,TRUE,2);
         }
     }
@@ -2717,6 +2716,8 @@ void do_brandish( CHAR_DATA *ch, char *argument )
         act( "Your $p blazes bright and is gone.", ch, staff, NULL, TO_CHAR );
         extract_obj( staff );
     }
+
+    WAIT_STATE( ch, 2 * PULSE_VIOLENCE );
 
     return;
 }
@@ -2749,8 +2750,6 @@ void do_zap( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    WAIT_STATE( ch, PULSE_VIOLENCE );
-
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2774,7 +2773,9 @@ void do_zap( CHAR_DATA *ch, char *argument )
         }
         else
         {
-            obj_cast_spell( wand->value[3], wand->value[0], ch, wand, argument );
+            // unsuccessful cast (e.g. invalid target) does not use up charge
+            if ( !obj_cast_spell(wand->value[3], wand->value[0], ch, wand, argument) )
+                return;
             check_improve(ch,gsn_wands,TRUE,2);
         }
     }
@@ -2785,6 +2786,8 @@ void do_zap( CHAR_DATA *ch, char *argument )
         act( "Your $p explodes into fragments.", ch, wand, NULL, TO_CHAR );
         extract_obj( wand );
     }
+
+    WAIT_STATE( ch, PULSE_VIOLENCE );
 
     return;
 }

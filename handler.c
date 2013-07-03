@@ -545,6 +545,17 @@ void reset_char(CHAR_DATA *ch)
         ch->sex = get_base_sex(ch);
     
     update_perm_hp_mana_move(ch);
+    
+    // adjust XP to fit within current level range (needed e.g. when racial ETL is adjusted)
+    int epl = exp_per_level(ch, ch->pcdata->points);
+    int min_exp = epl * (ch->level);
+    int max_exp = epl * (ch->level + 1) - 1;
+    if (ch->exp < min_exp || ch->exp > max_exp)
+    {
+        int new_exp = URANGE(min_exp, ch->exp, max_exp);
+        logpf("Resetting %s's experience from %d to %d (level %d).", ch->name, ch->exp, new_exp, ch->level);
+        ch->exp = new_exp;
+    }
 }
 
 
@@ -588,11 +599,6 @@ int can_carry_n( CHAR_DATA *ch )
 	if ( IS_IMMORTAL(ch) )
 	    return 1000;
 
-	/*
-	if ( IS_NPC(ch) && IS_SET(ch->act, ACT_PET) )
-	    return 0;
-	*/
-
     /* Added a base value of 5 to the number of items that can be carried - Astark 12-27-12 */
 	return MAX_WEAR + ch->level + 5;
 }
@@ -607,12 +613,6 @@ int can_carry_w( CHAR_DATA *ch )
     if ( !IS_NPC(ch) && ch->level >= LEVEL_IMMORTAL )
         return 10000000;
     
-    /*
-    if ( IS_NPC(ch) && IS_SET(ch->act, ACT_PET) )
-        return 0;
-    */
-    
-
     /* Added a base value of 100 to the maximum weight that can be carried. Currently 
        low strength characters are at a severe disadvantage - Astark 12-27-12  */
 
