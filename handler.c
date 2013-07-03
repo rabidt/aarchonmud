@@ -2704,6 +2704,17 @@ OBJ_DATA *get_obj_type( OBJ_INDEX_DATA *pObjIndex )
     return NULL;
 }
 
+// find object of given type in content list
+OBJ_DATA* get_obj_by_type( OBJ_DATA *contents, int item_type )
+{
+    OBJ_DATA *obj;
+
+    for ( obj = contents; obj != NULL; obj = obj->next_content )
+        if ( obj->item_type == item_type )
+            return obj;
+
+    return NULL;
+}
 
 /*
  * Find an obj in a list.
