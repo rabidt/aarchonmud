@@ -27,6 +27,7 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg );
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg );
 bool has_mprog( MOB_INDEX_DATA *mob, int vnum );
 bool has_shop( MOB_INDEX_DATA *mob, int vnum );
+bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg );
 bool has_spell( OBJ_INDEX_DATA *obj, int ID );
 bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg );
 void show_grep_syntax( CHAR_DATA *ch );
@@ -169,7 +170,6 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "obj stats: name    <name>\n\r", ch );
     send_to_char( "           type    <item type>\n\r", ch );
     send_to_char( "           cost    <minimum gold>\n\r", ch );
-    send_to_char( "           nocost  <specific 0 gold>\n\r", ch );
     send_to_char( "           ops     <minimum OPs>\n\r", ch );
     send_to_char( "           lvl     <minimum level>\n\r", ch );
     send_to_char( "           wear    <location>\n\r", ch );
@@ -181,6 +181,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           addflag\n\r", ch );
     send_to_char( "           spec\n\r", ch );
     send_to_char( "           ingame\n\r", ch );
+    send_to_char( "           combine\n\r", ch );
     send_to_char( "mob stats: name    <name>\n\r", ch );
     send_to_char( "           wealth  <minimum gold>\n\r", ch );
     send_to_char( "           act     <act flag>\n\r", ch );
@@ -189,6 +190,8 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           lvl     <minimum level>\n\r", ch );
     send_to_char( "           trigger <trigger type>\n\r", ch );
     send_to_char( "           mprog   <mprog vnum>\n\r", ch );
+    send_to_char( "           specfun <any|spec_fun>\n\r", ch );
+    send_to_char( "           align   <minimum alignment>\n\r", ch );
     send_to_char( "           spec\n\r", ch );
     send_to_char( "           vuln    <vulnerabilities>\n\r", ch );
     send_to_char( "           res     <resists>\n\r", ch );
@@ -221,7 +224,7 @@ void show_grep_syntax( CHAR_DATA *ch )
 #define GREP_OBJ_HEAL     11
 #define GREP_OBJ_AFF      12
 #define GREP_OBJ_EXTRA    13
-#define GREP_OBJ_NOCOST    14
+#define GREP_OBJ_COMBINE  14
 #define NO_SHORT_DESC "(no short description)"
 
 /* parses argument into a list of grep_data */
@@ -255,6 +258,10 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
     else if ( !str_cmp(arg1, "ingame") )
     {
 	stat = GREP_OBJ_INGAME;
+    }
+    else if ( !str_cmp(arg1, "combine") )
+    {
+        stat = GREP_OBJ_COMBINE;
     }
     /* ..now stats with parameter */
     else
@@ -297,21 +304,6 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
 	    }
 	    value *= 100; // value in silver
 	    stat = GREP_OBJ_COST;
-	}
-        else if ( !str_cmp(arg1, "nocost") )
-	{
-	    if ( !is_number(arg2) )
-	    {
-		send_to_char( "Please specify 0 as the argument.\n\r", ch );
-		return NULL;
-	    }
-	    if ( (value = atoi(arg2)) > 1 )
-	    {
-		send_to_char( "Please specify 0 as the argument.\n\r", ch );
-		return NULL;
-	    }
-	    value *= 100; // value in silver
-	    stat = GREP_OBJ_NOCOST;
 	}
 	else if ( !str_cmp(arg1, "ops") )
 	{
@@ -460,18 +452,6 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	sprintf( buf, "(%d gold)", obj_value / 100 );
 	strcat( info, buf );
 	break;
-    case GREP_OBJ_NOCOST:
-        if ( obj->item_type == ITEM_MONEY )
-	{
-	    obj_value = obj->value[0] + obj->value[1];
-	    obj_value = UMAX(obj_value, obj->cost);
-	}
-	else
-	    obj_value = obj->cost;
-	match = (obj_value <= gd->value);
-	sprintf( buf, "(%d silver)", obj_value);
-	strcat( info, buf );
-	break;
     case GREP_OBJ_OPS:
 	obj_value = get_obj_index_ops( obj );
 	match = (obj_value >= gd->value);
@@ -531,6 +511,14 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
     case GREP_OBJ_INGAME:
 	match = is_obj_ingame( obj );
 	break;
+    case GREP_OBJ_COMBINE:
+        match = (obj->combine_vnum > 0);
+        if (match)
+        {
+            sprintf( buf, "(combine=%d)", obj->combine_vnum );
+            strcat( info, buf );
+        }
+        break;
     default: 
 	break;
     }
@@ -612,6 +600,8 @@ void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
 #define GREP_MOB_RES      11
 #define GREP_MOB_IMM      12
 #define GREP_MOB_SHOPMOB  13
+#define GREP_MOB_SPECFUN  14
+#define GREP_MOB_ALIGN    15
 
 /* parses argument into a list of grep_data */
 GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
@@ -684,6 +674,16 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
 	    value = atoi(arg2);
 	    stat = GREP_MOB_LEVEL;
 	}
+    else if ( !str_cmp(arg1, "align") || !str_cmp(arg1, "alignment") )
+    {
+        if ( !is_number(arg2) )
+        {
+            send_to_char( "Please specify the minimum alignment.\n\r", ch );
+            return NULL;
+        }
+        value = atoi(arg2);
+        stat = GREP_MOB_ALIGN;
+    }
 	else if ( !str_cmp(arg1, "aff") || !str_cmp(arg1, "affect"))
 	{
 	    if ( arg2[0] == '\0' )
@@ -792,6 +792,15 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
 	    }
 	    stat = GREP_MOB_IMM;
 	}
+    else if ( !str_cmp(arg1, "specfun") )
+    {
+        if ( arg2[0] == '\0' )
+        {
+        send_to_char( "What special function do you want to grep for?\n\r", ch );
+        return NULL;
+        }
+        stat = GREP_MOB_SPECFUN;
+    }
 	else
 	{
 	    show_grep_syntax( ch );
@@ -848,6 +857,9 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
     case GREP_MOB_LEVEL:
 	match = (mob->level >= gd->value);
 	break;
+    case GREP_MOB_ALIGN:
+        match = (mob->alignment >= gd->value);
+        break;
     case GREP_MOB_TRIGGER:
 	match = IS_SET( mob->mprog_flags, gd->value );
 	break;
@@ -879,6 +891,13 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
 	break;
     default: 
 	break;
+    case GREP_MOB_SPECFUN:
+        match = has_special( mob, gd->str_value, msg );
+        if ( msg[0] != '\0' )
+        {
+            sprintf( buf, "(%s)", msg );
+            strcat( info, buf );
+        }    
     }
 
     if ( gd->negate )
@@ -1553,7 +1572,21 @@ bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
     return FALSE;
 }
 
+bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg )
+{
+    char *mob_spec_name = spec_name_lookup(mob->spec_fun);
 
+    if ( mob_spec_name == NULL )
+        return FALSE;
+
+    if ( !strcmp(spec_name, "any") )
+    {
+        sprintf( msg, "%s", mob_spec_name );
+        return TRUE;
+    }
+
+    return strcmp(spec_name, mob_spec_name) == 0;
+}
 
 bool has_spell( OBJ_INDEX_DATA *obj, int ID )
 {

@@ -4725,7 +4725,7 @@ MEDIT( medit_show )
 
     if ( pMob->spec_fun )
     {
-        sprintf( buf, "Spec fun:    [%s]\n\r",  spec_name( pMob->spec_fun ) );
+        sprintf( buf, "Spec fun:    [%s]\n\r",  spec_name_lookup( pMob->spec_fun ) );
         send_to_char( buf, ch );
     }
     

@@ -859,7 +859,7 @@ void mobile_update( void )
             sprintf( last_mprog, "mob %d at %d %s",
                     ch->pIndexData->vnum,
                     ch->in_room->vnum,
-                    spec_name(ch->spec_fun) );
+                    spec_name_lookup(ch->spec_fun) );
 
             success = (*ch->spec_fun)( ch );
 
@@ -867,7 +867,7 @@ void mobile_update( void )
             sprintf( last_mprog, "(Finished) mob %d at %d %s",
                     ch->pIndexData->vnum,
                     ch->in_room->vnum,
-                    spec_name(ch->spec_fun) );
+                    spec_name_lookup(ch->spec_fun) );
 
             if ( success )
                 continue;

@@ -1123,7 +1123,7 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 	if ( IS_NPC(victim) && victim->spec_fun != 0 )
 	{
 	sprintf(buf,"Mobile has special procedure %s.\n\r",
-		spec_name(victim->spec_fun));
+		spec_name_lookup(victim->spec_fun));
 	send_to_char(buf,ch);
 	}
 
