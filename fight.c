@@ -2747,12 +2747,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    immune = (check_immune(victim, dam_type) == IS_IMMUNE);
 	}
 
-    if (dt == gsn_beheading)
-    {
-        immune = FALSE;
-        dam = victim->hit + 100;
-    }
-    
     if ( dam > 0 && is_normal_hit(dt) )
     {
 	if ( stance != 0 )
@@ -2789,7 +2783,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam += (20 + dam) / 4; 
 	else if ( victim->stance == STANCE_KAMIKAZE )
 	    dam += (18 + dam) / 6;
-	else if ( victim->stance == STANCE_TORTOISE ) 
+    else if ( victim->stance == STANCE_TORTOISE
+            || victim->stance == STANCE_AVERSION )
 	    dam -= dam / 3;
 	else if ( victim->stance == STANCE_WENDIGO )
 	    dam -= dam / 5;
@@ -2801,6 +2796,21 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	dam += dam * get_religion_bonus(ch) / 100;
     */
 
+    // non-spell damage may be reduced by a saving throw as well
+    if ( dam > 1 && is_normal_hit(dt) )
+    {
+        int victim_roll = -get_save(victim);
+        int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
+        if ( number_range(0,ch_roll) < number_range(0,victim_roll) )
+            dam /= 2;
+    }
+    
+    if (dt == gsn_beheading)
+    {
+        immune = FALSE;
+        dam = victim->hit + 100;
+    }
+    
     if (show)
         dam_message( ch, victim, dam, dt, immune );
     
@@ -2888,6 +2898,16 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	}
     }
 
+    int grit = get_skill(victim, gsn_true_grit);
+    if ( dt != gsn_beheading && grit > 0 && dam > 1 && victim->move > 0 )
+    {
+        int move_loss = dam/2 * grit/100 * victim->move/(victim->move + victim->hit);
+        move_loss = URANGE(0, move_loss, victim->move);
+        victim->move -= move_loss;
+        dam -= move_loss;
+        check_improve(victim, gsn_true_grit, TRUE, 15);
+    }
+    
     if (lethal)
         victim->hit -= dam;
     else if (victim->hit > 0)
@@ -3344,6 +3364,7 @@ bool is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 /* mama function for is_safe and is_safe_spell --Bobble */
+#define PKILL_RANGE 6
 bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim, 
 		    bool area, bool quiet, bool theory )
 {
@@ -3456,20 +3477,13 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                 return TRUE;
             }
 
-           /* no pets */
-            if (IS_SET(victim->act,ACT_PET))
+           /* no pets unless you could attack their owner */
+            if (IS_AFFECTED(victim, AFF_CHARM) && victim->leader != NULL && victim->leader != victim)
             {
-		if ( !quiet )
-		    act("But $N looks so cute and cuddly...",ch,NULL,victim,TO_CHAR);
-                return TRUE;
-            }
-            
-            /* no charmed creatures unless owner */
-            if (IS_AFFECTED(victim,AFF_CHARM) && (area || ch != victim->master))
-            {
-		if ( !quiet )
-                send_to_char("You don't own that monster.\n\r",ch);
-                return TRUE;
+                bool is_safe = is_safe_check(ch, victim->leader, area, TRUE, TRUE);
+                if (is_safe && !quiet)
+                    send_to_char("You don't own that monster.\n\r",ch);
+                return is_safe;
             }
         }
         else
@@ -3508,7 +3522,7 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
         else
         {
             bool clanwar_valid;
-            int level_offset = 5;
+            int level_offset = PKILL_RANGE;
             int ch_power = ch->level + 2 * ch->pcdata->remorts;
             int victim_power = victim->level + 2 * victim->pcdata->remorts;
             
@@ -3575,7 +3589,7 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
             }
             
             /* This was added to curb the ankle-biters. Rim 3/15/98 */
-            level_offset = 5;
+            level_offset = PKILL_RANGE;
             
             if (IS_SET(ch->act,PLR_KILLER))
                 level_offset += 2;
@@ -3985,9 +3999,6 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     chance = get_skill(victim, gsn_parry) / 4 + 10;
     chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_DEX)) / 8;
     
-    if (get_skill(victim, gsn_parry) == 100)
-            chance += 2;
-    
     /* some weapons are better for parrying, some are worse.. */
     if ( victim_weapon == gsn_hand_to_hand )
     {
@@ -4014,15 +4025,9 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	if ( (victim_weapon_obj = get_eq_char(victim, WEAR_WIELD)) == NULL
 	     || !IS_WEAPON_STAT(victim_weapon_obj, WEAPON_TWO_HANDS) )
 	    chance /= 2;
-
-        if (victim->stance == STANCE_AVERSION)
-            chance += 10; 
     }
 
-    if (victim->stance == STANCE_SWAYDES_MERCY)
-        chance += 5 + get_skill( ch, gsn_swaydes_mercy )/10;
-
-    if (victim->stance == STANCE_AVERSION)
+    if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
         chance += 10; 
 
     if (!can_see(ch,victim) && blind_penalty(victim))
@@ -4220,10 +4225,7 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( get_weapon_sn(ch) == gsn_whip )
 	chance -= 10;
     
-    if (victim->stance == STANCE_SWAYDES_MERCY)
-        chance += 5 + get_skill( ch, gsn_swaydes_mercy )/10; 
-
-    if (victim->stance == STANCE_AVERSION)
+    if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
         chance += 10;
     
     if ( !can_see(victim,ch) && blind_penalty(victim) )
@@ -4231,9 +4233,6 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( IS_AFFECTED(victim, AFF_SORE) )
 	chance -= 10;
-
-    if (get_skill(victim, gsn_shield_block) == 100)
-        chance += 2;
 
     if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
         return FALSE;
@@ -4273,16 +4272,11 @@ bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
         chance -= chance / 4;
     
     if ( victim->stance==STANCE_TOAD
-	 || victim->stance==STANCE_SWAYDES_MERCY
-	 || victim->stance==STANCE_BUNNY
-	 || IS_SET(victim->form, FORM_DOUBLE_JOINTED) )
+        || victim->stance==STANCE_SWAYDES_MERCY
+        || victim->stance==STANCE_AVERSION
+        || victim->stance==STANCE_BUNNY
+        || IS_SET(victim->form, FORM_DOUBLE_JOINTED) )
         chance += 15;
-
-    if ( victim->stance==STANCE_AVERSION)
-        chance += 7;
-
-    if ( get_skill(ch, gsn_dodge) == 100)
-        chance += 2;
     
     if ( IS_AFFECTED(victim, AFF_SORE) )
 	chance -= 10;
@@ -6145,11 +6139,6 @@ void do_murder( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    /*
-    if (IS_AFFECTED(ch,AFF_CHARM) || (IS_NPC(ch) && IS_SET(ch->act,ACT_PET)))
-        return;
-    */    
-
     if ( ( victim = get_char_room( ch, arg ) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
@@ -6164,21 +6153,7 @@ void do_murder( CHAR_DATA *ch, char *argument )
     
     if ( is_safe( ch, victim ) )
         return;
-
-/* These checks occur in is_safe:
-    if ( check_kill_steal(ch,victim) )
-    {
-        send_to_char("Kill stealing is not permitted.\n\r",ch);
-        return;
-    }
-    
-    if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master == victim )
-    {
-        act( "$N is your beloved master.", ch, NULL, victim, TO_CHAR );
-        return;
-    }
-*/
-    
+   
     if ( ch->fighting==victim)
     {
         send_to_char( "You do the best you can!\n\r", ch );

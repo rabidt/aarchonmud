@@ -549,7 +549,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
         return;
     }
 
-    if ( !IS_NPC(ch) && get_weapon_sn(ch) != gsn_dagger)
+    if ( get_weapon_sn(ch) != gsn_dagger)
     {
         send_to_char( "You need a dagger to backstab.\n\r", ch);
         return;
@@ -1739,7 +1739,7 @@ void do_circle( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !IS_NPC(ch) && get_weapon_sn(ch) != gsn_dagger)
+    if ( get_weapon_sn(ch) != gsn_dagger )
     {
         send_to_char( "You need a dagger to circle.\n\r", ch);
         return;
@@ -1836,7 +1836,7 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !IS_NPC(ch) && get_weapon_sn(ch) != gsn_dagger )
+    if ( get_weapon_sn(ch) != gsn_dagger )
     {
         send_to_char( "You need a dagger to slash throats.\n\r", ch);
         return;
@@ -2474,8 +2474,7 @@ void do_leg_sweep( CHAR_DATA *ch, char *argument )
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
     int skill;
-    bool ch_is_flying = IS_NPC(ch) || (IS_AFFECTED(ch, AFF_FLYING) != 0);
-    
+    bool ch_is_flying = IS_AFFECTED(ch, AFF_FLYING) != 0;
     
     if ( IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
     {
@@ -4676,7 +4675,7 @@ void do_strafe( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim;
     int skill;
 
-    if ( !IS_NPC(ch) && get_weapon_sn(ch) != gsn_bow)
+    if ( get_weapon_sn(ch) != gsn_bow )
     {
         send_to_char( "You need a bow to do that.\n\r", ch);
         return;
@@ -4721,7 +4720,7 @@ void do_infectious_arrow( CHAR_DATA *ch, char *argument )
     OBJ_DATA *wield;
     int skill, dam;
 
-    if ( !IS_NPC(ch) && get_weapon_sn(ch) != gsn_bow)
+    if ( get_weapon_sn(ch) != gsn_bow )
     {
         send_to_char( "You need a bow to do that.\n\r", ch);
         return;

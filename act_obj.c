@@ -1327,15 +1327,12 @@ void do_paralysis_poison(CHAR_DATA *ch, char *argument)
     return;
 }
 
-
-
 void do_fill( CHAR_DATA *ch, char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
     OBJ_DATA *obj;
     OBJ_DATA *fountain;
-    bool found;
 
     one_argument( argument, arg );
 
@@ -1351,18 +1348,9 @@ void do_fill( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    found = FALSE;
-    for ( fountain = ch->in_room->contents; fountain != NULL;
-            fountain = fountain->next_content )
-    {
-        if ( fountain->item_type == ITEM_FOUNTAIN )
-        {
-            found = TRUE;
-            break;
-        }
-    }
+    fountain = get_obj_by_type( ch->in_room->contents, ITEM_FOUNTAIN );
 
-    if ( !found )
+    if ( fountain == NULL )
     {
         send_to_char( "There is no fountain here!\n\r", ch );
         return;
@@ -1535,12 +1523,7 @@ void do_drink( CHAR_DATA *ch, char *argument )
 
     if ( arg[0] == '\0' )
     {
-        for ( obj = ch->in_room->contents; obj; obj = obj->next_content )
-        {
-            if ( obj->item_type == ITEM_FOUNTAIN )
-                break;
-        }
-
+        obj = get_obj_by_type( ch->in_room->contents, ITEM_FOUNTAIN );
         if ( obj == NULL )
         {
             send_to_char( "Drink what?\n\r", ch );
@@ -2683,8 +2666,6 @@ void do_brandish( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    WAIT_STATE( ch, 2 * PULSE_VIOLENCE );
-
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2703,10 +2684,11 @@ void do_brandish( CHAR_DATA *ch, char *argument )
             act ("...and nothing happens.",ch,NULL,NULL,TO_ROOM);
             check_improve(ch,gsn_staves,FALSE,2);
         }
-
         else 
         {
-            obj_cast_spell( staff->value[3], staff->value[0], ch, staff, argument );
+            // unsuccessful cast (e.g. invalid target) does not use up charge
+            if ( !obj_cast_spell(staff->value[3], staff->value[0], ch, staff, argument) )
+                return;
             check_improve(ch,gsn_staves,TRUE,2);
         }
     }
@@ -2717,6 +2699,8 @@ void do_brandish( CHAR_DATA *ch, char *argument )
         act( "Your $p blazes bright and is gone.", ch, staff, NULL, TO_CHAR );
         extract_obj( staff );
     }
+
+    WAIT_STATE( ch, 2 * PULSE_VIOLENCE );
 
     return;
 }
@@ -2749,8 +2733,6 @@ void do_zap( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    WAIT_STATE( ch, PULSE_VIOLENCE );
-
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2774,7 +2756,9 @@ void do_zap( CHAR_DATA *ch, char *argument )
         }
         else
         {
-            obj_cast_spell( wand->value[3], wand->value[0], ch, wand, argument );
+            // unsuccessful cast (e.g. invalid target) does not use up charge
+            if ( !obj_cast_spell(wand->value[3], wand->value[0], ch, wand, argument) )
+                return;
             check_improve(ch,gsn_wands,TRUE,2);
         }
     }
@@ -2785,6 +2769,8 @@ void do_zap( CHAR_DATA *ch, char *argument )
         act( "Your $p explodes into fragments.", ch, wand, NULL, TO_CHAR );
         extract_obj( wand );
     }
+
+    WAIT_STATE( ch, PULSE_VIOLENCE );
 
     return;
 }

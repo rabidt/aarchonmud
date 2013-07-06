@@ -2335,35 +2335,6 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
     }
 }
 
-
-/* command for releasing charmed followers */
-void do_release( CHAR_DATA *ch, char *argument )
-{
-    CHAR_DATA *victim;
-
-    if ( (victim = get_char_room(ch, argument)) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
-        return;
-    }
-   
-    if ( !IS_AFFECTED(victim, AFF_CHARM) || victim->master != ch )
-    {
-        send_to_char( "You don't control them.\n\r", ch);
-        return;
-    }
-    
-    /* destroy animated mobs */
-    if ( IS_AFFECTED(victim, AFF_ANIMATE_DEAD) )
-    {
-	act( "$n crumbles into dust.", victim, NULL, NULL, TO_ROOM );
-	drop_eq( victim );
-	extract_char( victim, TRUE );
-    }
-    else
-	stop_follower( victim );
-}
-
 /*
 * 'Split' originally by Gnort, God of Chaos.
 */

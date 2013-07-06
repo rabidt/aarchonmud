@@ -195,6 +195,7 @@ sh_int  gsn_burst;
 sh_int  gsn_tight_grouping;
 sh_int  gsn_drunken_fury;
 sh_int  gsn_duck;
+sh_int  gsn_true_grit;
 sh_int  gsn_quick_draw;
 sh_int  gsn_shoot_lock;
 sh_int  gsn_thousand_yard_stare;
@@ -1539,8 +1540,7 @@ void load_old_obj( FILE *fp )
                 paf->location       = fread_number( fp );
                 paf->modifier       = fread_number( fp );
                 paf->bitvector      = 0;
-                paf->next       = pObjIndex->affected;
-                pObjIndex->affected = paf;
+                pObjIndex->affected = affect_insert( pObjIndex->affected, paf );
                 top_affect++;
             }
             
