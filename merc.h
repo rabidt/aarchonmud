@@ -260,7 +260,7 @@ bool is_drop_obj( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         418
+#define MAX_SKILL         419
 #define MAX_GROUP          76 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
@@ -3287,6 +3287,7 @@ extern sh_int  gsn_burst;
 extern sh_int  gsn_tight_grouping;
 extern sh_int  gsn_pistol_whip;
 extern sh_int  gsn_duck;
+extern sh_int  gsn_true_grit;
 extern sh_int  gsn_quick_draw;
 extern sh_int  gsn_shoot_lock;
 extern sh_int  gsn_drunken_fury;
@@ -4363,10 +4364,9 @@ CD *    get_char_world  args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_area  args( ( CHAR_DATA *ch, char *argument ) );   
 CD *    get_char_group args( ( CHAR_DATA *ch, char *argument ) );
 OD *    get_obj_type    args( ( OBJ_INDEX_DATA *pObjIndexData ) );
-OD *    get_obj_list    args( ( CHAR_DATA *ch, char *argument,
-				OBJ_DATA *list ) );
-OD *    get_obj_carry   args( ( CHAR_DATA *ch, char *argument, 
-				CHAR_DATA *viewer ) );
+OD *    get_obj_by_type args( ( OBJ_DATA *contents, int item_type ) );
+OD *    get_obj_list    args( ( CHAR_DATA *ch, char *argument, OBJ_DATA *list ) );
+OD *    get_obj_carry   args( ( CHAR_DATA *ch, char *argument, CHAR_DATA *viewer ) );
 OD *    get_obj_wear    args( ( CHAR_DATA *ch, char *argument ) );
 OD *    get_obj_here    args( ( CHAR_DATA *ch, char *argument ) );
 OD *    get_obj_world   args( ( CHAR_DATA *ch, char *argument ) );

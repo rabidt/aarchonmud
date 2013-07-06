@@ -283,13 +283,6 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     send_to_char( "You call out to your noble sidekick!\n\r", ch );
     act( "$n calls out to $s noble sidekick.", ch, NULL, NULL, TO_ROOM );
     
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) 
-	|| IS_SET(ch->in_room->room_flags,ROOM_LAW))
-    {
-        send_to_char("Your sidekick can't hear you in here.\n\r",ch);
-        return;
-    }
-    
     if (IS_SET(ch->act, PLR_WAR))
     {
         send_to_char("Sidekicks have no place in wars like these.\n\r", ch );
@@ -899,8 +892,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
     
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE)
-	|| IS_SET(ch->in_room->room_flags,ROOM_LAW))
+    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) || IS_SET(ch->in_room->room_flags,ROOM_LAW))
     {
         send_to_char("Not in this room.\n\r",ch);
         return;
@@ -1938,23 +1930,15 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     
     act( "$n tries to summon a woodland spirit into a nearby tree.", ch, NULL, NULL, TO_ROOM );
     
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE)
-	|| IS_SET(ch->in_room->room_flags,ROOM_LAW))
-    {
-        send_to_char("No woodland spirit answers the call.\n\r",ch);
-        return;
-    }
-    
     /* Check number of charmees against cha*/ 
-    mlevel = URANGE(1, level * 3/4, ch->level);
+    mlevel = (6*level + beast_skill) / 8;
+    mlevel = URANGE(1, mlevel, ch->level);
     if ( check_cha_follow(ch, mlevel) < mlevel )
         return;
    
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_TREEGOLEM)))==NULL) 
         return;
     
-    mlevel = (6*level + beast_skill) / 8;
-    mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"%s\n\rA tree springs to life and follows %s.\n\r\n\r",
@@ -1986,15 +1970,30 @@ void spell_water_elemental( int sn, int level, CHAR_DATA *ch, void *vo, int targ
     CHAR_DATA *mob;
     MOB_INDEX_DATA *mobIndex;
     char buf[MAX_STRING_LENGTH];
+    char liquid_name[MAX_STRING_LENGTH];
     int mlevel;
     int sector = ch->in_room->sector_type;
     
+    mlevel = URANGE(1, level * 3/4, ch->level);
+    sprintf(liquid_name, "water");
+
     if ( sector != SECT_WATER_SHALLOW
         && sector != SECT_WATER_DEEP
         && sector != SECT_UNDERWATER )
     {
-        send_to_char("You need water to summon water elementals.\n\r",ch);
-        return; 
+        // can summon from fountain (e.g. create spring), but level will be lower
+        OBJ_DATA *fountain = get_obj_by_type(ch->in_room->contents, ITEM_FOUNTAIN);
+        if ( fountain != NULL )
+        {
+            mlevel = URANGE(1, level * 2/3, ch->level);
+            int liquid = UMAX(0, fountain->value[2]);
+            sprintf(liquid_name, "%s", liq_table[liquid].liq_name);
+        }
+        else
+        {
+            send_to_char("You need water to summon water elementals.\n\r",ch);
+            return;
+        }
     }
     
     if ( IS_SET( ch->act, PLR_WAR ) )
@@ -2004,24 +2003,31 @@ void spell_water_elemental( int sn, int level, CHAR_DATA *ch, void *vo, int targ
     }
     
     /* Check number of charmees against cha*/ 
-    if ( !check_cha_follow(ch) )
+    if ( check_cha_follow(ch, mlevel) < mlevel )
         return;
        
     if ( (mobIndex = get_mob_index(MOB_VNUM_WATER_ELEMENTAL)) == NULL ) 
         return;
     mob = create_mobile(mobIndex);
     
-    mlevel = URANGE(1, level * 3/4, ch->level);
     set_mob_level( mob, mlevel );
 
-    sprintf(buf,"%s\n\rThis water elemental follows %s.\n\r", mob->description, ch->name);
-    free_string(mob->description);
-    mob->description = str_dup(buf);
+    // set name, description etc. to match liquid
+#define rename(VAR) free_string(mob->VAR);mob->VAR=str_dup(buf)
+    sprintf(buf, "%s elemental", liquid_name);
+    rename(name);
+    sprintf(buf, "A %s elemental", liquid_name);
+    rename(short_descr);
+    sprintf(buf, "A %s elemental flows along.\n\r", liquid_name);
+    rename(long_descr);
+    sprintf(buf, "%s has imbued this blob of %s with an elemental spirit.\n\r", ch->name, liquid_name);
+    rename(description);
+#undef rename
     
     char_to_room( mob, ch->in_room );
     
-    send_to_char( "An elemental spirit imbues the water with life!\n\r", ch );
-    act( "$n's spells gives life to a water elemental!", ch, NULL, NULL, TO_ROOM );
+    act( "An elemental spirit imbues the $T with life!", ch, NULL, liquid_name, TO_CHAR );
+    act( "$n's spell gives life to a $T elemental!", ch, NULL, liquid_name, TO_ROOM );
     add_follower( mob, ch );
     mob->leader  = ch;
     af.where     = TO_AFFECTS;
@@ -2126,22 +2132,14 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     }
     act( "$n tries to raise snakes from sticks.", ch, NULL, NULL,
         TO_ROOM);
-    
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) ||
-        IS_SET(ch->in_room->room_flags,ROOM_LAW))
-    {
-        send_to_char("No sticks could be transmogrified.\n\r",ch);
-        return;
-    }
-        
+
     /* Check number of charmees against cha*/
-    mlevel = URANGE(1, level/2, ch->level);
+    mlevel = (5*level + beast_skill) / 10;
+    mlevel = URANGE(1, mlevel, ch->level);
     max_snake = check_cha_follow( ch, mlevel );
     if ( max_snake < mlevel )
         return;
     
-    mlevel = (5*level + beast_skill) / 10;
-    mlevel = URANGE(1, mlevel, ch->level);
     chance = 100;
     snake_count = 0;
     while ( (snake_count + 1) * mlevel < max_snake && number_percent() <= chance ) {
@@ -3787,7 +3785,7 @@ void spell_shadow_shroud(int sn,int level,CHAR_DATA *ch,void *vo, int target)
 
 void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
-    CHAR_DATA *gch = (CHAR_DATA *) vo;
+    CHAR_DATA *gch;
     bool found = FALSE;
     int heal;
     int refr;
@@ -3798,7 +3796,7 @@ void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int
         if ( !is_same_group( gch, ch ) )
             continue;
 
-	heal = get_sn_heal( sn, level, ch, gch ) * 6/15;
+        heal = get_sn_heal( sn, level, ch, gch ) * 6/15;
         gch->hit = UMIN( gch->hit + heal, gch->max_hit );
         
         refr = get_sn_heal( sn, level, ch, gch ) * 4/15;
@@ -3807,12 +3805,13 @@ void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int
         update_pos( gch );
 
         send_to_char( "You feel much better!\n\r", gch );
-	check_sn_multiplay( ch, gch, sn );
+        check_sn_multiplay( ch, gch, sn );
 
         for (sn1 = 1; skill_table[sn1].name != NULL; sn1++)
         {
             if (IS_SPELL(sn1)
                && is_offensive(sn1)
+               && sn1 != gsn_charm_person
                && check_dispel(level/2, gch, sn1) )
             found = TRUE;
         }
