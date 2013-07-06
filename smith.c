@@ -519,7 +519,7 @@ SM_PRICE_FUN( smith_set_sticky_price )
          ( old->owner
            != new->owner ) )
     {
-        int ops = UMAX(get_obj_index_ops(new->pIndexData), get_obj_index_spec(new->pIndexData) );
+        int ops = UMAX(get_obj_ops(new), get_obj_spec(new));
 
         *gold= ops * UMAX(4, ops-20)/4 * 100;
         *qp= ops * UMAX(4, ops-20)/4 * 1;
