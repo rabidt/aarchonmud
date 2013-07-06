@@ -748,11 +748,11 @@ void save_specials( FILE *fp, AREA_DATA *pArea )
             {
 #if defined( VERBOSE )
                 fprintf( fp, "M %d %s Load to: %s\n", pMobIndex->vnum,
-                    spec_name( pMobIndex->spec_fun ),
+                    spec_name_lookup( pMobIndex->spec_fun ),
                     pMobIndex->short_descr );
 #else
                 fprintf( fp, "M %d %s\n", pMobIndex->vnum,
-                    spec_name( pMobIndex->spec_fun ) );
+                    spec_name_lookup( pMobIndex->spec_fun ) );
 #endif
             }
         }
