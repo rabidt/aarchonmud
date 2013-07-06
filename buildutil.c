@@ -1001,7 +1001,7 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 
 	sprintf( buf, 
 	"Hit: %d  Dam: %d  Saves: %d  Size: %s  Position: %s  Wimpy: %d\n\r",
-	GET_HITROLL(victim), GET_DAMROLL(victim), victim->saving_throw,
+	GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim),
 	size_table[victim->size].name, position_table[victim->position].name,
 	victim->wimpy );
 	send_to_char( buf, ch );
