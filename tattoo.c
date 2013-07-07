@@ -364,11 +364,11 @@ void tattoo_modify_reset( CHAR_DATA *ch )
         if ( (ID = tattoo_bonus_ID(ch, loc)) != TATTOO_NONE )
         {
             float tattoo_level = get_tattoo_level( ch, loc, ch->level );
-            tattoo_modify_ID( ch, ID, tattoo_level, TRUE, FALSE, TRUE );
+            tattoo_modify_ID( ch, ID, tattoo_level, TRUE, FALSE, FALSE );
         }
         // add additional bonus (regardless of eq and level)
         if ( (ID = TATTOO_ID(ch, loc)) != TATTOO_NONE )
-            tattoo_modify_ID( ch, ID, ch->level, TRUE, FALSE, FALSE );
+            tattoo_modify_ID( ch, ID, ch->level, TRUE, FALSE, TRUE );
     }
 }
 
