@@ -4503,6 +4503,35 @@ int* get_obj_ovalue( int level )
    return ovalue;
 } 
 
+bool apply_obj_hardcaps( OBJ_INDEX_DATA *obj )
+{
+    AFFECT_DATA *aff;
+    bool found = FALSE;
+
+    if ( obj->level >= LEVEL_IMMORTAL )
+        return FALSE;
+
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
+    {
+        int spec = get_affect_cap( aff->location, obj->level );
+        int value = aff->modifier;
+        int factor = spec < 0 ? -1 : 1; // saves & AC
+
+        // exceeding hard spec
+        if ( value*factor > spec*factor && is_affect_cap_hard(aff->location) )
+        {
+            aff->modifier = spec;
+            found = TRUE;
+        }
+        // below negative spec
+        if ( value*factor < -spec*factor )
+        {
+            aff->modifier = -spec;
+            found = TRUE;
+        }
+    }
+    return found;
+}
 
 /* Sets values for Armor Class based on level, and also
  * cost by using adjust drop or adjust shop.
@@ -4534,7 +4563,7 @@ OEDIT( oedit_adjust )
         {
             send_to_char("Syntax: adjust\n\r", ch);
             send_to_char("        adjust drop (items from killing a mob)\n\r", ch);
-	    send_to_char("        adjust shop (items sold in a shop)\n\r", ch);
+            send_to_char("        adjust shop (items sold in a shop)\n\r", ch);
             return FALSE;
         }
     }
@@ -4571,6 +4600,8 @@ OEDIT( oedit_adjust )
             weight = 0;
         else if ( CAN_WEAR(pObj,ITEM_WEAR_TORSO) )
             weight = 100;
+        if ( CAN_WEAR(pObj,ITEM_TRANSLUCENT) )
+            weight /= 2;
     }
     else if (pObj->item_type == ITEM_WEAPON)
     {
@@ -4592,6 +4623,8 @@ OEDIT( oedit_adjust )
             weight += weight / 2;
     }
     pObj->weight = weight;
+
+    apply_obj_hardcaps(pObj);
     
     send_to_char("Stats set according to level.\n\r", ch);
     return TRUE;
