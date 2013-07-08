@@ -25,6 +25,7 @@ bool is_mob_ingame( MOB_INDEX_DATA *mob );
 bool is_room_ingame( ROOM_INDEX_DATA *room );
 bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg );
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg );
+bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg );
 bool has_mprog( MOB_INDEX_DATA *mob, int vnum );
 bool has_shop( MOB_INDEX_DATA *mob, int vnum );
 bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg );
@@ -180,6 +181,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           aff     <affect type>\n\r", ch );
     send_to_char( "           addflag\n\r", ch );
     send_to_char( "           spec\n\r", ch );
+    send_to_char( "           belowspec\n\r", ch );
     send_to_char( "           ingame\n\r", ch );
     send_to_char( "           combine\n\r", ch );
     send_to_char( "mob stats: name    <name>\n\r", ch );
@@ -225,6 +227,7 @@ void show_grep_syntax( CHAR_DATA *ch )
 #define GREP_OBJ_AFF      12
 #define GREP_OBJ_EXTRA    13
 #define GREP_OBJ_COMBINE  14
+#define GREP_OBJ_BELOW_SPEC 15
 #define NO_SHORT_DESC "(no short description)"
 
 /* parses argument into a list of grep_data */
@@ -254,6 +257,10 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
     else if ( !str_cmp(arg1, "spec") )
     {
 	stat = GREP_OBJ_SPEC;
+    }
+    else if ( !str_cmp(arg1, "belowspec") )
+    {
+        stat = GREP_OBJ_BELOW_SPEC;
     }
     else if ( !str_cmp(arg1, "ingame") )
     {
@@ -508,6 +515,14 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	    strcat( info, buf );
 	}
 	break;
+    case GREP_OBJ_BELOW_SPEC:
+        match = is_obj_below_spec( obj, msg );
+        if ( msg[0] != '\0' )
+        {
+            sprintf( buf, "(%s)", msg );
+            strcat( info, buf );
+        }
+        break;
     case GREP_OBJ_INGAME:
 	match = is_obj_ingame( obj );
 	break;
@@ -1560,6 +1575,42 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
     }
 
     return TRUE;
+}
+
+bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
+{
+    int value, spec;
+    AFFECT_DATA *aff;
+
+    if ( obj->level >= LEVEL_IMMORTAL )
+        return FALSE;
+    
+    /* check ops */
+    spec = get_obj_index_spec( obj, obj->level );
+    value = get_obj_index_ops( obj );
+    // ignore objects with no bonuses at all
+    if ( 0 < value && value < spec && !IS_SET(obj->extra_flags, ITEM_RANDOM) )
+    {
+        sprintf( msg, "ops=%d/%d", value, spec );
+        return TRUE;
+    }
+    
+    /* check penalties */
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
+    {
+        int spec = get_affect_cap( aff->location, obj->level );
+        int value = aff->modifier;
+        int factor = spec < 0 ? -1 : 1; // saves & AC
+
+        // below negative spec
+        if ( value*factor < -spec*factor )
+        {
+            sprintf( msg, "%s = %d/%d", name_lookup(aff->location, apply_flags), value, spec );
+            return TRUE;
+        }
+    }    
+    
+    return FALSE;
 }
 
 bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
