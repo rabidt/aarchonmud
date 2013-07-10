@@ -173,6 +173,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           cost    <minimum gold>\n\r", ch );
     send_to_char( "           ops     <minimum OPs>\n\r", ch );
     send_to_char( "           lvl     <minimum level>\n\r", ch );
+    send_to_char( "           weight  <minimum weight>\n\r", ch );
     send_to_char( "           wear    <location>\n\r", ch );
     send_to_char( "           extra   <extra stat>\n\r", ch );
     send_to_char( "           rating  <rating nr>\n\r", ch );
@@ -228,6 +229,7 @@ void show_grep_syntax( CHAR_DATA *ch )
 #define GREP_OBJ_EXTRA    13
 #define GREP_OBJ_COMBINE  14
 #define GREP_OBJ_BELOW_SPEC 15
+#define GREP_OBJ_WEIGHT   16
 #define NO_SHORT_DESC "(no short description)"
 
 /* parses argument into a list of grep_data */
@@ -312,6 +314,20 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
 	    value *= 100; // value in silver
 	    stat = GREP_OBJ_COST;
 	}
+    else if ( !str_cmp(arg1, "weight") )
+    {
+        if ( !is_number(arg2) )
+        {
+            send_to_char( "Please specify the minimum weight in 1/10th of lbs.\n\r", ch );
+            return NULL;
+        }
+        if ( (value = atoi(arg2)) < 1 )
+        {
+            send_to_char( "Minimum weight must be positive.\n\r", ch );
+            return NULL;
+        }
+        stat = GREP_OBJ_WEIGHT;
+    }
 	else if ( !str_cmp(arg1, "ops") )
 	{
 	    if ( !is_number(arg2) )
@@ -459,6 +475,12 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	sprintf( buf, "(%d gold)", obj_value / 100 );
 	strcat( info, buf );
 	break;
+    case GREP_OBJ_WEIGHT:
+        obj_value = obj->weight;
+        match = (obj_value >= gd->value);
+        sprintf( buf, "(%d dlbs)", obj_value );
+        strcat( info, buf );
+        break;
     case GREP_OBJ_OPS:
 	obj_value = get_obj_index_ops( obj );
 	match = (obj_value >= gd->value);
