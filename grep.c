@@ -1510,7 +1510,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
     int last_loc = -1;
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
     {
-        if ( aff->where = TO_OBJECT && aff->location != -1)
+        if ( aff->where == TO_OBJECT && aff->location != -1)
         {
             if ( aff->location == last_loc )
             {

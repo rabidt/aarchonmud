@@ -529,7 +529,7 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     reverse_affect_order(pObjIndex);    
     for( pAf = pObjIndex->affected; pAf; pAf = pAf->next )
     {
-        if (pAf->where == TO_OBJECT || pAf->bitvector == 0)
+        if (pAf->where == TO_OBJECT)
             fprintf( fp, "A\n%d %d\n",  pAf->location, pAf->modifier );
         else
         {
@@ -550,14 +550,16 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
                 fprintf( fp, "V " );
                 break;
             default:
-                bug( "olc_save: Invalid Affect->where", 0);
+                bug( "olc_save: Invalid Affect->where (%d)", pAf->where);
                 break;
             }
             
+            if (pAf->bitvector == 0)
+                bug( "olc_save: bitvector == 0 for object %d", pObjIndex->vnum ); 
             fprintf( fp, "%d %d %d\n", pAf->location, pAf->modifier, pAf->bitvector );
         }
-	if (pAf->detect_level != 0)
-	    fprintf( fp, "D %d\n", pAf->detect_level ); 
+        if (pAf->detect_level != 0)
+            fprintf( fp, "D %d\n", pAf->detect_level ); 
     }
     reverse_affect_order(pObjIndex);
     
