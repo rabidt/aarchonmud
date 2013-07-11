@@ -1493,16 +1493,41 @@ int average_weapon_dam( OBJ_INDEX_DATA *obj )
     return obj->value[1] * (obj->value[2] + 1) / 2;
 }
 
+bool can_wear( OBJ_INDEX_DATA *obj )
+{
+    if ( !CAN_WEAR(obj, ITEM_TAKE) )
+        return FALSE;
+    
+    if ( obj->item_type == ITEM_LIGHT )
+        return TRUE;
+        
+    if ( CAN_WEAR(obj, ITEM_WEAR_FINGER)
+        || CAN_WEAR(obj, ITEM_WEAR_NECK)
+        || CAN_WEAR(obj, ITEM_WEAR_TORSO)
+        || CAN_WEAR(obj, ITEM_WEAR_HEAD)
+        || CAN_WEAR(obj, ITEM_WEAR_LEGS)
+        || CAN_WEAR(obj, ITEM_WEAR_FEET)
+        || CAN_WEAR(obj, ITEM_WEAR_HANDS)
+        || CAN_WEAR(obj, ITEM_WEAR_ARMS)
+        || CAN_WEAR(obj, ITEM_WEAR_ABOUT)
+        || CAN_WEAR(obj, ITEM_WEAR_WAIST)
+        || CAN_WEAR(obj, ITEM_WEAR_WRIST)
+        || CAN_WEAR(obj, ITEM_WEAR_FLOAT)
+        || CAN_WEAR(obj, ITEM_WEAR_SHIELD)
+        || CAN_WEAR(obj, ITEM_HOLD)
+        || CAN_WEAR(obj, ITEM_WIELD))
+        return TRUE;
 
+    return FALSE;
+}
 
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 {
     int value, spec;
     AFFECT_DATA *aff;
 
-    if ( obj->level >= LEVEL_IMMORTAL
-	 || IS_SET(obj->area->area_flags, AREA_REMORT) )
-	return TRUE;
+    if ( obj->level >= LEVEL_IMMORTAL || !can_wear(obj) )
+        return TRUE;
 
     /* check ops */
     spec = get_obj_index_spec( obj, obj->level );
@@ -1604,7 +1629,7 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
     int value, spec;
     AFFECT_DATA *aff;
 
-    if ( obj->level >= LEVEL_IMMORTAL )
+    if ( obj->level >= LEVEL_IMMORTAL || !can_wear(obj) )
         return FALSE;
     
     /* check ops */
