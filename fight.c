@@ -1444,7 +1444,15 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     }
 
     /* damage roll */
-    dam += GET_DAMROLL(ch) / 4;
+    int damroll = GET_DAMROLL(ch);
+    if (damroll > 0) {
+        int damroll_roll = number_range(0, number_range(0, damroll));
+        // bonus is partially capped
+        int damroll_cap = 2 * (10 + ch->level + UMAX(0, ch->level - 90));
+        if (damroll_roll > damroll_cap)
+            damroll_roll = (damroll_roll + 2 * damroll_cap) / 3;        
+        dam += damroll_roll;
+    }
 
     /* enhanced damage */
     if ( wield != NULL && (wield->value[0] == WEAPON_GUN

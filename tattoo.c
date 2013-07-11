@@ -301,11 +301,10 @@ int tattoo_bonus_ID( CHAR_DATA *ch, int loc )
     OBJ_DATA *obj;
 
     if ( IS_NPC(ch) )
-	return TATTOO_NONE;
+        return TATTOO_NONE;
 
-    if ( (obj = get_eq_char(ch, loc)) != NULL
-	 && !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	return TATTOO_NONE;
+    if ( (obj = get_eq_char(ch, loc)) != NULL && !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+        return TATTOO_NONE;
 
     return TATTOO_ID(ch, loc);
 }
@@ -361,16 +360,15 @@ void tattoo_modify_reset( CHAR_DATA *ch )
 
     for ( loc = 0; loc < MAX_WEAR; loc++ )
     {
-        /* add basic bonus */
-        /* tattoo_modify_equip( ch, loc, TRUE, FALSE, TRUE ); */
-        /* use this to prevent weapon drop check.. */
-        if ( (ID = TATTOO_ID(ch, loc)) != TATTOO_NONE )
+        // level-based bonus (only for translucent eq)
+        if ( (ID = tattoo_bonus_ID(ch, loc)) != TATTOO_NONE )
         {
             float tattoo_level = get_tattoo_level( ch, loc, ch->level );
-            tattoo_modify_ID( ch, ID, tattoo_level, TRUE, FALSE, TRUE );
-            /* add additional bonus */
             tattoo_modify_ID( ch, ID, tattoo_level, TRUE, FALSE, FALSE );
         }
+        // add additional bonus (regardless of eq and level)
+        if ( (ID = TATTOO_ID(ch, loc)) != TATTOO_NONE )
+            tattoo_modify_ID( ch, ID, ch->level, TRUE, FALSE, TRUE );
     }
 }
 
