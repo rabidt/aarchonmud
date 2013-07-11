@@ -3853,9 +3853,7 @@ void do_hurl( CHAR_DATA *ch, char *argument )
         act( "$n hurls $N across the room!",  ch, NULL, victim, TO_NOTVICT );
         check_improve(ch,gsn_hurl,TRUE,1);
         
-        dam = number_range(1, ch->level);
-        dam += get_curr_stat(ch, STAT_DEX);
-        dam += ch->damroll / 3;
+        dam = martial_damage( ch, gsn_hurl );
         
         DAZE_STATE( victim, 2*PULSE_VIOLENCE + victim->size - SIZE_MEDIUM );
         damage(ch,victim, dam, gsn_hurl,DAM_BASH,TRUE);
@@ -3937,9 +3935,7 @@ void do_mug( CHAR_DATA *ch, char *argument )
     
     if (number_percent() < skill)
     {
-        dam=number_range(1, ch->level);
-        dam+=get_curr_stat(ch, STAT_STR);
-        dam+=ch->damroll /3;
+        dam = martial_damage(ch, gsn_mug);
         
         damage(ch,victim, dam, gsn_mug,DAM_PIERCE,TRUE);
         check_improve(ch,gsn_mug,TRUE,1);
