@@ -1199,6 +1199,18 @@ void update_room_fighting( ROOM_INDEX_DATA *room )
             set_fighting_new( fch->fighting, fch, FALSE );
 }
 
+bool is_pet_storage( ROOM_INDEX_DATA *room )
+{
+    ROOM_INDEX_DATA *shop_room;
+    
+    if (room == NULL)
+        return FALSE;
+    
+    if ( (shop_room = get_room_index(room->vnum - 1)) == NULL )
+        return FALSE;
+    
+    return IS_SET(shop_room->room_flags, ROOM_PET_SHOP);
+}
 
 /*
  * Update all chars, including mobs.
@@ -1310,6 +1322,7 @@ void char_update( void )
 
                 if ( IS_SET(ch->act, ACT_PET) && (ch->leader == NULL || !IS_AFFECTED(ch,AFF_CHARM))
                         && ch->desc == NULL && ch->fighting == NULL 
+                        && !is_pet_storage(ch->in_room)
                         && number_bits(3)==0 )
                 {
                     act("$n wanders off.",ch,NULL,NULL,TO_ROOM);
