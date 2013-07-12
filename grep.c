@@ -1430,6 +1430,14 @@ int get_obj_ops( OBJ_DATA *obj )
     return (int) (sum);
 }
 
+int get_translucency_spec_penalty( int level )
+{
+    if ( level < 90 )
+        return (10 + level) / 5;
+    else
+        return 20 + 2 * (level - 90);
+}
+
 int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
 {
     int spec;
@@ -1440,6 +1448,7 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
     if ( level < 90 )
     {
         spec = 50 + (level * 19/3 + (30+level) * obj->diff_rating)/3;
+        // we don't use get_translucency_spec_penalty to avoid rounding issues
         if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
             spec -= 2 * (10 + level);
         spec /= 10;
