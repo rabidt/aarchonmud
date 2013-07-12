@@ -4775,7 +4775,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
             if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
             {
                 act("The curse on $p cannot be removed.",ch,obj,NULL,TO_CHAR);
-                obj = obj->next;
+                return;
             }
             
             if (!saves_dispel(level + 2,obj->level,0))
@@ -4813,7 +4813,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
         {
             act("The curse on $p cannot be removed.",ch,obj,NULL,TO_CHAR);
-            obj = obj->next_content;
             continue;
         }
 
