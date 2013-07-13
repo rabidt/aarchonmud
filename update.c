@@ -1609,6 +1609,7 @@ void char_update( void )
             create_haunt( ch );
         if ( !IS_NPC(ch) )
             check_beast_mastery( ch );
+
     }
 
     /*

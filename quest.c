@@ -944,7 +944,6 @@ void do_quest(CHAR_DATA *ch, char *argument)
     {
         act( "$n informs $N $e has completed $s quest.", ch, NULL, questman, TO_ROOM); 
         act ("You inform $N you have completed $s quest.",ch, NULL, questman, TO_CHAR);
-//        check_achievement(ch);
         if (ch->pcdata->questgiver != questman)
         {
             sprintf(buf, "I never sent you on a quest! Perhaps you're thinking of someone else.");
@@ -973,6 +972,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                 do_say(questman,buf);
                 ch->pcdata->quest_success++;
+                check_achievement(ch);
 				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
  /* Hard quests have 1/5 instead of 1/6 chance of giving practices as 
     part of the reward. They also give an average of 3 more practices
@@ -1032,6 +1032,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                     sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                     do_say(questman,buf);
                     ch->pcdata->quest_success++;
+                    check_achievement(ch);
 					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                     if (chance(20))
                     {
@@ -1092,6 +1093,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                 do_say(questman,buf);
                 ch->pcdata->quest_success++;
+                check_achievement(ch);
 				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                 if (chance(15))
                 {
@@ -1150,6 +1152,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                     sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
                     do_say(questman,buf);
                     ch->pcdata->quest_success++;
+                    check_achievement(ch);
 					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
                     if (chance(15))
                     {
@@ -1204,6 +1207,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
     send_to_char("QUEST commands: POINTS INFO TIME REQUEST COMPLETE LIST BUY.\n\r",ch);
     send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
     return;
+
 }
 
 bool is_guild_room( int vnum )
