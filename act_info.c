@@ -5610,6 +5610,7 @@ void check_achievement( CHAR_DATA *ch )
         if ( current >= achievement_table[i].limit)
           if (!IS_SET(ch->pcdata->achievements, achievement_table[i].bit_vector))
             achievement_reward(ch, i); 
+       
     }
 }
 
@@ -5626,8 +5627,10 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
     }
     else
     {    
+	flag_set(ch->pcdata->achievements, achievement_table[table_index].bit_vector);
+
         ch->pcdata->questpoints += achievement_table[table_index].quest_reward;
-        ch->gold += achievement_table[table_index].gold_reward;
+        ch->pcdata->bank += achievement_table[table_index].gold_reward;
         gain_exp(ch, achievement_table[table_index].exp_reward);
         ch->pcdata->achpoints += achievement_table[table_index].ach_reward;
         //send_to_char("Achievement unlocked -- TEST.\n\r",ch);
@@ -5648,7 +5651,7 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
 	   and send a message
 	}
 	*/
-	flag_set(ch->pcdata->achievements, achievement_table[table_index].bit_vector);
+        
     }
 }
 
