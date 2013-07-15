@@ -1732,9 +1732,18 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     // berserking characters deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
-    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && !is_ranged_weapon(wield) )
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) /*&& !is_ranged_weapon(wield)*/ )
     {
-        int berserk_cost = (wield == NULL) ? 2 : IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) ? 4 : 3;
+        int berserk_cost = 2;
+        if ( wield != NULL )
+        {
+            if ( wield->value[0] == WEAPON_BOW )
+                berserk_cost = 5;
+            else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
+                berserk_cost = 4;
+            else
+                berserk_cost = 3;
+        }
         if ( ch->move >= berserk_cost )
         {
             ch->move -= berserk_cost;
