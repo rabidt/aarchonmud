@@ -788,7 +788,7 @@ bool get_creation_mode(DESCRIPTOR_DATA *d, char *argument)
 
 	write_to_buffer(d,"That isn't a valid choice.\n\r",0);
 
-        sprintf( msg, "{CWhich creation option do you choose(instant, quick, normal)?{x " );
+        sprintf( msg, "{CWhich creation option do you choose(normal, expert)?{x " );
         pbuff = buffer;
         colourconv( pbuff, msg, d->character ); 
         write_to_buffer(d, buffer ,0);
