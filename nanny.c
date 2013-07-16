@@ -249,12 +249,9 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		    break;
 
 		case CON_GET_NEW_RACE:
-		    if (get_new_race(d, argument)) get_alignment(d, argument);
-		    break;
-		    
-		case CON_GET_ALIGNMENT:
-		    if (get_alignment(d, argument))
+		    if (get_new_race(d, argument))
 			{
+                d->character->alignment = 0;
 			    take_rom_basics(d);
 			    take_class_defaults(d);
 			    take_default_weapon(d);
