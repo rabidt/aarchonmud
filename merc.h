@@ -1322,8 +1322,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -4299,7 +4299,7 @@ bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
 void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
-
+bool    is_ranged_weapon( OBJ_DATA *weapon );
 
 /* ftp.c */
 bool    ftp_push    args( (DESCRIPTOR_DATA *d) );
