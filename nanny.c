@@ -60,6 +60,7 @@ void take_default_weapon args((DESCRIPTOR_DATA *d));
 void newbie_alert args((DESCRIPTOR_DATA *d));
 void take_default_stats args((CHAR_DATA *ch));
 void get_random_stats args((CHAR_DATA *ch));
+void auto_assign_stats args((CHAR_DATA *ch));
 bool parse_roll_stats args((CHAR_DATA *ch,char *argument));
 bool parse_stat_priority args((CHAR_DATA *ch, char *argument));
 void do_stats args((CHAR_DATA *ch, char *argument));
@@ -1621,14 +1622,14 @@ bool roll_stats ( DESCRIPTOR_DATA *d, char *argument )
 		return TRUE;
 	}
 
-	if (!str_cmp(argument,"default"))
-	{
-		free_gen_data(ch->gen_data);
-		ch->gen_data=NULL;
-		send_to_char("     {cThe game has selected stats for you based on your class.{x\n\r\n\r",ch);
-		take_default_stats(ch);
-		return TRUE;
-	}	
+    if (!str_cmp(argument,"default"))
+    {
+        send_to_char("     {cThe game has assigned dice for you based on your class and race.{x\n\r\n\r",ch);
+        auto_assign_stats(ch);
+        show_dice(ch);
+        send_to_char("{CShow, reroll, assign, unassign, default, help, or done?{x ",ch);
+        return FALSE;
+    }
 
 	if (!parse_roll_stats(ch,argument))
 		send_to_char("Thats not a valid choice.\n\r",ch);
