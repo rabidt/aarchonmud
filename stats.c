@@ -1409,7 +1409,10 @@ void auto_assign_stats(CHAR_DATA *ch)
     int remort_level = ch->pcdata->remorts;
     base_stat_weights[class_table[ch->class].attr_prime] += 3 * (15 - remort_level);
     base_stat_weights[class_table[ch->class].attr_second[0]] += 2 * (15 - remort_level);
-    base_stat_weights[class_table[ch->class].attr_second[0]] += 2 * (15 - remort_level);
+    base_stat_weights[class_table[ch->class].attr_second[1]] += 2 * (15 - remort_level);
+    // bonus for int at low remort (needed for practicing skills)
+    if (remort_level < 2)
+        base_stat_weights[STAT_INT] += (2-remort_level)*10;
 
     // multiply with racial range
     for (i = 0; i < MAX_STATS; i++)
