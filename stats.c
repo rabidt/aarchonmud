@@ -1423,6 +1423,19 @@ void take_default_stats(CHAR_DATA *ch)
     return;
 }
 
+void insert_die(CHAR_DATA *ch, int die)
+{
+    int i;
+
+    for ( i = 0; i < MAX_EXT_STATS; i++ )
+        if ( die > ch->gen_data->unused_die[i] )
+        {
+            int swap = ch->gen_data->unused_die[i];
+            ch->gen_data->unused_die[i] = die;
+            die = swap;
+        }
+}
+
 bool parse_roll_stats (CHAR_DATA *ch,char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
@@ -1456,25 +1469,35 @@ bool parse_roll_stats (CHAR_DATA *ch,char *argument)
     }
     else if (!str_prefix(arg, "unassign"))
     {
-        if (arg2[0]=='\0'||(stat=dice_lookup(arg2))==15)
+        if ( strcmp(arg2, "all") == 0 )
         {
-            do_help(ch,"unassign");
-            return TRUE;
+            for ( stat = 0; stat < MAX_EXT_STATS; stat++ )
+            {
+                die = ch->gen_data->assigned_die[stat];
+                if ( die != -1 )
+                {
+                    insert_die( ch, die );
+                    ch->gen_data->assigned_die[stat] = -1;
+                }
+            }
+            calc_stats(ch);
         }
-        if ((die=ch->gen_data->assigned_die[stat])==-1)
+        else
         {
-            send_to_char("No die has been assigned to that attribute.\n\r",ch);
-            return TRUE;
+            if (arg2[0]=='\0'||(stat=dice_lookup(arg2))==15)
+            {
+                do_help(ch,"unassign");
+                return TRUE;
+            }
+            if ((die=ch->gen_data->assigned_die[stat])==-1)
+            {
+                send_to_char("No die has been assigned to that attribute.\n\r",ch);
+                return TRUE;
+            }
+            ch->gen_data->assigned_die[stat]=-1;
+            calc_stats(ch);
+            insert_die(ch, die);
         }
-        ch->gen_data->assigned_die[stat]=-1;
-        calc_stats(ch);
-        
-        for(i=0; i<15; i++)
-            if (die>ch->gen_data->unused_die[i]) break;
-            
-            for (j=14; j>i; j--)
-                ch->gen_data->unused_die[j]=ch->gen_data->unused_die[j-1];
-            ch->gen_data->unused_die[i] = die;  
     }
     else if (!str_prefix(arg, "assign"))
     {
