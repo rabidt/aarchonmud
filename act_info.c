@@ -3157,48 +3157,22 @@ void do_compare( CHAR_DATA *ch, char *argument )
     {
         msg = "You compare $p to itself.  It looks about the same.";
     }
-    else if ( obj1->item_type != obj2->item_type )
+    else if ( !commen_wear_pos(obj1->wear_flags, obj2->wear_flags) )
     {
         msg = "You can't compare $p and $P.";
     }
     else
     {
-        switch ( obj1->item_type )
+        if (obj1->item_type == ITEM_WEAPON && obj1->item_type == ITEM_WEAPON)
         {
-        default:
-	    /*
-            msg = "You can't compare $p and $P.";
-	    */
-	    if ( value1 == 0 && value2 == 0 )
-	    {
-		value1 = obj1->level;
-		value2 = obj2->level;
-	    }
-            break;
-            
-        case ITEM_ARMOR:
-	    /*
-            value1 = obj1->value[0] + obj1->value[1] + obj1->value[2];
-            value2 = obj2->value[0] + obj2->value[1] + obj2->value[2];
-	    */
-            break;
-            
-        case ITEM_WEAPON:
-	    /*
-            if (obj1->pIndexData->new_format)
-                value1 = (1 + obj1->value[2]) * obj1->value[1];
-            else
-                value1 = obj1->value[1] + obj1->value[2];
-            
-            if (obj2->pIndexData->new_format)
-                value2 = (1 + obj2->value[2]) * obj2->value[1];
-            else
-                value2 = obj2->value[1] + obj2->value[2];
-	    */
-	    value1 += 4 * average_weapon_dam( obj1 );
-	    value2 += 4 * average_weapon_dam( obj2 );
-            break;
+            value1 += 4 * average_weapon_dam( obj1 );
+            value2 += 4 * average_weapon_dam( obj2 );
         }
+        // translucent eq has "hidden" ops
+        if ( CAN_WEAR(obj1, ITEM_TRANSLUCENT) )
+            value1 += get_translucency_spec_penalty( obj1->level );
+        if ( CAN_WEAR(obj2, ITEM_TRANSLUCENT) )
+            value2 += get_translucency_spec_penalty( obj2->level );
     }
     
     if ( msg == NULL )

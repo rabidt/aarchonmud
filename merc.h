@@ -756,10 +756,9 @@ struct penalty_data
 #define MAX_CON_STATE           36
 
 #define CREATION_UNKNOWN         0
-#define CREATION_INSTANT         1
-#define CREATION_QUICK           2
-#define CREATION_NORMAL          3
-#define CREATION_REMORT          4
+#define CREATION_NORMAL          1
+#define CREATION_EXPERT          2
+#define CREATION_REMORT          3
 
 
 typedef enum { FTP_NORMAL, FTP_PUSH, FTP_PUSH_WAIT } ftp_mode;
@@ -864,6 +863,7 @@ struct  shop_data
 
 #define MAX_GUILD   2
 #define MAX_STATS   10
+#define MAX_EXT_STATS 15
 #define MAX_CURRSTAT 200
 #define STAT_STR        0
 #define STAT_CON        1
@@ -884,7 +884,7 @@ struct  class_type
     char    who_name    [4];    /* Three-letter name for 'who'  */
     sh_int  attr_prime;     /* Prime attribute      */
     sh_int  attr_second[2]; /* Secondary attributes  */
-    sh_int  stat_priority[MAX_STATS-3];
+    sh_int  stat_weights[MAX_STATS]; /* weights for default roll assignment */
     sh_int  weapon;         /* First weapon         */
     sh_int  guild[MAX_GUILD];   /* Vnum of guild rooms      */
     sh_int  skill_adept;        /* Maximum skill level      */
@@ -2770,9 +2770,8 @@ struct gen_data
 	bool    valid;
 	bool    skill_chosen[MAX_SKILL];
 	bool    group_chosen[MAX_GROUP];
-	int unused_die[MAX_STATS+5];
-	int assigned_die[MAX_STATS+5];
-	int stat_priority[MAX_STATS+5];
+	int     unused_die[MAX_EXT_STATS];
+	int     assigned_die[MAX_EXT_STATS];
 	int     points_chosen;
 };
 
