@@ -18,7 +18,6 @@ void get_random_stats args((CHAR_DATA *ch));
 void roll_dice args((CHAR_DATA *ch, bool take_default));
 void calc_stats args((CHAR_DATA *ch));
 bool parse_roll_stats args((CHAR_DATA *ch,char *argument));
-bool parse_stat_priority args((CHAR_DATA *ch, char *argument));
 void do_help args((CHAR_DATA *ch, char *argument));
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 void show_pc_race_ratings( CHAR_DATA *ch, int race );
@@ -1356,44 +1355,6 @@ void calc_stats(CHAR_DATA *ch)
     return;
 }
 
-void get_random_stats(CHAR_DATA *ch)
-{
-    int i,j, swap;
-    
-    roll_dice(ch, TRUE);
-    
-    for (i=0; stat_table[i].name!=NULL; i++)
-    {
-        ch->gen_data->assigned_die[i]=0;
-        for (j=0; j<MAX_STATS; j++)
-            ch->gen_data->assigned_die[i]+=(MAX_STATS-j) *
-            stat_table[i].dice[ch->gen_data->stat_priority[j]];
-    }
-    
-    for (i=0; stat_table[i].name!=NULL; i++)
-        ch->gen_data->stat_priority[i]=i;
-    
-    for (i=0; i<14; i++)
-        for (j=i+1; j<15; j++)
-            if (ch->gen_data->assigned_die[j]>ch->gen_data->assigned_die[i])
-            {
-                swap = ch->gen_data->assigned_die[j];
-                ch->gen_data->assigned_die[j]=ch->gen_data->assigned_die[i];
-                ch->gen_data->assigned_die[i]=swap;
-                swap = ch->gen_data->stat_priority[j];
-                ch->gen_data->stat_priority[j]=ch->gen_data->stat_priority[i];
-                ch->gen_data->stat_priority[i]=swap;
-            }
-            
-    for (i=0; i<15; i++)
-	ch->gen_data->assigned_die[ch->gen_data->stat_priority[i]]=
-	    ch->gen_data->unused_die[i];
-    
-    calc_stats(ch);
-    
-    return;
-}
-
 // assign die rolls to stats based on class and race
 // maximizes the class-weighted sum of final stats
 void auto_assign_stats(CHAR_DATA *ch)
@@ -1450,87 +1411,16 @@ void auto_assign_stats(CHAR_DATA *ch)
 
 void take_default_stats(CHAR_DATA *ch)
 {
-    int i;
     ch->gen_data = new_gen_data();
-    ch->gen_data->stat_priority[0]=class_table[ch->class].attr_prime;
-    ch->gen_data->stat_priority[1]=class_table[ch->class].attr_second[0];
-    ch->gen_data->stat_priority[2]=class_table[ch->class].attr_second[1];
-    for (i = 3; i<MAX_STATS; i++)
-        ch->gen_data->stat_priority[i]=class_table[ch->class].stat_priority[i-3];
-    
-    get_random_stats(ch);
-    
+
+    roll_dice(ch, TRUE);
+    auto_assign_stats(ch);
+    calc_stats(ch);
+
     free_gen_data(ch->gen_data);
     ch->gen_data=NULL;
     
     return;
-}
-
-bool parse_stat_priority (CHAR_DATA *ch, char *argument)
-{
-    char arg[MAX_INPUT_LENGTH];
-    char buf[100];
-    int i,j;
-    
-    argument = one_argument(argument,arg);
-    
-    if (arg[0] == '\0') return TRUE;
-    
-    if (!str_prefix(arg,"help"))
-    {
-        if (argument[0] == '\0')
-        {
-            do_help(ch,"priority header");
-        } else do_help(ch,argument);
-    }
-    else if (!str_prefix(arg, "undo"))
-    {
-        for(i=0; i<MAX_STATS; i++)
-            if (ch->gen_data->stat_priority[i]==-1) break;
-            if (i==0)
-            {
-                send_to_char("There is nothing to undo.\n\r", ch);
-                return TRUE;
-            }
-            ch->gen_data->unused_die[ch->gen_data->stat_priority[i-1]]=TRUE;
-            ch->gen_data->stat_priority[i-1]=-1;
-    }
-    else
-    {
-        for (i=0; i<MAX_STATS; i++)
-            if (!str_prefix(arg, stat_table[i].name)) break;
-            if (i==MAX_STATS) return FALSE;
-            if (!ch->gen_data->unused_die[i])
-            {
-                send_to_char("You've already assigned that.\n\r",ch);
-                return TRUE;
-            }
-            for(j=0; j<MAX_STATS; j++)
-                if (ch->gen_data->stat_priority[j]==-1) break;
-                ch->gen_data->stat_priority[j]=i;
-                ch->gen_data->unused_die[i]=FALSE;
-    }
-    
-    strcpy(buf, "Statistics left to assign:");
-    for (i=0; i<MAX_STATS; i++)
-        if (ch->gen_data->unused_die[i])
-        {
-            strcat(buf, " ");           
-            strcat(buf, stat_table[i].name);
-        }
-        
-        strcat(buf, "\n\rCurrent statistic priority:");
-        for (i=0; i<MAX_STATS; i++)
-        {
-            if (ch->gen_data->stat_priority[i]==-1) break;
-            strcat(buf, " ");           
-            strcat(buf, stat_table[ch->gen_data->stat_priority[i]].name);
-        }
-        
-        strcat(buf, "\n\r");
-        send_to_char(buf, ch);
-        
-        return TRUE;
 }
 
 bool parse_roll_stats (CHAR_DATA *ch,char *argument)
