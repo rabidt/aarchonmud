@@ -1364,6 +1364,57 @@ void get_random_stats(CHAR_DATA *ch)
     return;
 }
 
+// assign die rolls to stats based on class and race
+// maximizes the class-weighted sum of final stats
+void auto_assign_stats(CHAR_DATA *ch)
+{
+    int i,j;
+    int base_stat_weights[MAX_STATS];
+    int extended_stat_weights[MAX_EXT_STATS];
+    
+    // compute class factor for base stats
+    for (i = 0; i < MAX_STATS; i++)
+        base_stat_weights[i] = class_table[ch->class].stat_weights[i];
+    // bonus for primary/secondary stats, decreasing for higher remorts (practices get less important)
+    int remort_level = ch->pcdata->remorts;
+    base_stat_weights[class_table[ch->class].attr_prime] += 3 * (15 - remort_level);
+    base_stat_weights[class_table[ch->class].attr_second[0]] += 2 * (15 - remort_level);
+    base_stat_weights[class_table[ch->class].attr_second[0]] += 2 * (15 - remort_level);
+
+    // multiply with racial range
+    for (i = 0; i < MAX_STATS; i++)
+    {
+        MIN_MAX_ROLLED *values = calc_min_max_rolled(ch, i);
+        base_stat_weights[i] *= values->max - values->min;
+    }    
+    
+    // weights for each extended stat (including body, mind, tough, speed, wit)
+    for (i = 0; i < MAX_EXT_STATS; i++)
+    {
+        extended_stat_weights[i] = 0;
+        for (j = 0; j < MAX_STATS; j++)
+            extended_stat_weights[i] += base_stat_weights[j] * stat_table[i].dice[j];        
+    }
+    
+    // Assign currently unassigned dice to unassigned extended attributes
+    for (i = 0; i < MAX_EXT_STATS; i++)
+    {
+        if (ch->gen_data->unused_die[i] == -1)
+            break;
+        // find highest-ranking unassigned stat
+        int max_weighted_stat = -1;
+        for (j = 0; j < MAX_EXT_STATS; j++)
+            if ( ch->gen_data->assigned_die[j] == -1 )
+                if ( max_weighted_stat == -1 || extended_stat_weights[j] > extended_stat_weights[max_weighted_stat] )
+                    max_weighted_stat = j;
+        // assign die (unassigned dice are ordered, so we it is highest unassigned one)
+        ch->gen_data->assigned_die[max_weighted_stat] = ch->gen_data->unused_die[i];
+        ch->gen_data->unused_die[i] = -1;
+    }
+
+    return;
+}
+
 void take_default_stats(CHAR_DATA *ch)
 {
     int i;
