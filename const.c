@@ -1732,6 +1732,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 //    sh_int  attr_prime;     /* Prime attribute      */
 //    sh_int  attr_second[2]; /* Secondary attributes  */
 //    sh_int  stat_priority[MAX_STATS-3];
+//    sh_int  stat_weights[MAX_STATS]; /* weights for default roll assignment */
 //    sh_int  weapon;         /* First weapon         */
 //    sh_int  guild[MAX_GUILD];   /* Vnum of guild rooms      */
 //    sh_int  skill_adept;        /* Maximum skill level      */
@@ -1746,6 +1747,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"warrior", "War",  STAT_STR, {STAT_CON, STAT_DIS},
 	{STAT_DEX,STAT_VIT,STAT_AGI,STAT_WIS,STAT_LUC,STAT_CHA,STAT_INT},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_SWORD, { 9633, 10344 },
 	75,  120, 110,  115, 60, 110,
 	"warrior basics", "warrior default"
@@ -1754,6 +1756,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"thief", "Thi",  STAT_DEX, {STAT_AGI, STAT_LUC},
 	{STAT_VIT,STAT_INT,STAT_CHA,STAT_WIS,STAT_CON,STAT_STR,STAT_DIS},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
 	75, 100, 100,  110, 70, 110,
 	"thief basics", "thief default"
@@ -1762,6 +1765,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"cleric", "Cle",  STAT_WIS, {STAT_CHA, STAT_DIS},
 	{STAT_CON,STAT_VIT,STAT_INT,STAT_STR,STAT_DEX,STAT_AGI,STAT_LUC},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_MACE, { 9619, 10282 },
 	75, 80, 100,  95, 115, 70,
 	"cleric basics", "cleric default"
@@ -1770,6 +1774,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"mage", "Mag",  STAT_INT, {STAT_WIS, STAT_AGI},
 	{STAT_DIS,STAT_LUC,STAT_DEX,STAT_VIT,STAT_CHA,STAT_CON,STAT_STR},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_POLEARM, { 9618, 10300 },
 	75, 70, 80,  90,  120, 70,
 	"mage basics", "mage default"
@@ -1778,6 +1783,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"gladiator", "Gla",  STAT_VIT, {STAT_STR, STAT_AGI},
 	{STAT_DEX,STAT_CON,STAT_DIS,STAT_LUC,STAT_WIS,STAT_INT,STAT_CHA},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_AXE, { 9633, 10344 },
 	75, 130, 100,  120, 40, 120,
 	"gladiator basics", "gladiator default"
@@ -1786,6 +1792,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"samurai", "Sam",  STAT_CON, {STAT_STR, STAT_DIS},
 	{STAT_INT,STAT_DEX,STAT_WIS,STAT_CHA,STAT_VIT,STAT_AGI,STAT_LUC},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_SWORD, { 9633, 10344 },
 	75, 110, 110,  110, 70, 110,
 	"samurai basics", "samurai default"
@@ -1794,6 +1801,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"paladin", "Pal",  STAT_CHA, {STAT_WIS, STAT_STR},
 	{STAT_CON,STAT_DIS,STAT_VIT,STAT_DEX,STAT_LUC,STAT_AGI,STAT_INT},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_MACE, { 9633, 10344 },
         75, 100, 110,  105, 90, 100,
 	"paladin basics", "paladin default"
@@ -1802,6 +1810,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"assassin", "Asn",  STAT_INT, {STAT_DEX, STAT_AGI},
 	{STAT_VIT,STAT_LUC,STAT_WIS,STAT_DIS,STAT_CHA,STAT_CON,STAT_STR},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
 	75, 120, 100,  110, 70, 110,
 	"assassin basics", "assassin default"
@@ -1810,6 +1819,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"ninja", "Nin",  STAT_AGI, {STAT_DIS, STAT_INT},
 	{STAT_DEX,STAT_VIT,STAT_WIS,STAT_CON,STAT_STR,STAT_LUC,STAT_CHA},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_SWORD, { 9639, 10341 },
 	75, 110, 110,  110, 70, 110,
 	"ninja basics", "ninja default"
@@ -1818,6 +1828,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"monk", "Mon",  STAT_DIS, {STAT_WIS, STAT_AGI},
 	{STAT_VIT,STAT_DEX,STAT_CON,STAT_INT,STAT_LUC,STAT_STR,STAT_CHA},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_POLEARM, { 9619, 10282 },
 	75, 100, 100,  100, 100, 100,
 	"monk basics", "monk default"
@@ -1826,6 +1837,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"templar", "Tem",  STAT_WIS, {STAT_CHA, STAT_INT},
 	{STAT_DIS,STAT_CON,STAT_STR,STAT_DEX,STAT_AGI,STAT_VIT,STAT_LUC},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_FLAIL, { 9619, 10282 },
 	75, 80, 90,  100, 105, 85,
 	"templar basics", "templar default"
@@ -1834,6 +1846,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"illusionist", "Ilu",  STAT_LUC, {STAT_WIS, STAT_DEX},
 	{STAT_INT,STAT_AGI,STAT_WIS,STAT_DIS,STAT_VIT,STAT_STR,STAT_CON},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_DAGGER, { 9618, 10300 },
 	75, 70, 90,  95,  110, 85,
 	"illusionist basics", "illusionist default"
@@ -1842,6 +1855,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"gunslinger", "Gun",  STAT_LUC, {STAT_DEX, STAT_CON},
 	{STAT_WIS,STAT_VIT,STAT_AGI,STAT_STR,STAT_DIS,STAT_INT,STAT_CHA},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_GUN, { 9633, 10328 },
 	75, 130, 90,  115, 60, 110,
 	"gunslinger basics", "gunslinger default"
@@ -1850,6 +1864,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"ranger", "Ran",  STAT_WIS, {STAT_VIT, STAT_STR},
 	{STAT_CON,STAT_DEX,STAT_AGI,STAT_INT,STAT_DIS,STAT_CHA,STAT_LUC},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_AXE, { 9633, 10289 },
 	75, 100, 110,  105, 80, 110,
 	"ranger basics", "ranger default"
@@ -1858,6 +1873,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"necromancer", "Nec",  STAT_CHA, {STAT_WIS, STAT_INT},
 	{STAT_DIS,STAT_LUC,STAT_DEX,STAT_VIT,STAT_AGI,STAT_CON,STAT_STR},
+        {100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
 	OBJ_VNUM_SCHOOL_POLEARM, { 9618, 10300 },
 	75, 70, 90,  95,  115, 70,
 	"necromancer basics", "necromancer default"

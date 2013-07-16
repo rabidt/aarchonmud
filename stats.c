@@ -24,6 +24,13 @@ struct race_type* get_morph_race_type( CHAR_DATA *ch );
 void show_pc_race_ratings( CHAR_DATA *ch, int race );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 
+// structure for storing stat values prior to finalizing them
+typedef struct min_max_rolled MIN_MAX_ROLLED;
+struct min_max_rolled
+{
+    int min, max, rolled;
+};
+
 /* command for retrieving stats */
 int get_curr_stat( CHAR_DATA *ch, int stat )
 {
@@ -1243,15 +1250,13 @@ void do_racelist(CHAR_DATA *ch, char *argument)
     send_to_char("\n\r", ch);
 }
 
-extern u_short port;
 void roll_dice (CHAR_DATA *ch, bool take_default)
 {
 #ifdef TESTER
-    int default_roll[15] = {100,95,95,90,90,85,80,75,70,65,65,50,40,30,20};
+    int default_roll[15] = {100,95,95,90,90,85,80,75,70,65,60,55,45,30,15};
 #else
-    int default_roll[15] = {100,95,90,85,80,75,70,65,60,55,50,40,30,20,10};
-#endif /* TESTER */
-//    int default_roll[15] = {100,95,94,92,88,86,82,80,74,73,71,51,49,20,10};
+    int default_roll[15] = {100,95,95,90,90,85,80,75,70,65,55,45,35,20,0};
+#endif
     int i, j, swap, sum;
     
     if ( take_default )
@@ -1288,63 +1293,66 @@ void roll_dice (CHAR_DATA *ch, bool take_default)
     return;
 }
 
+// calculate min, max and current stat for die allocation
+MIN_MAX_ROLLED* calc_min_max_rolled(CHAR_DATA *ch, int stat)
+{
+    static MIN_MAX_ROLLED result;
+
+    int bonus, roll, i;
+    int race = ch->race;
+    int sex = ch->pcdata->true_sex;
+    
+    result.min = pc_race_table[race].min_stats[stat];
+    result.max = pc_race_table[race].max_stats[stat];
+    
+    bonus = class_bonus(ch->class, stat) + remort_bonus(ch, stat);
+    result.min += bonus;
+    result.max += bonus;
+    
+    // gender and align tweaks
+    switch (stat)
+    {
+        case STAT_STR:
+            result.min += (sex == SEX_MALE ? 5 : -5);
+            break;
+        case STAT_AGI:
+            result.min += (sex == SEX_MALE ? -5 : 5);
+            break;
+        case STAT_INT:
+        case STAT_CHA:
+            result.min -= ch->alignment/125;
+            break;            
+        case STAT_WIS:
+        case STAT_LUC:
+            result.min += ch->alignment/125;
+            break;
+        default:
+            break;
+    }
+    result.min = UMAX(1, result.min);
+    
+    // get average die assigned to stat (times 100)
+    roll = 0;
+    for (i=0; stat_table[i].name != NULL; i++)
+        roll += stat_table[i].dice[stat] * UMAX(ch->gen_data->assigned_die[i],0);
+    
+    // rolled value lies between min and max, based on roll
+    result.rolled = result.min + (result.max - result.min) * roll / 10000;
+    
+    return &result;
+}
+
 void calc_stats(CHAR_DATA *ch)
 {
-    int i, j;
-    int race=ch->race;
-    long int stat, range;
-    
-    for (i=0; i<MAX_STATS; i++)
-        ch->perm_stat[i]=pc_race_table[race].min_stats[i]+class_bonus(ch->class,i)
-        +remort_bonus(ch, i);
-    
-    if (ch->pcdata->true_sex==SEX_MALE)
-    {
-        ch->perm_stat[STAT_AGI]-=5;
-        ch->perm_stat[STAT_STR]+=5;
-    }
-    else if (ch->pcdata->true_sex==SEX_FEMALE)
-    {
-        ch->perm_stat[STAT_STR]-=5;
-        ch->perm_stat[STAT_AGI]+=5;
-    }
-    
-    ch->perm_stat[STAT_WIS]+=ch->alignment/125;
-    ch->perm_stat[STAT_INT]-=ch->alignment/125;
-    ch->perm_stat[STAT_LUC]+=ch->alignment/125;
-    ch->perm_stat[STAT_CHA]-=ch->alignment/125;
-    
+    int i;
+
     for (i=0; i<MAX_STATS; i++)
     {
-        stat=0;
-        for (j=0; stat_table[j].name!=NULL; j++)
-            stat += stat_table[j].dice[i] *
-            UMAX(ch->gen_data->assigned_die[j],0);
-        range = pc_race_table[race].max_stats[i] - pc_race_table[race].min_stats[i];    
-        if (ch->pcdata->true_sex==SEX_MALE)
-        {
-            if (i==STAT_STR) range-=5;
-            else if (i==STAT_AGI) range+=5;
-        }
-        else if (ch->pcdata->true_sex==SEX_FEMALE)
-        {
-            if (i==STAT_AGI) range-=5;
-            else if (i==STAT_STR) range+=5;
-        }
-        if (i==STAT_WIS)
-            range-=ch->alignment/125;
-        else if (i==STAT_INT)
-            range+=ch->alignment/125;
-        else if (i==STAT_CHA)
-            range+=ch->alignment/125;
-        else if (i==STAT_LUC)
-            range-=ch->alignment/125;
-        stat*=range;
-        stat/=10000;
-        ch->perm_stat[i] = (short)URANGE(1, ch->perm_stat[i] + stat, MAX_CURRSTAT);
-        ch->pcdata->original_stats[i]=ch->perm_stat[i];
+        MIN_MAX_ROLLED *values = calc_min_max_rolled(ch, i);
+        ch->perm_stat[i] = (short)URANGE(1, values->rolled, MAX_CURRSTAT);
+        ch->pcdata->original_stats[i] = ch->perm_stat[i];        
     }
-    
+
     return;
 }
 
@@ -1383,6 +1391,57 @@ void get_random_stats(CHAR_DATA *ch)
     
     calc_stats(ch);
     
+    return;
+}
+
+// assign die rolls to stats based on class and race
+// maximizes the class-weighted sum of final stats
+void auto_assign_stats(CHAR_DATA *ch)
+{
+    int i,j;
+    int base_stat_weights[MAX_STATS];
+    int extended_stat_weights[MAX_EXT_STATS];
+    
+    // compute class factor for base stats
+    for (i = 0; i < MAX_STATS; i++)
+        base_stat_weights[i] = class_table[ch->class].stat_weights[i];
+    // bonus for primary/secondary stats, decreasing for higher remorts (practices get less important)
+    int remort_level = ch->pcdata->remorts;
+    base_stat_weights[class_table[ch->class].attr_prime] += 3 * (15 - remort_level);
+    base_stat_weights[class_table[ch->class].attr_second[0]] += 2 * (15 - remort_level);
+    base_stat_weights[class_table[ch->class].attr_second[0]] += 2 * (15 - remort_level);
+
+    // multiply with racial range
+    for (i = 0; i < MAX_STATS; i++)
+    {
+        MIN_MAX_ROLLED *values = calc_min_max_rolled(ch, i);
+        base_stat_weights[i] *= values->max - values->min;
+    }    
+    
+    // weights for each extended stat (including body, mind, tough, speed, wit)
+    for (i = 0; i < MAX_EXT_STATS; i++)
+    {
+        extended_stat_weights[i] = 0;
+        for (j = 0; j < MAX_STATS; j++)
+            extended_stat_weights[i] += base_stat_weights[j] * stat_table[i].dice[j];        
+    }
+    
+    // Assign currently unassigned dice to unassigned extended attributes
+    for (i = 0; i < MAX_EXT_STATS; i++)
+    {
+        if (ch->gen_data->unused_die[i] == -1)
+            break;
+        // find highest-ranking unassigned stat
+        int max_weighted_stat = -1;
+        for (j = 0; j < MAX_EXT_STATS; j++)
+            if ( ch->gen_data->assigned_die[j] == -1 )
+                if ( max_weighted_stat == -1 || extended_stat_weights[j] > extended_stat_weights[max_weighted_stat] )
+                    max_weighted_stat = j;
+        // assign die (unassigned dice are ordered, so we it is highest unassigned one)
+        ch->gen_data->assigned_die[max_weighted_stat] = ch->gen_data->unused_die[i];
+        ch->gen_data->unused_die[i] = -1;
+    }
+
     return;
 }
 
@@ -1555,41 +1614,24 @@ bool parse_roll_stats (CHAR_DATA *ch,char *argument)
     }
     else if (str_prefix(arg, "show")) return FALSE;
     
+    show_dice(ch);
+    
+    return TRUE;
+}
+
+void show_dice(CHAR_DATA *ch)
+{
+    int i, die, train;
+    char buf[100], buf2[100], buf3[5];
+    
     send_to_char("\n\rStat  Curr  Train Die   Min-Max            Attribute\n\r", ch);
+    
     for(i=0; i<10; i++)
     {
-        curr=ch->perm_stat[i];
-        min=pc_race_table[ch->race].min_stats[i];
-        if (ch->pcdata->true_sex==SEX_MALE)
-        {
-            if (i==STAT_AGI) min=UMAX(1,min-5);
-            else if (i==STAT_STR) min+=5;
-        }
-        else if (ch->pcdata->true_sex==SEX_FEMALE)
-        {
-            if (i==STAT_STR) min=UMAX(1,min-5);
-            else if (i==STAT_AGI) min+=5;
-        }
-        max=pc_race_table[ch->race].max_stats[i];
+        MIN_MAX_ROLLED *values = calc_min_max_rolled(ch, i);
         
-        j=class_bonus(ch->class, i);
-        min+=j;
-        max+=j;
-        
-        j=remort_bonus(ch, i);
-        min+=j;
-        max+=j;
-        
-        if (i==STAT_WIS)
-            min=UMAX(1, min+ch->alignment/125);
-        else if (i==STAT_INT)
-            min=UMAX(1, min-ch->alignment/125);
-        else if (i==STAT_CHA)
-            min=UMAX(1, min-ch->alignment/125);
-        else if (i==STAT_LUC)
-            min=UMAX(1, min+ch->alignment/125);
-        
-        if (i>4) buf2[0]='\0';
+        if (i>4)
+            buf2[0]='\0';
         else
         {
             if (ch->gen_data->assigned_die[i+10]==-1)
@@ -1603,34 +1645,26 @@ bool parse_roll_stats (CHAR_DATA *ch,char *argument)
             strcpy(buf3, " --");
         else
             sprintf(buf3, "%3d", ch->gen_data->assigned_die[i]);
-        train=(curr+max)/2;
+        
+        train = (values->rolled + values->max) / 2;
         
         sprintf(buf, " %3s  %3d   %3d   %3s   %3d-%3d            %s\n\r",
-            stat_table[i].abbreviation, curr, train, buf3, min, max, buf2);
+            stat_table[i].abbreviation, values->rolled, train, buf3, values->min, values->max, buf2);
         send_to_char(buf, ch);
     }
     
     strcpy(buf, "\n\rDice left to distribute: ");
-    sum = 0;
     for (i=0; i<15; i++)
     {
-        if ((j=ch->gen_data->unused_die[i])==-1) break;
+        if ((die=ch->gen_data->unused_die[i])==-1) break;
         if (i>0) strcat(buf, ", ");
-        sprintf(buf3, "%d", j);
+        sprintf(buf3, "%d", die);
         strcat(buf, buf3);
-	sum += j;
     }
-
-    /*
-    sprintf( buf2, " (sum=%d)", sum );
-    strcat( buf, buf2 );
-    */
-
     strcat(buf, "\n\r");
 
     send_to_char(buf, ch);
-    
-    return TRUE;
+    return;
 }
 
 /* Bobble: recalculate a PC's permanent hp/mana/move

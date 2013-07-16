@@ -864,6 +864,7 @@ struct  shop_data
 
 #define MAX_GUILD   2
 #define MAX_STATS   10
+#define MAX_EXT_STATS 15
 #define MAX_CURRSTAT 200
 #define STAT_STR        0
 #define STAT_CON        1
@@ -885,6 +886,7 @@ struct  class_type
     sh_int  attr_prime;     /* Prime attribute      */
     sh_int  attr_second[2]; /* Secondary attributes  */
     sh_int  stat_priority[MAX_STATS-3];
+    sh_int  stat_weights[MAX_STATS]; /* weights for default roll assignment */
     sh_int  weapon;         /* First weapon         */
     sh_int  guild[MAX_GUILD];   /* Vnum of guild rooms      */
     sh_int  skill_adept;        /* Maximum skill level      */
