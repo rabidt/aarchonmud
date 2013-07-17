@@ -4982,8 +4982,11 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     group_dam=0;
 
     for (m = victim->aggressors; m; m=m->next)
-	total_dam += m->reaction;
+        total_dam += m->reaction;
     total_dam = UMAX(1, total_dam);
+    // damage is at least victim's max hitpoints - anything less is a bug or an exploit
+    // e.g. having a charmie attack while not in the room (not remembered) to power-level low-level char
+    total_dam = UMAX(victim->max_hit, total_dam);
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {

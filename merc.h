@@ -4300,7 +4300,7 @@ bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
 void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
-
+CD *    get_local_leader( CHAR_DATA *ch );
 
 /* ftp.c */
 bool    ftp_push    args( (DESCRIPTOR_DATA *d) );
