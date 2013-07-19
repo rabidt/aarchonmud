@@ -59,9 +59,8 @@ void take_class_defaults args((DESCRIPTOR_DATA *d));
 void take_default_weapon args((DESCRIPTOR_DATA *d));
 void newbie_alert args((DESCRIPTOR_DATA *d));
 void take_default_stats args((CHAR_DATA *ch));
-void get_random_stats args((CHAR_DATA *ch));
+void auto_assign_stats args((CHAR_DATA *ch));
 bool parse_roll_stats args((CHAR_DATA *ch,char *argument));
-bool parse_stat_priority args((CHAR_DATA *ch, char *argument));
 void do_stats args((CHAR_DATA *ch, char *argument));
 void do_etls args((CHAR_DATA *ch, char *argument));
 
@@ -82,7 +81,6 @@ bool	read_motd			args( ( DESCRIPTOR_DATA *d, char *argument ) );
 bool	break_connect		args( ( DESCRIPTOR_DATA *d, char *argument ) );
 bool	get_creation_mode		args( ( DESCRIPTOR_DATA *d, char *argument ) );
 bool	roll_stats			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_stat_priority		args( ( DESCRIPTOR_DATA *d, char *argument ) );
 /* It would be nice to have colour in creation!!  Added by Quirky, June 2003 */
 bool	get_colour		args( ( DESCRIPTOR_DATA *d, char *argument ) );
 
@@ -233,7 +231,7 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 	    }	
 	    break;
 	    
-	case CREATION_INSTANT:
+	case CREATION_NORMAL:
 	    switch ( con_state(d) )
 		{
 		    
@@ -251,12 +249,9 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		    break;
 
 		case CON_GET_NEW_RACE:
-		    if (get_new_race(d, argument)) get_alignment(d, argument);
-		    break;
-		    
-		case CON_GET_ALIGNMENT:
-		    if (get_alignment(d, argument))
+		    if (get_new_race(d, argument))
 			{
+                d->character->alignment = 0;
 			    take_rom_basics(d);
 			    take_class_defaults(d);
 			    take_default_weapon(d);
@@ -269,59 +264,7 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		}
 	    break;
 	    
-	case CREATION_QUICK:
-	    switch ( con_state(d) )
-		{
-		    
-		default:
-		    bug( "Nanny: bad d->connected %d.", d->connected );
-		    close_socket( d );
-		    return;
-		    
-		case CON_GET_NEW_SEX:
-		    if (get_new_sex(d, argument)) get_new_class(d, argument);
-		    break;
-		    
-		case CON_GET_NEW_CLASS:
-		    if (get_new_class(d, argument)) get_new_race(d, argument);
-		    break;
-
-		case CON_GET_NEW_RACE:
-		    if (get_new_race(d, argument)) get_alignment(d, argument);
-		    break;
-		    
-		case CON_GET_ALIGNMENT:
-		    if (get_alignment(d, argument))
-			{
-			    take_rom_basics(d);
-			    default_choice(d, argument);
-			}
-		    break;
-		    
-		case CON_DEFAULT_CHOICE:
-		    if (default_choice(d, argument)) pick_weapon(d, argument);
-		    break;
-		    
-		case CON_GEN_GROUPS:
-		    if (gen_groups(d, argument)) pick_weapon(d, argument);
-		    break;
-		    
-		case CON_PICK_WEAPON:
-		    if (pick_weapon(d, argument)) get_stat_priority(d, argument);
-		    break;
-		    
-		case CON_GET_STAT_PRIORITY:
-		    if (get_stat_priority(d, argument))
-			{
-			    set_creation_state(d, CREATION_UNKNOWN);
-			    read_imotd(d, argument);
-			}
-		    break;
-		    
-		}
-	    break;
-	    
-	case CREATION_NORMAL:
+	case CREATION_EXPERT:
 	    switch ( con_state(d) )
 		{
 		    
@@ -814,7 +757,7 @@ bool get_creation_mode(DESCRIPTOR_DATA *d, char *argument)
 	{
 		write_to_buffer(d,"\n\r",0);
 		do_help(d->character,"header creation");
-		sprintf( msg, "{CWhich creation option do you choose(instant, quick, normal)?{x " );
+		sprintf( msg, "{CWhich creation option do you choose(normal, expert)?{x " );
 
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character );
@@ -826,21 +769,15 @@ bool get_creation_mode(DESCRIPTOR_DATA *d, char *argument)
 
 	one_argument(argument,arg);
 
-	if (!strcmp(arg, "instant"))
-	{
-		set_creation_state(d, CREATION_INSTANT);
-		return TRUE;
-	}
-
-	if (!strcmp(arg, "quick"))
-	{
-		set_creation_state(d, CREATION_QUICK);
-		return TRUE;
-	}
-
 	if (!strcmp(arg, "normal"))
 	{
 		set_creation_state(d, CREATION_NORMAL);
+		return TRUE;
+	}
+
+	if (!strcmp(arg, "expert"))
+	{
+		set_creation_state(d, CREATION_EXPERT);
 		return TRUE;
 	}
 	if (!strcmp(arg, "help"))
@@ -851,7 +788,7 @@ bool get_creation_mode(DESCRIPTOR_DATA *d, char *argument)
 
 	write_to_buffer(d,"That isn't a valid choice.\n\r",0);
 
-        sprintf( msg, "{CWhich creation option do you choose(instant, quick, normal)?{x " );
+        sprintf( msg, "{CWhich creation option do you choose(normal, expert)?{x " );
         pbuff = buffer;
         colourconv( pbuff, msg, d->character ); 
         write_to_buffer(d, buffer ,0);
@@ -1438,9 +1375,9 @@ bool	gen_groups ( DESCRIPTOR_DATA *d, char *argument )
 		ch->gen_data->points_chosen = ch->pcdata->points;
 		do_help(ch,"header group");
 		list_group_costs(ch);
-		write_to_buffer(d,"You already have the following skills:\n\r",0);
-		do_skills(ch,"");
-                //do_spells(ch,"");
+        //write_to_buffer(d,"You already have the following skills:\n\r",0);
+        //do_skills(ch,"");
+        //do_spells(ch,"");
 		send_to_char("{CList, learned, premise, add, drop, info, help, or done?{x ",ch);
 		set_con_state(d, CON_GEN_GROUPS);
 		return FALSE;		
@@ -1604,14 +1541,14 @@ bool roll_stats ( DESCRIPTOR_DATA *d, char *argument )
 		return TRUE;
 	}
 
-	if (!str_cmp(argument,"default"))
-	{
-		free_gen_data(ch->gen_data);
-		ch->gen_data=NULL;
-		send_to_char("     {cThe game has selected stats for you based on your class.{x\n\r\n\r",ch);
-		take_default_stats(ch);
-		return TRUE;
-	}	
+    if (!str_cmp(argument,"default"))
+    {
+        send_to_char("     {cThe game has assigned dice for you based on your class and race.{x\n\r",ch);
+        auto_assign_stats(ch);
+        show_dice(ch);
+        send_to_char("{CShow, reroll, assign, unassign, default, help, or done?{x ",ch);
+        return FALSE;
+    }
 
 	if (!parse_roll_stats(ch,argument))
 		send_to_char("Thats not a valid choice.\n\r",ch);
@@ -1620,62 +1557,6 @@ bool roll_stats ( DESCRIPTOR_DATA *d, char *argument )
 	
 	return FALSE;
 }
-
-
-
-
-bool	get_stat_priority ( DESCRIPTOR_DATA *d, char *argument )
-{
-	CHAR_DATA *ch=d->character;
-	int i;
-
-	send_to_char( "\n\r", ch );
-
-	if (con_state(d) != CON_GET_STAT_PRIORITY)
-	{
-		ch->gen_data = new_gen_data();
-		for (i = 0; i<MAX_STATS; i++)
-		{
-			ch->gen_data->stat_priority[i]=-1;
-			ch->gen_data->unused_die[i]=TRUE;
-		}
-		parse_stat_priority(ch, "help");
-		send_to_char("{CType a statistic or type default, undo, help, or done?{x ",ch);
-		set_con_state(d, CON_GET_STAT_PRIORITY);
-		return FALSE;
-	}
-
-	send_to_char("\n\r",ch);
-	if (!str_cmp(argument,"done"))
-	{
-		if (ch->gen_data->stat_priority[MAX_STATS-1]==-1)
-		{
-			send_to_char("You haven't finished setting your priorities.  Finish assigning them or type default.\n\r",ch);
-			return FALSE;
-		}
-		get_random_stats(ch);
-		free_gen_data(ch->gen_data);
-		ch->gen_data = NULL;
-		return TRUE;
-	}
-
-	if (!str_cmp(argument,"default"))
-	{
-		free_gen_data(ch->gen_data);
-		ch->gen_data=NULL;
-		send_to_char("     {cThe game has selected stats for you based on your class.\n\r\n\r",ch);
-		take_default_stats(ch);
-		return TRUE;
-	}	
-
-	if (!parse_stat_priority(ch,argument))
-		send_to_char("Thats not a valid choice.\n\r",ch);
-
-	send_to_char("{CType a statistic or type default, undo, help, or done?{x ",ch);
-	
-	return FALSE;
-}
-
 
 
 
