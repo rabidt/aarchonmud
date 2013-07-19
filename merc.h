@@ -2177,6 +2177,7 @@ typedef int tattoo_list[MAX_WEAR];
  * Colour stuff by Lope of Loping Through The MUD
  */
 #define PLR_COLOUR     (T)    /* Colour Flag By Lope */
+#define PLR_COLOUR_VERBATIM (Y)
 
 /* penalty flags */
 #define PLR_PERMIT      (U)
