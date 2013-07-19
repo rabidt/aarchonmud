@@ -1270,7 +1270,6 @@ void spell_hand_of_siva( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     if( weapon_2hands )
     {
-	I_SET_BIT( weapon->value[4], WEAPON_TWO_HANDS );
         if ( weapon_level <= 90)
             weapon->value[2] = UMAX(1, weapon_level - weapon_level/3 - 1);
         else
@@ -1278,12 +1277,12 @@ void spell_hand_of_siva( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
     else
     {
-    if ( weapon_level <= 90 )
-	weapon->value[2] = UMAX(1, weapon_level - weapon_level/3 - 6);
-    else
-	weapon->value[2] = (59 + 2 * ( weapon_level - 90 )) - 5;
+        I_REMOVE_BIT( weapon->value[4], WEAPON_TWO_HANDS );
+        if ( weapon_level <= 90 )
+            weapon->value[2] = UMAX(1, weapon_level - weapon_level/3 - 6);
+        else
+            weapon->value[2] = (59 + 2 * ( weapon_level - 90 )) - 5;
     }
-
 
     obj_to_room( weapon, ch->in_room );
     act( "$p suddenly appears!", ch, weapon, NULL, TO_ROOM );
