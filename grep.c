@@ -1350,7 +1350,7 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
     case APPLY_SAVING_PETRI:
     case APPLY_SAVING_BREATH:
     case APPLY_SAVING_SPELL: factor = -1; break;
-    default: return 0;
+    default: factor = 0; break;
     }
 
     result = aff->modifier * factor;
@@ -1363,6 +1363,28 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
     else if ( result > max_ops && !is_affect_cap_hard(aff->location) )
         result += (result - max_ops) / 3;
 
+    if ( aff->where == TO_AFFECTS )
+    {
+        switch (aff->bitvector)
+        {
+            case AFF_NONE: break;
+            case AFF_HASTE: result += 50; break;
+            case AFF_BERSERK:
+            case AFF_PROTECT_MAGIC: result += 25; break;
+            case AFF_FLYING:
+            case AFF_BATTLE_METER:
+            case AFF_DETECT_INVIS:
+            case AFF_DETECT_HIDDEN:
+            case AFF_BREATHE_WATER: result += 20; break;
+            case AFF_DARK_VISION: result += 15; break;
+            case AFF_INFRARED:
+            case AFF_DETECT_MAGIC:
+            case AFF_DETECT_GOOD:
+            case AFF_DETECT_EVIL: result += 10; break;
+            default: result += 1000; break; // not allowed
+        }
+    }
+    
     return result;
 }
 
