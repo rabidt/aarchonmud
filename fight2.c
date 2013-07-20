@@ -1907,7 +1907,7 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     CHAR_DATA *other;
     CHAR_DATA *other_next;
     CHAR_DATA *fch;
-    bool okay = FALSE;
+    bool is_attacked = FALSE;
     int chance;
     
     one_argument( argument, arg );
@@ -1947,12 +1947,6 @@ void do_rescue( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !IS_NPC(ch) && IS_NPC(victim) )
-    {
-        send_to_char( "Doesn't need your help!\n\r", ch );
-        return;
-    }
-    
     if ( ch->fighting == victim )
     {
         send_to_char( "Too late.\n\r", ch );
@@ -1961,38 +1955,24 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     
     /* find character to rescue victim from */
     for ( fch = victim->in_room->people; fch != NULL; fch = fch->next_in_room )
-	if ( fch->fighting == victim )
-	    break;
+    {        
+        if ( fch->fighting == victim )
+        {        
+            is_attacked = TRUE;
+            if ( !is_safe_spell(ch, fch, FALSE) )
+                break;
+        }
+    }
 
     if ( fch == NULL )
     {
-        send_to_char( "That person isn't being attacked right now.\n\r", ch );
+        if ( is_attacked )
+            send_to_char( "You cannot interfere in this fight.\n\r",ch);
+        else
+            send_to_char( "That person isn't being attacked right now.\n\r", ch );
         return;
     }
-    
-    if ( is_safe_spell(ch, fch, FALSE) )
-    {
-        send_to_char("You cannot fight that target.\n\r",ch);
-        return;
-    }
-    
-    /*
-    for ( other=ch->in_room->people; other != NULL; other=other_next )
-    {
-        other_next = other->next_in_room;
-        if ( other->fighting == victim )
-        {
-            okay = TRUE;
-            break;
-        }
-    }
-    if ( okay == FALSE )
-    {
-        send_to_char( "That person isn't in need of a rescue.\n\r", ch );
-        return;
-    }
-    */
-    
+
     chance = 25 + get_skill(ch, gsn_rescue)/2 + get_skill(ch, gsn_bodyguard)/4;
     if (number_percent() < get_skill(fch, gsn_entrapment))
     {
