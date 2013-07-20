@@ -1218,6 +1218,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1425,11 +1427,18 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     }
 
     /* damage roll */
-    dam += GET_DAMROLL(ch) / 4;
+    int damroll = GET_DAMROLL(ch);
+    if (damroll > 0) {
+        int damroll_roll = number_range(0, number_range(0, damroll));
+        // bonus is partially capped
+        int damroll_cap = 2 * (10 + ch->level + UMAX(0, ch->level - 90));
+        if (damroll_roll > damroll_cap)
+            damroll_roll = (damroll_roll + 2 * damroll_cap) / 3;        
+        dam += damroll_roll;
+    }
 
     /* enhanced damage */
-    if ( wield != NULL && (wield->value[0] == WEAPON_GUN
-			   || wield->value[0] == WEAPON_BOW) )
+    if ( is_ranged_weapon(wield) )
     {
 	if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto
 	     && !number_bits(3) && chance(get_skill(ch, gsn_sharp_shooting)) )
@@ -1570,8 +1579,7 @@ void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, bool hit )
     /* counterstrike */
     CHECK_RETURN( ch, victim );
     obj = get_eq_char( victim, WEAR_WIELD );
-    if ( obj != NULL && (obj->value[0] == WEAPON_BOW || obj->value[0] == WEAPON_GUN)
-	 || victim->fighting != ch || IS_AFFECTED(victim, AFF_FLEE) )
+    if ( is_ranged_weapon(obj) || victim->fighting != ch || IS_AFFECTED(victim, AFF_FLEE) )
 	return;
     one_hit( victim, ch, TYPE_UNDEFINED, FALSE );
 }
@@ -1593,6 +1601,15 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
     return bonus / 10;
 }
 
+bool is_ranged_weapon( OBJ_DATA *weapon )
+{
+    if ( !weapon || weapon->item_type != ITEM_WEAPON )
+        return FALSE;
+    
+    return weapon->value[0] == WEAPON_BOW
+        || weapon->value[0] == WEAPON_GUN;
+}
+
 /*
 * Hit one guy once.
 */
@@ -1603,7 +1620,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     int diceroll;
     int sn,skill;
     int dam_type;
-    bool result, arrow_used = FALSE;
+    bool result, arrow_used = FALSE, berserking = FALSE;
     /* prevent attack chains through re-retributions */
     static bool is_retribute = FALSE;
 
@@ -1705,6 +1722,28 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     check_killer( ch, victim );
 
+    // berserking characters deal extra damage at the cost of moves
+    // the move cost applies whether or not the attack hits
+    // that's why we check it here rather than in deal_damage
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) /*&& !is_ranged_weapon(wield)*/ )
+    {
+        int berserk_cost = 2;
+        if ( wield != NULL )
+        {
+            if ( wield->value[0] == WEAPON_BOW )
+                berserk_cost = 5;
+            else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
+                berserk_cost = 4;
+            else
+                berserk_cost = 3;
+        }
+        if ( ch->move >= berserk_cost )
+        {
+            ch->move -= berserk_cost;
+            berserking = TRUE;
+        }
+    }    
+    
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
 	/* Miss. */
@@ -1726,6 +1765,9 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
      * Calc damage.
      */
     dam = one_hit_damage( ch, dt, wield );
+    
+    if (berserking)
+        dam += 5 + dam/5;
 
     if (wield != NULL)
     {
@@ -1942,10 +1984,8 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam )
 {
     int level;
 
-    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD)
-	 || (wield != NULL && (wield->value[0]==WEAPON_GUN
-			       || wield->value[0]==WEAPON_BOW )) )
-	return;
+    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) && !is_ranged_weapon(wield) )
+        return;
 
     if ( is_affected(victim, gsn_immolation) )
     {
@@ -5900,8 +5940,7 @@ void check_back_leap( CHAR_DATA *victim )
 	
 	wield = get_eq_char( opp, WEAR_WIELD );
 	/* ranged weapons get off one shot */
-	if ( wield != NULL
-	     && (wield->value[0] == WEAPON_GUN || wield->value[0] == WEAPON_BOW) )
+	if ( is_ranged_weapon(wield) )
 	{
 	    act( "$n shoots at your back!", opp, NULL, victim, TO_VICT    );
 	    act( "You shoot at $N's back!", opp, NULL, victim, TO_CHAR    );
