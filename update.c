@@ -2271,17 +2271,24 @@ void aggr_update( void )
 
                 if (number_percent() < chance)
                 {
-                    act( "You soothe $n with your peaceful presence.", 
-                            ch, NULL, victim, TO_VICT    );
-                    act( "$N soothes you with $s peaceful presence.", 
-                            ch, NULL, victim, TO_CHAR    );
-                    act( "$N soothes $n with $s peaceful presence.",
-                            ch, NULL, victim, TO_NOTVICT );
-                    REMOVE_BIT(ch->act,ACT_AGGRESSIVE);
+                    act( "You soothe $n with your peaceful presence.", ch, NULL, victim, TO_VICT );
+                    act( "$N soothes you with $s peaceful presence.", ch, NULL, victim, TO_CHAR );
+                    act( "$N soothes $n with $s peaceful presence.", ch, NULL, victim, TO_NOTVICT );
+                    // apply calm effect
+                    AFFECT_DATA af;
+                    af.where = TO_AFFECTS;
+                    af.type = gsn_soothe;
+                    af.level = victim->level;
+                    af.duration = dice(2,4);
+                    af.location = APPLY_HITROLL;
+                    af.modifier = -5;
+                    af.bitvector = AFF_CALM;
+                    affect_to_char(ch, &af);
                     forget_attacks( ch );
                     check_improve(victim,gsn_soothe,TRUE,1);
                     continue;
                 }
+                act( "You fail to soothe $n.", ch, NULL, victim, TO_VICT );
                 check_improve(victim,gsn_soothe,FALSE,1);
             }
 
