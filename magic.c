@@ -600,9 +600,9 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
                 check_killer(ch,victim);
             }
 
-            if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master == victim )
+            if ( IS_AFFECTED(victim, AFF_CHARM) && victim->leader == ch )
             {
-                send_to_char( "You can't do that on your own follower.\n\r", ch );
+                send_to_char( "You can't do that to your own follower.\n\r", ch );
                 return FALSE;
             }
 
@@ -702,9 +702,9 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
                     return FALSE;
                 }
 
-                if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master == victim )
+                if ( IS_AFFECTED(victim, AFF_CHARM) && victim->leader == ch )
                 {
-                    send_to_char( "You can't do that on your own follower.\n\r", ch );
+                    send_to_char( "You can't do that to your own follower.\n\r", ch );
                     return FALSE;
                 }
 
@@ -1045,8 +1045,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     if ((skill_table[sn].target == TAR_CHAR_OFFENSIVE
                 || (skill_table[sn].target == TAR_VIS_CHAR_OFF)
                 ||   (skill_table[sn].target == TAR_OBJ_CHAR_OFF && target == TARGET_CHAR))
-            &&   victim != ch
-            &&   victim->master != ch)
+            &&   victim != ch)
     {
         CHAR_DATA *vch;
         CHAR_DATA *vch_next;
