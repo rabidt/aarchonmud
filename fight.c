@@ -2500,15 +2500,65 @@ bool is_normal_hit( int dt )
      || (dt == gsn_pistol_whip);
 }
 
+/* strip affects due to dealing damage */
+void attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( victim == ch )
+        return;
+    
+    if ( IS_AFFECTED(ch, AFF_INVISIBLE) )
+    {
+        affect_strip( ch, gsn_invis );
+        affect_strip( ch, gsn_mass_invis );
+        REMOVE_BIT( ch->affect_field, AFF_INVISIBLE );
+        act( "$n fades into existence.", ch, NULL, NULL, TO_ROOM );
+    }
+    
+    if ( IS_AFFECTED(ch, AFF_ASTRAL) )
+    {
+        affect_strip( ch, gsn_astral );
+        REMOVE_BIT( ch->affect_field, AFF_ASTRAL );
+        act( "$n returns to the material plane.", ch, NULL, NULL, TO_ROOM );
+    }
+    
+    if ( IS_AFFECTED(ch, AFF_SHELTER) )
+    {
+        affect_strip( ch, gsn_shelter );
+        REMOVE_BIT( ch->affect_field, AFF_SHELTER );
+        act( "$n is no longer sheltered!", ch, NULL, NULL, TO_ROOM );
+    }
+    
+    if ( IS_AFFECTED(ch, AFF_HIDE) )
+    {
+        affect_strip( ch, gsn_hide );
+        REMOVE_BIT( ch->affect_field, AFF_HIDE );
+        act( "$n leaps out of hiding!", ch, NULL, NULL, TO_ROOM );
+    }
+
+    // Followers desert (strips charm)
+    if ( victim->master == ch )
+        stop_follower( victim );
+}
+
 /* deal direct, unmodified, non-lethal damage */
 void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
 {
     dam = URANGE( 0, dam, victim->hit - 1 );
-
     victim->hit -= dam;
+
     remember_attack(victim, ch, dam);
-    if ( sn > 0 && dam > 0 )
-	dam_message(ch,victim,dam,sn,FALSE);
+
+    if ( dam > 0 )
+    {
+        // Sleeping victims wake up
+        if ( IS_AFFECTED(victim, AFF_SLEEP) )
+            affect_strip_flag( victim, AFF_SLEEP );
+        if ( victim->position == POS_SLEEPING )
+            set_pos( victim, POS_RESTING );
+        
+        if ( sn > 0 )
+            dam_message(ch,victim,dam,sn,FALSE);
+    }
 }
 
 /*
@@ -2627,61 +2677,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             }
         }
         
-        /*
-        * More charm stuff.
-        */
-        if ( victim->master == ch )
-            stop_follower( victim );
-    
-	/*
-	 * Inviso attacks ... not.
-	 */
-	if ( IS_AFFECTED(ch, AFF_INVISIBLE) )
-	{
-	    affect_strip( ch, gsn_invis );
-	    affect_strip( ch, gsn_mass_invis );
-	    REMOVE_BIT( ch->affect_field, AFF_INVISIBLE );
-	    act( "$n fades into existence.", ch, NULL, NULL, TO_ROOM );
-	}
-    
-	/*
-	 * Astral attacks ... not.
-	 */
-	if ( IS_AFFECTED(ch, AFF_ASTRAL) )
-	{
-	    affect_strip( ch, gsn_astral );
-	    REMOVE_BIT( ch->affect_field, AFF_ASTRAL );
-	    act( "$n returns to the material plane.", ch, NULL, NULL, TO_ROOM );
-	}
-	
-	/*
-	 * Sheltered attacks ... not.
-	 */
-	if ( IS_AFFECTED(ch, AFF_SHELTER) )
-	{
-	    affect_strip( ch, gsn_shelter );
-	    REMOVE_BIT( ch->affect_field, AFF_SHELTER );
-	    act( "$n is no longer sheltered!", ch, NULL, NULL, TO_ROOM );
-	}
-    
-	/*
-	 * Hidden attacks ... not.
-	 */ 
-	if ( IS_AFFECTED(ch, AFF_HIDE) )
-	{
-	    affect_strip( ch, gsn_hide );
-	    REMOVE_BIT( ch->affect_field, AFF_HIDE );
-	    act( "$n leaps out of hiding!",ch,NULL,NULL,TO_ROOM );
-	}
-
-	/* no mimic attacks */
-	/*
-	if ( is_affected(ch, gsn_mimic) )
-	{
-	    affect_strip( ch, gsn_mimic );
-	    act( "The illusion surrounding $n fades.", ch, NULL, NULL, TO_ROOM );
-	}
-	*/
+        attack_affect_strip(ch, victim);
     
     } /* if ( ch != victim ) */
 
