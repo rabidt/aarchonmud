@@ -1848,26 +1848,13 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill )
 {
     int ch_roll, victim_roll;
-    int defense_factor, victim_ac;
+    int victim_ac;
     int ac_dam_type;
     OBJ_DATA *wield;
 
     if ( ch == victim )
 	return TRUE;
 
-    /* special skill adjustment */
-    if ( dt == gsn_aim
-	 || dt == gsn_backstab
-	 || dt == gsn_back_leap
-	 || dt == gsn_circle
-	 || dt == gsn_slash_throat
-         || dt == gsn_rupture
-	 || dt == gsn_snipe )
-    {
-	//if ( chance(get_skill(ch, dt)) )
-	return TRUE;
-    }
-    
     if ( IS_AFFECTED(ch, AFF_CURSE) && per_chance(5) )
 	return FALSE;
 
@@ -1910,29 +1897,24 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
     }
 
-    /* basic defense skill */
-    if ( IS_NPC(victim) )
-    {
-	defense_factor = 100;
-        if (IS_SET(victim->act, ACT_WARRIOR))
-            defense_factor += 20;
-        if (IS_SET(victim->act, ACT_MAGE))
-            defense_factor -= 20;
-    }
-    else
-    {
-        defense_factor = class_table[victim->class].defense_factor;
-    }
-
     /* basic values */
     ch_roll = GET_HITROLL(ch);
     victim_roll = 10 - victim_ac;
+
+    /* special skill adjustment */
+    if ( (dt < TYPE_HIT && IS_SPELL(dt))
+        || dt == gsn_aim
+        || dt == gsn_backstab
+        || dt == gsn_back_leap
+        || dt == gsn_circle
+        || dt == gsn_slash_throat
+        || dt == gsn_rupture
+        || dt == gsn_snipe )
+    {
+        victim_roll /= 2;
+    }    
     
     /* skill-based chance-to-miss */
-    /*
-    if ( number_percent() > skill )
-	return FALSE;
-    */
     ch_roll = ch_roll * skill/100;
 
     /* blind attacks */
