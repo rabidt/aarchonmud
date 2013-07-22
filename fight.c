@@ -1872,13 +1872,6 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     if ( number_percent() <= 3 * (SIZE_GIANT - victim->size) )
 	return FALSE;
 
-    if ( number_percent() <= get_skill(ch, gsn_giantfeller)
-	 && number_percent() <= 3 * (victim->size - ch->size) )
-    {
-	check_improve(ch, gsn_giantfeller, TRUE, 6); 
-	return TRUE;
-    }
-
     /* automatic chance-to-hit */
     if ( number_bits(3) == 0 )
 	return TRUE;
@@ -1914,6 +1907,13 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
         victim_roll /= 2;
     }    
     
+    if ( victim->size > ch->size )
+    {
+        // +5% to attack roll per size difference
+        ch_roll += ch_roll * (victim->size - ch->size) * get_skill(ch, gsn_giantfeller) / 2000;
+        check_improve(ch, gsn_giantfeller, TRUE, 6);
+    }
+
     /* skill-based chance-to-miss */
     ch_roll = ch_roll * skill/100;
 
