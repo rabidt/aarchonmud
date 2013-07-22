@@ -313,58 +313,41 @@ void run_combat_action( DESCRIPTOR_DATA *d )
 
 bool wants_to_rescue( CHAR_DATA *ch )
 {
-  return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE))
-      || PLR_ACT(ch, PLR_AUTORESCUE);
+    if ( ch->position < POS_FIGHTING || ch->hit < ch->wimpy || IS_AFFECTED(ch, AFF_FEAR) )
+        return FALSE;
+    return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
 
 /* check if character rescues someone */
 void check_rescue( CHAR_DATA *ch )
 {
-  CHAR_DATA *other, *target;
-  char buf[MSL];
+    CHAR_DATA *attacker, *target = NULL;
+    char buf[MSL];
 
-  if ( !wants_to_rescue(ch) )
-    return;
+    if ( !wants_to_rescue(ch) )
+        return;
 
-  /* get target */
-  if ( !IS_NPC(ch) || ch->leader != NULL )
-  {
-      bool need_rescue = FALSE;
+    // get target
+    for ( attacker = ch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
+    {
+        // may not be able to interfere
+        if ( is_safe_spell(ch, attacker, FALSE) )
+            continue;
 
-      target = ch->leader;
-      if ( target == NULL )
-	  return;
+        // may not want to rescue
+        target = attacker->fighting;
+        if ( target == NULL || target == ch || IS_NPC(target) || !is_same_group(ch, target) || !can_see(ch, target) )
+            continue;
 
-      /* check if anyone fights the target */
-      for ( other=ch->in_room->people; other != NULL; other=other->next_in_room )
-	  if ( other->fighting == target && !is_safe_spell(ch, other, FALSE))
-	  {
-	      need_rescue = TRUE;
-	      break;
-	  }
-      if (!need_rescue)
-	  return;
-  }
-  else
-  {
-      target = NULL;
-      for ( other=ch->in_room->people; other != NULL; other=other->next_in_room )
-	  if ( !is_same_group(ch, other)
-	       && other->fighting != NULL
-	       && other->fighting != ch
-	       && is_same_group(ch, other->fighting)
-	       && can_see(ch, other->fighting) )
-	  {
-	      target = other->fighting;
-	      break;
-	  }
-  }
+        // may not want to be rescued
+        if ( wants_to_rescue(target) )
+            continue;
+        
+        break;
+    }
 
-  if (target == NULL || target == ch)
-    return;
-
-  if (ch->position <= POS_SLEEPING || !can_see(ch, target))
-    return;
+    if ( attacker == NULL )
+        return;
 
   /* lag-free rescue */
   if (number_percent() < get_skill(ch, gsn_bodyguard))
@@ -1235,6 +1218,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1442,11 +1427,18 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     }
 
     /* damage roll */
-    dam += GET_DAMROLL(ch) / 4;
+    int damroll = GET_DAMROLL(ch);
+    if (damroll > 0) {
+        int damroll_roll = number_range(0, number_range(0, damroll));
+        // bonus is partially capped
+        int damroll_cap = 2 * (10 + ch->level + UMAX(0, ch->level - 90));
+        if (damroll_roll > damroll_cap)
+            damroll_roll = (damroll_roll + 2 * damroll_cap) / 3;        
+        dam += damroll_roll;
+    }
 
     /* enhanced damage */
-    if ( wield != NULL && (wield->value[0] == WEAPON_GUN
-			   || wield->value[0] == WEAPON_BOW) )
+    if ( is_ranged_weapon(wield) )
     {
 	if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto
 	     && !number_bits(3) && chance(get_skill(ch, gsn_sharp_shooting)) )
@@ -1587,8 +1579,7 @@ void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, bool hit )
     /* counterstrike */
     CHECK_RETURN( ch, victim );
     obj = get_eq_char( victim, WEAR_WIELD );
-    if ( obj != NULL && (obj->value[0] == WEAPON_BOW || obj->value[0] == WEAPON_GUN)
-	 || victim->fighting != ch || IS_AFFECTED(victim, AFF_FLEE) )
+    if ( is_ranged_weapon(obj) || victim->fighting != ch || IS_AFFECTED(victim, AFF_FLEE) )
 	return;
     one_hit( victim, ch, TYPE_UNDEFINED, FALSE );
 }
@@ -1610,6 +1601,15 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
     return bonus / 10;
 }
 
+bool is_ranged_weapon( OBJ_DATA *weapon )
+{
+    if ( !weapon || weapon->item_type != ITEM_WEAPON )
+        return FALSE;
+    
+    return weapon->value[0] == WEAPON_BOW
+        || weapon->value[0] == WEAPON_GUN;
+}
+
 /*
 * Hit one guy once.
 */
@@ -1620,7 +1620,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     int diceroll;
     int sn,skill;
     int dam_type;
-    bool result, arrow_used = FALSE;
+    bool result, arrow_used = FALSE, berserking = FALSE;
     /* prevent attack chains through re-retributions */
     static bool is_retribute = FALSE;
 
@@ -1722,6 +1722,28 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     check_killer( ch, victim );
 
+    // berserking characters deal extra damage at the cost of moves
+    // the move cost applies whether or not the attack hits
+    // that's why we check it here rather than in deal_damage
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) /*&& !is_ranged_weapon(wield)*/ )
+    {
+        int berserk_cost = 2;
+        if ( wield != NULL )
+        {
+            if ( wield->value[0] == WEAPON_BOW )
+                berserk_cost = 5;
+            else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
+                berserk_cost = 4;
+            else
+                berserk_cost = 3;
+        }
+        if ( ch->move >= berserk_cost )
+        {
+            ch->move -= berserk_cost;
+            berserking = TRUE;
+        }
+    }    
+    
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
 	/* Miss. */
@@ -1743,6 +1765,9 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
      * Calc damage.
      */
     dam = one_hit_damage( ch, dt, wield );
+    
+    if (berserking)
+        dam += 5 + dam/5;
 
     if (wield != NULL)
     {
@@ -1959,10 +1984,8 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam )
 {
     int level;
 
-    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD)
-	 || (wield != NULL && (wield->value[0]==WEAPON_GUN
-			       || wield->value[0]==WEAPON_BOW )) )
-	return;
+    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) && !is_ranged_weapon(wield) )
+        return;
 
     if ( is_affected(victim, gsn_immolation) )
     {
@@ -2500,15 +2523,65 @@ bool is_normal_hit( int dt )
      || (dt == gsn_pistol_whip);
 }
 
+/* strip affects due to dealing damage */
+void attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( victim == ch )
+        return;
+    
+    if ( IS_AFFECTED(ch, AFF_INVISIBLE) )
+    {
+        affect_strip( ch, gsn_invis );
+        affect_strip( ch, gsn_mass_invis );
+        REMOVE_BIT( ch->affect_field, AFF_INVISIBLE );
+        act( "$n fades into existence.", ch, NULL, NULL, TO_ROOM );
+    }
+    
+    if ( IS_AFFECTED(ch, AFF_ASTRAL) )
+    {
+        affect_strip( ch, gsn_astral );
+        REMOVE_BIT( ch->affect_field, AFF_ASTRAL );
+        act( "$n returns to the material plane.", ch, NULL, NULL, TO_ROOM );
+    }
+    
+    if ( IS_AFFECTED(ch, AFF_SHELTER) )
+    {
+        affect_strip( ch, gsn_shelter );
+        REMOVE_BIT( ch->affect_field, AFF_SHELTER );
+        act( "$n is no longer sheltered!", ch, NULL, NULL, TO_ROOM );
+    }
+    
+    if ( IS_AFFECTED(ch, AFF_HIDE) )
+    {
+        affect_strip( ch, gsn_hide );
+        REMOVE_BIT( ch->affect_field, AFF_HIDE );
+        act( "$n leaps out of hiding!", ch, NULL, NULL, TO_ROOM );
+    }
+
+    // Followers desert (strips charm)
+    if ( victim->master == ch )
+        stop_follower( victim );
+}
+
 /* deal direct, unmodified, non-lethal damage */
 void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
 {
     dam = URANGE( 0, dam, victim->hit - 1 );
-
     victim->hit -= dam;
+
     remember_attack(victim, ch, dam);
-    if ( sn > 0 && dam > 0 )
-	dam_message(ch,victim,dam,sn,FALSE);
+
+    if ( dam > 0 )
+    {
+        // Sleeping victims wake up
+        if ( IS_AFFECTED(victim, AFF_SLEEP) )
+            affect_strip_flag( victim, AFF_SLEEP );
+        if ( victim->position == POS_SLEEPING )
+            set_pos( victim, POS_RESTING );
+        
+        if ( sn > 0 )
+            dam_message(ch,victim,dam,sn,FALSE);
+    }
 }
 
 /*
@@ -2627,61 +2700,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             }
         }
         
-        /*
-        * More charm stuff.
-        */
-        if ( victim->master == ch )
-            stop_follower( victim );
-    
-	/*
-	 * Inviso attacks ... not.
-	 */
-	if ( IS_AFFECTED(ch, AFF_INVISIBLE) )
-	{
-	    affect_strip( ch, gsn_invis );
-	    affect_strip( ch, gsn_mass_invis );
-	    REMOVE_BIT( ch->affect_field, AFF_INVISIBLE );
-	    act( "$n fades into existence.", ch, NULL, NULL, TO_ROOM );
-	}
-    
-	/*
-	 * Astral attacks ... not.
-	 */
-	if ( IS_AFFECTED(ch, AFF_ASTRAL) )
-	{
-	    affect_strip( ch, gsn_astral );
-	    REMOVE_BIT( ch->affect_field, AFF_ASTRAL );
-	    act( "$n returns to the material plane.", ch, NULL, NULL, TO_ROOM );
-	}
-	
-	/*
-	 * Sheltered attacks ... not.
-	 */
-	if ( IS_AFFECTED(ch, AFF_SHELTER) )
-	{
-	    affect_strip( ch, gsn_shelter );
-	    REMOVE_BIT( ch->affect_field, AFF_SHELTER );
-	    act( "$n is no longer sheltered!", ch, NULL, NULL, TO_ROOM );
-	}
-    
-	/*
-	 * Hidden attacks ... not.
-	 */ 
-	if ( IS_AFFECTED(ch, AFF_HIDE) )
-	{
-	    affect_strip( ch, gsn_hide );
-	    REMOVE_BIT( ch->affect_field, AFF_HIDE );
-	    act( "$n leaps out of hiding!",ch,NULL,NULL,TO_ROOM );
-	}
-
-	/* no mimic attacks */
-	/*
-	if ( is_affected(ch, gsn_mimic) )
-	{
-	    affect_strip( ch, gsn_mimic );
-	    act( "The illusion surrounding $n fades.", ch, NULL, NULL, TO_ROOM );
-	}
-	*/
+        attack_affect_strip(ch, victim);
     
     } /* if ( ch != victim ) */
 
@@ -5917,8 +5936,7 @@ void check_back_leap( CHAR_DATA *victim )
 	
 	wield = get_eq_char( opp, WEAR_WIELD );
 	/* ranged weapons get off one shot */
-	if ( wield != NULL
-	     && (wield->value[0] == WEAPON_GUN || wield->value[0] == WEAPON_BOW) )
+	if ( is_ranged_weapon(wield) )
 	{
 	    act( "$n shoots at your back!", opp, NULL, victim, TO_VICT    );
 	    act( "You shoot at $N's back!", opp, NULL, victim, TO_CHAR    );
@@ -5989,11 +6007,13 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
   CHAR_DATA *ch;
   int chance;
   int ass_skill = get_skill(attacker, gsn_assassination);
-   
+
+  if ( IS_NPC(victim) )
+      return victim;
+  
   for (ch = victim->in_room->people; ch != NULL; ch = ch->next_in_room)
   {
       if ( !wants_to_rescue(ch)
-	   || (ch->leader != NULL && ch->leader != victim)
 	   || !is_same_group(ch, victim)
 	   || ch == victim || ch == attacker )
 	  continue;
