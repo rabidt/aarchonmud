@@ -3895,12 +3895,6 @@ void spell_basic_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     int mlevel, mhp, chance;
     int charmed, max;
      
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE))
-    {
-        send_to_char("You can't do that here.\n\r",ch);
-        return;
-    }
-    
     if (IS_SET(ch->act, PLR_WAR))
     {
         send_to_char("Apparitions have no place in wars like these.\n\r", ch );
@@ -3963,12 +3957,6 @@ void spell_holy_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targe
     int mlevel, chance;
     int charmed, max;
       
-    if (IS_SET(ch->in_room->room_flags,ROOM_SAFE))
-    {
-        send_to_char("You can't do that here.\n\r",ch);
-        return;
-    }
-    
     if (IS_SET(ch->act, PLR_WAR))
     {
         send_to_char("Apparitions have no place in wars like these.\n\r", ch );
