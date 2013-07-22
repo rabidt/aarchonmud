@@ -1857,16 +1857,6 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 
     if ( IS_AFFECTED(ch, AFF_CURSE) && per_chance(5) )
 	return FALSE;
-
-    if ( dt == gsn_fullauto
-	 || dt == gsn_semiauto
-	 || dt == gsn_burst )
-    {
-	int skill = get_skill(ch, dt);
-	if ( !chance(50 + skill/4) )
-	    return FALSE;
-    }
-
     
     /* size */
     if ( number_percent() <= 3 * (SIZE_GIANT - victim->size) )
@@ -1905,6 +1895,12 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
         || dt == gsn_snipe )
     {
         victim_roll /= 2;
+    }    
+    else if ( dt == gsn_fullauto
+        || dt == gsn_semiauto
+        || dt == gsn_burst )
+    {
+        ch_roll /= 2;
     }    
     
     if ( victim->size > ch->size )
