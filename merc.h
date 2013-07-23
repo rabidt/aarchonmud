@@ -4439,7 +4439,7 @@ bool    mp_percent_trigger args( ( CHAR_DATA *mob, CHAR_DATA *ch,
                 int type ) );
 void    mp_bribe_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch, int amount ) );
 bool    mp_exit_trigger   args( ( CHAR_DATA *ch, int dir ) );
-void    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
+bool    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
 void    mp_greet_trigger  args( ( CHAR_DATA *ch ) );
 void    mp_hprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
