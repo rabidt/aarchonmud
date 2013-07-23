@@ -1517,7 +1517,7 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
     return FALSE;
 }
 
-void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
+bool mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 {
 
     char        buf[MAX_INPUT_LENGTH], *p;
@@ -1535,7 +1535,7 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 		if ( obj->pIndexData->vnum == r_atoi(mob, p) )
 		{
 		    program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0);
-		    return;
+		    return TRUE;
 		}
 	    }
 	    /*
@@ -1552,11 +1552,12 @@ void mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
             ||   !str_cmp( "*", buf ) )
 		    {
 		    	program_flow( obj->name, prg->is_lua, prg->vnum, prg->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0);
-		    	return;
+		    	return TRUE;
 		    }
 		}
 	    }
 	}
+	return FALSE;
 }
 
 void mp_greet_trigger( CHAR_DATA *ch )
