@@ -1883,7 +1883,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	return FALSE;
     
     /* size */
-    if ( number_percent() <= 3 * (SIZE_GIANT - victim->size) )
+    if ( number_percent() <= 3 * (ch->size - victim->size) )
 	return FALSE;
 
     /* automatic chance-to-hit */
