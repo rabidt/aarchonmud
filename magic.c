@@ -373,18 +373,13 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
         case IS_VULNERABLE: if ( chance(10) ) return FALSE;  break;
     }
 
-    if ( victim->fighting != NULL
-            && victim->fighting->stance == STANCE_INQUISITION
-            && chance(20) )
-        return FALSE;
-
     if ( (victim->stance == STANCE_UNICORN)
             && chance(25) )
         return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PHASE)
             && chance(50) )
-        return;
+        return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PROTECT_MAGIC)
             && chance(20) )
@@ -397,6 +392,9 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
     /* now the resisted roll */
     save_roll = -get_save(victim);
     hit_roll = (level + 10) * 6/5;
+
+    if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
+        save_roll = save_roll * 2/3;
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -1011,14 +1009,10 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
         vo = check_reflection( sn, level, ch, vo, target );
 
-        /*
-           victim = (CHAR_DATA*) vo;
-           if ( is_offensive(sn)
-           && target == TARGET_CHAR
-           && victim->fighting == NULL
-           && check_kill_trigger(ch, victim) )
-           return;
-         */
+        victim = (CHAR_DATA*) vo;
+        // remove invisibility etc.
+        if ( is_offensive(sn) && target == TARGET_CHAR )
+            attack_affect_strip(ch, victim);
 
         (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
         check_improve(ch,sn,TRUE,3);
@@ -1026,41 +1020,23 @@ void do_cast( CHAR_DATA *ch, char *argument )
         /* check for spell mprog triggers */
         if ( target == TARGET_CHAR )
         {
-            CHAR_DATA *vic = (CHAR_DATA *) vo;
-
-            if ( vic != NULL && IS_NPC(vic) )
+            if ( victim != NULL && IS_NPC(victim) )
             {
-                if (mp_spell_trigger( skill_table[sn].name, vic, ch ) )
+                if ( mp_spell_trigger(skill_table[sn].name, victim, ch) )
                     return; //Return because it might have killed the vic or ch
             }
         }
 
-
-
-    }
-
-    victim = (CHAR_DATA*) vo;
-    if ((skill_table[sn].target == TAR_CHAR_OFFENSIVE
-                || (skill_table[sn].target == TAR_VIS_CHAR_OFF)
-                ||   (skill_table[sn].target == TAR_OBJ_CHAR_OFF && target == TARGET_CHAR))
-            &&   victim != ch)
-    {
-        CHAR_DATA *vch;
-        CHAR_DATA *vch_next;
-
-        for ( vch = ch->in_room->people; vch; vch = vch_next )
+        if ( is_offensive(sn) && target == TARGET_CHAR && victim != ch )
         {
-            vch_next = vch->next_in_room;
-            if ( victim == vch 
-                    && victim->fighting == NULL
-                    && !is_safe_spell(victim, ch, FALSE) )
+            if ( victim->in_room == ch->in_room
+                && victim->fighting == NULL
+                && !is_safe_spell(victim, ch, FALSE) )
             {
                 multi_hit( victim, ch, TYPE_UNDEFINED );
-                break;
             }
         }
     }
-
     return;
 }
 
@@ -1705,9 +1681,7 @@ void spell_cause_light( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     int harm = get_sn_damage( sn, level, ch) / 2;
 
     harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/16),0);
-    victim->hit-=harm;
-    remember_attack(victim, ch, harm);
-    dam_message(ch,victim,harm,sn, FALSE);
+    direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
 
@@ -1720,9 +1694,7 @@ void spell_cause_critical(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     int harm = get_sn_damage( sn, level, ch) / 2;
 
     harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/4),0);
-    victim->hit-=harm;
-    remember_attack(victim, ch, harm);
-    dam_message(ch,victim,harm,sn, FALSE);
+    direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
 
@@ -1735,9 +1707,7 @@ void spell_cause_serious(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     int harm = get_sn_damage( sn, level, ch) / 2;
 
     harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/8),0);
-    victim->hit-=harm;
-    remember_attack(victim, ch, harm);
-    dam_message(ch,victim,harm,sn, FALSE);
+    direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
 
@@ -3505,9 +3475,7 @@ void spell_harm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     int harm = get_sn_damage(sn, level, ch) / 2;
 
     harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/2),0);
-    victim->hit-=harm;
-    remember_attack(victim, ch, harm);
-    dam_message(ch,victim,harm,sn, FALSE);
+    direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
 
@@ -4738,7 +4706,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -4761,7 +4729,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
