@@ -1926,11 +1926,21 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	 ch_roll *= 2;
 
     if ( ch_roll <= 0 )
-	return FALSE;
-    else if ( victim_roll <= 0 )
-	return TRUE;
-    else
-	return number_range(0, ch_roll) > number_range(0, victim_roll);
+        return FALSE;
+    if ( victim_roll <= 0 )
+        return TRUE;
+
+    int ch_rolled = number_range(0, ch_roll);
+    int victim_rolled = number_range(0, victim_roll);
+    bool is_hit = (ch_rolled > victim_rolled);
+
+#ifdef TESTER
+    if ( !IS_SET(ch->gag, GAG_MISS) )
+        printf_to_char( ch, "Attack Roll (%d) = %d vs %d = Defense Roll (%d) => %s\n\r",
+            ch_roll, ch_rolled, victim_rolled, victim_roll, is_hit ? "hit" : "miss" );
+#endif
+
+    return is_hit;
 }
 
 void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam )
