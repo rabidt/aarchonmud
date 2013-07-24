@@ -60,6 +60,7 @@ int hit_gain    args( ( CHAR_DATA *ch ) );
 int mana_gain   args( ( CHAR_DATA *ch ) );
 int move_gain   args( ( CHAR_DATA *ch ) );
 void    mobile_update   args( ( void ) );
+void    mobile_timer_update args( ( void ) );
 void    weather_update  args( ( void ) );
 void    char_update args( ( void ) );
 void    obj_update  args( ( void ) );
@@ -988,7 +989,23 @@ void mobile_update( void )
     return;
 }
 
+void mobile_timer_update( void )
+{
+    CHAR_DATA *ch;
+    CHAR_DATA *ch_next;
 
+    /* go through mob list */
+    for ( ch = char_list; ch != NULL; ch = ch_next )
+    {
+        if (ch->desc == NULL)
+        {
+            ch->wait = UMAX(0, ch->wait - 1);
+            ch->daze = UMAX(0, ch->daze - 1);
+        }
+    }
+    
+    return;
+}
 
 /*
  * Update the weather.
@@ -2412,6 +2429,7 @@ void update_handler( void )
 
     if ( update_all )
     {
+        mobile_timer_update();
         if ( --pulse_mobile <= 0 )
         {
             pulse_mobile         = PULSE_MOBILE;
