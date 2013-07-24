@@ -932,17 +932,10 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     OBJ_DATA *wield;
     OBJ_DATA *second;
 
-    /* decrement the wait */
-    if (ch->desc == NULL)
-        ch->wait = UMAX(0,ch->wait - PULSE_VIOLENCE);
-    
-    if (ch->desc == NULL)
-        ch->daze = UMAX(0,ch->daze - PULSE_VIOLENCE); 
-
     if (ch->stop>0)
     {
-	ch->stop--;
-	return;
+        ch->stop--;
+        return;
     }
     
     /* safety-net */
