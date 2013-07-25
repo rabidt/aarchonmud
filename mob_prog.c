@@ -1125,7 +1125,33 @@ void expand_arg( char *buf,
 #define IN_BLOCK         -1 /* Flag: Executable statements */
 #define END_BLOCK        -2 /* Flag: End of if-else-endif block */
 #define MAX_CALL_LEVEL    5 /* Maximum nested calls */
-#define MPROG_RETURN call_level--; return
+#define MPROG_RETURN    mprog_call_level_decrease(); return
+
+/*
+ * Call levels track nesting of mpcall, which is needed to break infinite recursion
+ * It is done externally to allow checking whether an mprog is currently being executed
+ */
+static int mprog_call_level = 0;
+
+int mprog_call_level_increase()
+{
+    return ++mprog_call_level;
+}
+
+int mprog_call_level_decrease()
+{
+    if ( mprog_call_level == 0 )
+    {
+        bugf("mprog_call_level_decrease: call level is 0.");
+        return 0;
+    }
+    return --mprog_call_level;
+}
+
+bool is_mprog_running()
+{
+    return mprog_call_level > 0;
+}
 
 void program_flow( 
     char *text,
@@ -1136,9 +1162,7 @@ void program_flow(
     const void *arg1, sh_int arg1type,
     const void *arg2, sh_int arg2type )
 {
-    static int call_level = 0; /* Keep track of nested "mpcall"s */
-
-    if ( ++call_level > MAX_CALL_LEVEL )
+    if ( mprog_call_level_increase() > MAX_CALL_LEVEL )
     {
        bug( "MOBprogs: MAX_CALL_LEVEL exceeded, vnum %d", mob->pIndexData->vnum );
        MPROG_RETURN;
