@@ -4426,6 +4426,7 @@ bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
+bool    is_mprog_running  args( (void) );
 void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type,
                 const void *arg2, sh_int arg2type) );
