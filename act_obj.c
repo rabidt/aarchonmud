@@ -1132,7 +1132,7 @@ void do_give( CHAR_DATA *ch, char *argument )
         give_trigger_activated = mp_give_trigger( victim, ch, obj );
     // NPCs typically don't want items, so we drop them to prevent lots of possible screw-ups
     // where players give the wrong items to the wrong NPCs
-    if ( !give_trigger_activated && IS_NPC(victim) && !IS_AFFECTED(victim, AFF_CHARM) )
+    if ( !give_trigger_activated && !is_mprog_running() && IS_NPC(victim) && !IS_AFFECTED(victim, AFF_CHARM) )
     {
         act( "$n shrugs and drops $p.", victim, obj, NULL, TO_ROOM );
         obj_from_char( obj );
@@ -1221,7 +1221,7 @@ void do_envenom(CHAR_DATA *ch, char *argument)
     if (obj->item_type == ITEM_WEAPON)
     {
 
-        if (obj->value[0] == WEAPON_GUN || obj->value[0] == WEAPON_BOW)
+        if ( is_ranged_weapon(obj) )
         {
             send_to_char("You can only envenom melee weapons.\n\r",ch);
             return;

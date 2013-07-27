@@ -1125,6 +1125,33 @@ void expand_arg( char *buf,
 #define IN_BLOCK         -1 /* Flag: Executable statements */
 #define END_BLOCK        -2 /* Flag: End of if-else-endif block */
 #define MAX_CALL_LEVEL    5 /* Maximum nested calls */
+#define MPROG_RETURN    mprog_call_level_decrease(); return
+
+/*
+ * Call levels track nesting of mpcall, which is needed to break infinite recursion
+ * It is done externally to allow checking whether an mprog is currently being executed
+ */
+static int mprog_call_level = 0;
+
+int mprog_call_level_increase()
+{
+    return ++mprog_call_level;
+}
+
+int mprog_call_level_decrease()
+{
+    if ( mprog_call_level == 0 )
+    {
+        bugf("mprog_call_level_decrease: call level is 0.");
+        return 0;
+    }
+    return --mprog_call_level;
+}
+
+bool is_mprog_running()
+{
+    return mprog_call_level > 0;
+}
 
 void program_flow( 
     char *text,
@@ -1135,10 +1162,16 @@ void program_flow(
     const void *arg1, sh_int arg1type,
     const void *arg2, sh_int arg2type )
 {
+    if ( mprog_call_level_increase() > MAX_CALL_LEVEL )
+    {
+       bug( "MOBprogs: MAX_CALL_LEVEL exceeded, vnum %d", mob->pIndexData->vnum );
+       MPROG_RETURN;
+    }
+    
     if ( is_lua )
     {
         lua_mob_program(text, pvnum, source, mob, ch, arg1, arg1type, arg2, arg2type);
-        return;
+        MPROG_RETURN;
     }
 
     CHAR_DATA *rch = NULL;
@@ -1146,7 +1179,6 @@ void program_flow(
     char buf[MAX_STRING_LENGTH];
     char control[MAX_INPUT_LENGTH], data[MAX_STRING_LENGTH];
     
-    static int call_level; /* Keep track of nested "mpcall"s */
     
     int level, eval, check;
     int state[MAX_NESTED_LEVEL], /* Block state (BEGIN,IN,END) */
@@ -1158,13 +1190,6 @@ void program_flow(
     logpf( "program_flow: mob %d executing mprog %d:", mvnum, pvnum );
 #endif
 
-    if( ++call_level > MAX_CALL_LEVEL )
-    {
-       bug( "MOBprogs: MAX_CALL_LEVEL exceeded, vnum %d", mob->pIndexData->vnum );
-       call_level-- ;
-       return;
-    }
-    
     /* update the last_mprog log */
     sprintf( last_mprog, "mob %d at %d mprog %d",
 	     mvnum,
@@ -1234,25 +1259,18 @@ void program_flow(
        {
           if ( state[level] == BEGIN_BLOCK )
           {
-             sprintf( buf, "Mobprog: misplaced if statement, mob %d prog %d",
-                mvnum, pvnum );
-             bug( buf, 0 );
-             call_level-- ;
-             return;
+            bugf( "Mobprog: misplaced if statement, mob %d prog %d", mvnum, pvnum );
+            MPROG_RETURN;
           }
           state[level] = BEGIN_BLOCK;
           if ( ++level >= MAX_NESTED_LEVEL )
           {
-             sprintf( buf, "Mobprog: Max nested level exceeded, mob %d prog %d",
-                mvnum, pvnum );
-             bug( buf, 0 );
-             call_level-- ;
-             return;
+            bugf( "Mobprog: Max nested level exceeded, mob %d prog %d", mvnum, pvnum );
+            MPROG_RETURN;
           }
           if ( level && cond[level-1] == FALSE ) 
           {
              cond[level] = FALSE;
-             call_level-- ;
              continue;
           }
           line = one_argument( line, control );
@@ -1262,11 +1280,8 @@ void program_flow(
           }
           else
           {
-             sprintf( buf, "Mobprog: invalid if_check (if), mob %d prog %d",
-                mvnum, pvnum );
-             bug( buf, 0 );
-             call_level-- ;
-             return;
+            bugf( buf, "Mobprog: invalid if_check (if), mob %d prog %d", mvnum, pvnum );
+            MPROG_RETURN;
           }
           state[level] = END_BLOCK;
        }
@@ -1274,11 +1289,8 @@ void program_flow(
        {
           if ( !level || state[level-1] != BEGIN_BLOCK )
           {
-             sprintf( buf, "Mobprog: or without if, mob %d prog %d",
-                mvnum, pvnum );
-             bug( buf, 0 );
-             call_level-- ;
-             return;
+            bugf( buf, "Mobprog: or without if, mob %d prog %d", mvnum, pvnum );
+            MPROG_RETURN;
           }
           if ( level && cond[level-1] == FALSE ) continue;
           line = one_argument( line, control );
@@ -1288,11 +1300,8 @@ void program_flow(
           }
           else
           {
-             sprintf( buf, "Mobprog: invalid if_check (or), mob %d prog %d",
-                mvnum, pvnum );
-             bug( buf, 0 );
-             call_level-- ;
-             return;
+            bugf( buf, "Mobprog: invalid if_check (or), mob %d prog %d", mvnum, pvnum );
+            MPROG_RETURN;
           }
           cond[level] = (eval == TRUE) ? TRUE : cond[level];
        }
@@ -1300,10 +1309,8 @@ void program_flow(
        {
           if ( !level || state[level-1] != BEGIN_BLOCK )
           {
-             sprintf( buf, "Mobprog: and without if, mob %d prog %d",
-                mvnum, pvnum );
-             bug( buf, 0 );
-             return;
+            bugf( buf, "Mobprog: and without if, mob %d prog %d", mvnum, pvnum );
+            MPROG_RETURN;
           }
           if ( level && cond[level-1] == FALSE ) continue;
           line = one_argument( line, control );
@@ -1313,11 +1320,8 @@ void program_flow(
           }
           else
           {
-             sprintf( buf, "Mobprog: invalid if_check (and), mob %d prog %d",
-                mvnum, pvnum );
-             bug( buf, 0 );
-             call_level-- ;
-             return;
+            bugf( buf, "Mobprog: invalid if_check (and), mob %d prog %d", mvnum, pvnum );
+            MPROG_RETURN;
           }
           cond[level] = (cond[level] == TRUE) && (eval == TRUE) ? TRUE : FALSE;
        }
@@ -1325,11 +1329,8 @@ void program_flow(
        {
           if ( !level || state[level-1] != BEGIN_BLOCK )
           {
-             sprintf( buf, "Mobprog: endif without if, mob %d prog %d",
-                mvnum, pvnum );
-             bug( buf, 0 );
-             call_level-- ;
-             return;
+            bugf( buf, "Mobprog: endif without if, mob %d prog %d", mvnum, pvnum );
+            MPROG_RETURN;
           }
           cond[level] = TRUE;
           state[level] = IN_BLOCK;
@@ -1339,11 +1340,8 @@ void program_flow(
        {
           if ( !level || state[level-1] != BEGIN_BLOCK )
           {
-             sprintf( buf, "Mobprog: else without if, mob %d prog %d",
-                mvnum, pvnum );
-             bug( buf, 0 );
-             call_level-- ;
-             return;
+            bugf( buf, "Mobprog: else without if, mob %d prog %d", mvnum, pvnum );
+            MPROG_RETURN;
           }
           if ( level && cond[level-1] == FALSE ) continue;
           state[level] = IN_BLOCK;
@@ -1352,8 +1350,7 @@ void program_flow(
        else if ( cond[level] == TRUE
           && ( !str_cmp( control, "break" ) || !str_cmp( control, "end" ) ) )
        {
-          call_level--;
-          return;
+            MPROG_RETURN;
        }
        else if ( (!level || cond[level] == TRUE) && buf[0] != '\0' )
        {
@@ -1389,14 +1386,16 @@ void program_flow(
 	      break;
        }
     }
-    call_level--;
 
     /* update the last_mprog log */
     sprintf( last_mprog, "(Finished) mob %d at %d mprog %d",
 	     mvnum, 
 	     mob->in_room ? mob->in_room->vnum : 0,
 	     pvnum );
+
+    MPROG_RETURN;
 }
+#undef MPROG_RETURN
 
 /* 
  * ---------------------------------------------------------------------
