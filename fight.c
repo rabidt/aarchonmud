@@ -1442,7 +1442,15 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     }
 
     /* damage roll */
-    dam += GET_DAMROLL(ch) / 4;
+    int damroll = GET_DAMROLL(ch);
+    if (damroll > 0) {
+        int damroll_roll = number_range(0, number_range(0, damroll));
+        // bonus is partially capped
+        int damroll_cap = 2 * (10 + ch->level + UMAX(0, ch->level - 90));
+        if (damroll_roll > damroll_cap)
+            damroll_roll = (damroll_roll + 2 * damroll_cap) / 3;        
+        dam += damroll_roll;
+    }
 
     /* enhanced damage */
     if ( is_ranged_weapon(wield) )
@@ -5012,8 +5020,11 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     group_dam=0;
 
     for (m = victim->aggressors; m; m=m->next)
-	total_dam += m->reaction;
+        total_dam += m->reaction;
     total_dam = UMAX(1, total_dam);
+    // damage is at least victim's max hitpoints - anything less is a bug or an exploit
+    // e.g. having a charmie attack while not in the room (not remembered) to power-level low-level char
+    total_dam = UMAX(victim->max_hit, total_dam);
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {

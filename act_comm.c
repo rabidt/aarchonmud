@@ -2561,6 +2561,16 @@ void do_colour( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    if (!str_cmp( arg, "verbatim" ) )
+    {
+        TOGGLE_BIT( ch->act, PLR_COLOUR_VERBATIM );
+        if ( IS_SET( ch->act, PLR_COLOUR_VERBATIM ) )
+            send_to_char( "Color codes are now displayed {rverbatim{x.\n\r", ch );
+        else 
+            send_to_char( "Color codes are no longer displayed {rverbatim{x.\n\r", ch );
+        return;
+    }
+    
     if (!str_cmp( arg, "default" ) )
     {
         default_colour( ch );

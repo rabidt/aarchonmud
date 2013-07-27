@@ -3157,48 +3157,22 @@ void do_compare( CHAR_DATA *ch, char *argument )
     {
         msg = "You compare $p to itself.  It looks about the same.";
     }
-    else if ( obj1->item_type != obj2->item_type )
+    else if ( !commen_wear_pos(obj1->wear_flags, obj2->wear_flags) )
     {
         msg = "You can't compare $p and $P.";
     }
     else
     {
-        switch ( obj1->item_type )
+        if (obj1->item_type == ITEM_WEAPON && obj1->item_type == ITEM_WEAPON)
         {
-        default:
-	    /*
-            msg = "You can't compare $p and $P.";
-	    */
-	    if ( value1 == 0 && value2 == 0 )
-	    {
-		value1 = obj1->level;
-		value2 = obj2->level;
-	    }
-            break;
-            
-        case ITEM_ARMOR:
-	    /*
-            value1 = obj1->value[0] + obj1->value[1] + obj1->value[2];
-            value2 = obj2->value[0] + obj2->value[1] + obj2->value[2];
-	    */
-            break;
-            
-        case ITEM_WEAPON:
-	    /*
-            if (obj1->pIndexData->new_format)
-                value1 = (1 + obj1->value[2]) * obj1->value[1];
-            else
-                value1 = obj1->value[1] + obj1->value[2];
-            
-            if (obj2->pIndexData->new_format)
-                value2 = (1 + obj2->value[2]) * obj2->value[1];
-            else
-                value2 = obj2->value[1] + obj2->value[2];
-	    */
-	    value1 += 4 * average_weapon_dam( obj1 );
-	    value2 += 4 * average_weapon_dam( obj2 );
-            break;
+            value1 += 4 * average_weapon_dam( obj1 );
+            value2 += 4 * average_weapon_dam( obj2 );
         }
+        // translucent eq has "hidden" ops
+        if ( CAN_WEAR(obj1, ITEM_TRANSLUCENT) )
+            value1 += get_translucency_spec_penalty( obj1->level );
+        if ( CAN_WEAR(obj2, ITEM_TRANSLUCENT) )
+            value2 += get_translucency_spec_penalty( obj2->level );
     }
     
     if ( msg == NULL )
@@ -5610,6 +5584,7 @@ void check_achievement( CHAR_DATA *ch )
         if ( current >= achievement_table[i].limit)
           if (!IS_SET(ch->pcdata->achievements, achievement_table[i].bit_vector))
             achievement_reward(ch, i); 
+       
     }
 }
 
@@ -5626,8 +5601,10 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
     }
     else
     {    
+	flag_set(ch->pcdata->achievements, achievement_table[table_index].bit_vector);
+
         ch->pcdata->questpoints += achievement_table[table_index].quest_reward;
-        ch->gold += achievement_table[table_index].gold_reward;
+        ch->pcdata->bank += achievement_table[table_index].gold_reward;
         gain_exp(ch, achievement_table[table_index].exp_reward);
         ch->pcdata->achpoints += achievement_table[table_index].ach_reward;
         //send_to_char("Achievement unlocked -- TEST.\n\r",ch);
@@ -5648,7 +5625,7 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
 	   and send a message
 	}
 	*/
-	flag_set(ch->pcdata->achievements, achievement_table[table_index].bit_vector);
+        
     }
 }
 
@@ -5739,55 +5716,57 @@ void do_toggle( CHAR_DATA *ch, char *argument )
 void do_oldworth( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH];
+    BUFFER *output;
+    output = new_buf();
 
     if (IS_NPC(ch))
     {
-        sprintf(buf, "You have %ld gold and %ld silver.\n\r",
-            ch->gold, ch->silver );
-        send_to_char( buf, ch );
-        return;
+        sprintf(buf, "Gold: %d, Silver: %d.\n\r",ch->gold, ch->silver );
+        add_buf(output, buf);
     }
 
-    sprintf( buf,
-        "You have {g%ld gold{x and {B%ld silver{x in your pocket.\n\r"
-        "Your bank account contains %ld gold.\n\r"
-        "You've earned %d real and {c%d field{x experience",
-        ch->gold, ch->silver, ch->pcdata->bank, ch->exp, ch->pcdata->field );
-    send_to_char( buf, ch );
+    sprintf(buf, "Gold: %d, Silver: %d.\n\r",ch->gold, ch->silver );
+    add_buf(output, buf);
+    sprintf(buf, "Bank: %d gold\n\r", ch->pcdata->bank);
+    add_buf(output, buf);
+    sprintf(buf, "Real Experience: %d\n\r", ch->exp);
+    add_buf(output, buf);
+    sprintf(buf, "Field Experience: %d\n\r", ch->pcdata->field);
+    add_buf(output, buf);
     if ( !IS_NPC(ch) && !IS_HERO(ch) )
     {
-        sprintf( buf, ",\n\rwith {r%d exp{x until you reach the next level",
+        sprintf( buf, "Exp to level: %d\n\r",
             (ch->level + 1) * exp_per_level(ch, ch->pcdata->points) - ch->exp);
-        send_to_char( buf, ch );
+        add_buf(output, buf);
     }
-
-    send_to_char( ".\n\r", ch );
-
-    if ( !IS_NPC(ch) )
-    {
-        sprintf( buf, "You have {W%d quest points{x.\n\r", ch->pcdata->questpoints  );
-        send_to_char( buf, ch );
-    }
-
+    sprintf(buf, "Quest Points: %d\n\r", ch->pcdata->questpoints);
+    add_buf(output, buf);
     if ( !IS_NPC(ch) && ch->pcdata->bounty > 0 )
     {
-        sprintf( buf, "There is currently a bounty of %d gold on your head.\n\r",
-            ch->pcdata->bounty );
-        send_to_char( buf, ch );
+        sprintf( buf, "Bounty on you: %d gold\n\r", ch->pcdata->bounty);
+        add_buf(output, buf);
     }
+
+
+    page_to_char(buf_string(output),ch);
+    free_buf(output);
+
 }
+
 
 
 void do_oldattributes(CHAR_DATA *ch, char *argument)
 {
     char buf[MAX_STRING_LENGTH];
+    BUFFER *output;
+
+    output = new_buf();
     
-    sprintf( buf,
-        "{cHit{x: %d/%d  {cMana{x: %d/%d  {cMoves{x: %d/%d\n\r",
+    sprintf( buf,"{cHit{x: %d/%d  {cMana{x: %d/%d  {cMoves{x: %d/%d\n\r",
         ch->hit,  ch->max_hit,
         ch->mana, ch->max_mana,
-        ch->move, ch->max_move);
-    send_to_char( buf, ch );
+        ch->move, ch->max_move);    
+    add_buf(output, buf);
     
     sprintf( buf,
         "{BStr{x: %3d(%3d)  {BCon{x: %3d(%3d)  {BVit{x: %3d(%3d)  {BAgi{x: %3d(%3d)  {BDex{x: %3d(%3d)\n\r",
@@ -5801,7 +5780,7 @@ void do_oldattributes(CHAR_DATA *ch, char *argument)
         get_curr_stat(ch,STAT_AGI),
         ch->perm_stat[STAT_DEX],
         get_curr_stat(ch,STAT_DEX) );
-    send_to_char( buf, ch );
+    add_buf(output, buf);
     
     sprintf( buf,
         "{BInt{x: %3d(%3d)  {BWis{x: %3d(%3d)  {BDis{x: %3d(%3d)  {BCha{x: %3d(%3d)  {BLuc{x: %3d(%3d)\n\r",
@@ -5815,87 +5794,37 @@ void do_oldattributes(CHAR_DATA *ch, char *argument)
         get_curr_stat(ch,STAT_CHA),
         ch->perm_stat[STAT_LUC],
         get_curr_stat(ch,STAT_LUC) );
-    send_to_char( buf, ch );
+    add_buf(output, buf);
     
-    send_to_char( "{cARMOR:{x  ", ch );
-    if ( ch->level >= 25 )
-    {
-        sprintf( buf,"{cpierce{x: %d {cbash{x: %d {cslash{x: %d {cmagic{x: %d\n\r",
+    sprintf( buf,"Armor {cpierce{x: %d {cbash{x: %d {cslash{x: %d {cmagic{x: %d\n\r",
             GET_AC(ch,AC_PIERCE),
-GET_AC(ch,AC_BASH),
+            GET_AC(ch,AC_BASH),
             GET_AC(ch,AC_SLASH),
             GET_AC(ch,AC_EXOTIC));
-        send_to_char(buf, ch);
-    }
-    else
-    {
-        int i;
-        for (i = 0; i < 4; i++)
-        {
-            char * temp;
-            
-            switch(i)
-            {
-            case(AC_PIERCE):    temp = "pierce";  break;
-            case(AC_BASH):      temp = "bash";   break;
-            case(AC_SLASH):     temp = "slash";  break;
-            case(AC_EXOTIC):    temp = "magic";     break;
-            default:            temp = "error";     break;
-            }
-            
-            if ( GET_AC(ch,i) >= 101 )
-                sprintf(buf,"{c%s{x: shameful ",temp);
-            else if ( GET_AC(ch,i) >= 80 )
-                sprintf(buf,"{c%s{x: terrible ", temp);
-            else if ( GET_AC(ch,i) >= 60 )
-                sprintf(buf,"{c%s{x: very weak ",temp);
-            else if ( GET_AC(ch,i) >= 40 )
-                sprintf(buf,"{c%s{x: weak ",temp);
-            else if ( GET_AC(ch,i) >= 20 )
-                sprintf(buf,"{c%s{x: so-so ",temp);
-            else if ( GET_AC(ch,i) >= 0 )
-                sprintf(buf,"{c%s{x: passable ",temp);
-            else if ( GET_AC(ch,i) >= -20 )
-                sprintf(buf,"{c%s{x: alright ",temp);
-            else if ( GET_AC(ch,i) >= -40 )
-                sprintf(buf,"{c%s{x: good ",temp);
-            else if ( GET_AC(ch,i) >= -60 )
-                sprintf(buf,"{c%s{x: great ",temp);
-            else if ( GET_AC(ch,i) >= -80 )
-                sprintf(buf,"{c%s{x: superb ",temp);
-            else if ( GET_AC(ch,i) >= -100 )
-                sprintf(buf,"{c%s{x: excellent ",temp);
-            else
-sprintf(buf,"{c%s{x: amazing! ",temp);
-            
-            send_to_char( buf, ch );
-        }
+    add_buf(output, buf);
+
+       
+    sprintf( buf, "Hitroll: %d , Damroll: %d\n\r",
+        GET_HITROLL(ch), GET_DAMROLL(ch) );
+    add_buf(output, buf);
         
-        send_to_char( "\n\r", ch );
-    }
-    
-    if ( ch->level >= 15 )
-    {
-        sprintf( buf, "{rHitroll{x: %d  {rDamroll{x: %d",
-            GET_HITROLL(ch), GET_DAMROLL(ch) );
-        send_to_char( buf, ch );
-    }
-    
-    if ( ch-> level >= 50 )
-    {
-        sprintf( buf, "  {rsaves{x: %d", get_save(ch) );
-        send_to_char( buf, ch );
-    }
-    send_to_char( "\n\r", ch );
-    
-    return;
+    sprintf( buf, "Saves: %d\n\r", get_save(ch));
+    add_buf(output, buf);
+        
+
+    page_to_char(buf_string(output),ch);
+    free_buf(output);
+
 }
 
 /* NEW score function by Quirky, July 6 1998 */
 void do_oldscore( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH], custombuf[MAX_STRING_LENGTH];
+    BUFFER *output;
     int trustlevel, thirst, hunger, encumber;
+
+    output = new_buf();
 
     if (IS_NPC(ch))
     {
@@ -5908,129 +5837,134 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
     else
         custombuf[0] = '\0';
 
-    sprintf( buf, "%s%s%s%s%s%s\n\r",
+    sprintf( buf, "Name and Title: %s%s%s%s%s%s\n\r",
         IS_SET(ch->comm,COMM_AFK) ? "[AFK] " : "",
         custombuf,
         IS_SET(ch->act, PLR_KILLER) ? "(KILLER) " : "",
         IS_SET(ch->act, PLR_THIEF) ? "(THIEF) " : "",
         ch->name, IS_NPC(ch) ? "" : ch->pcdata->title);
-    send_to_char( buf, ch );
-
-    if ( (trustlevel = get_trust(ch)) != ch->level )
-        sprintf( buf, "Level: {c%d{x  (Trusted at %d)\n\r", ch->level, trustlevel );
-    else
-        sprintf( buf, "Level: {c%d{x\n\r", ch->level );
-    send_to_char( buf, ch );
-
+    add_buf(output, buf);
+    sprintf( buf, "Level: {c%d{x\n\r", ch->level );
+    add_buf(output, buf);
     sprintf( buf, "Sex: %s   Age: %d years (%d hours)\n\r",
         ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female",
         get_age(ch), ( ch->played + (int)(current_time - ch->logon) ) / 3600 );
-    send_to_char( buf, ch );
-
+    add_buf(output, buf);
     sprintf( buf, "Race: %s   Class: %s   Clan: %s%c%s\n\r",
         race_table[ch->race].name,
         IS_NPC(ch) ? "mobile" : class_table[ch->class].name,
         (clan_table[ch->clan].active && !IS_NPC(ch)) ?  clan_table[ch->clan].who_name : "none",
         clan_table[ch->clan].active ?  '-' : ' ',
         (clan_table[ch->clan].active && !IS_NPC(ch)) ?  clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].who_name : "");
-
-    send_to_char( buf, ch );
+    add_buf(output, buf);
 
     if ( !IS_IMMORTAL(ch) && get_religion(ch) != NULL )
     {
         sprintf( buf, "God: %s   Rank: %s   Faith: %d\n\r",
                  get_god_name(ch), get_ch_rank_name(ch), get_faith(ch) );
-        send_to_char( buf, ch );
+        add_buf(output, buf);
     }
-
-    sprintf( buf, "\tPractices:  {c%5d{x  Carrying: {y%d/%d{x items.\n\r",
-        ch->practice, ch->carry_number, can_carry_n(ch) );
-    send_to_char( buf, ch );
-
-    sprintf( buf, "\t   Trains:  {c%5d{x  Weight: {y%ld/%d{x pounds.\n\r",
-        ch->train, get_carry_weight(ch) / 10, can_carry_w(ch) / 10 );
-    send_to_char( buf, ch );
-
+    sprintf(buf, "Trains: %d\n\r", ch->train);
+    add_buf(output, buf);
+    sprintf(buf, "Practices: %d\n\r", ch->practice);
+    add_buf(output, buf);
+    sprintf(buf, "Carrying: %d/%d items.\n\r", ch->carry_number, can_carry_n(ch) );
+    add_buf(output, buf);
+    sprintf( buf, "Weight: %d/%d pounds.\n\r", get_carry_weight(ch) / 10, can_carry_w(ch) / 10 );
+    add_buf(output, buf);
     /* display trains spent --Bobble */
+    /* marker for astark , check trains */
     sprintf( buf, "Trains spent:  hp: %d mana: %d move: %d max: %d\n\r",
              ch->pcdata->trained_hit,
              ch->pcdata->trained_mana,
              ch->pcdata->trained_move,
              max_hmm_train( ch->level ) );
-    send_to_char( buf, ch );
-
+    add_buf(output, buf);
     sprintf( buf, "Wimpy set to %d hit points.\n\r", ch->wimpy );
-    send_to_char( buf, ch );
+    add_buf(output, buf);
 
     switch ( ch->position )
     {
     case POS_DEAD:
-        send_to_char( "You are DEAD", ch );
+        sprintf(buf, "You are DEAD\n\r");
+        add_buf(output, buf);
         break;
     case POS_MORTAL:
-        send_to_char( "You are mortally wounded", ch );
+        sprintf(buf, "You are mortally wounded\n\r");
+        add_buf(output, buf);
         break;
     case POS_INCAP:
-        send_to_char( "You are incapacitated", ch );
+        sprintf(buf, "You are incapacitated\n\r");
+        add_buf(output, buf);
         break;
     case POS_STUNNED:
-        send_to_char( "You are stunned",       ch );
+        sprintf(buf, "You are stunned\n\r");
+        add_buf(output, buf);
         break;
     case POS_SLEEPING:
-        send_to_char( "You are sleeping",      ch );
+        sprintf(buf, "You are sleeping\n\r");
+        add_buf(output, buf);
         break;
     case POS_RESTING:
-        send_to_char( "You are resting",       ch );
+        sprintf(buf, "You are resting\n\r");
+        add_buf(output, buf);
         break;
     case POS_SITTING:
-        send_to_char( "You are sitting",       ch );
+        sprintf(buf, "You are sitting\n\r");
+        add_buf(output, buf);
         break;
     case POS_STANDING:
-        send_to_char( "You are standing",      ch );
+        sprintf(buf, "You are standing\n\r");
+        add_buf(output, buf);
         break;
     case POS_FIGHTING:
-        send_to_char( "You are fighting",      ch );
+        sprintf(buf, "You are fighting\n\r");
+        add_buf(output, buf);
         break;
     }
 
     if ( ch->pcdata->condition[COND_DRUNK] > 10 )
-        send_to_char( ", drunk", ch );
+        sprintf(buf, "You are drunk\n\r");
+        add_buf(output, buf);
 
     thirst = ch->pcdata->condition[COND_THIRST];
     hunger = ch->pcdata->condition[COND_HUNGER];
-    if ( (thirst >= 0 && thirst<20) || (hunger >= 0 && hunger < 20))
-        send_to_char( ", feeling rather ", ch );
 
     if ( (thirst >= 0 && thirst<20) && (hunger >= 0 && hunger < 20))
-        send_to_char( "hungry and thirsty", ch );
+    {
+        sprintf(buf, "You are hungry and thirsty\n\r");
+        add_buf(output, buf);
+    }
     else if ( thirst >= 0 && thirst<20)
-        send_to_char( "thirsty", ch );
+    {
+        sprintf(buf, "You are thirsty\n\r");
+        add_buf(output, buf);
+    }
     else if ( hunger >= 0 && hunger < 20)
-        send_to_char( "hungry", ch );
-
-    if (ch->pcdata->condition[COND_SMOKE]<0)
-        send_to_char(", and you need a cigarette", ch);
-
-    send_to_char( ".\n\r", ch );
+    {
+        sprintf(buf, "You are hungry\n\r");
+        add_buf(output, buf);
+    }
 
     /* encumberance */
     if ( (encumber = get_encumberance(ch)) > 0 )
     {
         if ( encumber <= 25 )
-            send_to_char( "You are slightly encumbered.\n\r", ch );
+            sprintf(buf, "You are slightly encumbered.\n\r");
         else if ( encumber <= 50 )
-            send_to_char( "You are seriously encumbered.\n\r", ch );
+            sprintf(buf, "You are seriously encumbered.\n\r");
         else if ( encumber <= 75 )
-            send_to_char( "You are heavily encumbered.\n\r", ch );
+            sprintf(buf, "You are heavily encumbered.\n\r");
         else
-            send_to_char( "You can hardly move under the weight you carry!\n\r", ch );
+            sprintf(buf, "You can hardly move under the weight you carry!\n\r");
+            
+        add_buf(output,buf);
     }
 
     if (ch->stance != 0)
     {
-        sprintf(buf, "You are currently in the %s stance.\n\r",
-            stances[ch->stance].name );
-        send_to_char( buf, ch );
+        sprintf(buf, "Stance: %s\n\r", stances[ch->stance].name );
+        add_buf(output,buf);
     }
 
     /* morphing info */
@@ -6041,112 +5975,90 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
             sprintf(buf, "You have morphed into a %s for %d remaining hours.\n\r",
                     race_table[ch->pcdata->morph_race].name,
                     ch->pcdata->morph_time );
-            send_to_char( buf, ch );
+            add_buf(output,buf);
         }
         else
-            send_to_char( "You have assumed your basic form.\n\r", ch );
+        {
+            sprintf(buf, "You are in basic form.\n\r");
+            add_buf(output,buf);
+        }
     }
     if ( ch->race == race_naga )
     {
         if ( ch->pcdata->morph_race == 0 )
-            send_to_char( "You are currently in serpent form.\n\r", ch );
-        else
-            send_to_char( "You are currently in humanoid form.\n\r", ch );
-    }
-
-    if ( IS_IMMORTAL(ch) )
-    {
-        send_to_char( "Holy Light: ", ch );
-        if (IS_SET(ch->act, PLR_HOLYLIGHT))
-            send_to_char("on", ch);
-        else
-            send_to_char("off", ch);
-
-        if (ch->invis_level)
         {
-            sprintf( buf, "   Wizinvis: level %d", ch->invis_level);
-            send_to_char( buf, ch );
+            sprintf(buf, "You are currently in serpent form.\n\r");
+            add_buf(output,buf);
         }
-
-        if (ch->incog_level)
+        else
         {
-            sprintf( buf, "   Incognito: level %d", ch->incog_level);
-            send_to_char( buf, ch );
+            sprintf(buf, "You are currently in humanoid form.\n\r");
+            add_buf(output,buf);
         }
-        send_to_char("\n\r", ch );
     }
 
-    if ( ch->level >= 10 )
+    
+    int align;
+    align = ch->alignment;
+    if( align > 900 )       sprintf( buf, "Alignment: %-5d (angelic)\n\r", align );
+    else if( align >  700 ) sprintf( buf, "Alignment: %-5d (saintly)\n\r", align );
+    else if( align >  350 ) sprintf( buf, "Alignment: %-5d (good)\n\r", align );
+    else if( align >  100 ) sprintf( buf, "Alignment: %-5d (kind)\n\r", align );
+    else if( align > -100 ) sprintf( buf, "Alignment: %-5d (neutral)\n\r", align );
+    else if( align > -350 ) sprintf( buf, "Alignment: %-5d (mean)\n\r", align );
+    else if( align > -700 ) sprintf( buf, "Alignment: %-5d (evil)\n\r", align );
+    else if( align > -900 ) sprintf( buf, "Alignment: %-5d (demonic)\n\r", align );
+    else                    sprintf( buf, "Alignment: %-5d (satanic)\n\r", align );
+
+    add_buf(output, buf);
+    
+    if (IS_SET(ch->act, PLR_PERM_PKILL))
     {
-        sprintf( buf, "Alignment: {m%d{x.", ch->alignment );
-        send_to_char( buf, ch );
+        sprintf(buf, "You are a %s player killer, with %d kills.\n\r",
+            IS_SET(ch->act, PLR_HARDCORE) ? "hardcore" : "permanent",
+            ch->pcdata->pkill_count);
+        add_buf(output, buf);
     }
-    send_to_char( "   You are ", ch );
-    if ( ch->alignment > 900 ) send_to_char( "{mangelic{x.\n\r", ch );
-           else if ( ch->alignment >  700 ) send_to_char( "{msaintly{x.\n\r", ch );
-       else if ( ch->alignment >  350 ) send_to_char( "{mgood{x.\n\r", ch );
-       else if ( ch->alignment >  100 ) send_to_char( "{mkind{x.\n\r", ch );
-       else if ( ch->alignment > -100 ) send_to_char( "{mneutral{x.\n\r", ch );
-       else if ( ch->alignment > -350 ) send_to_char( "{mmean{x.\n\r", ch );
-       else if ( ch->alignment > -700 ) send_to_char( "{mevil{x.\n\r", ch );
-       else if ( ch->alignment > -900 ) send_to_char( "{mdemonic{x.\n\r", ch );
-       else                             send_to_char( "{msatanic{x.\n\r", ch );
 
-       if (IS_SET(ch->act, PLR_PERM_PKILL))
-       {
-           sprintf(buf, "You are a %s player killer, with %d kills.\n\r",
-                   IS_SET(ch->act, PLR_HARDCORE) ? "hardcore" : "permanent",
-                   ch->pcdata->pkill_count);
-           send_to_char( buf, ch );
-           
-/* Grading on pk removed, players bitched it killed pk - Maedhros */
-
-/*           sprintf( buf, "%s:    Grade {W<{x%s{W>{x (%d points from %d kills, %d deaths)\n\r",
- *                    IS_SET(ch->act, PLR_HARDCORE) ? "PK (HC)" : "Pkill",
- *                    pkgrade_table[get_pkgrade_level(ch->pcdata->pkpoints)].grade,               
- *                    ch->pcdata->pkpoints, ch->pcdata->pkill_count, ch->pcdata->pkill_deaths );  
- *           send_to_char( buf, ch);
- */
-
-       }
-
-       /* Warfare grade and number of kills */
-       sprintf( buf, "{xWarfare:  Grade {W<{x%s{W>{x (%d points from %d warkills)\n\r",
-           pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
-	   ch->pcdata->warpoints, ch->pcdata->war_kills );
-       send_to_char( buf, ch);
+    /* Warfare grade and number of kills */
+    sprintf( buf, "{xWarfare:  Grade <%s> (%d points from %d warkills)\n\r",
+        pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
+	    ch->pcdata->warpoints, ch->pcdata->war_kills );
+    add_buf(output, buf);
 	   
 
-       if (IS_SET(ch->act, PLR_RP))
-           send_to_char( "You are a roleplayer.\n\r", ch );
+    if ( ch->pcdata->spouse )
+       sprintf(buf, "You are married to %s.\n\r", ch->pcdata->spouse);
+    else
+       sprintf(buf, "You are not married.\n\r");
+           
+    add_buf(output, buf);       
+           
 
-       if ( ch->pcdata->spouse )
-           printf_to_char(ch, "You are married to %s.\n\r", ch->pcdata->spouse);
-       else
-           send_to_char("You are not married.\n\r",ch);
+    if ( ch->pcdata->customflag[0] != '\0' )
+    {
+        sprintf( buf, "You are marked with a (%s) flag for %d hours.\n\r",
+           ch->pcdata->customflag, ch->pcdata->customduration );
+        add_buf(output, buf);
+    }
 
-       if ( ch->pcdata->customflag[0] != '\0' )
-       {
-           sprintf( buf, "You are marked with a (%s) flag for %d hours.\n\r",
-               ch->pcdata->customflag, ch->pcdata->customduration );
-           send_to_char( buf, ch );
-       }
+    page_to_char(buf_string(output),ch);
+    free_buf(output);
 
-       if ( IS_SET(ch->comm,COMM_SHOW_WORTH) )
-           do_oldworth(ch, "");
-       else
-           send_to_char("Type {Wshow worth{x to include exp and money info in score.\n\r", ch );
+    if ( IS_SET(ch->comm,COMM_SHOW_WORTH) )
+       do_oldworth(ch, "");
+    else
+       send_to_char("Type {Wshow worth{x to include exp and money info in score.\n\r", ch );
 
-       if ( IS_SET(ch->comm,COMM_SHOW_ATTRIB))
-           do_oldattributes(ch, "");
-       else
-           send_to_char("Type {Wshow att{x to include hp,moves,mana,stats,armor,etc. in score\n\r", ch );
+    if ( IS_SET(ch->comm,COMM_SHOW_ATTRIB))
+       do_oldattributes(ch, "");
+    else
+       send_to_char("Type {Wshow att{x to include hp,moves,mana,stats,armor,etc. in score\n\r", ch );
 
-       if ( IS_SET(ch->comm,COMM_SHOW_AFFECTS))
-           do_affects(ch, "");
+    if ( IS_SET(ch->comm,COMM_SHOW_AFFECTS))
+       do_affects(ch, "");
 
-       if (!IS_NPC(ch) && ch->penalty)
-           show_penalties_by_player(ch, ch->name, TIME_PLAYED(ch), 2);
+    if (!IS_NPC(ch) && ch->penalty)
+       show_penalties_by_player(ch, ch->name, TIME_PLAYED(ch), 2);
 
 }
-

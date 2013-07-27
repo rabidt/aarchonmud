@@ -1350,7 +1350,7 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
     case APPLY_SAVING_PETRI:
     case APPLY_SAVING_BREATH:
     case APPLY_SAVING_SPELL: factor = -1; break;
-    default: return 0;
+    default: factor = 0; break;
     }
 
     result = aff->modifier * factor;
@@ -1363,6 +1363,28 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
     else if ( result > max_ops && !is_affect_cap_hard(aff->location) )
         result += (result - max_ops) / 3;
 
+    if ( aff->where == TO_AFFECTS )
+    {
+        switch (aff->bitvector)
+        {
+            case AFF_NONE: break;
+            case AFF_HASTE: result += 50; break;
+            case AFF_BERSERK:
+            case AFF_PROTECT_MAGIC: result += 25; break;
+            case AFF_FLYING:
+            case AFF_BATTLE_METER:
+            case AFF_DETECT_INVIS:
+            case AFF_DETECT_HIDDEN:
+            case AFF_BREATHE_WATER: result += 20; break;
+            case AFF_DARK_VISION: result += 15; break;
+            case AFF_INFRARED:
+            case AFF_DETECT_MAGIC:
+            case AFF_DETECT_GOOD:
+            case AFF_DETECT_EVIL: result += 10; break;
+            default: result += 1000; break; // not allowed
+        }
+    }
+    
     return result;
 }
 
@@ -1430,6 +1452,14 @@ int get_obj_ops( OBJ_DATA *obj )
     return (int) (sum);
 }
 
+int get_translucency_spec_penalty( int level )
+{
+    if ( level < 90 )
+        return (10 + level) / 5;
+    else
+        return 20 + 2 * (level - 90);
+}
+
 int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
 {
     int spec;
@@ -1440,6 +1470,7 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
     if ( level < 90 )
     {
         spec = 50 + (level * 19/3 + (30+level) * obj->diff_rating)/3;
+        // we don't use get_translucency_spec_penalty to avoid rounding issues
         if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
             spec -= 2 * (10 + level);
         spec /= 10;
@@ -1493,16 +1524,41 @@ int average_weapon_dam( OBJ_INDEX_DATA *obj )
     return obj->value[1] * (obj->value[2] + 1) / 2;
 }
 
+bool can_wear( OBJ_INDEX_DATA *obj )
+{
+    if ( !CAN_WEAR(obj, ITEM_TAKE) )
+        return FALSE;
+    
+    if ( obj->item_type == ITEM_LIGHT )
+        return TRUE;
+        
+    if ( CAN_WEAR(obj, ITEM_WEAR_FINGER)
+        || CAN_WEAR(obj, ITEM_WEAR_NECK)
+        || CAN_WEAR(obj, ITEM_WEAR_TORSO)
+        || CAN_WEAR(obj, ITEM_WEAR_HEAD)
+        || CAN_WEAR(obj, ITEM_WEAR_LEGS)
+        || CAN_WEAR(obj, ITEM_WEAR_FEET)
+        || CAN_WEAR(obj, ITEM_WEAR_HANDS)
+        || CAN_WEAR(obj, ITEM_WEAR_ARMS)
+        || CAN_WEAR(obj, ITEM_WEAR_ABOUT)
+        || CAN_WEAR(obj, ITEM_WEAR_WAIST)
+        || CAN_WEAR(obj, ITEM_WEAR_WRIST)
+        || CAN_WEAR(obj, ITEM_WEAR_FLOAT)
+        || CAN_WEAR(obj, ITEM_WEAR_SHIELD)
+        || CAN_WEAR(obj, ITEM_HOLD)
+        || CAN_WEAR(obj, ITEM_WIELD))
+        return TRUE;
 
+    return FALSE;
+}
 
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 {
     int value, spec;
     AFFECT_DATA *aff;
 
-    if ( obj->level >= LEVEL_IMMORTAL
-	 || IS_SET(obj->area->area_flags, AREA_REMORT) )
-	return TRUE;
+    if ( obj->level >= LEVEL_IMMORTAL || !can_wear(obj) )
+        return TRUE;
 
     /* check ops */
     spec = get_obj_index_spec( obj, obj->level );
@@ -1604,7 +1660,7 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
     int value, spec;
     AFFECT_DATA *aff;
 
-    if ( obj->level >= LEVEL_IMMORTAL )
+    if ( obj->level >= LEVEL_IMMORTAL || !can_wear(obj) )
         return FALSE;
     
     /* check ops */
