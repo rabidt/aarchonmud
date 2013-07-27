@@ -102,11 +102,14 @@ int get_group_cost( CHAR_DATA *ch, int gn )
         }
     }
 
-    // safety-new against groups with total cost of 0
     int base_cost = group_table[gn].rating[ch->class];
-    if ( total_cost > 0 )
-        return base_cost * new_cost / total_cost;
-    return base_cost;
+    // safety-net against groups with total cost of 0
+    if ( total_cost == 0 )
+        return base_cost;
+    // safety-net against groups costing more than individual skills
+    if ( base_cost > total_cost )
+        return new_cost;
+    return base_cost * new_cost / total_cost;
 }
 
 /* used to get new skills */
