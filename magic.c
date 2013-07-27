@@ -1006,8 +1006,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
         }
 
         level = ch->level;
-        if (!IS_NPC(ch))
-            level -= (100-class_table[ch->class].mana_gain)*level/500;
         level = (100+chance)*level/200;
         level = URANGE(1, level, 120);
 

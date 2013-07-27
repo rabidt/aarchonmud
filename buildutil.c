@@ -1013,9 +1013,11 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 		attack_table[victim->dam_type].noun);
 	send_to_char(buf,ch);
 	}
-	sprintf( buf, "Fighting: %s\n\r",
-	victim->fighting ? victim->fighting->name : "(none)" );
-	send_to_char( buf, ch );
+    sprintf( buf, "Fighting: %s  Wait: %d  Daze: %d  Stop: %d\n\r",
+        victim->fighting ? victim->fighting->name : "(none)",
+        victim->wait, victim->daze, victim->stop
+    );
+    send_to_char( buf, ch );
 
 	if ( !IS_NPC(victim) )
 	{
