@@ -2347,9 +2347,10 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw)
     char    buf[ MAX_STRING_LENGTH*4 ];
     int skip = 0;
 
-#if defined(macintosh)
-    send_to_char( txt, ch );
-#else       
+    // players may overwrite whether color is sent in raw format
+    if ( IS_SET(ch->act, PLR_COLOUR_VERBATIM) )
+        raw = TRUE;
+    
     buf[0] = '\0';
     point2 = buf;
     if( txt && ch->desc )
@@ -2388,7 +2389,6 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw)
             write_to_buffer( ch->desc, buf, point2 - buf );
         }
     }
-#endif
     return;
 }
 
@@ -2440,6 +2440,10 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
                 ch->name, strlen(txt) );
         return;
     }
+    
+    // players may overwrite whether color is sent in raw format
+    if ( IS_SET(ch->act, PLR_COLOUR_VERBATIM) )
+        raw = TRUE;    
 
     buf[0] = '\0';
     point2 = buf;

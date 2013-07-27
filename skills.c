@@ -1508,47 +1508,52 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
     if (sn==gsn_bodyguard)
 	return IS_SET(ch->off_flags, OFF_RESCUE);
 
+    // mobs that cast spells via spec_fun normally can do so even while charmed
+    if ( skill_table[sn].spell_fun != spell_null )
+    {
+        char** spell_list = get_spell_list( ch );
+        if ( spell_list != NULL )
+        {
+            int spell;
+            for (spell = 0; spell_list[spell] != NULL; spell++)
+                if ( sn == skill_lookup(spell_list[spell]) )
+                    return TRUE;
+        }        
+    }
+    
     return FALSE;
 }
 
 int mob_get_skill(CHAR_DATA *ch, int sn)
 {
-	int skill=0;
+    int skill = 50 + ch->level / 4;
 
-	if (sn < -1 || sn > MAX_SKILL)
-	{
-		bug("Bad sn %d in mob_get_skill.",sn);
-		skill = 0;
-	}
-	else if ((skill_table[sn].spell_fun != spell_null)
-			&& (IS_SET(ch->act, ACT_MAGE) ||
-			IS_SET(ch->act, ACT_CLERIC)))
-		skill = 40 + ch->level/2;
-	else if (mob_has_skill(ch, sn))
-	{
-	    if (ch->level < 40)
-		skill = 20 + ch->level;
-	    else
-		skill = 40 + ch->level/2;
-	}
+    if (sn < -1 || sn > MAX_SKILL)
+    {
+        bug("Bad sn %d in mob_get_skill.",sn);
+        return 0;
+    }
+    
+    if ( !mob_has_skill(ch, sn) )
+        return 0;
 
-	if (ch->daze > 0)
-	{
-		if (skill_table[sn].spell_fun != spell_null)
-			skill /= 2;
-		else
-			skill = 2 * skill / 3;
-	}
+    if (ch->daze > 0)
+    {
+        if (skill_table[sn].spell_fun != spell_null)
+            skill /= 2;
+        else
+            skill = 2 * skill / 3;
+    }
 
-	/* encumberance */
-	skill = skill * (1000 - get_encumberance(ch)) / 1000;
+    /* encumberance */
+    skill = skill * (1000 - get_encumberance(ch)) / 1000;
 
-        skill = URANGE(0,skill,100);
-        /* injury */
-        if (sn != gsn_ashura) // needed to avoid infinite recursion
-            skill = skill * (100 - get_injury_penalty(ch)) / 100;
+    skill = URANGE(0,skill,100);
+    /* injury */
+    if (sn != gsn_ashura) // needed to avoid infinite recursion
+        skill = skill * (100 - get_injury_penalty(ch)) / 100;
 
-        return skill;
+    return skill;
 }
 
 int get_race_skill( CHAR_DATA *ch, int sn )
