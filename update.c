@@ -60,6 +60,7 @@ int hit_gain    args( ( CHAR_DATA *ch ) );
 int mana_gain   args( ( CHAR_DATA *ch ) );
 int move_gain   args( ( CHAR_DATA *ch ) );
 void    mobile_update   args( ( void ) );
+void    mobile_timer_update args( ( void ) );
 void    weather_update  args( ( void ) );
 void    char_update args( ( void ) );
 void    obj_update  args( ( void ) );
@@ -988,7 +989,23 @@ void mobile_update( void )
     return;
 }
 
+void mobile_timer_update( void )
+{
+    CHAR_DATA *ch;
+    CHAR_DATA *ch_next;
 
+    /* go through mob list */
+    for ( ch = char_list; ch != NULL; ch = ch_next )
+    {
+        if (ch->desc == NULL)
+        {
+            ch->wait = UMAX(0, ch->wait - 1);
+            ch->daze = UMAX(0, ch->daze - 1);
+        }
+    }
+    
+    return;
+}
 
 /*
  * Update the weather.
@@ -2242,6 +2259,8 @@ void aggr_update( void )
             {
                 vch_next = vch->next_in_room;
                 vch_cha = level_power(vch) + ch_cha_aggro(vch);
+                if ( is_affected(vch, gsn_disguise) )
+                    vch_cha += get_skill(vch, gsn_disguise) / 5;
 
                 if ( !IS_NPC(vch)
                         && vch->level < LEVEL_IMMORTAL
@@ -2271,44 +2290,26 @@ void aggr_update( void )
 
                 if (number_percent() < chance)
                 {
-                    act( "You soothe $n with your peaceful presence.", 
-                            ch, NULL, victim, TO_VICT    );
-                    act( "$N soothes you with $s peaceful presence.", 
-                            ch, NULL, victim, TO_CHAR    );
-                    act( "$N soothes $n with $s peaceful presence.",
-                            ch, NULL, victim, TO_NOTVICT );
-                    REMOVE_BIT(ch->act,ACT_AGGRESSIVE);
+                    act( "You soothe $n with your peaceful presence.", ch, NULL, victim, TO_VICT );
+                    act( "$N soothes you with $s peaceful presence.", ch, NULL, victim, TO_CHAR );
+                    act( "$N soothes $n with $s peaceful presence.", ch, NULL, victim, TO_NOTVICT );
+                    // apply calm effect
+                    AFFECT_DATA af;
+                    af.where = TO_AFFECTS;
+                    af.type = gsn_soothe;
+                    af.level = victim->level;
+                    af.duration = dice(2,4);
+                    af.location = APPLY_HITROLL;
+                    af.modifier = -5;
+                    af.bitvector = AFF_CALM;
+                    affect_to_char(ch, &af);
                     forget_attacks( ch );
                     check_improve(victim,gsn_soothe,TRUE,1);
                     continue;
                 }
+                act( "You fail to soothe $n.", ch, NULL, victim, TO_VICT );
                 check_improve(victim,gsn_soothe,FALSE,1);
             }
-
-            /* Disguise serves a purpose against mobs. Chance to sneak past
-               without getting aggro'd - Astark Nov 2012 */
-            if (is_affected(victim,gsn_disguise))
-            {
-                chance = get_skill(victim,gsn_disguise);
-                chance += get_curr_stat(victim,STAT_CHA)/5;
-                chance += (victim->level - ch->level)/2;
-
-                if (number_percent() < chance)
-                {
-                    act( "You skulk past $n with your creative disguise.", 
-                            ch, NULL, victim, TO_VICT    );
-                    act( "$N skulks past you with with $s creative disguise.", 
-                            ch, NULL, victim, TO_CHAR    );
-                    act( "$N skuls past $n with $s creative disguise.",
-                            ch, NULL, victim, TO_NOTVICT );
-                    REMOVE_BIT(ch->act,ACT_AGGRESSIVE);
-                    forget_attacks( ch );
-                    check_improve(victim,gsn_disguise,TRUE,1);
-                    continue;
-                }
-                check_improve(victim,gsn_disguise,FALSE,1);
-            }
-
 
             if ( IS_SET(ch->off_flags, OFF_BACKSTAB) )
             {
@@ -2428,6 +2429,7 @@ void update_handler( void )
 
     if ( update_all )
     {
+        mobile_timer_update();
         if ( --pulse_mobile <= 0 )
         {
             pulse_mobile         = PULSE_MOBILE;
