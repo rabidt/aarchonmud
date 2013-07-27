@@ -1221,7 +1221,7 @@ void do_envenom(CHAR_DATA *ch, char *argument)
     if (obj->item_type == ITEM_WEAPON)
     {
 
-        if (obj->value[0] == WEAPON_GUN || obj->value[0] == WEAPON_BOW)
+        if ( is_ranged_weapon(obj) )
         {
             send_to_char("You can only envenom melee weapons.\n\r",ch);
             return;
