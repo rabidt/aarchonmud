@@ -992,10 +992,9 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-    CHAR_DATA *ch_next;
 
     /* go through mob list */
-    for ( ch = char_list; ch != NULL; ch = ch_next )
+    for ( ch = char_list; ch != NULL; ch = ch->next )
     {
         if (ch->desc == NULL)
         {
