@@ -1545,6 +1545,7 @@ bool roll_stats ( DESCRIPTOR_DATA *d, char *argument )
     {
         send_to_char("     {cThe game has assigned dice for you based on your class and race.{x\n\r",ch);
         auto_assign_stats(ch);
+        calc_stats(ch);
         show_dice(ch);
         send_to_char("{CShow, reroll, assign, unassign, default, help, or done?{x ",ch);
         return FALSE;

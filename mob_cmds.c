@@ -1673,19 +1673,22 @@ void do_mpremove( CHAR_DATA *ch, char *argument )
 
     for ( obj = victim->carrying; obj; obj = obj_next )
     {
-	obj_next = obj->next_content;
-	if ( fAll || obj->pIndexData->vnum == vnum )
-	{
-	     obj_from_char( obj );
-	     if ( !strcmp(arg2, "inv") || !strcmp(arg2, "inventory"))
-		 obj_to_char( obj, victim );
-	     else if ( !strcmp(arg2, "get") )
-		 obj_to_char( obj, ch );
-	     else if ( !strcmp(arg2, "room") )
-		 obj_to_room( obj, ch->in_room );
-	     else
-		 extract_obj( obj );
-	}
+        obj_next = obj->next_content;
+        if ( fAll || obj->pIndexData->vnum == vnum )
+        {
+            obj_from_char( obj );
+            if ( !strcmp(arg2, "inv") || !strcmp(arg2, "inventory"))
+                obj_to_char( obj, victim );
+            else if ( !strcmp(arg2, "get") )
+                obj_to_char( obj, ch );
+            else if ( !strcmp(arg2, "room") )
+                obj_to_room( obj, ch->in_room );
+            else
+                extract_obj( obj );
+            // when removing specific object, only remove first
+            if (!fAll)
+                break;
+        }
     }
 }
 
