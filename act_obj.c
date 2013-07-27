@@ -1127,8 +1127,17 @@ void do_give( CHAR_DATA *ch, char *argument )
     /*
      * Give trigger
      */
+    bool give_trigger_activated = FALSE;
     if ( IS_NPC(victim) && HAS_TRIGGER( victim, TRIG_GIVE ) )
-        mp_give_trigger( victim, ch, obj );
+        give_trigger_activated = mp_give_trigger( victim, ch, obj );
+    // NPCs typically don't want items, so we drop them to prevent lots of possible screw-ups
+    // where players give the wrong items to the wrong NPCs
+    if ( !give_trigger_activated && !is_mprog_running() && IS_NPC(victim) && !IS_AFFECTED(victim, AFF_CHARM) )
+    {
+        act( "$n shrugs and drops $p.", victim, obj, NULL, TO_ROOM );
+        obj_from_char( obj );
+        obj_to_room( obj, victim->in_room );
+    }
 
     /* imms giving stuff to alts.. */
     /* if ( IS_IMMORTAL(ch) && !IS_NPC(victim) && is_same_player(ch, victim) ) */

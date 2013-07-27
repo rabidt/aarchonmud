@@ -112,6 +112,52 @@ const   struct  spec_type    spec_table[] =
 	{   NULL,               NULL            }
 };
 
+const char* spell_list_cleric[] = {
+    "dispel magic",
+    "blindness",
+    "curse",
+    "plague",
+    "poison",
+    "slow",
+    "weaken",
+    "flamestrike",
+    "harm",
+    "heal",
+    NULL
+};
+
+const char* spell_list_mage[] = {
+    "dispel magic",
+    "magic missile",
+    "chill touch",
+    "burning hands",
+    "colour spray",
+    "fireball",
+    "lightning bolt",
+    "acid blast",
+    "energy drain",
+    "stop",
+    NULL
+};
+
+const char* spell_list_undead[] = {
+    "curse",
+    "weaken",
+    "chill touch",
+    "blindness",
+    "poison",
+    "harm",
+    "energy drain",
+    "plague",
+    "necrosis",
+    "tomb rot",
+    "soreness",
+    "haunt",
+    "mana burn",
+    "fear",
+    NULL
+};
+
 /*
  * Given a name, return the appropriate spec fun.
  */
@@ -551,122 +597,58 @@ bool spec_cast_adept( CHAR_DATA *ch )
 	return FALSE;
 }
 
+char** get_spell_list( CHAR_DATA *ch )
+{
+    SPEC_FUN *spec_fun = ch->pIndexData->spec_fun;
+    
+    if ( spec_fun == spec_cast_cleric )
+        return spell_list_cleric;
+    if ( spec_fun == spec_cast_mage )
+        return spell_list_mage;
+    if ( spec_fun == spec_cast_undead )
+        return spell_list_undead;
+    
+    return NULL;
+}
 
-
-bool spec_cast_cleric( CHAR_DATA *ch )
+bool spec_cast_any( CHAR_DATA *ch )
 {
     if ( ch->position != POS_FIGHTING )
         return FALSE;
-    
-    char *spell_list[] = {
-        "'dispel magic'",
-        "blindness",
-        "curse",
-        "plague",
-        "poison",
-        "slow",
-        "weaken",
-        "flamestrike",
-        "harm",
-        "heal",
-        NULL
-    };
-    
+
+    char** spell_list = get_spell_list( ch );
+    if ( spell_list == NULL )
+        return FALSE;
+
     int max_spell = 0;
     while (spell_list[max_spell])
-        max_spell++;
-
-    do_cast( ch, spell_list[number_range(0, max_spell-1)] );
+        max_spell++;    
+    
+    char argument[255];
+    sprintf( argument, "'%s'", spell_list[number_range(0, max_spell-1)] );    
+    do_cast( ch, argument );
     return TRUE;
+}
+
+bool spec_cast_cleric( CHAR_DATA *ch )
+{
+    return spec_cast_any( ch );
 }
 
 bool spec_cast_judge( CHAR_DATA *ch )
 {
-	CHAR_DATA *victim;
-	CHAR_DATA *v_next;
-	char *spell;
-	int sn;
- 
-	if ( ch->position != POS_FIGHTING )
-		return FALSE;
- 
-	for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
-	{
-	    v_next = victim->next_in_room;
-	    if ( victim->fighting == ch && number_bits( 2 ) == 0 )
-		break;
-	}
- 
-	if ( victim == NULL )
-		return FALSE;
- 
-	spell = "high explosive";
-	if ( ( sn = skill_lookup( spell ) ) < 0 )
-		return FALSE;
-	(*skill_table[sn].spell_fun) ( sn, 4*ch->level/5, ch, victim,TARGET_CHAR);
-	return TRUE;
+    return spec_cast_any( ch );
 }
-
-
 
 bool spec_cast_mage( CHAR_DATA *ch )
 {
-    if ( ch->position != POS_FIGHTING )
-        return FALSE;
-    
-    char *spell_list[] = {
-        "'dispel magic'",
-        "'magic missile'",
-        "'chill touch'",
-        "'burning hands'",
-        "'colour spray'",
-        "fireball",
-        "'lightning bolt'",
-        "'acid blast'",
-        "'energy drain'",
-        "stop",
-        NULL
-    };
-    
-    int max_spell = 0;
-    while (spell_list[max_spell])
-        max_spell++;
-    do_cast( ch, spell_list[number_range(0, max_spell-1)] );
-    return TRUE;
+    return spec_cast_any( ch );
 }
-
-
 
 bool spec_cast_undead( CHAR_DATA *ch )
 {
-    if ( ch->position != POS_FIGHTING )
-        return FALSE;
-    
-    char *spell_list[] = {
-        "curse",
-        "weaken",
-        "'chill touch'",
-        "blindness",
-        "poison",
-        "harm",
-        "'energy drain'",
-        "plague",
-        "necrosis",
-        "'tomb rot'",
-        "'soreness'",
-        "haunt",
-        "'mana burn'",
-        "'fear'",
-        NULL
-    };
-    
-    int max_spell = 0;
-    while (spell_list[max_spell])
-        max_spell++;
-    do_cast( ch, spell_list[number_range(0, max_spell-1)] );
-    return TRUE;
+    return spec_cast_any( ch );
 }
-
 
 bool spec_executioner( CHAR_DATA *ch )
 {

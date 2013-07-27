@@ -600,9 +600,9 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
                 check_killer(ch,victim);
             }
 
-            if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master == victim )
+            if ( IS_AFFECTED(victim, AFF_CHARM) && victim->leader == ch )
             {
-                send_to_char( "You can't do that on your own follower.\n\r", ch );
+                send_to_char( "You can't do that to your own follower.\n\r", ch );
                 return FALSE;
             }
 
@@ -702,9 +702,9 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
                     return FALSE;
                 }
 
-                if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master == victim )
+                if ( IS_AFFECTED(victim, AFF_CHARM) && victim->leader == ch )
                 {
-                    send_to_char( "You can't do that on your own follower.\n\r", ch );
+                    send_to_char( "You can't do that to your own follower.\n\r", ch );
                     return FALSE;
                 }
 
@@ -1006,8 +1006,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
         }
 
         level = ch->level;
-        if (!IS_NPC(ch))
-            level -= (100-class_table[ch->class].mana_gain)*level/500;
         level = (100+chance)*level/200;
         level = URANGE(1, level, 120);
 
@@ -1045,8 +1043,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     if ((skill_table[sn].target == TAR_CHAR_OFFENSIVE
                 || (skill_table[sn].target == TAR_VIS_CHAR_OFF)
                 ||   (skill_table[sn].target == TAR_OBJ_CHAR_OFF && target == TARGET_CHAR))
-            &&   victim != ch
-            &&   victim->master != ch)
+            &&   victim != ch)
     {
         CHAR_DATA *vch;
         CHAR_DATA *vch_next;
@@ -4775,7 +4772,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
             if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
             {
                 act("The curse on $p cannot be removed.",ch,obj,NULL,TO_CHAR);
-                obj = obj->next;
+                return;
             }
             
             if (!saves_dispel(level + 2,obj->level,0))
@@ -4813,7 +4810,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
         {
             act("The curse on $p cannot be removed.",ch,obj,NULL,TO_CHAR);
-            obj = obj->next_content;
             continue;
         }
 
