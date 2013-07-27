@@ -622,9 +622,6 @@ void do_headbutt( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch,victim) )
         return;
         
-    if ( !can_see(ch, victim) && blind_penalty(ch) )
-        chance /= 2;
-        
     check_killer(ch,victim);
     WAIT_STATE( ch, skill_table[gsn_headbutt].beats );
     if ( check_hit(ch, victim, gsn_headbutt, DAM_BASH, chance) )
@@ -1907,7 +1904,7 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     CHAR_DATA *other;
     CHAR_DATA *other_next;
     CHAR_DATA *fch;
-    bool okay = FALSE;
+    bool is_attacked = FALSE;
     int chance;
     
     one_argument( argument, arg );
@@ -1947,12 +1944,6 @@ void do_rescue( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !IS_NPC(ch) && IS_NPC(victim) )
-    {
-        send_to_char( "Doesn't need your help!\n\r", ch );
-        return;
-    }
-    
     if ( ch->fighting == victim )
     {
         send_to_char( "Too late.\n\r", ch );
@@ -1961,38 +1952,24 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     
     /* find character to rescue victim from */
     for ( fch = victim->in_room->people; fch != NULL; fch = fch->next_in_room )
-	if ( fch->fighting == victim )
-	    break;
+    {        
+        if ( fch->fighting == victim )
+        {        
+            is_attacked = TRUE;
+            if ( !is_safe_spell(ch, fch, FALSE) )
+                break;
+        }
+    }
 
     if ( fch == NULL )
     {
-        send_to_char( "That person isn't being attacked right now.\n\r", ch );
+        if ( is_attacked )
+            send_to_char( "You cannot interfere in this fight.\n\r",ch);
+        else
+            send_to_char( "That person isn't being attacked right now.\n\r", ch );
         return;
     }
-    
-    if ( is_safe_spell(ch, fch, FALSE) )
-    {
-        send_to_char("You cannot fight that target.\n\r",ch);
-        return;
-    }
-    
-    /*
-    for ( other=ch->in_room->people; other != NULL; other=other_next )
-    {
-        other_next = other->next_in_room;
-        if ( other->fighting == victim )
-        {
-            okay = TRUE;
-            break;
-        }
-    }
-    if ( okay == FALSE )
-    {
-        send_to_char( "That person isn't in need of a rescue.\n\r", ch );
-        return;
-    }
-    */
-    
+
     chance = 25 + get_skill(ch, gsn_rescue)/2 + get_skill(ch, gsn_bodyguard)/4;
     if (number_percent() < get_skill(fch, gsn_entrapment))
     {
@@ -2056,19 +2033,6 @@ void do_kick( CHAR_DATA *ch, char *argument )
         if ( is_safe(ch,victim) )
             return;
 
-/* These checks occur in is_safe: 
-        if ( check_kill_steal(ch,victim) )
-        {
-            send_to_char("Kill stealing is not permitted.\n\r", ch );
-            return;
-        }
-        if (IS_AFFECTED(ch, AFF_CHARM) && ch->master == victim )
-        {
-            act("But $N is your beloved master!", ch, NULL, victim, TO_CHAR );
-            return;
-        }      
-*/
-
         chance=get_skill(ch, gsn_kick);
         
         check_killer(ch,victim);
@@ -2076,33 +2040,10 @@ void do_kick( CHAR_DATA *ch, char *argument )
 
         if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
         {
-	    /*
-            dam=number_range(1, ch->level);
-            dam+=get_curr_stat(ch, STAT_STR)/4;
-            dam+=ch->damroll /3;
-            */
-	    dam = martial_damage( ch, gsn_kick );
+            dam = martial_damage( ch, gsn_kick );
 
             full_dam(ch,victim, dam, gsn_kick,DAM_BASH,TRUE);
             check_improve(ch,gsn_kick,TRUE,3);
-
-//            AFFECT_DATA af;
-
-/*
-            if ( get_skill(ch, gsn_combo_attack) > 0 )
-            {
-                af.where    = TO_AFFECTS;
-                af.type     = gsn_combo_attack;
-                af.level    = ch->level;
-                af.duration = 1;
-                af.location = APPLY_COMBO;
-                af.modifier = 1;
-                af.bitvector = 0;
-        
-                affect_join(ch,&af);
-
-            }
-*/
         }
         else
         {
@@ -2416,19 +2357,6 @@ void do_gouge( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch,victim) )
         return;
     
-/* These checks occur in is_safe: 
-    if ( check_kill_steal(ch,victim) )
-    {
-        send_to_char("Kill stealing is not permitted.\n\r",ch);
-        return;
-    }
-    if (IS_AFFECTED(ch,AFF_CHARM) && ch->master == victim)
-    {
-        act("But $N is such a good friend!",ch,NULL,victim,TO_CHAR);
-        return;
-    }
-*/
-    
     /* dexterity */
     chance += get_curr_stat(ch,STAT_STR)/8;
     chance += get_curr_stat(ch,STAT_DEX)/8;
@@ -2684,14 +2612,6 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
 	dam = martial_damage( ch, gsn_uppercut );
 	dam = number_range( dam, 3*dam );
 
-	/*
-	dam=number_range( 10, ch->level + ch->damroll/2 );
-	dam*=20+ch->hit/10;
-	dam*=chance;
-	dam/=6400;
-	dam+=number_range(1,ch->level);
-	*/
-	
 	check_improve(ch,gsn_uppercut,TRUE,1);
 	
 	chance = skill;
@@ -2830,11 +2750,6 @@ void do_guard( CHAR_DATA *ch, char *argument )
         return;
     }
     
-   /* No message, so we're fixing that 
-    * if ( is_safe(ch,victim) || ch == victim )
-    *    return;
-    */
-
     if (is_safe(ch,victim))
     {
         send_to_char( "You can't guard your opponent in a safe room.\n\r", ch);
@@ -3187,19 +3102,6 @@ void do_chop( CHAR_DATA *ch, char *argument )
         if ( is_safe(ch,victim) )
             return;
         
-/* These checks occur in is_safe: 
-        if ( check_kill_steal(ch,victim) )
-        {
-            send_to_char( "Kill stealing is not permitted.\n\r", ch );
-            return;
-        }
-        if ( IS_AFFECTED( ch, AFF_CHARM ) && ch->master == victim )
-        {
-            send_to_char( "But you adore $N so VERY much!\n\r", ch );
-            return;
-        }
-*/
-
         chance = get_skill(ch, gsn_chop);
         
         check_killer(ch,victim);
@@ -3207,13 +3109,7 @@ void do_chop( CHAR_DATA *ch, char *argument )
 
         if ( check_hit(ch, victim, gsn_chop, DAM_SLASH, chance) )
         {
-	    /*
-            dam=number_range(1, ch->level);
-            dam+=get_curr_stat(ch, STAT_STR)/4;
-            dam+=ch->damroll /3;
-            */
-	    dam = martial_damage( ch, gsn_chop );
-
+            dam = martial_damage( ch, gsn_chop );
             full_dam(ch,victim, dam, gsn_chop,DAM_SLASH,TRUE);
             check_improve(ch,gsn_chop,TRUE,3);
         }
@@ -3262,36 +3158,12 @@ void do_bite( CHAR_DATA *ch, char *argument )
         if ( is_safe(ch,victim) )
             return;
         
-/* These checks occur in is_safe: 
-        if ( check_kill_steal(ch,victim) )
-        {
-            send_to_char( "Kill stealing is not permitted.\n\r", ch );
-            return;
-        }
-        if (IS_AFFECTED( ch, AFF_CHARM ) && ch->master == victim )
-        {
-            send_to_char( "But $N is your beloved master!\n\r", ch );
-            return;
-        }
-*/
-
-	if ( !can_see(ch, victim) && blind_penalty(ch) )
-	    chance /= 2;
-        
         WAIT_STATE( ch, skill_table[gsn_bite].beats );
         check_killer(ch,victim);
 
         if ( check_hit(ch, victim, gsn_bite, DAM_PIERCE, chance) )
         {
-	    /*
-            dam=number_range(1, ch->level);
-            dam+=get_curr_stat(ch, STAT_STR)/4;
-            dam+=ch->damroll/3;
-	    if ( IS_SET(ch->parts, PART_FANGS) )
-		dam += dam / 3;
-	    */
-	    dam = martial_damage( ch, gsn_bite );
-
+            dam = martial_damage( ch, gsn_bite );
             full_dam(ch,victim, dam, gsn_bite,DAM_PIERCE,TRUE);
             check_improve(ch,gsn_bite,TRUE,3);
 	    CHECK_RETURN(ch, victim);
@@ -3696,19 +3568,6 @@ void do_spit( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch,victim) )
         return;
     
-/* These checks occur in is_safe: 
-    if ( check_kill_steal(ch,victim) )
-    {
-        send_to_char("Kill stealing is not permitted.\n\r",ch);
-        return;
-    }
-    if (IS_AFFECTED(ch,AFF_CHARM) && ch->master == victim)
-    {
-        act("But $N is such a good friend!",ch,NULL,victim,TO_CHAR);
-        return;
-    }
-*/
-
     /* modifiers */
     
     /* dexterity */
@@ -3780,11 +3639,6 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
         return;
     }
     
-   /* No message, so we're fixing that 
-    * if ( is_safe(ch,victim) || ch == victim )
-    *    return;
-    */
-
     if (is_safe(ch,victim))
     {
         send_to_char( "You can't choke your opponent in a safe room.\n\r", ch);
@@ -3846,7 +3700,7 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
 
 void do_roundhouse( CHAR_DATA *ch, char *argument )
 {
-   int chance, tally=0;
+   int tally=0;
    CHAR_DATA *vch;
    CHAR_DATA *vch_next;
    int skill, dam; 
@@ -3864,11 +3718,8 @@ void do_roundhouse( CHAR_DATA *ch, char *argument )
        vch_next = vch->next_in_room;
        if ( vch != ch && !is_safe_spell(ch,vch,TRUE))
        {
-	   chance = skill - get_skill(vch, gsn_dodge) / 3;
-	   chance += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(vch, STAT_AGI)) / 8;
-	   
 	   /* now the attack */
-	   if ( check_hit(ch, vch, gsn_roundhouse, DAM_BASH, chance) )
+	   if ( check_hit(ch, vch, gsn_roundhouse, DAM_BASH, skill) )
 	   {
 	       check_killer(ch,vch);
 	       tally++;
@@ -3973,9 +3824,7 @@ void do_hurl( CHAR_DATA *ch, char *argument )
         act( "$n hurls $N across the room!",  ch, NULL, victim, TO_NOTVICT );
         check_improve(ch,gsn_hurl,TRUE,1);
         
-        dam = number_range(1, ch->level);
-        dam += get_curr_stat(ch, STAT_DEX);
-        dam += ch->damroll / 3;
+        dam = martial_damage( ch, gsn_hurl );
         
         DAZE_STATE( victim, 2*PULSE_VIOLENCE + victim->size - SIZE_MEDIUM );
         damage(ch,victim, dam, gsn_hurl,DAM_BASH,TRUE);
@@ -4057,9 +3906,7 @@ void do_mug( CHAR_DATA *ch, char *argument )
     
     if (number_percent() < skill)
     {
-        dam=number_range(1, ch->level);
-        dam+=get_curr_stat(ch, STAT_STR);
-        dam+=ch->damroll /3;
+        dam = martial_damage(ch, gsn_mug);
         
         damage(ch,victim, dam, gsn_mug,DAM_PIERCE,TRUE);
         check_improve(ch,gsn_mug,TRUE,1);
@@ -4134,15 +3981,6 @@ void do_mug( CHAR_DATA *ch, char *argument )
                 } /* end obj_found != NULL */
             }  /* end check for chance of stealing items */
         }  /* end check for chance of stealing coins */
-        else /* if not stealing coins or anything, hit em more! */
-        {
-	    /*
-            damage( ch, victim, 0, gsn_mug,DAM_PIERCE,TRUE);
-            check_improve(ch,gsn_mug,FALSE,2);
-	    multi_hit( victim, ch, TYPE_UNDEFINED );
-            return;
-	    */
-        }
     }
     else
     {
@@ -4188,18 +4026,6 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch,victim) )
 	return;
         
-/* These checks occur in is_safe: 
-    if ( check_kill_steal(ch,victim) )
-    {
-        send_to_char( "Kill stealing is not permitted.\n\r", ch );
-        return;
-    }
-    if ( IS_AFFECTED( ch, AFF_CHARM ) && ch->master == victim )
-    {
-        send_to_char( "Love hurts, but not that much!\n\r", ch );
-        return;
-    }
-*/
     chance = skill - get_skill(victim, gsn_dodge)/3;
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
         
@@ -4481,7 +4307,6 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
 
 void do_rake( CHAR_DATA *ch, char *argument )
 {
-    int chance;
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
     int skill, dam; 
@@ -4502,11 +4327,8 @@ void do_rake( CHAR_DATA *ch, char *argument )
        vch_next = vch->next_in_room;
        if ( vch != ch && !is_safe_spell(ch,vch,TRUE) )
        {
-	   chance = skill - get_skill(vch, gsn_dodge) / 3;
-	   chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(vch, STAT_AGI)) / 8;
-
 	   /* now the attack */
-	   if ( check_hit(ch, vch, gsn_razor_claws, DAM_SLASH, chance) )
+	   if ( check_hit(ch, vch, gsn_razor_claws, DAM_SLASH, skill) )
 	   {
 	       check_killer(ch, vch);
 	       if ( number_bits(6) == 0 )
