@@ -103,6 +103,15 @@ char *time_format(time_t t, char *b)
     return b;
 }
 
+bool is_in_remort(CHAR_DATA *ch)
+{
+    int i;
+    for ( i = 0; chambers[i].name != NULL; i++ )
+        if ( chamber_list[i] != NULL && !str_cmp(ch->name, chamber_list[i]->name) )
+            return TRUE;
+    return FALSE;
+}
+
 void do_remort args( (CHAR_DATA *ch, char *argument) );
 void remort_signup args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_cancel args( (CHAR_DATA *ch, CHAR_DATA *adept) );

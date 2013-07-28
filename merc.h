@@ -4477,6 +4477,7 @@ void set_con_state args((DESCRIPTOR_DATA *d, int cstate));
 void set_creation_state args((DESCRIPTOR_DATA *d, int cmode));
 
 /* remort.c */
+bool is_in_remort args( (CHAR_DATA *ch) );
 void remort_complete args( (CHAR_DATA *ch) );
 void remort_update args( ( void) );
 void remort_load args( ( void) );
