@@ -2201,6 +2201,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_INACTIVE_HELPER (mm)
 #define PLR_ANTI_HELEPR (nn)
 #define PLR_NOEXP       (oo)
+#define PLR_REMORT_ROLL (rr)
 
 /* RT comm flags -- may be used on both mobs and chars */
 #define COMM_QUIET              (A)
