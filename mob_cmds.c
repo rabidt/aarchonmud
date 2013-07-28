@@ -1704,6 +1704,7 @@ void do_mpremort( CHAR_DATA *ch, char *argument )
 
     if (IS_NPC(victim)) return;
 
+    victim->pcdata->remorts++;
     remort_begin(victim);
 }
 

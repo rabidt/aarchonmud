@@ -860,20 +860,12 @@ MEMFILE* remort_mem_save()
 
 void remort_begin(CHAR_DATA *ch)
 {
-    bool found = FALSE;
     int i, j;
-    
-    for (j = 0; chambers[j].name != NULL; j++)
-        if (chamber_list[j] != NULL)
-            if (!str_cmp(ch->name, chamber_list[j]->name))
-	    {
-		found = TRUE;
-		break;
-	    }
-    if (!found) return;
-      
-    chamber_list[j]->limit = UMAX( chamber_list[j]->limit, current_time + 4800 );
 
+    remort_remove(ch, TRUE);
+
+    // mark as rolling stats in case we loose connection
+    SET_BIT(ch->act, PLR_REMORT_ROLL);
     quit_save_char_obj(ch);
     
     if (ch->desc != NULL)
@@ -912,9 +904,6 @@ void remort_begin(CHAR_DATA *ch)
     }
     unregister_lua( ch );
 
-
-    ch->pcdata->remorts++;
-    
     for (i = 0; i < MAX_STATS; i++)
         ch->pcdata->history_stats[i] += ch->pcdata->original_stats[i];
     
@@ -934,8 +923,8 @@ void remort_complete(CHAR_DATA *ch)
 {
     char buf[MAX_STRING_LENGTH];
     OBJ_DATA *obj, *obj_next;
-    
-    remort_remove(ch, TRUE);
+
+    REMOVE_BIT(ch->act, PLR_REMORT_ROLL);
     
     for ( obj = ch->carrying; obj != NULL; obj = obj_next )
     {

@@ -142,9 +142,15 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		get_name(d, argument);
 		break;
 		
-	    case CON_GET_OLD_PASSWORD:
-		if (get_old_password(d, argument)) read_imotd(d, argument);
-		break;
+        case CON_GET_OLD_PASSWORD:
+            if ( get_old_password(d, argument) )
+            {
+                if ( IS_SET(d->character->act, PLR_REMORT_ROLL) )
+                    remort_begin(d->character);
+                else
+                    read_imotd(d, argument);
+            }
+            break;
 		
 	    case CON_BREAK_CONNECT:
 		if (break_connect(d, argument)) get_name(d, argument);

@@ -298,12 +298,6 @@ void run_combat_action( DESCRIPTOR_DATA *d )
     if ( IS_AFFECTED(ch, AFF_CHARM) )
 	return;
 
-    /*
-    if ( !run_olc_editor( d ) )
-	substitute_alias( d, command );
-    else
-	nanny( d, command );
-    */
     anti_spam_interpret( d->character, command );
 
     /* prevent spam from lag-less actions */
