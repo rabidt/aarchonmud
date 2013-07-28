@@ -373,18 +373,13 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
         case IS_VULNERABLE: if ( chance(10) ) return FALSE;  break;
     }
 
-    if ( victim->fighting != NULL
-            && victim->fighting->stance == STANCE_INQUISITION
-            && chance(20) )
-        return FALSE;
-
     if ( (victim->stance == STANCE_UNICORN)
             && chance(25) )
         return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PHASE)
             && chance(50) )
-        return;
+        return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PROTECT_MAGIC)
             && chance(20) )
@@ -397,6 +392,9 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
     /* now the resisted roll */
     save_roll = -get_save(victim);
     hit_roll = (level + 10) * 6/5;
+
+    if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
+        save_roll = save_roll * 2/3;
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -1450,32 +1448,10 @@ void spell_burning_hands(int sn,int level, CHAR_DATA *ch, void *vo, int target)
 
     if ( check_hit( ch, victim, sn, DAM_FIRE, 100 ) )
     {
-        dam = get_sn_damage( sn, level, ch ) * 15/10;
-        if ( saves_spell( level, victim, DAM_LIGHT) )
+        dam = get_sn_damage( sn, level, ch ) * 14/10;
+        if ( saves_spell( level, victim, DAM_FIRE) )
             dam /= 2;
-
-        /* Level 90+ chars have a chance to blind their opponent
-           with burning hands - Astark */
-        if (level >= 90)
-        {
-
-            if (!IS_AFFECTED(victim,AFF_BLIND) &&  !saves_spell(level / 4 + dam / 20, victim,DAM_FIRE) &&  !number_bits(2))
-            {
-                AFFECT_DATA af;
-                act("$n is blinded by smoke!",victim,NULL,NULL,TO_ROOM);
-                act("Your eyes tear up from smoke...you can't see a thing!",
-                        victim,NULL,NULL,TO_CHAR);
-
-                af.where        = TO_AFFECTS;
-                af.type         = gsn_burning_hands;
-                af.level        = level;
-                af.duration     = 0;
-                af.location     = APPLY_HITROLL;
-                af.modifier     = -2;
-                af.bitvector    = AFF_BLIND;
-            }
-        }
-
+        fire_effect( victim, level, dam, TARGET_CHAR );
     }
     else
         dam = 0;
@@ -4730,7 +4706,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -4753,7 +4729,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
@@ -4872,9 +4847,7 @@ void spell_shocking_grasp(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
     if ( check_hit( ch, victim, sn, DAM_LIGHTNING, 100 ) )
     {
-        /* Now works just like chill touch, but does slightly
-           less damage - Astark Oct 2012 */
-        dam = get_sn_damage( sn, level, ch ) * 12/10;
+        dam = get_sn_damage( sn, level, ch ) * 14/10;
         if ( saves_spell( level, victim, DAM_LIGHTNING) )
             dam /= 2;
         shock_effect( victim, level, dam, TARGET_CHAR );
