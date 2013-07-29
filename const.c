@@ -3004,7 +3004,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_divine_light, TAR_IGNORE,     POS_STANDING,
-	NULL,           SLOT(1003),  7, 12, DUR_NONE,
+	NULL,           SLOT(1003),  7, 12, DUR_SPECIAL,
 	"",         "!Divine Light!",   "", NULL
 	},
 
@@ -3693,7 +3693,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_nexus,            TAR_IGNORE,             POS_STANDING,
-	NULL,                   SLOT(520),       150,   36, DUR_NONE,
+	NULL,                   SLOT(520),       150,   36, DUR_SPECIAL,
 	"",                     "!Nexus!",      "", NULL
 	},
 
@@ -3704,7 +3704,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,  95, 100, 100, 100, 100 },
  	STAT_VIT, STAT_INT, STAT_CON,
         spell_overcharge,        TAR_CHAR_SELF,   POS_STANDING,
-        &gsn_overcharge,           SLOT(63),   200, 18, DUR_NONE,
+        &gsn_overcharge,           SLOT(63),   200, 18, DUR_SPECIAL,
         "",         "As your focus breaks your mana stops overcharging.",
         },
 
@@ -3784,7 +3784,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_portal,           TAR_IGNORE,             POS_STANDING,
-	NULL,                   SLOT(519),       100,     24, DUR_NONE,
+	NULL,                   SLOT(519),       100,     24, DUR_SPECIAL,
 	"",                     "!Portal!",     "", NULL
 	},
 
@@ -3839,7 +3839,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_ray_of_truth,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	NULL,                   SLOT(518),      20,     12, DUR_NONE,
+	NULL,                   SLOT(518),      20,     12, DUR_SPECIAL,
 	"ray of truth",         "!Ray of Truth!",   "", NULL
 	},
 
@@ -3894,7 +3894,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_replenish, TAR_CHAR_SELF,   POS_FIGHTING,
-	NULL,           SLOT(531),   50,   12, DUR_NONE,
+	NULL,           SLOT(531),   50,   12, DUR_SPECIAL,
 	"",         "You are no longer being replenished.",   "", NULL
 	},
 
@@ -3905,7 +3905,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,             TAR_IGNORE,             POS_FIGHTING,
-	&gsn_replenish_cooldown,           SLOT( 0),       0,      8, DUR_NONE,
+	&gsn_replenish_cooldown,           SLOT( 0),       0,      8, DUR_SPECIAL,
 	"",     "You're able to replenish yourself once again.",   "", NULL
 	},
 
@@ -3996,7 +3996,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_sleep,        TAR_VIS_CHAR_OFF, POS_FIGHTING,
-	&gsn_sleep,     SLOT(38),   15, 12, DUR_NONE,
+	&gsn_sleep,     SLOT(38),   15, 12, DUR_SPECIAL,
 	"",         "You feel less tired.", "", NULL
 	},
 
@@ -4029,7 +4029,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_stop,     TAR_VIS_CHAR_OFF,     POS_FIGHTING,
-	NULL,           SLOT(1324),      18,     10, DUR_NONE,
+	NULL,           SLOT(1324),      18,     10, DUR_SPECIAL,
 	"",         "!Stop!",  "", NULL
 	},
        
@@ -4073,7 +4073,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_turn_undead,  TAR_IGNORE, POS_FIGHTING,
-	NULL,           SLOT(668),    8,  12, DUR_NONE,
+	NULL,           SLOT(668),    8,  12, DUR_SPECIAL,
 	"turn",     "!Turn Undead!","", NULL
 	},
 

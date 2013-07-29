@@ -843,7 +843,7 @@ int get_duration( int sn, int level )
         case DUR_NORMAL:  return (level + 20) / 2;
         case DUR_LONG:    return (level + 20);
         case DUR_EXTREME: return (level + 20) * 2;
-        default:     return 0;
+        default:          return 0;
     }
 }
 
