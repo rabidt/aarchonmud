@@ -621,6 +621,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "opedit",     do_opedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "hedit",      do_hedit,   POS_DEAD,   L8,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpdump",     do_mpdump,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
+    { "opdump",     do_opdump,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "mpstat",     do_mpstat,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "mpfind",     do_mpfind,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "lfind",      do_lfind,   POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
