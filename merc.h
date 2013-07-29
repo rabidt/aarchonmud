@@ -3033,11 +3033,12 @@ struct  room_index_data
  *  Duration types.
  */
 #define DUR_NONE        0
-#define DUR_BRIEF       1
-#define DUR_SHORT       2
-#define DUR_NORMAL      3
-#define DUR_LONG        4
-#define DUR_EXTREME     5
+#define DUR_SPECIAL     1
+#define DUR_BRIEF       2
+#define DUR_SHORT       3
+#define DUR_NORMAL      4
+#define DUR_LONG        5
+#define DUR_EXTREME     6
 
 /*
  * Skills include spells as a particular case.
