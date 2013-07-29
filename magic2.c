@@ -322,7 +322,7 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level   = level;
-    af.duration  = number_fuzzy( level );
+    af.duration  = get_duration(sn, level);
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_CHARM;
@@ -449,7 +449,7 @@ void spell_betray( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.type      = sn;
     af.where     = TO_AFFECTS;
     af.level     = level;
-    af.duration  = number_fuzzy( level / 4 );
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_CHARM;
@@ -492,7 +492,7 @@ void spell_astral( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 5;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_ASTRAL;
@@ -522,7 +522,7 @@ void spell_detect_astral( int sn, int level, CHAR_DATA *ch, void *vo, int target
     }
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.modifier  = 0;
     af.location  = APPLY_NONE;
     af.bitvector = AFF_DETECT_ASTRAL;
@@ -577,9 +577,7 @@ void spell_feeblemind ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.type      = sn;
     af.where     = TO_AFFECTS;
     af.level     = level;
-    /* Max duration reduced from 49 ticks to 24 - Astark Oct 2012
-    af.duration  = level / 2; */
-    af.duration  = level / 4;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_INT;
     af.modifier  = -1 * (level / 2);
     af.bitvector = AFF_FEEBLEMIND;
@@ -618,7 +616,7 @@ void spell_fear( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 	af.where     = TO_AFFECTS;
 	af.type      = sn;
 	af.level     = level;
-	af.duration  = dice( 1, 4 );
+	af.duration  = get_duration(sn, level);
 	af.modifier  = -level/4;
 	af.location  = APPLY_DIS;
 	af.bitvector = AFF_FEAR;
@@ -800,9 +798,7 @@ void spell_necrosis ( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type       = gsn_necrosis;
     af.level      = level;
-    /* Max duration reduced from 33 ticks to 19 - Astark Oct 2012
-    af.duration  = level / 3; */
-    af.duration  = level / 5;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_STR;
     af.modifier  = -30; 
     af.bitvector = AFF_PLAGUE;
@@ -948,7 +944,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level * (100+puppet_skill) / 100;
+    af.duration  = get_duration(sn, level) * (100+puppet_skill) / 100;
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_ANIMATE_DEAD;
@@ -1003,7 +999,7 @@ void spell_ritual_sacrifice ( int sn, int level, CHAR_DATA *ch, void *vo ,int ta
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 2;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0; 
     af.bitvector = AFF_RITUAL;
@@ -1346,7 +1342,7 @@ void spell_protection_magic(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/4;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_SAVING_SPELL;
     af.modifier  = -5;
     af.bitvector = AFF_PROTECT_MAGIC;
@@ -1372,7 +1368,7 @@ void spell_immolation(int sn,int level,CHAR_DATA *ch,void *vo, int target)
             af.where     = TO_AFFECTS;
             af.type      = sn;
             af.level     = level;
-            af.duration  = level/5;
+            af.duration  = get_duration(sn, level);
             af.location  = APPLY_AC;
             af.modifier  = -level/8;
             af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -1383,7 +1379,7 @@ void spell_immolation(int sn,int level,CHAR_DATA *ch,void *vo, int target)
                 af.where = TO_RESIST;
                 af.type = sn;
                 af.level = level;
-                af.duration = level/5;
+                af.duration = get_duration(sn, level);
                 af.location = APPLY_NONE;
                 af.modifier=0;
                 af.bitvector=RES_FIRE;
@@ -1398,7 +1394,7 @@ void spell_immolation(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/5;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
     af.modifier  = -level/8;
     af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -1409,7 +1405,7 @@ void spell_immolation(int sn,int level,CHAR_DATA *ch,void *vo, int target)
         af.where = TO_RESIST;
         af.type = sn;
         af.level = level;
-        af.duration = level/5;
+        af.duration = get_duration(sn, level);
         af.location = APPLY_NONE;
         af.modifier=0;
         af.bitvector=RES_FIRE;
@@ -1437,7 +1433,7 @@ void spell_epidemic(int sn,int level,CHAR_DATA *ch,void *vo, int target)
             af.where     = TO_AFFECTS;
             af.type      = sn;
             af.level     = level;
-            af.duration  = level/5;
+            af.duration  = get_duration(sn, level);
             af.location  = APPLY_AC;
             af.modifier  = -level/8;
             af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -1448,7 +1444,7 @@ void spell_epidemic(int sn,int level,CHAR_DATA *ch,void *vo, int target)
                 af.where = TO_RESIST;
                 af.type = sn;
                 af.level = level;
-                af.duration = level/5;
+                af.duration = get_duration(sn, level);
                 af.location = APPLY_NONE;
                 af.modifier=0;
                 af.bitvector=RES_DISEASE;
@@ -1463,7 +1459,7 @@ void spell_epidemic(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/5;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
     af.modifier  = -level/8;
     af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -1474,7 +1470,7 @@ void spell_epidemic(int sn,int level,CHAR_DATA *ch,void *vo, int target)
         af.where = TO_RESIST;
         af.type = sn;
         af.level = level;
-        af.duration = level/5;
+        af.duration = get_duration(sn, level);
         af.location = APPLY_NONE;
         af.modifier=0;
         af.bitvector=RES_DISEASE;
@@ -1502,7 +1498,7 @@ void spell_electrocution(int sn,int level,CHAR_DATA *ch,void *vo, int target)
             af.where     = TO_AFFECTS;
             af.type      = sn;
             af.level     = level;
-            af.duration  = level/5;
+            af.duration  = get_duration(sn, level);
             af.location  = APPLY_AC;
             af.modifier  = -level/8;
             af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -1513,7 +1509,7 @@ void spell_electrocution(int sn,int level,CHAR_DATA *ch,void *vo, int target)
                 af.where = TO_RESIST;
                 af.type = sn;
                 af.level = level;
-                af.duration = level/5;
+                af.duration = get_duration(sn, level);
                 af.location = APPLY_NONE;
                 af.modifier=0;
                 af.bitvector=RES_LIGHTNING;
@@ -1528,7 +1524,7 @@ void spell_electrocution(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/5;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
     af.modifier  = -level/8;
     af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -1539,7 +1535,7 @@ void spell_electrocution(int sn,int level,CHAR_DATA *ch,void *vo, int target)
         af.where = TO_RESIST;
         af.type = sn;
         af.level = level;
-        af.duration = level/5;
+        af.duration = get_duration(sn, level);
         af.location = APPLY_AC;
         af.modifier=0;
         af.bitvector=RES_LIGHTNING;
@@ -1569,7 +1565,7 @@ void spell_absolute_zero(int sn,int level,CHAR_DATA *ch,void *vo, int target)
             af.where     = TO_AFFECTS;
             af.type      = sn;
             af.level     = level;
-            af.duration  = level/5;
+            af.duration  = get_duration(sn, level);
             af.location  = APPLY_AC;
             af.modifier  = -level/8;
             af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -1580,7 +1576,7 @@ void spell_absolute_zero(int sn,int level,CHAR_DATA *ch,void *vo, int target)
                 af.where = TO_RESIST;
                 af.type = sn;
                 af.level = level;
-                af.duration = level/5;
+                af.duration = get_duration(sn, level);
                 af.location = APPLY_NONE;
                 af.modifier=0;
                 af.bitvector=RES_COLD;
@@ -1595,7 +1591,7 @@ void spell_absolute_zero(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/5;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
     af.modifier  = -level/8;
     af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -1606,7 +1602,7 @@ void spell_absolute_zero(int sn,int level,CHAR_DATA *ch,void *vo, int target)
         af.where = TO_RESIST;
         af.type = sn;
         af.level = level;
-        af.duration = level/5;
+        af.duration = get_duration(sn, level);
         af.location = APPLY_NONE;
         af.modifier=0;
         af.bitvector=RES_COLD;
@@ -1633,7 +1629,7 @@ void spell_fade(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/10;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_FADE;
@@ -1660,7 +1656,7 @@ void spell_breathe_water(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/8;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_BREATHE_WATER;
@@ -1865,7 +1861,7 @@ void spell_entangle ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     
     af.type      = sn;
     af.level     = level;
-    af.duration  = level / 20;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AGI;
     af.modifier  = -1 * (level / 2);
     af.bitvector = AFF_ENTANGLE;
@@ -1895,7 +1891,7 @@ void spell_pass_without_trace( int sn, int level, CHAR_DATA *ch, void *vo,int ta
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_NO_TRACE;
@@ -1954,7 +1950,7 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level   = level;
-    af.duration  = (100 + level) * (100 + beast_skill) / 200;
+    af.duration  = get_duration(sn, level) * (100 + beast_skill) / 100;
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_CHARM;
@@ -2032,7 +2028,7 @@ void spell_water_elemental( int sn, int level, CHAR_DATA *ch, void *vo, int targ
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = (100 + level) / 2;
+    af.duration  = get_duration(sn, level);
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_CHARM;
@@ -2159,7 +2155,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
         af.where     = TO_AFFECTS;
         af.type      = sn;
         af.level   = level;
-        af.duration  = (100 + level) * (100 + beast_skill) / 200;
+        af.duration  = get_duration(sn, level) * (100 + beast_skill) / 100;
         af.location  = 0;
         af.modifier  = 0;
         af.bitvector = AFF_CHARM;
@@ -2336,7 +2332,7 @@ void spell_laughing_fit( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level / 4;
+    af.duration  = get_duration(sn, level);
     af.modifier  = -2;
     af.bitvector = AFF_LAUGH;
     
@@ -2379,7 +2375,7 @@ void spell_mass_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int targe
 	    af.where     = TO_AFFECTS;
 	    af.type      = sn;
 	    af.level     = level/2;
-	    af.duration  = number_range(1,4);//level/4;
+	    af.duration  = get_duration(sn, level);
 	    af.location  = APPLY_INT;
 	    af.modifier  = -15;
 	    af.bitvector = AFF_INSANE;
@@ -2414,7 +2410,7 @@ void spell_heroism( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/2;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
     af.modifier  = level / 10;
     af.bitvector = AFF_HEROISM;
@@ -2464,7 +2460,7 @@ void spell_deaths_door( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = number_range(level/2, level);
+    af.duration  = get_duration(sn, level);
     af.modifier  = 0;
     af.location  = APPLY_NONE;
     af.bitvector = AFF_DEATHS_DOOR;
@@ -2524,7 +2520,7 @@ void spell_blessed_darkness( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 6+level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_DAMROLL;
     af.modifier  = level / 6; 
     af.bitvector = AFF_DARKNESS;
@@ -2629,7 +2625,7 @@ void spell_tomb_rot( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/2;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_VIT;
     af.modifier  = -level/2;
     af.bitvector = AFF_TOMB_ROT;
@@ -2690,7 +2686,7 @@ void spell_soreness( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     
     af.type      = sn;
     af.level     = level;  
-    af.duration  = level/2;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AGI;
     af.modifier  = -1 - level/5;
     af.bitvector = AFF_SORE;
@@ -2823,7 +2819,7 @@ void spell_quirkys_insanity(int sn,int level,CHAR_DATA *ch,void *vo, int target)
             af.where     = TO_AFFECTS;
             af.type      = sn;
             af.level     = level;
-            af.duration  = level/5;
+            af.duration  = get_duration(sn, level);
             af.location  = APPLY_AC;
             af.modifier  = -level/8;
             af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -2831,7 +2827,7 @@ void spell_quirkys_insanity(int sn,int level,CHAR_DATA *ch,void *vo, int target)
             af.where = TO_RESIST;
             af.type = sn;
             af.level = level;
-            af.duration = level/5;
+            af.duration = get_duration(sn, level);
             af.location = APPLY_NONE;
             af.modifier=0;
             af.bitvector=RES_MENTAL;
@@ -2842,7 +2838,7 @@ void spell_quirkys_insanity(int sn,int level,CHAR_DATA *ch,void *vo, int target)
                 af.where     = TO_AFFECTS;
                 af.type      = sn;
                 af.level     = level;
-                af.duration  = level/5;
+                af.duration  = get_duration(sn, level);
                 af.location  = APPLY_AC;
                 af.modifier  = -level/8;
                 af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -2850,7 +2846,7 @@ void spell_quirkys_insanity(int sn,int level,CHAR_DATA *ch,void *vo, int target)
                 af.where = TO_RESIST;
                 af.type = sn;
                 af.level = level;
-                af.duration = level/5;
+                af.duration = get_duration(sn, level);
                 af.location = APPLY_NONE;
                 af.modifier=0;
                 af.bitvector=RES_MENTAL;
@@ -2865,7 +2861,7 @@ void spell_quirkys_insanity(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/5;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
     af.modifier  = -level/8;
     af.bitvector = AFF_ELEMENTAL_SHIELD;
@@ -2873,7 +2869,7 @@ void spell_quirkys_insanity(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where = TO_RESIST;
     af.type = sn;
     af.level = level;
-    af.duration = level/5;
+    af.duration = get_duration(sn, level);
     af.location = APPLY_NONE;
     af.modifier=0;
     af.bitvector=RES_MENTAL;
@@ -2980,7 +2976,7 @@ void spell_prayer(int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 2*level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
     af.modifier  = level / 4;
     af.bitvector = 0;
@@ -3072,7 +3068,7 @@ void spell_mana_shield( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level / 8;
+    af.duration  = get_duration(sn, level);
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = 0;
@@ -3099,7 +3095,7 @@ void spell_mantra( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level / 2;
+    af.duration  = get_duration(sn, level);
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_MANTRA;
@@ -3136,9 +3132,7 @@ void spell_decompose(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
     af.where = TO_AFFECTS;
     af.level = level;
-    /* Duration reduced from 100 to 20. Astark Nov 2012
-    af.duration = level;  */
-    af.duration = level/5;
+    af.duration = get_duration(sn, level);
     af.type = sn;
     af.bitvector = 0;
     af.modifier = -1;
@@ -3387,7 +3381,7 @@ void spell_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
     af.type      = sn;
     af.level     = level;
-    af.duration  = level / 4;
+    af.duration  = get_duration(sn, level);
     af.modifier  = 0;
     af.location  = APPLY_NONE;
     af.bitvector = AFF_REFLECTION;
@@ -3436,7 +3430,7 @@ void spell_mimic( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
     af.type      = sn;
     af.level     = level;
-    af.duration  = 5 + level;
+    af.duration  = get_duration(sn, level);
     af.modifier  = 0;
     af.location  = APPLY_NONE;
     af.where     = TO_SPECIAL;
@@ -3456,7 +3450,7 @@ void spell_mirror_image( int sn, int level, CHAR_DATA *ch, void *vo, int target 
 
     af.type      = sn;
     af.level     = level;
-    af.duration  = 1 + level/4;
+    af.duration  = get_duration(sn, level);
     af.modifier  = -10;
     af.location  = APPLY_AC;
     af.where     = TO_SPECIAL;
@@ -3493,7 +3487,7 @@ void spell_haunt(int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 24;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_LUC;
     af.modifier  = -level/4;
     af.bitvector = AFF_HAUNTED;
@@ -3565,7 +3559,7 @@ void spell_mana_burn( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/4;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_WIS;
     af.modifier  = -level/4;
     af.bitvector = AFF_MANA_BURN;
@@ -3597,7 +3591,7 @@ void spell_iron_maiden( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/8;
+    af.duration  = get_duration(sn, level);
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_IRON_MAIDEN;
@@ -3736,35 +3730,10 @@ void spell_shadow_shroud(int sn,int level,CHAR_DATA *ch,void *vo, int target)
         return;
     }
 
-/*    if ( IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD))
-    {
-        if (victim == ch)
-        {
-            send_to_char("Your shield shimmers away as darkness surrounds you.\n\r",ch);
-            affect_strip_flag(ch, AFF_ELEMENTAL_SHIELD);
-
             af.where     = TO_AFFECTS;
             af.type      = sn;
             af.level     = level;
-            af.duration  = level / 5;
-            af.modifier  = level / 6;
-            af.bitvector = 0;
-            af.location  = APPLY_DEX;
-            affect_to_char(victim, &af);
-            af.location  = APPLY_AGI;
-            affect_to_char(victim, &af);
-            af.location  = APPLY_LUC;
-            affect_to_char(victim, &af);
-        }
-        else
-            act("$N is already shielded.",ch,NULL,victim,TO_CHAR);
-        return;
-    } */
-    
-            af.where     = TO_AFFECTS;
-            af.type      = sn;
-            af.level     = level;
-            af.duration  = level / 5;
+            af.duration  = get_duration(sn, level);
             af.modifier  = level / 6;
             af.bitvector = 0;
             af.location  = APPLY_DEX;
@@ -3835,7 +3804,7 @@ void spell_phase(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 1;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_PHASE;
@@ -4026,7 +3995,7 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
 
     af.type      = sn;
     af.level     = level;
-    af.duration  = 1 + level/4;
+    af.duration  = get_duration(sn, level);
     af.modifier  = -10;
     af.location  = APPLY_AC;
     af.where     = TO_SPECIAL;
@@ -4057,7 +4026,7 @@ void spell_shroud_of_darkness( int sn, int level, CHAR_DATA *ch, void *vo,int ta
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level / 4;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_SHROUD;
@@ -4087,7 +4056,7 @@ void spell_paralysis_poison( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     af.type      = sn;
     af.where     = TO_AFFECTS;
     af.level     = level;
-    af.duration  = 1 + (level / 40);
+    af.duration  = 1;
     af.location  = APPLY_AGI;
     af.modifier  = -1 * (level / 14);
     af.bitvector = AFF_PARALYSIS;
@@ -4119,7 +4088,7 @@ void spell_hallow(int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/6;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_INT;
     af.modifier  = 16+ (level / 12);
     af.bitvector = AFF_HALLOW;
@@ -4147,7 +4116,7 @@ void spell_minor_fade(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level/13;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_MINOR_FADE;
