@@ -2417,7 +2417,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_armor,        TAR_CHAR_DEFENSIVE, POS_STANDING,
-	NULL,           SLOT( 1),    5, 12, DUR_NONE,
+	NULL,           SLOT( 1),    5, 12, DUR_NORMAL,
 	"",         "You feel less armored.",   "", NULL
 	},
 
@@ -2472,7 +2472,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_bless,        TAR_OBJ_CHAR_DEF,   POS_STANDING,
-	&gsn_bless,           SLOT( 3),    5, 12, DUR_NONE,
+	&gsn_bless,           SLOT( 3),    5, 12, DUR_NORMAL,
 	"",         "You feel less righteous.", 
 	"$p's holy aura fades.", NULL
 	},
@@ -2485,7 +2485,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_blindness,    TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-	&gsn_blindness,     SLOT( 4),    5, 12, DUR_NONE,
+	&gsn_blindness,     SLOT( 4),    5, 12, DUR_BRIEF,
 	"",         "You can see again.",   "", NULL
 	},
 
@@ -2540,7 +2540,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_calm,     TAR_IGNORE,     POS_FIGHTING,
-	NULL,           SLOT(509),  30, 12, DUR_NONE,
+	NULL,           SLOT(509),  30, 12, DUR_BRIEF,
 	"",         "You have lost your peace of mind.",    "", NULL
 	},
 
@@ -2617,7 +2617,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_change_sex,   TAR_CHAR_NEUTRAL, POS_FIGHTING,
-	NULL,           SLOT(82),   15, 12, DUR_NONE,
+	NULL,           SLOT(82),   15, 12, DUR_NORMAL,
 	"",         "Your body feels familiar again.",  "", NULL
 	},
 
@@ -2628,7 +2628,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_charm_person, TAR_VIS_CHAR_OFF, POS_STANDING,
-	&gsn_charm_person,  SLOT( 7),    5, 12, DUR_NONE,
+	&gsn_charm_person,  SLOT( 7),    5, 12, DUR_BRIEF,
 	"",         "You feel more self-confident.",    "", NULL
 	},
 
@@ -2748,7 +2748,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_create_spring,    TAR_IGNORE,     POS_STANDING,
-	NULL,           SLOT(80),   20, 12, DUR_NONE,
+	NULL,           SLOT(80),   20, 12, DUR_NORMAL,
 	"",         "!Create Spring!",  "", NULL
 	},
 
@@ -2858,7 +2858,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_curse,        TAR_OBJ_CHAR_OFF,   POS_FIGHTING,
-	&gsn_curse,     SLOT(17),   20, 12, DUR_NONE,
+	&gsn_curse,     SLOT(17),   20, 12, DUR_BRIEF,
 	"curse",        "The curse wears off.", 
 	"$p is no longer impure.", NULL
 	},
@@ -2903,7 +2903,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_detect_evil,  TAR_CHAR_SELF,      POS_STANDING,
-	NULL,           SLOT(18),    5, 12, DUR_NONE,
+	NULL,           SLOT(18),    5, 12, DUR_LONG,
 	"",         "The red in your vision disappears.",   "", NULL
 	},
 
@@ -2914,7 +2914,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_detect_good,      TAR_CHAR_SELF,          POS_STANDING,
-	NULL,                   SLOT(513),        5,     12, DUR_NONE,
+	NULL,                   SLOT(513),        5,     12, DUR_LONG,
 	"",                     "The gold in your vision disappears.",  "", NULL
 	},
 
@@ -2925,7 +2925,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_detect_hidden,    TAR_CHAR_SELF,      POS_STANDING,
-	NULL,           SLOT(44),    5, 12, DUR_NONE,
+	NULL,           SLOT(44),    5, 12, DUR_LONG,
 	"",         "You feel less aware of your surroundings.",    
 	"", NULL
 	},
@@ -2937,7 +2937,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_detect_invis, TAR_CHAR_SELF,      POS_STANDING,
-	NULL,           SLOT(19),    5, 12, DUR_NONE,
+	NULL,           SLOT(19),    5, 12, DUR_LONG,
 	"",         "You no longer see invisible objects.",
 	"", NULL
 	},
@@ -2949,7 +2949,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_detect_magic, TAR_CHAR_SELF,      POS_STANDING,
-	NULL,           SLOT(20),    5, 12, DUR_NONE,
+	NULL,           SLOT(20),    5, 12, DUR_LONG,
 	"",         "The detect magic wears off.",  "", NULL
 	},
 
@@ -3114,7 +3114,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_faerie_fire,  TAR_VIS_CHAR_OFF, POS_FIGHTING,
-	NULL,           SLOT(72),    5, 12, DUR_NONE,
+	NULL,           SLOT(72),    5, 12, DUR_SHORT,
 	"faerie fire",      "The pink aura around you fades away.",
 	"", NULL
 	},
@@ -3192,7 +3192,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_fireproof,    TAR_OBJ_INV,        POS_STANDING,
-	NULL,           SLOT(523),  10, 12, DUR_NONE,
+	NULL,           SLOT(523),  10, 12, DUR_EXTREME,
 	"",         "", "$p's protective aura fades.", NULL
 	},
 
@@ -3214,7 +3214,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_fly,      TAR_CHAR_DEFENSIVE, POS_STANDING,
-	NULL,           SLOT(56),   10, 18, DUR_NONE,
+	NULL,           SLOT(56),   10, 18, DUR_NORMAL,
 	"",         "You slowly float to the ground.",  "", NULL
 	},
 
@@ -3225,7 +3225,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_floating_disc,    TAR_IGNORE,     POS_STANDING,
-	NULL,           SLOT(522),  40, 24, DUR_NONE,
+	NULL,           SLOT(522),  40, 24, DUR_EXTREME,
 	"",         "!Floating disc!",  "", NULL
 	},
 
@@ -3236,7 +3236,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_frenzy,           TAR_CHAR_DEFENSIVE,     POS_STANDING,
-	NULL,                   SLOT(504),      30,     24, DUR_NONE,
+	NULL,                   SLOT(504),      30,     24, DUR_SHORT,
 	"",                     "Your rage ebbs.",  "", NULL
 	},
 
@@ -3280,7 +3280,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_giant_strength,   TAR_CHAR_DEFENSIVE, POS_STANDING,
-	&gsn_giant_strength,           SLOT(39),   20, 12, DUR_NONE,
+	&gsn_giant_strength,           SLOT(39),   20, 12, DUR_NORMAL,
 	"",         "You feel weaker.", "", NULL
 	},
 
@@ -3361,7 +3361,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_haste,        TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-	&gsn_haste,           SLOT(502),  30, 12, DUR_NONE,
+	&gsn_haste,           SLOT(502),  30, 12, DUR_SHORT,
 	"",         "You feel yourself slow down.", "", NULL
 	},
 
@@ -3449,7 +3449,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_infravision,  TAR_CHAR_DEFENSIVE, POS_STANDING,
-	NULL,           SLOT(77),    5, 18, DUR_NONE,
+	NULL,           SLOT(77),    5, 18, DUR_LONG,
 	"",         "You no longer see in the dark.",   "", NULL
 	},
 
@@ -3460,7 +3460,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_invis,        TAR_OBJ_CHAR_DEF,   POS_STANDING,
-	&gsn_invis,     SLOT(29),    5, 12, DUR_NONE,
+	&gsn_invis,     SLOT(29),    5, 12, DUR_NORMAL,
 	"",         "You are no longer invisible.",     
 	"$p fades into view.", NULL
 	},
@@ -3593,7 +3593,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_mass_invis,   TAR_IGNORE,     POS_STANDING,
-	&gsn_mass_invis,    SLOT(69),   20, 24, DUR_NONE,
+	&gsn_mass_invis,    SLOT(69),   20, 24, DUR_NORMAL,
 	"",         "You are no longer invisible.",     "", NULL
 	},
 
@@ -3728,7 +3728,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_pass_door,    TAR_CHAR_SELF,      POS_STANDING,
-	NULL,           SLOT(74),   20, 12, DUR_NONE,
+	NULL,           SLOT(74),   20, 12, DUR_SHORT,
 	"",         "You feel solid again.",    "", NULL
 	},
 
@@ -3761,7 +3761,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_plague,       TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-	&gsn_plague,        SLOT(503),  20, 12, DUR_NONE,
+	&gsn_plague,        SLOT(503),  20, 12, DUR_SHORT,
 	"sickness",     "Your sores vanish.",   "", NULL
 	},
 
@@ -3772,7 +3772,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_poison,       TAR_OBJ_CHAR_OFF,   POS_FIGHTING,
-	&gsn_poison,        SLOT(33),   10, 12, DUR_NONE,
+	&gsn_poison,        SLOT(33),   10, 12, DUR_SHORT,
 	"poison",       "You feel less sick.",  
 	"The poison on $p dries up.", NULL
 	},
@@ -3806,7 +3806,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_protection_evil,  TAR_CHAR_SELF,      POS_STANDING,
-	NULL,           SLOT(34),   5,  12, DUR_NONE,
+	NULL,           SLOT(34),   5,  12, DUR_SHORT,
 	"",         "You feel less protected.", "", NULL
 	},
 
@@ -3817,7 +3817,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_protection_good,  TAR_CHAR_SELF,          POS_STANDING,
-	NULL,                   SLOT(514),       5,     12, DUR_NONE,
+	NULL,                   SLOT(514),       5,     12, DUR_SHORT,
 	"",                     "You feel less protected.", "", NULL
 	},
 
@@ -3949,7 +3949,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_sanctuary,    TAR_CHAR_DEFENSIVE, POS_STANDING,
-	&gsn_sanctuary,     SLOT(36),   75, 12, DUR_NONE,
+	&gsn_sanctuary,     SLOT(36),   75, 12, DUR_BRIEF,
 	"",         "The white aura around your body fades.",
 	"", NULL
 	},
@@ -3961,7 +3961,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_shield,       TAR_CHAR_DEFENSIVE, POS_STANDING,
-	NULL,           SLOT(67),   12, 18, DUR_NONE,
+	NULL,           SLOT(67),   12, 18, DUR_NORMAL,
 	"",         "Your force shield shimmers then fades away.",
 	"", NULL
 	},
@@ -4007,7 +4007,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_slow,     TAR_VIS_CHAR_OFF,     POS_FIGHTING,
-	&gsn_slow,           SLOT(515),      30,     12, DUR_NONE,
+	&gsn_slow,           SLOT(515),      30,     12, DUR_SHORT,
 	"",         "You feel yourself speed up.",  "", NULL
 	},
     
@@ -4040,7 +4040,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_stone_skin,   TAR_CHAR_SELF,      POS_STANDING,
-	NULL,           SLOT(66),   12, 18, DUR_NONE,
+	NULL,           SLOT(66),   12, 18, DUR_NORMAL,
 	"",         "Your skin feels soft again.",  "", NULL
 	},
 
@@ -4106,7 +4106,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_weaken,       TAR_VIS_CHAR_OFF, POS_FIGHTING,
-	NULL,           SLOT(68),   20, 12, DUR_NONE,
+	NULL,           SLOT(68),   20, 12, DUR_SHORT,
 	"spell",        "You feel stronger.",   "", NULL
 	},
 
