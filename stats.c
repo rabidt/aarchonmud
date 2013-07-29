@@ -456,10 +456,7 @@ int train_stat_inc( CHAR_DATA *ch, int stat )
 
     if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
     {
-        if ( stat == STAT_LUC )
-	    return 0;
-        else
-	    return UMIN(3, max);
+        return UMIN(3, max);
     }
     else
     {
@@ -680,12 +677,6 @@ void do_train( CHAR_DATA *ch, char *argument )
     
     if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
     {
-        if (stat == STAT_LUC)
-        {
-            send_to_char("You cant upgrade your karma.\n\r", ch);
-            return;
-        }
-        
         cost = ch->perm_stat[stat] - ch->pcdata->original_stats[stat];
         cost = cost*20+120;
         if (cost > ch->gold)
