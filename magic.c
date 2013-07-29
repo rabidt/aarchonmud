@@ -834,6 +834,19 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
     return TRUE;
 }
 
+int get_duration( int sn, int level )
+{
+    switch ( skill_table[sn].duration )
+    {
+        case DUR_BRIEF:   return level / 6;
+        case DUR_SHORT:   return (level + 20) / 4;
+        case DUR_NORMAL:  return (level + 20) / 2;
+        case DUR_LONG:    return (level + 20) * 3/4;
+        case DUR_EXTREME: return (level + 20);
+        default:     return 0;
+    }
+}
+
 /* check if a spell is reflected back on the caster */
 void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
@@ -1290,7 +1303,7 @@ void spell_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 24;
+    af.duration  = get_duration(sn, level);
     /* af.modifier  = -20; */
     /* Make spell better as your level increases -- Maedhros 09/11/2012 */
     af.modifier  = -20 - (level/4);
