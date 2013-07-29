@@ -4397,7 +4397,7 @@ void spell_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = number_range(1,4);
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_INT;
     af.modifier  = -15; 
     af.bitvector = AFF_INSANE;
