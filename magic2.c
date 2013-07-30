@@ -3325,48 +3325,58 @@ void spell_extinguish(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 void spell_renewal( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     AFFECT_DATA *aff;
-    char buf[MSL];
-    int cost, type, last_type = 0;
-    bool last_renew, found = FALSE;
+    int cost, type, last_type = 0, base_duration, max_duration;
+    bool last_renew, last_paid = FALSE, found = FALSE;
 
     for ( aff = ch->affected; aff != NULL; aff = aff->next )
     {
-	type = aff->type;
-	if ( !IS_SPELL(type) || is_offensive(type) || aff->duration == -1 || type == gsn_overcharge)
-	    continue;
+        type = aff->type;
+
+        if ( type != last_type )
+        {
+            if ( !IS_SPELL(type) || is_offensive(type) || aff->duration == -1
+                || (base_duration = get_duration(type, level)) == 0 )
+            {
+                last_renew = FALSE;
+                continue;
+            }
+
+            found = TRUE;
+            last_type = type;
+            last_renew = TRUE;
+            last_paid = FALSE;
+            // get max duration once for each spell
+            max_duration = number_range(base_duration, 2 * base_duration);            
+        }
+        else if ( !last_renew )
+            continue;
+
+        if ( aff->duration >= max_duration )
+            continue;
+
+        /* renewing a spell to full duration costs twice as much as casting it fresh */
+        if ( !last_paid )
+        {
+            cost = (2 * skill_table[type].min_mana + base_duration - 1) / base_duration;
+            if ( ch->mana < cost )
+            {
+                printf_to_char( ch, "You don't have enough mana to renew your %s spell.\n\r", skill_table[type].name );
+                last_renew = FALSE;
+                continue;
+            }
+            ch->mana -= cost;
+            last_paid = TRUE;
+
+            printf_to_char( ch, "Your %s spell has been renewed.\n\r", skill_table[type].name );
+        }
         
-	if ( type != last_type )
-	{
-	    found = TRUE;
-	    last_type = type;
-
-	    /* renewing a spell costs 10% of its basic spell cost */
-	    cost = (skill_table[type].min_mana + 9) / 10;
-	    if ( ch->mana < cost )
-	    {
-		sprintf( buf, "You don't have enough mana to renew your %s spell.\n\r",
-			 skill_table[type].name );
-		send_to_char( buf, ch );
-		last_renew = FALSE;
-		continue;
-	    }
-	    ch->mana -= cost;
-	    last_renew = TRUE;
-
-	    sprintf( buf, "Your %s spell has been renewed.\n\r",
-		     skill_table[type].name );
-	    send_to_char( buf, ch );
-	}
-	else if ( !last_renew )
-	    continue;
-	
-	aff->duration += 1;
-	if ( aff->level < level )
-	    aff->level += 1;
+        aff->duration += 1;
+        if ( aff->level < level )
+            aff->level += 1;
     }
 
     if ( !found )
-	send_to_char( "There are no spells on you to renew.\n\r", ch );
+        send_to_char( "There are no spells on you to renew.\n\r", ch );
 }
 
 void spell_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
