@@ -2682,7 +2682,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_continual_light,  TAR_IGNORE,     POS_STANDING,
-	NULL,           SLOT(57),    7, 12, DUR_NONE,
+	NULL,           SLOT(57),    7, 12, DUR_SPECIAL,
 	"",         "!Continual Light!",    "", NULL
 	},
 
@@ -3637,7 +3637,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,    TAR_IGNORE,     POS_FIGHTING,
-	&gsn_mindflay,              SLOT( 0),       0,      12, DUR_NONE,
+	&gsn_mindflay,              SLOT( 0),       0,      12, DUR_BRIEF,
 	"mindflaying",         "You mind starts working again.",  "", NULL
 	},
 
@@ -3839,7 +3839,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_ray_of_truth,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	NULL,                   SLOT(518),      20,     12, DUR_SPECIAL,
+	NULL,                   SLOT(518),      20,     12, DUR_NONE,
 	"ray of truth",         "!Ray of Truth!",   "", NULL
 	},
 
@@ -4073,7 +4073,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_turn_undead,  TAR_IGNORE, POS_FIGHTING,
-	NULL,           SLOT(668),    8,  12, DUR_SPECIAL,
+	NULL,           SLOT(668),    8,  12, DUR_NONE,
 	"turn",     "!Turn Undead!","", NULL
 	},
 
@@ -4291,7 +4291,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_RESTING,
-	&gsn_camp_fire,    SLOT(0),    0,  24, DUR_NONE,
+	&gsn_camp_fire,    SLOT(0),    0,  24, DUR_SPECIAL,
 	"",         "!campfire!", ""
 	},
 
@@ -4390,7 +4390,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_STANDING,
-	&gsn_soothe,    SLOT(0),    0,  0, DUR_NONE,
+	&gsn_soothe,    SLOT(0),    0,  0, DUR_BRIEF,
 	"",         "!soothe!", ""
 	},
 
@@ -4423,7 +4423,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_RESTING,
-	&gsn_treat_weapon,    SLOT(0),    0,  36, DUR_NONE,
+	&gsn_treat_weapon,    SLOT(0),    0,  36, DUR_SPECIAL,
 	"",         "The treatment you gave your weapon has worn off.", ""
 	},
 	
@@ -4662,7 +4662,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,             TAR_IGNORE,             POS_FIGHTING,
-	&gsn_shan_ya,   SLOT( 0),        0,     0, DUR_NONE,
+	&gsn_shan_ya,   SLOT( 0),        0,     0, DUR_SPECIAL,
 	"",                     "Your battle madness subsides.",    "", NULL
 	},
 
@@ -4796,7 +4796,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_FIGHTING,
-	&gsn_slash_throat,      SLOT( 0),   0,  24, DUR_NONE,
+	&gsn_slash_throat,      SLOT( 0),   0,  24, DUR_SPECIAL,
 	"throat slash",      "You can speak again.",
 	"", NULL
 	},
@@ -4808,7 +4808,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
-		&gsn_berserk,           SLOT( 0),       0,      24, DUR_NONE,
+		&gsn_berserk,           SLOT( 0),       0,      24, DUR_BRIEF,
 		"",     "You feel your pulse slow down.",   "", NULL
 	},
 
@@ -4819,7 +4819,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-		&gsn_war_cry,           SLOT(0),     0, 24, DUR_NONE,
+		&gsn_war_cry,           SLOT(0),     0, 24, DUR_BRIEF,
 		"",         "You calm down a bit.", "", NULL
 	},
 
@@ -4907,7 +4907,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	&gsn_puncture,           SLOT(0),     0, 18, DUR_NONE,
+	&gsn_puncture,           SLOT(0),     0, 18, DUR_BRIEF,
 	"puncture",         "Your armor mends again.",    "", NULL
 	},
 
@@ -5017,7 +5017,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
-		&gsn_dirt,      SLOT( 0),   0,  24, DUR_NONE,
+		&gsn_dirt,      SLOT( 0),   0,  24, DUR_SPECIAL,
 		"kicked dirt",      "You rub the dirt out of your eyes.",
 		"", NULL
 	},
@@ -5129,7 +5129,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	&gsn_infectious_arrow,           SLOT(0),     0, 12, DUR_NONE,
+	&gsn_infectious_arrow,           SLOT(0),     0, 12, DUR_SPECIAL,
 	"infection",         "Your infection has been cured.",    "", NULL
 	},
 
@@ -5140,7 +5140,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,             TAR_IGNORE,             POS_FIGHTING,
-	&gsn_fervent_rage,           SLOT( 0),       0,      8, DUR_NONE,
+	&gsn_fervent_rage,           SLOT( 0),       0,      8, DUR_SPECIAL,
 	"",     "As your blood pressure drops you leave the state of fervent rage.",   "", NULL
 	},
 
@@ -5163,7 +5163,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_FIGHTING,
-	&gsn_paroxysm,      SLOT( 0),   0,  24, DUR_NONE,
+	&gsn_paroxysm,      SLOT( 0),   0,  24, DUR_SPECIAL,
 	"paroxysm",      "You're able to retain a combat stance again.",
 	"", NULL
 	},
@@ -5175,7 +5175,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,             TAR_IGNORE,             POS_STANDING,
-	&gsn_paroxysm_cooldown,           SLOT( 0),       0,      8, DUR_NONE,
+	&gsn_paroxysm_cooldown,           SLOT( 0),       0,      8, DUR_SPECIAL,
 	"",     "You feel like you're able to perform another paroxysm.",   "", NULL
 	},
 
@@ -5186,7 +5186,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	&gsn_rupture,      SLOT( 0),   0,  24, DUR_NONE,
+	&gsn_rupture,      SLOT( 0),   0,  24, DUR_SPECIAL,
 	"rupture",      "Your ruptured wound has healed.",
 	"", NULL
 	},
@@ -5221,7 +5221,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,     TAR_IGNORE, POS_STANDING,
-	&gsn_quivering_palm,          SLOT(0),     0, 18, DUR_NONE,
+	&gsn_quivering_palm,          SLOT(0),     0, 18, DUR_BRIEF,
 	"quivering palm",         "!quivering palm!",   "", NULL
 	},
 
@@ -5280,7 +5280,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-		&gsn_guard,         SLOT(0),     0, 8, DUR_NONE,
+		&gsn_guard,         SLOT(0),     0, 8, DUR_BRIEF,
 		"",         "You are no longer being guarded so vigilantly.",  "", NULL
 	},
 
@@ -5291,7 +5291,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,  POS_FIGHTING,
-		&gsn_tumbling,          SLOT(0),     0, 12, DUR_NONE,
+		&gsn_tumbling,          SLOT(0),     0, 12, DUR_SHORT,
 		"tumble",           "You stop tumbling around.",    "", NULL
 	},
 
@@ -5346,7 +5346,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-		&gsn_distract,          SLOT(0),     0, 12, DUR_NONE,
+		&gsn_distract,          SLOT(0),     0, 12, DUR_SPECIAL,
 		"",         "!distract!",   "", NULL
 	},
 
@@ -5403,7 +5403,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_RESTING,
-		&gsn_hide,      SLOT( 0),    0, 12, DUR_NONE,
+		&gsn_hide,      SLOT( 0),    0, 12, DUR_SPECIAL,
 		"",         "You come out of hiding.",       "", NULL
 	},
 
@@ -5414,7 +5414,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_STANDING,
-		&gsn_sneak,     SLOT( 0),    0, 12, DUR_NONE,
+		&gsn_sneak,     SLOT( 0),    0, 12, DUR_SPECIAL,
 		"",         "You no longer feel stealthy.", "", NULL
 	},
 
@@ -5469,7 +5469,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 90, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_STANDING,
-	&gsn_disguise,     SLOT( 0),    0, 24, DUR_NONE,
+	&gsn_disguise,     SLOT( 0),    0, 24, DUR_NORMAL,
 	"",         "Your disguise has become known.",      "", NULL
 	},
 
@@ -5601,7 +5601,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_RESTING,
-		&gsn_envenom,       SLOT(0),    0,  36, DUR_NONE,
+		&gsn_envenom,       SLOT(0),    0,  12, DUR_LONG,
 		"",         "!Envenom!",        "", NULL
 	},
 
@@ -5612,7 +5612,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	&gsn_paralysis_poison,       SLOT(0),    0,  12, DUR_NONE,
+	&gsn_paralysis_poison,       SLOT(0),    0,  12, DUR_LONG,
 	"paralysis",         "Your body cleanses itself of the paralysis poison.",        "", NULL
 	},
 
@@ -5724,7 +5724,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-		&gsn_net,      SLOT( 0),   0,  12, DUR_NONE,
+		&gsn_net,      SLOT( 0),   0,  12, DUR_SPECIAL,
 		"thrown net", "You break free of the net.", "",  NULL
 	 },
 
@@ -5824,7 +5824,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
-		&gsn_hogtie,              SLOT( 0),       0,      8, DUR_NONE,
+		&gsn_hogtie,              SLOT( 0),       0,      8, DUR_BRIEF,
 		"hogtie",  "You free yourself from the hogtie.",       "", NULL
 	},
 
@@ -5967,7 +5967,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
-		&gsn_drunken_fury,           SLOT( 0),       0,      12, DUR_NONE,
+		&gsn_drunken_fury,           SLOT( 0),       0,      12, DUR_BRIEF,
 		"",     "You feel less furious.",   "", NULL
 	},
 
@@ -6484,7 +6484,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_STANDING,
-	&gsn_torch,     SLOT(0),    0,  36, DUR_NONE,
+	&gsn_torch,     SLOT(0),    0,  36, DUR_SPECIAL,
 	"sunburn",         "!Torch!",  ""
 	},
 
@@ -6495,7 +6495,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_STANDING,
-	&gsn_shelter,   SLOT(0),    0,  36, DUR_NONE,
+	&gsn_shelter,   SLOT(0),    0,  36, DUR_NORMAL,
 	"",         "Your shelter falls apart.",    ""
 	},
 
@@ -6528,7 +6528,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_STANDING,
-	&gsn_tame,      SLOT(0),    0,  12, DUR_NONE,
+	&gsn_tame,      SLOT(0),    0,  12, DUR_BRIEF,
 	"",         "!Tame!",   ""
 	},
 
@@ -6552,7 +6552,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-	&gsn_choke_hold,         SLOT(0),     0, 8, DUR_NONE,
+	&gsn_choke_hold,         SLOT(0),     0, 8, DUR_SPECIAL,
 	"choke hold",         "You can breathe again.",  "", NULL
 	},
 
@@ -6585,7 +6585,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,             TAR_CHAR_OFFENSIVE,    POS_FIGHTING,
-	&gsn_spit,              SLOT( 0),        0,     12, DUR_NONE,
+	&gsn_spit,              SLOT( 0),        0,     12, DUR_SPECIAL,
 	"spit",                 "You rub the spit out of your eyes.",       "", NULL
 	},
 
@@ -6990,7 +6990,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,    TAR_IGNORE,     POS_STANDING,
-	&gsn_god_bless,           SLOT(0),   0, 0, DUR_NONE,
+	&gsn_god_bless,           SLOT(0),   0, 0, DUR_SPECIAL,
 	"divine blessing",   "The blessing of the gods has ended.",  "", NULL
 	},
 
@@ -7001,7 +7001,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,    TAR_IGNORE,     POS_STANDING,
-	&gsn_god_curse,           SLOT(0),   0, 0, DUR_NONE,
+	&gsn_god_curse,           SLOT(0),   0, 0, DUR_SPECIAL,
 	"divine curse",   "The curse of the gods has ended.",  "", NULL
 	},
 

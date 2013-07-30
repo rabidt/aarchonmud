@@ -2446,7 +2446,7 @@ void do_sneak( CHAR_DATA *ch, char *argument )
         af.where     = TO_AFFECTS;
         af.type      = gsn_sneak;
         af.level     = ch->level; 
-        af.duration  = ch->level;
+        af.duration  = -1;
         af.location  = APPLY_NONE;
         af.modifier  = 0;
         af.bitvector = AFF_SNEAK;
@@ -2509,7 +2509,7 @@ void do_hide( CHAR_DATA *ch, char *argument )
         af.where     = TO_AFFECTS;
         af.type      = gsn_hide;
         af.level     = ch->level; 
-        af.duration  = ch->level;
+        af.duration  = -1;
         af.location  = APPLY_NONE;
         af.modifier  = 0;
         af.bitvector = AFF_HIDE;
