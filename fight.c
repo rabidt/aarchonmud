@@ -1992,7 +1992,7 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam )
 {
     int level;
 
-    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) && !is_ranged_weapon(wield) )
+    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) || is_ranged_weapon(wield) )
         return;
 
     if ( is_affected(victim, gsn_immolation) )
