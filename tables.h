@@ -28,6 +28,7 @@
 
 /* other tables */
 extern const char* spell_target_names[];
+extern const char* spell_duration_names[];
 
 struct flag_type
 {
