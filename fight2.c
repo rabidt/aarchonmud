@@ -622,9 +622,6 @@ void do_headbutt( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch,victim) )
         return;
         
-    if ( !can_see(ch, victim) && blind_penalty(ch) )
-        chance /= 2;
-        
     check_killer(ch,victim);
     WAIT_STATE( ch, skill_table[gsn_headbutt].beats );
     if ( check_hit(ch, victim, gsn_headbutt, DAM_BASH, chance) )
@@ -3181,9 +3178,6 @@ void do_bite( CHAR_DATA *ch, char *argument )
         if ( is_safe(ch,victim) )
             return;
         
-	if ( !can_see(ch, victim) && blind_penalty(ch) )
-	    chance /= 2;
-        
         WAIT_STATE( ch, skill_table[gsn_bite].beats );
         check_killer(ch,victim);
 
@@ -3726,7 +3720,7 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
 
 void do_roundhouse( CHAR_DATA *ch, char *argument )
 {
-   int chance, tally=0;
+   int tally=0;
    CHAR_DATA *vch;
    CHAR_DATA *vch_next;
    int skill, dam; 
@@ -3744,11 +3738,8 @@ void do_roundhouse( CHAR_DATA *ch, char *argument )
        vch_next = vch->next_in_room;
        if ( vch != ch && !is_safe_spell(ch,vch,TRUE))
        {
-	   chance = skill - get_skill(vch, gsn_dodge) / 3;
-	   chance += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(vch, STAT_AGI)) / 8;
-	   
 	   /* now the attack */
-	   if ( check_hit(ch, vch, gsn_roundhouse, DAM_BASH, chance) )
+	   if ( check_hit(ch, vch, gsn_roundhouse, DAM_BASH, skill) )
 	   {
 	       check_killer(ch,vch);
 	       tally++;
@@ -4336,7 +4327,6 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
 
 void do_rake( CHAR_DATA *ch, char *argument )
 {
-    int chance;
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
     int skill, dam; 
@@ -4357,11 +4347,8 @@ void do_rake( CHAR_DATA *ch, char *argument )
        vch_next = vch->next_in_room;
        if ( vch != ch && !is_safe_spell(ch,vch,TRUE) )
        {
-	   chance = skill - get_skill(vch, gsn_dodge) / 3;
-	   chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(vch, STAT_AGI)) / 8;
-
 	   /* now the attack */
-	   if ( check_hit(ch, vch, gsn_razor_claws, DAM_SLASH, chance) )
+	   if ( check_hit(ch, vch, gsn_razor_claws, DAM_SLASH, skill) )
 	   {
 	       check_killer(ch, vch);
 	       if ( number_bits(6) == 0 )
