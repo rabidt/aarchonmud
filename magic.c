@@ -834,9 +834,9 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
     return TRUE;
 }
 
-int get_duration( int sn, int level )
+int get_duration_by_type( int type, int level )
 {
-    switch ( skill_table[sn].duration )
+    switch ( type )
     {
         case DUR_BRIEF:   return level / 6;
         case DUR_SHORT:   return (level + 20) / 4;
@@ -845,6 +845,11 @@ int get_duration( int sn, int level )
         case DUR_EXTREME: return (level + 20) * 2;
         default:          return 0;
     }
+}
+
+int get_duration( int sn, int level )
+{
+    return get_duration_by_type(skill_table[sn].duration, level);
 }
 
 /* check if a spell is reflected back on the caster */
@@ -1366,7 +1371,7 @@ void spell_bless( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         af.where    = TO_OBJECT;
         af.type     = sn;
         af.level    = level;
-        af.duration = get_duration(sn, level);
+        af.duration = get_duration_by_type(DUR_EXTREME, level);
         af.location = APPLY_SAVES;
         af.modifier = -1;
         af.bitvector    = ITEM_BLESS;
@@ -2390,7 +2395,7 @@ void spell_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         af.where        = TO_OBJECT;
         af.type         = sn;
         af.level        = level;
-        af.duration     = get_duration(sn, level);
+        af.duration     = get_duration_by_type(DUR_EXTREME, level);
         af.location     = APPLY_SAVES;
         af.modifier     = +1;
         af.bitvector    = ITEM_EVIL;
