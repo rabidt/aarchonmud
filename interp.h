@@ -107,6 +107,7 @@ DECLARE_DO_FUN( do_brief    );
 DECLARE_DO_FUN( do_browse   );
 DECLARE_DO_FUN( do_bug      );
 DECLARE_DO_FUN( do_buy      );
+DECLARE_DO_FUN( do_calm     );
 DECLARE_DO_FUN( do_cast     );
 DECLARE_DO_FUN( do_channels );
 DECLARE_DO_FUN( do_charge   );
@@ -561,6 +562,7 @@ DECLARE_DO_FUN( do_lboard);
 DECLARE_DO_FUN( do_lhistory);
 DECLARE_DO_FUN( do_dummy);
 DECLARE_DO_FUN( do_mode);
+DECLARE_DO_FUN( do_cmotd);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif
