@@ -107,6 +107,7 @@ DECLARE_DO_FUN( do_brief    );
 DECLARE_DO_FUN( do_browse   );
 DECLARE_DO_FUN( do_bug      );
 DECLARE_DO_FUN( do_buy      );
+DECLARE_DO_FUN( do_calm     );
 DECLARE_DO_FUN( do_cast     );
 DECLARE_DO_FUN( do_channels );
 DECLARE_DO_FUN( do_charge   );
