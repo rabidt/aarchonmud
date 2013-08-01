@@ -1500,20 +1500,22 @@ void spell_call_lightning( int sn, int level,CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-/* RT calm spell stops all fighting in the room */
+/**
+ * Calm spell works like this: 
+ * 1) all violent characters need to save or be calmed
+ * 2) non-violent characters not attacked by violent ones stop fighting
+ */
+bool is_violent( CHAR_DATA *vch, CHAR_DATA *ch )
+{
+    return !IS_AFFECTED(vch, AFF_CALM) && !is_same_group(vch, ch);
+}
 
 void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *vch;
-    int mlevel = 0;
-    int count = 0;
-    int high_level = 0;    
-    int chance;
+    CHAR_DATA *attacker;
     AFFECT_DATA af;
-    int bonus;
-    char buf[MSL];
-    char buf2[MSL];
-    char buf3[MSL];
+    bool conflict = FALSE;
 
     if( IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
     {
@@ -1521,94 +1523,84 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         return;
     }
 
-    /* get sum of all char levels in the room */
-    for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
+    /* try to calm all characters that need it */
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
-        if (vch->position == POS_FIGHTING)
+        // no need
+        if ( vch->fighting == NULL )
+            continue;
+
+        conflict = TRUE;
+        
+        if ( !is_violent(vch, ch) )
+            continue;
+        
+        // failure
+        if ( is_safe(ch, vch) || saves_spell(level, vch, DAM_MENTAL) )
+            continue;
+        
+        if ( IS_AFFECTED(vch, AFF_BERSERK) )
         {
-            count++;
-            if (IS_NPC(vch)) /* mobs count half their level */
-                mlevel += vch->level/2;
-            else
-                mlevel += vch->level;
-            high_level = UMAX(high_level,vch->level);
+            // remove berserk, but not calm yet - halfway there
+            affect_strip_flag(vch, AFF_BERSERK);
+            send_to_char("You feel less angry.\n\r", vch);
+            act("$n seems a little calmer.", vch, NULL, NULL, TO_ROOM);
+            continue;
         }
+        
+        af.where = TO_AFFECTS;
+        af.type = sn;
+        af.level = level;
+        af.duration = level/4;
+        af.location = APPLY_HITROLL;
+        af.modifier = -5;
+        af.bitvector = AFF_CALM;
+        affect_to_char(vch, &af);
+        af.location = APPLY_DAMROLL;
+        affect_to_char(vch, &af);
+        
+        send_to_char("A wave of calm passes over you.\n\r", vch);
+        act("A wave of calm passes over $n.", vch, NULL, NULL, TO_ROOM);
     }
 
-    /* compute chance of stopping combat */
-    chance = 2 * level /*- high_level + 2 * count*/;
-
-    if (IS_IMMORTAL(ch)) /* always works */
+    if ( !conflict )
     {
-        sprintf( buf, "%d = chance\n\r", chance );
-        send_to_char(buf, ch);
+        send_to_char("Things seem pretty calm already.\n\r", ch);
+        return;
     }
-
-    if (IS_IMMORTAL(ch)) /* always works */
+    
+    conflict = FALSE;
+    /* stop the fighting */
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
-        sprintf( buf2, "%d = mlevel\n\r", mlevel );
-        send_to_char(buf2, ch);
-    }
+        if ( vch->fighting == NULL )
+            continue;
 
-
-    if (IS_IMMORTAL(ch)) /* always works */
-        mlevel = 0;
-
-    /* restart counter */
-    count = 0;
-    if (number_range(0, chance) >= number_range(0, mlevel))  /* hard to stop large fights */
-    {
-        for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
+        if ( is_violent(vch, ch) )
         {
-            if ( IS_NPC(vch) &&
-                    (IS_SET(vch->imm_flags,IMM_MAGIC) || IS_SET(vch->act,ACT_UNDEAD)) )
-                continue;
-
-            if ( IS_AFFECTED(vch,AFF_CALM) || IS_AFFECTED(vch,AFF_BERSERK)
-                    ||  is_affected(vch,skill_lookup("frenzy")) || is_safe(vch,ch) )
-                continue;
-
-            if (IS_IMMORTAL(ch)) /* always works */
-                send_to_char("You're in the for loop\n\r",ch);
-
-            if (IS_NPC(vch))
+            conflict = TRUE;
+            continue;
+        }
+        
+        // is a violent opponent fighting us?
+        bool is_attacked = FALSE;
+        for ( attacker = vch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
+            if ( attacker->fighting == vch && is_violent(attacker, ch) )
             {
-                stop_hunting(ch);
-                SET_BIT(ch->off_flags, OFF_DISTRACT);
+                is_attacked = TRUE;
+                break;
             }
 
-            count++;
-
-            if (IS_IMMORTAL(ch)) /* always works */
-            {
-                sprintf( buf3, "%d = count\n\r", count );
-                send_to_char(buf3, ch);
-            }
-
-            send_to_char("A wave of calm passes over you.\n\r",vch);
-            act( "A wave of calm passes over $n.", vch, NULL, NULL, TO_ROOM );
-
-            if (vch->fighting || vch->position == POS_FIGHTING)
-                stop_fighting(vch,FALSE);
-
-            af.where = TO_AFFECTS;
-            af.type = sn;
-            af.level = level;
-            af.duration = level/4;
-            af.location = APPLY_HITROLL;
-            if (!IS_NPC(vch))
-                af.modifier = -5;
-            else
-                af.modifier = -2;
-            af.bitvector = AFF_CALM;
-            affect_to_char(vch,&af);
-
-            af.location = APPLY_DAMROLL;
-            affect_to_char(vch,&af);
-        }
+        if ( !is_attacked )
+            stop_fighting(vch, FALSE);
+        else
+            conflict = TRUE;
     }
-    if( count == 0 )
-        send_to_char("Your environment continues to be hostile.\n\r",ch);
+    
+    if ( conflict )
+        send_to_char("Your environment continues to be hostile.\n\r", ch);
+    else
+        send_to_char("... and world peace.\n\r", ch);
 }
 
 void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
