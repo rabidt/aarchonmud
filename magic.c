@@ -373,18 +373,13 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
         case IS_VULNERABLE: if ( chance(10) ) return FALSE;  break;
     }
 
-    if ( victim->fighting != NULL
-            && victim->fighting->stance == STANCE_INQUISITION
-            && chance(20) )
-        return FALSE;
-
     if ( (victim->stance == STANCE_UNICORN)
             && chance(25) )
         return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PHASE)
             && chance(50) )
-        return;
+        return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PROTECT_MAGIC)
             && chance(20) )
@@ -397,6 +392,9 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
     /* now the resisted roll */
     save_roll = -get_save(victim);
     hit_roll = (level + 10) * 6/5;
+
+    if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
+        save_roll = save_roll * 2/3;
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -4708,7 +4706,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -4731,7 +4729,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
