@@ -1038,39 +1038,34 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, char *arg )
         return;
     }
 
-    if (ch->pcdata->questpoints < qpcost)
+    if ( ch->pcdata->questpoints < qpcost )
     {
         sprintf(buf, "You need %d quest points to repeat remort, %s.", qpcost, ch->name);
         do_say(adept, buf);
         return;
     }
     
-    if (ch->gold<goldcost)
+    if ( ch->gold < goldcost )
     {
         sprintf(buf, "There is a %d gold remort repetition tax, %s.", goldcost, ch->name);
         do_say(adept, buf);
         return;
     }
     
+    if ( ch->carrying != NULL )
+    {
+        sprintf(buf, "You must leave all posessions behind, %s.", ch->name);
+        do_say(adept, buf);
+        return;
+    }
+
     sprintf(buf, "That'll be %d gold, and %d qps, %s.", goldcost, qpcost, ch->name);
     do_say(adept, buf);
 
-    if ( ch->pcdata->questpoints < qpcost )
-    {
-        printf_to_char(ch, "You need %d quest points to repeat remort.", qpcost);
-        return;
-    }
-    
-    if ( ch->gold < goldcost )
-    {
-        printf_to_char(ch, "There is a %d gold remort repetition tax.", goldcost);
-        return;
-    }
-    
     ch->pcdata->questpoints -= qpcost;
-    ch->gold -= goldcost;
+    ch->gold -= goldcost;    
     logpf("Repeating remort for %s. Deducted %d qp and %d gold.", ch->name, qpcost, goldcost);
-
+    
     remort_begin(ch);
 } 
 
