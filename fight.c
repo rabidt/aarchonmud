@@ -6125,13 +6125,50 @@ void do_die( CHAR_DATA *ch, char *argument )
     return;
 }
 
+// players may want to stop raging to preserve moves
+void do_calm( CHAR_DATA *ch, char *argument )
+{
+    if ( !IS_AFFECTED(ch, AFF_BERSERK) )
+    {
+        send_to_char("You are already calm.\n\r", ch);
+        return;
+    }
+
+    WAIT_STATE(ch, PULSE_VIOLENCE);
+    
+    // may not succeed while fighting
+    if ( ch->fighting != NULL )
+    {
+        int chance = 25 + get_curr_stat(ch, STAT_DIS) / 4;
+        chance += 25 * ch->hit / UMAX(1, ch->max_hit);
+        chance -= 25 * ch->move / UMAX(1, ch->max_move);
+        
+        if ( number_percent() > chance )
+        {
+            send_to_char("You fail to control your anger.\n\r", ch);
+            return;            
+        }
+    }
+    
+    affect_strip_flag(ch, AFF_BERSERK);
+    // safety-net just in case we fail - e.g. races with permanent berserk
+    if ( IS_AFFECTED(ch, AFF_BERSERK) )
+    {
+        send_to_char("Your rage seems uncontrollable.\n\r", ch);
+        return;
+    }
+    
+    send_to_char("You control your anger and calm down.\n\r", ch);
+    act("$n appears to calm down.", ch, NULL, NULL, TO_ROOM);
+    
+    return;
+}
+
 void do_murde( CHAR_DATA *ch, char *argument )
 {
     send_to_char( "If you want to MURDER, spell it out.\n\r", ch );
     return;
 }
-
-
 
 void do_murder( CHAR_DATA *ch, char *argument )
 {
