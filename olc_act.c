@@ -3450,7 +3450,7 @@ OEDIT( oedit_show )
 
     /* Info about OPs to spend: */
     sprintf( buf, "OPs:         [%2d/%2d]\n\r",
-	     get_obj_index_ops(pObj), get_obj_index_spec(pObj) );
+        get_obj_index_ops(pObj), get_obj_index_spec(pObj, pObj->level) );
     send_to_char( buf, ch );
 
     if ( pObj->extra_descr )
@@ -3609,8 +3609,7 @@ OEDIT( oedit_addaffect )
     pAf->bitvector  =   0;
     pAf->level      =	pObj->level;
     pAf->detect_level = detect_level;
-    pAf->next       =   pObj->affected;
-    pObj->affected  =   pAf;
+    pObj->affected  =   affect_insert( pObj->affected, pAf );
     
     send_to_char( "Affect added.\n\r", ch);
     return TRUE;
@@ -3679,9 +3678,8 @@ OEDIT( oedit_addapply )
     pAf->duration   =   -1;
     pAf->bitvector  =   bv;
     pAf->level      =	pObj->level;
-    pAf->next       =   pObj->affected;
     pAf->detect_level = detect_level;
-    pObj->affected  =   pAf;
+    pObj->affected  =   affect_insert(pObj->affected, pAf);
     
     send_to_char( "Apply added.\n\r", ch);
     return TRUE;
@@ -4505,6 +4503,87 @@ int* get_obj_ovalue( int level )
    return ovalue;
 } 
 
+bool apply_obj_hardcaps( OBJ_INDEX_DATA *obj )
+{
+    AFFECT_DATA *aff;
+    bool found = FALSE;
+
+    if ( obj->level >= LEVEL_IMMORTAL )
+        return FALSE;
+
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
+    {
+        int spec = get_affect_cap( aff->location, obj->level );
+        int value = aff->modifier;
+        int factor = spec < 0 ? -1 : 1; // saves & AC
+
+        // exceeding hard spec
+        if ( value*factor > spec*factor && is_affect_cap_hard(aff->location) )
+        {
+            aff->modifier = spec;
+            found = TRUE;
+        }
+        // below negative spec
+        if ( value*factor < -spec*factor )
+        {
+            aff->modifier = -spec;
+            found = TRUE;
+        }
+    }
+    return found;
+}
+
+bool adjust_obj_weight( OBJ_INDEX_DATA *obj )
+{
+    int weight, min_weight, max_weight;
+
+    if ( obj->item_type == ITEM_ARMOR )
+    {
+        weight = 50;
+        if ( CAN_WEAR(obj,ITEM_WEAR_FLOAT) )
+            weight = 0;
+        else if ( CAN_WEAR(obj,ITEM_WEAR_FINGER) )
+            weight = 10;
+        else if ( CAN_WEAR(obj,ITEM_WEAR_TORSO) )
+            weight = 100;
+        if ( CAN_WEAR(obj,ITEM_TRANSLUCENT) )
+            weight /= 2;
+    }
+    else if ( obj->item_type == ITEM_WEAPON )
+    {
+        switch (obj->value[0])
+        {
+            case WEAPON_SWORD:  weight = 60; break;
+            case WEAPON_DAGGER: weight = 20; break;
+            case WEAPON_SPEAR:  weight = 50; break;
+            case WEAPON_MACE:   weight = 100; break;
+            case WEAPON_AXE:    weight = 80; break;
+            case WEAPON_FLAIL:  weight = 90; break;
+            case WEAPON_WHIP:   weight = 30; break;
+            case WEAPON_POLEARM:weight = 70; break;
+            case WEAPON_GUN:    weight = 40; break;
+            case WEAPON_BOW:    weight = 50; break;
+            default:            weight = 60; break;
+        }
+        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) )
+            weight += weight / 2;
+    }
+    else
+        return FALSE;
+    
+    min_weight = weight / 2;
+    max_weight = weight * 2;
+
+    if ( min_weight <= obj->weight && obj->weight <= max_weight )
+        return FALSE;
+    
+    if ( obj->weight == 0 )
+        obj->weight = weight;
+    else
+        obj->weight = URANGE(min_weight, obj->weight, max_weight);
+    
+    return TRUE;
+}
 
 /* Sets values for Armor Class based on level, and also
  * cost by using adjust drop or adjust shop.
@@ -4536,7 +4615,7 @@ OEDIT( oedit_adjust )
         {
             send_to_char("Syntax: adjust\n\r", ch);
             send_to_char("        adjust drop (items from killing a mob)\n\r", ch);
-	    send_to_char("        adjust shop (items sold in a shop)\n\r", ch);
+            send_to_char("        adjust shop (items sold in a shop)\n\r", ch);
             return FALSE;
         }
     }
@@ -4552,48 +4631,35 @@ OEDIT( oedit_adjust )
     // AC
     if (pObj->item_type == ITEM_ARMOR)
     {
-        pObj->value[0]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[1]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[2]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[3]     = ovalue[OBJ_STAT_AC_EXOTIC];
+        int ac_sum = pObj->value[0] + pObj->value[1] + pObj->value[2] + pObj->value[3] * 3;
+        int spec_sum = (ovalue[OBJ_STAT_AC_WEAPON] + ovalue[OBJ_STAT_AC_EXOTIC]) * 3;
+        if ( ac_sum != spec_sum )
+        {
+            pObj->value[0] = ovalue[OBJ_STAT_AC_WEAPON];
+            pObj->value[1] = ovalue[OBJ_STAT_AC_WEAPON];
+            pObj->value[2] = ovalue[OBJ_STAT_AC_WEAPON];
+            pObj->value[3] = ovalue[OBJ_STAT_AC_EXOTIC];
+            send_to_char("AC has been adjusted.\n\r", ch);
+        }
     }
     
     // cost
-    if (set_drop)
-        pObj->cost         = ovalue[OBJ_STAT_DROP_COST];
-    else if (set_shop)
-        pObj->cost         = ovalue[OBJ_STAT_SHOP_COST];
+    if ( set_drop || set_shop )
+    {
+        int spec_cost = set_shop ? ovalue[OBJ_STAT_SHOP_COST] : ovalue[OBJ_STAT_DROP_COST];
+        if ( pObj->cost != spec_cost )
+        {
+            pObj->cost = spec_cost;
+            send_to_char("Cost has been adjusted.\n\r", ch);
+        }
+    }
     
     // weight
-    weight = pObj->weight;
-    if (pObj->item_type == ITEM_ARMOR)
-    {
-        weight = 50;
-        if ( CAN_WEAR(pObj,ITEM_WEAR_FLOAT) )
-            weight = 0;
-        else if ( CAN_WEAR(pObj,ITEM_WEAR_TORSO) )
-            weight = 100;
-    }
-    else if (pObj->item_type == ITEM_WEAPON)
-    {
-        switch (pObj->value[0])
-        {
-            case WEAPON_SWORD:  weight = 60; break;
-            case WEAPON_DAGGER: weight = 20; break;
-            case WEAPON_SPEAR:  weight = 50; break;
-            case WEAPON_MACE:   weight = 100; break;
-            case WEAPON_AXE:    weight = 80; break;
-            case WEAPON_FLAIL:  weight = 90; break;
-            case WEAPON_WHIP:   weight = 30; break;
-            case WEAPON_POLEARM:weight = 70; break;
-            case WEAPON_GUN:    weight = 40; break;
-            case WEAPON_BOW:    weight = 50; break;
-            default:            weight = 60; break;
-        }
-        if ( IS_WEAPON_STAT(pObj, WEAPON_TWO_HANDS) )
-            weight += weight / 2;
-    }
-    pObj->weight = weight;
+    if ( adjust_obj_weight(pObj) )
+        send_to_char("Weight has been adjusted.\n\r", ch);
+
+    if ( apply_obj_hardcaps(pObj) )
+        send_to_char("Magic bonuses/penalties have been adjusted.\n\r", ch);
     
     send_to_char("Stats set according to level.\n\r", ch);
     return TRUE;
@@ -4727,7 +4793,7 @@ MEDIT( medit_show )
 
     if ( pMob->spec_fun )
     {
-        sprintf( buf, "Spec fun:    [%s]\n\r",  spec_name( pMob->spec_fun ) );
+        sprintf( buf, "Spec fun:    [%s]\n\r",  spec_name_lookup( pMob->spec_fun ) );
         send_to_char( buf, ch );
     }
     

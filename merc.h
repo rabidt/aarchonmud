@@ -260,7 +260,7 @@ bool is_drop_obj( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         418
+#define MAX_SKILL         419
 #define MAX_GROUP          76 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
@@ -756,10 +756,9 @@ struct penalty_data
 #define MAX_CON_STATE           36
 
 #define CREATION_UNKNOWN         0
-#define CREATION_INSTANT         1
-#define CREATION_QUICK           2
-#define CREATION_NORMAL          3
-#define CREATION_REMORT          4
+#define CREATION_NORMAL          1
+#define CREATION_EXPERT          2
+#define CREATION_REMORT          3
 
 
 typedef enum { FTP_NORMAL, FTP_PUSH, FTP_PUSH_WAIT } ftp_mode;
@@ -864,6 +863,7 @@ struct  shop_data
 
 #define MAX_GUILD   2
 #define MAX_STATS   10
+#define MAX_EXT_STATS 15
 #define MAX_CURRSTAT 200
 #define STAT_STR        0
 #define STAT_CON        1
@@ -884,7 +884,7 @@ struct  class_type
     char    who_name    [4];    /* Three-letter name for 'who'  */
     sh_int  attr_prime;     /* Prime attribute      */
     sh_int  attr_second[2]; /* Secondary attributes  */
-    sh_int  stat_priority[MAX_STATS-3];
+    sh_int  stat_weights[MAX_STATS]; /* weights for default roll assignment */
     sh_int  weapon;         /* First weapon         */
     sh_int  guild[MAX_GUILD];   /* Vnum of guild rooms      */
     sh_int  skill_adept;        /* Maximum skill level      */
@@ -1326,6 +1326,7 @@ struct  kill_data
 #define ACT_HARD_QUEST  (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
+#define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
 
 /* damage classes */
 #define DAM_NONE                0
@@ -2176,6 +2177,7 @@ typedef int tattoo_list[MAX_WEAR];
  * Colour stuff by Lope of Loping Through The MUD
  */
 #define PLR_COLOUR     (T)    /* Colour Flag By Lope */
+#define PLR_COLOUR_VERBATIM (Y)
 
 /* penalty flags */
 #define PLR_PERMIT      (U)
@@ -2199,6 +2201,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_INACTIVE_HELPER (mm)
 #define PLR_ANTI_HELEPR (nn)
 #define PLR_NOEXP       (oo)
+#define PLR_REMORT_ROLL (rr)
 
 /* RT comm flags -- may be used on both mobs and chars */
 #define COMM_QUIET              (A)
@@ -2769,9 +2772,8 @@ struct gen_data
 	bool    valid;
 	bool    skill_chosen[MAX_SKILL];
 	bool    group_chosen[MAX_GROUP];
-	int unused_die[MAX_STATS+5];
-	int assigned_die[MAX_STATS+5];
-	int stat_priority[MAX_STATS+5];
+	int     unused_die[MAX_EXT_STATS];
+	int     assigned_die[MAX_EXT_STATS];
 	int     points_chosen;
 };
 
@@ -3097,7 +3099,13 @@ struct  group_type
 #define OTRIG_SACRIFICE (D)
 #define OTRIG_WEAR  (E)
 #define OTRIG_REMOVE (F)
-
+#define OTRIG_SPELL (G)
+#define OTRIG_SPEECH (H)
+#define OTRIG_TRY   (I)
+#define OTRIG_PUT   (J)
+#define OTRIG_GET   (K)
+#define OTRIG_RAND  (L)
+#define OTRIG_GREET (M)
 
 struct mprog_list
 {
@@ -3280,6 +3288,7 @@ extern sh_int  gsn_burst;
 extern sh_int  gsn_tight_grouping;
 extern sh_int  gsn_pistol_whip;
 extern sh_int  gsn_duck;
+extern sh_int  gsn_true_grit;
 extern sh_int  gsn_quick_draw;
 extern sh_int  gsn_shoot_lock;
 extern sh_int  gsn_drunken_fury;
@@ -3727,6 +3736,7 @@ struct achievement_entry
 #define DAZE_STATE(ch, npulse)  ((ch)->daze = UMAX((ch)->daze, (npulse)))
 #define get_carry_weight(ch)    ((ch)->carry_weight + (ch)->silver/100 + (ch)->gold/25)
 #define HAS_TRIGGER(ch,trig)    (IS_SET((ch)->pIndexData->mprog_flags,(trig)))
+#define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
 #define IS_SWITCHED( ch )       ( ch->desc && ch->desc->original )
 #define IS_BUILDER(ch, Area)    ( !IS_NPC(ch) && !IS_SWITCHED( ch ) && (ch->pcdata->security >= Area->security || strstr( Area->builders, ch->name ) || strstr( Area->builders, "All" ) ) )
 #define IS_REMORT(ch)			(!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT)) 
@@ -4291,7 +4301,9 @@ bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
 void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
-
+bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+CD *    get_local_leader( CHAR_DATA *ch );
+bool    is_ranged_weapon( OBJ_DATA *weapon );
 
 /* ftp.c */
 bool    ftp_push    args( (DESCRIPTOR_DATA *d) );
@@ -4353,11 +4365,11 @@ CHAR_DATA* get_player( char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_world  args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_area  args( ( CHAR_DATA *ch, char *argument ) );   
+CD *    get_char_group args( ( CHAR_DATA *ch, char *argument ) );
 OD *    get_obj_type    args( ( OBJ_INDEX_DATA *pObjIndexData ) );
-OD *    get_obj_list    args( ( CHAR_DATA *ch, char *argument,
-				OBJ_DATA *list ) );
-OD *    get_obj_carry   args( ( CHAR_DATA *ch, char *argument, 
-				CHAR_DATA *viewer ) );
+OD *    get_obj_by_type args( ( OBJ_DATA *contents, int item_type ) );
+OD *    get_obj_list    args( ( CHAR_DATA *ch, char *argument, OBJ_DATA *list ) );
+OD *    get_obj_carry   args( ( CHAR_DATA *ch, char *argument, CHAR_DATA *viewer ) );
 OD *    get_obj_wear    args( ( CHAR_DATA *ch, char *argument ) );
 OD *    get_obj_here    args( ( CHAR_DATA *ch, char *argument ) );
 OD *    get_obj_world   args( ( CHAR_DATA *ch, char *argument ) );
@@ -4417,6 +4429,7 @@ bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
+bool    is_mprog_running  args( (void) );
 void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type,
                 const void *arg2, sh_int arg2type) );
@@ -4430,7 +4443,7 @@ bool    mp_percent_trigger args( ( CHAR_DATA *mob, CHAR_DATA *ch,
                 int type ) );
 void    mp_bribe_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch, int amount ) );
 bool    mp_exit_trigger   args( ( CHAR_DATA *ch, int dir ) );
-void    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
+bool    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
 void    mp_greet_trigger  args( ( CHAR_DATA *ch ) );
 void    mp_hprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
@@ -4465,6 +4478,7 @@ void set_con_state args((DESCRIPTOR_DATA *d, int cstate));
 void set_creation_state args((DESCRIPTOR_DATA *d, int cmode));
 
 /* remort.c */
+bool is_in_remort args( (CHAR_DATA *ch) );
 void remort_complete args( (CHAR_DATA *ch) );
 void remort_update args( ( void) );
 void remort_load args( ( void) );

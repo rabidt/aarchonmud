@@ -974,6 +974,9 @@ void remember_attack(CHAR_DATA *ch, CHAR_DATA *victim, int dam)
 {
 	MEM_DATA *m, *m_last, *m_new;
 
+    // players are responsible for their charmies
+    victim = get_local_leader(victim);
+    
 	if (!IS_NPC(ch) || IS_NPC(victim) || dam<1)
 		return;
 

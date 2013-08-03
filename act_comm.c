@@ -2108,7 +2108,60 @@ void do_order( CHAR_DATA *ch, char *argument )
     return;
 }
 
+void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
+{
+    char buf[MAX_STRING_LENGTH];
+    char hp_col, mn_col, mv_col;   /* Colours that vary depending on the group member's current hp/mana/mv */
+   
+    hp_col = (gch->hit == gch->max_hit) ? 'W' :
+        (gch->hit >= gch->max_hit*.85) ? 'G' :
+        (gch->hit >= gch->max_hit*.66) ? 'g' :
+        (gch->hit >= gch->max_hit*.50) ? 'Y' :
+        (gch->hit >= gch->max_hit*.33) ? 'y' :
+        (gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
 
+    mn_col = (gch->mana == gch->max_mana) ? 'W' :
+        (gch->mana >= gch->max_mana*.85) ? 'G' :
+        (gch->mana >= gch->max_mana*.66) ? 'g' :
+        (gch->mana >= gch->max_mana*.50) ? 'Y' :
+        (gch->mana >= gch->max_mana*.33) ? 'y' :
+        (gch->mana >= gch->max_mana*.16) ? 'R' : 'r';
+
+    mv_col = (gch->move == gch->max_move) ? 'W' :
+        (gch->move >= gch->max_move*.85) ? 'G' :
+        (gch->move >= gch->max_move*.66) ? 'g' :
+        (gch->move >= gch->max_move*.50) ? 'Y' :
+        (gch->move >= gch->max_move*.33) ? 'y' :
+        (gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
+
+    sprintf( buf,
+        "[%3d %s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s %5d etl\n\r",
+        gch->level,
+        IS_NPC(gch) ? "Mob" : class_table[gch->class].who_name,
+        /* Commented out so colored names work -- Maedhros 11/27/11 */
+        /*capitalize( PERS(gch, ch) ), */
+        IS_NPC(gch)?gch->short_descr:gch->name,
+        hp_col, gch->hit,   gch->max_hit,
+        mn_col, gch->mana,  gch->max_mana,
+        mv_col, gch->move,  gch->max_move,
+       /* Shows what spells you can help your group with */
+        IS_AFFECTED(gch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
+        IS_AFFECTED(gch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
+        IS_AFFECTED(gch, AFF_HASTE) ? "{WH{x" : !IS_AFFECTED(gch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
+        is_affected(gch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
+        is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? "{WB{x" : get_skill(ch, gsn_bless) > 1 ? "{Rb{x" : " ",
+        is_affected(gch, gsn_war_cry) ? "{WW{x" : get_skill(ch, gsn_war_cry) > 1 ? "{Rw{x" : " ",
+
+/*        IS_AFFECTED(gch, AFF_FLYING) ? "F" : "f",
+        IS_AFFECTED(gch, AFF_SANCTUARY)      ? 'S' : 's',
+        IS_AFFECTED(gch, AFF_HASTE)          ? 'H' : 'h',
+        is_affected(gch, gsn_giant_strength) ? 'G' : 'g',
+        is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? 'B' : 'b',
+        is_affected(gch, gsn_war_cry)        ? 'W' : 'w', */
+        (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1)*exp_per_level(gch,gch->pcdata->points)-gch->exp
+    );
+    send_to_char( buf, ch );
+}
 
 void do_group( CHAR_DATA *ch, char *argument )
 {
@@ -2116,8 +2169,11 @@ void do_group( CHAR_DATA *ch, char *argument )
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     char hp_col, mn_col, mv_col;   /* Colours that vary depending on the group member's current hp/mana/mv */
-    one_argument( argument, arg );
+    char *remain;
+
+    remain = one_argument( argument, arg );
     
+    // show group
     if ( arg[0] == '\0' )
     {
         CHAR_DATA *gch;
@@ -2126,64 +2182,73 @@ void do_group( CHAR_DATA *ch, char *argument )
         leader = (ch->leader != NULL) ? ch->leader : ch;
         sprintf( buf, "%s's group:\n\r", leader->name );
         send_to_char( buf, ch );
-        
+
+        // show group members in room first to ensure same targeting order as for other commands
+        if ( ch->in_room != NULL )
+        {
+            for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+            {
+                if ( is_same_group( gch, ch ) )
+                    show_group_member( ch, gch );
+            }
+        }
+        // afterwards pick up all group members not in room
         for ( gch = char_list; gch != NULL; gch = gch->next )
         {
-            if ( is_same_group( gch, ch ) )
-            {
-		hp_col = (gch->hit == gch->max_hit)    ? 'W' :
-			(gch->hit >= gch->max_hit*.85) ? 'G' :
-			(gch->hit >= gch->max_hit*.66) ? 'g' :
-			(gch->hit >= gch->max_hit*.50) ? 'Y' :
-			(gch->hit >= gch->max_hit*.33) ? 'y' :
-			(gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
-
-		mn_col = (gch->mana == gch->max_mana)    ? 'W' :
-			(gch->mana >= gch->max_mana*.85) ? 'G' :
-			(gch->mana >= gch->max_mana*.66) ? 'g' :
-			(gch->mana >= gch->max_mana*.50) ? 'Y' :
-			(gch->mana >= gch->max_mana*.33) ? 'y' :
-			(gch->mana >= gch->max_mana*.16) ? 'R' : 'r';
-
-		mv_col = (gch->move == gch->max_move)    ? 'W' :
-			(gch->move >= gch->max_move*.85) ? 'G' :
-			(gch->move >= gch->max_move*.66) ? 'g' :
-			(gch->move >= gch->max_move*.50) ? 'Y' :
-			(gch->move >= gch->max_move*.33) ? 'y' :
-			(gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
-
-                sprintf( buf,
-			 "[%3d %s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %c%c%c%c%c%c %5d etl\n\r",
-			 gch->level,
-			 IS_NPC(gch) ? "Mob" : class_table[gch->class].who_name,
-			 /* Commented out so colored names work -- Maedhros 11/27/11 */
-			 /*capitalize( PERS(gch, ch) ), */
-			 IS_NPC(gch)?gch->short_descr:gch->name,
-			 hp_col, gch->hit,   gch->max_hit,
-			 mn_col, gch->mana,  gch->max_mana,
-			 mv_col, gch->move,  gch->max_move,
-			 IS_AFFECTED(gch, AFF_FLYING)         ? 'F' : ' ',
-			 IS_AFFECTED(gch, AFF_SANCTUARY)      ? 'S' : ' ',
-			 IS_AFFECTED(gch, AFF_HASTE)          ? 'H' : ' ',
-			 is_affected(gch, gsn_giant_strength) ? 'G' : ' ',
-			 is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer)         ? 'B' : ' ',
-			 is_affected(gch, gsn_war_cry)        ? 'W' : ' ',
-			 (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1)*exp_per_level(gch,gch->pcdata->points)-gch->exp );
-                send_to_char( buf, ch );
-            }
+            if ( is_same_group( gch, ch ) && ch->in_room != gch->in_room)
+                show_group_member( ch, gch );
         }
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    // remove from group
+    if ( !strcmp(arg, "remove") )
     {
-        send_to_char( "They aren't here.\n\r", ch );
+        victim = get_char_group( ch, remain );
+        if ( !victim )
+        {
+            send_to_char( "Nobody like that in your group.\n\r", ch );
+            return;
+        }
+        if ( victim->leader != ch )
+        {
+            act_new("$N does not listen to you.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+            return;
+        }
+        stop_follower(victim);
+        act_new("$n removes $N from $s group.",ch,NULL,victim,TO_NOTVICT,POS_RESTING);
+        act_new("$n removes you from $s group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
+        act_new("You remove $N from your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
         return;
     }
     
     if ( ch->leader != NULL && ch->leader != ch  )
     {
-        send_to_char( "Only the leader may add to the group!\n\r", ch );
+        send_to_char( "Only the leader may add group members or pass on leadership!\n\r", ch );
+        return;
+    }
+    
+    // pass on leadership
+    if ( !strcmp(arg, "leader") )
+    {
+        victim = get_char_group( ch, remain );
+        if ( !victim )
+        {
+            send_to_char( "Nobody like that in your group.\n\r", ch );
+            return;
+        }
+        try_set_leader( ch, victim );
+        return;
+    }
+    
+    // add to group
+    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    {
+        // show syntax
+        send_to_char("  group <player> - add a player to your group\n\r"
+                     "  group leader <player> - pass leadership of your group to a player\n\r"
+                     "  group remove <player> - remove a member from your group\n\r", ch);
+        //send_to_char( "They aren't here.\n\r", ch );
         return;
     }
     
@@ -2193,54 +2258,21 @@ void do_group( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( (PLR_ACT(ch, PLR_WAR) || PLR_ACT(victim, PLR_WAR))
-	 && !is_same_team(ch, victim) )
+    if ( (PLR_ACT(ch, PLR_WAR) || PLR_ACT(victim, PLR_WAR)) && !is_same_team(ch, victim) )
     {
-	send_to_char("You cannot group during Warfare.\n\r",ch);
-	return;
-    }
-    
-    if (IS_AFFECTED(victim,AFF_CHARM))
-    {
-        send_to_char("You can't remove charmed mobs from your group.\n\r",ch);
+        send_to_char("You cannot group during Warfare.\n\r",ch);
         return;
     }
     
-    if (IS_AFFECTED(ch,AFF_CHARM))
+    if ( is_same_group( victim, ch ) )
     {
-        act_new("You like your master too much to leave $m!",
-            ch,NULL,victim,TO_VICT,POS_SLEEPING);
+        act_new("$N is already in your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
         return;
     }
-    
-    if ( is_same_group( victim, ch ) && ch != victim )
+
+    if ( ch == victim )
     {
-        char arg2[MIL];
-        char *remain;
-        remain=one_argument( argument, arg2 );
-        remain=one_argument( remain, arg2 ); /*twice to get 2nd argument*/
-        if ( arg2[0] != '\0' );
-        {
-            if ( !strcmp( arg2, "leader") )
-            {
-                try_set_leader( ch, victim );
-                return;
-            }
-            else
-            {
-                send_to_char("  group <player> - add a player to your group\n\r"
-                             "  group <player> leader - pass leadership of your group to a player\n\r", ch);
-                ptc( ch, "%s\n\r", arg2);
-                return;
-            }
-        }
-        victim->leader = NULL;
-        act_new("$n removes $N from $s group.",
-            ch,NULL,victim,TO_NOTVICT,POS_RESTING);
-        act_new("$n removes you from $s group.",
-            ch,NULL,victim,TO_VICT,POS_SLEEPING);
-        act_new("You remove $N from your group.",
-            ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+        send_to_char("You can't add or remove yourself from your own group.\n\r",ch);
         return;
     }
     
@@ -2251,9 +2283,8 @@ void do_group( CHAR_DATA *ch, char *argument )
 
     if ( ch != victim && is_same_player(ch, victim) )
     {
-	sprintf( buf, "Multiplay: %s joins %s's group",
-		 victim->name, ch->name );
-	wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
+        sprintf( buf, "Multiplay: %s joins %s's group", victim->name, ch->name );
+        wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
     }
     return;
 }
@@ -2302,35 +2333,6 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
                 ptc( gch, "%s now leads your group.\n\r", victim->name );
         }
     }
-}
-
-
-/* command for releasing charmed followers */
-void do_release( CHAR_DATA *ch, char *argument )
-{
-    CHAR_DATA *victim;
-
-    if ( (victim = get_char_room(ch, argument)) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
-        return;
-    }
-   
-    if ( !IS_AFFECTED(victim, AFF_CHARM) || victim->master != ch )
-    {
-        send_to_char( "You don't control them.\n\r", ch);
-        return;
-    }
-    
-    /* destroy animated mobs */
-    if ( IS_AFFECTED(victim, AFF_ANIMATE_DEAD) )
-    {
-	act( "$n crumbles into dust.", victim, NULL, NULL, TO_ROOM );
-	drop_eq( victim );
-	extract_char( victim, TRUE );
-    }
-    else
-	stop_follower( victim );
 }
 
 /*
@@ -2556,6 +2558,16 @@ void do_colour( CHAR_DATA *ch, char *argument )
             send_to_char_bw( "Colour is now OFF, <sigh>\n\r", ch );
             REMOVE_BIT( ch->act, PLR_COLOUR );
         }
+        return;
+    }
+    
+    if (!str_cmp( arg, "verbatim" ) )
+    {
+        TOGGLE_BIT( ch->act, PLR_COLOUR_VERBATIM );
+        if ( IS_SET( ch->act, PLR_COLOUR_VERBATIM ) )
+            send_to_char( "Color codes are now displayed {rverbatim{x.\n\r", ch );
+        else 
+            send_to_char( "Color codes are no longer displayed {rverbatim{x.\n\r", ch );
         return;
     }
     
@@ -3181,8 +3193,9 @@ void do_try ( CHAR_DATA *ch, char *argument )
   if (argument[0] == '\0')
     send_to_char("Try to do what?\n\r", ch);
   else
-    if (!mp_try_trigger(argument, ch))
+    if (!mp_try_trigger(argument, ch) && !op_try_trigger(argument, ch))
       send_to_char("That didn't work.\n\r", ch);
+
 }
 
 void do_turn_in ( CHAR_DATA *ch, char *argument )
