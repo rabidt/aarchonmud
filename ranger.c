@@ -542,14 +542,11 @@ void do_tame( CHAR_DATA *ch, char *argument )
 	   return;
 	}
 
-	if (IS_SET(victim->in_room->room_flags,ROOM_LAW))
-	{
-	   send_to_char("That is not allowed within the city limits.\n\r",ch);
-	   return;
-	}
-
 	if (is_safe(ch,victim)) return;
 
+    if ( check_cha_follow(ch, victim->level) < victim->level )
+        return;
+    
 	if ( IS_AFFECTED(victim, AFF_CHARM)
 	     || IS_AFFECTED(ch, AFF_CHARM)
 	     || ch->level < victim->level

@@ -104,7 +104,7 @@ void add_lua_tables (lua_State *LS);
 
 /* oprogs args */
 #define OBJ_ARG "obj"
-#define NUM_OPROG_ARGS 2
+#define NUM_OPROG_ARGS 4 /* also TRIG_ARG, OBJ2_ARG */ 
 #define CH1_ARG "ch1"
 #define CH2_ARG "ch2"
 #define NUM_OPROG_RESULTS 1
@@ -1413,6 +1413,38 @@ static int L_obj_destroy( lua_State *LS)
     return 0;
 }
 
+static int L_obj_echo( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+    char *argument= luaL_checkstring (LS, 2);
+
+    if (ud_obj->carried_by)
+    {
+        send_to_char(argument, ud_obj->carried_by);
+        send_to_char( "\n\r", ud_obj->carried_by);
+    }
+    else if (ud_obj->in_room)
+    {
+        DESCRIPTOR_DATA *d;
+        for ( d = descriptor_list; d; d = d->next )
+        {
+            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+                &&   d->character->in_room == ud_obj->in_room )
+            {
+                send_to_char( argument, d->character );
+                send_to_char( "\n\r",   d->character );
+            }
+        } 
+    }
+    else
+    {
+        luaL_error(LS, "L_obj_echo: carried_by and in_room both NULL");
+        return 0;
+    }
+    
+    return 0;
+}
+
 static int L_obj_wear( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
@@ -1509,6 +1541,7 @@ static const struct luaL_reg OBJ_lib [] =
     {"extra", L_obj_extra},
     {"wear", L_obj_wear},
     {"destroy", L_obj_destroy},
+    {"echo", L_obj_echo},
     {NULL, NULL}
 };
 
@@ -2248,11 +2281,11 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
 
-    sprintf(buf, "function O_%d (%s,%s)"
+    sprintf(buf, "function O_%d (%s,%s,%s,%s)"
             "%s\n"
             "end",
             vnum,
-            CH1_ARG, CH2_ARG,
+            OBJ2_ARG, CH1_ARG, CH2_ARG, TRIG_ARG,
             code);
 
 
@@ -2386,8 +2419,8 @@ void lua_mob_program( char *text, int pvnum, char *source,
 }
 
 
-bool lua_obj_program( int pvnum, char *source, 
-        OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2 ) 
+bool lua_obj_program( char *trigger, int pvnum, char *source, 
+        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2 ) 
 {
     bool result=FALSE;
 
@@ -2419,7 +2452,6 @@ bool lua_obj_program( int pvnum, char *source,
         lua_getglobal( mud_LS, buf);
     }
     
-    //lua_call(mud_LS, 2, 1);
     int error=CallLuaWithTraceBack (mud_LS, 2, 1) ;
     if (error > 0 )
     {
@@ -2427,6 +2459,11 @@ bool lua_obj_program( int pvnum, char *source,
         lua_tostring(mud_LS, -1));
     }
 
+    /* OBJ2_ARG */
+    if (obj2)
+        make_ud_table (mud_LS,(void *) obj2, UDTYPE_OBJ, TRUE);
+    else lua_pushnil(mud_LS);
+    
     /* CH1_ARG */
     if (ch1)
         make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
@@ -2435,6 +2472,11 @@ bool lua_obj_program( int pvnum, char *source,
     /* CH2_ARG */
     if (ch2)
         make_ud_table (mud_LS,(void *) ch2, UDTYPE_CH, TRUE);
+    else lua_pushnil(mud_LS);
+
+    /* TRIG_ARG */
+    if (trigger)
+        lua_pushstring(mud_LS,trigger);
     else lua_pushnil(mud_LS);
 
     /* some snazzy stuff to prevent crashes and other bad things*/

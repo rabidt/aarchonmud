@@ -2555,14 +2555,12 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                 paf->modifier   = bread_number( buf );
                 paf->location   = bread_number( buf );
                 paf->bitvector  = bread_number( buf );
-		if ( pfile_version < VER_FLAG_CHANGE )
-		    FLAG_CONVERT( paf->bitvector );
-                paf->next       = obj->affected;
-
-		if (ignore_affects)
-		    free_affect( paf );
-		else
-		    obj->affected = paf;
+                if ( pfile_version < VER_FLAG_CHANGE )
+                    FLAG_CONVERT( paf->bitvector );
+                if (ignore_affects)
+                    free_affect( paf );
+                else
+                    obj->affected = affect_insert( obj->affected, paf );
 
                 fMatch          = TRUE;
                 break;
@@ -3151,16 +3149,11 @@ void do_oldfinger(CHAR_DATA *ch, char *argument)
     char arg[MAX_INPUT_LENGTH];
     BUFFER *output;
     char buf[MAX_STRING_LENGTH];
-    char buf2[MAX_STRING_LENGTH];
-    char levelbuf[16];
-    char clanbuf[MAX_STRING_LENGTH];
     char custombuf[MAX_STRING_LENGTH];
-    char immbuf[16];
-/*  char immtitle[MAX_STRING_LENGTH];*/
     DESCRIPTOR_DATA *d;
     CHAR_DATA *wch;
-    char pkstring[5];
     RELIGION_DATA *rel;
+    int war;
 
     one_argument(argument,arg);
 
@@ -3171,7 +3164,7 @@ void do_oldfinger(CHAR_DATA *ch, char *argument)
     }
 
     d=new_descriptor();
-
+    
     sprintf( last_debug, "do_oldfinger: 1" );
     if (!load_char_obj(d, argument))
     {
@@ -3188,264 +3181,126 @@ void do_oldfinger(CHAR_DATA *ch, char *argument)
         sprintf(custombuf, "(%s) ", wch->pcdata->customflag);
     else
         custombuf[0] = '\0';
-
-    if ( wch->level >= LEVEL_IMMORTAL )
-        switch(wch->level)
-    {
-      case MAX_LEVEL - 0 : sprintf(immbuf, "IMPLEMENTOR"); break;
-      case MAX_LEVEL - 1 : sprintf(immbuf, "ARCHON"); break;
-      case MAX_LEVEL - 2 : sprintf(immbuf, "ARCHON"); break;
-      case MAX_LEVEL - 3 : sprintf(immbuf, "VICE-ARCHON"); break;
-      case MAX_LEVEL - 4 : sprintf(immbuf, "VICE-ARCHON"); break;
-      case MAX_LEVEL - 5 : sprintf(immbuf, "GOD"); break;
-      case MAX_LEVEL - 6 : sprintf(immbuf, "GOD"); break;
-      case MAX_LEVEL - 7 : sprintf(immbuf, "DEMIGOD"); break;
-      case MAX_LEVEL - 8 : sprintf(immbuf, "DEMIGOD"); break;
-      case MAX_LEVEL - 9 : sprintf(immbuf, "SAVANT"); break;
-      default : sprintf(immbuf, " "); break;
-    }
-
-    sprintf(levelbuf, "Level %d", wch->level);
-
+    
+    sprintf(buf, "Name and Title: %s%s%s%s%s%s%s%s{x%s\n\r",
+        IS_SET(wch->act,PLR_RP) ? "(RP) " : "",
+        IS_SET(wch->act,PLR_HELPER) ? "({GH{CE{cL{GP{CE{cR{x) " : "",
+        IS_SET(wch->act,PLR_KILLER) ? "(KILLER) " : "",
+        IS_SET(wch->act,PLR_THIEF) ? "(THIEF) " : "",
+        custombuf,
+	    IS_NPC(wch)?"":wch->pcdata->name_color,
+	    IS_NPC(wch)?"":wch->pcdata->pre_title,
+        wch->name, IS_NPC(wch) ? "" : wch->pcdata->title);
+    add_buf(output, buf );
+    sprintf(buf, "Level: %d\n\r", wch->level);
+    add_buf(output, buf);
+    sprintf(buf, "Gender: %s\n\r", wch->sex == 0 ? "sexless" : wch->sex == 1 ? "male" : "female");
+    add_buf(output, buf);
+    sprintf(buf, "Race: %s\n\r", wch->race < MAX_PC_RACE ? pc_race_table[wch->race].name : "     ");
+    add_buf(output, buf);
+    sprintf(buf, "Class: %s\n\r", class_table[wch->class].name);
+    add_buf(output, buf);
+    sprintf(buf, "Remorts: %d\n\r", wch->pcdata->remorts);
+    add_buf(output, buf);
     if (clan_table[wch->clan].active)
-        sprintf(clanbuf, " [%s%s-%s{x] ",
-        clan_table[wch->clan].who_color,
+        sprintf(buf, "Clan and Rank: [%s-%s]\n\r", 
         clan_table[wch->clan].who_name,
         clan_table[wch->clan].rank_list[wch->pcdata->clan_rank].who_name);
     else
-        clanbuf[0] = '\0';
-
-
-    if ( IS_SET(wch->act, PLR_PERM_PKILL) )
-        sprintf( pkstring, "[%c]", get_pkflag(ch, wch) );
-    else
-        sprintf( pkstring, " " );
-
-    /* AND NOW the formatting! */
-
-    sprintf(buf,"\n\r:===================================================================:\n\r" );
-    add_buf( output, buf );
-
-    /* **  Pflag, Killer flag, Thief flag, name, title ** */
-    sprintf(buf, "  %s%s%s%s%s%s%s\n\r",
-            IS_SET(wch->act,PLR_RP) ? "(RP) " : "",
-            IS_SET(wch->act,PLR_HELPER) ? "(HELPER) " : "",
-            custombuf,
-            IS_SET(wch->act,PLR_KILLER) ? "(KILLER) " : "",
-            IS_SET(wch->act,PLR_THIEF) ? "(THIEF) " : "",
-            wch->name, IS_NPC(wch) ? "" : wch->pcdata->title);
-    add_buf( output, buf );
-
-    sprintf(buf,":===================================================================:\n\r" );
-    add_buf( output, buf );
-
-    /* ** Incog, Wizi, AFK, Levelbuf, Sex, Race, Class, pkill ** */
-    sprintf(buf, "| %s%s%s%s %s %s %s.  %s%s",
-        get_trust(ch) >= wch->incog_level &&
-        wch->incog_level >= LEVEL_HERO ? "(Incog) ": "",
-        get_trust(ch) >= wch->invis_level &&
-        wch->invis_level >= LEVEL_HERO ? "(Wizi) " : "",
-        IS_SET(wch->comm, COMM_AFK) ? "[AFK] " : "",
-        levelbuf,
-        wch->sex == 0 ? "sexless" : wch->sex == 1 ? "male" : "female",
-        wch->race < MAX_PC_RACE ? pc_race_table[wch->race].name : "     ",
-        class_table[wch->class].name,
-        clanbuf,
-        pkstring);
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "|\n\r" );
-    add_buf( output, buf );
-
-    /* religion */
-    if ( (rel = get_religion(wch)) != NULL )
+        sprintf(buf, "Clan and Rank: none\n\r");
+    add_buf(output, buf);
+    if ((rel = get_religion(wch)) != NULL)
     {
-        if( !str_cmp(ch->name, rel->god) )
-            sprintf( buf, "| God: %-11s Faith: %-41d |\n\r", rel->god, get_faith(wch) );
-        else
-            sprintf( buf, "| God: %-11s Rank: %-42s |\n\r", rel->god, get_ch_rank_name(wch) );
-        add_buf( output, buf );
-    }
-
-    /* ** Remorts, Age, Hours, Bounty ** */
-    sprintf(buf, "| ");
-    if ( wch->level <= LEVEL_HERO )
-    {
-        sprintf(buf2, "Remorts: {c%-2d{x      Age: %-3d      ",
-            wch->pcdata->remorts,
-            get_age(wch) );
-        strcat( buf, buf2 );
+        sprintf(buf, "Religion God: %s\n\r", rel->god);
+        add_buf(output, buf);
+        sprintf(buf, "Religion Rank: %s\n\r", get_ch_rank_name(wch));
+        add_buf(output, buf);
     }
     else
     {
-        sprintf( buf2, " *** %s ***      ", immbuf );
-        strcat( buf, buf2 );
+        sprintf(buf, "Religion God: none\n\r");
+        add_buf(output, buf);
+        sprintf(buf, "Religion Rank: none\n\r");
+        add_buf(output, buf);    
     }
-
-    if ( get_trust(ch) > LEVEL_IMMORTAL )
+    if( wch->pcdata && wch->pcdata->spouse )
     {
-        sprintf( buf2, "Hours: {C%d{x      ", ((int)wch->played)/3600);
-        strcat( buf, buf2 );
+        sprintf( buf, "Spouse: %s\n\r", wch->pcdata->spouse );
+        add_buf(output, buf);
     }
-    if ( wch->pcdata->bounty )
+    else
     {
-        sprintf( buf2, "Bounty: %d", wch->pcdata->bounty );
-        strcat( buf, buf2 );
+        sprintf( buf, "Spouse: None\n\r" );
+        add_buf(output, buf);
     }
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "|\n\r" );
-    add_buf( output, buf );
+    sprintf(buf, "Date Last On: %s\n\r", time_format(fingertime, custombuf));
+    add_buf(output, buf);
+    sprintf(buf, "Date Created: %s\n\r", time_format(wch->id, custombuf));
+    add_buf(output, buf);
+    sprintf(buf, "Pkills: %d\n\r", wch->pcdata->pkill_count);
+    add_buf(output, buf);
+    sprintf(buf, "Mob Kills: %d\n\r", wch->pcdata->mob_kills);
+    add_buf(output, buf);
+    sprintf(buf, "Beheads: %d\n\r", wch->pcdata->behead_cnt);
+    add_buf(output, buf);
+    sprintf(buf, "Quests Complete: %d\n\r", wch->pcdata->quest_success);
+    add_buf(output, buf);
+    sprintf(buf, "Quests Failed: %d\n\r", wch->pcdata->quest_failed);
+    add_buf(output, buf);
+    sprintf(buf, "Percent Success: %4.1f%%\n\r", wch->pcdata->quest_success == 0 ? 0 : (float)wch->pcdata->quest_success * 100 / (float)(wch->pcdata->quest_failed + wch->pcdata->quest_success));
+    add_buf(output, buf);
+    sprintf(buf, "Total Wars: %d\n\r", wch->pcdata->total_wars);
+    add_buf(output, buf);
+    sprintf(buf, "Total Wins: %d\n\r", wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won);
+    add_buf(output, buf);
+    sprintf(buf, "Total Losses: %d\n\r", wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost);
+    add_buf(output, buf);
+    sprintf(buf, "Total Kills: %d\n\r", wch->pcdata->war_kills);
+    add_buf(output, buf);
 
-    /* ** Last on ** */
-    if ( wch->level < LEVEL_IMMORTAL || IS_IMMORTAL(ch) )
-    {
-        if ( IS_IMMORTAL(wch) && ch->level <= wch->level )
-            ;  /* Do nothing. */
-        else
-        {
-        sprintf(buf, "| Last on: %s    ",
-            time_format(fingertime, custombuf));
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-        add_buf( output, buf );
-        }
-    }
-
-    if ( get_trust(ch) > GOD )
-    {
-        if (IS_IMMORTAL(wch) && ch->level <= wch->level)
-        {
-            ; /* Do nothing */
-        }
-        else
-        {
-            sprintf(buf, "| Last host: %s", wch->pcdata->last_host);
-            for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-            strcat( buf, "|\n\r" );
-            add_buf( output, buf );
-        }
-    }
-
-
-    if (wch->level <= LEVEL_HERO)
-    {
-	int pk, war;
-
-	if (wch->pcdata->pkpoints == 0)
-	  pk = get_pkgrade_level(wch->pcdata->pkill_count);
+	if( wch->pcdata->warpoints == 0 )
+	    war = get_pkgrade_level(wch->pcdata->war_kills);
 	else
-	  pk = get_pkgrade_level(wch->pcdata->pkill_count);
+	    war = get_pkgrade_level(wch->pcdata->warpoints);
 
-	if (wch->pcdata->warpoints == 0)
-	  war = get_pkgrade_level(wch->pcdata->war_kills);
-	else
-	  war = get_pkgrade_level(wch->pcdata->warpoints);
-	
-        sprintf(buf,":===================================================================:\n\r" );
-        add_buf( output, buf );
-
-        sprintf(buf,
-            "|           {wPKILLS: %-4d{x  {YTotal War Kills: %-3d      Total Wars: %-3d{x",
-            wch->pcdata->pkill_count,
-            wch->pcdata->war_kills,
-            wch->pcdata->total_wars );
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-
-	/* Pkill grading system removed - killed pk players hated it - Maedhros */
-        /* sprintf(buf,
-	 *    "|      Pkill Grade: %s       Warfare Grade: %s                        |\n\r",
-	 *    pkgrade_table[pk].grade, pkgrade_table[war].grade);
-	 */ add_buf( output, buf );
-
-        sprintf(buf,
-	     "|                         Warfare Grade:   %s                        |\n\r"
-	     , pkgrade_table[war].grade);
-	add_buf( output, buf );
-
-        /* Deaths Removed - Maedhros */
-	/* sprintf(buf,
-         *   "|           {RDEATHS: %-4d{x",
-         *   wch->pcdata->mob_deaths );
-         * for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-         * strcat( buf, "|\n\r" );
-         * add_buf( output, buf );
-	 */
-
-        sprintf(buf,
-            "|");
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-        add_buf( output, buf );
-
-        sprintf(buf,
-            "|      Mobs Killed: %-4d  Armageddons Won: {r%-3d{x   Clan Wars Won: {g%-3d{x",
-            wch->pcdata->mob_kills,
-            wch->pcdata->armageddon_won,
-            wch->pcdata->clan_won );
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-        add_buf( output, buf );
-
-        sprintf(buf,
-            "| Quests Completed: {B%-4d{x Armageddons Lost: {r%-3d{x  Clan Wars Lost: {g%-3d{x",
-            wch->pcdata->quest_success,
-            wch->pcdata->armageddon_lost,
-            wch->pcdata->clan_lost );
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-        add_buf( output, buf );
-
-        sprintf(buf,
-            "|    Quests Failed: {B%-4d{x Armageddon Kills: {r%-3d{x  Clan War Kills: {g%-3d{x",
-            wch->pcdata->quest_failed,
-            wch->pcdata->armageddon_kills,
-            wch->pcdata->clan_kills );
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-        add_buf( output, buf );
-
-        sprintf(buf,
-            "|  Gender Wars Won: {M%-3d{x     Race Wars Won: {y%-3d{x  Class Wars Won: {W%-3d{x",
-            wch->pcdata->gender_won,
-            wch->pcdata->race_won,
-            wch->pcdata->class_won );
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-        add_buf( output, buf );
-
-        sprintf(buf,
-            "| Gender Wars Lost: {M%-3d{x    Race Wars Lost: {y%-3d{x Class Wars Lost: {W%-3d{x",
-            wch->pcdata->gender_lost,
-            wch->pcdata->race_lost,
-            wch->pcdata->class_lost );
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-        add_buf( output, buf );
-
-        sprintf(buf,
-            "| Gender War Kills: {M%-3d{x    Race War Kills: {y%-3d{x Class War Kills: {W%-3d{x",
-            wch->pcdata->gender_kills,
-            wch->pcdata->race_kills,
-            wch->pcdata->class_kills );
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-        add_buf( output, buf );
-
-        /**/
-        sprintf(buf,
-            "|  Relign Wars Won: %-3d  Relign Wars Lost: %-3dRelign War Kills: %-3d",
-            wch->pcdata->religion_won,
-            wch->pcdata->religion_lost,
-            wch->pcdata->religion_kills );
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "|\n\r" );
-        add_buf( output, buf );
-
-    }
-
-    sprintf(buf,":===================================================================:\n\r" );
-    add_buf( output, buf );
-
+    sprintf(buf, "Warfare Grade: %s\n\r", pkgrade_table[war].grade);
+    add_buf(output, buf);
+    sprintf(buf, "Armageddon Wins: %d\n\r", wch->pcdata->armageddon_won);
+    add_buf(output, buf);
+    sprintf(buf, "Armageddon Losses: %d\n\r", wch->pcdata->armageddon_lost);
+    add_buf(output, buf);
+    sprintf(buf, "Armageddon Kills: %d\n\r", wch->pcdata->armageddon_kills);
+    add_buf(output, buf);
+    sprintf(buf, "Clan War Wins: %d\n\r", wch->pcdata->clan_won);
+    add_buf(output, buf);
+    sprintf(buf, "Clan War Losses: %d\n\r", wch->pcdata->clan_lost);
+    add_buf(output, buf);
+    sprintf(buf, "Clan War Kills: %d\n\r", wch->pcdata->clan_kills);
+    add_buf(output, buf);
+    sprintf(buf, "Class War Wins: %d\n\r", wch->pcdata->class_won);
+    add_buf(output, buf);
+    sprintf(buf, "Class War Losses: %d\n\r", wch->pcdata->class_lost);
+    add_buf(output, buf);
+    sprintf(buf, "Class War Kills: %d\n\r", wch->pcdata->class_kills);
+    add_buf(output, buf);
+    sprintf(buf, "Race War Wins: %d\n\r", wch->pcdata->race_won);
+    add_buf(output, buf);
+    sprintf(buf, "Race War Losses: %d\n\r", wch->pcdata->race_lost);
+    add_buf(output, buf);
+    sprintf(buf, "Race War Kills: %d\n\r", wch->pcdata->race_kills);
+    add_buf(output, buf);
+    sprintf(buf, "Religion War Wins: %d\n\r", wch->pcdata->religion_won);
+    add_buf(output, buf);
+    sprintf(buf, "Religion War Losses: %d\n\r", wch->pcdata->religion_lost);
+    add_buf(output, buf);
+    sprintf(buf, "Religion War Kills: %d\n\r", wch->pcdata->religion_kills);
+    add_buf(output, buf);
+    sprintf(buf, "Gender War Wins: %d\n\r", wch->pcdata->gender_won);
+    add_buf(output, buf);
+    sprintf(buf, "Gender War Losses: %d\n\r", wch->pcdata->gender_lost);
+    add_buf(output, buf);
+    sprintf(buf, "Gender War Kills: %d\n\r", wch->pcdata->gender_kills);
+        
     page_to_char(buf_string(output),ch);
     free_buf(output);
 
