@@ -14,7 +14,6 @@ DECLARE_DO_FUN( do_outfit );
 DECLARE_DO_FUN( do_quit );
 DECLARE_DO_FUN( do_visible );
 AREA_DATA *get_vnum_area( int );
-void remort_lower( CHAR_DATA *ch, char *arg );
 
 typedef struct remort_table REMORT_TABLE;
 
@@ -104,14 +103,23 @@ char *time_format(time_t t, char *b)
     return b;
 }
 
+bool is_in_remort(CHAR_DATA *ch)
+{
+    int i;
+    for ( i = 0; chambers[i].name != NULL; i++ )
+        if ( chamber_list[i] != NULL && !str_cmp(ch->name, chamber_list[i]->name) )
+            return TRUE;
+    return FALSE;
+}
+
 void do_remort args( (CHAR_DATA *ch, char *argument) );
 void remort_signup args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_cancel args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_status args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_enter args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_speed args( (CHAR_DATA *ch, CHAR_DATA *adept) );
+void remort_repeat args( (CHAR_DATA *ch, CHAR_DATA *adept, char *arg) );
 void remort_save args( ( void ) );
-
 
 void do_remort(CHAR_DATA *ch, char *argument)
 {
@@ -173,13 +181,13 @@ void do_remort(CHAR_DATA *ch, char *argument)
             remort_speed(ch, adept);
             return;
         }
-        else if (!strcmp(arg, "lower"))
+        else if (!strcmp(arg, "repeat"))
         {
-            remort_lower(ch, argument);
+            remort_repeat(ch, adept, argument);
             return;
         }
         
-    send_to_char("Remort options: signup, cancel, status, enter, speed, lower.\n\r", ch);
+    send_to_char("Remort options: signup, cancel, status, enter, speed, repeat.\n\r", ch);
     send_to_char("For more information, type 'HELP REMORT'.\n\r", ch);
 }
 
@@ -860,20 +868,12 @@ MEMFILE* remort_mem_save()
 
 void remort_begin(CHAR_DATA *ch)
 {
-    bool found = FALSE;
     int i, j;
-    
-    for (j = 0; chambers[j].name != NULL; j++)
-        if (chamber_list[j] != NULL)
-            if (!str_cmp(ch->name, chamber_list[j]->name))
-	    {
-		found = TRUE;
-		break;
-	    }
-    if (!found) return;
-      
-    chamber_list[j]->limit = UMAX( chamber_list[j]->limit, current_time + 4800 );
 
+    remort_remove(ch, TRUE);
+
+    // mark as rolling stats in case we loose connection
+    SET_BIT(ch->act, PLR_REMORT_ROLL);
     quit_save_char_obj(ch);
     
     if (ch->desc != NULL)
@@ -912,9 +912,6 @@ void remort_begin(CHAR_DATA *ch)
     }
     unregister_lua( ch );
 
-
-    ch->pcdata->remorts++;
-    
     for (i = 0; i < MAX_STATS; i++)
         ch->pcdata->history_stats[i] += ch->pcdata->original_stats[i];
     
@@ -934,8 +931,8 @@ void remort_complete(CHAR_DATA *ch)
 {
     char buf[MAX_STRING_LENGTH];
     OBJ_DATA *obj, *obj_next;
-    
-    remort_remove(ch, TRUE);
+
+    REMOVE_BIT(ch->act, PLR_REMORT_ROLL);
     
     for ( obj = ch->carrying; obj != NULL; obj = obj_next )
     {
@@ -1013,35 +1010,63 @@ void remort_complete(CHAR_DATA *ch)
     force_full_save();
 }
 
-void remort_lower( CHAR_DATA *ch, char *arg )
+void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, char *arg )
 {
     char buf[MSL];
 
     if ( ch->pcdata->remorts < MAX_REMORT )
     {
-	send_to_char( "You haven't reached the maximum remort level yet.\n\r", ch );
-	return;
+        send_to_char( "You haven't reached the maximum remort level yet.\n\r", ch );
+        return;
     }
 
     if ( !IS_HERO(ch) )
     {
-	send_to_char( "You haven't reached your maximum level yet.\n\r", ch );
-	return;
+        send_to_char( "You haven't reached your maximum level yet.\n\r", ch );
+        return;
     }
 
+    // half cost of initial remort
+    int remort_level = ch->pcdata->remorts - 1;
+    int qpcost = 100 + 25 * remort_level;
+    int goldcost = 500 * ( 20 + 8 * remort_level + (1<<remort_level) );
+    
     if ( strcmp(arg, "confirm") )
     {
-	send_to_char( "To lower your remort level, type <remort lower confirm>.\n\r", ch );
-	send_to_char( "WARNING: This will irreversibly lower your remort level!\n\r", ch );
-	send_to_char( "         You can only raise it again by re-remorting!\n\r", ch );
-	return;
+        send_to_char( "To repeat your current remort, type <remort repeat confirm>.\n\r", ch );
+        printf_to_char( ch, "WARNING: This will cost %d qp and %d gold!\n\r", qpcost, goldcost );
+        return;
     }
 
-    sprintf( buf, "The remort level of %s has been lowered.", ch->name );
-    log_string( buf );
+    if ( ch->pcdata->questpoints < qpcost )
+    {
+        sprintf(buf, "You need %d quest points to repeat remort, %s.", qpcost, ch->name);
+        do_say(adept, buf);
+        return;
+    }
+    
+    if ( ch->gold < goldcost )
+    {
+        sprintf(buf, "There is a %d gold remort repetition tax, %s.", goldcost, ch->name);
+        do_say(adept, buf);
+        return;
+    }
+    
+    if ( ch->carrying != NULL )
+    {
+        sprintf(buf, "You must leave all posessions behind, %s.", ch->name);
+        do_say(adept, buf);
+        return;
+    }
 
-    ch->pcdata->remorts -= 1;
-    send_to_char( "Your remort level has been lowered.\n\r", ch );
+    sprintf(buf, "That'll be %d gold, and %d qps, %s.", goldcost, qpcost, ch->name);
+    do_say(adept, buf);
+
+    ch->pcdata->questpoints -= qpcost;
+    ch->gold -= goldcost;    
+    logpf("Repeating remort for %s. Deducted %d qp and %d gold.", ch->name, qpcost, goldcost);
+    
+    remort_begin(ch);
 } 
 
 

@@ -158,7 +158,6 @@ void  death_penalty  args( ( CHAR_DATA *ch ) );
 bool  check_mercy args( ( CHAR_DATA *ch ) );
 void  check_reset_stance args( ( CHAR_DATA *ch) );
 void  stance_hit    args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
-bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
 bool is_normal_hit( int dt );
 bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
 bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
@@ -298,12 +297,6 @@ void run_combat_action( DESCRIPTOR_DATA *d )
     if ( IS_AFFECTED(ch, AFF_CHARM) )
 	return;
 
-    /*
-    if ( !run_olc_editor( d ) )
-	substitute_alias( d, command );
-    else
-	nanny( d, command );
-    */
     anti_spam_interpret( d->character, command );
 
     /* prevent spam from lag-less actions */
@@ -1881,49 +1874,19 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill )
 {
     int ch_roll, victim_roll;
-    int defense_factor, victim_ac;
+    int victim_ac;
     int ac_dam_type;
     OBJ_DATA *wield;
 
     if ( ch == victim )
 	return TRUE;
 
-    /* special skill adjustment */
-    if ( dt == gsn_aim
-	 || dt == gsn_backstab
-	 || dt == gsn_back_leap
-	 || dt == gsn_circle
-	 || dt == gsn_slash_throat
-         || dt == gsn_rupture
-	 || dt == gsn_snipe )
-    {
-	//if ( chance(get_skill(ch, dt)) )
-	return TRUE;
-    }
-    
     if ( IS_AFFECTED(ch, AFF_CURSE) && per_chance(5) )
 	return FALSE;
-
-    if ( dt == gsn_fullauto
-	 || dt == gsn_semiauto
-	 || dt == gsn_burst )
-    {
-	int skill = get_skill(ch, dt);
-	if ( !chance(50 + skill/4) )
-	    return FALSE;
-    }
-
     
     /* size */
-    if ( number_percent() <= 3 * (SIZE_GIANT - victim->size) )
+    if ( number_percent() <= 3 * (ch->size - victim->size) )
 	return FALSE;
-
-    if ( number_percent() <= get_skill(ch, gsn_giantfeller)
-	 && number_percent() <= 3 * (victim->size - ch->size) )
-    {
-	check_improve(ch, gsn_giantfeller, TRUE, 6); 
-	return TRUE;
-    }
 
     /* automatic chance-to-hit */
     if ( number_bits(3) == 0 )
@@ -1943,29 +1906,37 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
     }
 
-    /* basic defense skill */
-    if ( IS_NPC(victim) )
-    {
-	defense_factor = 100;
-        if (IS_SET(victim->act, ACT_WARRIOR))
-            defense_factor += 20;
-        if (IS_SET(victim->act, ACT_MAGE))
-            defense_factor -= 20;
-    }
-    else
-    {
-        defense_factor = class_table[victim->class].defense_factor;
-    }
-
     /* basic values */
     ch_roll = GET_HITROLL(ch);
     victim_roll = 10 - victim_ac;
+
+    /* special skill adjustment */
+    if ( (dt < TYPE_HIT && IS_SPELL(dt))
+        || dt == gsn_aim
+        || dt == gsn_backstab
+        || dt == gsn_back_leap
+        || dt == gsn_circle
+        || dt == gsn_slash_throat
+        || dt == gsn_rupture
+        || dt == gsn_snipe )
+    {
+        victim_roll /= 2;
+    }    
+    else if ( dt == gsn_fullauto
+        || dt == gsn_semiauto
+        || dt == gsn_burst )
+    {
+        ch_roll /= 2;
+    }    
     
+    if ( victim->size > ch->size )
+    {
+        // +5% to attack roll per size difference
+        ch_roll += ch_roll * (victim->size - ch->size) * get_skill(ch, gsn_giantfeller) / 2000;
+        check_improve(ch, gsn_giantfeller, TRUE, 6);
+    }
+
     /* skill-based chance-to-miss */
-    /*
-    if ( number_percent() > skill )
-	return FALSE;
-    */
     ch_roll = ch_roll * skill/100;
 
     /* blind attacks */
@@ -1981,18 +1952,28 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	 ch_roll *= 2;
 
     if ( ch_roll <= 0 )
-	return FALSE;
-    else if ( victim_roll <= 0 )
-	return TRUE;
-    else
-	return number_range(0, ch_roll) > number_range(0, victim_roll);
+        return FALSE;
+    if ( victim_roll <= 0 )
+        return TRUE;
+
+    int ch_rolled = number_range(0, ch_roll);
+    int victim_rolled = number_range(0, victim_roll);
+    bool is_hit = (ch_rolled > victim_rolled);
+
+#ifdef TESTER
+    if ( !IS_SET(ch->gag, GAG_MISS) )
+        printf_to_char( ch, "Attack Roll (%d) = %d vs %d = Defense Roll (%d) => %s\n\r",
+            ch_roll, ch_rolled, victim_rolled, victim_roll, is_hit ? "hit" : "miss" );
+#endif
+
+    return is_hit;
 }
 
 void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam )
 {
     int level;
 
-    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) && !is_ranged_weapon(wield) )
+    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) || is_ranged_weapon(wield) )
         return;
 
     if ( is_affected(victim, gsn_immolation) )
