@@ -3604,48 +3604,50 @@ void spell_iron_maiden( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     affect_to_char( victim, &af );
 }
 
-/* New good weather spells added by Astark */
+/* New good weather spell added by Astark & fixed by Bobble */
 void spell_solar_flare( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
     
-    if (!IS_OUTSIDE(ch) )
+    if ( weather_info.sky >= SKY_RAINING || !room_is_sunlit(ch->in_room) )
     {
-        send_to_char( "Not even a solar flare will melt someone while you're indoors.\n\r", ch );
-        return;
+        send_to_char( "There isn't enough sunshine out for that!\n\r", ch );
+        return FALSE;
     }
+    
+    /* the better the weather, and the brighter the day more powerful */
+    dam = get_sn_damage( sn, level, ch ) / (2 + weather_info.sky + (weather_info.sunlight == SUN_LIGHT ? 0 : 1));
+    
+    // some fire damage ...
+    act( "You call upon the heat of the sun to sear $N's flesh!", ch, NULL, victim, TO_CHAR);
+    act( "$n calls upon the heat of the sun to sear your flesh!", ch, NULL, victim, TO_VICT);
+    act( "$n calls upon the heat of the sun to sear $N's flesh!", ch, NULL, victim, TO_NOTVICT);
+    
+    if ( !saves_spell(level, victim, DAM_FIRE) )
+        full_dam(ch, victim, dam, sn, DAM_FIRE, TRUE);
+    else
+        full_dam(ch, victim, dam/2, sn, DAM_FIRE, TRUE);
 
-    if ( saves_spell( level, victim, DAM_FIRE) )
+    CHECK_RETURN(ch, victim);
+
+    // ... and some light damage & blindness
+    act( "You call upon the light of the sun to blind $N!", ch, NULL, victim, TO_CHAR);
+    act( "$n calls upon the light of the sun to blind you!", ch, NULL, victim, TO_VICT);
+    act( "$n calls upon the light of the sun to blind $N!", ch, NULL, victim, TO_NOTVICT);
+    
+    if ( !saves_spell(level, victim, DAM_LIGHT) )
     {
-        act( "$n calls upon the heat of the sun to sear your flesh!",ch,NULL,
-            victim,TO_VICT);
-        act( "You call upon the heat of the sun to sear $N's flesh!", ch,NULL,victim,TO_CHAR);
-
-    dam = get_sn_damage( sn, level, ch );
-        dam /= 4;
-
-    full_dam( ch, victim, dam, sn, DAM_FIRE ,TRUE);
+        full_dam(ch, victim, dam, sn, DAM_LIGHT, TRUE);
+        CHECK_RETURN(ch, victim);
+        // chance to blind
+        spell_blindness( gsn_blindness, level / 2, ch, (void *)victim, TARGET_CHAR );
     }
-
-
-    if ( saves_spell( level, victim, DAM_LIGHT) )
-    {
-        act( "$n calls upon the light of the sun to blind you!",ch,NULL,
-            victim,TO_VICT);
-        act( "You call upon the light of the sun to blind $N!", ch,NULL,victim,TO_CHAR);
-
-    dam = get_sn_damage( sn, level, ch );
-        dam /= 4;
-
-    full_dam( ch, victim, dam, sn, DAM_LIGHT ,TRUE);
-      spell_blindness( gsn_blindness, level/3, ch,(void *) victim,TARGET_CHAR );
-    }
+    else
+        full_dam(ch, victim, dam/2, sn, DAM_LIGHT, TRUE);
 
     return;
 }
-
-
 
 
 /* Overcharge. Added by Astark. SirLance's Idea */
