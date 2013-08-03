@@ -158,7 +158,6 @@ void  death_penalty  args( ( CHAR_DATA *ch ) );
 bool  check_mercy args( ( CHAR_DATA *ch ) );
 void  check_reset_stance args( ( CHAR_DATA *ch) );
 void  stance_hit    args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
-bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
 bool is_normal_hit( int dt );
 bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
 bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
@@ -298,12 +297,6 @@ void run_combat_action( DESCRIPTOR_DATA *d )
     if ( IS_AFFECTED(ch, AFF_CHARM) )
 	return;
 
-    /*
-    if ( !run_olc_editor( d ) )
-	substitute_alias( d, command );
-    else
-	nanny( d, command );
-    */
     anti_spam_interpret( d->character, command );
 
     /* prevent spam from lag-less actions */
@@ -313,58 +306,41 @@ void run_combat_action( DESCRIPTOR_DATA *d )
 
 bool wants_to_rescue( CHAR_DATA *ch )
 {
-  return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE))
-      || PLR_ACT(ch, PLR_AUTORESCUE);
+    if ( ch->position < POS_FIGHTING || ch->hit < ch->wimpy || IS_AFFECTED(ch, AFF_FEAR) )
+        return FALSE;
+    return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
 
 /* check if character rescues someone */
 void check_rescue( CHAR_DATA *ch )
 {
-  CHAR_DATA *other, *target;
-  char buf[MSL];
+    CHAR_DATA *attacker, *target = NULL;
+    char buf[MSL];
 
-  if ( !wants_to_rescue(ch) )
-    return;
+    if ( !wants_to_rescue(ch) )
+        return;
 
-  /* get target */
-  if ( !IS_NPC(ch) || ch->leader != NULL )
-  {
-      bool need_rescue = FALSE;
+    // get target
+    for ( attacker = ch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
+    {
+        // may not be able to interfere
+        if ( is_safe_spell(ch, attacker, FALSE) )
+            continue;
 
-      target = ch->leader;
-      if ( target == NULL )
-	  return;
+        // may not want to rescue
+        target = attacker->fighting;
+        if ( target == NULL || target == ch || IS_NPC(target) || !is_same_group(ch, target) || !can_see(ch, target) )
+            continue;
 
-      /* check if anyone fights the target */
-      for ( other=ch->in_room->people; other != NULL; other=other->next_in_room )
-	  if ( other->fighting == target && !is_safe_spell(ch, other, FALSE))
-	  {
-	      need_rescue = TRUE;
-	      break;
-	  }
-      if (!need_rescue)
-	  return;
-  }
-  else
-  {
-      target = NULL;
-      for ( other=ch->in_room->people; other != NULL; other=other->next_in_room )
-	  if ( !is_same_group(ch, other)
-	       && other->fighting != NULL
-	       && other->fighting != ch
-	       && is_same_group(ch, other->fighting)
-	       && can_see(ch, other->fighting) )
-	  {
-	      target = other->fighting;
-	      break;
-	  }
-  }
+        // may not want to be rescued
+        if ( wants_to_rescue(target) )
+            continue;
+        
+        break;
+    }
 
-  if (target == NULL || target == ch)
-    return;
-
-  if (ch->position <= POS_SLEEPING || !can_see(ch, target))
-    return;
+    if ( attacker == NULL )
+        return;
 
   /* lag-free rescue */
   if (number_percent() < get_skill(ch, gsn_bodyguard))
@@ -1228,6 +1204,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1881,49 +1859,19 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill )
 {
     int ch_roll, victim_roll;
-    int defense_factor, victim_ac;
+    int victim_ac;
     int ac_dam_type;
     OBJ_DATA *wield;
 
     if ( ch == victim )
 	return TRUE;
 
-    /* special skill adjustment */
-    if ( dt == gsn_aim
-	 || dt == gsn_backstab
-	 || dt == gsn_back_leap
-	 || dt == gsn_circle
-	 || dt == gsn_slash_throat
-         || dt == gsn_rupture
-	 || dt == gsn_snipe )
-    {
-	//if ( chance(get_skill(ch, dt)) )
-	return TRUE;
-    }
-    
     if ( IS_AFFECTED(ch, AFF_CURSE) && per_chance(5) )
 	return FALSE;
-
-    if ( dt == gsn_fullauto
-	 || dt == gsn_semiauto
-	 || dt == gsn_burst )
-    {
-	int skill = get_skill(ch, dt);
-	if ( !chance(50 + skill/4) )
-	    return FALSE;
-    }
-
     
     /* size */
-    if ( number_percent() <= 3 * (SIZE_GIANT - victim->size) )
+    if ( number_percent() <= 3 * (ch->size - victim->size) )
 	return FALSE;
-
-    if ( number_percent() <= get_skill(ch, gsn_giantfeller)
-	 && number_percent() <= 3 * (victim->size - ch->size) )
-    {
-	check_improve(ch, gsn_giantfeller, TRUE, 6); 
-	return TRUE;
-    }
 
     /* automatic chance-to-hit */
     if ( number_bits(3) == 0 )
@@ -1943,29 +1891,37 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
     }
 
-    /* basic defense skill */
-    if ( IS_NPC(victim) )
-    {
-	defense_factor = 100;
-        if (IS_SET(victim->act, ACT_WARRIOR))
-            defense_factor += 20;
-        if (IS_SET(victim->act, ACT_MAGE))
-            defense_factor -= 20;
-    }
-    else
-    {
-        defense_factor = class_table[victim->class].defense_factor;
-    }
-
     /* basic values */
     ch_roll = GET_HITROLL(ch);
     victim_roll = 10 - victim_ac;
+
+    /* special skill adjustment */
+    if ( (dt < TYPE_HIT && IS_SPELL(dt))
+        || dt == gsn_aim
+        || dt == gsn_backstab
+        || dt == gsn_back_leap
+        || dt == gsn_circle
+        || dt == gsn_slash_throat
+        || dt == gsn_rupture
+        || dt == gsn_snipe )
+    {
+        victim_roll /= 2;
+    }    
+    else if ( dt == gsn_fullauto
+        || dt == gsn_semiauto
+        || dt == gsn_burst )
+    {
+        ch_roll /= 2;
+    }    
     
+    if ( victim->size > ch->size )
+    {
+        // +5% to attack roll per size difference
+        ch_roll += ch_roll * (victim->size - ch->size) * get_skill(ch, gsn_giantfeller) / 2000;
+        check_improve(ch, gsn_giantfeller, TRUE, 6);
+    }
+
     /* skill-based chance-to-miss */
-    /*
-    if ( number_percent() > skill )
-	return FALSE;
-    */
     ch_roll = ch_roll * skill/100;
 
     /* blind attacks */
@@ -1981,18 +1937,28 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	 ch_roll *= 2;
 
     if ( ch_roll <= 0 )
-	return FALSE;
-    else if ( victim_roll <= 0 )
-	return TRUE;
-    else
-	return number_range(0, ch_roll) > number_range(0, victim_roll);
+        return FALSE;
+    if ( victim_roll <= 0 )
+        return TRUE;
+
+    int ch_rolled = number_range(0, ch_roll);
+    int victim_rolled = number_range(0, victim_roll);
+    bool is_hit = (ch_rolled > victim_rolled);
+
+#ifdef TESTER
+    if ( !IS_SET(ch->gag, GAG_MISS) )
+        printf_to_char( ch, "Attack Roll (%d) = %d vs %d = Defense Roll (%d) => %s\n\r",
+            ch_roll, ch_rolled, victim_rolled, victim_roll, is_hit ? "hit" : "miss" );
+#endif
+
+    return is_hit;
 }
 
 void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam )
 {
     int level;
 
-    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) && !is_ranged_weapon(wield) )
+    if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) || is_ranged_weapon(wield) )
         return;
 
     if ( is_affected(victim, gsn_immolation) )
@@ -4553,26 +4519,19 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         corpse->timer   = number_range( 25, 40 );
         
         REMOVE_BIT(victim->act, PLR_CANLOOT);
-	victim->stance = 0;
+        victim->stance = 0;
         
-        /* If dead player is not a pkiller, he will own his corpse.
-        Otherwise, the victor will own the corpse and may loot it. */
-        /*	  if (!IS_SET(victim->act, PLR_PERM_PKILL))
-        corpse->owner = str_dup(victim->name);
-        else
-        { If the player dies from a pkiller, they should be in clanwar*/
-
-
-        if (killer && !IS_NPC(killer))
-	{
+        if ( killer && !IS_NPC(killer) )
+        {
             corpse->owner = str_dup(killer->name);
-	    /* This is the only place where eqloot could be set to FALSE..... */
-	    /* And then, only if both players are not HC, or both are not RP. */
-	    eqloot = ( IS_SET(victim->act,PLR_HARDCORE) && IS_SET(killer->act,PLR_HARDCORE) )
-		     ||	( IS_SET(victim->act,PLR_RP) && IS_SET(killer->act,PLR_RP) );
-	}
+            eqloot = ( IS_SET(victim->act, PLR_HARDCORE) && IS_SET(killer->act, PLR_HARDCORE) )
+                || ( IS_SET(victim->act, PLR_RP) && IS_SET(killer->act, PLR_RP) );
+        }
         else
+        {
             corpse->owner = str_dup(victim->name);
+            eqloot = FALSE;
+        }
 
         if (victim->gold > 1 || victim->silver > 1)
         {
@@ -4580,7 +4539,6 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
             victim->gold -= victim->gold/2;
             victim->silver -= victim->silver/2;
         }
-        /*}*/
         
         corpse->cost = 0;
     }
@@ -4605,8 +4563,6 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
 
     for ( obj = victim->carrying; obj != NULL; obj = obj_next )
     {
-        bool floating = FALSE;
-
         obj_next = obj->next_content;
         
         if (IS_SET(obj->extra_flags, ITEM_STICKY))
@@ -4625,8 +4581,6 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
                 continue;
         }
         
-        if ( obj->wear_loc == WEAR_FLOAT )
-            floating = TRUE;
         if (obj->item_type == ITEM_POTION)
             obj->timer = number_range(500,1000);
         if (obj->item_type == ITEM_SCROLL)
@@ -4667,35 +4621,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         obj_from_char( obj );
 
         if ( IS_SET( obj->extra_flags, ITEM_INVENTORY ) )
-            extract_obj( obj );  
-        else if (floating)
-        {
-            if ( IS_OBJ_STAT(obj,ITEM_ROT_DEATH) ) /* get rid of it */
-            { 
-                if (obj->contains != NULL)
-                {
-                    OBJ_DATA *in, *in_next;
-                    
-                    act("$p evaporates,scattering its contents.",
-                        victim,obj,NULL,TO_ROOM);
-                    for (in = obj->contains; in != NULL; in = in_next)
-                    {
-                        in_next = in->next_content;
-                        obj_from_obj(in);
-                        obj_to_room(in,victim->in_room);
-                    }
-                }
-                else
-                    act("$p evaporates.",
-                    victim,obj,NULL,TO_ROOM);
-                extract_obj(obj);
-            }
-            else
-            {
-                act("$p falls to the floor.",victim,obj,NULL,TO_ROOM);
-                obj_to_room(obj,victim->in_room);
-             }
-        }
+            extract_obj( obj );
         else
         {
             obj_to_obj( obj, corpse );
@@ -6015,11 +5941,13 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
   CHAR_DATA *ch;
   int chance;
   int ass_skill = get_skill(attacker, gsn_assassination);
-   
+
+  if ( IS_NPC(victim) )
+      return victim;
+  
   for (ch = victim->in_room->people; ch != NULL; ch = ch->next_in_room)
   {
       if ( !wants_to_rescue(ch)
-	   || (ch->leader != NULL && ch->leader != victim)
 	   || !is_same_group(ch, victim)
 	   || ch == victim || ch == attacker )
 	  continue;
@@ -6144,13 +6072,50 @@ void do_die( CHAR_DATA *ch, char *argument )
     return;
 }
 
+// players may want to stop raging to preserve moves
+void do_calm( CHAR_DATA *ch, char *argument )
+{
+    if ( !IS_AFFECTED(ch, AFF_BERSERK) )
+    {
+        send_to_char("You are already calm.\n\r", ch);
+        return;
+    }
+
+    WAIT_STATE(ch, PULSE_VIOLENCE);
+    
+    // may not succeed while fighting
+    if ( ch->fighting != NULL )
+    {
+        int chance = 25 + get_curr_stat(ch, STAT_DIS) / 4;
+        chance += 25 * ch->hit / UMAX(1, ch->max_hit);
+        chance -= 25 * ch->move / UMAX(1, ch->max_move);
+        
+        if ( number_percent() > chance )
+        {
+            send_to_char("You fail to control your anger.\n\r", ch);
+            return;            
+        }
+    }
+    
+    affect_strip_flag(ch, AFF_BERSERK);
+    // safety-net just in case we fail - e.g. races with permanent berserk
+    if ( IS_AFFECTED(ch, AFF_BERSERK) )
+    {
+        send_to_char("Your rage seems uncontrollable.\n\r", ch);
+        return;
+    }
+    
+    send_to_char("You control your anger and calm down.\n\r", ch);
+    act("$n appears to calm down.", ch, NULL, NULL, TO_ROOM);
+    
+    return;
+}
+
 void do_murde( CHAR_DATA *ch, char *argument )
 {
     send_to_char( "If you want to MURDER, spell it out.\n\r", ch );
     return;
 }
-
-
 
 void do_murder( CHAR_DATA *ch, char *argument )
 {

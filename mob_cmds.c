@@ -1699,11 +1699,24 @@ void do_mpremort( CHAR_DATA *ch, char *argument )
     char arg[ MAX_INPUT_LENGTH ];
 
     argument = one_argument( argument, arg );
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-	return;
+    if ( (victim = get_char_room(ch, arg)) == NULL || IS_NPC(victim) )
+        return;
 
-    if (IS_NPC(victim)) return;
+    // usage should be logged
+    if ( IS_NPC(ch) )
+        logpf("do_mpremort(%d): remorting %s", ch->pIndexData->vnum, victim->name);
+    else
+        logpf("do_mpremort(%s): remorting %s", ch->name, victim->name);
+    
+#ifndef TESTER
+    if ( !is_in_remort(victim) )
+    {
+        bugf("do_mpremort(%d): %s is not in remort!", (ch->pIndexData ? ch->pIndexData->vnum : 0), victim->name);
+        return;
+    }
+#endif
 
+    victim->pcdata->remorts++;
     remort_begin(victim);
 }
 
