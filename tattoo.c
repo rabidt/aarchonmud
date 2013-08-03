@@ -228,37 +228,36 @@ int tattoo_id( char *name )
 
 /***************************** general *******************************/ 
 
-AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, int level, bool basic )
+AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, float level, bool basic )
 {
     static AFFECT_DATA taff;
-    int factor;
+    float factor;
 
     /* (mis)use detect-level to mark basic bonus :) */
     if ( aff->detect_level == -1 )
     {
-	if ( basic )
-	    return aff;
-	else
-	    factor = 0;
+        if ( basic )
+            return aff;
+        else
+            factor = 0;
     }
     else
     {
-	if ( basic )
-	    factor = 0;
-	else if ( level < 90 )
-	    factor = level;
-	else
-	    factor = 100 + 5 * (level - 90);
+        if ( basic )
+            factor = 0;
+        else if ( level < 90 )
+            factor = level + 10;
+        else
+            factor = 100 + 10 * (level - 90);
     }
     memcpy( &taff, aff, sizeof(AFFECT_DATA) );
     taff.next = NULL;
-    taff.modifier = aff->modifier * factor/100;
+    taff.modifier = (int)(aff->modifier * factor/100);
 
     return &taff;
 }
 
-void tattoo_modify_ID( CHAR_DATA *ch, int ID, int level,
-		       bool fAdd, bool drop, bool basic )
+void tattoo_modify_ID( CHAR_DATA *ch, int ID, float level, bool fAdd, bool drop, bool basic )
 {
     AFFECT_DATA *aff;
     OBJ_INDEX_DATA *obj;
@@ -276,21 +275,24 @@ void tattoo_modify_ID( CHAR_DATA *ch, int ID, int level,
 	affect_modify_new( ch, tattoo_affect(aff, level, basic), fAdd, drop );
 }
 
-void tattoo_modify_equip( CHAR_DATA *ch, int loc, bool fAdd, bool basic )
+void tattoo_modify_equip( CHAR_DATA *ch, int loc, bool fAdd, bool drop, bool basic )
 {
     int ID;
 
     if ( IS_NPC(ch) )
-	return;
+        return;
 
     if ( NO_LOC(loc) )
     {
-	bug( "tattoo_modify_equip: invalid location (%d)", loc );
-	return;
+        bug( "tattoo_modify_equip: invalid location (%d)", loc );
+        return;
     }
 
-    if ( (ID = TATTOO_ID(ch, loc)) != TATTOO_NONE )
-	tattoo_modify_ID( ch, ID, ch->level, fAdd, TRUE, basic );
+    if ( (ID = tattoo_bonus_ID(ch, loc)) != TATTOO_NONE )
+    {
+        float tattoo_level = get_tattoo_level( ch, loc, ch->level );
+        tattoo_modify_ID( ch, ID, tattoo_level, fAdd, drop, basic );
+    }
 }
 
 /* returns ID of tattoo of ch at loc provided it adds an affect */
@@ -299,13 +301,32 @@ int tattoo_bonus_ID( CHAR_DATA *ch, int loc )
     OBJ_DATA *obj;
 
     if ( IS_NPC(ch) )
-	return TATTOO_NONE;
+        return TATTOO_NONE;
 
-    if ( (obj = get_eq_char(ch, loc)) != NULL
-	 && !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-	return TATTOO_NONE;
+    if ( (obj = get_eq_char(ch, loc)) != NULL && !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+        return TATTOO_NONE;
 
     return TATTOO_ID(ch, loc);
+}
+
+float get_tattoo_level( CHAR_DATA *ch, int loc, int level )
+{
+    OBJ_DATA *obj;
+
+    if ( IS_NPC(ch) )
+        return 0;
+
+    // full level if no equipment worn over it
+    if ( (obj = get_eq_char(ch, loc)) == NULL )
+        return level;
+    
+    if ( !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+    {
+        bug( "get_tattoo_level: non-translucent object (%d)", loc );
+        return 0;
+    }
+    // average of level and object level for translucent equipment
+    return (level + obj->level) / 2.0;
 }
 
 void tattoo_modify_level( CHAR_DATA *ch, int old_level, int new_level )
@@ -313,16 +334,18 @@ void tattoo_modify_level( CHAR_DATA *ch, int old_level, int new_level )
     int loc, ID;
 
     if ( IS_NPC(ch) )
-	return;
+        return;
 
     for ( loc = 0; loc < MAX_WEAR; loc++ )
     {
-	ID = tattoo_bonus_ID( ch, loc );
-	if ( ID != TATTOO_NONE )
-	{
-	    tattoo_modify_ID( ch, ID, old_level, FALSE, FALSE, FALSE );
-	    tattoo_modify_ID( ch, ID, new_level, TRUE, FALSE, FALSE );
-	}
+        ID = tattoo_bonus_ID( ch, loc );        
+        if ( ID != TATTOO_NONE )
+        {
+            float old_tattoo_level = get_tattoo_level( ch, loc, old_level );
+            float new_tattoo_level = get_tattoo_level( ch, loc, new_level );
+            tattoo_modify_ID( ch, ID, old_tattoo_level, FALSE, FALSE, FALSE );
+            tattoo_modify_ID( ch, ID, new_tattoo_level, TRUE, FALSE, FALSE );
+        }
     }
 
     check_drop_weapon( ch );
@@ -333,19 +356,19 @@ void tattoo_modify_reset( CHAR_DATA *ch )
     int loc, ID;
 
     if ( IS_NPC(ch) )
-	return;
+        return;
 
     for ( loc = 0; loc < MAX_WEAR; loc++ )
     {
-	/* add basic bonus */
-	/* tattoo_modify_equip( ch, loc, TRUE, TRUE ); */
-	/* use this to prevent weapon drop check.. */
-	if ( (ID = TATTOO_ID(ch, loc)) != TATTOO_NONE )
-	    tattoo_modify_ID( ch, ID, ch->level, TRUE, FALSE, TRUE );
-
-	/* add additional bonus */
-	if ( (ID = tattoo_bonus_ID(ch, loc)) != TATTOO_NONE )
-	    tattoo_modify_ID( ch, ID, ch->level, TRUE, FALSE, FALSE );
+        // level-based bonus (only for translucent eq)
+        if ( (ID = tattoo_bonus_ID(ch, loc)) != TATTOO_NONE )
+        {
+            float tattoo_level = get_tattoo_level( ch, loc, ch->level );
+            tattoo_modify_ID( ch, ID, tattoo_level, TRUE, FALSE, FALSE );
+        }
+        // add additional bonus (regardless of eq and level)
+        if ( (ID = TATTOO_ID(ch, loc)) != TATTOO_NONE )
+            tattoo_modify_ID( ch, ID, ch->level, TRUE, FALSE, TRUE );
     }
 }
 
@@ -459,8 +482,8 @@ void do_tattoo( CHAR_DATA *ch, char *argument )
 
 	/* ok, let's add the tattoo */
 	add_tattoo( ch->pcdata->tattoos, loc, ID );
-	tattoo_modify_equip( ch, loc, TRUE, TRUE );
-	tattoo_modify_equip( ch, loc, TRUE, FALSE );
+	tattoo_modify_equip( ch, loc, TRUE, FALSE, TRUE );
+	tattoo_modify_equip( ch, loc, TRUE, FALSE, FALSE );
 	
 	logpf( "%s bought tattoo '%s' at %s for %d qp",
 	       ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc),cost );
@@ -489,8 +512,8 @@ void do_tattoo( CHAR_DATA *ch, char *argument )
 	}
 
 	/* ok, let's remove the tattoo */
-	tattoo_modify_equip( ch, loc, FALSE, TRUE );
-	tattoo_modify_equip( ch, loc, FALSE, FALSE );
+	tattoo_modify_equip( ch, loc, FALSE, TRUE, TRUE );
+	tattoo_modify_equip( ch, loc, FALSE, TRUE, FALSE );
 	remove_tattoo( ch->pcdata->tattoos, loc );
 	cost = tattoo_cost(ID) * 9/10;
 

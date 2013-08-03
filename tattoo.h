@@ -29,10 +29,11 @@ int tattoo_id( char *name );
 
 /***************************** general *******************************/ 
 
-void tattoo_modify_equip( CHAR_DATA *ch, int loc, bool fAdd, bool basic );
+void tattoo_modify_equip( CHAR_DATA *ch, int loc, bool fAdd, bool drop, bool basic );
 void tattoo_modify_level( CHAR_DATA *ch, int old_level, int new_level );
 void tattoo_modify_reset( CHAR_DATA *ch );
 int get_tattoo_ch( CHAR_DATA *ch, int loc );
+float get_tattoo_level( CHAR_DATA *ch, int loc, int level );
 
 /***************************** do_functions **************************/
 
