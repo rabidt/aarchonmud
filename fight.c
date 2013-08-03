@@ -4534,26 +4534,19 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         corpse->timer   = number_range( 25, 40 );
         
         REMOVE_BIT(victim->act, PLR_CANLOOT);
-	victim->stance = 0;
+        victim->stance = 0;
         
-        /* If dead player is not a pkiller, he will own his corpse.
-        Otherwise, the victor will own the corpse and may loot it. */
-        /*	  if (!IS_SET(victim->act, PLR_PERM_PKILL))
-        corpse->owner = str_dup(victim->name);
-        else
-        { If the player dies from a pkiller, they should be in clanwar*/
-
-
-        if (killer && !IS_NPC(killer))
-	{
+        if ( killer && !IS_NPC(killer) )
+        {
             corpse->owner = str_dup(killer->name);
-	    /* This is the only place where eqloot could be set to FALSE..... */
-	    /* And then, only if both players are not HC, or both are not RP. */
-	    eqloot = ( IS_SET(victim->act,PLR_HARDCORE) && IS_SET(killer->act,PLR_HARDCORE) )
-		     ||	( IS_SET(victim->act,PLR_RP) && IS_SET(killer->act,PLR_RP) );
-	}
+            eqloot = ( IS_SET(victim->act, PLR_HARDCORE) && IS_SET(killer->act, PLR_HARDCORE) )
+                || ( IS_SET(victim->act, PLR_RP) && IS_SET(killer->act, PLR_RP) );
+        }
         else
+        {
             corpse->owner = str_dup(victim->name);
+            eqloot = FALSE;
+        }
 
         if (victim->gold > 1 || victim->silver > 1)
         {
@@ -4561,7 +4554,6 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
             victim->gold -= victim->gold/2;
             victim->silver -= victim->silver/2;
         }
-        /*}*/
         
         corpse->cost = 0;
     }
@@ -4586,8 +4578,6 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
 
     for ( obj = victim->carrying; obj != NULL; obj = obj_next )
     {
-        bool floating = FALSE;
-
         obj_next = obj->next_content;
         
         if (IS_SET(obj->extra_flags, ITEM_STICKY))
@@ -4606,8 +4596,6 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
                 continue;
         }
         
-        if ( obj->wear_loc == WEAR_FLOAT )
-            floating = TRUE;
         if (obj->item_type == ITEM_POTION)
             obj->timer = number_range(500,1000);
         if (obj->item_type == ITEM_SCROLL)
@@ -4648,35 +4636,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         obj_from_char( obj );
 
         if ( IS_SET( obj->extra_flags, ITEM_INVENTORY ) )
-            extract_obj( obj );  
-        else if (floating)
-        {
-            if ( IS_OBJ_STAT(obj,ITEM_ROT_DEATH) ) /* get rid of it */
-            { 
-                if (obj->contains != NULL)
-                {
-                    OBJ_DATA *in, *in_next;
-                    
-                    act("$p evaporates,scattering its contents.",
-                        victim,obj,NULL,TO_ROOM);
-                    for (in = obj->contains; in != NULL; in = in_next)
-                    {
-                        in_next = in->next_content;
-                        obj_from_obj(in);
-                        obj_to_room(in,victim->in_room);
-                    }
-                }
-                else
-                    act("$p evaporates.",
-                    victim,obj,NULL,TO_ROOM);
-                extract_obj(obj);
-            }
-            else
-            {
-                act("$p falls to the floor.",victim,obj,NULL,TO_ROOM);
-                obj_to_room(obj,victim->in_room);
-             }
-        }
+            extract_obj( obj );
         else
         {
             obj_to_obj( obj, corpse );
