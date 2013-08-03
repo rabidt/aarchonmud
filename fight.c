@@ -306,58 +306,41 @@ void run_combat_action( DESCRIPTOR_DATA *d )
 
 bool wants_to_rescue( CHAR_DATA *ch )
 {
-  return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE))
-      || PLR_ACT(ch, PLR_AUTORESCUE);
+    if ( ch->position < POS_FIGHTING || ch->hit < ch->wimpy || IS_AFFECTED(ch, AFF_FEAR) )
+        return FALSE;
+    return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
 
 /* check if character rescues someone */
 void check_rescue( CHAR_DATA *ch )
 {
-  CHAR_DATA *other, *target;
-  char buf[MSL];
+    CHAR_DATA *attacker, *target = NULL;
+    char buf[MSL];
 
-  if ( !wants_to_rescue(ch) )
-    return;
+    if ( !wants_to_rescue(ch) )
+        return;
 
-  /* get target */
-  if ( !IS_NPC(ch) || ch->leader != NULL )
-  {
-      bool need_rescue = FALSE;
+    // get target
+    for ( attacker = ch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
+    {
+        // may not be able to interfere
+        if ( is_safe_spell(ch, attacker, FALSE) )
+            continue;
 
-      target = ch->leader;
-      if ( target == NULL )
-	  return;
+        // may not want to rescue
+        target = attacker->fighting;
+        if ( target == NULL || target == ch || IS_NPC(target) || !is_same_group(ch, target) || !can_see(ch, target) )
+            continue;
 
-      /* check if anyone fights the target */
-      for ( other=ch->in_room->people; other != NULL; other=other->next_in_room )
-	  if ( other->fighting == target && !is_safe_spell(ch, other, FALSE))
-	  {
-	      need_rescue = TRUE;
-	      break;
-	  }
-      if (!need_rescue)
-	  return;
-  }
-  else
-  {
-      target = NULL;
-      for ( other=ch->in_room->people; other != NULL; other=other->next_in_room )
-	  if ( !is_same_group(ch, other)
-	       && other->fighting != NULL
-	       && other->fighting != ch
-	       && is_same_group(ch, other->fighting)
-	       && can_see(ch, other->fighting) )
-	  {
-	      target = other->fighting;
-	      break;
-	  }
-  }
+        // may not want to be rescued
+        if ( wants_to_rescue(target) )
+            continue;
+        
+        break;
+    }
 
-  if (target == NULL || target == ch)
-    return;
-
-  if (ch->position <= POS_SLEEPING || !can_see(ch, target))
-    return;
+    if ( attacker == NULL )
+        return;
 
   /* lag-free rescue */
   if (number_percent() < get_skill(ch, gsn_bodyguard))
@@ -1221,6 +1204,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -5956,11 +5941,13 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
   CHAR_DATA *ch;
   int chance;
   int ass_skill = get_skill(attacker, gsn_assassination);
-   
+
+  if ( IS_NPC(victim) )
+      return victim;
+  
   for (ch = victim->in_room->people; ch != NULL; ch = ch->next_in_room)
   {
       if ( !wants_to_rescue(ch)
-	   || (ch->leader != NULL && ch->leader != victim)
 	   || !is_same_group(ch, victim)
 	   || ch == victim || ch == attacker )
 	  continue;
@@ -6085,13 +6072,50 @@ void do_die( CHAR_DATA *ch, char *argument )
     return;
 }
 
+// players may want to stop raging to preserve moves
+void do_calm( CHAR_DATA *ch, char *argument )
+{
+    if ( !IS_AFFECTED(ch, AFF_BERSERK) )
+    {
+        send_to_char("You are already calm.\n\r", ch);
+        return;
+    }
+
+    WAIT_STATE(ch, PULSE_VIOLENCE);
+    
+    // may not succeed while fighting
+    if ( ch->fighting != NULL )
+    {
+        int chance = 25 + get_curr_stat(ch, STAT_DIS) / 4;
+        chance += 25 * ch->hit / UMAX(1, ch->max_hit);
+        chance -= 25 * ch->move / UMAX(1, ch->max_move);
+        
+        if ( number_percent() > chance )
+        {
+            send_to_char("You fail to control your anger.\n\r", ch);
+            return;            
+        }
+    }
+    
+    affect_strip_flag(ch, AFF_BERSERK);
+    // safety-net just in case we fail - e.g. races with permanent berserk
+    if ( IS_AFFECTED(ch, AFF_BERSERK) )
+    {
+        send_to_char("Your rage seems uncontrollable.\n\r", ch);
+        return;
+    }
+    
+    send_to_char("You control your anger and calm down.\n\r", ch);
+    act("$n appears to calm down.", ch, NULL, NULL, TO_ROOM);
+    
+    return;
+}
+
 void do_murde( CHAR_DATA *ch, char *argument )
 {
     send_to_char( "If you want to MURDER, spell it out.\n\r", ch );
     return;
 }
-
-
 
 void do_murder( CHAR_DATA *ch, char *argument )
 {
