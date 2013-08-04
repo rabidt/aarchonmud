@@ -747,6 +747,8 @@ void boot_db()
         fix_mobprogs( );
         log_string("Fixing objprogs");
         fix_objprogs( );
+        log_string("Fixing areaprogs");
+        fix_areaprogs( );
 
         
         fBootDb = FALSE;
@@ -2400,6 +2402,37 @@ void fix_objprogs( void )
             }
         }
     }
+    //debug
+    //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
+}
+
+void fix_areaprogs( void )
+{
+    AREA_DATA *pArea;
+    APROG_LIST        *list;
+    APROG_CODE        *prog;
+    int iHash;
+    int aprog_count = 0;
+
+    for ( pArea   = area_first;
+        pArea   != NULL;
+        pArea   = pArea->next )
+    {
+        for( list = pArea->aprogs; list != NULL; list = list->next )
+        {
+            if ( ( prog = get_aprog_index( list->vnum ) ) != NULL )
+            {
+                aprog_count++;
+                list->code = prog->code;
+            }
+            else
+            {
+                bug( "Fix_areaprogs: code vnum %d not found.", list->vnum );
+                exit( 1 );
+            }
+        }
+    }
+    
     //debug
     //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
