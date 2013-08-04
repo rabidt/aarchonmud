@@ -473,13 +473,19 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    * If someone is following the char, these triggers get activated
    * for the followers before the char, but it's safer this way...
    */
+   if ( !IS_NPC( ch ) )
+   {
+       ap_renter_trigger( ch );
+ 
+       op_greet_trigger( ch );
+
+   }
+
    if ( IS_NPC( ch ) && HAS_TRIGGER( ch, TRIG_ENTRY ) )
        mp_percent_trigger( ch, NULL, NULL, 0, NULL, 0, TRIG_ENTRY );
    if ( !IS_NPC( ch ) )
        mp_greet_trigger( ch );
 
-   if ( !IS_NPC( ch ) )
-       op_greet_trigger( ch );
 
    /* mprog might have moved the char */
    if ( ch->in_room != to_room )

@@ -58,6 +58,9 @@ bool run_olc_editor( DESCRIPTOR_DATA *d )
    case ED_OPCODE:
       opedit( d->character, d->incomm );
       break;
+   case ED_APCODE:
+      apedit( d->character, d->incomm );
+	  break;
    case ED_HELP:
       hedit( d->character, d->incomm );
       break;
@@ -203,6 +206,9 @@ bool show_commands( CHAR_DATA *ch, char *argument )
    case ED_OPCODE:
       show_olc_cmds( ch, opedit_table );
       break;
+   case ED_APCODE:
+	  show_olc_cmds( ch, apedit_table );
+	  break;
    case ED_HELP:
       show_olc_cmds( ch, hedit_table );
       break;
@@ -244,6 +250,8 @@ const struct olc_cmd_type aedit_table[] =
    {   "minlevel", aedit_minlevel     },
    {   "maxlevel", aedit_maxlevel     },
    {   "miniquests", aedit_miniquests },
+   {   "addaprog", aedit_addaprog     },
+   {   "delaprog", aedit_delaprog     },
    {   "?",        show_help          },
    {   "version",  show_version       },
    
