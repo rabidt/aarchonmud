@@ -407,6 +407,62 @@ void do_mpstat( CHAR_DATA *ch, char *argument )
 }
 
 /*
+ * Displays the source code of a given OBJprogram
+ *
+ * Syntax: apdump [vnum]
+ */
+void do_apdump( CHAR_DATA *ch, char *argument )
+{
+   char buf[ MAX_INPUT_LENGTH ];
+   APROG_CODE *aprg;
+   AREA_DATA *area;
+
+   one_argument( argument, buf );
+   if ( ( aprg = get_aprog_index( atoi(buf) ) ) == NULL )
+   {
+    send_to_char( "No such AREAprogram.\n\r", ch );
+    return;
+   }
+
+   area = get_vnum_area( aprg->vnum );
+   if ( area == NULL || !IS_BUILDER(ch, area) )
+   {
+       send_to_char( "You're not a builder for this aprog's area.\n\r", ch);
+       return;
+   }
+
+   page_to_char_new( aprg->code, ch, TRUE );
+}
+
+/*
+ * Displays the source code of a given OBJprogram
+ *
+ * Syntax: opdump [vnum]
+ */
+void do_opdump( CHAR_DATA *ch, char *argument )
+{
+   char buf[ MAX_INPUT_LENGTH ];
+   OPROG_CODE *oprg;
+   AREA_DATA *area;
+
+   one_argument( argument, buf );
+   if ( ( oprg = get_oprog_index( atoi(buf) ) ) == NULL )
+   {
+    send_to_char( "No such OBJprogram.\n\r", ch );
+    return;
+   }
+
+   area = get_vnum_area( oprg->vnum );
+   if ( area == NULL || !IS_BUILDER(ch, area) )
+   {
+       send_to_char( "You're not a builder for this oprog's area.\n\r", ch);
+       return;
+   }
+
+   page_to_char_new( oprg->code, ch, TRUE );
+}
+
+/*
  * Displays the source code of a given MOBprogram
  *
  * Syntax: mpdump [vnum]
@@ -1673,19 +1729,22 @@ void do_mpremove( CHAR_DATA *ch, char *argument )
 
     for ( obj = victim->carrying; obj; obj = obj_next )
     {
-	obj_next = obj->next_content;
-	if ( fAll || obj->pIndexData->vnum == vnum )
-	{
-	     obj_from_char( obj );
-	     if ( !strcmp(arg2, "inv") || !strcmp(arg2, "inventory"))
-		 obj_to_char( obj, victim );
-	     else if ( !strcmp(arg2, "get") )
-		 obj_to_char( obj, ch );
-	     else if ( !strcmp(arg2, "room") )
-		 obj_to_room( obj, ch->in_room );
-	     else
-		 extract_obj( obj );
-	}
+        obj_next = obj->next_content;
+        if ( fAll || obj->pIndexData->vnum == vnum )
+        {
+            obj_from_char( obj );
+            if ( !strcmp(arg2, "inv") || !strcmp(arg2, "inventory"))
+                obj_to_char( obj, victim );
+            else if ( !strcmp(arg2, "get") )
+                obj_to_char( obj, ch );
+            else if ( !strcmp(arg2, "room") )
+                obj_to_room( obj, ch->in_room );
+            else
+                extract_obj( obj );
+            // when removing specific object, only remove first
+            if (!fAll)
+                break;
+        }
     }
 }
 
@@ -1696,11 +1755,24 @@ void do_mpremort( CHAR_DATA *ch, char *argument )
     char arg[ MAX_INPUT_LENGTH ];
 
     argument = one_argument( argument, arg );
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-	return;
+    if ( (victim = get_char_room(ch, arg)) == NULL || IS_NPC(victim) )
+        return;
 
-    if (IS_NPC(victim)) return;
+    // usage should be logged
+    if ( IS_NPC(ch) )
+        logpf("do_mpremort(%d): remorting %s", ch->pIndexData->vnum, victim->name);
+    else
+        logpf("do_mpremort(%s): remorting %s", ch->name, victim->name);
+    
+#ifndef TESTER
+    if ( !is_in_remort(victim) )
+    {
+        bugf("do_mpremort(%d): %s is not in remort!", (ch->pIndexData ? ch->pIndexData->vnum : 0), victim->name);
+        return;
+    }
+#endif
 
+    victim->pcdata->remorts++;
     remort_begin(victim);
 }
 
