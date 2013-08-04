@@ -265,6 +265,22 @@ EXIT_DATA *check_exit( lua_State *LS, int arg)
     return exit;
 }
 
+AREA_DATA *check_AREA( lua_State *LS, int arg)
+{
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
+    if ( type != UDTYPE_AREA )
+    {
+        luaL_error(LS, "Bad parameter %d. Expected AREA.", arg );
+        return NULL;
+    }
+
+    lua_getfield(LS, arg, "tableid");
+    AREA_DATA *exit=(EXIT_DATA *)luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return exit;
+}
 
 static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
 {
@@ -305,7 +321,7 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
         case UDTYPE_EXIT:
             meta=EXIT_META; luaL_register(LS,NULL,EXIT_lib); break;
 		case UDTYPE_AREA:
-			meta=AREA_META; luaL_register(LS,NULL,EXIT_lib); break;
+			meta=AREA_META; luaL_register(LS,NULL,AREA_lib); break;
         case UDTYPE_OBJPROTO:
             meta=OBJPROTO_META; luaL_register(LS,NULL, OBJPROTO_lib); break;
         default:
@@ -1498,6 +1514,7 @@ static int L_area_echo( lua_State *LS)
 		}
     }
 	
+    return 0;
 }
 
 static const struct luaL_reg mudlib [] = 
@@ -1822,7 +1839,7 @@ static int get_OBJ_field ( lua_State *LS )
 
 static int check_AREA_equal( lua_State *LS)
 {
-    lua_pushboolean( LS, check_area(LS, 1) == check_area(LS, 2) );
+    lua_pushboolean( LS, check_AREA(LS, 1) == check_AREA(LS, 2) );
     return 1;
 }
 
@@ -2247,6 +2264,8 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, NULL, EXIT_metatable);
     luaL_newmetatable(LS, OBJPROTO_META);
     luaL_register (LS, NULL, OBJPROTO_metatable);
+    luaL_newmetatable(LS, AREA_META);
+    luaL_register (LS, NULL, AREA_metatable);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
