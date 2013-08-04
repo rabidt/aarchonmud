@@ -1002,6 +1002,7 @@ void remort_complete(CHAR_DATA *ch)
     
     ch->desc->connected = CON_PLAYING;
     char_to_room( ch, get_room_index( ROOM_VNUM_SCHOOL ) );
+    die_follower(ch);
     send_to_char("\n\r",ch);
     
     sprintf(buf, "After much struggle, %s has made it to level 1!", ch->name);
