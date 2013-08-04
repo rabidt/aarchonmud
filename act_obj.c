@@ -2309,7 +2309,9 @@ void do_remove( CHAR_DATA *ch, char *argument )
         for ( obj = ch->carrying; obj != NULL; obj = obj_next )
         {
             obj_next = obj->next_content;
-            if(obj->wear_loc != WEAR_NONE) remove_obj(ch,obj->wear_loc, TRUE);
+            if(obj->wear_loc != WEAR_NONE) 
+                if (op_percent_trigger(obj, NULL, ch, NULL, OTRIG_REMOVE) )
+                    remove_obj(ch,obj->wear_loc, TRUE);
         }
         return;
     }
@@ -2320,7 +2322,8 @@ void do_remove( CHAR_DATA *ch, char *argument )
             send_to_char( "You do not have that item.\n\r", ch );
             return;
         }
-        remove_obj( ch, obj->wear_loc, TRUE );
+        if (op_percent_trigger( obj, NULL, ch, NULL, OTRIG_REMOVE) )
+            remove_obj( ch, obj->wear_loc, TRUE );
         return;
     }
 }
