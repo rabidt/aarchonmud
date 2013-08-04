@@ -1127,8 +1127,17 @@ void do_give( CHAR_DATA *ch, char *argument )
     /*
      * Give trigger
      */
+    bool give_trigger_activated = FALSE;
     if ( IS_NPC(victim) && HAS_TRIGGER( victim, TRIG_GIVE ) )
-        mp_give_trigger( victim, ch, obj );
+        give_trigger_activated = mp_give_trigger( victim, ch, obj );
+    // NPCs typically don't want items, so we drop them to prevent lots of possible screw-ups
+    // where players give the wrong items to the wrong NPCs
+    if ( !give_trigger_activated && !is_mprog_running() && IS_NPC(victim) && !IS_AFFECTED(victim, AFF_CHARM) )
+    {
+        act( "$n shrugs and drops $p.", victim, obj, NULL, TO_ROOM );
+        obj_from_char( obj );
+        obj_to_room( obj, victim->in_room );
+    }
 
     /* imms giving stuff to alts.. */
     /* if ( IS_IMMORTAL(ch) && !IS_NPC(victim) && is_same_player(ch, victim) ) */
@@ -1212,7 +1221,7 @@ void do_envenom(CHAR_DATA *ch, char *argument)
     if (obj->item_type == ITEM_WEAPON)
     {
 
-        if (obj->value[0] == WEAPON_GUN || obj->value[0] == WEAPON_BOW)
+        if ( is_ranged_weapon(obj) )
         {
             send_to_char("You can only envenom melee weapons.\n\r",ch);
             return;
@@ -2300,7 +2309,9 @@ void do_remove( CHAR_DATA *ch, char *argument )
         for ( obj = ch->carrying; obj != NULL; obj = obj_next )
         {
             obj_next = obj->next_content;
-            if(obj->wear_loc != WEAR_NONE) remove_obj(ch,obj->wear_loc, TRUE);
+            if(obj->wear_loc != WEAR_NONE) 
+                if (op_percent_trigger(obj, NULL, ch, NULL, OTRIG_REMOVE) )
+                    remove_obj(ch,obj->wear_loc, TRUE);
         }
         return;
     }
@@ -2311,7 +2322,8 @@ void do_remove( CHAR_DATA *ch, char *argument )
             send_to_char( "You do not have that item.\n\r", ch );
             return;
         }
-        remove_obj( ch, obj->wear_loc, TRUE );
+        if (op_percent_trigger( obj, NULL, ch, NULL, OTRIG_REMOVE) )
+            remove_obj( ch, obj->wear_loc, TRUE );
         return;
     }
 }
