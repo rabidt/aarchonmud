@@ -549,6 +549,8 @@ const struct flag_type aprog_flags[] =
 	{   "boot",			ATRIG_BOOT,		 TRUE	 },
 	{   "shutdown",	    ATRIG_SHUTDOWN,  TRUE    },
 	{   "quit",			ATRIG_QUIT,		 TRUE    },
+    {   "void",         ATRIG_VOID,      TRUE    },
+    {   "unvoid",       ATRIG_UNVOID,    TRUE    },
     {   NULL,           0,          TRUE    }
 };
 

@@ -21,6 +21,8 @@ function GetAreaFname()
       full= current_env.mob.areafname
     elseif current_env.obj then
       full=current_env.obj.areafname
+    elseif current_env.area then
+      full=current_env.area.filename
     else
       error("Couldn't retrieve area filename.")
     end
