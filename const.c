@@ -3871,7 +3871,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  3,  3,  4,  3,  3,  3,  3,  3,  3,  3,  4,  4,  3,  3, 3 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_refresh,      TAR_CHAR_DEFENSIVE, POS_STANDING,
+	spell_refresh,      TAR_CHAR_DEFENSIVE, POS_FIGHTING,
 	NULL,           SLOT(81),    15,   8,
 	"refresh",      "!Refresh!",        "", NULL
 	},

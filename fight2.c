@@ -4306,8 +4306,8 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
         if ( !IS_AFFECTED(victim, AFF_ROOTS) && number_percent() < chance_stun )
         {
             act("$n smashes you in the side of the head, stunning you!",ch,NULL,victim,TO_VICT);
-            act("You smash the side $N's head, stunning $S!",ch,NULL,victim,TO_CHAR);
-            act("$n smashes $N in the side of the head, stunning $S!",ch,NULL,victim,TO_NOTVICT);
+            act("You smash $N in the side of $S head, stunning $M!",ch,NULL,victim,TO_CHAR);
+            act("$n smashes $N in the side of $S head, stunning $M!",ch,NULL,victim,TO_NOTVICT);
             DAZE_STATE(victim, 2*PULSE_VIOLENCE + ch->size - victim->size );
         }
 
