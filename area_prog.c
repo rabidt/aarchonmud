@@ -94,114 +94,78 @@ bool ap_enter_trigger(CHAR_DATA *ch, AREA_DATA *from_area)
 	return ap_percent_trigger( ch->in_room->area, ch, ATRIG_ENTER);
 }
 
+void ap_boot_trigger()
+{
 
-// bool op_act_trigger(
-        // OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
-// {
-    // OPROG_LIST *prg;
+	AREA_DATA *area;
+	
+	for ( area=area_first ; area; area=area->next)
+	{
+		if ( !HAS_ATRIG( area, ATRIG_BOOT) )
+			continue;
+		ap_percent_trigger( area, NULL, ATRIG_BOOT);
+	}
+	
+	return;
+}
 
-    // for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
-    // {
-        // if ( prg->trig_type == type
-                // /* should be case-insensitive --Bobble
-                   // && strstr( argument, prg->trig_phrase ) != NULL )
-                 // */
-            // && ( strstr(cap_all(trigger), cap_all(prg->trig_phrase)) != NULL
-                    // ||   !strcmp(prg->trig_phrase, "*") ) )
-                    // {
-                        // return lua_obj_program( trigger, prg->vnum, prg->code, obj, NULL, ch1, NULL);
-                    // }
-    // }
-    // return TRUE;
-// }
+void ap_shutdown_trigger()
+{
+	AREA_DATA *area;
+	
+	for ( area=area_first ; area ; area=area->next)
+	{
+		if ( !HAS_ATRIG( area, ATRIG_SHUTDOWN) )
+			continue;
+		ap_percent_trigger( area, NULL, ATRIG_SHUTDOWN);
+	}
+	
+	return;
+}
 
-// bool op_try_trigger( char* argument, CHAR_DATA *ch )
-// {
-    // OBJ_DATA *obj;
-    // OBJ_DATA *next_obj;
-    // bool found = FALSE;
+void ap_quit_trigger(CHAR_DATA *ch)
+{
+	ROOM_INDEX_DATA *room;
+	
+//	room=ch->was_in_room;
+//	if (!room)
+	room=ch->in_room;
+		
+	if ( !room)
+	{
+		bugf("ap_quit_trigger: in_room NULL for %s", ch->name);
+		return;
+	}
+	if ( !HAS_ATRIG(room->area, ATRIG_QUIT) )
+		return;
+	
+	ap_percent_trigger( room->area, ch, ATRIG_QUIT);
+}
 
-    // if ( !ch->in_room )
-    // {
-        // bugf("op_try_trigger: ch->in_room NULL for %s", ch->name);
-        // return;
-    // }
+void ap_void_trigger(CHAR_DATA *ch)
+{
 
-    // for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
-    // {
-        // next_obj = obj->next_content;
+	if ( !ch->in_room)
+	{
+		bugf("ap_void_trigger: in_room NULL for %s", ch->name);
+		return;
+	}
+	if ( !HAS_ATRIG(ch->in_room->area, ATRIG_VOID) )
+		return;
+	
+	ap_percent_trigger( ch->in_room->area, ch, ATRIG_VOID);
+}
 
-        // if ( HAS_OTRIG(obj, OTRIG_TRY) )
-        // {
-            // op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
-            // found = TRUE;
-        // }
-    // }
+bool ap_unvoid_trigger( CHAR_DATA *ch)
+{
 
-    // for ( obj = ch->carrying; obj != NULL; obj = next_obj )
-    // {
-        // next_obj = obj->next_content;
-
-        // if ( HAS_OTRIG(obj, OTRIG_TRY) )
-        // {
-            // op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
-            // found = TRUE;
-        // }
-    // }
-
-    // return found;
-// }
-
-// void op_speech_trigger( char *argument, CHAR_DATA *ch )
-// {
-    // OBJ_DATA *obj;
-    // OBJ_DATA *next_obj;
-    
-    // if ( !ch->in_room )
-    // {
-        // bugf("op_speech_trigger: ch->in_room NULL for %s", ch->name);
-        // return;
-    // }
-
-    // for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
-    // {
-        // next_obj = obj->next_content;
-
-        // if ( HAS_OTRIG(obj, OTRIG_SPEECH) )
-        // {
-            // op_act_trigger(obj, ch, NULL, argument, OTRIG_SPEECH);
-        // }
-    // }
-
-    // for ( obj = ch->carrying; obj != NULL; obj = next_obj )
-    // {
-        // next_obj = obj->next_content;
-
-        // if ( HAS_OTRIG(obj, OTRIG_SPEECH) )
-        // {
-            // op_act_trigger(obj, ch, NULL, argument, OTRIG_SPEECH);
-        // }
-    // }
-// }
-
-// void op_greet_trigger( CHAR_DATA *ch )
-// {
-    // OBJ_DATA *obj;
-    // OBJ_DATA *next_obj;
-
-    // if ( !ch->in_room )
-    // {
-        // bugf("op_greet_trigger: ch->in_room NULL for %s", ch->name);
-        // return;
-    // }
-
-    // for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
-    // {
-        // next_obj = obj->next_content;
-
-        // if ( HAS_OTRIG(obj, OTRIG_GREET) )
-        // {
-            // op_percent_trigger(obj, ch, NULL, NULL, OTRIG_GREET);
-        // }
-    // }
-// }
+	if ( !ch->in_room)
+	{
+		bugf("ap_unvoid_trigger: in_room NULL for %s", ch->name);
+		return TRUE;
+	}
+	if ( !HAS_ATRIG(ch->in_room->area, ATRIG_UNVOID) )
+		return TRUE;
+		
+	return ap_percent_trigger( ch->in_room->area, ch, ATRIG_UNVOID);
+}
