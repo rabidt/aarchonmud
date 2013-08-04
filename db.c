@@ -108,6 +108,7 @@ NOTE_DATA *     note_free;
 
 MPROG_CODE *    mprog_list;
 OPROG_CODE *    oprog_list;
+APROG_CODE *    aprog_list;
 
 char            bug_buf     [2*MAX_INPUT_LENGTH];
 CHAR_DATA *     char_list;
@@ -486,6 +487,7 @@ int  top_vnum_mob;       /* OLC */
 int  top_vnum_obj;       /* OLC */
 int  top_mprog_index;    /* OLC */
 int  top_oprog_index;    /* OLC */
+int  top_aprog_index;    /* OLC */
 int  lua_mprogs=0;
 int  mobile_count = 0;
 int  newmobs = 0;
@@ -872,6 +874,7 @@ void load_area_file( FILE *fp, bool clone )
         else if ( !str_cmp( word, "MOBBLES"  ) ) load_mobbles (fpArea);
 	else if ( !str_cmp( word, "MOBPROGS" ) ) load_mobprogs(fpArea);
     else if ( !str_cmp( word, "OBJPROGS" ) ) load_objprogs(fpArea);
+	else if ( !str_cmp( word, "AREAPROGS" ) ) load_areaprogs(fpArea);
 	else if ( !str_cmp( word, "OBJOLD"   ) ) load_old_obj (fpArea);
 	else if ( !str_cmp( word, "OBJECTS"  ) ) load_objects (fpArea);
 	else if ( !str_cmp( word, "RESETS"   ) ) load_resets  (fpArea);
@@ -1021,6 +1024,28 @@ void new_load_area( FILE *fp )
         switch ( UPPER(word[0]) )
         {
       /* Added for the new areas command - Astark Dec 2012 */
+        case 'A':
+            if (!str_cmp(word, "AProg") )
+            {
+                APROG_LIST *pAprog;
+                char *word;
+                int trigger = 0;
+
+                pAprog              = alloc_perm(sizeof(*pAprog));
+                word                = fread_word( fp );
+                if ( (trigger = flag_lookup( word, aprog_flags )) == NO_FLAG )
+                {   
+                    bugf("load_area.AProg: invalid trigger '%s' for area %s.", word, pArea->name);
+                    exit(1);
+                }
+                SET_BIT(pArea->aprog_flags, trigger );
+                pAprog->trig_type   = trigger;
+                pAprog->vnum        = fread_number( fp );
+                pAprog->trig_phrase = fread_string( fp );
+                pAprog->next        = pArea->aprogs;
+                pArea->aprogs   = pAprog;
+            }
+            break;
         case 'M':
             KEY("Minlevel", pArea->minlevel, fread_number( fp ));
             KEY("Maxlevel", pArea->maxlevel, fread_number( fp ));
@@ -2132,6 +2157,59 @@ void fix_exits( void )
     }
     
     exits_fixed = TRUE;
+    return;
+}
+
+/*
+* Load areaprogs section
+*/
+void load_areaprogs( FILE *fp )
+{
+    APROG_CODE *pAprog;
+
+    if ( area_last == NULL )
+    {
+        bug( "Load_areaprogs: no #AREA seen yet.", 0 );
+        exit( 1 );
+    }
+
+    for ( ; ; )
+    {
+        int vnum;
+        char letter;
+
+        letter        = fread_letter( fp );
+        if ( letter != '#' )
+        {
+            bug( "Load_areaprogs: # not found.", 0 );
+            exit( 1 );
+        }
+
+        vnum         = fread_number( fp );
+        if ( vnum == 0 )
+            break;
+
+        fBootDb = FALSE;
+        if ( get_aprog_index( vnum ) != NULL )
+        {
+            bug( "Load_areaprogs: vnum %d duplicated.", vnum );
+            exit( 1 );
+        }
+        fBootDb = TRUE;
+
+        pAprog      = alloc_perm( sizeof(*pAprog) );
+        pAprog->vnum    = vnum;
+        pAprog->code    = fread_string( fp );
+
+        if ( aprog_list == NULL )
+            aprog_list = pAprog;
+        else
+        {
+            pAprog->next = aprog_list;
+            aprog_list  = pAprog;
+        }
+        top_aprog_index++;
+    }
     return;
 }
 
@@ -3563,6 +3641,17 @@ OPROG_CODE *get_oprog_index( int vnum )
 {
     OPROG_CODE *prg;
     for( prg = oprog_list; prg; prg = prg->next )
+    {
+        if ( prg->vnum == vnum )
+            return( prg );
+    }
+    return NULL;
+}
+
+APROG_CODE *get_aprog_index( int vnum )
+{
+    APROG_CODE *prg;
+    for( prg = aprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )
             return( prg );

@@ -236,7 +236,25 @@ void reverse_oprog_order(OBJ_INDEX_DATA *pObjIndex)
     pObjIndex->oprogs->next = new_oprog_list;
 }
 
+void reverse_aprog_order(AREA_DATA *pArea)
+{
+    APROG_LIST
+        *new_aprog_list = NULL,
+        *next_aprog;
 
+    if (pArea->aprogs == NULL || pArea->aprogs->next == NULL)
+        return;
+
+    next_aprog = pArea->aprogs->next;
+    while (next_aprog)
+    {
+        pArea->aprogs->next = new_aprog_list;
+        new_aprog_list = pArea->aprogs;
+        pArea->aprogs = next_aprog;
+        next_aprog = next_aprog->next;
+    }
+    pArea->aprogs->next = new_aprog_list;
+}
 
 void save_mobprogs( FILE *fp, AREA_DATA *pArea )
 {
@@ -278,6 +296,27 @@ void save_objprogs( FILE *fp, AREA_DATA *pArea )
     fprintf(fp,"#0\n\n");
     return;
 }
+
+void save_areaprogs( FILE *fp, AREA_DATA *pArea )
+{
+    APROG_CODE *pAprog;
+    int i;
+
+    fprintf(fp, "#AREAPROGS\n");
+
+    for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
+    {
+        if ( (pAprog = get_aprog_index(i) ) != NULL)
+        {
+                  fprintf(fp, "#%d\n", i);
+                  fprintf(fp, "%s~\n", fix_string(pAprog->code));
+        }
+    }
+
+    fprintf(fp,"#0\n\n");
+    return;
+}
+
 
 #define FPRINT_FIELD_INT(field, value, default) \
     if (value != default) fprintf( fp, "%s %d\n", field, value )
@@ -1089,6 +1128,7 @@ void save_area( AREA_DATA *pArea )
     save_shops( fp, pArea );
     save_mobprogs( fp, pArea );
     save_objprogs( fp, pArea );
+	save_areaprogs( fp, pArea );
     
     if ( pArea->helps && pArea->helps->first )
         save_helps( fp, pArea->helps );
