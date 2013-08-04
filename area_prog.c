@@ -46,6 +46,23 @@ bool ap_rexit_trigger(CHAR_DATA *ch)
 
 }
 
+bool ap_exit_trigger(CHAR_DATA *ch, AREA_DATA *to_area)
+{
+	
+	if ( !ch->in_room)
+	{
+		bugf("ap_exit_trigger: in_room NULL for %s", ch->name);
+		return TRUE;
+	}
+	if ( !HAS_ATRIG(ch->in_room->area, ATRIG_EXIT) )
+		return TRUE;
+	
+	if ( to_area == ch->in_room->area )
+		return TRUE;
+	
+	return ap_percent_trigger( ch->in_room->area, ch, ATRIG_EXIT);
+}
+
 bool ap_renter_trigger(CHAR_DATA *ch)
 {
 	
@@ -59,7 +76,25 @@ bool ap_renter_trigger(CHAR_DATA *ch)
 	
 	return ap_percent_trigger( ch->in_room->area, ch, ATRIG_RENTER);
 }
+
+bool ap_enter_trigger(CHAR_DATA *ch, AREA_DATA *from_area)
+{
 	
+	if ( !ch->in_room)
+	{
+		bugf("ap_enter_trigger: in_room NULL for %s", ch->name);
+		return TRUE;
+	}
+	if ( !HAS_ATRIG(ch->in_room->area, ATRIG_ENTER) )
+		return TRUE;
+	
+	if ( from_area == ch->in_room->area )
+		return TRUE;
+	
+	return ap_percent_trigger( ch->in_room->area, ch, ATRIG_ENTER);
+}
+
+
 // bool op_act_trigger(
         // OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
 // {
