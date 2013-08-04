@@ -334,6 +334,7 @@ const struct flag_type affect_flags[] =
     { "minor_fade",        AFF_MINOR_FADE,           TRUE  },
     { "replenish",         AFF_REPLENISH,            TRUE  },
     { "fortune",           AFF_FORTUNE,              TRUE  },
+    { "shield",            AFF_SHIELD,               TRUE  },
     { NULL,                0,                        0     }
 };
 

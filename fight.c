@@ -132,6 +132,7 @@ bool  check_dodge   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_killer  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_parry   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_shield_block  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+bool  check_shield  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  dam_message   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
 						 int dt, bool immune ) );
 void  death_cry     args( ( CHAR_DATA *ch ) );
@@ -3819,8 +3820,10 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( check_phantasmal( ch, victim, show ) )
         return TRUE;
 
+    if ( check_shield(ch, victim) )
+        return TRUE;
     if ( check_shield_block(ch,victim) )
-	return TRUE;
+        return TRUE;
 
     if ( try_avoid && check_parry( ch, victim ) )
         return TRUE;
@@ -4241,6 +4244,29 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
+/*
+ * Check for shield affect
+ */
+bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( !IS_AFFECTED(victim, AFF_SHIELD) )
+        return FALSE;
+    
+    int chance = 6;
+        
+    // whips are harder to block
+    if ( get_weapon_sn(ch) == gsn_whip )
+        chance /= 2;
+
+    if ( !per_chance(chance) )
+        return FALSE;
+    
+    act_gag( "Your shield deflects $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
+    act_gag( "$N's shield deflects your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
+    act_gag( "$N's shield deflects $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
+
+    return TRUE;
+}
 
 /*
 * Check for dodge.
