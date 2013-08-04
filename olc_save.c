@@ -1118,6 +1118,20 @@ void save_area( AREA_DATA *pArea )
         fprintf( fp, "NoQuest\n");
     if (IS_SET(pArea->area_flags,AREA_NOHIDE))
         fprintf( fp, "NoHide\n");
+
+    /* save aprogs if any */
+    if (pArea->aprogs != NULL)
+    {
+        APROG_LIST *pAprog;
+        reverse_aprog_order(pArea);
+        for (pAprog = pArea->aprogs; pAprog; pAprog = pAprog->next)
+        {
+            fprintf(fp, "AProg %s %d %s~\n", name_lookup(pAprog->trig_type, aprog_flags), pAprog->vnum, pAprog->trig_phrase);
+        }
+        reverse_aprog_order(pArea);
+    }
+
+    
     fprintf( fp, "End\n\n\n\n" );
     
     save_mobbles( fp, pArea );
