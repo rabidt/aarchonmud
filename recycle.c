@@ -910,6 +910,38 @@ void free_oprog(OPROG_LIST *op)
    oprog_free = op;
 }
 
+APROG_LIST *aprog_free;
+
+APROG_LIST *new_aprog(void)
+{
+   static APROG_LIST ap_zero;
+   APROG_LIST *ap;
+
+   if (aprog_free == NULL)
+       ap = alloc_perm(sizeof(*ap));
+   else
+   {
+       ap = aprog_free;
+       aprog_free=aprog_free->next;
+   }
+
+   *ap = ap_zero;
+   ap->vnum             = 0;
+   ap->trig_type        = 0;
+   ap->code             = str_dup("");
+   VALIDATE(ap);
+   return ap;
+}
+
+void free_aprog(APROG_LIST *ap)
+{
+   if (!IS_VALID(ap))
+      return;
+
+   INVALIDATE(ap);
+   ap->next = aprog_free;
+   aprog_free = ap;
+}
 
 HELP_AREA * had_free;
 
