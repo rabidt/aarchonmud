@@ -136,6 +136,8 @@ typedef struct  mprog_list       MPROG_LIST;
 typedef struct  mprog_code       MPROG_CODE;
 typedef struct  oprog_code       OPROG_CODE;
 typedef struct  oprog_list       OPROG_LIST;
+typedef struct  aprog_code       APROG_CODE;
+typedef struct  aprog_list       APROG_LIST;
 typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
@@ -2956,6 +2958,9 @@ struct  area_data
         int      minlevel;
         int      maxlevel;
         int      miniquests;
+
+    APROG_LIST *aprogs;
+    tflag   aprog_flags;
 };
 
 
@@ -3107,6 +3112,19 @@ struct  group_type
 #define OTRIG_RAND  (L)
 #define OTRIG_GREET (M)
 
+/*
+ * AREAprog definitions
+ */
+#define ATRIG_ENTER (A)
+#define ATRIG_EXIT  (B)
+#define ATRIG_RENTER (C)
+#define ATRIG_REXIT (D)
+#define ATRIG_BOOT  (E)
+#define ATRIG_SHUTDOWN (F)
+#define ATRIG_QUIT  (G)
+#define ATRIG_VOID  (H)
+#define ATRIG_UNVOID (I)
+
 struct mprog_list
 {
 	int         trig_type;
@@ -3143,6 +3161,25 @@ struct oprog_code
     int     vnum;
     char    * code;
     OPROG_CODE *    next;
+};
+
+struct aprog_list
+{
+    int         trig_type;
+    char *      trig_phrase;
+    int *       vnum;
+    char *      code;
+    APROG_LIST *    next;
+    bool        valid;
+    /* always lua */
+};
+
+struct aprog_code
+{
+    /* always lua */
+    int     vnum;
+    char    * code;
+    APROG_CODE *    next;
 };
 
 extern sh_int race_werewolf;
@@ -3737,6 +3774,7 @@ struct achievement_entry
 #define get_carry_weight(ch)    ((ch)->carry_weight + (ch)->silver/100 + (ch)->gold/25)
 #define HAS_TRIGGER(ch,trig)    (IS_SET((ch)->pIndexData->mprog_flags,(trig)))
 #define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
+#define HAS_ATRIG(area,trig)    (IS_SET((area)->aprog_flags,(trig)))
 #define IS_SWITCHED( ch )       ( ch->desc && ch->desc->original )
 #define IS_BUILDER(ch, Area)    ( !IS_NPC(ch) && !IS_SWITCHED( ch ) && (ch->pcdata->security >= Area->security || strstr( Area->builders, ch->name ) || strstr( Area->builders, "All" ) ) )
 #define IS_REMORT(ch)			(!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT)) 
@@ -3907,6 +3945,7 @@ extern      OBJ_DATA      * object_list;
 
 extern      MPROG_CODE    * mprog_list;
 extern      OPROG_CODE    * oprog_list;
+extern      APROG_CODE    * aprog_list;
 
 extern      char            bug_buf     [];
 extern      time_t          current_time;
@@ -4112,6 +4151,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define AD  AFFECT_DATA
 #define MPC MPROG_CODE
 #define OPC OPROG_CODE
+#define APC APROG_CODE
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
@@ -4243,6 +4283,7 @@ OID *   get_obj_index   args( ( int vnum ) );
 RID *   get_room_index  args( ( int vnum ) );
 MPC *   get_mprog_index args( ( int vnum ) );
 OPC *   get_oprog_index args( ( int vnum ) );
+APC *   get_aprog_index args( ( int vnum ) );
 char    fread_letter    args( ( FILE *fp ) );
 int fread_number    args( ( FILE *fp ) );
 long    fread_flag  args( ( FILE *fp ) );
