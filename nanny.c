@@ -142,9 +142,15 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		get_name(d, argument);
 		break;
 		
-	    case CON_GET_OLD_PASSWORD:
-		if (get_old_password(d, argument)) read_imotd(d, argument);
-		break;
+        case CON_GET_OLD_PASSWORD:
+            if ( get_old_password(d, argument) )
+            {
+                if ( IS_SET(d->character->act, PLR_REMORT_ROLL) )
+                    remort_begin(d->character);
+                else
+                    read_imotd(d, argument);
+            }
+            break;
 		
 	    case CON_BREAK_CONNECT:
 		if (break_connect(d, argument)) get_name(d, argument);
@@ -1545,6 +1551,7 @@ bool roll_stats ( DESCRIPTOR_DATA *d, char *argument )
     {
         send_to_char("     {cThe game has assigned dice for you based on your class and race.{x\n\r",ch);
         auto_assign_stats(ch);
+        calc_stats(ch);
         show_dice(ch);
         send_to_char("{CShow, reroll, assign, unassign, default, help, or done?{x ",ch);
         return FALSE;

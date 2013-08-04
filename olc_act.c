@@ -654,6 +654,132 @@ AREA_DATA *get_vnum_area( int vnum )
 }
 
 
+/*****************************************************************
+ * Name: update_aprog_flags
+ * Purpose: fix bug that removes valid aprog flags
+ * Called by: oedit_delaprog
+ *****************************************************************/
+void update_aprog_flags( AREA_DATA *pArea )
+{
+    APROG_LIST *list;
+
+    /* clear flags */
+    flag_clear( pArea->aprog_flags );
+
+    /* re-add all flags needed */
+    for (list = pArea->aprogs; list != NULL; list = list->next)
+        SET_BIT(pArea->aprog_flags, list->trig_type);
+}
+
+AEDIT ( aedit_delaprog )
+{
+    AREA_DATA *pArea;
+    APROG_LIST *list;
+    APROG_LIST *list_next;
+    char aprog[MAX_STRING_LENGTH];
+    int value;
+    int cnt = 0;
+
+    EDIT_AREA(ch, pArea);
+
+    one_argument( argument, aprog );
+    if (!is_number( aprog ) || aprog[0] == '\0' )
+    {
+        send_to_char("Syntax:  delaprog [#aprog]\n\r",ch);
+        return FALSE;
+    }
+
+    value = atoi ( aprog );
+
+    if ( value < 0 )
+    {
+        send_to_char("Only non-negative aprog-numbers allowed.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( !(list= pArea->aprogs) )
+    {
+        send_to_char("AEdit:  Non existant mprog.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( value == 0 )
+    {
+        list = pArea->aprogs;
+        pArea->aprogs = list->next;
+        free_aprog( list );
+    }
+    else
+    {
+        while ( (list_next = list->next) && (++cnt < value ) )
+            list = list_next;
+
+        if ( list_next )
+        {
+            list->next = list_next->next;
+            free_aprog(list_next);
+        }
+        else
+        {
+            send_to_char("No such aprog.\n\r",ch);
+            return FALSE;
+        }
+    }
+
+    update_aprog_flags(pArea);
+
+    send_to_char("Aprog removed.\n\r", ch);
+    return TRUE;
+}
+
+AEDIT ( aedit_addaprog )
+{
+    int value;
+    AREA_DATA *pArea;
+    APROG_LIST *list;
+    APROG_CODE *code;
+    char trigger[MAX_STRING_LENGTH];
+    char phrase[MAX_STRING_LENGTH];
+    char num[MAX_STRING_LENGTH];
+
+    EDIT_AREA(ch, pArea);
+    argument=one_argument(argument, num);
+    argument=one_argument(argument, trigger);
+    argument=one_argument(argument, phrase);
+
+    if (!is_number(num) || trigger[0] =='\0' || phrase[0] =='\0' )
+    {
+        send_to_char("Syntax:   addaprog [vnum] [trigger] [phrase]\n\r",ch);
+        return FALSE;
+    }
+
+    if ( (value = flag_value (aprog_flags, trigger) ) == NO_FLAG)
+    {
+        send_to_char("Valid flags are:\n\r",ch);
+        show_help( ch, "aprog");
+        return FALSE;
+    }
+
+    if ( ( code =get_aprog_index (atoi(num) ) ) == NULL)
+    {
+        send_to_char("No such AREAProgram.\n\r",ch);
+        return FALSE;
+    }
+
+    list                  = new_aprog();
+    list->vnum            = atoi(num);
+    list->trig_type       = value;
+    list->trig_phrase     = str_dup(phrase);
+    list->code            = code->code;
+    SET_BIT(pArea->aprog_flags,value);
+    list->next            = pArea->aprogs;
+    pArea->aprogs          = list;
+
+    send_to_char( "Aprog Added.\n\r",ch);
+    return TRUE;
+}
+
+
 
 /*
 * Area Editor Functions.
@@ -661,6 +787,7 @@ AREA_DATA *get_vnum_area( int vnum )
 AEDIT( aedit_show )
 {
     AREA_DATA *pArea;
+    APROG_LIST *list;
     char buf  [MAX_STRING_LENGTH];
     int i;
     
@@ -720,6 +847,29 @@ AEDIT( aedit_show )
 	    sprintf( buf, "[%d] Clone: %5d\n\r", i, pArea->clones[i] );
 	    send_to_char( buf, ch );
 	}
+	
+	if ( pArea->aprogs )
+    {
+        int cnt;
+
+        sprintf(buf, "\n\rAREAPrograms for [%5d]:\n\r", pArea->vnum);
+        send_to_char( buf, ch );
+
+        for (cnt=0, list=pArea->aprogs; list; list=list->next)
+        {
+            if (cnt ==0)
+            {
+                send_to_char ( " Number Vnum Trigger Phrase\n\r", ch );
+                send_to_char ( " ------ ---- ------- ------\n\r", ch );
+            }
+
+            sprintf(buf, "[%5d] %4d %7s %s\n\r", cnt,
+                list->vnum,name_lookup(list->trig_type, aprog_flags),
+                list->trig_phrase);
+            send_to_char( buf, ch );
+            cnt++;
+        }
+    }
 
     return FALSE;
 }
@@ -4533,6 +4683,58 @@ bool apply_obj_hardcaps( OBJ_INDEX_DATA *obj )
     return found;
 }
 
+bool adjust_obj_weight( OBJ_INDEX_DATA *obj )
+{
+    int weight, min_weight, max_weight;
+
+    if ( obj->item_type == ITEM_ARMOR )
+    {
+        weight = 50;
+        if ( CAN_WEAR(obj,ITEM_WEAR_FLOAT) )
+            weight = 0;
+        else if ( CAN_WEAR(obj,ITEM_WEAR_FINGER) )
+            weight = 10;
+        else if ( CAN_WEAR(obj,ITEM_WEAR_TORSO) )
+            weight = 100;
+        if ( CAN_WEAR(obj,ITEM_TRANSLUCENT) )
+            weight /= 2;
+    }
+    else if ( obj->item_type == ITEM_WEAPON )
+    {
+        switch (obj->value[0])
+        {
+            case WEAPON_SWORD:  weight = 60; break;
+            case WEAPON_DAGGER: weight = 20; break;
+            case WEAPON_SPEAR:  weight = 50; break;
+            case WEAPON_MACE:   weight = 100; break;
+            case WEAPON_AXE:    weight = 80; break;
+            case WEAPON_FLAIL:  weight = 90; break;
+            case WEAPON_WHIP:   weight = 30; break;
+            case WEAPON_POLEARM:weight = 70; break;
+            case WEAPON_GUN:    weight = 40; break;
+            case WEAPON_BOW:    weight = 50; break;
+            default:            weight = 60; break;
+        }
+        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) )
+            weight += weight / 2;
+    }
+    else
+        return FALSE;
+    
+    min_weight = weight / 2;
+    max_weight = weight * 2;
+
+    if ( min_weight <= obj->weight && obj->weight <= max_weight )
+        return FALSE;
+    
+    if ( obj->weight == 0 )
+        obj->weight = weight;
+    else
+        obj->weight = URANGE(min_weight, obj->weight, max_weight);
+    
+    return TRUE;
+}
+
 /* Sets values for Armor Class based on level, and also
  * cost by using adjust drop or adjust shop.
  * Check the table above for values in case they need to
@@ -4579,52 +4781,35 @@ OEDIT( oedit_adjust )
     // AC
     if (pObj->item_type == ITEM_ARMOR)
     {
-        pObj->value[0]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[1]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[2]     = ovalue[OBJ_STAT_AC_WEAPON];
-        pObj->value[3]     = ovalue[OBJ_STAT_AC_EXOTIC];
+        int ac_sum = pObj->value[0] + pObj->value[1] + pObj->value[2] + pObj->value[3] * 3;
+        int spec_sum = (ovalue[OBJ_STAT_AC_WEAPON] + ovalue[OBJ_STAT_AC_EXOTIC]) * 3;
+        if ( ac_sum != spec_sum )
+        {
+            pObj->value[0] = ovalue[OBJ_STAT_AC_WEAPON];
+            pObj->value[1] = ovalue[OBJ_STAT_AC_WEAPON];
+            pObj->value[2] = ovalue[OBJ_STAT_AC_WEAPON];
+            pObj->value[3] = ovalue[OBJ_STAT_AC_EXOTIC];
+            send_to_char("AC has been adjusted.\n\r", ch);
+        }
     }
     
     // cost
-    if (set_drop)
-        pObj->cost         = ovalue[OBJ_STAT_DROP_COST];
-    else if (set_shop)
-        pObj->cost         = ovalue[OBJ_STAT_SHOP_COST];
+    if ( set_drop || set_shop )
+    {
+        int spec_cost = set_shop ? ovalue[OBJ_STAT_SHOP_COST] : ovalue[OBJ_STAT_DROP_COST];
+        if ( pObj->cost != spec_cost )
+        {
+            pObj->cost = spec_cost;
+            send_to_char("Cost has been adjusted.\n\r", ch);
+        }
+    }
     
     // weight
-    weight = pObj->weight;
-    if (pObj->item_type == ITEM_ARMOR)
-    {
-        weight = 50;
-        if ( CAN_WEAR(pObj,ITEM_WEAR_FLOAT) )
-            weight = 0;
-        else if ( CAN_WEAR(pObj,ITEM_WEAR_TORSO) )
-            weight = 100;
-        if ( CAN_WEAR(pObj,ITEM_TRANSLUCENT) )
-            weight /= 2;
-    }
-    else if (pObj->item_type == ITEM_WEAPON)
-    {
-        switch (pObj->value[0])
-        {
-            case WEAPON_SWORD:  weight = 60; break;
-            case WEAPON_DAGGER: weight = 20; break;
-            case WEAPON_SPEAR:  weight = 50; break;
-            case WEAPON_MACE:   weight = 100; break;
-            case WEAPON_AXE:    weight = 80; break;
-            case WEAPON_FLAIL:  weight = 90; break;
-            case WEAPON_WHIP:   weight = 30; break;
-            case WEAPON_POLEARM:weight = 70; break;
-            case WEAPON_GUN:    weight = 40; break;
-            case WEAPON_BOW:    weight = 50; break;
-            default:            weight = 60; break;
-        }
-        if ( IS_WEAPON_STAT(pObj, WEAPON_TWO_HANDS) )
-            weight += weight / 2;
-    }
-    pObj->weight = weight;
+    if ( adjust_obj_weight(pObj) )
+        send_to_char("Weight has been adjusted.\n\r", ch);
 
-    apply_obj_hardcaps(pObj);
+    if ( apply_obj_hardcaps(pObj) )
+        send_to_char("Magic bonuses/penalties have been adjusted.\n\r", ch);
     
     send_to_char("Stats set according to level.\n\r", ch);
     return TRUE;

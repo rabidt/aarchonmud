@@ -183,6 +183,8 @@ void do_vlist (CHAR_DATA *ch, char *argument)
     OBJ_INDEX_DATA *obj = NULL;
     MOB_INDEX_DATA *mob = NULL;
     MPROG_CODE *mprog = NULL;
+    OPROG_CODE *oprog = NULL;
+    APROG_CODE *aprog = NULL;
 
     if (!IS_BUILDER(ch, ch->in_room->area))
     {
@@ -199,6 +201,8 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         send_to_char("  vlist mob   - List used mob vnums in current area.\n\r",ch);
         send_to_char("  vlist room  - List used room vnums in current area.\n\r",ch);
         send_to_char("  vlist mprog - List used mprog vnums in current area.\n\r",ch);
+        send_to_char("  vlist oprog - List used oprog vnums in current area.\n\r",ch);
+        send_to_char("  vlist aprog - List used aprog vnums in current area.\n\r",ch);
         return;
     }
 
@@ -266,8 +270,42 @@ void do_vlist (CHAR_DATA *ch, char *argument)
 
 		page_to_char(buf_string(buffer),ch);
     }
+    else if (!str_cmp(arg,"oprog"))
+    {
+        sprintf(buf,"{W Used {Coprog {Wvnum listing for area {C%s{x\n\r",
+        ch->in_room->area->name);
+        add_buf(buffer,buf);
+        add_buf(buffer,"{Y========================================================{x\n\r");
+
+        for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++)
+            if ((oprog = get_oprog_index(i)) != NULL)
+            {
+                sprintf(buf,"{C%8d{x %s\n\r", i, first_line(oprog->code));
+                add_buf(buffer,buf);
+            }
+
+        page_to_char(buf_string(buffer),ch);
+    }
+
+    else if (!str_cmp(arg,"aprog"))
+    {
+        sprintf(buf,"{W Used {Caprog {Wvnum listing for area {C%s{x\n\r",
+        ch->in_room->area->name);
+        add_buf(buffer,buf);
+        add_buf(buffer,"{Y========================================================{x\n\r");
+
+        for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++)
+            if ((aprog = get_aprog_index(i)) != NULL)
+            {
+                sprintf(buf,"{C%8d{x %s\n\r", i, first_line(aprog->code));
+                add_buf(buffer,buf);
+            }
+
+        page_to_char(buf_string(buffer),ch);
+    }
+
     else
-        send_to_char("You may check for object, mob, room or mprog vnums only.\n\r",ch);
+        send_to_char("You may check for object, mob, room, mprog, oprog, or aprog vnums only.\n\r",ch);
 
     free_buf(buffer);
 }
@@ -1013,9 +1051,11 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 		attack_table[victim->dam_type].noun);
 	send_to_char(buf,ch);
 	}
-	sprintf( buf, "Fighting: %s\n\r",
-	victim->fighting ? victim->fighting->name : "(none)" );
-	send_to_char( buf, ch );
+    sprintf( buf, "Fighting: %s  Wait: %d  Daze: %d  Stop: %d\n\r",
+        victim->fighting ? victim->fighting->name : "(none)",
+        victim->wait, victim->daze, victim->stop
+    );
+    send_to_char( buf, ch );
 
 	if ( !IS_NPC(victim) )
 	{

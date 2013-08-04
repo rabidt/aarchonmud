@@ -107,6 +107,7 @@ DECLARE_DO_FUN( do_brief    );
 DECLARE_DO_FUN( do_browse   );
 DECLARE_DO_FUN( do_bug      );
 DECLARE_DO_FUN( do_buy      );
+DECLARE_DO_FUN( do_calm     );
 DECLARE_DO_FUN( do_cast     );
 DECLARE_DO_FUN( do_channels );
 DECLARE_DO_FUN( do_charge   );
@@ -529,6 +530,11 @@ DECLARE_DO_FUN( do_mpstat   );
 
 /* Obj Progs */
 DECLARE_DO_FUN( do_opedit   );
+DECLARE_DO_FUN( do_opdump   );
+
+/* Area Progs */
+DECLARE_DO_FUN( do_apedit   );
+DECLARE_DO_FUN( do_apdump   );
 
 /* OLC */
 DECLARE_DO_FUN( do_aedit    );
