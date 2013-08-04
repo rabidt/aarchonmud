@@ -1289,9 +1289,7 @@ void spell_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.type      = sn;
     af.level     = level;
     af.duration  = 24;
-    /* af.modifier  = -20; */
-    /* Make spell better as your level increases -- Maedhros 09/11/2012 */
-    af.modifier  = -20 - (level/4);
+    af.modifier  = -(20 + level);
     af.location  = APPLY_AC;
     af.bitvector = 0;
     affect_to_char( victim, &af );
