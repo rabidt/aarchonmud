@@ -4818,11 +4818,8 @@ void spell_shield( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.level     = level;
     af.duration  = 8 + level;
     af.location  = APPLY_AC;
-    /* Now scales with level instead of static number - Astark Oct 2012
-       It's slightly better than armor due to the level you get it at
-       af.modifier  = -20; */
-    af.modifier  = -25 - (level/4);
-    af.bitvector = 0;
+    af.modifier  = -20;
+    af.bitvector = AFF_SHIELD;
     affect_to_char( victim, &af );
     act( "$n is surrounded by a force shield.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "You are surrounded by a force shield.\n\r", victim );

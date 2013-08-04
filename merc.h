@@ -1617,6 +1617,7 @@ struct  kill_data
 #define AFF_MINOR_FADE        75
 #define AFF_REPLENISH         76
 #define AFF_FORTUNE           77
+#define AFF_SHIELD            78
 
 
 /*
