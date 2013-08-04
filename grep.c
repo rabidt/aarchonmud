@@ -1372,6 +1372,7 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
             case AFF_BERSERK:
             case AFF_PROTECT_MAGIC: result += 25; break;
             case AFF_FLYING:
+            case AFF_SHIELD:
             case AFF_BATTLE_METER:
             case AFF_DETECT_INVIS:
             case AFF_DETECT_HIDDEN:
