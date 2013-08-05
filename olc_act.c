@@ -654,6 +654,132 @@ AREA_DATA *get_vnum_area( int vnum )
 }
 
 
+/*****************************************************************
+ * Name: update_aprog_flags
+ * Purpose: fix bug that removes valid aprog flags
+ * Called by: oedit_delaprog
+ *****************************************************************/
+void update_aprog_flags( AREA_DATA *pArea )
+{
+    APROG_LIST *list;
+
+    /* clear flags */
+    flag_clear( pArea->aprog_flags );
+
+    /* re-add all flags needed */
+    for (list = pArea->aprogs; list != NULL; list = list->next)
+        SET_BIT(pArea->aprog_flags, list->trig_type);
+}
+
+AEDIT ( aedit_delaprog )
+{
+    AREA_DATA *pArea;
+    APROG_LIST *list;
+    APROG_LIST *list_next;
+    char aprog[MAX_STRING_LENGTH];
+    int value;
+    int cnt = 0;
+
+    EDIT_AREA(ch, pArea);
+
+    one_argument( argument, aprog );
+    if (!is_number( aprog ) || aprog[0] == '\0' )
+    {
+        send_to_char("Syntax:  delaprog [#aprog]\n\r",ch);
+        return FALSE;
+    }
+
+    value = atoi ( aprog );
+
+    if ( value < 0 )
+    {
+        send_to_char("Only non-negative aprog-numbers allowed.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( !(list= pArea->aprogs) )
+    {
+        send_to_char("AEdit:  Non existant mprog.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( value == 0 )
+    {
+        list = pArea->aprogs;
+        pArea->aprogs = list->next;
+        free_aprog( list );
+    }
+    else
+    {
+        while ( (list_next = list->next) && (++cnt < value ) )
+            list = list_next;
+
+        if ( list_next )
+        {
+            list->next = list_next->next;
+            free_aprog(list_next);
+        }
+        else
+        {
+            send_to_char("No such aprog.\n\r",ch);
+            return FALSE;
+        }
+    }
+
+    update_aprog_flags(pArea);
+
+    send_to_char("Aprog removed.\n\r", ch);
+    return TRUE;
+}
+
+AEDIT ( aedit_addaprog )
+{
+    int value;
+    AREA_DATA *pArea;
+    APROG_LIST *list;
+    APROG_CODE *code;
+    char trigger[MAX_STRING_LENGTH];
+    char phrase[MAX_STRING_LENGTH];
+    char num[MAX_STRING_LENGTH];
+
+    EDIT_AREA(ch, pArea);
+    argument=one_argument(argument, num);
+    argument=one_argument(argument, trigger);
+    argument=one_argument(argument, phrase);
+
+    if (!is_number(num) || trigger[0] =='\0' || phrase[0] =='\0' )
+    {
+        send_to_char("Syntax:   addaprog [vnum] [trigger] [phrase]\n\r",ch);
+        return FALSE;
+    }
+
+    if ( (value = flag_value (aprog_flags, trigger) ) == NO_FLAG)
+    {
+        send_to_char("Valid flags are:\n\r",ch);
+        show_help( ch, "aprog");
+        return FALSE;
+    }
+
+    if ( ( code =get_aprog_index (atoi(num) ) ) == NULL)
+    {
+        send_to_char("No such AREAProgram.\n\r",ch);
+        return FALSE;
+    }
+
+    list                  = new_aprog();
+    list->vnum            = atoi(num);
+    list->trig_type       = value;
+    list->trig_phrase     = str_dup(phrase);
+    list->code            = code->code;
+    SET_BIT(pArea->aprog_flags,value);
+    list->next            = pArea->aprogs;
+    pArea->aprogs          = list;
+
+    send_to_char( "Aprog Added.\n\r",ch);
+    return TRUE;
+}
+
+
 
 /*
 * Area Editor Functions.
@@ -661,6 +787,7 @@ AREA_DATA *get_vnum_area( int vnum )
 AEDIT( aedit_show )
 {
     AREA_DATA *pArea;
+    APROG_LIST *list;
     char buf  [MAX_STRING_LENGTH];
     int i;
     
@@ -720,6 +847,29 @@ AEDIT( aedit_show )
 	    sprintf( buf, "[%d] Clone: %5d\n\r", i, pArea->clones[i] );
 	    send_to_char( buf, ch );
 	}
+	
+	if ( pArea->aprogs )
+    {
+        int cnt;
+
+        sprintf(buf, "\n\rAREAPrograms for [%5d]:\n\r", pArea->vnum);
+        send_to_char( buf, ch );
+
+        for (cnt=0, list=pArea->aprogs; list; list=list->next)
+        {
+            if (cnt ==0)
+            {
+                send_to_char ( " Number Vnum Trigger Phrase\n\r", ch );
+                send_to_char ( " ------ ---- ------- ------\n\r", ch );
+            }
+
+            sprintf(buf, "[%5d] %4d %7s %s\n\r", cnt,
+                list->vnum,name_lookup(list->trig_type, aprog_flags),
+                list->trig_phrase);
+            send_to_char( buf, ch );
+            cnt++;
+        }
+    }
 
     return FALSE;
 }

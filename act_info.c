@@ -4502,6 +4502,10 @@ void do_survey( CHAR_DATA *ch, char *argument )
     else
 	buf2 = "well-lit";
 
+   /* A little feature for blind players */
+    sprintf( buf, "The area you are in is : %s{x\n\r", ch->in_room->area->name);
+        send_to_char(buf, ch);
+
     sprintf( buf, "Your immediate surrounding is %s and %s.\n\r", 
 	     flag_bit_name(sector_flags, room->sector_type), buf2 );
     send_to_char( buf, ch );

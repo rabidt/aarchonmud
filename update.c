@@ -1467,6 +1467,9 @@ void char_update( void )
                     ch->was_in_room = ch->in_room;
                     if (ch->fighting != NULL)
                         stop_fighting( ch, TRUE );
+                    
+                    ap_void_trigger( ch );
+
                     act( "$n disappears into the void.",
                             ch, NULL, NULL, TO_ROOM );
                     if ( IS_SET( ch->in_room->room_flags, ROOM_BOX_ROOM))
