@@ -199,6 +199,8 @@ void final_player_save()
   force_full_save();
   /* stop all autosaving */
   player_save_state = SAVE_STATE_NOSAVE;
+  /* call any aprog shutdown scripts */
+  ap_shutdown_trigger();
 #if defined(SIM_DEBUG)
    log_string("final_player_save: done");
 #endif
