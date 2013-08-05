@@ -3447,7 +3447,7 @@ void spell_giant_strength(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     af.level     = level;
     af.duration  = level;
     af.location  = APPLY_STR;
-    af.modifier  = 1+level/5;
+    af.modifier  = (20 + level) / 4;
     af.bitvector = AFF_GIANT_STRENGTH;
     affect_to_char( victim, &af );
     send_to_char( "Your muscles surge with heightened power!\n\r", victim );
@@ -5256,7 +5256,7 @@ void spell_weaken( int sn, int level, CHAR_DATA *ch, void *vo,int target)
           af.duration  = level / 2; */
     af.duration  = level / 4;
     af.location  = APPLY_STR;
-    af.modifier  = -1 * (level / 2);
+    af.modifier  = -1 * (20 + level) / 2;
     af.bitvector = AFF_WEAKEN;
     affect_to_char( victim, &af );
     send_to_char( "You feel your strength slip away.\n\r", victim );
