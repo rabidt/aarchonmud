@@ -2745,6 +2745,19 @@ void do_lboard( CHAR_DATA *ch, char *argument)
     }
 }
 
+void do_lhistory( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(mud_LS, "do_lhistory");
+    make_ud_table(mud_LS, ch, UDTYPE_CH, TRUE);
+    lua_pushstring(mud_LS, argument);
+    if (CallLuaWithTraceBack( mud_LS, 2, 0) )
+    {
+        bugf ( "Error with do_lhistory:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
 void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
 {
     lua_getglobal(mud_LS, "update_lboard");
