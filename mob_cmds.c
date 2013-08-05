@@ -409,6 +409,34 @@ void do_mpstat( CHAR_DATA *ch, char *argument )
 /*
  * Displays the source code of a given OBJprogram
  *
+ * Syntax: apdump [vnum]
+ */
+void do_apdump( CHAR_DATA *ch, char *argument )
+{
+   char buf[ MAX_INPUT_LENGTH ];
+   APROG_CODE *aprg;
+   AREA_DATA *area;
+
+   one_argument( argument, buf );
+   if ( ( aprg = get_aprog_index( atoi(buf) ) ) == NULL )
+   {
+    send_to_char( "No such AREAprogram.\n\r", ch );
+    return;
+   }
+
+   area = get_vnum_area( aprg->vnum );
+   if ( area == NULL || !IS_BUILDER(ch, area) )
+   {
+       send_to_char( "You're not a builder for this aprog's area.\n\r", ch);
+       return;
+   }
+
+   page_to_char_new( aprg->code, ch, TRUE );
+}
+
+/*
+ * Displays the source code of a given OBJprogram
+ *
  * Syntax: opdump [vnum]
  */
 void do_opdump( CHAR_DATA *ch, char *argument )
