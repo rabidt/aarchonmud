@@ -3983,8 +3983,8 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_shroud_of_darkness,             TAR_CHAR_SELF,             POS_STANDING,
-	NULL,           SLOT(2110),  80,    40,
+	spell_shroud_of_darkness, TAR_CHAR_DEFENSIVE, POS_STANDING,
+	NULL, SLOT(2110), 50, 24,
 	"shroud of darkness",   "You are no longer protected by darkness.", "", NULL
 	},
 
