@@ -979,7 +979,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 #endif
     }
     else if ( 2*number_percent() > (chance+100)
-            || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(10)
+            || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(25)
             || IS_AFFECTED(ch, AFF_CURSE) && per_chance(5) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
