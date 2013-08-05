@@ -1799,7 +1799,9 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
 
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
-	dam = dam * 9/10;
+        dam -= dam / 10;
+    else if ( IS_AFFECTED(ch, AFF_GIANT_STRENGTH) )
+        dam += dam / 20;
 
     if ( check_critical(ch,secondary) == TRUE )
     {
