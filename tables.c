@@ -335,6 +335,7 @@ const struct flag_type affect_flags[] =
     { "replenish",         AFF_REPLENISH,            TRUE  },
     { "fortune",           AFF_FORTUNE,              TRUE  },
     { "shield",            AFF_SHIELD,               TRUE  },
+    { "stone_skin",        AFF_STONE_SKIN,           TRUE  },
     { NULL,                0,                        0     }
 };
 

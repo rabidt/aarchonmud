@@ -1618,6 +1618,7 @@ struct  kill_data
 #define AFF_REPLENISH         76
 #define AFF_FORTUNE           77
 #define AFF_SHIELD            78
+#define AFF_STONE_SKIN        79
 
 
 /*
