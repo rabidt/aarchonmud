@@ -2121,7 +2121,6 @@ void show_races( int skill, BUFFER *buffer )
 
 void show_skill(char *argument, BUFFER *buffer)
 {
-    char buf[MAX_STRING_LENGTH];
     int skill, cls = 0;
     int stance;
     bool is_spell;
@@ -2131,80 +2130,83 @@ void show_skill(char *argument, BUFFER *buffer)
 
     if ((skill = skill_lookup(argument)) == -1)        
     { 
-        sprintf(buf,"Skill not found.\n\r");
-        add_buf(buffer, buf);
+        add_buff(buffer,"Skill not found.\n\r");
         return; 
     }
     
     is_spell = IS_SPELL(skill);
-
-    sprintf(buf,"{cSettings for %s:  {Y%s{x\n\r", 
-		(is_spell ? "spell" : "skill"),
-		capitalize(skill_table[skill].name));
-    add_buf(buffer, buf);
+    add_buff(buffer, "{cSettings for %s:  {Y%s{x\n\r", (is_spell ? "spell" : "skill"), capitalize(skill_table[skill].name));
 
     /* check if skill is a stance */
     for (stance = 0; stances[stance].gsn != NULL; stance++)
-      if (stances[stance].gsn == skill_table[skill].pgsn)
-	break;
+        if (stances[stance].gsn == skill_table[skill].pgsn)
+            break;
 
-	if ( is_spell )
-	    sprintf( buf, "Base Mana: %d  Lag: %d  Target: %s  Combat: %s\n\r",
-		     skill_table[skill].min_mana, skill_table[skill].beats,
-		     spell_target_names[skill_table[skill].target],
-		     skill_table[skill].minimum_position <= POS_FIGHTING ? "yes" : "no" );
-	else if (stances[stance].cost != 0)
-	    sprintf(buf, "Base Move: %d\n\r", stances[stance].cost);
-	else if (skill_table[skill].min_mana != 0)
-	    sprintf(buf, "Base Mana: %d  Lag: %d\n\r", skill_table[skill].min_mana, skill_table[skill].beats);
-	else if (skill_table[skill].beats != 0)
-	    sprintf(buf, "Lag: %d\n\r", skill_table[skill].beats);
-	else
-	    buf[0] = '\0';
-
-	add_buf(buffer, buf);
-
-	sprintf(buf, "Prime Stat: %s   Second Stat: %s   Third Stat: %s\n\r",
-			(skill_table[skill].stat_prime>=STAT_NONE) ? "none" :
-			stat_table[skill_table[skill].stat_prime].name,
-			(skill_table[skill].stat_second>=STAT_NONE) ? "none" :
-			stat_table[skill_table[skill].stat_second].name,
-			(skill_table[skill].stat_third>=STAT_NONE) ? "none" :
-			stat_table[skill_table[skill].stat_third].name);
-	add_buf(buffer, buf);
+    if ( is_spell )
+    {
+        add_buff( buffer, "Base Mana: %d  Lag: %d  Duration: %s\n\r",
+            skill_table[skill].min_mana, skill_table[skill].beats,
+            spell_duration_names[skill_table[skill].duration] );
+        add_buff( buffer, "Target: %s  Combat: %s\n\r",
+            spell_target_names[skill_table[skill].target],
+            skill_table[skill].minimum_position <= POS_FIGHTING ? "yes" : "no" );
+    }
+    else if (stances[stance].cost != 0)
+        add_buff(buffer, "Base Move: %d\n\r", stances[stance].cost);
+    else
+    {
+        bool found = FALSE;
+        if (skill_table[skill].min_mana != 0)
+        {
+            add_buff(buffer, "Base Mana: %d", skill_table[skill].min_mana);
+            found = TRUE;
+        }
+        if (skill_table[skill].beats != 0)
+        {
+            add_buff(buffer, "%sLag: %d", (found ? "  " : ""), skill_table[skill].beats);
+            found = TRUE;
+        }
+        if (skill_table[skill].duration != DUR_NONE)
+        {
+            add_buff(buffer, "%sDuration: %s", (found ? "  " : ""), spell_duration_names[skill_table[skill].duration]);
+            found = TRUE;
+        }
+        if (found)
+            add_buff(buffer, "\n\r");
+    }
     
-    sprintf(buf,"\n\r{wClass          Level Points  Max{x\n\r");
-    add_buf(buffer, buf);
+    add_buff(buffer, "Prime Stat: %s   Second Stat: %s   Third Stat: %s\n\r",
+        (skill_table[skill].stat_prime>=STAT_NONE) ? "none" :
+        stat_table[skill_table[skill].stat_prime].name,
+        (skill_table[skill].stat_second>=STAT_NONE) ? "none" :
+        stat_table[skill_table[skill].stat_second].name,
+        (skill_table[skill].stat_third>=STAT_NONE) ? "none" :
+        stat_table[skill_table[skill].stat_third].name);
     
-    sprintf(buf,"{w------------   ----- ------ -----{x\n\r");
-    add_buf(buffer, buf);
+    add_buff(buffer, "\n\r{wClass          Level Points  Max{x\n\r");
+    
+    add_buff(buffer, "{w------------   ----- ------ -----{x\n\r");
     
     for ( cls = 0; cls < MAX_CLASS; cls++ )
     {
-        
         if (skill_table[skill].skill_level[cls] >= HERO)
         {
             sprintf(log_buf, "{r   --     --     --{x\n\r");
         }
         else
         {
-	    if ( is_spell )
-		sprintf( log_buf, "{g%5d     --    %3d{x\n\r",
-			 skill_table[skill].skill_level[cls],
-			 //skill_table[skill].rating[cls],
-			 skill_table[skill].cap[cls] );
-	    else
-		sprintf( log_buf, "{g%5d    %3d    %3d{x\n\r",
-			 skill_table[skill].skill_level[cls],
-			 skill_table[skill].rating[cls],
-			 skill_table[skill].cap[cls] );
+            if ( is_spell )
+                sprintf( log_buf, "{g%5d     --    %3d{x\n\r",
+                    skill_table[skill].skill_level[cls],
+                    skill_table[skill].cap[cls] );
+            else
+                sprintf( log_buf, "{g%5d    %3d    %3d{x\n\r",
+                    skill_table[skill].skill_level[cls],
+                    skill_table[skill].rating[cls],
+                    skill_table[skill].cap[cls] );
         }
         
-        sprintf(buf,"{w%-12s{x %-5s", 
-            capitalize(class_table[cls].name),
-            log_buf);
-       
-        add_buf(buffer, buf);
+        add_buff(buffer, "{w%-12s{x %-5s", capitalize(class_table[cls].name), log_buf);
     }
 }
 
