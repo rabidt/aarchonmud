@@ -70,6 +70,7 @@ static const struct luaL_reg OBJ_lib [];
 static const struct luaL_reg OBJPROTO_lib[];
 static const struct luaL_reg ROOM_lib [];
 static const struct luaL_reg EXIT_lib [];
+static const struct luaL_reg AREA_lib [];
 
 /* in lua_tables.c */
 
@@ -84,6 +85,7 @@ void add_lua_tables (lua_State *LS);
 #define OBJPROTO_META  "OBJPROTO.meta"
 #define ROOM_META      "ROOM.meta"
 #define EXIT_META      "EXIT.meta"
+#define AREA_META	   "AREA.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 #define UD_TABLE_NAME "udtbl"
@@ -104,10 +106,19 @@ void add_lua_tables (lua_State *LS);
 
 /* oprogs args */
 #define OBJ_ARG "obj"
-#define NUM_OPROG_ARGS 4 /* also TRIG_ARG, OBJ2_ARG */ 
+#define NUM_OPROG_ARGS 4
+/* OBJ2_ARG */ 
 #define CH1_ARG "ch1"
 #define CH2_ARG "ch2"
+/* TRIG_ARG */
 #define NUM_OPROG_RESULTS 1
+
+/* aprog args */
+#define AREA_ARG "area"
+#define NUM_APROG_ARGS 2
+/* CH1_ARG */
+/* TRIG_ARG */
+#define NUM_APROG_RESULTS 1
 
 #define UDTYPE_UNDEFINED 0
 #define UDTYPE_CH        1
@@ -115,6 +126,7 @@ void add_lua_tables (lua_State *LS);
 #define UDTYPE_ROOM      3
 #define UDTYPE_EXIT      4
 #define UDTYPE_OBJPROTO  5
+#define UDTYPE_AREA      6
 
 
 // number of items in an array
@@ -253,6 +265,22 @@ EXIT_DATA *check_exit( lua_State *LS, int arg)
     return exit;
 }
 
+AREA_DATA *check_AREA( lua_State *LS, int arg)
+{
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
+    if ( type != UDTYPE_AREA )
+    {
+        luaL_error(LS, "Bad parameter %d. Expected AREA.", arg );
+        return NULL;
+    }
+
+    lua_getfield(LS, arg, "tableid");
+    AREA_DATA *exit=(EXIT_DATA *)luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return exit;
+}
 
 static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
 {
@@ -292,6 +320,8 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
             meta=ROOM_META; luaL_register(LS,NULL,ROOM_lib); break;
         case UDTYPE_EXIT:
             meta=EXIT_META; luaL_register(LS,NULL,EXIT_lib); break;
+		case UDTYPE_AREA:
+			meta=AREA_META; luaL_register(LS,NULL,AREA_lib); break;
         case UDTYPE_OBJPROTO:
             meta=OBJPROTO_META; luaL_register(LS,NULL, OBJPROTO_lib); break;
         default:
@@ -1462,6 +1492,31 @@ static int L_obj_extra( lua_State *LS)
     return 1;
 }
 
+static int L_area_echo( lua_State *LS)
+{
+	AREA_DATA *ud_area = check_AREA(LS, 1);
+	const char *argument = luaL_checkstring(LS, 2);
+	DESCRIPTOR_DATA *d;
+
+    for ( d = descriptor_list; d; d = d->next )
+    {
+		if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+		{
+			if ( !d->character->in_room )
+				continue;
+			if ( d->character->in_room->area != ud_area )
+				continue;
+				
+			if ( IS_IMMORTAL(d->character) )
+				send_to_char( "Area echo> ", d->character );
+			send_to_char( argument, d->character );
+			send_to_char( "\n\r", d->character );
+		}
+    }
+	
+    return 0;
+}
+
 static const struct luaL_reg mudlib [] = 
 {
     {"luadir", L_mud_luadir}, 
@@ -1547,6 +1602,12 @@ static const struct luaL_reg EXIT_lib [] =
 {
     {"flag", L_exit_flag},
     {NULL, NULL}
+};
+
+static const struct luaL_reg AREA_lib [] =
+{
+    {"echo", L_area_echo},
+    {NULL, NULL}
 }; 
 
 /* Mersenne Twister pseudo-random number generator */
@@ -1630,6 +1691,11 @@ static int EXIT2string (lua_State *LS)
     return 1;
 }
 
+static int AREA2string (lua_State *LS)
+{
+    lua_pushliteral (LS, "mud_area");
+    return 1;
+}
 
 
 
@@ -1768,6 +1834,32 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("v4", ud_obj->value[4]);
     FLDNUM("v5", ud_obj->value[5]);
     FLDSTR("areafname", ud_obj->pIndexData->area->file_name);
+    return 0;
+}
+
+static int check_AREA_equal( lua_State *LS)
+{
+    lua_pushboolean( LS, check_AREA(LS, 1) == check_AREA(LS, 2) );
+    return 1;
+}
+
+static int get_AREA_field ( lua_State *LS )
+{
+    const char *argument = luaL_checkstring (LS, 2 );
+
+    FLDNUM("UDTYPE",UDTYPE_AREA); /* Need this for type checking */
+
+    AREA_DATA *ud_area = check_AREA(LS, 1);
+
+    if ( !ud_area )
+        return 0;
+
+    FLDSTR("name", ud_area->name);
+	FLDSTR("filename", ud_area->file_name);
+	FLDNUM("nplayer", ud_area->nplayer);
+	FLDNUM("minlevel", ud_area->minlevel);
+	FLDNUM("maxlevel", ud_area->maxlevel);
+	
     return 0;
 }
 
@@ -2089,6 +2181,15 @@ static const struct luaL_reg EXIT_metatable [] =
     {NULL, NULL}
 };
 
+static const struct luaL_reg AREA_metatable [] =
+{
+    {"__tostring", AREA2string},
+    {"__index", get_AREA_field},
+    {"__newindex", newindex_error},
+    {"__eq", check_AREA_equal},
+    {NULL, NULL}
+};
+
 void RegisterGlobalFunctions(lua_State *LS)
 {
     /* checks */
@@ -2163,6 +2264,8 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, NULL, EXIT_metatable);
     luaL_newmetatable(LS, OBJPROTO_META);
     luaL_register (LS, NULL, OBJPROTO_metatable);
+    luaL_newmetatable(LS, AREA_META);
+    luaL_register (LS, NULL, AREA_metatable);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
@@ -2266,6 +2369,34 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 
 }
 
+bool lua_load_aprog( lua_State *LS, int vnum, char *code)
+{
+    char buf[MSL];
+
+    sprintf(buf, "function A_%d (%s,%s)"
+            "%s\n"
+            "end",
+            vnum,
+            CH1_ARG, TRIG_ARG,
+            code);
+
+
+    if (luaL_loadstring ( LS, buf) ||
+            CallLuaWithTraceBack ( LS, 0, 0))
+    {
+        bugf ( "LUA aprog error loading vnum %d:\n %s",
+                vnum,
+                lua_tostring( LS, -1));
+        /* bad code, let's kill it */
+        sprintf(buf, "A_%d", vnum);
+        lua_pushnil( LS );
+        lua_setglobal( LS, buf);
+
+        return FALSE;
+    }
+    else return TRUE;
+}
+
 bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
@@ -2292,7 +2423,6 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
         return FALSE;
     }
     else return TRUE;
-
 }
 /* lua_mob_program
    lua equivalent of program_flow
@@ -2504,3 +2634,88 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     return result;
 }
 
+bool lua_area_program( char *trigger, int pvnum, char *source, 
+        AREA_DATA *area, CHAR_DATA *ch1 ) 
+{
+    bool result=FALSE;
+
+    lua_getglobal( mud_LS, "area_program_setup");
+    
+    make_ud_table( mud_LS, area, UDTYPE_AREA, TRUE);
+    if (lua_isnil(mud_LS, -1) )
+    {
+        bugf("make_ud_table pushed nil to lua_area_program");
+        return FALSE;
+    }
+    
+    /* load up the script as a function so args will be local */
+    char buf[MSL*2];
+    sprintf(buf, "A_%d", pvnum);
+    lua_getglobal( mud_LS, buf);
+      
+    if ( lua_isnil( mud_LS, -1) )
+    {
+        lua_remove( mud_LS, -1); /* Remove the nil */
+        /* not loaded yet*/
+        if ( !lua_load_aprog( mud_LS, pvnum, source) )
+        {
+            /* don't bother running it if there were errors */
+            return FALSE;
+        }
+        
+        /* loaded without errors, now get it on the stack */
+        lua_getglobal( mud_LS, buf);
+    }
+    
+    int error=CallLuaWithTraceBack (mud_LS, 2, 1) ;
+    if (error > 0 )
+    {
+        bugf ( "LUA error running area_program_setup: %s",
+        lua_tostring(mud_LS, -1));
+    }
+
+    /* CH1_ARG */
+    if (ch1)
+        make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
+    else lua_pushnil(mud_LS);
+
+    /* TRIG_ARG */
+    if (trigger)
+        lua_pushstring(mud_LS,trigger);
+    else lua_pushnil(mud_LS);
+
+    /* some snazzy stuff to prevent crashes and other bad things*/
+    s_LoopCheckCounter=0;
+    //s_LuaActiveObj=obj;
+    s_LuaScriptInProgress=TRUE;
+    
+    setjmp(s_place);
+    switch ( setjmp(s_place) )   
+    {
+        case 0: /* the actual code we are executing */
+
+            error=CallLuaWithTraceBack (mud_LS, NUM_APROG_ARGS, NUM_APROG_RESULTS) ;
+            if (error > 0 )
+            {
+                bugf ( "LUA aprog error for vnum %d:\n %s",
+                        pvnum,
+                        lua_tostring(mud_LS, -1));
+            }
+            else
+            {
+                result=lua_toboolean (mud_LS, -1);
+            }
+
+            break;
+
+            /* Error handling */ 
+        case ERR_INF_LOOP:
+            bugf("Infinite loop interrupted in aprog: %d for area %d",
+                    pvnum, area->name);
+            break;
+    }
+    s_LuaScriptInProgress=FALSE;
+    //s_LuaActiveObj=NULL;
+    lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
+    return result;
+}
