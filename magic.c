@@ -795,7 +795,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
         return FALSE;
     }
 
-    if (sn == gsn_solar_flare && weather_info.sky >= SKY_RAINING )
+    if ( sn == gsn_solar_flare && (weather_info.sky >= SKY_RAINING || !room_is_sunlit(ch->in_room)) )
     {
         send_to_char( "There isn't enough sunshine out for that!\n\r", ch );
         return FALSE;

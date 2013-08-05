@@ -1723,6 +1723,9 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             else
                 berserk_cost = 3;
         }
+        // half cost for burst/semi-/full-auto, using probabilistic rounding
+        if ( dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto )
+            berserk_cost = (berserk_cost + number_range(0,1)) / 2;
         if ( ch->move >= berserk_cost )
         {
             ch->move -= berserk_cost;

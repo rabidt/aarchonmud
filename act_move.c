@@ -87,6 +87,8 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
     ROOM_INDEX_DATA *in_room;
     ROOM_INDEX_DATA *to_room;
     EXIT_DATA *pexit;
+    AREA_DATA *from_area;
+
     char buf[MAX_STRING_LENGTH];
     int chance, d;
     
@@ -103,6 +105,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
 	bugf( "move_char: NULL room" );
 	return -1;
     }
+    from_area=in_room->area;
 
     if (IS_AFFECTED(ch, AFF_INSANE) && number_bits(1))
         for ( chance = 0; chance < 8; chance++ )
@@ -141,6 +144,15 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
     {
         send_to_char( "Alas, you cannot go that way.\n\r", ch );
         return -1;
+    }
+
+    /* now aprog exit trigs */
+    if (!IS_NPC(ch) )
+    {
+        if ( !ap_exit_trigger(ch, to_room->area) )
+            return -1;
+        if ( !ap_rexit_trigger(ch, to_room->area) )
+            return -1;
     }
         
     if (!IS_NPC(ch) && IS_SET(ch->pcdata->tag_flags, TAG_FROZEN) && IS_TAG(ch))
@@ -473,13 +485,22 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    * If someone is following the char, these triggers get activated
    * for the followers before the char, but it's safer this way...
    */
+   if ( !IS_NPC( ch ) )
+   {
+
+       ap_enter_trigger( ch, from_area);
+
+       ap_renter_trigger( ch );
+ 
+       op_greet_trigger( ch );
+
+   }
+
    if ( IS_NPC( ch ) && HAS_TRIGGER( ch, TRIG_ENTRY ) )
        mp_percent_trigger( ch, NULL, NULL, 0, NULL, 0, TRIG_ENTRY );
    if ( !IS_NPC( ch ) )
        mp_greet_trigger( ch );
 
-   if ( !IS_NPC( ch ) )
-       op_greet_trigger( ch );
 
    /* mprog might have moved the char */
    if ( ch->in_room != to_room )
