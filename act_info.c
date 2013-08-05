@@ -1168,7 +1168,7 @@ void do_autorescue(CHAR_DATA *ch, char *argument)
     }
     else
     {
-        send_to_char("Your will now protect your leader.\n\r",ch);
+        send_to_char("Your will now protect your friends.\n\r",ch);
         SET_BIT(ch->act,PLR_AUTORESCUE);
     }
 }
@@ -4492,6 +4492,10 @@ void do_survey( CHAR_DATA *ch, char *argument )
 	buf2 = "dim";
     else
 	buf2 = "well-lit";
+
+   /* A little feature for blind players */
+    sprintf( buf, "The area you are in is : %s{x\n\r", ch->in_room->area->name);
+        send_to_char(buf, ch);
 
     sprintf( buf, "Your immediate surrounding is %s and %s.\n\r", 
 	     flag_bit_name(sector_flags, room->sector_type), buf2 );
