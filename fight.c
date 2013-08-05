@@ -2800,6 +2800,19 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             dam /= 2;
     }
     
+    // stone skin reduce damage but wears off slowly
+    if ( dam > 1 && IS_AFFECTED(victim, AFF_STONE_SKIN) )
+    {
+        AFFECT_DATA *aff = affect_find_flag(victim->affected, AFF_STONE_SKIN);
+        int level = (aff ? aff->level : victim->level);
+        int max_reduction = 10 + level;
+        int reduction = URANGE(1, dam/10, max_reduction);
+        dam -= reduction;
+        // chance to reduce duration
+        if ( aff && aff->duration > 0 && number_range(1,max_reduction) <= reduction )
+            aff->duration -= 1;
+    }
+    
     if (dt == gsn_beheading)
     {
         immune = FALSE;

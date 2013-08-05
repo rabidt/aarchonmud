@@ -4966,7 +4966,7 @@ void spell_stone_skin( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
-    if ( is_affected( ch, sn ) )
+    if ( IS_AFFECTED(ch, AFF_STONE_SKIN) )
     {
         if (victim == ch)
             send_to_char("Your skin is already as hard as a rock.\n\r",ch); 
@@ -4980,11 +4980,8 @@ void spell_stone_skin( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.level     = level;
     af.duration  = level;
     af.location  = APPLY_AC;
-    /* AC now scales with level, max of 54 instead of
-       baseline 40 - Astark Oct 2012
-       af.modifier  = -40; */
-    af.modifier  = -35 - (level/4);
-    af.bitvector = 0;
+    af.modifier  = -40;
+    af.bitvector = AFF_STONE_SKIN;
     affect_to_char( victim, &af );
     act( "$n's skin turns to stone.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "Your skin turns to stone.\n\r", victim );
