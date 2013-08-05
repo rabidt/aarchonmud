@@ -4060,9 +4060,14 @@ void spell_shroud_of_darkness( int sn, int level, CHAR_DATA *ch, void *vo,int ta
     af.type      = sn;
     af.level     = level;
     af.duration  = level / 4;
-    af.location  = APPLY_NONE;
-    af.modifier  = 0;
+    af.location  = APPLY_SAVES;
+    af.modifier  = -(level / 10);
     af.bitvector = AFF_SHROUD;
+    affect_to_char( victim, &af );
+    af.where     = TO_RESIST;
+    af.location  = APPLY_AC;
+    af.modifier  = -level;
+    af.bitvector = RES_LIGHT;
     affect_to_char( victim, &af );
     act( "$n is encased in darkness.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "You are encased in darkness.\n\r", victim );
