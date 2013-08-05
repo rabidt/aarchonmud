@@ -1589,21 +1589,7 @@ int mob_get_skill(CHAR_DATA *ch, int sn)
     if ( !mob_has_skill(ch, sn) )
         return 0;
 
-    if (ch->daze > 0)
-    {
-        if (skill_table[sn].spell_fun != spell_null)
-            skill /= 2;
-        else
-            skill = 2 * skill / 3;
-    }
-
-    /* encumberance */
-    skill = skill * (1000 - get_encumberance(ch)) / 1000;
-
     skill = URANGE(0,skill,100);
-    /* injury */
-    if (sn != gsn_ashura) // needed to avoid infinite recursion
-        skill = skill * (100 - get_injury_penalty(ch)) / 100;
 
     return skill;
 }
@@ -1700,27 +1686,12 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 			skill = 10;
 	}
 
-	if (ch->daze > 0)
-	{
-		if (skill_table[sn].spell_fun != spell_null)
-			skill /= 2;
-		else
-			skill = 2 * skill / 3;
-	}
-
-	/* encumberance */
-	skill = skill * (1000 - get_encumberance(ch)) / 1000;
-
 	if (ch->pcdata->condition[COND_DRUNK]>10 && !IS_AFFECTED(ch, AFF_BERSERK))
 		skill = 9 * skill / 10;
 	if (ch->pcdata->condition[COND_SMOKE]<-1 )
 		skill = 9 * skill / 10;
 
         skill = URANGE(0,skill/10,100);
-
-        /* injury */
-        if (sn != gsn_ashura) // needed to avoid infinite recursion
-            skill = skill * (100 - get_injury_penalty(ch)) / 100;
 
         return skill;
 }
@@ -1736,7 +1707,28 @@ int get_skill(CHAR_DATA *ch, int sn)
 	else
 	    skill = pc_get_skill(ch, sn);
 
-	return skill;
+    if (ch->daze > 0)
+    {
+        if (skill_table[sn].spell_fun != spell_null)
+            skill /= 2;
+        else
+            skill = skill * 2/3;
+    }
+    
+    /* encumberance */
+    skill = skill * (1000 - get_encumberance(ch)) / 1000;
+
+    /* injury */
+    if (sn != gsn_ashura) // needed to avoid infinite recursion
+        skill = skill * (100 - get_injury_penalty(ch)) / 100;
+    
+    /* poison & disease */
+    if ( skill > 1 && IS_AFFECTED(ch, AFF_POISON) )
+        skill -= 1;    
+    if ( skill > 1 && IS_AFFECTED(ch, AFF_PLAGUE) )
+        skill -= 1;
+
+    return skill;
 }
 
 /* This is used for returning the practiced % of a skill for a player */

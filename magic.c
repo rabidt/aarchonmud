@@ -4329,7 +4329,7 @@ void spell_plague( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
     af.where     = TO_AFFECTS;
     af.type      = sn;
-    af.level     = level * 3/4;
+    af.level     = level;
 
     /* Max duration drastically reduced (97 to 37) - Astark Oct 2012
        af.duration     = level; */
