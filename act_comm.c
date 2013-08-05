@@ -1824,6 +1824,7 @@ void quit_char( CHAR_DATA *ch )
 	ch->pcdata->quest_failed++;
     }
 
+    ap_quit_trigger(ch);
     if (!IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))
        quit_save_char_obj( ch );
     else
