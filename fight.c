@@ -38,7 +38,6 @@
 #include "tables.h"
 #include "warfare.h"
 #include "lookup.h"
-#include "leaderboard.h"
 
 extern WAR_DATA war;
 

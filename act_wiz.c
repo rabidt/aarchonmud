@@ -41,7 +41,6 @@
 #include "magic.h"
 #include "simsave.h"
 #include "buffer_util.h"
-#include "leaderboard.h"
 #if defined(linux)
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
