@@ -540,6 +540,20 @@ const struct flag_type oprog_flags[] =
     {   NULL,           0,          TRUE    }
 };
 
+const struct flag_type aprog_flags[] =
+{
+    {   "enter",        ATRIG_ENTER,     TRUE    },
+	{   "exit",			ATRIG_EXIT,		 TRUE    },
+	{   "renter",		ATRIG_RENTER,	 TRUE	 },
+	{   "rexit",		ATRIG_REXIT,	 TRUE	 },
+	{   "boot",			ATRIG_BOOT,		 TRUE	 },
+	{   "shutdown",	    ATRIG_SHUTDOWN,  TRUE    },
+	{   "quit",			ATRIG_QUIT,		 TRUE    },
+    {   "void",         ATRIG_VOID,      TRUE    },
+    {   "unvoid",       ATRIG_UNVOID,    TRUE    },
+    {   NULL,           0,          TRUE    }
+};
+
 const struct flag_type area_flags[] =
 {
 	{   "changed",      AREA_CHANGED,       TRUE    },
