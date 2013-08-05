@@ -2470,6 +2470,9 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
     if ( IS_SET(ch->form, FORM_CONDUCTIVE) && dam_type == DAM_LIGHTNING )
         dam += dam/4;
 
+    // vitality no longer affects immunities directly
+    dam = dam * (1100 - get_curr_stat(victim, STAT_VIT)) / 1000;
+    
     switch(check_immune(victim,dam_type))
     {
     case(IS_IMMUNE):
