@@ -1395,6 +1395,24 @@ static int L_room_flag( lua_State *LS)
     return 1;
 }
 
+static int L_room_echo( lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    CHAR_DATA *vic;
+    for ( vic=ud_room->people ; vic ; vic=vic->next_in_room )
+    {
+        if (!IS_NPC(vic) )
+        {
+            send_to_char(argument, vic);
+            send_to_char("\n\r", vic);
+        }
+    }
+
+    return 0;
+}
+
 static int L_objproto_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -1579,6 +1597,7 @@ static const struct luaL_reg ROOM_lib [] =
     {"flag", L_room_flag},
     {"oload", L_room_oload},
     {"mload", L_room_mload},
+    {"echo", L_room_echo},
     {NULL, NULL}
 };
 
