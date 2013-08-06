@@ -41,7 +41,6 @@
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
-#include "leaderboard.h"
 #include "mob_stats.h"
 
 /* command procedures needed */
@@ -992,7 +991,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -1467,6 +1466,9 @@ void char_update( void )
                     ch->was_in_room = ch->in_room;
                     if (ch->fighting != NULL)
                         stop_fighting( ch, TRUE );
+                    
+                    ap_void_trigger( ch );
+
                     act( "$n disappears into the void.",
                             ch, NULL, NULL, TO_ROOM );
                     if ( IS_SET( ch->in_room->room_flags, ROOM_BOX_ROOM))
@@ -2487,6 +2489,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */
