@@ -334,6 +334,8 @@ const struct flag_type affect_flags[] =
     { "minor_fade",        AFF_MINOR_FADE,           TRUE  },
     { "replenish",         AFF_REPLENISH,            TRUE  },
     { "fortune",           AFF_FORTUNE,              TRUE  },
+    { "shield",            AFF_SHIELD,               TRUE  },
+    { "stone_skin",        AFF_STONE_SKIN,           TRUE  },
     { NULL,                0,                        0     }
 };
 
@@ -540,6 +542,20 @@ const struct flag_type oprog_flags[] =
     {   NULL,           0,          TRUE    }
 };
 
+const struct flag_type aprog_flags[] =
+{
+    {   "enter",        ATRIG_ENTER,     TRUE    },
+	{   "exit",			ATRIG_EXIT,		 TRUE    },
+	{   "renter",		ATRIG_RENTER,	 TRUE	 },
+	{   "rexit",		ATRIG_REXIT,	 TRUE	 },
+	{   "boot",			ATRIG_BOOT,		 TRUE	 },
+	{   "shutdown",	    ATRIG_SHUTDOWN,  TRUE    },
+	{   "quit",			ATRIG_QUIT,		 TRUE    },
+    {   "void",         ATRIG_VOID,      TRUE    },
+    {   "unvoid",       ATRIG_UNVOID,    TRUE    },
+    {   NULL,           0,          TRUE    }
+};
+
 const struct flag_type area_flags[] =
 {
 	{   "changed",      AREA_CHANGED,       TRUE    },
@@ -619,7 +635,7 @@ const struct flag_type room_flags[] =
     {   "donation",     ROOM_DONATION,      TRUE    },
     {   "nowhere",      ROOM_NOWHERE,       TRUE    },
     {   "snare",        ROOM_SNARE,         FALSE   },   
-    {   "blacksmith",   ROOM_BLACKSMITH,    TRUE    },   
+    {   "blacksmith",   ROOM_BLACKSMITH,    FALSE   },   
     {   "peel",         ROOM_PEEL,          FALSE   },   
     {   "jail",         ROOM_JAIL,          TRUE    },   
     {   "no_quest",     ROOM_NO_QUEST,      TRUE    },   
