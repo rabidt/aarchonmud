@@ -1961,6 +1961,7 @@ void do_showskill(CHAR_DATA *ch,char *argument)
     if (argument[0] == '\0')
     { 
         printf_to_char(ch,"Syntax: showskill <spell/skill name>\n\r");
+        printf_to_char(ch,"        showskill all\n\r");
         return; 
     }
 
