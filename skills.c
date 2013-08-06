@@ -1999,11 +1999,13 @@ void do_raceskills( CHAR_DATA *ch, char *argument )
 
 /* Color, group support, buffers and other tweaks by Rimbol, 10/99. */
 void show_skill(char *argument, BUFFER *buffer);
+void show_skill_all(BUFFER *buffer);
 void do_showskill(CHAR_DATA *ch,char *argument)
 {
     char arg1[MIL];
     int skill, group = -1;
     BUFFER *buffer;
+    bool show_all = FALSE;
     
     /*argument = one_argument(argument,arg1);*/
     strcpy(arg1, argument);
@@ -2013,17 +2015,25 @@ void do_showskill(CHAR_DATA *ch,char *argument)
         printf_to_char(ch,"Syntax: showskill <spell/skill name>\n\r");
         return; 
     }
-    
-    if (   (skill = skill_lookup(arg1)) == -1
-        && (group = group_lookup(arg1)) == -1 )
-    { 
-        printf_to_char(ch,"Skill not found.\n\r");
-        return; 
+
+    if ( str_cmp(argument, "all") == 0 )
+        show_all = TRUE;
+    else
+    {
+        if ( (skill = skill_lookup(arg1)) == -1 && (group = group_lookup(arg1)) == -1 )
+        { 
+            printf_to_char(ch,"Skill not found.\n\r");
+            return; 
+        }
     }
     
     buffer = new_buf();
     
-    if (group > 0)  /* Argument was a valid group name. */
+    if ( show_all )
+    {
+        show_skill_all(buffer);
+    }
+    else if (group > 0)  /* Argument was a valid group name. */
     {
         int sn;
         
@@ -2035,14 +2045,14 @@ void do_showskill(CHAR_DATA *ch,char *argument)
                 break;
             
             show_skill(group_table[group].spells[sn], buffer);
-	    add_buf( buffer, "\n\r" );
+            add_buf( buffer, "\n\r" );
         }
     }
     else           /* Argument was a valid skill/spell/stance name */
     {
         show_skill(arg1, buffer);
-	show_groups( skill, buffer );
-	show_races( skill, buffer );
+        show_groups(skill, buffer);
+        show_races(skill, buffer);
     }
     
     page_to_char(buf_string(buffer), ch);
@@ -2208,6 +2218,41 @@ void show_skill(char *argument, BUFFER *buffer)
         
         add_buff(buffer, "{w%-12s{x %-5s", capitalize(class_table[cls].name), log_buf);
     }
+}
+
+void show_skill_all(BUFFER *buffer)
+{
+    int skill;
+
+    if (buffer == NULL)
+        return;
+
+    add_buff(buffer, "Skill/Spell         Cost    Lag     Duration    Combat  Target\n\r");
+    add_buff(buffer, "==============================================================\n\r");
+    
+    for ( skill = 1; skill_table[skill].name != NULL; skill++ )
+    {
+        int cost = skill_table[skill].min_mana;
+        // check if skill is a stance - if so, display stance cost
+        if ( cost == 0 )
+        {
+            int stance;
+            for (stance = 0; stances[stance].gsn != NULL; stance++)
+                if (stances[stance].gsn == skill_table[skill].pgsn)
+                {
+                    cost = stances[stance].cost;
+                    break;
+                }
+        }
+        add_buff( buffer, "%-20.20s %3d %6d     %-11.11s %-7.7s %s\n\r",
+            skill_table[skill].name,
+            cost,
+            skill_table[skill].beats,
+            spell_duration_names[skill_table[skill].duration],
+            skill_table[skill].minimum_position <= POS_FIGHTING ? "yes" : "no",
+            spell_target_names[skill_table[skill].target]
+        );
+    }            
 }
 
 extern int dice_lookup(char *);
