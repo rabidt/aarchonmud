@@ -2011,46 +2011,28 @@ void do_kick( CHAR_DATA *ch, char *argument )
     
     one_argument(argument, arg);
     
-    if (get_skill(ch,gsn_kick)==0)
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
+    // anyone can kick
+    chance = (100 + get_skill(ch, gsn_kick)) / 2;
+
+    WAIT_STATE( ch, skill_table[gsn_kick].beats );
+
+    if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
     {
-        send_to_char("You better leave the martial arts to fighters.\n\r", ch );
-        return;
+        dam = martial_damage( ch, gsn_kick );
+
+        full_dam(ch,victim, dam, gsn_kick,DAM_BASH,TRUE);
+        check_improve(ch,gsn_kick,TRUE,3);
     }
-    
-    if ( ( victim = ch->fighting ) == NULL )
+    else
     {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
-        return;
+        damage( ch, victim, 0, gsn_kick,DAM_BASH,TRUE);
+        check_improve(ch,gsn_kick,FALSE,3);
     }
-    
-    if ( arg[0] != '\0' )
-        if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-        if ( is_safe(ch,victim) )
-            return;
 
-        chance=get_skill(ch, gsn_kick);
-        
-        check_killer(ch,victim);
-        WAIT_STATE( ch, skill_table[gsn_kick].beats );
-
-        if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
-        {
-            dam = martial_damage( ch, gsn_kick );
-
-            full_dam(ch,victim, dam, gsn_kick,DAM_BASH,TRUE);
-            check_improve(ch,gsn_kick,TRUE,3);
-        }
-        else
-        {
-            damage( ch, victim, 0, gsn_kick,DAM_BASH,TRUE);
-            check_improve(ch,gsn_kick,FALSE,3);
-        }
-        return;
+    return;
 }
 
 void do_disarm( CHAR_DATA *ch, char *argument )
