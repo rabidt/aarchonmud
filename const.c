@@ -3961,7 +3961,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_shield,       TAR_CHAR_DEFENSIVE, POS_STANDING,
-	NULL,           SLOT(67),   12, 18, DUR_NORMAL,
+	NULL,           SLOT(67),   12, 18, DUR_SHORT,
 	"",         "Your force shield shimmers then fades away.",
 	"", NULL
 	},
