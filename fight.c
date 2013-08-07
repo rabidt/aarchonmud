@@ -38,7 +38,6 @@
 #include "tables.h"
 #include "warfare.h"
 #include "lookup.h"
-#include "leaderboard.h"
 
 extern WAR_DATA war;
 
@@ -132,6 +131,7 @@ bool  check_dodge   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_killer  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_parry   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_shield_block  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+bool  check_shield  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  dam_message   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
 						 int dt, bool immune ) );
 void  death_cry     args( ( CHAR_DATA *ch ) );
@@ -1204,6 +1204,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1798,7 +1800,14 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
 
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
-	dam = dam * 9/10;
+        dam -= dam / 10;
+    else if ( IS_AFFECTED(ch, AFF_GIANT_STRENGTH) )
+        dam += dam / 20;
+    
+    if ( IS_AFFECTED(ch, AFF_POISON) )
+        dam -= dam / 20;
+    if ( IS_AFFECTED(ch, AFF_PLAGUE) )
+        dam -= dam / 20;
 
     if ( check_critical(ch,secondary) == TRUE )
     {
@@ -2800,6 +2809,19 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
         if ( number_range(0,ch_roll) < number_range(0,victim_roll) )
             dam /= 2;
+    }
+    
+    // stone skin reduce damage but wears off slowly
+    if ( dam > 1 && IS_AFFECTED(victim, AFF_STONE_SKIN) )
+    {
+        AFFECT_DATA *aff = affect_find_flag(victim->affected, AFF_STONE_SKIN);
+        int level = (aff ? aff->level : victim->level);
+        int max_reduction = 10 + level;
+        int reduction = URANGE(1, dam/10, max_reduction);
+        dam -= reduction;
+        // chance to reduce duration
+        if ( aff && aff->duration > 0 && number_range(1,max_reduction) <= reduction )
+            aff->duration -= 1;
     }
     
     if (dt == gsn_beheading)
@@ -3822,8 +3844,10 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( check_phantasmal( ch, victim, show ) )
         return TRUE;
 
+    if ( check_shield(ch, victim) )
+        return TRUE;
     if ( check_shield_block(ch,victim) )
-	return TRUE;
+        return TRUE;
 
     if ( try_avoid && check_parry( ch, victim ) )
         return TRUE;
@@ -4244,6 +4268,29 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
+/*
+ * Check for shield affect
+ */
+bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( !IS_AFFECTED(victim, AFF_SHIELD) )
+        return FALSE;
+    
+    int chance = 6;
+        
+    // whips are harder to block
+    if ( get_weapon_sn(ch) == gsn_whip )
+        chance /= 2;
+
+    if ( !per_chance(chance) )
+        return FALSE;
+    
+    act_gag( "Your shield deflects $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
+    act_gag( "$N's shield deflects your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
+    act_gag( "$N's shield deflects $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
+
+    return TRUE;
+}
 
 /*
 * Check for dodge.

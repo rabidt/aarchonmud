@@ -255,7 +255,7 @@ void do_shelter( CHAR_DATA *ch )
 	af.where     = TO_AFFECTS;
 	af.type      = gsn_shelter;
 	af.level     = ch->level; 
-	af.duration  = ch->level / 2;
+	af.duration  = get_duration(gsn_shelter, ch->level);
 	af.location  = APPLY_NONE;
 	af.modifier  = 0;
 	af.bitvector = AFF_SHELTER;
@@ -486,7 +486,7 @@ void do_detoxify( CHAR_DATA *ch, char *argument )
 	  af.where     = TO_AFFECTS;
 	  af.type      = gsn_poison;
 	  af.level     = ch->level * skill / 100;
-	  af.duration  = ch->level/2 * skill / 100;
+	  af.duration  = 1;
 	  af.location  = APPLY_STR;
 	  af.modifier  = -2;
 	  af.bitvector = AFF_POISON;
@@ -577,7 +577,7 @@ void do_tame( CHAR_DATA *ch, char *argument )
 	   af.where       = TO_AFFECTS;
 	   af.type        = gsn_tame;
 	   af.level       = ch->level;
-	   af.duration    = number_fuzzy( ch->level / 4 );
+	   af.duration    = get_duration(gsn_tame, ch->level);
 	   af.location    = 0;
 	   af.modifier    = 0;
 	   af.bitvector   = AFF_CHARM;

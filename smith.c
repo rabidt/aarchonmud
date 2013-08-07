@@ -71,8 +71,8 @@ const struct smith_set_arg smith_set_table[] =
         "100qp, 5k gold (name, keywords, desc together)"                },
     {   "description",  smith_set_description,  NULL,                   
         "100qp, 5k gold (name, keywords, desc together)"                },
-/*    {   "sticky",       smith_set_sticky,       smith_set_sticky_price,
-        "Based on item power"                                           },*/
+    {   "sticky",       smith_set_sticky,       smith_set_sticky_price,
+        "Based on item power"                                           },
     {   NULL,           NULL,                   NULL,                  
         NULL                                                            }
 };
@@ -299,11 +299,11 @@ void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch )
     ptc( ch, "Keywords: %s\n\r", obj->name );
     ptc( ch, "Name: %s\n\r", obj->short_descr );
     ptc( ch, "Description: %s\n\r", obj->description );
-/*    if (is_sticky_obj( obj ) )
+    if (is_sticky_obj( obj ) )
         ptc(ch, "Sticky: on    Owner: %s\n\r", ( obj->owner ? obj->owner : "none") );
     else
         send_to_char( "Sticky: off\n\r", ch );
-        */
+        
 }
 
 SM_FUN( smith_finish )
@@ -417,9 +417,10 @@ bool can_smith_obj( OBJ_DATA *obj )
 {
     if ( obj->item_type == ITEM_CONTAINER )
     {
-        return FALSE;
+        if ( obj->contains ) /* not empty*/
+            return FALSE;
     }
-    if ( IS_SET( obj->extra_flags, ITEM_QUESTEQ ) )
+    if ( IS_SET( obj->pIndexData->extra_flags, ITEM_QUESTEQ ) ) /* check the proto */
     {
         return FALSE;
     }
@@ -521,8 +522,8 @@ SM_PRICE_FUN( smith_set_sticky_price )
     {
         int ops = UMAX(get_obj_ops(new), get_obj_spec(new));
 
-        *gold= ops * UMAX(4, ops-20)/4 * 100;
-        *qp= ops * UMAX(4, ops-20)/4 * 1;
+        *gold= ops * UMAX(4, ops-20)/4 * 75;
+        *qp= ops * UMAX(4, ops-20)/16;
 
     }
     else
