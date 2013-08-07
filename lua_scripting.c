@@ -475,6 +475,15 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
+static int L_sendtochar (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    char *msg=luaL_checkstring(LS, 2);
+
+    send_to_char(msg, ch);
+    return 0;
+}
+
 static int L_getmobworld (lua_State *LS)
 {
     int num = luaL_checknumber (LS, 1);
@@ -1395,6 +1404,24 @@ static int L_room_flag( lua_State *LS)
     return 1;
 }
 
+static int L_room_echo( lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    CHAR_DATA *vic;
+    for ( vic=ud_room->people ; vic ; vic=vic->next_in_room )
+    {
+        if (!IS_NPC(vic) )
+        {
+            send_to_char(argument, vic);
+            send_to_char("\n\r", vic);
+        }
+    }
+
+    return 0;
+}
+
 static int L_objproto_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -1579,6 +1606,7 @@ static const struct luaL_reg ROOM_lib [] =
     {"flag", L_room_flag},
     {"oload", L_room_oload},
     {"mload", L_room_mload},
+    {"echo", L_room_echo},
     {NULL, NULL}
 };
 
@@ -2235,6 +2263,8 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getobjworld", L_getobjworld );
     lua_register(LS,"getmobworld", L_getmobworld );
 
+    lua_register(LS,"sendtochar",  L_sendtochar  );
+
 }
 
 static int RegisterLuaRoutines (lua_State *LS)
@@ -2718,4 +2748,80 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     //s_LuaActiveObj=NULL;
     lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
     return result;
+}
+
+
+void do_lboard( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(mud_LS, "do_lboard");
+    make_ud_table(mud_LS, ch, UDTYPE_CH, TRUE);
+    lua_pushstring(mud_LS, argument);
+    if (CallLuaWithTraceBack( mud_LS, 2, 0) )
+    {
+        bugf ( "Error with do_lboard:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void do_lhistory( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(mud_LS, "do_lhistory");
+    make_ud_table(mud_LS, ch, UDTYPE_CH, TRUE);
+    lua_pushstring(mud_LS, argument);
+    if (CallLuaWithTraceBack( mud_LS, 2, 0) )
+    {
+        bugf ( "Error with do_lhistory:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
+{
+    lua_getglobal(mud_LS, "update_lboard");
+    lua_pushnumber( mud_LS, lboard_type);
+    lua_pushstring( mud_LS, ch->name);
+    lua_pushnumber( mud_LS, current);
+    lua_pushnumber( mud_LS, increment);
+
+    if (CallLuaWithTraceBack( mud_LS, 4, 0) )
+    {
+        bugf ( "Error with update_lboard:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void save_lboards()
+{
+    lua_getglobal( mud_LS, "save_lboards");
+    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    {
+        bugf ( "Error with save_lboard:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }  
+}
+
+void load_lboards()
+{
+    lua_getglobal( mud_LS, "load_lboards");
+    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    {
+        bugf ( "Error with load_lboards:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void check_lboard_reset()
+{
+    lua_getglobal( mud_LS, "check_lboard_reset");
+    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    {
+        bugf ( "Error with check_lboard_resets:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
 }

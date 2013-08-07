@@ -41,7 +41,6 @@
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
-#include "leaderboard.h"
 #include "mob_stats.h"
 
 /* command procedures needed */
@@ -992,7 +991,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -1754,12 +1753,20 @@ void affect_update( CHAR_DATA *ch )
     if ( ch == NULL || ch->in_room == NULL )
         return;
 
+    // may recover faster from maledictions than normal while resting
+    // single check for all affects, as one skill may add multiple affects which should have same duration
+    bool malediction_recovery = FALSE;
+    if ( ch->position < POS_FIGHTING && !ch->fighting && number_range(1, MAX_CURRSTAT) <= get_curr_stat(ch, STAT_VIT) )
+        malediction_recovery = TRUE;
+    
     for ( paf = ch->affected; paf != NULL; paf = paf_next )
     {
         paf_next    = paf->next;
         if ( paf->duration > 0 )
         {
             paf->duration--;
+            if ( paf->duration > 0 && malediction_recovery && is_offensive(paf->type) )
+                paf->duration--;
             if (number_range(0,4) == 0 && paf->level > 0)
                 paf->level--;  /* spell strength fades with time */
         }
@@ -2300,7 +2307,7 @@ void aggr_update( void )
                     af.where = TO_AFFECTS;
                     af.type = gsn_soothe;
                     af.level = victim->level;
-                    af.duration = dice(2,4);
+                    af.duration = get_duration(gsn_soothe, victim->level);
                     af.location = APPLY_HITROLL;
                     af.modifier = -5;
                     af.bitvector = AFF_CALM;
@@ -2490,6 +2497,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */

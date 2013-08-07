@@ -307,21 +307,6 @@ int check_immune(CHAR_DATA *ch, int dam_type)
     if (immune > IS_IMMUNE)
 	immune = IS_IMMUNE;
     
-    if (immune!=IS_IMMUNE)
-    {
-        def=get_curr_stat(ch, STAT_VIT)/4;
-        if (def>25)
-        {
-            if (number_percent()<def-25)
-                immune=UMIN(immune+1, IS_RESISTANT);
-        }
-        else
-        {
-            if (number_percent()<25-def)
-                immune=UMAX(immune-1, IS_VULNERABLE);
-        }
-    }
-    
     return immune;
 }
 
