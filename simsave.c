@@ -734,7 +734,8 @@ void mem_sim_save_other()
     }
 
     /* leaderboards */
-    /*mf = save_lboards();
+    save_lboards();
+   /* mf = save_lboards();
     {
         mf->next = other_save_list;
         other_save_list = mf;
