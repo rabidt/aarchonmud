@@ -5089,6 +5089,7 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
   AFFECT_DATA af;
   CHAR_DATA *victim;
   int skill, dam, level;
+  bool confuse = TRUE;
 
   if ( (skill = get_skill(ch,gsn_mindflay)) == 0)
   {
@@ -5122,51 +5123,38 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
     damage( ch, victim, 0, gsn_mindflay, DAM_MENTAL, FALSE);
     check_improve(ch,gsn_mindflay,FALSE,3);
     return;
-  } 
+  }
+  
+  // prepare affect
+  af.where      = TO_AFFECTS;
+  af.type       = gsn_feeblemind;
+  af.level      = level;
+  af.duration   = 1;
+  af.location   = APPLY_INT;
+  af.modifier   = -(level/8);
+  af.bitvector  = AFF_FEEBLEMIND;
+
   if ( saves_spell(level + 10, victim, DAM_MENTAL) )
   {
-    /* attack worked half - damage halved, feeblemind */
-    send_to_char( "You feel your mind getting flayed!\n\r", victim );
-    full_dam( ch, victim, dam/2, gsn_mindflay, DAM_MENTAL, TRUE);
-  
-    if ( number_bits(2) == 0 )
-    {
-      af.where    = TO_AFFECTS;
-      af.type     = gsn_feeblemind;
-      af.level    = level;
-      af.duration = 1 + level/20;
-      af.location = APPLY_INT;
-      af.modifier = -(level/8);
-      af.bitvector = AFF_FEEBLEMIND;
-      act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
-      act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
-      affect_join(victim,&af);
-    }
-    return;
+    dam /= 2;
+    confuse = FALSE;
   }
 
-  /* full attack */
   send_to_char( "You feel your mind getting flayed!\n\r", victim );
   full_dam( ch, victim, dam, gsn_mindflay, DAM_MENTAL, TRUE);
+
   if ( number_bits(2) == 0 )
-  { 
-    if (!is_affected(victim, gsn_confusion))
+  {
+    act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
+    act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
+    affect_join(victim,&af);
+    if ( confuse )
     {
-      af.where    = TO_AFFECTS;
       af.type = gsn_confusion;
-      af.level    = level;
-      af.duration = 1;
-      af.location = APPLY_INT;
-      af.modifier = -(level/8);
       af.bitvector = AFF_INSANE;
-    } else {
-      af.bitvector = AFF_FEEBLEMIND;
-      af.type     = gsn_feeblemind;
-      af.duration = 1 + level/20;
+      affect_join(victim,&af);
     }
-  act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
-  act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
-  affect_join(victim,&af);
   }
+  
   check_improve(ch,gsn_mindflay,TRUE,3);
 }
