@@ -2307,7 +2307,7 @@ void stop_idling( CHAR_DATA *ch )
 
     ch->timer = 0;
     char_from_room( ch );
-    if ( IS_SET(ch->was_in_room->room_flags, ROOM_BOX_ROOM))
+    if ( IS_SET(ch->was_in_room->room_flags, ROOM_BOX_ROOM) )
     {
         char_to_room( ch, get_room_index( ROOM_VNUM_RECALL));
     }
@@ -2315,7 +2315,10 @@ void stop_idling( CHAR_DATA *ch )
     {
         char_to_room( ch, ch->was_in_room );
     }
+
     ch->was_in_room = NULL;
+
+    ap_unvoid_trigger(ch);
     act( "$n has returned from the void.", ch, NULL, NULL, TO_ROOM );
     return;
 }

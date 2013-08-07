@@ -349,13 +349,6 @@ int get_save(CHAR_DATA *ch)
     return saves;
 }
 
-/* hard to make saving throw */
-bool saves_spell_hard( int level, CHAR_DATA *victim, int dam_type )
-{
-    return saves_spell( level, victim, dam_type )
-        && saves_spell( level, victim, dam_type );
-}
-
 /*
  * Compute a saving throw.
  * Negative applys make saving throw better.
@@ -373,18 +366,13 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
         case IS_VULNERABLE: if ( chance(10) ) return FALSE;  break;
     }
 
-    if ( victim->fighting != NULL
-            && victim->fighting->stance == STANCE_INQUISITION
-            && chance(20) )
-        return FALSE;
-
     if ( (victim->stance == STANCE_UNICORN)
             && chance(25) )
         return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PHASE)
             && chance(50) )
-        return;
+        return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PROTECT_MAGIC)
             && chance(20) )
@@ -397,6 +385,9 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
     /* now the resisted roll */
     save_roll = -get_save(victim);
     hit_roll = (level + 10) * 6/5;
+
+    if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
+        save_roll = save_roll * 2/3;
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -797,7 +788,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
         return FALSE;
     }
 
-    if (sn == gsn_solar_flare && weather_info.sky >= SKY_RAINING )
+    if ( sn == gsn_solar_flare && (weather_info.sky >= SKY_RAINING || !room_is_sunlit(ch->in_room)) )
     {
         send_to_char( "There isn't enough sunshine out for that!\n\r", ch );
         return FALSE;
@@ -999,7 +990,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 #endif
     }
     else if ( 2*number_percent() > (chance+100)
-            || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(10)
+            || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20)
             || IS_AFFECTED(ch, AFF_CURSE) && per_chance(5) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
@@ -1309,9 +1300,7 @@ void spell_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    /* af.modifier  = -20; */
-    /* Make spell better as your level increases -- Maedhros 09/11/2012 */
-    af.modifier  = -20 - (level/4);
+    af.modifier  = -(20 + level);
     af.location  = APPLY_AC;
     af.bitvector = 0;
     affect_to_char( victim, &af );
@@ -1422,14 +1411,13 @@ void spell_blindness( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
-    if ( IS_AFFECTED(victim, AFF_BLIND))
+    if ( IS_AFFECTED(victim, AFF_BLIND) )
     {
         send_to_char( "Your target is already blind!\n\r", ch );
         return;
     }
 
-    if ( saves_spell(level,victim,DAM_OTHER)
-            || (number_percent() < 33 ) )
+    if ( saves_spell(level * 2/3, victim, DAM_OTHER) )
     {
         if ( victim != ch )
             act( "$N blinks $S eyes, and the spell has no effect.", ch, NULL, victim, TO_CHAR );
@@ -1441,13 +1429,7 @@ void spell_blindness( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.type      = sn;
     af.level     = level;
     af.location  = APPLY_HITROLL;
-
-    /* Increased power of spell (Now reduces Hitroll by up to 10
-       points instead of only 5) - Astark Oct 2012
-       af.modifier  = -4; */
-
-    af.modifier  = -4 - number_range(0,6); 
-
+    af.modifier  = -4 - number_range(0,6);
     af.duration  = get_duration(sn, level);
     af.bitvector = AFF_BLIND;
     affect_to_char( victim, &af );
@@ -1465,32 +1447,10 @@ void spell_burning_hands(int sn,int level, CHAR_DATA *ch, void *vo, int target)
 
     if ( check_hit( ch, victim, sn, DAM_FIRE, 100 ) )
     {
-        dam = get_sn_damage( sn, level, ch ) * 15/10;
-        if ( saves_spell( level, victim, DAM_LIGHT) )
+        dam = get_sn_damage( sn, level, ch ) * 14/10;
+        if ( saves_spell( level, victim, DAM_FIRE) )
             dam /= 2;
-
-        /* Level 90+ chars have a chance to blind their opponent
-           with burning hands - Astark */
-        if (level >= 90)
-        {
-
-            if (!IS_AFFECTED(victim,AFF_BLIND) &&  !saves_spell(level / 4 + dam / 20, victim,DAM_FIRE) &&  !number_bits(2))
-            {
-                AFFECT_DATA af;
-                act("$n is blinded by smoke!",victim,NULL,NULL,TO_ROOM);
-                act("Your eyes tear up from smoke...you can't see a thing!",
-                        victim,NULL,NULL,TO_CHAR);
-
-                af.where        = TO_AFFECTS;
-                af.type         = gsn_burning_hands;
-                af.level        = level;
-                af.duration     = 0;
-                af.location     = APPLY_HITROLL;
-                af.modifier     = -2;
-                af.bitvector    = AFF_BLIND;
-            }
-        }
-
+        fire_effect( victim, level, dam, TARGET_CHAR );
     }
     else
         dam = 0;
@@ -1537,20 +1497,22 @@ void spell_call_lightning( int sn, int level,CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-/* RT calm spell stops all fighting in the room */
+/**
+ * Calm spell works like this: 
+ * 1) all violent characters need to save or be calmed
+ * 2) non-violent characters not attacked by violent ones stop fighting
+ */
+bool is_violent( CHAR_DATA *vch, CHAR_DATA *ch )
+{
+    return !IS_AFFECTED(vch, AFF_CALM) && !is_same_group(vch, ch);
+}
 
 void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *vch;
-    int mlevel = 0;
-    int count = 0;
-    int high_level = 0;    
-    int chance;
+    CHAR_DATA *attacker;
     AFFECT_DATA af;
-    int bonus;
-    char buf[MSL];
-    char buf2[MSL];
-    char buf3[MSL];
+    bool conflict = FALSE;
 
     if( IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
     {
@@ -1558,94 +1520,84 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         return;
     }
 
-    /* get sum of all char levels in the room */
-    for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
+    /* try to calm all characters that need it */
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
-        if (vch->position == POS_FIGHTING)
+        // no need
+        if ( vch->fighting == NULL )
+            continue;
+
+        conflict = TRUE;
+        
+        if ( !is_violent(vch, ch) )
+            continue;
+        
+        // failure
+        if ( is_safe(ch, vch) || saves_spell(level, vch, DAM_MENTAL) )
+            continue;
+        
+        if ( IS_AFFECTED(vch, AFF_BERSERK) )
         {
-            count++;
-            if (IS_NPC(vch)) /* mobs count half their level */
-                mlevel += vch->level/2;
-            else
-                mlevel += vch->level;
-            high_level = UMAX(high_level,vch->level);
+            // remove berserk, but not calm yet - halfway there
+            affect_strip_flag(vch, AFF_BERSERK);
+            send_to_char("You feel less angry.\n\r", vch);
+            act("$n seems a little calmer.", vch, NULL, NULL, TO_ROOM);
+            continue;
         }
+        
+        af.where = TO_AFFECTS;
+        af.type = sn;
+        af.level = level;
+        af.duration = get_duration(sn, level);
+        af.location = APPLY_HITROLL;
+        af.modifier = -5;
+        af.bitvector = AFF_CALM;
+        affect_to_char(vch, &af);
+        af.location = APPLY_DAMROLL;
+        affect_to_char(vch, &af);
+        
+        send_to_char("A wave of calm passes over you.\n\r", vch);
+        act("A wave of calm passes over $n.", vch, NULL, NULL, TO_ROOM);
     }
 
-    /* compute chance of stopping combat */
-    chance = 2 * level /*- high_level + 2 * count*/;
-
-    if (IS_IMMORTAL(ch)) /* always works */
+    if ( !conflict )
     {
-        sprintf( buf, "%d = chance\n\r", chance );
-        send_to_char(buf, ch);
+        send_to_char("Things seem pretty calm already.\n\r", ch);
+        return;
     }
-
-    if (IS_IMMORTAL(ch)) /* always works */
+    
+    conflict = FALSE;
+    /* stop the fighting */
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
-        sprintf( buf2, "%d = mlevel\n\r", mlevel );
-        send_to_char(buf2, ch);
-    }
+        if ( vch->fighting == NULL )
+            continue;
 
-
-    if (IS_IMMORTAL(ch)) /* always works */
-        mlevel = 0;
-
-    /* restart counter */
-    count = 0;
-    if (number_range(0, chance) >= number_range(0, mlevel))  /* hard to stop large fights */
-    {
-        for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
+        if ( is_violent(vch, ch) )
         {
-            if ( IS_NPC(vch) &&
-                    (IS_SET(vch->imm_flags,IMM_MAGIC) || IS_SET(vch->act,ACT_UNDEAD)) )
-                continue;
-
-            if ( IS_AFFECTED(vch,AFF_CALM) || IS_AFFECTED(vch,AFF_BERSERK)
-                    ||  is_affected(vch,skill_lookup("frenzy")) || is_safe(vch,ch) )
-                continue;
-
-            if (IS_IMMORTAL(ch)) /* always works */
-                send_to_char("You're in the for loop\n\r",ch);
-
-            if (IS_NPC(vch))
+            conflict = TRUE;
+            continue;
+        }
+        
+        // is a violent opponent fighting us?
+        bool is_attacked = FALSE;
+        for ( attacker = vch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
+            if ( attacker->fighting == vch && is_violent(attacker, ch) )
             {
-                stop_hunting(ch);
-                SET_BIT(ch->off_flags, OFF_DISTRACT);
+                is_attacked = TRUE;
+                break;
             }
 
-            count++;
-
-            if (IS_IMMORTAL(ch)) /* always works */
-            {
-                sprintf( buf3, "%d = count\n\r", count );
-                send_to_char(buf3, ch);
-            }
-
-            send_to_char("A wave of calm passes over you.\n\r",vch);
-            act( "A wave of calm passes over $n.", vch, NULL, NULL, TO_ROOM );
-
-            if (vch->fighting || vch->position == POS_FIGHTING)
-                stop_fighting(vch,FALSE);
-
-            af.where = TO_AFFECTS;
-            af.type = sn;
-            af.level = level;
-            af.duration = get_duration(sn, level);
-            af.location = APPLY_HITROLL;
-            if (!IS_NPC(vch))
-                af.modifier = -5;
-            else
-                af.modifier = -2;
-            af.bitvector = AFF_CALM;
-            affect_to_char(vch,&af);
-
-            af.location = APPLY_DAMROLL;
-            affect_to_char(vch,&af);
-        }
+        if ( !is_attacked )
+            stop_fighting(vch, FALSE);
+        else
+            conflict = TRUE;
     }
-    if( count == 0 )
-        send_to_char("Your environment continues to be hostile.\n\r",ch);
+    
+    if ( conflict )
+        send_to_char("Your environment continues to be hostile.\n\r", ch);
+    else
+        send_to_char("... and world peace.\n\r", ch);
 }
 
 void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
@@ -3492,7 +3444,7 @@ void spell_giant_strength(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_STR;
-    af.modifier  = 1+level/5;
+    af.modifier  = (20 + level) / 4;
     af.bitvector = AFF_GIANT_STRENGTH;
     affect_to_char( victim, &af );
     send_to_char( "Your muscles surge with heightened power!\n\r", victim );
@@ -4371,7 +4323,7 @@ void spell_plague( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
     af.where     = TO_AFFECTS;
     af.type      = sn;
-    af.level     = level * 3/4;
+    af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_STR;
     af.modifier  = -5; 
@@ -4730,7 +4682,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -4753,7 +4705,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
@@ -4852,11 +4803,8 @@ void spell_shield( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
-    /* Now scales with level instead of static number - Astark Oct 2012
-       It's slightly better than armor due to the level you get it at
-       af.modifier  = -20; */
-    af.modifier  = -25 - (level/4);
-    af.bitvector = 0;
+    af.modifier  = -20;
+    af.bitvector = AFF_SHIELD;
     affect_to_char( victim, &af );
     act( "$n is surrounded by a force shield.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "You are surrounded by a force shield.\n\r", victim );
@@ -4872,9 +4820,7 @@ void spell_shocking_grasp(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
     if ( check_hit( ch, victim, sn, DAM_LIGHTNING, 100 ) )
     {
-        /* Now works just like chill touch, but does slightly
-           less damage - Astark Oct 2012 */
-        dam = get_sn_damage( sn, level, ch ) * 12/10;
+        dam = get_sn_damage( sn, level, ch ) * 14/10;
         if ( saves_spell( level, victim, DAM_LIGHTNING) )
             dam /= 2;
         shock_effect( victim, level, dam, TARGET_CHAR );
@@ -5003,7 +4949,7 @@ void spell_stone_skin( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
-    if ( is_affected( ch, sn ) )
+    if ( IS_AFFECTED(ch, AFF_STONE_SKIN) )
     {
         if (victim == ch)
             send_to_char("Your skin is already as hard as a rock.\n\r",ch); 
@@ -5017,11 +4963,8 @@ void spell_stone_skin( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
-    /* AC now scales with level, max of 54 instead of
-       baseline 40 - Astark Oct 2012
-       af.modifier  = -40; */
-    af.modifier  = -35 - (level/4);
-    af.bitvector = 0;
+    af.modifier  = -40;
+    af.bitvector = AFF_STONE_SKIN;
     affect_to_char( victim, &af );
     act( "$n's skin turns to stone.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "Your skin turns to stone.\n\r", victim );
@@ -5294,7 +5237,7 @@ void spell_weaken( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_STR;
-    af.modifier  = -1 * (level / 2);
+    af.modifier  = -1 * (20 + level) / 2;
     af.bitvector = AFF_WEAKEN;
     affect_to_char( victim, &af );
     send_to_char( "You feel your strength slip away.\n\r", victim );

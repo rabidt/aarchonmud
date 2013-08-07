@@ -622,9 +622,6 @@ void do_headbutt( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch,victim) )
         return;
         
-    if ( !can_see(ch, victim) && blind_penalty(ch) )
-        chance /= 2;
-        
     check_killer(ch,victim);
     WAIT_STATE( ch, skill_table[gsn_headbutt].beats );
     if ( check_hit(ch, victim, gsn_headbutt, DAM_BASH, chance) )
@@ -1906,7 +1903,7 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     CHAR_DATA *other;
     CHAR_DATA *other_next;
     CHAR_DATA *fch;
-    bool okay = FALSE;
+    bool is_attacked = FALSE;
     int chance;
     
     one_argument( argument, arg );
@@ -1946,12 +1943,6 @@ void do_rescue( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !IS_NPC(ch) && IS_NPC(victim) )
-    {
-        send_to_char( "Doesn't need your help!\n\r", ch );
-        return;
-    }
-    
     if ( ch->fighting == victim )
     {
         send_to_char( "Too late.\n\r", ch );
@@ -1960,38 +1951,24 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     
     /* find character to rescue victim from */
     for ( fch = victim->in_room->people; fch != NULL; fch = fch->next_in_room )
-	if ( fch->fighting == victim )
-	    break;
+    {        
+        if ( fch->fighting == victim )
+        {        
+            is_attacked = TRUE;
+            if ( !is_safe_spell(ch, fch, FALSE) )
+                break;
+        }
+    }
 
     if ( fch == NULL )
     {
-        send_to_char( "That person isn't being attacked right now.\n\r", ch );
+        if ( is_attacked )
+            send_to_char( "You cannot interfere in this fight.\n\r",ch);
+        else
+            send_to_char( "That person isn't being attacked right now.\n\r", ch );
         return;
     }
-    
-    if ( is_safe_spell(ch, fch, FALSE) )
-    {
-        send_to_char("You cannot fight that target.\n\r",ch);
-        return;
-    }
-    
-    /*
-    for ( other=ch->in_room->people; other != NULL; other=other_next )
-    {
-        other_next = other->next_in_room;
-        if ( other->fighting == victim )
-        {
-            okay = TRUE;
-            break;
-        }
-    }
-    if ( okay == FALSE )
-    {
-        send_to_char( "That person isn't in need of a rescue.\n\r", ch );
-        return;
-    }
-    */
-    
+
     chance = 25 + get_skill(ch, gsn_rescue)/2 + get_skill(ch, gsn_bodyguard)/4;
     if (number_percent() < get_skill(fch, gsn_entrapment))
     {
@@ -2033,46 +2010,28 @@ void do_kick( CHAR_DATA *ch, char *argument )
     
     one_argument(argument, arg);
     
-    if (get_skill(ch,gsn_kick)==0)
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
+    // anyone can kick
+    chance = (100 + get_skill(ch, gsn_kick)) / 2;
+
+    WAIT_STATE( ch, skill_table[gsn_kick].beats );
+
+    if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
     {
-        send_to_char("You better leave the martial arts to fighters.\n\r", ch );
-        return;
+        dam = martial_damage( ch, gsn_kick );
+
+        full_dam(ch,victim, dam, gsn_kick,DAM_BASH,TRUE);
+        check_improve(ch,gsn_kick,TRUE,3);
     }
-    
-    if ( ( victim = ch->fighting ) == NULL )
+    else
     {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
-        return;
+        damage( ch, victim, 0, gsn_kick,DAM_BASH,TRUE);
+        check_improve(ch,gsn_kick,FALSE,3);
     }
-    
-    if ( arg[0] != '\0' )
-        if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-        if ( is_safe(ch,victim) )
-            return;
 
-        chance=get_skill(ch, gsn_kick);
-        
-        check_killer(ch,victim);
-        WAIT_STATE( ch, skill_table[gsn_kick].beats );
-
-        if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
-        {
-            dam = martial_damage( ch, gsn_kick );
-
-            full_dam(ch,victim, dam, gsn_kick,DAM_BASH,TRUE);
-            check_improve(ch,gsn_kick,TRUE,3);
-        }
-        else
-        {
-            damage( ch, victim, 0, gsn_kick,DAM_BASH,TRUE);
-            check_improve(ch,gsn_kick,FALSE,3);
-        }
-        return;
+    return;
 }
 
 void do_disarm( CHAR_DATA *ch, char *argument )
@@ -3180,9 +3139,6 @@ void do_bite( CHAR_DATA *ch, char *argument )
         if ( is_safe(ch,victim) )
             return;
         
-	if ( !can_see(ch, victim) && blind_penalty(ch) )
-	    chance /= 2;
-        
         WAIT_STATE( ch, skill_table[gsn_bite].beats );
         check_killer(ch,victim);
 
@@ -3725,7 +3681,7 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
 
 void do_roundhouse( CHAR_DATA *ch, char *argument )
 {
-   int chance, tally=0;
+   int tally=0;
    CHAR_DATA *vch;
    CHAR_DATA *vch_next;
    int skill, dam; 
@@ -3743,11 +3699,8 @@ void do_roundhouse( CHAR_DATA *ch, char *argument )
        vch_next = vch->next_in_room;
        if ( vch != ch && !is_safe_spell(ch,vch,TRUE))
        {
-	   chance = skill - get_skill(vch, gsn_dodge) / 3;
-	   chance += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(vch, STAT_AGI)) / 8;
-	   
 	   /* now the attack */
-	   if ( check_hit(ch, vch, gsn_roundhouse, DAM_BASH, chance) )
+	   if ( check_hit(ch, vch, gsn_roundhouse, DAM_BASH, skill) )
 	   {
 	       check_killer(ch,vch);
 	       tally++;
@@ -4314,8 +4267,8 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
         if ( !IS_AFFECTED(victim, AFF_ROOTS) && number_percent() < chance_stun )
         {
             act("$n smashes you in the side of the head, stunning you!",ch,NULL,victim,TO_VICT);
-            act("You smash the side $N's head, stunning $S!",ch,NULL,victim,TO_CHAR);
-            act("$n smashes $N in the side of the head, stunning $S!",ch,NULL,victim,TO_NOTVICT);
+            act("You smash $N in the side of $S head, stunning $M!",ch,NULL,victim,TO_CHAR);
+            act("$n smashes $N in the side of $S head, stunning $M!",ch,NULL,victim,TO_NOTVICT);
             DAZE_STATE(victim, 2*PULSE_VIOLENCE + ch->size - victim->size );
         }
 
@@ -4335,7 +4288,6 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
 
 void do_rake( CHAR_DATA *ch, char *argument )
 {
-    int chance;
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
     int skill, dam; 
@@ -4356,11 +4308,8 @@ void do_rake( CHAR_DATA *ch, char *argument )
        vch_next = vch->next_in_room;
        if ( vch != ch && !is_safe_spell(ch,vch,TRUE) )
        {
-	   chance = skill - get_skill(vch, gsn_dodge) / 3;
-	   chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(vch, STAT_AGI)) / 8;
-
 	   /* now the attack */
-	   if ( check_hit(ch, vch, gsn_razor_claws, DAM_SLASH, chance) )
+	   if ( check_hit(ch, vch, gsn_razor_claws, DAM_SLASH, skill) )
 	   {
 	       check_killer(ch, vch);
 	       if ( number_bits(6) == 0 )
@@ -5137,6 +5086,7 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
   AFFECT_DATA af;
   CHAR_DATA *victim;
   int skill, dam, level;
+  bool confuse = TRUE;
 
   if ( (skill = get_skill(ch,gsn_mindflay)) == 0)
   {
@@ -5170,51 +5120,38 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
     damage( ch, victim, 0, gsn_mindflay, DAM_MENTAL, FALSE);
     check_improve(ch,gsn_mindflay,FALSE,3);
     return;
-  } 
+  }
+  
+  // prepare affect
+  af.where      = TO_AFFECTS;
+  af.type       = gsn_feeblemind;
+  af.level      = level;
+  af.duration   = 1;
+  af.location   = APPLY_INT;
+  af.modifier   = -(level/8);
+  af.bitvector  = AFF_FEEBLEMIND;
+
   if ( saves_spell(level + 10, victim, DAM_MENTAL) )
   {
-    /* attack worked half - damage halved, feeblemind */
-    send_to_char( "You feel your mind getting flayed!\n\r", victim );
-    full_dam( ch, victim, dam/2, gsn_mindflay, DAM_MENTAL, TRUE);
-  
-    if ( number_bits(2) == 0 )
-    {
-      af.where    = TO_AFFECTS;
-      af.type     = gsn_feeblemind;
-      af.level    = level;
-      af.duration = get_duration(gsn_mindflay, level);
-      af.location = APPLY_INT;
-      af.modifier = -(level/8);
-      af.bitvector = AFF_FEEBLEMIND;
-      act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
-      act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
-      affect_join(victim,&af);
-    }
-    return;
+    dam /= 2;
+    confuse = FALSE;
   }
 
-  /* full attack */
   send_to_char( "You feel your mind getting flayed!\n\r", victim );
   full_dam( ch, victim, dam, gsn_mindflay, DAM_MENTAL, TRUE);
+
   if ( number_bits(2) == 0 )
-  { 
-    if (!is_affected(victim, gsn_confusion))
+  {
+    act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
+    act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
+    affect_join(victim,&af);
+    if ( confuse )
     {
-      af.where    = TO_AFFECTS;
       af.type = gsn_confusion;
-      af.level    = level;
-      af.duration = get_duration(gsn_mindflay, level);
-      af.location = APPLY_INT;
-      af.modifier = -(level/8);
       af.bitvector = AFF_INSANE;
-    } else {
-      af.bitvector = AFF_FEEBLEMIND;
-      af.type     = gsn_feeblemind;
-      af.duration = get_duration(gsn_mindflay, level);
+      affect_join(victim,&af);
     }
-  act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
-  act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
-  affect_join(victim,&af);
   }
+  
   check_improve(ch,gsn_mindflay,TRUE,3);
 }
