@@ -332,19 +332,18 @@ local function make_result(tbl,typ)
     tbl.tables=new_lbtables(typ)
 
     local tmp=lh_tables[typ] or {}
-    table.insert(tmp, rslt)
+    table.insert(tmp, 1, rslt)
     lh_tables[typ]=tmp
     
-    if #lh_tables[typ]>10 then
-        table.remove(lh_tables[typ],1)
+    while #lh_tables[typ]>10 do
+        table.remove(lh_tables[typ],#lh_tables[typ])
     end
 end
 
 function check_lboard_reset()
   for k,tbl in pairs(lb_tables) do
-    if os.time()>tbl.timeout then
-      if k=="overall" then
-      elseif k=="daily" then
+    if os.time()>tbl.timeout and not(tbl.timeout==0) then
+      if k=="daily" then
         make_result(tbl,k)
         reset_daily()
       elseif k=="weekly" then
