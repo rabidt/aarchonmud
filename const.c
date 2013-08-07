@@ -3871,7 +3871,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  3,  3,  4,  3,  3,  3,  3,  3,  3,  3,  4,  4,  3,  3, 3 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_refresh,      TAR_CHAR_DEFENSIVE, POS_STANDING,
+	spell_refresh,      TAR_CHAR_DEFENSIVE, POS_FIGHTING,
 	NULL,           SLOT(81),    15,   8, DUR_NONE,
 	"refresh",      "!Refresh!",        "", NULL
 	},
@@ -3983,8 +3983,8 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_shroud_of_darkness,             TAR_CHAR_SELF,             POS_STANDING,
-	NULL,           SLOT(2110),  80,    40, DUR_BRIEF,
+	spell_shroud_of_darkness, TAR_CHAR_DEFENSIVE, POS_STANDING,
+	NULL,           SLOT(2110),  50,    24, DUR_BRIEF,
 	"shroud of darkness",   "You are no longer protected by darkness.", "", NULL
 	},
 

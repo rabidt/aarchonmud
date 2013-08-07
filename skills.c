@@ -58,6 +58,59 @@ bool can_gain_skill( CHAR_DATA *ch, int sn )
 	&& skill_table[sn].skill_level[ch->class] < LEVEL_IMMORTAL;
 }
 
+// group cost is reduced for a character if they already know skills in the group
+int get_group_cost( CHAR_DATA *ch, int gn )
+{
+    int i;
+    // calculate sum of base costs of skills/subgroups (total and new)
+    int total_cost = 0;
+    int new_cost = 0;
+    for ( i = 0; i < MAX_IN_GROUP; i++ )
+    {
+        char *group_item = group_table[gn].spells[i];
+
+        if ( group_item == NULL )
+            break;
+
+        int sn = skill_lookup(group_item);
+        if ( sn < 0 )
+        {
+            // not a skill, so should be a subgroup
+            int sgn = group_lookup(group_item);
+            if ( sgn < 0 )
+            {
+                bugf("get_group_cost: Unknown skill or group '%s' in group '%s'.", group_item, group_table[gn].name);
+                continue;
+            }
+            int subgroup_cost = group_table[sgn].rating[ch->class];
+            if ( subgroup_cost > 0 )
+            {
+                total_cost += subgroup_cost;
+                if ( !ch->pcdata->group_known[sgn] )
+                    new_cost += get_group_cost(ch, sgn);
+            }
+        }
+        else
+        {
+            if ( can_gain_skill(ch, sn) )
+            {
+                int skill_cost = skill_table[sn].rating[ch->class];
+                total_cost += skill_cost;
+                if ( !ch->pcdata->learned[sn] )
+                    new_cost += skill_cost;
+            }
+        }
+    }
+
+    int base_cost = group_table[gn].rating[ch->class];
+
+    // safety-net against groups with total cost of 0
+    if ( total_cost == 0 )
+        return base_cost;
+
+    return base_cost * new_cost / total_cost;
+}
+
 /* used to get new skills */
 void do_gain(CHAR_DATA *ch, char *argument)
 {
@@ -125,9 +178,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 				if (!ch->pcdata->group_known[gn]
 				    &&  group_table[gn].rating[ch->class] > 0)
 				{
-					sprintf(buf,"%-17s    %-5d ",
-						group_table[gn].name,
-						group_table[gn].rating[ch->class]);
+                    sprintf(buf,"%-17s    %-5d ", group_table[gn].name, get_group_cost(ch, gn));
 					send_to_char(buf,ch);
 					if (++col % 3 == 0)
 						send_to_char("\n\r",ch);
@@ -337,7 +388,8 @@ void do_gain(CHAR_DATA *ch, char *argument)
 					ch,NULL,trainer,TO_CHAR );
 				return;
 			}
-			if (ch->train < group_table[gn].rating[ch->class])
+            int group_cost = get_group_cost(ch, gn);
+            if (ch->train < group_cost)
 			{
 				if ( introspect )
 					send_to_char("You aren't ready for that group.\n\r",ch);
@@ -353,7 +405,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			else
 				act("$N trains you in the art of $t",
 				ch,group_table[gn].name,trainer,TO_CHAR );
-			ch->train -= group_table[gn].rating[ch->class];
+            ch->train -= group_cost;
 			return;
 		}
 		else if ((sn = skill_lookup(argument)) > -1)
@@ -1537,21 +1589,7 @@ int mob_get_skill(CHAR_DATA *ch, int sn)
     if ( !mob_has_skill(ch, sn) )
         return 0;
 
-    if (ch->daze > 0)
-    {
-        if (skill_table[sn].spell_fun != spell_null)
-            skill /= 2;
-        else
-            skill = 2 * skill / 3;
-    }
-
-    /* encumberance */
-    skill = skill * (1000 - get_encumberance(ch)) / 1000;
-
     skill = URANGE(0,skill,100);
-    /* injury */
-    if (sn != gsn_ashura) // needed to avoid infinite recursion
-        skill = skill * (100 - get_injury_penalty(ch)) / 100;
 
     return skill;
 }
@@ -1648,27 +1686,12 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 			skill = 10;
 	}
 
-	if (ch->daze > 0)
-	{
-		if (skill_table[sn].spell_fun != spell_null)
-			skill /= 2;
-		else
-			skill = 2 * skill / 3;
-	}
-
-	/* encumberance */
-	skill = skill * (1000 - get_encumberance(ch)) / 1000;
-
 	if (ch->pcdata->condition[COND_DRUNK]>10 && !IS_AFFECTED(ch, AFF_BERSERK))
 		skill = 9 * skill / 10;
 	if (ch->pcdata->condition[COND_SMOKE]<-1 )
 		skill = 9 * skill / 10;
 
         skill = URANGE(0,skill/10,100);
-
-        /* injury */
-        if (sn != gsn_ashura) // needed to avoid infinite recursion
-            skill = skill * (100 - get_injury_penalty(ch)) / 100;
 
         return skill;
 }
@@ -1684,7 +1707,28 @@ int get_skill(CHAR_DATA *ch, int sn)
 	else
 	    skill = pc_get_skill(ch, sn);
 
-	return skill;
+    if (ch->daze > 0)
+    {
+        if (skill_table[sn].spell_fun != spell_null)
+            skill /= 2;
+        else
+            skill = skill * 2/3;
+    }
+    
+    /* encumberance */
+    skill = skill * (1000 - get_encumberance(ch)) / 1000;
+
+    /* injury */
+    if (sn != gsn_ashura) // needed to avoid infinite recursion
+        skill = skill * (100 - get_injury_penalty(ch)) / 100;
+    
+    /* poison & disease */
+    if ( skill > 1 && IS_AFFECTED(ch, AFF_POISON) )
+        skill -= 1;    
+    if ( skill > 1 && IS_AFFECTED(ch, AFF_PLAGUE) )
+        skill -= 1;
+
+    return skill;
 }
 
 /* This is used for returning the practiced % of a skill for a player */

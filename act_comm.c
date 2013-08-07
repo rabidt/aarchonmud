@@ -113,7 +113,7 @@ void do_delete( CHAR_DATA *ch, char *argument)
 	    if ( IS_AUTHED(ch) )
 		add_auto_auth( ch->name );
             remove_from_auth( ch->name );
-	    remove_from_all_lboards( ch->name);
+	    //remove_from_all_lboards( ch->name);
             rank_available(ch->clan, ch->pcdata->clan_rank, 0);
 	    religion_remove_follower( ch );
             sprintf( filename, "%s", capitalize( ch->name ) );
@@ -1824,6 +1824,7 @@ void quit_char( CHAR_DATA *ch )
 	ch->pcdata->quest_failed++;
     }
 
+    ap_quit_trigger(ch);
     if (!IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))
        quit_save_char_obj( ch );
     else
