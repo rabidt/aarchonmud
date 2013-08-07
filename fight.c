@@ -2812,7 +2812,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         AFFECT_DATA *aff = affect_find_flag(victim->affected, AFF_STONE_SKIN);
         int level = (aff ? aff->level : victim->level);
-        int max_reduction = 10 + level;
+        int max_reduction = 10 + level/4;
         int reduction = URANGE(1, dam/10, max_reduction);
         dam -= reduction;
         // chance to reduce duration
