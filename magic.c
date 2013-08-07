@@ -349,13 +349,6 @@ int get_save(CHAR_DATA *ch)
     return saves;
 }
 
-/* hard to make saving throw */
-bool saves_spell_hard( int level, CHAR_DATA *victim, int dam_type )
-{
-    return saves_spell( level, victim, dam_type )
-        && saves_spell( level, victim, dam_type );
-}
-
 /*
  * Compute a saving throw.
  * Negative applys make saving throw better.
@@ -1400,14 +1393,13 @@ void spell_blindness( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
-    if ( IS_AFFECTED(victim, AFF_BLIND))
+    if ( IS_AFFECTED(victim, AFF_BLIND) )
     {
         send_to_char( "Your target is already blind!\n\r", ch );
         return;
     }
 
-    if ( saves_spell(level,victim,DAM_OTHER)
-            || (number_percent() < 33 ) )
+    if ( saves_spell(level * 2/3, victim, DAM_OTHER) )
     {
         if ( victim != ch )
             act( "$N blinks $S eyes, and the spell has no effect.", ch, NULL, victim, TO_CHAR );
@@ -1419,16 +1411,7 @@ void spell_blindness( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.type      = sn;
     af.level     = level;
     af.location  = APPLY_HITROLL;
-
-    /* Increased power of spell (Now reduces Hitroll by up to 10
-       points instead of only 5) - Astark Oct 2012
-       af.modifier  = -4; */
-
-    af.modifier  = -4 - number_range(0,6); 
-
-    /* Max duration cut in half (33 to 16) - Astark Oct 2012
-       af.duration  = number_range(level/10, level/3); */
-
+    af.modifier  = -4 - number_range(0,6);
     af.duration  = number_range(level/10, level/6);
     af.bitvector = AFF_BLIND;
     affect_to_char( victim, &af );
