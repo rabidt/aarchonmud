@@ -41,7 +41,6 @@
 #include "buffer_util.h"
 #include "religion.h"
 #include "olc.h"
-#include "leaderboard.h"
 #include "mob_stats.h"
 
 /* command procedures needed */
