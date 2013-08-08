@@ -78,10 +78,8 @@ void add_lua_tables (lua_State *LS);
 
 #define CHARACTER_STATE "character.state"
 #define CH_META        "CH.meta"
-#define CH_ENV_META    "CH_env_meta"
 #define UD_META        "UD.meta"
 #define OBJ_META       "OBJ.meta"
-//#define OBJ_ENV_META   "OBJ.envmeta"
 #define OBJPROTO_META  "OBJPROTO.meta"
 #define ROOM_META      "ROOM.meta"
 #define EXIT_META      "EXIT.meta"
@@ -387,28 +385,6 @@ void unregister_lua( void *ptr )
     }
 }
 
-/* Given a Lua state, return the character it belongs to */
-CHAR_DATA * L_getchar (lua_State *LS)
-{
-    /* retrieve our character */
-
-    CHAR_DATA * ch;
-
-    /* retrieve the character */
-    lua_getglobal( LS, "current_env");
-    lua_pushstring( LS, MOB_ARG );
-    lua_gettable( LS, -2);
-    ch = check_CH(LS, -1);
-
-    if (!ch)  
-        luaL_error (LS, "No current character");
-
-    lua_pop(LS, 2);  /* pop result and current_env*/
-
-    return ch;
-} /* end of L_getchar */
-/* For debugging, show traceback information */
-
 static void GetTracebackFunction (lua_State *LS)
 {
     lua_pushliteral (LS, LUA_DBLIBNAME);     /* "debug"   */
@@ -474,6 +450,15 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
 
     return error;
 }  /* end of CallLuaWithTraceBack  */
+
+static int L_sendtochar (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    char *msg=luaL_checkstring(LS, 2);
+
+    send_to_char(msg, ch);
+    return 0;
+}
 
 static int L_getmobworld (lua_State *LS)
 {
@@ -545,19 +530,10 @@ static int L_getobjproto (lua_State *LS)
     return 1;
 }
 
-static int L_ch_log (lua_State *LS)
+static int L_log (lua_State *LS)
 {
     char buf[MSL];
-    CHAR_DATA *ch=check_CH(LS,1);
-    if (IS_NPC(ch))
-    {
-        sprintf(buf, "LUA::(%d)%s:%s",
-                ch->pIndexData->vnum, ch->short_descr, luaL_checkstring (LS, 2) );
-    }
-    else
-    {
-        sprintf(buf, "LUA::%s:%s", ch->name, luaL_checkstring (LS, 1));
-    }
+    sprintf(buf, "LUA::%s", luaL_checkstring (LS, 1));
 
     log_string(buf);
     return 0;
@@ -574,31 +550,77 @@ static int L_ch_randchar (lua_State *LS)
 
 }
 
-static int L_loadprog (lua_State *LS)
+static int L_loadmprog (lua_State *LS)
 {
     int num = luaL_checknumber (LS, 1);
     MPROG_CODE *pMcode;
 
     if ( (pMcode = get_mprog_index(num)) == NULL )
     {
-        luaL_error(LS, "loadprog: vnum %d doesn't exist", num);
+        luaL_error(LS, "loadmprog: vnum %d doesn't exist", num);
         return 0;
     }
 
     if ( !pMcode->is_lua)
     {
-        luaL_error(LS, "loadprog: vnum %d is not lua code", num);
+        luaL_error(LS, "loadmprog: vnum %d is not lua code", num);
         return 0;
     }
     luaL_loadstring (LS, pMcode->code);
-    lua_getglobal( LS, "current_env");
+    lua_pushvalue(LS, 2);
     lua_setfenv(LS, -2); 
     if (CallLuaWithTraceBack (LS, 0, 0))
     {
-        bugf ( "loadprog error loading vnum %d:\n %s",
+        bugf ( "loadmprog error loading vnum %d:\n %s",
                 num,
                 lua_tostring(LS, -1));
     } 
+    return 0;
+}
+
+static int L_loadoprog (lua_State *LS)
+{
+    int num = luaL_checknumber (LS, 1);
+    OPROG_CODE *pOcode;
+
+    if ( (pOcode = get_oprog_index(num)) == NULL )
+    {
+        luaL_error(LS, "loadoprog: vnum %d doesn't exist", num);
+        return 0;
+    }
+
+    luaL_loadstring (LS, pOcode->code);
+    lua_pushvalue(LS, 2);
+    lua_setfenv(LS, -2);
+    if (CallLuaWithTraceBack (LS, 0, 0))
+    {
+        bugf ( "loadoprog error loading vnum %d:\n %s",
+                num,
+                lua_tostring(LS, -1));
+    }
+    return 0;
+}
+
+static int L_loadaprog (lua_State *LS)
+{
+    int num = luaL_checknumber (LS, 1);
+    APROG_CODE *pAcode;
+
+    if ( (pAcode = get_aprog_index(num)) == NULL )
+    {
+        luaL_error(LS, "loadaprog: vnum %d doesn't exist", num);
+        return 0;
+    }
+
+    luaL_loadstring (LS, pAcode->code);
+    lua_pushvalue(LS, 2);
+    lua_setfenv(LS, -2);
+    if (CallLuaWithTraceBack (LS, 0, 0))
+    {
+        bugf ( "loadaprog error loading vnum %d:\n %s",
+                num,
+                lua_tostring(LS, -1));
+    }
     return 0;
 }
 
@@ -897,8 +919,8 @@ static int L_ch_mdo (lua_State *LS)
 
 static int L_mobhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1); 
+    const char *argument = luaL_checkstring (LS, 2);
 
     if ( is_r_number( argument ) )
         lua_pushboolean( LS, (bool) get_mob_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) ); 
@@ -910,8 +932,8 @@ static int L_mobhere (lua_State *LS)
 
 static int L_objhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
 
     if ( is_r_number( argument ) )
         return( get_obj_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) );
@@ -923,8 +945,8 @@ static int L_objhere (lua_State *LS)
 
 static int L_mobexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1); 
+    const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,(bool) (get_mp_char( ud_ch, argument) != NULL) );
 
@@ -933,8 +955,8 @@ static int L_mobexists (lua_State *LS)
 
 static int L_objexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1); 
+    const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, (bool) (get_mp_obj( ud_ch, argument) != NULL) );
 
@@ -1545,6 +1567,10 @@ static const struct luaL_reg mudlib [] =
 
 static const struct luaL_reg CH_lib [] =
 {
+    {"mobhere", L_mobhere},
+    {"objhere", L_objhere},
+    {"mobexists", L_mobexists},
+    {"objexists", L_objexists},
     {"affected", L_affected},
     {"offensive", L_off},
     {"immune", L_imm},
@@ -1588,7 +1614,7 @@ static const struct luaL_reg CH_lib [] =
     {"setact", L_ch_setact},
     {"hit", L_ch_hit},
     {"randchar", L_ch_randchar},
-    {"log", L_ch_log},
+    //{"log", L_ch_log},
     {NULL, NULL}
 };
 
@@ -2212,10 +2238,10 @@ static const struct luaL_reg AREA_metatable [] =
 void RegisterGlobalFunctions(lua_State *LS)
 {
     /* checks */
-    lua_register(LS,"mobhere",     L_mobhere);
-    lua_register(LS,"objhere",     L_objhere);
-    lua_register(LS,"mobexists",   L_mobexists);
-    lua_register(LS,"objexists",   L_objexists);
+    //lua_register(LS,"mobhere",     L_mobhere);
+    //lua_register(LS,"objhere",     L_objhere);
+    //lua_register(LS,"mobexists",   L_mobexists);
+    //lua_register(LS,"objexists",   L_objexists);
     lua_register(LS,"hour",        L_hour);
     lua_register(LS,"ispc",        L_ispc);
     lua_register(LS,"isnpc",       L_isnpc);
@@ -2249,10 +2275,14 @@ void RegisterGlobalFunctions(lua_State *LS)
 
     /* other */
     lua_register(LS,"getroom",     L_getroom);
-    lua_register(LS,"loadprog",    L_loadprog);
+    lua_register(LS,"loadmprog",   L_loadmprog);
+    lua_register(LS,"loadoprog",   L_loadoprog);
+    lua_register(LS,"loadaprog",   L_loadaprog);
     lua_register(LS,"getobjproto", L_getobjproto);
     lua_register(LS,"getobjworld", L_getobjworld );
     lua_register(LS,"getmobworld", L_getmobworld );
+    lua_register(LS,"log",         L_log );
+    lua_register(LS,"sendtochar",  L_sendtochar  );
 
 }
 
