@@ -554,7 +554,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
         case TAR_VIS_CHAR_OFF:
             if (( arg[0] == '\0' )
                     && (ch->fighting != NULL)
-                    && !can_see(ch, ch->fighting) )
+                    && !can_see_combat(ch, ch->fighting) )
             {
                 send_to_char( "You can't see your target.\n\r", ch );
                 return FALSE;
@@ -672,7 +672,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
             if (arg[0] == '\0')
             {
                 if ((victim = ch->fighting) == NULL
-                        || (victim != NULL && !can_see(ch,victim)))
+                        || (victim != NULL && !can_see_combat(ch,victim)))
                 {
                     send_to_char("Cast the spell on whom or what?\n\r",ch);
                     return FALSE;
