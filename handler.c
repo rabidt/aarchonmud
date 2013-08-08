@@ -53,6 +53,7 @@ DECLARE_DO_FUN(do_return    );
 void    affect_modify   args( ( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd ) );
 ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, char *argument, bool exact );
 bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim );
+bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat );
 OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact );
 OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, char *argument, bool exact );
 OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, char *arg,
@@ -3267,14 +3268,14 @@ bool ignore_invisible = FALSE; // hunt etc.
 /* returns whether ch does see victim, does not see victim, or has a chance
  * to see victim (hide not checked!)
  */
-int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim )
+int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
 {
     /* RT changed so that WIZ_INVIS has levels */
     if ( ch == victim )
         return SEE_CAN;
     
-    if ( helper_visible && IS_HELPER(victim) )
-	return SEE_CAN;
+    if ( helper_visible && IS_HELPER(victim) && !combat )
+        return SEE_CAN;
 
     if ( get_trust(ch) < victim->invis_level )
         return SEE_CANT;
@@ -3282,11 +3283,10 @@ int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( get_trust(ch) < victim->incog_level && ch->in_room != victim->in_room )
         return SEE_CANT;
     
-    if ( (!IS_NPC(ch) && IS_SET(ch->act, PLR_HOLYLIGHT))
-        || (IS_NPC(ch) && IS_IMMORTAL(ch)))
+    if ( (!IS_NPC(ch) && IS_SET(ch->act, PLR_HOLYLIGHT)) || (IS_NPC(ch) && IS_IMMORTAL(ch)) )
         return SEE_CAN;
     
-    if ( IS_NPC(ch) && IS_SET(ch->act, ACT_SEE_ALL) )
+    if ( IS_NPC(ch) && IS_SET(ch->act, ACT_SEE_ALL) && !combat )
         return SEE_CAN;
     
     if ( IS_NPC(victim) && IS_SET(victim->act, ACT_WIZI) )
@@ -3341,7 +3341,12 @@ int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim )
  */
 bool can_see( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    return can_see_new(ch, victim) != SEE_CANT;
+    return can_see_new(ch, victim, FALSE) != SEE_CANT;
+}
+
+bool can_see_combat( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    return can_see_new(ch, victim, TRUE) != SEE_CANT;
 }
 
 /* True if room would be dark if lights were removed */
@@ -3393,7 +3398,17 @@ int light_status( CHAR_DATA *ch )
  */
 bool check_see( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    int see_state = can_see_new(ch, victim);
+    return check_see_new(ch, victim, FALSE);
+}
+
+bool check_see_combat( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    return check_see_new(ch, victim, TRUE);
+}
+
+bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
+{
+    int see_state = can_see_new(ch, victim, combat);
     int roll_ch;
     int roll_victim;
     
