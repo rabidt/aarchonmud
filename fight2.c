@@ -222,7 +222,7 @@ void do_bash( CHAR_DATA *ch, char *argument )
     skill = (get_skill(ch, gsn_bash) + 100) / 2;
     chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
     chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see( ch, victim ) )
+    if ( !can_see_combat( ch, victim ) )
 	chance_hit /= 2;
     
     /* check if the blow hits */
@@ -458,7 +458,7 @@ void do_trip( CHAR_DATA *ch, char *argument )
     if ( victim->size > ch->size )
 	chance -= (victim->size - ch->size) * 2;
     
-    if (!can_see(ch,victim))
+    if ( !can_see_combat(ch,victim) )
 	chance /= 2;
 
     /* now the attack */
@@ -555,7 +555,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
         return;
     }
     
-    if ( check_see(victim, ch) )
+    if ( check_see_combat(victim, ch) )
     {
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
 	chance -= 75;
@@ -665,7 +665,7 @@ void do_net( CHAR_DATA *ch, char *argument )
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
     
-    if ( !can_see( ch, victim) )
+    if ( !can_see_combat( ch, victim) )
     {
         send_to_char( "What? Where? You can't net someone you don't see!\n\r", ch );
         return;
@@ -1301,7 +1301,7 @@ void do_aim( CHAR_DATA *ch, char *argument )
         return; 
     }
         
-    if (!can_see(ch, victim) )
+    if ( !can_see_combat(ch, victim) )
     {
         send_to_char("You don't see your target, how can you aim?\n\r", ch );
         return;
@@ -1635,7 +1635,7 @@ void do_snipe( CHAR_DATA *ch, char *argument )
     {   
         skill = get_skill(ch, gsn_assassination);
         if ( number_bits(5) == 0
-             && (!check_see(victim, ch) || number_bits(1))
+             && (!check_see_combat(victim, ch) || number_bits(1))
              && number_percent() < skill )
         {
             act("You blow $n's brains out!",victim,NULL,ch,TO_VICT);
@@ -1697,7 +1697,7 @@ void do_circle( CHAR_DATA *ch, char *argument )
     
     if (arg[0] == '\0')
     {
-        if ( can_see(ch, ch->fighting) )
+        if ( can_see_combat(ch, ch->fighting) )
             victim = ch->fighting;
         else
         {
@@ -1751,7 +1751,7 @@ void do_circle( CHAR_DATA *ch, char *argument )
     
     chance = chance / 2;
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see(victim, ch) )
+    if ( !can_see_combat(victim, ch) )
 	chance += 10;
     if ( IS_AFFECTED(ch, AFF_HASTE) )
 	chance += 25;
@@ -1821,7 +1821,7 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch, victim) )
         return;
     
-    if ( !can_see(ch, victim) )
+    if ( !can_see_combat(ch, victim) )
     {
         send_to_char("You can't see them.\n\r",ch);
         return;
@@ -1846,11 +1846,11 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
     }
 
     /* can be used like backstab OR like circle.. */
-    if ( ch->fighting != NULL || check_see(victim, ch) )
+    if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
 	chance = chance / 2;
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	if ( !can_see(victim, ch) )
+	if ( !can_see_combat(victim, ch) )
 	    chance += 10;
 	if ( IS_AFFECTED(ch, AFF_HASTE) )
 	    chance += 25;
@@ -2082,7 +2082,7 @@ void do_disarm( CHAR_DATA *ch, char *argument )
 	return;
     }
         
-        if ( !can_see( ch, victim ) )
+        if ( !can_see_combat( ch, victim ) )
         {
             send_to_char( "You fumble for your opponent's weapon, but can't find it.\n\r", ch );
             return;
@@ -2318,7 +2318,7 @@ void do_gouge( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !can_see( ch, victim) )
+    if ( !can_see_combat( ch, victim) )
     {
         send_to_char( "You can't find your opponent's eyes.\n\r", ch );
         return;
@@ -2726,7 +2726,7 @@ void do_guard( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !can_see( ch, victim ) )
+    if ( !can_see_combat( ch, victim ) )
     {
         send_to_char( "You can't see them well enough for that.\n\r", ch );
         return;
@@ -3261,7 +3261,7 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
     skill = (get_skill(ch, gsn_shield_bash) + 100) / 2;
     chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
     chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see( ch, victim ) )
+    if ( !can_see_combat( ch, victim ) )
 	chance_hit /= 2;
         
     /* check if the blow hits */
@@ -4080,7 +4080,7 @@ void do_intimidate( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !can_see(victim, ch) )
+    if ( !can_see_combat(victim, ch) )
 	skill /= 2;
     
     /* bonus if victim is already scared */
@@ -4198,7 +4198,7 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( check_see(victim, ch) )
+    if ( check_see_combat(victim, ch) )
     {
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
 	chance -= 75;
@@ -4617,7 +4617,7 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch, victim) )
         return;
     
-    if ( !can_see(ch, victim) )
+    if ( !can_see_combat(ch, victim) )
     {
         send_to_char("You can't see them.\n\r",ch);
         return;
@@ -4642,11 +4642,11 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
     }
 
     /* can be used like backstab OR like circle.. */
-    if ( ch->fighting != NULL || check_see(victim, ch) )
+    if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
 	chance = chance*2/3;
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	if ( !can_see(victim, ch) )
+	if ( !can_see_combat(victim, ch) )
 	    chance += 10;
 	if ( IS_AFFECTED(ch, AFF_HASTE) )
 	    chance += 25;
@@ -4784,7 +4784,7 @@ void do_rupture( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch, victim) )
         return;
     
-    if ( !can_see(ch, victim) )
+    if ( !can_see_combat(ch, victim) )
     {
         send_to_char("You can't see your opponent.\n\r",ch);
         return;
@@ -4803,11 +4803,11 @@ void do_rupture( CHAR_DATA *ch, char *argument )
     }
 
     /* can be used like backstab OR like circle.. */
-    if ( ch->fighting != NULL || check_see(victim, ch) )
+    if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
 	chance = chance*2/3;
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	if ( !can_see(victim, ch) )
+	if ( !can_see_combat(victim, ch) )
 	    chance += 10;
 	if ( IS_AFFECTED(ch, AFF_HASTE) )
 	    chance += 25;
@@ -4988,7 +4988,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
     skill = (get_skill(ch, gsn_quivering_palm) + 100) / 2;
     chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
     chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see( ch, victim ) )
+    if ( !can_see_combat( ch, victim ) )
 	chance_hit /= 2;
         
     /* check if the blow hits */
