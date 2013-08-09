@@ -306,7 +306,7 @@ void run_combat_action( DESCRIPTOR_DATA *d )
 
 bool wants_to_rescue( CHAR_DATA *ch )
 {
-    if ( ch->position < POS_FIGHTING || ch->hit < ch->wimpy || IS_AFFECTED(ch, AFF_FEAR) )
+    if ( ch->position < POS_FIGHTING || ch->hit < ch->max_hit * ch->wimpy/100 || IS_AFFECTED(ch, AFF_FEAR) )
         return FALSE;
     return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
@@ -1709,7 +1709,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     // berserking characters deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
-    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) /*&& !is_ranged_weapon(wield)*/ )
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && ch->move > ch->max_move * ch->calm/100 )
     {
         int berserk_cost = 2;
         if ( wield != NULL )
@@ -3081,7 +3081,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
    if ( !IS_NPC(victim)
 	&& victim->hit > 0
 	&& !IS_SET(victim->act, PLR_WAR)
-	&& ( victim->hit <= victim->wimpy
+	&& ( victim->hit <= victim->max_hit * victim->wimpy/100
 	     || (IS_AFFECTED(victim, AFF_INSANE) && number_bits(6)==0)
 	     || IS_AFFECTED(victim, AFF_FEAR) ) 
 	&& victim->wait < PULSE_VIOLENCE / 2 )
@@ -6077,6 +6077,7 @@ void do_die( CHAR_DATA *ch, char *argument )
 }
 
 // players may want to stop raging to preserve moves
+/*
 void do_calm( CHAR_DATA *ch, char *argument )
 {
     if ( !IS_AFFECTED(ch, AFF_BERSERK) )
@@ -6114,6 +6115,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     
     return;
 }
+*/
 
 void do_murde( CHAR_DATA *ch, char *argument )
 {
