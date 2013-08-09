@@ -306,7 +306,7 @@ void run_combat_action( DESCRIPTOR_DATA *d )
 
 bool wants_to_rescue( CHAR_DATA *ch )
 {
-    if ( ch->position < POS_FIGHTING || ch->hit < ch->wimpy || IS_AFFECTED(ch, AFF_FEAR) )
+    if ( ch->position < POS_FIGHTING || ch->hit < ch->max_hit * ch->wimpy/100 || IS_AFFECTED(ch, AFF_FEAR) )
         return FALSE;
     return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
@@ -3081,7 +3081,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
    if ( !IS_NPC(victim)
 	&& victim->hit > 0
 	&& !IS_SET(victim->act, PLR_WAR)
-	&& ( victim->hit <= victim->wimpy
+	&& ( victim->hit <= victim->max_hit * victim->wimpy/100
 	     || (IS_AFFECTED(victim, AFF_INSANE) && number_bits(6)==0)
 	     || IS_AFFECTED(victim, AFF_FEAR) ) 
 	&& victim->wait < PULSE_VIOLENCE / 2 )
