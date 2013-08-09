@@ -38,7 +38,6 @@
 #include "tables.h"
 #include "warfare.h"
 #include "lookup.h"
-#include "leaderboard.h"
 
 extern WAR_DATA war;
 
@@ -132,6 +131,7 @@ bool  check_dodge   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_killer  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_parry   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_shield_block  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+bool  check_shield  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  dam_message   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
 						 int dt, bool immune ) );
 void  death_cry     args( ( CHAR_DATA *ch ) );
@@ -329,7 +329,7 @@ void check_rescue( CHAR_DATA *ch )
 
         // may not want to rescue
         target = attacker->fighting;
-        if ( target == NULL || target == ch || IS_NPC(target) || !is_same_group(ch, target) || !can_see(ch, target) )
+        if ( target == NULL || target == ch || IS_NPC(target) || !is_same_group(ch, target) || !can_see_combat(ch, target) )
             continue;
 
         // may not want to be rescued
@@ -695,7 +695,7 @@ void check_assist(CHAR_DATA *ch,CHAR_DATA *victim)
                     number = 0;
                     for (vch = ch->in_room->people; vch; vch = vch->next)
                     {
-                        if (can_see(rch,vch)
+                        if (can_see_combat(rch,vch)
                             && is_same_group(vch,victim)
 			    && !is_safe(rch, vch)
                             && number_range(0,number) == 0)
@@ -1204,6 +1204,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1798,7 +1800,14 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
 
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
-	dam = dam * 9/10;
+        dam -= dam / 10;
+    else if ( IS_AFFECTED(ch, AFF_GIANT_STRENGTH) )
+        dam += dam / 20;
+    
+    if ( IS_AFFECTED(ch, AFF_POISON) )
+        dam -= dam / 20;
+    if ( IS_AFFECTED(ch, AFF_PLAGUE) )
+        dam -= dam / 20;
 
     if ( check_critical(ch,secondary) == TRUE )
     {
@@ -1926,7 +1935,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     ch_roll = ch_roll * skill/100;
 
     /* blind attacks */
-    if ( !can_see( ch, victim ) && blind_penalty(ch) )
+    if ( !can_see_combat( ch, victim ) && blind_penalty(ch) )
 	ch_roll = ch_roll * 3/4;
 
     /* bad combat position */
@@ -2800,6 +2809,19 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
         if ( number_range(0,ch_roll) < number_range(0,victim_roll) )
             dam /= 2;
+    }
+    
+    // stone skin reduce damage but wears off slowly
+    if ( dam > 1 && IS_AFFECTED(victim, AFF_STONE_SKIN) )
+    {
+        AFFECT_DATA *aff = affect_find_flag(victim->affected, AFF_STONE_SKIN);
+        int level = (aff ? aff->level : victim->level);
+        int max_reduction = 10 + level/4;
+        int reduction = URANGE(1, dam/10, max_reduction);
+        dam -= reduction;
+        // chance to reduce duration
+        if ( aff && aff->duration > 0 && number_range(1,max_reduction) <= reduction )
+            aff->duration -= 1;
     }
     
     if (dt == gsn_beheading)
@@ -3822,8 +3844,10 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( check_phantasmal( ch, victim, show ) )
         return TRUE;
 
+    if ( check_shield(ch, victim) )
+        return TRUE;
     if ( check_shield_block(ch,victim) )
-	return TRUE;
+        return TRUE;
 
     if ( try_avoid && check_parry( ch, victim ) )
         return TRUE;
@@ -4027,7 +4051,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
         chance += 10; 
 
-    if (!can_see(ch,victim) && blind_penalty(victim))
+    if ( !can_see_combat(ch,victim) && blind_penalty(victim) )
         chance /= 2;
     
     if ( IS_AFFECTED(victim, AFF_SORE) )
@@ -4104,7 +4128,7 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( IS_AFFECTED(victim, AFF_SORE) )
 	chance -= 10;
     
-    if (!can_see(victim,ch) && blind_penalty(victim))
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
 
     if (get_skill(victim,gsn_duck) == 100)
@@ -4143,7 +4167,7 @@ bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( IS_AFFECTED(victim, AFF_SORE) )
 	chance -= 10;
     
-    if ( !can_see(victim,ch) && blind_penalty(victim) )
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance/4;
 
     /* Works at 95%, instead of 100%, since 100% effective
@@ -4225,7 +4249,7 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
         chance += 10;
     
-    if ( !can_see(victim,ch) && blind_penalty(victim) )
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
 
     if ( IS_AFFECTED(victim, AFF_SORE) )
@@ -4244,6 +4268,29 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
+/*
+ * Check for shield affect
+ */
+bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( !IS_AFFECTED(victim, AFF_SHIELD) )
+        return FALSE;
+    
+    int chance = 6;
+        
+    // whips are harder to block
+    if ( get_weapon_sn(ch) == gsn_whip )
+        chance /= 2;
+
+    if ( !per_chance(chance) )
+        return FALSE;
+    
+    act_gag( "Your shield deflects $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
+    act_gag( "$N's shield deflects your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
+    act_gag( "$N's shield deflects $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
+
+    return TRUE;
+}
 
 /*
 * Check for dodge.
@@ -4265,7 +4312,7 @@ bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
         chance += get_skill(victim, gsn_evasive) / 4;
     }
 
-    if (!can_see(victim,ch) && blind_penalty(victim))
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
     
     if ( victim->stance==STANCE_TOAD
@@ -5869,7 +5916,7 @@ void check_back_leap( CHAR_DATA *victim )
     {
 	next_opp = opp->next_in_room;
 
-	if ( opp->fighting != victim || !can_see(opp, victim) )
+	if ( opp->fighting != victim || !can_see_combat(opp, victim) )
 	    continue;
 	
 	wield = get_eq_char( opp, WEAR_WIELD );
@@ -5957,7 +6004,7 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
 	  continue;
       if (is_safe_spell(attacker, ch, FALSE)
 	  || ch->position <= POS_SLEEPING 
-	  || !check_see(ch, attacker))
+	  || !check_see_combat(ch, attacker))
 	  continue;
 
       chance = 25 + get_skill(ch, gsn_bodyguard) / 2 - ass_skill / 4;
