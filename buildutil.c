@@ -1038,11 +1038,13 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 	send_to_char(buf,ch);
 
 	sprintf( buf, 
-	"Hit: %d  Dam: %d  Saves: %d  Size: %s  Position: %s  Wimpy: %d\n\r",
+	"Hit: %d  Dam: %d  Saves: %d  Size: %s  Position: %s\n\r",
 	GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim),
-	size_table[victim->size].name, position_table[victim->position].name,
-	victim->wimpy );
+	size_table[victim->size].name, position_table[victim->position].name);
 	send_to_char( buf, ch );
+
+    sprintf( buf, "Wimpy: %d  Calm: %d\n\r", victim->wimpy, victim->calm );
+    send_to_char( buf, ch );
 
 	if (IS_NPC(victim))
 	{

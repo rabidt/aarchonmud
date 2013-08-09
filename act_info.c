@@ -3595,7 +3595,33 @@ void do_wimpy( CHAR_DATA *ch, char *argument )
     return;
 }
 
-
+void do_calm( CHAR_DATA *ch, char *argument )
+{
+    char arg[MAX_INPUT_LENGTH];
+    int calm;
+    
+    one_argument( argument, arg );
+    
+    if ( arg[0] == '\0' )
+    {
+        printf_to_char( ch, "Your current calm threshold is set to %d%%.\n\r", ch->calm );
+        printf_to_char( ch, "To change type: calm <percentage>\n\r" );
+        return;
+    }
+    else
+        calm = atoi( arg );
+    
+    calm = URANGE(0, calm, 100);
+    
+    ch->calm = calm;
+    if ( calm == 0 )
+        printf_to_char( ch, "You won't calm down till you drop.\n\r");
+    else if ( calm == 100 )
+        printf_to_char( ch, "You will always be calm.\n\r");
+    else 
+        printf_to_char( ch, "You will now calm down when dropping below %d%% of your moves.\n\r", calm );
+    return;
+}
 
 void do_password( CHAR_DATA *ch, char *argument )
 {
@@ -5116,8 +5142,8 @@ void do_attributes( CHAR_DATA *ch, char *argument )
     add_buf( output, buf );
 
     /* ** Wimpy (way better on its own line) ** */
-    sprintf( buf, "{D|{x {cWimpy: %d{x (%3.1f%%)", IS_NPC(ch) ? (IS_SET(ch->act, ACT_WIMPY) ? ch->max_hit/5 : 0) : ch->wimpy,
-                                          IS_NPC(ch) ? (IS_SET(ch->act, ACT_WIMPY) ? 20 : 0) : ((float)(ch->wimpy)/(ch->max_hit))*100 );
+    int wimpy = IS_NPC(ch) ? (IS_SET(ch->act, ACT_WIMPY) ? ch->max_hit/5 : 0) : ch->wimpy;
+    sprintf( buf, "{D|{x {cWimpy:{x %d  {cCalm:{x %d%%", wimpy, ch->calm );
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
@@ -5885,6 +5911,8 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
              max_hmm_train( ch->level ) );
     add_buf(output, buf);
     sprintf( buf, "Wimpy set to %d hit points.\n\r", ch->wimpy );
+    add_buf(output, buf);
+    sprintf( buf, "Calm set to %d%% moves.\n\r", ch->calm );
     add_buf(output, buf);
 
     switch ( ch->position )

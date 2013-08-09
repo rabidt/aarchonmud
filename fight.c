@@ -1709,7 +1709,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     // berserking characters deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
-    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) /*&& !is_ranged_weapon(wield)*/ )
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && ch->move > ch->max_move * ch->calm/100 )
     {
         int berserk_cost = 2;
         if ( wield != NULL )
@@ -6077,6 +6077,7 @@ void do_die( CHAR_DATA *ch, char *argument )
 }
 
 // players may want to stop raging to preserve moves
+/*
 void do_calm( CHAR_DATA *ch, char *argument )
 {
     if ( !IS_AFFECTED(ch, AFF_BERSERK) )
@@ -6114,6 +6115,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     
     return;
 }
+*/
 
 void do_murde( CHAR_DATA *ch, char *argument )
 {
