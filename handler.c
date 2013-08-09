@@ -2545,29 +2545,58 @@ CHAR_DATA *get_char_area( CHAR_DATA *ch, char *argument )
 CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
-    CHAR_DATA *ach;
+    CHAR_DATA *target;
     int number;
     int count;
     
-    if (!ch)
+    if ( ch == NULL || ch->in_room == NULL )
         return NULL;
-    if ( ( ach = get_char_room_new( ch, argument, exact ) ) != NULL )
-        return ach;
+
+    if ( !str_cmp(argument, "self") )
+        return ch;
+    if ( !str_cmp(argument, "opponent") )
+        return ch->fighting;
     
     number = number_argument( argument, arg );
-    count  = 0;
-    for ( ach = char_list; ach != NULL ; ach = ach->next )
+    count = 0;
+    
+    // search in room first, keeping count
+    for ( target = ch->in_room->people; target != NULL; target = target->next_in_room )
     {
-        if ( ach->in_room == NULL )
-            continue;
-        
-        if ( ( area && ach->in_room->area != ch->in_room->area )
-	     || !can_see( ch, ach ) 
-	     || !is_ch_name(arg, ach, exact, ch) )
+        if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
             continue;
 
         if ( ++count == number )
-            return ach;
+            return target;
+    }
+    
+    // then in area, excluding room
+    for ( target = char_list; target != NULL ; target = target->next )
+    {
+        if ( target->in_room == ch->in_room || target->in_room == NULL || target->in_room->area != ch->in_room->area )
+            continue;
+        
+        if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
+            continue;
+
+        if ( ++count == number )
+            return target;
+    }
+    
+    if ( area )
+        return NULL;
+    
+    // finally in world
+    for ( target = char_list; target != NULL ; target = target->next )
+    {
+        if ( target->in_room == NULL || target->in_room->area == ch->in_room->area )
+            continue;
+        
+        if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
+            continue;
+
+        if ( ++count == number )
+            return target;
     }
     
     return NULL;
