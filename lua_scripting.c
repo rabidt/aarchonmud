@@ -72,6 +72,16 @@ static const struct luaL_reg ROOM_lib [];
 static const struct luaL_reg EXIT_lib [];
 static const struct luaL_reg AREA_lib [];
 
+void lua_mob_program( char *text, int pvnum, char *source,
+        CHAR_DATA *mob, CHAR_DATA *ch,
+        const void *arg1, sh_int arg1type,
+        const void *arg2, sh_int arg2type );
+
+bool lua_obj_program( char *trigger, int pvnum, char *source, 
+        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2 );
+bool lua_area_program( char *trigger, int pvnum, char *source,
+        AREA_DATA *area, CHAR_DATA *ch1 );
+
 /* in lua_tables.c */
 
 void add_lua_tables (lua_State *LS);
@@ -550,77 +560,60 @@ static int L_ch_randchar (lua_State *LS)
 
 }
 
-static int L_loadmprog (lua_State *LS)
+static int L_ch_loadprog (lua_State *LS)
 {
-    int num = luaL_checknumber (LS, 1);
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    int num = luaL_checknumber (LS, 2);
     MPROG_CODE *pMcode;
 
     if ( (pMcode = get_mprog_index(num)) == NULL )
     {
-        luaL_error(LS, "loadmprog: vnum %d doesn't exist", num);
+        luaL_error(LS, "loadprog: mprog vnum %d doesn't exist", num);
         return 0;
     }
 
     if ( !pMcode->is_lua)
     {
-        luaL_error(LS, "loadmprog: vnum %d is not lua code", num);
+        luaL_error(LS, "loadprog: mprog vnum %d is not lua code", num);
         return 0;
     }
-    luaL_loadstring (LS, pMcode->code);
-    lua_pushvalue(LS, 2);
-    lua_setfenv(LS, -2); 
-    if (CallLuaWithTraceBack (LS, 0, 0))
-    {
-        bugf ( "loadmprog error loading vnum %d:\n %s",
-                num,
-                lua_tostring(LS, -1));
-    } 
+
+    lua_mob_program( NULL, num, pMcode->code, ud_ch, NULL, NULL, 0, NULL, 0 ); 
+
     return 0;
 }
 
-static int L_loadoprog (lua_State *LS)
+static int L_obj_loadprog (lua_State *LS)
 {
-    int num = luaL_checknumber (LS, 1);
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    int num = luaL_checknumber (LS, 2);
     OPROG_CODE *pOcode;
 
     if ( (pOcode = get_oprog_index(num)) == NULL )
     {
-        luaL_error(LS, "loadoprog: vnum %d doesn't exist", num);
+        luaL_error(LS, "loadprog: oprog vnum %d doesn't exist", num);
         return 0;
     }
 
-    luaL_loadstring (LS, pOcode->code);
-    lua_pushvalue(LS, 2);
-    lua_setfenv(LS, -2);
-    if (CallLuaWithTraceBack (LS, 0, 0))
-    {
-        bugf ( "loadoprog error loading vnum %d:\n %s",
-                num,
-                lua_tostring(LS, -1));
-    }
+    lua_obj_program( NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL);
+
     return 0;
 }
 
-static int L_loadaprog (lua_State *LS)
+static int L_area_loadprog (lua_State *LS)
 {
-    int num = luaL_checknumber (LS, 1);
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int num = luaL_checknumber (LS, 2);
     APROG_CODE *pAcode;
 
     if ( (pAcode = get_aprog_index(num)) == NULL )
     {
-        luaL_error(LS, "loadaprog: vnum %d doesn't exist", num);
+        luaL_error(LS, "loadprog: aprog vnum %d doesn't exist", num);
         return 0;
     }
 
-    luaL_loadstring (LS, pAcode->code);
-    lua_pushvalue(LS, 2);
-    lua_setfenv(LS, -2);
-    if (CallLuaWithTraceBack (LS, 0, 0))
-    {
-        bugf ( "loadaprog error loading vnum %d:\n %s",
-                num,
-                lua_tostring(LS, -1));
-    }
+    lua_area_program( NULL, num, pAcode->code, ud_area, NULL);
+
     return 0;
 }
 
@@ -1614,7 +1607,7 @@ static const struct luaL_reg CH_lib [] =
     {"setact", L_ch_setact},
     {"hit", L_ch_hit},
     {"randchar", L_ch_randchar},
-    //{"log", L_ch_log},
+    {"loadprog", L_ch_loadprog},
     {NULL, NULL}
 };
 
@@ -1633,6 +1626,7 @@ static const struct luaL_reg OBJ_lib [] =
     {"wear", L_obj_wear},
     {"destroy", L_obj_destroy},
     {"echo", L_obj_echo},
+    {"loadprog", L_obj_loadprog},
     {NULL, NULL}
 };
 
@@ -1652,6 +1646,7 @@ static const struct luaL_reg EXIT_lib [] =
 static const struct luaL_reg AREA_lib [] =
 {
     {"echo", L_area_echo},
+    {"loadprog", L_area_loadprog},
     {NULL, NULL}
 }; 
 
@@ -2238,10 +2233,6 @@ static const struct luaL_reg AREA_metatable [] =
 void RegisterGlobalFunctions(lua_State *LS)
 {
     /* checks */
-    //lua_register(LS,"mobhere",     L_mobhere);
-    //lua_register(LS,"objhere",     L_objhere);
-    //lua_register(LS,"mobexists",   L_mobexists);
-    //lua_register(LS,"objexists",   L_objexists);
     lua_register(LS,"hour",        L_hour);
     lua_register(LS,"ispc",        L_ispc);
     lua_register(LS,"isnpc",       L_isnpc);
@@ -2275,9 +2266,6 @@ void RegisterGlobalFunctions(lua_State *LS)
 
     /* other */
     lua_register(LS,"getroom",     L_getroom);
-    lua_register(LS,"loadmprog",   L_loadmprog);
-    lua_register(LS,"loadoprog",   L_loadoprog);
-    lua_register(LS,"loadaprog",   L_loadaprog);
     lua_register(LS,"getobjproto", L_getobjproto);
     lua_register(LS,"getobjworld", L_getobjworld );
     lua_register(LS,"getmobworld", L_getmobworld );
