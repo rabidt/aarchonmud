@@ -541,6 +541,10 @@ void reset_char(CHAR_DATA *ch)
         logpf("Resetting %s's experience from %d to %d (level %d).", ch->name, ch->exp, new_exp, ch->level);
         ch->exp = new_exp;
     }
+    
+    // wimpy & calm percentages
+    ch->wimpy = URANGE(0, ch->wimpy, 100);
+    ch->calm = URANGE(0, ch->calm, 100);
 }
 
 

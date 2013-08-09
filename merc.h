@@ -2526,6 +2526,7 @@ struct  char_data
 	sh_int      damroll;
 	sh_int      armor[4];
 	sh_int      wimpy;
+    sh_int      calm;
         tflag       penalty;
         tflag       gag;  
         tflag       togg;
