@@ -241,7 +241,6 @@ main_lib={  require=require,
 -- or common functions that need access
 -- to env as a variable
 CH_env_lib={
-	loadprog=loadmprog,    
 	loadscript=loadscript,
 	tprint=function(tbl,env)
         local str={}
@@ -253,7 +252,6 @@ CH_env_lib={
 }
 
 OBJ_env_lib={
-	loadprog=loadoprog,
 	loadscript=loadscript,
 	tprint=function(tbl,env)
         local str={}
@@ -265,7 +263,6 @@ OBJ_env_lib={
 }
 
 AREA_env_lib={
-	loadprog=loadaprog,
 	loadscript=loadscript,
 	tprint=function(tbl,env)
         local str={}
