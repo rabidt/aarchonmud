@@ -1569,8 +1569,17 @@ void show_dice(CHAR_DATA *ch)
         strcat(buf, buf3);
     }
     strcat(buf, "\n\r");
-
     send_to_char(buf, ch);
+    
+    // show total of roll
+    if ( ch->gen_data->unused_die[14] >= 0 )
+    {
+        int total = 0;
+        for ( i = 0; i < 15; i++ )
+            total += ch->gen_data->unused_die[i];
+        printf_to_char(ch, "Total (sum of all dice): %d\n\r", total);
+    }
+    
     return;
 }
 

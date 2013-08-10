@@ -3253,6 +3253,7 @@ void clone_mobile(CHAR_DATA *parent, CHAR_DATA *clone)
     clone->hitroll  = parent->hitroll;
     clone->damroll  = parent->damroll;
     clone->wimpy    = parent->wimpy;
+    clone->calm     = parent->calm;
     flag_copy( clone->form, parent->form );
     flag_copy( clone->parts, parent->parts );
     clone->size     = parent->size;
