@@ -1246,7 +1246,7 @@ void do_envenom(CHAR_DATA *ch, char *argument)
             af.where     = TO_WEAPON;
             af.type      = gsn_poison;
             af.level     = ch->level;
-            af.duration  = ch->level/2 + 5;
+            af.duration  = get_duration(gsn_envenom, ch->level);
             af.location  = 0;
             af.modifier  = 0;
             af.bitvector = WEAPON_POISON;
@@ -1312,7 +1312,7 @@ void do_paralysis_poison(CHAR_DATA *ch, char *argument)
             af.where     = TO_WEAPON;
             af.type      = gsn_poison;
             af.level     = ch->level;
-            af.duration  = ch->level;
+            af.duration  = get_duration(gsn_paralysis_poison, ch->level);
             af.location  = 0;
             af.modifier  = 0;
             af.bitvector = WEAPON_PARALYSIS_POISON;
