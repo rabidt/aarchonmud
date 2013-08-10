@@ -2528,6 +2528,7 @@ struct  char_data
 	sh_int      damroll;
 	sh_int      armor[4];
 	sh_int      wimpy;
+    sh_int      calm;
         tflag       penalty;
         tflag       gag;  
         tflag       togg;
@@ -3037,7 +3038,16 @@ struct  room_index_data
 #define TAR_NOT_ENEMY   7
 #define TAR_NOT_GROUP   13
 
-
+/*
+ *  Duration types.
+ */
+#define DUR_NONE        0
+#define DUR_SPECIAL     1
+#define DUR_BRIEF       2
+#define DUR_SHORT       3
+#define DUR_NORMAL      4
+#define DUR_LONG        5
+#define DUR_EXTREME     6
 
 /*
  * Skills include spells as a particular case.
@@ -3056,6 +3066,7 @@ struct  skill_type
 	sh_int  slot;           /* Slot for #OBJECT loading */
 	sh_int  min_mana;       /* Minimum mana used        */
 	sh_int  beats;          /* Waiting time after use   */
+	sh_int  duration;       /* Duration of affects */
 	char *  noun_damage;        /* Damage message       */
 	char *  msg_off;        /* Wear off message     */
 	char *  msg_obj;        /* Wear off message for obects  */
@@ -4466,6 +4477,7 @@ void   save_disabled   args( ( void ) );
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
 int     mana_cost   (CHAR_DATA *ch, int sn, int skill);
+int get_duration( int sn, int level );
 int skill_lookup    args( ( const char *name ) );
 int slot_lookup args( ( int slot ) );
 bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );

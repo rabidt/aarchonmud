@@ -1232,6 +1232,17 @@ const char* spell_target_names[] =
     "char_neutral"
 };
 
+const char* spell_duration_names[] =
+{
+    "none",
+    "special",
+    "brief",
+    "short",
+    "normal",
+    "long",
+    "extreme"
+};
+
 const struct pkgrade_type pkgrade_table[] =
 {
     /*  grade,  pkpoints        earned (by      lost (by        lost_in_warfare */

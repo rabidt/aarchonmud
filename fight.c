@@ -307,7 +307,7 @@ void run_combat_action( DESCRIPTOR_DATA *d )
 
 bool wants_to_rescue( CHAR_DATA *ch )
 {
-    if ( ch->position < POS_FIGHTING || ch->hit < ch->wimpy || IS_AFFECTED(ch, AFF_FEAR) )
+    if ( ch->position < POS_FIGHTING || ch->hit < ch->max_hit * ch->wimpy/100 || IS_AFFECTED(ch, AFF_FEAR) )
         return FALSE;
     return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
@@ -330,7 +330,7 @@ void check_rescue( CHAR_DATA *ch )
 
         // may not want to rescue
         target = attacker->fighting;
-        if ( target == NULL || target == ch || IS_NPC(target) || !is_same_group(ch, target) || !can_see(ch, target) )
+        if ( target == NULL || target == ch || IS_NPC(target) || !is_same_group(ch, target) || !can_see_combat(ch, target) )
             continue;
 
         // may not want to be rescued
@@ -696,7 +696,7 @@ void check_assist(CHAR_DATA *ch,CHAR_DATA *victim)
                     number = 0;
                     for (vch = ch->in_room->people; vch; vch = vch->next)
                     {
-                        if (can_see(rch,vch)
+                        if (can_see_combat(rch,vch)
                             && is_same_group(vch,victim)
 			    && !is_safe(rch, vch)
                             && number_range(0,number) == 0)
@@ -1595,6 +1595,29 @@ bool is_ranged_weapon( OBJ_DATA *weapon )
         || weapon->value[0] == WEAPON_GUN;
 }
 
+bool is_calm( CHAR_DATA *ch )
+{
+    return ch->move <= ch->max_move * ch->calm/100;
+}
+
+bool deduct_move_cost( CHAR_DATA *ch, int cost )
+{
+    if ( ch->move < cost )
+        return FALSE;
+
+    bool was_calm = is_calm(ch);
+    
+    ch->move -= cost;
+    #ifdef FSTAT
+    ch->moves_used += cost;
+    #endif
+    
+    if ( !was_calm && is_calm(ch) )
+        send_to_char("Worn with fatigue, you calm down.\n\r", ch);
+
+    return TRUE;
+}
+
 /*
 * Hit one guy once.
 */
@@ -1710,7 +1733,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     // berserking characters deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
-    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) /*&& !is_ranged_weapon(wield)*/ )
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && !is_calm(ch) )
     {
         int berserk_cost = 2;
         if ( wield != NULL )
@@ -1725,12 +1748,8 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         // half cost for burst/semi-/full-auto, using probabilistic rounding
         if ( dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto )
             berserk_cost = (berserk_cost + number_range(0,1)) / 2;
-        if ( ch->move >= berserk_cost )
-        {
-            ch->move -= berserk_cost;
-            berserking = TRUE;
-        }
-    }    
+        berserking = deduct_move_cost(ch, berserk_cost);
+    }
     
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
@@ -1934,7 +1953,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     ch_roll = ch_roll * skill/100;
 
     /* blind attacks */
-    if ( !can_see( ch, victim ) && blind_penalty(ch) )
+    if ( !can_see_combat( ch, victim ) && blind_penalty(ch) )
 	ch_roll = ch_roll * 3/4;
 
     /* bad combat position */
@@ -2478,6 +2497,9 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
     if ( IS_SET(ch->form, FORM_CONDUCTIVE) && dam_type == DAM_LIGHTNING )
         dam += dam/4;
 
+    // vitality no longer affects immunities directly
+    dam -= dam * (get_curr_stat(victim, STAT_VIT) - 100) / 1000;
+    
     switch(check_immune(victim,dam_type))
     {
     case(IS_IMMUNE):
@@ -3099,7 +3121,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
    if ( !IS_NPC(victim)
 	&& victim->hit > 0
 	&& !IS_SET(victim->act, PLR_WAR)
-	&& ( victim->hit <= victim->wimpy
+	&& ( victim->hit <= victim->max_hit * victim->wimpy/100
 	     || (IS_AFFECTED(victim, AFF_INSANE) && number_bits(6)==0)
 	     || IS_AFFECTED(victim, AFF_FEAR) ) 
 	&& victim->wait < PULSE_VIOLENCE / 2 )
@@ -4047,7 +4069,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
         chance += 10; 
 
-    if (!can_see(ch,victim) && blind_penalty(victim))
+    if ( !can_see_combat(ch,victim) && blind_penalty(victim) )
         chance /= 2;
     
     if ( IS_AFFECTED(victim, AFF_SORE) )
@@ -4124,7 +4146,7 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( IS_AFFECTED(victim, AFF_SORE) )
 	chance -= 10;
     
-    if (!can_see(victim,ch) && blind_penalty(victim))
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
 
     if (get_skill(victim,gsn_duck) == 100)
@@ -4163,7 +4185,7 @@ bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( IS_AFFECTED(victim, AFF_SORE) )
 	chance -= 10;
     
-    if ( !can_see(victim,ch) && blind_penalty(victim) )
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance/4;
 
     /* Works at 95%, instead of 100%, since 100% effective
@@ -4245,7 +4267,7 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
         chance += 10;
     
-    if ( !can_see(victim,ch) && blind_penalty(victim) )
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
 
     if ( IS_AFFECTED(victim, AFF_SORE) )
@@ -4308,7 +4330,7 @@ bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
         chance += get_skill(victim, gsn_evasive) / 4;
     }
 
-    if (!can_see(victim,ch) && blind_penalty(victim))
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
     
     if ( victim->stance==STANCE_TOAD
@@ -5912,7 +5934,7 @@ void check_back_leap( CHAR_DATA *victim )
     {
 	next_opp = opp->next_in_room;
 
-	if ( opp->fighting != victim || !can_see(opp, victim) )
+	if ( opp->fighting != victim || !can_see_combat(opp, victim) )
 	    continue;
 	
 	wield = get_eq_char( opp, WEAR_WIELD );
@@ -6000,7 +6022,7 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
 	  continue;
       if (is_safe_spell(attacker, ch, FALSE)
 	  || ch->position <= POS_SLEEPING 
-	  || !check_see(ch, attacker))
+	  || !check_see_combat(ch, attacker))
 	  continue;
 
       chance = 25 + get_skill(ch, gsn_bodyguard) / 2 - ass_skill / 4;
@@ -6120,6 +6142,7 @@ void do_die( CHAR_DATA *ch, char *argument )
 }
 
 // players may want to stop raging to preserve moves
+/*
 void do_calm( CHAR_DATA *ch, char *argument )
 {
     if ( !IS_AFFECTED(ch, AFF_BERSERK) )
@@ -6157,6 +6180,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     
     return;
 }
+*/
 
 void do_murde( CHAR_DATA *ch, char *argument )
 {
@@ -6322,11 +6346,8 @@ void check_stance(CHAR_DATA *ch)
     }
     
     check_improve(ch,*(stances[ch->stance].gsn),TRUE,3);
-    
-    ch->move -= cost;
-    #ifdef FSTAT
-    ch->moves_used += cost;
-    #endif
+
+    deduct_move_cost(ch, cost);
 
     /*Added by Korinn 1-19-99 */
     if (ch->stance == STANCE_FIREWITCHS_SEANCE)
