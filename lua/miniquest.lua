@@ -12,11 +12,9 @@ local function show_miniquest( farg )
     local rtn=""
     for k,v in pairs(quest) do
         if type(k) == "number" then
-            --rtn=rtn .. k .. " " .. v.description .. "\n\r"
             rtn=rtn .. string.format("%-8d %s\n\r", k, v.description)
             for l,w in pairs(v) do
                 if type(l) == "number" then
-                    --rtn=rtn .. l .. " " .. w .. "\n\r"
                     rtn=rtn .. string.format("    %-8d %s\n\r", l, w)
                 end
             end
@@ -31,7 +29,7 @@ local function show_miniquest( farg )
 end
 
 local function list_miniquests()
-    if mquests=={} then
+    if not(next(myquests)) then -- check if empty
         return false,"No miniquests."
     end
 
@@ -59,7 +57,7 @@ local function remove_miniquest( farg )
     end
 
     mquests[farg.name]=nil
-    return true
+    return true,"Removed " .. farg.name .. "."
 end
 
 local function map_qset( farg )
@@ -67,10 +65,11 @@ local function map_qset( farg )
         return false,"Can't find " .. farg.name .. "."
     end
     
-    --if dbg then return false, farg.name .. " " .. farg.qset .. " " .. farg.description end
 
     mquests[farg.name][farg.qset]=mquests[farg.name][farg.qset] or {}
     mquests[farg.name][farg.qset].description=farg.description
+
+    return true, "Mapped."
 end
 
 local function map_qset_value( farg )
@@ -83,7 +82,7 @@ local function map_qset_value( farg )
     end
     mquests[farg.name][farg.qset][farg.value]=farg.description
 
-    return true
+    return true, "Mapped."
 end
 
 local miniquestargs = {
@@ -125,7 +124,6 @@ local miniquestargs = {
 
 local function printhelptochar( ch )
     for k,v in pairs(miniquestargs) do
-        --sendtochar(ch, k .. " " .. #v.args .. "\n\r")
         local args=""
         for i,w in ipairs(v.args) do
             args=args .. w.name
@@ -142,7 +140,6 @@ function do_miniquest( ch, argument )
     local args={}
     for arg in string.gmatch(argument, "%S+") do
         table.insert(args, arg)
-        --if dbg then sendtochar(ch, arg .. "\n\r") end
     end
 
     if #args<1 then
@@ -183,13 +180,11 @@ function do_miniquest( ch, argument )
             -- Last arg grabs the rest
             fun_args[v.name]=table.concat(args, " ", i)
            
-            --if dbg then print(fun_args[v.name] .. "\n\r") end
         end
     end
 
     -- Some magic to execute the function
     local rslt,msg
-    if dbg then print(fun_args) end 
     rslt,msg=mqarg.fun(fun_args)
 
     if rslt==false then
