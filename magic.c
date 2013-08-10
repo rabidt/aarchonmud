@@ -3296,14 +3296,35 @@ void spell_frenzy(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     act("$n gets a wild look in $s eyes!",victim,NULL,NULL,TO_ROOM);
 }
 
+// returns original room unless a misgate occurs, in which case a random room is returned
+ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int misgate_chance )
+{
+    if ( per_chance(misgate_chance) || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(20)) )
+    {
+        OBJ_DATA *stone = get_eq_char(ch,WEAR_HOLD);
+        // warpstone prevents misgate but is destroyed in the process
+        if ( stone != NULL && stone->item_type == ITEM_WARP_STONE )
+        {
+            printf_to_char(ch, "{R%s {Rflares brightly and vanishes!{x\n\r", stone->short_descr);
+            extract_obj(stone);
+        }
+        else
+        {
+            ROOM_INDEX_DATA *rand_room = get_random_room(ch);
+            if ( rand_room != NULL )
+                to_room = rand_room;
+        }
+    }
+
+    return to_room;
+}
+
 /* RT ROM-style gate */
 void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim;
     bool gate_pet;
     ROOM_INDEX_DATA *to_room;
-    OBJ_DATA *stone;
-    bool has_warpstone=FALSE;
 
     if ( !can_cast_transport(ch) )
         return;
@@ -3345,14 +3366,6 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
 
-    /*
-       if (IS_NPC(victim) && saves_spell( level, victim,DAM_OTHER) )
-       {
-       send_to_char( "You failed.\n\r", ch );
-       return;
-       }
-     */
-
     if ( ch->in_room == victim->in_room )
     {
         send_to_char( "You're already there!\n\r", ch );
@@ -3366,35 +3379,11 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     else
         gate_pet = FALSE;
 
-
-    stone = get_eq_char(ch,WEAR_HOLD);
-
-    if (stone != NULL && stone->item_type == ITEM_WARP_STONE)
-    {
-        act("You draw upon the power of $p.",ch,stone,NULL,TO_CHAR);
-        has_warpstone = TRUE;
-    }
-
     act("$n steps through a gate and vanishes.",ch,NULL,NULL,TO_ROOM);
     send_to_char("You step through a gate and vanish.\n\r",ch);
     char_from_room(ch);
 
-    if ( !has_warpstone && chance(5) )
-    {
-        to_room = get_random_room(ch);
-        if ( to_room == NULL )
-            to_room = victim->in_room;
-    }
-    else
-    {
-        to_room = victim->in_room;
-        if( has_warpstone && chance(15) )
-        {
-            printf_to_char(ch,"%s flares brightly and vanishes!\n\r", stone->short_descr);
-            extract_obj(stone);
-        }
-    }
-
+    to_room = room_with_misgate(ch, victim->in_room, 5);
     char_to_room(ch, to_room);
 
     act("$n has arrived through a gate.",ch,NULL,NULL,TO_ROOM);
@@ -5266,15 +5255,6 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         return;
     } 
 
-    /*
-       if (IS_SET(victim->in_room->room_flags,ROOM_NO_RECALL) ||
-       IS_AFFECTED(victim,AFF_CURSE))
-       {
-       send_to_char("Your recall spell failed.\n\r",victim);
-       return;
-       }
-     */
-
     if (NOT_AUTHED(victim))
     {
         send_to_char("You cannot recall until your character is authorized by the Immortals.\n\r",victim);
@@ -5309,11 +5289,6 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         }
     }
 
-    /*
-       if (victim->fighting != NULL)
-       stop_fighting(victim,TRUE);
-     */
-
     /* Added exp loss during combat 2/22/99 -Rim */
     if ( victim->fighting != NULL )
     {
@@ -5340,9 +5315,11 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         }
         else
             send_to_char("You recall from combat!\n\r",ch);
-
     }
 
+    // misgate chance when cursed but not normally
+    location = room_with_misgate(victim, location, 0);
+    
     act("$n disappears.",victim,NULL,NULL,TO_ROOM);
     char_from_room(victim);
     char_to_room(victim,location);
