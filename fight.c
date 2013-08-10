@@ -1594,6 +1594,29 @@ bool is_ranged_weapon( OBJ_DATA *weapon )
         || weapon->value[0] == WEAPON_GUN;
 }
 
+bool is_calm( CHAR_DATA *ch )
+{
+    return ch->move <= ch->max_move * ch->calm/100;
+}
+
+bool deduct_move_cost( CHAR_DATA *ch, int cost )
+{
+    if ( ch->move < cost )
+        return FALSE;
+
+    bool was_calm = is_calm(ch);
+    
+    ch->move -= cost;
+    #ifdef FSTAT
+    ch->moves_used += cost;
+    #endif
+    
+    if ( !was_calm && is_calm(ch) )
+        send_to_char("Worn with fatigue, you calm down.\n\r", ch);
+
+    return TRUE;
+}
+
 /*
 * Hit one guy once.
 */
@@ -1709,7 +1732,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     // berserking characters deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
-    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && ch->move > ch->max_move * ch->calm/100 )
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && !is_calm(ch) )
     {
         int berserk_cost = 2;
         if ( wield != NULL )
@@ -1724,12 +1747,8 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         // half cost for burst/semi-/full-auto, using probabilistic rounding
         if ( dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto )
             berserk_cost = (berserk_cost + number_range(0,1)) / 2;
-        if ( ch->move >= berserk_cost )
-        {
-            ch->move -= berserk_cost;
-            berserking = TRUE;
-        }
-    }    
+        berserking = deduct_move_cost(ch, berserk_cost);
+    }
     
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
@@ -6281,11 +6300,8 @@ void check_stance(CHAR_DATA *ch)
     }
     
     check_improve(ch,*(stances[ch->stance].gsn),TRUE,3);
-    
-    ch->move -= cost;
-    #ifdef FSTAT
-    ch->moves_used += cost;
-    #endif
+
+    deduct_move_cost(ch, cost);
 
     /*Added by Korinn 1-19-99 */
     if (ch->stance == STANCE_FIREWITCHS_SEANCE)
