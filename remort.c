@@ -963,8 +963,6 @@ void remort_complete(CHAR_DATA *ch)
     ch->hit = ch->max_hit;
     ch->mana = ch->max_mana;
     ch->move = ch->max_move;
-    if( ch->wimpy > ch->hit )
-        ch->wimpy = ch->hit/5;
 
     ch->pcdata->field = 0;
 
