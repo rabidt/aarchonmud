@@ -4467,7 +4467,7 @@ void do_disguise( CHAR_DATA *ch, char *argument )
 
     af.type      = gsn_disguise;
     af.level     = ch->level;
-    af.duration  = 10 + ch->level / 2;
+    af.duration  = get_duration(gsn_disguise, ch->level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.where     = TO_SPECIAL;
