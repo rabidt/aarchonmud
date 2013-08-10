@@ -242,7 +242,6 @@ main_lib={  require=require,
 -- or common functions that need access
 -- to env as a variable
 CH_env_lib={
-	loadprog=loadmprog,    
 	loadscript=loadscript,
 	tprint=function(tbl,env)
         local str={}
@@ -254,7 +253,6 @@ CH_env_lib={
 }
 
 OBJ_env_lib={
-	loadprog=loadoprog,
 	loadscript=loadscript,
 	tprint=function(tbl,env)
         local str={}
@@ -266,7 +264,6 @@ OBJ_env_lib={
 }
 
 AREA_env_lib={
-	loadprog=loadaprog,
 	loadscript=loadscript,
 	tprint=function(tbl,env)
         local str={}
@@ -283,10 +280,10 @@ CH_env_meta={
     __index=function(tbl,key)
         if tbl.mob[key] then 
             return function(...) tbl.mob[key](tbl.mob, unpack(arg)) end
-        elseif main_lib[key] then
-			return main_lib[key]
-		else
+        elseif CH_env_lib[key] then
             return function(...) CH_env_lib[key](unpack(arg), tbl) end 
+        else
+            return main_lib[key]
         end
     end
 }
@@ -295,10 +292,10 @@ OBJ_env_meta={
     __index=function(tbl,key)
         if tbl.obj[key] then
             return function(...) tbl.obj[key](tbl.obj, unpack(arg), tbl) end
-        elseif main_lib[key] then
-			return main_lib[key]
-		else
+        elseif OBJ_env_lib[key] then
             return function(...) OBJ_env_lib[key](unpack(arg), tbl) end
+        else
+            return main_lib[key]
         end
     end
 }
@@ -307,10 +304,10 @@ AREA_env_meta={
     __index=function(tbl,key)
         if tbl.area[key] then
             return function(...) tbl.area[key](tbl.area, unpack(arg), tbl) end
-        elseif main_lib[key] then
-			return main_lib[key]
-		else
+        elseif AREA_env_lib[key] then
             return function(...) AREA_env_lib[key](unpack(arg), tbl) end
+        else
+			return main_lib[key]
         end
     end
 }
