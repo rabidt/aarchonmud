@@ -26,6 +26,7 @@ bool is_room_ingame( ROOM_INDEX_DATA *room );
 bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg );
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg );
 bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg );
+bool has_oprog( OBJ_INDEX_DATA *obj, int vnum );
 bool has_mprog( MOB_INDEX_DATA *mob, int vnum );
 bool has_shop( MOB_INDEX_DATA *mob, int vnum );
 bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg );
@@ -180,6 +181,8 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           heal    <min ratio>\n\r", ch );
     send_to_char( "           spell   <name>\n\r", ch );
     send_to_char( "           aff     <affect type>\n\r", ch );
+    send_to_char( "           trigger <oprog trigger type>\n\r", ch );
+    send_to_char( "           oprog   <oprog vnum>\n\r", ch );
     send_to_char( "           addflag\n\r", ch );
     send_to_char( "           spec\n\r", ch );
     send_to_char( "           belowspec\n\r", ch );
@@ -191,7 +194,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           aff     <affect flag>\n\r", ch );
     send_to_char( "           off     <offense flag>\n\r", ch );
     send_to_char( "           lvl     <minimum level>\n\r", ch );
-    send_to_char( "           trigger <trigger type>\n\r", ch );
+    send_to_char( "           trigger <oprog trigger type>\n\r", ch );
     send_to_char( "           mprog   <mprog vnum>\n\r", ch );
     send_to_char( "           specfun <any|spec_fun>\n\r", ch );
     send_to_char( "           align   <minimum alignment>\n\r", ch );
@@ -230,6 +233,8 @@ void show_grep_syntax( CHAR_DATA *ch )
 #define GREP_OBJ_COMBINE  14
 #define GREP_OBJ_BELOW_SPEC 15
 #define GREP_OBJ_WEIGHT   16
+#define GREP_OBJ_OPROG    17
+#define GREP_OBJ_TRIGGER  18
 #define NO_SHORT_DESC "(no short description)"
 
 /* parses argument into a list of grep_data */
@@ -424,6 +429,30 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
 	    value = atoi(arg2);
 	    stat = GREP_OBJ_HEAL;
 	}
+    else if ( !str_cmp(arg1, "trigger") )
+    {
+        if ( arg2[0] == '\0' )
+        {
+        send_to_char( "What trigger do you want to grep for?\n\r", ch );
+        return NULL;
+        }
+        if ( (value = flag_lookup(arg2, oprog_flags)) == NO_FLAG )
+        {
+        send_to_char( "That trigger doesn't exist.\n\r", ch );
+        return NULL;
+        }
+        stat = GREP_OBJ_TRIGGER;
+    }
+    else if ( !str_cmp(arg1, "oprog") )
+    {
+        if ( !is_number(arg2) )
+        {
+        send_to_char( "Please specify the mprog vnum.\n\r", ch );
+        return NULL;
+        }
+        value = atoi(arg2);
+        stat = GREP_OBJ_OPROG;
+    }
 	else
 	{
 	    show_grep_syntax( ch );
@@ -556,6 +585,12 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
             strcat( info, buf );
         }
         break;
+    case GREP_OBJ_TRIGGER:
+    match = IS_SET( obj->oprog_flags, gd->value );
+    break;
+    case GREP_OBJ_OPROG:
+    match = has_oprog( obj, gd->value );
+    break;
     default: 
 	break;
     }
@@ -1372,6 +1407,7 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
             case AFF_BERSERK:
             case AFF_PROTECT_MAGIC: result += 25; break;
             case AFF_FLYING:
+            case AFF_SHIELD:
             case AFF_BATTLE_METER:
             case AFF_DETECT_INVIS:
             case AFF_DETECT_HIDDEN:
@@ -1698,6 +1734,16 @@ bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
     for ( mprog = mob->mprogs; mprog != NULL; mprog = mprog->next )
 	if ( mprog->vnum == vnum )
 	    return TRUE;
+    return FALSE;
+}
+
+bool has_oprog( OBJ_INDEX_DATA *obj, int vnum )
+{
+    OPROG_LIST *oprog;
+
+    for ( oprog = obj->oprogs; oprog != NULL; oprog = oprog->next )
+    if ( oprog->vnum == vnum )
+        return TRUE;
     return FALSE;
 }
 
