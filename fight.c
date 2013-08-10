@@ -132,6 +132,7 @@ bool  check_dodge   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_killer  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_parry   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_shield_block  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+bool  check_shield  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  dam_message   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
 						 int dt, bool immune ) );
 void  death_cry     args( ( CHAR_DATA *ch ) );
@@ -1594,6 +1595,29 @@ bool is_ranged_weapon( OBJ_DATA *weapon )
         || weapon->value[0] == WEAPON_GUN;
 }
 
+bool is_calm( CHAR_DATA *ch )
+{
+    return ch->move <= ch->max_move * ch->calm/100;
+}
+
+bool deduct_move_cost( CHAR_DATA *ch, int cost )
+{
+    if ( ch->move < cost )
+        return FALSE;
+
+    bool was_calm = is_calm(ch);
+    
+    ch->move -= cost;
+    #ifdef FSTAT
+    ch->moves_used += cost;
+    #endif
+    
+    if ( !was_calm && is_calm(ch) )
+        send_to_char("Worn with fatigue, you calm down.\n\r", ch);
+
+    return TRUE;
+}
+
 /*
 * Hit one guy once.
 */
@@ -1709,7 +1733,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     // berserking characters deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
-    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && ch->move > ch->max_move * ch->calm/100 )
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && !is_calm(ch) )
     {
         int berserk_cost = 2;
         if ( wield != NULL )
@@ -1724,12 +1748,8 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         // half cost for burst/semi-/full-auto, using probabilistic rounding
         if ( dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto )
             berserk_cost = (berserk_cost + number_range(0,1)) / 2;
-        if ( ch->move >= berserk_cost )
-        {
-            ch->move -= berserk_cost;
-            berserking = TRUE;
-        }
-    }    
+        berserking = deduct_move_cost(ch, berserk_cost);
+    }
     
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
@@ -1798,7 +1818,14 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
 
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
-	dam = dam * 9/10;
+        dam -= dam / 10;
+    else if ( IS_AFFECTED(ch, AFF_GIANT_STRENGTH) )
+        dam += dam / 20;
+    
+    if ( IS_AFFECTED(ch, AFF_POISON) )
+        dam -= dam / 20;
+    if ( IS_AFFECTED(ch, AFF_PLAGUE) )
+        dam -= dam / 20;
 
     if ( check_critical(ch,secondary) == TRUE )
     {
@@ -2800,6 +2827,19 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
         if ( number_range(0,ch_roll) < number_range(0,victim_roll) )
             dam /= 2;
+    }
+    
+    // stone skin reduce damage but wears off slowly
+    if ( dam > 1 && IS_AFFECTED(victim, AFF_STONE_SKIN) )
+    {
+        AFFECT_DATA *aff = affect_find_flag(victim->affected, AFF_STONE_SKIN);
+        int level = (aff ? aff->level : victim->level);
+        int max_reduction = 10 + level/4;
+        int reduction = URANGE(1, dam/10, max_reduction);
+        dam -= reduction;
+        // chance to reduce duration
+        if ( aff && aff->duration > 0 && number_range(1,max_reduction) <= reduction )
+            aff->duration -= 1;
     }
     
     if (dt == gsn_beheading)
@@ -3822,8 +3862,10 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( check_phantasmal( ch, victim, show ) )
         return TRUE;
 
+    if ( check_shield(ch, victim) )
+        return TRUE;
     if ( check_shield_block(ch,victim) )
-	return TRUE;
+        return TRUE;
 
     if ( try_avoid && check_parry( ch, victim ) )
         return TRUE;
@@ -4244,6 +4286,29 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
+/*
+ * Check for shield affect
+ */
+bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( !IS_AFFECTED(victim, AFF_SHIELD) )
+        return FALSE;
+    
+    int chance = 6;
+        
+    // whips are harder to block
+    if ( get_weapon_sn(ch) == gsn_whip )
+        chance /= 2;
+
+    if ( !per_chance(chance) )
+        return FALSE;
+    
+    act_gag( "Your shield deflects $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
+    act_gag( "$N's shield deflects your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
+    act_gag( "$N's shield deflects $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
+
+    return TRUE;
+}
 
 /*
 * Check for dodge.
@@ -6281,11 +6346,8 @@ void check_stance(CHAR_DATA *ch)
     }
     
     check_improve(ch,*(stances[ch->stance].gsn),TRUE,3);
-    
-    ch->move -= cost;
-    #ifdef FSTAT
-    ch->moves_used += cost;
-    #endif
+
+    deduct_move_cost(ch, cost);
 
     /*Added by Korinn 1-19-99 */
     if (ch->stance == STANCE_FIREWITCHS_SEANCE)
