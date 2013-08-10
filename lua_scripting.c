@@ -1492,11 +1492,33 @@ static int L_obj_echo( lua_State *LS)
     }
     else
     {
-        luaL_error(LS, "L_obj_echo: carried_by and in_room both NULL");
-        return 0;
+        // Nothing, must be in a container
     }
     
     return 0;
+}
+
+static int L_obj_oload (lua_State *LS)
+{
+    OBJ_DATA * ud_obj = check_OBJ (LS, 1);
+    int num = luaL_checknumber (LS, 2);
+    OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
+
+    if ( ud_obj->item_type != ITEM_CONTAINER )
+    {
+        luaL_error(LS, "Tried to load object in non-container." );
+    }
+
+    if (!pObjIndex)
+        luaL_error(LS, "No object with vnum: %d", num);
+
+    OBJ_DATA *obj=create_object( pObjIndex, 0);
+    check_enchant_obj( obj );
+    obj_to_obj(obj,ud_obj);
+
+    make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
+    return 1;
+
 }
 
 static int L_obj_wear( lua_State *LS)
@@ -1627,6 +1649,7 @@ static const struct luaL_reg OBJ_lib [] =
     {"destroy", L_obj_destroy},
     {"echo", L_obj_echo},
     {"loadprog", L_obj_loadprog},
+    {"oload", L_obj_oload},
     {NULL, NULL}
 };
 
