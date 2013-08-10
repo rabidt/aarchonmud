@@ -2171,7 +2171,8 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
             if ( paf->duration == -1 )
                 printf_to_char( to_ch, "indefinitely (Lvl %d)", paf->level );
             else
-                printf_to_char( to_ch, "for %d hours (Lvl %d)", paf->duration, paf->level );
+                // color-code spells about to expire
+                printf_to_char( to_ch, "for %s%d hours{x (Lvl %d)", paf->duration < 5 ? "{R" : paf->duration < 10 ? "{y" : "", paf->duration, paf->level );
             if ( paf->type == gsn_mirror_image || paf->type == gsn_phantasmal_image )
                 printf_to_char( to_ch, " with %d %s remaining", paf->bitvector, paf->bitvector == 1 ? "image" : "images");
         }
