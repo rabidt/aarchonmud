@@ -2300,7 +2300,7 @@ void aggr_update( void )
                     af.where = TO_AFFECTS;
                     af.type = gsn_soothe;
                     af.level = victim->level;
-                    af.duration = dice(2,4);
+                    af.duration = get_duration(gsn_soothe, victim->level);
                     af.location = APPLY_HITROLL;
                     af.modifier = -5;
                     af.bitvector = AFF_CALM;
