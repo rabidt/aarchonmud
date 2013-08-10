@@ -3214,7 +3214,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_fly,      TAR_CHAR_DEFENSIVE, POS_STANDING,
-	NULL,           SLOT(56),   10, 18,
+	&gsn_fly,           SLOT(56),   10, 18,
 	"",         "You slowly float to the ground.",  "", NULL
 	},
 
