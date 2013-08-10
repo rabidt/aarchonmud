@@ -125,7 +125,7 @@ void do_berserk( CHAR_DATA *ch, char *argument )
             af.where    = TO_AFFECTS;
             af.type     = gsn_berserk;
             af.level    = ch->level;
-            af.duration = number_fuzzy(ch->level / 8);
+            af.duration = get_duration(gsn_berserk, ch->level);
             af.modifier = UMAX(1,ch->level/4);
             af.bitvector    = AFF_BERSERK;
         
@@ -144,7 +144,7 @@ void do_berserk( CHAR_DATA *ch, char *argument )
             af.where    = TO_AFFECTS;
             af.type     = gsn_berserk;
             af.level    = ch->level;
-            af.duration = number_fuzzy(ch->level / 8);
+            af.duration = get_duration(gsn_berserk, ch->level);
             af.modifier = UMAX(1,ch->level/5);
             af.bitvector    = AFF_BERSERK;
         
@@ -222,7 +222,7 @@ void do_bash( CHAR_DATA *ch, char *argument )
     skill = (get_skill(ch, gsn_bash) + 100) / 2;
     chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
     chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see( ch, victim ) )
+    if ( !can_see_combat( ch, victim ) )
 	chance_hit /= 2;
     
     /* check if the blow hits */
@@ -458,7 +458,7 @@ void do_trip( CHAR_DATA *ch, char *argument )
     if ( victim->size > ch->size )
 	chance -= (victim->size - ch->size) * 2;
     
-    if (!can_see(ch,victim))
+    if ( !can_see_combat(ch,victim) )
 	chance /= 2;
 
     /* now the attack */
@@ -555,7 +555,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
         return;
     }
     
-    if ( check_see(victim, ch) )
+    if ( check_see_combat(victim, ch) )
     {
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
 	chance -= 75;
@@ -665,7 +665,7 @@ void do_net( CHAR_DATA *ch, char *argument )
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
     
-    if ( !can_see( ch, victim) )
+    if ( !can_see_combat( ch, victim) )
     {
         send_to_char( "What? Where? You can't net someone you don't see!\n\r", ch );
         return;
@@ -709,7 +709,6 @@ void do_net( CHAR_DATA *ch, char *argument )
         af.where    = TO_AFFECTS;
         af.type     = gsn_net;
         af.level    = ch->level;
-    /* Changed duration from 0 to 1, modifier from -4 to level/8 */
         af.duration = 1;
         af.location = APPLY_DEX;
         af.modifier = -ch->level/8;
@@ -1218,7 +1217,7 @@ void do_hogtie(CHAR_DATA *ch, char *argument )
         af.where    = TO_AFFECTS;
         af.type     = gsn_hogtie;
         af.level    = ch->level;
-        af.duration = 0;
+        af.duration = get_duration(gsn_hogtie, ch->level);
         af.location = APPLY_AGI;
         af.modifier = -20;
         af.bitvector = AFF_SLOW;
@@ -1301,7 +1300,7 @@ void do_aim( CHAR_DATA *ch, char *argument )
         return; 
     }
         
-    if (!can_see(ch, victim) )
+    if ( !can_see_combat(ch, victim) )
     {
         send_to_char("You don't see your target, how can you aim?\n\r", ch );
         return;
@@ -1503,7 +1502,7 @@ void do_drunken_fury( CHAR_DATA *ch, char *argument)
         af.where    = TO_AFFECTS;
         af.type     = gsn_drunken_fury;
         af.level    = ch->level;
-        af.duration = number_fuzzy(ch->level / 9);
+        af.duration = (get_duration(gsn_drunken_fury, ch->level) + ch->pcdata->condition[COND_DRUNK]) / 2;
         af.modifier = UMAX(1,ch->level/3);
         af.bitvector    = AFF_BERSERK;
         
@@ -1635,7 +1634,7 @@ void do_snipe( CHAR_DATA *ch, char *argument )
     {   
         skill = get_skill(ch, gsn_assassination);
         if ( number_bits(5) == 0
-             && (!check_see(victim, ch) || number_bits(1))
+             && (!check_see_combat(victim, ch) || number_bits(1))
              && number_percent() < skill )
         {
             act("You blow $n's brains out!",victim,NULL,ch,TO_VICT);
@@ -1697,7 +1696,7 @@ void do_circle( CHAR_DATA *ch, char *argument )
     
     if (arg[0] == '\0')
     {
-        if ( can_see(ch, ch->fighting) )
+        if ( can_see_combat(ch, ch->fighting) )
             victim = ch->fighting;
         else
         {
@@ -1751,7 +1750,7 @@ void do_circle( CHAR_DATA *ch, char *argument )
     
     chance = chance / 2;
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see(victim, ch) )
+    if ( !can_see_combat(victim, ch) )
 	chance += 10;
     if ( IS_AFFECTED(ch, AFF_HASTE) )
 	chance += 25;
@@ -1821,7 +1820,7 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch, victim) )
         return;
     
-    if ( !can_see(ch, victim) )
+    if ( !can_see_combat(ch, victim) )
     {
         send_to_char("You can't see them.\n\r",ch);
         return;
@@ -1846,11 +1845,11 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
     }
 
     /* can be used like backstab OR like circle.. */
-    if ( ch->fighting != NULL || check_see(victim, ch) )
+    if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
 	chance = chance / 2;
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	if ( !can_see(victim, ch) )
+	if ( !can_see_combat(victim, ch) )
 	    chance += 10;
 	if ( IS_AFFECTED(ch, AFF_HASTE) )
 	    chance += 25;
@@ -2011,46 +2010,28 @@ void do_kick( CHAR_DATA *ch, char *argument )
     
     one_argument(argument, arg);
     
-    if (get_skill(ch,gsn_kick)==0)
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
+    // anyone can kick
+    chance = (100 + get_skill(ch, gsn_kick)) / 2;
+
+    WAIT_STATE( ch, skill_table[gsn_kick].beats );
+
+    if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
     {
-        send_to_char("You better leave the martial arts to fighters.\n\r", ch );
-        return;
+        dam = martial_damage( ch, gsn_kick );
+
+        full_dam(ch,victim, dam, gsn_kick,DAM_BASH,TRUE);
+        check_improve(ch,gsn_kick,TRUE,3);
     }
-    
-    if ( ( victim = ch->fighting ) == NULL )
+    else
     {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
-        return;
+        damage( ch, victim, 0, gsn_kick,DAM_BASH,TRUE);
+        check_improve(ch,gsn_kick,FALSE,3);
     }
-    
-    if ( arg[0] != '\0' )
-        if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-        if ( is_safe(ch,victim) )
-            return;
 
-        chance=get_skill(ch, gsn_kick);
-        
-        check_killer(ch,victim);
-        WAIT_STATE( ch, skill_table[gsn_kick].beats );
-
-        if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
-        {
-            dam = martial_damage( ch, gsn_kick );
-
-            full_dam(ch,victim, dam, gsn_kick,DAM_BASH,TRUE);
-            check_improve(ch,gsn_kick,TRUE,3);
-        }
-        else
-        {
-            damage( ch, victim, 0, gsn_kick,DAM_BASH,TRUE);
-            check_improve(ch,gsn_kick,FALSE,3);
-        }
-        return;
+    return;
 }
 
 void do_disarm( CHAR_DATA *ch, char *argument )
@@ -2100,7 +2081,7 @@ void do_disarm( CHAR_DATA *ch, char *argument )
 	return;
     }
         
-        if ( !can_see( ch, victim ) )
+        if ( !can_see_combat( ch, victim ) )
         {
             send_to_char( "You fumble for your opponent's weapon, but can't find it.\n\r", ch );
             return;
@@ -2336,7 +2317,7 @@ void do_gouge( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !can_see( ch, victim) )
+    if ( !can_see_combat( ch, victim) )
     {
         send_to_char( "You can't find your opponent's eyes.\n\r", ch );
         return;
@@ -2680,7 +2661,7 @@ void do_war_cry( CHAR_DATA *ch, char *argument)
 	af.where     = TO_AFFECTS;
 	af.type      = gsn_war_cry;
 	af.level     = (level = ch->level);
-	af.duration  = 5;
+	af.duration  = get_duration(gsn_war_cry, ch->level);
 	af.modifier  = 5 + level*chance/500;
 	af.bitvector = 0;  
         
@@ -2744,7 +2725,7 @@ void do_guard( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !can_see( ch, victim ) )
+    if ( !can_see_combat( ch, victim ) )
     {
         send_to_char( "You can't see them well enough for that.\n\r", ch );
         return;
@@ -2786,7 +2767,7 @@ void do_guard( CHAR_DATA *ch, char *argument )
         af.where    = TO_AFFECTS;
         af.type     = gsn_guard;
         af.level    = ch->level;
-        af.duration = ch->level/20;
+        af.duration = get_duration(gsn_guard, ch->level);
         af.location = APPLY_HITROLL;
         af.modifier = -(ch->level*chance/1000);
         af.bitvector    = AFF_GUARD;
@@ -2866,7 +2847,7 @@ void do_tumble( CHAR_DATA *ch, char *argument)
         af.where    = TO_AFFECTS;
         af.type     = gsn_tumbling;
         af.level    = ch->level;
-        af.duration = number_fuzzy(ch->level / 8);
+        af.duration = get_duration(gsn_tumbling, ch->level);
      /* Changed from level divided by 10, to 25. Makes
         Tumble actually worth using. -Astark Nov 2012 */
         af.modifier = UMIN(-1,-(ch->level/25));
@@ -3279,7 +3260,7 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
     skill = (get_skill(ch, gsn_shield_bash) + 100) / 2;
     chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
     chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see( ch, victim ) )
+    if ( !can_see_combat( ch, victim ) )
 	chance_hit /= 2;
         
     /* check if the blow hits */
@@ -3677,7 +3658,7 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
         af.where    = TO_AFFECTS;
         af.type     = gsn_choke_hold;
         af.level    = get_curr_stat(ch, STAT_STR);
-        af.duration = ch->level/20;
+        af.duration = -1; // removed in special_affect_update
         af.location = APPLY_HITROLL;
         af.modifier = -ch->level / 5;
         af.bitvector = AFF_GUARD;
@@ -4098,7 +4079,7 @@ void do_intimidate( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( !can_see(victim, ch) )
+    if ( !can_see_combat(victim, ch) )
 	skill /= 2;
     
     /* bonus if victim is already scared */
@@ -4216,7 +4197,7 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( check_see(victim, ch) )
+    if ( check_see_combat(victim, ch) )
     {
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
 	chance -= 75;
@@ -4413,7 +4394,7 @@ void do_puncture( CHAR_DATA *ch, char *argument )
     af.where    = TO_AFFECTS;
     af.type     = gsn_puncture;
     af.level    = ch->level;
-    af.duration = 10;
+    af.duration = get_duration(gsn_puncture, ch->level);
     af.location = APPLY_AC;
     af.modifier = dam;
     af.bitvector = 0;
@@ -4635,7 +4616,7 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch, victim) )
         return;
     
-    if ( !can_see(ch, victim) )
+    if ( !can_see_combat(ch, victim) )
     {
         send_to_char("You can't see them.\n\r",ch);
         return;
@@ -4660,11 +4641,11 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
     }
 
     /* can be used like backstab OR like circle.. */
-    if ( ch->fighting != NULL || check_see(victim, ch) )
+    if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
 	chance = chance*2/3;
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	if ( !can_see(victim, ch) )
+	if ( !can_see_combat(victim, ch) )
 	    chance += 10;
 	if ( IS_AFFECTED(ch, AFF_HASTE) )
 	    chance += 25;
@@ -4802,7 +4783,7 @@ void do_rupture( CHAR_DATA *ch, char *argument )
     if ( is_safe(ch, victim) )
         return;
     
-    if ( !can_see(ch, victim) )
+    if ( !can_see_combat(ch, victim) )
     {
         send_to_char("You can't see your opponent.\n\r",ch);
         return;
@@ -4821,11 +4802,11 @@ void do_rupture( CHAR_DATA *ch, char *argument )
     }
 
     /* can be used like backstab OR like circle.. */
-    if ( ch->fighting != NULL || check_see(victim, ch) )
+    if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
 	chance = chance*2/3;
 	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	if ( !can_see(victim, ch) )
+	if ( !can_see_combat(victim, ch) )
 	    chance += 10;
 	if ( IS_AFFECTED(ch, AFF_HASTE) )
 	    chance += 25;
@@ -4973,7 +4954,6 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
     char arg[MAX_INPUT_LENGTH];
     AFFECT_DATA af;
     int sn;
-    int level;
     
     one_argument(argument, arg);
     
@@ -5006,7 +4986,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
     skill = (get_skill(ch, gsn_quivering_palm) + 100) / 2;
     chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
     chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see( ch, victim ) )
+    if ( !can_see_combat( ch, victim ) )
 	chance_hit /= 2;
         
     /* check if the blow hits */
@@ -5050,6 +5030,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         return;
     }
 
+    dam = one_hit_damage(ch, gsn_quivering_palm, NULL) * 3;
 
     if ( number_bits(2))
     {
@@ -5059,8 +5040,8 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         {
         af.where     = TO_AFFECTS;
         af.type      = gsn_quivering_palm;
-        af.level     = level;
-        af.duration  = 1;
+        af.level     = ch->level;
+        af.duration  = get_duration(gsn_quivering_palm, ch->level);
         af.location  = APPLY_INT;
         af.modifier  = -1 * (ch->level/7);
         af.bitvector = AFF_FEEBLEMIND;
@@ -5077,8 +5058,8 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         {
         af.where     = TO_AFFECTS;
         af.type      = gsn_quivering_palm;
-        af.level     = level;
-        af.duration  = 1;
+        af.level     = ch->level;
+        af.duration  = get_duration(gsn_quivering_palm, ch->level);
         af.location  = APPLY_STR;
         af.modifier  = -1 * (ch->level/7);
         af.bitvector = AFF_WEAKEN;
@@ -5092,9 +5073,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         dam += 50;
     }
             
-  
     /* deal damage */
-    dam = one_hit_damage(ch, gsn_quivering_palm, NULL) * 3;
     full_dam(ch, victim, dam, gsn_quivering_palm, DAM_BASH, TRUE);
     check_improve(ch, gsn_quivering_palm, TRUE, 1);
 
@@ -5107,6 +5086,7 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
   AFFECT_DATA af;
   CHAR_DATA *victim;
   int skill, dam, level;
+  bool confuse = TRUE;
 
   if ( (skill = get_skill(ch,gsn_mindflay)) == 0)
   {
@@ -5140,51 +5120,38 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
     damage( ch, victim, 0, gsn_mindflay, DAM_MENTAL, FALSE);
     check_improve(ch,gsn_mindflay,FALSE,3);
     return;
-  } 
+  }
+  
+  // prepare affect
+  af.where      = TO_AFFECTS;
+  af.type       = gsn_feeblemind;
+  af.level      = level;
+  af.duration   = 1;
+  af.location   = APPLY_INT;
+  af.modifier   = -(level/8);
+  af.bitvector  = AFF_FEEBLEMIND;
+
   if ( saves_spell(level + 10, victim, DAM_MENTAL) )
   {
-    /* attack worked half - damage halved, feeblemind */
-    send_to_char( "You feel your mind getting flayed!\n\r", victim );
-    full_dam( ch, victim, dam/2, gsn_mindflay, DAM_MENTAL, TRUE);
-  
-    if ( number_bits(2) == 0 )
-    {
-      af.where    = TO_AFFECTS;
-      af.type     = gsn_feeblemind;
-      af.level    = level;
-      af.duration = 1 + level/20;
-      af.location = APPLY_INT;
-      af.modifier = -(level/8);
-      af.bitvector = AFF_FEEBLEMIND;
-      act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
-      act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
-      affect_join(victim,&af);
-    }
-    return;
+    dam /= 2;
+    confuse = FALSE;
   }
 
-  /* full attack */
   send_to_char( "You feel your mind getting flayed!\n\r", victim );
   full_dam( ch, victim, dam, gsn_mindflay, DAM_MENTAL, TRUE);
+
   if ( number_bits(2) == 0 )
-  { 
-    if (!is_affected(victim, gsn_confusion))
+  {
+    act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
+    act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
+    affect_join(victim,&af);
+    if ( confuse )
     {
-      af.where    = TO_AFFECTS;
       af.type = gsn_confusion;
-      af.level    = level;
-      af.duration = 1;
-      af.location = APPLY_INT;
-      af.modifier = -(level/8);
       af.bitvector = AFF_INSANE;
-    } else {
-      af.bitvector = AFF_FEEBLEMIND;
-      af.type     = gsn_feeblemind;
-      af.duration = 1 + level/20;
+      affect_join(victim,&af);
     }
-  act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
-  act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
-  affect_join(victim,&af);
   }
+  
   check_improve(ch,gsn_mindflay,TRUE,3);
 }
