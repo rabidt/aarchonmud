@@ -3,6 +3,7 @@ package.path = mud.luadir() .. "?.lua"
 require "tprint"
 require "serialize"
 require "utilities"
+require "miniquest"
 
 --function send_nocr (...)
   --  say (table.concat {...})
@@ -14,6 +15,25 @@ require "utilities"
 
 udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
 
+savefuncs={
+    save_miniquests
+} -- register save functions here
+
+loadfuncs={
+    load_miniquests
+} -- register load functions here
+
+function save_lua_data()
+    for k,v in pairs(savefuncs) do
+        v()
+    end
+end
+
+function load_lua_data()
+    for k,v in pairs(loadfuncs) do
+        v()
+    end
+end
 
 function GetAreaFname(env)
     local full

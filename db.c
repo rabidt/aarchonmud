@@ -786,6 +786,8 @@ void boot_db()
         load_bans();
         log_string("Loading portals");
         load_portal_list();
+        log_string("Loading lua data.");
+        load_lua_data();
 
         /* check aprog boot triggers */
         ap_boot_trigger();

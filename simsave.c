@@ -142,6 +142,9 @@ void handle_player_save()
     /* save remort etc. files as well */
     sim_save_other();
 
+    /* save lua based data */
+    save_lua_data();
+
     player_save_state = SAVE_STATE_SIMSAVE;
     break;
     

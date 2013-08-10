@@ -2756,3 +2756,39 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
     return result;
 }
+
+void save_lua_data()
+{
+    lua_getglobal(mud_LS, "save_lua_data");
+    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    {
+        bugf ( "Error with save_lua_data:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void load_lua_data()
+{
+    lua_getglobal(mud_LS, "load_lua_data");
+    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    {
+        bugf ( "Error with load_lua_data:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void do_miniquest( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(mud_LS, "do_miniquest");
+    make_ud_table(mud_LS, ch, UDTYPE_CH, TRUE);
+    lua_pushstring(mud_LS, argument);
+    if (CallLuaWithTraceBack( mud_LS, 2, 0) )
+    {
+        bugf ( "Error with do_miniquest:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
