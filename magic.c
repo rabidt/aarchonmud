@@ -5282,15 +5282,6 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         return;
     } 
 
-    /*
-       if (IS_SET(victim->in_room->room_flags,ROOM_NO_RECALL) ||
-       IS_AFFECTED(victim,AFF_CURSE))
-       {
-       send_to_char("Your recall spell failed.\n\r",victim);
-       return;
-       }
-     */
-
     if (NOT_AUTHED(victim))
     {
         send_to_char("You cannot recall until your character is authorized by the Immortals.\n\r",victim);
@@ -5325,11 +5316,6 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         }
     }
 
-    /*
-       if (victim->fighting != NULL)
-       stop_fighting(victim,TRUE);
-     */
-
     /* Added exp loss during combat 2/22/99 -Rim */
     if ( victim->fighting != NULL )
     {
@@ -5356,9 +5342,11 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         }
         else
             send_to_char("You recall from combat!\n\r",ch);
-
     }
 
+    // misgate chance when cursed but not normally
+    location = room_with_misgate(victim, location, 0);
+    
     act("$n disappears.",victim,NULL,NULL,TO_ROOM);
     char_from_room(victim);
     char_to_room(victim,location);
