@@ -3795,7 +3795,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_prayer,        TAR_CHAR_SELF,   POS_STANDING,
-	&gsn_prayer,           SLOT( 948),    50, 20, DUR_NORMAL,
+	&gsn_prayer,           SLOT( 948),    50, 20, DUR_LONG,
 	"",         "You feel less righteous.", "", NULL
 	},
 
