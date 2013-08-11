@@ -1194,8 +1194,8 @@ int get_spell_heal( int mana, int lag, int level )
 int adjust_spell_damage( int dam, CHAR_DATA *ch )
 {
     OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
-    //OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
-    bool has_focus = (obj != NULL && obj->item_type != ITEM_ARROWS);
+    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    bool has_focus = !has_shield && (obj != NULL && obj->item_type != ITEM_ARROWS);
 
     if ( was_obj_cast )
         return dam;
