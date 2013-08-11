@@ -5289,13 +5289,14 @@ void do_percentages( CHAR_DATA *ch, char *argument )
         add_buf(output, "{D:===========================================================================:{x\n\r");
 
     // secondary and two-handed weapons
-    add_buff_pad(output, LENGTH, "{D|{x {cOffhand Attacks:{x %d%%",
-        offhand_attack_chance(ch, FALSE)
+    add_buff_pad(output, LENGTH, "{D|{x {cOffhand Attacks:{x %3d%%  {cTwohand Bonus:{x %3d%%",
+        offhand_attack_chance(ch, FALSE),
+        get_twohand_bonus(ch, get_eq_char(ch, WEAR_WIELD), FALSE)
     );
     add_buf(output, "{D|{x\n\r");
 
     // dodge, parry, block
-    add_buff_pad(output, LENGTH, "{D|{x {cShield Block:{x %d%%",
+    add_buff_pad(output, LENGTH, "{D|{x {c   Shield Block:{x %3d%%",
         shield_block_chance(ch, FALSE)
     );
     add_buf(output, "{D|{x\n\r");
