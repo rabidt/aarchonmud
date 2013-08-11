@@ -4265,6 +4265,33 @@ bool check_jam( CHAR_DATA *ch, int odds, bool both )
     return FALSE;
 }
 
+int shield_block_chance( CHAR_DATA *ch, bool improve )
+{
+    if ( get_eq_char(ch, WEAR_SHIELD) == NULL )
+        return 0;
+
+    int chance = 10 + get_skill(ch, gsn_shield_block) / 4;
+
+    // offhand occupied means reduced block chance
+    bool offhand_occupied = get_eq_char(ch, WEAR_SECONDARY) != NULL || get_eq_char(ch, WEAR_HOLD) != NULL;
+    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
+
+    if ( wield != NULL && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
+        offhand_occupied = TRUE;
+
+    if ( offhand_occupied )
+        chance = chance * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+
+    if ( improve )
+    {
+        check_improve(ch, gsn_shield_block, TRUE, 15);
+        if ( offhand_occupied )
+            check_improve(ch, gsn_wrist_shield, TRUE, 20);
+    }
+    
+    return chance;
+}
+
 /*
  * Check for shield block.
  */
@@ -4279,15 +4306,7 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( get_eq_char( victim, WEAR_SHIELD ) == NULL )
         return FALSE;
 
-    chance = 10 + get_skill(victim, gsn_shield_block) / 4;
-
-    if ( (obj = get_eq_char(victim, WEAR_WIELD)) &&
-	 (IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) ||
-	  get_eq_char(victim, WEAR_SECONDARY)))
-    {
-	chance = chance * (100 + get_skill(victim, gsn_wrist_shield)) / 300;
-	check_improve(victim, gsn_wrist_shield, TRUE, 20);
-    }
+    chance = shield_block_chance(victim, TRUE);
 
     /* whips are harder to block */
     if ( get_weapon_sn(ch) == gsn_whip )
@@ -4311,7 +4330,6 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
         TO_CHAR, GAG_MISS );
     act_gag( "$N blocks $n's attack with $S shield.", ch, NULL, victim, 
         TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_shield_block,TRUE,15);
     return TRUE;
 }
 
