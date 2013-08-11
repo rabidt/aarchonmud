@@ -2094,12 +2094,6 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
 
     if ( CAN_WEAR( obj, ITEM_WEAR_SHIELD ) )
     {
-        if ( get_eq_char(ch, WEAR_HOLD) != NULL )
-        {
-            send_to_char ("You cannot use a shield while holding an item.\n\r",ch);
-            return;
-        }
-
         if ( !remove_obj( ch, WEAR_SHIELD, fReplace ) )
             return;
         act_gag( "$n wears $p as a shield.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
