@@ -290,7 +290,7 @@ AREA_DATA *check_AREA( lua_State *LS, int arg)
     return exit;
 }
 
-static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
+static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
 {
     if ( !ptr )
         luaL_error (LS, "make_ud_table called with NULL object. UDTYPE: %d", UDTYPE);
@@ -345,16 +345,14 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
     lua_setmetatable(LS, -2);
     lua_rawset( LS, -3 );
 
-    if ( reg )
+    lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
+    lua_pushvalue( LS, -2);
+    if (CallLuaWithTraceBack( LS, 1, 0) )
     {
-        lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
-        lua_pushvalue( LS, -2);
-        if (CallLuaWithTraceBack( LS, 1, 0) )
-        {
-            bugf ( "Error registering UD:\n %s",
-                    lua_tostring(LS, -1));
-        }
+        bugf ( "Error registering UD:\n %s",
+                lua_tostring(LS, -1));
     }
+   
 }
 
 static void unregister_UD( lua_State *LS,  void *ptr )
@@ -471,7 +469,20 @@ static int L_getcharworld (lua_State *LS)
     if (!ch)
         return 0;
     
-    make_ud_table( LS, ch, UDTYPE_CH, TRUE);
+    make_ud_table( LS, ch, UDTYPE_CH);
+    return 1;
+}
+
+static int L_getareas ( lua_State *LS )
+{
+    int index=1;
+    lua_newtable(LS);
+    AREA_DATA *area;
+    for (area=area_first ; area ; area=area->next)
+    {
+        make_ud_table(LS, area, UDTYPE_AREA);
+        lua_rawseti(LS, -2, index++);
+    }
     return 1;
 }
 
@@ -498,7 +509,7 @@ static int L_getmobworld (lua_State *LS)
         {
             if ( ch->pIndexData->vnum == num )
             {
-                make_ud_table( LS, ch, UDTYPE_CH, TRUE);
+                make_ud_table( LS, ch, UDTYPE_CH);
                 lua_rawseti(LS, -2, index++);
             }
         }
@@ -518,7 +529,7 @@ static int L_getobjworld (lua_State *LS)
     {
         if ( obj->pIndexData->vnum == num )
         {
-            make_ud_table( LS, obj, UDTYPE_OBJ, TRUE);
+            make_ud_table( LS, obj, UDTYPE_OBJ);
             lua_rawseti(LS, -2, index++);
         }
     }
@@ -536,7 +547,7 @@ static int L_getroom (lua_State *LS)
     if (!room)
         return 0;
 
-    make_ud_table( LS, room, UDTYPE_ROOM, TRUE);
+    make_ud_table( LS, room, UDTYPE_ROOM);
     return 1;
 
 }
@@ -550,7 +561,7 @@ static int L_getobjproto (lua_State *LS)
     if (!obj)
         return 0;
 
-    make_ud_table( LS, obj, UDTYPE_OBJPROTO, TRUE);
+    make_ud_table( LS, obj, UDTYPE_OBJPROTO);
     return 1;
 }
 
@@ -569,7 +580,7 @@ static int L_ch_randchar (lua_State *LS)
     if ( ! ch )
         return 0;
 
-    make_ud_table( LS, ch, UDTYPE_CH, TRUE);
+    make_ud_table( LS, ch, UDTYPE_CH);
     return 1;
 
 }
@@ -1245,7 +1256,7 @@ static int L_ch_oload (lua_State *LS)
     check_enchant_obj( obj );
     obj_to_char(obj,ud_ch);
 
-    make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
+    make_ud_table(LS, obj, UDTYPE_OBJ);
     return 1;
 
 }
@@ -1388,7 +1399,7 @@ static int L_room_mload (lua_State *LS)
     arm_npc( mob );
     char_to_room(mob,ud_room);
 
-    make_ud_table(LS, mob, UDTYPE_CH, TRUE);
+    make_ud_table(LS, mob, UDTYPE_CH);
     return 1;
 
 }
@@ -1406,7 +1417,7 @@ static int L_room_oload (lua_State *LS)
     check_enchant_obj( obj );
     obj_to_room(obj,ud_room);
 
-    make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
+    make_ud_table(LS, obj, UDTYPE_OBJ);
     return 1;
 
 }
@@ -1837,7 +1848,7 @@ static int get_OBJ_field ( lua_State *LS )
         if ( !ud_obj->pIndexData )
             return 0;
 
-        make_ud_table(LS, ud_obj->pIndexData, UDTYPE_OBJPROTO, TRUE);
+        make_ud_table(LS, ud_obj->pIndexData, UDTYPE_OBJPROTO);
         return 1;
     }
 
@@ -1848,7 +1859,7 @@ static int get_OBJ_field ( lua_State *LS )
         OBJ_DATA *obj;
         for (obj=ud_obj->contains ; obj ; obj=obj->next_content)
         {
-            make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
+            make_ud_table(LS, obj, UDTYPE_OBJ);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -1859,7 +1870,7 @@ static int get_OBJ_field ( lua_State *LS )
         if (!ud_obj->in_room)
             return 0;
 
-        make_ud_table(LS, ud_obj->in_room, UDTYPE_ROOM, TRUE);
+        make_ud_table(LS, ud_obj->in_room, UDTYPE_ROOM);
         return 1;
     }
 
@@ -1868,7 +1879,7 @@ static int get_OBJ_field ( lua_State *LS )
         if (!ud_obj->in_obj)
             return 0;
 
-        make_ud_table(LS, ud_obj->in_obj, UDTYPE_OBJ, TRUE);
+        make_ud_table(LS, ud_obj->in_obj, UDTYPE_OBJ);
         return 1;
     }
 
@@ -1877,7 +1888,7 @@ static int get_OBJ_field ( lua_State *LS )
         if (!ud_obj->carried_by )
             return 0;
 
-        make_ud_table(LS, ud_obj->carried_by, UDTYPE_CH, TRUE);
+        make_ud_table(LS, ud_obj->carried_by, UDTYPE_CH);
         return 1;
     }
 
@@ -1936,7 +1947,7 @@ static int get_EXIT_field ( lua_State *LS )
 
     if (!strcmp(argument, "toroom"))
     {
-        make_ud_table( LS, ud_exit->u1.to_room, UDTYPE_ROOM , TRUE);
+        make_ud_table( LS, ud_exit->u1.to_room, UDTYPE_ROOM);
         return 1;
     }
     FLDSTR("keyword", ud_exit->keyword ? ud_exit->keyword : "");
@@ -1971,7 +1982,11 @@ static int get_ROOM_field ( lua_State *LS )
     FLDNUM("manarate", ud_room->mana_rate);
     FLDSTR("owner", ud_room->owner ? ud_room->owner : "");
     FLDSTR("description", ud_room->description);
-    FLDSTR("area", ud_room->area->name );
+    if ( !strcmp(argument, "area") )
+    {
+        make_ud_table(LS, ud_room->area, UDTYPE_AREA);
+        return 1;
+    }
 
     if ( !strcmp(argument, "people") )
     {   
@@ -1980,7 +1995,7 @@ static int get_ROOM_field ( lua_State *LS )
         CHAR_DATA *people;
         for (people=ud_room->people ; people ; people=people->next_in_room)
         {
-            make_ud_table(LS, people, UDTYPE_CH, TRUE);
+            make_ud_table(LS, people, UDTYPE_CH);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -2014,7 +2029,7 @@ static int get_ROOM_field ( lua_State *LS )
                 return 0;
 
             lua_newtable(LS);
-            make_ud_table(LS, ud_room->exit[i], UDTYPE_EXIT, TRUE);
+            make_ud_table(LS, ud_room->exit[i], UDTYPE_EXIT);
             return 1;
         }
     }
@@ -2132,7 +2147,7 @@ static int get_CH_field ( lua_State *LS)
         if (!ud_ch->mprog_target)
             return 0;
 
-        make_ud_table(LS, ud_ch->mprog_target, UDTYPE_CH, TRUE);
+        make_ud_table(LS, ud_ch->mprog_target, UDTYPE_CH);
         return 1;
     }
 
@@ -2143,7 +2158,7 @@ static int get_CH_field ( lua_State *LS)
         OBJ_DATA *obj;
         for (obj=ud_ch->carrying ; obj ; obj=obj->next_content)
         {
-            make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
+            make_ud_table(LS, obj, UDTYPE_OBJ);
             lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -2151,7 +2166,7 @@ static int get_CH_field ( lua_State *LS)
 
     if ( !strcmp(argument, "room" ) )
     {
-        make_ud_table(LS, ud_ch->in_room, UDTYPE_ROOM, TRUE);
+        make_ud_table(LS, ud_ch->in_room, UDTYPE_ROOM);
         return 1;
     }
     FLDNUM("groupsize", count_people_room( ud_ch, 4 ) );
@@ -2286,6 +2301,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"log",         L_log );
     lua_register(LS,"sendtochar",  L_sendtochar  );
     lua_register(LS,"getcharworld",L_getcharworld);
+    lua_register(LS,"getareas",    L_getareas);
 
 }
 
@@ -2486,7 +2502,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
 {
     lua_getglobal( mud_LS, "mob_program_setup");
     
-    make_ud_table( mud_LS, mob, UDTYPE_CH, TRUE);
+    make_ud_table( mud_LS, mob, UDTYPE_CH);
     if (lua_isnil(mud_LS, -1) )
     {
         bugf("make_ud_table pushed nil to lua_mob_program");
@@ -2522,7 +2538,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
     /* CH_ARG */
     if (ch)
-        make_ud_table (mud_LS,(void *) ch, UDTYPE_CH, TRUE);
+        make_ud_table (mud_LS,(void *) ch, UDTYPE_CH);
     else lua_pushnil(mud_LS);
 
     /* TRIG_ARG */
@@ -2532,12 +2548,12 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
     /* OBJ1_ARG */
     if (arg1type== ACT_ARG_OBJ && arg1)
-        make_ud_table( mud_LS, arg1, UDTYPE_OBJ, TRUE);
+        make_ud_table( mud_LS, arg1, UDTYPE_OBJ);
     else lua_pushnil(mud_LS);
 
     /* OBJ2_ARG */
     if (arg2type== ACT_ARG_OBJ && arg2)
-        make_ud_table( mud_LS, arg2, UDTYPE_OBJ, TRUE);
+        make_ud_table( mud_LS, arg2, UDTYPE_OBJ);
     else lua_pushnil(mud_LS);
 
     /* TEXT1_ARG */
@@ -2552,7 +2568,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
     /* VICTIM_ARG */
     if (arg2type== ACT_ARG_CHARACTER)
-        make_ud_table( mud_LS, arg2, UDTYPE_CH, TRUE);
+        make_ud_table( mud_LS, arg2, UDTYPE_CH);
     else lua_pushnil(mud_LS);
 
 
@@ -2597,7 +2613,7 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
 
     lua_getglobal( mud_LS, "obj_program_setup");
     
-    make_ud_table( mud_LS, obj, UDTYPE_OBJ, TRUE);
+    make_ud_table( mud_LS, obj, UDTYPE_OBJ);
     if (lua_isnil(mud_LS, -1) )
     {
         bugf("make_ud_table pushed nil to lua_obj_program");
@@ -2632,17 +2648,17 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
 
     /* OBJ2_ARG */
     if (obj2)
-        make_ud_table (mud_LS,(void *) obj2, UDTYPE_OBJ, TRUE);
+        make_ud_table (mud_LS,(void *) obj2, UDTYPE_OBJ);
     else lua_pushnil(mud_LS);
     
     /* CH1_ARG */
     if (ch1)
-        make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
+        make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH);
     else lua_pushnil(mud_LS);
 
     /* CH2_ARG */
     if (ch2)
-        make_ud_table (mud_LS,(void *) ch2, UDTYPE_CH, TRUE);
+        make_ud_table (mud_LS,(void *) ch2, UDTYPE_CH);
     else lua_pushnil(mud_LS);
 
     /* TRIG_ARG */
@@ -2693,7 +2709,7 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
 
     lua_getglobal( mud_LS, "area_program_setup");
     
-    make_ud_table( mud_LS, area, UDTYPE_AREA, TRUE);
+    make_ud_table( mud_LS, area, UDTYPE_AREA);
     if (lua_isnil(mud_LS, -1) )
     {
         bugf("make_ud_table pushed nil to lua_area_program");
@@ -2728,7 +2744,7 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
 
     /* CH1_ARG */
     if (ch1)
-        make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
+        make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH);
     else lua_pushnil(mud_LS);
 
     /* TRIG_ARG */
@@ -2797,7 +2813,7 @@ void load_lua_data()
 void do_miniquest( CHAR_DATA *ch, char *argument)
 {
     lua_getglobal(mud_LS, "do_miniquest");
-    make_ud_table(mud_LS, ch, UDTYPE_CH, TRUE);
+    make_ud_table(mud_LS, ch, UDTYPE_CH);
     lua_pushstring(mud_LS, argument);
     if (CallLuaWithTraceBack( mud_LS, 2, 0) )
     {
@@ -2807,3 +2823,26 @@ void do_miniquest( CHAR_DATA *ch, char *argument)
     }
 }
 
+void do_aquest( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(mud_LS, "do_aquest");
+    make_ud_table(mud_LS, ch, UDTYPE_CH);
+    lua_pushstring(mud_LS, argument);
+    if (CallLuaWithTraceBack( mud_LS, 2, 0) )
+    {
+        bugf ( "Error with do_aquest:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}
+
+void save_area_quests( )
+{
+    lua_getglobal(mud_LS, "save_area_quests");
+    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    {
+        bugf ( "Error with save_area_quests:\n %s",
+                lua_tostring(mud_LS, -1));
+        lua_pop( mud_LS, 1);
+    }
+}

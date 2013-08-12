@@ -1191,6 +1191,7 @@ void do_asave( CHAR_DATA *ch, char *argument )
             send_to_char( "  asave world    - saves the world! (db dump)\n\r",	ch );
             send_to_char( "  asave helps    - saves non-area based help files\n\r",	ch );
 			send_to_char( "  asave skills   - saves class skill information\n\r", ch);
+            send_to_char( "  asave quests   - saves area/miniquests\n\r", ch );
             send_to_char( "\n\r", ch );
         }
         
@@ -1245,6 +1246,7 @@ void do_asave( CHAR_DATA *ch, char *argument )
         }
         
         save_other_helps( );
+        save_area_quests( );
         
         if ( ch )
             send_to_char( "You saved the world.\n\r", ch );
@@ -1371,6 +1373,13 @@ void do_asave( CHAR_DATA *ch, char *argument )
 		send_to_char("Skills Saved.\n\r", ch);
 		return;
 	}
+
+    if (!str_cmp(arg1, "quests"))
+    {
+        save_area_quests();
+        send_to_char("Quests Saved.\n\r", ch);
+        return;
+    }
     
     /* Show correct syntax. */
     /* -------------------- */
