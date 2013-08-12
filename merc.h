@@ -2241,6 +2241,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define COMM_SHOW_ATTRIB (dd)
 #define COMM_NONEWBIE    (ee)
 #define COMM_BUSY        (ff)
+#define COMM_SHOW_PERCENT (gg)
 
 
 /* WIZnet flags */

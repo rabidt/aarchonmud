@@ -1211,8 +1211,7 @@ void do_show(CHAR_DATA *ch, char *argument)
     if ( arg[0] == '\0' )
     {
         send_to_char( "Show what in your score?\n\r"
-            "Syntax:  show affects\n\rshow worth\n\r"
-            "show att\n\r", ch );
+            "Syntax:  show <worth|attributes|percentages|affects>\n\r", ch );
         return;
     }
     
@@ -1258,10 +1257,24 @@ void do_show(CHAR_DATA *ch, char *argument)
         }
         return;
     }
+    else if ( !str_cmp(arg, "per") || !str_cmp(arg, "percent") || !str_cmp(arg, "percentages") )
+    {
+        if ( IS_SET(ch->comm, COMM_SHOW_PERCENT) )
+        {
+            send_to_char("Percentages will no longer be shown in  score.\n\r",ch);
+            REMOVE_BIT(ch->comm, COMM_SHOW_PERCENT);
+        }
+        else
+        {
+            send_to_char("Percentages will now be shown in score.\n\r",ch);
+            SET_BIT(ch->comm, COMM_SHOW_PERCENT);
+        }
+        return;
+    }
     else
     {
-        send_to_char( "Show affects, worth, or attributes in your score?\n\r", ch );
-        send_to_char( "Syntax:  show <aff/worth/att>\n\r", ch );
+        send_to_char( "Show worth, attributes, percentages or affects in your score?\n\r", ch );
+        send_to_char( "Syntax:  show <worth|att|per|aff>\n\r", ch );
         return;
     }
 }
@@ -4983,20 +4996,16 @@ void do_score( CHAR_DATA *ch, char *argument )
     free_buf(output);
 
 
-    if ( IS_NPC(ch) || (IS_SET(ch->comm, COMM_SHOW_WORTH) && IS_SET(ch->comm, COMM_SHOW_ATTRIB)) )
-    {
-        do_worth(ch,"for_score");
-        do_attributes(ch,"for_score");
-    }
-    else if ( IS_SET(ch->comm, COMM_SHOW_WORTH) )
-        do_worth(ch,"for_score");
-    else if ( IS_SET(ch->comm, COMM_SHOW_ATTRIB) )
-        do_attributes(ch,"for_score");
-
+    if ( IS_SET(ch->comm, COMM_SHOW_WORTH) )
+        do_worth(ch, "for_score");
+    if ( IS_SET(ch->comm, COMM_SHOW_ATTRIB) )
+        do_attributes(ch, "for_score");
+    if ( IS_SET(ch->comm, COMM_SHOW_PERCENT) )
+        do_percentages(ch, "for_score");
     if ( !IS_NPC(ch) && ch->penalty )
         show_penalties_by_player(ch, ch->name, TIME_PLAYED(ch), 2);
-    if ( IS_SET(ch->comm,COMM_SHOW_AFFECTS))
-        do_affects(ch,"");
+    if ( IS_SET(ch->comm, COMM_SHOW_AFFECTS) )
+        do_affects(ch, "for_score");
 
     return;
 }
@@ -5276,6 +5285,39 @@ void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
         );
         add_buf( output, buf );        
     }
+}
+
+// show offhand attack and other percentages
+void do_percentages( CHAR_DATA *ch, char *argument )
+{
+    BUFFER *output;
+    int LENGTH = 76;
+
+    output = new_buf();
+    if ( strcmp(argument,"for_score") )
+        add_buf(output, "{D:===========================================================================:{x\n\r");
+
+    // secondary and two-handed weapons
+    add_buff_pad(output, LENGTH, "{D|{x {cOffhand Attacks:{x %3d%%   {cTwohand Bonus:{x %3d%%     {cFocus Bonus:{x %3d%%",
+        offhand_attack_chance(ch, FALSE),
+        get_twohand_bonus(ch, get_eq_char(ch, WEAR_WIELD), FALSE),
+        get_focus_bonus(ch)
+    );
+    add_buf(output, "{D|{x\n\r");
+
+    // dodge, parry, block
+    add_buff_pad(output, LENGTH, "{D|{x           {cDodge:{x %3d%%           {cParry:{x %3d%%           {cBlock:{x %3d%%",
+        dodge_chance(ch, FALSE),
+        parry_chance(ch, FALSE),
+        shield_block_chance(ch, FALSE)
+    );
+    add_buf(output, "{D|{x\n\r");
+    
+    add_buf(output, "{D:===========================================================================:{x\n\r");
+    page_to_char(buf_string(output), ch);
+    free_buf(output);
+
+    return;
 }
 
 void do_helper( CHAR_DATA *ch, char *argument )
