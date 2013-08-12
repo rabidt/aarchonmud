@@ -2611,7 +2611,7 @@ void do_god( CHAR_DATA *ch, char *argument )
 	    victim = original_char( d->character );
 
 	    if ( victim == NULL || IS_NPC(victim) || IS_IMMORTAL(victim)
-		|| IS_REMORT(victim) || (IS_SET(victim->act,PLR_WAR) && !in_religion_war(victim)) )
+		|| is_in_remort(victim) || (IS_SET(victim->act,PLR_WAR) && !in_religion_war(victim)) )
 		continue;
 
 	    if ( world
