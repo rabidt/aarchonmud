@@ -2194,6 +2194,28 @@ bool is_drop_obj( OBJ_DATA *obj )
 	|| is_relic_obj( obj );
 }
 
+bool is_questeq( OBJ_DATA *obj )
+{
+    return IS_OBJ_STAT(obj, ITEM_QUESTEQ) && TRUE;
+}
+
+bool contains_obj_recursive( OBJ_DATA *obj, OBJ_CHECK_FUN *obj_check )
+{
+    if ( obj == NULL || obj_check == NULL )
+    {
+        bugf("contains_obj_recursive: NULL pointer given");
+        return FALSE;
+    }
+    if ( obj_check(obj) )
+        return TRUE;
+
+    for ( obj = obj->contains; obj != NULL; obj = obj->next_content )
+        if ( contains_obj_recursive(obj, obj_check) )
+            return TRUE;
+
+    return FALSE;
+}
+
 void extract_char_eq( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc )
 {
     OBJ_DATA *obj, *obj_next;
