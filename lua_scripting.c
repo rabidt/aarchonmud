@@ -1982,7 +1982,7 @@ static int get_ROOM_field ( lua_State *LS )
     FLDSTR("description", ud_room->description);
     if ( !strcmp(argument, "area") )
     {
-        make_ud_table(LS, ud_room->area, UDTYPE_AREA);
+        make_ud_table(LS, ud_room->area, UDTYPE_AREA, TRUE);
         return 1;
     }
 
