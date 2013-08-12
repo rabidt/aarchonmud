@@ -2171,7 +2171,8 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
             if ( paf->duration == -1 )
                 printf_to_char( to_ch, "indefinitely (Lvl %d)", paf->level );
             else
-                printf_to_char( to_ch, "for %d hours (Lvl %d)", paf->duration, paf->level );
+                // color-code spells about to expire
+                printf_to_char( to_ch, "for %s%d hours{x (Lvl %d)", paf->duration < 5 ? "{R" : paf->duration < 10 ? "{y" : "", paf->duration, paf->level );
             if ( paf->type == gsn_mirror_image || paf->type == gsn_phantasmal_image )
                 printf_to_char( to_ch, " with %d %s remaining", paf->bitvector, paf->bitvector == 1 ? "image" : "images");
         }
@@ -3566,36 +3567,59 @@ void do_report( CHAR_DATA *ch, char *argument )
 */
 void do_wimpy( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
     int wimpy;
     
     one_argument( argument, arg );
     
     if ( arg[0] == '\0' )
-        wimpy = ch->max_hit / 5;
+    {
+        printf_to_char( ch, "Your current wimpy threshold is set to %d%%.\n\r", ch->wimpy );
+        printf_to_char( ch, "To change type: wimpy <percentage>\n\r" );
+        return;
+    }
     else
         wimpy = atoi( arg );
     
-    if ( wimpy < 0 )
-    {
-        send_to_char( "Your courage exceeds your wisdom.\n\r", ch );
-        return;
-    }
+    wimpy = URANGE(0, wimpy, 100);
     
-    if ( wimpy > ch->max_hit/2 )
-    {
-        send_to_char( "Such cowardice ill becomes you.\n\r", ch );
-        return;
-    }
-    
-    ch->wimpy   = wimpy;
-    sprintf( buf, "Wimpy set to %d hit points.\n\r", wimpy );
-    send_to_char( buf, ch );
+    ch->wimpy = wimpy;
+    if ( wimpy == 0 )
+        printf_to_char( ch, "You will stand your ground no matter what.\n\r");
+    else if ( wimpy == 100 )
+        printf_to_char( ch, "You will run at the first hint of danger.\n\r");
+    else 
+        printf_to_char( ch, "You will now flee when dropping below %d%% of your hit points.\n\r", wimpy );
     return;
 }
 
-
+void do_calm( CHAR_DATA *ch, char *argument )
+{
+    char arg[MAX_INPUT_LENGTH];
+    int calm;
+    
+    one_argument( argument, arg );
+    
+    if ( arg[0] == '\0' )
+    {
+        printf_to_char( ch, "Your current calm threshold is set to %d%%.\n\r", ch->calm );
+        printf_to_char( ch, "To change type: calm <percentage>\n\r" );
+        return;
+    }
+    else
+        calm = atoi( arg );
+    
+    calm = URANGE(0, calm, 100);
+    
+    ch->calm = calm;
+    if ( calm == 0 )
+        printf_to_char( ch, "You won't calm down till you drop.\n\r");
+    else if ( calm == 100 )
+        printf_to_char( ch, "You will always be calm.\n\r");
+    else 
+        printf_to_char( ch, "You will now calm down when dropping below %d%% of your moves.\n\r", calm );
+    return;
+}
 
 void do_password( CHAR_DATA *ch, char *argument )
 {
@@ -4443,7 +4467,7 @@ void do_disguise( CHAR_DATA *ch, char *argument )
 
     af.type      = gsn_disguise;
     af.level     = ch->level;
-    af.duration  = 10 + ch->level / 2;
+    af.duration  = get_duration(gsn_disguise, ch->level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.where     = TO_SPECIAL;
@@ -5116,8 +5140,7 @@ void do_attributes( CHAR_DATA *ch, char *argument )
     add_buf( output, buf );
 
     /* ** Wimpy (way better on its own line) ** */
-    sprintf( buf, "{D|{x {cWimpy: %d{x (%3.1f%%)", IS_NPC(ch) ? (IS_SET(ch->act, ACT_WIMPY) ? ch->max_hit/5 : 0) : ch->wimpy,
-                                          IS_NPC(ch) ? (IS_SET(ch->act, ACT_WIMPY) ? 20 : 0) : ((float)(ch->wimpy)/(ch->max_hit))*100 );
+    sprintf( buf, "{D|{x {cWimpy:{x %d%%  {cCalm:{x %d%%", ch->wimpy, ch->calm );
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
@@ -5884,7 +5907,9 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
              ch->pcdata->trained_move,
              max_hmm_train( ch->level ) );
     add_buf(output, buf);
-    sprintf( buf, "Wimpy set to %d hit points.\n\r", ch->wimpy );
+    sprintf( buf, "Wimpy set to %d%% hit points.\n\r", ch->wimpy );
+    add_buf(output, buf);
+    sprintf( buf, "Calm set to %d%% moves.\n\r", ch->calm );
     add_buf(output, buf);
 
     switch ( ch->position )
