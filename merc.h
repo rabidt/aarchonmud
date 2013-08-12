@@ -233,7 +233,7 @@ bool check_immtalk( CHAR_DATA *ch );
 bool is_remort_obj( OBJ_DATA *obj );
 bool is_sticky_obj( OBJ_DATA *obj );
 bool is_drop_obj( OBJ_DATA *obj );
-
+bool is_questeq( OBJ_DATA *obj );
 
 
 /*
