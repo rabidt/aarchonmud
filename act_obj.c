@@ -825,6 +825,12 @@ void do_drop( CHAR_DATA *ch, char *argument )
             return;
         }
 
+        if ( contains_obj_recursive(obj, &is_questeq) )
+        {
+            send_to_char("You don't want to drop your quest equipment!\n\r", ch);
+            return;
+        }
+        
         if (IS_SET(ch->in_room->room_flags, ROOM_DONATION))
         {
             if (obj->timer)
@@ -864,6 +870,12 @@ void do_drop( CHAR_DATA *ch, char *argument )
             {
                 found = TRUE;
 
+                if ( contains_obj_recursive(obj, &is_questeq) )
+                {
+                    send_to_char("You don't want to drop your quest equipment!\n\r", ch);
+                    continue;
+                }
+                
                 if (IS_SET(ch->in_room->room_flags, ROOM_DONATION))
                 {
                     if (obj->timer)
@@ -1111,6 +1123,12 @@ void do_give( CHAR_DATA *ch, char *argument )
     if ( !can_see_obj( victim, obj ) )
     {
         act( "$N can't see it.", ch, NULL, victim, TO_CHAR );
+        return;
+    }
+    
+    if ( IS_NPC(victim) && contains_obj_recursive(obj, &is_questeq) )
+    {
+        send_to_char("You don't want to give away your quest equipment!\n\r", ch);
         return;
     }
 
@@ -2362,9 +2380,7 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
         }
     }
 
-
-    if ( !CAN_WEAR(obj, ITEM_TAKE) || CAN_WEAR(obj, ITEM_NO_SAC)
-            || is_relic_obj(obj) )
+    if ( !CAN_WEAR(obj, ITEM_TAKE) || CAN_WEAR(obj, ITEM_NO_SAC) || IS_OBJ_STAT(obj, ITEM_QUESTEQ) || is_relic_obj(obj) )
     {
         act( "$p is not an acceptable sacrifice.", ch, obj, 0, TO_CHAR );
         return;
@@ -3855,13 +3871,14 @@ void do_donate( CHAR_DATA *ch, char *argument)
         return;
     }
 
-    if ( obj->item_type == ITEM_CORPSE_NPC ||
-            obj->item_type == ITEM_CORPSE_PC  ||
-            obj->item_type == ITEM_EXPLOSIVE  ||
-            obj->owner != NULL                ||
-            is_relic_obj(obj)                 ||
-            IS_OBJ_STAT(obj,ITEM_STICKY)      ||
-            IS_OBJ_STAT(obj,ITEM_MELT_DROP))
+    if ( obj->item_type == ITEM_CORPSE_NPC
+        || obj->item_type == ITEM_CORPSE_PC
+        || obj->item_type == ITEM_EXPLOSIVE
+        || obj->owner != NULL
+        || is_relic_obj(obj)
+        || contains_obj_recursive(obj, &is_questeq)
+        || contains_obj_recursive(obj, &is_sticky_obj)
+        || IS_OBJ_STAT(obj,ITEM_MELT_DROP))
     {
         send_to_char("You cannot donate that!\n\r",ch);
         return;
