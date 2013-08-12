@@ -898,13 +898,97 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         one_hit(ch, victim, dt, FALSE);
 }
 
+/*
+ * Effective skill for offhand weapon usage
+ */
+int dual_wield_skill( CHAR_DATA *ch, bool improve )
+{
+    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
+    OBJ_DATA *second = get_eq_char(ch, WEAR_SECONDARY);
+    
+    if ( wield == NULL || second == NULL )
+        return 0;
+    
+    int wield_weight = UMAX(1, wield->weight);
+    int second_weight = UMAX(1, second->weight);
+    
+    // dual wield requires weight difference
+    int dual_wield = get_skill(ch, gsn_dual_wield);
+    dual_wield = dual_wield * wield_weight / UMAX(wield_weight, second_weight * 3/2);
+    
+    if ( improve )
+        check_improve(ch, gsn_dual_wield, TRUE, 10);
+    
+    // dual weapon requires weapons of correct type
+    int dual_weapon = 0;
+    if ( wield->value[0] == second->value[0] )
+    {
+        int gsn_dual = 0;
+        switch ( wield->value[0] )
+        {
+            case WEAPON_DAGGER: gsn_dual = gsn_dual_dagger; break;
+            case WEAPON_SWORD:  gsn_dual = gsn_dual_sword;  break;
+            case WEAPON_AXE:    gsn_dual = gsn_dual_axe;    break;
+            case WEAPON_GUN:    gsn_dual = gsn_dual_gun;    break;
+            default: break;
+        }
+        if ( gsn_dual > 0 )
+        {
+            dual_weapon = get_skill(ch, gsn_dual);
+            // adjust for weight in case offhand weapon is heavier
+            dual_weapon = dual_weapon * wield_weight / UMAX(wield_weight, second_weight);
+            
+            if ( improve )
+                check_improve(ch, gsn_dual, TRUE, 8);
+        }
+    }
+
+    // combine the two skills
+    return dual_wield + dual_weapon - dual_wield * dual_weapon / 100;
+}
+
+/*
+ * Chance for an offhand attack
+ */
+int offhand_attack_chance( CHAR_DATA *ch, bool improve )
+{
+    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
+    OBJ_DATA *second = get_eq_char(ch, WEAR_SECONDARY);
+    bool hold = get_eq_char(ch, WEAR_HOLD) != NULL;
+    bool shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+
+    // unarmed attacks
+    if ( wield == NULL )
+    {
+        if ( second == NULL && !hold && !shield )
+            return (100 + 2 * UMIN(ch->level, 100)) / 3;
+        else
+            return 0;
+    }
+
+    // armed but no offhand weapon
+    if ( second == NULL )
+        return 0;
+
+    // everybody has a base chance, regardless of skill
+    int chance = (100 + 2 * dual_wield_skill(ch, improve)) / 3;
+
+    if ( shield )
+    {
+        chance = chance * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+        if ( improve )
+            check_improve(ch, gsn_wrist_shield, TRUE, 20);
+    }
+
+    return chance;
+}
 
 /*
 * Do one group of attacks.
 */
 void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
-    int     chance, tempest;
+    int chance;
     OBJ_DATA *wield;
     OBJ_DATA *second;
 
@@ -928,6 +1012,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     }
     
     wield = get_eq_char( ch, WEAR_WIELD );
+    second = get_eq_char ( ch, WEAR_SECONDARY );
     
     check_stance(ch);
     check_killer( ch, victim );
@@ -1003,104 +1088,48 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	    return;
     }
     
-    if ((second=get_eq_char (ch, WEAR_SECONDARY))!=NULL&&wield!=NULL)
-    {
-        chance = get_skill(ch,gsn_dual_wield);
-        if ((wield->value[0]==WEAPON_DAGGER)&&(second->value[0]==WEAPON_DAGGER))
-        {
-            chance=UMAX(chance, tempest=get_skill(ch,gsn_dual_dagger));
-            check_improve(ch,gsn_dual_dagger,TRUE,8);
-        }
-        else if ((wield->value[0]==WEAPON_SWORD)&&(second->value[0]==WEAPON_SWORD))
-        {
-            chance=UMAX(chance, tempest=get_skill(ch,gsn_dual_sword));
-            check_improve(ch,gsn_dual_sword,TRUE,8);
-        }
-        else if ((wield->value[0]==WEAPON_AXE)&&(second->value[0]==WEAPON_AXE))
-        {
-            chance=UMAX(chance, tempest=get_skill(ch,gsn_dual_axe));
-            check_improve(ch,gsn_dual_axe,TRUE,8);
-        }
-        else if ((wield->value[0]==WEAPON_GUN)&&(second->value[0]==WEAPON_GUN))
-        {
-            chance=UMAX(chance, tempest=get_skill(ch,gsn_dual_gun));
-            check_improve(ch,gsn_dual_gun,TRUE,8);
-        }
-        check_improve(ch,gsn_dual_wield,TRUE,10);
-        
-        chance += ch_dex_extrahit(ch);
-        
-        if (get_eq_char(ch, WEAR_SHIELD))
-        {
-	    chance = chance * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
-            check_improve(ch, gsn_wrist_shield, TRUE, 20);
-        }
-        
-        if (number_percent() < chance)
-        {
-            one_hit( ch, victim, dt, TRUE );
-            if ( ch->fighting != victim )
-                return;
-            if (number_percent() < get_skill(ch, gsn_extra_attack) / 3)
-            {
-                one_hit(ch,victim,dt,TRUE);
-                if (ch->fighting != victim) return;
-            }
-        }
-        
-        if (IS_AFFECTED(ch,AFF_HASTE))
-        {
-            chance -=50;
-            if (number_percent() <chance)
-            {
-                one_hit(ch,victim,dt,TRUE);
-                if (ch->fighting != victim)
-                    return;
-            }     
-        }
-
-	if ( second->value[0] == WEAPON_DAGGER
-	     && number_bits(4) == 0 )
-	{
-	    one_hit(ch,victim,dt,TRUE);
-	    if (ch->fighting != victim)
-		return;
-	}
-
-    } // second != NULL
-
-    if (wield == NULL && second == NULL &&
-        get_eq_char(ch, WEAR_HOLD) == NULL && 
-        get_eq_char(ch, WEAR_SHIELD) == NULL)
-    {
-        chance = ch->level + ch_dex_extrahit(ch);
-        if (number_percent() < chance)
-            one_hit(ch, victim, dt, TRUE);
-        if (ch->fighting != victim)
-            return;
-        if (IS_AFFECTED(ch,AFF_HASTE))
-        {
-            chance -= 50;
-            if (number_percent() < chance)
-            {
-                one_hit(ch, victim, dt, TRUE);
-                if (ch->fighting != victim)
-                    return;
-            }
-        }
-	if (number_percent() < get_skill(ch, gsn_extra_attack) / 3)
-        {
-	    one_hit(ch,victim,dt,TRUE);
-	    if (ch->fighting != victim)
-		return;
-	}
-    }
-
     if ( IS_AFFECTED(ch, AFF_HASTE) )
     {
         one_hit(ch,victim,dt,FALSE);
         if (ch->fighting != victim)
             return;
+    }
+
+    chance = offhand_attack_chance(ch, TRUE);
+    
+    if ( per_chance(chance) )
+    {
+        one_hit(ch, victim, dt, TRUE);
+        if ( ch->fighting != victim )
+            return;
+        
+        if ( per_chance(ch_dex_extrahit(ch)) )
+        {
+            one_hit(ch, victim, dt, TRUE);
+            if ( ch->fighting != victim )
+                return;
+        }
+        
+        if ( per_chance(get_skill(ch, gsn_extra_attack)/3) )
+        {
+            one_hit(ch,victim,dt,TRUE);
+            if (ch->fighting != victim)
+                return;
+        }
+
+        if ( IS_AFFECTED(ch,AFF_HASTE) && number_bits(1) == 0 )
+        {
+            one_hit(ch,victim,dt,TRUE);
+            if (ch->fighting != victim)
+                return;
+        }
+
+        if ( second != NULL && second->value[0] == WEAPON_DAGGER && number_bits(4) == 0 )
+        {
+            one_hit(ch,victim,dt,TRUE);
+            if (ch->fighting != victim)
+                return;
+        }
     }
 
     if ( IS_AFFECTED(ch, AFF_MANTRA) && ch->mana > 0 )
@@ -1352,6 +1381,47 @@ int get_weapon_damtype( OBJ_DATA *wield )
 		       attack_table[wield->value[3]].damage );
 }
 
+int get_twohand_bonus( CHAR_DATA *ch, OBJ_DATA *wield, bool improve )
+{
+    if ( wield == NULL )
+        return 0;
+    
+    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    
+    if ( wield->value[0] == WEAPON_BOW )
+    {
+        if ( has_shield )
+        {
+            if ( improve )
+                check_improve(ch, gsn_wrist_shield, TRUE, 10);
+            return get_skill(ch, gsn_wrist_shield);
+        }
+        else
+            return 200;
+    }
+    
+    if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
+    {
+        int two_hand_bonus = (100 + get_skill(ch, gsn_two_handed)) / 2;
+        int wrist_bonus = (100 + get_skill(ch, gsn_wrist_shield)) / 3;
+        if ( improve )
+            check_improve(ch, gsn_two_handed, TRUE, 10);
+        if ( has_shield )
+        {
+            if ( improve )
+                check_improve(ch, gsn_wrist_shield, TRUE, 10); 
+            two_hand_bonus = two_hand_bonus * wrist_bonus / 100;
+        }
+        return two_hand_bonus;
+    }
+
+    // wielding a one-handed weapon in two hands
+    if ( !has_shield && get_eq_char(ch, WEAR_SECONDARY) == NULL && get_eq_char(ch, WEAR_HOLD) == NULL )
+        return 50;
+
+    return 0;
+}
+
 /* returns the damage ch deals with one hit */
 int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
 {
@@ -1366,44 +1436,9 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     /* weapon damage */
     if ( wield != NULL )
     {
-	int weapon_dam;
-	bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
-
-	weapon_dam = get_weapon_damage( wield );
-	
-	/* twohanded weapons */
-	if ( wield->value[0] == WEAPON_BOW )
-	{
-        if ( has_shield )
-        {
-            weapon_dam += weapon_dam * get_skill(ch, gsn_wrist_shield) / 100;
-            check_improve(ch, gsn_wrist_shield, TRUE, 10);
-        }
-        else
-            weapon_dam *= 3;
-	}
-	else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
-	{
-	    int two_hand_bonus = (100 + get_skill(ch, gsn_two_handed)) / 2;
-	    int wrist_bonus = (100 + get_skill(ch, gsn_wrist_shield)) / 3;
-	    check_improve(ch, gsn_two_handed, TRUE, 10);
-	    if ( has_shield )
-	    {
-		check_improve(ch, gsn_wrist_shield, TRUE, 10); 
-		two_hand_bonus = two_hand_bonus * wrist_bonus / 100;
-	    }
-	    weapon_dam += weapon_dam * two_hand_bonus / 100;
-	}
-	else
-	{
-	    /* bonus for free off-hand */
-	    if ( !has_shield
-		 && get_eq_char(ch, WEAR_SECONDARY) == NULL
-		 && get_eq_char(ch, WEAR_HOLD) == NULL )
-		weapon_dam += weapon_dam / 2;
-	}
-	
-	dam += weapon_dam;
+        int weapon_dam = get_weapon_damage( wield );
+        weapon_dam += weapon_dam * get_twohand_bonus(ch, wield, TRUE) / 100;
+        dam += weapon_dam;
     }
     else
     {
@@ -1596,6 +1631,29 @@ bool is_ranged_weapon( OBJ_DATA *weapon )
         || weapon->value[0] == WEAPON_GUN;
 }
 
+bool is_calm( CHAR_DATA *ch )
+{
+    return ch->move <= ch->max_move * ch->calm/100;
+}
+
+bool deduct_move_cost( CHAR_DATA *ch, int cost )
+{
+    if ( ch->move < cost )
+        return FALSE;
+
+    bool was_calm = is_calm(ch);
+    
+    ch->move -= cost;
+    #ifdef FSTAT
+    ch->moves_used += cost;
+    #endif
+    
+    if ( !was_calm && is_calm(ch) )
+        send_to_char("Worn with fatigue, you calm down.\n\r", ch);
+
+    return TRUE;
+}
+
 /*
 * Hit one guy once.
 */
@@ -1711,7 +1769,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     // berserking characters deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
-    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && ch->move > ch->max_move * ch->calm/100 )
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && !is_calm(ch) )
     {
         int berserk_cost = 2;
         if ( wield != NULL )
@@ -1726,12 +1784,8 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         // half cost for burst/semi-/full-auto, using probabilistic rounding
         if ( dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto )
             berserk_cost = (berserk_cost + number_range(0,1)) / 2;
-        if ( ch->move >= berserk_cost )
-        {
-            ch->move -= berserk_cost;
-            berserking = TRUE;
-        }
-    }    
+        berserking = deduct_move_cost(ch, berserk_cost);
+    }
     
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
@@ -3995,6 +4049,35 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     return TRUE;
 }
 
+int parry_chance( CHAR_DATA *ch, bool improve )
+{
+    int gsn_weapon = get_weapon_sn(ch);
+
+    if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
+        return 0;
+    if ( gsn_weapon == gsn_hand_to_hand && !(IS_NPC(ch) && IS_SET(ch->off_flags, OFF_PARRY)) )
+        return 0;
+
+    int chance = 10 + get_skill(ch, gsn_parry) / 4;
+    
+    /* some weapons are better for parrying, some are worse */
+    if ( gsn_weapon == gsn_sword )
+        chance += 5;
+    else if ( gsn_weapon == gsn_flail || gsn_weapon == gsn_whip )
+        chance -= 5;
+
+    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
+        chance += 10;
+    
+    if ( IS_AFFECTED(ch, AFF_SORE) )
+        chance -= 10;
+    
+    if ( improve )
+        check_improve(ch, gsn_parry, TRUE, 15);
+    
+    return URANGE(0, chance, 75);
+}
+
 /*
 * Check for parry.
 */
@@ -4011,29 +4094,15 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     ch_weapon = get_weapon_sn(ch);
     victim_weapon = get_weapon_sn(victim);
 
-    if ( ch_weapon == gsn_gun || victim_weapon == gsn_gun
-	 || ch_weapon == gsn_bow || victim_weapon == gsn_bow )
-    {
+    if ( ch_weapon == gsn_gun || ch_weapon == gsn_bow )
         return FALSE;
-    }
 
-    chance = get_skill(victim, gsn_parry) / 4 + 10;
+    if ( (chance = parry_chance(victim, TRUE)) == 0 )
+        return FALSE;
+    
     chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_DEX)) / 8;
     
-    /* some weapons are better for parrying, some are worse.. */
-    if ( victim_weapon == gsn_hand_to_hand )
-    {
-        if ( !IS_NPC(victim) || !IS_SET(victim->off_flags, OFF_PARRY) )
-            return FALSE;
-    }
-    else if ( victim_weapon == gsn_sword )
-	chance += 5;
-    else if ( victim_weapon == gsn_flail )
-	chance -= 10;
-    else if ( victim_weapon == gsn_whip )
-	chance -= 10;
-
-    /* ..and some weapons are harder to parry */
+    /* some weapons are harder to parry */
     if ( ch_weapon == gsn_whip || ch_weapon == gsn_flail )
 	chance -= 10;
     else if ( ch_weapon == gsn_hand_to_hand )
@@ -4048,14 +4117,8 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	    chance /= 2;
     }
 
-    if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
-        chance += 10; 
-
     if ( !can_see_combat(ch,victim) && blind_penalty(victim) )
         chance /= 2;
-    
-    if ( IS_AFFECTED(victim, AFF_SORE) )
-	chance -= 10;
     
     if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
         return FALSE;
@@ -4063,7 +4126,6 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     act_gag( "You parry $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N parries your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N parries $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_parry,TRUE,15);
 
     /* whips can disarm or get disarmed on successfull parry */
     if ( ch_weapon == gsn_whip && number_bits(5) == 0 )
@@ -4218,6 +4280,39 @@ bool check_jam( CHAR_DATA *ch, int odds, bool both )
     return FALSE;
 }
 
+int shield_block_chance( CHAR_DATA *ch, bool improve )
+{
+    if ( get_eq_char(ch, WEAR_SHIELD) == NULL )
+        return 0;
+
+    int chance = 10 + get_skill(ch, gsn_shield_block) / 4;
+
+    // offhand occupied means reduced block chance
+    bool offhand_occupied = get_eq_char(ch, WEAR_SECONDARY) != NULL || get_eq_char(ch, WEAR_HOLD) != NULL;
+    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
+
+    if ( wield != NULL && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
+        offhand_occupied = TRUE;
+
+    if ( offhand_occupied )
+        chance = chance * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+    
+    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
+        chance += 10;
+
+    if ( IS_AFFECTED(ch, AFF_SORE) )
+        chance -= 10;
+
+    if ( improve )
+    {
+        check_improve(ch, gsn_shield_block, TRUE, 15);
+        if ( offhand_occupied )
+            check_improve(ch, gsn_wrist_shield, TRUE, 20);
+    }
+    
+    return URANGE(0, chance, 75);
+}
+
 /*
  * Check for shield block.
  */
@@ -4232,28 +4327,14 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( get_eq_char( victim, WEAR_SHIELD ) == NULL )
         return FALSE;
 
-    chance = 10 + get_skill(victim, gsn_shield_block) / 4;
-
-    if ( (obj = get_eq_char(victim, WEAR_WIELD)) &&
-	 (IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) ||
-	  get_eq_char(victim, WEAR_SECONDARY)))
-    {
-	chance = chance * (100 + get_skill(victim, gsn_wrist_shield)) / 300;
-	check_improve(victim, gsn_wrist_shield, TRUE, 20);
-    }
+    chance = shield_block_chance(victim, TRUE);
 
     /* whips are harder to block */
     if ( get_weapon_sn(ch) == gsn_whip )
 	chance -= 10;
     
-    if (victim->stance == STANCE_SWAYDES_MERCY || victim->stance == STANCE_AVERSION)
-        chance += 10;
-    
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
-
-    if ( IS_AFFECTED(victim, AFF_SORE) )
-	chance -= 10;
 
     if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
         return FALSE;
@@ -4264,7 +4345,6 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
         TO_CHAR, GAG_MISS );
     act_gag( "$N blocks $n's attack with $S shield.", ch, NULL, victim, 
         TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_shield_block,TRUE,15);
     return TRUE;
 }
 
@@ -4292,48 +4372,59 @@ bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
+int dodge_chance( CHAR_DATA *ch, bool improve )
+{
+    int skill = get_skill(ch, gsn_dodge);
+
+    if ( improve )
+        check_improve( ch, gsn_dodge, TRUE, 15);
+
+    if ( get_eq_char(ch, WEAR_WIELD) == NULL
+         && get_eq_char(ch, WEAR_SHIELD) == NULL
+         && get_eq_char(ch, WEAR_HOLD) == NULL )
+    {
+        skill += get_skill(ch, gsn_evasive);
+        if (improve)
+            check_improve(ch, gsn_evasive, TRUE, 15);
+    }
+    
+    int chance = 10 + skill / 4;
+    
+    if ( ch->stance==STANCE_TOAD
+        || ch->stance==STANCE_SWAYDES_MERCY
+        || ch->stance==STANCE_AVERSION
+        || ch->stance==STANCE_BUNNY
+        || IS_SET(ch->form, FORM_DOUBLE_JOINTED) )
+        chance += 15;
+
+    if ( IS_AFFECTED(ch, AFF_SORE) )
+        chance -= 10;
+    
+    return URANGE(0, chance, 75);
+}
+
 /*
 * Check for dodge.
 */
 bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int chance;
-    bool evade = FALSE;
     
     if ( !IS_AWAKE(victim) )
         return FALSE;
     
-    chance = get_skill(victim,gsn_dodge) / 4 + 10;
+    chance = dodge_chance(victim, TRUE);
     chance += (get_curr_stat(victim, STAT_AGI)-get_curr_stat(ch, STAT_DEX))/8;
-
-    if ( get_eq_char( victim, WEAR_WIELD ) == NULL )
-    {
-        evade = TRUE;
-        chance += get_skill(victim, gsn_evasive) / 4;
-    }
 
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
     
-    if ( victim->stance==STANCE_TOAD
-        || victim->stance==STANCE_SWAYDES_MERCY
-        || victim->stance==STANCE_AVERSION
-        || victim->stance==STANCE_BUNNY
-        || IS_SET(victim->form, FORM_DOUBLE_JOINTED) )
-        chance += 15;
-    
-    if ( IS_AFFECTED(victim, AFF_SORE) )
-	chance -= 10;
-
     if ( number_percent( ) >= UMIN(chance + (victim->level - ch->level)/4,90) )
         return FALSE;
-    
+
     act_gag( "You dodge $n's attack.", ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N dodges your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N dodges $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_dodge,TRUE,15);
-    if (evade)
-      check_improve(victim,gsn_evasive,TRUE,15);
 
     return TRUE;
 }
@@ -6328,11 +6419,8 @@ void check_stance(CHAR_DATA *ch)
     }
     
     check_improve(ch,*(stances[ch->stance].gsn),TRUE,3);
-    
-    ch->move -= cost;
-    #ifdef FSTAT
-    ch->moves_used += cost;
-    #endif
+
+    deduct_move_cost(ch, cost);
 
     /*Added by Korinn 1-19-99 */
     if (ch->stance == STANCE_FIREWITCHS_SEANCE)

@@ -2094,31 +2094,6 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
 
     if ( CAN_WEAR( obj, ITEM_WEAR_SHIELD ) )
     {
-        if (get_skill(ch, gsn_shield_block)<2)
-        {
-            send_to_char("You don't know how to use shields.\n\r", ch);
-            return;
-        }       
-
-        if ((get_eq_char (ch, WEAR_HOLD) != NULL) && (get_skill(ch, gsn_wrist_shield)<2))
-        {
-            send_to_char ("You cannot use a shield while holding an item.\n\r",ch);
-            return;
-        }
-
-        if ((get_eq_char (ch, WEAR_SECONDARY) != NULL)&&(get_skill(ch, gsn_wrist_shield)<2) )
-        {
-            send_to_char ("You cannot use a shield while using 2 weapons.\n\r",ch);
-            return;
-        }
-
-        if (( (weapon = get_eq_char(ch,WEAR_WIELD) ) != NULL) &&
-                IS_WEAPON_STAT(weapon, WEAPON_TWO_HANDS) && (get_skill(ch, gsn_wrist_shield)<2))
-        {
-            send_to_char( "You cannot use a shield while using a two-handed weapon.\n\r", ch );
-            return;
-        }
-
         if ( !remove_obj( ch, WEAR_SHIELD, fReplace ) )
             return;
         act_gag( "$n wears $p as a shield.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
@@ -2141,26 +2116,6 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
             send_to_char( "You cannot hold an item while using a two-handed weapon.\n\r", ch );
             return;
         }
-
-        if ((get_eq_char (ch, WEAR_SHIELD) != NULL)&&(get_skill(ch, gsn_wrist_shield)<2) )
-        {
-            send_to_char ("You cannot hold an item while using a shield.\n\r",ch);
-            return;
-        }
-
-        if (((weapon = get_eq_char(ch,WEAR_WIELD)) != NULL) &&
-                IS_WEAPON_STAT(weapon, WEAPON_TWO_HANDS))
-        {
-            send_to_char( "You cannot hold an item while using a two-handed weapon.\n\r", ch );
-            return;
-        }
-
-        if ((get_eq_char (ch, WEAR_SHIELD) != NULL)&&(get_skill(ch, gsn_wrist_shield)<2) )
-        {
-            send_to_char ("You cannot hold an item while using a shield.\n\r",ch);
-            return;
-        }
-
 
         if ( !remove_obj( ch, WEAR_HOLD, fReplace ) )
             return;
@@ -2190,9 +2145,7 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
             return;
         }
 
-        if (!IS_NPC(ch) && IS_WEAPON_STAT(obj,WEAPON_TWO_HANDS) &&
-                ((get_skill(ch, gsn_wrist_shield) < 2 && get_eq_char(ch,WEAR_SHIELD) != NULL)
-                 || get_eq_char(ch, WEAR_HOLD) != NULL))
+        if ( !IS_NPC(ch) && IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) && get_eq_char(ch, WEAR_HOLD) != NULL )
         {
             send_to_char("You need two hands free for that weapon.\n\r",ch);
             return;
@@ -4277,11 +4230,9 @@ void do_second (CHAR_DATA *ch, char *argument)
         return;
     }
 
-
-    if ( ((get_eq_char (ch,WEAR_SHIELD) != NULL)&&(get_skill(ch, gsn_wrist_shield)<2)) ||
-            (get_eq_char (ch,WEAR_HOLD)   != NULL) )
+    if ( get_eq_char(ch, WEAR_HOLD) != NULL )
     {
-        send_to_char ("You cannot use a secondary weapon while using a shield or holding an item.\n\r",ch);
+        send_to_char ("You cannot use a secondary weapon while holding an item.\n\r", ch);
         return;
     }
 
@@ -4305,27 +4256,6 @@ void do_second (CHAR_DATA *ch, char *argument)
         return;
     }
 
-    skill=get_skill(ch,gsn_dual_wield);
-    weightmod=0;	
-
-    if ((wield->value[0] == WEAPON_DAGGER) && (obj->value[0] == WEAPON_DAGGER))
-        skill = UMAX(skill, weightmod = get_skill(ch,gsn_dual_dagger));
-
-    else if ((wield->value[0] == WEAPON_SWORD)  && (obj->value[0] == WEAPON_SWORD))
-        skill = UMAX(skill, weightmod = get_skill(ch,gsn_dual_sword));
-
-    else if ((wield->value[0] == WEAPON_AXE)  && (obj->value[0] == WEAPON_AXE))
-        skill = UMAX(skill, weightmod = get_skill(ch,gsn_dual_axe));
-
-    else if ((wield->value[0] == WEAPON_GUN)    && (obj->value[0] == WEAPON_GUN))
-        skill = UMAX(skill, weightmod = get_skill(ch,gsn_dual_gun));
-
-    if (skill == 0)
-    {
-        send_to_char("You dont know how to second that.\n\r",ch);
-        return;
-    }
-
     if ( ch->level < obj->level )
     {
         sprintf( buf, "You must be level %d to use this object.\n\r", obj->level );
@@ -4334,14 +4264,13 @@ void do_second (CHAR_DATA *ch, char *argument)
         return;
     }
 
-
-    if (get_obj_weight(obj) > ((ch_str_wield(ch) *skill)/150))
+    if ( get_obj_weight(obj) > ch_str_wield(ch) * 2/3 )
     {
         send_to_char( "This weapon is too heavy to be used as a secondary weapon by you.\n\r", ch );
         return;
     }
 
-    if ( (get_obj_weight(obj)*(150-weightmod))/skill > get_obj_weight(wield))
+    if ( get_obj_weight(obj) > get_obj_weight(wield) )
     {
         send_to_char ("Your secondary weapon has to be lighter compared to your primary one.\n\r",ch);
         return;
