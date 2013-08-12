@@ -4048,6 +4048,29 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     return TRUE;
 }
 
+int parry_chance( CHAR_DATA *ch, bool improve )
+{
+    int gsn_weapon = get_weapon_sn(ch);
+
+    if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
+        return 0;
+    if ( gsn_weapon == gsn_hand_to_hand && !(IS_NPC(ch) && IS_SET(ch->off_flags, OFF_PARRY)) )
+        return 0;
+
+    int chance = 10 + get_skill(ch, gsn_parry) / 4;
+    
+    /* some weapons are better for parrying, some are worse */
+    if ( gsn_weapon == gsn_sword )
+        chance += 5;
+    else if ( gsn_weapon == gsn_flail || gsn_weapon == gsn_whip )
+        chance -= 5;
+
+    if ( improve )
+        check_improve(ch, gsn_parry, TRUE, 15);
+    
+    return URANGE(0, chance, 75);
+}
+
 /*
 * Check for parry.
 */
@@ -4064,29 +4087,15 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     ch_weapon = get_weapon_sn(ch);
     victim_weapon = get_weapon_sn(victim);
 
-    if ( ch_weapon == gsn_gun || victim_weapon == gsn_gun
-	 || ch_weapon == gsn_bow || victim_weapon == gsn_bow )
-    {
+    if ( ch_weapon == gsn_gun || ch_weapon == gsn_bow )
         return FALSE;
-    }
 
-    chance = get_skill(victim, gsn_parry) / 4 + 10;
+    if ( (chance = parry_chance(victim, TRUE)) == 0 )
+        return FALSE;
+    
     chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_DEX)) / 8;
     
-    /* some weapons are better for parrying, some are worse.. */
-    if ( victim_weapon == gsn_hand_to_hand )
-    {
-        if ( !IS_NPC(victim) || !IS_SET(victim->off_flags, OFF_PARRY) )
-            return FALSE;
-    }
-    else if ( victim_weapon == gsn_sword )
-	chance += 5;
-    else if ( victim_weapon == gsn_flail )
-	chance -= 10;
-    else if ( victim_weapon == gsn_whip )
-	chance -= 10;
-
-    /* ..and some weapons are harder to parry */
+    /* some weapons are harder to parry */
     if ( ch_weapon == gsn_whip || ch_weapon == gsn_flail )
 	chance -= 10;
     else if ( ch_weapon == gsn_hand_to_hand )
@@ -4116,7 +4125,6 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     act_gag( "You parry $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N parries your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N parries $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_parry,TRUE,15);
 
     /* whips can disarm or get disarmed on successfull parry */
     if ( ch_weapon == gsn_whip && number_bits(5) == 0 )
@@ -4363,25 +4371,37 @@ bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
+int dodge_chance( CHAR_DATA *ch, bool improve )
+{
+    int skill = get_skill(ch, gsn_dodge);
+
+    if ( improve )
+        check_improve( ch, gsn_dodge, TRUE, 15);
+
+    if ( get_eq_char(ch, WEAR_WIELD) == NULL
+         && get_eq_char(ch, WEAR_SHIELD) == NULL
+         && get_eq_char(ch, WEAR_HOLD) == NULL )
+    {
+        skill += get_skill(ch, gsn_evasive);
+        if (improve)
+            check_improve(ch, gsn_evasive, TRUE, 15);
+    }
+
+    return 10 + skill/4;
+}
+
 /*
 * Check for dodge.
 */
 bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int chance;
-    bool evade = FALSE;
     
     if ( !IS_AWAKE(victim) )
         return FALSE;
     
-    chance = get_skill(victim,gsn_dodge) / 4 + 10;
+    chance = dodge_chance(victim, TRUE);
     chance += (get_curr_stat(victim, STAT_AGI)-get_curr_stat(ch, STAT_DEX))/8;
-
-    if ( get_eq_char( victim, WEAR_WIELD ) == NULL )
-    {
-        evade = TRUE;
-        chance += get_skill(victim, gsn_evasive) / 4;
-    }
 
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
@@ -4398,13 +4418,10 @@ bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( number_percent( ) >= UMIN(chance + (victim->level - ch->level)/4,90) )
         return FALSE;
-    
+
     act_gag( "You dodge $n's attack.", ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N dodges your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N dodges $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_dodge,TRUE,15);
-    if (evade)
-      check_improve(victim,gsn_evasive,TRUE,15);
 
     return TRUE;
 }
