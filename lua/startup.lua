@@ -3,7 +3,7 @@ package.path = mud.luadir() .. "?.lua"
 require "tprint"
 require "serialize"
 require "utilities"
-require "miniquest"
+require "aquest"
 
 --function send_nocr (...)
   --  say (table.concat {...})
@@ -13,14 +13,22 @@ require "miniquest"
   --  say (table.concat {...})
 --end
 
+function logtprint(tbl)
+    local str={}
+    tprint(str, tbl)
+    log(table.concat(str))
+end
+
 udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
 
 savefuncs={
-    save_miniquests
+--    save_miniquests,
+--    save_areaquests
 } -- register save functions here
 
 loadfuncs={
-    load_miniquests
+--    load_miniquests,
+    load_areaquests
 } -- register load functions here
 
 function save_lua_data()

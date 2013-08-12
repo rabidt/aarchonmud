@@ -1,9 +1,9 @@
 local dbg=true
 
 local mquests={}
-local miniquestargs={}
+local aquestargs={}
 
-local function miniquest_status( farg )
+local function aquest_status( quests, farg )
     local plr=getcharworld( farg.ch, farg.player)
     if plr==nil then
         return false, "Couldn't find " .. farg.player .. "."
@@ -11,7 +11,7 @@ local function miniquest_status( farg )
         return false, farg.player .. " is an NPC!"
     end
 
-    local quest=mquests[farg.name]
+    local quest=quests[farg.name]
     if quest==nil then
         return false,"Can't find " .. farg.name .. "."
     end
@@ -37,8 +37,8 @@ local function miniquest_status( farg )
     return true, rtn
 end
 
-local function miniquest_show( farg )
-    local quest=mquests[farg.name]
+local function aquest_show( quests, farg )
+    local quest=quests[farg.name]
     if quest==nil then
         return false,"Can't find " .. farg.name .. "."
     end
@@ -62,135 +62,135 @@ local function miniquest_show( farg )
     return true,rtn
 end
 
-local function miniquests_list()
-    if not(next(mquests)) then -- check if empty
-        return false,"No miniquests."
+local function aquest_list(quests)
+    if not(next(quests)) then -- check if empty
+        return false,"No quests."
     end
 
     local rtn=""
 
-    for k,v in pairs(mquests) do
+    for k,v in pairs(quests) do
         rtn= rtn .. k .. "\n\r"
     end
 
     return true,rtn
 end
 
-local function miniquest_add( farg )
-    if mquests[farg.name] then
+local function aquest_add( quests, farg )
+    if quests[farg.name] then
         return false,"Name " .. farg.name .. " already exists."
     end
 
-    mquests[farg.name]={}
+    quests[farg.name]={}
     return true,"Miniquest added."
 end
 
-local function miniquest_remove( farg )
-    if mquests[farg.name]==nil then
+local function aquest_remove( quests, farg )
+    if quests[farg.name]==nil then
         return false,"Can't find " .. farg.name .. "."
     end
 
-    mquests[farg.name]=nil
+    quests[farg.name]=nil
     return true,"Removed " .. farg.name .. "."
 end
 
-local function miniquest_mapqset( farg )
-    if mquests[farg.name]==nil then
+local function aquest_mapqset( quests, farg )
+    if quests[farg.name]==nil then
         return false,"Can't find " .. farg.name .. "."
     end
     
     if farg.description=="clear" then
-        mquests[farg.name][farg.qset]=nil
+        quests[farg.name][farg.qset]=nil
         return true, "Cleared."
     else
-        mquests[farg.name][farg.qset]=mquests[farg.name][farg.qset] or {}
-        mquests[farg.name][farg.qset].description=farg.description
+        quests[farg.name][farg.qset]=quests[farg.name][farg.qset] or {}
+        quests[farg.name][farg.qset].description=farg.description
         return true, "Mapped."
     end
 end
 
-local function miniquest_mapvalue( farg )
-    if mquests[farg.name]==nil then
+local function aquest_mapvalue( quests, farg )
+    if quests[farg.name]==nil then
         return false,"Can't find " .. "."
     end
 
-    if not mquests[farg.name][farg.qset] then
+    if not quests[farg.name][farg.qset] then
         return false,"Must map the qset before you can map the values."
     end
 
     if farg.description=="clear" then
-        mquests[farg.name][farg.qset][farg.value]=nil
+        quests[farg.name][farg.qset][farg.value]=nil
         return true, "Cleared."
     else
-        mquests[farg.name][farg.qset][farg.value]=farg.description
+        quests[farg.name][farg.qset][farg.value]=farg.description
         return true, "Mapped."
     end
 end
 
-local function miniquest_help( farg )
-    if not miniquestargs[farg.command] then
+local function aquest_help( quests, farg )
+    if not aquestargs[farg.command] then
         return false, "No such command."
     else
-        return true, miniquestargs[farg.command].help
+        return true, aquestargs[farg.command].help
     end
 end
 
-miniquestargs.help={
+aquestargs.help={
         args= {[1]={name="command", typ="string"} },
-        fun=miniquest_help,
-        help="miniquest help <command>"
+        fun=aquest_help,
+        help="help <command>"
     }
 
-miniquestargs.list={
+aquestargs.list={
         args= {},
-        fun=miniquest_list,
-        help="Shows a list of the miniquests."
+        fun=aquest_list,
+        help="Shows a list of the quests."
     }
 
-miniquestargs.add={ 
+aquestargs.add={ 
         args= { [1]={name="name",typ="string"} }, 
-        fun=miniquest_add,
-        help="Add a miniquest to the list."
+        fun=aquest_add,
+        help="Add a quest to the list."
     }
     
-miniquestargs.remove={ 
+aquestargs.remove={ 
         args= { [1]={name="name",typ="string"} },
-        fun=miniquest_remove,
-        help="Remove a miniquest to the list."
+        fun=aquest_remove,
+        help="Remove a quest to the list."
     }
 
-miniquestargs.show={
+aquestargs.show={
         args= { [1]={name="name",typ="string"} },
-        fun=miniquest_show,
-        help="Show the registered qsets and values for a miniquest."
+        fun=aquest_show,
+        help="Show the registered qsets and values for a aquest."
     }
 
-miniquestargs.mapqset={
+aquestargs.mapqset={
         args= { [1]={name="name",typ="string"},
               [2]={name="qset",typ="number"},
               [3]={name="description",typ="string"} },
-        fun=miniquest_mapqset,
-        help="Register a qset as part of a miniquest and give it a description."
+        fun=aquest_mapqset,
+        help="Register a qset as part of a quest and give it a description."
     }
 
-miniquestargs.status={
+aquestargs.status={
         args= { [1]={name="player", typ="string"},
                 [2]={name="name", typ="string"} },
-        fun=miniquest_status,
-        help="Show a player's status for a given miniquest based on current qsets."
+        fun=aquest_status,
+        help="Show a player's status for a given quest based on current qsets."
     }
 
-miniquestargs.mapvalue={
+aquestargs.mapvalue={
         args= { [1]={name="name",typ="string"},
               [2]={name="qset",typ="number"},
               [3]={name="value",typ="number"},
               [4]={name="description",typ="string"} },
-        fun=miniquest_mapvalue,
-        help="Give a description to a specific value for a qset in the miniquest."
+        fun=aquest_mapvalue,
+        help="Give a description to a specific value for a qset in the quest."
     }
 
 local function printhelptochar( ch )
-    for k,v in pairs(miniquestargs) do
+    for k,v in pairs(aquestargs) do
         local args=""
         for i,w in ipairs(v.args) do
             args=args .. w.name
@@ -203,7 +203,7 @@ local function printhelptochar( ch )
     end
 end
                                 
-function do_miniquest( ch, argument )
+local function aquest_command( ch, argument, quests) 
     local args={}
     for arg in string.gmatch(argument, "%S+") do
         table.insert(args, arg)
@@ -214,15 +214,15 @@ function do_miniquest( ch, argument )
         return
     end
     
-    local mqarg=miniquestargs[args[1]]
+    local aqarg=aquestargs[args[1]]
     table.remove(args,1) -- Won't need that anymore
-    if not mqarg then
+    if not aqarg then
         printhelptochar(ch)
         return
     end
 
     local fun_args={ch=ch} --what we wil pass to the func
-    for i,v in ipairs(mqarg.args) do
+    for i,v in ipairs(aqarg.args) do
         if args[i]==nil then
             sendtochar(ch, "Please provide argument for " .. v.name .. ".\n\r")
             return
@@ -241,7 +241,7 @@ function do_miniquest( ch, argument )
             end 
         end
 
-        if i<#mqarg.args then
+        if i<#aqarg.args then
             fun_args[v.name]=args[i]
         else
             -- Last arg grabs the rest
@@ -252,7 +252,7 @@ function do_miniquest( ch, argument )
 
     -- Some magic to execute the function
     local rslt,msg
-    rslt,msg=mqarg.fun(fun_args)
+    rslt,msg=aqarg.fun(quests, fun_args)
 
     if rslt==false then
         sendtochar(ch, "Command failed.\n\r")
@@ -260,6 +260,19 @@ function do_miniquest( ch, argument )
     if msg then
         sendtochar(ch,msg .. "\n\r")
     end
+end
+
+function do_miniquest( ch, argument )
+    aquest_command( ch, argument, mquests)
+end
+
+function do_aquest( ch, argument )
+    --logtprint(ud_tbl)
+
+    --local ar=ch.room.area
+
+    --logtprint(udtbl)
+    aquest_command( ch, argument, ch.room.area.env.area_quests )
 end
 
 function save_miniquests()
@@ -277,4 +290,31 @@ function load_miniquests()
   end
 
   mquests=f()
+end
+
+function save_area_quests()
+    save_miniquests()
+
+    local f=function()
+        if not(next(area_quests)) then return end -- check if empty
+        savetbl("area_quests", area.env.area_quests, area.env)
+    end        
+    
+    for k,v in pairs(getareas()) do
+        area_program_setup(v, f)
+        f()
+    end
+end
+
+function load_areaquests()
+    load_miniquests()
+
+    local f=function()
+        area.env.area_quests=loadtbl("area_quests", area.env) or {} 
+    end
+
+    for k,v in pairs(getareas()) do
+        area_program_setup(v, f)
+        f()
+    end
 end
