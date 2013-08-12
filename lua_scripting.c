@@ -461,6 +461,20 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
+static int L_getcharworld (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    const char *arg=luaL_checkstring(LS, 2);
+
+    CHAR_DATA *ch=get_char_world( ud_ch, arg);
+
+    if (!ch)
+        return 0;
+    
+    make_ud_table( LS, ch, UDTYPE_CH, TRUE);
+    return 1;
+}
+
 static int L_sendtochar (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
@@ -2271,6 +2285,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getmobworld", L_getmobworld );
     lua_register(LS,"log",         L_log );
     lua_register(LS,"sendtochar",  L_sendtochar  );
+    lua_register(LS,"getcharworld",L_getcharworld);
 
 }
 

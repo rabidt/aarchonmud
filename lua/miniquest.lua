@@ -1,9 +1,43 @@
 local dbg=true
 
 local mquests={}
+local miniquestargs={}
 
+local function miniquest_status( farg )
+    local plr=getcharworld( farg.ch, farg.player)
+    if plr==nil then
+        return false, "Couldn't find " .. farg.player .. "."
+    elseif isnpc(plr) then
+        return false, farg.player .. " is an NPC!"
+    end
 
-local function show_miniquest( farg )
+    local quest=mquests[farg.name]
+    if quest==nil then
+        return false,"Can't find " .. farg.name .. "."
+    end
+
+    local rtn=""
+    for k,v in pairs(quest) do
+        if type(k) == "number" then
+            rtn=rtn .. string.format("%-8d %s\n\r", k, v.description)
+            local val=qstatus(plr, k)
+            if dbg then print(val) end
+            if val==0 then 
+                rtn=rtn .. "    0\n\r"
+            else
+                for l,w in pairs(v) do
+                    if l==val then
+                        rtn=rtn .. string.format("    %-8d %s\n\r", l, w)
+                    end
+                end
+            end
+        end
+    end
+                   
+    return true, rtn
+end
+
+local function miniquest_show( farg )
     local quest=mquests[farg.name]
     if quest==nil then
         return false,"Can't find " .. farg.name .. "."
@@ -28,8 +62,8 @@ local function show_miniquest( farg )
     return true,rtn
 end
 
-local function list_miniquests()
-    if not(next(myquests)) then -- check if empty
+local function miniquests_list()
+    if not(next(mquests)) then -- check if empty
         return false,"No miniquests."
     end
 
@@ -42,7 +76,7 @@ local function list_miniquests()
     return true,rtn
 end
 
-local function add_miniquest( farg )
+local function miniquest_add( farg )
     if mquests[farg.name] then
         return false,"Name " .. farg.name .. " already exists."
     end
@@ -51,7 +85,7 @@ local function add_miniquest( farg )
     return true,"Miniquest added."
 end
 
-local function remove_miniquest( farg )
+local function miniquest_remove( farg )
     if mquests[farg.name]==nil then
         return false,"Can't find " .. farg.name .. "."
     end
@@ -60,19 +94,22 @@ local function remove_miniquest( farg )
     return true,"Removed " .. farg.name .. "."
 end
 
-local function map_qset( farg )
+local function miniquest_mapqset( farg )
     if mquests[farg.name]==nil then
         return false,"Can't find " .. farg.name .. "."
     end
     
-
-    mquests[farg.name][farg.qset]=mquests[farg.name][farg.qset] or {}
-    mquests[farg.name][farg.qset].description=farg.description
-
-    return true, "Mapped."
+    if farg.description=="clear" then
+        mquests[farg.name][farg.qset]=nil
+        return true, "Cleared."
+    else
+        mquests[farg.name][farg.qset]=mquests[farg.name][farg.qset] or {}
+        mquests[farg.name][farg.qset].description=farg.description
+        return true, "Mapped."
+    end
 end
 
-local function map_qset_value( farg )
+local function miniquest_mapvalue( farg )
     if mquests[farg.name]==nil then
         return false,"Can't find " .. "."
     end
@@ -80,47 +117,77 @@ local function map_qset_value( farg )
     if not mquests[farg.name][farg.qset] then
         return false,"Must map the qset before you can map the values."
     end
-    mquests[farg.name][farg.qset][farg.value]=farg.description
 
-    return true, "Mapped."
+    if farg.description=="clear" then
+        mquests[farg.name][farg.qset][farg.value]=nil
+        return true, "Cleared."
+    else
+        mquests[farg.name][farg.qset][farg.value]=farg.description
+        return true, "Mapped."
+    end
 end
 
-local miniquestargs = {
-    list={
+local function miniquest_help( farg )
+    if not miniquestargs[farg.command] then
+        return false, "No such command."
+    else
+        return true, miniquestargs[farg.command].help
+    end
+end
+
+miniquestargs.help={
+        args= {[1]={name="command", typ="string"} },
+        fun=miniquest_help,
+        help="miniquest help <command>"
+    }
+
+miniquestargs.list={
         args= {},
-        fun=list_miniquests
-    },
+        fun=miniquest_list,
+        help="Shows a list of the miniquests."
+    }
 
-    add={ 
+miniquestargs.add={ 
         args= { [1]={name="name",typ="string"} }, 
-        fun=add_miniquest
-    },
+        fun=miniquest_add,
+        help="Add a miniquest to the list."
+    }
     
-    remove={ 
+miniquestargs.remove={ 
         args= { [1]={name="name",typ="string"} },
-        fun=remove_miniquest
-    },
+        fun=miniquest_remove,
+        help="Remove a miniquest to the list."
+    }
 
-    show={
+miniquestargs.show={
         args= { [1]={name="name",typ="string"} },
-        fun=show_miniquest
-    },
+        fun=miniquest_show,
+        help="Show the registered qsets and values for a miniquest."
+    }
 
-    mapqset={
+miniquestargs.mapqset={
         args= { [1]={name="name",typ="string"},
               [2]={name="qset",typ="number"},
               [3]={name="description",typ="string"} },
-        fun=map_qset
-    },
+        fun=miniquest_mapqset,
+        help="Register a qset as part of a miniquest and give it a description."
+    }
 
-    mapvalue={
+miniquestargs.status={
+        args= { [1]={name="player", typ="string"},
+                [2]={name="name", typ="string"} },
+        fun=miniquest_status,
+        help="Show a player's status for a given miniquest based on current qsets."
+    }
+
+miniquestargs.mapvalue={
         args= { [1]={name="name",typ="string"},
               [2]={name="qset",typ="number"},
               [3]={name="value",typ="number"},
               [4]={name="description",typ="string"} },
-        fun=map_qset_value
+        fun=miniquest_mapvalue,
+        help="Give a description to a specific value for a qset in the miniquest."
     }
-}
 
 local function printhelptochar( ch )
     for k,v in pairs(miniquestargs) do
@@ -154,10 +221,10 @@ function do_miniquest( ch, argument )
         return
     end
 
-    local fun_args={} --what we wil pass to the func
+    local fun_args={ch=ch} --what we wil pass to the func
     for i,v in ipairs(mqarg.args) do
         if args[i]==nil then
-            sendtochar(ch, "Please provide argument for " .. v.name .. ".")
+            sendtochar(ch, "Please provide argument for " .. v.name .. ".\n\r")
             return
         end
 
@@ -191,7 +258,7 @@ function do_miniquest( ch, argument )
         sendtochar(ch, "Command failed.\n\r")
     end
     if msg then
-        sendtochar(ch,msg)
+        sendtochar(ch,msg .. "\n\r")
     end
 end
 
