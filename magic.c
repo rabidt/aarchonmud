@@ -1190,6 +1190,18 @@ int get_spell_heal( int mana, int lag, int level )
     return base_heal * (100 + 3 * level) / 400;
 }
 
+int get_focus_bonus( CHAR_DATA *ch )
+{
+    OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
+    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    bool has_focus_obj = !has_shield && (obj != NULL && obj->item_type != ITEM_ARROWS);
+
+    if ( has_focus_obj )
+        return 10 + get_skill(ch, gsn_focus) / 2;
+    else
+        return get_skill(ch, gsn_focus) / 4;
+}
+
 /* needes to be seperate for dracs */
 int adjust_spell_damage( int dam, CHAR_DATA *ch )
 {
@@ -1200,26 +1212,15 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     if ( was_obj_cast )
         return dam;
 
-    if ( chance(get_skill(ch, gsn_focus))
-            && (has_focus || number_bits(1)) )
-    {
-        dam += dam / 2;
-        check_improve(ch, gsn_focus, TRUE, 1);
-    }
-    else
-        check_improve(ch, gsn_focus, FALSE, 1);
+    dam += dam * get_focus_bonus(ch) / 100;
+    check_improve(ch, gsn_focus, TRUE, 1);
 
     if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
     {
         dam += dam * (10 + ch->level - LEVEL_MIN_HERO) / 100;
     }
 
-    /* focus obj makes for more steady damage */
-    if ( has_focus )
-        return dam * number_range(100, 120) / 100;
-    else
-        return dam * number_range(80, 120) / 100;
-
+    return dam * number_range(90, 110) / 100;
 }
 
 int get_sn_damage( int sn, int level, CHAR_DATA *ch )

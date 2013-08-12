@@ -4309,7 +4309,7 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
             check_improve(ch, gsn_wrist_shield, TRUE, 20);
     }
     
-    return chance;
+    return URANGE(0, chance, 75);
 }
 
 /*
