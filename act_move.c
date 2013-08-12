@@ -2467,7 +2467,7 @@ void do_sneak( CHAR_DATA *ch, char *argument )
         af.where     = TO_AFFECTS;
         af.type      = gsn_sneak;
         af.level     = ch->level; 
-        af.duration  = ch->level;
+        af.duration  = -1;
         af.location  = APPLY_NONE;
         af.modifier  = 0;
         af.bitvector = AFF_SNEAK;
@@ -2530,7 +2530,7 @@ void do_hide( CHAR_DATA *ch, char *argument )
         af.where     = TO_AFFECTS;
         af.type      = gsn_hide;
         af.level     = ch->level; 
-        af.duration  = ch->level;
+        af.duration  = -1;
         af.location  = APPLY_NONE;
         af.modifier  = 0;
         af.bitvector = AFF_HIDE;
@@ -2647,10 +2647,12 @@ void do_recall( CHAR_DATA *ch, char *argument )
         location=ch->master->in_room;
     
     if ( ch->in_room == location )
+    {
+        send_to_char("You are already home.\n\r", ch);
         return;
-    
-    if ( IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL)
-        ||   IS_AFFECTED(ch, AFF_CURSE))
+    }
+
+    if ( IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL) )
     {
         printf_to_char(ch, "%s has forsaken you.\n\r", god_name );
         return;
@@ -2720,6 +2722,9 @@ void do_recall( CHAR_DATA *ch, char *argument )
         stop_fighting( ch, TRUE );
         
     }
+    
+    // misgate chance when cursed but not normally
+    location = room_with_misgate(ch, location, 0);
     
     ch->move -= move_cost;
     act( "$n disappears.", ch, NULL, NULL, TO_ROOM );

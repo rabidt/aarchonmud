@@ -439,6 +439,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (ch->wimpy !=0 )
         bprintf( buf, "Wimp  %d\n",  ch->wimpy   );
     
+    if ( ch->calm != 0 )
+        bprintf( buf, "Calm  %d\n",  ch->calm );
+
     bprintf( buf, "NewAttr %d %d %d %d %d %d %d %d %d %d\n",
         ch->perm_stat[STAT_STR],
         ch->perm_stat[STAT_CON],
@@ -1548,6 +1551,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'C':
         KEY( "Class",   ch->class,      bread_number( buf ) );
         KEY( "Cla",     ch->class,      bread_number( buf ) );
+        KEY( "Calm",    ch->calm,       bread_number( buf ) );
         if ( !str_cmp(word, "Clan") )
         {
             char *temp=bread_string(buf);
