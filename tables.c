@@ -334,6 +334,8 @@ const struct flag_type affect_flags[] =
     { "minor_fade",        AFF_MINOR_FADE,           TRUE  },
     { "replenish",         AFF_REPLENISH,            TRUE  },
     { "fortune",           AFF_FORTUNE,              TRUE  },
+    { "shield",            AFF_SHIELD,               TRUE  },
+    { "stone_skin",        AFF_STONE_SKIN,           TRUE  },
     { NULL,                0,                        0     }
 };
 
@@ -1228,6 +1230,17 @@ const char* spell_target_names[] =
     "obj_char_offensive",
     "visible_char_offensive",
     "char_neutral"
+};
+
+const char* spell_duration_names[] =
+{
+    "none",
+    "special",
+    "brief",
+    "short",
+    "normal",
+    "long",
+    "extreme"
 };
 
 const struct pkgrade_type pkgrade_table[] =

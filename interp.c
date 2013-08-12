@@ -467,7 +467,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "religion",   do_religion, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, FALSE },
     { "prayer",     do_prayer,   POS_DEAD,   0, LOG_NORMAL, 1, FALSE, FALSE },
     { "die",	    do_die,     POS_DEAD,    0, LOG_ALWAYS, 1, FALSE, FALSE },
-    { "calm",       do_calm,     POS_RESTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
+    { "calm",       do_calm,    POS_DEAD,    0, LOG_NORMAL, 1, FALSE, FALSE },
     { "helper",     do_helper,  POS_DEAD,    0, LOG_ALWAYS, 1, FALSE, FALSE },
 
     /* Freeze Tag */

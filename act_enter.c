@@ -190,7 +190,7 @@ void do_enter( CHAR_DATA *ch, char *argument)
 		location = get_random_war_room(ch);
 		portal->value[3] = location->vnum; /* for record keeping :) */
 	}
-	else if (I_IS_SET(portal->value[2],GATE_BUGGY) && (number_percent() < 5))
+	else if ( I_IS_SET(portal->value[2],GATE_BUGGY) && (per_chance(5) || IS_AFFECTED(ch, AFF_CURSE) && per_chance(20)) )
 	{
 	    if ( stay_area )
 		location = get_random_room_area(ch);
