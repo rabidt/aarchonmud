@@ -19,17 +19,14 @@ local function aquest_status( quests, farg )
     local rtn=""
     for k,v in pairs(quest) do
         if type(k) == "number" then
-            rtn=rtn .. string.format("%-8d %s\n\r", k, v.description)
+            rtn=rtn .. string.format("%-8d %s :: ", k, v.description)
             local val=qstatus(plr, k)
             if dbg then print(val) end
-            if val==0 then 
-                rtn=rtn .. "    0\n\r"
+
+            if v[val]==nil then
+                rtn=rtn .. string.format("%-8d\n\r", val)
             else
-                for l,w in pairs(v) do
-                    if l==val then
-                        rtn=rtn .. string.format("    %-8d %s\n\r", l, w)
-                    end
-                end
+                rtn=rtn .. string.format("%-8d %s\n\r", val, v[val])
             end
         end
     end
