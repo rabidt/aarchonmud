@@ -825,7 +825,7 @@ void do_drop( CHAR_DATA *ch, char *argument )
             return;
         }
 
-        if ( contains_obj_recursive(obj, &is_questeq) )
+        if ( !IS_NPC(ch) && contains_obj_recursive(obj, &is_questeq) )
         {
             send_to_char("You don't want to drop your quest equipment!\n\r", ch);
             return;
@@ -870,7 +870,7 @@ void do_drop( CHAR_DATA *ch, char *argument )
             {
                 found = TRUE;
 
-                if ( contains_obj_recursive(obj, &is_questeq) )
+                if ( !IS_NPC(ch) && contains_obj_recursive(obj, &is_questeq) )
                 {
                     send_to_char("You don't want to drop your quest equipment!\n\r", ch);
                     continue;
@@ -1128,8 +1128,18 @@ void do_give( CHAR_DATA *ch, char *argument )
     
     if ( IS_NPC(victim) && contains_obj_recursive(obj, &is_questeq) )
     {
-        send_to_char("You don't want to give away your quest equipment!\n\r", ch);
-        return;
+        // we allow giving quest eq to mobs specifically designed for this
+        if ( has_mp_trigger_vnum(victim, TRIG_GIVE, obj->pIndexData->vnum) )
+        {
+            logpf("%s giving quest item #%d to mob #%d at room #%d",
+                ch->name, obj->pIndexData->vnum, victim->pIndexData->vnum, ch->in_room->vnum
+            );
+        }
+        else
+        {
+            send_to_char("You don't want to give away your quest equipment!\n\r", ch);
+            return;
+        }
     }
 
     /* oprog check */
