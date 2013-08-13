@@ -1670,3 +1670,20 @@ bool can_trigger( CHAR_DATA *mob, int trigger )
 
     return FALSE;
 }
+
+// does the mob have a trigger of the given type with vnum as parameter
+bool has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum )
+{
+    MPROG_LIST *prg;
+
+    for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
+    {
+        if ( prg->trig_type == trigger )
+        {
+            char *p = prg->trig_phrase;
+            if ( is_r_number(p) && r_atoi(mob, p) == vnum )
+                return TRUE;
+        }
+    }
+    return FALSE;
+}
