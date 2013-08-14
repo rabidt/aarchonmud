@@ -4270,12 +4270,6 @@ void do_second (CHAR_DATA *ch, char *argument)
         return;
     }
 
-    if ( get_obj_weight(obj) > get_obj_weight(wield) )
-    {
-        send_to_char ("Your secondary weapon has to be lighter compared to your primary one.\n\r",ch);
-        return;
-    }
-
     if ((second = (get_eq_char(ch,WEAR_SECONDARY))) != NULL)
     { 
         if ( IS_SET(second->extra_flags, ITEM_NOREMOVE) )
@@ -4289,10 +4283,13 @@ void do_second (CHAR_DATA *ch, char *argument)
         act( "You sheath $p.", ch, second, NULL, TO_CHAR );
     }
 
-
     act_gag ("$n wields $p in $s off-hand.",ch,obj,NULL,TO_ROOM,GAG_EQUIP);
     act ("You wield $p in your off-hand.",ch,obj,NULL,TO_CHAR);
     equip_char ( ch, obj, WEAR_SECONDARY);
+
+    if ( get_obj_weight(obj) > get_obj_weight(wield) )
+        send_to_char ("Your secondary weapon is heavier than your primary one. Consider swapping them.\n\r", ch);
+
     return;
 }
 
