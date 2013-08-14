@@ -911,6 +911,8 @@ int dual_wield_skill( CHAR_DATA *ch, bool improve )
     
     int wield_weight = UMAX(1, wield->weight);
     int second_weight = UMAX(1, second->weight);
+    // cap off-hand weight to effectively cap penalty
+    second_weight = UMIN(second_weight, 2*wield_weight);
     
     // dual wield requires weight difference
     int dual_wield = get_skill(ch, gsn_dual_wield);
@@ -943,8 +945,8 @@ int dual_wield_skill( CHAR_DATA *ch, bool improve )
         }
     }
 
-    // combine the two skills
-    return dual_wield + dual_weapon - dual_wield * dual_weapon / 100;
+    // combine the two skills, rounding down
+    return dual_wield + (100 - dual_wield) * dual_weapon / 100;
 }
 
 /*
