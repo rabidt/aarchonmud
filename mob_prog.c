@@ -1162,9 +1162,11 @@ void program_flow(
     const void *arg1, sh_int arg1type,
     const void *arg2, sh_int arg2type )
 {
+    int mvnum = (mob->pIndexData ? mob->pIndexData->vnum : 0);
+
     if ( mprog_call_level_increase() > MAX_CALL_LEVEL )
     {
-       bug( "MOBprogs: MAX_CALL_LEVEL exceeded, vnum %d", mob->pIndexData->vnum );
+       bug( "MOBprogs: MAX_CALL_LEVEL exceeded, vnum %d", mvnum );
        MPROG_RETURN;
     }
     
@@ -1183,8 +1185,6 @@ void program_flow(
     int level, eval, check;
     int state[MAX_NESTED_LEVEL], /* Block state (BEGIN,IN,END) */
 	cond[MAX_NESTED_LEVEL];  /* Boolean value based on the last if-check */
-    
-    int mvnum = mob->pIndexData->vnum;
     
 #ifdef MPROG_DEBUG
     logpf( "program_flow: mob %d executing mprog %d:", mvnum, pvnum );
