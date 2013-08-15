@@ -229,6 +229,13 @@ void string_add( CHAR_DATA *ch, char *argument )
           EDIT_OPCODE(ch, opc);
           fix_oprog_objs( ch, opc);
       }
+      else if ( ch->desc->editor == ED_APCODE ) /* for areaprogs */
+      {
+          APROG_CODE *apc;
+          EDIT_APCODE(ch, apc);
+          fix_aprog_areas(ch, apc);
+      }
+                                                   
 
       
       ch->desc->pString = NULL;

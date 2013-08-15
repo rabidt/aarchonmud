@@ -70,6 +70,17 @@ static const struct luaL_reg OBJ_lib [];
 static const struct luaL_reg OBJPROTO_lib[];
 static const struct luaL_reg ROOM_lib [];
 static const struct luaL_reg EXIT_lib [];
+static const struct luaL_reg AREA_lib [];
+
+void lua_mob_program( char *text, int pvnum, char *source,
+        CHAR_DATA *mob, CHAR_DATA *ch,
+        const void *arg1, sh_int arg1type,
+        const void *arg2, sh_int arg2type );
+
+bool lua_obj_program( char *trigger, int pvnum, char *source, 
+        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2 );
+bool lua_area_program( char *trigger, int pvnum, char *source,
+        AREA_DATA *area, CHAR_DATA *ch1 );
 
 /* in lua_tables.c */
 
@@ -77,13 +88,12 @@ void add_lua_tables (lua_State *LS);
 
 #define CHARACTER_STATE "character.state"
 #define CH_META        "CH.meta"
-#define CH_ENV_META    "CH_env_meta"
 #define UD_META        "UD.meta"
 #define OBJ_META       "OBJ.meta"
-//#define OBJ_ENV_META   "OBJ.envmeta"
 #define OBJPROTO_META  "OBJPROTO.meta"
 #define ROOM_META      "ROOM.meta"
 #define EXIT_META      "EXIT.meta"
+#define AREA_META	   "AREA.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 #define UD_TABLE_NAME "udtbl"
@@ -104,10 +114,19 @@ void add_lua_tables (lua_State *LS);
 
 /* oprogs args */
 #define OBJ_ARG "obj"
-#define NUM_OPROG_ARGS 4 /* also TRIG_ARG, OBJ2_ARG */ 
+#define NUM_OPROG_ARGS 4
+/* OBJ2_ARG */ 
 #define CH1_ARG "ch1"
 #define CH2_ARG "ch2"
+/* TRIG_ARG */
 #define NUM_OPROG_RESULTS 1
+
+/* aprog args */
+#define AREA_ARG "area"
+#define NUM_APROG_ARGS 2
+/* CH1_ARG */
+/* TRIG_ARG */
+#define NUM_APROG_RESULTS 1
 
 #define UDTYPE_UNDEFINED 0
 #define UDTYPE_CH        1
@@ -115,6 +134,7 @@ void add_lua_tables (lua_State *LS);
 #define UDTYPE_ROOM      3
 #define UDTYPE_EXIT      4
 #define UDTYPE_OBJPROTO  5
+#define UDTYPE_AREA      6
 
 
 // number of items in an array
@@ -253,6 +273,22 @@ EXIT_DATA *check_exit( lua_State *LS, int arg)
     return exit;
 }
 
+AREA_DATA *check_AREA( lua_State *LS, int arg)
+{
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
+    if ( type != UDTYPE_AREA )
+    {
+        luaL_error(LS, "Bad parameter %d. Expected AREA.", arg );
+        return NULL;
+    }
+
+    lua_getfield(LS, arg, "tableid");
+    AREA_DATA *exit=(EXIT_DATA *)luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return exit;
+}
 
 static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
 {
@@ -292,6 +328,8 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
             meta=ROOM_META; luaL_register(LS,NULL,ROOM_lib); break;
         case UDTYPE_EXIT:
             meta=EXIT_META; luaL_register(LS,NULL,EXIT_lib); break;
+		case UDTYPE_AREA:
+			meta=AREA_META; luaL_register(LS,NULL,AREA_lib); break;
         case UDTYPE_OBJPROTO:
             meta=OBJPROTO_META; luaL_register(LS,NULL, OBJPROTO_lib); break;
         default:
@@ -356,28 +394,6 @@ void unregister_lua( void *ptr )
         unregister_UD( mud_LS, ptr );
     }
 }
-
-/* Given a Lua state, return the character it belongs to */
-CHAR_DATA * L_getchar (lua_State *LS)
-{
-    /* retrieve our character */
-
-    CHAR_DATA * ch;
-
-    /* retrieve the character */
-    lua_getglobal( LS, "current_env");
-    lua_pushstring( LS, MOB_ARG );
-    lua_gettable( LS, -2);
-    ch = check_CH(LS, -1);
-
-    if (!ch)  
-        luaL_error (LS, "No current character");
-
-    lua_pop(LS, 2);  /* pop result and current_env*/
-
-    return ch;
-} /* end of L_getchar */
-/* For debugging, show traceback information */
 
 static void GetTracebackFunction (lua_State *LS)
 {
@@ -444,6 +460,15 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
 
     return error;
 }  /* end of CallLuaWithTraceBack  */
+
+static int L_sendtochar (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    char *msg=luaL_checkstring(LS, 2);
+
+    send_to_char(msg, ch);
+    return 0;
+}
 
 static int L_getmobworld (lua_State *LS)
 {
@@ -515,19 +540,10 @@ static int L_getobjproto (lua_State *LS)
     return 1;
 }
 
-static int L_ch_log (lua_State *LS)
+static int L_log (lua_State *LS)
 {
     char buf[MSL];
-    CHAR_DATA *ch=check_CH(LS,1);
-    if (IS_NPC(ch))
-    {
-        sprintf(buf, "LUA::(%d)%s:%s",
-                ch->pIndexData->vnum, ch->short_descr, luaL_checkstring (LS, 2) );
-    }
-    else
-    {
-        sprintf(buf, "LUA::%s:%s", ch->name, luaL_checkstring (LS, 1));
-    }
+    sprintf(buf, "LUA::%s", luaL_checkstring (LS, 1));
 
     log_string(buf);
     return 0;
@@ -544,31 +560,60 @@ static int L_ch_randchar (lua_State *LS)
 
 }
 
-static int L_loadprog (lua_State *LS)
+static int L_ch_loadprog (lua_State *LS)
 {
-    int num = luaL_checknumber (LS, 1);
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    int num = luaL_checknumber (LS, 2);
     MPROG_CODE *pMcode;
 
     if ( (pMcode = get_mprog_index(num)) == NULL )
     {
-        luaL_error(LS, "loadprog: vnum %d doesn't exist", num);
+        luaL_error(LS, "loadprog: mprog vnum %d doesn't exist", num);
         return 0;
     }
 
     if ( !pMcode->is_lua)
     {
-        luaL_error(LS, "loadprog: vnum %d is not lua code", num);
+        luaL_error(LS, "loadprog: mprog vnum %d is not lua code", num);
         return 0;
     }
-    luaL_loadstring (LS, pMcode->code);
-    lua_getglobal( LS, "current_env");
-    lua_setfenv(LS, -2); 
-    if (CallLuaWithTraceBack (LS, 0, 0))
+
+    lua_mob_program( NULL, num, pMcode->code, ud_ch, NULL, NULL, 0, NULL, 0 ); 
+
+    return 0;
+}
+
+static int L_obj_loadprog (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    int num = luaL_checknumber (LS, 2);
+    OPROG_CODE *pOcode;
+
+    if ( (pOcode = get_oprog_index(num)) == NULL )
     {
-        bugf ( "loadprog error loading vnum %d:\n %s",
-                num,
-                lua_tostring(LS, -1));
-    } 
+        luaL_error(LS, "loadprog: oprog vnum %d doesn't exist", num);
+        return 0;
+    }
+
+    lua_obj_program( NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL);
+
+    return 0;
+}
+
+static int L_area_loadprog (lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int num = luaL_checknumber (LS, 2);
+    APROG_CODE *pAcode;
+
+    if ( (pAcode = get_aprog_index(num)) == NULL )
+    {
+        luaL_error(LS, "loadprog: aprog vnum %d doesn't exist", num);
+        return 0;
+    }
+
+    lua_area_program( NULL, num, pAcode->code, ud_area, NULL);
+
     return 0;
 }
 
@@ -867,8 +912,8 @@ static int L_ch_mdo (lua_State *LS)
 
 static int L_mobhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1); 
+    const char *argument = luaL_checkstring (LS, 2);
 
     if ( is_r_number( argument ) )
         lua_pushboolean( LS, (bool) get_mob_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) ); 
@@ -880,8 +925,8 @@ static int L_mobhere (lua_State *LS)
 
 static int L_objhere (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
 
     if ( is_r_number( argument ) )
         return( get_obj_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) );
@@ -893,8 +938,8 @@ static int L_objhere (lua_State *LS)
 
 static int L_mobexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1); 
+    const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,(bool) (get_mp_char( ud_ch, argument) != NULL) );
 
@@ -903,8 +948,8 @@ static int L_mobexists (lua_State *LS)
 
 static int L_objexists (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = L_getchar(LS);
-    const char *argument = luaL_checkstring (LS, 1);
+    CHAR_DATA * ud_ch = check_CH (LS, 1); 
+    const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS, (bool) (get_mp_obj( ud_ch, argument) != NULL) );
 
@@ -1365,6 +1410,24 @@ static int L_room_flag( lua_State *LS)
     return 1;
 }
 
+static int L_room_echo( lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+
+    CHAR_DATA *vic;
+    for ( vic=ud_room->people ; vic ; vic=vic->next_in_room )
+    {
+        if (!IS_NPC(vic) )
+        {
+            send_to_char(argument, vic);
+            send_to_char("\n\r", vic);
+        }
+    }
+
+    return 0;
+}
+
 static int L_objproto_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -1429,11 +1492,33 @@ static int L_obj_echo( lua_State *LS)
     }
     else
     {
-        luaL_error(LS, "L_obj_echo: carried_by and in_room both NULL");
-        return 0;
+        // Nothing, must be in a container
     }
     
     return 0;
+}
+
+static int L_obj_oload (lua_State *LS)
+{
+    OBJ_DATA * ud_obj = check_OBJ (LS, 1);
+    int num = luaL_checknumber (LS, 2);
+    OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
+
+    if ( ud_obj->item_type != ITEM_CONTAINER )
+    {
+        luaL_error(LS, "Tried to load object in non-container." );
+    }
+
+    if (!pObjIndex)
+        luaL_error(LS, "No object with vnum: %d", num);
+
+    OBJ_DATA *obj=create_object( pObjIndex, 0);
+    check_enchant_obj( obj );
+    obj_to_obj(obj,ud_obj);
+
+    make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
+    return 1;
+
 }
 
 static int L_obj_wear( lua_State *LS)
@@ -1462,6 +1547,31 @@ static int L_obj_extra( lua_State *LS)
     return 1;
 }
 
+static int L_area_echo( lua_State *LS)
+{
+	AREA_DATA *ud_area = check_AREA(LS, 1);
+	const char *argument = luaL_checkstring(LS, 2);
+	DESCRIPTOR_DATA *d;
+
+    for ( d = descriptor_list; d; d = d->next )
+    {
+		if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+		{
+			if ( !d->character->in_room )
+				continue;
+			if ( d->character->in_room->area != ud_area )
+				continue;
+				
+			if ( IS_IMMORTAL(d->character) )
+				send_to_char( "Area echo> ", d->character );
+			send_to_char( argument, d->character );
+			send_to_char( "\n\r", d->character );
+		}
+    }
+	
+    return 0;
+}
+
 static const struct luaL_reg mudlib [] = 
 {
     {"luadir", L_mud_luadir}, 
@@ -1472,6 +1582,10 @@ static const struct luaL_reg mudlib [] =
 
 static const struct luaL_reg CH_lib [] =
 {
+    {"mobhere", L_mobhere},
+    {"objhere", L_objhere},
+    {"mobexists", L_mobexists},
+    {"objexists", L_objexists},
     {"affected", L_affected},
     {"offensive", L_off},
     {"immune", L_imm},
@@ -1515,7 +1629,7 @@ static const struct luaL_reg CH_lib [] =
     {"setact", L_ch_setact},
     {"hit", L_ch_hit},
     {"randchar", L_ch_randchar},
-    {"log", L_ch_log},
+    {"loadprog", L_ch_loadprog},
     {NULL, NULL}
 };
 
@@ -1524,6 +1638,7 @@ static const struct luaL_reg ROOM_lib [] =
     {"flag", L_room_flag},
     {"oload", L_room_oload},
     {"mload", L_room_mload},
+    {"echo", L_room_echo},
     {NULL, NULL}
 };
 
@@ -1533,6 +1648,8 @@ static const struct luaL_reg OBJ_lib [] =
     {"wear", L_obj_wear},
     {"destroy", L_obj_destroy},
     {"echo", L_obj_echo},
+    {"loadprog", L_obj_loadprog},
+    {"oload", L_obj_oload},
     {NULL, NULL}
 };
 
@@ -1546,6 +1663,13 @@ static const struct luaL_reg OBJPROTO_lib [] =
 static const struct luaL_reg EXIT_lib [] =
 {
     {"flag", L_exit_flag},
+    {NULL, NULL}
+};
+
+static const struct luaL_reg AREA_lib [] =
+{
+    {"echo", L_area_echo},
+    {"loadprog", L_area_loadprog},
     {NULL, NULL}
 }; 
 
@@ -1630,6 +1754,11 @@ static int EXIT2string (lua_State *LS)
     return 1;
 }
 
+static int AREA2string (lua_State *LS)
+{
+    lua_pushliteral (LS, "mud_area");
+    return 1;
+}
 
 
 
@@ -1771,6 +1900,32 @@ static int get_OBJ_field ( lua_State *LS )
     return 0;
 }
 
+static int check_AREA_equal( lua_State *LS)
+{
+    lua_pushboolean( LS, check_AREA(LS, 1) == check_AREA(LS, 2) );
+    return 1;
+}
+
+static int get_AREA_field ( lua_State *LS )
+{
+    const char *argument = luaL_checkstring (LS, 2 );
+
+    FLDNUM("UDTYPE",UDTYPE_AREA); /* Need this for type checking */
+
+    AREA_DATA *ud_area = check_AREA(LS, 1);
+
+    if ( !ud_area )
+        return 0;
+
+    FLDSTR("name", ud_area->name);
+	FLDSTR("filename", ud_area->file_name);
+	FLDNUM("nplayer", ud_area->nplayer);
+	FLDNUM("minlevel", ud_area->minlevel);
+	FLDNUM("maxlevel", ud_area->maxlevel);
+	
+    return 0;
+}
+
 static int check_EXIT_equal( lua_State *LS)
 {
     lua_pushboolean( LS, check_exit(LS, 1) == check_exit(LS, 2) );
@@ -1825,7 +1980,11 @@ static int get_ROOM_field ( lua_State *LS )
     FLDNUM("manarate", ud_room->mana_rate);
     FLDSTR("owner", ud_room->owner ? ud_room->owner : "");
     FLDSTR("description", ud_room->description);
-    FLDSTR("area", ud_room->area->name );
+    if ( !strcmp(argument, "area") )
+    {
+        make_ud_table(LS, ud_room->area, UDTYPE_AREA, TRUE);
+        return 1;
+    }
 
     if ( !strcmp(argument, "people") )
     {   
@@ -2089,13 +2248,18 @@ static const struct luaL_reg EXIT_metatable [] =
     {NULL, NULL}
 };
 
+static const struct luaL_reg AREA_metatable [] =
+{
+    {"__tostring", AREA2string},
+    {"__index", get_AREA_field},
+    {"__newindex", newindex_error},
+    {"__eq", check_AREA_equal},
+    {NULL, NULL}
+};
+
 void RegisterGlobalFunctions(lua_State *LS)
 {
     /* checks */
-    lua_register(LS,"mobhere",     L_mobhere);
-    lua_register(LS,"objhere",     L_objhere);
-    lua_register(LS,"mobexists",   L_mobexists);
-    lua_register(LS,"objexists",   L_objexists);
     lua_register(LS,"hour",        L_hour);
     lua_register(LS,"ispc",        L_ispc);
     lua_register(LS,"isnpc",       L_isnpc);
@@ -2129,10 +2293,11 @@ void RegisterGlobalFunctions(lua_State *LS)
 
     /* other */
     lua_register(LS,"getroom",     L_getroom);
-    lua_register(LS,"loadprog",    L_loadprog);
     lua_register(LS,"getobjproto", L_getobjproto);
     lua_register(LS,"getobjworld", L_getobjworld );
     lua_register(LS,"getmobworld", L_getmobworld );
+    lua_register(LS,"log",         L_log );
+    lua_register(LS,"sendtochar",  L_sendtochar  );
 
 }
 
@@ -2163,6 +2328,8 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, NULL, EXIT_metatable);
     luaL_newmetatable(LS, OBJPROTO_META);
     luaL_register (LS, NULL, OBJPROTO_metatable);
+    luaL_newmetatable(LS, AREA_META);
+    luaL_register (LS, NULL, AREA_metatable);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
@@ -2266,6 +2433,34 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 
 }
 
+bool lua_load_aprog( lua_State *LS, int vnum, char *code)
+{
+    char buf[MSL];
+
+    sprintf(buf, "function A_%d (%s,%s)"
+            "%s\n"
+            "end",
+            vnum,
+            CH1_ARG, TRIG_ARG,
+            code);
+
+
+    if (luaL_loadstring ( LS, buf) ||
+            CallLuaWithTraceBack ( LS, 0, 0))
+    {
+        bugf ( "LUA aprog error loading vnum %d:\n %s",
+                vnum,
+                lua_tostring( LS, -1));
+        /* bad code, let's kill it */
+        sprintf(buf, "A_%d", vnum);
+        lua_pushnil( LS );
+        lua_setglobal( LS, buf);
+
+        return FALSE;
+    }
+    else return TRUE;
+}
+
 bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
@@ -2292,7 +2487,6 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
         return FALSE;
     }
     else return TRUE;
-
 }
 /* lua_mob_program
    lua equivalent of program_flow
@@ -2504,3 +2698,88 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     return result;
 }
 
+bool lua_area_program( char *trigger, int pvnum, char *source, 
+        AREA_DATA *area, CHAR_DATA *ch1 ) 
+{
+    bool result=FALSE;
+
+    lua_getglobal( mud_LS, "area_program_setup");
+    
+    make_ud_table( mud_LS, area, UDTYPE_AREA, TRUE);
+    if (lua_isnil(mud_LS, -1) )
+    {
+        bugf("make_ud_table pushed nil to lua_area_program");
+        return FALSE;
+    }
+    
+    /* load up the script as a function so args will be local */
+    char buf[MSL*2];
+    sprintf(buf, "A_%d", pvnum);
+    lua_getglobal( mud_LS, buf);
+      
+    if ( lua_isnil( mud_LS, -1) )
+    {
+        lua_remove( mud_LS, -1); /* Remove the nil */
+        /* not loaded yet*/
+        if ( !lua_load_aprog( mud_LS, pvnum, source) )
+        {
+            /* don't bother running it if there were errors */
+            return FALSE;
+        }
+        
+        /* loaded without errors, now get it on the stack */
+        lua_getglobal( mud_LS, buf);
+    }
+    
+    int error=CallLuaWithTraceBack (mud_LS, 2, 1) ;
+    if (error > 0 )
+    {
+        bugf ( "LUA error running area_program_setup: %s",
+        lua_tostring(mud_LS, -1));
+    }
+
+    /* CH1_ARG */
+    if (ch1)
+        make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
+    else lua_pushnil(mud_LS);
+
+    /* TRIG_ARG */
+    if (trigger)
+        lua_pushstring(mud_LS,trigger);
+    else lua_pushnil(mud_LS);
+
+    /* some snazzy stuff to prevent crashes and other bad things*/
+    s_LoopCheckCounter=0;
+    //s_LuaActiveObj=obj;
+    s_LuaScriptInProgress=TRUE;
+    
+    setjmp(s_place);
+    switch ( setjmp(s_place) )   
+    {
+        case 0: /* the actual code we are executing */
+
+            error=CallLuaWithTraceBack (mud_LS, NUM_APROG_ARGS, NUM_APROG_RESULTS) ;
+            if (error > 0 )
+            {
+                bugf ( "LUA aprog error for vnum %d:\n %s",
+                        pvnum,
+                        lua_tostring(mud_LS, -1));
+            }
+            else
+            {
+                result=lua_toboolean (mud_LS, -1);
+            }
+
+            break;
+
+            /* Error handling */ 
+        case ERR_INF_LOOP:
+            bugf("Infinite loop interrupted in aprog: %d for area %d",
+                    pvnum, area->name);
+            break;
+    }
+    s_LuaScriptInProgress=FALSE;
+    //s_LuaActiveObj=NULL;
+    lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
+    return result;
+}

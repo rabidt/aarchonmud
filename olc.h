@@ -57,6 +57,7 @@ DECLARE_SPELL_FUN( spell_null );
 #define ED_MPCODE    5
 #define ED_HELP      6
 #define ED_OPCODE    7
+#define ED_APCODE	 8
 
 
 /*
@@ -68,6 +69,7 @@ void    medit           args( ( CHAR_DATA *ch, char *argument ) );
 void    oedit           args( ( CHAR_DATA *ch, char *argument ) );
 void	  mpedit		      args( ( CHAR_DATA *ch, char *argument ) );
 void    opedit          args( ( CHAR_DATA *ch, char *argument ) );
+void    apedit		    args( ( CHAR_DATA *ch, char *argument ) );
 void    hedit           args( ( CHAR_DATA *ch, char *argument ) );
 
 
@@ -124,6 +126,7 @@ extern const struct olc_cmd_type	oedit_table[];
 extern const struct olc_cmd_type	medit_table[];
 extern const struct olc_cmd_type	mpedit_table[];
 extern const struct olc_cmd_type    opedit_table[];
+extern const struct olc_cmd_type	apedit_table[];
 extern const struct olc_cmd_type	hedit_table[];
 
 
@@ -136,6 +139,7 @@ DECLARE_DO_FUN( do_oedit        );
 DECLARE_DO_FUN( do_medit        );
 DECLARE_DO_FUN( do_mpedit	);
 DECLARE_DO_FUN( do_opedit   );
+DECLARE_DO_FUN( do_apedit   );
 DECLARE_DO_FUN( do_hedit       );
 
 
@@ -176,6 +180,8 @@ DECLARE_OLC_FUN( aedit_minlevel         );
 DECLARE_OLC_FUN( aedit_maxlevel        );
 DECLARE_OLC_FUN( aedit_miniquests        );
 /* End Astark's additions */
+DECLARE_OLC_FUN( aedit_addaprog  );  /* ROM */
+DECLARE_OLC_FUN( aedit_delaprog  );  /* ROM */
 
 
 /*
@@ -304,6 +310,12 @@ DECLARE_OLC_FUN( opedit_create   );
 DECLARE_OLC_FUN( opedit_code     );
 DECLARE_OLC_FUN( opedit_show     );
 
+/* Areaprog editor */
+DECLARE_OLC_FUN( apedit_create   );
+DECLARE_OLC_FUN( apedit_code     );
+DECLARE_OLC_FUN( apedit_show     );
+
+
 /* Help Editor - kermit 1/98 */
 DECLARE_OLC_FUN( hedit_create    );
 DECLARE_OLC_FUN( hedit_show      );
@@ -337,6 +349,7 @@ DECLARE_OLC_FUN( raceedit_remskill );
 #define EDIT_HELP(Ch, Help)   ( Help = (HELP_DATA *)Ch->desc->pEdit )
 #define EDIT_MPCODE(Ch, Code) ( Code = (MPROG_CODE*)Ch->desc->pEdit )
 #define EDIT_OPCODE(Ch, Code) ( Code = (OPROG_CODE*)Ch->desc->pEdit )
+#define EDIT_APCODE(Ch, Code) ( Code = (APROG_CODE*)Ch->desc->pEdit )
 
 
 
@@ -378,6 +391,12 @@ OPROG_LIST      *new_oprog              args ( ( void ) );
 void            free_oprog              args ( ( OPROG_LIST *op ) );
 OPROG_CODE *new_opcode      args ( (void) );
 void        free_opcode     args ( ( OPROG_CODE *pOcode));
+
+APROG_LIST      *new_aprog              args ( ( void ) );
+void            free_aprog              args ( ( APROG_LIST *ap ) );
+APROG_CODE *new_apcode      args ( (void) );
+void        free_apcode     args ( ( APROG_CODE *pAcode));
+
 
 HELP_DATA *new_help args ( (void) );
 void free_help args ( ( HELP_DATA * pHelp));

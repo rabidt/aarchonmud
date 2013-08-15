@@ -1824,6 +1824,7 @@ void quit_char( CHAR_DATA *ch )
 	ch->pcdata->quest_failed++;
     }
 
+    ap_quit_trigger(ch);
     if (!IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))
        quit_save_char_obj( ch );
     else
@@ -2558,6 +2559,16 @@ void do_colour( CHAR_DATA *ch, char *argument )
             send_to_char_bw( "Colour is now OFF, <sigh>\n\r", ch );
             REMOVE_BIT( ch->act, PLR_COLOUR );
         }
+        return;
+    }
+    
+    if (!str_cmp( arg, "verbatim" ) )
+    {
+        TOGGLE_BIT( ch->act, PLR_COLOUR_VERBATIM );
+        if ( IS_SET( ch->act, PLR_COLOUR_VERBATIM ) )
+            send_to_char( "Color codes are now displayed {rverbatim{x.\n\r", ch );
+        else 
+            send_to_char( "Color codes are no longer displayed {rverbatim{x.\n\r", ch );
         return;
     }
     

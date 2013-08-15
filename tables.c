@@ -334,6 +334,8 @@ const struct flag_type affect_flags[] =
     { "minor_fade",        AFF_MINOR_FADE,           TRUE  },
     { "replenish",         AFF_REPLENISH,            TRUE  },
     { "fortune",           AFF_FORTUNE,              TRUE  },
+    { "shield",            AFF_SHIELD,               TRUE  },
+    { "stone_skin",        AFF_STONE_SKIN,           TRUE  },
     { NULL,                0,                        0     }
 };
 
@@ -537,6 +539,20 @@ const struct flag_type oprog_flags[] =
     {   "get",          OTRIG_GET,       TRUE    },
     {   "rand",         OTRIG_RAND,      TRUE    },
     {   "greet",        OTRIG_GREET,     TRUE    },
+    {   NULL,           0,          TRUE    }
+};
+
+const struct flag_type aprog_flags[] =
+{
+    {   "enter",        ATRIG_ENTER,     TRUE    },
+	{   "exit",			ATRIG_EXIT,		 TRUE    },
+	{   "renter",		ATRIG_RENTER,	 TRUE	 },
+	{   "rexit",		ATRIG_REXIT,	 TRUE	 },
+	{   "boot",			ATRIG_BOOT,		 TRUE	 },
+	{   "shutdown",	    ATRIG_SHUTDOWN,  TRUE    },
+	{   "quit",			ATRIG_QUIT,		 TRUE    },
+    {   "void",         ATRIG_VOID,      TRUE    },
+    {   "unvoid",       ATRIG_UNVOID,    TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -1214,6 +1230,17 @@ const char* spell_target_names[] =
     "obj_char_offensive",
     "visible_char_offensive",
     "char_neutral"
+};
+
+const char* spell_duration_names[] =
+{
+    "none",
+    "special",
+    "brief",
+    "short",
+    "normal",
+    "long",
+    "extreme"
 };
 
 const struct pkgrade_type pkgrade_table[] =
