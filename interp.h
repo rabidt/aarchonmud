@@ -302,6 +302,7 @@ DECLARE_DO_FUN( do_peace    );
 DECLARE_DO_FUN( do_pecho    );
 DECLARE_DO_FUN( do_peek     );
 DECLARE_DO_FUN( do_penlist  );
+DECLARE_DO_FUN( do_percentages );
 DECLARE_DO_FUN( do_permban  );
 DECLARE_DO_FUN( do_pflag    );
 DECLARE_DO_FUN( do_pick     );
