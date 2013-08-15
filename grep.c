@@ -26,6 +26,7 @@ bool is_room_ingame( ROOM_INDEX_DATA *room );
 bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg );
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg );
 bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg );
+bool has_oprog( OBJ_INDEX_DATA *obj, int vnum );
 bool has_mprog( MOB_INDEX_DATA *mob, int vnum );
 bool has_shop( MOB_INDEX_DATA *mob, int vnum );
 bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg );
@@ -173,12 +174,15 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           cost    <minimum gold>\n\r", ch );
     send_to_char( "           ops     <minimum OPs>\n\r", ch );
     send_to_char( "           lvl     <minimum level>\n\r", ch );
+    send_to_char( "           weight  <minimum weight>\n\r", ch );
     send_to_char( "           wear    <location>\n\r", ch );
     send_to_char( "           extra   <extra stat>\n\r", ch );
     send_to_char( "           rating  <rating nr>\n\r", ch );
     send_to_char( "           heal    <min ratio>\n\r", ch );
     send_to_char( "           spell   <name>\n\r", ch );
     send_to_char( "           aff     <affect type>\n\r", ch );
+    send_to_char( "           trigger <oprog trigger type>\n\r", ch );
+    send_to_char( "           oprog   <oprog vnum>\n\r", ch );
     send_to_char( "           addflag\n\r", ch );
     send_to_char( "           spec\n\r", ch );
     send_to_char( "           belowspec\n\r", ch );
@@ -190,7 +194,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           aff     <affect flag>\n\r", ch );
     send_to_char( "           off     <offense flag>\n\r", ch );
     send_to_char( "           lvl     <minimum level>\n\r", ch );
-    send_to_char( "           trigger <trigger type>\n\r", ch );
+    send_to_char( "           trigger <oprog trigger type>\n\r", ch );
     send_to_char( "           mprog   <mprog vnum>\n\r", ch );
     send_to_char( "           specfun <any|spec_fun>\n\r", ch );
     send_to_char( "           align   <minimum alignment>\n\r", ch );
@@ -228,6 +232,9 @@ void show_grep_syntax( CHAR_DATA *ch )
 #define GREP_OBJ_EXTRA    13
 #define GREP_OBJ_COMBINE  14
 #define GREP_OBJ_BELOW_SPEC 15
+#define GREP_OBJ_WEIGHT   16
+#define GREP_OBJ_OPROG    17
+#define GREP_OBJ_TRIGGER  18
 #define NO_SHORT_DESC "(no short description)"
 
 /* parses argument into a list of grep_data */
@@ -312,6 +319,20 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
 	    value *= 100; // value in silver
 	    stat = GREP_OBJ_COST;
 	}
+    else if ( !str_cmp(arg1, "weight") )
+    {
+        if ( !is_number(arg2) )
+        {
+            send_to_char( "Please specify the minimum weight in 1/10th of lbs.\n\r", ch );
+            return NULL;
+        }
+        if ( (value = atoi(arg2)) < 1 )
+        {
+            send_to_char( "Minimum weight must be positive.\n\r", ch );
+            return NULL;
+        }
+        stat = GREP_OBJ_WEIGHT;
+    }
 	else if ( !str_cmp(arg1, "ops") )
 	{
 	    if ( !is_number(arg2) )
@@ -408,6 +429,30 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
 	    value = atoi(arg2);
 	    stat = GREP_OBJ_HEAL;
 	}
+    else if ( !str_cmp(arg1, "trigger") )
+    {
+        if ( arg2[0] == '\0' )
+        {
+        send_to_char( "What trigger do you want to grep for?\n\r", ch );
+        return NULL;
+        }
+        if ( (value = flag_lookup(arg2, oprog_flags)) == NO_FLAG )
+        {
+        send_to_char( "That trigger doesn't exist.\n\r", ch );
+        return NULL;
+        }
+        stat = GREP_OBJ_TRIGGER;
+    }
+    else if ( !str_cmp(arg1, "oprog") )
+    {
+        if ( !is_number(arg2) )
+        {
+        send_to_char( "Please specify the mprog vnum.\n\r", ch );
+        return NULL;
+        }
+        value = atoi(arg2);
+        stat = GREP_OBJ_OPROG;
+    }
 	else
 	{
 	    show_grep_syntax( ch );
@@ -459,6 +504,12 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	sprintf( buf, "(%d gold)", obj_value / 100 );
 	strcat( info, buf );
 	break;
+    case GREP_OBJ_WEIGHT:
+        obj_value = obj->weight;
+        match = (obj_value >= gd->value);
+        sprintf( buf, "(%d dlbs)", obj_value );
+        strcat( info, buf );
+        break;
     case GREP_OBJ_OPS:
 	obj_value = get_obj_index_ops( obj );
 	match = (obj_value >= gd->value);
@@ -534,6 +585,12 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
             strcat( info, buf );
         }
         break;
+    case GREP_OBJ_TRIGGER:
+    match = IS_SET( obj->oprog_flags, gd->value );
+    break;
+    case GREP_OBJ_OPROG:
+    match = has_oprog( obj, gd->value );
+    break;
     default: 
 	break;
     }
@@ -1328,7 +1385,7 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
     case APPLY_SAVING_PETRI:
     case APPLY_SAVING_BREATH:
     case APPLY_SAVING_SPELL: factor = -1; break;
-    default: return 0;
+    default: factor = 0; break;
     }
 
     result = aff->modifier * factor;
@@ -1341,6 +1398,29 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
     else if ( result > max_ops && !is_affect_cap_hard(aff->location) )
         result += (result - max_ops) / 3;
 
+    if ( aff->where == TO_AFFECTS )
+    {
+        switch (aff->bitvector)
+        {
+            case AFF_NONE: break;
+            case AFF_HASTE: result += 50; break;
+            case AFF_BERSERK:
+            case AFF_PROTECT_MAGIC: result += 25; break;
+            case AFF_FLYING:
+            case AFF_SHIELD:
+            case AFF_BATTLE_METER:
+            case AFF_DETECT_INVIS:
+            case AFF_DETECT_HIDDEN:
+            case AFF_BREATHE_WATER: result += 20; break;
+            case AFF_DARK_VISION: result += 15; break;
+            case AFF_INFRARED:
+            case AFF_DETECT_MAGIC:
+            case AFF_DETECT_GOOD:
+            case AFF_DETECT_EVIL: result += 10; break;
+            default: result += 1000; break; // not allowed
+        }
+    }
+    
     return result;
 }
 
@@ -1408,6 +1488,14 @@ int get_obj_ops( OBJ_DATA *obj )
     return (int) (sum);
 }
 
+int get_translucency_spec_penalty( int level )
+{
+    if ( level < 90 )
+        return (10 + level) / 5;
+    else
+        return 20 + 2 * (level - 90);
+}
+
 int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
 {
     int spec;
@@ -1418,6 +1506,7 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
     if ( level < 90 )
     {
         spec = 50 + (level * 19/3 + (30+level) * obj->diff_rating)/3;
+        // we don't use get_translucency_spec_penalty to avoid rounding issues
         if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
             spec -= 2 * (10 + level);
         spec /= 10;
@@ -1471,16 +1560,41 @@ int average_weapon_dam( OBJ_INDEX_DATA *obj )
     return obj->value[1] * (obj->value[2] + 1) / 2;
 }
 
+bool can_wear( OBJ_INDEX_DATA *obj )
+{
+    if ( !CAN_WEAR(obj, ITEM_TAKE) )
+        return FALSE;
+    
+    if ( obj->item_type == ITEM_LIGHT )
+        return TRUE;
+        
+    if ( CAN_WEAR(obj, ITEM_WEAR_FINGER)
+        || CAN_WEAR(obj, ITEM_WEAR_NECK)
+        || CAN_WEAR(obj, ITEM_WEAR_TORSO)
+        || CAN_WEAR(obj, ITEM_WEAR_HEAD)
+        || CAN_WEAR(obj, ITEM_WEAR_LEGS)
+        || CAN_WEAR(obj, ITEM_WEAR_FEET)
+        || CAN_WEAR(obj, ITEM_WEAR_HANDS)
+        || CAN_WEAR(obj, ITEM_WEAR_ARMS)
+        || CAN_WEAR(obj, ITEM_WEAR_ABOUT)
+        || CAN_WEAR(obj, ITEM_WEAR_WAIST)
+        || CAN_WEAR(obj, ITEM_WEAR_WRIST)
+        || CAN_WEAR(obj, ITEM_WEAR_FLOAT)
+        || CAN_WEAR(obj, ITEM_WEAR_SHIELD)
+        || CAN_WEAR(obj, ITEM_HOLD)
+        || CAN_WEAR(obj, ITEM_WIELD))
+        return TRUE;
 
+    return FALSE;
+}
 
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 {
     int value, spec;
     AFFECT_DATA *aff;
 
-    if ( obj->level >= LEVEL_IMMORTAL
-	 || IS_SET(obj->area->area_flags, AREA_REMORT) )
-	return TRUE;
+    if ( obj->level >= LEVEL_IMMORTAL || !can_wear(obj) )
+        return TRUE;
 
     /* check ops */
     spec = get_obj_index_spec( obj, obj->level );
@@ -1582,7 +1696,7 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
     int value, spec;
     AFFECT_DATA *aff;
 
-    if ( obj->level >= LEVEL_IMMORTAL )
+    if ( obj->level >= LEVEL_IMMORTAL || !can_wear(obj) )
         return FALSE;
     
     /* check ops */
@@ -1620,6 +1734,16 @@ bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
     for ( mprog = mob->mprogs; mprog != NULL; mprog = mprog->next )
 	if ( mprog->vnum == vnum )
 	    return TRUE;
+    return FALSE;
+}
+
+bool has_oprog( OBJ_INDEX_DATA *obj, int vnum )
+{
+    OPROG_LIST *oprog;
+
+    for ( oprog = obj->oprogs; oprog != NULL; oprog = oprog->next )
+    if ( oprog->vnum == vnum )
+        return TRUE;
     return FALSE;
 }
 

@@ -136,6 +136,8 @@ typedef struct  mprog_list       MPROG_LIST;
 typedef struct  mprog_code       MPROG_CODE;
 typedef struct  oprog_code       OPROG_CODE;
 typedef struct  oprog_list       OPROG_LIST;
+typedef struct  aprog_code       APROG_CODE;
+typedef struct  aprog_list       APROG_LIST;
 typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
@@ -231,7 +233,7 @@ bool check_immtalk( CHAR_DATA *ch );
 bool is_remort_obj( OBJ_DATA *obj );
 bool is_sticky_obj( OBJ_DATA *obj );
 bool is_drop_obj( OBJ_DATA *obj );
-
+bool is_questeq( OBJ_DATA *obj );
 
 
 /*
@@ -756,10 +758,9 @@ struct penalty_data
 #define MAX_CON_STATE           36
 
 #define CREATION_UNKNOWN         0
-#define CREATION_INSTANT         1
-#define CREATION_QUICK           2
-#define CREATION_NORMAL          3
-#define CREATION_REMORT          4
+#define CREATION_NORMAL          1
+#define CREATION_EXPERT          2
+#define CREATION_REMORT          3
 
 
 typedef enum { FTP_NORMAL, FTP_PUSH, FTP_PUSH_WAIT } ftp_mode;
@@ -864,6 +865,7 @@ struct  shop_data
 
 #define MAX_GUILD   2
 #define MAX_STATS   10
+#define MAX_EXT_STATS 15
 #define MAX_CURRSTAT 200
 #define STAT_STR        0
 #define STAT_CON        1
@@ -884,7 +886,7 @@ struct  class_type
     char    who_name    [4];    /* Three-letter name for 'who'  */
     sh_int  attr_prime;     /* Prime attribute      */
     sh_int  attr_second[2]; /* Secondary attributes  */
-    sh_int  stat_priority[MAX_STATS-3];
+    sh_int  stat_weights[MAX_STATS]; /* weights for default roll assignment */
     sh_int  weapon;         /* First weapon         */
     sh_int  guild[MAX_GUILD];   /* Vnum of guild rooms      */
     sh_int  skill_adept;        /* Maximum skill level      */
@@ -1615,6 +1617,8 @@ struct  kill_data
 #define AFF_MINOR_FADE        75
 #define AFF_REPLENISH         76
 #define AFF_FORTUNE           77
+#define AFF_SHIELD            78
+#define AFF_STONE_SKIN        79
 
 
 /*
@@ -2177,6 +2181,7 @@ typedef int tattoo_list[MAX_WEAR];
  * Colour stuff by Lope of Loping Through The MUD
  */
 #define PLR_COLOUR     (T)    /* Colour Flag By Lope */
+#define PLR_COLOUR_VERBATIM (Y)
 
 /* penalty flags */
 #define PLR_PERMIT      (U)
@@ -2200,6 +2205,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_INACTIVE_HELPER (mm)
 #define PLR_ANTI_HELEPR (nn)
 #define PLR_NOEXP       (oo)
+#define PLR_REMORT_ROLL (rr)
 
 /* RT comm flags -- may be used on both mobs and chars */
 #define COMM_QUIET              (A)
@@ -2235,6 +2241,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define COMM_SHOW_ATTRIB (dd)
 #define COMM_NONEWBIE    (ee)
 #define COMM_BUSY        (ff)
+#define COMM_SHOW_PERCENT (gg)
 
 
 /* WIZnet flags */
@@ -2522,6 +2529,7 @@ struct  char_data
 	sh_int      damroll;
 	sh_int      armor[4];
 	sh_int      wimpy;
+    sh_int      calm;
         tflag       penalty;
         tflag       gag;  
         tflag       togg;
@@ -2770,9 +2778,8 @@ struct gen_data
 	bool    valid;
 	bool    skill_chosen[MAX_SKILL];
 	bool    group_chosen[MAX_GROUP];
-	int unused_die[MAX_STATS+5];
-	int assigned_die[MAX_STATS+5];
-	int stat_priority[MAX_STATS+5];
+	int     unused_die[MAX_EXT_STATS];
+	int     assigned_die[MAX_EXT_STATS];
 	int     points_chosen;
 };
 
@@ -2955,6 +2962,9 @@ struct  area_data
         int      minlevel;
         int      maxlevel;
         int      miniquests;
+
+    APROG_LIST *aprogs;
+    tflag   aprog_flags;
 };
 
 
@@ -3029,7 +3039,16 @@ struct  room_index_data
 #define TAR_NOT_ENEMY   7
 #define TAR_NOT_GROUP   13
 
-
+/*
+ *  Duration types.
+ */
+#define DUR_NONE        0
+#define DUR_SPECIAL     1
+#define DUR_BRIEF       2
+#define DUR_SHORT       3
+#define DUR_NORMAL      4
+#define DUR_LONG        5
+#define DUR_EXTREME     6
 
 /*
  * Skills include spells as a particular case.
@@ -3048,6 +3067,7 @@ struct  skill_type
 	sh_int  slot;           /* Slot for #OBJECT loading */
 	sh_int  min_mana;       /* Minimum mana used        */
 	sh_int  beats;          /* Waiting time after use   */
+	sh_int  duration;       /* Duration of affects */
 	char *  noun_damage;        /* Damage message       */
 	char *  msg_off;        /* Wear off message     */
 	char *  msg_obj;        /* Wear off message for obects  */
@@ -3106,6 +3126,19 @@ struct  group_type
 #define OTRIG_RAND  (L)
 #define OTRIG_GREET (M)
 
+/*
+ * AREAprog definitions
+ */
+#define ATRIG_ENTER (A)
+#define ATRIG_EXIT  (B)
+#define ATRIG_RENTER (C)
+#define ATRIG_REXIT (D)
+#define ATRIG_BOOT  (E)
+#define ATRIG_SHUTDOWN (F)
+#define ATRIG_QUIT  (G)
+#define ATRIG_VOID  (H)
+#define ATRIG_UNVOID (I)
+
 struct mprog_list
 {
 	int         trig_type;
@@ -3142,6 +3175,25 @@ struct oprog_code
     int     vnum;
     char    * code;
     OPROG_CODE *    next;
+};
+
+struct aprog_list
+{
+    int         trig_type;
+    char *      trig_phrase;
+    int *       vnum;
+    char *      code;
+    APROG_LIST *    next;
+    bool        valid;
+    /* always lua */
+};
+
+struct aprog_code
+{
+    /* always lua */
+    int     vnum;
+    char    * code;
+    APROG_CODE *    next;
 };
 
 extern sh_int race_werewolf;
@@ -3736,6 +3788,7 @@ struct achievement_entry
 #define get_carry_weight(ch)    ((ch)->carry_weight + (ch)->silver/100 + (ch)->gold/25)
 #define HAS_TRIGGER(ch,trig)    (IS_SET((ch)->pIndexData->mprog_flags,(trig)))
 #define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
+#define HAS_ATRIG(area,trig)    (IS_SET((area)->aprog_flags,(trig)))
 #define IS_SWITCHED( ch )       ( ch->desc && ch->desc->original )
 #define IS_BUILDER(ch, Area)    ( !IS_NPC(ch) && !IS_SWITCHED( ch ) && (ch->pcdata->security >= Area->security || strstr( Area->builders, ch->name ) || strstr( Area->builders, "All" ) ) )
 #define IS_REMORT(ch)			(!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT)) 
@@ -3906,6 +3959,7 @@ extern      OBJ_DATA      * object_list;
 
 extern      MPROG_CODE    * mprog_list;
 extern      OPROG_CODE    * oprog_list;
+extern      APROG_CODE    * aprog_list;
 
 extern      char            bug_buf     [];
 extern      time_t          current_time;
@@ -4111,6 +4165,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define AD  AFFECT_DATA
 #define MPC MPROG_CODE
 #define OPC OPROG_CODE
+#define APC APROG_CODE
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
@@ -4242,6 +4297,7 @@ OID *   get_obj_index   args( ( int vnum ) );
 RID *   get_room_index  args( ( int vnum ) );
 MPC *   get_mprog_index args( ( int vnum ) );
 OPC *   get_oprog_index args( ( int vnum ) );
+APC *   get_aprog_index args( ( int vnum ) );
 char    fread_letter    args( ( FILE *fp ) );
 int fread_number    args( ( FILE *fp ) );
 long    fread_flag  args( ( FILE *fp ) );
@@ -4300,7 +4356,9 @@ bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
 void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
-
+bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+CD *    get_local_leader( CHAR_DATA *ch );
+bool    is_ranged_weapon( OBJ_DATA *weapon );
 
 /* ftp.c */
 bool    ftp_push    args( (DESCRIPTOR_DATA *d) );
@@ -4420,12 +4478,14 @@ void   save_disabled   args( ( void ) );
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
 int     mana_cost   (CHAR_DATA *ch, int sn, int skill);
+int get_duration( int sn, int level );
 int skill_lookup    args( ( const char *name ) );
 int slot_lookup args( ( int slot ) );
 bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
+bool    is_mprog_running  args( (void) );
 void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type,
                 const void *arg2, sh_int arg2type) );
@@ -4439,7 +4499,7 @@ bool    mp_percent_trigger args( ( CHAR_DATA *mob, CHAR_DATA *ch,
                 int type ) );
 void    mp_bribe_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch, int amount ) );
 bool    mp_exit_trigger   args( ( CHAR_DATA *ch, int dir ) );
-void    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
+bool    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj ) );
 void    mp_greet_trigger  args( ( CHAR_DATA *ch ) );
 void    mp_hprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
@@ -4474,6 +4534,7 @@ void set_con_state args((DESCRIPTOR_DATA *d, int cstate));
 void set_creation_state args((DESCRIPTOR_DATA *d, int cmode));
 
 /* remort.c */
+bool is_in_remort args( (CHAR_DATA *ch) );
 void remort_complete args( (CHAR_DATA *ch) );
 void remort_update args( ( void) );
 void remort_load args( ( void) );

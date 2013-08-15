@@ -825,6 +825,12 @@ void do_drop( CHAR_DATA *ch, char *argument )
             return;
         }
 
+        if ( !IS_NPC(ch) && contains_obj_recursive(obj, &is_questeq) )
+        {
+            send_to_char("You don't want to drop your quest equipment!\n\r", ch);
+            return;
+        }
+        
         if (IS_SET(ch->in_room->room_flags, ROOM_DONATION))
         {
             if (obj->timer)
@@ -864,6 +870,12 @@ void do_drop( CHAR_DATA *ch, char *argument )
             {
                 found = TRUE;
 
+                if ( !IS_NPC(ch) && contains_obj_recursive(obj, &is_questeq) )
+                {
+                    send_to_char("You don't want to drop your quest equipment!\n\r", ch);
+                    continue;
+                }
+                
                 if (IS_SET(ch->in_room->room_flags, ROOM_DONATION))
                 {
                     if (obj->timer)
@@ -1113,6 +1125,22 @@ void do_give( CHAR_DATA *ch, char *argument )
         act( "$N can't see it.", ch, NULL, victim, TO_CHAR );
         return;
     }
+    
+    if ( IS_NPC(victim) && contains_obj_recursive(obj, &is_questeq) )
+    {
+        // we allow giving quest eq to mobs specifically designed for this
+        if ( has_mp_trigger_vnum(victim, TRIG_GIVE, obj->pIndexData->vnum) )
+        {
+            logpf("%s giving quest item #%d to mob #%d at room #%d",
+                ch->name, obj->pIndexData->vnum, victim->pIndexData->vnum, ch->in_room->vnum
+            );
+        }
+        else
+        {
+            send_to_char("You don't want to give away your quest equipment!\n\r", ch);
+            return;
+        }
+    }
 
     /* oprog check */
     if (!op_percent_trigger( obj, NULL, ch, victim, OTRIG_GIVE) )
@@ -1127,8 +1155,17 @@ void do_give( CHAR_DATA *ch, char *argument )
     /*
      * Give trigger
      */
+    bool give_trigger_activated = FALSE;
     if ( IS_NPC(victim) && HAS_TRIGGER( victim, TRIG_GIVE ) )
-        mp_give_trigger( victim, ch, obj );
+        give_trigger_activated = mp_give_trigger( victim, ch, obj );
+    // NPCs typically don't want items, so we drop them to prevent lots of possible screw-ups
+    // where players give the wrong items to the wrong NPCs
+    if ( !give_trigger_activated && !is_mprog_running() && IS_NPC(victim) && !IS_AFFECTED(victim, AFF_CHARM) )
+    {
+        act( "$n shrugs and drops $p.", victim, obj, NULL, TO_ROOM );
+        obj_from_char( obj );
+        obj_to_room( obj, victim->in_room );
+    }
 
     /* imms giving stuff to alts.. */
     /* if ( IS_IMMORTAL(ch) && !IS_NPC(victim) && is_same_player(ch, victim) ) */
@@ -1212,7 +1249,7 @@ void do_envenom(CHAR_DATA *ch, char *argument)
     if (obj->item_type == ITEM_WEAPON)
     {
 
-        if (obj->value[0] == WEAPON_GUN || obj->value[0] == WEAPON_BOW)
+        if ( is_ranged_weapon(obj) )
         {
             send_to_char("You can only envenom melee weapons.\n\r",ch);
             return;
@@ -1237,7 +1274,7 @@ void do_envenom(CHAR_DATA *ch, char *argument)
             af.where     = TO_WEAPON;
             af.type      = gsn_poison;
             af.level     = ch->level;
-            af.duration  = ch->level/2 + 5;
+            af.duration  = get_duration(gsn_envenom, ch->level);
             af.location  = 0;
             af.modifier  = 0;
             af.bitvector = WEAPON_POISON;
@@ -1303,7 +1340,7 @@ void do_paralysis_poison(CHAR_DATA *ch, char *argument)
             af.where     = TO_WEAPON;
             af.type      = gsn_poison;
             af.level     = ch->level;
-            af.duration  = ch->level;
+            af.duration  = get_duration(gsn_paralysis_poison, ch->level);
             af.location  = 0;
             af.modifier  = 0;
             af.bitvector = WEAPON_PARALYSIS_POISON;
@@ -2085,31 +2122,6 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
 
     if ( CAN_WEAR( obj, ITEM_WEAR_SHIELD ) )
     {
-        if (get_skill(ch, gsn_shield_block)<2)
-        {
-            send_to_char("You don't know how to use shields.\n\r", ch);
-            return;
-        }       
-
-        if ((get_eq_char (ch, WEAR_HOLD) != NULL) && (get_skill(ch, gsn_wrist_shield)<2))
-        {
-            send_to_char ("You cannot use a shield while holding an item.\n\r",ch);
-            return;
-        }
-
-        if ((get_eq_char (ch, WEAR_SECONDARY) != NULL)&&(get_skill(ch, gsn_wrist_shield)<2) )
-        {
-            send_to_char ("You cannot use a shield while using 2 weapons.\n\r",ch);
-            return;
-        }
-
-        if (( (weapon = get_eq_char(ch,WEAR_WIELD) ) != NULL) &&
-                IS_WEAPON_STAT(weapon, WEAPON_TWO_HANDS) && (get_skill(ch, gsn_wrist_shield)<2))
-        {
-            send_to_char( "You cannot use a shield while using a two-handed weapon.\n\r", ch );
-            return;
-        }
-
         if ( !remove_obj( ch, WEAR_SHIELD, fReplace ) )
             return;
         act_gag( "$n wears $p as a shield.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
@@ -2132,26 +2144,6 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
             send_to_char( "You cannot hold an item while using a two-handed weapon.\n\r", ch );
             return;
         }
-
-        if ((get_eq_char (ch, WEAR_SHIELD) != NULL)&&(get_skill(ch, gsn_wrist_shield)<2) )
-        {
-            send_to_char ("You cannot hold an item while using a shield.\n\r",ch);
-            return;
-        }
-
-        if (((weapon = get_eq_char(ch,WEAR_WIELD)) != NULL) &&
-                IS_WEAPON_STAT(weapon, WEAPON_TWO_HANDS))
-        {
-            send_to_char( "You cannot hold an item while using a two-handed weapon.\n\r", ch );
-            return;
-        }
-
-        if ((get_eq_char (ch, WEAR_SHIELD) != NULL)&&(get_skill(ch, gsn_wrist_shield)<2) )
-        {
-            send_to_char ("You cannot hold an item while using a shield.\n\r",ch);
-            return;
-        }
-
 
         if ( !remove_obj( ch, WEAR_HOLD, fReplace ) )
             return;
@@ -2181,9 +2173,7 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
             return;
         }
 
-        if (!IS_NPC(ch) && IS_WEAPON_STAT(obj,WEAPON_TWO_HANDS) &&
-                ((get_skill(ch, gsn_wrist_shield) < 2 && get_eq_char(ch,WEAR_SHIELD) != NULL)
-                 || get_eq_char(ch, WEAR_HOLD) != NULL))
+        if ( !IS_NPC(ch) && IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) && get_eq_char(ch, WEAR_HOLD) != NULL )
         {
             send_to_char("You need two hands free for that weapon.\n\r",ch);
             return;
@@ -2300,7 +2290,9 @@ void do_remove( CHAR_DATA *ch, char *argument )
         for ( obj = ch->carrying; obj != NULL; obj = obj_next )
         {
             obj_next = obj->next_content;
-            if(obj->wear_loc != WEAR_NONE) remove_obj(ch,obj->wear_loc, TRUE);
+            if(obj->wear_loc != WEAR_NONE) 
+                if (op_percent_trigger(obj, NULL, ch, NULL, OTRIG_REMOVE) )
+                    remove_obj(ch,obj->wear_loc, TRUE);
         }
         return;
     }
@@ -2311,7 +2303,8 @@ void do_remove( CHAR_DATA *ch, char *argument )
             send_to_char( "You do not have that item.\n\r", ch );
             return;
         }
-        remove_obj( ch, obj->wear_loc, TRUE );
+        if (op_percent_trigger( obj, NULL, ch, NULL, OTRIG_REMOVE) )
+            remove_obj( ch, obj->wear_loc, TRUE );
         return;
     }
 }
@@ -2397,9 +2390,7 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
         }
     }
 
-
-    if ( !CAN_WEAR(obj, ITEM_TAKE) || CAN_WEAR(obj, ITEM_NO_SAC)
-            || is_relic_obj(obj) )
+    if ( !CAN_WEAR(obj, ITEM_TAKE) || CAN_WEAR(obj, ITEM_NO_SAC) || IS_OBJ_STAT(obj, ITEM_QUESTEQ) || is_relic_obj(obj) )
     {
         act( "$p is not an acceptable sacrifice.", ch, obj, 0, TO_CHAR );
         return;
@@ -3890,13 +3881,14 @@ void do_donate( CHAR_DATA *ch, char *argument)
         return;
     }
 
-    if ( obj->item_type == ITEM_CORPSE_NPC ||
-            obj->item_type == ITEM_CORPSE_PC  ||
-            obj->item_type == ITEM_EXPLOSIVE  ||
-            obj->owner != NULL                ||
-            is_relic_obj(obj)                 ||
-            IS_OBJ_STAT(obj,ITEM_STICKY)      ||
-            IS_OBJ_STAT(obj,ITEM_MELT_DROP))
+    if ( obj->item_type == ITEM_CORPSE_NPC
+        || obj->item_type == ITEM_CORPSE_PC
+        || obj->item_type == ITEM_EXPLOSIVE
+        || obj->owner != NULL
+        || is_relic_obj(obj)
+        || contains_obj_recursive(obj, &is_questeq)
+        || contains_obj_recursive(obj, &is_sticky_obj)
+        || IS_OBJ_STAT(obj,ITEM_MELT_DROP))
     {
         send_to_char("You cannot donate that!\n\r",ch);
         return;
@@ -4265,11 +4257,9 @@ void do_second (CHAR_DATA *ch, char *argument)
         return;
     }
 
-
-    if ( ((get_eq_char (ch,WEAR_SHIELD) != NULL)&&(get_skill(ch, gsn_wrist_shield)<2)) ||
-            (get_eq_char (ch,WEAR_HOLD)   != NULL) )
+    if ( get_eq_char(ch, WEAR_HOLD) != NULL )
     {
-        send_to_char ("You cannot use a secondary weapon while using a shield or holding an item.\n\r",ch);
+        send_to_char ("You cannot use a secondary weapon while holding an item.\n\r", ch);
         return;
     }
 
@@ -4293,27 +4283,6 @@ void do_second (CHAR_DATA *ch, char *argument)
         return;
     }
 
-    skill=get_skill(ch,gsn_dual_wield);
-    weightmod=0;	
-
-    if ((wield->value[0] == WEAPON_DAGGER) && (obj->value[0] == WEAPON_DAGGER))
-        skill = UMAX(skill, weightmod = get_skill(ch,gsn_dual_dagger));
-
-    else if ((wield->value[0] == WEAPON_SWORD)  && (obj->value[0] == WEAPON_SWORD))
-        skill = UMAX(skill, weightmod = get_skill(ch,gsn_dual_sword));
-
-    else if ((wield->value[0] == WEAPON_AXE)  && (obj->value[0] == WEAPON_AXE))
-        skill = UMAX(skill, weightmod = get_skill(ch,gsn_dual_axe));
-
-    else if ((wield->value[0] == WEAPON_GUN)    && (obj->value[0] == WEAPON_GUN))
-        skill = UMAX(skill, weightmod = get_skill(ch,gsn_dual_gun));
-
-    if (skill == 0)
-    {
-        send_to_char("You dont know how to second that.\n\r",ch);
-        return;
-    }
-
     if ( ch->level < obj->level )
     {
         sprintf( buf, "You must be level %d to use this object.\n\r", obj->level );
@@ -4322,16 +4291,9 @@ void do_second (CHAR_DATA *ch, char *argument)
         return;
     }
 
-
-    if (get_obj_weight(obj) > ((ch_str_wield(ch) *skill)/150))
+    if ( get_obj_weight(obj) > ch_str_wield(ch) * 2/3 )
     {
         send_to_char( "This weapon is too heavy to be used as a secondary weapon by you.\n\r", ch );
-        return;
-    }
-
-    if ( (get_obj_weight(obj)*(150-weightmod))/skill > get_obj_weight(wield))
-    {
-        send_to_char ("Your secondary weapon has to be lighter compared to your primary one.\n\r",ch);
         return;
     }
 
@@ -4348,10 +4310,13 @@ void do_second (CHAR_DATA *ch, char *argument)
         act( "You sheath $p.", ch, second, NULL, TO_CHAR );
     }
 
-
     act_gag ("$n wields $p in $s off-hand.",ch,obj,NULL,TO_ROOM,GAG_EQUIP);
     act ("You wield $p in your off-hand.",ch,obj,NULL,TO_CHAR);
     equip_char ( ch, obj, WEAR_SECONDARY);
+
+    if ( get_obj_weight(obj) > get_obj_weight(wield) )
+        send_to_char ("Your secondary weapon is heavier than your primary one. Consider swapping them.\n\r", ch);
+
     return;
 }
 

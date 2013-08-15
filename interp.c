@@ -157,6 +157,7 @@ const   struct  cmd_type    cmd_table   [] =
 //    { "lboard",     do_lboard,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "leadership", do_leadership,  POS_RESTING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
 //    { "lhistory",   do_lhistory,POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "percentages", do_percentages, POS_DEAD, 0, LOG_NORMAL, 1, FALSE, TRUE },
     { "scan",       do_scan,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "survey",     do_survey,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "skill",      do_skill,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -467,6 +468,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "religion",   do_religion, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, FALSE },
     { "prayer",     do_prayer,   POS_DEAD,   0, LOG_NORMAL, 1, FALSE, FALSE },
     { "die",	    do_die,     POS_DEAD,    0, LOG_ALWAYS, 1, FALSE, FALSE },
+    { "calm",       do_calm,    POS_DEAD,    0, LOG_NORMAL, 1, FALSE, FALSE },
     { "helper",     do_helper,  POS_DEAD,    0, LOG_ALWAYS, 1, FALSE, FALSE },
 
     /* Freeze Tag */
@@ -619,8 +621,11 @@ const   struct  cmd_type    cmd_table   [] =
     { "oedit",      do_oedit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpedit",     do_mpedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "opedit",     do_opedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
+    { "apedit",     do_apedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "hedit",      do_hedit,   POS_DEAD,   L8,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpdump",     do_mpdump,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
+    { "opdump",     do_opdump,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
+    { "apdump",     do_apdump,  POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpstat",     do_mpstat,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "mpfind",     do_mpfind,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "lfind",      do_lfind,   POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },

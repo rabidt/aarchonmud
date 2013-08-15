@@ -349,13 +349,6 @@ int get_save(CHAR_DATA *ch)
     return saves;
 }
 
-/* hard to make saving throw */
-bool saves_spell_hard( int level, CHAR_DATA *victim, int dam_type )
-{
-    return saves_spell( level, victim, dam_type )
-        && saves_spell( level, victim, dam_type );
-}
-
 /*
  * Compute a saving throw.
  * Negative applys make saving throw better.
@@ -373,18 +366,13 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
         case IS_VULNERABLE: if ( chance(10) ) return FALSE;  break;
     }
 
-    if ( victim->fighting != NULL
-            && victim->fighting->stance == STANCE_INQUISITION
-            && chance(20) )
-        return FALSE;
-
     if ( (victim->stance == STANCE_UNICORN)
             && chance(25) )
         return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PHASE)
             && chance(50) )
-        return;
+        return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PROTECT_MAGIC)
             && chance(20) )
@@ -397,6 +385,9 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
     /* now the resisted roll */
     save_roll = -get_save(victim);
     hit_roll = (level + 10) * 6/5;
+
+    if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
+        save_roll = save_roll * 2/3;
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -563,7 +554,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
         case TAR_VIS_CHAR_OFF:
             if (( arg[0] == '\0' )
                     && (ch->fighting != NULL)
-                    && !can_see(ch, ch->fighting) )
+                    && !can_see_combat(ch, ch->fighting) )
             {
                 send_to_char( "You can't see your target.\n\r", ch );
                 return FALSE;
@@ -600,9 +591,9 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
                 check_killer(ch,victim);
             }
 
-            if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master == victim )
+            if ( IS_AFFECTED(victim, AFF_CHARM) && victim->leader == ch )
             {
-                send_to_char( "You can't do that on your own follower.\n\r", ch );
+                send_to_char( "You can't do that to your own follower.\n\r", ch );
                 return FALSE;
             }
 
@@ -681,7 +672,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
             if (arg[0] == '\0')
             {
                 if ((victim = ch->fighting) == NULL
-                        || (victim != NULL && !can_see(ch,victim)))
+                        || (victim != NULL && !can_see_combat(ch,victim)))
                 {
                     send_to_char("Cast the spell on whom or what?\n\r",ch);
                     return FALSE;
@@ -702,9 +693,9 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
                     return FALSE;
                 }
 
-                if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master == victim )
+                if ( IS_AFFECTED(victim, AFF_CHARM) && victim->leader == ch )
                 {
-                    send_to_char( "You can't do that on your own follower.\n\r", ch );
+                    send_to_char( "You can't do that to your own follower.\n\r", ch );
                     return FALSE;
                 }
 
@@ -797,7 +788,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
         return FALSE;
     }
 
-    if (sn == gsn_solar_flare && weather_info.sky >= SKY_RAINING )
+    if ( sn == gsn_solar_flare && (weather_info.sky >= SKY_RAINING || !room_is_sunlit(ch->in_room)) )
     {
         send_to_char( "There isn't enough sunshine out for that!\n\r", ch );
         return FALSE;
@@ -832,6 +823,24 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
     /* End Astark's code */
 
     return TRUE;
+}
+
+int get_duration_by_type( int type, int level )
+{
+    switch ( type )
+    {
+        case DUR_BRIEF:   return level / 6;
+        case DUR_SHORT:   return (level + 20) / 4;
+        case DUR_NORMAL:  return (level + 20) / 2;
+        case DUR_LONG:    return (level + 20);
+        case DUR_EXTREME: return (level + 20) * 2;
+        default:          return 0;
+    }
+}
+
+int get_duration( int sn, int level )
+{
+    return get_duration_by_type(skill_table[sn].duration, level);
 }
 
 /* check if a spell is reflected back on the caster */
@@ -981,7 +990,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 #endif
     }
     else if ( 2*number_percent() > (chance+100)
-            || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(10)
+            || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20)
             || IS_AFFECTED(ch, AFF_CURSE) && per_chance(5) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
@@ -1006,21 +1015,15 @@ void do_cast( CHAR_DATA *ch, char *argument )
         }
 
         level = ch->level;
-        if (!IS_NPC(ch))
-            level -= (100-class_table[ch->class].mana_gain)*level/500;
         level = (100+chance)*level/200;
         level = URANGE(1, level, 120);
 
         vo = check_reflection( sn, level, ch, vo, target );
 
-        /*
-           victim = (CHAR_DATA*) vo;
-           if ( is_offensive(sn)
-           && target == TARGET_CHAR
-           && victim->fighting == NULL
-           && check_kill_trigger(ch, victim) )
-           return;
-         */
+        victim = (CHAR_DATA*) vo;
+        // remove invisibility etc.
+        if ( is_offensive(sn) && target == TARGET_CHAR )
+            attack_affect_strip(ch, victim);
 
         (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
         check_improve(ch,sn,TRUE,3);
@@ -1028,42 +1031,23 @@ void do_cast( CHAR_DATA *ch, char *argument )
         /* check for spell mprog triggers */
         if ( target == TARGET_CHAR )
         {
-            CHAR_DATA *vic = (CHAR_DATA *) vo;
-
-            if ( vic != NULL && IS_NPC(vic) )
+            if ( victim != NULL && IS_NPC(victim) )
             {
-                if (mp_spell_trigger( skill_table[sn].name, vic, ch ) )
+                if ( mp_spell_trigger(skill_table[sn].name, victim, ch) )
                     return; //Return because it might have killed the vic or ch
             }
         }
 
-
-
-    }
-
-    victim = (CHAR_DATA*) vo;
-    if ((skill_table[sn].target == TAR_CHAR_OFFENSIVE
-                || (skill_table[sn].target == TAR_VIS_CHAR_OFF)
-                ||   (skill_table[sn].target == TAR_OBJ_CHAR_OFF && target == TARGET_CHAR))
-            &&   victim != ch
-            &&   victim->master != ch)
-    {
-        CHAR_DATA *vch;
-        CHAR_DATA *vch_next;
-
-        for ( vch = ch->in_room->people; vch; vch = vch_next )
+        if ( is_offensive(sn) && target == TARGET_CHAR && victim != ch )
         {
-            vch_next = vch->next_in_room;
-            if ( victim == vch 
-                    && victim->fighting == NULL
-                    && !is_safe_spell(victim, ch, FALSE) )
+            if ( victim->in_room == ch->in_room
+                && victim->fighting == NULL
+                && !is_safe_spell(victim, ch, FALSE) )
             {
                 multi_hit( victim, ch, TYPE_UNDEFINED );
-                break;
             }
         }
     }
-
     return;
 }
 
@@ -1206,36 +1190,37 @@ int get_spell_heal( int mana, int lag, int level )
     return base_heal * (100 + 3 * level) / 400;
 }
 
+int get_focus_bonus( CHAR_DATA *ch )
+{
+    OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
+    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    bool has_focus_obj = !has_shield && (obj != NULL && obj->item_type != ITEM_ARROWS);
+
+    if ( has_focus_obj )
+        return 10 + get_skill(ch, gsn_focus) / 2;
+    else
+        return get_skill(ch, gsn_focus) / 4;
+}
+
 /* needes to be seperate for dracs */
 int adjust_spell_damage( int dam, CHAR_DATA *ch )
 {
     OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
-    //OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
-    bool has_focus = (obj != NULL && obj->item_type != ITEM_ARROWS);
+    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    bool has_focus = !has_shield && (obj != NULL && obj->item_type != ITEM_ARROWS);
 
     if ( was_obj_cast )
         return dam;
 
-    if ( chance(get_skill(ch, gsn_focus))
-            && (has_focus || number_bits(1)) )
-    {
-        dam += dam / 2;
-        check_improve(ch, gsn_focus, TRUE, 1);
-    }
-    else
-        check_improve(ch, gsn_focus, FALSE, 1);
+    dam += dam * get_focus_bonus(ch) / 100;
+    check_improve(ch, gsn_focus, TRUE, 1);
 
     if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
     {
         dam += dam * (10 + ch->level - LEVEL_MIN_HERO) / 100;
     }
 
-    /* focus obj makes for more steady damage */
-    if ( has_focus )
-        return dam * number_range(100, 120) / 100;
-    else
-        return dam * number_range(80, 120) / 100;
-
+    return dam * number_range(90, 110) / 100;
 }
 
 int get_sn_damage( int sn, int level, CHAR_DATA *ch )
@@ -1315,10 +1300,8 @@ void spell_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 24;
-    /* af.modifier  = -20; */
-    /* Make spell better as your level increases -- Maedhros 09/11/2012 */
-    af.modifier  = -20 - (level/4);
+    af.duration  = get_duration(sn, level);
+    af.modifier  = -(20 + level);
     af.location  = APPLY_AC;
     af.bitvector = 0;
     affect_to_char( victim, &af );
@@ -1378,7 +1361,7 @@ void spell_bless( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         af.where    = TO_OBJECT;
         af.type     = sn;
         af.level    = level;
-        af.duration = 6 + level;
+        af.duration = get_duration_by_type(DUR_EXTREME, level);
         af.location = APPLY_SAVES;
         af.modifier = -1;
         af.bitvector    = ITEM_BLESS;
@@ -1407,7 +1390,7 @@ void spell_bless( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 6+level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
     af.modifier  = (level / 8) + bonus;
     af.bitvector = 0;
@@ -1429,14 +1412,13 @@ void spell_blindness( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
-    if ( IS_AFFECTED(victim, AFF_BLIND))
+    if ( IS_AFFECTED(victim, AFF_BLIND) )
     {
         send_to_char( "Your target is already blind!\n\r", ch );
         return;
     }
 
-    if ( saves_spell(level,victim,DAM_OTHER)
-            || (number_percent() < 33 ) )
+    if ( saves_spell(level * 2/3, victim, DAM_OTHER) )
     {
         if ( victim != ch )
             act( "$N blinks $S eyes, and the spell has no effect.", ch, NULL, victim, TO_CHAR );
@@ -1448,17 +1430,8 @@ void spell_blindness( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.type      = sn;
     af.level     = level;
     af.location  = APPLY_HITROLL;
-
-    /* Increased power of spell (Now reduces Hitroll by up to 10
-       points instead of only 5) - Astark Oct 2012
-       af.modifier  = -4; */
-
-    af.modifier  = -4 - number_range(0,6); 
-
-    /* Max duration cut in half (33 to 16) - Astark Oct 2012
-       af.duration  = number_range(level/10, level/3); */
-
-    af.duration  = number_range(level/10, level/6);
+    af.modifier  = -4 - number_range(0,6);
+    af.duration  = get_duration(sn, level);
     af.bitvector = AFF_BLIND;
     affect_to_char( victim, &af );
     send_to_char( "You are blinded!\n\r", victim );
@@ -1475,32 +1448,10 @@ void spell_burning_hands(int sn,int level, CHAR_DATA *ch, void *vo, int target)
 
     if ( check_hit( ch, victim, sn, DAM_FIRE, 100 ) )
     {
-        dam = get_sn_damage( sn, level, ch ) * 15/10;
-        if ( saves_spell( level, victim, DAM_LIGHT) )
+        dam = get_sn_damage( sn, level, ch ) * 14/10;
+        if ( saves_spell( level, victim, DAM_FIRE) )
             dam /= 2;
-
-        /* Level 90+ chars have a chance to blind their opponent
-           with burning hands - Astark */
-        if (level >= 90)
-        {
-
-            if (!IS_AFFECTED(victim,AFF_BLIND) &&  !saves_spell(level / 4 + dam / 20, victim,DAM_FIRE) &&  !number_bits(2))
-            {
-                AFFECT_DATA af;
-                act("$n is blinded by smoke!",victim,NULL,NULL,TO_ROOM);
-                act("Your eyes tear up from smoke...you can't see a thing!",
-                        victim,NULL,NULL,TO_CHAR);
-
-                af.where        = TO_AFFECTS;
-                af.type         = gsn_burning_hands;
-                af.level        = level;
-                af.duration     = 0;
-                af.location     = APPLY_HITROLL;
-                af.modifier     = -2;
-                af.bitvector    = AFF_BLIND;
-            }
-        }
-
+        fire_effect( victim, level, dam, TARGET_CHAR );
     }
     else
         dam = 0;
@@ -1547,20 +1498,22 @@ void spell_call_lightning( int sn, int level,CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-/* RT calm spell stops all fighting in the room */
+/**
+ * Calm spell works like this: 
+ * 1) all violent characters need to save or be calmed and stop fighting
+ * 2) non-violent characters attacking non-violent characters stop fighting
+ */
+bool is_violent( CHAR_DATA *vch, CHAR_DATA *ch )
+{
+    return !IS_AFFECTED(vch, AFF_CALM) && !is_same_group(vch, ch);
+}
 
 void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *vch;
-    int mlevel = 0;
-    int count = 0;
-    int high_level = 0;    
-    int chance;
+    CHAR_DATA *attacker;
     AFFECT_DATA af;
-    int bonus;
-    char buf[MSL];
-    char buf2[MSL];
-    char buf3[MSL];
+    bool conflict = FALSE;
 
     if( IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
     {
@@ -1568,94 +1521,74 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         return;
     }
 
-    /* get sum of all char levels in the room */
-    for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
+    /* try to calm all characters that need it */
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
-        if (vch->position == POS_FIGHTING)
+        // no need
+        if ( vch->fighting == NULL )
+            continue;
+
+        conflict = TRUE;
+        
+        if ( !is_violent(vch, ch) )
+            continue;
+        
+        // failure
+        if ( is_safe(ch, vch) || saves_spell(level, vch, DAM_MENTAL) )
+            continue;
+        
+        if ( IS_AFFECTED(vch, AFF_BERSERK) )
         {
-            count++;
-            if (IS_NPC(vch)) /* mobs count half their level */
-                mlevel += vch->level/2;
-            else
-                mlevel += vch->level;
-            high_level = UMAX(high_level,vch->level);
+            // remove berserk, but not calm yet - halfway there
+            affect_strip_flag(vch, AFF_BERSERK);
+            send_to_char("You feel less angry.\n\r", vch);
+            act("$n seems a little calmer.", vch, NULL, NULL, TO_ROOM);
+            continue;
         }
+        
+        af.where = TO_AFFECTS;
+        af.type = sn;
+        af.level = level;
+        af.duration = get_duration(sn, level);
+        af.location = APPLY_HITROLL;
+        af.modifier = -5;
+        af.bitvector = AFF_CALM;
+        affect_to_char(vch, &af);
+        af.location = APPLY_DAMROLL;
+        affect_to_char(vch, &af);
+        
+        stop_fighting(vch, FALSE);
+        
+        send_to_char("A wave of calm passes over you.\n\r", vch);
+        act("A wave of calm passes over $n.", vch, NULL, NULL, TO_ROOM);
     }
 
-    /* compute chance of stopping combat */
-    chance = 2 * level /*- high_level + 2 * count*/;
-
-    if (IS_IMMORTAL(ch)) /* always works */
+    if ( !conflict )
     {
-        sprintf( buf, "%d = chance\n\r", chance );
-        send_to_char(buf, ch);
+        send_to_char("Things seem pretty calm already.\n\r", ch);
+        return;
     }
-
-    if (IS_IMMORTAL(ch)) /* always works */
+    
+    conflict = FALSE;
+    /* stop the fighting */
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
-        sprintf( buf2, "%d = mlevel\n\r", mlevel );
-        send_to_char(buf2, ch);
-    }
+        if ( vch->fighting == NULL )
+            continue;
 
-
-    if (IS_IMMORTAL(ch)) /* always works */
-        mlevel = 0;
-
-    /* restart counter */
-    count = 0;
-    if (number_range(0, chance) >= number_range(0, mlevel))  /* hard to stop large fights */
-    {
-        for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
+        if ( is_violent(vch, ch) || is_violent(vch->fighting, ch) )
         {
-            if ( IS_NPC(vch) &&
-                    (IS_SET(vch->imm_flags,IMM_MAGIC) || IS_SET(vch->act,ACT_UNDEAD)) )
-                continue;
-
-            if ( IS_AFFECTED(vch,AFF_CALM) || IS_AFFECTED(vch,AFF_BERSERK)
-                    ||  is_affected(vch,skill_lookup("frenzy")) || is_safe(vch,ch) )
-                continue;
-
-            if (IS_IMMORTAL(ch)) /* always works */
-                send_to_char("You're in the for loop\n\r",ch);
-
-            if (IS_NPC(vch))
-            {
-                stop_hunting(ch);
-                SET_BIT(ch->off_flags, OFF_DISTRACT);
-            }
-
-            count++;
-
-            if (IS_IMMORTAL(ch)) /* always works */
-            {
-                sprintf( buf3, "%d = count\n\r", count );
-                send_to_char(buf3, ch);
-            }
-
-            send_to_char("A wave of calm passes over you.\n\r",vch);
-            act( "A wave of calm passes over $n.", vch, NULL, NULL, TO_ROOM );
-
-            if (vch->fighting || vch->position == POS_FIGHTING)
-                stop_fighting(vch,FALSE);
-
-            af.where = TO_AFFECTS;
-            af.type = sn;
-            af.level = level;
-            af.duration = level/4;
-            af.location = APPLY_HITROLL;
-            if (!IS_NPC(vch))
-                af.modifier = -5;
-            else
-                af.modifier = -2;
-            af.bitvector = AFF_CALM;
-            affect_to_char(vch,&af);
-
-            af.location = APPLY_DAMROLL;
-            affect_to_char(vch,&af);
+            conflict = TRUE;
+            continue;
         }
+        
+        stop_fighting(vch, FALSE);
     }
-    if( count == 0 )
-        send_to_char("Your environment continues to be hostile.\n\r",ch);
+    
+    if ( conflict )
+        send_to_char("Your environment continues to be hostile.\n\r", ch);
+    else
+        send_to_char("... and world peace.\n\r", ch);
 }
 
 void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
@@ -1730,9 +1663,7 @@ void spell_cause_light( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     int harm = get_sn_damage( sn, level, ch) / 2;
 
     harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/16),0);
-    victim->hit-=harm;
-    remember_attack(victim, ch, harm);
-    dam_message(ch,victim,harm,sn, FALSE);
+    direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
 
@@ -1745,9 +1676,7 @@ void spell_cause_critical(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     int harm = get_sn_damage( sn, level, ch) / 2;
 
     harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/4),0);
-    victim->hit-=harm;
-    remember_attack(victim, ch, harm);
-    dam_message(ch,victim,harm,sn, FALSE);
+    direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
 
@@ -1760,9 +1689,7 @@ void spell_cause_serious(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     int harm = get_sn_damage( sn, level, ch) / 2;
 
     harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/8),0);
-    victim->hit-=harm;
-    remember_attack(victim, ch, harm);
-    dam_message(ch,victim,harm,sn, FALSE);
+    direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
 
@@ -1892,7 +1819,7 @@ void spell_change_sex( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 2 * level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_SEX;
     do
     {
@@ -1990,7 +1917,7 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = number_fuzzy( level / 4 );
+    af.duration  = get_duration(sn, level);
     if ( !IS_NPC(victim) )
         af.duration /= 2;
     af.location  = 0;
@@ -2175,7 +2102,7 @@ void spell_create_spring(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     OBJ_DATA *spring;
 
     spring = create_object( get_obj_index( OBJ_VNUM_SPRING ), 0 );
-    spring->timer = level;
+    spring->timer = get_duration(sn, level);
     obj_to_room( spring, ch->in_room );
     act( "$p flows from the ground.", ch, spring, NULL, TO_ROOM );
     act( "$p flows from the ground.", ch, spring, NULL, TO_CHAR );
@@ -2411,9 +2338,7 @@ void spell_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         af.where        = TO_OBJECT;
         af.type         = sn;
         af.level        = level;
-        /* Max duration drastically reduced (4 to 20) - Astark Oct 2012
-           af.duration     = 2 * level; */
-        af.duration     = 4 + number_range(level/8, level/6);
+        af.duration     = get_duration_by_type(DUR_EXTREME, level);
         af.location     = APPLY_SAVES;
         af.modifier     = +1;
         af.bitvector    = ITEM_EVIL;
@@ -2447,9 +2372,7 @@ void spell_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    /* Max duration drastically reduced (4 to 20) - Astark Oct 2012
-       af.duration     = 2 * level; */
-    af.duration     = 4 + number_range(level/8, level/6);
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
     af.modifier  = -1 * (level / 8);
     af.bitvector = AFF_CURSE;
@@ -2544,7 +2467,7 @@ void spell_detect_evil( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.modifier  = 0;
     af.location  = APPLY_NONE;
     af.bitvector = AFF_DETECT_EVIL;
@@ -2572,7 +2495,7 @@ void spell_detect_good( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.modifier  = 0;
     af.location  = APPLY_NONE;
     af.bitvector = AFF_DETECT_GOOD;
@@ -2601,7 +2524,7 @@ void spell_detect_hidden(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_DETECT_HIDDEN;
@@ -2631,7 +2554,7 @@ void spell_detect_invis( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.modifier  = 0;
     af.location  = APPLY_NONE;
     af.bitvector = AFF_DETECT_INVIS;
@@ -2661,7 +2584,7 @@ void spell_detect_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.modifier  = 0;
     af.location  = APPLY_NONE;
     af.bitvector = AFF_DETECT_MAGIC;
@@ -3151,7 +3074,7 @@ void spell_fireproof(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.where     = TO_OBJECT;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 2 * level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = ITEM_BURN_PROOF;
@@ -3188,7 +3111,7 @@ void spell_faerie_fire( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
     af.modifier  = 2 * level;
     af.bitvector = AFF_FAERIE_FIRE;
@@ -3272,7 +3195,7 @@ void spell_floating_disc( int sn, int level,CHAR_DATA *ch,void *vo,int target )
     disc = create_object(get_obj_index(OBJ_VNUM_DISC), 0);
     disc->value[0]  = ch->level * 10; /* 10 pounds per level capacity */
     disc->value[3]  = ch->level * 5; /* 5 pounds per level max per item */
-    disc->timer     = ch->level * 2 - number_range(0,level / 2); 
+    disc->timer     = get_duration(sn, level); 
 
     act("$n has created a floating black disc.",ch,NULL,NULL,TO_ROOM);
     send_to_char("You create a floating disc.\n\r",ch);
@@ -3298,7 +3221,7 @@ void spell_fly( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level + 3;
+    af.duration  = get_duration(sn, level);
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_FLYING;
@@ -3346,7 +3269,7 @@ void spell_frenzy(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level / 3;
+    af.duration  = get_duration(sn, level);
     af.modifier  = level / 6;
     af.bitvector = AFF_BERSERK;
 
@@ -3364,14 +3287,35 @@ void spell_frenzy(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     act("$n gets a wild look in $s eyes!",victim,NULL,NULL,TO_ROOM);
 }
 
+// returns original room unless a misgate occurs, in which case a random room is returned
+ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int misgate_chance )
+{
+    if ( per_chance(misgate_chance) || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(20)) )
+    {
+        OBJ_DATA *stone = get_eq_char(ch,WEAR_HOLD);
+        // warpstone prevents misgate but is destroyed in the process
+        if ( stone != NULL && stone->item_type == ITEM_WARP_STONE )
+        {
+            printf_to_char(ch, "{R%s {Rflares brightly and vanishes!{x\n\r", stone->short_descr);
+            extract_obj(stone);
+        }
+        else
+        {
+            ROOM_INDEX_DATA *rand_room = get_random_room(ch);
+            if ( rand_room != NULL )
+                to_room = rand_room;
+        }
+    }
+
+    return to_room;
+}
+
 /* RT ROM-style gate */
 void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim;
     bool gate_pet;
     ROOM_INDEX_DATA *to_room;
-    OBJ_DATA *stone;
-    bool has_warpstone=FALSE;
 
     if ( !can_cast_transport(ch) )
         return;
@@ -3413,14 +3357,6 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
 
-    /*
-       if (IS_NPC(victim) && saves_spell( level, victim,DAM_OTHER) )
-       {
-       send_to_char( "You failed.\n\r", ch );
-       return;
-       }
-     */
-
     if ( ch->in_room == victim->in_room )
     {
         send_to_char( "You're already there!\n\r", ch );
@@ -3434,35 +3370,11 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     else
         gate_pet = FALSE;
 
-
-    stone = get_eq_char(ch,WEAR_HOLD);
-
-    if (stone != NULL && stone->item_type == ITEM_WARP_STONE)
-    {
-        act("You draw upon the power of $p.",ch,stone,NULL,TO_CHAR);
-        has_warpstone = TRUE;
-    }
-
     act("$n steps through a gate and vanishes.",ch,NULL,NULL,TO_ROOM);
     send_to_char("You step through a gate and vanish.\n\r",ch);
     char_from_room(ch);
 
-    if ( !has_warpstone && chance(5) )
-    {
-        to_room = get_random_room(ch);
-        if ( to_room == NULL )
-            to_room = victim->in_room;
-    }
-    else
-    {
-        to_room = victim->in_room;
-        if( has_warpstone && chance(15) )
-        {
-            printf_to_char(ch,"%s flares brightly and vanishes!\n\r", stone->short_descr);
-            extract_obj(stone);
-        }
-    }
-
+    to_room = room_with_misgate(ch, victim->in_room, 5);
     char_to_room(ch, to_room);
 
     act("$n has arrived through a gate.",ch,NULL,NULL,TO_ROOM);
@@ -3510,9 +3422,9 @@ void spell_giant_strength(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_STR;
-    af.modifier  = 1+level/5;
+    af.modifier  = (20 + level) / 4;
     af.bitvector = AFF_GIANT_STRENGTH;
     affect_to_char( victim, &af );
     send_to_char( "Your muscles surge with heightened power!\n\r", victim );
@@ -3530,9 +3442,7 @@ void spell_harm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     int harm = get_sn_damage(sn, level, ch) / 2;
 
     harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/2),0);
-    victim->hit-=harm;
-    remember_attack(victim, ch, harm);
-    dam_message(ch,victim,harm,sn, FALSE);
+    direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
 
@@ -3584,10 +3494,7 @@ void spell_haste( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    if (victim == ch)
-        af.duration  = level/2;
-    else
-        af.duration  = level/4;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AGI;
     af.modifier  = 1 + level/5;
     af.bitvector = AFF_HASTE;
@@ -4051,7 +3958,7 @@ void spell_infravision( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 2 * level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_INFRARED;
@@ -4092,7 +3999,7 @@ void spell_invis( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         af.where    = TO_OBJECT;
         af.type     = sn;
         af.level    = level;
-        af.duration = level + 12;
+        af.duration = get_duration(sn, level);
         af.location = APPLY_NONE;
         af.modifier = 0;
         af.bitvector    = ITEM_INVIS;
@@ -4144,7 +4051,7 @@ void spell_invis( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level + 12;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_INVISIBLE;
@@ -4329,7 +4236,7 @@ void spell_mass_invis( int sn, int level, CHAR_DATA *ch, void *vo, int target )
         af.where     = TO_AFFECTS;
         af.type      = sn;
         af.level     = level/2;
-        af.duration  = 24;
+        af.duration  = get_duration(sn, level);
         af.location  = APPLY_NONE;
         af.modifier  = 0;
         af.bitvector = AFF_INVISIBLE;
@@ -4369,7 +4276,7 @@ void spell_pass_door( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = number_fuzzy( level / 4 );
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_PASS_DOOR;
@@ -4396,12 +4303,8 @@ void spell_plague( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
     af.where     = TO_AFFECTS;
     af.type      = sn;
-    af.level     = level * 3/4;
-
-    /* Max duration drastically reduced (97 to 37) - Astark Oct 2012
-       af.duration     = level; */
-    af.duration     = 4 + number_range(level/8, level/3);
-
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_STR;
     af.modifier  = -5; 
     af.bitvector = AFF_PLAGUE;
@@ -4431,7 +4334,7 @@ void spell_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = number_range(1,4);//level/4;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_INT;
     af.modifier  = -15; 
     af.bitvector = AFF_INSANE;
@@ -4493,7 +4396,7 @@ void spell_poison( int sn, int level, CHAR_DATA *ch, void *vo, int target )
             af.where     = TO_WEAPON;
             af.type  = sn;
             af.level     = level / 2;
-            af.duration  = level/8;
+            af.duration  = get_duration(sn, level);
             af.location  = 0;
             af.modifier  = 0;
             af.bitvector = WEAPON_POISON;
@@ -4522,11 +4425,7 @@ void spell_poison( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-
-    /* Max duration drastically reduced (97 to 37) - Astark Oct 2012
-       af.duration     = level; */
-    af.duration     = 4 + number_range(level/8, level/3);
-
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_STR;
     af.modifier  = -10;
     af.bitvector = AFF_POISON;
@@ -4565,7 +4464,7 @@ void spell_protection_evil(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 24;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_SAVING_SPELL;
     af.modifier  = -1;
     af.bitvector = AFF_PROTECT_EVIL;
@@ -4603,7 +4502,7 @@ void spell_protection_good(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 24;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_SAVING_SPELL;
     af.modifier  = -1;
     af.bitvector = AFF_PROTECT_GOOD;
@@ -4775,7 +4674,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
             if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
             {
                 act("The curse on $p cannot be removed.",ch,obj,NULL,TO_CHAR);
-                obj = obj->next;
+                return;
             }
             
             if (!saves_dispel(level + 2,obj->level,0))
@@ -4813,7 +4712,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
         {
             act("The curse on $p cannot be removed.",ch,obj,NULL,TO_CHAR);
-            obj = obj->next_content;
             continue;
         }
 
@@ -4855,7 +4753,7 @@ void spell_sanctuary( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level / 6;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_SANCTUARY;
@@ -4884,13 +4782,10 @@ void spell_shield( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = 8 + level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
-    /* Now scales with level instead of static number - Astark Oct 2012
-       It's slightly better than armor due to the level you get it at
-       af.modifier  = -20; */
-    af.modifier  = -25 - (level/4);
-    af.bitvector = 0;
+    af.modifier  = -20;
+    af.bitvector = AFF_SHIELD;
     affect_to_char( victim, &af );
     act( "$n is surrounded by a force shield.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "You are surrounded by a force shield.\n\r", victim );
@@ -4906,9 +4801,7 @@ void spell_shocking_grasp(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
     if ( check_hit( ch, victim, sn, DAM_LIGHTNING, 100 ) )
     {
-        /* Now works just like chill touch, but does slightly
-           less damage - Astark Oct 2012 */
-        dam = get_sn_damage( sn, level, ch ) * 12/10;
+        dam = get_sn_damage( sn, level, ch ) * 14/10;
         if ( saves_spell( level, victim, DAM_LIGHTNING) )
             dam /= 2;
         shock_effect( victim, level, dam, TARGET_CHAR );
@@ -5021,9 +4914,7 @@ void spell_slow( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    /* Max duration reduced from 49 to 25 - Astark Oct 2012
-       af.duration  = level/2; */
-    af.duration  = level/4;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AGI;
     af.modifier  = -1 - level/5;
     af.bitvector = AFF_SLOW;
@@ -5039,7 +4930,7 @@ void spell_stone_skin( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
-    if ( is_affected( ch, sn ) )
+    if ( IS_AFFECTED(ch, AFF_STONE_SKIN) )
     {
         if (victim == ch)
             send_to_char("Your skin is already as hard as a rock.\n\r",ch); 
@@ -5051,13 +4942,10 @@ void spell_stone_skin( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = level;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
-    /* AC now scales with level, max of 54 instead of
-       baseline 40 - Astark Oct 2012
-       af.modifier  = -40; */
-    af.modifier  = -35 - (level/4);
-    af.bitvector = 0;
+    af.modifier  = -40;
+    af.bitvector = AFF_STONE_SKIN;
     affect_to_char( victim, &af );
     act( "$n's skin turns to stone.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "Your skin turns to stone.\n\r", victim );
@@ -5328,11 +5216,9 @@ void spell_weaken( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    /*    Max duration reduced from 49 ticks to 24 - Astark Oct 2012
-          af.duration  = level / 2; */
-    af.duration  = level / 4;
+    af.duration  = get_duration(sn, level);
     af.location  = APPLY_STR;
-    af.modifier  = -1 * (level / 2);
+    af.modifier  = -1 * (20 + level) / 2;
     af.bitvector = AFF_WEAKEN;
     affect_to_char( victim, &af );
     send_to_char( "You feel your strength slip away.\n\r", victim );
@@ -5360,15 +5246,6 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         send_to_char("You are completely lost.\n\r",victim);
         return;
     } 
-
-    /*
-       if (IS_SET(victim->in_room->room_flags,ROOM_NO_RECALL) ||
-       IS_AFFECTED(victim,AFF_CURSE))
-       {
-       send_to_char("Your recall spell failed.\n\r",victim);
-       return;
-       }
-     */
 
     if (NOT_AUTHED(victim))
     {
@@ -5404,11 +5281,6 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         }
     }
 
-    /*
-       if (victim->fighting != NULL)
-       stop_fighting(victim,TRUE);
-     */
-
     /* Added exp loss during combat 2/22/99 -Rim */
     if ( victim->fighting != NULL )
     {
@@ -5435,9 +5307,11 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         }
         else
             send_to_char("You recall from combat!\n\r",ch);
-
     }
 
+    // misgate chance when cursed but not normally
+    location = room_with_misgate(victim, location, 0);
+    
     act("$n disappears.",victim,NULL,NULL,TO_ROOM);
     char_from_room(victim);
     char_to_room(victim,location);
