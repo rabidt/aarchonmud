@@ -107,6 +107,7 @@ DECLARE_DO_FUN( do_brief    );
 DECLARE_DO_FUN( do_browse   );
 DECLARE_DO_FUN( do_bug      );
 DECLARE_DO_FUN( do_buy      );
+DECLARE_DO_FUN( do_calm     );
 DECLARE_DO_FUN( do_cast     );
 DECLARE_DO_FUN( do_channels );
 DECLARE_DO_FUN( do_charge   );
@@ -301,6 +302,7 @@ DECLARE_DO_FUN( do_peace    );
 DECLARE_DO_FUN( do_pecho    );
 DECLARE_DO_FUN( do_peek     );
 DECLARE_DO_FUN( do_penlist  );
+DECLARE_DO_FUN( do_percentages );
 DECLARE_DO_FUN( do_permban  );
 DECLARE_DO_FUN( do_pflag    );
 DECLARE_DO_FUN( do_pick     );
@@ -529,6 +531,11 @@ DECLARE_DO_FUN( do_mpstat   );
 
 /* Obj Progs */
 DECLARE_DO_FUN( do_opedit   );
+DECLARE_DO_FUN( do_opdump   );
+
+/* Area Progs */
+DECLARE_DO_FUN( do_apedit   );
+DECLARE_DO_FUN( do_apdump   );
 
 /* OLC */
 DECLARE_DO_FUN( do_aedit    );

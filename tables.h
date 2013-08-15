@@ -28,6 +28,7 @@
 
 /* other tables */
 extern const char* spell_target_names[];
+extern const char* spell_duration_names[];
 
 struct flag_type
 {
@@ -106,6 +107,7 @@ extern  const   struct  flag_type       room_flags[];
 extern  const   struct  flag_type       exit_flags[];
 extern  const   struct  flag_type       mprog_flags[];
 extern  const   struct  flag_type       oprog_flags[];
+extern  const   struct  flag_type       aprog_flags[];
 extern  const   struct  flag_type       area_flags[];
 extern  const   struct  flag_type       sector_flags[];
 extern  const   struct  flag_type       door_resets[];

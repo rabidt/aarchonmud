@@ -2307,7 +2307,7 @@ void stop_idling( CHAR_DATA *ch )
 
     ch->timer = 0;
     char_from_room( ch );
-    if ( IS_SET(ch->was_in_room->room_flags, ROOM_BOX_ROOM))
+    if ( IS_SET(ch->was_in_room->room_flags, ROOM_BOX_ROOM) )
     {
         char_to_room( ch, get_room_index( ROOM_VNUM_RECALL));
     }
@@ -2315,7 +2315,10 @@ void stop_idling( CHAR_DATA *ch )
     {
         char_to_room( ch, ch->was_in_room );
     }
+
     ch->was_in_room = NULL;
+
+    ap_unvoid_trigger(ch);
     act( "$n has returned from the void.", ch, NULL, NULL, TO_ROOM );
     return;
 }
@@ -2347,9 +2350,10 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw)
     char    buf[ MAX_STRING_LENGTH*4 ];
     int skip = 0;
 
-#if defined(macintosh)
-    send_to_char( txt, ch );
-#else       
+    // players may overwrite whether color is sent in raw format
+    if ( IS_SET(ch->act, PLR_COLOUR_VERBATIM) )
+        raw = TRUE;
+    
     buf[0] = '\0';
     point2 = buf;
     if( txt && ch->desc )
@@ -2388,7 +2392,6 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw)
             write_to_buffer( ch->desc, buf, point2 - buf );
         }
     }
-#endif
     return;
 }
 
@@ -2440,6 +2443,10 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
                 ch->name, strlen(txt) );
         return;
     }
+    
+    // players may overwrite whether color is sent in raw format
+    if ( IS_SET(ch->act, PLR_COLOUR_VERBATIM) )
+        raw = TRUE;    
 
     buf[0] = '\0';
     point2 = buf;
@@ -3353,6 +3360,31 @@ void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj,
     wiznet (buf, ch, obj, flag, flag_skip, min_level);
 }
 
+bool add_buff(BUFFER *buffer, char *fmt, ...)
+{
+    char buf [2*MSL];
+    va_list args;
+    va_start (args, fmt);
+    vsprintf (buf, fmt, args);
+    va_end (args);
+    
+    return add_buf(buffer, buf);
+}
+
+bool add_buff_pad(BUFFER *buffer, int pad_length, char *fmt, ...)
+{
+    char buf [2*MSL];
+    int i;
+    va_list args;
+    va_start (args, fmt);
+    vsprintf (buf, fmt, args);
+    va_end (args);
+    // pad
+    for ( i = strlen_color(buf); i < pad_length; i++ )
+        strcat( buf, " " );
+    
+    return add_buf(buffer, buf);
+}
 
 #define CH(descriptor)  ((descriptor)->original ? (descriptor)->original : (descriptor)->character)
 
