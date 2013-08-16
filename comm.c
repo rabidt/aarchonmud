@@ -1259,7 +1259,6 @@ dnew = new_descriptor();
 
 dnew->descriptor    = desc;
 dnew->inactive=0;
-dnew->pProtocol     = ProtocolCreate();
 
 size = sizeof(sock);
 if ( getpeername( desc, (struct sockaddr *) &sock, &size ) < 0 )
@@ -1446,8 +1445,6 @@ void close_socket( DESCRIPTOR_DATA *dclose )
     }
 
     set_con_state(dclose, CON_CLOSED);
-
-    ProtocolDestroy( dclose->pProtocol );
 
 #if !defined( WIN32 )
     close( dclose->descriptor );
@@ -2199,6 +2196,8 @@ void bust_a_prompt( CHAR_DATA *ch )
 void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
 {
     txt = ProtocolOutput( d, txt, &length );
+    if ( d->pProtocol==NULL )
+        bugf("pProtocl null");
     if ( d->pProtocol->WriteOOB > 0 )
         --d->pProtocol->WriteOOB;
 
@@ -3482,7 +3481,7 @@ void do_copyover (CHAR_DATA *ch, char * argument)
         }
         else
         {
-            fprintf (fp, "%d %s %s\n", d->descriptor, och->name, d->host);
+            fprintf (fp, "%d %s %s %s\n", d->descriptor, och->name, d->host, CopyoverGet(d) );
 
             write_to_descriptor (d->descriptor, buf, 0);
         }
@@ -3529,6 +3528,7 @@ void copyover_recover ()
     FILE *fp;
     char name [100];
     char host[MSL];
+    char protocol[MSL];
     int desc;
     bool fOld;
 
@@ -3549,7 +3549,7 @@ void copyover_recover ()
 
     for (;;)
     {
-        fscanf (fp, "%d %s %s\n", &desc, name, host);
+        fscanf (fp, "%d %s %s %s\n", &desc, name, host, protocol );
 
         if (desc == -1)
             break;
@@ -3569,6 +3569,7 @@ void copyover_recover ()
         d->descriptor = desc;
 
         d->host = str_dup (host);
+        CopyoverSet( d, protocol);
         /*
            d->next = descriptor_list;
            descriptor_list = d;
