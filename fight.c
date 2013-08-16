@@ -4023,7 +4023,7 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     /* ok, we hit a phantasmal image */
     if ( show )
     {
-        act_gag( "$n hits one of your phantasmal images, which exlodes in a flash of light.",
+        act_gag( "$n hits one of your phantasmal images, which explodes in a flash of light.",
 		 ch, NULL, victim, TO_VICT, GAG_FADE );
         act_gag( "You hit one of $N's phantasmal images, which explodes in a flash of light.",
 		 ch, NULL, victim, TO_CHAR, GAG_FADE );
