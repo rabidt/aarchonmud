@@ -1500,8 +1500,8 @@ void spell_call_lightning( int sn, int level,CHAR_DATA *ch,void *vo,int target)
 
 /**
  * Calm spell works like this: 
- * 1) all violent characters need to save or be calmed
- * 2) non-violent characters not attacked by violent ones stop fighting
+ * 1) all violent characters need to save or be calmed and stop fighting
+ * 2) non-violent characters attacking non-violent characters stop fighting
  */
 bool is_violent( CHAR_DATA *vch, CHAR_DATA *ch )
 {
@@ -1557,6 +1557,8 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         af.location = APPLY_DAMROLL;
         affect_to_char(vch, &af);
         
+        stop_fighting(vch, FALSE);
+        
         send_to_char("A wave of calm passes over you.\n\r", vch);
         act("A wave of calm passes over $n.", vch, NULL, NULL, TO_ROOM);
     }
@@ -1574,25 +1576,13 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         if ( vch->fighting == NULL )
             continue;
 
-        if ( is_violent(vch, ch) )
+        if ( is_violent(vch, ch) || is_violent(vch->fighting, ch) )
         {
             conflict = TRUE;
             continue;
         }
         
-        // is a violent opponent fighting us?
-        bool is_attacked = FALSE;
-        for ( attacker = vch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
-            if ( attacker->fighting == vch && is_violent(attacker, ch) )
-            {
-                is_attacked = TRUE;
-                break;
-            }
-
-        if ( !is_attacked )
-            stop_fighting(vch, FALSE);
-        else
-            conflict = TRUE;
+        stop_fighting(vch, FALSE);
     }
     
     if ( conflict )

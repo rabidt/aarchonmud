@@ -5034,9 +5034,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
 
     if ( number_bits(2))
     {
-        if ( IS_AFFECTED( victim, AFF_FEEBLEMIND) )
-            return;
-        else
+        if ( !IS_AFFECTED( victim, AFF_FEEBLEMIND) )
         {
         af.where     = TO_AFFECTS;
         af.type      = gsn_quivering_palm;
@@ -5052,9 +5050,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
     }
     else if ( number_bits(2))
     {
-        if ( IS_AFFECTED( victim, AFF_WEAKEN) )
-            return;
-        else
+        if ( !IS_AFFECTED( victim, AFF_WEAKEN) )
         {
         af.where     = TO_AFFECTS;
         af.type      = gsn_quivering_palm;

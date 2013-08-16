@@ -20,7 +20,7 @@ typedef void SMITH_FUN args( ( CHAR_DATA *ch, char *argument ) );
 typedef void SMITH_PRICE_FUN args( ( CHAR_DATA *ch, int *gold, int *qp ) );
 
 /* local functions */
-bool can_smith_obj( OBJ_DATA *obj);
+bool check_smith_obj( CHAR_DATA *ch, OBJ_DATA *obj);
 void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp );
 bool try_pay_smith( CHAR_DATA *ch );
 
@@ -393,9 +393,8 @@ SM_FUN( smith_give )
         return;
     }
 
-    if ( !can_smith_obj(obj) )
+    if ( !check_smith_obj(ch, obj) )
     {
-        send_to_char("The smith can't accept that object.\n\r", ch);
         return;
     }
 
@@ -413,15 +412,19 @@ SM_FUN( smith_give )
 #endif
 }
 
-bool can_smith_obj( OBJ_DATA *obj )
+bool check_smith_obj( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     if ( obj->item_type == ITEM_CONTAINER )
     {
         if ( obj->contains ) /* not empty*/
+        {
+            printf_to_char( ch, "%s must be empty.\n\r", obj->short_descr );
             return FALSE;
+        }
     }
     if ( IS_SET( obj->pIndexData->extra_flags, ITEM_QUESTEQ ) ) /* check the proto */
     {
+        send_to_char( "You can't alter quest equipment!\n\r", ch);
         return FALSE;
     }
     return TRUE;
