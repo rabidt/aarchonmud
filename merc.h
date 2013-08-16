@@ -25,6 +25,7 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
+#include "protocol.h"
 #include <lua.h>
 
 /* change this value to 0 for running on darkhorse */
@@ -802,6 +803,7 @@ struct  descriptor_data
 		short int   lines_sent; /* Lines sent so far     */
 		ftp_mode    mode;       /* FTP_xxx           */
 	} ftp;
+    protocol_t *        pProtocol;
 };
 
 
