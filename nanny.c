@@ -583,7 +583,7 @@ bool	get_old_password ( DESCRIPTOR_DATA *d, char *argument )
 		set_con_state(d, CON_GET_OLD_PASSWORD);
 		sprintf( buf, "Welcome back, %s.  What is your password? ", ch->name );
 		write_to_buffer( d, buf, 0 );
-		write_to_buffer( d, echo_off_str, 0 );
+        ProtocolNoEcho( d, true );
 
 		return FALSE;
 	}
@@ -599,7 +599,7 @@ bool	get_old_password ( DESCRIPTOR_DATA *d, char *argument )
 			return FALSE;
 		}
  
-		write_to_buffer( d, echo_on_str, 0 );
+        ProtocolNoEcho( d, false );
 
 		if (check_playing(d,ch->name))
 			return FALSE;
@@ -661,8 +661,9 @@ bool	get_new_password ( DESCRIPTOR_DATA *d, char *argument )
 
 	if (con_state(d) != CON_GET_NEW_PASSWORD)
 	{
+        ProtocolNoEcho( d, true );
 		sprintf( buf, "Ah, a new soul.  Welcome to your new home, %s.\n\rPlease enter a password for your new character: %s",
-		d->character->name, echo_off_str );
+		d->character->name );
 		write_to_buffer( d, buf, 0 );
 		set_con_state(d, CON_GET_NEW_PASSWORD);
 		return FALSE;
@@ -722,7 +723,7 @@ bool	confirm_new_password ( DESCRIPTOR_DATA *d, char *argument )
 		return (get_new_password(d, argument));
 	}
 
-	write_to_buffer( d, echo_on_str, 0 );
+    ProtocolNoEcho( d, false );
 
 	return TRUE;
 }
@@ -1687,6 +1688,7 @@ bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
                 wiznet("$N groks the fullness of $S link.",
                     ch,NULL,WIZ_LINKS,0,0);
                 d->connected = CON_PLAYING;
+                MXPSendTag( d, "<VERSION>" );
        /* Removed by Vodur, messes with box saving
           no downside to keeping it on the list*/
 	//	remove_from_quit_list( ch->name );
@@ -1913,6 +1915,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    sprintf(buf, "%s has decided to join us.", ch->name);
 	    info_message_new(ch, buf, FALSE, FALSE);
 	}
+    MXPSendTag( d, "<VERSION>" );
 
 	/* Prevents pkillers from immediately attacking upon login.
 	   Will annoy people who use their alts to watch for targets! Q, Nov 2002 */

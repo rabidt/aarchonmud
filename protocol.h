@@ -14,7 +14,7 @@
  Set your MUD_NAME, and change descriptor_t if necessary.
  ******************************************************************************/
 
-#define MUD_NAME "Unknown MUD"
+#define MUD_NAME "Aarchon MUD"
 
 typedef struct descriptor_data descriptor_t;
 
