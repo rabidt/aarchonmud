@@ -1980,7 +1980,11 @@ static int get_ROOM_field ( lua_State *LS )
     FLDNUM("manarate", ud_room->mana_rate);
     FLDSTR("owner", ud_room->owner ? ud_room->owner : "");
     FLDSTR("description", ud_room->description);
-    FLDSTR("area", ud_room->area->name );
+    if ( !strcmp(argument, "area") )
+    {
+        make_ud_table(LS, ud_room->area, UDTYPE_AREA, TRUE);
+        return 1;
+    }
 
     if ( !strcmp(argument, "people") )
     {   

@@ -1728,7 +1728,7 @@ void check_kill_quest_completed( CHAR_DATA *ch, CHAR_DATA *victim )
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        if ( !is_same_group( gch, ch ) || IS_NPC(gch) )
+        if ( IS_NPC(gch) )
             continue;
 
 	if ( (IS_SET(gch->act, PLR_QUESTOR) || IS_SET(gch->act, PLR_QUESTORHARD))

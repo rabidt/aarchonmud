@@ -2196,7 +2196,7 @@ bool is_drop_obj( OBJ_DATA *obj )
 
 bool is_questeq( OBJ_DATA *obj )
 {
-    return IS_OBJ_STAT(obj, ITEM_QUESTEQ) && TRUE;
+    return IS_OBJ_STAT(obj->pIndexData, ITEM_QUESTEQ) && TRUE;
 }
 
 bool contains_obj_recursive( OBJ_DATA *obj, OBJ_CHECK_FUN *obj_check )
