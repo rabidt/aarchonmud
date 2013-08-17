@@ -6085,7 +6085,7 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
   int chance;
   int ass_skill = get_skill(attacker, gsn_assassination);
 
-  if ( IS_NPC(victim) )
+  if ( IS_NPC(victim) || wants_to_rescue(victim) )
       return victim;
   
   for (ch = victim->in_room->people; ch != NULL; ch = ch->next_in_room)
@@ -6100,8 +6100,8 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
 	  continue;
 
       chance = 25 + get_skill(ch, gsn_bodyguard) / 2 - ass_skill / 4;
-      chance += ch->level - attacker->level;
-      if (number_percent() < chance)
+      chance += (ch->level - attacker->level) / 4;
+      if ( per_chance(chance) )
       {
 	  act( "You jump in, trying to protect $N.", ch, NULL, victim, TO_CHAR );
 	  act( "$n jumps in, trying to protect you.", ch, NULL, victim, TO_VICT );
