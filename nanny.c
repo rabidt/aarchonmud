@@ -662,7 +662,7 @@ bool	get_new_password ( DESCRIPTOR_DATA *d, char *argument )
 	if (con_state(d) != CON_GET_NEW_PASSWORD)
 	{
         ProtocolNoEcho( d, true );
-		sprintf( buf, "Ah, a new soul.  Welcome to your new home, %s.\n\rPlease enter a password for your new character: %s",
+		sprintf( buf, "Ah, a new soul.  Welcome to your new home, %s.\n\rPlease enter a password for your new character: ",
 		d->character->name );
 		write_to_buffer( d, buf, 0 );
 		set_con_state(d, CON_GET_NEW_PASSWORD);
