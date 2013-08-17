@@ -150,6 +150,7 @@ DESCRIPTOR_DATA *new_descriptor(void)
 	d->pString  = NULL;         /* OLC */
 	d->editor   = 0;            /* OLC */
 	d->outbuf   = alloc_mem( d->outsize );
+    d->pProtocol= ProtocolCreate();
    
 	return d;
 }
@@ -164,6 +165,7 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 	free_string( d->ftp.data );
 	free_string( d->ftp.filename );
 	free_mem( d->outbuf, d->outsize );
+    ProtocolDestroy( d->pProtocol );
 	INVALIDATE(d);
 	d->next = descriptor_free;
 	descriptor_free = d;

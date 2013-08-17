@@ -757,6 +757,10 @@ void game_loop_mac_msdos( void )
             if ( d->incomm[0] != '\0' )
             {
                 d->fcommand = TRUE;
+
+                if ( d->pProtocol != NULL )
+                    d->pProtocol->WriteOOB = 0;
+
                 stop_idling( d->character );
 
                 /* OLC */
@@ -1018,6 +1022,10 @@ void game_loop_unix( int control )
             if ( d->incomm[0] != '\0' )
             {
                 d->fcommand = TRUE;
+
+                if ( d->pProtocol != NULL )
+                    d->pProtocol->WriteOOB = 0;
+
                 stop_idling( d->character );
                 d->inactive=0;
 
@@ -1309,6 +1317,8 @@ if ( check_ban(dnew->host,BAN_ALL))
  */
 add_descriptor( dnew );
 
+ProtocolNegotiate(dnew);
+
 /*
  * Send the greeting.
  */
@@ -1455,13 +1465,16 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
 {
     int iStart;
 
+    static char read_buf[MAX_PROTOCOL_BUFFER];
+    read_buf[0] = '\0';
+
     /* Hold horses if pending command already. */
     if ( d->incomm[0] != '\0' )
         return TRUE;
 
     /* Check for overflow. */
-    iStart = strlen(d->inbuf);
-    if ( iStart >= sizeof(d->inbuf) - 10 )
+    iStart = 0;
+    if ( strlen(d->inbuf) >= sizeof(d->inbuf) - 10 )
     {
         sprintf( log_buf, "%s input overflow!", d->host );
         log_string( log_buf );
@@ -1481,7 +1494,7 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
         putc( c, stdout );
         if ( c == '\r' )
             putc( '\n', stdout );
-        d->inbuf[iStart++] = c;
+        read_buf[iStart++] = c;
         if ( iStart > sizeof(d->inbuf) - 10 )
             break;
     }
@@ -1509,15 +1522,14 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
                     sizeof( d->inbuf ) - 10 - iStart ), // length
                 0 );                            // no flags
 #else
-        nRead = read( d->descriptor, d->inbuf + iStart,
-                sizeof(d->inbuf) - 10 - iStart );
+        nRead = read( d->descriptor, read_buf + iStart,
+            sizeof(read_buf) - 10 - iStart );
 #endif
-
         if ( nRead > 0 )
         {
             iStart += nRead;
-            if ( d->inbuf[iStart-1] == '\n' || d->inbuf[iStart-1] == '\r' )
-                break;
+            if ( read_buf[iStart-1] == '\n' || read_buf[iStart-1] == '\r' )
+            break;
         }
         else if ( nRead == 0 )
         {
@@ -1540,7 +1552,8 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     }
 #endif
 
-    d->inbuf[iStart] = '\0';
+    read_buf[iStart] = '\0';
+    ProtocolInput( d, read_buf, iStart, d->inbuf );
     return TRUE;
 }
 
@@ -1772,7 +1785,9 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
     /*
      * Bust a prompt.
      */
-    if ( !merc_down )
+    if ( d->pProtocol->WriteOOB )
+        ;
+    else if ( !merc_down )
         if ( d->showstr_point )
             write_to_buffer( d, "[Hit Return to continue]\n\r", 0 );
         else if ( fPrompt && d->pString && (d->connected == CON_PLAYING || d->connected == CON_PENALTY_FINISH ))
@@ -2180,6 +2195,11 @@ void bust_a_prompt( CHAR_DATA *ch )
  */
 void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
 {
+    txt = ProtocolOutput( d, txt, &length );
+    if ( d->pProtocol==NULL )
+        bugf("pProtocl null");
+    if ( d->pProtocol->WriteOOB > 0 )
+        --d->pProtocol->WriteOOB;
 
     /*
      * Find length in case caller didn't.
@@ -2190,7 +2210,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
     /*
      * Initial \n\r if needed.
      */
-    if ( d->outtop == 0 && !d->fcommand && d->last_msg_was_prompt)
+    if ( d->outtop == 0 && !d->fcommand && !d->pProtocol->WriteOOB )
     {
         d->outbuf[0]    = '\n';
         d->outbuf[1]    = '\r';
@@ -3461,7 +3481,7 @@ void do_copyover (CHAR_DATA *ch, char * argument)
         }
         else
         {
-            fprintf (fp, "%d %s %s\n", d->descriptor, och->name, d->host);
+            fprintf (fp, "%d %s %s %s\n", d->descriptor, och->name, d->host, CopyoverGet(d) );
 
             write_to_descriptor (d->descriptor, buf, 0);
         }
@@ -3508,6 +3528,7 @@ void copyover_recover ()
     FILE *fp;
     char name [100];
     char host[MSL];
+    char protocol[MSL];
     int desc;
     bool fOld;
 
@@ -3528,7 +3549,7 @@ void copyover_recover ()
 
     for (;;)
     {
-        fscanf (fp, "%d %s %s\n", &desc, name, host);
+        fscanf (fp, "%d %s %s %s\n", &desc, name, host, protocol );
 
         if (desc == -1)
             break;
@@ -3548,6 +3569,7 @@ void copyover_recover ()
         d->descriptor = desc;
 
         d->host = str_dup (host);
+        CopyoverSet( d, protocol);
         /*
            d->next = descriptor_list;
            descriptor_list = d;
