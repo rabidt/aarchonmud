@@ -1404,6 +1404,21 @@ AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
     return affect_list;
 }
 
+// Check if ch is really in some room - may not be the case right after login
+bool is_in_room( CHAR_DATA *ch )
+{
+    CHAR_DATA *ch_in_room;
+
+    if ( ch == NULL || ch->in_room == NULL )
+        return FALSE;
+
+    for ( ch_in_room = ch->in_room->people; ch_in_room != NULL; ch_in_room = ch_in_room->next_in_room )
+        if ( ch_in_room == ch )
+            return TRUE;
+
+    return FALSE;
+}
+
 /*
  * Move a char out of a room.
  */
