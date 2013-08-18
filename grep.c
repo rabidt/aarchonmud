@@ -1555,7 +1555,12 @@ int get_obj_spec( OBJ_DATA *obj )
 }
 
 
-int average_weapon_dam( OBJ_INDEX_DATA *obj )
+int average_weapon_dam( OBJ_DATA *obj )
+{
+    return obj->value[1] * (obj->value[2] + 1) / 2;
+}
+
+int average_weapon_index_dam( OBJ_INDEX_DATA *obj )
 {
     return obj->value[1] * (obj->value[2] + 1) / 2;
 }
@@ -1662,7 +1667,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 	    spec = 60 + 2 * (obj->level - 90);
 
 
-	value = average_weapon_dam( obj );
+	value = average_weapon_index_dam( obj );
 
 	if ( obj->value[4], WEAPON_TWO_HANDS )
 	    spec += 5;
