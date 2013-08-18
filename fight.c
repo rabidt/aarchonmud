@@ -3060,6 +3060,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         break;
         
     case POS_DEAD:
+        // suicide during combat counts as kill by opponent
+        if ( ch == victim && victim->fighting != NULL )
+            ch = victim->fighting;
         if (victim!=ch || !(!IS_NPC(victim) && IS_SET(victim->act, PLR_WAR)))
         {
             
