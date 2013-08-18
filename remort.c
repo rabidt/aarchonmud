@@ -900,7 +900,9 @@ void remort_begin(CHAR_DATA *ch)
             }
     }
     
-    char_from_room( ch );
+    if ( is_in_room(ch) )
+        char_from_room(ch);
+    
     /* need to do a little cleanup*/
     CHAR_DATA *wch;
     for ( wch = char_list; wch != NULL; wch = wch->next )
