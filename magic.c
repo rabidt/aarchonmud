@@ -2126,6 +2126,12 @@ void spell_create_water( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         return;
     }
 
+    if ( obj->value[0] <= obj->value[1] )
+    {
+        send_to_char( "It is already full.\n\r", ch );
+        return;
+    }
+
     water = UMIN(
             level * (weather_info.sky >= SKY_RAINING ? 4 : 2),
             obj->value[0] - obj->value[1]
