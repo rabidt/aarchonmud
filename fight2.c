@@ -1993,9 +1993,6 @@ void do_kick( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
     int dam, chance;
-    char arg[MAX_INPUT_LENGTH];
-    
-    one_argument(argument, arg);
     
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
@@ -2527,12 +2524,9 @@ void do_brawl( CHAR_DATA *ch, char *argument)
 
 void do_uppercut(CHAR_DATA *ch, char *argument )
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance, skill;
     long int dam;
-    
-    one_argument(argument,arg);
     
     if ( (skill = get_skill(ch,gsn_uppercut)) == 0 )
     {   
@@ -2540,22 +2534,8 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( victim = ch->fighting ) == NULL )
-    {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
-    /* targettable by Quirky! July 3 1998 */
-    if ( arg[0] != '\0' )
-        if ( (victim = get_char_room( ch, arg )) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-    if ( is_safe(ch,victim) )
-	return;
     
     chance = skill - get_skill(victim, gsn_dodge) / 3;
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
@@ -3031,9 +3011,6 @@ void do_chop( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
     int dam, chance;
-    char arg[MAX_INPUT_LENGTH];
-    
-    one_argument(argument,arg);
     
     if (get_skill(ch,gsn_chop)==0)
     {
@@ -3042,21 +3019,8 @@ void do_chop( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( victim = ch->fighting ) == NULL )
-    {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
-    if ( arg[0] != '\0' )
-        if ( ( victim = get_char_room( ch, arg )) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-        if ( is_safe(ch,victim) )
-            return;
         
         chance = get_skill(ch, gsn_chop);
         
@@ -3081,9 +3045,6 @@ void do_bite( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
     int dam, chance;
-    char arg[MAX_INPUT_LENGTH];
-    
-    one_argument(argument,arg);
     
     chance=get_skill(ch, gsn_bite);
     chance=UMAX(chance,get_skill(ch, gsn_venom_bite));
@@ -3098,21 +3059,8 @@ void do_bite( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( victim = ch->fighting ) == NULL )
-    {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
-    if ( arg[0] != '\0' )
-        if ( (victim = get_char_room( ch, arg )) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-        if ( is_safe(ch,victim) )
-            return;
         
         WAIT_STATE( ch, skill_table[gsn_bite].beats );
         check_killer(ch,victim);
