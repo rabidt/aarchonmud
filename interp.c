@@ -745,7 +745,7 @@ void interpret( CHAR_DATA *ch, char *argument )
     /*
     * Strip leading spaces.
     */
-    while ( isspace(*argument) )
+    while ( ISSPACE(*argument) )
         argument++;
     if ( argument[0] == '\0' )
         return;
@@ -777,7 +777,7 @@ void interpret( CHAR_DATA *ch, char *argument )
         command[0] = argument[0];
         command[1] = '\0';
         argument++;
-        while ( isspace(*argument) )
+        while ( ISSPACE(*argument) )
             argument++;
     }
     else
@@ -1174,7 +1174,7 @@ char *one_argument( char *argument, char *arg_first )
 {
     char cEnd;
     
-    while ( isspace(*argument) )
+    while ( ISSPACE(*argument) )
         argument++;
     
     cEnd = ' ';
@@ -1194,7 +1194,7 @@ char *one_argument( char *argument, char *arg_first )
     }
     *arg_first = '\0';
     
-    while ( isspace(*argument) )
+    while ( ISSPACE(*argument) )
         argument++;
     
     return argument;
@@ -1208,7 +1208,7 @@ char *one_argument_keep_case( char *argument, char *arg_first )
 {
     char cEnd;
     
-    while ( isspace(*argument) )
+    while ( ISSPACE(*argument) )
         argument++;
     
     cEnd = ' ';
@@ -1228,7 +1228,7 @@ char *one_argument_keep_case( char *argument, char *arg_first )
     }
     *arg_first = '\0';
     
-    while ( isspace(*argument) )
+    while ( ISSPACE(*argument) )
         argument++;
     
     return argument;
