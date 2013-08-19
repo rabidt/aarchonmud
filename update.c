@@ -92,8 +92,7 @@ void advance_level( CHAR_DATA *ch, bool hide )
     int add_prac;
     int bonus;
 
-    ch->pcdata->last_level = 
-        ( ch->played + (int) (current_time - ch->logon) ) / 3600;
+    ch->pcdata->last_level = ch->played + (int) (current_time - ch->logon);
 
     if (! IS_SET(ch->act, PLR_TITLE))
     {
