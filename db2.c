@@ -1360,7 +1360,7 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
               obj->short_descr, obj->description );*/
             /*fprintf( fp, buf );*/
 
-            sprintf( buf, "Wear bits: %s\tExtra bits: %s\n",
+            sprintf( buf, "Wear bits: %s\t\tExtra bits: %s\n",
                     wear_bits_name(obj->wear_flags), extra_bits_name( obj->extra_flags ) );
             fprintf( fp, buf );
 

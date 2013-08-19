@@ -968,7 +968,7 @@ void load_area( FILE *fp )
     
     top_area++;
 
-    logpf("Loading area: %s\t%Min: %ld  Max: %ld  Sec: %d  Credits: %s",
+    logpf("Loading area: %s\t\t%Min: %ld  Max: %ld  Sec: %d  Credits: %s",
         pArea->name, pArea->min_vnum, pArea->max_vnum, pArea->security, pArea->credits);
     return;
 }
