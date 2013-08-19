@@ -90,9 +90,10 @@ void advance_level( CHAR_DATA *ch, bool hide )
 {
     char buf[MAX_STRING_LENGTH];
     int add_prac;
-    int bonus;
+    int played_now = ch->played + (int) (current_time - ch->logon);
+    int time_since_last_level = played_now - ch->pcdata->last_level;
 
-    ch->pcdata->last_level = ch->played + (int) (current_time - ch->logon);
+    ch->pcdata->last_level = played_now;
 
     if (! IS_SET(ch->act, PLR_TITLE))
     {
@@ -140,6 +141,18 @@ void advance_level( CHAR_DATA *ch, bool hide )
         sprintf(buf, "You gain %d practice%s.\n\r", add_prac, add_prac == 1 ? "" : "s");
         send_to_char( buf, ch );
     }
+    
+    // chance for restore, reaching 100% after 20-30 minutes
+    int heal_chance = 10 + UMAX(0, 90 - ch->level) / 3 + time_since_last_level / 20;
+    if ( per_chance(heal_chance) )
+    {
+        ch->hit = ch->max_hit;
+        ch->mana = ch->max_mana;
+        ch->move = ch->max_move;
+        if (!hide)
+            send_to_char("You feel yourself bursting with renewed energy!\n\r", ch);
+    }
+    
     return;
 }   
 
