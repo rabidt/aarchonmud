@@ -606,22 +606,9 @@ void do_headbutt( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( victim = ch->fighting ) == NULL )
-    {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
-    if ( arg[0] != '\0' )
-        if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-    if ( is_safe(ch,victim) )
-        return;
-        
     check_killer(ch,victim);
     WAIT_STATE( ch, skill_table[gsn_headbutt].beats );
     if ( check_hit(ch, victim, gsn_headbutt, DAM_BASH, chance) )
@@ -2006,9 +1993,6 @@ void do_kick( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
     int dam, chance;
-    char arg[MAX_INPUT_LENGTH];
-    
-    one_argument(argument, arg);
     
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
@@ -2045,12 +2029,10 @@ void do_disarm( CHAR_DATA *ch, char *argument )
     
     hth = 0;
     
-    if ( ( victim = ch->fighting ) == NULL )
+    // allow disarm as a shortcut for tdisarm while out-of-combat
+    if ( !ch->fighting && !get_char_room(ch, arg) && get_skill(ch, gsn_disarm_trap) > 0 )
     {
-	if ( get_skill(ch, gsn_disarm_trap) > 0 )
-	    do_disarm_trap( ch, argument );
-	else
-	    send_to_char( "You aren't fighting anyone.\n\r", ch );
+        do_disarm_trap( ch, argument );
         return;
     }
     
@@ -2068,19 +2050,9 @@ void do_disarm( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( arg[0] != '\0' )
-        if (( victim = get_char_room( ch, arg )) == NULL )
-        {
-            send_to_char("You don't see that person here.\n\r", ch );
-            return;
-        }
-        
-    if ( victim->fighting != NULL && !is_same_group( ch, victim->fighting))
-    {
-	send_to_char( "You aren't fighting that person!\n\r", ch );
-	return;
-    }
-        
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
         if ( !can_see_combat( ch, victim ) )
         {
             send_to_char( "You fumble for your opponent's weapon, but can't find it.\n\r", ch );
@@ -2092,10 +2064,11 @@ void do_disarm( CHAR_DATA *ch, char *argument )
             send_to_char( "Your opponent is not wielding a weapon.\n\r", ch );
             return;
         }
-
-        if (is_safe(ch, victim))
-            return;
         
+    // starting a fight if needed, regardless of success or failure
+    start_combat(ch, victim);
+    check_killer(ch,victim);
+
         /* find weapon skills */
         ch_weapon = get_weapon_skill(ch,get_weapon_sn(ch));
 	if ( IS_NPC(victim) )
@@ -2140,7 +2113,6 @@ void do_disarm( CHAR_DATA *ch, char *argument )
             return;
         }
 
-        check_killer(ch,victim);
         /* and now the attack */
         if (number_percent() < chance)
         {
@@ -2552,12 +2524,9 @@ void do_brawl( CHAR_DATA *ch, char *argument)
 
 void do_uppercut(CHAR_DATA *ch, char *argument )
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance, skill;
     long int dam;
-    
-    one_argument(argument,arg);
     
     if ( (skill = get_skill(ch,gsn_uppercut)) == 0 )
     {   
@@ -2565,22 +2534,8 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( victim = ch->fighting ) == NULL )
-    {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
-    /* targettable by Quirky! July 3 1998 */
-    if ( arg[0] != '\0' )
-        if ( (victim = get_char_room( ch, arg )) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-    if ( is_safe(ch,victim) )
-	return;
     
     chance = skill - get_skill(victim, gsn_dodge) / 3;
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
@@ -3056,9 +3011,6 @@ void do_chop( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
     int dam, chance;
-    char arg[MAX_INPUT_LENGTH];
-    
-    one_argument(argument,arg);
     
     if (get_skill(ch,gsn_chop)==0)
     {
@@ -3067,21 +3019,8 @@ void do_chop( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( victim = ch->fighting ) == NULL )
-    {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
-    if ( arg[0] != '\0' )
-        if ( ( victim = get_char_room( ch, arg )) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-        if ( is_safe(ch,victim) )
-            return;
         
         chance = get_skill(ch, gsn_chop);
         
@@ -3106,9 +3045,6 @@ void do_bite( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
     int dam, chance;
-    char arg[MAX_INPUT_LENGTH];
-    
-    one_argument(argument,arg);
     
     chance=get_skill(ch, gsn_bite);
     chance=UMAX(chance,get_skill(ch, gsn_venom_bite));
@@ -3123,21 +3059,8 @@ void do_bite( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( victim = ch->fighting ) == NULL )
-    {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
-    if ( arg[0] != '\0' )
-        if ( (victim = get_char_room( ch, arg )) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
-        if ( is_safe(ch,victim) )
-            return;
         
         WAIT_STATE( ch, skill_table[gsn_bite].beats );
         check_killer(ch,victim);
@@ -3209,9 +3132,6 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
     OBJ_DATA *obj;
     int dam;
     int chance_hit, chance_stun, skill;
-    char arg[MAX_INPUT_LENGTH];
-    
-    one_argument(argument, arg);
     
     if (get_skill(ch,gsn_shield_bash)==0)
     {
@@ -3225,19 +3145,9 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( victim = ch->fighting ) == NULL )
-    {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
-    if ( arg[0] != '\0' )
-        if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-        
+
     if (victim->position < POS_FIGHTING)
     {
 	act("You'll have to let $M get back up first.",ch,NULL,victim,TO_CHAR);
@@ -3250,9 +3160,6 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
 	return;
     }
     
-    if ( is_safe(ch,victim) )
-	return;
-        
     check_killer(ch,victim);
     WAIT_STATE(ch,skill_table[gsn_shield_bash].beats);
     

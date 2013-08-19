@@ -3061,6 +3061,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         break;
         
     case POS_DEAD:
+        // suicide during combat counts as kill by opponent
+        if ( ch == victim && victim->fighting != NULL )
+            ch = victim->fighting;
         if (victim!=ch || !(!IS_NPC(victim) && IS_SET(victim->act, PLR_WAR)))
         {
             
@@ -4526,6 +4529,15 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
 
     if ( ch->position >= POS_FIGHTING )
       set_pos( ch, POS_FIGHTING );
+}
+
+void start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( !ch->fighting )
+        set_fighting(ch, victim);
+    // double check that set_fighting worked in case kill_trigger stopped it
+    if ( ch->fighting && !victim->fighting )
+        set_fighting(victim, ch);
 }
 
 /*
