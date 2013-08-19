@@ -906,23 +906,23 @@ void do_clanreport( CHAR_DATA *ch, char *argument )
             add_buf(buffer, buf);
         }
         
-        sprintf(buf, "{+          Use clantalk{x: %7s \t", clan_table[clan].rank_list[j].can_use_clantalk ? "{gYes{x" : "{rNo{x" );
+        sprintf(buf, "{+          Use clantalk{x: %7s \t\t", clan_table[clan].rank_list[j].can_use_clantalk ? "{gYes{x" : "{rNo{x" );
         add_buf(buffer, buf);
         sprintf(buf, "{+       Read clan notes{x: %3s\n\r", clan_table[clan].rank_list[j].can_note ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+    Marry clan members{x: %7s \t", clan_table[clan].rank_list[j].can_marry ? "{gYes{x" : "{rNo{x");
+        sprintf(buf, "{+    Marry clan members{x: %7s \t\t", clan_table[clan].rank_list[j].can_marry ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
         sprintf(buf, "{+Join Warfare clan wars{x: %3s\n\r", clan_table[clan].rank_list[j].can_warfare ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+         Invite others{x: %7s \t", clan_table[clan].rank_list[j].can_invite ? "{gYes{x" : "{rNo{x");
+        sprintf(buf, "{+         Invite others{x: %7s \t\t", clan_table[clan].rank_list[j].can_invite ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
 	sprintf(buf, "{+              Set MOTD{x: %3s\n\r", clan_table[clan].rank_list[j].can_set_motd ? "{gYes{x" : "{rNo{x");
 	add_buf(buffer, buf);
-        sprintf(buf, "{+         Clanwar pkill{x: %7s \t", clan_table[clan].rank_list[j].clanwar_pkill ? "{gYes{x" : "{rNo{x");
+        sprintf(buf, "{+         Clanwar pkill{x: %7s \t\t", clan_table[clan].rank_list[j].clanwar_pkill ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
         sprintf(buf, "{+       Declare Clanwar{x: %3s\n\r", clan_table[clan].rank_list[j].can_declare_war ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+ Declare Clanwar Truce{x: %7s \t", clan_table[clan].rank_list[j].can_declare_truce ? "{gYes{x" : "{rNo{x");
+        sprintf(buf, "{+ Declare Clanwar Truce{x: %7s \t\t", clan_table[clan].rank_list[j].can_declare_truce ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
         sprintf(buf, "{+Declare Clanwar Treaty{x: %3s\n\r", clan_table[clan].rank_list[j].can_declare_treaty ? "{gYes{x" : "{rNo{x");        
         add_buf(buffer, buf);

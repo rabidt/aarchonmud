@@ -631,12 +631,12 @@ void do_authorize( CHAR_DATA *ch, char *argument )
                         break;
                     }
                     
-                    printf_to_char( ch, "\t%s\t\t%s\n\r", auth->name, buf );
+                    printf_to_char( ch, "\t\t%s\t\t\t\t%s\n\r", auth->name, buf );
                 }
             }
         }
         else
-            send_to_char( "\tNone\n\r", ch );
+            send_to_char( "\t\tNone\n\r", ch );
 
 	return;
     }
@@ -653,7 +653,7 @@ void do_authorize( CHAR_DATA *ch, char *argument )
             {
                 if ( auth->state == AUTH_AUTHED )
 		{
-		    sprintf( buf, "Name: %s\t Approved by: %s\n\r", 
+		    sprintf( buf, "Name: %s\t\t Approved by: %s\n\r", 
 			     auth->name, auth->authed_by );
 		    add_buf( output, buf );
 		}
@@ -667,7 +667,7 @@ void do_authorize( CHAR_DATA *ch, char *argument )
             {
                 if ( auth->state == AUTH_CHANGE_NAME )
 		{
-                    sprintf( buf, "Name: %s\t Change requested by: %s\n\r", 
+                    sprintf( buf, "Name: %s\t\t Change requested by: %s\n\r", 
 			     auth->name, auth->change_by );
  		    add_buf( output, buf );
 		}
@@ -681,7 +681,7 @@ void do_authorize( CHAR_DATA *ch, char *argument )
             {
                 if ( auth->state == AUTH_DENIED )
 		{
-                    sprintf( buf, "Name: %s\t Denied by: %s\n\r", 
+                    sprintf( buf, "Name: %s\t\t Denied by: %s\n\r", 
 			     auth->name, auth->denied_by );
 		    add_buf( output, buf );
 		}
