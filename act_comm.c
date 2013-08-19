@@ -811,7 +811,7 @@ void do_info( CHAR_DATA *ch, char *argument )
         }
     }
     else
-        if (ch->level >= VICEARCHON)
+        if ( get_trust(ch) >= VICEARCHON )
         {
             for ( d = descriptor_list; d != NULL; d = d->next )
             {

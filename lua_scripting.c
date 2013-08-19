@@ -1081,7 +1081,7 @@ static int L_affected (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
-
+    
     lua_pushboolean( LS,  ud_ch != NULL
             &&  is_affected_parse(ud_ch, argument) );
 
@@ -1092,9 +1092,21 @@ static int L_act (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
+    int flag=NO_FLAG;
 
+    if (IS_NPC(ud_ch))
+    {
+        if ((flag=flag_lookup(argument, act_flags)) == NO_FLAG) 
+            luaL_error(LS, "L_act: flag '%s' not found in act_flags (mob)", argument);
+    }
+    else
+    {
+        if ((flag=flag_lookup(argument, plr_flags)) == NO_FLAG)
+            luaL_error(LS, "L_act: flag '%s' not found in plr_flags (player)", argument);
+    }
+    
     lua_pushboolean( LS, ud_ch != NULL
-            &&  IS_SET(ud_ch->act, flag_lookup(argument, act_flags)) );
+            &&  IS_SET(ud_ch->act, flag) );
 
     return 1;
 }
@@ -1103,9 +1115,13 @@ static int L_off (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
+    int flag=NO_FLAG;
+
+    if (flag=flag_lookup(argument, off_flags) == NO_FLAG)
+        luaL_error(LS, "L_off: flag '%s' not found in off_flags", argument);
 
     lua_pushboolean( LS,
-            IS_SET(ud_ch->off_flags, flag_lookup(argument, off_flags)) );
+            IS_SET(ud_ch->off_flags, flag) );
 
     return 1;
 }
@@ -1114,9 +1130,12 @@ static int L_imm (lua_State *LS)
 { 
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
+    int flag=NO_FLAG;
+
+    if (flag=flag_lookup(argument, off_flags) == NO_FLAG)                               luaL_error(LS, "L_imm: flag '%s' not found in imm_flags", argument);
 
     lua_pushboolean( LS, ud_ch != NULL
-            &&  IS_SET(ud_ch->imm_flags, flag_lookup(argument, imm_flags)) );
+            &&  IS_SET(ud_ch->imm_flags, flag) );
 
     return 1;
 }

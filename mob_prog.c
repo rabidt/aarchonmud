@@ -160,9 +160,9 @@ typedef char* keyword_list[][2];
 const keyword_list fn_keyword =
 {
     { "rand",		"if rand 30             - if random number < 30" },
-    { "mobhere",	"if mobhere fido        - is there a 'fido' here\n\r\t\t"
+    { "mobhere",	"if mobhere fido        - is there a 'fido' here\n\r\t\t\t\t"
 			"if mobhere 1233        - is there mob vnum 1233 here" },
-    { "objhere",	"if objhere bottle      - is there a 'bottle' here\n\r\t\t"
+    { "objhere",	"if objhere bottle      - is there a 'bottle' here\n\r\t\t\t\t"
 			"if objhere 1233        - is there obj vnum 1233 here" },
     { "mobexists",	"if mobexists fido      - is there a fido somewhere" },
     { "objexists",	"if objexists sword     - is there a sword somewhere" },
@@ -193,9 +193,9 @@ const keyword_list fn_keyword =
     { "act",		"if act $i sentinel     - is $i flagged sentinel" },
     { "off",            "if off $i berserk      - is $i flagged berserk" },
     { "imm",            "if imm $i fire	        - is $i immune to fire" },
-    { "carries",	"if carries $n sword    - does $n have a 'sword'\n\r\t\t"
+    { "carries",	"if carries $n sword    - does $n have a 'sword'\n\r\t\t\t\t"
 			"if carries $n 1233     - does $n have obj vnum 1233" },
-    { "wears",		"if wears $n lantern    - is $n wearing a 'lantern'\n\r\t\t"
+    { "wears",		"if wears $n lantern    - is $n wearing a 'lantern'\n\r\t\t\t\t"
 			"if wears $n 1233       - is $n wearing obj vnum 1233" },
     { "has",    	"if has $n weapon       - does $n have obj of type weapon" },
     { "uses",		"if uses $n armor       - is $n wearing obj of type armor" },
@@ -237,7 +237,7 @@ const keyword_list fn_keyword =
 
     { "religion",	"if religion $n 'bla'   - is $n of religion 'bla'" },
     { "skilled",        "if skilled $n climb    - has $n the climb skill " },
-    { "ccarries",	"if ccarries $n item    - does $n have an 'item' in a container\n\r\t\t"
+    { "ccarries",	"if ccarries $n item    - does $n have an 'item' in a container\n\r\t\t\t\t"
 			"if ccarries $n 1233    - does $n have obj 1233 in a container" },
     { "qtimer",         "if qtimer 3877 $n > 0  - qstatus timer check" },
     { "mpcnt",          "if mpcnt $i > 15       - mana point percent check" },
