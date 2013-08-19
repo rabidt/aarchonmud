@@ -4053,7 +4053,7 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     return TRUE;
 }
 
-int parry_chance( CHAR_DATA *ch, bool improve )
+int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
 
@@ -4062,7 +4062,14 @@ int parry_chance( CHAR_DATA *ch, bool improve )
     if ( gsn_weapon == gsn_hand_to_hand && !(IS_NPC(ch) && IS_SET(ch->off_flags, OFF_PARRY)) )
         return 0;
 
-    int chance = 10 + get_skill(ch, gsn_parry) / 4;
+    int opponent_adjust = 0;
+    if ( opp )
+    {
+        int level_diff = ch->level - opp->level;
+        int stat_diff = get_curr_stat(ch, STAT_DEX) - get_curr_stat(opp, STAT_DEX);
+        opponent_adjust = (level_diff + stat_diff/4) / 2;
+    }
+    int chance = 10 + (get_skill(ch, gsn_parry) + opponent_adjust) / 4;
     
     /* some weapons are better for parrying, some are worse */
     if ( gsn_weapon == gsn_sword )
@@ -4101,10 +4108,8 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( ch_weapon == gsn_gun || ch_weapon == gsn_bow )
         return FALSE;
 
-    if ( (chance = parry_chance(victim, TRUE)) == 0 )
+    if ( (chance = parry_chance(victim, ch, TRUE)) == 0 )
         return FALSE;
-    
-    chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_DEX)) / 8;
     
     /* some weapons are harder to parry */
     if ( ch_weapon == gsn_whip || ch_weapon == gsn_flail )
@@ -4124,7 +4129,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !can_see_combat(ch,victim) && blind_penalty(victim) )
         chance /= 2;
     
-    if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
+    if ( !per_chance(chance) )
         return FALSE;
     
     act_gag( "You parry $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
@@ -4340,7 +4345,7 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
 
-    if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
+    if ( !per_chance(chance) )
         return FALSE;
     
     act_gag( "You block $n's attack with your shield.",  ch, NULL, victim, 
@@ -4376,7 +4381,7 @@ bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
-int dodge_chance( CHAR_DATA *ch, bool improve )
+int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int skill = get_skill(ch, gsn_dodge);
 
@@ -4392,7 +4397,14 @@ int dodge_chance( CHAR_DATA *ch, bool improve )
             check_improve(ch, gsn_evasive, TRUE, 15);
     }
     
-    int chance = 10 + skill / 4;
+    int opponent_adjust = 0;
+    if ( opp )
+    {
+        int level_diff = ch->level - opp->level;
+        int stat_diff = get_curr_stat(ch, STAT_AGI) - get_curr_stat(opp, STAT_DEX);
+        opponent_adjust = (level_diff + stat_diff/4) / 2;
+    }
+    int chance = 10 + (skill + opponent_adjust) / 4;
     
     if ( ch->stance==STANCE_TOAD
         || ch->stance==STANCE_SWAYDES_MERCY
@@ -4417,13 +4429,12 @@ bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !IS_AWAKE(victim) )
         return FALSE;
     
-    chance = dodge_chance(victim, TRUE);
-    chance += (get_curr_stat(victim, STAT_AGI)-get_curr_stat(ch, STAT_DEX))/8;
+    chance = dodge_chance(victim, ch, TRUE);
 
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
     
-    if ( number_percent( ) >= UMIN(chance + (victim->level - ch->level)/4,90) )
+    if ( !per_chance(chance) )
         return FALSE;
 
     act_gag( "You dodge $n's attack.", ch, NULL, victim, TO_VICT, GAG_MISS );
