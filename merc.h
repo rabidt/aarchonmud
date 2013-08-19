@@ -3831,6 +3831,7 @@ struct achievement_entry
 #define PERS(ch, looker)    ( can_see( looker, (ch) ) ? ( IS_NPC(ch) ? (ch)->short_descr : (ch)->name ) : "someone" )
 */
 
+#define ISSPACE(arg) (isspace(arg) && ( arg != '\t' ) )
 /*
  * Structure for a social in the socials table.
  */

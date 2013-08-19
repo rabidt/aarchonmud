@@ -1576,9 +1576,12 @@ bool is_command_pending( DESCRIPTOR_DATA *d )
  */
 void read_from_buffer( DESCRIPTOR_DATA *d )
 {
+    bool immortal=FALSE;
     int i, j, k;
     bool got_n, got_r;
 
+    if (d->character)
+        immortal=IS_IMMORTAL(d->character);
 
     /*
      * Hold horses if pending command already.
@@ -1618,7 +1621,22 @@ void read_from_buffer( DESCRIPTOR_DATA *d )
         if ( d->inbuf[i] == '\b' && k > 0 )
             --k;
         else if ( isascii(d->inbuf[i]) && isprint(d->inbuf[i]) )
-            d->incomm[k++] = d->inbuf[i];
+        {
+            if ( immortal && (d->inbuf[i] == '~') )
+            {
+                if (d->inbuf[i+1] == '~')
+                {
+                    d->incomm[k++]= '~';
+                    i++;
+                }
+                else
+                {
+                    d->incomm[k++] = '\t';
+                }
+            }
+            else
+                d->incomm[k++] = d->inbuf[i];
+        }
     }
 
     /*
