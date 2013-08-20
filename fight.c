@@ -4179,33 +4179,32 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 */
 bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    int chance;
-    
     if ( !IS_AWAKE(victim) )
         return FALSE;
     
-    if ( get_weapon_sn(ch) != gsn_gun
-	 && get_weapon_sn(ch) != gsn_bow )
+    if ( get_weapon_sn(ch) != gsn_gun && get_weapon_sn(ch) != gsn_bow )
         return FALSE;
     
-    chance = get_skill(victim,gsn_duck) / 3;
+    int skill = get_skill(victim,gsn_duck);
     
-    if (chance == 0)
-	return FALSE;
-    
+    if (skill == 0)
+        return FALSE;
+
+    int level_diff = victim->level - ch->level;
+    int stat_diff = get_curr_stat(victim, STAT_AGI) - get_curr_stat(ch, STAT_DEX);
+    int opponent_adjust = (level_diff + stat_diff/4) / 2;
+    int chance = (skill + opponent_adjust) / 3;
+
     if (victim->stance==STANCE_SHOWDOWN)
         chance += 30;
 
     if ( IS_AFFECTED(victim, AFF_SORE) )
-	chance -= 10;
+        chance -= 10;
     
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
 
-    if (get_skill(victim,gsn_duck) == 100)
-        chance += 5;
-    
-    if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
+    if ( !per_chance(chance) )
         return FALSE;
     
     act_gag( "You duck $n's shot!", ch, NULL, victim, TO_VICT, GAG_MISS );
@@ -4241,11 +4240,6 @@ bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance/4;
 
-    /* Works at 95%, instead of 100%, since 100% effective
-       is near impossible - Astark Nov 2012 */
-    if (get_skill(victim,gsn_mass_combat) >= 95)
-        chance += 3;
-    
     if ( number_percent() > chance )
         return FALSE;
     
