@@ -1091,28 +1091,10 @@ void affect_check(CHAR_DATA *ch,int where,int vector)
  */
 void affect_to_char( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
-    AFFECT_DATA *paf_new, *paf_old;
-    
-    paf_new = new_affect();
-    
-    *paf_new        = *paf;
-    
-    /* ensure that affects of same type stay together --Bobble */
-    for ( paf_old = ch->affected; paf_old != NULL; paf_old = paf_old->next )
-	if ( paf_old->type == paf_new->type
-	     && (paf_old->next == NULL || paf_old->next->type != paf_new->type) )
-	{
-	    paf_new->next = paf_old->next;
-	    paf_old->next = paf_new;
-	    break;
-	}
+    AFFECT_DATA *paf_new = new_affect();
+    *paf_new = *paf;
 
-    /* not yet inserted? */
-    if ( paf_old == NULL )
-    {
-	paf_new->next   = ch->affected;
-	ch->affected    = paf_new;
-    }
+    ch->affected = affect_insert(ch->affected, paf_new);
 
     affect_modify( ch, paf_new, TRUE );
     return;
