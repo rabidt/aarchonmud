@@ -5307,8 +5307,8 @@ void do_percentages( CHAR_DATA *ch, char *argument )
 
     // dodge, parry, block
     add_buff_pad(output, LENGTH, "{D|{x           {cDodge:{x %3d%%           {cParry:{x %3d%%           {cBlock:{x %3d%%",
-        dodge_chance(ch, FALSE),
-        parry_chance(ch, FALSE),
+        dodge_chance(ch, NULL, FALSE),
+        parry_chance(ch, NULL, FALSE),
         shield_block_chance(ch, FALSE)
     );
     add_buf(output, "{D|{x\n\r");
