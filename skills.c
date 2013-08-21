@@ -644,6 +644,11 @@ void do_spells(CHAR_DATA *ch, char *argument)
 		return;
 	}
 
+    // show injury penalty
+    int penalty = get_injury_penalty(ch);
+    if ( penalty > 0 )
+        printf_to_char(ch, "{rNote: Your spells are reduced by up to %d%% due to injury.{x\n\r", penalty);
+
 	buffer = new_buf();
 	for (level = 0; level < LEVEL_HERO + 1; level++)
 		if (spell_list[level][0] != '\0')
@@ -729,20 +734,6 @@ void do_skills(CHAR_DATA *ch, char *argument)
 		skill_list[level][0] = '\0';
 	}
 
-    /* let's show exotic */
-        int max=0;
-        int total=0;
-        int i;
-        int skill;
-        for (i=gsn_axe; i<=gsn_whip; i++)
-        {
-            skill = get_weapon_skill(ch, i);
-            total+=skill;
-            if (skill>max) max=skill;
-        }
-        skill=(total/(gsn_whip-gsn_axe)+2*max)/3;
-    ptc( ch, "          %-21s     (%3d%%)", "exotic", skill);
-
 	for (sn = 0; sn < MAX_SKILL; sn++)
 	{
 	    if (skill_table[sn].name == NULL )
@@ -778,6 +769,14 @@ void do_skills(CHAR_DATA *ch, char *argument)
 		send_to_char("No skills found.\n\r",ch);
 		return;
 	}
+
+	// show injury penalty
+    int penalty = get_injury_penalty(ch);
+    if ( penalty > 0 )
+        printf_to_char(ch, "{rNote: Your skills are reduced by up to %d%% due to injury.{x\n\r", penalty);
+
+    /* let's show exotic */
+    printf_to_char( ch, "\n\r          %-21s     (%3d%%)", "exotic", get_weapon_skill(ch, -1));
 
 	buffer = new_buf();
 	for (level = 0; level < LEVEL_HERO + 1; level++)
