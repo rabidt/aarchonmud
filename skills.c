@@ -1783,7 +1783,7 @@ int get_weapon_skill(CHAR_DATA *ch, int sn)
 		skill=(total/(gsn_whip-gsn_axe)+2*max)/3;
 	}
 	else
-		skill = pc_get_skill(ch, sn);
+		skill = get_skill(ch, sn);
 
 	return URANGE(0,skill,100);
 }
