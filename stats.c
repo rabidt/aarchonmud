@@ -475,6 +475,18 @@ int train_stat_inc( CHAR_DATA *ch, int stat )
     }
 }
 
+int construct_train_cost( int from, int to )
+{
+    int total = 0;
+    for ( ; from < to; from++ )
+    {
+        int base = UMAX(from/10 - 6, 1);
+        int cost = base * (base + 1) * 5;
+        total += cost;
+    }
+    return total;
+}
+
 void do_train( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH];
@@ -677,8 +689,7 @@ void do_train( CHAR_DATA *ch, char *argument )
     
     if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
     {
-        cost = ch->perm_stat[stat] - ch->pcdata->original_stats[stat];
-        cost = cost*20+120;
+        cost = construct_train_cost(ch->perm_stat[stat], ch->perm_stat[stat] + train_stat_inc(ch, stat));
         if (cost > ch->gold)
         {
             sprintf(buf, "You need %d gold to upgrade your %s.\n\r",
