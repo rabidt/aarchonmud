@@ -2974,13 +2974,30 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     }
 
     int grit = get_skill(victim, gsn_true_grit);
-    if ( dt != gsn_beheading && grit > 0 && dam > 1 && victim->move > 0 )
+    if ( grit > 0 && dam > 0 && lethal && dt != gsn_beheading && victim->move > 0 )
     {
-        int move_loss = dam/2 * grit/100 * victim->move/(victim->move + victim->hit);
-        move_loss = URANGE(0, move_loss, victim->move);
-        victim->move -= move_loss;
-        dam -= move_loss;
-        check_improve(victim, gsn_true_grit, TRUE, 15);
+        // absorb only damage that would drop victim below 1 hp
+        int max_absorb = dam - UMAX(0, victim->hit - 1);
+        int absorb = URANGE(0, max_absorb, victim->move);
+        if ( absorb > 0 )
+        {
+            int absorb_roll = number_range(0, absorb);
+            int grit_max = victim->move * grit/100;
+            int grit_roll = number_range(0, grit_max);
+            #ifdef TESTER
+            printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb, absorb_roll, grit_roll, grit_max);
+            #endif
+            if ( grit_roll > absorb_roll )
+            {
+                victim->move -= absorb;
+                victim->hit += absorb;
+                if ( show && !IS_SET(victim->gag, GAG_BLEED) )
+                    send_to_char("You cling to life, showing true grit!\n\r", victim);
+                check_improve(victim, gsn_true_grit, TRUE, 1);
+            }
+            else
+                check_improve(victim, gsn_true_grit, FALSE, 0);
+        }
     }
     
     if (lethal)
