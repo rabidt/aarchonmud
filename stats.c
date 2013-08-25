@@ -480,8 +480,8 @@ int construct_train_cost( int from, int to )
     int total = 0;
     for ( ; from < to; from++ )
     {
-        int base = UMAX(from/10 - 6, 1);
-        int cost = base * (base + 1) * 5;
+        int base = UMAX(from/10 - 7, 0);
+        int cost = 10 << base;
         total += cost;
     }
     return total;
