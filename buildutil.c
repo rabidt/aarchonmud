@@ -1085,7 +1085,7 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 		     "Age: %d  Played: %d  Last Level: %d  QPoints: %d  Timer: %d  Highest Level: %d\n\r",
 		get_age(victim), 
 		(int) (victim->played + current_time - victim->logon) / 3600, 
-		victim->pcdata->last_level, 
+		victim->pcdata->last_level / 3600,
 		victim->pcdata->questpoints,
 		victim->timer,
 		victim->pcdata->highest_level);

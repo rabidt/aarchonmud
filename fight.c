@@ -38,7 +38,6 @@
 #include "tables.h"
 #include "warfare.h"
 #include "lookup.h"
-#include "leaderboard.h"
 
 extern WAR_DATA war;
 
@@ -1236,6 +1235,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -2973,13 +2974,30 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     }
 
     int grit = get_skill(victim, gsn_true_grit);
-    if ( dt != gsn_beheading && grit > 0 && dam > 1 && victim->move > 0 )
+    if ( grit > 0 && dam > 0 && lethal && dt != gsn_beheading && victim->move > 0 )
     {
-        int move_loss = dam/2 * grit/100 * victim->move/(victim->move + victim->hit);
-        move_loss = URANGE(0, move_loss, victim->move);
-        victim->move -= move_loss;
-        dam -= move_loss;
-        check_improve(victim, gsn_true_grit, TRUE, 15);
+        // absorb only damage that would drop victim below 1 hp
+        int max_absorb = dam - UMAX(0, victim->hit - 1);
+        int absorb = URANGE(0, max_absorb, victim->move);
+        if ( absorb > 0 )
+        {
+            int absorb_roll = number_range(0, absorb);
+            int grit_max = victim->move * grit/100;
+            int grit_roll = number_range(0, grit_max);
+            #ifdef TESTER
+            printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb, absorb_roll, grit_roll, grit_max);
+            #endif
+            if ( grit_roll > absorb_roll )
+            {
+                victim->move -= absorb;
+                victim->hit += absorb;
+                if ( show && !IS_SET(victim->gag, GAG_BLEED) )
+                    send_to_char("You cling to life, showing true grit!\n\r", victim);
+                check_improve(victim, gsn_true_grit, TRUE, 1);
+            }
+            else
+                check_improve(victim, gsn_true_grit, FALSE, 0);
+        }
     }
     
     if (lethal)
@@ -4053,7 +4071,7 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     return TRUE;
 }
 
-int parry_chance( CHAR_DATA *ch, bool improve )
+int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
 
@@ -4062,7 +4080,14 @@ int parry_chance( CHAR_DATA *ch, bool improve )
     if ( gsn_weapon == gsn_hand_to_hand && !(IS_NPC(ch) && IS_SET(ch->off_flags, OFF_PARRY)) )
         return 0;
 
-    int chance = 10 + get_skill(ch, gsn_parry) / 4;
+    int opponent_adjust = 0;
+    if ( opp )
+    {
+        int level_diff = ch->level - opp->level;
+        int stat_diff = get_curr_stat(ch, STAT_DEX) - get_curr_stat(opp, STAT_DEX);
+        opponent_adjust = (level_diff + stat_diff/4) / 2;
+    }
+    int chance = 10 + (get_skill(ch, gsn_parry) + opponent_adjust) / 4;
     
     /* some weapons are better for parrying, some are worse */
     if ( gsn_weapon == gsn_sword )
@@ -4101,10 +4126,8 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( ch_weapon == gsn_gun || ch_weapon == gsn_bow )
         return FALSE;
 
-    if ( (chance = parry_chance(victim, TRUE)) == 0 )
+    if ( (chance = parry_chance(victim, ch, TRUE)) == 0 )
         return FALSE;
-    
-    chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_DEX)) / 8;
     
     /* some weapons are harder to parry */
     if ( ch_weapon == gsn_whip || ch_weapon == gsn_flail )
@@ -4124,7 +4147,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !can_see_combat(ch,victim) && blind_penalty(victim) )
         chance /= 2;
     
-    if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
+    if ( !per_chance(chance) )
         return FALSE;
     
     act_gag( "You parry $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
@@ -4174,33 +4197,32 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 */
 bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    int chance;
-    
     if ( !IS_AWAKE(victim) )
         return FALSE;
     
-    if ( get_weapon_sn(ch) != gsn_gun
-	 && get_weapon_sn(ch) != gsn_bow )
+    if ( get_weapon_sn(ch) != gsn_gun && get_weapon_sn(ch) != gsn_bow )
         return FALSE;
     
-    chance = get_skill(victim,gsn_duck) / 3;
+    int skill = get_skill(victim,gsn_duck);
     
-    if (chance == 0)
-	return FALSE;
-    
+    if (skill == 0)
+        return FALSE;
+
+    int level_diff = victim->level - ch->level;
+    int stat_diff = get_curr_stat(victim, STAT_AGI) - get_curr_stat(ch, STAT_DEX);
+    int opponent_adjust = (level_diff + stat_diff/4) / 2;
+    int chance = (skill + opponent_adjust) / 3;
+
     if (victim->stance==STANCE_SHOWDOWN)
         chance += 30;
 
     if ( IS_AFFECTED(victim, AFF_SORE) )
-	chance -= 10;
+        chance -= 10;
     
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
 
-    if (get_skill(victim,gsn_duck) == 100)
-        chance += 5;
-    
-    if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
+    if ( !per_chance(chance) )
         return FALSE;
     
     act_gag( "You duck $n's shot!", ch, NULL, victim, TO_VICT, GAG_MISS );
@@ -4236,11 +4258,6 @@ bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance/4;
 
-    /* Works at 95%, instead of 100%, since 100% effective
-       is near impossible - Astark Nov 2012 */
-    if (get_skill(victim,gsn_mass_combat) >= 95)
-        chance += 3;
-    
     if ( number_percent() > chance )
         return FALSE;
     
@@ -4340,7 +4357,7 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
 
-    if ( number_percent( ) >= chance + (victim->level - ch->level)/4 )
+    if ( !per_chance(chance) )
         return FALSE;
     
     act_gag( "You block $n's attack with your shield.",  ch, NULL, victim, 
@@ -4376,7 +4393,7 @@ bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
-int dodge_chance( CHAR_DATA *ch, bool improve )
+int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int skill = get_skill(ch, gsn_dodge);
 
@@ -4392,7 +4409,14 @@ int dodge_chance( CHAR_DATA *ch, bool improve )
             check_improve(ch, gsn_evasive, TRUE, 15);
     }
     
-    int chance = 10 + skill / 4;
+    int opponent_adjust = 0;
+    if ( opp )
+    {
+        int level_diff = ch->level - opp->level;
+        int stat_diff = get_curr_stat(ch, STAT_AGI) - get_curr_stat(opp, STAT_DEX);
+        opponent_adjust = (level_diff + stat_diff/4) / 2;
+    }
+    int chance = 10 + (skill + opponent_adjust) / 4;
     
     if ( ch->stance==STANCE_TOAD
         || ch->stance==STANCE_SWAYDES_MERCY
@@ -4417,13 +4441,12 @@ bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !IS_AWAKE(victim) )
         return FALSE;
     
-    chance = dodge_chance(victim, TRUE);
-    chance += (get_curr_stat(victim, STAT_AGI)-get_curr_stat(ch, STAT_DEX))/8;
+    chance = dodge_chance(victim, ch, TRUE);
 
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance / 4;
     
-    if ( number_percent( ) >= UMIN(chance + (victim->level - ch->level)/4,90) )
+    if ( !per_chance(chance) )
         return FALSE;
 
     act_gag( "You dodge $n's attack.", ch, NULL, victim, TO_VICT, GAG_MISS );
