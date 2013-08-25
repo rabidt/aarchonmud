@@ -398,65 +398,55 @@ void spell_rustle_grub ( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 }
 */
 
+// everyone who fails a save makes an attack against the target
 void spell_betray( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
-    CHAR_DATA  *victim = (CHAR_DATA *) vo;
-    AFFECT_DATA af;
-    
-    /*
-    if ( !ch->fighting )
-    {
-        send_to_char( "You can only cast betray during combat.", ch );
-        return;
-    }
-    */
-    
-    if ( victim == ch )
-    {
-        send_to_char( "Betray yourself?  How Freudian.\n\r", ch );
-        return;
-    }
-    
-    if ( !IS_NPC(victim) || !IS_AFFECTED(victim, AFF_CHARM) )
-    {
-        send_to_char( "Only charmed mobs will betray their master.\n\r", ch );
-        return;	
-    }
+    CHAR_DATA *victim = (CHAR_DATA *) vo;
+    CHAR_DATA *traitor, *traitor_next;
 
-    if ( IS_AFFECTED(ch, AFF_CHARM) || IS_SET(victim->imm_flags, IMM_CHARM) )
+    // ensure the victim attacks caster rather than traitor if used to initiate combat
+    if ( !victim->fighting )
+        start_combat(victim, ch);
+    
+    act("You project feelings of hate towards $N.", ch, NULL, victim, TO_CHAR);
+
+    for ( traitor = victim->in_room->people; traitor != NULL; traitor = traitor_next )
     {
-	act( "You can't charm $N.", ch, NULL, victim, TO_CHAR );
-	return;
+        traitor_next = traitor->next_in_room;
+        
+        if ( IS_DEAD(victim) || traitor->in_room != victim->in_room )
+            return;
+
+        if ( traitor == victim || traitor->fighting == victim || traitor->stop > 0 )
+            continue;
+
+        if ( is_safe_spell(ch, traitor, TRUE) || is_safe_spell(traitor, victim, FALSE) )
+            continue;
+
+        if ( saves_spell(level, traitor, DAM_MENTAL) )
+        {
+            act("You feel a momentary urge to attack $N.", traitor, NULL, victim, TO_CHAR);
+            act("$N resists your command.", ch, NULL, traitor, TO_CHAR);
+            if ( !traitor->fighting )
+                start_combat(traitor, ch);
+            continue;
+        }
+
+        act("You are overcome with blind hate for $N!", traitor, NULL, victim, TO_CHAR);
+        act("$n strikes at you with hate in $s eyes!", traitor, NULL, victim, TO_VICT);
+        act("$n strikes at $N with hate in $s eyes!", traitor, NULL, victim, TO_NOTVICT);
+        
+        // one full attack against the target, the return to normal fight
+        CHAR_DATA *was_fighting = traitor->fighting;
+        set_fighting_new(traitor, victim, FALSE);
+        multi_hit(traitor, victim, TYPE_UNDEFINED);
+        set_fighting_new(traitor, was_fighting ? was_fighting : ch, FALSE);
+
+        // this uses up the next full attack for the traitor
+        traitor->stop += 1;
+        traitor->wait += PULSE_VIOLENCE;
     }
-
-    if ( saves_spell(level, victim, DAM_CHARM) )
-    {
-        act( "$N remains loyal!", ch, NULL, victim, TO_CHAR );      
-        return;
-    }
     
-    if ( victim->fighting != NULL ) 
-        stop_fighting( victim, TRUE );
-    
-    if ( victim->master )
-        stop_follower( victim );
-    
-    add_follower( victim, ch );
-    victim->leader = ch;
-
-    affect_strip_flag( victim, AFF_CHARM );
-
-    af.type      = sn;
-    af.where     = TO_AFFECTS;
-    af.level     = level;
-    af.duration  = get_duration(sn, level);
-    af.location  = APPLY_NONE;
-    af.modifier  = 0;
-    af.bitvector = AFF_CHARM;
-    affect_to_char( victim, &af );
-
-    act( "$N has betrayed!", ch, NULL, victim, TO_CHAR );
-    act( "You now follow $n!", ch, NULL, victim, TO_VICT );
     return;
 }
 
@@ -3456,7 +3446,6 @@ void spell_mirror_image( int sn, int level, CHAR_DATA *ch, void *vo, int target 
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_phantasmal_image );
 
     af.type      = sn;
     af.level     = level;
@@ -4003,7 +3992,6 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_mirror_image );
 
     af.type      = sn;
     af.level     = level;
