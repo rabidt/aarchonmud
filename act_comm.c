@@ -187,7 +187,7 @@ void do_channels( CHAR_DATA *ch, char *argument)
             send_to_char("{2OFF{x\n\r",ch);
         
 	print_pub_chan(sn_gossip, ch);
-        print_pub_chan(sn_auction, ch);
+    print_pub_chan(sn_auction, ch);
 	print_pub_chan(sn_music, ch);
 	print_pub_chan(sn_question, ch);
 	print_pub_chan(sn_quote, ch);
