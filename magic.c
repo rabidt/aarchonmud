@@ -4327,6 +4327,12 @@ void spell_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
+    if ( IS_AFFECTED(ch, AFF_INSANE) )
+    {
+        act("$N is already confused.", ch, NULL, victim, TO_CHAR);
+        return;
+    }
+    
     if ( saves_spell(level*2/3,victim,DAM_MENTAL) )
         // || saves_spell(level,victim,DAM_CHARM))
     {
