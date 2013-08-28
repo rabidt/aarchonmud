@@ -3227,7 +3227,11 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     }
 
     if ( IS_NPC(ch) )
-	forget_attacker(ch, victim);
+    {
+        forget_attacker(ch, victim);
+        if ( ch->hunting && !str_cmp(ch->hunting, victim->name) )
+            stop_hunting(ch);
+    }
         
     if ( !PLR_ACT(ch, PLR_WAR) )
 	group_gain( ch, victim );
