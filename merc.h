@@ -780,7 +780,7 @@ struct  descriptor_data
 	sh_int      descriptor;
 	sh_int      connected;
 	bool        fcommand;
-	char        inbuf       [4 * MAX_INPUT_LENGTH];
+	char        inbuf       [MAX_PROTOCOL_BUFFER];
 	char        incomm      [MAX_INPUT_LENGTH];
 	char        inlast      [MAX_INPUT_LENGTH];
         bool        last_msg_was_prompt;
