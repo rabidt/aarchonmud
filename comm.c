@@ -43,59 +43,7 @@
  * -- Furey  26 Jan 1993
  */
 
-/***************************************************************************
- *        Port of ROM 2.4b4a to Windows NT by Michael K. Weise             *
- *                                                                         *
- *  This version runs as a native console application on NT 4.0 (SP3)      *
- *  when compiled with MCVC++ 4 (don't forget to link wsock32.lib.)        *
- *  I have not tested compatability with any other platform or compiler.   *
- *  Only merc.h, comm.c and db.c are affected by my modifications; all     *
- *  other source files are straight from the ROM24b4a distribution.        *
- *                                                                         *
- *  All I ask for my work is that you do not remove or modify this         *
- *  comment block. You must, of course, honor the Diku, Merc and ROM       *
- *  licences, and you are welcome to give me credit somewhere in help.are  *
- *  if you wish.                                                           *
- *                                                                         *
- *  Be kind; share any improvements of your own freely just as the Diku,   *
- *  Merc and ROM folks - and now I - have done.                            *
- *                                                                         *
- *          Michael K. Weise                                               *
- *          mkw@att.net                                                    *
- *          Vallyn on StormbringerMUD [telnet Stormbringer.nome.no 9000]   *
- *                                                                         *
- ***************************************************************************
- *       Michael K. Weise           Helping to get American products       *
- * German Localization Services         ready for German-speaking markets  *
- ***************************************************************************/
-
-#if defined( macintosh )
-#include <types.h>
-#else
-#include <sys/types.h>
-#if defined( WIN32 )
-#include <sys/timeb.h> /*for _ftime(), uses _timeb struct*/
-#else
-#include <sys/time.h>
-#endif
-#endif
-
 #include <stdarg.h>
-
-
-/*
- * Socket and TCP/IP stuff.
- */
-#if defined( WIN32 )
-#include <winsock.h>
-#include <process.h>
-#include "telnet.h"
-const   char    echo_off_str    [] = { IAC, WILL, TELOPT_ECHO, '\0' };
-const   char    echo_on_str [] = { IAC, WONT, TELOPT_ECHO, '\0' };
-const   char    go_ahead_str    [] = { IAC, GA, '\0' };
-#endif
-
-
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -106,10 +54,6 @@ const   char    go_ahead_str    [] = { IAC, GA, '\0' };
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
-
-#if defined( WIN32 )
-void    gettimeofday    args( ( struct timeval *tp, void *tzp ) );
-#endif
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );
@@ -139,41 +83,15 @@ extern  int malloc_debug    args( ( int  ) );
 extern  int malloc_verify   args( ( void ) );
 #endif
 
-
-/*
- * Signal handling.
- * Apollo has a problem with __attribute(atomic) in signal.h,
- *   I dance around it.
- */
-#if defined(apollo)
-#define __attribute(x)
-#endif
-
-#if defined(unix) || defined( WIN32 )
 #if defined(SOCR)
 #include "signal.h"
 #else
 #include <signal.h>
 #endif
-#endif
-
-#if defined(apollo)
-#undef __attribute
-#endif
-
-
 
 /*
  * Socket and TCP/IP stuff.
  */
-#if defined(macintosh) || defined(MSDOS)
-const   char    echo_off_str    [] = { '\0' };
-const   char    echo_on_str [] = { '\0' };
-const   char    go_ahead_str    [] = { '\0' };
-#endif
-
-
-#if     defined(unix)
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -182,9 +100,6 @@ const   char    go_ahead_str    [] = { '\0' };
 const   char    echo_off_str    [] = { IAC, WILL, TELOPT_ECHO, '\0' };
 const   char    echo_on_str     [] = { IAC, WONT, TELOPT_ECHO, '\0' };
 const   char    go_ahead_str    [] = { IAC, GA, '\0' };
-#endif
-
-
 
 /*
  * OS-dependent declarations.
@@ -203,11 +118,6 @@ int gettimeofday    args( ( struct timeval *tp, struct timezone *tzp ) );
 int setsockopt  args( ( int s, int level, int optname, void *optval,
             int optlen ) );
 int socket      args( ( int domain, int type, int protocol ) );
-#endif
-
-#if defined(apollo)
-#include <unistd.h>
-void    bzero       args( ( char *b, int length ) );
 #endif
 
 #if defined(__hpux)
@@ -255,47 +165,6 @@ int read        args( ( int fd, char *buf, int nbyte ) );
 int select      args( ( int width, fd_set *readfds, fd_set *writefds,
             fd_set *exceptfds, struct timeval *timeout ) );
 int socket      args( ( int domain, int type, int protocol ) );
-int write       args( ( int fd, char *buf, int nbyte ) );
-#endif
-
-#if defined(macintosh)
-#include <console.h>
-#include <fcntl.h>
-#include <unix.h>
-struct  timeval
-{
-    time_t  tv_sec;
-    time_t  tv_usec;
-};
-#if !defined(isascii)
-#define isascii(c)      ( (c) < 0200 )
-#endif
-static  long            theKeys [4];
-
-int gettimeofday        args( ( struct timeval *tp, void *tzp ) );
-#endif
-
-#if defined(MIPS_OS)
-extern  int     errno;
-#endif
-
-#if defined(MSDOS)
-int gettimeofday    args( ( struct timeval *tp, void *tzp ) );
-int kbhit       args( ( void ) );
-#endif
-
-#if defined(NeXT)
-int close       args( ( int fd ) );
-int fcntl       args( ( int fd, int cmd, int arg ) );
-#if !defined(htons)
-u_short htons       args( ( u_short hostshort ) );
-#endif
-#if !defined(ntohl)
-u_long  ntohl       args( ( u_long hostlong ) );
-#endif
-int read        args( ( int fd, char *buf, int nbyte ) );
-int select      args( ( int width, fd_set *readfds, fd_set *writefds,
-            fd_set *exceptfds, struct timeval *timeout ) );
 int write       args( ( int fd, char *buf, int nbyte ) );
 #endif
 
@@ -394,13 +263,6 @@ typedef enum {NDESC_NORMAL, NDESC_FTP } ndesc_t;
 /*
  * OS-dependent local functions.
  */
-#if defined(macintosh) || defined(MSDOS)
-void    game_loop_mac_msdos args( ( void ) );
-bool    read_from_descriptor    args( ( DESCRIPTOR_DATA *d ) );
-bool    write_to_descriptor args( ( int desc, char *txt, int length ) );
-#endif
-
-#if defined(unix) || defined(WIN32)
 void    game_loop_unix      args( ( int control ) );
 int   init_socket       args( ( u_short port ) );
 void    init_descriptor     args( ( int control, ndesc_t type ) );
@@ -410,9 +272,6 @@ void    greet_ftp       args( ( DESCRIPTOR_DATA *d ) );
 void    handle_ftp_data         ( DESCRIPTOR_DATA *, const char *);
 void    handle_ftp_auth         ( DESCRIPTOR_DATA *, const char *);
 void    handle_ftp_command      ( DESCRIPTOR_DATA *, const char *);
-#endif
-
-
 
 /*
  * Other local functions (OS-independent).
@@ -450,16 +309,6 @@ int main( int argc, char **argv )
     gettimeofday( &now_time, NULL );
     current_time    = (time_t) now_time.tv_sec;
     strcpy( str_boot_time, ctime( &current_time ) );
-
-    /*
-     * Macintosh console initialization.
-     */
-#if defined(macintosh)
-    console_options.nrows = 31;
-    cshow( stdout );
-    csetmode( C_RAW, stdin );
-    cecho2file( "log file", 1, stderr );
-#endif
 
     /* Log some info about the binary if present */
     log_string(bin_info_string());
@@ -513,14 +362,6 @@ int main( int argc, char **argv )
     /*
      * Run the game.
      */
-#if defined(macintosh) || defined(MSDOS)
-    boot_db();
-    log_string( "Merc is ready to rock." );
-    game_loop_mac_msdos( );
-#endif
-
-#if defined(unix) || defined( WIN32 )
-
     if (!fCopyOver)
     {
         control = init_socket( port );
@@ -536,13 +377,7 @@ int main( int argc, char **argv )
         copyover_recover();
 
     game_loop_unix( control );
-#if defined(WIN32)
-    closesocket( control );
-    WSACleanup();
-#else
     close (control);
-#endif
-#endif
 
     /*
      * That's all, folks.
@@ -552,8 +387,6 @@ int main( int argc, char **argv )
     return 0;
 }
 
-
-#if defined( unix ) || defined( AmigaTCP ) || defined( WIN32 )
 int init_socket( u_short port )
 {
     static struct sockaddr_in sa_zero;
@@ -561,7 +394,6 @@ int init_socket( u_short port )
     int x = 1;
     int fd;
 
-#if !defined(WIN32)
     system( "touch SHUTDOWN.TXT" );
     if ( ( fd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
     {
@@ -569,33 +401,11 @@ int init_socket( u_short port )
         exit( 1 );
     }
 
-#else
-    WORD    wVersionRequested = MAKEWORD( 1, 1 );
-    WSADATA wsaData;
-    int err = WSAStartup( wVersionRequested, &wsaData ); 
-    if ( err != 0 )
-    {
-        log_error( "No useable WINSOCK.DLL" );
-        exit( 1 );
-    }
-
-    if ( ( fd = socket( PF_INET, SOCK_STREAM, 0 ) ) < 0 )
-    {
-        log_error( "Init_socket: socket" );
-        exit( 1 );
-    }
-#endif
-
-
     if ( setsockopt( fd, SOL_SOCKET, SO_REUSEADDR,
                 (char *) &x, sizeof(x) ) < 0 )
     {
         log_error( "Init_socket: SO_REUSEADDR" );
-#if !defined( WIN32 )
         close(fd);
-#else
-        closesocket( fd );
-#endif
         exit( 1 );
     }
 
@@ -610,280 +420,42 @@ int init_socket( u_short port )
                     (char *) &ld, sizeof(ld) ) < 0 )
         {
             log_error( "Init_socket: SO_DONTLINGER" );
-#if !defined( WIN32 )
             close(fd);
-#else
-            closesocket( fd );
-#endif
             exit( 1 );
         }
     }
 #endif
 
     sa          = sa_zero;
-#if !defined( WIN32 )
     sa.sin_family   = AF_INET;
-#else
-    sa.sin_family   = PF_INET;
-#endif
     sa.sin_port     = htons( port );
 
     if ( bind( fd, (struct sockaddr *) &sa, sizeof(sa) ) < 0 )
     {
         log_error("Init socket: bind" );
-#if !defined( WIN32 )
         close(fd);
-#else
-        closesocket( fd );
-#endif
         exit(1);
     }
 
     if ( listen( fd, 3 ) < 0 )
     {
         log_error("Init socket: listen");
-#if !defined( WIN32 )
         close(fd);
-#else
-        closesocket( fd );
-#endif
         exit(1);
     }
 
-#if !defined( WIN32 )
     system( "rm SHUTDOWN.TXT" );
-#endif
 
     return fd;
 }
-#endif
 
-
-
-#if defined(macintosh) || defined(MSDOS)
-void game_loop_mac_msdos( void )
-{
-    struct timeval last_time;
-    struct timeval now_time;
-    static DESCRIPTOR_DATA dcon;
-
-    gettimeofday( &last_time, NULL );
-    current_time = (time_t) last_time.tv_sec;
-
-    /*
-     * New_descriptor analogue.
-     */
-    dcon.descriptor = 0;
-    dcon.connected  = CON_GET_NAME;
-    dcon.host       = str_dup( "localhost" );
-    dcon.outsize    = 2000;
-    dcon.outbuf     = alloc_mem( dcon.outsize );
-    dcon.next       = descriptor_list;
-    dcon.showstr_head   = NULL;
-    dcon.showstr_point  = NULL;
-    dcon.pEdit      = NULL;         /* OLC */
-    dcon.pString    = NULL;         /* OLC */
-    dcon.editor     = 0;            /* OLC */
-    descriptor_list = &dcon;
-
-    /*
-     * Send the greeting.
-     */
-    {
-        extern char * help_greeting;
-        if ( help_greeting[0] == '.' )
-            write_to_buffer( &dcon, help_greeting+1, 0 );
-        else
-            write_to_buffer( &dcon, help_greeting  , 0 );
-    }
-
-    install_other_handlers ();
-
-    /* Main loop */
-    while ( !merc_down )
-    {
-        DESCRIPTOR_DATA *d;
-
-        /*
-         * Process input.
-         */
-        for ( d = descriptor_list; d != NULL; d = d_next )
-        {
-            d_next  = d->next;
-            d->fcommand = FALSE;
-
-#if defined(MSDOS)
-            if ( kbhit( ) )
-#endif
-            {
-                if ( d->character != NULL )
-                    d->character->timer = 0;
-                if ( !read_from_descriptor( d ) )
-                {
-                    d->outtop   = 0;
-                    close_socket( d );
-                    continue;
-                }
-            }
-
-            if (d->character != NULL && d->character->daze > 0)
-                --d->character->daze;
-
-            if ( d->character != NULL && d->character->pcdata != NULL )
-            {
-                /* When pkill_timer > 0, a battle recently occurred and commands are restricted.
-                 * When a player is at zero or less hp, pkill_timer does not get reduced:
-                 we can't allow people to use the 'die' command to get out of being pkilled.
-                 * When pkill_timer < 0, the player recently logged in and cannot begin battle. */
-                if( d->character->pcdata->pkill_timer > 0 && d->character->hit > 0 )
-                    --d->character->pcdata->pkill_timer;
-                else if( d->character->pcdata->pkill_timer < 0 )
-                    ++d->character->pcdata->pkill_timer;
-            }
-
-            if (d->character != NULL && d->character->slow_move > 0)
-                --d->character->slow_move;
-
-            if ( d->character != NULL && d->character->wait > 0 )
-            {
-                --d->character->wait;
-                continue;
-            }
-
-            if ( d->character != NULL && check_fear(d->character) )
-                continue;
-
-            read_from_buffer( d );
-            if ( d->incomm[0] != '\0' )
-            {
-                d->fcommand = TRUE;
-
-                if ( d->pProtocol != NULL )
-                    d->pProtocol->WriteOOB = 0;
-
-                stop_idling( d->character );
-
-                /* OLC */
-                if ( d->showstr_point )
-                    show_string( d, d->incomm );
-                else
-                    if ( d->pString )
-                        string_add( d->character, d->incomm );
-                    else
-                        if (d->connected == CON_PLAYING)
-                            if ( !run_olc_editor( d ) )
-                                substitute_alias( d, d->incomm );
-                            else
-                                nanny( d, d->incomm );
-
-                d->incomm[0]    = '\0';
-            }
-            else
-            {
-                /* auto-action in combat */
-                if ( d->connected == CON_PLAYING
-                        && d->character != NULL
-                        && d->character->fighting != NULL )
-                    run_combat_action( d );
-            }
-        }
-
-
-
-        /*
-         * Autonomous game motion.
-         */
-        update_handler( );
-
-
-
-        /*
-         * Output.
-         */
-        /* snooped chars first */
-        for ( d = descriptor_list; d != NULL; d = d_next )
-        {
-            d_next = d->next;
-
-            if ( d->snoop_by == NULL )
-                continue;
-
-            if ( ( d->fcommand || d->outtop > 0 || !d->last_msg_was_prompt) )
-            {
-                if ( !process_output( d, TRUE ) )
-                {
-                    d->outtop   = 0;
-                    close_socket( d );
-                }
-            }
-        }
-        for ( d = descriptor_list; d != NULL; d = d_next )
-        {
-            d_next = d->next;
-
-            if ( d->snoop_by != NULL )
-                continue;
-
-            if ( ( d->fcommand || d->outtop > 0 || !d->last_msg_was_prompt) )
-            {
-                if ( !process_output( d, TRUE ) )
-                {
-                    d->outtop   = 0;
-                    close_socket( d );
-                }
-            }
-        }
-
-
-        /*
-         * Synchronize to a clock.
-         * Busy wait (blargh).
-         */
-        now_time = last_time;
-        for ( ; ; )
-        {
-            int delta;
-
-#if defined(MSDOS)
-            if ( kbhit( ) )
-#endif
-            {
-                if ( dcon.character != NULL )
-                    dcon.character->timer = 0;
-                if ( !read_from_descriptor( &dcon ) )
-                {
-                    dcon.outtop = 0;
-                    close_socket( &dcon );
-                }
-#if defined(MSDOS)
-                break;
-#endif
-            }
-
-            gettimeofday( &now_time, NULL );
-            delta = ( now_time.tv_sec  - last_time.tv_sec  ) * 1000 * 1000
-                + ( now_time.tv_usec - last_time.tv_usec );
-            if ( delta >= 1000000 / PULSE_PER_SECOND )
-                break;
-        }
-        last_time    = now_time;
-        current_time = (time_t) last_time.tv_sec;
-    }
-
-    return;
-}
-#endif
-
-
-
-#if defined(unix) || defined (WIN32)
 
 void game_loop_unix( int control )
 {
     static struct timeval null_time;
     struct timeval last_time;
 
-#if !defined( AmigaTCP ) && !defined( WIN32 )
+#if !defined( AmigaTCP )
     signal( SIGPIPE, SIG_IGN );
 #endif
     gettimeofday( &last_time, NULL );
@@ -1124,7 +696,6 @@ void game_loop_unix( int control )
          * Sleep( last_time + 1/PULSE_PER_SECOND - now ).
          * Careful here of signed versus unsigned arithmetic.
          */
-#ifndef WIN32
         {
             struct timeval now_time;
             long secDelta;
@@ -1159,36 +730,6 @@ void game_loop_unix( int control )
                 }
             }
         }
-#else
-        {
-            int times_up;
-            int nappy_time;
-            struct _timeb start_time;
-            struct _timeb end_time;
-            _ftime( &start_time );
-            times_up = 0;
-
-            while( times_up == 0 )
-            {
-                _ftime( &end_time );
-                if ( ( nappy_time =
-                            (int) ( 1000 *
-                                (double) ( ( end_time.time - start_time.time ) +
-                                    ( (double) ( end_time.millitm -
-                                                 start_time.millitm ) /
-                                      1000.0 ) ) ) ) >=
-                        (double)( 1000 / PULSE_PER_SECOND ) )
-                    times_up = 1;
-                else
-                {
-                    Sleep( (int) ( (double) ( 1000 / PULSE_PER_SECOND ) -
-                                (double) nappy_time ) );
-                    times_up = 1;
-                }
-            }
-        }
-#endif
-
 
         gettimeofday( &last_time, NULL );
         current_time = (time_t) last_time.tv_sec;
@@ -1196,11 +737,7 @@ void game_loop_unix( int control )
 
     return;
 }
-#endif
 
-
-
-#if defined(unix) || defined( WIN32 )
 void init_descriptor( int control, ndesc_t type )
 {
     char buf[MAX_STRING_LENGTH];
@@ -1242,7 +779,7 @@ return;
 #define FNDELAY O_NONBLOCK
 #endif
 
-#if !defined( AmigaTCP ) && !defined( WIN32 )
+#if !defined( AmigaTCP )
 if ( fcntl( desc, F_SETFL, FNDELAY ) == -1 )
 {
     log_error( "New_descriptor: fcntl: FNDELAY" );
@@ -1300,11 +837,7 @@ else
 if ( check_ban(dnew->host,BAN_ALL))
 {
     write_to_descriptor( desc, "Your site has been banned from this mud.\n\r", 0 );
-#if !defined( WIN32 )
     close( desc );
-#else
-    closesocket( desc );
-#endif
     free_descriptor(dnew);
     return;
 }
@@ -1336,7 +869,6 @@ else if (type == NDESC_FTP)
 
     return;
     }
-#endif
 
 
 
@@ -1446,16 +978,9 @@ void close_socket( DESCRIPTOR_DATA *dclose )
 
     set_con_state(dclose, CON_CLOSED);
 
-#if !defined( WIN32 )
     close( dclose->descriptor );
-#else
-    closesocket( dclose->descriptor );
-#endif
 
     free_descriptor( dclose );
-#if defined(MSDOS) || defined(macintosh)
-    exit(1);
-#endif
     return;
 }
 
@@ -1484,47 +1009,17 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     }
 
     /* Snarf input. */
-#if defined(macintosh)
-    for ( ; ; )
-    {
-        int c;
-        c = getc( stdin );
-        if ( c == '\0' || c == EOF )
-            break;
-        putc( c, stdout );
-        if ( c == '\r' )
-            putc( '\n', stdout );
-        read_buf[iStart++] = c;
-        if ( iStart > sizeof(d->inbuf) - 10 )
-            break;
-    }
-#endif
-
-#if defined(MSDOS) || defined(unix) || defined(WIN32)
     for ( ; ; )
     {
         int nRead;
-#if defined( WIN32 ) 
-        unsigned long nWaiting;
-#endif
 
         /* There is no more space in the input buffer for now */
         if (sizeof(d->inbuf) - 10 - iStart == 0)
             break;
 
-#if defined( WIN32 ) 
-
-        ioctlsocket( d->descriptor, FIONREAD, &nWaiting );
-        if ( !nWaiting ) break;
-        nRead = recv( d->descriptor,                // socket
-                d->inbuf + iStart,          // buffer
-                UMIN( nWaiting, 
-                    sizeof( d->inbuf ) - 10 - iStart ), // length
-                0 );                            // no flags
-#else
         nRead = read( d->descriptor, read_buf + iStart,
             sizeof(read_buf) - 10 - iStart );
-#endif
+
         if ( nRead > 0 )
         {
             iStart += nRead;
@@ -1536,12 +1031,8 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
             log_string( "EOF encountered on read." );
             return FALSE;
         }
-#if !defined( AmigaTCP ) && !defined( WIN32 )
+#if !defined( AmigaTCP )
         else if ( errno == EWOULDBLOCK || errno == EAGAIN )
-            break;
-#endif
-#if defined( WIN32 )
-        else if ( WSAGetLastError() == WSAEWOULDBLOCK || errno == EAGAIN )
             break;
 #endif
         else
@@ -1550,7 +1041,6 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
             return FALSE;
         }
     }
-#endif
 
     read_buf[iStart] = '\0';
     ProtocolInput( d, read_buf, iStart, d->inbuf );
@@ -2302,31 +1792,18 @@ bool write_to_descriptor( int desc, char *txt, int length )
     int nWrite;
     int nBlock;
 
-#if defined(macintosh) || defined(MSDOS)
-    if ( desc == 0 )
-        desc = 1;
-#endif
-
     if ( length <= 0 )
         length = strlen(txt);
 
     for ( iStart = 0; iStart < length; iStart += nWrite )
     {
         nBlock = UMIN( length - iStart, 4096 );
-#if !defined( WIN32 )
         if ( ( nWrite = write( desc, txt + iStart, nBlock ) ) < 0 )
-#else
-            if ( ( nWrite = send( desc, txt + iStart, nBlock , 0) ) < 0 )
-#endif
             { log_error( "Write_to_descriptor" ); return FALSE; }
     } 
 
     return TRUE;
 }
-
-
-
-
 
 void stop_idling( CHAR_DATA *ch )
 {
@@ -2447,14 +1924,10 @@ void page_to_char_bw( const char *txt, CHAR_DATA *ch )
             return;
         }
 
-#if defined(macintosh)
-    send_to_char_bw(txt,ch);
-#else
     ch->desc->showstr_head = alloc_mem(strlen(txt) + 1);
     strcpy(ch->desc->showstr_head,txt);
     ch->desc->showstr_point = ch->desc->showstr_head;
     show_string(ch->desc,"");
-#endif
 }
 
 
@@ -2823,29 +2296,6 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     return;
 }
 
-/*
- * Windows 95 and Windows NT support functions
- * (copied from Envy)
- */
-#if defined( WIN32 )
-void gettimeofday( struct timeval *tp, void *tzp )
-{
-    tp->tv_sec  = time( NULL );
-    tp->tv_usec = 0;
-}
-#endif
-
-
-/*
- * Macintosh support functions.
- */
-#if defined(macintosh)
-int gettimeofday( struct timeval *tp, void *tzp )
-{
-    tp->tv_sec  = time( NULL );
-    tp->tv_usec = 0;
-}
-#endif
 
 int colour( char type, CHAR_DATA *ch, char *string )
 {
@@ -3430,12 +2880,7 @@ bool add_buff_pad(BUFFER *buffer, int pad_length, char *fmt, ...)
 #define COPYOVER_FILE "copyover.data"
 
 /* This is the executable file */
-#if defined (WIN32)
-#define EXE_FILE	  "../src/aarchon.exe"
-#else
 #define EXE_FILE	  "../src/aeaea"
-#endif
-
 
 /*  Copyover - Original idea: Fusion of MUD++
  *  Adapted to Diku by Erwin S. Andreasen, <erwin@pip.dknet.dk>
@@ -3514,21 +2959,13 @@ void do_copyover (CHAR_DATA *ch, char * argument)
 
     /* exec - descriptors are inherited */
 
-#if defined (WIN32)
-    sprintf (arg0, "%s", "aarchon.exe");
-#else
     sprintf (arg0, "%s", "aeaea");
-#endif
     sprintf (arg1, "%d", port);
     sprintf (arg2, "%s", "copyover");
     sprintf (arg3, "%d", control);
     sprintf (arg4, "%d", ftp_control);
     logpf( "do_copyover: executing '%s %s %s %s %s'", arg0, arg1, arg2, arg3, arg4 );
-#if defined(WIN32)
-    _execl (EXE_FILE, arg0, arg1, arg2, arg3, arg4, (char *) NULL);
-#else
     execl (EXE_FILE, arg0, arg1, arg2, arg3, arg4, (char *) NULL);
-#endif
 
     /* Failed - sucessful exec will not return */
 
@@ -3575,11 +3012,7 @@ void copyover_recover ()
         /* Write something, and check if it goes error-free */		
         if (!write_to_descriptor (desc, "\n\ra light at the end of the tunnel...\n\r",0))
         {
-#if defined (WIN32)
-            closesocket (desc);
-#else
             close (desc); /* nope */
-#endif
             continue;
         }
 
