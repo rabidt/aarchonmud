@@ -988,7 +988,8 @@ void close_socket( DESCRIPTOR_DATA *dclose )
 
 bool read_from_descriptor( DESCRIPTOR_DATA *d )
 {
-    int iStart;
+    int iStart = 0;
+    int lenInbuf, maxRead;
 
     static char read_buf[MAX_PROTOCOL_BUFFER];
     read_buf[0] = '\0';
@@ -998,13 +999,14 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
         return TRUE;
 
     /* Check for overflow. */
-    iStart = 0;
-    if ( strlen(d->inbuf) >= sizeof(d->inbuf) - 10 )
+    lenInbuf = strlen(d->inbuf);
+    maxRead = sizeof(d->inbuf) - (lenInbuf + 1);
+    
+    if ( maxRead <= 0 )
     {
         sprintf( log_buf, "%s input overflow!", d->host );
         log_string( log_buf );
-        write_to_descriptor( d->descriptor,
-                "\n\r*** PUT A LID ON IT!!! ***\n\r", 0 );
+        write_to_descriptor( d->descriptor, "\n\r*** PUT A LID ON IT!!! ***\n\r", 0 );
         return FALSE;
     }
 
@@ -1014,17 +1016,16 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
         int nRead;
 
         /* There is no more space in the input buffer for now */
-        if (sizeof(d->inbuf) - 10 - iStart == 0)
+        if ( iStart >= maxRead )
             break;
 
-        nRead = read( d->descriptor, read_buf + iStart,
-            sizeof(read_buf) - 10 - iStart );
+        nRead = read( d->descriptor, read_buf + iStart, maxRead - iStart );
 
         if ( nRead > 0 )
         {
             iStart += nRead;
             if ( read_buf[iStart-1] == '\n' || read_buf[iStart-1] == '\r' )
-            break;
+                break;
         }
         else if ( nRead == 0 )
         {
@@ -1043,7 +1044,7 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     }
 
     read_buf[iStart] = '\0';
-    ProtocolInput( d, read_buf, iStart, d->inbuf );
+    ProtocolInput( d, read_buf, iStart, d->inbuf + lenInbuf );
     return TRUE;
 }
 
