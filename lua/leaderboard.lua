@@ -282,7 +282,7 @@ function do_lhistory( ch, argument)
         sendtochar(ch, interval:upper() .. " ENTRIES\n\r")
         local tbl=lh_tables[interval]
         for i,v in ipairs(tbl) do
-            sendtochar(ch, string.format( "%3d :: Ending %s\n\r", i, os.date("%X %x ", v.timeout) .. "\n\r"))
+            sendtochar(ch, string.format( "%3d :: Ending %s\n\r", i, os.date("%X %x ", v.timeout)))
         end
 
         return
