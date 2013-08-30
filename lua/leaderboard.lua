@@ -256,7 +256,7 @@ function do_lhistory( ch, argument)
         return
     end
 
-    if interval==nil and typ==nil and ind==nil then
+    if interval==nil then
         sendtochar(ch, "\n\rUsage: lhistory [interval]                -- list entries\n\r" ..
                            "       lhistory [interval] [entry]        -- show full entry\n\r" ..
                            "       lhistory [interval] [entry] [type] -- filter entry to specific type\n\r")
