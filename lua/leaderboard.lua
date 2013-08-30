@@ -4,25 +4,25 @@ local function new_lbtables(typ)
     local rtn={}
     if typ=="daily" then
         rtn={mkill={name="Mob Kills", entries={} },
-            qcomp={name="Quest Completed", entries={} },
+            qcomp={name="Quests Completed", entries={} },
             qpnt={name="Quest Points", entries={} },
             qfail={name="Quests Failed", entries={} },
             level={name="Levels Gained", entries={} }}
     elseif typ=="weekly" then
         rtn={mkill={name="Mob Kills", entries={} },
-            qcomp={name="Quest Completed", entries={} },
+            qcomp={name="Quests Completed", entries={} },
             qpnt={name="Quest Points", entries={} },
             qfail={name="Quests Failed", entries={} },
             level={name="Levels Gained", entries={} }}
     elseif typ=="monthly" then
         rtn={mkill={name="Mob Kills", entries={} },
-            qcomp={name="Quest Completed", entries={} },
+            qcomp={name="Quests Completed", entries={} },
             qpnt={name="Quest Points", entries={} },
             qfail={name="Quests Failed", entries={} },
             level={name="Levels Gained", entries={} }}
     elseif typ=="overall" then
         rtn={mkill={name="Mob Kills", entries={} },
-            qcomp={name="Quest Completed", entries={} },
+            qcomp={name="Quests Completed", entries={} },
             bhd={name="Beheads", entries={} },
             wkill={name="War Kills", entries={} },
             expl={name="Rooms Explored", entries={} },
@@ -72,7 +72,6 @@ local types=
     [7]="level",
     [8]="pkill"
 }
-
 
 local function find_in_lboard(ent, chname)
     local ind=nil
@@ -195,22 +194,23 @@ end
 local function print_tables(tables, ch, typefilter)
     for ttyp,tbl in pairs(tables) do
         if typefilter==nil or typefilter==ttyp then
-            sendtochar(ch, tbl.name .. "\r\n")
+            sendtochar(ch, "{D" .. tbl.name .. "{x\r\n")
             if not(print_entries(tbl.entries,ch, 20)) then
               local ind=find_in_lboard(tbl.entries,ch.name)
               if ind then
                 sendtochar(ch, string.format("{W%3d: %-25s %10d{x\r\n", ind, tbl.entries[ind].chname, tbl.entries[ind].value))
-              else
-                sendtochar(ch, "No score for " .. ch.name .. "\r\n") 
+              --else
+              --  sendtochar(ch, "No score for " .. ch.name .. "\r\n") 
               end
             end
+            sendtochar(ch, "\n\r")
         end
     end
 end
 
 local function print_interval(intrvl, ch, typefilter)
     if not(intrvl.timeout==0) then
-        sendtochar(ch, "Ending: " .. os.date("%X %x ",intrvl.timeout) .. "\r\n")
+        sendtochar(ch, "{yEnding: " .. os.date("%X %x ",intrvl.timeout) .. "{x\r\n")
     end
 
     print_tables(intrvl.tables,ch,typefilter)
@@ -251,11 +251,48 @@ function do_lhistory( ch, argument)
       end 
     end
 
+    if interval=="overall" then
+        sendtochar(ch, "No history for OVERALL leaderboards!\n\r")
+        return
+    end
+
+    if interval==nil and typ==nil and ind==nil then
+        sendtochar(ch, "\n\rUsage: lhistory [interval]                -- list entries\n\r" ..
+                           "       lhistory [interval] [entry]        -- show full entry\n\r" ..
+                           "       lhistory [interval] [entry] [type] -- filter entry to specific type\n\r")
+
+        sendtochar(ch, "\n\r")
+        sendtochar(ch, "Intervals: \n\r")
+        for k,v in pairs(interval_args) do
+            if not(v=="overall") then
+                sendtochar(ch, v .. "\n\r")
+            end
+        end
+
+        sendtochar(ch, "\n\r")
+        sendtochar(ch, "Types: \n\r")
+        for k,v in pairs(types) do
+            sendtochar(ch, v .. "\n\r")
+        end
+
+        return
+    end
+
+    if not(interval==nil) and ind==nil then
+        sendtochar(ch, interval:upper() .. " ENTRIES\n\r")
+        local tbl=lh_tables[interval]
+        for i,v in ipairs(tbl) do
+            sendtochar(ch, string.format( "%3d :: Ending %s\n\r", i, os.date("%X %x ", v.timeout) .. "\n\r"))
+        end
+
+        return
+    end
+
 
     -- print applicable tables
     for k,tbl in pairs(lh_tables) do
       if interval==nil or interval==k then
-        sendtochar(ch, k:upper() .. " LEADERBOARD HISTORY\n\r")
+        sendtochar(ch, "\n\r{c" .. k:upper() .. " LEADERBOARD HISTORY\n\r{x")
         for i,v in ipairs(tbl) do
           if ind==nil or ind==i then
             sendtochar(ch, "Entry #" .. i .. "\n\r")
@@ -295,10 +332,30 @@ function do_lboard( ch, argument)
       end
     end
 
+    if interval==nil and typ==nil then
+        sendtochar(ch, "\n\rUsage: lboard [type]\n\r" ..
+                           "       lboard [interval]\n\r" ..
+                           "       lboard [interval] [type]\n\r")
+        sendtochar(ch, "\n\r")
+        sendtochar(ch, "Intervals: \n\r")
+        for k,v in pairs(interval_args) do
+            sendtochar(ch, v .. "\n\r")
+        end
+
+        sendtochar(ch, "\n\r")
+        sendtochar(ch, "Types: \n\r")
+        for k,v in pairs(types) do
+            sendtochar(ch, v .. "\n\r")
+        end
+        
+        return
+    end 
+
+
     -- print applicable tables
     for k,tbl in pairs(lb_tables) do
       if interval==nil or interval==k then
-        sendtochar(ch, k:upper() .. " LEADERBOARD\n\r")
+        sendtochar(ch, "\n\r{c" .. k:upper() .. " LEADERBOARD{x\n\r")
         print_interval(tbl, ch, typ)
         sendtochar(ch, "\n\r")
       end
