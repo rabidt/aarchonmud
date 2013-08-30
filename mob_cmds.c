@@ -1059,7 +1059,25 @@ void do_mpat( CHAR_DATA *ch, char *argument )
 
     return;
 }
- 
+
+// used by do_mptransfer and do_mpgtransfer
+void transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location )
+{
+    if ( !victim || !victim->in_room || !location )
+        return;
+
+    if ( room_is_private(location) )
+        return;
+
+    if ( victim->fighting != NULL )
+        stop_fighting( victim, TRUE );
+
+    char_from_room( victim );
+    char_to_room( victim, location );
+
+    do_look( victim, "auto" );
+}
+
 /*
  * Lets the mobile transfer people.  The 'all' argument transfers
  *  everyone in the current room to the specified location
@@ -1070,7 +1088,6 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
 {
     char             arg1[ MAX_INPUT_LENGTH ];
     char             arg2[ MAX_INPUT_LENGTH ];
-    char	     buf[MAX_STRING_LENGTH];
     ROOM_INDEX_DATA *location;
     CHAR_DATA       *victim;
     DESCRIPTOR_DATA *d;
@@ -1087,6 +1104,21 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
             IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
         return;
     }
+
+    if ( arg2[0] == '\0' )
+    {
+        location = ch->in_room;
+    }
+    else
+    {
+        if ( (location = find_mp_location(ch, arg2)) == NULL )
+        {
+            bugf("Mptransfer - Bad location from mob: %d, target room: %s",
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
+                arg2 != NULL ? arg2 : "null");
+            return;
+        }
+    }
     
     if ( !str_cmp( arg1, "all" ) )
     {
@@ -1100,8 +1132,7 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
                 && can_see(ch, victim)
                 && !IS_NPC(victim) )
             {
-                sprintf( buf, "%s %s", victim->name, arg2 );
-                do_mptransfer( ch, buf );
+                transfer_char(victim, location);
             }
         }
         return;
@@ -1117,50 +1148,15 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
                 || ch->in_room->area != d->character->in_room->area 
                 || d->character->level == 1 )
                 continue;
-            sprintf( buf, "%s %s", d->character->name, arg2 );
-            do_mptransfer( ch, buf );
+            transfer_char(d->character, location);
         }
         return;
     }
 
-
-
-   /*
-    * Thanks to Grodyn for the optional location parameter.
-    */
-    if ( arg2[0] == '\0' )
-    {
-        location = ch->in_room;
-    }
-    else
-    {
-        if ( ( location = find_mp_location( ch, arg2 ) ) == NULL )
-        {
-/*            bug( "Mptransfer - No such location from vnum %d.",
-                IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-            sprintf( buf, "Mptransfer - Bad location from mob: %d, target room: %s",
-                IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
-                arg2 != NULL ? arg2 : "null");
-            bug( buf, 0 );
-            return;
-        }
-        
-        if ( room_is_private( location ) )
-            return;
-    }
-    
-
-    if ( ( victim = get_mp_char( ch, arg1 ) ) == NULL )
-	return;
-    
-    if ( victim->in_room == NULL )
+    if ( (victim = get_mp_char(ch, arg1) ) == NULL )
         return;
-    
-    if ( victim->fighting != NULL )
-        stop_fighting( victim, TRUE );
-    char_from_room( victim );
-    char_to_room( victim, location );
-    do_look( victim, "auto" );
+
+    transfer_char(victim, location);
     
     return;
 }
@@ -1174,8 +1170,8 @@ void do_mpgtransfer( CHAR_DATA *ch, char *argument )
 {
     char             arg1[ MAX_INPUT_LENGTH ];
     char             arg2[ MAX_INPUT_LENGTH ];
-    char	     buf[MAX_STRING_LENGTH];
     CHAR_DATA       *who, *victim, *victim_next;
+    ROOM_INDEX_DATA *location;
 
     if ( ch->in_room == NULL )
         return;
@@ -1183,27 +1179,30 @@ void do_mpgtransfer( CHAR_DATA *ch, char *argument )
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
 
-    if ( arg1[0] == '\0' )
+    if ( arg2[0] == '\0' )
     {
-/*	bug( "Mpgtransfer - Bad syntax from vnum %d.", 
-		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-        sprintf( buf, "Mptransfer - Bad location from mob: %d, target room: %s",
-            IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
-            arg2 != NULL ? arg2 : "null");
-        bug( buf, 0 );
-	return;
+        location = ch->in_room;
+    }
+    else
+    {
+        if ( (location = find_mp_location(ch, arg2)) == NULL )
+        {
+            bugf("Mpgtransfer - Bad location from mob: %d, target room: %s",
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0,
+                arg2 != NULL ? arg2 : "null");
+            return;
+        }
     }
 
-    if ( (who = get_char_room( ch, arg1 )) == NULL )
-	return;
+    if ( (who = get_char_room(ch, arg1)) == NULL )
+        return;
 
     for ( victim = ch->in_room->people; victim; victim = victim_next )
     {
     	victim_next = victim->next_in_room;
     	if( is_same_group( who,victim ) )
     	{
-	    sprintf( buf, "%s %s", victim->name, arg2 );
-	    do_mptransfer( ch, buf );
+            transfer_char(victim, location);
     	}
     }
     return;
