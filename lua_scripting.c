@@ -2317,7 +2317,6 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getmobworld", L_getmobworld );
     lua_register(LS,"log",         L_log );
     lua_register(LS,"sendtochar",  L_sendtochar  );
-
     lua_register(LS,"sendtochar",  L_sendtochar  );
 
 }
