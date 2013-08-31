@@ -862,6 +862,32 @@ void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     return (void*)ch;
 }
 
+int concentration_power( CHAR_DATA *ch )
+{
+    int level = IS_NPC(ch) ? ch->level * 3/4 : ch->level;
+    return 10 + level;
+}
+
+bool check_concentration( CHAR_DATA *ch )
+{
+    CHAR_DATA *att;
+    int ch_roll, att_roll;
+    
+    if ( !ch->in_room )
+        return FALSE;
+    
+    ch_roll = number_range(0, concentration_power(ch));
+    for ( att = ch->in_room->people; att; att = att->next_in_room )
+    {
+        if ( att->fighting != ch )
+            continue;
+        att_roll = number_range(0, concentration_power(att));
+        if ( att_roll > ch_roll )
+            return FALSE;
+    }
+    return TRUE;
+}
+
 /*
  * The kludgy global is for spells who want more stuff from command line.
  */
@@ -874,9 +900,9 @@ void do_cast( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim;
     void *vo;
     int mana;
-    int sn, level, chance;
+    int sn, level, chance, wait;
     int target;
-
+    bool concentrate = FALSE;
 
     /* Switched NPC's can cast spells, but others can't.  */
     /*
@@ -925,8 +951,13 @@ void do_cast( CHAR_DATA *ch, char *argument )
     /* check to see if spell can be cast in current position */
     if ( ch->position < skill_table[sn].minimum_position )
     {
-        send_to_char( "You can't concentrate enough.\n\r", ch );
-        return;
+        if ( ch->position < POS_FIGHTING )
+        {
+            send_to_char( "You can't concentrate enough.\n\r", ch );
+            return;
+        }
+        else
+            concentrate = TRUE;
     }
 
     mana = mana_cost(ch, sn, chance);
@@ -948,16 +979,19 @@ void do_cast( CHAR_DATA *ch, char *argument )
         say_spell( ch, sn );
     }
 
+    wait = skill_table[sn].beats * (200-chance) / 100;
     /* Check for overcharge (less lag) */
     if (IS_AFFECTED(ch, AFF_OVERCHARGE))
-    {
-        WAIT_STATE( ch, (200-chance)*skill_table[sn].beats/400 );
-    }
-    else
-    {
-        WAIT_STATE( ch, (200-chance)*skill_table[sn].beats/100 );
-    }
+        wait /= 4;
 
+    WAIT_STATE( ch, wait );
+
+    /* no attacks while concentrating */
+    if ( concentrate )
+    {
+        int rounds_missed = rand_div(wait+1, PULSE_VIOLENCE);
+        ch->stop += rounds_missed;
+    }
 
     /* mana burn */
     if ( IS_AFFECTED(ch, AFF_MANA_BURN) )
@@ -991,7 +1025,8 @@ void do_cast( CHAR_DATA *ch, char *argument )
     }
     else if ( 2*number_percent() > (chance+100)
             || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20)
-            || IS_AFFECTED(ch, AFF_CURSE) && per_chance(5) )
+            || IS_AFFECTED(ch, AFF_CURSE) && per_chance(5)
+            || concentrate && !check_concentration(ch) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
         check_improve(ch,sn,FALSE,2);
