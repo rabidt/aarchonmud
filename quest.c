@@ -249,6 +249,23 @@ bool per_chance(int num)
 	return FALSE;
 }
 
+// division with randomized rounding
+int rand_div(int divident, int divisor)
+{
+    // need to be careful with signs - C rounding is towards 0
+    if ( divisor < 0 )
+    {
+        divisor = -divisor;
+        divident = -divident;
+    }
+    
+    int adjust = number_range(0, divisor-1);
+    if ( divident > 0 )
+        return (divident + adjust) / divisor;
+    else
+        return (divident - adjust) / divisor;
+}
+
 /* The main quest function */
 void do_quest(CHAR_DATA *ch, char *argument)
 {
