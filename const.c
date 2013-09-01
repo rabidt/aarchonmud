@@ -4260,6 +4260,28 @@ struct  skill_type  skill_table [MAX_SKILL] =
     "", "!empower spell!", "", NULL
     },
 
+    {
+    "quicken spell",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_NONE, STAT_NONE, STAT_NONE,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_quicken_spell, SLOT(0), 0, 0, DUR_NONE,
+    "", "!quicken spell!", "", NULL
+    },
+
+    {
+    "chain spell",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_NONE, STAT_NONE, STAT_NONE,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_chain_spell, SLOT(0), 0, 0, DUR_NONE,
+    "", "!chain spell!", "", NULL
+    },
+
 /*
  * Spells for mega1.are from Glop/Erkenbrand.
  */
