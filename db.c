@@ -432,6 +432,9 @@ sh_int  gsn_enchant_weapon;
 sh_int  gsn_enchant_arrow;
 sh_int  gsn_solar_flare;
 
+sh_int  gsn_extend_spell;
+sh_int  gsn_empower_spell;
+
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;
 
