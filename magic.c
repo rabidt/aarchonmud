@@ -898,6 +898,80 @@ bool check_concentration( CHAR_DATA *ch )
     return TRUE;
 }
 
+// global variable for storing what meta-magic skills are used
+tflag meta_magic = {};
+
+int meta_magic_sn( int meta )
+{
+    switch ( meta )
+    {
+        case META_MAGIC_EXTEND: return gsn_extend_spell;
+        case META_MAGIC_EMPOWER: return gsn_empower_spell;
+        default: return 0;
+    }
+}
+
+// meta-magic casting functions
+void meta_magic_cast( CHAR_DATA *ch, char *meta_arg, char *argument )
+{
+    tflag meta_flag;
+    int i;
+    
+    if ( meta_arg[0] == '\0' )
+    {
+        printf_to_char(ch, "What meta-magic flags do you want to apply?\n\r");
+        printf_to_char(ch, "Syntax: mmcast [empq] <spell name> [other args]\n\r");
+        return;
+    }
+    
+    // parse meta-magic flags requested
+    flag_clear(meta_flag);
+    for ( i = 0; i < strlen(meta_arg); i++ )
+    {
+        // valid flag?
+        int meta = 0;
+        switch( meta_arg[i] )
+        {
+            case 'e': meta = META_MAGIC_EXTEND; break;
+            case 'p': meta = META_MAGIC_EMPOWER; break;
+            default:
+                printf_to_char(ch, "Invalid meta-magic option: %c\n\r", meta_arg[i]);
+                return;
+        }
+        // character has skill?
+        int sn = meta_magic_sn(meta);
+        if ( !get_skill(ch, sn) )
+        {
+            printf_to_char(ch, "You need the '%s' skill for this!\n\r", skill_table[sn].name);
+            return;
+        }
+        // remember for later
+        flag_set(meta_flag, meta);
+    }
+        
+    flag_copy(meta_magic, meta_flag);
+    do_cast(ch, argument);
+    flag_clear(meta_magic);
+}
+
+void do_mmcast( CHAR_DATA *ch, char *argument )
+{
+    char arg1[MAX_INPUT_LENGTH];
+
+    argument = one_argument(argument, arg1);
+    meta_magic_cast(ch, arg1, argument);
+}
+
+void do_ecast( CHAR_DATA *ch, char *argument )
+{
+    meta_magic_cast(ch, "e", argument);
+}
+
+void do_pcast( CHAR_DATA *ch, char *argument )
+{
+    meta_magic_cast(ch, "p", argument);
+}
+
 /*
  * The kludgy global is for spells who want more stuff from command line.
  */
