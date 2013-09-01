@@ -1093,6 +1093,19 @@ bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
     return TRUE;
 }
 
+void post_spell_process( CHAR_DATA *ch, CHAR_DATA *victim, int sn)
+{
+    // spell triggers
+    if ( victim != NULL && IS_NPC(victim) && mp_spell_trigger(skill_table[sn].name, victim, ch) )
+        return; // Return because it might have killed the victim or ch
+
+    if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
+         && victim->fighting == NULL && victim->position > POS_STUNNED )
+    {
+        set_fighting(victim, ch, FALSE);
+    }
+}
+                         
 /*
  * The kludgy global is for spells who want more stuff from command line.
  */
@@ -1109,12 +1122,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
     int target;
     bool concentrate = FALSE;
 
-    /* Switched NPC's can cast spells, but others can't.  */
-    /*
-       if ( IS_NPC(ch) && ch->desc == NULL)
-       return;
-     */    
-
     target_name = one_argument( argument, arg1 );
 
     if ( arg1[0] == '\0' )
@@ -1122,21 +1129,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
         send_to_char( "Cast which what where?\n\r", ch );
         return;
     }
-
-    /*
-       if ((sn == gsn_hailstorm || gsn_meteor_swarm || gsn_call_lightning ||
-       gsn_control_weather || gsn_monsoon ) && (weather_info.sky < SKY_RAINING 
-       && !IS_OUTSIDE(ch)) )
-       {
-       send_to_char( "You can't cast that right now.\n\r", ch );
-       return;
-       }
-
-       if (sn == gsn_smotes_anachronism && ch->position != POS_FIGHTING)
-       {
-       send_to_char( "You can't cast that out of combat.\n\r", ch );
-       return;
-       }    */  
 
     if ((sn = find_spell(ch,arg1)) < 1
             ||  skill_table[sn].spell_fun == spell_null
@@ -1177,7 +1169,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     if ( !meta_magic_can_cast(ch, sn, target) )
         return;
 
-    if ( /*!IS_NPC(ch) &&*/ ch->mana < mana )
+    if ( ch->mana < mana )
     {
         send_to_char( "You don't have enough mana.\n\r", ch );
         return;
@@ -1276,25 +1268,8 @@ void do_cast( CHAR_DATA *ch, char *argument )
         (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
         check_improve(ch,sn,TRUE,3);
 
-        /* check for spell mprog triggers */
         if ( target == TARGET_CHAR )
-        {
-            if ( victim != NULL && IS_NPC(victim) )
-            {
-                if ( mp_spell_trigger(skill_table[sn].name, victim, ch) )
-                    return; //Return because it might have killed the vic or ch
-            }
-        }
-
-        if ( is_offensive(sn) && target == TARGET_CHAR && victim != ch )
-        {
-            if ( victim->in_room == ch->in_room
-                && victim->fighting == NULL
-                && !is_safe_spell(victim, ch, FALSE) )
-            {
-                multi_hit( victim, ch, TYPE_UNDEFINED );
-            }
-        }
+            post_spell_process(ch, (CHAR_DATA*)vo, sn);
     }
     return;
 }
