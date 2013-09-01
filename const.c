@@ -4235,6 +4235,31 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	"extinguish",   "!extinguish!", "", NULL
 	},
 
+/* 
+ *  Meta-magic skills
+ */
+    {
+    "extend spell",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_NONE, STAT_NONE, STAT_NONE,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_extend_spell, SLOT(0), 0, 0, DUR_NONE,
+    "", "!extend spell!", "", NULL
+    },
+
+    {
+    "empower spell",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_NONE, STAT_NONE, STAT_NONE,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_empower_spell, SLOT(0), 0, 0, DUR_NONE,
+    "", "!empower spell!", "", NULL
+    },
+
 /*
  * Spells for mega1.are from Glop/Erkenbrand.
  */

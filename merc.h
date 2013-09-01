@@ -3519,10 +3519,11 @@ extern sh_int  gsn_solar_flare;
 extern sh_int  gsn_iron_hide;
 extern sh_int  gsn_feeblemind;
 
+extern sh_int  gsn_extend_spell;
+extern sh_int  gsn_empower_spell;
+
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
-
-
 
 /*
  * Struct information for achievements_entry
@@ -3994,6 +3995,13 @@ extern      PORTAL_DATA    *portal_list;
 extern      char last_command [MSL];
 extern      char last_mprog [MSL];
 extern      char last_debug [MSL];
+
+extern      tflag meta_magic;
+
+#define META_MAGIC_EXTEND   0
+#define META_MAGIC_EMPOWER  1
+#define META_MAGIC_QUICKEN  2
+#define META_MAGIC_MASS     3
 
 /*
  * OS-dependent declarations.
