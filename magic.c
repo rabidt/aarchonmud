@@ -864,7 +864,17 @@ void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
 int concentration_power( CHAR_DATA *ch )
 {
-    int level = IS_NPC(ch) ? ch->level * 3/4 : ch->level;
+    return 10 + ch->level;
+}
+
+int disruption_power( CHAR_DATA *ch )
+{
+    int level = ch->level;
+
+    // non-boss NPCs don't disrupt quite so much
+    if ( IS_NPC(ch) && !IS_SET(ch->off_flags, OFF_FAST) )
+        level = level * 3/4;
+
     return 10 + level;
 }
 
@@ -879,9 +889,9 @@ bool check_concentration( CHAR_DATA *ch )
     ch_roll = number_range(0, concentration_power(ch));
     for ( att = ch->in_room->people; att; att = att->next_in_room )
     {
-        if ( att->fighting != ch )
+        if ( att->fighting != ch || att->stop )
             continue;
-        att_roll = number_range(0, concentration_power(att));
+        att_roll = number_range(0, disruption_power(att));
         if ( att_roll > ch_roll )
             return FALSE;
     }
