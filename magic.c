@@ -1210,6 +1210,8 @@ void do_cast( CHAR_DATA *ch, char *argument )
         level = ch->level;
         level = (100+chance)*level/200;
         level = URANGE(1, level, 120);
+        if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
+            level += UMAX(1, level/8);
 
         vo = check_reflection( sn, level, ch, vo, target );
 
@@ -1412,6 +1414,9 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     {
         dam += dam * (10 + ch->level - LEVEL_MIN_HERO) / 100;
     }
+    
+    if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
+        dam += dam / 4;
 
     return dam * number_range(90, 110) / 100;
 }
@@ -1456,6 +1461,9 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 
     /* bonus/penalty for target's vitality */
     heal = heal * (200 + get_curr_stat(victim, STAT_VIT)) / 300;
+
+    if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
+        heal += heal / 4;
 
     return heal;
 }
