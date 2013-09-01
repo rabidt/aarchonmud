@@ -1018,7 +1018,7 @@ int meta_magic_adjust_wait( int wait )
     return wait;
 }
 
-bool meta_magic_check( CHAR_DATA *ch )
+bool meta_magic_concentration_check( CHAR_DATA *ch )
 {
     int flag;
 
@@ -1040,6 +1040,56 @@ bool meta_magic_check( CHAR_DATA *ch )
             }
         }
 
+    return TRUE;
+}
+
+bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
+{
+    // can only extend spells with duration
+    if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
+    {
+        int duration = skill_table[sn].duration;
+        if ( duration == DUR_NONE || duration == DUR_SPECIAL )
+        {
+            send_to_char("Only spells with standard durations can be extended.\n\r", ch);
+            return FALSE;
+        }
+    }
+    
+    // can only quicken spells with longish casting time
+    if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) )
+    {
+        int wait = skill_table[sn].beats;
+        int min_wait = PULSE_VIOLENCE / 2;
+        if ( wait <= min_wait )
+        {
+            send_to_char("This spell cannot be quickened any further.\n\r", ch);
+            return FALSE;
+        }
+    }
+
+    // can only chain single-target non-personal spells
+    if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
+    {
+        int target = skill_table[sn].target;
+        if ( target != TAR_CHAR_DEFENSIVE
+             && target != TAR_CHAR_OFFENSIVE
+             && target != TAR_OBJ_CHAR_DEF
+             && target != TAR_OBJ_CHAR_OFF
+             && target != TAR_VIS_CHAR_OFF
+             && target != TAR_CHAR_NEUTRAL )
+        {
+            send_to_char("Only single-target spells can be chained.\n\r", ch);
+            return FALSE;
+        }
+        
+        if ( target_type = TARGET_OBJ )
+        {
+            send_to_char("Spells targeting objects cannot be chained.\n\r", ch);
+            return FALSE;
+        }
+    }
+    
     return TRUE;
 }
 
@@ -1123,6 +1173,9 @@ void do_cast( CHAR_DATA *ch, char *argument )
     /* Locate targets */
     if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
         return;
+    
+    if ( !meta_magic_can_cast(ch, sn, target) )
+        return;
 
     if ( /*!IS_NPC(ch) &&*/ ch->mana < mana )
     {
@@ -1181,7 +1234,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 #endif
     }
     else if ( 2*number_percent() > (chance+100)
-            || !meta_magic_check(ch)
+            || !meta_magic_concentration_check(ch)
             || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20)
             || IS_AFFECTED(ch, AFF_CURSE) && per_chance(5)
             || concentrate && !check_concentration(ch) )
