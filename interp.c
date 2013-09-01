@@ -103,6 +103,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "mmcast",     do_mmcast,      POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "ecast",      do_ecast,       POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "pcast",      do_pcast,       POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "qcast",      do_qcast,       POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "ccast",      do_ccast,       POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "auction",    do_auction,     POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "buy",        do_buy,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "balance",    do_balance,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },

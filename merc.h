@@ -3521,6 +3521,8 @@ extern sh_int  gsn_feeblemind;
 
 extern sh_int  gsn_extend_spell;
 extern sh_int  gsn_empower_spell;
+extern sh_int  gsn_quicken_spell;
+extern sh_int  gsn_chain_spell;
 
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
@@ -3998,10 +4000,10 @@ extern      char last_debug [MSL];
 
 extern      tflag meta_magic;
 
-#define META_MAGIC_EXTEND   0
-#define META_MAGIC_EMPOWER  1
-#define META_MAGIC_QUICKEN  2
-#define META_MAGIC_MASS     3
+#define META_MAGIC_EXTEND   (A)
+#define META_MAGIC_EMPOWER  (B)
+#define META_MAGIC_QUICKEN  (C)
+#define META_MAGIC_CHAIN    (D)
 
 /*
  * OS-dependent declarations.
