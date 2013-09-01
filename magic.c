@@ -1072,18 +1072,20 @@ bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
     if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
     {
         int target = skill_table[sn].target;
-        if ( target != TAR_CHAR_DEFENSIVE
-             && target != TAR_CHAR_OFFENSIVE
-             && target != TAR_OBJ_CHAR_DEF
-             && target != TAR_OBJ_CHAR_OFF
-             && target != TAR_VIS_CHAR_OFF
-             && target != TAR_CHAR_NEUTRAL )
+
+        if ( target == TAR_CHAR_SELF )
+        {
+            send_to_char("Personal spells cannot be chained.\n\r", ch);
+            return FALSE;
+        }
+            
+        if ( target == TAR_IGNORE )
         {
             send_to_char("Only single-target spells can be chained.\n\r", ch);
             return FALSE;
         }
         
-        if ( target_type = TARGET_OBJ )
+        if ( target_type == TARGET_OBJ )
         {
             send_to_char("Spells targeting objects cannot be chained.\n\r", ch);
             return FALSE;
@@ -1093,7 +1095,7 @@ bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
     return TRUE;
 }
 
-void post_spell_process( CHAR_DATA *ch, CHAR_DATA *victim, int sn)
+void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     // spell triggers
     if ( victim != NULL && IS_NPC(victim) && mp_spell_trigger(skill_table[sn].name, victim, ch) )
@@ -1105,7 +1107,33 @@ void post_spell_process( CHAR_DATA *ch, CHAR_DATA *victim, int sn)
         set_fighting(victim, ch, FALSE);
     }
 }
-                         
+
+void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    CHAR_DATA *target, *next_target;
+    bool offensive = is_offensive(sn);
+    bool must_see = (skill_table[sn].target == TAR_VIS_CHAR_OFF);
+    
+    if ( !ch->in_room || victim->in_room != ch->in_room )
+        return;
+    
+    for ( target = ch->in_room->people; target; target = next_target )
+    {
+        next_target = target->next_in_room;
+        
+        if ( target == victim
+            || offensive && is_safe_spell(ch, target, TRUE)
+            || must_see && !check_see(ch, target) )
+            continue;
+
+        if ( !offensive && !is_same_group(victim, target) )
+            continue;
+
+        (*skill_table[sn].spell_fun) (sn, level, ch, (void*)target, TARGET_CHAR);
+        post_spell_process(sn, ch, target);
+    }
+}
+
 /*
  * The kludgy global is for spells who want more stuff from command line.
  */
@@ -1269,7 +1297,11 @@ void do_cast( CHAR_DATA *ch, char *argument )
         check_improve(ch,sn,TRUE,3);
 
         if ( target == TARGET_CHAR )
-            post_spell_process(ch, (CHAR_DATA*)vo, sn);
+        {
+            post_spell_process(sn, ch, (CHAR_DATA*)vo);
+            if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
+                chain_spell(sn, level*3/4, ch, (CHAR_DATA*)vo);
+        }
     }
     return;
 }
