@@ -827,15 +827,22 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
 
 int get_duration_by_type( int type, int level )
 {
+    int duration;
+
     switch ( type )
     {
-        case DUR_BRIEF:   return level / 6;
-        case DUR_SHORT:   return (level + 20) / 4;
-        case DUR_NORMAL:  return (level + 20) / 2;
-        case DUR_LONG:    return (level + 20);
-        case DUR_EXTREME: return (level + 20) * 2;
-        default:          return 0;
+        case DUR_BRIEF:   duration = level / 6; break;
+        case DUR_SHORT:   duration = (level + 20) / 4; break;
+        case DUR_NORMAL:  duration = (level + 20) / 2; break;
+        case DUR_LONG:    duration = (level + 20); break;
+        case DUR_EXTREME: duration = (level + 20) * 2; break;
+        default:          duration = 0; break;
     }
+
+    if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
+        duration = duration * 3/2;
+
+    return duration;
 }
 
 int get_duration( int sn, int level )
@@ -907,6 +914,8 @@ int meta_magic_sn( int meta )
     {
         case META_MAGIC_EXTEND: return gsn_extend_spell;
         case META_MAGIC_EMPOWER: return gsn_empower_spell;
+        case META_MAGIC_QUICKEN: return gsn_quicken_spell;
+        case META_MAGIC_CHAIN: return gsn_chain_spell;
         default: return 0;
     }
 }
@@ -920,7 +929,7 @@ void meta_magic_cast( CHAR_DATA *ch, char *meta_arg, char *argument )
     if ( meta_arg[0] == '\0' )
     {
         printf_to_char(ch, "What meta-magic flags do you want to apply?\n\r");
-        printf_to_char(ch, "Syntax: mmcast [empq] <spell name> [other args]\n\r");
+        printf_to_char(ch, "Syntax: mmcast [cepq] <spell name> [other args]\n\r");
         return;
     }
     
@@ -934,6 +943,8 @@ void meta_magic_cast( CHAR_DATA *ch, char *meta_arg, char *argument )
         {
             case 'e': meta = META_MAGIC_EXTEND; break;
             case 'p': meta = META_MAGIC_EMPOWER; break;
+            case 'q': meta = META_MAGIC_QUICKEN; break;
+            case 'c': meta = META_MAGIC_CHAIN; break;
             default:
                 printf_to_char(ch, "Invalid meta-magic option: %c\n\r", meta_arg[i]);
                 return;
@@ -970,6 +981,66 @@ void do_ecast( CHAR_DATA *ch, char *argument )
 void do_pcast( CHAR_DATA *ch, char *argument )
 {
     meta_magic_cast(ch, "p", argument);
+}
+
+void do_qcast( CHAR_DATA *ch, char *argument )
+{
+    meta_magic_cast(ch, "q", argument);
+}
+
+void do_ccast( CHAR_DATA *ch, char *argument )
+{
+    meta_magic_cast(ch, "c", argument);
+}
+
+int meta_magic_adjust_cost( int cost )
+{
+    int flag;
+
+    // each meta-magic effect doubles casting cost
+    for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
+        if ( IS_SET(meta_magic, flag) )
+            cost *= 2;
+
+    return cost;
+}
+
+int meta_magic_adjust_wait( int wait )
+{
+    if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
+        wait *= 2;
+    
+    // can't reduce below half a round (e.g. dracs)
+    int min_wait = PULSE_VIOLENCE / 2;
+    if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) && wait > min_wait )
+        wait = UMAX(min_wait, wait / 2);
+
+    return wait;
+}
+
+bool meta_magic_check( CHAR_DATA *ch )
+{
+    int flag;
+
+    // each meta-magic effect has chance of failure
+    for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
+        if ( IS_SET(meta_magic, flag) )
+        {
+            int sn = meta_magic_sn(flag);
+            int skill = get_skill(ch, sn);
+            int chance = (100 + skill) / 2;
+            if ( per_chance(chance) )
+            {
+                check_improve(ch, sn, TRUE, 3);
+            }
+            else
+            {
+                check_improve(ch, sn, FALSE, 2);
+                return FALSE;
+            }
+        }
+
+    return TRUE;
 }
 
 /*
@@ -1045,6 +1116,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     }
 
     mana = mana_cost(ch, sn, chance);
+    mana = meta_magic_adjust_cost(mana);
     if (IS_AFFECTED(ch, AFF_OVERCHARGE))
         mana=mana*2;
 
@@ -1064,6 +1136,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     }
 
     wait = skill_table[sn].beats * (200-chance) / 100;
+    wait = meta_magic_adjust_wait(wait);
     /* Check for overcharge (less lag) */
     if (IS_AFFECTED(ch, AFF_OVERCHARGE))
         wait /= 4;
@@ -1108,6 +1181,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 #endif
     }
     else if ( 2*number_percent() > (chance+100)
+            || !meta_magic_check(ch)
             || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20)
             || IS_AFFECTED(ch, AFF_CURSE) && per_chance(5)
             || concentrate && !check_concentration(ch) )

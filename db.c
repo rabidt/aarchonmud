@@ -434,6 +434,8 @@ sh_int  gsn_solar_flare;
 
 sh_int  gsn_extend_spell;
 sh_int  gsn_empower_spell;
+sh_int  gsn_quicken_spell;
+sh_int  gsn_chain_spell;
 
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;
