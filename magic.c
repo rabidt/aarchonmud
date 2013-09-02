@@ -1079,7 +1079,9 @@ bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
             return FALSE;
         }
             
-        if ( target == TAR_IGNORE )
+        if ( target == TAR_IGNORE
+            || sn == skill_lookup("betray")
+            || sn == skill_lookup("chain lightning") )
         {
             send_to_char("Only single-target spells can be chained.\n\r", ch);
             return FALSE;
@@ -1102,7 +1104,8 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
         return; // Return because it might have killed the victim or ch
 
     if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
-         && victim->fighting == NULL && victim->position > POS_STUNNED )
+         && victim->fighting == NULL && victim->position > POS_STUNNED
+         && !is_same_group(ch, victim) )
     {
         set_fighting(victim, ch, FALSE);
     }
