@@ -4027,6 +4027,9 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
         if ( ch_weapon != gsn_gun && ch_weapon != gsn_bow )
         {
             dam = dice(4, aff->level);
+            // allow hard save for half damage
+            if ( saves_spell(2*aff->level, ch, DAM_LIGHT) )
+                dam /= 2;
             full_dam(victim, ch, dam, gsn_phantasmal_image, DAM_LIGHT, TRUE);
         }
     }
