@@ -4238,12 +4238,14 @@ struct  skill_type  skill_table [MAX_SKILL] =
 /* 
  *  Meta-magic skills
  */
+
+//    War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec
     {
     "extend spell",
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 },
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    { 102, 102,  50,  45, 102, 102, 102, 102, 102,  60,  50,  50, 102, 102,  50 },
+    {   0,   0,   5,   4,   0,   0,   0,   0,   0,   6,   5,   5,   0,   0,   5 },
+    { 100, 100,  95, 100, 100, 100, 100, 100, 100,  90,  95,  95, 100, 100,  95 },
+    STAT_INT, STAT_WIS, STAT_DIS,
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_extend_spell, SLOT(0), 0, 0, DUR_NONE,
     "", "!extend spell!", "", NULL
@@ -4251,10 +4253,10 @@ struct  skill_type  skill_table [MAX_SKILL] =
 
     {
     "empower spell",
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 },
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    { 102, 102,  60,  55, 102, 102, 102, 102, 102, 102,  60,  60, 102, 102,  60 },
+    {   0,   0,   6,   5,   0,   0,   0,   0,   0,   0,   6,   6,   0,   0,   6 },
+    { 100, 100,  90, 100, 100, 100, 100, 100, 100, 100,  90,  95, 100, 100,  95 },
+    STAT_INT, STAT_WIS, STAT_DIS,
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_empower_spell, SLOT(0), 0, 0, DUR_NONE,
     "", "!empower spell!", "", NULL
@@ -4262,10 +4264,10 @@ struct  skill_type  skill_table [MAX_SKILL] =
 
     {
     "quicken spell",
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 },
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    { 102, 102, 102,  65, 102, 102, 102, 102, 102, 102, 102,  70, 102, 102, 102 },
+    {   0,   0,   0,   6,   0,   0,   0,   0,   0,   0,   0,   7,   0,   0,   0 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,  90, 100, 100, 100 },
+    STAT_INT, STAT_WIS, STAT_DIS,
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_quicken_spell, SLOT(0), 0, 0, DUR_NONE,
     "", "!quicken spell!", "", NULL
@@ -4273,10 +4275,10 @@ struct  skill_type  skill_table [MAX_SKILL] =
 
     {
     "chain spell",
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 },
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    { 102, 102,  80,  75, 102, 102, 102, 102, 102, 102,  80,  80, 102, 102,  80 },
+    {   0,   0,   9,   7,   0,   0,   0,   0,   0,   0,   9,   8,   0,   0,   8 },
+    { 100, 100,  85, 100, 100, 100, 100, 100, 100, 100,  85,  90, 100, 100,  90 },
+    STAT_INT, STAT_WIS, STAT_DIS,
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_chain_spell, SLOT(0), 0, 0, DUR_NONE,
     "", "!chain spell!", "", NULL
@@ -7513,9 +7515,14 @@ const   struct  group_type      group_table     [MAX_GROUP]     =
           "overcharge", "conviction" }
 	},
 
-        {
+    {
         "advanced illusions", { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 5, -1, -1, -1 },
         { "basic apparition", "holy apparition", "phantasmal image" }
-        }
+    },
+        
+    {
+        "meta magic", { -1, -1, 18, 20, -1, -1, -1, -1, -1, -1, 18, 24, -1, -1, 17 },
+        { "extend spell", "empower spell", "quicken spell", "chain spell" }
+    }
 
 };
