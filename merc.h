@@ -264,7 +264,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Adjust the pulse numbers to suit yourself.
  */
 #define MAX_SKILL         419
-#define MAX_GROUP          76 /* accurate jan 2013 */
+#define MAX_GROUP          77 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
 #define MAX_CLASS          15
@@ -1326,8 +1326,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -3519,10 +3519,13 @@ extern sh_int  gsn_solar_flare;
 extern sh_int  gsn_iron_hide;
 extern sh_int  gsn_feeblemind;
 
+extern sh_int  gsn_extend_spell;
+extern sh_int  gsn_empower_spell;
+extern sh_int  gsn_quicken_spell;
+extern sh_int  gsn_chain_spell;
+
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
-
-
 
 /*
  * Struct information for achievements_entry
@@ -3995,6 +3998,13 @@ extern      char last_command [MSL];
 extern      char last_mprog [MSL];
 extern      char last_debug [MSL];
 
+extern      tflag meta_magic;
+
+#define META_MAGIC_EXTEND   (A)
+#define META_MAGIC_EMPOWER  (B)
+#define META_MAGIC_QUICKEN  (C)
+#define META_MAGIC_CHAIN    (D)
+
 /*
  * OS-dependent declarations.
  * These are all very standard library functions,
@@ -4360,6 +4370,7 @@ void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+bool    is_ranged_weapon( OBJ_DATA *weapon );
 CD *    get_local_leader( CHAR_DATA *ch );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
 
