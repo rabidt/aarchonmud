@@ -1150,6 +1150,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     int sn, level, chance, wait;
     int target;
     bool concentrate = FALSE;
+    bool overcharging = (IS_AFFECTED(ch, AFF_OVERCHARGE) && !ch->fighting);
 
     target_name = one_argument( argument, arg1 );
 
@@ -1177,7 +1178,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     /* check to see if spell can be cast in current position */
     if ( ch->position < skill_table[sn].minimum_position )
     {
-        if ( ch->position < POS_FIGHTING )
+        if ( ch->position < POS_FIGHTING || sn == gsn_overcharge )
         {
             send_to_char( "You can't concentrate enough.\n\r", ch );
             return;
@@ -1188,8 +1189,8 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
     mana = mana_cost(ch, sn, chance);
     mana = meta_magic_adjust_cost(mana, TRUE);
-    if (IS_AFFECTED(ch, AFF_OVERCHARGE))
-        mana=mana*2;
+    if ( overcharging )
+        mana *= 2;
 
     /* Locate targets */
     if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
@@ -1212,7 +1213,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     wait = skill_table[sn].beats * (200-chance) / 100;
     wait = meta_magic_adjust_wait(wait);
     /* Check for overcharge (less lag) */
-    if (IS_AFFECTED(ch, AFF_OVERCHARGE))
+    if ( overcharging )
         wait /= 4;
 
     WAIT_STATE( ch, wait );
@@ -1231,7 +1232,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
         if ( IS_DEAD(ch) )
             return;
     }
-    else if ( IS_AFFECTED(ch, AFF_OVERCHARGE) && number_bits(1) == 0 )
+    else if ( overcharging && number_bits(1) == 0 )
     {
         direct_damage( ch, ch, mana, skill_lookup("mana burn") );
         if ( IS_DEAD(ch) )
