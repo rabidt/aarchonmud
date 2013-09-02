@@ -371,6 +371,13 @@ const   struct  cmd_type    cmd_table   [] =
     { "supplies",   do_supplies,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "quiveringpalm",   do_quivering_palm,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     
+    // Meta-magic commands.
+    { "mmcast",     do_mmcast,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "ecast",      do_ecast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "pcast",      do_pcast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "qcast",      do_qcast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "ccast",      do_ccast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+
    /*
     * Ranger commands.
     */

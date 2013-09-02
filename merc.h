@@ -264,7 +264,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Adjust the pulse numbers to suit yourself.
  */
 #define MAX_SKILL         419
-#define MAX_GROUP          76 /* accurate jan 2013 */
+#define MAX_GROUP          77 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
 #define MAX_CLASS          15
@@ -3519,10 +3519,13 @@ extern sh_int  gsn_solar_flare;
 extern sh_int  gsn_iron_hide;
 extern sh_int  gsn_feeblemind;
 
+extern sh_int  gsn_extend_spell;
+extern sh_int  gsn_empower_spell;
+extern sh_int  gsn_quicken_spell;
+extern sh_int  gsn_chain_spell;
+
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
-
-
 
 /*
  * Struct information for achievements_entry
@@ -3994,6 +3997,13 @@ extern      PORTAL_DATA    *portal_list;
 extern      char last_command [MSL];
 extern      char last_mprog [MSL];
 extern      char last_debug [MSL];
+
+extern      tflag meta_magic;
+
+#define META_MAGIC_EXTEND   (A)
+#define META_MAGIC_EMPOWER  (B)
+#define META_MAGIC_QUICKEN  (C)
+#define META_MAGIC_CHAIN    (D)
 
 /*
  * OS-dependent declarations.
