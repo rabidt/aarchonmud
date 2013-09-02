@@ -515,6 +515,14 @@ DECLARE_DO_FUN( do_round_swing  );
 DECLARE_DO_FUN( do_hurl         );
 DECLARE_DO_FUN( do_spit         );
 DECLARE_DO_FUN( do_peel         );
+
+/* meta-magic */
+DECLARE_DO_FUN( do_mmcast       );
+DECLARE_DO_FUN( do_ecast        );
+DECLARE_DO_FUN( do_pcast        );
+DECLARE_DO_FUN( do_qcast        );
+DECLARE_DO_FUN( do_ccast        );
+
 /* warfare! */
 DECLARE_DO_FUN( do_startwar     );
 DECLARE_DO_FUN( do_nowar        );
