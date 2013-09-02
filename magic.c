@@ -993,13 +993,13 @@ void do_ccast( CHAR_DATA *ch, char *argument )
     meta_magic_cast(ch, "c", argument);
 }
 
-int meta_magic_adjust_cost( int cost )
+int meta_magic_adjust_cost( int cost, bool base )
 {
     int flag;
 
     // each meta-magic effect doubles casting cost
     for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
-        if ( IS_SET(meta_magic, flag) )
+        if ( IS_SET(meta_magic, flag) && (base || flag != META_MAGIC_CHAIN) )
             cost *= 2;
 
     return cost;
@@ -1027,9 +1027,7 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
         if ( IS_SET(meta_magic, flag) )
         {
             int sn = meta_magic_sn(flag);
-            int skill = get_skill(ch, sn);
-            int chance = (100 + skill) / 2;
-            if ( per_chance(chance) )
+            if ( number_bits(1) || per_chance(get_skill(ch, sn)) )
             {
                 check_improve(ch, sn, TRUE, 3);
             }
@@ -1189,7 +1187,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     }
 
     mana = mana_cost(ch, sn, chance);
-    mana = meta_magic_adjust_cost(mana);
+    mana = meta_magic_adjust_cost(mana, TRUE);
     if (IS_AFFECTED(ch, AFF_OVERCHARGE))
         mana=mana*2;
 
