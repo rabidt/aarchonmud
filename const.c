@@ -2670,7 +2670,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
         {  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3, 3 },
  	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-        spell_mass_confusion, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+        spell_mass_confusion, TAR_IGNORE, POS_FIGHTING,
         &gsn_mass_confusion,           SLOT(2040),   25, 18, DUR_BRIEF,
         "",     "You put the pieces of your head back together.",   "", NULL
         },
@@ -3169,7 +3169,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3, 3 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_fire_breath,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+	spell_fire_breath,  TAR_IGNORE, POS_FIGHTING,
 	&gsn_fire_breath,           SLOT(201),  12,    4, DUR_NONE,
 	"blast of flame",   "The smoke leaves your eyes.",  "", NULL
 	},
@@ -3246,7 +3246,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3, 3 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_frost_breath, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+	spell_frost_breath, TAR_IGNORE, POS_FIGHTING,
 	NULL,           SLOT(202),  14,    4, DUR_NONE,
 	"blast of frost",   "!Frost Breath!",   "", NULL
 	},
@@ -4131,7 +4131,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3, 3 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_cone_of_exhaustion, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+	spell_cone_of_exhaustion, TAR_IGNORE, POS_FIGHTING,
 	NULL,           SLOT(2100),  14,    4, DUR_NONE,
 	"exhausting cone",   "!cone of exhaustion!",   "", NULL
 	},
@@ -4164,7 +4164,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3, 3 },
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_zombie_breath, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+	spell_zombie_breath, TAR_IGNORE, POS_FIGHTING,
 	NULL,           SLOT(2103),  14,    4, DUR_NONE,
 	"zombie breath",   "!zombie breath!",   "", NULL
 	},
