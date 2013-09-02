@@ -263,7 +263,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         419
+#define MAX_SKILL         423
 #define MAX_GROUP          77 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
