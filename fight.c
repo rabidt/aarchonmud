@@ -3972,11 +3972,21 @@ bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     AFFECT_DATA *aff;
     
     if ( (aff = affect_find(victim->affected, gsn_mirror_image)) == NULL )
-	return FALSE;
+        return FALSE;
+    
+    // allow disbelief against illusion
+    if ( per_chance(get_skill(ch, gsn_alertness)) || number_bits(2) )
+    {
+        check_improve(ch, gsn_alertness, TRUE, 3);
+        if ( saves_spell(aff->level, ch, DAM_MENTAL) )
+            return FALSE;
+    }
+    else
+        check_improve(ch, gsn_alertness, FALSE, 1);
 
-    if ( number_range(0, aff->bitvector) == 0
-	 || chance(25 + get_skill(ch, gsn_alertness)/2) )
-	return FALSE;
+    // might still hit caster by pure chance
+    if ( number_range(0, aff->bitvector) == 0 )
+        return FALSE;
 
     /* ok, we hit a mirror image */
     if ( show )
@@ -4006,11 +4016,21 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     AFFECT_DATA *aff;
     
     if ( (aff = affect_find(victim->affected, gsn_phantasmal_image)) == NULL )
-	return FALSE;
+        return FALSE;
 
-    if ( number_range(0, aff->bitvector) == 0
-	 || chance(25 + get_skill(ch, gsn_alertness)/2) )
-	return FALSE;
+    // allow disbelief against illusion
+    if ( per_chance(get_skill(ch, gsn_alertness)) || number_bits(2) )
+    {
+        check_improve(ch, gsn_alertness, TRUE, 3);
+        if ( saves_spell(aff->level, ch, DAM_MENTAL) )
+            return FALSE;
+    }
+    else
+        check_improve(ch, gsn_alertness, FALSE, 1);
+
+    // might still hit caster by pure chance
+    if ( number_range(0, aff->bitvector) == 0 )
+        return FALSE;
 
     /* ok, we hit a phantasmal image */
     if ( show )
