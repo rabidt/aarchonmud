@@ -827,15 +827,22 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
 
 int get_duration_by_type( int type, int level )
 {
+    int duration;
+
     switch ( type )
     {
-        case DUR_BRIEF:   return level / 6;
-        case DUR_SHORT:   return (level + 20) / 4;
-        case DUR_NORMAL:  return (level + 20) / 2;
-        case DUR_LONG:    return (level + 20);
-        case DUR_EXTREME: return (level + 20) * 2;
-        default:          return 0;
+        case DUR_BRIEF:   duration = level / 6; break;
+        case DUR_SHORT:   duration = (level + 20) / 4; break;
+        case DUR_NORMAL:  duration = (level + 20) / 2; break;
+        case DUR_LONG:    duration = (level + 20); break;
+        case DUR_EXTREME: duration = (level + 20) * 2; break;
+        default:          duration = 0; break;
     }
+
+    if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
+        duration = duration * 3/2;
+
+    return duration;
 }
 
 int get_duration( int sn, int level )
@@ -898,6 +905,236 @@ bool check_concentration( CHAR_DATA *ch )
     return TRUE;
 }
 
+// global variable for storing what meta-magic skills are used
+tflag meta_magic = {};
+
+int meta_magic_sn( int meta )
+{
+    switch ( meta )
+    {
+        case META_MAGIC_EXTEND: return gsn_extend_spell;
+        case META_MAGIC_EMPOWER: return gsn_empower_spell;
+        case META_MAGIC_QUICKEN: return gsn_quicken_spell;
+        case META_MAGIC_CHAIN: return gsn_chain_spell;
+        default: return 0;
+    }
+}
+
+// meta-magic casting functions
+void meta_magic_cast( CHAR_DATA *ch, char *meta_arg, char *argument )
+{
+    tflag meta_flag;
+    int i;
+    
+    if ( meta_arg[0] == '\0' )
+    {
+        printf_to_char(ch, "What meta-magic flags do you want to apply?\n\r");
+        printf_to_char(ch, "Syntax: mmcast [cepq] <spell name> [other args]\n\r");
+        return;
+    }
+    
+    // parse meta-magic flags requested
+    flag_clear(meta_flag);
+    for ( i = 0; i < strlen(meta_arg); i++ )
+    {
+        // valid flag?
+        int meta = 0;
+        switch( meta_arg[i] )
+        {
+            case 'e': meta = META_MAGIC_EXTEND; break;
+            case 'p': meta = META_MAGIC_EMPOWER; break;
+            case 'q': meta = META_MAGIC_QUICKEN; break;
+            case 'c': meta = META_MAGIC_CHAIN; break;
+            default:
+                printf_to_char(ch, "Invalid meta-magic option: %c\n\r", meta_arg[i]);
+                return;
+        }
+        // character has skill?
+        int sn = meta_magic_sn(meta);
+        if ( !get_skill(ch, sn) )
+        {
+            printf_to_char(ch, "You need the '%s' skill for this!\n\r", skill_table[sn].name);
+            return;
+        }
+        // remember for later
+        flag_set(meta_flag, meta);
+    }
+        
+    flag_copy(meta_magic, meta_flag);
+    do_cast(ch, argument);
+    flag_clear(meta_magic);
+}
+
+void do_mmcast( CHAR_DATA *ch, char *argument )
+{
+    char arg1[MAX_INPUT_LENGTH];
+
+    argument = one_argument(argument, arg1);
+    meta_magic_cast(ch, arg1, argument);
+}
+
+void do_ecast( CHAR_DATA *ch, char *argument )
+{
+    meta_magic_cast(ch, "e", argument);
+}
+
+void do_pcast( CHAR_DATA *ch, char *argument )
+{
+    meta_magic_cast(ch, "p", argument);
+}
+
+void do_qcast( CHAR_DATA *ch, char *argument )
+{
+    meta_magic_cast(ch, "q", argument);
+}
+
+void do_ccast( CHAR_DATA *ch, char *argument )
+{
+    meta_magic_cast(ch, "c", argument);
+}
+
+int meta_magic_adjust_cost( int cost, bool base )
+{
+    int flag;
+
+    // each meta-magic effect doubles casting cost
+    for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
+        if ( IS_SET(meta_magic, flag) && (base || flag != META_MAGIC_CHAIN) )
+            cost *= 2;
+
+    return cost;
+}
+
+int meta_magic_adjust_wait( int wait )
+{
+    if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
+        wait *= 2;
+    
+    // can't reduce below half a round (e.g. dracs)
+    int min_wait = PULSE_VIOLENCE / 2;
+    if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) && wait > min_wait )
+        wait = UMAX(min_wait, wait / 2);
+
+    return wait;
+}
+
+bool meta_magic_concentration_check( CHAR_DATA *ch )
+{
+    int flag;
+
+    // each meta-magic effect has chance of failure
+    for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
+        if ( IS_SET(meta_magic, flag) )
+        {
+            int sn = meta_magic_sn(flag);
+            if ( number_bits(1) || per_chance(get_skill(ch, sn)) )
+            {
+                check_improve(ch, sn, TRUE, 3);
+            }
+            else
+            {
+                check_improve(ch, sn, FALSE, 2);
+                return FALSE;
+            }
+        }
+
+    return TRUE;
+}
+
+bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
+{
+    // can only extend spells with duration
+    if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
+    {
+        int duration = skill_table[sn].duration;
+        if ( duration == DUR_NONE || duration == DUR_SPECIAL )
+        {
+            send_to_char("Only spells with standard durations can be extended.\n\r", ch);
+            return FALSE;
+        }
+    }
+    
+    // can only quicken spells with longish casting time
+    if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) )
+    {
+        int wait = skill_table[sn].beats;
+        int min_wait = PULSE_VIOLENCE / 2;
+        if ( wait <= min_wait )
+        {
+            send_to_char("This spell cannot be quickened any further.\n\r", ch);
+            return FALSE;
+        }
+    }
+
+    // can only chain single-target non-personal spells
+    if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
+    {
+        int target = skill_table[sn].target;
+
+        if ( target == TAR_CHAR_SELF )
+        {
+            send_to_char("Personal spells cannot be chained.\n\r", ch);
+            return FALSE;
+        }
+            
+        if ( target == TAR_IGNORE
+            || sn == skill_lookup("betray")
+            || sn == skill_lookup("chain lightning") )
+        {
+            send_to_char("Only single-target spells can be chained.\n\r", ch);
+            return FALSE;
+        }
+        
+        if ( target_type == TARGET_OBJ )
+        {
+            send_to_char("Spells targeting objects cannot be chained.\n\r", ch);
+            return FALSE;
+        }
+    }
+    
+    return TRUE;
+}
+
+void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    // spell triggers
+    if ( victim != NULL && IS_NPC(victim) && mp_spell_trigger(skill_table[sn].name, victim, ch) )
+        return; // Return because it might have killed the victim or ch
+
+    if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
+         && victim->fighting == NULL && victim->position > POS_STUNNED
+         && !is_same_group(ch, victim) )
+    {
+        set_fighting(victim, ch, FALSE);
+    }
+}
+
+void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    CHAR_DATA *target, *next_target;
+    bool offensive = is_offensive(sn);
+    bool must_see = (skill_table[sn].target == TAR_VIS_CHAR_OFF);
+    
+    if ( !ch->in_room || victim->in_room != ch->in_room )
+        return;
+    
+    for ( target = ch->in_room->people; target; target = next_target )
+    {
+        next_target = target->next_in_room;
+        
+        if ( target == victim
+            || offensive && is_safe_spell(ch, target, TRUE)
+            || must_see && !check_see(ch, target) )
+            continue;
+
+        if ( !offensive && !is_same_group(victim, target) )
+            continue;
+
+        (*skill_table[sn].spell_fun) (sn, level, ch, (void*)target, TARGET_CHAR);
+        post_spell_process(sn, ch, target);
+    }
+}
+
 /*
  * The kludgy global is for spells who want more stuff from command line.
  */
@@ -913,12 +1150,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     int sn, level, chance, wait;
     int target;
     bool concentrate = FALSE;
-
-    /* Switched NPC's can cast spells, but others can't.  */
-    /*
-       if ( IS_NPC(ch) && ch->desc == NULL)
-       return;
-     */    
+    bool overcharging = (IS_AFFECTED(ch, AFF_OVERCHARGE) && !ch->fighting);
 
     target_name = one_argument( argument, arg1 );
 
@@ -927,21 +1159,6 @@ void do_cast( CHAR_DATA *ch, char *argument )
         send_to_char( "Cast which what where?\n\r", ch );
         return;
     }
-
-    /*
-       if ((sn == gsn_hailstorm || gsn_meteor_swarm || gsn_call_lightning ||
-       gsn_control_weather || gsn_monsoon ) && (weather_info.sky < SKY_RAINING 
-       && !IS_OUTSIDE(ch)) )
-       {
-       send_to_char( "You can't cast that right now.\n\r", ch );
-       return;
-       }
-
-       if (sn == gsn_smotes_anachronism && ch->position != POS_FIGHTING)
-       {
-       send_to_char( "You can't cast that out of combat.\n\r", ch );
-       return;
-       }    */  
 
     if ((sn = find_spell(ch,arg1)) < 1
             ||  skill_table[sn].spell_fun == spell_null
@@ -961,7 +1178,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     /* check to see if spell can be cast in current position */
     if ( ch->position < skill_table[sn].minimum_position )
     {
-        if ( ch->position < POS_FIGHTING )
+        if ( ch->position < POS_FIGHTING || sn == gsn_overcharge )
         {
             send_to_char( "You can't concentrate enough.\n\r", ch );
             return;
@@ -971,14 +1188,18 @@ void do_cast( CHAR_DATA *ch, char *argument )
     }
 
     mana = mana_cost(ch, sn, chance);
-    if (IS_AFFECTED(ch, AFF_OVERCHARGE))
-        mana=mana*2;
+    mana = meta_magic_adjust_cost(mana, TRUE);
+    if ( overcharging )
+        mana *= 2;
 
     /* Locate targets */
     if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
         return;
+    
+    if ( !meta_magic_can_cast(ch, sn, target) )
+        return;
 
-    if ( /*!IS_NPC(ch) &&*/ ch->mana < mana )
+    if ( ch->mana < mana )
     {
         send_to_char( "You don't have enough mana.\n\r", ch );
         return;
@@ -990,8 +1211,9 @@ void do_cast( CHAR_DATA *ch, char *argument )
     }
 
     wait = skill_table[sn].beats * (200-chance) / 100;
+    wait = meta_magic_adjust_wait(wait);
     /* Check for overcharge (less lag) */
-    if (IS_AFFECTED(ch, AFF_OVERCHARGE))
+    if ( overcharging )
         wait /= 4;
 
     WAIT_STATE( ch, wait );
@@ -1010,7 +1232,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
         if ( IS_DEAD(ch) )
             return;
     }
-    else if ( IS_AFFECTED(ch, AFF_OVERCHARGE) && number_bits(1) == 0 )
+    else if ( overcharging && number_bits(1) == 0 )
     {
         direct_damage( ch, ch, mana, skill_lookup("mana burn") );
         if ( IS_DEAD(ch) )
@@ -1034,6 +1256,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 #endif
     }
     else if ( 2*number_percent() > (chance+100)
+            || !meta_magic_concentration_check(ch)
             || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20)
             || IS_AFFECTED(ch, AFF_CURSE) && per_chance(5)
             || concentrate && !check_concentration(ch) )
@@ -1062,6 +1285,8 @@ void do_cast( CHAR_DATA *ch, char *argument )
         level = ch->level;
         level = (100+chance)*level/200;
         level = URANGE(1, level, 120);
+        if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
+            level += UMAX(1, level/8);
 
         vo = check_reflection( sn, level, ch, vo, target );
 
@@ -1073,24 +1298,11 @@ void do_cast( CHAR_DATA *ch, char *argument )
         (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
         check_improve(ch,sn,TRUE,3);
 
-        /* check for spell mprog triggers */
         if ( target == TARGET_CHAR )
         {
-            if ( victim != NULL && IS_NPC(victim) )
-            {
-                if ( mp_spell_trigger(skill_table[sn].name, victim, ch) )
-                    return; //Return because it might have killed the vic or ch
-            }
-        }
-
-        if ( is_offensive(sn) && target == TARGET_CHAR && victim != ch )
-        {
-            if ( victim->in_room == ch->in_room
-                && victim->fighting == NULL
-                && !is_safe_spell(victim, ch, FALSE) )
-            {
-                multi_hit( victim, ch, TYPE_UNDEFINED );
-            }
+            post_spell_process(sn, ch, (CHAR_DATA*)vo);
+            if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
+                chain_spell(sn, level*3/4, ch, (CHAR_DATA*)vo);
         }
     }
     return;
@@ -1264,6 +1476,9 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     {
         dam += dam * (10 + ch->level - LEVEL_MIN_HERO) / 100;
     }
+    
+    if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
+        dam += dam / 4;
 
     return dam * number_range(90, 110) / 100;
 }
@@ -1308,6 +1523,9 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 
     /* bonus/penalty for target's vitality */
     heal = heal * (200 + get_curr_stat(victim, STAT_VIT)) / 300;
+
+    if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
+        heal += heal / 4;
 
     return heal;
 }
@@ -4719,7 +4937,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -4742,7 +4960,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
