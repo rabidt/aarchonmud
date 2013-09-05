@@ -879,7 +879,7 @@ void do_info( CHAR_DATA *ch, char *argument )
                     !IS_SET(victim->comm,COMM_NOINFO) &&
                     !IS_SET(victim->comm,COMM_QUIET) )
                 {
-                    sprintf(buf, "{1[INFO]{2: %s\n{x", argument);
+                    sprintf(buf, "{1[INFO]{2: %s\n{x", parse_url(argument));
                     act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
                 }
             }
