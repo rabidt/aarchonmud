@@ -399,15 +399,15 @@ end
 
 function check_lboard_reset()
   for k,tbl in pairs(lb_tables) do
-    if os.time()>tbl.timeout and not(tbl.timeout==0) then
+    if os.time()>tbl.timeout then
       if k=="daily" then
-        make_result(tbl,k)
+        if not(tbl.timeout==0) then make_result(tbl,k) end
         reset_daily()
       elseif k=="weekly" then
-        make_result(tbl,k)
+        if not(tbl.timeout==0) then make_result(tbl,k) end
         reset_weekly()
       elseif k=="monthly" then
-        make_result(tbl,k)
+        if not(tbl.timeout==0) then make_result(tbl,k) end
         reset_monthly()
       end
     end
