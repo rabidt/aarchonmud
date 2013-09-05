@@ -367,17 +367,17 @@ end
 
 local function reset_daily()
   local now=os.date("*t")
-  lb_tables.daily.timeout=os.time{year=now.year, month=now.month,day=now.day+1}
+  lb_tables.daily.timeout=os.time{year=now.year, month=now.month,day=now.day+1,hour=0}
 end
 
 local function reset_weekly()
   local now=os.date("*t")
-  lb_tables.weekly.timeout=os.time{year=now.year, month=now.month,day=now.day+8-now.wday}
+  lb_tables.weekly.timeout=os.time{year=now.year, month=now.month,day=now.day+8-now.wday,hour=0}
 end
 
 local function reset_monthly()
   local now=os.date("*t")
-  lb_tables.monthly.timeout=os.time{year=now.year, month=now.month+1,day=now.day}
+  lb_tables.monthly.timeout=os.time{year=now.year, month=now.month+1,day=now.day,hour=0}
 end
 
 local function make_result(tbl,typ)
