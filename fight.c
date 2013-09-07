@@ -121,6 +121,7 @@ bool check_critical  args( ( CHAR_DATA *ch, bool secondary ) );
 bool check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
 bool stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim );
+bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
@@ -3941,8 +3942,10 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     try_avoid = !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) && !IS_AFFECTED(victim, AFF_FLEE);
     if ( try_avoid )
     {
-	if ( check_outmaneuver( ch, victim ) )
-	    return TRUE;
+        if ( check_outmaneuver( ch, victim ) )
+            return TRUE;
+        if ( check_avoidance( ch, victim ) )
+            return TRUE;
         if ( check_duck( ch,victim ) )
             return TRUE;
         if ( check_dodge( ch, victim ) )
@@ -4299,6 +4302,34 @@ bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
     act_gag( "$N outmaneuvers your attack!", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N outmaneuvers $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
     check_improve(victim,gsn_mass_combat,TRUE,15);
+    return TRUE;
+}
+
+bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    int chance;
+
+    if ( !IS_AWAKE(victim) )
+        return FALSE;
+
+    if ( ch->fighting == victim || ch->fighting == NULL )
+        return FALSE;
+
+    chance = get_skill(victim, gsn_avoidance) * 2/3;
+
+    if ( IS_AFFECTED(victim, AFF_SORE) )
+        chance -= 10;
+
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
+        chance -= chance/4;
+
+    if ( !per_chance(chance) )
+        return FALSE;
+
+    act_gag( "You avoid $n's attack!", ch, NULL, victim, TO_VICT, GAG_MISS );
+    act_gag( "$N avoids your attack!", ch, NULL, victim, TO_CHAR, GAG_MISS );
+    act_gag( "$N avoids $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
+    check_improve(victim,gsn_avoidance,TRUE,5);
     return TRUE;
 }
 
