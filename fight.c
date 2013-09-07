@@ -2659,6 +2659,33 @@ CHAR_DATA *get_local_leader( CHAR_DATA *ch )
         return ch;
 }
 
+bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
+{
+    // touch spells and some others cannot be evaded
+    char *spell = skill_table[sn].name;
+    if ( !strcmp(spell, "burning hands")
+        || !strcmp(spell, "chill touch")
+        || !strcmp(spell, "shocking grasp")
+        || !strcmp(spell, "poison")
+        || !strcmp(spell, "plague")
+        || !strcmp(spell, "iron maiden"))
+        return FALSE;
+
+    // direct-target spells are harder to evade
+    if ( skill_table[sn].target != TAR_IGNORE && number_bits(1) )
+        return FALSE;
+
+    bool success = per_chance(get_skill(victim, gsn_evasion));
+    if ( show && success )
+    {
+        act_gag("$N evades your spell, reducing its impact.", ch, NULL, victim, TO_CHAR, GAG_MISS);
+        act_gag("You evade $n's spell, reducing its impact.", ch, NULL, victim, TO_VICT, GAG_MISS);
+        act_gag("$N evades $n's spell, reducing its impact.", ch, NULL, victim, TO_NOTVICT, GAG_MISS);
+    }
+    check_improve(victim, gsn_evasion, success, 5);
+    return success;
+}
+
 /*
 * Inflict full damage from a hit.
 */
@@ -2779,9 +2806,14 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam -= diff*dam/4000;
     }
 
-    if ( victim->stance == STANCE_ARCANA && dt < TYPE_HIT && IS_SPELL(dt) )
-	dam -= dam/3;
-    
+    if ( dam > 1 && dt < TYPE_HIT && IS_SPELL(dt) )
+    {
+        if ( victim->stance == STANCE_ARCANA )
+            dam -= dam/3;
+        if ( check_evasion(ch, victim, dt, show) )
+            dam -= dam/2;
+    }
+
     immune = FALSE;
     
     /*
