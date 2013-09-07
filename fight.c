@@ -44,7 +44,7 @@ extern WAR_DATA war;
 void reverse_char_list();
 void check_rescue( CHAR_DATA *ch );
 void check_jump_up( CHAR_DATA *ch );
-void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam );
+void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
@@ -1235,6 +1235,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1898,7 +1900,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     CHECK_RETURN( ch, victim );
 
     /* aura */
-    aura_damage( ch, victim, wield, dam );
+    aura_damage( ch, victim, wield );
     CHECK_RETURN( ch, victim );
     
     /* stance effects */
@@ -2018,84 +2020,53 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     return is_hit;
 }
 
-void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int dam )
+void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
-    int level;
-
     if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) || is_ranged_weapon(wield) )
         return;
 
-    if ( is_affected(victim, gsn_immolation) )
+    AFFECT_DATA *aff = affect_find_flag(victim->affected, AFF_ELEMENTAL_SHIELD);
+
+    if ( !aff )
     {
-/* This check added to each aura for reduced damage from Fervent Rage -Astark */
-        if ( is_affected(ch, gsn_fervent_rage) )
-        {
-            level = affect_level( victim, gsn_immolation );
-   	    full_dam(victim, ch, level/2, gsn_immolation, DAM_FIRE, TRUE);
-        }
-        else
-        {
-        level = affect_level( victim, gsn_immolation );
-	full_dam(victim, ch, level, gsn_immolation, DAM_FIRE, TRUE);
-        }
+        bugf("aura_damage: no aura affect found on %s (%d).", victim->name, IS_NPC(victim) ? victim->pIndexData->vnum : 0);
+        return;
     }
-    else if ( is_affected(victim, gsn_epidemic) )
+    
+    int dam_type;
+    int aff_sn = aff->type;
+    int aff_level = aff->level;
+
+    // quirky's insanity is special
+    if ( aff_sn == gsn_quirkys_insanity )
     {
-        if ( is_affected(ch, gsn_fervent_rage) )
+        if ( number_bits(2) == 0 )
         {
-            level = affect_level( victim, gsn_epidemic );
-   	    full_dam(victim, ch, level/2, gsn_epidemic, DAM_DISEASE, TRUE);
+            int sn = per_chance(10) ? skill_lookup("confusion") : skill_lookup("laughing fit");
+            (*skill_table[sn].spell_fun) (sn, aff_level/2, victim, (void*)ch, TARGET_CHAR);
         }
-        else
-        {
-	level = affect_level( victim, gsn_epidemic );
-	full_dam(victim, ch, level, gsn_epidemic, DAM_DISEASE, TRUE);
-        }
+        full_dam(victim, ch, aff_level/2, gsn_quirkys_insanity, DAM_MENTAL, TRUE);
+        return;
     }
-    else if ( is_affected(victim, gsn_electrocution) )
-    {
-        if ( is_affected(ch, gsn_fervent_rage) )
-        {
-            level = affect_level( victim, gsn_electrocution );
-   	    full_dam(victim, ch, level/2, gsn_electrocution, DAM_LIGHTNING, TRUE);
-        }
-        else
-        {
-	level = affect_level( victim, gsn_electrocution );
-	full_dam(victim, ch, level, gsn_electrocution, DAM_LIGHTNING, TRUE);
-        }
-    } 
-    else if ( is_affected(victim, gsn_absolute_zero) )
-    {
-        if ( is_affected(ch, gsn_fervent_rage) )
-        {
-            level = affect_level( victim, gsn_absolute_zero );
-   	    full_dam(victim, ch, level/2, gsn_absolute_zero, DAM_COLD, TRUE);
-        }
-        else
-        {
-	level = affect_level( victim, gsn_absolute_zero );
-	full_dam(victim, ch, level, gsn_absolute_zero, DAM_COLD, TRUE);
-        }
-    }
-    /*added in by Korinn 1-19-99*/
-    else if ( is_affected(victim, gsn_quirkys_insanity) )
-    {
-	level = affect_level( victim, gsn_quirkys_insanity );
-	if ( number_bits(2) == 0 )
-	{	  
-	    int confusion_num, laughing_fit_num;
-	    confusion_num=skill_lookup("confusion");
-	    laughing_fit_num=skill_lookup("laughing fit");
-	    
-	    if (number_percent()<=10)
-		spell_confusion(confusion_num, level/2, ch,(void *) ch, TARGET_CHAR);
-	    else
-		spell_laughing_fit(laughing_fit_num, level/2, ch,(void *) ch, TARGET_CHAR);
-	}
-	full_dam(victim, ch, level/2, gsn_quirkys_insanity, DAM_MENTAL, TRUE);
-    }
-} /* aura damage */
+    
+    // now the "regular" elemental auras
+    if ( aff_sn == gsn_immolation )
+        dam_type = DAM_FIRE;
+    else if ( aff_sn == gsn_epidemic )
+        dam_type = DAM_DISEASE;
+    else if ( aff_sn == gsn_electrocution )
+        dam_type = DAM_LIGHTNING;
+    else if ( aff_sn == gsn_absolute_zero )
+        dam_type = DAM_COLD;
+    
+    int dam = aff_level;
+
+    // save for half damage is possible but harder than normal
+    if ( is_affected(ch, gsn_fervent_rage) || saves_spell(2*aff_level, ch, dam_type) )
+        dam /= 2;
+
+    full_dam(victim, ch, dam, aff_sn, dam_type, TRUE);
+}
 
 void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
@@ -4003,11 +3974,21 @@ bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     AFFECT_DATA *aff;
     
     if ( (aff = affect_find(victim->affected, gsn_mirror_image)) == NULL )
-	return FALSE;
+        return FALSE;
+    
+    // allow disbelief against illusion
+    if ( per_chance(get_skill(ch, gsn_alertness)) || number_bits(2) )
+    {
+        check_improve(ch, gsn_alertness, TRUE, 3);
+        if ( saves_spell(aff->level, ch, DAM_MENTAL) )
+            return FALSE;
+    }
+    else
+        check_improve(ch, gsn_alertness, FALSE, 1);
 
-    if ( number_range(0, aff->bitvector) == 0
-	 || chance(25 + get_skill(ch, gsn_alertness)/2) )
-	return FALSE;
+    // might still hit caster by pure chance
+    if ( number_range(0, aff->bitvector) == 0 )
+        return FALSE;
 
     /* ok, we hit a mirror image */
     if ( show )
@@ -4037,11 +4018,21 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     AFFECT_DATA *aff;
     
     if ( (aff = affect_find(victim->affected, gsn_phantasmal_image)) == NULL )
-	return FALSE;
+        return FALSE;
 
-    if ( number_range(0, aff->bitvector) == 0
-	 || chance(25 + get_skill(ch, gsn_alertness)/2) )
-	return FALSE;
+    // allow disbelief against illusion
+    if ( per_chance(get_skill(ch, gsn_alertness)) || number_bits(2) )
+    {
+        check_improve(ch, gsn_alertness, TRUE, 3);
+        if ( saves_spell(aff->level, ch, DAM_MENTAL) )
+            return FALSE;
+    }
+    else
+        check_improve(ch, gsn_alertness, FALSE, 1);
+
+    // might still hit caster by pure chance
+    if ( number_range(0, aff->bitvector) == 0 )
+        return FALSE;
 
     /* ok, we hit a phantasmal image */
     if ( show )
@@ -4058,6 +4049,9 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
         if ( ch_weapon != gsn_gun && ch_weapon != gsn_bow )
         {
             dam = dice(4, aff->level);
+            // allow hard save for half damage
+            if ( saves_spell(2*aff->level, ch, DAM_LIGHT) )
+                dam /= 2;
             full_dam(victim, ch, dam, gsn_phantasmal_image, DAM_LIGHT, TRUE);
         }
     }
