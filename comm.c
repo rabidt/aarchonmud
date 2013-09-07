@@ -632,6 +632,9 @@ void game_loop_unix( int control )
                     }                        /* else, from if ( d->pString ) */
                 }                           /* else, from if ( d->showstr_point ) */
                 d->incomm[0]    = '\0';
+                // ensure we have feedback that an input was processed (some commands only provide feedback via prompt)
+                if ( d->outtop == 0 )
+                    d->last_msg_was_prompt = FALSE;
             }                              /* if ( d->incomm[0] != '\0' ) */
             else
             {
