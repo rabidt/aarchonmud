@@ -44,7 +44,6 @@
 #if defined(linux)
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
-bool    write_to_descriptor args( ( int desc, char *txt, int length ) );
 #endif
 
 
