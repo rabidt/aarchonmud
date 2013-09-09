@@ -38,8 +38,6 @@
 #define MIL MAX_INPUT_LENGTH
 #endif
 
-bool    write_to_descriptor     args( ( int desc, char *txt, int length ) );
-
 static void mudftp_notify(const char *fmt, ... ) {
     va_list va;
     char buf[MSL];

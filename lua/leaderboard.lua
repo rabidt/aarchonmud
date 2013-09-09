@@ -367,17 +367,17 @@ end
 
 local function reset_daily()
   local now=os.date("*t")
-  lb_tables.daily.timeout=os.time{year=now.year, month=now.month,day=now.day+1}
+  lb_tables.daily.timeout=os.time{year=now.year, month=now.month,day=now.day+1,hour=0}
 end
 
 local function reset_weekly()
   local now=os.date("*t")
-  lb_tables.weekly.timeout=os.time{year=now.year, month=now.month,day=now.day+8-now.wday}
+  lb_tables.weekly.timeout=os.time{year=now.year, month=now.month,day=now.day+8-now.wday,hour=0}
 end
 
 local function reset_monthly()
   local now=os.date("*t")
-  lb_tables.monthly.timeout=os.time{year=now.year, month=now.month+1,day=now.day}
+  lb_tables.monthly.timeout=os.time{year=now.year, month=now.month+1,day=now.day,hour=0}
 end
 
 local function make_result(tbl,typ)
@@ -399,15 +399,15 @@ end
 
 function check_lboard_reset()
   for k,tbl in pairs(lb_tables) do
-    if os.time()>tbl.timeout and not(tbl.timeout==0) then
+    if os.time()>tbl.timeout then
       if k=="daily" then
-        make_result(tbl,k)
+        if not(tbl.timeout==0) then make_result(tbl,k) end
         reset_daily()
       elseif k=="weekly" then
-        make_result(tbl,k)
+        if not(tbl.timeout==0) then make_result(tbl,k) end
         reset_weekly()
       elseif k=="monthly" then
-        make_result(tbl,k)
+        if not(tbl.timeout==0) then make_result(tbl,k) end
         reset_monthly()
       end
     end
