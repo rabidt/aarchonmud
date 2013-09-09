@@ -267,7 +267,6 @@ void    game_loop_unix      args( ( int control ) );
 int   init_socket       args( ( u_short port ) );
 void    init_descriptor     args( ( int control, ndesc_t type ) );
 bool    read_from_descriptor    args( ( DESCRIPTOR_DATA *d ) );
-bool    write_to_descriptor args( ( int desc, char *txt, int length ) );
 void    greet_ftp       args( ( DESCRIPTOR_DATA *d ) );
 void    handle_ftp_data         ( DESCRIPTOR_DATA *, const char *);
 void    handle_ftp_auth         ( DESCRIPTOR_DATA *, const char *);
@@ -633,6 +632,9 @@ void game_loop_unix( int control )
                     }                        /* else, from if ( d->pString ) */
                 }                           /* else, from if ( d->showstr_point ) */
                 d->incomm[0]    = '\0';
+                // ensure we have feedback that an input was processed (some commands only provide feedback via prompt)
+                if ( d->outtop == 0 )
+                    d->last_msg_was_prompt = FALSE;
             }                              /* if ( d->incomm[0] != '\0' ) */
             else
             {
@@ -1294,9 +1296,7 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
     /*
      * Bust a prompt.
      */
-    if ( d->pProtocol->WriteOOB )
-        ;
-    else if ( !merc_down )
+    if ( !d->pProtocol->WriteOOB && !merc_down && !d->last_msg_was_prompt )
         if ( d->showstr_point )
             write_to_buffer( d, "[Hit Return to continue]\n\r", 0 );
         else if ( fPrompt && d->pString && (d->connected == CON_PLAYING || d->connected == CON_PENALTY_FINISH ))
@@ -1321,7 +1321,7 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
     /*
      * Snoop-o-rama.
      */
-    if ( d->snoop_by != NULL && d->outtop > 0 )
+    if ( d->snoop_by != NULL && d->outtop > 0 && !d->last_msg_was_prompt )
     {
         if (d->character != NULL)
             write_to_buffer( d->snoop_by, d->character->name,0);
@@ -1342,7 +1342,7 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
 bool flush_descriptor( DESCRIPTOR_DATA *d )
 {
     /* if nothing to write, return - otherwise write_to_descriptor tries
-       to determin it's on string length */
+       to determin it's own string length */
     if (d->outtop == 0)
         return TRUE;
 
@@ -1371,14 +1371,25 @@ bool flush_descriptor( DESCRIPTOR_DATA *d )
         }
     }
 
-    if ( !write_to_descriptor( d->descriptor, d->outbuf, d->outtop ) )
+    int written = write_to_descriptor(d->descriptor, d->outbuf, d->outtop);
+    if ( !written )
     {
         d->outtop = 0;
         return FALSE;
     }
     else
     {
-        d->outtop = 0;
+        if ( written < d->outtop )
+        {
+            int i;
+            logpf("flush_descriptor: only %d out of %d chars written", written, d->outtop);
+            // copy remaining chars to beginning of string
+            for ( i = written; i < d->outtop; i++ )
+                d->outbuf[i-written] = d->outbuf[i];
+            d->outtop -= written;
+        }
+        else
+            d->outtop = 0;
         return TRUE;
     }
 }
@@ -1787,24 +1798,33 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
  * If this gives errors on very long blocks (like 'ofind all'),
  *   try lowering the max block size.
  */
-bool write_to_descriptor( int desc, char *txt, int length )
+#define MAX_BLOCK_SIZE 4096
+int write_to_descriptor( int desc, char *txt, int length )
 {
     int iStart;
-    int nWrite;
-    int nBlock;
+    int nWrite, nWritten = 0;
+    int blockNr = 0;
 
     if ( length <= 0 )
         length = strlen(txt);
+    
+    // limit total output written "in one go" to avoid write errors
+    length = UMIN(length, MAX_BLOCK_SIZE * 3);
 
     for ( iStart = 0; iStart < length; iStart += nWrite )
     {
-        nBlock = UMIN( length - iStart, 4096 );
+        int nBlock = UMIN( length - iStart, MAX_BLOCK_SIZE );
         if ( ( nWrite = write( desc, txt + iStart, nBlock ) ) < 0 )
-            { log_error( "Write_to_descriptor" ); return FALSE; }
+        {
+            log_error( "Write_to_descriptor" );
+            return 0;
+        }
+        nWritten += nWrite;
     } 
 
-    return TRUE;
+    return nWritten;
 }
+#undef MAX_BLOCK_SIZE
 
 void stop_idling( CHAR_DATA *ch )
 {

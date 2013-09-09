@@ -815,10 +815,11 @@ void do_stats( CHAR_DATA *ch, char *argument )
             
             for (j=0; j<MAX_STATS; j++)
             {
-                sprintf(buf, " {%c%2d-%3d{x", (j%2)?'c':'y', pc_race_table[i].min_stats[j],
+                sprintf(buf, " {%c%2d-%3d", (j%2)?'c':'y', pc_race_table[i].min_stats[j],
                 pc_race_table[i].max_stats[j]);
                 add_buf(output,buf);
-	    }
+            }
+            add_buf(output, "{x");
         }
         add_buf(output,"\n\r\n\rTo get more information, type: HELP STATS\n\r");
         

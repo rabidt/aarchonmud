@@ -37,11 +37,11 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
       cost = ch->level;
   else
   {
-      if ( ch->stance == STANCE_ARCANA /*|| get_race_skill(ch, sn) > 0*/ )
+      if ( ch->stance == STANCE_ARCANA && !IS_SET(meta_magic, META_MAGIC_EMPOWER) )
 	  cost = ch->mana / 100;
       else
 	  cost = 0;
-      ch->mana -= cost;
+      ch->mana -= meta_magic_adjust_cost(cost, FALSE);
   }
 
   /* calc damage */
