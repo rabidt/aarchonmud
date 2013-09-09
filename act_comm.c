@@ -380,6 +380,60 @@ void do_replay (CHAR_DATA *ch, char *argument)
 }
 
 
+char *parse_url( char *argument)
+{
+    char open[]="\t<a href=\"";
+    char mid[]= "\">";
+    char close[]="\t</a>";
+    char *url=strstr(argument, "http://");
+    
+    if (url==NULL)
+        return argument;
+    
+    static char rtn[MSL*2];
+    int rtnIndex;
+
+    for ( rtnIndex=0 ; ; argument++)
+    {
+        if ( argument==url )
+        {
+            strncpy( &rtn[rtnIndex], open, strlen(open));
+            rtnIndex+=strlen(open);
+
+            char *cptr;
+            for (cptr=url; *cptr != ' ' && *cptr !='\0' ; cptr++)
+            {
+                rtn[rtnIndex++]=*cptr;
+            }
+
+            strncpy( &rtn[rtnIndex], mid, strlen(mid));
+            rtnIndex+=strlen(mid);
+
+            for (argument=url; *argument != ' ' && *argument !='\0' ; argument++)
+            {
+                rtn[rtnIndex++]=*argument;
+            }
+
+            strncpy( &rtn[rtnIndex], close, strlen(close));
+            rtnIndex+=strlen(close);
+
+        }
+        
+        if ( *argument == '\0' )
+        {
+            rtn[rtnIndex++]='\0';
+            break;
+        }
+
+        rtn[rtnIndex++]=*argument;
+    }
+
+    return rtn;
+}
+
+        
+
+
 /* RT chat replaced with ROM gossip */
 void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
 {
@@ -434,14 +488,18 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
             
         }
         
-	/* If it's off, turn it on, and TELL them */
-	if (IS_SET( ch->comm, chan->offbit) )
-	{
+	    /* If it's off, turn it on, and TELL them */
+        if (IS_SET( ch->comm, chan->offbit) )
+        {
             REMOVE_BIT(ch->comm, chan->offbit);
-	    printf_to_char(ch, "{%c%s channel{x is now {%cON{x.\n\r", chan->prime_color, chan->name, chan->second_color);
-	}
+            printf_to_char(ch, "{%c%s channel{x is now {%cON{x.\n\r", 
+                    chan->prime_color, 
+                    chan->name, 
+                    chan->second_color);
+        }
 
-	smash_beep_n_blink( argument );
+        smash_beep_n_blink( argument );
+        argument=parse_url(argument);
         
         sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
         send_to_char( buf, ch );
@@ -821,7 +879,7 @@ void do_info( CHAR_DATA *ch, char *argument )
                     !IS_SET(victim->comm,COMM_NOINFO) &&
                     !IS_SET(victim->comm,COMM_QUIET) )
                 {
-                    sprintf(buf, "{1[INFO]{2: %s\n{x", argument);
+                    sprintf(buf, "{1[INFO]{2: %s\n{x", parse_url(argument));
                     act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
                 }
             }

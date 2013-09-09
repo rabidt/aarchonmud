@@ -3911,7 +3911,7 @@ void default_colour( CHAR_DATA *ch )
     ch->pcdata->question_text[1] = ( YELLOW );
     ch->pcdata->answer[1] = ( YELLOW );
     ch->pcdata->answer_text[1] = ( GREEN );
-    ch->pcdata->quote[1] = ( BLUE );
+    ch->pcdata->quote[1] = ( BLACK );
     ch->pcdata->quote_text[1] = ( WHITE );
     ch->pcdata->gratz[1] = ( BLUE );
     ch->pcdata->gratz_text[1] = ( BLUE );
@@ -3929,8 +3929,8 @@ void default_colour( CHAR_DATA *ch )
     ch->pcdata->gametalk_text[1] = ( CYAN );
     ch->pcdata->bitch[1] = ( RED );
     ch->pcdata->bitch_text[1] = ( RED );
-    ch->pcdata->newbie[1] = ( BLUE );
-    ch->pcdata->newbie_text[1] = ( BLUE );
+    ch->pcdata->newbie[1] = ( CYAN);
+    ch->pcdata->newbie_text[1] = ( CYAN );
     ch->pcdata->clan[1] = ( GREEN );
     ch->pcdata->clan_text[1] = ( GREEN );
     ch->pcdata->say[1] = ( WHITE );
@@ -3955,10 +3955,10 @@ void default_colour( CHAR_DATA *ch )
     ch->pcdata->question_text[0] = ( NORMAL );
     ch->pcdata->answer[0] = ( NORMAL );
     ch->pcdata->answer_text[0] = ( NORMAL );
-    ch->pcdata->quote[0] = ( NORMAL );
+    ch->pcdata->quote[0] = ( BRIGHT );
     ch->pcdata->quote_text[0] = ( NORMAL );
-    ch->pcdata->gratz[0] = ( NORMAL );
-    ch->pcdata->gratz_text[0] = ( NORMAL );
+    ch->pcdata->gratz[0] = ( BRIGHT );
+    ch->pcdata->gratz_text[0] = ( BRIGHT );
     ch->pcdata->immtalk[0] = ( BRIGHT );
     ch->pcdata->immtalk_text[0] = ( BRIGHT );
     ch->pcdata->savantalk[0] = ( NORMAL );
@@ -3976,7 +3976,7 @@ void default_colour( CHAR_DATA *ch )
     ch->pcdata->newbie[0] = ( BRIGHT );
     ch->pcdata->newbie_text[0] = ( BRIGHT );
     ch->pcdata->clan[0] = ( NORMAL );
-    ch->pcdata->clan_text[0] = ( NORMAL );
+    ch->pcdata->clan_text[0] = ( BRIGHT );
     ch->pcdata->say[0] = ( NORMAL );
     ch->pcdata->say_text[0] = ( NORMAL );
     ch->pcdata->gtell[0] = ( NORMAL );
