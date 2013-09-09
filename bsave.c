@@ -547,7 +547,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
             ch->pcdata->condition[4],
             ch->pcdata->condition[5] );
 
-    bprintf( buf, "Stance %d", ch->stance );
+    bprintf( buf, "Stance %d\n", ch->stance );
         
        /*
         * Write Colour Config Information.

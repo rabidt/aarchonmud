@@ -743,7 +743,7 @@ struct align_type align_table [] =
 	{
 	"behemoth",        TRUE,
 	{},      {AFF_DARK_VISION},   {},
-	{},      {RES_WEAPON,RES_COLD}, {VULN_MENTAL},
+	{},      {RES_COLD}, {VULN_MENTAL},
 	{A,H,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K,U,V}
 	},
 
@@ -1645,8 +1645,8 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 305, 305, 315, 315, 305, 310, 310, 305, 305, 315, 310, 315, 305, 305, 315 },
           4, { "razor claws", "berserk", "brutal damage", "hunt" },
           {1,10,60,80},{100,100,100,80},
-          { 120, 105,  95,  90,  90,      20,  30,  50,  50,  50 },
-          { 160, 155, 155, 150, 150,     140, 140, 150, 150, 150 },  
+          {  95,  95,  95,  90,  90,      30,  30,  50,  50,  50 },
+          { 165, 155, 155, 150, 150,     140, 140, 150, 150, 150 },  
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
           SIZE_HUGE, SEX_BOTH, 10
         }
