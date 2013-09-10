@@ -1163,7 +1163,149 @@ approximately right..)
     return;
 }
 
+void do_sqldump( CHAR_DATA *ch, char *argument )
+{
+    char *zErrMsg=0;
+    int rc;
+    sqlite3 *db;
+    
+    rc = sqlite3_open("dumpo.db", &db);
 
+    if( rc ){
+      bugf( "Can't open database: %s\n", sqlite3_errmsg(db));
+      sqlite3_close(db);
+    }
+    
+    sqlite3_exec(db, "begin",0,0,0);
+    /* Areas table */
+    rc = sqlite3_exec(db,
+    "CREATE TABLE areas("
+        "file_name TEXT PRIMARY KEY,"
+        "name TEXT,"
+        "credits TEXT,"
+        "age INT,"
+        "nplayer INT,"
+        "reset_time INT,"
+        "min_vnum INT,"
+        "max_vnum INT,"
+        "builders TEXT,"
+        "vnum INT,"
+        "security INT,"
+        "minlevel INT,"
+        "maxlevel INT,"
+        "miniquests INT)",
+        0,
+        0,
+        &zErrMsg);
+   
+    if( rc ){
+      bugf( "Error creating areas: %s\n", sqlite3_errmsg(db));
+    }
+
+    /* Area_flags table */
+        rc = sqlite3_exec(db,
+        "CREATE TABLE area_flags("
+            "flag TEXT,"
+            "file_name TEXT,"
+            "FOREIGN KEY(file_name) REFERENCES areas(file_name) )",
+            0,
+            0,
+            &zErrMsg);
+   
+    if( rc ){
+      bugf( "Error creating area_flags: %s\n", sqlite3_errmsg(db));
+    }
+
+    /* Area_progs table */
+        rc = sqlite3_exec(db,
+        "CREATE TABLE area_progs("
+            "vnum INTEGER,"
+            "code TEXT,"
+            "file_name TEXT,"
+            "FOREIGN KEY(file_name) REFERENCES areas(file_name) )",
+            0,
+            0,
+            &zErrMsg);
+   
+    if( rc ){
+      bugf( "Error creating area_progs: %s\n", sqlite3_errmsg(db));
+    }    
+
+    AREA_DATA *pArea;
+    for (pArea=area_first ; pArea ; pArea=pArea->next)
+    {
+        char buf[MSL];
+        log_string(pArea->name);
+        strcpy( buf, "INSERT INTO areas VALUES(");
+        sprintf( buf, "%s\'%s'\,", buf, sql_string(pArea->file_name));
+        sprintf( buf, "%s\'%s'\,", buf, sql_string(pArea->name));
+        sprintf( buf, "%s\'%s'\,", buf, sql_string(pArea->credits));
+        sprintf( buf, "%s%d,", buf, pArea->age);
+        sprintf( buf, "%s%d,", buf, pArea->nplayer);
+        sprintf( buf, "%s%d,", buf, pArea->reset_time);
+        sprintf( buf, "%s%d,", buf, pArea->min_vnum);
+        sprintf( buf, "%s%d,", buf, pArea->max_vnum);
+        sprintf( buf, "%s\'%s'\,", buf, sql_string(pArea->builders));
+        sprintf( buf, "%s%d,", buf, pArea->vnum);
+        sprintf( buf, "%s%d,", buf, pArea->security);
+        sprintf( buf, "%s%d,", buf, pArea->minlevel);
+        sprintf( buf, "%s%d,", buf, pArea->maxlevel);
+        sprintf( buf, "%s%d)", buf, pArea->miniquests);
+        //log_string(buf);
+        rc=sqlite3_exec(db,buf,0,0,&zErrMsg);
+
+        if( rc!=SQLITE_OK ){
+          bugf("SQL error: %s\n", zErrMsg);
+          log_string(buf);
+          sqlite3_free(zErrMsg);
+        }
+        
+        // Area flags
+        int flag;
+        for ( flag=0 ; area_flags[flag].name != NULL ; flag++ )
+        {
+            if ( IS_SET( pArea->area_flags, area_flags[flag].bit ) )
+            {
+                strcpy( buf, "INSERT INTO area_flags VALUES(");
+                sprintf( buf, "%s\'%s\',", buf, sql_string(area_flags[flag].name) );
+                sprintf( buf, "%s\'%s\')", buf, sql_string(pArea->file_name) );
+             
+                rc=sqlite3_exec(db,buf,0,0,&zErrMsg);
+
+                if( rc!=SQLITE_OK ){
+                  bugf("SQL error: %s\n", zErrMsg);
+                  log_string(buf);
+                  sqlite3_free(zErrMsg);
+                }
+            }
+        }
+        
+        // Area progs
+        APROG_CODE *aprog;
+        int vnum;
+        for (vnum=pArea->min_vnum ; vnum <= pArea->max_vnum ; vnum++)
+        {
+            if ((aprog = get_aprog_index(vnum)) != NULL)
+            {
+                strcpy( buf, "INSERT INTO area_progs VALUES(");
+                sprintf( buf, "%s%d,", buf, vnum);
+                sprintf( buf, "%s\'%s\',", buf, sql_string(aprog->code));
+                sprintf( buf, "%s\'%s\')", buf, sql_string(pArea->file_name));
+                
+                rc=sqlite3_exec(db,buf,0,0,&zErrMsg);
+
+                if( rc!=SQLITE_OK ){
+                  bugf("SQL error: %s\n", zErrMsg);
+                  log_string(buf);
+                  sqlite3_free(zErrMsg);
+                }
+            }
+        }
+        
+    }
+
+    sqlite3_exec(db, "end",0,0,0);
+}
 /* 
  * new_dump written by Rahl (Daniel Anderson) of Broken Shadows
  */

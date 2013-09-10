@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sqlite3.h>
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
@@ -1070,7 +1071,63 @@ void save_shops( FILE *fp, AREA_DATA *pArea )
     return;
 }
 
+char *sql_string(char *argument)
+{
+    static char buf[MSL];
+    int i;
 
+    for (i=0; i<(MSL-1) ;argument++)
+    {
+        if (*argument == '\'')
+        {
+            buf[i++]='\'';
+        }
+        else if (*argument == '\0')
+        {
+            buf[i++]='\0';
+            break;
+        }
+    
+        buf[i++]=*argument;
+    }
+
+
+    return buf;
+}
+
+void save_area_fake( AREA_DATA *pArea )
+{
+    char *zErrMsg=0;
+    int rc;
+
+/*    rc = sqlite3_exec(db, 
+        "CREATE TABLE areas("
+            "file_name TEXT PRIMARY KEY,"
+            "name TEST,"
+            "security INTEGER)", 
+            0, 
+            0, 
+            &zErrMsg);*/
+    char buf[MSL];
+    log_string(pArea->name);
+    sprintf(buf,
+            "INSERT INTO areas VALUES("
+                "\'%s\',"
+                "\'%s\',"
+                "%d)",
+                sql_string(pArea->file_name),
+                sql_string(pArea->name),
+                pArea->security);
+    rc=sqlite3_exec(db,buf,0,0,&zErrMsg);
+
+
+    if( rc!=SQLITE_OK ){
+      bugf("SQL error: %s\n", zErrMsg);
+      sqlite3_free(zErrMsg);
+    }
+    
+}
+    
 
 /*****************************************************************************
 Name:		save_area
@@ -1230,6 +1287,7 @@ void do_asave( CHAR_DATA *ch, char *argument )
     
     if ( !str_cmp( "world", arg1 ) )
     {
+        sqlite3_exec(db,"BEGIN",0,0,0);
         save_area_list();
         for( pArea = area_first; pArea; pArea = pArea->next )
         {
@@ -1248,6 +1306,8 @@ void do_asave( CHAR_DATA *ch, char *argument )
         
         if ( ch )
             send_to_char( "You saved the world.\n\r", ch );
+
+        sqlite3_exec(db,"END",0,0,0);
         
         return;
     }

@@ -691,6 +691,9 @@ void boot_db()
     log_string( "Loading leaderboards" );
     load_lboards();
 
+
+    log_string( "sqlite3 init");
+    sqlite_init();
     log_string( "Loading areas" );
     /*
     * Read in all the area files.
@@ -798,6 +801,19 @@ void boot_db()
     return;
 }
 
+sqlite3 *db;
+void sqlite_init()
+{
+    char *zErrMsg=0;
+    int rc;
+
+    rc = sqlite3_open("areas.db", &db);
+
+    if( rc ){
+      bugf( "Can't open database: %s\n", sqlite3_errmsg(db));
+      sqlite3_close(db);
+    } 
+}
 
 void channel_init()
 {
