@@ -70,7 +70,143 @@ const   sh_int  movement_loss   [SECT_MAX]  =
    1, 2, 2, 3, 4, 6, 4, 1, 6, 10, 6
 };
 
+bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
+{
+    if ( !to_room )
+        return FALSE;
+    
+    if ( to_room->sector_type == SECT_AIR && !IS_AFFECTED(ch, AFF_FLYING) )
+    {
+        if ( show )
+            send_to_char("You can't fly.\n\r", ch);
+        return FALSE;
+    }
+    
+    if ( IS_NPC(ch) && (IS_SET(to_room->room_flags, ROOM_NO_MOB) || IS_SET(to_room->room_flags, ROOM_SAFE)) )
+    {
+        if ( show )
+            send_to_char("NPCs aren't allowed in there.\n\r", ch);
+        return FALSE;
+    }
+    
+    if ( IS_SET(to_room->room_flags, ROOM_BOX_ROOM) && (IS_NPC(ch) || !ch->pcdata->storage_boxes) )
+    {
+        if ( show )
+            send_to_char("You have no business in there.\n\r", ch);
+        return FALSE;
+    }
+        
+    if ( room_is_private(to_room) && !is_room_owner(ch, to_room) )
+    {
+        if ( show )
+            send_to_char("That room is private right now.\n\r", ch);
+        return FALSE;
+    }
 
+    // guilds and clan halls
+    if ( !IS_NPC(ch) )
+    {
+        int iClass, iGuild;
+        bool is_allowed = FALSE;
+        bool is_guild = FALSE;
+
+        for ( iClass = 0; iClass < MAX_CLASS; iClass++ )
+            for ( iGuild = 0; iGuild < MAX_GUILD; iGuild ++)    
+                if ( to_room->vnum == class_table[iClass].guild[iGuild] )
+                {
+                    is_guild = TRUE;
+                    if ( iClass == ch->class )
+                        is_allowed = TRUE;
+                }
+
+        if ( is_guild && !is_allowed )
+        {
+            if ( show )
+                send_to_char("You aren't allowed in there.\n\r", ch);
+            return FALSE;
+        }
+    
+        if ( to_room->clan )
+        {
+            if ( ch->clan != to_room->clan )
+            {
+                if ( show )
+                    printf_to_char(ch, "That area is for clan %s only.\n\r",
+                        capitalize(clan_table[to_room->clan].name));
+                return FALSE;
+            }
+
+            if ( ch->pcdata->clan_rank < to_room->clan_rank )
+            {
+                if ( show )
+                    printf_to_char (ch, "That area is for %ss of clan %s only.\n\r",
+                        capitalize(clan_table[to_room->clan].rank_list[to_room->clan_rank].name),
+                        capitalize(clan_table[to_room->clan].name));
+                return FALSE;
+            }
+        }
+    }
+
+    return TRUE;
+}
+
+bool can_move_dir( CHAR_DATA *ch, int dir, bool show )
+{
+    ROOM_INDEX_DATA *in_room = ch->in_room;
+    EXIT_DATA *pexit = in_room->exit[dir];
+    ROOM_INDEX_DATA *to_room = pexit ? pexit->u1.to_room : NULL;
+    
+    if ( !in_room || !to_room || !can_see_room(ch, to_room) )
+    {
+        if ( show )
+            send_to_char("Alas, you cannot go that way.\n\r", ch);
+        return FALSE;
+    }
+    
+    if ( IS_IMMORTAL(ch) )
+        return TRUE;
+    
+    if ( IS_SET(pexit->exit_info, EX_CLOSED) && (IS_SET(pexit->exit_info, EX_NOPASS) || !IS_AFFECTED(ch, AFF_PASS_DOOR)) )
+    {
+        if ( show )
+            act("The $d is closed.", ch, NULL, pexit->keyword, TO_CHAR);
+        return FALSE;
+    }
+    
+    if ( !can_move_room(ch, to_room, show) )
+        return FALSE;
+    
+    return TRUE;
+}
+
+int get_random_exit( CHAR_DATA *ch )
+{
+    ROOM_INDEX_DATA *in_room = ch->in_room;
+    bool can_move[MAX_DIR];
+    int exit_nr, dir, count = 0;
+
+    if ( !in_room )
+        return -1;
+    
+    for ( dir = 0; dir < MAX_DIR; dir++ )
+        if ( can_move[dir] = can_move_dir(ch, dir, FALSE) )
+            count++;
+    
+    if ( !count )
+        return -1;
+    
+    exit_nr = number_range(1, count);
+    for ( dir = 0; dir < MAX_DIR; dir++ )
+        if ( can_move[dir] )
+        {
+            if ( --exit_nr == 0 )
+                return dir;
+        }
+    
+    // should never reach this point
+    bugf("get_random_exit: not found where expected (room %d)", in_room->vnum);
+    return -1;
+}
 
 /*
 * Local functions.
@@ -78,19 +214,16 @@ const   sh_int  movement_loss   [SECT_MAX]  =
 int find_door   args( ( CHAR_DATA *ch, char *arg ) );
 bool    has_key     args( ( CHAR_DATA *ch, int key ) );
 bool check_drown args((CHAR_DATA *ch));
+bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room );
 
 /* returns the direction the char moved to or -1 if he didn't move */
 int move_char( CHAR_DATA *ch, int door, bool follow )
 {
-    CHAR_DATA *fch;
-    CHAR_DATA *fch_next;
-    ROOM_INDEX_DATA *in_room;
-    ROOM_INDEX_DATA *to_room;
+    CHAR_DATA *fch, *fch_next;
+    ROOM_INDEX_DATA *in_room, *to_room;
     EXIT_DATA *pexit;
-    AREA_DATA *from_area;
-
     char buf[MAX_STRING_LENGTH];
-    int chance, d;
+    int chance;
     
     if ( door < 0 || door >= MAX_DIR )
     {
@@ -98,304 +231,131 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
         return -1;
     }
     
-    in_room = ch->in_room;
-
     if ( ch->in_room == NULL )
     {
-	bugf( "move_char: NULL room" );
-	return -1;
-    }
-    from_area=in_room->area;
-
-    if (IS_AFFECTED(ch, AFF_INSANE) && number_bits(1))
-        for ( chance = 0; chance < 8; chance++ )
-        {  
-            d = number_door( );
-            if ( ( pexit = in_room->exit[d] ) == 0
-                ||   pexit->u1.to_room == NULL
-                ||   IS_SET(pexit->exit_info, EX_CLOSED)
-                || ( IS_NPC(ch)
-                &&   IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB) 
-        /* Check added so that mobs can't flee into a safe room. Causes problems
-           with resets, quests, and leveling - Astark Dec 2012 */
-                ||   IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE) ) ) 
-                continue;
-            door=d;
-            break;
-        }
-        
-   /*
-    * Exit trigger, if activated, bail out. Only PCs are triggered.
-    */
-    if ( !IS_NPC(ch) && mp_exit_trigger( ch, door ) )
-    {
-	/* exit trigger might trans char to target room */
-	if ( in_room->exit[door] != NULL
-	     && ch->in_room == in_room->exit[door]->u1.to_room )
-	    return door;
-	else
-	    return -1;
-    }
-        
-    in_room = ch->in_room;
-    if ( ( pexit   = in_room->exit[door] ) == NULL
-        ||   ( to_room = pexit->u1.to_room   ) == NULL 
-        ||   !can_see_room(ch,pexit->u1.to_room))
-    {
-        send_to_char( "Alas, you cannot go that way.\n\r", ch );
+        bugf( "move_char: NULL room" );
         return -1;
     }
 
-    /* now aprog exit trigs */
-    if (!IS_NPC(ch) )
+    in_room = ch->in_room;
+
+    if ( IS_AFFECTED(ch, AFF_INSANE) && number_bits(1) )
+        door = get_random_exit(ch);
+    
+    pexit = door >= 0 ? in_room->exit[door] : NULL;
+    to_room = pexit ? pexit->u1.to_room : NULL;
+    
+   /*
+    * Exit trigger, if activated, bail out. Only PCs are triggered.
+    */
+    if ( !IS_NPC(ch) )
     {
-        if ( !ap_exit_trigger(ch, to_room->area) )
-            return -1;
-        if ( !ap_rexit_trigger(ch, to_room->area) )
-            return -1;
+        /* exit trigger might trans char to target room */
+        if ( mp_exit_trigger(ch, door) )
+            return ch->in_room == to_room ? door : -1;
+        if ( to_room && !ap_exit_trigger(ch, to_room->area) )
+            return ch->in_room == to_room ? door : -1;
+        if ( to_room && !ap_rexit_trigger(ch, to_room->area) )
+            return ch->in_room == to_room ? door : -1;
     }
+
+    if ( !can_move_dir(ch, door, TRUE) )
+        return -1;
         
-    if (!IS_NPC(ch) && IS_SET(ch->pcdata->tag_flags, TAG_FROZEN) && IS_TAG(ch))
+    if ( !IS_NPC(ch) && IS_SET(ch->pcdata->tag_flags, TAG_FROZEN) && IS_TAG(ch) )
     {
         send_to_char( "You've been frozen, you can't move!\n\r", ch );
         return -1;
     }
 
-    if (IS_SET(ch->penalty, PENALTY_JAIL))
+    if ( IS_SET(ch->penalty, PENALTY_JAIL) )
     {
-        send_to_char("You are chained to the floor.\n\r",ch);
+        send_to_char( "You are chained to the floor.\n\r", ch );
         return -1;
     }
         
     if ( IS_AFFECTED(ch, AFF_ROOTS) )
     {
-	send_to_char( "Your roots prevent you from moving.\n\r", ch );
-	return -1;
-    }
-
-    if (IS_SET(pexit->exit_info, EX_CLOSED)
-        &&  (!IS_AFFECTED(ch, AFF_PASS_DOOR) || IS_SET(pexit->exit_info,EX_NOPASS))
-        &&   !IS_TRUSTED(ch,LEVEL_IMMORTAL))
-    {
-        act( "The $d is closed.", ch, NULL, pexit->keyword, TO_CHAR );
+        send_to_char( "Your roots prevent you from moving.\n\r", ch );
         return -1;
     }
-        
-    if ( IS_AFFECTED(ch, AFF_CHARM)
-        &&   ch->master != NULL
-        &&   in_room == ch->master->in_room )
+
+    if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL && in_room == ch->master->in_room )
     {
         send_to_char( "What?  And leave your beloved master?\n\r", ch );
         return -1;
     }
 
-    if ( IS_SET( to_room->room_flags, ROOM_BOX_ROOM))
-    {
-        if (IS_NPC(ch))
-          return -1;
-        if (ch->pcdata->storage_boxes<1)
-        {
-            send_to_char("You have no business in there.\n\r",ch);
-            return -1;
-        }
-    }
-        
-    if ( !is_room_owner(ch,to_room) && room_is_private( to_room ) )
-    {
-        send_to_char( "That room is private right now.\n\r", ch );
+    if ( check_exit_trap_hit(ch, door, TRUE) )
         return -1;
-    }
-        
+
+    if ( !check_swim(ch, to_room) )
+        return -1;
+
+    // movement cost and lag
     if ( !IS_NPC(ch) )
     {
-        int iClass, iGuild;
-        int move, waitpulse;
-        int can_go=0;
-        int cant_go=0;
-          
-        for ( iClass = 0; iClass < MAX_CLASS; iClass++ )
+        int move = ( movement_loss[UMIN(SECT_MAX-1, in_room->sector_type)] + movement_loss[UMIN(SECT_MAX-1, to_room->sector_type)] ) / 2;
+
+        // climbing
+        int climb_cost = 0;
+        if ( in_room->sector_type == SECT_MOUNTAIN )
+            climb_cost += 2;
+        if ( to_room->sector_type == SECT_MOUNTAIN )
+            climb_cost += 2;
+        if ( in_room->sector_type == SECT_HILLS )
+            climb_cost += 1;
+        if ( to_room->sector_type == SECT_HILLS )
+            climb_cost += 1;
+        
+        if ( climb_cost > 0 )
         {
-            for ( iGuild = 0; iGuild < MAX_GUILD; iGuild ++)    
+            if ( IS_AFFECTED(ch,AFF_FLYING) )
+                move -= climb_cost;
+            else if ( per_chance(get_skill(ch, gsn_climbing)) )
             {
-                if ( to_room->vnum == class_table[iClass].guild[iGuild] )
-                {
-                    if(iClass==ch->class)
-                        can_go=1;
-                    else
-                        cant_go=1;
-                }
-            }
-        }
-
-            
-        if ((cant_go==1) && (can_go==0))
-        {
-            send_to_char("You aren't allowed in there.\n\r", ch);
-            return -1;
-        }
-            
-        if ( !IS_IMMORTAL(ch) && !(IS_NPC(ch)&&IS_SET(ch->act,ACT_PET)))     
-            if ( to_room->clan > 0)
-            {
-                if ( ch->clan != to_room->clan )
-                {
-                    printf_to_char (ch, "That area is for clan %s only.\n\r",
-                        capitalize(clan_table[to_room->clan].name));
-                    return -1;
-                }
-                
-                if (!IS_NPC(ch) && to_room->clan_rank>0 && ch->pcdata->clan_rank<to_room->clan_rank)
-                {
-                    printf_to_char (ch, "That area is for %ss of clan %s only.\n\r",
-                        capitalize(clan_table[to_room->clan].rank_list[to_room->clan_rank].name),
-                        capitalize(clan_table[to_room->clan].name));
-                    return -1;
-                }
-            }
-                
-        if ( in_room->sector_type == SECT_AIR
-            ||   to_room->sector_type == SECT_AIR )
-        {
-            if ( !IS_AFFECTED(ch, AFF_FLYING) && !IS_IMMORTAL(ch))
-            {
-                send_to_char( "You can't fly.\n\r", ch );
-                return -1;
-            }
-        }
-
-	if ( check_exit_trap_hit(ch, door, TRUE) )
-	    return;
-
-    // swim checks
-    if (!IS_IMMORTAL(ch))
-    {
-        bool afloat;
-        int inwater = 0, towater = 0;
-
-        if (IS_AFFECTED(ch, AFF_FLYING))
-            afloat = TRUE;
-        else
-        {
-            OBJ_DATA *boat;
-            for ( boat=ch->carrying; boat; boat=boat->next_content )
-                if (boat->item_type == ITEM_BOAT)
-                    break;
-            afloat = (boat != NULL);
-        }
-
-        if ((in_room->sector_type == SECT_WATER_DEEP) || (in_room->sector_type == SECT_UNDERWATER))
-            inwater = in_room->sector_type;
-
-        if ((to_room->sector_type == SECT_WATER_DEEP) || (to_room->sector_type == SECT_UNDERWATER))
-            towater = to_room->sector_type;
-
-        if (inwater == 0 && to_room->sector_type == SECT_WATER_SHALLOW
-            && IS_SET(ch->vuln_flags, VULN_DROWNING) && !afloat)
-        {
-            send_to_char("You wade into the water despite your phobia.\n\r", ch);
-            if (check_drown(ch)) return -1;
-        }
-
-        if ( inwater == SECT_UNDERWATER || towater == SECT_UNDERWATER
-             || (inwater || towater) && !afloat )
-        {
-            chance = get_skill(ch, gsn_swimming);
-            if (IS_SET(ch->vuln_flags, VULN_DROWNING))
-                chance -= 15;
-
-            if ( number_percent()*2 > (chance+100) )
-            {
-                send_to_char("You paddle around and get nowhere.\n\r", ch);
-                check_improve(ch,gsn_swimming,FALSE,2);
-                if (inwater == SECT_UNDERWATER)
-                    check_drown(ch);                
-                return -1;
+                move -= climb_cost;
+                check_improve(ch,gsn_climbing,TRUE,6);
             }
             else
-                check_improve(ch,gsn_swimming,TRUE,2);
-            
-            if ( (inwater != SECT_UNDERWATER) && (towater != SECT_UNDERWATER) )
-            {
-                if (number_percent()>chance)
-                {
-                    send_to_char("You fail to keep your head above water.\n\r", ch);
-                    if (check_drown(ch)) return -1;
-                }
-                else
-                {
-                    if (IS_SET(ch->vuln_flags, VULN_DROWNING))
-                    {
-                        send_to_char("You hate water!\n\r", ch);
-                        if (check_drown(ch)) return -1;
-                    }
-                }
-            }
-            else if (!IS_AFFECTED(ch, AFF_BREATHE_WATER))
-            {
-                send_to_char("You cant breathe!\n\r", ch);
-                if (check_drown(ch)) return -1;                
-            }
+                check_improve(ch,gsn_climbing,FALSE,6);
         }
-    }
-
-        move = 2*(movement_loss[UMIN(SECT_MAX-1, in_room->sector_type)]
-            + movement_loss[UMIN(SECT_MAX-1, to_room->sector_type)])/3;
-        
-		if (((in_room->sector_type==SECT_MOUNTAIN) ||
-				(in_room->sector_type==SECT_HILLS) ||
-				(to_room->sector_type==SECT_MOUNTAIN) ||
-				(to_room->sector_type==SECT_HILLS))
-			&& (get_skill(ch, gsn_climbing) > (number_percent()/2))
-			&& (!IS_AFFECTED(ch,AFF_FLYING)))
-            {
-                if (in_room->sector_type == SECT_MOUNTAIN) 
-                    move -=2;
-		else if (in_room->sector_type == SECT_HILLS)
-		    move -=1;
-
-                if (to_room->sector_type == SECT_MOUNTAIN) 
-                    move -=2;
-		else if (to_room->sector_type == SECT_HILLS)
-		    move -=1;
-
-                check_improve(ch,gsn_climbing,TRUE,6);  
-            }
                     
-        waitpulse=2+move/6;
+        int waitpulse = 2 + move / 6;
 
-	if (IS_AFFECTED(ch,AFF_SLOW))
-	{
-	    move *=2;
-	    waitpulse+=2;
-	}
+        if ( IS_AFFECTED(ch, AFF_SLOW) )
+        {
+            move *= 2;
+            waitpulse += 2;
+        }
 
-	if (ch->slow_move > 0)  /* For when a foot is chopped off */
-	{
-	    move = 2 * (move + 1);
-	    waitpulse = 2 * (waitpulse + 1);
-	}
+        if ( ch->slow_move > 0 )  /* For when a foot is chopped off */
+        {
+            move = 2 * (move + 1);
+            waitpulse = 2 * (waitpulse + 1);
+        }
 
-	/* encumberance */
-	{
-	    int encumber = get_encumberance( ch );
-	    move += (move * encumber + 99) / 100;
-	    waitpulse += (waitpulse * encumber + 99) / 100;
-	}
+        /* encumberance */
+        {
+            int encumber = get_encumberance(ch);
+            move += (move * encumber + 99) / 100;
+            waitpulse += (waitpulse * encumber + 99) / 100;
+        }
 
-        if (IS_AFFECTED(ch,AFF_FLYING) || IS_AFFECTED(ch,AFF_HASTE))
-            waitpulse/=2;
+        if ( IS_AFFECTED(ch, AFF_FLYING) || IS_AFFECTED(ch, AFF_HASTE) )
+            waitpulse /= 2;
 
         if ( ch->move < move )
         {
             send_to_char( "You are too exhausted.\n\r", ch );
             return -1;
         }
-                 
-	WAIT_STATE(ch, waitpulse);
+
+        WAIT_STATE(ch, waitpulse);
         ch->move -= move;
     }
     
-    if ( IS_AFFECTED(ch, AFF_HIDE ) && !IS_AFFECTED(ch, AFF_SNEAK) )
+    if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
         REMOVE_BIT( ch->affect_field, AFF_HIDE );
@@ -404,49 +364,46 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    
     if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
     {
-	if ( !IS_AFFECTED(ch, AFF_SNEAK) )
-	    act( "$n leaves $T.", ch, NULL, dir_name[door], TO_ROOM );
-	else
-	{
-	    sprintf( buf, "$n leaves %s.", dir_name[door] );
-	    for ( fch = in_room->people; fch != NULL; fch = fch_next )
-	    {
-		fch_next = fch->next_in_room;
-		chance = get_skill(ch, gsn_sneak) - get_skill(fch, gsn_alertness)/3;
-		if ( number_percent() > chance )
-		    act( buf, ch, NULL, fch, TO_VICT );
-	    }
-	}
+        if ( !IS_AFFECTED(ch, AFF_SNEAK) )
+            act( "$n leaves $T.", ch, NULL, dir_name[door], TO_ROOM );
+        else
+        {
+            sprintf( buf, "$n leaves %s.", dir_name[door] );
+            for ( fch = in_room->people; fch != NULL; fch = fch_next )
+            {
+                fch_next = fch->next_in_room;
+                chance = get_skill(ch, gsn_sneak) - get_skill(fch, gsn_alertness) / 3;
+                if ( !per_chance(chance) )
+                    act( buf, ch, NULL, fch, TO_VICT );
+            }
+        }
     }
     
     /* check fighting - no cross-room combat */
     if ( in_room != to_room )
     {
-	stop_fighting( ch, TRUE );
-	update_room_fighting( in_room );
-	check_bleed( ch, door );
+        stop_fighting( ch, TRUE );
+        update_room_fighting( in_room );
+        check_bleed( ch, door );
     }
-
-
 
     char_from_room( ch );
     char_to_room( ch, to_room );
    
-   
     if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
     {
-	if ( !IS_AFFECTED(ch, AFF_SNEAK) && !IS_TAG(ch) )
-	    act( "$n has arrived.", ch, NULL, NULL, TO_ROOM );
-	else
-	{
-	    for ( fch = to_room->people; fch != NULL; fch = fch_next )
-	    {
-		fch_next = fch->next_in_room;
-		chance = get_skill(ch, gsn_sneak) - get_skill(fch, gsn_alertness)/3;
-		if ( number_percent() > chance )
-		    act( "$n has arrived.", ch, NULL, fch, TO_VICT );
-	    }
-	}
+        if ( !IS_AFFECTED(ch, AFF_SNEAK) && !IS_TAG(ch) )
+            act( "$n has arrived.", ch, NULL, NULL, TO_ROOM );
+        else
+        {
+            for ( fch = to_room->people; fch != NULL; fch = fch_next )
+            {
+                fch_next = fch->next_in_room;
+                chance = get_skill(ch, gsn_sneak) - get_skill(fch, gsn_alertness) / 3;
+                if ( !per_chance(chance) )
+                    act( "$n has arrived.", ch, NULL, fch, TO_VICT );
+                }
+        }
     }
    
    do_look( ch, "auto" );
@@ -458,24 +415,17 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    {
        fch_next = fch->next_in_room;
        
-       if ( fch->master == ch && IS_AFFECTED(fch,AFF_CHARM) 
-           &&   fch->position < POS_STANDING)
-           do_stand(fch,"");
+       if ( fch->master == ch && IS_AFFECTED(fch, AFF_CHARM) && fch->position < POS_STANDING )
+           do_stand(fch, "");
        
-       if ( fch->master == ch && fch->position == POS_STANDING 
-           &&   can_see_room(fch,to_room))
+       if ( fch->master == ch && fch->position == POS_STANDING && can_see_room(fch, to_room) )
        {
-           
-           if (IS_SET(ch->in_room->room_flags,ROOM_LAW)
-               &&  (IS_NPC(fch) && IS_SET(fch->act,ACT_AGGRESSIVE)))
+           if ( IS_SET(ch->in_room->room_flags, ROOM_LAW) && IS_NPC(fch) && IS_SET(fch->act, ACT_AGGRESSIVE) )
            {
-               act("You can't bring $N into the city.",
-                   ch,NULL,fch,TO_CHAR);
-               act("You aren't allowed in the city.",
-                   fch,NULL,NULL,TO_CHAR);
+               act("You can't bring $N into the city.", ch, NULL, fch, TO_CHAR);
+               act("You aren't allowed in the city.", fch, NULL, NULL, TO_CHAR);
                continue;
            }
-           
            act( "You follow $N.", fch, NULL, ch, TO_CHAR );
            move_char( fch, door, TRUE );
        }
@@ -487,13 +437,9 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    */
    if ( !IS_NPC( ch ) )
    {
-
-       ap_enter_trigger( ch, from_area);
-
+       ap_enter_trigger( ch, in_room->area );
        ap_renter_trigger( ch );
- 
        op_greet_trigger( ch );
-
    }
 
    if ( IS_NPC( ch ) && HAS_TRIGGER( ch, TRIG_ENTRY ) )
@@ -580,36 +526,19 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    {
        fch_next = fch->next_in_room;
        if ( fch->stance == STANCE_AMBUSH
-	    && can_see(fch, ch)
-	    && fch->wait == 0
-	    && fch->position == POS_STANDING
-	    && number_percent() <= get_skill(fch, gsn_ambush)
-	    && !is_safe_spell(fch, ch, TRUE)
-	    && (IS_NPC(fch) || fch->hunting==NULL || is_name(fch->hunting, ch->name)))
-       {
-           check_improve(fch, gsn_ambush, TRUE, 2);
-	   backstab_char( fch, ch );
-	   if (fch->fighting == ch)
-	       multi_hit(fch, ch, TYPE_UNDEFINED);
-	   /*
-	   if ( check_see(ch, fch) && number_bits(1) )
-	   {
-	       act( "$N spots you!", fch, NULL, ch, TO_CHAR );
-	       damage( fch, ch, 0, gsn_backstab, DAM_NONE, TRUE);
-	   }
-	   else
-	   {
-	       one_hit(fch, ch, gsn_backstab, FALSE);
-	       if (get_eq_char( fch, WEAR_SECONDARY ) != NULL)
-		   one_hit(fch, ch, gsn_backstab, TRUE);
-	       if ( !stop_attack(fch, ch) )
-		   check_assassinate( fch, ch, get_eq_char(fch, WEAR_WIELD), 4 );
-	       if (fch->fighting == ch)
-		   multi_hit(fch, ch, TYPE_UNDEFINED);
-	   }
-	   */
-           return door;         
-       }
+            && can_see(fch, ch)
+            && fch->wait == 0
+            && fch->position == POS_STANDING
+            && per_chance(get_skill(fch, gsn_ambush))
+            && !is_safe_spell(fch, ch, TRUE)
+            && (IS_NPC(fch) || fch->hunting==NULL || is_name(fch->hunting, ch->name)))
+        {
+            check_improve(fch, gsn_ambush, TRUE, 2);
+            backstab_char( fch, ch );
+            if ( fch->fighting == ch )
+                multi_hit(fch, ch, TYPE_UNDEFINED);
+            return door;
+        }
    }
    
    return door;
@@ -633,6 +562,65 @@ bool check_drown(CHAR_DATA *ch)
     return (ch->in_room != room);
 }
 
+bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
+{
+    ROOM_INDEX_DATA *in_room = ch->in_room;
+    int inwater = 0, towater = 0;
+    
+    if ( !in_room || !to_room || IS_NPC(ch) || IS_IMMORTAL(ch) )
+        return TRUE;
+
+    if ( (in_room->sector_type == SECT_WATER_DEEP) || (in_room->sector_type == SECT_UNDERWATER) )
+        inwater = in_room->sector_type;
+
+    if ( (to_room->sector_type == SECT_WATER_DEEP) || (to_room->sector_type == SECT_UNDERWATER) )
+        towater = to_room->sector_type;
+
+    if ( !inwater && !towater )
+        return TRUE;
+    
+    if ( inwater != SECT_UNDERWATER && towater != SECT_UNDERWATER )
+    {
+        if (IS_AFFECTED(ch, AFF_FLYING))
+            return TRUE;
+
+        OBJ_DATA *boat;
+        for ( boat=ch->carrying; boat; boat=boat->next_content )
+            if (boat->item_type == ITEM_BOAT)
+                return TRUE;
+    }
+
+    int chance = (100 + get_skill(ch, gsn_swimming)) / 2;
+
+    if ( !per_chance(chance) )
+    {
+        send_to_char("You paddle around and get nowhere.\n\r", ch);
+        check_improve(ch, gsn_swimming, FALSE, 2);
+        if ( inwater == SECT_UNDERWATER )
+            check_drown(ch);
+        return FALSE;
+    }
+    else
+        check_improve(ch, gsn_swimming, TRUE, 2);
+    
+    if ( inwater != SECT_UNDERWATER && towater != SECT_UNDERWATER )
+    {
+        if ( !per_chance(chance) )
+        {
+            send_to_char("You fail to keep your head above water.\n\r", ch);
+            if ( check_drown(ch) )
+                return FALSE;
+        }
+    }
+    else if ( !IS_AFFECTED(ch, AFF_BREATHE_WATER) )
+    {
+        send_to_char("You cant breathe!\n\r", ch);
+        if ( check_drown(ch) )
+            return FALSE;
+    }
+
+    return TRUE;
+}
 
 void do_north( CHAR_DATA *ch, char *argument )
 {
