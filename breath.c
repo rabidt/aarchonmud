@@ -130,8 +130,7 @@ void spell_acid_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 void spell_fire_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  act("$n breathes forth a cone of fire.",ch,NULL,victim,TO_NOTVICT);
-  act("$n breathes a cone of hot fire over you!",ch,NULL,victim,TO_VICT);
+  act("$n breathes forth a cone of fire.",ch,NULL,NULL,TO_ROOM);
   act("You breathe forth a cone of fire.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_FIRE, &fire_effect, TRUE);
 }
@@ -139,8 +138,7 @@ void spell_fire_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 void spell_frost_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  act("$n breathes out a freezing cone of frost!",ch,NULL,victim,TO_NOTVICT);
-  act("$n breathes a freezing cone of frost over you!",ch,NULL,victim,TO_VICT);
+  act("$n breathes out a freezing cone of frost!",ch,NULL,NULL,TO_ROOM);
   act("You breathe out a cone of frost.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_COLD, &cold_effect, TRUE);
 }
