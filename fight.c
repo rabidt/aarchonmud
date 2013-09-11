@@ -5710,22 +5710,15 @@ int get_exit_count( CHAR_DATA *ch )
 
 void do_flee( CHAR_DATA *ch, char *argument )
 {
-    char arg[MAX_INPUT_LENGTH];
-    char buf[80];
-    ROOM_INDEX_DATA *was_in;
-    ROOM_INDEX_DATA *now_in;
-    CHAR_DATA *victim;
-    EXIT_DATA *pexit;
-    int dir, chance, skill, exit_count;
+    char arg[MAX_INPUT_LENGTH], buf[80];
+    ROOM_INDEX_DATA *was_in, *now_in;
     CHAR_DATA *opp;
-    int opp_value, max_opp_value = 0;
-    //static bool no_flee = FALSE;
-    bool ch_in_pkill_battle = in_pkill_battle( ch );
+    int dir, exit_count;
     
     if ( IS_AFFECTED(ch, AFF_FLEE) )
        return;
 
-    if ( (victim = ch->fighting) == NULL )
+    if ( !ch->fighting )
     {
         send_to_char( "You aren't fighting anyone.\n\r", ch );
         return;
@@ -5827,7 +5820,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
         int opp_base = (10 + opp->level) * entrapment_factor / 100;
         int opp_roll = number_range(0, opp_base);
 
-        printf_to_char(ch, "ch_roll(%d) = %d vs %d = opp_roll(%d)\n\r", ch_base, ch_roll, opp_roll, opp_base);
+        //printf_to_char(ch, "ch_roll(%d) = %d vs %d = opp_roll(%d)\n\r", ch_base, ch_roll, opp_roll, opp_base);
 
         if ( opp_roll > ch_roll || opp->stance == STANCE_AMBUSH && number_bits(1) )
         {
