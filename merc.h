@@ -4209,8 +4209,8 @@ int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
 void check_explore args( ( CHAR_DATA *, ROOM_INDEX_DATA * ) );
 void explore_vnum args( (CHAR_DATA *, int ) );
 bool explored_vnum args( (CHAR_DATA *, int ) );
-
-
+bool can_move_dir( CHAR_DATA *ch, int dir, bool show );
+int get_random_exit( CHAR_DATA *ch );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );

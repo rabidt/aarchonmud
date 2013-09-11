@@ -280,6 +280,20 @@ void reverse_char_list()
     char_list->next = new_char_list;
 }
 
+bool is_wimpy( CHAR_DATA *ch )
+{
+    if ( ch->hit < ch->max_hit * ch->wimpy/100 )
+        return TRUE;
+
+    if ( IS_NPC(ch) && IS_SET(ch->act, ACT_WIMPY) )
+        return TRUE;
+    
+    if ( IS_AFFECTED(ch, AFF_FEAR) )
+        return TRUE;
+    
+    return FALSE;
+}
+
 /* execute a default combat action */
 void run_combat_action( DESCRIPTOR_DATA *d )
 {
@@ -306,7 +320,7 @@ void run_combat_action( DESCRIPTOR_DATA *d )
 
 bool wants_to_rescue( CHAR_DATA *ch )
 {
-    if ( ch->position < POS_FIGHTING || ch->hit < ch->max_hit * ch->wimpy/100 || IS_AFFECTED(ch, AFF_FEAR) )
+    if ( ch->position < POS_FIGHTING || is_wimpy(ch) )
         return FALSE;
     return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
@@ -5689,8 +5703,6 @@ bool in_pkill_battle( CHAR_DATA *ch )
     return FALSE;
 }
 
-
-
 extern char *const dir_name[];
 
 bool check_lasso( CHAR_DATA *victim );
@@ -5712,6 +5724,16 @@ int direction_lookup( char *arg1 )
     return -1;
     
 }
+
+int get_exit_count( CHAR_DATA *ch )
+{
+    int d, count = 0;
+    for ( d = 0; d < MAX_DIR; d++ )
+        if ( can_move_dir(ch, d, FALSE) )
+            count++;
+    return count;
+}
+
 void do_flee( CHAR_DATA *ch, char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
@@ -5720,7 +5742,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
     ROOM_INDEX_DATA *now_in;
     CHAR_DATA *victim;
     EXIT_DATA *pexit;
-    int choice, dir, chance, skill, num;
+    int dir, chance, skill, exit_count;
     CHAR_DATA *opp;
     int opp_value, max_opp_value = 0;
     //static bool no_flee = FALSE;
@@ -5731,165 +5753,121 @@ void do_flee( CHAR_DATA *ch, char *argument )
 
     if ( (victim = ch->fighting) == NULL )
     {
-        if (ch->position == POS_FIGHTING)
-	    set_pos( ch, POS_STANDING );
         send_to_char( "You aren't fighting anyone.\n\r", ch );
         return;
     }
     
-    if (IS_AFFECTED(ch, AFF_ENTANGLE) && (number_percent() > (get_curr_stat(ch, STAT_LUC)/10)))
-    {
-	send_to_char( "The plants entangling you hold you in place!\n\r", ch );
-	return;
-    }
-
-    if (ch->position < POS_FIGHTING)
-    {
-	send_to_char( "You can't flee when you're not even standing up!\n\r", ch );
-	return;
-    }
-
     one_argument( argument, arg );
 
     if ( (was_in = ch->in_room) == NULL )
-	return;
-    
-    if (arg[0] && (number_percent()<=get_skill(ch, gsn_retreat)))
+        return;
+
+    if ( arg[0] )
     {
-        dir = direction_lookup( arg );
-
-
-	    if (dir == -1)
-	    {
-	        send_to_char("That isnt a direction!\n\r", ch);
-	        return;
-	    }
-
-	    check_improve(ch, gsn_retreat, TRUE, 4);
-	    chance = 5;
+        if ( (dir = direction_lookup(arg)) == -1 )
+        {
+            send_to_char("That isnt a direction!\n\r", ch);
+            return;
+        }
+        if ( !can_move_dir(ch, dir, TRUE) )
+            return;
+        exit_count = 1;
     }
     else
     {
-	for (dir=0, num=0; dir<MAX_DIR; dir++)
-	    if (!(( pexit = was_in->exit[dir] ) == 0
-		  || pexit->u1.to_room == NULL
-		  || (IS_SET(pexit->exit_info, EX_CLOSED)
-		      && (IS_SET(pexit->exit_info, EX_NOPASS)
-			  || !IS_AFFECTED(ch, AFF_PASS_DOOR)))
-		  || (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB)
-        /* Check added so that mobs can't flee into a safe room. Causes problems
-           with resets, quests, and leveling - Astark Dec 2012 */
-                  || (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE)))))
-	    {
-		if ( number_range(0, num) == 0 )
-		    choice = dir;
-		num++;
-	    }
-	
-	if (num==0)
-	{
-	    send_to_char("There is nowhere to run!\n\r", ch);
-	    return;
-	}
-	
-	chance = 5*num;
-	dir = choice;
-	/*
-	num = number_range(1, num);
-	for (dir=0; (dir<MAX_DIR) && (num>0); dir++)
-	    if (!(( pexit = was_in->exit[dir] ) == 0
-		  || pexit->u1.to_room == NULL
-		  || IS_SET(pexit->exit_info, EX_CLOSED)
-		  || (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB))))
-		num--;
-	dir--;
-	*/
-    }
-
-    chance += 25+get_skill(ch, gsn_flee)/2+get_skill(ch, gsn_retreat)/4;
-
-    /* get stats from strongest opponent */
-    for (opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room)
-    {
-	if (opp->fighting != ch)
-	    continue;
-	
-	opp_value = 2 * opp->level + 4 * get_curr_stat(opp, STAT_AGI);
-	
-	if ( opp_value > max_opp_value )
-	    max_opp_value = opp_value;
-    }
-
-    chance *= 1000 - max_opp_value + 2 * ch->level + 
-	3 * get_curr_stat(ch, STAT_AGI) + get_curr_stat(ch, STAT_LUC);
-    
-    chance /= 2; /* only 50% base chance */
-
-    /* consider entrapment & ambush stance for all opponents fighting ch */
-    for (opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room)
-    {
-	if (opp->fighting != ch)
-	    continue;
-	
-	if (skill=get_skill(opp, gsn_entrapment))
-	{
-	    chance = 100*chance/(100+skill);
-	    check_improve(opp, gsn_entrapment, TRUE, 8);
-	}
-	
-	if (opp->stance == STANCE_AMBUSH)
-	    chance /= 2;
-    }
-
-    if (ch->daze > 0)
-	chance /= 2;
-    
-    if (ch->slow_move > 0)
-	chance /= 2;
-    
-    if (IS_NPC(ch) || (ch->stance == STANCE_BUNNY))
-	chance += 10000;
-    
-    if (chance > 40000)
-	chance = (chance+40000)/2;
-    
-    if (max_opp_value > 0 && number_percent()*1000 > chance)
-    {
-	WAIT_STATE(ch, 6);
-	send_to_char( "PANIC! You couldn't escape!\n\r", ch );
-	check_improve(ch, gsn_flee, FALSE, 4);
-	return;
+        if ( (dir = get_random_exit(ch)) == -1 )
+        {
+            send_to_char("There is nowhere to run!\n\r", ch);
+            return;
+        }
+        exit_count = get_exit_count(ch);
     }
     
-    if (is_affected(ch, gsn_net))
+    // we now have a chance to escape, so lag is given now, regardless of success
+    if ( ch->stance == STANCE_BUNNY )
+        WAIT_STATE(ch, PULSE_VIOLENCE/2);
+    else
+        WAIT_STATE(ch, PULSE_VIOLENCE);
+    
+    // auto-fail chance based on number of available exits
+    if ( number_bits(exit_count) == 0 )
     {
-	/* Chance of breaking the net:  str/15 < 13.5% */
-	if( number_percent() < (get_curr_stat(ch, STAT_STR)/15) )
-	{
-	    send_to_char( "You rip the net apart!\n\r", ch );
-	    act("$n rips the net apart!", ch, NULL, NULL, TO_ROOM);
-	    affect_strip( ch, gsn_net );
-	}
-	/* Chance of struggling out of the net:  dex/15 < 13.5% */
-	else if( number_percent() < (get_curr_stat(ch, STAT_DEX)/15) )
-	{
-	    send_to_char( "You struggle free from the net!\n\r", ch );
-	    act("$n struggles free from the net!", ch, NULL, NULL, TO_ROOM);
-	    affect_strip( ch, gsn_net );
-	}
-	/* Chance of fleeing while still trapped in the net:  (agi+luc)/30 < 13.5% */
-	/* (This last check does not allow flee to occur.) */
-	else if( number_percent() > (get_curr_stat(ch, STAT_AGI)+get_curr_stat(ch, STAT_LUC))/30 )
-	{
-	    send_to_char( "You struggle in the net, and can't seem to get away.\n\r", ch );
-	    act("$n struggles in the net.", ch, NULL, NULL, TO_ROOM);
-	    return;
-	}
+        // retreat skill allows fleeing regardless of number of exits
+        if ( per_chance(get_skill(ch, gsn_retreat))  )
+            check_improve(ch, gsn_retreat, TRUE, 4);
+        else
+        {
+            check_improve(ch, gsn_retreat, FALSE, 4);
+            send_to_char("PANIC! You couldn't escape!\n\r", ch);
+            return;
+        }
+    }
+
+    if ( IS_AFFECTED(ch, AFF_ENTANGLE) && !per_chance(get_curr_stat(ch, STAT_LUC) / 10) )
+    {
+        send_to_char("The plants entangling you hold you in place!\n\r", ch);
+        return;
+    }
+    
+    if ( is_affected(ch, gsn_net) )
+    {
+        /* Chance of breaking the net:  str/15 < 13.5% */
+        if ( per_chance(get_curr_stat(ch, STAT_STR) / 15) )
+        {
+            send_to_char( "You rip the net apart!\n\r", ch );
+            act("$n rips the net apart!", ch, NULL, NULL, TO_ROOM);
+            affect_strip( ch, gsn_net );
+        }
+        /* Chance of struggling out of the net:  agi/15 < 13.5% */
+        else if ( per_chance(get_curr_stat(ch, STAT_AGI) / 15) )
+        {
+            send_to_char( "You struggle free from the net!\n\r", ch );
+            act("$n struggles free from the net!", ch, NULL, NULL, TO_ROOM);
+            affect_strip( ch, gsn_net );
+        }
+        /* Chance of fleeing while still trapped in the net:  luc/15 < 13.5% */
+        else if ( !per_chance(get_curr_stat(ch, STAT_LUC) / 15) )
+        {
+            send_to_char( "You struggle in the net, and can't seem to get away.\n\r", ch );
+            act("$n struggles in the net.", ch, NULL, NULL, TO_ROOM);
+            return;
+        }
+    }
+    
+    int ch_base = (10 + ch->level) * (100 + get_skill(ch, gsn_flee)) / 100;
+    int ch_roll = number_range(0, ch_base);
+
+    if ( ch->slow_move > 0 )
+    {
+        int second_roll = number_range(0, ch_base);
+        ch_roll = UMIN(ch_roll, second_roll);
+    }
+    
+    for ( opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room )
+    {
+        if ( opp->fighting != ch || is_wimpy(ch) )
+            continue;
+        
+        // harder to flee from PCs
+        int entrapment_factor = (IS_NPC(opp) ? 100 : 200) + get_skill(opp, gsn_entrapment);
+        int opp_base = (10 + opp->level) * entrapment_factor / 100;
+        int opp_roll = number_range(0, opp_base);
+
+        printf_to_char(ch, "ch_roll(%d) = %d vs %d = opp_roll(%d)\n\r", ch_base, ch_roll, opp_roll, opp_base);
+
+        if ( opp_roll > ch_roll || opp->stance == STANCE_AMBUSH && number_bits(1) )
+        {
+            act("$N jumps in your way, blocking your escape!", ch, NULL, opp, TO_CHAR);
+            act("You jump in $n's way, blocking $s escape!", ch, NULL, opp, TO_VICT);
+            act("$N jumps in $n's way, blocking $s escape!", ch, NULL, opp, TO_NOTVICT);
+            check_improve(opp, gsn_entrapment, TRUE, 1);
+            return;
+        }
     }
 
     /* opponents may catch them and prevent fleeing */
     if ( check_lasso(ch) )
-	return;
+        return;
     /* prevent wimpy-triggered recursive fleeing */
     SET_AFFECT(ch, AFF_FLEE);
     /* opponents may leap on fleeing player and kill him */
@@ -5897,54 +5875,48 @@ void do_flee( CHAR_DATA *ch, char *argument )
     REMOVE_AFFECT(ch, AFF_FLEE);
 
     if (ch->fighting == NULL)
-	return;
+        return;
     
     dir = move_char(ch, dir, FALSE);    
-    now_in=ch->in_room;
+    now_in = ch->in_room;
     
-    if (now_in==was_in)
+    if ( now_in == was_in )
     {
-	WAIT_STATE(ch, 6);
-	send_to_char( "You get turned around and flee back into the room!\n\r", ch );
-	return;
+        send_to_char( "You get turned around and flee back into the room!\n\r", ch );
+        return;
     }
+
+    check_improve(ch, gsn_flee, TRUE, 4);
 
     /* char might have been transed by an mprog */
     if ( dir == -1 )
-	sprintf(buf, "$n has fled!");
+        sprintf(buf, "$n has fled!");
     else
-	sprintf(buf, "$n has fled %s!", dir_name[dir]);
-    check_improve(ch, gsn_flee, TRUE, 4);
+        sprintf(buf, "$n has fled %s!", dir_name[dir]);
         
     ch->in_room = was_in;
     act(buf, ch, NULL, NULL, TO_ROOM);
     ch->in_room = now_in;
         
     if ( dir == -1 )
-	sprintf(buf, "You flee from combat!\n\r", dir_name[dir]);
+        printf_to_char(ch, "You flee from combat!\n\r");
     else
-	sprintf(buf, "You flee %s from combat!\n\r", dir_name[dir]);
-    //send_to_char(buf, ch);
-    act( buf, ch, NULL, NULL, TO_CHAR );
+        printf_to_char(ch, "You flee %s from combat!\n\r", dir_name[dir]);
 
-    if ( !IS_NPC(ch) )
+    if ( !IS_NPC(ch) && !IS_HERO(ch) && !IS_SET(ch->act, PLR_WAR) )
     {
-        if( (ch->class == 1) && (number_percent() < ch->level ) )
-            send_to_char( "You snuck away safely.\n\r", ch);
-        else if ( !IS_HERO(ch) && !IS_SET(ch->act, PLR_WAR) )
+        // Thieves are exempt from XP penalty
+        if ( ch->class == 1 )
+            send_to_char("You snuck away safely.\n\r", ch);
+        else
         {
-            send_to_char( "You lost 10 exp.\n\r", ch); 
-            gain_exp( ch, -10 );
+            send_to_char("You lost 10 exp.\n\r", ch);
+            gain_exp(ch, -10);
         }
     }
 
-    if (!IS_NPC(ch) && ch_in_pkill_battle && ch->pcdata != NULL)
-        ch->pcdata->pkill_timer = UMAX(ch->pcdata->pkill_timer, 5 * PULSE_VIOLENCE);
-
-    /*
-    if (now_in!=was_in)
-        stop_fighting( ch, TRUE );
-    */
+    if ( ch->pcdata && in_pkill_battle(ch) )
+        ch->pcdata->pkill_timer = UMAX(ch->pcdata->pkill_timer, 10 * PULSE_VIOLENCE);
 }
 
 /* opponents can throw a lasso at fleeing player and prevent his fleeing */
