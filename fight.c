@@ -285,7 +285,7 @@ bool is_wimpy( CHAR_DATA *ch )
     if ( ch->hit < ch->max_hit * ch->wimpy/100 )
         return TRUE;
 
-    if ( IS_NPC(ch) && IS_SET(ch->act, ACT_WIMPY) )
+    if ( IS_NPC(ch) && IS_SET(ch->act, ACT_WIMPY) && ch->hit < ch->max_hit / 2 )
         return TRUE;
     
     if ( IS_AFFECTED(ch, AFF_FEAR) )
@@ -300,22 +300,22 @@ void run_combat_action( DESCRIPTOR_DATA *d )
     char *command;
     CHAR_DATA *ch;
 
-    if ( d == NULL
-	 || (ch = d->character) == NULL
-	 || ch->pcdata == NULL
-	 || (command = ch->pcdata->combat_action) == NULL
-	 || command[0] == '\0' )
-	return;
+    if ( d == NULL || (ch = d->character) == NULL || ch->pcdata == NULL )
+        return;
+    
+    command = is_wimpy(ch) ? "flee" : ch->pcdata->combat_action;
+    if ( command == NULL || command[0] == '\0' )
+        return;
 
     /* no actions for charmed chars */
     if ( IS_AFFECTED(ch, AFF_CHARM) )
-	return;
+        return;
 
     anti_spam_interpret( d->character, command );
 
     /* prevent spam from lag-less actions */
     if ( ch->wait == 0 )
-	WAIT_STATE( ch, PULSE_VIOLENCE );
+        WAIT_STATE( ch, PULSE_VIOLENCE/2 );
 }
 
 bool wants_to_rescue( CHAR_DATA *ch )
@@ -3139,33 +3139,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
            return TRUE;
        }
    }
-   
-   /*
-   * Wimp out?
-   */
-   if ( IS_NPC(victim) && dam > 0 && victim->wait < PULSE_VIOLENCE / 2)
-   {
-       if ( ((IS_SET(victim->act, ACT_WIMPY) || IS_AFFECTED(victim, AFF_FEAR))
-	     && !IS_SET(victim->act, ACT_SENTINEL)
-	     && number_bits( 2 ) == 0
-	     && (victim->hit < victim->max_hit / 5 
-		 || (IS_AFFECTED(victim, AFF_INSANE) && number_bits(6) == 0)
-		 || IS_AFFECTED(victim, AFF_FEAR)))
-	    || ( IS_AFFECTED(victim, AFF_CHARM) 
-		 && victim->master != NULL
-		 && victim->master->in_room != victim->in_room ) )
-           do_flee( victim, "" );
-   }
-   
-   if ( !IS_NPC(victim)
-	&& victim->hit > 0
-	&& !IS_SET(victim->act, PLR_WAR)
-	&& ( victim->hit <= victim->max_hit * victim->wimpy/100
-	     || (IS_AFFECTED(victim, AFF_INSANE) && number_bits(6)==0)
-	     || IS_AFFECTED(victim, AFF_FEAR) ) 
-	&& victim->wait < PULSE_VIOLENCE / 2 )
-       do_flee( victim, "" );
-   
+
    tail_chain( );
    return TRUE;
 }
@@ -5845,7 +5819,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
     
     for ( opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room )
     {
-        if ( opp->fighting != ch || is_wimpy(ch) )
+        if ( opp->fighting != ch || is_wimpy(opp) )
             continue;
         
         // harder to flee from PCs
