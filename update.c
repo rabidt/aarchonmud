@@ -867,24 +867,32 @@ void mobile_update( void )
             continue;
 
         /* Examine call for special procedure */
-        if ( ch->spec_fun != 0 && ch->wait == 0 )
+        if ( ch->wait == 0 )
         {
-            /* update the last_mprog log */
-            sprintf( last_mprog, "mob %d at %d %s",
-                    ch->pIndexData->vnum,
-                    ch->in_room->vnum,
-                    spec_name_lookup(ch->spec_fun) );
-
-            success = (*ch->spec_fun)( ch );
-
-            /* update the last_mprog log */
-            sprintf( last_mprog, "(Finished) mob %d at %d %s",
-                    ch->pIndexData->vnum,
-                    ch->in_room->vnum,
-                    spec_name_lookup(ch->spec_fun) );
-
-            if ( success )
+            if ( ch->fighting && is_wimpy(ch) )
+            {
+                do_flee(ch, "");
                 continue;
+            }
+            else if ( ch->spec_fun != 0 )
+            {
+                /* update the last_mprog log */
+                sprintf( last_mprog, "mob %d at %d %s",
+                        ch->pIndexData->vnum,
+                        ch->in_room->vnum,
+                        spec_name_lookup(ch->spec_fun) );
+
+                success = (*ch->spec_fun)( ch );
+
+                /* update the last_mprog log */
+                sprintf( last_mprog, "(Finished) mob %d at %d %s",
+                        ch->pIndexData->vnum,
+                        ch->in_room->vnum,
+                        spec_name_lookup(ch->spec_fun) );
+
+                if ( success )
+                    continue;
+            }
         }
 
         if (ch->pIndexData->pShop != NULL) /* give him some gold */
