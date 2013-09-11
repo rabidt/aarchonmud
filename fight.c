@@ -121,6 +121,7 @@ bool check_critical  args( ( CHAR_DATA *ch, bool secondary ) );
 bool check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
 bool stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim );
+bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
@@ -1249,6 +1250,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -2642,6 +2645,33 @@ CHAR_DATA *get_local_leader( CHAR_DATA *ch )
         return ch;
 }
 
+bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
+{
+    // touch spells and some others cannot be evaded
+    char *spell = skill_table[sn].name;
+    if ( !strcmp(spell, "burning hands")
+        || !strcmp(spell, "chill touch")
+        || !strcmp(spell, "shocking grasp")
+        || !strcmp(spell, "poison")
+        || !strcmp(spell, "plague")
+        || !strcmp(spell, "iron maiden"))
+        return FALSE;
+
+    // direct-target spells are harder to evade
+    if ( skill_table[sn].target != TAR_IGNORE && number_bits(1) )
+        return FALSE;
+
+    bool success = per_chance(get_skill(victim, gsn_evasion));
+    if ( show && success )
+    {
+        act_gag("$N evades your spell, reducing its impact.", ch, NULL, victim, TO_CHAR, GAG_MISS);
+        act_gag("You evade $n's spell, reducing its impact.", ch, NULL, victim, TO_VICT, GAG_MISS);
+        act_gag("$N evades $n's spell, reducing its impact.", ch, NULL, victim, TO_NOTVICT, GAG_MISS);
+    }
+    check_improve(victim, gsn_evasion, success, 5);
+    return success;
+}
+
 /*
 * Inflict full damage from a hit.
 */
@@ -2762,9 +2792,14 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam -= diff*dam/4000;
     }
 
-    if ( victim->stance == STANCE_ARCANA && dt < TYPE_HIT && IS_SPELL(dt) )
-	dam -= dam/3;
-    
+    if ( dam > 1 && dt < TYPE_HIT && IS_SPELL(dt) )
+    {
+        if ( victim->stance == STANCE_ARCANA )
+            dam -= dam/3;
+        if ( check_evasion(ch, victim, dt, show) )
+            dam -= dam/2;
+    }
+
     immune = FALSE;
     
     /*
@@ -3866,8 +3901,10 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     try_avoid = !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) && !IS_AFFECTED(victim, AFF_FLEE);
     if ( try_avoid )
     {
-	if ( check_outmaneuver( ch, victim ) )
-	    return TRUE;
+        if ( check_outmaneuver( ch, victim ) )
+            return TRUE;
+        if ( check_avoidance( ch, victim ) )
+            return TRUE;
         if ( check_duck( ch,victim ) )
             return TRUE;
         if ( check_dodge( ch, victim ) )
@@ -4247,6 +4284,34 @@ bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
     act_gag( "$N outmaneuvers your attack!", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N outmaneuvers $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
     check_improve(victim,gsn_mass_combat,TRUE,15);
+    return TRUE;
+}
+
+bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    int chance;
+
+    if ( !IS_AWAKE(victim) )
+        return FALSE;
+
+    if ( ch->fighting == victim || ch->fighting == NULL )
+        return FALSE;
+
+    chance = get_skill(victim, gsn_avoidance) * 2/3;
+
+    if ( IS_AFFECTED(victim, AFF_SORE) )
+        chance -= 10;
+
+    if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
+        chance -= chance/4;
+
+    if ( !per_chance(chance) )
+        return FALSE;
+
+    act_gag( "You avoid $n's attack!", ch, NULL, victim, TO_VICT, GAG_MISS );
+    act_gag( "$N avoids your attack!", ch, NULL, victim, TO_CHAR, GAG_MISS );
+    act_gag( "$N avoids $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
+    check_improve(victim,gsn_avoidance,TRUE,5);
     return TRUE;
 }
 
