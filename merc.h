@@ -4361,6 +4361,7 @@ int get_enchant_ops( OBJ_DATA *obj, int level );
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 void    violence_update args( ( void ) );
+bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 void    multi_hit   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
 					int dt, int class, bool show ) );
