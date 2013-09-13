@@ -4566,7 +4566,8 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
 
         check_improve(ch,gsn_paroxysm,TRUE,5);
 
-        one_hit( ch, victim, gsn_paroxysm, FALSE);
+        if ( !one_hit( ch, victim, gsn_paroxysm, FALSE) )
+            return;
 	CHECK_RETURN(ch, victim);
 
 	check_assassinate( ch, victim, obj, 6 );
