@@ -165,8 +165,7 @@ void spell_lightning_breath(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 void spell_cone_of_exhaustion( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  act("$n breathes out a cone of sickly white.",ch,NULL,victim,TO_NOTVICT);
-  act("$n breathes out a cone of sickly white at you!",ch,NULL,victim,TO_VICT);
+  act("$n breathes out a cone of sickly white.",ch,NULL,NULL,TO_ROOM);
   act("You breathe out a cone of sickly white.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_COLD, &slow_effect, TRUE);
 }    
@@ -192,8 +191,7 @@ void spell_tomb_stench(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 void spell_zombie_breath( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  act("$n breathes out a putrid smelling cloud.",ch,NULL,victim,TO_NOTVICT);
-  act("$n breathes a putrid smelling cloud on you!",ch,NULL,victim,TO_VICT);
+  act("$n breathes out a putrid smelling cloud.",ch,NULL,NULL,TO_ROOM);
   act("You breathe out a putrid smelling cloud.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_NEGATIVE, &weak_effect, TRUE);
 }
@@ -201,8 +199,7 @@ void spell_zombie_breath( int sn, int level, CHAR_DATA *ch, void *vo, int target
 void spell_zone_of_damnation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  act("$n damns the area.",ch,NULL,victim,TO_NOTVICT);
-  /*act("$n damns the area around you!",ch,NULL,victim,TO_VICT);*/
+  act("$n damns the area.",ch,NULL,NULL,TO_ROOM);
   act("You damn the area.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_HOLY, &curse_effect, TRUE);
 }
