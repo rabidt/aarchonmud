@@ -8,7 +8,6 @@
 #include <time.h>
 #include "merc.h"
 
-void  one_hit       args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 bool  check_lose_stance args( (CHAR_DATA *ch) );
 void  behead        args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_jam     args( ( CHAR_DATA *ch, int odds, bool both ) );

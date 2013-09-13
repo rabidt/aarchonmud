@@ -46,7 +46,6 @@
 DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_recall    );
 DECLARE_DO_FUN(do_stand     );
-void  one_hit   args(( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
 bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj );
