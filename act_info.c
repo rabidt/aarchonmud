@@ -2237,6 +2237,10 @@ void do_leadership( CHAR_DATA *ch, char *argument )
     
     if (!found)
         send_to_char("You don't have any followers here.\n\r", ch);
+
+    int max = cha_max_follow(ch);
+    int charmed = cha_cur_follow(ch);
+    printf_to_char(ch, "You control %d / %d levels worth of creatures (%d remaining).\n\r", charmed, max, max-charmed);
 }
 
 char *  const   day_name    [] =
