@@ -2103,10 +2103,8 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
-
-
     CHAR_DATA *check;
-    int charmed,max;
+    int mlevel;
     bool sex_bonus;
 
     if ( is_safe(ch,victim) )
@@ -2139,23 +2137,9 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
 
-    /* Check number of charmees against cha */
-    charmed=0;
-    max = get_curr_stat(ch,STAT_CHA) / 10;
-
-    for ( check=char_list ; check != NULL; check = check->next )
-    {
-        if (IS_NPC(check) && IS_AFFECTED(check,AFF_CHARM) && 
-                check->master == ch)
-        {
-            charmed++;
-            if (charmed >= max)
-            {
-                send_to_char("You are not charismatic enough to attract more followers.\n\r",ch);
-                return;
-            }
-        }
-    }
+    mlevel = victim->level;
+    if ( check_cha_follow(ch, mlevel) < mlevel )
+        return;
 
     sex_bonus =  
         (ch->sex == SEX_FEMALE && victim->sex == SEX_MALE)
@@ -2190,12 +2174,6 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     act( "Isn't $n just so nice?", ch, NULL, victim, TO_VICT );
     if ( ch != victim )
         act("$N looks at you with adoring eyes.",ch,NULL,victim,TO_CHAR);
-
-    /* Added a check so that charmed NPCs aren't aggressive. Was getting errors in
-       the shell saying "Bad MPKill ... - Astark 1-4-13 
-       if (IS_NPC(victim))
-       REMOVE_BIT(ch->act, ACT_AGGRESSIVE); */
-
 
     return;
 }
