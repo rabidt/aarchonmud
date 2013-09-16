@@ -770,10 +770,11 @@ bool spec_guard( CHAR_DATA *ch )
 		    { crime = "THIEF"; break; }
 	    }		
 
-	    if ( victim->fighting != NULL
-		 &&   victim->fighting != ch
-		 &&   victim->alignment < max_evil
-		 && check_see(ch,victim) )
+        if ( victim->fighting != NULL
+            && IS_SET(victim->fighting->form, FORM_SENTIENT)
+            && !IS_UNDEAD(victim->fighting)
+            && victim->alignment < max_evil
+            && check_see(ch,victim) )
 		{
 		    max_evil = victim->alignment;
 		    ech      = victim;

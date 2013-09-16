@@ -141,7 +141,6 @@ int   xp_compute    args( ( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align ) 
 bool  is_safe       args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  make_corpse   args( ( CHAR_DATA *ch, CHAR_DATA *killer, bool to_morgue ) );
 void  split_attack  args( ( CHAR_DATA *ch, int dt ) );
-void  one_hit       args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 void  mob_hit       args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 void  raw_kill      args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
 void  set_fighting  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
@@ -1674,7 +1673,7 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
 /*
 * Hit one guy once.
 */
-void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
+bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 {
     OBJ_DATA *wield;
     int dam;
@@ -1704,14 +1703,14 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
     /* just in case */
     if (victim == ch || ch == NULL || victim == NULL)
-        return;
+        return FALSE;
     
     /*
      * Can't beat a dead char!
      * Guard against weird room-leavings.
      */
     if ( victim->position == POS_DEAD || ch->in_room != victim->in_room )
-        return;
+        return FALSE;
     
     /*
      * Figure out the type of damage message.
@@ -1724,32 +1723,32 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     /* bows are special */
     if ( wield != NULL && wield->value[0] == WEAPON_BOW )
     {
-	OBJ_DATA *arrows = get_eq_char( ch, WEAR_HOLD );
+        OBJ_DATA *arrows = get_eq_char( ch, WEAR_HOLD );
 
-	if ( arrows == NULL || arrows->item_type != ITEM_ARROWS )
-	{
-	    if ( !IS_NPC(ch) )
-	    {
-		send_to_char( "You must hold arrows to fire your bow.\n\r", ch );
-		return;
-	    }
-	    else
-	    {
-		act( "$n removes $p.", ch, wield, NULL, TO_ROOM );
-		unequip_char( ch, wield );
-	    }
-	}
-	else
-	{
-	    if ( arrows->value[0] <= 0 )
-	    {
-		bugf( "one_hit: %d arrows", arrows->value[0] );
-		extract_obj( arrows );
-		return;
-	    }
-	    /* update arrows later - need to keep data for extra damage */
-	    arrow_used = TRUE;
-	}
+        if ( arrows == NULL || arrows->item_type != ITEM_ARROWS )
+        {
+            if ( !IS_NPC(ch) )
+            {
+                send_to_char( "You must hold arrows to fire your bow.\n\r", ch );
+                return FALSE;
+            }
+            else
+            {
+                act( "$n removes $p.", ch, wield, NULL, TO_ROOM );
+                unequip_char( ch, wield );
+            }
+        }
+        else
+        {
+            if ( arrows->value[0] <= 0 )
+            {
+                bugf( "one_hit: %d arrows", arrows->value[0] );
+                extract_obj( arrows );
+                return FALSE;
+            }
+            /* update arrows later - need to keep data for extra damage */
+            arrow_used = TRUE;
+        }
     }
 
     if ( dt == TYPE_UNDEFINED )
@@ -1806,15 +1805,15 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
-	/* Miss. */
-	if (wield != NULL)
-	    if (IS_SET(wield->extra_flags, ITEM_JAMMED))
-		dt = gsn_pistol_whip;
-	damage( ch, victim, 0, dt, dam_type, TRUE );
-	if ( arrow_used )
-	    handle_arrow_shot( ch, victim, FALSE );
-	tail_chain( );
-	return;
+        /* Miss. */
+        if (wield != NULL)
+            if (IS_SET(wield->extra_flags, ITEM_JAMMED))
+            dt = gsn_pistol_whip;
+        damage( ch, victim, 0, dt, dam_type, TRUE );
+        if ( arrow_used )
+            handle_arrow_shot( ch, victim, FALSE );
+        tail_chain( );
+        return FALSE;
     }
         
     if (sn != -1)
@@ -1900,27 +1899,32 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( arrow_used )
 	handle_arrow_shot( ch, victim, result );
 
-    CHECK_RETURN( ch, victim );
+    if ( stop_attack(ch, victim) )
+        return result != 0;
 
     /* if not hit => no follow-up effects.. --Bobble */
     if ( !result )
-	return;
+        return FALSE;
     
     /* funky weapons */
     weapon_flag_hit( ch, victim, wield );
-    CHECK_RETURN( ch, victim );
+    if ( stop_attack(ch, victim) )
+        return TRUE;
 
     /* behead */
     check_behead( ch, victim, wield );
-    CHECK_RETURN( ch, victim );
+    if ( stop_attack(ch, victim) )
+        return TRUE;
 
     /* aura */
     aura_damage( ch, victim, wield );
-    CHECK_RETURN( ch, victim );
+    if ( stop_attack(ch, victim) )
+        return TRUE;
     
     /* stance effects */
     stance_after_hit( ch, victim, wield );
-    CHECK_RETURN( ch, victim );
+    if ( stop_attack(ch, victim) )
+        return TRUE;
 
     /* retribution */
     if ( (victim->stance == STANCE_PORCUPINE 
@@ -1934,7 +1938,7 @@ void one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
     
    tail_chain( );
-   return;
+   return TRUE;
 }
 
 bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill )
