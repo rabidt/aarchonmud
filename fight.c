@@ -3334,7 +3334,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	    update_bounty(victim);
 	}
 	/* If a non-pkill player is killed by an NPC bounty hunter */
-	else if (IS_NPC(ch) && (ch->spec_fun == spec_lookup( "spec_bounty_hunter" ))
+	else if (IS_NPC(ch) && (ch->spec_fun == spec_bounty_hunter)
 		 && (!IS_SET(victim->act, PLR_PERM_PKILL)) )
         {
 	    int amount;

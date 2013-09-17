@@ -41,6 +41,7 @@
 #include "recycle.h"
 #include "tables.h"
 #include "signal.h"
+#include "special.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit  );
@@ -2847,11 +2848,11 @@ void do_bounty( CHAR_DATA *ch, char *argument )
             if (!IS_NPC(hunter)) 
                 continue;
 
-            if ( hunter->spec_fun == spec_lookup( "spec_bounty_hunter" ) ) 
+            if ( hunter->spec_fun == spec_bounty_hunter ) 
                 break;
         }
         
-        if ( hunter == NULL || hunter->spec_fun != spec_lookup( "spec_bounty_hunter" ) )
+        if ( hunter == NULL || hunter->spec_fun != spec_bounty_hunter )
         {
             send_to_char("There is no bounty hunter here.\n\r",ch);
             return;

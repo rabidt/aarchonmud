@@ -16,6 +16,7 @@
 #include <string.h>
 #include <time.h>
 #include "merc.h"
+#include "special.h"
 
 DECLARE_DO_FUN( do_say );
 DECLARE_DO_FUN( do_startwar );
@@ -405,10 +406,10 @@ void do_quest(CHAR_DATA *ch, char *argument)
     for ( questman = ch->in_room->people; questman != NULL; questman = questman->next_in_room )
     {
         if (!IS_NPC(questman)) continue;
-        if (questman->spec_fun == spec_lookup( "spec_questmaster" )) break;
+        if (questman->spec_fun == spec_questmaster) break;
     }
     
-    if (questman == NULL || questman->spec_fun != spec_lookup( "spec_questmaster" ))
+    if (questman == NULL || questman->spec_fun != spec_questmaster)
     {
         send_to_char("You can't do that here.\n\r",ch);
         return;
