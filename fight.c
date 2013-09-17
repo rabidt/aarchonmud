@@ -2147,11 +2147,10 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	    full_dam(ch, victim, dam, gsn_werewolf_hunting, DAM_LIGHT, TRUE);
 	break;
     case STANCE_WITCH_HUNTING:
-	if ( (IS_NPC(victim) && IS_SET(victim->act,ACT_MAGE))
-	     || (!IS_NPC(victim) && 
-		 (victim->class==3||victim->class==11||victim->class==14)))
-	    full_dam(ch, victim, dam, gsn_witch_hunting, DAM_DROWNING, TRUE);
-	break;
+        if ( (IS_NPC(victim) && (IS_SET(victim->act,ACT_MAGE) || victim->spec_fun == spec_cast_mage))
+             || (!IS_NPC(victim) && (victim->class == 3 || victim->class == 11 || victim->class == 14)) )
+            full_dam(ch, victim, dam, gsn_witch_hunting, DAM_DROWNING, TRUE);
+        break;
     case STANCE_ELEMENTAL_BLADE:
 	/* additional mana cost */
 	if ( ch->mana < 1 )
