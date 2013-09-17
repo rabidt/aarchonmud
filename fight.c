@@ -38,6 +38,7 @@
 #include "tables.h"
 #include "warfare.h"
 #include "lookup.h"
+#include "special.h"
 
 extern WAR_DATA war;
 
@@ -5298,23 +5299,23 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
 
     if (victim->pIndexData->spec_fun != NULL)
     {
-        char* spec = spec_name_lookup(victim->pIndexData->spec_fun);
+        SPEC_FUN *spec = victim->pIndexData->spec_fun;
         // dragons
-        if ( strcmp(spec, "spec_breath_any") == 0
-            || strcmp(spec, "spec_breath_acid") == 0
-            || strcmp(spec, "spec_breath_fire") == 0
-            || strcmp(spec, "spec_breath_frost") == 0
-            || strcmp(spec, "spec_breath_gas") == 0
-            || strcmp(spec, "spec_breath_lightning") == 0 )
-            base_exp += base_exp / 5;
+        if ( spec == spec_breath_any
+            || spec == spec_breath_acid
+            || spec == spec_breath_fire
+            || spec == spec_breath_frost
+            || spec == spec_breath_gas
+            || spec == spec_breath_lightning )
+            base_exp += base_exp / 3;
         // casters
-        else if ( strcmp(spec, "spec_cast_cleric") == 0
-            || strcmp(spec, "spec_cast_mage") == 0
-            || strcmp(spec, "spec_cast_undead") == 0 )
-            base_exp += base_exp / 5;
+        else if ( spec == spec_cast_cleric
+            || spec == spec_cast_mage
+            || spec == spec_cast_undead )
+            base_exp += base_exp / 2;
         // other
-        else if ( strcmp(spec, "spec_thief") == 0
-            || strcmp(spec, "spec_nasty") == 0 )
+        else if ( spec == spec_thief
+            || spec == spec_nasty )
             base_exp += base_exp / 10;
     }
 
