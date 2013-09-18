@@ -3906,7 +3906,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
         // second blow for massive damage
         int move_loss = IS_AFFECTED(ch, AFF_BERSERK) ? ch->move / 8 : ch->move / 12;
         ch->move -= move_loss;
-        dam += move_loss * 3;
+        dam += move_loss * 4;
             
         /* chance to stun */
         int stun_level = (ch->level/2 + move_loss/4) * (100 + get_curr_stat(ch, STAT_STR)) / 200;
