@@ -81,7 +81,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
         return FALSE;
     }
     
-    if ( IS_NPC(ch) && (IS_SET(to_room->room_flags, ROOM_NO_MOB) || IS_SET(to_room->room_flags, ROOM_SAFE)) )
+    if ( IS_NPC(ch) && !IS_AFFECTED(ch, AFF_CHARM) && (IS_SET(to_room->room_flags, ROOM_NO_MOB) || IS_SET(to_room->room_flags, ROOM_SAFE)) )
     {
         if ( show )
             send_to_char("NPCs aren't allowed in there.\n\r", ch);
