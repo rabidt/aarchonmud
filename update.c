@@ -867,24 +867,32 @@ void mobile_update( void )
             continue;
 
         /* Examine call for special procedure */
-        if ( ch->spec_fun != 0 && ch->wait == 0 )
+        if ( ch->wait == 0 )
         {
-            /* update the last_mprog log */
-            sprintf( last_mprog, "mob %d at %d %s",
-                    ch->pIndexData->vnum,
-                    ch->in_room->vnum,
-                    spec_name_lookup(ch->spec_fun) );
-
-            success = (*ch->spec_fun)( ch );
-
-            /* update the last_mprog log */
-            sprintf( last_mprog, "(Finished) mob %d at %d %s",
-                    ch->pIndexData->vnum,
-                    ch->in_room->vnum,
-                    spec_name_lookup(ch->spec_fun) );
-
-            if ( success )
+            if ( ch->fighting && is_wimpy(ch) )
+            {
+                do_flee(ch, "");
                 continue;
+            }
+            else if ( ch->spec_fun != 0 )
+            {
+                /* update the last_mprog log */
+                sprintf( last_mprog, "mob %d at %d %s",
+                        ch->pIndexData->vnum,
+                        ch->in_room->vnum,
+                        spec_name_lookup(ch->spec_fun) );
+
+                success = (*ch->spec_fun)( ch );
+
+                /* update the last_mprog log */
+                sprintf( last_mprog, "(Finished) mob %d at %d %s",
+                        ch->pIndexData->vnum,
+                        ch->in_room->vnum,
+                        spec_name_lookup(ch->spec_fun) );
+
+                if ( success )
+                    continue;
+            }
         }
 
         if (ch->pIndexData->pShop != NULL) /* give him some gold */
@@ -1005,7 +1013,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -2518,6 +2526,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */
