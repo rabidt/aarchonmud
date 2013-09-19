@@ -1,4 +1,4 @@
-local dbg=true
+local dbg=false
 
 local function new_lbtables(typ)
     local rtn={}
