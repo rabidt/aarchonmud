@@ -2709,12 +2709,14 @@ void do_recall( CHAR_DATA *ch, char *argument )
         }
     }
 
-    /* Check for exit triggers, they might prevent recall */
+    /* Check for area triggers, they might prevent recall */
     if (!IS_NPC(ch) )
     {
-        if ( !ap_exit_trigger(ch, location->area) )
+        if ( !ap_recall_trigger(ch) )
             return;
-        if ( !ap_rexit_trigger(ch, location->area) )
+        if ( !ap_rexit_trigger(ch) )
+            return;
+        if ( !ap_exit_trigger(ch, location->area) )
             return;
     }
 

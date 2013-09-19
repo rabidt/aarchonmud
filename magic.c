@@ -3379,6 +3379,15 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     else
         gate_pet = FALSE;
 
+    /* check for exit triggers */
+    if ( !IS_NPC(ch) )
+    {
+        if ( !ap_rexit_trigger(ch) )
+            return;
+        if ( !ap_exit_trigger(ch, victim->in_room->area) )
+            return;
+    }
+
     act("$n steps through a gate and vanishes.",ch,NULL,NULL,TO_ROOM);
     send_to_char("You step through a gate and vanish.\n\r",ch);
     char_from_room(ch);
@@ -3398,6 +3407,13 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         act("$n has arrived through a gate.",ch->pet,NULL,NULL,TO_ROOM);
         do_look(ch->pet,"auto");
     }
+
+    if ( !IS_NPC(ch) )
+    {
+        ap_enter_trigger(ch, to_room->area);
+        ap_renter_trigger(ch);
+    }
+    
 }
 
 
