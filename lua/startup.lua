@@ -82,7 +82,7 @@ function loadscript(subdir, name, env)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
-
+  --print(subdir)
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
@@ -274,14 +274,20 @@ AREA_env_lib={
     end
 }
 
--- First look for mob functions, then look in main_lib, then look in env_lib
+-- First look for mob functions, then look in env_lib, then look in main_lib
 -- (providing env as argument)
 CH_env_meta={
     __index=function(tbl,key)
         if tbl.mob[key] then 
-            return function(...) tbl.mob[key](tbl.mob, unpack(arg)) end
+            return function(...) 
+                        table.insert(arg, 1, tbl.mob)
+                        tbl.mob[key](unpack(arg)) 
+                   end
         elseif CH_env_lib[key] then
-            return function(...) CH_env_lib[key](unpack(arg), tbl) end 
+            return function(...) 
+                        table.insert(arg,tbl)
+                        CH_env_lib[key](unpack(arg)) 
+                   end 
         else
             return main_lib[key]
         end
@@ -291,9 +297,15 @@ CH_env_meta={
 OBJ_env_meta={
     __index=function(tbl,key)
         if tbl.obj[key] then
-            return function(...) tbl.obj[key](tbl.obj, unpack(arg), tbl) end
+            return function(...) 
+                        table.insert(arg, 1, tbl.obj)
+                        tbl.obj[key](unpack(arg)) 
+                   end
         elseif OBJ_env_lib[key] then
-            return function(...) OBJ_env_lib[key](unpack(arg), tbl) end
+            return function(...) 
+                       table.insert(arg,tbl)
+                       OBJ_env_lib[key](unpack(arg)) 
+                   end
         else
             return main_lib[key]
         end
@@ -303,9 +315,15 @@ OBJ_env_meta={
 AREA_env_meta={
     __index=function(tbl,key)
         if tbl.area[key] then
-            return function(...) tbl.area[key](tbl.area, unpack(arg), tbl) end
+            return function(...)
+                        table.insert(arg, 1, tbl.area) 
+                        tbl.area[key](unpack(arg)) 
+                   end
         elseif AREA_env_lib[key] then
-            return function(...) AREA_env_lib[key](unpack(arg), tbl) end
+            return function(...) 
+                        table.insert(arg,tbl)
+                        AREA_env_lib[key](unpack(arg)) 
+                   end
         else
 			return main_lib[key]
         end
