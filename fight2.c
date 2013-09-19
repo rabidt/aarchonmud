@@ -3880,38 +3880,16 @@ void do_mug( CHAR_DATA *ch, char *argument )
 void do_fatal_blow( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
-    int dam, chance;
-    char arg[MAX_INPUT_LENGTH];
-    int move_loss;
-    int skill;
+    int skill, chance;
     
-    one_argument(argument, arg);
-    
-    if ((skill = get_skill(ch,gsn_fatal_blow)) < 1)
+    if ( (skill = get_skill(ch,gsn_fatal_blow)) < 1 )
     {
         send_to_char( "Better not, you might hurt yourself.\n\r", ch );
         return;
     }
-    
-    if ( arg[0] != '\0' )
-    {
-        if ( ( victim = get_char_room( ch, arg )) == NULL )
-        {
-            send_to_char( "They aren't here.\n\r", ch );
-            return;
-        }
-    }
-    else
-    {
-	if ( ( victim = ch->fighting ) == NULL )
-	{
-	    send_to_char( "You aren't fighting anyone.\n\r", ch );
-	    return;
-	}
-    }
-    
-    if ( is_safe(ch,victim) )
-	return;
+
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
         
     chance = skill - get_skill(victim, gsn_dodge)/3;
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
@@ -3919,43 +3897,37 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
     check_killer(ch,victim);
     WAIT_STATE( ch, skill_table[gsn_fatal_blow].beats );
         
-    if ( chance > number_percent())
+    if ( per_chance(chance) )
     {
-	    if ( IS_AFFECTED( ch, AFF_BERSERK ) )
-		move_loss = ch->move / 5;
-	    else
-		move_loss = ch->move / 10;
-
-            ch->move -= move_loss;
-            dam = ch->level * (get_curr_stat(ch, STAT_STR) + 100) / 200;
-            dam += move_loss * skill / 50;
+        // initial punch to set up
+        int dam = martial_damage(ch, gsn_fatal_blow);
+        full_dam(ch, victim, dam, gsn_fatal_blow, DAM_BASH, TRUE);
+        CHECK_RETURN(ch, victim);
+        // second blow for massive damage
+        int move_loss = IS_AFFECTED(ch, AFF_BERSERK) ? ch->move / 8 : ch->move / 12;
+        ch->move -= move_loss;
+        dam += move_loss * 4;
             
-	    /* chance to stun */
-	    if ( (number_bits(1) == 0) && !save_body_affect(victim, dam/10) )
-	    {
-		act( "You stun $N with a crushing blow to $S temple!", 
-		     ch, NULL, victim, TO_CHAR );
-		act( "$n stuns you with a crushing blow to your temple!", 
-		     ch, NULL, victim, TO_VICT );
-		act( "$n stuns $N with a crushing blow to $S temple!", 
-		     ch, NULL, victim, TO_NOTVICT );
-
-		victim->stance = 0;
-		WAIT_STATE( victim, 2 * PULSE_VIOLENCE );
-		DAZE_STATE( victim, 4 * PULSE_VIOLENCE );
-	    }
-
-            damage(ch,victim, dam, gsn_fatal_blow, DAM_BASH, TRUE);
-	    if ( ch->in_room == victim->in_room )
-		damage(ch,victim, dam * 3, gsn_fatal_blow, DAM_BASH, TRUE);
-            check_improve(ch, gsn_fatal_blow, TRUE, 1);
-        }
-        else
+        /* chance to stun */
+        int stun_level = (ch->level/2 + move_loss/4) * (100 + get_curr_stat(ch, STAT_STR)) / 200;
+        if ( number_bits(1) && !save_body_affect(victim, stun_level) )
         {
-            damage( ch, victim, 0, gsn_fatal_blow, DAM_BASH,TRUE);
-            check_improve(ch,gsn_fatal_blow, FALSE,1);
+            act( "You stun $N with a crushing blow to $S temple!", ch, NULL, victim, TO_CHAR );
+            act( "$n stuns you with a crushing blow to your temple!", ch, NULL, victim, TO_VICT );
+            act( "$n stuns $N with a crushing blow to $S temple!", ch, NULL, victim, TO_NOTVICT );
+            victim->stance = 0;
+            WAIT_STATE( victim, 2 * PULSE_VIOLENCE );
+            DAZE_STATE( victim, 4 * PULSE_VIOLENCE );
         }
-        return;
+        full_dam(ch, victim, dam, gsn_fatal_blow, DAM_BASH, TRUE);
+        check_improve(ch, gsn_fatal_blow, TRUE, 1);
+    }
+    else
+    {
+        damage(ch, victim, 0, gsn_fatal_blow, DAM_BASH,TRUE);
+        check_improve(ch,gsn_fatal_blow, FALSE,1);
+    }
+    return;
 }
 
 void do_intimidate( CHAR_DATA *ch, char *argument )
