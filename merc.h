@@ -3137,6 +3137,7 @@ struct  group_type
 #define ATRIG_QUIT  (G)
 #define ATRIG_VOID  (H)
 #define ATRIG_UNVOID (I)
+#define ATRIG_RECALL (J)
 
 struct mprog_list
 {
