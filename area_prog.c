@@ -169,3 +169,17 @@ bool ap_unvoid_trigger( CHAR_DATA *ch)
 		
 	return ap_percent_trigger( ch->in_room->area, ch, ATRIG_UNVOID);
 }
+
+bool ap_recall_trigger( CHAR_DATA *ch)
+{
+
+    if ( !ch->in_room)
+    {
+        bugf("ap_recall_trigger: in_room NULL for %s", ch->name);
+        return TRUE;
+    }
+    if ( !HAS_ATRIG(ch->in_room->area, ATRIG_RECALL) )
+        return TRUE;
+
+    return ap_percent_trigger( ch->in_room->area, ch, ATRIG_RECALL);
+}
