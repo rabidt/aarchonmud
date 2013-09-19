@@ -470,6 +470,70 @@ static int L_sendtochar (lua_State *LS)
     return 0;
 }
 
+static int L_getcharlist (lua_State *LS)
+{
+    CHAR_DATA *ch;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( ch=char_list ; ch ; ch=ch->next )
+    {
+        make_ud_table(LS, ch, UDTYPE_CH, TRUE);
+        lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+
+static int L_getmoblist (lua_State *LS)
+{
+    CHAR_DATA *ch;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( ch=char_list ; ch ; ch=ch->next )
+    {
+        if ( IS_NPC(ch) )
+        {
+            make_ud_table(LS, ch, UDTYPE_CH, TRUE);
+            lua_rawseti(LS, -2, index++);
+        }
+    }
+
+    return 1;
+}    
+
+static int L_getplayerlist (lua_State *LS)
+{
+    CHAR_DATA *ch;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( ch=char_list ; ch ; ch=ch->next )
+    {
+        if ( !IS_NPC(ch) )
+        {
+            make_ud_table(LS, ch, UDTYPE_CH, TRUE);
+            lua_rawseti(LS, -2, index++);
+        }
+    }
+
+    return 1;
+}
+
+static int L_randmob ( lua_State *LS)
+{
+
+    MOB_INDEX_DATA *mob;
+    int mob_vnum=number_range(50, 32600);
+
+
+    
+}
+
 static int L_getmobworld (lua_State *LS)
 {
     int num = luaL_checknumber (LS, 1);
@@ -2317,6 +2381,9 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getmobworld", L_getmobworld );
     lua_register(LS,"log",         L_log );
     lua_register(LS,"sendtochar",  L_sendtochar  );
+    lua_register(LS,"getcharlist", L_getcharlist);
+    lua_register(LS,"getmoblist",  L_getmoblist );
+    lua_register(LS,"getplayerlist", L_getplayerlist);
 }
 
 static int RegisterLuaRoutines (lua_State *LS)
