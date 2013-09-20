@@ -906,6 +906,12 @@ void do_taxidermy(CHAR_DATA *ch, char *argument)
 		  return;
 		  break;
 	}
+	
+    if ( obj->timer == -1 )
+    {
+        act("$p is already preserved.", ch, obj, NULL, TO_CHAR);
+        return;
+    }
 
 	if (number_percent() < skill)  /* success! */
 	{
