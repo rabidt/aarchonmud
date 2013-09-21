@@ -234,7 +234,11 @@ main_lib={  require=require,
 		savetbl=savetbl,
 		loadtbl=loadtbl,
         log=log,
-        sendtochar=sendtochar
+        sendtochar=sendtochar,
+        getcharlist=getcharlist,
+        getmoblist=getmoblist,
+        getplayerlist=getplayerlist,
+        randmob=randmob
 }
 	
 -- xxx_env_lib
