@@ -263,7 +263,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         423
+#define MAX_SKILL         424
 #define MAX_GROUP          77 /* accurate jan 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
@@ -3140,6 +3140,7 @@ struct  group_type
 #define ATRIG_QUIT  (G)
 #define ATRIG_VOID  (H)
 #define ATRIG_UNVOID (I)
+#define ATRIG_RECALL (J)
 
 struct mprog_list
 {
@@ -3318,6 +3319,7 @@ extern sh_int  gsn_appraise;
 extern sh_int  gsn_weapons_lore;
 
 extern sh_int  gsn_alertness;
+extern sh_int  gsn_evasion;
 extern sh_int  gsn_evasive;
 extern sh_int  gsn_fatal_blow;
 extern sh_int  gsn_two_handed;
@@ -4209,8 +4211,8 @@ int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
 void check_explore args( ( CHAR_DATA *, ROOM_INDEX_DATA * ) );
 void explore_vnum args( (CHAR_DATA *, int ) );
 bool explored_vnum args( (CHAR_DATA *, int ) );
-
-
+bool can_move_dir( CHAR_DATA *ch, int dir, bool show );
+int get_random_exit( CHAR_DATA *ch );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );

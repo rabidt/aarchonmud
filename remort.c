@@ -7,6 +7,7 @@
 #include "recycle.h"
 #include "buffer_util.h"
 #include "simsave.h"
+#include "special.h"
 
 DECLARE_DO_FUN( do_say );
 DECLARE_DO_FUN( do_look );
@@ -136,14 +137,14 @@ void do_remort(CHAR_DATA *ch, char *argument)
         if (!IS_NPC(adept)) 
             continue;
 
-        if (adept->spec_fun == spec_lookup( "spec_remort" )) 
+        if (adept->spec_fun == spec_remort) 
             break;
     }
 
     if (IS_IMMORTAL(ch))
         adept = ch;
 
-    if ((adept == NULL || adept->spec_fun != spec_lookup( "spec_remort" )) && !IS_IMMORTAL(ch))
+    if ((adept == NULL || adept->spec_fun != spec_remort) && !IS_IMMORTAL(ch))
     {
         send_to_char("There is no remort adept here.\n\r",ch);
         return;

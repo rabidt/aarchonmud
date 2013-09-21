@@ -355,6 +355,7 @@ sh_int  gsn_maul;
 sh_int  gsn_extra_attack;
 sh_int  gsn_swimming;
 sh_int  gsn_alertness;
+sh_int  gsn_evasion;
 sh_int  gsn_evasive;
 
 sh_int  gsn_laughing_fit;
@@ -5119,7 +5120,16 @@ void append_file( CHAR_DATA *ch, char *file, char *str )
 */
 void bug( const char *str, int param )
 {
+    static bool recursion=FALSE;
+    bool enable_wiznet=TRUE;
     char buf[MAX_STRING_LENGTH];
+
+    if ( recursion )
+    {
+        log_string("[*****] BUG: recursion in bug(), not sending to wiznet");
+        enable_wiznet=FALSE;
+    }
+    recursion=TRUE;
     
     if ( fpArea != NULL )
     {
@@ -5144,7 +5154,9 @@ void bug( const char *str, int param )
         
         sprintf( buf, "[*****] FILE: %s LINE: %d", strArea, iLine );
         log_string( buf );
-        wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
+
+        if ( enable_wiznet)
+            wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
         /* RT removed because we don't want bugs shutting the mud 
         if ( ( fp = fopen( "shutdown.txt", "a" ) ) != NULL )
         {
@@ -5157,7 +5169,9 @@ void bug( const char *str, int param )
     strcpy( buf, "[*****] BUG: " );
     sprintf( buf + strlen(buf), str, param );
     log_string( buf );
-    wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
+    
+    if ( enable_wiznet )
+        wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
     /* RT removed due to bug-file spamming 
     fclose( fpReserve );
     if ( ( fp = fopen( BUG_FILE, "a" ) ) != NULL )
@@ -5168,6 +5182,7 @@ void bug( const char *str, int param )
     fpReserve = fopen( NULL_FILE, "r" );
     */
 
+    recursion=FALSE;
     return;
 }
 
