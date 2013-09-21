@@ -553,6 +553,7 @@ const struct flag_type aprog_flags[] =
 	{   "quit",			ATRIG_QUIT,		 TRUE    },
     {   "void",         ATRIG_VOID,      TRUE    },
     {   "unvoid",       ATRIG_UNVOID,    TRUE    },
+    {   "recall",       ATRIG_RECALL,    TRUE    },
     {   NULL,           0,          TRUE    }
 };
 

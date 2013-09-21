@@ -113,6 +113,7 @@ void do_enter( CHAR_DATA *ch, char *argument)
 {    
 	ROOM_INDEX_DATA *location; 
 	bool stay_area = FALSE;
+    AREA_DATA *from_area;
 
 	if ( ch->fighting != NULL ) 
 	return;
@@ -125,6 +126,7 @@ void do_enter( CHAR_DATA *ch, char *argument)
 	CHAR_DATA *fch, *fch_next;
 
 		old_room = ch->in_room;
+        from_area= old_room->area;
 
 	portal = get_obj_list( ch, argument,  ch->in_room->contents );
 	
@@ -225,6 +227,15 @@ void do_enter( CHAR_DATA *ch, char *argument)
 	if ( check_item_trap_hit(ch, portal) )
 	    return;
 
+    /* check for exit triggers */
+    if ( !IS_NPC(ch) )
+    {
+        if ( !ap_rexit_trigger(ch) )
+            return;
+        if ( !ap_exit_trigger(ch, location->area) )
+            return;
+    }  
+
 	act("$n steps into $p.",ch,portal,NULL,TO_ROOM);
 	
 	if (I_IS_SET(portal->value[2],GATE_NORMAL_EXIT))
@@ -313,7 +324,12 @@ void do_enter( CHAR_DATA *ch, char *argument)
 	if ( IS_NPC( ch ) && HAS_TRIGGER( ch, TRIG_ENTRY ) )
 		mp_percent_trigger( ch, NULL, NULL, 0, NULL,0, TRIG_ENTRY );
 	if ( !IS_NPC( ch ) )
+    {
 		mp_greet_trigger( ch );
+        op_greet_trigger( ch );
+        ap_enter_trigger( ch, from_area );
+        ap_renter_trigger( ch );
+    }
  
 	return;
 	}
