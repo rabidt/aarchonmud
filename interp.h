@@ -413,6 +413,7 @@ DECLARE_DO_FUN( do_sla      );
 DECLARE_DO_FUN( do_slay     );
 DECLARE_DO_FUN( do_sleep    );
 DECLARE_DO_FUN( do_slookup  );
+DECLARE_DO_FUN( do_smite    );
 DECLARE_DO_FUN( do_smote    );
 DECLARE_DO_FUN( do_sneak    );
 DECLARE_DO_FUN( do_snoop    );

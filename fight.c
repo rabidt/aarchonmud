@@ -1867,6 +1867,14 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	    dam += dam / 10;
 	}
     }
+    
+    // extra damage from smite attacks
+    if ( dt == gsn_smite )
+    {
+        int align_diff = ABS(ch->alignment - victim->alignment);
+        int skill = get_skill(ch, gsn_smite);
+        dam += dam * align_diff / 2000 * skill / 100;
+    }
 
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
         dam -= dam / 10;
