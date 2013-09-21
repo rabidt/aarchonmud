@@ -480,6 +480,16 @@ bool can_dispel(int sn)
     return TRUE;
 }
 
+bool check_dispel_magic(int level, CHAR_DATA *victim)
+{
+    int sn;
+    bool found = FALSE;
+    for (sn = 1; skill_table[sn].name != NULL; sn++)
+        if ( can_dispel(sn) && check_dispel(level, victim, sn) )
+            found = TRUE;
+    return found;
+}
+
 /* check whether one player is allowed to spell up another */
 bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 {
@@ -2936,7 +2946,6 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
 
-
     if (saves_spell(level, victim,DAM_OTHER))
     {     
         send_to_char( "You feel a brief tingling sensation.\n\r",victim);
@@ -2944,13 +2953,7 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
 
-    /* begin running through the spells */ 
-
-    for (sn = 1; skill_table[sn].name != NULL; sn++)
-        if (can_dispel(sn) && check_dispel(level,victim,sn))
-            found = TRUE;
-
-    if (found)
+    if ( check_dispel_magic(level, victim) )
         send_to_char("Ok.\n\r",ch);
     else
         send_to_char("Spell failed.\n\r",ch);
