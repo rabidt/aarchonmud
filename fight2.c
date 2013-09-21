@@ -5046,6 +5046,12 @@ void do_smite( CHAR_DATA *ch, char *argument )
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
     
+    if ( victim == ch )
+    {
+        send_to_char("Don't be so harsh on yourself.\n\r", ch);
+        return;
+    }
+    
     WAIT_STATE(ch, skill_table[gsn_smite].beats);
 
     // bonus damage is calculated in one_hit
