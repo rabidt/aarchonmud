@@ -2668,7 +2668,7 @@ void do_recall( CHAR_DATA *ch, char *argument )
 	send_to_char("You are too tired to recall.\n\r", ch);
 	return;
     }
-    
+
     if ( ( victim = ch->fighting ) != NULL )
     {
         int lose,skill;
@@ -2694,10 +2694,24 @@ void do_recall( CHAR_DATA *ch, char *argument )
             send_to_char( buf, ch );
             return;
         }
+    }
 
+    /* Check for area triggers, they might prevent recall */
+    if (!IS_NPC(ch) )
+    {
+        if ( !ap_recall_trigger(ch) )
+            return;
+        if ( !ap_rexit_trigger(ch) )
+            return;
+        if ( !ap_exit_trigger(ch, location->area) )
+            return;
+    }
+
+    if (victim)
+    {
         if (!IS_HERO(ch))
         {
-            lose = (ch->desc != NULL) ? 25 : 50;
+            int lose = (ch->desc != NULL) ? 25 : 50;
             gain_exp( ch, 0 - lose );
             sprintf( buf, "You recall from combat!  You lose %d exps.\n\r", lose );
             send_to_char( buf, ch );
@@ -2710,9 +2724,11 @@ void do_recall( CHAR_DATA *ch, char *argument )
         
     }
     
+
     // misgate chance when cursed but not normally
     location = room_with_misgate(ch, location, 0);
     
+
     ch->move -= move_cost;
     act( "$n disappears.", ch, NULL, NULL, TO_ROOM );
     char_from_room( ch );
