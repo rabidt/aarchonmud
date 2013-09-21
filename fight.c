@@ -1875,7 +1875,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     {
         int align_diff = ABS(ch->alignment - victim->alignment);
         int skill = get_skill(ch, gsn_smite);
-        dam += dam * align_diff / 1000 * skill / 100;
+        dam += dam * align_diff / 2000 * skill / 100;
     }
 
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
