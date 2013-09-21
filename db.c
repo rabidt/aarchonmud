@@ -290,6 +290,7 @@ sh_int  gsn_paroxysm_cooldown;
 sh_int  gsn_rupture;
 sh_int  gsn_replenish;
 sh_int  gsn_replenish_cooldown;
+sh_int  gsn_smite;
 
 sh_int  gsn_fast_healing;
 sh_int  gsn_haggle;

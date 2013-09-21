@@ -5274,7 +5274,16 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	"quivering palm",         "!quivering palm!",   "", NULL
 	},
 
-
+    {
+    "smite",
+    { 102, 102, 102, 102, 102, 102,  65, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   0,   0,   0,   0,   0,   0,   6,   0,   0,   0,   0,   0,   0,   0,   0 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_STR, STAT_WIS,
+    spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+    &gsn_smite, SLOT(0), 0, 24, DUR_NONE,
+    "smite",         "!smite!",   "", NULL
+    },
 
 /* defensive combat skills */
 

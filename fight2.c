@@ -5030,3 +5030,42 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
   
   check_improve(ch,gsn_mindflay,TRUE,3);
 }
+
+// paladin smite good/evil attack
+void do_smite( CHAR_DATA *ch, char *argument )
+{
+    CHAR_DATA *victim;
+    int skill;
+
+    if ( (skill = get_skill(ch, gsn_smite)) < 1 )
+    {
+        send_to_char("You don't know how to smite.\n\r",ch);
+        return;
+    }
+    
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+    
+    if ( victim == ch )
+    {
+        send_to_char("Don't be so harsh on yourself.\n\r", ch);
+        return;
+    }
+    
+    WAIT_STATE(ch, skill_table[gsn_smite].beats);
+
+    // bonus damage is calculated in one_hit
+    if ( !one_hit(ch, victim, gsn_smite, FALSE) || stop_attack(ch, victim) )
+        return;
+    
+    // chance to dispel if fighting opposing alignment
+    if ( (IS_GOOD(ch) && IS_EVIL(victim) || IS_EVIL(ch) && IS_GOOD(victim)) && !number_bits(2) )
+    {
+        int level = ch->level * skill / 100;
+        act("Your smite disrupts $N's magic defenses!", ch, NULL, victim, TO_CHAR);
+        if ( saves_spell(level, victim, DAM_OTHER) || !check_dispel_magic(level, victim) )
+            send_to_char("You feel a brief tingling sensation.\n\r", victim);
+    }
+
+    check_improve(ch, gsn_smite, TRUE, 2);
+}
