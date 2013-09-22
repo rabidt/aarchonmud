@@ -1502,12 +1502,13 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
 	dam /= 2;
 
     /* anatomy */
-    if ( (dt == gsn_backstab || dt == gsn_back_leap
-	  || dt == gsn_circle || dt == gsn_slash_throat)
-	 && chance(get_skill(ch, gsn_anatomy)) )
+    if ( (dt == gsn_backstab || dt == gsn_back_leap || dt == gsn_circle || dt == gsn_slash_throat) && chance(get_skill(ch, gsn_anatomy)) )
     {
-	dam += dam/2;
-	check_improve(ch, gsn_anatomy, TRUE, 1);
+        if ( wield != NULL && wield->value[0] == WEAPON_DAGGER )
+            dam += dam/2;
+        else
+            dam += dam/4;
+        check_improve(ch, gsn_anatomy, TRUE, 1);
     }
     return number_range( dam * 2/3, dam );
 }

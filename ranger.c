@@ -906,6 +906,12 @@ void do_taxidermy(CHAR_DATA *ch, char *argument)
 		  return;
 		  break;
 	}
+	
+    if ( obj->timer == -1 )
+    {
+        act("$p is already preserved.", ch, obj, NULL, TO_CHAR);
+        return;
+    }
 
 	if (number_percent() < skill)  /* success! */
 	{
@@ -919,7 +925,7 @@ void do_taxidermy(CHAR_DATA *ch, char *argument)
 
 	act("You fail to preserve $p. In fact, you botch it pretty badly.",ch,obj,NULL,TO_CHAR);
         act("$n fails to preserve $p. In fact, $e botches it pretty badly.",ch,obj,NULL,TO_ROOM);
-	obj_from_char( obj );
+	extract_obj( obj );
 	check_improve(ch,gsn_taxidermy,FALSE,4);
 	WAIT_STATE(ch,skill_table[gsn_taxidermy].beats);
 	return;
