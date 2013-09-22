@@ -1684,10 +1684,9 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    OBJ_DATA *second;
-    int chance, chance2;
+    int chance;
     
-    if ((chance = get_skill(ch,gsn_slash_throat)) < 1)
+    if ( (chance = get_skill(ch, gsn_slash_throat)) < 1 )
     {
         send_to_char("You don't know how to slash throats.\n\r",ch);
         return;
@@ -1695,23 +1694,14 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
     
     one_argument( argument, arg );
     
-    if (is_affected(ch, gsn_tumbling))
-    {
-        send_to_char("You can't do that while tumbling.\n\r", ch);
-        return;
-    }
-
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
-	return;
+        return;
     
-    if (victim == ch)
+    if ( victim == ch )
     {
         send_to_char("Better not.\n\r",ch);
         return;
     }
-    
-    if ( is_safe(ch, victim) )
-        return;
     
     if ( !can_see_combat(ch, victim) )
     {
@@ -1719,18 +1709,24 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( ( obj = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
+    if ( (obj = get_eq_char(ch, WEAR_WIELD) ) == NULL )
     {
-        send_to_char( "You need to wield a weapon to slash throats.\n\r", ch );
-        return;
+        if ( !IS_SET(ch->parts, PART_CLAWS) )
+        {
+            send_to_char( "You need to wield a weapon to slash throats.\n\r", ch );
+            return;
+        }
     }
-    
-    if ( get_weapon_sn(ch) != gsn_dagger )
+    else
     {
-        send_to_char( "You need a dagger to slash throats.\n\r", ch);
-        return;
+        int base_dam = weapon_base_damage[obj->value[0]];
+        if ( base_dam != DAM_SLASH && base_dam != DAM_PIERCE )
+        {
+            send_to_char( "You need an edged weapon to slash throats.\n\r", ch );
+            return;
+        }
     }
-    
+
     if ( is_affected(victim, gsn_slash_throat) )
     {
         act( "$E already has enough trouble speaking.",ch,NULL,victim,TO_CHAR );
@@ -1740,34 +1736,34 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
     /* can be used like backstab OR like circle.. */
     if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
-	chance = chance / 2;
-	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	if ( !can_see_combat(victim, ch) )
-	    chance += 10;
-	if ( IS_AFFECTED(ch, AFF_HASTE) )
-	    chance += 25;
-	if ( IS_AFFECTED(victim, AFF_HASTE) )
-	    chance -= 25;
+        chance = chance / 2;
+        chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
+        if ( !can_see_combat(victim, ch) )
+            chance += 10;
+        if ( IS_AFFECTED(ch, AFF_HASTE) )
+            chance += 25;
+        if ( IS_AFFECTED(victim, AFF_HASTE) )
+            chance -= 25;
     }
     
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_slash_throat].beats );
-    if (number_percent() <= chance)
+
+    if ( per_chance(chance) )
     {
         AFFECT_DATA af;
 
         check_improve(ch,gsn_slash_throat,TRUE,3);
 
-        one_hit( ch, victim, gsn_slash_throat, FALSE);
-	CHECK_RETURN(ch, victim);
+        one_hit(ch, victim, gsn_slash_throat, FALSE);
+        CHECK_RETURN(ch, victim);
 
-	check_assassinate( ch, victim, obj, 6 );
-	CHECK_RETURN(ch, victim);
+        check_assassinate(ch, victim, obj, 6);
+        CHECK_RETURN(ch, victim);
 
-	act("$n slashes your throat open!",ch,NULL,victim,TO_VICT);
-	act("You slash cuts $N's throat open!",ch,NULL,victim,TO_CHAR);
-	act("$n opens $N's throat with a well placed throat slash!",
-	    ch,NULL,victim,TO_NOTVICT);
+        act("$n slashes your throat open!",ch,NULL,victim,TO_VICT);
+        act("You slash cuts $N's throat open!",ch,NULL,victim,TO_CHAR);
+        act("$n opens $N's throat with a well placed throat slash!",ch,NULL,victim,TO_NOTVICT);
 
         af.where    = TO_AFFECTS;
         af.type     = gsn_slash_throat;
@@ -1780,7 +1776,7 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
     }
     else
     {
-	act( "You fail to reach $N's throat.", ch, NULL, victim, TO_CHAR );
+        act( "You fail to reach $N's throat.", ch, NULL, victim, TO_CHAR );
         damage( ch, victim, 0, gsn_slash_throat, DAM_NONE,TRUE);
         check_improve(ch,gsn_slash_throat,FALSE,3);
     }
