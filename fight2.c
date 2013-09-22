@@ -1656,114 +1656,60 @@ void do_circle( CHAR_DATA *ch, char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
-    OBJ_DATA *obj;
-    OBJ_DATA *second;
-    int chance, chance2;
+    int chance;
     
-    if ((chance = get_skill(ch,gsn_circle)) < 1)
+    if ( (chance = get_skill(ch,gsn_circle)) < 1 )
     {
         send_to_char("You don't know how to circle.\n\r",ch);
         return;
     }
     
-    one_argument( argument, arg );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
     
-    if (is_affected(ch, gsn_tumbling))
+    if ( !can_see_combat(ch, victim) )
     {
-        send_to_char("You can't do that while tumbling.\n\r", ch);
+        send_to_char("Circle whom?\n\r",ch);
         return;
     }
 
-    if ( ch->fighting == NULL )
-    {
-        send_to_char("You must be fighting in order to circle.\n\r", ch );
-        return;
-    }
-    
-    if (arg[0] == '\0')
-    {
-        if ( can_see_combat(ch, ch->fighting) )
-            victim = ch->fighting;
-        else
-        {
-            send_to_char("Circle whom?\n\r",ch);
-            return;
-        }
-    }
-    else if ( (victim = get_char_room(ch, arg)) == NULL )
-    {
-        send_to_char("They aren't here.\n\r", ch );
-        return;
-    }
-    
-    if (victim == NULL)  /* Safety net.  So sue me. -Rim */
-        return;
-    
     if (victim == ch)
     {
         send_to_char("You try to circle around yourself, and fail.\n\r",ch);
         return;
     }
     
-    if ( is_safe(ch,victim) )
-        return;
-    
-/* These checks occur in is_safe: 
-    if ( check_kill_steal(ch,victim) )        
-    {
-        send_to_char("Kill stealing is not permitted.\n\r",ch);
-        return;
-    }
-*/    
-    if ( ( obj = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
-    {
-        send_to_char( "You need to wield a weapon to circle.\n\r", ch );
-        return;
-    }
-    
-    if ( get_weapon_sn(ch) != gsn_dagger )
-    {
-        send_to_char( "You need a dagger to circle.\n\r", ch);
-        return;
-    }
-    
-    
-    if ( ( victim = ch->fighting ) == NULL )
-    {
-        send_to_char( "You must be fighting in order to circle.\n\r", ch );
-        return;
-    }
-    
     chance = chance / 2;
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
     if ( !can_see_combat(victim, ch) )
-	chance += 10;
+        chance += 10;
     if ( IS_AFFECTED(ch, AFF_HASTE) )
-	chance += 25;
+        chance += 25;
     if ( IS_AFFECTED(victim, AFF_HASTE) )
-	chance -= 25;
+        chance -= 25;
     
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_circle].beats );
-    if (number_percent() <= chance)
+
+    if ( per_chance(chance) )
     {
         check_improve(ch,gsn_circle,TRUE,3);
 
         one_hit( ch, victim, gsn_circle, FALSE);
-	CHECK_RETURN(ch, victim);
+        CHECK_RETURN(ch, victim);
         
-        if ( (second = get_eq_char(ch, WEAR_SECONDARY)) != NULL
-	     && second->value[0] == WEAPON_DAGGER )
-	{
+        if ( offhand_attack_chance(ch) > 0 )
+        {
             one_hit(ch, victim, gsn_circle, TRUE);
-	    CHECK_RETURN(ch, victim);
-	}
+            CHECK_RETURN(ch, victim);
+        }
 
-	check_assassinate( ch, victim, obj, 6 );
+        OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
+        check_assassinate(ch, victim, weapon, 6);
     }
     else
     {
-	act( "You fail to reach $N's back.", ch, NULL, victim, TO_CHAR );
+        act( "You fail to reach $N's back.", ch, NULL, victim, TO_CHAR );
         check_improve(ch,gsn_circle,FALSE,3);
         damage( ch, victim, 0, gsn_circle, DAM_NONE,TRUE);
     }
