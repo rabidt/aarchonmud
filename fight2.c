@@ -486,102 +486,63 @@ void do_trip( CHAR_DATA *ch, char *argument )
 
 void do_backstab( CHAR_DATA *ch, char *argument )
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
 
-    one_argument( argument, arg );
-    
-    if (is_affected(ch, gsn_tumbling))
-    {
-        send_to_char("You can't do that while tumbling.\n\r", ch);
-        return;
-    }
-    
-    if (arg[0] == '\0')
+    if ( argument[0] == '\0' )
     {
         send_to_char("Backstab whom?\n\r",ch);
         return;
     }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
-    if (victim->fighting && ch->fighting)
-    {
-        send_to_char("You're facing the wrong end.\n\r",ch);
-        return;
-    }
-    
+
     if ( victim == ch )
     {
         send_to_char( "How can you sneak up on yourself?\n\r", ch );
         return;
     }
-    
-    if ( is_safe(ch,victim) )
-        return;
-    
-    /*
-    if ((victim->hit < (9*victim->max_hit/10)) && IS_AWAKE(victim))
-    {
-        act( "$N is hurt and suspicious ... you can't sneak up.",
-            ch, NULL, victim, TO_CHAR );
-        return;
-    }
-    */
 
     backstab_char( ch, victim );
 }
 
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    OBJ_DATA *obj;
-    OBJ_DATA *second;
     int chance;
 
-    if ((chance = get_skill(ch, gsn_backstab)) < 1)
+    if ( (chance = get_skill(ch, gsn_backstab)) < 1 )
     {
-        send_to_char("You dirty rat.\n\r",ch);
+        send_to_char("You dirty rat. Better learn how to do it properly first.\n\r", ch);
         return;
     }
 
-    if ( get_weapon_sn(ch) != gsn_dagger)
-    {
-        send_to_char( "You need a dagger to backstab.\n\r", ch);
-        return;
-    }
-    
     if ( check_see_combat(victim, ch) )
     {
-	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	chance -= 75;
+        chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
+        chance -= 75;
     }
     
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_backstab].beats );
-    if ((number_percent() < chance) || (chance >= 2 && !IS_AWAKE(victim)))
+    if ( per_chance(chance) || (chance >= 2 && !IS_AWAKE(victim)) )
     {
         check_improve(ch,gsn_backstab,TRUE,1);
 
         one_hit( ch, victim, gsn_backstab, FALSE );
-	CHECK_RETURN(ch, victim);
+        CHECK_RETURN(ch, victim);
 
-        if ( (second = get_eq_char(ch, WEAR_SECONDARY)) != NULL
-	     && second->value[0] == WEAPON_DAGGER )
-	{
+        if ( offhand_attack_chance(ch) > 0 )
+        {
             one_hit(ch, victim, gsn_backstab, TRUE);
-	    CHECK_RETURN(ch, victim);
-	}	    
+            CHECK_RETURN(ch, victim);
+        }
 
-	obj = get_eq_char( ch, WEAR_WIELD );
-	check_assassinate( ch, victim, obj, 4 );
+        OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
+        check_assassinate(ch, victim, weapon, 4);
     }
     else
     {
-	act( "You failed to sneak up on $N.", ch, NULL, victim, TO_CHAR );
+        act( "You failed to sneak up on $N.", ch, NULL, victim, TO_CHAR );
         damage( ch, victim, 0, gsn_backstab,DAM_NONE,TRUE);
         check_improve(ch,gsn_backstab,FALSE,1);
     }
