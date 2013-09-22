@@ -700,11 +700,14 @@ void do_clantalk( CHAR_DATA *ch, char *argument )
     }
     
     REMOVE_BIT(ch->comm,COMM_NOCLAN);
+
+    argument = parse_url(argument);
     
     sprintf( buf, "{lYou clan {L'%s{L'\n\r{x", argument );
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers(ch->pcdata->clan_history, buf);
+
     argument = makedrunk(argument,ch);
     /* ACT is just unneccessary overhead here! Memnoch 03/98 */
     
