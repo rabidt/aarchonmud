@@ -131,7 +131,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 		
 		if (trainer == NULL || !can_see(ch,trainer))
 		{
-			if ((get_skill(ch,gsn_introspection)) > 1 && !IS_REMORT(ch))
+			if ( (get_skill(ch,gsn_introspection)) > 1 )
 			{
 				if ((get_skill(ch,gsn_introspection)) > number_percent() )
 				{
