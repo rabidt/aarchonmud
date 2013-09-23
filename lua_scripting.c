@@ -849,22 +849,6 @@ static int L_ch_damage (lua_State *LS)
     return 0;
 }
 
-static int L_ch_remember (lua_State *LS)
-{
-
-    do_mpremember( check_CH(LS, 1), luaL_checkstring(LS, 2));
-
-    return 0;
-}
-
-static int L_ch_forget (lua_State *LS)
-{
-
-    do_mpforget( check_CH(LS, 1), luaL_checkstring(LS, 2));
-
-    return 0;
-}
-
 static int L_ch_delay (lua_State *LS)
 {
 
