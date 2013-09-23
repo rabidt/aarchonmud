@@ -88,8 +88,6 @@ function loadscript(subdir, name, env)
   end
 
 
-  os.execute("pwd")
-  os.execute("ls")
   local fname = mud.userdir() .. subdir .. "/" .. name .. ".lua"
   local f,err=loadfile(fname)
   if f==nil then 
