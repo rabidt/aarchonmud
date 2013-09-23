@@ -1156,6 +1156,28 @@ void do_mstat( CHAR_DATA *ch, char *argument )
         sprintf( buf, "Security: %d.\n\r", victim->pcdata->security ); /* OLC */
         send_to_char( buf, ch );					   /* OLC */
      }
+
+     if (!IS_NPC(victim))
+     {
+        sprintf( buf, "Mobkills: %d  Mobdeaths: %d\n\r"  
+                       "Pkills: %d  Pkdeaths: %d\n\r",
+                       victim->pcdata->mob_kills,
+                       victim->pcdata->mob_deaths,
+                       victim->pcdata->pkill_count,
+                       victim->pcdata->pkill_deaths);
+        send_to_char( buf, ch);
+
+        sprintf( buf, "Remorts: %d  Beheads: %d\n\r",
+                        victim->pcdata->remorts,
+                        victim->pcdata->behead_cnt);
+        send_to_char( buf, ch);
+
+        sprintf( buf, "Bank: %ld\n\r",
+                        victim->pcdata->bank);
+        send_to_char( buf, ch);
+
+     } 
+         
  
 	sprintf( buf, "Short description: %s\n\rLong  description: %s",
 	victim->short_descr,
