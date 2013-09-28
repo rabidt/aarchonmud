@@ -977,7 +977,7 @@ static int L_objhere (lua_State *LS)
     const char *argument = luaL_checkstring (LS, 2);
 
     if ( is_r_number( argument ) )
-        return( get_obj_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) );
+        lua_pushboolean( LS,(bool) get_obj_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) );
     else
         lua_pushboolean( LS,(bool) (get_obj_here( ud_ch, argument) != NULL) );
 
