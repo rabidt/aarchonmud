@@ -2800,7 +2800,6 @@ void change_align (CHAR_DATA *ch, int change_by)
 {
     double change = (double)change_by;
     double align;
-    int exp_loss;
     char buf[60];
 
     if ((change_by == 0) || (ch == NULL)) return;
@@ -2857,8 +2856,13 @@ void change_align (CHAR_DATA *ch, int change_by)
 
     if (!IS_HERO(ch))
     {
-        exp_loss = (int)(((float)(abs((int)ch->alignment)+100))*abs((int)change)/3000.0);
-        if (change > 20) exp_loss = exp_loss*6/5;
+        int exp_loss = 0;
+
+        if ( change > 0 && !IS_GOOD(ch) )
+            exp_loss = (int)(change * (1000 - ch->alignment) / 2000.0);
+        else if ( change < 0 && !IS_EVIL(ch) )
+            exp_loss = (int)(-change * (1000 + ch->alignment) / 2000.0);
+            
         gain_exp(ch, -exp_loss);
 
         if (exp_loss > 4)
