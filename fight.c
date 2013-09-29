@@ -1676,11 +1676,8 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
 bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 {
     OBJ_DATA *wield;
-    int dam;
-    int diceroll;
-    int sn,skill;
-    int dam_type;
-    bool result, arrow_used = FALSE, berserking = FALSE;
+    int dam, dam_type, diceroll, sn, skill, offence_cost;
+    bool result, arrow_used = FALSE, offence = FALSE;
     /* prevent attack chains through re-retributions */
     static bool is_retribute = FALSE;
 
@@ -1782,25 +1779,28 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     check_killer( ch, victim );
 
-    // berserking characters deal extra damage at the cost of moves
+    // deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
-    if ( IS_AFFECTED(ch, AFF_BERSERK) && is_normal_hit(dt) && !is_calm(ch) )
+    if ( is_normal_hit(dt) && !is_calm(ch) )
     {
-        int berserk_cost = 2;
+        offence_cost = 2;
         if ( wield != NULL )
         {
             if ( wield->value[0] == WEAPON_BOW )
-                berserk_cost = 5;
+                offence_cost = 5;
             else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
-                berserk_cost = 4;
+                offence_cost = 4;
             else
-                berserk_cost = 3;
+                offence_cost = 3;
         }
-        // half cost for burst/semi-/full-auto, using probabilistic rounding
+        // reduced cost for burst/semi-/full-auto
         if ( dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto )
-            berserk_cost = (berserk_cost + number_range(0,1)) / 2;
-        berserking = deduct_move_cost(ch, berserk_cost);
+            offence_cost = 2;
+        // half cost while not berserking (but less damage later)
+        if ( !IS_AFFECTED(ch, AFF_BERSERK) )
+            offence_cost = rand_div(offence_cost, 2);
+        offence = deduct_move_cost(ch, offence_cost);
     }
     
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
@@ -1825,8 +1825,20 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
      */
     dam = one_hit_damage( ch, dt, wield );
     
-    if (berserking)
-        dam += 5 + dam/5;
+    if ( offence )
+    {
+        int bonus_fixed = offence_cost * 2;
+        int bonus_percent = 15;
+        // more damage for higher cost
+        if ( IS_AFFECTED(ch, AFF_BERSERK) )
+        {
+            bonus_percent += 10;
+            if ( per_chance(get_skill(ch, gsn_fervent_rage)) )
+                bonus_percent += 10;
+            check_improve(ch, gsn_fervent_rage, TRUE, 10);
+        }
+        dam += bonus_fixed + dam * bonus_percent/100;
+    }
 
     if (wield != NULL)
     {
