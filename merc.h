@@ -4608,6 +4608,7 @@ int ch_luc_quest        args((CHAR_DATA *ch));
 void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
+struct race_type* get_morph_race_type( CHAR_DATA *ch );
 
 /* string.c */
 void   string_edit    args( ( CHAR_DATA *ch, char **pString ) );
