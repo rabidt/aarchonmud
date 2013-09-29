@@ -728,10 +728,11 @@ void do_quest(CHAR_DATA *ch, char *argument)
     {
         act( "$n informs $N $e has completed $s quest.", ch, NULL, questman, TO_ROOM); 
         act ("You inform $N you have completed $s quest.",ch, NULL, questman, TO_CHAR);
-        if (ch->pcdata->questgiver != questman)
+        
+        if ( !IS_SET(ch->act, PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD) )
         {
-            sprintf(buf, "I never sent you on a quest! Perhaps you're thinking of someone else.");
-            do_say(questman,buf);
+            sprintf(buf, "What? You aren't on any quest! Get lost!");
+            do_say(questman, buf);
             return;
         }
 
@@ -762,8 +763,8 @@ void do_quest(CHAR_DATA *ch, char *argument)
         // collect X of ages quest (completed)
         else if ( ch->pcdata->questobj > 0 && quest_obj != NULL )
         {
-            act("You hand $p to $N.", ch, obj, questman, TO_CHAR);
-            act("$n hands $p to $N.", ch, obj, questman, TO_ROOM);
+            act("You hand $p to $N.", ch, quest_obj, questman, TO_CHAR);
+            act("$n hands $p to $N.", ch, quest_obj, questman, TO_ROOM);
             extract_obj(quest_obj);
             
             if ( IS_SET(ch->act, PLR_QUESTORHARD) )
