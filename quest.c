@@ -434,23 +434,6 @@ void do_quest(CHAR_DATA *ch, char *argument)
         act ("You ask $N for a list of quest items.",ch, NULL, questman, TO_CHAR);
         sprintf(buf, "Current Quest Items available for Purchase:\n\r");
 	strcat( buf, list_quest_items() );
-	/*
-        strcat(buf, "2500qp..........The Sword of Kings\n\r");
-        strcat(buf, "2000qp..........The Staff of Ancients\n\r");
-	//      strcat(buf, "1200qp..........The Comfy Chair\n\r");
-        strcat(buf, "1000qp..........Smote's Blessing\n\r");
-        strcat(buf, "1000qp..........Rimbol's Orb of Insight\n\r");
-        strcat(buf, "850qp...........Bobble's Bughouse Suit\n\r");
-        strcat(buf, "850qp...........Mephiston's Identity Crisis\n\r");
-        strcat(buf, "850qp...........Siva's Mighty Bracer\n\r");
-        strcat(buf, "750qp...........Swayde's Cloak of Temptation\n\r");
-        strcat(buf, "750qp...........Parademia's Gloves of the Plague Slain\n\r");
-        strcat(buf, "750qp...........Drexl's Skin of Malice\n\r");
-        strcat(buf, "600qp...........Eris' Chastity Belt\n\r");
-        strcat(buf, "600qp...........Firewitch's Ring of Fire\n\r");
-        strcat(buf, "500qp...........Lilith's Web of Lies\n\r");
-        strcat(buf, "500qp...........Quirky's Clogs of Calamity\n\r");
-	*/
 /*      strcat(buf, "500qp...........100,000 gold\n\r");  */
         strcat(buf, "  250qp..........50 practices\n\r");
 	strcat(buf, "  200qp..........Change name 'color'.\n\r");
@@ -491,223 +474,6 @@ void do_quest(CHAR_DATA *ch, char *argument)
 	    if ( obj == NULL )
 		return;
 	}
-	/*
-        if (is_name(arg2, "mephistons identity crisis"))
-        {
-            if (ch->pcdata->questpoints >= 850)
-            {
-                ch->pcdata->questpoints -= 850;
-                obj = create_object(get_obj_index(QUEST_ITEM6),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "bobbles bughouse suit"))
-        {
-            if (ch->pcdata->questpoints >= 850)
-            {
-                ch->pcdata->questpoints -= 850;
-                obj = create_object(get_obj_index(QUEST_ITEM14),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "staff ancients"))
-        {
-            if (ch->pcdata->questpoints >= 2000)
-            {
-                ch->pcdata->questpoints -= 2000;
-                obj = create_object(get_obj_index(QUEST_ITEM2),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "sivas mighty bracer"))
-        {
-            if (ch->pcdata->questpoints >= 850)
-            {
-                ch->pcdata->questpoints -= 850;
-                obj = create_object(get_obj_index(QUEST_ITEM12),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        
-        else if (is_name(arg2, "rimbols orb insight"))
-        {
-            if (ch->pcdata->questpoints >= 1000)
-            {
-                ch->pcdata->questpoints -= 1000;
-                obj = create_object(get_obj_index(QUEST_ITEM5),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "quirkys clogs calamity"))
-        {
-            if (ch->pcdata->questpoints >= 500)
-            {
-                ch->pcdata->questpoints -= 500;
-                obj = create_object(get_obj_index(QUEST_ITEM11),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "liliths web lies"))
-        {
-            if (ch->pcdata->questpoints >= 500)
-            {
-                ch->pcdata->questpoints -= 500;
-                obj = create_object(get_obj_index(QUEST_ITEM10),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "smotes blessing"))
-        {
-            if (ch->pcdata->questpoints >= 1000)
-            {
-                ch->pcdata->questpoints -= 1000;
-                obj = create_object(get_obj_index(QUEST_ITEM4),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "firewitchs ring fire"))
-        {
-            if (ch->pcdata->questpoints >= 600)
-            {
-                ch->pcdata->questpoints -= 600;
-                obj = create_object(get_obj_index(QUEST_ITEM9),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "eris chastity belt"))
-        {
-            if (ch->pcdata->questpoints >= 600)
-            {
-                ch->pcdata->questpoints -= 600;
-                obj = create_object(get_obj_index(QUEST_ITEM13),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "swaydes cloak temptation"))
-        {
-            if (ch->pcdata->questpoints >= 750)
-            {
-                ch->pcdata->questpoints -= 750;
-                obj = create_object(get_obj_index(QUEST_ITEM7),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "parademias gloves plague slain"))
-        {
-            if (ch->pcdata->questpoints >= 750)
-            {
-                ch->pcdata->questpoints -= 750;
-                obj = create_object(get_obj_index(QUEST_ITEM8),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "drexl skin malice"))
-        {
-            if (ch->pcdata->questpoints >= 750)
-            {
-                ch->pcdata->questpoints -= 750;
-                obj = create_object(get_obj_index(QUEST_ITEM15),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "kings sword"))
-        {
-            if (ch->pcdata->questpoints >= 2500)
-            {
-                ch->pcdata->questpoints -= 2500;
-                obj = create_object(get_obj_index(QUEST_ITEM1),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-        else if (is_name(arg2, "chair comfy"))
-        {
-            sprintf(buf, "Sorry %s, I'm out of chairs right now.\n\r",ch->name);
-            do_say(questman,buf);
-            return;
-            
-            if (ch->pcdata->questpoints >= 1200)
-            {
-                ch->pcdata->questpoints -= 1200;
-                obj = create_object(get_obj_index(QUEST_ITEM3),ch->level);
-            }
-            else
-            {
-                sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.",ch->name);
-                do_say(questman,buf);
-                return;
-            }
-        }
-	*/
         else if (is_name(arg2, "practices pracs prac practice"))
         {
             if (ch->pcdata->questpoints >= 250)
@@ -969,258 +735,98 @@ void do_quest(CHAR_DATA *ch, char *argument)
             return;
         }
 
- /* Quest Rewards for HARD quests are here */
+        int reward_silver = 0, reward_points = 0, reward_prac = 0, reward_exp = 0;
+        int luck = ch_luc_quest(ch);
+        CHAR_DATA *quest_obj = get_char_obj_vnum(ch, ch->pcdata->questobj);
 
-        if (IS_SET(ch->act, PLR_QUESTORHARD))
+        // kill mob quest (completed)
+        if ( ch->pcdata->questmob == -1 )
         {
-            if (ch->pcdata->questmob == -1 && ch->pcdata->countdown > 0)
+            if ( IS_SET(ch->act, PLR_QUESTORHARD) )
             {
-                int reward, pointreward, pracreward;
-                
- /* Hard quests give 2-5x greater silver as part of the reward (1.5k gold)
-    and the quest point minimum is increased slightly (7 qps with
-    200 CHA), and the maximum is raised to 55 instead of 45 (200 LUC).
-    -- Astark Feb 2012 */
-
-                reward = number_range(15*ch->level,50*ch->level*ch_luc_quest(ch));
-                pointreward = number_range(get_curr_stat(ch,STAT_CHA)/12,20+ch_luc_quest(ch));
-                pointreward += pointreward * get_religion_bonus(ch) / 100;
-                sprintf(buf, "Congratulations on completing your quest!");
-                do_say(questman,buf);
-                sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
-                do_say(questman,buf);
-                ch->pcdata->quest_success++;
-                check_achievement(ch);
-				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
- /* Hard quests have 1/5 instead of 1/6 chance of giving practices as 
-    part of the reward. They also give an average of 3 more practices
-    and the maximum is raised to 20 from 17. . -- Astark Feb 2012 */
-
-                if (chance(20))
-                {
-                    pracreward = number_range(4,(ch_luc_quest(ch)/2)+3);
-                    sprintf(buf, "You gain %d practice%s!\n\r", pracreward, pracreward > 1 ? "s" : "" );
-                    send_to_char(buf, ch);
-                    ch->practice += pracreward;
-                }
-                
-                REMOVE_BIT(ch->act, PLR_QUESTORHARD);
-                ch->pcdata->questgiver = NULL;
-                ch->pcdata->countdown = 0;
-                ch->pcdata->questmob = 0;
-                ch->pcdata->questobj = 0;
-		ch->pcdata->questroom = 0;
-		ch->pcdata->questarea = 0;
-		ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
-                ch->silver += reward;
-                ch->pcdata->questpoints += pointreward;
-				update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
- /* Hard quests also give 50 - 135xp instead of 10 - 155 -- Astark Feb 2012 */
-
-                gain_exp(ch, number_range(50,ch_luc_quest(ch)+100));
-                
-                return;
-            }   
-            else if (ch->pcdata->questobj > 0 && ch->pcdata->countdown > 0)
-            {
-                bool obj_found = FALSE;
-                
-                for (obj = ch->carrying; obj != NULL; obj= obj_next)
-                {
-                    obj_next = obj->next_content;
-                    
-                    if (obj != NULL && obj->pIndexData->vnum == ch->pcdata->questobj)
-                    {
-                        obj_found = TRUE;
-                        break;
-                    }
-                }
-                if (obj_found == TRUE)
-                {
-                    int reward, pointreward, pracreward;
-                    
-                    reward = number_range(ch->level,30*ch->level*ch_luc_quest(ch));
-                    pointreward = number_range(get_curr_stat(ch,STAT_CHA)/12,20+ch_luc_quest(ch));
-                    
-                    act("You hand $p to $N.",ch, obj, questman, TO_CHAR);
-                    act("$n hands $p to $N.",ch, obj, questman, TO_ROOM);
-                    
-                    sprintf(buf, "Congratulations on completing your quest!");
-                    do_say(questman,buf);
-                    sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
-                    do_say(questman,buf);
-                    ch->pcdata->quest_success++;
-                    check_achievement(ch);
-					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
-                    if (chance(20))
-                    {
-                        pracreward = number_range(4,(ch_luc_quest(ch)/2)+3);
-                        sprintf(buf, "You gain %d practice%s!\n\r",pracreward, pracreward > 1 ? "s" : "");
-                        send_to_char(buf, ch);
-                        ch->practice += pracreward;
-                    }
-                    
-                    REMOVE_BIT(ch->act, PLR_QUESTOR);
-                    REMOVE_BIT(ch->act, PLR_QUESTORHARD);
-                    ch->pcdata->questgiver = NULL;
-                    ch->pcdata->countdown = 0;
-                    ch->pcdata->questmob = 0;
-                    ch->pcdata->questobj = 0;
-		    ch->pcdata->questroom = 0;
-		    ch->pcdata->questarea = 0;
-		    ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
-                    ch->silver += reward;
-                    ch->pcdata->questpoints += pointreward;
-					update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
-                    gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
-                    extract_obj(obj);
-                    return;
-                }
-                else
-                {
-                    sprintf(buf, "You haven't completed the quest yet, but there is still time!");
-                    do_say(questman, buf);
-                    return;
-                }
-                return;
+                reward_silver = number_range( 15*ch->level, 50*ch->level*luck );
+                reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
+                if ( per_chance(20) )
+                    reward_prac = 3 + number_range(1, luck/2);
+                reward_exp = number_range(50, 100+luck);
             }
-            else if ((ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0) && ch->pcdata->countdown > 0)
+            else
             {
-                sprintf(buf, "You haven't completed the quest yet, but there is still time!");
-                do_say(questman, buf);
-                return;
+                reward_silver = number_range( 1, 12*ch->level*luck );
+                reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
+                if ( per_chance(15) )
+                    reward_prac = number_range(1, luck/2);
+                reward_exp = number_range(10, 20+luck);
             }
         }
-
-/* This is the section for normal quests */
-
-        if (IS_SET(ch->act, PLR_QUESTOR))
+        // collect X of ages quest (completed)
+        else if ( ch->pcdata->questobj > 0 && quest_obj != NULL )
         {
-            if (ch->pcdata->questmob == -1 && ch->pcdata->countdown > 0)
+            act("You hand $p to $N.", ch, obj, questman, TO_CHAR);
+            act("$n hands $p to $N.", ch, obj, questman, TO_ROOM);
+            extract_obj(quest_obj);
+            
+            if ( IS_SET(ch->act, PLR_QUESTORHARD) )
             {
-                int reward, pointreward, pracreward;
-                
-                reward = number_range(1,12*ch->level*ch_luc_quest(ch));
-
- /* Reduced maximum QPS to 40 from 45 with 200 luc -- Astark Feb 2012 */
-
-                pointreward = number_range(get_curr_stat(ch,STAT_CHA)/15,10+ch_luc_quest(ch));
-                pointreward += pointreward * get_religion_bonus(ch) / 100;
-                sprintf(buf, "Congratulations on completing your quest!");
-                do_say(questman,buf);
-                sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
-                do_say(questman,buf);
-                ch->pcdata->quest_success++;
-                check_achievement(ch);
-				update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
-                if (chance(15))
-                {
-                    pracreward = number_range(1,ch_luc_quest(ch)/2);
-                    sprintf(buf, "You gain %d practice%s!\n\r", pracreward, pracreward > 1 ? "s" : "" );
-                    send_to_char(buf, ch);
-                    ch->practice += pracreward;
-                }
-                
-                REMOVE_BIT(ch->act, PLR_QUESTOR);
- /* Just a fail safe --Astark Feb 2012 */
-                REMOVE_BIT(ch->act, PLR_QUESTOR);
-                ch->pcdata->questgiver = NULL;
-                ch->pcdata->countdown = 0;
-                ch->pcdata->questmob = 0;
-                ch->pcdata->questobj = 0;
-		ch->pcdata->questroom = 0;
-		ch->pcdata->questarea = 0;
-                
-	        /* Changed to include a define - Maedhros, Feb 7, 2006 */
-		/* ch->pcdata->nextquest = 10; */
-		ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
-                ch->silver += reward;
-                ch->pcdata->questpoints += pointreward;
-				update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
-                gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
-                
-                return;
+                reward_silver = number_range( ch->level, 30*ch->level*luck );
+                reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
+                if ( per_chance(20) )
+                    reward_prac = 3 + number_range(1, luck/2);
+                reward_exp = number_range(10, 20+luck);
             }
-            else if (ch->pcdata->questobj > 0 && ch->pcdata->countdown > 0)
+            else
             {
-                bool obj_found = FALSE;
-                
-                for (obj = ch->carrying; obj != NULL; obj= obj_next)
-                {
-                    obj_next = obj->next_content;
-                    
-                    if (obj != NULL && obj->pIndexData->vnum == ch->pcdata->questobj)
-                    {
-                        obj_found = TRUE;
-                        break;
-                    }
-                }
-                if (obj_found == TRUE)
-                {
-                    int reward, pointreward, pracreward;
-                    
-                    reward = number_range(1,12*ch->level*ch_luc_quest(ch));
-                    pointreward = number_range(get_curr_stat(ch,STAT_CHA)/15,10+ch_luc_quest(ch));
-                    
-                    act("You hand $p to $N.",ch, obj, questman, TO_CHAR);
-                    act("$n hands $p to $N.",ch, obj, questman, TO_ROOM);
-                    
-                    sprintf(buf, "Congratulations on completing your quest!");
-                    do_say(questman,buf);
-                    sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.",pointreward,reward);
-                    do_say(questman,buf);
-                    ch->pcdata->quest_success++;
-                    check_achievement(ch);
-					update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
-                    if (chance(15))
-                    {
-                        pracreward = number_range(1,ch_luc_quest(ch)/2);
-                        sprintf(buf, "You gain %d practice%s!\n\r",pracreward, pracreward > 1 ? "s" : "");
-                        send_to_char(buf, ch);
-                        ch->practice += pracreward;
-                    }
-                    
-                    REMOVE_BIT(ch->act, PLR_QUESTOR);
- /* Another fail safe.. -- Astark Feb 2012 */
-                    REMOVE_BIT(ch->act, PLR_QUESTORHARD);
-                    ch->pcdata->questgiver = NULL;
-                    ch->pcdata->countdown = 0;
-                    ch->pcdata->questmob = 0;
-                    ch->pcdata->questobj = 0;
-		    ch->pcdata->questroom = 0;
-		    ch->pcdata->questarea = 0;
-                    
-		    /* Changed to include a define - Maedhros, Feb 8, 2006 */
-                    /* ch->pcdata->nextquest = 10; */
-		    ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
-                    ch->silver += reward;
-                    ch->pcdata->questpoints += pointreward;
-					update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, pointreward);
-                    gain_exp(ch, number_range(10,ch_luc_quest(ch)+20));
-                    extract_obj(obj);
-                    return;
-                }
-                else
-                {
-                    sprintf(buf, "You haven't completed the quest yet, but there is still time!");
-                    do_say(questman, buf);
-                    return;
-                }
-                return;
-            }
-            else if ((ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0) && ch->pcdata->countdown > 0)
-            {
-                sprintf(buf, "You haven't completed the quest yet, but there is still time!");
-                do_say(questman, buf);
-                return;
+                reward_silver = number_range( 1, 12*ch->level*luck );
+                reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
+                if ( per_chance(15) )
+                    reward_prac = number_range(1, luck/2);
+                reward_exp = number_range(10, 20+luck);
             }
         }
-        if (ch->pcdata->nextquest > 0)
-            sprintf(buf,"But you didn't complete your quest in time!");
-        else sprintf(buf, "You have to REQUEST a quest first, %s.",ch->name);
+        else
+        {
+            sprintf(buf, "You haven't completed the quest yet, but there is still time!");
+            do_say(questman, buf);
+            return;
+        }
+        
+        // general adjustments
+        reward_points += reward_points * get_religion_bonus(ch) / 100;
+
+        // notify of rewards
+        sprintf(buf, "Congratulations on completing your quest!");
         do_say(questman, buf);
+        sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.", reward_points, reward_silver);
+        do_say(questman, buf);
+        if ( reward_prac > 0 )
+            printf_to_char(ch, "You gain %d practice%s!\n\r", reward_prac, reward_prac > 1 ? "s" : "" );
+
+        // hand out rewards
+        add_money_mixed(ch, reward_silver, questman);
+        ch->pcdata->questpoints += reward_points;
+        logpf("quest complete: awarded %d qp to %s.", reward_points, ch->name);
+        ch->practice += reward_prac;
+        gain_exp(ch, reward_exp);
+        
+        // cleanup
+        REMOVE_BIT(ch->act, PLR_QUESTOR);
+        REMOVE_BIT(ch->act, PLR_QUESTORHARD);
+        ch->pcdata->questgiver = NULL;
+        ch->pcdata->countdown = 0;
+        ch->pcdata->questmob = 0;
+        ch->pcdata->questobj = 0;
+        ch->pcdata->questroom = 0;
+        ch->pcdata->questarea = 0;
+        ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
+
+        // tracking
+        ch->pcdata->quest_success++;
+        check_achievement(ch);
+        update_lboard( LBOARD_QPNT, ch, ch->pcdata->questpoints, reward_points );
+        update_lboard( LBOARD_QCOMP, ch, ch->pcdata->quest_success, 1);
+        
         return;
-      }
+    }
     
     send_to_char("QUEST commands: POINTS INFO TIME REQUEST COMPLETE LIST BUY.\n\r",ch);
     send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
