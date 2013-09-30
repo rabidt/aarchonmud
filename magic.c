@@ -1112,7 +1112,7 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
         return; // Return because it might have killed the victim or ch
 
     if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
-         && victim->fighting == NULL && victim->position > POS_STUNNED
+         && victim->fighting == NULL && victim->position > POS_SLEEPING
          && !is_same_group(ch, victim) )
     {
         set_fighting(victim, ch, FALSE);
