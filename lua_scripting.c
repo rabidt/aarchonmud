@@ -1163,9 +1163,9 @@ static int L_off (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
-    int flag=NO_FLAG;
+    int flag=flag_lookup(argument, off_flags);
 
-    if (flag=flag_lookup(argument, off_flags) == NO_FLAG)
+    if ( flag == NO_FLAG )
         luaL_error(LS, "L_off: flag '%s' not found in off_flags", argument);
 
     lua_pushboolean( LS,
@@ -1178,9 +1178,10 @@ static int L_imm (lua_State *LS)
 { 
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
-    int flag=NO_FLAG;
+    int flag=flag_lookup(argument, imm_flags);
 
-    if (flag=flag_lookup(argument, off_flags) == NO_FLAG)                               luaL_error(LS, "L_imm: flag '%s' not found in imm_flags", argument);
+    if ( flag == NO_FLAG ) 
+        luaL_error(LS, "L_imm: flag '%s' not found in imm_flags", argument);
 
     lua_pushboolean( LS, ud_ch != NULL
             &&  IS_SET(ud_ch->imm_flags, flag) );
@@ -1327,9 +1328,13 @@ static int L_vuln (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
+    int flag=flag_lookup(argument, vuln_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "L_vuln: flag '%s' not found in vuln_flags", argument);
 
     lua_pushboolean( LS, ud_ch != NULL
-            && IS_SET(ud_ch->vuln_flags, flag_lookup(argument, vuln_flags)) );
+            && IS_SET(ud_ch->vuln_flags, flag ) );
 
     return 1;
 }
@@ -1338,9 +1343,13 @@ static int L_res (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
+    int flag=flag_lookup(argument, res_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "L_res: flag '%s' not found in res_flags", argument);
 
     lua_pushboolean( LS, ud_ch != NULL
-            && IS_SET(ud_ch->res_flags, flag_lookup(argument, res_flags)) );
+            && IS_SET(ud_ch->res_flags, flag) );
 
     return 1;
 }
