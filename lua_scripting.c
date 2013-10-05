@@ -717,7 +717,7 @@ static int L_ch_kill (lua_State *LS)
 
 static int L_ch_assist (lua_State *LS)
 {
-    do_mpkill( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    do_mpassist( check_CH(LS, 1), luaL_checkstring(LS, 2));
     return 0;
 }
 
