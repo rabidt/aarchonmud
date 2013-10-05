@@ -764,7 +764,15 @@ static int L_ch_mload (lua_State *LS)
 static int L_ch_purge (lua_State *LS)
 {
 
-    do_mppurge( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    // Send empty string for no argument
+    if ( lua_isnone( mud_LS, 2) )
+    {
+        do_mppurge( check_CH(LS, 1), "");
+    }
+    else
+    {
+        do_mppurge( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    }
 
     return 0;
 }
