@@ -883,8 +883,8 @@ static int L_ch_call (lua_State *LS)
 
 static int L_ch_flee (lua_State *LS)
 {
-
-    do_mpflee( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    /* mpflee takes no argument */
+    do_mpflee( check_CH(LS, 1), "" );
 
     return 0;
 }
