@@ -3110,6 +3110,7 @@ struct  group_type
 #define TRIG_RESET  (V)
 #define TRIG_MPCNT  (W)
 #define TRIG_SPELL  (X)
+#define TRIG_CALL   (Y) /* not settable */ 
 
 /*
  * OBJprog definitions
@@ -4505,7 +4506,8 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg 
 bool    is_mprog_running  args( (void) );
 void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type,
-                const void *arg2, sh_int arg2type) );
+                const void *arg2, sh_int arg2type,
+                int trig_type) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type, 
                 const void *arg2, sh_int arg2type,
