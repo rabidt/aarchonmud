@@ -540,6 +540,7 @@ const struct flag_type oprog_flags[] =
     {   "get",          OTRIG_GET,       TRUE    },
     {   "rand",         OTRIG_RAND,      TRUE    },
     {   "greet",        OTRIG_GREET,     TRUE    },
+    {   "call",         OTRIG_CALL,      FALSE   },
     {   NULL,           0,          TRUE    }
 };
 
@@ -555,6 +556,7 @@ const struct flag_type aprog_flags[] =
     {   "void",         ATRIG_VOID,      TRUE    },
     {   "unvoid",       ATRIG_UNVOID,    TRUE    },
     {   "recall",       ATRIG_RECALL,    TRUE    },
+    {   "call",         ATRIG_CALL,      FALSE   },
     {   NULL,           0,          TRUE    }
 };
 
