@@ -354,6 +354,7 @@ function mob_program_setup(ud, f)
     if ud.env==nil then
       rawset(ud, "env", new_CH_env())
       ud.env.mob=ud
+      ud.env._G=ud.env
     end
     setfenv(f, ud.env)
     return f
@@ -363,6 +364,7 @@ function obj_program_setup(ud, f)
     if ud.env==nil then
       rawset(ud, "env", new_OBJ_env())
       ud.env.obj=ud
+      ud.env._G=ud.env
     end
     setfenv(f, ud.env)
     return f
@@ -372,6 +374,7 @@ function area_program_setup(ud, f)
     if ud.env==nil then
       rawset(ud, "env", new_AREA_env())
       ud.env.area=ud
+      ud.env._G=ud.env
     end
     setfenv(f, ud.env)
     return f
