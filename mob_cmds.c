@@ -1605,10 +1605,6 @@ void do_mpflee( CHAR_DATA *ch, char *argument )
     if ( (was_in = ch->in_room) == NULL )
 	return;
 
-  /* Part of check to make sure mobs can't flee into safe room */
-    if (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE) )
-        return;
-
     for ( attempt = 0; attempt < 6; attempt++ )
     {
         door = number_door( );
@@ -1616,10 +1612,12 @@ void do_mpflee( CHAR_DATA *ch, char *argument )
         ||   pexit->u1.to_room == NULL
         ||   IS_SET(pexit->exit_info, EX_CLOSED)
         || ( IS_NPC(ch)
-        &&   IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB) 
-    /* Check added so that mobs can't flee into a safe room. Causes problems
-       with resets, quests, and leveling - Astark Dec 2012 */
-        ||   IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE) ) )
+             && 
+             ( IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB) 
+             /* Check added so that mobs can't flee into a safe room. Causes problems
+             with resets, quests, and leveling - Astark Dec 2012 */
+               || IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE) ) )
+        )
             continue;
 
         move_char( ch, door, FALSE );
