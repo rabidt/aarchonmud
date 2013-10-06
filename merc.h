@@ -3128,6 +3128,7 @@ struct  group_type
 #define OTRIG_GET   (K)
 #define OTRIG_RAND  (L)
 #define OTRIG_GREET (M)
+#define OTRIG_CALL  (N)
 
 /*
  * AREAprog definitions
@@ -3142,6 +3143,7 @@ struct  group_type
 #define ATRIG_VOID  (H)
 #define ATRIG_UNVOID (I)
 #define ATRIG_RECALL (J)
+#define ATRIG_CALL  (K)
 
 struct mprog_list
 {

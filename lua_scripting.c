@@ -79,9 +79,11 @@ void lua_mob_program( char *text, int pvnum, char *source,
         int trig_type );
 
 bool lua_obj_program( char *trigger, int pvnum, char *source, 
-        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2 );
+        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
+        int trig_type );
 bool lua_area_program( char *trigger, int pvnum, char *source,
-        AREA_DATA *area, CHAR_DATA *ch1 );
+        AREA_DATA *area, CHAR_DATA *ch1,
+        int trig_type );
 
 /* in lua_tables.c */
 
@@ -116,18 +118,20 @@ void add_lua_tables (lua_State *LS);
 
 /* oprogs args */
 #define OBJ_ARG "obj"
-#define NUM_OPROG_ARGS 4
+#define NUM_OPROG_ARGS 5 
 /* OBJ2_ARG */ 
 #define CH1_ARG "ch1"
 #define CH2_ARG "ch2"
 /* TRIG_ARG */
+/* TRIGTYPE_ARG */
 #define NUM_OPROG_RESULTS 1
 
 /* aprog args */
 #define AREA_ARG "area"
-#define NUM_APROG_ARGS 2
+#define NUM_APROG_ARGS 3 
 /* CH1_ARG */
 /* TRIG_ARG */
+/* TRIGTYPE_ARG */
 #define NUM_APROG_RESULTS 1
 
 #define UDTYPE_UNDEFINED 0
@@ -661,7 +665,7 @@ static int L_obj_loadprog (lua_State *LS)
         return 0;
     }
 
-    lua_obj_program( NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL);
+    lua_obj_program( NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL, OTRIG_CALL);
 
     return 0;
 }
@@ -678,7 +682,7 @@ static int L_area_loadprog (lua_State *LS)
         return 0;
     }
 
-    lua_area_program( NULL, num, pAcode->code, ud_area, NULL);
+    lua_area_program( NULL, num, pAcode->code, ud_area, NULL, ATRIG_CALL);
 
     return 0;
 }
@@ -2527,11 +2531,11 @@ bool lua_load_aprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
 
-    sprintf(buf, "function A_%d (%s,%s)"
+    sprintf(buf, "function A_%d (%s,%s,%s)"
             "%s\n"
             "end",
             vnum,
-            CH1_ARG, TRIG_ARG,
+            CH1_ARG, TRIG_ARG, TRIGTYPE_ARG,
             code);
 
 
@@ -2555,11 +2559,11 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
 
-    sprintf(buf, "function O_%d (%s,%s,%s,%s)"
+    sprintf(buf, "function O_%d (%s,%s,%s,%s,%s)"
             "%s\n"
             "end",
             vnum,
-            OBJ2_ARG, CH1_ARG, CH2_ARG, TRIG_ARG,
+            OBJ2_ARG, CH1_ARG, CH2_ARG, TRIG_ARG, TRIGTYPE_ARG,
             code);
 
 
@@ -2697,7 +2701,8 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
 
 bool lua_obj_program( char *trigger, int pvnum, char *source, 
-        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2 ) 
+        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
+        int trig_type ) 
 {
     bool result=FALSE;
 
@@ -2756,6 +2761,9 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
         lua_pushstring(mud_LS,trigger);
     else lua_pushnil(mud_LS);
 
+    /* TRIGTYPE_ARG */
+    lua_pushstring ( mud_LS, flag_stat_string( oprog_flags, trig_type) );
+
     /* some snazzy stuff to prevent crashes and other bad things*/
     s_LoopCheckCounter=0;
     s_LuaActiveObj=obj;
@@ -2793,7 +2801,8 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
 }
 
 bool lua_area_program( char *trigger, int pvnum, char *source, 
-        AREA_DATA *area, CHAR_DATA *ch1 ) 
+        AREA_DATA *area, CHAR_DATA *ch1,
+        int trig_type ) 
 {
     bool result=FALSE;
 
@@ -2841,6 +2850,9 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     if (trigger)
         lua_pushstring(mud_LS,trigger);
     else lua_pushnil(mud_LS);
+
+    /* TRIGTYPE_ARG */
+    lua_pushstring ( mud_LS, flag_stat_string( aprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     s_LoopCheckCounter=0;
