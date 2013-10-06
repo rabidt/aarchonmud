@@ -2254,6 +2254,17 @@ void extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc,
     }
 } 
 
+OBJ_DATA* get_char_obj_vnum( CHAR_DATA *ch, int vnum )
+{
+    OBJ_DATA * obj;
+
+    for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+        if ( obj->pIndexData->vnum == vnum )
+            return obj;
+
+    return NULL;
+}
+
 /********** end extract handling **********/
 
 /* makes a char drop all eq to room */
@@ -3004,6 +3015,11 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
     }
     
     return NULL;
+}
+
+void add_money_mixed( CHAR_DATA *ch, int silver, CHAR_DATA *source )
+{
+    add_money(ch, silver / 100, silver % 100, source);
 }
 
 void add_money( CHAR_DATA *ch, int gold, int silver, CHAR_DATA *source )
