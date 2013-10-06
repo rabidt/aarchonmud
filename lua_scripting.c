@@ -75,7 +75,8 @@ static const struct luaL_reg AREA_lib [];
 void lua_mob_program( char *text, int pvnum, char *source,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, sh_int arg1type,
-        const void *arg2, sh_int arg2type );
+        const void *arg2, sh_int arg2type,
+        int trig_type );
 
 bool lua_obj_program( char *trigger, int pvnum, char *source, 
         OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2 );
@@ -103,7 +104,7 @@ void add_lua_tables (lua_State *LS);
 #define UNREGISTER_UD_FUNCTION "UnregisterUd"
 
 #define MOB_ARG "mob"
-#define NUM_MPROG_ARGS 7 
+#define NUM_MPROG_ARGS 8 
 #define CH_ARG "ch"
 #define OBJ1_ARG "obj1"
 #define OBJ2_ARG "obj2"
@@ -111,6 +112,7 @@ void add_lua_tables (lua_State *LS);
 #define TEXT1_ARG "text1"
 #define TEXT2_ARG "text2"
 #define VICTIM_ARG "victim"
+#define TRIGTYPE_ARG "trigtype"
 
 /* oprogs args */
 #define OBJ_ARG "obj"
@@ -642,7 +644,7 @@ static int L_ch_loadprog (lua_State *LS)
         return 0;
     }
 
-    lua_mob_program( NULL, num, pMcode->code, ud_ch, NULL, NULL, 0, NULL, 0 ); 
+    lua_mob_program( NULL, num, pMcode->code, ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL ); 
 
     return 0;
 }
@@ -2495,12 +2497,12 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MSL];
 
-    sprintf(buf, "function M_%d (%s,%s,%s,%s,%s,%s,%s)"
+    sprintf(buf, "function M_%d (%s,%s,%s,%s,%s,%s,%s,%s)"
             "%s\n"
             "end",
             vnum,
             /*MOB_ARG,*/ CH_ARG, TRIG_ARG, OBJ1_ARG,
-            OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG,
+            OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG, TRIGTYPE_ARG,
             code);
 
 
@@ -2582,7 +2584,8 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 void lua_mob_program( char *text, int pvnum, char *source, 
         CHAR_DATA *mob, CHAR_DATA *ch, 
         const void *arg1, sh_int arg1type, 
-        const void *arg2, sh_int arg2type ) 
+        const void *arg2, sh_int arg2type,
+        int trig_type ) 
 {
     lua_getglobal( mud_LS, "mob_program_setup");
     
@@ -2654,6 +2657,9 @@ void lua_mob_program( char *text, int pvnum, char *source,
     if (arg2type== ACT_ARG_CHARACTER)
         make_ud_table( mud_LS, arg2, UDTYPE_CH, TRUE);
     else lua_pushnil(mud_LS);
+
+    /* TRIGTYPE_ARG */
+    lua_pushstring ( mud_LS, flag_stat_string( mprog_flags, trig_type) );
 
 
     /* some snazzy stuff to prevent crashes and other bad things*/
