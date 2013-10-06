@@ -931,8 +931,10 @@ static int L_ch_reward (lua_State *LS)
 
 static int L_ch_peace (lua_State *LS)
 {
-
-    do_mppeace( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    if ( lua_isnone( mud_LS, 2) )
+        do_mppeace( check_CH(LS, 1), "");
+    else
+        do_mppeace( check_CH(LS, 1), luaL_checkstring(LS, 2));
 
     return 0;
 }
