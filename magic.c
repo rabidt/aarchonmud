@@ -3504,15 +3504,6 @@ void spell_frenzy(int sn, int level, CHAR_DATA *ch, void *vo,int target)
         return;
     }
 
-    if ((IS_GOOD(ch) && !IS_GOOD(victim)) ||
-            (IS_NEUTRAL(ch) && !IS_NEUTRAL(victim)) ||
-            (IS_EVIL(ch) && !IS_EVIL(victim))
-       )
-    {
-        act("Your god doesn't seem to like $N.",ch,NULL,victim,TO_CHAR);
-        return;
-    }
-
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
