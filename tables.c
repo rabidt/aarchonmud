@@ -521,6 +521,7 @@ const struct flag_type mprog_flags[] =
 	{   "reset",        TRIG_RESET,       TRUE    },
 	{   "mpcnt",        TRIG_MPCNT,     TRUE    },
     {   "spell",        TRIG_SPELL,     TRUE    },
+    {   "call",         TRIG_CALL,      FALSE   },
 	{   NULL,           0,          TRUE    }
 };
 
