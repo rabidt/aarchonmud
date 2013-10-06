@@ -1383,7 +1383,7 @@ void do_aim( CHAR_DATA *ch, char *argument )
 void do_drunken_fury( CHAR_DATA *ch, char *argument)
 {
     int chance, hp_percent;
-    int cost = 200;
+    int cost = 100;
     
     if ((chance = get_skill(ch,gsn_drunken_fury)) < 1)
     {
