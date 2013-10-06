@@ -2126,7 +2126,13 @@ void do_mphit( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim;
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
-	return;
+    {
+        bugf( "do_mphit: no victim found for %s(%d), argument: %s",
+                ch->name,
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0,
+                argument);
+	    return;
+    }
 
     one_hit( ch, victim, TYPE_UNDEFINED, FALSE );
 }
