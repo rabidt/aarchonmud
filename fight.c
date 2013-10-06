@@ -5535,8 +5535,8 @@ void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gai
     int valign = victim->alignment;
     int change;
 
-    // killing neutral-aligned non-sentients or undeads does nothing
-    if ( IS_NEUTRAL(victim) && (!IS_SET(victim->form, FORM_SENTIENT) || IS_UNDEAD(victim)) )
+    // killing neutral-aligned non-sentients or undeads does nothing; same for aggro mobs
+    if ( IS_NEUTRAL(victim) && (!IS_SET(victim->form, FORM_SENTIENT) || IS_UNDEAD(victim) || NPC_ACT(victim, ACT_AGGRESSIVE)) )
         return;
     
     // killing evil victims makes you good, killing neutral or good victims makes you evil

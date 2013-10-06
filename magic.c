@@ -961,13 +961,10 @@ void meta_magic_cast( CHAR_DATA *ch, char *meta_arg, char *argument )
         }
         // character has skill?
         int sn = meta_magic_sn(meta);
-        if ( !get_skill(ch, sn) )
-        {
+        if ( get_skill(ch, sn) )
+            flag_set(meta_flag, meta);
+        else
             printf_to_char(ch, "You need the '%s' skill for this!\n\r", skill_table[sn].name);
-            return;
-        }
-        // remember for later
-        flag_set(meta_flag, meta);
     }
         
     flag_copy(meta_magic, meta_flag);
@@ -1051,16 +1048,17 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
     return TRUE;
 }
 
-bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
+// remove invalid meta-magic effects
+void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
 {
     // can only extend spells with duration
     if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
     {
         int duration = skill_table[sn].duration;
-        if ( duration == DUR_NONE || duration == DUR_SPECIAL )
+        if ( (duration == DUR_NONE || duration == DUR_SPECIAL) && sn != skill_lookup("renewal") )
         {
             send_to_char("Only spells with standard durations can be extended.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_EXTEND);
         }
     }
     
@@ -1072,7 +1070,7 @@ bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
         if ( wait <= min_wait )
         {
             send_to_char("This spell cannot be quickened any further.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_QUICKEN);
         }
     }
 
@@ -1084,25 +1082,23 @@ bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
         if ( target == TAR_CHAR_SELF )
         {
             send_to_char("Personal spells cannot be chained.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_CHAIN);
         }
-            
+
         if ( target == TAR_IGNORE
             || sn == skill_lookup("betray")
             || sn == skill_lookup("chain lightning") )
         {
             send_to_char("Only single-target spells can be chained.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_CHAIN);
         }
-        
+
         if ( target_type == TARGET_OBJ )
         {
             send_to_char("Spells targeting objects cannot be chained.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_CHAIN);
         }
     }
-    
-    return TRUE;
 }
 
 void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
@@ -1112,7 +1108,7 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
         return; // Return because it might have killed the victim or ch
 
     if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
-         && victim->fighting == NULL && victim->position > POS_STUNNED
+         && victim->fighting == NULL && victim->position > POS_SLEEPING
          && !is_same_group(ch, victim) )
     {
         set_fighting(victim, ch, FALSE);
@@ -1197,17 +1193,18 @@ void do_cast( CHAR_DATA *ch, char *argument )
             concentrate = TRUE;
     }
 
-    mana = mana_cost(ch, sn, chance);
-    mana = meta_magic_adjust_cost(mana, TRUE);
-    if ( overcharging )
-        mana *= 2;
-
     /* Locate targets */
     if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
         return;
     
-    if ( !meta_magic_can_cast(ch, sn, target) )
-        return;
+    // strip meta-magic options that are invalid for the spell & target
+    meta_magic_strip(ch, sn, target);
+
+    // mana cost must be calculated after meta-magic effects have been worked out
+    mana = mana_cost(ch, sn, chance);
+    mana = meta_magic_adjust_cost(mana, TRUE);
+    if ( overcharging )
+        mana *= 2;
 
     if ( ch->mana < mana )
     {

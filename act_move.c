@@ -343,6 +343,9 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
 
         if ( IS_AFFECTED(ch, AFF_FLYING) || IS_AFFECTED(ch, AFF_HASTE) )
             waitpulse /= 2;
+        
+        if ( IS_AFFECTED(ch, AFF_SNEAK) && !IS_SET(get_morph_race_type(ch)->affect_field, AFF_SNEAK) )
+            move += 1;
 
         if ( ch->move < move )
         {
@@ -352,6 +355,9 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
 
         WAIT_STATE(ch, waitpulse);
         ch->move -= move;
+        
+        if ( IS_AFFECTED(ch, AFF_SNEAK) )
+            check_improve(ch, gsn_sneak, TRUE, 8);
     }
     
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
@@ -2444,27 +2450,17 @@ void do_sneak( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    send_to_char( "You attempt to move silently.\n\r", ch );
+    send_to_char( "You start to move silently.\n\r", ch );
 
-    WAIT_STATE( ch, skill_table[gsn_sneak].beats );
-    if ( number_percent( ) < get_skill(ch,gsn_sneak))
-    {
-        send_to_char("You sure are sneaky.\n\r",ch);
-        check_improve(ch,gsn_sneak,TRUE,3);
-        af.where     = TO_AFFECTS;
-        af.type      = gsn_sneak;
-        af.level     = ch->level; 
-        af.duration  = -1;
-        af.location  = APPLY_NONE;
-        af.modifier  = 0;
-        af.bitvector = AFF_SNEAK;
-        affect_to_char( ch, &af );
-    }
-    else
-    {
-        send_to_char("You don't have that sneaky feeling.\n\r",ch); 
-        check_improve(ch,gsn_sneak,FALSE,3);
-    }
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_sneak;
+    af.level     = ch->level;
+    af.duration  = -1;
+    af.location  = APPLY_NONE;
+    af.modifier  = 0;
+    af.bitvector = AFF_SNEAK;
+    affect_to_char( ch, &af );
+        
     return;
 }
 
