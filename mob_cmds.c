@@ -76,7 +76,6 @@ const	struct	mob_cmd_type	mob_cmd_table	[] =
   { "delay",      do_mpdelay,      "[pulses] : delay mob for delay triggers (pulse=4sec)"   },
   { "cancel",     do_mpcancel,     ": remove delay"                                         },
   { "call",	  do_mpcall,       "[vnum] (victim) (obj1) (obj2) : execute another mprog"  },
-  { "flee",	  do_mpflee,       ": flee if possible"                                     },
   { "remove",     do_mpremove,     "[victim] [vnum|all] (inv|get|room) : extract object"    },
   { "remort",     do_mpremort,     "[victim] : remort a player"                             },
   { "qset",       do_mpqset,       "[victim] [id] [value] [time limit] : set quest-state for player"     },
@@ -1585,45 +1584,6 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     if ( arg[0] != '\0' )
     	obj2 = get_obj_here( ch, arg );
     program_flow( argument, prg->is_lua,prg->vnum, prg->code, ch, vch, (void *)obj1, ACT_ARG_OBJ, (void *)obj2, ACT_ARG_OBJ, TRIG_CALL );
-}
-
-/*
- * Forces the mobile to flee.
- *
- * Syntax: mob flee
- *
- */
-void do_mpflee( CHAR_DATA *ch, char *argument )
-{
-    ROOM_INDEX_DATA *was_in;
-    EXIT_DATA *pexit;
-    int door, attempt;
-
-    if ( ch->fighting != NULL )
-	return;
-
-    if ( (was_in = ch->in_room) == NULL )
-	return;
-
-    for ( attempt = 0; attempt < 6; attempt++ )
-    {
-        door = number_door( );
-        if ( ( pexit = was_in->exit[door] ) == 0
-        ||   pexit->u1.to_room == NULL
-        ||   IS_SET(pexit->exit_info, EX_CLOSED)
-        || ( IS_NPC(ch)
-             && 
-             ( IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB) 
-             /* Check added so that mobs can't flee into a safe room. Causes problems
-             with resets, quests, and leveling - Astark Dec 2012 */
-               || IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE) ) )
-        )
-            continue;
-
-        move_char( ch, door, FALSE );
-        if ( ch->in_room != was_in )
-	    return;
-    }
 }
 
 /*

@@ -887,14 +887,6 @@ static int L_ch_call (lua_State *LS)
     return 0;
 }
 
-static int L_ch_flee (lua_State *LS)
-{
-    /* mpflee takes no argument */
-    do_mpflee( check_CH(LS, 1), "" );
-
-    return 0;
-}
-
 static int L_ch_remove (lua_State *LS)
 {
 
@@ -1710,7 +1702,6 @@ static const struct luaL_reg CH_lib [] =
     {"vforce", L_ch_vforce},
     {"cast", L_ch_cast},
     {"damage", L_ch_damage},
-    {"flee", L_ch_flee},
     {"remove", L_ch_remove},
     {"remort", L_ch_remort},
     {"qset", L_ch_qset},
