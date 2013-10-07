@@ -530,16 +530,6 @@ static int L_getplayerlist (lua_State *LS)
     return 1;
 }
 
-static int L_randmob ( lua_State *LS)
-{
-
-    MOB_INDEX_DATA *mob;
-    int mob_vnum=number_range(50, 32600);
-
-
-    
-}
-
 static int L_getmobworld (lua_State *LS)
 {
     int num = luaL_checknumber (LS, 1);
