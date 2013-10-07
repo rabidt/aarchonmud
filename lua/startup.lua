@@ -235,8 +235,7 @@ main_lib={  require=require,
         sendtochar=sendtochar,
         getcharlist=getcharlist,
         getmoblist=getmoblist,
-        getplayerlist=getplayerlist,
-        randmob=randmob
+        getplayerlist=getplayerlist
 }
 	
 -- xxx_env_lib
