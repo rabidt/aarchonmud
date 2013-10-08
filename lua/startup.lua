@@ -251,11 +251,13 @@ AREA_env_lib={
     end
 }
 
--- First look for mob functions, then look in env_lib, then look in main_lib
+-- First look for main_lib funcs, then mob/area/obj funcs, then env_lib
 -- (providing env as argument)
 CH_env_meta={
     __index=function(tbl,key)
-        if tbl.mob[key] then 
+        if main_lib[key] then
+            return main_lib[key]
+        elseif tbl.mob[key] then 
             return function(...) 
                         table.insert(arg, 1, tbl.mob)
                         return tbl.mob[key](unpack(arg)) 
@@ -265,15 +267,15 @@ CH_env_meta={
                         table.insert(arg,tbl)
                         return CH_env_lib[key](unpack(arg)) 
                    end 
-        else
-            return main_lib[key]
         end
     end
 }
 
 OBJ_env_meta={
     __index=function(tbl,key)
-        if tbl.obj[key] then
+        if main_lib[key] then
+            return main_lib[key]
+        elseif tbl.obj[key] then
             return function(...) 
                         table.insert(arg, 1, tbl.obj)
                         return tbl.obj[key](unpack(arg)) 
@@ -283,15 +285,15 @@ OBJ_env_meta={
                        table.insert(arg,tbl)
                        OBJ_env_lib[key](unpack(arg)) 
                    end
-        else
-            return main_lib[key]
         end
     end
 }
 
 AREA_env_meta={
     __index=function(tbl,key)
-        if tbl.area[key] then
+        if main_lib[key] then
+            return main_lib[key]
+        elseif tbl.area[key] then
             return function(...)
                         table.insert(arg, 1, tbl.area) 
                         return tbl.area[key](unpack(arg)) 
@@ -301,8 +303,6 @@ AREA_env_meta={
                         table.insert(arg,tbl)
                         return AREA_env_lib[key](unpack(arg)) 
                    end
-        else
-			return main_lib[key]
         end
     end
 }
