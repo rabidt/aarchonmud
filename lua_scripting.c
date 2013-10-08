@@ -1836,7 +1836,7 @@ static int get_OBJPROTO_field ( lua_State *LS )
     FLDNUM("cost", ud_objp->cost);
     FLDSTR("material", ud_objp->material);
     FLDNUM("vnum", ud_objp->vnum);
-    FLDSTR("type", item_name(ud_objp->item_type));
+    FLDSTR("otype", item_name(ud_objp->item_type));
     FLDNUM("weight", ud_objp->weight);
     FLDNUM("v0", ud_objp->value[0]);
     FLDNUM("v1", ud_objp->value[1]);
@@ -1869,7 +1869,7 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("cost", ud_obj->cost);
     FLDSTR("material", ud_obj->material);
     FLDNUM("vnum", ud_obj->pIndexData->vnum);
-    FLDSTR("type", item_name(ud_obj->item_type));
+    FLDSTR("otype", item_name(ud_obj->item_type));
     FLDNUM("weight", ud_obj->weight);
 
     if ( !strcmp(argument, "proto" ) )
