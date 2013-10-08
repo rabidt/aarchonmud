@@ -980,6 +980,8 @@ void do_say( CHAR_DATA *ch, char *argument )
             if ( can_trigger(mob, TRIG_SPEECH) )
                 mp_act_trigger( argument, mob, ch, NULL,0, NULL,0, TRIG_SPEECH );
         }
+
+        op_speech_trigger( argument,ch);
     }
     return;
 }
