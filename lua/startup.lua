@@ -108,7 +108,8 @@ function loadtbl(name,env)
   if f==nil then 
     return nil 
   end
-  return f()
+
+  return f() 
 end
 
 -- Standard functionality avaiable for any env type
@@ -192,35 +193,6 @@ main_lib={  require=require,
 		-- okay now our stuff
 		-- checks
 		hour=hour,
-		ispc=ispc,
-		isnpc=isnpc,
-		isgood=isgood,
-		isevil=isevil,
-		isneutral=isneutral,
-		isimmort=isimmort,
-		ischarm=ischarm,
-		isfollow=isfollow,
-		isactive=isactive,
-		isdelay=isdelay,
-		isvisible=isvisible,
-		hastarget=hastarget,
-		istarget=istarget,
-		affected=affected,
-		act=act,
-		off=off,
-		imm=imm,
-		carries=carries,
-		wears=wears,
-		has=has,
-		uses=uses,
-		name=name,
-		qstatus=qstatus,
-		vuln=vuln,
-		res=res,
-		skilled=skilled,
-		ccarries=ccarries,
-		qtimer=qtimer,
-		canattack=canattack,
 
 		-- other
 		getroom=getroom,
@@ -229,8 +201,6 @@ main_lib={  require=require,
 		getobjproto=getobjproto,
 		getobjworld=getobjworld,
 		getmobworld=getmobworld,
-		savetbl=savetbl,
-		loadtbl=loadtbl,
         log=log,
         sendtochar=sendtochar,
         getcharlist=getcharlist,
@@ -243,6 +213,8 @@ main_lib={  require=require,
 -- or common functions that need access
 -- to env as a variable
 CH_env_lib={
+    savetbl=savetbl,
+    loadtbl=loadtbl,
 	loadscript=loadscript,
 	tprint=function(tbl,env)
         local str={}
@@ -254,6 +226,8 @@ CH_env_lib={
 }
 
 OBJ_env_lib={
+    savetbl=savetbl,
+    loadtable=loadtable,
 	loadscript=loadscript,
 	tprint=function(tbl,env)
         local str={}
@@ -265,6 +239,8 @@ OBJ_env_lib={
 }
 
 AREA_env_lib={
+    savetbl=savetbl,
+    loadtbl=loadtbl,
 	loadscript=loadscript,
 	tprint=function(tbl,env)
         local str={}
@@ -282,12 +258,12 @@ CH_env_meta={
         if tbl.mob[key] then 
             return function(...) 
                         table.insert(arg, 1, tbl.mob)
-                        tbl.mob[key](unpack(arg)) 
+                        return tbl.mob[key](unpack(arg)) 
                    end
         elseif CH_env_lib[key] then
             return function(...) 
                         table.insert(arg,tbl)
-                        CH_env_lib[key](unpack(arg)) 
+                        return CH_env_lib[key](unpack(arg)) 
                    end 
         else
             return main_lib[key]
@@ -300,7 +276,7 @@ OBJ_env_meta={
         if tbl.obj[key] then
             return function(...) 
                         table.insert(arg, 1, tbl.obj)
-                        tbl.obj[key](unpack(arg)) 
+                        return tbl.obj[key](unpack(arg)) 
                    end
         elseif OBJ_env_lib[key] then
             return function(...) 
@@ -318,12 +294,12 @@ AREA_env_meta={
         if tbl.area[key] then
             return function(...)
                         table.insert(arg, 1, tbl.area) 
-                        tbl.area[key](unpack(arg)) 
+                        return tbl.area[key](unpack(arg)) 
                    end
         elseif AREA_env_lib[key] then
             return function(...) 
                         table.insert(arg,tbl)
-                        AREA_env_lib[key](unpack(arg)) 
+                        return AREA_env_lib[key](unpack(arg)) 
                    end
         else
 			return main_lib[key]
