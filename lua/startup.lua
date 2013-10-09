@@ -36,8 +36,6 @@ function randnum(low, high)
 end
 
 function SaveTable( name, tbl, areaFname )
-  print(areaFname)
-  print(name)
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
@@ -57,7 +55,6 @@ function GetScript(subdir, name)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
-  --print(subdir)
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
