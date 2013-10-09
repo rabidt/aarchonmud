@@ -1688,7 +1688,7 @@ static int L_obj_wear( lua_State *LS)
 
     sh_int flag=flag_lookup( argument, wear_flags);
     if ( flag==NO_FLAG )
-        return 0;
+        luaL_error( LS, "Invalid wear flag '%s'", argument );
 
     lua_pushboolean( LS, IS_SET( ud_obj->wear_flags, flag));
     return 1;
@@ -1701,7 +1701,7 @@ static int L_obj_extra( lua_State *LS)
 
     sh_int flag=flag_lookup( argument, extra_flags);
     if ( flag==NO_FLAG )
-        return 0;
+        luaL_error( LS, "Invalid extra flag '%s'", argument );
 
     lua_pushboolean( LS, IS_SET( ud_obj->extra_flags, flag));
     return 1;
@@ -2084,7 +2084,6 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("v3", ud_obj->value[3]);
     FLDNUM("v4", ud_obj->value[4]);
     FLDNUM("v5", ud_obj->value[5]);
-    FLDSTR("areafname", ud_obj->pIndexData->area->file_name);
     return 0;
 }
 
@@ -2373,7 +2372,6 @@ static int get_CH_field ( lua_State *LS)
         /* MOB specific stuff */
     {
         FLDNUM("vnum", ud_ch->pIndexData->vnum);
-        FLDSTR("areafname", ud_ch->pIndexData->area->file_name);
     }
 
 
