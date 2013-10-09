@@ -2564,7 +2564,14 @@ static void call_lua_function (CHAR_DATA * ch,
 
 bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 {
-    char buf[MSL];
+    char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
+    
+    if ( strlen(code) >= MAX_SCRIPT_LENGTH )
+    {
+        bugf("MPROG script %d exceeds %d characters.",
+                vnum, MAX_SCRIPT_LENGTH);
+        return FALSE;
+    }
 
     sprintf(buf, "function M_%d (%s,%s,%s,%s,%s,%s,%s,%s)"
             "%s\n"
@@ -2594,7 +2601,14 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 
 bool lua_load_aprog( lua_State *LS, int vnum, char *code)
 {
-    char buf[MSL];
+    char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
+
+    if ( strlen(code) >= MAX_SCRIPT_LENGTH )
+    {
+        bugf("APROG script %d exceeds %d characters.",
+                vnum, MAX_SCRIPT_LENGTH);
+        return FALSE;
+    }
 
     sprintf(buf, "function A_%d (%s,%s,%s)"
             "%s\n"
@@ -2622,7 +2636,14 @@ bool lua_load_aprog( lua_State *LS, int vnum, char *code)
 
 bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 {
-    char buf[MSL];
+    char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
+
+    if ( strlen(code) >= MAX_SCRIPT_LENGTH )
+    {
+        bugf("OPROG script %d exceeds %d characters.",
+                vnum, MAX_SCRIPT_LENGTH);
+        return FALSE;
+    }
 
     sprintf(buf, "function O_%d (%s,%s,%s,%s,%s)"
             "%s\n"
@@ -2674,8 +2695,9 @@ void lua_mob_program( char *text, int pvnum, char *source,
         /* always reload */
         if ( !lua_load_mprog( mud_LS, pvnum, source) )
         {
-            /* don't bother running it if there were errors */
-            return;
+            /* if we're here then loadscript was called from within
+               a script so we can do a lua error */
+            luaL_error( mud_LS, "Couldn't load script with loadscript.");
         }
         /* loaded without errors, now get it on the stack */
         lua_getglobal( mud_LS, buf);
@@ -2792,8 +2814,9 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
         /* always reload */
         if ( !lua_load_oprog( mud_LS, pvnum, source) )
         {
-            /* don't bother running it if there were errors */
-            return;
+            /* if we're here then loadscript was called from within
+               a script so we can do a lua error */
+            luaL_error( mud_LS, "Couldn't load script with loadscript.");
         }
         /* loaded without errors, now get it on the stack */
         lua_getglobal( mud_LS, buf);
@@ -2894,8 +2917,9 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
         /* always reload */
         if ( !lua_load_oprog( mud_LS, pvnum, source) )
         {
-            /* don't bother running it if there were errors */
-            return;
+            /* if we're here then loadscript was called from within
+               a script so we can do a lua error */
+            luaL_error( mud_LS, "Couldn't load script with loadscript.");
         }
         /* loaded without errors, now get it on the stack */
         lua_getglobal( mud_LS, buf);
