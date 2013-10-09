@@ -795,8 +795,6 @@ void boot_db()
         log_string("Loading portals");
         load_portal_list();
 
-        /* check aprog boot triggers */
-        ap_boot_trigger();
     }
     
     // start checking for memory leaks now that we're ready
