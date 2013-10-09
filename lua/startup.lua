@@ -1,6 +1,6 @@
 package.path = mud.luadir() .. "?.lua"
 
-require "tprint"
+tprintstr=require "tprint"
 require "serialize"
 require "utilities"
 require "leaderboard"
@@ -166,7 +166,7 @@ main_lib={  require=require,
 		hour=hour,
 
 		-- other
-        tprint=tprint,
+        tprintstr=tprintstr,
         getroom=getroom,
 		randnum=randnum,
 		rand=rand,

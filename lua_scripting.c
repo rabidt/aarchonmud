@@ -97,11 +97,13 @@ void add_lua_tables (lua_State *LS);
 #define MT_LIBRARY "mt"
 #define UD_TABLE_NAME "udtbl"
 
+/* Names of some functions declared on the lua side */
 #define REGISTER_UD_FUNCTION "RegisterUd"
 #define UNREGISTER_UD_FUNCTION "UnregisterUd"
 #define GETSCRIPT_FUNCTION "GetScript"
 #define SAVETABLE_FUNCTION "SaveTable"
 #define LOADTABLE_FUNCTION "LoadTable"
+#define TPRINTSTR_FUNCTION "tprintstr"
 
 #define MOB_ARG "mob"
 #define NUM_MPROG_ARGS 8 
@@ -609,6 +611,21 @@ static int L_ch_randchar (lua_State *LS)
     make_ud_table( LS, ch, UDTYPE_CH, TRUE);
     return 1;
 
+}
+
+static int L_ch_tprint ( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+    
+    /* Push original arg into tprintstr */
+    lua_pushvalue( LS, 2);
+    lua_call( LS, 1, 1 );
+
+    do_say( ud_ch, luaL_checkstring (LS, -1));
+    
+    return 0;
 }
 
 static int L_ch_savetbl (lua_State *LS)
@@ -1659,6 +1676,25 @@ static int L_obj_echo( lua_State *LS)
     return 0;
 }
 
+static int L_obj_tprint ( lua_State *LS)
+{
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+
+    /* Push original arg into tprintstr */
+    lua_pushvalue( LS, 2);
+    lua_call( LS, 1, 1 );
+
+    lua_pushcfunction( LS, L_obj_echo );
+    /* now line up argumenets for echo */
+    lua_pushvalue( LS, 1); /* obj */
+    lua_pushvalue( LS, -3); /* return from tprintstr */
+
+    lua_call( LS, 2, 0);
+
+    return 0;
+
+}
+
 static int L_obj_oload (lua_State *LS)
 {
     OBJ_DATA * ud_obj = check_OBJ (LS, 1);
@@ -1731,6 +1767,25 @@ static int L_area_echo( lua_State *LS)
     }
 	
     return 0;
+}
+
+static int L_area_tprint ( lua_State *LS)
+{
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+
+    /* Push original arg into tprintstr */
+    lua_pushvalue( LS, 2);
+    lua_call( LS, 1, 1 );
+
+    lua_pushcfunction( LS, L_area_echo );
+    /* now line up argumenets for echo */
+    lua_pushvalue( LS, 1); /* area */
+    lua_pushvalue( LS, -3); /* return from tprintstr */
+
+    lua_call( LS, 2, 0);
+
+    return 0;
+
 }
 
 static const struct luaL_reg mudlib [] = 
@@ -1813,6 +1868,7 @@ static const struct luaL_reg CH_lib [] =
     {"loadscript", L_ch_loadscript},
     {"savetbl", L_ch_savetbl},
     {"loadtbl", L_ch_loadtbl},
+    {"tprint", L_ch_tprint},
     {NULL, NULL}
 };
 
@@ -1836,6 +1892,7 @@ static const struct luaL_reg OBJ_lib [] =
     {"oload", L_obj_oload},
     {"savetbl", L_obj_savetbl},
     {"loadtbl", L_obj_loadtbl},
+    {"tprint", L_obj_tprint},
     {NULL, NULL}
 };
 
@@ -1859,6 +1916,7 @@ static const struct luaL_reg AREA_lib [] =
     {"loadscript", L_area_loadscript},
     {"savetbl", L_area_savetbl},
     {"loadtbl", L_area_loadtbl},
+    {"tprint", L_area_tprint},
     {NULL, NULL}
 }; 
 
