@@ -1398,6 +1398,7 @@ static int L_ch_oload (lua_State *LS)
 
     OBJ_DATA *obj=create_object( pObjIndex, 0);
     check_enchant_obj( obj );
+
     obj_to_char(obj,ud_ch);
 
     make_ud_table(LS, obj, UDTYPE_OBJ, TRUE);
