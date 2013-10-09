@@ -502,6 +502,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "trust",      do_trust,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "violate",    do_violate, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
 //    { "pipe",       do_pipe,    POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "void",       do_void,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "pgrep",      do_pgrep,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "pload",      do_pload,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "punload",    do_punload, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
