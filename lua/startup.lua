@@ -166,7 +166,8 @@ main_lib={  require=require,
 		hour=hour,
 
 		-- other
-		getroom=getroom,
+        tprint=tprint,
+        getroom=getroom,
 		randnum=randnum,
 		rand=rand,
 		getobjproto=getobjproto,
@@ -179,41 +180,7 @@ main_lib={  require=require,
         getplayerlist=getplayerlist
 }
 	
--- xxx_env_lib
--- These are for env specific functions
--- or common functions that need access
--- to env as a variable
-CH_env_lib={
-	tprint=function(tbl,env)
-        local str={}
-        if env.mob then
-            tprint(str, tbl)
-            env.mob:say(table.concat(str))
-        end
-	end
-}
-
-OBJ_env_lib={
-	tprint=function(tbl,env)
-        local str={}
-        if env.obj then
-            tprint(str, tbl)
-            env.obj:echo(table.concat(str))
-        end
-    end
-}
-
-AREA_env_lib={
-	tprint=function(tbl,env)
-        local str={}
-        if env.area then
-            tprint(str, tbl)
-            env.area:echo(table.concat(str))
-        end
-    end
-}
-
--- First look for main_lib funcs, then mob/area/obj funcs, then env_lib
+-- First look for main_lib funcs, then mob/area/obj funcs
 -- (providing env as argument)
 CH_env_meta={
     __index=function(tbl,key)
@@ -224,11 +191,6 @@ CH_env_meta={
                         table.insert(arg, 1, tbl.mob)
                         return tbl.mob[key](unpack(arg)) 
                    end
-        elseif CH_env_lib[key] then
-            return function(...) 
-                        table.insert(arg,tbl)
-                        return CH_env_lib[key](unpack(arg)) 
-                   end 
         end
     end
 }
@@ -242,11 +204,6 @@ OBJ_env_meta={
                         table.insert(arg, 1, tbl.obj)
                         return tbl.obj[key](unpack(arg)) 
                    end
-        elseif OBJ_env_lib[key] then
-            return function(...) 
-                       table.insert(arg,tbl)
-                       OBJ_env_lib[key](unpack(arg)) 
-                   end
         end
     end
 }
@@ -259,11 +216,6 @@ AREA_env_meta={
             return function(...)
                         table.insert(arg, 1, tbl.area) 
                         return tbl.area[key](unpack(arg)) 
-                   end
-        elseif AREA_env_lib[key] then
-            return function(...) 
-                        table.insert(arg,tbl)
-                        return AREA_env_lib[key](unpack(arg)) 
                    end
         end
     end
