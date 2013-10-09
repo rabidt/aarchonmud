@@ -2916,7 +2916,7 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     if ( pvnum==LOADSCRIPT_VNUM ) /* run with loadscript */
     {
         /* always reload */
-        if ( !lua_load_oprog( mud_LS, pvnum, source) )
+        if ( !lua_load_aprog( mud_LS, pvnum, source) )
         {
             /* if we're here then loadscript was called from within
                a script so we can do a lua error */
