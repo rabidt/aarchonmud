@@ -375,6 +375,9 @@ int main( int argc, char **argv )
     if (fCopyOver)
         copyover_recover();
 
+    /* check aprog boot triggers */
+    ap_boot_trigger();
+
     game_loop_unix( control );
     close (control);
 
