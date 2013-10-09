@@ -2051,7 +2051,7 @@ static int get_OBJ_field ( lua_State *LS )
         return 1;
     }
 
-    if (!strcmp(argument, "inroom") )
+    if (!strcmp(argument, "room") )
     {
         if (!ud_obj->in_room)
             return 0;
