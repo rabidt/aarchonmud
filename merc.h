@@ -249,6 +249,7 @@ bool is_questeq( OBJ_DATA *obj );
 
 #define MAX_KEY_HASH         1024
 #define MAX_STRING_LENGTH    10000
+#define MAX_SCRIPT_LENGTH    MSL*10
 #define MAX_INPUT_LENGTH      300
 #define PAGELEN                33
 #define MAX_MEM_LIST           16
