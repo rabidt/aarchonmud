@@ -5,31 +5,8 @@ require "serialize"
 require "utilities"
 require "leaderboard"
 
---function send_nocr (...)
-  --  say (table.concat {...})
---end -- send_nocr
-
---function send (...)
-  --  say (table.concat {...})
---end
-
 udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
 
-
-function GetAreaFname(env)
-    local full
-    if env.mob then
-      full= env.mob.areafname
-    elseif env.obj then
-      full=env.obj.areafname
-    elseif env.area then
-      full=env.area.filename
-    else
-      error("Couldn't retrieve area filename.")
-    end
-
-    return string.match(full, "(%w+)\.are")
-end
 
 function RegisterUd(ud)
     if ud == nil then
@@ -50,10 +27,6 @@ function UnregisterUd(lightud)
     udtbl[lightud]=nil
 end
 
-
-function cleanup()
-end
-
 function rand(pcnt)
     return ( (mt.rand()*100) < pcnt)
 end
@@ -62,12 +35,12 @@ function randnum(low, high)
     return math.floor( (mt.rand()*(high+1-low) + low)) -- people usually want inclusive
 end
 
-function savetbl( name, tbl, env)
+function SaveTable( name, tbl, areaFname )
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
- 
-  local dir=GetAreaFname(env)
+
+  local dir=string.match(areaFname, "(%w+)\.are")
   if not os.rename(dir, dir) then
     os.execute("mkdir '" .. dir .. "'")
   end
@@ -78,36 +51,35 @@ function savetbl( name, tbl, env)
   f:close()
 end
 
-function loadscript(subdir, name, env)
+function GetScript(subdir, name)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
-  --print(subdir)
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
 
 
   local fname = mud.userdir() .. subdir .. "/" .. name .. ".lua"
-  local f,err=loadfile(fname)
-  if f==nil then 
-    error( fname .. "error: " ..  err) 
+  local f,err=io.open(fname,"r")
+  if f==nil then
+    error( fname .. "error: " ..  err)
   end
 
-  setfenv(f, env)
-  return f()
+  return f:read("*all")
 end
 
-function loadtbl(name,env)
+function LoadTable(name, areaFname)
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
 
-  local dir=GetAreaFname(env)
+  local dir=string.match(areaFname, "(%w+)\.are")
   local f=loadfile( dir .. "/"  .. name .. ".lua")
-  if f==nil then 
-    return nil 
+  if f==nil then
+    return nil
   end
+
   return f()
 end
 
@@ -119,7 +91,7 @@ main_lib={  require=require,
 		ipairs=ipairs,
 		next=next,
 		pairs=pairs,
-		pcall=pcall,
+		--pcall=pcall, -- remove so can't bypass infinite loop check
 		print=print,
 		select=select,
 		tonumber=tonumber,
@@ -127,7 +99,7 @@ main_lib={  require=require,
 		type=type,
 		unpack=unpack,
 		_VERSION=_VERSION,
-		xpcall=xpcall,
+		--xpcall=xpcall, -- remove so can't bypass infinite loop check
 		coroutine={create=coroutine.create,
 					resume=coroutine.resume,
 					running=coroutine.running,
@@ -192,142 +164,59 @@ main_lib={  require=require,
 		-- okay now our stuff
 		-- checks
 		hour=hour,
-		ispc=ispc,
-		isnpc=isnpc,
-		isgood=isgood,
-		isevil=isevil,
-		isneutral=isneutral,
-		isimmort=isimmort,
-		ischarm=ischarm,
-		isfollow=isfollow,
-		isactive=isactive,
-		isdelay=isdelay,
-		isvisible=isvisible,
-		hastarget=hastarget,
-		istarget=istarget,
-		affected=affected,
-		act=act,
-		off=off,
-		imm=imm,
-		carries=carries,
-		wears=wears,
-		has=has,
-		uses=uses,
-		name=name,
-		qstatus=qstatus,
-		vuln=vuln,
-		res=res,
-		skilled=skilled,
-		ccarries=ccarries,
-		qtimer=qtimer,
-		canattack=canattack,
 
 		-- other
-		getroom=getroom,
+        tprint=tprint,
+        getroom=getroom,
 		randnum=randnum,
 		rand=rand,
 		getobjproto=getobjproto,
 		getobjworld=getobjworld,
 		getmobworld=getmobworld,
-		savetbl=savetbl,
-		loadtbl=loadtbl,
         log=log,
         sendtochar=sendtochar,
         getcharlist=getcharlist,
         getmoblist=getmoblist,
-        getplayerlist=getplayerlist,
-        randmob=randmob
+        getplayerlist=getplayerlist
 }
 	
--- xxx_env_lib
--- These are for env specific functions
--- or common functions that need access
--- to env as a variable
-CH_env_lib={
-	loadscript=loadscript,
-	tprint=function(tbl,env)
-        local str={}
-        if env.mob then
-            tprint(str, tbl)
-            env.mob:say(table.concat(str))
-        end
-	end
-}
-
-OBJ_env_lib={
-	loadscript=loadscript,
-	tprint=function(tbl,env)
-        local str={}
-        if env.obj then
-            tprint(str, tbl)
-            env.obj:echo(table.concat(str))
-        end
-    end
-}
-
-AREA_env_lib={
-	loadscript=loadscript,
-	tprint=function(tbl,env)
-        local str={}
-        if env.area then
-            tprint(str, tbl)
-            env.area:echo(table.concat(str))
-        end
-    end
-}
-
--- First look for mob functions, then look in env_lib, then look in main_lib
+-- First look for main_lib funcs, then mob/area/obj funcs
 -- (providing env as argument)
 CH_env_meta={
     __index=function(tbl,key)
-        if tbl.mob[key] then 
+        if main_lib[key] then
+            return main_lib[key]
+        elseif tbl.mob[key] then 
             return function(...) 
                         table.insert(arg, 1, tbl.mob)
-                        tbl.mob[key](unpack(arg)) 
+                        return tbl.mob[key](unpack(arg)) 
                    end
-        elseif CH_env_lib[key] then
-            return function(...) 
-                        table.insert(arg,tbl)
-                        CH_env_lib[key](unpack(arg)) 
-                   end 
-        else
-            return main_lib[key]
         end
     end
 }
 
 OBJ_env_meta={
     __index=function(tbl,key)
-        if tbl.obj[key] then
+        if main_lib[key] then
+            return main_lib[key]
+        elseif tbl.obj[key] then
             return function(...) 
                         table.insert(arg, 1, tbl.obj)
-                        tbl.obj[key](unpack(arg)) 
+                        return tbl.obj[key](unpack(arg)) 
                    end
-        elseif OBJ_env_lib[key] then
-            return function(...) 
-                       table.insert(arg,tbl)
-                       OBJ_env_lib[key](unpack(arg)) 
-                   end
-        else
-            return main_lib[key]
         end
     end
 }
 
 AREA_env_meta={
     __index=function(tbl,key)
-        if tbl.area[key] then
+        if main_lib[key] then
+            return main_lib[key]
+        elseif tbl.area[key] then
             return function(...)
                         table.insert(arg, 1, tbl.area) 
-                        tbl.area[key](unpack(arg)) 
+                        return tbl.area[key](unpack(arg)) 
                    end
-        elseif AREA_env_lib[key] then
-            return function(...) 
-                        table.insert(arg,tbl)
-                        AREA_env_lib[key](unpack(arg)) 
-                   end
-        else
-			return main_lib[key]
         end
     end
 }

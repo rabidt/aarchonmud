@@ -205,7 +205,7 @@ OPEDIT (opedit_create)
     ch->desc->pEdit		= (void *)pOcode;
     ch->desc->editor		= ED_OPCODE;
 
-    send_to_char("MobProgram Code Created.\n\r",ch);
+    send_to_char("ObjProgram Code Created.\n\r",ch);
 
     return TRUE;
 }
