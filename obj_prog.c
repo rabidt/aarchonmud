@@ -26,7 +26,7 @@ bool op_percent_trigger(
         if ( prg->trig_type == type
                 && number_percent() <= atoi( prg->trig_phrase ) )
         {
-            return lua_obj_program( NULL, prg->vnum, prg->code, obj, obj2, ch1, ch2);
+            return lua_obj_program( NULL, prg->vnum, prg->code, obj, obj2, ch1, ch2, type);
         }
     }
     return TRUE;
@@ -46,7 +46,7 @@ bool op_act_trigger(
             && ( strstr(cap_all(trigger), cap_all(prg->trig_phrase)) != NULL
                     ||   !strcmp(prg->trig_phrase, "*") ) )
                     {
-                        return lua_obj_program( trigger, prg->vnum, prg->code, obj, NULL, ch1, NULL);
+                        return lua_obj_program( trigger, prg->vnum, prg->code, obj, NULL, ch1, NULL, type);
                     }
     }
     return TRUE;
@@ -138,7 +138,7 @@ void op_greet_trigger( CHAR_DATA *ch )
 
         if ( HAS_OTRIG(obj, OTRIG_GREET) )
         {
-            op_percent_trigger(obj, ch, NULL, NULL, OTRIG_GREET);
+            op_percent_trigger(obj, NULL, ch, NULL, OTRIG_GREET);
         }
     }
 }
