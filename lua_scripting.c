@@ -43,8 +43,9 @@ http://www.gammon.com.au/forum/?id=8015
 #include "merc.h"
 #include "mob_cmds.h"
 #include "tables.h"
+#include "lua_scripting.h"
 
-lua_State *mud_LS = NULL;  /* Lua state for entire MUD */
+lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 /* Mersenne Twister stuff - see mt19937ar.c */
 
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
@@ -67,23 +68,6 @@ static const struct luaL_reg OBJPROTO_lib[];
 static const struct luaL_reg ROOM_lib [];
 static const struct luaL_reg EXIT_lib [];
 static const struct luaL_reg AREA_lib [];
-
-void lua_mob_program( char *text, int pvnum, char *source,
-        CHAR_DATA *mob, CHAR_DATA *ch,
-        const void *arg1, sh_int arg1type,
-        const void *arg2, sh_int arg2type,
-        int trig_type );
-
-bool lua_obj_program( char *trigger, int pvnum, char *source, 
-        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
-        int trig_type );
-bool lua_area_program( char *trigger, int pvnum, char *source,
-        AREA_DATA *area, CHAR_DATA *ch1,
-        int trig_type );
-
-/* in lua_tables.c */
-
-void add_lua_tables (lua_State *LS);
 
 #define CHARACTER_STATE "character.state"
 #define CH_META        "CH.meta"
@@ -193,7 +177,7 @@ static int optboolean (lua_State *LS, const int narg, const int def)
     return luaL_checknumber (LS, narg) != 0;
 }
 
-OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
+static OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
@@ -211,7 +195,7 @@ OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
     return oid;
 }
 
-OBJ_DATA *check_OBJ( lua_State *LS, int arg)
+static OBJ_DATA *check_OBJ( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
@@ -228,7 +212,7 @@ OBJ_DATA *check_OBJ( lua_State *LS, int arg)
     return obj;
 }
 
-CHAR_DATA *check_CH( lua_State *LS, int arg)
+static CHAR_DATA *check_CH( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
@@ -245,7 +229,7 @@ CHAR_DATA *check_CH( lua_State *LS, int arg)
     return ch; 
 }
 
-ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
+static ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
@@ -262,7 +246,7 @@ ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
     return room;
 }
 
-EXIT_DATA *check_exit( lua_State *LS, int arg)
+static EXIT_DATA *check_exit( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
@@ -279,7 +263,7 @@ EXIT_DATA *check_exit( lua_State *LS, int arg)
     return exit;
 }
 
-AREA_DATA *check_AREA( lua_State *LS, int arg)
+static AREA_DATA *check_AREA( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
@@ -302,25 +286,25 @@ static void make_ud_table ( lua_State *LS, void *ptr, int UDTYPE, bool reg )
         luaL_error (LS, "make_ud_table called with NULL object. UDTYPE: %d", UDTYPE);
     
     /* see if it exists already */
-    lua_getglobal(mud_LS, UD_TABLE_NAME);
-    if ( lua_isnil(mud_LS, -1) )
+    lua_getglobal(g_mud_LS, UD_TABLE_NAME);
+    if ( lua_isnil(g_mud_LS, -1) )
     {
         bugf("udtbl is nil in make_ud_table.");
         return;
     }
     
-    lua_pushlightuserdata(mud_LS, ptr);
-    lua_gettable( mud_LS, -2);
-    lua_remove( mud_LS, -2); /* don't need udtbl anymore */
+    lua_pushlightuserdata(g_mud_LS, ptr);
+    lua_gettable( g_mud_LS, -2);
+    lua_remove( g_mud_LS, -2); /* don't need udtbl anymore */
     
-    if ( ! lua_isnil(mud_LS, -1) )
+    if ( ! lua_isnil(g_mud_LS, -1) )
     {
         /* already exists, now at top of stack */
         //log_string("already exists in make_ud_table");
         //bugf("%d",UDTYPE);  
         return;
     }
-    lua_remove(mud_LS, -1); // kill the nil 
+    lua_remove(g_mud_LS, -1); // kill the nil 
     char *meta;
 
     lua_newtable( LS);
@@ -391,7 +375,7 @@ void unregister_lua( void *ptr )
         return;
     }
 
-    unregister_UD( mud_LS, ptr );
+    unregister_UD( g_mud_LS, ptr );
 }
 
 static void GetTracebackFunction (lua_State *LS)
@@ -420,7 +404,7 @@ static void GetTracebackFunction (lua_State *LS)
     lua_remove (LS, -2);   /* remove debug table, leave traceback function  */
 }  /* end of GetTracebackFunction */
 
-void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
+static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
 {
     if (!s_LuaScriptInProgress)
         return;
@@ -433,7 +417,7 @@ void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
     else
     {
         /* exit */
-        luaL_error( mud_LS, "Interrupted infinite loop." );
+        luaL_error( g_mud_LS, "Interrupted infinite loop." );
         return;
     }
 }
@@ -641,7 +625,7 @@ static int L_ch_savetbl (lua_State *LS)
     CHAR_DATA *ud_ch=check_CH(LS,1);
     if (!IS_NPC(ud_ch))
     {
-        luaL_error( mud_LS, "PCs cannot call savetbl.");
+        luaL_error( g_mud_LS, "PCs cannot call savetbl.");
         return 0;
     }
 
@@ -691,7 +675,7 @@ static int L_ch_loadtbl (lua_State *LS)
     CHAR_DATA *ud_ch=check_CH(LS,1);
     if (!IS_NPC(ud_ch))
     {
-        luaL_error( mud_LS, "PCs cannot call loadtbl.");
+        luaL_error( g_mud_LS, "PCs cannot call loadtbl.");
         return 0;
     }
 
@@ -934,7 +918,7 @@ static int L_ch_purge (lua_State *LS)
 {
 
     // Send empty string for no argument
-    if ( lua_isnone( mud_LS, 2) )
+    if ( lua_isnone( g_mud_LS, 2) )
     {
         do_mppurge( check_CH(LS, 1), "");
     }
@@ -1092,7 +1076,7 @@ static int L_ch_reward (lua_State *LS)
 
 static int L_ch_peace (lua_State *LS)
 {
-    if ( lua_isnone( mud_LS, 2) )
+    if ( lua_isnone( g_mud_LS, 2) )
         do_mppeace( check_CH(LS, 1), "");
     else
         do_mppeace( check_CH(LS, 1), luaL_checkstring(LS, 2));
@@ -2567,16 +2551,16 @@ static int RegisterLuaRoutines (lua_State *LS)
 
 void lua_reset ()
 {
-    lua_close(mud_LS);
+    lua_close(g_mud_LS);
     open_lua();
 }
 
 void open_lua  ()
 {
     lua_State *LS = luaL_newstate ();   /* opens Lua */
-    mud_LS = LS;
+    g_mud_LS = LS;
 
-    if (mud_LS == NULL)
+    if (g_mud_LS == NULL)
     {
         bugf("Cannot open Lua state");
         return;  /* catastrophic failure */
@@ -2745,10 +2729,10 @@ void lua_mob_program( char *text, int pvnum, char *source,
         const void *arg2, sh_int arg2type,
         int trig_type ) 
 {
-    lua_getglobal( mud_LS, "mob_program_setup");
+    lua_getglobal( g_mud_LS, "mob_program_setup");
     
-    make_ud_table( mud_LS, mob, UDTYPE_CH, TRUE);
-    if (lua_isnil(mud_LS, -1) )
+    make_ud_table( g_mud_LS, mob, UDTYPE_CH, TRUE);
+    if (lua_isnil(g_mud_LS, -1) )
     {
         bugf("make_ud_table pushed nil to lua_mob_program");
         return;
@@ -2761,79 +2745,79 @@ void lua_mob_program( char *text, int pvnum, char *source,
     if ( pvnum==LOADSCRIPT_VNUM ) /* run with loadscript */
     {
         /* always reload */
-        if ( !lua_load_mprog( mud_LS, pvnum, source) )
+        if ( !lua_load_mprog( g_mud_LS, pvnum, source) )
         {
             /* if we're here then loadscript was called from within
                a script so we can do a lua error */
-            luaL_error( mud_LS, "Couldn't load script with loadscript.");
+            luaL_error( g_mud_LS, "Couldn't load script with loadscript.");
         }
         /* loaded without errors, now get it on the stack */
-        lua_getglobal( mud_LS, buf);
+        lua_getglobal( g_mud_LS, buf);
     }
     else
     {
         /* check if already loaded, load if not */
-        lua_getglobal( mud_LS, buf);
+        lua_getglobal( g_mud_LS, buf);
       
-        if ( lua_isnil( mud_LS, -1) )
+        if ( lua_isnil( g_mud_LS, -1) )
         {
-            lua_remove( mud_LS, -1); /* Remove the nil */
+            lua_remove( g_mud_LS, -1); /* Remove the nil */
             /* not loaded yet*/
-            if ( !lua_load_mprog( mud_LS, pvnum, source) )
+            if ( !lua_load_mprog( g_mud_LS, pvnum, source) )
             {
                 /* don't bother running it if there were errors */
                 return;
             }
         
             /* loaded without errors, now get it on the stack */
-            lua_getglobal( mud_LS, buf);
+            lua_getglobal( g_mud_LS, buf);
         }
     }
     
-    int error=CallLuaWithTraceBack (mud_LS, 2, 1) ;
+    int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
     if (error > 0 )
     {
         bugf ( "LUA error for mob_program_setup:\n %s",
-                lua_tostring(mud_LS, -1));
+                lua_tostring(g_mud_LS, -1));
     } 
 
     /* CH_ARG */
     if (ch)
-        make_ud_table (mud_LS,(void *) ch, UDTYPE_CH, TRUE);
-    else lua_pushnil(mud_LS);
+        make_ud_table (g_mud_LS,(void *) ch, UDTYPE_CH, TRUE);
+    else lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */
     if (text)
-        lua_pushstring ( mud_LS, text);
-    else lua_pushnil(mud_LS);
+        lua_pushstring ( g_mud_LS, text);
+    else lua_pushnil(g_mud_LS);
 
     /* OBJ1_ARG */
     if (arg1type== ACT_ARG_OBJ && arg1)
-        make_ud_table( mud_LS, arg1, UDTYPE_OBJ, TRUE);
-    else lua_pushnil(mud_LS);
+        make_ud_table( g_mud_LS, arg1, UDTYPE_OBJ, TRUE);
+    else lua_pushnil(g_mud_LS);
 
     /* OBJ2_ARG */
     if (arg2type== ACT_ARG_OBJ && arg2)
-        make_ud_table( mud_LS, arg2, UDTYPE_OBJ, TRUE);
-    else lua_pushnil(mud_LS);
+        make_ud_table( g_mud_LS, arg2, UDTYPE_OBJ, TRUE);
+    else lua_pushnil(g_mud_LS);
 
     /* TEXT1_ARG */
     if (arg1type== ACT_ARG_TEXT && arg1)
-        lua_pushstring ( mud_LS, (char *)arg1);
-    else lua_pushnil(mud_LS);
+        lua_pushstring ( g_mud_LS, (char *)arg1);
+    else lua_pushnil(g_mud_LS);
 
     /* TEXT2_ARG */
     if (arg2type== ACT_ARG_TEXT && arg2)
-        lua_pushstring ( mud_LS, (char *)arg2);
-    else lua_pushnil(mud_LS);
+        lua_pushstring ( g_mud_LS, (char *)arg2);
+    else lua_pushnil(g_mud_LS);
 
     /* VICTIM_ARG */
     if (arg2type== ACT_ARG_CHARACTER)
-        make_ud_table( mud_LS, arg2, UDTYPE_CH, TRUE);
-    else lua_pushnil(mud_LS);
+        make_ud_table( g_mud_LS, arg2, UDTYPE_CH, TRUE);
+    else lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( mud_LS, flag_stat_string( mprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_stat_string( mprog_flags, trig_type) );
 
 
     /* some snazzy stuff to prevent crashes and other bad things*/
@@ -2843,31 +2827,31 @@ void lua_mob_program( char *text, int pvnum, char *source,
         s_LuaScriptInProgress=TRUE;
     }
 
-    error=CallLuaWithTraceBack (mud_LS, NUM_MPROG_ARGS, LUA_MULTRET) ;
+    error=CallLuaWithTraceBack (g_mud_LS, NUM_MPROG_ARGS, LUA_MULTRET) ;
     if (error > 0 )
     {
         bugf ( "LUA mprog error for %s(%d), mprog %d:\n %s",
                 mob->name,
                 mob->pIndexData ? mob->pIndexData->vnum : 0,
                 pvnum,
-                lua_tostring(mud_LS, -1));
+                lua_tostring(g_mud_LS, -1));
     }
 
     s_LuaScriptInProgress=FALSE;
-    lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
+    lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
 }
 
 
 bool lua_obj_program( char *trigger, int pvnum, char *source, 
-        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
+        OBJ_DATA **obj, OBJ_DATA **obj2,CHAR_DATA **ch1, CHAR_DATA **ch2,
         int trig_type ) 
 {
     bool result=FALSE;
 
-    lua_getglobal( mud_LS, "obj_program_setup");
+    lua_getglobal( g_mud_LS, "obj_program_setup");
     
-    make_ud_table( mud_LS, obj, UDTYPE_OBJ, TRUE);
-    if (lua_isnil(mud_LS, -1) )
+    make_ud_table( g_mud_LS, obj, UDTYPE_OBJ, TRUE);
+    if (lua_isnil(g_mud_LS, -1) )
     {
         bugf("make_ud_table pushed nil to lua_obj_program");
         return FALSE;
@@ -2880,62 +2864,62 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     if ( pvnum==LOADSCRIPT_VNUM ) /* run with loadscript */
     {
         /* always reload */
-        if ( !lua_load_oprog( mud_LS, pvnum, source) )
+        if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
         {
             /* if we're here then loadscript was called from within
                a script so we can do a lua error */
-            luaL_error( mud_LS, "Couldn't load script with loadscript.");
+            luaL_error( g_mud_LS, "Couldn't load script with loadscript.");
         }
         /* loaded without errors, now get it on the stack */
-        lua_getglobal( mud_LS, buf);
+        lua_getglobal( g_mud_LS, buf);
     }
     else
     {   
-        lua_getglobal( mud_LS, buf);
-        if ( lua_isnil( mud_LS, -1) )
+        lua_getglobal( g_mud_LS, buf);
+        if ( lua_isnil( g_mud_LS, -1) )
         {
-            lua_remove( mud_LS, -1); /* Remove the nil */
+            lua_remove( g_mud_LS, -1); /* Remove the nil */
             /* not loaded yet*/
-            if ( !lua_load_oprog( mud_LS, pvnum, source) )
+            if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
             {
                 /* don't bother running it if there were errors */
                 return FALSE;
             }
         
             /* loaded without errors, now get it on the stack */
-            lua_getglobal( mud_LS, buf);
+            lua_getglobal( g_mud_LS, buf);
         }
     }
     
-    int error=CallLuaWithTraceBack (mud_LS, 2, 1) ;
+    int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
     if (error > 0 )
     {
         bugf ( "LUA error running obj_program_setup: %s",
-        lua_tostring(mud_LS, -1));
+        lua_tostring(g_mud_LS, -1));
     }
 
     /* OBJ2_ARG */
     if (obj2)
-        make_ud_table (mud_LS,(void *) obj2, UDTYPE_OBJ, TRUE);
-    else lua_pushnil(mud_LS);
+        make_ud_table (g_mud_LS,(void *) obj2, UDTYPE_OBJ, TRUE);
+    else lua_pushnil(g_mud_LS);
     
     /* CH1_ARG */
     if (ch1)
-        make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
-    else lua_pushnil(mud_LS);
+        make_ud_table (g_mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
+    else lua_pushnil(g_mud_LS);
 
     /* CH2_ARG */
     if (ch2)
-        make_ud_table (mud_LS,(void *) ch2, UDTYPE_CH, TRUE);
-    else lua_pushnil(mud_LS);
+        make_ud_table (g_mud_LS,(void *) ch2, UDTYPE_CH, TRUE);
+    else lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */
     if (trigger)
-        lua_pushstring(mud_LS,trigger);
-    else lua_pushnil(mud_LS);
+        lua_pushstring(g_mud_LS,trigger);
+    else lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( mud_LS, flag_stat_string( oprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_stat_string( oprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     if ( s_LuaScriptInProgress != TRUE )
@@ -2944,20 +2928,20 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
         s_LuaScriptInProgress=TRUE;
     }
     
-    error=CallLuaWithTraceBack (mud_LS, NUM_OPROG_ARGS, NUM_OPROG_RESULTS) ;
+    error=CallLuaWithTraceBack (g_mud_LS, NUM_OPROG_ARGS, NUM_OPROG_RESULTS) ;
     if (error > 0 )
     {
         bugf ( "LUA oprog error for vnum %d:\n %s",
                 pvnum,
-                lua_tostring(mud_LS, -1));
+                lua_tostring(g_mud_LS, -1));
     }
     else
     {
-        result=lua_toboolean (mud_LS, -1);
+        result=lua_toboolean (g_mud_LS, -1);
     }
 
     s_LuaScriptInProgress=FALSE;
-    lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
+    lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     return result;
 }
 
@@ -2967,10 +2951,10 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
 {
     bool result=FALSE;
 
-    lua_getglobal( mud_LS, "area_program_setup");
+    lua_getglobal( g_mud_LS, "area_program_setup");
     
-    make_ud_table( mud_LS, area, UDTYPE_AREA, TRUE);
-    if (lua_isnil(mud_LS, -1) )
+    make_ud_table( g_mud_LS, area, UDTYPE_AREA, TRUE);
+    if (lua_isnil(g_mud_LS, -1) )
     {
         bugf("make_ud_table pushed nil to lua_area_program");
         return FALSE;
@@ -2983,52 +2967,52 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     if ( pvnum==LOADSCRIPT_VNUM ) /* run with loadscript */
     {
         /* always reload */
-        if ( !lua_load_aprog( mud_LS, pvnum, source) )
+        if ( !lua_load_aprog( g_mud_LS, pvnum, source) )
         {
             /* if we're here then loadscript was called from within
                a script so we can do a lua error */
-            luaL_error( mud_LS, "Couldn't load script with loadscript.");
+            luaL_error( g_mud_LS, "Couldn't load script with loadscript.");
         }
         /* loaded without errors, now get it on the stack */
-        lua_getglobal( mud_LS, buf);
+        lua_getglobal( g_mud_LS, buf);
     }
     else
     {
-        lua_getglobal( mud_LS, buf);
-        if ( lua_isnil( mud_LS, -1) )
+        lua_getglobal( g_mud_LS, buf);
+        if ( lua_isnil( g_mud_LS, -1) )
         {
-            lua_remove( mud_LS, -1); /* Remove the nil */
+            lua_remove( g_mud_LS, -1); /* Remove the nil */
             /* not loaded yet*/
-            if ( !lua_load_aprog( mud_LS, pvnum, source) )
+            if ( !lua_load_aprog( g_mud_LS, pvnum, source) )
             {
                 /* don't bother running it if there were errors */
                 return FALSE;
             }
         
             /* loaded without errors, now get it on the stack */
-            lua_getglobal( mud_LS, buf);
+            lua_getglobal( g_mud_LS, buf);
         }
     }
     
-    int error=CallLuaWithTraceBack (mud_LS, 2, 1) ;
+    int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
     if (error > 0 )
     {
         bugf ( "LUA error running area_program_setup: %s",
-        lua_tostring(mud_LS, -1));
+        lua_tostring(g_mud_LS, -1));
     }
 
     /* CH1_ARG */
     if (ch1)
-        make_ud_table (mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
-    else lua_pushnil(mud_LS);
+        make_ud_table (g_mud_LS,(void *) ch1, UDTYPE_CH, TRUE);
+    else lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */
     if (trigger)
-        lua_pushstring(mud_LS,trigger);
-    else lua_pushnil(mud_LS);
+        lua_pushstring(g_mud_LS,trigger);
+    else lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( mud_LS, flag_stat_string( aprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_stat_string( aprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     if ( s_LuaScriptInProgress != TRUE )
@@ -3037,47 +3021,47 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
         s_LuaScriptInProgress=TRUE;
     }
 
-    error=CallLuaWithTraceBack (mud_LS, NUM_APROG_ARGS, NUM_APROG_RESULTS) ;
+    error=CallLuaWithTraceBack (g_mud_LS, NUM_APROG_ARGS, NUM_APROG_RESULTS) ;
     if (error > 0 )
     {
         bugf ( "LUA aprog error for vnum %d:\n %s",
                 pvnum,
-                lua_tostring(mud_LS, -1));
+                lua_tostring(g_mud_LS, -1));
     }
     else
     {
-        result=lua_toboolean (mud_LS, -1);
+        result=lua_toboolean (g_mud_LS, -1);
     }
 
     s_LuaScriptInProgress=FALSE;
-    lua_settop (mud_LS, 0);    /* get rid of stuff lying around */
+    lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     return result;
 }
 
 
 void do_lboard( CHAR_DATA *ch, char *argument)
 {
-    lua_getglobal(mud_LS, "do_lboard");
-    make_ud_table(mud_LS, ch, UDTYPE_CH, TRUE);
-    lua_pushstring(mud_LS, argument);
-    if (CallLuaWithTraceBack( mud_LS, 2, 0) )
+    lua_getglobal(g_mud_LS, "do_lboard");
+    make_ud_table(g_mud_LS, ch, UDTYPE_CH, TRUE);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         bugf ( "Error with do_lboard:\n %s",
-                lua_tostring(mud_LS, -1));
-        lua_pop( mud_LS, 1);
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
     }
 }
 
 void do_lhistory( CHAR_DATA *ch, char *argument)
 {
-    lua_getglobal(mud_LS, "do_lhistory");
-    make_ud_table(mud_LS, ch, UDTYPE_CH, TRUE);
-    lua_pushstring(mud_LS, argument);
-    if (CallLuaWithTraceBack( mud_LS, 2, 0) )
+    lua_getglobal(g_mud_LS, "do_lhistory");
+    make_ud_table(g_mud_LS, ch, UDTYPE_CH, TRUE);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         bugf ( "Error with do_lhistory:\n %s",
-                lua_tostring(mud_LS, -1));
-        lua_pop( mud_LS, 1);
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
     }
 }
 
@@ -3086,49 +3070,49 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
     if (IS_NPC(ch) || IS_IMMORTAL(ch) )
         return;
 
-    lua_getglobal(mud_LS, "update_lboard");
-    lua_pushnumber( mud_LS, lboard_type);
-    lua_pushstring( mud_LS, ch->name);
-    lua_pushnumber( mud_LS, current);
-    lua_pushnumber( mud_LS, increment);
+    lua_getglobal(g_mud_LS, "update_lboard");
+    lua_pushnumber( g_mud_LS, lboard_type);
+    lua_pushstring( g_mud_LS, ch->name);
+    lua_pushnumber( g_mud_LS, current);
+    lua_pushnumber( g_mud_LS, increment);
 
-    if (CallLuaWithTraceBack( mud_LS, 4, 0) )
+    if (CallLuaWithTraceBack( g_mud_LS, 4, 0) )
     {
         bugf ( "Error with update_lboard:\n %s",
-                lua_tostring(mud_LS, -1));
-        lua_pop( mud_LS, 1);
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
     }
 }
 
 void save_lboards()
 {
-    lua_getglobal( mud_LS, "save_lboards");
-    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    lua_getglobal( g_mud_LS, "save_lboards");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
     {
         bugf ( "Error with save_lboard:\n %s",
-                lua_tostring(mud_LS, -1));
-        lua_pop( mud_LS, 1);
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
     }  
 }
 
 void load_lboards()
 {
-    lua_getglobal( mud_LS, "load_lboards");
-    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    lua_getglobal( g_mud_LS, "load_lboards");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
     {
         bugf ( "Error with load_lboards:\n %s",
-                lua_tostring(mud_LS, -1));
-        lua_pop( mud_LS, 1);
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
     }
 }
 
 void check_lboard_reset()
 {
-    lua_getglobal( mud_LS, "check_lboard_reset");
-    if (CallLuaWithTraceBack( mud_LS, 0, 0) )
+    lua_getglobal( g_mud_LS, "check_lboard_reset");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
     {
         bugf ( "Error with check_lboard_resets:\n %s",
-                lua_tostring(mud_LS, -1));
-        lua_pop( mud_LS, 1);
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
     }
 }
