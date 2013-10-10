@@ -15,6 +15,7 @@
 #include "tables.h"
 #include "olc.h"
 #include "recycle.h"
+#include "lua_scripting.h"
 
 #define OPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
 
@@ -243,7 +244,7 @@ void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
                         send_to_char( buf, ch );
                         mpl->code = pOcode->code;
                    
-                        lua_load_oprog( mud_LS, pOcode->vnum, pOcode->code);
+                        lua_load_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
                         ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);
                         
                     } 
