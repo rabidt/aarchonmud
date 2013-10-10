@@ -175,6 +175,7 @@ main_lib={  require=require,
 		getmobworld=getmobworld,
         log=log,
         sendtochar=sendtochar,
+        pagetochar=pagetochar,
         getcharlist=getcharlist,
         getmoblist=getmoblist,
         getplayerlist=getplayerlist
