@@ -3083,6 +3083,9 @@ void do_lhistory( CHAR_DATA *ch, char *argument)
 
 void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
 {
+    if (IS_NPC(ch) || IS_IMMORTAL(ch) )
+        return;
+
     lua_getglobal(mud_LS, "update_lboard");
     lua_pushnumber( mud_LS, lboard_type);
     lua_pushstring( mud_LS, ch->name);
