@@ -11,7 +11,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
         int trig_type );
 
 bool lua_obj_program( char *trigger, int pvnum, char *source,
-        OBJ_DATA **obj, OBJ_DATA **obj2,CHAR_DATA **ch1, CHAR_DATA **ch2,
+        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
         int trig_type );
 
 bool lua_area_program( char *trigger, int pvnum, char *source,
