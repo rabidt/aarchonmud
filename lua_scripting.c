@@ -469,6 +469,14 @@ static int L_sendtochar (lua_State *LS)
     return 0;
 }
 
+static int L_pagetochar (lua_State *LS)
+{
+    page_to_char( luaL_checkstring(LS, 2),
+                  check_CH(LS,1) );
+
+    return 0;
+}
+
 static int L_getcharlist (lua_State *LS)
 {
     CHAR_DATA *ch;
@@ -2514,6 +2522,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getmobworld", L_getmobworld );
     lua_register(LS,"log",         L_log );
     lua_register(LS,"sendtochar",  L_sendtochar  );
+    lua_register(LS,"pagetochar",  L_pagetochar  );
     lua_register(LS,"getcharlist", L_getcharlist);
     lua_register(LS,"getmoblist",  L_getmoblist );
     lua_register(LS,"getplayerlist", L_getplayerlist);
