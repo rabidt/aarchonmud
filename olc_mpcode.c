@@ -16,6 +16,7 @@
 #include "olc.h"
 #include "recycle.h"
 #include "mob_cmds.h"
+#include "lua_scripting.h"
 
 #define MPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
 
@@ -249,7 +250,7 @@ void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
 
                         if ( mpl->is_lua )
                         {
-                            lua_load_mprog( mud_LS, pMcode->vnum, pMcode->code);
+                            lua_load_mprog( g_mud_LS, pMcode->vnum, pMcode->code);
                             ptc(ch, "Fixed lua script for %d.\n\r", pMcode->vnum);
                         }
                     } 
