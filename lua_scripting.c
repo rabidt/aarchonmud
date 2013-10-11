@@ -2300,7 +2300,6 @@ static int get_ROOM_field ( lua_State *LS )
             if (!ud_room->exit[i])
                 return 0;
 
-            lua_newtable(LS);
             if (!make_ud_table(LS, ud_room->exit[i], UDTYPE_EXIT, TRUE))
                 return 0;
             else
