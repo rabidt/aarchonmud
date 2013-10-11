@@ -54,7 +54,7 @@ lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 
 
 /* file scope variables */
-static bool        s_LuaScriptInProgress=FALSE;
+bool        g_LuaScriptInProgress=FALSE;
 static int         s_LoopCheckCounter;
 
 void init_genrand(unsigned long s);
@@ -406,7 +406,7 @@ static void GetTracebackFunction (lua_State *LS)
 
 static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
 {
-    if (!s_LuaScriptInProgress)
+    if (!g_LuaScriptInProgress)
         return;
 
     if ( s_LoopCheckCounter < LUA_LOOP_CHECK_MAX_CNT)
@@ -2821,11 +2821,11 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    bool nest=s_LuaScriptInProgress;
+    bool nest=g_LuaScriptInProgress;
     if ( !nest )
     {
         s_LoopCheckCounter=0;
-        s_LuaScriptInProgress=TRUE;
+        g_LuaScriptInProgress=TRUE;
     }
 
     error=CallLuaWithTraceBack (g_mud_LS, NUM_MPROG_ARGS, LUA_MULTRET) ;
@@ -2839,7 +2839,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
     }
 
     if ( !nest )
-        s_LuaScriptInProgress=FALSE;
+        g_LuaScriptInProgress=FALSE;
     lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
 }
 
@@ -2924,11 +2924,11 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     lua_pushstring ( g_mud_LS, flag_stat_string( oprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    bool nest=s_LuaScriptInProgress;
+    bool nest=g_LuaScriptInProgress;
     if ( !nest )
     {
         s_LoopCheckCounter=0;
-        s_LuaScriptInProgress=TRUE;
+        g_LuaScriptInProgress=TRUE;
     }
     
     error=CallLuaWithTraceBack (g_mud_LS, NUM_OPROG_ARGS, NUM_OPROG_RESULTS) ;
@@ -2944,7 +2944,7 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     }
 
     if ( !nest )
-        s_LuaScriptInProgress=FALSE;
+        g_LuaScriptInProgress=FALSE;
     lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     return result;
 }
@@ -3019,11 +3019,11 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     lua_pushstring ( g_mud_LS, flag_stat_string( aprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    bool nest=s_LuaScriptInProgress;
+    bool nest=g_LuaScriptInProgress;
     if ( !nest )
     {
         s_LoopCheckCounter=0;
-        s_LuaScriptInProgress=TRUE;
+        g_LuaScriptInProgress=TRUE;
     }
 
     error=CallLuaWithTraceBack (g_mud_LS, NUM_APROG_ARGS, NUM_APROG_RESULTS) ;
@@ -3038,7 +3038,7 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
         result=lua_toboolean (g_mud_LS, -1);
     }
     if (!nest)
-        s_LuaScriptInProgress=FALSE;
+        g_LuaScriptInProgress=FALSE;
     lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     return result;
 }
