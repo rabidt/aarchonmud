@@ -2252,8 +2252,7 @@ void do_wear( CHAR_DATA *ch, char *argument )
             obj_next = obj->next_content;
             if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) )
                 if (op_percent_trigger(obj, NULL, ch, NULL, OTRIG_WEAR) )
-                    if ( IS_VALID(obj) ) /* might have been destroyed */
-                        wear_obj( ch, obj, FALSE );
+                    wear_obj( ch, obj, FALSE );
         }
         return;
     }
@@ -2266,8 +2265,7 @@ void do_wear( CHAR_DATA *ch, char *argument )
         }
 
         if (op_percent_trigger( obj, NULL, ch, NULL, OTRIG_WEAR) )
-            if ( IS_VALID(obj) ) /* might have been destroyed */
-                wear_obj( ch, obj, TRUE );
+            wear_obj( ch, obj, TRUE );
         else
             return;
     }
@@ -2294,8 +2292,7 @@ void do_remove( CHAR_DATA *ch, char *argument )
             obj_next = obj->next_content;
             if(obj->wear_loc != WEAR_NONE) 
                 if (op_percent_trigger(obj, NULL, ch, NULL, OTRIG_REMOVE) )
-                    if IS_VALID(obj) /* might have been destroyed */
-                        remove_obj(ch,obj->wear_loc, TRUE);
+                    remove_obj(ch,obj->wear_loc, TRUE);
         }
         return;
     }
@@ -2307,8 +2304,7 @@ void do_remove( CHAR_DATA *ch, char *argument )
             return;
         }
         if (op_percent_trigger( obj, NULL, ch, NULL, OTRIG_REMOVE) )
-            if IS_VALID(obj) /* might have been destroyed */
-                remove_obj( ch, obj->wear_loc, TRUE );
+            remove_obj( ch, obj->wear_loc, TRUE );
         return;
     }
 }
