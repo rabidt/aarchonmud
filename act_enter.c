@@ -326,7 +326,7 @@ void do_enter( CHAR_DATA *ch, char *argument)
 	if ( !IS_NPC( ch ) )
     {
 		mp_greet_trigger( ch );
-        op_greet_trigger( ch );
+        op_greet_trigger( &ch );
         ap_enter_trigger( ch, from_area );
         ap_renter_trigger( ch );
     }

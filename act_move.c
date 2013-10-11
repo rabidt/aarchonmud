@@ -444,7 +444,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    {
        ap_enter_trigger( ch, in_room->area );
        ap_renter_trigger( ch );
-       op_greet_trigger( ch );
+       op_greet_trigger( &ch );
    }
 
    if ( IS_NPC( ch ) && HAS_TRIGGER( ch, TRIG_ENTRY ) )
