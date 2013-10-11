@@ -2409,12 +2409,20 @@ void death_update( void )
 void extract_update( void )
 {
     CHAR_DATA *ch, *ch_next;
+    OBJ_DATA  *obj, *obj_next;
 
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
         ch_next = ch->next;
         if ( ch->must_extract )
             extract_char( ch, TRUE );
+    }
+
+    for ( obj=object_list; obj != NULL ; obj=obj_next )
+    {  
+        obj_next = obj->next;
+        if ( obj->must_extract )
+            extract_obj( obj );
     }
 }
 
