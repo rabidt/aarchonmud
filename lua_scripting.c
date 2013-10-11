@@ -52,10 +52,167 @@ lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 #define LUA_LOOP_CHECK_INCREMENT 100
 #define ERR_INF_LOOP      -1
 
+#define MAX_ARG_TRACK 4 /* Max # of pointers needed to be tracked for a prog */
+
+typedef struct arg_track
+{
+    struct script_arg
+    {
+        struct script_arg *next;
+        void **ptr;
+        bool destroyed;
+    };
+    struct script_arg *list;
+        
+    void (*Add)(struct arg_track *self, void **ptr);
+    void (*Clear)(struct arg_track *self);
+    void (*Remove)(struct arg_track *self, void **ptr);
+    void (*NullDestroyed)(struct arg_track *self);
+  
+} ArgTrack;
+
+static void ArgTrack_add( ArgTrack *this, void **);
+static void ArgTrack_clear( ArgTrack *this);
+static void ArgTrack_nullDestroyed( ArgTrack *this);
+static void ArgTrack_remove( ArgTrack *this, void **ptr);
+
+ArgTrack ArgTrack_new()
+{
+    return (ArgTrack){
+        .list=NULL,
+        .Add=&ArgTrack_add,
+        .Clear=&ArgTrack_clear,
+        .NullDestroyed=ArgTrack_nullDestroyed,
+        .Remove=ArgTrack_remove
+    };
+}
+
+struct script_arg *script_arg_new( void **ptr)
+{
+    struct script_arg *sa=alloc_mem(sizeof(struct script_arg));
+    sa->ptr=NULL;
+    sa->destroyed=FALSE;
+    
+    return sa;
+}
+
+void script_arg_free( struct script_arg *sa)
+{
+    free_mem( sa, sizeof(struct script_arg) );
+}
+
+static void ArgTrack_nullDestroyed( ArgTrack *this )
+{
+    if ( this->list == NULL )
+    {
+        return;
+    }
+    
+    struct script_arg *sa;
+    for ( sa=this->list ; sa ; sa=sa->next )
+    {
+        if ( sa->destroyed )
+        {
+            /* just in case */
+            if ( sa->ptr == NULL)
+            {
+                bugf("ArgTrack_nullDestroyed: ptr is NULL");
+                return;
+            }
+            else if ( *(sa->ptr) == NULL )
+            {
+                bugf("ArgTrack_nullDestroyed: *ptr is NULL");
+                return;
+            }
+            else
+            {
+                bugf(" killin da pointer" );
+                *(sa->ptr)=NULL;
+            }
+        }
+    }
+}
+
+static void ArgTrack_remove( ArgTrack *this, void **ptr )
+{
+    if ( !ptr )
+    {
+        bugf("ArgTrack_remove: NULL ptr");
+        return;
+    }
+    
+    struct script_arg *sa;
+    struct script_arg *prev=NULL;
+    
+    
+    for ( sa=this->list ; sa ; sa=sa->next )
+    {
+        if ( sa->ptr==ptr )
+        {
+            if ( sa==this->list )
+            {
+                this->list=this->list->next;
+            }
+            else
+            {
+                prev->next=sa->next;
+            }
+            
+            script_arg_free( sa );
+            return;
+        }
+        else
+        {
+            prev=sa;
+        }
+    }
+    
+    /* if we got here it wasn't found */
+    //bugf("ArgTrack_remove: didn't find ptr");
+    
+}
+static void ArgTrack_add( ArgTrack *this, void **ptr )
+{
+    if (this->list==NULL)
+    {
+        this->list=script_arg_new( ptr);
+        return;
+    }
+    else
+    {
+        struct script_arg *sa;
+        
+        sa=script_arg_new( ptr );
+        sa->next = this->list;
+        this->list = sa;
+    }
+                
+    return;
+}
+
+static void ArgTrack_clear( ArgTrack *this)
+{
+    if (this->list==NULL)
+    {
+        return;
+    }
+     
+    struct script_arg *sa;
+    struct script_arg *next;
+    for ( sa=this->list; sa ; sa=next )
+    {
+        next=sa->next;
+        script_arg_free( sa );
+    }
+           
+    return;
+}
+
 
 /* file scope variables */
 static bool        s_LuaScriptInProgress=FALSE;
 static int         s_LoopCheckCounter;
+static ArgTrack    s_ArgTracker;
 
 void init_genrand(unsigned long s);
 void init_by_array(unsigned long init_key[], int key_length);
@@ -129,6 +286,8 @@ static const struct luaL_reg AREA_lib [];
 
 // number of items in an array
 #define NUMITEMS(arg) (sizeof (arg) / sizeof (arg [0]))
+
+
 
 LUALIB_API int luaopen_bits(lua_State *LS);  /* Implemented in lua_bits.c */
 
@@ -2583,7 +2742,9 @@ void open_lua  ()
     }
 
     lua_settop (LS, 0);    /* get rid of stuff lying around */
-
+  
+    /* initialize our argument tracker thingy */
+    s_ArgTracker=ArgTrack_new();
 }  /* end of open_lua */
 
 static void call_lua_function (CHAR_DATA * ch, 
@@ -2720,6 +2881,8 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
     }
     else return TRUE;
 }
+
+ 
 /* lua_mob_program
    lua equivalent of program_flow
  */
@@ -2821,7 +2984,8 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    if ( s_LuaScriptInProgress != TRUE )
+    bool nest=s_LuaScriptInProgress; 
+    if ( !nest )
     {
         s_LoopCheckCounter=0;
         s_LuaScriptInProgress=TRUE;
@@ -2837,7 +3001,9 @@ void lua_mob_program( char *text, int pvnum, char *source,
                 lua_tostring(g_mud_LS, -1));
     }
 
-    s_LuaScriptInProgress=FALSE;
+
+    if ( !nest )
+        s_LuaScriptInProgress=FALSE;
     lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
 }
 
@@ -2898,19 +3064,31 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
         lua_tostring(g_mud_LS, -1));
     }
 
+     
+    s_ArgTracker.Add(&s_ArgTracker, obj);
+    
     /* OBJ2_ARG */
     if ( obj2 != NULL && *obj2 != NULL )
+    {
         make_ud_table (g_mud_LS,(void *) *obj2, UDTYPE_OBJ, TRUE);
+        s_ArgTracker.Add(&s_ArgTracker, obj2);
+    }
     else lua_pushnil(g_mud_LS);
     
     /* CH1_ARG */
     if ( ch1 != NULL && ch1 != NULL )
+    {
         make_ud_table (g_mud_LS,(void *) *ch1, UDTYPE_CH, TRUE);
+        s_ArgTracker.Add(&s_ArgTracker, ch1);
+    }
     else lua_pushnil(g_mud_LS);
 
     /* CH2_ARG */
     if ( ch2 != NULL && ch2 != NULL )
+    {
         make_ud_table (g_mud_LS,(void *) *ch2, UDTYPE_CH, TRUE);
+        s_ArgTracker.Add(&s_ArgTracker, ch2);
+    }
     else lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */
@@ -2922,7 +3100,8 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     lua_pushstring ( g_mud_LS, flag_stat_string( oprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    if ( s_LuaScriptInProgress != TRUE )
+    bool nest=s_LuaScriptInProgress; 
+    if ( !nest )
     {
         s_LoopCheckCounter=0;
         s_LuaScriptInProgress=TRUE;
@@ -2939,9 +3118,17 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     {
         result=lua_toboolean (g_mud_LS, -1);
     }
-
-    s_LuaScriptInProgress=FALSE;
+    
+    if ( !nest )
+        s_LuaScriptInProgress=FALSE;
     lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+    
+    s_ArgTracker.NullDestroyed(&s_ArgTracker);
+    s_ArgTracker.Remove(&s_ArgTracker, obj);
+    s_ArgTracker.Remove(&s_ArgTracker, obj2);
+    s_ArgTracker.Remove(&s_ArgTracker, ch1);
+    s_ArgTracker.Remove(&s_ArgTracker, ch2);
+    
     return result;
 }
 
@@ -3015,7 +3202,8 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     lua_pushstring ( g_mud_LS, flag_stat_string( aprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    if ( s_LuaScriptInProgress != TRUE )
+    bool nest=s_LuaScriptInProgress; 
+    if ( !nest )
     {
         s_LoopCheckCounter=0;
         s_LuaScriptInProgress=TRUE;
@@ -3033,7 +3221,8 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
         result=lua_toboolean (g_mud_LS, -1);
     }
 
-    s_LuaScriptInProgress=FALSE;
+    if ( !nest )
+        s_LuaScriptInProgress=FALSE;
     lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     return result;
 }
