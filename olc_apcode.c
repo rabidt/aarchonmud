@@ -181,7 +181,7 @@ APEDIT (apedit_create)
 
     if ( !IS_BUILDER(ch, ad) )
     {
-       send_to_char("APEdit : Insufficient security to create MobProgs.\n\r", ch);
+       send_to_char("APEdit : Insufficient security to create AreaProgs.\n\r", ch);
        return FALSE;
     }
 
