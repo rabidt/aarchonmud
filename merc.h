@@ -2885,6 +2885,8 @@ struct  obj_data
 	sh_int  durability;
 	sh_int	clan;
 	sh_int	rank;
+
+    bool        must_extract; /* for delayed obj purging */
 };
 
 

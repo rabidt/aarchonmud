@@ -2821,7 +2821,8 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    if ( s_LuaScriptInProgress != TRUE )
+    bool nest=s_LuaScriptInProgress;
+    if ( !nest )
     {
         s_LoopCheckCounter=0;
         s_LuaScriptInProgress=TRUE;
@@ -2837,7 +2838,8 @@ void lua_mob_program( char *text, int pvnum, char *source,
                 lua_tostring(g_mud_LS, -1));
     }
 
-    s_LuaScriptInProgress=FALSE;
+    if ( !nest )
+        s_LuaScriptInProgress=FALSE;
     lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
 }
 
@@ -2922,7 +2924,8 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     lua_pushstring ( g_mud_LS, flag_stat_string( oprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    if ( s_LuaScriptInProgress != TRUE )
+    bool nest=s_LuaScriptInProgress;
+    if ( !nest )
     {
         s_LoopCheckCounter=0;
         s_LuaScriptInProgress=TRUE;
@@ -2940,7 +2943,8 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
         result=lua_toboolean (g_mud_LS, -1);
     }
 
-    s_LuaScriptInProgress=FALSE;
+    if ( !nest )
+        s_LuaScriptInProgress=FALSE;
     lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     return result;
 }
@@ -3015,7 +3019,8 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     lua_pushstring ( g_mud_LS, flag_stat_string( aprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
-    if ( s_LuaScriptInProgress != TRUE )
+    bool nest=s_LuaScriptInProgress;
+    if ( !nest )
     {
         s_LoopCheckCounter=0;
         s_LuaScriptInProgress=TRUE;
@@ -3032,8 +3037,8 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     {
         result=lua_toboolean (g_mud_LS, -1);
     }
-
-    s_LuaScriptInProgress=FALSE;
+    if (!nest)
+        s_LuaScriptInProgress=FALSE;
     lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     return result;
 }
