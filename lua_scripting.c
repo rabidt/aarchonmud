@@ -2077,7 +2077,6 @@ static int get_OBJPROTO_field ( lua_State *LS )
     FLDNUM("v2", ud_objp->value[2]);
     FLDNUM("v3", ud_objp->value[3]);
     FLDNUM("v4", ud_objp->value[4]);
-    FLDNUM("v5", ud_objp->value[5]);
 
     return 0;
 }
@@ -2166,7 +2165,6 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("v2", ud_obj->value[2]);
     FLDNUM("v3", ud_obj->value[3]);
     FLDNUM("v4", ud_obj->value[4]);
-    FLDNUM("v5", ud_obj->value[5]);
     return 0;
 }
 
