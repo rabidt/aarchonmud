@@ -2104,7 +2104,8 @@ void obj_update( void )
             }
         }
 
-        op_percent_trigger( obj, NULL, NULL, NULL, OTRIG_RAND);
+        if ( !op_percent_trigger( obj, NULL, NULL, NULL, OTRIG_RAND) )
+            continue;
 
         if ( obj->timer <= 0 || --obj->timer > 0 )
             continue;
