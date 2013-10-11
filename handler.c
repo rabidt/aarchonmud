@@ -2130,6 +2130,8 @@ void extract_obj( OBJ_DATA *obj )
 	return;
     }
 
+    unregister_lua( obj ); /* always unregister, even if delaying extract */
+
     if (g_LuaScriptInProgress || is_mprog_running())
     {
         obj->must_extract=TRUE;
@@ -2150,8 +2152,6 @@ void extract_obj( OBJ_DATA *obj )
         obj_next = obj_content->next_content;
         extract_obj( obj_content );
     }
-
-    unregister_lua( obj );
 
     if ( object_list == obj )
     {
@@ -2324,6 +2324,8 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
 
+    unregister_lua( ch ); /* always unregister, even if delaying actual extract */
+
     if (g_LuaScriptInProgress || is_mprog_running())
     {
         ch->must_extract=TRUE;
@@ -2398,8 +2400,6 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             wch->mprog_target = NULL;
     }
 
-    unregister_lua( ch );
-    
     if ( ch == char_list )
     {
         char_list = ch->next;
