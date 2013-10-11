@@ -66,7 +66,9 @@ function GetScript(subdir, name)
     error( fname .. "error: " ..  err)
   end
 
-  return f:read("*all")
+  rtn=f:read("*all")
+  f:close()
+  return rtn
 end
 
 function LoadTable(name, areaFname)
