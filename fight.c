@@ -249,10 +249,15 @@ void violence_update( void )
         {
             if ( HAS_TRIGGER( ch, TRIG_FIGHT ) )
                 mp_percent_trigger( ch, victim, NULL,0, NULL,0, TRIG_FIGHT );
+            if (ch->must_extract) continue;
+
             if ( HAS_TRIGGER( ch, TRIG_HPCNT ) )
                 mp_hprct_trigger( ch, victim );
+            if (ch->must_extract) continue;
+
             if ( HAS_TRIGGER( ch, TRIG_MPCNT ) )
                 mp_mprct_trigger( ch, victim );
+            if (ch->must_extract) continue;
         }
     }
     
