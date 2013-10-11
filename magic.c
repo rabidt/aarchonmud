@@ -1285,7 +1285,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
         if ( target == TARGET_OBJ )
         {
-            if (!op_act_trigger( (OBJ_DATA *) vo, ch, NULL, skill_table[sn].name, OTRIG_SPELL) ) 
+            if (!op_act_trigger( &vo, &ch, NULL, skill_table[sn].name, OTRIG_SPELL) ) 
                 return;
         }
 

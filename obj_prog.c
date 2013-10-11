@@ -15,14 +15,14 @@
  * number is less than trigger phrase
  */
 bool op_percent_trigger(
-        OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type)
+        OBJ_DATA **obj, OBJ_DATA **obj2, CHAR_DATA **ch1, CHAR_DATA **ch2, int type)
 {
-    if ( !HAS_OTRIG(obj, type) )
+    if ( !HAS_OTRIG( (*obj), type) )
         return TRUE;
 
     OPROG_LIST *prg;
 
-    for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
+    for ( prg = (*obj)->pIndexData->oprogs; prg != NULL; prg = prg->next )
     {
         if ( prg->trig_type == type
                 && number_percent() <= atoi( prg->trig_phrase ) )
@@ -34,11 +34,11 @@ bool op_percent_trigger(
 }
 
 bool op_act_trigger(
-        OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
+        OBJ_DATA **obj, CHAR_DATA **ch1, CHAR_DATA **ch2, char *trigger, int type)
 {
     OPROG_LIST *prg;
 
-    for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
+    for ( prg = (*obj)->pIndexData->oprogs; prg != NULL; prg = prg->next )
     {
         if ( prg->trig_type == type
                 /* should be case-insensitive --Bobble
@@ -53,36 +53,36 @@ bool op_act_trigger(
     return TRUE;
 }
 
-bool op_try_trigger( char* argument, CHAR_DATA *ch )
+bool op_try_trigger( char* argument, CHAR_DATA **ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *next_obj;
     bool found = FALSE;
 
-    if ( !ch->in_room )
+    if ( ! (*ch)->in_room )
     {
-        bugf("op_try_trigger: ch->in_room NULL for %s", ch->name);
+        bugf("op_try_trigger: ch->in_room NULL for %s", (*ch)->name);
         return;
     }
 
-    for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
+    for ( obj = (*ch)->in_room->contents; obj != NULL; obj = next_obj )
     {
         next_obj = obj->next_content;
 
         if ( HAS_OTRIG(obj, OTRIG_TRY) )
         {
-            op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
+            op_act_trigger( &obj, ch, NULL, argument, OTRIG_TRY); 
             found = TRUE;
         }
     }
 
-    for ( obj = ch->carrying; obj != NULL; obj = next_obj )
+    for ( obj = (*ch)->carrying; obj != NULL; obj = next_obj )
     {
         next_obj = obj->next_content;
 
         if ( HAS_OTRIG(obj, OTRIG_TRY) )
         {
-            op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
+            op_act_trigger( &obj, ch, NULL, argument, OTRIG_TRY); 
             found = TRUE;
         }
     }
@@ -90,56 +90,56 @@ bool op_try_trigger( char* argument, CHAR_DATA *ch )
     return found;
 }
 
-void op_speech_trigger( char *argument, CHAR_DATA *ch )
+void op_speech_trigger( char *argument, CHAR_DATA **ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *next_obj;
     
-    if ( !ch->in_room )
+    if ( ! (*ch)->in_room )
     {
-        bugf("op_speech_trigger: ch->in_room NULL for %s", ch->name);
+        bugf("op_speech_trigger: ch->in_room NULL for %s", (*ch)->name);
         return;
     }
 
-    for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
+    for ( obj = (*ch)->in_room->contents; obj != NULL; obj = next_obj )
     {
         next_obj = obj->next_content;
 
         if ( HAS_OTRIG(obj, OTRIG_SPEECH) )
         {
-            op_act_trigger(obj, ch, NULL, argument, OTRIG_SPEECH);
+            op_act_trigger( &obj, ch, NULL, argument, OTRIG_SPEECH);
         }
     }
 
-    for ( obj = ch->carrying; obj != NULL; obj = next_obj )
+    for ( obj = (*ch)->carrying; obj != NULL; obj = next_obj )
     {
         next_obj = obj->next_content;
 
         if ( HAS_OTRIG(obj, OTRIG_SPEECH) )
         {
-            op_act_trigger(obj, ch, NULL, argument, OTRIG_SPEECH);
+            op_act_trigger( &obj, ch, NULL, argument, OTRIG_SPEECH);
         }
     }
 }
 
-void op_greet_trigger( CHAR_DATA *ch )
+void op_greet_trigger( CHAR_DATA **ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *next_obj;
 
-    if ( !ch->in_room )
+    if ( ! (*ch)->in_room )
     {
-        bugf("op_greet_trigger: ch->in_room NULL for %s", ch->name);
+        bugf("op_greet_trigger: ch->in_room NULL for %s", (*ch)->name);
         return;
     }
 
-    for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
+    for ( obj = (*ch)->in_room->contents; obj != NULL; obj = next_obj )
     {
         next_obj = obj->next_content;
 
         if ( HAS_OTRIG(obj, OTRIG_GREET) )
         {
-            op_percent_trigger(obj, NULL, ch, NULL, OTRIG_GREET);
+            op_percent_trigger( &obj, NULL, ch, NULL, OTRIG_GREET);
         }
     }
 }
