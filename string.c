@@ -269,7 +269,7 @@ void string_add( CHAR_DATA *ch, char *argument )
       if ( !str_cmp( arg1, ".s" ) )
       {
          send_to_char( "String so far:\n\r", ch );
-         send_to_char( numlineas(*ch->desc->pString), ch );
+         send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
          return;
       }
       
