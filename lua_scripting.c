@@ -2775,9 +2775,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
     
     if (!make_ud_table( g_mud_LS, mob, UDTYPE_CH, TRUE))
     {
-        bugf("Make_ud_table failed in lua_mob_program. %s(%d) : %d",
-            mob->name, mob->pIndexData ? mob->pIndexData->vnum : 0, 
-            pvnum);
+        /* Most likely failed because the mob was destroyed */
         return;
     }
     if (lua_isnil(g_mud_LS, -1) )
@@ -2886,8 +2884,10 @@ void lua_mob_program( char *text, int pvnum, char *source,
     }
 
     if ( !nest )
+    {
         g_LuaScriptInProgress=FALSE;
-    lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+        lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+    }
 }
 
 
@@ -2901,9 +2901,7 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
 
     if (!make_ud_table( g_mud_LS, obj, UDTYPE_OBJ, TRUE))
     {
-        bugf("Make_ud_table failed in lua_obj_program. %s(%d) : %d",
-            obj->name, obj->pIndexData ? obj->pIndexData->vnum : 0,
-            pvnum);
+        /* Most likely failed because the obj was destroyed */
         return;
     }
     
@@ -2995,8 +2993,10 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     }
 
     if ( !nest )
+    {
         g_LuaScriptInProgress=FALSE;
-    lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+        lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+    }
     return result;
 }
 
@@ -3095,8 +3095,10 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
         result=lua_toboolean (g_mud_LS, -1);
     }
     if (!nest)
+    {
         g_LuaScriptInProgress=FALSE;
-    lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+        lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+    }
     return result;
 }
 
