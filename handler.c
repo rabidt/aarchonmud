@@ -39,6 +39,7 @@
 #include "magic.h"
 #include "recycle.h"
 #include "tables.h"
+#include "lua_scripting.h"
 
 void affect_modify_new( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd, bool drop );
 void check_drop_weapon( CHAR_DATA *ch );
@@ -2128,6 +2129,16 @@ void extract_obj( OBJ_DATA *obj )
 	bug("BUG: extract_obj, obj == NULL",0);
 	return;
     }
+
+    if (g_LuaScriptInProgress || is_mprog_running())
+    {
+        obj->must_extract=TRUE;
+        return;
+    }
+
+    /* safety-net against infinite extracting */
+    obj->must_extract = FALSE;
+
     OBJ_DATA *obj_content;
     OBJ_DATA *obj_next;
     
@@ -2312,9 +2323,17 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     CHAR_DATA *wch;
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
-    
+
+    if (g_LuaScriptInProgress || is_mprog_running())
+    {
+        ch->must_extract=TRUE;
+        return;
+    }
+
     /* safety-net against infinite extracting */
     ch->must_extract = FALSE;
+
+
 
     /* doesn't seem to be necessary
     if ( ch->in_room == NULL )

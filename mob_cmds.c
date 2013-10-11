@@ -893,8 +893,7 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
 	    if ( IS_NPC( victim ) && victim != ch 
 		 && !IS_SET(victim->act, ACT_NOPURGE) )
 	    {
-		/*extract_char( victim, TRUE );*/
-		victim->must_extract = TRUE;
+		extract_char( victim, TRUE );
 	    }
 	}
 
@@ -941,8 +940,7 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    /*extract_char( victim, TRUE );*/
-    victim->must_extract = TRUE;
+    extract_char( victim, TRUE );
 
     return;
 }
