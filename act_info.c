@@ -941,8 +941,8 @@ void do_autolist(CHAR_DATA *ch, char *argument)
     if (IS_NPC(ch))
         return;
     
-    send_to_char("   action     status\n\r",ch);
-    send_to_char("---------------------\n\r",ch);
+    send_to_char("{w  action       status{x\n\r",ch);
+    send_to_char("{w---------------------{x\n\r",ch);
     
     send_to_char("autoassist     ",ch);
     if (IS_SET(ch->act,PLR_AUTOASSIST))
@@ -1014,44 +1014,44 @@ void do_autolist(CHAR_DATA *ch, char *argument)
     }
     
     if (!IS_SET(ch->act,PLR_CANLOOT))
-        send_to_char("Items you own are safe from thieves.\n\r",ch);
+        send_to_char("Items you own are safe from thieves. (noloot)\n\r",ch);
     else 
-        send_to_char("Items you own may be looted.\n\r",ch);
+        send_to_char("Items you own may be looted. (noloot)\n\r",ch);
     
     if (IS_SET(ch->act,PLR_NOSUMMON))
-        send_to_char("You cannot be summoned.\n\r",ch);
+        send_to_char("You cannot be summoned. (nosum)\n\r",ch);
     else
-        send_to_char("You can be summoned.\n\r",ch);
+        send_to_char("You can be summoned. (nosum)\n\r",ch);
     
     if (IS_SET(ch->act,PLR_NOCANCEL))
-        send_to_char("You cannot be cancelled.\n\r",ch);
+        send_to_char("You cannot be cancelled. (nocan)\n\r",ch);
     else
-        send_to_char("You can be cancelled.\n\r",ch);
+        send_to_char("You can be cancelled. (nocan)\n\r",ch);
     
     if (IS_SET(ch->act,PLR_NOFOLLOW))
-        send_to_char("You do not welcome followers.\n\r",ch);
+        send_to_char("You do not welcome followers. (nofol)\n\r",ch);
     else
-        send_to_char("You accept followers.\n\r",ch);
+        send_to_char("You accept followers. (nofol)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOLOCATE))
-        send_to_char("You do not wish to be located.\n\r",ch);
+        send_to_char("You do not wish to be located. (noloc)\n\r",ch);
     else
-        send_to_char("You wish to be located.\n\r",ch);
+        send_to_char("You wish to be located. (noloc)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOACCEPT))
-        send_to_char("You do not accept items from other players.\n\r",ch);
+        send_to_char("You do not accept items from other players. (noacc)\n\r",ch);
     else
-        send_to_char("You accept items from other players.\n\r",ch);
+        send_to_char("You accept items from other players. (noacc)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOSURR))
-        send_to_char("You do not accept surrenders from other players.\n\r",ch);
+        send_to_char("You do not accept surrenders from other players. (nosurr)\n\r",ch);
     else
-        send_to_char("You accept surrenders from other players.\n\r",ch);
+        send_to_char("You accept surrenders from other players. (nosurr)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOEXP))
-        send_to_char("You do not wish to gain experience points.\n\r",ch);
+        send_to_char("You do not wish to gain experience points. (noexp)\n\r",ch);
     else
-        send_to_char("You can gain experience points.\n\r",ch);
+        send_to_char("You can gain experience points. (noexp)\n\r",ch);
 }
 
 void do_autoassist(CHAR_DATA *ch, char *argument)
