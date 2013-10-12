@@ -2896,6 +2896,8 @@ struct  obj_data
  */
 struct  exit_data
 {
+    /* u1 read in as vnum from area file then
+       converted to to_room in fix_exits */
 	union
 	{
 	    ROOM_INDEX_DATA * to_room;
