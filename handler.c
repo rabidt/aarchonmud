@@ -2324,12 +2324,15 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
 
-    unregister_lua( ch ); /* always unregister, even if delaying actual extract */
-
-    if (g_LuaScriptInProgress || is_mprog_running())
+    /* fPull should be TRUE if NPC or quitting player (char will get freed) */
+    if ( fPull )
     {
-        ch->must_extract=TRUE;
-        return;
+        unregister_lua( ch ); /* always unregister even if delaying actual extract */
+        if (g_LuaScriptInProgress || is_mprog_running())
+        {
+            ch->must_extract=TRUE;
+            return;
+        }
     }
 
     /* safety-net against infinite extracting */
