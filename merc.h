@@ -249,6 +249,7 @@ bool is_questeq( OBJ_DATA *obj );
 
 #define MAX_KEY_HASH         1024
 #define MAX_STRING_LENGTH    10000
+#define MAX_SCRIPT_LENGTH    MSL*10
 #define MAX_INPUT_LENGTH      300
 #define PAGELEN                33
 #define MAX_MEM_LIST           16
@@ -2884,6 +2885,8 @@ struct  obj_data
 	sh_int  durability;
 	sh_int	clan;
 	sh_int	rank;
+
+    bool        must_extract; /* for delayed obj purging */
 };
 
 
@@ -2893,6 +2896,8 @@ struct  obj_data
  */
 struct  exit_data
 {
+    /* u1 read in as vnum from area file then
+       converted to to_room in fix_exits */
 	union
 	{
 	    ROOM_INDEX_DATA * to_room;
@@ -3110,6 +3115,7 @@ struct  group_type
 #define TRIG_RESET  (V)
 #define TRIG_MPCNT  (W)
 #define TRIG_SPELL  (X)
+#define TRIG_CALL   (Y) /* not settable */ 
 
 /*
  * OBJprog definitions
@@ -3127,6 +3133,7 @@ struct  group_type
 #define OTRIG_GET   (K)
 #define OTRIG_RAND  (L)
 #define OTRIG_GREET (M)
+#define OTRIG_CALL  (N)
 
 /*
  * AREAprog definitions
@@ -3141,6 +3148,7 @@ struct  group_type
 #define ATRIG_VOID  (H)
 #define ATRIG_UNVOID (I)
 #define ATRIG_RECALL (J)
+#define ATRIG_CALL  (K)
 
 struct mprog_list
 {
@@ -4500,13 +4508,15 @@ int get_duration( int sn, int level );
 int skill_lookup    args( ( const char *name ) );
 int slot_lookup args( ( int slot ) );
 bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
+bool saves_physical( CHAR_DATA *victim, int level, int dam_type );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
 void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type,
-                const void *arg2, sh_int arg2type) );
+                const void *arg2, sh_int arg2type,
+                int trig_type) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type, 
                 const void *arg2, sh_int arg2type,
@@ -4609,6 +4619,7 @@ int ch_luc_quest        args((CHAR_DATA *ch));
 void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
+struct race_type* get_morph_race_type( CHAR_DATA *ch );
 
 /* string.c */
 void   string_edit    args( ( CHAR_DATA *ch, char **pString ) );

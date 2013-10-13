@@ -289,6 +289,7 @@ OBJ_DATA *new_obj(void)
 	}
 	*obj = obj_zero;
 	VALIDATE(obj);
+    obj->must_extract=FALSE;
 
 	return obj;
 }

@@ -322,7 +322,7 @@ bool is_offensive( int sn )
         || target == TAR_VIS_CHAR_OFF;
 }
 
-int get_save(CHAR_DATA *ch)
+int get_save(CHAR_DATA *ch, bool physical)
 {
     int saves = ch->saving_throw;
     int save_factor = 100;
@@ -330,21 +330,23 @@ int get_save(CHAR_DATA *ch)
     // level bonus
     if ( IS_NPC(ch) )
     {
-        if ( IS_SET(ch->act, ACT_MAGE) )
+        if ( IS_SET(ch->act, ACT_MAGE) && !physical )
             save_factor += 30;
-        if ( IS_SET(ch->act, ACT_WARRIOR) )
+        if ( IS_SET(ch->act, ACT_WARRIOR) && !physical )
             save_factor -= 30;
     }
     else
     {
-        save_factor = 250
-            - class_table[ch->class].attack_factor
-            - class_table[ch->class].defense_factor/2;
+        int physical_factor = class_table[ch->class].attack_factor + class_table[ch->class].defense_factor/2;
+        save_factor = 250 - physical_factor;
+        // tweak so physically oriented classes get better physical and worse magic saves
+        save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
     }
     saves -= (ch->level + 10) * save_factor/100;
     
-    // WIS bonus
-    saves -= (ch->level + 10) * get_curr_stat( ch, STAT_WIS ) / 500;
+    // WIS or VIT bonus
+    int stat = physical ? get_curr_stat(ch, STAT_VIT) : get_curr_stat(ch, STAT_WIS);
+    saves -= (ch->level + 10) * stat / 500;
 
     return saves;
 }
@@ -358,36 +360,54 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
     int hit_roll, save_roll, save_factor;
 
     /* automatic saves/failures */
-
     switch(check_immune(victim,dam_type))
     {
         case IS_IMMUNE:     return TRUE;
-        case IS_RESISTANT:  if ( chance(20) ) return TRUE;  break;
-        case IS_VULNERABLE: if ( chance(10) ) return FALSE;  break;
+        case IS_RESISTANT:  if ( per_chance(20) ) return TRUE;  break;
+        case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
 
-    if ( (victim->stance == STANCE_UNICORN)
-            && chance(25) )
+    if ( (victim->stance == STANCE_UNICORN) && per_chance(25) )
         return TRUE;
 
-    if ( IS_AFFECTED(victim, AFF_PHASE)
-            && chance(50) )
+    if ( IS_AFFECTED(victim, AFF_PHASE) && per_chance(50) )
         return TRUE;
 
-    if ( IS_AFFECTED(victim, AFF_PROTECT_MAGIC)
-            && chance(20) )
-        return TRUE;
-
-    if ( IS_AFFECTED(victim, AFF_BERSERK )
-            && chance(10) )
+    if ( IS_AFFECTED(victim, AFF_PROTECT_MAGIC) && per_chance(20) )
         return TRUE;
 
     /* now the resisted roll */
-    save_roll = -get_save(victim);
+    save_roll = -get_save(victim, FALSE);
     hit_roll = (level + 10) * 6/5;
 
     if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
         save_roll = save_roll * 2/3;
+
+    if ( save_roll <= 0 )
+        return FALSE;
+    else
+        return number_range(0, hit_roll) <= number_range(0, save_roll);
+}
+
+bool saves_physical( CHAR_DATA *victim, int level, int dam_type )
+{
+    int hit_roll, save_roll, save_factor;
+
+    /* automatic saves/failures */
+
+    switch(check_immune(victim,dam_type))
+    {
+        case IS_IMMUNE:     return TRUE;
+        case IS_RESISTANT:  if ( per_chance(20) ) return TRUE;  break;
+        case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
+    }
+
+    if ( IS_AFFECTED(victim, AFF_BERSERK) && per_chance(10) )
+        return TRUE;
+
+    /* now the resisted roll */
+    save_roll = -get_save(victim, TRUE);
+    hit_roll = (level + 10);
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -961,13 +981,10 @@ void meta_magic_cast( CHAR_DATA *ch, char *meta_arg, char *argument )
         }
         // character has skill?
         int sn = meta_magic_sn(meta);
-        if ( !get_skill(ch, sn) )
-        {
+        if ( get_skill(ch, sn) )
+            flag_set(meta_flag, meta);
+        else
             printf_to_char(ch, "You need the '%s' skill for this!\n\r", skill_table[sn].name);
-            return;
-        }
-        // remember for later
-        flag_set(meta_flag, meta);
     }
         
     flag_copy(meta_magic, meta_flag);
@@ -1051,16 +1068,17 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
     return TRUE;
 }
 
-bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
+// remove invalid meta-magic effects
+void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
 {
     // can only extend spells with duration
     if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
     {
         int duration = skill_table[sn].duration;
-        if ( duration == DUR_NONE || duration == DUR_SPECIAL )
+        if ( (duration == DUR_NONE || duration == DUR_SPECIAL) && sn != skill_lookup("renewal") )
         {
             send_to_char("Only spells with standard durations can be extended.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_EXTEND);
         }
     }
     
@@ -1072,7 +1090,7 @@ bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
         if ( wait <= min_wait )
         {
             send_to_char("This spell cannot be quickened any further.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_QUICKEN);
         }
     }
 
@@ -1084,25 +1102,23 @@ bool meta_magic_can_cast( CHAR_DATA *ch, int sn, int target_type )
         if ( target == TAR_CHAR_SELF )
         {
             send_to_char("Personal spells cannot be chained.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_CHAIN);
         }
-            
+
         if ( target == TAR_IGNORE
             || sn == skill_lookup("betray")
             || sn == skill_lookup("chain lightning") )
         {
             send_to_char("Only single-target spells can be chained.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_CHAIN);
         }
-        
+
         if ( target_type == TARGET_OBJ )
         {
             send_to_char("Spells targeting objects cannot be chained.\n\r", ch);
-            return FALSE;
+            flag_remove(meta_magic, META_MAGIC_CHAIN);
         }
     }
-    
-    return TRUE;
 }
 
 void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
@@ -1112,7 +1128,7 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
         return; // Return because it might have killed the victim or ch
 
     if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
-         && victim->fighting == NULL && victim->position > POS_STUNNED
+         && victim->fighting == NULL && victim->position > POS_SLEEPING
          && !is_same_group(ch, victim) )
     {
         set_fighting(victim, ch, FALSE);
@@ -1197,17 +1213,18 @@ void do_cast( CHAR_DATA *ch, char *argument )
             concentrate = TRUE;
     }
 
-    mana = mana_cost(ch, sn, chance);
-    mana = meta_magic_adjust_cost(mana, TRUE);
-    if ( overcharging )
-        mana *= 2;
-
     /* Locate targets */
     if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
         return;
     
-    if ( !meta_magic_can_cast(ch, sn, target) )
-        return;
+    // strip meta-magic options that are invalid for the spell & target
+    meta_magic_strip(ch, sn, target);
+
+    // mana cost must be calculated after meta-magic effects have been worked out
+    mana = mana_cost(ch, sn, chance);
+    mana = meta_magic_adjust_cost(mana, TRUE);
+    if ( overcharging )
+        mana *= 2;
 
     if ( ch->mana < mana )
     {
@@ -5102,7 +5119,7 @@ void spell_sleep( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
 
     if ( saves_spell(level, victim, DAM_MENTAL)
-            || save_body_affect(victim, level) 
+            || number_bits(1)
             || (!IS_NPC(victim) && number_bits(1))
             || IS_IMMORTAL(victim) )
     {

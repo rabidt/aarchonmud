@@ -4010,3 +4010,42 @@ void do_luareset( CHAR_DATA *ch, char *argument)
     lua_reset();
 
 }
+
+
+/* Send a player into the void */
+void do_void( CHAR_DATA *ch, char *argument)
+{
+    CHAR_DATA *victim;
+
+    if  ( (victim = get_char_world(ch, argument) ) == NULL )
+    {
+        send_to_char("Target not found.\n\r",ch);
+        return;
+    }
+    else if (IS_NPC(victim))
+    {
+        send_to_char("Can't void out an NPC!\n\r", ch);
+        return;
+    }
+    else if (IS_IMMORTAL(victim))
+    {
+        send_to_char("Can't void out an immortal!\n\r", ch);
+        return;
+    }
+    else if ( get_trust( victim ) >= get_trust( ch ) )
+    {
+        send_to_char("Victim too powerful!\n\r", ch);
+        return;
+    }
+    else if ( victim->timer >= 12 )
+    {
+        ptc( ch, "Timer for %s already at %d.\n\r", victim->name, victim->timer);
+        return;
+    }
+
+    victim->timer=12;
+
+    ptc(ch, "%s's timer was set to %d (will void on next tick).\n\r", victim->name, victim->timer);
+
+    return; 
+}
