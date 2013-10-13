@@ -330,16 +330,17 @@ int get_save(CHAR_DATA *ch, bool physical)
     // level bonus
     if ( IS_NPC(ch) )
     {
-        if ( IS_SET(ch->act, ACT_MAGE) )
+        if ( IS_SET(ch->act, ACT_MAGE) && !physical )
             save_factor += 30;
-        if ( IS_SET(ch->act, ACT_WARRIOR) )
+        if ( IS_SET(ch->act, ACT_WARRIOR) && !physical )
             save_factor -= 30;
     }
     else
     {
-        save_factor = 250
-            - class_table[ch->class].attack_factor
-            - class_table[ch->class].defense_factor/2;
+        int physical_factor = class_table[ch->class].attack_factor + class_table[ch->class].defense_factor/2;
+        save_factor = 250 - physical_factor;
+        // tweak so physically oriented classes get better physical and worse magic saves
+        save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
     }
     saves -= (ch->level + 10) * save_factor/100;
     
