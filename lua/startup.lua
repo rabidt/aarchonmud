@@ -6,6 +6,7 @@ require "utilities"
 require "leaderboard"
 
 udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
+envtbl={}
 
 function MakeUdProxy(ud)
     local proxy={}
@@ -235,6 +236,22 @@ AREA_env_meta={
     end
 }
 
+function MakeEnvProxy(env)
+    local proxy={}
+    setmetatable(proxy, {
+            __index = env,
+            __newindex = function (t,k,v)
+                if k=="tableid" then
+                    error("Cannot alter tableid of environment.")
+                else
+                    t[k]=v
+                end
+            end }
+    )
+
+    return proxy
+end
+
 function new_AREA_env()
     local o={}
     setmetatable(o, AREA_env_meta)
@@ -247,19 +264,18 @@ function new_OBJ_env()
     return o
 end
 
-function new_CH_env()
-    local o={}
+function new_CH_env(ud)
+    local o={mob=ud}
     setmetatable(o, CH_env_meta)
-    return o
+    return MakeEnvProxy(o)
 end
 
 function mob_program_setup(ud, f)
-    if ud.env==nil then
-      rawset(ud, "env", new_CH_env())
-      ud.env.mob=ud
-      ud.env._G=ud.env
+    --print(tprintstr(ud))
+    if envtbl[ud.tableid]==nil then
+        envtbl[ud.tableid]=new_CH_env(ud) 
     end
-    setfenv(f, ud.env)
+    setfenv(f, envtbl[ud.tableid])
     return f
 end
 
