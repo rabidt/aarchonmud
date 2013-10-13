@@ -1254,43 +1254,32 @@ void do_racelist(CHAR_DATA *ch, char *argument)
 
 void roll_dice (CHAR_DATA *ch, bool take_default)
 {
-#ifdef TESTER
-    int default_roll[15] = {100,95,95,90,90,85,80,75,70,65,60,55,45,30,15};
-#else
-    int default_roll[15] = {100,95,95,90,90,85,80,75,70,65,55,45,35,20,0};
-#endif
+    int minimum_roll[15] = {80,80,80,80,80,75,75,70,70,60,40,30,20,10,0};
+    int default_roll[15] = {95,95,95,95,95,90,90,85,85,75,55,45,35,25,15};
     int i, j, swap, sum;
     
     if ( take_default )
     {
         for ( i = 0; i < 15; i++ )
-		ch->gen_data->unused_die[i] = default_roll[i];
+            ch->gen_data->unused_die[i] = default_roll[i];
     }
     else
     {
-	ch->gen_data->unused_die[0]=number_range(90,100);
-	ch->gen_data->unused_die[1]=number_range(85,100);
-	ch->gen_data->unused_die[2]=number_range(80,100);
-	ch->gen_data->unused_die[3]=number_range(70,100);
-	ch->gen_data->unused_die[4]=number_range(60,100);
-	for (i=5; i<12; i++)
-	    ch->gen_data->unused_die[i]=number_range(15,85);
-	ch->gen_data->unused_die[12]=number_range(0, 50);
-	ch->gen_data->unused_die[13]=number_range(0, 40);
-	ch->gen_data->unused_die[14]=number_range(0, 20);
-	
-	for (i=0; i<14; i++)
-	    for (j=i+1; j<15; j++)
-		if (ch->gen_data->unused_die[j]>ch->gen_data->unused_die[i])
-		{
-		    swap = ch->gen_data->unused_die[j];
-		    ch->gen_data->unused_die[j]=ch->gen_data->unused_die[i];
-		    ch->gen_data->unused_die[i]=swap;
-		}
+        for ( i = 0; i < 15; i++ )
+            ch->gen_data->unused_die[i] = minimum_roll[i] + dice(2,11) - 2;
+        // sort
+        for (i=0; i<14; i++)
+            for (j=i+1; j<15; j++)
+                if (ch->gen_data->unused_die[j]>ch->gen_data->unused_die[i])
+                {
+                    swap = ch->gen_data->unused_die[j];
+                    ch->gen_data->unused_die[j] = ch->gen_data->unused_die[i];
+                    ch->gen_data->unused_die[i] = swap;
+                }
     }
             
     for (i=0; i<15; i++)
-	ch->gen_data->assigned_die[i]=-1;
+        ch->gen_data->assigned_die[i] = -1;
 
     return;
 }
