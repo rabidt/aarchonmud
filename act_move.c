@@ -1430,8 +1430,8 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 
     NLRETURN
 
-    sprintf( buf, "Hit: %d  Dam: %d  Saves: %d\n\r",
-	     GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim)
+    sprintf( buf, "Hit: %d  Dam: %d  Saves: %d  Physical: %d\n\r",
+	     GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim, FALSE), get_save(victim, TRUE)
 	     );
     send_to_char( buf, ch );
 
@@ -3147,14 +3147,8 @@ void check_bleed( CHAR_DATA *ch, int dir )
 	return;
 
 
-    /* This was commented out, and the below section added so that players
-       affected by rupture will leave a blood trail regardless of their HP
-       - Astark Nov 2012
-    if ( save_body_affect(ch, (ch->max_hit/4 - ch->hit)/10) )
-	return; */
-
-    if ( !is_affected(ch,gsn_rupture) && save_body_affect(ch, (ch->max_hit/4 - ch->hit)/10) )
-	return;
+    if ( !is_affected(ch,gsn_rupture) && saves_physical(ch, (ch->max_hit/4 - ch->hit)/10, DAM_OTHER) )
+        return;
 
     /* create blood object */
     if ( (blood = create_object(get_obj_index(OBJ_VNUM_BLOOD), 0)) == NULL )
