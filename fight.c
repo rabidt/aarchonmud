@@ -249,10 +249,15 @@ void violence_update( void )
         {
             if ( HAS_TRIGGER( ch, TRIG_FIGHT ) )
                 mp_percent_trigger( ch, victim, NULL,0, NULL,0, TRIG_FIGHT );
+            if (ch->must_extract) continue;
+
             if ( HAS_TRIGGER( ch, TRIG_HPCNT ) )
                 mp_hprct_trigger( ch, victim );
+            if (ch->must_extract) continue;
+
             if ( HAS_TRIGGER( ch, TRIG_MPCNT ) )
                 mp_mprct_trigger( ch, victim );
+            if (ch->must_extract) continue;
         }
     }
     
@@ -379,11 +384,13 @@ void check_rescue( CHAR_DATA *ch )
 }
 
 /* saving throw against attacks that affect the body */
+/*
 bool save_body_affect( CHAR_DATA *ch, int level )
 {
     int resist = ch->level * (100 + get_curr_stat(ch, STAT_VIT)) / 200;
     return number_range( 0, level ) < number_range( 0, resist );
 }
+*/
 
 /* handle affects that do things each round */
 void special_affect_update(CHAR_DATA *ch)
@@ -2902,7 +2909,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     // non-spell damage may be reduced by a saving throw as well
     if ( dam > 1 && is_normal_hit(dt) )
     {
-        int victim_roll = -get_save(victim);
+        int victim_roll = -get_save(victim, TRUE);
         int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
         if ( number_range(0,ch_roll) < number_range(0,victim_roll) )
             dam /= 2;
@@ -5537,8 +5544,8 @@ void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gai
     int valign = victim->alignment;
     int change;
 
-    // killing neutral-aligned non-sentients or undeads does nothing
-    if ( IS_NEUTRAL(victim) && (!IS_SET(victim->form, FORM_SENTIENT) || IS_UNDEAD(victim)) )
+    // killing neutral-aligned non-sentients or undeads does nothing; same for aggro mobs
+    if ( IS_NEUTRAL(victim) && (!IS_SET(victim->form, FORM_SENTIENT) || IS_UNDEAD(victim) || NPC_ACT(victim, ACT_AGGRESSIVE)) )
         return;
     
     // killing evil victims makes you good, killing neutral or good victims makes you evil

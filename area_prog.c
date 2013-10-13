@@ -26,10 +26,11 @@ bool ap_percent_trigger(
 		if ( prg->trig_type == type
                 && number_percent() <= atoi( prg->trig_phrase ) )
         {
-            return lua_area_program( NULL, prg->vnum, prg->code, area, ch1, NULL);
+            return lua_area_program( NULL, prg->vnum, prg->code, area, ch1, type);
         }
     }
-    return TRUE;
+    return (TRUE
+            && (ch1 ? ch1->must_extract : TRUE) );
 }
 
 bool ap_rexit_trigger(CHAR_DATA *ch)
@@ -127,8 +128,6 @@ void ap_quit_trigger(CHAR_DATA *ch)
 {
 	ROOM_INDEX_DATA *room;
 	
-//	room=ch->was_in_room;
-//	if (!room)
 	room=ch->in_room;
 		
 	if ( !room)

@@ -74,7 +74,6 @@ DECLARE_DO_FUN(	do_mpforget	);
 DECLARE_DO_FUN(	do_mpdelay	);
 DECLARE_DO_FUN(	do_mpcancel	);
 DECLARE_DO_FUN(	do_mpcall	);
-DECLARE_DO_FUN(	do_mpflee	);
 DECLARE_DO_FUN(	do_mpotransfer	);
 DECLARE_DO_FUN(	do_mpremove	);
 DECLARE_DO_FUN( do_mpremort     );

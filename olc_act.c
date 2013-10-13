@@ -2420,7 +2420,7 @@ REDIT( redit_clan )
     
     pRoom->clan = clan_lookup(argument);
     
-    send_to_char ( "Clan set.\n\r", ch);
+    ptc( ch, "Clan set to %s.\n\r", clan_table[pRoom->clan].name );
     return TRUE;
 }
 
@@ -2432,7 +2432,10 @@ REDIT( redit_clan_rank )
     
     pRoom->clan_rank = clan_rank_lookup(pRoom->clan, argument);
     
-    send_to_char ( "Clan Rank set.\n\r", ch);
+    if ( pRoom->clan_rank == 0 )
+        ptc( ch, "Clan Rank set to none.\n\r" );
+    else
+        ptc( ch, "Clan Rank set to %s.\n\r", clan_table[pRoom->clan].rank_list[pRoom->clan_rank] );  
     return TRUE;
 }
 
@@ -3952,7 +3955,7 @@ OEDIT( oedit_clan )
     
     pObj->clan = clan_lookup(argument);
     
-    send_to_char ( "Clan set.\n\r", ch);
+    ptc( ch, "Clan set to %s.\n\r", clan_table[pObj->clan].name );
     return TRUE;
 }
 
@@ -3964,7 +3967,10 @@ OEDIT( oedit_rank )
     
     pObj->rank = clan_rank_lookup(pObj->clan, argument);
     
-    send_to_char ( "Clan Rank set.\n\r", ch);
+    if ( pObj->rank == 0 )
+        ptc( ch, "Clan Rank set to none.\n\r" );
+    else
+        ptc( ch, "Clan Rank set to %s.\n\r", clan_table[pObj->clan].rank_list[pObj->rank] );
     return TRUE;
 }
 

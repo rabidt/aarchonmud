@@ -2104,7 +2104,8 @@ void obj_update( void )
             }
         }
 
-        op_percent_trigger( obj, NULL, NULL, NULL, OTRIG_RAND);
+        if ( !op_percent_trigger( obj, NULL, NULL, NULL, OTRIG_RAND) )
+            continue;
 
         if ( obj->timer <= 0 || --obj->timer > 0 )
             continue;
@@ -2408,12 +2409,20 @@ void death_update( void )
 void extract_update( void )
 {
     CHAR_DATA *ch, *ch_next;
+    OBJ_DATA  *obj, *obj_next;
 
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
         ch_next = ch->next;
         if ( ch->must_extract )
             extract_char( ch, TRUE );
+    }
+
+    for ( obj=object_list; obj != NULL ; obj=obj_next )
+    {  
+        obj_next = obj->next;
+        if ( obj->must_extract )
+            extract_obj( obj );
     }
 }
 
@@ -2803,7 +2812,6 @@ void change_align (CHAR_DATA *ch, int change_by)
 {
     double change = (double)change_by;
     double align;
-    int exp_loss;
     char buf[60];
 
     if ((change_by == 0) || (ch == NULL)) return;
@@ -2860,8 +2868,13 @@ void change_align (CHAR_DATA *ch, int change_by)
 
     if (!IS_HERO(ch))
     {
-        exp_loss = (int)(((float)(abs((int)ch->alignment)+100))*abs((int)change)/3000.0);
-        if (change > 20) exp_loss = exp_loss*6/5;
+        int exp_loss = 0;
+
+        if ( change > 0 && !IS_GOOD(ch) )
+            exp_loss = (int)(change * (1000 - ch->alignment) / 2000.0);
+        else if ( change < 0 && !IS_EVIL(ch) )
+            exp_loss = (int)(-change * (1000 + ch->alignment) / 2000.0);
+            
         gain_exp(ch, -exp_loss);
 
         if (exp_loss > 4)
