@@ -3109,7 +3109,7 @@ void spell_decompose(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 	return;
     }
     
-    if ( saves_spell(level,victim,DAM_HARM) || save_body_affect(victim, level) )
+    if ( saves_spell(level,victim,DAM_HARM) || saves_physical(victim, level, DAM_HARM) )
     {
 	send_to_char( "A wave of malvolent energy passes over your body.\n\r", victim );
 	send_to_char( "Spell failed to start decomposing.\n\r", ch );
@@ -3446,7 +3446,6 @@ void spell_mirror_image( int sn, int level, CHAR_DATA *ch, void *vo, int target 
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_phantasmal_image );
 
     af.type      = sn;
     af.level     = level;
@@ -3993,7 +3992,6 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_mirror_image );
 
     af.type      = sn;
     af.level     = level;

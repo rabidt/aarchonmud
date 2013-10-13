@@ -1046,8 +1046,8 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 	send_to_char(buf,ch);
 
 	sprintf( buf, 
-	"Hit: %d  Dam: %d  Saves: %d  Size: %s  Position: %s\n\r",
-	GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim),
+	"Hit: %d  Dam: %d  Saves: %d  Physical: %d  Size: %s  Position: %s\n\r",
+	GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim, FALSE), get_save(victim, TRUE),
 	size_table[victim->size].name, position_table[victim->position].name);
 	send_to_char( buf, ch );
 
