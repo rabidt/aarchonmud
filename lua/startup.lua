@@ -7,6 +7,17 @@ require "leaderboard"
 
 udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
 
+function MakeUdProxy(ud)
+    local proxy={}
+    setmetatable(proxy, {
+            __index = ud,
+            __newindex = function (t,k,v)
+                error("Cannot set values on game objects.")
+            end
+            }
+    )
+    return proxy
+end
 
 function RegisterUd(ud)
     if ud == nil then
