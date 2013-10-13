@@ -5195,8 +5195,8 @@ void do_attributes( CHAR_DATA *ch, char *argument )
         add_buf( output, buf );
 
         /* ** Hitroll, damroll ** */
-        sprintf( buf, "{D|{x {CHit{croll, {CDam{croll:{x %5d, %d     {CSaves:{x %d",
-            GET_HITROLL(ch),  GET_DAMROLL(ch), get_save(ch) );
+        sprintf( buf, "{D|{x {CHit{croll, {CDam{croll:{x %5d, %d     {CSaves, Physical:{x %5d, %d",
+            GET_HITROLL(ch),  GET_DAMROLL(ch), get_save(ch, FALSE), get_save(ch, TRUE) );
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
@@ -5887,7 +5887,7 @@ void do_oldattributes(CHAR_DATA *ch, char *argument)
         GET_HITROLL(ch), GET_DAMROLL(ch) );
     add_buf(output, buf);
         
-    sprintf( buf, "Saves: %d\n\r", get_save(ch));
+    sprintf( buf, "Saves: %d , Physical: %d\n\r", get_save(ch, FALSE), get_save(ch, TRUE));
     add_buf(output, buf);
         
 
