@@ -15,7 +15,7 @@ function RegisterUd(ud)
     end
 
     udtbl[ud.tableid]=ud
-    return
+    return udtbl[ud.tableid]
 end
 
 function UnregisterUd(lightud)
