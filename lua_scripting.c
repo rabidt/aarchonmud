@@ -311,7 +311,7 @@ static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
         /* already exists, now at top of stack */
         //log_string("already exists in make_ud_table");
         //bugf("%d",UDTYPE);  
-        return;
+        return TRUE;
     }
     lua_remove(g_mud_LS, -1); // kill the nil 
     char *meta;
