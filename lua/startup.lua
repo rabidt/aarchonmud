@@ -9,7 +9,7 @@ udtbl={} -- used to store tables with userdata, we clear it out at the end of ev
 envtbl={}
 
 function MakeUdProxy(ud)
-    local proxy={}
+    local proxy={plarpo=1234567}
     setmetatable(proxy, {
             __index = ud,
             __newindex = function (t,k,v)
@@ -25,8 +25,7 @@ function RegisterUd(ud)
         error("ud is nil")
         return
     end
-
-    udtbl[ud.tableid]=ud
+    udtbl[ud.tableid]=MakeUdProxy(ud)
     return udtbl[ud.tableid]
 end
 
