@@ -52,10 +52,13 @@ lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 #define LUA_LOOP_CHECK_INCREMENT 100
 #define ERR_INF_LOOP      -1
 
+#define CHECK_SECURITY( ls, sec ) if (s_ScriptSecurity<sec) luaL_error(ls, "Function requires security of %d", sec)
+#define MAX_LUA_SECURITY 9 
 
 /* file scope variables */
 bool        g_LuaScriptInProgress=FALSE;
 static int         s_LoopCheckCounter;
+static int         s_ScriptSecurity=0;
 
 void init_genrand(unsigned long s);
 void init_by_array(unsigned long init_key[], int key_length);
@@ -476,6 +479,8 @@ static int L_pagetochar (lua_State *LS)
 
 static int L_getobjlist (lua_State *LS)
 {
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
     OBJ_DATA *obj;
 
     int index=1;
@@ -765,7 +770,7 @@ static int L_ch_loadscript (lua_State *LS)
     lua_call( LS, 2, 1);
     
     /* now run the result as a regular mprog with vnum 0*/
-    lua_mob_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, -1), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL ); 
+    lua_mob_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, -1), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
 
     return 0;
 }
@@ -789,7 +794,7 @@ static int L_ch_loadprog (lua_State *LS)
         return 0;
     }
 
-    lua_mob_program( NULL, num, pMcode->code, ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL ); 
+    lua_mob_program( NULL, num, pMcode->code, ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 ); 
 
     return 0;
 }
@@ -2784,7 +2789,8 @@ void lua_mob_program( char *text, int pvnum, char *source,
         CHAR_DATA *mob, CHAR_DATA *ch, 
         const void *arg1, sh_int arg1type, 
         const void *arg2, sh_int arg2type,
-        int trig_type ) 
+        int trig_type,
+        int security ) 
 {
     lua_getglobal( g_mud_LS, "mob_program_setup");
     
@@ -2886,6 +2892,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
     {
         s_LoopCheckCounter=0;
         g_LuaScriptInProgress=TRUE;
+        s_ScriptSecurity=security;
     }
 
     error=CallLuaWithTraceBack (g_mud_LS, NUM_MPROG_ARGS, LUA_MULTRET) ;
@@ -2902,6 +2909,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
     {
         g_LuaScriptInProgress=FALSE;
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+        s_ScriptSecurity=0; /*just in case*/
     }
 }
 

@@ -8,7 +8,8 @@ void lua_mob_program( char *text, int pvnum, char *source,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, sh_int arg1type,
         const void *arg2, sh_int arg2type,
-        int trig_type );
+        int trig_type,
+        int security );
 
 bool lua_obj_program( char *trigger, int pvnum, char *source,
         OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
