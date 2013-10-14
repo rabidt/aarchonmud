@@ -269,6 +269,7 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
         {
 		          fprintf(fp, "#%d\n", i);
                   fprintf(fp, "%s~\n", pMprog->is_lua ? "IS_LUA" : "NOT_LUA" );
+                  fprintf(fp, "%s~%d\n", "SEC", pMprog->security);
                   fprintf(fp, "%s~\n", fix_string(pMprog->code));
         }
     }

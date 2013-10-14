@@ -2316,21 +2316,31 @@ void load_mobprogs( FILE *fp )
         pMprog      = alloc_perm( sizeof(*pMprog) );
         pMprog->vnum    = vnum;
         /* some funko stuff when loading old files that don't have is_lua data*/
-        char * tempStr = fread_string( fp );
-        if ( !strcmp( tempStr, "IS_LUA" ) )
+        char *tempStr;
+        while ( TRUE )
         {
-            pMprog->is_lua = TRUE;
-            pMprog->code = fread_string( fp );
-            lua_mprogs++;
-        }
-        else if ( !strcmp( tempStr, "NOT_LUA" ) )
-        {
-            pMprog->is_lua = FALSE;
-            pMprog->code = fread_string( fp );
-        }
-        else
-        {
-            pMprog->code    = tempStr;
+            tempStr = fread_string( fp );
+            if ( !strcmp( tempStr, "IS_LUA" ) )
+            {
+                pMprog->is_lua = TRUE;
+                free_string(tempStr);
+            }
+            else if ( !strcmp( tempStr, "NOT_LUA" ) )
+            {
+                pMprog->is_lua = FALSE;
+                free_string(tempStr);
+            }
+            else if ( !strcmp( tempStr, "SEC") )
+            {
+                pMprog->security = fread_number( fp );
+                free_string(tempStr);
+            }
+            else
+            {
+                pMprog->code    = tempStr;
+                lua_mprogs++;
+                break;
+            }
         }
 
         if ( mprog_list == NULL )

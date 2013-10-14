@@ -462,8 +462,8 @@ MPROG_CODE *new_mpcode(void)
          NewCode     = mpcode_free;
          mpcode_free = mpcode_free->next;
      }
-
-     NewCode->is_lua  = FALSE;
+     NewCode->security = 0;
+     NewCode->is_lua  = TRUE;
      NewCode->vnum    = 0;
      NewCode->code    = str_dup("");
      NewCode->next    = NULL;
