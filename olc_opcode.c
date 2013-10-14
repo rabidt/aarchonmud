@@ -305,7 +305,6 @@ void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
                     {
                         sprintf( buf, "Fixing obj %d.\n\r", obj->vnum );
                         send_to_char( buf, ch );
-                        mpl->code = pOcode->code;
                    
                         lua_load_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
                         ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);

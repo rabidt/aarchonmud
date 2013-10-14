@@ -3524,7 +3524,7 @@ OEDIT ( oedit_addoprog )
     list->vnum            = atoi(num);
     list->trig_type       = value;
     list->trig_phrase     = str_dup(phrase);
-    list->code            = code->code;
+    list->script          = code;
     SET_BIT(pObj->oprog_flags,value);
     list->next            = pObj->oprogs;
     pObj->oprogs          = list;

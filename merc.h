@@ -3174,7 +3174,7 @@ struct oprog_list
     int         trig_type;
     char *      trig_phrase;
     int *       vnum;
-    char *      code;
+    OPROG_CODE *    script;
     OPROG_LIST *    next;
     bool        valid;
     /* always lua */
@@ -3184,6 +3184,7 @@ struct oprog_code
 {
     /* always lua */
     int     vnum;
+    int     security;
     char    * code;
     OPROG_CODE *    next;
 };
