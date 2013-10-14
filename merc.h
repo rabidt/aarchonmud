@@ -3154,12 +3154,10 @@ struct mprog_list
 {
 	int         trig_type;
 	char *      trig_phrase;
-	int         vnum;
-	char *          code;
 	MPROG_LIST *    next;
+    int vnum;
+    MPROG_CODE *    script;
 	bool        valid;
-    bool is_lua;
-    int security;
 };
 
 struct mprog_code
