@@ -315,5 +315,5 @@ function area_program_setup(ud, f)
         envtbl[ud.tableid]=new_script_env(ud, "area", AREA_env_meta)
     end
     setfenv(f, envtbl[ud.tableid])
-    return fd
+    return f
 end
