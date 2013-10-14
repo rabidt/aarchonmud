@@ -2410,7 +2410,7 @@ void fix_objprogs( void )
                 if ( ( prog = get_oprog_index( list->vnum ) ) != NULL )
                 {
                     oprog_count++;
-                    list->code = prog->code;
+                    list->script = prog;
                 }
                 else
                 {
