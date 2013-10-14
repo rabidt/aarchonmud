@@ -345,7 +345,7 @@ int get_save(CHAR_DATA *ch, bool physical)
     saves -= (ch->level + 10) * save_factor/100;
     
     // WIS or VIT bonus
-    int stat = physical ? get_curr_stat(ch, STAT_VIT) : get_curr_stat(ch, STAT_WIS);
+    int stat = physical ? get_curr_stat(ch, STAT_CON) : get_curr_stat(ch, STAT_WIS);
     saves -= (ch->level + 10) * stat / 500;
 
     return saves;
