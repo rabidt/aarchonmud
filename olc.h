@@ -304,6 +304,7 @@ DECLARE_OLC_FUN( mpedit_list     );
 DECLARE_OLC_FUN( mpedit_if       );
 DECLARE_OLC_FUN( mpedit_mob      );
 DECLARE_OLC_FUN( mpedit_lua      );
+DECLARE_OLC_FUN( mpedit_security );
 
 /* Objprog editor */
 DECLARE_OLC_FUN( opedit_create   );

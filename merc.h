@@ -3159,6 +3159,7 @@ struct mprog_list
 	MPROG_LIST *    next;
 	bool        valid;
     bool is_lua;
+    int security;
 };
 
 struct mprog_code
@@ -3166,6 +3167,7 @@ struct mprog_code
     bool        is_lua;
 	int         vnum;
 	char *      code;
+    int         security;
 	MPROG_CODE *    next;
 };
 
@@ -4514,7 +4516,8 @@ bool    is_mprog_running  args( (void) );
 void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type,
                 const void *arg2, sh_int arg2type,
-                int trig_type) );
+                int trig_type,
+                int security) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type, 
                 const void *arg2, sh_int arg2type,
