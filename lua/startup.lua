@@ -210,7 +210,8 @@ main_lib={  require=require,
         pagetochar=pagetochar,
         getcharlist=getcharlist,
         getmoblist=getmoblist,
-        getplayerlist=getplayerlist
+        getplayerlist=getplayerlist,
+        getobjlist=getobjlist
 }
 -- Need to protect our library funcs from evil scripters
 function ProtectLib(lib)
