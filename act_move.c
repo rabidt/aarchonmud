@@ -3146,18 +3146,14 @@ void check_bleed( CHAR_DATA *ch, int dir )
     if ( ch->in_room->sector_type == SECT_AIR )
 	return;
 
-
-    if ( !is_affected(ch,gsn_rupture) && saves_physical(ch, (ch->max_hit/4 - ch->hit)/10, DAM_OTHER) )
+    int hp_below_min = ch->max_hit/4 - ch->hit;
+    if ( !is_affected(ch,gsn_rupture) && (hp_below_min <= 0 || saves_physical(ch, hp_below_min/10, DAM_OTHER)) )
         return;
 
     /* create blood object */
     if ( (blood = create_object(get_obj_index(OBJ_VNUM_BLOOD), 0)) == NULL )
-	return;
+        return;
 
-
-
-    if ( ch->hit <= ch->max_hit/4 || is_affected(ch, gsn_rupture) )
-    {
     /* add direction hint */
     sprintf( buf, "{rA trail of blood leads %s.{x", dir_name[dir] );
     free_string( blood->description );
@@ -3166,7 +3162,6 @@ void check_bleed( CHAR_DATA *ch, int dir )
     blood->timer = 10;
     obj_to_room( blood, ch->in_room );
     send_to_char( "{rYou leave a trail of blood.{x\n\r", ch );
-    }
 }
 
 
