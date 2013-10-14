@@ -311,7 +311,7 @@ static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
         /* already exists, now at top of stack */
         //log_string("already exists in make_ud_table");
         //bugf("%d",UDTYPE);  
-        return;
+        return TRUE;
     }
     lua_remove(g_mud_LS, -1); // kill the nil 
     char *meta;
@@ -347,12 +347,15 @@ static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
 
     lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
     lua_pushvalue( LS, -2);
-    if (CallLuaWithTraceBack( LS, 1, 0) )
+    if (CallLuaWithTraceBack( LS, 1, 1) )
     {
         bugf ( "Error registering UD:\n %s",
                lua_tostring(LS, -1));
         return FALSE;
     }
+
+    /* get rid of our original table, register send back a new version */
+    lua_remove( LS, -2 );
     
     return TRUE;
 }
