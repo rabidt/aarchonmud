@@ -1254,19 +1254,18 @@ void do_racelist(CHAR_DATA *ch, char *argument)
 
 void roll_dice (CHAR_DATA *ch, bool take_default)
 {
-    int minimum_roll[15] = {80,80,80,80,80,75,75,70,70,60,40,30,20,10,0};
-    int default_roll[15] = {95,95,95,95,95,90,90,85,85,75,55,45,35,25,15};
+    int minimum_roll[15] = {85,85,85,85,85,80,80,75,70,60,50,40,30,15,0};
     int i, j, swap, sum;
     
     if ( take_default )
     {
         for ( i = 0; i < 15; i++ )
-            ch->gen_data->unused_die[i] = default_roll[i];
+            ch->gen_data->unused_die[i] = minimum_roll[i] + 10;
     }
     else
     {
         for ( i = 0; i < 15; i++ )
-            ch->gen_data->unused_die[i] = minimum_roll[i] + dice(2,11) - 2;
+            ch->gen_data->unused_die[i] = minimum_roll[i] + dice(3,6) - 3;
         // sort
         for (i=0; i<14; i++)
             for (j=i+1; j<15; j++)
