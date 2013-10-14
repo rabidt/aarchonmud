@@ -98,6 +98,68 @@ void mpedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
+void do_mprun(CHAR_DATA *ch, char *argument)
+{
+    CHAR_DATA *mob=ch; /* default to char */
+    int vnum=0;
+    char arg[MSL];
+    char arg2[MSL];
+    MPROG_CODE *pMcode;
+
+
+    argument=one_argument( argument, arg );
+    if (is_number(arg))
+    {
+        /* 1st arg is vnum so just grab vnum and run prog */
+        vnum=atoi(arg);
+    }
+    else
+    {
+        /* look in room only to prevent any keyword mishaps */
+        if ( ( mob = get_char_room( ch, arg ) ) == NULL )
+        {
+            ptc( ch, "Couldn't find %s in the room.\n\r", arg );
+            return;
+        }
+        
+        argument=one_argument( argument, arg2 );
+
+        if (!is_number(arg2))
+        {
+            ptc( ch, "Bad argument #2: %s. Should be a number.\n\r", arg2);
+            return;
+        }
+        
+        vnum=atoi(arg2);
+    }
+
+    /* we have args, run the prog */
+    if ( ( pMcode=get_mprog_index(vnum) ) == NULL )
+    {
+        ptc( ch, "Mprog %d doesn't exist.\n\r", vnum );
+        return;
+    }
+    
+    if ( !pMcode->is_lua )
+    {
+        ptc( ch, "mprun only supports lua mprogs.\n\r" );
+        return;
+    }
+
+    ptc( ch, "Running mprog %d on %s(%d) in room %s(%d)\n\r",
+            vnum,
+            mob->name,
+            IS_NPC(mob) ? mob->pIndexData->vnum : 0,
+            mob->in_room ? mob->in_room->name : "NO ROOM",
+            mob->in_room ? mob->in_room->vnum : 0);
+
+    lua_mob_program( NULL, vnum, pMcode->code, mob, NULL, NULL, 0, NULL, 0, TRIG_CALL );
+
+    ptc( ch, "Mprog completed.\n\r");
+
+
+}
+
 void do_mpedit(CHAR_DATA *ch, char *argument)
 {
     MPROG_CODE *pMcode;
