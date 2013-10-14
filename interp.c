@@ -637,6 +637,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "apdump",     do_apdump,  POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpstat",     do_mpstat,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "mprun",      do_mprun,   POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
+    { "aprun",      do_aprun,   POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "mpfind",     do_mpfind,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "lfind",      do_lfind,   POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "frfind",     do_frfind,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
