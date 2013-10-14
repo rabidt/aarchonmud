@@ -328,11 +328,8 @@ void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
                     {
                         sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
                         send_to_char( buf, ch );
-                        mpl->code = pMcode->code;
-                        mpl->is_lua = pMcode->is_lua;
-                        mpl->security=pMcode->security;
 
-                        if ( mpl->is_lua )
+                        if ( mpl->script->is_lua )
                         {
                             lua_load_mprog( g_mud_LS, pMcode->vnum, pMcode->code);
                             ptc(ch, "Fixed lua script for %d.\n\r", pMcode->vnum);
