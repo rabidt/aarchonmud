@@ -898,7 +898,7 @@ OPROG_LIST *new_oprog(void)
    *op = op_zero;
    op->vnum             = 0;
    op->trig_type        = 0;
-   op->code             = str_dup("");
+   op->script           = NULL;
    VALIDATE(op);
    return op;
 }
