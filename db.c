@@ -2377,8 +2377,7 @@ void fix_mobprogs( void )
                 if ( ( prog = get_mprog_index( list->vnum ) ) != NULL )
                 {
                     mprog_count++;
-                    list->code = prog->code;
-                    list->is_lua = prog->is_lua;
+                    list->script = prog;
                 }
                 else
                 {
