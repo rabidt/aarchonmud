@@ -525,6 +525,7 @@ int         sAllocPerm;
 
 /* version numbers for downward compatibility */
 #define VER_EXIT_FLAGS 1
+#define VER_NEW_PROG_FORMAT 2
 static int area_version = 0;
 
 /*
@@ -2210,7 +2211,39 @@ void load_areaprogs( FILE *fp )
 
         pAprog      = alloc_perm( sizeof(*pAprog) );
         pAprog->vnum    = vnum;
-        pAprog->code    = fread_string( fp );
+
+        if ( area_version < VER_NEW_PROG_FORMAT )
+        {
+            /* old code for old format */
+            pAprog->code    = fread_string( fp );
+        }
+        else
+        {
+            /* new code for new format */
+            char *word;
+            for ( ; ; )
+            {
+                word=fread_word(fp);
+
+                if (!strcmp( word, "SEC" ) )
+                {
+                    pAprog->security=fread_number(fp);
+                }
+                else if (!strcmp( word, "CODE" ) )
+                {
+                    pAprog->code=fread_string(fp);
+                }
+                else if (!strcmp( word, "End" ) )
+                {
+                    break;
+                }
+                else
+                {
+                    bugf("Unrecognized word in load_areaprogs: %s", word);
+                    exit(1);
+                }
+            }
+        }
 
         if ( aprog_list == NULL )
             aprog_list = pAprog;
@@ -2250,7 +2283,7 @@ void load_objprogs( FILE *fp )
         }
 
         vnum         = fread_number( fp );
-        if ( vnum == 0 )
+        if ( vnum == 0 ) /* end of section */
             break;
 
         fBootDb = FALSE;
@@ -2263,7 +2296,39 @@ void load_objprogs( FILE *fp )
 
         pOprog      = alloc_perm( sizeof(*pOprog) );
         pOprog->vnum    = vnum;
-        pOprog->code    = fread_string( fp );
+
+        if ( area_version < VER_NEW_PROG_FORMAT )
+        {
+            /* old code for old format */
+            pOprog->code    = fread_string( fp );
+        }
+        else
+        {
+            /* new code for new format */
+            for ( ; ; )
+            {
+                char *word=fread_word(fp);
+
+                if (!strcmp(word, "CODE") )
+                {
+                    pOprog->code=fread_string(fp);
+                }
+                else if ( !strcmp(word, "SEC") )
+                {
+                    pOprog->security=fread_number(fp);
+                }
+                else if ( !strcmp(word, "End") )
+                {
+                    break;
+                }
+                else
+                {
+                    bugf("Unrecognized word in load_objprogs: %s", word);
+                    exit(1);
+                }
+            }
+        }
+                
 
         if ( oprog_list == NULL )
             oprog_list = pOprog;
@@ -2315,33 +2380,62 @@ void load_mobprogs( FILE *fp )
         
         pMprog      = alloc_perm( sizeof(*pMprog) );
         pMprog->vnum    = vnum;
-        /* some funko stuff when loading old files that don't have is_lua data*/
-        char *tempStr;
-        while ( TRUE )
+
+        if ( area_version < VER_NEW_PROG_FORMAT )
         {
-            tempStr = fread_string( fp );
+            /* old code for old format */
+
+            /* some funko stuff when loading old files that don't have is_lua data*/
+            char * tempStr = fread_string( fp );
             if ( !strcmp( tempStr, "IS_LUA" ) )
             {
                 pMprog->is_lua = TRUE;
-                free_string(tempStr);
+                pMprog->code = fread_string( fp );
+                lua_mprogs++;
             }
             else if ( !strcmp( tempStr, "NOT_LUA" ) )
             {
                 pMprog->is_lua = FALSE;
-                free_string(tempStr);
-            }
-            else if ( !strcmp( tempStr, "SEC") )
-            {
-                pMprog->security = fread_number( fp );
-                free_string(tempStr);
+                pMprog->code = fread_string( fp );
             }
             else
             {
                 pMprog->code    = tempStr;
-                lua_mprogs++;
-                break;
             }
         }
+        else
+        {
+            /* new code for new format */
+            char *word;
+            for ( ; ; )
+            {
+                word=fread_word(fp);
+
+                if (!strcmp(word, "LUA" ))
+                {
+                    pMprog->is_lua=fread_number(fp);
+                }
+                else if (!strcmp(word, "SEC"))
+                {
+                    pMprog->security=fread_number(fp);
+                }
+                else if (!strcmp(word, "CODE"))
+                {
+                    pMprog->code=fread_string(fp);
+                }
+                else if (!strcmp(word, "End") )
+                {
+                    lua_mprogs++;
+                    break;
+                }
+                else
+                {
+                    bugf("Unrecognized word in load_mobprogs: %s", word);
+                    exit(1);
+                }
+                
+            } /* end for loop */
+        } /* end else */
 
         if ( mprog_list == NULL )
             mprog_list = pMprog;
@@ -2351,7 +2445,7 @@ void load_mobprogs( FILE *fp )
             mprog_list  = pMprog;
         }
         top_mprog_index++;
-    }
+    } /* end for loop */
     return;
 }
 
@@ -2441,7 +2535,7 @@ void fix_areaprogs( void )
             if ( ( prog = get_aprog_index( list->vnum ) ) != NULL )
             {
                 aprog_count++;
-                list->code = prog->code;
+                list->script = prog;
             }
             else
             {

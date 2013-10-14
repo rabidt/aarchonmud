@@ -13,11 +13,13 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
 bool lua_obj_program( char *trigger, int pvnum, char *source,
         OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
-        int trig_type );
+        int trig_type,
+        int security );
 
 bool lua_area_program( char *trigger, int pvnum, char *source,
         AREA_DATA *area, CHAR_DATA *ch1,
-        int trig_type );
+        int trig_type,
+        int security );
 
    
 bool lua_load_mprog( lua_State *LS, int vnum, char *code);
