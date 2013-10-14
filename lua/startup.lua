@@ -6,25 +6,40 @@ require "utilities"
 require "leaderboard"
 
 udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
+envtbl={}
 
+function MakeUdProxy(ud)
+    local proxy={}
+    setmetatable(proxy, {
+            __index = ud,
+            __newindex = function (t,k,v)
+                error("Cannot set values on game objects.")
+            end,
+            __metatable=0 -- any value here protects it
+            }
+    )
+    return proxy
+end
 
 function RegisterUd(ud)
     if ud == nil then
         error("ud is nil")
         return
     end
-
-    udtbl[ud.tableid]=ud
-    return
+    udtbl[ud.tableid]=MakeUdProxy(ud)
+    return udtbl[ud.tableid]
 end
 
 function UnregisterUd(lightud)
-    if not(udtbl[lightud]) then return end
+    if udtbl[lightud] then
+        udtbl[lightud]={}
+        udtbl[lightud]=nil
+    end
 
-    setmetatable(udtbl[lightud], nil)
-    rawset(udtbl[lightud], "tableid",nil)
-    udtbl[lightud]={}
-    udtbl[lightud]=nil
+    if envtbl[lightud] then
+        envtbl[lightud]={}
+        envtbl[lightud]=nil
+    end
 end
 
 function rand(pcnt)
@@ -87,6 +102,20 @@ end
 
 -- Standard functionality avaiable for any env type
 -- doesn't require access to env variables
+function MakeLibProxy(tbl)
+    local mt={
+        __index=tbl,
+        __newindex=function(t,k,v)
+            error("Cannot alter library functions.")
+        end,
+        __metatable=0 -- any value here protects it
+    }
+    
+    local proxy={}
+    setmetatable(proxy, mt)
+    return proxy
+end
+
 main_lib={  require=require,
 		assert=assert,
 		error=error,
@@ -161,8 +190,9 @@ main_lib={  require=require,
 		os={time=os.time,
 			clock=os.clock,
 			difftime=os.difftime},
+        -- this is safe because we protected the game object and main lib
+        --  metatables.
 		setmetatable=setmetatable,
-
 		-- okay now our stuff
 		-- checks
 		hour=hour,
@@ -182,7 +212,22 @@ main_lib={  require=require,
         getmoblist=getmoblist,
         getplayerlist=getplayerlist
 }
-	
+-- Need to protect our library funcs from evil scripters
+function ProtectLib(lib)
+    for k,v in pairs(lib) do
+        if type(v) == "table" then
+            ProtectLib(v) -- recursion in case we add some nested libs
+            lib[k]=MakeLibProxy(v)
+        end
+    end
+    return MakeLibProxy(lib)
+end
+main_lib=ProtectLib(main_lib)
+
+function NameProtected(name)
+    if main_lib[name] then return true else return false end
+end
+
 -- First look for main_lib funcs, then mob/area/obj funcs
 -- (providing env as argument)
 CH_env_meta={
@@ -224,50 +269,51 @@ AREA_env_meta={
     end
 }
 
-function new_AREA_env()
-    local o={}
-    setmetatable(o, AREA_env_meta)
-    return o
+function MakeEnvProxy(env)
+    local proxy={}
+    proxy._G=proxy
+    setmetatable(proxy, {
+            __index = env,
+            __newindex = function (t,k,v)
+                if k=="tableid" then
+                    error("Cannot alter tableid of environment.")
+                else
+                    rawset(t,k,v)
+                end
+            end,
+            __metatable=0 -- any value here protects it
+            }
+    )
+
+    return proxy
 end
 
-function new_OBJ_env()
-    local o={}
-    setmetatable(o, OBJ_env_meta)
-    return o
-end
-
-function new_CH_env()
-    local o={}
-    setmetatable(o, CH_env_meta)
-    return o
+function new_script_env(ud, objname, meta)
+    local env={[objname]=ud}
+    setmetatable(env, meta)
+    return MakeEnvProxy(env)
 end
 
 function mob_program_setup(ud, f)
-    if ud.env==nil then
-      rawset(ud, "env", new_CH_env())
-      ud.env.mob=ud
-      ud.env._G=ud.env
+    if envtbl[ud.tableid]==nil then
+        envtbl[ud.tableid]=new_script_env(ud, "mob", CH_env_meta) 
     end
-    setfenv(f, ud.env)
+    setfenv(f, envtbl[ud.tableid])
     return f
 end
 
 function obj_program_setup(ud, f)
-    if ud.env==nil then
-      rawset(ud, "env", new_OBJ_env())
-      ud.env.obj=ud
-      ud.env._G=ud.env
+    if envtbl[ud.tableid]==nil then
+        envtbl[ud.tableid]=new_script_env(ud, "obj", OBJ_env_meta)
     end
-    setfenv(f, ud.env)
+    setfenv(f, envtbl[ud.tableid])
     return f
 end
 
 function area_program_setup(ud, f)
-    if ud.env==nil then
-      rawset(ud, "env", new_AREA_env())
-      ud.env.area=ud
-      ud.env._G=ud.env
+    if envtbl[ud.tableid]==nil then
+        envtbl[ud.tableid]=new_script_env(ud, "area", AREA_env_meta)
     end
-    setfenv(f, ud.env)
+    setfenv(f, envtbl[ud.tableid])
     return f
 end

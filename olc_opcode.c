@@ -97,6 +97,69 @@ void opedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
+void do_oprun(CHAR_DATA *ch, char *argument)
+{
+    if (IS_NPC(ch))
+        return;
+
+    OBJ_DATA *obj;
+    int vnum=0;
+    char arg[MSL];
+    char arg2[MSL];
+    OPROG_CODE *pOcode;
+    bool result;
+
+    if ( argument[0]=='\0' )
+    {
+        ptc(ch, "oprun [objname] [vnum]\n\r");
+        return;
+    }
+
+    argument=one_argument( argument, arg );
+
+    if ( ( obj = get_obj_here( ch, arg ) ) == NULL )
+    {
+        ptc( ch, "Couldn't find %s in room or inventory.\n\r", arg );
+        return;
+    }
+
+    argument=one_argument( argument, arg2 );
+
+    if (!is_number(arg2))
+    {
+        ptc( ch, "Bad argument #2: %s. Should be a number.\n\r", arg2);
+        return;
+    }
+
+    vnum=atoi(arg2);
+
+    if ( ( pOcode=get_oprog_index(vnum) ) == NULL )
+    {
+        ptc( ch, "Oprog %d doesn't exist.\n\r", vnum );
+        return;
+    }
+
+    ptc( ch, "Running oprog %d on %s(%d)",
+            vnum,
+            obj->name,
+            obj->pIndexData->vnum);
+    if ( obj->in_room )
+        ptc( ch, " in room %s(%d)", obj->in_room->name, obj->in_room->vnum );
+    else if ( obj->carried_by )
+        ptc( ch, " in %s's inventory", obj->carried_by->name );
+    else if ( obj->in_obj )
+        ptc( ch, " in %s(%d)", obj->in_obj, obj->in_obj->pIndexData->vnum );
+
+    ptc( ch, " with %s as ch1\n\r", ch->name);
+
+   result=lua_obj_program( NULL, vnum, pOcode->code, obj, NULL, ch, NULL, OTRIG_CALL);
+
+   ptc( ch, "Oprog completed. Result is: %s\n\r", result ? "TRUE" : "FALSE" );
+
+}
+
+    
+
 void do_opedit(CHAR_DATA *ch, char *argument)
 {
     OPROG_CODE *pOcode;

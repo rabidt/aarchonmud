@@ -98,6 +98,85 @@ void mpedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
+void do_mprun(CHAR_DATA *ch, char *argument)
+{
+
+    if (IS_NPC(ch))
+        return;
+
+    CHAR_DATA *mob;
+    CHAR_DATA *ch1=NULL;
+    int vnum=0;
+    char arg[MSL];
+    char arg2[MSL];
+    MPROG_CODE *pMcode;
+
+    if ( argument[0]=='\0' )
+    {
+        ptc(ch, "mprun [vnum] (runs on self)\n\r");
+        ptc(ch, "mprun [mobname] [vnum] (runs on mob, same room only)\n\r");
+        return;
+    }
+
+    argument=one_argument( argument, arg );
+    if (is_number(arg))
+    {
+        /* 1st arg is vnum so just grab vnum and run prog */
+        vnum=atoi(arg);
+        mob=ch;
+    }
+    else
+    {
+        /* look in room only to prevent any keyword mishaps */
+        if ( ( mob = get_char_room( ch, arg ) ) == NULL )
+        {
+            ptc( ch, "Couldn't find %s in the room.\n\r", arg );
+            return;
+        }
+        ch1=ch;
+        
+        argument=one_argument( argument, arg2 );
+
+        if (!is_number(arg2))
+        {
+            ptc( ch, "Bad argument #2: %s. Should be a number.\n\r", arg2);
+            return;
+        }
+        
+        vnum=atoi(arg2);
+    }
+
+    /* we have args, run the prog */
+    if ( ( pMcode=get_mprog_index(vnum) ) == NULL )
+    {
+        ptc( ch, "Mprog %d doesn't exist.\n\r", vnum );
+        return;
+    }
+    
+    if ( !pMcode->is_lua )
+    {
+        ptc( ch, "mprun only supports lua mprogs.\n\r" );
+        return;
+    }
+
+    ptc( ch, "Running mprog %d on %s(%d) in room %s(%d)",
+            vnum,
+            mob->name,
+            IS_NPC(mob) ? mob->pIndexData->vnum : 0,
+            mob->in_room ? mob->in_room->name : "NO ROOM",
+            mob->in_room ? mob->in_room->vnum : 0);
+
+    if (ch1)
+        ptc( ch, " with %s as ch1", ch1->name);
+    ptc(ch, "\n\r");
+
+    lua_mob_program( NULL, vnum, pMcode->code, mob, (mob==ch)?NULL:ch, NULL, 0, NULL, 0, TRIG_CALL );
+
+    ptc( ch, "Mprog completed.\n\r");
+
+
+}
+
 void do_mpedit(CHAR_DATA *ch, char *argument)
 {
     MPROG_CODE *pMcode;
