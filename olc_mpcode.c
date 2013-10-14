@@ -104,7 +104,8 @@ void do_mprun(CHAR_DATA *ch, char *argument)
     if (IS_NPC(ch))
         return;
 
-    CHAR_DATA *mob=ch; /* default to char */
+    CHAR_DATA *mob;
+    CHAR_DATA *ch1=NULL;
     int vnum=0;
     char arg[MSL];
     char arg2[MSL];
@@ -122,6 +123,7 @@ void do_mprun(CHAR_DATA *ch, char *argument)
     {
         /* 1st arg is vnum so just grab vnum and run prog */
         vnum=atoi(arg);
+        mob=ch;
     }
     else
     {
@@ -131,6 +133,7 @@ void do_mprun(CHAR_DATA *ch, char *argument)
             ptc( ch, "Couldn't find %s in the room.\n\r", arg );
             return;
         }
+        ch1=ch;
         
         argument=one_argument( argument, arg2 );
 
@@ -156,14 +159,18 @@ void do_mprun(CHAR_DATA *ch, char *argument)
         return;
     }
 
-    ptc( ch, "Running mprog %d on %s(%d) in room %s(%d)\n\r",
+    ptc( ch, "Running mprog %d on %s(%d) in room %s(%d)",
             vnum,
             mob->name,
             IS_NPC(mob) ? mob->pIndexData->vnum : 0,
             mob->in_room ? mob->in_room->name : "NO ROOM",
             mob->in_room ? mob->in_room->vnum : 0);
 
-    lua_mob_program( NULL, vnum, pMcode->code, mob, NULL, NULL, 0, NULL, 0, TRIG_CALL );
+    if (ch1)
+        ptc( ch, " with %s as ch1", ch1->name);
+    ptc(ch, "\n\r");
+
+    lua_mob_program( NULL, vnum, pMcode->code, mob, (mob==ch)?NULL:ch, NULL, 0, NULL, 0, TRIG_CALL );
 
     ptc( ch, "Mprog completed.\n\r");
 
