@@ -271,6 +271,7 @@ AREA_env_meta={
 
 function MakeEnvProxy(env)
     local proxy={}
+    proxy._G=proxy
     setmetatable(proxy, {
             __index = env,
             __newindex = function (t,k,v)
@@ -289,7 +290,6 @@ end
 
 function new_script_env(ud, objname, meta)
     local env={[objname]=ud}
-    env._G=env
     setmetatable(env, meta)
     return MakeEnvProxy(env)
 end
@@ -304,7 +304,7 @@ end
 
 function obj_program_setup(ud, f)
     if envtbl[ud.tableid]==nil then
-        envtbl[ud.tableid]=new_script_env(ud, "mob", OBJ_env_meta)
+        envtbl[ud.tableid]=new_script_env(ud, "obj", OBJ_env_meta)
     end
     setfenv(f, envtbl[ud.tableid])
     return f
