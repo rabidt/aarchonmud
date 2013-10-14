@@ -499,6 +499,7 @@ OPROG_CODE *new_opcode(void)
      NewCode->vnum    = 0;
      NewCode->code    = str_dup("");
      NewCode->next    = NULL;
+     NewCode->security= 0;
 
      return NewCode;
 }
@@ -531,6 +532,7 @@ APROG_CODE *new_apcode(void)
      NewCode->vnum    = 0;
      NewCode->code    = str_dup("");
      NewCode->next    = NULL;
+     NewCode->security = 0;
 
      return NewCode;
 }

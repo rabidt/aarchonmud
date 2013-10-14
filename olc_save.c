@@ -268,9 +268,10 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
         if ( (pMprog = get_mprog_index(i) ) != NULL)
         {
 		          fprintf(fp, "#%d\n", i);
-                  fprintf(fp, "%s~\n", pMprog->is_lua ? "IS_LUA" : "NOT_LUA" );
-                  fprintf(fp, "%s~%d\n", "SEC", pMprog->security);
-                  fprintf(fp, "%s~\n", fix_string(pMprog->code));
+                  fprintf(fp, "LUA %d", pMprog->is_lua);
+                  fprintf(fp, "SEC %d\n", pMprog->security);
+                  fprintf(fp, "CODE %s~\n", fix_string(pMprog->code));
+                  fprintf(fp, "End\n");
         }
     }
     
@@ -290,7 +291,9 @@ void save_objprogs( FILE *fp, AREA_DATA *pArea )
         if ( (pOprog = get_oprog_index(i) ) != NULL)
         {
                   fprintf(fp, "#%d\n", i);
-                  fprintf(fp, "%s~\n", fix_string(pOprog->code));
+                  fprintf(fp, "SEC %d\n", pOprog->security);
+                  fprintf(fp, "CODE %s~\n", fix_string(pOprog->code));
+                  fprintf(fp, "End\n");
         }
     }
 
@@ -310,7 +313,9 @@ void save_areaprogs( FILE *fp, AREA_DATA *pArea )
         if ( (pAprog = get_aprog_index(i) ) != NULL)
         {
                   fprintf(fp, "#%d\n", i);
-                  fprintf(fp, "%s~\n", fix_string(pAprog->code));
+                  fprintf(fp, "SEC %d\n", pAprog->security);
+                  fprintf(fp, "CODE %s~\n", fix_string(pAprog->code));
+                  fprintf(fp, "End\n");
         }
     }
 

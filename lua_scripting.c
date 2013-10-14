@@ -813,7 +813,7 @@ static int L_obj_loadscript (lua_State *LS)
     /* now run the result as a regular oprog with vnum 0*/
 
     lua_pushboolean( LS, 
-        lua_obj_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1), ud_obj, NULL, NULL, NULL, OTRIG_CALL) );
+        lua_obj_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
 
     return 1;
 
@@ -832,7 +832,7 @@ static int L_obj_loadprog (lua_State *LS)
     }
 
     lua_pushboolean( LS, 
-        lua_obj_program( NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL, OTRIG_CALL) );
+        lua_obj_program( NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
 
     return 1;
 }
@@ -850,7 +850,7 @@ static int L_area_loadscript (lua_State *LS)
 
     /* now run the result as a regular aprog with vnum 0*/
     lua_pushboolean( LS,
-        lua_area_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1), ud_area, NULL, ATRIG_CALL) );
+        lua_area_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1), ud_area, NULL, ATRIG_CALL, 0) );
 
     return 1;
 
@@ -869,7 +869,7 @@ static int L_area_loadprog (lua_State *LS)
     }
 
     lua_pushboolean( LS,
-            lua_area_program( NULL, num, pAcode->code, ud_area, NULL, ATRIG_CALL) );
+            lua_area_program( NULL, num, pAcode->code, ud_area, NULL, ATRIG_CALL, 0) );
 
     return 1;
 }
@@ -2916,7 +2916,8 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
 bool lua_obj_program( char *trigger, int pvnum, char *source, 
         OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
-        int trig_type ) 
+        int trig_type,
+        int security ) 
 {
     bool result=FALSE;
 
@@ -3001,6 +3002,7 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     {
         s_LoopCheckCounter=0;
         g_LuaScriptInProgress=TRUE;
+        s_ScriptSecurity=security;
     }
     
     error=CallLuaWithTraceBack (g_mud_LS, NUM_OPROG_ARGS, NUM_OPROG_RESULTS) ;
@@ -3019,6 +3021,7 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     {
         g_LuaScriptInProgress=FALSE;
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+        s_ScriptSecurity=0; /* just in case */
     }
     return result;
 }
@@ -3104,6 +3107,7 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     {
         s_LoopCheckCounter=0;
         g_LuaScriptInProgress=TRUE;
+        s_ScriptSecurity=security;
     }
 
     error=CallLuaWithTraceBack (g_mud_LS, NUM_APROG_ARGS, NUM_APROG_RESULTS) ;
@@ -3120,6 +3124,7 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     if (!nest)
     {
         g_LuaScriptInProgress=FALSE;
+        s_ScriptSecurity=0; /* just in case */
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     }
     return result;

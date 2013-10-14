@@ -931,7 +931,7 @@ APROG_LIST *new_aprog(void)
    *ap = ap_zero;
    ap->vnum             = 0;
    ap->trig_type        = 0;
-   ap->code             = str_dup("");
+   ap->script           = NULL;
    VALIDATE(ap);
    return ap;
 }
