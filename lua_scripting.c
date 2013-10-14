@@ -474,6 +474,22 @@ static int L_pagetochar (lua_State *LS)
     return 0;
 }
 
+static int L_getobjlist (lua_State *LS)
+{
+    OBJ_DATA *obj;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( obj=object_list ; obj ; obj=obj->next )
+    {
+        if (make_ud_table(LS, obj, UDTYPE_OBJ))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+
 static int L_getcharlist (lua_State *LS)
 {
     CHAR_DATA *ch;
@@ -2550,6 +2566,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getcharlist", L_getcharlist);
     lua_register(LS,"getmoblist",  L_getmoblist );
     lua_register(LS,"getplayerlist", L_getplayerlist);
+    lua_register(LS,"getobjlist", L_getobjlist);
 }
 
 static int RegisterLuaRoutines (lua_State *LS)
