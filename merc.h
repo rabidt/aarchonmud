@@ -320,7 +320,7 @@ bool is_questeq( OBJ_DATA *obj );
 #endif
 /* version numbers for downward compatibility
  */
-#define CURR_AREA_VERSION 1
+#define CURR_AREA_VERSION 2 
 
 /*#define CREATOR         (MAX_LEVEL - 1)
 #define SUPREME         (MAX_LEVEL - 2)
@@ -3194,7 +3194,7 @@ struct aprog_list
     int         trig_type;
     char *      trig_phrase;
     int *       vnum;
-    char *      code;
+    APROG_CODE *    script;
     APROG_LIST *    next;
     bool        valid;
     /* always lua */
@@ -3204,6 +3204,7 @@ struct aprog_code
 {
     /* always lua */
     int     vnum;
+    int     security;
     char    * code;
     APROG_CODE *    next;
 };
