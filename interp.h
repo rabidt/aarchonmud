@@ -585,3 +585,5 @@ DECLARE_DO_FUN( do_smith);
 DECLARE_DO_FUN( do_pgrep);
 DECLARE_DO_FUN( do_luareset);
 DECLARE_DO_FUN( do_void);
+DECLARE_DO_FUN( do_mprun);
+
