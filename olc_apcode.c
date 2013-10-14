@@ -97,6 +97,70 @@ void apedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
+void do_aprun( CHAR_DATA *ch, char *argument)
+{
+    if ( IS_NPC(ch) )
+        return;
+
+    AREA_DATA *area;
+    int vnum=0;
+    char arg[MSL];
+    char arg2[MSL];
+    APROG_CODE *pAcode;
+    bool result=FALSE;
+
+    if ( argument[0]=='\0' )
+    {
+        ptc(ch, "aprun [vnum]\n\r");
+        return;
+    }
+
+    argument=one_argument( argument, arg );
+
+    if (!is_number(arg))
+    {
+        ptc( ch, "Bad argument: %s. Should be a number.\n\r", arg);
+        return;
+    }
+    
+    vnum=atoi(arg);
+
+    if ( ( pAcode=get_aprog_index(vnum) ) == NULL )
+    {
+        ptc( ch, "Aprog %d doesn't exist.\n\r", vnum );
+        return;
+    }
+
+    if ( ch->in_room && ch->in_room->area )
+    {
+        area=ch->in_room->area;
+    }
+    else
+    {
+        ptc( ch, "Couldn't find area!\n\r");
+        if ( !ch->in_room )
+        {
+            bugf("do_aprun: %s has no in_room", ch->name);
+        }
+        else if ( !ch->in_room->area )
+        {
+            bugf("do_aprun: %s(%d) has no area", ch->in_room->name, ch->in_room->vnum);
+        }
+        return;
+    }
+
+
+    ptc( ch, "Running aprog %d in area %s with %s as ch1\n\r",
+            vnum,
+            area->name,
+            ch->name);
+
+    result=lua_area_program( NULL, vnum, pAcode->code, area, ch, ATRIG_CALL );
+
+    ptc( ch, "Aprog completed. Result: %s\n\r", result ? "TRUE" : "FALSE" );
+
+}
+
 void do_apedit(CHAR_DATA *ch, char *argument)
 {
     APROG_CODE *pAcode;

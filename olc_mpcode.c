@@ -100,12 +100,22 @@ void mpedit( CHAR_DATA *ch, char *argument)
 
 void do_mprun(CHAR_DATA *ch, char *argument)
 {
+
+    if (IS_NPC(ch))
+        return;
+
     CHAR_DATA *mob=ch; /* default to char */
     int vnum=0;
     char arg[MSL];
     char arg2[MSL];
     MPROG_CODE *pMcode;
 
+    if ( argument[0]=='\0' )
+    {
+        ptc(ch, "mprun [vnum] (runs on self)\n\r");
+        ptc(ch, "mprun [mobname] [vnum] (runs on mob, same room only)\n\r");
+        return;
+    }
 
     argument=one_argument( argument, arg );
     if (is_number(arg))
