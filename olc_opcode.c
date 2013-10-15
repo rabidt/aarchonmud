@@ -27,6 +27,7 @@ const struct olc_cmd_type opedit_table[] =
    {  "create",   opedit_create  },
    {  "code",     opedit_code    },
    {  "show",     opedit_show    },
+   {  "security", opedit_security},
    //{  "list",     opedit_list    },
    //{  "if",       opedit_if      },
    //{  "mob",      opedit_mob     },
@@ -282,12 +283,55 @@ OPEDIT(opedit_show)
 
     sprintf(buf,
            "Vnum:       [%d]\n\r"
+           "Security:   %d\n\r"
            "Code:\n\r%s\n\r",
            pOcode->vnum,
+           pOcode->security,
            pOcode->code  );
     page_to_char_new(buf, ch, TRUE);
 
     return FALSE;
+}
+
+OPEDIT(opedit_security)
+{
+    OPROG_CODE *pOcode;
+    EDIT_OPCODE(ch, pOcode);
+    int newsec;
+
+    if ( argument[0] == '\0' )
+    {
+        newsec=ch->pcdata->security;
+    }
+    else
+    {
+        if (is_number(argument))
+        {
+            newsec=atoi(argument);
+        }
+        else
+        {
+            ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
+            return;
+        }
+    }
+
+    if (newsec == pOcode->security)
+    {
+        ptc(ch, "Security is already at %d.\n\r", newsec );
+        return;
+    }
+    else if (newsec > ch->pcdata->security )
+    {
+        ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
+                ch->pcdata->security, newsec);
+        return;
+    }
+
+    pOcode->security=newsec;
+    ptc(ch, "Security for %d updated to %d.\n\r",
+            pOcode->vnum, pOcode->security);
+
 }
 
 void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
