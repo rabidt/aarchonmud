@@ -259,7 +259,7 @@ static ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
     return room;
 }
 
-static EXIT_DATA *check_exit( lua_State *LS, int arg)
+static EXIT_DATA *check_EXIT( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
@@ -1635,7 +1635,7 @@ static int L_mud_userdir( lua_State *LS)
 
 static int L_exit_flag( lua_State *LS)
 {
-    EXIT_DATA *ud_exit = check_exit(LS, 1);
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
     const char *argument = luaL_checkstring (LS, 2);
 
     sh_int flag=flag_lookup( argument, exit_flags);
@@ -2086,37 +2086,37 @@ static const struct luaL_reg mtlib[] = {
 
 static int CH2string (lua_State *LS) 
 {
-    lua_pushliteral (LS, "mud_character");
+    lua_pushstring( LS, (check_CH( LS, 1 ))->name);
     return 1;
 }
 
 static int OBJ2string (lua_State *LS)
 {
-    lua_pushliteral (LS, "mud_object");
+    lua_pushstring( LS, (check_OBJ( LS, 1))->name);
     return 1;
 }
 
 static int OBJPROTO2string (lua_State *LS)
 {
-    lua_pushliteral (LS, "mud_object_prototype");
+    lua_pushstring( LS, (check_OBJPROTO( LS, 1))->name);
     return 1;
 }
 
 static int ROOM2string (lua_State *LS)
 {
-    lua_pushliteral (LS, "mud_room");
+    lua_pushstring( LS, (check_ROOM( LS, 1))->name);
     return 1;
 }
 
 static int EXIT2string (lua_State *LS)
 {
-    lua_pushliteral (LS, "mud_exit");
+    lua_pushliteral( LS, "mud_exit");
     return 1;
 }
 
 static int AREA2string (lua_State *LS)
 {
-    lua_pushliteral (LS, "mud_area");
+    lua_pushstring( LS, (check_AREA( LS, 1))->name);
     return 1;
 }
 
@@ -2373,7 +2373,7 @@ static int get_AREA_field ( lua_State *LS )
 
 static int check_EXIT_equal( lua_State *LS)
 {
-    lua_pushboolean( LS, check_exit(LS, 1) == check_exit(LS, 2) );
+    lua_pushboolean( LS, check_EXIT(LS, 1) == check_EXIT(LS, 2) );
     return 1;
 }
 
@@ -2394,7 +2394,7 @@ static int get_EXIT_field ( lua_State *LS )
         }
     }
 
-    EXIT_DATA *ud_exit = check_exit(LS, 1);
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
 
     if ( !ud_exit )
         return 0;
