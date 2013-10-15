@@ -918,8 +918,11 @@ static int L_ch_zecho (lua_State *LS)
 
 static int L_ch_kill (lua_State *LS)
 {
-
-    do_mpkill( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    if ( lua_isstring(LS, 2) )
+        do_mpkill( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    else
+        do_mpkill( check_CH(LS, 1),
+                (check_CH(LS, 2) )->name);
 
     return 0;
 }
