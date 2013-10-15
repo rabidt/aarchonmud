@@ -65,6 +65,8 @@ void init_by_array(unsigned long init_key[], int key_length);
 double genrand(void);
 
 static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
+static char *check_fstring( lua_State *LS, int index);
+
 static const struct luaL_reg CH_lib [];
 static const struct luaL_reg OBJ_lib [];
 static const struct luaL_reg OBJPROTO_lib[];
@@ -892,26 +894,26 @@ static int L_area_loadprog (lua_State *LS)
 
 static int L_ch_emote (lua_State *LS)
 {
-    do_emote( check_CH(LS, 1), luaL_checkstring (LS, 2) );
+    do_emote( check_CH(LS, 1), check_fstring (LS, 2) );
     return 0;
 }
 
 static int L_ch_asound (lua_State *LS)
 {
-    do_mpasound( check_CH(LS, 1), luaL_checkstring (LS, 2));
+    do_mpasound( check_CH(LS, 1), check_fstring (LS, 2));
     return 0; 
 }
 
 static int L_ch_gecho (lua_State *LS)
 {
-    do_mpgecho( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    do_mpgecho( check_CH(LS, 1), check_fstring(LS, 2));
     return 0;
 }
 
 static int L_ch_zecho (lua_State *LS)
 {
 
-    do_mpzecho( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    do_mpzecho( check_CH(LS, 1), check_fstring(LS, 2));
 
     return 0;
 }
@@ -944,7 +946,7 @@ static int L_ch_junk (lua_State *LS)
 static int L_ch_echo (lua_State *LS)
 {
 
-    do_mpecho( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    do_mpecho( check_CH(LS, 1), check_fstring(LS, 2));
 
     return 0;
 }
@@ -1492,28 +1494,27 @@ static int L_ch_qstatus (lua_State *LS)
 
 /* Run string.format using args beginning at index 
    Assumes top is the last argument*/
-static void stringFormat( lua_State *LS, int index)
+static char *check_fstring( lua_State *LS, int index)
 {
     int narg=lua_gettop(LS)-(index-1);
 
-    lua_getglobal( LS, "string");
-    lua_getfield( LS, -1, "format");
-    /* kill string table */
-    lua_remove( LS, -2);
-    lua_insert( LS, index );
-    lua_call( LS, narg, 1);
+    if ( !(narg==1))
+    {
+        lua_getglobal( LS, "string");
+        lua_getfield( LS, -1, "format");
+        /* kill string table */
+        lua_remove( LS, -2);
+        lua_insert( LS, index );
+        lua_call( LS, narg, 1);
+    }
+    return luaL_checkstring( LS, index);
 }
 
 static int L_ch_say (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
-    if ( !lua_isnone( LS, 3 ) )
-    {
-        stringFormat( LS, 2 );
-    }
-
-    do_say( ud_ch, luaL_checkstring(LS, 2) );
+    do_say( ud_ch, check_fstring(LS, 2) );
     return 0;
 }
 
@@ -1722,7 +1723,7 @@ static int L_room_flag( lua_State *LS)
 static int L_room_echo( lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    const char *argument = check_fstring (LS, 2);
 
     CHAR_DATA *vic;
     for ( vic=ud_room->people ; vic ; vic=vic->next_in_room )
@@ -1779,7 +1780,7 @@ static int L_obj_destroy( lua_State *LS)
 static int L_obj_echo( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
-    char *argument= luaL_checkstring (LS, 2);
+    char *argument= check_fstring (LS, 2);
 
     if (ud_obj->carried_by)
     {
@@ -1880,7 +1881,7 @@ static int L_obj_extra( lua_State *LS)
 static int L_area_echo( lua_State *LS)
 {
     AREA_DATA *ud_area = check_AREA(LS, 1);
-    const char *argument = luaL_checkstring(LS, 2);
+    const char *argument = check_fstring(LS, 2);
     DESCRIPTOR_DATA *d;
 
     for ( d = descriptor_list; d; d = d->next )
