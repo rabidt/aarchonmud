@@ -2367,6 +2367,22 @@ static int get_AREA_field ( lua_State *LS )
     FLDNUM("minlevel", ud_area->minlevel);
     FLDNUM("maxlevel", ud_area->maxlevel);
 
+    if ( !strcmp(argument, "rooms") )
+    {
+        int index=1;
+        lua_newtable(LS);
+        ROOM_INDEX_DATA *room;
+        int vnum;
+        for (vnum=ud_area->min_vnum ; vnum<=ud_area->max_vnum ; vnum++)
+        {
+            if ((room=get_room_index(vnum))==NULL)
+                continue;
+            if (make_ud_table(LS, room, UDTYPE_ROOM))
+                lua_rawseti(LS, -2, index++);
+        }
+        return 1;
+    }
+
     if ( !strcmp(argument, "people") )
     {
         int index=1;
