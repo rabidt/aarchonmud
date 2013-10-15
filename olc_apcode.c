@@ -27,6 +27,7 @@ const struct olc_cmd_type apedit_table[] =
    {  "create",   apedit_create  },
    {  "code",     apedit_code    },
    {  "show",     apedit_show    },
+   {  "security", apedit_security},
    //{  "list",     apedit_list    },
    //{  "if",       apedit_if      },
    //{  "mob",      apedit_mob     },
@@ -283,12 +284,55 @@ APEDIT(apedit_show)
 
     sprintf(buf,
            "Vnum:       [%d]\n\r"
+           "Security:   %d\n\r"
            "Code:\n\r%s\n\r",
            pAcode->vnum,
+           pAcode->security,
            pAcode->code  );
     page_to_char_new(buf, ch, TRUE);
 
     return FALSE;
+}
+
+APEDIT(apedit_security)
+{
+    APROG_CODE *pAcode;
+    EDIT_MPCODE(ch, pAcode);
+    int newsec;
+
+    if ( argument[0] == '\0' )
+    {
+        newsec=ch->pcdata->security;
+    }
+    else
+    {
+        if (is_number(argument))
+        {
+            newsec=atoi(argument);
+        }
+        else
+        {
+            ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
+            return;
+        }
+    }
+
+    if (newsec == pAcode->security)
+    {
+        ptc(ch, "Security is already at %d.\n\r", newsec );
+        return;
+    }
+    else if (newsec > ch->pcdata->security )
+    {
+        ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
+                ch->pcdata->security, newsec);
+        return;
+    }
+
+    pAcode->security=newsec;
+    ptc(ch, "Security for %d updated to %d.\n\r",
+            pAcode->vnum, pAcode->security);
+
 }
 
 void fix_aprog_areas( CHAR_DATA *ch, APROG_CODE *pAcode )
