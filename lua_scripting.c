@@ -2611,6 +2611,11 @@ static int RegisterLuaRoutines (lua_State *LS)
 
 }  /* end of RegisterLuaRoutines */
 
+int GetLuaMemoryUsage()
+{
+    return lua_gc( g_mud_LS, LUA_GCCOUNT, 0);
+}
+
 void lua_reset ()
 {
     lua_close(g_mud_LS);
@@ -3028,7 +3033,8 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
 
 bool lua_area_program( char *trigger, int pvnum, char *source, 
         AREA_DATA *area, CHAR_DATA *ch1,
-        int trig_type ) 
+        int trig_type,
+        int security ) 
 {
     bool result=FALSE;
 

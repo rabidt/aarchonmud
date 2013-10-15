@@ -155,7 +155,7 @@ void do_aprun( CHAR_DATA *ch, char *argument)
             area->name,
             ch->name);
 
-    result=lua_area_program( NULL, vnum, pAcode->code, area, ch, ATRIG_CALL );
+    result=lua_area_program( NULL, vnum, pAcode->code, area, ch, ATRIG_CALL, pAcode->security );
 
     ptc( ch, "Aprog completed. Result: %s\n\r", result ? "TRUE" : "FALSE" );
 
