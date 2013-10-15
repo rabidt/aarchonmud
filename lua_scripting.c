@@ -159,7 +159,6 @@ static void stackDump (lua_State *LS) {
                 break;
 
         }
-        bugf("  ");  /* put a separator */
     }
     bugf("\n");  /* end the listing */
 }
@@ -213,6 +212,17 @@ static OBJ_DATA *check_OBJ( lua_State *LS, int arg)
     OBJ_DATA *obj=(OBJ_DATA *)luaL_checkudata(LS, -1, UD_META);
     lua_pop(LS, 1);
     return obj;
+}
+
+static bool is_CH( lua_State *LS, int arg)
+{
+    if ( !lua_istable(LS, arg ) )
+        return FALSE;
+
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type=luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
+    return ( type == UDTYPE_CH );
 }
 
 static CHAR_DATA *check_CH( lua_State *LS, int arg)
@@ -1114,8 +1124,35 @@ static int L_ch_qadvance (lua_State *LS)
 
 static int L_ch_reward (lua_State *LS)
 {
+    if lua_isnone( LS, 3 )
+    {
+        /* standard 'mob reward' syntax */
+        do_mpreward( check_CH(LS, 1), luaL_checkstring(LS, 2));
+        return 0;
+    }
 
-    do_mpreward( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    char *arg1;
+    /* Figure out arg 1 */
+    if (is_CH( LS, 2 ))
+    {
+        /* get name from ch */
+        arg1=(check_CH(LS, 2))->name;
+    }
+    else if ( lua_isstring( LS, 2) )
+    {
+        /* grab the string to arg1 */
+        arg1=luaL_checkstring( LS, 2);
+    }
+    else
+    {
+        luaL_error( LS, "Arg 1 must be string or CH.");
+    }
+    static char buf[MSL];
+    sprintf(buf, "'%s' %s %d",
+            arg1,
+            luaL_checkstring( LS, 3 ),
+            (int)luaL_checknumber( LS, 4 ) );
+    do_mpreward( check_CH(LS, 1), buf);
 
     return 0;
 }
