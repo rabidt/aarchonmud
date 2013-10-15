@@ -228,7 +228,9 @@ main_lib={  require=require,
         getcharlist=getcharlist,
         getmoblist=getmoblist,
         getplayerlist=getplayerlist,
-        getobjlist=getobjlist
+        getobjlist=getobjlist,
+        getarealist=getarealist,
+        clearloopcount=clearloopcount
 }
 -- Need to protect our library funcs from evil scripters
 function ProtectLib(lib)
