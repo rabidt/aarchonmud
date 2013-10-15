@@ -38,7 +38,6 @@ int GetLuaMemoryUsage();
 int GetLuaGameObjectCount();
 int GetLuaEnvironmentCount();
 
-
 extern lua_State *g_mud_LS;
 extern bool g_LuaScriptInProgress;
 #endif
