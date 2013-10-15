@@ -152,7 +152,7 @@ void do_oprun(CHAR_DATA *ch, char *argument)
 
     ptc( ch, " with %s as ch1\n\r", ch->name);
 
-   result=lua_obj_program( NULL, vnum, pOcode->code, obj, NULL, ch, NULL, OTRIG_CALL);
+   result=lua_obj_program( NULL, vnum, pOcode->code, obj, NULL, ch, NULL, OTRIG_CALL, pOcode->security);
 
    ptc( ch, "Oprog completed. Result is: %s\n\r", result ? "TRUE" : "FALSE" );
 
