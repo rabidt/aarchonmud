@@ -1490,9 +1490,29 @@ static int L_ch_qstatus (lua_State *LS)
     return 1;
 }
 
+/* Run string.format using args beginning at index 
+   Assumes top is the last argument*/
+static void stringFormat( lua_State *LS, int index)
+{
+    int narg=lua_gettop(LS)-(index-1);
+
+    lua_getglobal( LS, "string");
+    lua_getfield( LS, -1, "format");
+    /* kill string table */
+    lua_remove( LS, -2);
+    lua_insert( LS, index );
+    lua_call( LS, narg, 1);
+}
+
 static int L_ch_say (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
+
+    if ( !lua_isnone( LS, 3 ) )
+    {
+        stringFormat( LS, 2 );
+    }
+
     do_say( ud_ch, luaL_checkstring(LS, 2) );
     return 0;
 }
