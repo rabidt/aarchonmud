@@ -310,11 +310,13 @@ DECLARE_OLC_FUN( mpedit_security );
 DECLARE_OLC_FUN( opedit_create   );
 DECLARE_OLC_FUN( opedit_code     );
 DECLARE_OLC_FUN( opedit_show     );
+DECLARE_OLC_FUN( opedit_security );
 
 /* Areaprog editor */
 DECLARE_OLC_FUN( apedit_create   );
 DECLARE_OLC_FUN( apedit_code     );
 DECLARE_OLC_FUN( apedit_show     );
+DECLARE_OLC_FUN( apedit_security );
 
 
 /* Help Editor - kermit 1/98 */
