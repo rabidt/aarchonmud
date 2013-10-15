@@ -35,6 +35,8 @@ void load_lboards();
 void check_lboard_reset();
 
 int GetLuaMemoryUsage();
+int GetLuaGameObjectCount();
+int GetLuaEnvironmentCount();
 
 
 extern lua_State *g_mud_LS;

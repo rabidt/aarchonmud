@@ -8,6 +8,22 @@ require "leaderboard"
 udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
 envtbl={}
 
+function UdCnt()
+    local cnt=0
+    for k,v in pairs(udtbl) do
+        cnt=cnt+1
+    end
+    return cnt
+end
+
+function EnvCnt()
+    local cnt=0
+    for k,v in pairs(envtbl) do
+        cnt=cnt+1
+    end
+    return cnt
+end
+
 function MakeUdProxy(ud)
     local proxy={}
     setmetatable(proxy, {
