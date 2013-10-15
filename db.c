@@ -4658,6 +4658,8 @@ void do_memory( CHAR_DATA *ch, char *argument )
     sprintf( buf, "REAL_NUM_STRINGS    %d\n\r",REAL_NUM_STRINGS);
     send_to_char( buf, ch);
     ptc( ch, "Lua usage: %d\n\r", GetLuaMemoryUsage());
+    ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
+    ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
     
     return;
 }

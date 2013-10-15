@@ -323,17 +323,17 @@ static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
     switch (UDTYPE)
     {
         case UDTYPE_CH:
-            meta=CH_META; luaL_register(LS,NULL,CH_lib); break;
+            meta=CH_META; break;
         case UDTYPE_OBJ:
-            meta=OBJ_META; luaL_register(LS,NULL,OBJ_lib); break;
+            meta=OBJ_META; break;
         case UDTYPE_ROOM:
-            meta=ROOM_META; luaL_register(LS,NULL,ROOM_lib); break;
+            meta=ROOM_META; break;
         case UDTYPE_EXIT:
-            meta=EXIT_META; luaL_register(LS,NULL,EXIT_lib); break;
+            meta=EXIT_META; break;
 		case UDTYPE_AREA:
-			meta=AREA_META; luaL_register(LS,NULL,AREA_lib); break;
+			meta=AREA_META; break;
         case UDTYPE_OBJPROTO:
-            meta=OBJPROTO_META; luaL_register(LS,NULL, OBJPROTO_lib); break;
+            meta=OBJPROTO_META; break;
         default:
             luaL_error (LS, "make_ud_table called with unknown UD_TYPE: %d", UDTYPE);
             break;
@@ -497,6 +497,8 @@ static int L_getobjlist (lua_State *LS)
 
 static int L_getcharlist (lua_State *LS)
 {
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
     CHAR_DATA *ch;
 
     int index=1;
@@ -513,6 +515,8 @@ static int L_getcharlist (lua_State *LS)
 
 static int L_getmoblist (lua_State *LS)
 {
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
     CHAR_DATA *ch;
 
     int index=1;
@@ -532,6 +536,8 @@ static int L_getmoblist (lua_State *LS)
 
 static int L_getplayerlist (lua_State *LS)
 {
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
     CHAR_DATA *ch;
 
     int index=1;
@@ -2079,6 +2085,17 @@ static int get_OBJPROTO_field ( lua_State *LS )
 
     FLDNUM("UDTYPE",UDTYPE_OBJPROTO); /* Need this for type checking */
 
+    /* check for funcs first */
+    int i;
+    for ( i=0 ; OBJPROTO_lib[i].name != NULL ; i++ )
+    {
+       if (!strcmp( argument, OBJPROTO_lib[i].name ) )
+       {
+          lua_pushcfunction( LS, OBJPROTO_lib[i].func);
+          return 1;
+       }
+    }
+
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
 
     if ( !ud_objp )
@@ -2108,6 +2125,17 @@ static int get_OBJ_field ( lua_State *LS )
     const char *argument = luaL_checkstring (LS, 2 );
 
     FLDNUM("UDTYPE",UDTYPE_OBJ); /* Need this for type checking */
+
+    /* check for funcs first */
+    int i;
+    for ( i=0 ; OBJ_lib[i].name != NULL ; i++ )
+    {
+       if (!strcmp( argument, OBJ_lib[i].name ) )
+       {
+          lua_pushcfunction( LS, OBJ_lib[i].func);
+          return 1;
+       }
+    }
 
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
 
@@ -2202,6 +2230,17 @@ static int get_AREA_field ( lua_State *LS )
 
     FLDNUM("UDTYPE",UDTYPE_AREA); /* Need this for type checking */
 
+    /* check for funcs first */
+    int i;
+    for ( i=0 ; AREA_lib[i].name != NULL ; i++ )
+    {
+       if (!strcmp( argument, AREA_lib[i].name ) )
+       {
+          lua_pushcfunction( LS, AREA_lib[i].func);
+          return 1;
+       }
+    }
+
     AREA_DATA *ud_area = check_AREA(LS, 1);
 
     if ( !ud_area )
@@ -2227,6 +2266,17 @@ static int get_EXIT_field ( lua_State *LS )
     const char *argument = luaL_checkstring (LS, 2 );
 
     FLDNUM("UDTYPE",UDTYPE_EXIT); /* Need this for type checking */
+
+    /* check for funcs first */
+    int i;
+    for ( i=0 ; EXIT_lib[i].name != NULL ; i++ )
+    {
+       if (!strcmp( argument, EXIT_lib[i].name ) )
+       {
+          lua_pushcfunction( LS, EXIT_lib[i].func);
+          return 1;
+       }
+    }
 
     EXIT_DATA *ud_exit = check_exit(LS, 1);
 
@@ -2258,6 +2308,17 @@ static int get_ROOM_field ( lua_State *LS )
     const char *argument = luaL_checkstring (LS, 2 );
 
     FLDNUM("UDTYPE",UDTYPE_ROOM); /* Need this for type checking */
+
+    /* check for funcs first */
+    int i;
+    for ( i=0 ; ROOM_lib[i].name != NULL ; i++ )
+    {
+       if (!strcmp( argument, ROOM_lib[i].name ) )
+       {
+          lua_pushcfunction( LS, ROOM_lib[i].func);
+          return 1;
+       }
+    }
 
     ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
 
@@ -2312,7 +2373,6 @@ static int get_ROOM_field ( lua_State *LS )
 
 
     /* specific EXITs*/
-    sh_int i;
     for (i=0; i<MAX_DIR; i++)
     {
         if (!strcmp(dir_name[i], argument) )
@@ -2342,10 +2402,22 @@ static int get_CH_field ( lua_State *LS)
 
     FLDNUM("UDTYPE",UDTYPE_CH); /* Need this for type checking */
 
+    /* check for funcs first */
+    int i;
+    for ( i=0 ; CH_lib[i].name != NULL ; i++ )
+    {
+       if (!strcmp( argument, CH_lib[i].name ) )
+       {
+          lua_pushcfunction( LS, CH_lib[i].func);
+          return 1;
+       }
+    } 
+
     CHAR_DATA *ud_ch = check_CH(LS, 1);
 
     if ( !ud_ch)
         return 0;
+    
 
     FLDSTR("name", ud_ch->name);
     FLDNUM("level", ud_ch->level);
@@ -2614,6 +2686,33 @@ static int RegisterLuaRoutines (lua_State *LS)
 int GetLuaMemoryUsage()
 {
     return lua_gc( g_mud_LS, LUA_GCCOUNT, 0);
+}
+
+int GetLuaGameObjectCount()
+{
+    lua_getglobal( g_mud_LS, "UdCnt");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
+    {
+        bugf ( "Error with UdCnt:\n %s",
+               lua_tostring(g_mud_LS, -1));
+        return -1;
+    }
+
+    return luaL_checknumber( g_mud_LS, -1 ); 
+
+}
+
+int GetLuaEnvironmentCount()
+{
+    lua_getglobal( g_mud_LS, "EnvCnt");  
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
+    {
+        bugf ( "Error with EnvCnt:\n %s",
+               lua_tostring(g_mud_LS, -1));
+        return -1;
+    }
+
+    return luaL_checknumber( g_mud_LS, -1 );
 }
 
 void lua_reset ()
