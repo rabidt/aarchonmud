@@ -31,6 +31,8 @@ void save_lboards();
 void load_lboards();
 void check_lboard_reset();
 
+int GetLuaMemoryUsage();
+
 
 extern lua_State *g_mud_LS;
 extern bool g_LuaScriptInProgress;

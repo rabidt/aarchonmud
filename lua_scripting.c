@@ -2589,6 +2589,11 @@ static int RegisterLuaRoutines (lua_State *LS)
 
 }  /* end of RegisterLuaRoutines */
 
+int GetLuaMemoryUsage()
+{
+    return lua_gc( g_mud_LS, LUA_GCCOUNT, 0);
+}
+
 void lua_reset ()
 {
     lua_close(g_mud_LS);
