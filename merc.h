@@ -1327,8 +1327,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -4382,6 +4382,7 @@ void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+bool    is_ranged_weapon( OBJ_DATA *weapon );
 CD *    get_local_leader( CHAR_DATA *ch );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
 
@@ -4507,6 +4508,7 @@ int get_duration( int sn, int level );
 int skill_lookup    args( ( const char *name ) );
 int slot_lookup args( ( int slot ) );
 bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
+bool saves_physical( CHAR_DATA *victim, int level, int dam_type );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
