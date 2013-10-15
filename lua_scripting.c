@@ -1111,9 +1111,36 @@ static int L_ch_remort (lua_State *LS)
 
 static int L_ch_qset (lua_State *LS)
 {
+    if ( lua_isnone( LS, 3 ) )
+    {
+        /* standard 'mob qset' syntax */
+        do_mpqset( check_CH(LS, 1), luaL_checkstring(LS, 2));
+        return 0;
+    }
 
-    do_mpqset( check_CH(LS, 1), luaL_checkstring(LS, 2));
+    char *arg1;
+    if (is_CH( LS, 2) )
+    {
+        arg1=(check_CH(LS, 2))->name;
+    }
+    else if ( lua_isstring( LS, 2 ) )
+    {
+        arg1=luaL_checkstring( LS, 2 );
+    }
+    else
+    {
+        luaL_error( LS, "Arg 1 must be string or CH.");
+    }
 
+    static char buf[MSL];
+    sprintf( buf, "'%s' %d %d",
+            arg1,
+            (int)luaL_checknumber(LS, 3 ),
+            (int)luaL_checknumber(LS, 4 ) );
+    if ( !lua_isnone( LS, 5 ) )
+        sprintf(buf, "%s %d", buf, (int)luaL_checknumber(LS, 5) );
+
+    do_mpqset( check_CH(LS, 1), buf);
     return 0;
 }
 
@@ -1127,7 +1154,7 @@ static int L_ch_qadvance (lua_State *LS)
 
 static int L_ch_reward (lua_State *LS)
 {
-    if lua_isnone( LS, 3 )
+    if ( lua_isnone( LS, 3 ) )
     {
         /* standard 'mob reward' syntax */
         do_mpreward( check_CH(LS, 1), luaL_checkstring(LS, 2));
