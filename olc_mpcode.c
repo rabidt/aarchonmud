@@ -171,7 +171,7 @@ void do_mprun(CHAR_DATA *ch, char *argument)
         ptc( ch, " with %s as ch1", ch1->name);
     ptc(ch, "\n\r");
 
-    lua_mob_program( NULL, vnum, pMcode->code, mob, (mob==ch)?NULL:ch, NULL, 0, NULL, 0, TRIG_CALL, ch->pcdata->security );
+    lua_mob_program( NULL, vnum, pMcode->code, mob, (mob==ch)?NULL:ch, NULL, 0, NULL, 0, TRIG_CALL, pMcode->security );
 
     ptc( ch, "Mprog completed.\n\r");
 
