@@ -489,6 +489,33 @@ static int L_pagetochar (lua_State *LS)
     return 0;
 }
 
+static int L_clearloopcount (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    s_LoopCheckCounter=0;
+
+    return 0;
+}
+
+static int L_getarealist (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    AREA_DATA *area;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( area=area_first ; area ; area=area->next )
+    {
+        if (make_ud_table(LS, area, UDTYPE_AREA))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+
 static int L_getobjlist (lua_State *LS)
 {
     CHECK_SECURITY(LS, MAX_LUA_SECURITY);
@@ -2781,6 +2808,8 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getmoblist",  L_getmoblist );
     lua_register(LS,"getplayerlist", L_getplayerlist);
     lua_register(LS,"getobjlist", L_getobjlist);
+    lua_register(LS,"getarealist", L_getarealist);
+    lua_register(LS,"clearloopcount", L_clearloopcount);
 }
 
 static int RegisterLuaRoutines (lua_State *LS)
