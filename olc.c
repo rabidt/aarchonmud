@@ -1093,16 +1093,14 @@ void do_medit( CHAR_DATA *ch, char *argument )
 
 
 
-void display_resets( CHAR_DATA *ch )
+void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
 {
-   ROOM_INDEX_DATA   *pRoom;
    RESET_DATA      *pReset;
    MOB_INDEX_DATA   *pMob = NULL;
    char       buf   [ MAX_STRING_LENGTH ];
    char       final [ MAX_STRING_LENGTH ];
    int       iReset = 0;
    
-   EDIT_ROOM(ch, pRoom);
    final[0]  = '\0';
    
    send_to_char ( 
@@ -1452,7 +1450,7 @@ void do_resets( CHAR_DATA *ch, char *argument )
          send_to_char(
             "Resets: M = mobile, R = room, O = object, "
             "P = pet, S = shopkeeper\n\r", ch );
-         display_resets( ch );
+         display_resets( ch, ch->in_room );
       }
       else
          send_to_char( "No resets in this room.\n\r", ch );
