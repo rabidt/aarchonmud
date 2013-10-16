@@ -73,6 +73,7 @@ static const struct luaL_reg OBJPROTO_lib[];
 static const struct luaL_reg ROOM_lib [];
 static const struct luaL_reg EXIT_lib [];
 static const struct luaL_reg AREA_lib [];
+static const struct luaL_reg RESET_lib [];
 
 #define CHARACTER_STATE "character.state"
 #define CH_META        "CH.meta"
@@ -82,6 +83,7 @@ static const struct luaL_reg AREA_lib [];
 #define ROOM_META      "ROOM.meta"
 #define EXIT_META      "EXIT.meta"
 #define AREA_META	   "AREA.meta"
+#define RESET_META     "RESET.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 #define UD_TABLE_NAME "udtbl"
@@ -130,6 +132,7 @@ static const struct luaL_reg AREA_lib [];
 #define UDTYPE_EXIT      4
 #define UDTYPE_OBJPROTO  5
 #define UDTYPE_AREA      6
+#define UDTYPE_RESET     7
 
 
 // number of items in an array
@@ -290,9 +293,26 @@ static AREA_DATA *check_AREA( lua_State *LS, int arg)
     }
 
     lua_getfield(LS, arg, "tableid");
-    AREA_DATA *exit=(EXIT_DATA *)luaL_checkudata(LS, -1, UD_META);
+    AREA_DATA *area=(AREA_DATA *)luaL_checkudata(LS, -1, UD_META);
     lua_pop(LS, 1);
-    return exit;
+    return area;
+}
+
+static RESET_DATA *check_RESET( lua_State *LS, int arg)
+{
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
+    if ( type != UDTYPE_AREA )
+    {
+        luaL_error(LS, "Bad parameter %d. Expected RESET.", arg );
+        return NULL;
+    }
+
+    lua_getfield(LS, arg, "tableid");
+    RESET_DATA *reset=(RESET_DATA *)luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return reset;
 }
 
 static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
@@ -346,6 +366,8 @@ static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
             meta=AREA_META; break;
         case UDTYPE_OBJPROTO:
             meta=OBJPROTO_META; break;
+        case UDTYPE_RESET:
+            meta=RESET_META; break;
         default:
             luaL_error (LS, "make_ud_table called with unknown UD_TYPE: %d", UDTYPE);
             break;
@@ -2145,6 +2167,11 @@ static const struct luaL_reg AREA_lib [] =
     {NULL, NULL}
 }; 
 
+static const struct luaL_reg RESET_lib [] =
+{
+    {NULL, NULL}
+};
+
 /* Mersenne Twister pseudo-random number generator */
 
 static int L_mt_srand (lua_State *LS)
@@ -2229,6 +2256,12 @@ static int EXIT2string (lua_State *LS)
 static int AREA2string (lua_State *LS)
 {
     lua_pushstring( LS, (check_AREA( LS, 1))->name);
+    return 1;
+}
+
+static int RESET2string (lua_State *LS)
+{
+    lua_pushliteral( LS, "mud_reset");
     return 1;
 }
 
@@ -2499,6 +2532,44 @@ static int get_AREA_field ( lua_State *LS )
     return 0;
 }
 
+static int check_RESET_equal( lua_State *LS)
+{
+    lua_pushboolean( LS, check_RESET(LS, 1) == check_RESET(LS, 2) );
+    return 1;
+}
+
+static int get_RESET_field (lua_State *LS)
+{
+    const char *argument = luaL_checkstring (LS, 2 );
+    
+    FLDNUM("UDTYPE",UDTYPE_RESET); /* Need this for type checking */
+
+    /* check for funcs first */
+    int i;
+    for ( i=0 ; RESET_lib[i].name != NULL ; i++ )
+    {
+        if (!strcmp( argument, RESET_lib[i].name ) )
+        {
+            lua_pushcfunction( LS, RESET_lib[i].func);
+            return 1;
+        }
+    }
+
+    RESET_DATA *ud_reset = check_RESET(LS, 1);
+
+    if ( !ud_reset )
+        return 0;
+
+    FLDSTR("command", ud_reset->command);
+    FLDNUM("arg1", ud_reset->arg1);
+    FLDNUM("arg2", ud_reset->arg2);
+    FLDNUM("arg3", ud_reset->arg3);
+    FLDNUM("arg4", ud_reset->arg4);
+
+    return 0;
+}
+    
+
 static int check_EXIT_equal( lua_State *LS)
 {
     lua_pushboolean( LS, check_EXIT(LS, 1) == check_EXIT(LS, 2) );
@@ -2629,6 +2700,19 @@ static int get_ROOM_field ( lua_State *LS )
             else
                 return 1;
         }
+    }
+
+    if (!strcmp( argument, "resets") )
+    {
+        lua_newtable(LS);
+        int index=1;
+        RESET_DATA *reset;
+        for ( reset=ud_room->reset_first; reset; reset=reset->next)
+        {
+            if (make_ud_table(LS, reset, UDTYPE_RESET) )
+                lua_rawseti(LS, -2, index++);
+        }
+        return 1;
     }
 
     return 0;
