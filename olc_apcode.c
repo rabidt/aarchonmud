@@ -50,6 +50,12 @@ void apedit( CHAR_DATA *ch, char *argument)
     argument = one_argument( argument, command);
 
     EDIT_APCODE(ch, pAcode);
+    if (!pAcode)
+    {
+        bugf("mpedit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
 
     if (pAcode)
     {
