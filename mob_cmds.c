@@ -1726,6 +1726,13 @@ void do_mpremove( CHAR_DATA *ch, char *argument )
 
 void mpremort( CHAR_DATA *ch, CHAR_DATA *victim )
 {
+    if ( IS_NPC(victim) )
+    {
+        bugf("mpremort: target is NPC. %s(%d)",
+                victim->name, victim->pIndexData->vnum);
+        return;
+    }
+
     // usage should be logged
     if ( IS_NPC(ch) )
         logpf("do_mpremort(%d): remorting %s", ch->pIndexData->vnum, victim->name);
@@ -1870,7 +1877,12 @@ void mpqset(CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3,
                 int timer, int limit )
 {
     if (IS_NPC(victim))
-    return;
+    {
+        bugf("mpqset: target is NPC. %s(%d)",
+                victim->name, victim->pIndexData->vnum);
+
+        return;
+    }
 
     set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
 }
@@ -1933,7 +1945,11 @@ void mpqadvance( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3 )
     int increment;
 
     if (IS_NPC(victim))
-    return;
+    {
+        bugf("mpqadvance: target is NPC. %s(%d)",
+                victim->name, victim->pIndexData->vnum);
+        return;
+    }
 
     /* do the advance */
     int id = r_atoi( ch, arg2 );
