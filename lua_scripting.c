@@ -690,6 +690,18 @@ static int L_ch_randchar (lua_State *LS)
 
 }
 
+static int L_ch_redit (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    if (IS_NPC(ud_ch) )
+    {
+        luaL_error( LS, "NPCs cannot redit!");
+    }
+    redit( ud_ch, luaL_checkstring( LS, 2 ) );
+
+    return 0;
+}
+
 static int L_ch_tprint ( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS, 1);
@@ -2030,6 +2042,7 @@ static const struct luaL_reg CH_lib [] =
     {"savetbl", L_ch_savetbl},
     {"loadtbl", L_ch_loadtbl},
     {"tprint", L_ch_tprint},
+    {"redit", L_ch_redit},
     {NULL, NULL}
 };
 
