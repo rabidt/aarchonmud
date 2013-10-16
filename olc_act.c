@@ -2290,11 +2290,11 @@ REDIT( redit_ed )
 REDIT( redit_create )
 {
     AREA_DATA *pArea;
-    ROOM_INDEX_DATA *pRoom;
+    ROOM_INDEX_DATA *pRoom=NULL;
     int value;
     int iHash;
     
-    EDIT_ROOM(ch, pRoom);
+    //EDIT_ROOM(ch, pRoom);
     
     value = atoi( argument );
     
