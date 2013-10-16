@@ -2380,6 +2380,8 @@ void load_mobprogs( FILE *fp )
         
         pMprog      = alloc_perm( sizeof(*pMprog) );
         pMprog->vnum    = vnum;
+        pMprog->is_lua  = FALSE; /* new progs default to true but
+                                    when loading we need to default to false */
 
         if ( area_version < VER_NEW_PROG_FORMAT )
         {
@@ -2391,7 +2393,6 @@ void load_mobprogs( FILE *fp )
             {
                 pMprog->is_lua = TRUE;
                 pMprog->code = fread_string( fp );
-                lua_mprogs++;
             }
             else if ( !strcmp( tempStr, "NOT_LUA" ) )
             {
@@ -2443,6 +2444,7 @@ void load_mobprogs( FILE *fp )
             pMprog->next = mprog_list;
             mprog_list  = pMprog;
         }
+
         if (pMprog->is_lua)
             lua_mprogs++;
         top_mprog_index++;
