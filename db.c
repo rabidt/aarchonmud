@@ -2425,7 +2425,6 @@ void load_mobprogs( FILE *fp )
                 }
                 else if (!strcmp(word, "End") )
                 {
-                    lua_mprogs++;
                     break;
                 }
                 else
@@ -2444,6 +2443,8 @@ void load_mobprogs( FILE *fp )
             pMprog->next = mprog_list;
             mprog_list  = pMprog;
         }
+        if (pMprog->is_lua)
+            lua_mprogs++;
         top_mprog_index++;
     } /* end for loop */
     return;
