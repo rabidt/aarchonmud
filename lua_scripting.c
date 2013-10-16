@@ -44,6 +44,7 @@ http://www.gammon.com.au/forum/?id=8015
 #include "mob_cmds.h"
 #include "tables.h"
 #include "lua_scripting.h"
+#include "olc.h"
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 /* Mersenne Twister stuff - see mt19937ar.c */
@@ -711,8 +712,45 @@ static int L_ch_randchar (lua_State *LS)
         return 1;
 
 }
+/* analog of run_olc_editor in olc.c */
+static bool run_olc_editor_lua( CHAR_DATA *ch, char *argument )
+{
+   if (IS_NPC(ch))
+        return FALSE;
 
-static int L_ch_redit (lua_State *LS)
+   switch ( ch->desc->editor )
+   {
+   case ED_AREA:
+      aedit( ch, argument );
+      break;
+   case ED_ROOM:
+      redit( ch, argument );
+      break;
+   case ED_OBJECT:
+      oedit( ch, argument );
+      break;
+   case ED_MOBILE:
+      medit( ch, argument );
+      break;
+   case ED_MPCODE:
+      mpedit( ch, argument );
+      break;
+   case ED_OPCODE:
+      opedit( ch, argument );
+      break;
+   case ED_APCODE:
+      apedit( ch, argument );
+      break;
+   case ED_HELP:
+      hedit( ch, argument );
+      break;
+   default:
+      return FALSE;
+   }
+   return TRUE; 
+}
+
+static int L_ch_olc (lua_State *LS)
 {
 #ifndef BUILDER
     CHECK_SECURITY(LS, MAX_LUA_SECURITY);
@@ -720,10 +758,12 @@ static int L_ch_redit (lua_State *LS)
     CHAR_DATA *ud_ch=check_CH(LS, 1);
     if (IS_NPC(ud_ch) )
     {
-        luaL_error( LS, "NPCs cannot redit!");
+        luaL_error( LS, "NPCs cannot use OLC!");
     }
-    redit( ud_ch, luaL_checkstring( LS, 2 ) );
-
+   
+    if (! run_olc_editor_lua( ud_ch, luaL_checkstring( LS, 2)) )
+        luaL_error(LS, "Not currently in olc edit mode.");
+ 
     return 0;
 }
 
@@ -2112,10 +2152,7 @@ static const struct luaL_reg CH_lib [] =
     {"savetbl", L_ch_savetbl},
     {"loadtbl", L_ch_loadtbl},
     {"tprint", L_ch_tprint},
-    {"redit", L_ch_redit},
-    {"medit", L_ch_medit},
-    {"oedit", L_ch_oedit},
-    {"aedit", L_ch_aedit},
+    {"olc", L_ch_olc},
     {NULL, NULL}
 };
 
