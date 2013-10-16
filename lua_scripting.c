@@ -692,10 +692,58 @@ static int L_ch_randchar (lua_State *LS)
 
 static int L_ch_redit (lua_State *LS)
 {
+#ifndef BUILDER
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+#endif
     CHAR_DATA *ud_ch=check_CH(LS, 1);
     if (IS_NPC(ud_ch) )
     {
         luaL_error( LS, "NPCs cannot redit!");
+    }
+    redit( ud_ch, luaL_checkstring( LS, 2 ) );
+
+    return 0;
+}
+
+static int L_ch_oedit (lua_State *LS)
+{
+#ifndef BUILDER
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+#endif
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    if (IS_NPC(ud_ch) )
+    {
+        luaL_error( LS, "NPCs cannot oedit!");
+    }
+    redit( ud_ch, luaL_checkstring( LS, 2 ) );
+
+    return 0;
+}
+
+static int L_ch_medit (lua_State *LS)
+{
+#ifndef BUILDER
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+#endif
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    if (IS_NPC(ud_ch) )
+    {
+        luaL_error( LS, "NPCs cannot medit!");
+    }
+    redit( ud_ch, luaL_checkstring( LS, 2 ) );
+
+    return 0;
+}
+
+static int L_ch_aedit (lua_State *LS)
+{
+#ifndef BUILDER
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+#endif
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    if (IS_NPC(ud_ch) )
+    {
+        luaL_error( LS, "NPCs cannot aedit!");
     }
     redit( ud_ch, luaL_checkstring( LS, 2 ) );
 
@@ -2043,6 +2091,9 @@ static const struct luaL_reg CH_lib [] =
     {"loadtbl", L_ch_loadtbl},
     {"tprint", L_ch_tprint},
     {"redit", L_ch_redit},
+    {"medit", L_ch_medit},
+    {"oedit", L_ch_oedit},
+    {"aedit", L_ch_aedit},
     {NULL, NULL}
 };
 

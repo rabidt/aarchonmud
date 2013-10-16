@@ -1794,7 +1794,7 @@ void do_alist( CHAR_DATA *ch, char *argument)
     {
         for ( pArea1 = area_first; pArea1 != NULL ; pArea1 = pArea1->next )
         {
-            if (pArea1->security>4)
+            if (is_area_ingame(pArea1) )
             {
                 sorted_areas[count] = pArea1;
                 count++;
