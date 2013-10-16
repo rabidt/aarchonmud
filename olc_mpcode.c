@@ -51,6 +51,13 @@ void mpedit( CHAR_DATA *ch, char *argument)
     argument = one_argument( argument, command);
 
     EDIT_MPCODE(ch, pMcode);
+    if (!pMcode)
+    {
+        bugf("mpedit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
+
 
     if (pMcode)
     {

@@ -737,7 +737,7 @@ static int L_ch_oedit (lua_State *LS)
     {
         luaL_error( LS, "NPCs cannot oedit!");
     }
-    redit( ud_ch, luaL_checkstring( LS, 2 ) );
+    oedit( ud_ch, luaL_checkstring( LS, 2 ) );
 
     return 0;
 }
@@ -752,7 +752,7 @@ static int L_ch_medit (lua_State *LS)
     {
         luaL_error( LS, "NPCs cannot medit!");
     }
-    redit( ud_ch, luaL_checkstring( LS, 2 ) );
+    medit( ud_ch, luaL_checkstring( LS, 2 ) );
 
     return 0;
 }
@@ -767,7 +767,7 @@ static int L_ch_aedit (lua_State *LS)
     {
         luaL_error( LS, "NPCs cannot aedit!");
     }
-    redit( ud_ch, luaL_checkstring( LS, 2 ) );
+    aedit( ud_ch, luaL_checkstring( LS, 2 ) );
 
     return 0;
 }
