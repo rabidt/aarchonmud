@@ -50,6 +50,12 @@ void opedit( CHAR_DATA *ch, char *argument)
     argument = one_argument( argument, command);
 
     EDIT_OPCODE(ch, pOcode);
+    if (!pOcode)
+    {
+        bugf("mpedit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
 
     if (pOcode)
     {

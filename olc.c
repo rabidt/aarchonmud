@@ -472,6 +472,13 @@ void aedit( CHAR_DATA *ch, char *argument )
    int  value;
    
    EDIT_AREA(ch, pArea);
+   if (!pArea)
+   {
+       bugf("aedit: called by %s with wrong edit mode: %d",
+              ch->name, ch->desc->editor);
+      return;
+   }
+
    smash_tilde( argument );
    strcpy( arg, argument );
    argument = one_argument( argument, command );
@@ -542,6 +549,12 @@ void redit( CHAR_DATA *ch, char *argument )
    int  cmd;
    
    EDIT_ROOM(ch, pRoom);
+   if (!pRoom)
+    {
+        bugf("redit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
    pArea = pRoom->area;
    
    smash_tilde( argument );
@@ -603,6 +616,12 @@ void oedit( CHAR_DATA *ch, char *argument )
    argument = one_argument( argument, command );
    
    EDIT_OBJ(ch, pObj);
+   if (!pObj)
+    {
+        bugf("oedit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
    pArea = pObj->area;
    
    if ( !IS_BUILDER( ch, pArea ) )
@@ -660,6 +679,13 @@ void medit( CHAR_DATA *ch, char *argument )
    argument = one_argument( argument, command );
    
    EDIT_MOB(ch, pMob);
+   if (!pMob)
+   {
+       bugf("medit: called by %s with wrong edit mode: %d",
+              ch->name, ch->desc->editor);
+      return;
+   }
+ 
    pArea = pMob->area;
    
    if ( !IS_BUILDER( ch, pArea ) )
