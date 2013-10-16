@@ -1991,6 +1991,13 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, int amount )
     int reward;
     char buf[MSL];
 
+    if (IS_NPC(victim) )
+    {
+        bugf("mpreward: victim is NPC: %s(%d)",
+                victim->name, victim->pIndexData->vnum);
+        return;
+    }
+
     /* which reward type do we have? */
     if ( !str_cmp(arg2, "exp") )
         reward = REWARD_EXP;
@@ -2000,7 +2007,7 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, int amount )
         reward = REWARD_GOLD;
     else
     {
-        bug( "do_mpreward: unknown reward type from vnum %d.",
+        bug( "mpreward: unknown reward type from vnum %d.",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
         return;
     }
@@ -2029,7 +2036,7 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, int amount )
         victim->gold += amount;
         break;
     default:
-        bugf( "do_mpreward: unknown reward type (%d)", reward );
+        bugf( "mpreward: unknown reward type (%d)", reward );
     }
 }
 
