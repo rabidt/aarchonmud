@@ -304,7 +304,7 @@ static RESET_DATA *check_RESET( lua_State *LS, int arg)
     lua_getfield(LS, arg, "UDTYPE");
     sh_int type= luaL_checknumber(LS, -1);
     lua_pop(LS, 1);
-    if ( type != UDTYPE_AREA )
+    if ( type != UDTYPE_RESET )
     {
         luaL_error(LS, "Bad parameter %d. Expected RESET.", arg );
         return NULL;
@@ -761,54 +761,9 @@ static int L_ch_olc (lua_State *LS)
         luaL_error( LS, "NPCs cannot use OLC!");
     }
    
-    if (! run_olc_editor_lua( ud_ch, luaL_checkstring( LS, 2)) )
+    if (!run_olc_editor_lua( ud_ch, luaL_checkstring( LS, 2)) )
         luaL_error(LS, "Not currently in olc edit mode.");
  
-    return 0;
-}
-
-static int L_ch_oedit (lua_State *LS)
-{
-#ifndef BUILDER
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-#endif
-    CHAR_DATA *ud_ch=check_CH(LS, 1);
-    if (IS_NPC(ud_ch) )
-    {
-        luaL_error( LS, "NPCs cannot oedit!");
-    }
-    oedit( ud_ch, luaL_checkstring( LS, 2 ) );
-
-    return 0;
-}
-
-static int L_ch_medit (lua_State *LS)
-{
-#ifndef BUILDER
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-#endif
-    CHAR_DATA *ud_ch=check_CH(LS, 1);
-    if (IS_NPC(ud_ch) )
-    {
-        luaL_error( LS, "NPCs cannot medit!");
-    }
-    medit( ud_ch, luaL_checkstring( LS, 2 ) );
-
-    return 0;
-}
-
-static int L_ch_aedit (lua_State *LS)
-{
-#ifndef BUILDER
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-#endif
-    CHAR_DATA *ud_ch=check_CH(LS, 1);
-    if (IS_NPC(ud_ch) )
-    {
-        luaL_error( LS, "NPCs cannot aedit!");
-    }
-    aedit( ud_ch, luaL_checkstring( LS, 2 ) );
-
     return 0;
 }
 
@@ -2597,7 +2552,13 @@ static int get_RESET_field (lua_State *LS)
     if ( !ud_reset )
         return 0;
 
-    FLDSTR("command", ud_reset->command);
+    if (!strcmp( argument, "command" ) )
+    {
+        char buf[2];
+        sprintf(buf, "%c", ud_reset->command);
+        lua_pushstring( LS, buf );
+        return 1;
+    }
     FLDNUM("arg1", ud_reset->arg1);
     FLDNUM("arg2", ud_reset->arg2);
     FLDNUM("arg3", ud_reset->arg3);
@@ -2992,6 +2953,15 @@ static const struct luaL_reg AREA_metatable [] =
     {NULL, NULL}
 };
 
+static const struct luaL_reg RESET_metatable [] =
+{
+    {"__tostring", RESET2string},
+    {"__index", get_RESET_field},
+    {"__newindex", newindex_error},
+    {"__eq", check_RESET_equal},
+    {NULL, NULL}
+};
+
 void RegisterGlobalFunctions(lua_State *LS)
 {
     /* checks */
@@ -3042,6 +3012,8 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, NULL, OBJPROTO_metatable);
     luaL_newmetatable(LS, AREA_META);
     luaL_register (LS, NULL, AREA_metatable);
+    luaL_newmetatable(LS, RESET_META);
+    luaL_register (LS, NULL, RESET_metatable);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
