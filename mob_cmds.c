@@ -592,6 +592,24 @@ void do_mpasound( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob kill [victim]
  */
+
+void mpkill( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( victim == ch || IS_NPC(victim) || ch->position == POS_FIGHTING
+         || victim->in_room != ch->in_room )
+    return;
+
+    if ( IS_AFFECTED( ch, AFF_CHARM ) && ch->master == victim )
+    {
+    bug( "MpKill - Charmed mob attacking master from vnum %d.",
+        IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+    return;
+    }
+
+    multi_hit( ch, victim, TYPE_UNDEFINED );
+    return;
+}
+
 void do_mpkill( CHAR_DATA *ch, char *argument )
 {
     char      arg[ MAX_INPUT_LENGTH ];
@@ -605,18 +623,7 @@ void do_mpkill( CHAR_DATA *ch, char *argument )
     if ( ( victim = get_char_room( ch, arg ) ) == NULL )
 	return;
 
-    if ( victim == ch || IS_NPC(victim) || ch->position == POS_FIGHTING )
-	return;
-
-    if ( IS_AFFECTED( ch, AFF_CHARM ) && ch->master == victim )
-    {
-	bug( "MpKill - Charmed mob attacking master from vnum %d.",
-	    IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
-	return;
-    }
-
-    multi_hit( ch, victim, TYPE_UNDEFINED );
-    return;
+    mpkill( ch, victim );
 }
 
 /*
@@ -624,6 +631,15 @@ void do_mpkill( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob assist [character]
  */
+void mpassist( CHAR_DATA *ch, CHAR_DATA *victim)
+{
+    if ( victim == ch || ch->fighting != NULL || victim->fighting == NULL )
+    return;
+
+    multi_hit( ch, victim->fighting, TYPE_UNDEFINED );
+    return;
+} 
+
 void do_mpassist( CHAR_DATA *ch, char *argument )
 {
     char      arg[ MAX_INPUT_LENGTH ];
@@ -637,11 +653,7 @@ void do_mpassist( CHAR_DATA *ch, char *argument )
     if ( ( victim = get_char_room( ch, arg ) ) == NULL )
 	return;
 
-    if ( victim == ch || ch->fighting != NULL || victim->fighting == NULL )
-	return;
-
-    multi_hit( ch, victim->fighting, TYPE_UNDEFINED );
-    return;
+    mpassist( ch, victim);
 }
 
 
@@ -698,6 +710,11 @@ void do_mpjunk( CHAR_DATA *ch, char *argument )
  * Syntax: mob echoaround [victim] [string]
  */
 
+void mpechoaround( CHAR_DATA *ch, CHAR_DATA *vic, char *txt )
+{
+    act_non_wizi( txt, ch, NULL, vic, TO_NOTVICT );
+}
+
 void do_mpechoaround( CHAR_DATA *ch, char *argument )
 {
     char       arg[ MAX_INPUT_LENGTH ];
@@ -711,7 +728,7 @@ void do_mpechoaround( CHAR_DATA *ch, char *argument )
     if ( ( victim=get_char_room( ch, arg ) ) == NULL )
 	return;
 
-    act_non_wizi( argument, ch, NULL, victim, TO_NOTVICT );
+    mpechoaround( ch, victim, argument);
 }
 
 /*
@@ -719,6 +736,11 @@ void do_mpechoaround( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob echoat [victim] [string]
  */
+void mpechoat( CHAR_DATA *ch, CHAR_DATA *victim, char *argument)
+{
+    act_non_wizi( argument, ch, NULL, victim, TO_VICT );
+}
+
 void do_mpechoat( CHAR_DATA *ch, char *argument )
 {
     char       arg[ MAX_INPUT_LENGTH ];
@@ -732,7 +754,7 @@ void do_mpechoat( CHAR_DATA *ch, char *argument )
     if ( ( victim = get_char_room( ch, arg ) ) == NULL )
 	return;
 
-    act_non_wizi( argument, ch, NULL, victim, TO_VICT );
+    mpechoat( ch, victim, argument );
 }
 
 /*
@@ -1702,22 +1724,14 @@ void do_mpremove( CHAR_DATA *ch, char *argument )
     }
 }
 
-
-void do_mpremort( CHAR_DATA *ch, char *argument )
+void mpremort( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    CHAR_DATA *victim;
-    char arg[ MAX_INPUT_LENGTH ];
-
-    argument = one_argument( argument, arg );
-    if ( (victim = get_char_room(ch, arg)) == NULL || IS_NPC(victim) )
-        return;
-
     // usage should be logged
     if ( IS_NPC(ch) )
         logpf("do_mpremort(%d): remorting %s", ch->pIndexData->vnum, victim->name);
     else
         logpf("do_mpremort(%s): remorting %s", ch->name, victim->name);
-    
+
 #ifndef TESTER
     if ( !is_in_remort(victim) )
     {
@@ -1728,6 +1742,18 @@ void do_mpremort( CHAR_DATA *ch, char *argument )
 
     victim->pcdata->remorts++;
     remort_begin(victim);
+}
+
+
+void do_mpremort( CHAR_DATA *ch, char *argument )
+{
+    CHAR_DATA *victim;
+    char arg[ MAX_INPUT_LENGTH ];
+
+    argument = one_argument( argument, arg );
+    if ( (victim = get_char_room(ch, arg)) == NULL || IS_NPC(victim) )
+        return;
+    mpremort(ch, victim);
 }
 
 
@@ -1840,15 +1866,24 @@ void do_mpapplyb( CHAR_DATA *ch, char *argument )
 
 /* stuff for special quests --Bobble */
 
+void mpqset(CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3,
+                int timer, int limit )
+{
+    if (IS_NPC(victim))
+    return;
+
+    set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
+}
+
 /* Syntax: mob qset $n [id] [status] */
 void do_mpqset( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
-    char arg[MAX_INPUT_LENGTH];
-    char arg2[MIL];
-    char arg3[MIL];
-    char arg4[MIL];
-    char arg5[MIL];
+    static char arg[MAX_INPUT_LENGTH];
+    static char arg2[MIL];
+    static char arg3[MIL];
+    static char arg4[MIL];
+    static char arg5[MIL];
     int timer;
     int limit;
 
@@ -1890,10 +1925,27 @@ void do_mpqset( CHAR_DATA *ch, char *argument )
     if ( ( victim = get_char_room( ch, arg ) ) == NULL )
 	return;
 
-    if (IS_NPC(victim))
-	return;
+    mpqset( ch, victim, arg2, arg3, timer, limit );
+}
 
-    set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
+void mpqadvance( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3 )
+{
+    int increment;
+
+    if (IS_NPC(victim))
+    return;
+
+    /* do the advance */
+    int id = r_atoi( ch, arg2 );
+    if ( arg3[0] == 0 )
+    increment = 1;
+    else
+    increment = atoi( arg3 );
+
+
+    int old_status = quest_status( victim, id );
+    int timer = qset_timer(victim, id );
+    set_quest_status( victim, id, old_status + increment, timer );
 }
 
 /* Syntax: mob qadvance $n [id] {increment} */
@@ -1928,36 +1980,68 @@ void do_mpqadvance( CHAR_DATA *ch, char *argument )
     if ( ( victim = get_char_room( ch, arg ) ) == NULL )
 	return;
 
-    if (IS_NPC(victim))
-	return;
-
-    /* do the advance */
-    id = r_atoi( ch, arg2 );
-    if ( arg3[0] == 0 )
-	increment = 1;
-    else
-	increment = atoi( arg3 );
-
-    if ( arg4[0] == 0 )
-    
-
-    old_status = quest_status( victim, id );
-    timer = qset_timer(victim, id );
-    set_quest_status( victim, id, old_status + increment, timer );
+    mpqadvance( ch, victim, arg2, arg3 );
 }
 
 #define REWARD_EXP     0
 #define REWARD_QP      1
 #define REWARD_GOLD    2 
-/* Syntax: mob reward $n [exp|qp|gold] [ammount] */
+void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, int amount )
+{
+    int reward;
+    char buf[MSL];
+
+    /* which reward type do we have? */
+    if ( !str_cmp(arg2, "exp") )
+        reward = REWARD_EXP;
+    else if ( !str_cmp(arg2, "qp") )
+        reward = REWARD_QP;
+    else if ( !str_cmp(arg2, "gold") )
+        reward = REWARD_GOLD;
+    else
+    {
+        bug( "do_mpreward: unknown reward type from vnum %d.",
+            IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+        return;
+    }
+
+    /* log the action */
+    sprintf( buf, "%s was rewarded %d %s by mob %d.",
+         victim->name, amount, arg2,
+         IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+    log_string( buf );
+    wiznet(buf,victim,NULL,WIZ_SECURE,0,0);
+
+    /* now the reward */
+    switch ( reward )
+    {
+        case REWARD_EXP:
+        gain_exp( victim, amount );
+        break;
+    case REWARD_QP:
+        sprintf( buf, "You are rewarded %d quest point%s!\n\r",
+                        amount, amount == 1 ? "" : "s" );
+        send_to_char( buf, victim );
+        victim->pcdata->questpoints += amount;
+        break;
+    case REWARD_GOLD:
+        ptc( victim, "You are rewarded %d gold!\n\r", amount);
+        victim->gold += amount;
+        break;
+    default:
+        bugf( "do_mpreward: unknown reward type (%d)", reward );
+    }
+}
+
+/* Syntax: mob reward $n [exp|qp|gold] [amount] */
 void do_mpreward( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
-    char arg1[MIL];
-    char arg2[MIL];
-    char arg3[MIL];
-    char buf[MSL];
-    int ammount, reward;
+    static char arg1[MIL];
+    static char arg2[MIL];
+    static char arg3[MIL];
+    static char buf[MSL];
+    int amount, reward;
 
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
@@ -1970,28 +2054,14 @@ void do_mpreward( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    /* which reward type do we have? */
-    if ( !str_cmp(arg2, "exp") )
-	reward = REWARD_EXP;
-    else if ( !str_cmp(arg2, "qp") )
-	reward = REWARD_QP;
-    else if ( !str_cmp(arg2, "gold") )
-    reward = REWARD_GOLD;
-    else
-    {
-	bug( "do_mpreward: unknown reward type from vnum %d.", 
-	     IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
-	return;
-    }
-
-    /* check ammount */
+    /* check amount */
     if ( !is_number(arg3) )
     {
-	bug( "do_mpreward: invalid ammount from vnum %d.", 
+	bug( "do_mpreward: invalid amount from vnum %d.", 
 	     IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	return;
     }
-    ammount = atoi( arg3 );
+    amount = atoi( arg3 );
 
     if ( ( victim = get_char_room( ch, arg1 ) ) == NULL )
 	return;
@@ -1999,32 +2069,7 @@ void do_mpreward( CHAR_DATA *ch, char *argument )
     if ( IS_NPC(victim) || victim->pcdata == NULL )
 	return;
 
-    /* log the action */
-    sprintf( buf, "%s was rewarded %d %s by mob %d.",
-	     victim->name, ammount, arg2,
-	     IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
-    log_string( buf );
-    wiznet(buf,victim,NULL,WIZ_SECURE,0,0);
-    
-    /* now the reward */
-    switch ( reward )
-    {
-    case REWARD_EXP:
-	gain_exp( victim, ammount );
-	break;
-    case REWARD_QP:
-	sprintf( buf, "You are rewarded %d quest point%s!\n\r", 
-		 ammount, ammount == 1 ? "" : "s" );
-	send_to_char( buf, victim );
-	victim->pcdata->questpoints += ammount;
-	break;
-    case REWARD_GOLD:
-    ptc( victim, "You are rewarded %d gold!\n\r", ammount);
-    victim->gold += ammount;
-    break;
-    default:
-	bug( "do_mpreward: unknown reward type (%d)", reward );
-    }
+    mpreward( ch, victim, arg2, amount);
 }
 
 void do_mppeace( CHAR_DATA *ch, char *argument )
