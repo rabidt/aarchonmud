@@ -1258,7 +1258,7 @@ static int L_ch_reward (lua_State *LS)
 
     mpreward( check_CH(LS, 1), check_CH(LS, 2),
               luaL_checkstring(LS, 3),
-              luaL_checknumber(LS, 4) );
+              (int)luaL_checknumber(LS, 4) );
     return 0;
 }
 
