@@ -2820,7 +2820,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam -= diff*dam/4000;
     }
 
-    if ( dam > 1 && dt < TYPE_HIT && IS_SPELL(dt) )
+    if ( dam > 1 && dt > 0 && dt < TYPE_HIT && IS_SPELL(dt) )
     {
         if ( victim->stance == STANCE_ARCANA )
             dam -= dam/3;
