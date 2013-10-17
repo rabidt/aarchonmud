@@ -2699,6 +2699,24 @@ static int get_AREA_field ( lua_State *LS )
         }
         return 1;
     }
+    
+    if ( !strcmp(argument, "mobprotos") )
+    {
+        int index=1;
+        int vnum=0;
+        lua_newtable(LS);
+        MOB_INDEX_DATA *mid;
+        for ( vnum=ud_area->min_vnum ; vnum <= ud_area->max_vnum ; vnum++ )
+        {
+            if ((mid=get_mob_index(vnum)) != NULL )
+            {
+                if (make_ud_table(LS, mid, UDTYPE_MOBPROTO))
+                    lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
+    
     return 0;
 }
 
@@ -3060,6 +3078,13 @@ static int get_CH_field ( lua_State *LS)
         /* MOB specific stuff */
     {
         FLDNUM("vnum", ud_ch->pIndexData->vnum);
+        if (!strcmp(argument, "proto"))
+        {
+            if (!make_ud_table(LS, ud_ch->pIndexData, UDTYPE_MOBPROTO))
+                return 0;
+            else
+                return 1;
+        }
     }
 
 
@@ -3157,6 +3182,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     /* other */
     lua_register(LS,"getroom",     L_getroom);
     lua_register(LS,"getobjproto", L_getobjproto);
+    lua_register(LS,"getmobproto", L_getmobproto);
     lua_register(LS,"getobjworld", L_getobjworld );
     lua_register(LS,"getmobworld", L_getmobworld );
     lua_register(LS,"log",         L_log );
