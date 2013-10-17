@@ -1686,7 +1686,7 @@ void spell_bless( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.bitvector = 0;
     affect_to_char( victim, &af );
 
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = 0 - level / 8;
     affect_to_char( victim, &af );
     send_to_char( "You feel righteous.\n\r", victim );
@@ -2652,7 +2652,7 @@ void spell_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.bitvector = AFF_CURSE;
     affect_to_char( victim, &af );
 
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = level / 8;
     affect_to_char( victim, &af );
 
@@ -4745,7 +4745,7 @@ void spell_protection_evil(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = -1;
     af.bitvector = AFF_PROTECT_EVIL;
     affect_to_char( victim, &af );
@@ -4783,7 +4783,7 @@ void spell_protection_good(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = -1;
     af.bitvector = AFF_PROTECT_GOOD;
     affect_to_char( victim, &af );
