@@ -1330,7 +1330,8 @@ void char_update( void )
             if (IS_NPC(ch))
             {
                 /* check to see if we need to go home */
-                if (ch->zone != NULL && ch->zone != ch->in_room->area
+                if ( !IS_SET(ch->act, ACT_TRAVELLER) && ch->zone != NULL 
+                        && ch->zone != ch->in_room->area
                         && ch->desc == NULL &&  ch->fighting == NULL 
                         && !IS_AFFECTED(ch,AFF_CHARM) && number_percent() < 5)
                 {
