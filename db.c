@@ -5226,7 +5226,14 @@ void append_file( CHAR_DATA *ch, char *file, char *str )
 /*
 * Reports a bug.
 */
-void bug( const char *str, int param )
+void bug( const char *fmt, int param )
+{
+    char buf[MAX_STRING_LENGTH];
+    sprintf(buf, fmt, param);
+    bug_string(buf);
+}
+
+void bug_string( const char *str )
 {
     static bool recursion=FALSE;
     bool enable_wiznet=TRUE;
@@ -5265,30 +5272,13 @@ void bug( const char *str, int param )
 
         if ( enable_wiznet)
             wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
-        /* RT removed because we don't want bugs shutting the mud 
-        if ( ( fp = fopen( "shutdown.txt", "a" ) ) != NULL )
-        {
-        fprintf( fp, "[*****] %s\n", buf );
-        fclose( fp );
-        }
-        */
     }
     
-    strcpy( buf, "[*****] BUG: " );
-    sprintf( buf + strlen(buf), str, param );
+    sprintf(buf, "[*****] BUG: %s", str );
     log_string( buf );
     
     if ( enable_wiznet )
         wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
-    /* RT removed due to bug-file spamming 
-    fclose( fpReserve );
-    if ( ( fp = fopen( BUG_FILE, "a" ) ) != NULL )
-    {
-    fprintf( fp, "%s\n", buf );
-    fclose( fp );
-    }
-    fpReserve = fopen( NULL_FILE, "r" );
-    */
 
     recursion=FALSE;
     return;
