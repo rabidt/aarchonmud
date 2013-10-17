@@ -3307,7 +3307,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
         s_ScriptSecurity=security;
     }
 
-    error=CallLuaWithTraceBack (g_mud_LS, NUM_MPROG_ARGS, LUA_MULTRET) ;
+    error=CallLuaWithTraceBack (g_mud_LS, NUM_MPROG_ARGS, 0) ;
     if (error > 0 )
     {
         bugf ( "LUA mprog error for %s(%d), mprog %d:\n %s",
