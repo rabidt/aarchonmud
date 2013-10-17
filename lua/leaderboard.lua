@@ -161,7 +161,10 @@ function load_lboards()
     return
   end
 
-  lb_tables=f()
+  tmp=f()
+  if not(tmp==nil) then
+    lb_tables=tmp
+  end
 
   -- Load lboard history too
   f=loadfile("lhistory.lua")
@@ -169,7 +172,10 @@ function load_lboards()
     return
   end
 
-  lh_tables=f()
+  tmp=f()
+  if not(tmp==nil) then
+    lh_tables=tmp
+  end
 
   check_lboard_reset()
 end

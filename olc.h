@@ -304,16 +304,19 @@ DECLARE_OLC_FUN( mpedit_list     );
 DECLARE_OLC_FUN( mpedit_if       );
 DECLARE_OLC_FUN( mpedit_mob      );
 DECLARE_OLC_FUN( mpedit_lua      );
+DECLARE_OLC_FUN( mpedit_security );
 
 /* Objprog editor */
 DECLARE_OLC_FUN( opedit_create   );
 DECLARE_OLC_FUN( opedit_code     );
 DECLARE_OLC_FUN( opedit_show     );
+DECLARE_OLC_FUN( opedit_security );
 
 /* Areaprog editor */
 DECLARE_OLC_FUN( apedit_create   );
 DECLARE_OLC_FUN( apedit_code     );
 DECLARE_OLC_FUN( apedit_show     );
+DECLARE_OLC_FUN( apedit_security );
 
 
 /* Help Editor - kermit 1/98 */
@@ -342,14 +345,30 @@ DECLARE_OLC_FUN( raceedit_remskill );
  */
 
 /* Return pointers to what is being edited. */
-#define EDIT_MOB(Ch, Mob)     ( Mob = (MOB_INDEX_DATA *)Ch->desc->pEdit )
-#define EDIT_OBJ(Ch, Obj)     ( Obj = (OBJ_INDEX_DATA *)Ch->desc->pEdit )
-#define EDIT_ROOM(Ch, Room)   ( Room = Ch->in_room )
-#define EDIT_AREA(Ch, Area)   ( Area = (AREA_DATA *)Ch->desc->pEdit )
-#define EDIT_HELP(Ch, Help)   ( Help = (HELP_DATA *)Ch->desc->pEdit )
-#define EDIT_MPCODE(Ch, Code) ( Code = (MPROG_CODE*)Ch->desc->pEdit )
-#define EDIT_OPCODE(Ch, Code) ( Code = (OPROG_CODE*)Ch->desc->pEdit )
-#define EDIT_APCODE(Ch, Code) ( Code = (APROG_CODE*)Ch->desc->pEdit )
+#define EDIT_MOB(Ch, Mob)     ( Mob= (Ch->desc->editor == ED_MOBILE) ? \
+                                     (MOB_INDEX_DATA *)Ch->desc->pEdit : \
+                                     NULL )
+#define EDIT_OBJ(Ch, Obj)     ( Obj = (Ch->desc->editor == ED_OBJECT) ? \
+                                      (OBJ_INDEX_DATA *)Ch->desc->pEdit : \
+                                     NULL )
+#define EDIT_ROOM(Ch, Room)   ( Room = (Ch->desc->editor == ED_ROOM) ? \
+                                        Ch->in_room : \
+                                        NULL )
+#define EDIT_AREA(Ch, Area)   ( Area = (Ch->desc->editor == ED_AREA) ? \
+                                        (AREA_DATA *)Ch->desc->pEdit : \
+                                        NULL)
+#define EDIT_HELP(Ch, Help)   ( Help = (Ch->desc->editor == ED_HELP) ? \
+                                        (HELP_DATA *)Ch->desc->pEdit : \
+                                        NULL )
+#define EDIT_MPCODE(Ch, Code) ( Code = (Ch->desc->editor == ED_MPCODE) ? \
+                                        (MPROG_CODE*)Ch->desc->pEdit : \
+                                        NULL)
+#define EDIT_OPCODE(Ch, Code) ( Code = (Ch->desc->editor == ED_OPCODE) ? \
+                                        (OPROG_CODE*)Ch->desc->pEdit : \
+                                        NULL )
+#define EDIT_APCODE(Ch, Code) ( Code = (Ch->desc->editor == ED_APCODE) ? \
+                                        (APROG_CODE*)Ch->desc->pEdit : \
+                                        NULL )
 
 
 
