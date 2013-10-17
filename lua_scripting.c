@@ -75,6 +75,7 @@ static const struct luaL_reg ROOM_lib [];
 static const struct luaL_reg EXIT_lib [];
 static const struct luaL_reg AREA_lib [];
 static const struct luaL_reg RESET_lib [];
+static const struct luaL_reg MOBPROTO_lib[];
 
 #define CHARACTER_STATE "character.state"
 #define CH_META        "CH.meta"
@@ -85,6 +86,7 @@ static const struct luaL_reg RESET_lib [];
 #define EXIT_META      "EXIT.meta"
 #define AREA_META	   "AREA.meta"
 #define RESET_META     "RESET.meta"
+#define MOBPROTO_META  "MOBPROTO.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 #define UD_TABLE_NAME "udtbl"
@@ -134,6 +136,7 @@ static const struct luaL_reg RESET_lib [];
 #define UDTYPE_OBJPROTO  5
 #define UDTYPE_AREA      6
 #define UDTYPE_RESET     7
+#define UDTYPE_MOBPROTO  8
 
 
 // number of items in an array
@@ -183,6 +186,24 @@ static int optboolean (lua_State *LS, const int narg, const int def)
         return lua_toboolean (LS, narg);
 
     return luaL_checknumber (LS, narg) != 0;
+}
+
+static MOB_INDEX_DATA *check_MOBPROTO( lua_State *LS, int arg)
+{
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
+
+    if ( type != UDTYPE_MOBPROTO )
+    {
+        luaL_error(LS,"Bad parameter %d. Expected MOBPROTO.", arg );
+        return NULL;
+    }
+
+    lua_getfield(LS, arg, "tableid");
+    MOB_INDEX_DATA *mid=luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return mid;
 }
 
 static OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
@@ -369,6 +390,8 @@ static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
             meta=OBJPROTO_META; break;
         case UDTYPE_RESET:
             meta=RESET_META; break;
+        case UDTYPE_MOBPROTO:
+            meta=MOBPROTO_META; break;
         default:
             luaL_error (LS, "make_ud_table called with unknown UD_TYPE: %d", UDTYPE);
             break;
@@ -674,6 +697,21 @@ static int L_getroom (lua_State *LS)
     else
         return 1;
 
+}
+
+static int L_getmobproto (lua_State *LS)
+{
+    int num = luaL_checknumber (LS, 1);
+
+    MOB_INDEX_DATA *mob=get_mob_index(num);
+
+    if (!mob)
+        return 0;
+
+    if ( !make_ud_table( LS, mob, UDTYPE_MOBPROTO) )
+        return 0;
+    else
+        return 1;
 }
 
 static int L_getobjproto (lua_State *LS)
@@ -2104,6 +2142,11 @@ static const struct luaL_reg OBJ_lib [] =
     {NULL, NULL}
 };
 
+static const struct luaL_reg MOBPROTO_lib [] =
+{
+    {NULL, NULL}
+};
+
 static const struct luaL_reg OBJPROTO_lib [] =
 {
     {"extra", L_objproto_extra},
@@ -2202,6 +2245,12 @@ static int OBJPROTO2string (lua_State *LS)
     return 1;
 }
 
+static int MOBPROTO2string (lua_State *LS)
+{
+    lua_pushstring( LS, (check_MOBPROTO( LS, 1))->player_name);
+    return 1;
+}
+
 static int ROOM2string (lua_State *LS)
 {
     lua_pushstring( LS, (check_ROOM( LS, 1))->name);
@@ -2238,7 +2287,76 @@ static int RESET2string (lua_State *LS)
     if ( !strcmp( argument, key ) ) \
 {lua_pushboolean( LS, value ); return 1;}
 
+static int check_MOBPROTO_equal( lua_State *LS)
+{
+    lua_pushboolean( LS, check_MOBPROTO(LS, 1) == check_MOBPROTO(LS, 2) );
+    return 1;
+}
 
+static int get_MOBPROTO_field ( lua_State *LS )
+{
+    const char *argument = luaL_checkstring (LS, 2 );
+
+    FLDNUM("UDTYPE",UDTYPE_MOBPROTO); /* Need this for type checking */
+
+    /* check for funcs first */
+    int i;
+    for ( i=0 ; MOBPROTO_lib[i].name != NULL ; i++ )
+    {
+        if (!strcmp( argument, MOBPROTO_lib[i].name ) )
+        {
+            lua_pushcfunction( LS, MOBPROTO_lib[i].func);
+            return 1;
+        }
+    }
+
+    MOB_INDEX_DATA *ud_mobp = check_MOBPROTO(LS, 1);
+
+    if ( !ud_mobp )
+        return 0;
+
+    FLDNUM("vnum", ud_mobp->vnum);
+    FLDSTR("name", ud_mobp->player_name);
+    FLDSTR("shortdescr", ud_mobp->short_descr);
+    FLDSTR("longdescr", ud_mobp->long_descr);
+    FLDSTR("description", ud_mobp->description);
+    FLDNUM("alignment", ud_mobp->alignment);
+    FLDNUM("level", ud_mobp->level);
+    FLDNUM("hppcnt", ud_mobp->hitpoint_percent);
+    FLDNUM("mnpcnt", ud_mobp->mana_percent);
+    FLDNUM("mvpcnt", ud_mobp->move_percent);
+    FLDNUM("hrpcnt", ud_mobp->hitroll_percent);
+    FLDNUM("drpcnt", ud_mobp->damage_percent);
+    FLDNUM("acpcnt", ud_mobp->ac_percent);
+    FLDNUM("savepcnt", ud_mobp->saves_percent);
+    FLDSTR("damtype", attack_table[ud_mobp->dam_type].name);
+    FLDSTR("startpos", flag_stat_string( position_flags, ud_mobp->start_pos ));
+    FLDSTR("defaultpos", flag_stat_string( position_flags, ud_mobp->default_pos ));
+    if (!strcmp(argument, "sex"))
+    {
+        switch(ud_mobp->sex)
+        {
+            case SEX_NEUTRAL:
+                lua_pushliteral( LS, "neutral"); break;
+            case SEX_MALE:
+                lua_pushliteral( LS, "male"); break;
+            case SEX_FEMALE:
+                lua_pushliteral( LS, "female"); break;
+            case SEX_BOTH:
+                lua_pushliteral( LS, "random"); break;
+            default:
+                return 0;
+        }
+        return 1;
+    }
+    FLDSTR("race", race_table[ud_mobp->race].name );
+    FLDNUM("wealthpcnt", ud_mobp->wealth_percent);
+    FLDSTR("size", flag_stat_string( size_flags, ud_mobp->size ) );
+    FLDSTR("stance", stances[ud_mobp->stance].name);
+                
+
+    return 0;
+}
 
 static int check_OBJ_equal( lua_State *LS)
 {
@@ -2877,6 +2995,15 @@ static const struct luaL_reg OBJ_metatable [] =
     {NULL, NULL}
 };
 
+static const struct luaL_reg MOBPROTO_metatable [] =
+{
+    {"__tostring", MOBPROTO2string},
+    {"__index", get_MOBPROTO_field},
+    {"__newindex", newindex_error},
+    {"__eq", check_MOBPROTO_equal},
+    {NULL, NULL}
+};
+
 static const struct luaL_reg OBJPROTO_metatable [] =
 {
     {"__tostring", OBJPROTO2string},
@@ -2983,6 +3110,8 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, NULL, AREA_metatable);
     luaL_newmetatable(LS, RESET_META);
     luaL_register (LS, NULL, RESET_metatable);
+    luaL_newmetatable(LS, MOBPROTO_META);
+    luaL_register (LS, NULL, MOBPROTO_metatable);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
