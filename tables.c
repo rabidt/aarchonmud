@@ -214,6 +214,7 @@ const struct flag_type act_flags[] =
         {   "staggered",    ACT_STAGGERED,   TRUE    },
         {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
         {   "noweapon",     ACT_NOWEAPON,    TRUE    },
+        {   "traveller",    ACT_TRAVELLER,   TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 
