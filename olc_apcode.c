@@ -15,6 +15,7 @@
 #include "tables.h"
 #include "olc.h"
 #include "recycle.h"
+#include "lua_scripting.h"
 
 #define APEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
 
@@ -180,7 +181,7 @@ APEDIT (apedit_create)
 
     if ( !IS_BUILDER(ch, ad) )
     {
-       send_to_char("APEdit : Insufficient security to create MobProgs.\n\r", ch);
+       send_to_char("APEdit : Insufficient security to create AreaProgs.\n\r", ch);
        return FALSE;
     }
 
@@ -242,7 +243,7 @@ void fix_aprog_areas( CHAR_DATA *ch, APROG_CODE *pAcode )
 					send_to_char( buf, ch);
 					apl->code = pAcode->code;
 					
-					lua_load_aprog( mud_LS, pAcode->vnum, pAcode->code);
+					lua_load_aprog( g_mud_LS, pAcode->vnum, pAcode->code);
 					ptc(ch, "Fixed lua script for %d.\n\r", pAcode->vnum);
 				}
 				

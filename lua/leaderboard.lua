@@ -174,15 +174,15 @@ function load_lboards()
   check_lboard_reset()
 end
     
-local function print_entries(entries, ch, maxent)
+local function print_entries(pagetbl, entries, ch, maxent)
   local found=false
   local cnt=1
   for ind, entry in ipairs(entries) do
     if entry.chname==ch.name then
-      sendtochar(ch,string.format("{W%3d: %-25s %10d{x\r\n", ind,entry.chname, entry.value))
+      table.insert(pagetbl, string.format("{W%3d: %-25s %10d{x", ind,entry.chname, entry.value))
       found=true
     else
-      sendtochar(ch,string.format("%3d: %-25s %10d\r\n", ind,entry.chname, entry.value))
+      table.insert(pagetbl, string.format("%3d: %-25s %10d", ind,entry.chname, entry.value))
     end
     cnt=cnt+1
     if cnt>maxent then break end
@@ -191,29 +191,29 @@ local function print_entries(entries, ch, maxent)
   return found
 end
 
-local function print_tables(tables, ch, typefilter)
+local function print_tables(pagetbl, tables, ch, typefilter)
     for ttyp,tbl in pairs(tables) do
         if typefilter==nil or typefilter==ttyp then
-            sendtochar(ch, "{D" .. tbl.name .. "{x\r\n")
-            if not(print_entries(tbl.entries,ch, 20)) then
+            table.insert(pagetbl, "{D" .. tbl.name .. "{x")
+            if not(print_entries(pagetbl,tbl.entries,ch, 20)) then
               local ind=find_in_lboard(tbl.entries,ch.name)
               if ind then
-                sendtochar(ch, string.format("{W%3d: %-25s %10d{x\r\n", ind, tbl.entries[ind].chname, tbl.entries[ind].value))
+                table.insert(pagetbl, string.format("{W%3d: %-25s %10d{x", ind, tbl.entries[ind].chname, tbl.entries[ind].value))
               --else
               --  sendtochar(ch, "No score for " .. ch.name .. "\r\n") 
               end
             end
-            sendtochar(ch, "\n\r")
+            table.insert(pagetbl, "\n\r")
         end
     end
 end
 
-local function print_interval(intrvl, ch, typefilter)
+local function print_interval(pagetbl, intrvl, ch, typefilter)
     if not(intrvl.timeout==0) then
-        sendtochar(ch, "{yEnding: " .. os.date("%X %x ",intrvl.timeout) .. "{x\r\n")
+        table.insert(pagetbl, "{yEnding: " .. os.date("%X %x ",intrvl.timeout) .. "{x")
     end
 
-    print_tables(intrvl.tables,ch,typefilter)
+    print_tables(pagetbl, intrvl.tables,ch,typefilter)
 end
 
 function do_lhistory( ch, argument)
@@ -290,18 +290,21 @@ function do_lhistory( ch, argument)
 
 
     -- print applicable tables
+    local pagetbl={}
     for k,tbl in pairs(lh_tables) do
       if interval==nil or interval==k then
-        sendtochar(ch, "\n\r{c" .. k:upper() .. " LEADERBOARD HISTORY\n\r{x")
+        table.insert(pagetbl, "\n\r{c" .. k:upper() .. " LEADERBOARD HISTORY{x")
         for i,v in ipairs(tbl) do
           if ind==nil or ind==i then
-            sendtochar(ch, "Entry #" .. i .. "\n\r")
-            print_interval(v, ch, typ)
-            sendtochar(ch, "\n\r")
+            table.insert(pagetbl, "Entry #" .. i )
+            print_interval(pagetbl, v, ch, typ)
+            table.insert(pagetbl, "\n\r")
           end
         end
       end
     end
+
+    pagetochar(ch, table.concat(pagetbl, "\n\r"))
 
     return 
 end
@@ -353,13 +356,15 @@ function do_lboard( ch, argument)
 
 
     -- print applicable tables
+    local pagetbl={}
     for k,tbl in pairs(lb_tables) do
       if interval==nil or interval==k then
-        sendtochar(ch, "\n\r{c" .. k:upper() .. " LEADERBOARD{x\n\r")
-        print_interval(tbl, ch, typ)
-        sendtochar(ch, "\n\r")
+        table.insert(pagetbl, "\n\r{c" .. k:upper() .. " LEADERBOARD{x")
+        print_interval(pagetbl, tbl, ch, typ)
+        table.insert(pagetbl, "\n\r")
       end
     end
+    pagetochar(ch, table.concat(pagetbl, "\n\r"))
 
     return
 
