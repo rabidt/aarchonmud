@@ -27,6 +27,7 @@ const struct olc_cmd_type apedit_table[] =
    {  "create",   apedit_create  },
    {  "code",     apedit_code    },
    {  "show",     apedit_show    },
+   {  "security", apedit_security},
    //{  "list",     apedit_list    },
    //{  "if",       apedit_if      },
    //{  "mob",      apedit_mob     },
@@ -49,6 +50,12 @@ void apedit( CHAR_DATA *ch, char *argument)
     argument = one_argument( argument, command);
 
     EDIT_APCODE(ch, pAcode);
+    if (!pAcode)
+    {
+        bugf("mpedit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
 
     if (pAcode)
     {
@@ -95,6 +102,70 @@ void apedit( CHAR_DATA *ch, char *argument)
     interpret(ch, arg);
 
     return;
+}
+
+void do_aprun( CHAR_DATA *ch, char *argument)
+{
+    if ( IS_NPC(ch) )
+        return;
+
+    AREA_DATA *area;
+    int vnum=0;
+    char arg[MSL];
+    char arg2[MSL];
+    APROG_CODE *pAcode;
+    bool result=FALSE;
+
+    if ( argument[0]=='\0' )
+    {
+        ptc(ch, "aprun [vnum]\n\r");
+        return;
+    }
+
+    argument=one_argument( argument, arg );
+
+    if (!is_number(arg))
+    {
+        ptc( ch, "Bad argument: %s. Should be a number.\n\r", arg);
+        return;
+    }
+    
+    vnum=atoi(arg);
+
+    if ( ( pAcode=get_aprog_index(vnum) ) == NULL )
+    {
+        ptc( ch, "Aprog %d doesn't exist.\n\r", vnum );
+        return;
+    }
+
+    if ( ch->in_room && ch->in_room->area )
+    {
+        area=ch->in_room->area;
+    }
+    else
+    {
+        ptc( ch, "Couldn't find area!\n\r");
+        if ( !ch->in_room )
+        {
+            bugf("do_aprun: %s has no in_room", ch->name);
+        }
+        else if ( !ch->in_room->area )
+        {
+            bugf("do_aprun: %s(%d) has no area", ch->in_room->name, ch->in_room->vnum);
+        }
+        return;
+    }
+
+
+    ptc( ch, "Running aprog %d in area %s with %s as ch1\n\r",
+            vnum,
+            area->name,
+            ch->name);
+
+    result=lua_area_program( NULL, vnum, pAcode->code, area, ch, ATRIG_CALL, pAcode->security );
+
+    ptc( ch, "Aprog completed. Result: %s\n\r", result ? "TRUE" : "FALSE" );
+
 }
 
 void do_apedit(CHAR_DATA *ch, char *argument)
@@ -219,12 +290,55 @@ APEDIT(apedit_show)
 
     sprintf(buf,
            "Vnum:       [%d]\n\r"
+           "Security:   %d\n\r"
            "Code:\n\r%s\n\r",
            pAcode->vnum,
+           pAcode->security,
            pAcode->code  );
     page_to_char_new(buf, ch, TRUE);
 
     return FALSE;
+}
+
+APEDIT(apedit_security)
+{
+    APROG_CODE *pAcode;
+    EDIT_MPCODE(ch, pAcode);
+    int newsec;
+
+    if ( argument[0] == '\0' )
+    {
+        newsec=ch->pcdata->security;
+    }
+    else
+    {
+        if (is_number(argument))
+        {
+            newsec=atoi(argument);
+        }
+        else
+        {
+            ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
+            return;
+        }
+    }
+
+    if (newsec == pAcode->security)
+    {
+        ptc(ch, "Security is already at %d.\n\r", newsec );
+        return;
+    }
+    else if (newsec > ch->pcdata->security )
+    {
+        ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
+                ch->pcdata->security, newsec);
+        return;
+    }
+
+    pAcode->security=newsec;
+    ptc(ch, "Security for %d updated to %d.\n\r",
+            pAcode->vnum, pAcode->security);
+
 }
 
 void fix_aprog_areas( CHAR_DATA *ch, APROG_CODE *pAcode )
@@ -241,8 +355,7 @@ void fix_aprog_areas( CHAR_DATA *ch, APROG_CODE *pAcode )
 				{
 					sprintf( buf, "Fixing area %s.\n\r", area->name );
 					send_to_char( buf, ch);
-					apl->code = pAcode->code;
-					
+
 					lua_load_aprog( g_mud_LS, pAcode->vnum, pAcode->code);
 					ptc(ch, "Fixed lua script for %d.\n\r", pAcode->vnum);
 				}

@@ -770,7 +770,7 @@ AEDIT ( aedit_addaprog )
     list->vnum            = atoi(num);
     list->trig_type       = value;
     list->trig_phrase     = str_dup(phrase);
-    list->code            = code->code;
+    list->script          = code;
     SET_BIT(pArea->aprog_flags,value);
     list->next            = pArea->aprogs;
     pArea->aprogs          = list;
@@ -2290,11 +2290,11 @@ REDIT( redit_ed )
 REDIT( redit_create )
 {
     AREA_DATA *pArea;
-    ROOM_INDEX_DATA *pRoom;
+    ROOM_INDEX_DATA *pRoom=NULL;
     int value;
     int iHash;
     
-    EDIT_ROOM(ch, pRoom);
+    //EDIT_ROOM(ch, pRoom);
     
     value = atoi( argument );
     
@@ -3524,7 +3524,7 @@ OEDIT ( oedit_addoprog )
     list->vnum            = atoi(num);
     list->trig_type       = value;
     list->trig_phrase     = str_dup(phrase);
-    list->code            = code->code;
+    list->script          = code;
     SET_BIT(pObj->oprog_flags,value);
     list->next            = pObj->oprogs;
     pObj->oprogs          = list;
@@ -6309,8 +6309,7 @@ MEDIT ( medit_addmprog )
     list->vnum            = atoi(num);
     list->trig_type       = value;
     list->trig_phrase     = str_dup(phrase);
-    list->code            = code->code;
-    list->is_lua          = code->is_lua;
+    list->script            = code;
     SET_BIT(pMob->mprog_flags,value);
     list->next            = pMob->mprogs;
     pMob->mprogs          = list;
