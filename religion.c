@@ -2660,7 +2660,7 @@ bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.bitvector = AFF_SANCTUARY;
     affect_to_char( victim, &af );
     
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.bitvector = AFF_DEATHS_DOOR;
     af.modifier  *= -1;
     affect_to_char( victim, &af );
@@ -2702,7 +2702,7 @@ bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.bitvector = AFF_CURSE;
     affect_to_char( victim, &af );
     
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  *= -1;
     affect_to_char( victim, &af );
 
