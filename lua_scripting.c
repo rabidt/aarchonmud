@@ -1479,6 +1479,20 @@ static int L_ch_isvisible (lua_State *LS)
     return 1;
 }
 
+static int L_mobproto_affected (lua_State *LS)
+{
+    MOB_INDEX_DATA *ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    int flag=NO_FLAG;
+
+     if ((flag=flag_lookup(argument, affect_flags)) == NO_FLAG)
+        luaL_error(LS, "L_mobproto_affected: flag '%s' not found in affect_flags (mob)", argument);
+
+     lua_pushboolean( LS, IS_SET(ud_mobp->affect_field, flag));
+     return 1;
+}
+
+
 static int L_ch_affected (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1486,6 +1500,21 @@ static int L_ch_affected (lua_State *LS)
 
     lua_pushboolean( LS,  ud_ch != NULL
             &&  is_affected_parse(ud_ch, argument) );
+
+    return 1;
+}
+
+static int L_mobproto_act (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=NO_FLAG;
+
+    if ((flag=flag_lookup(argument, act_flags)) == NO_FLAG)
+        luaL_error(LS, "L_mobproto_act: flag '%s' not found in act_flags (mob)", argument);
+
+    lua_pushboolean( LS, 
+            IS_SET(ud_mobp->act, flag) );
 
     return 1;
 }
@@ -1512,7 +1541,20 @@ static int L_ch_act (lua_State *LS)
 
     return 1;
 }
+static int L_mobproto_offensive (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, off_flags);
 
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "L_mobproto_offesive: flag '%s' not found in off_flags", argument);
+
+    lua_pushboolean( LS,
+            IS_SET(ud_mobp->off_flags, flag) );
+
+    return 1;
+}
 static int L_ch_offensive (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1524,6 +1566,21 @@ static int L_ch_offensive (lua_State *LS)
 
     lua_pushboolean( LS,
             IS_SET(ud_ch->off_flags, flag) );
+
+    return 1;
+}
+
+static int L_mobproto_immune (lua_State *LS)
+{ 
+    MOB_INDEX_DATA * ud_mobp = check_CH (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, imm_flags);
+
+    if ( flag == NO_FLAG ) 
+        luaL_error(LS, "L_mobproto_immune: flag '%s' not found in imm_flags", argument);
+
+    lua_pushboolean( LS, 
+            IS_SET(ud_mobp->imm_flags, flag) );
 
     return 1;
 }
@@ -1682,6 +1739,20 @@ static int L_ch_destroy (lua_State *LS)
     return 0;
 }
 
+static int L_mobproto_vuln (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, vuln_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "L_mobproto_vuln: flag '%s' not found in vuln_flags", argument);
+
+    lua_pushboolean( LS, IS_SET(ud_mobp->vuln_flags, flag ) );
+
+    return 1;
+}
+
 static int L_ch_vuln (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1697,6 +1768,20 @@ static int L_ch_vuln (lua_State *LS)
     return 1;
 }
 
+static int L_mobproto_resist (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, res_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "L_mobproto_resist: flag '%s' not found in res_flags", argument);
+
+    lua_pushboolean( LS, IS_SET(ud_mobp->res_flags, flag) );
+
+    return 1;
+}
+
 static int L_ch_resist (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1704,7 +1789,7 @@ static int L_ch_resist (lua_State *LS)
     int flag=flag_lookup(argument, res_flags);
 
     if ( flag == NO_FLAG )
-        luaL_error(LS, "L_res: flag '%s' not found in res_flags", argument);
+        luaL_error(LS, "L_ch_resist: flag '%s' not found in res_flags", argument);
 
     lua_pushboolean( LS, ud_ch != NULL
             && IS_SET(ud_ch->res_flags, flag) );
@@ -2144,6 +2229,12 @@ static const struct luaL_reg OBJ_lib [] =
 
 static const struct luaL_reg MOBPROTO_lib [] =
 {
+    {"act", L_mobproto_act},
+    {"vuln", L_mobproto_vuln},
+    {"immune", L_mobproto_immune},
+    {"offensive", L_mobproto_offensive},
+    {"resist", L_mobproto_resist},
+    {"affected", L_mobproto_affected},
     {NULL, NULL}
 };
 
