@@ -525,6 +525,7 @@ int         sAllocPerm;
 
 /* version numbers for downward compatibility */
 #define VER_EXIT_FLAGS 1
+#define VER_NEW_PROG_FORMAT 2
 static int area_version = 0;
 
 /*
@@ -2210,7 +2211,39 @@ void load_areaprogs( FILE *fp )
 
         pAprog      = alloc_perm( sizeof(*pAprog) );
         pAprog->vnum    = vnum;
-        pAprog->code    = fread_string( fp );
+
+        if ( area_version < VER_NEW_PROG_FORMAT )
+        {
+            /* old code for old format */
+            pAprog->code    = fread_string( fp );
+        }
+        else
+        {
+            /* new code for new format */
+            char *word;
+            for ( ; ; )
+            {
+                word=fread_word(fp);
+
+                if (!strcmp( word, "SEC" ) )
+                {
+                    pAprog->security=fread_number(fp);
+                }
+                else if (!strcmp( word, "CODE" ) )
+                {
+                    pAprog->code=fread_string(fp);
+                }
+                else if (!strcmp( word, "End" ) )
+                {
+                    break;
+                }
+                else
+                {
+                    bugf("Unrecognized word in load_areaprogs: %s", word);
+                    exit(1);
+                }
+            }
+        }
 
         if ( aprog_list == NULL )
             aprog_list = pAprog;
@@ -2250,7 +2283,7 @@ void load_objprogs( FILE *fp )
         }
 
         vnum         = fread_number( fp );
-        if ( vnum == 0 )
+        if ( vnum == 0 ) /* end of section */
             break;
 
         fBootDb = FALSE;
@@ -2263,7 +2296,39 @@ void load_objprogs( FILE *fp )
 
         pOprog      = alloc_perm( sizeof(*pOprog) );
         pOprog->vnum    = vnum;
-        pOprog->code    = fread_string( fp );
+
+        if ( area_version < VER_NEW_PROG_FORMAT )
+        {
+            /* old code for old format */
+            pOprog->code    = fread_string( fp );
+        }
+        else
+        {
+            /* new code for new format */
+            for ( ; ; )
+            {
+                char *word=fread_word(fp);
+
+                if (!strcmp(word, "CODE") )
+                {
+                    pOprog->code=fread_string(fp);
+                }
+                else if ( !strcmp(word, "SEC") )
+                {
+                    pOprog->security=fread_number(fp);
+                }
+                else if ( !strcmp(word, "End") )
+                {
+                    break;
+                }
+                else
+                {
+                    bugf("Unrecognized word in load_objprogs: %s", word);
+                    exit(1);
+                }
+            }
+        }
+                
 
         if ( oprog_list == NULL )
             oprog_list = pOprog;
@@ -2315,23 +2380,62 @@ void load_mobprogs( FILE *fp )
         
         pMprog      = alloc_perm( sizeof(*pMprog) );
         pMprog->vnum    = vnum;
-        /* some funko stuff when loading old files that don't have is_lua data*/
-        char * tempStr = fread_string( fp );
-        if ( !strcmp( tempStr, "IS_LUA" ) )
+        pMprog->is_lua  = FALSE; /* new progs default to true but
+                                    when loading we need to default to false */
+
+        if ( area_version < VER_NEW_PROG_FORMAT )
         {
-            pMprog->is_lua = TRUE;
-            pMprog->code = fread_string( fp );
-            lua_mprogs++;
-        }
-        else if ( !strcmp( tempStr, "NOT_LUA" ) )
-        {
-            pMprog->is_lua = FALSE;
-            pMprog->code = fread_string( fp );
+            /* old code for old format */
+
+            /* some funko stuff when loading old files that don't have is_lua data*/
+            char * tempStr = fread_string( fp );
+            if ( !strcmp( tempStr, "IS_LUA" ) )
+            {
+                pMprog->is_lua = TRUE;
+                pMprog->code = fread_string( fp );
+            }
+            else if ( !strcmp( tempStr, "NOT_LUA" ) )
+            {
+                pMprog->is_lua = FALSE;
+                pMprog->code = fread_string( fp );
+            }
+            else
+            {
+                pMprog->code    = tempStr;
+            }
         }
         else
         {
-            pMprog->code    = tempStr;
-        }
+            /* new code for new format */
+            char *word;
+            for ( ; ; )
+            {
+                word=fread_word(fp);
+
+                if (!strcmp(word, "LUA" ))
+                {
+                    pMprog->is_lua=fread_number(fp);
+                }
+                else if (!strcmp(word, "SEC"))
+                {
+                    pMprog->security=fread_number(fp);
+                }
+                else if (!strcmp(word, "CODE"))
+                {
+                    pMprog->code=fread_string(fp);
+                }
+                else if (!strcmp(word, "End") )
+                {
+                    break;
+                }
+                else
+                {
+                    bugf("Unrecognized word in load_mobprogs: %s", word);
+                    exit(1);
+                }
+                
+            } /* end for loop */
+        } /* end else */
 
         if ( mprog_list == NULL )
             mprog_list = pMprog;
@@ -2340,8 +2444,11 @@ void load_mobprogs( FILE *fp )
             pMprog->next = mprog_list;
             mprog_list  = pMprog;
         }
+
+        if (pMprog->is_lua)
+            lua_mprogs++;
         top_mprog_index++;
-    }
+    } /* end for loop */
     return;
 }
 
@@ -2367,8 +2474,7 @@ void fix_mobprogs( void )
                 if ( ( prog = get_mprog_index( list->vnum ) ) != NULL )
                 {
                     mprog_count++;
-                    list->code = prog->code;
-                    list->is_lua = prog->is_lua;
+                    list->script = prog;
                 }
                 else
                 {
@@ -2401,7 +2507,7 @@ void fix_objprogs( void )
                 if ( ( prog = get_oprog_index( list->vnum ) ) != NULL )
                 {
                     oprog_count++;
-                    list->code = prog->code;
+                    list->script = prog;
                 }
                 else
                 {
@@ -2432,7 +2538,7 @@ void fix_areaprogs( void )
             if ( ( prog = get_aprog_index( list->vnum ) ) != NULL )
             {
                 aprog_count++;
-                list->code = prog->code;
+                list->script = prog;
             }
             else
             {
@@ -4486,7 +4592,7 @@ void do_areas( CHAR_DATA *ch )
     
     for ( pArea1 = area_first; pArea1 != NULL ; pArea1 = pArea1->next )
     {
-        if (pArea1->security>4)
+        if (is_area_ingame(pArea1))
         {
             sorted_areas[count] = pArea1;
             count++;
@@ -4554,6 +4660,9 @@ void do_memory( CHAR_DATA *ch, char *argument )
     send_to_char( buf, ch );
     sprintf( buf, "REAL_NUM_STRINGS    %d\n\r",REAL_NUM_STRINGS);
     send_to_char( buf, ch);
+    ptc( ch, "Lua usage: %d\n\r", GetLuaMemoryUsage());
+    ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
+    ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
     
     return;
 }
@@ -5117,7 +5226,14 @@ void append_file( CHAR_DATA *ch, char *file, char *str )
 /*
 * Reports a bug.
 */
-void bug( const char *str, int param )
+void bug( const char *fmt, int param )
+{
+    char buf[MAX_STRING_LENGTH];
+    sprintf(buf, fmt, param);
+    bug_string(buf);
+}
+
+void bug_string( const char *str )
 {
     static bool recursion=FALSE;
     bool enable_wiznet=TRUE;
@@ -5156,30 +5272,13 @@ void bug( const char *str, int param )
 
         if ( enable_wiznet)
             wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
-        /* RT removed because we don't want bugs shutting the mud 
-        if ( ( fp = fopen( "shutdown.txt", "a" ) ) != NULL )
-        {
-        fprintf( fp, "[*****] %s\n", buf );
-        fclose( fp );
-        }
-        */
     }
     
-    strcpy( buf, "[*****] BUG: " );
-    sprintf( buf + strlen(buf), str, param );
+    sprintf(buf, "[*****] BUG: %s", str );
     log_string( buf );
     
     if ( enable_wiznet )
         wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
-    /* RT removed due to bug-file spamming 
-    fclose( fpReserve );
-    if ( ( fp = fopen( BUG_FILE, "a" ) ) != NULL )
-    {
-    fprintf( fp, "%s\n", buf );
-    fclose( fp );
-    }
-    fpReserve = fopen( NULL_FILE, "r" );
-    */
 
     recursion=FALSE;
     return;

@@ -320,7 +320,7 @@ bool is_questeq( OBJ_DATA *obj );
 #endif
 /* version numbers for downward compatibility
  */
-#define CURR_AREA_VERSION 1
+#define CURR_AREA_VERSION 2 
 
 /*#define CREATOR         (MAX_LEVEL - 1)
 #define SUPREME         (MAX_LEVEL - 2)
@@ -1332,6 +1332,7 @@ struct  kill_data
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
+#define ACT_TRAVELLER   (oo)    /* doesn't wander home if out of area */
 
 /* damage classes */
 #define DAM_NONE                0
@@ -3154,11 +3155,10 @@ struct mprog_list
 {
 	int         trig_type;
 	char *      trig_phrase;
-	int         vnum;
-	char *          code;
 	MPROG_LIST *    next;
+    int vnum;
+    MPROG_CODE *    script;
 	bool        valid;
-    bool is_lua;
 };
 
 struct mprog_code
@@ -3166,6 +3166,7 @@ struct mprog_code
     bool        is_lua;
 	int         vnum;
 	char *      code;
+    int         security;
 	MPROG_CODE *    next;
 };
 
@@ -3174,7 +3175,7 @@ struct oprog_list
     int         trig_type;
     char *      trig_phrase;
     int *       vnum;
-    char *      code;
+    OPROG_CODE *    script;
     OPROG_LIST *    next;
     bool        valid;
     /* always lua */
@@ -3184,6 +3185,7 @@ struct oprog_code
 {
     /* always lua */
     int     vnum;
+    int     security;
     char    * code;
     OPROG_CODE *    next;
 };
@@ -3193,7 +3195,7 @@ struct aprog_list
     int         trig_type;
     char *      trig_phrase;
     int *       vnum;
-    char *      code;
+    APROG_CODE *    script;
     APROG_LIST *    next;
     bool        valid;
     /* always lua */
@@ -3203,6 +3205,7 @@ struct aprog_code
 {
     /* always lua */
     int     vnum;
+    int     security;
     char    * code;
     APROG_CODE *    next;
 };
@@ -4507,6 +4510,7 @@ int get_duration( int sn, int level );
 int skill_lookup    args( ( const char *name ) );
 int slot_lookup args( ( int slot ) );
 bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
+bool saves_physical( CHAR_DATA *victim, int level, int dam_type );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
@@ -4514,7 +4518,8 @@ bool    is_mprog_running  args( (void) );
 void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type,
                 const void *arg2, sh_int arg2type,
-                int trig_type) );
+                int trig_type,
+                int security) );
 bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
 				const void *arg1, sh_int arg1type, 
                 const void *arg2, sh_int arg2type,

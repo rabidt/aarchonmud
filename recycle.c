@@ -865,7 +865,7 @@ MPROG_LIST *new_mprog(void)
    *mp = mp_zero;
    mp->vnum             = 0;
    mp->trig_type        = 0;
-   mp->code             = str_dup("");
+   mp->script           = NULL;
    VALIDATE(mp);
    return mp;
 }
@@ -898,7 +898,7 @@ OPROG_LIST *new_oprog(void)
    *op = op_zero;
    op->vnum             = 0;
    op->trig_type        = 0;
-   op->code             = str_dup("");
+   op->script           = NULL;
    VALIDATE(op);
    return op;
 }
@@ -931,7 +931,7 @@ APROG_LIST *new_aprog(void)
    *ap = ap_zero;
    ap->vnum             = 0;
    ap->trig_type        = 0;
-   ap->code             = str_dup("");
+   ap->script           = NULL;
    VALIDATE(ap);
    return ap;
 }

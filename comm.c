@@ -2856,7 +2856,7 @@ void bugf (char * fmt, ...)
     vsprintf (buf, fmt, args);
     va_end (args);
 
-    bug (buf, 0);
+    bug_string(buf);
 }
 
 /* Rim 1/99 */
