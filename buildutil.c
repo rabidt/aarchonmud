@@ -622,6 +622,14 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 					: "someone",
 	obj->wear_loc );
 	send_to_char( buf, ch );
+
+    sprintf( buf, "Clan: %s ClanRank: %d\n\r", 
+            clan_table[obj->clan].name,
+            obj->rank);
+    send_to_char( buf, ch );
+
+    printf_to_char( ch, "Material: %s\n\r", obj->material);
+
 	
 	sprintf( buf, "Values: %d %d %d %d %d\n\r",
 	obj->value[0], obj->value[1], obj->value[2], obj->value[3],

@@ -76,7 +76,6 @@ const	struct	mob_cmd_type	mob_cmd_table	[] =
   { "delay",      do_mpdelay,      "[pulses] : delay mob for delay triggers (pulse=4sec)"   },
   { "cancel",     do_mpcancel,     ": remove delay"                                         },
   { "call",	  do_mpcall,       "[vnum] (victim) (obj1) (obj2) : execute another mprog"  },
-  { "flee",	  do_mpflee,       ": flee if possible"                                     },
   { "remove",     do_mpremove,     "[victim] [vnum|all] (inv|get|room) : extract object"    },
   { "remort",     do_mpremort,     "[victim] : remort a player"                             },
   { "qset",       do_mpqset,       "[victim] [id] [value] [time limit] : set quest-state for player"     },
@@ -894,8 +893,7 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
 	    if ( IS_NPC( victim ) && victim != ch 
 		 && !IS_SET(victim->act, ACT_NOPURGE) )
 	    {
-		/*extract_char( victim, TRUE );*/
-		victim->must_extract = TRUE;
+		extract_char( victim, TRUE );
 	    }
 	}
 
@@ -942,8 +940,7 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    /*extract_char( victim, TRUE );*/
-    victim->must_extract = TRUE;
+    extract_char( victim, TRUE );
 
     return;
 }
@@ -1558,7 +1555,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     CHAR_DATA *vch;
     OBJ_DATA *obj1, *obj2;
     MPROG_CODE *prg;
-    extern void program_flow( char *, bool, int, char *, CHAR_DATA *, CHAR_DATA *, const void *, sh_int, const void *, sh_int );
+    extern void program_flow( char *, bool, int, char *, CHAR_DATA *, CHAR_DATA *, const void *, sh_int, const void *, sh_int, int );
 
     argument = one_argument( argument, arg );
     if ( arg[0] == '\0' )
@@ -1584,48 +1581,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     argument = one_argument( argument, arg );
     if ( arg[0] != '\0' )
     	obj2 = get_obj_here( ch, arg );
-    program_flow( argument, prg->is_lua,prg->vnum, prg->code, ch, vch, (void *)obj1, ACT_ARG_OBJ, (void *)obj2, ACT_ARG_OBJ );
-}
-
-/*
- * Forces the mobile to flee.
- *
- * Syntax: mob flee
- *
- */
-void do_mpflee( CHAR_DATA *ch, char *argument )
-{
-    ROOM_INDEX_DATA *was_in;
-    EXIT_DATA *pexit;
-    int door, attempt;
-
-    if ( ch->fighting != NULL )
-	return;
-
-    if ( (was_in = ch->in_room) == NULL )
-	return;
-
-  /* Part of check to make sure mobs can't flee into safe room */
-    if (IS_NPC(ch) && IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE) )
-        return;
-
-    for ( attempt = 0; attempt < 6; attempt++ )
-    {
-        door = number_door( );
-        if ( ( pexit = was_in->exit[door] ) == 0
-        ||   pexit->u1.to_room == NULL
-        ||   IS_SET(pexit->exit_info, EX_CLOSED)
-        || ( IS_NPC(ch)
-        &&   IS_SET(pexit->u1.to_room->room_flags, ROOM_NO_MOB) 
-    /* Check added so that mobs can't flee into a safe room. Causes problems
-       with resets, quests, and leveling - Astark Dec 2012 */
-        ||   IS_SET(pexit->u1.to_room->room_flags, ROOM_SAFE) ) )
-            continue;
-
-        move_char( ch, door, FALSE );
-        if ( ch->in_room != was_in )
-	    return;
-    }
+    program_flow( argument, prg->is_lua,prg->vnum, prg->code, ch, vch, (void *)obj1, ACT_ARG_OBJ, (void *)obj2, ACT_ARG_OBJ, TRIG_CALL );
 }
 
 /*
@@ -2128,7 +2084,13 @@ void do_mphit( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim;
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
-	return;
+    {
+        bugf( "do_mphit: no victim found for %s(%d), argument: %s",
+                ch->name,
+                IS_NPC(ch) ? ch->pIndexData->vnum : 0,
+                argument);
+	    return;
+    }
 
     one_hit( ch, victim, TYPE_UNDEFINED, FALSE );
 }

@@ -39,6 +39,7 @@
 #include "magic.h"
 #include "recycle.h"
 #include "tables.h"
+#include "lua_scripting.h"
 
 void affect_modify_new( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd, bool drop );
 void check_drop_weapon( CHAR_DATA *ch );
@@ -2128,6 +2129,18 @@ void extract_obj( OBJ_DATA *obj )
 	bug("BUG: extract_obj, obj == NULL",0);
 	return;
     }
+
+    unregister_lua( obj ); /* always unregister, even if delaying extract */
+
+    if (g_LuaScriptInProgress || is_mprog_running())
+    {
+        obj->must_extract=TRUE;
+        return;
+    }
+
+    /* safety-net against infinite extracting */
+    obj->must_extract = FALSE;
+
     OBJ_DATA *obj_content;
     OBJ_DATA *obj_next;
     
@@ -2139,8 +2152,6 @@ void extract_obj( OBJ_DATA *obj )
         obj_next = obj_content->next_content;
         extract_obj( obj_content );
     }
-
-    unregister_lua( obj );
 
     if ( object_list == obj )
     {
@@ -2254,6 +2265,17 @@ void extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc,
     }
 } 
 
+OBJ_DATA* get_char_obj_vnum( CHAR_DATA *ch, int vnum )
+{
+    OBJ_DATA * obj;
+
+    for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+        if ( obj->pIndexData->vnum == vnum )
+            return obj;
+
+    return NULL;
+}
+
 /********** end extract handling **********/
 
 /* makes a char drop all eq to room */
@@ -2301,9 +2323,22 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     CHAR_DATA *wch;
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
-    
+
+    /* fPull should be TRUE if NPC or quitting player (char will get freed) */
+    if ( fPull )
+    {
+        unregister_lua( ch ); /* always unregister even if delaying actual extract */
+        if (g_LuaScriptInProgress || is_mprog_running())
+        {
+            ch->must_extract=TRUE;
+            return;
+        }
+    }
+
     /* safety-net against infinite extracting */
     ch->must_extract = FALSE;
+
+
 
     /* doesn't seem to be necessary
     if ( ch->in_room == NULL )
@@ -2368,8 +2403,6 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             wch->mprog_target = NULL;
     }
 
-    unregister_lua( ch );
-    
     if ( ch == char_list )
     {
         char_list = ch->next;
@@ -3004,6 +3037,11 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
     }
     
     return NULL;
+}
+
+void add_money_mixed( CHAR_DATA *ch, int silver, CHAR_DATA *source )
+{
+    add_money(ch, silver / 100, silver % 100, source);
 }
 
 void add_money( CHAR_DATA *ch, int gold, int silver, CHAR_DATA *source )

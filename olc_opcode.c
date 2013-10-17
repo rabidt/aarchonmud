@@ -15,6 +15,7 @@
 #include "tables.h"
 #include "olc.h"
 #include "recycle.h"
+#include "lua_scripting.h"
 
 #define OPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
 
@@ -130,7 +131,7 @@ void do_opedit(CHAR_DATA *ch, char *argument)
        
        if ( ch->in_room->area != ad )
        {
-	   send_to_char( "OPEdit: Warning: MobProg lies outside current area.\n\r", ch );
+	   send_to_char( "OPEdit: Warning: ObjProg lies outside current area.\n\r", ch );
        }
 
        clone_warning( ch, ad );
@@ -180,13 +181,13 @@ OPEDIT (opedit_create)
 
     if ( !IS_BUILDER(ch, ad) )
     {
-       send_to_char("OPEdit : Insufficient security to create MobProgs.\n\r", ch);
+       send_to_char("OPEdit : Insufficient security to create ObjProgs.\n\r", ch);
        return FALSE;
     }
 
     if ( ch->in_room->area != ad )
     {
-	send_to_char( "OPEdit: ObjProg lies outside current area.\n\r", ch );
+	send_to_char( "OPEdit: ObjObjProg lies outside current area.\n\r", ch );
 	return FALSE;
     }
 
@@ -205,7 +206,7 @@ OPEDIT (opedit_create)
     ch->desc->pEdit		= (void *)pOcode;
     ch->desc->editor		= ED_OPCODE;
 
-    send_to_char("MobProgram Code Created.\n\r",ch);
+    send_to_char("ObjProgram Code Created.\n\r",ch);
 
     return TRUE;
 }
@@ -243,7 +244,7 @@ void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
                         send_to_char( buf, ch );
                         mpl->code = pOcode->code;
                    
-                        lua_load_oprog( mud_LS, pOcode->vnum, pOcode->code);
+                        lua_load_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
                         ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);
                         
                     } 
