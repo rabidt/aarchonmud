@@ -3291,7 +3291,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
 
     /* VICTIM_ARG */
     if ( !((arg2type== ACT_ARG_CHARACTER && arg2)
-                && make_ud_table( g_mud_LS, arg2, UDTYPE_CH)) );
+                && make_ud_table( g_mud_LS, arg2, UDTYPE_CH)) )
     lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
