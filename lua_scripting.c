@@ -188,7 +188,7 @@ static int optboolean (lua_State *LS, const int narg, const int def)
 static OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
-    sh_int type= luaL_checknumber(LS, -1);
+    sh_int type= (sh_int)luaL_checknumber(LS, -1);
     lua_pop(LS, 1);
 
     if ( type != UDTYPE_OBJPROTO )
@@ -206,7 +206,7 @@ static OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
 static OBJ_DATA *check_OBJ( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
-    sh_int type= luaL_checknumber(LS, -1);
+    sh_int type= (sh_int)luaL_checknumber(LS, -1);
     lua_pop(LS, 1);
     if ( type != UDTYPE_OBJ )
     {
@@ -226,7 +226,7 @@ static bool is_CH( lua_State *LS, int arg)
         return FALSE;
 
     lua_getfield(LS, arg, "UDTYPE");
-    sh_int type=luaL_checknumber(LS, -1);
+    sh_int type=(sh_int)luaL_checknumber(LS, -1);
     lua_pop(LS, 1);
     return ( type == UDTYPE_CH );
 }
@@ -234,7 +234,7 @@ static bool is_CH( lua_State *LS, int arg)
 static CHAR_DATA *check_CH( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
-    sh_int type= luaL_checknumber(LS, -1);
+    sh_int type= (sh_int)luaL_checknumber(LS, -1);
     lua_pop(LS, 1);
     if ( type != UDTYPE_CH )
     {
@@ -251,7 +251,7 @@ static CHAR_DATA *check_CH( lua_State *LS, int arg)
 static ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
-    sh_int type= luaL_checknumber(LS, -1);
+    sh_int type= (sh_int)luaL_checknumber(LS, -1);
     lua_pop(LS, 1);
     if ( type != UDTYPE_ROOM )
     {
@@ -268,7 +268,7 @@ static ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
 static EXIT_DATA *check_EXIT( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
-    sh_int type= luaL_checknumber(LS, -1);
+    sh_int type= (sh_int)luaL_checknumber(LS, -1);
     lua_pop(LS, 1);
     if ( type != UDTYPE_EXIT )
     {
@@ -285,7 +285,7 @@ static EXIT_DATA *check_EXIT( lua_State *LS, int arg)
 static AREA_DATA *check_AREA( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
-    sh_int type= luaL_checknumber(LS, -1);
+    sh_int type= (sh_int)luaL_checknumber(LS, -1);
     lua_pop(LS, 1);
     if ( type != UDTYPE_AREA )
     {
@@ -302,7 +302,7 @@ static AREA_DATA *check_AREA( lua_State *LS, int arg)
 static RESET_DATA *check_RESET( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
-    sh_int type= luaL_checknumber(LS, -1);
+    sh_int type= (sh_int)luaL_checknumber(LS, -1);
     lua_pop(LS, 1);
     if ( type != UDTYPE_RESET )
     {
@@ -619,7 +619,7 @@ static int L_getplayerlist (lua_State *LS)
 
 static int L_getmobworld (lua_State *LS)
 {
-    int num = luaL_checknumber (LS, 1);
+    int num = (int)luaL_checknumber (LS, 1);
 
     CHAR_DATA *ch;
 
@@ -641,7 +641,7 @@ static int L_getmobworld (lua_State *LS)
 
 static int L_getobjworld (lua_State *LS)
 {
-    int num = luaL_checknumber (LS, 1);
+    int num = (int)luaL_checknumber (LS, 1);
 
     OBJ_DATA *obj;
 
@@ -662,7 +662,7 @@ static int L_getobjworld (lua_State *LS)
 static int L_getroom (lua_State *LS)
 {
     // do some if is number thing here eventually
-    int num = luaL_checknumber (LS, 1);
+    int num = (int)luaL_checknumber (LS, 1);
 
     ROOM_INDEX_DATA *room=get_room_index(num);
 
@@ -678,7 +678,7 @@ static int L_getroom (lua_State *LS)
 
 static int L_getobjproto (lua_State *LS)
 {
-    int num = luaL_checknumber (LS, 1);
+    int num = (int)luaL_checknumber (LS, 1);
 
     OBJ_INDEX_DATA *obj=get_obj_index(num);
 
@@ -901,7 +901,7 @@ static int L_ch_loadscript (lua_State *LS)
 static int L_ch_loadprog (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
     MPROG_CODE *pMcode;
 
     if ( (pMcode = get_mprog_index(num)) == NULL )
@@ -944,7 +944,7 @@ static int L_obj_loadscript (lua_State *LS)
 static int L_obj_loadprog (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS, 1);
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
     OPROG_CODE *pOcode;
 
     if ( (pOcode = get_oprog_index(num)) == NULL )
@@ -981,7 +981,7 @@ static int L_area_loadscript (lua_State *LS)
 static int L_area_loadprog (lua_State *LS)
 {
     AREA_DATA *ud_area=check_AREA(LS, 1);
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
     APROG_CODE *pAcode;
 
     if ( (pAcode = get_aprog_index(num)) == NULL )
@@ -1224,8 +1224,8 @@ static int L_ch_qset (lua_State *LS)
 
     mpqset( check_CH(LS, 1), check_CH(LS, 2),
             luaL_checkstring(LS, 3), luaL_checkstring(LS, 4),
-            lua_isnone( LS, 5 ) ? 0 : luaL_checknumber( LS, 5),
-            lua_isnone( LS, 6 ) ? 0 : luaL_checknumber( LS, 6) );
+            lua_isnone( LS, 5 ) ? 0 : (int)luaL_checknumber( LS, 5),
+            lua_isnone( LS, 6 ) ? 0 : (int)luaL_checknumber( LS, 6) );
 
     return 0;
 }
@@ -1555,7 +1555,7 @@ static int L_ch_uses (lua_State *LS)
 static int L_ch_qstatus (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
 
     if ( ud_ch != NULL )
         lua_pushnumber( LS, quest_status( ud_ch, num ) );
@@ -1598,7 +1598,7 @@ static int L_ch_setlevel (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Cannot set level on PC.");
 
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
     set_mob_level( ud_ch, num );
     return 0;
 }
@@ -1606,7 +1606,7 @@ static int L_ch_setlevel (lua_State *LS)
 static int L_ch_oload (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
     OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
 
     if (!pObjIndex)
@@ -1705,7 +1705,7 @@ static int L_ch_ccarries (lua_State *LS)
 static int L_ch_qtimer (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
 
     if ( ud_ch != NULL )
         lua_pushnumber( LS, qset_timer( ud_ch, num ) );
@@ -1743,7 +1743,7 @@ static int L_exit_flag( lua_State *LS)
 static int L_room_mload (lua_State *LS)
 {
     ROOM_INDEX_DATA * ud_room = check_ROOM (LS, 1);
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
     MOB_INDEX_DATA *pObjIndex = get_mob_index( num );
 
     if (!pObjIndex)
@@ -1763,7 +1763,7 @@ static int L_room_mload (lua_State *LS)
 static int L_room_oload (lua_State *LS)
 {
     ROOM_INDEX_DATA * ud_room = check_ROOM (LS, 1);
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
     OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
 
     if (!pObjIndex)
@@ -1903,7 +1903,7 @@ static int L_obj_tprint ( lua_State *LS)
 static int L_obj_oload (lua_State *LS)
 {
     OBJ_DATA * ud_obj = check_OBJ (LS, 1);
-    int num = luaL_checknumber (LS, 2);
+    int num = (int)luaL_checknumber (LS, 2);
     OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
 
     if ( ud_obj->item_type != ITEM_CONTAINER )
@@ -2876,7 +2876,7 @@ static int get_CH_field ( lua_State *LS)
 static int newindex_error ( lua_State *LS)
 {
     lua_getfield(LS, 1, "UDTYPE");
-    sh_int type= luaL_checknumber(LS, -1);
+    sh_int type= (sh_int)luaL_checknumber(LS, -1);
     luaL_error( LS,"Cannot set values on game objects. UDTYPE: %d", type);
     return 0;
 
@@ -3020,7 +3020,7 @@ int GetLuaGameObjectCount()
         return -1;
     }
 
-    return luaL_checknumber( g_mud_LS, -1 ); 
+    return (int)luaL_checknumber( g_mud_LS, -1 ); 
 
 }
 
@@ -3034,7 +3034,7 @@ int GetLuaEnvironmentCount()
         return -1;
     }
 
-    return luaL_checknumber( g_mud_LS, -1 );
+    return (int)luaL_checknumber( g_mud_LS, -1 );
 }
 
 void lua_reset ()
