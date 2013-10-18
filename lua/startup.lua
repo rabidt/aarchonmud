@@ -244,10 +244,6 @@ function ProtectLib(lib)
 end
 main_lib=ProtectLib(main_lib)
 
-function NameProtected(name)
-    if main_lib[name] then return true else return false end
-end
-
 -- First look for main_lib funcs, then mob/area/obj funcs
 -- (providing env as argument)
 CH_env_meta={
