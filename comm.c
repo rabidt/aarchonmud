@@ -1805,6 +1805,10 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
             if ( IS_SET(ch->comm, COMM_PROMPT) )
                 bust_a_prompt( d->character );
 
+            //if ( IS_SET(ch->comm, COMM_MXP_GAUGE);
+                mxp_gauge( d->character);
+
+
             if (IS_SET(ch->comm,COMM_TELNET_GA))
                 write_to_buffer(d,go_ahead_str,0);
         }
@@ -1872,6 +1876,21 @@ bool flush_descriptor( DESCRIPTOR_DATA *d )
         d->outtop = 0;
         return TRUE;
     }
+}
+
+void mxp_gauge( CHAR_DATA *ch)
+{
+    send_to_char("\t<GAUGE gauge1 caption='Hit Points' color='red'>\n", ch);
+    send_to_char("\t<GAUGE gauge2 caption='Mana' color='blue'>\n", ch);
+    send_to_char("\t<GAUGE gauge3 caption='Moveis' color='yellow'>\n", ch);
+    ptc(ch, "\t<!ENTITY max1 %d>\n", ch->max_hit );
+    ptc(ch, "\t<!ENTITY max2 %d>\n", ch->max_mana);
+    ptc(ch, "\t<!ENTITY max3 %d>\n", ch->max_move);
+    ptc(ch, "\t<!ENTITY curr1 %d>\n", ch->hit);
+    ptc(ch, "\t<!ENTITY curr2 %d>\n", ch->mana);
+    ptc(ch, "\t<!ENTITY curr3 %d>\n", ch->move);
+
+    log_string( ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
 }
 
 /*

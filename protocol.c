@@ -526,8 +526,8 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
    static char Result[MAX_OUTPUT_BUFFER+1];
    const char Tab[] = "\t";
    const char MSP[] = "!!";
-   const char MXPStart[] = "\033[1z<";
-   const char MXPStop[] = ">\033[7z";
+   const char MXPStart[] = "\033[4z<";
+   const char MXPStop[] = ">\033[6z";
    const char LinkStart[] = "\033[1z<send>\033[7z";
    const char LinkStop[] = "\033[1z</send>\033[7z";
    bool_t bTerminate = false, bUseMXP = false, bUseMSP = false;
@@ -653,15 +653,15 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
                pProtocol->bBlockMXP = false;
                break;
             case '<':
-               if ( !pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt )
+               //if ( !pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt )
                {
                   pCopyFrom = MXPStart;
                   bUseMXP = true;
                }
-               else /* No MXP support, so just strip it out */
+            //   else /* No MXP support, so just strip it out */
                {
-                  while ( apData[j] != '\0' && apData[j] != '>' )
-                     ++j;
+                  //while ( apData[j] != '\0' && apData[j] != '>' )
+                    // ++j;
                }
                pProtocol->bBlockMXP = false;
                break;
