@@ -1734,7 +1734,7 @@ static int L_exit_flag( lua_State *LS)
 
     sh_int flag=flag_lookup( argument, exit_flags);
     if ( flag==NO_FLAG )
-        return 0;
+        luaL_error(LS, "Invalid exit flag: '%s'", argument);
 
     lua_pushboolean( LS, IS_SET( ud_exit->exit_info, flag));
     return 1;
@@ -1787,7 +1787,7 @@ static int L_room_flag( lua_State *LS)
 
     sh_int flag=flag_lookup( argument, room_flags);
     if ( flag==NO_FLAG )
-        return 0;
+        luaL_error( LS, "Invalid room flag: '%s'", argument);
 
     lua_pushboolean( LS, IS_SET( ud_room->room_flags, flag));
     return 1;
@@ -1818,7 +1818,7 @@ static int L_objproto_wear( lua_State *LS)
 
     sh_int flag=flag_lookup( argument, wear_flags);
     if ( flag==NO_FLAG )
-        return 0;
+        luaL_error(LS, "Invalid wear flag: '%s'", argument);
 
     lua_pushboolean( LS, IS_SET( ud_objp->wear_flags, flag));
     return 1;
@@ -1831,7 +1831,7 @@ static int L_objproto_extra( lua_State *LS)
 
     sh_int flag=flag_lookup( argument, extra_flags);
     if ( flag==NO_FLAG )
-        return 0;
+        luaL_error(LS, "Invalid extra flag: '%s'", argument);
 
     lua_pushboolean( LS, IS_SET( ud_objp->extra_flags, flag));
     return 1;
@@ -1948,6 +1948,19 @@ static int L_obj_extra( lua_State *LS)
         luaL_error( LS, "Invalid extra flag '%s'", argument );
 
     lua_pushboolean( LS, IS_SET( ud_obj->extra_flags, flag));
+    return 1;
+}
+
+static int L_area_flag( lua_State *LS)
+{
+    AREA_DATA *ud_area = check_AREA(LS, 1);
+    const char *argument = check_fstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, area_flags);
+    if ( flag==NO_FLAG )
+        luaL_error( LS, "Invalid area flag '%s'", argument );
+
+    lua_pushboolean( LS, IS_SET( ud_area->area_flags, flag));
     return 1;
 }
 
@@ -2119,6 +2132,7 @@ static const struct luaL_reg EXIT_lib [] =
 
 static const struct luaL_reg AREA_lib [] =
 {
+    {"flag", L_area_flag},
     {"echo", L_area_echo},
     {"loadprog", L_area_loadprog},
     {"loadscript", L_area_loadscript},
