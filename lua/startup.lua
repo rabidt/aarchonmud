@@ -5,8 +5,9 @@ require "serialize"
 require "utilities"
 require "leaderboard"
 
-udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
-envtbl={}
+udtbl={} -- used to store game object tables, (read only proxies to origtbl)
+envtbl={} -- game object script environments
+origtbl={} -- where the REAL ud tables live
 
 function UdCnt()
     local cnt=0
@@ -43,12 +44,16 @@ function RegisterUd(ud)
         error("ud is nil")
         return
     end
-    udtbl[ud.tableid]=MakeUdProxy(ud)
+    origtbl[ud.tableid]=ud
+    udtbl[ud.tableid]=MakeUdProxy(origtbl[ud.tableid])
     return udtbl[ud.tableid]
 end
 
 function UnregisterUd(lightud)
     if udtbl[lightud] then
+        setmetatable(origtbl[lightud], nil)
+        origtbl[lightud]={}
+        origtbl[lightud]=nil
         udtbl[lightud]={}
         udtbl[lightud]=nil
     end
