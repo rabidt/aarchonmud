@@ -2502,6 +2502,7 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("vnum", ud_obj->pIndexData->vnum);
     FLDSTR("otype", item_name(ud_obj->item_type));
     FLDNUM("weight", ud_obj->weight);
+    FLDSTR("wearlocation", flag_stat_string( wear_loc_flags, ud_obj->wear_loc));
 
     if ( !strcmp(argument, "proto" ) )
     {
