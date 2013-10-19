@@ -2814,6 +2814,32 @@ static int get_ROOM_field ( lua_State *LS )
         return 1;
     }
 
+    if ( !strcmp(argument, "players") )
+    {
+        int index=1;
+        lua_newtable(LS);
+        CHAR_DATA *plr;
+        for ( plr=ud_room->people ; plr ; plr=plr->next_in_room)
+        {
+            if (!IS_NPC(plr) && make_ud_table(LS, plr, UDTYPE_CH))
+                lua_rawseti(LS, -2, index++);
+        }
+        return 1;
+    }
+
+    if ( !strcmp(argument, "mobs") )
+    {
+        int index=1;
+        lua_newtable(LS);
+        CHAR_DATA *mob;
+        for ( mob=ud_room->people ; mob ; mob=mob->next_in_room)
+        {
+            if ( IS_NPC(mob) && make_ud_table(LS, mob, UDTYPE_CH))
+                lua_rawseti(LS, -2, index++);
+        }
+        return 1;
+    }
+
     /* array of valid exit names*/
     if ( !strcmp(argument, "exits") )
     {
