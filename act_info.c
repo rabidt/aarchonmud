@@ -1554,7 +1554,7 @@ void do_glance( CHAR_DATA *ch, char *argument )
 /* part of do_look: returns the object looked at if any */
 OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
 {
-    char arg3[MSL];
+    static char arg3[MSL];
     int number = number_argument(argument, arg3);
     int count = 0;
     OBJ_DATA *obj;
@@ -1568,7 +1568,8 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
             if ( pdesc != NULL )
                 if (++count == number)
                 {
-                    send_to_char( pdesc, ch );
+                    if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+                        send_to_char( pdesc, ch );
                     return obj;
                 }
                 else continue;
@@ -1576,17 +1577,21 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
 	    pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
 	    if ( pdesc != NULL )
 		if (++count == number)
-                {   
-		    send_to_char( pdesc, ch );
-		    return obj;
+        {   
+            if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+                send_to_char( pdesc, ch );
+            return obj;
 		}
 		else continue;
 	    
 	    if ( is_name( arg3, obj->name ) )
 		if (++count == number)
 		{
-		    send_to_char( obj->description, ch );
-		    send_to_char( "\n\r",ch);
+            if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+            {
+		        send_to_char( obj->description, ch );
+		        send_to_char( "\n\r",ch);
+            }
 		    return obj;
 		}
         }
@@ -1600,23 +1605,28 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
             if ( pdesc != NULL )
                 if (++count == number)
                 {
-                    send_to_char( pdesc, ch );
+                    if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+                        send_to_char( pdesc, ch );
                     return obj;
                 }
                 
 	    pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
 	    if ( pdesc != NULL )
 		if (++count == number)
-                {
-		    send_to_char( pdesc, ch );
+        {
+            if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+    		    send_to_char( pdesc, ch );
 		    return obj;
 		}
 	    
 	    if ( is_name( arg3, obj->name ) )
 		if (++count == number)
 		{
-		    send_to_char( obj->description, ch );
-		    send_to_char("\n\r",ch);
+            if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+            {
+                send_to_char( obj->description, ch );
+		        send_to_char("\n\r",ch);
+            }
 		    return obj;
 		}
         }

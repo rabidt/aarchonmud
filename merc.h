@@ -3135,6 +3135,7 @@ struct  group_type
 #define OTRIG_RAND  (L)
 #define OTRIG_GREET (M)
 #define OTRIG_CALL  (N)
+#define OTRIG_LOOK  (O)
 
 /*
  * AREAprog definitions
