@@ -2599,6 +2599,8 @@ static int get_AREA_field ( lua_State *LS )
     FLDNUM("nplayer", ud_area->nplayer);
     FLDNUM("minlevel", ud_area->minlevel);
     FLDNUM("maxlevel", ud_area->maxlevel);
+    FLDNUM("security", ud_area->security);
+    FLDBOOL("ingame", is_area_ingame(ud_area));
 
     if ( !strcmp(argument, "rooms") )
     {
