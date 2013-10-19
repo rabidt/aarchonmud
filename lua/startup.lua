@@ -8,7 +8,7 @@ require "leaderboard"
 udtbl={} -- used to store game object tables, (read only proxies to origtbl)
 envtbl={} -- game object script environments
 origtbl={} -- where the REAL ud tables live
-interptbl={} -- key is game object pointer, val is name of person interpreting 
+interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 
 function UdCnt()
     local cnt=0
