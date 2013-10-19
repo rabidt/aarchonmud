@@ -235,7 +235,22 @@ main_lib={  require=require,
         getplayerlist=getplayerlist,
         getobjlist=getobjlist,
         getarealist=getarealist,
-        clearloopcount=clearloopcount
+        clearloopcount=clearloopcount,
+        god={confuse=god.confuse,
+            curse=god.curse,
+            plague=god.plague,
+            bless=god.bless,
+            slow=god.slow,
+            speed=god.speed,
+            heal=god.heal,
+            enlighten=god.enlighten,
+            protect=god.protect,
+            fortune=god.fortune,
+            haunt=god.haunt,
+            cleanse=god.cleanse,
+            defy=god.defy
+        }
+
 }
 -- Need to protect our library funcs from evil scripters
 function ProtectLib(lib)

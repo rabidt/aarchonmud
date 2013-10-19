@@ -2647,8 +2647,9 @@ bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_bless) )
     {
-	act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
-	return FALSE;
+        if (ch)
+            act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
+        return FALSE;
     }
 
     af.where     = TO_AFFECTS;
@@ -2689,6 +2690,7 @@ bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_curse) )
     {
+        if (ch)
 	act("$N is already cursed by the gods.",ch,NULL,victim,TO_CHAR);
 	return FALSE;
     }
@@ -2729,6 +2731,7 @@ bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_bless) )
     {
+        if (ch)
 	act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
 	return FALSE;
     }
@@ -2765,7 +2768,7 @@ bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_bless) )
     {
-	if( ch != NULL )
+	if( ch )
 	act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
 	return FALSE;
     }
@@ -2808,7 +2811,7 @@ bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_curse) )
     {
-	if( ch != NULL )
+	if( ch )
 	act("$N is already cursed by the gods.",ch,NULL,victim,TO_CHAR);
 	return FALSE;
     }
@@ -2851,6 +2854,7 @@ bool god_cleanse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( !is_affected(victim, gsn_god_curse) )
     {
+        if (ch)
 	act( "$N isn't cursed by the gods.", ch, NULL, victim, TO_CHAR );
 	return FALSE;
     }
@@ -2880,6 +2884,7 @@ bool god_defy( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( !is_affected(victim, gsn_god_bless) )
     {
+        if (ch)
 	act( "$N isn't blessed by the gods.", ch, NULL, victim, TO_CHAR );
 	return FALSE;
     }
@@ -2910,8 +2915,9 @@ bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_bless) )
     {
-	act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
-	return FALSE;
+        if (ch)
+            act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
+        return FALSE;
     }
 
     af.where     = TO_AFFECTS;
@@ -2926,15 +2932,15 @@ bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     /* When called through auto-granting, there is no ch */
     if( ch != NULL )
     {
-    act( "You enlighten $N.", ch, NULL, victim, TO_CHAR );
-    act( "$N enlightens you.", victim, NULL, ch, TO_CHAR );
+        act( "You enlighten $N.", ch, NULL, victim, TO_CHAR );
+        act( "$N enlightens you.", victim, NULL, ch, TO_CHAR );
     }
     else
     {
-	if( god_name[0] == '\0' )
-	    god_name = "Rimbol";
-        sprintf( buf, "%s enlightens you.\n\r", god_name );
-	send_to_char( buf, victim );
+	    if( god_name[0] == '\0' )
+	        god_name = "Rimbol";
+            sprintf( buf, "%s enlightens you.\n\r", god_name );
+	    send_to_char( buf, victim );
     }
 
     return TRUE;
@@ -2946,9 +2952,11 @@ bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     char buf[MSL];
 
     if ( is_affected(victim,gsn_god_bless) )
-    {
-	act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
-	return FALSE;
+    {   
+        if (ch)
+            act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
+
+        return FALSE;
     }
 
     af.where	 = TO_AFFECTS;
@@ -2984,6 +2992,7 @@ bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_bless) )
     {
+        if (ch)
 	act("$N already has divine favor.",ch,NULL,victim,TO_CHAR);
 	return FALSE;
     }
@@ -3003,8 +3012,8 @@ bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     /* When called through auto-granting, there is no ch */
     if( ch != NULL )
     {
-    act( "You enlighten $N.", ch, NULL, victim, TO_CHAR );
-    act( "$N enlightens you.", victim, NULL, ch, TO_CHAR );
+    act( "You grants you good fortune $N.", ch, NULL, victim, TO_CHAR );
+    act( "$N grants you good fortune you.", victim, NULL, ch, TO_CHAR );
     }
     else
     {
@@ -3024,6 +3033,7 @@ bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_curse) )
     {
+        if (ch)
 	act("$N is already cursed by the gods.",ch,NULL,victim,TO_CHAR);
 	return FALSE;
     }
@@ -3061,6 +3071,7 @@ bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_curse) )
     {
+        if (ch)
 	act("$N is already cursed by the gods.",ch,NULL,victim,TO_CHAR);
 	return FALSE;
     }
@@ -3098,6 +3109,7 @@ bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
 
     if ( is_affected(victim, gsn_god_curse) )
     {
+        if (ch)
 	act("$N is already cursed by the gods.",ch,NULL,victim,TO_CHAR);
 	return FALSE;
     }
