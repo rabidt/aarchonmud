@@ -3156,6 +3156,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"clearloopcount", L_clearloopcount);
 }
 
+
 static int RegisterLuaRoutines (lua_State *LS)
 {
     time_t timer;
