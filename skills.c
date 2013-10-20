@@ -1331,6 +1331,7 @@ void do_groups(CHAR_DATA *ch, char *argument)
 	  }
 	  else
 	  {
+          /*
 	      if ( IS_SPELL(i) )
 		  sprintf(buf,"[level %3d, max %3d%%] %-20s\n\r",
 			  skill_table[i].skill_level[ch->class],
@@ -1338,6 +1339,7 @@ void do_groups(CHAR_DATA *ch, char *argument)
 			  skill_table[i].cap[ch->class],
 			  group_table[gn].spells[sn]);
 	      else
+          */
 		  sprintf(buf,"[level %3d, cost %2d, max %3d%%] %-20s\n\r",
 			  skill_table[i].skill_level[ch->class],
 			  skill_table[i].rating[ch->class],
@@ -2235,11 +2237,13 @@ void show_skill(char *argument, BUFFER *buffer)
         }
         else
         {
+            /*
             if ( is_spell )
                 sprintf( log_buf, "{g%5d     --    %3d{x\n\r",
                     skill_table[skill].skill_level[cls],
                     skill_table[skill].cap[cls] );
             else
+            */
                 sprintf( log_buf, "{g%5d    %3d    %3d{x\n\r",
                     skill_table[skill].skill_level[cls],
                     skill_table[skill].rating[cls],
