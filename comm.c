@@ -1308,7 +1308,11 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
         else if ( fPrompt && (d->pString || d->lua.interpret) && (d->connected == CON_PLAYING || d->connected == CON_PENALTY_FINISH ))
         {
             if (d->lua.interpret)
+            {
                 write_to_buffer( d, "lua", 3);
+                if (d->lua.wait)
+                    write_to_buffer( d, "W", 1);
+            }
             write_to_buffer( d, "> ", 2 );
         }
         else if ( fPrompt && d->connected == CON_PLAYING )
