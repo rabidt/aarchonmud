@@ -389,19 +389,37 @@ function interp_setup( ud, typ, desc, name)
     return 1,nil
 end
 
-function run_lua_interpret(env, str)
-    local f,err=loadstring(str)
+function run_lua_interpret(env, str )
+    local f,err
+    interptbl[env.udid].incmpl=interptbl[env.udid].incmpl or {}
+
+    table.insert(interptbl[env.udid].incmpl, str)
+    f,err=loadstring(table.concat(interptbl[env.udid].incmpl, "\n"))
+
     if not(f) then
-        error(err)
+        -- Check if incomplete, same way the real cli checks
+        local ss,sf=string.find(err, "<eof>")
+        print(sf)
+        print(err:len())
+        if sf==err:len()-1 then
+            return 1 -- incomplete
+        else
+           interptbl[env.udid].incmpl=nil
+           error(err)
+        end
     end
+
+    interptbl[env.udid].incmpl=nil
     setfenv(f, env)
     f()
+    return 0
 end
 
 function wait_lua_interpret(env, str)
     interptbl[env.udid].buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
 
     table.insert(interptbl[env.udid].buff, str)
+    return 0
 end
 
 function go_lua_interpret(env, str)
@@ -409,6 +427,13 @@ function go_lua_interpret(env, str)
 
     if #buff>0 then
         interptbl[env.udid].buff=nil
-        run_lua_interpret(env, table.concat(buff, "\n"))
+        local f,err= loadstring(table.concat(buff,"\n"))
+        if not(f) then
+            error(err)
+        end
+
+        setfenv(f, env)
+        f()
     end
+    return 0
 end

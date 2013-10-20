@@ -153,6 +153,7 @@ DESCRIPTOR_DATA *new_descriptor(void)
     d->pProtocol= ProtocolCreate();
 
     d->lua.interpret=FALSE;
+    d->lua.incmpl=FALSE;
     d->lua.wait=FALSE;
    
 	return d;
