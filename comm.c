@@ -609,15 +609,33 @@ void game_loop_unix( int control )
                 else
                 {
                     if ( d->pString )
+                    {
                         string_add( d->character, d->incomm );
+                        /* little hack to have lag free pasting
+                           in string editor */
+                        d_next=d;
+                    }
                     else
                     {
                         switch ( d->connected )
                         {
                             case CON_PLAYING:
-                                if ( !(run_lua_interpret(d) || run_olc_editor( d ) ) ) 
+                                if (run_lua_interpret(d))
+                                {
+                                    /* little hack to have lag free pasting
+                                       into interpreter */
+                                    d_next=d;
+                                    break;
+                                }
+                                else if (run_olc_editor(d))
+                                {
+                                    break;
+                                }
+                                else
+                                {
                                     substitute_alias( d, d->incomm );
-                                break;
+                                    break;
+                                }
                             default:
                                 /* slight hack here so we can snarf all mudftp data in one go -O */
                                 while (d->incomm[0])
