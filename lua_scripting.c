@@ -3841,8 +3841,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     {
         /* kick out of interpret */
         d->lua.interpret=FALSE;
-        d->lua.object=NULL;
-        d->lua.type=UDTYPE_UNDEFINED;
+        d->lua.wait=FALSE;
 
         lua_unregister_desc(d);
 
@@ -3873,6 +3872,44 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     }
 
     /* Check this all in C so we can exit interpreter for missing env */
+    lua_pushlightuserdata( g_mud_LS, d); /* we'll check this against the table */
+    lua_getglobal( g_mud_LS, INTERP_TABLE_NAME);
+    if (lua_isnil( g_mud_LS, -1) )
+    {
+        bugf("Couldn't find " INTERP_TABLE_NAME);
+        lua_settop(g_mud_LS, 0);
+        return TRUE;
+    }
+    bool interpalive=FALSE;
+    lua_pushnil( g_mud_LS);
+    while (lua_next(g_mud_LS, -2) != 0)
+    {
+        lua_getfield( g_mud_LS, -1, "desc");
+        if (lua_equal( g_mud_LS, -1,-5))
+        {
+           interpalive=TRUE;
+        }
+        lua_pop(g_mud_LS, 2);
+
+        if (interpalive)
+            break;
+    }
+    if (!interpalive)
+    {
+        ptc( d->character, "Interpreter session was closed, was object destroyed?\n\r"
+                "Exiting interpreter.\n\r");
+        d->lua.interpret=FALSE;
+        d->lua.wait=FALSE;
+
+        ptc(d->character, "Exited lua interpreter.\n\r");
+        lua_settop(g_mud_LS, 0);
+        return TRUE;
+    }
+    /* object pointer should be sitting at -1, interptbl at -2, desc lightud at -3 */
+    lua_remove( g_mud_LS, -3);
+    lua_remove( g_mud_LS, -2);
+
+
     lua_getglobal( g_mud_LS, ENV_TABLE_NAME);
     if (lua_isnil( g_mud_LS, -1) )
     {
@@ -3880,16 +3917,16 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         lua_settop(g_mud_LS, 0);
         return TRUE;
     }
-    lua_pushlightuserdata( g_mud_LS, d->lua.object);
+    lua_pushvalue( g_mud_LS, -2);
+    lua_remove( g_mud_LS, -3);
     lua_gettable( g_mud_LS, -2);
     lua_remove( g_mud_LS, -2); /* don't need envtbl anymore*/
     if ( lua_isnil( g_mud_LS, -1) )
     {
+        bugf("Game object not found for interpreter session for %s.", d->character->name);
         ptc( d->character, "Couldn't find game object, was it destroyed?\n\r"
                 "Exiting interpreter.\n\r");
         d->lua.interpret=FALSE;
-        d->lua.object=NULL;
-        d->lua.type=UDTYPE_UNDEFINED;
         d->lua.wait=FALSE;
 
         ptc(d->character, "Exited lua interpreter.\n\r");
@@ -3910,6 +3947,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     s_ScriptSecurity=0;
 
 
+    lua_settop( g_mud_LS, 0);
     return TRUE;
 
 }
@@ -4011,7 +4049,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
     if (!make_ud_table( g_mud_LS, victim, type) )
     {
         bugf("do_lua: couldn't make udtable for %d, argument %s", argument);
-
+        lua_settop(g_mud_LS, 0);
         return;
     }
     switch (type)
@@ -4024,6 +4062,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
             lua_pushliteral( g_mud_LS, "area"); break;
         default:
             bugf("do_lua: invalid udtype %d", type);
+            lua_settop(g_mud_LS, 0);
             return;
     }
 
@@ -4035,6 +4074,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
     {
         bugf ( "LUA error for interp_setup:\n %s",
                 lua_tostring(g_mud_LS, -1));
+        lua_settop(g_mud_LS, 0);
         return;
     }
 
@@ -4045,13 +4085,13 @@ void do_lua( CHAR_DATA *ch, char *argument)
     {
         ptc(ch, "Can't open lua interpreter, %s already has it open for that object.\n\r",
                 luaL_checkstring( g_mud_LS, -1));
+        lua_settop(g_mud_LS, 0);
         return;
     }
 
     /* finally, if everything worked out, we can set this stuff */
     ch->desc->lua.interpret=TRUE;
-    ch->desc->lua.object=victim;
-    ch->desc->lua.type=type;
+    ch->desc->lua.wait=FALSE;
 
     ptc(ch, "Entered lua interpreter mode for for %s %s\n\r", 
             type== UDTYPE_CH ? "CH" :
@@ -4060,5 +4100,6 @@ void do_lua( CHAR_DATA *ch, char *argument)
             "UNKNOWN",
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
+    lua_settop(g_mud_LS, 0);
     return;
 }
