@@ -2296,7 +2296,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 	char arg2[MAX_INPUT_LENGTH];
 	char arg3[MAX_INPUT_LENGTH];
 	char arg4[MAX_INPUT_LENGTH];
-	int sn, field, val1, val2;
+	int sn, field, val1, val2, class;
 
 	argument=one_argument(argument, arg1);
 	argument=one_argument(argument, arg2);
@@ -2304,7 +2304,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 
 	if ((arg1[0]==0) || (arg2[0]==0) || (arg3[0]==0))
 	{
-		send_to_char("Syntax: setskill <skill> level/points/max <class> <value>\n\r", ch);
+		send_to_char("Syntax: setskill <skill> level/points/max <class|all> <value>\n\r", ch);
 		send_to_char("Syntax: setskill <skill> prime/second/third <stat>\n\r", ch);
 		send_to_char("Syntax: setskill <skill> lag/mana <value>\n\r", ch);
 		return;
@@ -2334,7 +2334,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 		field=8;
 	else
 	{
-		send_to_char("Syntax: setskill <skill> level/points/max <class> <value>\n\r", ch);
+		send_to_char("Syntax: setskill <skill> level/points/max <class|all> <value>\n\r", ch);
 		send_to_char("Syntax: setskill <skill> prime/second/third <stat>\n\r", ch);
 		send_to_char("Syntax: setskill <skill> lag/mana <value>\n\r", ch);
 		return;
@@ -2342,11 +2342,14 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 
 	if (field<4)
 	{
-		if ((val1=class_lookup(arg3)) < 0)
-		{
-			send_to_char("Invalid class.\n\r", ch);
-			return;
-		}
+        if ( !strcmp(arg3, "all") )
+            val1 = -1;
+        else
+            if ((val1=class_lookup(arg3)) < 0)
+            {
+                send_to_char("Invalid class.\n\r", ch);
+                return;
+            }
 
 		one_argument(argument, arg4);
 		if ((arg4[0]==0) || !is_number(arg4) ||
@@ -2356,12 +2359,17 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 			return;
 		}
 
-		if (field==1)
-			skill_table[sn].skill_level[val1] = val2;
-		else if (field==2)
-			skill_table[sn].rating[val1] = val2;
-		else if (field==3)
-			skill_table[sn].cap[val1] = val2;
+        for ( class = 0; class < MAX_CLASS; class++ )
+        {
+            if ( val1 != -1 && class != val1 )
+                continue;
+            switch ( field )
+            {
+                case 1: skill_table[sn].skill_level[class] = val2; break;
+                case 2: skill_table[sn].rating[class] = val2; break;
+                case 3: skill_table[sn].cap[class] = val2; break;
+            }
+        }
 	}
 	else if (field<7)
 	{
@@ -2392,6 +2400,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 			skill_table[sn].min_mana = val1;
 	}
 
+    update_group_costs();
 	send_to_char("OK.\n\r", ch);
 }
 
