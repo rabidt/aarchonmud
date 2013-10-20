@@ -503,9 +503,9 @@ static int L_god_bless (lua_State *LS)
     CHECK_SECURITY(LS, MAX_LUA_SECURITY);
 
     CHAR_DATA *ch=check_CH(LS,1);
-    
+
     lua_pushboolean( LS,
-        god_bless( NULL, ch, "" ));
+            god_bless( NULL, ch, "" ));
     return 1;
 }
 
@@ -514,9 +514,9 @@ static int L_god_curse (lua_State *LS)
     CHECK_SECURITY(LS, MAX_LUA_SECURITY);
 
     CHAR_DATA *ch=check_CH(LS,1);
-    
+
     lua_pushboolean( LS,
-        god_curse( NULL, ch, "" ));
+            god_curse( NULL, ch, "" ));
     return 1;
 }
 
@@ -527,7 +527,7 @@ static int L_god_heal (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_heal( NULL, ch, "" ));
+            god_heal( NULL, ch, "" ));
     return 1;
 }
 
@@ -538,7 +538,7 @@ static int L_god_speed (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_speed( NULL, ch, "" ));
+            god_speed( NULL, ch, "" ));
     return 1; 
 }
 
@@ -549,7 +549,7 @@ static int L_god_slow (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_slow( NULL, ch, "" ));
+            god_slow( NULL, ch, "" ));
     return 1; 
 }
 
@@ -560,7 +560,7 @@ static int L_god_cleanse (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_cleanse( NULL, ch, "" ));
+            god_cleanse( NULL, ch, "" ));
     return 1; 
 }
 
@@ -571,7 +571,7 @@ static int L_god_defy (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_defy( NULL, ch, "" ));
+            god_defy( NULL, ch, "" ));
     return 1; 
 }
 
@@ -582,7 +582,7 @@ static int L_god_enlighten (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_enlighten( NULL, ch, "" ));
+            god_enlighten( NULL, ch, "" ));
     return 1; 
 }
 
@@ -593,7 +593,7 @@ static int L_god_protect (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_protect( NULL, ch, "" ));
+            god_protect( NULL, ch, "" ));
     return 1;
 }
 
@@ -604,7 +604,7 @@ static int L_god_fortune (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_fortune( NULL, ch, "" ));
+            god_fortune( NULL, ch, "" ));
     return 1;
 }
 
@@ -615,7 +615,7 @@ static int L_god_haunt (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_haunt( NULL, ch, "" ));
+            god_haunt( NULL, ch, "" ));
     return 1;
 }
 
@@ -626,7 +626,7 @@ static int L_god_plague (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_plague( NULL, ch, "" ));
+            god_plague( NULL, ch, "" ));
     return 1;
 }
 
@@ -637,7 +637,7 @@ static int L_god_confuse (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-        god_confuse( NULL, ch, "" ));
+            god_confuse( NULL, ch, "" ));
     return 1;
 }
 
@@ -861,39 +861,39 @@ static int L_ch_randchar (lua_State *LS)
 /* analog of run_olc_editor in olc.c */
 static bool run_olc_editor_lua( CHAR_DATA *ch, char *argument )
 {
-   if (IS_NPC(ch))
+    if (IS_NPC(ch))
         return FALSE;
 
-   switch ( ch->desc->editor )
-   {
-   case ED_AREA:
-      aedit( ch, argument );
-      break;
-   case ED_ROOM:
-      redit( ch, argument );
-      break;
-   case ED_OBJECT:
-      oedit( ch, argument );
-      break;
-   case ED_MOBILE:
-      medit( ch, argument );
-      break;
-   case ED_MPCODE:
-      mpedit( ch, argument );
-      break;
-   case ED_OPCODE:
-      opedit( ch, argument );
-      break;
-   case ED_APCODE:
-      apedit( ch, argument );
-      break;
-   case ED_HELP:
-      hedit( ch, argument );
-      break;
-   default:
-      return FALSE;
-   }
-   return TRUE; 
+    switch ( ch->desc->editor )
+    {
+        case ED_AREA:
+            aedit( ch, argument );
+            break;
+        case ED_ROOM:
+            redit( ch, argument );
+            break;
+        case ED_OBJECT:
+            oedit( ch, argument );
+            break;
+        case ED_MOBILE:
+            medit( ch, argument );
+            break;
+        case ED_MPCODE:
+            mpedit( ch, argument );
+            break;
+        case ED_OPCODE:
+            opedit( ch, argument );
+            break;
+        case ED_APCODE:
+            apedit( ch, argument );
+            break;
+        case ED_HELP:
+            hedit( ch, argument );
+            break;
+        default:
+            return FALSE;
+    }
+    return TRUE; 
 }
 
 static int L_ch_olc (lua_State *LS)
@@ -906,10 +906,10 @@ static int L_ch_olc (lua_State *LS)
     {
         luaL_error( LS, "NPCs cannot use OLC!");
     }
-   
+
     if (!run_olc_editor_lua( ud_ch, check_fstring( LS, 2)) )
         luaL_error(LS, "Not currently in olc edit mode.");
- 
+
     return 0;
 }
 
@@ -1389,7 +1389,7 @@ static int L_ch_qadvance (lua_State *LS)
             luaL_checkstring(LS, 3),
             lua_isnone( LS, 4 ) ? "" : luaL_checkstring(LS, 4) ); 
 
-    
+
     return 0;
 }
 
@@ -1403,8 +1403,8 @@ static int L_ch_reward (lua_State *LS)
     }
 
     mpreward( check_CH(LS, 1), check_CH(LS, 2),
-              luaL_checkstring(LS, 3),
-              (int)luaL_checknumber(LS, 4) );
+            luaL_checkstring(LS, 3),
+            (int)luaL_checknumber(LS, 4) );
     return 0;
 }
 
@@ -2645,8 +2645,8 @@ static int get_AREA_field ( lua_State *LS )
         for (people=char_list ; people ; people=people->next)
         {
             if ( IS_NPC(people) 
-                 || !people || !people->in_room
-                 || (people->in_room->area != ud_area) )
+                    || !people || !people->in_room
+                    || (people->in_room->area != ud_area) )
                 continue;
             if (make_ud_table(LS, people, UDTYPE_CH))
                 lua_rawseti(LS, -2, index++);
@@ -2662,8 +2662,8 @@ static int get_AREA_field ( lua_State *LS )
         for (people=char_list ; people ; people=people->next)
         {
             if ( !IS_NPC(people)
-                 || !people || !people->in_room
-                 || (people->in_room->area != ud_area) )
+                    || !people || !people->in_room
+                    || (people->in_room->area != ud_area) )
                 continue;
             if (make_ud_table(LS, people, UDTYPE_CH))
                 lua_rawseti(LS, -2, index++);
@@ -2682,7 +2682,7 @@ static int check_RESET_equal( lua_State *LS)
 static int get_RESET_field (lua_State *LS)
 {
     const char *argument = luaL_checkstring (LS, 2 );
-    
+
     FLDNUM("UDTYPE",UDTYPE_RESET); /* Need this for type checking */
 
     /* check for funcs first */
@@ -2715,7 +2715,7 @@ static int get_RESET_field (lua_State *LS)
 
     return 0;
 }
-    
+
 
 static int check_EXIT_equal( lua_State *LS)
 {
@@ -3502,7 +3502,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
     /* VICTIM_ARG */
     if ( !((arg2type== ACT_ARG_CHARACTER && arg2)
                 && make_ud_table( g_mud_LS, arg2, UDTYPE_CH)) )
-    lua_pushnil(g_mud_LS);
+        lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
     lua_pushstring ( g_mud_LS, flag_stat_string( mprog_flags, trig_type) );
@@ -3834,74 +3834,74 @@ void check_lboard_reset()
 
 bool run_lua_interpret( DESCRIPTOR_DATA *d)
 {
-   if (!d->lua.interpret) /* not in interpreter */
-       return FALSE; 
+    if (!d->lua.interpret) /* not in interpreter */
+        return FALSE; 
 
-   if (!strcmp( d->incomm, "@") )
-   {
-      /* kick out of interpret */
-      d->lua.interpret=FALSE;
-      d->lua.object=NULL;
-      d->lua.type=UDTYPE_UNDEFINED;
+    if (!strcmp( d->incomm, "@") )
+    {
+        /* kick out of interpret */
+        d->lua.interpret=FALSE;
+        d->lua.object=NULL;
+        d->lua.type=UDTYPE_UNDEFINED;
 
-      lua_unregister_desc(d);
+        lua_unregister_desc(d);
 
-      ptc(d->character, "Exited lua interpreter.\n\r");
-      return TRUE;
-   }
+        ptc(d->character, "Exited lua interpreter.\n\r");
+        return TRUE;
+    }
 
-   if (!strcmp( d->incomm, "WAIT") )
-   {
-       /* set wait mode for multiline chunks*/
-       d->lua.wait=TRUE;
-       return TRUE;
-   }
+    if (!strcmp( d->incomm, "WAIT") )
+    {
+        /* set wait mode for multiline chunks*/
+        d->lua.wait=TRUE;
+        return TRUE;
+    }
 
-   if (!strcmp( d->incomm, "GO") )
-   {
-       /* turn WAIT mode off and go for it */
-       d->lua.wait=FALSE;
-       lua_getglobal( g_mud_LS, "go_lua_interpret");
-   }
-   else if (d->lua.wait) /* WAIT mode enabled for multiline chunk */
-   {
-       lua_getglobal( g_mud_LS, "wait_lua_interpret");
-   }
-   else
-   {
-       lua_getglobal( g_mud_LS, "run_lua_interpret"); //what we'll call if no errors
-   }
+    if (!strcmp( d->incomm, "GO") )
+    {
+        /* turn WAIT mode off and go for it */
+        d->lua.wait=FALSE;
+        lua_getglobal( g_mud_LS, "go_lua_interpret");
+    }
+    else if (d->lua.wait) /* WAIT mode enabled for multiline chunk */
+    {
+        lua_getglobal( g_mud_LS, "wait_lua_interpret");
+    }
+    else
+    {
+        lua_getglobal( g_mud_LS, "run_lua_interpret"); //what we'll call if no errors
+    }
 
-   /* Check this all in C so we can exit interpreter for missing env */
-   lua_getglobal( g_mud_LS, ENV_TABLE_NAME);
-   if (lua_isnil( g_mud_LS, -1) )
-   {
-       bugf("Couldn't find " ENV_TABLE_NAME);
-       lua_settop(g_mud_LS, 0);
-       return TRUE;
-   }
-   lua_pushlightuserdata( g_mud_LS, d->lua.object);
-   lua_gettable( g_mud_LS, -2);
-   lua_remove( g_mud_LS, -2); /* don't need envtbl anymore*/
-   if ( lua_isnil( g_mud_LS, -1) )
-   {
-       ptc( d->character, "Couldn't find game object, was it destroyed?\n\r"
-                          "Exiting interpreter.\n\r");
-       d->lua.interpret=FALSE;
-       d->lua.object=NULL;
-       d->lua.type=UDTYPE_UNDEFINED;
-       d->lua.wait=FALSE;
+    /* Check this all in C so we can exit interpreter for missing env */
+    lua_getglobal( g_mud_LS, ENV_TABLE_NAME);
+    if (lua_isnil( g_mud_LS, -1) )
+    {
+        bugf("Couldn't find " ENV_TABLE_NAME);
+        lua_settop(g_mud_LS, 0);
+        return TRUE;
+    }
+    lua_pushlightuserdata( g_mud_LS, d->lua.object);
+    lua_gettable( g_mud_LS, -2);
+    lua_remove( g_mud_LS, -2); /* don't need envtbl anymore*/
+    if ( lua_isnil( g_mud_LS, -1) )
+    {
+        ptc( d->character, "Couldn't find game object, was it destroyed?\n\r"
+                "Exiting interpreter.\n\r");
+        d->lua.interpret=FALSE;
+        d->lua.object=NULL;
+        d->lua.type=UDTYPE_UNDEFINED;
+        d->lua.wait=FALSE;
 
-       ptc(d->character, "Exited lua interpreter.\n\r");
-       lua_settop(g_mud_LS, 0);
-       return TRUE;
-   }
+        ptc(d->character, "Exited lua interpreter.\n\r");
+        lua_settop(g_mud_LS, 0);
+        return TRUE;
+    }
 
-   /* if we're here then we just need to push the string and call the func */
-   lua_pushstring( g_mud_LS, d->incomm);
+    /* if we're here then we just need to push the string and call the func */
+    lua_pushstring( g_mud_LS, d->incomm);
 
-   s_ScriptSecurity= d->character->pcdata->security;
-   int error=CallLuaWithTraceBack (g_mud_LS, 2, 0) ;
+    s_ScriptSecurity= d->character->pcdata->security;
+    int error=CallLuaWithTraceBack (g_mud_LS, 2, 0) ;
     if (error > 0 )
     {
         ptc(d->character,  "LUA error for lua_interpret:\n %s",
@@ -3974,7 +3974,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
             ptc(ch, "Could not find %s in room or inventory.\n\r", argument);
             return;
         }
-        
+
         victim= (void *)obj;
         type=UDTYPE_OBJ;
         name=obj->name;
@@ -4005,13 +4005,13 @@ void do_lua( CHAR_DATA *ch, char *argument)
         bugf("do_lua: %s has null desc", ch->name);
         return;
     }
-    
+
     /* do the stuff */
     lua_getglobal( g_mud_LS, "interp_setup");
     if (!make_ud_table( g_mud_LS, victim, type) )
     {
         bugf("do_lua: couldn't make udtable for %d, argument %s", argument);
-            
+
         return;
     }
     switch (type)
@@ -4029,7 +4029,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
 
     lua_pushlightuserdata(g_mud_LS, ch->desc);
     lua_pushstring( g_mud_LS, ch->name );
-   
+
     int error=CallLuaWithTraceBack (g_mud_LS, 4, 2) ;
     if (error > 0 )
     {
@@ -4039,7 +4039,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
     }
 
     /* 2 values, true or false (false if somebody already interpreting on that object)
-        and name of person interping if false */
+       and name of person interping if false */
     bool success=(bool)luaL_checknumber( g_mud_LS, -2);
     if (!success)
     {
