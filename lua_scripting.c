@@ -3850,7 +3850,27 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
       return TRUE;
    }
 
-   lua_getglobal( g_mud_LS, "run_lua_interpret"); //what we'll call if no errors
+   if (!strcmp( d->incomm, "WAIT") )
+   {
+       /* set wait mode for multiline chunks*/
+       d->lua.wait=TRUE;
+       return TRUE;
+   }
+
+   if (!strcmp( d->incomm, "GO") )
+   {
+       /* turn WAIT mode off and go for it */
+       d->lua.wait=FALSE;
+       lua_getglobal( g_mud_LS, "go_lua_interpret");
+   }
+   else if (d->lua.wait) /* WAIT mode enabled for multiline chunk */
+   {
+       lua_getglobal( g_mud_LS, "wait_lua_interpret");
+   }
+   else
+   {
+       lua_getglobal( g_mud_LS, "run_lua_interpret"); //what we'll call if no errors
+   }
 
    /* Check this all in C so we can exit interpreter for missing env */
    lua_getglobal( g_mud_LS, ENV_TABLE_NAME);
@@ -3870,6 +3890,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
        d->lua.interpret=FALSE;
        d->lua.object=NULL;
        d->lua.type=UDTYPE_UNDEFINED;
+       d->lua.wait=FALSE;
 
        ptc(d->character, "Exited lua interpreter.\n\r");
        lua_settop(g_mud_LS, 0);
@@ -3883,7 +3904,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
    int error=CallLuaWithTraceBack (g_mud_LS, 2, 0) ;
     if (error > 0 )
     {
-        ptc(d->character,  "LUA error for run_lua_interpret:\n %s",
+        ptc(d->character,  "LUA error for lua_interpret:\n %s",
                 lua_tostring(g_mud_LS, -1));
     } 
     s_ScriptSecurity=0;
