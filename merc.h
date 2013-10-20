@@ -290,7 +290,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define LEVEL_MIN_HERO     (MAX_LEVEL - 20)
 #define LEVEL_UNAUTHED      5 /* Max level an unauthed newbie can gain */
 
-#define PULSE_PER_SECOND      10 
+#define PULSE_PER_SECOND      4 
 #define PULSE_VIOLENCE        ( 3 * PULSE_PER_SECOND)
 #define PULSE_MOBILE          ( 4 * PULSE_PER_SECOND)
 #define PULSE_MOBILE_SPECIAL  ( 1 * PULSE_PER_SECOND)
