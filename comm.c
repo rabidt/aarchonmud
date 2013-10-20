@@ -615,7 +615,7 @@ void game_loop_unix( int control )
                         switch ( d->connected )
                         {
                             case CON_PLAYING:
-                                if ( !run_olc_editor( d ) && !run_lua_interpret(d) )
+                                if ( !(run_lua_interpret(d) || run_olc_editor( d ) ) ) 
                                     substitute_alias( d, d->incomm );
                                 break;
                             default:
