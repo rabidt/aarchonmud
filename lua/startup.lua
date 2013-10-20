@@ -56,6 +56,7 @@ function UnregisterUd(lightud)
         origtbl[lightud]={}
         origtbl[lightud]=nil
         udtbl[lightud]={}
+        udtbl[lightud]=nil
     end
 
     if envtbl[lightud] then
