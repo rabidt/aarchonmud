@@ -3878,12 +3878,15 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
 
    /* if we're here then we just need to push the string and call the func */
    lua_pushstring( g_mud_LS, d->incomm);
+
+   s_ScriptSecurity= d->character->pcdata->security;
    int error=CallLuaWithTraceBack (g_mud_LS, 2, 0) ;
     if (error > 0 )
     {
         ptc(d->character,  "LUA error for run_lua_interpret:\n %s",
                 lua_tostring(g_mud_LS, -1));
     } 
+    s_ScriptSecurity=0;
 
 
     return TRUE;
@@ -3908,6 +3911,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
         return;
 
     char arg1[MSL];
+    char *name;
 
     argument=one_argument(argument, arg1);
 
@@ -3918,6 +3922,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
     {
         victim=(void *)ch;
         type=UDTYPE_CH;
+        name=ch->name;
     }
     else if (!strcmp( arg1, "mob") )
     {
@@ -3936,6 +3941,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
 
         victim = (void *)mob;
         type= UDTYPE_CH;
+        name=mob->name;
     }
     else if (!strcmp( arg1, "obj") )
     {
@@ -3950,6 +3956,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
         
         victim= (void *)obj;
         type=UDTYPE_OBJ;
+        name=obj->name;
     }
     else if (!strcmp( arg1, "area") )
     {
@@ -3961,6 +3968,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
 
         victim= (void *)(ch->in_room->area);
         type=UDTYPE_AREA;
+        name=ch->in_room->area->name;
     }
     else
     {
@@ -4023,5 +4031,13 @@ void do_lua( CHAR_DATA *ch, char *argument)
     ch->desc->lua.interpret=TRUE;
     ch->desc->lua.object=victim;
     ch->desc->lua.type=type;
+
+    ptc(ch, "Entered lua interpreter mode for for %s %s\n\r", 
+            type== UDTYPE_CH ? "CH" :
+            type== UDTYPE_OBJ ? "OBJ" :
+            type== UDTYPE_AREA ? "AREA":
+            "UNKNOWN",
+            name);
+    ptc(ch, "Use @ on a blank line to exit.\n\r");
     return;
 }
