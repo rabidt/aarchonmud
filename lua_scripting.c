@@ -3842,6 +3842,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         /* kick out of interpret */
         d->lua.interpret=FALSE;
         d->lua.wait=FALSE;
+        d->lua.incmpl=FALSE;
 
         lua_unregister_desc(d);
 
@@ -3851,14 +3852,29 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
 
     if (!strcmp( d->incomm, "WAIT") )
     {
+        if (d->lua.incmpl)
+        {
+            ptc(d->character, "Can't enter WAIT mode with incomplete statement.\n\r"
+                              "Finish statement or exit and re-enter interpreter.\n\r");
+            return TRUE;
+        }
+
         /* set wait mode for multiline chunks*/
-        d->lua.wait=TRUE;
+        if (d->lua.wait)
+            ptc(d->character, "Already in WAIT mode.\n\r");
+        else
+            d->lua.wait=TRUE;
         return TRUE;
     }
 
     if (!strcmp( d->incomm, "GO") )
     {
         /* turn WAIT mode off and go for it */
+        if (!d->lua.wait)
+        {
+            ptc( d->character, "Can only use GO to end WAIT mode.\n\r");
+            return TRUE; 
+        }
         d->lua.wait=FALSE;
         lua_getglobal( g_mud_LS, "go_lua_interpret");
     }
@@ -3938,14 +3954,29 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     lua_pushstring( g_mud_LS, d->incomm);
 
     s_ScriptSecurity= d->character->pcdata->security;
-    int error=CallLuaWithTraceBack (g_mud_LS, 2, 0) ;
+    int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
     if (error > 0 )
     {
         ptc(d->character,  "LUA error for lua_interpret:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
+        d->lua.incmpl=FALSE; //force it whehter it was or wasn't
     } 
-    s_ScriptSecurity=0;
+    else
+    {
+        bool incmpl=(bool)luaL_checknumber( g_mud_LS, -1 );
+        if (incmpl)
+        {
+            d->lua.incmpl=TRUE;
+        } 
+        else
+        {
+            d->lua.incmpl=FALSE;
+        
+        }
+    }
 
+
+    s_ScriptSecurity=0;
 
     lua_settop( g_mud_LS, 0);
     return TRUE;
@@ -4092,6 +4123,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
     /* finally, if everything worked out, we can set this stuff */
     ch->desc->lua.interpret=TRUE;
     ch->desc->lua.wait=FALSE;
+    ch->desc->lua.incmpl=FALSE;
 
     ptc(ch, "Entered lua interpreter mode for for %s %s\n\r", 
             type== UDTYPE_CH ? "CH" :
