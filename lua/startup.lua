@@ -325,6 +325,8 @@ function MakeEnvProxy(env)
             __newindex = function (t,k,v)
                 if k=="tableid" then
                     error("Cannot alter tableid of environment.")
+                elseif k=="udid" then
+                    error("Cannot alter udid of environment.")
                 else
                     rawset(t,k,v)
                 end
@@ -337,7 +339,7 @@ function MakeEnvProxy(env)
 end
 
 function new_script_env(ud, objname, meta)
-    local env={[objname]=ud}
+    local env={ udid=ud.tableid, [objname]=ud}
     setmetatable(env, meta)
     return MakeEnvProxy(env)
 end
@@ -394,4 +396,19 @@ function run_lua_interpret(env, str)
     end
     setfenv(f, env)
     f()
+end
+
+function wait_lua_interpret(env, str)
+    interptbl[env.udid].buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
+
+    table.insert(interptbl[env.udid].buff, str)
+end
+
+function go_lua_interpret(env, str)
+    local buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
+
+    if #buff>0 then
+        interptbl[env.udid].buff=nil
+        run_lua_interpret(env, table.concat(buff, "\n"))
+    end
 end
