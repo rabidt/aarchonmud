@@ -58,57 +58,95 @@ bool can_gain_skill( CHAR_DATA *ch, int sn )
 	&& skill_table[sn].skill_level[ch->class] < LEVEL_IMMORTAL;
 }
 
-// group cost is reduced for a character if they already know skills in the group
-int get_group_cost( CHAR_DATA *ch, int gn )
+// populate skill_costs recursively
+static void set_group_skill_costs( int gn, int class, int *skill_costs )
 {
     int i;
-    // calculate sum of base costs of skills/subgroups (total and new)
-    int total_cost = 0;
-    int new_cost = 0;
     for ( i = 0; i < MAX_IN_GROUP; i++ )
     {
-        char *group_item = group_table[gn].spells[i];
-
-        if ( group_item == NULL )
+        char *name = group_table[gn].spells[i];
+        if ( name == NULL )
             break;
-
-        int sn = skill_lookup(group_item);
-        if ( sn < 0 )
+        int sn = skill_lookup(name);
+        if ( sn != -1 )
         {
-            // not a skill, so should be a subgroup
-            int sgn = group_lookup(group_item);
-            if ( sgn < 0 )
-            {
-                bugf("get_group_cost: Unknown skill or group '%s' in group '%s'.", group_item, group_table[gn].name);
-                continue;
-            }
-            int subgroup_cost = group_table[sgn].rating[ch->class];
-            if ( subgroup_cost > 0 )
-            {
-                total_cost += subgroup_cost;
-                if ( !ch->pcdata->group_known[sgn] )
-                    new_cost += get_group_cost(ch, sgn);
-            }
+            if ( skill_table[sn].skill_level[class] < LEVEL_IMMORTAL )
+                skill_costs[sn] = skill_table[sn].rating[class];
         }
         else
         {
-            if ( can_gain_skill(ch, sn) )
-            {
-                int skill_cost = skill_table[sn].rating[ch->class];
-                total_cost += skill_cost;
-                if ( !ch->pcdata->learned[sn] )
-                    new_cost += skill_cost;
-            }
+            int sub_gn = group_lookup(name);
+            if ( sub_gn == -1 )
+                bugf("add_group_skill_costs: Invalid group name '%s' in group '%s'.", name, group_table[gn].name);
+            else
+                set_group_skill_costs(sub_gn, class, skill_costs);
         }
     }
+}
 
-    int base_cost = group_table[gn].rating[ch->class];
+// get map of skill-number to cost for class (0 if not in group or not for class)
+static int* get_group_skill_costs( int gn, int class )
+{
+    static int skill_costs[MAX_SKILL];
+    int sn;
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+        skill_costs[sn] = 0;
+    set_group_skill_costs(gn, class, skill_costs);
+    return skill_costs;
+}
 
-    // safety-net against groups with total cost of 0
-    if ( total_cost == 0 )
-        return base_cost;
+// set skill cost to 0 for skills already known
+static void filter_known_skills( CHAR_DATA *ch, int *skill_costs )
+{
+    int sn;
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+        if ( ch->pcdata->learned[sn] )
+            skill_costs[sn] = 0;
+}
 
-    return base_cost * new_cost / total_cost;
+// calculate total cost from a set of individual skill costs (group rebate)
+static int get_multi_skill_cost( int *skill_costs )
+{
+    int sn, sum = 0, skill_count = 0, costly_skill_count = 0;
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        sum += skill_costs[sn];
+        if ( skill_costs[sn] > 0 )
+            skill_count++;
+        if ( skill_costs[sn] > 1 )
+            costly_skill_count++;
+    }
+    // compute total cost so that any skill with cost > 0 increases total
+    // also no rebate for groups with a single skill, and no more than 20%
+    int max_rebate_by_count = costly_skill_count - 1;
+    int max_rebate_by_cost = (sum - skill_count) / 4;
+    return sum - UMAX(0,UMIN(max_rebate_by_count, max_rebate_by_cost));
+}
+
+int get_group_base_cost( int gn, int class )
+{
+    return get_multi_skill_cost(get_group_skill_costs(gn, class));
+}
+
+// group cost is reduced for a character if they already know skills in the group
+int get_group_cost( CHAR_DATA *ch, int gn )
+{
+    int *skill_costs = get_group_skill_costs(gn, ch->class);
+    filter_known_skills( ch, skill_costs );
+    return get_multi_skill_cost( skill_costs );
+}
+
+// update cost for all groups to auto-calculated value
+void update_group_costs()
+{
+    int gn, class;
+    for ( gn = 0; gn < MAX_GROUP; gn++ )
+        for ( class = 0; class < MAX_CLASS; class++ )
+            if ( group_table[gn].rating[class] > 0 )
+            {
+                int group_cost = get_group_base_cost(gn, class);
+                group_table[gn].rating[class] = (group_cost > 0 ? group_cost : -1);
+            }
 }
 
 /* used to get new skills */

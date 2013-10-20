@@ -3960,7 +3960,7 @@ extern  struct  align_type    align_table[];
 extern  const   struct  spec_type   spec_table  [];
 extern  const   struct  liq_type    liq_table   [];
 extern  struct  skill_type  skill_table [MAX_SKILL];
-extern  const   struct  group_type      group_table [MAX_GROUP];
+extern  struct  group_type  group_table [MAX_GROUP];
 extern          struct  social_type *social_table;
 extern  char *  const           title_table [MAX_CLASS] [23];
 extern	        struct  clan_data       clan_table[MAX_CLAN];
@@ -4591,6 +4591,8 @@ void    group_add   args( ( CHAR_DATA *ch, const char *name, bool deduct) );
 void    group_remove    args( ( CHAR_DATA *ch, const char *name) );
 int get_skill   args( ( CHAR_DATA *ch, int sn ) );
 int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
+int get_group_base_cost( int gn, int class );
+int get_group_cost( CHAR_DATA *ch, int gn );
 
 /* social-edit.c */
 void load_social_table();
