@@ -89,6 +89,8 @@ static const struct luaL_reg RESET_lib [];
 #define MT_LIBRARY "mt"
 #define GOD_LIBRARY "god"
 #define UD_TABLE_NAME "udtbl"
+#define ENV_TABLE_NAME "envtbl"
+#define INTERP_TABLE_NAME "interptbl"
 
 /* Names of some functions declared on the lua side */
 #define REGISTER_UD_FUNCTION "RegisterUd"
@@ -3828,4 +3830,198 @@ void check_lboard_reset()
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
+}
+
+bool run_lua_interpret( DESCRIPTOR_DATA *d)
+{
+   if (!d->lua.interpret) /* not in interpreter */
+       return FALSE; 
+
+   if (!strcmp( d->incomm, "@") )
+   {
+      /* kick out of interpret */
+      d->lua.interpret=FALSE;
+      d->lua.object=NULL;
+      d->lua.type=UDTYPE_UNDEFINED;
+
+      lua_unregister_desc(d);
+
+      ptc(d->character, "Exited lua interpreter.\n\r");
+      return TRUE;
+   }
+
+   lua_getglobal( g_mud_LS, "run_lua_interpret"); //what we'll call if no errors
+
+   /* Check this all in C so we can exit interpreter for missing env */
+   lua_getglobal( g_mud_LS, ENV_TABLE_NAME);
+   if (lua_isnil( g_mud_LS, -1) )
+   {
+       bugf("Couldn't find " ENV_TABLE_NAME);
+       lua_settop(g_mud_LS, 0);
+       return TRUE;
+   }
+   lua_pushlightuserdata( g_mud_LS, d->lua.object);
+   lua_gettable( g_mud_LS, -2);
+   lua_remove( g_mud_LS, -2); /* don't need envtbl anymore*/
+   if ( lua_isnil( g_mud_LS, -1) )
+   {
+       ptc( d->character, "Couldn't find game object, was it destroyed?\n\r"
+                          "Exiting interpreter.\n\r");
+       d->lua.interpret=FALSE;
+       d->lua.object=NULL;
+       d->lua.type=UDTYPE_UNDEFINED;
+
+       ptc(d->character, "Exited lua interpreter.\n\r");
+       lua_settop(g_mud_LS, 0);
+       return TRUE;
+   }
+
+   /* if we're here then we just need to push the string and call the func */
+   lua_pushstring( g_mud_LS, d->incomm);
+   int error=CallLuaWithTraceBack (g_mud_LS, 2, 0) ;
+    if (error > 0 )
+    {
+        ptc(d->character,  "LUA error for run_lua_interpret:\n %s",
+                lua_tostring(g_mud_LS, -1));
+    } 
+
+
+    return TRUE;
+
+}
+
+void lua_unregister_desc (DESCRIPTOR_DATA *d)
+{
+    lua_getglobal( g_mud_LS, "UnregisterDesc");
+    lua_pushlightuserdata( g_mud_LS, d);
+    int error=CallLuaWithTraceBack (g_mud_LS, 1, 0) ;
+    if (error > 0 )
+    {
+        ptc(d->character,  "LUA error for UnregisterDesc:\n %s",
+                lua_tostring(g_mud_LS, -1));
+    }
+}
+
+void do_lua( CHAR_DATA *ch, char *argument)
+{
+    if IS_NPC(ch)
+        return;
+
+    char arg1[MSL];
+
+    argument=one_argument(argument, arg1);
+
+    void *victim=NULL;
+    int type;
+
+    if ( arg1[0]== '\0' )
+    {
+        victim=(void *)ch;
+        type=UDTYPE_CH;
+    }
+    else if (!strcmp( arg1, "mob") )
+    {
+        CHAR_DATA *mob;
+        mob=get_char_room( ch, argument );
+        if (!mob)
+        {
+            ptc(ch, "Could not find %s in the room.\n\r", argument);
+            return;
+        }
+        else if (!IS_NPC(mob))
+        {
+            ptc(ch, "Not on PCs.\n\r");
+            return;
+        }
+
+        victim = (void *)mob;
+        type= UDTYPE_CH;
+    }
+    else if (!strcmp( arg1, "obj") )
+    {
+        OBJ_DATA *obj=NULL;
+        obj=get_obj_here( ch, arg1);
+
+        if (!obj)
+        {
+            ptc(ch, "Could not find %s in room or inventory.\n\r", argument);
+            return;
+        }
+        
+        victim= (void *)obj;
+        type=UDTYPE_OBJ;
+    }
+    else if (!strcmp( arg1, "area") )
+    {
+        if (!ch->in_room)
+        {
+            bugf("do_lua: %s in_room is NULL.", ch->name);
+            return;
+        }
+
+        victim= (void *)(ch->in_room->area);
+        type=UDTYPE_AREA;
+    }
+    else
+    {
+        ptc(ch, "lua [no argument] -- open interpreter in your own env\n\r"
+                "lua mob <target>  -- open interpreter in env of target mob (in same room)\n\r"
+                "lua obj <target>  -- open interpreter in env of target obj (inventory or same room)\n\r"
+                "lua area          -- open interpreter in env of current area\n\r"); 
+        return;
+    }
+
+    if (!ch->desc)
+    {
+        bugf("do_lua: %s has null desc", ch->name);
+        return;
+    }
+    
+    /* do the stuff */
+    lua_getglobal( g_mud_LS, "interp_setup");
+    if (!make_ud_table( g_mud_LS, victim, type) )
+    {
+        bugf("do_lua: couldn't make udtable for %d, argument %s", argument);
+            
+        return;
+    }
+    switch (type)
+    {
+        case UDTYPE_CH:
+            lua_pushliteral( g_mud_LS, "mob"); break;
+        case UDTYPE_OBJ:
+            lua_pushliteral( g_mud_LS, "obj"); break;
+        case UDTYPE_AREA:
+            lua_pushliteral( g_mud_LS, "area"); break;
+        default:
+            bugf("do_lua: invalid udtype %d", type);
+            return;
+    }
+
+    lua_pushlightuserdata(g_mud_LS, ch->desc);
+    lua_pushstring( g_mud_LS, ch->name );
+   
+    int error=CallLuaWithTraceBack (g_mud_LS, 4, 2) ;
+    if (error > 0 )
+    {
+        bugf ( "LUA error for interp_setup:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        return;
+    }
+
+    /* 2 values, true or false (false if somebody already interpreting on that object)
+        and name of person interping if false */
+    bool success=(bool)luaL_checknumber( g_mud_LS, -2);
+    if (!success)
+    {
+        ptc(ch, "Can't open lua interpreter, %s already has it open for that object.\n\r",
+                luaL_checkstring( g_mud_LS, -1));
+        return;
+    }
+
+    /* finally, if everything worked out, we can set this stuff */
+    ch->desc->lua.interpret=TRUE;
+    ch->desc->lua.object=victim;
+    ch->desc->lua.type=type;
+    return;
 }
