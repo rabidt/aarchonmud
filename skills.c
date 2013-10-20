@@ -67,7 +67,7 @@ static void set_group_skill_costs( int gn, int class, int *skill_costs )
         char *name = group_table[gn].spells[i];
         if ( name == NULL )
             break;
-        int sn = skill_lookup(name);
+        int sn = skill_lookup_exact(name);
         if ( sn != -1 )
         {
             if ( skill_table[sn].skill_level[class] < LEVEL_IMMORTAL )
@@ -77,7 +77,7 @@ static void set_group_skill_costs( int gn, int class, int *skill_costs )
         {
             int sub_gn = group_lookup(name);
             if ( sub_gn == -1 )
-                bugf("add_group_skill_costs: Invalid group name '%s' in group '%s'.", name, group_table[gn].name);
+                bugf("add_group_skill_costs: Invalid skill or group name '%s' in group '%s'.", name, group_table[gn].name);
             else
                 set_group_skill_costs(sub_gn, class, skill_costs);
         }
