@@ -1810,7 +1810,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"ninja", "Nin",  STAT_AGI, {STAT_DIS, STAT_INT},
         {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
-	OBJ_VNUM_SCHOOL_SWORD, { 9639, 10341 },
+	OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
 	75, 110, 110,  110, 70, 110,
 	"ninja basics", "ninja default"
 	},
@@ -7145,7 +7145,7 @@ struct group_type group_table[MAX_GROUP] =
 	{
 	"ninja basics",   { -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1 },
 	{
-	"sword", "wands"
+	"dagger", "hand to hand"
 	} },
 
 	{
