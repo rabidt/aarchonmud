@@ -408,7 +408,7 @@ function go_lua_interpret(env, str)
     local buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
 
     if #buff>0 then
-        run_lua_interpret(env, table.concat(buff, "\n"))
         interptbl[env.udid].buff=nil
+        run_lua_interpret(env, table.concat(buff, "\n"))
     end
 end
