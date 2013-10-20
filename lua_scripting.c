@@ -3941,7 +3941,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 0) ;
     if (error > 0 )
     {
-        ptc(d->character,  "LUA error for lua_interpret:\n %s",
+        ptc(d->character,  "LUA error for lua_interpret:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
     } 
     s_ScriptSecurity=0;
