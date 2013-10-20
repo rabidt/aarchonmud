@@ -7090,7 +7090,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 
 };
 
-const   struct  group_type      group_table     [MAX_GROUP]     =
+struct group_type group_table[MAX_GROUP] =
 {
 
 	{
