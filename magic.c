@@ -85,6 +85,21 @@ int skill_lookup( const char *name )
     return -1;
 }
 
+int skill_lookup_exact( const char *name )
+{
+    int sn;
+
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !strcmp(name, skill_table[sn].name) )
+            return sn;
+    }
+
+    return -1;
+}
+
 /*
  * Lookup a spell by name.
  */
