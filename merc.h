@@ -794,6 +794,14 @@ struct  descriptor_data
 	void *              pEdit;      /* OLC */
 	char **             pString;    /* OLC */
 	int         editor;     /* OLC */
+    /* lua interpreter */
+    struct
+    {
+        bool interpret; /* Whether in lua interpreter mode */
+        void *object; /* game object whose env we run in */
+        int type; /* UDTYPE defined in lua_scripting.c */
+    } lua;
+
 	int     inactive;
 	char *      username;
 	struct
