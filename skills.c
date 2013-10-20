@@ -84,6 +84,21 @@ static void set_group_skill_costs( int gn, int class, int *skill_costs )
     }
 }
 
+// set skill cost to 0 for basic skills
+static void filter_basic_skills( int class, int *skill_costs )
+{
+    int i, gn = group_lookup(class_table[class].base_group);
+    for ( i = 0; i < MAX_IN_GROUP; i++ )
+    {
+        char *name = group_table[gn].spells[i];
+        if ( name == NULL )
+            break;
+        int sn = skill_lookup_exact(name);
+        if ( sn != -1 )
+            skill_costs[sn] = 0;
+    }
+}
+
 // get map of skill-number to cost for class (0 if not in group or not for class)
 static int* get_group_skill_costs( int gn, int class )
 {
@@ -92,6 +107,7 @@ static int* get_group_skill_costs( int gn, int class )
     for ( sn = 0; sn < MAX_SKILL; sn++ )
         skill_costs[sn] = 0;
     set_group_skill_costs(gn, class, skill_costs);
+    filter_basic_skills(class, skill_costs);
     return skill_costs;
 }
 
