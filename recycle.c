@@ -152,9 +152,8 @@ DESCRIPTOR_DATA *new_descriptor(void)
 	d->outbuf   = alloc_mem( d->outsize );
     d->pProtocol= ProtocolCreate();
 
-    d->lua.object=NULL;
-    d->lua.type=0;
     d->lua.interpret=FALSE;
+    d->lua.wait=FALSE;
    
 	return d;
 }

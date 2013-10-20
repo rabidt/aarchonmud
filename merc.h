@@ -798,8 +798,7 @@ struct  descriptor_data
     struct
     {
         bool interpret; /* Whether in lua interpreter mode */
-        void *object; /* game object whose env we run in */
-        int type; /* UDTYPE defined in lua_scripting.c */
+        bool wait; /* whether in WAIT mode for multiline chunks*/
     } lua;
 
 	int     inactive;
