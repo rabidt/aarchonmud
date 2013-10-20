@@ -4005,7 +4005,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
     else if (!strcmp( arg1, "obj") )
     {
         OBJ_DATA *obj=NULL;
-        obj=get_obj_here( ch, arg1);
+        obj=get_obj_here( ch, argument);
 
         if (!obj)
         {
@@ -4100,6 +4100,8 @@ void do_lua( CHAR_DATA *ch, char *argument)
             "UNKNOWN",
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
+    ptc(ch, "Use WAIT to enable WAIT mode for multiline chunks.\n\r");
+    ptc(ch, "Use GO on a blank line to end WAIT mode and process the buffer.\n\r");
     lua_settop(g_mud_LS, 0);
     return;
 }
