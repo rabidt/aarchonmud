@@ -615,7 +615,7 @@ void game_loop_unix( int control )
                         switch ( d->connected )
                         {
                             case CON_PLAYING:
-                                if ( !run_olc_editor( d ) )
+                                if ( !run_olc_editor( d ) && !run_lua_interpret(d) )
                                     substitute_alias( d, d->incomm );
                                 break;
                             default:
@@ -882,6 +882,9 @@ void close_socket( DESCRIPTOR_DATA *dclose )
     CHAR_DATA *ch;
     AUTH_LIST *old_auth;
 
+
+    lua_unregister_desc(dclose);
+
     if ( dclose->outtop > 0 )
         process_output( dclose, FALSE );
 
@@ -984,7 +987,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
     set_con_state(dclose, CON_CLOSED);
 
     close( dclose->descriptor );
-
+    
     free_descriptor( dclose );
     return;
 }
@@ -1302,8 +1305,12 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
     if ( !d->pProtocol->WriteOOB && !merc_down && !d->last_msg_was_prompt )
         if ( d->showstr_point )
             write_to_buffer( d, "[Hit Return to continue]\n\r", 0 );
-        else if ( fPrompt && d->pString && (d->connected == CON_PLAYING || d->connected == CON_PENALTY_FINISH ))
+        else if ( fPrompt && (d->pString || d->lua.interpret) && (d->connected == CON_PLAYING || d->connected == CON_PENALTY_FINISH ))
+        {
+            if (d->lua.interpret)
+                write_to_buffer( d, "lua", 3);
             write_to_buffer( d, "> ", 2 );
+        }
         else if ( fPrompt && d->connected == CON_PLAYING )
         {
             CHAR_DATA *ch = d->character;
