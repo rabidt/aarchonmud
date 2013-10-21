@@ -353,7 +353,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 				ch,NULL,trainer,TO_CHAR);
 			ch->train -= 2;
 			ch->pcdata->points -= 1;
-			ch->exp = exp_per_level(ch,ch->pcdata->points) * ch->level;
+			ch->exp = exp_per_level(ch) * ch->level;
 			return;
 		}
 		else if (!str_cmp(arg, "losehp"))
@@ -924,13 +924,10 @@ void list_group_costs(CHAR_DATA *ch)
 
     sprintf(buf,"Creation points: %d\n\r",ch->pcdata->points);
     send_to_char(buf,ch);
-    sprintf(buf,"Experience per level: %d\n\r",
-        exp_per_level(ch,ch->gen_data->points_chosen));
-    send_to_char(buf,ch);
     if ( ch->pcdata->points > 50 )
     {
-	send_to_char( "NOTE: You can always gain skills later on. If you spend over 50 creation points,\n\r", ch );
-	send_to_char( "      advancing in level becomes much harder!!!\n\r", ch );
+        send_to_char( "NOTE: You may spend up to 60 creation points, but it is recommended to safe some.\n\r", ch );
+        send_to_char( "      Unspent points convert to trains which can be used to train stats early on.\n\r", ch );
     }
     return;
 }
@@ -994,9 +991,6 @@ void list_group_chosen(CHAR_DATA *ch)
 
 	sprintf(buf,"Creation points: %d\n\r",ch->gen_data->points_chosen);
 	send_to_char(buf,ch);
-	sprintf(buf,"Experience per level: %d\n\r",
-		exp_per_level(ch,ch->gen_data->points_chosen));
-	send_to_char(buf,ch);
 	return;
 }
 
@@ -1008,57 +1002,30 @@ void set_level_exp( CHAR_DATA *ch )
     if ( ch == NULL || IS_NPC(ch) )
 	return;
 
-    exp_needed = exp_per_level( ch, ch->pcdata->points ) * ch->level;
+    exp_needed = exp_per_level(ch) * ch->level;
     
     if ( ch->exp < exp_needed )
 	ch->exp = exp_needed;
 }
 
-int exp_per_level(CHAR_DATA *ch, int points)
+int exp_per_level(CHAR_DATA *ch)
 {
-	int expl,inc,rem_add,race_factor;
+    int rem_add,race_factor;
 
-	if (IS_NPC(ch))
-	return 1000;
+    if (IS_NPC(ch))
+        return 1000;
 
-	expl = 1000;
-	inc = 500;
+    if ( !strcmp(pc_race_table[ch->race].name, "gimp") )
+        rem_add = 5;
+    else if ( !strcmp(pc_race_table[ch->race].name, "doppelganger") )
+        rem_add = 20;
+    else
+        rem_add = 15;
 
-	if ( !strcmp(pc_race_table[ch->race].name, "gimp") )
-	    rem_add = 5;
-	else if ( !strcmp(pc_race_table[ch->race].name, "doppelganger") )
-	    rem_add = 20;
-	else
-	    rem_add = 15;
+    race_factor = pc_race_table[ch->race].class_mult[ch->class] +
+        rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
 
-	race_factor = pc_race_table[ch->race].class_mult[ch->class] +
-	    rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
-	
-	if (points < 50)
-	    return 10 * (race_factor);
-
-	/* processing */
-	points -= 50;
-
-	points = UMIN(points, 200);
-
-	while (points > 9)
-	{
-	    expl += inc;
-	    points -= 10;
-	    if (points > 9)
-	    {
-		expl += inc;
-		inc *= 2;
-		points -= 10;
-	    }
-	}
-
-	expl += points * inc / 10;
-
-	expl = (expl * race_factor)/100;
-
-	return UMIN(expl, 30000);
+    return 10 * (race_factor);
 }
 
 /* this procedure handles the input parsing for the skill generator */
