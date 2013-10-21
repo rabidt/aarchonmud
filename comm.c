@@ -1052,7 +1052,15 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     }
 
     read_buf[iStart] = '\0';
-    ProtocolInput( d, read_buf, iStart, d->inbuf + lenInbuf );
+    if (read_buf[0]=='&')
+    {
+        /* allow to clear command buffer with '&' */
+        strcpy( d->inbuf, "");
+    }
+    else
+    {
+        ProtocolInput( d, read_buf, iStart, d->inbuf + lenInbuf );
+    }
     return TRUE;
 }
 
