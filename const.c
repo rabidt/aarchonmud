@@ -1810,7 +1810,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"ninja", "Nin",  STAT_AGI, {STAT_DIS, STAT_INT},
         {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
-	OBJ_VNUM_SCHOOL_SWORD, { 9639, 10341 },
+	OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
 	75, 110, 110,  110, 70, 110,
 	"ninja basics", "ninja default"
 	},
@@ -7145,7 +7145,7 @@ struct group_type group_table[MAX_GROUP] =
 	{
 	"ninja basics",   { -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1 },
 	{
-	"sword", "wands"
+	"dagger", "hand to hand"
 	} },
 
 	{
@@ -7186,102 +7186,84 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"mage default",     { -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{ "lore", "combat", "detection", "enchantment", "enhancement",
-	  "maledictions", "protective", "transportation", "staves" }
-	},
+    { "combat", "protective", "focus" }
+    },
 
 	{
 	"cleric default",   { -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{ "flail", "meditation", "shield block", "curative",  "benedictions", 
-	  "creation", "healing",  "holy rites" }
-	},
+    { "curative", "healing", "shield block", "anatomy" }
+    },
  
 	{
 	"thief default",    { -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{ "feint", "distract", "backstab", "circle", "dodge", "second attack",
-	  "trip", "hide", "peek", "pick lock", "sneak", "appraise" }
-	},
+    { "sneak", "hide", "backstab", "circle", "anatomy", "dual dagger", "second attack",
+      "dodge", "flee", "evasion", "disarm trap", "peek", "pick lock" }
+    },
 
 	{
 	"warrior default",  { 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{ "weaponsmaster", "shield block", "bash", "disarm", "enhanced damage", 
-	  "parry", "rescue", "third attack", "dirt kick" }
-	},
+    { "weapon styles", "enhancement", "third attack", "enhanced damage",
+      "dodge", "parry", "shield block", "rescue", "bodyguard", "guard", "shield bash" }
+    },
 
 	{
 	"gladiator default",  { -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{
-	  "weaponsmaster", "disarm", "dirt kick", "dodge", "enhanced damage",
-	  "bite", "dual wield", "third attack", "trip", "fast healing"
-	} },
+    { "weapon styles", "third attack", "enhanced damage", "berserk", "beheading",
+      "headbutt", "dodge", "parry", "fast healing" }
+    },
 	
 	{
 	"samurai default",  { -1, -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1,  -1, -1, -1 },
-	{
-	  "martial arts", "third attack", "enhanced damage", "polearm",
-	  "parry", "fast healing", "weapons lore", "disarm"
-	} },
+    { "weapon styles", "mystical styles", "third attack", "enhanced damage",
+      "dual sword", "dodge", "parry", "double strike", "ashura" }
+    },
 	
 	{
 	"paladin default",  { -1, -1, -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{
-	  "shield block", "guard", "endurance", "parry", "rescue",
-	  "third attack", "fast healing", "curative", "healing",
-	  "protective"
-	} },
+    { "healing", "protective", "third attack", "twohand weapons", "dodge", "parry", "guard" }
+    },
 	
 	{
 	"assassin default",  { -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1, -1,  -1, -1, -1 },
-	{
-	  "circle", "dodge", "enhanced damage", "envenom", "unibomber", "hide",
-	  "sneak", "second attack", "third attack"
-	} },
+    { "sneak", "hide", "circle", "anatomy", "dual dagger", "second attack",
+      "assassination", "hunt", "stalk" }
+    },
 	
 	{
 	"ninja default",  { -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1,  -1, -1, -1 },
-	{
-	  "martial arts", "hide", "sneak", "second attack", "combat"
-	} },
+    { "martial arts", "shadows", "dual dagger", "second attack" }
+    },
 	
 	{
 	"monk default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1,  -1, -1, -1 },
-	{
-	  "martial arts", "second attack", "protective", "healing", "harmful"
-	} },
+    { "martial arts", "spirit fist", "mystical styles", "second attack" }
+    },
 	
 	{
 	"templar default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1,  -1, -1, -1 },
 	{
-	  "combat", "enhancement", "healing", "fast healing", "lore",
-	  "shield block", "guard"
-	} },
+	  "combat", "healing", "shield block" }
+    },
 	
 	{
 	"illusionist default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1 },
-	{
-	  "illusions", "beguiling", "weather", "transportation", "detection",
-	  "protective", "hide", "sneak", "distract", "dirt kick", "pick lock"
-	} },
+    { "combat", "illusions", "advanced illusions" }
+    },
 		
 	{
 	"gunslinger default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1 },
-	{
-	  "warfare", "survival", "practical shooting"
-	} },
+    { "warfare", "practical shooting", "second attack", "true grit" }
+    },
 
 	{
 	"ranger default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1 },
-	{
-	  "weather", "elemental", "dodge", "trip", "second attack", "introspection",
-	  "kick", "woodland combat", "raft", "sustenance", "endurance", "forage"
-	} },
+    { "gaia magics", "nordic styles", "enhancement", "woodland combat", "firstaid", "second attack" }
+    },
 	   
 	{
 	"necromancer default",     { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50 },
-	{  
-	    "black magics", "enhancement", "debilitations", "dark rituals",
-	    "protective", "transportation", "necromancy" 
-	} },
+    { "necromancy", "debilitations", "dark rituals", "puppetry" }
+    },
 
 	{
 	"weaponsmaster",    { 20, 40, -1, -1, 20, 20, 20, 30, 30, -1, -1, -1, -1, -1, -1 },
