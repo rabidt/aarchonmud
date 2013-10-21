@@ -41,6 +41,7 @@
 
 #ifdef TESTER
 #define FSTAT
+#define LAG_FREE
 #endif
 /* debugging macros */
 /* #define SIM_DEBUG */
@@ -813,6 +814,10 @@ struct  descriptor_data
 		ftp_mode    mode;       /* FTP_xxx           */
 	} ftp;
     protocol_t *        pProtocol;
+
+#ifdef LAG_FREE
+    bool lag_free;
+#endif
 };
 
 
