@@ -5,8 +5,26 @@ require "serialize"
 require "utilities"
 require "leaderboard"
 
-udtbl={} -- used to store tables with userdata, we clear it out at the end of every script
-envtbl={}
+udtbl={} -- used to store game object tables, (read only proxies to origtbl)
+envtbl={} -- game object script environments
+origtbl={} -- where the REAL ud tables live
+interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
+
+function UdCnt()
+    local cnt=0
+    for k,v in pairs(udtbl) do
+        cnt=cnt+1
+    end
+    return cnt
+end
+
+function EnvCnt()
+    local cnt=0
+    for k,v in pairs(envtbl) do
+        cnt=cnt+1
+    end
+    return cnt
+end
 
 function MakeUdProxy(ud)
     local proxy={}
@@ -15,6 +33,7 @@ function MakeUdProxy(ud)
             __newindex = function (t,k,v)
                 error("Cannot set values on game objects.")
             end,
+            __tostring=function() return tostring(ud) end,
             __metatable=0 -- any value here protects it
             }
     )
@@ -26,12 +45,16 @@ function RegisterUd(ud)
         error("ud is nil")
         return
     end
-    udtbl[ud.tableid]=MakeUdProxy(ud)
+    origtbl[ud.tableid]=ud
+    udtbl[ud.tableid]=MakeUdProxy(origtbl[ud.tableid])
     return udtbl[ud.tableid]
 end
 
 function UnregisterUd(lightud)
     if udtbl[lightud] then
+        setmetatable(origtbl[lightud], nil)
+        origtbl[lightud]={}
+        origtbl[lightud]=nil
         udtbl[lightud]={}
         udtbl[lightud]=nil
     end
@@ -39,6 +62,17 @@ function UnregisterUd(lightud)
     if envtbl[lightud] then
         envtbl[lightud]={}
         envtbl[lightud]=nil
+    end
+
+    interptbl[lightud]=nil
+
+end
+
+function UnregisterDesc(desc)
+    for k,v in pairs(interptbl) do
+        if v.desc==desc then
+            interptbl[k]=nil
+        end
     end
 end
 
@@ -210,7 +244,25 @@ main_lib={  require=require,
         pagetochar=pagetochar,
         getcharlist=getcharlist,
         getmoblist=getmoblist,
-        getplayerlist=getplayerlist
+        getplayerlist=getplayerlist,
+        getobjlist=getobjlist,
+        getarealist=getarealist,
+        clearloopcount=clearloopcount,
+        god={confuse=god.confuse,
+            curse=god.curse,
+            plague=god.plague,
+            bless=god.bless,
+            slow=god.slow,
+            speed=god.speed,
+            heal=god.heal,
+            enlighten=god.enlighten,
+            protect=god.protect,
+            fortune=god.fortune,
+            haunt=god.haunt,
+            cleanse=god.cleanse,
+            defy=god.defy
+        }
+
 }
 -- Need to protect our library funcs from evil scripters
 function ProtectLib(lib)
@@ -223,10 +275,6 @@ function ProtectLib(lib)
     return MakeLibProxy(lib)
 end
 main_lib=ProtectLib(main_lib)
-
-function NameProtected(name)
-    if main_lib[name] then return true else return false end
-end
 
 -- First look for main_lib funcs, then mob/area/obj funcs
 -- (providing env as argument)
@@ -277,6 +325,8 @@ function MakeEnvProxy(env)
             __newindex = function (t,k,v)
                 if k=="tableid" then
                     error("Cannot alter tableid of environment.")
+                elseif k=="udid" then
+                    error("Cannot alter udid of environment.")
                 else
                     rawset(t,k,v)
                 end
@@ -289,7 +339,7 @@ function MakeEnvProxy(env)
 end
 
 function new_script_env(ud, objname, meta)
-    local env={[objname]=ud}
+    local env={ udid=ud.tableid, [objname]=ud}
     setmetatable(env, meta)
     return MakeEnvProxy(env)
 end
@@ -316,4 +366,74 @@ function area_program_setup(ud, f)
     end
     setfenv(f, envtbl[ud.tableid])
     return f
+end
+
+function interp_setup( ud, typ, desc, name)
+    if interptbl[ud.tableid] then
+        return 0, interptbl[ud.tableid].name
+    end
+
+    if envtbl[ud.tableid]== nil then
+        if typ=="mob" then
+            envtbl[ud.tableid]=new_script_env(ud,"mob", CH_env_meta)
+        elseif typ=="obj" then
+            envtbl[ud.tableid]=new_script_env(ud,"obj", OBJ_env_meta)
+        elseif typ=="area" then
+            envtbl[ud.tableid]=new_script_env(ud,"area", AREA_env_meta)
+        else
+            error("Invalid type in interp_setup: "..typ)
+        end
+    end
+
+    interptbl[ud.tableid]={name=name, desc=desc}
+    return 1,nil
+end
+
+function run_lua_interpret(env, str )
+    local f,err
+    interptbl[env.udid].incmpl=interptbl[env.udid].incmpl or {}
+
+    table.insert(interptbl[env.udid].incmpl, str)
+    f,err=loadstring(table.concat(interptbl[env.udid].incmpl, "\n"))
+
+    if not(f) then
+        -- Check if incomplete, same way the real cli checks
+        local ss,sf=string.find(err, "<eof>")
+        print(sf)
+        print(err:len())
+        if sf==err:len()-1 then
+            return 1 -- incomplete
+        else
+           interptbl[env.udid].incmpl=nil
+           error(err)
+        end
+    end
+
+    interptbl[env.udid].incmpl=nil
+    setfenv(f, env)
+    f()
+    return 0
+end
+
+function wait_lua_interpret(env, str)
+    interptbl[env.udid].buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
+
+    table.insert(interptbl[env.udid].buff, str)
+    return 0
+end
+
+function go_lua_interpret(env, str)
+    local buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
+
+    if #buff>0 then
+        interptbl[env.udid].buff=nil
+        local f,err= loadstring(table.concat(buff,"\n"))
+        if not(f) then
+            error(err)
+        end
+
+        setfenv(f, env)
+        f()
+    end
+    return 0
 end

@@ -27,7 +27,7 @@ bool op_percent_trigger(
         if ( prg->trig_type == type
                 && number_percent() <= atoi( prg->trig_phrase ) )
         {
-            return ( lua_obj_program( NULL, prg->vnum, prg->code, obj, obj2, ch1, ch2, type)
+            return ( lua_obj_program( NULL, prg->vnum, prg->script->code, obj, obj2, ch1, ch2, type, prg->script->security)
                      && ( obj ? !obj->must_extract : TRUE )
                      && ( obj2 ? !obj2->must_extract : TRUE )
                      && ( ch1 ? !ch1->must_extract : TRUE )
@@ -55,7 +55,7 @@ bool op_act_trigger(
             && ( strstr(cap_all(trigger), cap_all(prg->trig_phrase)) != NULL
                     ||   !strcmp(prg->trig_phrase, "*") ) )
                     {
-                        return (lua_obj_program( trigger, prg->vnum, prg->code, obj, NULL, ch1, NULL, type)
+                        return (lua_obj_program( trigger, prg->vnum, prg->script->code, obj, NULL, ch1, NULL, type, prg->script->security)
                                && ( obj ? !obj->must_extract : TRUE )
                                && ( ch1 ? !ch1->must_extract : TRUE )
                                && ( ch2 ? !ch2->must_extract : TRUE ) );

@@ -1430,8 +1430,8 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 
     NLRETURN
 
-    sprintf( buf, "Hit: %d  Dam: %d  Saves: %d\n\r",
-	     GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim)
+    sprintf( buf, "Hit: %d  Dam: %d  Saves: %d  Physical: %d\n\r",
+	     GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim, FALSE), get_save(victim, TRUE)
 	     );
     send_to_char( buf, ch );
 
@@ -3146,24 +3146,14 @@ void check_bleed( CHAR_DATA *ch, int dir )
     if ( ch->in_room->sector_type == SECT_AIR )
 	return;
 
-
-    /* This was commented out, and the below section added so that players
-       affected by rupture will leave a blood trail regardless of their HP
-       - Astark Nov 2012
-    if ( save_body_affect(ch, (ch->max_hit/4 - ch->hit)/10) )
-	return; */
-
-    if ( !is_affected(ch,gsn_rupture) && save_body_affect(ch, (ch->max_hit/4 - ch->hit)/10) )
-	return;
+    int hp_below_min = ch->max_hit/4 - ch->hit;
+    if ( !is_affected(ch,gsn_rupture) && (hp_below_min <= 0 || saves_physical(ch, hp_below_min/10, DAM_OTHER)) )
+        return;
 
     /* create blood object */
     if ( (blood = create_object(get_obj_index(OBJ_VNUM_BLOOD), 0)) == NULL )
-	return;
+        return;
 
-
-
-    if ( ch->hit <= ch->max_hit/4 || is_affected(ch, gsn_rupture) )
-    {
     /* add direction hint */
     sprintf( buf, "{rA trail of blood leads %s.{x", dir_name[dir] );
     free_string( blood->description );
@@ -3172,7 +3162,6 @@ void check_bleed( CHAR_DATA *ch, int dir )
     blood->timer = 10;
     obj_to_room( blood, ch->in_room );
     send_to_char( "{rYou leave a trail of blood.{x\n\r", ch );
-    }
 }
 
 
