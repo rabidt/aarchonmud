@@ -148,7 +148,6 @@ void  set_fighting  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  disarm        args( ( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet ) );
 void  behead        args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_duck    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-bool  check_jam     args( ( CHAR_DATA *ch, int odds, bool both ) );
 void  check_stance  args( ( CHAR_DATA *ch ) );
 void  warfare       args( ( char *argument ) );
 void  add_war_kills args( ( CHAR_DATA *ch ) );
@@ -1257,6 +1256,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -4345,37 +4346,27 @@ bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
-bool check_jam( CHAR_DATA *ch, int odds, bool both )
+bool check_jam( CHAR_DATA *ch, int odds, bool offhand )
 {
-    OBJ_DATA *first;
-    OBJ_DATA *second;
+    OBJ_DATA *gun;
     
     if ( ch->stance == STANCE_SHOWDOWN && number_bits(2) )
-	return FALSE;
+        return FALSE;
 
-    if ( odds >= number_range(1, 1000) ) 
-    {
-	if( get_weapon_sn_new(ch,FALSE) != gsn_gun )
-	    return FALSE;
-	if( (first = get_eq_char( ch, WEAR_WIELD )) == NULL )
-	    return FALSE;
-	SET_BIT(first->extra_flags,ITEM_JAMMED); 
-	send_to_char( "Your gun is jammed!\n\r", ch );
-	return TRUE;
-    }
-
-    if( both && odds >= number_range(1, 1000) )
-    {
-	if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-	    return FALSE;
-	if( (second = get_eq_char(ch,WEAR_SECONDARY)) == NULL )
-	    return FALSE;
-	SET_BIT(second->extra_flags,ITEM_JAMMED); 
-	send_to_char( "Your offhand gun is jammed!\n\r", ch );
-	return TRUE;   // because in semiauto and the like, second gun is not rechecked
-    }
+    if ( odds < number_range(1, 1000) )
+        return FALSE;
+        
+    gun = offhand ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
+    if ( !gun || gun->value[0] != WEAPON_GUN )
+        return FALSE;
     
-    return FALSE;
+    SET_BIT(gun->extra_flags,ITEM_JAMMED);
+    if ( offhand )
+        send_to_char( "Your offhand gun is jammed!\n\r", ch );
+    else
+        send_to_char( "Your gun is jammed!\n\r", ch );
+
+    return TRUE;
 }
 
 int shield_block_chance( CHAR_DATA *ch, bool improve )
