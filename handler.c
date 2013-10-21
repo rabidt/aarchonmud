@@ -534,7 +534,7 @@ void reset_char(CHAR_DATA *ch)
     update_perm_hp_mana_move(ch);
     
     // adjust XP to fit within current level range (needed e.g. when racial ETL is adjusted)
-    int epl = exp_per_level(ch, ch->pcdata->points);
+    int epl = exp_per_level(ch);
     int min_exp = epl * (ch->level);
     int max_exp = epl * (ch->level + 1) - 1;
     if (ch->exp < min_exp || ch->exp > max_exp)

@@ -5077,7 +5077,7 @@ void do_worth( CHAR_DATA *ch, char *argument )
     if ( !IS_HERO(ch) )
     {
         sprintf( temp, " (%d exp to reach lvl %d)",
-            (ch->level + 1) * exp_per_level(ch, ch->pcdata->points) - ch->exp, ch->level + 1 );
+            (ch->level + 1) * exp_per_level(ch) - ch->exp, ch->level + 1 );
         strcat( buf, temp );
     }
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
@@ -5825,7 +5825,7 @@ void do_oldworth( CHAR_DATA *ch, char *argument )
     if ( !IS_NPC(ch) && !IS_HERO(ch) )
     {
         sprintf( buf, "Exp to level: %d\n\r",
-            (ch->level + 1) * exp_per_level(ch, ch->pcdata->points) - ch->exp);
+            (ch->level + 1) * exp_per_level(ch) - ch->exp);
         add_buf(output, buf);
     }
     sprintf(buf, "Quest Points: %d\n\r", ch->pcdata->questpoints);

@@ -1424,7 +1424,7 @@ void bust_a_prompt( CHAR_DATA *ch )
     {
         sprintf( buf, "{g<{r%d{g/%dhp {c%d{g/%dm {y%d{getl>{x %s",     
                 ch->hit,ch->max_hit,ch->mana,ch->max_mana, IS_NPC(ch) ? 0 :
-                (ch->level + 1) * exp_per_level(ch,ch->pcdata->points) - ch->exp, 
+                (ch->level + 1) * exp_per_level(ch) - ch->exp,
                 ch->prefix);
         send_to_char(buf,ch);
         return;
@@ -1591,7 +1591,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                 i = buf2; break;
             case 'X' :
                 sprintf(buf2, "%d", IS_NPC(ch) ? 0 :
-                        (ch->level + 1) * exp_per_level(ch,ch->pcdata->points) - ch->exp);
+                        (ch->level + 1) * exp_per_level(ch) - ch->exp);
                 i = buf2; break;
             case 'F' :
                 sprintf(buf2, "%d", IS_NPC(ch) ? 0 : ch->pcdata->field );

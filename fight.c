@@ -5111,7 +5111,7 @@ void death_penalty( CHAR_DATA *ch )
     }
     
     /* experience penalty - 2/3 way back to previous level. */
-    curr_level_exp = exp_per_level(ch, ch->pcdata->points) * ch->level;
+    curr_level_exp = exp_per_level(ch) * ch->level;
     if ( ch->exp > curr_level_exp )
         gain_exp( ch, (curr_level_exp - ch->exp) * 2/3 );
     
