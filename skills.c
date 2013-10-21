@@ -1256,7 +1256,7 @@ void do_groups(CHAR_DATA *ch, char *argument)
    {
 	  if (group_table[gn].spells[sn] == NULL)
 	      break;
-	  i = skill_lookup(group_table[gn].spells[sn]);
+	  i = skill_lookup_exact(group_table[gn].spells[sn]);
 	  if (i < 0)
 	  {
 	      /* is it a group? */
