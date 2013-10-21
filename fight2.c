@@ -3491,7 +3491,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
             
         /* chance to stun */
         int stun_level = (ch->level/2 + move_loss/4) * (100 + get_curr_stat(ch, STAT_STR)) / 200;
-        if ( number_bits(1) && !save_body_affect(victim, stun_level) )
+        if ( number_bits(1) && !saves_physical(victim, stun_level, DAM_BASH) )
         {
             act( "You stun $N with a crushing blow to $S temple!", ch, NULL, victim, TO_CHAR );
             act( "$n stuns you with a crushing blow to your temple!", ch, NULL, victim, TO_VICT );
@@ -3675,7 +3675,7 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    if ( save_body_affect(victim, ch->level * chance/100)
+    if ( saves_physical(victim, ch->level * chance/100, DAM_BASH)
 	 || (IS_NPC(victim) && HAS_TRIGGER(victim, TRIG_KILL))
 	 || IS_UNDEAD(victim) )
     {

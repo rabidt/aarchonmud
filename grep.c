@@ -1232,26 +1232,29 @@ void grep_room( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
 
 
 /* miscellanous methods */
+bool is_area_ingame( AREA_DATA *area )
+{
+    return !IS_SET(area->area_flags, AREA_REMORT)
+        && area->security > 4 
+        && area->security < 9;
+}
 
 bool is_obj_ingame( OBJ_INDEX_DATA *obj )
 {
     return obj->level < LEVEL_IMMORTAL
-	&& !IS_SET(obj->area->area_flags, AREA_REMORT)
-	&& obj->area->security > 2;
+	&& is_area_ingame(obj->area);
 }
 
 bool is_mob_ingame( MOB_INDEX_DATA *mob )
 {
-    return !IS_SET(mob->area->area_flags, AREA_REMORT)
-	&& mob->area->security > 2;
+    return is_area_ingame( mob->area );
 }
 
 bool is_room_ingame( ROOM_INDEX_DATA *room )
 {
-    return !IS_SET(room->area->area_flags, AREA_REMORT)
-	&& !IS_SET(room->room_flags, ROOM_GODS_ONLY)
+    return !IS_SET(room->room_flags, ROOM_GODS_ONLY)
 	&& !IS_SET(room->room_flags, ROOM_IMP_ONLY)
-	&& room->area->security > 2;
+    && is_area_ingame(room->area);
 }
 
 int average_roll( int nr, int type, int bonus );

@@ -27,6 +27,7 @@ const struct olc_cmd_type opedit_table[] =
    {  "create",   opedit_create  },
    {  "code",     opedit_code    },
    {  "show",     opedit_show    },
+   {  "security", opedit_security},
    //{  "list",     opedit_list    },
    //{  "if",       opedit_if      },
    //{  "mob",      opedit_mob     },
@@ -49,6 +50,12 @@ void opedit( CHAR_DATA *ch, char *argument)
     argument = one_argument( argument, command);
 
     EDIT_OPCODE(ch, pOcode);
+    if (!pOcode)
+    {
+        bugf("mpedit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
 
     if (pOcode)
     {
@@ -152,7 +159,7 @@ void do_oprun(CHAR_DATA *ch, char *argument)
 
     ptc( ch, " with %s as ch1\n\r", ch->name);
 
-   result=lua_obj_program( NULL, vnum, pOcode->code, obj, NULL, ch, NULL, OTRIG_CALL);
+   result=lua_obj_program( NULL, vnum, pOcode->code, obj, NULL, ch, NULL, OTRIG_CALL, pOcode->security);
 
    ptc( ch, "Oprog completed. Result is: %s\n\r", result ? "TRUE" : "FALSE" );
 
@@ -282,12 +289,55 @@ OPEDIT(opedit_show)
 
     sprintf(buf,
            "Vnum:       [%d]\n\r"
+           "Security:   %d\n\r"
            "Code:\n\r%s\n\r",
            pOcode->vnum,
+           pOcode->security,
            pOcode->code  );
     page_to_char_new(buf, ch, TRUE);
 
     return FALSE;
+}
+
+OPEDIT(opedit_security)
+{
+    OPROG_CODE *pOcode;
+    EDIT_OPCODE(ch, pOcode);
+    int newsec;
+
+    if ( argument[0] == '\0' )
+    {
+        newsec=ch->pcdata->security;
+    }
+    else
+    {
+        if (is_number(argument))
+        {
+            newsec=atoi(argument);
+        }
+        else
+        {
+            ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
+            return;
+        }
+    }
+
+    if (newsec == pOcode->security)
+    {
+        ptc(ch, "Security is already at %d.\n\r", newsec );
+        return;
+    }
+    else if (newsec > ch->pcdata->security )
+    {
+        ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
+                ch->pcdata->security, newsec);
+        return;
+    }
+
+    pOcode->security=newsec;
+    ptc(ch, "Security for %d updated to %d.\n\r",
+            pOcode->vnum, pOcode->security);
+
 }
 
 void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
@@ -305,7 +355,6 @@ void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
                     {
                         sprintf( buf, "Fixing obj %d.\n\r", obj->vnum );
                         send_to_char( buf, ch );
-                        mpl->code = pOcode->code;
                    
                         lua_load_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
                         ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);

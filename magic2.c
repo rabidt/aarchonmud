@@ -1333,7 +1333,7 @@ void spell_protection_magic(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = -5;
     af.bitvector = AFF_PROTECT_MAGIC;
     affect_to_char( victim, &af );
@@ -2427,7 +2427,7 @@ void spell_heroism( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     affect_to_char(victim, &af);
     af.location  = APPLY_LUC;
     affect_to_char(victim, &af);
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = 0 - level / 10;
     affect_to_char( victim, &af );
     
@@ -2516,7 +2516,7 @@ void spell_blessed_darkness( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     af.bitvector = AFF_DARKNESS;
     affect_to_char( victim, &af );
     
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = 0 - level / 6;
     affect_to_char( victim, &af );
     
@@ -2972,7 +2972,7 @@ void spell_prayer(int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.bitvector = 0;
     affect_to_char(ch, &af);
     
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = -level/4;
     affect_to_char(ch, &af);
     
@@ -3109,7 +3109,7 @@ void spell_decompose(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 	return;
     }
     
-    if ( saves_spell(level,victim,DAM_HARM) || save_body_affect(victim, level) )
+    if ( saves_spell(level,victim,DAM_HARM) || saves_physical(victim, level, DAM_HARM) )
     {
 	send_to_char( "A wave of malvolent energy passes over your body.\n\r", victim );
 	send_to_char( "Spell failed to start decomposing.\n\r", ch );

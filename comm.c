@@ -540,6 +540,11 @@ void game_loop_unix( int control )
         /*
          * Process input.
          */
+        #define MAX_LINE_COUNT 100 
+        int linecnt=0; /* track number of lines processed
+                        when processing lag free 
+                      (cases where we pull a d_next=d trick*/
+                        
         for ( d = descriptor_list; d != NULL; d = d_next )
         {
             d_next  = d->next;
@@ -579,6 +584,10 @@ void game_loop_unix( int control )
                 else if( d->character->pcdata->pkill_timer < 0 )
                     ++d->character->pcdata->pkill_timer;
             }
+#ifdef LAG_FREE
+            if (d->lag_free)
+                d->character->wait=0;
+#endif
 
             if (d->character != NULL && d->character->slow_move > 0)
                 --d->character->slow_move;
@@ -595,6 +604,11 @@ void game_loop_unix( int control )
             read_from_buffer( d );
             if ( d->incomm[0] != '\0' )
             {
+#ifdef LAG_FREE
+                if (d->lag_free)
+                    d_next=d;
+#endif
+
                 d->fcommand = TRUE;
 
                 if ( d->pProtocol != NULL )
@@ -609,15 +623,46 @@ void game_loop_unix( int control )
                 else
                 {
                     if ( d->pString )
+                    {
                         string_add( d->character, d->incomm );
+                        /* little hack to have lag free pasting
+                           in string editor */
+                        linecnt++;
+                        if (linecnt<MAX_LINE_COUNT)
+                            d_next=d;
+                        else
+                            linecnt=0;
+                        /* and wait for next pulse to grab
+                           anything else*/
+                    }
                     else
                     {
                         switch ( d->connected )
                         {
                             case CON_PLAYING:
-                                if ( !run_olc_editor( d ) )
+                                if (run_lua_interpret(d))
+                                {
+                                    /* little hack to have lag free pasting
+                                       into interpreter */
+                                    linecnt++;
+                                    if (linecnt<MAX_LINE_COUNT)
+                                        d_next=d;
+                                    else
+                                        linecnt=0;
+                                    /* and wait for next pulse to grab
+                                       anything else*/
+
+                                    break;
+                                }
+                                else if (run_olc_editor(d))
+                                {
+                                    break;
+                                }
+                                else
+                                {
                                     substitute_alias( d, d->incomm );
-                                break;
+                                    break;
+                                }
                             default:
                                 /* slight hack here so we can snarf all mudftp data in one go -O */
                                 while (d->incomm[0])
@@ -641,6 +686,7 @@ void game_loop_unix( int control )
             }                              /* if ( d->incomm[0] != '\0' ) */
             else
             {
+                linecnt=0;
                 d->inactive++;
                 /* auto-action in combat */
                 if ( d->connected == CON_PLAYING
@@ -882,6 +928,9 @@ void close_socket( DESCRIPTOR_DATA *dclose )
     CHAR_DATA *ch;
     AUTH_LIST *old_auth;
 
+
+    lua_unregister_desc(dclose);
+
     if ( dclose->outtop > 0 )
         process_output( dclose, FALSE );
 
@@ -984,7 +1033,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
     set_con_state(dclose, CON_CLOSED);
 
     close( dclose->descriptor );
-
+    
     free_descriptor( dclose );
     return;
 }
@@ -1049,7 +1098,15 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     }
 
     read_buf[iStart] = '\0';
-    ProtocolInput( d, read_buf, iStart, d->inbuf + lenInbuf );
+    if (read_buf[0]=='&')
+    {
+        /* allow to clear command buffer with '&' */
+        strcpy( d->inbuf, "");
+    }
+    else
+    {
+        ProtocolInput( d, read_buf, iStart, d->inbuf + lenInbuf );
+    }
     return TRUE;
 }
 
@@ -1302,8 +1359,19 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
     if ( !d->pProtocol->WriteOOB && !merc_down && !d->last_msg_was_prompt )
         if ( d->showstr_point )
             write_to_buffer( d, "[Hit Return to continue]\n\r", 0 );
-        else if ( fPrompt && d->pString && (d->connected == CON_PLAYING || d->connected == CON_PENALTY_FINISH ))
+        else if ( fPrompt && (d->pString || d->lua.interpret) && (d->connected == CON_PLAYING || d->connected == CON_PENALTY_FINISH ))
+        {
+            if (d->lua.interpret)
+            {
+                write_to_buffer( d, "lua", 3);
+                if (d->lua.wait)
+                    write_to_buffer( d, "W", 1);
+                else if (d->lua.incmpl)
+                    write_to_buffer( d, ">", 1);
+
+            }
             write_to_buffer( d, "> ", 2 );
+        }
         else if ( fPrompt && d->connected == CON_PLAYING )
         {
             CHAR_DATA *ch = d->character;
@@ -2856,7 +2924,7 @@ void bugf (char * fmt, ...)
     vsprintf (buf, fmt, args);
     va_end (args);
 
-    bug (buf, 0);
+    bug_string(buf);
 }
 
 /* Rim 1/99 */
