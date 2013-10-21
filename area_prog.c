@@ -26,7 +26,7 @@ bool ap_percent_trigger(
 		if ( prg->trig_type == type
                 && number_percent() <= atoi( prg->trig_phrase ) )
         {
-            return lua_area_program( NULL, prg->vnum, prg->code, area, ch1, type);
+            return lua_area_program( NULL, prg->vnum, prg->script->code, area, ch1, type);
         }
     }
     return (TRUE

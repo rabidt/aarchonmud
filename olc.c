@@ -472,6 +472,13 @@ void aedit( CHAR_DATA *ch, char *argument )
    int  value;
    
    EDIT_AREA(ch, pArea);
+   if (!pArea)
+   {
+       bugf("aedit: called by %s with wrong edit mode: %d",
+              ch->name, ch->desc->editor);
+      return;
+   }
+
    smash_tilde( argument );
    strcpy( arg, argument );
    argument = one_argument( argument, command );
@@ -542,6 +549,12 @@ void redit( CHAR_DATA *ch, char *argument )
    int  cmd;
    
    EDIT_ROOM(ch, pRoom);
+   if (!pRoom)
+    {
+        bugf("redit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
    pArea = pRoom->area;
    
    smash_tilde( argument );
@@ -603,6 +616,12 @@ void oedit( CHAR_DATA *ch, char *argument )
    argument = one_argument( argument, command );
    
    EDIT_OBJ(ch, pObj);
+   if (!pObj)
+    {
+        bugf("oedit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
    pArea = pObj->area;
    
    if ( !IS_BUILDER( ch, pArea ) )
@@ -660,6 +679,13 @@ void medit( CHAR_DATA *ch, char *argument )
    argument = one_argument( argument, command );
    
    EDIT_MOB(ch, pMob);
+   if (!pMob)
+   {
+       bugf("medit: called by %s with wrong edit mode: %d",
+              ch->name, ch->desc->editor);
+      return;
+   }
+ 
    pArea = pMob->area;
    
    if ( !IS_BUILDER( ch, pArea ) )
@@ -1067,16 +1093,14 @@ void do_medit( CHAR_DATA *ch, char *argument )
 
 
 
-void display_resets( CHAR_DATA *ch )
+void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
 {
-   ROOM_INDEX_DATA   *pRoom;
    RESET_DATA      *pReset;
    MOB_INDEX_DATA   *pMob = NULL;
    char       buf   [ MAX_STRING_LENGTH ];
    char       final [ MAX_STRING_LENGTH ];
    int       iReset = 0;
    
-   EDIT_ROOM(ch, pRoom);
    final[0]  = '\0';
    
    send_to_char ( 
@@ -1426,7 +1450,7 @@ void do_resets( CHAR_DATA *ch, char *argument )
          send_to_char(
             "Resets: M = mobile, R = room, O = object, "
             "P = pet, S = shopkeeper\n\r", ch );
-         display_resets( ch );
+         display_resets( ch, ch->in_room );
       }
       else
          send_to_char( "No resets in this room.\n\r", ch );
@@ -1794,7 +1818,7 @@ void do_alist( CHAR_DATA *ch, char *argument)
     {
         for ( pArea1 = area_first; pArea1 != NULL ; pArea1 = pArea1->next )
         {
-            if (pArea1->security>4)
+            if (is_area_ingame(pArea1) )
             {
                 sorted_areas[count] = pArea1;
                 count++;

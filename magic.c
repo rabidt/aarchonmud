@@ -322,7 +322,7 @@ bool is_offensive( int sn )
         || target == TAR_VIS_CHAR_OFF;
 }
 
-int get_save(CHAR_DATA *ch)
+int get_save(CHAR_DATA *ch, bool physical)
 {
     int saves = ch->saving_throw;
     int save_factor = 100;
@@ -330,21 +330,23 @@ int get_save(CHAR_DATA *ch)
     // level bonus
     if ( IS_NPC(ch) )
     {
-        if ( IS_SET(ch->act, ACT_MAGE) )
+        if ( IS_SET(ch->act, ACT_MAGE) && !physical )
             save_factor += 30;
-        if ( IS_SET(ch->act, ACT_WARRIOR) )
+        if ( IS_SET(ch->act, ACT_WARRIOR) && !physical )
             save_factor -= 30;
     }
     else
     {
-        save_factor = 250
-            - class_table[ch->class].attack_factor
-            - class_table[ch->class].defense_factor/2;
+        int physical_factor = class_table[ch->class].attack_factor + class_table[ch->class].defense_factor/2;
+        save_factor = 250 - physical_factor;
+        // tweak so physically oriented classes get better physical and worse magic saves
+        save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
     }
     saves -= (ch->level + 10) * save_factor/100;
     
-    // WIS bonus
-    saves -= (ch->level + 10) * get_curr_stat( ch, STAT_WIS ) / 500;
+    // WIS or VIT bonus
+    int stat = physical ? get_curr_stat(ch, STAT_CON) : get_curr_stat(ch, STAT_WIS);
+    saves -= (ch->level + 10) * stat / 500;
 
     return saves;
 }
@@ -358,36 +360,54 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
     int hit_roll, save_roll, save_factor;
 
     /* automatic saves/failures */
-
     switch(check_immune(victim,dam_type))
     {
         case IS_IMMUNE:     return TRUE;
-        case IS_RESISTANT:  if ( chance(20) ) return TRUE;  break;
-        case IS_VULNERABLE: if ( chance(10) ) return FALSE;  break;
+        case IS_RESISTANT:  if ( per_chance(20) ) return TRUE;  break;
+        case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
 
-    if ( (victim->stance == STANCE_UNICORN)
-            && chance(25) )
+    if ( (victim->stance == STANCE_UNICORN) && per_chance(25) )
         return TRUE;
 
-    if ( IS_AFFECTED(victim, AFF_PHASE)
-            && chance(50) )
+    if ( IS_AFFECTED(victim, AFF_PHASE) && per_chance(50) )
         return TRUE;
 
-    if ( IS_AFFECTED(victim, AFF_PROTECT_MAGIC)
-            && chance(20) )
-        return TRUE;
-
-    if ( IS_AFFECTED(victim, AFF_BERSERK )
-            && chance(10) )
+    if ( IS_AFFECTED(victim, AFF_PROTECT_MAGIC) && per_chance(20) )
         return TRUE;
 
     /* now the resisted roll */
-    save_roll = -get_save(victim);
+    save_roll = -get_save(victim, FALSE);
     hit_roll = (level + 10) * 6/5;
 
     if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
         save_roll = save_roll * 2/3;
+
+    if ( save_roll <= 0 )
+        return FALSE;
+    else
+        return number_range(0, hit_roll) <= number_range(0, save_roll);
+}
+
+bool saves_physical( CHAR_DATA *victim, int level, int dam_type )
+{
+    int hit_roll, save_roll, save_factor;
+
+    /* automatic saves/failures */
+
+    switch(check_immune(victim,dam_type))
+    {
+        case IS_IMMUNE:     return TRUE;
+        case IS_RESISTANT:  if ( per_chance(20) ) return TRUE;  break;
+        case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
+    }
+
+    if ( IS_AFFECTED(victim, AFF_BERSERK) && per_chance(10) )
+        return TRUE;
+
+    /* now the resisted roll */
+    save_roll = -get_save(victim, TRUE);
+    hit_roll = (level + 10);
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -1666,7 +1686,7 @@ void spell_bless( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     af.bitvector = 0;
     affect_to_char( victim, &af );
 
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = 0 - level / 8;
     affect_to_char( victim, &af );
     send_to_char( "You feel righteous.\n\r", victim );
@@ -2632,7 +2652,7 @@ void spell_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     af.bitvector = AFF_CURSE;
     affect_to_char( victim, &af );
 
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = level / 8;
     affect_to_char( victim, &af );
 
@@ -4725,7 +4745,7 @@ void spell_protection_evil(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = -1;
     af.bitvector = AFF_PROTECT_EVIL;
     affect_to_char( victim, &af );
@@ -4763,7 +4783,7 @@ void spell_protection_good(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.location  = APPLY_SAVING_SPELL;
+    af.location  = APPLY_SAVES;
     af.modifier  = -1;
     af.bitvector = AFF_PROTECT_GOOD;
     affect_to_char( victim, &af );
@@ -5100,7 +5120,7 @@ void spell_sleep( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
 
     if ( saves_spell(level, victim, DAM_MENTAL)
-            || save_body_affect(victim, level) 
+            || number_bits(1)
             || (!IS_NPC(victim) && number_bits(1))
             || IS_IMMORTAL(victim) )
     {

@@ -33,6 +33,7 @@ const struct olc_cmd_type mpedit_table[] =
    {  "mob",      mpedit_mob     },
    {  "?",        show_help      },
    {  "lua",      mpedit_lua     },
+   {  "security", mpedit_security },
    
    {  NULL,       0              }
 };
@@ -50,6 +51,13 @@ void mpedit( CHAR_DATA *ch, char *argument)
     argument = one_argument( argument, command);
 
     EDIT_MPCODE(ch, pMcode);
+    if (!pMcode)
+    {
+        bugf("mpedit called by %s with wrong edit mode: %d.",
+                ch->name, ch->desc->editor );
+        return;
+    }
+
 
     if (pMcode)
     {
@@ -170,7 +178,7 @@ void do_mprun(CHAR_DATA *ch, char *argument)
         ptc( ch, " with %s as ch1", ch1->name);
     ptc(ch, "\n\r");
 
-    lua_mob_program( NULL, vnum, pMcode->code, mob, (mob==ch)?NULL:ch, NULL, 0, NULL, 0, TRIG_CALL );
+    lua_mob_program( NULL, vnum, pMcode->code, mob, (mob==ch)?NULL:ch, NULL, 0, NULL, 0, TRIG_CALL, pMcode->security );
 
     ptc( ch, "Mprog completed.\n\r");
 
@@ -281,6 +289,7 @@ MPEDIT (mpedit_create)
 
     pMcode			= new_mpcode();
     pMcode->vnum		= value;
+    pMcode->security    = ch->pcdata->security;
     pMcode->next		= mprog_list;
     mprog_list			= pMcode;
     ch->desc->pEdit		= (void *)pMcode;
@@ -300,9 +309,11 @@ MPEDIT(mpedit_show)
     sprintf(buf,
            "Vnum:       [%d]\n\r"
            "Lua:        %s\n\r"
+           "Security:   %d\n\r"
            "Code:\n\r%s\n\r",
            pMcode->vnum,
            pMcode->is_lua ? "True" : "False",
+           pMcode->security,
            pMcode->code  );
     page_to_char_new(buf, ch, TRUE);
 
@@ -324,10 +335,8 @@ void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
                     {
                         sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
                         send_to_char( buf, ch );
-                        mpl->code = pMcode->code;
-                        mpl->is_lua = pMcode->is_lua;
 
-                        if ( mpl->is_lua )
+                        if ( mpl->script->is_lua )
                         {
                             lua_load_mprog( g_mud_LS, pMcode->vnum, pMcode->code);
                             ptc(ch, "Fixed lua script for %d.\n\r", pMcode->vnum);
@@ -335,12 +344,55 @@ void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
                     } 
 }
 
+MPEDIT(mpedit_security)
+{
+    MPROG_CODE *pMcode;
+    MPROG_LIST *mpl;
+    EDIT_MPCODE(ch, pMcode);
+    int newsec;
+
+    if ( argument[0] == '\0' )
+    {
+        newsec=ch->pcdata->security;
+    }
+    else
+    {
+        if (is_number(argument))
+        {
+            newsec=atoi(argument);
+        }
+        else
+        {
+            ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
+            return;
+        }
+    }
+
+    if (newsec == pMcode->security)
+    {
+        ptc(ch, "Security is already at %d.\n\r", newsec );
+        return;
+    }
+    else if (newsec > ch->pcdata->security )
+    {
+        ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
+                ch->pcdata->security, newsec);
+        return;
+    }
+    
+    pMcode->security=newsec;
+    ptc(ch, "Security for %d updated to %d.\n\r",
+            pMcode->vnum, pMcode->security);
+
+}
+
+
 MPEDIT(mpedit_lua)
 {
     MPROG_CODE *pMcode;
     MPROG_LIST *mpl;
     EDIT_MPCODE(ch, pMcode);
-    MOB_INDEX_DATA *mob;
+    
     int hash;
     char buf[MSL];
 

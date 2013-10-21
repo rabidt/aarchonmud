@@ -214,6 +214,7 @@ const struct flag_type act_flags[] =
         {   "staggered",    ACT_STAGGERED,   TRUE    },
         {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
         {   "noweapon",     ACT_NOWEAPON,    TRUE    },
+        {   "traveller",    ACT_TRAVELLER,   TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 
@@ -541,6 +542,7 @@ const struct flag_type oprog_flags[] =
     {   "rand",         OTRIG_RAND,      TRUE    },
     {   "greet",        OTRIG_GREET,     TRUE    },
     {   "call",         OTRIG_CALL,      FALSE   },
+    {   "look",         OTRIG_LOOK,      TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
