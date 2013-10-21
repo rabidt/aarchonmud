@@ -540,6 +540,11 @@ void game_loop_unix( int control )
         /*
          * Process input.
          */
+        #define MAX_LINE_COUNT 100 
+        int linecnt=0; /* track number of lines processed
+                        when processing lag free 
+                      (cases where we pull a d_next=d trick*/
+                        
         for ( d = descriptor_list; d != NULL; d = d_next )
         {
             d_next  = d->next;
@@ -613,7 +618,13 @@ void game_loop_unix( int control )
                         string_add( d->character, d->incomm );
                         /* little hack to have lag free pasting
                            in string editor */
-                        d_next=d;
+                        linecnt++;
+                        if (linecnt<MAX_LINE_COUNT)
+                            d_next=d;
+                        else
+                            linecnt=0;
+                        /* and wait for next pulse to grab
+                           anything else*/
                     }
                     else
                     {
@@ -624,7 +635,14 @@ void game_loop_unix( int control )
                                 {
                                     /* little hack to have lag free pasting
                                        into interpreter */
-                                    d_next=d;
+                                    linecnt++;
+                                    if (linecnt<MAX_LINE_COUNT)
+                                        d_next=d;
+                                    else
+                                        linecnt=0;
+                                    /* and wait for next pulse to grab
+                                       anything else*/
+
                                     break;
                                 }
                                 else if (run_olc_editor(d))
@@ -659,6 +677,7 @@ void game_loop_unix( int control )
             }                              /* if ( d->incomm[0] != '\0' ) */
             else
             {
+                linecnt=0;
                 d->inactive++;
                 /* auto-action in combat */
                 if ( d->connected == CON_PLAYING
