@@ -517,24 +517,21 @@ void do_quest(CHAR_DATA *ch, char *argument)
             if (ch->pcdata->questpoints >= 100)
             {
                 ch->pcdata->questpoints -= 100;
-               /* section of gain_exp reproduced here in order to bypass
-               field exp -Vodur
-                gain_exp(ch, exp_per_level(ch, 50)/4);*/
-               int gain = 1+exp_per_level(ch, 50)/4;/* 1+ so whiners don't lose a couple of exp points per level  from rounding :)  -Vodur*/
-               ch->exp = UMAX( exp_per_level(ch,ch->pcdata->points), ch->exp + gain );
+               // section of gain_exp reproduced here in order to bypass field exp -Vodur
+               int gain = 1+exp_per_level(ch)/4;/* 1+ so whiners don't lose a couple of exp points per level  from rounding :)  -Vodur*/
+               ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
                sprintf(buf, "You earn %d applied experience.\n\r", gain);
                send_to_char(buf,ch);
 
-               if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch,ch->pcdata->points) * (ch->level+1)
+               if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1)
                && ch->level >= LEVEL_UNAUTHED )
                {
                            send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
-                           ch->exp = (exp_per_level(ch, ch->pcdata->points) * (ch->level+1));
+                           ch->exp = (exp_per_level(ch) * (ch->level+1));
                            return;
                }
 
-               while ( !IS_HERO(ch) && ch->exp >=
-                   exp_per_level(ch,ch->pcdata->points) * (ch->level+1) )
+               while ( !IS_HERO(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1) )
                {
                    send_to_char( "You raise a level!!  ", ch );
                    ch->level += 1;
