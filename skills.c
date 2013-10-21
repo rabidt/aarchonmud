@@ -326,36 +326,6 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			ch->practice += 8;
 			return;
 		}
-		else if (!str_cmp(arg,"points"))
-		{
-			if (ch->train < 2)
-			{
-				if ( introspect )
-					send_to_char("You are not ready.\n\r",ch);
-				else
-					act("$N tells you 'You are not yet ready.'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
-			if (ch->pcdata->points <= 50)
-			{
-				if ( introspect )
-					send_to_char("There would be no point in that.\n\r",ch);
-				else
-					act("$N tells you 'There would be no point in that.'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
-			if ( introspect )
-				send_to_char("You train, feeling more at ease with your skills.\n\r",ch);
-			else
-				act("$N trains you, and you feel more at ease with your skills.",
-				ch,NULL,trainer,TO_CHAR);
-			ch->train -= 2;
-			ch->pcdata->points -= 1;
-			ch->exp = exp_per_level(ch) * ch->level;
-			return;
-		}
 		else if (!str_cmp(arg, "losehp"))
 		{
             if (ch->pcdata->trained_hit < 2)
