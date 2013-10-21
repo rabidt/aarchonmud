@@ -3995,7 +3995,7 @@ void lua_unregister_desc (DESCRIPTOR_DATA *d)
     }
 }
 
-void do_lua( CHAR_DATA *ch, char *argument)
+void do_luai( CHAR_DATA *ch, char *argument)
 {
     if IS_NPC(ch)
         return;
@@ -4052,7 +4052,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
     {
         if (!ch->in_room)
         {
-            bugf("do_lua: %s in_room is NULL.", ch->name);
+            bugf("do_luai: %s in_room is NULL.", ch->name);
             return;
         }
 
@@ -4062,16 +4062,16 @@ void do_lua( CHAR_DATA *ch, char *argument)
     }
     else
     {
-        ptc(ch, "lua [no argument] -- open interpreter in your own env\n\r"
-                "lua mob <target>  -- open interpreter in env of target mob (in same room)\n\r"
-                "lua obj <target>  -- open interpreter in env of target obj (inventory or same room)\n\r"
-                "lua area          -- open interpreter in env of current area\n\r"); 
+        ptc(ch, "luai [no argument] -- open interpreter in your own env\n\r"
+                "luai mob <target>  -- open interpreter in env of target mob (in same room)\n\r"
+                "luai obj <target>  -- open interpreter in env of target obj (inventory or same room)\n\r"
+                "luai area          -- open interpreter in env of current area\n\r"); 
         return;
     }
 
     if (!ch->desc)
     {
-        bugf("do_lua: %s has null desc", ch->name);
+        bugf("do_luai: %s has null desc", ch->name);
         return;
     }
 
@@ -4079,7 +4079,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
     lua_getglobal( g_mud_LS, "interp_setup");
     if (!make_ud_table( g_mud_LS, victim, type) )
     {
-        bugf("do_lua: couldn't make udtable for %d, argument %s", argument);
+        bugf("do_luai: couldn't make udtable for %d, argument %s", argument);
         lua_settop(g_mud_LS, 0);
         return;
     }
@@ -4092,7 +4092,7 @@ void do_lua( CHAR_DATA *ch, char *argument)
         case UDTYPE_AREA:
             lua_pushliteral( g_mud_LS, "area"); break;
         default:
-            bugf("do_lua: invalid udtype %d", type);
+            bugf("do_luai: invalid udtype %d", type);
             lua_settop(g_mud_LS, 0);
             return;
     }
