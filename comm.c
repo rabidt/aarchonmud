@@ -540,6 +540,11 @@ void game_loop_unix( int control )
         /*
          * Process input.
          */
+        #define MAX_LINE_COUNT 100 
+        int linecnt=0; /* track number of lines processed
+                        when processing lag free 
+                      (cases where we pull a d_next=d trick*/
+                        
         for ( d = descriptor_list; d != NULL; d = d_next )
         {
             d_next  = d->next;
@@ -579,6 +584,10 @@ void game_loop_unix( int control )
                 else if( d->character->pcdata->pkill_timer < 0 )
                     ++d->character->pcdata->pkill_timer;
             }
+#ifdef LAG_FREE
+            if (d->lag_free)
+                d->character->wait=0;
+#endif
 
             if (d->character != NULL && d->character->slow_move > 0)
                 --d->character->slow_move;
@@ -595,6 +604,11 @@ void game_loop_unix( int control )
             read_from_buffer( d );
             if ( d->incomm[0] != '\0' )
             {
+#ifdef LAG_FREE
+                if (d->lag_free)
+                    d_next=d;
+#endif
+
                 d->fcommand = TRUE;
 
                 if ( d->pProtocol != NULL )
@@ -609,15 +623,46 @@ void game_loop_unix( int control )
                 else
                 {
                     if ( d->pString )
+                    {
                         string_add( d->character, d->incomm );
+                        /* little hack to have lag free pasting
+                           in string editor */
+                        linecnt++;
+                        if (linecnt<MAX_LINE_COUNT)
+                            d_next=d;
+                        else
+                            linecnt=0;
+                        /* and wait for next pulse to grab
+                           anything else*/
+                    }
                     else
                     {
                         switch ( d->connected )
                         {
                             case CON_PLAYING:
-                                if ( !(run_lua_interpret(d) || run_olc_editor( d ) ) ) 
+                                if (run_lua_interpret(d))
+                                {
+                                    /* little hack to have lag free pasting
+                                       into interpreter */
+                                    linecnt++;
+                                    if (linecnt<MAX_LINE_COUNT)
+                                        d_next=d;
+                                    else
+                                        linecnt=0;
+                                    /* and wait for next pulse to grab
+                                       anything else*/
+
+                                    break;
+                                }
+                                else if (run_olc_editor(d))
+                                {
+                                    break;
+                                }
+                                else
+                                {
                                     substitute_alias( d, d->incomm );
-                                break;
+                                    break;
+                                }
                             default:
                                 /* slight hack here so we can snarf all mudftp data in one go -O */
                                 while (d->incomm[0])
@@ -641,6 +686,7 @@ void game_loop_unix( int control )
             }                              /* if ( d->incomm[0] != '\0' ) */
             else
             {
+                linecnt=0;
                 d->inactive++;
                 /* auto-action in combat */
                 if ( d->connected == CON_PLAYING
