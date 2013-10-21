@@ -581,6 +581,9 @@ DECLARE_DO_FUN( do_cmotd);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif
+#ifdef LAG_FREE
+DECLARE_DO_FUN( do_lagfree);
+#endif
 DECLARE_DO_FUN( do_cmotd);
 DECLARE_DO_FUN( do_smith);
 DECLARE_DO_FUN( do_pgrep);
@@ -589,4 +592,4 @@ DECLARE_DO_FUN( do_void);
 DECLARE_DO_FUN( do_mprun);
 DECLARE_DO_FUN( do_aprun);
 DECLARE_DO_FUN( do_oprun);
-
+DECLARE_DO_FUN( do_lua);

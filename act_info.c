@@ -6162,3 +6162,20 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
        show_penalties_by_player(ch, ch->name, TIME_PLAYED(ch), 2);
 
 }
+#ifdef LAG_FREE
+void do_lagfree( CHAR_DATA *ch, char *argument)
+{
+    if (IS_NPC(ch))
+        return;
+
+    if ( !ch->desc )
+    {
+        bugf("do_lagfree: no desc for %s", ch->name);
+        return;
+    }
+
+    ch->desc->lag_free = !ch->desc->lag_free;
+
+    ptc( ch, "Lag free mode: %s", ch->desc->lag_free ? "ON" : "OFF");
+}
+#endif
