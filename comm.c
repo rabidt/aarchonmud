@@ -584,6 +584,10 @@ void game_loop_unix( int control )
                 else if( d->character->pcdata->pkill_timer < 0 )
                     ++d->character->pcdata->pkill_timer;
             }
+#ifdef LAG_FREE
+            if (d->lag_free)
+                d->character->wait=0;
+#endif
 
             if (d->character != NULL && d->character->slow_move > 0)
                 --d->character->slow_move;
@@ -600,6 +604,11 @@ void game_loop_unix( int control )
             read_from_buffer( d );
             if ( d->incomm[0] != '\0' )
             {
+#ifdef LAG_FREE
+                if (d->lag_free)
+                    d_next=d;
+#endif
+
                 d->fcommand = TRUE;
 
                 if ( d->pProtocol != NULL )
