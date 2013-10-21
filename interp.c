@@ -178,6 +178,9 @@ const   struct  cmd_type    cmd_table   [] =
 #ifdef FSTAT 
     { "fstat",	    do_fstat,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
 #endif
+#ifdef LAG_FREE
+    { "lagfree",    do_lagfree, POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE},
+#endif
 //    { "combo",      do_combo,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     
    /*
@@ -616,6 +619,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "mortlag",    do_mortlag, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mode",	    do_mode,	POS_DEAD,   L9,	 LOG_NORMAL, 1, FALSE, FALSE  },
     //{ "luareset",   do_luareset,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "lua",        do_lua,     POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
 
     /*
     * OLC
