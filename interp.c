@@ -178,6 +178,9 @@ const   struct  cmd_type    cmd_table   [] =
 #ifdef FSTAT 
     { "fstat",	    do_fstat,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
 #endif
+#ifdef LAG_FREE
+    { "lagfree",    do_lagfree, POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE},
+#endif
 //    { "combo",      do_combo,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     
    /*

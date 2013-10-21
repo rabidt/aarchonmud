@@ -580,6 +580,9 @@ DECLARE_DO_FUN( do_mode);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif
+#ifdef LAG_FREE
+DECLARE_DO_FUN( do_lagfree);
+#endif
 DECLARE_DO_FUN( do_cmotd);
 DECLARE_DO_FUN( do_smith);
 DECLARE_DO_FUN( do_pgrep);
