@@ -544,6 +544,7 @@ const struct flag_type oprog_flags[] =
     {   "call",         OTRIG_CALL,      FALSE   },
     {   "look",         OTRIG_LOOK,      TRUE    },
     {   "lore",         OTRIG_LORE,      TRUE    },
+    {   "enter",        OTRIG_ENTER,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
