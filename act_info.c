@@ -4184,6 +4184,9 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
     
     ch->mana -= skill_table[sn].min_mana;
+
+    if (!op_percent_trigger( obj, NULL, ch, NULL, OTRIG_LORE) )
+        return;
     /*
     check_improve(ch,gsn_lore,FALSE,2);
     if ( weapon )
