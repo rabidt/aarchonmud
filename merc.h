@@ -3150,6 +3150,7 @@ struct  group_type
 #define OTRIG_CALL  (N)
 #define OTRIG_LOOK  (O)
 #define OTRIG_LORE  (P)
+#define OTRIG_ENTER (Q)
 
 /*
  * AREAprog definitions
