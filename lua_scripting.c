@@ -75,6 +75,7 @@ static const struct luaL_reg ROOM_lib [];
 static const struct luaL_reg EXIT_lib [];
 static const struct luaL_reg AREA_lib [];
 static const struct luaL_reg RESET_lib [];
+static const struct luaL_reg MOBPROTO_lib[];
 
 #define CHARACTER_STATE "character.state"
 #define CH_META        "CH.meta"
@@ -85,6 +86,7 @@ static const struct luaL_reg RESET_lib [];
 #define EXIT_META      "EXIT.meta"
 #define AREA_META	   "AREA.meta"
 #define RESET_META     "RESET.meta"
+#define MOBPROTO_META  "MOBPROTO.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 #define GOD_LIBRARY "god"
@@ -137,6 +139,7 @@ static const struct luaL_reg RESET_lib [];
 #define UDTYPE_OBJPROTO  5
 #define UDTYPE_AREA      6
 #define UDTYPE_RESET     7
+#define UDTYPE_MOBPROTO  8
 
 
 // number of items in an array
@@ -186,6 +189,24 @@ static int optboolean (lua_State *LS, const int narg, const int def)
         return lua_toboolean (LS, narg);
 
     return luaL_checknumber (LS, narg) != 0;
+}
+
+static MOB_INDEX_DATA *check_MOBPROTO( lua_State *LS, int arg)
+{
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type= luaL_checknumber(LS, -1);
+    lua_pop(LS, 1);
+
+    if ( type != UDTYPE_MOBPROTO )
+    {
+        luaL_error(LS,"Bad parameter %d. Expected MOBPROTO.", arg );
+        return NULL;
+    }
+
+    lua_getfield(LS, arg, "tableid");
+    MOB_INDEX_DATA *mid=luaL_checkudata(LS, -1, UD_META);
+    lua_pop(LS, 1);
+    return mid;
 }
 
 static OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int arg)
@@ -372,6 +393,8 @@ static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
             meta=OBJPROTO_META; break;
         case UDTYPE_RESET:
             meta=RESET_META; break;
+        case UDTYPE_MOBPROTO:
+            meta=MOBPROTO_META; break;
         default:
             luaL_error (LS, "make_ud_table called with unknown UD_TYPE: %d", UDTYPE);
             break;
@@ -820,6 +843,21 @@ static int L_getroom (lua_State *LS)
     else
         return 1;
 
+}
+
+static int L_getmobproto (lua_State *LS)
+{
+    int num = luaL_checknumber (LS, 1);
+
+    MOB_INDEX_DATA *mob=get_mob_index(num);
+
+    if (!mob)
+        return 0;
+
+    if ( !make_ud_table( LS, mob, UDTYPE_MOBPROTO) )
+        return 0;
+    else
+        return 1;
 }
 
 static int L_getobjproto (lua_State *LS)
@@ -1587,6 +1625,20 @@ static int L_ch_isvisible (lua_State *LS)
     return 1;
 }
 
+static int L_mobproto_affected (lua_State *LS)
+{
+    MOB_INDEX_DATA *ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    int flag=NO_FLAG;
+
+     if ((flag=flag_lookup(argument, affect_flags)) == NO_FLAG)
+        luaL_error(LS, "L_mobproto_affected: flag '%s' not found in affect_flags (mob)", argument);
+
+     lua_pushboolean( LS, IS_SET(ud_mobp->affect_field, flag));
+     return 1;
+}
+
+
 static int L_ch_affected (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1594,6 +1646,21 @@ static int L_ch_affected (lua_State *LS)
 
     lua_pushboolean( LS,  ud_ch != NULL
             &&  is_affected_parse(ud_ch, argument) );
+
+    return 1;
+}
+
+static int L_mobproto_act (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=NO_FLAG;
+
+    if ((flag=flag_lookup(argument, act_flags)) == NO_FLAG)
+        luaL_error(LS, "L_mobproto_act: flag '%s' not found in act_flags (mob)", argument);
+
+    lua_pushboolean( LS, 
+            IS_SET(ud_mobp->act, flag) );
 
     return 1;
 }
@@ -1620,7 +1687,20 @@ static int L_ch_act (lua_State *LS)
 
     return 1;
 }
+static int L_mobproto_offensive (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, off_flags);
 
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "L_mobproto_offesive: flag '%s' not found in off_flags", argument);
+
+    lua_pushboolean( LS,
+            IS_SET(ud_mobp->off_flags, flag) );
+
+    return 1;
+}
 static int L_ch_offensive (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1632,6 +1712,21 @@ static int L_ch_offensive (lua_State *LS)
 
     lua_pushboolean( LS,
             IS_SET(ud_ch->off_flags, flag) );
+
+    return 1;
+}
+
+static int L_mobproto_immune (lua_State *LS)
+{ 
+    MOB_INDEX_DATA * ud_mobp = check_CH (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, imm_flags);
+
+    if ( flag == NO_FLAG ) 
+        luaL_error(LS, "L_mobproto_immune: flag '%s' not found in imm_flags", argument);
+
+    lua_pushboolean( LS, 
+            IS_SET(ud_mobp->imm_flags, flag) );
 
     return 1;
 }
@@ -1790,6 +1885,20 @@ static int L_ch_destroy (lua_State *LS)
     return 0;
 }
 
+static int L_mobproto_vuln (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, vuln_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "L_mobproto_vuln: flag '%s' not found in vuln_flags", argument);
+
+    lua_pushboolean( LS, IS_SET(ud_mobp->vuln_flags, flag ) );
+
+    return 1;
+}
+
 static int L_ch_vuln (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1805,6 +1914,20 @@ static int L_ch_vuln (lua_State *LS)
     return 1;
 }
 
+static int L_mobproto_resist (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, res_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "L_mobproto_resist: flag '%s' not found in res_flags", argument);
+
+    lua_pushboolean( LS, IS_SET(ud_mobp->res_flags, flag) );
+
+    return 1;
+}
+
 static int L_ch_resist (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -1812,7 +1935,7 @@ static int L_ch_resist (lua_State *LS)
     int flag=flag_lookup(argument, res_flags);
 
     if ( flag == NO_FLAG )
-        luaL_error(LS, "L_res: flag '%s' not found in res_flags", argument);
+        luaL_error(LS, "L_ch_resist: flag '%s' not found in res_flags", argument);
 
     lua_pushboolean( LS, ud_ch != NULL
             && IS_SET(ud_ch->res_flags, flag) );
@@ -2280,6 +2403,17 @@ static const struct luaL_reg OBJ_lib [] =
     {NULL, NULL}
 };
 
+static const struct luaL_reg MOBPROTO_lib [] =
+{
+    {"act", L_mobproto_act},
+    {"vuln", L_mobproto_vuln},
+    {"immune", L_mobproto_immune},
+    {"offensive", L_mobproto_offensive},
+    {"resist", L_mobproto_resist},
+    {"affected", L_mobproto_affected},
+    {NULL, NULL}
+};
+
 static const struct luaL_reg OBJPROTO_lib [] =
 {
     {"extra", L_objproto_extra},
@@ -2379,6 +2513,12 @@ static int OBJPROTO2string (lua_State *LS)
     return 1;
 }
 
+static int MOBPROTO2string (lua_State *LS)
+{
+    lua_pushstring( LS, (check_MOBPROTO( LS, 1))->player_name);
+    return 1;
+}
+
 static int ROOM2string (lua_State *LS)
 {
     lua_pushstring( LS, (check_ROOM( LS, 1))->name);
@@ -2415,7 +2555,76 @@ static int RESET2string (lua_State *LS)
     if ( !strcmp( argument, key ) ) \
 {lua_pushboolean( LS, value ); return 1;}
 
+static int check_MOBPROTO_equal( lua_State *LS)
+{
+    lua_pushboolean( LS, check_MOBPROTO(LS, 1) == check_MOBPROTO(LS, 2) );
+    return 1;
+}
 
+static int get_MOBPROTO_field ( lua_State *LS )
+{
+    const char *argument = luaL_checkstring (LS, 2 );
+
+    FLDNUM("UDTYPE",UDTYPE_MOBPROTO); /* Need this for type checking */
+
+    /* check for funcs first */
+    int i;
+    for ( i=0 ; MOBPROTO_lib[i].name != NULL ; i++ )
+    {
+        if (!strcmp( argument, MOBPROTO_lib[i].name ) )
+        {
+            lua_pushcfunction( LS, MOBPROTO_lib[i].func);
+            return 1;
+        }
+    }
+
+    MOB_INDEX_DATA *ud_mobp = check_MOBPROTO(LS, 1);
+
+    if ( !ud_mobp )
+        return 0;
+
+    FLDNUM("vnum", ud_mobp->vnum);
+    FLDSTR("name", ud_mobp->player_name);
+    FLDSTR("shortdescr", ud_mobp->short_descr);
+    FLDSTR("longdescr", ud_mobp->long_descr);
+    FLDSTR("description", ud_mobp->description);
+    FLDNUM("alignment", ud_mobp->alignment);
+    FLDNUM("level", ud_mobp->level);
+    FLDNUM("hppcnt", ud_mobp->hitpoint_percent);
+    FLDNUM("mnpcnt", ud_mobp->mana_percent);
+    FLDNUM("mvpcnt", ud_mobp->move_percent);
+    FLDNUM("hrpcnt", ud_mobp->hitroll_percent);
+    FLDNUM("drpcnt", ud_mobp->damage_percent);
+    FLDNUM("acpcnt", ud_mobp->ac_percent);
+    FLDNUM("savepcnt", ud_mobp->saves_percent);
+    FLDSTR("damtype", attack_table[ud_mobp->dam_type].name);
+    FLDSTR("startpos", flag_stat_string( position_flags, ud_mobp->start_pos ));
+    FLDSTR("defaultpos", flag_stat_string( position_flags, ud_mobp->default_pos ));
+    if (!strcmp(argument, "sex"))
+    {
+        switch(ud_mobp->sex)
+        {
+            case SEX_NEUTRAL:
+                lua_pushliteral( LS, "neutral"); break;
+            case SEX_MALE:
+                lua_pushliteral( LS, "male"); break;
+            case SEX_FEMALE:
+                lua_pushliteral( LS, "female"); break;
+            case SEX_BOTH:
+                lua_pushliteral( LS, "random"); break;
+            default:
+                return 0;
+        }
+        return 1;
+    }
+    FLDSTR("race", race_table[ud_mobp->race].name );
+    FLDNUM("wealthpcnt", ud_mobp->wealth_percent);
+    FLDSTR("size", flag_stat_string( size_flags, ud_mobp->size ) );
+    FLDSTR("stance", stances[ud_mobp->stance].name);
+                
+
+    return 0;
+}
 
 static int check_OBJ_equal( lua_State *LS)
 {
@@ -2670,6 +2879,24 @@ static int get_AREA_field ( lua_State *LS )
         }
         return 1;
     }
+    
+    if ( !strcmp(argument, "mobprotos") )
+    {
+        int index=1;
+        int vnum=0;
+        lua_newtable(LS);
+        MOB_INDEX_DATA *mid;
+        for ( vnum=ud_area->min_vnum ; vnum <= ud_area->max_vnum ; vnum++ )
+        {
+            if ((mid=get_mob_index(vnum)) != NULL )
+            {
+                if (make_ud_table(LS, mid, UDTYPE_MOBPROTO))
+                    lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
+    
     return 0;
 }
 
@@ -3057,6 +3284,13 @@ static int get_CH_field ( lua_State *LS)
         /* MOB specific stuff */
     {
         FLDNUM("vnum", ud_ch->pIndexData->vnum);
+        if (!strcmp(argument, "proto"))
+        {
+            if (!make_ud_table(LS, ud_ch->pIndexData, UDTYPE_MOBPROTO))
+                return 0;
+            else
+                return 1;
+        }
     }
 
 
@@ -3080,6 +3314,15 @@ static const struct luaL_reg OBJ_metatable [] =
     {"__index", get_OBJ_field},
     {"__newindex", newindex_error},
     {"__eq", check_OBJ_equal},
+    {NULL, NULL}
+};
+
+static const struct luaL_reg MOBPROTO_metatable [] =
+{
+    {"__tostring", MOBPROTO2string},
+    {"__index", get_MOBPROTO_field},
+    {"__newindex", newindex_error},
+    {"__eq", check_MOBPROTO_equal},
     {NULL, NULL}
 };
 
@@ -3145,6 +3388,7 @@ void RegisterGlobalFunctions(lua_State *LS)
     /* other */
     lua_register(LS,"getroom",     L_getroom);
     lua_register(LS,"getobjproto", L_getobjproto);
+    lua_register(LS,"getmobproto", L_getmobproto);
     lua_register(LS,"getobjworld", L_getobjworld );
     lua_register(LS,"getmobworld", L_getmobworld );
     lua_register(LS,"log",         L_log );
@@ -3193,6 +3437,8 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, NULL, AREA_metatable);
     luaL_newmetatable(LS, RESET_META);
     luaL_register (LS, NULL, RESET_metatable);
+    luaL_newmetatable(LS, MOBPROTO_META);
+    luaL_register (LS, NULL, MOBPROTO_metatable);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
