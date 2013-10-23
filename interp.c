@@ -140,6 +140,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "affects",    do_affects, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "areas",      do_areas,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "bug",        do_bug,     POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "classes",    do_classes, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "commands",   do_commands,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "compare",    do_compare, POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "consider",   do_consider,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },

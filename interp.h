@@ -89,6 +89,7 @@ DECLARE_DO_FUN( do_backstab );
 DECLARE_DO_FUN( do_balance  );
 DECLARE_DO_FUN( do_blackjack );
 DECLARE_DO_FUN( do_circle   );
+DECLARE_DO_FUN( do_classes  );
 DECLARE_DO_FUN( do_clear    ); /* formerly "pardon" */
 DECLARE_DO_FUN( do_bamfin   );
 DECLARE_DO_FUN( do_bamfout  );
