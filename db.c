@@ -689,6 +689,7 @@ void boot_db()
 
     log_string( "Loading skills" );
     load_skills();
+    update_group_costs();
 
     log_string( "Counting stats" );
     count_stats();
