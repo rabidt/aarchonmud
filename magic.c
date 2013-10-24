@@ -85,6 +85,21 @@ int skill_lookup( const char *name )
     return -1;
 }
 
+int skill_lookup_exact( const char *name )
+{
+    int sn;
+
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !strcmp(name, skill_table[sn].name) )
+            return sn;
+    }
+
+    return -1;
+}
+
 /*
  * Lookup a spell by name.
  */
@@ -4942,7 +4957,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -4965,7 +4980,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
