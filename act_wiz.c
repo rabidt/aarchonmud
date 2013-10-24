@@ -1812,8 +1812,7 @@ void do_advance( CHAR_DATA *ch, char *argument )
     }
     sprintf(buf,"You are now level %d.\n\r",victim->level);
     send_to_char(buf,victim);
-    victim->exp = exp_per_level(victim,victim->pcdata->points) 
-        * UMAX( 1, victim->level );
+    victim->exp = exp_per_level(victim) * UMAX(1, victim->level);
     victim->trust = 0;
     return;
 }
@@ -3708,8 +3707,7 @@ void do_avatar( CHAR_DATA *ch, char *argument ) /* Procedure Avatar */
   }
   sprintf(buf,"You are now level %d.\n\r",ch->level);
   send_to_char(buf,ch);
-  ch->exp = exp_per_level(ch,ch->pcdata->points)
-    *UMAX( 1, ch->level );
+  ch->exp = exp_per_level(ch) * UMAX(1, ch->level);
 
   /* Forces the player to remove all so they need the right level eq */
 
