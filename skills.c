@@ -52,10 +52,14 @@ bool train_stat(int trained, CHAR_DATA *ch);
 void show_groups( int skill, BUFFER *buffer );
 void show_races( int skill, BUFFER *buffer );
 
+bool is_class_skill( int class, int sn )
+{
+    return skill_table[sn].rating[class] > 0 && skill_table[sn].skill_level[class] < LEVEL_IMMORTAL;
+}
+
 bool can_gain_skill( CHAR_DATA *ch, int sn )
 {
-    return skill_table[sn].rating[ch->class] > 0
-	&& skill_table[sn].skill_level[ch->class] < LEVEL_IMMORTAL;
+    return is_class_skill(ch->class, sn);
 }
 
 // group cost is reduced for a character if they already know skills in the group
@@ -1996,7 +2000,7 @@ void do_showskill(CHAR_DATA *ch,char *argument)
     char arg1[MIL];
     int skill, group = -1;
     BUFFER *buffer;
-    bool show_all = FALSE;
+    bool show_all = FALSE, show_points = FALSE;
     
     /*argument = one_argument(argument,arg1);*/
     strcpy(arg1, argument);
@@ -2004,12 +2008,14 @@ void do_showskill(CHAR_DATA *ch,char *argument)
     if (argument[0] == '\0')
     { 
         printf_to_char(ch,"Syntax: showskill <spell/skill name>\n\r");
-        printf_to_char(ch,"        showskill all\n\r");
+        printf_to_char(ch,"        showskill all|points\n\r");
         return; 
     }
 
     if ( str_cmp(argument, "all") == 0 )
         show_all = TRUE;
+    else if ( str_cmp(argument, "points") == 0 )
+        show_points = TRUE;
     else
     {
         if ( (skill = skill_lookup(arg1)) == -1 && (group = group_lookup(arg1)) == -1 )
@@ -2024,6 +2030,10 @@ void do_showskill(CHAR_DATA *ch,char *argument)
     if ( show_all )
     {
         show_skill_all(buffer);
+    }
+    else if ( show_points )
+    {
+        show_skill_points(buffer);
     }
     else if (group > 0)  /* Argument was a valid group name. */
     {
@@ -2244,6 +2254,30 @@ void show_skill_all(BUFFER *buffer)
             skill_table[skill].minimum_position <= POS_FIGHTING ? "yes" : "no",
             spell_target_names[skill_table[skill].target]
         );
+    }            
+}
+
+void show_skill_points(BUFFER *buffer)
+{
+    int skill, class;
+
+    if (buffer == NULL)
+        return;
+
+    add_buff(buffer, "Skill/Spell         ");
+    for ( class = 0; class < MAX_CLASS; class++ )
+        add_buff(buffer, "%c%c ", class_table[class].who_name[0], class_table[class].who_name[1]);
+    add_buff(buffer, "\n\r================================================================\n\r");
+    
+    for ( skill = 1; skill_table[skill].name != NULL; skill++ )
+    {
+        add_buff( buffer, "%-20.20s", skill_table[skill].name );
+        for ( class = 0; class < MAX_CLASS; class++ )
+            if ( is_class_skill(class, skill) )
+                add_buff(buffer, "%2d ", skill_table[skill].rating[class]);
+            else
+                add_buff(buffer, " - ");
+        add_buff(buffer, "\n\r");
     }            
 }
 
