@@ -62,57 +62,111 @@ bool can_gain_skill( CHAR_DATA *ch, int sn )
     return is_class_skill(ch->class, sn);
 }
 
-// group cost is reduced for a character if they already know skills in the group
-int get_group_cost( CHAR_DATA *ch, int gn )
+// populate skill_costs recursively
+static void set_group_skill_costs( int gn, int class, int *skill_costs )
 {
     int i;
-    // calculate sum of base costs of skills/subgroups (total and new)
-    int total_cost = 0;
-    int new_cost = 0;
     for ( i = 0; i < MAX_IN_GROUP; i++ )
     {
-        char *group_item = group_table[gn].spells[i];
-
-        if ( group_item == NULL )
+        char *name = group_table[gn].spells[i];
+        if ( name == NULL )
             break;
-
-        int sn = skill_lookup(group_item);
-        if ( sn < 0 )
+        int sn = skill_lookup_exact(name);
+        if ( sn != -1 )
         {
-            // not a skill, so should be a subgroup
-            int sgn = group_lookup(group_item);
-            if ( sgn < 0 )
-            {
-                bugf("get_group_cost: Unknown skill or group '%s' in group '%s'.", group_item, group_table[gn].name);
-                continue;
-            }
-            int subgroup_cost = group_table[sgn].rating[ch->class];
-            if ( subgroup_cost > 0 )
-            {
-                total_cost += subgroup_cost;
-                if ( !ch->pcdata->group_known[sgn] )
-                    new_cost += get_group_cost(ch, sgn);
-            }
+            if ( skill_table[sn].skill_level[class] < LEVEL_IMMORTAL )
+                skill_costs[sn] = skill_table[sn].rating[class];
         }
         else
         {
-            if ( can_gain_skill(ch, sn) )
-            {
-                int skill_cost = skill_table[sn].rating[ch->class];
-                total_cost += skill_cost;
-                if ( !ch->pcdata->learned[sn] )
-                    new_cost += skill_cost;
-            }
+            int sub_gn = group_lookup(name);
+            if ( sub_gn == -1 )
+                bugf("add_group_skill_costs: Invalid skill or group name '%s' in group '%s'.", name, group_table[gn].name);
+            else
+                set_group_skill_costs(sub_gn, class, skill_costs);
         }
     }
+}
 
-    int base_cost = group_table[gn].rating[ch->class];
+// set skill cost to 0 for basic skills
+static void filter_basic_skills( int class, int *skill_costs )
+{
+    int i, gn = group_lookup(class_table[class].base_group);
+    for ( i = 0; i < MAX_IN_GROUP; i++ )
+    {
+        char *name = group_table[gn].spells[i];
+        if ( name == NULL )
+            break;
+        int sn = skill_lookup_exact(name);
+        if ( sn != -1 )
+            skill_costs[sn] = 0;
+    }
+}
 
-    // safety-net against groups with total cost of 0
-    if ( total_cost == 0 )
-        return base_cost;
+// get map of skill-number to cost for class (0 if not in group or not for class)
+static int* get_group_skill_costs( int gn, int class )
+{
+    static int skill_costs[MAX_SKILL];
+    int sn;
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+        skill_costs[sn] = 0;
+    set_group_skill_costs(gn, class, skill_costs);
+    filter_basic_skills(class, skill_costs);
+    return skill_costs;
+}
 
-    return base_cost * new_cost / total_cost;
+// set skill cost to 0 for skills already known
+static void filter_known_skills( CHAR_DATA *ch, int *skill_costs )
+{
+    int sn;
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+        if ( ch->pcdata->learned[sn] )
+            skill_costs[sn] = 0;
+}
+
+// calculate total cost from a set of individual skill costs (group rebate)
+static int get_multi_skill_cost( int *skill_costs )
+{
+    int sn, sum = 0, skill_count = 0, costly_skill_count = 0;
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        sum += skill_costs[sn];
+        if ( skill_costs[sn] > 0 )
+            skill_count++;
+        if ( skill_costs[sn] > 1 )
+            costly_skill_count++;
+    }
+    // compute total cost so that any skill with cost > 0 increases total
+    // also no rebate for groups with a single skill, and no more than 20%
+    int max_rebate_by_count = costly_skill_count - 1;
+    int max_rebate_by_cost = (sum - skill_count) / 4;
+    return sum - UMAX(0,UMIN(max_rebate_by_count, max_rebate_by_cost));
+}
+
+int get_group_base_cost( int gn, int class )
+{
+    return get_multi_skill_cost(get_group_skill_costs(gn, class));
+}
+
+// group cost is reduced for a character if they already know skills in the group
+int get_group_cost( CHAR_DATA *ch, int gn )
+{
+    int *skill_costs = get_group_skill_costs(gn, ch->class);
+    filter_known_skills( ch, skill_costs );
+    return get_multi_skill_cost( skill_costs );
+}
+
+// update cost for all groups to auto-calculated value
+void update_group_costs()
+{
+    int gn, class;
+    for ( gn = 0; gn < MAX_GROUP; gn++ )
+        for ( class = 0; class < MAX_CLASS; class++ )
+            if ( group_table[gn].rating[class] > 0 )
+            {
+                int group_cost = get_group_base_cost(gn, class);
+                group_table[gn].rating[class] = (group_cost > 0 ? group_cost : -1);
+            }
 }
 
 /* used to get new skills */
@@ -199,9 +253,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			{
 				if (skill_table[sn].name == NULL)
 					break;
-				if (!ch->pcdata->learned[sn]
-				    && can_gain_skill(ch, sn)
-                                    && skill_table[sn].spell_fun == spell_null)
+				if ( !ch->pcdata->learned[sn] && can_gain_skill(ch, sn) )
 				{
 				    sprintf(buf,"%-17s%2d/%-5d ",
 					    skill_table[sn].name,
@@ -276,36 +328,6 @@ void do_gain(CHAR_DATA *ch, char *argument)
 				ch,NULL,trainer,TO_CHAR);
 			ch->train -=1 ;
 			ch->practice += 8;
-			return;
-		}
-		else if (!str_cmp(arg,"points"))
-		{
-			if (ch->train < 2)
-			{
-				if ( introspect )
-					send_to_char("You are not ready.\n\r",ch);
-				else
-					act("$N tells you 'You are not yet ready.'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
-			if (ch->pcdata->points <= 50)
-			{
-				if ( introspect )
-					send_to_char("There would be no point in that.\n\r",ch);
-				else
-					act("$N tells you 'There would be no point in that.'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
-			if ( introspect )
-				send_to_char("You train, feeling more at ease with your skills.\n\r",ch);
-			else
-				act("$N trains you, and you feel more at ease with your skills.",
-				ch,NULL,trainer,TO_CHAR);
-			ch->train -= 2;
-			ch->pcdata->points -= 1;
-			ch->exp = exp_per_level(ch,ch->pcdata->points) * ch->level;
 			return;
 		}
 		else if (!str_cmp(arg, "losehp"))
@@ -414,15 +436,6 @@ void do_gain(CHAR_DATA *ch, char *argument)
 		}
 		else if ((sn = skill_lookup(argument)) > -1)
 		{			
-			if (skill_table[sn].spell_fun != spell_null)
-			{
-				if ( introspect )
-					send_to_char("You must learn the full group.\n\r",ch);
-				else
-					act( "$N tells you 'You must learn the full group.'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
 			if (ch->pcdata->learned[sn])
 			{
 				if ( introspect )
@@ -868,7 +881,6 @@ void list_group_costs(CHAR_DATA *ch)
         
         if (!ch->gen_data->skill_chosen[sn]
             &&  ch->pcdata->learned[sn] == 0
-            &&  skill_table[sn].spell_fun == spell_null
             &&  can_gain_skill(ch, sn) )
         {
             sprintf(buf,"%-16s %2d/%-5d ",
@@ -886,13 +898,10 @@ void list_group_costs(CHAR_DATA *ch)
 
     sprintf(buf,"Creation points: %d\n\r",ch->pcdata->points);
     send_to_char(buf,ch);
-    sprintf(buf,"Experience per level: %d\n\r",
-        exp_per_level(ch,ch->gen_data->points_chosen));
-    send_to_char(buf,ch);
     if ( ch->pcdata->points > 50 )
     {
-	send_to_char( "NOTE: You can always gain skills later on. If you spend over 50 creation points,\n\r", ch );
-	send_to_char( "      advancing in level becomes much harder!!!\n\r", ch );
+        send_to_char( "NOTE: You may spend up to 60 creation points, but it is recommended to safe some.\n\r", ch );
+        send_to_char( "      Unspent points convert to trains which can be used to train stats early on.\n\r", ch );
     }
     return;
 }
@@ -956,9 +965,6 @@ void list_group_chosen(CHAR_DATA *ch)
 
 	sprintf(buf,"Creation points: %d\n\r",ch->gen_data->points_chosen);
 	send_to_char(buf,ch);
-	sprintf(buf,"Experience per level: %d\n\r",
-		exp_per_level(ch,ch->gen_data->points_chosen));
-	send_to_char(buf,ch);
 	return;
 }
 
@@ -970,57 +976,30 @@ void set_level_exp( CHAR_DATA *ch )
     if ( ch == NULL || IS_NPC(ch) )
 	return;
 
-    exp_needed = exp_per_level( ch, ch->pcdata->points ) * ch->level;
+    exp_needed = exp_per_level(ch) * ch->level;
     
     if ( ch->exp < exp_needed )
 	ch->exp = exp_needed;
 }
 
-int exp_per_level(CHAR_DATA *ch, int points)
+int exp_per_level(CHAR_DATA *ch)
 {
-	int expl,inc,rem_add,race_factor;
+    int rem_add,race_factor;
 
-	if (IS_NPC(ch))
-	return 1000;
+    if (IS_NPC(ch))
+        return 1000;
 
-	expl = 1000;
-	inc = 500;
+    if ( !strcmp(pc_race_table[ch->race].name, "gimp") )
+        rem_add = 5;
+    else if ( !strcmp(pc_race_table[ch->race].name, "doppelganger") )
+        rem_add = 20;
+    else
+        rem_add = 15;
 
-	if ( !strcmp(pc_race_table[ch->race].name, "gimp") )
-	    rem_add = 5;
-	else if ( !strcmp(pc_race_table[ch->race].name, "doppelganger") )
-	    rem_add = 20;
-	else
-	    rem_add = 15;
+    race_factor = pc_race_table[ch->race].class_mult[ch->class] +
+        rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
 
-	race_factor = pc_race_table[ch->race].class_mult[ch->class] +
-	    rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
-	
-	if (points < 50)
-	    return 10 * (race_factor);
-
-	/* processing */
-	points -= 50;
-
-	points = UMIN(points, 200);
-
-	while (points > 9)
-	{
-	    expl += inc;
-	    points -= 10;
-	    if (points > 9)
-	    {
-		expl += inc;
-		inc *= 2;
-		points -= 10;
-	    }
-	}
-
-	expl += points * inc / 10;
-
-	expl = (expl * race_factor)/100;
-
-	return UMIN(expl, 30000);
+    return 10 * (race_factor);
 }
 
 /* this procedure handles the input parsing for the skill generator */
@@ -1120,8 +1099,7 @@ bool parse_gen_groups(CHAR_DATA *ch,char *argument)
 			return TRUE;
 		 }
 		
-		 if ( !can_gain_skill(ch, sn)
-		      || skill_table[sn].spell_fun != spell_null)
+		 if ( !can_gain_skill(ch, sn) )
 		 {
 			send_to_char("That skill is not available.\n\r",ch);
 			return TRUE;
@@ -1282,7 +1260,7 @@ void do_groups(CHAR_DATA *ch, char *argument)
    {
 	  if (group_table[gn].spells[sn] == NULL)
 	      break;
-	  i = skill_lookup(group_table[gn].spells[sn]);
+	  i = skill_lookup_exact(group_table[gn].spells[sn]);
 	  if (i < 0)
 	  {
 	      /* is it a group? */
@@ -1297,13 +1275,6 @@ void do_groups(CHAR_DATA *ch, char *argument)
 	  }
 	  else
 	  {
-	      if ( IS_SPELL(i) )
-		  sprintf(buf,"[level %3d, max %3d%%] %-20s\n\r",
-			  skill_table[i].skill_level[ch->class],
-			  //skill_table[i].rating[ch->class],
-			  skill_table[i].cap[ch->class],
-			  group_table[gn].spells[sn]);
-	      else
 		  sprintf(buf,"[level %3d, cost %2d, max %3d%%] %-20s\n\r",
 			  skill_table[i].skill_level[ch->class],
 			  skill_table[i].rating[ch->class],
@@ -2207,11 +2178,6 @@ void show_skill(char *argument, BUFFER *buffer)
         }
         else
         {
-            if ( is_spell )
-                sprintf( log_buf, "{g%5d     --    %3d{x\n\r",
-                    skill_table[skill].skill_level[cls],
-                    skill_table[skill].cap[cls] );
-            else
                 sprintf( log_buf, "{g%5d    %3d    %3d{x\n\r",
                     skill_table[skill].skill_level[cls],
                     skill_table[skill].rating[cls],
@@ -2288,7 +2254,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 	char arg2[MAX_INPUT_LENGTH];
 	char arg3[MAX_INPUT_LENGTH];
 	char arg4[MAX_INPUT_LENGTH];
-	int sn, field, val1, val2;
+	int sn, field, val1, val2, class;
 
 	argument=one_argument(argument, arg1);
 	argument=one_argument(argument, arg2);
@@ -2296,7 +2262,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 
 	if ((arg1[0]==0) || (arg2[0]==0) || (arg3[0]==0))
 	{
-		send_to_char("Syntax: setskill <skill> level/points/max <class> <value>\n\r", ch);
+		send_to_char("Syntax: setskill <skill> level/points/max <class|all> <value>\n\r", ch);
 		send_to_char("Syntax: setskill <skill> prime/second/third <stat>\n\r", ch);
 		send_to_char("Syntax: setskill <skill> lag/mana <value>\n\r", ch);
 		return;
@@ -2326,7 +2292,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 		field=8;
 	else
 	{
-		send_to_char("Syntax: setskill <skill> level/points/max <class> <value>\n\r", ch);
+		send_to_char("Syntax: setskill <skill> level/points/max <class|all> <value>\n\r", ch);
 		send_to_char("Syntax: setskill <skill> prime/second/third <stat>\n\r", ch);
 		send_to_char("Syntax: setskill <skill> lag/mana <value>\n\r", ch);
 		return;
@@ -2334,11 +2300,14 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 
 	if (field<4)
 	{
-		if ((val1=class_lookup(arg3)) < 0)
-		{
-			send_to_char("Invalid class.\n\r", ch);
-			return;
-		}
+        if ( !strcmp(arg3, "all") )
+            val1 = -1;
+        else
+            if ((val1=class_lookup(arg3)) < 0)
+            {
+                send_to_char("Invalid class.\n\r", ch);
+                return;
+            }
 
 		one_argument(argument, arg4);
 		if ((arg4[0]==0) || !is_number(arg4) ||
@@ -2348,12 +2317,17 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 			return;
 		}
 
-		if (field==1)
-			skill_table[sn].skill_level[val1] = val2;
-		else if (field==2)
-			skill_table[sn].rating[val1] = val2;
-		else if (field==3)
-			skill_table[sn].cap[val1] = val2;
+        for ( class = 0; class < MAX_CLASS; class++ )
+        {
+            if ( val1 != -1 && class != val1 )
+                continue;
+            switch ( field )
+            {
+                case 1: skill_table[sn].skill_level[class] = val2; break;
+                case 2: skill_table[sn].rating[class] = val2; break;
+                case 3: skill_table[sn].cap[class] = val2; break;
+            }
+        }
 	}
 	else if (field<7)
 	{
@@ -2384,6 +2358,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 			skill_table[sn].min_mana = val1;
 	}
 
+    update_group_costs();
 	send_to_char("OK.\n\r", ch);
 }
 

@@ -948,7 +948,7 @@ void remort_complete(CHAR_DATA *ch)
     ch->gold = 0;
     ch->silver = 0;
     ch->pcdata->points = 50;
-    ch->exp = exp_per_level(ch,ch->pcdata->points);
+    ch->exp = exp_per_level(ch);
 
     ch->train    = ch->train/2 + 2;
     ch->practice = ch->practice/2 + 10;
