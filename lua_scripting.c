@@ -1235,9 +1235,11 @@ static int L_ch_echoat (lua_State *LS)
 static int L_ch_mload (lua_State *LS)
 {
 
-    do_mpmload( check_CH(LS, 1), check_fstring(LS, 2));
-
-    return 0;
+    CHAR_DATA *mob=mpmload( check_CH(LS, 1), check_fstring(LS, 2));
+    if ( mob && make_ud_table(LS, mob, UDTYPE_CH) )
+        return 1;
+    else
+        return 0;
 }
 
 static int L_ch_purge (lua_State *LS)

@@ -774,7 +774,7 @@ void do_mpecho( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob mload [vnum]
  */
-void do_mpmload( CHAR_DATA *ch, char *argument )
+CHAR_DATA * mpmload( CHAR_DATA *ch, char *argument )
 {
     char            arg[ MAX_INPUT_LENGTH ];
     MOB_INDEX_DATA *pMobIndex;
@@ -797,8 +797,14 @@ void do_mpmload( CHAR_DATA *ch, char *argument )
     victim = create_mobile( pMobIndex );
     arm_npc( victim );
     char_to_room( victim, ch->in_room );
-    return;
+    return victim;
 }
+
+void do_mpmload( CHAR_DATA *ch, char *argument )
+{
+    mpmload( ch, argument);
+}
+
 
 /*
  * Lets the mobile load an object
