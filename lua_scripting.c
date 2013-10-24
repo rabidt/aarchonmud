@@ -3180,6 +3180,17 @@ static int get_CH_field ( lua_State *LS)
     FLDSTR("shortdescr", ud_ch->short_descr ? ud_ch->short_descr : "");
     FLDSTR("longdescr", ud_ch->long_descr ? ud_ch->long_descr : "");
 
+    if ( !strcmp(argument, "fighting") )
+    {
+        if (!ud_ch->fighting)
+            return 0;
+
+        if ( !make_ud_table(LS, ud_ch->fighting, UDTYPE_CH))
+            return 0;
+        else
+            return 1;
+    }
+
     if ( !strcmp(argument, "heshe") )
     {
         if ( ud_ch->sex==SEX_MALE )
