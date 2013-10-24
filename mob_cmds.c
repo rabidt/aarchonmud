@@ -784,7 +784,7 @@ CHAR_DATA * mpmload( CHAR_DATA *ch, char *argument )
     one_argument( argument, arg );
 
     if ( ch->in_room == NULL || arg[0] == '\0' || !is_r_number(arg) )
-	return;
+	return NULL;
 
     vnum = r_atoi( ch,arg);
     if ( ( pMobIndex = get_mob_index( vnum ) ) == NULL )
@@ -792,7 +792,7 @@ CHAR_DATA * mpmload( CHAR_DATA *ch, char *argument )
 	sprintf( arg, "Mpmload: bad mob index (%d) from mob %d",
 	    vnum, IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	bug( arg, 0 );
-	return;
+	return NULL;
     }
     victim = create_mobile( pMobIndex );
     arm_npc( victim );
