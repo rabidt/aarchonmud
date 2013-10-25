@@ -965,13 +965,13 @@ void do_say( CHAR_DATA *ch, char *argument )
     
     sprintf(buf, "{sYou %s {S'$T{S'{x", mid1);
     
-    nt_act( buf, ch, NULL, argument, TO_CHAR );
+    nt_act( buf, ch, NULL, parse_url(argument), TO_CHAR );
     argument = makedrunk(argument,ch);
     sprintf(buf, "{s$n {s%s {S'$T{S'{x", mid2);
     if (NOT_AUTHED(ch))
-        nt_act( buf, ch, NULL, argument, TO_ROOM_UNAUTHED );
+        nt_act( buf, ch, NULL, parse_url(argument), TO_ROOM_UNAUTHED );
     else
-        nt_act( buf, ch, NULL, argument, TO_ROOM );
+        nt_act( buf, ch, NULL, parse_url(argument), TO_ROOM );
 
     if ( !IS_NPC(ch) )
     {
