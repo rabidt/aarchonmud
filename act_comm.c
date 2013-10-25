@@ -386,10 +386,11 @@ char *parse_url( char *argument)
     char open[]="\t<a href=\"";
     char mid[]= "\">";
     char close[]="\t</a>";
-    char *url=strstr(argument, "http://");
-    
-    if (url==NULL)
-        return argument;
+
+    char *url;
+    if ( ! (    ( url=strstr(argument, "http://" ) )
+             || ( url=strstr(argument, "https://") ) ) )
+    return argument;
     
     static char rtn[MSL*2];
     int rtnIndex;
