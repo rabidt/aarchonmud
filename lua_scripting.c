@@ -1720,7 +1720,7 @@ static int L_ch_offensive (lua_State *LS)
 
 static int L_mobproto_immune (lua_State *LS)
 { 
-    MOB_INDEX_DATA * ud_mobp = check_CH (LS, 1);
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
     const char *argument = check_fstring (LS, 2);
     int flag=flag_lookup(argument, imm_flags);
 
