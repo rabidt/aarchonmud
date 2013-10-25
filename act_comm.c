@@ -383,13 +383,14 @@ void do_replay (CHAR_DATA *ch, char *argument)
 
 char *parse_url( char *argument)
 {
-    char open[]="\t<a href=\"";
-    char mid[]= "\">";
-    char close[]="\t</a>";
+    const char open[]="\t<a href=\"";
+    const char mid[]= "\">";
+    const char close[]="\t</a>";
 
     char *url;
     if ( ! (    ( url=strstr(argument, "http://" ) )
-             || ( url=strstr(argument, "https://") ) ) )
+             || ( url=strstr(argument, "https://") )
+             || ( url=strstr(argument, "www."    ) ) ) )
     return argument;
     
     static char rtn[MSL*2];
