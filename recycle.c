@@ -151,6 +151,14 @@ DESCRIPTOR_DATA *new_descriptor(void)
 	d->editor   = 0;            /* OLC */
 	d->outbuf   = alloc_mem( d->outsize );
     d->pProtocol= ProtocolCreate();
+
+    d->lua.interpret=FALSE;
+    d->lua.incmpl=FALSE;
+    d->lua.wait=FALSE;
+
+#ifdef LAG_FREE
+    d->lag_free=FALSE;
+#endif
    
 	return d;
 }
@@ -160,6 +168,7 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 	if (!IS_VALID(d))
 	return;
 
+    lua_unregister_desc(d);
 	free_string( d->host );
 	free_string( d->username );
 	free_string( d->ftp.data );
