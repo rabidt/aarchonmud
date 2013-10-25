@@ -774,7 +774,7 @@ void do_mpecho( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob mload [vnum]
  */
-void do_mpmload( CHAR_DATA *ch, char *argument )
+CHAR_DATA * mpmload( CHAR_DATA *ch, char *argument )
 {
     char            arg[ MAX_INPUT_LENGTH ];
     MOB_INDEX_DATA *pMobIndex;
@@ -784,7 +784,7 @@ void do_mpmload( CHAR_DATA *ch, char *argument )
     one_argument( argument, arg );
 
     if ( ch->in_room == NULL || arg[0] == '\0' || !is_r_number(arg) )
-	return;
+	return NULL;
 
     vnum = r_atoi( ch,arg);
     if ( ( pMobIndex = get_mob_index( vnum ) ) == NULL )
@@ -792,13 +792,19 @@ void do_mpmload( CHAR_DATA *ch, char *argument )
 	sprintf( arg, "Mpmload: bad mob index (%d) from mob %d",
 	    vnum, IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	bug( arg, 0 );
-	return;
+	return NULL;
     }
     victim = create_mobile( pMobIndex );
     arm_npc( victim );
     char_to_room( victim, ch->in_room );
-    return;
+    return victim;
 }
+
+void do_mpmload( CHAR_DATA *ch, char *argument )
+{
+    mpmload( ch, argument);
+}
+
 
 /*
  * Lets the mobile load an object

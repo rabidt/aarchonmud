@@ -10,10 +10,11 @@
 
 bool  check_lose_stance args( (CHAR_DATA *ch) );
 void  behead        args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-bool  check_jam     args( ( CHAR_DATA *ch, int odds, bool both ) );
 void  set_fighting  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  can_steal     args( ( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose ) );
 void  backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
+bool  check_jam( CHAR_DATA *ch, int odds, bool offhand );
+
 /*
 * Disarm a creature.
 * Caller must check for successful attack.
@@ -671,422 +672,99 @@ void do_net( CHAR_DATA *ch, char *argument )
     }
 }
 
+// mama routine for burst, semi-auto and full-auto
+void spray_attack( CHAR_DATA *ch, char *argument, int sn )
+{
+    CHAR_DATA *victim, *target, *next_target;
+    OBJ_DATA *first, *second;
+    bool secondgun = FALSE;
+    int targeted_attacks, area_attacks, jam_chance, skill;
+
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
+    first = get_eq_char(ch, WEAR_WIELD);
+    second = get_eq_char(ch, WEAR_SECONDARY);
+    
+    // do we have gun(s) to use?
+    if ( !first || first->value[0] != WEAPON_GUN )
+    {
+        send_to_char( "You need a gun for that.\n\r", ch );
+        return;
+    }
+    if ( IS_SET(first->extra_flags, ITEM_JAMMED) )
+    {
+        send_to_char( "Not with a jammed gun.\n\r", ch );
+        return;
+    }
+    if ( second && second->value[0] == WEAPON_GUN && !IS_SET(second->extra_flags, ITEM_JAMMED) )
+        secondgun = TRUE;
+    
+    // ok, we're ready for action
+    WAIT_STATE( ch, skill_table[sn].beats );
+
+    if ( per_chance(50 - get_skill(ch,sn)/2) )
+    {
+        send_to_char("You shoot yourself in the foot!\n\r", ch);
+        act( "$n shoots $mself in the foot!", ch, NULL, NULL, TO_ROOM);
+        damage(ch, ch, one_hit_damage(ch, sn, first), sn, get_weapon_damtype(first), TRUE);
+        check_improve(ch, sn, FALSE, 2);
+        return;
+    }
+
+    check_improve(ch, sn, TRUE, 2);
+    
+    // work out number of attacks & chance of jamming
+    targeted_attacks = (sn == gsn_fullauto ? 2 : number_range(2,4));
+    area_attacks = (sn == gsn_fullauto ? 2 : sn == gsn_semiauto ? 1 : 0);
+    if ( per_chance(get_skill(ch, gsn_tight_grouping)) )
+    {
+        // plus 1/3 to number of attacks
+        targeted_attacks = rand_div(targeted_attacks * 4, 3);
+        area_attacks = rand_div(area_attacks * 4, 3);
+        check_improve(ch, gsn_tight_grouping, TRUE, 3);
+    }
+    jam_chance = (sn == gsn_fullauto ? 4 : sn == gsn_semiauto ? 2 : 1);
+
+    // now the attacks
+    for ( target = ch->in_room->people; target; target = next_target )
+    {
+        next_target = target->next_in_room;
+        
+        if ( target != victim && is_safe_spell(ch, target, TRUE) )
+            continue;
+
+        int attacks = (target == victim ? targeted_attacks : area_attacks);
+        while ( attacks-- > 0 )
+        {
+            one_hit( ch, target, sn, FALSE);
+            if ( check_jam(ch, jam_chance, FALSE) )
+                return;
+            
+            if ( secondgun && per_chance(33) )
+            {
+                one_hit(ch, target, sn, TRUE);
+                if ( check_jam(ch, jam_chance, TRUE) )
+                    secondgun = false;
+            }
+        }
+    }
+}
 
 void do_burst( CHAR_DATA *ch, char *argument )
 {
-    char arg[MAX_INPUT_LENGTH];
-    CHAR_DATA *victim;
-    OBJ_DATA *first;
-    OBJ_DATA *second;
-    bool firstgun = FALSE, secondgun = FALSE;
-    int skill;
-    bool twohandgun = FALSE;
-    char buf[MSL];
-
-
-        
-    one_argument( argument, arg );
-     
-    if (get_skill(ch,gsn_burst) == 0 )
-    {
-        send_to_char( "You haven't the foggiest idea how.\n\r", ch );
-        return;
-    }
-        
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("Who are you firing this burst at?\n\r",ch);
-            return;
-        }
-    }
-        
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
-        return;
-    }
-        
-    if ( victim == ch )
-    {   
-        send_to_char("You know, that could hurt..!\n\r", ch );
-        return;
-    }
-        
-    if ( is_safe(ch,victim) )
-        return;
-         
-    if ( ( first = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
-    {
-        send_to_char( "You need to wield a gun to fire a burst.\n\r", ch );
-        return;
-    }
-    
-    second = get_eq_char(ch,WEAR_SECONDARY);
-
-    /* If first weapon is not a gun.. */
-    if ( get_weapon_sn_new(ch,FALSE) != gsn_gun )
-    {
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            /* nongun for secondary as well */
-            send_to_char( "You need a gun to fire a burst.\n\r", ch);
-            return;
-        }
-        else if ( second != NULL && IS_SET(second->extra_flags, ITEM_JAMMED) )
-        {
-            send_to_char( "Not with a jammed gun.\n\r", ch );
-            return;
-        }
-    }
-    else firstgun = TRUE;
-
-    /* If first weapon is a jammed gun.. */
-    if ( first != NULL && IS_SET(first->extra_flags, ITEM_JAMMED) )
-    {
-	firstgun = FALSE;
-        if ( second == NULL || get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            send_to_char( "Not with a jammed gun.\n\r", ch );
-            return;
-        }
-        else if ( IS_SET(second->extra_flags, ITEM_JAMMED) )
-        {
-            send_to_char( "Not with jammed guns.\n\r", ch);
-            return;
-        }
-	else secondgun = TRUE;
-    }
-    /* First weapon is a usable gun, let's check if second is a usable gun too */
-    else if( second != NULL && get_weapon_sn_new(ch,TRUE) == gsn_gun && !IS_SET(second->extra_flags, ITEM_JAMMED) )
-        secondgun = TRUE;
-
-
-    /* Tight grouping - Added by Astark Oct 2012. Idea derived from Kirat/Sketch. Makes burst better with 2h guns */
-    if ( IS_WEAPON_STAT(first, WEAPON_TWO_HANDS) )
-        twohandgun = TRUE;
- 
-    check_killer( ch, victim );
-    WAIT_STATE( ch, skill_table[gsn_burst].beats );
-
-    skill = get_skill(ch,gsn_burst);
-
-    if ( twohandgun )
-        skill += get_skill(ch,gsn_tight_grouping)/8;
-
-    if ( number_percent( ) < skill || (skill >= 2 && !IS_AWAKE(victim)) )
-    {
-        check_improve(ch,gsn_burst,TRUE,1);
-    
-        /* First gun */
-        if( firstgun )
-        {
-            one_hit( ch, victim, gsn_burst, FALSE);
-            one_hit( ch, victim, gsn_burst, FALSE);
-        }
-        /* Offhand gun, slightly less proficient than main */
-        if ( secondgun )
-        {
-            one_hit( ch, victim, gsn_burst, TRUE);
-            if( number_range(0,1) )
-                one_hit( ch, victim, gsn_burst, TRUE);
-        }
-
-        /* Continue bursting */
-        while(number_percent()<(2*skill)/3)
-        {
-            if( firstgun )
-                one_hit(ch, victim, gsn_burst, FALSE);
-            if ( twohandgun && number_bits(1))
-            {
-                one_hit(ch, victim, gsn_burst, FALSE);
-                check_improve(ch,gsn_tight_grouping,TRUE,1);
-            }
-            /* Offhand slightly less proficient than main */
-            if ( secondgun && number_range(0,2) )
-                one_hit(ch, victim, gsn_burst, TRUE);
-        }
-        if ( check_jam(ch, 6, TRUE) )
-            return;
-    }
-    else
-    {
-        damage( ch, victim, 0, gsn_burst,DAM_NONE,TRUE);
-        check_improve(ch,gsn_burst,FALSE,1);
-        if ( twohandgun )
-            check_improve(ch,gsn_tight_grouping,FALSE,1);
-    }
-            
-    return;
+    spray_attack(ch, argument, gsn_burst);
 }
 
 void do_fullauto( CHAR_DATA *ch, char *argument)
 {
-    char arg[MAX_INPUT_LENGTH];
-    CHAR_DATA *victim, *vch, *vch_next;
-    OBJ_DATA *first;
-    OBJ_DATA *second;
-    bool firstgun = FALSE, secondgun = FALSE;
-    int counter, chance, attack_nr;
-                    
-    one_argument(argument, arg);   
-                 
-    if (arg[0] == '\0')
-    {
-        if ( (victim = ch->fighting) == NULL )
-        {
-            send_to_char("Who are we unloading on, now?\n\r",ch);
-            return;
-        }
-    }   
-    else if ( (victim = get_char_room(ch,arg)) == NULL )
-    {
-        send_to_char("They aren't here.\n\r",ch);
-        return;
-    }
-            
-    if ( victim == ch )
-    {
-        send_to_char("You come to your senses just in time not to unload into your gut.\n\r", ch);
-        return;
-    }
-        
-    if ( is_safe(ch,victim) )
-        return;
-    
-    if ( (first = get_eq_char(ch, WEAR_WIELD)) == NULL )
-    {
-        send_to_char( "Guns, not fists, are full-auto.\n\r", ch );
-        return;
-    }            
-    
-    second = get_eq_char(ch,WEAR_SECONDARY);
-
-    /* If first weapon is not a gun.. */
-    if ( get_weapon_sn_new(ch,FALSE) != gsn_gun )
-    {               
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            /* nongun for secondary as well */
-            send_to_char( "Only guns are full-auto.\n\r", ch);
-            return;
-        }
-        else if ( second != NULL && IS_SET(second->extra_flags, ITEM_JAMMED) )
-        {
-            send_to_char( "Not with a jammed gun.\n\r", ch );
-            return;
-        }
-    }
-    else firstgun = TRUE;
-
-    /* If first weapon is a jammed gun... */
-    if ( first != NULL && IS_SET(first->extra_flags, ITEM_JAMMED) )
-    {
-	firstgun = FALSE;
-        if( second == NULL || get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            send_to_char( "Not with a jammed gun.\n\r", ch );
-            return; 
-        }
-        else if( IS_SET(second->extra_flags, ITEM_JAMMED) )
-        {
-            send_to_char( "Not with jammed guns.\n\r", ch );
-            return;
-        }
-	secondgun = TRUE;
-    }
-    /* First weapon is a usable gun, let's check if second is a usable gun too */
-    else if( second != NULL && get_weapon_sn_new(ch,TRUE) == gsn_gun && !IS_SET(second->extra_flags, ITEM_JAMMED) )
-        secondgun = TRUE;
-
-    check_killer( ch, victim );
-    WAIT_STATE( ch, skill_table[gsn_fullauto].beats );
-         
-    chance = get_skill(ch, gsn_fullauto);
-    if ( number_percent( ) < chance || (chance >= 2 && !IS_AWAKE(victim)) )
-    {
-        check_improve( ch,gsn_fullauto,TRUE,1 ); 
-        
-        if ( check_jam(ch, 35, TRUE) )
-            return;
-    
-        attack_nr = 6 + ch->level/15;
-        for (counter = 0; counter < attack_nr; counter++)
-        {
-            for (vch = victim->in_room->people; vch != NULL; vch = vch_next)
-            {
-                vch_next = vch->next_in_room;
-
-                if (vch == ch || is_safe_spell(ch,vch,TRUE))
-                    continue;
-
-                /* Count attacks */
-                counter++;
-
-                /* First gun */
-                if( firstgun )
-                    one_hit( ch, vch, gsn_fullauto, FALSE);
-                /* Second gun, slightly less proficient than main */
-                if( secondgun && number_range(0,2) )
-                    one_hit( ch, vch, gsn_fullauto, TRUE);
-    
-                if ( check_jam(ch, 2, TRUE) )   
-                    return;
-            }
-            victim = ch->fighting;
-    
-            if (victim == NULL)
-                break;
-        }
-    }
-    else
-    {
-        check_improve(ch,gsn_fullauto,TRUE,1);
-        send_to_char("You shoot yourself in the foot!\n\r", ch);
-        act( "$n shoots $mself in the foot!", ch, NULL, NULL, TO_ROOM);
-        damage(ch, ch, 100, gsn_fullauto, DAM_PIERCE, TRUE);
-    }
-    return;
+    spray_attack(ch, argument, gsn_fullauto);
 }
 
 void do_semiauto( CHAR_DATA *ch, char *argument)
 {
-    char arg[MAX_INPUT_LENGTH];
-    CHAR_DATA *victim, *vch, *vch_next;
-    OBJ_DATA *first;
-    OBJ_DATA *second;
-    bool firstgun = FALSE, secondgun = FALSE;
-    int chance;
-    
-    one_argument(argument, arg);
-        
-    if (arg[0] == '\0')
-    {
-        if ( (victim = ch->fighting) == NULL)
-        {
-            send_to_char("Who are we going semi-auto on, now?\n\r",ch);
-            return;  
-        }
-    }
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
-        return;
-    }
-           
-    if ( is_safe(ch,victim) )
-        return;
-
-    if ( ( first = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
-    {
-        send_to_char( "Guns, not fists, are semi-auto.\n\r", ch );
-        return;
-    }
-
-    second = get_eq_char(ch,WEAR_SECONDARY);
-
-    /* If first weapon is not a gun.. */
-    if (get_weapon_sn_new(ch,FALSE) != gsn_gun)
-    {
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            /* nongun for secondary as well */
-            send_to_char( "Only guns are semi-auto.\n\r", ch);
-            return;
-        }
-        else if ( second != NULL && IS_SET(second->extra_flags, ITEM_JAMMED) )
-        {
-            send_to_char( "Not with a jammed gun.\n\r", ch );
-            return;
-        }
-    }
-    else firstgun = TRUE;
-
-    /* If first weapon is a jammed gun.. */
-    if ( first != NULL && IS_SET(first->extra_flags, ITEM_JAMMED) )
-    {
-	firstgun = FALSE;
-        if( second == NULL || get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            send_to_char( "Not with a jammed gun.\n\r", ch );
-            return;
-        }
-        else if( IS_SET(second->extra_flags, ITEM_JAMMED) )
-        {
-            send_to_char( "Not with jammed guns.\n\r", ch );
-            return;
-        }
-        else secondgun = TRUE;
-    }
-    /* First weapon is a usable gun, let's check if second is a usable gun too */
-    else if( second != NULL && get_weapon_sn_new(ch,TRUE) == gsn_gun && !IS_SET(second->extra_flags, ITEM_JAMMED) )
-        secondgun = TRUE;
-
-
-    check_killer( ch, victim );    
-    WAIT_STATE( ch, skill_table[gsn_semiauto].beats );
-    
-    chance = get_skill(ch, gsn_semiauto);
-    if ( number_percent( ) < chance || (chance >= 2 && !IS_AWAKE(victim)) )
-    {
-        check_improve(ch,gsn_semiauto,TRUE,1);
-
-        /* First gun */
-        if( firstgun )
-        {
-            one_hit( ch, victim, gsn_semiauto, FALSE);
-            one_hit( ch, victim, gsn_semiauto, FALSE);
-            one_hit( ch, victim, gsn_semiauto, FALSE);
-        }
-        /* Second gun, slightly less proficient than main */
-        if( secondgun )
-        {
-            one_hit( ch, victim, gsn_semiauto, TRUE);
-            if( number_range(0,1) )
-                one_hit( ch, victim, gsn_semiauto, TRUE);
-            if( number_range(0,1) )
-                one_hit( ch, victim, gsn_semiauto, TRUE);
-        }
-
-        /* Continue semiauto */
-        if ( (victim = ch->fighting) != NULL )
-            for (vch = victim->in_room->people; vch != NULL; vch = vch_next)
-            {
-                vch_next = vch->next_in_room;
-                if (IS_NPC(vch) && IS_NPC(ch)
-                    &&   (ch->fighting != vch || vch->fighting != ch))
-                    continue;
-                if (vch != ch && !is_safe_spell(ch,vch,TRUE))
-                {
-                    /* First gun */
-                    if( firstgun )
-                        one_hit( ch, vch, gsn_semiauto, FALSE );
-
-                    /* Offhand slightly less proficient than main */
-                    if( secondgun && number_range(0,2) )
-                        one_hit( ch, vch, gsn_semiauto, TRUE );
-
-                    /* Slight chance of jamming while looping through whole room */
-                    if ( check_jam(ch, 2, TRUE) )
-                         return;  /* MUST return, else jammed gun would cause crash! */
-
-                } /* end of attack on vch */
-            } /* end of for loop for vch's in room */
-
-        /* Greater chance of jamming after looping through whole room */
-        if ( check_jam(ch, 5, TRUE) )
-            return;
-    }
-    else
-    {
-        send_to_char("You spray bullets harmlessly around the room.\n\r", ch);
-        check_improve(ch,gsn_semiauto,FALSE,1);
-    }
-    return;
+    spray_attack(ch, argument, gsn_semiauto);
 }
-
 
 void do_hogtie(CHAR_DATA *ch, char *argument )
 {

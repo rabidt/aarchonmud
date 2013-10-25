@@ -89,6 +89,7 @@ DECLARE_DO_FUN( do_backstab );
 DECLARE_DO_FUN( do_balance  );
 DECLARE_DO_FUN( do_blackjack );
 DECLARE_DO_FUN( do_circle   );
+DECLARE_DO_FUN( do_classes  );
 DECLARE_DO_FUN( do_clear    ); /* formerly "pardon" */
 DECLARE_DO_FUN( do_bamfin   );
 DECLARE_DO_FUN( do_bamfout  );
@@ -580,6 +581,9 @@ DECLARE_DO_FUN( do_mode);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif
+#ifdef LAG_FREE
+DECLARE_DO_FUN( do_lagfree);
+#endif
 DECLARE_DO_FUN( do_cmotd);
 DECLARE_DO_FUN( do_smith);
 DECLARE_DO_FUN( do_pgrep);
@@ -588,4 +592,4 @@ DECLARE_DO_FUN( do_void);
 DECLARE_DO_FUN( do_mprun);
 DECLARE_DO_FUN( do_aprun);
 DECLARE_DO_FUN( do_oprun);
-
+DECLARE_DO_FUN( do_luai);
