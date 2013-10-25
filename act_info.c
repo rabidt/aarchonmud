@@ -4184,6 +4184,9 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
     
     ch->mana -= skill_table[sn].min_mana;
+
+    if (!op_percent_trigger( obj, NULL, ch, NULL, OTRIG_LORE) )
+        return;
     /*
     check_improve(ch,gsn_lore,FALSE,2);
     if ( weapon )
@@ -6153,3 +6156,56 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
        show_penalties_by_player(ch, ch->name, TIME_PLAYED(ch), 2);
 
 }
+
+void do_classes( CHAR_DATA *ch, char *argument )
+{
+    int class;
+    
+    printf_to_char(ch, "               Att  Def  Hp  Mana  Move prime secondary #Skl / Cost\n");
+    for ( class = 0; class < MAX_CLASS; class++ )
+    {
+        // calculate number and cost of skills
+        int sn, skill_count = 0, skill_cost = 0;
+        for ( sn = 0; sn < MAX_SKILL; sn++ )
+        {
+            if ( skill_table[sn].name == NULL )
+                break;
+            if ( skill_table[sn].skill_level[class] <= LEVEL_HERO && skill_table[sn].rating[class] > 0 )
+            {
+                skill_count++;
+                skill_cost += skill_table[sn].rating[class];
+            }
+        }
+        // list details
+        printf_to_char(ch, "%12s:  {r%3d  %3d  {B%3d  %3d  %3d  {y %s   %s %s  {g%4d / %d{x\n",
+            class_table[class].name,
+            class_table[class].attack_factor,
+            class_table[class].defense_factor,
+            class_table[class].hp_gain,
+            class_table[class].mana_gain,
+            class_table[class].move_gain,
+            stat_table[class_table[class].attr_prime].abbreviation,
+            stat_table[class_table[class].attr_second[0]].abbreviation,
+            stat_table[class_table[class].attr_second[1]].abbreviation,
+            skill_count, skill_cost
+        );
+    }
+}
+
+#ifdef LAG_FREE
+void do_lagfree( CHAR_DATA *ch, char *argument)
+{
+    if (IS_NPC(ch))
+        return;
+
+    if ( !ch->desc )
+    {
+        bugf("do_lagfree: no desc for %s", ch->name);
+        return;
+    }
+
+    ch->desc->lag_free = !ch->desc->lag_free;
+
+    ptc( ch, "Lag free mode: %s", ch->desc->lag_free ? "ON" : "OFF");
+}
+#endif

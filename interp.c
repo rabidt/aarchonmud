@@ -140,6 +140,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "affects",    do_affects, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "areas",      do_areas,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "bug",        do_bug,     POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "classes",    do_classes, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "commands",   do_commands,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "compare",    do_compare, POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "consider",   do_consider,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -177,6 +178,9 @@ const   struct  cmd_type    cmd_table   [] =
     { "worth",      do_worth,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
 #ifdef FSTAT 
     { "fstat",	    do_fstat,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+#endif
+#ifdef LAG_FREE
+    { "lagfree",    do_lagfree, POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE},
 #endif
 //    { "combo",      do_combo,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     
@@ -616,6 +620,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "mortlag",    do_mortlag, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mode",	    do_mode,	POS_DEAD,   L9,	 LOG_NORMAL, 1, FALSE, FALSE  },
     //{ "luareset",   do_luareset,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "luai",        do_luai,     POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
 
     /*
     * OLC
