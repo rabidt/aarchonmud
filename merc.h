@@ -41,6 +41,7 @@
 
 #ifdef TESTER
 #define FSTAT
+#define LAG_FREE
 #endif
 /* debugging macros */
 /* #define SIM_DEBUG */
@@ -290,7 +291,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define LEVEL_MIN_HERO     (MAX_LEVEL - 20)
 #define LEVEL_UNAUTHED      5 /* Max level an unauthed newbie can gain */
 
-#define PULSE_PER_SECOND        4
+#define PULSE_PER_SECOND      4 
 #define PULSE_VIOLENCE        ( 3 * PULSE_PER_SECOND)
 #define PULSE_MOBILE          ( 4 * PULSE_PER_SECOND)
 #define PULSE_MOBILE_SPECIAL  ( 1 * PULSE_PER_SECOND)
@@ -794,6 +795,14 @@ struct  descriptor_data
 	void *              pEdit;      /* OLC */
 	char **             pString;    /* OLC */
 	int         editor;     /* OLC */
+    /* lua interpreter */
+    struct
+    {
+        bool interpret; /* Whether in lua interpreter mode */
+        bool wait; /* whether in WAIT mode for multiline chunks*/
+        bool incmpl;/* whether incomplete was detected */
+    } lua;
+
 	int     inactive;
 	char *      username;
 	struct
@@ -805,6 +814,10 @@ struct  descriptor_data
 		ftp_mode    mode;       /* FTP_xxx           */
 	} ftp;
     protocol_t *        pProtocol;
+
+#ifdef LAG_FREE
+    bool lag_free;
+#endif
 };
 
 
@@ -3136,6 +3149,8 @@ struct  group_type
 #define OTRIG_GREET (M)
 #define OTRIG_CALL  (N)
 #define OTRIG_LOOK  (O)
+#define OTRIG_LORE  (P)
+#define OTRIG_ENTER (Q)
 
 /*
  * AREAprog definitions
