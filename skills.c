@@ -2172,7 +2172,7 @@ void show_skill(char *argument, BUFFER *buffer)
     
     for ( cls = 0; cls < MAX_CLASS; cls++ )
     {
-        if (skill_table[skill].skill_level[cls] >= HERO)
+        if (skill_table[skill].skill_level[cls] > LEVEL_HERO)
         {
             sprintf(log_buf, "{r   --     --     --{x\n\r");
         }
