@@ -169,6 +169,21 @@ void update_group_costs()
             }
 }
 
+// update cost for all skills based on min_rating
+void update_skill_costs()
+{
+    int sn, class;
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        int min_rating = skill_table[sn].min_rating;
+        for ( class = 0; class < MAX_CLASS; class++ )
+        {
+            int cap = skill_table[sn].cap[class];
+            skill_table[sn].rating[class] = min_rating + (cap < 80 ? 2 : cap < 90 ? 1 : 0);
+        }
+    }
+}
+
 /* used to get new skills */
 void do_gain(CHAR_DATA *ch, char *argument)
 {
@@ -2358,6 +2373,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 			skill_table[sn].min_mana = val1;
 	}
 
+    update_skill_costs();
     update_group_costs();
 	send_to_char("OK.\n\r", ch);
 }
