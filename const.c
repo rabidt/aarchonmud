@@ -1794,7 +1794,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"paladin", "Pal",  STAT_CHA, {STAT_WIS, STAT_STR},
         {110, 105, 105, 100, 110, 95, 95, 100, 90, 100},
-	OBJ_VNUM_SCHOOL_MACE, { 9633, 10344 },
+	OBJ_VNUM_SCHOOL_SWORD, { 9633, 10344 },
         75, 100, 110,  105, 90, 100,
 	"paladin basics", "paladin default"
 	},
@@ -7100,87 +7100,77 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"mage basics",      { -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{ "polearm", "wands", "scrolls" }
+	{ "polearm", "magic missile" }
 	},
 
 	{
 	"cleric basics",    { -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{ "mace", "scrolls" }
+	{ "mace", "cure light" }
 	},
    
 	{
 	"thief basics",     { -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{ "dagger", "steal", "wands" }
+	{ "dagger", "bite" }
 	},
 
 	{
 	"warrior basics",   { 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 , -1, -1, -1 },
-	{ "sword", "second attack" }
+	{ "sword", "kick" }
 	},
 
 	{
 	"gladiator basics",   { -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{
-	"axe", "second attack"
-	} },
+	{ "axe", "kick" }
+    },
 
 	{
 	"samurai basics",   { -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{
-	"sword", "second attack"
-	} },
+	{ "sword", "kick" }
+    },
 
 	{
 	"paladin basics",   { -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{
-	"mace", "second attack"
-	} },
+	{ "sword", "kick" }
+    },
 
 	{
 	"assassin basics",   { -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1 },
-	{
-	"dagger", "backstab"
-	} },
+	{ "dagger", "envenom" }
+    },
 
 	{
 	"ninja basics",   { -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1 },
-	{
-	"dagger", "hand to hand"
-	} },
+	{ "dagger", "kick" }
+    },
 
 	{
 	"monk basics",   { -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1 },
-	{
-	"hand to hand", "scrolls", "meditation"
-	} },
+	{ "hand to hand", "chop" }
+    },
 
 	{
 	"templar basics",   { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1 },
-	{
-	"flail", "scrolls"
-	} },
+	{ "flail", "cure light" }
+    },
 
 	{
 	"illusionist basics",   { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1 },
-	{
-	"dagger", "wands", "scrolls"
-	} },
+	{ "dagger", "magic missile" }
+    },
 
 	{
 	"gunslinger basics",   { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1 },
-	{
-	"gun", "unjam"
-	} },
+	{ "gun", "unjam" }
+    },
 	
 	{
 	"ranger basics",   { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1 },
-	{
-	"axe", "hunt"
-	} },
+	{ "axe", "kick" }
+    },
 	
 	{
 	"necromancer basics",      { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0 },
-	{ "meditation", "polearm", "wands" }
+	{ "polearm", "chill touch" }
 	},
 	
 
