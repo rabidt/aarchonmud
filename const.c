@@ -6697,7 +6697,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
         { 
         "sticks to snakes",
         { 102, 102, 75, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 37, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
         spell_sticks_to_snakes,  TAR_IGNORE, POS_STANDING,
@@ -7176,83 +7176,78 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"mage default",     { -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "combat", "protective", "focus" }
+    { "combat", "draconian", "focus", "scrolls", "wands", "staves" }
     },
 
 	{
 	"cleric default",   { -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "curative", "healing", "shield block", "anatomy" }
+    { "healing", "anatomy", "shield block" }
     },
  
 	{
 	"thief default",    { -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "sneak", "hide", "backstab", "circle", "anatomy", "dual dagger", "second attack",
+    { "steal", "sneak", "hide", "backstab", "circle", "dual dagger",
       "dodge", "flee", "evasion", "disarm trap", "peek", "pick lock" }
     },
 
 	{
 	"warrior default",  { 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "weapon styles", "enhancement", "third attack", "enhanced damage",
-      "dodge", "parry", "shield block", "rescue", "bodyguard", "guard", "shield bash" }
+    { "second attack", "third attack", "dodge", "parry", "shield block" }
     },
 
 	{
 	"gladiator default",  { -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "weapon styles", "third attack", "enhanced damage", "berserk", "beheading",
-      "headbutt", "dodge", "parry", "fast healing" }
+    { "second attack", "third attack", "enhanced damage", "berserk", "headbutt" }
     },
 	
 	{
 	"samurai default",  { -1, -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1,  -1, -1, -1 },
-    { "weapon styles", "mystical styles", "third attack", "enhanced damage",
-      "dual sword", "dodge", "parry", "double strike", "ashura" }
+    { "second attack", "third attack", "dual sword", "double strike", "ashura" }
     },
 	
 	{
 	"paladin default",  { -1, -1, -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "healing", "protective", "third attack", "twohand weapons", "dodge", "parry", "guard" }
+    { "second attack", "third attack", "twohand weapons", "dodge", "parry" }
     },
 	
 	{
 	"assassin default",  { -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1, -1,  -1, -1, -1 },
-    { "sneak", "hide", "circle", "anatomy", "dual dagger", "second attack",
-      "assassination", "hunt", "stalk" }
+    { "second attack", "dual dagger", "entrapment", "sneak", "hide", "backstab", "circle", "slash throat" }
     },
 	
 	{
 	"ninja default",  { -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1,  -1, -1, -1 },
-    { "martial arts", "shadows", "dual dagger", "second attack" }
+    { "hand to hand", "second attack", "dual dagger", "dodge", "sneak", "hide", "backstab", "circle" }
     },
 	
 	{
 	"monk default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1,  -1, -1, -1 },
-    { "martial arts", "spirit fist", "mystical styles", "second attack" }
+    { "kick", "chop", "kung fu", "second attack", "dodge", "evasive action", "sustenance", "meditation" }
     },
 	
 	{
 	"templar default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1,  -1, -1, -1 },
-	{
-	  "combat", "healing", "shield block" }
+	{ "combat", "healing" }
     },
 	
 	{
 	"illusionist default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1 },
-    { "combat", "illusions", "advanced illusions" }
+    { "combat", "illusions", "advanced illusions", "dodge", "scrolls" }
     },
 		
 	{
 	"gunslinger default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1 },
-    { "warfare", "practical shooting", "second attack", "true grit" }
+    { "second attack", "burst", "sharp shooting", "tight grouping", "dual gun", "drunken fury" }
     },
 
 	{
 	"ranger default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1 },
-    { "gaia magics", "nordic styles", "enhancement", "woodland combat", "firstaid", "second attack" }
+    { "gaia magics", "second attack", "dual axe", "bow", "fledging", "enchant arrow", "hunt" }
     },
 	   
 	{
 	"necromancer default",     { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50 },
-    { "necromancy", "debilitations", "dark rituals", "puppetry" }
+    { "necromancy", "dark rituals", "enhancement", "puppetry" }
     },
 
 	{
@@ -7333,7 +7328,7 @@ struct group_type group_table[MAX_GROUP] =
 	},
 
 	{
-	"enchantment",      { -1, -1, -1, 6, -1, -1, -1, -1, -1, -1, -1, 8, -1, 9, 7 },
+	"enchantment",      { -1, -1, -1, 6, -1, -1, -1, -1, -1, -1, -1, 8, -1, -1, 7 },
 	{ "enchant arrow", "enchant armor", "enchant weapon", "fireproof", "recharge", "renewal" }
 	},
 
