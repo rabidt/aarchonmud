@@ -2262,6 +2262,13 @@ void show_skill_points(BUFFER *buffer)
     }            
 }
 
+static void setskill_syntax( CHAR_DATA *ch )
+{
+    send_to_char("Syntax: setskill <skill> level/max <class|all> <value>\n\r", ch);
+    send_to_char("Syntax: setskill <skill> prime/second/third <stat>\n\r", ch);
+    send_to_char("Syntax: setskill <skill> lag/mana/points <value>\n\r", ch);   
+}
+
 extern int dice_lookup(char *);
 void do_setskill(CHAR_DATA *ch, char *argument)
 {
@@ -2277,9 +2284,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 
 	if ((arg1[0]==0) || (arg2[0]==0) || (arg3[0]==0))
 	{
-		send_to_char("Syntax: setskill <skill> level/points/max <class|all> <value>\n\r", ch);
-		send_to_char("Syntax: setskill <skill> prime/second/third <stat>\n\r", ch);
-		send_to_char("Syntax: setskill <skill> lag/mana <value>\n\r", ch);
+        setskill_syntax(ch);
 		return;
 	}
 
@@ -2307,13 +2312,11 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 		field=8;
 	else
 	{
-		send_to_char("Syntax: setskill <skill> level/points/max <class|all> <value>\n\r", ch);
-		send_to_char("Syntax: setskill <skill> prime/second/third <stat>\n\r", ch);
-		send_to_char("Syntax: setskill <skill> lag/mana <value>\n\r", ch);
+        setskill_syntax(ch);
 		return;
 	}
 
-	if (field<4)
+    if ( field == 1 || field == 3 )
 	{
         if ( !strcmp(arg3, "all") )
             val1 = -1;
@@ -2344,7 +2347,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
             }
         }
 	}
-	else if (field<7)
+    else if ( field == 4 || field == 5 || field == 6 )
 	{
 		if ((val1=dice_lookup(arg3)) >= STAT_NONE)
 		{
@@ -2371,6 +2374,8 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 			skill_table[sn].beats = val1;
 		else if (field==8)
 			skill_table[sn].min_mana = val1;
+        else if ( field == 2 )
+            skill_table[sn].min_rating = val1;
 	}
 
     update_skill_costs();
