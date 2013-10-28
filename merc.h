@@ -1340,8 +1340,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -3079,6 +3079,7 @@ struct  skill_type
 	char *  name;           /* Name of skill        */
 	sh_int  skill_level[MAX_CLASS]; /* Level needed by class    */
 	sh_int  rating[MAX_CLASS];  /* How hard it is to learn  */
+	sh_int  min_rating;     /* for auto-rating calculation */
 	sh_int	cap[MAX_CLASS];		/* Maximum learnable percentage */
 	sh_int	stat_prime, stat_second, stat_third;
 	SPELL_FUN * spell_fun;      /* Spell pointer (for spells)   */
@@ -3975,7 +3976,7 @@ extern  struct  align_type    align_table[];
 extern  const   struct  spec_type   spec_table  [];
 extern  const   struct  liq_type    liq_table   [];
 extern  struct  skill_type  skill_table [MAX_SKILL];
-extern  const   struct  group_type      group_table [MAX_GROUP];
+extern  struct  group_type  group_table [MAX_GROUP];
 extern          struct  social_type *social_table;
 extern  char *  const           title_table [MAX_CLASS] [23];
 extern	        struct  clan_data       clan_table[MAX_CLAN];
@@ -4401,6 +4402,7 @@ void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+bool    is_ranged_weapon( OBJ_DATA *weapon );
 CD *    get_local_leader( CHAR_DATA *ch );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
 
@@ -4596,7 +4598,7 @@ bool    load_char_obj   args( ( DESCRIPTOR_DATA *d, char *name ) );
 bool    parse_gen_groups args( ( CHAR_DATA *ch,char *argument ) );
 void    list_group_costs args( ( CHAR_DATA *ch ) );
 void    list_group_known args( ( CHAR_DATA *ch ) );
-int     exp_per_level   args( ( CHAR_DATA *ch, int points ) );
+int     exp_per_level   args( ( CHAR_DATA *ch ) );
 void    check_improve   args( ( CHAR_DATA *ch, int sn, bool success, 
 					int multiplier ) );
 int     group_lookup    args( (const char *name) );
@@ -4606,6 +4608,8 @@ void    group_add   args( ( CHAR_DATA *ch, const char *name, bool deduct) );
 void    group_remove    args( ( CHAR_DATA *ch, const char *name) );
 int get_skill   args( ( CHAR_DATA *ch, int sn ) );
 int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
+int get_group_base_cost( int gn, int class );
+int get_group_cost( CHAR_DATA *ch, int gn );
 
 /* social-edit.c */
 void load_social_table();

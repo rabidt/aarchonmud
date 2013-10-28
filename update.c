@@ -170,7 +170,7 @@ void gain_exp( CHAR_DATA *ch, int gain)
     field = UMAX((ch_wis_field(ch)*gain)/100,0);
     gain-=field;
 
-    max=exp_per_level(ch, ch->pcdata->points)+ch_dis_field(ch)+10*ch->pcdata->condition[COND_SMOKE];
+    max=exp_per_level(ch)+ch_dis_field(ch)+10*ch->pcdata->condition[COND_SMOKE];
     if (ch->pcdata->field>max)
         send_to_char("Your mind is becoming overwhelmed with new information.\n\r",ch);
     max*=2;
@@ -185,18 +185,17 @@ void gain_exp( CHAR_DATA *ch, int gain)
         send_to_char(buf,ch);
     }
 
-    ch->exp = UMAX( exp_per_level(ch,ch->pcdata->points), ch->exp + gain );
+    ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
 
-    if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch,ch->pcdata->points) * (ch->level+1)
+    if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1)
             && ch->level >= LEVEL_UNAUTHED )
     {
         send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
-        ch->exp = (exp_per_level(ch, ch->pcdata->points) * (ch->level+1));
+        ch->exp = (exp_per_level(ch) * (ch->level+1));
         return;
     }
 
-    while ( !IS_HERO(ch) && ch->exp >= 
-            exp_per_level(ch,ch->pcdata->points) * (ch->level+1) )
+    while ( !IS_HERO(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1) )
     {
         send_to_char( "You raise a level!!  ", ch );
         ch->level += 1;
@@ -234,18 +233,17 @@ void update_field( CHAR_DATA *ch)
     gain = UMIN(gain, ch->pcdata->field);
     ch->pcdata->field -= gain;
 
-    ch->exp = UMAX(exp_per_level(ch,ch->pcdata->points), ch->exp + gain );
+    ch->exp = UMAX(exp_per_level(ch), ch->exp + gain );
 
-    if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch,ch->pcdata->points) * (ch->level+1)
+    if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1)
             && ch->level >= LEVEL_UNAUTHED )
     {
         send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
-        ch->exp = (exp_per_level(ch, ch->pcdata->points) * (ch->level+1));
+        ch->exp = (exp_per_level(ch) * (ch->level+1));
         return;
     }
 
-    while ( !IS_HERO(ch) && ch->exp >= 
-            exp_per_level(ch,ch->pcdata->points) * (ch->level+1) )
+    while ( !IS_HERO(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1) )
     {
         send_to_char( "You raise a level!!  ", ch );
         ch->level += 1;
@@ -1013,7 +1011,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -2536,6 +2534,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */
@@ -3038,11 +3039,9 @@ void msdp_update( void )
             MSDPSetString( d, eMSDP_CHARACTER_NAME, d->character->name );
             MSDPSetNumber( d, eMSDP_ALIGNMENT, d->character->alignment );
             MSDPSetNumber( d, eMSDP_EXPERIENCE, d->character->exp );
-            MSDPSetNumber( d, eMSDP_EXPERIENCE_MAX, exp_per_level(d->character, 
-               d->character->pcdata->points)  ); 
+            MSDPSetNumber( d, eMSDP_EXPERIENCE_MAX, exp_per_level(d->character) );
             MSDPSetNumber( d, eMSDP_EXPERIENCE_TNL, ((d->character->level + 1) *
-               exp_per_level(d->character, d->character->pcdata->points) - 
-               d->character->exp ) );
+               exp_per_level(d->character) - d->character->exp ) );
 
             MSDPSetNumber( d, eMSDP_HEALTH, d->character->hit );
             MSDPSetNumber( d, eMSDP_HEALTH_MAX, d->character->max_hit );
