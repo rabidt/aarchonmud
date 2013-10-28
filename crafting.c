@@ -91,13 +91,13 @@ struct crafting_type crafting_table[] =
     { "ornate_sword",        CRFT+36, { CRFT+1,  CRFT+4,   CRFT+14 },    94 }, // Sparkling Essence, Iron Smelt, Steel Rivet
     { "ornate_visor",        CRFT+35, { CRFT+5,  CRFT+9 },               94 }, // Gold Smelt, Fastening Bolts
     { "glorious_pendant",    CRFT+46, { CRFT+15, CRFT+2 },               92 }, // Wire Band, Blissful Essence
-    { "glorious_sleeves",    CRFT+45, { CRFT+14, CRFT+54},               92 }, // Steel Rivet, Titanium Thread
+    { "glorious_sleeves",    CRFT+45, { CRFT+14, CRFT+53},               92 }, // Steel Rivet, Titanium Thread
     { "glorious_bracers",    CRFT+34, { CRFT+2,  CRFT+5 },               92 }, // Blissful Essence, Gold Smelt
     { "glorious_robe",       CRFT+33, { CRFT+4,  CRFT+9 },               92 }, // Iron Smelt, Fastening Bolts
     { "glorious_aura",       CRFT+32, { CRFT+0,  CRFT+1,   CRFT+2  },    92 }, // Foul Essence, Sparkling Essence, Blissful Essence
     { "glorious_boots",      CRFT+31, { CRFT+8,  CRFT+9,   CRFT+15 },    92 }, // Metal Scraps, Fastening Bolts, Wire Band
-    { "master_cuirass",      CRFT+44, { CRFT+54, CRFT+1},                91 }, // Titanium Thread, Sparkling Essence
-    { "master_girdle",       CRFT+43, { CRFT+54, CRFT+3, CRFT+0 },       91 }, // Titanium Thread, Bronze Smelt, Foul Essence
+    { "master_cuirass",      CRFT+44, { CRFT+53, CRFT+1},                91 }, // Titanium Thread, Sparkling Essence
+    { "master_girdle",       CRFT+43, { CRFT+53, CRFT+3, CRFT+0 },       91 }, // Titanium Thread, Bronze Smelt, Foul Essence
     { "master_ring",         CRFT+30, { CRFT+0,  CRFT+4,   CRFT+9  },    91 }, // Foul Essence, Iron Smelt, Fastening Bolts
     { "master_leggings",     CRFT+29, { CRFT+1,  CRFT+7,   CRFT+8  },    91 }, // Sparkling Essence, Heavy Strap, Metal Scraps
     { "master_polearm",      CRFT+28, { CRFT+3,  CRFT+4,   CRFT+14 },    91 }, // Bronze Smelt, Iron Smelt, Steel Rivet
