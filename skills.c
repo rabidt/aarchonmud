@@ -2429,15 +2429,17 @@ void save_skill(FILE *f, int sn)
 	int i;
 
 	fprintf(f, "\n%s\n", skill_table[sn].name);
-	fprintf(f, "%d %d\n", skill_table[sn].beats, skill_table[sn].min_mana);
+	fprintf(f, "%d %d %d\n", skill_table[sn].beats, skill_table[sn].min_mana, skill_table[sn].min_rating);
 
 	for (i=0; i<MAX_CLASS; i++)
 		fprintf(f, "%3d ", skill_table[sn].skill_level[i]);
 	fprintf(f, "\n");
 
+    /*
 	for (i=0; i<MAX_CLASS; i++)
 		fprintf(f, "%3d ", skill_table[sn].rating[i]);
 	fprintf(f, "\n");
+    */
 
 	for (i=0; i<MAX_CLASS; i++)
 		fprintf(f, "%3d ", skill_table[sn].cap[i]);
@@ -2461,6 +2463,7 @@ void save_skills()
 
 	for (n=0; skill_table[n].name; n++);
 
+    fprintf(f, "#VER 1\n");
 	fprintf(f, "%d %d\n", n, MAX_CLASS);
 
 	for (i=0; i<n; i++)
@@ -2503,7 +2506,7 @@ void count_stats()
 
 
 
-void load_skill(FILE *f, int cnum)
+void load_skill(FILE *f, int cnum, int version)
 {
 	char buf[81];
 	char *s;
@@ -2523,13 +2526,16 @@ void load_skill(FILE *f, int cnum)
 		sn=0;
 	}
 
-	fscanf(f, "%hd %hd", &(skill_table[sn].beats), &(skill_table[sn].min_mana));
+    fscanf(f, "%hd %hd", &(skill_table[sn].beats), &(skill_table[sn].min_mana));
+    if ( version > 0 )
+        fscanf(f, "%hd", &(skill_table[sn].min_rating));
 
 	for (i=0; i<cnum; i++)
 		fscanf(f, "%hd", &(skill_table[sn].skill_level[i]));
 
-	for (i=0; i<cnum; i++)
-		fscanf(f, "%hd", &(skill_table[sn].rating[i]));
+    if ( version == 0 )
+        for (i=0; i<cnum; i++)
+            fscanf(f, "%hd", &(skill_table[sn].rating[i]));
 
 	for (i=0; i<cnum; i++)
 		fscanf(f, "%hd", &(skill_table[sn].cap[i]));
@@ -2542,6 +2548,8 @@ void load_skills()
 {
 	FILE *f;
 	int i, n, cnum;
+    int version = 0;
+    char *word;
 
 	f = fopen(SKILL_FILE, "r");
 	if (f==NULL)
@@ -2550,10 +2558,16 @@ void load_skills()
 		exit(1);
 	}
 
+    // find version
+    if ( !strcmp(fread_word(f), "#VER") )
+        version = fread_number(f);
+    else
+        rewind(f);
+    
 	fscanf(f, "%d %d", &n, &cnum);
 
 	for (i=0; i<n; i++)
-		load_skill(f, cnum);
+        load_skill(f, cnum, version);
 
 	fclose(f);
 }
