@@ -12,7 +12,7 @@
 #include "tables.h"
 
 /* crafting area starting vnum */
-#define CRFT 10553
+#define CRFT 8600
 #define MAX_MATERIALS 4
 
 
@@ -22,9 +22,6 @@ void craft_obj_stat_caster( OBJ_DATA *obj, int ops );
 void craft_obj_roll_caster( OBJ_DATA *obj, int ops );
 void craft_obj_max_physical( OBJ_DATA *obj, int ops );
 void craft_obj_roll_physical( OBJ_DATA *obj, int ops );
-//void craft_obj_stat( OBJ_DATA *obj, int ops );
-//void craft_obj_roll( OBJ_DATA *obj, int ops );
-//void craft_obj_max( OBJ_DATA *obj, int ops );
 void add_craft_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
 void craft_obj_physical( OBJ_DATA *obj, int ops );
 void craft_obj_stat_physical( OBJ_DATA *obj, int ops );
@@ -51,10 +48,13 @@ struct materials_type materials_table[] =
     { CRFT+14, 1 }, // Steel Rivet
     { CRFT+9,  2 }, // Fastening Bolts
     { CRFT+15, 2 }, // Wire Band
+    { CRFT+53, 2 }, // Titanium Thread
     { CRFT+10, 3 }, // Mephiston's Inspiration
     { CRFT+11, 3 }, // Rynor's Creativity
     { CRFT+12, 4 }, // Bobble's Brilliance
     { CRFT+13, 4 }, // Rimbol's Strength
+    { CRFT+51, 4 }, // Vodur's Mischief
+    { CRFT+52, 4 }, // Astark's Ambition
 
     { 0, 0 }
 };
@@ -75,28 +75,42 @@ struct crafting_type crafting_table[] =
 //12  , 30      , 50    , 91    , 92      , 97
 //other possible affixes for future use: heroic, magnificent, illustrious, radiant, imperial, marvelous
     
+
+    { "sacred_sabatons",     CRFT+50, { CRFT+51, CRFT+52 },              98 }, // Astark's Ambition, Vodur's Mischief
+    { "sacred_hauberk",      CRFT+49, { CRFT+52, CRFT+13 },              98 }, // Astark's Ambition, Rimbol's Strength
+    { "sacred_greaves",      CRFT+48, { CRFT+51, CRFT+12 },              98 }, // Vodur's Mischief, Bobble's Brilliance
+    { "sacred_saber",        CRFT+54, { CRFT+14, CRFT+10, CRFT+11, },    98 }, // Steel Rivet, Mephiston's Inspiration, Rynor's Creativity
+    { "sacred_blaster",      CRFT+55, { CRFT+10, CRFT+11, CRFT+6,  },    98 }, // Adamantium Smelt, Mephiston's, Rynor's
     { "champion_gauntlets",  CRFT+42, { CRFT+12, CRFT+13 },              97 }, // Bobble's Brilliance, Rimbol's Strength
     { "champion_ring",       CRFT+41, { CRFT+8,  CRFT+10,  CRFT+13 },    97 }, // Metal Scraps, Mephiston's Inspiration, Rimbol's Strength
     { "champion_necklace",   CRFT+40, { CRFT+2,  CRFT+6,   CRFT+11 },    97 }, // Blissful Essence, Adamantium Smelt, Rynor's Creativity
     { "champion_whip",       CRFT+39, { CRFT+1,  CRFT+5,   CRFT+12 },    97 }, // Sparkling Essence, Gold Smelt, Bobble's Brilliance
     { "champion_mace",       CRFT+38, { CRFT+5,  CRFT+6,   CRFT+9  },    97 }, // Gold Smelt, Adamantium Smelt, Fastening Bolts
+    { "ornate_legplates",    CRFT+47, { CRFT+6,  CRFT+15 },              94 }, // Adamantium Smelt, Wire Band
     { "ornate_bracer",       CRFT+37, { CRFT+5,  CRFT+15 },              94 }, // Gold Smelt, Wire Band
     { "ornate_sword",        CRFT+36, { CRFT+1,  CRFT+4,   CRFT+14 },    94 }, // Sparkling Essence, Iron Smelt, Steel Rivet
     { "ornate_visor",        CRFT+35, { CRFT+5,  CRFT+9 },               94 }, // Gold Smelt, Fastening Bolts
+    { "glorious_pendant",    CRFT+46, { CRFT+15, CRFT+2 },               92 }, // Wire Band, Blissful Essence
+    { "glorious_sleeves",    CRFT+45, { CRFT+14, CRFT+54},               92 }, // Steel Rivet, Titanium Thread
     { "glorious_bracers",    CRFT+34, { CRFT+2,  CRFT+5 },               92 }, // Blissful Essence, Gold Smelt
     { "glorious_robe",       CRFT+33, { CRFT+4,  CRFT+9 },               92 }, // Iron Smelt, Fastening Bolts
     { "glorious_aura",       CRFT+32, { CRFT+0,  CRFT+1,   CRFT+2  },    92 }, // Foul Essence, Sparkling Essence, Blissful Essence
     { "glorious_boots",      CRFT+31, { CRFT+8,  CRFT+9,   CRFT+15 },    92 }, // Metal Scraps, Fastening Bolts, Wire Band
+    { "master_cuirass",      CRFT+44, { CRFT+54, CRFT+1},                91 }, // Titanium Thread, Sparkling Essence
+    { "master_girdle",       CRFT+43, { CRFT+54, CRFT+3, CRFT+0 },       91 }, // Titanium Thread, Bronze Smelt, Foul Essence
     { "master_ring",         CRFT+30, { CRFT+0,  CRFT+4,   CRFT+9  },    91 }, // Foul Essence, Iron Smelt, Fastening Bolts
     { "master_leggings",     CRFT+29, { CRFT+1,  CRFT+7,   CRFT+8  },    91 }, // Sparkling Essence, Heavy Strap, Metal Scraps
     { "master_polearm",      CRFT+28, { CRFT+3,  CRFT+4,   CRFT+14 },    91 }, // Bronze Smelt, Iron Smelt, Steel Rivet
     { "master_boots",        CRFT+27, { CRFT+0,  CRFT+7,   CRFT+9  },    91 }, // Foul Essence, Heavy Straps, Fastening Bolts
+    { "mighty_flail",        CRFT+42, { CRFT+14, CRFT+3},                50 }, // Steel Rivet, Bronze Smelt
     { "mighty_spear",        CRFT+26, { CRFT+0,  CRFT+4 },               50 }, // Foul Essence, Iron Smelt
     { "mighty_breastplate",  CRFT+25, { CRFT+1,  CRFT+8 },               50 }, // Sparkling Essence, Metal Scraps
     { "mighty_vambrace",     CRFT+24, { CRFT+3,  CRFT+7 },               50 }, // Bronze Smelt, Heavy Straps
+    { "splendid_rifle",      CRFT+41, { CRFT+4,  CRFT+8 },               30 }, // Iron Smelt, Metal Scraps
     { "splendid_shield",     CRFT+23, { CRFT+3,  CRFT+7 },               30 }, // Bronze Smelt, Heavy Straps
     { "splendid_orb",        CRFT+22, { CRFT+0,  CRFT+1 },               30 }, // Foul Essence, Sparkling Essence
     { "splendid_belt",       CRFT+21, { CRFT+7,  CRFT+8 },               30 }, // Heavy Straps, Metal Scraps
+    { "fine_dagger",         CRFT+40, { CRFT+0 },                        12 }, // Foul Essence
     { "fine_amulet",         CRFT+20, { CRFT+7 },                        12 }, // Heavy Straps
     { "fine_gloves",         CRFT+19, { CRFT+3 },                        12 }, // Bronze Smelt 
     { NULL, 0, {}, 0 }
@@ -313,6 +327,7 @@ void do_extract( CHAR_DATA *ch, char *argument)
     else
     {
         mtable  = obj->level;
+  //      int mrating = 1 + obj->pIndexData->diff_rating/2;
         mtable += ((obj->level - 90) * 3);
         mtable += obj->pIndexData->diff_rating * 2;
     }
@@ -329,105 +344,47 @@ void do_extract( CHAR_DATA *ch, char *argument)
 /* Items level 90 and below can only make items rarity 0-1 */
     if (mtable <= 90)
     {
-        if (chance2 <= 18)
+        switch (number_range(0,6))
         {
-            material = create_object(get_obj_index(10553), 0);
-        }
-        else if (chance2 > 18 && chance2 <= 36)
-        {
-            material = create_object(get_obj_index(10556), 0);
-        }
-        else if (chance2 > 36 && chance2 <= 54)
-        {
-            material = create_object(get_obj_index(10560), 0);
-        }
-        else if (chance2 > 54 && chance2 <= 65)
-        {
-            material = create_object(get_obj_index(10554), 0);
-        }
-        else if (chance2 > 65 && chance2 <= 75)
-        {
-            material = create_object(get_obj_index(10557), 0);
-        }
-        else if (chance2 > 75 && chance2 <= 88)
-        {
-            material = create_object(get_obj_index(10561), 0);
-        }
-        else if (chance2 > 88 && chance2 <= 100)
-        {
-            material = create_object(get_obj_index(10567), 0);
+            case 0: material = create_object(get_obj_index(8600), 0); break;
+            case 1: material = create_object(get_obj_index(8601), 0); break;
+            case 2: material = create_object(get_obj_index(8603), 0); break;
+            case 3: material = create_object(get_obj_index(8604), 0); break;
+            case 4: material = create_object(get_obj_index(8607), 0); break;
+            case 5: material = create_object(get_obj_index(8608), 0); break;
+            case 6: material = create_object(get_obj_index(8614), 0); break;
         }
     }
 
 
 /* level 90 - 93 items (up to rating 2) can make items from 1-2 */
-    if (mtable > 90 && mtable < 107)
+    if (mtable <= 107)
     {
-        if (chance2 <= 15)
+        switch (number_range(0,7))
         {
-            material = create_object(get_obj_index(10554), 0);
-        }
-        else if (chance2 > 15 && chance2 <= 30)
-        {
-            material = create_object(get_obj_index(10557), 0);
-        }
-        else if (chance2 > 30 && chance2 <= 45)
-        {
-            material = create_object(get_obj_index(10561), 0);
-        }
-        else if (chance2 > 45 && chance2 <= 60)
-        {
-            material = create_object(get_obj_index(10567), 0);
-        }
-        else if (chance2 > 60 && chance2 <= 70)
-        {
-            material = create_object(get_obj_index(10555), 0);
-        }
-        else if (chance2 > 70 && chance2 <= 80)
-        {
-            material = create_object(get_obj_index(10558), 0);
-        }
-        else if (chance2 > 80 && chance2 <= 90)
-        {
-            material = create_object(get_obj_index(10562), 0);
-        }
-        else if (chance2 > 90 && chance2 <= 100)
-        {
-            material = create_object(get_obj_index(10568), 0);
+            case 0: material = create_object(get_obj_index(8601), 0); break;
+            case 1: material = create_object(get_obj_index(8602), 0); break;
+            case 2: material = create_object(get_obj_index(8604), 0); break;
+            case 3: material = create_object(get_obj_index(8605), 0); break;
+            case 4: material = create_object(get_obj_index(8608), 0); break;
+            case 5: material = create_object(get_obj_index(8609), 0); break;
+            case 6: material = create_object(get_obj_index(8614), 0); break;
+            case 7: material = create_object(get_obj_index(8615), 0); break;
         }
     }
 
-
 /* level 93 (rating 3) - 95 (rating 2) items can make items from 2-3 */
-    if (mtable >= 107 && mtable <= 115)
+    if (mtable <= 115)
     {
-        if (chance2 <= 13)
+        switch (number_range(0,6))
         {
-            material = create_object(get_obj_index(10555), 0);
-        }
-        else if (chance2 > 13 && chance2 <= 26)
-        {
-            material = create_object(get_obj_index(10558), 0);
-        }
-        else if (chance2 > 26 && chance2 <= 39)
-        {
-            material = create_object(get_obj_index(10562), 0);
-        }
-        else if (chance2 > 39 && chance2 <= 54)
-        {
-            material = create_object(get_obj_index(10568), 0);
-        }
-        else if (chance2 > 54 && chance2 <= 70)
-        {
-            material = create_object(get_obj_index(10559), 0);
-        }
-        else if (chance2 > 70 && chance2 <= 85)
-        {
-            material = create_object(get_obj_index(10563), 0);
-        }
-        else if (chance2 > 85 && chance2 <= 100)
-        {
-            material = create_object(get_obj_index(10564), 0);
+            case 0: material = create_object(get_obj_index(8602), 0); break;
+            case 1: material = create_object(get_obj_index(8605), 0); break;
+            case 2: material = create_object(get_obj_index(8606), 0); break;
+            case 3: material = create_object(get_obj_index(8609), 0); break;
+            case 4: material = create_object(get_obj_index(8610), 0); break;
+            case 5: material = create_object(get_obj_index(8615), 0); break;
+            case 6: material = create_object(get_obj_index(8611), 0); break;
         }
     }
 
@@ -435,25 +392,15 @@ void do_extract( CHAR_DATA *ch, char *argument)
 /* level 95 (rating 3) - 97 (rating 5) items can make items from 3-4 */
     if (mtable >= 116)
     {
-        if (chance2 <= 15)
+        switch (number_range(0,6))
         {
-            material = create_object(get_obj_index(10559), 0);
-        }
-        else if (chance2 > 15 && chance2 <= 30)
-        {
-            material = create_object(get_obj_index(10563), 0);
-        }
-        else if (chance2 > 30 && chance2 <= 50)
-        {
-            material = create_object(get_obj_index(10564), 0);
-        }
-        else if (chance2 > 50 && chance2 <= 75)
-        {
-            material = create_object(get_obj_index(10565), 0);
-        }
-        else if (chance2 > 75 && chance2 <= 100)
-        {
-            material = create_object(get_obj_index(10566), 0);
+            case 0: material = create_object(get_obj_index(8606), 0); break;
+            case 1: material = create_object(get_obj_index(8610), 0); break;
+            case 2: material = create_object(get_obj_index(8611), 0); break;
+            case 3: material = create_object(get_obj_index(8612), 0); break;
+            case 4: material = create_object(get_obj_index(8613), 0); break;
+            case 5: material = create_object(get_obj_index(8651), 0); break;
+            case 6: material = create_object(get_obj_index(8652), 0); break;
         }
     }
 
