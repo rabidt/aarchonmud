@@ -913,10 +913,10 @@ void list_group_costs(CHAR_DATA *ch)
 
     sprintf(buf,"Creation points: %d\n\r",ch->pcdata->points);
     send_to_char(buf,ch);
-    if ( ch->pcdata->points > 50 )
+    if ( ch->pcdata->points > OPT_CP )
     {
-        send_to_char( "NOTE: You may spend up to 60 creation points, but it is recommended to safe some.\n\r", ch );
-        send_to_char( "      Unspent points convert to trains which can be used to train stats early on.\n\r", ch );
+        printf_to_char(ch, "NOTE: You may spend up to %d creation points, but it is recommended to safe some.\n\r", MAX_CP);
+        printf_to_char(ch, "      Unspent points convert to trains which can be used to train stats early on.\n\r");
     }
     return;
 }
