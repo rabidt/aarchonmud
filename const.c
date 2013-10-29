@@ -7176,18 +7176,17 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"mage default",     { -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "combat", "draconian", "focus", "scrolls", "wands", "staves" }
+    { "combat", "protective", "enhancement", "focus", "dodge", "scrolls", "wands", "staves" }
     },
 
 	{
 	"cleric default",   { -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "healing", "anatomy", "shield block" }
+    { "healing", "protective", "anatomy", "dodge", "shield block" }
     },
  
 	{
 	"thief default",    { -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "steal", "sneak", "hide", "backstab", "circle", "dual dagger",
-      "dodge", "flee", "evasion", "disarm trap", "peek", "pick lock" }
+    { "stealth", "larceny", "robbery", "dual dagger", "second attack", "dodge", "parry", "flee" }
     },
 
 	{
@@ -7510,6 +7509,21 @@ struct group_type group_table[MAX_GROUP] =
     {
         "meta magic", { -1, -1, 18, 20, -1, -1, -1, -1, -1, -1, 18, 24, -1, -1, 17 },
         { "extend spell", "empower spell", "quicken spell", "chain spell" }
-    }
+    },
+    
+    {
+        "stealth", { -1, 1, -1, -1, -1, -1, -1, 1, 1, -1, -1, 1, 1, 1, -1 },
+        { "sneak", "hide", "backstab", "circle", "slash throat", "blackjack" }
+    },
+
+    {
+        "larceny", { -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1 },
+        { "peek", "steal", "pick lock", "disarm trap" }
+    },
+
+    {
+        "robbery", { -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { "anklebiter", "bite", "trip", "disarm", "mug", "dirt kicking" }
+    },
 
 };
