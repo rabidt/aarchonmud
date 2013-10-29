@@ -266,7 +266,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Adjust the pulse numbers to suit yourself.
  */
 #define MAX_SKILL         425
-#define MAX_GROUP          77 /* accurate jan 2013 */
+#define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_ALIAS          35
 #define MAX_CLASS          15
@@ -283,7 +283,8 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_LEVEL          110
 #define MAX_STORAGE_BOX	   5
 #define MAX_QUOTES         22 /* This must equal the # of quotes you have */
-#define MAX_CP						 60
+#define MAX_CP            100 // MAX_CP - creation points = trains new char starts with
+#define OPT_CP             80 // recommended ammount of creation points
 #define MAX_ARROWS 300
 
 #define LEVEL_IMMORTAL     (MAX_LEVEL - 9)

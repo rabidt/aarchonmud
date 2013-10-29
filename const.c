@@ -7176,78 +7176,78 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"mage default",     { -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "combat", "draconian", "focus", "scrolls", "wands", "staves" }
+    { "combat", "protective", "enhancement", "focus", "dodge", "scrolls", "wands", "staves" }
     },
 
 	{
 	"cleric default",   { -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "healing", "anatomy", "shield block" }
+    { "healing", "protective", "anatomy", "dodge", "shield block" }
     },
  
 	{
 	"thief default",    { -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "steal", "sneak", "hide", "backstab", "circle", "dual dagger",
-      "dodge", "flee", "evasion", "disarm trap", "peek", "pick lock" }
+    { "stealth", "larceny", "robbery", "dual dagger", "second attack", "dodge", "parry", "flee" }
     },
 
 	{
 	"warrior default",  { 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "second attack", "third attack", "dodge", "parry", "shield block" }
+    { "weaponsmaster", "weapon styles", "second attack", "third attack", "dodge", "parry", "shield block", "guard", "war cry" }
     },
 
 	{
 	"gladiator default",  { -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "second attack", "third attack", "enhanced damage", "berserk", "headbutt" }
+    { "weaponsmaster", "weapon styles", "second attack", "third attack", "enhanced damage", "dodge", "parry" }
     },
 	
 	{
 	"samurai default",  { -1, -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1,  -1, -1, -1 },
-    { "second attack", "third attack", "dual sword", "double strike", "ashura" }
+    { "weapon styles", "second attack", "third attack", "enhanced damage", "dual sword", "dodge", "parry", "double strike" }
     },
 	
 	{
 	"paladin default",  { -1, -1, -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "second attack", "third attack", "twohand weapons", "dodge", "parry" }
+    { "sacred invocations", "second attack", "third attack", "twohand weapons", "dodge", "parry", "smite", "detect evil", "cure light" }
     },
 	
 	{
 	"assassin default",  { -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1, -1,  -1, -1, -1 },
-    { "second attack", "dual dagger", "entrapment", "sneak", "hide", "backstab", "circle", "slash throat" }
+    { "stealth", "assassination", "dual dagger", "second attack", "dodge", "parry", "entrapment" }
     },
 	
 	{
 	"ninja default",  { -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1,  -1, -1, -1 },
-    { "hand to hand", "second attack", "dual dagger", "dodge", "sneak", "hide", "backstab", "circle" }
+    { "stealth", "shadows", "illusions", "dual dagger", "second attack", "dodge", "parry", "flee", "distract" }
     },
 	
 	{
 	"monk default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1,  -1, -1, -1 },
-    { "kick", "chop", "kung fu", "second attack", "dodge", "evasive action", "sustenance", "meditation" }
+    { "martial arts", "benedictions", "second attack", "toad", "sustenance", "cure light" }
     },
 	
 	{
 	"templar default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1,  -1, -1, -1 },
-	{ "combat", "healing" }
+	{ "combat", "healing", "holy war", "dodge", "shield block", "meditation" }
     },
 	
 	{
 	"illusionist default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1 },
-    { "combat", "illusions", "advanced illusions", "dodge", "scrolls" }
+    { "combat", "illusions", "advanced illusions", "protective", "dodge", "scrolls", "wands", "staves" }
     },
 		
 	{
 	"gunslinger default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1 },
-    { "second attack", "burst", "sharp shooting", "tight grouping", "dual gun", "drunken fury" }
+    { "warfare", "practical shooting", "second attack", "tight grouping", "dual gun", "dodge",
+      "endurance", "showdown" }
     },
 
 	{
 	"ranger default",  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, -1 },
-    { "gaia magics", "second attack", "dual axe", "bow", "fledging", "enchant arrow", "hunt" }
+    { "nordic styles", "gaia magics", "enhancement", "second attack", "dual axe", "dodge", "bow", "fledging", "enchant arrow", "firstaid", "hunt" }
     },
 	   
 	{
 	"necromancer default",     { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50 },
-    { "necromancy", "dark rituals", "enhancement", "puppetry" }
+    { "necromancy", "protective", "enhancement", "puppetry", "dodge", "taxidermy" }
     },
 
 	{
@@ -7510,6 +7510,21 @@ struct group_type group_table[MAX_GROUP] =
     {
         "meta magic", { -1, -1, 18, 20, -1, -1, -1, -1, -1, -1, 18, 24, -1, -1, 17 },
         { "extend spell", "empower spell", "quicken spell", "chain spell" }
-    }
+    },
+    
+    {
+        "stealth", { -1, 1, -1, -1, -1, -1, -1, 1, 1, -1, -1, 1, 1, 1, -1 },
+        { "sneak", "hide", "backstab", "circle", "slash throat", "blackjack" }
+    },
+
+    {
+        "larceny", { -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1 },
+        { "peek", "steal", "pick lock", "disarm trap" }
+    },
+
+    {
+        "robbery", { -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+        { "anklebiter", "bite", "trip", "disarm", "mug", "dirt kicking" }
+    },
 
 };
