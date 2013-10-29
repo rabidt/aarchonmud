@@ -1826,7 +1826,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    ch->move    = ch->max_move;
 	    ch->silver  = 50;
 
-        ch->train = 70 - ch->pcdata->points;
+        ch->train = MAX_CP - ch->pcdata->points;
 	    ch->practice = 5;
 
 	    SET_BIT(ch->act, PLR_AUTOEXIT);
