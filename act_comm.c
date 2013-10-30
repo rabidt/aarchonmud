@@ -2225,7 +2225,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         is_affected(gch, gsn_giant_strength) ? 'G' : 'g',
         is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? 'B' : 'b',
         is_affected(gch, gsn_war_cry)        ? 'W' : 'w', */
-        (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1)*exp_per_level(gch,gch->pcdata->points)-gch->exp
+        (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1) * exp_per_level(gch) - gch->exp
     );
     send_to_char( buf, ch );
 }

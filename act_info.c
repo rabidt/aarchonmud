@@ -4187,11 +4187,6 @@ void do_lore ( CHAR_DATA *ch, char *argument )
 
     if (!op_percent_trigger( obj, NULL, ch, NULL, OTRIG_LORE) )
         return;
-    /*
-    check_improve(ch,gsn_lore,FALSE,2);
-    if ( weapon )
-	check_improve(ch,gsn_weapons_lore,FALSE,2);
-    */
 
     /* ok, he knows something.. */
     say_basic_obj_index_data( ch, org_obj );
@@ -4231,15 +4226,28 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     */
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     if ( IS_NPC(ch) )
 	return; // prevent easy learning by spamming sage
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-	if ( IS_NPC(rch) || !IS_AWAKE(rch) || rch == ch )
+	if ( IS_NPC(rch) || !IS_AWAKE(rch) )
 	    continue;
-	check_improve( rch, gsn_lore, 2, TRUE );
-	if ( weapon )
-	    check_improve( rch, gsn_weapons_lore, 2, TRUE );
+        else
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
+                if ( weapon )
+                    check_improve(ch, gsn_weapons_lore, 5, TRUE);
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+        }
     }
 }
 
@@ -5080,7 +5088,7 @@ void do_worth( CHAR_DATA *ch, char *argument )
     if ( !IS_HERO(ch) )
     {
         sprintf( temp, " (%d exp to reach lvl %d)",
-            (ch->level + 1) * exp_per_level(ch, ch->pcdata->points) - ch->exp, ch->level + 1 );
+            (ch->level + 1) * exp_per_level(ch) - ch->exp, ch->level + 1 );
         strcat( buf, temp );
     }
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
@@ -5828,7 +5836,7 @@ void do_oldworth( CHAR_DATA *ch, char *argument )
     if ( !IS_NPC(ch) && !IS_HERO(ch) )
     {
         sprintf( buf, "Exp to level: %d\n\r",
-            (ch->level + 1) * exp_per_level(ch, ch->pcdata->points) - ch->exp);
+            (ch->level + 1) * exp_per_level(ch) - ch->exp);
         add_buf(output, buf);
     }
     sprintf(buf, "Quest Points: %d\n\r", ch->pcdata->questpoints);
