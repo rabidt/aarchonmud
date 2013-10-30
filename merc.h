@@ -317,7 +317,7 @@ bool is_questeq( OBJ_DATA *obj );
 #ifdef TESTER
 #define MAX_REMORT 8
 #else
-#define MAX_REMORT 7 
+#define MAX_REMORT 8 
 #endif
 /* version numbers for downward compatibility
  */
