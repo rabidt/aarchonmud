@@ -3279,6 +3279,9 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
 
     mob->position = mob->start_pos;    
     
+    /* a little setup for mprogs */
+    mob_prog_setup(mob);
+
     /* link the mob to the world list */
     mob->next       = char_list;
     char_list       = mob;
