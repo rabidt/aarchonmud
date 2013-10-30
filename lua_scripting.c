@@ -521,6 +521,57 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
+static int L_env_delay (lua_State *LS)
+{
+    /* 1 should be env table
+       2 should be seconds 
+       3 should be function*/
+
+    luaL_checktype( LS, 1, LUA_TTABLE);
+    int val=luaL_checkint( LS, 2 );
+    luaL_checktype( LS, 3, LUA_TFUNCTION);
+
+    lua_pushvalue( LS, 1);
+    lua_setfenv( LS, 3 ); /*pops -1*/
+
+    lua_getglobal( LS, "delaytbl"); /*4*/
+    void *tmr=register_lua_timer( val );
+    lua_pushlightuserdata( LS, tmr);
+    lua_pushvalue( LS, 3 );
+    lua_settable( LS, -3 );
+
+    /*delaytbl is -1 again */
+    return 0;
+}
+
+void run_delayed_function( void *tmr )
+{
+    lua_getglobal( g_mud_LS, "delaytbl");
+    if (lua_isnil( g_mud_LS, -1) )
+    {
+        bugf("run_delayed_function: couldn't find delaytbl");
+        return;
+    }
+
+    lua_pushlightuserdata( g_mud_LS, tmr );
+    lua_gettable( g_mud_LS, -2 );
+
+    if (lua_isnil( g_mud_LS, -1) )
+    {
+        bugf("Didn't find entry in delaytbl");
+        return;
+    }
+
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    {
+        bugf ( "Error running delayed function:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        return;
+    }
+
+    return;
+}
+
 static int L_god_bless (lua_State *LS)
 {
     CHECK_SECURITY(LS, MAX_LUA_SECURITY);
@@ -3384,8 +3435,14 @@ static const struct luaL_reg RESET_metatable [] =
 
 void RegisterGlobalFunctions(lua_State *LS)
 {
+    /* These are registed in the main script
+       space then the appropriate ones are 
+       exposed to scripts in main_lib */
     /* checks */
     lua_register(LS,"hour",        L_hour);
+
+    /* env lib stuff */
+    lua_register(LS,"env_delay",   L_env_delay); 
 
     /* other */
     lua_register(LS,"getroom",     L_getroom);

@@ -9,6 +9,7 @@ udtbl={} -- used to store game object tables, (read only proxies to origtbl)
 envtbl={} -- game object script environments
 origtbl={} -- where the REAL ud tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
+delaytbl={} -- used on the C side mostly
 
 function UdCnt()
     local cnt=0
@@ -277,6 +278,7 @@ function ProtectLib(lib)
 end
 main_lib=ProtectLib(main_lib)
 
+
 -- First look for main_lib funcs, then mob/area/obj funcs
 -- (providing env as argument)
 CH_env_meta={
@@ -288,6 +290,11 @@ CH_env_meta={
                         table.insert(arg, 1, tbl.mob)
                         return tbl.mob[key](unpack(arg)) 
                    end
+        elseif key=="delay" then
+            return  function(...)
+                        table.insert(arg, 1, tbl)
+                        return env_delay(unpack(arg))
+                    end
         end
     end
 }
@@ -400,8 +407,6 @@ function run_lua_interpret(env, str )
     if not(f) then
         -- Check if incomplete, same way the real cli checks
         local ss,sf=string.find(err, "<eof>")
-        print(sf)
-        print(err:len())
         if sf==err:len()-1 then
             return 1 -- incomplete
         else

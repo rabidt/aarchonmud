@@ -295,11 +295,11 @@ bool is_questeq( OBJ_DATA *obj );
 #define PULSE_VIOLENCE        ( 3 * PULSE_PER_SECOND)
 #define PULSE_MOBILE          ( 4 * PULSE_PER_SECOND)
 #define PULSE_MOBILE_SPECIAL  ( 1 * PULSE_PER_SECOND)
-#define PULSE_MUSIC       ( 6 * PULSE_PER_SECOND)
 #define PULSE_TICK        (30 * PULSE_PER_SECOND)
 #define PULSE_AREA        (120 * PULSE_PER_SECOND)
 #define PULSE_SAVE            ( 2 * PULSE_PER_SECOND )
 #define PULSE_HERB            ( 15 * 60 * PULSE_PER_SECOND )
+#define PULSE_TIMER_TRIG      ( PULSE_PER_SECOND )
 #define PULSE_PER_MINUTE	( 60 * PULSE_PER_SECOND )
 /* #define PULSE_HERB            ( 15 * PULSE_PER_SECOND ) */
 
@@ -2581,6 +2581,8 @@ struct  char_data
 	int	mana_used;
 	int	moves_used;
 	#endif
+
+    void *trig_timer; /* should not be touched except in timer.c */
 };
 
 
