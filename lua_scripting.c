@@ -521,70 +521,80 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
-static int L_env_delay (lua_State *LS)
+static int L_ch_delay (lua_State *LS)
 {
-    /* 1 should be env table
-       2 should be seconds 
-       3 should be function*/
-
-    luaL_checktype( LS, 1, LUA_TTABLE);
+    CHAR_DATA *ud_ch=check_CH( LS, 1 );
     int val=luaL_checkint( LS, 2 );
     luaL_checktype( LS, 3, LUA_TFUNCTION);
 
-    lua_pushvalue( LS, 1);
-    lua_setfenv( LS, 3 ); /*pops -1*/
-
-    lua_getglobal( LS, "delaytbl"); /*4*/
+    lua_getglobal( LS, "delaytbl");
     void *tmr=register_lua_timer( val );
-    lua_pushlightuserdata( LS, tmr);
+    lua_pushlightuserdata( LS, tmr); 
+    lua_newtable( LS );
+ 
+    lua_pushliteral( LS, "tableid");
+    lua_pushlightuserdata( LS, (void *)ud_ch);
+    lua_settable( LS, -3 );
+
+    
+    lua_pushliteral( LS, "func");
     lua_pushvalue( LS, 3 );
     lua_settable( LS, -3 );
 
-    /*delaytbl is -1 again */
+    lua_settable( LS, -3 );
+
+    return 0;
+}
+
+static int L_rundelay( lua_State *LS)
+{
+    void *tmr=luaL_checkudata( LS, 1, UD_META );
+
+    lua_getglobal( LS, "delaytbl"); /*2*/
+    if (lua_isnil( LS, -1) )
+    {
+        luaL_error( LS, "run_delayed_function: couldn't find delaytbl");
+    }
+
+    lua_pushlightuserdata( LS, tmr );
+    lua_gettable( LS, -2 ); /* pops key */ /*3*/
+
+    if (lua_isnil( LS, -1) )
+    {
+        luaL_error( LS, "Didn't find entry in delaytbl");
+    }
+    /* check if the game object is still valid */
+    lua_getglobal( LS, UD_TABLE_NAME);/*4*/
+    lua_getfield( LS, -2, "tableid");
+    lua_gettable( LS, -2 ); /* pops key */ /*5*/
+
+    if (lua_isnil( LS, -1) )
+    {
+        /* exit silently */
+        return 0;
+    }
+
+    lua_pop( LS, 2 );
+
+    lua_getfield( LS, -1, "func"); 
+
+    lua_call( LS, 0, 0);
+
     return 0;
 }
 
 void run_delayed_function( void *tmr )
 {
-    lua_getglobal( g_mud_LS, "delaytbl");
-    if (lua_isnil( g_mud_LS, -1) )
-    {
-        bugf("run_delayed_function: couldn't find delaytbl");
-        lua_settop( g_mud_LS, 0);
-        return;
-    }
-
+    lua_pushcfunction( g_mud_LS, L_rundelay );
     lua_pushlightuserdata( g_mud_LS, tmr );
-    lua_gettable( g_mud_LS, -2 );
 
-    if (lua_isnil( g_mud_LS, -1) )
-    {
-        bugf("Didn't find entry in delaytbl");
-        lua_settop( g_mud_LS, 0);
-        return;
-    }
-    /* check if the env is still valid */
-    lua_getfenv( g_mud_LS, -1);
-    lua_getfield( g_mud_LS, -1, "udid");
-    if (lua_isnil( g_mud_LS, -1))
-    {
-        bugf("It died");
-        lua_settop( g_mud_LS, 0);
-        return;
-    }
-    lua_pop(g_mud_LS, 2);
-
-
-    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    if (CallLuaWithTraceBack( g_mud_LS, 1, 0) )
     {
         bugf ( "Error running delayed function:\n %s",
                 lua_tostring(g_mud_LS, -1));
-        lua_settop( g_mud_LS, 0);
         return;
     }
 
-    lua_settop( g_mud_LS, 0);
-    return;
 }
 
 static int L_god_bless (lua_State *LS)
@@ -2444,6 +2454,7 @@ static const struct luaL_reg CH_lib [] =
     {"loadtbl", L_ch_loadtbl},
     {"tprint", L_ch_tprint},
     {"olc", L_ch_olc},
+    {"delay", L_ch_delay},
     {NULL, NULL}
 };
 
@@ -3455,9 +3466,6 @@ void RegisterGlobalFunctions(lua_State *LS)
        exposed to scripts in main_lib */
     /* checks */
     lua_register(LS,"hour",        L_hour);
-
-    /* env lib stuff */
-    lua_register(LS,"env_delay",   L_env_delay); 
 
     /* other */
     lua_register(LS,"getroom",     L_getroom);
