@@ -1395,11 +1395,8 @@ bool	gen_groups ( DESCRIPTOR_DATA *d, char *argument )
 	{
 		sprintf(buf,"     {cYou have used %d creation points,{x\n\r",ch->pcdata->points);
 		send_to_char(buf,ch);
-		sprintf(buf,"     {cso your experience per level is %d.{x\n\r",
-				exp_per_level(ch,ch->gen_data->points_chosen));
 		free_gen_data(ch->gen_data);
 		ch->gen_data = NULL;
-		send_to_char(buf,ch);
 		return TRUE;
 	}
 
@@ -1819,7 +1816,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	if ( ch->level == 0 )
 	{
 	    ch->level   = 1;
-	    ch->exp     = exp_per_level(ch,ch->pcdata->points);
+	    ch->exp     = exp_per_level(ch);
 	    ch->pcdata->highest_level = 1;
 
 	    update_perm_hp_mana_move(ch);
@@ -1829,9 +1826,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    ch->move    = ch->max_move;
 	    ch->silver  = 50;
 
-	    if (ch->pcdata->points < 50)
-		ch->train = (91 - ch->pcdata->points) / 2;
-	    else  ch->train    = 20;
+        ch->train = MAX_CP - ch->pcdata->points;
 	    ch->practice = 5;
 
 	    SET_BIT(ch->act, PLR_AUTOEXIT);

@@ -1256,6 +1256,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -5100,7 +5102,7 @@ void death_penalty( CHAR_DATA *ch )
     }
     
     /* experience penalty - 2/3 way back to previous level. */
-    curr_level_exp = exp_per_level(ch, ch->pcdata->points) * ch->level;
+    curr_level_exp = exp_per_level(ch) * ch->level;
     if ( ch->exp > curr_level_exp )
         gain_exp( ch, (curr_level_exp - ch->exp) * 2/3 );
     
