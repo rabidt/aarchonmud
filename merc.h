@@ -3132,6 +3132,7 @@ struct  group_type
 #define TRIG_MPCNT  (W)
 #define TRIG_SPELL  (X)
 #define TRIG_CALL   (Y) /* not settable */ 
+#define TRIG_TIMER  (Z)
 
 /*
  * OBJprog definitions
