@@ -2328,6 +2328,7 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     if ( fPull )
     {
         unregister_lua( ch ); /* always unregister even if delaying actual extract */
+        unregister_CH_timer( ch );
         if (g_LuaScriptInProgress || is_mprog_running())
         {
             ch->must_extract=TRUE;

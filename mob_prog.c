@@ -1616,9 +1616,29 @@ void mp_mprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	{
         char buf[MSL];
         sprintf(buf, "%d", (100 * mob->mana / mob->max_mana) );
-        program_flow( buf, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL, 0, NULL, 0, TRIG_MPCNT, prg->script->security );
+        program_flow( buf, prg->script->is_lua, 
+                prg->vnum, prg->script->code, 
+                mob, ch, NULL, 0, NULL, 0, TRIG_MPCNT, 
+                prg->script->security );
 	    break;
 	}
+}
+
+void mp_timer_trigger( CHAR_DATA *mob )
+{
+    MPROG_LIST *prg;
+
+    for ( prg=mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
+    {
+        if (prg->trig_type == TRIG_TIMER)
+        {
+            program_flow( NULL, prg->script->is_lua, 
+                    prg->vnum, prg->script->code, 
+                    mob, NULL, NULL, 0, NULL, 0, TRIG_TIMER, 
+                    prg->script->security );
+            return;
+        }
+    }
 }
 
 
@@ -1655,8 +1675,6 @@ bool mp_try_trigger( char* argument, CHAR_DATA *ch )
   return found;
 }
 
-
-
 /* returns if the mob is in a valid state for being triggered */
 bool can_trigger( CHAR_DATA *mob, int trigger )
 {
@@ -1689,3 +1707,27 @@ bool has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum )
     }
     return FALSE;
 }
+
+void mob_prog_setup( CHAR_DATA *mob)
+{
+    /* Set up timer stuff, may add other setups later */
+    if (HAS_TRIGGER(mob, TRIG_TIMER))
+    {
+        MPROG_LIST *prg;
+        for ( prg = mob->pIndexData->mprogs; prg; prg= prg->next )
+        {
+            if ( prg->trig_type == TRIG_TIMER )
+            {
+                if (!is_number(prg->trig_phrase))
+                {
+                    bugf("Bad timer phrase for %d: %s, must be number.", 
+                            mob->pIndexData->vnum, prg->trig_phrase);
+                    return;
+                }
+                register_CH_timer( mob, atoi(prg->trig_phrase));
+                return; /* only one allowed */
+            }
+        }
+    }
+}
+
