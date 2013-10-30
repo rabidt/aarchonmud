@@ -550,6 +550,7 @@ void run_delayed_function( void *tmr )
     if (lua_isnil( g_mud_LS, -1) )
     {
         bugf("run_delayed_function: couldn't find delaytbl");
+        lua_settop( g_mud_LS, 0);
         return;
     }
 
@@ -559,16 +560,30 @@ void run_delayed_function( void *tmr )
     if (lua_isnil( g_mud_LS, -1) )
     {
         bugf("Didn't find entry in delaytbl");
+        lua_settop( g_mud_LS, 0);
         return;
     }
+    /* check if the env is still valid */
+    lua_getfenv( g_mud_LS, -1);
+    lua_getfield( g_mud_LS, -1, "udid");
+    if (lua_isnil( g_mud_LS, -1))
+    {
+        bugf("It died");
+        lua_settop( g_mud_LS, 0);
+        return;
+    }
+    lua_pop(g_mud_LS, 2);
+
 
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
     {
         bugf ( "Error running delayed function:\n %s",
                 lua_tostring(g_mud_LS, -1));
+        lua_settop( g_mud_LS, 0);
         return;
     }
 
+    lua_settop( g_mud_LS, 0);
     return;
 }
 
