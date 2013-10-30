@@ -360,7 +360,7 @@ void do_extract( CHAR_DATA *ch, char *argument)
 /* level 90 - 93 items (up to rating 2) can make items from 1-2 */
     if (mtable <= 107)
     {
-        switch (number_range(0,7))
+        switch (number_range(0,8))
         {
             case 0: material = create_object(get_obj_index(8601), 0); break;
             case 1: material = create_object(get_obj_index(8602), 0); break;
@@ -370,13 +370,14 @@ void do_extract( CHAR_DATA *ch, char *argument)
             case 5: material = create_object(get_obj_index(8609), 0); break;
             case 6: material = create_object(get_obj_index(8614), 0); break;
             case 7: material = create_object(get_obj_index(8615), 0); break;
+            case 8: material = create_object(get_obj_index(8653), 0); break;
         }
     }
 
 /* level 93 (rating 3) - 95 (rating 2) items can make items from 2-3 */
     if (mtable <= 115)
     {
-        switch (number_range(0,6))
+        switch (number_range(0,7))
         {
             case 0: material = create_object(get_obj_index(8602), 0); break;
             case 1: material = create_object(get_obj_index(8605), 0); break;
@@ -385,6 +386,7 @@ void do_extract( CHAR_DATA *ch, char *argument)
             case 4: material = create_object(get_obj_index(8610), 0); break;
             case 5: material = create_object(get_obj_index(8615), 0); break;
             case 6: material = create_object(get_obj_index(8611), 0); break;
+            case 7: material = create_object(get_obj_index(8653), 0); break;
         }
     }
 
