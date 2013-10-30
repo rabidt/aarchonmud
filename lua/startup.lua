@@ -294,11 +294,6 @@ CH_env_meta={
                         table.insert(arg, 1, tbl.mob)
                         return tbl.mob[key](unpack(arg)) 
                    end
-        elseif key=="delay" then
-            return  function(...)
-                        table.insert(arg, 1, tbl)
-                        return env_delay(unpack(arg))
-                    end
         end
     end
 }
