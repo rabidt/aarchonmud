@@ -926,6 +926,9 @@ void mobile_update( void )
             }
         }
 
+        /* set up timer if not already running */
+        check_trig_timer( ch ); 
+
         /* This if check was added to make mobs that were recently disarmed
            have a chance to re-equip their weapons. The mobile_update gets
            called pretty frequently, and this check will make sure the mobs

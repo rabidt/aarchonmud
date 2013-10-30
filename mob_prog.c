@@ -1708,10 +1708,10 @@ bool has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum )
     return FALSE;
 }
 
-void mob_prog_setup( CHAR_DATA *mob)
+void check_trig_timer( CHAR_DATA *mob)
 {
-    /* Set up timer stuff, may add other setups later */
-    if (HAS_TRIGGER(mob, TRIG_TIMER))
+    /* Set up timer stuff if not already */
+    if (HAS_TRIGGER(mob, TRIG_TIMER) && !mob->trig_timer)
     {
         MPROG_LIST *prg;
         for ( prg = mob->pIndexData->mprogs; prg; prg= prg->next )
