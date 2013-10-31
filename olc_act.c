@@ -774,6 +774,8 @@ AEDIT ( aedit_addaprog )
     SET_BIT(pArea->aprog_flags,value);
     list->next            = pArea->aprogs;
     pArea->aprogs          = list;
+    
+    aprog_setup( pArea );
 
     send_to_char( "Aprog Added.\n\r",ch);
     return TRUE;

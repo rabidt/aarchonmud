@@ -797,6 +797,13 @@ void boot_db()
         load_portal_list();
 
     }
+
+    /* do aprog setup for areas */
+    AREA_DATA *area;
+    for ( area=area_first; area ; area=area->next )
+    {
+        aprog_setup( area );
+    }
     
     // start checking for memory leaks now that we're ready
     reset_str_dup();

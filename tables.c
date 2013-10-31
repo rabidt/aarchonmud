@@ -563,6 +563,7 @@ const struct flag_type aprog_flags[] =
     {   "unvoid",       ATRIG_UNVOID,    TRUE    },
     {   "recall",       ATRIG_RECALL,    TRUE    },
     {   "call",         ATRIG_CALL,      FALSE   },
+    {   "timer",        ATRIG_TIMER,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
