@@ -766,6 +766,12 @@ AEDIT ( aedit_addaprog )
         return FALSE;
     }
 
+    if ( value==ATRIG_TIMER && IS_SET( pArea->aprogs, value ) )
+    {
+        send_to_char("Can only have one timer trigger.\n\r", ch );
+        return FALSE;
+    }
+
     list                  = new_aprog();
     list->vnum            = atoi(num);
     list->trig_type       = value;
@@ -3519,6 +3525,12 @@ OEDIT ( oedit_addoprog )
     if ( ( code =get_oprog_index (atoi(num) ) ) == NULL)
     {
         send_to_char("No such OBJProgram.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( value == OTRIG_TIMER && IS_SET( pObj->oprog_flags, value ) )
+    {
+        send_to_char("Can only have one timer trigger.\n\r", ch);
         return FALSE;
     }
 
@@ -6304,6 +6316,12 @@ MEDIT ( medit_addmprog )
     if ( ( code =get_mprog_index (atoi(num) ) ) == NULL)
     {
         send_to_char("No such MOBProgram.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( value == TRIG_TIMER  && IS_SET(pMob->mprog_flags, value) )
+    {
+        send_to_char("Can only have one timer trigger.\n\r", ch);
         return FALSE;
     }
     
