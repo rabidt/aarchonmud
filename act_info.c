@@ -6254,6 +6254,12 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
     int curr_wield = 0;
     int sugg_wield;
 
+    if (ch->level > 90)
+    {
+        send_to_char("This command doesn't provide information for heroes\n\r", ch);
+        return;
+    }
+
     /* First lets find where in the table the player is at */
     for ( i = 0 ; eq_data[i].area_name != NULL; i++ )
     {
@@ -6287,29 +6293,42 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
     sugg_wield = ch->level;
     
     /* Lets figure out the difference */
+
     diff = sugg_eq - curr_eq;
     int diff_percent = (200 * curr_eq + 1) / (sugg_eq * 2);
     int diff_percent2 = 100 - diff_percent;
 
     /* This is a test function to confirm our information 
-    sprintf(buf,"I_value=%d, Table_value=%d, curr_eq=%d, sugg_eq=%d, difference=%d (%d%% of suggested, or %d%% weaker than suggested)\n\r\n\r", 
-        i, eq_data[i].lvl, curr_eq, sugg_eq, diff, diff_percent, diff_percent2);
+    sprintf(buf,"I_value=%d, Table_value=%d, curr_eq=%d, sugg_eq=%d, 
+        difference=%d (%d%% of suggested, or %d%% weaker than suggested)\n\r\n\r", 
+            i, eq_data[i].lvl, curr_eq, sugg_eq, diff, diff_percent, diff_percent2);
     send_to_char(buf,ch); */
 
+
     /* Now lets print the information to see our progress */
+
     printf_to_char(ch,"%s, you {R%s{x \n\r", ch->name, 
-        diff_percent2 >= 20 ? "could use an equipment upgrade" : "have equipment that suits your level");
+        diff_percent2 >= 20 ? "could use an equipment upgrade" : 
+            "have equipment that suits your level");
+
     printf_to_char(ch,"{yYour equipment is {R%d%%{y %s than expected for your level.{x\n\r", 
         diff_percent2 < 0 ? diff_percent2 *= -1 : diff_percent2,
         diff_percent2 < 0 ? "stronger" : "weaker" );
+
+
+    /* If the player has a weapon equipped we will tell them if it needs 
+       improving. If not, we ignore this piece (i.e Monks) */
 
     if (wield == TRUE)
         if ((sugg_wield - curr_wield) > 5)
             printf_to_char(ch,"Your weapon is also %d levels below your current level.\n\r", sugg_wield - curr_wield);
 
+
+    /* Only telling the player they need better equipment doesn't help much.
+       We will tell them where to find it */
+
     if (diff_percent2 >= 20)
        printf_to_char(ch,"You can find better equipment at %s\n\r", eq_data[i].area_name);
-
     
 }
 
