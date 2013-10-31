@@ -216,7 +216,7 @@ void timer_update()
                             if (IS_VALID(obj))
                             {
                                 obj->otrig_timer=NULL;
-                                check_otrig_timer( obj );
+                                oprog_timer_init( obj );
                             }
                             break;
                         default:
