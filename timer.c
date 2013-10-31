@@ -2,11 +2,10 @@
 /* Written by Vodur for Aarchon MUD
    Clayton Richey, clayton.richey@gmail.com
    */
-
-#include "timer.h"
 #include <time.h>
 #include <stdio.h>
 #include "merc.h"
+#include "timer.h"
 
 #define TYPE_UNDEFINED 0
 #define TYPE_CH 1
@@ -17,7 +16,7 @@
 #define TM_PROG      1
 #define TM_LUAFUNC   2
 
-typedef struct timer_node
+struct timer_node
 {
     struct timer_node *next;
     struct timer_node *prev;
@@ -26,24 +25,21 @@ typedef struct timer_node
     int go_type;
     int current; /* current val that gets decremented each second */
     bool unregistered; /* to mark for deletion */
-} TIMER_NODE;
+};
 
 
 TIMER_NODE *first_timer=NULL;
 
-
+static void add_timer( TIMER_NODE *tmr);
 static void free_timer_node( TIMER_NODE *tmr);
 static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int max );
-
+static void print_timer_list();
 
 void * register_lua_timer( int value)
 {
     TIMER_NODE *tmr=new_timer_node( NULL , TYPE_UNDEFINED, TM_LUAFUNC, value );
-    if (first_timer)
-        first_timer->prev=tmr;
-    tmr->next=first_timer;
-        first_timer=tmr;
-
+    add_timer(tmr);
+    
     return (void *)tmr;
 }
 
@@ -58,15 +54,41 @@ void * register_CH_timer( CHAR_DATA *ch, int max )
     }
 
     TIMER_NODE *tmr=new_timer_node( (void *)ch, TYPE_CH, TM_PROG, max);
-    
-    if (first_timer)
-        first_timer->prev=tmr;
-    tmr->next=first_timer;
-    first_timer=tmr;
+
+    add_timer(tmr);
 
     ch->trig_timer=(void *)tmr;
 
     return (void *)tmr;
+
+}
+
+/* register on the list and also return a pointer to the node
+   in the form of void */
+void * register_OBJ_timer( OBJ_DATA *obj, int max )
+{
+    if ( obj->otrig_timer)
+    {
+        bugf("Tying to register timer for %s but already registered.", obj->name);
+        return NULL;
+    }
+
+    TIMER_NODE *tmr=new_timer_node( (void *)obj, TYPE_OBJ, TM_PROG, max);
+
+    add_timer(tmr);
+
+    obj->otrig_timer=(void *)tmr;
+
+    return (void *)tmr;
+
+}
+
+static void add_timer( TIMER_NODE *tmr)
+{
+    if (first_timer)
+        first_timer->prev=tmr;
+    tmr->next=first_timer;
+    first_timer=tmr;
 
 }
 
@@ -76,7 +98,7 @@ static void remove_timer( TIMER_NODE *tmr )
         tmr->prev->next=tmr->next;
     if ( tmr->next)
         tmr->next->prev=tmr->prev;
-    if ( tmr=first_timer )
+    if ( tmr==first_timer )
         first_timer=tmr->next;
 
     free_timer_node(tmr);
@@ -144,6 +166,7 @@ void timer_update()
 {
     TIMER_NODE *tmr, *tmr_next;
     CHAR_DATA *ch;
+    OBJ_DATA *obj;
 
     for (tmr=first_timer ; tmr ; tmr=tmr_next)
     {
@@ -179,7 +202,21 @@ void timer_update()
                             if (IS_VALID(ch))
                             {
                                 ch->trig_timer=NULL;
-                                check_trig_timer( (CHAR_DATA *)(tmr->game_obj));
+                                mprog_timer_init( ch );
+                            }
+                            break;
+                        case TYPE_OBJ:
+                            obj=(OBJ_DATA *)(tmr->game_obj);
+                            if (!IS_VALID(obj))
+                            {
+                                bugf("timer_update: invalid obj %s", obj->name);
+                                break;
+                            }
+                            op_timer_trigger( obj );
+                            if (IS_VALID(obj))
+                            {
+                                obj->otrig_timer=NULL;
+                                check_otrig_timer( obj );
                             }
                             break;
                         default:
@@ -199,3 +236,19 @@ void timer_update()
     }
 }
 
+static void print_timer_list()
+{
+    TIMER_NODE *tmr;
+    int i=1;
+    for ( tmr=first_timer; tmr; tmr=tmr->next )
+    {
+        bugf("%d %s", i,
+            tmr->tm_type == TM_LUAFUNC ? "luafunc" :
+            tmr->go_type == TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
+            tmr->go_type == TYPE_OBJ ? ((OBJ_DATA *)(tmr->game_obj))->name :
+            "unknown");
+        i++;
+    }
+    return;
+
+}
