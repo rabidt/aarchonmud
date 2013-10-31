@@ -6236,7 +6236,7 @@ const struct newbie_data eq_data[] =
     { 63, "Princess Bride"                                                  },
     { 70, "Abyss (ask for help)"                                            },
     { 75, "Spacehulk"                                                       },
-    { 81, "Battlelords (The gear with colors)"                              },
+    { 81, "Battlelords (The equipment with colored names is level 81)"      },
     { 85, "Angel's Heaven"                                                  },
     { 90, "Mortal Kombat"                                                   },
     {  0, NULL                                                              }
@@ -6251,7 +6251,8 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
     int sugg_eq;
     int diff;
     int i;
-    int wieldlvl = 0;
+    int curr_wield = 0;
+    int sugg_wield;
 
     /* First lets find where in the table the player is at */
     for ( i = 0 ; eq_data[i].area_name != NULL; i++ )
@@ -6275,7 +6276,7 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
         if ( obj->wear_loc == WEAR_WIELD)
         {
             wield = TRUE;
-            wieldlvl = obj->level;
+            curr_wield = obj->level;
         }
     }
 
@@ -6283,6 +6284,7 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
        the power of the suggested EQ */
 
     sugg_eq = 16 * eq_data[i].lvl;
+    sugg_wield = ch->level;
     
     /* Lets figure out the difference */
     diff = sugg_eq - curr_eq;
@@ -6302,10 +6304,11 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
         diff_percent2 < 0 ? "stronger" : "weaker" );
 
     if (wield == TRUE)
-    
+        if ((sugg_wield - curr_wield) > 5)
+            printf_to_char(ch,"Your weapon is also %d levels below your current level.\n\r", sugg_wield - curr_wield);
 
     if (diff_percent2 >= 20)
-       printf_to_char(ch,"You can find better equipment at '%s'\n\r", eq_data[i].area_name);
+       printf_to_char(ch,"You can find better equipment at %s\n\r", eq_data[i].area_name);
 
     
 }
