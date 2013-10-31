@@ -1708,7 +1708,7 @@ bool has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum )
     return FALSE;
 }
 
-void check_trig_timer( CHAR_DATA *mob)
+void mprog_timer_init( CHAR_DATA *mob)
 {
     /* Set up timer stuff if not already */
     if (HAS_TRIGGER(mob, TRIG_TIMER) && !mob->trig_timer)
@@ -1731,3 +1731,8 @@ void check_trig_timer( CHAR_DATA *mob)
     }
 }
 
+void mprog_setup( CHAR_DATA *mob)
+{
+    /* initialize timer, may add more setup steps later */
+    mprog_timer_init( mob );
+}

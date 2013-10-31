@@ -157,3 +157,42 @@ void op_greet_trigger( CHAR_DATA *ch )
         }
     }
 }
+
+void op_timer_trigger( OBJ_DATA *obj )
+{
+    OPROG_LIST *prg;
+
+    for ( prg=obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
+    {
+        if (prg->trig_type == OTRIG_TIMER)
+        {
+            lua_obj_program( NULL, prg->vnum, prg->script->code, 
+                    obj, NULL, NULL, NULL, 
+                    OTRIG_TIMER, prg->script->security);
+            return;
+        }
+    }
+}
+
+void check_otrig_timer( OBJ_DATA *obj)
+{
+    /* Set up timer stuff if not already */
+    if (HAS_OTRIG(obj, OTRIG_TIMER) && !obj->otrig_timer)
+    {
+        OPROG_LIST *prg;
+        for ( prg = obj->pIndexData->oprogs; prg; prg= prg->next )
+        {
+            if ( prg->trig_type == OTRIG_TIMER )
+            {
+                if (!is_number(prg->trig_phrase))
+                {
+                    bugf("Bad timer phrase for object %d: %s, must be number.",
+                            obj->pIndexData->vnum, prg->trig_phrase);
+                    return;
+                }
+                register_OBJ_timer( obj, atoi(prg->trig_phrase));
+                return; /* only one allowed */
+            }
+        }
+    }
+}

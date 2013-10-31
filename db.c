@@ -3278,6 +3278,8 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     affect_spellup_mob( mob );
 
     mob->position = mob->start_pos;    
+
+    mprog_setup(mob);
     
     /* link the mob to the world list */
     mob->next       = char_list;
