@@ -226,6 +226,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "wimpy",      do_wimpy,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "triggersafe", do_trigger_safe, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "noexp",      do_noexp,       POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
+    { "nohelp",     do_nohelp,      POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
     
    /*
     * Communication commands.
