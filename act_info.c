@@ -6221,14 +6221,25 @@ struct newbie_data
 
 const struct newbie_data eq_data[] =
 {
-	{  1, "The Initiation"                              },
-        {  5, "The Pirates Lair or The Palace Square Shops" },
-        { 10, "Crystal Coast"                               },
-        { 13, "Vorgath's Dungeon"                           },
-        { 15, "JROTC"                                       },
-        { 85, "Angel's Heaven"                              },
-        { 90, "Mortal Kombat"                               },
-	{  0, NULL                                          }
+    {  1, "The Initiation"                                                  },
+    {  5, "The Pirates Lair or The Palace Square Shops"                     },
+    { 10, "Crystal Coast"                                                   },
+    { 13, "Vorgath's Dungeon"                                               },
+    { 15, "JROTC"                                                           },
+    { 20, "Rovarok"                                                         },
+    { 25, "NIMH"                                                            },
+    { 30, "Mrem Village (ask for help), Dreamscape, or Kyoto Village"       },
+    { 35, "Akyros Pharmaceuticals"                                          },
+    { 42, "Square World"                                                    },
+    { 50, "Dreamscape (fighters) or Logging Camp (casters)"                 },
+    { 60, "Battlelords (The gear with no colors)"                           },
+    { 63, "Princess Bride"                                                  },
+    { 70, "Abyss (ask for help)"                                            },
+    { 75, "Spacehulk"                                                       },
+    { 81, "Battlelords (The gear with colors)"                              },
+    { 85, "Angel's Heaven"                                                  },
+    { 90, "Mortal Kombat"                                                   },
+    {  0, NULL                                                              }
 };
 
 void do_newbiehelp( CHAR_DATA *ch)
@@ -6260,7 +6271,10 @@ void do_newbiehelp( CHAR_DATA *ch)
             curr_eq += obj->level;
     }
 
-    
+    /* We are going to assume that 15 slots of EQ are used to determine
+       the power of the suggested EQ */
+
+    sugg_eq = 15 * eq_data[i].lvl;
 
     /* Now lets print the information to see our progress */
     sprintf(buf,"I_value=%d, Table_value=%d, curr_eq=%d\n\r", i, eq_data[i].lvl, curr_eq);
