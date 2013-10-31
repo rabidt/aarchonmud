@@ -327,18 +327,17 @@ void do_extract( CHAR_DATA *ch, char *argument)
     else
     {
         mtable  = obj->level;
-  //      int mrating = 1 + obj->pIndexData->diff_rating/2;
         mtable += ((obj->level - 90) * 3);
         mtable += obj->pIndexData->diff_rating * 2;
     }
  
     chance2 = rand() %100;
  
-/* Used for verifying that the integers are working properly. Commented out on purpose
-    sprintf( buf, "mtable = %d , chance2= %d.\n\r", mtable, chance2 );
+/* Used for verifying that the integers are working properly. Commented out on purpose */
+    sprintf( buf, "mtable = %d , chance2= %d.\n\r", mtable, chance2 ); 
 	send_to_char( buf, ch ); 
 
-*/
+
 
 
 /* Items level 90 and below can only make items rarity 0-1 */
@@ -346,47 +345,47 @@ void do_extract( CHAR_DATA *ch, char *argument)
     {
         switch (number_range(0,6))
         {
-            case 0: material = create_object(get_obj_index(8600), 0); break;
-            case 1: material = create_object(get_obj_index(8601), 0); break;
-            case 2: material = create_object(get_obj_index(8603), 0); break;
-            case 3: material = create_object(get_obj_index(8604), 0); break;
-            case 4: material = create_object(get_obj_index(8607), 0); break;
-            case 5: material = create_object(get_obj_index(8608), 0); break;
-            case 6: material = create_object(get_obj_index(8614), 0); break;
+            case 0: material = create_object(get_obj_index(8600), 0); break; // foul essence
+            case 1: material = create_object(get_obj_index(8601), 0); break; // sparkling essence
+            case 2: material = create_object(get_obj_index(8603), 0); break; // bronze smelt
+            case 3: material = create_object(get_obj_index(8604), 0); break; // iron smelt
+            case 4: material = create_object(get_obj_index(8607), 0); break; // heavy straps
+            case 5: material = create_object(get_obj_index(8608), 0); break; // metal scraps
+            case 6: material = create_object(get_obj_index(8614), 0); break; // steel rivet
         }
     }
 
 
 /* level 90 - 93 items (up to rating 2) can make items from 1-2 */
-    if (mtable <= 107)
+    if (mtable > 90 && mtable < 107)
     {
         switch (number_range(0,8))
         {
-            case 0: material = create_object(get_obj_index(8601), 0); break;
-            case 1: material = create_object(get_obj_index(8602), 0); break;
-            case 2: material = create_object(get_obj_index(8604), 0); break;
-            case 3: material = create_object(get_obj_index(8605), 0); break;
-            case 4: material = create_object(get_obj_index(8608), 0); break;
-            case 5: material = create_object(get_obj_index(8609), 0); break;
-            case 6: material = create_object(get_obj_index(8614), 0); break;
-            case 7: material = create_object(get_obj_index(8615), 0); break;
-            case 8: material = create_object(get_obj_index(8653), 0); break;
+            case 0: material = create_object(get_obj_index(8601), 0); break; // sparkling essence
+            case 1: material = create_object(get_obj_index(8602), 0); break; // blissful essence
+            case 2: material = create_object(get_obj_index(8604), 0); break; // iron smelt
+            case 3: material = create_object(get_obj_index(8605), 0); break; // gold smelt
+            case 4: material = create_object(get_obj_index(8608), 0); break; // metal scraps
+            case 5: material = create_object(get_obj_index(8609), 0); break; // fastening bolts
+            case 6: material = create_object(get_obj_index(8614), 0); break; // steel rivet
+            case 7: material = create_object(get_obj_index(8615), 0); break; // wire band
+            case 8: material = create_object(get_obj_index(8653), 0); break; // titanium thread
         }
     }
 
 /* level 93 (rating 3) - 95 (rating 2) items can make items from 2-3 */
-    if (mtable <= 115)
+    if (mtable >= 107 && mtable <= 115)
     {
         switch (number_range(0,7))
         {
-            case 0: material = create_object(get_obj_index(8602), 0); break;
-            case 1: material = create_object(get_obj_index(8605), 0); break;
-            case 2: material = create_object(get_obj_index(8606), 0); break;
-            case 3: material = create_object(get_obj_index(8609), 0); break;
-            case 4: material = create_object(get_obj_index(8610), 0); break;
-            case 5: material = create_object(get_obj_index(8615), 0); break;
-            case 6: material = create_object(get_obj_index(8611), 0); break;
-            case 7: material = create_object(get_obj_index(8653), 0); break;
+            case 0: material = create_object(get_obj_index(8602), 0); break; // blissful essence
+            case 1: material = create_object(get_obj_index(8605), 0); break; // gold smelt
+            case 2: material = create_object(get_obj_index(8606), 0); break; // adamantium smelt
+            case 3: material = create_object(get_obj_index(8609), 0); break; // fastening bolts
+            case 4: material = create_object(get_obj_index(8610), 0); break; // mephiston's inspiration
+            case 5: material = create_object(get_obj_index(8611), 0); break; // rynor's creativity
+            case 6: material = create_object(get_obj_index(8615), 0); break; // wire band
+            case 7: material = create_object(get_obj_index(8653), 0); break; // titanium thread
         }
     }
 
@@ -396,13 +395,13 @@ void do_extract( CHAR_DATA *ch, char *argument)
     {
         switch (number_range(0,6))
         {
-            case 0: material = create_object(get_obj_index(8606), 0); break;
-            case 1: material = create_object(get_obj_index(8610), 0); break;
-            case 2: material = create_object(get_obj_index(8611), 0); break;
-            case 3: material = create_object(get_obj_index(8612), 0); break;
-            case 4: material = create_object(get_obj_index(8613), 0); break;
-            case 5: material = create_object(get_obj_index(8651), 0); break;
-            case 6: material = create_object(get_obj_index(8652), 0); break;
+            case 0: material = create_object(get_obj_index(8606), 0); break; // adamantium smelt
+            case 1: material = create_object(get_obj_index(8610), 0); break; // mephiston's inspiration
+            case 2: material = create_object(get_obj_index(8611), 0); break; // rynor's creativity
+            case 3: material = create_object(get_obj_index(8612), 0); break; // bobble's brilliance
+            case 4: material = create_object(get_obj_index(8613), 0); break; // rimbols strength
+            case 5: material = create_object(get_obj_index(8651), 0); break; // vodurs mischief
+            case 6: material = create_object(get_obj_index(8652), 0); break; // astarks ambition
         }
     }
 
