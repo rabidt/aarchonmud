@@ -166,6 +166,7 @@ DECLARE_DO_FUN( do_enter    );
 DECLARE_DO_FUN( do_envenom  );
 DECLARE_DO_FUN( do_eqset     );
 DECLARE_DO_FUN( do_equipment);
+DECLARE_DO_FUN( do_eqhelp   );
 DECLARE_DO_FUN( do_etls     );
 DECLARE_DO_FUN( do_examine  );
 DECLARE_DO_FUN( do_exits    );
