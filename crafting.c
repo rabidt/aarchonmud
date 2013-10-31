@@ -333,10 +333,11 @@ void do_extract( CHAR_DATA *ch, char *argument)
  
     chance2 = rand() %100;
  
-/* Used for verifying that the integers are working properly. Commented out on purpose */
+/* Used for verifying that the integers are working properly. Commented out on purpose 
     sprintf( buf, "mtable = %d , chance2= %d.\n\r", mtable, chance2 ); 
 	send_to_char( buf, ch ); 
 
+*/
 
 
 
