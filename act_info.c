@@ -1014,44 +1014,49 @@ void do_autolist(CHAR_DATA *ch, char *argument)
     }
     
     if (!IS_SET(ch->act,PLR_CANLOOT))
-        send_to_char("Items you own are safe from thieves. (noloot)\n\r",ch);
+        send_to_char("Items you own are safe from thieves.  (noloot)\n\r",ch);
     else 
-        send_to_char("Items you own may be looted. (noloot)\n\r",ch);
+        send_to_char("Items you own may be looted.          (noloot)\n\r",ch);
     
     if (IS_SET(ch->act,PLR_NOSUMMON))
-        send_to_char("You cannot be summoned. (nosum)\n\r",ch);
+        send_to_char("You cannot be summoned.               (nosum)\n\r",ch);
     else
-        send_to_char("You can be summoned. (nosum)\n\r",ch);
+        send_to_char("You can be summoned.                  (nosum)\n\r",ch);
     
     if (IS_SET(ch->act,PLR_NOCANCEL))
-        send_to_char("You cannot be cancelled. (nocan)\n\r",ch);
+        send_to_char("You cannot be cancelled.              (nocan)\n\r",ch);
     else
-        send_to_char("You can be cancelled. (nocan)\n\r",ch);
+        send_to_char("You can be cancelled.                 (nocan)\n\r",ch);
     
     if (IS_SET(ch->act,PLR_NOFOLLOW))
-        send_to_char("You do not welcome followers. (nofol)\n\r",ch);
+        send_to_char("You do not welcome followers.         (nofol)\n\r",ch);
     else
-        send_to_char("You accept followers. (nofol)\n\r",ch);
+        send_to_char("You accept followers.                 (nofol)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOLOCATE))
-        send_to_char("You do not wish to be located. (noloc)\n\r",ch);
+        send_to_char("You do not wish to be located.        (noloc)\n\r",ch);
     else
-        send_to_char("You wish to be located. (noloc)\n\r",ch);
+        send_to_char("You wish to be located.               (noloc)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOACCEPT))
-        send_to_char("You do not accept items from other players. (noacc)\n\r",ch);
+        send_to_char("You do not accept items from players. (noacc)\n\r",ch);
     else
-        send_to_char("You accept items from other players. (noacc)\n\r",ch);
+        send_to_char("You accept items from other players.  (noacc)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOSURR))
-        send_to_char("You do not accept surrenders from other players. (nosurr)\n\r",ch);
+        send_to_char("You do not accept surrenders.         (nosurr)\n\r",ch);
     else
-        send_to_char("You accept surrenders from other players. (nosurr)\n\r",ch);
+        send_to_char("You accept surrenders from players.   (nosurr)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOEXP))
-        send_to_char("You do not wish to gain experience points. (noexp)\n\r",ch);
+        send_to_char("You do not wish to gain experience.   (noexp)\n\r",ch);
     else
-        send_to_char("You can gain experience points. (noexp)\n\r",ch);
+        send_to_char("You can gain experience.              (noexp)\n\r",ch);
+
+    if (IS_SET(ch->act,PLR_NOHELP))
+        send_to_char("You do not wish to see help messages. (nohelp)\n\r",ch);
+    else
+        send_to_char("You wish to receive help messages.    (nohelp)\n\r",ch);
 }
 
 void do_autoassist(CHAR_DATA *ch, char *argument)
@@ -1529,6 +1534,26 @@ void do_noexp( CHAR_DATA *ch, char *argument )
         {
             send_to_char("You will no longer be able to gain experience points.\n\r",ch);
             SET_BIT(ch->act,PLR_NOEXP);
+        }
+    }    
+}
+
+
+void do_nohelp( CHAR_DATA *ch, char *argument )
+{
+    if (IS_NPC(ch))
+        return;
+    else
+    {
+        if (IS_SET(ch->act,PLR_NOHELP))
+        {
+            send_to_char("You will now see help messages.\n\r",ch);
+            REMOVE_BIT(ch->act,PLR_NOHELP);
+        }
+        else
+        {
+            send_to_char("You will no longer see help messages.\n\r",ch);
+            SET_BIT(ch->act,PLR_NOHELP);
         }
     }    
 }
@@ -3129,6 +3154,9 @@ void do_equipment( CHAR_DATA *ch, char *argument )
     
     if ( !found && !all_slots )
         send_to_char( "Nothing.\n\r", ch );
+
+    if (!IS_SET(ch->act, PLR_NOHELP && ch->level <= 90))
+        do_eqhelp(ch,"");
 
     return;
 }
@@ -6256,7 +6284,7 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
 
     if (ch->level > 90)
     {
-        send_to_char("This command doesn't provide information for heroes\n\r", ch);
+        send_to_char("This command doesn't provide information for heroes.\n\r", ch);
         return;
     }
 
