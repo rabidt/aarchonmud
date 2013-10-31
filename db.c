@@ -3596,6 +3596,8 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
     for (paf = pObjIndex->affected; paf != NULL; paf = paf->next) 
         if ( paf->location == APPLY_SPELL_AFFECT )
             affect_to_obj(obj,paf);
+
+    oprog_setup( obj );
         
     obj->next       = object_list;
     object_list     = obj;

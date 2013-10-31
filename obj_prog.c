@@ -174,7 +174,7 @@ void op_timer_trigger( OBJ_DATA *obj )
     }
 }
 
-void check_otrig_timer( OBJ_DATA *obj)
+void oprog_timer_init( OBJ_DATA *obj)
 {
     /* Set up timer stuff if not already */
     if (HAS_OTRIG(obj, OTRIG_TIMER) && !obj->otrig_timer)
@@ -195,4 +195,10 @@ void check_otrig_timer( OBJ_DATA *obj)
             }
         }
     }
+}
+
+void oprog_setup( OBJ_DATA *obj )
+{
+    /* initialize timer, may add more setup steps later */
+    oprog_timer_init( obj );
 }
