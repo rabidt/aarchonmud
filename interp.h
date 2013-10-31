@@ -272,6 +272,7 @@ DECLARE_DO_FUN( do_nochannel);
 DECLARE_DO_FUN( do_noemote  );
 DECLARE_DO_FUN( do_noexp    );
 DECLARE_DO_FUN( do_nofollow );
+DECLARE_DO_FUN( do_nohelp   );
 DECLARE_DO_FUN( do_nolocate );
 DECLARE_DO_FUN( do_noloot   );
 DECLARE_DO_FUN( do_nonote   );
