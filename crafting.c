@@ -81,38 +81,38 @@ struct crafting_type crafting_table[] =
     { "sacred_greaves",      CRFT+48, { CRFT+51, CRFT+12 },              98 }, // Vodur's Mischief, Bobble's Brilliance
     { "sacred_saber",        CRFT+54, { CRFT+14, CRFT+10, CRFT+11, },    98 }, // Steel Rivet, Mephiston's Inspiration, Rynor's Creativity
     { "sacred_blaster",      CRFT+55, { CRFT+10, CRFT+11, CRFT+6,  },    98 }, // Adamantium Smelt, Mephiston's, Rynor's
-    { "champion_gauntlets",  CRFT+42, { CRFT+12, CRFT+13 },              97 }, // Bobble's Brilliance, Rimbol's Strength
-    { "champion_ring",       CRFT+41, { CRFT+8,  CRFT+10,  CRFT+13 },    97 }, // Metal Scraps, Mephiston's Inspiration, Rimbol's Strength
-    { "champion_necklace",   CRFT+40, { CRFT+2,  CRFT+6,   CRFT+11 },    97 }, // Blissful Essence, Adamantium Smelt, Rynor's Creativity
-    { "champion_whip",       CRFT+39, { CRFT+1,  CRFT+5,   CRFT+12 },    97 }, // Sparkling Essence, Gold Smelt, Bobble's Brilliance
-    { "champion_mace",       CRFT+38, { CRFT+5,  CRFT+6,   CRFT+9  },    97 }, // Gold Smelt, Adamantium Smelt, Fastening Bolts
+    { "champion_gauntlets",  CRFT+39, { CRFT+12, CRFT+13 },              97 }, // Bobble's Brilliance, Rimbol's Strength
+    { "champion_ring",       CRFT+38, { CRFT+8,  CRFT+10,  CRFT+13 },    97 }, // Metal Scraps, Mephiston's Inspiration, Rimbol's Strength
+    { "champion_necklace",   CRFT+37, { CRFT+2,  CRFT+6,   CRFT+11 },    97 }, // Blissful Essence, Adamantium Smelt, Rynor's Creativity
+    { "champion_whip",       CRFT+36, { CRFT+1,  CRFT+5,   CRFT+12 },    97 }, // Sparkling Essence, Gold Smelt, Bobble's Brilliance
+    { "champion_mace",       CRFT+35, { CRFT+5,  CRFT+6,   CRFT+9  },    97 }, // Gold Smelt, Adamantium Smelt, Fastening Bolts
     { "ornate_legplates",    CRFT+47, { CRFT+6,  CRFT+15 },              94 }, // Adamantium Smelt, Wire Band
-    { "ornate_bracer",       CRFT+37, { CRFT+5,  CRFT+15 },              94 }, // Gold Smelt, Wire Band
-    { "ornate_sword",        CRFT+36, { CRFT+1,  CRFT+4,   CRFT+14 },    94 }, // Sparkling Essence, Iron Smelt, Steel Rivet
-    { "ornate_visor",        CRFT+35, { CRFT+5,  CRFT+9 },               94 }, // Gold Smelt, Fastening Bolts
+    { "ornate_bracer",       CRFT+34, { CRFT+5,  CRFT+15 },              94 }, // Gold Smelt, Wire Band
+    { "ornate_sword",        CRFT+33, { CRFT+1,  CRFT+4,   CRFT+14 },    94 }, // Sparkling Essence, Iron Smelt, Steel Rivet
+    { "ornate_visor",        CRFT+32, { CRFT+5,  CRFT+9 },               94 }, // Gold Smelt, Fastening Bolts
     { "glorious_pendant",    CRFT+46, { CRFT+15, CRFT+2 },               92 }, // Wire Band, Blissful Essence
     { "glorious_sleeves",    CRFT+45, { CRFT+14, CRFT+53},               92 }, // Steel Rivet, Titanium Thread
-    { "glorious_bracers",    CRFT+34, { CRFT+2,  CRFT+5 },               92 }, // Blissful Essence, Gold Smelt
-    { "glorious_robe",       CRFT+33, { CRFT+4,  CRFT+9 },               92 }, // Iron Smelt, Fastening Bolts
-    { "glorious_aura",       CRFT+32, { CRFT+0,  CRFT+1,   CRFT+2  },    92 }, // Foul Essence, Sparkling Essence, Blissful Essence
-    { "glorious_boots",      CRFT+31, { CRFT+8,  CRFT+9,   CRFT+15 },    92 }, // Metal Scraps, Fastening Bolts, Wire Band
+    { "glorious_bracers",    CRFT+31, { CRFT+2,  CRFT+5 },               92 }, // Blissful Essence, Gold Smelt
+    { "glorious_robe",       CRFT+30, { CRFT+4,  CRFT+9 },               92 }, // Iron Smelt, Fastening Bolts
+    { "glorious_aura",       CRFT+29, { CRFT+0,  CRFT+1,   CRFT+2  },    92 }, // Foul Essence, Sparkling Essence, Blissful Essence
+    { "glorious_boots",      CRFT+28, { CRFT+8,  CRFT+9,   CRFT+15 },    92 }, // Metal Scraps, Fastening Bolts, Wire Band
     { "master_cuirass",      CRFT+44, { CRFT+53, CRFT+1},                91 }, // Titanium Thread, Sparkling Essence
     { "master_girdle",       CRFT+43, { CRFT+53, CRFT+3, CRFT+0 },       91 }, // Titanium Thread, Bronze Smelt, Foul Essence
-    { "master_ring",         CRFT+30, { CRFT+0,  CRFT+4,   CRFT+9  },    91 }, // Foul Essence, Iron Smelt, Fastening Bolts
-    { "master_leggings",     CRFT+29, { CRFT+1,  CRFT+7,   CRFT+8  },    91 }, // Sparkling Essence, Heavy Strap, Metal Scraps
-    { "master_polearm",      CRFT+28, { CRFT+3,  CRFT+4,   CRFT+14 },    91 }, // Bronze Smelt, Iron Smelt, Steel Rivet
-    { "master_boots",        CRFT+27, { CRFT+0,  CRFT+7,   CRFT+9  },    91 }, // Foul Essence, Heavy Straps, Fastening Bolts
+    { "master_ring",         CRFT+27, { CRFT+0,  CRFT+4,   CRFT+9  },    91 }, // Foul Essence, Iron Smelt, Fastening Bolts
+    { "master_leggings",     CRFT+26, { CRFT+1,  CRFT+7,   CRFT+8  },    91 }, // Sparkling Essence, Heavy Strap, Metal Scraps
+    { "master_polearm",      CRFT+25, { CRFT+3,  CRFT+4,   CRFT+14 },    91 }, // Bronze Smelt, Iron Smelt, Steel Rivet
+    { "master_boots",        CRFT+24, { CRFT+0,  CRFT+7,   CRFT+9  },    91 }, // Foul Essence, Heavy Straps, Fastening Bolts
     { "mighty_flail",        CRFT+42, { CRFT+14, CRFT+3},                50 }, // Steel Rivet, Bronze Smelt
-    { "mighty_spear",        CRFT+26, { CRFT+0,  CRFT+4 },               50 }, // Foul Essence, Iron Smelt
-    { "mighty_breastplate",  CRFT+25, { CRFT+1,  CRFT+8 },               50 }, // Sparkling Essence, Metal Scraps
-    { "mighty_vambrace",     CRFT+24, { CRFT+3,  CRFT+7 },               50 }, // Bronze Smelt, Heavy Straps
+    { "mighty_spear",        CRFT+23, { CRFT+0,  CRFT+4 },               50 }, // Foul Essence, Iron Smelt
+    { "mighty_breastplate",  CRFT+22, { CRFT+1,  CRFT+8 },               50 }, // Sparkling Essence, Metal Scraps
+    { "mighty_vambrace",     CRFT+21, { CRFT+3,  CRFT+7 },               50 }, // Bronze Smelt, Heavy Straps
     { "splendid_rifle",      CRFT+41, { CRFT+4,  CRFT+8 },               30 }, // Iron Smelt, Metal Scraps
-    { "splendid_shield",     CRFT+23, { CRFT+3,  CRFT+7 },               30 }, // Bronze Smelt, Heavy Straps
-    { "splendid_orb",        CRFT+22, { CRFT+0,  CRFT+1 },               30 }, // Foul Essence, Sparkling Essence
-    { "splendid_belt",       CRFT+21, { CRFT+7,  CRFT+8 },               30 }, // Heavy Straps, Metal Scraps
+    { "splendid_shield",     CRFT+20, { CRFT+3,  CRFT+7 },               30 }, // Bronze Smelt, Heavy Straps
+    { "splendid_orb",        CRFT+19, { CRFT+0,  CRFT+1 },               30 }, // Foul Essence, Sparkling Essence
+    { "splendid_belt",       CRFT+18, { CRFT+7,  CRFT+8 },               30 }, // Heavy Straps, Metal Scraps
     { "fine_dagger",         CRFT+40, { CRFT+0 },                        12 }, // Foul Essence
-    { "fine_amulet",         CRFT+20, { CRFT+7 },                        12 }, // Heavy Straps
-    { "fine_gloves",         CRFT+19, { CRFT+3 },                        12 }, // Bronze Smelt 
+    { "fine_amulet",         CRFT+17, { CRFT+7 },                        12 }, // Heavy Straps
+    { "fine_gloves",         CRFT+16, { CRFT+3 },                        12 }, // Bronze Smelt 
     { NULL, 0, {}, 0 }
 };
 
