@@ -70,6 +70,19 @@ void * register_CH_timer( CHAR_DATA *ch, int max )
 
 }
 
+static void remove_timer( TIMER_NODE *tmr )
+{
+    if ( tmr->prev)
+        tmr->prev->next=tmr->next;
+    if ( tmr->next)
+        tmr->next->prev=tmr->prev;
+    if ( tmr=first_timer )
+        first_timer=tmr->next;
+
+    free_timer_node(tmr);
+    return;
+}
+
 void unregister_CH_timer( CHAR_DATA *ch )
 {
     if (!ch->trig_timer)
@@ -79,17 +92,7 @@ void unregister_CH_timer( CHAR_DATA *ch )
     }
     TIMER_NODE *tmr=(TIMER_NODE *)ch->trig_timer;
 
-    /*
-    if ( tmr->prev)
-        tmr->prev->next=tmr->next;
-    if ( tmr->next)
-        tmr->next->prev=tmr->prev; 
-    if ( tmr=first_timer )
-        first_timer=tmr->next;
-
-    free_timer_node(tmr);
-    */
-    tmr->unregistered=TRUE; 
+    tmr->unregistered=TRUE; /* queue it for removal next update */ 
     ch->trig_timer=NULL;
     return;
 }
@@ -146,6 +149,14 @@ void timer_update()
     {
         tmr_next=tmr->next;
 
+        if ( tmr->unregistered )
+        {
+            /* it was unregistered since the last update
+               we need to kill it cleanly */
+            remove_timer( tmr );
+            continue;
+        }
+
         tmr->current-=1;
         if (tmr->current <= 0)
         {
@@ -183,16 +194,8 @@ void timer_update()
                     bugf("You broke it.");
             }
             /* it fired, kill it */
-            if ( tmr->prev)
-                tmr->prev->next=tmr->next;
-            if ( tmr->next)
-                tmr->next->prev=tmr->prev;
-            if ( tmr==first_timer )
-                first_timer=tmr->next;
-            free_timer_node(tmr); 
-
+            remove_timer( tmr );
         }
-
     }
 }
 
