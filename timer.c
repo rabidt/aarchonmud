@@ -83,6 +83,26 @@ void * register_OBJ_timer( OBJ_DATA *obj, int max )
 
 }
 
+/* register on the list and also return a pointer to the node
+   in the form of void */
+void * register_AREA_timer( AREA_DATA *area, int max )
+{
+    if ( area->atrig_timer)
+    {
+        bugf("Tying to register timer for %s but already registered.", area->name);
+        return NULL;
+    }
+
+    TIMER_NODE *tmr=new_timer_node( (void *)area, TYPE_AREA, TM_PROG, max);
+
+    add_timer(tmr);
+
+    area->atrig_timer=(void *)tmr;
+
+    return (void *)tmr;
+
+}
+
 static void add_timer( TIMER_NODE *tmr)
 {
     if (first_timer)
@@ -167,6 +187,7 @@ void timer_update()
     TIMER_NODE *tmr, *tmr_next;
     CHAR_DATA *ch;
     OBJ_DATA *obj;
+    AREA_DATA *area;
 
     for (tmr=first_timer ; tmr ; tmr=tmr_next)
     {
@@ -205,6 +226,7 @@ void timer_update()
                                 mprog_timer_init( ch );
                             }
                             break;
+
                         case TYPE_OBJ:
                             obj=(OBJ_DATA *)(tmr->game_obj);
                             if (!IS_VALID(obj))
@@ -219,6 +241,15 @@ void timer_update()
                                 oprog_timer_init( obj );
                             }
                             break;
+
+                        case TYPE_AREA:
+                            /* no need for valid check on areas */
+                            area=(AREA_DATA *)(tmr->game_obj);
+                            ap_timer_trigger( area );
+                            area->atrig_timer=NULL;
+                            aprog_timer_init( area );
+                            break;
+
                         default:
                             bugf("Bad stuff.");
                             return;

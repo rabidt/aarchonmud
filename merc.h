@@ -2989,6 +2989,8 @@ struct  area_data
 
     APROG_LIST *aprogs;
     tflag   aprog_flags;
+
+    void *atrig_timer; /* should not be touched except in timer.c */
 };
 
 
@@ -3171,6 +3173,7 @@ struct  group_type
 #define ATRIG_UNVOID (I)
 #define ATRIG_RECALL (J)
 #define ATRIG_CALL  (K)
+#define ATRIG_TIMER (L)
 
 struct mprog_list
 {
