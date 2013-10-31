@@ -6160,7 +6160,7 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
 void do_classes( CHAR_DATA *ch, char *argument )
 {
     int class;
-    do_newbiehelp(ch);
+
     printf_to_char(ch, "               Att  Def  Hp  Mana  Move prime secondary #Skl / Cost\n");
     for ( class = 0; class < MAX_CLASS; class++ )
     {
@@ -6242,14 +6242,16 @@ const struct newbie_data eq_data[] =
     {  0, NULL                                                              }
 };
 
-void do_newbiehelp( CHAR_DATA *ch)
+void do_eqhelp( CHAR_DATA *ch, char *argument)
 {
     OBJ_DATA *obj;
-    OBJ_INDEX_DATA *obj_next;
+    bool wield = FALSE;
     char buf[MSL];
     int curr_eq = 0;
     int sugg_eq;
+    int diff;
     int i;
+    int wieldlvl = 0;
 
     /* First lets find where in the table the player is at */
     for ( i = 0 ; eq_data[i].area_name != NULL; i++ )
@@ -6269,15 +6271,53 @@ void do_newbiehelp( CHAR_DATA *ch)
     {
         if ( obj->wear_loc != WEAR_NONE)
             curr_eq += obj->level;
+
+        if ( obj->wear_loc == WEAR_WIELD)
+        {
+            wield = TRUE;
+            wieldlvl = obj->level;
+        }
     }
 
-    /* We are going to assume that 15 slots of EQ are used to determine
+    /* We are going to assume that 16 slots of EQ are used to determine
        the power of the suggested EQ */
 
-    sugg_eq = 15 * eq_data[i].lvl;
+    sugg_eq = 16 * eq_data[i].lvl;
+    
+    /* Lets figure out the difference */
+    diff = sugg_eq - curr_eq;
+    int diff_percent = (200 * curr_eq + 1) / (sugg_eq * 2);
+    int diff_percent2 = 100 - diff_percent;
+
+    /* This is a test function to confirm our information 
+    sprintf(buf,"I_value=%d, Table_value=%d, curr_eq=%d, sugg_eq=%d, difference=%d (%d%% of suggested, or %d%% weaker than suggested)\n\r\n\r", 
+        i, eq_data[i].lvl, curr_eq, sugg_eq, diff, diff_percent, diff_percent2);
+    send_to_char(buf,ch); */
 
     /* Now lets print the information to see our progress */
-    sprintf(buf,"I_value=%d, Table_value=%d, curr_eq=%d\n\r", i, eq_data[i].lvl, curr_eq);
-    send_to_char(buf,ch);
+    printf_to_char(ch,"%s, you {R%s{x \n\r", ch->name, 
+        diff_percent2 >= 20 ? "could use an equipment upgrade" : "have equipment that suits your level");
+    printf_to_char(ch,"{yYour equipment is {R%d%%{y %s than expected for your level.{x\n\r", 
+        diff_percent2 < 0 ? diff_percent2 *= -1 : diff_percent2,
+        diff_percent2 < 0 ? "stronger" : "weaker" );
 
+    if (wield == TRUE)
+    
+
+    if (diff_percent2 >= 20)
+       printf_to_char(ch,"You can find better equipment at '%s'\n\r", eq_data[i].area_name);
+
+    
 }
+
+
+
+
+
+
+
+
+
+
+
+
