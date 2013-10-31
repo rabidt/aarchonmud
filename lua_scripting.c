@@ -521,9 +521,9 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
-static int L_ch_delay (lua_State *LS)
+static int L_delay (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH( LS, 1 );
+    //CHAR_DATA *ud_ch=check_CH( LS, 1 );
     int val=luaL_checkint( LS, 2 );
     luaL_checktype( LS, 3, LUA_TFUNCTION);
 
@@ -533,7 +533,7 @@ static int L_ch_delay (lua_State *LS)
     lua_newtable( LS );
  
     lua_pushliteral( LS, "tableid");
-    lua_pushlightuserdata( LS, (void *)ud_ch);
+    lua_getfield( LS, 1, "tableid");
     lua_settable( LS, -3 );
 
     
@@ -2454,7 +2454,7 @@ static const struct luaL_reg CH_lib [] =
     {"loadtbl", L_ch_loadtbl},
     {"tprint", L_ch_tprint},
     {"olc", L_ch_olc},
-    {"delay", L_ch_delay},
+    {"delay", L_delay},
     {NULL, NULL}
 };
 
@@ -2479,6 +2479,7 @@ static const struct luaL_reg OBJ_lib [] =
     {"savetbl", L_obj_savetbl},
     {"loadtbl", L_obj_loadtbl},
     {"tprint", L_obj_tprint},
+    {"delay", L_delay},
     {NULL, NULL}
 };
 
@@ -2515,6 +2516,7 @@ static const struct luaL_reg AREA_lib [] =
     {"savetbl", L_area_savetbl},
     {"loadtbl", L_area_loadtbl},
     {"tprint", L_area_tprint},
+    {"delay", L_delay},
     {NULL, NULL}
 }; 
 
