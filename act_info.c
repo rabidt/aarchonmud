@@ -6160,7 +6160,7 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
 void do_classes( CHAR_DATA *ch, char *argument )
 {
     int class;
-    
+    do_newbiehelp(ch);
     printf_to_char(ch, "               Att  Def  Hp  Mana  Move prime secondary #Skl / Cost\n");
     for ( class = 0; class < MAX_CLASS; class++ )
     {
@@ -6209,3 +6209,52 @@ void do_lagfree( CHAR_DATA *ch, char *argument)
     ptc( ch, "Lag free mode: %s", ch->desc->lag_free ? "ON" : "OFF");
 }
 #endif
+
+
+
+
+struct newbie_data
+{
+    int lvl;
+    char * area_name;
+};
+
+const struct newbie_data eq_data[] =
+{
+	{  1, "The Initiation"                              },
+        {  5, "The Pirates Lair or The Palace Square Shops" },
+        { 10, "Crystal Coast"                               },
+        { 85, "Angel's Heaven"                              },
+        { 90, "Mortal Kombat"                               },
+	{  0, NULL                                          }
+};
+
+void do_newbiehelp( CHAR_DATA *ch)
+{
+    OBJ_DATA *obj;
+    OBJ_INDEX_DATA *obj_next;
+    int curr_eq = 0;
+    int sugg_eq;
+    int i;
+
+    /* First lets find where in the table the player is at */
+    for ( i = 0 ; eq_data[i].area_name != NULL; i++ )
+    {
+        if (ch->level > eq_data[i].lvl)
+            break;
+    }
+
+
+    /* Now that we know the table position, lets find out what
+       the power of their EQ is based on its level */
+
+    for ( obj = ch->carrying; obj != NULL ; obj = obj_next )
+    {
+        if ( obj->wear_loc != WEAR_NONE)
+            curr_eq += obj->level;
+    }
+
+    /* Now lets print the information to see our progress */
+    printf_to_char( ch, "I_value=%d, Table_value=%d, Curr EQ=%d", i, eq_data[i].lvl, curr_eq);
+
+}
