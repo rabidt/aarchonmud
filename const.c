@@ -1770,7 +1770,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	{
 	"mage", "Mag",  STAT_INT, {STAT_WIS, STAT_AGI},
         {60, 90, 90, 80, 90, 120, 120, 100, 110, 100},
-	OBJ_VNUM_SCHOOL_POLEARM, { 9618, 10300 },
+	OBJ_VNUM_SCHOOL_DAGGER, { 9618, 10300 },
 	75, 70, 80,  90,  120, 70,
 	"mage basics", "mage default"
 	},
@@ -2424,7 +2424,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"astarks rejuvenation",  
 	{ 102, 102,  94, 102, 102, 102, 102, 102, 102, 102,  96, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_astarks_rejuvenation, TAR_IGNORE,     POS_STANDING,
@@ -2799,7 +2799,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"cure light",  
 	{ 102, 102,  1, 102, 102, 102, 20, 102, 102,  4,  5, 102, 102, 102, 5 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_cure_light,   TAR_CHAR_DEFENSIVE, POS_FIGHTING,
@@ -7100,7 +7100,7 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"mage basics",      { -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-	{ "polearm", "magic missile" }
+	{ "dagger", "magic missile" }
 	},
 
 	{
@@ -7176,7 +7176,7 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"mage default",     { -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "combat", "protective", "enhancement", "focus", "dodge", "scrolls", "wands", "staves" }
+    { "combat", "protective", "focus", "dodge", "alchemy", "meditation", "lore", "scrolls", "wands", "staves" }
     },
 
 	{
@@ -7186,7 +7186,7 @@ struct group_type group_table[MAX_GROUP] =
  
 	{
 	"thief default",    { -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "stealth", "larceny", "robbery", "dual dagger", "second attack", "dodge", "parry", "flee" }
+    { "stealth", "larceny", "dual dagger", "second attack", "evasion", "dodge", "parry", "flee", "bunny" }
     },
 
 	{
@@ -7196,17 +7196,18 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"gladiator default",  { -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "weaponsmaster", "weapon styles", "second attack", "third attack", "enhanced damage", "dodge", "parry" }
+    { "weapon styles", "second attack", "third attack", "enhanced damage", "dodge", "parry", "dual axe", "berserk" }
     },
 	
 	{
 	"samurai default",  { -1, -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1,  -1, -1, -1 },
-    { "weapon styles", "second attack", "third attack", "enhanced damage", "dual sword", "dodge", "parry", "double strike" }
+    { "weapon styles", "combat", "second attack", "third attack", "dual sword", "dodge", "parry", "double strike" }
     },
 	
 	{
 	"paladin default",  { -1, -1, -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1 },
-    { "sacred invocations", "second attack", "third attack", "twohand weapons", "dodge", "parry", "smite", "detect evil", "cure light" }
+    { "benedictions", "leadership", "second attack", "third attack", "twohand weapons", "dodge", "parry",
+      "smite", "guard", "swaydes mercy", "detect evil", "cure light" }
     },
 	
 	{
@@ -7519,7 +7520,7 @@ struct group_type group_table[MAX_GROUP] =
 
     {
         "larceny", { -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1 },
-        { "peek", "steal", "pick lock", "disarm trap" }
+        { "peek", "steal", "pick lock", "disarm trap", "appraise" }
     },
 
     {
