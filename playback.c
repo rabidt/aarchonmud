@@ -20,7 +20,7 @@ Version date: 1/31/2013
 /* Default number of results, needs to  be <=MAX_COMM_HISTORY */
 #define DEFAULT_RESULTS 35
 
-#define MAX_PERS_HISTORY 25
+#define MAX_PERS_HISTORY 50
 
 
 /* declare the actual structures we will use*/

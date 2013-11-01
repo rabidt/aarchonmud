@@ -2357,24 +2357,18 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
   /* New weapon flag added by Astark 12-28-12. Chance to cast 3 different
      spells with each hit.. low chance. Heavy damage */
-    if ( IS_WEAPON_STAT(wield,WEAPON_STORMING))
+    if ( IS_WEAPON_STAT(wield, WEAPON_STORMING) && !number_bits(4) )
     {
-        int level = wield->level;
-        dam = number_range(10 + wield->level*3/4, 10 + wield->level*4/3);
-        if (!number_bits(4))
-   	    full_dam(ch,victim,dam,gsn_lightning_bolt, DAM_LIGHTNING, TRUE);
-
-        if (!number_bits(4))
-            full_dam(ch,victim,dam,gsn_meteor_swarm, DAM_FIRE, TRUE);
-
-        if (!number_bits(4))
-            full_dam(ch,victim,dam,gsn_monsoon, DAM_DROWNING, TRUE);
-
-        CHECK_RETURN( ch, victim);
+        dam = 50 + dice(20,6);
+        switch ( number_range(1,4) )
+        {
+            case 1: full_dam(ch, victim, dam, gsn_lightning_bolt, DAM_LIGHTNING, TRUE); break;
+            case 2: full_dam(ch, victim, dam, gsn_meteor_swarm, DAM_FIRE, TRUE); break;
+            case 3: full_dam(ch, victim, dam, gsn_monsoon, DAM_DROWNING, TRUE); break;
+            case 4: full_dam(ch, victim, dam, gsn_hailstorm, DAM_COLD, TRUE); break;
+        }
+        CHECK_RETURN(ch, victim);
     }
-
-
-
 
     /* remove temporary weapon flags 
      * also solves problem with old weapons with different flags
