@@ -383,13 +383,15 @@ void do_replay (CHAR_DATA *ch, char *argument)
 
 char *parse_url( char *argument)
 {
-    char open[]="\t<a href=\"";
-    char mid[]= "\">";
-    char close[]="\t</a>";
-    char *url=strstr(argument, "http://");
-    
-    if (url==NULL)
-        return argument;
+    const char open[]="\t<a href=\"";
+    const char mid[]= "\">";
+    const char close[]="\t</a>";
+
+    char *url;
+    if ( ! (    ( url=strstr(argument, "http://" ) )
+             || ( url=strstr(argument, "https://") )
+             || ( url=strstr(argument, "www."    ) ) ) )
+    return argument;
     
     static char rtn[MSL*2];
     int rtnIndex;
@@ -963,13 +965,13 @@ void do_say( CHAR_DATA *ch, char *argument )
     
     sprintf(buf, "{sYou %s {S'$T{S'{x", mid1);
     
-    nt_act( buf, ch, NULL, argument, TO_CHAR );
+    nt_act( buf, ch, NULL, parse_url(argument), TO_CHAR );
     argument = makedrunk(argument,ch);
     sprintf(buf, "{s$n {s%s {S'$T{S'{x", mid2);
     if (NOT_AUTHED(ch))
-        nt_act( buf, ch, NULL, argument, TO_ROOM_UNAUTHED );
+        nt_act( buf, ch, NULL, parse_url(argument), TO_ROOM_UNAUTHED );
     else
-        nt_act( buf, ch, NULL, argument, TO_ROOM );
+        nt_act( buf, ch, NULL, parse_url(argument), TO_ROOM );
 
     if ( !IS_NPC(ch) )
     {
@@ -1233,7 +1235,7 @@ void do_tell( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    tell_char( ch, victim, argument );
+    tell_char( ch, victim, parse_url(argument) );
 
 }
 
@@ -2539,7 +2541,7 @@ void do_gtell( CHAR_DATA *ch, char *argument )
         send_to_char( "Your message didn't get through!\n\r", ch );
         return;
     }
-    sprintf( buf, "{3You tell the group, {4'%s'{x\n\r", argument );
+    sprintf( buf, "{3You tell the group, {4'%s'{x\n\r", parse_url(argument) );
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers( ch->pcdata->gtell_history, buf);
@@ -2551,7 +2553,7 @@ void do_gtell( CHAR_DATA *ch, char *argument )
 		{
             //nt_act_new( "{3$n{3 tells the group {4'$t'{x", ch, argument, gch, TO_VICT, POS_SLEEPING );
 			//sprintf(buf, "{3%s{3 tells the group {4'%s'{x\n\r", get_mimic_PERS_new( ch, gch, 0), argument );
-			sprintf(buf, "{3%s{3 tells the group {4'%s'{x\n\r", (IS_NPC(ch)?ch->short_descr:ch->name), argument );
+			sprintf(buf, "{3%s{3 tells the group {4'%s'{x\n\r", (IS_NPC(ch)?ch->short_descr:ch->name), parse_url(argument) );
 			if (gch != ch)
 			{
 				send_to_char(buf, gch);
