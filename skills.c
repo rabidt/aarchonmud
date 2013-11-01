@@ -1236,8 +1236,6 @@ void do_groups(CHAR_DATA *ch, char *argument)
 	  }
 	  if ( col % 3 != 0 )
 		 send_to_char( "\n\r", ch );
-	  sprintf(buf,"Creation points: %d\n\r",ch->pcdata->points);
-	  send_to_char(buf,ch);
 	  return;
    }
 
