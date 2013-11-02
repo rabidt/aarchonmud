@@ -3870,6 +3870,12 @@ void do_otype(CHAR_DATA *ch, char *argument)
 
 void do_printlist(CHAR_DATA *ch, char *argument)
 {
+    if (!strcmp(argument, "timers"))
+    {
+        print_timer_list();
+        return;
+    }
+
     char arg [MAX_INPUT_LENGTH];
     MEMFILE *mf;
 
