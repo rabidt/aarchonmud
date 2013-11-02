@@ -16,7 +16,10 @@
 #define TM_PROG      1
 #define TM_LUAFUNC   2
 
-struct timer_node
+/* hide the struct implementation,
+   we only want to manipulate nodes
+   in this module */
+static struct timer_node
 {
     struct timer_node *next;
     struct timer_node *prev;
@@ -36,15 +39,15 @@ static void free_timer_node( TIMER_NODE *tmr);
 static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int max );
 static void print_timer_list();
 
-void * register_lua_timer( int value)
+TIMER_NODE * register_lua_timer( int value)
 {
     TIMER_NODE *tmr=new_timer_node( NULL , TYPE_UNDEFINED, TM_LUAFUNC, value );
     add_timer(tmr);
     
-    return (void *)tmr;
+    return tmr;
 }
 
-void unregister_lua_timer( void *tmr )
+void unregister_lua_timer( TIMER_NODE *tmr )
 {
     remove_timer(tmr);
     return;
@@ -52,7 +55,7 @@ void unregister_lua_timer( void *tmr )
 
 /* register on the list and also return a pointer to the node
    in the form of void */
-void * register_ch_timer( CHAR_DATA *ch, int max )
+TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
 {
     if ( ch->trig_timer)
     {
@@ -64,15 +67,15 @@ void * register_ch_timer( CHAR_DATA *ch, int max )
 
     add_timer(tmr);
 
-    ch->trig_timer=(void *)tmr;
+    ch->trig_timer=tmr;
 
-    return (void *)tmr;
+    return tmr;
 
 }
 
 /* register on the list and also return a pointer to the node
    in the form of void */
-void * register_obj_timer( OBJ_DATA *obj, int max )
+TIMER_NODE * register_obj_timer( OBJ_DATA *obj, int max )
 {
     if ( obj->otrig_timer)
     {
@@ -84,15 +87,15 @@ void * register_obj_timer( OBJ_DATA *obj, int max )
 
     add_timer(tmr);
 
-    obj->otrig_timer=(void *)tmr;
+    obj->otrig_timer=tmr;
 
-    return (void *)tmr;
+    return tmr;
 
 }
 
 /* register on the list and also return a pointer to the node
    in the form of void */
-void * register_area_timer( AREA_DATA *area, int max )
+TIMER_NODE * register_area_timer( AREA_DATA *area, int max )
 {
     if ( area->atrig_timer)
     {
@@ -104,9 +107,9 @@ void * register_area_timer( AREA_DATA *area, int max )
 
     add_timer(tmr);
 
-    area->atrig_timer=(void *)tmr;
+    area->atrig_timer=tmr;
 
-    return (void *)tmr;
+    return tmr;
 
 }
 
@@ -153,7 +156,7 @@ void unregister_obj_timer( OBJ_DATA *obj )
         /* doesn't have one */
         return;
     }
-    TIMER_NODE *tmr=(TIMER_NODE *)obj->otrig_timer;
+    TIMER_NODE *tmr=obj->otrig_timer;
 
     tmr->unregistered=TRUE; /* queue it for removal next update */
     obj->otrig_timer=NULL;
@@ -272,7 +275,8 @@ void timer_update()
                             break;
 
                         default:
-                            bugf("Bad stuff.");
+                            bugf("Invalid type in timer update: %d.", tmr->go_type);
+                            remove_timer(tmr);
                             return;
                     }
                     break;
@@ -280,7 +284,9 @@ void timer_update()
                     run_delayed_function(tmr);
                     break;
                 default:
-                    bugf("You broke it.");
+                    bugf("Invalid timer type: %d", tmr->tm_type);
+                    remove_timer(tmr);
+                    return;
             }
             /* it fired, kill it */
             remove_timer( tmr );
@@ -288,7 +294,7 @@ void timer_update()
     }
 }
 
-static void print_timer_list()
+void print_timer_list()
 {
     TIMER_NODE *tmr;
     int i=1;

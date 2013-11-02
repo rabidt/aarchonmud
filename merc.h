@@ -24,7 +24,7 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
-
+#include "timer.h"
 #include "protocol.h"
 #include <lua.h>
 
@@ -2582,7 +2582,7 @@ struct  char_data
 	int	moves_used;
 	#endif
 
-    void *trig_timer; /* should not be touched except in timer.c */
+    TIMER_NODE *trig_timer; /* should not be touched except in timer.c */
 };
 
 
@@ -2903,7 +2903,7 @@ struct  obj_data
 	sh_int	rank;
 
     bool        must_extract; /* for delayed obj purging */
-    void *otrig_timer; /* should not be touched except in timer.c */
+    TIMER_NODE *otrig_timer; /* should not be touched except in timer.c */
 };
 
 
@@ -2990,7 +2990,7 @@ struct  area_data
     APROG_LIST *aprogs;
     tflag   aprog_flags;
 
-    void *atrig_timer; /* should not be touched except in timer.c */
+    TIMER_NODE *atrig_timer; /* should not be touched except in timer.c */
 };
 
 
