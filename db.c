@@ -799,6 +799,13 @@ void boot_db()
         load_portal_list();
 
     }
+
+    /* do aprog setup for areas */
+    AREA_DATA *area;
+    for ( area=area_first; area ; area=area->next )
+    {
+        aprog_setup( area );
+    }
     
     // start checking for memory leaks now that we're ready
     reset_str_dup();
@@ -961,6 +968,7 @@ void load_area( FILE *fp )
     pArea->age      = 15;
     pArea->nplayer  = 0;
     pArea->empty    = FALSE;
+    pArea->atrig_timer=NULL;
     
     if ( !area_first )
         area_first = pArea;
@@ -3280,6 +3288,8 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     affect_spellup_mob( mob );
 
     mob->position = mob->start_pos;    
+
+    mprog_setup(mob);
     
     /* link the mob to the world list */
     mob->next       = char_list;
@@ -3596,6 +3606,8 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
     for (paf = pObjIndex->affected; paf != NULL; paf = paf->next) 
         if ( paf->location == APPLY_SPELL_AFFECT )
             affect_to_obj(obj,paf);
+
+    oprog_setup( obj );
         
     obj->next       = object_list;
     object_list     = obj;

@@ -8,7 +8,9 @@ require "leaderboard"
 udtbl={} -- used to store game object tables, (read only proxies to origtbl)
 envtbl={} -- game object script environments
 origtbl={} -- where the REAL ud tables live
+origenv={} -- where the REAL env tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
+delaytbl={} -- used on the C side mostly
 
 function UdCnt()
     local cnt=0
@@ -53,13 +55,16 @@ end
 function UnregisterUd(lightud)
     if udtbl[lightud] then
         setmetatable(origtbl[lightud], nil)
-        origtbl[lightud]={}
+        rawset(origtbl[lightud], "tableid", nil)
         origtbl[lightud]=nil
         udtbl[lightud]={}
         udtbl[lightud]=nil
     end
 
     if envtbl[lightud] then
+        setmetatable(origenv[lightud], nil)
+        rawset(origenv[lightud], "udid", nil)
+        origenv[lightud]=nil
         envtbl[lightud]={}
         envtbl[lightud]=nil
     end
@@ -262,7 +267,8 @@ main_lib={  require=require,
             haunt=god.haunt,
             cleanse=god.cleanse,
             defy=god.defy
-        }
+        },
+        debug={show=debug.show}
 
 }
 -- Need to protect our library funcs from evil scripters
@@ -276,6 +282,7 @@ function ProtectLib(lib)
     return MakeLibProxy(lib)
 end
 main_lib=ProtectLib(main_lib)
+
 
 -- First look for main_lib funcs, then mob/area/obj funcs
 -- (providing env as argument)
@@ -342,6 +349,7 @@ end
 function new_script_env(ud, objname, meta)
     local env={ udid=ud.tableid, [objname]=ud}
     setmetatable(env, meta)
+    origenv[ud.tableid]=env
     return MakeEnvProxy(env)
 end
 
@@ -400,8 +408,6 @@ function run_lua_interpret(env, str )
     if not(f) then
         -- Check if incomplete, same way the real cli checks
         local ss,sf=string.find(err, "<eof>")
-        print(sf)
-        print(err:len())
         if sf==err:len()-1 then
             return 1 -- incomplete
         else
