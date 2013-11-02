@@ -766,7 +766,7 @@ AEDIT ( aedit_addaprog )
         return FALSE;
     }
 
-    if ( value==ATRIG_TIMER && IS_SET( pArea->aprogs, value ) )
+    if ( value==ATRIG_TIMER && IS_SET( pArea->aprog_flags, value ) )
     {
         send_to_char("Can only have one timer trigger.\n\r", ch );
         return FALSE;
