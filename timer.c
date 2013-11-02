@@ -31,6 +31,7 @@ struct timer_node
 TIMER_NODE *first_timer=NULL;
 
 static void add_timer( TIMER_NODE *tmr);
+static void remove_timer( TIMER_NODE *tmr );
 static void free_timer_node( TIMER_NODE *tmr);
 static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int max );
 static void print_timer_list();
@@ -43,9 +44,15 @@ void * register_lua_timer( int value)
     return (void *)tmr;
 }
 
+void unregister_lua_timer( void *tmr )
+{
+    remove_timer(tmr);
+    return;
+}
+
 /* register on the list and also return a pointer to the node
    in the form of void */
-void * register_CH_timer( CHAR_DATA *ch, int max )
+void * register_ch_timer( CHAR_DATA *ch, int max )
 {
     if ( ch->trig_timer)
     {
@@ -65,7 +72,7 @@ void * register_CH_timer( CHAR_DATA *ch, int max )
 
 /* register on the list and also return a pointer to the node
    in the form of void */
-void * register_OBJ_timer( OBJ_DATA *obj, int max )
+void * register_obj_timer( OBJ_DATA *obj, int max )
 {
     if ( obj->otrig_timer)
     {
@@ -85,7 +92,7 @@ void * register_OBJ_timer( OBJ_DATA *obj, int max )
 
 /* register on the list and also return a pointer to the node
    in the form of void */
-void * register_AREA_timer( AREA_DATA *area, int max )
+void * register_area_timer( AREA_DATA *area, int max )
 {
     if ( area->atrig_timer)
     {
@@ -125,7 +132,7 @@ static void remove_timer( TIMER_NODE *tmr )
     return;
 }
 
-void unregister_CH_timer( CHAR_DATA *ch )
+void unregister_ch_timer( CHAR_DATA *ch )
 {
     if (!ch->trig_timer)
     {
@@ -136,6 +143,20 @@ void unregister_CH_timer( CHAR_DATA *ch )
 
     tmr->unregistered=TRUE; /* queue it for removal next update */ 
     ch->trig_timer=NULL;
+    return;
+}
+
+void unregister_obj_timer( OBJ_DATA *obj )
+{
+    if (!obj->otrig_timer)
+    {
+        /* doesn't have one */
+        return;
+    }
+    TIMER_NODE *tmr=(TIMER_NODE *)obj->otrig_timer;
+
+    tmr->unregistered=TRUE; /* queue it for removal next update */
+    obj->otrig_timer=NULL;
     return;
 }
 

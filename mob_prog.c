@@ -1724,7 +1724,7 @@ void mprog_timer_init( CHAR_DATA *mob)
                             mob->pIndexData->vnum, prg->trig_phrase);
                     return;
                 }
-                register_CH_timer( mob, atoi(prg->trig_phrase));
+                register_ch_timer( mob, atoi(prg->trig_phrase));
                 return; /* only one allowed */
             }
         }

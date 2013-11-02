@@ -90,6 +90,7 @@ static const struct luaL_reg MOBPROTO_lib[];
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 #define GOD_LIBRARY "god"
+#define DEBUG_LIBRARY "debug"
 #define UD_TABLE_NAME "udtbl"
 #define ENV_TABLE_NAME "envtbl"
 #define INTERP_TABLE_NAME "interptbl"
@@ -523,7 +524,9 @@ static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int 
 
 static int L_delay (lua_State *LS)
 {
-    //CHAR_DATA *ud_ch=check_CH( LS, 1 );
+    /* delaytbl has timer pointers as keys
+       value is table with 'tableid' and 'func' keys */
+    /* delaytbl[tmr]={ tableid=tableid, func=func } */
     int val=luaL_checkint( LS, 2 );
     luaL_checktype( LS, 3, LUA_TFUNCTION);
 
@@ -546,27 +549,61 @@ static int L_delay (lua_State *LS)
     return 0;
 }
 
+static int L_cancel (lua_State *LS)
+{
+    /* http://pgl.yoyo.org/luai/i/next specifies it is safe
+       to modify or clear fields during iteration */
+    /* for k,v in pairs(delaytbl) do
+            if v.tableid==arg1.tableid then
+                unregister_lua_timer(k)
+                delaytbl[k]=nil
+            end
+       end
+       */
+
+    /* 1, game object */
+    lua_getfield( LS, 1, "tableid"); /* 2, arg1.tableid (game object pointer) */ 
+    lua_getglobal( LS, "delaytbl"); /* 3, delaytbl */
+
+    lua_pushnil( LS );
+    while ( lua_next(LS, 3) != 0 ) /* pops nil */
+    {
+        /* key at 4, val at 5 */
+        lua_getfield( LS, 5, "tableid");
+        if (lua_equal( LS, 6, 2 )==1)
+        {
+            void *tmr=luaL_checkudata( LS, 4, UD_META);
+            unregister_lua_timer( tmr );
+            /* set table entry to nil */
+            lua_pushvalue( LS, 4 ); /* push key */
+            lua_pushnil( LS );
+            lua_settable( LS, 3 );
+        }
+        lua_pop(LS, 2); /* pop tableid and value */
+    }
+
+    return 0;
+}
+
 static int L_rundelay( lua_State *LS)
 {
-    void *tmr=luaL_checkudata( LS, 1, UD_META );
-
     lua_getglobal( LS, "delaytbl"); /*2*/
     if (lua_isnil( LS, -1) )
     {
         luaL_error( LS, "run_delayed_function: couldn't find delaytbl");
     }
 
-    lua_pushlightuserdata( LS, tmr );
-    lua_gettable( LS, -2 ); /* pops key */ /*3*/
+    lua_pushvalue( LS, 1 );
+    lua_gettable( LS, 2 ); /* pops key */ /*3, delaytbl entry*/
 
-    if (lua_isnil( LS, -1) )
+    if (lua_isnil( LS, 3) )
     {
         luaL_error( LS, "Didn't find entry in delaytbl");
     }
     /* check if the game object is still valid */
-    lua_getglobal( LS, UD_TABLE_NAME);/*4*/
-    lua_getfield( LS, -2, "tableid");
-    lua_gettable( LS, -2 ); /* pops key */ /*5*/
+    lua_getglobal( LS, UD_TABLE_NAME); /*4, udtbl*/
+    lua_getfield( LS, -2, "tableid"); /* 5 */
+    lua_gettable( LS, -2 ); /* pops key */ /*5, game object*/
 
     if (lua_isnil( LS, -1) )
     {
@@ -577,6 +614,11 @@ static int L_rundelay( lua_State *LS)
     lua_pop( LS, 2 );
 
     lua_getfield( LS, -1, "func"); 
+
+    /* kill the entry before call in case of error */
+    lua_pushvalue( LS, 1 ); /* lightud as key */
+    lua_pushnil( LS ); /* nil as value */
+    lua_settable( LS, 2 ); /* pops key and value */ 
 
     lua_call( LS, 0, 0);
 
@@ -2351,6 +2393,22 @@ static int L_area_tprint ( lua_State *LS)
 
 }
 
+
+/* return tprintstr of the given global (string arg)*/
+static int L_debug_show ( lua_State *LS)
+{
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+    lua_getglobal( LS, luaL_checkstring( LS, 1 ) );
+    lua_call( LS, 1, 1 );
+
+    return 1;
+}
+
+static const struct luaL_reg debuglib [] =
+{
+    {"show", L_debug_show}
+};
+
 static const struct luaL_reg godlib [] =
 {
     {"confuse", L_god_confuse},
@@ -2451,6 +2509,7 @@ static const struct luaL_reg CH_lib [] =
     {"tprint", L_ch_tprint},
     {"olc", L_ch_olc},
     {"delay", L_delay},
+    {"cancel", L_cancel},
     {NULL, NULL}
 };
 
@@ -2476,6 +2535,7 @@ static const struct luaL_reg OBJ_lib [] =
     {"loadtbl", L_obj_loadtbl},
     {"tprint", L_obj_tprint},
     {"delay", L_delay},
+    {"cancel", L_cancel},
     {NULL, NULL}
 };
 
@@ -2513,6 +2573,7 @@ static const struct luaL_reg AREA_lib [] =
     {"loadtbl", L_area_loadtbl},
     {"tprint", L_area_tprint},
     {"delay", L_delay},
+    {"cancel", L_cancel},
     {NULL, NULL}
 }; 
 
@@ -3493,6 +3554,9 @@ static int RegisterLuaRoutines (lua_State *LS)
 
     /* register all god.xxx routines */
     luaL_register (LS, GOD_LIBRARY, godlib);
+
+    /* register all debug.xxx routines */
+    luaL_register (LS, DEBUG_LIBRARY, debuglib);
 
     luaopen_bits (LS);     /* bit manipulation */
     luaL_register (LS, MT_LIBRARY, mtlib);  /* Mersenne Twister */
