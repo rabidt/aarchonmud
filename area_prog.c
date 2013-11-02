@@ -214,7 +214,7 @@ void aprog_timer_init( AREA_DATA *area)
                             area->name, prg->trig_phrase);
                     return;
                 }
-                register_AREA_timer( area, atoi(prg->trig_phrase));
+                register_area_timer( area, atoi(prg->trig_phrase));
                 return; /* only one allowed */
             }
         }

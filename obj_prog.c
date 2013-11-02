@@ -190,7 +190,7 @@ void oprog_timer_init( OBJ_DATA *obj)
                             obj->pIndexData->vnum, prg->trig_phrase);
                     return;
                 }
-                register_OBJ_timer( obj, atoi(prg->trig_phrase));
+                register_obj_timer( obj, atoi(prg->trig_phrase));
                 return; /* only one allowed */
             }
         }

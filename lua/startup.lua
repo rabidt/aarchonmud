@@ -267,7 +267,8 @@ main_lib={  require=require,
             haunt=god.haunt,
             cleanse=god.cleanse,
             defy=god.defy
-        }
+        },
+        debug={show=debug.show}
 
 }
 -- Need to protect our library funcs from evil scripters
