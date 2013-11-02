@@ -2209,16 +2209,12 @@ static int L_obj_echo( lua_State *LS)
     }
     else if (ud_obj->in_room)
     {
-        DESCRIPTOR_DATA *d;
-        for ( d = descriptor_list; d; d = d->next )
+        CHAR_DATA *ch;
+        for ( ch=ud_obj->in_room->people ; ch ; ch=ch->next_in_room )
         {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
-                    &&   d->character->in_room == ud_obj->in_room )
-            {
-                send_to_char( argument, d->character );
-                send_to_char( "\n\r",   d->character );
-            }
-        } 
+            send_to_char( argument, ch );
+            send_to_char( "\n\r", ch );
+        }
     }
     else
     {
