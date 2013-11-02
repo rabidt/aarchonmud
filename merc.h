@@ -3086,6 +3086,7 @@ struct  skill_type
 	sh_int  skill_level[MAX_CLASS]; /* Level needed by class    */
 	sh_int  rating[MAX_CLASS];  /* How hard it is to learn  */
 	sh_int  min_rating;     /* for auto-rating calculation */
+    sh_int  mastery_rating; /* how hard it is to master */
 	sh_int	cap[MAX_CLASS];		/* Maximum learnable percentage */
 	sh_int	stat_prime, stat_second, stat_third;
 	SPELL_FUN * spell_fun;      /* Spell pointer (for spells)   */
