@@ -37,7 +37,6 @@ static void add_timer( TIMER_NODE *tmr);
 static void remove_timer( TIMER_NODE *tmr );
 static void free_timer_node( TIMER_NODE *tmr);
 static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int max );
-static void print_timer_list();
 
 TIMER_NODE * register_lua_timer( int value)
 {
@@ -304,6 +303,7 @@ void print_timer_list()
             tmr->tm_type == TM_LUAFUNC ? "luafunc" :
             tmr->go_type == TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
             tmr->go_type == TYPE_OBJ ? ((OBJ_DATA *)(tmr->game_obj))->name :
+            tmr->go_type == TYPE_AREA ? ((AREA_DATA *)(tmr->game_obj))->name :
             "unknown");
         i++;
     }
