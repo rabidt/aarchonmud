@@ -531,8 +531,8 @@ static int L_delay (lua_State *LS)
     luaL_checktype( LS, 3, LUA_TFUNCTION);
 
     lua_getglobal( LS, "delaytbl");
-    void *tmr=register_lua_timer( val );
-    lua_pushlightuserdata( LS, tmr); 
+    TIMER_NODE *tmr=register_lua_timer( val );
+    lua_pushlightuserdata( LS, (void *)tmr); 
     lua_newtable( LS );
  
     lua_pushliteral( LS, "tableid");
@@ -572,7 +572,7 @@ static int L_cancel (lua_State *LS)
         lua_getfield( LS, 5, "tableid");
         if (lua_equal( LS, 6, 2 )==1)
         {
-            void *tmr=luaL_checkudata( LS, 4, UD_META);
+            TIMER_NODE *tmr=(TIMER_NODE *)luaL_checkudata( LS, 4, UD_META);
             unregister_lua_timer( tmr );
             /* set table entry to nil */
             lua_pushvalue( LS, 4 ); /* push key */
@@ -625,10 +625,10 @@ static int L_rundelay( lua_State *LS)
     return 0;
 }
 
-void run_delayed_function( void *tmr )
+void run_delayed_function( TIMER_NODE *tmr )
 {
     lua_pushcfunction( g_mud_LS, L_rundelay );
-    lua_pushlightuserdata( g_mud_LS, tmr );
+    lua_pushlightuserdata( g_mud_LS, (void *)tmr );
 
     if (CallLuaWithTraceBack( g_mud_LS, 1, 0) )
     {

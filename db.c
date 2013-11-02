@@ -966,6 +966,7 @@ void load_area( FILE *fp )
     pArea->age      = 15;
     pArea->nplayer  = 0;
     pArea->empty    = FALSE;
+    pArea->atrig_timer=NULL;
     
     if ( !area_first )
         area_first = pArea;
