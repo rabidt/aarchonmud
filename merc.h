@@ -24,7 +24,7 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
-
+#include "timer.h"
 #include "protocol.h"
 #include <lua.h>
 
@@ -296,11 +296,11 @@ bool is_questeq( OBJ_DATA *obj );
 #define PULSE_VIOLENCE        ( 3 * PULSE_PER_SECOND)
 #define PULSE_MOBILE          ( 4 * PULSE_PER_SECOND)
 #define PULSE_MOBILE_SPECIAL  ( 1 * PULSE_PER_SECOND)
-#define PULSE_MUSIC       ( 6 * PULSE_PER_SECOND)
 #define PULSE_TICK        (30 * PULSE_PER_SECOND)
 #define PULSE_AREA        (120 * PULSE_PER_SECOND)
 #define PULSE_SAVE            ( 2 * PULSE_PER_SECOND )
 #define PULSE_HERB            ( 15 * 60 * PULSE_PER_SECOND )
+#define PULSE_TIMER_TRIG      ( PULSE_PER_SECOND )
 #define PULSE_PER_MINUTE	( 60 * PULSE_PER_SECOND )
 /* #define PULSE_HERB            ( 15 * PULSE_PER_SECOND ) */
 
@@ -2582,6 +2582,8 @@ struct  char_data
 	int	mana_used;
 	int	moves_used;
 	#endif
+
+    TIMER_NODE *trig_timer; /* should not be touched except in timer.c */
 };
 
 
@@ -2902,6 +2904,7 @@ struct  obj_data
 	sh_int	rank;
 
     bool        must_extract; /* for delayed obj purging */
+    TIMER_NODE *otrig_timer; /* should not be touched except in timer.c */
 };
 
 
@@ -2987,6 +2990,8 @@ struct  area_data
 
     APROG_LIST *aprogs;
     tflag   aprog_flags;
+
+    TIMER_NODE *atrig_timer; /* should not be touched except in timer.c */
 };
 
 
@@ -3132,6 +3137,7 @@ struct  group_type
 #define TRIG_MPCNT  (W)
 #define TRIG_SPELL  (X)
 #define TRIG_CALL   (Y) /* not settable */ 
+#define TRIG_TIMER  (Z)
 
 /*
  * OBJprog definitions
@@ -3153,6 +3159,7 @@ struct  group_type
 #define OTRIG_LOOK  (O)
 #define OTRIG_LORE  (P)
 #define OTRIG_ENTER (Q)
+#define OTRIG_TIMER (R)
 
 /*
  * AREAprog definitions
@@ -3168,6 +3175,7 @@ struct  group_type
 #define ATRIG_UNVOID (I)
 #define ATRIG_RECALL (J)
 #define ATRIG_CALL  (K)
+#define ATRIG_TIMER (L)
 
 struct mprog_list
 {

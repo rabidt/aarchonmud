@@ -523,6 +523,7 @@ const struct flag_type mprog_flags[] =
 	{   "mpcnt",        TRIG_MPCNT,     TRUE    },
     {   "spell",        TRIG_SPELL,     TRUE    },
     {   "call",         TRIG_CALL,      FALSE   },
+    {   "timer",        TRIG_TIMER,     TRUE    },
 	{   NULL,           0,          TRUE    }
 };
 
@@ -545,6 +546,7 @@ const struct flag_type oprog_flags[] =
     {   "look",         OTRIG_LOOK,      TRUE    },
     {   "lore",         OTRIG_LORE,      TRUE    },
     {   "enter",        OTRIG_ENTER,     TRUE    },
+    {   "timer",        OTRIG_TIMER,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -561,6 +563,7 @@ const struct flag_type aprog_flags[] =
     {   "unvoid",       ATRIG_UNVOID,    TRUE    },
     {   "recall",       ATRIG_RECALL,    TRUE    },
     {   "call",         ATRIG_CALL,      FALSE   },
+    {   "timer",        ATRIG_TIMER,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 

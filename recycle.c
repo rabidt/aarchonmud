@@ -299,6 +299,7 @@ OBJ_DATA *new_obj(void)
 	*obj = obj_zero;
 	VALIDATE(obj);
     obj->must_extract=FALSE;
+    obj->otrig_timer=NULL;
 
 	return obj;
 }
@@ -378,6 +379,7 @@ CHAR_DATA *new_char (void)
 	ch->stance=0;
 	ch->just_killed = FALSE;
 	ch->must_extract = FALSE;
+    ch->trig_timer              = NULL;
 	
 	for (i = 0; i < MAX_STATS; i ++)
 	{

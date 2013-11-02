@@ -123,6 +123,7 @@ AREA_DATA *new_area( void )
     sprintf( buf, "area%d.are", pArea->vnum );
     pArea->file_name        =   str_dup( buf );
     pArea->vnum             =   top_area-1;
+    pArea->atrig_timer      =   NULL;
 
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
 	pArea->clones[i] = 0;

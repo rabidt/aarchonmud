@@ -182,3 +182,47 @@ bool ap_recall_trigger( CHAR_DATA *ch)
 
     return ap_percent_trigger( ch->in_room->area, ch, ATRIG_RECALL);
 }
+
+void ap_timer_trigger( AREA_DATA *area )
+{
+    APROG_LIST *prg;
+
+    for ( prg=area->aprogs; prg != NULL; prg = prg->next )
+    {
+        if (prg->trig_type == ATRIG_TIMER)
+        {
+            lua_area_program( NULL, prg->vnum, prg->script->code, 
+                    area, NULL, ATRIG_TIMER);
+            return;
+        }
+    }
+}
+
+void aprog_timer_init( AREA_DATA *area)
+{
+    /* Set up timer stuff if not already */
+    if (HAS_ATRIG(area, ATRIG_TIMER) && !area->atrig_timer)
+    {
+        APROG_LIST *prg;
+        for ( prg = area->aprogs; prg; prg= prg->next )
+        {
+            if ( prg->trig_type == ATRIG_TIMER )
+            {
+                if (!is_number(prg->trig_phrase))
+                {
+                    bugf("Bad timer phrase for area %s: %s, must be number.",
+                            area->name, prg->trig_phrase);
+                    return;
+                }
+                register_area_timer( area, atoi(prg->trig_phrase));
+                return; /* only one allowed */
+            }
+        }
+    }
+}
+
+void aprog_setup( AREA_DATA *area )
+{
+    /* initialize timer, may add more setup steps later */
+    aprog_timer_init( area );
+}
