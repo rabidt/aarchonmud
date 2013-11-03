@@ -5666,7 +5666,9 @@ void spell_high_explosive(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
 int cha_max_follow( CHAR_DATA *ch )
 {
-    return ch->level * get_curr_stat(ch, STAT_CHA) / 40;
+    int puppet_mastery = get_mastery(ch, gsn_puppetry);
+    int cha = get_curr_stat(ch, STAT_CHA) + (puppet_mastery ? 10 + 20*puppet_mastery : 0);
+    return ch->level * cha / 40;
 }
 
 int cha_cur_follow( CHAR_DATA *ch )

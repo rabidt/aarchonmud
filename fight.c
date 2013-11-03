@@ -1491,14 +1491,12 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     }
     else
     {
-        dam += ch->level * get_skill(ch, gsn_enhanced_damage) / 300;
+        // enhanced damage mastery increases bonus damage
+        int mastery = get_mastery(ch, gsn_enhanced_damage);
+        dam += ch->level * (get_skill(ch, gsn_enhanced_damage) + (mastery ? 10 + 20*mastery : 0)) / 300;
         check_improve (ch, gsn_enhanced_damage, TRUE, 10);
         dam += ch->level * get_skill(ch, gsn_brutal_damage) / 300;
         check_improve (ch, gsn_brutal_damage, TRUE, 10);
-        // enhanced damage mastery adds up to 20 damage
-        int mastery = get_mastery(ch, gsn_enhanced_damage);
-        if ( mastery )
-            dam += (20 + ch->level) * (1 + 2*mastery) / 30;
     }
 
     /* special attacks */
