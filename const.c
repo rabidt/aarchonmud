@@ -2358,7 +2358,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"absolute zero",  
 	{ 102, 102, 42, 42, 102, 102, 102, 102, 102, 102, 42, 42, 102, 102, 42 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_absolute_zero,    TAR_CHAR_SELF,     POS_FIGHTING,
@@ -3033,7 +3033,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"electrocution",  
 	{ 102, 102, 41, 41, 102, 102, 102, 102, 102, 102, 41, 41, 102, 102, 41 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_electrocution,    TAR_CHAR_SELF,     POS_FIGHTING,
@@ -3088,7 +3088,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"epidemic",  
 	{ 102, 102, 43, 43, 102, 102, 102, 102, 102, 102, 43, 43, 102, 102, 43 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_epidemic,    TAR_CHAR_SELF,     POS_FIGHTING,
@@ -3434,7 +3434,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"immolation",  
 	{ 102, 102, 40, 40, 102, 102, 102, 102, 102, 102, 40, 40, 102, 102, 40 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_immolation,    TAR_CHAR_SELF,     POS_FIGHTING,
@@ -6854,7 +6854,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"quirkys insanity",  
 	{ 102, 102, 50, 102, 102, 102, 50, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_quirkys_insanity,    TAR_CHAR_SELF,     POS_FIGHTING,

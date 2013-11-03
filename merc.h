@@ -2634,6 +2634,7 @@ struct  pc_data
     sh_int      highest_level; /* highest level reached during current remort */
     sh_int      condition   [7];
     sh_int      learned     [MAX_SKILL];
+    sh_int      mastered    [MAX_SKILL];
     bool        group_known [MAX_GROUP];
     sh_int      points;
     bool        confirm_delete;
