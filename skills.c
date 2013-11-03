@@ -534,7 +534,24 @@ static int get_mastery_group_cost( CHAR_DATA *ch, int sn )
     return cost;
 }
 
-const char* mastery_title( int level )
+static int mastery_points( CHAR_DATA *ch )
+{
+    int sn, gn, points = 0;
+    // points for skills
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+        points += ch->pcdata->mastered[sn] * skill_table[sn].mastery_rating;
+    // extra points for groups
+    for ( gn = 0; mastery_group_table[gn].name; gn++ )
+        points += get_group_mastery(ch, gn) * mastery_group_table[gn].rating;
+    return points;
+}
+
+static int max_mastery_points( CHAR_DATA *ch )
+{
+    return 50 + 5 * ch->pcdata->remorts;
+}
+
+static const char* mastery_title( int level )
 {
     switch( level )
     {
@@ -544,7 +561,7 @@ const char* mastery_title( int level )
     }
 }
 
-static int max_mastery_level( CHAR_DATA *ch, int sn)
+static int max_mastery_level( CHAR_DATA *ch, int sn )
 {
     // skill must have a mastery_rating
     if ( skill_table[sn].mastery_rating < 1 )
@@ -566,6 +583,7 @@ static int max_mastery_level( CHAR_DATA *ch, int sn)
 static void show_master_syntax( CHAR_DATA *ch )
 {
     send_to_char("Syntax: master <skill>\n\r", ch);
+    send_to_char("        master forget <skill>\n\r", ch);
     send_to_char("        master list\n\r", ch);
 }
 
@@ -604,7 +622,7 @@ void do_master( CHAR_DATA *ch, char *argument )
                     skill_table[sn].mastery_rating * lvl
                 );
 
-        add_buf(buf, "{gYou have mastered the following schools:{x\n\r");
+        add_buf(buf, "\n\r{gYou have mastered the following schools:{x\n\r");
         for ( gn = 0; mastery_group_table[gn].name; gn++ )
             if ( lvl = get_group_mastery(ch, gn) )
                 add_buff(buf, "  %-25s %-15s %2d\n\r",
@@ -612,8 +630,10 @@ void do_master( CHAR_DATA *ch, char *argument )
                     mastery_title(lvl),
                     mastery_group_table[gn].rating * lvl
                 );
+
+        add_buff(buf, "\n\r{gTrains spent on skill mastery:{x %15d / %d\n\r", mastery_points(ch), max_mastery_points(ch));
         
-        add_buf(buf, "{gYou may advance in the following skills:{x\n\r");
+        add_buf(buf, "\n\r{gYou may advance in the following skills:{x\n\r");
             for ( sn = 1; sn < MAX_SKILL; sn++ )
                 if ( (lvl = ch->pcdata->mastered[sn]) < max_mastery_level(ch, sn) )
                     add_buff(buf, "  %-25s %-15s %2d\n\r",
@@ -624,6 +644,23 @@ void do_master( CHAR_DATA *ch, char *argument )
         
         page_to_char(buf_string(buf), ch);
         free_buf(buf);
+        return;
+    }
+    else if ( !strcmp(arg, "forget") )
+    {
+        if ( (sn = skill_lookup(arg2)) <= 0 )
+        {
+            printf_to_char(ch, "Invalid skill '%s'.\n\r", arg2);
+            return;
+        }
+        if ( !ch->pcdata->mastered[sn] )
+        {
+            printf_to_char(ch, "Seems you forgot about it already.\n\r", arg2);
+            return;
+        }
+        // ok, reduce mastery level
+        printf_to_char(ch, "You forget some of the finer details about %s.\n\r", skill_table[sn].name);
+        ch->pcdata->mastered[sn]--;
         return;
     }
     else if ( (sn = skill_lookup(argument)) > 0 )
@@ -656,6 +693,14 @@ void do_master( CHAR_DATA *ch, char *argument )
         }
 
         int cost = skill_table[sn].mastery_rating + get_mastery_group_cost(ch, sn);
+        if ( mastery_points(ch) + cost > max_mastery_points(ch) )
+        {
+            if ( trainer )
+                act("$N tells you 'You cannot master that many skills.'", ch, NULL,trainer, TO_CHAR);
+            else
+                printf_to_char(ch, "You feel like your head would explode.\n\r", skill_table[sn].name);
+            return;
+        }
         if ( ch->train < cost )
         {
             if ( trainer )
