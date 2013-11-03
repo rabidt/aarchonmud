@@ -2369,7 +2369,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"acid blast",
 	{ 102, 102, 102, 20, 102, 102, 102, 102, 102, 102, 60, 25, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_acid_blast,   TAR_VIS_CHAR_OFF, POS_FIGHTING,
@@ -2380,7 +2380,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"acid breath",  
 	{ 102, 102, 102, 57, 102, 102, 102, 102, 102, 102, 102, 89, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_acid_breath,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -2503,7 +2503,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"burning hands",  
 	{ 102, 102, 102,  4, 102,  8, 102, 102,  6, 102, 12,  4, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_burning_hands,    TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -2514,7 +2514,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"call lightning",  
 	{ 102, 102, 75, 80, 102, 102, 102, 102, 102, 102, 85, 90, 102, 74, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_call_lightning,   TAR_IGNORE,     POS_FIGHTING,
@@ -2602,7 +2602,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{   
 	"chain lightning", 
 	{ 102, 102, 102, 30, 102, 102, 102, 102, 102, 102, 82, 40, 102, 35, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_chain_lightning,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -2635,7 +2635,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"chill touch",  
 	{ 102, 102, 102,  6, 102, 12, 102, 102, 10, 102, 18,  8, 102, 102, 5 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_chill_touch,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -2646,7 +2646,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"colour spray",  
 	{ 102, 102, 102,  8, 102, 16, 102, 102, 14, 102, 24,  7, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_colour_spray, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -3022,7 +3022,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"earthquake",  
 	{ 102, 102, 18, 102, 102, 33, 38, 102, 102, 102, 19, 102, 102, 22, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_earthquake,   TAR_IGNORE,     POS_FIGHTING,
@@ -3177,7 +3177,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"fireball",  
 	{ 102, 102, 102, 10, 102, 20, 102, 102, 18, 102, 30, 12, 102, 16, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_fireball,     TAR_IGNORE, POS_FIGHTING,
@@ -3199,7 +3199,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"flamestrike", 
 	{ 102, 102, 40, 102, 102, 38, 70, 102, 102, 102, 45, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_flamestrike,  TAR_VIS_CHAR_OFF, POS_FIGHTING,
@@ -3310,7 +3310,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 		{
 		"hailstorm",
 		{ 102, 102, 88, 88, 102, 102, 102, 102, 102, 102, 89, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_hailstorm,        TAR_VIS_CHAR_OFF,     POS_FIGHTING,
@@ -3490,7 +3490,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"lightning bolt", 
 	{ 102, 102, 102, 15, 102, 30, 102, 102, 28, 102, 45, 18, 102, 20, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_lightning_bolt,   TAR_VIS_CHAR_OFF, POS_FIGHTING,
@@ -3523,7 +3523,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"magic missile", 
 	{ 102, 102, 102,  1, 102,  2, 102, 102,  2, 102,  3,  1, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_magic_missile,    TAR_VIS_CHAR_OFF, POS_FIGHTING,
@@ -3655,7 +3655,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 		{
 		"meteor swarm",
 		{ 102, 102, 72, 76, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_meteor_swarm,     TAR_VIS_CHAR_OFF,     POS_FIGHTING,
@@ -3666,7 +3666,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 		{
 		"monsoon",
 		{ 102, 102, 78, 82, 102, 102, 102, 102, 102, 102, 87, 91, 102, 80, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_monsoon,          TAR_IGNORE,     POS_FIGHTING,
@@ -3969,7 +3969,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"shocking grasp", 
 	{ 102, 102, 102,  5, 102, 10, 102, 102,  8, 102, 15,  6, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_shocking_grasp,   TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -4014,7 +4014,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"solar flare", 
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_WIS, STAT_INT, STAT_CHA,
 	spell_solar_flare,  TAR_VIS_CHAR_OFF, POS_FIGHTING,
@@ -4080,7 +4080,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"unearth", 
 	{ 102, 102,  91,  90, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_WIS, STAT_INT, STAT_VIT,
 	spell_unearth,  TAR_VIS_CHAR_OFF, POS_FIGHTING,
@@ -7532,9 +7532,23 @@ struct group_type group_table[MAX_GROUP] =
 
 const struct mastery_group_type mastery_group_table[] =
 {
+    { "evocation", 4,
+        { "acid blast", "burning hands", "call lightning", "chain lightning", "chill touch",
+        "colour spray", "fireball", "hailstorm", "lightning bolt", "magic missile",
+        "meteor swarm", "monsoon", "shocking grasp", "solar flare", "unearth",
+        "acid breath", "fire breath", "frost breath", "gas breath", "lightning breath",
+        "cone of exhaustion", "forboding ooze", "tomb stench", "zombie breath", "zone of damnation" }
+    },
 
-    { "shielding", 2, { "immolation", "epidemic", "electrocution", "absolute zero", "quirkys insanity" } },
-    { "healing", 4, { "cure light", "cure serious", "cure critical", "heal", "cure mortal", "restoration",
-        "minor group heal", "group heal", "major group heal", "mass healing", "astarks rejuvenation" } },
+    { "healing", 4,
+        { "cure light", "cure serious", "cure critical", "heal", "cure mortal",
+        "restoration", "minor group heal", "group heal", "major group heal", "mass healing",
+        "astarks rejuvenation" }
+    },
+
+    { "shielding", 2,
+        { "immolation", "epidemic", "electrocution", "absolute zero", "quirkys insanity" }
+    },
+
     { NULL }
 };
