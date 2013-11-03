@@ -557,7 +557,7 @@ static int mastery_points( CHAR_DATA *ch )
 
 static int max_mastery_points( CHAR_DATA *ch )
 {
-    return 50 + 5 * ch->pcdata->remorts;
+    return 30 + 2 * ch->pcdata->remorts;
 }
 
 static const char* mastery_title( int level )
@@ -661,6 +661,15 @@ void do_master( CHAR_DATA *ch, char *argument )
     }
     else if ( !strcmp(arg, "forget") )
     {
+        // forget all option for debugging - hence imm only
+        if ( !strcmp(arg2, "all") && IS_IMMORTAL(ch) )
+        {
+            printf_to_char(ch, "You forget all your masteries.\n\r");
+            for ( sn = 1; sn < MAX_SKILL; sn++ )
+                ch->pcdata->mastered[sn] = 0;
+            return;
+        }
+        
         if ( (sn = skill_lookup(arg2)) <= 0 )
         {
             printf_to_char(ch, "Invalid skill '%s'.\n\r", arg2);
