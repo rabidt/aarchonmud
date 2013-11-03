@@ -2438,7 +2438,6 @@ void update_handler( void )
     static  int     pulse_mobile_special;
     static  int     pulse_violence;
     static  int     pulse_point;
-    static  int     pulse_music;
     static  int     pulse_save = 3; // "= 3" to reduce CPU peeks
     static  int     pulse_herb;
     static  int     pulse_msdp;
