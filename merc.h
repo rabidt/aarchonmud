@@ -3160,6 +3160,7 @@ struct  group_type
 #define OTRIG_LORE  (P)
 #define OTRIG_ENTER (Q)
 #define OTRIG_TIMER (R)
+#define OTRIG_FIGHT (S)
 
 /*
  * AREAprog definitions
