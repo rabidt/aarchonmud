@@ -565,13 +565,11 @@ bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 int mana_cost (CHAR_DATA *ch, int sn, int skill)
 {
     int mana, min_level, max_level;
-    int mastery = get_mastery(ch, sn);
 
     mana = skill_table[sn].min_mana;
     mana = (200-skill)*mana/100;
     
-    if ( mastery )
-        mana -= mana * (3 + mastery) / 20;
+    mana = mastery_adjust_cost(mana, get_mastery(ch, sn));
 
     return mana;
 }
@@ -1154,6 +1152,20 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
     }
 }
 
+int mastery_adjust_cost( int cost, int mastery )
+{
+    if ( mastery > 0 )
+        return cost - cost * (3 + mastery) / 20;
+    return cost;
+}
+
+int mastery_adjust_level( int level, int mastery )
+{
+    if ( mastery > 0 )
+        return level + (3 + mastery);
+    return level;
+}
+
 void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     CHAR_DATA *target, *next_target;
@@ -1333,11 +1345,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
         level = URANGE(1, level, 120);
         if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
             level += UMAX(1, level/8);
-        {
-            int mastery = get_mastery(ch, sn);
-            if ( mastery )
-                level += 3 + mastery;
-        }
+        level = mastery_adjust_level(level, get_mastery(ch, sn));
 
         vo = check_reflection( sn, level, ch, vo, target );
 
