@@ -41,7 +41,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
 	  cost = ch->mana / 100;
       else
 	  cost = 0;
-      ch->mana -= meta_magic_adjust_cost(cost, FALSE);
+      ch->mana -= meta_magic_adjust_cost(mastery_adjust_cost(cost, get_mastery(ch, sn)), FALSE);
   }
 
   /* calc damage */

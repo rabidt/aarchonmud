@@ -1158,15 +1158,18 @@ void spell_major_group_heal( int sn, int level, CHAR_DATA *ch, void *vo, int tar
 void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int heal, factor;
+    int heal = victim->max_hit - victim->hit;
+    double factor = 2.0;
 
-    factor = 2;
-    if ( !was_obj_cast && chance(get_skill(ch, gsn_anatomy)) )
-	factor += 1;
+    if ( !was_obj_cast )
+    {
+        factor += factor * get_skill(ch, gsn_anatomy) / 200;
+        check_improve(ch, gsn_anatomy, TRUE, 1);
+    }
     if ( ch != victim )
-	factor += 1;
+        factor += factor / 3;
+    factor *= 100.0 / mastery_adjust_cost(100, get_mastery(ch, sn));
 
-    heal = victim->max_hit - victim->hit;
     if ( ch->mana < heal/factor )
 	heal = ch->mana * factor;
 
