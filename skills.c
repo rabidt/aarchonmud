@@ -609,17 +609,11 @@ static void show_master_syntax( CHAR_DATA *ch )
 void do_master( CHAR_DATA *ch, char *argument )
 {
     char arg[MAX_INPUT_LENGTH], *arg2;
-    CHAR_DATA *trainer;
     int sn, gn, lvl;
-    bool introspect = FALSE;
     
     if (IS_NPC(ch))
         return;
 
-    trainer = find_trainer(ch, ACT_PRACTICE, &introspect);
-    if ( !trainer && !introspect )
-        return;
-    
     arg2 = one_argument( argument, arg );
 
     if (arg[0] == '\0')
@@ -687,6 +681,12 @@ void do_master( CHAR_DATA *ch, char *argument )
         int max_mastery = max_mastery_level(ch, sn);
         int current_mastery = ch->pcdata->mastered[sn];
 
+        bool introspect = FALSE;
+        CHAR_DATA *trainer = find_trainer(ch, ACT_PRACTICE, &introspect);
+
+        if ( !trainer && !introspect )
+            return;
+        
         if ( max_mastery == -1 )
         {
             printf_to_char(ch, "The %s skill cannot be mastered.\n\r", skill_table[sn].name);
