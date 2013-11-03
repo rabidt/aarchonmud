@@ -565,9 +565,13 @@ bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 int mana_cost (CHAR_DATA *ch, int sn, int skill)
 {
     int mana, min_level, max_level;
+    int mastery = get_mastery(ch, sn);
 
     mana = skill_table[sn].min_mana;
     mana = (200-skill)*mana/100;
+    
+    if ( mastery )
+        mana -= mana * (3 + mastery) / 20;
 
     return mana;
 }
@@ -1329,6 +1333,11 @@ void do_cast( CHAR_DATA *ch, char *argument )
         level = URANGE(1, level, 120);
         if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
             level += UMAX(1, level/8);
+        {
+            int mastery = get_mastery(ch, sn);
+            if ( mastery )
+                level += 3 + mastery;
+        }
 
         vo = check_reflection( sn, level, ch, vo, target );
 
