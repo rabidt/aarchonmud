@@ -3868,48 +3868,47 @@ void do_otype(CHAR_DATA *ch, char *argument)
 
 void do_printlist(CHAR_DATA *ch, char *argument)
 {
-    if (!strcmp(argument, "timers"))
+    if (argument[0]=='\0')
     {
-        print_timer_list();
+        ptc(ch, "Arguments: timers, save\n\r");
         return;
     }
-
-    char arg [MAX_INPUT_LENGTH];
-    MEMFILE *mf;
-
-    argument = one_argument(argument, arg);
-    
-    send_to_char("\n\r", ch);
-    if (!strcmp(arg, "quit") || (arg[0]=='\0'))
+    else if (!strcmp(argument, "timers"))
     {
-       send_to_char("player_quit_list:\n\r", ch);
-       for (mf=player_quit_list ; mf != NULL ; mf = mf->next)
-       {
-           send_to_char(mf->filename, ch);
-           send_to_char("\n\r",ch);
-       }
-       send_to_char("\n\r",ch);
+        page_to_char( print_timer_list(), ch);
+        return;
     }
-    if (!strcmp(arg, "save") || (arg[0]=='\0') )
+    else if (!strcmp(argument, "save"))
     {
+        char arg [MAX_INPUT_LENGTH];
+        MEMFILE *mf;
+
+        argument = one_argument(argument, arg);
+        
+        send_to_char("\n\r", ch);
+        send_to_char("player_quit_list:\n\r", ch);
+        for (mf=player_quit_list ; mf != NULL ; mf = mf->next)
+        {
+            send_to_char(mf->filename, ch);
+            send_to_char("\n\r",ch);
+        }
+        send_to_char("\n\r",ch);
         send_to_char("player_save_list:\n\r", ch);
         for (mf=player_save_list ; mf != NULL ; mf = mf->next)
         {
             send_to_char(mf->filename, ch);
             send_to_char("\n\r",ch);
         }
-       send_to_char("\n\r",ch);
-    }
-    if (!strcmp(arg, "box") || (arg[0]=='\0'))
-    {
+        send_to_char("\n\r",ch);
         send_to_char("box_mf_list:\n\r", ch);
         for (mf=box_mf_list ; mf != NULL ; mf = mf->next)
         {
             send_to_char(mf->filename, ch);
             send_to_char("\n\r",ch);
         }
-       send_to_char("\n\r",ch);
-    }
+        send_to_char("\n\r",ch);
+        return;
+    } /* save */
 }
 
 void do_charloadtest(CHAR_DATA *ch, char *argument)

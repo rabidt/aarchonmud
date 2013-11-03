@@ -293,20 +293,24 @@ void timer_update()
     }
 }
 
-void print_timer_list()
+char * print_timer_list()
 {
+    static char buf[MSL*4];
     TIMER_NODE *tmr;
+    strcpy(buf, "");
     int i=1;
     for ( tmr=first_timer; tmr; tmr=tmr->next )
     {
-        bugf("%d %s", i,
+        sprintf(buf, "%s\n\r%d %s %d", buf, i,
             tmr->tm_type == TM_LUAFUNC ? "luafunc" :
             tmr->go_type == TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
             tmr->go_type == TYPE_OBJ ? ((OBJ_DATA *)(tmr->game_obj))->name :
             tmr->go_type == TYPE_AREA ? ((AREA_DATA *)(tmr->game_obj))->name :
-            "unknown");
+            "unknown",
+            tmr->current);
         i++;
     }
-    return;
+    strcat( buf, "\n\r");
+    return buf;
 
 }
