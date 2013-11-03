@@ -860,6 +860,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     int puppet_skill = get_skill( ch, gsn_puppetry );
+    int puppet_mastery = get_mastery(ch, gsn_puppetry);
 
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_WAR) )
     {
@@ -890,6 +891,8 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         mlevel = (level * 2 + cor->level) / 4;    
     /* bonus for puppetry skill */
     mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
+    if ( puppet_mastery )
+        mlevel += 1 + 2 * puppet_mastery;
     
     /* Check number of charmees against cha */
     if ( check_cha_follow(ch, mlevel) < mlevel )

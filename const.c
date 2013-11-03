@@ -2402,7 +2402,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"animate dead",  
 	{ 102, 102, 33, 22, 102, 102, 102, 102, 102, 102, 84, 102, 102, 102, 20 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_animate_dead, TAR_IGNORE,     POS_STANDING,
@@ -2446,7 +2446,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"basic apparition",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 17, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_basic_apparition,  TAR_IGNORE, POS_STANDING,
@@ -2525,7 +2525,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"call sidekick",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 71, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_call_sidekick, TAR_IGNORE,     POS_STANDING,
@@ -3390,7 +3390,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"holy apparition",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 77, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_holy_apparition,  TAR_IGNORE, POS_STANDING,
@@ -4479,7 +4479,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"tree golem",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 68, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_tree_golem,  TAR_IGNORE, POS_STANDING,
@@ -4490,7 +4490,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
         {
         "water elemental",  
         { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 2,
         { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
         STAT_NONE, STAT_NONE, STAT_NONE,
         spell_water_elemental,  TAR_IGNORE, POS_STANDING,
@@ -4684,7 +4684,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"enhanced damage", 
 	{  2, 13, 102, 102,  2,  3,  3,  9, 10, 25, 102, 102, 21, 25, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 12, 12,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 12, 10,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -6697,7 +6697,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
         { 
         "sticks to snakes",
         { 102, 102, 75, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 37, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
         spell_sticks_to_snakes,  TAR_IGNORE, POS_STANDING,
@@ -6978,7 +6978,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"puppetry",
 	{  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 18, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 18, 10,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -7552,6 +7552,11 @@ const struct mastery_group_type mastery_group_table[] =
 
     { "shielding", 2,
         { "immolation", "epidemic", "electrocution", "absolute zero", "quirkys insanity" }
+    },
+    
+    { "summoning", 4,
+        { "animate dead", "tree golem", "sticks to snakes", "water elemental", "call sidekick",
+        "basic apparition", "holy apparition" }
     },
     
     { NULL }
