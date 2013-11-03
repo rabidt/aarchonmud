@@ -607,8 +607,7 @@ static int L_rundelay( lua_State *LS)
 
     if (lua_isnil( LS, -1) )
     {
-        /* exit silently */
-        return 0;
+        luaL_error(LS, "Couldn't find delayed function's game boject.");
     }
 
     lua_pop( LS, 2 );
@@ -3518,7 +3517,7 @@ static const struct luaL_reg RESET_metatable [] =
     {NULL, NULL}
 };
 
-void RegisterGlobalFunctions(lua_State *LS)
+static void RegisterGlobalFunctions(lua_State *LS)
 {
     /* These are registed in the main script
        space then the appropriate ones are 
@@ -3541,6 +3540,9 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getobjlist", L_getobjlist);
     lua_register(LS,"getarealist", L_getarealist);
     lua_register(LS,"clearloopcount", L_clearloopcount);
+
+    /* not meant for main_lib */
+    lua_register(LS,"cancel", L_cancel); 
 }
 
 
@@ -3621,12 +3623,6 @@ int GetLuaEnvironmentCount()
     }
 
     return (int)luaL_checknumber( g_mud_LS, -1 );
-}
-
-void lua_reset ()
-{
-    lua_close(g_mud_LS);
-    open_lua();
 }
 
 void open_lua  ()
