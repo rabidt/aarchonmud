@@ -2424,7 +2424,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"astarks rejuvenation",  
 	{ 102, 102,  94, 102, 102, 102, 102, 102, 102, 102,  96, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_astarks_rejuvenation, TAR_IGNORE,     POS_STANDING,
@@ -2777,7 +2777,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"cure critical", 
 	{ 102, 102, 30, 102, 102, 102, 90, 102, 102, 50, 60, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_cure_critical,    TAR_CHAR_DEFENSIVE, POS_FIGHTING,
@@ -2799,7 +2799,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"cure light",  
 	{ 102, 102,  1, 102, 102, 102, 20, 102, 102,  4,  5, 102, 102, 102, 5 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_cure_light,   TAR_CHAR_DEFENSIVE, POS_FIGHTING,
@@ -2810,7 +2810,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"cure mortal", 
 	{ 102, 102, 70, 102, 102, 102, 102, 102, 102, 102, 90, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_cure_mortal,      TAR_CHAR_DEFENSIVE,     POS_FIGHTING,
@@ -2843,7 +2843,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"cure serious", 
 	{ 102, 102, 15, 102, 102, 102, 50, 102, 102, 25, 30, 102, 102, 102, 21 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_cure_serious, TAR_CHAR_DEFENSIVE, POS_FIGHTING,
@@ -3298,7 +3298,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"group heal",  
 	{ 102, 102, 60, 102, 102, 102, 102, 102, 102, 80, 90, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_group_heal,       TAR_IGNORE,             POS_FIGHTING,
@@ -3368,7 +3368,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"heal", 
 	{ 102, 102, 35, 102, 102, 102, 80, 102, 102, 40, 45, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_heal,     TAR_CHAR_DEFENSIVE, POS_FIGHTING,
@@ -3534,7 +3534,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"major group heal", 
 	{ 102, 102, 80, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_major_group_heal, TAR_IGNORE,             POS_FIGHTING,
@@ -3578,7 +3578,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"mass healing",  
 	{ 102, 102, 50, 102, 102, 102, 102, 102, 102, 55, 75, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_mass_healing, TAR_IGNORE,     POS_STANDING,
@@ -3611,7 +3611,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"minor group heal",  
 	{ 102, 102, 40, 102, 102, 102, 85, 102, 102, 60, 80, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_minor_group_heal, TAR_IGNORE,             POS_FIGHTING,
@@ -7528,4 +7528,13 @@ struct group_type group_table[MAX_GROUP] =
         { "anklebiter", "bite", "trip", "disarm", "mug", "dirt kicking" }
     },
 
+};
+
+const struct mastery_group_type mastery_group_table[] =
+{
+
+    { "shielding", 2, { "immolation", "epidemic", "electrocution", "absolute zero", "quirkys insanity" } },
+    { "healing", 4, { "cure light", "cure serious", "cure critical", "heal", "cure mortal", "restoration",
+        "minor group heal", "group heal", "major group heal", "mass healing", "astarks rejuvenation" } },
+    { NULL }
 };
