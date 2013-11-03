@@ -184,6 +184,38 @@ void update_skill_costs()
     }
 }
 
+CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )
+{
+    CHAR_DATA *trainer;
+
+    for ( trainer = ch->in_room->people; trainer != NULL; trainer = trainer->next_in_room )
+        if ( IS_NPC(trainer) && IS_SET(trainer->act, act_flag) && can_see(ch, trainer) )
+        {
+            *introspect = FALSE;
+            return trainer;
+        }
+    
+    // no trainer, try introspection
+    int skill = get_skill(ch,gsn_introspection);
+    if ( skill > 1 )
+    {
+        if ( *introspect = per_chance(skill) )
+        {
+            act("$n thinks over what $e has experienced recently.", ch, NULL, NULL, TO_ROOM);
+            check_improve(ch, gsn_introspection, TRUE, 8);
+        }
+        else
+        {
+            send_to_char("You find nothing meaningful in your introspection.\n\r", ch);
+            check_improve(ch, gsn_introspection, FALSE, 8);
+        }
+    }
+    else
+        send_to_char( "You can't do that here.\n\r", ch );
+
+    return NULL;
+}
+
 /* used to get new skills */
 void do_gain(CHAR_DATA *ch, char *argument)
 {
@@ -196,38 +228,13 @@ void do_gain(CHAR_DATA *ch, char *argument)
 	
 	if (IS_NPC(ch))
 		return;
-	
-	/* find a trainer */
-	for ( trainer = ch->in_room->people; trainer != NULL; trainer = trainer->next_in_room )
-		if (IS_NPC(trainer) && IS_SET(trainer->act,ACT_GAIN))
-			break;
-		
-		if (trainer == NULL || !can_see(ch,trainer))
-		{
-			if ( (get_skill(ch,gsn_introspection)) > 1 )
-			{
-				if ((get_skill(ch,gsn_introspection)) > number_percent() )
-				{
-					act( "$n thinks over what $e has experienced recently.",ch,NULL,NULL,TO_ROOM );
-					check_improve(ch,gsn_introspection,TRUE,8);
-					introspect = TRUE;
-				}
-				else
-				{
-					send_to_char("You find nothing meaningful in your introspection.\n\r",ch);
-					check_improve(ch,gsn_introspection,FALSE,8);
-					return;
-				}
-			}
-			else
-			{
-				send_to_char( "You can't do that here.\n\r", ch );
-				return;
-			}
-		}
-		
-                argPtr = one_argument( argument, arg );
-                argPtr = one_argument( argPtr, arg2 );
+
+    trainer = find_trainer(ch, ACT_GAIN, &introspect);
+    if ( !trainer && !introspect )
+        return;
+    
+    argPtr = one_argument( argument, arg );
+    argPtr = one_argument( argPtr, arg2 );
 
 		if (arg[0] == '\0')
 		{
@@ -496,6 +503,122 @@ void do_gain(CHAR_DATA *ch, char *argument)
 		
 }
 
+int max_master_level( CHAR_DATA *ch, int sn)
+{
+    // skill must have a mastery_rating
+    if ( skill_table[sn].mastery_rating < 1 )
+        return -1;
+    
+    // max mastery depends both on how well practiced and class max
+    int practice = ch->pcdata->learned[sn];
+    int class_max = skill_table[sn].cap[ch->class];
+    int proficiency = UMIN(practice, class_max);
+    
+    if ( proficiency < 80 )
+        return 0;
+    else if ( proficiency < 90 )
+        return 1;
+    else
+        return 2;
+}
+
+static void show_master_syntax( CHAR_DATA *ch )
+{
+    send_to_char("Syntax: master <skill>\n\r", ch);
+    send_to_char("        master list\n\r", ch);
+}
+
+void do_master( CHAR_DATA *ch, char *argument )
+{
+    char arg[MAX_INPUT_LENGTH], *arg2;
+    CHAR_DATA *trainer;
+    int sn = 0;
+    bool introspect = FALSE;
+    
+    if (IS_NPC(ch))
+        return;
+
+    trainer = find_trainer(ch, ACT_PRACTICE, &introspect);
+    if ( !trainer && !introspect )
+        return;
+    
+    arg2 = one_argument( argument, arg );
+
+    if (arg[0] == '\0')
+    {
+        show_master_syntax(ch);
+        return;
+    }
+    
+    if ( !strcmp(arg, "list") )
+    {
+        BUFFER *buf = new_buf();
+
+        add_buf(buf, "{gYou have mastered the following skills:{x\n\r");
+        for ( sn = 1; sn < MAX_SKILL; sn++ )
+            if ( ch->pcdata->mastered[sn] )
+                add_buff(buf, "  %-25s %s\n\r", skill_table[sn].name, ch->pcdata->mastered[sn] == 2 ? "grandmaster" : "master");
+
+        add_buf(buf, "{gYou may advance in the following skills:{x\n\r");
+            for ( sn = 1; sn < MAX_SKILL; sn++ )
+                if ( ch->pcdata->mastered[sn] < max_master_level(ch, sn) )
+                    add_buff(buf, "  %-25s %d\n\r", skill_table[sn].name, skill_table[sn].mastery_rating);
+        
+        page_to_char(buf_string(buf), ch);
+        free_buf(buf);
+        return;
+    }
+    else if ( (sn = skill_lookup(argument)) > 0 )
+    {
+        int max_mastery = max_master_level(ch, sn);
+        int current_mastery = ch->pcdata->mastered[sn];
+
+        if ( max_mastery == -1 )
+        {
+            printf_to_char(ch, "The %s skill cannot be mastered.\n\r", skill_table[sn].name);
+            return;
+        }
+        
+        if ( current_mastery == 2 )
+        {
+            if ( trainer )
+                act("$N tells you 'There is nothing more I can teach you.'", ch, NULL, trainer, TO_CHAR);
+            else
+                printf_to_char(ch, "You are already a grandmaster in %s.\n\r",  skill_table[sn].name);
+            return;
+        }
+
+        if ( max_mastery <= current_mastery )
+        {
+            if ( trainer )
+                act("$N tells you 'Come back after you practice some more.'", ch, NULL, trainer, TO_CHAR);
+            else
+                printf_to_char(ch, "You don't feel skilled enough yet.\n\r", skill_table[sn].name);
+            return;            
+        }
+
+        if ( ch->train < skill_table[sn].mastery_rating )
+        {
+            if ( trainer )
+                act("$N tells you 'You are not yet ready to master that skill.'", ch, NULL,trainer, TO_CHAR);
+            else
+                printf_to_char(ch, "You don't feel ready yet.\n\r", skill_table[sn].name);
+            return;
+        }
+
+        // all good, master it
+        ch->pcdata->mastered[sn]++;
+        ch->train -= skill_table[sn].mastery_rating;
+        if ( trainer )
+            act("$N helps you master the art of $t.", ch, skill_table[sn].name, trainer, TO_CHAR);
+        else
+            printf_to_char(ch, "You master the art of %s.\n\r", skill_table[sn].name);
+        return;
+    }
+    
+    // couldn't parse argument
+    show_master_syntax(ch);
+}
 
 void do_skill( CHAR_DATA *ch, char *argument )
 {

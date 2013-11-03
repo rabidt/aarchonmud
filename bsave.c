@@ -741,8 +741,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
         {
             if ( skill_table[sn].name != NULL && ch->pcdata->learned[sn] > 0 )
             {
-                bprintf( buf, "Sk %d '%s'\n",
-                    ch->pcdata->learned[sn], skill_table[sn].name );
+                bprintf( buf, "Sk %d '%s'\n", ch->pcdata->learned[sn], skill_table[sn].name );
+                if ( ch->pcdata->mastered[sn] > 0 )
+                    bprintf( buf, "Ma %d '%s'\n", ch->pcdata->mastered[sn], skill_table[sn].name );
             }
         }
         
@@ -1951,7 +1952,20 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 	    fMatch = TRUE;
 	    break;
 	}
-        
+
+        if ( !str_cmp(word, "Mastery") || !str_cmp(word,"Ma") )
+        {
+            int value = bread_number(buf);
+            char *temp = bread_word(buf);
+            int sn = skill_lookup(temp);
+
+            if ( sn < 0 )
+                bugf("bread_char: unknown mastery skill '%s'", temp);
+            else
+                ch->pcdata->mastered[sn] = value;
+            fMatch = TRUE;
+        }
+
     case 'N':
         KEYS( "Name",   ch->name,       bread_string( buf ) );
         if ( !str_cmp(word,"NewAMod"))
