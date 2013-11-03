@@ -522,6 +522,15 @@ static int get_group_mastery( CHAR_DATA *ch, int gn )
     return mastery;
 }
 
+static bool is_in_mastery_group( int sn, int gn )
+{
+    int i;
+    for ( i = 0; mastery_group_table[gn].skills[i]; i++ )
+        if ( !strcmp(mastery_group_table[gn].skills[i], skill_table[sn].name) )
+            return TRUE;
+    return FALSE;
+}
+
 // additional cost from mastery groups to advance the given skill
 static int get_mastery_group_cost( CHAR_DATA *ch, int sn )
 {
@@ -561,23 +570,33 @@ static const char* mastery_title( int level )
     }
 }
 
-static int max_mastery_level( CHAR_DATA *ch, int sn )
+static int max_mastery_class( int class, int sn )
 {
     // skill must have a mastery_rating
     if ( skill_table[sn].mastery_rating < 1 )
         return -1;
     
-    // max mastery depends both on how well practiced and class max
-    int practice = ch->pcdata->learned[sn];
-    int class_max = skill_table[sn].cap[ch->class];
-    int proficiency = UMIN(practice, class_max);
-    
-    if ( proficiency < 80 )
+    int class_max = skill_table[sn].cap[class];
+
+    if ( class_max < 80 )
         return 0;
-    else if ( proficiency < 90 )
+    else if ( class_max < 90 )
         return 1;
     else
         return 2;
+}
+
+static int max_mastery_level( CHAR_DATA *ch, int sn )
+{
+    int level = max_mastery_class(ch->class, sn);
+    int practice = ch->pcdata->learned[sn];
+    
+    if ( practice < 80 )
+        return UMIN(level, 0);
+    else if ( practice < 90 )
+        return UMIN(level, 1);
+    else
+        return UMIN(level, 2);
 }
 
 static void show_master_syntax( CHAR_DATA *ch )
@@ -2265,6 +2284,7 @@ void do_showskill(CHAR_DATA *ch,char *argument)
     {
         show_skill(arg1, buffer);
         show_groups(skill, buffer);
+        show_mastery_groups(skill, buffer);
         show_races(skill, buffer);
     }
     
@@ -2307,6 +2327,28 @@ void show_groups( int skill, BUFFER *buffer )
     }
     if ( col % 3 != 0 )
 	add_buf( buffer, "\n\r" );
+}
+
+void show_mastery_groups( int skill, BUFFER *buffer )
+{
+    char buf[MSL];
+    int gn, col = 0;
+
+    if ( skill_table[skill].mastery_rating < 1 )
+        return;
+
+    add_buf( buffer, "\n\rIt belongs to the following schools:\n\r" );
+    for ( gn = 0; mastery_group_table[gn].name; gn++ )
+    {
+        if ( !is_in_mastery_group(skill, gn) )
+            continue;
+        sprintf( buf, "%s (%d)  ", mastery_group_table[gn].name, mastery_group_table[gn].rating );
+        add_buf( buffer, buf );
+        if (++col % 3 == 0)
+            add_buf( buffer, "\n\r" );
+    }
+    if ( col % 3 != 0 )
+    add_buf( buffer, "\n\r" );
 }
 
 bool has_race_skill( int skill, int rn )
@@ -2406,22 +2448,30 @@ void show_skill(char *argument, BUFFER *buffer)
         (skill_table[skill].stat_third>=STAT_NONE) ? "none" :
         stat_table[skill_table[skill].stat_third].name);
     
-    add_buff(buffer, "\n\r{wClass          Level Points  Max{x\n\r");
-    
-    add_buff(buffer, "{w------------   ----- ------ -----{x\n\r");
+    add_buff(buffer, "\n\r{wClass          Level Points  Max  Mastery{x\n\r");
+    add_buff(buffer,     "{w------------   ----- ------ ----- -------{x\n\r");
     
     for ( cls = 0; cls < MAX_CLASS; cls++ )
     {
         if (skill_table[skill].skill_level[cls] > LEVEL_HERO)
         {
-            sprintf(log_buf, "{r   --     --     --{x\n\r");
+            sprintf(log_buf, "{r   --     --     --   -- --{x\n\r");
         }
         else
         {
-                sprintf( log_buf, "{g%5d    %3d    %3d{x\n\r",
-                    skill_table[skill].skill_level[cls],
-                    skill_table[skill].rating[cls],
-                    skill_table[skill].cap[cls] );
+            char mbuf[MSL];
+            int max_mastery = max_mastery_class(cls, skill);
+            if ( skill_table[skill].mastery_rating < 1 || max_mastery < 1 )
+                sprintf(mbuf, "{r-- --");
+            else
+                sprintf(mbuf, "%2d %2s", skill_table[skill].mastery_rating, max_mastery == 2 ? "GM" : "MA");
+            
+            sprintf(log_buf, "{g%5d    %3d    %3d   %s{x\n\r",
+                skill_table[skill].skill_level[cls],
+                skill_table[skill].rating[cls],
+                skill_table[skill].cap[cls],
+                mbuf
+            );
         }
         
         add_buff(buffer, "{w%-12s{x %-5s", capitalize(class_table[cls].name), log_buf);
