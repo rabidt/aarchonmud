@@ -4620,6 +4620,7 @@ int get_skill   args( ( CHAR_DATA *ch, int sn ) );
 int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 int get_group_base_cost( int gn, int class );
 int get_group_cost( CHAR_DATA *ch, int gn );
+int get_mastery( CHAR_DATA *ch, int sn );
 
 /* social-edit.c */
 void load_social_table();

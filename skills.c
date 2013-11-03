@@ -522,6 +522,11 @@ int max_master_level( CHAR_DATA *ch, int sn)
         return 2;
 }
 
+int get_mastery( CHAR_DATA *ch, int sn )
+{
+    return ch->pcdata ? ch->pcdata->mastered[sn] : 0;
+}
+
 static void show_master_syntax( CHAR_DATA *ch )
 {
     send_to_char("Syntax: master <skill>\n\r", ch);
