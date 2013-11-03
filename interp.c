@@ -423,6 +423,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "enter",      do_enter,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "follow",     do_follow,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "gain",       do_gain,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "master",     do_master,  POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "gametalk",   do_gametalk,POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE },
     { "go",         do_enter,   POS_STANDING,    0,  LOG_NORMAL, 0, FALSE, TRUE  },
     { "bounty",     do_bounty,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
