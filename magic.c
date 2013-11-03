@@ -1162,7 +1162,7 @@ int mastery_adjust_cost( int cost, int mastery )
 int mastery_adjust_level( int level, int mastery )
 {
     if ( mastery > 0 )
-        return level + (3 + mastery);
+        return level + (3 + mastery) * 2;
     return level;
 }
 

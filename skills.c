@@ -578,7 +578,7 @@ static int max_mastery_class( int class, int sn )
     
     int class_max = skill_table[sn].cap[class];
 
-    if ( class_max < 80 )
+    if ( class_max < 80 || skill_table[sn].skill_level[class] > LEVEL_HERO )
         return 0;
     else if ( class_max < 90 )
         return 1;
