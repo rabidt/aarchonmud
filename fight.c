@@ -258,6 +258,8 @@ void violence_update( void )
                 mp_mprct_trigger( ch, victim );
             if (ch->must_extract) continue;
         }
+
+        op_fight_trigger( ch, victim );
     }
     
     /* restore the old order in char list */
