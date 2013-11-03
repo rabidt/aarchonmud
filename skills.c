@@ -503,7 +503,48 @@ void do_gain(CHAR_DATA *ch, char *argument)
 		
 }
 
-int max_master_level( CHAR_DATA *ch, int sn)
+int get_mastery( CHAR_DATA *ch, int sn )
+{
+    return ch->pcdata ? ch->pcdata->mastered[sn] : 0;
+}
+
+static int get_group_mastery( CHAR_DATA *ch, int gn )
+{
+    int i, sn, mastery = 0;
+    for ( i = 0; mastery_group_table[gn].skills[i]; i++ )
+    {
+        sn = skill_lookup_exact(mastery_group_table[gn].skills[i]);
+        if ( sn < 0 )
+            bugf("Unknown skill %s in mastery group %s.", mastery_group_table[gn].skills[i], mastery_group_table[gn].name);
+        else
+            mastery = UMAX(mastery, ch->pcdata->mastered[sn]);
+    }
+    return mastery;
+}
+
+// additional cost from mastery groups to advance the given skill
+static int get_mastery_group_cost( CHAR_DATA *ch, int sn )
+{
+    int i, gn, cost = 0;
+    int mastery = get_mastery(ch, sn);
+    for ( gn = 0; mastery_group_table[gn].name; gn++ )
+        for ( i = 0; mastery_group_table[gn].skills[i]; i++ )
+            if ( !strcmp(mastery_group_table[gn].skills[i], skill_table[sn].name) && get_group_mastery(ch, gn) <= mastery )
+                cost += mastery_group_table[gn].rating;
+    return cost;
+}
+
+const char* mastery_title( int level )
+{
+    switch( level )
+    {
+        case 2: return "grandmaster";
+        case 1: return "master";
+        default: return "(BUG)";
+    }
+}
+
+static int max_mastery_level( CHAR_DATA *ch, int sn)
 {
     // skill must have a mastery_rating
     if ( skill_table[sn].mastery_rating < 1 )
@@ -522,11 +563,6 @@ int max_master_level( CHAR_DATA *ch, int sn)
         return 2;
 }
 
-int get_mastery( CHAR_DATA *ch, int sn )
-{
-    return ch->pcdata ? ch->pcdata->mastered[sn] : 0;
-}
-
 static void show_master_syntax( CHAR_DATA *ch )
 {
     send_to_char("Syntax: master <skill>\n\r", ch);
@@ -537,7 +573,7 @@ void do_master( CHAR_DATA *ch, char *argument )
 {
     char arg[MAX_INPUT_LENGTH], *arg2;
     CHAR_DATA *trainer;
-    int sn = 0;
+    int sn, gn, lvl;
     bool introspect = FALSE;
     
     if (IS_NPC(ch))
@@ -561,13 +597,30 @@ void do_master( CHAR_DATA *ch, char *argument )
 
         add_buf(buf, "{gYou have mastered the following skills:{x\n\r");
         for ( sn = 1; sn < MAX_SKILL; sn++ )
-            if ( ch->pcdata->mastered[sn] )
-                add_buff(buf, "  %-25s %s\n\r", skill_table[sn].name, ch->pcdata->mastered[sn] == 2 ? "grandmaster" : "master");
+            if ( lvl = ch->pcdata->mastered[sn] )
+                add_buff(buf, "  %-25s %-15s %2d\n\r",
+                    skill_table[sn].name,
+                    mastery_title(lvl),
+                    skill_table[sn].mastery_rating * lvl
+                );
 
+        add_buf(buf, "{gYou have mastered the following schools:{x\n\r");
+        for ( gn = 0; mastery_group_table[gn].name; gn++ )
+            if ( lvl = get_group_mastery(ch, gn) )
+                add_buff(buf, "  %-25s %-15s %2d\n\r",
+                    mastery_group_table[gn].name,
+                    mastery_title(lvl),
+                    mastery_group_table[gn].rating * lvl
+                );
+        
         add_buf(buf, "{gYou may advance in the following skills:{x\n\r");
             for ( sn = 1; sn < MAX_SKILL; sn++ )
-                if ( ch->pcdata->mastered[sn] < max_master_level(ch, sn) )
-                    add_buff(buf, "  %-25s %d\n\r", skill_table[sn].name, skill_table[sn].mastery_rating);
+                if ( (lvl = ch->pcdata->mastered[sn]) < max_mastery_level(ch, sn) )
+                    add_buff(buf, "  %-25s %-15s %2d\n\r",
+                        skill_table[sn].name,
+                        mastery_title(lvl+1),
+                        skill_table[sn].mastery_rating + get_mastery_group_cost(ch, sn)
+                    );
         
         page_to_char(buf_string(buf), ch);
         free_buf(buf);
@@ -575,7 +628,7 @@ void do_master( CHAR_DATA *ch, char *argument )
     }
     else if ( (sn = skill_lookup(argument)) > 0 )
     {
-        int max_mastery = max_master_level(ch, sn);
+        int max_mastery = max_mastery_level(ch, sn);
         int current_mastery = ch->pcdata->mastered[sn];
 
         if ( max_mastery == -1 )
@@ -602,7 +655,8 @@ void do_master( CHAR_DATA *ch, char *argument )
             return;            
         }
 
-        if ( ch->train < skill_table[sn].mastery_rating )
+        int cost = skill_table[sn].mastery_rating + get_mastery_group_cost(ch, sn);
+        if ( ch->train < cost )
         {
             if ( trainer )
                 act("$N tells you 'You are not yet ready to master that skill.'", ch, NULL,trainer, TO_CHAR);
@@ -613,7 +667,7 @@ void do_master( CHAR_DATA *ch, char *argument )
 
         // all good, master it
         ch->pcdata->mastered[sn]++;
-        ch->train -= skill_table[sn].mastery_rating;
+        ch->train -= cost;
         if ( trainer )
             act("$N helps you master the art of $t.", ch, skill_table[sn].name, trainer, TO_CHAR);
         else

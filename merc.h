@@ -268,6 +268,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_SKILL         425
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
+#define MAX_IN_MASTERY     30
 #define MAX_ALIAS          35
 #define MAX_CLASS          15
 #define MAX_PC_RACE        65 /*accurate jan 2013 */
@@ -3111,6 +3112,13 @@ struct  group_type
 	char *  spells[MAX_IN_GROUP];
 };
 
+struct  mastery_group_type
+{
+    char *  name;
+    sh_int  rating;
+    char *  skills[MAX_IN_MASTERY];
+};
+
 /*
  * MOBprog definitions
  */                   
@@ -3988,6 +3996,7 @@ extern  const   struct  spec_type   spec_table  [];
 extern  const   struct  liq_type    liq_table   [];
 extern  struct  skill_type  skill_table [MAX_SKILL];
 extern  struct  group_type  group_table [MAX_GROUP];
+extern  const   struct  mastery_group_type mastery_group_table [];
 extern          struct  social_type *social_table;
 extern  char *  const           title_table [MAX_CLASS] [23];
 extern	        struct  clan_data       clan_table[MAX_CLAN];
