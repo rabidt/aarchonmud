@@ -54,6 +54,9 @@ end
 
 function UnregisterUd(lightud)
     if udtbl[lightud] then
+        -- cancel delayed functions linked to object
+        cancel( udtbl[lightud] )
+
         setmetatable(origtbl[lightud], nil)
         rawset(origtbl[lightud], "tableid", nil)
         origtbl[lightud]=nil

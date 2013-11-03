@@ -4009,13 +4009,6 @@ void do_pgrep( CHAR_DATA *ch, char *argument)
     do_pipe(ch, buf);
 } 
 
-void do_luareset( CHAR_DATA *ch, char *argument)
-{
-    lua_reset();
-
-}
-
-
 /* Send a player into the void */
 void do_void( CHAR_DATA *ch, char *argument)
 {
