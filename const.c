@@ -2391,7 +2391,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"angel smite",
 	{ 102, 102, 35, 102, 102, 43, 60, 102, 102, 102, 40, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_angel_smite,      TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
@@ -2700,7 +2700,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"conviction", 
         { 102, 102,  102, 102, 102, 102, 96, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_conviction,   TAR_CHAR_OFFENSIVE,   POS_FIGHTING,
@@ -2877,7 +2877,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"demonfire", 
 	{ 102, 102, 35, 102, 102, 43, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_demonfire,    TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -2967,7 +2967,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"dispel evil",  
 	{ 102, 102, 10, 22, 102, 27, 16, 102, 102, 102, 21, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_dispel_evil,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -2978,7 +2978,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"dispel good",  
 	{ 102, 102, 10, 22, 102, 27, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_dispel_good,      TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
@@ -3835,7 +3835,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"ray of truth", 
 	{ 102, 102, 11, 102, 102, 102, 38, 102, 102, 14, 21, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_ray_of_truth,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
@@ -7540,6 +7540,10 @@ const struct mastery_group_type mastery_group_table[] =
         "cone of exhaustion", "forboding ooze", "tomb stench", "zombie breath", "zone of damnation" }
     },
 
+    { "aligned evocation", 3,
+        { "angel smite", "demonfire", "dispel evil", "dispel good", "ray of truth", "conviction" }
+    },
+
     { "healing", 4,
         { "cure light", "cure serious", "cure critical", "heal", "cure mortal",
         "restoration", "minor group heal", "group heal", "major group heal", "mass healing",
@@ -7549,6 +7553,6 @@ const struct mastery_group_type mastery_group_table[] =
     { "shielding", 2,
         { "immolation", "epidemic", "electrocution", "absolute zero", "quirkys insanity" }
     },
-
+    
     { NULL }
 };
