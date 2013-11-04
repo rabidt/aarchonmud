@@ -527,11 +527,16 @@ static int L_delay (lua_State *LS)
     /* delaytbl has timer pointers as keys
        value is table with 'tableid' and 'func' keys */
     /* delaytbl[tmr]={ tableid=tableid, func=func } */
+    const char *tag=NULL;
     int val=luaL_checkint( LS, 2 );
     luaL_checktype( LS, 3, LUA_TFUNCTION);
+    if (!lua_isnone( LS, 4 ) )
+    {
+       tag=str_dup(luaL_checkstring( LS, 4 ));
+    }
 
     lua_getglobal( LS, "delaytbl");
-    TIMER_NODE *tmr=register_lua_timer( val );
+    TIMER_NODE *tmr=register_lua_timer( val, tag );
     lua_pushlightuserdata( LS, (void *)tmr); 
     lua_newtable( LS );
  
@@ -562,6 +567,13 @@ static int L_cancel (lua_State *LS)
        */
 
     /* 1, game object */
+    const char *tag=NULL;
+    if (!lua_isnone(LS, 2))
+    {
+        tag=luaL_checkstring( LS, 2 );
+        lua_remove( LS, 2 );
+    }
+
     lua_getfield( LS, 1, "tableid"); /* 2, arg1.tableid (game object pointer) */ 
     lua_getglobal( LS, "delaytbl"); /* 3, delaytbl */
 
@@ -573,11 +585,13 @@ static int L_cancel (lua_State *LS)
         if (lua_equal( LS, 6, 2 )==1)
         {
             TIMER_NODE *tmr=(TIMER_NODE *)luaL_checkudata( LS, 4, UD_META);
-            unregister_lua_timer( tmr );
-            /* set table entry to nil */
-            lua_pushvalue( LS, 4 ); /* push key */
-            lua_pushnil( LS );
-            lua_settable( LS, 3 );
+            if (unregister_lua_timer( tmr, tag ) ) /* return false if tag no match*/
+            {
+                /* set table entry to nil */
+                lua_pushvalue( LS, 4 ); /* push key */
+                lua_pushnil( LS );
+                lua_settable( LS, 3 );
+            }
         }
         lua_pop(LS, 2); /* pop tableid and value */
     }
