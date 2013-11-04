@@ -616,13 +616,15 @@ void do_master( CHAR_DATA *ch, char *argument )
 
     arg2 = one_argument( argument, arg );
 
+    /*
     if (arg[0] == '\0')
     {
         show_master_syntax(ch);
         return;
     }
+    */
     
-    if ( !strcmp(arg, "list") )
+    if ( !strcmp(arg, "list") || !strcmp(arg, "") )
     {
         BUFFER *buf = new_buf();
 
@@ -702,7 +704,7 @@ void do_master( CHAR_DATA *ch, char *argument )
             return;
         }
         
-        if ( current_mastery == 2 )
+        if ( current_mastery >= max_mastery_class(ch->class, sn) )
         {
             if ( trainer )
                 act("$N tells you 'There is nothing more I can teach you.'", ch, NULL, trainer, TO_CHAR);
