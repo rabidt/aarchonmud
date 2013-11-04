@@ -1521,6 +1521,10 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
 int martial_damage( CHAR_DATA *ch, int sn )
 {
     int dam = one_hit_damage( ch, sn, NULL );
+    int mastery = get_mastery(ch, sn);
+    
+    if ( mastery )
+        dam += dam * (3 + mastery) / 20;
 
     if ( sn == gsn_bite )
 	if ( IS_SET(ch->parts, PART_FANGS) )
