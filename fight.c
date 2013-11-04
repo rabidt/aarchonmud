@@ -168,26 +168,25 @@ bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
 
 bool check_critical(CHAR_DATA *ch, bool secondary)
 {
-    OBJ_DATA *obj;
+    // need a weapon
+    if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
+        return false;
     
-    if (!secondary)
-        obj = get_eq_char( ch, WEAR_WIELD );
-    else
-        obj = get_eq_char( ch, WEAR_SECONDARY );
-
-    if ( obj == NULL 
-	|| get_skill(ch,gsn_critical) <  1 
-	|| get_weapon_skill( ch, get_weapon_sn_new( ch, secondary ) ) < 95 
-	|| number_range(0,100) > get_skill(ch,gsn_critical) )
-                  return FALSE;
-        
-	/* 3% chance to work */
-     int roll=number_percent();
-     if ( roll < 98 )
+    // max chance is 5% critical skill + 5% critical mastery + 5% weapon mastery = max 15%
+    if ( per_chance(85) )
         return FALSE;
-	
-     else	
-        return TRUE;
+    
+    int weapon_sn = get_weapon_sn_new(ch, secondary);
+    int weapon_mastery = get_mastery(ch, weapon_sn);
+    int critical_mastery = get_mastery(ch, gsn_critical);    
+    int chance = get_skill(ch, gsn_critical);
+
+    if ( weapon_mastery )
+        chance += 20 + 40 * weapon_mastery;
+    if ( critical_mastery )
+        chance += 20 + 40 * critical_mastery;
+    
+    return per_chance(chance / 3);
 }
 
 /*
