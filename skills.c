@@ -531,12 +531,27 @@ static bool is_in_mastery_group( int sn, int gn )
     return FALSE;
 }
 
+#define MAX_MASTERY_GROUP 100
+// get array of all mastery groups the given skill belongs to, 0-terminated
+static int* get_mastery_groups( int sn )
+{
+    static int groups[MAX_MASTERY_GROUP];
+    int gn, count = 0;
+    for ( gn = 1; mastery_group_table[gn].name; gn++ )
+        if ( is_in_mastery_group(sn, gn) )
+            groups[count++] = gn;
+    // terminate array
+    groups[count] = 0;
+    return groups;
+}
+#undef MAX_MASTERY_GROUP
+
 // additional cost from mastery groups to advance the given skill
 static int get_mastery_group_cost( CHAR_DATA *ch, int sn )
 {
     int i, gn, cost = 0;
     int mastery = get_mastery(ch, sn);
-    for ( gn = 0; mastery_group_table[gn].name; gn++ )
+    for ( gn = 1; mastery_group_table[gn].name; gn++ )
         for ( i = 0; mastery_group_table[gn].skills[i]; i++ )
             if ( !strcmp(mastery_group_table[gn].skills[i], skill_table[sn].name) && get_group_mastery(ch, gn) <= mastery )
                 cost += mastery_group_table[gn].rating;
@@ -550,7 +565,7 @@ static int mastery_points( CHAR_DATA *ch )
     for ( sn = 1; sn < MAX_SKILL; sn++ )
         points += ch->pcdata->mastered[sn] * skill_table[sn].mastery_rating;
     // extra points for groups
-    for ( gn = 0; mastery_group_table[gn].name; gn++ )
+    for ( gn = 1; mastery_group_table[gn].name; gn++ )
         points += get_group_mastery(ch, gn) * mastery_group_table[gn].rating;
     return points;
 }
@@ -616,46 +631,54 @@ void do_master( CHAR_DATA *ch, char *argument )
 
     arg2 = one_argument( argument, arg );
 
-    /*
-    if (arg[0] == '\0')
-    {
-        show_master_syntax(ch);
-        return;
-    }
-    */
-    
     if ( !strcmp(arg, "list") || !strcmp(arg, "") )
     {
         BUFFER *buf = new_buf();
 
         add_buf(buf, "{gYou have mastered the following skills:{x\n\r");
+        add_buf(buf, "{WSkill/Spell            School               Rank            Cost{x\n\r");
         for ( sn = 1; sn < MAX_SKILL; sn++ )
             if ( lvl = ch->pcdata->mastered[sn] )
-                add_buff(buf, "  %-25s %-15s %2d\n\r",
+            {
+                int *groups = get_mastery_groups(sn);
+                add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
                     skill_table[sn].name,
+                    *groups ? mastery_group_table[*groups].name : "",
                     mastery_title(lvl),
                     skill_table[sn].mastery_rating * lvl
                 );
+                // may belong to more than one school
+                while ( *groups && *(++groups) )
+                    add_buff(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
+            }
 
         add_buf(buf, "\n\r{gYou have mastered the following schools:{x\n\r");
-        for ( gn = 0; mastery_group_table[gn].name; gn++ )
+        for ( gn = 1; mastery_group_table[gn].name; gn++ )
             if ( lvl = get_group_mastery(ch, gn) )
-                add_buff(buf, "  %-25s %-15s %2d\n\r",
+                add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
+                    "",
                     mastery_group_table[gn].name,
                     mastery_title(lvl),
                     mastery_group_table[gn].rating * lvl
                 );
 
-        add_buff(buf, "\n\r{gTrains spent on skill mastery:{x %15d / %d\n\r", mastery_points(ch), max_mastery_points(ch));
+        add_buff(buf, "\n\r{gTrains spent on skill/school mastery:{x %24d / %d\n\r", mastery_points(ch), max_mastery_points(ch));
         
         add_buf(buf, "\n\r{gYou may advance in the following skills:{x\n\r");
-            for ( sn = 1; sn < MAX_SKILL; sn++ )
-                if ( (lvl = ch->pcdata->mastered[sn]) < max_mastery_level(ch, sn) )
-                    add_buff(buf, "  %-25s %-15s %2d\n\r",
-                        skill_table[sn].name,
-                        mastery_title(lvl+1),
-                        skill_table[sn].mastery_rating + get_mastery_group_cost(ch, sn)
-                    );
+        for ( sn = 1; sn < MAX_SKILL; sn++ )
+            if ( (lvl = ch->pcdata->mastered[sn]) < max_mastery_level(ch, sn) )
+            {
+                int *groups = get_mastery_groups(sn);
+                add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
+                    skill_table[sn].name,
+                    *groups ? mastery_group_table[*groups].name : "",
+                    mastery_title(lvl+1),
+                    skill_table[sn].mastery_rating + get_mastery_group_cost(ch, sn)
+                );
+                // may belong to more than one school
+                while ( *groups && *(++groups) )
+                    add_buff(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
+            }
         
         page_to_char(buf_string(buf), ch);
         free_buf(buf);
@@ -709,7 +732,7 @@ void do_master( CHAR_DATA *ch, char *argument )
             if ( trainer )
                 act("$N tells you 'There is nothing more I can teach you.'", ch, NULL, trainer, TO_CHAR);
             else
-                printf_to_char(ch, "You are already a grandmaster in %s.\n\r",  skill_table[sn].name);
+                printf_to_char(ch, "You have reached you limit of expertise in %s.\n\r",  skill_table[sn].name);
             return;
         }
 
@@ -2349,7 +2372,7 @@ void show_mastery_groups( int skill, BUFFER *buffer )
         return;
 
     add_buf( buffer, "\n\rIt belongs to the following schools:\n\r" );
-    for ( gn = 0; mastery_group_table[gn].name; gn++ )
+    for ( gn = 1; mastery_group_table[gn].name; gn++ )
     {
         if ( !is_in_mastery_group(skill, gn) )
             continue;
