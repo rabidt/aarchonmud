@@ -7532,10 +7532,13 @@ struct group_type group_table[MAX_GROUP] =
 
 const struct mastery_group_type mastery_group_table[] =
 {
+    { "reserved", 0, {} }, // valid mastery groups start from 1
+
     { "evocation", 4,
         { "acid blast", "burning hands", "call lightning", "chain lightning", "chill touch",
         "colour spray", "fireball", "hailstorm", "lightning bolt", "magic missile",
         "meteor swarm", "monsoon", "shocking grasp", "solar flare", "unearth",
+        "earthquake", "flamestrike",
         "acid breath", "fire breath", "frost breath", "gas breath", "lightning breath",
         "cone of exhaustion", "forboding ooze", "tomb stench", "zombie breath", "zone of damnation" }
     },
@@ -7550,6 +7553,10 @@ const struct mastery_group_type mastery_group_table[] =
         "astarks rejuvenation" }
     },
 
+    { "enchantment", 2,
+        { "colour spray", "solar flare", "ray of truth" }
+    },
+    
     { "shielding", 2,
         { "immolation", "epidemic", "electrocution", "absolute zero", "quirkys insanity" }
     },
