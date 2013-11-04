@@ -1037,14 +1037,18 @@ void do_ccast( CHAR_DATA *ch, char *argument )
     meta_magic_cast(ch, "c", argument);
 }
 
-int meta_magic_adjust_cost( int cost, bool base )
+int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
 {
     int flag;
 
     // each meta-magic effect doubles casting cost
     for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
         if ( IS_SET(meta_magic, flag) && (base || flag != META_MAGIC_CHAIN) )
-            cost *= 2;
+        {
+            int mastery = get_mastery(ch, meta_magic_sn(flag));
+            int reduction = mastery ? 30 + 10*mastery : 0;
+            cost = cost * (200 - reduction) / 100;
+        }
 
     return cost;
 }
@@ -1253,7 +1257,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
     // mana cost must be calculated after meta-magic effects have been worked out
     mana = mana_cost(ch, sn, chance);
-    mana = meta_magic_adjust_cost(mana, TRUE);
+    mana = meta_magic_adjust_cost(ch, mana, TRUE);
     if ( overcharging )
         mana *= 2;
 
