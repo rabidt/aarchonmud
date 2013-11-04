@@ -3486,6 +3486,9 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
         CHECK_RETURN(ch, victim);
         // second blow for massive damage
         int move_loss = IS_AFFECTED(ch, AFF_BERSERK) ? ch->move / 8 : ch->move / 12;
+        int mastery = get_mastery(ch, gsn_fatal_blow);
+        if ( mastery )
+            move_loss += move_loss * (3 + mastery) / 20;
         ch->move -= move_loss;
         dam += move_loss * 4;
             
