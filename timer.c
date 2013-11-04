@@ -28,6 +28,7 @@ static struct timer_node
     int go_type;
     int current; /* current val that gets decremented each second */
     bool unregistered; /* to mark for deletion */
+    const char *tag; /* used for unique tags in lua */
 };
 
 
@@ -36,20 +37,44 @@ TIMER_NODE *first_timer=NULL;
 static void add_timer( TIMER_NODE *tmr);
 static void remove_timer( TIMER_NODE *tmr );
 static void free_timer_node( TIMER_NODE *tmr);
-static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int max );
+static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int max, const char *tag );
 
-TIMER_NODE * register_lua_timer( int value)
+TIMER_NODE * register_lua_timer( int value, const char *tag)
 {
-    TIMER_NODE *tmr=new_timer_node( NULL , TYPE_UNDEFINED, TM_LUAFUNC, value );
+    TIMER_NODE *tmr=new_timer_node( NULL , TYPE_UNDEFINED, TM_LUAFUNC, value, tag );
     add_timer(tmr);
     
     return tmr;
 }
 
-void unregister_lua_timer( TIMER_NODE *tmr )
+/* unregister timer and return true if tag matches given tag, else return false*/
+bool unregister_lua_timer( TIMER_NODE *tmr, const char *tag )
 {
-    remove_timer(tmr);
-    return;
+    if ( tag==NULL )
+    {
+        if ( tmr->tag != NULL )
+        {
+            return FALSE;
+        }
+        remove_timer(tmr);
+        return TRUE;
+    }
+    else if (!strcmp(tag, "*"))
+    {
+        remove_timer(tmr);
+        return TRUE;
+    }
+    else if ( !tmr->tag )
+    {
+        return FALSE;
+    }
+    else if ( !strcmp( tag, tmr->tag) )
+    {
+        remove_timer(tmr);
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 /* register on the list and also return a pointer to the node
@@ -62,7 +87,7 @@ TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)ch, TYPE_CH, TM_PROG, max);
+    TIMER_NODE *tmr=new_timer_node( (void *)ch, TYPE_CH, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -82,7 +107,7 @@ TIMER_NODE * register_obj_timer( OBJ_DATA *obj, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)obj, TYPE_OBJ, TM_PROG, max);
+    TIMER_NODE *tmr=new_timer_node( (void *)obj, TYPE_OBJ, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -102,7 +127,7 @@ TIMER_NODE * register_area_timer( AREA_DATA *area, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)area, TYPE_AREA, TM_PROG, max);
+    TIMER_NODE *tmr=new_timer_node( (void *)area, TYPE_AREA, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -164,10 +189,11 @@ void unregister_obj_timer( OBJ_DATA *obj )
 
 static void free_timer_node( TIMER_NODE *tmr)
 {
+    free_string(tmr->tag);
     free_mem(tmr, sizeof(TIMER_NODE));
 }
 
-static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int seconds )
+static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int seconds, const char *tag )
 {
     TIMER_NODE *new=alloc_mem(sizeof(TIMER_NODE));
     new->next=NULL;
@@ -177,6 +203,7 @@ static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int sec
     new->go_type=go_type;
     new->current=seconds;
     new->unregistered=FALSE;
+    new->tag=tag;
     return new;
 }
 
@@ -301,13 +328,14 @@ char * print_timer_list()
     int i=1;
     for ( tmr=first_timer; tmr; tmr=tmr->next )
     {
-        sprintf(buf, "%s\n\r%d %s %d", buf, i,
+        sprintf(buf, "%s\n\r%d %s %d %s", buf, i,
             tmr->tm_type == TM_LUAFUNC ? "luafunc" :
             tmr->go_type == TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
             tmr->go_type == TYPE_OBJ ? ((OBJ_DATA *)(tmr->game_obj))->name :
             tmr->go_type == TYPE_AREA ? ((AREA_DATA *)(tmr->game_obj))->name :
             "unknown",
-            tmr->current);
+            tmr->current,
+            tmr->tag ? tmr->tag : "none");
         i++;
     }
     strcat( buf, "\n\r");

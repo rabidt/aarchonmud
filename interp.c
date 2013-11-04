@@ -496,7 +496,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "advance",    do_advance, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "authorize",  do_authorize, POS_DEAD, L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "avatar",	    do_avatar,  POS_DEAD,   L9,	 LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "printlist",  do_printlist,POS_DEAD,  ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "printlist",  do_printlist,POS_DEAD,  ML,  LOG_NORMAL, 1, FALSE, FALSE  },
 /* Used only for some pfile testing */
 #ifdef TESTER
     { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },
