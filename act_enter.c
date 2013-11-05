@@ -54,7 +54,7 @@ ROOM_INDEX_DATA  *get_random_room(CHAR_DATA *ch)
     for ( ; ; )
     {
 	room = get_random_room_range( ch, 0, 65535 );
-	if ( room != NULL && room->area->security > 4 )
+	if ( room != NULL && is_room_ingame( room) )
 	    break;
     }
     
