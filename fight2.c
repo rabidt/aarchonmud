@@ -1562,6 +1562,13 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     return;
 }
 
+void mastery_adjusted_wait( CHAR_DATA *ch, int sn )
+{
+    int wait = skill_table[sn].beats;
+    int bonus = mastery_bonus(ch, sn, 20, 25);
+    WAIT_STATE( ch, rand_div(wait * (100 - bonus), 100) );
+}
+
 void do_kick( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
@@ -1573,7 +1580,7 @@ void do_kick( CHAR_DATA *ch, char *argument )
     // anyone can kick
     chance = (100 + get_skill(ch, gsn_kick)) / 2;
 
-    WAIT_STATE( ch, skill_table[gsn_kick].beats );
+    mastery_adjusted_wait(ch, gsn_kick);
 
     if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
     {
@@ -2586,7 +2593,7 @@ void do_chop( CHAR_DATA *ch, char *argument )
         chance = get_skill(ch, gsn_chop);
         
         check_killer(ch,victim);
-        WAIT_STATE( ch, skill_table[gsn_chop].beats );
+        mastery_adjusted_wait(ch, gsn_chop);
 
         if ( check_hit(ch, victim, gsn_chop, DAM_SLASH, chance) )
         {
@@ -2623,7 +2630,7 @@ void do_bite( CHAR_DATA *ch, char *argument )
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
         
-        WAIT_STATE( ch, skill_table[gsn_bite].beats );
+        mastery_adjusted_wait(ch, gsn_bite);
         check_killer(ch,victim);
 
         if ( check_hit(ch, victim, gsn_bite, DAM_PIERCE, chance) )
