@@ -1044,11 +1044,7 @@ int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
     // each meta-magic effect doubles casting cost
     for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
         if ( IS_SET(meta_magic, flag) && (base || flag != META_MAGIC_CHAIN) )
-        {
-            int mastery = get_mastery(ch, meta_magic_sn(flag));
-            int reduction = mastery ? 30 + 10*mastery : 0;
-            cost = cost * (200 - reduction) / 100;
-        }
+            cost = cost * (200 - mastery_bonus(ch, meta_magic_sn(flag), 40, 50)) / 100;
 
     return cost;
 }
@@ -5672,8 +5668,7 @@ void spell_high_explosive(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
 int cha_max_follow( CHAR_DATA *ch )
 {
-    int puppet_mastery = get_mastery(ch, gsn_puppetry);
-    int cha = get_curr_stat(ch, STAT_CHA) + (puppet_mastery ? 10 + 20*puppet_mastery : 0);
+    int cha = get_curr_stat(ch, STAT_CHA) + mastery_bonus(ch, gsn_puppetry, 30, 50);
     return ch->level * cha / 40;
 }
 
