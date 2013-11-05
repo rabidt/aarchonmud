@@ -5535,7 +5535,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 
 	"fast healing",  
 	{  2, 10,  5, 102,  1,  4,  3,  9,  5,  4,  6, 102, 102, 21, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 4,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_SLEEPING,
@@ -5546,7 +5546,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"endurance",
 	{ 13, 15, 102, 102,  6, 14, 14, 14, 14, 10, 102, 102, 9, 15, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 4,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE, POS_SLEEPING,
@@ -5579,7 +5579,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"meditation",  
 	{ 102, 102,  2,  3, 102,  6,  5, 102,  6,  1,  3,  4, 102, 35, 1 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 4,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_SLEEPING,
