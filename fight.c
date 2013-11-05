@@ -160,7 +160,7 @@ void  check_reset_stance args( ( CHAR_DATA *ch) );
 void  stance_hit    args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 bool is_normal_hit( int dt );
 bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
-bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
+bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
 bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -558,7 +558,7 @@ void special_affect_update(CHAR_DATA *ch)
     {
         int damage = number_range (5, 25) + ch->level*3/2;
         send_to_char( "Your festering wound oozes blood.\n\r", ch );
-        deal_damage( ch, ch, damage, gsn_infectious_arrow, DAM_DISEASE, TRUE, FALSE );
+        deal_damage( ch, ch, damage, gsn_infectious_arrow, DAM_DISEASE, TRUE, FALSE, FALSE );
     }
 
     /* Rupture - DOT - Damage over time */
@@ -566,7 +566,7 @@ void special_affect_update(CHAR_DATA *ch)
     {
         int damage = number_range (5, 25) + ch->level*3/2;
         send_to_char( "Your ruptured wound oozes blood.\n\r", ch );
-        deal_damage( ch, ch, damage, gsn_rupture, DAM_PIERCE, TRUE, FALSE );
+        deal_damage( ch, ch, damage, gsn_rupture, DAM_PIERCE, TRUE, FALSE, FALSE );
     }
 
     /* Paralysis - DOT - Damage over time - Astark Oct 2012 */
@@ -574,7 +574,7 @@ void special_affect_update(CHAR_DATA *ch)
     {
         int damage = number_range (5, 25) + ch->level*3/2;
         send_to_char( "The paralyzing poison cripples you.\n\r", ch );
-        deal_damage( ch, ch, damage, gsn_paralysis_poison, DAM_POISON, TRUE, FALSE );
+        deal_damage( ch, ch, damage, gsn_paralysis_poison, DAM_POISON, TRUE, FALSE, FALSE );
     }
     
 }
@@ -2661,7 +2661,7 @@ bool damage( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
         }
     }
 
-    return deal_damage( ch, victim, dam, dt, dam_type, show, TRUE );
+    return deal_damage( ch, victim, dam, dt, dam_type, show, TRUE, TRUE );
 }
 
 // if ch is a charmed NPC and leader is present, returns leader, otherwise ch
@@ -2705,10 +2705,10 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
 */
 bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show )
 {
-    return deal_damage(ch, victim, dam, dt, dam_type, show, TRUE);
+    return deal_damage(ch, victim, dam, dt, dam_type, show, TRUE, TRUE);
 }
 
-bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal )
+bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable )
 {
     bool immune;
     char buf[MAX_STRING_LENGTH];
@@ -2833,7 +2833,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     /*
     * Check for parry, dodge, etc. and fade
     */
-    if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, show) )
+    if ( avoidable && is_normal_hit(dt) && check_avoid_hit(ch, victim, show) )
 	return FALSE;
 
     /* check imm/res/vuln for single & mixed dam types */

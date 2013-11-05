@@ -279,7 +279,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_PENALTY_SEVERITY 5
 #define MAX_JAIL_ROOM      50 /* Max count of total jail rooms in MUD */
 #define MAX_FORGET          5
-#define MAX_DAMAGE_MESSAGE  102
+#define MAX_DAMAGE_MESSAGE 103
 #define MAX_AREA_CLONE     10
 #define MAX_LEVEL          110
 #define MAX_STORAGE_BOX	   5

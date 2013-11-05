@@ -2915,10 +2915,26 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
     }
     else
     {
-	act( "You strike out at $N!", ch, NULL, victim, TO_CHAR );
-	one_hit( ch, victim, gsn_double_strike, FALSE );
-	one_hit( ch, victim, gsn_double_strike, TRUE );
-	check_improve( ch, gsn_double_strike, TRUE, 3 );
+        int mastery = get_mastery(ch, gsn_double_strike);
+        int hits = 0;
+
+        act( "You strike out at $N!", ch, NULL, victim, TO_CHAR );
+        if ( one_hit(ch, victim, gsn_double_strike, FALSE) )
+            hits++;
+        if ( one_hit(ch, victim, gsn_double_strike, TRUE) )
+            hits++;
+        check_improve( ch, gsn_double_strike, TRUE, 3 );
+
+        if ( mastery && hits == 2 && per_chance(30 + 10 * mastery) )
+        {
+            act("You bury your weapons deep in $N, then rip them out sideways!", ch, NULL, victim, TO_CHAR);
+            act("$n buries $s weapons deep in your body, then rips them out sideways!", ch, NULL, victim, TO_VICT);
+            act("$n buries $s weapons deep in $N, then rips them out sideways!", ch, NULL, victim, TO_NOTVICT);
+            int dam = one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_WIELD))
+                    + one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_SECONDARY));
+            int dt_rend = TYPE_HIT + 102; // see attack_table in const.c
+            deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE, FALSE);
+        }
     }
 }
 
