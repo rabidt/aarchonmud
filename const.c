@@ -257,6 +257,7 @@ const   struct attack_type  attack_table    [MAX_DAMAGE_MESSAGE]    =
     {"darkinspiration", "dark inspiration",     DAM_HOLY        },
     {   "holyblast",    "holy blast",           DAM_HOLY        },  /* 100 */
     {   "evilblast",    "evil blast",           DAM_HOLY        },
+    {   "rend",         "rend",                 DAM_SLASH       },
     {   NULL,           NULL,                   0               }
 };
 
@@ -4930,7 +4931,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"double strike",
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_FIGHTING,
