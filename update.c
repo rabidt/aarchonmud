@@ -366,8 +366,7 @@ int hit_gain( CHAR_DATA *ch )
     if ( !IS_NPC(ch) )
         gain = gain * class_table[ch->class].hp_gain / 100;
 
-    int mastery = get_mastery(ch, gsn_fast_healing);
-    gain += gain * (get_skill(ch, gsn_fast_healing) + (mastery ? 20 + 40 * mastery : 0)) / 200;
+    gain += gain * (get_skill(ch, gsn_fast_healing) + mastery_bonus(ch, gsn_fast_healing, 60, 100)) / 200;
     if ( ch->hit < ch->max_hit )
         check_improve(ch, gsn_fast_healing, TRUE, 20);
 
@@ -415,8 +414,7 @@ int mana_gain( CHAR_DATA *ch )
 
     if ( ch->position == POS_RESTING )
     {
-        int mastery = get_mastery(ch, gsn_meditation);
-        gain += gain * (get_skill(ch, gsn_meditation) + (mastery ? 20 + 40 * mastery : 0)) / 100;
+        gain += gain * (get_skill(ch, gsn_meditation) + mastery_bonus(ch, gsn_meditation, 60, 100)) / 100;
         if ( ch->mana < ch->max_mana )
             check_improve(ch, gsn_meditation, TRUE, 10);
     }
@@ -454,8 +452,7 @@ int move_gain( CHAR_DATA *ch )
     if ( !IS_NPC(ch) )
         gain = gain * class_table[ch->class].move_gain / 100;
 
-    int mastery = get_mastery(ch, gsn_endurance);
-    gain += gain * (get_skill(ch, gsn_endurance) + (mastery ? 20 + 40 * mastery : 0)) / 200;
+    gain += gain * (get_skill(ch, gsn_endurance) + mastery_bonus(ch, gsn_endurance, 60, 100)) / 200;
     if ( ch->move < ch->max_move )
         check_improve(ch, gsn_endurance, TRUE, 20);
 
