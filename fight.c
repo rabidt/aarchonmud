@@ -2024,7 +2024,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
         || dt == gsn_semiauto
         || dt == gsn_burst )
     {
-        ch_roll /= 2;
+        ch_roll = ch_roll * (10 + mastery_bonus(ch, dt, 4, 5)) / 25;
     }    
     
     if ( victim->size > ch->size )
