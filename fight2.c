@@ -2779,6 +2779,9 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
     
     /* deal damage */
     dam = one_hit_damage(ch, gsn_shield_bash, NULL);
+    int mastery = get_mastery(ch, gsn_shield_bash);
+    if ( mastery )
+        dam += dam * (3 + mastery) / 20;
     full_dam(ch,victim, dam, gsn_shield_bash,DAM_BASH,TRUE);
     check_improve(ch,gsn_shield_bash,TRUE,1);
 }
@@ -2882,6 +2885,9 @@ void do_charge( CHAR_DATA *ch, char *argument )
     
     /* deal damage */
     dam = one_hit_damage(ch, gsn_charge, NULL) * 2;
+    int mastery = get_mastery(ch, gsn_charge);
+    if ( mastery )
+        dam += dam * (3 + mastery) / 20;
     full_dam(ch,victim, dam, gsn_charge,DAM_BASH,TRUE);
     check_improve(ch,gsn_charge,TRUE,1);
 }
