@@ -1510,9 +1510,9 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     if ( (dt == gsn_backstab || dt == gsn_back_leap || dt == gsn_circle || dt == gsn_slash_throat) && chance(get_skill(ch, gsn_anatomy)) )
     {
         if ( wield != NULL && wield->value[0] == WEAPON_DAGGER )
-            dam += dam/2;
+            dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 200;
         else
-            dam += dam/4;
+            dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 400;
         check_improve(ch, gsn_anatomy, TRUE, 1);
     }
     return number_range( dam * 2/3, dam );
@@ -2494,13 +2494,9 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
     if ( wield == NULL || wield->value[0] != WEAPON_DAGGER )
 	return;
 
-    extra_chance = 50 + get_skill( ch, gsn_anatomy ) / 4;
+    extra_chance = 50 + (get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 4;
     if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
 	extra_chance += 10;
-
-    if ( get_skill(ch, gsn_assassination) == 100)
-        extra_chance += 2;
-
 
     if ( number_bits(chance) == 0
 	 && number_percent() <= extra_chance
