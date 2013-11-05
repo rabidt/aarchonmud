@@ -3353,7 +3353,8 @@ void spell_renewal( int sn, int level, CHAR_DATA *ch, void *vo, int target )
         /* renewing a spell to full duration costs twice as much as casting it fresh */
         if ( !last_paid )
         {
-            cost = (2 * meta_magic_adjust_cost(ch, skill_table[type].min_mana, FALSE) + base_duration - 1) / base_duration;
+            cost = 2 * meta_magic_adjust_cost(ch, mastery_adjust_cost(skill_table[type].min_mana, get_mastery(ch, sn)), FALSE);
+            cost = (cost + base_duration - 1) / base_duration; // round up
             if ( ch->mana < cost )
             {
                 printf_to_char( ch, "You don't have enough mana to renew your %s spell.\n\r", skill_table[type].name );
