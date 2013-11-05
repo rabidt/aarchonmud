@@ -234,11 +234,8 @@ void do_bash( CHAR_DATA *ch, char *argument )
 	act("You evade $n's bash, causing $m to fall flat on $s face.",
 	    ch,NULL,victim,TO_VICT);
 	check_improve(ch,gsn_bash,FALSE,1);
-	if ( ch->stance != STANCE_RHINO && check_lose_stance(ch) )
-	{
-	    send_to_char( "You lose your stance!\n\r", ch );
-	    ch->stance = 0;
-	}
+	if ( ch->stance != STANCE_RHINO )
+        check_lose_stance(ch);
 	set_pos( ch, POS_RESTING );
 	return;
     } 
@@ -258,7 +255,7 @@ void do_bash( CHAR_DATA *ch, char *argument )
         act("You slam into $N, and send $M sprawling!",ch,NULL,victim,TO_CHAR);
         act("$n sends $N sprawling with a powerful bash.",
             ch,NULL,victim,TO_NOTVICT);
-	victim->stance = 0;
+        destance(victim, get_mastery(ch, gsn_bash));
 	DAZE_STATE(victim, 2*PULSE_VIOLENCE + ch->size - victim->size );
 	set_pos( victim, POS_RESTING );
     }
@@ -471,7 +468,7 @@ void do_trip( CHAR_DATA *ch, char *argument )
 	act("$n trips $N, sending $M to the ground.",ch,NULL,victim,TO_NOTVICT);
 	check_improve(ch,gsn_trip,TRUE,1);
 	
-	victim->stance = 0;
+	destance(victim, get_mastery(ch, gsn_trip));
 	DAZE_STATE(victim, PULSE_VIOLENCE + victim->size - SIZE_MEDIUM);
 	set_pos( victim, POS_RESTING );
 
@@ -836,8 +833,7 @@ void do_hogtie(CHAR_DATA *ch, char *argument )
         check_improve(ch,gsn_hogtie,TRUE,2);
         WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
         WAIT_STATE(victim, 2 * PULSE_VIOLENCE); 
-
-        victim->stance = 0;
+        destance(victim, get_mastery(ch, gsn_hogtie));
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_hogtie;
@@ -1026,10 +1022,7 @@ void do_aim( CHAR_DATA *ch, char *argument )
             WAIT_STATE( victim, 2*PULSE_VIOLENCE );
             victim->slow_move = UMAX(ch->slow_move, PULSE_VIOLENCE * 6);
             if( number_bits(1) )
-            {
-                victim->stance = 0;
-                send_to_char( "You lose your stance!\n\r", victim );
-            }  
+                destance(victim, get_mastery(ch, gsn_aim));
             break;
         default:
             bug("AIM: invalid aim_target: %d", aim_target);
@@ -1968,7 +1961,7 @@ void do_leg_sweep( CHAR_DATA *ch, char *argument )
                     tally++;
                     DAZE_STATE(vch, 2*PULSE_VIOLENCE);
                     set_pos( vch, POS_RESTING );
-                    vch->stance = 0;
+                    destance(vch, get_mastery(ch, gsn_leg_sweep));
 
                  /* Not enough damage                      
                     damage(ch,vch,number_range(4, 6 +  3 * vch->size), gsn_leg_sweep,
@@ -1988,11 +1981,7 @@ void do_leg_sweep( CHAR_DATA *ch, char *argument )
             DAZE_STATE(ch, 2*PULSE_VIOLENCE);
             set_pos( ch, POS_RESTING );
             
-            if ( check_lose_stance(ch) )
-            {
-                send_to_char("You lose your stance!\n\r",ch);
-                ch->stance = 0;
-            }
+            check_lose_stance(ch);
             
             damage(ch,ch,number_range(4, 6 +  3 * ch->size),gsn_leg_sweep,
                 DAM_BASH,TRUE);
@@ -2144,7 +2133,7 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
 		ch,NULL,victim,TO_NOTVICT);
 	    DAZE_STATE(victim, PULSE_VIOLENCE * 3);
 	    WAIT_STATE(victim, PULSE_VIOLENCE * 3/2);
-	    victim->stance = 0;
+        destance(victim, get_mastery(ch, gsn_uppercut));
 	    set_pos( victim, POS_RESTING );
 	} 
 	full_dam( ch, victim, dam, gsn_uppercut,DAM_BASH,TRUE );
@@ -2408,11 +2397,7 @@ void do_tumble( CHAR_DATA *ch, char *argument)
         check_improve(ch,gsn_tumbling,FALSE,2);
         DAZE_STATE(ch, PULSE_VIOLENCE);
 
-        if ( check_lose_stance(ch) )
-        {
-            send_to_char("You lose your stance!\n\r",ch);
-            ch->stance = 0;
-        }
+        check_lose_stance(ch);
 
         set_pos( ch, POS_RESTING );
         damage(ch,ch,number_range(4, 6 +  3 * ch->size),gsn_tumbling,
@@ -2564,11 +2549,7 @@ void do_distract( CHAR_DATA *ch, char *argument )
     act( "$n distracts $N!",  ch, NULL, victim, TO_NOTVICT );
     check_improve(ch,gsn_distract,TRUE,1);
     
-    if( check_lose_stance(victim) )
-    {
-	send_to_char( "You lose your stance!\n\r", victim );
-	victim->stance = 0;
-    }
+    check_lose_stance(victim);
 
     stop_fighting( victim, FALSE );
     if (IS_NPC(victim))
@@ -2780,7 +2761,7 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
 	act("$n sends $N sprawling with a well placed shield to the face.",
 	    ch,NULL,victim,TO_NOTVICT);
 	
-	victim->stance = 0;
+    destance(victim, get_mastery(ch, gsn_shield_bash));
 	DAZE_STATE(victim, 3*PULSE_VIOLENCE + ch->size - victim->size);
 	set_pos( victim, POS_RESTING );
     }
@@ -2792,11 +2773,7 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
 	    ch,NULL,victim,TO_NOTVICT);
 	act("You withstand $n's shield bash with ease.", 
 	    ch,NULL,victim,TO_VICT);
-	if ( check_lose_stance(ch) )
-        {
-	    send_to_char("You lose your stance!\n\r",ch);
-	    ch->stance = 0;
-	}
+        check_lose_stance(ch);
 	WAIT_STATE(ch, skill_table[gsn_shield_bash].beats * 3 / 2);
     }
     
@@ -2866,11 +2843,7 @@ void do_charge( CHAR_DATA *ch, char *argument )
 	act("You evade $n's charge, causing $m to fall flat on $s face.",
 	    ch,NULL,victim,TO_VICT);
 	check_improve(ch,gsn_charge,FALSE,1);
-	if ( check_lose_stance(ch) )
-        {
-	    send_to_char("You lose your stance!\n\r",ch);
-	    ch->stance = 0;
-	}
+	check_lose_stance(ch);
 	set_pos( ch, POS_RESTING );
 	return;
     } 
@@ -2891,7 +2864,7 @@ void do_charge( CHAR_DATA *ch, char *argument )
 	act("$n sends $N sprawling with a powerful charge.",
 	    ch,NULL,victim,TO_NOTVICT);
 	
-	victim->stance = 0;
+    destance(victim, get_mastery(ch, gsn_charge));
 	DAZE_STATE( victim, 4*PULSE_VIOLENCE + 2*(ch->size - victim->size) );
 	WAIT_STATE( victim, 2*PULSE_VIOLENCE );
 	set_pos( victim, POS_RESTING );
@@ -3201,13 +3174,7 @@ void do_roundhouse( CHAR_DATA *ch, char *argument )
       act("$n falls to the ground in an attempt at a roundhouse kick.",ch,NULL,NULL,TO_ROOM);
       act("You fall to the ground in an attempt at a roundhouse kick.",ch,NULL,NULL,TO_CHAR);
       check_improve(ch, gsn_roundhouse, FALSE,2);
-
-      if ( check_lose_stance(ch) )
-      {
-          send_to_char("You lose your stance!\n\r",ch);
-          ch->stance = 0;
-      }
-      
+      check_lose_stance(ch);
       DAZE_STATE(ch, 2*PULSE_VIOLENCE);
       set_pos( ch, POS_RESTING );
       damage(ch,ch,number_range(4, 6 +  3 * ch->size),gsn_roundhouse, DAM_BASH,TRUE);
@@ -3499,7 +3466,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
             act( "You stun $N with a crushing blow to $S temple!", ch, NULL, victim, TO_CHAR );
             act( "$n stuns you with a crushing blow to your temple!", ch, NULL, victim, TO_VICT );
             act( "$n stuns $N with a crushing blow to $S temple!", ch, NULL, victim, TO_NOTVICT );
-            victim->stance = 0;
+            destance(victim, get_mastery(ch, gsn_fatal_blow));
             WAIT_STATE( victim, 2 * PULSE_VIOLENCE );
             DAZE_STATE( victim, 4 * PULSE_VIOLENCE );
         }
@@ -3690,7 +3657,6 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
 
     act( "You knock $N out.", ch, NULL, victim, TO_CHAR );
     act( "$n knocks $N out.", ch, NULL, victim, TO_NOTVICT );
-    victim->stance = 0;
 
     if ( IS_AWAKE(victim) )
     {
