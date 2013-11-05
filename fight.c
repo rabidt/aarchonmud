@@ -1491,8 +1491,7 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     else
     {
         // enhanced damage mastery increases bonus damage
-        int mastery = get_mastery(ch, gsn_enhanced_damage);
-        dam += ch->level * (get_skill(ch, gsn_enhanced_damage) + (mastery ? 10 + 20*mastery : 0)) / 300;
+        dam += ch->level * (get_skill(ch, gsn_enhanced_damage) + mastery_bonus(ch, gsn_enhanced_damage, 30, 50)) / 300;
         check_improve (ch, gsn_enhanced_damage, TRUE, 10);
         dam += ch->level * get_skill(ch, gsn_brutal_damage) / 300;
         check_improve (ch, gsn_brutal_damage, TRUE, 10);
@@ -1521,10 +1520,8 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
 int martial_damage( CHAR_DATA *ch, int sn )
 {
     int dam = one_hit_damage( ch, sn, NULL );
-    int mastery = get_mastery(ch, sn);
     
-    if ( mastery )
-        dam += dam * (3 + mastery) / 20;
+    dam += dam * mastery_bonus(ch, sn, 15, 25) / 100;
 
     if ( sn == gsn_bite )
 	if ( IS_SET(ch->parts, PART_FANGS) )
@@ -4117,7 +4114,6 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
-    int mastery = get_mastery(ch, gsn_parry);
 
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
@@ -4145,8 +4141,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     if ( IS_AFFECTED(ch, AFF_SORE) )
         chance -= 10;
 
-    if ( mastery )
-        chance += 1 + 2 * mastery;
+    chance += mastery_bonus(ch, gsn_parry, 3, 5);
     
     if ( improve )
         check_improve(ch, gsn_parry, TRUE, 15);
@@ -4251,7 +4246,6 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
         return FALSE;
     
     int skill = get_skill(victim,gsn_duck);
-    int mastery = get_mastery(ch, gsn_duck);
     
     if (skill == 0)
         return FALSE;
@@ -4267,8 +4261,7 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( IS_AFFECTED(victim, AFF_SORE) )
         chance -= 10;
 
-    if ( mastery )
-        chance += 1 + 2 * mastery;
+    chance += mastery_bonus(ch, gsn_duck, 3, 5);
 
     chance = URANGE(0, chance, 75);
     
@@ -4288,7 +4281,6 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
 bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int chance;
-    int mastery = get_mastery(ch, gsn_mass_combat);
 
     if ( !IS_AWAKE(victim) )
         return FALSE;
@@ -4309,8 +4301,7 @@ bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( IS_AFFECTED(victim, AFF_SORE) )
 	chance -= 10;
 
-    if ( mastery )
-        chance += 1 + 2 * mastery;
+    chance += mastery_bonus(ch, gsn_mass_combat, 3, 5);
 
     chance = URANGE(0, chance, 75);
 
@@ -4384,7 +4375,6 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
         return 0;
 
     int chance = 10 + get_skill(ch, gsn_shield_block) / 4;
-    int mastery = get_mastery(ch, gsn_shield_block);
 
     // offhand occupied means reduced block chance
     bool offhand_occupied = get_eq_char(ch, WEAR_SECONDARY) != NULL || get_eq_char(ch, WEAR_HOLD) != NULL;
@@ -4409,8 +4399,7 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
             check_improve(ch, gsn_wrist_shield, TRUE, 20);
     }
 
-    if ( mastery )
-        chance += 1 + 2 * mastery;
+    chance += mastery_bonus(ch, gsn_shield_block, 3, 5);
 
     return URANGE(0, chance, 75);
 }
@@ -4477,7 +4466,6 @@ bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
 int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int skill = get_skill(ch, gsn_dodge);
-    int mastery = get_mastery(ch, gsn_dodge);
 
     if ( improve )
         check_improve( ch, gsn_dodge, TRUE, 15);
@@ -4510,8 +4498,7 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     if ( IS_AFFECTED(ch, AFF_SORE) )
         chance -= 10;
     
-    if ( mastery )
-        chance += 1 + 2 * mastery;
+    chance += mastery_bonus(ch, gsn_dodge, 3, 5);
     
     return URANGE(0, chance, 75);
 }
@@ -6435,11 +6422,9 @@ int stance_cost( CHAR_DATA *ch, int stance )
 {
     int sn = *(stances[stance].gsn);
     int skill = get_skill(ch, sn);
-    int mastery = get_mastery(ch, sn);
     int cost = stances[stance].cost * (140-skill)/40;
 
-    if ( mastery )
-        cost -= cost * (3 + mastery) / 20;
+    cost -= cost * mastery_bonus(ch, sn, 20, 25) / 100;
 
     return cost;
 }

@@ -2779,9 +2779,7 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
     
     /* deal damage */
     dam = one_hit_damage(ch, gsn_shield_bash, NULL);
-    int mastery = get_mastery(ch, gsn_shield_bash);
-    if ( mastery )
-        dam += dam * (3 + mastery) / 20;
+    dam += dam * mastery_bonus(ch, gsn_shield_bash, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_shield_bash,DAM_BASH,TRUE);
     check_improve(ch,gsn_shield_bash,TRUE,1);
 }
@@ -2885,9 +2883,7 @@ void do_charge( CHAR_DATA *ch, char *argument )
     
     /* deal damage */
     dam = one_hit_damage(ch, gsn_charge, NULL) * 2;
-    int mastery = get_mastery(ch, gsn_charge);
-    if ( mastery )
-        dam += dam * (3 + mastery) / 20;
+    dam += dam * mastery_bonus(ch, gsn_charge, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_charge,DAM_BASH,TRUE);
     check_improve(ch,gsn_charge,TRUE,1);
 }
@@ -2921,7 +2917,6 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
     }
     else
     {
-        int mastery = get_mastery(ch, gsn_double_strike);
         int hits = 0;
 
         act( "You strike out at $N!", ch, NULL, victim, TO_CHAR );
@@ -2931,7 +2926,7 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
             hits++;
         check_improve( ch, gsn_double_strike, TRUE, 3 );
 
-        if ( mastery && hits == 2 && per_chance(30 + 10 * mastery) )
+        if ( hits == 2 && per_chance(mastery_bonus(ch, gsn_double_strike, 40, 50)) )
         {
             act("You bury your weapons deep in $N, then rip them out sideways!", ch, NULL, victim, TO_CHAR);
             act("$n buries $s weapons deep in your body, then rips them out sideways!", ch, NULL, victim, TO_VICT);
@@ -3475,9 +3470,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
         CHECK_RETURN(ch, victim);
         // second blow for massive damage
         int move_loss = IS_AFFECTED(ch, AFF_BERSERK) ? ch->move / 8 : ch->move / 12;
-        int mastery = get_mastery(ch, gsn_fatal_blow);
-        if ( mastery )
-            move_loss += move_loss * (3 + mastery) / 20;
+        move_loss += move_loss * mastery_bonus(ch, gsn_fatal_blow, 15, 25) / 100;
         ch->move -= move_loss;
         dam += move_loss * 4;
             
