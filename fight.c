@@ -6046,7 +6046,7 @@ bool check_lasso( CHAR_DATA *victim )
 
 	    check_improve(opp,gsn_hogtie,TRUE,2);
 
-	    victim->stance = 0;
+	    destance(victim, get_mastery(opp, gsn_hogtie));
 	    if ( !is_affected(victim, gsn_hogtie) )
 	    {
 		af.where    = TO_AFFECTS;
@@ -6437,10 +6437,15 @@ void do_murder( CHAR_DATA *ch, char *argument )
 
 int stance_cost( CHAR_DATA *ch, int stance )
 {
-    int cost = stances[stance].cost;
-    int skill = get_skill(ch, *(stances[stance].gsn));
+    int sn = *(stances[stance].gsn);
+    int skill = get_skill(ch, sn);
+    int mastery = get_mastery(ch, sn);
+    int cost = stances[stance].cost * (140-skill)/40;
 
-    return cost * (140-skill)/40;
+    if ( mastery )
+        cost -= cost * (3 + mastery) / 20;
+
+    return cost;
 }
 
 void check_stance(CHAR_DATA *ch)
@@ -6593,21 +6598,41 @@ void do_stance (CHAR_DATA *ch, char *argument)
 
 /* Makes a simple percentage check against ch's skill level in the stance they
    are currently using.  */
-bool check_lose_stance(CHAR_DATA *ch)
+bool check_lose_stance( CHAR_DATA *ch )
 {
-    int skill;
-
-    if (ch->stance == 0)
-        return FALSE;     /* Player not in a stance */
-
-    skill = get_skill(ch, *(stances[ch->stance].gsn));
+    if ( ch->stance == 0 )
+        return FALSE;
     
-    if ( number_percent() > skill * 9/10 ) /* Always keep 10% chance */
-        return TRUE;  /* Player loses their stance */
+    int sn = *(stances[ch->stance].gsn);
+    int skill = get_skill(ch, sn);
+    int mastery = get_mastery(ch, sn);
+    
+    if ( mastery > 0 && per_chance(10 * (3+mastery)) )
+        return FALSE;
 
-    return FALSE; /* Player keeps their stance */
+    if ( per_chance(skill * 9/10) ) /* Always keep 10% chance of failure */
+        return FALSE;
+
+    send_to_char("You loose your stance!\n\r", ch);
+    ch->stance = 0;
+    return TRUE;
 }
 
+bool destance( CHAR_DATA *ch, int attack_mastery )
+{
+    if ( ch->stance == 0 )
+        return FALSE;
+    
+    int sn = *(stances[ch->stance].gsn);
+    int mastery = get_mastery(ch, sn) - attack_mastery;
+    
+    if ( mastery > 0 && per_chance(10 * (3+mastery)) )
+        return FALSE;
+    
+    send_to_char("You loose your stance!\n\r", ch);
+    ch->stance = 0;
+    return TRUE;
+}
 
 CHAR_DATA* get_combat_victim( CHAR_DATA *ch, char *argument )
 {

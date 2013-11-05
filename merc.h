@@ -268,7 +268,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_SKILL         425
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
-#define MAX_IN_MASTERY     30
+#define MAX_IN_MASTERY     50
 #define MAX_ALIAS          35
 #define MAX_CLASS          15
 #define MAX_PC_RACE        65 /*accurate jan 2013 */
@@ -4424,6 +4424,8 @@ void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
 CD *    get_local_leader( CHAR_DATA *ch );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
+bool    check_lose_stance( CHAR_DATA *ch );
+bool    destance( CHAR_DATA *ch, int attack_mastery );
 
 /* ftp.c */
 bool    ftp_push    args( (DESCRIPTOR_DATA *d) );

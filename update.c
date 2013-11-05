@@ -1958,7 +1958,7 @@ void affect_update( CHAR_DATA *ch )
             act( "$n falls down, laughing hysterically.",ch,NULL,NULL,TO_ROOM);
             send_to_char( "You fall down laughing.\n\r",ch);
             set_pos( ch, POS_SITTING );
-            ch->stance = 0;
+            check_lose_stance(ch);
         }
         else
         {
