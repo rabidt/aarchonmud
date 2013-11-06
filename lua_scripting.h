@@ -4,7 +4,7 @@
 
 void unregister_lua( void *ptr );
 
-void lua_mob_program( char *text, int pvnum, char *source,
+bool lua_mob_program( char *text, int pvnum, char *source,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, sh_int arg1type,
         const void *arg2, sh_int arg2type,
