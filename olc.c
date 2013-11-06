@@ -94,6 +94,12 @@ char *olc_ed_name( CHAR_DATA *ch )
    case ED_MPCODE:
       sprintf( buf, "MPEdit" );
       break;
+   case ED_OPCODE:
+      sprintf( buf, "OPEdit" );
+      break;
+   case ED_APCODE:
+      sprintf( buf, "APEdit" );
+      break;
    case ED_HELP:
       sprintf( buf, "HEdit" );
       break;
@@ -113,6 +119,8 @@ char *olc_ed_vnum( CHAR_DATA *ch )
    OBJ_INDEX_DATA *pObj;
    MOB_INDEX_DATA *pMob;
    MPROG_CODE *pMprog;
+   OPROG_CODE *pOprog;
+   APROG_CODE *pAprog;
    static char buf[10];
    
    buf[0] = '\0';
@@ -137,6 +145,14 @@ char *olc_ed_vnum( CHAR_DATA *ch )
    case ED_MPCODE:
       pMprog = (MPROG_CODE *)ch->desc->pEdit;
       sprintf( buf, "%d", pMprog ? pMprog->vnum : 0 );
+      break;
+   case ED_OPCODE:
+      pOprog = (OPROG_CODE *)ch->desc->pEdit;
+      sprintf( buf, "%d", pOprog ? pOprog->vnum : 0 );
+      break;
+   case ED_APCODE:
+      pAprog = (APROG_CODE *)ch->desc->pEdit;
+      sprintf( buf, "%d", pAprog ? pAprog->vnum : 0 );
       break;
    default:
       sprintf( buf, " " );
