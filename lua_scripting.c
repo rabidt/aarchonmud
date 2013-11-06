@@ -3173,6 +3173,20 @@ static int get_ROOM_field ( lua_State *LS )
     FLDNUM("manarate", ud_room->mana_rate);
     FLDSTR("owner", ud_room->owner ? ud_room->owner : "");
     FLDSTR("description", ud_room->description);
+
+    if ( !strcmp(argument, "contents") )
+    {
+        int index=1;
+        lua_newtable(LS);
+        OBJ_DATA *obj;
+        for (obj=ud_room->contents ; obj ; obj=obj->next_content)
+        {
+            if (make_ud_table(LS, obj, UDTYPE_OBJ))
+                lua_rawseti(LS, -2, index++);
+        }
+        return 1;
+    }
+
     if ( !strcmp(argument, "area") )
     {
         if ( !make_ud_table(LS, ud_room->area, UDTYPE_AREA))
