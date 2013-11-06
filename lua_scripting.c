@@ -2926,6 +2926,15 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("v2", ud_obj->value[2]);
     FLDNUM("v3", ud_obj->value[3]);
     FLDNUM("v4", ud_obj->value[4]);
+
+    /* explicit names for v# values */
+    if (ud_obj->item_type == ITEM_FOUNTAIN)
+    {
+        FLDSTR( "liquid", liq_table[ud_obj->value[2]].liq_name );
+        FLDNUM( "total", ud_obj->value[0] );
+        FLDNUM( "left", ud_obj->value[1]  );
+    }
+
     return 0;
 }
 
