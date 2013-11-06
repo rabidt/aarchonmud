@@ -2771,6 +2771,10 @@ struct  pc_data
 
     time_t pkill_expire; /* timestamp when you can turn it off */
 
+    // tracking of skill mastery counts for achievements
+    int smc_mastered;
+    int smc_grandmastered;
+    int smc_retrained;
 };
 
 /* Data for special quests */

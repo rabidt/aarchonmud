@@ -213,7 +213,7 @@ CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )
     else
     {
         *introspect = FALSE;
-        send_to_char( "You can't do that here.\n\r", ch );
+        send_to_char( "You need a trainer for this. Visit your guild.\n\r", ch );
     }
 
     return NULL;
@@ -729,6 +729,7 @@ void do_master( CHAR_DATA *ch, char *argument )
         // ok, reduce mastery level
         printf_to_char(ch, "You forget some of the finer details about %s.\n\r", skill_table[sn].name);
         ch->pcdata->mastered[sn]--;
+        ch->pcdata->smc_retrained++;
         return;
     }
     else if ( !strcmp(arg, "retrain") ) // like forget, but reclaims trains for gold
@@ -770,6 +771,7 @@ void do_master( CHAR_DATA *ch, char *argument )
         printf_to_char(ch, "You reclaim %d train%s for %d gold.\n\r", reclaim, reclaim == 1 ? "" : "s", cost);
         deduct_cost(ch, cost*100);
         ch->train += reclaim;
+        ch->pcdata->smc_retrained++;
 
         return;
     }
@@ -829,6 +831,11 @@ void do_master( CHAR_DATA *ch, char *argument )
         // all good, master it
         ch->pcdata->mastered[sn]++;
         ch->train -= cost;
+        if ( ch->pcdata->mastered[sn] == 2 )
+            ch->pcdata->smc_grandmastered++;
+        else
+            ch->pcdata->smc_mastered++;
+        
         if ( trainer )
         {
             act("$N helps you master the art of $t.", ch, skill_table[sn].name, trainer, TO_CHAR);
