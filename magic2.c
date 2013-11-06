@@ -1166,6 +1166,7 @@ void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
     if ( !was_obj_cast )
     {
+        int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
         factor += factor * get_skill(ch, gsn_anatomy) / 200;
         check_improve(ch, gsn_anatomy, TRUE, 1);
     }

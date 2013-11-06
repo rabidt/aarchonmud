@@ -276,24 +276,30 @@ int gain_mod(int x)
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 
 /* adjustments which are the same for hp/mana/move */
-int adjust_gain( CHAR_DATA *ch, int gain )
+int adjust_gain( CHAR_DATA *ch, int gain, int target )
 {
-    switch ( ch->position )
-    {
-        case POS_SLEEPING: gain *= 2; break;
-        case POS_RESTING: gain += gain/2; break;
-        case POS_FIGHTING: gain /= 2; break;
-        default: break;
-    }
+    if ( target == APPLY_MANA )
+        switch ( ch->position )
+        {
+            case POS_SLEEPING: gain += gain/2; break;
+            case POS_RESTING: gain *= 2; break;
+            case POS_FIGHTING: gain /= 2; break;
+            default: break;
+        }
+    else
+        switch ( ch->position )
+        {
+            case POS_SLEEPING: gain *= 2; break;
+            case POS_RESTING: gain += gain/2; break;
+            case POS_FIGHTING: gain /= 2; break;
+            default: break;
+        }
     gain /= 2;
 
-    if ( number_percent() < get_skill(ch, gsn_regeneration)
-            || IS_AFFECTED(ch, AFF_REGENERATION) )
-    {
-        gain += gain / 2;
-        if ((ch->hit < ch->max_hit) && (number_bits(4)==0))
-            check_improve(ch,gsn_regeneration,TRUE,10);
-    }
+    int regen = get_skill(ch, gsn_regeneration);
+    if ( IS_AFFECTED(ch, AFF_REGENERATION) )
+        regen = 100;
+    gain += gain * regen / 200;
 
     /* encumberance can half healing speed */
     gain -= gain * get_encumberance( ch ) / 200;
@@ -360,12 +366,9 @@ int hit_gain( CHAR_DATA *ch )
     if ( !IS_NPC(ch) )
         gain = gain * class_table[ch->class].hp_gain / 100;
 
-    if ( number_percent() < get_skill(ch, gsn_fast_healing) )
-    {
-        gain += gain/2;
-        if ( (ch->hit < ch->max_hit) )
-            check_improve(ch,gsn_fast_healing,TRUE,20);
-    }
+    gain += gain * (get_skill(ch, gsn_fast_healing) + mastery_bonus(ch, gsn_fast_healing, 60, 100)) / 200;
+    if ( ch->hit < ch->max_hit )
+        check_improve(ch, gsn_fast_healing, TRUE, 20);
 
     /* healing ratio */
     ratio = ch->in_room->heal_rate;
@@ -381,7 +384,7 @@ int hit_gain( CHAR_DATA *ch )
             return UMAX( 1 - ch->hit, ch->level * ratio / 100 );
 
     /* general factor */
-    gain = adjust_gain( ch, gain );
+    gain = adjust_gain(ch, gain, APPLY_HIT );
 
     return UMIN( gain / 100, ch->max_hit - ch->hit );
 }
@@ -409,12 +412,11 @@ int mana_gain( CHAR_DATA *ch )
     if ( !IS_NPC(ch) )
         gain = gain * class_table[ch->class].mana_gain / 100;
 
-    if (ch->position == POS_RESTING &&
-            number_percent() < get_skill(ch,gsn_meditation))
+    if ( ch->position == POS_RESTING )
     {
-        gain *= 2;
-        if ( (ch->mana < ch->max_mana) )
-            check_improve(ch,gsn_meditation,TRUE,10);
+        gain += gain * (get_skill(ch, gsn_meditation) + mastery_bonus(ch, gsn_meditation, 60, 100)) / 100;
+        if ( ch->mana < ch->max_mana )
+            check_improve(ch, gsn_meditation, TRUE, 10);
     }
 
     /* healing ratio */
@@ -431,7 +433,7 @@ int mana_gain( CHAR_DATA *ch )
             return UMAX( -ch->mana, ch->level * ratio / 100 );
 
     /* general factor */
-    gain = adjust_gain( ch, gain );
+    gain = adjust_gain(ch, gain, APPLY_MANA);
 
     return UMIN( gain / 100, ch->max_mana - ch->mana );
 }
@@ -450,12 +452,9 @@ int move_gain( CHAR_DATA *ch )
     if ( !IS_NPC(ch) )
         gain = gain * class_table[ch->class].move_gain / 100;
 
-    if ( number_percent() < get_skill(ch, gsn_endurance) )
-    {
-        gain += gain/2;
-        if ( (ch->move < ch->max_move) )
-            check_improve(ch,gsn_endurance,TRUE,20);
-    }
+    gain += gain * (get_skill(ch, gsn_endurance) + mastery_bonus(ch, gsn_endurance, 60, 100)) / 200;
+    if ( ch->move < ch->max_move )
+        check_improve(ch, gsn_endurance, TRUE, 20);
 
     /* healing ratio */
     ratio = ch->in_room->heal_rate;
@@ -471,7 +470,7 @@ int move_gain( CHAR_DATA *ch )
             return UMAX( -ch->move, ch->level * ratio / 100 );
 
     /* general factor */
-    gain = adjust_gain( ch, gain );
+    gain = adjust_gain(ch, gain, APPLY_MOVE);
 
     return UMIN( gain / 100, ch->max_move - ch->move );
 }
@@ -1925,7 +1924,7 @@ void affect_update( CHAR_DATA *ch )
             dam *= 4;
         ch->mana = UMAX(ch->mana - dam, 0);
         ch->move = UMAX(ch->move - dam, 0);
-        deal_damage( ch, ch, dam, gsn_plague, DAM_DISEASE, FALSE, FALSE);
+        deal_damage( ch, ch, dam, gsn_plague, DAM_DISEASE, FALSE, FALSE, FALSE);
         if ( IS_DEAD(ch) )
             return;
     }
@@ -2028,7 +2027,7 @@ void affect_update( CHAR_DATA *ch )
         {
             act( "$n shivers and suffers.", ch, NULL, NULL, TO_ROOM );
             send_to_char( "You shiver and suffer.\n\r", ch );
-            deal_damage(ch,ch,poison->level/10 + 1,gsn_poison, DAM_POISON,FALSE,FALSE);
+            deal_damage(ch,ch,poison->level/10 + 1,gsn_poison, DAM_POISON,FALSE,FALSE,FALSE);
         }
     }
 

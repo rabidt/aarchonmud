@@ -257,6 +257,7 @@ const   struct attack_type  attack_table    [MAX_DAMAGE_MESSAGE]    =
     {"darkinspiration", "dark inspiration",     DAM_HOLY        },
     {   "holyblast",    "holy blast",           DAM_HOLY        },  /* 100 */
     {   "evilblast",    "evil blast",           DAM_HOLY        },
+    {   "rend",         "rend",                 DAM_SLASH       },
     {   NULL,           NULL,                   0               }
 };
 
@@ -4930,7 +4931,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"double strike",
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -4974,7 +4975,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"bite",
 	{  8,  9, 102, 102,  5, 102, 102, 102, 102, 102, 102, 102, 102, 8, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 2,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -5085,7 +5086,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"trip",  
 	{ 16,  3, 102, 102, 13, 17, 102,  8, 12,  7, 102, 102, 102, 10, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -5096,7 +5097,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"leg sweep",
 	{ 40, 50, 102, 102, 36, 102, 102, 102, 42,  6, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE, POS_FIGHTING,
@@ -5118,7 +5119,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"bash",  
 	{  6, 102, 102, 102,  7,  6, 102, 50, 34, 12, 102, 102, 17, 84, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -5534,7 +5535,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 
 	"fast healing",  
 	{  2, 10,  5, 102,  1,  4,  3,  9,  5,  4,  6, 102, 102, 21, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 4,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_SLEEPING,
@@ -5545,7 +5546,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"endurance",
 	{ 13, 15, 102, 102,  6, 14, 14, 14, 14, 10, 102, 102, 9, 15, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 4,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE, POS_SLEEPING,
@@ -5578,7 +5579,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"meditation",  
 	{ 102, 102,  2,  3, 102,  6,  5, 102,  6,  1,  3,  4, 102, 35, 1 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 4,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_SLEEPING,
@@ -5867,7 +5868,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"semiauto",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 45, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -5878,7 +5879,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"fullauto",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 70, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 7, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 7, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -5988,7 +5989,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"burst",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 15, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -6606,7 +6607,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"shield bash",
 	{  26, 102, 26, 102,  26,  26, 26, 102, 102, 102, 26, 102, 102, 0, 102  },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -6956,7 +6957,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ /* misuse for relic damage */
 	"focus",   
 	{  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 18, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 18, 8,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -6967,7 +6968,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"anatomy",
 	{  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 18, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 18, 8,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -7044,7 +7045,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"charge", 
 	{ 38,  102, 102, 102,  35,  52,  44, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100,  88,  90, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,    TAR_IGNORE,     POS_STANDING,
