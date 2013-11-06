@@ -215,7 +215,11 @@ void string_add( CHAR_DATA *ch, char *argument )
    {
       if ( ch->desc->editor == ED_MPCODE ) /* for mobprogs */
       {
+         MOB_INDEX_DATA *mob;
+         int hash;
+         MPROG_LIST *mpl;
          MPROG_CODE *mpc;
+         
          EDIT_MPCODE(ch, mpc);
          fix_mprog_mobs( ch, mpc);
       }

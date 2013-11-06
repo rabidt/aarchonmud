@@ -257,7 +257,7 @@ OPEDIT (opedit_create)
 
     if ( ch->in_room->area != ad )
     {
-	send_to_char( "OPEdit: ObjProg lies outside current area.\n\r", ch );
+	send_to_char( "OPEdit: ObjObjProg lies outside current area.\n\r", ch );
 	return FALSE;
     }
 
@@ -347,9 +347,6 @@ void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
     char buf[MSL];
     OBJ_INDEX_DATA *obj;
 
-    lua_load_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
-    ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);
-
     if ( pOcode != NULL )
         for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
             for ( obj = obj_index_hash[hash]; obj; obj = obj->next )
@@ -359,6 +356,9 @@ void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
                         sprintf( buf, "Fixing obj %d.\n\r", obj->vnum );
                         send_to_char( buf, ch );
                    
+                        lua_load_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
+                        ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);
+                        
                     } 
 }
 #if 0
