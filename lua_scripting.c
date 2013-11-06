@@ -1212,6 +1212,12 @@ static int L_ch_loadscript (lua_State *LS)
     return 0;
 }
 
+static int L_ch_loadstring (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_mob_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, 2), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
+    return 0;
+} 
 
 static int L_ch_loadprog (lua_State *LS)
 {
@@ -1256,6 +1262,14 @@ static int L_obj_loadscript (lua_State *LS)
 
 }
 
+static int L_obj_loadstring (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_pushboolean( LS,
+            lua_obj_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, 2), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+    return 1;
+}
+
 static int L_obj_loadprog (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS, 1);
@@ -1291,6 +1305,14 @@ static int L_area_loadscript (lua_State *LS)
 
     return 1;
 
+}
+
+static int L_area_loadstring (lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS,1);
+    lua_pushboolean( LS,
+            lua_area_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, 2), ud_area, NULL, ATRIG_CALL, 0) );
+    return 1;
 }
 
 static int L_area_loadprog (lua_State *LS)
@@ -2517,6 +2539,7 @@ static const struct luaL_reg CH_lib [] =
     {"randchar", L_ch_randchar},
     {"loadprog", L_ch_loadprog},
     {"loadscript", L_ch_loadscript},
+    {"loadstring", L_ch_loadstring},
     {"savetbl", L_ch_savetbl},
     {"loadtbl", L_ch_loadtbl},
     {"tprint", L_ch_tprint},
@@ -2543,6 +2566,7 @@ static const struct luaL_reg OBJ_lib [] =
     {"echo", L_obj_echo},
     {"loadprog", L_obj_loadprog},
     {"loadscript", L_obj_loadscript},
+    {"loadstring", L_obj_loadstring},
     {"oload", L_obj_oload},
     {"savetbl", L_obj_savetbl},
     {"loadtbl", L_obj_loadtbl},
@@ -2582,6 +2606,7 @@ static const struct luaL_reg AREA_lib [] =
     {"echo", L_area_echo},
     {"loadprog", L_area_loadprog},
     {"loadscript", L_area_loadscript},
+    {"loadstring", L_area_loadstring},
     {"savetbl", L_area_savetbl},
     {"loadtbl", L_area_loadtbl},
     {"tprint", L_area_tprint},
