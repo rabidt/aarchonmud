@@ -327,12 +327,6 @@ void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
     char buf[MSL];
     MOB_INDEX_DATA *mob;
 
-    if ( pMcode->is_lua )
-    {
-        lua_load_mprog( g_mud_LS, pMcode->vnum, pMcode->code );
-        ptc(ch, "Fixed lua script for %d.\n\r", pMcode->vnum );
-    }
-
     if ( pMcode != NULL )
         for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
             for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
@@ -342,6 +336,11 @@ void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
                         sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
                         send_to_char( buf, ch );
 
+                        if ( mpl->script->is_lua )
+                        {
+                            lua_load_mprog( g_mud_LS, pMcode->vnum, pMcode->code);
+                            ptc(ch, "Fixed lua script for %d.\n\r", pMcode->vnum);
+                        }
                     } 
 }
 
