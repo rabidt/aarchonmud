@@ -113,6 +113,7 @@ static const struct luaL_reg MOBPROTO_lib[];
 #define TEXT2_ARG "text2"
 #define VICTIM_ARG "victim"
 #define TRIGTYPE_ARG "trigtype"
+#define NUM_MPROG_RESULTS 1 
 
 /* oprogs args */
 #define OBJ_ARG "obj"
@@ -3807,13 +3808,14 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 /* lua_mob_program
    lua equivalent of program_flow
  */
-void lua_mob_program( char *text, int pvnum, char *source, 
+bool lua_mob_program( char *text, int pvnum, char *source, 
         CHAR_DATA *mob, CHAR_DATA *ch, 
         const void *arg1, sh_int arg1type, 
         const void *arg2, sh_int arg2type,
         int trig_type,
         int security ) 
 {
+    bool result=FALSE;
     lua_getglobal( g_mud_LS, "mob_program_setup");
 
     if (!make_ud_table( g_mud_LS, mob, UDTYPE_CH))
@@ -3917,7 +3919,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
         s_ScriptSecurity=security;
     }
 
-    error=CallLuaWithTraceBack (g_mud_LS, NUM_MPROG_ARGS, 0) ;
+    error=CallLuaWithTraceBack (g_mud_LS, NUM_MPROG_ARGS, NUM_MPROG_RESULTS) ;
     if (error > 0 )
     {
         bugf ( "LUA mprog error for %s(%d), mprog %d:\n %s",
@@ -3925,6 +3927,10 @@ void lua_mob_program( char *text, int pvnum, char *source,
                 mob->pIndexData ? mob->pIndexData->vnum : 0,
                 pvnum,
                 lua_tostring(g_mud_LS, -1));
+    }
+    else
+    {
+        result=lua_toboolean (g_mud_LS, -1);
     }
 
     if ( !nest )
