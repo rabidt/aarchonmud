@@ -3182,6 +3182,7 @@ static int get_ROOM_field ( lua_State *LS )
     FLDNUM("manarate", ud_room->mana_rate);
     FLDSTR("owner", ud_room->owner ? ud_room->owner : "");
     FLDSTR("description", ud_room->description);
+    FLDSTR("sector", flag_bit_name(sector_flags, ud_room->sector_type));
 
     if ( !strcmp(argument, "contents") )
     {
