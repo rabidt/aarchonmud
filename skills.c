@@ -211,7 +211,10 @@ CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )
         }
     }
     else
+    {
+        *introspect = FALSE;
         send_to_char( "You can't do that here.\n\r", ch );
+    }
 
     return NULL;
 }

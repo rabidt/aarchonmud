@@ -4699,6 +4699,7 @@ int		check_anger		args((CHAR_DATA *ch, CHAR_DATA *victim));
 /* quest.c */
 
 bool chance(int num);
+bool per_chance(int num);
 void do_quest args((CHAR_DATA *ch, char *argument)); 
 void quest_update   args(( void ));   
 
