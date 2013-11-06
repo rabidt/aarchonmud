@@ -1125,7 +1125,7 @@ void expand_arg( char *buf,
 #define IN_BLOCK         -1 /* Flag: Executable statements */
 #define END_BLOCK        -2 /* Flag: End of if-else-endif block */
 #define MAX_CALL_LEVEL    5 /* Maximum nested calls */
-#define MPROG_RETURN    mprog_call_level_decrease(); return result 
+#define MPROG_RETURN    mprog_call_level_decrease(); return
 
 /*
  * Call levels track nesting of mpcall, which is needed to break infinite recursion
@@ -1153,7 +1153,7 @@ bool is_mprog_running()
     return mprog_call_level > 0;
 }
 
-bool program_flow( 
+void program_flow( 
     char *text,
     bool is_lua,
     int pvnum,  /* For diagnostic purposes */
@@ -1164,7 +1164,6 @@ bool program_flow(
     int trig_type,
     int security )
 {
-    bool result=FALSE; /* default to FALSE */
     int mvnum = (mob->pIndexData ? mob->pIndexData->vnum : 0);
 
     if ( mprog_call_level_increase() > MAX_CALL_LEVEL )
@@ -1175,7 +1174,7 @@ bool program_flow(
     
     if ( is_lua )
     {
-        result=lua_mob_program(text, pvnum, source, mob, ch, arg1, arg1type, arg2, arg2type, trig_type, security);
+        lua_mob_program(text, pvnum, source, mob, ch, arg1, arg1type, arg2, arg2type, trig_type, security);
         MPROG_RETURN;
     }
 
@@ -1427,9 +1426,9 @@ bool mp_act_trigger(
             && ( strstr(cap_all(argument), cap_all(prg->trig_phrase)) != NULL 
             ||   !strcmp(prg->trig_phrase, "*") ) )
         {
-            /* default is FALSE and we want to default return TRUE */
-	        return !program_flow( argument, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, arg1, arg1type, arg2, arg2type, type, prg->script->security );
-        }
+	    program_flow( argument, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, arg1, arg1type, arg2, arg2type, type, prg->script->security );
+	    return TRUE;
+	}
     }
     return FALSE;
 }
@@ -1670,8 +1669,7 @@ bool mp_try_trigger( char* argument, CHAR_DATA *ch )
     if ( IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_TRY) )
     {
       if ( mp_act_trigger(argument, mob, ch, NULL,0, NULL,0, TRIG_TRY) )
-          return TRUE;
-	  found = TRUE;
+	found = TRUE;
     }
   }
   return found;
