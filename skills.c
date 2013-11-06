@@ -508,6 +508,16 @@ int get_mastery( CHAR_DATA *ch, int sn )
     return ch->pcdata ? ch->pcdata->mastered[sn] : 0;
 }
 
+int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus )
+{
+    switch ( get_mastery(ch, sn) )
+    {
+        case 1: return m_bonus;
+        case 2: return gm_bonus;
+        default: return 0;
+    }
+}
+
 static int get_group_mastery( CHAR_DATA *ch, int gn )
 {
     int i, sn, mastery = 0;

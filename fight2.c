@@ -1562,6 +1562,13 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     return;
 }
 
+void mastery_adjusted_wait( CHAR_DATA *ch, int sn )
+{
+    int wait = skill_table[sn].beats;
+    int bonus = mastery_bonus(ch, sn, 20, 25);
+    WAIT_STATE( ch, rand_div(wait * (100 - bonus), 100) );
+}
+
 void do_kick( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
@@ -1573,7 +1580,7 @@ void do_kick( CHAR_DATA *ch, char *argument )
     // anyone can kick
     chance = (100 + get_skill(ch, gsn_kick)) / 2;
 
-    WAIT_STATE( ch, skill_table[gsn_kick].beats );
+    mastery_adjusted_wait(ch, gsn_kick);
 
     if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
     {
@@ -2586,7 +2593,7 @@ void do_chop( CHAR_DATA *ch, char *argument )
         chance = get_skill(ch, gsn_chop);
         
         check_killer(ch,victim);
-        WAIT_STATE( ch, skill_table[gsn_chop].beats );
+        mastery_adjusted_wait(ch, gsn_chop);
 
         if ( check_hit(ch, victim, gsn_chop, DAM_SLASH, chance) )
         {
@@ -2623,7 +2630,7 @@ void do_bite( CHAR_DATA *ch, char *argument )
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
         
-        WAIT_STATE( ch, skill_table[gsn_bite].beats );
+        mastery_adjusted_wait(ch, gsn_bite);
         check_killer(ch,victim);
 
         if ( check_hit(ch, victim, gsn_bite, DAM_PIERCE, chance) )
@@ -2779,6 +2786,7 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
     
     /* deal damage */
     dam = one_hit_damage(ch, gsn_shield_bash, NULL);
+    dam += dam * mastery_bonus(ch, gsn_shield_bash, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_shield_bash,DAM_BASH,TRUE);
     check_improve(ch,gsn_shield_bash,TRUE,1);
 }
@@ -2882,6 +2890,7 @@ void do_charge( CHAR_DATA *ch, char *argument )
     
     /* deal damage */
     dam = one_hit_damage(ch, gsn_charge, NULL) * 2;
+    dam += dam * mastery_bonus(ch, gsn_charge, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_charge,DAM_BASH,TRUE);
     check_improve(ch,gsn_charge,TRUE,1);
 }
@@ -2915,10 +2924,25 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
     }
     else
     {
-	act( "You strike out at $N!", ch, NULL, victim, TO_CHAR );
-	one_hit( ch, victim, gsn_double_strike, FALSE );
-	one_hit( ch, victim, gsn_double_strike, TRUE );
-	check_improve( ch, gsn_double_strike, TRUE, 3 );
+        int hits = 0;
+
+        act( "You strike out at $N!", ch, NULL, victim, TO_CHAR );
+        if ( one_hit(ch, victim, gsn_double_strike, FALSE) )
+            hits++;
+        if ( one_hit(ch, victim, gsn_double_strike, TRUE) )
+            hits++;
+        check_improve( ch, gsn_double_strike, TRUE, 3 );
+
+        if ( hits == 2 && per_chance(mastery_bonus(ch, gsn_double_strike, 40, 50)) )
+        {
+            act("You bury your weapons deep in $N, then rip them out sideways!", ch, NULL, victim, TO_CHAR);
+            act("$n buries $s weapons deep in your body, then rips them out sideways!", ch, NULL, victim, TO_VICT);
+            act("$n buries $s weapons deep in $N, then rips them out sideways!", ch, NULL, victim, TO_NOTVICT);
+            int dam = one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_WIELD))
+                    + one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_SECONDARY));
+            int dt_rend = TYPE_HIT + 102; // see attack_table in const.c
+            deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE, FALSE);
+        }
     }
 }
 
@@ -3453,9 +3477,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
         CHECK_RETURN(ch, victim);
         // second blow for massive damage
         int move_loss = IS_AFFECTED(ch, AFF_BERSERK) ? ch->move / 8 : ch->move / 12;
-        int mastery = get_mastery(ch, gsn_fatal_blow);
-        if ( mastery )
-            move_loss += move_loss * (3 + mastery) / 20;
+        move_loss += move_loss * mastery_bonus(ch, gsn_fatal_blow, 15, 25) / 100;
         ch->move -= move_loss;
         dam += move_loss * 4;
             
