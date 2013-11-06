@@ -828,6 +828,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if ( !is_tattoo_list_empty(ch->pcdata->tattoos) )
 	bprintf( buf, "Tattoos %s\n", print_tattoos(ch->pcdata->tattoos) );
 
+    bprintf( buf, "Smc %d %d %d\n", ch->pcdata->smc_mastered, ch->pcdata->smc_grandmastered, ch->pcdata->smc_retrained );
+    
     bprintf( buf, "End\n\n" );
     return;
 }
@@ -2105,6 +2107,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             }
             else
                 ch->pcdata->learned[sn] = value;
+            fMatch = TRUE;
+        }
+
+        if ( !str_cmp(word, "SkillMasteryCount") || !str_cmp(word, "Smc") )
+        {
+            ch->pcdata->smc_mastered = bread_number(buf);
+            ch->pcdata->smc_grandmastered = bread_number(buf);
+            ch->pcdata->smc_retrained = bread_number(buf);
             fMatch = TRUE;
         }
 
