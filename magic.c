@@ -1403,10 +1403,9 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg 
     {
         if ( levelmod = get_skill(ch, gsn_arcane_lore) )
             check_improve(ch, gsn_arcane_lore, TRUE, 3);
-        levelmod += get_curr_stat(ch, STAT_WIS)/8;
-        levelmod = UMIN( levelmod, 100 );
         level = level * (900 + levelmod) / 1000;
     }
+    level += mastery_bonus(ch, gsn_arcane_lore, 3, 5);
 
     if ( IS_SET( ch->act, PLR_WAR ) )
     {
