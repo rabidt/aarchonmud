@@ -53,7 +53,6 @@ int  hit_gain     args(( CHAR_DATA *ch ));
 int  mana_gain    args(( CHAR_DATA *ch ));
 int  move_gain    args(( CHAR_DATA *ch )) ;
 bool check_dispel( int dis_level, CHAR_DATA *victim, int sn);
-bool  disarm        args( ( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet ) );
 
 RELIGION_DATA *get_religion args(( CHAR_DATA *ch ));
 
@@ -2087,13 +2086,11 @@ void spell_windwar( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 	/*check for disarm*/ 
 	if ( chance(10) )
 	{
-	    if (disarm(ch, vch, TRUE))
+	    if ( disarm(ch, vch, TRUE, get_mastery(ch, sn)) )
 	    {
-		act( "$n's wind blows your weapon from your grasp!", 
-		     ch, NULL, vch, TO_VICT    );
-		act( "Your winds disarm $N!",  ch, NULL, vch, TO_CHAR    );
-		act( "$n's wind blow $N's weapon away!",  ch, NULL, vch, 
-		     TO_NOTVICT );
+            act( "$n's wind blows your weapon from your grasp!", ch, NULL, vch, TO_VICT );
+            act( "Your winds disarm $N!", ch, NULL, vch, TO_CHAR );
+            act( "$n's wind blow $N's weapon away!", ch, NULL, vch, TO_NOTVICT );
 	    }
 	}
 	/*end disarm section*/

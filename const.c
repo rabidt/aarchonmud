@@ -5041,7 +5041,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"disarm",  
 	{ 20,  3, 102, 102, 16, 18, 19, 32, 20, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -7591,7 +7591,7 @@ const struct mastery_group_type mastery_group_table[] =
         "kamikaze", "showdown", "target practice" }
     },
 
-    { "weapons", 6,
+    { "weapons", 8,
         { "axe", "dagger", "flail", "mace", "polearm", "spear", "sword", "whip", "gun", "bow" }
     },
     
