@@ -1603,7 +1603,7 @@ static int L_ch_reward (lua_State *LS)
 
 static int L_ch_peace (lua_State *LS)
 {
-    if ( lua_isnone( g_mud_LS, 2) )
+    if ( lua_isnone( LS, 2) )
         do_mppeace( check_CH(LS, 1), "");
     else
         do_mppeace( check_CH(LS, 1), check_fstring(LS, 2));
@@ -1620,9 +1620,146 @@ static int L_ch_restore (lua_State *LS)
 
 static int L_ch_setact (lua_State *LS)
 {
-    do_mpact( check_CH(LS, 1), check_fstring(LS, 2));
+    if ( lua_isnone( LS, 2 ) ) 
+    {
+        do_mpact( check_CH(LS, 1), check_fstring(LS, 2));
+        return 0;
+    }
+
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    if (!IS_NPC(ud_ch))
+    {
+        luaL_error(LS, "Cannot set act flag on players.");
+    }
+
+    const char *flag=luaL_checkstring(LS, 2);
+    bool set=lua_toboolean (LS, 3); 
+    
+    int flagVal=flag_value(act_flags, flag);
+    if ( flagVal==NO_FLAG )
+    {
+        luaL_error(LS, "Act flag not found: %s", flag);
+    }
+    else if ( !is_settable(flagVal, act_flags) )
+    {
+        luaL_error(LS, "Act flag not settable: %s", flag);
+    }
+
+    if ( set )
+    {
+        SET_BIT( ud_ch->act, flagVal );
+    }
+    else
+    {
+        REMOVE_BIT( ud_ch->act, flagVal );
+    }
+    
+    return 0;
+}
+
+static int L_ch_setvuln (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    if (!IS_NPC(ud_ch))
+    {
+        luaL_error(LS, "Cannot set vuln on players.");
+    }
+
+    const char *flag=luaL_checkstring(LS, 2 );
+    luaL_checktype( LS, 3, LUA_TBOOLEAN );
+    bool set=lua_toboolean (LS, 3);
+    
+    int flagVal=flag_value(vuln_flags, flag);
+    if ( flagVal==NO_FLAG )
+    {
+        luaL_error(LS, "Vuln flag not found: %s", flag);
+    }
+    else if ( !is_settable(flagVal, vuln_flags) )
+    {
+        luaL_error(LS, "Vuln flag not settable: %s", flag);
+    }
+
+    if ( set )
+    {
+        SET_BIT( ud_ch->vuln_flags, flagVal );
+    }
+    else
+    {
+        REMOVE_BIT( ud_ch->vuln_flags, flagVal );
+    }
 
     return 0;
+
+}
+
+static int L_ch_setresist (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    if (!IS_NPC(ud_ch))
+    {
+        luaL_error(LS, "Cannot set resist on players.");
+    }
+
+    const char *flag=luaL_checkstring(LS, 2 );
+    luaL_checktype( LS, 3, LUA_TBOOLEAN );
+    bool set=lua_toboolean (LS, 3);
+
+    int flagVal=flag_value(res_flags, flag);
+    if ( flagVal==NO_FLAG )
+    {
+        luaL_error(LS, "Resist flag not found: %s", flag);
+    }
+    else if ( !is_settable(flagVal, res_flags) )
+    {
+        luaL_error(LS, "Resist flag not settable: %s", flag);
+    }
+
+    if ( set )
+    {
+        SET_BIT( ud_ch->res_flags, flagVal );
+    }
+    else
+    {
+        REMOVE_BIT( ud_ch->res_flags, flagVal );
+    }
+
+    return 0;
+
+}
+
+static int L_ch_setimmune (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    if (!IS_NPC(ud_ch))
+    {
+        luaL_error(LS, "Cannot set immune on players.");
+    }
+
+    const char *flag=luaL_checkstring(LS, 2 );
+    luaL_checktype( LS, 3, LUA_TBOOLEAN );
+    bool set=lua_toboolean (LS, 3);
+
+    int flagVal=flag_value(imm_flags, flag);
+    if ( flagVal==NO_FLAG )
+    {
+        luaL_error(LS, "Immune flag not found: %s", flag);
+    }
+    else if ( !is_settable(flagVal, imm_flags) )
+    {
+        luaL_error(LS, "Immune flag not settable: %s", flag);
+    }
+
+    if ( set )
+    {
+        SET_BIT( ud_ch->imm_flags, flagVal );
+    }
+    else
+    {
+        REMOVE_BIT( ud_ch->imm_flags, flagVal );
+    }
+
+    return 0;
+
 }
 
 static int L_ch_hit (lua_State *LS)
@@ -2535,6 +2672,9 @@ static const struct luaL_reg CH_lib [] =
     {"peace", L_ch_peace},
     {"restore", L_ch_restore},
     {"setact", L_ch_setact},
+    {"setvuln", L_ch_setvuln},
+    {"setresist", L_ch_setresist},
+    {"setimmune", L_ch_setimmune},
     {"hit", L_ch_hit},
     {"randchar", L_ch_randchar},
     {"loadprog", L_ch_loadprog},
