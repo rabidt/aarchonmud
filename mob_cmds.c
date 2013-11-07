@@ -2126,8 +2126,8 @@ void do_mpact( CHAR_DATA *ch, char *argument )
     
     if ( !IS_NPC(ch) )
     {
-	send_to_char( "You're not an NPC.\n\r", ch );
-	return;
+        bugf("do_mpact called on PC (%s)", ch->name);
+        return;
     }
 
     argument = one_argument( argument, arg1 );
