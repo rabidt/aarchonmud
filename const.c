@@ -942,14 +942,6 @@ struct align_type align_table [] =
 	},
 
 	{
-	"unique",       FALSE,
-	{},      {},      {},
-	{},      {},      {},      
-	{},      {}
-	},
-
-
-	{
 	  NULL, FALSE, {}, {}, {}, {}, {}, {}, {}, {}
 	}
 };
