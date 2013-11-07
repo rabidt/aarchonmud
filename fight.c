@@ -145,7 +145,6 @@ void  split_attack  args( ( CHAR_DATA *ch, int dt ) );
 void  mob_hit       args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 void  raw_kill      args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
 void  set_fighting  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-bool  disarm        args( ( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet ) );
 void  behead        args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_duck    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_stance  args( ( CHAR_DATA *ch ) );
@@ -834,7 +833,8 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 
     if (ch->stance==STANCE_WENDIGO)
         if ( get_eq_char( victim, WEAR_WIELD ) != NULL )
-            if ( number_percent() < 15 )   disarm(ch,victim,FALSE);
+            if ( per_chance(15) )
+                disarm(ch, victim, FALSE, get_mastery(ch, gsn_wendigo));
                    
     if (ch->stance == STANCE_TEMPEST)
 	if (ch->mana > 50)
@@ -2148,7 +2148,7 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	break;
     case STANCE_BOA:
 	if (number_bits(5)==0) 
-	    disarm(ch, victim, FALSE);
+	    disarm(ch, victim, FALSE, get_mastery(ch, gsn_boa));
 	if (number_bits(4)==0)
 	{
 	    send_to_char("You are too constricted to move.\n\r", victim);
@@ -4205,7 +4205,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	    act( "Your whip winds around $N's weapon.", ch, NULL, victim, TO_CHAR );
 	    act( "$n's whip winds around your weapon.", ch, NULL, victim, TO_VICT );
 	    act( "$n's whip winds around $N's weapon.", ch, NULL, victim, TO_NOTVICT );
-	    disarm( ch, victim, FALSE );
+	    disarm( ch, victim, FALSE, get_mastery(ch, gsn_whip) );
 	}
 	else
 	{
@@ -4213,7 +4213,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	    act( "Your whip winds around $N's arm.", ch, NULL, victim, TO_CHAR );
 	    act( "$n's whip winds around your arm.", ch, NULL, victim, TO_VICT );
 	    act( "$n's whip winds around $N's arm.", ch, NULL, victim, TO_NOTVICT );
-	    disarm( victim, ch, FALSE );
+	    disarm( victim, ch, FALSE, get_mastery(victim, gsn_disarm) );
 	}
     }
     else
