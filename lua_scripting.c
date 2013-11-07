@@ -1762,6 +1762,41 @@ static int L_ch_setimmune (lua_State *LS)
 
 }
 
+static int L_ch_setoffensive (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    if (!IS_NPC(ud_ch))
+    {
+        luaL_error(LS, "Cannot set offensive on players.");
+    }
+
+    const char *flag=luaL_checkstring(LS, 2 );
+    luaL_checktype( LS, 3, LUA_TBOOLEAN );
+    bool set=lua_toboolean (LS, 3);
+
+    int flagVal=flag_value(off_flags, flag);
+    if ( flagVal==NO_FLAG )
+    {
+        luaL_error(LS, "Offensive flag not found: %s", flag);
+    }
+    else if ( !is_settable(flagVal, off_flags) )
+    {
+        luaL_error(LS, "Offensive flag not settable: %s", flag);
+    }
+
+    if ( set )
+    {
+        SET_BIT( ud_ch->off_flags, flagVal );
+    }
+    else
+    {
+        REMOVE_BIT( ud_ch->off_flags, flagVal );
+    }
+
+    return 0;
+
+}
+
 static int L_ch_hit (lua_State *LS)
 {
     do_mphit( check_CH(LS, 1), check_fstring(LS, 2));
@@ -2675,6 +2710,7 @@ static const struct luaL_reg CH_lib [] =
     {"setvuln", L_ch_setvuln},
     {"setresist", L_ch_setresist},
     {"setimmune", L_ch_setimmune},
+    {"setoffensive", L_ch_setoffensive},
     {"hit", L_ch_hit},
     {"randchar", L_ch_randchar},
     {"loadprog", L_ch_loadprog},
