@@ -19,7 +19,7 @@ bool  check_jam( CHAR_DATA *ch, int odds, bool offhand );
 * Disarm a creature.
 * Caller must check for successful attack.
 */
-bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet )
+bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery )
 {
     OBJ_DATA *obj;
     
@@ -28,20 +28,30 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet )
     
     if ( IS_OBJ_STAT(obj,ITEM_NOREMOVE))
     {
-        if (!quiet)
+        if ( !quiet )
         {
-            act("$S weapon won't budge!",ch,NULL,victim,TO_CHAR);
-            act("$n tries to disarm you, but your weapon won't budge!",
-                ch,NULL,victim,TO_VICT);
-            act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
+            act("$S weapon won't budge!", ch, NULL, victim, TO_CHAR);
+            act("$n tries to disarm you, but your weapon won't budge!", ch, NULL, victim, TO_VICT);
+            act("$n tries to disarm $N, but fails.", ch, NULL, victim, TO_NOTVICT);
+        }
+        return FALSE;
+    }
+    
+    int mastery = get_mastery(victim, get_weapon_sn(victim)) - attack_mastery;
+    if ( per_chance(mastery == 2 ? 50 : mastery == 1 ? 30 : 0) )
+    {
+        if ( !quiet )
+        {
+            act("$N maintains a tight grip on $S weapon!", ch, NULL, victim, TO_CHAR);
+            act("$n tries to disarm you, but you maintain your grip!", ch, NULL, victim, TO_VICT);
+            act("$n tries to disarm $N, but $N maintains $S grip.", ch, NULL, victim, TO_NOTVICT);
         }
         return FALSE;
     }
     
     if (!quiet)
     {
-        act( "$n DISARMS you and sends your weapon flying!", 
-            ch, NULL, victim, TO_VICT    );
+        act( "$n DISARMS you and sends your weapon flying!", ch, NULL, victim, TO_VICT );
         act( "You disarm $N!",  ch, NULL, victim, TO_CHAR    );
         act( "$n disarms $N!",  ch, NULL, victim, TO_NOTVICT );
     }
@@ -1010,7 +1020,7 @@ void do_aim( CHAR_DATA *ch, char *argument )
             break;
         case AIM_HAND:
             if ( number_percent() < 50 )
-                disarm(ch, victim, FALSE);
+                disarm(ch, victim, FALSE, get_mastery(ch, gsn_aim));
             break;
         case AIM_FOOT:
             act("Your bullet hits $N in the foot, making $M hop around for a few moments.",
@@ -1680,29 +1690,27 @@ void do_disarm( CHAR_DATA *ch, char *argument )
         
 	chance /= 2;
 
-      /* You no longer can fail disarm a bunch of times before finding
+        WAIT_STATE( ch, skill_table[gsn_disarm].beats );
+
+        /* You no longer can fail disarm a bunch of times before finding
          out that your opponent's weapon is damned, if you have detect
          magic - Astark 6-8-13 */
         if ( IS_OBJ_STAT(obj,ITEM_NOREMOVE) && IS_AFFECTED(ch,AFF_DETECT_MAGIC))
         {
             act("$S weapon won't budge!",ch,NULL,victim,TO_CHAR);
-            act("$n tries to disarm you, but your weapon won't budge!",
-                ch,NULL,victim,TO_VICT);
+            act("$n tries to disarm you, but your weapon won't budge!",ch,NULL,victim,TO_VICT);
             act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
-            WAIT_STATE( ch, skill_table[gsn_disarm].beats );
             return;
         }
 
         /* and now the attack */
-        if (number_percent() < chance)
+        if ( per_chance(chance) )
         {
-            WAIT_STATE( ch, skill_table[gsn_disarm].beats );
-            disarm( ch, victim, FALSE );
+            disarm( ch, victim, FALSE, get_mastery(ch, gsn_disarm) );
             check_improve(ch,gsn_disarm,TRUE,1);
         }
         else
         {
-            WAIT_STATE(ch,skill_table[gsn_disarm].beats);
             act("You fail to disarm $N.",ch,NULL,victim,TO_CHAR);
             act("$n tries to disarm you, but fails.",ch,NULL,victim,TO_VICT);
             act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
