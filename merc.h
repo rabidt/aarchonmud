@@ -2080,6 +2080,7 @@ struct  kill_data
 #define EX_NOLOCK             (L)
 #define EX_TRAPPED            (M)
 #define EX_HIDDEN             (N)
+#define EX_DORMANT            (O)
 
 /*
  * Sector types.

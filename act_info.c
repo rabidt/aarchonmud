@@ -2132,7 +2132,8 @@ void do_exits( CHAR_DATA *ch, char *argument )
         if ( ( pexit = ch->in_room->exit[door] ) != NULL
             &&   pexit->u1.to_room != NULL
             &&   can_see_room(ch,pexit->u1.to_room) 
-            &&   (!IS_SET(pexit->exit_info, EX_CLOSED) || IS_IMMORTAL(ch) ) )
+            &&   (!IS_SET(pexit->exit_info, EX_CLOSED) || IS_IMMORTAL(ch) )
+            &&   (!IS_SET(pexit->exit_info, EX_DORMANT) || IS_IMMORTAL(ch) ) )
         {
             found = TRUE;
             if ( fAuto )
@@ -2140,6 +2141,10 @@ void do_exits( CHAR_DATA *ch, char *argument )
                 if (IS_SET(pexit->exit_info, EX_CLOSED))
                 {
                     sprintf( buf, "%s (%s)", buf, dir_name[door] );
+                }
+                else if (IS_SET(pexit->exit_info, EX_DORMANT))
+                {
+                    sprintf( buf, "%s <%s>", buf, dir_name[door] );
                 }
                 else
                 {
