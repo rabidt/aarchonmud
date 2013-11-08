@@ -2046,6 +2046,22 @@ static int L_ch_offensive (lua_State *LS)
 static int L_mobproto_immune (lua_State *LS)
 { 
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    if (lua_isnone( LS, 2 ) )
+    {
+        int index=1;
+        int i;
+        lua_newtable( LS );
+        for ( i=0 ; imm_flags[i].name ; i++ )
+        {
+            if (IS_SET(ud_mobp->imm_flags, imm_flags[i].bit ) )
+            {
+                lua_pushstring(LS, imm_flags[i].name);
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
+
     const char *argument = check_fstring (LS, 2);
     int flag=flag_lookup(argument, imm_flags);
 
@@ -2233,6 +2249,22 @@ static int L_ch_destroy (lua_State *LS)
 static int L_mobproto_vuln (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+
+    if (lua_isnone( LS, 2 ) )
+    {
+        int index=1;
+        int i;
+        lua_newtable( LS );
+        for ( i=0 ; vuln_flags[i].name ; i++ )
+        {
+            if (IS_SET(ud_mobp->vuln_flags, vuln_flags[i].bit ) )
+            {
+                lua_pushstring(LS, vuln_flags[i].name);
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
     const char *argument = check_fstring (LS, 2);
     int flag=flag_lookup(argument, vuln_flags);
 
@@ -2280,6 +2312,23 @@ static int L_ch_vuln (lua_State *LS)
 static int L_mobproto_resist (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+
+    if (lua_isnone( LS, 2 ) )
+    {
+        int index=1;
+        int i;
+        lua_newtable( LS );
+        for ( i=0 ; res_flags[i].name ; i++ )
+        {
+            if (IS_SET(ud_mobp->res_flags, res_flags[i].bit ) )
+            {
+                lua_pushstring(LS, res_flags[i].name);
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
+
     const char *argument = check_fstring (LS, 2);
     int flag=flag_lookup(argument, res_flags);
 
