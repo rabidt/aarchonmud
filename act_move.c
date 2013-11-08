@@ -155,7 +155,11 @@ bool can_move_dir( CHAR_DATA *ch, int dir, bool show )
     EXIT_DATA *pexit = in_room->exit[dir];
     ROOM_INDEX_DATA *to_room = pexit ? pexit->u1.to_room : NULL;
     
-    if ( !in_room || !to_room || !can_see_room(ch, to_room) )
+    if ( !in_room 
+         || !to_room 
+         || !can_see_room(ch, to_room)
+         || ( IS_SET( pexit->exit_info, EX_DORMANT ) 
+              && !IS_IMMORTAL(ch) ) )
     {
         if ( show )
             send_to_char("Alas, you cannot go that way.\n\r", ch);
@@ -718,7 +722,8 @@ int find_door( CHAR_DATA *ch, char *arg )
 	  int count = 0, onedoor = 0;
 	  for ( door = 0; door < MAX_DIR; door++ )
 		 if ( (pexit = ch->in_room->exit[door]) != NULL
-		 && IS_SET(pexit->exit_info, EX_ISDOOR) )
+		 && IS_SET(pexit->exit_info, EX_ISDOOR) 
+         && !IS_SET(pexit->exit_info, EX_DORMANT) )
 		 {
 			count++;
 			onedoor = door;
@@ -743,14 +748,15 @@ int find_door( CHAR_DATA *ch, char *arg )
 		 if ( ( pexit = ch->in_room->exit[door] ) != NULL
 			&&   IS_SET(pexit->exit_info, EX_ISDOOR)
 			&&   pexit->keyword != NULL
-			&&   is_name( arg, pexit->keyword ) )
+			&&   is_name( arg, pexit->keyword ) 
+            &&   !IS_SET(pexit->exit_info, EX_DORMANT) )
 			return door;
 	  }
 	  act( "I see no $T here.", ch, NULL, arg, TO_CHAR );
 	  return -1;
    }
    
-   if ( ( pexit = ch->in_room->exit[door] ) == NULL )
+   if ( ( pexit = ch->in_room->exit[door] ) == NULL || IS_SET(pexit->exit_info, EX_DORMANT) )
    {
 	  act( "I see no door $T here.", ch, NULL, arg, TO_CHAR );
 	  return -1;
@@ -968,6 +974,9 @@ void do_close( CHAR_DATA *ch, char *argument )
 	  pexit   = ch->in_room->exit[door];
 	  if ( IS_SET(pexit->exit_info, EX_CLOSED) )
 	  { send_to_char( "It's already closed.\n\r",    ch ); return; }
+
+          if ( IS_SET(pexit->exit_info, EX_NOCLOSE) )
+          { send_to_char( "It can't be closed.\n\r",     ch ); return; }
 	  
 	  SET_BIT(pexit->exit_info, EX_CLOSED);
 	  act( "$n closes the $d.", ch, NULL, pexit->keyword, TO_ROOM );

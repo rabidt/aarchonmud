@@ -497,7 +497,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "advance",    do_advance, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "authorize",  do_authorize, POS_DEAD, L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "avatar",	    do_avatar,  POS_DEAD,   L9,	 LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "printlist",  do_printlist,POS_DEAD,  ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "printlist",  do_printlist,POS_DEAD,  ML,  LOG_NORMAL, 1, FALSE, FALSE  },
 /* Used only for some pfile testing */
 #ifdef TESTER
     { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },
@@ -634,9 +634,9 @@ const   struct  cmd_type    cmd_table   [] =
     { "medit",      do_medit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "aedit",      do_aedit,   POS_DEAD,   L2,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "oedit",      do_oedit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
-    { "mpedit",     do_mpedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
-    { "opedit",     do_opedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
-    { "apedit",     do_apedit,  POS_DEAD,   L6,  LOG_ALWAYS, 1, TRUE, FALSE  },
+    { "mpedit",     do_mpedit,  POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
+    { "opedit",     do_opedit,  POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
+    { "apedit",     do_apedit,  POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "hedit",      do_hedit,   POS_DEAD,   L8,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "mpdump",     do_mpdump,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "opdump",     do_opdump,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },

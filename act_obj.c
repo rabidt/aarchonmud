@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include "merc.h"
 #include "tables.h"
+#include "lua_scripting.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_split     );
@@ -1160,7 +1161,11 @@ void do_give( CHAR_DATA *ch, char *argument )
         give_trigger_activated = mp_give_trigger( victim, ch, obj );
     // NPCs typically don't want items, so we drop them to prevent lots of possible screw-ups
     // where players give the wrong items to the wrong NPCs
-    if ( !give_trigger_activated && !is_mprog_running() && IS_NPC(victim) && !IS_AFFECTED(victim, AFF_CHARM) )
+    if ( !give_trigger_activated 
+            && !is_mprog_running() && !g_LuaScriptInProgress
+            && !HAS_OTRIG( obj, OTRIG_GIVE ) 
+            && IS_NPC(victim) 
+            && !IS_AFFECTED(victim, AFF_CHARM) )
     {
         act( "$n shrugs and drops $p.", victim, obj, NULL, TO_ROOM );
         obj_from_char( obj );
