@@ -1299,6 +1299,51 @@ static int L_obj_loadprog (lua_State *LS)
     return 1;
 }
 
+static int L_room_loadscript (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, GETSCRIPT_FUNCTION);
+
+    /* Push original args into GetScript */
+    lua_pushvalue( LS, 2 );
+    lua_pushvalue( LS, 3 );
+    lua_call( LS, 2, 1);
+
+    lua_pushboolean( LS,
+            lua_room_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1),
+                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+    return 1;
+}
+
+static int L_room_loadstring (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    lua_pushboolean( LS,
+            lua_room_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, 2),
+                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+    return 1;
+}
+
+static int L_room_loadprog (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    int num = (int)luaL_checknumber (LS, 2);
+    RPROG_CODE *pRcode;
+
+    if ( (pRcode = get_rprog_index(num)) == NULL )
+    {
+        luaL_error(LS, "loadprog: rprog vnum %d doesn't exist", num);
+        return 0;
+    }
+
+    lua_pushboolean( LS,
+            lua_room_program( NULL, num, pRcode->code,
+                ud_room, NULL, NULL, NULL, NULL,
+                RTRIG_CALL, 0) );
+    return 1;
+}
+
 static int L_area_loadscript (lua_State *LS)
 {
     AREA_DATA *ud_area=check_AREA(LS,1);
@@ -2303,6 +2348,25 @@ static int L_room_echo( lua_State *LS)
     return 0;
 }
 
+static int L_room_tprint ( lua_State *LS)
+{
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+
+    /* Push original arg into tprintstr */
+    lua_pushvalue( LS, 2);
+    lua_call( LS, 1, 1 );
+
+    lua_pushcfunction( LS, L_room_echo );
+    /* now line up argumenets for echo */
+    lua_pushvalue( LS, 1); /* obj */
+    lua_pushvalue( LS, -3); /* return from tprintstr */
+
+    lua_call( LS, 2, 0);
+
+    return 0;
+
+}
+
 static int L_objproto_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -2623,6 +2687,10 @@ static const struct luaL_reg ROOM_lib [] =
     {"oload", L_room_oload},
     {"mload", L_room_mload},
     {"echo", L_room_echo},
+    {"loadprog", L_room_loadprog},
+    {"loadscript", L_room_loadscript},
+    {"loadstring", L_room_loadstring},
+    {"trint", L_room_tprint},
     {NULL, NULL}
 };
 
