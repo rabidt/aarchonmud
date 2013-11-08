@@ -2081,6 +2081,7 @@ struct  kill_data
 #define EX_NOLOCK             (L)
 #define EX_TRAPPED            (M)
 #define EX_HIDDEN             (N)
+#define EX_DORMANT            (O)
 
 /*
  * Sector types.
@@ -3174,6 +3175,7 @@ struct  mastery_group_type
 #define OTRIG_LORE  (P)
 #define OTRIG_ENTER (Q)
 #define OTRIG_TIMER (R)
+#define OTRIG_FIGHT (S)
 
 /*
  * AREAprog definitions

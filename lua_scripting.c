@@ -527,11 +527,16 @@ static int L_delay (lua_State *LS)
     /* delaytbl has timer pointers as keys
        value is table with 'tableid' and 'func' keys */
     /* delaytbl[tmr]={ tableid=tableid, func=func } */
+    const char *tag=NULL;
     int val=luaL_checkint( LS, 2 );
     luaL_checktype( LS, 3, LUA_TFUNCTION);
+    if (!lua_isnone( LS, 4 ) )
+    {
+       tag=str_dup(luaL_checkstring( LS, 4 ));
+    }
 
     lua_getglobal( LS, "delaytbl");
-    TIMER_NODE *tmr=register_lua_timer( val );
+    TIMER_NODE *tmr=register_lua_timer( val, tag );
     lua_pushlightuserdata( LS, (void *)tmr); 
     lua_newtable( LS );
  
@@ -562,6 +567,13 @@ static int L_cancel (lua_State *LS)
        */
 
     /* 1, game object */
+    const char *tag=NULL;
+    if (!lua_isnone(LS, 2))
+    {
+        tag=luaL_checkstring( LS, 2 );
+        lua_remove( LS, 2 );
+    }
+
     lua_getfield( LS, 1, "tableid"); /* 2, arg1.tableid (game object pointer) */ 
     lua_getglobal( LS, "delaytbl"); /* 3, delaytbl */
 
@@ -573,11 +585,13 @@ static int L_cancel (lua_State *LS)
         if (lua_equal( LS, 6, 2 )==1)
         {
             TIMER_NODE *tmr=(TIMER_NODE *)luaL_checkudata( LS, 4, UD_META);
-            unregister_lua_timer( tmr );
-            /* set table entry to nil */
-            lua_pushvalue( LS, 4 ); /* push key */
-            lua_pushnil( LS );
-            lua_settable( LS, 3 );
+            if (unregister_lua_timer( tmr, tag ) ) /* return false if tag no match*/
+            {
+                /* set table entry to nil */
+                lua_pushvalue( LS, 4 ); /* push key */
+                lua_pushnil( LS );
+                lua_settable( LS, 3 );
+            }
         }
         lua_pop(LS, 2); /* pop tableid and value */
     }
@@ -607,8 +621,7 @@ static int L_rundelay( lua_State *LS)
 
     if (lua_isnil( LS, -1) )
     {
-        /* exit silently */
-        return 0;
+        luaL_error(LS, "Couldn't find delayed function's game boject.");
     }
 
     lua_pop( LS, 2 );
@@ -1199,6 +1212,12 @@ static int L_ch_loadscript (lua_State *LS)
     return 0;
 }
 
+static int L_ch_loadstring (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_mob_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, 2), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
+    return 0;
+} 
 
 static int L_ch_loadprog (lua_State *LS)
 {
@@ -1243,6 +1262,14 @@ static int L_obj_loadscript (lua_State *LS)
 
 }
 
+static int L_obj_loadstring (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_pushboolean( LS,
+            lua_obj_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, 2), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+    return 1;
+}
+
 static int L_obj_loadprog (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS, 1);
@@ -1278,6 +1305,14 @@ static int L_area_loadscript (lua_State *LS)
 
     return 1;
 
+}
+
+static int L_area_loadstring (lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS,1);
+    lua_pushboolean( LS,
+            lua_area_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, 2), ud_area, NULL, ATRIG_CALL, 0) );
+    return 1;
 }
 
 static int L_area_loadprog (lua_State *LS)
@@ -2129,6 +2164,83 @@ static int L_exit_flag( lua_State *LS)
     return 1;
 }
 
+static int L_exit_setflag( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    luaL_checktype( LS, 3, LUA_TBOOLEAN );
+    bool set=lua_toboolean( LS, 3 );
+
+    int flag=flag_lookup( argument, exit_flags);
+    if ( flag==NO_FLAG )
+        luaL_error(LS, "Invalid exit flag: '%s'", argument);
+
+    if ( set )
+        SET_BIT( ud_exit->exit_info, flag );
+    else
+        REMOVE_BIT( ud_exit->exit_info, flag );
+
+    return 0;
+}
+
+
+static int L_exit_lock( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+
+    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
+    {
+        luaL_error(LS, "Exit is not a door, cannot lock.");
+    }
+
+    /* force closed if necessary */
+    SET_BIT(ud_exit->exit_info, EX_CLOSED);
+    SET_BIT(ud_exit->exit_info, EX_LOCKED);
+    return 0;
+}
+
+static int L_exit_unlock( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+
+    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
+    {
+        luaL_error(LS, "Exit is not a door, cannot unlock.");
+    }
+
+    REMOVE_BIT(ud_exit->exit_info, EX_LOCKED);
+    return 0;
+}
+
+static int L_exit_close( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+
+    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
+    {
+        luaL_error(LS, "Exit is not a door, cannot close.");
+    }
+
+    SET_BIT(ud_exit->exit_info, EX_CLOSED);
+    return 0;
+}
+
+static int L_exit_open( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+
+    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
+    {
+        luaL_error(LS, "Exit is not a door, cannot open.");
+    }
+
+    /* force unlock if necessary */
+    REMOVE_BIT(ud_exit->exit_info, EX_LOCKED);
+    REMOVE_BIT(ud_exit->exit_info, EX_CLOSED);
+
+    return 0;
+}
+
 static int L_room_mload (lua_State *LS)
 {
     ROOM_INDEX_DATA * ud_room = check_ROOM (LS, 1);
@@ -2504,6 +2616,7 @@ static const struct luaL_reg CH_lib [] =
     {"randchar", L_ch_randchar},
     {"loadprog", L_ch_loadprog},
     {"loadscript", L_ch_loadscript},
+    {"loadstring", L_ch_loadstring},
     {"savetbl", L_ch_savetbl},
     {"loadtbl", L_ch_loadtbl},
     {"tprint", L_ch_tprint},
@@ -2530,6 +2643,7 @@ static const struct luaL_reg OBJ_lib [] =
     {"echo", L_obj_echo},
     {"loadprog", L_obj_loadprog},
     {"loadscript", L_obj_loadscript},
+    {"loadstring", L_obj_loadstring},
     {"oload", L_obj_oload},
     {"savetbl", L_obj_savetbl},
     {"loadtbl", L_obj_loadtbl},
@@ -2560,6 +2674,11 @@ static const struct luaL_reg OBJPROTO_lib [] =
 static const struct luaL_reg EXIT_lib [] =
 {
     {"flag", L_exit_flag},
+    {"setflag", L_exit_setflag},
+    {"open", L_exit_open},
+    {"close", L_exit_close},
+    {"unlock", L_exit_unlock},
+    {"lock", L_exit_lock},
     {NULL, NULL}
 };
 
@@ -2569,6 +2688,7 @@ static const struct luaL_reg AREA_lib [] =
     {"echo", L_area_echo},
     {"loadprog", L_area_loadprog},
     {"loadscript", L_area_loadscript},
+    {"loadstring", L_area_loadstring},
     {"savetbl", L_area_savetbl},
     {"loadtbl", L_area_loadtbl},
     {"tprint", L_area_tprint},
@@ -2913,6 +3033,15 @@ static int get_OBJ_field ( lua_State *LS )
     FLDNUM("v2", ud_obj->value[2]);
     FLDNUM("v3", ud_obj->value[3]);
     FLDNUM("v4", ud_obj->value[4]);
+
+    /* explicit names for v# values */
+    if (ud_obj->item_type == ITEM_FOUNTAIN)
+    {
+        FLDSTR( "liquid", liq_table[ud_obj->value[2]].liq_name );
+        FLDNUM( "total", ud_obj->value[0] );
+        FLDNUM( "left", ud_obj->value[1]  );
+    }
+
     return 0;
 }
 
@@ -3160,6 +3289,21 @@ static int get_ROOM_field ( lua_State *LS )
     FLDNUM("manarate", ud_room->mana_rate);
     FLDSTR("owner", ud_room->owner ? ud_room->owner : "");
     FLDSTR("description", ud_room->description);
+    FLDSTR("sector", flag_bit_name(sector_flags, ud_room->sector_type));
+
+    if ( !strcmp(argument, "contents") )
+    {
+        int index=1;
+        lua_newtable(LS);
+        OBJ_DATA *obj;
+        for (obj=ud_room->contents ; obj ; obj=obj->next_content)
+        {
+            if (make_ud_table(LS, obj, UDTYPE_OBJ))
+                lua_rawseti(LS, -2, index++);
+        }
+        return 1;
+    }
+
     if ( !strcmp(argument, "area") )
     {
         if ( !make_ud_table(LS, ud_room->area, UDTYPE_AREA))
@@ -3518,7 +3662,7 @@ static const struct luaL_reg RESET_metatable [] =
     {NULL, NULL}
 };
 
-void RegisterGlobalFunctions(lua_State *LS)
+static void RegisterGlobalFunctions(lua_State *LS)
 {
     /* These are registed in the main script
        space then the appropriate ones are 
@@ -3541,6 +3685,9 @@ void RegisterGlobalFunctions(lua_State *LS)
     lua_register(LS,"getobjlist", L_getobjlist);
     lua_register(LS,"getarealist", L_getarealist);
     lua_register(LS,"clearloopcount", L_clearloopcount);
+
+    /* not meant for main_lib */
+    lua_register(LS,"cancel", L_cancel); 
 }
 
 
@@ -3621,12 +3768,6 @@ int GetLuaEnvironmentCount()
     }
 
     return (int)luaL_checknumber( g_mud_LS, -1 );
-}
-
-void lua_reset ()
-{
-    lua_close(g_mud_LS);
-    open_lua();
 }
 
 void open_lua  ()
