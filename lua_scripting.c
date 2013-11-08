@@ -1955,6 +1955,21 @@ static int L_ch_isvisible (lua_State *LS)
 static int L_mobproto_affected (lua_State *LS)
 {
     MOB_INDEX_DATA *ud_mobp = check_MOBPROTO (LS, 1);
+    if (lua_isnone( LS, 2 ) )
+    {
+        int index=1;
+        int i;
+        lua_newtable( LS );
+        for ( i=0 ; affect_flags[i].name ; i++ )
+        {
+            if (IS_SET(ud_mobp->affect_field, affect_flags[i].bit ) )
+            {
+                lua_pushstring(LS, affect_flags[i].name);
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
     const char *argument = luaL_checkstring (LS, 2);
     int flag=NO_FLAG;
 
@@ -1969,6 +1984,21 @@ static int L_mobproto_affected (lua_State *LS)
 static int L_ch_affected (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
+    if (lua_isnone( LS, 2 ) )
+    {
+        int index=1;
+        int i;
+        lua_newtable( LS );
+        for ( i=0 ; affect_flags[i].name ; i++ )
+        {
+            if (IS_SET(ud_ch->affect_field, affect_flags[i].bit ) )
+            {
+                lua_pushstring(LS, affect_flags[i].name);
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
     const char *argument = luaL_checkstring (LS, 2);
 
     lua_pushboolean( LS,  ud_ch != NULL
