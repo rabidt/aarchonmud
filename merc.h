@@ -2927,7 +2927,7 @@ struct  exit_data
 	sh_int      key;
 	char *      keyword;
 	char *      description;
-        EXIT_DATA * next;       /* OLC */
+    EXIT_DATA * next;       /* OLC */
 	tflag       rs_flags;   /* OLC */
 	int         orig_door;  /* OLC */
 };
@@ -3192,6 +3192,11 @@ struct  group_type
 #define RTRIG_CALL (A)
 #define RTRIG_TIMER (B)
 #define RTRIG_EXIT  (C)
+#define RTRIG_ENTER (D)
+#define RTRIG_RECALL (E)
+#define RTRIG_VOID (F)
+#define RTRIG_QUIT (G)
+
 
 struct mprog_list
 {
