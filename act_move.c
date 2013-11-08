@@ -974,6 +974,9 @@ void do_close( CHAR_DATA *ch, char *argument )
 	  pexit   = ch->in_room->exit[door];
 	  if ( IS_SET(pexit->exit_info, EX_CLOSED) )
 	  { send_to_char( "It's already closed.\n\r",    ch ); return; }
+
+          if ( IS_SET(pexit->exit_info, EX_NOCLOSE) )
+          { send_to_char( "It can't be closed.\n\r",     ch ); return; }
 	  
 	  SET_BIT(pexit->exit_info, EX_CLOSED);
 	  act( "$n closes the $d.", ch, NULL, pexit->keyword, TO_ROOM );
