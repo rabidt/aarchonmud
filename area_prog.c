@@ -7,6 +7,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "lookup.h"
+#include "lua_scripting.h"
 
 
 /*
@@ -26,11 +27,11 @@ bool ap_percent_trigger(
 		if ( prg->trig_type == type
                 && number_percent() <= atoi( prg->trig_phrase ) )
         {
-            return lua_area_program( NULL, prg->vnum, prg->script->code, area, ch1, type);
+            return lua_area_program( NULL, prg->vnum, prg->script->code, area, ch1, type, prg->script->security)
+                && ( ch1 ? !ch1->must_extract : TRUE);
         }
     }
-    return (TRUE
-            && (ch1 ? ch1->must_extract : TRUE) );
+    return TRUE;
 }
 
 bool ap_rexit_trigger(CHAR_DATA *ch)
@@ -192,7 +193,7 @@ void ap_timer_trigger( AREA_DATA *area )
         if (prg->trig_type == ATRIG_TIMER)
         {
             lua_area_program( NULL, prg->vnum, prg->script->code, 
-                    area, NULL, ATRIG_TIMER);
+                    area, NULL, ATRIG_TIMER, prg->script->security);
             return;
         }
     }

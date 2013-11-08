@@ -21,6 +21,12 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
         int trig_type,
         int security );
 
+bool lua_room_program( char *trigger, int pvnum, char *source,
+        ROOM_INDEX_DATA *room, 
+        CHAR_DATA *ch1, CHAR_DATA *ch2,
+        OBJ_DATA *obj1, OBJ_DATA *obj2,
+        int trig_type,
+        int security);
    
 bool lua_load_mprog( lua_State *LS, int vnum, char *code);
 bool lua_load_oprog( lua_State *LS, int vnum, char *code);
