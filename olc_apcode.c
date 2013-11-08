@@ -351,15 +351,6 @@ void fix_aprog_areas( CHAR_DATA *ch, APROG_CODE *pAcode )
     lua_load_aprog( g_mud_LS, pAcode->vnum, pAcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pAcode->vnum);
 
-    if ( pAcode != NULL )
-		for (area = area_first ; area ; area = area->next)
-			for ( apl = area->aprogs; apl; apl=apl->next )
-				if (apl->vnum == pAcode->vnum)
-				{
-					sprintf( buf, "Fixing area %s.\n\r", area->name );
-					send_to_char( buf, ch);
-				}
-				
 }
 
 // void fix_aprog_objs( CHAR_DATA *ch, APROG_CODE *pAcode )

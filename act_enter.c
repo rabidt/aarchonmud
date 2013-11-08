@@ -232,6 +232,8 @@ void do_enter( CHAR_DATA *ch, char *argument)
     {
         if ( !op_percent_trigger( portal, NULL, ch, NULL, OTRIG_ENTER ) )
             return;
+        if ( !rp_exit_trigger(ch) )
+            return;
         if ( !ap_rexit_trigger(ch) )
             return;
         if ( !ap_exit_trigger(ch, location->area) )

@@ -407,7 +407,35 @@ void do_mpstat( CHAR_DATA *ch, char *argument )
 }
 
 /*
- * Displays the source code of a given OBJprogram
+ * Displays the source code of a given ROOMprogram
+ *
+ * Syntax: rpdump [vnum]
+ */
+void do_rpdump( CHAR_DATA *ch, char *argument )
+{
+   char buf[ MAX_INPUT_LENGTH ];
+   RPROG_CODE *rprg;
+   AREA_DATA *area;
+
+   one_argument( argument, buf );
+   if ( ( rprg = get_rprog_index( atoi(buf) ) ) == NULL )
+   {
+    send_to_char( "No such ROOMprogram.\n\r", ch );
+    return;
+   }
+
+   area = get_vnum_area( rprg->vnum );
+   if ( area == NULL || !IS_BUILDER(ch, area) )
+   {
+       send_to_char( "You're not a builder for this aprog's area.\n\r", ch);
+       return;
+   }
+
+   page_to_char_new( rprg->code, ch, TRUE );
+}
+
+/*
+ * Displays the source code of a given AREAprogram
  *
  * Syntax: apdump [vnum]
  */
