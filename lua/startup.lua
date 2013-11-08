@@ -328,6 +328,19 @@ AREA_env_meta={
     end
 }
 
+ROOM_env_meta={
+    __index=function(tbl,key)
+        if main_lib[key] then
+            return main_lib[key]
+        elseif tbl.room[key] then
+            return function(...)
+                        table.insert(arg, 1, tbl.room)
+                        return tbl.room[key](unpack(arg))
+                   end
+        end
+    end
+}
+
 function MakeEnvProxy(env)
     local proxy={}
     proxy._G=proxy
@@ -380,6 +393,14 @@ function area_program_setup(ud, f)
     return f
 end
 
+function room_program_setup(ud, f)
+    if envtbl[ud.tableid]==nil then
+        envtbl[ud.tableid]=new_script_env(ud, "room", ROOM_env_meta)
+    end
+    setfenv(f, envtbl[ud.tableid])
+    return f
+end
+
 function interp_setup( ud, typ, desc, name)
     if interptbl[ud.tableid] then
         return 0, interptbl[ud.tableid].name
@@ -392,6 +413,8 @@ function interp_setup( ud, typ, desc, name)
             envtbl[ud.tableid]=new_script_env(ud,"obj", OBJ_env_meta)
         elseif typ=="area" then
             envtbl[ud.tableid]=new_script_env(ud,"area", AREA_env_meta)
+        elseif typ=="room" then
+            envtbl[ud.tableid]=new_script_env(ud,"room", ROOM_env_meta)
         else
             error("Invalid type in interp_setup: "..typ)
         end

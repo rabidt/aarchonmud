@@ -568,6 +568,14 @@ const struct flag_type aprog_flags[] =
     {   NULL,           0,          TRUE    }
 };
 
+const struct flag_type rprog_flags[] =
+{
+    {   "call",         RTRIG_CALL,      FALSE   },
+    {   "timer",        RTRIG_TIMER,     TRUE    },
+    {   "exit",         RTRIG_EXIT,      TRUE    },
+    {   NULL,           0,          TRUE    }
+};
+
 const struct flag_type area_flags[] =
 {
 	{   "changed",      AREA_CHANGED,       TRUE    },
