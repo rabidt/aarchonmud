@@ -158,6 +158,23 @@ void op_greet_trigger( CHAR_DATA *ch )
     }
 }
 
+void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic )
+{
+    OBJ_DATA *obj;
+    OBJ_DATA *next_obj;
+
+    for ( obj = ch->carrying ; obj ; obj = next_obj )
+    {
+        next_obj = obj->next_content;
+
+        /* only checking worn and wielded items */
+        if ( obj->wear_loc != WEAR_NONE && HAS_OTRIG(obj, OTRIG_FIGHT) )
+        {
+            op_percent_trigger(obj, NULL, ch, vic, OTRIG_FIGHT);
+        }
+    }
+}
+
 void op_timer_trigger( OBJ_DATA *obj )
 {
     OPROG_LIST *prg;

@@ -547,6 +547,7 @@ const struct flag_type oprog_flags[] =
     {   "lore",         OTRIG_LORE,      TRUE    },
     {   "enter",        OTRIG_ENTER,     TRUE    },
     {   "timer",        OTRIG_TIMER,     TRUE    },
+    {   "fight",        OTRIG_FIGHT,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -609,7 +610,8 @@ const struct flag_type exit_flags[] =
 	{   "noclose",      EX_NOCLOSE,     TRUE    },
 	{   "nolock",       EX_NOLOCK,      TRUE    },
 	{   "trapped",      EX_TRAPPED,     TRUE    },
-        {   "hidden",       EX_HIDDEN,      TRUE    },
+    {   "hidden",       EX_HIDDEN,      TRUE    },
+    {   "dormant",      EX_DORMANT,     TRUE    },
 	{   NULL,           0,          0   }
 };
 
