@@ -1071,7 +1071,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 // chance for extra (offhand if possible) attack
                 if ( per_chance(mastery_chance) )
                 {
-                    if ( area_attack_sn == gsn_brawl || second )
+                    if ( !wield || second )
                         one_hit(ch, vch, dt, TRUE);
                     else if ( number_bits(1) )
                         one_hit(ch, vch, dt, FALSE);
@@ -1222,6 +1222,14 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         check_improve(ch,gsn_ashura,TRUE,3);
         if ( ch->fighting != victim )
             return;
+        // chance for extra (offhand if possible) attack
+        if ( per_chance(mastery_bonus(ch, gsn_ashura, 30, 50)) )
+        {
+            if ( !wield || second )
+                one_hit(ch, victim, dt, TRUE);
+            else if ( number_bits(1) )
+                one_hit(ch, victim, dt, FALSE);
+        }
     }
      
     return;
