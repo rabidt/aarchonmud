@@ -1495,19 +1495,15 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
     
     if ( fAll )
     {
-	for( victim = ch->in_room->people; victim; victim = victim_next )
-	{
-	    victim_next = victim->next_in_room;
-	    if ( victim != ch )
-    		full_dam( victim, victim, 
-			  fKill ? dam : UMIN(victim->hit,dam),
-			  TYPE_UNDEFINED, DAM_NONE, FALSE );
-	}
+        for( victim = ch->in_room->people; victim; victim = victim_next )
+        {
+	        victim_next = victim->next_in_room;
+	        if ( victim != ch )
+                deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
+        }
     }
     else
-    	full_dam( victim, victim, 
-		  fKill ? dam : UMIN(victim->hit,dam),
-		  TYPE_UNDEFINED, DAM_NONE, FALSE );
+        deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
     return;
 }
 
