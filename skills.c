@@ -843,6 +843,8 @@ void do_master( CHAR_DATA *ch, char *argument )
         }
         else
             printf_to_char(ch, "You master the art of %s.\n\r", skill_table[sn].name);
+        if ( ch->pcdata->mastered[sn] == 2 )
+            printf_to_char(ch, "You are now a grandmaster in the art of %s.\n\r", skill_table[sn].name);
         return;
     }
     
