@@ -2146,7 +2146,9 @@ void do_exits( CHAR_DATA *ch, char *argument )
                 }
                 else if (IS_SET(pexit->exit_info, EX_CLOSED))
                 {
-                    sprintf( buf, "%s (%s)", buf, dir_name[door] );
+                    sprintf( buf, "%s (%s%s)", buf, 
+                            IS_SET(pexit->exit_info, EX_HIDDEN) ? "*" : "",
+                            dir_name[door] );
                 }
                 else
                 {
