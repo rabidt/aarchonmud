@@ -1010,7 +1010,7 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
 */
 void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
-    int chance;
+    int chance, mastery_chance, area_attack_sn;
     OBJ_DATA *wield;
     OBJ_DATA *second;
 
@@ -1040,48 +1040,49 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     check_killer( ch, victim );
     
     /* automatic attacks for brawl & melee */
-    if (wield == NULL)
-	chance = get_skill(ch, gsn_brawl);
+    if ( wield == NULL )
+    {
+        chance = get_skill(ch, gsn_brawl);
+        area_attack_sn = gsn_brawl;
+    }
     else
     {
-	chance = get_skill(ch, gsn_melee) * 3/4;
-	if ( wield->value[0] == WEAPON_POLEARM )
-	    chance += 25;
+        chance = get_skill(ch, gsn_melee) * 3/4;
+        if ( wield->value[0] == WEAPON_POLEARM )
+            chance += 25;
+        area_attack_sn = gsn_melee;
+    }
+    mastery_chance = mastery_bonus(ch, area_attack_sn, 30, 50);
+
+    if ( per_chance(chance) )
+    {
+        /* For each opponent beyond the first there's an extra attack */
+        CHAR_DATA *vch, *vch_next;
+        bool found = FALSE;
+        for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
+        {
+            vch_next = vch->next_in_room;
+            if ( vch->fighting != NULL
+                && is_same_group(vch->fighting, ch)
+                && ch->fighting != vch )
+            {
+                one_hit(ch, vch, dt, FALSE);
+                found = TRUE;
+                // chance for extra (offhand if possible) attack
+                if ( per_chance(mastery_chance) )
+                {
+                    if ( area_attack_sn == gsn_brawl || second )
+                        one_hit(ch, vch, dt, TRUE);
+                    else if ( number_bits(1) )
+                        one_hit(ch, vch, dt, FALSE);
+                }
+            }
+        }
+        /* improve skill */
+        if ( found )
+            check_improve(ch, area_attack_sn, TRUE, 3);
     }
 
-    if (number_percent() <= chance)
-    {
-      /* For each opponent beyond the first there's an extra attack */
-      CHAR_DATA *vch, *vch_next;
-      bool found = FALSE;
-      for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
-      {
-	  vch_next = vch->next_in_room;
-	  if ( vch->fighting != NULL
-	       && is_same_group(vch->fighting, ch)
-	       && ch->fighting != vch )
-	  {
-	      one_hit(ch, vch, dt, FALSE);
-	      found = TRUE;
-	  }
-      }
-      /* improve skill */
-      if (found)
-	  if (wield == NULL)
-	      check_improve(ch, gsn_brawl, TRUE, 3);
-	  else
-	      check_improve(ch, gsn_melee, TRUE, 3);
-    }
-
-    /*
-    if (ch->stance == STANCE_KAMIKAZE)
-    {
-        damage(ch,ch,ch->level/2+10,gsn_kamikaze,DAM_MENTAL,FALSE);
-	if (ch->stance != STANCE_KAMIKAZE)
-	    return;
-    }
-    */
-    
     stance_hit(ch, victim, dt);
     
     if  (  (!IS_AFFECTED(ch,AFF_GUARD) || number_range(0,1))
