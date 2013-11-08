@@ -2017,6 +2017,21 @@ static int L_ch_act (lua_State *LS)
 static int L_mobproto_offensive (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    if (lua_isnone( LS, 2 ) )
+    {
+        int index=1;
+        int i;
+        lua_newtable( LS );
+        for ( i=0 ; off_flags[i].name ; i++ )
+        {
+            if (IS_SET(ud_mobp->off_flags, off_flags[i].bit ) )
+            {
+                lua_pushstring(LS, off_flags[i].name);
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
     const char *argument = check_fstring (LS, 2);
     int flag=flag_lookup(argument, off_flags);
 
@@ -2031,6 +2046,21 @@ static int L_mobproto_offensive (lua_State *LS)
 static int L_ch_offensive (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
+    if (lua_isnone( LS, 2 ) )
+    {
+        int index=1;
+        int i;
+        lua_newtable( LS );
+        for ( i=0 ; off_flags[i].name ; i++ )
+        {
+            if (IS_SET(ud_ch->off_flags, off_flags[i].bit ) )
+            {
+                lua_pushstring(LS, off_flags[i].name);
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
     const char *argument = check_fstring (LS, 2);
     int flag=flag_lookup(argument, off_flags);
 
