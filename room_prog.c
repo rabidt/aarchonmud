@@ -73,7 +73,7 @@ static bool exit_trigger( CHAR_DATA *ch, ROOM_INDEX_DATA *room, int door, int ty
                 && ( !strcmp(prg->trig_phrase, dirname ) )
                     || !strcmp(prg->trig_phrase, "*" ) )
         {
-            return lua_room_program( NULL, prg->vnum, prg->script->code, room, ch, NULL, NULL, NULL, type, prg->script->security)
+            return lua_room_program( dirname, prg->vnum, prg->script->code, room, ch, NULL, NULL, NULL, type, prg->script->security)
                 && (ch ? !ch->must_extract : TRUE );
         }
     }
