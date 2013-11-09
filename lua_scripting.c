@@ -2711,6 +2711,8 @@ static const struct luaL_reg ROOM_lib [] =
     {"loadscript", L_room_loadscript},
     {"loadstring", L_room_loadstring},
     {"tprint", L_room_tprint},
+    {"delay", L_delay},
+    {"cancel", L_cancel},
     {NULL, NULL}
 };
 
