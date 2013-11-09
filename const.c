@@ -7551,13 +7551,13 @@ const struct mastery_group_type mastery_group_table[] =
         "astarks rejuvenation" }
     },
 
-    { "enchantment", 2,
+    { "malediction", 2,
         { "blindness", "colour spray", "solar flare", "ray of truth", "sleep",
         "charm person", "confusion", "mass confusion", "fear", "turn undead",
         "feeblemind", "slow", "weaken", "faerie fire", "entangle",
         "necrosis", "plague", "poison", "curse", "iron maiden",
         "mana burn", "glyph of evil", "tomb rot", "soreness", "haunt",
-        "decompose", "laughing fit" }
+        "decompose", "laughing fit", "demonfire", "angel smite" }
     },
     
     { "shielding", 2,
