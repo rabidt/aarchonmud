@@ -705,6 +705,11 @@ void do_master( CHAR_DATA *ch, char *argument )
         show_master_list(ch);
         return;
     }
+    else if ( ch->position < POS_STANDING )
+    {
+        send_position_message(ch);
+        return;
+    }
     else if ( !strcmp(arg, "forget") )
     {
         // forget all option for debugging - hence imm only
