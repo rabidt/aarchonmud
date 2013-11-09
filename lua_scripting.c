@@ -1158,6 +1158,20 @@ static int L_area_savetbl (lua_State *LS)
     return 0;
 }
 
+static int L_room_savetbl (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, SAVETABLE_FUNCTION);
+
+    lua_pushvalue( LS, 2 );
+    lua_pushvalue( LS, 3 );
+    lua_pushstring( LS, ud_room->area->file_name );
+    lua_call( LS, 3, 0);
+
+    return 0;
+}
+
 static int L_ch_loadtbl (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -1200,6 +1214,19 @@ static int L_area_loadtbl (lua_State *LS)
     /* Push original args into LoadTable */
     lua_pushvalue( LS, 2 );
     lua_pushstring( LS, ud_area->file_name );
+    lua_call( LS, 2, 1);
+
+    return 1;
+}
+
+static int L_room_loadtbl (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, LOADTABLE_FUNCTION);
+
+    lua_pushvalue( LS, 2 );
+    lua_pushstring( LS, ud_room->area->file_name );
     lua_call( LS, 2, 1);
 
     return 1;
@@ -2713,6 +2740,8 @@ static const struct luaL_reg ROOM_lib [] =
     {"tprint", L_room_tprint},
     {"delay", L_delay},
     {"cancel", L_cancel},
+    {"savetbl", L_room_savetbl},
+    {"loadtbl", L_room_loadtbl},
     {NULL, NULL}
 };
 
