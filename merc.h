@@ -3191,13 +3191,13 @@ struct  group_type
  */
 #define RTRIG_CALL (A)
 #define RTRIG_TIMER (B)
-#define RTRIG_EXIT  (C)
-#define RTRIG_ENTER (D)
-#define RTRIG_RECALL (E)
-#define RTRIG_VOID (F)
-#define RTRIG_QUIT (G)
-#define RTRIG_UNLOCK (H)
-
+#define RTRIG_MOVE  (C)
+#define RTRIG_OPEN  (D)
+#define RTRIG_CLOSE (E)
+#define RTRIG_UNLOCK (F)
+#define RTRIG_LOCK  (G)
+#define RTRIG_ENTER (H)
+#define RTRIG_EXIT  (I)
 
 struct mprog_list
 {

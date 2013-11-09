@@ -333,6 +333,7 @@ void do_enter( CHAR_DATA *ch, char *argument)
         op_greet_trigger( ch );
         ap_enter_trigger( ch, from_area );
         ap_renter_trigger( ch );
+        rp_enter_trigger( ch );
     }
  
 	return;
