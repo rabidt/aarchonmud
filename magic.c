@@ -5029,7 +5029,11 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         act("$n looks more relaxed.",victim,NULL,NULL,TO_ROOM);
         return;
     }
-
+    if ( is_affected(victim, gsn_curse) || is_affected(victim, gsn_tomb_rot) )
+    {
+        act("The curse on $N is beyond your power.",ch,NULL,victim,TO_CHAR);
+        return;
+    }
     for (obj = victim->carrying; obj != NULL; obj = obj->next_content)
     {
         if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
