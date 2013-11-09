@@ -231,6 +231,12 @@ void string_add( CHAR_DATA *ch, char *argument )
           EDIT_APCODE(ch, apc);
           fix_aprog_areas(ch, apc);
       }
+      else if ( ch->desc->editor == ED_RPCODE ) /* for roomprogs */
+      {
+          RPROG_CODE *rpc;
+          EDIT_RPCODE(ch, rpc);
+          fix_rprog_rooms(ch, rpc);
+      }
                                                    
 
       
