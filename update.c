@@ -868,7 +868,8 @@ void mobile_update( void )
         {
             if ( ch->fighting && is_wimpy(ch) )
             {
-                do_flee(ch, "");
+                if ( ch->position >= POS_FIGHTING )
+                    do_flee(ch, "");
                 continue;
             }
             else if ( ch->spec_fun != 0 )
