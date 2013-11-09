@@ -260,9 +260,9 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             return ch->in_room == to_room ? door : -1;
         if ( !rp_exit_trigger(ch) )
             return ch->in_room == to_room ? door : -1;
-        if ( !ap_rexit_trigger(ch, to_room->area) )
+        if ( to_room && !ap_rexit_trigger(ch, to_room->area) )
             return ch->in_room == to_room ? door : -1;
-        if ( !ap_exit_trigger(ch, to_room->area) )
+        if ( to_room && !ap_exit_trigger(ch, to_room->area) )
             return ch->in_room == to_room ? door : -1;
     }
 
