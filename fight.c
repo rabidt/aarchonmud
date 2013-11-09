@@ -5834,7 +5834,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
     {
         if ( (dir = direction_lookup(arg)) == -1 )
         {
-            send_to_char("That isnt a direction!\n\r", ch);
+            send_to_char("That isn't a direction!\n\r", ch);
             return;
         }
         if ( !can_move_dir(ch, dir, TRUE) )
@@ -5852,10 +5852,10 @@ void do_flee( CHAR_DATA *ch, char *argument )
     }
     
     // we now have a chance to escape, so lag is given now, regardless of success
+    int wait = rand_div(PULSE_VIOLENCE * (10 - mastery_bonus(ch, gsn_flee, 4, 5)), 10);
     if ( ch->stance == STANCE_BUNNY )
-        WAIT_STATE(ch, PULSE_VIOLENCE/2);
-    else
-        WAIT_STATE(ch, PULSE_VIOLENCE);
+        wait = rand_div(wait, 2);
+    WAIT_STATE(ch, wait);
     
     // auto-fail chance based on number of available exits
     if ( number_bits(exit_count) == 0 )
