@@ -568,6 +568,8 @@ int mana_cost (CHAR_DATA *ch, int sn, int skill)
 
     mana = skill_table[sn].min_mana;
     mana = (200-skill)*mana/100;
+    
+    mana = mastery_adjust_cost(mana, get_mastery(ch, sn));
 
     return mana;
 }
@@ -1035,14 +1037,14 @@ void do_ccast( CHAR_DATA *ch, char *argument )
     meta_magic_cast(ch, "c", argument);
 }
 
-int meta_magic_adjust_cost( int cost, bool base )
+int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
 {
     int flag;
 
     // each meta-magic effect doubles casting cost
     for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
         if ( IS_SET(meta_magic, flag) && (base || flag != META_MAGIC_CHAIN) )
-            cost *= 2;
+            cost = cost * (200 - mastery_bonus(ch, meta_magic_sn(flag), 40, 50)) / 100;
 
     return cost;
 }
@@ -1150,6 +1152,20 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
     }
 }
 
+int mastery_adjust_cost( int cost, int mastery )
+{
+    if ( mastery > 0 )
+        return cost - cost * (3 + mastery) / 20;
+    return cost;
+}
+
+int mastery_adjust_level( int level, int mastery )
+{
+    if ( mastery > 0 )
+        return level + (3 + mastery) * 2;
+    return level;
+}
+
 void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     CHAR_DATA *target, *next_target;
@@ -1237,7 +1253,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 
     // mana cost must be calculated after meta-magic effects have been worked out
     mana = mana_cost(ch, sn, chance);
-    mana = meta_magic_adjust_cost(mana, TRUE);
+    mana = meta_magic_adjust_cost(ch, mana, TRUE);
     if ( overcharging )
         mana *= 2;
 
@@ -1329,6 +1345,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
         level = URANGE(1, level, 120);
         if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
             level += UMAX(1, level/8);
+        level = mastery_adjust_level(level, get_mastery(ch, sn));
 
         vo = check_reflection( sn, level, ch, vo, target );
 
@@ -1386,10 +1403,9 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg 
     {
         if ( levelmod = get_skill(ch, gsn_arcane_lore) )
             check_improve(ch, gsn_arcane_lore, TRUE, 3);
-        levelmod += get_curr_stat(ch, STAT_WIS)/8;
-        levelmod = UMIN( levelmod, 100 );
         level = level * (900 + levelmod) / 1000;
     }
+    level += mastery_bonus(ch, gsn_arcane_lore, 3, 5);
 
     if ( IS_SET( ch->act, PLR_WAR ) )
     {
@@ -1494,11 +1510,12 @@ int get_focus_bonus( CHAR_DATA *ch )
     OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
     bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
     bool has_focus_obj = !has_shield && (obj != NULL && obj->item_type != ITEM_ARROWS);
+    int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 15, 25);
 
     if ( has_focus_obj )
-        return 10 + get_skill(ch, gsn_focus) / 2;
+        return 10 + skill / 2;
     else
-        return get_skill(ch, gsn_focus) / 4;
+        return skill / 4;
 }
 
 /* needes to be seperate for dracs */
@@ -1548,7 +1565,8 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( !was_obj_cast )
     {
-        heal += heal * get_skill(ch, gsn_anatomy) / 200;
+        int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
+        heal += heal * skill / 200;
         check_improve(ch, gsn_anatomy, TRUE, 1);
 
         if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
@@ -5650,7 +5668,8 @@ void spell_high_explosive(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
 int cha_max_follow( CHAR_DATA *ch )
 {
-    return ch->level * get_curr_stat(ch, STAT_CHA) / 40;
+    int cha = get_curr_stat(ch, STAT_CHA) + mastery_bonus(ch, gsn_puppetry, 30, 50);
+    return ch->level * cha / 40;
 }
 
 int cha_cur_follow( CHAR_DATA *ch )

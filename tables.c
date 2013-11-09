@@ -254,6 +254,7 @@ const struct flag_type plr_flags[] =
 	{   "trigger_safe", PLR_TRIG_SAFE, FALSE   },
 	{   "inactive_helper", PLR_INACTIVE_HELPER, TRUE },
         {   "noexp",        PLR_NOEXP,     FALSE   },
+        {   "nohelp",       PLR_NOHELP,    FALSE   },
 	{   NULL,           0,  0   }
 };
 
@@ -624,7 +625,8 @@ const struct flag_type exit_flags[] =
 	{   "noclose",      EX_NOCLOSE,     TRUE    },
 	{   "nolock",       EX_NOLOCK,      TRUE    },
 	{   "trapped",      EX_TRAPPED,     TRUE    },
-        {   "hidden",       EX_HIDDEN,      TRUE    },
+    {   "hidden",       EX_HIDDEN,      TRUE    },
+    {   "dormant",      EX_DORMANT,     TRUE    },
 	{   NULL,           0,          0   }
 };
 

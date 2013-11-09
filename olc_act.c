@@ -1952,19 +1952,31 @@ bool change_exit( CHAR_DATA *ch, char *argument, int door )
         /*
         * This room.
         */
+        
+        /* currently all other flags depend on door flag being set */
+        if ( !IS_SET(pRoom->exit[door]->rs_flags, EX_ISDOOR) &&
+                value != EX_ISDOOR)
+        {
+            ptc(ch, "'door' flag must be set before any other flag.\n\r");
+            return FALSE;
+        }
+
         TOGGLE_BIT(pRoom->exit[door]->rs_flags,  value);
         
         /* Suggested bug fix by: Nebseni [nebseni@clandestine.bcn.net] */
         if ( !IS_SET(pRoom->exit[door]->rs_flags, EX_ISDOOR) )
+        {
             flag_clear( pRoom->exit[door]->rs_flags );
-        
+            ptc(ch, "'door' flag removed, all other flags cleared.\n\r");
+        }
+
         /* Don't toggle exit_info because it can be changed by players. */
         flag_copy( pRoom->exit[door]->exit_info, pRoom->exit[door]->rs_flags );
         
         /*
         * Connected room.
         */
-	rev_exit = get_revers_exit( pRoom, door, TRUE );
+        rev_exit = get_revers_exit( pRoom, door, TRUE );
         if ( rev_exit != NULL )
         {
             flag_copy( rev_exit->rs_flags, pRoom->exit[door]->rs_flags );

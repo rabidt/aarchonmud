@@ -270,6 +270,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_SKILL         425
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
+#define MAX_IN_MASTERY     50
 #define MAX_ALIAS          35
 #define MAX_CLASS          15
 #define MAX_PC_RACE        65 /*accurate jan 2013 */
@@ -280,7 +281,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_PENALTY_SEVERITY 5
 #define MAX_JAIL_ROOM      50 /* Max count of total jail rooms in MUD */
 #define MAX_FORGET          5
-#define MAX_DAMAGE_MESSAGE  102
+#define MAX_DAMAGE_MESSAGE 103
 #define MAX_AREA_CLONE     10
 #define MAX_LEVEL          110
 #define MAX_STORAGE_BOX	   5
@@ -2082,6 +2083,7 @@ struct  kill_data
 #define EX_NOLOCK             (L)
 #define EX_TRAPPED            (M)
 #define EX_HIDDEN             (N)
+#define EX_DORMANT            (O)
 
 /*
  * Sector types.
@@ -2225,6 +2227,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_INACTIVE_HELPER (mm)
 #define PLR_ANTI_HELEPR (nn)
 #define PLR_NOEXP       (oo)
+#define PLR_NOHELP      (pp)
 #define PLR_REMORT_ROLL (rr)
 
 /* RT comm flags -- may be used on both mobs and chars */
@@ -2636,6 +2639,7 @@ struct  pc_data
     sh_int      highest_level; /* highest level reached during current remort */
     sh_int      condition   [7];
     sh_int      learned     [MAX_SKILL];
+    sh_int      mastered    [MAX_SKILL];
     bool        group_known [MAX_GROUP];
     sh_int      points;
     bool        confirm_delete;
@@ -2771,6 +2775,10 @@ struct  pc_data
 
     time_t pkill_expire; /* timestamp when you can turn it off */
 
+    // tracking of skill mastery counts for achievements
+    int smc_mastered;
+    int smc_grandmastered;
+    int smc_retrained;
 };
 
 /* Data for special quests */
@@ -3093,6 +3101,7 @@ struct  skill_type
 	sh_int  skill_level[MAX_CLASS]; /* Level needed by class    */
 	sh_int  rating[MAX_CLASS];  /* How hard it is to learn  */
 	sh_int  min_rating;     /* for auto-rating calculation */
+    sh_int  mastery_rating; /* how hard it is to master */
 	sh_int	cap[MAX_CLASS];		/* Maximum learnable percentage */
 	sh_int	stat_prime, stat_second, stat_third;
 	SPELL_FUN * spell_fun;      /* Spell pointer (for spells)   */
@@ -3114,6 +3123,13 @@ struct  group_type
 	char *  name;
 	sh_int  rating[MAX_CLASS];
 	char *  spells[MAX_IN_GROUP];
+};
+
+struct  mastery_group_type
+{
+    char *  name;
+    sh_int  rating;
+    char *  skills[MAX_IN_MASTERY];
 };
 
 /*
@@ -4027,6 +4043,7 @@ extern  const   struct  spec_type   spec_table  [];
 extern  const   struct  liq_type    liq_table   [];
 extern  struct  skill_type  skill_table [MAX_SKILL];
 extern  struct  group_type  group_table [MAX_GROUP];
+extern  const   struct  mastery_group_type mastery_group_table [];
 extern          struct  social_type *social_table;
 extern  char *  const           title_table [MAX_CLASS] [23];
 extern	        struct  clan_data       clan_table[MAX_CLAN];
@@ -4457,6 +4474,9 @@ void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
 CD *    get_local_leader( CHAR_DATA *ch );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
+bool    check_lose_stance( CHAR_DATA *ch );
+bool    destance( CHAR_DATA *ch, int attack_mastery );
+bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
 
 /* ftp.c */
 bool    ftp_push    args( (DESCRIPTOR_DATA *d) );
@@ -4662,6 +4682,7 @@ int get_skill   args( ( CHAR_DATA *ch, int sn ) );
 int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 int get_group_base_cost( int gn, int class );
 int get_group_cost( CHAR_DATA *ch, int gn );
+int get_mastery( CHAR_DATA *ch, int sn );
 
 /* social-edit.c */
 void load_social_table();
@@ -4729,6 +4750,7 @@ int		check_anger		args((CHAR_DATA *ch, CHAR_DATA *victim));
 /* quest.c */
 
 bool chance(int num);
+bool per_chance(int num);
 void do_quest args((CHAR_DATA *ch, char *argument)); 
 void quest_update   args(( void ));   
 

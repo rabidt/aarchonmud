@@ -147,6 +147,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "count",      do_count,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "credits",    do_credits, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "equipment",  do_equipment,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "eqhelp",     do_eqhelp,  POS_DEAD,   0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "etls",       do_etls,    POS_DEAD,   0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "examine",    do_examine, POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "help",       do_help,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -225,6 +226,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "wimpy",      do_wimpy,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "triggersafe", do_trigger_safe, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "noexp",      do_noexp,       POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
+    { "nohelp",     do_nohelp,      POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
     
    /*
     * Communication commands.
@@ -423,6 +425,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "enter",      do_enter,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "follow",     do_follow,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "gain",       do_gain,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "mastery",    do_master,  POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "gametalk",   do_gametalk,POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE },
     { "go",         do_enter,   POS_STANDING,    0,  LOG_NORMAL, 0, FALSE, TRUE  },
     { "bounty",     do_bounty,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -742,6 +745,21 @@ int find_command( CHAR_DATA *ch, char *command, bool exact )
     return -1;
 }
 
+void send_position_message( CHAR_DATA *ch )
+{
+    switch( ch->position )
+    {
+    case POS_DEAD:      send_to_char("Lie still; you are DEAD.\n\r", ch); break;
+    case POS_MORTAL:
+    case POS_INCAP:     send_to_char("You are hurt far too bad for that.\n\r", ch); break;
+    case POS_STUNNED:   send_to_char("You are too stunned to do that.\n\r", ch); break;
+    case POS_SLEEPING:  send_to_char("In your dreams, or what?\n\r", ch); break;
+    case POS_RESTING:   send_to_char("Nah... You feel too relaxed...\n\r", ch); break;
+    case POS_SITTING:   send_to_char("Better stand up first.\n\r", ch); break;
+    case POS_FIGHTING:  send_to_char("No way!  You are still fighting!\n\r", ch); break;
+    }
+}
+
 /*
 * The main entry point for executing commands.
 * Can be recursively called from 'at', 'order', 'force'.
@@ -856,38 +874,7 @@ void interpret( CHAR_DATA *ch, char *argument )
         */
         if ( ch->position < cmd_table[cmd].position )
         {
-            switch( ch->position )
-            {
-            case POS_DEAD:
-                send_to_char( "Lie still; you are DEAD.\n\r", ch );
-                break;
-                
-            case POS_MORTAL:
-            case POS_INCAP:
-                send_to_char( "You are hurt far too bad for that.\n\r", ch );
-                break;
-                
-            case POS_STUNNED:
-                send_to_char( "You are too stunned to do that.\n\r", ch );
-                break;
-                
-            case POS_SLEEPING:
-                send_to_char( "In your dreams, or what?\n\r", ch );
-                break;
-                
-            case POS_RESTING:
-                send_to_char( "Nah... You feel too relaxed...\n\r", ch);
-                break;
-                
-            case POS_SITTING:
-                send_to_char( "Better stand up first.\n\r",ch);
-                break;
-                
-            case POS_FIGHTING:
-                send_to_char( "No way!  You are still fighting!\n\r", ch);
-                break;
-                
-            }
+            send_position_message(ch);
             return;
         }
         
