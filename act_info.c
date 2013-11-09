@@ -3180,8 +3180,11 @@ void do_equipment( CHAR_DATA *ch, char *argument )
     if ( !found && !all_slots )
         send_to_char( "Nothing.\n\r", ch );
 
-    if ( !IS_SET(ch->act, PLR_NOHELP) && ch->level <= 90 )
+    if (!IS_SET(ch->act, PLR_NOHELP) && ch->level <= 90)
+    {
+        send_to_char("\n\r", ch);
         do_eqhelp(ch,"");
+    }
 
     return;
 }
@@ -6291,12 +6294,6 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
     int curr_wield = 0;
     int sugg_wield;
 
-    if (ch->level > 90)
-    {
-        send_to_char("This command doesn't provide information for heroes.\n\r", ch);
-        return;
-    }
-
     /* First lets find where in the table the player is at */
     for ( i = 0 ; eq_data[i].area_name != NULL; i++ )
     {
@@ -6323,10 +6320,10 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
         }
     }
 
-    /* We are going to assume that 16 slots of EQ are used to determine
+    /* We are going to assume that 15 slots of EQ are used to determine
        the power of the suggested EQ */
 
-    sugg_eq = 16 * eq_data[i].lvl;
+    sugg_eq = 15 * eq_data[i].lvl;
     sugg_wield = ch->level;
     
     /* Lets figure out the difference */
