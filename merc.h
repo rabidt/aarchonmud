@@ -3196,6 +3196,7 @@ struct  group_type
 #define RTRIG_RECALL (E)
 #define RTRIG_VOID (F)
 #define RTRIG_QUIT (G)
+#define RTRIG_UNLOCK (H)
 
 
 struct mprog_list
