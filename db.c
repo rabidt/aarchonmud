@@ -109,6 +109,7 @@ NOTE_DATA *     note_free;
 MPROG_CODE *    mprog_list;
 OPROG_CODE *    oprog_list;
 APROG_CODE *    aprog_list;
+RPROG_CODE *    rprog_list;
 
 char            bug_buf     [2*MAX_INPUT_LENGTH];
 CHAR_DATA *     char_list;
@@ -495,6 +496,7 @@ int  top_vnum_obj;       /* OLC */
 int  top_mprog_index;    /* OLC */
 int  top_oprog_index;    /* OLC */
 int  top_aprog_index;    /* OLC */
+int  top_rprog_index;    /* OLC */
 int  lua_mprogs=0;
 int  mobile_count = 0;
 int  newmobs = 0;
@@ -760,6 +762,8 @@ void boot_db()
         fix_objprogs( );
         log_string("Fixing areaprogs");
         fix_areaprogs( );
+        log_string("Fixing roomprogs");
+        fix_roomprogs( );
 
         
         fBootDb = FALSE;
@@ -800,13 +804,6 @@ void boot_db()
 
     }
 
-    /* do aprog setup for areas */
-    AREA_DATA *area;
-    for ( area=area_first; area ; area=area->next )
-    {
-        aprog_setup( area );
-    }
-    
     // start checking for memory leaks now that we're ready
     reset_str_dup();
     
@@ -896,6 +893,7 @@ void load_area_file( FILE *fp, bool clone )
 	else if ( !str_cmp( word, "MOBPROGS" ) ) load_mobprogs(fpArea);
     else if ( !str_cmp( word, "OBJPROGS" ) ) load_objprogs(fpArea);
 	else if ( !str_cmp( word, "AREAPROGS" ) ) load_areaprogs(fpArea);
+    else if ( !str_cmp( word, "ROOMPROGS" ) ) load_roomprogs(fpArea);
 	else if ( !str_cmp( word, "OBJOLD"   ) ) load_old_obj (fpArea);
 	else if ( !str_cmp( word, "OBJECTS"  ) ) load_objects (fpArea);
 	else if ( !str_cmp( word, "RESETS"   ) ) load_resets  (fpArea);
@@ -1981,6 +1979,29 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
                  
                  pRoomIndex->owner = fread_string(fp);
              }
+
+             else if (letter == 'P')
+             {
+                 RPROG_LIST *pRprog;
+                 char *word;
+                 int trigger=0;
+
+                 pRprog = alloc_perm(sizeof(*pRprog));
+                 word=fread_word( fp );
+                 if ( ( trigger=flag_lookup( word, rprog_flags)) == NO_FLAG)
+                 {
+                     bugf("load_rooms.P: invalid trigger '%s' for room %d.",
+                             word, pRoomIndex->vnum);
+                     exit(1);
+                 }
+                 SET_BIT( pRoomIndex->rprog_flags, trigger );
+                 pRprog->trig_type      = trigger;
+                 pRprog->vnum           = fread_number( fp );
+                 pRprog->trig_phrase    = fread_string( fp );
+                 pRprog->next           = pRoomIndex->rprogs;
+                 pRoomIndex->rprogs     = pRprog;
+             }
+                 
              
              else
              {
@@ -2179,6 +2200,82 @@ void fix_exits( void )
     }
     
     exits_fixed = TRUE;
+    return;
+}
+
+/*
+* Load roomprogs section
+*/
+void load_roomprogs( FILE *fp )
+{
+    RPROG_CODE *pRprog;
+
+    if ( area_last == NULL )
+    {
+        bug( "Load_roomprogs: no #AREA seen yet.", 0 );
+        exit( 1 );
+    }
+
+    for ( ; ; )
+    {
+        int vnum;
+        char letter;
+
+        letter        = fread_letter( fp );
+        if ( letter != '#' )
+        {
+            bug( "Load_roomprogs: # not found.", 0 );
+            exit( 1 );
+        }
+
+        vnum         = fread_number( fp );
+        if ( vnum == 0 )
+            break;
+
+        fBootDb = FALSE;
+        if ( get_rprog_index( vnum ) != NULL )
+        {
+            bug( "Load_roomprogs: vnum %d duplicated.", vnum );
+            exit( 1 );
+        }
+        fBootDb = TRUE;
+
+        pRprog      = alloc_perm( sizeof(*pRprog) );
+        pRprog->vnum    = vnum;
+
+        char *word;
+        for ( ; ; )
+        {
+            word=fread_word(fp);
+
+            if (!strcmp( word, "SEC" ) )
+            {
+                pRprog->security=fread_number(fp);
+            }
+            else if (!strcmp( word, "CODE" ) )
+            {
+                pRprog->code=fread_string(fp);
+            }
+            else if (!strcmp( word, "End" ) )
+            {
+                break;
+            }
+            else
+            {
+                bugf("Unrecognized word in load_roomprogs: %s", word);
+                exit(1);
+            }
+        }
+
+        if ( rprog_list == NULL )
+            rprog_list = pRprog;
+        else
+        {
+            pRprog->next = rprog_list;
+            rprog_list  = pRprog;
+        }
+        top_rprog_index++;
+    }
     return;
 }
 
@@ -2555,9 +2652,44 @@ void fix_areaprogs( void )
                 bug( "Fix_areaprogs: code vnum %d not found.", list->vnum );
                 exit( 1 );
             }
+            aprog_setup( pArea );
         }
     }
     
+    //debug
+    //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
+}
+
+void fix_roomprogs( void )
+{
+    ROOM_INDEX_DATA *pRoom;
+    RPROG_LIST        *list;
+    RPROG_CODE        *prog;
+    int iHash;
+    int rprog_count = 0;
+
+    for ( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
+    {
+        for ( pRoom = room_index_hash[iHash];
+        pRoom   != NULL;
+        pRoom   = pRoom->next )
+        {
+            for( list = pRoom->rprogs; list != NULL; list = list->next )
+            {
+                if ( ( prog = get_rprog_index( list->vnum ) ) != NULL )
+                {
+                    rprog_count++;
+                    list->script = prog;
+                }
+                else
+                {
+                    bug( "Fix_roomprogs: code vnum %d not found.", list->vnum );
+                    exit( 1 );
+                }
+                rprog_setup( pRoom );
+            }
+        }
+    }
     //debug
     //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
@@ -3815,6 +3947,17 @@ APROG_CODE *get_aprog_index( int vnum )
 {
     APROG_CODE *prg;
     for( prg = aprog_list; prg; prg = prg->next )
+    {
+        if ( prg->vnum == vnum )
+            return( prg );
+    }
+    return NULL;
+}
+
+RPROG_CODE *get_rprog_index( int vnum )
+{
+    RPROG_CODE *prg;
+    for( prg = rprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )
             return( prg );

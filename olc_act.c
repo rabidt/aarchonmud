@@ -1556,6 +1556,140 @@ AEDIT( aedit_uvnum )
 /*
 * Room Editor Functions.
 */
+
+/*****************************************************************
+ * Name: update_aprog_flags
+ * Purpose: fix bug that removes valid aprog flags
+ * Called by: oedit_delaprog
+ *****************************************************************/
+void update_rprog_flags( ROOM_INDEX_DATA *pRoom )
+{
+    RPROG_LIST *list;
+
+    /* clear flags */
+    flag_clear( pRoom->rprog_flags );
+
+    /* re-add all flags needed */
+    for (list = pRoom->rprogs; list != NULL; list = list->next)
+        SET_BIT(pRoom->rprog_flags, list->trig_type);
+}
+
+REDIT ( redit_delrprog )
+{
+    ROOM_INDEX_DATA *pRoom;
+    RPROG_LIST *list;
+    RPROG_LIST *list_next;
+    char rprog[MAX_STRING_LENGTH];
+    int value;
+    int cnt = 0;
+
+    EDIT_ROOM(ch, pRoom);
+
+    one_argument( argument, rprog );
+    if (!is_number( rprog ) || rprog[0] == '\0' )
+    {
+        send_to_char("Syntax:  delrprog [#rprog]\n\r",ch);
+        return FALSE;
+    }
+
+    value = atoi ( rprog );
+
+    if ( value < 0 )
+    {
+        send_to_char("Only non-negative rprog-numbers allowed.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( !(list= pRoom->rprogs) )
+    {
+        send_to_char("REdit:  Non existent rprog.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( value == 0 )
+    {
+        list = pRoom->rprogs;
+        pRoom->rprogs = list->next;
+        free_rprog( list );
+    }
+    else
+    {
+        while ( (list_next = list->next) && (++cnt < value ) )
+            list = list_next;
+
+        if ( list_next )
+        {
+            list->next = list_next->next;
+            free_rprog(list_next);
+        }
+        else
+        {
+            send_to_char("No such rprog.\n\r",ch);
+            return FALSE;
+        }
+    }
+
+    update_rprog_flags(pRoom);
+
+    send_to_char("Rprog removed.\n\r", ch);
+    return TRUE;
+}
+
+REDIT ( redit_addrprog )
+{
+    int value;
+    ROOM_INDEX_DATA *pRoom;
+    RPROG_LIST *list;
+    RPROG_CODE *code;
+    char trigger[MAX_STRING_LENGTH];
+    char phrase[MAX_STRING_LENGTH];
+    char num[MAX_STRING_LENGTH];
+
+    EDIT_ROOM(ch, pRoom);
+    argument=one_argument(argument, num);
+    argument=one_argument(argument, trigger);
+    argument=one_argument(argument, phrase);
+
+    if (!is_number(num) || trigger[0] =='\0' || phrase[0] =='\0' )
+    {
+        send_to_char("Syntax:   addrprog [vnum] [trigger] [phrase]\n\r",ch);
+        return FALSE;
+    }
+
+    if ( (value = flag_value (rprog_flags, trigger) ) == NO_FLAG)
+    {
+        send_to_char("Valid flags are:\n\r",ch);
+        show_help( ch, "rprog");
+        return FALSE;
+    }
+
+    if ( ( code =get_rprog_index (atoi(num) ) ) == NULL)
+    {
+        send_to_char("No such ROOMProgram.\n\r",ch);
+        return FALSE;
+    }
+
+    if ( value==RTRIG_TIMER && IS_SET( pRoom->rprog_flags, value ) )
+    {
+        send_to_char("Can only have one timer trigger.\n\r", ch );
+        return FALSE;
+    }
+
+    list                  = new_rprog();
+    list->vnum            = atoi(num);
+    list->trig_type       = value;
+    list->trig_phrase     = str_dup(phrase);
+    list->script          = code;
+    SET_BIT(pRoom->rprog_flags,value);
+    list->next            = pRoom->rprogs;
+    pRoom->rprogs          = list;
+    
+    rprog_setup( pRoom );
+
+    send_to_char( "Rprog Added.\n\r",ch);
+    return TRUE;
+}
+
 REDIT( redit_show )
 {
     ROOM_INDEX_DATA	*pRoom;
@@ -1741,6 +1875,30 @@ REDIT( redit_show )
     }
     
     send_to_char( buf1, ch );
+
+    if ( pRoom->rprogs )
+    {
+        RPROG_LIST *list;
+        int cnt;
+
+        sprintf(buf, "\n\rROOMPrograms for [%5d]:\n\r", pRoom->vnum);
+        send_to_char( buf, ch );
+
+        for (cnt=0, list=pRoom->rprogs; list; list=list->next)
+        {
+            if (cnt ==0)
+            {
+                send_to_char ( " Number Vnum Trigger Phrase\n\r", ch );
+                send_to_char ( " ------ ---- ------- ------\n\r", ch );
+            }
+
+            sprintf(buf, "[%5d] %4d %7s %s\n\r", cnt,
+                list->vnum,name_lookup(list->trig_type, rprog_flags),
+                list->trig_phrase);
+            send_to_char( buf, ch );
+            cnt++;
+        }
+    }
     return FALSE;
 }
 

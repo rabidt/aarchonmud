@@ -957,6 +957,39 @@ void free_aprog(APROG_LIST *ap)
    aprog_free = ap;
 }
 
+RPROG_LIST *rprog_free;
+
+RPROG_LIST *new_rprog(void)
+{
+    static RPROG_LIST rp_zero;
+    RPROG_LIST *rp;
+    
+    if (rprog_free == NULL)
+        rp = alloc_perm(sizeof(*rp));
+    else
+    {
+        rp = rprog_free;
+        rprog_free=rprog_free->next;
+    }
+
+    *rp = rp_zero;
+    rp->vnum        = 0;
+    rp->trig_type   = 0;
+    rp->script      = NULL;
+    VALIDATE(rp);
+    return rp;
+}
+
+void free_rprog(RPROG_LIST *rp)
+{
+    if (!IS_VALID(rp))
+        return;
+
+    INVALIDATE(rp);
+    rp->next = rprog_free;
+    rprog_free = rp;
+}
+
 HELP_AREA * had_free;
 
 HELP_AREA * new_had ( void )
