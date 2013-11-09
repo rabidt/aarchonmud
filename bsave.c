@@ -741,8 +741,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
         {
             if ( skill_table[sn].name != NULL && ch->pcdata->learned[sn] > 0 )
             {
-                bprintf( buf, "Sk %d '%s'\n",
-                    ch->pcdata->learned[sn], skill_table[sn].name );
+                bprintf( buf, "Sk %d '%s'\n", ch->pcdata->learned[sn], skill_table[sn].name );
+                if ( ch->pcdata->mastered[sn] > 0 )
+                    bprintf( buf, "Ma %d '%s'\n", ch->pcdata->mastered[sn], skill_table[sn].name );
             }
         }
         
@@ -827,6 +828,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if ( !is_tattoo_list_empty(ch->pcdata->tattoos) )
 	bprintf( buf, "Tattoos %s\n", print_tattoos(ch->pcdata->tattoos) );
 
+    bprintf( buf, "Smc %d %d %d\n", ch->pcdata->smc_mastered, ch->pcdata->smc_grandmastered, ch->pcdata->smc_retrained );
+    
     bprintf( buf, "End\n\n" );
     return;
 }
@@ -1951,7 +1954,20 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 	    fMatch = TRUE;
 	    break;
 	}
-        
+
+        if ( !str_cmp(word, "Mastery") || !str_cmp(word,"Ma") )
+        {
+            int value = bread_number(buf);
+            char *temp = bread_word(buf);
+            int sn = skill_lookup(temp);
+
+            if ( sn < 0 )
+                bugf("bread_char: unknown mastery skill '%s'", temp);
+            else
+                ch->pcdata->mastered[sn] = value;
+            fMatch = TRUE;
+        }
+
     case 'N':
         KEYS( "Name",   ch->name,       bread_string( buf ) );
         if ( !str_cmp(word,"NewAMod"))
@@ -2091,6 +2107,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             }
             else
                 ch->pcdata->learned[sn] = value;
+            fMatch = TRUE;
+        }
+
+        if ( !str_cmp(word, "SkillMasteryCount") || !str_cmp(word, "Smc") )
+        {
+            ch->pcdata->smc_mastered = bread_number(buf);
+            ch->pcdata->smc_grandmastered = bread_number(buf);
+            ch->pcdata->smc_retrained = bread_number(buf);
             fMatch = TRUE;
         }
 

@@ -2132,19 +2132,23 @@ void do_exits( CHAR_DATA *ch, char *argument )
         if ( ( pexit = ch->in_room->exit[door] ) != NULL
             &&   pexit->u1.to_room != NULL
             &&   can_see_room(ch,pexit->u1.to_room) 
-            &&   (!IS_SET(pexit->exit_info, EX_CLOSED) || IS_IMMORTAL(ch) )
+            &&   (! ( IS_SET(pexit->exit_info, EX_HIDDEN)
+                      && IS_SET(pexit->exit_info, EX_CLOSED ) ) 
+                  || IS_IMMORTAL(ch) ) 
             &&   (!IS_SET(pexit->exit_info, EX_DORMANT) || IS_IMMORTAL(ch) ) )
         {
             found = TRUE;
             if ( fAuto )
             {
-                if (IS_SET(pexit->exit_info, EX_CLOSED))
-                {
-                    sprintf( buf, "%s (%s)", buf, dir_name[door] );
-                }
-                else if (IS_SET(pexit->exit_info, EX_DORMANT))
+                if (IS_SET(pexit->exit_info, EX_DORMANT))
                 {
                     sprintf( buf, "%s <%s>", buf, dir_name[door] );
+                }
+                else if (IS_SET(pexit->exit_info, EX_CLOSED))
+                {
+                    sprintf( buf, "%s (%s%s)", buf, 
+                            IS_SET(pexit->exit_info, EX_HIDDEN) ? "*" : "",
+                            dir_name[door] );
                 }
                 else
                 {
@@ -4115,7 +4119,7 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     AFFECT_DATA *paf;
     int chance;
     int sn, c;
-    int lore_skill, wlore_skill;
+    int lore_skill, wlore_skill, mastery, wait;
     bool weapon, all_known;
     
     one_argument(argument,arg);
@@ -4138,8 +4142,9 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     
     lore_skill = get_skill(ch,gsn_lore);
     wlore_skill = get_skill(ch,gsn_weapons_lore);
+    mastery = get_mastery(ch, gsn_lore);
     weapon = org_obj->item_type == ITEM_WEAPON || org_obj->item_type == ITEM_ARROWS;
-    sn = weapon ? gsn_weapons_lore : gsn_lore;
+    sn = (weapon && wlore_skill) ? gsn_weapons_lore : gsn_lore;
 
     if ( lore_skill == 0)
         if ( wlore_skill == 0)
@@ -4147,16 +4152,19 @@ void do_lore ( CHAR_DATA *ch, char *argument )
             send_to_char("You aren't versed in the lore of Aarchon.\n\r",ch);
             return;
         } 
-	else if (!weapon)
+        else if ( !weapon )
         {
             send_to_char("You only know lore regarding weapons.\n\r",ch);
             return;
         }
     
     if ( weapon )
-	chance = lore_skill + wlore_skill - lore_skill * wlore_skill / 100;
+    {
+        chance = lore_skill + (100 - lore_skill) * wlore_skill / 100;
+        mastery = UMAX(mastery, get_mastery(ch, gsn_weapons_lore));
+    }
     else
-	chance = lore_skill;
+        chance = lore_skill;
 
     if ( ch->mana < skill_table[sn].min_mana && skill_table[sn].min_mana > 0 )
     {
@@ -4165,24 +4173,17 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
 
     if ( IS_IMMORTAL(ch) || IS_NPC(ch) )
-	chance = 100;
+        chance = 100;
     else
-	WAIT_STATE(ch,skill_table[sn].beats);
+        WAIT_STATE(ch, skill_table[sn].beats / (1 + mastery));
     
     act( "You try to figure out what $p is.", ch, obj, NULL, TO_CHAR );
     act( "$n tries to figure out what $p is.", ch, obj, NULL, TO_ROOM );
     
     /* first check if char knows ANYTHING */
-    if ( number_percent() > chance
-	 || IS_SET(org_obj->extra_flags, ITEM_NO_LORE) )
+    if ( !per_chance(chance) || IS_SET(org_obj->extra_flags, ITEM_NO_LORE) )
     {
-	ch->mana -= skill_table[sn].min_mana / 2;
-	/*
-        check_improve(ch,gsn_lore,FALSE,2);
-	if ( weapon )
-	    check_improve(ch,gsn_weapons_lore,FALSE,2);
-	*/
-	/* "cant" changed to "can't" - Elik, Jan 16, 2006 */
+        ch->mana -= skill_table[sn].min_mana / 2;
         send_to_char( "Hmm... you can't seem to place it from any tales you've heard.\n\r", ch );
         act("$n furrows $s brow.\n\r",ch,NULL,NULL,TO_ROOM);
         return;
@@ -4192,11 +4193,6 @@ void do_lore ( CHAR_DATA *ch, char *argument )
 
     if (!op_percent_trigger( obj, NULL, ch, NULL, OTRIG_LORE) )
         return;
-    /*
-    check_improve(ch,gsn_lore,FALSE,2);
-    if ( weapon )
-	check_improve(ch,gsn_weapons_lore,FALSE,2);
-    */
 
     /* ok, he knows something.. */
     say_basic_obj_index_data( ch, org_obj );
@@ -4229,22 +4225,14 @@ void do_lore ( CHAR_DATA *ch, char *argument )
 	act( "$n scratches $s chin in contemplation.", ch, NULL, NULL, TO_ROOM );
     }
 
-    /* lore won't work with special enchantments */
-    /*
-    for ( paf = obj->affected; paf != NULL; paf = paf->next )
-      show_affect(ch, paf, TRUE);
-    */
-
     /* now let's see if someone else learned something of it --Bobble */
-    if ( IS_NPC(ch) )
-	return; // prevent easy learning by spamming sage
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-	if ( IS_NPC(rch) || !IS_AWAKE(rch) || rch == ch )
-	    continue;
-	check_improve( rch, gsn_lore, 2, TRUE );
-	if ( weapon )
-	    check_improve( rch, gsn_weapons_lore, 2, TRUE );
+        if ( IS_NPC(rch) || !IS_AWAKE(rch) )
+            continue;
+        check_improve( rch, gsn_lore, 2, TRUE );
+        if ( weapon )
+            check_improve( rch, gsn_weapons_lore, 2, TRUE );
     }
 }
 
