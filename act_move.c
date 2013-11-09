@@ -252,11 +252,13 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
         /* exit trigger might trans char to target room */
         if ( mp_exit_trigger(ch, door) )
             return ch->in_room == to_room ? door : -1;
+        if ( !rp_move_trigger(ch, door) )
+            return ch->in_room == to_room ? door : -1;
         if ( !rp_exit_trigger(ch) )
             return ch->in_room == to_room ? door : -1;
-        if ( !ap_exit_trigger(ch, to_room->area) )
-            return ch->in_room == to_room ? door : -1;
         if ( !ap_rexit_trigger(ch, to_room->area) )
+            return ch->in_room == to_room ? door : -1;
+        if ( !ap_exit_trigger(ch, to_room->area) )
             return ch->in_room == to_room ? door : -1;
     }
 
@@ -446,6 +448,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    {
        ap_enter_trigger( ch, in_room->area );
        ap_renter_trigger( ch );
+       rp_enter_trigger( ch );
        op_greet_trigger( ch );
    }
 
@@ -867,6 +870,9 @@ void do_open( CHAR_DATA *ch, char *argument )
 
 	  if ( check_exit_trap_hit(ch, door, FALSE) )
 	      return;
+
+      if ( !rp_open_trigger( ch, door ) )
+          return;
 	  
 	  REMOVE_BIT(pexit->exit_info, EX_CLOSED);
 	  act( "$n opens the $d.", ch, NULL, pexit->keyword, TO_ROOM );
@@ -970,6 +976,9 @@ void do_close( CHAR_DATA *ch, char *argument )
 	  pexit   = ch->in_room->exit[door];
 	  if ( IS_SET(pexit->exit_info, EX_CLOSED) )
 	  { send_to_char( "It's already closed.\n\r",    ch ); return; }
+
+      if ( !rp_close_trigger( ch, door ) )
+          return;
 	  
 	  SET_BIT(pexit->exit_info, EX_CLOSED);
 	  act( "$n closes the $d.", ch, NULL, pexit->keyword, TO_ROOM );
@@ -1147,6 +1156,9 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	  if ( IS_SET(pexit->exit_info, EX_LOCKED) )
 	  { send_to_char( "It's already locked.\n\r",    ch ); return; }
 	  
+      if (!rp_lock_trigger( ch, door ) )
+          return;
+
 	  SET_BIT(pexit->exit_info, EX_LOCKED);
 	  send_to_char( "*Click*\n\r", ch );
 	  act( "$n locks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
@@ -2701,6 +2713,8 @@ void do_recall( CHAR_DATA *ch, char *argument )
     if (!IS_NPC(ch) )
     {
         if ( !ap_recall_trigger(ch) )
+            return;
+        if ( !rp_exit_trigger(ch) )
             return;
         if ( !ap_rexit_trigger(ch) )
             return;
