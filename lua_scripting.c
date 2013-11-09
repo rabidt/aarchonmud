@@ -2690,7 +2690,7 @@ static const struct luaL_reg ROOM_lib [] =
     {"loadprog", L_room_loadprog},
     {"loadscript", L_room_loadscript},
     {"loadstring", L_room_loadstring},
-    {"trint", L_room_tprint},
+    {"tprint", L_room_tprint},
     {NULL, NULL}
 };
 
