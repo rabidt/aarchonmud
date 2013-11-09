@@ -61,6 +61,9 @@ bool run_olc_editor( DESCRIPTOR_DATA *d )
    case ED_APCODE:
       apedit( d->character, d->incomm );
 	  break;
+   case ED_RPCODE:
+      rpedit( d->character, d->incomm );
+      break;
    case ED_HELP:
       hedit( d->character, d->incomm );
       break;
@@ -100,6 +103,9 @@ char *olc_ed_name( CHAR_DATA *ch )
    case ED_APCODE:
       sprintf( buf, "APEdit" );
       break;
+   case ED_RPCODE:
+      sprintf( buf, "RPedit" );
+      break;
    case ED_HELP:
       sprintf( buf, "HEdit" );
       break;
@@ -121,6 +127,7 @@ char *olc_ed_vnum( CHAR_DATA *ch )
    MPROG_CODE *pMprog;
    OPROG_CODE *pOprog;
    APROG_CODE *pAprog;
+   RPROG_CODE *pRprog;
    static char buf[10];
    
    buf[0] = '\0';
@@ -153,6 +160,10 @@ char *olc_ed_vnum( CHAR_DATA *ch )
    case ED_APCODE:
       pAprog = (APROG_CODE *)ch->desc->pEdit;
       sprintf( buf, "%d", pAprog ? pAprog->vnum : 0 );
+      break;
+   case ED_RPCODE:
+      pRprog = (RPROG_CODE *)ch->desc->pEdit;
+      sprintf( buf, "%d", pRprog ? pRprog->vnum : 0 );
       break;
    default:
       sprintf( buf, " " );
@@ -225,6 +236,9 @@ bool show_commands( CHAR_DATA *ch, char *argument )
    case ED_APCODE:
 	  show_olc_cmds( ch, apedit_table );
 	  break;
+   case ED_RPCODE:
+      show_olc_cmds( ch, rpedit_table );
+      break;
    case ED_HELP:
       show_olc_cmds( ch, hedit_table );
       break;
@@ -312,10 +326,10 @@ const struct olc_cmd_type redit_table[] =
    {   "mshow",     redit_mshow       },
    {   "oshow",     redit_oshow       },
    {   "owner",     redit_owner       }, 
-   {	 "room",      redit_room        },
-   {	 "sector",    redit_sector	     },
-   
-   
+   {   "room",      redit_room        },
+   {   "sector",    redit_sector	     },
+   {   "addrprog",  redit_addrprog    },
+   {   "delrprog",  redit_delrprog    },
    {   "?",         show_help         },
    {   "version",   show_version      },
    

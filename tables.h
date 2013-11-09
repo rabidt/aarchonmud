@@ -108,6 +108,7 @@ extern  const   struct  flag_type       exit_flags[];
 extern  const   struct  flag_type       mprog_flags[];
 extern  const   struct  flag_type       oprog_flags[];
 extern  const   struct  flag_type       aprog_flags[];
+extern  const   struct  flag_type       rprog_flags[];
 extern  const   struct  flag_type       area_flags[];
 extern  const   struct  flag_type       sector_flags[];
 extern  const   struct  flag_type       door_resets[];

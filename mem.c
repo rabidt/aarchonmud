@@ -36,6 +36,7 @@ extern          int                     top_room;
 extern		int			top_mprog_index;
 extern      int         top_oprog_index;
 extern      int         top_aprog_index;
+extern      int         top_rprog_index;
 
 AREA_DATA		*	area_free;
 EXTRA_DESCR_DATA	*	extra_descr_free;
@@ -545,6 +546,40 @@ void free_apcode(APROG_CODE *pAcode)
     apcode_free  = pAcode;
     return;
 }
+
+RPROG_CODE * rpcode_free;
+
+RPROG_CODE *new_rpcode(void)
+{
+    RPROG_CODE *NewCode;
+
+    if (!rpcode_free)
+    {
+        NewCode = alloc_perm(sizeof(*NewCode) );
+        top_rprog_index++;
+    }
+    else
+    {
+        NewCode = rpcode_free;
+        rpcode_free = rpcode_free->next;
+    }
+
+    NewCode->vnum = 0;
+    NewCode->code = str_dup("");
+    NewCode->next = NULL;
+    NewCode->security = 0;
+
+    return NewCode;
+}
+
+void free_rpcode(RPROG_CODE *pRcode)
+{
+    free_string(pRcode->code);
+    pRcode->next = rpcode_free;
+    rpcode_free=pRcode;
+    return;
+}
+
 
 /* Help Editor - kermit 1/98 */
 /*
