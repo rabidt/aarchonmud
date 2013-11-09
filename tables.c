@@ -574,6 +574,7 @@ const struct flag_type rprog_flags[] =
     {   "timer",        RTRIG_TIMER,     TRUE    },
     {   "exit",         RTRIG_EXIT,      TRUE    },
     {   "enter",        RTRIG_ENTER,     TRUE    },
+    {   "unlock",       RTRIG_UNLOCK,    TRUE    },
 /*    {   "recall",       RTRIG_RECALL,    TRUE    },
     {   "void",         RTRIG_VOID,      TRUE    },
     {   "quit",         RTRIG_QUIT,      TRUE    },

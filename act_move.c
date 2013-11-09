@@ -1292,6 +1292,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	  if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
 	  { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
 	  
+      if ( !rp_unlock_trigger( ch, door ) )
+          return;
+
 	  REMOVE_BIT(pexit->exit_info, EX_LOCKED);
 	  send_to_char( "*Click*\n\r", ch );
 	  act( "$n unlocks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
