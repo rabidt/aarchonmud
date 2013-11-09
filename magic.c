@@ -2542,6 +2542,16 @@ bool is_mental( int sn )
         || sn == gsn_feeblemind;
 }
 
+/* Added for use in show_affects -Astark */
+bool is_blindness( int sn )
+{
+    return sn == gsn_blindness
+        || sn == gsn_fire_breath
+        || sn == gsn_dirt
+        || sn == gsn_spit
+        || sn == gsn_gouge;
+}
+
 void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
