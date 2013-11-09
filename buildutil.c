@@ -185,6 +185,7 @@ void do_vlist (CHAR_DATA *ch, char *argument)
     MPROG_CODE *mprog = NULL;
     OPROG_CODE *oprog = NULL;
     APROG_CODE *aprog = NULL;
+    RPROG_CODE *rprog = NULL;
 
     if (!IS_BUILDER(ch, ch->in_room->area))
     {
@@ -203,6 +204,7 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         send_to_char("  vlist mprog - List used mprog vnums in current area.\n\r",ch);
         send_to_char("  vlist oprog - List used oprog vnums in current area.\n\r",ch);
         send_to_char("  vlist aprog - List used aprog vnums in current area.\n\r",ch);
+        send_to_char("  vlist rprog - List used rprog vnums in current area.\n\r",ch);
         return;
     }
 
@@ -298,6 +300,23 @@ void do_vlist (CHAR_DATA *ch, char *argument)
             if ((aprog = get_aprog_index(i)) != NULL)
             {
                 sprintf(buf,"{C%8d{x %s\n\r", i, first_line(aprog->code));
+                add_buf(buffer,buf);
+            }
+
+        page_to_char(buf_string(buffer),ch);
+    }
+
+    else if (!str_cmp(arg,"rprog"))
+    {
+        sprintf(buf,"{W Used {Crprog {Wvnum listing for area {C%s{x\n\r",
+        ch->in_room->area->name);
+        add_buf(buffer,buf);
+        add_buf(buffer,"{Y========================================================{x\n\r");
+
+        for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++)
+            if ((rprog = get_rprog_index(i)) != NULL)
+            {
+                sprintf(buf,"{C%8d{x %s\n\r", i, first_line(rprog->code));
                 add_buf(buffer,buf);
             }
 

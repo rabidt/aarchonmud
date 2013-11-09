@@ -350,16 +350,6 @@ void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
     lua_load_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);
 
-    if ( pOcode != NULL )
-        for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
-            for ( obj = obj_index_hash[hash]; obj; obj = obj->next )
-                for ( mpl = obj->oprogs; mpl; mpl = mpl->next )
-                    if ( mpl->vnum == pOcode->vnum )
-                    {
-                        sprintf( buf, "Fixing obj %d.\n\r", obj->vnum );
-                        send_to_char( buf, ch );
-                   
-                    } 
 }
 #if 0
 OPEDIT(opedit_lua)

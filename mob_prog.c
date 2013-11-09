@@ -44,6 +44,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "lookup.h"
+#include "lua_scripting.h"
 
 extern int flag_lookup( const char *word, const struct flag_type *flag_table );
 

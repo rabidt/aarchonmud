@@ -333,16 +333,6 @@ void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
         ptc(ch, "Fixed lua script for %d.\n\r", pMcode->vnum );
     }
 
-    if ( pMcode != NULL )
-        for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
-            for ( mob = mob_index_hash[hash]; mob; mob = mob->next )
-                for ( mpl = mob->mprogs; mpl; mpl = mpl->next )
-                    if ( mpl->vnum == pMcode->vnum )
-                    {
-                        sprintf( buf, "Fixing mob %d.\n\r", mob->vnum );
-                        send_to_char( buf, ch );
-
-                    } 
 }
 
 MPEDIT(mpedit_security)

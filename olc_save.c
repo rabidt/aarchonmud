@@ -256,6 +256,26 @@ void reverse_aprog_order(AREA_DATA *pArea)
     pArea->aprogs->next = new_aprog_list;
 }
 
+void reverse_rprog_order(ROOM_INDEX_DATA *pRoom)
+{
+    RPROG_LIST
+        *new_rprog_list = NULL,
+        *next_rprog;
+
+    if (pRoom->rprogs == NULL || pRoom->rprogs->next == NULL)
+        return;
+
+    next_rprog = pRoom->rprogs->next;
+    while (next_rprog)
+    {
+        pRoom->rprogs->next = new_rprog_list;
+        new_rprog_list = pRoom->rprogs;
+        pRoom->rprogs = next_rprog;
+        next_rprog = next_rprog->next;
+    }
+    pRoom->rprogs->next = new_rprog_list;
+}
+
 void save_mobprogs( FILE *fp, AREA_DATA *pArea )
 {
     MPROG_CODE *pMprog;
@@ -323,6 +343,27 @@ void save_areaprogs( FILE *fp, AREA_DATA *pArea )
     return;
 }
 
+void save_roomprogs( FILE *fp, AREA_DATA *pArea )
+{
+    RPROG_CODE *pRprog;
+    int i;
+
+    fprintf(fp, "#ROOMPROGS\n");
+
+    for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
+    {
+        if ( (pRprog = get_rprog_index(i) ) != NULL)
+        {
+                  fprintf(fp, "#%d\n", i);
+                  fprintf(fp, "SEC %d\n", pRprog->security);
+                  fprintf(fp, "CODE %s~\n", fix_string(pRprog->code));
+                  fprintf(fp, "End\n");
+        }
+    }
+
+    fprintf(fp,"#0\n\n");
+    return;
+}
 
 #define FPRINT_FIELD_INT(field, value, default) \
     if (value != default) fprintf( fp, "%s %d\n", field, value )
@@ -743,9 +784,9 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                         fprintf( fp, "%s~\n",      fix_string( pExit->description ) );
                         fprintf( fp, "%s~\n",      pExit->keyword );
                         fprintf( fp, "%s %d %d\n",
-				 print_tflag(pExit->rs_flags),
-				 pExit->key,
-				 pExit->u1.to_room->vnum );
+                        print_tflag(pExit->rs_flags),
+                        pExit->key,
+                        pExit->u1.to_room->vnum );
 			/*
                         fprintf( fp, "%d %d %d\n", locks,
                             pExit->key,
@@ -764,6 +805,18 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                 
                 if (!IS_NULLSTR(pRoomIndex->owner))
                     fprintf ( fp, "O %s~\n" , pRoomIndex->owner );
+                
+                /* save rprogs if any */
+                if (pRoomIndex->rprogs != NULL)
+                {
+                    RPROG_LIST *pRprog;
+                    reverse_rprog_order(pRoomIndex);
+                    for (pRprog = pRoomIndex->rprogs; pRprog; pRprog = pRprog->next)
+                    {
+                        fprintf(fp, "P %s %d %s~\n", name_lookup(pRprog->trig_type, rprog_flags), pRprog->vnum, pRprog->trig_phrase);
+                    }
+                    reverse_rprog_order(pRoomIndex);
+                }
                 
                 fprintf( fp, "S\n" );
             }
@@ -1149,6 +1202,7 @@ void save_area( AREA_DATA *pArea )
     save_mobprogs( fp, pArea );
     save_objprogs( fp, pArea );
 	save_areaprogs( fp, pArea );
+    save_roomprogs( fp, pArea );
     
     if ( pArea->helps && pArea->helps->first )
         save_helps( fp, pArea->helps );

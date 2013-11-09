@@ -3706,6 +3706,7 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     {
         ap_enter_trigger(ch, to_room->area);
         ap_renter_trigger(ch);
+        rp_enter_trigger(ch);
     }
     
 }

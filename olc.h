@@ -58,6 +58,7 @@ DECLARE_SPELL_FUN( spell_null );
 #define ED_HELP      6
 #define ED_OPCODE    7
 #define ED_APCODE	 8
+#define ED_RPCODE    9
 
 
 /*
@@ -127,6 +128,7 @@ extern const struct olc_cmd_type	medit_table[];
 extern const struct olc_cmd_type	mpedit_table[];
 extern const struct olc_cmd_type    opedit_table[];
 extern const struct olc_cmd_type	apedit_table[];
+extern const struct olc_cmd_type    rpedit_table[];
 extern const struct olc_cmd_type	hedit_table[];
 
 
@@ -217,6 +219,8 @@ DECLARE_OLC_FUN( redit_clan_rank	);
 DECLARE_OLC_FUN( redit_owner		);
 DECLARE_OLC_FUN( redit_room		);
 DECLARE_OLC_FUN( redit_sector		);
+DECLARE_OLC_FUN( redit_addrprog );
+DECLARE_OLC_FUN( redit_delrprog );
 
 
 /*
@@ -318,6 +322,12 @@ DECLARE_OLC_FUN( apedit_code     );
 DECLARE_OLC_FUN( apedit_show     );
 DECLARE_OLC_FUN( apedit_security );
 
+/* Roomprog editor */
+DECLARE_OLC_FUN( rpedit_create   );
+DECLARE_OLC_FUN( rpedit_code     );
+DECLARE_OLC_FUN( rpedit_show     );
+DECLARE_OLC_FUN( rpedit_security );
+
 
 /* Help Editor - kermit 1/98 */
 DECLARE_OLC_FUN( hedit_create    );
@@ -369,6 +379,9 @@ DECLARE_OLC_FUN( raceedit_remskill );
 #define EDIT_APCODE(Ch, Code) ( Code = (Ch->desc->editor == ED_APCODE) ? \
                                         (APROG_CODE*)Ch->desc->pEdit : \
                                         NULL )
+#define EDIT_RPCODE(Ch, Code) ( Code = (Ch->desc->editor == ED_RPCODE) ? \
+                                        (RPROG_CODE*)Ch->desc->pEdit : \
+                                        NULL )
 
 
 
@@ -415,6 +428,11 @@ APROG_LIST      *new_aprog              args ( ( void ) );
 void            free_aprog              args ( ( APROG_LIST *ap ) );
 APROG_CODE *new_apcode      args ( (void) );
 void        free_apcode     args ( ( APROG_CODE *pAcode));
+
+RPROG_LIST      *new_rprog              args ( ( void ) );
+void            free_rprog              args ( ( RPROG_LIST *rp ) );
+RPROG_CODE *new_rpcode      args ( (void) );
+void        free_rpcode     args ( ( RPROG_CODE *pRcode));
 
 
 HELP_DATA *new_help args ( (void) );
