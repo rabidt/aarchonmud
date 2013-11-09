@@ -572,21 +572,13 @@ const struct flag_type rprog_flags[] =
 {
     {   "call",         RTRIG_CALL,      FALSE   },
     {   "timer",        RTRIG_TIMER,     TRUE    },
-    {   "exit",         RTRIG_EXIT,      TRUE    },
-    {   "enter",        RTRIG_ENTER,     TRUE    },
+    {   "move",         RTRIG_MOVE,      TRUE    },
     {   "unlock",       RTRIG_UNLOCK,    TRUE    },
-/*    {   "recall",       RTRIG_RECALL,    TRUE    },
-    {   "void",         RTRIG_VOID,      TRUE    },
-    {   "quit",         RTRIG_QUIT,      TRUE    },
-    {   "spell",        RTRIG_SPELL,     TRUE    },
-    {   "skill",        RTRIG_SKILL,     TRUE    },
-    {   "fight",        RTRIG_FIGHT,     TRUE    },
-    {   "try",          RTRIG_TRY,       TRUE    },*/
-//    {   "move",         RTRIG_MOVE,      TRUE    },
-/*    {   "unlock",       RTRIG_UNLOCK,    TRUE    },
     {   "lock",         RTRIG_LOCK,      TRUE    },
     {   "open",         RTRIG_OPEN,      TRUE    },
-    {   "close",        RTRIG_CLOSE,     TRUE    },*/
+    {   "close",        RTRIG_CLOSE,     TRUE    },
+    {   "enter",        RTRIG_ENTER,     TRUE    },
+    {   "exit",         RTRIG_EXIT,      TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
