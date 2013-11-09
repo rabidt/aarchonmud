@@ -132,6 +132,17 @@ static const struct luaL_reg MOBPROTO_lib[];
 /* TRIGTYPE_ARG */
 #define NUM_APROG_RESULTS 1
 
+/* rprog args */
+#define ROOM_ARG "room"
+#define NUM_RPROG_ARGS 6
+/* CH1_ARG */
+/* CH2_ARG */
+/* OBJ1_ARG */
+/* OBJ2_ARG */
+/* TRIG_ARG */
+/* TRIGTYPE_ARG */
+#define NUM_RPROG_RESULTS 1
+
 #define UDTYPE_UNDEFINED 0
 #define UDTYPE_CH        1
 #define UDTYPE_OBJ       2
@@ -1288,6 +1299,51 @@ static int L_obj_loadprog (lua_State *LS)
     return 1;
 }
 
+static int L_room_loadscript (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, GETSCRIPT_FUNCTION);
+
+    /* Push original args into GetScript */
+    lua_pushvalue( LS, 2 );
+    lua_pushvalue( LS, 3 );
+    lua_call( LS, 2, 1);
+
+    lua_pushboolean( LS,
+            lua_room_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1),
+                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+    return 1;
+}
+
+static int L_room_loadstring (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    lua_pushboolean( LS,
+            lua_room_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, 2),
+                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+    return 1;
+}
+
+static int L_room_loadprog (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    int num = (int)luaL_checknumber (LS, 2);
+    RPROG_CODE *pRcode;
+
+    if ( (pRcode = get_rprog_index(num)) == NULL )
+    {
+        luaL_error(LS, "loadprog: rprog vnum %d doesn't exist", num);
+        return 0;
+    }
+
+    lua_pushboolean( LS,
+            lua_room_program( NULL, num, pRcode->code,
+                ud_room, NULL, NULL, NULL, NULL,
+                RTRIG_CALL, 0) );
+    return 1;
+}
+
 static int L_area_loadscript (lua_State *LS)
 {
     AREA_DATA *ud_area=check_AREA(LS,1);
@@ -2312,6 +2368,25 @@ static int L_room_echo( lua_State *LS)
     return 0;
 }
 
+static int L_room_tprint ( lua_State *LS)
+{
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+
+    /* Push original arg into tprintstr */
+    lua_pushvalue( LS, 2);
+    lua_call( LS, 1, 1 );
+
+    lua_pushcfunction( LS, L_room_echo );
+    /* now line up argumenets for echo */
+    lua_pushvalue( LS, 1); /* obj */
+    lua_pushvalue( LS, -3); /* return from tprintstr */
+
+    lua_call( LS, 2, 0);
+
+    return 0;
+
+}
+
 static int L_objproto_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -2632,6 +2707,10 @@ static const struct luaL_reg ROOM_lib [] =
     {"oload", L_room_oload},
     {"mload", L_room_mload},
     {"echo", L_room_echo},
+    {"loadprog", L_room_loadprog},
+    {"loadscript", L_room_loadscript},
+    {"loadstring", L_room_loadstring},
+    {"trint", L_room_tprint},
     {NULL, NULL}
 };
 
@@ -3901,6 +3980,42 @@ bool lua_load_aprog( lua_State *LS, int vnum, char *code)
     else return TRUE;
 }
 
+bool lua_load_rprog( lua_State *LS, int vnum, char *code)
+{
+    char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
+
+    if ( strlen(code) >= MAX_SCRIPT_LENGTH )
+    {
+        bugf("RPROG script %d exceeds %d characters.",
+                vnum, MAX_SCRIPT_LENGTH);
+        return FALSE;
+    }
+
+    sprintf(buf, "function R_%d (%s,%s,%s,%s,%s,%s)"
+            "%s\n"
+            "end",
+            vnum,
+            CH1_ARG, CH2_ARG, OBJ1_ARG, OBJ2_ARG,
+            TRIG_ARG, TRIGTYPE_ARG,
+            code);
+
+
+    if (luaL_loadstring ( LS, buf) ||
+            CallLuaWithTraceBack ( LS, 0, 0))
+    {
+        bugf ( "LUA Rprog error loading vnum %d:\n %s",
+                vnum,
+                lua_tostring( LS, -1));
+        /* bad code, let's kill it */
+        sprintf(buf, "R_%d", vnum);
+        lua_pushnil( LS );
+        lua_setglobal( LS, buf);
+
+        return FALSE;
+    }
+    else return TRUE;
+}
+
 bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
@@ -4284,6 +4399,123 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     return result;
 }
 
+bool lua_room_program( char *trigger, int pvnum, char *source, 
+        ROOM_INDEX_DATA *room, 
+        CHAR_DATA *ch1, CHAR_DATA *ch2, OBJ_DATA *obj1, OBJ_DATA *obj2,
+        int trig_type,
+        int security ) 
+{
+    bool result=FALSE;
+
+    lua_getglobal( g_mud_LS, "room_program_setup");
+
+    if (!make_ud_table( g_mud_LS, room, UDTYPE_ROOM))
+    {
+        bugf("Make_ud_table failed in lua_room_program. %d : %d",
+                room->vnum,
+                pvnum);
+        return;
+    }
+
+    if (lua_isnil(g_mud_LS, -1) )
+    {
+        bugf("make_ud_table pushed nil to lua_room_program");
+        return FALSE;
+    }
+
+    /* load up the script as a function so args will be local */
+    char buf[MSL*2];
+    sprintf(buf, "R_%d", pvnum);
+
+    if ( pvnum==LOADSCRIPT_VNUM ) /* run with loadscript */
+    {
+        /* always reload */
+        if ( !lua_load_rprog( g_mud_LS, pvnum, source) )
+        {
+            /* if we're here then loadscript was called from within
+               a script so we can do a lua error */
+            luaL_error( g_mud_LS, "Couldn't load script with loadscript.");
+        }
+        /* loaded without errors, now get it on the stack */
+        lua_getglobal( g_mud_LS, buf);
+    }
+    else
+    {
+        lua_getglobal( g_mud_LS, buf);
+        if ( lua_isnil( g_mud_LS, -1) )
+        {
+            lua_remove( g_mud_LS, -1); /* Remove the nil */
+            /* not loaded yet*/
+            if ( !lua_load_rprog( g_mud_LS, pvnum, source) )
+            {
+                /* don't bother running it if there were errors */
+                return FALSE;
+            }
+
+            /* loaded without errors, now get it on the stack */
+            lua_getglobal( g_mud_LS, buf);
+        }
+    }
+
+    int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
+    if (error > 0 )
+    {
+        bugf ( "LUA error running room_program_setup: %s",
+                lua_tostring(g_mud_LS, -1));
+    }
+
+    /* CH1_ARG */
+    if ( !(ch1 && make_ud_table (g_mud_LS,(void *) ch1, UDTYPE_CH)))
+        lua_pushnil(g_mud_LS);
+        
+    /* CH2_ARG */
+    if ( !(ch2 && make_ud_table (g_mud_LS,(void *) ch2, UDTYPE_CH)))
+        lua_pushnil(g_mud_LS);
+
+    /* OBJ1_ARG */
+    if ( !(obj1 && make_ud_table (g_mud_LS,(void *) obj1, UDTYPE_OBJ)))
+        lua_pushnil(g_mud_LS);
+
+    /* OBJ2_ARG */
+    if ( !(obj2 && make_ud_table (g_mud_LS,(void *) obj2, UDTYPE_OBJ)))
+        lua_pushnil(g_mud_LS);
+
+    /* TRIG_ARG */
+    if (trigger)
+        lua_pushstring(g_mud_LS,trigger);
+    else lua_pushnil(g_mud_LS);
+
+    /* TRIGTYPE_ARG */
+    lua_pushstring ( g_mud_LS, flag_stat_string( rprog_flags, trig_type) );
+
+    /* some snazzy stuff to prevent crashes and other bad things*/
+    bool nest=g_LuaScriptInProgress;
+    if ( !nest )
+    {
+        s_LoopCheckCounter=0;
+        g_LuaScriptInProgress=TRUE;
+        s_ScriptSecurity=security;
+    }
+
+    error=CallLuaWithTraceBack (g_mud_LS, NUM_RPROG_ARGS, NUM_RPROG_RESULTS) ;
+    if (error > 0 )
+    {
+        bugf ( "LUA rprog error for vnum %d:\n %s",
+                pvnum,
+                lua_tostring(g_mud_LS, -1));
+    }
+    else
+    {
+        result=lua_toboolean (g_mud_LS, -1);
+    }
+    if (!nest)
+    {
+        g_LuaScriptInProgress=FALSE;
+        s_ScriptSecurity=0; /* just in case */
+        lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+    }
+    return result;
+}
 
 void do_lboard( CHAR_DATA *ch, char *argument)
 {
@@ -4591,12 +4823,25 @@ void do_luai( CHAR_DATA *ch, char *argument)
         type=UDTYPE_AREA;
         name=ch->in_room->area->name;
     }
+    else if (!strcmp( arg1, "room") )
+    {
+        if (!ch->in_room)
+        {
+            bugf("do_luai: %s in_room is NULL.", ch->name);
+            return;
+        }
+        
+        victim= (void *)(ch->in_room);
+        type=UDTYPE_ROOM;
+        name=ch->in_room->name;
+    }
     else
     {
         ptc(ch, "luai [no argument] -- open interpreter in your own env\n\r"
                 "luai mob <target>  -- open interpreter in env of target mob (in same room)\n\r"
                 "luai obj <target>  -- open interpreter in env of target obj (inventory or same room)\n\r"
-                "luai area          -- open interpreter in env of current area\n\r"); 
+                "luai area          -- open interpreter in env of current area\n\r"
+                "luai room          -- open interpreter in env of current room\n\r"); 
         return;
     }
 
@@ -4622,6 +4867,8 @@ void do_luai( CHAR_DATA *ch, char *argument)
             lua_pushliteral( g_mud_LS, "obj"); break;
         case UDTYPE_AREA:
             lua_pushliteral( g_mud_LS, "area"); break;
+        case UDTYPE_ROOM:
+            lua_pushliteral( g_mud_LS, "room"); break;
         default:
             bugf("do_luai: invalid udtype %d", type);
             lua_settop(g_mud_LS, 0);
@@ -4660,6 +4907,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
             type== UDTYPE_CH ? "CH" :
             type== UDTYPE_OBJ ? "OBJ" :
             type== UDTYPE_AREA ? "AREA":
+            type== UDTYPE_ROOM ? "ROOM":
             "UNKNOWN",
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");

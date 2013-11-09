@@ -140,6 +140,8 @@ typedef struct  oprog_code       OPROG_CODE;
 typedef struct  oprog_list       OPROG_LIST;
 typedef struct  aprog_code       APROG_CODE;
 typedef struct  aprog_list       APROG_LIST;
+typedef struct  rprog_code       RPROG_CODE;
+typedef struct  rprog_list       RPROG_LIST;
 typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
@@ -2933,7 +2935,7 @@ struct  exit_data
 	sh_int      key;
 	char *      keyword;
 	char *      description;
-        EXIT_DATA * next;       /* OLC */
+    EXIT_DATA * next;       /* OLC */
 	tflag       rs_flags;   /* OLC */
 	int         orig_door;  /* OLC */
 };
@@ -3027,6 +3029,11 @@ struct  room_index_data
     sh_int      mana_rate;
     sh_int      clan;
     sh_int      clan_rank;
+
+    RPROG_LIST *rprogs;
+    tflag rprog_flags;
+
+    TIMER_NODE *rtrig_timer; /* should not be touched except in timer.c */
 };
 
 
@@ -3194,6 +3201,20 @@ struct  mastery_group_type
 #define ATRIG_CALL  (K)
 #define ATRIG_TIMER (L)
 
+
+/*
+ * ROOMprog definitions
+ */
+#define RTRIG_CALL (A)
+#define RTRIG_TIMER (B)
+#define RTRIG_MOVE  (C)
+#define RTRIG_OPEN  (D)
+#define RTRIG_CLOSE (E)
+#define RTRIG_UNLOCK (F)
+#define RTRIG_LOCK  (G)
+#define RTRIG_ENTER (H)
+#define RTRIG_EXIT  (I)
+
 struct mprog_list
 {
 	int         trig_type;
@@ -3217,11 +3238,10 @@ struct oprog_list
 {
     int         trig_type;
     char *      trig_phrase;
-    int *       vnum;
+    int         vnum;
     OPROG_CODE *    script;
     OPROG_LIST *    next;
     bool        valid;
-    /* always lua */
 };
 
 struct oprog_code
@@ -3237,11 +3257,10 @@ struct aprog_list
 {
     int         trig_type;
     char *      trig_phrase;
-    int *       vnum;
+    int         vnum;
     APROG_CODE *    script;
     APROG_LIST *    next;
     bool        valid;
-    /* always lua */
 };
 
 struct aprog_code
@@ -3251,6 +3270,26 @@ struct aprog_code
     int     security;
     char    * code;
     APROG_CODE *    next;
+};
+
+
+struct rprog_list
+{
+    int trig_type;
+    char * trig_phrase;
+    int vnum;
+    RPROG_CODE * script;
+    RPROG_LIST * next;
+    bool valid;
+};
+
+struct rprog_code
+{
+    /* always lua */
+    int vnum;
+    int security;
+    char * code;
+    RPROG_CODE * next;
 };
 
 extern sh_int race_werewolf;
@@ -3851,6 +3890,7 @@ struct achievement_entry
 #define HAS_TRIGGER(ch,trig)    (IS_SET((ch)->pIndexData->mprog_flags,(trig)))
 #define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
 #define HAS_ATRIG(area,trig)    (IS_SET((area)->aprog_flags,(trig)))
+#define HAS_RTRIG(room,trig)    (IS_SET((room)->rprog_flags,(trig)))
 #define IS_SWITCHED( ch )       ( ch->desc && ch->desc->original )
 #define IS_BUILDER(ch, Area)    ( !IS_NPC(ch) && !IS_SWITCHED( ch ) && (ch->pcdata->security >= Area->security || strstr( Area->builders, ch->name ) || strstr( Area->builders, "All" ) ) )
 #define IS_REMORT(ch)			(!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT)) 
@@ -4024,6 +4064,7 @@ extern      OBJ_DATA      * object_list;
 extern      MPROG_CODE    * mprog_list;
 extern      OPROG_CODE    * oprog_list;
 extern      APROG_CODE    * aprog_list;
+extern      RPROG_CODE    * rprog_list;
 
 extern      char            bug_buf     [];
 extern      time_t          current_time;
@@ -4237,6 +4278,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define MPC MPROG_CODE
 #define OPC OPROG_CODE
 #define APC APROG_CODE
+#define RPC RPROG_CODE
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
@@ -4369,6 +4411,7 @@ RID *   get_room_index  args( ( int vnum ) );
 MPC *   get_mprog_index args( ( int vnum ) );
 OPC *   get_oprog_index args( ( int vnum ) );
 APC *   get_aprog_index args( ( int vnum ) );
+RPC *   get_rprog_index args( ( int vnum ) );
 char    fread_letter    args( ( FILE *fp ) );
 int fread_number    args( ( FILE *fp ) );
 long    fread_flag  args( ( FILE *fp ) );
