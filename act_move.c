@@ -2135,7 +2135,6 @@ void do_rest( CHAR_DATA *ch, char *argument )
 		 act("You rest in $p.",ch,obj,NULL,TO_CHAR);
 		 act("$n rests in $p.",ch,obj,NULL,TO_ROOM);
 	  }
-	  /*ch->stance = 0;*/
 	  ch->position = POS_RESTING;
           if (!IS_NPC(ch))
               ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
@@ -2306,7 +2305,6 @@ void do_sit (CHAR_DATA *ch, char *argument )
 	  ch->position = POS_SITTING;
           if (!IS_NPC(ch))
               ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-	  /*ch->stance = 0;*/
 	  break;
    }
    return;
@@ -2331,7 +2329,6 @@ void do_sleep( CHAR_DATA *ch, char *argument )
 		 send_to_char( "You go to sleep.\n\r", ch );
 		 act( "$n goes to sleep.", ch, NULL, NULL, TO_ROOM );
 		 ch->position = POS_SLEEPING;
-		 /*ch->stance = 0;*/
 	  }
 	  else  /* find an object and sleep on it */
 	  {
@@ -2377,7 +2374,6 @@ void do_sleep( CHAR_DATA *ch, char *argument )
 			act("You go to sleep in $p.",ch,obj,NULL,TO_CHAR);
 			act("$n goes to sleep in $p.",ch,obj,NULL,TO_ROOM);
 		 }
-		 /*ch->stance = 0;*/
 		 ch->position = POS_SLEEPING;
 	  }
 	  break;

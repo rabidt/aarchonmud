@@ -3013,7 +3013,7 @@ bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     if( ch != NULL )
     {
     act( "You grants you good fortune $N.", ch, NULL, victim, TO_CHAR );
-    act( "$N grants you good fortune you.", victim, NULL, ch, TO_CHAR );
+    act( "$N grants you good fortune.", victim, NULL, ch, TO_CHAR );
     }
     else
     {
