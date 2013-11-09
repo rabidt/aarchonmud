@@ -451,6 +451,7 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
 {
     AFFECT_DATA *af;
     char buf[MAX_STRING_LENGTH];
+    bool found = FALSE;
 
     /* some affects are hard to dispel */
     if ( (sn == gsn_prot_magic && number_bits(1))
@@ -470,7 +471,8 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
         {
             if ( af->type == sn )
             {
-                if (!saves_dispel(dis_level,af->level,af->duration))
+                // track if we have already found the affect, so we only attempt dispel once
+                if ( !found && !saves_dispel(dis_level, af->level, af->duration) )
                 {
                     affect_strip(victim,sn);
                     if ( skill_table[sn].msg_off )
@@ -484,8 +486,8 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
                     }
                     return TRUE;
                 }
-                else
-                    af->level--;
+                found = TRUE;
+                af->level--;
             }
         }
     }
