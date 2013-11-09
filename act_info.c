@@ -1014,44 +1014,49 @@ void do_autolist(CHAR_DATA *ch, char *argument)
     }
     
     if (!IS_SET(ch->act,PLR_CANLOOT))
-        send_to_char("Items you own are safe from thieves. (noloot)\n\r",ch);
+        send_to_char("Items you own are safe from thieves.  (noloot)\n\r",ch);
     else 
-        send_to_char("Items you own may be looted. (noloot)\n\r",ch);
+        send_to_char("Items you own may be looted.          (noloot)\n\r",ch);
     
     if (IS_SET(ch->act,PLR_NOSUMMON))
-        send_to_char("You cannot be summoned. (nosum)\n\r",ch);
+        send_to_char("You cannot be summoned.               (nosum)\n\r",ch);
     else
-        send_to_char("You can be summoned. (nosum)\n\r",ch);
+        send_to_char("You can be summoned.                  (nosum)\n\r",ch);
     
     if (IS_SET(ch->act,PLR_NOCANCEL))
-        send_to_char("You cannot be cancelled. (nocan)\n\r",ch);
+        send_to_char("You cannot be cancelled.              (nocan)\n\r",ch);
     else
-        send_to_char("You can be cancelled. (nocan)\n\r",ch);
+        send_to_char("You can be cancelled.                 (nocan)\n\r",ch);
     
     if (IS_SET(ch->act,PLR_NOFOLLOW))
-        send_to_char("You do not welcome followers. (nofol)\n\r",ch);
+        send_to_char("You do not welcome followers.         (nofol)\n\r",ch);
     else
-        send_to_char("You accept followers. (nofol)\n\r",ch);
+        send_to_char("You accept followers.                 (nofol)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOLOCATE))
-        send_to_char("You do not wish to be located. (noloc)\n\r",ch);
+        send_to_char("You do not wish to be located.        (noloc)\n\r",ch);
     else
-        send_to_char("You wish to be located. (noloc)\n\r",ch);
+        send_to_char("You wish to be located.               (noloc)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOACCEPT))
-        send_to_char("You do not accept items from other players. (noacc)\n\r",ch);
+        send_to_char("You do not accept items from players. (noacc)\n\r",ch);
     else
-        send_to_char("You accept items from other players. (noacc)\n\r",ch);
+        send_to_char("You accept items from other players.  (noacc)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOSURR))
-        send_to_char("You do not accept surrenders from other players. (nosurr)\n\r",ch);
+        send_to_char("You do not accept surrenders.         (nosurr)\n\r",ch);
     else
-        send_to_char("You accept surrenders from other players. (nosurr)\n\r",ch);
+        send_to_char("You accept surrenders from players.   (nosurr)\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOEXP))
-        send_to_char("You do not wish to gain experience points. (noexp)\n\r",ch);
+        send_to_char("You do not wish to gain experience.   (noexp)\n\r",ch);
     else
-        send_to_char("You can gain experience points. (noexp)\n\r",ch);
+        send_to_char("You can gain experience.              (noexp)\n\r",ch);
+
+    if (IS_SET(ch->act,PLR_NOHELP))
+        send_to_char("You do not wish to see help messages. (nohelp)\n\r",ch);
+    else
+        send_to_char("You wish to receive help messages.    (nohelp)\n\r",ch);
 }
 
 void do_autoassist(CHAR_DATA *ch, char *argument)
@@ -1529,6 +1534,26 @@ void do_noexp( CHAR_DATA *ch, char *argument )
         {
             send_to_char("You will no longer be able to gain experience points.\n\r",ch);
             SET_BIT(ch->act,PLR_NOEXP);
+        }
+    }    
+}
+
+
+void do_nohelp( CHAR_DATA *ch, char *argument )
+{
+    if (IS_NPC(ch))
+        return;
+    else
+    {
+        if (IS_SET(ch->act,PLR_NOHELP))
+        {
+            send_to_char("You will now see help messages.\n\r",ch);
+            REMOVE_BIT(ch->act,PLR_NOHELP);
+        }
+        else
+        {
+            send_to_char("You will no longer see help messages.\n\r",ch);
+            SET_BIT(ch->act,PLR_NOHELP);
         }
     }    
 }
@@ -2132,14 +2157,23 @@ void do_exits( CHAR_DATA *ch, char *argument )
         if ( ( pexit = ch->in_room->exit[door] ) != NULL
             &&   pexit->u1.to_room != NULL
             &&   can_see_room(ch,pexit->u1.to_room) 
-            &&   (!IS_SET(pexit->exit_info, EX_CLOSED) || IS_IMMORTAL(ch) ) )
+            &&   (! ( IS_SET(pexit->exit_info, EX_HIDDEN)
+                      && IS_SET(pexit->exit_info, EX_CLOSED ) ) 
+                  || IS_IMMORTAL(ch) ) 
+            &&   (!IS_SET(pexit->exit_info, EX_DORMANT) || IS_IMMORTAL(ch) ) )
         {
             found = TRUE;
             if ( fAuto )
             {
-                if (IS_SET(pexit->exit_info, EX_CLOSED))
+                if (IS_SET(pexit->exit_info, EX_DORMANT))
                 {
-                    sprintf( buf, "%s (%s)", buf, dir_name[door] );
+                    sprintf( buf, "%s <%s>", buf, dir_name[door] );
+                }
+                else if (IS_SET(pexit->exit_info, EX_CLOSED))
+                {
+                    sprintf( buf, "%s (%s%s)", buf, 
+                            IS_SET(pexit->exit_info, EX_HIDDEN) ? "*" : "",
+                            dir_name[door] );
                 }
                 else
                 {
@@ -3130,6 +3164,9 @@ void do_equipment( CHAR_DATA *ch, char *argument )
     if ( !found && !all_slots )
         send_to_char( "Nothing.\n\r", ch );
 
+    if (!IS_SET(ch->act, PLR_NOHELP && ch->level <= 90))
+        do_eqhelp(ch,"");
+
     return;
 }
 
@@ -4110,7 +4147,7 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     AFFECT_DATA *paf;
     int chance;
     int sn, c;
-    int lore_skill, wlore_skill;
+    int lore_skill, wlore_skill, mastery, wait;
     bool weapon, all_known;
     
     one_argument(argument,arg);
@@ -4133,8 +4170,9 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     
     lore_skill = get_skill(ch,gsn_lore);
     wlore_skill = get_skill(ch,gsn_weapons_lore);
+    mastery = get_mastery(ch, gsn_lore);
     weapon = org_obj->item_type == ITEM_WEAPON || org_obj->item_type == ITEM_ARROWS;
-    sn = weapon ? gsn_weapons_lore : gsn_lore;
+    sn = (weapon && wlore_skill) ? gsn_weapons_lore : gsn_lore;
 
     if ( lore_skill == 0)
         if ( wlore_skill == 0)
@@ -4142,16 +4180,19 @@ void do_lore ( CHAR_DATA *ch, char *argument )
             send_to_char("You aren't versed in the lore of Aarchon.\n\r",ch);
             return;
         } 
-	else if (!weapon)
+        else if ( !weapon )
         {
             send_to_char("You only know lore regarding weapons.\n\r",ch);
             return;
         }
     
     if ( weapon )
-	chance = lore_skill + wlore_skill - lore_skill * wlore_skill / 100;
+    {
+        chance = lore_skill + (100 - lore_skill) * wlore_skill / 100;
+        mastery = UMAX(mastery, get_mastery(ch, gsn_weapons_lore));
+    }
     else
-	chance = lore_skill;
+        chance = lore_skill;
 
     if ( ch->mana < skill_table[sn].min_mana && skill_table[sn].min_mana > 0 )
     {
@@ -4160,24 +4201,17 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
 
     if ( IS_IMMORTAL(ch) || IS_NPC(ch) )
-	chance = 100;
+        chance = 100;
     else
-	WAIT_STATE(ch,skill_table[sn].beats);
+        WAIT_STATE(ch, skill_table[sn].beats / (1 + mastery));
     
     act( "You try to figure out what $p is.", ch, obj, NULL, TO_CHAR );
     act( "$n tries to figure out what $p is.", ch, obj, NULL, TO_ROOM );
     
     /* first check if char knows ANYTHING */
-    if ( number_percent() > chance
-	 || IS_SET(org_obj->extra_flags, ITEM_NO_LORE) )
+    if ( !per_chance(chance) || IS_SET(org_obj->extra_flags, ITEM_NO_LORE) )
     {
-	ch->mana -= skill_table[sn].min_mana / 2;
-	/*
-        check_improve(ch,gsn_lore,FALSE,2);
-	if ( weapon )
-	    check_improve(ch,gsn_weapons_lore,FALSE,2);
-	*/
-	/* "cant" changed to "can't" - Elik, Jan 16, 2006 */
+        ch->mana -= skill_table[sn].min_mana / 2;
         send_to_char( "Hmm... you can't seem to place it from any tales you've heard.\n\r", ch );
         act("$n furrows $s brow.\n\r",ch,NULL,NULL,TO_ROOM);
         return;
@@ -4187,11 +4221,6 @@ void do_lore ( CHAR_DATA *ch, char *argument )
 
     if (!op_percent_trigger( obj, NULL, ch, NULL, OTRIG_LORE) )
         return;
-    /*
-    check_improve(ch,gsn_lore,FALSE,2);
-    if ( weapon )
-	check_improve(ch,gsn_weapons_lore,FALSE,2);
-    */
 
     /* ok, he knows something.. */
     say_basic_obj_index_data( ch, org_obj );
@@ -4224,22 +4253,14 @@ void do_lore ( CHAR_DATA *ch, char *argument )
 	act( "$n scratches $s chin in contemplation.", ch, NULL, NULL, TO_ROOM );
     }
 
-    /* lore won't work with special enchantments */
-    /*
-    for ( paf = obj->affected; paf != NULL; paf = paf->next )
-      show_affect(ch, paf, TRUE);
-    */
-
     /* now let's see if someone else learned something of it --Bobble */
-    if ( IS_NPC(ch) )
-	return; // prevent easy learning by spamming sage
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-	if ( IS_NPC(rch) || !IS_AWAKE(rch) || rch == ch )
-	    continue;
-	check_improve( rch, gsn_lore, 2, TRUE );
-	if ( weapon )
-	    check_improve( rch, gsn_weapons_lore, 2, TRUE );
+        if ( IS_NPC(rch) || !IS_AWAKE(rch) )
+            continue;
+        check_improve( rch, gsn_lore, 2, TRUE );
+        if ( weapon )
+            check_improve( rch, gsn_weapons_lore, 2, TRUE );
     }
 }
 
@@ -6160,7 +6181,7 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
 void do_classes( CHAR_DATA *ch, char *argument )
 {
     int class;
-    
+
     printf_to_char(ch, "               Att  Def  Hp  Mana  Move prime secondary #Skl / Cost\n");
     for ( class = 0; class < MAX_CLASS; class++ )
     {
@@ -6209,3 +6230,137 @@ void do_lagfree( CHAR_DATA *ch, char *argument)
     ptc( ch, "Lag free mode: %s", ch->desc->lag_free ? "ON" : "OFF");
 }
 #endif
+
+
+
+
+struct newbie_data
+{
+    int lvl;
+    char * area_name;
+};
+
+const struct newbie_data eq_data[] =
+{
+    {  1, "The Initiation"                                                  },
+    {  5, "The Pirates Lair or The Palace Square Shops"                     },
+    { 10, "Crystal Coast"                                                   },
+    { 13, "Vorgath's Dungeon"                                               },
+    { 15, "JROTC"                                                           },
+    { 20, "Rovarok"                                                         },
+    { 25, "NIMH"                                                            },
+    { 30, "Mrem Village (ask for help), Dreamscape, or Kyoto Village"       },
+    { 35, "Akyros Pharmaceuticals"                                          },
+    { 42, "Square World"                                                    },
+    { 50, "Dreamscape (fighters) or Logging Camp (casters)"                 },
+    { 60, "Battlelords (The gear with no colors)"                           },
+    { 63, "Princess Bride"                                                  },
+    { 70, "Abyss (ask for help)"                                            },
+    { 75, "Spacehulk"                                                       },
+    { 81, "Battlelords (The equipment with colored names is level 81)"      },
+    { 85, "Angel's Heaven"                                                  },
+    { 90, "Mortal Kombat"                                                   },
+    {  0, NULL                                                              }
+};
+
+void do_eqhelp( CHAR_DATA *ch, char *argument)
+{
+    OBJ_DATA *obj;
+    bool wield = FALSE;
+    char buf[MSL];
+    int curr_eq = 0;
+    int sugg_eq;
+    int diff;
+    int i;
+    int curr_wield = 0;
+    int sugg_wield;
+
+    if (ch->level > 90)
+    {
+        send_to_char("This command doesn't provide information for heroes.\n\r", ch);
+        return;
+    }
+
+    /* First lets find where in the table the player is at */
+    for ( i = 0 ; eq_data[i].area_name != NULL; i++ )
+    {
+        if (ch->level < eq_data[i].lvl)
+            break;
+    }
+
+    /* We need to move down one position in the table to get the real value */
+
+    i = i-1; 
+
+    /* Now that we know the table position, lets find out what the power 
+       of their EQ is based on its level */
+
+    for ( obj = ch->carrying; obj != NULL ; obj = obj->next_content )
+    {
+        if ( obj->wear_loc != WEAR_NONE)
+            curr_eq += obj->level;
+
+        if ( obj->wear_loc == WEAR_WIELD)
+        {
+            wield = TRUE;
+            curr_wield = obj->level;
+        }
+    }
+
+    /* We are going to assume that 16 slots of EQ are used to determine
+       the power of the suggested EQ */
+
+    sugg_eq = 16 * eq_data[i].lvl;
+    sugg_wield = ch->level;
+    
+    /* Lets figure out the difference */
+
+    diff = sugg_eq - curr_eq;
+    int diff_percent = (200 * curr_eq + 1) / (sugg_eq * 2);
+    int diff_percent2 = 100 - diff_percent;
+
+    /* This is a test function to confirm our information 
+    sprintf(buf,"I_value=%d, Table_value=%d, curr_eq=%d, sugg_eq=%d, 
+        difference=%d (%d%% of suggested, or %d%% weaker than suggested)\n\r\n\r", 
+            i, eq_data[i].lvl, curr_eq, sugg_eq, diff, diff_percent, diff_percent2);
+    send_to_char(buf,ch); */
+
+
+    /* Now lets print the information to see our progress */
+
+    printf_to_char(ch,"%s, you {R%s{x \n\r", ch->name, 
+        diff_percent2 >= 20 ? "could use an equipment upgrade" : 
+            "have equipment that suits your level");
+
+    printf_to_char(ch,"{yYour equipment is {R%d%%{y %s than expected for your level.{x\n\r", 
+        diff_percent2 < 0 ? diff_percent2 *= -1 : diff_percent2,
+        diff_percent2 < 0 ? "stronger" : "weaker" );
+
+
+    /* If the player has a weapon equipped we will tell them if it needs 
+       improving. If not, we ignore this piece (i.e Monks) */
+
+    if (wield == TRUE)
+        if ((sugg_wield - curr_wield) > 5)
+            printf_to_char(ch,"Your weapon is also %d levels below your current level.\n\r", sugg_wield - curr_wield);
+
+
+    /* Only telling the player they need better equipment doesn't help much.
+       We will tell them where to find it */
+
+    if (diff_percent2 >= 20)
+       printf_to_char(ch,"You can find better equipment at %s\n\r", eq_data[i].area_name);
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+

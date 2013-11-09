@@ -122,7 +122,8 @@ void do_scan(CHAR_DATA *ch, char *argument)
         
         for (door=0;door<MAX_DIR;door++)
         {
-            if ((pExit = ch ->in_room->exit[door]) != NULL)
+            if ((pExit = ch->in_room->exit[door]) != NULL
+                    && !IS_SET(pExit->exit_info, EX_DORMANT) )
                 scan_list(pExit->u1.to_room, ch, 1, door);
         }
         return;
@@ -147,11 +148,11 @@ void do_scan(CHAR_DATA *ch, char *argument)
     
     for (depth = 1; depth < 4; depth++)
     {
-        if ((pExit = scan_room->exit[door]) != NULL)
-        {
-            scan_room = pExit->u1.to_room;
-            scan_list(pExit->u1.to_room, ch, depth, door);
-        }
+        pExit=scan_room->exit[door];
+        if (!pExit || IS_SET(pExit->exit_info, EX_DORMANT) )
+            break;
+        scan_room = pExit->u1.to_room;
+        scan_list(pExit->u1.to_room, ch, depth, door);
     }
     return;
 }
@@ -164,9 +165,12 @@ void scan_list(ROOM_INDEX_DATA *scan_room, CHAR_DATA *ch, sh_int depth,
     if (scan_room == NULL) return;
     for (rch=scan_room->people; rch != NULL; rch=rch->next_in_room)
     {
-        if (rch == ch) continue;
-        if (!IS_NPC(rch) && rch->invis_level > get_trust(ch)) continue;
-        if (check_see(ch, rch)) scan_char(rch, ch, depth, door);
+        if (rch == ch) 
+            continue;
+        if (!IS_NPC(rch) && rch->invis_level > get_trust(ch)) 
+            continue;
+        if (check_see(ch, rch)) 
+            scan_char(rch, ch, depth, door);
     }
     return;
 }

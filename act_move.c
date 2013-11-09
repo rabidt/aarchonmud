@@ -155,7 +155,11 @@ bool can_move_dir( CHAR_DATA *ch, int dir, bool show )
     EXIT_DATA *pexit = in_room->exit[dir];
     ROOM_INDEX_DATA *to_room = pexit ? pexit->u1.to_room : NULL;
     
-    if ( !in_room || !to_room || !can_see_room(ch, to_room) )
+    if ( !in_room 
+         || !to_room 
+         || !can_see_room(ch, to_room)
+         || ( IS_SET( pexit->exit_info, EX_DORMANT ) 
+              && !IS_IMMORTAL(ch) ) )
     {
         if ( show )
             send_to_char("Alas, you cannot go that way.\n\r", ch);
@@ -723,7 +727,8 @@ int find_door( CHAR_DATA *ch, char *arg )
 	  int count = 0, onedoor = 0;
 	  for ( door = 0; door < MAX_DIR; door++ )
 		 if ( (pexit = ch->in_room->exit[door]) != NULL
-		 && IS_SET(pexit->exit_info, EX_ISDOOR) )
+		 && IS_SET(pexit->exit_info, EX_ISDOOR) 
+         && !IS_SET(pexit->exit_info, EX_DORMANT) )
 		 {
 			count++;
 			onedoor = door;
@@ -748,14 +753,15 @@ int find_door( CHAR_DATA *ch, char *arg )
 		 if ( ( pexit = ch->in_room->exit[door] ) != NULL
 			&&   IS_SET(pexit->exit_info, EX_ISDOOR)
 			&&   pexit->keyword != NULL
-			&&   is_name( arg, pexit->keyword ) )
+			&&   is_name( arg, pexit->keyword ) 
+            &&   !IS_SET(pexit->exit_info, EX_DORMANT) )
 			return door;
 	  }
 	  act( "I see no $T here.", ch, NULL, arg, TO_CHAR );
 	  return -1;
    }
    
-   if ( ( pexit = ch->in_room->exit[door] ) == NULL )
+   if ( ( pexit = ch->in_room->exit[door] ) == NULL || IS_SET(pexit->exit_info, EX_DORMANT) )
    {
 	  act( "I see no door $T here.", ch, NULL, arg, TO_CHAR );
 	  return -1;
@@ -977,6 +983,8 @@ void do_close( CHAR_DATA *ch, char *argument )
 	  if ( IS_SET(pexit->exit_info, EX_CLOSED) )
 	  { send_to_char( "It's already closed.\n\r",    ch ); return; }
 
+          if ( IS_SET(pexit->exit_info, EX_NOCLOSE) )
+          { send_to_char( "It can't be closed.\n\r",     ch ); return; }
       if ( !rp_close_trigger( ch, door ) )
           return;
 	  
@@ -2143,7 +2151,6 @@ void do_rest( CHAR_DATA *ch, char *argument )
 		 act("You rest in $p.",ch,obj,NULL,TO_CHAR);
 		 act("$n rests in $p.",ch,obj,NULL,TO_ROOM);
 	  }
-	  /*ch->stance = 0;*/
 	  ch->position = POS_RESTING;
           if (!IS_NPC(ch))
               ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
@@ -2314,7 +2321,6 @@ void do_sit (CHAR_DATA *ch, char *argument )
 	  ch->position = POS_SITTING;
           if (!IS_NPC(ch))
               ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-	  /*ch->stance = 0;*/
 	  break;
    }
    return;
@@ -2339,7 +2345,6 @@ void do_sleep( CHAR_DATA *ch, char *argument )
 		 send_to_char( "You go to sleep.\n\r", ch );
 		 act( "$n goes to sleep.", ch, NULL, NULL, TO_ROOM );
 		 ch->position = POS_SLEEPING;
-		 /*ch->stance = 0;*/
 	  }
 	  else  /* find an object and sleep on it */
 	  {
@@ -2385,7 +2390,6 @@ void do_sleep( CHAR_DATA *ch, char *argument )
 			act("You go to sleep in $p.",ch,obj,NULL,TO_CHAR);
 			act("$n goes to sleep in $p.",ch,obj,NULL,TO_ROOM);
 		 }
-		 /*ch->stance = 0;*/
 		 ch->position = POS_SLEEPING;
 	  }
 	  break;

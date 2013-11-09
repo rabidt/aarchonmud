@@ -19,7 +19,7 @@ bool  check_jam( CHAR_DATA *ch, int odds, bool offhand );
 * Disarm a creature.
 * Caller must check for successful attack.
 */
-bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet )
+bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery )
 {
     OBJ_DATA *obj;
     
@@ -28,20 +28,30 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet )
     
     if ( IS_OBJ_STAT(obj,ITEM_NOREMOVE))
     {
-        if (!quiet)
+        if ( !quiet )
         {
-            act("$S weapon won't budge!",ch,NULL,victim,TO_CHAR);
-            act("$n tries to disarm you, but your weapon won't budge!",
-                ch,NULL,victim,TO_VICT);
-            act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
+            act("$S weapon won't budge!", ch, NULL, victim, TO_CHAR);
+            act("$n tries to disarm you, but your weapon won't budge!", ch, NULL, victim, TO_VICT);
+            act("$n tries to disarm $N, but fails.", ch, NULL, victim, TO_NOTVICT);
+        }
+        return FALSE;
+    }
+    
+    int mastery = get_mastery(victim, get_weapon_sn(victim)) - attack_mastery;
+    if ( per_chance(mastery == 2 ? 50 : mastery == 1 ? 30 : 0) )
+    {
+        if ( !quiet )
+        {
+            act("$N maintains a tight grip on $S weapon!", ch, NULL, victim, TO_CHAR);
+            act("$n tries to disarm you, but you maintain your grip!", ch, NULL, victim, TO_VICT);
+            act("$n tries to disarm $N, but $N maintains $S grip.", ch, NULL, victim, TO_NOTVICT);
         }
         return FALSE;
     }
     
     if (!quiet)
     {
-        act( "$n DISARMS you and sends your weapon flying!", 
-            ch, NULL, victim, TO_VICT    );
+        act( "$n DISARMS you and sends your weapon flying!", ch, NULL, victim, TO_VICT );
         act( "You disarm $N!",  ch, NULL, victim, TO_CHAR    );
         act( "$n disarms $N!",  ch, NULL, victim, TO_NOTVICT );
     }
@@ -234,11 +244,8 @@ void do_bash( CHAR_DATA *ch, char *argument )
 	act("You evade $n's bash, causing $m to fall flat on $s face.",
 	    ch,NULL,victim,TO_VICT);
 	check_improve(ch,gsn_bash,FALSE,1);
-	if ( ch->stance != STANCE_RHINO && check_lose_stance(ch) )
-	{
-	    send_to_char( "You lose your stance!\n\r", ch );
-	    ch->stance = 0;
-	}
+	if ( ch->stance != STANCE_RHINO )
+        check_lose_stance(ch);
 	set_pos( ch, POS_RESTING );
 	return;
     } 
@@ -258,7 +265,7 @@ void do_bash( CHAR_DATA *ch, char *argument )
         act("You slam into $N, and send $M sprawling!",ch,NULL,victim,TO_CHAR);
         act("$n sends $N sprawling with a powerful bash.",
             ch,NULL,victim,TO_NOTVICT);
-	victim->stance = 0;
+        destance(victim, get_mastery(ch, gsn_bash));
 	DAZE_STATE(victim, 2*PULSE_VIOLENCE + ch->size - victim->size );
 	set_pos( victim, POS_RESTING );
     }
@@ -471,7 +478,7 @@ void do_trip( CHAR_DATA *ch, char *argument )
 	act("$n trips $N, sending $M to the ground.",ch,NULL,victim,TO_NOTVICT);
 	check_improve(ch,gsn_trip,TRUE,1);
 	
-	victim->stance = 0;
+	destance(victim, get_mastery(ch, gsn_trip));
 	DAZE_STATE(victim, PULSE_VIOLENCE + victim->size - SIZE_MEDIUM);
 	set_pos( victim, POS_RESTING );
 
@@ -836,8 +843,7 @@ void do_hogtie(CHAR_DATA *ch, char *argument )
         check_improve(ch,gsn_hogtie,TRUE,2);
         WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
         WAIT_STATE(victim, 2 * PULSE_VIOLENCE); 
-
-        victim->stance = 0;
+        destance(victim, get_mastery(ch, gsn_hogtie));
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_hogtie;
@@ -1014,7 +1020,7 @@ void do_aim( CHAR_DATA *ch, char *argument )
             break;
         case AIM_HAND:
             if ( number_percent() < 50 )
-                disarm(ch, victim, FALSE);
+                disarm(ch, victim, FALSE, get_mastery(ch, gsn_aim));
             break;
         case AIM_FOOT:
             act("Your bullet hits $N in the foot, making $M hop around for a few moments.",
@@ -1026,10 +1032,7 @@ void do_aim( CHAR_DATA *ch, char *argument )
             WAIT_STATE( victim, 2*PULSE_VIOLENCE );
             victim->slow_move = UMAX(ch->slow_move, PULSE_VIOLENCE * 6);
             if( number_bits(1) )
-            {
-                victim->stance = 0;
-                send_to_char( "You lose your stance!\n\r", victim );
-            }  
+                destance(victim, get_mastery(ch, gsn_aim));
             break;
         default:
             bug("AIM: invalid aim_target: %d", aim_target);
@@ -1569,6 +1572,13 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     return;
 }
 
+void mastery_adjusted_wait( CHAR_DATA *ch, int sn )
+{
+    int wait = skill_table[sn].beats;
+    int bonus = mastery_bonus(ch, sn, 20, 25);
+    WAIT_STATE( ch, rand_div(wait * (100 - bonus), 100) );
+}
+
 void do_kick( CHAR_DATA *ch, char *argument )
 {
     CHAR_DATA *victim;
@@ -1580,7 +1590,7 @@ void do_kick( CHAR_DATA *ch, char *argument )
     // anyone can kick
     chance = (100 + get_skill(ch, gsn_kick)) / 2;
 
-    WAIT_STATE( ch, skill_table[gsn_kick].beats );
+    mastery_adjusted_wait(ch, gsn_kick);
 
     if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
     {
@@ -1680,29 +1690,27 @@ void do_disarm( CHAR_DATA *ch, char *argument )
         
 	chance /= 2;
 
-      /* You no longer can fail disarm a bunch of times before finding
+        WAIT_STATE( ch, skill_table[gsn_disarm].beats );
+
+        /* You no longer can fail disarm a bunch of times before finding
          out that your opponent's weapon is damned, if you have detect
          magic - Astark 6-8-13 */
         if ( IS_OBJ_STAT(obj,ITEM_NOREMOVE) && IS_AFFECTED(ch,AFF_DETECT_MAGIC))
         {
             act("$S weapon won't budge!",ch,NULL,victim,TO_CHAR);
-            act("$n tries to disarm you, but your weapon won't budge!",
-                ch,NULL,victim,TO_VICT);
+            act("$n tries to disarm you, but your weapon won't budge!",ch,NULL,victim,TO_VICT);
             act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
-            WAIT_STATE( ch, skill_table[gsn_disarm].beats );
             return;
         }
 
         /* and now the attack */
-        if (number_percent() < chance)
+        if ( per_chance(chance) )
         {
-            WAIT_STATE( ch, skill_table[gsn_disarm].beats );
-            disarm( ch, victim, FALSE );
+            disarm( ch, victim, FALSE, get_mastery(ch, gsn_disarm) );
             check_improve(ch,gsn_disarm,TRUE,1);
         }
         else
         {
-            WAIT_STATE(ch,skill_table[gsn_disarm].beats);
             act("You fail to disarm $N.",ch,NULL,victim,TO_CHAR);
             act("$n tries to disarm you, but fails.",ch,NULL,victim,TO_VICT);
             act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
@@ -1968,7 +1976,7 @@ void do_leg_sweep( CHAR_DATA *ch, char *argument )
                     tally++;
                     DAZE_STATE(vch, 2*PULSE_VIOLENCE);
                     set_pos( vch, POS_RESTING );
-                    vch->stance = 0;
+                    destance(vch, get_mastery(ch, gsn_leg_sweep));
 
                  /* Not enough damage                      
                     damage(ch,vch,number_range(4, 6 +  3 * vch->size), gsn_leg_sweep,
@@ -1988,11 +1996,7 @@ void do_leg_sweep( CHAR_DATA *ch, char *argument )
             DAZE_STATE(ch, 2*PULSE_VIOLENCE);
             set_pos( ch, POS_RESTING );
             
-            if ( check_lose_stance(ch) )
-            {
-                send_to_char("You lose your stance!\n\r",ch);
-                ch->stance = 0;
-            }
+            check_lose_stance(ch);
             
             damage(ch,ch,number_range(4, 6 +  3 * ch->size),gsn_leg_sweep,
                 DAM_BASH,TRUE);
@@ -2144,7 +2148,7 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
 		ch,NULL,victim,TO_NOTVICT);
 	    DAZE_STATE(victim, PULSE_VIOLENCE * 3);
 	    WAIT_STATE(victim, PULSE_VIOLENCE * 3/2);
-	    victim->stance = 0;
+        destance(victim, get_mastery(ch, gsn_uppercut));
 	    set_pos( victim, POS_RESTING );
 	} 
 	full_dam( ch, victim, dam, gsn_uppercut,DAM_BASH,TRUE );
@@ -2408,11 +2412,7 @@ void do_tumble( CHAR_DATA *ch, char *argument)
         check_improve(ch,gsn_tumbling,FALSE,2);
         DAZE_STATE(ch, PULSE_VIOLENCE);
 
-        if ( check_lose_stance(ch) )
-        {
-            send_to_char("You lose your stance!\n\r",ch);
-            ch->stance = 0;
-        }
+        check_lose_stance(ch);
 
         set_pos( ch, POS_RESTING );
         damage(ch,ch,number_range(4, 6 +  3 * ch->size),gsn_tumbling,
@@ -2564,11 +2564,7 @@ void do_distract( CHAR_DATA *ch, char *argument )
     act( "$n distracts $N!",  ch, NULL, victim, TO_NOTVICT );
     check_improve(ch,gsn_distract,TRUE,1);
     
-    if( check_lose_stance(victim) )
-    {
-	send_to_char( "You lose your stance!\n\r", victim );
-	victim->stance = 0;
-    }
+    check_lose_stance(victim);
 
     stop_fighting( victim, FALSE );
     if (IS_NPC(victim))
@@ -2605,7 +2601,7 @@ void do_chop( CHAR_DATA *ch, char *argument )
         chance = get_skill(ch, gsn_chop);
         
         check_killer(ch,victim);
-        WAIT_STATE( ch, skill_table[gsn_chop].beats );
+        mastery_adjusted_wait(ch, gsn_chop);
 
         if ( check_hit(ch, victim, gsn_chop, DAM_SLASH, chance) )
         {
@@ -2642,7 +2638,7 @@ void do_bite( CHAR_DATA *ch, char *argument )
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
         
-        WAIT_STATE( ch, skill_table[gsn_bite].beats );
+        mastery_adjusted_wait(ch, gsn_bite);
         check_killer(ch,victim);
 
         if ( check_hit(ch, victim, gsn_bite, DAM_PIERCE, chance) )
@@ -2780,7 +2776,7 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
 	act("$n sends $N sprawling with a well placed shield to the face.",
 	    ch,NULL,victim,TO_NOTVICT);
 	
-	victim->stance = 0;
+    destance(victim, get_mastery(ch, gsn_shield_bash));
 	DAZE_STATE(victim, 3*PULSE_VIOLENCE + ch->size - victim->size);
 	set_pos( victim, POS_RESTING );
     }
@@ -2792,16 +2788,13 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
 	    ch,NULL,victim,TO_NOTVICT);
 	act("You withstand $n's shield bash with ease.", 
 	    ch,NULL,victim,TO_VICT);
-	if ( check_lose_stance(ch) )
-        {
-	    send_to_char("You lose your stance!\n\r",ch);
-	    ch->stance = 0;
-	}
+        check_lose_stance(ch);
 	WAIT_STATE(ch, skill_table[gsn_shield_bash].beats * 3 / 2);
     }
     
     /* deal damage */
     dam = one_hit_damage(ch, gsn_shield_bash, NULL);
+    dam += dam * mastery_bonus(ch, gsn_shield_bash, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_shield_bash,DAM_BASH,TRUE);
     check_improve(ch,gsn_shield_bash,TRUE,1);
 }
@@ -2866,11 +2859,7 @@ void do_charge( CHAR_DATA *ch, char *argument )
 	act("You evade $n's charge, causing $m to fall flat on $s face.",
 	    ch,NULL,victim,TO_VICT);
 	check_improve(ch,gsn_charge,FALSE,1);
-	if ( check_lose_stance(ch) )
-        {
-	    send_to_char("You lose your stance!\n\r",ch);
-	    ch->stance = 0;
-	}
+	check_lose_stance(ch);
 	set_pos( ch, POS_RESTING );
 	return;
     } 
@@ -2891,7 +2880,7 @@ void do_charge( CHAR_DATA *ch, char *argument )
 	act("$n sends $N sprawling with a powerful charge.",
 	    ch,NULL,victim,TO_NOTVICT);
 	
-	victim->stance = 0;
+    destance(victim, get_mastery(ch, gsn_charge));
 	DAZE_STATE( victim, 4*PULSE_VIOLENCE + 2*(ch->size - victim->size) );
 	WAIT_STATE( victim, 2*PULSE_VIOLENCE );
 	set_pos( victim, POS_RESTING );
@@ -2909,6 +2898,7 @@ void do_charge( CHAR_DATA *ch, char *argument )
     
     /* deal damage */
     dam = one_hit_damage(ch, gsn_charge, NULL) * 2;
+    dam += dam * mastery_bonus(ch, gsn_charge, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_charge,DAM_BASH,TRUE);
     check_improve(ch,gsn_charge,TRUE,1);
 }
@@ -2942,10 +2932,25 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
     }
     else
     {
-	act( "You strike out at $N!", ch, NULL, victim, TO_CHAR );
-	one_hit( ch, victim, gsn_double_strike, FALSE );
-	one_hit( ch, victim, gsn_double_strike, TRUE );
-	check_improve( ch, gsn_double_strike, TRUE, 3 );
+        int hits = 0;
+
+        act( "You strike out at $N!", ch, NULL, victim, TO_CHAR );
+        if ( one_hit(ch, victim, gsn_double_strike, FALSE) )
+            hits++;
+        if ( one_hit(ch, victim, gsn_double_strike, TRUE) )
+            hits++;
+        check_improve( ch, gsn_double_strike, TRUE, 3 );
+
+        if ( hits == 2 && per_chance(mastery_bonus(ch, gsn_double_strike, 40, 50)) )
+        {
+            act("You bury your weapons deep in $N, then rip them out sideways!", ch, NULL, victim, TO_CHAR);
+            act("$n buries $s weapons deep in your body, then rips them out sideways!", ch, NULL, victim, TO_VICT);
+            act("$n buries $s weapons deep in $N, then rips them out sideways!", ch, NULL, victim, TO_NOTVICT);
+            int dam = one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_WIELD))
+                    + one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_SECONDARY));
+            int dt_rend = TYPE_HIT + 102; // see attack_table in const.c
+            deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE, FALSE);
+        }
     }
 }
 
@@ -3201,13 +3206,7 @@ void do_roundhouse( CHAR_DATA *ch, char *argument )
       act("$n falls to the ground in an attempt at a roundhouse kick.",ch,NULL,NULL,TO_ROOM);
       act("You fall to the ground in an attempt at a roundhouse kick.",ch,NULL,NULL,TO_CHAR);
       check_improve(ch, gsn_roundhouse, FALSE,2);
-
-      if ( check_lose_stance(ch) )
-      {
-          send_to_char("You lose your stance!\n\r",ch);
-          ch->stance = 0;
-      }
-      
+      check_lose_stance(ch);
       DAZE_STATE(ch, 2*PULSE_VIOLENCE);
       set_pos( ch, POS_RESTING );
       damage(ch,ch,number_range(4, 6 +  3 * ch->size),gsn_roundhouse, DAM_BASH,TRUE);
@@ -3486,6 +3485,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
         CHECK_RETURN(ch, victim);
         // second blow for massive damage
         int move_loss = IS_AFFECTED(ch, AFF_BERSERK) ? ch->move / 8 : ch->move / 12;
+        move_loss += move_loss * mastery_bonus(ch, gsn_fatal_blow, 15, 25) / 100;
         ch->move -= move_loss;
         dam += move_loss * 4;
             
@@ -3496,7 +3496,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
             act( "You stun $N with a crushing blow to $S temple!", ch, NULL, victim, TO_CHAR );
             act( "$n stuns you with a crushing blow to your temple!", ch, NULL, victim, TO_VICT );
             act( "$n stuns $N with a crushing blow to $S temple!", ch, NULL, victim, TO_NOTVICT );
-            victim->stance = 0;
+            destance(victim, get_mastery(ch, gsn_fatal_blow));
             WAIT_STATE( victim, 2 * PULSE_VIOLENCE );
             DAZE_STATE( victim, 4 * PULSE_VIOLENCE );
         }
@@ -3687,7 +3687,6 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
 
     act( "You knock $N out.", ch, NULL, victim, TO_CHAR );
     act( "$n knocks $N out.", ch, NULL, victim, TO_NOTVICT );
-    victim->stance = 0;
 
     if ( IS_AWAKE(victim) )
     {

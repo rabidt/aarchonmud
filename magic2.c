@@ -53,7 +53,6 @@ int  hit_gain     args(( CHAR_DATA *ch ));
 int  mana_gain    args(( CHAR_DATA *ch ));
 int  move_gain    args(( CHAR_DATA *ch )) ;
 bool check_dispel( int dis_level, CHAR_DATA *victim, int sn);
-bool  disarm        args( ( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet ) );
 
 RELIGION_DATA *get_religion args(( CHAR_DATA *ch ));
 
@@ -860,6 +859,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     int puppet_skill = get_skill( ch, gsn_puppetry );
+    int puppet_mastery = get_mastery(ch, gsn_puppetry);
 
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_WAR) )
     {
@@ -890,6 +890,8 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         mlevel = (level * 2 + cor->level) / 4;    
     /* bonus for puppetry skill */
     mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
+    if ( puppet_mastery )
+        mlevel += 1 + 2 * puppet_mastery;
     
     /* Check number of charmees against cha */
     if ( check_cha_follow(ch, mlevel) < mlevel )
@@ -1158,15 +1160,19 @@ void spell_major_group_heal( int sn, int level, CHAR_DATA *ch, void *vo, int tar
 void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int heal, factor;
+    int heal = victim->max_hit - victim->hit;
+    double factor = 2.0;
 
-    factor = 2;
-    if ( !was_obj_cast && chance(get_skill(ch, gsn_anatomy)) )
-	factor += 1;
+    if ( !was_obj_cast )
+    {
+        int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
+        factor += factor * get_skill(ch, gsn_anatomy) / 200;
+        check_improve(ch, gsn_anatomy, TRUE, 1);
+    }
     if ( ch != victim )
-	factor += 1;
+        factor += factor / 3;
+    factor *= 100.0 / mastery_adjust_cost(100, get_mastery(ch, sn));
 
-    heal = victim->max_hit - victim->hit;
     if ( ch->mana < heal/factor )
 	heal = ch->mana * factor;
 
@@ -2080,13 +2086,11 @@ void spell_windwar( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 	/*check for disarm*/ 
 	if ( chance(10) )
 	{
-	    if (disarm(ch, vch, TRUE))
+	    if ( disarm(ch, vch, TRUE, get_mastery(ch, sn)) )
 	    {
-		act( "$n's wind blows your weapon from your grasp!", 
-		     ch, NULL, vch, TO_VICT    );
-		act( "Your winds disarm $N!",  ch, NULL, vch, TO_CHAR    );
-		act( "$n's wind blow $N's weapon away!",  ch, NULL, vch, 
-		     TO_NOTVICT );
+            act( "$n's wind blows your weapon from your grasp!", ch, NULL, vch, TO_VICT );
+            act( "Your winds disarm $N!", ch, NULL, vch, TO_CHAR );
+            act( "$n's wind blow $N's weapon away!", ch, NULL, vch, TO_NOTVICT );
 	    }
 	}
 	/*end disarm section*/
@@ -3347,7 +3351,8 @@ void spell_renewal( int sn, int level, CHAR_DATA *ch, void *vo, int target )
         /* renewing a spell to full duration costs twice as much as casting it fresh */
         if ( !last_paid )
         {
-            cost = (2 * meta_magic_adjust_cost(skill_table[type].min_mana, FALSE) + base_duration - 1) / base_duration;
+            cost = 2 * meta_magic_adjust_cost(ch, mastery_adjust_cost(skill_table[type].min_mana, get_mastery(ch, sn)), FALSE);
+            cost = (cost + base_duration - 1) / base_duration; // round up
             if ( ch->mana < cost )
             {
                 printf_to_char( ch, "You don't have enough mana to renew your %s spell.\n\r", skill_table[type].name );
