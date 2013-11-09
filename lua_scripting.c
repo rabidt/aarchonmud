@@ -3910,7 +3910,7 @@ static void call_lua_function (CHAR_DATA * ch,
 }  /* end of call_lua_function */
 
 
-bool lua_load_mprog( lua_State *LS, int vnum, char *code)
+bool lua_load_mprog( lua_State *LS, int vnum, const char *code)
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
 
@@ -3947,7 +3947,7 @@ bool lua_load_mprog( lua_State *LS, int vnum, char *code)
 
 }
 
-bool lua_load_aprog( lua_State *LS, int vnum, char *code)
+bool lua_load_aprog( lua_State *LS, int vnum, const char *code)
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
 
@@ -3982,7 +3982,7 @@ bool lua_load_aprog( lua_State *LS, int vnum, char *code)
     else return TRUE;
 }
 
-bool lua_load_rprog( lua_State *LS, int vnum, char *code)
+bool lua_load_rprog( lua_State *LS, int vnum, const char *code)
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
 
@@ -4018,7 +4018,7 @@ bool lua_load_rprog( lua_State *LS, int vnum, char *code)
     else return TRUE;
 }
 
-bool lua_load_oprog( lua_State *LS, int vnum, char *code)
+bool lua_load_oprog( lua_State *LS, int vnum, const char *code)
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
 
@@ -4055,7 +4055,7 @@ bool lua_load_oprog( lua_State *LS, int vnum, char *code)
 /* lua_mob_program
    lua equivalent of program_flow
  */
-void lua_mob_program( char *text, int pvnum, char *source, 
+void lua_mob_program( const char *text, int pvnum, const char *source, 
         CHAR_DATA *mob, CHAR_DATA *ch, 
         const void *arg1, sh_int arg1type, 
         const void *arg2, sh_int arg2type,
@@ -4184,7 +4184,7 @@ void lua_mob_program( char *text, int pvnum, char *source,
 }
 
 
-bool lua_obj_program( char *trigger, int pvnum, char *source, 
+bool lua_obj_program( const char *trigger, int pvnum, const char *source, 
         OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
         int trig_type,
         int security ) 
@@ -4296,7 +4296,7 @@ bool lua_obj_program( char *trigger, int pvnum, char *source,
     return result;
 }
 
-bool lua_area_program( char *trigger, int pvnum, char *source, 
+bool lua_area_program( const char *trigger, int pvnum, const char *source, 
         AREA_DATA *area, CHAR_DATA *ch1,
         int trig_type,
         int security ) 
@@ -4401,7 +4401,7 @@ bool lua_area_program( char *trigger, int pvnum, char *source,
     return result;
 }
 
-bool lua_room_program( char *trigger, int pvnum, char *source, 
+bool lua_room_program( const char *trigger, int pvnum, const char *source, 
         ROOM_INDEX_DATA *room, 
         CHAR_DATA *ch1, CHAR_DATA *ch2, OBJ_DATA *obj1, OBJ_DATA *obj2,
         int trig_type,
