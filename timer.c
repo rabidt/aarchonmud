@@ -11,6 +11,7 @@
 #define TYPE_CH 1
 #define TYPE_OBJ 2
 #define TYPE_AREA 3
+#define TYPE_ROOM 4
 
 #define TM_UNDEFINED 0
 #define TM_PROG      1
@@ -137,6 +138,24 @@ TIMER_NODE * register_area_timer( AREA_DATA *area, int max )
 
 }
 
+TIMER_NODE * register_room_timer( ROOM_INDEX_DATA *room, int max )
+{
+    if ( room->rtrig_timer)
+    {
+        bugf("Trying to register timer for room %d but already registered.", room->vnum);
+        return NULL;
+    }
+
+    TIMER_NODE *tmr=new_timer_node( (void *)room, TYPE_ROOM, TM_PROG, max, NULL);
+
+    add_timer(tmr);
+
+    room->rtrig_timer=tmr;
+
+    return tmr;
+}
+
+
 static void add_timer( TIMER_NODE *tmr)
 {
     if (first_timer)
@@ -238,6 +257,7 @@ void timer_update()
     CHAR_DATA *ch;
     OBJ_DATA *obj;
     AREA_DATA *area;
+    ROOM_INDEX_DATA *room;
 
     for (tmr=first_timer ; tmr ; tmr=tmr_next)
     {
@@ -300,6 +320,14 @@ void timer_update()
                             aprog_timer_init( area );
                             break;
 
+                        case TYPE_ROOM:
+                            /* no need for valid check on rooms */
+                            room=(ROOM_INDEX_DATA *)(tmr->game_obj);
+                            rp_timer_trigger( room );
+                            room->rtrig_timer=NULL;
+                            rprog_timer_init( room );
+                            break;
+
                         default:
                             bugf("Invalid type in timer update: %d.", tmr->go_type);
                             remove_timer(tmr);
@@ -333,6 +361,7 @@ char * print_timer_list()
             tmr->go_type == TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
             tmr->go_type == TYPE_OBJ ? ((OBJ_DATA *)(tmr->game_obj))->name :
             tmr->go_type == TYPE_AREA ? ((AREA_DATA *)(tmr->game_obj))->name :
+            tmr->go_type == TYPE_ROOM ? ((ROOM_INDEX_DATA *)(tmr->game_obj))->name :
             "unknown",
             tmr->current,
             tmr->tag ? tmr->tag : "none");

@@ -550,6 +550,10 @@ DECLARE_DO_FUN( do_opdump   );
 DECLARE_DO_FUN( do_apedit   );
 DECLARE_DO_FUN( do_apdump   );
 
+/* Room Progs */
+DECLARE_DO_FUN( do_rpedit   );
+DECLARE_DO_FUN( do_rpdump   );
+
 /* OLC */
 DECLARE_DO_FUN( do_aedit    );
 DECLARE_DO_FUN( do_alist    );

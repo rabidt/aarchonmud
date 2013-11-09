@@ -569,6 +569,20 @@ const struct flag_type aprog_flags[] =
     {   NULL,           0,          TRUE    }
 };
 
+const struct flag_type rprog_flags[] =
+{
+    {   "call",         RTRIG_CALL,      FALSE   },
+    {   "timer",        RTRIG_TIMER,     TRUE    },
+    {   "move",         RTRIG_MOVE,      TRUE    },
+    {   "unlock",       RTRIG_UNLOCK,    TRUE    },
+    {   "lock",         RTRIG_LOCK,      TRUE    },
+    {   "open",         RTRIG_OPEN,      TRUE    },
+    {   "close",        RTRIG_CLOSE,     TRUE    },
+    {   "enter",        RTRIG_ENTER,     TRUE    },
+    {   "exit",         RTRIG_EXIT,      TRUE    },
+    {   NULL,           0,          TRUE    }
+};
+
 const struct flag_type area_flags[] =
 {
 	{   "changed",      AREA_CHANGED,       TRUE    },
