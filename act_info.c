@@ -2222,11 +2222,27 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
 
         if (paf_last != NULL && paf->type == paf_last->type)
             if (show_long)
-                printf_to_char( to_ch, "                      ");
+                printf_to_char( to_ch, "                        ");
             else
                 continue;
         else
-            printf_to_char( to_ch, "Spell: %-15s", skill_table[paf->type].name );
+        {
+           /* More information for players regarding maledictions - Astark */
+            if (is_mental(paf->type))
+                printf_to_char( to_ch, "Mental : {M%-15s{x", skill_table[paf->type].name );
+            else if (paf->type == gsn_curse || paf->type == gsn_tomb_rot )
+                printf_to_char( to_ch, "Curse  : {r%-15s{x", skill_table[paf->type].name );
+            else if (paf->type == gsn_plague || paf->type == gsn_necrosis )
+                printf_to_char( to_ch, "Disease: {D%-15s{x", skill_table[paf->type].name );
+            else if (paf->type == gsn_poison || paf->type == gsn_paralysis_poison )
+                printf_to_char( to_ch, "Poison : {G%-15s{x", skill_table[paf->type].name );
+            else if (is_blindness(paf->type))
+                printf_to_char( to_ch, "Blind  : {c%-15s{x", skill_table[paf->type].name );
+            else if (!IS_SPELL(paf->type))
+                printf_to_char( to_ch, "Ability: %-15s", skill_table[paf->type].name );
+            else
+                printf_to_char( to_ch, "Spell  : %-15s", skill_table[paf->type].name );
+        }
 
         if (show_long)
         {
