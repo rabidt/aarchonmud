@@ -2204,7 +2204,7 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
                 printf_to_char( to_ch, "Curse  : {r%-15s{x", skill_table[paf->type].name );
             else if (paf->type == gsn_plague || paf->type == gsn_necrosis )
                 printf_to_char( to_ch, "Disease: {D%-15s{x", skill_table[paf->type].name );
-            else if (paf->type == gsn_poison)
+            else if (paf->type == gsn_poison || paf->type == gsn_paralysis_poison )
                 printf_to_char( to_ch, "Poison : {G%-15s{x", skill_table[paf->type].name );
             else if (is_blindness(paf->type))
                 printf_to_char( to_ch, "Blind  : {c%-15s{x", skill_table[paf->type].name );
