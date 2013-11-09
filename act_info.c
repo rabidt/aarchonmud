@@ -3180,7 +3180,7 @@ void do_equipment( CHAR_DATA *ch, char *argument )
     if ( !found && !all_slots )
         send_to_char( "Nothing.\n\r", ch );
 
-    if (!IS_SET(ch->act, PLR_NOHELP && ch->level <= 90))
+    if ( !IS_SET(ch->act, PLR_NOHELP) && ch->level <= 90 )
         do_eqhelp(ch,"");
 
     return;
