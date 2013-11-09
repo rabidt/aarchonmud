@@ -2220,6 +2220,26 @@ static int L_exit_flag( lua_State *LS)
     return 1;
 }
 
+static int L_exit_setflag( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    luaL_checktype( LS, 3, LUA_TBOOLEAN );
+    bool set=lua_toboolean( LS, 3 );
+
+    int flag=flag_lookup( argument, exit_flags);
+    if ( flag==NO_FLAG )
+        luaL_error(LS, "Invalid exit flag: '%s'", argument);
+
+    if ( set )
+        SET_BIT( ud_exit->exit_info, flag );
+    else
+        REMOVE_BIT( ud_exit->exit_info, flag );
+
+    return 0;
+}
+
+
 static int L_exit_lock( lua_State *LS)
 {
     EXIT_DATA *ud_exit = check_EXIT(LS, 1);
@@ -2733,6 +2753,7 @@ static const struct luaL_reg OBJPROTO_lib [] =
 static const struct luaL_reg EXIT_lib [] =
 {
     {"flag", L_exit_flag},
+    {"setflag", L_exit_setflag},
     {"open", L_exit_open},
     {"close", L_exit_close},
     {"unlock", L_exit_unlock},

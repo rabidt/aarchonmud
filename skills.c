@@ -184,6 +184,41 @@ void update_skill_costs()
     }
 }
 
+CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )
+{
+    CHAR_DATA *trainer;
+
+    for ( trainer = ch->in_room->people; trainer != NULL; trainer = trainer->next_in_room )
+        if ( IS_NPC(trainer) && IS_SET(trainer->act, act_flag) && can_see(ch, trainer) )
+        {
+            *introspect = FALSE;
+            return trainer;
+        }
+    
+    // no trainer, try introspection
+    int skill = get_skill(ch, gsn_introspection);
+    if ( skill > 1 && *introspect )
+    {
+        if ( *introspect = per_chance(skill) )
+        {
+            act("$n thinks over what $e has experienced recently.", ch, NULL, NULL, TO_ROOM);
+            check_improve(ch, gsn_introspection, TRUE, 8);
+        }
+        else
+        {
+            send_to_char("You find nothing meaningful in your introspection.\n\r", ch);
+            check_improve(ch, gsn_introspection, FALSE, 8);
+        }
+    }
+    else
+    {
+        *introspect = FALSE;
+        send_to_char( "You need a trainer for this. Visit your guild.\n\r", ch );
+    }
+
+    return NULL;
+}
+
 /* used to get new skills */
 void do_gain(CHAR_DATA *ch, char *argument)
 {
@@ -192,42 +227,17 @@ void do_gain(CHAR_DATA *ch, char *argument)
 	char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 	CHAR_DATA *trainer;
 	int gn = 0, sn = 0;
-	bool introspect = FALSE;
+	bool introspect = TRUE;
 	
 	if (IS_NPC(ch))
 		return;
-	
-	/* find a trainer */
-	for ( trainer = ch->in_room->people; trainer != NULL; trainer = trainer->next_in_room )
-		if (IS_NPC(trainer) && IS_SET(trainer->act,ACT_GAIN))
-			break;
-		
-		if (trainer == NULL || !can_see(ch,trainer))
-		{
-			if ( (get_skill(ch,gsn_introspection)) > 1 )
-			{
-				if ((get_skill(ch,gsn_introspection)) > number_percent() )
-				{
-					act( "$n thinks over what $e has experienced recently.",ch,NULL,NULL,TO_ROOM );
-					check_improve(ch,gsn_introspection,TRUE,8);
-					introspect = TRUE;
-				}
-				else
-				{
-					send_to_char("You find nothing meaningful in your introspection.\n\r",ch);
-					check_improve(ch,gsn_introspection,FALSE,8);
-					return;
-				}
-			}
-			else
-			{
-				send_to_char( "You can't do that here.\n\r", ch );
-				return;
-			}
-		}
-		
-                argPtr = one_argument( argument, arg );
-                argPtr = one_argument( argPtr, arg2 );
+
+    trainer = find_trainer(ch, ACT_GAIN, &introspect);
+    if ( !trainer && !introspect )
+        return;
+    
+    argPtr = one_argument( argument, arg );
+    argPtr = one_argument( argPtr, arg2 );
 
 		if (arg[0] == '\0')
 		{
@@ -496,6 +506,356 @@ void do_gain(CHAR_DATA *ch, char *argument)
 		
 }
 
+int get_mastery( CHAR_DATA *ch, int sn )
+{
+    return ch->pcdata ? ch->pcdata->mastered[sn] : 0;
+}
+
+int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus )
+{
+    switch ( get_mastery(ch, sn) )
+    {
+        case 1: return m_bonus;
+        case 2: return gm_bonus;
+        default: return 0;
+    }
+}
+
+static int get_group_mastery( CHAR_DATA *ch, int gn )
+{
+    int i, sn, mastery = 0;
+    for ( i = 0; mastery_group_table[gn].skills[i]; i++ )
+    {
+        sn = skill_lookup_exact(mastery_group_table[gn].skills[i]);
+        if ( sn < 0 )
+            bugf("Unknown skill %s in mastery group %s.", mastery_group_table[gn].skills[i], mastery_group_table[gn].name);
+        else
+            mastery = UMAX(mastery, ch->pcdata->mastered[sn]);
+    }
+    return mastery;
+}
+
+static bool is_in_mastery_group( int sn, int gn )
+{
+    int i;
+    for ( i = 0; mastery_group_table[gn].skills[i]; i++ )
+        if ( !strcmp(mastery_group_table[gn].skills[i], skill_table[sn].name) )
+            return TRUE;
+    return FALSE;
+}
+
+#define MAX_MASTERY_GROUP 100
+// get array of all mastery groups the given skill belongs to, 0-terminated
+static int* get_mastery_groups( int sn )
+{
+    static int groups[MAX_MASTERY_GROUP];
+    int gn, count = 0;
+    for ( gn = 1; mastery_group_table[gn].name; gn++ )
+        if ( is_in_mastery_group(sn, gn) )
+            groups[count++] = gn;
+    // terminate array
+    groups[count] = 0;
+    return groups;
+}
+#undef MAX_MASTERY_GROUP
+
+// additional cost from mastery groups to advance the given skill
+static int get_mastery_group_cost( CHAR_DATA *ch, int sn )
+{
+    int i, gn, cost = 0;
+    int mastery = get_mastery(ch, sn);
+    for ( gn = 1; mastery_group_table[gn].name; gn++ )
+        for ( i = 0; mastery_group_table[gn].skills[i]; i++ )
+            if ( !strcmp(mastery_group_table[gn].skills[i], skill_table[sn].name) && get_group_mastery(ch, gn) <= mastery )
+                cost += mastery_group_table[gn].rating;
+    return cost;
+}
+
+static int mastery_points( CHAR_DATA *ch )
+{
+    int sn, gn, points = 0;
+    // points for skills
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+        points += ch->pcdata->mastered[sn] * skill_table[sn].mastery_rating;
+    // extra points for groups
+    for ( gn = 1; mastery_group_table[gn].name; gn++ )
+        points += get_group_mastery(ch, gn) * mastery_group_table[gn].rating;
+    return points;
+}
+
+static int max_mastery_points( CHAR_DATA *ch )
+{
+    return 30 + 2 * ch->pcdata->remorts;
+}
+
+static const char* mastery_title( int level )
+{
+    switch( level )
+    {
+        case 2: return "grandmaster";
+        case 1: return "master";
+        default: return "(BUG)";
+    }
+}
+
+static int max_mastery_class( int class, int sn )
+{
+    // skill must have a mastery_rating
+    if ( skill_table[sn].mastery_rating < 1 )
+        return -1;
+    
+    int class_max = skill_table[sn].cap[class];
+
+    if ( class_max < 80 || skill_table[sn].skill_level[class] > LEVEL_HERO )
+        return 0;
+    else if ( class_max < 90 )
+        return 1;
+    else
+        return 2;
+}
+
+static int max_mastery_level( CHAR_DATA *ch, int sn )
+{
+    int level = max_mastery_class(ch->class, sn);
+    int practice = ch->pcdata->learned[sn];
+    
+    if ( practice < 80 )
+        return UMIN(level, 0);
+    else if ( practice < 90 )
+        return UMIN(level, 1);
+    else
+        return UMIN(level, 2);
+}
+
+static void show_master_syntax( CHAR_DATA *ch )
+{
+    send_to_char("Syntax: master <skill>\n\r", ch);
+    send_to_char("        master forget <skill>\n\r", ch);
+    send_to_char("        master retrain <skill>\n\r", ch);
+    send_to_char("        master list\n\r", ch);
+}
+
+static void show_master_list( CHAR_DATA *ch )
+{
+    BUFFER *buf = new_buf();
+    int sn, gn, lvl;
+
+    add_buf(buf, "{gYou have mastered the following skills:{x\n\r");
+    add_buf(buf, "{WSkill/Spell            School               Rank            Cost{x\n\r");
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+        if ( lvl = ch->pcdata->mastered[sn] )
+        {
+            int *groups = get_mastery_groups(sn);
+            add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
+                skill_table[sn].name,
+                *groups ? mastery_group_table[*groups].name : "",
+                mastery_title(lvl),
+                skill_table[sn].mastery_rating * lvl
+            );
+            // may belong to more than one school
+            while ( *groups && *(++groups) )
+                add_buff(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
+        }
+
+    add_buf(buf, "\n\r{gYou have mastered the following schools:{x\n\r");
+    for ( gn = 1; mastery_group_table[gn].name; gn++ )
+        if ( lvl = get_group_mastery(ch, gn) )
+            add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
+                "",
+                mastery_group_table[gn].name,
+                mastery_title(lvl),
+                mastery_group_table[gn].rating * lvl
+            );
+
+    add_buff(buf, "\n\r{gTrains spent on skill/school mastery:{x %24d / %d\n\r",
+        mastery_points(ch), max_mastery_points(ch));
+
+    add_buf(buf, "\n\r{gYou may advance in the following skills:{x\n\r");
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+        if ( (lvl = ch->pcdata->mastered[sn]) < max_mastery_level(ch, sn) )
+        {
+            int *groups = get_mastery_groups(sn);
+            add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
+                skill_table[sn].name,
+                *groups ? mastery_group_table[*groups].name : "",
+                mastery_title(lvl+1),
+                skill_table[sn].mastery_rating + get_mastery_group_cost(ch, sn)
+            );
+            // may belong to more than one school
+            while ( *groups && *(++groups) )
+                add_buff(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
+        }
+
+    page_to_char(buf_string(buf), ch);
+    free_buf(buf);
+}
+
+void do_master( CHAR_DATA *ch, char *argument )
+{
+    char arg[MAX_INPUT_LENGTH], *arg2;
+    int sn;
+    
+    if (IS_NPC(ch))
+        return;
+
+    arg2 = one_argument( argument, arg );
+
+    if ( !strcmp(arg, "list") || !strcmp(arg, "") )
+    {
+        show_master_list(ch);
+        return;
+    }
+    else if ( ch->position < POS_STANDING )
+    {
+        send_position_message(ch);
+        return;
+    }
+    else if ( !strcmp(arg, "forget") )
+    {
+        // forget all option for debugging - hence imm only
+        if ( !strcmp(arg2, "all") && IS_IMMORTAL(ch) )
+        {
+            printf_to_char(ch, "You forget all your masteries.\n\r");
+            for ( sn = 1; sn < MAX_SKILL; sn++ )
+                ch->pcdata->mastered[sn] = 0;
+            return;
+        }
+        
+        if ( (sn = skill_lookup(arg2)) <= 0 )
+        {
+            printf_to_char(ch, "Invalid skill '%s'.\n\r", arg2);
+            return;
+        }
+        if ( !ch->pcdata->mastered[sn] )
+        {
+            printf_to_char(ch, "Seems you forgot about it already.\n\r", arg2);
+            return;
+        }
+        // ok, reduce mastery level
+        printf_to_char(ch, "You forget some of the finer details about %s.\n\r", skill_table[sn].name);
+        ch->pcdata->mastered[sn]--;
+        ch->pcdata->smc_retrained++;
+        return;
+    }
+    else if ( !strcmp(arg, "retrain") ) // like forget, but reclaims trains for gold
+    {
+        bool introspect = FALSE; // no introspection allowed - whom would we pay?
+        CHAR_DATA *trainer = find_trainer(ch, ACT_PRACTICE, &introspect);
+
+        if ( !trainer )
+            return;
+
+        if ( (sn = skill_lookup(arg2)) <= 0 )
+        {
+            act("$N tells you 'Hmm, I never heard of '$t'.'", ch, arg2, trainer, TO_CHAR);
+            return;
+        }
+        if ( !ch->pcdata->mastered[sn] )
+        {
+            act("$N tells you 'You godda give me something to work with here.'", ch, NULL, trainer, TO_CHAR);
+            return;
+        }
+        // work out reimbursement & cost
+        int points_before = mastery_points(ch);
+        ch->pcdata->mastered[sn]--;
+        int points_after = mastery_points(ch);
+        int points_diff = (points_before - points_after);
+        int reclaim = rand_div(points_diff * 9, 10);
+        int cost = points_diff * 1000;
+        if ( (ch->silver/100 + ch->gold) < cost)
+        {
+            char buf[MSL];
+            sprintf(buf, "I don't work for free, you know. Come back when you got %d gold.", cost);
+            do_say(trainer, buf);
+            ch->pcdata->mastered[sn]++;
+            return;
+        }
+        // ok, we're good
+        act("$N helps you retrain your mastery of $t.", ch, skill_table[sn].name, trainer, TO_CHAR);
+        act("$N helps $n retrain $s mastery of $t.", ch, skill_table[sn].name, trainer, TO_ROOM);
+        printf_to_char(ch, "You reclaim %d train%s for %d gold.\n\r", reclaim, reclaim == 1 ? "" : "s", cost);
+        deduct_cost(ch, cost*100);
+        ch->train += reclaim;
+        ch->pcdata->smc_retrained++;
+
+        return;
+    }
+    else if ( (sn = skill_lookup(argument)) > 0 )
+    {
+        int max_mastery = max_mastery_level(ch, sn);
+        int current_mastery = ch->pcdata->mastered[sn];
+
+        bool introspect = TRUE;
+        CHAR_DATA *trainer = find_trainer(ch, ACT_PRACTICE, &introspect);
+
+        if ( !trainer && !introspect )
+            return;
+        
+        if ( max_mastery == -1 )
+        {
+            printf_to_char(ch, "The %s skill cannot be mastered.\n\r", skill_table[sn].name);
+            return;
+        }
+        
+        if ( current_mastery >= max_mastery_class(ch->class, sn) )
+        {
+            if ( trainer )
+                act("$N tells you 'There is nothing more I can teach you.'", ch, NULL, trainer, TO_CHAR);
+            else
+                printf_to_char(ch, "You have reached your limit of expertise in %s.\n\r",  skill_table[sn].name);
+            return;
+        }
+
+        if ( max_mastery <= current_mastery )
+        {
+            if ( trainer )
+                act("$N tells you 'Come back after you practice some more.'", ch, NULL, trainer, TO_CHAR);
+            else
+                printf_to_char(ch, "You don't feel skilled enough yet.\n\r", skill_table[sn].name);
+            return;            
+        }
+
+        int cost = skill_table[sn].mastery_rating + get_mastery_group_cost(ch, sn);
+        if ( mastery_points(ch) + cost > max_mastery_points(ch) )
+        {
+            if ( trainer )
+                act("$N tells you 'You cannot master that many skills.'", ch, NULL,trainer, TO_CHAR);
+            else
+                printf_to_char(ch, "You feel like your head would explode.\n\r", skill_table[sn].name);
+            return;
+        }
+        if ( ch->train < cost )
+        {
+            if ( trainer )
+                act("$N tells you 'You are not yet ready to master that skill.'", ch, NULL,trainer, TO_CHAR);
+            else
+                printf_to_char(ch, "You don't feel ready yet.\n\r", skill_table[sn].name);
+            return;
+        }
+
+        // all good, master it
+        ch->pcdata->mastered[sn]++;
+        ch->train -= cost;
+        if ( ch->pcdata->mastered[sn] == 2 )
+            ch->pcdata->smc_grandmastered++;
+        else
+            ch->pcdata->smc_mastered++;
+        
+        if ( trainer )
+        {
+            act("$N helps you master the art of $t.", ch, skill_table[sn].name, trainer, TO_CHAR);
+            act("$N helps $n master the art of $t.", ch, skill_table[sn].name, trainer, TO_ROOM);
+        }
+        else
+            printf_to_char(ch, "You master the art of %s.\n\r", skill_table[sn].name);
+        if ( ch->pcdata->mastered[sn] == 2 )
+            printf_to_char(ch, "You are now a grandmaster in the art of %s.\n\r", skill_table[sn].name);
+        return;
+    }
+    
+    // couldn't parse argument
+    show_master_syntax(ch);
+}
 
 void do_skill( CHAR_DATA *ch, char *argument )
 {
@@ -2038,6 +2398,7 @@ void do_showskill(CHAR_DATA *ch,char *argument)
     {
         show_skill(arg1, buffer);
         show_groups(skill, buffer);
+        show_mastery_groups(skill, buffer);
         show_races(skill, buffer);
     }
     
@@ -2080,6 +2441,28 @@ void show_groups( int skill, BUFFER *buffer )
     }
     if ( col % 3 != 0 )
 	add_buf( buffer, "\n\r" );
+}
+
+void show_mastery_groups( int skill, BUFFER *buffer )
+{
+    char buf[MSL];
+    int gn, col = 0;
+
+    if ( skill_table[skill].mastery_rating < 1 )
+        return;
+
+    add_buf( buffer, "\n\rIt belongs to the following schools:\n\r" );
+    for ( gn = 1; mastery_group_table[gn].name; gn++ )
+    {
+        if ( !is_in_mastery_group(skill, gn) )
+            continue;
+        sprintf( buf, "%s (%d)  ", mastery_group_table[gn].name, mastery_group_table[gn].rating );
+        add_buf( buffer, buf );
+        if (++col % 3 == 0)
+            add_buf( buffer, "\n\r" );
+    }
+    if ( col % 3 != 0 )
+    add_buf( buffer, "\n\r" );
 }
 
 bool has_race_skill( int skill, int rn )
@@ -2179,22 +2562,30 @@ void show_skill(char *argument, BUFFER *buffer)
         (skill_table[skill].stat_third>=STAT_NONE) ? "none" :
         stat_table[skill_table[skill].stat_third].name);
     
-    add_buff(buffer, "\n\r{wClass          Level Points  Max{x\n\r");
-    
-    add_buff(buffer, "{w------------   ----- ------ -----{x\n\r");
+    add_buff(buffer, "\n\r{wClass          Level Points  Max  Mastery{x\n\r");
+    add_buff(buffer,     "{w------------   ----- ------ ----- -------{x\n\r");
     
     for ( cls = 0; cls < MAX_CLASS; cls++ )
     {
         if (skill_table[skill].skill_level[cls] > LEVEL_HERO)
         {
-            sprintf(log_buf, "{r   --     --     --{x\n\r");
+            sprintf(log_buf, "{r   --     --     --   -- --{x\n\r");
         }
         else
         {
-                sprintf( log_buf, "{g%5d    %3d    %3d{x\n\r",
-                    skill_table[skill].skill_level[cls],
-                    skill_table[skill].rating[cls],
-                    skill_table[skill].cap[cls] );
+            char mbuf[MSL];
+            int max_mastery = max_mastery_class(cls, skill);
+            if ( skill_table[skill].mastery_rating < 1 || max_mastery < 1 )
+                sprintf(mbuf, "{r-- --");
+            else
+                sprintf(mbuf, "%2d %2s", skill_table[skill].mastery_rating, max_mastery == 2 ? "GM" : "MA");
+            
+            sprintf(log_buf, "{g%5d    %3d    %3d   %s{x\n\r",
+                skill_table[skill].skill_level[cls],
+                skill_table[skill].rating[cls],
+                skill_table[skill].cap[cls],
+                mbuf
+            );
         }
         
         add_buff(buffer, "{w%-12s{x %-5s", capitalize(class_table[cls].name), log_buf);
