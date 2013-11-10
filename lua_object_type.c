@@ -26,14 +26,14 @@ static void * check_func( OBJ_TYPE *self,
     luaL_checktype( LS, -1, LUA_TLIGHTUSERDATA);
     void *game_object=lua_touserdata(LS, -1 );
     lua_pop(LS, 1);
+
+    return game_object;
 }
 
-static int index_metamethod( lua_State *LS )
+static int index_metamethod( lua_State *LS)
 {
-    stackDump(LS);
-    OBJ_TYPE *obj=lua_touserdata(LS, 1 );
-    void *gobj=obj->check(obj, LS, 2 );
-    const char *arg=luaL_checkstring( LS, 3 );
+    OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+    const char *arg=luaL_checkstring( LS, 2 );
 
     LUA_PROP_TYPE *get=obj->get_table;
     
@@ -42,6 +42,9 @@ static int index_metamethod( lua_State *LS )
         lua_pushinteger( LS, obj->udtype );
         return 1;
     }
+
+    /* have to grab object AFTER udtype check */
+    void *gobj=obj->check(obj, LS, 1 );
 
     int i;
     for (i=0; get[i].field; i++ )
@@ -127,8 +130,8 @@ static bool make_func( OBJ_TYPE *self,
 
     luaL_getmetatable (LS, self->type_name);
     lua_setmetatable (LS, -2);  /* set metatable for object data */
+    
     lua_pushstring( LS, "tableid");
-
     lua_pushlightuserdata( LS, game_obj);
     lua_rawset( LS, -3 );
 
