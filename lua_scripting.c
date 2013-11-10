@@ -45,9 +45,13 @@ http://www.gammon.com.au/forum/?id=8015
 #include "tables.h"
 #include "lua_scripting.h"
 #include "olc.h"
+#include "lua_object_type.h"
+#include "lua_type_RESET.h"
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 /* Mersenne Twister stuff - see mt19937ar.c */
+
+OBJ_TYPE *RESET_type;
 
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
 #define LUA_LOOP_CHECK_INCREMENT 100
@@ -74,7 +78,6 @@ static const struct luaL_reg OBJPROTO_lib[];
 static const struct luaL_reg ROOM_lib [];
 static const struct luaL_reg EXIT_lib [];
 static const struct luaL_reg AREA_lib [];
-static const struct luaL_reg RESET_lib [];
 static const struct luaL_reg MOBPROTO_lib[];
 
 #define CHARACTER_STATE "character.state"
@@ -85,7 +88,6 @@ static const struct luaL_reg MOBPROTO_lib[];
 #define ROOM_META      "ROOM.meta"
 #define EXIT_META      "EXIT.meta"
 #define AREA_META	   "AREA.meta"
-#define RESET_META     "RESET.meta"
 #define MOBPROTO_META  "MOBPROTO.meta"
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
@@ -150,7 +152,6 @@ static const struct luaL_reg MOBPROTO_lib[];
 #define UDTYPE_EXIT      4
 #define UDTYPE_OBJPROTO  5
 #define UDTYPE_AREA      6
-#define UDTYPE_RESET     7
 #define UDTYPE_MOBPROTO  8
 
 
@@ -159,7 +160,7 @@ static const struct luaL_reg MOBPROTO_lib[];
 
 LUALIB_API int luaopen_bits(lua_State *LS);  /* Implemented in lua_bits.c */
 
-static void stackDump (lua_State *LS) {
+void stackDump (lua_State *LS) {
     int i;
     int top = lua_gettop(LS);
     for (i = 1; i <= top; i++) {  /* repeat for each level */
@@ -335,23 +336,6 @@ static AREA_DATA *check_AREA( lua_State *LS, int arg)
     return area;
 }
 
-static RESET_DATA *check_RESET( lua_State *LS, int arg)
-{
-    lua_getfield(LS, arg, "UDTYPE");
-    sh_int type= (sh_int)luaL_checknumber(LS, -1);
-    lua_pop(LS, 1);
-    if ( type != UDTYPE_RESET )
-    {
-        luaL_error(LS, "Bad parameter %d. Expected RESET.", arg );
-        return NULL;
-    }
-
-    lua_getfield(LS, arg, "tableid");
-    RESET_DATA *reset=(RESET_DATA *)luaL_checkudata(LS, -1, UD_META);
-    lua_pop(LS, 1);
-    return reset;
-}
-
 static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
 {
     if ( !ptr )
@@ -403,8 +387,6 @@ static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
             meta=AREA_META; break;
         case UDTYPE_OBJPROTO:
             meta=OBJPROTO_META; break;
-        case UDTYPE_RESET:
-            meta=RESET_META; break;
         case UDTYPE_MOBPROTO:
             meta=MOBPROTO_META; break;
         default:
@@ -2807,11 +2789,6 @@ static const struct luaL_reg AREA_lib [] =
     {NULL, NULL}
 }; 
 
-static const struct luaL_reg RESET_lib [] =
-{
-    {NULL, NULL}
-};
-
 /* Mersenne Twister pseudo-random number generator */
 
 static int L_mt_srand (lua_State *LS)
@@ -2905,11 +2882,6 @@ static int AREA2string (lua_State *LS)
     return 1;
 }
 
-static int RESET2string (lua_State *LS)
-{
-    lua_pushliteral( LS, "mud_reset");
-    return 1;
-}
 
 
 
@@ -3277,50 +3249,6 @@ static int get_AREA_field ( lua_State *LS )
     return 0;
 }
 
-static int check_RESET_equal( lua_State *LS)
-{
-    lua_pushboolean( LS, check_RESET(LS, 1) == check_RESET(LS, 2) );
-    return 1;
-}
-
-static int get_RESET_field (lua_State *LS)
-{
-    const char *argument = luaL_checkstring (LS, 2 );
-
-    FLDNUM("UDTYPE",UDTYPE_RESET); /* Need this for type checking */
-
-    /* check for funcs first */
-    int i;
-    for ( i=0 ; RESET_lib[i].name != NULL ; i++ )
-    {
-        if (!strcmp( argument, RESET_lib[i].name ) )
-        {
-            lua_pushcfunction( LS, RESET_lib[i].func);
-            return 1;
-        }
-    }
-
-    RESET_DATA *ud_reset = check_RESET(LS, 1);
-
-    if ( !ud_reset )
-        return 0;
-
-    if (!strcmp( argument, "command" ) )
-    {
-        char buf[2];
-        sprintf(buf, "%c", ud_reset->command);
-        lua_pushstring( LS, buf );
-        return 1;
-    }
-    FLDNUM("arg1", ud_reset->arg1);
-    FLDNUM("arg2", ud_reset->arg2);
-    FLDNUM("arg3", ud_reset->arg3);
-    FLDNUM("arg4", ud_reset->arg4);
-
-    return 0;
-}
-
-
 static int check_EXIT_equal( lua_State *LS)
 {
     lua_pushboolean( LS, check_EXIT(LS, 1) == check_EXIT(LS, 2) );
@@ -3501,7 +3429,7 @@ static int get_ROOM_field ( lua_State *LS )
         RESET_DATA *reset;
         for ( reset=ud_room->reset_first; reset; reset=reset->next)
         {
-            if (make_ud_table(LS, reset, UDTYPE_RESET) )
+            if ( RESET_type->make(RESET_type, LS, reset ) )
                 lua_rawseti(LS, -2, index++);
         }
         return 1;
@@ -3763,15 +3691,6 @@ static const struct luaL_reg AREA_metatable [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg RESET_metatable [] =
-{
-    {"__tostring", RESET2string},
-    {"__index", get_RESET_field},
-    {"__newindex", newindex_error},
-    {"__eq", check_RESET_equal},
-    {NULL, NULL}
-};
-
 static void RegisterGlobalFunctions(lua_State *LS)
 {
     /* These are registed in the main script
@@ -3836,14 +3755,13 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, NULL, OBJPROTO_metatable);
     luaL_newmetatable(LS, AREA_META);
     luaL_register (LS, NULL, AREA_metatable);
-    luaL_newmetatable(LS, RESET_META);
-    luaL_register (LS, NULL, RESET_metatable);
     luaL_newmetatable(LS, MOBPROTO_META);
     luaL_register (LS, NULL, MOBPROTO_metatable);
 
     /* our metatable for lightuserdata */
     luaL_newmetatable(LS, UD_META);
 
+    RESET_type=RESET_init(LS);
     return 0;
 
 }  /* end of RegisterLuaRoutines */

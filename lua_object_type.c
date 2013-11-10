@@ -18,8 +18,8 @@ static void * check_func( OBJ_TYPE *self,
     lua_pop(LS, 1);
     if ( type != self->udtype )
     {
-        luaL_error(LS, "Bad parameter %d. Expected %s.",
-                index, self->type_name);
+        luaL_error(LS, "Bad parameter %d. Expected %s. %d %d",
+                index, self->type_name, type, self->udtype);
     }
 
     lua_getfield(LS, index, "tableid");
@@ -30,6 +30,7 @@ static void * check_func( OBJ_TYPE *self,
 
 static int index_metamethod( lua_State *LS )
 {
+    stackDump(LS);
     OBJ_TYPE *obj=lua_touserdata(LS, 1 );
     void *gobj=obj->check(obj, LS, 2 );
     const char *arg=luaL_checkstring( LS, 3 );
@@ -56,7 +57,7 @@ static int index_metamethod( lua_State *LS )
            else if (get[i].func)
            {
                int val;
-               val=(get[i].func)(gobj);
+               val=(get[i].func)(LS, gobj);
                return val;
            }
            else
@@ -154,7 +155,7 @@ OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *set_table,
         const LUA_PROP_TYPE *method_table)
 {
-    static int udtype=0;
+    static int udtype=10;
     udtype=udtype+1;
 
     /*tbc check for table structure correctness */
