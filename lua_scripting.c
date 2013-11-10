@@ -47,12 +47,15 @@ http://www.gammon.com.au/forum/?id=8015
 #include "olc.h"
 #include "lua_object_type.h"
 #include "lua_type_RESET.h"
+#include "lua_type_EXIT.h"
+#include "lua_type_CH.h"
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 /* Mersenne Twister stuff - see mt19937ar.c */
 
 OBJ_TYPE *RESET_type;
 OBJ_TYPE *EXIT_type;
+OBJ_TYPE *CH_type;
 
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
 #define LUA_LOOP_CHECK_INCREMENT 100
@@ -3566,8 +3569,6 @@ static int RegisterLuaRoutines (lua_State *LS)
     RegisterGlobalFunctions(LS);
 
     /* meta tables to identify object types */
-    luaL_newmetatable(LS, CH_META);
-    luaL_register (LS, NULL, CH_metatable); 
     luaL_newmetatable(LS, OBJ_META);
     luaL_register (LS, NULL, OBJ_metatable);
     luaL_newmetatable(LS, ROOM_META);
@@ -3584,6 +3585,7 @@ static int RegisterLuaRoutines (lua_State *LS)
 
     RESET_type=RESET_init(LS);
     EXIT_type=EXIT_init(LS);
+    CH_type=CH_init(LS);
     return 0;
 
 }  /* end of RegisterLuaRoutines */
