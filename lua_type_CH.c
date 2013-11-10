@@ -4,16 +4,16 @@
 #include "merc.h"
 #include "lua_object_type.h"
 
+OBJ_TYPE *CH_type;
 static const struct luaL_reg CH_lib [];
 
 static int L_ch_ispc (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    CHAR_DATA * ud_ch = CH_type->check(CH_type, LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && !IS_NPC( ud_ch ) );
     return 1;
 }
-
 
 static const LUA_PROP_TYPE get_table [] =
 {
@@ -34,3 +34,14 @@ static const LUA_PROP_TYPE method_table [] =
     {NULL, PTYPE_NONE, NO_OFF, NULL}
 }; 
 
+OBJ_TYPE *CH_init(lua_State *LS)
+{
+    CH_type=new_obj_type(
+            LS,
+            "CH",
+            get_table,
+            set_table,
+            method_table);
+
+    return CH_type;
+}

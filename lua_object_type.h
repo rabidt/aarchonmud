@@ -10,7 +10,7 @@
 
 typedef const char * LUA_HELP_FUN ( const char *argument );
 typedef void * CHECK_FUN ( struct obj_type *self, lua_State *LS, int index );
-typedef int PROP_FUNC( void *gobj );
+typedef int PROP_FUNC( lua_State *LS, void *gobj );
 typedef struct prop_type
 {
     char *field;
@@ -24,7 +24,7 @@ typedef struct obj_type
 {
     int udtype; /* unique type ID */
     char *type_name;
-    bool *make;
+    bool (*make)();
 
     CHECK_FUN *check;
 
