@@ -15,27 +15,22 @@ static int L_ch_ispc (lua_State *LS)
 }
 
 
-static const struct luaL_reg CH_lib [] =
-{
-    {"ispc", L_ch_ispc},
-    {NULL, NULL}
-};
-
 static const LUA_PROP_TYPE get_table [] =
 {
-    {"hp", offsetof(CHAR_DATA, hit), NULL},
-    {NULL, NO_OFF, NULL}
+    {"name", PTYPE_STR,  offsetof(CHAR_DATA, name) , NULL},
+    {"hp",   PTYPE_INT,  offsetof(CHAR_DATA, hit)  , NULL},
+    {NULL, PTYPE_NONE, NO_OFF, NULL}
 };
 
 static const LUA_PROP_TYPE set_table [] =
 {
-    {"hp", offsetof(CHAR_DATA, hit), NULL},
-    {NULL, NO_OFF, NULL}
+    {"hp", PTYPE_INT,    offsetof(CHAR_DATA, hit), NULL},
+    {NULL, PTYPE_NONE, NO_OFF, NULL}
 };
 
 static const LUA_PROP_TYPE method_table [] =
 {
-    {"ispc", NO_OFF, L_ch_ispc},
-    {NULL, NO_OFF, NULL}
+    {"ispc", PTYPE_FUN, NO_OFF, L_ch_ispc},
+    {NULL, PTYPE_NONE, NO_OFF, NULL}
 }; 
 

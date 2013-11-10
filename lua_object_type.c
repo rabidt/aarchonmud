@@ -6,6 +6,7 @@
 
 #define UD_TABLE_NAME "udtbl"
 #define REGISTER_UD_FUNCTION "RegisterUd"
+#define MAKE_META_FUNCTION "MakeMetatable"
 
 
 /* base functionality for lua object types */
@@ -18,7 +19,7 @@ static void * check_func( OBJ_TYPE *self,
     if ( type != self->udtype )
     {
         luaL_error(LS, "Bad parameter %d. Expected %s.",
-                index, self->typename);
+                index, self->type_name);
     }
 
     lua_getfield(LS, index, "tableid");
@@ -27,9 +28,67 @@ static void * check_func( OBJ_TYPE *self,
     lua_pop(LS, 1);
 }
 
+static int index_metamethod( lua_State *LS )
+{
+    OBJ_TYPE *obj=lua_touserdata(LS, 1 );
+    void *gobj=obj->check(obj, LS, 2 );
+    const char *arg=luaL_checkstring( LS, 3 );
+
+    LUA_PROP_TYPE *get=obj->get_table;
+    
+    int i;
+    for (i=0; get[i].field; i++ )
+    {
+        if (!strcmp(get[i].field, arg) )
+        {
+           if (get[i].offset != NO_OFF )
+           {
+               lua_pushinteger( LS,
+                       * ( (int *)(gobj+get[i].offset) ) );
+               return 1;
+           }
+           else if (get[i].func)
+           {
+               int val;
+               val=(get[i].func)(gobj);
+               return val;
+           }
+           else
+               luaL_error(LS, "BAAAAD");
+
+        }
+    }
+
+    LUA_PROP_TYPE *method=obj->method_table;
+
+    for (i=0; method[i].field; i++ )
+    {
+        if (!strcmp(method[i].field, arg) )
+        {
+            lua_pushcfunction(LS, method[i].func);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+static int newindex_metamethod( lua_State *LS )
+{
+    return 0;
+}
+
 static void register_type( OBJ_TYPE *self,
         lua_State *LS)
 {
+    lua_getglobal( LS, MAKE_META_FUNCTION );
+    
+    lua_pushlightuserdata( LS, ( void *)self);
+    lua_pushcclosure( LS, index_metamethod, 1 );
+
+    lua_pushlightuserdata( LS, ( void *)self);
+    lua_pushcclosure( LS, newindex_metamethod, 1 );
+
     luaL_newmetatable(LS, self->metatable_name);
     luaL_register( LS, NULL, self->metatable);
 }
@@ -78,13 +137,4 @@ static bool make_type( OBJ_TYPE *self,
     lua_remove( LS, -2 );
 
     return TRUE;
-}
-
-static struct luaL_reg *new_metatable( OBJ_TYPE *self )
-{
-    struct luaL_reg mt [] =
-    {
-        {"__eq", self->eq_func },
-        { NULL, NULL}
-    };
 }
