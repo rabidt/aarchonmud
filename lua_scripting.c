@@ -52,6 +52,7 @@ lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 /* Mersenne Twister stuff - see mt19937ar.c */
 
 OBJ_TYPE *RESET_type;
+OBJ_TYPE *EXIT_type;
 
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
 #define LUA_LOOP_CHECK_INCREMENT 100
@@ -70,13 +71,12 @@ void init_by_array(unsigned long init_key[], int key_length);
 double genrand(void);
 
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
-static char *check_fstring( lua_State *LS, int index);
+char *check_fstring( lua_State *LS, int index);
 
 static const struct luaL_reg CH_lib [];
 static const struct luaL_reg OBJ_lib [];
 static const struct luaL_reg OBJPROTO_lib[];
 static const struct luaL_reg ROOM_lib [];
-static const struct luaL_reg EXIT_lib [];
 static const struct luaL_reg AREA_lib [];
 static const struct luaL_reg MOBPROTO_lib[];
 
@@ -86,7 +86,6 @@ static const struct luaL_reg MOBPROTO_lib[];
 #define OBJ_META       "OBJ.meta"
 #define OBJPROTO_META  "OBJPROTO.meta"
 #define ROOM_META      "ROOM.meta"
-#define EXIT_META      "EXIT.meta"
 #define AREA_META	   "AREA.meta"
 #define MOBPROTO_META  "MOBPROTO.meta"
 #define MUD_LIBRARY "mud"
@@ -149,7 +148,6 @@ static const struct luaL_reg MOBPROTO_lib[];
 #define UDTYPE_CH        1
 #define UDTYPE_OBJ       2
 #define UDTYPE_ROOM      3
-#define UDTYPE_EXIT      4
 #define UDTYPE_OBJPROTO  5
 #define UDTYPE_AREA      6
 #define UDTYPE_MOBPROTO  8
@@ -302,23 +300,6 @@ static ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int arg)
     return room;
 }
 
-static EXIT_DATA *check_EXIT( lua_State *LS, int arg)
-{
-    lua_getfield(LS, arg, "UDTYPE");
-    sh_int type= (sh_int)luaL_checknumber(LS, -1);
-    lua_pop(LS, 1);
-    if ( type != UDTYPE_EXIT )
-    {
-        luaL_error(LS, "Bad parameter %d. Expected EXIT.", arg );
-        return NULL;
-    }
-
-    lua_getfield(LS, arg, "tableid");
-    EXIT_DATA *exit=(EXIT_DATA *)luaL_checkudata(LS, -1, UD_META);
-    lua_pop(LS, 1);
-    return exit;
-}
-
 static AREA_DATA *check_AREA( lua_State *LS, int arg)
 {
     lua_getfield(LS, arg, "UDTYPE");
@@ -381,8 +362,6 @@ static bool make_ud_table ( lua_State *LS, void *ptr, int UDTYPE )
             meta=OBJ_META; break;
         case UDTYPE_ROOM:
             meta=ROOM_META; break;
-        case UDTYPE_EXIT:
-            meta=EXIT_META; break;
         case UDTYPE_AREA:
             meta=AREA_META; break;
         case UDTYPE_OBJPROTO:
@@ -2028,7 +2007,7 @@ static int L_ch_qstatus (lua_State *LS)
 
 /* Run string.format using args beginning at index 
    Assumes top is the last argument*/
-static char *check_fstring( lua_State *LS, int index)
+char *check_fstring( lua_State *LS, int index)
 {
     int narg=lua_gettop(LS)-(index-1);
 
@@ -2214,96 +2193,6 @@ static int L_mud_userdir( lua_State *LS)
 {
     lua_pushliteral( LS, USER_DIR);
     return 1;
-}
-
-static int L_exit_flag( lua_State *LS)
-{
-    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
-    const char *argument = check_fstring (LS, 2);
-
-    sh_int flag=flag_lookup( argument, exit_flags);
-    if ( flag==NO_FLAG )
-        luaL_error(LS, "Invalid exit flag: '%s'", argument);
-
-    lua_pushboolean( LS, IS_SET( ud_exit->exit_info, flag));
-    return 1;
-}
-
-static int L_exit_setflag( lua_State *LS)
-{
-    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    luaL_checktype( LS, 3, LUA_TBOOLEAN );
-    bool set=lua_toboolean( LS, 3 );
-
-    int flag=flag_lookup( argument, exit_flags);
-    if ( flag==NO_FLAG )
-        luaL_error(LS, "Invalid exit flag: '%s'", argument);
-
-    if ( set )
-        SET_BIT( ud_exit->exit_info, flag );
-    else
-        REMOVE_BIT( ud_exit->exit_info, flag );
-
-    return 0;
-}
-
-
-static int L_exit_lock( lua_State *LS)
-{
-    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
-
-    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
-    {
-        luaL_error(LS, "Exit is not a door, cannot lock.");
-    }
-
-    /* force closed if necessary */
-    SET_BIT(ud_exit->exit_info, EX_CLOSED);
-    SET_BIT(ud_exit->exit_info, EX_LOCKED);
-    return 0;
-}
-
-static int L_exit_unlock( lua_State *LS)
-{
-    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
-
-    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
-    {
-        luaL_error(LS, "Exit is not a door, cannot unlock.");
-    }
-
-    REMOVE_BIT(ud_exit->exit_info, EX_LOCKED);
-    return 0;
-}
-
-static int L_exit_close( lua_State *LS)
-{
-    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
-
-    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
-    {
-        luaL_error(LS, "Exit is not a door, cannot close.");
-    }
-
-    SET_BIT(ud_exit->exit_info, EX_CLOSED);
-    return 0;
-}
-
-static int L_exit_open( lua_State *LS)
-{
-    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
-
-    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
-    {
-        luaL_error(LS, "Exit is not a door, cannot open.");
-    }
-
-    /* force unlock if necessary */
-    REMOVE_BIT(ud_exit->exit_info, EX_LOCKED);
-    REMOVE_BIT(ud_exit->exit_info, EX_CLOSED);
-
-    return 0;
 }
 
 static int L_room_mload (lua_State *LS)
@@ -2763,16 +2652,6 @@ static const struct luaL_reg OBJPROTO_lib [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg EXIT_lib [] =
-{
-    {"flag", L_exit_flag},
-    {"setflag", L_exit_setflag},
-    {"open", L_exit_open},
-    {"close", L_exit_close},
-    {"unlock", L_exit_unlock},
-    {"lock", L_exit_lock},
-    {NULL, NULL}
-};
 
 static const struct luaL_reg AREA_lib [] =
 {
@@ -2870,11 +2749,6 @@ static int ROOM2string (lua_State *LS)
     return 1;
 }
 
-static int EXIT2string (lua_State *LS)
-{
-    lua_pushliteral( LS, "mud_exit");
-    return 1;
-}
 
 static int AREA2string (lua_State *LS)
 {
@@ -3249,48 +3123,6 @@ static int get_AREA_field ( lua_State *LS )
     return 0;
 }
 
-static int check_EXIT_equal( lua_State *LS)
-{
-    lua_pushboolean( LS, check_EXIT(LS, 1) == check_EXIT(LS, 2) );
-    return 1;
-}
-
-static int get_EXIT_field ( lua_State *LS )
-{
-    const char *argument = luaL_checkstring (LS, 2 );
-
-    FLDNUM("UDTYPE",UDTYPE_EXIT); /* Need this for type checking */
-
-    /* check for funcs first */
-    int i;
-    for ( i=0 ; EXIT_lib[i].name != NULL ; i++ )
-    {
-        if (!strcmp( argument, EXIT_lib[i].name ) )
-        {
-            lua_pushcfunction( LS, EXIT_lib[i].func);
-            return 1;
-        }
-    }
-
-    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
-
-    if ( !ud_exit )
-        return 0;
-
-    if (!strcmp(argument, "toroom"))
-    {
-        if ( !make_ud_table( LS, ud_exit->u1.to_room, UDTYPE_ROOM ))
-            return 0;
-        else
-            return 1;
-    }
-    FLDSTR("keyword", ud_exit->keyword ? ud_exit->keyword : "");
-    FLDSTR("description", ud_exit->description ? ud_exit->description : "");
-    FLDNUM("key", ud_exit->key);
-
-    return 0;
-
-}
 static int check_ROOM_equal( lua_State *LS)
 {
     lua_pushboolean( LS, check_ROOM(LS, 1) == check_ROOM(LS, 2) );
@@ -3415,7 +3247,7 @@ static int get_ROOM_field ( lua_State *LS )
             if (!ud_room->exit[i])
                 return 0;
 
-            if (!make_ud_table(LS, ud_room->exit[i], UDTYPE_EXIT))
+            if (!EXIT_type->make(EXIT_type, LS, ud_room->exit[i]))
                 return 0;
             else
                 return 1;
@@ -3673,15 +3505,6 @@ static struct luaL_reg CH_metatable [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg EXIT_metatable [] =
-{
-    {"__tostring", EXIT2string},
-    {"__index", get_EXIT_field},
-    {"__newindex", newindex_error},
-    {"__eq", check_EXIT_equal},
-    {NULL, NULL}
-};
-
 static const struct luaL_reg AREA_metatable [] =
 {
     {"__tostring", AREA2string},
@@ -3749,8 +3572,6 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, NULL, OBJ_metatable);
     luaL_newmetatable(LS, ROOM_META);
     luaL_register (LS, NULL, ROOM_metatable);
-    luaL_newmetatable(LS, EXIT_META);
-    luaL_register (LS, NULL, EXIT_metatable);
     luaL_newmetatable(LS, OBJPROTO_META);
     luaL_register (LS, NULL, OBJPROTO_metatable);
     luaL_newmetatable(LS, AREA_META);
@@ -3762,6 +3583,7 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_newmetatable(LS, UD_META);
 
     RESET_type=RESET_init(LS);
+    EXIT_type=EXIT_init(LS);
     return 0;
 
 }  /* end of RegisterLuaRoutines */
