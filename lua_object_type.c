@@ -43,14 +43,12 @@ static int index_metamethod( lua_State *LS)
         return 1;
     }
 
-    /* have to grab object AFTER udtype check */
-    void *gobj=obj->check(obj, LS, 1 );
-
     int i;
     for (i=0; get[i].field; i++ )
     {
         if (!strcmp(get[i].field, arg) )
         {
+           void *gobj=obj->check(obj, LS, 1 );
            if (get[i].offset != NO_OFF )
            {
                lua_pushinteger( LS,
