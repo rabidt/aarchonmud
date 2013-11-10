@@ -65,7 +65,7 @@ void init_genrand(unsigned long s);
 void init_by_array(unsigned long init_key[], int key_length);
 double genrand(void);
 
-static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
+int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
 static char *check_fstring( lua_State *LS, int index);
 
 static const struct luaL_reg CH_lib [];
@@ -511,7 +511,7 @@ static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
     }
 }
 
-static int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
+int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
 {
     int error;
 

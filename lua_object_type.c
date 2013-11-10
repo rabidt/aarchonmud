@@ -78,22 +78,23 @@ static int newindex_metamethod( lua_State *LS )
     return 0;
 }
 
-static void register_type( OBJ_TYPE *self,
+static void register_type( OBJ_TYPE *tp,
         lua_State *LS)
 {
     lua_getglobal( LS, MAKE_META_FUNCTION );
+
+    luaL_newmetatable(LS, tp->type_name);
     
-    lua_pushlightuserdata( LS, ( void *)self);
+    lua_pushlightuserdata( LS, ( void *)tp);
     lua_pushcclosure( LS, index_metamethod, 1 );
 
-    lua_pushlightuserdata( LS, ( void *)self);
+    lua_pushlightuserdata( LS, ( void *)tp);
     lua_pushcclosure( LS, newindex_metamethod, 1 );
 
-    luaL_newmetatable(LS, self->metatable_name);
-    luaL_register( LS, NULL, self->metatable);
+    lua_call( LS, 3, 0 );
 }
 
-static bool make_type( OBJ_TYPE *self,
+static bool make_func( OBJ_TYPE *self,
         lua_State *LS, void *game_obj)
 {
     /* see if it exists already */
@@ -117,7 +118,7 @@ static bool make_type( OBJ_TYPE *self,
 
     lua_newtable( LS);
 
-    luaL_getmetatable (LS, self->metatable_name);
+    luaL_getmetatable (LS, self->type_name);
     lua_setmetatable (LS, -2);  /* set metatable for object data */
     lua_pushstring( LS, "tableid");
 
@@ -138,3 +139,35 @@ static bool make_type( OBJ_TYPE *self,
 
     return TRUE;
 }
+
+
+OBJ_TYPE *new_obj_type(
+        lua_State *LS,
+        const char *type_name,
+        const LUA_PROP_TYPE *get_table,
+        const LUA_PROP_TYPE *set_table,
+        const LUA_PROP_TYPE *method_table)
+{
+    static int udtype=0;
+    udtype=udtype+1;
+
+    /*tbc check for table structure correctness */
+    /*check_table(get_table)
+      check-table(set_table)
+      check_table(method_table)
+      */
+
+    OBJ_TYPE *tp=alloc_mem(sizeof(OBJ_TYPE));
+    tp->udtype=udtype;
+    tp->type_name=type_name;
+    tp->set_table=set_table;
+    tp->get_table=get_table;
+    tp->method_table=method_table;
+
+    tp->check=check_func;
+    tp->make=make_func;
+
+    register_type( tp, LS );
+    return tp;
+}
+     
