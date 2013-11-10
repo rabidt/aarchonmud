@@ -2417,82 +2417,64 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
-    int chance = 0;
-
-    if ( number_bits(10) != 69 )
-	return;
+    if ( number_bits(9) != 69 )
+        return;
+    
+    // beheading mastery increases behead chance by up to factor 2, depending on victim's health
+    int dam_taken = (victim->max_hit - victim->hit) * 100 / victim->max_hit;
+    if ( number_bits(1) && !(per_chance(dam_taken) && per_chance(mastery_bonus(ch, gsn_beheading, 60, 100))) )
+        return;
 
     if (IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT))
         return;
 
     if (IS_SET(victim->act, ACT_NOBEHEAD))
     {
-        act("You try to cut $N's head off, but it won't budge!",
-            ch,NULL,victim,TO_CHAR);
-        act("$n tries to cut $N's head off, but it won't budge!",
-            ch,NULL,victim,TO_ROOM);
+        act("You try to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_CHAR);
+        act("$n tries to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_ROOM);
         return;
     }
 
     if ( wield == NULL )
     {
-	if ( !IS_NPC(ch) && /* active AND passive skill => mobs have it */
-	     ( number_percent() <= get_skill(ch, gsn_razor_claws)
-	     || (number_range(0,1) && ch->stance == STANCE_SHADOWCLAW) ) )
-	{
-	    act("In a mighty strike, your claws separate $N's neck.",
-		ch,NULL,victim,TO_CHAR);
-	    act("In a mighty strike, $n's claws separate $N's neck.",
-		ch,NULL,victim,TO_NOTVICT);
-	    act("$n slashes $s claws through your neck.",ch,NULL,victim,TO_VICT);
-	    behead(ch, victim);
-	    check_improve(ch, gsn_razor_claws, 0, TRUE);
-	}
-	else
-	    check_improve(ch, gsn_razor_claws, 0, FALSE);
-	return;
+        /* razor claw is active AND passive skill => mobs have it */
+        if ( !IS_NPC(ch) && number_bits(1) && per_chance(get_skill(ch, gsn_razor_claws))
+             || ch->stance == STANCE_SHADOWCLAW )
+        {
+            act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
+            act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
+            act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
+            behead(ch, victim);
+        }
+        return;
     }
 
+    int chance = 0;
     switch ( wield->value[0] )
     {
-    case WEAPON_EXOTIC:
-	chance = 0;
-	break;
+    case WEAPON_EXOTIC: chance = 0; break;
     case WEAPON_DAGGER:
-    case WEAPON_POLEARM:
-	chance = 1;
-	break;
-    case WEAPON_SWORD:
-	chance = 5;
-	break;
-    case WEAPON_AXE:
-	chance = 25;
-	break;
-    default:
-	return;
+    case WEAPON_POLEARM: chance = 1; break;
+    case WEAPON_SWORD: chance = 5; break;
+    case WEAPON_AXE: chance = 25; break;
+    default: return;
     }
    
-    if ( get_skill(ch, gsn_beheading) == 100)
-        chance += 2;
-
     chance += get_skill(ch, gsn_beheading) / 2;
     if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
-	chance += 1;
+        chance += 1;
     if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
-	chance += 5;
+        chance += 5;
 
-    if ( number_percent() <= chance
-	 || ch->stance == STANCE_SHADOWCLAW )
+    if ( per_chance(chance) || ch->stance == STANCE_SHADOWCLAW )
     {
-	act("$n's head is separated from his shoulders by $p.",
-	    victim,wield,NULL,TO_ROOM);
-	act("Your head is separated from your shoulders by $p.",
-	    victim,wield,NULL,TO_CHAR);
-	check_improve(ch, gsn_beheading, 0, TRUE);
-	behead(ch, victim);
+        act("$n's head is separated from his shoulders by $p.", victim,wield,NULL,TO_ROOM);
+        act("Your head is separated from your shoulders by $p.", victim,wield,NULL,TO_CHAR);
+        check_improve(ch, gsn_beheading, 0, TRUE);
+        behead(ch, victim);
     }
     else
-	check_improve(ch, gsn_beheading, 0, FALSE);
+        check_improve(ch, gsn_beheading, 0, FALSE);
 }
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
