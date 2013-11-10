@@ -1329,6 +1329,7 @@ void do_circle( CHAR_DATA *ch, char *argument )
         chance += 25;
     if ( IS_AFFECTED(victim, AFF_HASTE) )
         chance -= 25;
+    chance += mastery_bonus(ch, gsn_circle, 12, 15);
     
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_circle].beats );
@@ -1337,17 +1338,20 @@ void do_circle( CHAR_DATA *ch, char *argument )
     {
         check_improve(ch,gsn_circle,TRUE,3);
 
-        one_hit( ch, victim, gsn_circle, FALSE);
+        bool hit = one_hit(ch, victim, gsn_circle, FALSE);
         CHECK_RETURN(ch, victim);
         
         if ( offhand_attack_chance(ch) > 0 )
         {
-            one_hit(ch, victim, gsn_circle, TRUE);
+            hit = one_hit(ch, victim, gsn_circle, TRUE) || hit;
             CHECK_RETURN(ch, victim);
         }
-
-        OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
-        check_assassinate(ch, victim, weapon, 6);
+        
+        if ( hit )
+        {
+            OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
+            check_assassinate(ch, victim, weapon, 6);
+        }
     }
     else
     {
