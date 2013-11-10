@@ -6604,7 +6604,7 @@ bool check_lose_stance( CHAR_DATA *ch )
     if ( per_chance(skill * 9/10) ) /* Always keep 10% chance of failure */
         return FALSE;
 
-    send_to_char("You loose your stance!\n\r", ch);
+    send_to_char("You lose your stance!\n\r", ch);
     ch->stance = 0;
     return TRUE;
 }
@@ -6620,7 +6620,7 @@ bool destance( CHAR_DATA *ch, int attack_mastery )
     if ( per_chance( mastery == 1 ? 20 : mastery == 2 ? 30 : 0) )
         return FALSE;
     
-    send_to_char("You loose your stance!\n\r", ch);
+    send_to_char("You lose your stance!\n\r", ch);
     ch->stance = 0;
     return TRUE;
 }
