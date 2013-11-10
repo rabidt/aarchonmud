@@ -24,22 +24,22 @@ typedef struct obj_type
 {
     int udtype; /* unique type ID */
     char *type_name;
-    char *metatable_name;
-    struct luaL_reg *metatable;
-    void *register_type;
     bool *make;
 
     CHECK_FUN *check;
-
-    int *get;
-    int *set;
 
     LUA_PROP_TYPE *get_table;
     LUA_PROP_TYPE *set_table;
     LUA_PROP_TYPE *method_table;
 
-    LUA_HELP_FUN *help;
+    //LUA_HELP_FUN *help;
 } OBJ_TYPE;
 
+OBJ_TYPE *new_obj_type(
+        lua_State *LS,
+        const char *type_name,
+        const LUA_PROP_TYPE *get_table,
+        const LUA_PROP_TYPE *set_table,
+        const LUA_PROP_TYPE *method_table);
 
 #endif
