@@ -3736,7 +3736,7 @@ static const struct luaL_reg ROOM_metatable [] =
     {NULL, NULL}
 };
 
-static const struct luaL_reg CH_metatable [] = 
+static struct luaL_reg CH_metatable [] = 
 {
     {"__tostring", CH2string},
     {"__index", get_CH_field},
