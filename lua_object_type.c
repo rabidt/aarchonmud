@@ -36,6 +36,12 @@ static int index_metamethod( lua_State *LS )
 
     LUA_PROP_TYPE *get=obj->get_table;
     
+    if (!strcmp("UDTYPE", arg) )
+    {
+        lua_pushinteger( LS, obj->udtype );
+        return 1;
+    }
+
     int i;
     for (i=0; get[i].field; i++ )
     {
@@ -81,17 +87,17 @@ static int newindex_metamethod( lua_State *LS )
 static void register_type( OBJ_TYPE *tp,
         lua_State *LS)
 {
-    lua_getglobal( LS, MAKE_META_FUNCTION );
-
     luaL_newmetatable(LS, tp->type_name);
     
     lua_pushlightuserdata( LS, ( void *)tp);
     lua_pushcclosure( LS, index_metamethod, 1 );
 
+    lua_setfield( LS, -2, "__index");
+
     lua_pushlightuserdata( LS, ( void *)tp);
     lua_pushcclosure( LS, newindex_metamethod, 1 );
 
-    lua_call( LS, 3, 0 );
+    lua_setfield( LS, -2, "__newindex");
 }
 
 static bool make_func( OBJ_TYPE *self,
