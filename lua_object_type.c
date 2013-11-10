@@ -51,9 +51,21 @@ static int index_metamethod( lua_State *LS)
            void *gobj=obj->check(obj, LS, 1 );
            if (get[i].offset != NO_OFF )
            {
-               lua_pushinteger( LS,
-                       * ( (int *)(gobj+get[i].offset) ) );
-               return 1;
+               switch (get[i].ptype)
+               {
+                   case PTYPE_INT:
+                       lua_pushinteger( LS,
+                               * ( (int *)(gobj+get[i].offset) ) );
+                       return 1;
+
+                   case PTYPE_STR:
+                       lua_pushstring( LS,
+                               ( (char *)(gobj+get[i].offset) ) );
+                       return 1;
+                   default:
+                       luaL_error(LS,"BADDDDDDD");
+               }
+
            }
            else if (get[i].func)
            {
@@ -83,8 +95,57 @@ static int index_metamethod( lua_State *LS)
 
 static int newindex_metamethod( lua_State *LS )
 {
+    OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+    const char *arg=luaL_checkstring( LS, 2 );
+
+    LUA_PROP_TYPE *set=obj->set_table;
+
+    int i;
+    for (i=0 ; set[i].field ; i++ )
+    {
+        if ( !strcmp(set[i].field, arg) )
+        {
+            void *gobj=obj->check(obj, LS, 1 ); 
+            if ( set[i].offset != NO_OFF )
+            {
+                switch (set[i].ptype)
+                {
+                    case PTYPE_INT:
+                        * ( (int *)(gobj+set[i].offset) )=
+                            luaL_checkint(LS, 3);
+                        return 0;
+
+                    case PTYPE_STR:
+                        free_string((char *)(gobj+set[i].offset));
+                        *(char *)(gobj+set[i].offset)=str_dup(luaL_checkstring(LS, 3));
+                        return 0;
+
+                    default:
+                        luaL_error(LS, "badstuff");
+
+                }
+
+            }
+            else if ( set[i].func )
+            {
+                lua_pushcfunction( LS, set[i].func );
+                lua_pushvalue( LS, 1);
+                lua_pushvalue( LS, 3);
+                lua_call(LS, 2, 0);
+                return 0;
+            }
+            else
+                luaL_error(LS, "babdda");
+        }
+    }
+
     return 0;
 }
+
+
+
+
+
 
 static void register_type( OBJ_TYPE *tp,
         lua_State *LS)
