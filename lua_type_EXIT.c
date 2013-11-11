@@ -39,7 +39,8 @@ static const LUA_PROP_TYPE method_table [] =
 
 OBJ_TYPE *EXIT_init(lua_State *LS)
 {
-    EXIT_type=new_obj_type(
+    if (!EXIT_type)
+        EXIT_type=new_obj_type(
             LS,
             "EXIT",
             get_table,

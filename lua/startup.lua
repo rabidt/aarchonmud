@@ -32,10 +32,8 @@ function MakeUdProxy(ud)
     local proxy={}
     setmetatable(proxy, {
             __index = ud,
-            __newindex = function (t,k,v)
-                error("Cannot set values on game objects.")
-            end,
-            __tostring=function() return tostring(ud) end,
+            __newindex = getmetatable(ud)["__newindex"], 
+            __tostring= function() return tostring(ud) end,
             __metatable=0 -- any value here protects it
             }
     )
