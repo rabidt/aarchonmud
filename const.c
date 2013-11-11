@@ -4644,7 +4644,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"hand to hand",  
 	{  4,  5,  6,  8,  1,  2,  5,  6,  1,  1,  6,  7,  5, 1, 8 },//
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -7584,7 +7584,8 @@ const struct mastery_group_type mastery_group_table[] =
     },
 
     { "weapons", 8,
-        { "axe", "dagger", "flail", "mace", "polearm", "spear", "sword", "whip", "gun", "bow" }
+        { "axe", "dagger", "flail", "mace", "polearm", "spear", "sword", "whip", "gun", "bow",
+          "hand to hand" }
     },
     
     { NULL }

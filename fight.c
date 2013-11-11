@@ -4166,9 +4166,9 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     
     /* some weapons are harder to parry */
     if ( ch_weapon == gsn_whip || ch_weapon == gsn_flail )
-	chance -= 10;
+        chance -= 10;
     else if ( ch_weapon == gsn_hand_to_hand )
-	chance -= 5;
+        chance -= mastery_bonus(ch, gsn_hand_to_hand, 6, 10);
 
     /* two-handed weapons are harder to parry with non-twohanded */
     if ( (ch_weapon_obj = get_eq_char(ch, WEAR_WIELD)) != NULL
@@ -4218,7 +4218,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	     && !IS_NPC(ch)
 	     && (wield = get_eq_char(victim, WEAR_WIELD)) != NULL )
 	{
-	    dam = one_hit_damage( victim, gsn_parry, wield );
+	    dam = one_hit_damage(victim, gsn_parry, wield) * (100 - mastery_bonus(ch, gsn_hand_to_hand, 30, 50)) / 100;
 	    dam_type = get_weapon_damtype( wield );
 	    full_dam( victim, ch, dam, gsn_parry, dam_type, TRUE );
 	}
