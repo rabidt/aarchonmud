@@ -920,6 +920,25 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         one_hit(ch, victim, dt, FALSE);
 }
 
+// dual_axe, dual_sword, etc. used, or 0
+int dual_weapon_sn( CHAR_DATA *ch )
+{
+    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
+    OBJ_DATA *second = get_eq_char(ch, WEAR_SECONDARY);
+    
+    if ( !wield || !second || wield->value[0] != second->value[0] )
+        return 0;
+
+    switch ( wield->value[0] )
+    {
+        case WEAPON_DAGGER: return gsn_dual_dagger;
+        case WEAPON_SWORD:  return gsn_dual_sword;
+        case WEAPON_AXE:    return gsn_dual_axe;
+        case WEAPON_GUN:    return gsn_dual_gun;
+        default:            return 0;
+    }
+}
+
 /*
  * Effective skill for offhand weapon usage
  */
@@ -945,26 +964,15 @@ int dual_wield_skill( CHAR_DATA *ch, bool improve )
     
     // dual weapon requires weapons of correct type
     int dual_weapon = 0;
-    if ( wield->value[0] == second->value[0] )
+    int gsn_dual = dual_weapon_sn(ch);
+    if ( gsn_dual > 0 )
     {
-        int gsn_dual = 0;
-        switch ( wield->value[0] )
-        {
-            case WEAPON_DAGGER: gsn_dual = gsn_dual_dagger; break;
-            case WEAPON_SWORD:  gsn_dual = gsn_dual_sword;  break;
-            case WEAPON_AXE:    gsn_dual = gsn_dual_axe;    break;
-            case WEAPON_GUN:    gsn_dual = gsn_dual_gun;    break;
-            default: break;
-        }
-        if ( gsn_dual > 0 )
-        {
-            dual_weapon = get_skill(ch, gsn_dual);
-            // adjust for weight in case offhand weapon is heavier
-            dual_weapon = dual_weapon * wield_weight / UMAX(wield_weight, second_weight);
-            
-            if ( improve )
-                check_improve(ch, gsn_dual, TRUE, 8);
-        }
+        dual_weapon = get_skill(ch, gsn_dual);
+        // adjust for weight in case offhand weapon is heavier
+        dual_weapon = dual_weapon * wield_weight / UMAX(wield_weight, second_weight);
+        
+        if ( improve )
+            check_improve(ch, gsn_dual, TRUE, 8);
     }
 
     // combine the two skills, rounding down
@@ -1128,7 +1136,10 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         if ( ch->fighting != victim )
             return;
         
-        if ( per_chance(ch_dex_extrahit(ch)) )
+        int gsn_dual = dual_weapon_sn(ch);
+        int mastery = get_mastery(ch, gsn_dual_wield) + (gsn_dual ? get_mastery(ch, gsn_dual) : 0);
+        chance = ch_dex_extrahit(ch) + (mastery ? 5 + 10*mastery : 0);
+        if ( per_chance(chance) )
         {
             one_hit(ch, victim, dt, TRUE);
             if ( ch->fighting != victim )
