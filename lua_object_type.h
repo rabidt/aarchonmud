@@ -13,9 +13,8 @@ typedef int PROP_FUNC( lua_State *LS, void *gobj );
 typedef struct prop_type
 {
     char *field;
-    int ptype;
-    size_t offset;
     PROP_FUNC *func;
+    int security;
 } LUA_PROP_TYPE;
 
 /* base functionality for lua object types */
