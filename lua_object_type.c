@@ -209,6 +209,18 @@ static bool make_func( OBJ_TYPE *self,
     return TRUE;
 }
 
+bool is_func( OBJ_TYPE *self,
+        lua_State *LS, int arg )
+{
+    if ( !lua_istable(LS, arg ) )
+        return FALSE;
+
+    lua_getfield(LS, arg, "UDTYPE");
+    sh_int type=luaL_checkint(LS, -1);
+    lua_pop(LS, 1);
+    return ( type == self->udtype );
+}
+
 
 OBJ_TYPE *new_obj_type(
         lua_State *LS,
@@ -235,6 +247,7 @@ OBJ_TYPE *new_obj_type(
 
     tp->check=check_func;
     tp->make=make_func;
+    tp->is=is_func;
 
     register_type( tp, LS );
     return tp;
