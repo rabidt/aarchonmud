@@ -1,0 +1,1048 @@
+diff -r 68f89710bdd2 area_prog.c
+--- a/area_prog.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/area_prog.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -182,3 +182,47 @@
+ 
+     return ap_percent_trigger( ch->in_room->area, ch, ATRIG_RECALL);
+ }
++
++void ap_timer_trigger( AREA_DATA *area )
++{
++    APROG_LIST *prg;
++
++    for ( prg=area->aprogs; prg != NULL; prg = prg->next )
++    {
++        if (prg->trig_type == ATRIG_TIMER)
++        {
++            lua_area_program( NULL, prg->vnum, prg->script->code, 
++                    area, NULL, ATRIG_TIMER);
++            return;
++        }
++    }
++}
++
++void aprog_timer_init( AREA_DATA *area)
++{
++    /* Set up timer stuff if not already */
++    if (HAS_ATRIG(area, ATRIG_TIMER) && !area->atrig_timer)
++    {
++        APROG_LIST *prg;
++        for ( prg = area->aprogs; prg; prg= prg->next )
++        {
++            if ( prg->trig_type == ATRIG_TIMER )
++            {
++                if (!is_number(prg->trig_phrase))
++                {
++                    bugf("Bad timer phrase for area %s: %s, must be number.",
++                            area->name, prg->trig_phrase);
++                    return;
++                }
++                register_area_timer( area, atoi(prg->trig_phrase));
++                return; /* only one allowed */
++            }
++        }
++    }
++}
++
++void aprog_setup( AREA_DATA *area )
++{
++    /* initialize timer, may add more setup steps later */
++    aprog_timer_init( area );
++}
+diff -r 68f89710bdd2 db.c
+--- a/db.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/db.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -799,6 +799,13 @@
+         load_portal_list();
+ 
+     }
++
++    /* do aprog setup for areas */
++    AREA_DATA *area;
++    for ( area=area_first; area ; area=area->next )
++    {
++        aprog_setup( area );
++    }
+     
+     // start checking for memory leaks now that we're ready
+     reset_str_dup();
+@@ -3280,6 +3287,8 @@
+     affect_spellup_mob( mob );
+ 
+     mob->position = mob->start_pos;    
++
++    mprog_setup(mob);
+     
+     /* link the mob to the world list */
+     mob->next       = char_list;
+@@ -3596,6 +3605,8 @@
+     for (paf = pObjIndex->affected; paf != NULL; paf = paf->next) 
+         if ( paf->location == APPLY_SPELL_AFFECT )
+             affect_to_obj(obj,paf);
++
++    oprog_setup( obj );
+         
+     obj->next       = object_list;
+     object_list     = obj;
+diff -r 68f89710bdd2 handler.c
+--- a/handler.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/handler.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -2131,6 +2131,7 @@
+     }
+ 
+     unregister_lua( obj ); /* always unregister, even if delaying extract */
++    unregister_obj_timer( obj );
+ 
+     if (g_LuaScriptInProgress || is_mprog_running())
+     {
+@@ -2328,6 +2329,7 @@
+     if ( fPull )
+     {
+         unregister_lua( ch ); /* always unregister even if delaying actual extract */
++        unregister_ch_timer( ch );
+         if (g_LuaScriptInProgress || is_mprog_running())
+         {
+             ch->must_extract=TRUE;
+diff -r 68f89710bdd2 lua/startup.lua
+--- a/lua/startup.lua	Sat Nov 02 11:01:15 2013 +1300
++++ b/lua/startup.lua	Sat Nov 02 10:29:49 2013 +0300
+@@ -8,7 +8,9 @@
+ udtbl={} -- used to store game object tables, (read only proxies to origtbl)
+ envtbl={} -- game object script environments
+ origtbl={} -- where the REAL ud tables live
++origenv={} -- where the REAL env tables live
+ interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
++delaytbl={} -- used on the C side mostly
+ 
+ function UdCnt()
+     local cnt=0
+@@ -53,13 +55,16 @@
+ function UnregisterUd(lightud)
+     if udtbl[lightud] then
+         setmetatable(origtbl[lightud], nil)
+-        origtbl[lightud]={}
++        rawset(origtbl[lightud], "tableid", nil)
+         origtbl[lightud]=nil
+         udtbl[lightud]={}
+         udtbl[lightud]=nil
+     end
+ 
+     if envtbl[lightud] then
++        setmetatable(origenv[lightud], nil)
++        rawset(origenv[lightud], "udid", nil)
++        origenv[lightud]=nil
+         envtbl[lightud]={}
+         envtbl[lightud]=nil
+     end
+@@ -262,7 +267,8 @@
+             haunt=god.haunt,
+             cleanse=god.cleanse,
+             defy=god.defy
+-        }
++        },
++        debug={show=debug.show}
+ 
+ }
+ -- Need to protect our library funcs from evil scripters
+@@ -277,6 +283,7 @@
+ end
+ main_lib=ProtectLib(main_lib)
+ 
++
+ -- First look for main_lib funcs, then mob/area/obj funcs
+ -- (providing env as argument)
+ CH_env_meta={
+@@ -342,6 +349,7 @@
+ function new_script_env(ud, objname, meta)
+     local env={ udid=ud.tableid, [objname]=ud}
+     setmetatable(env, meta)
++    origenv[ud.tableid]=env
+     return MakeEnvProxy(env)
+ end
+ 
+@@ -400,8 +408,6 @@
+     if not(f) then
+         -- Check if incomplete, same way the real cli checks
+         local ss,sf=string.find(err, "<eof>")
+-        print(sf)
+-        print(err:len())
+         if sf==err:len()-1 then
+             return 1 -- incomplete
+         else
+diff -r 68f89710bdd2 lua_scripting.c
+--- a/lua_scripting.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/lua_scripting.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -90,6 +90,7 @@
+ #define MUD_LIBRARY "mud"
+ #define MT_LIBRARY "mt"
+ #define GOD_LIBRARY "god"
++#define DEBUG_LIBRARY "debug"
+ #define UD_TABLE_NAME "udtbl"
+ #define ENV_TABLE_NAME "envtbl"
+ #define INTERP_TABLE_NAME "interptbl"
+@@ -521,6 +522,123 @@
+     return error;
+ }  /* end of CallLuaWithTraceBack  */
+ 
++static int L_delay (lua_State *LS)
++{
++    /* delaytbl has timer pointers as keys
++       value is table with 'tableid' and 'func' keys */
++    /* delaytbl[tmr]={ tableid=tableid, func=func } */
++    int val=luaL_checkint( LS, 2 );
++    luaL_checktype( LS, 3, LUA_TFUNCTION);
++
++    lua_getglobal( LS, "delaytbl");
++    void *tmr=register_lua_timer( val );
++    lua_pushlightuserdata( LS, tmr); 
++    lua_newtable( LS );
++ 
++    lua_pushliteral( LS, "tableid");
++    lua_getfield( LS, 1, "tableid");
++    lua_settable( LS, -3 );
++
++    
++    lua_pushliteral( LS, "func");
++    lua_pushvalue( LS, 3 );
++    lua_settable( LS, -3 );
++
++    lua_settable( LS, -3 );
++
++    return 0;
++}
++
++static int L_cancel (lua_State *LS)
++{
++    /* http://pgl.yoyo.org/luai/i/next specifies it is safe
++       to modify or clear fields during iteration */
++    /* for k,v in pairs(delaytbl) do
++            if v.tableid==arg1.tableid then
++                unregister_lua_timer(k)
++                delaytbl[k]=nil
++            end
++       end
++       */
++
++    /* 1, game object */
++    lua_getfield( LS, 1, "tableid"); /* 2, arg1.tableid (game object pointer) */ 
++    lua_getglobal( LS, "delaytbl"); /* 3, delaytbl */
++
++    lua_pushnil( LS );
++    while ( lua_next(LS, 3) != 0 ) /* pops nil */
++    {
++        /* key at 4, val at 5 */
++        lua_getfield( LS, 5, "tableid");
++        if (lua_equal( LS, 6, 2 )==1)
++        {
++            void *tmr=luaL_checkudata( LS, 4, UD_META);
++            unregister_lua_timer( tmr );
++            /* set table entry to nil */
++            lua_pushvalue( LS, 4 ); /* push key */
++            lua_pushnil( LS );
++            lua_settable( LS, 3 );
++        }
++        lua_pop(LS, 2); /* pop tableid and value */
++    }
++
++    return 0;
++}
++
++static int L_rundelay( lua_State *LS)
++{
++    lua_getglobal( LS, "delaytbl"); /*2*/
++    if (lua_isnil( LS, -1) )
++    {
++        luaL_error( LS, "run_delayed_function: couldn't find delaytbl");
++    }
++
++    lua_pushvalue( LS, 1 );
++    lua_gettable( LS, 2 ); /* pops key */ /*3, delaytbl entry*/
++
++    if (lua_isnil( LS, 3) )
++    {
++        luaL_error( LS, "Didn't find entry in delaytbl");
++    }
++    /* check if the game object is still valid */
++    lua_getglobal( LS, UD_TABLE_NAME); /*4, udtbl*/
++    lua_getfield( LS, -2, "tableid"); /* 5 */
++    lua_gettable( LS, -2 ); /* pops key */ /*5, game object*/
++
++    if (lua_isnil( LS, -1) )
++    {
++        /* exit silently */
++        return 0;
++    }
++
++    lua_pop( LS, 2 );
++
++    lua_getfield( LS, -1, "func"); 
++
++    /* kill the entry before call in case of error */
++    lua_pushvalue( LS, 1 ); /* lightud as key */
++    lua_pushnil( LS ); /* nil as value */
++    lua_settable( LS, 2 ); /* pops key and value */ 
++
++    lua_call( LS, 0, 0);
++
++    return 0;
++}
++
++void run_delayed_function( void *tmr )
++{
++    lua_pushcfunction( g_mud_LS, L_rundelay );
++    lua_pushlightuserdata( g_mud_LS, tmr );
++
++    if (CallLuaWithTraceBack( g_mud_LS, 1, 0) )
++    {
++        bugf ( "Error running delayed function:\n %s",
++                lua_tostring(g_mud_LS, -1));
++        return;
++    }
++
++}
++
+ static int L_god_bless (lua_State *LS)
+ {
+     CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+@@ -2133,16 +2251,12 @@
+     }
+     else if (ud_obj->in_room)
+     {
+-        DESCRIPTOR_DATA *d;
+-        for ( d = descriptor_list; d; d = d->next )
++        CHAR_DATA *ch;
++        for ( ch=ud_obj->in_room->people ; ch ; ch=ch->next_in_room )
+         {
+-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+-                    &&   d->character->in_room == ud_obj->in_room )
+-            {
+-                send_to_char( argument, d->character );
+-                send_to_char( "\n\r",   d->character );
+-            }
+-        } 
++            send_to_char( argument, ch );
++            send_to_char( "\n\r", ch );
++        }
+     }
+     else
+     {
+@@ -2279,6 +2393,22 @@
+ 
+ }
+ 
++
++/* return tprintstr of the given global (string arg)*/
++static int L_debug_show ( lua_State *LS)
++{
++    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
++    lua_getglobal( LS, luaL_checkstring( LS, 1 ) );
++    lua_call( LS, 1, 1 );
++
++    return 1;
++}
++
++static const struct luaL_reg debuglib [] =
++{
++    {"show", L_debug_show}
++};
++
+ static const struct luaL_reg godlib [] =
+ {
+     {"confuse", L_god_confuse},
+@@ -2378,6 +2508,8 @@
+     {"loadtbl", L_ch_loadtbl},
+     {"tprint", L_ch_tprint},
+     {"olc", L_ch_olc},
++    {"delay", L_delay},
++    {"cancel", L_cancel},
+     {NULL, NULL}
+ };
+ 
+@@ -2402,6 +2534,8 @@
+     {"savetbl", L_obj_savetbl},
+     {"loadtbl", L_obj_loadtbl},
+     {"tprint", L_obj_tprint},
++    {"delay", L_delay},
++    {"cancel", L_cancel},
+     {NULL, NULL}
+ };
+ 
+@@ -2438,6 +2572,8 @@
+     {"savetbl", L_area_savetbl},
+     {"loadtbl", L_area_loadtbl},
+     {"tprint", L_area_tprint},
++    {"delay", L_delay},
++    {"cancel", L_cancel},
+     {NULL, NULL}
+ }; 
+ 
+@@ -3384,6 +3520,9 @@
+ 
+ void RegisterGlobalFunctions(lua_State *LS)
+ {
++    /* These are registed in the main script
++       space then the appropriate ones are 
++       exposed to scripts in main_lib */
+     /* checks */
+     lua_register(LS,"hour",        L_hour);
+ 
+@@ -3416,6 +3555,9 @@
+     /* register all god.xxx routines */
+     luaL_register (LS, GOD_LIBRARY, godlib);
+ 
++    /* register all debug.xxx routines */
++    luaL_register (LS, DEBUG_LIBRARY, debuglib);
++
+     luaopen_bits (LS);     /* bit manipulation */
+     luaL_register (LS, MT_LIBRARY, mtlib);  /* Mersenne Twister */
+ 
+diff -r 68f89710bdd2 makefile
+--- a/makefile	Sat Nov 02 11:01:15 2013 +1300
++++ b/makefile	Sat Nov 02 10:29:49 2013 +0300
+@@ -19,7 +19,7 @@
+      buildutil.o buffer_util.o simsave.o breath.o tflag.o grep.o vshift.o \
+      tattoo.o religion.o playback.o mob_stats.o \
+      mt19937ar.o lua_scripting.o lua_bits.o olc_opcode.o obj_prog.o\
+-     olc_apcode.o area_prog.o protocol.o
++     olc_apcode.o area_prog.o protocol.o timer.o
+ 
+ aeaea:  
+ tester: C_FLAGS += -DTESTER
+diff -r 68f89710bdd2 merc.h
+--- a/merc.h	Sat Nov 02 11:01:15 2013 +1300
++++ b/merc.h	Sat Nov 02 10:29:49 2013 +0300
+@@ -296,11 +296,11 @@
+ #define PULSE_VIOLENCE        ( 3 * PULSE_PER_SECOND)
+ #define PULSE_MOBILE          ( 4 * PULSE_PER_SECOND)
+ #define PULSE_MOBILE_SPECIAL  ( 1 * PULSE_PER_SECOND)
+-#define PULSE_MUSIC       ( 6 * PULSE_PER_SECOND)
+ #define PULSE_TICK        (30 * PULSE_PER_SECOND)
+ #define PULSE_AREA        (120 * PULSE_PER_SECOND)
+ #define PULSE_SAVE            ( 2 * PULSE_PER_SECOND )
+ #define PULSE_HERB            ( 15 * 60 * PULSE_PER_SECOND )
++#define PULSE_TIMER_TRIG      ( PULSE_PER_SECOND )
+ #define PULSE_PER_MINUTE	( 60 * PULSE_PER_SECOND )
+ /* #define PULSE_HERB            ( 15 * PULSE_PER_SECOND ) */
+ 
+@@ -2582,6 +2582,8 @@
+ 	int	mana_used;
+ 	int	moves_used;
+ 	#endif
++
++    void *trig_timer; /* should not be touched except in timer.c */
+ };
+ 
+ 
+@@ -2902,6 +2904,7 @@
+ 	sh_int	rank;
+ 
+     bool        must_extract; /* for delayed obj purging */
++    void *otrig_timer; /* should not be touched except in timer.c */
+ };
+ 
+ 
+@@ -2987,6 +2990,8 @@
+ 
+     APROG_LIST *aprogs;
+     tflag   aprog_flags;
++
++    void *atrig_timer; /* should not be touched except in timer.c */
+ };
+ 
+ 
+@@ -3132,6 +3137,7 @@
+ #define TRIG_MPCNT  (W)
+ #define TRIG_SPELL  (X)
+ #define TRIG_CALL   (Y) /* not settable */ 
++#define TRIG_TIMER  (Z)
+ 
+ /*
+  * OBJprog definitions
+@@ -3153,6 +3159,7 @@
+ #define OTRIG_LOOK  (O)
+ #define OTRIG_LORE  (P)
+ #define OTRIG_ENTER (Q)
++#define OTRIG_TIMER (R)
+ 
+ /*
+  * AREAprog definitions
+@@ -3168,6 +3175,7 @@
+ #define ATRIG_UNVOID (I)
+ #define ATRIG_RECALL (J)
+ #define ATRIG_CALL  (K)
++#define ATRIG_TIMER (L)
+ 
+ struct mprog_list
+ {
+diff -r 68f89710bdd2 mob_cmds.c
+--- a/mob_cmds.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/mob_cmds.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -177,6 +177,7 @@
+     case TRIG_RESET:            return "RESET";
+     case TRIG_MPCNT:           	return "MPCNT";
+     case TRIG_SPELL:            return "SPELL";
++    case TRIG_TIMER:            return "TIMER";
+     default:                  	return "ERROR";
+     }
+ }
+diff -r 68f89710bdd2 mob_prog.c
+--- a/mob_prog.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/mob_prog.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -1616,11 +1616,31 @@
+ 	{
+         char buf[MSL];
+         sprintf(buf, "%d", (100 * mob->mana / mob->max_mana) );
+-        program_flow( buf, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL, 0, NULL, 0, TRIG_MPCNT, prg->script->security );
++        program_flow( buf, prg->script->is_lua, 
++                prg->vnum, prg->script->code, 
++                mob, ch, NULL, 0, NULL, 0, TRIG_MPCNT, 
++                prg->script->security );
+ 	    break;
+ 	}
+ }
+ 
++void mp_timer_trigger( CHAR_DATA *mob )
++{
++    MPROG_LIST *prg;
++
++    for ( prg=mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
++    {
++        if (prg->trig_type == TRIG_TIMER)
++        {
++            program_flow( NULL, prg->script->is_lua, 
++                    prg->vnum, prg->script->code, 
++                    mob, NULL, NULL, 0, NULL, 0, TRIG_TIMER, 
++                    prg->script->security );
++            return;
++        }
++    }
++}
++
+ 
+ bool mp_spell_trigger( char* argument, CHAR_DATA *mob, CHAR_DATA *ch)
+ {
+@@ -1655,8 +1675,6 @@
+   return found;
+ }
+ 
+-
+-
+ /* returns if the mob is in a valid state for being triggered */
+ bool can_trigger( CHAR_DATA *mob, int trigger )
+ {
+@@ -1689,3 +1707,32 @@
+     }
+     return FALSE;
+ }
++
++void mprog_timer_init( CHAR_DATA *mob)
++{
++    /* Set up timer stuff if not already */
++    if (HAS_TRIGGER(mob, TRIG_TIMER) && !mob->trig_timer)
++    {
++        MPROG_LIST *prg;
++        for ( prg = mob->pIndexData->mprogs; prg; prg= prg->next )
++        {
++            if ( prg->trig_type == TRIG_TIMER )
++            {
++                if (!is_number(prg->trig_phrase))
++                {
++                    bugf("Bad timer phrase for %d: %s, must be number.", 
++                            mob->pIndexData->vnum, prg->trig_phrase);
++                    return;
++                }
++                register_ch_timer( mob, atoi(prg->trig_phrase));
++                return; /* only one allowed */
++            }
++        }
++    }
++}
++
++void mprog_setup( CHAR_DATA *mob)
++{
++    /* initialize timer, may add more setup steps later */
++    mprog_timer_init( mob );
++}
+diff -r 68f89710bdd2 obj_prog.c
+--- a/obj_prog.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/obj_prog.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -157,3 +157,48 @@
+         }
+     }
+ }
++
++void op_timer_trigger( OBJ_DATA *obj )
++{
++    OPROG_LIST *prg;
++
++    for ( prg=obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
++    {
++        if (prg->trig_type == OTRIG_TIMER)
++        {
++            lua_obj_program( NULL, prg->vnum, prg->script->code, 
++                    obj, NULL, NULL, NULL, 
++                    OTRIG_TIMER, prg->script->security);
++            return;
++        }
++    }
++}
++
++void oprog_timer_init( OBJ_DATA *obj)
++{
++    /* Set up timer stuff if not already */
++    if (HAS_OTRIG(obj, OTRIG_TIMER) && !obj->otrig_timer)
++    {
++        OPROG_LIST *prg;
++        for ( prg = obj->pIndexData->oprogs; prg; prg= prg->next )
++        {
++            if ( prg->trig_type == OTRIG_TIMER )
++            {
++                if (!is_number(prg->trig_phrase))
++                {
++                    bugf("Bad timer phrase for object %d: %s, must be number.",
++                            obj->pIndexData->vnum, prg->trig_phrase);
++                    return;
++                }
++                register_obj_timer( obj, atoi(prg->trig_phrase));
++                return; /* only one allowed */
++            }
++        }
++    }
++}
++
++void oprog_setup( OBJ_DATA *obj )
++{
++    /* initialize timer, may add more setup steps later */
++    oprog_timer_init( obj );
++}
+diff -r 68f89710bdd2 olc_act.c
+--- a/olc_act.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/olc_act.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -766,6 +766,12 @@
+         return FALSE;
+     }
+ 
++    if ( value==ATRIG_TIMER && IS_SET( pArea->aprogs, value ) )
++    {
++        send_to_char("Can only have one timer trigger.\n\r", ch );
++        return FALSE;
++    }
++
+     list                  = new_aprog();
+     list->vnum            = atoi(num);
+     list->trig_type       = value;
+@@ -774,6 +780,8 @@
+     SET_BIT(pArea->aprog_flags,value);
+     list->next            = pArea->aprogs;
+     pArea->aprogs          = list;
++    
++    aprog_setup( pArea );
+ 
+     send_to_char( "Aprog Added.\n\r",ch);
+     return TRUE;
+@@ -3520,6 +3528,12 @@
+         return FALSE;
+     }
+ 
++    if ( value == OTRIG_TIMER && IS_SET( pObj->oprog_flags, value ) )
++    {
++        send_to_char("Can only have one timer trigger.\n\r", ch);
++        return FALSE;
++    }
++
+     list                  = new_oprog();
+     list->vnum            = atoi(num);
+     list->trig_type       = value;
+@@ -6304,6 +6318,12 @@
+         send_to_char("No such MOBProgram.\n\r",ch);
+         return FALSE;
+     }
++
++    if ( value == TRIG_TIMER  && IS_SET(pMob->mprog_flags, value) )
++    {
++        send_to_char("Can only have one timer trigger.\n\r", ch);
++        return FALSE;
++    }
+     
+     list                  = new_mprog();
+     list->vnum            = atoi(num);
+diff -r 68f89710bdd2 recycle.c
+--- a/recycle.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/recycle.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -378,6 +378,7 @@
+ 	ch->stance=0;
+ 	ch->just_killed = FALSE;
+ 	ch->must_extract = FALSE;
++    ch->trig_timer              = NULL;
+ 	
+ 	for (i = 0; i < MAX_STATS; i ++)
+ 	{
+diff -r 68f89710bdd2 tables.c
+--- a/tables.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/tables.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -523,6 +523,7 @@
+ 	{   "mpcnt",        TRIG_MPCNT,     TRUE    },
+     {   "spell",        TRIG_SPELL,     TRUE    },
+     {   "call",         TRIG_CALL,      FALSE   },
++    {   "timer",        TRIG_TIMER,     TRUE    },
+ 	{   NULL,           0,          TRUE    }
+ };
+ 
+@@ -545,6 +546,7 @@
+     {   "look",         OTRIG_LOOK,      TRUE    },
+     {   "lore",         OTRIG_LORE,      TRUE    },
+     {   "enter",        OTRIG_ENTER,     TRUE    },
++    {   "timer",        OTRIG_TIMER,     TRUE    },
+     {   NULL,           0,          TRUE    }
+ };
+ 
+@@ -561,6 +563,7 @@
+     {   "unvoid",       ATRIG_UNVOID,    TRUE    },
+     {   "recall",       ATRIG_RECALL,    TRUE    },
+     {   "call",         ATRIG_CALL,      FALSE   },
++    {   "timer",        ATRIG_TIMER,     TRUE    },
+     {   NULL,           0,          TRUE    }
+ };
+ 
+diff -r 68f89710bdd2 timer.c
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/timer.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -0,0 +1,306 @@
++/* Countdown timers for progs */
++/* Written by Vodur for Aarchon MUD
++   Clayton Richey, clayton.richey@gmail.com
++   */
++#include <time.h>
++#include <stdio.h>
++#include "merc.h"
++#include "timer.h"
++
++#define TYPE_UNDEFINED 0
++#define TYPE_CH 1
++#define TYPE_OBJ 2
++#define TYPE_AREA 3
++
++#define TM_UNDEFINED 0
++#define TM_PROG      1
++#define TM_LUAFUNC   2
++
++struct timer_node
++{
++    struct timer_node *next;
++    struct timer_node *prev;
++    int tm_type;
++    void *game_obj;
++    int go_type;
++    int current; /* current val that gets decremented each second */
++    bool unregistered; /* to mark for deletion */
++};
++
++
++TIMER_NODE *first_timer=NULL;
++
++static void add_timer( TIMER_NODE *tmr);
++static void remove_timer( TIMER_NODE *tmr );
++static void free_timer_node( TIMER_NODE *tmr);
++static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int max );
++static void print_timer_list();
++
++void * register_lua_timer( int value)
++{
++    TIMER_NODE *tmr=new_timer_node( NULL , TYPE_UNDEFINED, TM_LUAFUNC, value );
++    add_timer(tmr);
++    
++    return (void *)tmr;
++}
++
++void unregister_lua_timer( void *tmr )
++{
++    remove_timer(tmr);
++    return;
++}
++
++/* register on the list and also return a pointer to the node
++   in the form of void */
++void * register_ch_timer( CHAR_DATA *ch, int max )
++{
++    if ( ch->trig_timer)
++    {
++        bugf("Tying to register timer for %s but already registered.", ch->name);
++        return NULL;
++    }
++
++    TIMER_NODE *tmr=new_timer_node( (void *)ch, TYPE_CH, TM_PROG, max);
++
++    add_timer(tmr);
++
++    ch->trig_timer=(void *)tmr;
++
++    return (void *)tmr;
++
++}
++
++/* register on the list and also return a pointer to the node
++   in the form of void */
++void * register_obj_timer( OBJ_DATA *obj, int max )
++{
++    if ( obj->otrig_timer)
++    {
++        bugf("Tying to register timer for %s but already registered.", obj->name);
++        return NULL;
++    }
++
++    TIMER_NODE *tmr=new_timer_node( (void *)obj, TYPE_OBJ, TM_PROG, max);
++
++    add_timer(tmr);
++
++    obj->otrig_timer=(void *)tmr;
++
++    return (void *)tmr;
++
++}
++
++/* register on the list and also return a pointer to the node
++   in the form of void */
++void * register_area_timer( AREA_DATA *area, int max )
++{
++    if ( area->atrig_timer)
++    {
++        bugf("Tying to register timer for %s but already registered.", area->name);
++        return NULL;
++    }
++
++    TIMER_NODE *tmr=new_timer_node( (void *)area, TYPE_AREA, TM_PROG, max);
++
++    add_timer(tmr);
++
++    area->atrig_timer=(void *)tmr;
++
++    return (void *)tmr;
++
++}
++
++static void add_timer( TIMER_NODE *tmr)
++{
++    if (first_timer)
++        first_timer->prev=tmr;
++    tmr->next=first_timer;
++    first_timer=tmr;
++
++}
++
++static void remove_timer( TIMER_NODE *tmr )
++{
++    if ( tmr->prev)
++        tmr->prev->next=tmr->next;
++    if ( tmr->next)
++        tmr->next->prev=tmr->prev;
++    if ( tmr==first_timer )
++        first_timer=tmr->next;
++
++    free_timer_node(tmr);
++    return;
++}
++
++void unregister_ch_timer( CHAR_DATA *ch )
++{
++    if (!ch->trig_timer)
++    {
++        /* doesn't have one */
++        return;
++    }
++    TIMER_NODE *tmr=(TIMER_NODE *)ch->trig_timer;
++
++    tmr->unregistered=TRUE; /* queue it for removal next update */ 
++    ch->trig_timer=NULL;
++    return;
++}
++
++void unregister_obj_timer( OBJ_DATA *obj )
++{
++    if (!obj->otrig_timer)
++    {
++        /* doesn't have one */
++        return;
++    }
++    TIMER_NODE *tmr=(TIMER_NODE *)obj->otrig_timer;
++
++    tmr->unregistered=TRUE; /* queue it for removal next update */
++    obj->otrig_timer=NULL;
++    return;
++}
++
++static void free_timer_node( TIMER_NODE *tmr)
++{
++    free_mem(tmr, sizeof(TIMER_NODE));
++}
++
++static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int seconds )
++{
++    TIMER_NODE *new=alloc_mem(sizeof(TIMER_NODE));
++    new->next=NULL;
++    new->prev=NULL;
++    new->tm_type=tm_type;
++    new->game_obj=gobj;
++    new->go_type=go_type;
++    new->current=seconds;
++    new->unregistered=FALSE;
++    return new;
++}
++
++/* Should be called every second */
++/* need to solve the problem of gobj destruction and unregistering
++   screwing up loop iteration and crashing mud */
++/* what happens when tmr_next is destroyed by current tmr */
++/* condition 1
++   tmr_next gobj is destroyed by prog of tmr
++   tmr_next is unregistered and destroyed but we are still
++   pointing to it
++   how do we prevent this happening?
++   set tmr-next AFTER the prog processes but before we destroy tmr
++
++   but what if tmr gobj was destroyed during the prog?
++   we could set tmr next at the top of the loop but also
++   re-set it after the prog just in case
++
++   this would work in cases where only tmr_next was destroyed
++   or only tmr was destroyed, but what if both were destroyed?
++
++   we probably need to unregister timers outside of progs
++   ( similar to must_extract ) to avoid all of these shenanigans.
++   simply set the must_extract bit. if we destroyed something
++   we already looped past, we grab it on the next timer_update.
++   if we destroyed something not looped yet, we just cleanly
++   unregister/free it when its turn is up */
++
++void timer_update()
++{
++    TIMER_NODE *tmr, *tmr_next;
++    CHAR_DATA *ch;
++    OBJ_DATA *obj;
++    AREA_DATA *area;
++
++    for (tmr=first_timer ; tmr ; tmr=tmr_next)
++    {
++        tmr_next=tmr->next;
++
++        if ( tmr->unregistered )
++        {
++            /* it was unregistered since the last update
++               we need to kill it cleanly */
++            remove_timer( tmr );
++            continue;
++        }
++
++        tmr->current-=1;
++        if (tmr->current <= 0)
++        {
++            switch(tmr->tm_type)
++            {
++                case TM_PROG:
++                    switch( tmr->go_type )
++                    {
++                        case TYPE_CH: 
++                            ch=(CHAR_DATA *)(tmr->game_obj);
++                            if (!IS_VALID(ch))
++                            {
++                                /* Shouldn't happen since we unregister
++                                   on extract */
++                                bugf("timer_update: invalid ch %s", ch->name);
++                                break;
++                            }
++                            mp_timer_trigger( ch );
++                            /* repeating timer, set it up again */
++                            if (IS_VALID(ch))
++                            {
++                                ch->trig_timer=NULL;
++                                mprog_timer_init( ch );
++                            }
++                            break;
++
++                        case TYPE_OBJ:
++                            obj=(OBJ_DATA *)(tmr->game_obj);
++                            if (!IS_VALID(obj))
++                            {
++                                bugf("timer_update: invalid obj %s", obj->name);
++                                break;
++                            }
++                            op_timer_trigger( obj );
++                            if (IS_VALID(obj))
++                            {
++                                obj->otrig_timer=NULL;
++                                oprog_timer_init( obj );
++                            }
++                            break;
++
++                        case TYPE_AREA:
++                            /* no need for valid check on areas */
++                            area=(AREA_DATA *)(tmr->game_obj);
++                            ap_timer_trigger( area );
++                            area->atrig_timer=NULL;
++                            aprog_timer_init( area );
++                            break;
++
++                        default:
++                            bugf("Bad stuff.");
++                            return;
++                    }
++                    break;
++                case TM_LUAFUNC:
++                    run_delayed_function(tmr);
++                    break;
++                default:
++                    bugf("You broke it.");
++            }
++            /* it fired, kill it */
++            remove_timer( tmr );
++        }
++    }
++}
++
++static void print_timer_list()
++{
++    TIMER_NODE *tmr;
++    int i=1;
++    for ( tmr=first_timer; tmr; tmr=tmr->next )
++    {
++        bugf("%d %s", i,
++            tmr->tm_type == TM_LUAFUNC ? "luafunc" :
++            tmr->go_type == TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
++            tmr->go_type == TYPE_OBJ ? ((OBJ_DATA *)(tmr->game_obj))->name :
++            "unknown");
++        i++;
++    }
++    return;
++
++}
+diff -r 68f89710bdd2 timer.h
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/timer.h	Sat Nov 02 10:29:49 2013 +0300
+@@ -0,0 +1,6 @@
++typedef struct timer_node TIMER_NODE;
++void * register_lua_timer( int value);
++void * register_CH_timer( CHAR_DATA *ch, int max );
++void unregister_CH_timer( CHAR_DATA *ch );
++void timer_update();
++
+diff -r 68f89710bdd2 update.c
+--- a/update.c	Sat Nov 02 11:01:15 2013 +1300
++++ b/update.c	Sat Nov 02 10:29:49 2013 +0300
+@@ -2442,11 +2442,18 @@
+     static  int     pulse_save = 3; // "= 3" to reduce CPU peeks
+     static  int     pulse_herb;
+     static  int     pulse_msdp;
++    static  int     pulse_timer;
+     static bool hour_update = TRUE;
+     static bool minute_update = TRUE;
+     /* if nobody is logged on, update less to safe CPU power */
+     bool update_all = (descriptor_list != NULL );
+ 
++    if ( --pulse_timer <= 0 )
++    {
++        pulse_timer     = PULSE_TIMER_TRIG;
++        timer_update();
++    }
++
+     if ( --pulse_msdp <= 0 )
+     {
+         pulse_msdp      = PULSE_PER_SECOND;
