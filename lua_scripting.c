@@ -57,6 +57,8 @@ OBJ_TYPE *CH_type;
 OBJ_TYPE *OBJ_type;
 OBJ_TYPE *ROOM_type;
 OBJ_TYPE *AREA_type;
+OBJ_TYPE *OBJPROTO_type;
+OBJ_TYPE *MOBPROTO_type;
 
 #define MAKEOBJ( LS, obj ) OBJ_type->make( OBJ_type, LS, obj )
 #define MAKECH( LS, ch ) CH_type->make( CH_type, LS, ch )
@@ -599,6 +601,8 @@ static int RegisterLuaRoutines (lua_State *LS)
     OBJ_type=OBJ_init(LS);
     ROOM_type=ROOM_init(LS);
     AREA_type=AREA_init(LS);
+    OBJPROTO_type=OBJPROTO_init(LS);
+    MOBPROTO_type=MOBPROTO_init(LS);
     return 0;
 
 }  /* end of RegisterLuaRoutines */
