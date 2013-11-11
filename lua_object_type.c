@@ -1389,17 +1389,27 @@ static int OBJ_echo( lua_State *LS)
     return 0;
 }
 
+#define PSTR( field, member ) { #field, PTYPE_STR, offsetof(OBJ_DATA, member), NULL}
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
-    {"name", PTYPE_STR,  offsetof(OBJ_DATA, name) , NULL},
+    PSTR(   name,       name ),
+    PSTR(   shortdescr, short_descr ),
+    PSTR(   description, description ),
     {NULL, PTYPE_NONE, NO_OFF, NULL}
 };
 
+#undef PSTR
+
+#define PSTR( field, member ) { #field, PTYPE_STR, offsetof(OBJ_DATA, member), NULL}
 static const LUA_PROP_TYPE OBJ_set_table [] =
 {
-    {"name", PTYPE_STR,  offsetof(OBJ_DATA, name) , NULL},
+    PSTR(   name,       name ),
+    PSTR(   shortdescr, short_descr ),
+    PSTR(   description, description ),
     {NULL, PTYPE_NONE, NO_OFF, NULL}
 };
+
+#undef PSTR
 
 static const LUA_PROP_TYPE OBJ_method_table [] =
 {
