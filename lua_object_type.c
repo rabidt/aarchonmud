@@ -7,14 +7,14 @@
 #include "olc.h"
 #include "tables.h"
 
-OBJ_TYPE *CH_type;
-OBJ_TYPE *OBJ_type;
-OBJ_TYPE *AREA_type;
-OBJ_TYPE *ROOM_type;
-OBJ_TYPE *EXIT_type;
-OBJ_TYPE *RESET_type;
-OBJ_TYPE *OBJPROTO_type;
-OBJ_TYPE *MOBPROTO_type;
+OBJ_TYPE *CH_type=NULL;
+OBJ_TYPE *OBJ_type=NULL;
+OBJ_TYPE *AREA_type=NULL;
+OBJ_TYPE *ROOM_type=NULL;
+OBJ_TYPE *EXIT_type=NULL;
+OBJ_TYPE *RESET_type=NULL;
+OBJ_TYPE *OBJPROTO_type=NULL;
+OBJ_TYPE *MOBPROTO_type=NULL;
 
 static OBJ_TYPE *new_obj_type(
         lua_State *LS,
@@ -23,6 +23,26 @@ static OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *set_table,
         const LUA_PROP_TYPE *method_table);
 
+static type_init(LS)
+{
+    if (!CH_type)
+        CH_type=CH_init(LS);
+    if (!OBJ_type)
+        OBJ_type=OBJ_init(LS);
+    if (!AREA_type)
+        AREA_type=AREA_init(LS);
+    if (!ROOM_type)
+        ROOM_type=ROOM_init(LS);
+    if (!EXIT_type)
+        EXIT_type=EXIT_init(LS);
+    if (!RESET_type)
+        RESET_type=RESET_init(LS);
+    if (!OBJPROTO_type)
+        OBJPROTO_type=OBJPROTO_init(LS);
+    if (!MOBPROTO_type)
+        MOBPROTO_type=MOBPROTO_init(LS);
+}
+        
 /* base functionality for lua object types */
 static void * check_func( OBJ_TYPE *self,
         lua_State *LS, int index )
@@ -1329,6 +1349,7 @@ OBJ_TYPE *CH_init(lua_State *LS)
             CH_set_table,
             CH_method_table);
 
+    type_init(LS); /* cascade init since methods depend on other types */
     return CH_type;
 }
 
@@ -1361,7 +1382,8 @@ OBJ_TYPE *OBJ_init(lua_State *LS)
             OBJ_get_table,
             OBJ_set_table,
             OBJ_method_table);
-
+    
+    type_init(LS); /* cascade init since methods depend on other types */
     return OBJ_type;
 }
 /* end OBJ section */
@@ -1392,6 +1414,7 @@ OBJ_TYPE *AREA_init(lua_State *LS)
             AREA_set_table,
             AREA_method_table);
 
+    type_init(LS); /* cascade init since methods depend on other types */
     return AREA_type;
 }
 
@@ -1423,6 +1446,7 @@ OBJ_TYPE *ROOM_init(lua_State *LS)
             ROOM_set_table,
             ROOM_method_table);
 
+    type_init(LS); /* cascade init since methods depend on other types */
     return ROOM_type;
 }
 /* end ROOM section */
@@ -1468,6 +1492,7 @@ OBJ_TYPE *EXIT_init(lua_State *LS)
             EXIT_set_table,
             EXIT_method_table);
 
+    type_init(LS); /* cascade init since methods depend on other types */
     return EXIT_type;
 }
 /* end EXIT section */
@@ -1507,6 +1532,7 @@ OBJ_TYPE *RESET_init(lua_State *LS)
             RESET_set_table,
             RESET_method_table);
 
+    type_init(LS); /* cascade init since methods depend on other types */
     return RESET_type;
 }
 
@@ -1538,6 +1564,7 @@ OBJ_TYPE *OBJPROTO_init(lua_State *LS)
             OBJPROTO_set_table,
             OBJPROTO_method_table);
 
+    type_init(LS); /* cascade init since methods depend on other types */
     return OBJPROTO_type;
 }
 
@@ -1568,7 +1595,8 @@ OBJ_TYPE *MOBPROTO_init(lua_State *LS)
             MOBPROTO_get_table,
             MOBPROTO_set_table,
             MOBPROTO_method_table);
-
+    
+    type_init(LS); /* cascade init since methods depend on other types */
     return MOBPROTO_type;
 }
 
