@@ -8,10 +8,23 @@
 #include "tables.h"
 
 
+#define GETP(type, field, sec ) { \
+    #field , \
+    type ## _get_ ## field, \
+    sec,  \
+    & type ## _get_ ## field ## _help }
 
-#define GETP(type, field, sec) { #field , type ## _get_ ## field, sec }
-#define SETP(type, field, sec) { #field, type ## _set_ ## field, sec }
-#define METH(type, field, sec) { #field, type ## _ ## field, sec }
+#define SETP(type, field, sec) { \
+    #field, \
+    type ## _set_ ## field, \
+    sec, \
+    & type ## _set_ ## field ## _help }
+
+#define METH(type, field, sec) { \
+    #field, \
+    type ## _ ## field, \
+    sec, \
+    & type ## _ ## field ## _help}
 
 #define CHGET( field, sec ) GETP( CH, field, sec)
 #define CHSET( field, sec ) SETP( CH, field, sec)
@@ -885,6 +898,8 @@ static int CH_ispc (lua_State *LS)
     lua_pushboolean( LS, ud_ch != NULL && !IS_NPC( ud_ch ) );
     return 1;
 }
+LUAHELP_TOPIC CH_ispc_help = {
+};
 
 static int CH_canattack (lua_State *LS)
 {
@@ -1237,6 +1252,9 @@ static int CH_get_hp (lua_State *LS)
             (check_CH (LS, 1))->hit );
     return 1;
 }
+LUAHELP_TOPIC CH_get_hp_help = {
+};
+
 static int CH_set_hp (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH (LS, 1);
@@ -1252,6 +1270,9 @@ static int CH_get_name (lua_State *LS)
             (check_CH(LS,1))->name );
     return 1;
 }
+
+LUAHELP_TOPIC CH_get_name_help = {
+};
 
 static const LUA_PROP_TYPE CH_get_table [] =
 {
@@ -1269,7 +1290,7 @@ static const LUA_PROP_TYPE CH_set_table [] =
 static const LUA_PROP_TYPE CH_method_table [] =
 {
     CHMETH(ispc, 0),
-    CHMETH(isnpc, 0),
+/*    CHMETH(isnpc, 0),
     CHMETH(isgood, 0),
     CHMETH(isevil, 0),
     CHMETH(isneutral, 0),
@@ -1342,7 +1363,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(tprint, 0),
     CHMETH(olc, 0),
     CHMETH(delay, 0),
-    CHMETH(cancel, 0),
+    CHMETH(cancel, 0), */
     ENDPTABLE
 }; 
 OBJ_TYPE *CH_init(lua_State *LS)
