@@ -28,6 +28,8 @@ typedef struct obj_type
 
     CHECK_FUN *check;
 
+    bool (*is)();
+
     LUA_PROP_TYPE *get_table;
     LUA_PROP_TYPE *set_table;
     LUA_PROP_TYPE *method_table;
