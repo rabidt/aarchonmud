@@ -46,12 +46,6 @@ http://www.gammon.com.au/forum/?id=8015
 #include "lua_scripting.h"
 #include "olc.h"
 #include "lua_object_type.h"
-#include "lua_type_RESET.h"
-#include "lua_type_EXIT.h"
-#include "lua_type_CH.h"
-#include "lua_type_OBJ.h"
-#include "lua_type_ROOM.h"
-#include "lua_type_AREA.h"
 #include "lua_common.h"
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
