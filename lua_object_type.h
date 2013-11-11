@@ -10,11 +10,22 @@
 
 typedef void * CHECK_FUN ( struct obj_type *self, lua_State *LS, int index );
 typedef int PROP_FUNC( lua_State *LS, void *gobj );
+
+typedef struct luahelp_topic
+{
+    char *key;
+    char *summary;
+    char *arguments;
+    char *syntax;
+    char *notes;
+} LUAHELP_TOPIC;
+
 typedef struct prop_type
 {
     char *field;
     PROP_FUNC *func;
     int security;
+    LUAHELP_TOPIC *help;
 } LUA_PROP_TYPE;
 
 /* base functionality for lua object types */
