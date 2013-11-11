@@ -7,6 +7,14 @@
 #include "olc.h"
 #include "tables.h"
 
+#define check_CH( LS, index) CH_type->check( CH_type, LS, index )
+#define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
+#define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
+
+#define check_OBJ( LS, obj ) OBJ_type->check( OBJ_type, LS, obj )
+#define make_OBJ(LS, obj ) OBJ_type->make( OBJ_type, LS, obj )
+
+
 OBJ_TYPE *CH_type=NULL;
 OBJ_TYPE *OBJ_type=NULL;
 OBJ_TYPE *AREA_type=NULL;
@@ -142,6 +150,7 @@ static int newindex_metamethod( lua_State *LS )
             void *gobj=obj->check(obj, LS, 1 ); 
             if ( set[i].offset != NO_OFF )
             {
+                char *str=NULL;
                 switch (set[i].ptype)
                 {
                     case PTYPE_INT:
@@ -150,9 +159,9 @@ static int newindex_metamethod( lua_State *LS )
                         return 0;
 
                     case PTYPE_STR:
-                        free_string((char *)(gobj+set[i].offset));
-                        /* gotta fix this */
-                        *(char *)(gobj+set[i].offset)=str_dup(luaL_checkstring(LS, 3));
+                        str=luaL_checkstring(LS,3); 
+                        free_string(*(char **)(gobj+set[i].offset));
+                        *(char **)(gobj+set[i].offset)=str_dup(str);
                         return 0;
 
                     default:
@@ -365,10 +374,6 @@ int L_cancel (lua_State *LS)
 /* end common section */
 
 /* CH section */
-#define check_CH( LS, index) CH_type->check( CH_type, LS, index )
-#define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
-#define make_OBJ(LS, obj ) OBJ_type->make( OBJ_type, LS, obj )
-#define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
 static int CH_randchar (lua_State *LS)
 {
     CHAR_DATA *ch=get_random_char(check_CH(LS,1) );
@@ -1357,6 +1362,33 @@ OBJ_TYPE *CH_init(lua_State *LS)
 /* end CH section */
 
 /* OBJ section */
+static int OBJ_echo( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+    char *argument= check_fstring (LS, 2);
+
+    if (ud_obj->carried_by)
+    {
+        send_to_char(argument, ud_obj->carried_by);
+        send_to_char( "\n\r", ud_obj->carried_by);
+    }
+    else if (ud_obj->in_room)
+    {
+        CHAR_DATA *ch;
+        for ( ch=ud_obj->in_room->people ; ch ; ch=ch->next_in_room )
+        {
+            send_to_char( argument, ch );
+            send_to_char( "\n\r", ch );
+        }
+    }
+    else
+    {
+        // Nothing, must be in a container
+    }
+
+    return 0;
+}
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     {"name", PTYPE_STR,  offsetof(OBJ_DATA, name) , NULL},
@@ -1365,11 +1397,13 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
 
 static const LUA_PROP_TYPE OBJ_set_table [] =
 {
+    {"name", PTYPE_STR,  offsetof(OBJ_DATA, name) , NULL},
     {NULL, PTYPE_NONE, NO_OFF, NULL}
 };
 
 static const LUA_PROP_TYPE OBJ_method_table [] =
 {
+    {"echo", PTYPE_FUN, NO_OFF, OBJ_echo},
     {NULL, PTYPE_NONE, NO_OFF, NULL}
 }; 
 
