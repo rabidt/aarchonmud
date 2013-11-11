@@ -13,6 +13,8 @@
 #define LOADTABLE_FUNCTION "LoadTable"
 #define TPRINTSTR_FUNCTION "tprintstr"
 
+#define LOADSCRIPT_VNUM 0
+
 int L_delay( lua_State *LS);
 int L_cancel( lua_State *LS);
 const char *check_fstring( lua_State *LS, int index);
