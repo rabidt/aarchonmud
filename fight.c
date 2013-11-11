@@ -1976,6 +1976,13 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	is_retribute = FALSE;
     }
     
+    /* kung fu mastery */
+    if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
+    {
+        act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
+        one_hit(ch, victim, dt, secondary);
+    }
+
    tail_chain( );
    return TRUE;
 }
