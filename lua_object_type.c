@@ -7,12 +7,25 @@
 #include "olc.h"
 #include "tables.h"
 
-#define check_CH( LS, index) CH_type->check( CH_type, LS, index )
+
+
+#define GETP(type, field, sec) { #field , type ## _get_ ## field, sec }
+#define SETP(type, field, sec) { #field, type ## _set_ ## field, sec }
+#define METH(type, field, sec) { #field, type ## _ ## field, sec }
+
+#define CHGET( field, sec ) GETP( CH, field, sec)
+#define CHSET( field, sec ) SETP( CH, field, sec)
+#define CHMETH( field, sec ) METH( CH, field, sec)
+
+#define ENDPTABLE {NULL, NULL, 0}
+
+#define check_CH( LS, index) ((CHAR_DATA *)CH_type->check( CH_type, LS, index ))
 #define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
 #define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
 
-#define check_OBJ( LS, obj ) OBJ_type->check( OBJ_type, LS, obj )
+#define check_OBJ( LS, obj ) ((OBJ_DATA *)OBJ_type->check( OBJ_type, LS, obj ))
 #define make_OBJ(LS, obj ) OBJ_type->make( OBJ_type, LS, obj )
+
 
 
 OBJ_TYPE *CH_type=NULL;
@@ -91,32 +104,18 @@ static int index_metamethod( lua_State *LS)
         if (!strcmp(get[i].field, arg) )
         {
            void *gobj=obj->check(obj, LS, 1 );
-           if (get[i].offset != NO_OFF )
-           {
-               switch (get[i].ptype)
-               {
-                   case PTYPE_INT:
-                       lua_pushinteger( LS,
-                               * ( (int *)(gobj+get[i].offset) ) );
-                       return 1;
-
-                   case PTYPE_STR:
-                       lua_pushstring( LS,
-                               ( *(char **)(gobj+get[i].offset) ) );
-                       return 1;
-                   default:
-                       luaL_error(LS,"BADDDDDDD");
-               }
-
-           }
-           else if (get[i].func)
+           if (get[i].func)
            {
                int val;
                val=(get[i].func)(LS, gobj);
                return val;
            }
            else
-               luaL_error(LS, "BAAAAD");
+           {
+               bugf("No function entry for %s %s.", 
+                       obj->type_name, arg );
+               luaL_error(LS, "No function found.");
+           }
 
         }
     }
@@ -148,29 +147,7 @@ static int newindex_metamethod( lua_State *LS )
         if ( !strcmp(set[i].field, arg) )
         {
             void *gobj=obj->check(obj, LS, 1 ); 
-            if ( set[i].offset != NO_OFF )
-            {
-                char *str=NULL;
-                switch (set[i].ptype)
-                {
-                    case PTYPE_INT:
-                        * ( (int *)(gobj+set[i].offset) )=
-                            luaL_checkint(LS, 3);
-                        return 0;
-
-                    case PTYPE_STR:
-                        str=luaL_checkstring(LS,3); 
-                        free_string(*(char **)(gobj+set[i].offset));
-                        *(char **)(gobj+set[i].offset)=str_dup(str);
-                        return 0;
-
-                    default:
-                        luaL_error(LS, "badstuff");
-
-                }
-
-            }
-            else if ( set[i].func )
+            if ( set[i].func )
             {
                 lua_pushcfunction( LS, set[i].func );
                 lua_pushvalue( LS, 1);
@@ -179,7 +156,11 @@ static int newindex_metamethod( lua_State *LS )
                 return 0;
             }
             else
-                luaL_error(LS, "babdda");
+            {
+                bugf("No function entry for %s %s.",
+                        obj->type_name, arg );
+                luaL_error(LS, "No function found.");
+            }
         }
     }
 
@@ -1250,100 +1231,120 @@ static int CH_cancel (lua_State *LS)
     return L_cancel( LS );
 }
 
+static int CH_get_hp (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH (LS, 1))->hit );
+    return 1;
+}
+static int CH_set_hp (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH (LS, 1);
+    int num = luaL_checkinteger (LS, 2);
+
+    ud_ch->hit=num;
+    return 0;
+}
+
+static int CH_get_name (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_CH(LS,1))->name );
+    return 1;
+}
+
 static const LUA_PROP_TYPE CH_get_table [] =
 {
-    {"name", PTYPE_STR,  offsetof(CHAR_DATA, name) , NULL},
-    {"hp",   PTYPE_INT,  offsetof(CHAR_DATA, hit)  , NULL},
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    CHGET(name, 0),
+    CHGET(hp, 0),
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE CH_set_table [] =
 {
     {"hp", PTYPE_INT,    offsetof(CHAR_DATA, hit), NULL},
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
-#define METHOD( meth ) { #meth , PTYPE_FUN, NO_OFF, CH_ ## meth }
 static const LUA_PROP_TYPE CH_method_table [] =
 {
-    METHOD(ispc),
-    METHOD(isnpc),
-    METHOD(isgood),
-    METHOD(isevil),
-    METHOD(isneutral),
-    METHOD(isimmort),
-    METHOD(ischarm),
-    METHOD(isfollow),
-    METHOD(isactive),
-    METHOD(isvisible),
-    METHOD(mobhere),
-    METHOD(objhere),
-    METHOD(mobexists),
-    METHOD(objexists),
-    METHOD(affected),
-    METHOD(act),
-    METHOD(offensive),
-    METHOD(immune),
-    METHOD(carries),
-    METHOD(wears),
-    METHOD(has),
-    METHOD(uses),
-    METHOD(qstatus),
-    METHOD(resist),
-    METHOD(vuln),
-    METHOD(skilled),
-    METHOD(ccarries),
-    METHOD(qtimer),
-    METHOD(canattack),
-    METHOD(destroy),
-    METHOD(oload),
-    METHOD(setlevel),
-    METHOD(say),
-    METHOD(emote),
-    METHOD(mdo),
-    METHOD(asound),
-    METHOD(gecho),
-    METHOD(zecho),
-    METHOD(kill),
-    METHOD(assist),
-    METHOD(junk),
-    METHOD(echo),
-    METHOD(echoaround),
-    METHOD(echoat),
-    METHOD(mload),
-    METHOD(purge),
-    METHOD(goto),
-    METHOD(at),
-    METHOD(transfer),
-    METHOD(gtransfer),
-    METHOD(otransfer),
-    METHOD(force),
-    METHOD(gforce),
-    METHOD(vforce),
-    METHOD(cast),
-    METHOD(damage),
-    METHOD(remove),
-    METHOD(remort),
-    METHOD(qset),
-    METHOD(qadvance),
-    METHOD(reward),
-    METHOD(peace),
-    METHOD(restore),
-    METHOD(setact),
-    METHOD(hit),
-    METHOD(randchar),
-    METHOD(loadprog),
-    METHOD(loadscript),
-    METHOD(loadstring),
-    METHOD(savetbl),
-    METHOD(loadtbl),
-    METHOD(tprint),
-    METHOD(olc),
-    METHOD(delay),
-    METHOD(cancel),
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    CHMETH(ispc, 0),
+    CHMETH(isnpc, 0),
+    CHMETH(isgood, 0),
+    CHMETH(isevil, 0),
+    CHMETH(isneutral, 0),
+    CHMETH(isimmort, 0),
+    CHMETH(ischarm, 0),
+    CHMETH(isfollow, 0),
+    CHMETH(isactive, 0),
+    CHMETH(isvisible, 0),
+    CHMETH(mobhere, 0),
+    CHMETH(objhere, 0),
+    CHMETH(mobexists, 0),
+    CHMETH(objexists, 0),
+    CHMETH(affected, 0),
+    CHMETH(act, 0),
+    CHMETH(offensive, 0),
+    CHMETH(immune, 0),
+    CHMETH(carries, 0),
+    CHMETH(wears, 0),
+    CHMETH(has, 0),
+    CHMETH(uses, 0),
+    CHMETH(qstatus, 0),
+    CHMETH(resist, 0),
+    CHMETH(vuln, 0),
+    CHMETH(skilled, 0),
+    CHMETH(ccarries, 0),
+    CHMETH(qtimer, 0),
+    CHMETH(canattack, 0),
+    CHMETH(destroy, 0),
+    CHMETH(oload, 0),
+    CHMETH(setlevel, 0),
+    CHMETH(say, 0),
+    CHMETH(emote, 0),
+    CHMETH(mdo, 0),
+    CHMETH(asound, 0),
+    CHMETH(gecho, 0),
+    CHMETH(zecho, 0),
+    CHMETH(kill, 0),
+    CHMETH(assist, 0),
+    CHMETH(junk, 0),
+    CHMETH(echo, 0),
+    CHMETH(echoaround, 0),
+    CHMETH(echoat, 0),
+    CHMETH(mload, 0),
+    CHMETH(purge, 0),
+    CHMETH(goto, 0),
+    CHMETH(at, 0),
+    CHMETH(transfer, 0),
+    CHMETH(gtransfer, 0),
+    CHMETH(otransfer, 0),
+    CHMETH(force, 0),
+    CHMETH(gforce, 0),
+    CHMETH(vforce, 0),
+    CHMETH(cast, 0),
+    CHMETH(damage, 0),
+    CHMETH(remove, 0),
+    CHMETH(remort, 0),
+    CHMETH(qset, 0),
+    CHMETH(qadvance, 0),
+    CHMETH(reward, 0),
+    CHMETH(peace, 0),
+    CHMETH(restore, 0),
+    CHMETH(setact, 0),
+    CHMETH(hit, 0),
+    CHMETH(randchar, 0),
+    CHMETH(loadprog, 0),
+    CHMETH(loadscript, 0),
+    CHMETH(loadstring, 0),
+    CHMETH(savetbl, 0),
+    CHMETH(loadtbl, 0),
+    CHMETH(tprint, 0),
+    CHMETH(olc, 0),
+    CHMETH(delay, 0),
+    CHMETH(cancel, 0),
+    ENDPTABLE
 }; 
-#undef METHOD
 OBJ_TYPE *CH_init(lua_State *LS)
 {
     if (!CH_type)
@@ -1389,32 +1390,32 @@ static int OBJ_echo( lua_State *LS)
     return 0;
 }
 
-#define PSTR( field, member ) { #field, PTYPE_STR, offsetof(OBJ_DATA, member), NULL}
+#define PSTR( field, member, sec ) { #field, PTYPE_STR, offsetof(OBJ_DATA, member),  NULL, sec}
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
-    PSTR(   name,       name ),
-    PSTR(   shortdescr, short_descr ),
-    PSTR(   description, description ),
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    PSTR(   name,       name,           0 ),
+    PSTR(   shortdescr, short_descr,    0 ),
+    PSTR(   description, description,   0 ),
+    ENDPTABLE
 };
 
 #undef PSTR
 
-#define PSTR( field, member ) { #field, PTYPE_STR, offsetof(OBJ_DATA, member), NULL}
+#define PSTR( field, member, sec ) { #field, PTYPE_STR, offsetof(OBJ_DATA, member), NULL, sec}
 static const LUA_PROP_TYPE OBJ_set_table [] =
 {
-    PSTR(   name,       name ),
-    PSTR(   shortdescr, short_descr ),
-    PSTR(   description, description ),
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    PSTR(   name,       name,           0 ),
+    PSTR(   shortdescr, short_descr,    0 ),
+    PSTR(   description, description,   0 ),
+    ENDPTABLE
 };
 
 #undef PSTR
 
 static const LUA_PROP_TYPE OBJ_method_table [] =
 {
-    {"echo", PTYPE_FUN, NO_OFF, OBJ_echo},
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    {"echo", PTYPE_FUN, NO_OFF, OBJ_echo, 0},
+    ENDPTABLE
 }; 
 
 OBJ_TYPE *OBJ_init(lua_State *LS)
@@ -1435,17 +1436,17 @@ OBJ_TYPE *OBJ_init(lua_State *LS)
 /* AREA section */
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE AREA_set_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE AREA_method_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 }; 
 
 OBJ_TYPE *AREA_init(lua_State *LS)
@@ -1467,17 +1468,17 @@ OBJ_TYPE *AREA_init(lua_State *LS)
 /* ROOM section */
 static const LUA_PROP_TYPE ROOM_get_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE ROOM_set_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE ROOM_method_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 }; 
 
 OBJ_TYPE *ROOM_init(lua_State *LS)
@@ -1512,18 +1513,18 @@ static int EXIT_flag (lua_State *LS)
 static const LUA_PROP_TYPE EXIT_get_table [] =
 {
     {"key", PTYPE_INT, offsetof(EXIT_DATA, key), NULL},
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE EXIT_set_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE EXIT_method_table [] =
 {
     {"flag", PTYPE_NONE, NO_OFF, EXIT_flag },
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 }; 
 
 OBJ_TYPE *EXIT_init(lua_State *LS)
@@ -1553,17 +1554,17 @@ static int RESET_get_command(lua_State *LS, RESET_DATA *rd )
 static const LUA_PROP_TYPE RESET_get_table [] =
 {
     {"command", PTYPE_STR, NO_OFF, RESET_get_command},
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE RESET_set_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE RESET_method_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 }; 
 
 OBJ_TYPE *RESET_init(lua_State *LS)
@@ -1585,17 +1586,17 @@ OBJ_TYPE *RESET_init(lua_State *LS)
 /* OBJPROTO section */
 static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE OBJPROTO_set_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 }; 
 
 OBJ_TYPE *OBJPROTO_init(lua_State *LS)
@@ -1617,17 +1618,17 @@ OBJ_TYPE *OBJPROTO_init(lua_State *LS)
 /* MOBPROTO section */
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE MOBPROTO_set_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 };
 
 static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 {
-    {NULL, PTYPE_NONE, NO_OFF, NULL}
+    ENDPTABLE
 }; 
 
 OBJ_TYPE *MOBPROTO_init(lua_State *LS)
