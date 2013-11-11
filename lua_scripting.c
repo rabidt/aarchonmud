@@ -52,6 +52,7 @@ http://www.gammon.com.au/forum/?id=8015
 #include "lua_type_OBJ.h"
 #include "lua_type_ROOM.h"
 #include "lua_type_AREA.h"
+#include "lua_common.h"
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 /* Mersenne Twister stuff - see mt19937ar.c */
@@ -68,7 +69,7 @@ OBJ_TYPE *AREA_type;
 #define MAKEAREA( LS, area) AREA_type->make( AREA_type, LS, area)
 #define MAKEROOM( LS, room) ROOM_type->make( ROOM_type, LS, room)
 
-#define CHECKCH( LS, ch ) CH_type->check( CH_type, LS, ch )
+#define CHECKCH( LS, index ) CH_type->check( CH_type, LS, index )
 
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
 #define LUA_LOOP_CHECK_INCREMENT 100
@@ -87,23 +88,11 @@ void init_by_array(unsigned long init_key[], int key_length);
 double genrand(void);
 
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
-char *check_fstring( lua_State *LS, int index);
 
 #define MUD_LIBRARY "mud"
 #define MT_LIBRARY "mt"
 #define GOD_LIBRARY "god"
 #define DEBUG_LIBRARY "debug"
-#define UD_TABLE_NAME "udtbl"
-#define ENV_TABLE_NAME "envtbl"
-#define INTERP_TABLE_NAME "interptbl"
-
-/* Names of some functions declared on the lua side */
-#define REGISTER_UD_FUNCTION "RegisterUd"
-#define UNREGISTER_UD_FUNCTION "UnregisterUd"
-#define GETSCRIPT_FUNCTION "GetScript"
-#define SAVETABLE_FUNCTION "SaveTable"
-#define LOADTABLE_FUNCTION "LoadTable"
-#define TPRINTSTR_FUNCTION "tprintstr"
 
 #define MOB_ARG "mob"
 #define NUM_MPROG_ARGS 8 
@@ -149,34 +138,6 @@ char *check_fstring( lua_State *LS, int index);
 #define NUMITEMS(arg) (sizeof (arg) / sizeof (arg [0]))
 
 LUALIB_API int luaopen_bits(lua_State *LS);  /* Implemented in lua_bits.c */
-
-void stackDump (lua_State *LS) {
-    int i;
-    int top = lua_gettop(LS);
-    for (i = 1; i <= top; i++) {  /* repeat for each level */
-        int t = lua_type(LS, i);
-        switch (t) {
-
-            case LUA_TSTRING:  /* strings */
-                bugf("`%s'", lua_tostring(LS, i));
-                break;
-
-            case LUA_TBOOLEAN:  /* booleans */
-                bugf(lua_toboolean(LS, i) ? "true" : "false");
-                break;
-
-            case LUA_TNUMBER:  /* numbers */
-                bugf("%g", lua_tonumber(LS, i));
-                break;
-
-            default:  /* other values */
-                bugf("%s", lua_typename(LS, t));
-                break;
-
-        }
-    }
-    bugf("\n");  /* end the listing */
-}
 
 static int optboolean (lua_State *LS, const int narg, const int def) 
 {
@@ -225,31 +186,6 @@ void unregister_lua( void *ptr )
     unregister_UD( g_mud_LS, ptr );
 }
 
-static void GetTracebackFunction (lua_State *LS)
-{
-    lua_pushliteral (LS, LUA_DBLIBNAME);     /* "debug"   */
-    lua_rawget      (LS, LUA_GLOBALSINDEX);    /* get debug library   */
-
-    if (!lua_istable (LS, -1))
-    {
-        lua_pop (LS, 2);   /* pop result and debug table  */
-        lua_pushnil (LS);
-        return;
-    }
-
-    /* get debug.traceback  */
-    lua_pushstring(LS, "traceback");  
-    lua_rawget    (LS, -2);               /* get traceback function  */
-
-    if (!lua_isfunction (LS, -1))
-    {
-        lua_pop (LS, 2);   /* pop result and debug table  */
-        lua_pushnil (LS);
-        return;
-    }
-
-    lua_remove (LS, -2);   /* remove debug table, leave traceback function  */
-}  /* end of GetTracebackFunction */
 
 static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
 {
@@ -269,105 +205,6 @@ static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
     }
 }
 
-int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
-{
-    int error;
-
-    int base = lua_gettop (LS) - iArguments;  /* function index */
-    GetTracebackFunction (LS);
-    if (lua_isnil (LS, -1))
-    {
-        lua_pop (LS, 1);   /* pop non-existent function  */
-        bugf("pop non-existent function");
-        error = lua_pcall (LS, iArguments, iReturn, 0);
-    }  
-    else
-    {
-        lua_insert (LS, base);  /* put it under chunk and args */
-        error = lua_pcall (LS, iArguments, iReturn, base);
-        lua_remove (LS, base);  /* remove traceback function */
-    }
-
-    return error;
-}  /* end of CallLuaWithTraceBack  */
-
-static int L_delay (lua_State *LS)
-{
-    /* delaytbl has timer pointers as keys
-       value is table with 'tableid' and 'func' keys */
-    /* delaytbl[tmr]={ tableid=tableid, func=func } */
-    const char *tag=NULL;
-    int val=luaL_checkint( LS, 2 );
-    luaL_checktype( LS, 3, LUA_TFUNCTION);
-    if (!lua_isnone( LS, 4 ) )
-    {
-       tag=str_dup(luaL_checkstring( LS, 4 ));
-    }
-
-    lua_getglobal( LS, "delaytbl");
-    TIMER_NODE *tmr=register_lua_timer( val, tag );
-    lua_pushlightuserdata( LS, (void *)tmr); 
-    lua_newtable( LS );
- 
-    lua_pushliteral( LS, "tableid");
-    lua_getfield( LS, 1, "tableid");
-    lua_settable( LS, -3 );
-
-    
-    lua_pushliteral( LS, "func");
-    lua_pushvalue( LS, 3 );
-    lua_settable( LS, -3 );
-
-    lua_settable( LS, -3 );
-
-    return 0;
-}
-
-static int L_cancel (lua_State *LS)
-{
-    /* http://pgl.yoyo.org/luai/i/next specifies it is safe
-       to modify or clear fields during iteration */
-    /* for k,v in pairs(delaytbl) do
-            if v.tableid==arg1.tableid then
-                unregister_lua_timer(k)
-                delaytbl[k]=nil
-            end
-       end
-       */
-
-    /* 1, game object */
-    const char *tag=NULL;
-    if (!lua_isnone(LS, 2))
-    {
-        tag=luaL_checkstring( LS, 2 );
-        lua_remove( LS, 2 );
-    }
-
-    lua_getfield( LS, 1, "tableid"); /* 2, arg1.tableid (game object pointer) */ 
-    lua_getglobal( LS, "delaytbl"); /* 3, delaytbl */
-
-    lua_pushnil( LS );
-    while ( lua_next(LS, 3) != 0 ) /* pops nil */
-    {
-        /* key at 4, val at 5 */
-        lua_getfield( LS, 5, "tableid");
-        if (lua_equal( LS, 6, 2 )==1)
-        {
-            luaL_checktype( LS, 4, LUA_TLIGHTUSERDATA);
-            TIMER_NODE *tmr=(TIMER_NODE *)lua_touserdata( LS, 4);
-            if (unregister_lua_timer( tmr, tag ) ) /* return false if tag no match*/
-            {
-                /* set table entry to nil */
-                lua_pushvalue( LS, 4 ); /* push key */
-                lua_pushnil( LS );
-                lua_settable( LS, 3 );
-            }
-        }
-        lua_pop(LS, 2); /* pop tableid and value */
-    }
-
-    return 0;
-}
 
 static int L_rundelay( lua_State *LS)
 {
@@ -599,44 +436,6 @@ static int L_log (lua_State *LS)
     log_string(buf);
     return 0;
 }
-/* analog of run_olc_editor in olc.c */
-static bool run_olc_editor_lua( CHAR_DATA *ch, char *argument )
-{
-    if (IS_NPC(ch))
-        return FALSE;
-
-    switch ( ch->desc->editor )
-    {
-        case ED_AREA:
-            aedit( ch, argument );
-            break;
-        case ED_ROOM:
-            redit( ch, argument );
-            break;
-        case ED_OBJECT:
-            oedit( ch, argument );
-            break;
-        case ED_MOBILE:
-            medit( ch, argument );
-            break;
-        case ED_MPCODE:
-            mpedit( ch, argument );
-            break;
-        case ED_OPCODE:
-            opedit( ch, argument );
-            break;
-        case ED_APCODE:
-            apedit( ch, argument );
-            break;
-        case ED_HELP:
-            hedit( ch, argument );
-            break;
-        default:
-            return FALSE;
-    }
-    return TRUE; 
-}
-
 
 static int L_hour (lua_State *LS)
 {
@@ -842,7 +641,7 @@ int GetLuaEnvironmentCount()
     return (int)luaL_checknumber( g_mud_LS, -1 );
 }
 
-void open_lua  ()
+void open_lua ()
 {
     lua_State *LS = luaL_newstate ();   /* opens Lua */
     g_mud_LS = LS;
@@ -1916,22 +1715,4 @@ void do_luai( CHAR_DATA *ch, char *argument)
     ptc(ch, "Use GO on a blank line to end WAIT mode and process the buffer.\n\r");
     lua_settop(g_mud_LS, 0);
     return;
-}
-
-/* Run string.format using args beginning at index
-   Assumes top is the last argument*/
-char *check_fstring( lua_State *LS, int index)
-{
-    int narg=lua_gettop(LS)-(index-1);
-
-    if ( !(narg==1))
-    {
-        lua_getglobal( LS, "string");
-        lua_getfield( LS, -1, "format");
-        /* kill string table */
-        lua_remove( LS, -2);
-        lua_insert( LS, index );
-        lua_call( LS, narg, 1);
-    }
-    return luaL_checkstring( LS, index);
 }
