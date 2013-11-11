@@ -36,7 +36,8 @@ static const LUA_PROP_TYPE method_table [] =
 
 OBJ_TYPE *CH_init(lua_State *LS)
 {
-    CH_type=new_obj_type(
+    if (!CH_type)
+        CH_type=new_obj_type(
             LS,
             "CH",
             get_table,
