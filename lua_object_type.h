@@ -8,7 +8,6 @@
 #define PTYPE_STR 2
 #define PTYPE_FUN 3
 
-typedef const char * LUA_HELP_FUN ( const char *argument );
 typedef void * CHECK_FUN ( struct obj_type *self, lua_State *LS, int index );
 typedef int PROP_FUNC( lua_State *LS, void *gobj );
 typedef struct prop_type
@@ -34,14 +33,6 @@ typedef struct obj_type
     LUA_PROP_TYPE *set_table;
     LUA_PROP_TYPE *method_table;
 
-    //LUA_HELP_FUN *help;
 } OBJ_TYPE;
-
-OBJ_TYPE *new_obj_type(
-        lua_State *LS,
-        const char *type_name,
-        const LUA_PROP_TYPE *get_table,
-        const LUA_PROP_TYPE *set_table,
-        const LUA_PROP_TYPE *method_table);
 
 #endif
