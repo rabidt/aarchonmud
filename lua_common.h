@@ -14,6 +14,7 @@
 #define TPRINTSTR_FUNCTION "tprintstr"
 
 #define LOADSCRIPT_VNUM 0
+#define MAX_LUA_SECURITY 9
 
 int L_delay( lua_State *LS);
 int L_cancel( lua_State *LS);
