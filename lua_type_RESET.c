@@ -32,7 +32,8 @@ static const LUA_PROP_TYPE method_table [] =
 
 OBJ_TYPE *RESET_init(lua_State *LS)
 {
-    RESET_type=new_obj_type(
+    if (!RESET_type)
+        RESET_type=new_obj_type(
             LS,
             "RESET",
             get_table,
