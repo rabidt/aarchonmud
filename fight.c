@@ -5914,9 +5914,24 @@ void do_flee( CHAR_DATA *ch, char *argument )
 
         if ( opp_roll > ch_roll || opp->stance == STANCE_AMBUSH && number_bits(1) )
         {
-            act("$N jumps in your way, blocking your escape!", ch, NULL, opp, TO_CHAR);
-            act("You jump in $n's way, blocking $s escape!", ch, NULL, opp, TO_VICT);
-            act("$N jumps in $n's way, blocking $s escape!", ch, NULL, opp, TO_NOTVICT);
+            if ( per_chance(mastery_bonus(opp, gsn_entrapment, 60, 100)) )
+            {
+                act("$N trips you over, ending your escape attempt!", ch, NULL, opp, TO_CHAR);
+                act("You trip $n over, ending $s escape attempt!", ch, NULL, opp, TO_VICT);
+                act("$N trips $n over, ending $s escape attempt!", ch, NULL, opp, TO_NOTVICT);
+                set_pos(ch, POS_RESTING);
+                check_lose_stance(ch);
+                // free attack
+                one_hit(opp, ch, TYPE_UNDEFINED, FALSE);
+                if ( per_chance(offhand_attack_chance(opp, TRUE)) )
+                    one_hit(opp, ch, TYPE_UNDEFINED, TRUE);
+            }
+            else
+            {
+                act("$N jumps in your way, blocking your escape!", ch, NULL, opp, TO_CHAR);
+                act("You jump in $n's way, blocking $s escape!", ch, NULL, opp, TO_VICT);
+                act("$N jumps in $n's way, blocking $s escape!", ch, NULL, opp, TO_NOTVICT);
+            }
             check_improve(opp, gsn_entrapment, TRUE, 1);
             return;
         }
