@@ -28,4 +28,6 @@ OBJ_TYPE *EXIT_init( lua_State *LS);
 OBJ_TYPE *RESET_init( lua_State *LS);
 OBJ_TYPE *OBJPROTO_init( lua_State *LS);
 OBJ_TYPE *MOBPROTO_init( lua_State *LS);
+
+void register_globals( lua_State *LS );
 #endif
