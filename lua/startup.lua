@@ -12,6 +12,7 @@ origenv={} -- where the REAL env tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
 
+
 function UdCnt()
     local cnt=0
     for k,v in pairs(udtbl) do
@@ -238,7 +239,7 @@ main_lib={  require=require,
 		hour=hour,
 
 		-- other
-        tprintstr=tprintstr,
+--[[        tprintstr=tprintstr,
         getroom=getroom,
 		randnum=randnum,
 		rand=rand,
@@ -270,8 +271,14 @@ main_lib={  require=require,
             defy=god.defy
         },
         dbg={show=dbg.show}
-
+--]]
 }
+
+-- add script_globs to main_lib
+for k,v in pairs(script_globs) do
+    main_lib[k]=v
+end
+
 -- Need to protect our library funcs from evil scripters
 function ProtectLib(lib)
     for k,v in pairs(lib) do
