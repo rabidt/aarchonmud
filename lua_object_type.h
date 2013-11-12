@@ -1,17 +1,16 @@
 #ifndef LUA_OBJECT_TYPE_H
 #define LUA_OBJECT_TYPE_H
 
-typedef void * CHECK_FUN ( struct obj_type *self, lua_State *LS, int index );
 typedef struct prop_type LUA_PROP_TYPE;
 
 /* base functionality for lua object types */
 typedef struct obj_type
 {
-    int udtype; /* unique type ID */
+    int udtype; /* unique type ID generated at init*/
     char *type_name;
     bool (*make)();
 
-    CHECK_FUN *check;
+    void *(*check)();
 
     bool (*is)();
 
