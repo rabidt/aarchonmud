@@ -20,7 +20,7 @@ O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
      tattoo.o religion.o playback.o mob_stats.o \
      mt19937ar.o lua_scripting.o lua_bits.o olc_opcode.o obj_prog.o\
      olc_apcode.o area_prog.o protocol.o timer.o olc_rpcode.o room_prog.c\
-     lua_object_type.o lua_common.o lua_help.o
+     lua_object_type.o lua_common.o 
 
 aeaea:  
 tester: C_FLAGS += -DTESTER
