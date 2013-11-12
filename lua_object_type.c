@@ -488,14 +488,15 @@ typedef struct glob_type
 #define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, & lib ## lib_ ## fun ## _help}
 GLOB_TYPE glob_table[] =
 {
-    GFUN(sendtochar,    0),
-    LFUN(god,   bless,  0),
+    GFUN(sendtochar,    9), 
+    LFUN(god,   bless,  8),
     ENDGTABLE
 };
 
 static int global_sec_check (lua_State *LS)
 {
     int security=luaL_checkinteger( LS, lua_upvalueindex(1) );
+    bugf( "%d %d", ScriptSecurity(), security );
     
     if ( ScriptSecurity() < security )
         luaL_error( LS, "Current security %d. Function requires %d.",
