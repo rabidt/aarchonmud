@@ -137,6 +137,15 @@ int ScriptSecurity()
     return s_ScriptSecurity;
 }
 
+int LuaLoopCount()
+{
+    return s_LoopCheckCounter;
+}
+
+void ClearLuaLoopCount()
+{
+    s_LoopCheckCounter=0;
+}
 
 LUALIB_API int luaopen_bits(lua_State *LS);  /* Implemented in lua_bits.c */
 
@@ -261,39 +270,6 @@ void run_delayed_function( TIMER_NODE *tmr )
 }
 
 
-
-static int L_pagetochar (lua_State *LS)
-{
-    page_to_char( check_fstring(LS, 2),
-            check_CH(LS,1) );
-
-    return 0;
-}
-
-static int L_clearloopcount (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    s_LoopCheckCounter=0;
-
-    return 0;
-}
-
-static int L_log (lua_State *LS)
-{
-    char buf[MSL];
-    sprintf(buf, "LUA::%s", check_fstring (LS, 1));
-
-    log_string(buf);
-    return 0;
-}
-
-static int L_hour (lua_State *LS)
-{
-    lua_pushnumber( LS, time_info.hour );
-    return 1;
-}
-
 static int L_mud_luadir( lua_State *LS)
 {
     lua_pushliteral( LS, LUA_DIR);
@@ -384,13 +360,6 @@ static void RegisterGlobalFunctions(lua_State *LS)
     /* These are registed in the main script
        space then the appropriate ones are 
        exposed to scripts in main_lib */
-    /* checks */
-    lua_register(LS,"hour",        L_hour);
-
-    /* other */
-    lua_register(LS,"log",         L_log );
-    lua_register(LS,"clearloopcount", L_clearloopcount);
-
     /* not meant for main_lib */
     lua_register(LS,"cancel", L_cancel); 
 
