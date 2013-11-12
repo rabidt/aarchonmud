@@ -132,6 +132,12 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
 // number of items in an array
 #define NUMITEMS(arg) (sizeof (arg) / sizeof (arg [0]))
 
+int ScriptSecurity()
+{
+    return s_ScriptSecurity;
+}
+
+
 LUALIB_API int luaopen_bits(lua_State *LS);  /* Implemented in lua_bits.c */
 
 static int optboolean (lua_State *LS, const int narg, const int def) 
@@ -254,157 +260,7 @@ void run_delayed_function( TIMER_NODE *tmr )
 
 }
 
-static int L_god_bless (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_bless( NULL, ch, "" ));
-    return 1;
-}
-
-static int L_god_curse (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_curse( NULL, ch, "" ));
-    return 1;
-}
-
-static int L_god_heal (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_heal( NULL, ch, "" ));
-    return 1;
-}
-
-static int L_god_speed (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_speed( NULL, ch, "" ));
-    return 1; 
-}
-
-static int L_god_slow (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_slow( NULL, ch, "" ));
-    return 1; 
-}
-
-static int L_god_cleanse (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_cleanse( NULL, ch, "" ));
-    return 1; 
-}
-
-static int L_god_defy (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_defy( NULL, ch, "" ));
-    return 1; 
-}
-
-static int L_god_enlighten (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_enlighten( NULL, ch, "" ));
-    return 1; 
-}
-
-static int L_god_protect (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_protect( NULL, ch, "" ));
-    return 1;
-}
-
-static int L_god_fortune (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_fortune( NULL, ch, "" ));
-    return 1;
-}
-
-static int L_god_haunt (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_haunt( NULL, ch, "" ));
-    return 1;
-}
-
-static int L_god_plague (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_plague( NULL, ch, "" ));
-    return 1;
-}
-
-static int L_god_confuse (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
-
-    lua_pushboolean( LS,
-            god_confuse( NULL, ch, "" ));
-    return 1;
-}
-
-static int L_sendtochar (lua_State *LS)
-{
-    CHAR_DATA *ch=check_CH(LS,1);
-    char *msg=check_fstring(LS, 2);
-
-    send_to_char(msg, ch);
-    return 0;
-}
 
 static int L_pagetochar (lua_State *LS)
 {
@@ -463,23 +319,6 @@ static int L_debug_show ( lua_State *LS)
 static const struct luaL_reg debuglib [] =
 {
     {"show", L_debug_show}
-};
-
-static const struct luaL_reg godlib [] =
-{
-    {"confuse", L_god_confuse},
-    {"curse", L_god_curse},
-    {"plague", L_god_plague},
-    {"bless", L_god_bless},
-    {"slow", L_god_slow},
-    {"speed", L_god_speed},
-    {"heal", L_god_heal},
-    {"enlighten", L_god_enlighten},
-    {"protect", L_god_protect},
-    {"fortune", L_god_fortune},
-    {"haunt", L_god_haunt},
-    {"cleanse", L_god_cleanse},
-    {"defy", L_god_defy}
 };
 
 static const struct luaL_reg mudlib [] = 
@@ -554,6 +393,8 @@ static void RegisterGlobalFunctions(lua_State *LS)
 
     /* not meant for main_lib */
     lua_register(LS,"cancel", L_cancel); 
+
+    register_globals( LS );
 }
 
 
@@ -566,7 +407,7 @@ static int RegisterLuaRoutines (lua_State *LS)
     luaL_register (LS, MUD_LIBRARY, mudlib);
 
     /* register all god.xxx routines */
-    luaL_register (LS, GOD_LIBRARY, godlib);
+    //luaL_register (LS, GOD_LIBRARY, godlib);
 
     /* register all debug.xxx routines */
     luaL_register (LS, DEBUG_LIBRARY, debuglib);
