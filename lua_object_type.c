@@ -30,7 +30,7 @@
 #define CHSET( field, sec ) SETP( CH, field, sec)
 #define CHMETH( field, sec ) METH( CH, field, sec)
 
-#define ENDPTABLE {NULL, NULL, 0}
+#define ENDPTABLE {NULL, NULL, 0, NULL}
 
 #define check_CH( LS, index) ((CHAR_DATA *)CH_type->check( CH_type, LS, index ))
 #define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
@@ -39,11 +39,8 @@
 #define check_OBJ( LS, obj ) ((OBJ_DATA *)OBJ_type->check( OBJ_type, LS, obj ))
 #define make_OBJ(LS, obj ) OBJ_type->make( OBJ_type, LS, obj )
 
-typedef int PROP_FUNC( lua_State *LS, void *gobj );
-
 typedef struct lua_help_topic
 {
-    char *key;
     char *summary;
     char *syntax;
     char *arguments;
@@ -53,11 +50,10 @@ typedef struct lua_help_topic
 struct prop_type
 {
     char *field;
-    PROP_FUNC *func;
+    int  (*func)();
     int security;
     HELPTOPIC *help;
 };
-
 
 OBJ_TYPE *CH_type=NULL;
 OBJ_TYPE *OBJ_type=NULL;
@@ -67,6 +63,21 @@ OBJ_TYPE *EXIT_type=NULL;
 OBJ_TYPE *RESET_type=NULL;
 OBJ_TYPE *OBJPROTO_type=NULL;
 OBJ_TYPE *MOBPROTO_type=NULL;
+
+/* for iterating */
+OBJ_TYPE *type_list [] =
+{
+    &CH_type,
+    &OBJ_type,
+    &AREA_type,
+    &ROOM_type,
+    &EXIT_type,
+    &RESET_type,
+    &OBJPROTO_type,
+    &MOBPROTO_type,
+    NULL
+};
+
 
 static OBJ_TYPE *new_obj_type(
         lua_State *LS,
@@ -1669,3 +1680,69 @@ OBJ_TYPE *MOBPROTO_init(lua_State *LS)
 }
 
 /* end MOBPROTO section */
+
+
+/* help section */
+static void print_help_usage( CHAR_DATA *ch )
+{
+    OBJ_TYPE *ot;
+    int i;
+
+    for ( i=0 ; type_list[i] ; i++ )
+    {
+        ot=*(OBJ_TYPE **)type_list[i];
+        ptc( ch, "%s\n\r", ot->type_name);
+    }
+}
+
+
+void do_luahelp( CHAR_DATA *ch, const char *argument )
+{
+    if (argument[0]=='\0')
+    {
+        print_help_usage( ch );
+        return;
+    }
+    
+    OBJ_TYPE *ot;
+    int i;
+
+    for ( i=0 ; type_list[i] ; i++ )
+    {
+        ot=*(OBJ_TYPE **)type_list[i];
+        if (!str_cmp( ot->type_name, argument ) )
+        {
+            int j;
+
+            for ( j=0 ; ot->get_table[j].field ; j++ )
+            {
+                ptc( ch, "%-20s - ", ot->get_table[j].field );
+                if (ot->get_table[j].help && ot->get_table[j].help->summary)
+                    ptc( ch, ot->get_table[j].help->summary );
+                ptc( ch, "\n\r");
+
+            }
+            
+            for ( j=0 ; ot->set_table[j].field ; j++ )
+            {
+                ptc( ch, "%-20s - ", ot->set_table[j].field );
+                if (ot->set_table[j].help && ot->set_table[j].help->summary)
+                    ptc( ch, ot->set_table[j].help->summary );
+                ptc( ch, "\n\r");
+
+            }
+
+            for ( j=0 ; ot->method_table[j].field ; j++ )
+            {
+                ptc( ch, "%-20s - ", ot->method_table[j].field );
+                if (ot->method_table[j].help && ot->method_table[j].help->summary)
+                    ptc( ch, ot->method_table[j].help->summary );
+                ptc( ch, "\n\r");
+
+            }
+        }
+    }
+                
+
+}
+
