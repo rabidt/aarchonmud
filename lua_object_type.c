@@ -315,6 +315,249 @@ static OBJ_TYPE *new_obj_type(
     return tp;
 }
 
+/* global section */
+static int godlib_bless (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+
+    lua_pushboolean( LS,
+            god_bless( NULL, ch, "" ));
+    return 1;
+}
+
+HELPTOPIC godlib_bless_help =
+{
+};
+
+static int L_god_curse (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_curse( NULL, ch, "" ));
+    return 1;
+}
+
+static int L_god_heal (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_heal( NULL, ch, "" ));
+    return 1;
+}
+
+static int L_god_speed (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_speed( NULL, ch, "" ));
+    return 1; 
+}
+
+static int L_god_slow (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_slow( NULL, ch, "" ));
+    return 1; 
+}
+
+static int L_god_cleanse (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_cleanse( NULL, ch, "" ));
+    return 1; 
+}
+
+static int L_god_defy (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_defy( NULL, ch, "" ));
+    return 1; 
+}
+
+static int L_god_enlighten (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_enlighten( NULL, ch, "" ));
+    return 1; 
+}
+
+static int L_god_protect (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_protect( NULL, ch, "" ));
+    return 1;
+}
+
+static int L_god_fortune (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_fortune( NULL, ch, "" ));
+    return 1;
+}
+
+static int L_god_haunt (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_haunt( NULL, ch, "" ));
+    return 1;
+}
+
+static int L_god_plague (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_plague( NULL, ch, "" ));
+    return 1;
+}
+
+static int L_god_confuse (lua_State *LS)
+{
+    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+
+    CHAR_DATA *ch=CHECKCH(LS,1);
+
+    lua_pushboolean( LS,
+            god_confuse( NULL, ch, "" ));
+    return 1;
+}
+
+static int glob_sendtochar (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    char *msg=check_fstring(LS, 2);
+
+    send_to_char(msg, ch);
+    return 0;
+}
+
+HELPTOPIC glob_sendtochar_help =
+{
+};
+
+typedef struct glob_type
+{
+    char *lib;
+    char *name;
+    int (*func)();
+    int security;
+    HELPTOPIC *help;
+} GLOB_TYPE;
+
+#define ENDGTABLE { NULL, NULL, NULL, 0, NULL }
+#define GFUN( fun, sec ) { NULL, #fun , glob_ ## fun , sec, & glob_ ## fun ## _help }
+#define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, & lib ## lib_ ## fun ## _help}
+GLOB_TYPE glob_table[] =
+{
+    GFUN(sendtochar,    0),
+    LFUN(god,   bless,  0),
+    ENDGTABLE
+};
+
+static int global_sec_check (lua_State *LS)
+{
+    int security=luaL_checkinteger( LS, lua_upvalueindex(1) );
+    
+    if ( ScriptSecurity() < security )
+        luaL_error( LS, "Current security %d. Function requires %d.",
+                ScriptSecurity(),
+                security);
+
+    int (*fun)()=lua_tocfunction( LS, lua_upvalueindex(2) );
+
+    return fun(LS);
+}
+
+void register_globals( lua_State *LS )
+{
+    int i;
+    int index;
+
+    for ( i=0 ; glob_table[i].name ; i++ )
+    {
+        /* is it a lib thing? */
+        if ( glob_table[i].lib )
+        {
+            lua_getglobal( LS, glob_table[i].lib );
+            if ( lua_isnil( LS, -1 ) )
+            {
+                lua_pop(LS, 1); /* kill the nil */
+                lua_newtable( LS );
+                lua_pushvalue( LS, -1 ); /* make a copy cause we poppin it */
+                lua_setglobal( LS, glob_table[i].lib );
+            }
+        }
+        else
+        {
+            lua_getglobal( LS, glob_table[i].name );
+            if (!lua_isnil( LS, -1 ) )
+            {
+                luaL_error( LS, "Global already exists: %s",
+                        glob_table[i].name);
+            }
+            else
+                lua_pop(LS, 1); /* kill the nil */
+
+        }
+
+        lua_pushinteger( LS, glob_table[i].security );
+        lua_pushcfunction( LS, glob_table[i].func );
+
+        lua_pushcclosure( LS, global_sec_check, 2 );
+
+        if ( glob_table[i].lib )
+        {
+            lua_setfield( LS, -2, glob_table[i].name );
+        }
+        else
+        {
+            lua_setglobal( LS, glob_table[i].name );
+        }
+    }
+}
+
+
+
+/* end global section */
 
 /* common section */
 int L_delay (lua_State *LS)
@@ -1683,11 +1926,12 @@ OBJ_TYPE *MOBPROTO_init(lua_State *LS)
 
 
 /* help section */
+
+
 static void print_help_usage( CHAR_DATA *ch )
 {
     OBJ_TYPE *ot;
     int i;
-
     for ( i=0 ; type_list[i] ; i++ )
     {
         ot=*(OBJ_TYPE **)type_list[i];
@@ -1800,3 +2044,5 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
 
 }
 
+
+/* end help section */
