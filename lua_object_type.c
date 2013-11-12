@@ -42,9 +42,7 @@
 typedef struct lua_help_topic
 {
     char *summary;
-    char *syntax;
-    char *arguments;
-    char *notes;
+    char *info;
 } HELPTOPIC;
 
 struct prop_type
@@ -472,6 +470,12 @@ static int glob_sendtochar (lua_State *LS)
 
 HELPTOPIC glob_sendtochar_help =
 {
+    .summary="Send text to target CH.",
+    .info="Arguments: target[CH], text[string]\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "sendtochar(ch, \"Hello there\")"
+
 };
 
 typedef struct glob_type
@@ -488,8 +492,8 @@ typedef struct glob_type
 #define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, & lib ## lib_ ## fun ## _help}
 GLOB_TYPE glob_table[] =
 {
-    GFUN(sendtochar,    9), 
-    LFUN(god,   bless,  8),
+    GFUN(sendtochar,    0), 
+    LFUN(god,   bless,  9),
     ENDGTABLE
 };
 
@@ -694,9 +698,6 @@ static bool run_olc_editor_lua( CHAR_DATA *ch, char *argument )
 
 static int CH_olc (lua_State *LS)
 {
-#ifndef BUILDER
-//    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-#endif
     CHAR_DATA *ud_ch=check_CH(LS, 1);
     if (IS_NPC(ud_ch) )
     {
@@ -1933,11 +1934,41 @@ static void print_help_usage( CHAR_DATA *ch )
 {
     OBJ_TYPE *ot;
     int i;
+
+    ptc( ch, "SECTIONS: \n\r\n\r" );
+
+    ptc( ch, "global\n\r\n\r" );
+
     for ( i=0 ; type_list[i] ; i++ )
     {
         ot=*(OBJ_TYPE **)type_list[i];
         ptc( ch, "%s\n\r", ot->type_name);
     }
+}
+
+static void print_topic( CHAR_DATA *ch, HELPTOPIC *topic )
+{
+    if (!topic)
+    {
+        ptc(ch, "No info for this topic." );
+        return;
+    }
+    bool printed=FALSE;
+
+    if (topic->summary)
+    {
+        ptc(ch, "Summary:\n\r%s\n\r\n\r", topic->summary );
+        printed=TRUE;
+    }
+
+    if (topic->info)
+    {
+        ptc(ch, "%s\n\r", topic->info );
+        printed=TRUE;
+    }
+
+    if (!printed)
+        ptc( ch, "Empty help.\n\r");
 }
 
 static void help_three_arg( CHAR_DATA *ch, const char *arg1, const char *arg2, const char *arg3)
@@ -1947,6 +1978,93 @@ static void help_three_arg( CHAR_DATA *ch, const char *arg1, const char *arg2, c
 
 static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 {
+    OBJ_TYPE *ot;
+    int i;
+
+    if ( !strcmp("global", arg1) )
+    {
+        for ( i=0 ; glob_table[i].name ; i++ )
+        {
+            if (glob_table[i].lib)
+            {
+                char buf[MSL];
+                sprintf(buf, "%s.%s", glob_table[i].lib, glob_table[i].name);
+
+                if (!strcmp( buf, arg2 ) )
+                {
+                    print_topic( ch, glob_table[i].help );
+                    return;
+                }
+            }
+            else
+            {
+                if (!strcmp( glob_table[i].name, arg2 ) )
+                {
+                    print_topic( ch, glob_table[i].help );
+                    return;
+                }
+            }
+        }
+
+        ptc(ch, "No global function '%s'\n\r", arg2 );
+        return;
+    }
+    
+
+    for ( i=0 ; type_list[i] ; i++ )
+    {
+        ot=*(OBJ_TYPE **)type_list[i];
+        if (!str_cmp( ot->type_name, arg1 ) )
+        {
+            /* always go through all 3 tables since
+               we might have duplicate fields in set and get*/
+            int j;
+            bool found=FALSE;
+
+            for ( j=0 ; ot->get_table[j].field ; j++ )
+            {
+                if (strcmp( ot->get_table[j].field, arg2 ) )
+                    continue;
+
+                found=TRUE;
+
+                print_topic( ch, ot->get_table[j].help );
+
+            }
+
+            for ( j=0 ; ot->set_table[j].field ; j++ )
+            {
+                if (strcmp( ot->set_table[j].field, arg2 ) )
+                    continue;
+
+                found=TRUE;
+
+                print_topic( ch, ot->set_table[j].help );
+
+            }
+
+            for ( j=0 ; ot->method_table[j].field ; j++ )
+            {
+                if (strcmp( ot->method_table[j].field, arg2 ) )
+                    continue;
+
+                found=TRUE;
+
+                print_topic( ch, ot->method_table[j].help );
+            }
+            if (!found)
+            {
+                ptc( ch, "Didn't find property or method %s for %s.\n\r",
+                        arg2, ot->type_name);
+            }
+            return;
+        }
+    }
+
+    ptc( ch, "No such help section '%s'", arg1 );
+    return;
+
+       
 }
 
 static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
@@ -1954,6 +2072,32 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
     OBJ_TYPE *ot;
     int i;
 
+    if ( !strcmp("global", arg1) )
+    {
+        ptc( ch, "\n\rGLOBAL functions\n\r");
+
+        for ( i=0 ; glob_table[i].name ; i++ )
+        {
+            if (glob_table[i].lib)
+            {
+                char buf[MSL];
+                sprintf(buf, "%s.%s", glob_table[i].lib, glob_table[i].name);
+                ptc( ch, "%-20s -", buf);
+                if (glob_table[i].help && glob_table[i].help->summary)
+                   ptc( ch, glob_table[i].help->summary );
+                ptc( ch, "\n\r");
+            }
+            else
+            {
+                ptc( ch, "%-20s -", glob_table[i].name);
+                if (glob_table[i].help && glob_table[i].help->summary)
+                    ptc( ch, glob_table[i].help->summary );
+                ptc( ch, "\n\r");
+            }
+
+        }
+        return;
+    } 
 
     for ( i=0 ; type_list[i] ; i++ )
     {
@@ -1995,7 +2139,7 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
         }
     }
 
-    ptc( ch, "No help for %s.", arg1);
+    ptc( ch, "No help for %s.\n\r", arg1);
     return;
 }
 
