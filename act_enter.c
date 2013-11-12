@@ -559,12 +559,26 @@ void do_portal( CHAR_DATA *ch, char *argument )
 /* called by portal spell */
 void show_portal_names( CHAR_DATA *ch )
 {
+    ROOM_INDEX_DATA *room;
     PORTAL_DATA *portal;
+    BUFFER *output;
+    char buf[MSL];
+    int vnum;
 
-    send_to_char( "You sense the following portal locations:\n\r", ch );
+    output = new_buf();
+    add_buf( output, "The following portal locations exist:\n\r", ch );
+    add_buf( output, "{w Area Name                    Portal Name{x\n\r", ch );
+    add_buf( output, "{w-----------------------------------------{x\n\r", ch );
     for ( portal = portal_list; portal != NULL; portal = portal->next )
     {
-	send_to_char( portal->name, ch );
-	send_to_char( "\n\r", ch );
+        room = get_room_index( portal->vnum );
+        sprintf( buf, "[%-27s] %s\n\r", 
+            remove_color(room == NULL ? "!!! no room !!!" : room->area->name),
+	    portal->name );
+	    add_buf( output, buf );
     }
+
+    page_to_char( buf_string(output), ch );
+    free_buf(output);
+    return;
 }
