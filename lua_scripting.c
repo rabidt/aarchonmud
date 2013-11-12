@@ -695,7 +695,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
     lua_getglobal( g_mud_LS, "mob_program_setup");
 
     //if (!make_ud_table( g_mud_LS, mob, UDTYPE_CH))
-    if ( CH_type->make(CH_type, g_mud_LS, mob ) )
+    if ( !CH_type->make(CH_type, g_mud_LS, mob ) )
     {
         /* Most likely failed because the mob was destroyed */
         return;
