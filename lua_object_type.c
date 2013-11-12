@@ -7,6 +7,7 @@
 #include "olc.h"
 #include "tables.h"
 
+/* Define game object types and global functions */
 
 #define GETP(type, field, sec ) { \
     #field , \
@@ -29,8 +30,6 @@
 #define CHGET( field, sec ) GETP( CH, field, sec)
 #define CHSET( field, sec ) SETP( CH, field, sec)
 #define CHMETH( field, sec ) METH( CH, field, sec)
-
-#define ENDPTABLE {NULL, NULL, 0, NULL}
 
 #define check_CH( LS, index) ((CHAR_DATA *)CH_type->check( CH_type, LS, index ))
 #define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
@@ -61,6 +60,8 @@ struct prop_type
     int security;
     HELPTOPIC *help;
 };
+
+#define ENDPTABLE {NULL, NULL, 0, NULL}
 
 OBJ_TYPE *CH_type=NULL;
 OBJ_TYPE *OBJ_type=NULL;
@@ -93,7 +94,8 @@ static OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *set_table,
         const LUA_PROP_TYPE *method_table);
 
-static type_init(LS)
+
+static void type_init( lua_State *LS)
 {
     if (!CH_type)
         CH_type=CH_init(LS);
@@ -699,12 +701,13 @@ static int dbglib_show ( lua_State *LS)
 }
 HELPTOPIC dbglib_show_help={};
 
+#define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
     char *lib;
     char *name;
     int (*func)();
-    int security;
+    int security; /* if SEC_NOSCRIPT then not available in prog scripts */ 
     HELPTOPIC *help;
 } GLOB_TYPE;
 
@@ -754,7 +757,7 @@ GLOB_TYPE glob_table[] =
 static int global_sec_check (lua_State *LS)
 {
     int security=luaL_checkinteger( LS, lua_upvalueindex(1) );
-    bugf( "%d %d", ScriptSecurity(), security );
+    //bugf( "%d %d", ScriptSecurity(), security );
     
     if ( ScriptSecurity() < security )
         luaL_error( LS, "Current security %d. Function requires %d.",
@@ -766,10 +769,21 @@ static int global_sec_check (lua_State *LS)
     return fun(LS);
 }
 
+#define SCRIPT_GLOBS_TABLE "script_globs"
+/* Register funcs globally then if needed,
+   security closure into script_globs
+   to be inserted into main_lib in startup.lua */
+/* would be nice to do this in lua but we run it before startup */
 void register_globals( lua_State *LS )
 {
+    //if (1) return;
+    int top=lua_gettop(LS); 
     int i;
     int index;
+
+    /* create script_globs */
+    lua_newtable(LS);
+    lua_setglobal(LS, SCRIPT_GLOBS_TABLE );
 
     for ( i=0 ; glob_table[i].name ; i++ )
     {
@@ -783,6 +797,7 @@ void register_globals( lua_State *LS )
                 lua_newtable( LS );
                 lua_pushvalue( LS, -1 ); /* make a copy cause we poppin it */
                 lua_setglobal( LS, glob_table[i].lib );
+                
             }
         }
         else
@@ -798,11 +813,7 @@ void register_globals( lua_State *LS )
 
         }
 
-        lua_pushinteger( LS, glob_table[i].security );
         lua_pushcfunction( LS, glob_table[i].func );
-
-        lua_pushcclosure( LS, global_sec_check, 2 );
-
         if ( glob_table[i].lib )
         {
             lua_setfield( LS, -2, glob_table[i].name );
@@ -811,7 +822,37 @@ void register_globals( lua_State *LS )
         {
             lua_setglobal( LS, glob_table[i].name );
         }
+
+        if (glob_table[i].security == SEC_NOSCRIPT)
+            continue; /* don't add to script_globs */ 
+
+        
+        /* get script_globs */
+        lua_getglobal( LS, SCRIPT_GLOBS_TABLE );
+        if ( glob_table[i].lib )
+        {
+            lua_getfield( LS, -1, glob_table[i].lib );
+            if ( lua_isnil( LS, -1 ) )
+            {
+                lua_pop(LS, 1); // kill the nil
+                lua_newtable(LS);
+                lua_pushvalue( LS, -1); //make a copy because
+                lua_setfield( LS, -3, glob_table[i].lib );
+                lua_pop(LS, -2); // pop script_globs
+            }
+        }
+
+
+        /* create the security closure */
+        lua_pushinteger( LS, glob_table[i].security );
+        lua_pushcfunction( LS, glob_table[i].func );
+        lua_pushcclosure( LS, global_sec_check, 2 );
+        
+        /* set as field to script_globs script_globs.lib */
+        lua_setfield( LS, -2, glob_table[i].name );
     }
+
+    lua_settop(LS, top); // Clear junk we might have left around 
 }
 
 
@@ -2336,14 +2377,14 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
             {
                 char buf[MSL];
                 sprintf(buf, "%s.%s", glob_table[i].lib, glob_table[i].name);
-                ptc( ch, "%-20s -", buf);
+                ptc( ch, "%-20s - ", buf);
                 if (glob_table[i].help && glob_table[i].help->summary)
                    ptc( ch, glob_table[i].help->summary );
                 ptc( ch, "\n\r");
             }
             else
             {
-                ptc( ch, "%-20s -", glob_table[i].name);
+                ptc( ch, "%-20s - ", glob_table[i].name);
                 if (glob_table[i].help && glob_table[i].help->summary)
                     ptc( ch, glob_table[i].help->summary );
                 ptc( ch, "\n\r");
