@@ -1695,25 +1695,29 @@ static void print_help_usage( CHAR_DATA *ch )
     }
 }
 
-
-void do_luahelp( CHAR_DATA *ch, const char *argument )
+static void help_three_arg( CHAR_DATA *ch, const char *arg1, const char *arg2, const char *arg3)
 {
-    if (argument[0]=='\0')
-    {
-        print_help_usage( ch );
-        return;
-    }
-    
+}
+
+
+static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
+{
+}
+
+static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
+{
     OBJ_TYPE *ot;
     int i;
+
 
     for ( i=0 ; type_list[i] ; i++ )
     {
         ot=*(OBJ_TYPE **)type_list[i];
-        if (!str_cmp( ot->type_name, argument ) )
+        if (!str_cmp( ot->type_name, arg1 ) )
         {
             int j;
 
+            ptc( ch, "\n\rGET fields\n\r");
             for ( j=0 ; ot->get_table[j].field ; j++ )
             {
                 ptc( ch, "%-20s - ", ot->get_table[j].field );
@@ -1722,7 +1726,8 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
                 ptc( ch, "\n\r");
 
             }
-            
+
+            ptc( ch, "\n\rSET fields\n\r");
             for ( j=0 ; ot->set_table[j].field ; j++ )
             {
                 ptc( ch, "%-20s - ", ot->set_table[j].field );
@@ -1732,6 +1737,7 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
 
             }
 
+            ptc( ch, "\n\rMETHODS\n\r");
             for ( j=0 ; ot->method_table[j].field ; j++ )
             {
                 ptc( ch, "%-20s - ", ot->method_table[j].field );
@@ -1740,9 +1746,57 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
                 ptc( ch, "\n\r");
 
             }
+            return;
         }
     }
-                
+
+    ptc( ch, "No help for %s.", arg1);
+    return;
+}
+
+void do_luahelp( CHAR_DATA *ch, const char *argument )
+{
+    if (argument[0]=='\0')
+    {
+        print_help_usage( ch );
+        return;
+    }
+
+    static char arg1[MIL];
+    static char arg2[MIL];
+    static char arg3[MIL];
+    int nargs=0;
+    /* grab the args */
+    nargs+=1;
+    argument=one_argument( argument, arg1 );
+
+    if (!(argument[0]=='\0'))
+    {
+        nargs+=1;
+        argument=one_argument( argument, arg2 );
+
+        if (!(argument[0]=='\0'))
+        {
+            nargs+=1;
+            argument=one_argument( argument, arg3 );
+        }
+    }
+
+    if (nargs==1)
+    {
+       help_one_arg(ch, arg1 );
+       return;
+    } 
+    else if (nargs==2)
+    {
+        help_two_arg(ch, arg1, arg2);
+        return;
+    }
+    else if (nargs==3)
+    {
+        help_three_arg(ch, arg1, arg2,arg3);
+        return;
+    }
 
 }
 
