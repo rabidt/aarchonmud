@@ -39,6 +39,15 @@
 #define check_OBJ( LS, obj ) ((OBJ_DATA *)OBJ_type->check( OBJ_type, LS, obj ))
 #define make_OBJ(LS, obj ) OBJ_type->make( OBJ_type, LS, obj )
 
+#define make_AREA( LS, area) ((AREA_DATA *)AREA_type->check( AREA_type, LS, area ))
+
+#define make_MOBPROTO( LS, mp) ((MOB_INDEX_DATA *)MOBPROTO_type->check( MOBPROTO_type, LS, mp))
+
+#define make_OBJPROTO( LS, op) ((OBJ_INDEX_DATA *)OBJPROTO_type->check( OBJPROTO_type, LS, op))
+
+#define make_ROOM( LS, room) ((ROOM_INDEX_DATA *)ROOM_type->check( ROOM_type, LS, room))
+
+
 typedef struct lua_help_topic
 {
     char *summary;
@@ -327,137 +336,139 @@ HELPTOPIC godlib_bless_help =
 {
 };
 
-static int L_god_curse (lua_State *LS)
+static int godlib_curse (lua_State *LS)
 {
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
-
-    CHAR_DATA *ch=CHECKCH(LS,1);
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_curse( NULL, ch, "" ));
     return 1;
 }
 
-static int L_god_heal (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_curse_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_heal (lua_State *LS)
+{
+
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_heal( NULL, ch, "" ));
     return 1;
 }
 
-static int L_god_speed (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_heal_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_speed (lua_State *LS)
+{
+    
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_speed( NULL, ch, "" ));
     return 1; 
 }
 
-static int L_god_slow (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_speed_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_slow (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_slow( NULL, ch, "" ));
     return 1; 
 }
 
-static int L_god_cleanse (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_slow_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_cleanse (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_cleanse( NULL, ch, "" ));
     return 1; 
 }
 
-static int L_god_defy (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_cleanse_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_defy (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_defy( NULL, ch, "" ));
     return 1; 
 }
 
-static int L_god_enlighten (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_defy_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_enlighten (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_enlighten( NULL, ch, "" ));
     return 1; 
 }
 
-static int L_god_protect (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_enlighten_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_protect (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_protect( NULL, ch, "" ));
     return 1;
 }
 
-static int L_god_fortune (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_protect_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_fortune (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_fortune( NULL, ch, "" ));
     return 1;
 }
 
-static int L_god_haunt (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_fortune_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_haunt (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_haunt( NULL, ch, "" ));
     return 1;
 }
 
-static int L_god_plague (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_haunt_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_plague (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_plague( NULL, ch, "" ));
     return 1;
 }
 
-static int L_god_confuse (lua_State *LS)
-{
-    CHECK_SECURITY(LS, MAX_LUA_SECURITY);
+HELPTOPIC godlib_plague_help = {};
 
-    CHAR_DATA *ch=CHECKCH(LS,1);
+static int godlib_confuse (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
             god_confuse( NULL, ch, "" ));
     return 1;
 }
+
+HELPTOPIC godlib_confuse_help = {};
 
 static int glob_sendtochar (lua_State *LS)
 {
@@ -467,7 +478,6 @@ static int glob_sendtochar (lua_State *LS)
     send_to_char(msg, ch);
     return 0;
 }
-
 HELPTOPIC glob_sendtochar_help =
 {
     .summary="Send text to target CH.",
@@ -477,6 +487,217 @@ HELPTOPIC glob_sendtochar_help =
           "sendtochar(ch, \"Hello there\")"
 
 };
+
+static int glob_clearloopcount (lua_State *LS)
+{
+    ClearLuaLoopCount();
+    return 0;
+}
+HELPTOPIC glob_clearloopcount_help={};
+
+static int glob_log (lua_State *LS)
+{
+    char buf[MSL];
+    sprintf(buf, "LUA::%s", check_fstring (LS, 1));
+
+    log_string(buf);
+    return 0;
+}
+HELPTOPIC glob_log_help={};
+
+static int glob_hour (lua_State *LS)
+{
+    lua_pushnumber( LS, time_info.hour );
+    return 1;
+}
+HELPTOPIC glob_hour_help={};
+
+static int glob_getroom (lua_State *LS)
+{
+    // do some if is number thing here eventually
+    int num = (int)luaL_checknumber (LS, 1);
+
+    ROOM_INDEX_DATA *room=get_room_index(num);
+
+    if (!room)
+        return 0;
+
+    if ( !make_ROOM( LS, room) )
+        return 0;
+    else
+        return 1;
+
+}
+HELPTOPIC glob_getroom_help={};
+
+static int glob_getobjproto (lua_State *LS)
+{
+    int num = (int)luaL_checknumber (LS, 1);
+
+    OBJ_INDEX_DATA *obj=get_obj_index(num);
+
+    if (!obj)
+        return 0;
+
+    if ( !make_OBJPROTO( LS, obj) )
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC glob_getobjproto_help={};
+
+static int glob_getobjworld (lua_State *LS)
+{
+    int num = (int)luaL_checknumber (LS, 1);
+
+    OBJ_DATA *obj;
+
+    int index=1;
+    lua_newtable(LS);
+    for ( obj = object_list; obj != NULL; obj = obj->next )
+    {
+        if ( obj->pIndexData->vnum == num )
+        {
+            if (make_OBJ( LS, obj))
+                lua_rawseti(LS, -2, index++);
+        }
+    }
+    return 1;
+}
+HELPTOPIC glob_getobjworld_help={};
+
+static int glob_getmobproto (lua_State *LS)
+{
+    int num = luaL_checknumber (LS, 1);
+
+    MOB_INDEX_DATA *mob=get_mob_index(num);
+
+    if (!mob)
+        return 0;
+
+    if ( !make_MOBPROTO( LS, mob) )
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC glob_getmobproto_help={};
+
+static int glob_getmobworld (lua_State *LS)
+{
+    int num = (int)luaL_checknumber (LS, 1);
+
+    CHAR_DATA *ch;
+
+    int index=1;
+    lua_newtable(LS);
+    for ( ch = char_list; ch != NULL; ch = ch->next )
+    {
+        if ( ch->pIndexData )
+        {
+            if ( ch->pIndexData->vnum == num )
+            {
+                if (make_CH( LS, ch))
+                    lua_rawseti(LS, -2, index++);
+            }
+        }
+    }
+    return 1;
+}
+HELPTOPIC glob_getmobworld_help={};
+
+static int glob_pagetochar (lua_State *LS)
+{
+    page_to_char( check_fstring(LS, 2),
+            check_CH(LS,1) );
+
+    return 0;
+}
+HELPTOPIC glob_pagetochar_help={};
+
+static int glob_getcharlist (lua_State *LS)
+{
+    CHAR_DATA *ch;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( ch=char_list ; ch ; ch=ch->next )
+    {
+        if (make_CH(LS, ch))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+HELPTOPIC glob_getcharlist_help={};
+
+static int glob_getmoblist (lua_State *LS)
+{
+    CHAR_DATA *ch;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( ch=char_list ; ch ; ch=ch->next )
+    {
+        if ( IS_NPC(ch) )
+        {
+            if (make_CH(LS, ch))
+                lua_rawseti(LS, -2, index++);
+        }
+    }
+
+    return 1;
+}
+HELPTOPIC glob_getmoblist_help={};
+
+static int glob_getplayerlist (lua_State *LS)
+{
+    CHAR_DATA *ch;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( ch=char_list ; ch ; ch=ch->next )
+    {
+        if ( !IS_NPC(ch) )
+        {
+            if (make_CH(LS, ch))
+                lua_rawseti(LS, -2, index++);
+        }
+    }
+
+    return 1;
+}
+HELPTOPIC glob_getplayerlist_help={};
+
+static int glob_getarealist (lua_State *LS)
+{
+    AREA_DATA *area;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( area=area_first ; area ; area=area->next )
+    {
+        if (make_AREA(LS, area))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+HELPTOPIC glob_getarealist_help={};
+
+/* return tprintstr of the given global (string arg)*/
+static int dbglib_show ( lua_State *LS)
+{
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+    lua_getglobal( LS, luaL_checkstring( LS, 1 ) );
+    lua_call( LS, 1, 1 );
+
+    return 1;
+}
+HELPTOPIC dbglib_show_help={};
 
 typedef struct glob_type
 {
@@ -490,10 +711,43 @@ typedef struct glob_type
 #define ENDGTABLE { NULL, NULL, NULL, 0, NULL }
 #define GFUN( fun, sec ) { NULL, #fun , glob_ ## fun , sec, & glob_ ## fun ## _help }
 #define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, & lib ## lib_ ## fun ## _help}
+#define GODF( fun ) LFUN( god, fun, 9 )
+#define DBGF( fun ) LFUN( dbg, fun, 9 )
 GLOB_TYPE glob_table[] =
 {
-    GFUN(sendtochar,    0), 
-    LFUN(god,   bless,  9),
+    GFUN(hour,          0),
+    GFUN(getroom,       0),
+    //GFUN(randnum,       0),
+    //GFUN(rand,          0),
+    //GFUN(tprintstr,     0),
+    GFUN(getobjproto,   0),
+    GFUN(getobjworld,   0),
+    GFUN(getmobproto,   0),
+    GFUN(getmobworld,   0),
+    GFUN(sendtochar,    0),
+    GFUN(pagetochar,    0),
+    GFUN(log,           0),
+    GFUN(getcharlist,   9),
+    GFUN(getmoblist,    9),
+    GFUN(getplayerlist, 9),
+    GFUN(getarealist,   9),
+    GFUN(clearloopcount,9),
+
+    GODF(confuse),
+    GODF(curse),
+    GODF(plague),
+    GODF(bless),
+    GODF(slow),
+    GODF(speed),
+    GODF(heal),
+    GODF(enlighten),
+    GODF(protect),
+    GODF(fortune),
+    GODF(haunt),
+    GODF(cleanse),
+    GODF(defy),
+    
+    DBGF(show),
     ENDGTABLE
 };
 
