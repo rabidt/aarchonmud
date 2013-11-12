@@ -72,7 +72,6 @@ OBJ_TYPE *MOBPROTO_type;
 #define ERR_INF_LOOP      -1
 
 #define CHECK_SECURITY( ls, sec ) if (s_ScriptSecurity<sec) luaL_error(ls, "Function requires security of %d", sec)
-#define MAX_LUA_SECURITY 9 
 
 /* file scope variables */
 bool        g_LuaScriptInProgress=FALSE;

@@ -39,6 +39,24 @@
 #define check_OBJ( LS, obj ) ((OBJ_DATA *)OBJ_type->check( OBJ_type, LS, obj ))
 #define make_OBJ(LS, obj ) OBJ_type->make( OBJ_type, LS, obj )
 
+typedef int PROP_FUNC( lua_State *LS, void *gobj );
+
+typedef struct lua_help_topic
+{
+    char *key;
+    char *summary;
+    char *syntax;
+    char *arguments;
+    char *notes;
+} HELPTOPIC;
+
+struct prop_type
+{
+    char *field;
+    PROP_FUNC *func;
+    int security;
+    HELPTOPIC *help;
+};
 
 
 OBJ_TYPE *CH_type=NULL;
@@ -898,7 +916,7 @@ static int CH_ispc (lua_State *LS)
     lua_pushboolean( LS, ud_ch != NULL && !IS_NPC( ud_ch ) );
     return 1;
 }
-LUAHELP_TOPIC CH_ispc_help = {
+HELPTOPIC CH_ispc_help = {
 };
 
 static int CH_canattack (lua_State *LS)
@@ -1252,7 +1270,7 @@ static int CH_get_hp (lua_State *LS)
             (check_CH (LS, 1))->hit );
     return 1;
 }
-LUAHELP_TOPIC CH_get_hp_help = {
+HELPTOPIC CH_get_hp_help = {
 };
 
 static int CH_set_hp (lua_State *LS)
@@ -1271,7 +1289,7 @@ static int CH_get_name (lua_State *LS)
     return 1;
 }
 
-LUAHELP_TOPIC CH_get_name_help = {
+HELPTOPIC CH_get_name_help = {
 };
 
 static const LUA_PROP_TYPE CH_get_table [] =
@@ -1283,7 +1301,6 @@ static const LUA_PROP_TYPE CH_get_table [] =
 
 static const LUA_PROP_TYPE CH_set_table [] =
 {
-    {"hp", PTYPE_INT,    offsetof(CHAR_DATA, hit), NULL},
     ENDPTABLE
 };
 
@@ -1411,31 +1428,19 @@ static int OBJ_echo( lua_State *LS)
     return 0;
 }
 
-#define PSTR( field, member, sec ) { #field, PTYPE_STR, offsetof(OBJ_DATA, member),  NULL, sec}
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
-    PSTR(   name,       name,           0 ),
-    PSTR(   shortdescr, short_descr,    0 ),
-    PSTR(   description, description,   0 ),
     ENDPTABLE
 };
 
-#undef PSTR
-
-#define PSTR( field, member, sec ) { #field, PTYPE_STR, offsetof(OBJ_DATA, member), NULL, sec}
 static const LUA_PROP_TYPE OBJ_set_table [] =
 {
-    PSTR(   name,       name,           0 ),
-    PSTR(   shortdescr, short_descr,    0 ),
-    PSTR(   description, description,   0 ),
     ENDPTABLE
 };
 
-#undef PSTR
 
 static const LUA_PROP_TYPE OBJ_method_table [] =
 {
-    {"echo", PTYPE_FUN, NO_OFF, OBJ_echo, 0},
     ENDPTABLE
 }; 
 
@@ -1533,7 +1538,6 @@ static int EXIT_flag (lua_State *LS)
 
 static const LUA_PROP_TYPE EXIT_get_table [] =
 {
-    {"key", PTYPE_INT, offsetof(EXIT_DATA, key), NULL},
     ENDPTABLE
 };
 
@@ -1544,7 +1548,6 @@ static const LUA_PROP_TYPE EXIT_set_table [] =
 
 static const LUA_PROP_TYPE EXIT_method_table [] =
 {
-    {"flag", PTYPE_NONE, NO_OFF, EXIT_flag },
     ENDPTABLE
 }; 
 
@@ -1574,7 +1577,6 @@ static int RESET_get_command(lua_State *LS, RESET_DATA *rd )
 
 static const LUA_PROP_TYPE RESET_get_table [] =
 {
-    {"command", PTYPE_STR, NO_OFF, RESET_get_command},
     ENDPTABLE
 };
 
