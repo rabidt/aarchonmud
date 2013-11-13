@@ -40,6 +40,7 @@ void register_globals( lua_State *LS );
 #define check_OBJ( LS, obj ) ((OBJ_DATA *)OBJ_type->check( OBJ_type, LS, obj ))
 #define make_OBJ(LS, obj ) OBJ_type->make( OBJ_type, LS, obj )
 
+#define check_AREA( LS, area ) ((AREA_DATA *)AREA_type->check( AREA_type, LS, area))
 #define make_AREA( LS, area) ((AREA_DATA *)AREA_type->check( AREA_type, LS, area ))
 
 #define make_MOBPROTO( LS, mp) ((MOB_INDEX_DATA *)MOBPROTO_type->check( MOBPROTO_type, LS, mp))
