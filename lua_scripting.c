@@ -90,7 +90,8 @@ http://www.gammon.com.au/forum/?id=8015
 /* TRIGTYPE_ARG */
 #define NUM_RPROG_RESULTS 1
 
-bool load_mprog( lua_State *LS, int vnum, const char *code )
+
+bool lua_load_mprog( lua_State *LS, int vnum, const char *code )
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
 
@@ -112,6 +113,8 @@ bool load_mprog( lua_State *LS, int vnum, const char *code )
     if (luaL_loadstring ( LS, buf) ||
             CallLuaWithTraceBack ( LS, 0, 1))
     {
+        if ( vnum == LOADSCRIPT_VNUM )
+            luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
         bugf ( "LUA mprog error loading vnum%d:\n %s",
                 vnum,
                 lua_tostring( LS, -1));
@@ -125,41 +128,11 @@ bool load_mprog( lua_State *LS, int vnum, const char *code )
     }
 
 }
-bool lua_load_mprog( lua_State *LS, int vnum, const char *code)
+
+void check_mprog( lua_State *LS, int vnum, const char *code )
 {
-    char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
-
-    if ( strlen(code) >= MAX_SCRIPT_LENGTH )
-    {
-        bugf("MPROG script %d exceeds %d characters.",
-                vnum, MAX_SCRIPT_LENGTH);
-        return FALSE;
-    }
-
-    sprintf(buf, "function M_%d (%s,%s,%s,%s,%s,%s,%s,%s)"
-            "%s\n"
-            "end",
-            vnum,
-            /*MOB_ARG,*/ CH_ARG, TRIG_ARG, OBJ1_ARG,
-            OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG, TRIGTYPE_ARG,
-            code);
-
-
-    if (luaL_loadstring ( LS, buf) ||
-            CallLuaWithTraceBack ( LS, 0, 0))
-    {
-        bugf ( "LUA mprog error loading vnum %d:\n %s",
-                vnum,
-                lua_tostring( LS, -1));
-        /* bad code, let's kill it */
-        sprintf(buf, "M_%d", vnum);
-        lua_pushnil( LS );
-        lua_setglobal( LS, buf);
-
-        return FALSE;
-    }
-    else return TRUE;
-
+    if (lua_load_mprog( LS, vnum, code ))
+        lua_pop(LS, 1);
 }
 
 bool lua_load_aprog( lua_State *LS, int vnum, const char *code)
@@ -173,28 +146,29 @@ bool lua_load_aprog( lua_State *LS, int vnum, const char *code)
         return FALSE;
     }
 
-    sprintf(buf, "function A_%d (%s,%s,%s)"
+    sprintf(buf, "return function (%s,%s,%s)\n"
             "%s\n"
             "end",
-            vnum,
             CH1_ARG, TRIG_ARG, TRIGTYPE_ARG,
             code);
-
 
     if (luaL_loadstring ( LS, buf) ||
             CallLuaWithTraceBack ( LS, 0, 0))
     {
+        if ( vnum == LOADSCRIPT_VNUM )
+            luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
         bugf ( "LUA aprog error loading vnum %d:\n %s",
                 vnum,
                 lua_tostring( LS, -1));
-        /* bad code, let's kill it */
-        sprintf(buf, "A_%d", vnum);
-        lua_pushnil( LS );
-        lua_setglobal( LS, buf);
-
         return FALSE;
     }
     else return TRUE;
+}
+
+void check_aprog( lua_State *LS, int vnum, const char *code )
+{
+    if (lua_load_aprog( LS, vnum, code ))
+        lua_pop(LS, 1);
 }
 
 bool lua_load_rprog( lua_State *LS, int vnum, const char *code)
@@ -208,10 +182,9 @@ bool lua_load_rprog( lua_State *LS, int vnum, const char *code)
         return FALSE;
     }
 
-    sprintf(buf, "function R_%d (%s,%s,%s,%s,%s,%s)"
+    sprintf(buf, "return function (%s,%s,%s,%s,%s,%s)\n"
             "%s\n"
             "end",
-            vnum,
             CH1_ARG, CH2_ARG, OBJ1_ARG, OBJ2_ARG,
             TRIG_ARG, TRIGTYPE_ARG,
             code);
@@ -220,17 +193,20 @@ bool lua_load_rprog( lua_State *LS, int vnum, const char *code)
     if (luaL_loadstring ( LS, buf) ||
             CallLuaWithTraceBack ( LS, 0, 0))
     {
+        if ( vnum == LOADSCRIPT_VNUM )
+            luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
         bugf ( "LUA Rprog error loading vnum %d:\n %s",
                 vnum,
                 lua_tostring( LS, -1));
-        /* bad code, let's kill it */
-        sprintf(buf, "R_%d", vnum);
-        lua_pushnil( LS );
-        lua_setglobal( LS, buf);
-
         return FALSE;
     }
     else return TRUE;
+}
+
+void check_rprog( lua_State *LS, int vnum, const char *code )
+{
+    if (lua_load_rprog( LS, vnum, code ))
+        lua_pop(LS, 1);
 }
 
 bool lua_load_oprog( lua_State *LS, int vnum, const char *code)
@@ -244,10 +220,9 @@ bool lua_load_oprog( lua_State *LS, int vnum, const char *code)
         return FALSE;
     }
 
-    sprintf(buf, "function O_%d (%s,%s,%s,%s,%s)"
+    sprintf(buf, "return function (%s,%s,%s,%s,%s)"
             "%s\n"
             "end",
-            vnum,
             OBJ2_ARG, CH1_ARG, CH2_ARG, TRIG_ARG, TRIGTYPE_ARG,
             code);
 
@@ -255,20 +230,23 @@ bool lua_load_oprog( lua_State *LS, int vnum, const char *code)
     if (luaL_loadstring ( LS, buf) ||
             CallLuaWithTraceBack ( LS, 0, 0))
     {
+        if ( vnum == LOADSCRIPT_VNUM )
+            luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
         bugf ( "LUA oprog error loading vnum %d:\n %s",
                 vnum,
                 lua_tostring( LS, -1));
-        /* bad code, let's kill it */
-        sprintf(buf, "O_%d", vnum);
-        lua_pushnil( LS );
-        lua_setglobal( LS, buf);
 
         return FALSE;
     }
     else return TRUE;
 }
 
-#define LOADSCRIPT_VNUM 0
+void check_oprog( lua_State *LS, int vnum, const char *code )
+{
+    if (lua_load_oprog( LS, vnum, code ))
+        lua_pop(LS, 1);
+}
+
 /* lua_mob_program
    lua equivalent of program_flow
  */
@@ -292,7 +270,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
         return;
     }
 
-    if ( !load_mprog( g_mud_LS, pvnum, source) )
+    if ( !lua_load_mprog( g_mud_LS, pvnum, source) )
     {
         return;
     }
@@ -395,34 +373,9 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     char buf[MSL*2];
     sprintf(buf, "O_%d", pvnum);
 
-    if ( pvnum==LOADSCRIPT_VNUM ) /* run with loadscript */
+    if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
     {
-        /* always reload */
-        if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
-        {
-            /* if we're here then loadscript was called from within
-               a script so we can do a lua error */
-            luaL_error( g_mud_LS, "Couldn't load script with loadscript.");
-        }
-        /* loaded without errors, now get it on the stack */
-        lua_getglobal( g_mud_LS, buf);
-    }
-    else
-    {   
-        lua_getglobal( g_mud_LS, buf);
-        if ( lua_isnil( g_mud_LS, -1) )
-        {
-            lua_remove( g_mud_LS, -1); /* Remove the nil */
-            /* not loaded yet*/
-            if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
-            {
-                /* don't bother running it if there were errors */
-                return FALSE;
-            }
-
-            /* loaded without errors, now get it on the stack */
-            lua_getglobal( g_mud_LS, buf);
-        }
+        return;
     }
 
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
@@ -505,38 +458,9 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
         return FALSE;
     }
 
-    /* load up the script as a function so args will be local */
-    char buf[MSL*2];
-    sprintf(buf, "A_%d", pvnum);
-
-    if ( pvnum==LOADSCRIPT_VNUM ) /* run with loadscript */
+    if ( !lua_load_aprog( g_mud_LS, pvnum, source) )
     {
-        /* always reload */
-        if ( !lua_load_aprog( g_mud_LS, pvnum, source) )
-        {
-            /* if we're here then loadscript was called from within
-               a script so we can do a lua error */
-            luaL_error( g_mud_LS, "Couldn't load script with loadscript.");
-        }
-        /* loaded without errors, now get it on the stack */
-        lua_getglobal( g_mud_LS, buf);
-    }
-    else
-    {
-        lua_getglobal( g_mud_LS, buf);
-        if ( lua_isnil( g_mud_LS, -1) )
-        {
-            lua_remove( g_mud_LS, -1); /* Remove the nil */
-            /* not loaded yet*/
-            if ( !lua_load_aprog( g_mud_LS, pvnum, source) )
-            {
-                /* don't bother running it if there were errors */
-                return FALSE;
-            }
-
-            /* loaded without errors, now get it on the stack */
-            lua_getglobal( g_mud_LS, buf);
-        }
+        return;
     }
 
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
@@ -611,38 +535,9 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
         return FALSE;
     }
 
-    /* load up the script as a function so args will be local */
-    char buf[MSL*2];
-    sprintf(buf, "R_%d", pvnum);
-
-    if ( pvnum==LOADSCRIPT_VNUM ) /* run with loadscript */
+    if ( !lua_load_rprog( g_mud_LS, pvnum, source) )
     {
-        /* always reload */
-        if ( !lua_load_rprog( g_mud_LS, pvnum, source) )
-        {
-            /* if we're here then loadscript was called from within
-               a script so we can do a lua error */
-            luaL_error( g_mud_LS, "Couldn't load script with loadscript.");
-        }
-        /* loaded without errors, now get it on the stack */
-        lua_getglobal( g_mud_LS, buf);
-    }
-    else
-    {
-        lua_getglobal( g_mud_LS, buf);
-        if ( lua_isnil( g_mud_LS, -1) )
-        {
-            lua_remove( g_mud_LS, -1); /* Remove the nil */
-            /* not loaded yet*/
-            if ( !lua_load_rprog( g_mud_LS, pvnum, source) )
-            {
-                /* don't bother running it if there were errors */
-                return FALSE;
-            }
-
-            /* loaded without errors, now get it on the stack */
-            lua_getglobal( g_mud_LS, buf);
-        }
+        return;
     }
 
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
