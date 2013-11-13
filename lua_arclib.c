@@ -3041,6 +3041,16 @@ static int OBJ_get_name (lua_State *LS)
 }
 HELPTOPIC OBJ_get_name_help={};
 
+static int OBJ_set_name (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    const char *arg=luaL_checkstring(LS,2);
+    free_string(ud_obj->name);
+    ud_obj->name=str_dup(arg);
+    return 0;
+}
+HELPTOPIC OBJ_set_name_help={};
+
 static int OBJ_get_shortdescr (lua_State *LS)
 {
     lua_pushstring( LS,
@@ -3048,6 +3058,16 @@ static int OBJ_get_shortdescr (lua_State *LS)
     return 1;
 }
 HELPTOPIC OBJ_get_shortdescr_help={};
+
+static int OBJ_set_shortdescr (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    const char *arg=luaL_checkstring(LS,2);
+    free_string(ud_obj->short_descr);
+    ud_obj->short_descr=str_dup(arg);
+    return 0;
+}
+HELPTOPIC OBJ_set_shortdescr_help={};
 
 static int OBJ_get_clan (lua_State *LS)
 {
@@ -3073,6 +3093,16 @@ static int OBJ_get_level (lua_State *LS)
 }
 HELPTOPIC OBJ_get_level_help={};
 
+static int OBJ_set_level (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    int arg=luaL_checkinteger(LS,2);
+    
+    ud_obj->level=arg;
+    return 0;
+}
+HELPTOPIC OBJ_set_level_help={};
+
 static int OBJ_get_owner (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
@@ -3083,6 +3113,16 @@ static int OBJ_get_owner (lua_State *LS)
     return 1;
 }
 HELPTOPIC OBJ_get_owner_help={};
+
+static int OBJ_set_owner (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    const char *arg=luaL_checkstring(LS,2);
+    free_string(ud_obj->owner);
+    ud_obj->owner=str_dup(arg);
+    return 0;
+}
+HELPTOPIC OBJ_set_owner_help={};
 
 static int OBJ_get_cost (lua_State *LS)
 {
@@ -3099,6 +3139,16 @@ static int OBJ_get_material (lua_State *LS)
     return 1;
 }
 HELPTOPIC OBJ_get_material_help={};
+
+static int OBJ_set_material (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    const char *arg=luaL_checkstring(LS,2);
+    free_string(ud_obj->material);
+    ud_obj->material=str_dup(arg);
+    return 0;
+}
+HELPTOPIC OBJ_set_material_help={};
 
 static int OBJ_get_vnum (lua_State *LS)
 {
@@ -3123,6 +3173,16 @@ static int OBJ_get_weight (lua_State *LS)
     return 1;
 }
 HELPTOPIC OBJ_get_weight_help={};
+
+static int OBJ_set_weight (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    int arg=luaL_checkinteger(LS,2);
+    
+    ud_obj->weight=arg;
+    return 0;
+}
+HELPTOPIC OBJ_set_weight_help={};
 
 static int OBJ_get_wearlocation (lua_State *LS)
 {
@@ -3304,6 +3364,13 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
 
 static const LUA_PROP_TYPE OBJ_set_table [] =
 {
+    OBJSET(name, 9 ),
+    OBJSET(shortdescr, 9),
+    OBJSET(level, 9),
+    OBJSET(owner, 9),
+    OBJSET(material, 9),
+    OBJSET(weight, 9),
+       
     ENDPTABLE
 };
 
