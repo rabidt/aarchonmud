@@ -47,6 +47,8 @@
 #define make_ROOM( LS, room) ((ROOM_INDEX_DATA *)ROOM_type->check( ROOM_type, LS, room))
 
 
+extern lua_State *g_mud_LS;
+
 typedef struct lua_help_topic
 {
     char *summary;
@@ -690,6 +692,66 @@ static int glob_getarealist (lua_State *LS)
 }
 HELPTOPIC glob_getarealist_help={};
 
+/* Mersenne Twister pseudo-random number generator */
+
+static int mtlib_srand (lua_State *LS)
+{
+    int i;
+
+    /* allow for table of seeds */
+
+    if (lua_istable (LS, 1))
+    {
+        size_t length = lua_objlen (LS, 1);  /* size of table */
+        if (length == 0)
+            luaL_error (LS, "mt.srand table must not be empty");
+
+        unsigned long * v = (unsigned long *) malloc (sizeof (unsigned long) * length);
+        if (!v)
+            luaL_error (LS, "Cannot allocate memory for seeds table");
+
+        for (i = 1; i <= length; i++)
+        {
+            lua_rawgeti (LS, 1, i);  /* get number */
+            if (!lua_isnumber (LS, -1))
+            {
+                free (v);  /* get rid of table now */
+                luaL_error (LS, "mt.srand table must consist of numbers");
+            }
+            v [i - 1] = luaL_checknumber (LS, -1);
+            lua_pop (LS, 1);   /* remove value   */
+        }
+        init_by_array (&v [0], length);
+        free (v);  /* get rid of table now */
+    }
+    else
+        init_genrand (luaL_checknumber (LS, 1));
+
+    return 0;
+} /* end of mtlib_srand */
+HELPTOPIC mtlib_srand_help={};
+
+static int mtlib_rand (lua_State *LS)
+{
+    lua_pushnumber (LS, genrand ());
+    return 1;
+} /* end of mtlib_rand */
+HELPTOPIC mtlib_rand_help={};
+
+static int mudlib_luadir( lua_State *LS)
+{
+    lua_pushliteral( LS, LUA_DIR);
+    return 1;
+}
+HELPTOPIC mudlib_luadir_help={};
+
+static int mudlib_userdir( lua_State *LS)
+{
+    lua_pushliteral( LS, USER_DIR);
+    return 1;
+}
+HELPTOPIC mudlib_userdir_help={};
+
 /* return tprintstr of the given global (string arg)*/
 static int dbglib_show ( lua_State *LS)
 {
@@ -751,6 +813,12 @@ GLOB_TYPE glob_table[] =
     GODF(defy),
     
     DBGF(show),
+
+    LFUN( mt, srand,        SEC_NOSCRIPT ),
+    LFUN( mt, rand,         SEC_NOSCRIPT ),
+
+    LFUN( mud, luadir,      SEC_NOSCRIPT ),
+    LFUN( mud, userdir,     SEC_NOSCRIPT),
     ENDGTABLE
 };
 
@@ -860,6 +928,59 @@ void register_globals( lua_State *LS )
 /* end global section */
 
 /* common section */
+static int L_rundelay( lua_State *LS)
+{
+    lua_getglobal( LS, "delaytbl"); /*2*/
+    if (lua_isnil( LS, -1) )
+    {
+        luaL_error( LS, "run_delayed_function: couldn't find delaytbl");
+    }
+
+    lua_pushvalue( LS, 1 );
+    lua_gettable( LS, 2 ); /* pops key */ /*3, delaytbl entry*/
+
+    if (lua_isnil( LS, 3) )
+    {
+        luaL_error( LS, "Didn't find entry in delaytbl");
+    }
+    /* check if the game object is still valid */
+    lua_getglobal( LS, UD_TABLE_NAME); /*4, udtbl*/
+    lua_getfield( LS, -2, "tableid"); /* 5 */
+    lua_gettable( LS, -2 ); /* pops key */ /*5, game object*/
+
+    if (lua_isnil( LS, -1) )
+    {
+        luaL_error(LS, "Couldn't find delayed function's game boject.");
+    }
+
+    lua_pop( LS, 2 );
+
+    lua_getfield( LS, -1, "func"); 
+
+    /* kill the entry before call in case of error */
+    lua_pushvalue( LS, 1 ); /* lightud as key */
+    lua_pushnil( LS ); /* nil as value */
+    lua_settable( LS, 2 ); /* pops key and value */ 
+
+    lua_call( LS, 0, 0);
+
+    return 0;
+}
+
+void run_delayed_function( TIMER_NODE *tmr )
+{
+    lua_pushcfunction( g_mud_LS, L_rundelay );
+    lua_pushlightuserdata( g_mud_LS, (void *)tmr );
+
+    if (CallLuaWithTraceBack( g_mud_LS, 1, 0) )
+    {
+        bugf ( "Error running delayed function:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        return;
+    }
+
+}
+
 int L_delay (lua_State *LS)
 {
     /* delaytbl has timer pointers as keys
