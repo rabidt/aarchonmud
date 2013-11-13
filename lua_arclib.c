@@ -2061,6 +2061,33 @@ static int CH_get_name (lua_State *LS)
 HELPTOPIC CH_get_name_help = {
 };
 
+static int CH_set_name (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set name on PCs.");
+    const char *new=luaL_checkstring(LS, 2);
+    free_string( ud_ch->name );
+    ud_ch->name=str_dup(new);
+    return 0;
+}
+HELPTOPIC CH_set_name_help = {
+};
+
+static int CH_get_level (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH(LS,1))->level );
+    return 1;
+}
+HELPTOPIC CH_get_level_help = {};
+
+static int CH_set_level (lua_State *LS)
+{
+    return CH_setlevel(LS);
+}
+HELPTOPIC CH_set_level_help = {};
+
 static int CH_get_maxhp (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2068,6 +2095,17 @@ static int CH_get_maxhp (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_maxhp_help={};
+
+static int CH_set_maxhp (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set maxhp on PCs.");
+        
+    ud_ch->max_hit = luaL_checkinteger( LS, 2);
+    return 0;
+}
+HELPTOPIC CH_set_maxhp_help={};
 
 static int CH_get_mana (lua_State *LS)
 {
@@ -2077,6 +2115,16 @@ static int CH_get_mana (lua_State *LS)
 }
 HELPTOPIC CH_get_mana_help={};
 
+static int CH_set_mana (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH (LS, 1);
+    int num = luaL_checkinteger (LS, 2);
+
+    ud_ch->mana=num;
+    return 0;
+}
+HELPTOPIC CH_set_mana_help = {};
+
 static int CH_get_maxmana (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2084,6 +2132,17 @@ static int CH_get_maxmana (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_maxmana_help={};
+
+static int CH_set_maxmana (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set maxmana on PCs.");
+        
+    ud_ch->max_mana = luaL_checkinteger( LS, 2);
+    return 0;
+}
+HELPTOPIC CH_set_maxmana_help={};
 
 static int CH_get_move (lua_State *LS)
 {
@@ -2093,6 +2152,16 @@ static int CH_get_move (lua_State *LS)
 }
 HELPTOPIC CH_get_move_help={};
 
+static int CH_set_move (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH (LS, 1);
+    int num = luaL_checkinteger (LS, 2);
+
+    ud_ch->move=num;
+    return 0;
+}
+HELPTOPIC CH_set_move_help = {};
+
 static int CH_get_maxmove (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2100,6 +2169,17 @@ static int CH_get_maxmove (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_maxmove_help={};
+
+static int CH_set_maxmove (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set maxmove on PCs.");
+        
+    ud_ch->max_move = luaL_checkinteger( LS, 2);
+    return 0;
+}
+HELPTOPIC CH_set_maxmove_help={};
 
 static int CH_get_gold (lua_State *LS)
 {
@@ -2109,6 +2189,17 @@ static int CH_get_gold (lua_State *LS)
 }
 HELPTOPIC CH_get_gold_help={};
 
+static int CH_set_gold (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set gold on PCs.");
+        
+    ud_ch->gold = luaL_checkinteger( LS, 2);
+    return 0;
+}
+HELPTOPIC CH_set_gold_help={};
+
 static int CH_get_silver (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2116,6 +2207,17 @@ static int CH_get_silver (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_silver_help={};
+
+static int CH_set_silver (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set silver on PCs.");
+        
+    ud_ch->silver = luaL_checkinteger( LS, 2);
+    return 0;
+}
+HELPTOPIC CH_set_silver_help={};
 
 static int CH_get_money (lua_State *LS)
 {
@@ -2134,6 +2236,28 @@ static int CH_get_sex (lua_State *LS)
 }
 HELPTOPIC CH_get_sex_help={};
 
+static int CH_set_sex (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set sex on PCs.");
+    const char *arg=luaL_checkstring( LS, 2);
+    
+    int i;
+    for ( i=0 ; sex_table[i].name ; i++ )
+    {
+        if (!strcmp(sex_table[i].name, arg) )
+        {
+            ud_ch->sex=i;
+            return 0;
+        }
+    }
+    
+    luaL_error(LS, "No such sex: %s", arg );
+    return 0;
+}
+HELPTOPIC CH_set_sex_help={};
+
 static int CH_get_size (lua_State *LS)
 {
     lua_pushstring( LS,
@@ -2141,6 +2265,28 @@ static int CH_get_size (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_size_help={};
+
+static int CH_set_size (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set gold on PCs.");
+        
+    const char *arg=luaL_checkstring( LS, 2);
+    int i;
+    for ( i=0 ; size_table[i].name ; i++ )
+    {
+        if (!strcmp( size_table[i].name, arg ) )
+        {
+            ud_ch->size=i;
+            return 0;
+        }
+    }
+    
+    luaL_error( LS, "No such size: %s", arg );
+    return 0;
+}
+HELPTOPIC CH_set_size_help={};
 
 static int CH_get_position (lua_State *LS)
 {
@@ -2158,6 +2304,15 @@ static int CH_get_align (lua_State *LS)
 }
 HELPTOPIC CH_get_align_help={};
 
+static int CH_set_align (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    ud_ch->alignment = URANGE( -1000, luaL_checkinteger( LS, 2), 1000);
+    return 0;
+}
+HELPTOPIC CH_set_align_help={};
+
 static int CH_get_str (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2165,6 +2320,17 @@ static int CH_get_str (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_str_help={};
+
+static int CH_set_str (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set str on PCs.");
+        
+    ud_ch->perm_stat[STAT_STR] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_str_help={};
 
 static int CH_get_con (lua_State *LS)
 {
@@ -2174,6 +2340,17 @@ static int CH_get_con (lua_State *LS)
 }
 HELPTOPIC CH_get_con_help={};
 
+static int CH_set_con (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set con on PCs.");
+        
+    ud_ch->perm_stat[STAT_CON] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_con_help={};
+
 static int CH_get_vit (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2181,6 +2358,17 @@ static int CH_get_vit (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_vit_help={};
+
+static int CH_set_vit (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set vit on PCs.");
+        
+    ud_ch->perm_stat[STAT_VIT] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_vit_help={};
 
 static int CH_get_agi (lua_State *LS)
 {
@@ -2190,6 +2378,17 @@ static int CH_get_agi (lua_State *LS)
 }
 HELPTOPIC CH_get_agi_help={};
 
+static int CH_set_agi (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set agi on PCs.");
+        
+    ud_ch->perm_stat[STAT_AGI] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_agi_help={};
+
 static int CH_get_dex (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2197,6 +2396,17 @@ static int CH_get_dex (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_dex_help={};
+
+static int CH_set_dex (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set dex on PCs.");
+        
+    ud_ch->perm_stat[STAT_DEX] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_dex_help={};
 
 static int CH_get_int (lua_State *LS)
 {
@@ -2206,6 +2416,17 @@ static int CH_get_int (lua_State *LS)
 }
 HELPTOPIC CH_get_int_help={};
 
+static int CH_set_int (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set int on PCs.");
+        
+    ud_ch->perm_stat[STAT_INT] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_int_help={};
+
 static int CH_get_wis (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2213,6 +2434,17 @@ static int CH_get_wis (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_wis_help={};
+
+static int CH_set_wis (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set wis on PCs.");
+        
+    ud_ch->perm_stat[STAT_WIS] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_wis_help={};
 
 static int CH_get_dis (lua_State *LS)
 {
@@ -2222,6 +2454,17 @@ static int CH_get_dis (lua_State *LS)
 }
 HELPTOPIC CH_get_dis_help={};
 
+static int CH_set_dis (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set dis on PCs.");
+        
+    ud_ch->perm_stat[STAT_DIS] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_dis_help={};
+
 static int CH_get_cha (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2230,6 +2473,17 @@ static int CH_get_cha (lua_State *LS)
 }
 HELPTOPIC CH_get_cha_help={};
 
+static int CH_set_cha (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set cha on PCs.");
+        
+    ud_ch->perm_stat[STAT_CHA] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_cha_help={};
+
 static int CH_get_luc (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2237,6 +2491,17 @@ static int CH_get_luc (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_luc_help={};
+
+static int CH_set_luc (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set luc on PCs.");
+        
+    ud_ch->perm_stat[STAT_LUC] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    return 0;
+}
+HELPTOPIC CH_set_luc_help={};
 
 static int CH_get_clan (lua_State *LS)
 {
@@ -2254,6 +2519,22 @@ static int CH_get_class (lua_State *LS)
 }
 HELPTOPIC CH_get_class_help={};
 
+static int CH_set_class (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set class on PCs.");
+    
+    const char * arg=luaL_checkstring(LS, 2);
+    int class=class_lookup(arg);
+    if (class==-1)
+        luaL_error(LS, "No such class: %s", arg );
+
+    ud_ch->class=class;
+    return 0;
+}
+HELPTOPIC CH_set_class_help={};
+
 static int CH_get_race (lua_State *LS)
 {
     lua_pushstring( LS,
@@ -2261,6 +2542,23 @@ static int CH_get_race (lua_State *LS)
     return 1;
 }
 HELPTOPIC CH_get_race_help={};
+
+static int CH_set_race (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error( LS, "Can't set race on PCs.");
+    
+    const char * arg=luaL_checkstring(LS, 2);
+    int race=race_lookup(arg);
+    if (race==0)
+        luaL_error(LS, "No such race: %s", arg );
+
+    ud_ch->race=race;
+    morph_update(ud_ch);
+    return 0;
+}
+HELPTOPIC CH_set_race_help={};
 
 static int CH_get_fighting (lua_State *LS)
 {
@@ -2514,6 +2812,19 @@ static int CH_get_shortdescr( lua_State *LS)
 }
 HELPTOPIC CH_get_shortdescr_help={};
 
+static int CH_set_shortdescr (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set shortdescr on PCs.");
+    const char *new=luaL_checkstring(LS, 2);
+    free_string( ud_ch->short_descr );
+    ud_ch->short_descr=str_dup(new);
+    return 0;
+}
+HELPTOPIC CH_set_shortdescr_help = {
+};
+
 static int CH_get_longdescr( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -2525,9 +2836,23 @@ static int CH_get_longdescr( lua_State *LS)
 }
 HELPTOPIC CH_get_longdescr_help={};
 
+static int CH_set_longdescr (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set longdescr on PCs.");
+    const char *new=luaL_checkstring(LS, 2);
+    free_string( ud_ch->long_descr );
+    ud_ch->long_descr=str_dup(new);
+    return 0;
+}
+HELPTOPIC CH_set_longdescr_help = {
+};
+
 static const LUA_PROP_TYPE CH_get_table [] =
 {
     CHGET(name, 0),
+    CHGET(level, 0),
     CHGET(hp, 0),
     CHGET(maxhp, 0),
     CHGET(mana, 0),
@@ -2582,7 +2907,33 @@ static const LUA_PROP_TYPE CH_get_table [] =
 
 static const LUA_PROP_TYPE CH_set_table [] =
 {
+    CHSET(name, 9),
+    CHSET(level, 9),
     CHSET(hp, 9),
+    CHSET(maxhp, 9),
+    CHSET(mana, 9),
+    CHSET(maxmana, 9),
+    CHSET(move, 9),
+    CHSET(maxmove, 9),
+    CHSET(gold, 9),
+    CHSET(silver, 9),
+    CHSET(sex, 9),
+    CHSET(size, 9),
+    CHSET(align, 9),
+    CHSET(str, 9),
+    CHSET(con, 9),
+    CHSET(vit, 9),
+    CHSET(agi, 9),
+    CHSET(dex, 9),
+    CHSET(int, 9),
+    CHSET(wis, 9),
+    CHSET(dis, 9),
+    CHSET(cha, 9),
+    CHSET(luc, 9),
+    CHSET(class, 9),
+    CHSET(race, 9),
+    CHSET(shortdescr, 9),
+    CHSET(longdescr, 9),
     ENDPTABLE
 };
 
