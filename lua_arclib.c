@@ -2563,7 +2563,6 @@ static int CH_set_race (lua_State *LS)
         luaL_error(LS, "No such race: %s", arg );
 
     ud_ch->race=race;
-    morph_update(ud_ch);
     return 0;
 }
 HELPTOPIC CH_set_race_help={};
