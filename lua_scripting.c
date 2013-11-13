@@ -248,7 +248,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
     lua_getglobal( g_mud_LS, "mob_program_setup");
 
     //if (!make_ud_table( g_mud_LS, mob, UDTYPE_CH))
-    if ( !CH_type->make(CH_type, g_mud_LS, mob ) )
+    if ( !make_CH( g_mud_LS, mob ) )
     {
         /* Most likely failed because the mob was destroyed */
         return;
@@ -303,7 +303,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
     } 
 
     /* CH_ARG */
-    if ( !(ch && CH_type->make(CH_type, g_mud_LS,(void *) ch)))
+    if ( !(ch && make_CH( g_mud_LS,(void *) ch)))
         lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */
@@ -333,7 +333,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
 
     /* VICTIM_ARG */
     if ( !((arg2type== ACT_ARG_CHARACTER && arg2)
-                && CH_type->make( CH_type, g_mud_LS, arg2)) )
+                && make_CH( g_mud_LS, arg2)) )
         lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
