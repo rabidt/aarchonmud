@@ -90,7 +90,41 @@ http://www.gammon.com.au/forum/?id=8015
 /* TRIGTYPE_ARG */
 #define NUM_RPROG_RESULTS 1
 
+bool load_mprog( lua_State *LS, int vnum, const char *code )
+{
+    char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
 
+    if ( strlen(code) >= MAX_SCRIPT_LENGTH )
+    {
+        bugf("MPROG script %d exceeds %d characters.",
+                vnum, MAX_SCRIPT_LENGTH);
+        return FALSE;
+    }
+
+    sprintf(buf, "return function (%s,%s,%s,%s,%s,%s,%s,%s)\n"
+            "%s\n"
+            "end",
+            CH_ARG, TRIG_ARG, OBJ1_ARG,
+            OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG, TRIGTYPE_ARG,
+            code);
+
+
+    if (luaL_loadstring ( LS, buf) ||
+            CallLuaWithTraceBack ( LS, 0, 1))
+    {
+        bugf ( "LUA mprog error loading vnum%d:\n %s",
+                vnum,
+                lua_tostring( LS, -1));
+        lua_settop( LS, 0 );
+
+        return FALSE;
+    }
+    else
+    {
+       return TRUE;
+    }
+
+}
 bool lua_load_mprog( lua_State *LS, int vnum, const char *code)
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
@@ -247,7 +281,6 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
 {
     lua_getglobal( g_mud_LS, "mob_program_setup");
 
-    //if (!make_ud_table( g_mud_LS, mob, UDTYPE_CH))
     if ( !make_CH( g_mud_LS, mob ) )
     {
         /* Most likely failed because the mob was destroyed */
@@ -259,40 +292,9 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
         return;
     }
 
-    /* load up the script as a function so args will be local */
-    char buf[MSL*2];
-    sprintf(buf, "M_%d", pvnum);
-
-    if ( pvnum==LOADSCRIPT_VNUM ) /* run with loadscript */
+    if ( !load_mprog( g_mud_LS, pvnum, source) )
     {
-        /* always reload */
-        if ( !lua_load_mprog( g_mud_LS, pvnum, source) )
-        {
-            /* if we're here then loadscript was called from within
-               a script so we can do a lua error */
-            luaL_error( g_mud_LS, "Couldn't load script with loadscript.");
-        }
-        /* loaded without errors, now get it on the stack */
-        lua_getglobal( g_mud_LS, buf);
-    }
-    else
-    {
-        /* check if already loaded, load if not */
-        lua_getglobal( g_mud_LS, buf);
-
-        if ( lua_isnil( g_mud_LS, -1) )
-        {
-            lua_remove( g_mud_LS, -1); /* Remove the nil */
-            /* not loaded yet*/
-            if ( !lua_load_mprog( g_mud_LS, pvnum, source) )
-            {
-                /* don't bother running it if there were errors */
-                return;
-            }
-
-            /* loaded without errors, now get it on the stack */
-            lua_getglobal( g_mud_LS, buf);
-        }
+        return;
     }
 
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
