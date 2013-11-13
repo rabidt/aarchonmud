@@ -2,8 +2,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 #include "merc.h"
-#include "lua_object_type.h"
-#include "lua_common.h"
+#include "lua_arclib.h"
+#include "lua_main.h"
 #include "olc.h"
 #include "tables.h"
 
@@ -30,21 +30,6 @@
 #define CHGET( field, sec ) GETP( CH, field, sec)
 #define CHSET( field, sec ) SETP( CH, field, sec)
 #define CHMETH( field, sec ) METH( CH, field, sec)
-
-#define check_CH( LS, index) ((CHAR_DATA *)CH_type->check( CH_type, LS, index ))
-#define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
-#define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
-
-#define check_OBJ( LS, obj ) ((OBJ_DATA *)OBJ_type->check( OBJ_type, LS, obj ))
-#define make_OBJ(LS, obj ) OBJ_type->make( OBJ_type, LS, obj )
-
-#define make_AREA( LS, area) ((AREA_DATA *)AREA_type->check( AREA_type, LS, area ))
-
-#define make_MOBPROTO( LS, mp) ((MOB_INDEX_DATA *)MOBPROTO_type->check( MOBPROTO_type, LS, mp))
-
-#define make_OBJPROTO( LS, op) ((OBJ_INDEX_DATA *)OBJPROTO_type->check( OBJPROTO_type, LS, op))
-
-#define make_ROOM( LS, room) ((ROOM_INDEX_DATA *)ROOM_type->check( ROOM_type, LS, room))
 
 
 extern lua_State *g_mud_LS;
@@ -96,27 +81,6 @@ static OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *set_table,
         const LUA_PROP_TYPE *method_table);
 
-
-static void type_init( lua_State *LS)
-{
-    if (!CH_type)
-        CH_type=CH_init(LS);
-    if (!OBJ_type)
-        OBJ_type=OBJ_init(LS);
-    if (!AREA_type)
-        AREA_type=AREA_init(LS);
-    if (!ROOM_type)
-        ROOM_type=ROOM_init(LS);
-    if (!EXIT_type)
-        EXIT_type=EXIT_init(LS);
-    if (!RESET_type)
-        RESET_type=RESET_init(LS);
-    if (!OBJPROTO_type)
-        OBJPROTO_type=OBJPROTO_init(LS);
-    if (!MOBPROTO_type)
-        MOBPROTO_type=MOBPROTO_init(LS);
-}
-        
 /* base functionality for lua object types */
 static void * check_func( OBJ_TYPE *self,
         lua_State *LS, int index )
@@ -494,7 +458,7 @@ HELPTOPIC glob_sendtochar_help =
 
 static int glob_clearloopcount (lua_State *LS)
 {
-    ClearLuaLoopCount();
+    g_LoopCheckCounter=0;
     return 0;
 }
 HELPTOPIC glob_clearloopcount_help={};
@@ -827,9 +791,9 @@ static int global_sec_check (lua_State *LS)
     int security=luaL_checkinteger( LS, lua_upvalueindex(1) );
     //bugf( "%d %d", ScriptSecurity(), security );
     
-    if ( ScriptSecurity() < security )
+    if ( g_ScriptSecurity < security )
         luaL_error( LS, "Current security %d. Function requires %d.",
-                ScriptSecurity(),
+                g_ScriptSecurity,
                 security);
 
     int (*fun)()=lua_tocfunction( LS, lua_upvalueindex(2) );
@@ -928,6 +892,38 @@ void register_globals( lua_State *LS )
 /* end global section */
 
 /* common section */
+
+static void unregister_UD( lua_State *LS,  void *ptr )
+{
+    if (!LS)
+    {
+        bugf("NULL LS passed to unregister_UD.");
+        return;
+    }
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, UNREGISTER_UD_FUNCTION);
+    lua_pushlightuserdata( LS, ptr );
+    if (CallLuaWithTraceBack( LS, 1, 0) )
+    {
+        bugf ( "Error unregistering UD:\n %s",
+                lua_tostring(LS, -1));
+    }
+
+}
+
+/* unregister_lua, to be called when destroying in game structures that may
+   be registered in an active lua state*/
+void unregister_lua( void *ptr )
+{
+    if (ptr == NULL)
+    {
+        bugf("NULL ptr in unregister_lua.");
+        return;
+    }
+
+    unregister_UD( g_mud_LS, ptr );
+}
+
 static int L_rundelay( lua_State *LS)
 {
     lua_getglobal( LS, "delaytbl"); /*2*/
@@ -2055,7 +2051,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(cancel, 0), */
     ENDPTABLE
 }; 
-OBJ_TYPE *CH_init(lua_State *LS)
+static OBJ_TYPE *CH_init(lua_State *LS)
 {
     if (!CH_type)
         CH_type=new_obj_type(
@@ -2116,7 +2112,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     ENDPTABLE
 }; 
 
-OBJ_TYPE *OBJ_init(lua_State *LS)
+static OBJ_TYPE *OBJ_init(lua_State *LS)
 {
     if (!OBJ_type)
         OBJ_type=new_obj_type(
@@ -2147,7 +2143,7 @@ static const LUA_PROP_TYPE AREA_method_table [] =
     ENDPTABLE
 }; 
 
-OBJ_TYPE *AREA_init(lua_State *LS)
+static OBJ_TYPE *AREA_init(lua_State *LS)
 {
     if (!AREA_type)
         AREA_type=new_obj_type(
@@ -2179,7 +2175,7 @@ static const LUA_PROP_TYPE ROOM_method_table [] =
     ENDPTABLE
 }; 
 
-OBJ_TYPE *ROOM_init(lua_State *LS)
+static OBJ_TYPE *ROOM_init(lua_State *LS)
 {
     if (!ROOM_type)
         ROOM_type=new_obj_type(
@@ -2223,7 +2219,7 @@ static const LUA_PROP_TYPE EXIT_method_table [] =
     ENDPTABLE
 }; 
 
-OBJ_TYPE *EXIT_init(lua_State *LS)
+static OBJ_TYPE *EXIT_init(lua_State *LS)
 {
     if (!EXIT_type)
         EXIT_type=new_obj_type(
@@ -2262,7 +2258,7 @@ static const LUA_PROP_TYPE RESET_method_table [] =
     ENDPTABLE
 }; 
 
-OBJ_TYPE *RESET_init(lua_State *LS)
+static OBJ_TYPE *RESET_init(lua_State *LS)
 {
     if (!RESET_type)
         RESET_type=new_obj_type(
@@ -2294,7 +2290,7 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
     ENDPTABLE
 }; 
 
-OBJ_TYPE *OBJPROTO_init(lua_State *LS)
+static OBJ_TYPE *OBJPROTO_init(lua_State *LS)
 {
     if (!OBJPROTO_type)
         OBJPROTO_type=new_obj_type(
@@ -2326,7 +2322,7 @@ static const LUA_PROP_TYPE MOBPROTO_method_table [] =
     ENDPTABLE
 }; 
 
-OBJ_TYPE *MOBPROTO_init(lua_State *LS)
+static OBJ_TYPE *MOBPROTO_init(lua_State *LS)
 {
     if (!MOBPROTO_type)
         MOBPROTO_type=new_obj_type(
@@ -2607,3 +2603,24 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
 
 
 /* end help section */
+
+
+void type_init( lua_State *LS)
+{
+    if (!CH_type)
+        CH_type=CH_init(LS);
+    if (!OBJ_type)
+        OBJ_type=OBJ_init(LS);
+    if (!AREA_type)
+        AREA_type=AREA_init(LS);
+    if (!ROOM_type)
+        ROOM_type=ROOM_init(LS);
+    if (!EXIT_type)
+        EXIT_type=EXIT_init(LS);
+    if (!RESET_type)
+        RESET_type=RESET_init(LS);
+    if (!OBJPROTO_type)
+        OBJPROTO_type=OBJPROTO_init(LS);
+    if (!MOBPROTO_type)
+        MOBPROTO_type=MOBPROTO_init(LS);
+}

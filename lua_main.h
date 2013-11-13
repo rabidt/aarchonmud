@@ -1,5 +1,5 @@
-#ifndef LUA_COMMON_H
-#define LUA_COMMON_H
+#ifndef LUA_MAIN_H
+#define LUA_MAIN_H
 
 #define UD_TABLE_NAME "udtbl"
 #define ENV_TABLE_NAME "envtbl"
@@ -21,4 +21,10 @@ int L_cancel( lua_State *LS);
 const char *check_fstring( lua_State *LS, int index);
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
 void stackDump (lua_State *LS);
+
+
+extern lua_State *g_mud_LS;
+extern bool       g_LuaScriptInProgress;
+int               g_ScriptSecurity;
+int               g_LoopCheckCounter;
 #endif
