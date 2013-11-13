@@ -763,12 +763,6 @@ static int glob_tprintstr ( lua_State *LS)
 }
 HELPTOPIC glob_tprintstr_help={};
 
-static int glob_cancel ( lua_State *LS )
-{
-    return L_cancel(LS);
-}
-HELPTOPIC glob_cancel_help={};
-
 #define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
@@ -825,8 +819,6 @@ GLOB_TYPE glob_table[] =
 
     LFUN( mud, luadir,      SEC_NOSCRIPT ),
     LFUN( mud, userdir,     SEC_NOSCRIPT),
-
-    GFUN(cancel,            SEC_NOSCRIPT),
     ENDGTABLE
 };
 
@@ -1891,6 +1883,8 @@ static int CH_setlevel (lua_State *LS)
         luaL_error(LS, "Cannot set level on PC.");
 
     int num = (int)luaL_checknumber (LS, 2);
+    if ( num < 1 || num > 200 )
+        luaL_error( LS, "Invalid level: %d, range is 1 to 200.", num);
     set_mob_level( ud_ch, num );
     return 0;
 }
@@ -2315,8 +2309,10 @@ HELPTOPIC CH_get_align_help={};
 static int CH_set_align (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
-
-    ud_ch->alignment = URANGE( -1000, luaL_checkinteger( LS, 2), 1000);
+    int num=luaL_checkinteger( LS, 2);
+    if (num < -1000 || num > 1000)
+        luaL_error(LS, "Invalid align: %d, range is -1000 to 1000.", num);
+    ud_ch->alignment = num;
     return 0;
 }
 HELPTOPIC CH_set_align_help={};
@@ -2329,14 +2325,23 @@ static int CH_get_str (lua_State *LS)
 }
 HELPTOPIC CH_get_str_help={};
 
-static int CH_set_str (lua_State *LS)
+static int stat_set ( lua_State *LS, int stat )
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
     if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set str on PCs.");
+        luaL_error( LS, "Can't set stats on PCs.");
         
-    ud_ch->perm_stat[STAT_STR] = URANGE(1,luaL_checkinteger( LS, 2), 200);
+    int num = luaL_checkinteger( LS, 2 );
+    if (num < 1 || num > 200 )
+        luaL_error(LS, "Invalid stat value: %d, range is 1 to 200.", num );
+        
+    ud_ch->perm_stat[stat] = num;
     return 0;
+}
+     
+static int CH_set_str (lua_State *LS)
+{
+    return stat_set(LS, STAT_STR);
 }
 HELPTOPIC CH_set_str_help={};
 
@@ -2350,12 +2355,7 @@ HELPTOPIC CH_get_con_help={};
 
 static int CH_set_con (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set con on PCs.");
-        
-    ud_ch->perm_stat[STAT_CON] = URANGE(1,luaL_checkinteger( LS, 2), 200);
-    return 0;
+    return stat_set(LS, STAT_CON);
 }
 HELPTOPIC CH_set_con_help={};
 
@@ -2369,12 +2369,7 @@ HELPTOPIC CH_get_vit_help={};
 
 static int CH_set_vit (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set vit on PCs.");
-        
-    ud_ch->perm_stat[STAT_VIT] = URANGE(1,luaL_checkinteger( LS, 2), 200);
-    return 0;
+    return stat_set(LS, STAT_VIT);
 }
 HELPTOPIC CH_set_vit_help={};
 
@@ -2388,12 +2383,7 @@ HELPTOPIC CH_get_agi_help={};
 
 static int CH_set_agi (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set agi on PCs.");
-        
-    ud_ch->perm_stat[STAT_AGI] = URANGE(1,luaL_checkinteger( LS, 2), 200);
-    return 0;
+    return stat_set(LS, STAT_AGI);
 }
 HELPTOPIC CH_set_agi_help={};
 
@@ -2407,12 +2397,7 @@ HELPTOPIC CH_get_dex_help={};
 
 static int CH_set_dex (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set dex on PCs.");
-        
-    ud_ch->perm_stat[STAT_DEX] = URANGE(1,luaL_checkinteger( LS, 2), 200);
-    return 0;
+    return stat_set(LS, STAT_DEX);
 }
 HELPTOPIC CH_set_dex_help={};
 
@@ -2426,12 +2411,7 @@ HELPTOPIC CH_get_int_help={};
 
 static int CH_set_int (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set int on PCs.");
-        
-    ud_ch->perm_stat[STAT_INT] = URANGE(1,luaL_checkinteger( LS, 2), 200);
-    return 0;
+    return stat_set(LS, STAT_INT);
 }
 HELPTOPIC CH_set_int_help={};
 
@@ -2445,12 +2425,7 @@ HELPTOPIC CH_get_wis_help={};
 
 static int CH_set_wis (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set wis on PCs.");
-        
-    ud_ch->perm_stat[STAT_WIS] = URANGE(1,luaL_checkinteger( LS, 2), 200);
-    return 0;
+    return stat_set(LS, STAT_WIS);
 }
 HELPTOPIC CH_set_wis_help={};
 
@@ -2464,12 +2439,7 @@ HELPTOPIC CH_get_dis_help={};
 
 static int CH_set_dis (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set dis on PCs.");
-        
-    ud_ch->perm_stat[STAT_DIS] = URANGE(1,luaL_checkinteger( LS, 2), 200);
-    return 0;
+    return stat_set(LS, STAT_DIS);
 }
 HELPTOPIC CH_set_dis_help={};
 
@@ -2483,12 +2453,7 @@ HELPTOPIC CH_get_cha_help={};
 
 static int CH_set_cha (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set cha on PCs.");
-        
-    ud_ch->perm_stat[STAT_CHA] = URANGE(1,luaL_checkinteger( LS, 2), 200);
-    return 0;
+    return stat_set(LS, STAT_CHA);
 }
 HELPTOPIC CH_set_cha_help={};
 
@@ -2502,12 +2467,7 @@ HELPTOPIC CH_get_luc_help={};
 
 static int CH_set_luc (lua_State *LS)
 {
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set luc on PCs.");
-        
-    ud_ch->perm_stat[STAT_LUC] = URANGE(1,luaL_checkinteger( LS, 2), 200);
-    return 0;
+    return stat_set(LS, STAT_LUC);
 }
 HELPTOPIC CH_set_luc_help={};
 
@@ -2563,6 +2523,7 @@ static int CH_set_race (lua_State *LS)
         luaL_error(LS, "No such race: %s", arg );
 
     ud_ch->race=race;
+    morph_update(ud_ch);
     return 0;
 }
 HELPTOPIC CH_set_race_help={};
