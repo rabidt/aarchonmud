@@ -1570,7 +1570,8 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     */
 
     check_killer( ch, fch );
-    set_fighting( ch, fch );
+    if ( ch->fighting != fch )
+        set_fighting( ch, fch );
     set_fighting( fch, ch );
     /*set_fighting( victim, other );*/
     return;
