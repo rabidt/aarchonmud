@@ -31,6 +31,9 @@
 #define CHSET( field, sec ) SETP( CH, field, sec)
 #define CHMETH( field, sec ) METH( CH, field, sec)
 
+#define OBJGET( field, sec ) GETP( OBJ, field, sec)
+#define OBJSET( field, sec ) SETP( OBJ, field, sec)
+#define OBJMETH( field, sec ) METH( OBJ, field, sec)
 
 extern lua_State *g_mud_LS;
 
@@ -3028,9 +3031,274 @@ static int OBJ_echo( lua_State *LS)
 
     return 0;
 }
+HELPTOPIC OBJ_echo_help={};
+
+static int OBJ_get_name (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJ(LS,1))->name);
+    return 1;
+}
+HELPTOPIC OBJ_get_name_help={};
+
+static int OBJ_get_shortdescr (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJ(LS,1))->short_descr);
+    return 1;
+}
+HELPTOPIC OBJ_get_shortdescr_help={};
+
+static int OBJ_get_clan (lua_State *LS)
+{
+    lua_pushstring( LS,
+            clan_table[(check_OBJ(LS,1))->clan].name);
+    return 1;
+}
+HELPTOPIC OBJ_get_clan_help={};
+
+static int OBJ_get_clanrank (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJ(LS,1))->rank);
+    return 1;
+}
+HELPTOPIC OBJ_get_clanrank_help={};
+
+static int OBJ_get_level (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJ(LS,1))->level);
+    return 1;
+}
+HELPTOPIC OBJ_get_level_help={};
+
+static int OBJ_get_owner (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    if (!ud_obj->owner)
+        return 0;
+    lua_pushstring( LS,
+            ud_obj->owner);
+    return 1;
+}
+HELPTOPIC OBJ_get_owner_help={};
+
+static int OBJ_get_cost (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJ(LS,1))->cost);
+    return 1;
+}
+HELPTOPIC OBJ_get_cost_help={};
+
+static int OBJ_get_material (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJ(LS,1))->material);
+    return 1;
+}
+HELPTOPIC OBJ_get_material_help={};
+
+static int OBJ_get_vnum (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJ(LS,1))->pIndexData->vnum);
+    return 1;
+}
+HELPTOPIC OBJ_get_vnum_help={};
+
+static int OBJ_get_otype (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJ(LS,1))->item_type);
+    return 1;
+}
+HELPTOPIC OBJ_get_otype_help={};
+
+static int OBJ_get_weight (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJ(LS,1))->weight);
+    return 1;
+}
+HELPTOPIC OBJ_get_weight_help={};
+
+static int OBJ_get_wearlocation (lua_State *LS)
+{
+    lua_pushstring( LS,
+            flag_stat_string(wear_loc_flags,(check_OBJ(LS,1))->wear_loc) );
+    return 1;
+}
+HELPTOPIC OBJ_get_wearlocation_help={};
+
+static int OBJ_get_proto (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    if (!make_OBJPROTO( LS, ud_obj->pIndexData) )
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC OBJ_get_proto_help={};
+
+static int OBJ_get_contents (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    int index=1;
+    lua_newtable(LS);
+    OBJ_DATA *obj;
+    for (obj=ud_obj->contains ; obj ; obj=obj->next_content)
+    {
+        if ( make_OBJ(LS, obj) )
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC OBJ_get_contents_help={};
+
+static int OBJ_get_room (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    if (!ud_obj->in_room)
+        return 0;
+    if ( !make_ROOM(LS, ud_obj->in_room) )
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC OBJ_get_room_help={};
+
+static int OBJ_get_inobj (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    if (!ud_obj->in_obj)
+        return 0;
+
+    if ( !make_OBJ(LS, ud_obj->in_obj) )
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC OBJ_get_inobj_help={};
+
+static int OBJ_get_carriedby (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    if (!ud_obj->carried_by )
+        return 0;
+    else if (!make_CH( LS, ud_obj->carried_by) )
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC OBJ_get_carriedby_help={};
+
+static int OBJ_get_v0 (lua_State *LS)
+{
+    lua_pushinteger( LS, (check_OBJ(LS,1))->value[0]);
+    return 1;
+}
+HELPTOPIC OBJ_get_v0_help={};
+
+static int OBJ_get_v1 (lua_State *LS)
+{
+    lua_pushinteger( LS, (check_OBJ(LS,1))->value[1]);
+    return 1;
+}
+HELPTOPIC OBJ_get_v1_help={};
+
+
+static int OBJ_get_v2 (lua_State *LS)
+{
+    lua_pushinteger( LS, (check_OBJ(LS,1))->value[2]);
+    return 1;
+}
+HELPTOPIC OBJ_get_v2_help={};
+
+static int OBJ_get_v3 (lua_State *LS)
+{
+    lua_pushinteger( LS, (check_OBJ(LS,1))->value[3]);
+    return 1;
+}
+HELPTOPIC OBJ_get_v3_help={};
+
+static int OBJ_get_v4 (lua_State *LS)
+{
+    lua_pushinteger( LS, (check_OBJ(LS,1))->value[4]);
+    return 1;
+}
+HELPTOPIC OBJ_get_v4_help={};
+
+static int OBJ_get_liquid (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    
+    if (ud_obj->item_type != ITEM_FOUNTAIN)
+        luaL_error(LS, "Liquid for fountain only.");
+        
+    lua_pushstring(LS, liq_table[ud_obj->value[2]].liq_name);
+    
+    return 1;
+}
+HELPTOPIC OBJ_get_liquid_help={};
+
+static int OBJ_get_total (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    
+    if (ud_obj->item_type != ITEM_FOUNTAIN)
+        luaL_error(LS, "Total for fountain only.");
+        
+    lua_pushstring(LS, ud_obj->value[0]);
+    
+    return 1;
+}
+HELPTOPIC OBJ_get_total_help={};
+
+static int OBJ_get_left (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    
+    if (ud_obj->item_type != ITEM_FOUNTAIN)
+        luaL_error(LS, "Left for fountain only.");
+        
+    lua_pushstring(LS, ud_obj->value[1]);
+    
+    return 1;
+}
+HELPTOPIC OBJ_get_left_help={};
 
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
+    OBJGET(name, 0),
+    OBJGET(shortdescr, 0),
+    OBJGET(clan, 0),
+    OBJGET(clanrank, 0),
+    OBJGET(level, 0),
+    OBJGET(owner, 0),
+    OBJGET(cost, 0),
+    OBJGET(material, 0),
+    OBJGET(vnum, 0),
+    OBJGET(otype, 0),
+    OBJGET(weight, 0),
+    OBJGET(room, 0),
+    OBJGET(inobj, 0),
+    OBJGET(carriedby, 0),
+    OBJGET(v0, 0),
+    OBJGET(v1, 0),
+    OBJGET(v2, 0),
+    OBJGET(v3, 0),
+    OBJGET(v4, 0),
+    OBJGET(wearlocation, 0),
+    OBJGET(contents, 0),
+    OBJGET(proto, 0),
+    
+    /*fountain*/
+    OBJGET(liquid, 0),
+    OBJGET(left, 0),
+    OBJGET(total, 0),
+    
     ENDPTABLE
 };
 
@@ -3042,6 +3310,7 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
 
 static const LUA_PROP_TYPE OBJ_method_table [] =
 {
+    OBJMETH(echo, 0),
     ENDPTABLE
 }; 
 
