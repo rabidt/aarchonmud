@@ -342,7 +342,7 @@ void fix_rprog_rooms( CHAR_DATA *ch, RPROG_CODE *pRcode )
     char buf[MSL];
     ROOM_INDEX_DATA *room;
 
-    lua_load_rprog( g_mud_LS, pRcode->vnum, pRcode->code);
+    check_rprog( g_mud_LS, pRcode->vnum, pRcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pRcode->vnum);
 
 }
