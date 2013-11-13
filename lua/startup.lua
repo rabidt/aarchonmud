@@ -1,6 +1,6 @@
 package.path = mud.luadir() .. "?.lua"
 
-tprintstr=require "tprint"
+glob_tprintstr=require "tprint"
 require "serialize"
 require "utilities"
 require "leaderboard"
@@ -83,11 +83,11 @@ function UnregisterDesc(desc)
     end
 end
 
-function rand(pcnt)
+function glob_rand(pcnt)
     return ( (mt.rand()*100) < pcnt)
 end
 
-function randnum(low, high)
+function glob_randnum(low, high)
     return math.floor( (mt.rand()*(high+1-low) + low)) -- people usually want inclusive
 end
 
