@@ -153,7 +153,7 @@ bool lua_load_aprog( lua_State *LS, int vnum, const char *code)
             code);
 
     if (luaL_loadstring ( LS, buf) ||
-            CallLuaWithTraceBack ( LS, 0, 0))
+            CallLuaWithTraceBack ( LS, 0, 1))
     {
         if ( vnum == LOADSCRIPT_VNUM )
             luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
@@ -191,7 +191,7 @@ bool lua_load_rprog( lua_State *LS, int vnum, const char *code)
 
 
     if (luaL_loadstring ( LS, buf) ||
-            CallLuaWithTraceBack ( LS, 0, 0))
+            CallLuaWithTraceBack ( LS, 0, 1))
     {
         if ( vnum == LOADSCRIPT_VNUM )
             luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
@@ -228,7 +228,7 @@ bool lua_load_oprog( lua_State *LS, int vnum, const char *code)
 
 
     if (luaL_loadstring ( LS, buf) ||
-            CallLuaWithTraceBack ( LS, 0, 0))
+            CallLuaWithTraceBack ( LS, 0, 1))
     {
         if ( vnum == LOADSCRIPT_VNUM )
             luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
