@@ -573,6 +573,7 @@ static int RegisterLuaRoutines (lua_State *LS)
     time (&timer);
 
     init_genrand (timer);
+    type_init( LS );
 
     register_globals ( LS );
 
