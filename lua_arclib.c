@@ -763,6 +763,12 @@ static int glob_tprintstr ( lua_State *LS)
 }
 HELPTOPIC glob_tprintstr_help={};
 
+static int glob_cancel ( lua_State *LS )
+{
+    return L_cancel(LS);
+}
+HELPTOPIC glob_cancel_help={};
+
 #define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
@@ -819,6 +825,8 @@ GLOB_TYPE glob_table[] =
 
     LFUN( mud, luadir,      SEC_NOSCRIPT ),
     LFUN( mud, userdir,     SEC_NOSCRIPT),
+
+    GFUN(cancel,            SEC_NOSCRIPT),
     ENDGTABLE
 };
 
