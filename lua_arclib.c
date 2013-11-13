@@ -249,7 +249,7 @@ static bool make_func( OBJ_TYPE *self,
         return FALSE;
     }
 
-    /* get rid of our original table, register send back a new version */
+    /* get rid of our original table, register sends back a new version */
     lua_remove( LS, -2 );
 
     return TRUE;
@@ -3005,6 +3005,166 @@ static OBJ_TYPE *CH_init(lua_State *LS)
 /* end CH section */
 
 /* OBJ section */
+static int OBJ_delay (lua_State *LS)
+{
+    return L_delay(LS);
+}
+HELPTOPIC OBJ_delay_help={};
+
+static int OBJ_cancel (lua_State *LS)
+{
+    return L_cancel(LS);
+}
+HELPTOPIC OBJ_cancel_help={};
+
+static int OBJ_savetbl (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, SAVETABLE_FUNCTION);
+
+    /* Push original args into SaveTable */
+    lua_pushvalue( LS, 2 );
+    lua_pushvalue( LS, 3 );
+    lua_pushstring( LS, ud_obj->pIndexData->area->file_name );
+    lua_call( LS, 3, 0);
+
+    return 0;
+}
+HELPTOPIC OBJ_savetbl_help={};
+
+static int OBJ_loadtbl (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, LOADTABLE_FUNCTION);
+
+    /* Push original args into LoadTable */
+    lua_pushvalue( LS, 2 );
+    lua_pushstring( LS, ud_obj->pIndexData->area->file_name );
+    lua_call( LS, 2, 1);
+
+    return 1;
+}
+HELPTOPIC OBJ_loadtbl_help={};
+
+static int OBJ_loadscript (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, GETSCRIPT_FUNCTION);
+
+    /* Push original args into GetScript */
+    lua_pushvalue( LS, 2 );
+    lua_pushvalue( LS, 3 );
+    lua_call( LS, 2, 1);
+
+    /* now run the result as a regular oprog with vnum 0*/
+
+    lua_pushboolean( LS,
+            lua_obj_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+
+    return 1;
+
+}
+HELPTOPIC OBJ_loadscript_help={};
+
+static int OBJ_loadstring (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_pushboolean( LS,
+            lua_obj_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, 2), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+    return 1;
+}
+HELPTOPIC OBJ_loadstring_help={};
+
+static int OBJ_loadprog (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    int num = (int)luaL_checknumber (LS, 2);
+    OPROG_CODE *pOcode;
+
+    if ( (pOcode = get_oprog_index(num)) == NULL )
+    {
+        luaL_error(LS, "loadprog: oprog vnum %d doesn't exist", num);
+        return 0;
+    }
+
+    lua_pushboolean( LS,
+            lua_obj_program( NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+
+    return 1;
+}
+HELPTOPIC OBJ_loadprog_help={};
+
+static int OBJ_destroy( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+
+    if (!ud_obj)
+    {
+        luaL_error(LS, "Null pointer in L_obj_destroy.");
+        return 0;
+    }
+    extract_obj(ud_obj);
+    return 0;
+}
+HELPTOPIC OBJ_destroy_help={};
+
+static int OBJ_oload (lua_State *LS)
+{
+    OBJ_DATA * ud_obj = check_OBJ (LS, 1);
+    int num = (int)luaL_checknumber (LS, 2);
+    OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
+
+    if ( ud_obj->item_type != ITEM_CONTAINER )
+    {
+        luaL_error(LS, "Tried to load object in non-container." );
+    }
+
+    if (!pObjIndex)
+        luaL_error(LS, "No object with vnum: %d", num);
+
+    OBJ_DATA *obj=create_object( pObjIndex, 0);
+    check_enchant_obj( obj );
+    obj_to_obj(obj,ud_obj);
+
+    if ( !make_OBJ(LS, obj) )
+        return 0;
+    else
+        return 1;
+
+}
+HELPTOPIC OBJ_oload_help={};
+
+static int OBJ_extra( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+    const char *argument = check_fstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, extra_flags);
+    if ( flag==NO_FLAG )
+        luaL_error( LS, "Invalid extra flag '%s'", argument );
+
+    lua_pushboolean( LS, IS_SET( ud_obj->extra_flags, flag));
+    return 1;
+}
+HELPTOPIC OBJ_extra_help={};
+
+static int OBJ_wear( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+    const char *argument = check_fstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, wear_flags);
+    if ( flag==NO_FLAG )
+        luaL_error( LS, "Invalid wear flag '%s'", argument );
+
+    lua_pushboolean( LS, IS_SET( ud_obj->wear_flags, flag));
+    return 1;
+}
+HELPTOPIC OBJ_wear_help={};
+
 static int OBJ_echo( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
@@ -3032,6 +3192,26 @@ static int OBJ_echo( lua_State *LS)
     return 0;
 }
 HELPTOPIC OBJ_echo_help={};
+
+static int OBJ_tprint ( lua_State *LS)
+{
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+
+    /* Push original arg into tprintstr */
+    lua_pushvalue( LS, 2);
+    lua_call( LS, 1, 1 );
+
+    lua_pushcfunction( LS, OBJ_echo );
+    /* now line up arguments for echo */
+    lua_pushvalue( LS, 1); /* obj */
+    lua_pushvalue( LS, -3); /* return from tprintstr */
+
+    lua_call( LS, 2, 0);
+
+    return 0;
+
+}
+HELPTOPIC OBJ_tprint_help={};
 
 static int OBJ_get_name (lua_State *LS)
 {
@@ -3377,7 +3557,19 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
 
 static const LUA_PROP_TYPE OBJ_method_table [] =
 {
+    OBJMETH(extra, 0),
+    OBJMETH(wear, 0),
+    OBJMETH(destroy, 0),
     OBJMETH(echo, 0),
+    OBJMETH(loadprog, 0),
+    OBJMETH(loadscript, 0),
+    OBJMETH(loadstring, 0),
+    OBJMETH(oload, 0),
+    OBJMETH(savetbl, 0),
+    OBJMETH(loadtbl, 0),
+    OBJMETH(tprint, 0),
+    OBJMETH(delay, 0),
+    OBJMETH(cancel, 0),
     ENDPTABLE
 }; 
 
