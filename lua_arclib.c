@@ -203,6 +203,12 @@ static void register_type( OBJ_TYPE *tp,
 static bool make_func( OBJ_TYPE *self,
         lua_State *LS, void *game_obj)
 {
+    /* we don't want stuff that was destroyed */
+    if ( self == CH_type && ((CHAR_DATA *)game_obj)->must_extract )
+        return FALSE;
+    if ( self == OBJ_type && ((OBJ_DATA *)game_obj)->must_extract )
+        return FALSE;
+
     /* see if it exists already */
     lua_getglobal( LS, UD_TABLE_NAME);
     if ( lua_isnil( LS, -1) )
