@@ -71,7 +71,6 @@ OBJ_TYPE *MOBPROTO_type;
 #define LUA_LOOP_CHECK_INCREMENT 100
 #define ERR_INF_LOOP      -1
 
-#define CHECK_SECURITY( ls, sec ) if (s_ScriptSecurity<sec) luaL_error(ls, "Function requires security of %d", sec)
 
 /* file scope variables */
 bool        g_LuaScriptInProgress=FALSE;
@@ -83,11 +82,6 @@ void init_by_array(unsigned long init_key[], int key_length);
 double genrand(void);
 
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
-
-#define MUD_LIBRARY "mud"
-#define MT_LIBRARY "mt"
-#define GOD_LIBRARY "god"
-#define DEBUG_LIBRARY "debug"
 
 #define MOB_ARG "mob"
 #define NUM_MPROG_ARGS 8 
@@ -129,9 +123,6 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
 /* TRIGTYPE_ARG */
 #define NUM_RPROG_RESULTS 1
 
-// number of items in an array
-#define NUMITEMS(arg) (sizeof (arg) / sizeof (arg [0]))
-
 int ScriptSecurity()
 {
     return s_ScriptSecurity;
@@ -147,22 +138,36 @@ void ClearLuaLoopCount()
     s_LoopCheckCounter=0;
 }
 
-LUALIB_API int luaopen_bits(lua_State *LS);  /* Implemented in lua_bits.c */
-
-static int optboolean (lua_State *LS, const int narg, const int def) 
+int GetLuaMemoryUsage()
 {
-    /* that argument not present, take default  */
-    if (lua_gettop (LS) < narg)
-        return def;
+    return lua_gc( g_mud_LS, LUA_GCCOUNT, 0);
+}
 
-    /* nil will default to the default  */
-    if (lua_isnil (LS, narg))
-        return def;
+int GetLuaGameObjectCount()
+{
+    lua_getglobal( g_mud_LS, "UdCnt");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
+    {
+        bugf ( "Error with UdCnt:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        return -1;
+    }
 
-    if (lua_isboolean (LS, narg))
-        return lua_toboolean (LS, narg);
+    return (int)luaL_checknumber( g_mud_LS, -1 ); 
 
-    return luaL_checknumber (LS, narg) != 0;
+}
+
+int GetLuaEnvironmentCount()
+{
+    lua_getglobal( g_mud_LS, "EnvCnt");  
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
+    {
+        bugf ( "Error with EnvCnt:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        return -1;
+    }
+
+    return (int)luaL_checknumber( g_mud_LS, -1 );
 }
 
 static void unregister_UD( lua_State *LS,  void *ptr )
@@ -216,145 +221,6 @@ static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
 }
 
 
-static int L_rundelay( lua_State *LS)
-{
-    lua_getglobal( LS, "delaytbl"); /*2*/
-    if (lua_isnil( LS, -1) )
-    {
-        luaL_error( LS, "run_delayed_function: couldn't find delaytbl");
-    }
-
-    lua_pushvalue( LS, 1 );
-    lua_gettable( LS, 2 ); /* pops key */ /*3, delaytbl entry*/
-
-    if (lua_isnil( LS, 3) )
-    {
-        luaL_error( LS, "Didn't find entry in delaytbl");
-    }
-    /* check if the game object is still valid */
-    lua_getglobal( LS, UD_TABLE_NAME); /*4, udtbl*/
-    lua_getfield( LS, -2, "tableid"); /* 5 */
-    lua_gettable( LS, -2 ); /* pops key */ /*5, game object*/
-
-    if (lua_isnil( LS, -1) )
-    {
-        luaL_error(LS, "Couldn't find delayed function's game boject.");
-    }
-
-    lua_pop( LS, 2 );
-
-    lua_getfield( LS, -1, "func"); 
-
-    /* kill the entry before call in case of error */
-    lua_pushvalue( LS, 1 ); /* lightud as key */
-    lua_pushnil( LS ); /* nil as value */
-    lua_settable( LS, 2 ); /* pops key and value */ 
-
-    lua_call( LS, 0, 0);
-
-    return 0;
-}
-
-void run_delayed_function( TIMER_NODE *tmr )
-{
-    lua_pushcfunction( g_mud_LS, L_rundelay );
-    lua_pushlightuserdata( g_mud_LS, (void *)tmr );
-
-    if (CallLuaWithTraceBack( g_mud_LS, 1, 0) )
-    {
-        bugf ( "Error running delayed function:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        return;
-    }
-
-}
-
-
-static int L_mud_luadir( lua_State *LS)
-{
-    lua_pushliteral( LS, LUA_DIR);
-    return 1;
-}
-
-static int L_mud_userdir( lua_State *LS)
-{
-    lua_pushliteral( LS, USER_DIR);
-    return 1;
-}
-
-/* return tprintstr of the given global (string arg)*/
-static int L_debug_show ( lua_State *LS)
-{
-    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
-    lua_getglobal( LS, luaL_checkstring( LS, 1 ) );
-    lua_call( LS, 1, 1 );
-
-    return 1;
-}
-
-static const struct luaL_reg debuglib [] =
-{
-    {"show", L_debug_show}
-};
-
-static const struct luaL_reg mudlib [] = 
-{
-    {"luadir", L_mud_luadir}, 
-    {"userdir",L_mud_userdir},
-    {NULL, NULL}
-};  /* end of mudlib */
-
-/* Mersenne Twister pseudo-random number generator */
-
-static int L_mt_srand (lua_State *LS)
-{
-    int i;
-
-    /* allow for table of seeds */
-
-    if (lua_istable (LS, 1))
-    {
-        size_t length = lua_objlen (LS, 1);  /* size of table */
-        if (length == 0)
-            luaL_error (LS, "mt.srand table must not be empty");
-
-        unsigned long * v = (unsigned long *) malloc (sizeof (unsigned long) * length);
-        if (!v)
-            luaL_error (LS, "Cannot allocate memory for seeds table");
-
-        for (i = 1; i <= length; i++)
-        {
-            lua_rawgeti (LS, 1, i);  /* get number */
-            if (!lua_isnumber (LS, -1))
-            {
-                free (v);  /* get rid of table now */
-                luaL_error (LS, "mt.srand table must consist of numbers");
-            }
-            v [i - 1] = luaL_checknumber (LS, -1);  
-            lua_pop (LS, 1);   /* remove value   */
-        }    
-        init_by_array (&v [0], length);
-        free (v);  /* get rid of table now */
-    }
-    else
-        init_genrand (luaL_checknumber (LS, 1));
-
-    return 0;
-} /* end of L_mt_srand */
-
-static int L_mt_rand (lua_State *LS)
-{
-    lua_pushnumber (LS, genrand ());
-    return 1;
-} /* end of L_mt_rand */
-
-static const struct luaL_reg mtlib[] = {
-
-    {"srand", L_mt_srand},  /* seed */
-    {"rand", L_mt_rand},    /* generate */
-    {NULL, NULL}
-};
-
 static void RegisterGlobalFunctions(lua_State *LS)
 {
     /* These are registed in the main script
@@ -372,37 +238,9 @@ static int RegisterLuaRoutines (lua_State *LS)
     time_t timer;
     time (&timer);
 
-    /* register all mud.xxx routines */
-    luaL_register (LS, MUD_LIBRARY, mudlib);
-
-    /* register all god.xxx routines */
-    //luaL_register (LS, GOD_LIBRARY, godlib);
-
-    /* register all debug.xxx routines */
-    luaL_register (LS, DEBUG_LIBRARY, debuglib);
-
-    luaopen_bits (LS);     /* bit manipulation */
-    luaL_register (LS, MT_LIBRARY, mtlib);  /* Mersenne Twister */
-
-    /* Marsenne Twister generator  */
     init_genrand (timer);
 
     RegisterGlobalFunctions(LS);
-
-    /* meta tables to identify object types */
-/*    luaL_newmetatable(LS, OBJ_META);
-    luaL_register (LS, NULL, OBJ_metatable);
-    luaL_newmetatable(LS, ROOM_META);
-    luaL_register (LS, NULL, ROOM_metatable);
-    luaL_newmetatable(LS, OBJPROTO_META);
-    luaL_register (LS, NULL, OBJPROTO_metatable);
-    luaL_newmetatable(LS, AREA_META);
-    luaL_register (LS, NULL, AREA_metatable);
-    luaL_newmetatable(LS, MOBPROTO_META);
-    luaL_register (LS, NULL, MOBPROTO_metatable);
-*/
-    /* our metatable for lightuserdata */
-    //luaL_newmetatable(LS, UD_META);
 
     RESET_type=RESET_init(LS);
     EXIT_type=EXIT_init(LS);
@@ -416,37 +254,6 @@ static int RegisterLuaRoutines (lua_State *LS)
 
 }  /* end of RegisterLuaRoutines */
 
-int GetLuaMemoryUsage()
-{
-    return lua_gc( g_mud_LS, LUA_GCCOUNT, 0);
-}
-
-int GetLuaGameObjectCount()
-{
-    lua_getglobal( g_mud_LS, "UdCnt");
-    if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
-    {
-        bugf ( "Error with UdCnt:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        return -1;
-    }
-
-    return (int)luaL_checknumber( g_mud_LS, -1 ); 
-
-}
-
-int GetLuaEnvironmentCount()
-{
-    lua_getglobal( g_mud_LS, "EnvCnt");  
-    if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
-    {
-        bugf ( "Error with EnvCnt:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        return -1;
-    }
-
-    return (int)luaL_checknumber( g_mud_LS, -1 );
-}
 
 void open_lua ()
 {
@@ -478,34 +285,6 @@ void open_lua ()
     lua_settop (LS, 0);    /* get rid of stuff lying around */
 
 }  /* end of open_lua */
-
-static void call_lua_function (CHAR_DATA * ch, 
-        lua_State *LS, 
-        const char * fname, 
-        const int nArgs)
-
-{
-
-    if (CallLuaWithTraceBack (LS, nArgs, 0))
-    {
-        bugf ("Error executing Lua function %s:\n %s\n** Last player command: %s", 
-                fname, 
-                lua_tostring(LS, -1),
-                last_command);
-
-        if (ch && !IS_IMMORTAL(ch))
-        {
-            //set_char_color( AT_YELLOW, ch );
-            ptc (ch, "** A server scripting error occurred, please notify an administrator.\n"); 
-        }  /* end of not immortal */
-
-
-        lua_pop(LS, 1);  /* pop error */
-
-    }  /* end of error */
-
-}  /* end of call_lua_function */
-
 
 bool lua_load_mprog( lua_State *LS, int vnum, const char *code)
 {
