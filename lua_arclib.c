@@ -762,6 +762,7 @@ static int glob_tprintstr ( lua_State *LS)
     return lua_gettop(LS)-top;
 }
 HELPTOPIC glob_tprintstr_help={};
+
 #define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
@@ -824,7 +825,6 @@ GLOB_TYPE glob_table[] =
 static int global_sec_check (lua_State *LS)
 {
     int security=luaL_checkinteger( LS, lua_upvalueindex(1) );
-    //bugf( "%d %d", ScriptSecurity(), security );
     
     if ( g_ScriptSecurity < security )
         luaL_error( LS, "Current security %d. Function requires %d.",
@@ -1104,6 +1104,7 @@ static int CH_randchar (lua_State *LS)
         return 1;
 
 }
+HELPTOPIC CH_randchar_help = {};
 
 /* analog of run_olc_editor in olc.c */
 static bool run_olc_editor_lua( CHAR_DATA *ch, char *argument )
@@ -1156,6 +1157,7 @@ static int CH_olc (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_olc_help = {};
 
 static int CH_tprint ( lua_State *LS)
 {
@@ -1171,6 +1173,7 @@ static int CH_tprint ( lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_tprint_help = {};
 
 static int CH_savetbl (lua_State *LS)
 {
@@ -1191,6 +1194,7 @@ static int CH_savetbl (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_savetbl_help = {};
 
 static int CH_loadtbl (lua_State *LS)
 {
@@ -1210,6 +1214,7 @@ static int CH_loadtbl (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_loadtbl_help = {};
 
 static int CH_loadscript (lua_State *LS)
 {
@@ -1227,6 +1232,7 @@ static int CH_loadscript (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_loadscript_help = {};
 
 static int CH_loadstring (lua_State *LS)
 {
@@ -1234,6 +1240,7 @@ static int CH_loadstring (lua_State *LS)
     lua_mob_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, 2), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
     return 0;
 } 
+HELPTOPIC CH_loadstring_help = {};
 
 static int CH_loadprog (lua_State *LS)
 {
@@ -1257,32 +1264,35 @@ static int CH_loadprog (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_loadprog_help = {};
 
 static int CH_emote (lua_State *LS)
 {
     do_emote( check_CH(LS, 1), check_fstring (LS, 2) );
     return 0;
 }
+HELPTOPIC CH_emote_help = {};
 
 static int CH_asound (lua_State *LS)
 {
     do_mpasound( check_CH(LS, 1), check_fstring (LS, 2));
     return 0; 
 }
+HELPTOPIC CH_asound_help = {};
 
 static int CH_gecho (lua_State *LS)
 {
     do_mpgecho( check_CH(LS, 1), check_fstring(LS, 2));
     return 0;
 }
+HELPTOPIC CH_gecho_help = {};
 
 static int CH_zecho (lua_State *LS)
 {
-
     do_mpzecho( check_CH(LS, 1), check_fstring(LS, 2));
-
     return 0;
 }
+HELPTOPIC CH_zecho_help = {};
 
 static int CH_kill (lua_State *LS)
 {
@@ -1294,6 +1304,7 @@ static int CH_kill (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_kill_help = {};
 
 static int CH_assist (lua_State *LS)
 {
@@ -1304,22 +1315,23 @@ static int CH_assist (lua_State *LS)
                 check_CH(LS, 2) );
     return 0;
 }
+HELPTOPIC CH_assist_help = {};
 
 static int CH_junk (lua_State *LS)
 {
-
     do_mpjunk( check_CH(LS, 1), check_fstring(LS, 2));
 
     return 0;
 }
+HELPTOPIC CH_junk_help = {};
 
 static int CH_echo (lua_State *LS)
 {
-
     do_mpecho( check_CH(LS, 1), check_fstring(LS, 2));
 
     return 0;
 }
+HELPTOPIC CH_echo_help = {};
 
 static int CH_echoaround (lua_State *LS)
 {
@@ -1334,6 +1346,7 @@ static int CH_echoaround (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_echoaround_help = {};
 
 static int CH_echoat (lua_State *LS)
 {
@@ -1347,6 +1360,7 @@ static int CH_echoat (lua_State *LS)
     mpechoat( check_CH(LS, 1), check_CH(LS, 2), check_fstring(LS, 3) );
     return 0;
 }
+HELPTOPIC CH_echoat_help = {};
 
 static int CH_mload (lua_State *LS)
 {
@@ -1357,10 +1371,10 @@ static int CH_mload (lua_State *LS)
     else
         return 0;
 }
+HELPTOPIC CH_mload_help = {};
 
 static int CH_purge (lua_State *LS)
 {
-
     // Send empty string for no argument
     if ( lua_isnone( LS, 2) )
     {
@@ -1373,6 +1387,7 @@ static int CH_purge (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_purge_help = {};
 
 static int CH_goto (lua_State *LS)
 {
@@ -1381,6 +1396,7 @@ static int CH_goto (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_goto_help = {};
 
 static int CH_at (lua_State *LS)
 {
@@ -1389,6 +1405,7 @@ static int CH_at (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_at_help = {};
 
 static int CH_transfer (lua_State *LS)
 {
@@ -1397,6 +1414,7 @@ static int CH_transfer (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_transfer_help = {};
 
 static int CH_gtransfer (lua_State *LS)
 {
@@ -1405,6 +1423,7 @@ static int CH_gtransfer (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_gtransfer_help = {};
 
 static int CH_otransfer (lua_State *LS)
 {
@@ -1413,6 +1432,7 @@ static int CH_otransfer (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_otransfer_help = {};
 
 static int CH_force (lua_State *LS)
 {
@@ -1421,7 +1441,7 @@ static int CH_force (lua_State *LS)
 
     return 0;
 }
-
+HELPTOPIC CH_force_help = {};
 
 static int CH_gforce (lua_State *LS)
 {
@@ -1430,6 +1450,7 @@ static int CH_gforce (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_gforce_help = {};
 
 static int CH_vforce (lua_State *LS)
 {
@@ -1438,6 +1459,7 @@ static int CH_vforce (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_vforce_help = {};
 
 static int CH_cast (lua_State *LS)
 {
@@ -1446,6 +1468,7 @@ static int CH_cast (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_cast_help = {};
 
 static int CH_damage (lua_State *LS)
 {
@@ -1453,6 +1476,7 @@ static int CH_damage (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_damage_help = {};
 
 static int CH_remove (lua_State *LS)
 {
@@ -1461,6 +1485,7 @@ static int CH_remove (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_remove_help = {};
 
 static int CH_remort (lua_State *LS)
 {
@@ -1475,6 +1500,7 @@ static int CH_remort (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_remort_help = {};
 
 static int CH_qset (lua_State *LS)
 {
@@ -1493,6 +1519,7 @@ static int CH_qset (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_qset_help = {};
 
 static int CH_qadvance (lua_State *LS)
 {
@@ -1510,6 +1537,7 @@ static int CH_qadvance (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_qadvance_help = {};
 
 static int CH_reward (lua_State *LS)
 {
@@ -1525,6 +1553,7 @@ static int CH_reward (lua_State *LS)
             (int)luaL_checknumber(LS, 4) );
     return 0;
 }
+HELPTOPIC CH_reward_help = {};
 
 static int CH_peace (lua_State *LS)
 {
@@ -1535,6 +1564,7 @@ static int CH_peace (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_peace_help = {};
 
 static int CH_restore (lua_State *LS)
 {
@@ -1542,6 +1572,7 @@ static int CH_restore (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_restore_help = {};
 
 static int CH_setact (lua_State *LS)
 {
@@ -1549,6 +1580,7 @@ static int CH_setact (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_setact_help = {};
 
 static int CH_hit (lua_State *LS)
 {
@@ -1557,6 +1589,7 @@ static int CH_hit (lua_State *LS)
     return 0;
 
 }
+HELPTOPIC CH_hit_help = {};
 
 static int CH_mdo (lua_State *LS)
 {
@@ -1564,6 +1597,7 @@ static int CH_mdo (lua_State *LS)
 
     return 0;
 }
+HELPTOPIC CH_mdo_help = {};
 
 static int CH_mobhere (lua_State *LS)
 {
@@ -1577,6 +1611,7 @@ static int CH_mobhere (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_mobhere_help = {};
 
 static int CH_objhere (lua_State *LS)
 {
@@ -1590,6 +1625,7 @@ static int CH_objhere (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_objhere_help = {};
 
 static int CH_mobexists (lua_State *LS)
 {
@@ -1600,6 +1636,7 @@ static int CH_mobexists (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_mobexists_help = {};
 
 static int CH_objexists (lua_State *LS)
 {
@@ -1610,7 +1647,7 @@ static int CH_objexists (lua_State *LS)
 
     return 1;
 }
-
+HELPTOPIC CH_objexists_help = {};
 
 static int CH_ispc (lua_State *LS)
 {
@@ -1627,6 +1664,7 @@ static int CH_canattack (lua_State *LS)
     lua_pushboolean( LS, !is_safe(check_CH (LS, 1), check_CH (LS, 2)) );
     return 1;
 }
+HELPTOPIC CH_canattack_help = {};
 
 static int CH_isnpc (lua_State *LS)
 {
@@ -1635,6 +1673,7 @@ static int CH_isnpc (lua_State *LS)
     lua_pushboolean( LS, ud_ch != NULL && IS_NPC( ud_ch ) );
     return 1;
 }
+HELPTOPIC CH_isnpc_help = {};
 
 static int CH_isgood (lua_State *LS)
 {
@@ -1643,6 +1682,7 @@ static int CH_isgood (lua_State *LS)
     lua_pushboolean(  LS, ud_ch != NULL && IS_GOOD( ud_ch ) ) ;
     return 1;
 }
+HELPTOPIC CH_isgood_help = {};
 
 static int CH_isevil (lua_State *LS)
 {
@@ -1651,6 +1691,7 @@ static int CH_isevil (lua_State *LS)
     lua_pushboolean(  LS, ud_ch != NULL && IS_EVIL( ud_ch ) ) ;
     return 1;
 }
+HELPTOPIC CH_isevil_help = {};
 
 static int CH_isneutral (lua_State *LS)
 {
@@ -1659,6 +1700,7 @@ static int CH_isneutral (lua_State *LS)
     lua_pushboolean(  LS, ud_ch != NULL && IS_NEUTRAL( ud_ch ) ) ;
     return 1;
 }
+HELPTOPIC CH_isneutral_help = {};
 
 static int CH_isimmort (lua_State *LS)
 {
@@ -1667,6 +1709,7 @@ static int CH_isimmort (lua_State *LS)
     lua_pushboolean( LS, ud_ch != NULL && IS_IMMORTAL( ud_ch ) ) ;
     return 1;
 }
+HELPTOPIC CH_isimmort_help = {};
 
 static int CH_ischarm (lua_State *LS)
 {
@@ -1675,6 +1718,7 @@ static int CH_ischarm (lua_State *LS)
     lua_pushboolean( LS, ud_ch != NULL && IS_AFFECTED( ud_ch, AFF_CHARM ) ) ;
     return 1;
 }
+HELPTOPIC CH_ischarm_help = {};
 
 static int CH_isfollow (lua_State *LS)
 {
@@ -1683,6 +1727,7 @@ static int CH_isfollow (lua_State *LS)
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->master != NULL ) ;
     return 1;
 }
+HELPTOPIC CH_isfollow_help = {};
 
 static int CH_isactive (lua_State *LS)
 {
@@ -1691,6 +1736,7 @@ static int CH_isactive (lua_State *LS)
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->position > POS_SLEEPING ) ;
     return 1;
 }
+HELPTOPIC CH_isactive_help = {};
 
 static int CH_isvisible (lua_State *LS)
 {
@@ -1701,6 +1747,7 @@ static int CH_isvisible (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_isvisible_help = {};
 
 static int CH_affected (lua_State *LS)
 {
@@ -1712,6 +1759,7 @@ static int CH_affected (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_affected_help = {};
 
 static int CH_act (lua_State *LS)
 {
@@ -1735,6 +1783,7 @@ static int CH_act (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_act_help = {};
 
 static int CH_offensive (lua_State *LS)
 {
@@ -1750,6 +1799,7 @@ static int CH_offensive (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_offensive_help = {};
 
 static int CH_immune (lua_State *LS)
 { 
@@ -1765,6 +1815,7 @@ static int CH_immune (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_immune_help = {};
 
 static int CH_carries (lua_State *LS)
 {
@@ -1778,6 +1829,7 @@ static int CH_carries (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_carries_help = {};
 
 static int CH_wears (lua_State *LS)
 {
@@ -1791,6 +1843,7 @@ static int CH_wears (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_wears_help = {};
 
 static int CH_has (lua_State *LS)
 {
@@ -1801,6 +1854,7 @@ static int CH_has (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_has_help = {};
 
 static int CH_uses (lua_State *LS)
 {
@@ -1811,6 +1865,7 @@ static int CH_uses (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_uses_help = {};
 
 static int CH_say (lua_State *LS)
 {
@@ -1819,7 +1874,7 @@ static int CH_say (lua_State *LS)
     do_say( ud_ch, check_fstring(LS, 2) );
     return 0;
 }
-
+HELPTOPIC CH_say_help = {};
 
 static int CH_setlevel (lua_State *LS)
 {
@@ -1831,6 +1886,7 @@ static int CH_setlevel (lua_State *LS)
     set_mob_level( ud_ch, num );
     return 0;
 }
+HELPTOPIC CH_setlevel_help = {};
 
 static int CH_oload (lua_State *LS)
 {
@@ -1852,6 +1908,7 @@ static int CH_oload (lua_State *LS)
         return 1;
 
 }
+HELPTOPIC CH_oload_help = {};
 
 static int CH_destroy (lua_State *LS)
 {
@@ -1872,6 +1929,7 @@ static int CH_destroy (lua_State *LS)
     extract_char(ud_ch,TRUE);
     return 0;
 }
+HELPTOPIC CH_destroy_help = {};
 
 static int CH_vuln (lua_State *LS)
 {
@@ -1887,6 +1945,7 @@ static int CH_vuln (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_vuln_help = {};
 
 static int CH_qstatus (lua_State *LS)
 {
@@ -1900,6 +1959,7 @@ static int CH_qstatus (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_qstatus_help = {};
 
 static int CH_resist (lua_State *LS)
 {
@@ -1915,6 +1975,7 @@ static int CH_resist (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_resist_help = {};
 
 static int CH_skilled (lua_State *LS)
 {
@@ -1926,6 +1987,7 @@ static int CH_skilled (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_skilled_help = {};
 
 static int CH_ccarries (lua_State *LS)
 {
@@ -1943,6 +2005,7 @@ static int CH_ccarries (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_ccarries_help = {};
 
 static int CH_qtimer (lua_State *LS)
 {
@@ -1956,16 +2019,19 @@ static int CH_qtimer (lua_State *LS)
 
     return 1;
 }
+HELPTOPIC CH_qtimer_help = {};
 
 static int CH_delay (lua_State *LS)
 {
     return L_delay( LS );
 }
+HELPTOPIC CH_delay_help = {};
 
 static int CH_cancel (lua_State *LS)
 {
     return L_cancel( LS );
 }
+HELPTOPIC CH_cancel_help = {};
 
 static int CH_get_hp (lua_State *LS)
 {
@@ -1984,6 +2050,7 @@ static int CH_set_hp (lua_State *LS)
     ud_ch->hit=num;
     return 0;
 }
+HELPTOPIC CH_set_hp_help = {};
 
 static int CH_get_name (lua_State *LS)
 {
@@ -2004,13 +2071,14 @@ static const LUA_PROP_TYPE CH_get_table [] =
 
 static const LUA_PROP_TYPE CH_set_table [] =
 {
+    CHSET(hp, 9),
     ENDPTABLE
 };
 
 static const LUA_PROP_TYPE CH_method_table [] =
 {
     CHMETH(ispc, 0),
-/*    CHMETH(isnpc, 0),
+    CHMETH(isnpc, 0),
     CHMETH(isgood, 0),
     CHMETH(isevil, 0),
     CHMETH(isneutral, 0),
@@ -2083,7 +2151,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(tprint, 0),
     CHMETH(olc, 0),
     CHMETH(delay, 0),
-    CHMETH(cancel, 0), */
+    CHMETH(cancel, 0), 
     ENDPTABLE
 }; 
 static OBJ_TYPE *CH_init(lua_State *LS)
@@ -2432,8 +2500,6 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
     {
         for ( i=0 ; glob_table[i].name ; i++ )
         {
-            if (glob_table[i].security == SEC_NOSCRIPT )
-                continue;
             if (glob_table[i].lib)
             {
                 char buf[MSL];
@@ -2527,8 +2593,6 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
 
         for ( i=0 ; glob_table[i].name ; i++ )
         {
-            if (glob_table[i].security == SEC_NOSCRIPT)
-                continue;
             if (glob_table[i].lib)
             {
                 char buf[MSL];
