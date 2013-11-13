@@ -6272,11 +6272,11 @@ const struct newbie_data eq_data[] =
     { 35, "Akyros Pharmaceuticals"                                          },
     { 42, "Square World"                                                    },
     { 50, "Dreamscape (fighters) or Logging Camp (casters)"                 },
-    { 60, "Battlelords (The gear with no colors)"                           },
+    { 60, "Battlelords (The gear from the 'traveler' mobs)"                 },
     { 63, "Princess Bride"                                                  },
     { 70, "Abyss (ask for help)"                                            },
     { 75, "Spacehulk"                                                       },
-    { 81, "Battlelords (The equipment with colored names is level 81)"      },
+    { 81, "Battlelords (The gear from non 'traveler' mobs)"                 },
     { 85, "Angel's Heaven"                                                  },
     { 90, "Mortal Kombat"                                                   },
     {  0, NULL                                                              }
@@ -6311,7 +6311,10 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
     for ( obj = ch->carrying; obj != NULL ; obj = obj->next_content )
     {
         if ( obj->wear_loc != WEAR_NONE)
-            curr_eq += obj->level;
+            if (IS_SET(obj->extra_flags, ITEM_QUESTEQ) && obj->level <= 70)
+                curr_eq += 70; /* Current value of QEQ in terms of level power */
+            else
+                curr_eq += obj->level;
 
         if ( obj->wear_loc == WEAR_WIELD)
         {
