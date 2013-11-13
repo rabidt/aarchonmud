@@ -298,7 +298,7 @@ CH_env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif tbl.mob[key] then 
+        elseif type(tbl.mob[key])=="function" then 
             return function(...) 
                         table.insert(arg, 1, tbl.mob)
                         return tbl.mob[key](unpack(arg)) 
@@ -311,7 +311,7 @@ OBJ_env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif tbl.obj[key] then
+        elseif type(tbl.obj[key])=="function" then
             return function(...) 
                         table.insert(arg, 1, tbl.obj)
                         return tbl.obj[key](unpack(arg)) 
@@ -324,7 +324,7 @@ AREA_env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif tbl.area[key] then
+        elseif type(tbl.area[key])=="function" then
             return function(...)
                         table.insert(arg, 1, tbl.area) 
                         return tbl.area[key](unpack(arg)) 
@@ -337,7 +337,7 @@ ROOM_env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif tbl.room[key] then
+        elseif type(tbl.room[key])=="function" then
             return function(...)
                         table.insert(arg, 1, tbl.room)
                         return tbl.room[key](unpack(arg))
