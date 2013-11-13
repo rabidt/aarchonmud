@@ -272,7 +272,7 @@ static OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *set_table,
         const LUA_PROP_TYPE *method_table)
 {
-    static int udtype=10;
+    static int udtype=10; /* start at some arbitrary value */
     udtype=udtype+1;
 
     /*tbc check for table structure correctness */
@@ -733,6 +733,35 @@ static int dbglib_show ( lua_State *LS)
 }
 HELPTOPIC dbglib_show_help={};
 
+static int glob_randnum ( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "glob_randnum");
+    lua_call( LS, top, LUA_MULTRET );
+    
+    return lua_gettop(LS)-top;
+}
+HELPTOPIC glob_randnum_help={};
+
+static int glob_rand ( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "glob_rand");
+    lua_call( LS, top, LUA_MULTRET );
+    
+    return lua_gettop(LS)-top;
+}
+HELPTOPIC glob_rand_help={};
+
+static int glob_tprintstr ( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "glob_tprintstr");
+    lua_call( LS, top, LUA_MULTRET );
+    
+    return lua_gettop(LS)-top;
+}
+HELPTOPIC glob_tprintstr_help={};
 #define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
@@ -752,9 +781,9 @@ GLOB_TYPE glob_table[] =
 {
     GFUN(hour,          0),
     GFUN(getroom,       0),
-    //GFUN(randnum,       0),
-    //GFUN(rand,          0),
-    //GFUN(tprintstr,     0),
+    GFUN(randnum,       0),
+    GFUN(rand,          0),
+    GFUN(tprintstr,     0),
     GFUN(getobjproto,   0),
     GFUN(getobjworld,   0),
     GFUN(getmobproto,   0),
@@ -2403,6 +2432,8 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
     {
         for ( i=0 ; glob_table[i].name ; i++ )
         {
+            if (glob_table[i].security == SEC_NOSCRIPT )
+                continue;
             if (glob_table[i].lib)
             {
                 char buf[MSL];
@@ -2496,6 +2527,8 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
 
         for ( i=0 ; glob_table[i].name ; i++ )
         {
+            if (glob_table[i].security == SEC_NOSCRIPT)
+                continue;
             if (glob_table[i].lib)
             {
                 char buf[MSL];
