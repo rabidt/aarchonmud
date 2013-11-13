@@ -2058,14 +2058,525 @@ static int CH_get_name (lua_State *LS)
             (check_CH(LS,1))->name );
     return 1;
 }
-
 HELPTOPIC CH_get_name_help = {
 };
+
+static int CH_get_maxhp (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH(LS,1))->max_hit );
+    return 1;
+}
+HELPTOPIC CH_get_maxhp_help={};
+
+static int CH_get_mana (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH(LS,1))->mana );
+    return 1;
+}
+HELPTOPIC CH_get_mana_help={};
+
+static int CH_get_maxmana (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH(LS,1))->max_mana );
+    return 1;
+}
+HELPTOPIC CH_get_maxmana_help={};
+
+static int CH_get_move (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH(LS,1))->move );
+    return 1;
+}
+HELPTOPIC CH_get_move_help={};
+
+static int CH_get_maxmove (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH(LS,1))->max_move );
+    return 1;
+}
+HELPTOPIC CH_get_maxmove_help={};
+
+static int CH_get_gold (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH(LS,1))->gold );
+    return 1;
+}
+HELPTOPIC CH_get_gold_help={};
+
+static int CH_get_silver (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH(LS,1))->silver );
+    return 1;
+}
+HELPTOPIC CH_get_silver_help={};
+
+static int CH_get_money (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_pushinteger( LS,
+            ud_ch->silver + ud_ch->gold*100 );
+    return 1;
+}
+HELPTOPIC CH_get_money_help={};
+
+static int CH_get_sex (lua_State *LS)
+{
+    lua_pushstring( LS,
+            sex_table[(check_CH(LS,1))->sex].name );
+    return 1;
+}
+HELPTOPIC CH_get_sex_help={};
+
+static int CH_get_size (lua_State *LS)
+{
+    lua_pushstring( LS,
+            size_table[(check_CH(LS,1))->size].name );
+    return 1;
+}
+HELPTOPIC CH_get_size_help={};
+
+static int CH_get_position (lua_State *LS)
+{
+    lua_pushstring( LS,
+            position_table[(check_CH(LS,1))->position].short_name );
+    return 1;
+}
+HELPTOPIC CH_get_position_help={};
+
+static int CH_get_align (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH(LS,1))->alignment );
+    return 1;
+}
+HELPTOPIC CH_get_align_help={};
+
+static int CH_get_str (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_STR ));
+    return 1;
+}
+HELPTOPIC CH_get_str_help={};
+
+static int CH_get_con (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_CON ));
+    return 1;
+}
+HELPTOPIC CH_get_con_help={};
+
+static int CH_get_vit (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_VIT ));
+    return 1;
+}
+HELPTOPIC CH_get_vit_help={};
+
+static int CH_get_agi (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_AGI ));
+    return 1;
+}
+HELPTOPIC CH_get_agi_help={};
+
+static int CH_get_dex (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_DEX ));
+    return 1;
+}
+HELPTOPIC CH_get_dex_help={};
+
+static int CH_get_int (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_INT ));
+    return 1;
+}
+HELPTOPIC CH_get_int_help={};
+
+static int CH_get_wis (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_WIS ));
+    return 1;
+}
+HELPTOPIC CH_get_wis_help={};
+
+static int CH_get_dis (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_DIS ));
+    return 1;
+}
+HELPTOPIC CH_get_dis_help={};
+
+static int CH_get_cha (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_CHA ));
+    return 1;
+}
+HELPTOPIC CH_get_cha_help={};
+
+static int CH_get_luc (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            get_curr_stat((check_CH(LS,1)), STAT_LUC ));
+    return 1;
+}
+HELPTOPIC CH_get_luc_help={};
+
+static int CH_get_clan (lua_State *LS)
+{
+    lua_pushstring( LS,
+            clan_table[(check_CH(LS,1))->clan].name);
+    return 1;
+}
+HELPTOPIC CH_get_clan_help={};
+
+static int CH_get_class (lua_State *LS)
+{
+    lua_pushstring( LS,
+            class_table[(check_CH(LS,1))->class].name);
+    return 1;
+}
+HELPTOPIC CH_get_class_help={};
+
+static int CH_get_race (lua_State *LS)
+{
+    lua_pushstring( LS,
+            race_table[(check_CH(LS,1))->race].name);
+    return 1;
+}
+HELPTOPIC CH_get_race_help={};
+
+static int CH_get_fighting (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!ud_ch->fighting)
+        return 0;
+    else if (!make_CH(LS, ud_ch->fighting) )
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC CH_get_fighting_help={};
+
+static int CH_get_heshe (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if ( ud_ch->sex==SEX_MALE )
+    {
+        lua_pushstring( LS, "he");
+        return 1;
+    }
+    else if ( ud_ch->sex==SEX_FEMALE )
+    {
+        lua_pushstring( LS, "she");
+        return 1;
+    }
+    else
+    {
+        lua_pushstring( LS, "it");
+        return 1;
+    }
+}
+HELPTOPIC CH_get_heshe_help={};
+
+static int CH_get_himher (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if ( ud_ch->sex==SEX_MALE )
+    {
+        lua_pushstring( LS, "him");
+        return 1;
+    }
+    else if ( ud_ch->sex==SEX_FEMALE )
+    {
+        lua_pushstring( LS, "her");
+        return 1;
+    }
+    else
+    {
+        lua_pushstring( LS, "it");
+        return 1;
+    }
+}
+HELPTOPIC CH_get_himher_help={};
+
+static int CH_get_hisher (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if ( ud_ch->sex==SEX_MALE )
+    {
+        lua_pushstring( LS, "his");
+        return 1;
+    }
+    else if ( ud_ch->sex==SEX_FEMALE )
+    {
+        lua_pushstring( LS, "her");
+        return 1;
+    }
+    else
+    {
+        lua_pushstring( LS, "its");
+        return 1;
+    }
+}
+HELPTOPIC CH_get_hisher_help={};
+
+static int CH_get_inventory (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    int index=1;
+    lua_newtable(LS);
+    OBJ_DATA *obj;
+    for (obj=ud_ch->carrying ; obj ; obj=obj->next_content)
+    {
+        if (make_OBJ(LS, obj))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC CH_get_inventory_help={};
+
+static int CH_get_room (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!make_ROOM(LS, check_CH(LS,1)->in_room) )
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC CH_get_room_help={};
+
+static int CH_get_groupsize (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            count_people_room( check_CH(LS, 1), 4 ) );
+    return 1;
+}
+HELPTOPIC CH_get_groupsize_help={};
+
+static int CH_get_clanrank( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get clanrank on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->clan_rank);
+    return 1;
+}
+HELPTOPIC CH_get_clanrank_help={};
+
+static int CH_get_remorts( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get remorts on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->remorts);
+    return 1;
+}
+HELPTOPIC CH_get_remorts_help={};
+
+static int CH_get_explored( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get explored on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->explored->set);
+    return 1;
+}
+HELPTOPIC CH_get_explored_help={};
+
+static int CH_get_beheads( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get beheads on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->behead_cnt);
+    return 1;
+}
+HELPTOPIC CH_get_beheads_help={};
+
+static int CH_get_pkills( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get pkills on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->pkill_count);
+    return 1;
+}
+HELPTOPIC CH_get_pkills_help={};
+
+static int CH_get_pkdeaths( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get pkdeaths on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->pkill_deaths);
+    return 1;
+}
+HELPTOPIC CH_get_pkdeaths_help={};
+
+static int CH_get_questpoints( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get questpoints on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->questpoints);
+    return 1;
+}
+HELPTOPIC CH_get_questpoints_help={};
+
+static int CH_get_bank( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get bank on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->bank);
+    return 1;
+}
+HELPTOPIC CH_get_bank_help={};
+
+static int CH_get_mobkills( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get mobkills on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->mob_kills);
+    return 1;
+}
+HELPTOPIC CH_get_mobkills_help={};
+
+static int CH_get_mobdeaths( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get mobdeaths on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->mob_deaths);
+    return 1;
+}
+HELPTOPIC CH_get_mobdeaths_help={};
+
+static int CH_get_vnum( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch)) luaL_error(LS, "Can't get vnum on PCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pIndexData->vnum);
+    return 1;
+}
+HELPTOPIC CH_get_vnum_help={};
+
+static int CH_get_proto( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch)) luaL_error(LS, "Can't get proto on PCs.");
+
+    if (!make_MOBPROTO( LS, ud_ch->pIndexData ) )
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC CH_get_proto_help={};
+
+static int CH_get_shortdescr( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch)) luaL_error(LS, "Can't get shortdescr on PCs.");
+
+    lua_pushstring( LS,
+            ud_ch->short_descr);
+    return 1;
+}
+HELPTOPIC CH_get_shortdescr_help={};
+
+static int CH_get_longdescr( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch)) luaL_error(LS, "Can't get longdescr on PCs.");
+
+    lua_pushstring( LS,
+            ud_ch->long_descr);
+    return 1;
+}
+HELPTOPIC CH_get_longdescr_help={};
 
 static const LUA_PROP_TYPE CH_get_table [] =
 {
     CHGET(name, 0),
     CHGET(hp, 0),
+    CHGET(maxhp, 0),
+    CHGET(mana, 0),
+    CHGET(maxmana, 0),
+    CHGET(move, 0),
+    CHGET(maxmove, 0),
+    CHGET(gold, 0),
+    CHGET(silver, 0),
+    CHGET(money, 0),
+    CHGET(sex, 0),
+    CHGET(size, 0),
+    CHGET(position, 0),
+    CHGET(align, 0),
+    CHGET(str, 0),
+    CHGET(con, 0),
+    CHGET(vit, 0),
+    CHGET(agi, 0),
+    CHGET(dex, 0),
+    CHGET(int, 0),
+    CHGET(wis, 0),
+    CHGET(dis, 0),
+    CHGET(cha, 0),
+    CHGET(luc, 0),
+    CHGET(clan, 0),
+    CHGET(class, 0),
+    CHGET(race, 0),
+    CHGET(fighting, 0),
+    CHGET(heshe, 0),
+    CHGET(himher, 0),
+    CHGET(hisher, 0),
+    CHGET(inventory, 0),
+    CHGET(room, 0),
+    CHGET(groupsize, 0),
+    /* PC only */
+    CHGET(clanrank, 0),
+    CHGET(remorts, 0),
+    CHGET(explored, 0),
+    CHGET(beheads, 0),
+    CHGET(pkills, 0),
+    CHGET(pkdeaths, 0),
+    CHGET(questpoints, 0),
+    CHGET(bank, 0),
+    CHGET(mobkills, 0),
+    CHGET(mobdeaths, 0),
+    /* NPC only */
+    CHGET(vnum, 0),
+    CHGET(proto,0),
+    CHGET(shortdescr, 0),
+    CHGET(longdescr, 0),    
     ENDPTABLE
 };
 
