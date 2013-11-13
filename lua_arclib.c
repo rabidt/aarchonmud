@@ -35,6 +35,10 @@
 #define OBJSET( field, sec ) SETP( OBJ, field, sec)
 #define OBJMETH( field, sec ) METH( OBJ, field, sec)
 
+#define AREAGET( field, sec ) GETP( AREA, field, sec)
+#define AREASET( field, sec ) SETP( AREA, field, sec)
+#define AREAMETH( field, sec ) METH( AREA, field, sec)
+
 extern lua_State *g_mud_LS;
 
 typedef struct lua_help_topic
@@ -3589,8 +3593,312 @@ static OBJ_TYPE *OBJ_init(lua_State *LS)
 /* end OBJ section */
 
 /* AREA section */
+static int AREA_delay (lua_State *LS)
+{
+    return L_delay(LS);
+}
+HELPTOPIC AREA_delay_help={};
+
+static int AREA_cancel (lua_State *LS)
+{
+    return L_cancel(LS);
+}
+HELPTOPIC AREA_cancel_help={};
+
+static int AREA_savetbl (lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, SAVETABLE_FUNCTION);
+
+    /* Push original args into SaveTable */
+    lua_pushvalue( LS, 2 );
+    lua_pushvalue( LS, 3 );
+    lua_pushstring( LS, ud_area->file_name );
+    lua_call( LS, 3, 0);
+
+    return 0;
+}
+HELPTOPIC AREA_savetbl_help={};
+
+static int AREA_loadtbl (lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, LOADTABLE_FUNCTION);
+
+    /* Push original args into LoadTable */
+    lua_pushvalue( LS, 2 );
+    lua_pushstring( LS, ud_area->file_name );
+    lua_call( LS, 2, 1);
+
+    return 1;
+}
+HELPTOPIC AREA_loadtbl_help={};
+
+static int AREA_loadscript (lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, GETSCRIPT_FUNCTION);
+
+    /* Push original args into GetScript */
+    lua_pushvalue( LS, 2 );
+    lua_pushvalue( LS, 3 );
+    lua_call( LS, 2, 1);
+
+    /* now run the result as a regular aprog with vnum 0*/
+    lua_pushboolean( LS,
+            lua_area_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1), ud_area, NULL, ATRIG_CALL, 0) );
+
+    return 1;
+}
+HELPTOPIC AREA_loadscript_help={};
+
+static int AREA_loadstring (lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS,1);
+    lua_pushboolean( LS,
+            lua_area_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, 2), ud_area, NULL, ATRIG_CALL, 0) );
+    return 1;
+}
+HELPTOPIC AREA_loadstring_help={};
+
+static int AREA_loadprog (lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int num = (int)luaL_checknumber (LS, 2);
+    APROG_CODE *pAcode;
+
+    if ( (pAcode = get_aprog_index(num)) == NULL )
+    {
+        luaL_error(LS, "loadprog: aprog vnum %d doesn't exist", num);
+        return 0;
+    }
+
+    lua_pushboolean( LS,
+            lua_area_program( NULL, num, pAcode->code, ud_area, NULL, ATRIG_CALL, 0) );
+
+    return 1;
+}
+HELPTOPIC AREA_loadprog_help={};
+
+static int AREA_flag( lua_State *LS)
+{
+    AREA_DATA *ud_area = check_AREA(LS, 1);
+    const char *argument = check_fstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, area_flags);
+    if ( flag==NO_FLAG )
+        luaL_error( LS, "Invalid area flag '%s'", argument );
+
+    lua_pushboolean( LS, IS_SET( ud_area->area_flags, flag));
+    return 1;
+}
+HELPTOPIC AREA_flag_help={};
+
+static int AREA_echo( lua_State *LS)
+{
+    AREA_DATA *ud_area = check_AREA(LS, 1);
+    const char *argument = check_fstring(LS, 2);
+    DESCRIPTOR_DATA *d;
+
+    for ( d = descriptor_list; d; d = d->next )
+    {
+        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+        {
+            if ( !d->character->in_room )
+                continue;
+            if ( d->character->in_room->area != ud_area )
+                continue;
+
+            if ( IS_IMMORTAL(d->character) )
+                send_to_char( "Area echo> ", d->character );
+            send_to_char( argument, d->character );
+            send_to_char( "\n\r", d->character );
+        }
+    }
+
+    return 0;
+}
+HELPTOPIC AREA_echo_help={};
+
+static int AREA_tprint ( lua_State *LS)
+{
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+
+    /* Push original arg into tprintstr */
+    lua_pushvalue( LS, 2);
+    lua_call( LS, 1, 1 );
+
+    lua_pushcfunction( LS, AREA_echo );
+    /* now line up arguments for echo */
+    lua_pushvalue( LS, 1); /* area */
+    lua_pushvalue( LS, -3); /* return from tprintstr */
+
+    lua_call( LS, 2, 0);
+
+    return 0;
+
+}
+HELPTOPIC AREA_tprint_help={};
+
+static int AREA_get_name( lua_State *LS)
+{
+    lua_pushstring( LS, (check_AREA(LS, 1))->name);
+    return 1;
+}
+HELPTOPIC AREA_get_name_help={};
+
+static int AREA_get_filename( lua_State *LS)
+{
+    lua_pushstring( LS, (check_AREA(LS, 1))->file_name);
+    return 1;
+}
+HELPTOPIC AREA_get_filename_help={};
+
+static int AREA_get_nplayer( lua_State *LS)
+{
+    lua_pushinteger( LS, (check_AREA(LS, 1))->nplayer);
+    return 1;
+}
+HELPTOPIC AREA_get_nplayer_help={};
+
+static int AREA_get_minlevel( lua_State *LS)
+{
+    lua_pushinteger( LS, (check_AREA(LS, 1))->minlevel);
+    return 1;
+}
+HELPTOPIC AREA_get_minlevel_help={};
+
+static int AREA_get_maxlevel( lua_State *LS)
+{
+    lua_pushinteger( LS, (check_AREA(LS, 1))->maxlevel);
+    return 1;
+}
+HELPTOPIC AREA_get_maxlevel_help={};
+
+static int AREA_get_security( lua_State *LS)
+{
+    lua_pushinteger( LS, (check_AREA(LS, 1))->security);
+    return 1;
+}
+HELPTOPIC AREA_get_security_help={};
+
+static int AREA_get_ingame( lua_State *LS)
+{
+    lua_pushboolean( LS, is_area_ingame(check_AREA(LS, 1)));
+    return 1;
+}
+HELPTOPIC AREA_get_ingame_help={};
+
+static int AREA_get_rooms( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    lua_newtable(LS);
+    ROOM_INDEX_DATA *room;
+    int vnum;
+    for (vnum=ud_area->min_vnum ; vnum<=ud_area->max_vnum ; vnum++)
+    {
+        if ((room=get_room_index(vnum))==NULL)
+            continue;
+        if (make_AREA(LS, room))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_rooms_help={};
+
+static int AREA_get_people( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    lua_newtable(LS);
+    CHAR_DATA *people;
+    for (people=char_list ; people ; people=people->next)
+    {
+        if ( !people || !people->in_room
+                || (people->in_room->area != ud_area) )
+            continue;
+        if (make_CH(LS, people))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_people_help={};
+
+static int AREA_get_players( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    lua_newtable(LS);
+    CHAR_DATA *people;
+    for (people=char_list ; people ; people=people->next)
+    {
+        if ( IS_NPC(people)
+                || !people || !people->in_room
+                || (people->in_room->area != ud_area) )
+            continue;
+        if (make_CH(LS, people))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_players_help={};
+
+static int AREA_get_mobs( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    lua_newtable(LS);
+    CHAR_DATA *people;
+    for (people=char_list ; people ; people=people->next)
+    {
+        if ( !IS_NPC(people)
+                || !people || !people->in_room
+                || (people->in_room->area != ud_area) )
+            continue;
+        if (make_CH(LS, people))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_mobs_help={};
+
+static int AREA_get_mobprotos( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    int vnum=0;
+    lua_newtable(LS);
+    MOB_INDEX_DATA *mid;
+    for ( vnum=ud_area->min_vnum ; vnum <= ud_area->max_vnum ; vnum++ )
+    {
+        if ((mid=get_mob_index(vnum)) != NULL )
+        {
+            if (make_MOBPROTO(LS, mid))
+                lua_rawseti(LS, -2, index++);
+        }
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_mobprotos_help={};
+
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
+    AREAGET(name, 0),
+    AREAGET(filename, 0),
+    AREAGET(nplayer, 0),
+    AREAGET(minlevel, 0),
+    AREAGET(maxlevel, 0),
+    AREAGET(security, 0),
+    AREAGET(ingame, 0),
+    AREAGET(rooms, 0),
+    AREAGET(people, 0),
+    AREAGET(players, 0),
+    AREAGET(mobs, 0),
+    AREAGET(mobprotos, 0),
     ENDPTABLE
 };
 
@@ -3601,6 +3909,16 @@ static const LUA_PROP_TYPE AREA_set_table [] =
 
 static const LUA_PROP_TYPE AREA_method_table [] =
 {
+    AREAMETH(flag, 0),
+    AREAMETH(echo, 0),
+    AREAMETH(loadprog, 0),
+    AREAMETH(loadscript, 0),
+    AREAMETH(loadstring, 0),
+    AREAMETH(savetbl, 0),
+    AREAMETH(loadtbl, 0),
+    AREAMETH(tprint, 0),
+    AREAMETH(delay, 0),
+    AREAMETH(cancel, 0),
     ENDPTABLE
 }; 
 
