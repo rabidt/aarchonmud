@@ -4826,16 +4826,22 @@ static void print_ptable( BUFFER *buffer, const struct prop_type *ptable )
     char buf[MSL];
     
     int j;
+    #define CDEF 'w'
+    #define CALT 'D'
+    bool col=FALSE;
     add_buf( buffer, "\n\rSec Name\n\r");
     for ( j=0 ; ptable[j].field ; j++ )
     {
         if ( ptable[j].status == STS_DEPRECATED )
             continue;
             
-        sprintf( buf, "[%d] %-16s - ", ptable[j].security, ptable[j].field );
+        sprintf( buf, "{%c[%d] %-16s - ", 
+                col ? CALT : CDEF,
+                ptable[j].security, ptable[j].field );
+        col=!col;
         if (ptable[j].help && ptable[j].help->summary)
             strcat( buf, ptable[j].help->summary );
-        strcat( buf, "\n\r");
+        strcat( buf, "\n\r{x");
         add_buf( buffer, buf );
     }
     
@@ -4856,6 +4862,10 @@ static void print_help_usage( CHAR_DATA *ch )
         ot=*(OBJ_TYPE **)type_list[i];
         ptc( ch, "%s\n\r", ot->type_name);
     }
+    
+    ptc( ch,
+    " Examples:\n\r"
+    "");
 }
 
 static void print_topic( CHAR_DATA *ch, HELPTOPIC *topic )
@@ -5016,26 +5026,34 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
         ptc( ch, "\n\rGLOBAL functions\n\r");
 
         ptc( ch, "\n\rSec Name\n\r");
+        bool col=FALSE;
         for ( i=0 ; glob_table[i].name ; i++ )
         {
             if (glob_table[i].status == STS_DEPRECATED || glob_table[i].security == SEC_NOSCRIPT)
                 continue;
-                
+            
+            
             if (glob_table[i].lib)
             {
                 char buf[MSL];
-                sprintf(buf, "[%d] %s.%s", glob_table[i].security, glob_table[i].lib, glob_table[i].name);
-                ptc( ch, "%-20s - ", buf);
+                sprintf(buf, "{%c[%d] %s.%s", 
+                        col ? CALT : CDEF,
+                        glob_table[i].security, glob_table[i].lib, glob_table[i].name);
+                col=!col;
+                ptc( ch, "%-22s - ", buf);
                 if (glob_table[i].help && glob_table[i].help->summary)
                    ptc( ch, glob_table[i].help->summary );
-                ptc( ch, "\n\r");
+                ptc( ch, "\n\r{x");
             }
             else
             {
-                ptc( ch, "[%d] %-16s - ", glob_table[i].security, glob_table[i].name);
+                ptc( ch, "{%c[%d] %-16s - ", 
+                    col ? CALT : CDEF,
+                    glob_table[i].security, glob_table[i].name);
+                col=!col;
                 if (glob_table[i].help && glob_table[i].help->summary)
                     ptc( ch, glob_table[i].help->summary );
-                ptc( ch, "\n\r");
+                ptc( ch, "\n\r{x");
             }
 
         }
