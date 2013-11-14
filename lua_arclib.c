@@ -13,19 +13,22 @@
     #field , \
     type ## _get_ ## field, \
     sec,  \
-    & type ## _get_ ## field ## _help }
+    & type ## _get_ ## field ## _help, \
+    STS_ACTIVE}
 
 #define SETP(type, field, sec) { \
     #field, \
     type ## _set_ ## field, \
     sec, \
-    & type ## _set_ ## field ## _help }
+    & type ## _set_ ## field ## _help,\
+    STS_ACTIVE}
 
 #define METH(type, field, sec) { \
     #field, \
     type ## _ ## field, \
     sec, \
-    & type ## _ ## field ## _help}
+    & type ## _ ## field ## _help,\
+    STS_ACTIVE}
 
 #define CHGET( field, sec ) GETP( CH, field, sec)
 #define CHSET( field, sec ) SETP( CH, field, sec)
@@ -71,9 +74,12 @@ struct prop_type
     int  (*func)();
     int security;
     HELPTOPIC *help;
+    int status; 
 };
+#define STS_ACTIVE     0
+#define STS_DEPRECATED 1
 
-#define ENDPTABLE {NULL, NULL, 0, NULL}
+#define ENDPTABLE {NULL, NULL, 0, NULL, 0}
 
 OBJ_TYPE *CH_type=NULL;
 OBJ_TYPE *OBJ_type=NULL;
@@ -802,11 +808,12 @@ typedef struct glob_type
     int (*func)();
     int security; /* if SEC_NOSCRIPT then not available in prog scripts */ 
     HELPTOPIC *help;
+    int status;
 } GLOB_TYPE;
 
-#define ENDGTABLE { NULL, NULL, NULL, 0, NULL }
-#define GFUN( fun, sec ) { NULL, #fun , glob_ ## fun , sec, & glob_ ## fun ## _help }
-#define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, & lib ## lib_ ## fun ## _help}
+#define ENDGTABLE { NULL, NULL, NULL, 0, NULL, 0 }
+#define GFUN( fun, sec ) { NULL, #fun , glob_ ## fun , sec, & glob_ ## fun ## _help, STS_ACTIVE }
+#define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, & lib ## lib_ ## fun ## _help, STS_ACTIVE}
 #define GODF( fun ) LFUN( god, fun, 9 )
 #define DBGF( fun ) LFUN( dbg, fun, 9 )
 GLOB_TYPE glob_table[] =
@@ -2991,7 +2998,9 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(canattack, 0),
     CHMETH(destroy, 0),
     CHMETH(oload, 0),
-    CHMETH(setlevel, 0),
+    /* deprecated */
+    //CHMETH(setlevel, 0),
+    { "setlevel", CH_setlevel, 0, &CH_setlevel_help, STS_DEPRECATED},
     CHMETH(say, 0),
     CHMETH(emote, 0),
     CHMETH(mdo, 0),
@@ -4849,6 +4858,9 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
     {
         for ( i=0 ; glob_table[i].name ; i++ )
         {
+            if ( glob_table[i].status == STS_DEPRECATED || glob_table[i].security == SEC_NOSCRIPT)
+                continue;
+                    
             if (glob_table[i].lib)
             {
                 char buf[MSL];
@@ -4887,7 +4899,7 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 
             for ( j=0 ; ot->get_table[j].field ; j++ )
             {
-                if (strcmp( ot->get_table[j].field, arg2 ) )
+                if (strcmp( ot->get_table[j].field, arg2 ) || ot->get_table[j].status == STS_DEPRECATED )
                     continue;
 
                 found=TRUE;
@@ -4898,7 +4910,7 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 
             for ( j=0 ; ot->set_table[j].field ; j++ )
             {
-                if (strcmp( ot->set_table[j].field, arg2 ) )
+                if (strcmp( ot->set_table[j].field, arg2 ) || ot->set_table[j].status == STS_DEPRECATED )
                     continue;
 
                 found=TRUE;
@@ -4909,7 +4921,7 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 
             for ( j=0 ; ot->method_table[j].field ; j++ )
             {
-                if (strcmp( ot->method_table[j].field, arg2 ) )
+                if (strcmp( ot->method_table[j].field, arg2 ) || ot->method_table[j].status == STS_DEPRECATED)
                     continue;
 
                 found=TRUE;
@@ -4942,6 +4954,9 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
 
         for ( i=0 ; glob_table[i].name ; i++ )
         {
+            if (glob_table[i].status == STS_DEPRECATED || glob_table[i].security == SEC_NOSCRIPT)
+                continue;
+                
             if (glob_table[i].lib)
             {
                 char buf[MSL];
@@ -4973,6 +4988,9 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
             ptc( ch, "\n\rGET fields\n\r");
             for ( j=0 ; ot->get_table[j].field ; j++ )
             {
+                if ( ot->get_table[j].status == STS_DEPRECATED )
+                    continue;
+                    
                 ptc( ch, "%-20s - ", ot->get_table[j].field );
                 if (ot->get_table[j].help && ot->get_table[j].help->summary)
                     ptc( ch, ot->get_table[j].help->summary );
@@ -4983,6 +5001,9 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
             ptc( ch, "\n\rSET fields\n\r");
             for ( j=0 ; ot->set_table[j].field ; j++ )
             {
+                if ( ot->set_table[j].status == STS_DEPRECATED )
+                    continue;
+                    
                 ptc( ch, "%-20s - ", ot->set_table[j].field );
                 if (ot->set_table[j].help && ot->set_table[j].help->summary)
                     ptc( ch, ot->set_table[j].help->summary );
@@ -4993,6 +5014,9 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
             ptc( ch, "\n\rMETHODS\n\r");
             for ( j=0 ; ot->method_table[j].field ; j++ )
             {
+                if ( ot->method_table[j].status == STS_DEPRECATED )
+                    continue;
+                    
                 ptc( ch, "%-20s - ", ot->method_table[j].field );
                 if (ot->method_table[j].help && ot->method_table[j].help->summary)
                     ptc( ch, ot->method_table[j].help->summary );
