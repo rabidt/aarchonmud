@@ -40,7 +40,7 @@ void register_globals( lua_State *LS );
 #define check_EXIT( LS, index) ((EXIT_DATA *)EXIT_type->check( EXIT_type, LS, index))
 #define check_RESET( LS, index) ((RESET_DATA *)RESET_type->check( RESET_type, LS, index))
 #define check_MOBPROTO( LS, index) ((MOB_INDEX_DATA *)MOBPROTO_type->check( MOBPROTO_type, LS, index))
-#define check_OBJPROTO( LS, index) ((OBJ_INDEX_DATA *)OBJPROTO_type->check( OBJPROTO, LS, index))
+#define check_OBJPROTO( LS, index) ((OBJ_INDEX_DATA *)OBJPROTO_type->check( OBJPROTO_type, LS, index))
 
 #define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
 #define make_OBJ(LS, obj) OBJ_type->make( OBJ_type, LS, obj )

@@ -4545,8 +4545,146 @@ static const LUA_PROP_TYPE RESET_method_table [] =
 /* end RESET section */
 
 /* OBJPROTO section */
+static int OBJPROTO_wear( lua_State *LS)
+{
+    OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
+    const char *argument = check_fstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, wear_flags);
+    if ( flag==NO_FLAG )
+        luaL_error(LS, "Invalid wear flag: '%s'", argument);
+
+    lua_pushboolean( LS, IS_SET( ud_objp->wear_flags, flag));
+    return 1;
+}
+HELPTOPIC OBJPROTO_wear_help={};
+
+static int OBJPROTO_extra( lua_State *LS)
+{
+    OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
+    const char *argument = check_fstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, extra_flags);
+    if ( flag==NO_FLAG )
+        luaL_error(LS, "Invalid extra flag: '%s'", argument);
+
+    lua_pushboolean( LS, IS_SET( ud_objp->extra_flags, flag));
+    return 1;
+}
+HELPTOPIC OBJPROTO_extra_help={};
+
+static int OBJPROTO_get_name (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJPROTO(LS,1))->name);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_name_help={};
+
+static int OBJPROTO_get_shortdescr (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJPROTO(LS,1))->short_descr);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_shortdescr_help={};
+
+static int OBJPROTO_get_clan (lua_State *LS)
+{
+    lua_pushstring( LS,
+            clan_table[(check_OBJPROTO(LS,1))->clan].name);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_clan_help={};
+
+static int OBJPROTO_get_clanrank (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJPROTO(LS,1))->rank);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_clanrank_help={};
+
+static int OBJPROTO_get_level (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJPROTO(LS,1))->level);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_level_help={};
+
+static int OBJPROTO_get_cost (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJPROTO(LS,1))->cost);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_cost_help={};
+
+static int OBJPROTO_get_material (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJPROTO(LS,1))->material);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_material_help={};
+
+static int OBJPROTO_get_vnum (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJPROTO(LS,1))->vnum);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_vnum_help={};
+
+static int OBJPROTO_get_otype (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJPROTO(LS,1))->item_type);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_otype_help={};
+
+static int OBJPROTO_get_weight (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_OBJPROTO(LS,1))->weight);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_weight_help={};
+
+#define OPGETV( num ) static int OBJPROTO_get_v ## num (lua_State *LS)\
+{\
+    lua_pushinteger( LS,\
+            (check_OBJPROTO(LS,1))->value[num]);\
+    return 1;\
+}\
+HELPTOPIC OBJPROTO_get_v ## num ## _help = {}
+
+OPGETV(0);
+OPGETV(1);
+OPGETV(2);
+OPGETV(3);
+OPGETV(4);
+
+
 static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
+    OPGET( name, 0),
+    OPGET( shortdescr, 0),
+    OPGET( clan, 0),
+    OPGET( clanrank, 0),
+    OPGET( level, 0),
+    OPGET( cost, 0),
+    OPGET( material, 0),
+    OPGET( vnum, 0),
+    OPGET( otype, 0),
+    OPGET( weight, 0),
+    OPGET( v0, 0),
+    OPGET( v1, 0),
+    OPGET( v2, 0),
+    OPGET( v3, 0),
+    OPGET( v4, 0),
     ENDPTABLE
 };
 
@@ -4557,6 +4695,8 @@ static const LUA_PROP_TYPE OBJPROTO_set_table [] =
 
 static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 {
+    OPMETH( extra, 0),
+    OPMETH( wear, 0),
     ENDPTABLE
 }; 
 
