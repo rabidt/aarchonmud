@@ -2981,12 +2981,13 @@ void do_round_swing( CHAR_DATA *ch, char *argument )
 
     WAIT_STATE( ch, skill_table[gsn_round_swing].beats );
 
-    if ( number_percent() > skill )
+    if ( !per_chance(skill) )
     {
-	send_to_char( "You stumble and fall to the ground.\n\r", ch );
-	set_pos( ch, POS_RESTING );
-	check_improve( ch, gsn_round_swing, FALSE, 3 );
-	return;
+        send_to_char("You stumble and fall to the ground.\n\r", ch);
+        act("$n tries to swing $s weapon but stumbles.", ch, NULL, NULL, TO_ROOM);
+        set_pos(ch, POS_RESTING);
+        check_improve(ch, gsn_round_swing, FALSE, 3);
+        return;
     }
 
     send_to_char( "You spin around fiercely!\n\r", ch );
