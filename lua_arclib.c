@@ -960,6 +960,58 @@ void register_globals( lua_State *LS )
 /* end global section */
 
 /* common section */
+static int set_flag( lua_State *LS,
+        const char *funcname, 
+        const struct flag_type *flagtbl, 
+        tflag flagvar )
+{
+    const char *argument = luaL_checkstring( LS, 2);
+    luaL_checktype( LS, 3, LUA_TBOOLEAN );
+    bool set=lua_toboolean( LS, 3 );
+    
+    int flag=flag_lookup( argument, flagtbl );
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "'%s' invalid flag for %s", argument, funcname);
+        
+    if ( set )
+        SET_BIT( flagvar, flag );
+    else
+        REMOVE_BIT( flagvar, flag);
+        
+    return 0;
+}
+
+static int check_flag( lua_State *LS, 
+        const char *funcname, 
+        const struct flag_type *flagtbl, 
+        tflag flagvar )
+{
+    if (lua_isnone( LS, 2)) /* called with no string arg */
+    {
+        /* return array of currently set flags */
+        int index=1;
+        lua_newtable( LS );
+        int i;
+        for ( i=0 ; flagtbl[i].name ; i++)
+        {
+            if ( IS_SET(flagvar, flagtbl[i].bit) )
+            {
+                lua_pushstring( LS, flagtbl[i].name);
+                lua_rawseti(LS, -2, index++);
+            }
+        }
+        return 1;
+    }
+    
+    const char *argument = check_fstring( LS, 2);
+    int flag=NO_FLAG;
+       
+    if ((flag=flag_lookup(argument, flagtbl)) == NO_FLAG)
+        luaL_error(LS, "'%s' invalid flag for %s", argument, funcname);
+    
+    lua_pushboolean( LS, IS_SET( flagvar, flag ) );
+    return 1;
+}
 
 static void unregister_UD( lua_State *LS,  void *ptr )
 {
@@ -1797,56 +1849,28 @@ HELPTOPIC CH_affected_help = {};
 static int CH_act (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=NO_FLAG;
-
     if (IS_NPC(ud_ch))
     {
-        if ((flag=flag_lookup(argument, act_flags)) == NO_FLAG) 
-            luaL_error(LS, "act: flag '%s' not found in act_flags (mob)", argument);
+        return check_flag( LS, "act[NPC]", act_flags, ud_ch->act );
     }
     else
     {
-        if ((flag=flag_lookup(argument, plr_flags)) == NO_FLAG)
-            luaL_error(LS, "act: flag '%s' not found in plr_flags (player)", argument);
+        return check_flag( LS, "act[PC]", plr_flags, ud_ch->act );
     }
-
-    lua_pushboolean( LS, ud_ch != NULL
-            &&  IS_SET(ud_ch->act, flag) );
-
-    return 1;
 }
 HELPTOPIC CH_act_help = {};
 
 static int CH_offensive (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=flag_lookup(argument, off_flags);
-
-    if ( flag == NO_FLAG )
-        luaL_error(LS, "offesive: flag '%s' not found in off_flags", argument);
-
-    lua_pushboolean( LS,
-            IS_SET(ud_ch->off_flags, flag) );
-
-    return 1;
+    return check_flag( LS, "offensive",off_flags, ud_ch->off_flags );
 }
 HELPTOPIC CH_offensive_help = {};
 
 static int CH_immune (lua_State *LS)
 { 
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=flag_lookup(argument, imm_flags);
-
-    if ( flag == NO_FLAG ) 
-        luaL_error(LS, "immune: flag '%s' not found in imm_flags", argument);
-
-    lua_pushboolean( LS, ud_ch != NULL
-            &&  IS_SET(ud_ch->imm_flags, flag) );
-
-    return 1;
+    return check_flag( LS, "immune", imm_flags, ud_ch->imm_flags );
 }
 HELPTOPIC CH_immune_help = {};
 
@@ -1969,16 +1993,7 @@ HELPTOPIC CH_destroy_help = {};
 static int CH_vuln (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=flag_lookup(argument, vuln_flags);
-
-    if ( flag == NO_FLAG )
-        luaL_error(LS, "L_vuln: flag '%s' not found in vuln_flags", argument);
-
-    lua_pushboolean( LS, ud_ch != NULL
-            && IS_SET(ud_ch->vuln_flags, flag ) );
-
-    return 1;
+    return check_flag( LS, "vuln", vuln_flags, ud_ch->vuln_flags );
 }
 HELPTOPIC CH_vuln_help = {};
 
@@ -1999,16 +2014,7 @@ HELPTOPIC CH_qstatus_help = {};
 static int CH_resist (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=flag_lookup(argument, res_flags);
-
-    if ( flag == NO_FLAG )
-        luaL_error(LS, "resist: flag '%s' not found in res_flags", argument);
-
-    lua_pushboolean( LS, ud_ch != NULL
-            && IS_SET(ud_ch->res_flags, flag) );
-
-    return 1;
+    return check_flag( LS, "resist", res_flags, ud_ch->res_flags );
 }
 HELPTOPIC CH_resist_help = {};
 
@@ -3156,28 +3162,14 @@ HELPTOPIC OBJ_oload_help={};
 static int OBJ_extra( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
-    const char *argument = check_fstring (LS, 2);
-
-    sh_int flag=flag_lookup( argument, extra_flags);
-    if ( flag==NO_FLAG )
-        luaL_error( LS, "Invalid extra flag '%s'", argument );
-
-    lua_pushboolean( LS, IS_SET( ud_obj->extra_flags, flag));
-    return 1;
+    return check_flag( LS, "extra", extra_flags, ud_obj->extra_flags );
 }
 HELPTOPIC OBJ_extra_help={};
 
 static int OBJ_wear( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
-    const char *argument = check_fstring (LS, 2);
-
-    sh_int flag=flag_lookup( argument, wear_flags);
-    if ( flag==NO_FLAG )
-        luaL_error( LS, "Invalid wear flag '%s'", argument );
-
-    lua_pushboolean( LS, IS_SET( ud_obj->wear_flags, flag));
-    return 1;
+    return check_flag( LS, "wear", wear_flags, ud_obj->wear_flags );
 }
 HELPTOPIC OBJ_wear_help={};
 
@@ -3685,14 +3677,7 @@ HELPTOPIC AREA_loadprog_help={};
 static int AREA_flag( lua_State *LS)
 {
     AREA_DATA *ud_area = check_AREA(LS, 1);
-    const char *argument = check_fstring (LS, 2);
-
-    sh_int flag=flag_lookup( argument, area_flags);
-    if ( flag==NO_FLAG )
-        luaL_error( LS, "Invalid area flag '%s'", argument );
-
-    lua_pushboolean( LS, IS_SET( ud_area->area_flags, flag));
-    return 1;
+    return check_flag( LS, "area", area_flags, ud_area->area_flags );
 }
 HELPTOPIC AREA_flag_help={};
 
@@ -3969,14 +3954,7 @@ HELPTOPIC ROOM_oload_help={};
 static int ROOM_flag( lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
-    const char *argument = check_fstring (LS, 2);
-
-    sh_int flag=flag_lookup( argument, room_flags);
-    if ( flag==NO_FLAG )
-        luaL_error( LS, "Invalid room flag: '%s'", argument);
-
-    lua_pushboolean( LS, IS_SET( ud_room->room_flags, flag));
-    return 1;
+    return check_flag( LS, "room", room_flags, ud_room->room_flags );
 }
 HELPTOPIC ROOM_flag_help={};
 
@@ -4365,34 +4343,14 @@ static const LUA_PROP_TYPE ROOM_method_table [] =
 static int EXIT_flag (lua_State *LS)
 {
     EXIT_DATA *ed=EXIT_type->check(EXIT_type, LS, 1 );
-    const char *argument = check_fstring (LS, 2);
-
-    sh_int flag=flag_lookup( argument, exit_flags);
-    if ( flag==NO_FLAG )
-        luaL_error(LS, "Invalid exit flag: '%s'", argument);
-
-    lua_pushboolean( LS, IS_SET( ed->exit_info, flag));
-    return 1;
+    return check_flag( LS, "exit", exit_flags, ed->exit_info );
 }
 HELPTOPIC EXIT_flag_help={};
 
 static int EXIT_setflag( lua_State *LS)
 {
     EXIT_DATA *ud_exit = check_EXIT(LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    luaL_checktype( LS, 3, LUA_TBOOLEAN );
-    bool set=lua_toboolean( LS, 3 );
-
-    int flag=flag_lookup( argument, exit_flags);
-    if ( flag==NO_FLAG )
-        luaL_error(LS, "Invalid exit flag: '%s'", argument);
-
-    if ( set )
-        SET_BIT( ud_exit->exit_info, flag );
-    else
-        REMOVE_BIT( ud_exit->exit_info, flag );
-
-    return 0;
+    return set_flag( LS, "exit", exit_flags, ud_exit->exit_info); 
 }
 HELPTOPIC EXIT_setflag_help={};
 
@@ -4548,28 +4506,14 @@ static const LUA_PROP_TYPE RESET_method_table [] =
 static int OBJPROTO_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
-    const char *argument = check_fstring (LS, 2);
-
-    sh_int flag=flag_lookup( argument, wear_flags);
-    if ( flag==NO_FLAG )
-        luaL_error(LS, "Invalid wear flag: '%s'", argument);
-
-    lua_pushboolean( LS, IS_SET( ud_objp->wear_flags, flag));
-    return 1;
+    return check_flag( LS, "wear", wear_flags, ud_objp->wear_flags );
 }
 HELPTOPIC OBJPROTO_wear_help={};
 
 static int OBJPROTO_extra( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
-    const char *argument = check_fstring (LS, 2);
-
-    sh_int flag=flag_lookup( argument, extra_flags);
-    if ( flag==NO_FLAG )
-        luaL_error(LS, "Invalid extra flag: '%s'", argument);
-
-    lua_pushboolean( LS, IS_SET( ud_objp->extra_flags, flag));
-    return 1;
+    return check_flag( LS, "extra", extra_flags, ud_objp->extra_flags );
 }
 HELPTOPIC OBJPROTO_extra_help={};
 
@@ -4706,92 +4650,42 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 static int MOBPROTO_affected (lua_State *LS)
 {
     MOB_INDEX_DATA *ud_mobp = check_MOBPROTO (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
-    int flag=NO_FLAG;
-
-     if ((flag=flag_lookup(argument, affect_flags)) == NO_FLAG)
-        luaL_error(LS, "MOBPROTO_affected: flag '%s' not found in affect_flags (mob)", argument);
-
-     lua_pushboolean( LS, IS_SET(ud_mobp->affect_field, flag));
-     return 1;
+    return check_flag( LS, "affected", affect_flags, ud_mobp->affect_field );
 }
 HELPTOPIC MOBPROTO_affected_help={};
 
 static int MOBPROTO_act (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=NO_FLAG;
-
-    if ((flag=flag_lookup(argument, act_flags)) == NO_FLAG)
-        luaL_error(LS, "MOBPROTO_act: flag '%s' not found in act_flags (mob)", argument);
-
-    lua_pushboolean( LS,
-            IS_SET(ud_mobp->act, flag) );
-
-    return 1;
+    return check_flag( LS, "act", act_flags, ud_mobp->act );
 }
 HELPTOPIC MOBPROTO_act_help={};
 
 static int MOBPROTO_offensive (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=flag_lookup(argument, off_flags);
-
-    if ( flag == NO_FLAG )
-        luaL_error(LS, "MOBPROTO_offesive: flag '%s' not found in off_flags", argument);
-
-    lua_pushboolean( LS,
-            IS_SET(ud_mobp->off_flags, flag) );
-
-    return 1;
+    return check_flag( LS, "offensive", off_flags, ud_mobp->off_flags );
 }
 HELPTOPIC MOBPROTO_offensive_help={};
 
 static int MOBPROTO_immune (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=flag_lookup(argument, imm_flags);
-
-    if ( flag == NO_FLAG )
-        luaL_error(LS, "MOBPROTO_immune: flag '%s' not found in imm_flags", argument);
-
-    lua_pushboolean( LS,
-            IS_SET(ud_mobp->imm_flags, flag) );
-
-    return 1;
+    return check_flag( LS, "immune", imm_flags, ud_mobp->imm_flags );
 }
 HELPTOPIC MOBPROTO_immune_help={};
 
 static int MOBPROTO_vuln (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=flag_lookup(argument, vuln_flags);
-
-    if ( flag == NO_FLAG )
-        luaL_error(LS, "MOBPROTO_vuln: flag '%s' not found in vuln_flags", argument);
-
-    lua_pushboolean( LS, IS_SET(ud_mobp->vuln_flags, flag ) );
-
-    return 1;
+    return check_flag( LS, "vuln", vuln_flags, ud_mobp->vuln_flags );
 }
 HELPTOPIC MOBPROTO_vuln_help={};
 
 static int MOBPROTO_resist (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
-    const char *argument = check_fstring (LS, 2);
-    int flag=flag_lookup(argument, res_flags);
-
-    if ( flag == NO_FLAG )
-        luaL_error(LS, "MOBPROTO_resist: flag '%s' not found in res_flags", argument);
-
-    lua_pushboolean( LS, IS_SET(ud_mobp->res_flags, flag) );
-
-    return 1;
+    return check_flag( LS, "resist", res_flags, ud_mobp->res_flags );
 }
 HELPTOPIC MOBPROTO_resist_help={};
 
