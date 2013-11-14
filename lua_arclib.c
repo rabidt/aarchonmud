@@ -4820,7 +4820,28 @@ static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 
 /* help section */
 
-
+/* add ptable output to existing buffer */
+static void print_ptable( BUFFER *buffer, const struct prop_type *ptable )
+{
+    char buf[MSL];
+    
+    int j;
+    add_buf( buffer, "\n\rSec Name\n\r");
+    for ( j=0 ; ptable[j].field ; j++ )
+    {
+        if ( ptable[j].status == STS_DEPRECATED )
+            continue;
+            
+        sprintf( buf, "[%d] %-16s - ", ptable[j].security, ptable[j].field );
+        if (ptable[j].help && ptable[j].help->summary)
+            strcat( buf, ptable[j].help->summary );
+        strcat( buf, "\n\r");
+        add_buf( buffer, buf );
+    }
+    
+    return;
+}
+    
 static void print_help_usage( CHAR_DATA *ch )
 {
     OBJ_TYPE *ot;
@@ -4862,17 +4883,17 @@ static void print_topic( CHAR_DATA *ch, HELPTOPIC *topic )
         ptc( ch, "Empty help.\n\r");
 }
 
-static void help_three_arg( CHAR_DATA *ch, const char *arg1, const char *arg2, const char *arg3)
+/*static void help_three_arg( CHAR_DATA *ch, const char *arg1, const char *arg2, const char *arg3)
 {
 }
-
+*/
 
 static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 {
     OBJ_TYPE *ot;
     int i;
 
-    if ( !strcmp("global", arg1) )
+    if ( !str_prefix("glob", arg1) )
     {
         for ( i=0 ; glob_table[i].name ; i++ )
         {
@@ -4908,6 +4929,7 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
     for ( i=0 ; type_list[i] ; i++ )
     {
         ot=*(OBJ_TYPE **)type_list[i];
+        
         if (!str_cmp( ot->type_name, arg1 ) )
         {
             /* always go through all 3 tables since
@@ -4915,6 +4937,29 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
             int j;
             bool found=FALSE;
 
+            
+            if (!str_cmp( arg2, "get") )
+            {
+                BUFFER *buffer=new_buf();
+                print_ptable( buffer, ot->get_table );
+                page_to_char( buf_string(buffer), ch);
+                return;
+            }
+            else if (!str_cmp( arg2, "set") )
+            {
+                BUFFER *buffer=new_buf();
+                print_ptable( buffer, ot->set_table );
+                page_to_char( buf_string(buffer), ch);
+                return;
+            }
+            else if (!str_prefix( "meth", arg2) )
+            {
+                BUFFER *buffer=new_buf();
+                print_ptable( buffer, ot->method_table );
+                page_to_char( buf_string(buffer), ch);
+                return;
+            }
+            
             for ( j=0 ; ot->get_table[j].field ; j++ )
             {
                 if (strcmp( ot->get_table[j].field, arg2 ) || ot->get_table[j].status == STS_DEPRECATED )
@@ -4966,10 +5011,11 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
     OBJ_TYPE *ot;
     int i;
 
-    if ( !strcmp("global", arg1) )
+    if ( !str_prefix("glob", arg1) )
     {
         ptc( ch, "\n\rGLOBAL functions\n\r");
 
+        ptc( ch, "\n\rSec Name\n\r");
         for ( i=0 ; glob_table[i].name ; i++ )
         {
             if (glob_table[i].status == STS_DEPRECATED || glob_table[i].security == SEC_NOSCRIPT)
@@ -4978,7 +5024,7 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
             if (glob_table[i].lib)
             {
                 char buf[MSL];
-                sprintf(buf, "%s.%s", glob_table[i].lib, glob_table[i].name);
+                sprintf(buf, "[%d] %s.%s", glob_table[i].security, glob_table[i].lib, glob_table[i].name);
                 ptc( ch, "%-20s - ", buf);
                 if (glob_table[i].help && glob_table[i].help->summary)
                    ptc( ch, glob_table[i].help->summary );
@@ -4986,7 +5032,7 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
             }
             else
             {
-                ptc( ch, "%-20s - ", glob_table[i].name);
+                ptc( ch, "[%d] %-16s - ", glob_table[i].security, glob_table[i].name);
                 if (glob_table[i].help && glob_table[i].help->summary)
                     ptc( ch, glob_table[i].help->summary );
                 ptc( ch, "\n\r");
@@ -5002,45 +5048,16 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
         if (!str_cmp( ot->type_name, arg1 ) )
         {
             int j;
+            BUFFER *buffer=new_buf();
+            add_buf(buffer, "\n\rGET fields\n\r");
+            print_ptable( buffer, ot->get_table );
+            add_buf(buffer, "\n\rSET fields\n\r");
+            print_ptable( buffer, ot->set_table );
+            add_buf(buffer, "\n\rMETHODS\n\r");
+            print_ptable( buffer, ot->method_table );
+            
+            page_to_char(buf_string(buffer), ch);
 
-            ptc( ch, "\n\rGET fields\n\r");
-            for ( j=0 ; ot->get_table[j].field ; j++ )
-            {
-                if ( ot->get_table[j].status == STS_DEPRECATED )
-                    continue;
-                    
-                ptc( ch, "%-20s - ", ot->get_table[j].field );
-                if (ot->get_table[j].help && ot->get_table[j].help->summary)
-                    ptc( ch, ot->get_table[j].help->summary );
-                ptc( ch, "\n\r");
-
-            }
-
-            ptc( ch, "\n\rSET fields\n\r");
-            for ( j=0 ; ot->set_table[j].field ; j++ )
-            {
-                if ( ot->set_table[j].status == STS_DEPRECATED )
-                    continue;
-                    
-                ptc( ch, "%-20s - ", ot->set_table[j].field );
-                if (ot->set_table[j].help && ot->set_table[j].help->summary)
-                    ptc( ch, ot->set_table[j].help->summary );
-                ptc( ch, "\n\r");
-
-            }
-
-            ptc( ch, "\n\rMETHODS\n\r");
-            for ( j=0 ; ot->method_table[j].field ; j++ )
-            {
-                if ( ot->method_table[j].status == STS_DEPRECATED )
-                    continue;
-                    
-                ptc( ch, "%-20s - ", ot->method_table[j].field );
-                if (ot->method_table[j].help && ot->method_table[j].help->summary)
-                    ptc( ch, ot->method_table[j].help->summary );
-                ptc( ch, "\n\r");
-
-            }
             return;
         }
     }
@@ -5087,11 +5104,13 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
         help_two_arg(ch, arg1, arg2);
         return;
     }
-    else if (nargs==3)
+    else
+        print_help_usage( ch );
+    /*if (nargs==3)
     {
         help_three_arg(ch, arg1, arg2,arg3);
         return;
-    }
+    }*/
 
 }
 
