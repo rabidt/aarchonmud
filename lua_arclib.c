@@ -4703,8 +4703,164 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 /* end OBJPROTO section */
 
 /* MOBPROTO section */
+static int MOBPROTO_affected (lua_State *LS)
+{
+    MOB_INDEX_DATA *ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    int flag=NO_FLAG;
+
+     if ((flag=flag_lookup(argument, affect_flags)) == NO_FLAG)
+        luaL_error(LS, "MOBPROTO_affected: flag '%s' not found in affect_flags (mob)", argument);
+
+     lua_pushboolean( LS, IS_SET(ud_mobp->affect_field, flag));
+     return 1;
+}
+HELPTOPIC MOBPROTO_affected_help={};
+
+static int MOBPROTO_act (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=NO_FLAG;
+
+    if ((flag=flag_lookup(argument, act_flags)) == NO_FLAG)
+        luaL_error(LS, "MOBPROTO_act: flag '%s' not found in act_flags (mob)", argument);
+
+    lua_pushboolean( LS,
+            IS_SET(ud_mobp->act, flag) );
+
+    return 1;
+}
+HELPTOPIC MOBPROTO_act_help={};
+
+static int MOBPROTO_offensive (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, off_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "MOBPROTO_offesive: flag '%s' not found in off_flags", argument);
+
+    lua_pushboolean( LS,
+            IS_SET(ud_mobp->off_flags, flag) );
+
+    return 1;
+}
+HELPTOPIC MOBPROTO_offensive_help={};
+
+static int MOBPROTO_immune (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, imm_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "MOBPROTO_immune: flag '%s' not found in imm_flags", argument);
+
+    lua_pushboolean( LS,
+            IS_SET(ud_mobp->imm_flags, flag) );
+
+    return 1;
+}
+HELPTOPIC MOBPROTO_immune_help={};
+
+static int MOBPROTO_vuln (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, vuln_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "MOBPROTO_vuln: flag '%s' not found in vuln_flags", argument);
+
+    lua_pushboolean( LS, IS_SET(ud_mobp->vuln_flags, flag ) );
+
+    return 1;
+}
+HELPTOPIC MOBPROTO_vuln_help={};
+
+static int MOBPROTO_resist (lua_State *LS)
+{
+    MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
+    const char *argument = check_fstring (LS, 2);
+    int flag=flag_lookup(argument, res_flags);
+
+    if ( flag == NO_FLAG )
+        luaL_error(LS, "MOBPROTO_resist: flag '%s' not found in res_flags", argument);
+
+    lua_pushboolean( LS, IS_SET(ud_mobp->res_flags, flag) );
+
+    return 1;
+}
+HELPTOPIC MOBPROTO_resist_help={};
+
+#define MPGETSTR( field, val, helpval ) static int MOBPROTO_get_ ## field (lua_State *LS)\
+{\
+    MOB_INDEX_DATA *ud_mobp=check_MOBPROTO(LS,1);\
+    lua_pushstring(LS, val );\
+}\
+HELPTOPIC MOBPROTO_get_ ## field ## _help = { helpval }
+
+#define MPGETINT( field, val, helpval ) static int MOBPROTO_get_ ## field (lua_State *LS)\
+{\
+    MOB_INDEX_DATA *ud_mobp=check_MOBPROTO(LS,1);\
+    lua_pushinteger(LS, val );\
+}\
+HELPTOPIC MOBPROTO_get_ ## field ## _help = { helpval }
+
+MPGETINT( vnum, ud_mobp->vnum, );
+MPGETSTR( name, ud_mobp->player_name, );
+MPGETSTR( shortdescr, ud_mobp->short_descr, );
+MPGETSTR( longdescr, ud_mobp->long_descr, );
+MPGETSTR( description, ud_mobp->description, );
+MPGETINT( alignment, ud_mobp->alignment, );
+MPGETINT( level, ud_mobp->level, );
+MPGETINT( hppcnt, ud_mobp->hitpoint_percent, );
+MPGETINT( mnpcnt, ud_mobp->mana_percent, );
+MPGETINT( mvpcnt, ud_mobp->move_percent, );
+MPGETINT( hrpcnt, ud_mobp->hitroll_percent, );
+MPGETINT( drpcnt, ud_mobp->damage_percent, );
+MPGETINT( acpcnt, ud_mobp->ac_percent, );
+MPGETINT( savepcnt, ud_mobp->saves_percent, );
+MPGETSTR( damtype, attack_table[ud_mobp->dam_type].name, );
+MPGETSTR( startpos, flag_stat_string( position_flags, ud_mobp->start_pos ), );
+MPGETSTR( defaultpos, flag_stat_string( position_flags, ud_mobp->default_pos ), );
+MPGETSTR( sex,
+    ud_mobp->sex == SEX_NEUTRAL ? "neutral" :
+    ud_mobp->sex == SEX_MALE    ? "male" :
+    ud_mobp->sex == SEX_FEMALE  ? "female" :
+    ud_mobp->sex == SEX_BOTH    ? "random" :
+    NULL, );
+MPGETSTR( race, race_table[ud_mobp->race].name, );
+MPGETINT( wealthpcnt, ud_mobp->wealth_percent, );
+MPGETSTR( size, flag_stat_string( size_flags, ud_mobp->size ), );
+MPGETSTR( stance, stances[ud_mobp->stance].name, );
+    
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
+    MPGET( vnum, 0),
+    MPGET( name, 0),
+    MPGET( shortdescr, 0),
+    MPGET( longdescr, 0),
+    MPGET( description, 0),
+    MPGET( alignment, 0),
+    MPGET( level, 0),
+    MPGET( hppcnt, 0),
+    MPGET( mnpcnt, 0),
+    MPGET( mvpcnt, 0),
+    MPGET( hrpcnt, 0),
+    MPGET( drpcnt, 0),
+    MPGET( acpcnt, 0),
+    MPGET( savepcnt, 0),
+    MPGET( damtype, 0),
+    MPGET( startpos, 0),
+    MPGET( defaultpos, 0),
+    MPGET( sex, 0),
+    MPGET( race, 0),
+    MPGET( wealthpcnt, 0),
+    MPGET( size, 0),
+    MPGET( stance, 0),
     ENDPTABLE
 };
 
@@ -4715,6 +4871,12 @@ static const LUA_PROP_TYPE MOBPROTO_set_table [] =
 
 static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 {
+    MPMETH( act, 0),
+    MPMETH( vuln, 0),
+    MPMETH( immune, 0),
+    MPMETH( offensive, 0),
+    MPMETH( resist, 0),
+    MPMETH( affected, 0),
     ENDPTABLE
 }; 
 
