@@ -1659,14 +1659,6 @@ static int CH_restore (lua_State *LS)
 }
 HELPTOPIC CH_restore_help = {};
 
-static int CH_setact (lua_State *LS)
-{
-    do_mpact( check_CH(LS, 1), check_fstring(LS, 2));
-
-    return 0;
-}
-HELPTOPIC CH_setact_help = {};
-
 static int CH_hit (lua_State *LS)
 {
     do_mphit( check_CH(LS, 1), check_fstring(LS, 2));
@@ -1859,6 +1851,28 @@ static int CH_act (lua_State *LS)
     }
 }
 HELPTOPIC CH_act_help = {};
+
+static int CH_setact (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (lua_isnone(LS, 3) )
+    {
+        /* only 1 arg so using old syntax */
+        do_mpact( ud_ch, check_fstring(LS, 2));
+        return 0;
+    }
+
+    /* new syntax */
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "act[NPC]", act_flags, ud_ch->act );
+    }
+    else
+    {
+        return check_flag( LS, "act[PC]", plr_flags, ud_ch->act );
+    }
+}
+HELPTOPIC CH_setact_help = {};
 
 static int CH_offensive (lua_State *LS)
 {
