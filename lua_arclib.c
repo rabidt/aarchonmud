@@ -39,7 +39,25 @@
 #define AREASET( field, sec ) SETP( AREA, field, sec)
 #define AREAMETH( field, sec ) METH( AREA, field, sec)
 
-extern lua_State *g_mud_LS;
+#define ROOMGET( field, sec ) GETP( ROOM, field, sec)
+#define ROOMSET( field, sec ) SETP( ROOM, field sec)
+#define ROOMMETH( field, sec ) METH( ROOM, field, sec)
+
+#define OPGET( field, sec ) GETP( OBJPROTO, field, sec)
+#define OPSET( field, sec ) SETP( OBJPROTO, field sec)
+#define OPMETH( field, sec ) METH( OBJPROTO, field, sec)
+
+#define MPGET( field, sec ) GETP( MOBPROTO, field, sec)
+#define MPSET( field, sec ) SETP( MOBPROTO, field sec)
+#define MPMETH( field, sec ) METH( MOBPROTO, field, sec)
+
+#define EXGET( field, sec ) GETP( EXIT, field, sec)
+#define EXSET( field, sec ) SETP( EXIT, field sec)
+#define EXMETH( field, sec ) METH( EXIT, field, sec)
+
+#define RSTGET( field, sec ) GETP( RESET, field, sec)
+#define RSTSET( field, sec ) SETP( RESET, field sec)
+#define RSTMETH( field, sec ) METH( RESET, field, sec)
 
 typedef struct lua_help_topic
 {
@@ -770,6 +788,12 @@ static int glob_tprintstr ( lua_State *LS)
 }
 HELPTOPIC glob_tprintstr_help={};
 
+static int glob_cancel ( lua_State *LS)
+{
+    return L_cancel(LS);
+}
+HELPTOPIC glob_cancel_help={};
+
 #define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
@@ -825,7 +849,9 @@ GLOB_TYPE glob_table[] =
     LFUN( mt, rand,         SEC_NOSCRIPT ),
 
     LFUN( mud, luadir,      SEC_NOSCRIPT ),
-    LFUN( mud, userdir,     SEC_NOSCRIPT),
+    LFUN( mud, userdir,     SEC_NOSCRIPT ),
+    
+    GFUN( cancel,           SEC_NOSCRIPT ),
     ENDGTABLE
 };
 
@@ -3939,8 +3965,416 @@ static OBJ_TYPE *AREA_init(lua_State *LS)
 /* end AREA section */
 
 /* ROOM section */
+static int ROOM_mload (lua_State *LS)
+{
+    ROOM_INDEX_DATA * ud_room = check_ROOM (LS, 1);
+    int num = (int)luaL_checknumber (LS, 2);
+    MOB_INDEX_DATA *pObjIndex = get_mob_index( num );
+
+    if (!pObjIndex)
+        luaL_error(LS, "No mob with vnum: %d", num);
+
+    CHAR_DATA *mob=create_mobile( pObjIndex);
+    arm_npc( mob );
+    char_to_room(mob,ud_room);
+
+    if ( !make_CH(LS, mob))
+        return 0;
+    else
+        return 1;
+
+}
+HELPTOPIC ROOM_mload_help={};
+
+static int ROOM_oload (lua_State *LS)
+{
+    ROOM_INDEX_DATA * ud_room = check_ROOM (LS, 1);
+    int num = (int)luaL_checknumber (LS, 2);
+    OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
+
+    if (!pObjIndex)
+        luaL_error(LS, "No object with vnum: %d", num);
+
+    OBJ_DATA *obj=create_object( pObjIndex, 0);
+    check_enchant_obj( obj );
+    obj_to_room(obj,ud_room);
+
+    if ( !make_OBJ(LS, obj) )
+        return 0;
+    else
+        return 1;
+
+}
+HELPTOPIC ROOM_oload_help={};
+
+static int ROOM_flag( lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
+    const char *argument = check_fstring (LS, 2);
+
+    sh_int flag=flag_lookup( argument, room_flags);
+    if ( flag==NO_FLAG )
+        luaL_error( LS, "Invalid room flag: '%s'", argument);
+
+    lua_pushboolean( LS, IS_SET( ud_room->room_flags, flag));
+    return 1;
+}
+HELPTOPIC ROOM_flag_help={};
+
+static int ROOM_echo( lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
+    const char *argument = check_fstring (LS, 2);
+
+    CHAR_DATA *vic;
+    for ( vic=ud_room->people ; vic ; vic=vic->next_in_room )
+    {
+        if (!IS_NPC(vic) )
+        {
+            send_to_char(argument, vic);
+            send_to_char("\n\r", vic);
+        }
+    }
+
+    return 0;
+}
+HELPTOPIC ROOM_echo_help={};
+
+static int ROOM_tprint ( lua_State *LS)
+{
+    lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+
+    /* Push original arg into tprintstr */
+    lua_pushvalue( LS, 2);
+    lua_call( LS, 1, 1 );
+
+    lua_pushcfunction( LS, ROOM_echo );
+    /* now line up argumenets for echo */
+    lua_pushvalue( LS, 1); /* obj */
+    lua_pushvalue( LS, -3); /* return from tprintstr */
+
+    lua_call( LS, 2, 0);
+
+    return 0;
+}
+HELPTOPIC ROOM_tprint_help={};
+
+static int ROOM_savetbl (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, SAVETABLE_FUNCTION);
+
+    lua_pushvalue( LS, 2 );
+    lua_pushvalue( LS, 3 );
+    lua_pushstring( LS, ud_room->area->file_name );
+    lua_call( LS, 3, 0);
+
+    return 0;
+}
+HELPTOPIC ROOM_savetbl_help={};
+
+static int ROOM_loadtbl (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, LOADTABLE_FUNCTION);
+
+    lua_pushvalue( LS, 2 );
+    lua_pushstring( LS, ud_room->area->file_name );
+    lua_call( LS, 2, 1);
+
+    return 1;
+}
+HELPTOPIC ROOM_loadtbl_help={};
+
+static int ROOM_loadscript (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+
+    lua_getfield( LS, LUA_GLOBALSINDEX, GETSCRIPT_FUNCTION);
+
+    /* Push original args into GetScript */
+    lua_pushvalue( LS, 2 );
+    lua_pushvalue( LS, 3 );
+    lua_call( LS, 2, 1);
+
+    lua_pushboolean( LS,
+            lua_room_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1),
+                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+    return 1;
+}
+HELPTOPIC ROOM_loadscript_help={};
+
+static int ROOM_loadstring (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    lua_pushboolean( LS,
+            lua_room_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, 2),
+                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+    return 1;
+}
+HELPTOPIC ROOM_loadstring_help={};
+
+static int ROOM_loadprog (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    int num = (int)luaL_checknumber (LS, 2);
+    RPROG_CODE *pRcode;
+
+    if ( (pRcode = get_rprog_index(num)) == NULL )
+    {
+        luaL_error(LS, "loadprog: rprog vnum %d doesn't exist", num);
+        return 0;
+    }
+
+    lua_pushboolean( LS,
+            lua_room_program( NULL, num, pRcode->code,
+                ud_room, NULL, NULL, NULL, NULL,
+                RTRIG_CALL, 0) );
+    return 1;
+}
+HELPTOPIC ROOM_loadprog_help={};
+
+static int ROOM_delay (lua_State *LS)
+{
+    return L_delay(LS);
+}
+HELPTOPIC ROOM_delay_help={};
+
+static int ROOM_cancel (lua_State *LS)
+{
+    return L_cancel(LS);
+}
+HELPTOPIC ROOM_cancel_help={};
+
+static int ROOM_get_name (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_ROOM(LS,1))->name);
+    return 1;
+}
+HELPTOPIC ROOM_get_name_help={};
+
+static int ROOM_get_vnum (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_ROOM(LS,1))->vnum);
+    return 1;
+}
+HELPTOPIC ROOM_get_vnum_help={};
+
+static int ROOM_get_clan (lua_State *LS)
+{
+    lua_pushstring( LS,
+            clan_table[check_ROOM(LS,1)->clan].name);
+    return 1;
+}
+HELPTOPIC ROOM_get_clan_help={};
+
+static int ROOM_get_clanrank (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_ROOM(LS,1))->clan_rank);
+    return 1;
+}
+HELPTOPIC ROOM_get_clanrank_help={};
+
+static int ROOM_get_healrate (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_ROOM(LS,1))->heal_rate);
+    return 1;
+}
+HELPTOPIC ROOM_get_healrate_help={};
+
+static int ROOM_get_manarate (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_ROOM(LS,1))->mana_rate);
+    return 1;
+}
+HELPTOPIC ROOM_get_manarate_help={};
+
+static int ROOM_get_owner (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_ROOM(LS,1))->owner);
+    return 1;
+}
+HELPTOPIC ROOM_get_owner_help={};
+
+static int ROOM_get_description (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_ROOM(LS,1))->description);
+    return 1;
+}
+HELPTOPIC ROOM_get_description_help={};
+
+static int ROOM_get_sector (lua_State *LS)
+{
+    lua_pushstring( LS,
+            flag_bit_name(sector_flags, (check_ROOM(LS,1))->sector_type) );
+    return 1;
+}
+HELPTOPIC ROOM_get_sector_help={};
+
+static int ROOM_get_contents (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    int index=1;
+    lua_newtable(LS);
+    OBJ_DATA *obj;
+    for (obj=ud_room->contents ; obj ; obj=obj->next_content)
+    {
+        if (make_OBJ(LS, obj))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC ROOM_get_contents_help={};
+
+static int ROOM_get_area (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    if ( !make_AREA(LS, ud_room->area))
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC ROOM_get_area_help={};
+
+static int ROOM_get_people (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    int index=1;
+    lua_newtable(LS);
+    CHAR_DATA *people;
+    for (people=ud_room->people ; people ; people=people->next_in_room)
+    {
+        if (make_CH(LS, people))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC ROOM_get_people_help={};
+
+static int ROOM_get_players (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    int index=1;
+    lua_newtable(LS);
+    CHAR_DATA *plr;
+    for ( plr=ud_room->people ; plr ; plr=plr->next_in_room)
+    {
+        if (!IS_NPC(plr) && make_CH(LS, plr))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC ROOM_get_players_help={};
+
+static int ROOM_get_mobs (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    int index=1;
+    lua_newtable(LS);
+    CHAR_DATA *mob;
+    for ( mob=ud_room->people ; mob ; mob=mob->next_in_room)
+    {
+        if ( IS_NPC(mob) && make_CH(LS, mob))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC ROOM_get_mobs_help={};
+
+static int ROOM_get_exits (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    lua_newtable(LS);
+    int i;
+    int index=1;
+    for ( i=0; i<MAX_DIR ; i++)
+    {
+        if (ud_room->exit[i])
+        {
+            lua_pushstring(LS,dir_name[i]);
+            lua_rawseti(LS, -2, index++);
+        }
+    }
+    return 1;
+}
+HELPTOPIC ROOM_get_exits_help={};
+
+#define ROOM_dir(dirname, dirnumber) static int ROOM_get_ ## dirname (lua_State *LS)\
+{\
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);\
+    if (!ud_room->exit[dirnumber])\
+        return 0;\
+    if (!make_EXIT(LS, ud_room->exit[dirnumber]))\
+        return 0;\
+    else\
+        return 1;\
+}\
+HELPTOPIC ROOM_get_ ## dirname ## _help={ };
+
+ROOM_dir(north, DIR_NORTH)
+ROOM_dir(south, DIR_SOUTH)
+ROOM_dir(east, DIR_EAST)
+ROOM_dir(west, DIR_WEST)
+ROOM_dir(northeast, DIR_NORTHEAST)
+ROOM_dir(northwest, DIR_NORTHWEST)
+ROOM_dir(southeast, DIR_SOUTHEAST)
+ROOM_dir(southwest, DIR_SOUTHWEST)
+ROOM_dir(up, DIR_UP)
+ROOM_dir(down, DIR_DOWN)
+
+static int ROOM_get_resets (lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    lua_newtable(LS);
+    int index=1;
+    RESET_DATA *reset;
+    for ( reset=ud_room->reset_first; reset; reset=reset->next)
+    {
+        if (make_RESET(LS, reset) )
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC ROOM_get_resets_help={};
+
+
 static const LUA_PROP_TYPE ROOM_get_table [] =
 {
+    ROOMGET(name, 0),
+    ROOMGET(vnum, 0),
+    ROOMGET(clan, 0),
+    ROOMGET(clanrank, 0),
+    ROOMGET(healrate, 0),
+    ROOMGET(manarate, 0),
+    ROOMGET(owner, 0),
+    ROOMGET(description, 0),
+    ROOMGET(sector, 0),
+    ROOMGET(contents, 0),
+    ROOMGET(area, 0),
+    ROOMGET(people, 0),
+    ROOMGET(players, 0),
+    ROOMGET(mobs, 0),
+    ROOMGET(exits, 0),
+    ROOMGET(north, 0),
+    ROOMGET(south, 0),
+    ROOMGET(east, 0),
+    ROOMGET(west, 0),
+    ROOMGET(northwest, 0),
+    ROOMGET(northeast, 0),
+    ROOMGET(southwest, 0),
+    ROOMGET(southeast, 0),
+    ROOMGET(up, 0),
+    ROOMGET(down, 0),
+    ROOMGET(resets, 0),
     ENDPTABLE
 };
 
@@ -3951,6 +4385,18 @@ static const LUA_PROP_TYPE ROOM_set_table [] =
 
 static const LUA_PROP_TYPE ROOM_method_table [] =
 {
+    ROOMMETH(flag, 0),
+    ROOMMETH(oload, 0),
+    ROOMMETH(mload, 0),
+    ROOMMETH(echo, 0),
+    ROOMMETH(loadprog, 0),
+    ROOMMETH(loadscript, 0),
+    ROOMMETH(loadstring, 0),
+    ROOMMETH(tprint, 0),
+    ROOMMETH(delay, 0),
+    ROOMMETH(cancel, 0),
+    ROOMMETH(savetbl, 0),
+    ROOMMETH(loadtbl, 0),
     ENDPTABLE
 }; 
 
