@@ -3017,20 +3017,6 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(cancel, 0), 
     ENDPTABLE
 }; 
-static OBJ_TYPE *CH_init(lua_State *LS)
-{
-    if (!CH_type)
-        CH_type=new_obj_type(
-            LS,
-            "CH",
-            CH_get_table,
-            CH_set_table,
-            CH_method_table);
-
-    type_init(LS); /* cascade init since methods depend on other types */
-    return CH_type;
-}
-
 
 /* end CH section */
 
@@ -3603,19 +3589,6 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     ENDPTABLE
 }; 
 
-static OBJ_TYPE *OBJ_init(lua_State *LS)
-{
-    if (!OBJ_type)
-        OBJ_type=new_obj_type(
-            LS,
-            "OBJ",
-            OBJ_get_table,
-            OBJ_set_table,
-            OBJ_method_table);
-    
-    type_init(LS); /* cascade init since methods depend on other types */
-    return OBJ_type;
-}
 /* end OBJ section */
 
 /* AREA section */
@@ -3947,20 +3920,6 @@ static const LUA_PROP_TYPE AREA_method_table [] =
     AREAMETH(cancel, 0),
     ENDPTABLE
 }; 
-
-static OBJ_TYPE *AREA_init(lua_State *LS)
-{
-    if (!AREA_type)
-        AREA_type=new_obj_type(
-            LS,
-            "AREA",
-            AREA_get_table,
-            AREA_set_table,
-            AREA_method_table);
-
-    type_init(LS); /* cascade init since methods depend on other types */
-    return AREA_type;
-}
 
 /* end AREA section */
 
@@ -4400,19 +4359,6 @@ static const LUA_PROP_TYPE ROOM_method_table [] =
     ENDPTABLE
 }; 
 
-static OBJ_TYPE *ROOM_init(lua_State *LS)
-{
-    if (!ROOM_type)
-        ROOM_type=new_obj_type(
-            LS,
-            "ROOM",
-            ROOM_get_table,
-            ROOM_set_table,
-            ROOM_method_table);
-
-    type_init(LS); /* cascade init since methods depend on other types */
-    return ROOM_type;
-}
 /* end ROOM section */
 
 /* EXIT section */
@@ -4428,9 +4374,129 @@ static int EXIT_flag (lua_State *LS)
     lua_pushboolean( LS, IS_SET( ed->exit_info, flag));
     return 1;
 }
+HELPTOPIC EXIT_flag_help={};
+
+static int EXIT_setflag( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+    const char *argument = luaL_checkstring (LS, 2);
+    luaL_checktype( LS, 3, LUA_TBOOLEAN );
+    bool set=lua_toboolean( LS, 3 );
+
+    int flag=flag_lookup( argument, exit_flags);
+    if ( flag==NO_FLAG )
+        luaL_error(LS, "Invalid exit flag: '%s'", argument);
+
+    if ( set )
+        SET_BIT( ud_exit->exit_info, flag );
+    else
+        REMOVE_BIT( ud_exit->exit_info, flag );
+
+    return 0;
+}
+HELPTOPIC EXIT_setflag_help={};
+
+static int EXIT_lock( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+
+    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
+    {
+        luaL_error(LS, "Exit is not a door, cannot lock.");
+    }
+
+    /* force closed if necessary */
+    SET_BIT(ud_exit->exit_info, EX_CLOSED);
+    SET_BIT(ud_exit->exit_info, EX_LOCKED);
+    return 0;
+}
+HELPTOPIC EXIT_lock_help={};
+
+static int EXIT_unlock( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+
+    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
+    {
+        luaL_error(LS, "Exit is not a door, cannot unlock.");
+    }
+
+    REMOVE_BIT(ud_exit->exit_info, EX_LOCKED);
+    return 0;
+}
+HELPTOPIC EXIT_unlock_help={};
+
+static int EXIT_close( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+
+    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
+    {
+        luaL_error(LS, "Exit is not a door, cannot close.");
+    }
+
+    SET_BIT(ud_exit->exit_info, EX_CLOSED);
+    return 0;
+}
+HELPTOPIC EXIT_close_help={};
+
+static int EXIT_open( lua_State *LS)
+{
+    EXIT_DATA *ud_exit = check_EXIT(LS, 1);
+
+    if (!IS_SET(ud_exit->exit_info, EX_ISDOOR))
+    {
+        luaL_error(LS, "Exit is not a door, cannot open.");
+    }
+
+    /* force unlock if necessary */
+    REMOVE_BIT(ud_exit->exit_info, EX_LOCKED);
+    REMOVE_BIT(ud_exit->exit_info, EX_CLOSED);
+
+    return 0;
+}
+HELPTOPIC EXIT_open_help={};
+
+static int EXIT_get_toroom (lua_State *LS)
+{
+    EXIT_DATA *ud_exit=check_EXIT(LS,1);
+    if ( !make_ROOM( LS, ud_exit->u1.to_room ))
+        return 0;
+    else
+        return 1;
+}
+HELPTOPIC EXIT_get_toroom_help={};
+
+static int EXIT_get_keyword (lua_State *LS)
+{
+    lua_pushstring(LS,
+            (check_EXIT(LS,1))->keyword);
+    return 1;
+}
+HELPTOPIC EXIT_get_keyword_help={};
+
+static int EXIT_get_description (lua_State *LS)
+{
+    lua_pushstring(LS,
+            (check_EXIT(LS,1))->description);
+    return 1;
+}
+HELPTOPIC EXIT_get_description_help={};
+
+static int EXIT_get_key (lua_State *LS)
+{
+    lua_pushinteger(LS,
+            (check_EXIT(LS,1))->key);
+    return 1;
+}
+HELPTOPIC EXIT_get_key_help={};
 
 static const LUA_PROP_TYPE EXIT_get_table [] =
 {
+    EXGET(toroom, 0),
+    EXGET(keyword,0),
+    EXGET(description, 0),
+    EXGET(key, 0),
     ENDPTABLE
 };
 
@@ -4441,22 +4507,15 @@ static const LUA_PROP_TYPE EXIT_set_table [] =
 
 static const LUA_PROP_TYPE EXIT_method_table [] =
 {
+    EXMETH(flag, 0),
+    EXMETH(setflag, 0),
+    EXMETH(open, 0),
+    EXMETH(close, 0),
+    EXMETH(unlock, 0),
+    EXMETH(lock, 0),
     ENDPTABLE
 }; 
 
-static OBJ_TYPE *EXIT_init(lua_State *LS)
-{
-    if (!EXIT_type)
-        EXIT_type=new_obj_type(
-            LS,
-            "EXIT",
-            EXIT_get_table,
-            EXIT_set_table,
-            EXIT_method_table);
-
-    type_init(LS); /* cascade init since methods depend on other types */
-    return EXIT_type;
-}
 /* end EXIT section */
 
 /* RESET section */
@@ -4483,20 +4542,6 @@ static const LUA_PROP_TYPE RESET_method_table [] =
     ENDPTABLE
 }; 
 
-static OBJ_TYPE *RESET_init(lua_State *LS)
-{
-    if (!RESET_type)
-        RESET_type=new_obj_type(
-            LS,
-            "RESET",
-            RESET_get_table,
-            RESET_set_table,
-            RESET_method_table);
-
-    type_init(LS); /* cascade init since methods depend on other types */
-    return RESET_type;
-}
-
 /* end RESET section */
 
 /* OBJPROTO section */
@@ -4515,20 +4560,6 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
     ENDPTABLE
 }; 
 
-static OBJ_TYPE *OBJPROTO_init(lua_State *LS)
-{
-    if (!OBJPROTO_type)
-        OBJPROTO_type=new_obj_type(
-            LS,
-            "OBJPROTO",
-            OBJPROTO_get_table,
-            OBJPROTO_set_table,
-            OBJPROTO_method_table);
-
-    type_init(LS); /* cascade init since methods depend on other types */
-    return OBJPROTO_type;
-}
-
 /* end OBJPROTO section */
 
 /* MOBPROTO section */
@@ -4546,20 +4577,6 @@ static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 {
     ENDPTABLE
 }; 
-
-static OBJ_TYPE *MOBPROTO_init(lua_State *LS)
-{
-    if (!MOBPROTO_type)
-        MOBPROTO_type=new_obj_type(
-            LS,
-            "MOBPROTO",
-            MOBPROTO_get_table,
-            MOBPROTO_set_table,
-            MOBPROTO_method_table);
-    
-    type_init(LS); /* cascade init since methods depend on other types */
-    return MOBPROTO_type;
-}
 
 /* end MOBPROTO section */
 
@@ -4826,26 +4843,23 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
 
 }
 
-
 /* end help section */
-
+#define TYPEINIT( typename ) if (! typename ## _type ) \
+    typename ## _type=new_obj_type(\
+        LS,\
+        #typename,\
+        typename ## _get_table,\
+        typename ## _set_table,\
+        typename ## _method_table)
 
 void type_init( lua_State *LS)
 {
-    if (!CH_type)
-        CH_type=CH_init(LS);
-    if (!OBJ_type)
-        OBJ_type=OBJ_init(LS);
-    if (!AREA_type)
-        AREA_type=AREA_init(LS);
-    if (!ROOM_type)
-        ROOM_type=ROOM_init(LS);
-    if (!EXIT_type)
-        EXIT_type=EXIT_init(LS);
-    if (!RESET_type)
-        RESET_type=RESET_init(LS);
-    if (!OBJPROTO_type)
-        OBJPROTO_type=OBJPROTO_init(LS);
-    if (!MOBPROTO_type)
-        MOBPROTO_type=MOBPROTO_init(LS);
+    TYPEINIT(CH);
+    TYPEINIT(OBJ);
+    TYPEINIT(AREA);
+    TYPEINIT(ROOM);
+    TYPEINIT(EXIT);
+    TYPEINIT(RESET);
+    TYPEINIT(OBJPROTO);
+    TYPEINIT(MOBPROTO);
 }
