@@ -11,7 +11,7 @@
 #define GETSCRIPT_FUNCTION "GetScript"
 #define SAVETABLE_FUNCTION "SaveTable"
 #define LOADTABLE_FUNCTION "LoadTable"
-#define TPRINTSTR_FUNCTION "tprintstr"
+#define TPRINTSTR_FUNCTION "glob_tprintstr"
 
 #define LOADSCRIPT_VNUM 0
 #define MAX_LUA_SECURITY 9
