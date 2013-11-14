@@ -4507,9 +4507,27 @@ static int RESET_get_command(lua_State *LS, RESET_DATA *rd )
     lua_pushstring(LS, buf);
     return 1;
 }
+HELPTOPIC RESET_get_command_help={};
+
+#define RESETGETARG( num ) static int RESET_get_arg ## num ( lua_State *LS)\
+{\
+    lua_pushinteger( LS,\
+            (check_RESET(LS,1))->arg ## num);\
+}\
+HELPTOPIC RESET_get_arg ## num ## _help={}
+
+RESETGETARG(1);
+RESETGETARG(2);
+RESETGETARG(3);
+RESETGETARG(4);
 
 static const LUA_PROP_TYPE RESET_get_table [] =
 {
+    RSTGET( command, 0),
+    RSTGET( arg1, 0),
+    RSTGET( arg2, 0),
+    RSTGET( arg3, 0),
+    RSTGET( arg4, 0),
     ENDPTABLE
 };
 
