@@ -4853,7 +4853,7 @@ static void print_help_usage( CHAR_DATA *ch )
     OBJ_TYPE *ot;
     int i;
 
-    ptc( ch, "SECTIONS: \n\r\n\r" );
+    ptc( ch, "\n\rSECTIONS: \n\r\n\r" );
 
     ptc( ch, "global\n\r\n\r" );
 
@@ -4864,8 +4864,17 @@ static void print_help_usage( CHAR_DATA *ch )
     }
     
     ptc( ch,
-    " Examples:\n\r"
-    "");
+    "\n\rSyntax: \n\r"
+    "    luahelp <section>                - List all entries in section.\n\r"
+    "    luahelp <section> <get|set|meth> - List only get/set/method entries respectively.\n\r"
+    "    luahelp <section> <topic>        - Print full topic.\n\r"
+    "\n\r"
+    "Examples: \n\r"
+    "    luahelp ch\n\r"
+    "    luahelp global\n\r"
+    "    luahelp obj meth\n\r"
+    "    luahelp obj name\n\r"
+    "    luahelp global sendtochar\n\r");
 }
 
 static void print_topic( CHAR_DATA *ch, HELPTOPIC *topic )
