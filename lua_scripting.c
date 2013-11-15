@@ -1067,6 +1067,9 @@ static bool run_olc_editor_lua( CHAR_DATA *ch, char *argument )
         case ED_APCODE:
             apedit( ch, argument );
             break;
+        case ED_RPCODE:
+            rpedit( ch, argument );
+            break;
         case ED_HELP:
             hedit( ch, argument );
             break;
