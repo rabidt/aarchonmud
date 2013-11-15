@@ -303,7 +303,7 @@ APEDIT(apedit_show)
 APEDIT(apedit_security)
 {
     APROG_CODE *pAcode;
-    EDIT_MPCODE(ch, pAcode);
+    EDIT_APCODE(ch, pAcode);
     int newsec;
 
     if ( argument[0] == '\0' )
