@@ -15,6 +15,7 @@
 
 #define LOADSCRIPT_VNUM 0
 #define MAX_LUA_SECURITY 9
+double genrand(void);
 
 int L_delay( lua_State *LS);
 int L_cancel( lua_State *LS);
