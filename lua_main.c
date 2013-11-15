@@ -96,9 +96,20 @@ void stackDump (lua_State *LS) {
     bugf("\n");  /* end the listing */
 }
 
+const char *check_string( lua_State *LS, int index, size_t size)
+{
+    size_t rtn_size;
+    const char *rtn=lua_tolstring( LS, index, &rtn_size );
+    if (rtn_size >= size )
+        luaL_error( LS, "String size %d exceeds maximum %d.",
+                (int)rtn_size, (int)size );
+
+    return;
+}
+
 /* Run string.format using args beginning at index 
    Assumes top is the last argument*/
-const char *check_fstring( lua_State *LS, int index)
+const char *check_fstring( lua_State *LS, int index, size_t size)
 {
     int narg=lua_gettop(LS)-(index-1);
 
@@ -111,7 +122,8 @@ const char *check_fstring( lua_State *LS, int index)
         lua_insert( LS, index );
         lua_call( LS, narg, 1);
     }
-    return luaL_checkstring( LS, index);
+
+    return check_string( LS, index, size);
 }
 
 static void GetTracebackFunction (lua_State *LS)
