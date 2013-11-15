@@ -4737,6 +4737,7 @@ HELPTOPIC MOBPROTO_resist_help={};
 {\
     MOB_INDEX_DATA *ud_mobp=check_MOBPROTO(LS,1);\
     lua_pushstring(LS, val );\
+    return 1;\
 }\
 HELPTOPIC MOBPROTO_get_ ## field ## _help = { helpval }
 
@@ -4744,6 +4745,7 @@ HELPTOPIC MOBPROTO_get_ ## field ## _help = { helpval }
 {\
     MOB_INDEX_DATA *ud_mobp=check_MOBPROTO(LS,1);\
     lua_pushinteger(LS, val );\
+    return 1;\
 }\
 HELPTOPIC MOBPROTO_get_ ## field ## _help = { helpval }
 
