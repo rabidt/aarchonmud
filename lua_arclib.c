@@ -479,7 +479,7 @@ HELPTOPIC godlib_confuse_help = {};
 static int glob_sendtochar (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
-    char *msg=check_fstring(LS, 2);
+    char *msg=check_fstring( LS, 2, MSL);
 
     send_to_char(msg, ch);
     return 0;
@@ -504,7 +504,7 @@ HELPTOPIC glob_clearloopcount_help={};
 static int glob_log (lua_State *LS)
 {
     char buf[MSL];
-    sprintf(buf, "LUA::%s", check_fstring (LS, 1));
+    sprintf(buf, "LUA::%s", check_fstring( LS, 1, MIL));
 
     log_string(buf);
     return 0;
@@ -613,7 +613,7 @@ HELPTOPIC glob_getmobworld_help={};
 
 static int glob_pagetochar (lua_State *LS)
 {
-    page_to_char( check_fstring(LS, 2),
+    page_to_char( luaL_checkstring( LS, 2),
             check_CH(LS,1) );
 
     return 0;
@@ -1011,7 +1011,7 @@ static int check_flag( lua_State *LS,
         return 1;
     }
     
-    const char *argument = check_fstring( LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
     int flag=NO_FLAG;
        
     if ((flag=flag_lookup(argument, flagtbl)) == NO_FLAG)
@@ -1245,7 +1245,7 @@ static int CH_olc (lua_State *LS)
         luaL_error( LS, "NPCs cannot use OLC!");
     }
 
-    if (!run_olc_editor_lua( ud_ch, check_fstring( LS, 2)) )
+    if (!run_olc_editor_lua( ud_ch, check_fstring( LS, 2, MIL)) )
         luaL_error(LS, "Not currently in olc edit mode.");
 
     return 0;
@@ -1361,28 +1361,28 @@ HELPTOPIC CH_loadprog_help = {};
 
 static int CH_emote (lua_State *LS)
 {
-    do_emote( check_CH(LS, 1), check_fstring (LS, 2) );
+    do_emote( check_CH(LS, 1), check_fstring( LS, 2, MIL) );
     return 0;
 }
 HELPTOPIC CH_emote_help = {};
 
 static int CH_asound (lua_State *LS)
 {
-    do_mpasound( check_CH(LS, 1), check_fstring (LS, 2));
+    do_mpasound( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     return 0; 
 }
 HELPTOPIC CH_asound_help = {};
 
 static int CH_gecho (lua_State *LS)
 {
-    do_mpgecho( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpgecho( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     return 0;
 }
 HELPTOPIC CH_gecho_help = {};
 
 static int CH_zecho (lua_State *LS)
 {
-    do_mpzecho( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpzecho( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     return 0;
 }
 HELPTOPIC CH_zecho_help = {};
@@ -1390,7 +1390,7 @@ HELPTOPIC CH_zecho_help = {};
 static int CH_kill (lua_State *LS)
 {
     if ( lua_isstring(LS, 2) )
-        do_mpkill( check_CH(LS, 1), check_fstring(LS, 2));
+        do_mpkill( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     else
         mpkill( check_CH(LS, 1),
                 check_CH(LS, 2) );
@@ -1402,7 +1402,7 @@ HELPTOPIC CH_kill_help = {};
 static int CH_assist (lua_State *LS)
 {
     if ( lua_isstring(LS, 2) )
-        do_mpassist( check_CH(LS, 1), check_fstring(LS, 2));
+        do_mpassist( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     else
         mpassist( check_CH(LS, 1), 
                 check_CH(LS, 2) );
@@ -1412,7 +1412,7 @@ HELPTOPIC CH_assist_help = {};
 
 static int CH_junk (lua_State *LS)
 {
-    do_mpjunk( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpjunk( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1420,7 +1420,7 @@ HELPTOPIC CH_junk_help = {};
 
 static int CH_echo (lua_State *LS)
 {
-    do_mpecho( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpecho( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1431,11 +1431,11 @@ static int CH_echoaround (lua_State *LS)
     if ( !is_CH(LS, 2) )
     {
         /* standard 'mob echoaround' syntax */
-        do_mpechoaround( check_CH(LS, 1), check_fstring(LS, 2));
+        do_mpechoaround( check_CH(LS, 1), check_fstring( LS, 2, MIL));
         return 0;
     }
 
-    mpechoaround( check_CH(LS, 1), check_CH(LS, 2), check_fstring(LS, 3) );
+    mpechoaround( check_CH(LS, 1), check_CH(LS, 2), check_fstring( LS, 3, MIL) );
 
     return 0;
 }
@@ -1450,7 +1450,7 @@ static int CH_echoat (lua_State *LS)
         return 0;
     }
 
-    mpechoat( check_CH(LS, 1), check_CH(LS, 2), check_fstring(LS, 3) );
+    mpechoat( check_CH(LS, 1), check_CH(LS, 2), check_fstring( LS, 3, MIL) );
     return 0;
 }
 HELPTOPIC CH_echoat_help = {};
@@ -1458,7 +1458,7 @@ HELPTOPIC CH_echoat_help = {};
 static int CH_mload (lua_State *LS)
 {
 
-    CHAR_DATA *mob=mpmload( check_CH(LS, 1), check_fstring(LS, 2));
+    CHAR_DATA *mob=mpmload( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     if ( mob && make_CH(LS,mob) )
         return 1;
     else
@@ -1475,7 +1475,7 @@ static int CH_purge (lua_State *LS)
     }
     else
     {
-        do_mppurge( check_CH(LS, 1), check_fstring(LS, 2));
+        do_mppurge( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     }
 
     return 0;
@@ -1485,7 +1485,7 @@ HELPTOPIC CH_purge_help = {};
 static int CH_goto (lua_State *LS)
 {
 
-    do_mpgoto( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpgoto( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1494,7 +1494,7 @@ HELPTOPIC CH_goto_help = {};
 static int CH_at (lua_State *LS)
 {
 
-    do_mpat( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpat( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1503,7 +1503,7 @@ HELPTOPIC CH_at_help = {};
 static int CH_transfer (lua_State *LS)
 {
 
-    do_mptransfer( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mptransfer( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1512,7 +1512,7 @@ HELPTOPIC CH_transfer_help = {};
 static int CH_gtransfer (lua_State *LS)
 {
 
-    do_mpgtransfer( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpgtransfer( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1521,7 +1521,7 @@ HELPTOPIC CH_gtransfer_help = {};
 static int CH_otransfer (lua_State *LS)
 {
 
-    do_mpotransfer( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpotransfer( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1530,7 +1530,7 @@ HELPTOPIC CH_otransfer_help = {};
 static int CH_force (lua_State *LS)
 {
 
-    do_mpforce( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpforce( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1539,7 +1539,7 @@ HELPTOPIC CH_force_help = {};
 static int CH_gforce (lua_State *LS)
 {
 
-    do_mpgforce( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpgforce( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1548,7 +1548,7 @@ HELPTOPIC CH_gforce_help = {};
 static int CH_vforce (lua_State *LS)
 {
 
-    do_mpvforce( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpvforce( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1557,7 +1557,7 @@ HELPTOPIC CH_vforce_help = {};
 static int CH_cast (lua_State *LS)
 {
 
-    do_mpcast( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpcast( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1565,7 +1565,7 @@ HELPTOPIC CH_cast_help = {};
 
 static int CH_damage (lua_State *LS)
 {
-    do_mpdamage( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpdamage( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1574,7 +1574,7 @@ HELPTOPIC CH_damage_help = {};
 static int CH_remove (lua_State *LS)
 {
 
-    do_mpremove( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mpremove( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1585,7 +1585,7 @@ static int CH_remort (lua_State *LS)
     if ( !is_CH(LS, 2) )
     {
         /* standard 'mob remort' syntax */
-        do_mpremort( check_CH(LS, 1), check_fstring(LS, 2));
+        do_mpremort( check_CH(LS, 1), check_fstring( LS, 2, MIL));
         return 0;
     }
 
@@ -1600,7 +1600,7 @@ static int CH_qset (lua_State *LS)
     if ( !is_CH( LS, 2 ) )
     {
         /* standard 'mob qset' syntax */
-        do_mpqset( check_CH(LS, 1), check_fstring(LS, 2));
+        do_mpqset( check_CH(LS, 1), check_fstring( LS, 2, MIL));
         return 0;
     }
 
@@ -1619,7 +1619,7 @@ static int CH_qadvance (lua_State *LS)
     if ( !is_CH( LS, 2) )
     {
         /* standard 'mob qset' syntax */
-        do_mpqadvance( check_CH(LS, 1), check_fstring(LS, 2));
+        do_mpqadvance( check_CH(LS, 1), check_fstring( LS, 2, MIL));
         return 0;
     }
 
@@ -1637,7 +1637,7 @@ static int CH_reward (lua_State *LS)
     if ( !is_CH( LS, 2 ) )
     {
         /* standard 'mob reward' syntax */
-        do_mpreward( check_CH(LS, 1), check_fstring(LS, 2));
+        do_mpreward( check_CH(LS, 1), check_fstring( LS, 2, MIL));
         return 0;
     }
 
@@ -1653,7 +1653,7 @@ static int CH_peace (lua_State *LS)
     if ( lua_isnone( LS, 2) )
         do_mppeace( check_CH(LS, 1), "");
     else
-        do_mppeace( check_CH(LS, 1), check_fstring(LS, 2));
+        do_mppeace( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1661,7 +1661,7 @@ HELPTOPIC CH_peace_help = {};
 
 static int CH_restore (lua_State *LS)
 {
-    do_mprestore( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mprestore( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1669,7 +1669,7 @@ HELPTOPIC CH_restore_help = {};
 
 static int CH_hit (lua_State *LS)
 {
-    do_mphit( check_CH(LS, 1), check_fstring(LS, 2));
+    do_mphit( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 
@@ -1678,7 +1678,7 @@ HELPTOPIC CH_hit_help = {};
 
 static int CH_mdo (lua_State *LS)
 {
-    interpret( check_CH(LS, 1), check_fstring (LS, 2));
+    interpret( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
@@ -1687,7 +1687,7 @@ HELPTOPIC CH_mdo_help = {};
 static int CH_mobhere (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1); 
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     if ( is_r_number( argument ) )
         lua_pushboolean( LS, (bool) get_mob_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) ); 
@@ -1701,7 +1701,7 @@ HELPTOPIC CH_mobhere_help = {};
 static int CH_objhere (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     if ( is_r_number( argument ) )
         lua_pushboolean( LS,(bool) get_obj_vnum_room( ud_ch, r_atoi(ud_ch, argument) ) );
@@ -1715,7 +1715,7 @@ HELPTOPIC CH_objhere_help = {};
 static int CH_mobexists (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1); 
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     lua_pushboolean( LS,(bool) (get_mp_char( ud_ch, argument) != NULL) );
 
@@ -1726,7 +1726,7 @@ HELPTOPIC CH_mobexists_help = {};
 static int CH_objexists (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1); 
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     lua_pushboolean( LS, (bool) (get_mp_obj( ud_ch, argument) != NULL) );
 
@@ -1866,7 +1866,7 @@ static int CH_setact (lua_State *LS)
     if (lua_isnone(LS, 3) )
     {
         /* only 1 arg so using old syntax */
-        do_mpact( ud_ch, check_fstring(LS, 2));
+        do_mpact( ud_ch, check_fstring( LS, 2, MIL));
         return 0;
     }
 
@@ -1899,7 +1899,7 @@ HELPTOPIC CH_immune_help = {};
 static int CH_carries (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     if ( is_r_number( argument ) )
         lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, r_atoi(ud_ch, argument), -1, FALSE ) );
@@ -1913,7 +1913,7 @@ HELPTOPIC CH_carries_help = {};
 static int CH_wears (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     if ( is_r_number( argument ) )
         lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, r_atoi(ud_ch, argument), -1, TRUE ) );
@@ -1927,7 +1927,7 @@ HELPTOPIC CH_wears_help = {};
 static int CH_has (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, -1, item_lookup(argument), FALSE ) );
 
@@ -1938,7 +1938,7 @@ HELPTOPIC CH_has_help = {};
 static int CH_uses (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, -1, item_lookup(argument), TRUE ) );
 
@@ -1950,7 +1950,7 @@ static int CH_say (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
-    do_say( ud_ch, check_fstring(LS, 2) );
+    do_say( ud_ch, check_fstring( LS, 2, MIL) );
     return 0;
 }
 HELPTOPIC CH_say_help = {};
@@ -2043,7 +2043,7 @@ HELPTOPIC CH_resist_help = {};
 static int CH_skilled (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     lua_pushboolean( LS,  ud_ch != NULL && skill_lookup(argument) != -1
             && get_skill(ud_ch, skill_lookup(argument)) > 0 );
@@ -2055,7 +2055,7 @@ HELPTOPIC CH_skilled_help = {};
 static int CH_ccarries (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MIL);
 
     if ( is_r_number( argument ) )
     {
@@ -3200,7 +3200,7 @@ HELPTOPIC OBJ_wear_help={};
 static int OBJ_echo( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
-    char *argument= check_fstring (LS, 2);
+    char *argument= check_fstring( LS, 2, MIL);
 
     if (ud_obj->carried_by)
     {
@@ -3708,7 +3708,7 @@ HELPTOPIC AREA_flag_help={};
 static int AREA_echo( lua_State *LS)
 {
     AREA_DATA *ud_area = check_AREA(LS, 1);
-    const char *argument = check_fstring(LS, 2);
+    const char *argument = check_fstring( LS, 2, MSL);
     DESCRIPTOR_DATA *d;
 
     for ( d = descriptor_list; d; d = d->next )
@@ -3985,7 +3985,7 @@ HELPTOPIC ROOM_flag_help={};
 static int ROOM_echo( lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
-    const char *argument = check_fstring (LS, 2);
+    const char *argument = check_fstring( LS, 2, MSL);
 
     CHAR_DATA *vic;
     for ( vic=ud_room->people ; vic ; vic=vic->next_in_room )
