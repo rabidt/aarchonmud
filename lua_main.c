@@ -559,7 +559,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
     if (!success)
     {
         ptc(ch, "Can't open lua interpreter, %s already has it open for that object.\n\r",
-                luaL_checkstring( g_mud_LS, -1));
+                check_string( g_mud_LS, -1, MIL));
         lua_settop(g_mud_LS, 0);
         return;
     }
