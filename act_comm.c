@@ -899,6 +899,12 @@ void do_say( CHAR_DATA *ch, char *argument )
 {
     char *mid1, *mid2, *scan;
     char buf[MAX_STRING_LENGTH];
+    if ( strlen(argument) >= MAX_STRING_LENGTH )
+    {
+        bugf("%s sent %d length string to do_say",
+                ch->name, strlen(argument) );
+        return;
+    }
     
     if (is_affected(ch, gsn_slash_throat) && !IS_IMMORTAL(ch))
     {
