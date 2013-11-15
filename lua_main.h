@@ -19,7 +19,8 @@ double genrand(void);
 
 int L_delay( lua_State *LS);
 int L_cancel( lua_State *LS);
-const char *check_fstring( lua_State *LS, int index);
+const char *check_fstring( lua_State *LS, int index, size_t size);
+const char *check_string( lua_State *LS, int index, size_t size);
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
 void stackDump (lua_State *LS);
 
