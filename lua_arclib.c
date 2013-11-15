@@ -734,7 +734,7 @@ HELPTOPIC mtlib_srand_help={};
 
 static int mtlib_rand (lua_State *LS)
 {
-    lua_pushnumber (LS, genrand ());
+    lua_pushnumber (LS, (double)genrand ());
     return 1;
 } /* end of mtlib_rand */
 HELPTOPIC mtlib_rand_help={};
@@ -768,9 +768,10 @@ static int glob_randnum ( lua_State *LS)
 {
     int top=lua_gettop(LS);
     lua_getglobal( LS, "glob_randnum");
+    lua_insert( LS, 1);
     lua_call( LS, top, LUA_MULTRET );
     
-    return lua_gettop(LS)-top;
+    return lua_gettop(LS);
 }
 HELPTOPIC glob_randnum_help={};
 
@@ -778,9 +779,10 @@ static int glob_rand ( lua_State *LS)
 {
     int top=lua_gettop(LS);
     lua_getglobal( LS, "glob_rand");
+    lua_insert( LS, 1 );
     lua_call( LS, top, LUA_MULTRET );
     
-    return lua_gettop(LS)-top;
+    return lua_gettop(LS);
 }
 HELPTOPIC glob_rand_help={};
 
@@ -788,9 +790,10 @@ static int glob_tprintstr ( lua_State *LS)
 {
     int top=lua_gettop(LS);
     lua_getglobal( LS, "glob_tprintstr");
+    lua_insert(LS, 1);
     lua_call( LS, top, LUA_MULTRET );
     
-    return lua_gettop(LS)-top;
+    return lua_gettop(LS);
 }
 HELPTOPIC glob_tprintstr_help={};
 
@@ -3372,7 +3375,7 @@ HELPTOPIC OBJ_get_vnum_help={};
 static int OBJ_get_otype (lua_State *LS)
 {
     lua_pushstring( LS,
-            (check_OBJ(LS,1))->item_type);
+            item_name((check_OBJ(LS,1))->item_type));
     return 1;
 }
 HELPTOPIC OBJ_get_otype_help={};
@@ -4625,7 +4628,7 @@ HELPTOPIC OBJPROTO_get_vnum_help={};
 static int OBJPROTO_get_otype (lua_State *LS)
 {
     lua_pushstring( LS,
-            (check_OBJPROTO(LS,1))->item_type);
+            item_name((check_OBJPROTO(LS,1))->item_type));
     return 1;
 }
 HELPTOPIC OBJPROTO_get_otype_help={};
