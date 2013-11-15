@@ -580,6 +580,7 @@ const struct flag_type rprog_flags[] =
     {   "close",        RTRIG_CLOSE,     TRUE    },
     {   "enter",        RTRIG_ENTER,     TRUE    },
     {   "exit",         RTRIG_EXIT,      TRUE    },
+    {   "look",         RTRIG_LOOK,      TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
