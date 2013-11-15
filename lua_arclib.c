@@ -973,7 +973,7 @@ static int set_flag( lua_State *LS,
         const struct flag_type *flagtbl, 
         tflag flagvar )
 {
-    const char *argument = luaL_checkstring( LS, 2);
+    const char *argument = check_string( LS, 2, MIL);
     luaL_checktype( LS, 3, LUA_TBOOLEAN );
     bool set=lua_toboolean( LS, 3 );
     
@@ -1115,7 +1115,7 @@ int L_delay (lua_State *LS)
     luaL_checktype( LS, 3, LUA_TFUNCTION);
     if (!lua_isnone( LS, 4 ) )
     {
-       tag=str_dup(luaL_checkstring( LS, 4 ));
+       tag=str_dup(check_string( LS, 4, MIL ));
     }
 
     lua_getglobal( LS, "delaytbl");
@@ -1153,7 +1153,7 @@ int L_cancel (lua_State *LS)
     const char *tag=NULL;
     if (!lua_isnone(LS, 2))
     {
-        tag=luaL_checkstring( LS, 2 );
+        tag=check_string( LS, 2, MIL );
         lua_remove( LS, 2 );
     }
 
@@ -1262,7 +1262,7 @@ static int CH_tprint ( lua_State *LS)
     lua_pushvalue( LS, 2);
     lua_call( LS, 1, 1 );
 
-    do_say( ud_ch, luaL_checkstring (LS, -1));
+    do_say( ud_ch, check_string(LS, -1, MIL));
 
     return 0;
 }
@@ -1321,7 +1321,7 @@ static int CH_loadscript (lua_State *LS)
     lua_call( LS, 2, 1);
 
     /* now run the result as a regular mprog with vnum 0*/
-    lua_mob_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, -1), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
+    lua_mob_program( NULL, LOADSCRIPT_VNUM, check_string(LS, -1, MAX_SCRIPT_LENGTH), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
 
     return 0;
 }
@@ -1330,7 +1330,7 @@ HELPTOPIC CH_loadscript_help = {};
 static int CH_loadstring (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
-    lua_mob_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, 2), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
+    lua_mob_program( NULL, LOADSCRIPT_VNUM, check_string(LS, 2, MAX_SCRIPT_LENGTH), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
     return 0;
 } 
 HELPTOPIC CH_loadstring_help = {};
@@ -1446,7 +1446,7 @@ static int CH_echoat (lua_State *LS)
     if ( lua_isnone(LS, 3) )
     {
         /* standard 'mob echoat' syntax */
-        do_mpechoat( check_CH(LS, 1), luaL_checkstring(LS, 2));
+        do_mpechoat( check_CH(LS, 1), check_string(LS, 2, MIL));
         return 0;
     }
 
@@ -1606,7 +1606,7 @@ static int CH_qset (lua_State *LS)
 
 
     mpqset( check_CH(LS, 1), check_CH(LS, 2),
-            luaL_checkstring(LS, 3), luaL_checkstring(LS, 4),
+            check_string(LS, 3, MIL), check_string(LS, 4, MIL),
             lua_isnone( LS, 5 ) ? 0 : (int)luaL_checknumber( LS, 5),
             lua_isnone( LS, 6 ) ? 0 : (int)luaL_checknumber( LS, 6) );
 
@@ -1624,8 +1624,8 @@ static int CH_qadvance (lua_State *LS)
     }
 
     mpqadvance( check_CH(LS, 1), check_CH(LS, 2),
-            luaL_checkstring(LS, 3),
-            lua_isnone( LS, 4 ) ? "" : luaL_checkstring(LS, 4) ); 
+            check_string(LS, 3, MIL),
+            lua_isnone( LS, 4 ) ? "" : check_string(LS, 4, MIL) ); 
 
 
     return 0;
@@ -1642,7 +1642,7 @@ static int CH_reward (lua_State *LS)
     }
 
     mpreward( check_CH(LS, 1), check_CH(LS, 2),
-            luaL_checkstring(LS, 3),
+            check_string(LS, 3, MIL),
             (int)luaL_checknumber(LS, 4) );
     return 0;
 }
@@ -1837,7 +1837,7 @@ HELPTOPIC CH_isvisible_help = {};
 static int CH_affected (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = luaL_checkstring (LS, 2);
+    const char *argument = check_string(LS, 2, MIL);
 
     lua_pushboolean( LS,  ud_ch != NULL
             &&  is_affected_parse(ud_ch, argument) );
@@ -2129,7 +2129,7 @@ static int CH_set_name (lua_State *LS)
     CHAR_DATA *ud_ch=check_CH( LS, 1);
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set name on PCs.");
-    const char *new=luaL_checkstring(LS, 2);
+    const char *new=check_string(LS, 2, MIL);
     free_string( ud_ch->name );
     ud_ch->name=str_dup(new);
     return 0;
@@ -2304,7 +2304,7 @@ static int CH_set_sex (lua_State *LS)
     CHAR_DATA *ud_ch=check_CH(LS,1);
     if (!IS_NPC(ud_ch))
         luaL_error( LS, "Can't set sex on PCs.");
-    const char *arg=luaL_checkstring( LS, 2);
+    const char *arg=check_string( LS, 2, MIL);
     
     int i;
     for ( i=0 ; sex_table[i].name ; i++ )
@@ -2335,7 +2335,7 @@ static int CH_set_size (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error( LS, "Can't set gold on PCs.");
         
-    const char *arg=luaL_checkstring( LS, 2);
+    const char *arg=check_string( LS, 2, MIL);
     int i;
     for ( i=0 ; size_table[i].name ; i++ )
     {
@@ -2554,7 +2554,7 @@ static int CH_set_class (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error( LS, "Can't set class on PCs.");
     
-    const char * arg=luaL_checkstring(LS, 2);
+    const char * arg=check_string(LS, 2, MIL);
     int class=class_lookup(arg);
     if (class==-1)
         luaL_error(LS, "No such class: %s", arg );
@@ -2578,7 +2578,7 @@ static int CH_set_race (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error( LS, "Can't set race on PCs.");
     
-    const char * arg=luaL_checkstring(LS, 2);
+    const char * arg=check_string(LS, 2, MIL);
     int race=race_lookup(arg);
     if (race==0)
         luaL_error(LS, "No such race: %s", arg );
@@ -2846,7 +2846,7 @@ static int CH_set_shortdescr (lua_State *LS)
     CHAR_DATA *ud_ch=check_CH( LS, 1);
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set shortdescr on PCs.");
-    const char *new=luaL_checkstring(LS, 2);
+    const char *new=check_string(LS, 2, MIL);
     free_string( ud_ch->short_descr );
     ud_ch->short_descr=str_dup(new);
     return 0;
@@ -2870,7 +2870,7 @@ static int CH_set_longdescr (lua_State *LS)
     CHAR_DATA *ud_ch=check_CH( LS, 1);
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set longdescr on PCs.");
-    const char *new=luaL_checkstring(LS, 2);
+    const char *new=check_string(LS, 2, MIL);
     free_string( ud_ch->long_descr );
     ud_ch->long_descr=str_dup(new);
     return 0;
@@ -3108,7 +3108,7 @@ static int OBJ_loadscript (lua_State *LS)
     /* now run the result as a regular oprog with vnum 0*/
 
     lua_pushboolean( LS,
-            lua_obj_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+            lua_obj_program( NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
 
     return 1;
 
@@ -3119,7 +3119,7 @@ static int OBJ_loadstring (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     lua_pushboolean( LS,
-            lua_obj_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, 2), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+            lua_obj_program( NULL, LOADSCRIPT_VNUM, check_string( LS, 2, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
     return 1;
 }
 HELPTOPIC OBJ_loadstring_help={};
@@ -3256,7 +3256,7 @@ HELPTOPIC OBJ_get_name_help={};
 static int OBJ_set_name (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS, 1);
-    const char *arg=luaL_checkstring(LS,2);
+    const char *arg=check_string(LS,2,MIL);
     free_string(ud_obj->name);
     ud_obj->name=str_dup(arg);
     return 0;
@@ -3274,7 +3274,7 @@ HELPTOPIC OBJ_get_shortdescr_help={};
 static int OBJ_set_shortdescr (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS, 1);
-    const char *arg=luaL_checkstring(LS,2);
+    const char *arg=check_string(LS,2,MIL);
     free_string(ud_obj->short_descr);
     ud_obj->short_descr=str_dup(arg);
     return 0;
@@ -3329,7 +3329,7 @@ HELPTOPIC OBJ_get_owner_help={};
 static int OBJ_set_owner (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS, 1);
-    const char *arg=luaL_checkstring(LS,2);
+    const char *arg=check_string(LS,2,MIL);
     free_string(ud_obj->owner);
     ud_obj->owner=str_dup(arg);
     return 0;
@@ -3355,7 +3355,7 @@ HELPTOPIC OBJ_get_material_help={};
 static int OBJ_set_material (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS, 1);
-    const char *arg=luaL_checkstring(LS,2);
+    const char *arg=check_string(LS,2,MIL);
     free_string(ud_obj->material);
     ud_obj->material=str_dup(arg);
     return 0;
@@ -3664,7 +3664,7 @@ static int AREA_loadscript (lua_State *LS)
 
     /* now run the result as a regular aprog with vnum 0*/
     lua_pushboolean( LS,
-            lua_area_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1), ud_area, NULL, ATRIG_CALL, 0) );
+            lua_area_program( NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH), ud_area, NULL, ATRIG_CALL, 0) );
 
     return 1;
 }
@@ -3674,7 +3674,7 @@ static int AREA_loadstring (lua_State *LS)
 {
     AREA_DATA *ud_area=check_AREA(LS,1);
     lua_pushboolean( LS,
-            lua_area_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, 2), ud_area, NULL, ATRIG_CALL, 0) );
+            lua_area_program( NULL, LOADSCRIPT_VNUM, check_string( LS, 2, MAX_SCRIPT_LENGTH), ud_area, NULL, ATRIG_CALL, 0) );
     return 1;
 }
 HELPTOPIC AREA_loadstring_help={};
@@ -4061,7 +4061,7 @@ static int ROOM_loadscript (lua_State *LS)
     lua_call( LS, 2, 1);
 
     lua_pushboolean( LS,
-            lua_room_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring( LS, -1),
+            lua_room_program( NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH),
                 ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
     return 1;
 }
@@ -4071,7 +4071,7 @@ static int ROOM_loadstring (lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
     lua_pushboolean( LS,
-            lua_room_program( NULL, LOADSCRIPT_VNUM, luaL_checkstring(LS, 2),
+            lua_room_program( NULL, LOADSCRIPT_VNUM, check_string(LS, 2, MAX_SCRIPT_LENGTH),
                 ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
     return 1;
 }
