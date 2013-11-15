@@ -229,6 +229,7 @@ static void register_type( OBJ_TYPE *tp,
     lua_pushcclosure( LS, newindex_metamethod, 1 );
 
     lua_setfield( LS, -2, "__newindex");
+    lua_pop(LS, 1);
 }
 
 static bool make_func( OBJ_TYPE *self,
@@ -909,6 +910,9 @@ void register_globals( lua_State *LS )
                 lua_setglobal( LS, glob_table[i].lib );
                 
             }
+            lua_pushcfunction( LS, glob_table[i].func );
+            lua_setfield( LS, -2, glob_table[i].name );
+            lua_pop(LS, 1); // kill lib table
         }
         else
         {
@@ -920,18 +924,12 @@ void register_globals( lua_State *LS )
             }
             else
                 lua_pop(LS, 1); /* kill the nil */
-
-        }
-
-        lua_pushcfunction( LS, glob_table[i].func );
-        if ( glob_table[i].lib )
-        {
-            lua_setfield( LS, -2, glob_table[i].name );
-        }
-        else
-        {
+            
+            lua_pushcfunction( LS, glob_table[i].func );
             lua_setglobal( LS, glob_table[i].name );
+
         }
+
 
         if (glob_table[i].security == SEC_NOSCRIPT)
             continue; /* don't add to script_globs */ 
@@ -948,7 +946,6 @@ void register_globals( lua_State *LS )
                 lua_newtable(LS);
                 lua_pushvalue( LS, -1); //make a copy because
                 lua_setfield( LS, -3, glob_table[i].lib );
-                lua_pop(LS, -2); // pop script_globs
             }
         }
 
@@ -960,9 +957,10 @@ void register_globals( lua_State *LS )
         
         /* set as field to script_globs script_globs.lib */
         lua_setfield( LS, -2, glob_table[i].name );
+
+        lua_settop(LS, top); // clearn junk after each loop
     }
 
-    lua_settop(LS, top); // Clear junk we might have left around 
 }
 
 

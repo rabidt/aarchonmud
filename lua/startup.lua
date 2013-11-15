@@ -234,48 +234,16 @@ main_lib={  require=require,
         -- this is safe because we protected the game object and main lib
         --  metatables.
 		setmetatable=setmetatable,
-		-- okay now our stuff
-		-- checks
-		hour=hour,
-
-		-- other
---[[        tprintstr=tprintstr,
-        getroom=getroom,
-		randnum=randnum,
-		rand=rand,
-		getobjproto=getobjproto,
-        getmobproto=getmobproto,
-		getobjworld=getobjworld,
-		getmobworld=getmobworld,
-        log=log,
-        sendtochar=sendtochar,
-        pagetochar=pagetochar,
-        getcharlist=getcharlist,
-        getmoblist=getmoblist,
-        getplayerlist=getplayerlist,
-        getobjlist=getobjlist,
-        getarealist=getarealist,
-        clearloopcount=clearloopcount,
-        god={confuse=god.confuse,
-            curse=god.curse,
-            plague=god.plague,
-            bless=god.bless,
-            slow=god.slow,
-            speed=god.speed,
-            heal=god.heal,
-            enlighten=god.enlighten,
-            protect=god.protect,
-            fortune=god.fortune,
-            haunt=god.haunt,
-            cleanse=god.cleanse,
-            defy=god.defy
-        },
-        dbg={show=dbg.show}
---]]
 }
 
 -- add script_globs to main_lib
 for k,v in pairs(script_globs) do
+    print("Adding "..k.." to main_lib.")
+    if type(v)=="table" then
+        for j,w in pairs(v) do
+            print(j)
+        end
+    end
     main_lib[k]=v
 end
 
