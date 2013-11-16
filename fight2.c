@@ -3282,10 +3282,11 @@ void do_hurl( CHAR_DATA *ch, char *argument )
         dam = martial_damage( ch, gsn_hurl );
         
         DAZE_STATE( victim, 2*PULSE_VIOLENCE + victim->size - SIZE_MEDIUM );
+        WAIT_STATE( victim, PULSE_VIOLENCE );
         damage(ch,victim, dam, gsn_hurl,DAM_BASH,TRUE);
         
         stop_fighting( victim, FALSE );
-	set_pos( victim, POS_RESTING );
+        set_pos( victim, POS_RESTING );
         
         for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
         {
