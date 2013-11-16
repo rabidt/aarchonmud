@@ -267,7 +267,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         425
+#define MAX_SKILL         426
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1109,6 +1109,7 @@ struct  kill_data
 #define MOB_VNUM_SNAKE          7
 #define MOB_VNUM_VAMPIRE        8
 #define MOB_VNUM_GHOST          9
+#define MOB_VNUM_SPIRIT         10
 #define MOB_VNUM_BASIC_APPARITION 11
 #define MOB_VNUM_HOLY_APPARITION 12
 #define MOB_VNUM_WATER_ELEMENTAL 13

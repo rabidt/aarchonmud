@@ -3266,6 +3266,17 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	"",         "!Gate!",       "", NULL
 	},
 
+    {
+    "ghost chant",  
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  26 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_INT,
+    spell_ghost_chant, TAR_IGNORE,     POS_STANDING,
+    NULL,           SLOT(673),   80, 20, DUR_LONG,
+    "chant", "The magic binding you dissipates.", "", NULL
+    },
+    
 	{
 	"giant strength",  
 	{ 45, 40, 102,  8, 102, 40, 102, 50, 35, 102, 30, 10, 62, 20, 9 },
@@ -7363,7 +7374,7 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"necromancy",   { -1, -1, 10, 12, -1, -1, -1, -1, -1, -1, 11, -1, -1, -1, 9 },
-	{ "animate dead", "cannibalism", "chill touch", "damned blade", 
+	{ "animate dead", "ghost chant", "cannibalism", "chill touch", "damned blade",
 	  "dominate soul", "energy drain", "necrosis", "ritual sacrifice" }
 	},
 
@@ -7566,7 +7577,7 @@ const struct mastery_group_type mastery_group_table[] =
     
     { "summoning", 4,
         { "animate dead", "tree golem", "sticks to snakes", "water elemental", "call sidekick",
-        "basic apparition", "holy apparition" }
+        "basic apparition", "holy apparition", "ghost chant" }
     },
     
     { "stances", 2,
