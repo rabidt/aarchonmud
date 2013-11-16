@@ -2502,6 +2502,11 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
     if ( wield == NULL || wield->value[0] != WEAPON_DAGGER )
 	return;
 
+    // assassination mastery increases chance by up to factor 2, depending on victim's health
+    int dam_taken = (victim->max_hit - victim->hit) * 100 / victim->max_hit;
+    if ( per_chance(dam_taken) && per_chance(mastery_bonus(ch, gsn_beheading, 60, 100)) )
+        chance = UMAX(0, chance - 1);
+    
     extra_chance = 50 + (get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 4;
     if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
 	extra_chance += 10;
