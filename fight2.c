@@ -133,7 +133,7 @@ void do_berserk( CHAR_DATA *ch, char *argument )
         af.type     = gsn_berserk;
         af.level    = ch->level;
         af.duration = get_duration(gsn_berserk, ch->level);
-        af.modifier = UMAX(1,ch->level/5) + mastery_bonus(ch, gsn_berserk, 3, 5);
+        af.modifier = UMAX(1,ch->level/5) + mastery_bonus(ch, gsn_berserk, 6, 10);
         af.bitvector    = AFF_BERSERK;
     
         af.location = APPLY_HITROLL;
