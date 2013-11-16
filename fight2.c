@@ -775,44 +775,25 @@ void do_semiauto( CHAR_DATA *ch, char *argument)
 
 void do_hogtie(CHAR_DATA *ch, char *argument )
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *rope;
     int chance, skill;
     AFFECT_DATA af;
     
-    one_argument(argument,arg);
-    
-    if ( (skill = get_skill(ch,gsn_hogtie)) == 0
-        ||   (IS_NPC(ch)))
+    if ( (skill = get_skill(ch, gsn_hogtie)) == 0 )
     {
         send_to_char("Better leave that to the hogtyin' professionals.\n\r",ch);
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't in combat!\n\r",ch);
-            return;
-        }
-    }
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( victim == ch )
     {
         send_to_char("Sick, sick, sick.\n\r",ch);
         return;
     }
-    
-    if ( is_safe(ch,victim) )
-        return;
     
     rope = get_eq_char(ch, WEAR_HOLD);
     if ((rope == NULL) || (rope->item_type != ITEM_HOGTIE))
@@ -862,6 +843,7 @@ void do_hogtie(CHAR_DATA *ch, char *argument )
         check_improve(ch,gsn_hogtie,FALSE,2);
         WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
     }
+    start_combat(ch, victim);
 }
 
 /* parameters for aiming, must terminate with "" */
