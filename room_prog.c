@@ -52,13 +52,6 @@ bool rp_exit_trigger( CHAR_DATA *ch )
             NULL, NULL, RTRIG_EXIT);
 }
 
-bool rp_look_trigger( CHAR_DATA *ch )
-{
-    return rp_percent_trigger(
-            ch->in_room, ch, NULL,
-            NULL, NULL, RTRIG_LOOK);
-}
-
 /* base function for exit specific triggers */
 static bool exit_trigger( CHAR_DATA *ch, ROOM_INDEX_DATA *room, int door, int type )
 {
@@ -112,7 +105,6 @@ bool rp_move_trigger( CHAR_DATA *ch, int door )
 {
     return exit_trigger( ch, ch->in_room, door, RTRIG_MOVE );
 }
-
 
 void rp_timer_trigger( ROOM_INDEX_DATA *room )
 {

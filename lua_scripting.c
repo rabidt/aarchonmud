@@ -90,9 +90,6 @@ http://www.gammon.com.au/forum/?id=8015
 /* TRIGTYPE_ARG */
 #define NUM_RPROG_RESULTS 1
 
-        case ED_RPCODE:
-            rpedit( ch, argument );
-            break;
 
 bool lua_load_mprog( lua_State *LS, int vnum, const char *code )
 {

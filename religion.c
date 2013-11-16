@@ -3012,7 +3012,7 @@ bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     /* When called through auto-granting, there is no ch */
     if( ch != NULL )
     {
-    act( "You grant good fortune to $N.", ch, NULL, victim, TO_CHAR );
+    act( "You grants you good fortune $N.", ch, NULL, victim, TO_CHAR );
     act( "$N grants you good fortune.", victim, NULL, ch, TO_CHAR );
     }
     else

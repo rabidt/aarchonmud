@@ -4644,7 +4644,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"hand to hand",  
 	{  4,  5,  6,  8,  1,  2,  5,  6,  1,  1,  6,  7,  5, 1, 8 },//
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -4734,7 +4734,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"dual wield",
 	{  5, 102, 102, 102,  1,  5, 102, 37, 102, 102, 102, 102, 102, 10, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 7,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE, POS_FIGHTING,
@@ -4745,7 +4745,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"dual dagger",
 	{ 102, 48, 102, 102, 2, 102, 102, 33, 41, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 1,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE, POS_FIGHTING,
@@ -4757,7 +4757,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"dual sword",
 	{  102, 102, 102, 102, 25, 15, 102, 102, 102, 102, 102, 102, 102, 15, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 1,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE, POS_FIGHTING,
@@ -4768,7 +4768,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"dual axe",
 	{  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 1,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE, POS_FIGHTING,
@@ -4779,7 +4779,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"dual gun",
 	{  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 44, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 1,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE, POS_FIGHTING,
@@ -4812,7 +4812,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"circle",  
 	{ 102, 27, 102, 102, 102, 102, 102, 33, 102, 102, 102, 102, 102, 60, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 4,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -4901,7 +4901,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"kung fu",
 	{ 45, 102, 102, 102, 40, 33, 102, 102,  6,  2, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 15, 10,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 15, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -6036,7 +6036,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"beheading",  
 	{ 75, 102, 102, 102, 40, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 18, 10,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 18, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -6916,7 +6916,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"flee",   
 	{  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 4,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 5,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -6938,7 +6938,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"entrapment",   
 	{  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 4,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -7584,13 +7584,8 @@ const struct mastery_group_type mastery_group_table[] =
     },
 
     { "weapons", 8,
-        { "axe", "dagger", "flail", "mace", "polearm", "spear", "sword", "whip", "gun", "bow",
-          "hand to hand" }
+        { "axe", "dagger", "flail", "mace", "polearm", "spear", "sword", "whip", "gun", "bow" }
     },
     
-    { "dual weapon", 5,
-        { "dual dagger", "dual sword", "dual axe", "dual gun" }
-    },
-
     { NULL }
 };

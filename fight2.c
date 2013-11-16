@@ -1329,7 +1329,6 @@ void do_circle( CHAR_DATA *ch, char *argument )
         chance += 25;
     if ( IS_AFFECTED(victim, AFF_HASTE) )
         chance -= 25;
-    chance += mastery_bonus(ch, gsn_circle, 12, 15);
     
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_circle].beats );
@@ -1338,20 +1337,17 @@ void do_circle( CHAR_DATA *ch, char *argument )
     {
         check_improve(ch,gsn_circle,TRUE,3);
 
-        bool hit = one_hit(ch, victim, gsn_circle, FALSE);
+        one_hit( ch, victim, gsn_circle, FALSE);
         CHECK_RETURN(ch, victim);
         
         if ( offhand_attack_chance(ch) > 0 )
         {
-            hit = one_hit(ch, victim, gsn_circle, TRUE) || hit;
+            one_hit(ch, victim, gsn_circle, TRUE);
             CHECK_RETURN(ch, victim);
         }
-        
-        if ( hit )
-        {
-            OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
-            check_assassinate(ch, victim, weapon, 6);
-        }
+
+        OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
+        check_assassinate(ch, victim, weapon, 6);
     }
     else
     {
@@ -1570,8 +1566,7 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     */
 
     check_killer( ch, fch );
-    if ( ch->fighting != fch )
-        set_fighting( ch, fch );
+    set_fighting( ch, fch );
     set_fighting( fch, ch );
     /*set_fighting( victim, other );*/
     return;
@@ -2981,13 +2976,12 @@ void do_round_swing( CHAR_DATA *ch, char *argument )
 
     WAIT_STATE( ch, skill_table[gsn_round_swing].beats );
 
-    if ( !per_chance(skill) )
+    if ( number_percent() > skill )
     {
-        send_to_char("You stumble and fall to the ground.\n\r", ch);
-        act("$n tries to swing $s weapon but stumbles.", ch, NULL, NULL, TO_ROOM);
-        set_pos(ch, POS_RESTING);
-        check_improve(ch, gsn_round_swing, FALSE, 3);
-        return;
+	send_to_char( "You stumble and fall to the ground.\n\r", ch );
+	set_pos( ch, POS_RESTING );
+	check_improve( ch, gsn_round_swing, FALSE, 3 );
+	return;
     }
 
     send_to_char( "You spin around fiercely!\n\r", ch );

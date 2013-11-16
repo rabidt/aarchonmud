@@ -219,45 +219,6 @@ CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )
     return NULL;
 }
 
-void gain_skill(CHAR_DATA *ch, int sn, CHAR_DATA *trainer)
-{
-    if ( ch->pcdata->learned[sn] )
-    {
-        if ( trainer )
-            act("$N tells you 'You already know that skill!'", ch, NULL, trainer, TO_CHAR);
-        else
-            send_to_char("You already know that skill.\n\r", ch);
-        return;
-    }
-
-    if ( !can_gain_skill(ch, sn) )
-    {
-        if ( trainer )
-            act("$N tells you 'That skill is beyond your powers.'", ch, NULL, trainer, TO_CHAR);
-        else
-            send_to_char("That skill is beyond your powers.\n\r", ch);
-        return;
-    }
-
-    int cost = skill_table[sn].rating[ch->class];
-    if ( ch->train < cost )
-    {
-        if ( trainer )
-            act("$N tells you 'You are not yet ready for that skill.'", ch, NULL, trainer, TO_CHAR);
-        else
-            send_to_char("You aren't ready for that skill.\n\r", ch);
-        return;
-    }
-
-    if ( trainer )
-        act("$N trains you in the art of $t.", ch, skill_table[sn].name, trainer, TO_CHAR);
-    else
-        act("You learn the art of $t.", ch, skill_table[sn].name, NULL, TO_CHAR);
-
-    ch->pcdata->learned[sn] = 1;
-    ch->train -= cost;
-}
-
 /* used to get new skills */
 void do_gain(CHAR_DATA *ch, char *argument)
 {
@@ -458,11 +419,6 @@ void do_gain(CHAR_DATA *ch, char *argument)
             update_perm_hp_mana_move(ch);
             return;
 		}
-        else if ( (sn = skill_lookup_exact(argument)) > 0 )
-        {
-            gain_skill(ch, sn, trainer);
-            return;
-        }
 		else if ( (gn = group_lookup(argument)) > 0)
 		{
 			if (ch->pcdata->group_known[gn])
@@ -503,11 +459,46 @@ void do_gain(CHAR_DATA *ch, char *argument)
             ch->train -= group_cost;
 			return;
 		}
-        else if ( (sn = skill_lookup(argument)) > 0 )
-        {
-            gain_skill(ch, sn, trainer);
-            return;
-        }
+		else if ((sn = skill_lookup(argument)) > -1)
+		{			
+			if (ch->pcdata->learned[sn])
+			{
+				if ( introspect )
+					send_to_char("You already know that skill.\n\r",ch);
+				else
+					act( "$N tells you 'You already know that skill!'",
+					ch,NULL,trainer,TO_CHAR );
+				return;
+			}
+			
+			if ( !can_gain_skill(ch, sn) )
+			{
+				if ( introspect )
+					send_to_char("That skill is beyond your powers.\n\r",ch);
+				else
+					act( "$N tells you 'That skill is beyond your powers.'",
+					ch,NULL,trainer,TO_CHAR );
+				return;
+			}
+			if (ch->train < skill_table[sn].rating[ch->class])
+			{
+				if ( introspect )
+					send_to_char("You aren't ready for that skill.\n\r",ch);
+				else
+					act( "$N tells you 'You are not yet ready for that skill.'",
+					ch,NULL,trainer,TO_CHAR );
+				return;
+			}
+			ch->pcdata->learned[sn] = 1;
+			if ( introspect )
+				act("You learn the art of $t.",
+				ch,skill_table[sn].name,NULL,TO_CHAR);
+			else
+				act("$N trains you in the art of $t.",
+				ch,skill_table[sn].name,trainer,TO_CHAR);
+			ch->train -= skill_table[sn].rating[ch->class];
+			return;
+		}		
 		if ( introspect )
 			send_to_char( "See HELP GAIN.\n\r", ch );
 		else
