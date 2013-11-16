@@ -129,45 +129,22 @@ void do_berserk( CHAR_DATA *ch, char *argument )
         act("$n gets a wild look in $s eyes.",ch,NULL,NULL,TO_ROOM);
         check_improve(ch,gsn_berserk,TRUE,2);
 
-        /* Skill Mastery Section - Astark 8-28-12 */
-        if (get_skill(ch, gsn_berserk) >= 95)
-        {
-            af.where    = TO_AFFECTS;
-            af.type     = gsn_berserk;
-            af.level    = ch->level;
-            af.duration = get_duration(gsn_berserk, ch->level);
-            af.modifier = UMAX(1,ch->level/4);
-            af.bitvector    = AFF_BERSERK;
-        
-            af.location = APPLY_HITROLL;
-            affect_to_char(ch,&af);
-        
-            af.location = APPLY_DAMROLL;
-            affect_to_char(ch,&af);
-        
-            af.modifier = 10 * UMAX(1, ch->level/11);
-            af.location = APPLY_AC;
-            affect_to_char(ch,&af);
-        }
-        else
-        {        
-            af.where    = TO_AFFECTS;
-            af.type     = gsn_berserk;
-            af.level    = ch->level;
-            af.duration = get_duration(gsn_berserk, ch->level);
-            af.modifier = UMAX(1,ch->level/5);
-            af.bitvector    = AFF_BERSERK;
-        
-            af.location = APPLY_HITROLL;
-            affect_to_char(ch,&af);
-        
-            af.location = APPLY_DAMROLL;
-            affect_to_char(ch,&af);
-        
-            af.modifier = 10 * UMAX(1, ch->level/10);
-            af.location = APPLY_AC;
-            affect_to_char(ch,&af);
-        }
+        af.where    = TO_AFFECTS;
+        af.type     = gsn_berserk;
+        af.level    = ch->level;
+        af.duration = get_duration(gsn_berserk, ch->level);
+        af.modifier = UMAX(1,ch->level/5) + mastery_bonus(ch, gsn_berserk, 3, 5);
+        af.bitvector    = AFF_BERSERK;
+    
+        af.location = APPLY_HITROLL;
+        affect_to_char(ch,&af);
+    
+        af.location = APPLY_DAMROLL;
+        affect_to_char(ch,&af);
+    
+        af.modifier = 10 * UMAX(1, ch->level/10);
+        af.location = APPLY_AC;
+        affect_to_char(ch,&af);
     }
     
     else

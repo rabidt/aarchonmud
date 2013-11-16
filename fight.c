@@ -1862,7 +1862,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         // more damage for higher cost
         if ( IS_AFFECTED(ch, AFF_BERSERK) )
         {
-            bonus_percent += 10;
+            bonus_percent += 10 + mastery_bonus(ch, gsn_berserk, 3, 5);
             if ( per_chance(get_skill(ch, gsn_fervent_rage)) )
                 bonus_percent += 10;
             check_improve(ch, gsn_fervent_rage, TRUE, 10);
