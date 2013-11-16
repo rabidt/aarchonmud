@@ -3214,7 +3214,6 @@ struct  mastery_group_type
 #define RTRIG_LOCK  (G)
 #define RTRIG_ENTER (H)
 #define RTRIG_EXIT  (I)
-#define RTRIG_LOOK  (J)
 
 struct mprog_list
 {

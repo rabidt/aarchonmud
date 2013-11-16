@@ -920,25 +920,6 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         one_hit(ch, victim, dt, FALSE);
 }
 
-// dual_axe, dual_sword, etc. used, or 0
-int dual_weapon_sn( CHAR_DATA *ch )
-{
-    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
-    OBJ_DATA *second = get_eq_char(ch, WEAR_SECONDARY);
-    
-    if ( !wield || !second || wield->value[0] != second->value[0] )
-        return 0;
-
-    switch ( wield->value[0] )
-    {
-        case WEAPON_DAGGER: return gsn_dual_dagger;
-        case WEAPON_SWORD:  return gsn_dual_sword;
-        case WEAPON_AXE:    return gsn_dual_axe;
-        case WEAPON_GUN:    return gsn_dual_gun;
-        default:            return 0;
-    }
-}
-
 /*
  * Effective skill for offhand weapon usage
  */
@@ -964,15 +945,26 @@ int dual_wield_skill( CHAR_DATA *ch, bool improve )
     
     // dual weapon requires weapons of correct type
     int dual_weapon = 0;
-    int gsn_dual = dual_weapon_sn(ch);
-    if ( gsn_dual > 0 )
+    if ( wield->value[0] == second->value[0] )
     {
-        dual_weapon = get_skill(ch, gsn_dual);
-        // adjust for weight in case offhand weapon is heavier
-        dual_weapon = dual_weapon * wield_weight / UMAX(wield_weight, second_weight);
-        
-        if ( improve )
-            check_improve(ch, gsn_dual, TRUE, 8);
+        int gsn_dual = 0;
+        switch ( wield->value[0] )
+        {
+            case WEAPON_DAGGER: gsn_dual = gsn_dual_dagger; break;
+            case WEAPON_SWORD:  gsn_dual = gsn_dual_sword;  break;
+            case WEAPON_AXE:    gsn_dual = gsn_dual_axe;    break;
+            case WEAPON_GUN:    gsn_dual = gsn_dual_gun;    break;
+            default: break;
+        }
+        if ( gsn_dual > 0 )
+        {
+            dual_weapon = get_skill(ch, gsn_dual);
+            // adjust for weight in case offhand weapon is heavier
+            dual_weapon = dual_weapon * wield_weight / UMAX(wield_weight, second_weight);
+            
+            if ( improve )
+                check_improve(ch, gsn_dual, TRUE, 8);
+        }
     }
 
     // combine the two skills, rounding down
@@ -1136,10 +1128,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         if ( ch->fighting != victim )
             return;
         
-        int gsn_dual = dual_weapon_sn(ch);
-        int mastery = get_mastery(ch, gsn_dual_wield) + (gsn_dual ? get_mastery(ch, gsn_dual) : 0);
-        chance = ch_dex_extrahit(ch) + (mastery ? 5 + 10*mastery : 0);
-        if ( per_chance(chance) )
+        if ( per_chance(ch_dex_extrahit(ch)) )
         {
             one_hit(ch, victim, dt, TRUE);
             if ( ch->fighting != victim )
@@ -1987,13 +1976,6 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	is_retribute = FALSE;
     }
     
-    /* kung fu mastery */
-    if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
-    {
-        act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
-        one_hit(ch, victim, dt, secondary);
-    }
-
    tail_chain( );
    return TRUE;
 }
@@ -2435,64 +2417,82 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
-    if ( number_bits(9) != 69 )
-        return;
-    
-    // beheading mastery increases behead chance by up to factor 2, depending on victim's health
-    int dam_taken = (victim->max_hit - victim->hit) * 100 / victim->max_hit;
-    if ( number_bits(1) && !(per_chance(dam_taken) && per_chance(mastery_bonus(ch, gsn_beheading, 60, 100))) )
-        return;
+    int chance = 0;
+
+    if ( number_bits(10) != 69 )
+	return;
 
     if (IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT))
         return;
 
     if (IS_SET(victim->act, ACT_NOBEHEAD))
     {
-        act("You try to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_CHAR);
-        act("$n tries to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_ROOM);
+        act("You try to cut $N's head off, but it won't budge!",
+            ch,NULL,victim,TO_CHAR);
+        act("$n tries to cut $N's head off, but it won't budge!",
+            ch,NULL,victim,TO_ROOM);
         return;
     }
 
     if ( wield == NULL )
     {
-        /* razor claw is active AND passive skill => mobs have it */
-        if ( !IS_NPC(ch) && number_bits(1) && per_chance(get_skill(ch, gsn_razor_claws))
-             || ch->stance == STANCE_SHADOWCLAW )
-        {
-            act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
-            act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
-            act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
-            behead(ch, victim);
-        }
-        return;
+	if ( !IS_NPC(ch) && /* active AND passive skill => mobs have it */
+	     ( number_percent() <= get_skill(ch, gsn_razor_claws)
+	     || (number_range(0,1) && ch->stance == STANCE_SHADOWCLAW) ) )
+	{
+	    act("In a mighty strike, your claws separate $N's neck.",
+		ch,NULL,victim,TO_CHAR);
+	    act("In a mighty strike, $n's claws separate $N's neck.",
+		ch,NULL,victim,TO_NOTVICT);
+	    act("$n slashes $s claws through your neck.",ch,NULL,victim,TO_VICT);
+	    behead(ch, victim);
+	    check_improve(ch, gsn_razor_claws, 0, TRUE);
+	}
+	else
+	    check_improve(ch, gsn_razor_claws, 0, FALSE);
+	return;
     }
 
-    int chance = 0;
     switch ( wield->value[0] )
     {
-    case WEAPON_EXOTIC: chance = 0; break;
+    case WEAPON_EXOTIC:
+	chance = 0;
+	break;
     case WEAPON_DAGGER:
-    case WEAPON_POLEARM: chance = 1; break;
-    case WEAPON_SWORD: chance = 5; break;
-    case WEAPON_AXE: chance = 25; break;
-    default: return;
+    case WEAPON_POLEARM:
+	chance = 1;
+	break;
+    case WEAPON_SWORD:
+	chance = 5;
+	break;
+    case WEAPON_AXE:
+	chance = 25;
+	break;
+    default:
+	return;
     }
    
+    if ( get_skill(ch, gsn_beheading) == 100)
+        chance += 2;
+
     chance += get_skill(ch, gsn_beheading) / 2;
     if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
-        chance += 1;
+	chance += 1;
     if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
-        chance += 5;
+	chance += 5;
 
-    if ( per_chance(chance) || ch->stance == STANCE_SHADOWCLAW )
+    if ( number_percent() <= chance
+	 || ch->stance == STANCE_SHADOWCLAW )
     {
-        act("$n's head is separated from his shoulders by $p.", victim,wield,NULL,TO_ROOM);
-        act("Your head is separated from your shoulders by $p.", victim,wield,NULL,TO_CHAR);
-        check_improve(ch, gsn_beheading, 0, TRUE);
-        behead(ch, victim);
+	act("$n's head is separated from his shoulders by $p.",
+	    victim,wield,NULL,TO_ROOM);
+	act("Your head is separated from your shoulders by $p.",
+	    victim,wield,NULL,TO_CHAR);
+	check_improve(ch, gsn_beheading, 0, TRUE);
+	behead(ch, victim);
     }
     else
-        check_improve(ch, gsn_beheading, 0, FALSE);
+	check_improve(ch, gsn_beheading, 0, FALSE);
 }
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
@@ -4184,9 +4184,9 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     
     /* some weapons are harder to parry */
     if ( ch_weapon == gsn_whip || ch_weapon == gsn_flail )
-        chance -= 10;
+	chance -= 10;
     else if ( ch_weapon == gsn_hand_to_hand )
-        chance -= mastery_bonus(ch, gsn_hand_to_hand, 6, 10);
+	chance -= 5;
 
     /* two-handed weapons are harder to parry with non-twohanded */
     if ( (ch_weapon_obj = get_eq_char(ch, WEAR_WIELD)) != NULL
@@ -4236,7 +4236,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	     && !IS_NPC(ch)
 	     && (wield = get_eq_char(victim, WEAR_WIELD)) != NULL )
 	{
-	    dam = one_hit_damage(victim, gsn_parry, wield) * (100 - mastery_bonus(ch, gsn_hand_to_hand, 30, 50)) / 100;
+	    dam = one_hit_damage( victim, gsn_parry, wield );
 	    dam_type = get_weapon_damtype( wield );
 	    full_dam( victim, ch, dam, gsn_parry, dam_type, TRUE );
 	}
@@ -5925,24 +5925,9 @@ void do_flee( CHAR_DATA *ch, char *argument )
 
         if ( opp_roll > ch_roll || opp->stance == STANCE_AMBUSH && number_bits(1) )
         {
-            if ( per_chance(mastery_bonus(opp, gsn_entrapment, 60, 100)) )
-            {
-                act("$N trips you over, ending your escape attempt!", ch, NULL, opp, TO_CHAR);
-                act("You trip $n over, ending $s escape attempt!", ch, NULL, opp, TO_VICT);
-                act("$N trips $n over, ending $s escape attempt!", ch, NULL, opp, TO_NOTVICT);
-                set_pos(ch, POS_RESTING);
-                check_lose_stance(ch);
-                // free attack
-                one_hit(opp, ch, TYPE_UNDEFINED, FALSE);
-                if ( per_chance(offhand_attack_chance(opp, TRUE)) )
-                    one_hit(opp, ch, TYPE_UNDEFINED, TRUE);
-            }
-            else
-            {
-                act("$N jumps in your way, blocking your escape!", ch, NULL, opp, TO_CHAR);
-                act("You jump in $n's way, blocking $s escape!", ch, NULL, opp, TO_VICT);
-                act("$N jumps in $n's way, blocking $s escape!", ch, NULL, opp, TO_NOTVICT);
-            }
+            act("$N jumps in your way, blocking your escape!", ch, NULL, opp, TO_CHAR);
+            act("You jump in $n's way, blocking $s escape!", ch, NULL, opp, TO_VICT);
+            act("$N jumps in $n's way, blocking $s escape!", ch, NULL, opp, TO_NOTVICT);
             check_improve(opp, gsn_entrapment, TRUE, 1);
             return;
         }
@@ -6619,7 +6604,7 @@ bool check_lose_stance( CHAR_DATA *ch )
     if ( per_chance(skill * 9/10) ) /* Always keep 10% chance of failure */
         return FALSE;
 
-    send_to_char("You lose your stance!\n\r", ch);
+    send_to_char("You loose your stance!\n\r", ch);
     ch->stance = 0;
     return TRUE;
 }
@@ -6635,7 +6620,7 @@ bool destance( CHAR_DATA *ch, int attack_mastery )
     if ( per_chance( mastery == 1 ? 20 : mastery == 2 ? 30 : 0) )
         return FALSE;
     
-    send_to_char("You lose your stance!\n\r", ch);
+    send_to_char("You loose your stance!\n\r", ch);
     ch->stance = 0;
     return TRUE;
 }

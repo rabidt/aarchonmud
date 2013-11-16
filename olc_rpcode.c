@@ -297,7 +297,7 @@ RPEDIT(rpedit_show)
 RPEDIT(rpedit_security)
 {
     RPROG_CODE *pRcode;
-    EDIT_RPCODE(ch, pRcode);
+    EDIT_MPCODE(ch, pRcode);
     int newsec;
 
     if ( argument[0] == '\0' )
