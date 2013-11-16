@@ -7252,7 +7252,7 @@ struct group_type group_table[MAX_GROUP] =
 	   
 	{
 	"necromancer default",     { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50 },
-    { "necromancy", "protective", "enhancement", "puppetry", "dodge", "taxidermy" }
+    { "necromancy", "protective", "enhancement", "puppetry", "dodge" }
     },
 
 	{
