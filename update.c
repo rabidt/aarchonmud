@@ -922,6 +922,10 @@ void mobile_update( void )
                 if( mp_percent_trigger( ch, NULL, NULL,0, NULL,0, TRIG_RANDOM ) )
                     continue;
             }
+        } else if ( ch->position == POS_RESTING && ch->wait == 0 )
+        {
+            do_stand(ch, "");
+            WAIT_STATE(ch, PULSE_VIOLENCE/2);
         }
 
         /* This if check was added to make mobs that were recently disarmed
@@ -2273,7 +2277,7 @@ void aggr_update( void )
                     ||   ch->fighting != NULL
                     ||   IS_SET(ch->off_flags, OFF_DISTRACT)
                     ||   IS_AFFECTED(ch, AFF_CHARM)
-                    ||   !IS_AWAKE(ch)
+                    ||   ch->position < POS_STANDING
                     ||   ( IS_SET(ch->act, ACT_WIMPY) && IS_AWAKE(wch) )
                     ||   !can_see( ch, wch )
                     ||   number_bits(1) == 0)
