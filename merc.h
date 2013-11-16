@@ -3868,6 +3868,7 @@ struct achievement_entry
 
 #define NPC_ACT(ch, flag) (IS_NPC(ch) && IS_SET((ch)->act, flag))
 #define PLR_ACT(ch, flag) (!IS_NPC(ch) && IS_SET((ch)->act, flag))
+#define NPC_OFF(ch, flag) (IS_NPC(ch) && IS_SET((ch)->off_flags, flag))
 
 #define IS_QUESTOR(ch)     (IS_SET((ch)->act, PLR_QUESTOR))         
 #define IS_QUESTORHARD(ch)     (IS_SET((ch)->act, PLR_QUESTORHARD))
