@@ -993,7 +993,6 @@ void spell_ghost_chant( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     {
         SET_BIT(mob->off_flags, OFF_RESCUE);
         SET_BIT(mob->off_flags, OFF_FAST);
-        REMOVE_AFFECT(mob, AFF_SLOW);
     }
     
     set_mob_level( mob, mlevel );
