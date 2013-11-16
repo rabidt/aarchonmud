@@ -859,7 +859,6 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     int puppet_skill = get_skill( ch, gsn_puppetry );
-    int puppet_mastery = get_mastery(ch, gsn_puppetry);
 
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_WAR) )
     {
@@ -890,8 +889,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         mlevel = (level * 2 + cor->level) / 4;    
     /* bonus for puppetry skill */
     mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
-    if ( puppet_mastery )
-        mlevel += 1 + 2 * puppet_mastery;
+    mlevel += mastery_bonus(ch, gsn_puppetry, 3, 5);
     
     /* Check number of charmees against cha */
     if ( check_cha_follow(ch, mlevel) < mlevel )
@@ -957,6 +955,68 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         af.bitvector = AFF_CHARM;
         affect_to_char( mob, &af );
     }
+    return;
+}
+
+void spell_ghost_chant( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+{
+    AFFECT_DATA af;
+    CHAR_DATA *mob;
+    char buf[MAX_STRING_LENGTH];
+    int mlevel;
+    int puppet_skill = get_skill( ch, gsn_puppetry );
+
+    if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_WAR) )
+    {
+        send_to_char( "Go fight yourself!\n\r", ch );
+        return;
+    }
+
+    send_to_char( "You call the spirits of the dead!\n\r", ch );
+    act( "$n performs an unholy chant to call the spirits of the dead.", ch, NULL, NULL, TO_ROOM );
+    
+    mlevel = level / 2;
+    /* bonus for puppetry skill */
+    mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
+    mlevel += mastery_bonus(ch, gsn_puppetry, 3, 5);
+    
+    /* Check number of charmees against cha */
+    if ( check_cha_follow(ch, mlevel) < mlevel )
+        return;
+   
+    if ( (mob = create_mobile(get_mob_index(MOB_VNUM_SPIRIT))) == NULL ) 
+        return;
+    
+    check_improve( ch, gsn_puppetry, TRUE, 1 );
+    
+    if ( per_chance(puppet_skill) )
+    {
+        SET_BIT(mob->off_flags, OFF_RESCUE);
+        SET_BIT(mob->off_flags, OFF_FAST);
+        REMOVE_AFFECT(mob, AFF_SLOW);
+    }
+    
+    set_mob_level( mob, mlevel );
+
+    sprintf(buf,"%sThis spirit was bound by the might of %s.\n\r\n\r", mob->description, ch->name);
+    free_string(mob->description);
+    mob->description = str_dup(buf);
+    
+    char_to_room( mob, ch->in_room );
+    change_align(ch, -10);
+    
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level) * (100+puppet_skill) / 100;
+    af.location  = 0;
+    af.modifier  = 0;
+    af.bitvector = AFF_CHARM;
+    affect_to_char( mob, &af );
+
+    add_follower( mob, ch );
+    mob->leader = ch;
+
     return;
 }
 
