@@ -3580,20 +3580,22 @@ void renew_affect( CHAR_DATA *ch, int sn, int level )
 void spell_dancing_bones( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     CHAR_DATA *gch = (CHAR_DATA *) vo;
-    int heal, gsn_anim;
+    int heal, gsn_anim, gsn_ghost;
     
     gsn_anim = skill_lookup( "animate dead" );
+    gsn_ghost = skill_lookup( "ghost chant" );
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( !is_same_group(gch, ch) || !NPC_ACT(gch, ACT_UNDEAD) )
             continue;
 
-	heal = get_sn_heal( sn, level, ch, gch ) * 2;
+        heal = get_sn_heal(sn, level, ch, gch);
         gch->hit = UMIN( gch->hit + heal, gch->max_hit );
         update_pos( gch );
 
-	/* prolong the animate effect on zombies */
-	renew_affect( gch, gsn_anim, level );
+        /* prolong the animate effect on zombies & ghosts */
+        renew_affect( gch, gsn_anim, level );
+        renew_affect( gch, gsn_ghost, level );
     }
     send_to_char( "The bones of your undead followers mend.\n\r", ch );
 }
