@@ -1958,20 +1958,6 @@ static int CH_say (lua_State *LS)
 }
 HELPTOPIC CH_say_help = {};
 
-static int CH_setlevel (lua_State *LS)
-{
-    CHAR_DATA * ud_ch = check_CH (LS, 1);
-    if (!IS_NPC(ud_ch))
-        luaL_error(LS, "Cannot set level on PC.");
-
-    int num = (int)luaL_checknumber (LS, 2);
-    if ( num < 1 || num > 200 )
-        luaL_error( LS, "Invalid level: %d, range is 1 to 200.", num);
-    set_mob_level( ud_ch, num );
-    return 0;
-}
-HELPTOPIC CH_setlevel_help = {};
-
 static int CH_oload (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -2138,6 +2124,7 @@ static int CH_set_name (lua_State *LS)
     return 0;
 }
 HELPTOPIC CH_set_name_help = {
+    .summary="NPC only."
 };
 
 static int CH_get_level (lua_State *LS)
@@ -2150,9 +2137,36 @@ HELPTOPIC CH_get_level_help = {};
 
 static int CH_set_level (lua_State *LS)
 {
-    return CH_setlevel(LS);
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Cannot set level on PC.");
+
+    int num = (int)luaL_checknumber (LS, 2);
+    if ( num < 1 || num > 200 )
+        luaL_error( LS, "Invalid level: %d, range is 1 to 200.", num);
+    set_mob_level( ud_ch, num );
+    return 0;
 }
-HELPTOPIC CH_set_level_help = {};
+HELPTOPIC CH_set_level_help = 
+{
+    .summary="NPC only. Range 1-200. Restores mob to full health."
+};
+
+static int CH_setlevel (lua_State *LS)
+{
+    /*
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Cannot set level on PC.");
+
+    int num = (int)luaL_checknumber (LS, 2);
+    if ( num < 1 || num > 200 )
+        luaL_error( LS, "Invalid level: %d, range is 1 to 200.", num);
+    set_mob_level( ud_ch, num );
+    return 0;*/
+    return CH_set_level (LS);
+}
+HELPTOPIC CH_setlevel_help = {};
 
 static int CH_get_maxhp (lua_State *LS)
 {
