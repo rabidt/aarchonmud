@@ -2402,13 +2402,27 @@ static int CH_set_align (lua_State *LS)
 }
 HELPTOPIC CH_set_align_help={};
 
-static int CH_get_str (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_STR ));
-    return 1;
+#define CHGETSTAT( statname, statnum ) \
+static int CH_get_ ## statname ( lua_State *LS ) \
+{\
+    lua_pushinteger( LS, \
+            get_curr_stat((check_CH(LS,1)), statnum ));\
+    return 1;\
+}\
+HELPTOPIC CH_get_ ## statname ## _help= {\
+    .summary="Including spell/armor bonuses if any."\
 }
-HELPTOPIC CH_get_str_help={};
+
+CHGETSTAT( str, STAT_STR );
+CHGETSTAT( con, STAT_CON );
+CHGETSTAT( vit, STAT_VIT );
+CHGETSTAT( agi, STAT_AGI );
+CHGETSTAT( dex, STAT_DEX );
+CHGETSTAT( int, STAT_INT );
+CHGETSTAT( wis, STAT_WIS );
+CHGETSTAT( dis, STAT_DIS );
+CHGETSTAT( cha, STAT_CHA );
+CHGETSTAT( luc, STAT_LUC );
 
 #define CHSETSTAT( statname, statnum ) \
 static int CH_set_ ## statname ( lua_State *LS ) \
@@ -2427,111 +2441,16 @@ static int CH_set_ ## statname ( lua_State *LS ) \
 HELPTOPIC CH_set_ ## statname ## _help= {\
     .summary="NPC only. Range 1-200."\
 }
-/*
-static int stat_set ( lua_State *LS, int stat )
-{
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set stats on PCs.");
-        
-    int num = luaL_checkinteger( LS, 2 );
-    if (num < 1 || num > 200 )
-        luaL_error(LS, "Invalid stat value: %d, range is 1 to 200.", num );
-        
-    ud_ch->perm_stat[stat] = num;
-    return 0;
-}*/
 
 CHSETSTAT( str, STAT_STR );     
-
-static int CH_get_con (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_CON ));
-    return 1;
-}
-HELPTOPIC CH_get_con_help={};
-
 CHSETSTAT( con, STAT_CON );
-
-static int CH_get_vit (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_VIT ));
-    return 1;
-}
-HELPTOPIC CH_get_vit_help={};
-
-CHSETSTAT( vit, STAT_VIT);
-
-static int CH_get_agi (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_AGI ));
-    return 1;
-}
-HELPTOPIC CH_get_agi_help={};
-
-CHSETSTAT( agi, STAT_AGI);
-
-static int CH_get_dex (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_DEX ));
-    return 1;
-}
-HELPTOPIC CH_get_dex_help={};
-
-CHSETSTAT( dex, STAT_DEX);
-
-static int CH_get_int (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_INT ));
-    return 1;
-}
-HELPTOPIC CH_get_int_help={};
-
+CHSETSTAT( vit, STAT_VIT );
+CHSETSTAT( agi, STAT_AGI );
+CHSETSTAT( dex, STAT_DEX );
 CHSETSTAT( int, STAT_INT );
-
-static int CH_get_wis (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_WIS ));
-    return 1;
-}
-HELPTOPIC CH_get_wis_help={};
-
 CHSETSTAT( wis, STAT_WIS );
-
-static int CH_get_dis (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_DIS ));
-    return 1;
-}
-HELPTOPIC CH_get_dis_help={};
-
-CHSETSTAT( dis, STAT_DIS);
-
-static int CH_get_cha (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_CHA ));
-    return 1;
-}
-HELPTOPIC CH_get_cha_help={};
-
+CHSETSTAT( dis, STAT_DIS );
 CHSETSTAT( cha, STAT_CHA );
-
-static int CH_get_luc (lua_State *LS)
-{
-    lua_pushinteger( LS,
-            get_curr_stat((check_CH(LS,1)), STAT_LUC ));
-    return 1;
-}
-HELPTOPIC CH_get_luc_help={};
-
 CHSETSTAT( luc, STAT_LUC );
 
 static int CH_get_clan (lua_State *LS)
