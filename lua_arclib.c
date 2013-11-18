@@ -185,7 +185,7 @@ static int index_metamethod( lua_State *LS)
 static int newindex_metamethod( lua_State *LS )
 {
     OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
-    const char *arg=luaL_checkstring( LS, 2 );
+    const char *arg=check_string( LS, 2, MIL );
 
     LUA_PROP_TYPE *set=obj->set_table;
 
@@ -211,6 +211,9 @@ static int newindex_metamethod( lua_State *LS )
             }
         }
     }
+
+    luaL_error(LS, "Can't set field '%s' for type %s.",
+            arg, obj->type_name );
 
     return 0;
 }
@@ -2542,27 +2545,17 @@ HELPTOPIC CH_get_clan_help={};
 
 static int CH_get_class (lua_State *LS)
 {
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        luaL_error(LS, "Can't check class on NPC.");
+    }
+
     lua_pushstring( LS,
-            class_table[(check_CH(LS,1))->class].name);
+            class_table[ud_ch->class].name);
     return 1;
 }
 HELPTOPIC CH_get_class_help={};
-
-static int CH_set_class (lua_State *LS)
-{
-    CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!IS_NPC(ud_ch))
-        luaL_error( LS, "Can't set class on PCs.");
-    
-    const char * arg=check_string(LS, 2, MIL);
-    int class=class_lookup(arg);
-    if (class==-1)
-        luaL_error(LS, "No such class: %s", arg );
-
-    ud_ch->class=class;
-    return 0;
-}
-HELPTOPIC CH_set_class_help={};
 
 static int CH_get_race (lua_State *LS)
 {
@@ -2959,7 +2952,6 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(dis, 9),
     CHSET(cha, 9),
     CHSET(luc, 9),
-    CHSET(class, 9),
     CHSET(race, 9),
     CHSET(shortdescr, 9),
     CHSET(longdescr, 9),
