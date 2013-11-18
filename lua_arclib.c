@@ -2185,7 +2185,8 @@ static int CH_set_maxhp (lua_State *LS)
     ud_ch->max_hit = luaL_checkinteger( LS, 2);
     return 0;
 }
-HELPTOPIC CH_set_maxhp_help={};
+HELPTOPIC CH_set_maxhp_help={
+    .summary="NPC only."};
 
 static int CH_get_mana (lua_State *LS)
 {
@@ -2222,7 +2223,8 @@ static int CH_set_maxmana (lua_State *LS)
     ud_ch->max_mana = luaL_checkinteger( LS, 2);
     return 0;
 }
-HELPTOPIC CH_set_maxmana_help={};
+HELPTOPIC CH_set_maxmana_help={
+    .summary="NPC only."};
 
 static int CH_get_move (lua_State *LS)
 {
@@ -2259,7 +2261,8 @@ static int CH_set_maxmove (lua_State *LS)
     ud_ch->max_move = luaL_checkinteger( LS, 2);
     return 0;
 }
-HELPTOPIC CH_set_maxmove_help={};
+HELPTOPIC CH_set_maxmove_help={
+    .summary="NPC only."};
 
 static int CH_get_gold (lua_State *LS)
 {
@@ -2278,7 +2281,8 @@ static int CH_set_gold (lua_State *LS)
     ud_ch->gold = luaL_checkinteger( LS, 2);
     return 0;
 }
-HELPTOPIC CH_set_gold_help={};
+HELPTOPIC CH_set_gold_help={
+    .summary="NPC only."};
 
 static int CH_get_silver (lua_State *LS)
 {
@@ -2297,7 +2301,8 @@ static int CH_set_silver (lua_State *LS)
     ud_ch->silver = luaL_checkinteger( LS, 2);
     return 0;
 }
-HELPTOPIC CH_set_silver_help={};
+HELPTOPIC CH_set_silver_help={
+    .summary="NPC only."};
 
 static int CH_get_money (lua_State *LS)
 {
@@ -2336,7 +2341,8 @@ static int CH_set_sex (lua_State *LS)
     luaL_error(LS, "No such sex: %s", arg );
     return 0;
 }
-HELPTOPIC CH_set_sex_help={};
+HELPTOPIC CH_set_sex_help={
+    .summary="NPC only."};
 
 static int CH_get_size (lua_State *LS)
 {
@@ -2366,7 +2372,8 @@ static int CH_set_size (lua_State *LS)
     luaL_error( LS, "No such size: %s", arg );
     return 0;
 }
-HELPTOPIC CH_set_size_help={};
+HELPTOPIC CH_set_size_help={
+    .summary="NPC only."};
 
 static int CH_get_position (lua_State *LS)
 {
@@ -2403,6 +2410,24 @@ static int CH_get_str (lua_State *LS)
 }
 HELPTOPIC CH_get_str_help={};
 
+#define CHSETSTAT( statname, statnum ) \
+static int CH_set_ ## statname ( lua_State *LS ) \
+{\
+    CHAR_DATA *ud_ch=check_CH(LS,1);\
+    if (!IS_NPC(ud_ch))\
+        luaL_error(LS, "Can't set stats on PCs.");\
+    \
+    int num = luaL_checkinteger( LS, 2);\
+    if (num < 1 || num > 200 )\
+        luaL_error(LS, "Invalid stat value: %d, range is 1 to 200.", num );\
+    \
+    ud_ch->perm_stat[ statnum ] = num;\
+    return 0;\
+}\
+HELPTOPIC CH_set_ ## statname ## _help= {\
+    .summary="NPC only. Range 1-200."\
+}
+/*
 static int stat_set ( lua_State *LS, int stat )
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -2415,13 +2440,9 @@ static int stat_set ( lua_State *LS, int stat )
         
     ud_ch->perm_stat[stat] = num;
     return 0;
-}
-     
-static int CH_set_str (lua_State *LS)
-{
-    return stat_set(LS, STAT_STR);
-}
-HELPTOPIC CH_set_str_help={};
+}*/
+
+CHSETSTAT( str, STAT_STR );     
 
 static int CH_get_con (lua_State *LS)
 {
@@ -2431,11 +2452,7 @@ static int CH_get_con (lua_State *LS)
 }
 HELPTOPIC CH_get_con_help={};
 
-static int CH_set_con (lua_State *LS)
-{
-    return stat_set(LS, STAT_CON);
-}
-HELPTOPIC CH_set_con_help={};
+CHSETSTAT( con, STAT_CON );
 
 static int CH_get_vit (lua_State *LS)
 {
@@ -2445,11 +2462,7 @@ static int CH_get_vit (lua_State *LS)
 }
 HELPTOPIC CH_get_vit_help={};
 
-static int CH_set_vit (lua_State *LS)
-{
-    return stat_set(LS, STAT_VIT);
-}
-HELPTOPIC CH_set_vit_help={};
+CHSETSTAT( vit, STAT_VIT);
 
 static int CH_get_agi (lua_State *LS)
 {
@@ -2459,11 +2472,7 @@ static int CH_get_agi (lua_State *LS)
 }
 HELPTOPIC CH_get_agi_help={};
 
-static int CH_set_agi (lua_State *LS)
-{
-    return stat_set(LS, STAT_AGI);
-}
-HELPTOPIC CH_set_agi_help={};
+CHSETSTAT( agi, STAT_AGI);
 
 static int CH_get_dex (lua_State *LS)
 {
@@ -2473,11 +2482,7 @@ static int CH_get_dex (lua_State *LS)
 }
 HELPTOPIC CH_get_dex_help={};
 
-static int CH_set_dex (lua_State *LS)
-{
-    return stat_set(LS, STAT_DEX);
-}
-HELPTOPIC CH_set_dex_help={};
+CHSETSTAT( dex, STAT_DEX);
 
 static int CH_get_int (lua_State *LS)
 {
@@ -2487,11 +2492,7 @@ static int CH_get_int (lua_State *LS)
 }
 HELPTOPIC CH_get_int_help={};
 
-static int CH_set_int (lua_State *LS)
-{
-    return stat_set(LS, STAT_INT);
-}
-HELPTOPIC CH_set_int_help={};
+CHSETSTAT( int, STAT_INT );
 
 static int CH_get_wis (lua_State *LS)
 {
@@ -2501,11 +2502,7 @@ static int CH_get_wis (lua_State *LS)
 }
 HELPTOPIC CH_get_wis_help={};
 
-static int CH_set_wis (lua_State *LS)
-{
-    return stat_set(LS, STAT_WIS);
-}
-HELPTOPIC CH_set_wis_help={};
+CHSETSTAT( wis, STAT_WIS );
 
 static int CH_get_dis (lua_State *LS)
 {
@@ -2515,11 +2512,7 @@ static int CH_get_dis (lua_State *LS)
 }
 HELPTOPIC CH_get_dis_help={};
 
-static int CH_set_dis (lua_State *LS)
-{
-    return stat_set(LS, STAT_DIS);
-}
-HELPTOPIC CH_set_dis_help={};
+CHSETSTAT( dis, STAT_DIS);
 
 static int CH_get_cha (lua_State *LS)
 {
@@ -2529,11 +2522,7 @@ static int CH_get_cha (lua_State *LS)
 }
 HELPTOPIC CH_get_cha_help={};
 
-static int CH_set_cha (lua_State *LS)
-{
-    return stat_set(LS, STAT_CHA);
-}
-HELPTOPIC CH_set_cha_help={};
+CHSETSTAT( cha, STAT_CHA );
 
 static int CH_get_luc (lua_State *LS)
 {
@@ -2543,11 +2532,7 @@ static int CH_get_luc (lua_State *LS)
 }
 HELPTOPIC CH_get_luc_help={};
 
-static int CH_set_luc (lua_State *LS)
-{
-    return stat_set(LS, STAT_LUC);
-}
-HELPTOPIC CH_set_luc_help={};
+CHSETSTAT( luc, STAT_LUC );
 
 static int CH_get_clan (lua_State *LS)
 {
@@ -2594,7 +2579,8 @@ static int CH_set_race (lua_State *LS)
     morph_update(ud_ch);
     return 0;
 }
-HELPTOPIC CH_set_race_help={};
+HELPTOPIC CH_set_race_help={
+    .summary="NPC only."};
 
 static int CH_get_fighting (lua_State *LS)
 {
@@ -2859,6 +2845,7 @@ static int CH_set_shortdescr (lua_State *LS)
     return 0;
 }
 HELPTOPIC CH_set_shortdescr_help = {
+    .summary="NPC only."
 };
 
 static int CH_get_longdescr( lua_State *LS)
@@ -2883,6 +2870,7 @@ static int CH_set_longdescr (lua_State *LS)
     return 0;
 }
 HELPTOPIC CH_set_longdescr_help = {
+    .summary="NPC only."
 };
 
 static const LUA_PROP_TYPE CH_get_table [] =
