@@ -104,7 +104,7 @@ const char *check_string( lua_State *LS, int index, size_t size)
         luaL_error( LS, "String size %d exceeds maximum %d.",
                 (int)rtn_size, (int)size );
 
-    return;
+    return rtn;
 }
 
 /* Run string.format using args beginning at index 
