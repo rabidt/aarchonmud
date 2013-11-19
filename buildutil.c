@@ -633,13 +633,14 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 	send_to_char( buf, ch );
 
 	sprintf( buf,
-	"In room: %d  In object: %s  Carried by: %s  Wear_loc: %d\n\r",
+	"In room: %d  In object: %s  Carried by: %s  Wear_loc: %d [%s]\n\r",
 	obj->in_room    == NULL    ?        0 : obj->in_room->vnum,
 	obj->in_obj     == NULL    ? "(none)" : obj->in_obj->short_descr,
 	obj->carried_by == NULL    ? "(none)" : 
 		can_see(ch,obj->carried_by) ? obj->carried_by->name
 					: "someone",
-	obj->wear_loc );
+	obj->wear_loc,
+    flag_stat_string( wear_loc_flags, obj->wear_loc)  );
 	send_to_char( buf, ch );
 
     sprintf( buf, "Clan: %s ClanRank: %d\n\r", 
