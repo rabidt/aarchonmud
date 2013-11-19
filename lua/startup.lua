@@ -1,6 +1,6 @@
 package.path = mud.luadir() .. "?.lua"
 
-tprintstr=require "tprint"
+glob_tprintstr=require "tprint"
 require "serialize"
 require "utilities"
 require "leaderboard"
@@ -11,6 +11,7 @@ origtbl={} -- where the REAL ud tables live
 origenv={} -- where the REAL env tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
+
 
 function UdCnt()
     local cnt=0
@@ -32,10 +33,8 @@ function MakeUdProxy(ud)
     local proxy={}
     setmetatable(proxy, {
             __index = ud,
-            __newindex = function (t,k,v)
-                error("Cannot set values on game objects.")
-            end,
-            __tostring=function() return tostring(ud) end,
+            __newindex = getmetatable(ud)["__newindex"], 
+            __tostring= function() return tostring(ud) end,
             __metatable=0 -- any value here protects it
             }
     )
@@ -84,11 +83,11 @@ function UnregisterDesc(desc)
     end
 end
 
-function rand(pcnt)
+function glob_rand(pcnt)
     return ( (mt.rand()*100) < pcnt)
 end
 
-function randnum(low, high)
+function glob_randnum(low, high)
     return math.floor( (mt.rand()*(high+1-low) + low)) -- people usually want inclusive
 end
 
@@ -235,45 +234,19 @@ main_lib={  require=require,
         -- this is safe because we protected the game object and main lib
         --  metatables.
 		setmetatable=setmetatable,
-		-- okay now our stuff
-		-- checks
-		hour=hour,
-
-		-- other
-        tprintstr=tprintstr,
-        getroom=getroom,
-		randnum=randnum,
-		rand=rand,
-		getobjproto=getobjproto,
-        getmobproto=getmobproto,
-		getobjworld=getobjworld,
-		getmobworld=getmobworld,
-        log=log,
-        sendtochar=sendtochar,
-        pagetochar=pagetochar,
-        getcharlist=getcharlist,
-        getmoblist=getmoblist,
-        getplayerlist=getplayerlist,
-        getobjlist=getobjlist,
-        getarealist=getarealist,
-        clearloopcount=clearloopcount,
-        god={confuse=god.confuse,
-            curse=god.curse,
-            plague=god.plague,
-            bless=god.bless,
-            slow=god.slow,
-            speed=god.speed,
-            heal=god.heal,
-            enlighten=god.enlighten,
-            protect=god.protect,
-            fortune=god.fortune,
-            haunt=god.haunt,
-            cleanse=god.cleanse,
-            defy=god.defy
-        },
-        debug={show=debug.show}
-
 }
+
+-- add script_globs to main_lib
+for k,v in pairs(script_globs) do
+    print("Adding "..k.." to main_lib.")
+    if type(v)=="table" then
+        for j,w in pairs(v) do
+            print(j)
+        end
+    end
+    main_lib[k]=v
+end
+
 -- Need to protect our library funcs from evil scripters
 function ProtectLib(lib)
     for k,v in pairs(lib) do
@@ -293,7 +266,7 @@ CH_env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif tbl.mob[key] then 
+        elseif type(tbl.mob[key])=="function" then 
             return function(...) 
                         table.insert(arg, 1, tbl.mob)
                         return tbl.mob[key](unpack(arg)) 
@@ -306,7 +279,7 @@ OBJ_env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif tbl.obj[key] then
+        elseif type(tbl.obj[key])=="function" then
             return function(...) 
                         table.insert(arg, 1, tbl.obj)
                         return tbl.obj[key](unpack(arg)) 
@@ -319,7 +292,7 @@ AREA_env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif tbl.area[key] then
+        elseif type(tbl.area[key])=="function" then
             return function(...)
                         table.insert(arg, 1, tbl.area) 
                         return tbl.area[key](unpack(arg)) 
@@ -332,7 +305,7 @@ ROOM_env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif tbl.room[key] then
+        elseif type(tbl.room[key])=="function" then
             return function(...)
                         table.insert(arg, 1, tbl.room)
                         return tbl.room[key](unpack(arg))
