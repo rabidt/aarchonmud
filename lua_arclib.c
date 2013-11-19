@@ -2495,7 +2495,6 @@ static int CH_set_race (lua_State *LS)
         luaL_error(LS, "No such race: %s", arg );
 
     ud_ch->race=race;
-    morph_update(ud_ch);
     return 0;
 }
 HELPTOPIC CH_set_race_help={
@@ -2784,8 +2783,10 @@ static int CH_set_longdescr (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set longdescr on PCs.");
     const char *new=check_string(LS, 2, MIL);
+    char buf[MSL];
+    sprintf(buf, "%s\n\r", new);
     free_string( ud_ch->long_descr );
-    ud_ch->long_descr=str_dup(new);
+    ud_ch->long_descr=str_dup(buf);
     return 0;
 }
 HELPTOPIC CH_set_longdescr_help = {
