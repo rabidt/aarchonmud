@@ -99,7 +99,7 @@ void stackDump (lua_State *LS) {
 const char *check_string( lua_State *LS, int index, size_t size)
 {
     size_t rtn_size;
-    const char *rtn=lua_tolstring( LS, index, &rtn_size );
+    const char *rtn=luaL_checklstring( LS, index, &rtn_size );
     if (rtn_size >= size )
         luaL_error( LS, "String size %d exceeds maximum %d.",
                 (int)rtn_size, (int)size );
