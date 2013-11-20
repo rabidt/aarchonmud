@@ -311,11 +311,18 @@ void do_extract( CHAR_DATA *ch, char *argument)
      }
    
     /* Only weapons and armor can be extracted */
-    if ( obj->item_type != ITEM_ARMOR && obj->item_type != ITEM_WEAPON )
+    if ( obj->item_type != ITEM_ARMOR && obj->item_type != ITEM_WEAPON)
     {
         send_to_char( "You can only extract materials from armor and weapons.\n\r", ch );
         return;
     } 
+
+    /* No mob equipment either */
+    if (obj->level > 100)
+    {
+        send_to_char( "Equipment designed for mobs cannot be extracted.\n\r", ch);
+        return;
+    }
 
     logpf( "%s extracted %s", ch->name, remove_color(obj->short_descr));
 
