@@ -1571,7 +1571,41 @@ HELPTOPIC CH_cast_help = {};
 
 static int CH_damage (lua_State *LS)
 {
-    do_mpdamage( check_CH(LS, 1), check_fstring( LS, 2, MIL));
+    if ( lua_type(LS, 2 ) == LUA_TSTRING )
+    {
+        do_mpdamage( check_CH(LS, 1), check_fstring( LS, 2, MIL));
+        return 0;
+    }
+    
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    CHAR_DATA *victim=check_CH(LS, 2);
+    int dam=luaL_checkinteger(LS, 3);
+    
+    bool kill;
+    if ( !lua_isnone( LS, 4 ) )
+    {
+        kill=lua_toboolean( LS, 4 );
+    }
+    else
+    {
+        kill=TRUE;
+    }
+
+    int damtype;
+    if ( !lua_isnone( LS, 5 ) )
+    {
+        const char *dam_arg=check_string( LS, 5, MIL );
+        damtype=flag_lookup( dam_arg, damage_type );
+        if ( damtype == NO_FLAG )
+            luaL_error(LS, "No such damage type '%s'",
+                    dam_arg );
+    }
+    else
+    {
+        damtype=DAM_NONE;
+    }
+
+    deal_damage( ud_ch, victim, dam, TYPE_UNDEFINED, damtype, FALSE, kill );
 
     return 0;
 }
