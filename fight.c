@@ -1862,7 +1862,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         // more damage for higher cost
         if ( IS_AFFECTED(ch, AFF_BERSERK) )
         {
-            bonus_percent += 10;
+            bonus_percent += 10 + mastery_bonus(ch, gsn_berserk, 3, 5);
             if ( per_chance(get_skill(ch, gsn_fervent_rage)) )
                 bonus_percent += 10;
             check_improve(ch, gsn_fervent_rage, TRUE, 10);
@@ -2502,6 +2502,11 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
     if ( wield == NULL || wield->value[0] != WEAPON_DAGGER )
 	return;
 
+    // assassination mastery increases chance by up to factor 2, depending on victim's health
+    int dam_taken = (victim->max_hit - victim->hit) * 100 / victim->max_hit;
+    if ( per_chance(dam_taken) && per_chance(mastery_bonus(ch, gsn_beheading, 60, 100)) )
+        chance = UMAX(0, chance - 1);
+    
     extra_chance = 50 + (get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 4;
     if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
 	extra_chance += 10;
@@ -3030,7 +3035,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         if ( absorb > 0 )
         {
             int absorb_roll = number_range(0, absorb);
-            int grit_max = victim->move * grit/100;
+            int grit_max = (victim->move << get_mastery(victim, gsn_true_grit)) * grit/100;
             int grit_roll = number_range(0, grit_max);
             #ifdef TESTER
             printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb, absorb_roll, grit_roll, grit_max);

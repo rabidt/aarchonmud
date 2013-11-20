@@ -1750,8 +1750,11 @@ void do_look( CHAR_DATA *ch, char *argument )
         if ( arg1[0] == '\0'
             || ( !IS_NPC(ch) && !IS_SET(ch->comm, COMM_BRIEF) ) )
         {
-            send_to_char( "  ",ch);
-            send_to_char( ch->in_room->description, ch );
+            if (rp_look_trigger( ch ) )
+            {
+                send_to_char( "  ",ch);
+                send_to_char( ch->in_room->description, ch );
+            }
         }
         
         if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_AUTOEXIT) )
@@ -1767,7 +1770,7 @@ void do_look( CHAR_DATA *ch, char *argument )
         {
             count=ch->wait;
             do_hunt(ch, ch->hunting);
-	    ignore_invisible = FALSE;
+            ignore_invisible = FALSE;
             ch->wait=count;
             check_improve(ch,gsn_stalk,TRUE,4);
         }
