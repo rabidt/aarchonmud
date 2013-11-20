@@ -2732,13 +2732,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     */
     if ( dam > 2000 && dt >= TYPE_HIT && !IS_IMMORTAL(ch))
     {
-        OBJ_DATA *obj;
-        bug( "Damage: %d: more than 2000 points!", dam );
-        dam = 2000;
-        obj = get_eq_char( ch, WEAR_WIELD );
-        send_to_char("You really shouldn't cheat.\n\r",ch);
-        if (obj != NULL)
-            extract_obj(obj);
+        OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
+        OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
+        int weapon_dam = weapon ? average_weapon_dam(weapon) : 0;
+        int offhand_dam = offhand ? average_weapon_dam(offhand) : 0;
+        bugf("Excessive Damage: %d points (weapon avg = %d) from a regular hit by %s!", dam, UMAX(weapon_dam, offhand_dam), ch->name);
     }
     
     if ( victim != ch )
