@@ -4553,7 +4553,10 @@ bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
 void set_pos( CHAR_DATA *ch, int position )
 {
     if ( ch->position == position )
-	return;
+        return;
+
+    if ( ch->fighting )
+        position = UMIN(position, POS_FIGHTING);
 
     ch->position = position;
     ch->on = NULL;
