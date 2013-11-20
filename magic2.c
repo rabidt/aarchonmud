@@ -3744,47 +3744,32 @@ void spell_overcharge( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 void spell_unearth( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int dam;
 
-    dam = ch->level;
-
-    if ( ch->stance == STANCE_ARCANA )
+    if ( IS_AFFECTED(victim, AFF_FLYING) )
     {
-        dam *= 6;
+        act("$N hovers safely above the shaking ground.", ch, NULL, victim, TO_CHAR);
+        return;
     }
+
+    act("You cause the earth beneath $N to break and shift violently.", ch, NULL, victim, TO_CHAR);
+    act("$n causes the earth beneath you to break and shift violently.", ch, NULL, victim, TO_VICT);
+    act("$n causes the earth beneath $N to break and shift violently.", ch, NULL, victim, TO_NOTVICT);
+    
+    int dam = get_sn_damage(sn, level, ch);
+
+    if ( saves_spell(level, victim, DAM_BASH) )
+        dam /= 2;
     else
     {
-        dam *= 3;
+        if ( victim->position > POS_RESTING )
+        {
+            act("The rippling earth causes you to fall.", victim, NULL, NULL, TO_CHAR);
+            act("The rippling earth causes $n to fall.", victim, NULL, NULL, TO_ROOM);
+            set_pos(victim, POS_RESTING);
+        }
+        destance(victim, get_mastery(ch, sn));
     }
-
-    if ( is_safe(ch,victim) )
-	return;
-
-    if( number_bits(1) )
-    {
-        if (victim->position < POS_FIGHTING)
-        {
-            act("You shift the earth but $E is already down.",ch,NULL,victim,TO_CHAR);
-            return;
-        }
-
-        if ( !IS_AFFECTED(victim,AFF_FLYING) 
-           && (victim->stance != STANCE_DEFAULT) )
-        {
-            victim->stance = STANCE_DEFAULT;
-
-	    act("As $n shifts the earth, you lose your stance!",
-	    	ch,NULL,victim,TO_VICT);
-	    act("You shift the earth causing $N to lose $S stance!",
-	        ch,NULL,victim,TO_CHAR);
-	    act("$n shifts the earth causing $N to lose $S stance!",
-	        ch,NULL,victim,TO_NOTVICT);
-        }
-    }  
-
-
-    full_dam( ch, victim, dam, sn, DAM_BASH ,TRUE);
-    return;
+    full_dam(ch, victim, dam, sn, DAM_BASH, TRUE);
 }
 
 void spell_shadow_shroud(int sn,int level,CHAR_DATA *ch,void *vo, int target)
@@ -3814,7 +3799,7 @@ void spell_shadow_shroud(int sn,int level,CHAR_DATA *ch,void *vo, int target)
        
     send_to_char( "You are surrounded by darkness.\n\r", victim );
     if ( ch != victim )
-        act("$N is surrounded by an aura of fire.",ch,NULL,victim,TO_CHAR);
+        act("$N is surrounded by an aura of darkness.",ch,NULL,victim,TO_CHAR);
     return;
 }
 
