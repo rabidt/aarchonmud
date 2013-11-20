@@ -158,6 +158,7 @@ DECLARE_SPELL_FUN(  spell_detect_astral     );
 DECLARE_SPELL_FUN(  spell_astral     );
 DECLARE_SPELL_FUN(  spell_betray    );
 DECLARE_SPELL_FUN( spell_animate_dead   );
+DECLARE_SPELL_FUN( spell_ghost_chant    );
 DECLARE_SPELL_FUN( spell_damned_blade   );
 DECLARE_SPELL_FUN( spell_turn_undead    );
 DECLARE_SPELL_FUN( spell_necrosis       );
