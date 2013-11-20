@@ -303,7 +303,7 @@ APEDIT(apedit_show)
 APEDIT(apedit_security)
 {
     APROG_CODE *pAcode;
-    EDIT_MPCODE(ch, pAcode);
+    EDIT_APCODE(ch, pAcode);
     int newsec;
 
     if ( argument[0] == '\0' )
@@ -348,53 +348,11 @@ void fix_aprog_areas( CHAR_DATA *ch, APROG_CODE *pAcode )
     char buf[MSL];
     AREA_DATA *area;
 
-    lua_load_aprog( g_mud_LS, pAcode->vnum, pAcode->code);
+    check_aprog( g_mud_LS, pAcode->vnum, pAcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pAcode->vnum);
 
 }
 
-// void fix_aprog_objs( CHAR_DATA *ch, APROG_CODE *pAcode )
-// {
-    // APROG_LIST *mpl;
-    // int hash;
-    // char buf[MSL];
-    // OBJ_INDEX_DATA *obj;
-
-    // if ( pAcode != NULL )
-        // for ( hash = 0; hash < MAX_KEY_HASH; hash++ )
-            // for ( obj = obj_index_hash[hash]; obj; obj = obj->next )
-                // for ( mpl = obj->aprogs; mpl; mpl = mpl->next )
-                    // if ( mpl->vnum == pAcode->vnum )
-                    // {
-                        // sprintf( buf, "Fixing obj %d.\n\r", obj->vnum );
-                        // send_to_char( buf, ch );
-                        // mpl->code = pAcode->code;
-                   
-                        // lua_load_aprog( mud_LS, pAcode->vnum, pAcode->code);
-                        // ptc(ch, "Fixed lua script for %d.\n\r", pAcode->vnum);
-                        
-                    // } 
-// }
-// #if 0
-// APEDIT(apedit_lua)
-// {
-    // APROG_CODE *pAcode;
-    // APROG_LIST *mpl;
-    // EDIT_APCODE(ch, pAcode);
-    // OBJ_INDEX_DATA *mob;
-    // int hash;
-    // char buf[MSL];
-
-    // pAcode->is_lua = !pAcode->is_lua;
-    // ptc( ch, "LUA set to %s\n\r", pAcode->is_lua ? "TRUE" : "FALSE" );
-    // if ( pAcode->is_lua )
-        // lua_mprogs++;
-    // else
-        // lua_mprogs--;
-
-    // fix_mprog_mobs( ch, pAcode);
-// }
-// #endif
 /* Procedure to run when MPROG is changed and needs to be updated
    on mobs using it */
 
@@ -412,97 +370,3 @@ APEDIT(apedit_code)
     send_to_char("Syntax: code\n\r",ch);
     return FALSE;
 }
-// #if 0
-// APEDIT( apedit_list )
-// {
-   // int count = 1;
-   // APROG_CODE *mprg;
-   // char buf[MAX_STRING_LENGTH];
-   // BUFFER *buffer;
-   // bool fAll = !str_cmp(argument, "all");
-   // char blah;
-   // AREA_DATA *ad;
-   
-   // buffer = new_buf();
-   
-   // for (mprg = mprog_list; mprg !=NULL; mprg = mprg->next)
-      // if ( fAll || IS_BETWEEN(ch->in_room->area->min_vnum, mprg->vnum, ch->in_room->area->max_vnum) )
-      // {
-         // ad = get_vnum_area(mprg->vnum);
-         
-         // if ( ad == NULL )
-            // blah = '?';
-         // else
-            // if ( IS_BUILDER(ch, ad) )
-               // blah = '*';
-            // else
-               // blah = ' ';
-            
-            // sprintf(buf, "[%3d] (%c) %5d\n\r", count, blah, mprg->vnum );
-            // add_buf(buffer, buf);
-            
-            // count++;
-      // }
-      
-      // if ( count == 1 )
-      // {
-         // if ( fAll )
-            // add_buf( buffer, "No existen progs.\n\r" );
-         // else
-            // add_buf( buffer, "No existen progs en esta area.\n\r" );
-         
-      // }
-      
-      // page_to_char(buf_string(buffer), ch);
-      // free_buf(buffer);
-      
-      // return FALSE;
-      
-// }
-// #endif
-// #if 0
-// /* define in mob_prog.c and mob_cmd.c */
-// typedef char* keyword_list[][2];
-// extern const keyword_list fn_keyword;
-// /* display valid if-checks */
-// APEDIT( apedit_if )
-// {
-    // BUFFER *buffer;
-    // char buf[MSL];
-    // int i;
-
-    // buffer = new_buf();
-
-    // add_buf( buffer, "==================== Valid if-checks ====================\n\r" );
-    // for( i = 0; fn_keyword[i][0][0] != '\n'; i++ )
-    // {
-	// sprintf( buf, "%-14s: %s\n\r", fn_keyword[i][0], fn_keyword[i][1] );
-	// add_buf( buffer, buf );
-    // }
-    
-    // page_to_char(buf_string(buffer), ch);
-    // free_buf(buffer);
-    // return FALSE;
-// }
-
-// /* display valid mob commands */
-// APEDIT( apedit_mob )
-// {
-    // BUFFER *buffer;
-    // char buf[MSL];
-    // int i;
-
-    // buffer = new_buf();
-
-    // add_buf( buffer, "==================== Valid mob-commands =================\n\r" );
-    // for( i = 0; mob_cmd_table[i].name[0] != '\0'; i++ )
-    // {
-	// sprintf( buf, "mob %s %s\n\r", mob_cmd_table[i].name, mob_cmd_table[i].help );
-	// add_buf( buffer, buf );
-    // }
-    
-    // page_to_char(buf_string(buffer), ch);
-    // free_buf(buffer);
-    // return FALSE;
-// }
-// #endif

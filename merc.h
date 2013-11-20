@@ -267,7 +267,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         425
+#define MAX_SKILL         426
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1109,6 +1109,7 @@ struct  kill_data
 #define MOB_VNUM_SNAKE          7
 #define MOB_VNUM_VAMPIRE        8
 #define MOB_VNUM_GHOST          9
+#define MOB_VNUM_SPIRIT         10
 #define MOB_VNUM_BASIC_APPARITION 11
 #define MOB_VNUM_HOLY_APPARITION 12
 #define MOB_VNUM_WATER_ELEMENTAL 13
@@ -3214,6 +3215,7 @@ struct  mastery_group_type
 #define RTRIG_LOCK  (G)
 #define RTRIG_ENTER (H)
 #define RTRIG_EXIT  (I)
+#define RTRIG_LOOK  (J)
 
 struct mprog_list
 {
@@ -3866,6 +3868,7 @@ struct achievement_entry
 
 #define NPC_ACT(ch, flag) (IS_NPC(ch) && IS_SET((ch)->act, flag))
 #define PLR_ACT(ch, flag) (!IS_NPC(ch) && IS_SET((ch)->act, flag))
+#define NPC_OFF(ch, flag) (IS_NPC(ch) && IS_SET((ch)->off_flags, flag))
 
 #define IS_QUESTOR(ch)     (IS_SET((ch)->act, PLR_QUESTOR))         
 #define IS_QUESTORHARD(ch)     (IS_SET((ch)->act, PLR_QUESTORHARD))

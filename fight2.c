@@ -129,45 +129,22 @@ void do_berserk( CHAR_DATA *ch, char *argument )
         act("$n gets a wild look in $s eyes.",ch,NULL,NULL,TO_ROOM);
         check_improve(ch,gsn_berserk,TRUE,2);
 
-        /* Skill Mastery Section - Astark 8-28-12 */
-        if (get_skill(ch, gsn_berserk) >= 95)
-        {
-            af.where    = TO_AFFECTS;
-            af.type     = gsn_berserk;
-            af.level    = ch->level;
-            af.duration = get_duration(gsn_berserk, ch->level);
-            af.modifier = UMAX(1,ch->level/4);
-            af.bitvector    = AFF_BERSERK;
-        
-            af.location = APPLY_HITROLL;
-            affect_to_char(ch,&af);
-        
-            af.location = APPLY_DAMROLL;
-            affect_to_char(ch,&af);
-        
-            af.modifier = 10 * UMAX(1, ch->level/11);
-            af.location = APPLY_AC;
-            affect_to_char(ch,&af);
-        }
-        else
-        {        
-            af.where    = TO_AFFECTS;
-            af.type     = gsn_berserk;
-            af.level    = ch->level;
-            af.duration = get_duration(gsn_berserk, ch->level);
-            af.modifier = UMAX(1,ch->level/5);
-            af.bitvector    = AFF_BERSERK;
-        
-            af.location = APPLY_HITROLL;
-            affect_to_char(ch,&af);
-        
-            af.location = APPLY_DAMROLL;
-            affect_to_char(ch,&af);
-        
-            af.modifier = 10 * UMAX(1, ch->level/10);
-            af.location = APPLY_AC;
-            affect_to_char(ch,&af);
-        }
+        af.where    = TO_AFFECTS;
+        af.type     = gsn_berserk;
+        af.level    = ch->level;
+        af.duration = get_duration(gsn_berserk, ch->level);
+        af.modifier = UMAX(1,ch->level/5) + mastery_bonus(ch, gsn_berserk, 6, 10);
+        af.bitvector    = AFF_BERSERK;
+    
+        af.location = APPLY_HITROLL;
+        affect_to_char(ch,&af);
+    
+        af.location = APPLY_DAMROLL;
+        affect_to_char(ch,&af);
+    
+        af.modifier = 10 * UMAX(1, ch->level/10);
+        af.location = APPLY_AC;
+        affect_to_char(ch,&af);
     }
     
     else
@@ -775,44 +752,25 @@ void do_semiauto( CHAR_DATA *ch, char *argument)
 
 void do_hogtie(CHAR_DATA *ch, char *argument )
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *rope;
     int chance, skill;
     AFFECT_DATA af;
     
-    one_argument(argument,arg);
-    
-    if ( (skill = get_skill(ch,gsn_hogtie)) == 0
-        ||   (IS_NPC(ch)))
+    if ( (skill = get_skill(ch, gsn_hogtie)) == 0 )
     {
         send_to_char("Better leave that to the hogtyin' professionals.\n\r",ch);
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't in combat!\n\r",ch);
-            return;
-        }
-    }
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( victim == ch )
     {
         send_to_char("Sick, sick, sick.\n\r",ch);
         return;
     }
-    
-    if ( is_safe(ch,victim) )
-        return;
     
     rope = get_eq_char(ch, WEAR_HOLD);
     if ((rope == NULL) || (rope->item_type != ITEM_HOGTIE))
@@ -862,6 +820,7 @@ void do_hogtie(CHAR_DATA *ch, char *argument )
         check_improve(ch,gsn_hogtie,FALSE,2);
         WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
     }
+    start_combat(ch, victim);
 }
 
 /* parameters for aiming, must terminate with "" */
@@ -1570,7 +1529,8 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     */
 
     check_killer( ch, fch );
-    set_fighting( ch, fch );
+    if ( ch->fighting != fch )
+        set_fighting( ch, fch );
     set_fighting( fch, ch );
     /*set_fighting( victim, other );*/
     return;
@@ -2166,77 +2126,78 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
 
 void do_war_cry( CHAR_DATA *ch, char *argument)
 {
+    AFFECT_DATA af;
     CHAR_DATA *vch;
-    CHAR_DATA *vch_next;
-    int chance, level;
+    int skill, cost, chance, level, modifier;
+    int mastery = get_mastery(ch, gsn_war_cry);
     
-    /*
-    if (is_affected(ch, gsn_war_cry))
-    {
-        send_to_char("You are still fired up from the last war cry!.\n\r",ch);
-        return;
-    }
-    */
-    
-    if ((chance = get_skill(ch,gsn_war_cry)) == 0)
+    if ( (skill = get_skill(ch, gsn_war_cry)) == 0 )
     {
         send_to_char("Your war cry is rather pathetic.\n\r",ch);
         return;
     }
     
-    if (ch->mana < 5000/chance)
+    cost = skill_table[gsn_war_cry].min_mana * 200 / (100 + skill);
+    level = ch->level * (100 + skill) / 200;
+    chance = (100 + skill) / 2;
+    modifier = 5 + level/5 + (mastery ? 5 : 0);
+    
+    if ( ch->move < cost )
     {
         send_to_char("You can't seem to psych yourself up for it.\n\r",ch);
         return;
     }
     
-    if (number_percent() < chance)
+    WAIT_STATE( ch, skill_table[gsn_war_cry].beats );
+
+    if ( !per_chance(chance) )
     {
-        AFFECT_DATA af;
+        ch->move -= cost/2;
+        send_to_char("Your war cry isn't very inspirational.\n\r", ch);
+        act("$n embarrasses $mself trying to psych up the troops.", ch, NULL, NULL, TO_ROOM);
+        check_improve(ch, gsn_war_cry, FALSE, 2);
+        return;
+    }
         
-        WAIT_STATE( ch, skill_table[gsn_war_cry].beats );
-        ch->mana -= 5000/chance;
+    ch->move -= cost;
+    send_to_char("You scream out a rousing war cry!\n\r",ch);
+    act("$n screams a rousing war cry!",ch,NULL,NULL,TO_ROOM);
+    check_improve(ch, gsn_war_cry, TRUE, 2);
         
-        send_to_char("You scream out a rousing war cry!\n\r",ch);
-        act("$n screams a rousing war cry!",ch,NULL,NULL,TO_ROOM);
-        check_improve(ch,gsn_war_cry,TRUE,2);
-        
-	af.where     = TO_AFFECTS;
-	af.type      = gsn_war_cry;
-	af.level     = (level = ch->level);
-	af.duration  = get_duration(gsn_war_cry, ch->level);
-	af.modifier  = 5 + level*chance/500;
-	af.bitvector = 0;  
-        
-        for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_war_cry;
+    af.level     = level;
+    af.duration  = get_duration(gsn_war_cry, level);
+    af.bitvector = 0;
+    
+
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
+    {
+        if ( is_same_group(vch, ch) && !is_affected(vch, gsn_war_cry) )
         {
-            vch_next = vch->next_in_room;
-            if ( is_same_group(vch, ch) && !is_affected(vch, gsn_war_cry) )
+            send_to_char("You feel like killing something.\n\r", vch);
+            if ( vch != ch )
+                act("Your warcry inspires $N.", ch, NULL, vch, TO_CHAR);
+            af.modifier = modifier;
+            af.location = APPLY_HITROLL;
+            affect_to_char(vch, &af);
+            af.location = APPLY_DAMROLL;
+            affect_to_char(vch, &af);
+            // more mastery boni
+            if ( mastery )
             {
-                if (number_percent() < chance)
+                af.modifier = -100;
+                af.location = APPLY_AC;
+                affect_to_char(vch, &af);
+                if ( mastery > 1 )
                 {
-                    af.location  = APPLY_HITROLL;
-                    affect_to_char( vch, &af );
-                    af.location  = APPLY_DAMROLL;
-                    affect_to_char( vch, &af );
-                    send_to_char( "You feel like killing something.\n\r", vch );
-                } 
-                else 
-                    send_to_char( "You are unmoved by the cry.\n\r", vch );
+                    af.modifier = -10;
+                    af.location = APPLY_SAVES;
+                    affect_to_char(vch, &af);                    
+                }
             }
         }
     }
-    else
-    {
-        WAIT_STATE( ch, 2 * (skill_table[gsn_war_cry].beats) );
-        ch->mana -= 2500/chance;
-        
-        send_to_char("Your war cry isn't very inspirational.\n\r", ch );
-        act( "$n embarrasses $mself trying to psych up the troops.",ch,NULL,NULL,TO_ROOM );
-        check_improve( ch, gsn_war_cry, FALSE, 2 );
-    }
-    
-    return;
 }
 
 void do_guard( CHAR_DATA *ch, char *argument )
@@ -2980,12 +2941,13 @@ void do_round_swing( CHAR_DATA *ch, char *argument )
 
     WAIT_STATE( ch, skill_table[gsn_round_swing].beats );
 
-    if ( number_percent() > skill )
+    if ( !per_chance(skill) )
     {
-	send_to_char( "You stumble and fall to the ground.\n\r", ch );
-	set_pos( ch, POS_RESTING );
-	check_improve( ch, gsn_round_swing, FALSE, 3 );
-	return;
+        send_to_char("You stumble and fall to the ground.\n\r", ch);
+        act("$n tries to swing $s weapon but stumbles.", ch, NULL, NULL, TO_ROOM);
+        set_pos(ch, POS_RESTING);
+        check_improve(ch, gsn_round_swing, FALSE, 3);
+        return;
     }
 
     send_to_char( "You spin around fiercely!\n\r", ch );
@@ -3298,10 +3260,11 @@ void do_hurl( CHAR_DATA *ch, char *argument )
         dam = martial_damage( ch, gsn_hurl );
         
         DAZE_STATE( victim, 2*PULSE_VIOLENCE + victim->size - SIZE_MEDIUM );
+        WAIT_STATE( victim, PULSE_VIOLENCE );
         damage(ch,victim, dam, gsn_hurl,DAM_BASH,TRUE);
         
         stop_fighting( victim, FALSE );
-	set_pos( victim, POS_RESTING );
+        set_pos( victim, POS_RESTING );
         
         for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
         {
