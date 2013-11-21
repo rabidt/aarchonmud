@@ -616,8 +616,20 @@ HELPTOPIC glob_getmobworld_help={};
 
 static int glob_pagetochar (lua_State *LS)
 {
-    page_to_char( luaL_checkstring( LS, 2),
-            check_CH(LS,1) );
+    if (!lua_isnone(LS, 3) )
+    {
+        page_to_char_new( 
+                luaL_checkstring(LS, 2),
+                check_CH(LS,1),
+                lua_toboolean( LS, 3 ) );
+        return 0;
+    }
+    else
+    {
+        page_to_char( 
+                luaL_checkstring( LS, 2),
+                check_CH(LS,1) );
+    }
 
     return 0;
 }
@@ -807,6 +819,27 @@ static int glob_cancel ( lua_State *LS)
 }
 HELPTOPIC glob_cancel_help={};
 
+static int glob_arguments ( lua_State *LS)
+{   
+    const char *argument=check_string( LS, 1, MIL );
+    char buf[MIL];
+    
+    lua_newtable( LS );
+    int index=1;
+
+    while ( argument[0] != '\0' )
+    {
+        argument = one_argument( argument, buf );
+        lua_pushstring( LS, buf );
+        lua_rawseti( LS, -2, index++ );
+    }
+
+    return 1;
+}
+HELPTOPIC glob_arguments_help={};
+        
+
+
 #define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
@@ -859,6 +892,8 @@ GLOB_TYPE glob_table[] =
     
     DBGF(show),
 
+    /* SEC_NOSCRIPT means aren't available for prog scripts */
+
     LFUN( mt, srand,        SEC_NOSCRIPT ),
     LFUN( mt, rand,         SEC_NOSCRIPT ),
 
@@ -866,6 +901,7 @@ GLOB_TYPE glob_table[] =
     LFUN( mud, userdir,     SEC_NOSCRIPT ),
     
     GFUN( cancel,           SEC_NOSCRIPT ),
+    GFUN( arguments,        SEC_NOSCRIPT ),
     ENDGTABLE
 };
 
