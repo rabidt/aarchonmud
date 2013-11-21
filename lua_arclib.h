@@ -51,5 +51,6 @@ void register_globals( lua_State *LS );
 #define make_OBJPROTO(LS, op) OBJPROTO_type->make( OBJPROTO_type, LS, op)
 
 #define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
+#define is_OBJ(LS, obj ) OBJ_type->is( OBJ_type, LS, obj )
 
 #endif
