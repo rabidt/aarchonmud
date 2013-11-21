@@ -302,6 +302,22 @@ int bprintf (DBUFFER *buffer, char *fmt, ...)
 	return res;	
 }
 
+// fprintf with reformat
+int rfprintf(FILE *f, const char *fmt, ...)
+{
+    va_list va;
+    
+    va_start (va, fmt);
+    char *new_fmt = reformat(fmt, va);
+    va_end (va);
+
+    va_start (va, fmt);
+    int res = vfprintf (f, new_fmt, va);
+    va_end (va);
+    
+    return res;
+}
+
 /* tools for methods returning pointers to local static strings
  * which must not overlap different calls -- Bobble
  */
