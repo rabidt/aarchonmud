@@ -519,7 +519,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "NmCol %s~\n", ch->pcdata->name_color);
 	bprintf( buf, "Pretitle %s~\n", ch->pcdata->pre_title);
         
-        bprintf( buf, "Titl %s~\n", ltrim(ch->pcdata->title) );
+        // strip single leading ' ' character that gets added automatically by set_title
+        bprintf( buf, "Titl %s~\n", ch->pcdata->title[0] == ' ' ? ch->pcdata->title+1 : ch->pcdata->title );
         
         bprintf( buf, "Pnts %d\n",       ch->pcdata->points      );
         
