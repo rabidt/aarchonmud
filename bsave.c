@@ -2135,16 +2135,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
-            free_string( ch->pcdata->title );
-            ch->pcdata->title = bread_string( buf );
-            if (ch->pcdata->title[0] != '.' && ch->pcdata->title[0] != ',' 
-                && ch->pcdata->title[0] != '!' && ch->pcdata->title[0] != '?'
-                && ch->pcdata->title[0] != '\'')
-            {
-                sprintf( str_buf, " %s", ch->pcdata->title );
-                free_string( ch->pcdata->title );
-                ch->pcdata->title = str_dup( str_buf );
-            }
+            set_title(ch, bread_string(buf));
             fMatch = TRUE;
             break;
         }

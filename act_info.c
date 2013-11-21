@@ -3458,7 +3458,7 @@ void set_title( CHAR_DATA *ch, char *title )
         return;
     }
     
-    if ( title[0] != '.' && title[0] != ',' && title[0] != '!' && title[0] != '?' && title[0] != '\'' )
+    if ( title[0] != '.' && title[0] != ',' && title[0] != '!' && title[0] != '?' && title[0] != '\'' && title[0] != ' ' )
     {
         buf[0] = ' ';
         strcpy( buf+1, title );
