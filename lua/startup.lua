@@ -443,3 +443,23 @@ function go_lua_interpret(env, str)
     end
     return 0
 end
+
+local function scriptdumpusage( ch )
+    sendtochar(ch, [[
+scriptdump <userdir> <scriptname>
+                   
+Example: scriptdump vodur testscript
+]])
+end
+
+
+function do_scriptdump( ch, argument )
+    args=arguments(argument)
+    if not(#args == 2 ) then
+        scriptdumpusage(ch)
+        return
+    end
+
+    pagetochar( ch, GetScript( args[1], args[2] ), true )
+
+end
