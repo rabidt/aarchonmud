@@ -1114,6 +1114,9 @@ static int L_rundelay( lua_State *LS)
     
     lua_remove( LS, -2 ); /* kill udtbl */
 
+    lua_getfield( LS, -2, "security");
+    int sec=luaL_checkinteger( LS, -1);
+    lua_pop(LS, 1);
 
     lua_getfield( LS, -2, "func"); 
 
@@ -1127,7 +1130,14 @@ static int L_rundelay( lua_State *LS)
         lua_mob_program( NULL, RUNDELAY_VNUM, NULL,
                 check_CH(LS, -2), NULL, 
                 NULL, NULL, 0, 0,
-                TRIG_CALL, 0 );
+                TRIG_CALL, sec );
+    }
+    else if ( is_OBJ( LS, -2 ) )
+    {
+        lua_obj_program( NULL, RUNDELAY_VNUM, NULL,
+                check_OBJ(LS, -2), NULL,
+                NULL, NULL,
+                TRIG_CALL, sec );
     }
 
     return 0;
@@ -1172,6 +1182,10 @@ int L_delay (lua_State *LS)
 
     lua_pushliteral( LS, "func");
     lua_pushvalue( LS, 3 );
+    lua_settable( LS, -3 );
+
+    lua_pushliteral( LS, "security");
+    lua_pushinteger( LS, g_ScriptSecurity ); 
     lua_settable( LS, -3 );
 
     lua_settable( LS, -3 );

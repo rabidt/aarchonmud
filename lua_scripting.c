@@ -379,7 +379,12 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     char buf[MSL*2];
     sprintf(buf, "O_%d", pvnum);
 
-    if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
+    if ( pvnum == RUNDELAY_VNUM )
+    {
+        lua_pushvalue( g_mud_LS, -3 );
+        lua_remove( g_mud_LS, -4 );
+    }
+    else if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
     {
         return;
     }
