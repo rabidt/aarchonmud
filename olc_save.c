@@ -383,11 +383,11 @@ void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
     MPROG_LIST *pMprog;
     
     fprintf( fp, "#%d\n",       pMobIndex->vnum );
-    fprintf( fp, "NAME %s~\n",  pMobIndex->player_name );
-    fprintf( fp, "SDESC %s~\n", pMobIndex->short_descr );
-    fprintf( fp, "LDESC %s~\n", fix_string(pMobIndex->long_descr) );
-    fprintf( fp, "DESC %s~\n",  fix_string(pMobIndex->description) );
-    fprintf( fp, "RACE %s~\n",  race_table[race].name );
+    rfprintf( fp, "NAME %s~\n",  pMobIndex->player_name );
+    rfprintf( fp, "SDESC %s~\n", pMobIndex->short_descr );
+    rfprintf( fp, "LDESC %s~\n", fix_string(pMobIndex->long_descr) );
+    rfprintf( fp, "DESC %s~\n",  fix_string(pMobIndex->description) );
+    rfprintf( fp, "RACE %s~\n",  race_table[race].name );
     fprintf( fp, "SEX %s\n",    sex_table[pMobIndex->sex].name );
     
     // flags must come after race, apart from that order does not matter
@@ -423,7 +423,7 @@ void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
     reverse_mprog_order(pMobIndex);    
     for (pMprog = pMobIndex->mprogs; pMprog; pMprog = pMprog->next)
     {
-        fprintf(fp, "MPROG %s %d %s~\n", mprog_type_to_name(pMprog->trig_type), pMprog->vnum, pMprog->trig_phrase);
+        rfprintf(fp, "MPROG %s %d %s~\n", mprog_type_to_name(pMprog->trig_type), pMprog->vnum, pMprog->trig_phrase);
     }
     reverse_mprog_order(pMobIndex);
 
