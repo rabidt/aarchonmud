@@ -1111,17 +1111,24 @@ static int L_rundelay( lua_State *LS)
     {
         luaL_error(LS, "Couldn't find delayed function's game object.");
     }
+    
+    lua_remove( LS, -2 ); /* kill udtbl */
 
-    lua_pop( LS, 2 );
 
-    lua_getfield( LS, -1, "func"); 
+    lua_getfield( LS, -2, "func"); 
 
     /* kill the entry before call in case of error */
     lua_pushvalue( LS, 1 ); /* lightud as key */
     lua_pushnil( LS ); /* nil as value */
     lua_settable( LS, 2 ); /* pops key and value */ 
 
-    lua_call( LS, 0, 0);
+    if ( is_CH( LS, -2 ) )
+    {
+        lua_mob_program( NULL, RUNDELAY_VNUM, NULL,
+                check_CH(LS, -2), NULL, 
+                NULL, NULL, 0, 0,
+                TRIG_CALL, 0 );
+    }
 
     return 0;
 }
