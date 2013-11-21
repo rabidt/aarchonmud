@@ -347,7 +347,7 @@ void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
     char buf[MSL];
     OBJ_INDEX_DATA *obj;
 
-    lua_load_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
+    check_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);
 
 }
