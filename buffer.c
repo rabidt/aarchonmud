@@ -175,7 +175,7 @@ void buffer_clear (DBUFFER *buffer)
 }
 
 // replace whitespace characters by their escape sequence
-#define MAX_CALL 2
+#define MAX_CALL 3
 char* escape_ws(const char *s) {
     static char escaped[MAX_CALL][MSL];
     static int call_id = 0;
@@ -218,6 +218,9 @@ char* reformat(const char *fmt, va_list va)
     static char new_fmt[MSL];
     char *next = fmt, *next_new = new_fmt;
     bool format_mode = FALSE;
+    // store for later use in debug
+    va_list va_orig;
+    va_copy(va_orig, va);
 
     while ( *next )
     {
@@ -267,7 +270,12 @@ char* reformat(const char *fmt, va_list va)
     
     // debug
     if ( strcmp(fmt, new_fmt) )
-        logpf("reformatted \"%s\" to \"%s\"", escape_ws(fmt), escape_ws(new_fmt));
+    {
+        char buf[MSL];
+        vsnprintf(buf, MSL, new_fmt, va_orig);
+        logpf("reformatted \"%s\" to \"%s\" => \"%s\"", escape_ws(fmt), escape_ws(new_fmt), escape_ws(buf));
+    }
+    va_end(va_orig);
     
     return new_fmt;
 }
