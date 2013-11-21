@@ -13,6 +13,7 @@
 #define LOADTABLE_FUNCTION "LoadTable"
 #define TPRINTSTR_FUNCTION "glob_tprintstr"
 
+#define RUNDELAY_VNUM -1
 #define LOADSCRIPT_VNUM 0
 #define MAX_LUA_SECURITY 9
 double genrand(void);
