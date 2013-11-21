@@ -1177,14 +1177,14 @@ void save_clan_file(int clannum)
     }
 
     fprintf(fp, "#CLAN          %d\n",  clannum);
-    fprintf(fp, "Name           %s~\n", clan->name);
-    fprintf(fp, "Filename       %s~\n", clan->filename);
+    rfprintf(fp, "Name           %s~\n", clan->name);
+    rfprintf(fp, "Filename       %s~\n", clan->filename);
     fprintf(fp, "Active         %d\n",  clan->active);
     fprintf(fp, "AllowRecruits  %d\n",  clan->allow_recruits);
     fprintf(fp, "InviteOnly     %d\n",  clan->invitation_only);
-    fprintf(fp, "WhoName        %s~\n", clan->who_name);
-    fprintf(fp, "WhoColor       %s~\n", clan->who_color);
-    fprintf(fp, "Patron         %s~\n", clan->patron);
+    rfprintf(fp, "WhoName        %s~\n", clan->who_name);
+    rfprintf(fp, "WhoColor       %s~\n", clan->who_color);
+    rfprintf(fp, "Patron         %s~\n", clan->patron);
     fprintf(fp, "Recall         %d\n",  clan->hall);
     fprintf(fp, "Donation       %d\n",  clan->donation);
     fprintf(fp, "CreationDate   %ld\n", clan->creation_date);
@@ -1202,8 +1202,8 @@ void save_clan_file(int clannum)
         rank = &(clan->rank_list[i]);
 
         fprintf(fp, "\n#RANK          %d\n", i);
-        fprintf(fp, "Name           %s~\n", rank->name);
-        fprintf(fp, "WhoName        %s~\n", rank->who_name);
+        rfprintf(fp, "Name           %s~\n", rank->name);
+        rfprintf(fp, "WhoName        %s~\n", rank->who_name);
         fprintf(fp, "MinLevel       %d\n",  rank->min_level);
         fprintf(fp, "MaxPromote     %d\n",  rank->max_promote_rank);
         fprintf(fp, "MaxCount       %d\n",  rank->available_slots);

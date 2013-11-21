@@ -97,7 +97,7 @@ void load_social_table ()
 void save_social (const struct social_type *s, FILE *fp)
 {
 	/* get rid of (null) */
-	fprintf (fp, "%s~\n%s~\n%s~\n%s~\n%s~\n%s~\n%s~\n%s~\n\n",
+	rfprintf (fp, "%s~\n%s~\n%s~\n%s~\n%s~\n%s~\n%s~\n%s~\n\n",
 			       s->name 			 ? s->name          : "" , 
 			       s->char_no_arg 	 ? s->char_no_arg   : "" , 
 			       s->others_no_arg  ? s->others_no_arg : "" ,

@@ -152,13 +152,13 @@ BOARD_DATA boards[MAX_BOARD] =
 /* append this note to the given file */
 static void append_note (FILE *fp, NOTE_DATA *note)
 {
-   fprintf (fp, "Sender  %s~\n", note->sender);
-   fprintf (fp, "Date    %s~\n", note->date);
+   rfprintf (fp, "Sender  %s~\n", note->sender);
+   rfprintf (fp, "Date    %s~\n", note->date);
    fprintf (fp, "Stamp   %ld\n", note->date_stamp);
    fprintf (fp, "Expire  %ld\n", note->expire);
-   fprintf (fp, "To      %s~\n", note->to_list);
-   fprintf (fp, "Subject %s~\n", note->subject);
-   fprintf (fp, "Text\n%s~\n\n", note->text);
+   rfprintf (fp, "To      %s~\n", note->to_list);
+   rfprintf (fp, "Subject %s~\n", note->subject);
+   rfprintf (fp, "Text\n%s~\n\n", note->text);
 }
 
 /* Remove note from the list. Do not free note */

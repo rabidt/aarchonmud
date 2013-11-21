@@ -3321,7 +3321,7 @@ void save_reserved(void)
     }
     
     for (res = first_reserved; res; res = res->next)
-        fprintf(fp, "%s~\n", res->name);
+        rfprintf(fp, "%s~\n", res->name);
     
     fprintf(fp, "$~\n");
     fclose(fp);
