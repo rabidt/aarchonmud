@@ -271,9 +271,10 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
 
     if ( pvnum == RUNDELAY_VNUM )
     {
-        /* should already be at -2 (behind mob_program_setup)
+        /* should already be at -3 (behind mob_program_setup)
            let's rearrange */
-        lua_insert( g_mud_LS, -2 );
+        lua_pushvalue( g_mud_LS, -3);
+        lua_remove( g_mud_LS, -4);
     }
     else if ( !lua_load_mprog( g_mud_LS, pvnum, source) )
     {
