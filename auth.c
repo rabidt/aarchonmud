@@ -145,20 +145,20 @@ void clear_auth_list()
 
 void write_auth_file( FILE *fpout, AUTH_LIST *list )
 {
-    fprintf( fpout, "Name		%s~\n",	list->name );
-    fprintf( fpout, "State		%d\n", list->state );
+    rfprintf( fpout, "Name		%s~\n",	list->name );
+    rfprintf( fpout, "State		%d\n", list->state );
     
     if (list == NULL)
         return;
 
     if( list->authed_by )
-        fprintf( fpout, "AuthedBy       %s~\n", list->authed_by );
+        rfprintf( fpout, "AuthedBy       %s~\n", list->authed_by );
 
     if( list->change_by )
-        fprintf( fpout, "Change		%s~\n", list->change_by );
+        rfprintf( fpout, "Change		%s~\n", list->change_by );
 
     if( list->denied_by )
-        fprintf( fpout, "Denied		%s~\n", list->denied_by );
+        rfprintf( fpout, "Denied		%s~\n", list->denied_by );
 
     fprintf( fpout, "End\n\n" );
 }

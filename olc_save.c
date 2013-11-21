@@ -290,7 +290,7 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
 		          fprintf(fp, "#%d\n", i);
                   fprintf(fp, "LUA %d\n", pMprog->is_lua);
                   fprintf(fp, "SEC %d\n", pMprog->security);
-                  fprintf(fp, "CODE %s~\n", fix_string(pMprog->code));
+                  rfprintf(fp, "CODE %s~\n", fix_string(pMprog->code));
                   fprintf(fp, "End\n");
         }
     }
@@ -312,7 +312,7 @@ void save_objprogs( FILE *fp, AREA_DATA *pArea )
         {
                   fprintf(fp, "#%d\n", i);
                   fprintf(fp, "SEC %d\n", pOprog->security);
-                  fprintf(fp, "CODE %s~\n", fix_string(pOprog->code));
+                  rfprintf(fp, "CODE %s~\n", fix_string(pOprog->code));
                   fprintf(fp, "End\n");
         }
     }
@@ -334,7 +334,7 @@ void save_areaprogs( FILE *fp, AREA_DATA *pArea )
         {
                   fprintf(fp, "#%d\n", i);
                   fprintf(fp, "SEC %d\n", pAprog->security);
-                  fprintf(fp, "CODE %s~\n", fix_string(pAprog->code));
+                  rfprintf(fp, "CODE %s~\n", fix_string(pAprog->code));
                   fprintf(fp, "End\n");
         }
     }
@@ -356,7 +356,7 @@ void save_roomprogs( FILE *fp, AREA_DATA *pArea )
         {
                   fprintf(fp, "#%d\n", i);
                   fprintf(fp, "SEC %d\n", pRprog->security);
-                  fprintf(fp, "CODE %s~\n", fix_string(pRprog->code));
+                  rfprintf(fp, "CODE %s~\n", fix_string(pRprog->code));
                   fprintf(fp, "End\n");
         }
     }
@@ -470,10 +470,10 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     char buf[MAX_STRING_LENGTH];
     
     fprintf( fp, "#%d\n",    pObjIndex->vnum );
-    fprintf( fp, "%s~\n",    pObjIndex->name );
-    fprintf( fp, "%s~\n",    pObjIndex->short_descr );
-    fprintf( fp, "%s~\n",    fix_string( pObjIndex->description ) );
-    fprintf( fp, "%s~\n",    pObjIndex->material );
+    rfprintf( fp, "%s~\n",    pObjIndex->name );
+    rfprintf( fp, "%s~\n",    pObjIndex->short_descr );
+    rfprintf( fp, "%s~\n",    fix_string( pObjIndex->description ) );
+    rfprintf( fp, "%s~\n",    pObjIndex->material );
     fprintf( fp, "%s ",      item_name(pObjIndex->item_type));
     fprintf( fp, "%s ",      print_tflag( pObjIndex->extra_flags ) );
     fprintf( fp, "%s\n",     print_tflag( pObjIndex->wear_flags ) );
@@ -602,10 +602,10 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     fprintf( fp, "%c\n", letter );
     
     if (pObjIndex->clan > 0)
-        fprintf ( fp, "C %s~\n" , clan_table[pObjIndex->clan].name );
+        rfprintf ( fp, "C %s~\n" , clan_table[pObjIndex->clan].name );
     
     if (pObjIndex->rank > 0 && pObjIndex->clan > 0)
-        fprintf ( fp, "R %s~\n" , clan_table[pObjIndex->clan].rank_list[pObjIndex->rank].name );      
+        rfprintf ( fp, "R %s~\n" , clan_table[pObjIndex->clan].rank_list[pObjIndex->rank].name );      
     if (pObjIndex->combine_vnum > 0)
 	fprintf ( fp, "B %d\n", pObjIndex->combine_vnum );
 
@@ -651,7 +651,7 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     
     for( pEd = pObjIndex->extra_descr; pEd; pEd = pEd->next )
     {
-        fprintf( fp, "E\n%s~\n%s~\n", pEd->keyword,
+        rfprintf( fp, "E\n%s~\n%s~\n", pEd->keyword,
             fix_string( pEd->description ) );
     }
 
@@ -662,7 +662,7 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
         reverse_oprog_order(pObjIndex);
         for (pOprog = pObjIndex->oprogs; pOprog; pOprog = pOprog->next)
         {
-            fprintf(fp, "O %s %d %s~\n", name_lookup(pOprog->trig_type, oprog_flags), pOprog->vnum, pOprog->trig_phrase);
+            rfprintf(fp, "O %s %d %s~\n", name_lookup(pOprog->trig_type, oprog_flags), pOprog->vnum, pOprog->trig_phrase);
         }
         reverse_oprog_order(pObjIndex); 
     }
@@ -721,8 +721,8 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
             if ( pRoomIndex->area == pArea )
             {
                 fprintf( fp, "#%d\n",		pRoomIndex->vnum );
-                fprintf( fp, "%s~\n",		pRoomIndex->name );
-                fprintf( fp, "%s~\n",		fix_string( pRoomIndex->description ) );
+                rfprintf( fp, "%s~\n",		pRoomIndex->name );
+                rfprintf( fp, "%s~\n",		fix_string( pRoomIndex->description ) );
                 fprintf( fp, "0 " );
                 fprintf( fp, "%s ",		print_tflag(pRoomIndex->room_flags) );
                 fprintf( fp, "%d\n",		pRoomIndex->sector_type );
@@ -730,7 +730,7 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                 for ( pEd = pRoomIndex->extra_descr; pEd;
                 pEd = pEd->next )
                 {
-                    fprintf( fp, "E\n%s~\n%s~\n", pEd->keyword,
+                    rfprintf( fp, "E\n%s~\n%s~\n", pEd->keyword,
                         fix_string( pEd->description ) );
                 }
                 for( door = 0; door < MAX_DIR; door++ )	/* I hate this! */
@@ -781,8 +781,8 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
 			*/
                         
                         fprintf( fp, "D%d\n",      pExit->orig_door );
-                        fprintf( fp, "%s~\n",      fix_string( pExit->description ) );
-                        fprintf( fp, "%s~\n",      pExit->keyword );
+                        rfprintf( fp, "%s~\n",      fix_string( pExit->description ) );
+                        rfprintf( fp, "%s~\n",      pExit->keyword );
                         fprintf( fp, "%s %d %d\n",
                         print_tflag(pExit->rs_flags),
                         pExit->key,
@@ -798,13 +798,13 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                     fprintf ( fp, "M %d H %d\n",pRoomIndex->mana_rate,
                     pRoomIndex->heal_rate);
                 if (pRoomIndex->clan > 0)
-                    fprintf ( fp, "C %s~\n" , clan_table[pRoomIndex->clan].name );
+                    rfprintf ( fp, "C %s~\n" , clan_table[pRoomIndex->clan].name );
                 
                 if (pRoomIndex->clan_rank > 0 && pRoomIndex->clan > 0)
-                    fprintf ( fp, "R %s~\n" , clan_table[pRoomIndex->clan].rank_list[pRoomIndex->clan_rank].name );      
+                    rfprintf ( fp, "R %s~\n" , clan_table[pRoomIndex->clan].rank_list[pRoomIndex->clan_rank].name );      
                 
                 if (!IS_NULLSTR(pRoomIndex->owner))
-                    fprintf ( fp, "O %s~\n" , pRoomIndex->owner );
+                    rfprintf ( fp, "O %s~\n" , pRoomIndex->owner );
                 
                 /* save rprogs if any */
                 if (pRoomIndex->rprogs != NULL)
@@ -813,7 +813,7 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                     reverse_rprog_order(pRoomIndex);
                     for (pRprog = pRoomIndex->rprogs; pRprog; pRprog = pRprog->next)
                     {
-                        fprintf(fp, "P %s %d %s~\n", name_lookup(pRprog->trig_type, rprog_flags), pRprog->vnum, pRprog->trig_phrase);
+                        rfprintf(fp, "P %s %d %s~\n", name_lookup(pRprog->trig_type, rprog_flags), pRprog->vnum, pRprog->trig_phrase);
                     }
                     reverse_rprog_order(pRoomIndex);
                 }
@@ -1160,10 +1160,10 @@ void save_area( AREA_DATA *pArea )
 	    fprintf( fp, "#CLONE %d\n", pArea->clones[i] );
 
     fprintf( fp, "\n#AREADATA\n" );
-    fprintf( fp, "Name %s~\n",        pArea->name );
-    fprintf( fp, "Builders %s~\n",    fix_string( pArea->builders ) );
+    rfprintf( fp, "Name %s~\n",        pArea->name );
+    rfprintf( fp, "Builders %s~\n",    fix_string( pArea->builders ) );
     fprintf( fp, "VNUMs %d %d\n",     pArea->min_vnum, pArea->max_vnum );
-    fprintf( fp, "Credits %s~\n",     pArea->credits );
+    rfprintf( fp, "Credits %s~\n",     pArea->credits );
   /* Added minlevel, maxlevel, and miniquests for new areas command
      -Astark Dec 2012 */
     fprintf( fp, "Minlevel %d\n",     pArea->minlevel ); 
@@ -1185,7 +1185,7 @@ void save_area( AREA_DATA *pArea )
         reverse_aprog_order(pArea);
         for (pAprog = pArea->aprogs; pAprog; pAprog = pAprog->next)
         {
-            fprintf(fp, "AProg %s %d %s~\n", name_lookup(pAprog->trig_type, aprog_flags), pAprog->vnum, pAprog->trig_phrase);
+            rfprintf(fp, "AProg %s %d %s~\n", name_lookup(pAprog->trig_type, aprog_flags), pAprog->vnum, pAprog->trig_phrase);
         }
         reverse_aprog_order(pArea);
     }
@@ -1454,8 +1454,8 @@ void save_helps( FILE *fp, HELP_AREA *ha )
         if(help->delete)
             continue;
         
-        fprintf( fp, "%d %s~\n", help->level, help->keyword );
-        fprintf( fp, "%s~\n\n", fix_string( help->text ) );
+        rfprintf( fp, "%d %s~\n", help->level, help->keyword );
+        rfprintf( fp, "%s~\n\n", fix_string( help->text ) );
     }
     
     fprintf( fp, "-1 $~\n\n" );
