@@ -6,7 +6,6 @@ typedef struct prop_type LUA_PROP_TYPE;
 /* base functionality for lua object types */
 typedef struct obj_type
 {
-    int udtype; /* unique type ID generated at init*/
     char *type_name;
     bool (*make)();
 

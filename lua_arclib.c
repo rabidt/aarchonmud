@@ -116,13 +116,13 @@ static OBJ_TYPE *new_obj_type(
 static void * check_func( OBJ_TYPE *self,
         lua_State *LS, int index )
 {
-    lua_getfield(LS, index, "UDTYPE");
-    int type=luaL_checkint( LS, -1 );
+    lua_getfield(LS, index, "TYPE");
+    OBJ_TYPE *type=lua_touserdata( LS, -1 );
     lua_pop(LS, 1);
-    if ( type != self->udtype )
+    if ( type != self )
     {
-        luaL_error(LS, "Bad parameter %d. Expected %s. %d %d",
-                index, self->type_name, type, self->udtype);
+        luaL_error(LS, "Bad parameter %d. Expected %s. ",
+                index, self->type_name );
     }
 
     lua_getfield(LS, index, "tableid");
@@ -140,9 +140,9 @@ static int index_metamethod( lua_State *LS)
 
     LUA_PROP_TYPE *get=obj->get_table;
     
-    if (!strcmp("UDTYPE", arg) )
+    if (!strcmp("TYPE", arg) )
     {
-        lua_pushinteger( LS, obj->udtype );
+        lua_pushlightuserdata( LS, obj );
         return 1;
     }
 
@@ -293,10 +293,10 @@ bool is_func( OBJ_TYPE *self,
     if ( !lua_istable(LS, arg ) )
         return FALSE;
 
-    lua_getfield(LS, arg, "UDTYPE");
-    sh_int type=luaL_checkint(LS, -1);
+    lua_getfield(LS, arg, "TYPE");
+    OBJ_TYPE *type=lua_touserdata(LS, -1);
     lua_pop(LS, 1);
-    return ( type == self->udtype );
+    return ( type == self );
 }
 
 
@@ -307,9 +307,6 @@ static OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *set_table,
         const LUA_PROP_TYPE *method_table)
 {
-    static int udtype=10; /* start at some arbitrary value */
-    udtype=udtype+1;
-
     /*tbc check for table structure correctness */
     /*check_table(get_table)
       check-table(set_table)
@@ -317,7 +314,6 @@ static OBJ_TYPE *new_obj_type(
       */
 
     OBJ_TYPE *tp=alloc_mem(sizeof(OBJ_TYPE));
-    tp->udtype=udtype;
     tp->type_name=type_name;
     tp->set_table=set_table;
     tp->get_table=get_table;
@@ -1113,7 +1109,7 @@ static int L_rundelay( lua_State *LS)
 
     if (lua_isnil( LS, -1) )
     {
-        luaL_error(LS, "Couldn't find delayed function's game boject.");
+        luaL_error(LS, "Couldn't find delayed function's game object.");
     }
 
     lua_pop( LS, 2 );
