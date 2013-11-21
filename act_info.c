@@ -6309,6 +6309,7 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
     int i;
     int curr_wield = 0;
     int sugg_wield;
+    int skill;
 
     /* First lets find where in the table the player is at */
     for ( i = 0 ; eq_data[i].area_name != NULL; i++ )
@@ -6360,9 +6361,9 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
 
     /* Now lets print the information to see our progress */
 
-    printf_to_char(ch,"%s, you {R%s{x \n\r", ch->name, 
-        diff_percent2 >= 20 ? "could use an equipment upgrade" : 
-            "have equipment that suits your level");
+    printf_to_char(ch,"You {R%s{x \n\r", 
+        diff_percent2 >= 20 ? "could use an equipment upgrade." : 
+            "have equipment that suits your level.");
 
     printf_to_char(ch,"{yYour equipment is {R%d%%{y %s than expected for your level.{x\n\r", 
         diff_percent2 < 0 ? diff_percent2 *= -1 : diff_percent2,
@@ -6374,14 +6375,33 @@ void do_eqhelp( CHAR_DATA *ch, char *argument)
 
     if (wield == TRUE)
         if ((sugg_wield - curr_wield) > 5)
-            printf_to_char(ch,"Your weapon is also %d levels below your current level.\n\r", sugg_wield - curr_wield);
+            printf_to_char(ch,"{yYour weapon is also {R%d{y levels below your current level.{x\n\r", sugg_wield - curr_wield);
 
+
+    /* Don't use a shield without the skill ... */
+
+    if (get_skill(ch,gsn_shield_block) < 1 && get_eq_char(ch,WEAR_SHIELD) != NULL)
+        printf_to_char(ch,"{yYou are wearing a shield without the shield block skill.{x\n\r");
+
+    
+    /* Or focus ... */
+
+    if (get_skill(ch,gsn_focus) < 1 && get_eq_char(ch,WEAR_HOLD) != NULL)
+        printf_to_char(ch,"{yYou are using a held item without the focus skill.{x\n\r");
+
+ 
+    /* Wrist shield too ... */
+
+    if ((get_skill(ch,gsn_wrist_shield) < 1 && get_eq_char(ch,WEAR_SHIELD) != NULL) 
+        && (get_eq_char(ch,WEAR_SECONDARY) != NULL 
+        || get_eq_char(ch,WEAR_HOLD) != NULL))
+            printf_to_char(ch,"{yYou are using a wrist shield without the wrist shield skill.{x\n\r");
 
     /* Only telling the player they need better equipment doesn't help much.
        We will tell them where to find it */
 
     if (diff_percent2 >= 20)
-       printf_to_char(ch,"You can find better equipment at %s\n\r", eq_data[i].area_name);
+       printf_to_char(ch,"{yYou can find better equipment at %s.{x\n\r", eq_data[i].area_name);
     
 }
 

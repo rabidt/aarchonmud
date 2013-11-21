@@ -2734,13 +2734,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     */
     if ( dam > 2000 && dt >= TYPE_HIT && !IS_IMMORTAL(ch))
     {
-        OBJ_DATA *obj;
-        bug( "Damage: %d: more than 2000 points!", dam );
-        dam = 2000;
-        obj = get_eq_char( ch, WEAR_WIELD );
-        send_to_char("You really shouldn't cheat.\n\r",ch);
-        if (obj != NULL)
-            extract_obj(obj);
+        OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
+        OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
+        int weapon_dam = weapon ? average_weapon_dam(weapon) : 0;
+        int offhand_dam = offhand ? average_weapon_dam(offhand) : 0;
+        bugf("Excessive Damage: %d points (weapon avg = %d) from a regular hit by %s!", dam, UMAX(weapon_dam, offhand_dam), ch->name);
     }
     
     if ( victim != ch )
@@ -3037,7 +3035,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         if ( absorb > 0 )
         {
             int absorb_roll = number_range(0, absorb);
-            int grit_max = victim->move * grit/100;
+            int grit_max = (victim->move << get_mastery(victim, gsn_true_grit)) * grit/100;
             int grit_roll = number_range(0, grit_max);
             #ifdef TESTER
             printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb, absorb_roll, grit_roll, grit_max);
@@ -4555,7 +4553,10 @@ bool check_dodge( CHAR_DATA *ch, CHAR_DATA *victim )
 void set_pos( CHAR_DATA *ch, int position )
 {
     if ( ch->position == position )
-	return;
+        return;
+
+    if ( ch->fighting )
+        position = UMIN(position, POS_FIGHTING);
 
     ch->position = position;
     ch->on = NULL;

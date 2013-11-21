@@ -1987,7 +1987,7 @@ void do_stand( CHAR_DATA *ch, char *argument )
 			 act_new("The group's shelter was revealed by $N.", gch, NULL, ch, TO_CHAR, POS_STANDING);
 		 }
 	  
-	  ch->position = POS_STANDING;
+        set_pos(ch, POS_STANDING);
           if (!IS_NPC(ch))
               ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
 	  do_look(ch,"auto");
@@ -2015,7 +2015,7 @@ void do_stand( CHAR_DATA *ch, char *argument )
 		 act("You stand in $p.",ch,obj,NULL,TO_CHAR);
 		 act("$n stands on $p.",ch,obj,NULL,TO_ROOM);
 	  }
-	  ch->position = POS_STANDING;
+        set_pos(ch, POS_STANDING);
 	  break;
 	  
    case POS_STANDING:
