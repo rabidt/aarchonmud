@@ -4139,7 +4139,7 @@ char *fread_string( FILE *fp )
     // this special character must be stripped here
     if ( c == '^' )
     {
-        //c = getc(fp);
+        c = getc(fp);
         stripped = TRUE;
     }
 
@@ -5838,7 +5838,7 @@ char* bread_string( RBUFFER *rbuf )
     // this special character must be stripped here
     if ( c == '^' )
     {
-        //c = getc(fp);
+        c = bgetc(rbuf);
         stripped = TRUE;
     }
 
