@@ -145,6 +145,13 @@ static int index_metamethod( lua_State *LS)
         lua_pushlightuserdata( LS, obj );
         return 1;
     }
+    else if (!strcmp("valid", arg) )
+    {
+        /* if the metatable is still working
+           then the game object is still valid */
+        lua_pushboolean( LS, TRUE );
+        return 1;
+    }
 
     int i;
     for (i=0; get[i].field; i++ )
@@ -896,7 +903,6 @@ GLOB_TYPE glob_table[] =
     LFUN( mud, luadir,      SEC_NOSCRIPT ),
     LFUN( mud, userdir,     SEC_NOSCRIPT ),
     
-    GFUN( cancel,           SEC_NOSCRIPT ),
     GFUN( arguments,        SEC_NOSCRIPT ),
     ENDGTABLE
 };
@@ -1102,17 +1108,22 @@ static int L_rundelay( lua_State *LS)
     {
         luaL_error( LS, "Didn't find entry in delaytbl");
     }
-    /* check if the game object is still valid */
-    lua_getglobal( LS, UD_TABLE_NAME); /*4, udtbl*/
-    lua_getfield( LS, -2, "tableid"); /* 5 */
-    lua_gettable( LS, -2 ); /* pops key */ /*5, game object*/
 
-    if (lua_isnil( LS, -1) )
+    lua_getfield( LS, -1, "udobj");
+    lua_getfield( LS, -1, "valid");
+    if ( !lua_toboolean(LS, -1) )
     {
-        luaL_error(LS, "Couldn't find delayed function's game object.");
+        /* game object was invalidated/destroyed */
+        /* kill the entry and get out of here */
+        bugf("hadafdadfa");
+        lua_pushvalue( LS, 1 ); /* lightud as key */
+        lua_pushnil( LS ); /* nil as value */
+        lua_settable( LS, 2 ); /* pops key and value */
+
+        return 0;
     }
-    
-    lua_remove( LS, -2 ); /* kill udtbl */
+    else
+        lua_pop(LS, 1); // pop valid
 
     lua_getfield( LS, -2, "security");
     int sec=luaL_checkinteger( LS, -1);
@@ -1175,10 +1186,14 @@ int L_delay (lua_State *LS)
     lua_pushlightuserdata( LS, (void *)tmr);
     lua_newtable( LS );
 
+/*
     lua_pushliteral( LS, "tableid");
     lua_getfield( LS, 1, "tableid");
     lua_settable( LS, -3 );
-
+*/
+    lua_pushliteral( LS, "udobj");
+    lua_pushvalue( LS, 1 );
+    lua_settable( LS, -3 );
 
     lua_pushliteral( LS, "func");
     lua_pushvalue( LS, 3 );
@@ -1198,7 +1213,7 @@ int L_cancel (lua_State *LS)
     /* http://pgl.yoyo.org/luai/i/next specifies it is safe
        to modify or clear fields during iteration */
     /* for k,v in pairs(delaytbl) do
-            if v.tableid==arg1.tableid then
+            if v.udobj==arg1 then
                 unregister_lua_timer(k)
                 delaytbl[k]=nil
             end
@@ -1213,27 +1228,26 @@ int L_cancel (lua_State *LS)
         lua_remove( LS, 2 );
     }
 
-    lua_getfield( LS, 1, "tableid"); /* 2, arg1.tableid (game object pointer) */
-    lua_getglobal( LS, "delaytbl"); /* 3, delaytbl */
+    lua_getglobal( LS, "delaytbl"); /* 2, delaytbl */
 
     lua_pushnil( LS );
-    while ( lua_next(LS, 3) != 0 ) /* pops nil */
+    while ( lua_next(LS, 2) != 0 ) /* pops nil */
     {
-        /* key at 4, val at 5 */
-        lua_getfield( LS, 5, "tableid");
-        if (lua_equal( LS, 6, 2 )==1)
+        /* key at 3, val at 4 */
+        lua_getfield( LS, 4, "udobj");
+        if (lua_equal( LS, 5, 1 )==1)
         {
-            luaL_checktype( LS, 4, LUA_TLIGHTUSERDATA);
-            TIMER_NODE *tmr=(TIMER_NODE *)lua_touserdata( LS, 4);
+            luaL_checktype( LS, 3, LUA_TLIGHTUSERDATA);
+            TIMER_NODE *tmr=(TIMER_NODE *)lua_touserdata( LS, 3);
             if (unregister_lua_timer( tmr, tag ) ) /* return false if tag no match*/
             {
                 /* set table entry to nil */
-                lua_pushvalue( LS, 4 ); /* push key */
+                lua_pushvalue( LS, 3 ); /* push key */
                 lua_pushnil( LS );
-                lua_settable( LS, 3 );
+                lua_settable( LS, 2 );
             }
         }
-        lua_pop(LS, 2); /* pop tableid and value */
+        lua_pop(LS, 2); /* pop udobj and value */
     }
 
     return 0;
