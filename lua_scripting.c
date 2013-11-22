@@ -269,7 +269,14 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
         return;
     }
 
-    if ( !lua_load_mprog( g_mud_LS, pvnum, source) )
+    if ( pvnum == RUNDELAY_VNUM )
+    {
+        /* should already be at -3 (behind mob_program_setup)
+           let's rearrange */
+        lua_pushvalue( g_mud_LS, -3);
+        lua_remove( g_mud_LS, -4);
+    }
+    else if ( !lua_load_mprog( g_mud_LS, pvnum, source) )
     {
         return;
     }
@@ -372,7 +379,12 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     char buf[MSL*2];
     sprintf(buf, "O_%d", pvnum);
 
-    if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
+    if ( pvnum == RUNDELAY_VNUM )
+    {
+        lua_pushvalue( g_mud_LS, -3 );
+        lua_remove( g_mud_LS, -4 );
+    }
+    else if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
     {
         return;
     }
@@ -457,7 +469,12 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
         return FALSE;
     }
 
-    if ( !lua_load_aprog( g_mud_LS, pvnum, source) )
+    if ( pvnum == RUNDELAY_VNUM )
+    {
+        lua_pushvalue( g_mud_LS, -3 );
+        lua_remove( g_mud_LS, -4 );
+    }
+    else if ( !lua_load_aprog( g_mud_LS, pvnum, source) )
     {
         return;
     }
@@ -533,8 +550,13 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
         bugf("make_ud_table pushed nil to lua_room_program");
         return FALSE;
     }
-
-    if ( !lua_load_rprog( g_mud_LS, pvnum, source) )
+    
+    if ( pvnum == RUNDELAY_VNUM )
+    {
+        lua_pushvalue( g_mud_LS, -3 );
+        lua_remove( g_mud_LS, -4 );
+    }
+    else if ( !lua_load_rprog( g_mud_LS, pvnum, source) )
     {
         return;
     }
