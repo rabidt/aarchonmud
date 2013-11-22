@@ -113,7 +113,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 {
     int narg=lua_gettop(LS)-(index-1);
 
-    if ( !(narg==1))
+    if ( (narg>1))
     {
         lua_getglobal( LS, "string");
         lua_getfield( LS, -1, "format");

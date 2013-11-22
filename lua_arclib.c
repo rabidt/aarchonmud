@@ -1745,7 +1745,14 @@ HELPTOPIC CH_restore_help = {};
 
 static int CH_hit (lua_State *LS)
 {
-    do_mphit( check_CH(LS, 1), check_fstring( LS, 2, MIL));
+    if (lua_isnone( LS, 2 ) )
+    {
+        do_mphit( check_CH(LS,1), "" );
+    }
+    else
+    {
+        do_mphit( check_CH(LS, 1), check_fstring( LS, 2, MIL));
+    }
 
     return 0;
 
