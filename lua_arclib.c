@@ -1115,7 +1115,6 @@ static int L_rundelay( lua_State *LS)
     {
         /* game object was invalidated/destroyed */
         /* kill the entry and get out of here */
-        bugf("hadafdadfa");
         lua_pushvalue( LS, 1 ); /* lightud as key */
         lua_pushnil( LS ); /* nil as value */
         lua_settable( LS, 2 ); /* pops key and value */
@@ -1150,6 +1149,21 @@ static int L_rundelay( lua_State *LS)
                 NULL, NULL,
                 TRIG_CALL, sec );
     }
+    else if ( is_AREA( LS, -2 ) )
+    {
+        lua_area_program( NULL, RUNDELAY_VNUM, NULL,
+                check_AREA(LS, -2), NULL,
+                TRIG_CALL, sec );
+    }
+    else if ( is_ROOM( LS, -2 ) )
+    {
+        lua_room_program( NULL, RUNDELAY_VNUM, NULL, 
+                check_ROOM(LS, -2), NULL,
+                NULL, NULL, NULL,
+                TRIG_CALL, sec );
+    }
+    else
+        luaL_error(LS, "Bad udobj type." );
 
     return 0;
 }
