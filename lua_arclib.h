@@ -52,5 +52,7 @@ void register_globals( lua_State *LS );
 
 #define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
 #define is_OBJ(LS, obj ) OBJ_type->is( OBJ_type, LS, obj )
+#define is_AREA(LS, area ) AREA_type->is( AREA_type, LS, area )
+#define is_ROOM(LS, room ) ROOM_type->is( ROOM_type, LS, room )
 
 #endif
