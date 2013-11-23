@@ -1087,6 +1087,14 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
         bprintf( buf, "ExDe %s~ %s~\n",
             ed->keyword, ed->description );
     }
+
+    const char *luavalues=save_obj_values( obj );
+    if (luavalues)
+    {
+        char *tmp=str_dup(luavalues);
+        smash_tilde(tmp);
+        bprintf( buf, "LuaVals %s~\n", tmp );
+    }
     
     bprintf( buf, "End\n\n" );
     
@@ -2720,6 +2728,12 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         case 'L':
             KEY( "Level",   obj->level,     bread_number( buf ) );
             KEY( "Lev",     obj->level,     bread_number( buf ) );
+            if ( !str_cmp( word, "LuaVals" ) )
+            {
+                load_obj_values( obj, bread_string( buf ) );
+                fMatch = TRUE;
+            }
+
             break;
             
         case 'M':
