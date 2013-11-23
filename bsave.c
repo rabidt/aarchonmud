@@ -519,7 +519,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "NmCol %s~\n", ch->pcdata->name_color);
 	bprintf( buf, "Pretitle %s~\n", ch->pcdata->pre_title);
         
-        bprintf( buf, "Titl %s~\n",  ch->pcdata->title   );
+        // strip single leading ' ' character that gets added automatically by set_title
+        bprintf( buf, "Titl %s~\n", ch->pcdata->title[0] == ' ' ? ch->pcdata->title+1 : ch->pcdata->title );
         
         bprintf( buf, "Pnts %d\n",       ch->pcdata->points      );
         
@@ -2135,16 +2136,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
-            free_string( ch->pcdata->title );
-            ch->pcdata->title = bread_string( buf );
-            if (ch->pcdata->title[0] != '.' && ch->pcdata->title[0] != ',' 
-                && ch->pcdata->title[0] != '!' && ch->pcdata->title[0] != '?'
-                && ch->pcdata->title[0] != '\'')
-            {
-                sprintf( str_buf, " %s", ch->pcdata->title );
-                free_string( ch->pcdata->title );
-                ch->pcdata->title = str_dup( str_buf );
-            }
+            set_title(ch, bread_string(buf));
             fMatch = TRUE;
             break;
         }

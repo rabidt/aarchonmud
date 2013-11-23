@@ -4116,6 +4116,7 @@ char *fread_string( FILE *fp )
 {
     char *plast;
     char c;
+    bool stripped = FALSE;
     
     plast = top_string + sizeof(char *);
     if ( plast > &string_space[MAX_STRING - MAX_STRING_LENGTH] )
@@ -4134,6 +4135,15 @@ char *fread_string( FILE *fp )
     }
     while ( isspace(c) );
     
+    // strings are optionally started with '^' to enable leading whitespace characters
+    // this special character must be stripped here
+    if ( c == '^' )
+    {
+        c = getc(fp);
+        stripped = TRUE;
+    }
+
+    // strings are terminated by '~', we intern the empty string for efficiency
     if ( ( *plast++ = c ) == '~' )
         return &str_empty[0];
     
@@ -4181,6 +4191,10 @@ char *fread_string( FILE *fp )
                 char *pString;
                 
                 plast[-1] = '\0';
+                // log stripping for now to see how bad it'll be
+                if ( stripped )
+                    logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
                 {
@@ -5798,6 +5812,7 @@ char* bread_string( RBUFFER *rbuf )
 {
     char *plast;
     char c;
+    bool stripped = FALSE;
 #if defined(BREAD_DEBUG)
    log_string("bread_string: start");
 #endif
@@ -5819,6 +5834,15 @@ char* bread_string( RBUFFER *rbuf )
     }
     while ( isspace(c) );
     
+    // strings are optionally started with '^' to enable leading whitespace characters
+    // this special character must be stripped here
+    if ( c == '^' )
+    {
+        c = bgetc(rbuf);
+        stripped = TRUE;
+    }
+
+    // strings are terminated by '~', we intern the empty string for efficiency
     if ( ( *plast++ = c ) == '~' )
         return &str_empty[0];
     
@@ -5866,6 +5890,10 @@ char* bread_string( RBUFFER *rbuf )
                 char *pString;
                 
                 plast[-1] = '\0';
+                // log stripping for now to see how bad it'll be
+                if ( stripped )
+                    logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
                 {

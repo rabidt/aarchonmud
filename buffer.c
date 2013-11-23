@@ -174,6 +174,112 @@ void buffer_clear (DBUFFER *buffer)
 	buffer->len = 0;
 }
 
+// replace whitespace characters by their escape sequence
+#define MAX_CALL 3
+char* escape_ws(const char *s) {
+    static char escaped[MAX_CALL][MSL];
+    static int call_id = 0;
+    
+    call_id = (call_id + 1) % MAX_CALL;
+    char *next = escaped[call_id];
+    
+    for ( ; *s; s++ )
+        switch ( *s )
+        {
+            case '\t':
+                (*next++) = '\\';
+                (*next++) = 't';
+                break;
+            case '\n':
+                (*next++) = '\\';
+                (*next++) = 'n';
+                break;
+            case '\r':
+                (*next++) = '\\';
+                (*next++) = 'n';
+                break;
+            default:
+                (*next++) = *s;
+                break;
+        }
+    *next = '\0';
+    return escaped[call_id];
+}
+#undef MAX_CALL
+
+/**
+ * tweak format string to prefix strings with '^' if the printed string starts with '^' or whitespace
+ * this is used to preserve leading whitespaces when saving/loading strings
+ * not all strings require this treatment, only those followed by a '~' terminator in the format string
+ * Example: reformat("%s~ %s~ %s", "Bobble", "^foo", "^bar") => "%s~ ^%s~ %s"
+ */
+char* reformat(const char *fmt, va_list va)
+{
+    static char new_fmt[MSL];
+    char *next = fmt, *next_new = new_fmt;
+    bool format_mode = FALSE;
+    // store for later use in debug
+    va_list va_orig;
+    va_copy(va_orig, va);
+
+    while ( *next )
+    {
+        if ( *next == '%' )
+        {
+            format_mode = !format_mode; // "%%" is just a percent sign
+            // special treatment of "%s~", this is where the magic happens
+            if ( format_mode && *(next+1) == 's' && *(next+2) == '~' )
+            {
+                char *sarg = va_arg(va, char*);
+                if ( *sarg == '^' || isspace(*sarg) )
+                    *(next_new++) = '^';
+                // already consumed the argument, so make sure we don't do it again
+                format_mode = FALSE;
+            }
+        }
+        else if ( format_mode )
+        {
+            // gobble up argument - need to know correct type
+            // http://en.wikipedia.org/wiki/Printf_format_string
+            switch ( *next )
+            {
+                case 'd':
+                case 'i':
+                case 'c': va_arg(va, int); format_mode = FALSE; break; // char gets promoted to int
+                case 'u':
+                case 'x':
+                case 'X':
+                case 'o': va_arg(va, unsigned int); format_mode = FALSE; break;
+                case 'f':
+                case 'F':
+                case 'e':
+                case 'E':
+                case 'g':
+                case 'G':
+                case 'a':
+                case 'A': va_arg(va, double); format_mode = FALSE; break;
+                case 's': va_arg(va, char*); format_mode = FALSE; break;
+                case 'p': va_arg(va, void*); format_mode = FALSE; break;
+                case 'n': va_arg(va, int*); format_mode = FALSE; break;
+                default : break; // some non-type parameter
+            }
+        }
+        *(next_new++) = *(next++);
+    }
+    *next_new = '\0';
+    
+    // debug
+    if ( strcmp(fmt, new_fmt) )
+    {
+        char buf[MSL];
+        vsnprintf(buf, MSL, new_fmt, va_orig);
+        logpf("reformatted \"%s\" to \"%s\" => \"%s\"", escape_ws(fmt), escape_ws(new_fmt), escape_ws(buf));
+    }
+    va_end(va_orig);
+    
+    return new_fmt;
+}
+
 /* print stuff, append to buffer. safe. */
 int bprintf (DBUFFER *buffer, char *fmt, ...)
 {
@@ -181,11 +287,15 @@ int bprintf (DBUFFER *buffer, char *fmt, ...)
 	va_list va;
 	int res;
 	
+    va_start (va, fmt);
+    char *new_fmt = reformat(fmt, va);
+    va_end (va);
+
 	va_start (va, fmt);
 #if defined (WIN32)
-	res = _vsnprintf (buf, MSL, fmt, va);
+	res = _vsnprintf (buf, MSL, new_fmt, va);
 #else
-	res = vsnprintf (buf, MSL, fmt, va);
+	res = vsnprintf (buf, MSL, new_fmt, va);
 #endif
 	va_end (va);
 
@@ -198,6 +308,22 @@ int bprintf (DBUFFER *buffer, char *fmt, ...)
 		buffer_strcat (buffer, buf);
 
 	return res;	
+}
+
+// fprintf with reformat
+int rfprintf(FILE *f, const char *fmt, ...)
+{
+    va_list va;
+    
+    va_start (va, fmt);
+    char *new_fmt = reformat(fmt, va);
+    va_end (va);
+
+    va_start (va, fmt);
+    int res = vfprintf (f, new_fmt, va);
+    va_end (va);
+    
+    return res;
 }
 
 /* tools for methods returning pointers to local static strings
