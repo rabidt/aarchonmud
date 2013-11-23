@@ -218,7 +218,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "outfit",     do_outfit,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "password",   do_password,    POS_DEAD,    0,  LOG_NEVER,  1, FALSE, FALSE  },
     { "prompt",     do_prompt,  POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "rolldice",   do_rolldice,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "rolldice",   do_rolldice,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "scroll",     do_scroll,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "title",      do_title,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
 	{ "toggle",	    do_toggle,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
