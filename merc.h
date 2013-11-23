@@ -4737,6 +4737,7 @@ int    strlen_color   args( ( char * argument ) );
 char * center         args( ( char *argument, int width, char fill ) );
 char * lpad           args( ( char *argument, int width, char fill ) );
 char * rpad           args( ( char *argument, int width, char fill ) );
+char * ltrim          args( ( const char *s) );
 
 /* teleport.c */
 RID *   room_by_name    args( ( char *target, int level, bool error) );

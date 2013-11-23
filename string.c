@@ -1032,3 +1032,10 @@ bool is_empty_string( char *s )
 
     return TRUE;
 }
+
+char* ltrim(const char *s)
+{
+    while ( isspace(*s) )
+        s++;
+    return s;
+}

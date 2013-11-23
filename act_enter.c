@@ -363,7 +363,7 @@ void save_portal_list()
     {
 	/* save the portal locations */
 	for ( portal = portal_list; portal != NULL; portal = portal->next )
-	    fprintf( fp, "#%d %s~\n\r", portal->vnum, portal->name );
+	    rfprintf( fp, "#%d %s~\n\r", portal->vnum, portal->name );
 	fprintf( fp, "END\n\r" );
 	fclose( fp );
     }

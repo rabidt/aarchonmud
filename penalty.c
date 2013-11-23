@@ -1319,7 +1319,7 @@ void save_crime_list(void)
     for (pcrime = crime_list; pcrime != NULL; pcrime = pcrime->next)
     {
         found = TRUE;
-        fprintf(fp,"%s %s~\n",pcrime->name, pcrime->desc);
+        rfprintf(fp,"%s %s~\n",pcrime->name, pcrime->desc);
     }
     
     fclose(fp);
