@@ -462,3 +462,24 @@ function do_scriptdump( ch, argument )
     pagetochar( ch, GetScript( args[1], args[2] ), true )
 
 end
+
+function save_obj_values( obj )
+    if not(udtbl[obj]) then return nil end
+
+    local empty=true
+    for k,v in pairs(udtbl[obj].values) do
+        empty=false
+    end
+
+    if empty then return nil end
+
+    return serialize.save("values", udtbl[obj].values)
+
+end    
+
+function load_obj_values( objtable, valtable )
+    local vals=loadstring(valtable)()
+    for k,v in pairs(vals) do
+        objtable.values[k]=v
+    end
+end

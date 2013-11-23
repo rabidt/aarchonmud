@@ -279,6 +279,14 @@ static bool make_func( OBJ_TYPE *self,
     lua_pushlightuserdata( LS, game_obj);
     lua_rawset( LS, -3 );
 
+    /* special setup for OBJ */
+    if ( self == OBJ_type )
+    {
+        lua_pushliteral( LS, "values" );
+        lua_newtable( LS );
+        lua_rawset( LS, -3 );
+    }
+
     lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
     lua_pushvalue( LS, -2);
     if (CallLuaWithTraceBack( LS, 1, 1) )
@@ -1009,6 +1017,54 @@ void register_globals( lua_State *LS )
 /* end global section */
 
 /* common section */
+const char *save_obj_values( OBJ_DATA *obj )
+{
+    lua_getglobal( g_mud_LS, "save_obj_values");
+    if (lua_isnil( g_mud_LS, -1 ) )
+    {
+        bugf("Couldn't find save_obj_values.");
+        return NULL;
+    }
+    lua_pushlightuserdata( g_mud_LS, (void *)obj );
+
+    if (CallLuaWithTraceBack( g_mud_LS, 1, 1) )
+    {
+        bugf ( "Error with save_obj_values:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        return NULL;
+    }
+
+    if ( lua_isstring( g_mud_LS, -1 ) )
+    {
+        return check_string( g_mud_LS, -1, MSL );
+    }
+    else
+    {
+        return NULL;
+    }
+
+}
+
+void load_obj_values( OBJ_DATA *obj, const char *valtable )
+{
+    lua_getglobal( g_mud_LS, "load_obj_values");
+    if ( lua_isnil( g_mud_LS, -1) )
+    {
+        bugf("Couldn't find load_obj_values.");
+        return;
+    }
+    make_OBJ( g_mud_LS, obj );
+    lua_pushstring( g_mud_LS, valtable );
+
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        bugf ( "Error with load_obj_values:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        return;
+    }
+
+}
+
 static int set_flag( lua_State *LS,
         const char *funcname, 
         const struct flag_type *flagtbl, 
