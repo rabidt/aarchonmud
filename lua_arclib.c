@@ -3090,14 +3090,12 @@ static const LUA_PROP_TYPE CH_method_table [] =
 /* end CH section */
 
 /* OBJ section */
-static int OBJ_setval (lua_State *LS)
+static int L_setval( lua_State *LS, LUA_EXTRA_VAL **luavals )
 {
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-   
-    const char *name=check_string(LS, 2, MIL );
-    int type=lua_type(LS, 3 );
+    const char *name=check_string(LS, 1, MIL );
+    int type=lua_type(LS, 2 );
     const char *val;
-    
+
     switch(type)
     {
         case LUA_TNONE:
@@ -3106,14 +3104,14 @@ static int OBJ_setval (lua_State *LS)
 
         case LUA_TSTRING:
         case LUA_TNUMBER:
-            val=check_string(LS, 3, MIL );
+            val=check_string(LS, 2, MIL );
             break;
 
         case LUA_TBOOLEAN:
             lua_getglobal( LS, "tostring");
             lua_insert( LS, -2 );
             lua_call( LS, 1, 1 );
-            val=check_string( LS, 3, MIL );
+            val=check_string( LS, 2, MIL );
             break;
 
         default:
@@ -3125,7 +3123,7 @@ static int OBJ_setval (lua_State *LS)
     LUA_EXTRA_VAL *prev=NULL;
     LUA_EXTRA_VAL *luaval_next=NULL;
 
-    for ( luaval=ud_obj->luavals; luaval; luaval=luaval_next )
+    for ( luaval=*luavals; luaval; luaval=luaval_next )
     {
         luaval_next=luaval->next;
 
@@ -3144,22 +3142,23 @@ static int OBJ_setval (lua_State *LS)
                 else
                 {
                     /* top of the list */
-                    ud_obj->luavals=luaval->next;
+                    *luavals=luaval->next;
                 }
                 free_mem(luaval, sizeof(LUA_EXTRA_VAL) );
                 return 0;
             }
-            const char *val= check_string(LS, 3, MIL );
+            const char *val= check_string(LS, 2, MIL );
 
             free_string( luaval->val );
             luaval->val=str_dup( val );
             luaval->type = type;
             return 0;
-
         }
 
         prev=luaval;
     }
+    
+
 
     /* didn't exist yet, if nil then get out of here otherwise create and set */
     if ( type==LUA_TNONE || type==LUA_TNIL )
@@ -3170,9 +3169,16 @@ static int OBJ_setval (lua_State *LS)
     luaval->val  = str_dup(val);
     luaval->type = type;
 
-    luaval->next = ud_obj->luavals;
-    ud_obj->luavals = luaval;
+    luaval->next = *luavals;
+    *luavals     = luaval;
     return 0;
+}
+
+static int OBJ_setval (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_remove( LS, 1 );
+    return L_setval( LS, &(ud_obj->luavals) );
 }
 HELPTOPIC OBJ_setval_help={};
 
@@ -3199,18 +3205,16 @@ static void push_luaval( lua_State *LS, LUA_EXTRA_VAL *luaval )
                     lua_typename( LS, luaval->type) );
     }
 }
-    
-static int OBJ_getval (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
 
-    if (lua_isnone( LS, 2 ) )
+static int L_getval( lua_State *LS, LUA_EXTRA_VAL **luavals )
+{
+    if (lua_isnone( LS, 1 ) )
     {
         /* no argument, send a table of all vals */
         lua_newtable( LS );
         LUA_EXTRA_VAL *luaval;
-        
-        for (luaval=ud_obj->luavals; luaval; luaval=luaval->next)
+
+        for (luaval=*luavals; luaval; luaval=luaval->next)
         {
             lua_pushstring( LS, luaval->name);
             push_luaval( LS, luaval );
@@ -3219,13 +3223,11 @@ static int OBJ_getval (lua_State *LS)
         return 1;
     }
 
-
-
-    const char *name=check_string(LS, 2, MIL );
+    const char *name=check_string(LS, 1, MIL );
 
     LUA_EXTRA_VAL *luaval;
 
-    for ( luaval=ud_obj->luavals; luaval; luaval=luaval->next )
+    for ( luaval=*luavals; luaval; luaval=luaval->next )
     {
         if (!strcmp( name, luaval->name) )
         {
@@ -3236,6 +3238,14 @@ static int OBJ_getval (lua_State *LS)
 
     lua_pushnil( LS );
     return 1;
+}
+
+static int OBJ_getval (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_remove( LS, 1);
+
+    return L_getval( LS, &(ud_obj->luavals) );
 }
 HELPTOPIC OBJ_getval_help={};
 
