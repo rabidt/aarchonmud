@@ -1412,7 +1412,13 @@ static int CH_randchar (lua_State *LS)
         return 1;
 
 }
-HELPTOPIC CH_randchar_help = {};
+HELPTOPIC CH_randchar_help = {
+    .summary="Get a random PC in the room",
+    .info="Arguments: none\n\r\n\r"
+          "Return: result[CH]\n\r\n\r"
+          "Example:\n\r"
+          "mob:say(\"Hi %s\", mob:randchar().name)\n\r\n\r"
+};
 
 /* analog of run_olc_editor in olc.c */
 static bool run_olc_editor_lua( CHAR_DATA *ch, char *argument )
@@ -1468,7 +1474,18 @@ static int CH_olc (lua_State *LS)
 
     return 0;
 }
-HELPTOPIC CH_olc_help = {};
+HELPTOPIC CH_olc_help = {
+    .summary="Execute OLC command (PC only)",
+    .info="Arguments: string (accepts format arguments)\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mdo(\"redit\")\n\r"
+          "olc(\"name AWESOME ROOM\")\n\r"
+          "mdo(\"done\")\n\r\n\r"
+          "Note:\n\r"
+          "Error is thrown if not in olc editor mode.\n\r"
+
+};
 
 static int CH_tprint ( lua_State *LS)
 {
@@ -1484,7 +1501,15 @@ static int CH_tprint ( lua_State *LS)
 
     return 0;
 }
-HELPTOPIC CH_tprint_help = {};
+HELPTOPIC CH_tprint_help = {
+    .summary="Print tprintstr of given table using say.",
+    .info="Arguments: target[table]\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "tprint({{1,\"apple\",true}\n\r\n\r"
+          "Note:\n\r"
+          "See 'help global tprintstr'"
+};
 
 static int CH_savetbl (lua_State *LS)
 {
@@ -1599,21 +1624,39 @@ static int CH_asound (lua_State *LS)
     do_mpasound( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     return 0; 
 }
-HELPTOPIC CH_asound_help = {};
+HELPTOPIC CH_asound_help = {
+    .summary="Emote the given argument.",
+    .info="Arguments: text[string] (accepts format arguments)\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:emote(\"has a pet hamster\")\n\r\n\r"
+};
 
 static int CH_gecho (lua_State *LS)
 {
     do_mpgecho( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     return 0;
 }
-HELPTOPIC CH_gecho_help = {};
+HELPTOPIC CH_gecho_help = {
+    .summary="Globally echo the given text.",
+    .info="Arguments: text[string] (accepts format arguments)\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:gecho(\"HI EVERYBODY\")\n\r\n\r"
+};
 
 static int CH_zecho (lua_State *LS)
 {
     do_mpzecho( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     return 0;
 }
-HELPTOPIC CH_zecho_help = {};
+HELPTOPIC CH_zecho_help = {
+    .summary="Echo text to all in same area.",
+    .info="Arguments: text[string] (accepts format arguments)\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:zecho(\"HI AREA\")\n\r\n\r"
+};
 
 static int CH_kill (lua_State *LS)
 {
@@ -1625,7 +1668,15 @@ static int CH_kill (lua_State *LS)
 
     return 0;
 }
-HELPTOPIC CH_kill_help = {};
+HELPTOPIC CH_kill_help = {
+    .summary="Attack target if possible.",
+    .info="Arguments: target[string] (accepts format arguments)\n\r"
+          "           target[CH]\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:kill(ch.name)\n\r"
+          "mob:kill(ch)\n\r\n\r"
+};
 
 static int CH_assist (lua_State *LS)
 {
@@ -1636,7 +1687,15 @@ static int CH_assist (lua_State *LS)
                 check_CH(LS, 2) );
     return 0;
 }
-HELPTOPIC CH_assist_help = {};
+HELPTOPIC CH_assist_help = {
+    .summary="Assist target if possible.",
+    .info="Arguments: target[string] (accepts format arguments)\n\r"
+          "           target[CH]\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:assist(ch.name)\n\r"
+          "mob:assist(ch)\n\r"
+};
 
 static int CH_junk (lua_State *LS)
 {
@@ -1652,7 +1711,13 @@ static int CH_echo (lua_State *LS)
 
     return 0;
 }
-HELPTOPIC CH_echo_help = {};
+HELPTOPIC CH_echo_help = {
+    .summary="Echos to all CHs in room except actor",
+    .info="Arguments: text[string] (accepts format arguments)\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:echo(\"Ribbit\")\n\r\n\r"
+};
 
 static int CH_echoaround (lua_State *LS)
 {
@@ -1667,7 +1732,15 @@ static int CH_echoaround (lua_State *LS)
 
     return 0;
 }
-HELPTOPIC CH_echoaround_help = {};
+HELPTOPIC CH_echoaround_help = {
+    .summary="Echo given text to all in room except target.",
+    .info="Arguments: argument[string] ( format: '[victim] [message]', accepts format arguments)\n\r"
+          "           target[CH], text[string] (accepts format arguments)\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:echoaround(ch.name..\" hehehehehe\")\n\r"
+          "mob:echoaround(ch, \"hehehehehe\"\n\r\n\r"
+};
 
 static int CH_echoat (lua_State *LS)
 {
@@ -1681,18 +1754,37 @@ static int CH_echoat (lua_State *LS)
     mpechoat( check_CH(LS, 1), check_CH(LS, 2), check_fstring( LS, 3, MIL) );
     return 0;
 }
-HELPTOPIC CH_echoat_help = {};
+HELPTOPIC CH_echoat_help = {
+    .summary="Echos text to target CH (not same as actor)",
+    .info="Arguments: argument[string] ( format: '[victimname] [message]', accepts format arguments\n\r"
+          "           target[CH], text[string] (accepts format arguments)\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:echoat(ch, \"Wooooooooooooooop\")\n\r\n\r"
+          "Note:\n\r"
+          "If target CH is same as actor, no message will be displayed.\n\r"
+          "See 'luahelp global sendtochar'."
+};
 
 static int CH_mload (lua_State *LS)
 {
-
     CHAR_DATA *mob=mpmload( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     if ( mob && make_CH(LS,mob) )
         return 1;
     else
         return 0;
 }
-HELPTOPIC CH_mload_help = {};
+HELPTOPIC CH_mload_help = {
+    .summary="Load mob in same room as actor.",
+    .info="Arguments: vnum[number] ( accepts format arguments )\n\r\n\r"
+          "Return: mob[CH]\n\r\n\r"
+          "Example:\n\r"
+          "mob:mload(31404)\n\r\n\r"
+          "Note:\n\r"
+          "Script will not error/stop if vnum does not exist.\n\r"
+          "See 'luahelp room mload'."
+
+};
 
 static int CH_purge (lua_State *LS)
 {
