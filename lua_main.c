@@ -113,7 +113,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 {
     int narg=lua_gettop(LS)-(index-1);
 
-    if ( !(narg==1))
+    if ( (narg>1))
     {
         lua_getglobal( LS, "string");
         lua_getfield( LS, -1, "format");
@@ -624,3 +624,16 @@ void open_lua ()
 
 }  /* end of open_lua */
 
+void do_scriptdump( CHAR_DATA *ch, const char *argument )
+{
+    lua_getglobal(g_mud_LS, "do_scriptdump");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_lboard:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+
+}

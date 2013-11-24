@@ -603,3 +603,4 @@ DECLARE_DO_FUN( do_oprun);
 DECLARE_DO_FUN( do_rprun);
 DECLARE_DO_FUN( do_luai);
 DECLARE_DO_FUN( do_luahelp);
+DECLARE_DO_FUN( do_scriptdump);
