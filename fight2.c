@@ -513,17 +513,20 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         check_improve(ch,gsn_backstab,TRUE,1);
 
-        one_hit( ch, victim, gsn_backstab, FALSE );
+        bool hit = one_hit(ch, victim, gsn_backstab, FALSE);
         CHECK_RETURN(ch, victim);
 
         if ( offhand_attack_chance(ch) > 0 )
         {
-            one_hit(ch, victim, gsn_backstab, TRUE);
+            hit = one_hit(ch, victim, gsn_backstab, TRUE) || hit;
             CHECK_RETURN(ch, victim);
         }
 
-        OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
-        check_assassinate(ch, victim, weapon, 4);
+        if ( hit )
+        {
+            OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
+            check_assassinate(ch, victim, weapon, 4);
+        }
     }
     else
     {
@@ -1399,7 +1402,8 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
 
         check_improve(ch,gsn_slash_throat,TRUE,3);
 
-        one_hit(ch, victim, gsn_slash_throat, FALSE);
+        if ( !one_hit(ch, victim, gsn_slash_throat, FALSE) )
+            return;
         CHECK_RETURN(ch, victim);
 
         check_assassinate(ch, victim, obj, 6);
@@ -2914,7 +2918,7 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
             int dam = one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_WIELD))
                     + one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_SECONDARY));
             int dt_rend = TYPE_HIT + 102; // see attack_table in const.c
-            deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE, FALSE);
+            deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE);
         }
     }
 }

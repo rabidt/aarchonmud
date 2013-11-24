@@ -54,7 +54,7 @@ end
 function UnregisterUd(lightud)
     if udtbl[lightud] then
         -- cancel delayed functions linked to object
-        cancel( udtbl[lightud] )
+        --cancel( udtbl[lightud] )
 
         setmetatable(origtbl[lightud], nil)
         rawset(origtbl[lightud], "tableid", nil)
@@ -261,7 +261,6 @@ main_lib=ProtectLib(main_lib)
 
 
 -- First look for main_lib funcs, then mob/area/obj funcs
--- (providing env as argument)
 CH_env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
@@ -442,4 +441,24 @@ function go_lua_interpret(env, str)
         f()
     end
     return 0
+end
+
+local function scriptdumpusage( ch )
+    sendtochar(ch, [[
+scriptdump <userdir> <scriptname>
+                   
+Example: scriptdump vodur testscript
+]])
+end
+
+
+function do_scriptdump( ch, argument )
+    args=arguments(argument)
+    if not(#args == 2 ) then
+        scriptdumpusage(ch)
+        return
+    end
+
+    pagetochar( ch, GetScript( args[1], args[2] ), true )
+
 end

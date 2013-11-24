@@ -1789,7 +1789,7 @@ void do_cmotd( CHAR_DATA *ch, char * argument )
 	{
 	    free_string( clan_table[ch->clan].motd) ;
 	    clan_table[ch->clan].motd = str_dup("");
-	    send_to_char("Clan MOTD is cleared.\n", ch);
+	    send_to_char("Clan MOTD is cleared.\n\r", ch);
 	    clan_table[ch->clan].changed = TRUE;
 	}
 	else
@@ -1797,7 +1797,7 @@ void do_cmotd( CHAR_DATA *ch, char * argument )
 	    free_string( clan_table[ch->clan].motd );
 	    clan_table[ch->clan].motd = str_dup(argument);
 	    clan_table[ch->clan].changed = TRUE;
-	    printf_to_char(ch, "Clan MOTD set to: %s", argument);
+	    printf_to_char(ch, "Clan MOTD set to: %s\n\r", argument);
 	    return;
 	}
     }
