@@ -503,7 +503,19 @@ static int glob_clearloopcount (lua_State *LS)
     g_LoopCheckCounter=0;
     return 0;
 }
-HELPTOPIC glob_clearloopcount_help={};
+HELPTOPIC glob_clearloopcount_help=
+{
+    .summary="Clear infinite loop protection counter",
+    .info="Arguments: none\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "clearloopcount()\n\r\n\r"
+          "Note:\n\r"
+          "Infinite loop protection is provided by limiting any script to a \n\r"
+          "maximum number of instructions, throwing an error if this maximum\n\r"
+          "is exceeded. 'clearloopcount()' clears the counter, thereby \n\r"
+          "bypassing this loop protection."
+};
 
 static int glob_log (lua_State *LS)
 {
@@ -513,14 +525,31 @@ static int glob_log (lua_State *LS)
     log_string(buf);
     return 0;
 }
-HELPTOPIC glob_log_help={};
+HELPTOPIC glob_log_help={
+    .summary="Print a string to the mud log.",
+    .info="Arguments: string (accepts format arguments)\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "log(\"Something happened!\")\n\r"
+          "log(\"%s just killed %s.\", ch.name, mob.name)\n\r\n\r"
+          "Note:\n\r"
+          "In the game log the argument will be prepended by 'LUA::'"
+};
 
 static int glob_hour (lua_State *LS)
 {
     lua_pushnumber( LS, time_info.hour );
     return 1;
 }
-HELPTOPIC glob_hour_help={};
+HELPTOPIC glob_hour_help={
+    .summary="Returns the current game hour.",
+    .info="Arguments: none\n\r\n\r"
+          "Return: hour[number]\n\r\n\r"
+          "Example:\n\r"
+          "local hourvar=hour()\n\r\n\r"
+          "Note:\n\r"
+          "The hour is returned in 24hr format, so midnight is 0, noon is 12, 3PM is 15, etc."
+};
 
 static int glob_getroom (lua_State *LS)
 {
@@ -538,7 +567,15 @@ static int glob_getroom (lua_State *LS)
         return 1;
 
 }
-HELPTOPIC glob_getroom_help={};
+HELPTOPIC glob_getroom_help={
+    .summary="Returns the ROOM with given vnum.",
+    .info="Arguments: vnum[number]\n\r\n\r"
+          "Return: room[ROOM]\n\r\n\r"
+          "Example:\n\r"
+          "local mainroom=getroom(31404)\n\r\n\r"
+          "Note:\n\r"
+          "If room does not exist, returns nil."
+};
 
 static int glob_getobjproto (lua_State *LS)
 {
@@ -554,7 +591,15 @@ static int glob_getobjproto (lua_State *LS)
     else
         return 1;
 }
-HELPTOPIC glob_getobjproto_help={};
+HELPTOPIC glob_getobjproto_help={
+    .summary="Returns the OBJPROTO with the given vnum",
+    .info="Arguments: vnum[number]\n\r\n\r"
+          "Return: target[OBJPROTO]\n\r\n\r"
+          "Example:\n\r"
+          "local op=getobjproto(31404)\n\r\n\r"
+          "Note:\n\r"
+          "If obj proto does not exist, returns nil."
+};
 
 static int glob_getobjworld (lua_State *LS)
 {
@@ -574,7 +619,15 @@ static int glob_getobjworld (lua_State *LS)
     }
     return 1;
 }
-HELPTOPIC glob_getobjworld_help={};
+HELPTOPIC glob_getobjworld_help={
+    .summary="Returns table of all object instances with given vnum.",
+    .info="Arguments: vnum[number]\n\r\n\r"
+          "Return: objects[table]\n\r\n\r"
+          "Example:\n\r"
+          "local objlist=getobjworld(31404)\n\r\n\r"
+          "Note:\n\r"
+          "If no instances exist, an empty table is returned.\n\r"
+};
 
 static int glob_getmobproto (lua_State *LS)
 {
@@ -590,7 +643,15 @@ static int glob_getmobproto (lua_State *LS)
     else
         return 1;
 }
-HELPTOPIC glob_getmobproto_help={};
+HELPTOPIC glob_getmobproto_help={
+    .summary="Returns the MOBROTO with the given vnum",
+    .info="Arguments: vnum[number]\n\r\n\r"
+          "Return: target[MOBPROTO]\n\r\n\r"
+          "Example:\n\r"
+          "local mp=getmobproto(31404)\n\r\n\r"
+          "Note:\n\r"
+          "If mob proto does not exist, returns nil."
+};
 
 static int glob_getmobworld (lua_State *LS)
 {
@@ -613,7 +674,15 @@ static int glob_getmobworld (lua_State *LS)
     }
     return 1;
 }
-HELPTOPIC glob_getmobworld_help={};
+HELPTOPIC glob_getmobworld_help={
+    .summary="Returns table of all mob instances with given vnum.",
+    .info="Arguments: vnum[number]\n\r\n\r"
+          "Return: mobs[table]\n\r\n\r"
+          "Example:\n\r"
+          "local moblist=getmobworld(31404)\n\r\n\r"
+          "Note:\n\r"
+          "If no instances exist, an empty table is returned.\n\r"
+};
 
 static int glob_pagetochar (lua_State *LS)
 {
@@ -634,7 +703,18 @@ static int glob_pagetochar (lua_State *LS)
 
     return 0;
 }
-HELPTOPIC glob_pagetochar_help={};
+HELPTOPIC glob_pagetochar_help={
+    .summary="Send string to target CH as paged output.",
+    .info="Arguments: target[CH], text[string] <, raw[boolean]>\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "pagetochar( ch, reallylongstring)\n\r"
+          "pagetochar( ch, reallylongstring, true)\n\r\n\r"
+          "Note:\n\r"
+          "Optional 3nd argument 'raw' is defaulted to false if not provided.\n\r"
+          "If 'raw' is true then text is sent to the CH without processing color codes\n\r"
+          "so \"{{rHello!{x\" would show as \"{{rHello!{x\" instead of \"{rHello!{x\" "
+};
 
 static int glob_getcharlist (lua_State *LS)
 {
@@ -651,7 +731,13 @@ static int glob_getcharlist (lua_State *LS)
 
     return 1;
 }
-HELPTOPIC glob_getcharlist_help={};
+HELPTOPIC glob_getcharlist_help={
+    .summary="Return a table of all mobs and players in the game.",
+    .info="Arguments: none\n\r\n\r"
+          "Return: chars[table of CHs]\n\r\n\r"
+          "Example:\n\r"
+          "local charlist=getcharlist()\n\r\n\r"
+};
 
 static int glob_getmoblist (lua_State *LS)
 {
@@ -671,7 +757,13 @@ static int glob_getmoblist (lua_State *LS)
 
     return 1;
 }
-HELPTOPIC glob_getmoblist_help={};
+HELPTOPIC glob_getmoblist_help={
+    .summary="Return a table of all mobs in the game.",
+    .info="Arguments: none\n\r\n\r"
+          "Return: chars[table of CHs]\n\r\n\r"
+          "Example:\n\r"
+          "local moblist=getmoblist()\n\r\n\r"
+};
 
 static int glob_getplayerlist (lua_State *LS)
 {
@@ -691,7 +783,13 @@ static int glob_getplayerlist (lua_State *LS)
 
     return 1;
 }
-HELPTOPIC glob_getplayerlist_help={};
+HELPTOPIC glob_getplayerlist_help={
+    .summary="Return a table of all mobs in the game.",
+    .info="Arguments: none\n\r\n\r"
+          "Return: chars[table of CHs]\n\r\n\r"
+          "Example:\n\r"
+          "local moblist=getmoblist()\n\r\n\r"
+};
 
 static int glob_getarealist (lua_State *LS)
 {
@@ -708,7 +806,13 @@ static int glob_getarealist (lua_State *LS)
 
     return 1;
 }
-HELPTOPIC glob_getarealist_help={};
+HELPTOPIC glob_getarealist_help={
+    .summary="Return a table of all areas in the game.",
+    .info="Arguments: none\n\r\n\r"
+          "Return: chars[table of AREAs]\n\r\n\r"
+          "Example:\n\r"
+          "local arealist=getarealist()\n\r\n\r"
+};
 
 /* Mersenne Twister pseudo-random number generator */
 
@@ -779,7 +883,16 @@ static int dbglib_show ( lua_State *LS)
 
     return 1;
 }
-HELPTOPIC dbglib_show_help={};
+HELPTOPIC dbglib_show_help={
+    .summary="Returns tprintstr of the global table with given name",
+    .info="Arguments: tablename[string]\n\r\n\r"
+          "Return: result[string]\n\r\n\r"
+          "Example:\n\r"
+          "pagetochar(mob, dbg.show(\"script_globs\"))\n\r\n\r"
+          "Note:\n\r"
+          "'Global' in this case means global to the mud script space, not to script environment."
+
+};
 
 static int glob_randnum ( lua_State *LS)
 {
@@ -790,7 +903,13 @@ static int glob_randnum ( lua_State *LS)
     
     return lua_gettop(LS);
 }
-HELPTOPIC glob_randnum_help={};
+HELPTOPIC glob_randnum_help={
+    .summary="Return random integer in given range.",
+    .info="Arguments: min[number], max[number]\n\r\n\r"
+          "Return: result[number]\n\r\n\r"
+          "Example:\n\r"
+          "local num=randnum(1,3) -- random number, could be 1, 2, or 3 \n\r\n\r"
+};
 
 static int glob_rand ( lua_State *LS)
 {
@@ -801,7 +920,15 @@ static int glob_rand ( lua_State *LS)
     
     return lua_gettop(LS);
 }
-HELPTOPIC glob_rand_help={};
+HELPTOPIC glob_rand_help={
+    .summary="Random percentage check.",
+    .info="Arguments: percent[string]\n\r\n\r"
+          "Return: result[boolean]\n\r\n\r"
+          "Example:\n\r"
+          "if rand(35) then say(\"Passed!\") end\n\r\n\r"
+          "Note:\n\r"
+          "In example, rand has 35% chance to return true, otherwise returns false."
+};
 
 static int glob_tprintstr ( lua_State *LS)
 {
@@ -812,7 +939,13 @@ static int glob_tprintstr ( lua_State *LS)
     
     return lua_gettop(LS);
 }
-HELPTOPIC glob_tprintstr_help={};
+HELPTOPIC glob_tprintstr_help={
+    .summary="Returns contents of table formatted into a string.",
+    .info="Arguments: target[table]\n\r\n\r"
+          "Return: result[string]\n\r\n\r"
+          "Example:\n\r"
+          "echo(tprintstr({{\"hi\",\"bye\",3456}))\n\r\n\r"
+};
 
 static int glob_cancel ( lua_State *LS)
 {
