@@ -49,6 +49,7 @@
 #include "buffer_util.h"
 #include "simsave.h"
 #include "religion.h"
+#include "lua_arclib.h"
 
 #if !defined(macintosh)
 extern  int     _filbuf         args( (FILE *) );
@@ -1086,6 +1087,15 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     {
         bprintf( buf, "ExDe %s~ %s~\n",
             ed->keyword, ed->description );
+    }
+
+    LUA_EXTRA_VAL *luaval;
+    for ( luaval = obj->luavals; luaval; luaval=luaval->next )
+    {
+        bprintf( buf, "LuaVal %d %s~ %s~\n", 
+                luaval->type,
+                luaval->name, 
+                luaval->val );
     }
     
     bprintf( buf, "End\n\n" );
@@ -2720,6 +2730,18 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         case 'L':
             KEY( "Level",   obj->level,     bread_number( buf ) );
             KEY( "Lev",     obj->level,     bread_number( buf ) );
+            if ( !strcmp( word, "LuaVal" ) )
+            {
+                LUA_EXTRA_VAL *luaval;
+                luaval=alloc_mem(sizeof(*luaval));
+                luaval->type=bread_number( buf );
+                luaval->name=bread_string( buf );
+                luaval->val=bread_string( buf );
+
+                luaval->next=obj->luavals;
+                obj->luavals=luaval;
+                fMatch=TRUE;
+            }
             break;
             
         case 'M':
