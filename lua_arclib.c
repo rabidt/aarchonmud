@@ -343,10 +343,19 @@ static int godlib_bless (lua_State *LS)
             god_bless( NULL, ch, "" ));
     return 1;
 }
-
-HELPTOPIC godlib_bless_help =
-{
-};
+#define GODLIBHELP( funcname ) \
+HELPTOPIC godlib_ ## funcname ## _help = \
+{\
+    .summary="God " #funcname " target CH.", \
+    .info=\
+    "Arguments: target[CH]\n\r\n\r"\
+    "Return: success[boolean]\n\r\n\r"\
+    "Example:\n\r"\
+    "god." #funcname "(ch)\n\r\n\r"\
+    "Note:\n\r"\
+    "Return value is whether the " #funcname " was successful."\
+}
+GODLIBHELP( bless );
 
 static int godlib_curse (lua_State *LS)
 {
@@ -356,8 +365,7 @@ static int godlib_curse (lua_State *LS)
             god_curse( NULL, ch, "" ));
     return 1;
 }
-
-HELPTOPIC godlib_curse_help = {};
+GODLIBHELP( curse );
 
 static int godlib_heal (lua_State *LS)
 {
@@ -368,12 +376,10 @@ static int godlib_heal (lua_State *LS)
             god_heal( NULL, ch, "" ));
     return 1;
 }
-
-HELPTOPIC godlib_heal_help = {};
+GODLIBHELP( heal );
 
 static int godlib_speed (lua_State *LS)
 {
-    
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
@@ -381,7 +387,7 @@ static int godlib_speed (lua_State *LS)
     return 1; 
 }
 
-HELPTOPIC godlib_speed_help = {};
+GODLIBHELP( speed );
 
 static int godlib_slow (lua_State *LS)
 {
@@ -392,7 +398,7 @@ static int godlib_slow (lua_State *LS)
     return 1; 
 }
 
-HELPTOPIC godlib_slow_help = {};
+GODLIBHELP( slow );
 
 static int godlib_cleanse (lua_State *LS)
 {
@@ -402,8 +408,7 @@ static int godlib_cleanse (lua_State *LS)
             god_cleanse( NULL, ch, "" ));
     return 1; 
 }
-
-HELPTOPIC godlib_cleanse_help = {};
+GODLIBHELP( cleanse );
 
 static int godlib_defy (lua_State *LS)
 {
@@ -413,8 +418,7 @@ static int godlib_defy (lua_State *LS)
             god_defy( NULL, ch, "" ));
     return 1; 
 }
-
-HELPTOPIC godlib_defy_help = {};
+GODLIBHELP( defy );
 
 static int godlib_enlighten (lua_State *LS)
 {
@@ -424,8 +428,7 @@ static int godlib_enlighten (lua_State *LS)
             god_enlighten( NULL, ch, "" ));
     return 1; 
 }
-
-HELPTOPIC godlib_enlighten_help = {};
+GODLIBHELP( enlighten );
 
 static int godlib_protect (lua_State *LS)
 {
@@ -435,8 +438,7 @@ static int godlib_protect (lua_State *LS)
             god_protect( NULL, ch, "" ));
     return 1;
 }
-
-HELPTOPIC godlib_protect_help = {};
+GODLIBHELP( protect );
 
 static int godlib_fortune (lua_State *LS)
 {
@@ -446,8 +448,7 @@ static int godlib_fortune (lua_State *LS)
             god_fortune( NULL, ch, "" ));
     return 1;
 }
-
-HELPTOPIC godlib_fortune_help = {};
+GODLIBHELP( fortune );
 
 static int godlib_haunt (lua_State *LS)
 {
@@ -457,8 +458,7 @@ static int godlib_haunt (lua_State *LS)
             god_haunt( NULL, ch, "" ));
     return 1;
 }
-
-HELPTOPIC godlib_haunt_help = {};
+GODLIBHELP( haunt );
 
 static int godlib_plague (lua_State *LS)
 {
@@ -468,8 +468,7 @@ static int godlib_plague (lua_State *LS)
             god_plague( NULL, ch, "" ));
     return 1;
 }
-
-HELPTOPIC godlib_plague_help = {};
+GODLIBHELP( plague );
 
 static int godlib_confuse (lua_State *LS)
 {
@@ -479,8 +478,7 @@ static int godlib_confuse (lua_State *LS)
             god_confuse( NULL, ch, "" ));
     return 1;
 }
-
-HELPTOPIC godlib_confuse_help = {};
+GODLIBHELP( confuse );
 
 static int glob_sendtochar (lua_State *LS)
 {
