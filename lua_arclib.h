@@ -19,6 +19,17 @@ typedef struct obj_type
 
 } OBJ_TYPE;
 
+typedef struct lua_extra_val
+{
+    struct lua_extra_val *next;
+    char *name;
+
+    int type;
+
+    char *val;
+
+} LUA_EXTRA_VAL;
+
 void type_init();
 
 extern OBJ_TYPE *CH_type;

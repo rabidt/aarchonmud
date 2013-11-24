@@ -300,6 +300,7 @@ OBJ_DATA *new_obj(void)
 	VALIDATE(obj);
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
+    obj->luavals=NULL;
 
 	return obj;
 }
