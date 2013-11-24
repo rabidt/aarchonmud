@@ -1291,14 +1291,15 @@ void char_update( void )
             affect_strip (ch, skill_lookup("reserved") );
         }
         if ( get_skill(ch, gsn_natural_resistance) > 0)
-        {   
+        {
+            int bonus = ch->level * (get_skill(ch, gsn_natural_resistance) + mastery_bonus(ch, gsn_natural_resistance, 60, 100)) / 500;
             AFFECT_DATA af;
             af.where    = TO_AFFECTS;
             af.type     = gsn_natural_resistance;
             af.level    = ch->level;
             af.location  = APPLY_SAVES;
             af.duration = -1;
-            af.modifier = get_skill(ch, gsn_natural_resistance) / -7;
+            af.modifier = -bonus;
             af.bitvector= 0;
             affect_to_char(ch,&af);
             check_improve( ch, gsn_natural_resistance, TRUE, 10 );
@@ -1314,13 +1315,14 @@ void char_update( void )
         }
         if ( get_skill(ch, gsn_iron_hide) > 0)
         {   
+            int bonus = ch->level * (get_skill(ch, gsn_iron_hide) + mastery_bonus(ch, gsn_iron_hide, 60, 100)) / 50;
             AFFECT_DATA af;
             af.where    = TO_AFFECTS;
             af.type     = gsn_iron_hide;
             af.level    = ch->level;
             af.location  = APPLY_AC;
             af.duration = -1;
-            af.modifier = -5 - (ch->pcdata->remorts * 3) - get_skill(ch, gsn_iron_hide);
+            af.modifier = -bonus;
             af.bitvector=0;
             affect_to_char(ch,&af);
             check_improve( ch, gsn_iron_hide, TRUE, 10 );
