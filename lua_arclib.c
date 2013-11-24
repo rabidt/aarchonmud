@@ -1414,6 +1414,16 @@ static int CH_loadscript (lua_State *LS)
 }
 HELPTOPIC CH_loadscript_help = {};
 
+static int CH_loadfunction ( lua_State *LS )
+{
+    lua_mob_program( NULL, RUNDELAY_VNUM, NULL,
+                check_CH(LS, -2), NULL,
+                NULL, NULL, 0, 0,
+                TRIG_CALL, 0 );
+    return 0;
+}
+HELPTOPIC CH_loadfunction_help = {};
+
 static int CH_loadstring (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -3078,6 +3088,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(loadprog, 0),
     CHMETH(loadscript, 0),
     CHMETH(loadstring, 0),
+    CHMETH(loadfunction, 0),
     CHMETH(savetbl, 0),
     CHMETH(loadtbl, 0),
     CHMETH(tprint, 0),
@@ -3090,6 +3101,16 @@ static const LUA_PROP_TYPE CH_method_table [] =
 /* end CH section */
 
 /* OBJ section */
+static int OBJ_loadfunction (lua_State *LS)
+{
+    lua_obj_program( NULL, RUNDELAY_VNUM, NULL,
+                check_OBJ(LS, -2), NULL,
+                NULL, NULL,
+                TRIG_CALL, 0 );
+    return 0;
+}
+HELPTOPIC OBJ_loadfunction_help = {};
+
 static int OBJ_delay (lua_State *LS)
 {
     return L_delay(LS);
@@ -3635,6 +3656,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     OBJMETH(loadprog, 0),
     OBJMETH(loadscript, 0),
     OBJMETH(loadstring, 0),
+    OBJMETH(loadfunction, 0),
     OBJMETH(oload, 0),
     OBJMETH(savetbl, 0),
     OBJMETH(loadtbl, 0),
@@ -3647,6 +3669,15 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
 /* end OBJ section */
 
 /* AREA section */
+static int AREA_loadfunction( lua_State *LS)
+{
+    lua_area_program( NULL, RUNDELAY_VNUM, NULL,
+                check_AREA(LS, -2), NULL,
+                TRIG_CALL, 0 );
+    return 0;
+}
+HELPTOPIC AREA_loadfunction_help = {};
+
 static int AREA_delay (lua_State *LS)
 {
     return L_delay(LS);
@@ -3961,6 +3992,7 @@ static const LUA_PROP_TYPE AREA_method_table [] =
     AREAMETH(loadprog, 0),
     AREAMETH(loadscript, 0),
     AREAMETH(loadstring, 0),
+    AREAMETH(loadfunction, 0),
     AREAMETH(savetbl, 0),
     AREAMETH(loadtbl, 0),
     AREAMETH(tprint, 0),
@@ -3972,6 +4004,16 @@ static const LUA_PROP_TYPE AREA_method_table [] =
 /* end AREA section */
 
 /* ROOM section */
+static int ROOM_loadfunction ( lua_State *LS)
+{
+    lua_room_program( NULL, RUNDELAY_VNUM, NULL,
+                check_ROOM(LS, -2), NULL,
+                NULL, NULL, NULL,
+                TRIG_CALL, 0 );
+    return 0;
+}
+HELPTOPIC ROOM_loadfunction_help = {};
+
 static int ROOM_mload (lua_State *LS)
 {
     ROOM_INDEX_DATA * ud_room = check_ROOM (LS, 1);
@@ -4392,6 +4434,7 @@ static const LUA_PROP_TYPE ROOM_method_table [] =
     ROOMMETH(loadprog, 0),
     ROOMMETH(loadscript, 0),
     ROOMMETH(loadstring, 0),
+    ROOMMETH(loadfunction, 0),
     ROOMMETH(tprint, 0),
     ROOMMETH(delay, 0),
     ROOMMETH(cancel, 0),
