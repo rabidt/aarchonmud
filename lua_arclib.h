@@ -27,6 +27,7 @@ typedef struct lua_extra_val
     int type;
 
     char *val;
+    bool persist;
 
 } LUA_EXTRA_VAL;
 
