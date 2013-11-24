@@ -2590,6 +2590,7 @@ struct  char_data
 	#endif
 
     TIMER_NODE *trig_timer; /* should not be touched except in timer.c */
+    struct lua_extra_val *luavals;
 };
 
 
