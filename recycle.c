@@ -391,6 +391,7 @@ CHAR_DATA *new_char (void)
 	ch->just_killed = FALSE;
 	ch->must_extract = FALSE;
     ch->trig_timer              = NULL;
+    ch->luavals                 = NULL;
 	
 	for (i = 0; i < MAX_STATS; i ++)
 	{
