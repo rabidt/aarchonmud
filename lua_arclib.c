@@ -7,6 +7,8 @@
 #include "olc.h"
 #include "tables.h"
 
+bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
+
 /* Define game object types and global functions */
 
 #define GETP(type, field, sec ) { \
@@ -1893,6 +1895,9 @@ static int CH_damage (lua_State *LS)
     
     CHAR_DATA *ud_ch=check_CH(LS, 1);
     CHAR_DATA *victim=check_CH(LS, 2);
+    if (ud_ch->in_room != victim->in_room)
+        luaL_error(LS, 
+                "Actor and victim must be in same room." );
     int dam=luaL_checkinteger(LS, 3);
     
     bool kill;
@@ -1919,11 +1924,30 @@ static int CH_damage (lua_State *LS)
         damtype=DAM_NONE;
     }
 
-    deal_damage( ud_ch, victim, dam, TYPE_UNDEFINED, damtype, FALSE, kill );
-
-    return 0;
+    lua_pushboolean( LS,
+            deal_damage( ud_ch, victim, dam, TYPE_UNDEFINED, damtype, FALSE, kill, FALSE ));
+    return 1;
 }
-HELPTOPIC CH_damage_help = {};
+HELPTOPIC CH_damage_help = {
+    .summary="Damage CH.",
+    .info="Arguments: victim[CH], damage[number] <, lethal[boolean], damtype[string]>\n\r\n\r"
+          "Return: success[boolean]\n\r\n\r"
+          "Example:\n\r"
+          "mob:damage(ch, 3000)) -- lethal by default\n\r"
+          "mob:damage(ch, 3000, false)) -- won't kill ch\n\r"
+          "mob:damage(ch, 3000, false, \"fire\") -- fire damage\n\r"
+          "ch:damage(ch, 3000) -- damage self, don't have to worry about safe check\n\r\n\r"
+          "Note:\n\r"
+          "Error if actor not in same room as victim\n\r"
+          "Optional 'lethal' argument is true by default\n\r"
+          "Optional 'damtype' argument is \"none\" by default\n\r"
+          "For valid damtype arguments see 'tables damage_type'\n\r"
+          "If damtype is used, actual damage may be higher or lower than\n\r"
+          "argument depending on victim vuln/resist/immune.\n\r"
+          "Return values represents whether the damage was successful;\n\r"
+          "it could fail for a variety of reasons including safe checks\n\r"
+          
+};
 
 static int CH_remove (lua_State *LS)
 {

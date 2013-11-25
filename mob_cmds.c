@@ -1527,11 +1527,11 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
         {
 	        victim_next = victim->next_in_room;
 	        if ( victim != ch )
-                deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
+                deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill, FALSE);
         }
     }
     else
-        deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
+        deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill, FALSE);
     return;
 }
 
