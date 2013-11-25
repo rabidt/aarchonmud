@@ -2110,7 +2110,6 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
         {
 	    act("$n stuns you with a crushing right hook!",
 		ch,NULL,victim,TO_VICT);
-            send_to_char("You lose your stance!\n\r",victim);
 	    act("You stun $N with a crushing right hook!",ch,NULL,victim,TO_CHAR);
 	    act("$n stuns $N with a crushing right hook.",
 		ch,NULL,victim,TO_NOTVICT);
