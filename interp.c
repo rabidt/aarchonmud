@@ -1197,11 +1197,12 @@ char *one_argument( char *argument, char *arg_first )
             argument++;
             break;
         }
-        *arg_first = LOWER(*argument);
-        arg_first++;
+        if ( arg_first ) // allow NULL to just skip first arg
+            *(arg_first++) = LOWER(*argument);
         argument++;
     }
-    *arg_first = '\0';
+    if ( arg_first )
+        *arg_first = '\0';
     
     while ( ISSPACE(*argument) )
         argument++;

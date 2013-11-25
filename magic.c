@@ -1941,20 +1941,14 @@ void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         }
     }
 
-    /* some logic to see if we have an arg*/
-    if ( target_name[0] != '\0' )
-    {
-        char junk[MIL];
-        target_name=one_argument( target_name, junk); /* get rid of first arg */
-    }
-
     /* unlike dispel magic, the victim gets NO save */
 
-    /* we killed first arg (target), if there's more args then
+    /* we kill first arg (target), if there's more args then
        they're trying to cancel a certain spell*/
-    if ( target_name[0] != '\0' )
+    char *arg = one_argument( target_name, NULL);
+    if ( arg[0] != '\0' )
     {
-        int sn=skill_lookup( target_name );
+        int sn = skill_lookup(arg);
 
         if ( sn == -1 )
         {
