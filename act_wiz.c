@@ -3624,11 +3624,6 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 }
 
-void do_dummy( CHAR_DATA *ch, char *argument)
-{
-    printf_to_char(ch, "Time: %ld\n\r", current_time);
-}
-
 void do_mode( CHAR_DATA *ch, char *argument)
 {
 	send_to_char( bin_info_string(), ch);	
@@ -4044,4 +4039,125 @@ void do_void( CHAR_DATA *ch, char *argument)
     ptc(ch, "%s's timer was set to %d (will void on next tick).\n\r", victim->name, victim->timer);
 
     return; 
+}
+
+/* do_tables stuff */
+void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)
+{
+    char buf[MSL];
+    BUFFER *buffer=new_buf();
+
+    int i;
+    sprintf(buf, "%-20s %s\n\r", "Name", "Settable");
+    add_buf( buffer, buf );
+    add_buf( buffer, "----------------------------------------\n\r");
+    for ( i=0; tbl[i].name ; i++ )
+    {
+        sprintf( buf, "%-20s %s\n\r", tbl[i].name, tbl[i].settable ? "TRUE" : "FALSE" );
+        if (!add_buf( buffer, buf ))
+        {
+            bugf("Bad stuff happened");
+            free_buf(buffer);
+            return;
+        }
+    }
+
+    page_to_char( buf_string(buffer), ch );
+    free_buf(buffer);
+    return;
+}
+
+void print_item_table( CHAR_DATA *ch, const struct item_type *tbl)
+{
+    ptc( ch, "Name\n\r");
+    ptc( ch, "------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].name ; i++)
+    {
+        ptc(ch, "%s\n\r", tbl[i].name );
+    }
+}
+
+#define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note}
+
+struct
+{
+    const char *name;
+    void (*printfun)();
+    void *table;
+    const char *note;
+} dotable_table[]=
+{
+    PRFLAG( area_flags, "" ),
+    PRFLAG( exit_flags, "" ),
+    PRFLAG( damage_type, "" ),
+    PRFLAG( type_flags, "Item type flags." ),
+    PRFLAG( affect_flags, "" ),
+    PRFLAG( off_flags, "Offensive flags." ),
+    PRFLAG( imm_flags, "Immune flags." ),
+    PRFLAG( res_flags, "Resist flags." ),
+    PRFLAG( vuln_flags, ""),
+    PRFLAG( extra_flags, "Item extra flags." ),
+    PRFLAG( wear_flags, "" ),
+    PRFLAG( room_flags, "" ),
+    PRFLAG( wear_loc_flags, ""),
+    PRFLAG( act_flags, ""),
+    PRFLAG( plr_flags, ""),
+    PRFLAG( form_flags, ""),
+    PRFLAG( part_flags, ""),
+    PRFLAG( comm_flags, ""),
+    PRFLAG( mprog_flags, ""),
+    PRFLAG( oprog_flags, ""),
+    PRFLAG( aprog_flags, ""),
+    PRFLAG( rprog_flags, ""),
+    PRFLAG( sex_flags, ""),
+    PRFLAG( door_resets, ""),
+    PRFLAG( sector_flags, ""),
+    PRFLAG( apply_flags, ""),
+    PRFLAG( wear_loc_strings, ""),
+    PRFLAG( container_flags, ""),
+    PRFLAG( ac_type, ""),
+    PRFLAG( size_flags, ""),
+    PRFLAG( weapon_class, ""),
+    PRFLAG( weapon_type2, ""),
+    PRFLAG( position_flags, ""),
+    PRFLAG( portal_flags, ""),
+    PRFLAG( furniture_flags, ""),
+    PRFLAG( apply_types, ""),
+    PRFLAG( togg_flags, ""),
+
+    { "item_table", print_item_table, item_table, "Item types." },
+    { NULL, NULL, NULL, NULL}
+};
+
+void do_tables( CHAR_DATA *ch, const char *argument)
+{
+    int i;
+
+    if ( argument[0] == '\0' )
+    {
+        ptc( ch, "%-20s %s\n\r", "Table", "Note");
+        ptc( ch, "-----------------------------------------------------------\n\r");
+        for ( i=0; dotable_table[i].name ; i++ )
+        {
+            ptc(ch, "%-20s %s\n\r", 
+                    dotable_table[i].name,
+                    dotable_table[i].note );
+        }
+        return;
+    }
+
+    for ( i=0; dotable_table[i].name ; i++ )
+    {
+        if (!str_prefix( argument, dotable_table[i].name ) )
+        {
+            dotable_table[i].printfun(
+                    ch,
+                    dotable_table[i].table);
+            return;
+        }
+    }
+
+    do_tables( ch, "");
+
 }
