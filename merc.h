@@ -2590,6 +2590,7 @@ struct  char_data
 	#endif
 
     TIMER_NODE *trig_timer; /* should not be touched except in timer.c */
+    struct lua_extra_val *luavals;
 };
 
 
@@ -2878,7 +2879,7 @@ struct  obj_index_data
 };
 
 
-
+struct lua_extra_val; /* defined in lua_arclib */
 /*
  * One object.
  */
@@ -2916,6 +2917,7 @@ struct  obj_data
 
     bool        must_extract; /* for delayed obj purging */
     TIMER_NODE *otrig_timer; /* should not be touched except in timer.c */
+    struct lua_extra_val *luavals; /* list of extra vals set via script */
 };
 
 
