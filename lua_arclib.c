@@ -1163,10 +1163,11 @@ static int set_flag( lua_State *LS,
     return 0;
 }
 
-static int check_flag( lua_State *LS, 
+static int check_tflag_iflag( lua_State *LS, 
         const char *funcname, 
         const struct flag_type *flagtbl, 
-        tflag flagvar )
+        tflag flagvar,
+        int intvar )
 {
     if (lua_isnone( LS, 2)) /* called with no string arg */
     {
@@ -1176,7 +1177,9 @@ static int check_flag( lua_State *LS,
         int i;
         for ( i=0 ; flagtbl[i].name ; i++)
         {
-            if ( IS_SET(flagvar, flagtbl[i].bit) )
+
+            if ( (flagvar && IS_SET(flagvar, flagtbl[i].bit) )
+                    || I_IS_SET( intvar, flagtbl[i].bit) )
             {
                 lua_pushstring( LS, flagtbl[i].name);
                 lua_rawseti(LS, -2, index++);
@@ -1191,8 +1194,35 @@ static int check_flag( lua_State *LS,
     if ((flag=flag_lookup(argument, flagtbl)) == NO_FLAG)
         luaL_error(LS, "'%s' invalid flag for %s", argument, funcname);
     
-    lua_pushboolean( LS, IS_SET( flagvar, flag ) );
+    if (flagvar)
+        lua_pushboolean( LS, IS_SET( flagvar, flag ) );
+    else
+        lua_pushboolean( LS, I_IS_SET( intvar, flag ) );
     return 1;
+}
+
+static int check_flag( lua_State *LS,
+        const char *funcname,
+        const struct flag_type *flagtbl,
+        tflag flagvar)
+{
+    return check_tflag_iflag( LS,
+            funcname,
+            flagtbl,
+            flagvar,
+            0);
+}
+
+static int check_iflag( lua_State *LS,
+        const char *funcname,
+        const struct flag_type *flagtbl,
+        int iflagvar)
+{
+    return check_tflag_iflag( LS,
+            funcname,
+            flagtbl,
+            NULL,
+            iflagvar);
 }
 
 static void unregister_UD( lua_State *LS,  void *ptr )
@@ -3348,6 +3378,26 @@ static const LUA_PROP_TYPE CH_method_table [] =
 /* end CH section */
 
 /* OBJ section */
+static int OBJ_exitflag( lua_State *LS )
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    if (ud_obj->item_type != ITEM_PORTAL)
+        luaL_error( LS, "%s(%d) is not a portal.",
+                ud_obj->name, ud_obj->pIndexData->vnum);
+    return check_iflag( LS, "exit", exit_flags, ud_obj->value[1] );
+}
+HELPTOPIC OBJ_exitflag_help={};
+
+static int OBJ_portalflag( lua_State *LS )
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    if (ud_obj->item_type != ITEM_PORTAL)
+        luaL_error( LS, "%s(%d) is not a portal.",
+                ud_obj->name, ud_obj->pIndexData->vnum);
+    return check_iflag( LS, "portal", portal_flags, ud_obj->value[2] );
+}
+HELPTOPIC OBJ_portalflag_help={};
+
 static int OBJ_loadfunction (lua_State *LS)
 {
     lua_obj_program( NULL, RUNDELAY_VNUM, NULL,
@@ -3910,6 +3960,10 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     OBJMETH(tprint, 0),
     OBJMETH(delay, 0),
     OBJMETH(cancel, 0),
+
+    /* portal only */
+    OBJMETH(exitflag, 0),
+    OBJMETH(portalflag, 0),
     ENDPTABLE
 }; 
 
@@ -4896,6 +4950,26 @@ static const LUA_PROP_TYPE RESET_method_table [] =
 /* end RESET section */
 
 /* OBJPROTO section */
+static int OBJPROTO_exitflag( lua_State *LS )
+{
+    OBJ_INDEX_DATA *ud_op=check_OBJPROTO(LS,1);
+    if (ud_op->item_type != ITEM_PORTAL)
+        luaL_error( LS, "%s(%d) is not a portal.",
+                ud_op->name, ud_op->vnum);
+    return check_iflag( LS, "exit", exit_flags, ud_op->value[1] );
+}
+HELPTOPIC OBJPROTO_exitflag_help={};
+
+static int OBJPROTO_portalflag( lua_State *LS )
+{
+    OBJ_INDEX_DATA *ud_op=check_OBJPROTO(LS,1);
+    if (ud_op->item_type != ITEM_PORTAL)
+        luaL_error( LS, "%s(%d) is not a portal.",
+                ud_op->name, ud_op->vnum);
+    return check_iflag( LS, "portal", portal_flags, ud_op->value[2] );
+}
+HELPTOPIC OBJPROTO_portalflag_help={};
+
 static int OBJPROTO_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -5034,6 +5108,10 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 {
     OPMETH( extra, 0),
     OPMETH( wear, 0),
+   
+    /* portal only */
+    OPMETH( exitflag, 0),
+    OPMETH( portalflag, 0),
     ENDPTABLE
 }; 
 
