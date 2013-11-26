@@ -3039,32 +3039,6 @@ void do_as(CHAR_DATA *ch, char *argument)
     return ;
 }
 
-
-/* Set/remove sticky flag on eq (esp. Quest eq).  For imms without "set". */
-void do_sticky( CHAR_DATA *ch, char *argument )
-{
-    OBJ_DATA *obj;
-    
-    obj = get_obj_world(ch,argument);
-    
-    if (obj != NULL)
-    {
-        if (IS_SET(obj->extra_flags, ITEM_STICKY))
-        {
-            send_to_char("Sticky flag removed.\n\r",ch);
-            REMOVE_BIT(obj->extra_flags, ITEM_STICKY);
-        }
-        else
-            send_to_char("Sticky flag set.\n\r",ch);
-        SET_BIT(obj->extra_flags, ITEM_STICKY);
-        return;
-    }
-    
-    send_to_char("Object not found.\n\r",ch);
-}
-
-
-
 /** Function: do_pload
 * Descr   : Loads an unconnected player onto the mud, moving them to
 *         : the immortal's room so that they can be viewed/manipulated
