@@ -1662,10 +1662,8 @@ HELPTOPIC CH_zecho_help = {
 
 static int CH_kill (lua_State *LS)
 {
-    if ( lua_isstring(LS, 2) )
-        do_mpkill( check_CH(LS, 1), check_fstring( LS, 2, MIL));
-    else
-        mpkill( check_CH(LS, 1),
+ 
+    mpkill( check_CH(LS, 1),
                 check_CH(LS, 2) );
 
     return 0;
@@ -1682,10 +1680,7 @@ HELPTOPIC CH_kill_help = {
 
 static int CH_assist (lua_State *LS)
 {
-    if ( lua_isstring(LS, 2) )
-        do_mpassist( check_CH(LS, 1), check_fstring( LS, 2, MIL));
-    else
-        mpassist( check_CH(LS, 1), 
+    mpassist( check_CH(LS, 1), 
                 check_CH(LS, 2) );
     return 0;
 }
@@ -1723,20 +1718,13 @@ HELPTOPIC CH_echo_help = {
 
 static int CH_echoaround (lua_State *LS)
 {
-    if ( !is_CH(LS, 2) )
-    {
-        /* standard 'mob echoaround' syntax */
-        do_mpechoaround( check_CH(LS, 1), check_fstring( LS, 2, MIL));
-        return 0;
-    }
-
     mpechoaround( check_CH(LS, 1), check_CH(LS, 2), check_fstring( LS, 3, MIL) );
 
     return 0;
 }
 HELPTOPIC CH_echoaround_help = {
     .summary="Echo given text to all in room except target.",
-    .info="Arguments: argument[string] ( format: '[victim] [message]', accepts format arguments)\n\r"
+    .info="Arguments: \n\r"
           "           target[CH], text[string] (accepts format arguments)\n\r\n\r"
           "Return: none\n\r\n\r"
           "Example:\n\r"
@@ -1746,19 +1734,12 @@ HELPTOPIC CH_echoaround_help = {
 
 static int CH_echoat (lua_State *LS)
 {
-    if ( lua_isnone(LS, 3) )
-    {
-        /* standard 'mob echoat' syntax */
-        do_mpechoat( check_CH(LS, 1), check_string(LS, 2, MIL));
-        return 0;
-    }
-
     mpechoat( check_CH(LS, 1), check_CH(LS, 2), check_fstring( LS, 3, MIL) );
     return 0;
 }
 HELPTOPIC CH_echoat_help = {
     .summary="Echos text to target CH (not same as actor)",
-    .info="Arguments: argument[string] ( format: '[victimname] [message]', accepts format arguments\n\r"
+    .info="Arguments: \n\r"
           "           target[CH], text[string] (accepts format arguments)\n\r\n\r"
           "Return: none\n\r\n\r"
           "Example:\n\r"
