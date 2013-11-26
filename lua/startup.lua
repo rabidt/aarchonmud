@@ -467,6 +467,17 @@ function wizhelp( ch, argument, commands )
     local args=arguments(argument)
     if args[1]=="level" or args[1]=="name" then
         table.sort( commands, function(a,b) return a[args[1]]<b[args[1]] end )
+
+        if args[1]=="level" and args[2] then
+            local old=commands
+            commands=nil
+            commands={}
+            for i,v in ipairs(old) do
+                if v.level==tonumber(args[2]) then
+                    table.insert(commands, v)
+                end
+            end
+        end
     elseif args[1]=="find" then
         local old=commands
         commands=nil
@@ -499,7 +510,8 @@ function wizhelp( ch, argument, commands )
     pagetochar( ch, table.concat(columns, "\n\r")..
 [[ 
 
-   wizhelp <name|level>   -- List commands sorted by name or level
+   wizhelp <name|level>   -- List commands sorted by name or level.
+   wizhelp level [number] -- List commands at given level.
    wizhelp find [pattern] -- Find commands matching given pattern (lua pattern matching).
 ]] )
 
