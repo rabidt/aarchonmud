@@ -4447,7 +4447,7 @@ void    bug     args( ( const char *str, int param ) );
 void    log_string  args( ( const char *str ) );
 void    log_trace();
 void    tail_chain  args( ( void ) );
-char *	bin_info_string();
+const char *	bin_info_string;
 
 /* effect.c */
 void    acid_effect args( (void *vo, int level, int dam, int target) );
