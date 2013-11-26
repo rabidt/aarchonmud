@@ -437,7 +437,6 @@ DECLARE_DO_FUN( do_stand    );
 DECLARE_DO_FUN( do_stat     );
 DECLARE_DO_FUN( do_stats    );
 DECLARE_DO_FUN( do_steal    );
-DECLARE_DO_FUN( do_sticky   );
 DECLARE_DO_FUN( do_story    );
 DECLARE_DO_FUN( do_strafe   );
 DECLARE_DO_FUN( do_string   );
