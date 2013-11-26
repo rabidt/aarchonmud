@@ -151,12 +151,6 @@ void do_enter( CHAR_DATA *ch, char *argument)
 		return;
 	}
 
-	if ( I_IS_SET(portal->value[2],GATE_NOQUEST) && IS_SET(ch->act, PLR_IMMQUEST) )
-	{
-	   send_to_char( "You can't go through there while you are questing!\n\r", ch );
-	   return;
-	}
-
 	if ( I_IS_SET(portal->value[2],GATE_ASTRAL) )
 	{
 	   if( !IS_AFFECTED( ch, AFF_DETECT_ASTRAL ) && !IS_AFFECTED( ch, AFF_ASTRAL )  )

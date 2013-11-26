@@ -775,23 +775,6 @@ void do_transfer( CHAR_DATA *ch, char *argument )
         }
         return;
     }
-    else if ( !str_cmp( arg1, "questors" ) )
-    {
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
-                &&   d->character != ch
-                &&   d->character->in_room != NULL
-                &&   can_see( ch, d->character ) 
-                &&   IS_SET( d->character->act, PLR_IMMQUEST ) )
-            {
-                char buf[MAX_STRING_LENGTH];
-                sprintf( buf, "%s %s", d->character->name, arg2 );
-                do_transfer( ch, buf );
-            }
-        }
-        return;
-    }
     
     /*
     * Thanks to Grodyn for the optional location parameter.
@@ -3191,57 +3174,6 @@ void do_punload( CHAR_DATA *ch, char *argument )
     extract_char(victim, TRUE);
     
 } /* end do_punload */
-
-
-
-
-void do_qflag( CHAR_DATA *ch, char *argument )
-{
-    char arg[MAX_INPUT_LENGTH];
-    CHAR_DATA *target;
-    
-    argument = one_argument( argument, arg );
-    
-    if ( arg[0] == '\0' )
-    {
-        send_to_char( "Who needs a quest flag set or removed?\n\r", ch );
-        send_to_char( "Syntax:  qflag <character>\n\r", ch );
-        return;
-    }
-    
-    if ( ( target = get_char_world( ch, arg ) ) == NULL )
-    {
-        send_to_char( "That player isn't here.\n\r", ch );
-        return;
-    }
-    
-    if ( IS_NPC( target ) )
-    {
-        send_to_char( "NPC's can't play!!\n\r", ch );
-        return;
-    }
-    
-    if ( IS_SET( target->act, PLR_IMMQUEST ) )
-    {
-        act( "You remove $N from the quest.",ch,NULL,target,TO_CHAR );
-        act( "$n removes you from the quest.",ch,NULL,target,TO_VICT );
-        REMOVE_BIT( target->act, PLR_IMMQUEST );
-        return;
-    }
-    else
-    {
-        act( "$N is now questing!",ch,NULL,target,TO_CHAR );
-        act( "$n welcomes you to the quest!",ch,NULL,target,TO_VICT );
-        SET_BIT( target->act, PLR_IMMQUEST );
-        return;
-    }
-    
-}
-
-
-
-
-
 
 RESERVED_DATA *first_reserved;
 RESERVED_DATA *last_reserved;

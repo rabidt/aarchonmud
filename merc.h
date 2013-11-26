@@ -1917,7 +1917,7 @@ struct  kill_data
 #define GATE_IGNORE_NO_RECALL (F)
 #define GATE_WARFARE        (G)
 #define GATE_ASTRAL         (H)
-#define GATE_NOQUEST        (I)
+//#define GATE_NOQUEST        (I) /* removed */
 #define GATE_STAY_AREA      (J)
 
 /* furniture flags */
@@ -2218,7 +2218,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_PERM_PKILL  (cc)
 #define PLR_NOCANCEL    (dd)
 #define PLR_WAR         (ee) 
-#define PLR_IMMQUEST    (ff)
+//#define PLR_IMMQUEST    (ff) /* removed */
 #define PLR_HARDCORE    (gg)
 #define PLR_NOLOCATE    (hh)
 #define PLR_NOACCEPT    (ii)
