@@ -1930,7 +1930,18 @@ MSETFUN( race )
 }
 
 
-
+MSETFUN( sex )
+{
+    if ( value < 0 || value > 2 )
+    {
+        send_to_char( "Sex range is 0 to 2.\n\r", ch );
+        return FALSE;
+    }
+    victim->sex = value;
+    if (!IS_NPC(victim))
+        victim->pcdata->true_sex = value;
+    return TRUE;
+}
 
 
 
@@ -1941,21 +1952,40 @@ struct
     bool (*func)(CHAR_DATA *, CHAR_DATA *, const char *, int);
 } mset_table [] =
 {
-    {"str", MSETANY, mset_str},
-    {"con", MSETANY, mset_con},
-    {"vit", MSETANY, mset_vit},
-    {"agi", MSETANY, mset_agi},
-    {"dex", MSETANY, mset_dex},
-    {"int", MSETANY, mset_int},
-    {"wis", MSETANY, mset_wis},
-    {"dis", MSETANY, mset_dis},
-    {"cha", MSETANY, mset_cha},
-    {"luc", MSETANY, mset_luc},
-    {"class", MSETPCONLY, mset_class},
-    {"race", MSETANY, mset_race},
-    {"security", MSETPCONLY, mset_security},
-    {"law", MSETPCONLY, mset_law},
-    {NULL, MSETNONE, NULL}
+    {"str",       MSETANY,      mset_str},
+    {"con",       MSETANY,      mset_con},
+    {"vit",       MSETANY,      mset_vit},
+    {"agi",       MSETANY,      mset_agi},
+    {"dex",       MSETANY,      mset_dex},
+    {"int",       MSETANY,      mset_int},
+    {"wis",       MSETANY,      mset_wis},
+    {"dis",       MSETANY,      mset_dis},
+    {"cha",       MSETANY,      mset_cha},
+    {"luc",       MSETANY,      mset_luc},
+    {"class",     MSETPCONLY,   mset_class},
+    {"race",      MSETANY,      mset_race},
+    {"sex",       MSETANY,      mset_sex},
+    {"group",     MSETNPCONLY,  mset_group},
+    {"align",     MSETANY,      mset_align},
+    {"hunt",      MSETANY,      mset_hunt}, // what the heck is this?
+    {"gold",      MSETANY,      mset_gold},
+    {"silver",    MSETANY,      mset_silver}, // scrap this?
+    {"bounty",    MSETANY,      mset_bounty},
+    {"prac",      MSETPCONLY,   mset_prac}, // can this be "practice"?
+    {"train",     MSETPCONLY,   mset_train},
+    {"quest",     MSETPCONLY,   mset_quest},
+    {"house",     MSETPCONLY,   mset_house}, // scrap this?
+    {"thirst",    MSETANY,      mset_thirst},
+    {"hunger",    MSETANY,      mset_hunger},
+    {"drunk",     MSETANY,      mset_drunk},
+    {"full",      MSETANY,      mset_full},
+    {"hp",        MSETANY,      mset_hp},
+    {"mana",      MSETANY,      mset_mana},
+    {"move",      MSETANY,      mset_move},
+    {"level",     MSETNPCONLY,  mset_level}, // use advance for PCs
+    {"security",  MSETPCONLY,   mset_security},
+    {"law",       MSETPCONLY,   mset_law},
+    {NULL,        MSETNONE,     NULL}
 };
    
 
