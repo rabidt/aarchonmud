@@ -1085,38 +1085,6 @@ void do_shutdown( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_protect( CHAR_DATA *ch, char *argument)
-{
-    CHAR_DATA *victim;
-    
-    if (argument[0] == '\0')
-    {
-        send_to_char("Protect whom from snooping?\n\r",ch);
-        return;
-    }
-    
-    if ((victim = get_char_world(ch,argument)) == NULL)
-    {
-        send_to_char("You can't find them.\n\r",ch);
-        return;
-    }
-    
-    if (IS_SET(victim->comm,COMM_SNOOP_PROOF))
-    {
-        act_new("$N is no longer snoop-proof.",ch,NULL,victim,TO_CHAR,POS_DEAD);
-        send_to_char("Your snoop-proofing was just removed.\n\r",victim);
-        REMOVE_BIT(victim->comm,COMM_SNOOP_PROOF);
-    }
-    else
-    {
-        act_new("$N is now snoop-proof.",ch,NULL,victim,TO_CHAR,POS_DEAD);
-        send_to_char("You are now immune to snooping.\n\r",victim);
-        SET_BIT(victim->comm,COMM_SNOOP_PROOF);
-    }
-}
-
-
-
 void do_snoop( CHAR_DATA *ch, char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
@@ -1170,8 +1138,7 @@ void do_snoop( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( get_trust( victim ) >= get_trust( ch ) 
-        ||   IS_SET(victim->comm,COMM_SNOOP_PROOF))
+    if ( get_trust( victim ) >= get_trust( ch ) )
     {
         send_to_char( "You failed.\n\r", ch );
         return;
