@@ -1855,6 +1855,85 @@ MSETFUN( security )
     return TRUE;
 }
 
+MSETFUN( law )
+{
+    if ( get_trust(ch) < IMPLEMENTOR )
+    {
+        send_to_char( "Only IMPs can assign law Aarchons.\n\r", ch );
+        return FALSE;
+    }
+    if ( value == 0 )
+    {
+        REMOVE_BIT( victim->act, PLR_LAW );
+        return TRUE;
+    }
+    else if ( value == 1 )
+    {
+        SET_BIT( victim->act, PLR_LAW );
+        return TRUE;
+    }
+    else
+    {
+        send_to_char( "Value must be 0 to remove or 1 to set.\n\r", ch );
+        return FALSE;
+    }
+}
+
+MSETFUN ( class )
+{
+    int class;               
+    class = class_lookup(arg3);
+    if ( class == -1 )
+    {
+        char buf[MAX_STRING_LENGTH];
+       
+        strcpy( buf, "Possible classes are: " );
+        for ( class = 0; class < MAX_CLASS; class++ )
+        {
+            if ( class > 0 )
+                strcat( buf, " " );
+            strcat( buf, class_table[class].name );
+        }
+        strcat( buf, ".\n\r" );
+       
+        send_to_char(buf,ch);
+        return FALSE;
+    }
+   
+    victim->class = class;
+    return TRUE;
+
+}
+
+
+MSETFUN( race )
+{
+    int race;
+    
+    race = race_lookup(arg3);
+    
+    if ( race == 0)
+    {
+        send_to_char("That is not a valid race.\n\r",ch);
+        return FALSE;
+    }
+    
+    if (!IS_NPC(victim) && !race_table[race].pc_race)
+    {
+        send_to_char("That is not a valid player race.\n\r",ch);
+        return FALSE;
+    }
+    
+    victim->race = race;
+    morph_update(victim);
+    return TRUE;
+}
+
+
+
+
+
+
 struct
 {
     const char *field;
@@ -1872,7 +1951,10 @@ struct
     {"dis", MSETANY, mset_dis},
     {"cha", MSETANY, mset_cha},
     {"luc", MSETANY, mset_luc},
+    {"class", MSETPCONLY, mset_class},
+    {"race", MSETANY, mset_race},
     {"security", MSETPCONLY, mset_security},
+    {"law", MSETPCONLY, mset_law},
     {NULL, MSETNONE, NULL}
 };
    
