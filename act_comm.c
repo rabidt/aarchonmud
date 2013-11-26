@@ -266,9 +266,6 @@ void do_channels( CHAR_DATA *ch, char *argument)
     if (IS_SET(ch->comm,COMM_BUSY))
         send_to_char("You claim to be too busy to receive tells.\n\r",ch);
     
-    if (IS_SET(ch->comm,COMM_SNOOP_PROOF))
-        send_to_char("You are immune to snooping.\n\r",ch);
-    
     if (ch->lines != PAGELEN)
     {
         if (ch->lines)

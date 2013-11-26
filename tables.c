@@ -492,7 +492,6 @@ const struct flag_type comm_flags[] =
 	{   "show_attrib",  COMM_SHOW_ATTRIB,   TRUE    },  /*06/07/98*/
     {   "show_percent", COMM_SHOW_PERCENT,  TRUE    },
 	{   "nogratz",      COMM_NOGRATZ,       TRUE    },  
-	{   "snoop_proof",  COMM_SNOOP_PROOF,   FALSE   },
 	{   "afk",          COMM_AFK,           TRUE    },
 	{   NULL,           0,          0   }
 };
