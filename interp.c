@@ -128,7 +128,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "sockets",    do_sockets, POS_DEAD,       L4,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "stand",      do_stand,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "stat",       do_stat,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "sticky",     do_sticky, POS_DEAD,       L2,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "tell",       do_tell,    POS_SLEEPING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "unlock",     do_unlock,      POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wield",      do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
