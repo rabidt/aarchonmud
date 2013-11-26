@@ -597,7 +597,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "smote",      do_smote,   POS_DEAD,   IM,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "prefi",      do_prefi,   POS_DEAD,   L8,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "prefix",     do_prefix,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "qflag",      do_qflag,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "grant",      do_grant,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "gstat",      do_gstat,   POS_DEAD,   L1,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "revoke",     do_revoke,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
