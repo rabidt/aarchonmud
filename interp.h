@@ -329,7 +329,6 @@ DECLARE_DO_FUN( do_prefi    );
 DECLARE_DO_FUN( do_prefix   );
 DECLARE_DO_FUN( do_printlist);
 DECLARE_DO_FUN( do_prompt   );
-DECLARE_DO_FUN( do_protect  );
 DECLARE_DO_FUN( do_puncture );
 DECLARE_DO_FUN( do_punish   );
 DECLARE_DO_FUN( do_purge    );

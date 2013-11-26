@@ -2257,7 +2257,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define COMM_NOSAVANT       (T)
 
 /* other */
-#define COMM_SNOOP_PROOF    (Y)
+//#define COMM_SNOOP_PROOF    (Y) /* removed */
 #define COMM_AFK        (Z)
 #define COMM_NOGAME     (aa)
 #define COMM_NOBITCH    (bb)
