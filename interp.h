@@ -333,7 +333,6 @@ DECLARE_DO_FUN( do_puncture );
 DECLARE_DO_FUN( do_punish   );
 DECLARE_DO_FUN( do_purge    );
 DECLARE_DO_FUN( do_put      );
-DECLARE_DO_FUN( do_qflag    );
 DECLARE_DO_FUN( do_qlist    );
 DECLARE_DO_FUN( do_qset     );
 DECLARE_DO_FUN( do_quaff    );
