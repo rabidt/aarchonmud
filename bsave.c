@@ -3157,6 +3157,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
     page_to_char(buf_string(output),ch);
     free_buf(output);
     
+    nuke_pets(wch);
     free_char(wch);
     free_descriptor(d);
     
@@ -3324,6 +3325,7 @@ void do_oldfinger(CHAR_DATA *ch, char *argument)
     page_to_char(buf_string(output),ch);
     free_buf(output);
 
+    nuke_pets(wch);
     free_char(wch);
     free_descriptor(d);
 
