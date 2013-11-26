@@ -462,3 +462,46 @@ function do_scriptdump( ch, argument )
     pagetochar( ch, GetScript( args[1], args[2] ), true )
 
 end
+
+function wizhelp( ch, argument, commands )
+    local args=arguments(argument)
+    if args[1]=="level" or args[1]=="name" then
+        table.sort( commands, function(a,b) return a[args[1]]<b[args[1]] end )
+    elseif args[1]=="find" then
+        local old=commands
+        commands=nil
+        commands={}
+        for i,v in ipairs(old) do
+            if string.find( v.name, args[2] ) then
+                table.insert(commands, v)
+            end
+        end
+    end
+
+    local columns={}
+    local numcmds=#commands
+    local numrows=math.ceil(numcmds/3)
+    
+    for i,v in pairs(commands) do
+        local row
+        row=i%numrows
+        if row==0 then row=numrows end
+
+        columns[row]=columns[row] or ""
+        columns[row]=string.format("%s %4s %-10s (%3d) ",
+                columns[row],
+                i..".",
+                v.name,
+                v.level)
+
+    end
+
+    pagetochar( ch, table.concat(columns, "\n\r")..
+[[ 
+
+   wizhelp <name|level>   -- List commands sorted by name or level
+   wizhelp find [pattern] -- Find commands matching given pattern (lua pattern matching).
+]] )
+
+end
+

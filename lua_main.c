@@ -5,6 +5,7 @@
 #include "timer.h"
 #include "lua_main.h"
 #include "lua_arclib.h"
+#include "interp.h"
 
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
@@ -624,16 +625,88 @@ void open_lua ()
 
 }  /* end of open_lua */
 
-void do_scriptdump( CHAR_DATA *ch, const char *argument )
+void do_scriptdump( CHAR_DATA *ch, char *argument )
 {
     lua_getglobal(g_mud_LS, "do_scriptdump");
     make_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
-        ptc (ch, "Error with do_lboard:\n %s",
+        ptc (ch, "Error with do_scriptdump:\n %s",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
 
+}
+static int L_wizhelp( LS )
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    
+    int index=1; /* the current table index */
+    lua_newtable( LS );/* the table of commands */
+    
+    int cmd;
+    for ( cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
+    {
+        if ( cmd_table[cmd].level >= LEVEL_HERO
+            &&  is_granted( ud_ch, cmd_table[cmd].do_fun )
+            &&  cmd_table[cmd].show )
+        {
+            lua_newtable( LS ); /* this command's table */
+            
+            lua_pushinteger( LS, cmd_table[cmd].level );
+            lua_setfield( LS, -2, "level" );
+
+            lua_pushstring( LS, cmd_table[cmd].name );
+            lua_setfield( LS, -2, "name" );
+            
+            lua_rawseti( LS, -2, index++ ); /* save the command to the table */
+        }
+    }
+
+    lua_getglobal( LS, "wizhelp" );
+    lua_insert( LS, 1 ); /* shove it to the top */
+
+    lua_call( LS, lua_gettop(LS)-1, 0 );
+
+    return 0;
+}
+            
+
+void do_wizhelp( CHAR_DATA *ch, char *argument )
+{
+    lua_pushcfunction(g_mud_LS, L_wizhelp);
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_wizhelp:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+#if 0
+    char buf[MAX_STRING_LENGTH];
+    int cmd;
+    int col;
+    int i;
+
+    col = 0;
+    for ( cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
+    {
+        if ( cmd_table[cmd].level >= LEVEL_HERO
+            &&   is_granted(ch,cmd_table[cmd].do_fun)
+            &&   cmd_table[cmd].show)
+        {
+            sprintf( buf, "(%d) %-12s", cmd_table[cmd].level, cmd_table[cmd].name);
+            send_to_char( buf, ch );
+            if ( ++col % 4 == 0 )
+                send_to_char( "\n\r", ch );
+        }
+    }
+
+    if ( col % 6 != 0 )
+        send_to_char( "\n\r", ch );
+
+    return;
+#endif
 }
