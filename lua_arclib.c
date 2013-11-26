@@ -4210,6 +4210,27 @@ static int AREA_get_mobprotos( lua_State *LS)
 }
 HELPTOPIC AREA_get_mobprotos_help={};
 
+static int AREA_get_objprotos( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    int vnum=0;
+    lua_newtable(LS);
+    OBJ_INDEX_DATA *oid;
+    for ( vnum=ud_area->min_vnum ; vnum <= ud_area->max_vnum ; vnum++ )
+    {
+        if ((oid=get_obj_index(vnum)) != NULL )
+        {
+            if (make_OBJPROTO(LS, oid))
+                lua_rawseti(LS, -2, index++);
+        }
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_objprotos_help = {
+    .summary="A table of all OBJPROTOS in the area."
+};
+
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
     AREAGET(name, 0),
@@ -4224,6 +4245,7 @@ static const LUA_PROP_TYPE AREA_get_table [] =
     AREAGET(players, 0),
     AREAGET(mobs, 0),
     AREAGET(mobprotos, 0),
+    AREAGET(objprotos, 0),
     ENDPTABLE
 };
 
