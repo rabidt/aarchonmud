@@ -3624,12 +3624,6 @@ void do_qset( CHAR_DATA *ch, char *argument )
 
 }
 
-void do_mode( CHAR_DATA *ch, char *argument)
-{
-	send_to_char( bin_info_string(), ch);	
-}
-
-
 void do_avatar( CHAR_DATA *ch, char *argument ) /* Procedure Avatar */
 { /* Declaration */
   char buf[MAX_STRING_LENGTH];    /* buf */

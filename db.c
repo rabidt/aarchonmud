@@ -4834,6 +4834,9 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "Lua usage: %d\n\r", GetLuaMemoryUsage());
     ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
     ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
+
+    ptc( ch, "\n\r");
+    ptc( ch, "BINARY INFO%s\n\r", bin_info_string );
     
     return;
 }
