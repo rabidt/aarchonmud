@@ -1835,49 +1835,6 @@ MSETSTAT( dis, STAT_DIS)
 MSETSTAT( cha, STAT_CHA)
 MSETSTAT( luc, STAT_LUC)
 
-MSETFUN( security )
-{
-    if ( (value > ch->pcdata->security && get_trust(ch) < IMPLEMENTOR)
- || value < 0 )
-    {
-        if ( ch->pcdata->security != 0 )
-        {
-            ptc( ch, "Valid security is 0-%d.\n\r",
-                ch->pcdata->security );
-        }
-        else
-        {
-            send_to_char( "Valid security is 0 only.\n\r", ch );
-        }
-        return FALSE;
-    }
-    victim->pcdata->security = value;
-    return TRUE;
-}
-
-MSETFUN( law )
-{
-    if ( get_trust(ch) < IMPLEMENTOR )
-    {
-        send_to_char( "Only IMPs can assign law Aarchons.\n\r", ch );
-        return FALSE;
-    }
-    if ( value == 0 )
-    {
-        REMOVE_BIT( victim->act, PLR_LAW );
-        return TRUE;
-    }
-    else if ( value == 1 )
-    {
-        SET_BIT( victim->act, PLR_LAW );
-        return TRUE;
-    }
-    else
-    {
-        send_to_char( "Value must be 0 to remove or 1 to set.\n\r", ch );
-        return FALSE;
-    }
-}
 
 MSETFUN ( class )
 {
@@ -1934,7 +1891,7 @@ MSETFUN( sex )
 {
     if ( value < 0 || value > 2 )
     {
-        send_to_char( "Sex range is 0 to 2.\n\r", ch );
+        send_to_char( "Sex range is 0 to 2. 0 = Sexless, 1 = Male, 2 = Female\n\r", ch );
         return FALSE;
     }
     victim->sex = value;
@@ -2150,6 +2107,92 @@ MSETFUN( level )
 }
 
 
+MSETFUN( pkill )
+{
+    if ( IS_SET(victim->act, PLR_PERM_PKILL) )
+    {
+        if ( str_cmp( arg3, "off" ) )         
+        {
+            send_to_char("Pkill flag can only be turned 'off'.\n\r", ch);
+            return FALSE;
+        }
+
+        if (get_trust(ch) < IMPLEMENTOR)
+        {
+            send_to_char( "Only an implementor can turn off permanent pkill.\n\r", ch);
+            return FALSE;
+        }
+
+        REMOVE_BIT( victim->act, PLR_PERM_PKILL );
+        REMOVE_BIT( victim->act, PLR_HARDCORE );
+        send_to_char( "Pkill turned off.\n\r", ch );
+        send_to_char( "You are no longer a pkiller.\n\r", victim );
+        return TRUE;
+    }
+}
+
+MSETFUN( killer )
+{
+    if ( IS_SET(victim->act, PLR_KILLER) )
+    {
+        if ( str_cmp( arg3, "off" ) )         
+        {
+            send_to_char("Killer flag can only be turned 'off'.\n\r", ch);
+            return FALSE;
+        }
+
+        REMOVE_BIT( victim->act, PLR_KILLER );
+        send_to_char( "Killer flag removed.\n\r", ch );
+        send_to_char( "You are no longer a KILLER.\n\r", victim );
+        return TRUE;
+    }
+}
+
+
+MSETFUN( security )
+{
+    if ( (value > ch->pcdata->security && get_trust(ch) < IMPLEMENTOR) || value < 0 || value > 9 )
+    {
+        if ( ch->pcdata->security != 0 )
+        {
+            ptc( ch, "Valid security is 0-%d.\n\r",
+                ch->pcdata->security );
+        }
+        else
+        {
+            send_to_char( "Valid security is 0 only.\n\r", ch );
+        }
+        return FALSE;
+    }
+    victim->pcdata->security = value;
+    return TRUE;
+}
+
+MSETFUN( law )
+{
+    if ( get_trust(ch) < IMPLEMENTOR )
+    {
+        send_to_char( "Only IMPs can assign law Aarchons.\n\r", ch );
+        return FALSE;
+    }
+    if ( value == 0 )
+    {
+        REMOVE_BIT( victim->act, PLR_LAW );
+        return TRUE;
+    }
+    else if ( value == 1 )
+    {
+        SET_BIT( victim->act, PLR_LAW );
+        return TRUE;
+    }
+    else
+    {
+        send_to_char( "Value must be 0 to remove or 1 to set.\n\r", ch );
+        return FALSE;
+    }
+}
+
+
 
 struct
 {
@@ -2169,7 +2212,7 @@ struct
     {"cha",       MSETANY,      mset_cha},
     {"luc",       MSETANY,      mset_luc},
     {"class",     MSETPCONLY,   mset_class},
-    {"race",      MSETANY,      mset_race},
+    {"race",      MSETPCONLY,   mset_race},
     {"sex",       MSETANY,      mset_sex},
     {"group",     MSETNPCONLY,  mset_group},
     {"align",     MSETANY,      mset_align},
@@ -2180,7 +2223,6 @@ struct
     {"practice",  MSETPCONLY,   mset_practice},
     {"train",     MSETPCONLY,   mset_train},
     {"questpoints",MSETPCONLY,   mset_questpoints},
-//    {"house",   MSETPCONLY,   mset_house},    scrap this?
     {"thirst",    MSETPCONLY,   mset_thirst},
     {"hunger",    MSETPCONLY,   mset_hunger},
     {"drunk",     MSETPCONLY,   mset_drunk},
@@ -2189,6 +2231,7 @@ struct
     {"mana",      MSETANY,      mset_mana},
     {"move",      MSETANY,      mset_move},
     {"level",     MSETNPCONLY,  mset_level},
+    {"pkill",     MSETPCONLY,   mset_pkill},
     {"security",  MSETPCONLY,   mset_security},
     {"law",       MSETPCONLY,   mset_law},
     {NULL,        MSETNONE,     NULL}
