@@ -2148,6 +2148,68 @@ MSETFUN( killer )
     }
 }
 
+MSETFUN( thief )
+{
+    if ( IS_SET(victim->act, PLR_THIEF) )
+    {
+        if ( str_cmp( arg3, "off" ) )         
+        {
+            send_to_char("Thief flag can only be turned 'off'.\n\r", ch);
+            return FALSE;
+        }
+
+        REMOVE_BIT( victim->act, PLR_THIEF );
+        send_to_char( "Thief flag removed.\n\r", ch );
+        send_to_char( "You are no longer a THIEF.\n\r", victim );
+        return TRUE;
+    }
+}
+
+MSETFUN( hardcore )
+{
+    if ( IS_SET(victim->act, PLR_HARDCORE) )
+    {
+        if ( str_cmp( arg3, "off" ) )         
+        {
+            send_to_char("Hardcore flag can only be turned 'off'.\n\r", ch);
+            return FALSE;
+        }
+
+        if (get_trust(ch) < IMPLEMENTOR)
+        {
+            send_to_char( "Only an implementor can turn off hardcore pkill.\n\r", ch);
+            return FALSE;
+        }
+        REMOVE_BIT( victim->act, PLR_HARDCORE );
+        send_to_char( "Hardcore turned off.\n\r", ch );
+        send_to_char( "You are no longer a hardcore pkiller.\n\r", victim );
+        return TRUE;
+    }
+}
+
+
+MSETFUN( void )
+{  
+    if (IS_IMMORTAL(victim))
+    {
+        send_to_char("Can't void out an immortal!\n\r", ch);
+        return FALSE;
+    }
+    else if ( get_trust( victim ) >= get_trust( ch ) )
+    {
+        send_to_char("Victim too powerful!\n\r", ch);
+        return FALSE;
+    }
+    else if ( victim->timer >= 12 )
+    {
+        ptc( ch, "Timer for %s already at %d.\n\r", victim->name, victim->timer);
+        return FALSE;
+    }
+
+    victim->timer=12;
+    ptc(ch, "%s's timer was set to %d (will void on next tick).\n\r", victim->name, victim->timer);
+    return TRUE; 
+}
 
 MSETFUN( security )
 {
@@ -2232,6 +2294,10 @@ struct
     {"move",      MSETANY,      mset_move},
     {"level",     MSETNPCONLY,  mset_level},
     {"pkill",     MSETPCONLY,   mset_pkill},
+    {"killer",    MSETPCONLY,   mset_killer},
+    {"thief",     MSETPCONLY,   mset_thief},
+    {"hardcore",  MSETPCONLY,   mset_hardcore},
+    {"void",      MSETPCONLY,   mset_void},
     {"security",  MSETPCONLY,   mset_security},
     {"law",       MSETPCONLY,   mset_law},
     {NULL,        MSETNONE,     NULL}
