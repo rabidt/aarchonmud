@@ -477,6 +477,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 {
 	char reboot[20]; /* description of reboot status */
 	char buf[200];   /* buffer to hold reset line */
+    char buf2[MSL];
 	char spaces[11]; /* for indentation */
 	
 	/* This buffer is only used for the items where arg2 really IS reboot arg */
@@ -484,7 +485,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 		strcpy (reboot, "reboot");
 	else
 	if (pReset->command == 'M')
-		sprintf (reboot, "max %d", pReset->arg2);
+		sprintf (reboot, "%2d  - %2d ", pReset->arg2, pReset->arg4);
 	else /* non-zero limit for objects means chance of loading */
 		if (pReset->arg2 < 2)
 			sprintf (reboot, "always");
@@ -505,9 +506,12 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'M': /* MOB */
 	{
 		MOB_INDEX_DATA *mob = get_mob_index (pReset->arg1);
-		sprintf (buf, "%2d> [%5d] %s %s (%s)",
+        sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%ds  [%%s]",
+                35 + ( mob ? strlen(mob->short_descr) - strlen_color(mob->short_descr) : 0));
+        sprintf( buf, buf2, 
+		//sprintf (buf, "%2d> [%5d] %-2s   %-40s (%s)",
 					number, pReset->arg1, 
-					(mob && mob->pShop) ? "(shop)" : "",
+					(mob && mob->pShop) ? "Y " : "",
 					mob ? mob->short_descr : "(non-existant)",
 					reboot);
 		break;
@@ -516,7 +520,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'O': /* Obj on the floor */
 	{
 		OBJ_INDEX_DATA* obj = get_obj_index (pReset->arg1);
-		sprintf (buf, "%2d> [%5d] L%d %s (%s)",
+		sprintf (buf, "%2d> [%5d] Lv%3d  %-30s (%s)",
          number, pReset->arg1, obj ? obj->level : last_level,
 					obj ? obj->short_descr : "(non-existant)",
 					reboot);
@@ -546,10 +550,16 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
 		
-		sprintf (buf, "%2d>  <inventory>         [%5d] L%d %s (%s)",
+/*		sprintf (buf, "%2d>  <inventory>         [%5d] L%d %s (%s)",
          number, pReset->arg1, obj ? obj->level : last_level,
 					  obj ? obj->short_descr : "(non-existant)",
-					  reboot);
+					  reboot); */
+                                     
+		sprintf (buf, "%2d>  ^[%5d]  <inventory>  Lv%3d   %-30s (%s)",
+         number, pReset->arg1, obj ? obj->level : last_level,
+					  obj ? obj->short_descr : "(non-existant)",
+					  reboot); 
+
 		break;
 	} /* case GIVE */
 	
@@ -627,9 +637,12 @@ void do_rlook (CHAR_DATA *ch, char *argument)
 	RESET_DATA *p, *q;
 	bool last_mob_here = FALSE;
 	
-	sprintf (buf, "Resets for room %d (%s)\n\r", 
+	sprintf (buf, "  Room #:  %5d   Room Name: (%s)\n\r", 
 	              ch->in_room->vnum, ch->in_room->name);
-	send_to_char (buf,ch);	        
+	send_to_char (buf,ch);
+        sprintf (buf, "     Vnum   Shop   Short Desc                       Max:Area - Room\n\r");
+        send_to_char (buf,ch);
+        send_to_char ("-------------------------------------------------------------------\n\r",ch);
 	              
 	for (p = ch->in_room->reset_first; p ; p = p->next)
 	{
