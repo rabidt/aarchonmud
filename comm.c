@@ -280,7 +280,6 @@ void    bust_a_prompt           args( ( CHAR_DATA *ch ) );
 
 /* Needs to be global because of do_copyover */
 u_short port;
-u_short ftpport;
 int control;
 
 int main( int argc, char **argv )
@@ -318,7 +317,6 @@ int main( int argc, char **argv )
      * Get the port number.
      */
     port = 7000;
-    ftpport = port + 6;
 
     if ( argc > 1 )
     {
@@ -333,7 +331,6 @@ int main( int argc, char **argv )
             exit( 1 );
         }
 
-        ftpport = port + 6;
 
         /* Are we recovering from a copyover? */
         if ( argc > 2 )

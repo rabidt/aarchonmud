@@ -91,11 +91,6 @@ void  handle_con_note_text    args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  handle_con_note_finish  args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  do_board args( (CHAR_DATA *ch, char *argument) );
 
-void    greet_ftp 		args( ( DESCRIPTOR_DATA *d ) );
-void 	handle_ftp_data         ( DESCRIPTOR_DATA *, const char *);
-void 	handle_ftp_auth         ( DESCRIPTOR_DATA *, const char *);
-void 	handle_ftp_command      ( DESCRIPTOR_DATA *, const char *);
-
 void  penalty_severity  args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  penalty_confirm   args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  penalty_hours     args( (DESCRIPTOR_DATA *d, char * argument ) );
