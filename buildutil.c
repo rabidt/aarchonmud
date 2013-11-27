@@ -1944,6 +1944,212 @@ MSETFUN( sex )
 }
 
 
+MSETFUN( group )
+{
+    victim->group = value;
+    return TRUE;
+}
+
+
+MSETFUN( align )
+{
+    if ( value < -1000 || value > 1000 )
+    {
+        send_to_char( "Alignment range is -1000 to 1000.\n\r", ch );
+        return FALSE;
+    }
+
+    victim->alignment = value;
+    return TRUE;
+}
+
+
+MSETFUN( hunt )
+{
+    CHAR_DATA *hunted = 0;
+
+    if (victim->hunting)
+        stop_hunting(ch);
+
+    if ( str_cmp( arg3, "." ) )
+        if ( (hunted = get_char_area(victim, arg3)) == NULL )
+        {
+            send_to_char("Mob couldn't locate the victim to hunt.\n\r", ch);
+            return FALSE;
+        }
+    
+    victim->hunting = strdup(hunted->name);
+    return TRUE;
+}
+
+
+MSETFUN( gold )
+{
+    victim->gold = value;
+    return TRUE;
+}
+
+
+MSETFUN( silver )
+{
+    victim->silver = value;
+    return TRUE;
+}
+
+
+MSETFUN( bounty )
+{
+    victim->pcdata->bounty = value;
+    update_bounty(victim);
+    return TRUE;
+}
+
+
+MSETFUN( practice )
+{
+    if ( value < 0 || value > 5000 )
+    {
+        send_to_char( "Practice range is 0 to 5000 sessions.\n\r", ch );
+        return FALSE;
+    }
+    victim->practice = value;
+    return TRUE;
+
+}
+
+
+MSETFUN( train )
+{
+    if (value < 0 || value > 1000 )
+    {
+        send_to_char("Training session range is 0 to 1000 sessions.\n\r",ch);
+        return FALSE;
+    }
+    victim->train = value;
+    return TRUE;
+}
+
+
+MSETFUN( questpoints )
+{
+    printf_to_char(ch, "%s's quest points modified from %d to %d.\n\r",
+        victim->name, victim->pcdata->questpoints, (victim->pcdata->questpoints + value));
+    printf_to_char(victim, "%s has modified your quest points from %d to %d.\n\r",
+        ch->name, victim->pcdata->questpoints, (victim->pcdata->questpoints + value));
+    victim->pcdata->questpoints += value;
+    return TRUE;
+}
+
+
+MSETFUN( thirst )
+{
+   if ( value < -1 || value > 100 )
+   {
+       send_to_char( "Thirst range is -1 to 100.\n\r", ch );
+       return FALSE;
+   }
+   
+   victim->pcdata->condition[COND_THIRST] = value;
+   return TRUE;
+}
+
+
+MSETFUN( hunger )
+{
+    if ( value < -1 || value > 100 )
+    {
+        send_to_char( "Full range is -1 to 100.\n\r", ch );
+        return FALSE;
+    }
+    
+    victim->pcdata->condition[COND_HUNGER] = value;
+    return TRUE;
+}
+
+
+MSETFUN( drunk )
+{
+    if ( value < -1 || value > 100 )
+    {
+        send_to_char( "Drunk range is -1 to 100.\n\r", ch );
+        return FALSE;
+    }
+    
+    victim->pcdata->condition[COND_DRUNK] = value;
+    return TRUE;
+}
+
+
+MSETFUN( full )
+{
+   if ( value < -1 || value > 100 )
+   {
+       send_to_char( "Full range is -1 to 100.\n\r", ch );
+       return FALSE;
+   }
+   
+   victim->pcdata->condition[COND_FULL] = value;
+   return TRUE;
+}
+
+
+MSETFUN( hp )
+{
+   if ( value < -10 || value > 30000 )
+   {
+       send_to_char( "Hp range is -10 to 30,000 hit points.\n\r", ch );
+       return FALSE;
+   }
+
+   victim->max_hit = value;
+   if (!IS_NPC(victim))
+       victim->pcdata->perm_hit = value;
+   return TRUE;
+}
+
+
+MSETFUN( mana )
+{
+    if ( value < 0 || value > 30000 )
+    {
+        send_to_char( "Mana range is 0 to 30,000 mana points.\n\r", ch );
+        return FALSE;
+    }
+
+    victim->max_mana = value;
+    if (!IS_NPC(victim))
+        victim->pcdata->perm_mana = value;
+    return TRUE;
+}
+
+
+MSETFUN( move )
+{
+    if ( value < 0 || value > 30000 )
+    {
+        send_to_char( "Move range is 0 to 30,000 move points.\n\r", ch );
+        return FALSE;
+    }
+
+    victim->max_move = value;
+    if (!IS_NPC(victim))
+        victim->pcdata->perm_move = value;
+    return TRUE;
+}
+
+
+MSETFUN( level )
+{
+    if ( value < 0 || value > 200 )
+    {
+        send_to_char( "Level range is 0 to 200.\n\r", ch );
+        return FALSE;
+    }
+    victim->level = value;
+    return TRUE;
+}
+
+
 
 struct
 {
@@ -1967,22 +2173,22 @@ struct
     {"sex",       MSETANY,      mset_sex},
     {"group",     MSETNPCONLY,  mset_group},
     {"align",     MSETANY,      mset_align},
-    {"hunt",      MSETANY,      mset_hunt}, // what the heck is this?
+    {"hunt",      MSETANY,      mset_hunt},
     {"gold",      MSETANY,      mset_gold},
-    {"silver",    MSETANY,      mset_silver}, // scrap this?
-    {"bounty",    MSETANY,      mset_bounty},
-    {"prac",      MSETPCONLY,   mset_prac}, // can this be "practice"?
+    {"silver",    MSETANY,      mset_silver}, 
+    {"bounty",    MSETPCONLY,   mset_bounty},
+    {"practice",  MSETPCONLY,   mset_practice},
     {"train",     MSETPCONLY,   mset_train},
-    {"quest",     MSETPCONLY,   mset_quest},
-    {"house",     MSETPCONLY,   mset_house}, // scrap this?
-    {"thirst",    MSETANY,      mset_thirst},
-    {"hunger",    MSETANY,      mset_hunger},
-    {"drunk",     MSETANY,      mset_drunk},
-    {"full",      MSETANY,      mset_full},
+    {"questpoints",MSETPCONLY,   mset_questpoints},
+//    {"house",   MSETPCONLY,   mset_house},    scrap this?
+    {"thirst",    MSETPCONLY,   mset_thirst},
+    {"hunger",    MSETPCONLY,   mset_hunger},
+    {"drunk",     MSETPCONLY,   mset_drunk},
+    {"full",      MSETPCONLY,   mset_full},
     {"hp",        MSETANY,      mset_hp},
     {"mana",      MSETANY,      mset_mana},
     {"move",      MSETANY,      mset_move},
-    {"level",     MSETNPCONLY,  mset_level}, // use advance for PCs
+    {"level",     MSETNPCONLY,  mset_level},
     {"security",  MSETPCONLY,   mset_security},
     {"law",       MSETPCONLY,   mset_law},
     {NULL,        MSETNONE,     NULL}
@@ -2074,8 +2280,15 @@ void do_mset( CHAR_DATA *ch, char *argument )
                     return;
             }
 
-            mset_table[i].func( ch, victim, arg3, value );
-            ptc(ch, "%s set.\n\r", arg3 );
+            if (mset_table[i].func( ch, victim, arg3, value ) )
+            {
+                ptc(ch, "%s set.\n\r", arg3 );
+            }
+            else
+            {
+                ptc(ch, "%s not set.\n\r", arg3 );
+            }
+                
             return;
         }
     }
