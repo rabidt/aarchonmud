@@ -742,9 +742,12 @@ struct penalty_data
 #define CON_READ_IMOTD          13
 #define CON_READ_MOTD           14
 #define CON_BREAK_CONNECT       15
+/* removed */
+/*
 #define CON_FTP_COMMAND         16
 #define CON_FTP_DATA            17
 #define CON_FTP_AUTH            18
+*/
 #define CON_GET_CREATION_MODE   19
 #define CON_ROLL_STATS          20
 #define CON_GET_STAT_PRIORITY   21
@@ -769,8 +772,6 @@ struct penalty_data
 #define CREATION_EXPERT          2
 #define CREATION_REMORT          3
 
-
-typedef enum { FTP_NORMAL, FTP_PUSH, FTP_PUSH_WAIT } ftp_mode;
 
 /*
  * Descriptor (channel) structure.
@@ -808,15 +809,6 @@ struct  descriptor_data
     } lua;
 
 	int     inactive;
-	char *      username;
-	struct
-	{
-		char *      filename;   /* Filename being written to */
-		char *      data;       /* Data being written    */
-		short int   lines_left; /* Lines left        */
-		short int   lines_sent; /* Lines sent so far     */
-		ftp_mode    mode;       /* FTP_xxx           */
-	} ftp;
     protocol_t *        pProtocol;
 
 #ifdef LAG_FREE
@@ -2174,7 +2166,8 @@ typedef int tattoo_list[MAX_WEAR];
  * ACT bits for players.
  */
 #define PLR_IS_NPC      (A)     /* Don't EVER set.  */
-#define PLR_MUDFTP      (B)
+/*removed*/
+/*#define PLR_MUDFTP      (B)*/
 
 /* RT auto flags */
 #define PLR_AUTOASSIST      (C)
@@ -4480,9 +4473,6 @@ bool    is_ranged_weapon( OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
-
-/* ftp.c */
-bool    ftp_push    args( (DESCRIPTOR_DATA *d) );
 
 /* grant.c */
 bool is_granted_name    args( ( CHAR_DATA *ch, char *argument ) );

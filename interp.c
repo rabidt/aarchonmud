@@ -199,7 +199,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "autosplit",  do_autosplit,   POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "autorescue", do_autorescue,  POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "brief",      do_brief,   POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "mudftp",     do_mudftp,  POS_DEAD,    L9,  LOG_NORMAL, 1, FALSE, FALSE },
     { "color",      do_colour,  POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "colour",     do_colour,  POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "combine",    do_combine, POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
