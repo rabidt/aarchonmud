@@ -3771,6 +3771,10 @@ void do_printlist(CHAR_DATA *ch, char *argument)
         send_to_char("\n\r",ch);
         return;
     } /* save */
+    else
+    {
+        do_printlist( ch, "");
+    }
 }
 
 void do_charloadtest(CHAR_DATA *ch, char *argument)
