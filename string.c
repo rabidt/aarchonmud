@@ -125,28 +125,11 @@ void string_append( CHAR_DATA *ch, char **pString )
         *pString = str_dup( "" );
     }
     
-    if (IS_SET(ch->act, PLR_MUDFTP))
-    {
-        ch->desc->pString = pString;
-        if (ftp_push(ch->desc)) /* ftp: PUSH mode */
-            send_to_char("Editing string via mudFTP push connection.  Use ~ or @ to abort.\n",ch);
-        else /* PULL mode */
-        {
-            char buf[MAX_STRING_LENGTH];
-            sprintf(buf,"Sending mudFTP request. If your client does not support mudFTP, abort this\n"
-                "edit (type ~ or @ on a blank line), toggle mudftp off, and try again.\n"
-                "\ntmp/%lu%c\n", (unsigned long) pString, 230);
-            send_to_char(buf,ch);
-        }
-    }
-    else
-    {
-        send_to_char_new( numlineas(*pString), ch, TRUE );
-        if ( *(*pString + strlen( *pString ) - 1) != '\r' )
-            send_to_char( "\n\r", ch );
-        
-        ch->desc->pString = pString;
-    }
+    send_to_char_new( numlineas(*pString), ch, TRUE );
+    if ( *(*pString + strlen( *pString ) - 1) != '\r' )
+        send_to_char( "\n\r", ch );
+
+    ch->desc->pString = pString;
     
     return;
 }
@@ -203,13 +186,6 @@ void string_add( CHAR_DATA *ch, char *argument )
     * Thanks to James Seng
     */
    smash_tilde( argument );
-
-   if (IS_SET(ch->act, PLR_MUDFTP) && str_cmp(argument, "@"))
-   {
-       send_to_char ("Type @ to manually abort FTP mode.\n\r"
-           "If mudFTP is not supported by your client, abort this edit and toggle mudftp off.\n\r",ch);
-       return;
-   }
 
    if ( !str_cmp(argument, ".q") || *argument == '~' || *argument == '@' )
    {
