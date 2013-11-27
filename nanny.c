@@ -91,11 +91,6 @@ void  handle_con_note_text    args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  handle_con_note_finish  args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  do_board args( (CHAR_DATA *ch, char *argument) );
 
-void    greet_ftp 		args( ( DESCRIPTOR_DATA *d ) );
-void 	handle_ftp_data         ( DESCRIPTOR_DATA *, const char *);
-void 	handle_ftp_auth         ( DESCRIPTOR_DATA *, const char *);
-void 	handle_ftp_command      ( DESCRIPTOR_DATA *, const char *);
-
 void  penalty_severity  args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  penalty_confirm   args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  penalty_hours     args( (DESCRIPTOR_DATA *d, char * argument ) );
@@ -125,18 +120,6 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		bug( "Nanny: bad d->connected %d.", d->connected );
 		close_socket( d );
 		return;
-		
-	    case CON_FTP_AUTH:
-		handle_ftp_auth(d,argument);
-		break;
-		
-	    case CON_FTP_COMMAND:
-		handle_ftp_command(d,argument);
-		break;
-		
-	    case CON_FTP_DATA:
-		handle_ftp_data(d,argument);
-		break;
 		
 	    case CON_GET_NAME:
 		get_name(d, argument);
