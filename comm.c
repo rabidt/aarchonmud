@@ -255,9 +255,6 @@ bool            newlock;        /* Game is newlocked        */
 char            str_boot_time[MAX_INPUT_LENGTH];
 time_t          current_time;   /* time of this pulse */    
 bool            MOBtrigger = TRUE;  /* act() switch                 */
-int             ftp_control = -1;   /* Control socket of FTP (-1 if inactive) */
-
-typedef enum {NDESC_NORMAL, NDESC_FTP } ndesc_t;
 
 
 /*
@@ -265,12 +262,8 @@ typedef enum {NDESC_NORMAL, NDESC_FTP } ndesc_t;
  */
 void    game_loop_unix      args( ( int control ) );
 int   init_socket       args( ( u_short port ) );
-void    init_descriptor     args( ( int control, ndesc_t type ) );
+void    init_descriptor     args( ( int control ) );
 bool    read_from_descriptor    args( ( DESCRIPTOR_DATA *d ) );
-void    greet_ftp       args( ( DESCRIPTOR_DATA *d ) );
-void    handle_ftp_data         ( DESCRIPTOR_DATA *, const char *);
-void    handle_ftp_auth         ( DESCRIPTOR_DATA *, const char *);
-void    handle_ftp_command      ( DESCRIPTOR_DATA *, const char *);
 
 /*
  * Other local functions (OS-independent).
@@ -287,7 +280,6 @@ void    bust_a_prompt           args( ( CHAR_DATA *ch ) );
 
 /* Needs to be global because of do_copyover */
 u_short port;
-u_short ftpport;
 int control;
 
 int main( int argc, char **argv )
@@ -325,7 +317,6 @@ int main( int argc, char **argv )
      * Get the port number.
      */
     port = 7000;
-    ftpport = port + 6;
 
     if ( argc > 1 )
     {
@@ -340,7 +331,6 @@ int main( int argc, char **argv )
             exit( 1 );
         }
 
-        ftpport = port + 6;
 
         /* Are we recovering from a copyover? */
         if ( argc > 2 )
@@ -351,7 +341,6 @@ int main( int argc, char **argv )
             {
                 fCopyOver = TRUE; 
                 control = atoi(argv[3]);
-                ftp_control = atoi(argv[4]);
             }
             else
                 fCopyOver = FALSE;
@@ -364,7 +353,6 @@ int main( int argc, char **argv )
     if (!fCopyOver)
     {
         control = init_socket( port );
-        ftp_control = init_socket (ftpport);
     }
 
     boot_db();
@@ -487,10 +475,7 @@ void game_loop_unix( int control )
         FD_ZERO( &exc_set );
         FD_SET( control, &in_set );
 
-        if (ftp_control >= 0)
-            FD_SET(ftp_control, &in_set);
-
-        maxdesc = UMAX(control, ftp_control);
+        maxdesc = control;
 
         for ( d = descriptor_list; d; d = d->next )
         {
@@ -510,11 +495,7 @@ void game_loop_unix( int control )
          * New connection?
          */
         if ( FD_ISSET( control, &in_set ) )
-            init_descriptor( control, NDESC_NORMAL );
-
-        if ( FD_ISSET( ftp_control, &in_set ) )
-            init_descriptor( ftp_control, NDESC_FTP );
-
+            init_descriptor( control );
 
         /*
          * Kick out the freaky folks.
@@ -664,17 +645,8 @@ void game_loop_unix( int control )
                                     break;
                                 }
                             default:
-                                /* slight hack here so we can snarf all mudftp data in one go -O */
-                                while (d->incomm[0])
-                                {
-                                    nanny (d, d->incomm);
-
-                                    if (d->connected != CON_FTP_DATA)
-                                        break;
-
-                                    d->incomm[0] = '\0';
-                                    read_from_buffer( d );
-                                }
+                                bugf("Invalid CON state: %d",
+                                        d->connected);
                                 break;
                         }                     /* end of switch */
                     }                        /* else, from if ( d->pString ) */
@@ -789,7 +761,7 @@ void game_loop_unix( int control )
     return;
 }
 
-void init_descriptor( int control, ndesc_t type )
+void init_descriptor( int control )
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *dnew;
@@ -830,13 +802,11 @@ return;
 #define FNDELAY O_NONBLOCK
 #endif
 
-#if !defined( AmigaTCP )
 if ( fcntl( desc, F_SETFL, FNDELAY ) == -1 )
 {
     log_error( "New_descriptor: fcntl: FNDELAY" );
     return;
 }   
-#endif
 
 
 
@@ -906,17 +876,11 @@ ProtocolNegotiate(dnew);
 /*
  * Send the greeting.
  */
-if (type == NDESC_NORMAL)
-{
     extern char * help_greeting;
     if ( help_greeting[0] == '.' )
         write_to_buffer( dnew, help_greeting+1, 0 );
     else
         write_to_buffer( dnew, help_greeting  , 0 );
-}
-/* FTP connections are handled in ftp.c */
-else if (type == NDESC_FTP)
-    greet_ftp(dnew);
 
     return;
     }
@@ -2985,7 +2949,7 @@ void do_copyover (CHAR_DATA *ch, char * argument)
     DESCRIPTOR_DATA *d, *d_next;
     char buf [200];
     char arg0[50], arg1[10], arg2[10], arg3[10], arg4[10];
-    extern int control, ftp_control; /* db.c */
+    extern int control; /* db.c */
 
     fp = fopen (COPYOVER_FILE, "w");
 
@@ -3055,9 +3019,8 @@ void do_copyover (CHAR_DATA *ch, char * argument)
     sprintf (arg1, "%d", port);
     sprintf (arg2, "%s", "copyover");
     sprintf (arg3, "%d", control);
-    sprintf (arg4, "%d", ftp_control);
-    logpf( "do_copyover: executing '%s %s %s %s %s'", arg0, arg1, arg2, arg3, arg4 );
-    execl (EXE_FILE, arg0, arg1, arg2, arg3, arg4, (char *) NULL);
+    logpf( "do_copyover: executing '%s %s %s %s'", arg0, arg1, arg2, arg3 );
+    execl (EXE_FILE, arg0, arg1, arg2, arg3, (char *) NULL);
 
     /* Failed - sucessful exec will not return */
 
