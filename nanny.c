@@ -126,18 +126,6 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		close_socket( d );
 		return;
 		
-	    case CON_FTP_AUTH:
-		handle_ftp_auth(d,argument);
-		break;
-		
-	    case CON_FTP_COMMAND:
-		handle_ftp_command(d,argument);
-		break;
-		
-	    case CON_FTP_DATA:
-		handle_ftp_data(d,argument);
-		break;
-		
 	    case CON_GET_NAME:
 		get_name(d, argument);
 		break;
