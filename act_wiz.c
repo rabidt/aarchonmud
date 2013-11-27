@@ -523,7 +523,7 @@ void do_disconnect( CHAR_DATA *ch, char *argument )
 }
 
 
-
+/* cleanup later -- astark
 void do_clear( CHAR_DATA *ch, char *argument )
 {
     char arg1[MAX_INPUT_LENGTH];
@@ -633,7 +633,7 @@ void do_clear( CHAR_DATA *ch, char *argument )
     send_to_char( "Syntax: clear <character> <killer|thief|bounty|pkill|hardcore|rp>.\n\r", ch );
     return;
 }
-
+*/
 
 
 void do_echo( CHAR_DATA *ch, char *argument )
