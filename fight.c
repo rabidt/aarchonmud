@@ -5951,6 +5951,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
                 act("$N jumps in $n's way, blocking $s escape!", ch, NULL, opp, TO_NOTVICT);
             }
             check_improve(opp, gsn_entrapment, TRUE, 1);
+            check_improve(ch, gsn_flee, FALSE, 4);
             return;
         }
     }
