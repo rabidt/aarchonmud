@@ -1721,37 +1721,35 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          pReset->arg4    = (letter == 'P' || letter == 'M')
              ? fread_number(fp) : 0;
          fread_to_eol( fp );
-         
+
          switch( pReset->command )
          {
-         case 'M':
-         case 'O':
-             rVnum = pReset->arg3;
-             break;
-             
-         case 'P':
-         case 'G':
-         case 'E':
-             break;
-             
-         case 'D':
-             continue; /* obsolete, removed */
+             case 'M':
+             case 'O':
+                 rVnum = pReset->arg3;
+                 break;
 
-         case 'R':
-             rVnum = pReset->arg1;
-             break;
+             case 'P':
+             case 'G':
+             case 'E':
+                 break;
+
+             case 'D':
+                 free_reset_data( pReset );
+                 continue; /* obsolete, removed */
+
+             case 'R':
+                 rVnum = pReset->arg1;
+                 break;
          }
-         
+
          if ( rVnum == -1 )
          {
              bugf( "load_resets : rVnum == -1" );
              exit(1);
          }
-         
-         if ( pReset->command != 'D' )
-             new_reset( get_room_index(rVnum), pReset );
-         else
-             free_reset_data( pReset );
+
+         new_reset( get_room_index(rVnum), pReset );
      }
      
      return;
