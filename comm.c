@@ -328,9 +328,7 @@ void game_loop_unix( int control )
     static struct timeval null_time;
     struct timeval last_time;
 
-#if !defined( AmigaTCP )
     signal( SIGPIPE, SIG_IGN );
-#endif
     gettimeofday( &last_time, NULL );
     current_time = (time_t) last_time.tv_sec;
 
@@ -680,13 +678,11 @@ return;
 #define FNDELAY O_NONBLOCK
 #endif
 
-#if !defined( AmigaTCP )
 if ( fcntl( desc, F_SETFL, FNDELAY ) == -1 )
 {
     log_error( "New_descriptor: fcntl: FNDELAY" );
     return;
 }   
-#endif
 
 
 
@@ -923,10 +919,8 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
             log_string( "EOF encountered on read." );
             return FALSE;
         }
-#if !defined( AmigaTCP )
         else if ( errno == EWOULDBLOCK || errno == EAGAIN )
             break;
-#endif
         else
         {
             log_error( "Read_from_descriptor" );
