@@ -494,7 +494,8 @@ void game_loop_unix( int control )
         /*
          * New connection?
          */
-        init_descriptor( control );
+        if ( FD_ISSET( control, &in_set ) )
+            init_descriptor( control );
 
 
 
