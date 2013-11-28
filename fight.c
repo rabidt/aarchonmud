@@ -2685,6 +2685,12 @@ CHAR_DATA *get_local_leader( CHAR_DATA *ch )
 
 bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
 {
+    int chance = get_skill(victim, gsn_evasion);
+    
+    // need skill to evade
+    if ( !chance )
+        return FALSE;
+    
     // touch spells and some others cannot be evaded
     char *spell = skill_table[sn].name;
     if ( !strcmp(spell, "burning hands")
@@ -2696,10 +2702,10 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
         return FALSE;
 
     // direct-target spells are harder to evade
-    if ( skill_table[sn].target != TAR_IGNORE && number_bits(1) )
-        return FALSE;
+    if ( skill_table[sn].target != TAR_IGNORE && !per_chance(mastery_bonus(victim, gsn_evasion, 30, 50)) )
+        chance /= 2;
 
-    bool success = per_chance(get_skill(victim, gsn_evasion));
+    bool success = per_chance(chance);
     if ( show && success )
     {
         act_gag("$N evades your spell, reducing its impact.", ch, NULL, victim, TO_CHAR, GAG_MISS);
