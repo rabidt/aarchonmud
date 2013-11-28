@@ -1721,70 +1721,35 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          pReset->arg4    = (letter == 'P' || letter == 'M')
              ? fread_number(fp) : 0;
          fread_to_eol( fp );
-         
+
          switch( pReset->command )
          {
-         case 'M':
-         case 'O':
-             rVnum = pReset->arg3;
-             break;
-             
-         case 'P':
-         case 'G':
-         case 'E':
-             break;
-             
-         case 'D':
-             pRoomIndex = get_room_index( (rVnum = pReset->arg1) );
-             if ( pReset->arg2 < 0
-                 ||  pReset->arg2 >= MAX_DIR
-                 || !pRoomIndex
-                 || !( pexit = pRoomIndex->exit[pReset->arg2] )
-                 || !IS_SET( pexit->rs_flags, EX_ISDOOR ) )
-             {
-                 bugf( "Load_resets: 'D': exit %d, room %d not door.", pReset->arg2, pReset->arg1 );
-                 exit( 1 );
-             }
-             switch ( pReset->arg3 )
-             {
-             default: 
-                 bug( "Load_resets: 'D': bad 'locks': %d." , pReset->arg3); 
+             case 'M':
+             case 'O':
+                 rVnum = pReset->arg3;
                  break;
-             case 0: 
+
+             case 'P':
+             case 'G':
+             case 'E':
                  break;
-             case 1: 
-                 SET_BIT( pexit->rs_flags, EX_CLOSED );
-                 SET_BIT( pexit->exit_info, EX_CLOSED ); 
-                 break;
-             case 2: 
-                 SET_BIT( pexit->rs_flags, EX_CLOSED );
-		 SET_BIT( pexit->rs_flags, EX_LOCKED );
-                 SET_BIT( pexit->exit_info, EX_CLOSED );
-                 SET_BIT( pexit->exit_info, EX_LOCKED );
-                 break;
-             case 3:
-                 SET_BIT (pexit->rs_flags, EX_HIDDEN);
-                 SET_BIT (pexit->exit_info, EX_HIDDEN);
-                 break;
-             }
-             break;
-             
-             
+
+             case 'D':
+                 free_reset_data( pReset );
+                 continue; /* obsolete, removed */
+
              case 'R':
                  rVnum = pReset->arg1;
                  break;
          }
-         
+
          if ( rVnum == -1 )
          {
              bugf( "load_resets : rVnum == -1" );
              exit(1);
          }
-         
-         if ( pReset->command != 'D' )
-             new_reset( get_room_index(rVnum), pReset );
-         else
-             free_reset_data( pReset );
+
+         new_reset( get_room_index(rVnum), pReset );
      }
      
      return;
