@@ -517,3 +517,16 @@ function wizhelp( ch, argument, commands )
 
 end
 
+function list_files ( path )
+    local f=assert(io.popen('find ../player -type f -printf "%f\n"', 'r'))
+    
+    local txt=f:read("*all")
+    f:close()
+    
+    local rtn={}
+    for nm in string.gmatch( txt, "(%a+)\n") do
+        table.insert(rtn, nm)
+    end
+
+    return rtn
+end
