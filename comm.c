@@ -73,9 +73,6 @@ void install_other_handlers ();
 /*
  * Malloc debugging stuff.
  */
-#if defined(sun)
-#undef MALLOC_DEBUG
-#endif
 
 #if defined(MALLOC_DEBUG)
 #include <malloc.h>
@@ -101,46 +98,6 @@ const   char    echo_off_str    [] = { IAC, WILL, TELOPT_ECHO, '\0' };
 const   char    echo_on_str     [] = { IAC, WONT, TELOPT_ECHO, '\0' };
 const   char    go_ahead_str    [] = { IAC, GA, '\0' };
 
-/*
- * OS-dependent declarations.
- */
-#if defined(_AIX)
-#include <sys/select.h>
-int accept      args( ( int s, struct sockaddr *addr, int *addrlen ) );
-int bind        args( ( int s, struct sockaddr *name, int namelen ) );
-void    bzero       args( ( char *b, int length ) );
-#if !defined(SOCR)
-int getpeername args( ( int s, struct sockaddr *name, int *namelen ) );
-int getsockname args( ( int s, struct sockaddr *name, int *namelen ) );
-int listen      args( ( int s, int backlog ) );
-#endif
-int gettimeofday    args( ( struct timeval *tp, struct timezone *tzp ) );
-int setsockopt  args( ( int s, int level, int optname, void *optval,
-            int optlen ) );
-int socket      args( ( int domain, int type, int protocol ) );
-#endif
-
-#if defined(__hpux)
-int accept      args( ( int s, void *addr, int *addrlen ) );
-int bind        args( ( int s, const void *addr, int addrlen ) );
-void    bzero       args( ( char *b, int length ) );
-#if !defined(SOCR)
-int getpeername args( ( int s, void *addr, int *addrlen ) );
-int getsockname args( ( int s, void *name, int *addrlen ) );
-int listen      args( ( int s, int backlog ) );
-#endif
-int gettimeofday    args( ( struct timeval *tp, struct timezone *tzp ) );
-int setsockopt  args( ( int s, int level, int optname,
-            const void *optval, int optlen ) );
-int socket      args( ( int domain, int type, int protocol ) );
-#endif
-
-#if defined(interactive)
-#include <net/errno.h>
-#include <sys/fnctl.h>
-#endif
-
-#if defined(linux)
 /* 
    Linux shouldn't need these. If you have a problem compiling, try
    uncommenting accept and bind.
@@ -159,7 +116,7 @@ int close       args( ( int fd ) );
 int getpeername args( ( int s, struct sockaddr *name, int *namelen ) );
 int getsockname args( ( int s, struct sockaddr *name, int *namelen ) );
 int listen      args( ( int s, int backlog ) );
-#endif
+
 int gettimeofday    args( ( struct timeval *tp, struct timezone *tzp ) );
 int read        args( ( int fd, char *buf, int nbyte ) );
 int select      args( ( int width, fd_set *readfds, fd_set *writefds,
@@ -167,79 +124,6 @@ int select      args( ( int width, fd_set *readfds, fd_set *writefds,
 int socket      args( ( int domain, int type, int protocol ) );
 int write       args( ( int fd, char *buf, int nbyte ) );
 #endif
-
-#if defined(sequent)
-int accept      args( ( int s, struct sockaddr *addr, int *addrlen ) );
-int bind        args( ( int s, struct sockaddr *name, int namelen ) );
-int close       args( ( int fd ) );
-int fcntl       args( ( int fd, int cmd, int arg ) );
-#if !defined(SOCR)
-int getpeername args( ( int s, struct sockaddr *name, int *namelen ) );
-int getsockname args( ( int s, struct sockaddr *name, int *namelen ) );
-int listen      args( ( int s, int backlog ) );
-#endif
-int gettimeofday    args( ( struct timeval *tp, struct timezone *tzp ) );
-#if !defined(htons)
-u_short htons       args( ( u_short hostshort ) );
-#endif
-#if !defined(ntohl)
-u_long  ntohl       args( ( u_long hostlong ) );
-#endif
-int read        args( ( int fd, char *buf, int nbyte ) );
-int select      args( ( int width, fd_set *readfds, fd_set *writefds,
-            fd_set *exceptfds, struct timeval *timeout ) );
-int setsockopt  args( ( int s, int level, int optname, caddr_t optval,
-            int optlen ) );
-int socket      args( ( int domain, int type, int protocol ) );
-int write       args( ( int fd, char *buf, int nbyte ) );
-#endif
-
-/* This includes Solaris Sys V as well */
-#if defined(sun)
-int accept      args( ( int s, struct sockaddr *addr, int *addrlen ) );
-int bind        args( ( int s, struct sockaddr *name, int namelen ) );
-void    bzero       args( ( char *b, int length ) );
-int close       args( ( int fd ) );
-#if !defined(SOCR)
-int getpeername args( ( int s, struct sockaddr *name, int *namelen ) );
-int getsockname args( ( int s, struct sockaddr *name, int *namelen ) );
-int listen      args( ( int s, int backlog ) );
-#endif
-int gettimeofday    args( ( struct timeval *tp, struct timezone *tzp ) );
-int read        args( ( int fd, char *buf, int nbyte ) );
-int select      args( ( int width, fd_set *readfds, fd_set *writefds,
-            fd_set *exceptfds, struct timeval *timeout ) );
-#if defined(SYSV)
-int setsockopt      args( ( int s, int level, int optname,
-            const char *optval, int optlen ) );
-#else
-int setsockopt  args( ( int s, int level, int optname, void *optval,
-            int optlen ) );
-#endif
-int socket      args( ( int domain, int type, int protocol ) );
-int write       args( ( int fd, char *buf, int nbyte ) );
-#endif
-
-#if defined(ultrix)
-int accept      args( ( int s, struct sockaddr *addr, int *addrlen ) );
-int bind        args( ( int s, struct sockaddr *name, int namelen ) );
-void    bzero       args( ( char *b, int length ) );
-int close       args( ( int fd ) );
-#if !defined(SOCR)
-int getpeername args( ( int s, struct sockaddr *name, int *namelen ) );
-int getsockname args( ( int s, struct sockaddr *name, int *namelen ) );
-int listen      args( ( int s, int backlog ) );
-#endif
-int gettimeofday    args( ( struct timeval *tp, struct timezone *tzp ) );
-int read        args( ( int fd, char *buf, int nbyte ) );
-int select      args( ( int width, fd_set *readfds, fd_set *writefds,
-            fd_set *exceptfds, struct timeval *timeout ) );
-int setsockopt  args( ( int s, int level, int optname, void *optval,
-            int optlen ) );
-int socket      args( ( int domain, int type, int protocol ) );
-int write       args( ( int fd, char *buf, int nbyte ) );
-#endif
-
 
 
 /*
