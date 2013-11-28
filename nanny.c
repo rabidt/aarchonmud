@@ -1,15 +1,3 @@
-#if defined( macintosh )
-#include <types.h>
-#else
-#include <sys/types.h>
-#if defined( WIN32 )
-#include <io.h>
-#include <sys/timeb.h> /*for _ftime(), uses _timeb struct*/
-#else
-#include <sys/time.h>
-#endif
-#endif
-
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -23,18 +11,10 @@
 #include "tables.h"
 #include "warfare.h"
 
-#if defined(macintosh) || defined(MSDOS)
-extern const   char    echo_off_str	[];
-extern const   char    echo_on_str	[];
-extern const   char    go_ahead_str	[];
-#endif
-
-#if     defined(unix) || defined(WIN32)
 #include "telnet.h"
 extern const   char    echo_off_str    [];
 extern const   char    echo_on_str     [];
 extern const   char    go_ahead_str    [];
-#endif
 
 
 /* command procedures needed */
@@ -368,15 +348,8 @@ bool check_parse_name( char *name, bool newchar )
     if ( strlen(name) <  2 )
         return FALSE;
     
-#if defined(MSDOS)
-    if ( strlen(name) >  8 )
-        return FALSE;
-#endif
-    
-#if defined(macintosh) || defined(unix)
     if ( strlen(name) > 12 )
         return FALSE;
-#endif
     
    /*
     * Alphanumerics only.

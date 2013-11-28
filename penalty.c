@@ -3,11 +3,7 @@
  * For use by Aarchon MUD, a ROM 2.4b4 based world.                    *
  ***********************************************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#endif
 #include <time.h>
 #include <ctype.h>
 #include <stdio.h>
