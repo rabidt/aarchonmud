@@ -5682,11 +5682,7 @@ MEDIT( medit_name )
     char arg [MAX_INPUT_LENGTH];
     char *s;
     char buf[MAX_INPUT_LENGTH];
-#if defined( WIN32 )
-    struct _stat fst;
-#else
     struct stat fst;
-#endif
     
     EDIT_MOB(ch, pMob);
     
@@ -5703,11 +5699,7 @@ MEDIT( medit_name )
     {
         
         sprintf( buf, "%s%s", PLAYER_DIR, capitalize(arg) );
-#if defined (WIN32)
-        if ( _stat( buf, &fst ) != -1 )
-#else
             if ( stat( buf, &fst ) != -1 )
-#endif
             {
                 send_to_char("You can't use a player's name for a mob.\n\r", ch);
                 return FALSE;

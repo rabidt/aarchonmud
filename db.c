@@ -1174,11 +1174,7 @@ void sort_reserved( RESERVED_DATA *pRes )
     
     for ( res = first_reserved; res; res = res->next )
     {
-#if defined(WIN32)
-        if (_stricmp(pRes->name, res->name) > 0 )
-#else
             if ( strcasecmp(pRes->name, res->name) > 0 )
-#endif
             {
                 pRes->prev = res->prev;
                 if ( !res->prev )

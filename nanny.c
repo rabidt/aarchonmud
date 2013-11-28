@@ -545,9 +545,7 @@ bool	get_old_password ( DESCRIPTOR_DATA *d, char *argument )
 	}
 	else
 	{
-#if defined(unix)
 		write_to_buffer( d, "\n\r", 2 );
-#endif
 		if ( strcmp( crypt( argument, ch->pcdata->pwd ), ch->pcdata->pwd ))
 		{
 			write_to_buffer( d, "Wrong Password.\n\r", 0 );
@@ -625,9 +623,7 @@ bool	get_new_password ( DESCRIPTOR_DATA *d, char *argument )
 		return FALSE;
 	}
 
-#if defined(unix)
 	write_to_buffer( d, "\n\r", 2 );
-#endif
 
 	if ( strlen(argument) < 5 )
 	{
@@ -669,9 +665,7 @@ bool	confirm_new_password ( DESCRIPTOR_DATA *d, char *argument )
 		return FALSE;
 	}
 
-#if defined(unix)
 	write_to_buffer( d, "\n\r", 2 );
-#endif
 
 	if ( strcmp( crypt( argument, ch->pcdata->pwd ), ch->pcdata->pwd ) )
 	{
