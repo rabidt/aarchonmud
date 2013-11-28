@@ -869,6 +869,8 @@ void save_specials( FILE *fp, AREA_DATA *pArea )
 * for historical reasons.  It is used currently for the same reason.
 *
 * I don't think it's obsolete in ROM -- Hugin.
+*
+* Yes, very obsolete. -- Vodur, Nov 2013
 */
 void save_door_resets( FILE *fp, AREA_DATA *pArea )
 {
@@ -930,8 +932,6 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
     int iHash;
     
     fprintf( fp, "#RESETS\n" );
-    
-    save_door_resets( fp, pArea );
     
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
