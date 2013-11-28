@@ -332,6 +332,8 @@ void do_brew( CHAR_DATA *ch, char *argument )
 	/* better safe than sorry */
 	if ( potion == NULL )
 	    return;
+        // adjust spell level due to mastery
+        potion->value[0] += mastery_bonus(ch, gsn_alchemy, 8, 10);
 	obj_to_char( potion, ch );
 	act( "You brew $p.", ch, potion, NULL, TO_CHAR );
 	act( "$n brews $p.", ch, potion, NULL, TO_ROOM );
