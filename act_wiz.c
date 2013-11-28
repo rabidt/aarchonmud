@@ -3086,16 +3086,6 @@ void do_pload( CHAR_DATA *ch, char *argument )
         act("$n appears in the room.",d.character->pet,NULL,NULL,TO_ROOM);
     }
     
-#if defined(USE_MOUNT)
-    if (d.character->mount != NULL)
-    {
-        char_to_room(d.character->mount,d.character->in_room);
-        act("$n has left reality behind once more!",d.character->mount,NULL,NULL,TO_ROOM);
-        add_follower(d.character->mount,d.character);
-        do_mount(d.character, d.character->mount->name);
-    }
-
-#endif
 } /* end do_pload */
 
 
