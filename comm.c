@@ -336,8 +336,7 @@ int main( int argc, char **argv )
         if ( argc > 2 )
         {
             if (!str_cmp(argv[2], "copyover")
-                    && is_number(argv[3])
-                    && is_number(argv[4]))
+                    && is_number(argv[3]))
             {
                 fCopyOver = TRUE; 
                 control = atoi(argv[3]);
