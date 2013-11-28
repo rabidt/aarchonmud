@@ -29,12 +29,6 @@
 /* comment out to turn "magic number" debugging of memory allocation/recycling off */
 /* Bobble: creates error when trying to allocate blocks larger than 16k */
 
-#if defined(WIN32)
-#if !defined(OLD_RAND)
-#define OLD_RAND
-#endif
-#endif
-
 
 #include <stdio.h>
 #include <string.h>
@@ -44,13 +38,9 @@
 #include <math.h>
 #include <execinfo.h>
 
-#if defined(macintosh) || defined(WIN32)
-#include <sys/types.h>
-#else
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#endif
 
 #include "merc.h"
 #include "db.h"
@@ -61,9 +51,7 @@
 #include "buffer_util.h"
 #include "mob_stats.h"
 
-#if !defined(macintosh)
 extern  int _filbuf     args( (FILE *) );
-#endif
 
 #if !defined(OLD_RAND)
 #if !defined(SOCR)

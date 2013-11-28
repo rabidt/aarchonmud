@@ -29,18 +29,12 @@
    changed to buffered save by Henning Koehler (aka Bobble)
 */
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#endif
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#if !defined(unix)
 #include <malloc.h>
-#endif
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -50,9 +44,7 @@
 #include "simsave.h"
 #include "religion.h"
 
-#if !defined(macintosh)
 extern  int     _filbuf         args( (FILE *) );
-#endif
 
 int fingertime;
 /*int rename(const char *oldfname, const char *newfname);*/

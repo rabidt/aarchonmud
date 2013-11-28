@@ -25,11 +25,7 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#endif
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
@@ -41,10 +37,9 @@
 #include "magic.h"
 #include "simsave.h"
 #include "buffer_util.h"
-#if defined(linux)
+
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
-#endif
 
 
 

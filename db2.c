@@ -30,14 +30,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#if !defined(WIN32)
 #include <sys/time.h>
-#endif
-#endif
 
 #include "merc.h"
 #include "db.h"

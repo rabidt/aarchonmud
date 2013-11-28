@@ -65,18 +65,10 @@ void handle_player_save()
       /* clear temp directory */
       if (!bootup_temp_clean_done)
       {
-#if defined(unix)
 	sprintf(command, "rm -f %s*", PLAYER_TEMP_DIR);
 	system(command);
 	sprintf(command, "rm -f %s*", BOX_TEMP_DIR);
 	system(command);
-#endif
-#if defined(MSDOS) || defined(WIN32)
-	sprintf(command, "del %s*.*", PLAYER_TEMP_DIR);
-	system(command);
-        sprintf(command, "del %s*.*", BOX_TEMP_DIR);
-        system(command);
-#endif
 	bootup_temp_clean_done = TRUE;
       }
     }
@@ -118,7 +110,6 @@ void handle_player_save()
     break;
 
   case SAVE_STATE_TEMPCOPY:
-#if defined(unix)
     sprintf(command, "mv %s* %s", PLAYER_TEMP_DIR, PLAYER_DIR);
     system(command);
     if (boxtemp)
@@ -127,17 +118,6 @@ void handle_player_save()
       system(command);
       boxtemp=FALSE;
     }
-#endif
-#if defined(MSDOS) || defined(WIN32)
-    sprintf(command, "xcopy %s*.* %s", PLAYER_TEMP_DIR, PLAYER_DIR);
-    system(command);
-    sprintf(command, "del %s*.*", PLAYER_TEMP_DIR);
-    system(command);
-    sprintf(command, "xcopy %s*.* %s", BOX_TEMP_DIR, BOX_DIR);
-    system(command);
-    sprintf(command, "del %s*.*", BOX_TEMP_DIR);
-    system(command);
-#endif
 
     /* save remort etc. files as well */
     sim_save_other();

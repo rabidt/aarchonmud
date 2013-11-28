@@ -1,19 +1,7 @@
-#if defined(macintosh)
-#include <types.h>
-#include <time.h>
-#else
 #include <sys/types.h>
-#if !defined(WIN32)
 #include <sys/time.h>
-#endif
-#endif
 #include <stdio.h>
 #include "merc.h"
-
-#if defined(WIN32)
-#define popen _popen
-#define pclose _pclose
-#endif
 
 /*
  * Local functions.
