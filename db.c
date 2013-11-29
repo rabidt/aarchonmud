@@ -782,6 +782,8 @@ void boot_db()
             while ( count-- )
                 area_update(TRUE);
         }
+        log_string("Resetting herbs");
+        reset_herbs_world();
         
         log_string("Loading note boards");
         load_boards(); /* Load all boards */
