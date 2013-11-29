@@ -82,13 +82,11 @@ void load_mobiles( FILE *fp )
         if ( vnum == 0 )
             break;
 
-        fBootDb = FALSE;
         if ( get_mob_index( vnum ) != NULL )
         {
             bug( "Load_mobiles: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
 
         pMobIndex                       = alloc_mem( sizeof(*pMobIndex) );
         pMobIndex->vnum                 = vnum;
@@ -374,13 +372,11 @@ void load_mobbles( FILE *fp )
         if ( vnum == 0 )
             break;
 
-        fBootDb = FALSE;
         if ( get_mob_index( vnum ) != NULL )
         {
             bug( "Load_mobbles: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
 
         pMobIndex                       = alloc_perm( sizeof(*pMobIndex) );
         pMobIndex->vnum                 = vnum;
@@ -554,13 +550,11 @@ void load_objects( FILE *fp )
         if ( vnum == 0 )
             break;
 
-        fBootDb = FALSE;
         if ( get_obj_index( vnum ) != NULL )
         {
             bug( "Load_objects: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
 
         pObjIndex                       = alloc_perm( sizeof(*pObjIndex) );
         pObjIndex->vnum                 = vnum;
