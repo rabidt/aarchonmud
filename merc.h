@@ -2019,7 +2019,7 @@ struct  kill_data
 #define ROOM_INDOORS        (D)
 #define ROOM_NO_SCOUT       (E)
 #define ROOM_TATTOO_SHOP    (F)
-#define ROOM_NO_RANDOM      (G)
+#define ROOM_NO_TELEPORT    (G)
 #define ROOM_PRIVATE        (J)
 #define ROOM_SAFE           (K)
 #define ROOM_SOLITARY       (L)
@@ -4307,6 +4307,7 @@ int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
 void check_explore args( ( CHAR_DATA *, ROOM_INDEX_DATA * ) );
 void explore_vnum args( (CHAR_DATA *, int ) );
 bool explored_vnum args( (CHAR_DATA *, int ) );
+bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show );
 bool can_move_dir( CHAR_DATA *ch, int dir, bool show );
 int get_random_exit( CHAR_DATA *ch );
 
