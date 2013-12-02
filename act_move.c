@@ -95,7 +95,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
         return FALSE;
     }
         
-    if ( room_is_private(to_room) && !is_room_owner(ch, to_room) )
+    if ( !IS_NPC(ch) && room_is_private(to_room) && !is_room_owner(ch, to_room) )
     {
         if ( show )
             send_to_char("That room is private right now.\n\r", ch);

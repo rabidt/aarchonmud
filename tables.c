@@ -650,7 +650,7 @@ const struct flag_type room_flags[] =
     {   "indoors",      ROOM_INDOORS,       TRUE    },
     {   "no_scout",     ROOM_NO_SCOUT,      TRUE    },
     {   "tattoo_shop",  ROOM_TATTOO_SHOP,   TRUE    },
-    {   "no_teleport",  ROOM_NO_RANDOM,     TRUE    },
+    {   "no_teleport",  ROOM_NO_TELEPORT,   TRUE    },
     {   "private",      ROOM_PRIVATE,       TRUE    },
     {   "safe",         ROOM_SAFE,          TRUE    },
     {   "solitary",     ROOM_SOLITARY,      TRUE    },
