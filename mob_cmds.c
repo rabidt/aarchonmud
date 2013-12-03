@@ -431,7 +431,7 @@ void do_rpdump( CHAR_DATA *ch, char *argument )
        return;
    }
 
-   page_to_char_new( rprg->code, ch, TRUE );
+   dump_prog( ch, rprg->code );
 }
 
 /*
@@ -458,8 +458,8 @@ void do_apdump( CHAR_DATA *ch, char *argument )
        send_to_char( "You're not a builder for this aprog's area.\n\r", ch);
        return;
    }
-
-   page_to_char_new( aprg->code, ch, TRUE );
+    
+   dump_prog( ch, aprg->code);
 }
 
 /*
@@ -487,7 +487,7 @@ void do_opdump( CHAR_DATA *ch, char *argument )
        return;
    }
 
-   page_to_char_new( oprg->code, ch, TRUE );
+   dump_prog( ch, oprg->code);
 }
 
 /*
@@ -514,8 +514,11 @@ void do_mpdump( CHAR_DATA *ch, char *argument )
        send_to_char( "You're not a builder for this mprog's area.\n\r", ch);
        return;
    }
-
-   page_to_char_new( mprg->code, ch, TRUE );
+   
+   if (mprg->is_lua)
+       dump_prog( ch, mprg->code );
+   else
+       page_to_char_new( mprg->code, ch, TRUE);
 }
 
 /*
