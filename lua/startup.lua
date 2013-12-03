@@ -560,10 +560,70 @@ function list_files ( path )
 
     return rtn
 end
-
 -- Syntax highlighting
+local keywds={
+    ["and"]="y",
+    ["end"]="c",
+    ["in"] ="y",
+    ["repeat"]="y",
+    ["break"]="y",
+    ["false"]="r",
+    ["local"]="y",
+    ["return"]="y",
+    ["do"]="y",
+    ["for"]="y",
+    ["nil"]="r",
+    ["then"]="y",
+    ["else"]="y",
+    ["function"]="c",
+    ["not"]="y",
+    ["true"]="r",
+    ["elseif"]="y",
+    ["if"]="y",
+    ["or"]="y",
+    ["until"]="y",
+    ["while"]="y"
+}
+function colorize( text )
+    local rtn={}
+    local len=#text
+    local i=0
+    local word
+    local waitfor
+    local char
 
-function colorize(text)
+    while (i <= len) do
+        i=i+1
+        char=text:sub(i,i)
+
+        if waitfor then
+            table.insert(rtn, char)
+            if char==waitfor then
+                waitfor=nil
+                table.insert(rtn, "\tn")
+            end
+        elseif char=='"' or char=="'" then
+            table.insert(rtn, "\tr"..char)
+            waitfor=char
+        elseif string.find(char, "%w") then
+            local start,finish=string.find(text,"(%w+)",i)
+            word=text:sub(start,finish)
+            i=finish
+            if keywds[word] then
+                table.insert(rtn, "\t"..keywds[word]..word.."\tn")
+            else
+                table.insert(rtn,word)
+            end
+        else
+            table.insert(rtn,char)
+        end
+    end
+
+    return table.concat(rtn)
+
+end
+
+function string_colorize(text)
     local rtn={}
     local waitfor 
 
