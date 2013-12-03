@@ -562,31 +562,31 @@ function list_files ( path )
 end
 -- Syntax highlighting
 local keywds={
-    ["and"]="y",
-    ["end"]="y",
-    ["in"] ="y",
-    ["repeat"]="y",
-    ["break"]="y",
+    ["and"]="Y",
+    ["end"]="Y",
+    ["in"] ="Y",
+    ["repeat"]="Y",
+    ["break"]="Y",
     ["false"]="r",
-    ["local"]="y",
-    ["return"]="y",
-    ["do"]="y",
-    ["for"]="y",
+    ["local"]="Y",
+    ["return"]="Y",
+    ["do"]="Y",
+    ["for"]="Y",
     ["nil"]="r",
-    ["then"]="y",
-    ["else"]="y",
-    ["function"]="y",
-    ["not"]="y",
+    ["then"]="Y",
+    ["else"]="Y",
+    ["function"]="Y",
+    ["not"]="Y",
     ["true"]="r",
-    ["elseif"]="y",
-    ["if"]="y",
-    ["or"]="y",
-    ["until"]="y",
-    ["while"]="y"
+    ["elseif"]="Y",
+    ["if"]="Y",
+    ["or"]="Y",
+    ["until"]="Y",
+    ["while"]="Y"
 }
 
 for k,v in pairs(main_lib_names) do
-    keywds[v]="c"
+    keywds[v]="C"
 end
 
 function colorize( text )
@@ -635,12 +635,12 @@ function colorize( text )
             waitfor=']'
         -- Multiline comments
         elseif char=='-' and text:sub(i+1,i+3) == "-[[" then
-            table.insert(rtn, "\tB--[[")
+            table.insert(rtn, "\tc--[[")
             i=i+3
             waitfor='--]]'
         -- Single line comments
         elseif char=='-' and text:sub(i+1,i+1) == '-' then
-            table.insert(rtn, "\tB--")
+            table.insert(rtn, "\tc--")
             i=i+1
             waitfor='\n'
         -- Operators
@@ -648,12 +648,12 @@ function colorize( text )
             or char=='(' or char==')'
             or char=='='
             or char=='<' or char=='>'
-            or char=='{' or char==']'
+            or char=='{' or char=='}'
             or char=='/' or char=='*'
             or char=='+' or char=='-'
             or char==',' or char=='.'
             then
-            table.insert(rtn, "\tW"..char.."\tn")
+            table.insert(rtn, "\tG"..char.."\tn")
         -- Words
         elseif string.find(char, "%a") then
             local start,finish=string.find(text,"([%w%.]+)",i)
