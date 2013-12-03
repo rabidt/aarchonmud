@@ -107,6 +107,17 @@ function SaveTable( name, tbl, areaFname )
   f:close()
 end
 
+function linenumber( text )
+    local cnt=1
+    rtn={}
+    for line in string.gmatch( text, "(.-\n\r?)") do
+        rtn[cnt]=string.format("%3d. %s", cnt, line)
+        cnt=cnt+1
+    end
+
+    return table.concat(rtn)
+end
+
 function GetScript(subdir, name)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
@@ -445,21 +456,28 @@ end
 
 local function scriptdumpusage( ch )
     sendtochar(ch, [[
-scriptdump <userdir> <scriptname>
+scriptdump <userdir> <scriptname> [true|false]
+
+Third argument (true/false) prints line numbers if true. Defaults to true
+if not provided.
                    
-Example: scriptdump vodur testscript
+Example: scriptdump vodur testscript false 
 ]])
 end
 
 
 function do_scriptdump( ch, argument )
     args=arguments(argument, true)
-    if not(#args == 2 ) then
+    if #args < 2 or #args > 3  then
         scriptdumpusage(ch)
         return
     end
 
-    pagetochar( ch, GetScript( args[1], args[2] ), true )
+    if not(args[3]=="false") then
+        pagetochar( ch, linenumber(GetScript( args[1], args[2] )), true )
+    else
+        pagetochar( ch, GetScript( args[1], args[2] ), true )
+    end
 
 end
 
