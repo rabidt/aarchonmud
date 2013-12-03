@@ -827,3 +827,36 @@ void do_charloadtest( CHAR_DATA *ch, char *argument )
 
     return;
 }
+
+static int L_dump_prog( lua_State *LS)
+{
+    // 1 is ch
+    // 2 is prog 
+    lua_getglobal( LS, "colorize");
+    lua_insert( LS, -2 );
+    lua_call( LS, 1, 1 );
+
+    // 1 is ch
+    // 2 is colorized text
+
+    page_to_char_new( 
+            luaL_checkstring(LS, 2),
+            check_CH(LS, 1),
+            TRUE);
+
+    return 0;
+}
+
+void dump_prog( CHAR_DATA *ch, const char *prog)
+{
+    lua_pushcfunction( g_mud_LS, L_dump_prog);
+    make_CH(g_mud_LS, ch);
+    lua_pushstring( g_mud_LS, prog);
+
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with dump_prog:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
