@@ -486,7 +486,7 @@ function do_scriptdump( ch, argument )
     end
 
     if not(args[3]=="false") then
-        pagetochar( ch, colorize(linenumber(GetScript( args[1], args[2] ))), true )
+        pagetochar( ch, linenumber(colorize(GetScript( args[1], args[2] ))), true )
     else
         pagetochar( ch, GetScript( args[1], args[2] ), true )
     end
@@ -584,6 +584,11 @@ local keywds={
     ["until"]="y",
     ["while"]="y"
 }
+
+for k,v in pairs(main_lib_names) do
+    keywds[v]="c"
+end
+
 function colorize( text )
     local rtn={}
     local len=#text
@@ -597,16 +602,60 @@ function colorize( text )
         char=text:sub(i,i)
 
         if waitfor then
-            table.insert(rtn, char)
-            if char==waitfor then
+            if waitfor=='\n' and waitfor==char then
                 waitfor=nil
-                table.insert(rtn, "\tn")
+                table.insert(rtn,"\tn"..char)
+            elseif waitfor==']' 
+                and waitfor==char 
+                and waitfor==text:sub(i+1,i+1) 
+                then
+                table.insert(rtn,"]]\tn")
+                waitfor=nil
+                i=i+1
+            elseif waitfor=='--]]'
+                and waitfor==text:sub(i,i+3)
+                then
+                table.insert(rtn,"--]]\tn")
+                waitfor=nil
+                i=i+3
+            elseif char==waitfor then
+                waitfor=nil
+                table.insert(rtn, char.."\tn")
+            else
+                table.insert(rtn, char)
             end
+        -- Literal strings
         elseif char=='"' or char=="'" then
             table.insert(rtn, "\tr"..char)
             waitfor=char
-        elseif string.find(char, "%w") then
-            local start,finish=string.find(text,"(%w+)",i)
+        -- Multiline strings
+        elseif char=='[' and text:sub(i+1,i+1) == '[' then
+            table.insert(rtn, "\tr[[")
+            i=i+1
+            waitfor=']'
+        -- Multiline comments
+        elseif char=='-' and text:sub(i+1,i+3) == "-[[" then
+            table.insert(rtn, "\tB--[[")
+            i=i+3
+            waitfor='--]]'
+        -- Single line comments
+        elseif char=='-' and text:sub(i+1,i+1) == '-' then
+            table.insert(rtn, "\tB--")
+            i=i+1
+            waitfor='\n'
+        -- Operators
+        elseif char=='[' or char==']'
+            or char=='(' or char==')'
+            or char=='='
+            or char=='<' or char=='>'
+            or char=='{' or char==']'
+            or char=='/' or char=='*'
+            or char=='+' or char=='-'
+            then
+            table.insert(rtn, "\tW"..char.."\tn")
+        -- Words
+        elseif string.find(char, "%a") then
+            local start,finish=string.find(text,"([%w%.]+)",i)
             word=text:sub(start,finish)
             i=finish
             if keywds[word] then
@@ -614,7 +663,14 @@ function colorize( text )
             else
                 table.insert(rtn,word)
             end
+        -- Numbers
+        elseif string.find(char, "%d") then
+            local start,finish=string.find(text,"([%d%.]+)",i)
+            word=text:sub(start,finish)
+            i=finish
+            table.insert(rtn, "\tm"..word.."\tn")
         else
+        -- Whatever else
             table.insert(rtn,char)
         end
     end
@@ -622,77 +678,3 @@ function colorize( text )
     return table.concat(rtn)
 
 end
-
-function string_colorize(text)
-    local rtn={}
-    local waitfor 
-
-    for char in string.gmatch(text, ".") do
-        if (waitfor) then
-            table.insert(rtn, char)
-            if char==waitfor then
-                waitfor=nil
-                table.insert(rtn, "\tn")
-            end
-        elseif char=='"' or char=="'" then
-            table.insert(rtn, "\tr")
-            waitfor=char
-            table.insert(rtn, char)
-        else 
-            table.insert(rtn, char)
-        end
-
-    end
-
-    return table.concat(rtn)
-end
-
-function colorize_fake( text )
-    local keywds={
-        "and",
-        "end",
-        "in",
-        "repeat",
-        "break",
-        "false",
-        "local",
-        "return",
-        "do",
-        "for",
-        "nil",
-        "then",
-        "else",
-        "function",
-        "not",
-        "true",
-        "elseif",
-        "if",
-        "or",
-        "until",
-        "while"
-    }
-    
-    text="\tn"..text
-    
-
-    -- Handle keywords
-    for k,v in pairs(keywds) do
-        text=string.gsub(text, "(%s"..v.."%s)", "\ty%1\tn")
-    end
-
-    -- Handle single line comments
-    text=string.gsub(text, "(%-%-.-\n\r?)", "\tB%1\tn")
-
-    -- Handle string literals
-    text=string.gsub(text, "(\".-\")", "\tr%1\tn")
-
-    -- Handle main_lib funcs
-    for k,v in pairs(main_lib_names) do
-        text=string.gsub(text, "([^%w])("..string.gsub(v,"%.", "%%.")..")([^%w])", "%1\tc%2\tn%3")
-    end
-        
-    return text
-end
-    
-
-
