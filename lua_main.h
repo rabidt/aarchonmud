@@ -24,6 +24,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size);
 const char *check_string( lua_State *LS, int index, size_t size);
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn);
 void stackDump (lua_State *LS);
+void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines);
 
 
 extern lua_State *g_mud_LS;

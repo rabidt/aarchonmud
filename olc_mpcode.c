@@ -315,7 +315,7 @@ MPEDIT(mpedit_show)
            pMcode->is_lua ? "True" : "False",
            pMcode->security);
     if (pMcode->is_lua)
-        dump_prog(ch, pMcode->code);
+        dump_prog(ch, pMcode->code, TRUE);
     else
         page_to_char_new( pMcode->code, ch, TRUE);
 
