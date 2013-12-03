@@ -563,7 +563,7 @@ end
 -- Syntax highlighting
 local keywds={
     ["and"]="y",
-    ["end"]="c",
+    ["end"]="y",
     ["in"] ="y",
     ["repeat"]="y",
     ["break"]="y",
@@ -575,7 +575,7 @@ local keywds={
     ["nil"]="r",
     ["then"]="y",
     ["else"]="y",
-    ["function"]="c",
+    ["function"]="y",
     ["not"]="y",
     ["true"]="r",
     ["elseif"]="y",
@@ -651,6 +651,7 @@ function colorize( text )
             or char=='{' or char==']'
             or char=='/' or char=='*'
             or char=='+' or char=='-'
+            or char==',' or char=='.'
             then
             table.insert(rtn, "\tW"..char.."\tn")
         -- Words
