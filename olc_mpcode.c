@@ -17,6 +17,7 @@
 #include "recycle.h"
 #include "mob_cmds.h"
 #include "lua_scripting.h"
+#include "lua_main.h"
 
 #define MPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
 
@@ -401,7 +402,6 @@ MPEDIT(mpedit_lua)
 
 /* Procedure to run when MPROG is changed and needs to be updated
    on mobs using it */
-
 MPEDIT(mpedit_code)
 {
     MPROG_CODE *pMcode;

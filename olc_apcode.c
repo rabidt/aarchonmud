@@ -285,17 +285,15 @@ APEDIT (apedit_create)
 APEDIT(apedit_show)
 {
     APROG_CODE *pAcode;
-    char buf[MAX_STRING_LENGTH];
     EDIT_APCODE(ch,pAcode);
 
-    sprintf(buf,
+    ptc(ch,
            "Vnum:       [%d]\n\r"
            "Security:   %d\n\r"
-           "Code:\n\r%s\n\r",
+           "Code:\n\r",
            pAcode->vnum,
-           pAcode->security,
-           pAcode->code  );
-    page_to_char_new(buf, ch, TRUE);
+           pAcode->security);
+    dump_prog( ch, pAcode->code, TRUE);
 
     return FALSE;
 }

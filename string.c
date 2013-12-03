@@ -25,6 +25,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
+#include "lua_main.h"
 
 char *string_linedel( char *, int );
 char *string_lineadd( char *, char *, int );
@@ -124,8 +125,26 @@ void string_append( CHAR_DATA *ch, char **pString )
     {
         *pString = str_dup( "" );
     }
+    /* wackyhacky for syntax highlighting for lua scripts */
+    MPROG_CODE *mpc;
+    switch( ch->desc->editor)
+    {
+        case ED_MPCODE:
+             EDIT_MPCODE(ch, mpc);
+             if (mpc->is_lua)
+                dump_prog( ch, *pString, TRUE);
+             else
+                send_to_char_new( numlineas(*pString), ch, TRUE );/* RAW */
+             break;
+        case ED_APCODE:
+        case ED_OPCODE:
+        case ED_RPCODE:
+            dump_prog( ch, *pString, TRUE);
+            break;
+        default:
+            send_to_char_new( numlineas(*pString), ch, TRUE );/* RAW */
+    } 
     
-    send_to_char_new( numlineas(*pString), ch, TRUE );
     if ( *(*pString + strlen( *pString ) - 1) != '\r' )
         send_to_char( "\n\r", ch );
 
@@ -246,9 +265,27 @@ void string_add( CHAR_DATA *ch, char *argument )
       
       if ( !str_cmp( arg1, ".s" ) )
       {
-         send_to_char( "String so far:\n\r", ch );
-         send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
-         return;
+        send_to_char( "String so far:\n\r", ch );
+        /* wackyhacky for syntax highlighting for lua scripts */
+        MPROG_CODE *mpc;
+        switch( ch->desc->editor)
+        {
+            case ED_MPCODE:
+                 EDIT_MPCODE(ch, mpc);
+                 if (mpc->is_lua)
+                    dump_prog( ch, *ch->desc->pString, TRUE);
+                 else
+                    send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
+                 break;
+            case ED_APCODE:
+            case ED_OPCODE:
+            case ED_RPCODE:
+                dump_prog( ch, *ch->desc->pString, TRUE);
+                break;
+            default: 
+                send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
+        }
+        return;
       }
       
       if ( !str_cmp( arg1, ".r" ) )
