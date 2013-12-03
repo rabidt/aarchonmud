@@ -648,7 +648,7 @@ function colorize( text )
             or char=='(' or char==')'
             or char=='='
             or char=='<' or char=='>'
-            or char=='{' or char==']'
+            or char=='{' or char=='}'
             or char=='/' or char=='*'
             or char=='+' or char=='-'
             or char==',' or char=='.'
