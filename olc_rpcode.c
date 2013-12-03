@@ -279,18 +279,17 @@ RPEDIT (rpedit_create)
 RPEDIT(rpedit_show)
 {
     RPROG_CODE *pRcode;
-    char buf[MAX_STRING_LENGTH];
     EDIT_RPCODE(ch,pRcode);
 
-    sprintf(buf,
+    ptc( ch,
            "Vnum:       [%d]\n\r"
            "Security:   %d\n\r"
-           "Code:\n\r%s\n\r",
+           "Code:\n\r",
            pRcode->vnum,
-           pRcode->security,
-           pRcode->code  );
-    page_to_char_new(buf, ch, TRUE);
+           pRcode->security);
 
+    dump_prog( ch, pRcode->code, TRUE);
+    
     return FALSE;
 }
 

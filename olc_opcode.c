@@ -284,17 +284,15 @@ OPEDIT (opedit_create)
 OPEDIT(opedit_show)
 {
     OPROG_CODE *pOcode;
-    char buf[MAX_STRING_LENGTH];
     EDIT_OPCODE(ch,pOcode);
 
-    sprintf(buf,
+    ptc(ch,
            "Vnum:       [%d]\n\r"
            "Security:   %d\n\r"
-           "Code:\n\r%s\n\r",
+           "Code:\n\r",
            pOcode->vnum,
-           pOcode->security,
-           pOcode->code  );
-    page_to_char_new(buf, ch, TRUE);
+           pOcode->security);
+    dump_prog( ch, pOcode->code, TRUE);
 
     return FALSE;
 }
