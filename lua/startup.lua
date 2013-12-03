@@ -453,7 +453,7 @@ end
 
 
 function do_scriptdump( ch, argument )
-    args=arguments(argument)
+    args=arguments(argument, true)
     if not(#args == 2 ) then
         scriptdumpusage(ch)
         return

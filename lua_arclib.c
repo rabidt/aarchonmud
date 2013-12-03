@@ -959,13 +959,22 @@ static int glob_arguments ( lua_State *LS)
 {   
     const char *argument=check_string( LS, 1, MIL );
     char buf[MIL];
+    bool keepcase=FALSE;
+
+    if (!lua_isnone(LS,2))
+    {
+        keepcase=lua_toboolean(LS, 2);
+    }
     
     lua_newtable( LS );
     int index=1;
 
     while ( argument[0] != '\0' )
     {
-        argument = one_argument( argument, buf );
+        if (keepcase)
+            argument=one_argument_keep_case( argument, buf);
+        else
+            argument = one_argument( argument, buf );
         lua_pushstring( LS, buf );
         lua_rawseti( LS, -2, index++ );
     }
