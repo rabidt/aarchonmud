@@ -268,6 +268,18 @@ function ProtectLib(lib)
     end
     return MakeLibProxy(lib)
 end
+
+-- Before we protect it, we want to make a lit of names for syntax highligting
+main_lib_names={}
+for k,v in pairs(main_lib) do
+    if type(v) == "function" then
+        table.insert(main_lib_names, k)
+    elseif type(v) == "table" then
+        for l,w in pairs(v) do
+            table.insert(main_lib_names, k.."."..l)
+        end
+    end
+end
 main_lib=ProtectLib(main_lib)
 
 
@@ -474,7 +486,7 @@ function do_scriptdump( ch, argument )
     end
 
     if not(args[3]=="false") then
-        pagetochar( ch, linenumber(GetScript( args[1], args[2] )), true )
+        pagetochar( ch, colorize(linenumber(GetScript( args[1], args[2] ))), true )
     else
         pagetochar( ch, GetScript( args[1], args[2] ), true )
     end
@@ -548,3 +560,79 @@ function list_files ( path )
 
     return rtn
 end
+
+-- Syntax highlighting
+
+function colorize(text)
+    local rtn={}
+    local waitfor 
+
+    for char in string.gmatch(text, ".") do
+        if (waitfor) then
+            table.insert(rtn, char)
+            if char==waitfor then
+                waitfor=nil
+                table.insert(rtn, "\tn")
+            end
+        elseif char=='"' or char=="'" then
+            table.insert(rtn, "\tr")
+            waitfor=char
+            table.insert(rtn, char)
+        else 
+            table.insert(rtn, char)
+        end
+
+    end
+
+    return table.concat(rtn)
+end
+
+function colorize_fake( text )
+    local keywds={
+        "and",
+        "end",
+        "in",
+        "repeat",
+        "break",
+        "false",
+        "local",
+        "return",
+        "do",
+        "for",
+        "nil",
+        "then",
+        "else",
+        "function",
+        "not",
+        "true",
+        "elseif",
+        "if",
+        "or",
+        "until",
+        "while"
+    }
+    
+    text="\tn"..text
+    
+
+    -- Handle keywords
+    for k,v in pairs(keywds) do
+        text=string.gsub(text, "(%s"..v.."%s)", "\ty%1\tn")
+    end
+
+    -- Handle single line comments
+    text=string.gsub(text, "(%-%-.-\n\r?)", "\tB%1\tn")
+
+    -- Handle string literals
+    text=string.gsub(text, "(\".-\")", "\tr%1\tn")
+
+    -- Handle main_lib funcs
+    for k,v in pairs(main_lib_names) do
+        text=string.gsub(text, "([^%w])("..string.gsub(v,"%.", "%%.")..")([^%w])", "%1\tc%2\tn%3")
+    end
+        
+    return text
+end
+    
+
+
