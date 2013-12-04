@@ -597,3 +597,4 @@ DECLARE_DO_FUN( do_luai);
 DECLARE_DO_FUN( do_luahelp);
 DECLARE_DO_FUN( do_scriptdump);
 DECLARE_DO_FUN( do_tables);
+DECLARE_DO_FUN( do_luaconfig);

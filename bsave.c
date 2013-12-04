@@ -843,6 +843,13 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
                 luaval->val);
     }
     
+    const char *luaconfig=save_luaconfig( ch );
+    if (luaconfig)
+    {
+        bprintf( buf, "LuaCfg %s~\n", luaconfig );
+    }
+    
+    
     bprintf( buf, "End\n\n" );
     return;
 }
@@ -1964,6 +1971,15 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "LogO",    lastlogoff,     bread_number( buf ) );
         KEYS( "LongDescr",   ch->long_descr,     bread_string( buf ) );
         KEYS( "LnD",     ch->long_descr,     bread_string( buf ) );
+
+        if ( !strcmp( word, "LuaCfg") )
+        {
+            const char *temp=bread_string( buf );
+            load_luaconfig( ch, temp );
+            free_string( temp );
+            fMatch=TRUE;
+        }
+
         if ( !strcmp( word, "LuaVal") )
         {
             LUA_EXTRA_VAL *luaval;
