@@ -500,6 +500,36 @@ HELPTOPIC glob_sendtochar_help =
 
 };
 
+static int glob_dammessage (lua_State *LS)
+{
+    const char *vs;
+    const char *vp;
+    char punct;
+    char punctstr[2];
+    get_damage_messages( 
+            luaL_checkinteger( LS, 1 ),
+            0, &vs, &vp, &punct );
+
+    punctstr[0]=punct;
+    punctstr[1]='\0';
+
+    lua_pushstring( LS, vs );
+    lua_pushstring( LS, vp );
+    lua_pushstring( LS, punctstr);
+
+    return 3;
+}
+HELPTOPIC glob_dammessage_help =
+{
+    .summary="Return the appropriate message for given damage amount",
+    .info="Arguments: damage[number]\n\r\n\r"
+          "Return: singular[string],plural[string],punctuation[string]\n\r\n\r"
+          "Example:\n\r"
+          "local sng,pl,pnct=dammessage(111)\n\r\n\r"
+          "Note:\n\r\n\r"
+};
+
+
 static int glob_clearloopcount (lua_State *LS)
 {
     g_LoopCheckCounter=0;
@@ -1019,6 +1049,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getmoblist,    9),
     GFUN(getplayerlist, 9),
     GFUN(getarealist,   9),
+    GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
 
     GODF(confuse),
