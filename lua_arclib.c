@@ -1264,6 +1264,12 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
     const char *name=check_string(LS, 1, MIL );
     int type=lua_type(LS, 2 );
     const char *val;
+    bool persist=FALSE;
+    if (!lua_isnone(LS,3))
+    {
+        persist=lua_toboolean(LS, 3);
+        lua_remove(LS,3);
+    }
 
     switch(type)
     {
@@ -1314,15 +1320,11 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
                 free_luaval(luaval);
                 return 0;
             }
-            const char *val=check_string(LS, 2, MIL );
             
             free_string( luaval->val );
             luaval->val=str_dup( val );
             luaval->type = type;
-            luaval->persist=
-                lua_isnone( LS, 3 ) ? 
-                FALSE : 
-                lua_toboolean( LS, 3 );
+            luaval->persist= persist;
             return 0;
         }
 
@@ -1337,7 +1339,7 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
             type, 
             str_dup( name ), 
             str_dup( val ),
-            lua_isnone( LS, 3) ? FALSE : lua_toboolean( LS, 3 ) );
+            persist );
     luaval->next = *luavals;
     *luavals     = luaval;
     return 0;
