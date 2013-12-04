@@ -2769,8 +2769,6 @@ struct  pc_data
     int smc_mastered;
     int smc_grandmastered;
     int smc_retrained;
-
-    struct syntax_config *syn_cfg;
 };
 
 /* Data for special quests */
