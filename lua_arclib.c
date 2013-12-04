@@ -2285,6 +2285,25 @@ static int CH_mdo (lua_State *LS)
 }
 HELPTOPIC CH_mdo_help = {};
 
+static int CH_tell (lua_State *LS)
+{
+    tell_char( check_CH( LS, 1),
+            check_CH( LS, 2),
+            check_fstring( LS, 3, MIL) );
+    return 0;
+}
+HELPTOPIC CH_tell_help =
+{
+    .summary="Send tell to another CH.",
+    .info="Arguments: victim[CH], message[string] (accepts format arguments)\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:tell(ch, \"Hey there big boy!\")\n\r"
+          "mob:tell(ch, \"Hey there %s\", ch.name)\n\r\n\r"
+          "Note:\n\r"
+          "May fail silently due to deaf or quiet modes, or forget.\n\r"
+};
+
 static int CH_mobhere (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1); 
@@ -3517,6 +3536,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(say, 0),
     CHMETH(emote, 0),
     CHMETH(mdo, 0),
+    CHMETH(tell, 0),
     CHMETH(asound, 0),
     CHMETH(gecho, 0),
     CHMETH(zecho, 0),
