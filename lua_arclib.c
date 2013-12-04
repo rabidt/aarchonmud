@@ -4255,7 +4255,7 @@ static int AREA_get_rooms( lua_State *LS)
     {
         if ((room=get_room_index(vnum))==NULL)
             continue;
-        if (make_AREA(LS, room))
+        if (make_ROOM(LS, room))
             lua_rawseti(LS, -2, index++);
     }
     return 1;

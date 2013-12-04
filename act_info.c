@@ -1004,15 +1004,6 @@ void do_autolist(CHAR_DATA *ch, char *argument)
     else
         send_to_char("OFF\n\r",ch);
     
-    if (IS_IMMORTAL(ch))
-    {
-        send_to_char("mudFTP         ",ch);
-        if (IS_SET(ch->act,PLR_MUDFTP))
-            send_to_char("ON\n\r",ch);
-        else
-            send_to_char("OFF\n\r",ch);
-    }
-    
     if (!IS_SET(ch->act,PLR_CANLOOT))
         send_to_char("Items you own are safe from thieves.  (noloot)\n\r",ch);
     else 
@@ -1281,29 +1272,6 @@ void do_show(CHAR_DATA *ch, char *argument)
         send_to_char( "Show worth, attributes, percentages or affects in your score?\n\r", ch );
         send_to_char( "Syntax:  show <worth|att|per|aff>\n\r", ch );
         return;
-    }
-}
-
-void do_mudftp(CHAR_DATA *ch, char *argument)
-{
-    if (IS_NPC(ch))
-        return;
-    
-    if (ch->pcdata->security < 1)
-    {
-        send_to_char("Insufficient OLC security.\n\r",ch);
-        return;
-    }
-    
-    if (IS_SET(ch->act,PLR_MUDFTP))
-    {
-        send_to_char("You will now use the normal editor to edit strings.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_MUDFTP);
-    }
-    else
-    {
-        send_to_char("You will now use the mudFTP protocol to edit strings.\n\r",ch);
-        SET_BIT(ch->act,PLR_MUDFTP);
     }
 }
 

@@ -3578,6 +3578,9 @@ bool can_see_obj( CHAR_DATA *ch, OBJ_DATA *obj )
     if ( ch == NULL)
         return FALSE;
     
+    if ( obj->must_extract )
+        return FALSE;
+    
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_HOLYLIGHT) )
         return TRUE;
     
