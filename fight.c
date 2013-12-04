@@ -5557,6 +5557,67 @@ void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gai
     return;
 }        
 
+/* return gagtype if any */
+int get_damage_messages( int dam, int dt, char **vs, char **vp, char *punct )
+{
+    int gag_type=0;
+    if (dam<100)
+        if (dam < 39)
+        {
+            if ( dam < 1 )
+            { 
+                *vs = "miss"; *vp = "misses";
+                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick )
+                    gag_type = GAG_MISS;
+            }
+            else if ( dam <   2 ) { *vs = "{mbother{ ";  *vp = "{mbothers{ "; }
+            else if ( dam <   5 ) { *vs = "{mscratch{ "; *vp = "{mscratches{ ";   }
+            else if ( dam <   8 ) { *vs = "{mbruise{ ";  *vp = "{mbruises{ "; }
+            else if ( dam <  11 ) { *vs = "{bglance{ ";  *vp = "{bglances{ "; }
+            else if ( dam <  15 ) { *vs = "{bhurt{ ";    *vp = "{bhurts{ ";   }
+            else if ( dam <  20 ) { *vs = "{Bgraze{ ";   *vp = "{Bgrazes{ ";  }
+            else if ( dam <  27 ) { *vs = "{Bhit{ ";     *vp = "{Bhits{ ";    }
+            else if ( dam <  31 ) { *vs = "{Binjure{ ";  *vp = "{Binjures{ "; }
+            else if ( dam <  35 ) { *vs = "{Cwound{ ";   *vp = "{Cwounds{ ";  }
+            else { *vs = "{CPUMMEL{ ";  *vp = "{CPUMMELS{ "; }
+        } else {
+            if ( dam <  44 ) { *vs = "{CMAUL{ ";        *vp = "{CMAULS{ ";   }
+            else if ( dam <  48 ) { *vs = "{GDECIMATE{ ";    *vp = "{GDECIMATES{ ";   }
+            else if ( dam <  52 ) { *vs = "{GDEVASTATE{ ";   *vp = "{GDEVASTATES{ ";}
+            else if ( dam <  56 ) { *vs = "{GMAIM{ ";        *vp = "{GMAIMS{ ";   }
+            else if ( dam <  60 ) { *vs = "{yMANGLE{ ";  *vp = "{yMANGLES{ "; }
+            else if ( dam <  64 ) { *vs = "{yDEMOLISH{ ";    *vp = "{yDEMOLISHES{ ";}
+            else if ( dam <  70 ) { *vs = "*** {yMUTILATE{  ***"; *vp = "*** {yMUTILATES{  ***";}
+            else if ( dam <  80 ) { *vs = "*** {YPULVERIZE{  ***";   *vp = "*** {YPULVERIZES{  ***";}
+            else if ( dam <  90 ) { *vs = "=== {YDISMEMBER{  ==="; *vp = "=== {YDISMEMBERS{  ===";}
+            else { *vs = "=== {YDISEMBOWEL{  ==="; *vp = "=== {YDISEMBOWELS{  ===";}
+        }
+        else
+            if (dam < 220)
+            {
+                if ( dam <  110) { *vs = ">>> {rMASSACRE{  <<<"; *vp = ">>> {rMASSACRES{  <<<";}
+                else if ( dam < 120)  { *vs = ">>> {rOBLITERATE{  <<<"; *vp = ">>> {rOBLITERATES{  <<<";}
+                else if ( dam < 135)  { *vs = "{r<<< ANNIHILATE >>>{ "; *vp = "{r<<< ANNIHILATES >>>{ ";}
+                else if ( dam < 150)  { *vs = "{r<<< DESTROY >>>{ "; *vp = "{r<<< DESTROYS >>>{ ";}
+                else if ( dam < 165)  { *vs = "{R!!! ERADICATE !!!{ "; *vp = "{R!!! ERADICATES !!!{ ";}
+                else if ( dam < 190)  { *vs = "{R!!! LIQUIDATE !!!{ "; *vp = "{R!!! LIQUIDATES !!!{ ";}
+                else { *vs = "{RXXX VAPORIZE XXX{ "; *vp = "{RXXX VAPORIZES XXX{ ";}
+            } else {
+                if ( dam < 250)  { *vs = "{RXXX DISINTEGRATE XXX{ "; *vp = "{RXXX DISINTEGRATES XXX{ ";}
+                else if ( dam < 300)  { *vs = "do {+SICKENING{  damage to"; *vp = "does {+SICKENING{  damage to";}
+                else if ( dam < 400)  { *vs = "do {+INSANE{  damage to"; *vp = "does {+INSANE{  damage to";}
+                else if ( dam < 600)  { *vs = "do {+UNSPEAKABLE{  things to"; *vp = "does {+UNSPEAKABLE{  things to";}
+                else if ( dam < 1000)  { *vs = "do {+{%BLASPHEMOUS{  things to"; *vp = "does {+{%BLASPHEMOUS{  things to";}
+                else if ( dam < 1500)  { *vs = "do {+{%UNBELIEVABLE{  things to"; *vp = "does {+{%UNBELIEVABLE{  things to";}
+                else    { *vs = "do {+{%INCONCEIVABLE{  things to"; *vp = "does {+{%INCONCEIVABLE{  things to";}
+            }
+
+    *punct   = (dam < 31) ? '.' : '!';
+
+    return gag_type;
+
+}
+
 void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 {
     char buf[256], buf1[256], buf2[256], buf3[256];
@@ -5585,58 +5646,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 	victmeter = ((IS_AFFECTED(victim, AFF_BATTLE_METER) && (dam>0)) ? buf : "");
 	#endif
 
-	if (dam<100)
-	if (dam < 39)
-	{
-	    if ( dam < 1 )
-	    { 
-		vs = "miss"; vp = "misses";
-		if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick )
-		    gag_type = GAG_MISS;
-	    }
-        else if ( dam <   2 ) { vs = "{mbother{ ";  vp = "{mbothers{ "; }
-        else if ( dam <   5 ) { vs = "{mscratch{ "; vp = "{mscratches{ ";   }
-        else if ( dam <   8 ) { vs = "{mbruise{ ";  vp = "{mbruises{ "; }
-        else if ( dam <  11 ) { vs = "{bglance{ ";  vp = "{bglances{ "; }
-        else if ( dam <  15 ) { vs = "{bhurt{ ";    vp = "{bhurts{ ";   }
-        else if ( dam <  20 ) { vs = "{Bgraze{ ";   vp = "{Bgrazes{ ";  }
-        else if ( dam <  27 ) { vs = "{Bhit{ ";     vp = "{Bhits{ ";    }
-        else if ( dam <  31 ) { vs = "{Binjure{ ";  vp = "{Binjures{ "; }
-        else if ( dam <  35 ) { vs = "{Cwound{ ";   vp = "{Cwounds{ ";  }
-        else { vs = "{CPUMMEL{ ";  vp = "{CPUMMELS{ "; }
-		} else {
-        if ( dam <  44 ) { vs = "{CMAUL{ ";        vp = "{CMAULS{ ";   }
-        else if ( dam <  48 ) { vs = "{GDECIMATE{ ";    vp = "{GDECIMATES{ ";   }
-        else if ( dam <  52 ) { vs = "{GDEVASTATE{ ";   vp = "{GDEVASTATES{ ";}
-        else if ( dam <  56 ) { vs = "{GMAIM{ ";        vp = "{GMAIMS{ ";   }
-        else if ( dam <  60 ) { vs = "{yMANGLE{ ";  vp = "{yMANGLES{ "; }
-        else if ( dam <  64 ) { vs = "{yDEMOLISH{ ";    vp = "{yDEMOLISHES{ ";}
-        else if ( dam <  70 ) { vs = "*** {yMUTILATE{  ***"; vp = "*** {yMUTILATES{  ***";}
-        else if ( dam <  80 ) { vs = "*** {YPULVERIZE{  ***";   vp = "*** {YPULVERIZES{  ***";}
-        else if ( dam <  90 ) { vs = "=== {YDISMEMBER{  ==="; vp = "=== {YDISMEMBERS{  ===";}
-        else { vs = "=== {YDISEMBOWEL{  ==="; vp = "=== {YDISEMBOWELS{  ===";}
-		}
-    else
-		if (dam < 220)
-		{
-        if ( dam <  110) { vs = ">>> {rMASSACRE{  <<<"; vp = ">>> {rMASSACRES{  <<<";}
-        else if ( dam < 120)  { vs = ">>> {rOBLITERATE{  <<<"; vp = ">>> {rOBLITERATES{  <<<";}
-        else if ( dam < 135)  { vs = "{r<<< ANNIHILATE >>>{ "; vp = "{r<<< ANNIHILATES >>>{ ";}
-        else if ( dam < 150)  { vs = "{r<<< DESTROY >>>{ "; vp = "{r<<< DESTROYS >>>{ ";}
-        else if ( dam < 165)  { vs = "{R!!! ERADICATE !!!{ "; vp = "{R!!! ERADICATES !!!{ ";}
-        else if ( dam < 190)  { vs = "{R!!! LIQUIDATE !!!{ "; vp = "{R!!! LIQUIDATES !!!{ ";}
-        else { vs = "{RXXX VAPORIZE XXX{ "; vp = "{RXXX VAPORIZES XXX{ ";}
-		} else {
-        if ( dam < 250)  { vs = "{RXXX DISINTEGRATE XXX{ "; vp = "{RXXX DISINTEGRATES XXX{ ";}
-        else if ( dam < 300)  { vs = "do {+SICKENING{  damage to"; vp = "does {+SICKENING{  damage to";}
-        else if ( dam < 400)  { vs = "do {+INSANE{  damage to"; vp = "does {+INSANE{  damage to";}
-        else if ( dam < 600)  { vs = "do {+UNSPEAKABLE{  things to"; vp = "does {+UNSPEAKABLE{  things to";}
-        else if ( dam < 1000)  { vs = "do {+{%BLASPHEMOUS{  things to"; vp = "does {+{%BLASPHEMOUS{  things to";}
-        else if ( dam < 1500)  { vs = "do {+{%UNBELIEVABLE{  things to"; vp = "does {+{%UNBELIEVABLE{  things to";}
-        else    { vs = "do {+{%INCONCEIVABLE{  things to"; vp = "does {+{%INCONCEIVABLE{  things to";}
-		}
-    
-    punct   = (dam < 31) ? '.' : '!';
+    get_damage_messages( dam, dt, &vs, &vp, &punct);
     
 #ifdef DEBUG_DAMTYPE
     if (dt == 1000 + DEBUG_DAMTYPE) {
