@@ -575,7 +575,7 @@ local keywds={
     ["nil"]="r",
     ["then"]="Y",
     ["else"]="Y",
-    ["function"]="Y",
+    ["function"]="C",
     ["not"]="Y",
     ["true"]="r",
     ["elseif"]="Y",
@@ -595,19 +595,21 @@ function colorize( text )
     local i=0
     local word
     local waitfor
-    local char
+    local funtrack={}
+    local nestlevel=0 -- how many functions are we inside
 
-    while (i <= len) do
+    while (i < len) do
         i=i+1
-        char=text:sub(i,i)
+        local char=text:sub(i,i)
 
         if waitfor then
-            if waitfor=='\n' and waitfor==char then
+            if waitfor=='\n' 
+                and waitfor==char 
+                then
                 waitfor=nil
                 table.insert(rtn,"\tn"..char)
-            elseif waitfor==']' 
-                and waitfor==char 
-                and waitfor==text:sub(i+1,i+1) 
+            elseif waitfor==']]' 
+                and waitfor==text:sub(i,i+1) 
                 then
                 table.insert(rtn,"]]\tn")
                 waitfor=nil
@@ -619,9 +621,11 @@ function colorize( text )
                 waitfor=nil
                 i=i+3
             elseif char==waitfor then
+                -- ends up handling ' and "
                 waitfor=nil
                 table.insert(rtn, char.."\tn")
             else
+                -- waitfor didn't match, just push the char
                 table.insert(rtn, char)
             end
         -- Literal strings
@@ -632,7 +636,7 @@ function colorize( text )
         elseif char=='[' and text:sub(i+1,i+1) == '[' then
             table.insert(rtn, "\tr[[")
             i=i+1
-            waitfor=']'
+            waitfor=']]'
         -- Multiline comments
         elseif char=='-' and text:sub(i+1,i+3) == "-[[" then
             table.insert(rtn, "\tc--[[")
@@ -660,7 +664,27 @@ function colorize( text )
             word=text:sub(start,finish)
             i=finish
             if keywds[word] then
-                table.insert(rtn, "\t"..keywds[word]..word.."\tn")
+                if word=="function" then
+                    table.insert(funtrack,1,nestlevel)
+                    nestlevel=nestlevel+1
+                    table.insert(rtn, "\t"..keywds[word]..word.."\tn")
+                -- these two words account for do, while, if, and for
+                elseif word=="do"
+                    or word=="then"
+                    then
+                    nestlevel=nestlevel+1
+                    table.insert(rtn, "\t"..keywds[word]..word.."\tn")
+                elseif word=="end" then
+                    nestlevel=nestlevel-1
+                    if funtrack[1] and funtrack[1]==nestlevel then
+                        table.remove(funtrack,1)
+                        table.insert(rtn, "\t"..keywds["function"]..word.."\tn")
+                    else
+                        table.insert(rtn, "\t"..keywds[word]..word.."\tn")
+                    end
+                else
+                    table.insert(rtn, "\t"..keywds[word]..word.."\tn")
+                end
             else
                 table.insert(rtn,word)
             end
