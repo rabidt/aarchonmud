@@ -533,7 +533,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "setskill",   do_setskill,POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "shutdow",    do_shutdow, POS_DEAD,   ML,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "shutdown",   do_shutdown,    POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "clear",      do_clear,   POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "copyove",    do_copyove,   POS_DEAD,   L2, LOG_ALWAYS, 1, FALSE, FALSE },
     { "copyover",   do_copyover,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "wizlock",    do_wizlock, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -655,7 +654,6 @@ const   struct  cmd_type    cmd_table   [] =
     * Erwin's REDIT
     */
     { "rlook",      do_rlook,    POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
-    { "rfind",      do_rfind,    POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rwhere",     do_rwhere,   POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rrandom",    do_rrandom,  POS_DEAD,  L9,  LOG_ALWAYS, 1, TRUE, FALSE },
     /*
