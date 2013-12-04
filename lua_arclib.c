@@ -1649,6 +1649,77 @@ static int CH_getval ( lua_State *LS)
 }
 HELPTOPIC CH_getval_help={};
 
+static int CH_removeaffect( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    int type = skill_lookup( check_string( LS, 2, MIL ) );
+    bool show=FALSE;
+    if (!lua_isnone(LS, 3) )
+    {
+        show=lua_toboolean(LS, 3);
+    }
+
+    if (!is_affected(ud_ch, type) )
+        luaL_error(LS, "%s not affected by '%s'",
+                ud_ch->name, check_string( LS, 2, MIL ) );
+
+    AFFECT_DATA *af;
+    for ( af=ud_ch->affected; af ; af=af->next )
+    {
+        if ( af->type == type )
+        {
+            affect_strip(ud_ch, type);
+            return 0;
+        }
+    }
+
+    // Should never get here
+    luaL_error(LS, "Trouble...");
+}
+HELPTOPIC CH_removeaffect_help = {};
+
+static int CH_addaffect (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+
+    AFFECT_DATA af;
+
+    af.type=skill_lookup( check_string( LS, 2, MIL ) );
+
+    if ( af.type == -1 )
+        luaL_error( LS, "Invalid affect type '%s'", check_string( LS, 2, MIL) );
+    if ( is_affected(ud_ch, af.type) )
+        luaL_error( LS, "%s(%d) already affected by '%s'",
+                ud_ch->name,
+                IS_NPC( ud_ch ) ? ud_ch->pIndexData->vnum : 0,
+                check_string( LS, 2, MIL) );
+
+    af.level = luaL_checkinteger( LS, 3 );
+    af.duration=luaL_checkinteger( LS, 4 );
+    
+    af.location=flag_lookup( check_string( LS, 5, MIL ), apply_flags );
+    
+    if ( af.location == NO_FLAG )
+        luaL_error( LS, "Invalid apply flag '%s'", check_string( LS, 5, MIL) );
+    
+    af.modifier=luaL_checkinteger( LS, 6 );
+    af.bitvector=0;
+    
+    if (!lua_isnone( LS, 7 ) )
+    {
+        /* optional bitvector flag */
+        af.bitvector=flag_lookup( check_string( LS, 7, MIL), affect_flags );
+        
+        if ( af.bitvector == NO_FLAG )
+            luaL_error( LS, "Invalid affect flag '%s'", check_string( LS, 7, MIL) );
+    }
+
+    affect_to_char( ud_ch, &af );
+
+    return 0;
+}
+HELPTOPIC CH_addaffect_help = {};
+
 static int CH_randchar (lua_State *LS)
 {
     CHAR_DATA *ch=get_random_char(check_CH(LS,1) );
@@ -3642,6 +3713,8 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(olc, 0),
     CHMETH(delay, 0),
     CHMETH(cancel, 0), 
+    CHMETH(addaffect, 0),
+    CHMETH(removeaffect, 0),
     CHMETH(setval, 0),
     CHMETH(getval, 0),
     ENDPTABLE
