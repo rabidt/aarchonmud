@@ -255,7 +255,6 @@ DECLARE_DO_FUN( do_mortlag  );
 DECLARE_DO_FUN( do_motd     );
 DECLARE_DO_FUN( do_mset     );
 DECLARE_DO_FUN( do_mstat    );
-DECLARE_DO_FUN( do_mudftp   );
 DECLARE_DO_FUN( do_mug      );
 DECLARE_DO_FUN( do_murde    );
 DECLARE_DO_FUN( do_murder   );

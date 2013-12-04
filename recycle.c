@@ -170,9 +170,6 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 
     lua_unregister_desc(d);
 	free_string( d->host );
-	free_string( d->username );
-	free_string( d->ftp.data );
-	free_string( d->ftp.filename );
 	free_mem( d->outbuf, d->outsize );
     ProtocolDestroy( d->pProtocol );
 	INVALIDATE(d);

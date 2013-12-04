@@ -1887,8 +1887,9 @@ void do_mpapplyb( CHAR_DATA *ch, char *argument )
 
     if ( NOT_AUTHED( victim ) )
     {
-        sprintf( log_buf, "%s [%s@%s] New player entering the game.\n\r", victim->name, victim->desc->username,
-            victim->desc->host );
+        sprintf( log_buf, "[%s@%s] New player entering the game.\n\r", 
+                victim->name,
+                victim->desc->host );
         
         wiznet(log_buf, victim, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);        
 
