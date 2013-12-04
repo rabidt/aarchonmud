@@ -5646,7 +5646,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 	victmeter = ((IS_AFFECTED(victim, AFF_BATTLE_METER) && (dam>0)) ? buf : "");
 	#endif
 
-    get_damage_messages( dam, dt, &vs, &vp, &punct);
+    gag_type = get_damage_messages( dam, dt, &vs, &vp, &punct);
     
 #ifdef DEBUG_DAMTYPE
     if (dt == 1000 + DEBUG_DAMTYPE) {
