@@ -684,31 +684,6 @@ void do_wizhelp( CHAR_DATA *ch, char *argument )
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
-#if 0
-    char buf[MAX_STRING_LENGTH];
-    int cmd;
-    int col;
-    int i;
-
-    col = 0;
-    for ( cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
-    {
-        if ( cmd_table[cmd].level >= LEVEL_HERO
-            &&   is_granted(ch,cmd_table[cmd].do_fun)
-            &&   cmd_table[cmd].show)
-        {
-            sprintf( buf, "(%d) %-12s", cmd_table[cmd].level, cmd_table[cmd].name);
-            send_to_char( buf, ch );
-            if ( ++col % 4 == 0 )
-                send_to_char( "\n\r", ch );
-        }
-    }
-
-    if ( col % 6 != 0 )
-        send_to_char( "\n\r", ch );
-
-    return;
-#endif
 }
 
 static CHAR_DATA *clt_list;
@@ -828,6 +803,61 @@ void do_charloadtest( CHAR_DATA *ch, char *argument )
     return;
 }
 
+const char *save_luaconfig( CHAR_DATA *ch )
+{
+    if (!IS_IMMORTAL(ch))
+        return NULL;
+
+    lua_getglobal(g_mud_LS, "save_luaconfig" );
+    make_CH(g_mud_LS, ch);
+    if (CallLuaWithTraceBack( g_mud_LS, 1, 1 ) )
+    {
+        ptc (ch, "Error with save_luaconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+        return NULL;
+    }
+
+    if (lua_isnil(g_mud_LS, -1) || lua_isnone(g_mud_LS, -1) )
+        return NULL;
+
+    if (!lua_isstring(g_mud_LS, -1))
+    {
+        bugf("String wasn't returned in save_luaconfig.");
+        return NULL;
+    }
+
+    return luaL_checkstring( g_mud_LS, -1 );
+}
+
+void load_luaconfig( CHAR_DATA *ch, const char *text )
+{
+    lua_getglobal(g_mud_LS, "load_luaconfig" );
+    make_CH(g_mud_LS, ch);
+    lua_pushstring( g_mud_LS, text );
+
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0 ) )
+    {
+        ptc (ch, "Error with load_luaconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+        return NULL;
+    }
+}
+
+void do_luaconfig( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_luaconfig");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_luaconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
 static int L_dump_prog( lua_State *LS)
 {
     // 1 is ch
@@ -836,9 +866,11 @@ static int L_dump_prog( lua_State *LS)
     bool numberlines=lua_toboolean(LS, 3);
     lua_pop(LS,1);
 
+
     lua_getglobal( LS, "colorize");
     lua_insert( LS, -2 );
-    lua_call( LS, 1, 1 );
+    lua_pushvalue(LS,1); //push a copy of ch
+    lua_call( LS, 2, 1 );
 
     // 1 is ch
     // 2 is colorized text
