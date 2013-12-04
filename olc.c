@@ -1475,16 +1475,7 @@ void do_resets( CHAR_DATA *ch, char *argument )
    */
    if ( arg1[0] == '\0' )
    {
-      if ( ch->in_room->reset_first )
-      {
-         send_to_char(
-            "Resets: M = mobile, R = room, O = object, "
-            "P = pet, S = shopkeeper\n\r", ch );
-         display_resets( ch, ch->in_room );
-      }
-      else
-         send_to_char( "No resets in this room.\n\r", ch );
-      return;
+       do_rlook(ch);
    }
    
    clone_warning( ch, ch->in_room->area );
