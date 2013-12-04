@@ -783,9 +783,6 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (ch->pcdata->questpoints != 0)
         bprintf( buf, "QuestPnts %d\n",  ch->pcdata->questpoints );
 
-    if (ch->pcdata->house > 0)
-        bprintf( buf, "House %ld\n",     ch->pcdata->house );
-
     if (ch->pcdata->nextquest != 0)
         bprintf( buf, "QuestNext %d\n",  ch->pcdata->nextquest   );
     else if (ch->pcdata->countdown != 0)
@@ -1158,7 +1155,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
     ch->pcdata->confirm_pkill     = FALSE;
     ch->pcdata->pkpoints     = 0;
     ch->pcdata->pkill_count  = 0;
-    ch->pcdata->house = 0;
     ch->pcdata->field        = 0;
     ch->pcdata->remorts =0;
     ch->pcdata->smith = NULL;
@@ -1887,7 +1883,6 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Hitroll", ch->hitroll,        bread_number( buf ) );
         KEY( "Hit",     ch->hitroll,        bread_number( buf ) );
         KEY( "HLev",    ch->pcdata->highest_level, bread_number( buf ) );
-        KEY( "House",   ch->pcdata->house,   bread_number( buf ) );
         	
         if ( !str_cmp( word, "HpManaMove" ) || !str_cmp(word,"HMV"))
         {

@@ -5073,14 +5073,6 @@ void do_worth( CHAR_DATA *ch, char *argument )
     strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
-    if( ch->pcdata->house > 0 )
-    {
-        sprintf( buf, "{D|{x             Your house is worth %dk gold.", ch->pcdata->house/1000 );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        send_to_char( buf, ch );
-    }
-
     /* *** EXPERIENCE *** */
     sprintf( buf, "{D|{x Experience: %d real exp", ch->exp );
     if( ch->pcdata->field > 0 )
