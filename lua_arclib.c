@@ -2649,14 +2649,47 @@ HELPTOPIC CH_resist_help = {};
 static int CH_skilled (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring( LS, 2, MIL);
+    const char *argument = check_string( LS, 2, MIL);
+    bool prac=FALSE;
+    if (!lua_isnone(LS, 3))
+    {
+        prac=lua_toboolean(LS, 3);
+    }
 
-    lua_pushboolean( LS,  ud_ch != NULL && skill_lookup(argument) != -1
-            && get_skill(ud_ch, skill_lookup(argument)) > 0 );
+    int sn=skill_lookup(argument);
+    if (sn==-1)
+        luaL_error(LS, "No such skill '%s'", argument);
 
+    int skill=get_skill(ud_ch, sn);
+    
+    if (skill<1)
+    {
+        lua_pushboolean( LS, FALSE);
+        return 1;
+    }
+
+    if (prac)
+    {
+        lua_pushinteger( LS, get_skill_prac( ud_ch, sn) );
+        return 1;
+    }
+
+    lua_pushinteger(LS, skill);
     return 1;
 }
-HELPTOPIC CH_skilled_help = {};
+HELPTOPIC CH_skilled_help = {
+    .summary="Return skill level of a given skill.",
+    .info="Arguments: skillname[string] <, practice[boolean]>\n\r\n\r"
+          "Return: boolean/number\n\r\n\r"
+          "Example:\n\r"
+          "local pcnt=mob:skilled(\"kick\")\n\r\n\r"
+          "Note:\n\r"
+          "If skill percentage is <1, returns false, otherwise returns \n\r"
+          "skill percentage.\n\r"
+          "Optional second argument determines whether 'practiced' skill\n\r"
+          "percentage is returned. If not supplied, 'practice' defaults\n\r"
+          "to false and the 'effective' skill percentage is returned.\n\r"
+};
 
 static int CH_ccarries (lua_State *LS)
 {
