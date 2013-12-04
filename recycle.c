@@ -521,7 +521,6 @@ PC_DATA *new_pcdata(void)
     pcdata->gtell_history	    = pers_history_new();
     pcdata->tell_history	    = pers_history_new();
     pcdata->clan_history	    = pers_history_new();
-    pcdata->syn_cfg             = NULL;
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
     VALIDATE(pcdata);
 
