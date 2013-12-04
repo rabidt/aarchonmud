@@ -146,7 +146,6 @@ typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
 typedef struct  board_data       BOARD_DATA;
-typedef struct  colour_data      COLOUR_DATA;
 typedef struct  penalty_data     PENALTY_DATA;
 typedef struct  crime_data       CRIME_DATA;
 typedef struct  reserved_data    RESERVED_DATA;
@@ -2595,9 +2594,7 @@ struct  char_data
 struct  pc_data
 {
     PC_DATA *       next;
-    /*BUFFER *        buffer; old buffer for replay */
 	bool	new_tells; /* whether there are unread tells */
-    COLOUR_DATA *   code;
     SORT_TABLE *    bounty_sort;
     bool        valid;
     char *      pwd;
@@ -2722,7 +2719,6 @@ struct  pc_data
 	int proclaim[3];        /* {9 */
 	int proclaim_text[3];   /* {0 */
 
-#if 1
 	/* quest stuff */
 	CHAR_DATA *         questgiver; /* Vassago */
 	int                 questpoints;  /* Vassago */
@@ -2760,7 +2756,6 @@ struct  pc_data
 	int                 religion_won;
 	int                 religion_lost;
 	int                 religion_kills;
-#endif
     QUEST_DATA *qdata;
     long house;            /* Settable by imms, shows only in do_worth, lets people feel their house is part of their assets */
     tattoo_list tattoos;
@@ -2774,6 +2769,8 @@ struct  pc_data
     int smc_mastered;
     int smc_grandmastered;
     int smc_retrained;
+
+    struct syntax_config *syn_cfg;
 };
 
 /* Data for special quests */

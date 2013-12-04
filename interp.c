@@ -619,6 +619,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "tables",     do_tables,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luai",       do_luai,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luahelp",    do_luahelp, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "luaconfig",  do_luaconfig, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
 
     /*
     * OLC
