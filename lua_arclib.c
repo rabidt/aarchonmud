@@ -1432,6 +1432,35 @@ int L_cancel (lua_State *LS)
 /* end common section */
 
 /* CH section */
+static int CH_removeaffect( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+    int type = skill_lookup( check_string( LS, 2, MIL ) );
+    bool show=FALSE;
+    if (!lua_isnone(LS, 3) )
+    {
+        show=lua_toboolean(LS, 3);
+    }
+
+    if (!is_affected(ud_ch, type) )
+        luaL_error(LS, "%s not affected by '%s'",
+                ud_ch->name, check_string( LS, 2, MIL ) );
+
+    AFFECT_DATA *af;
+    for ( af=ud_ch->affected; af ; af=af->next )
+    {
+        if ( af->type == type )
+        {
+            affect_strip(ud_ch, type);
+            return 0;
+        }
+    }
+
+    // Should never get here
+    luaL_error(LS, "Trouble...");
+}
+HELPTOPIC CH_removeaffect_help = {};
+
 static int CH_addaffect (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS, 1);
@@ -3415,6 +3444,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(delay, 0),
     CHMETH(cancel, 0), 
     CHMETH(addaffect, 0),
+    CHMETH(removeaffect, 0),
     ENDPTABLE
 }; 
 
