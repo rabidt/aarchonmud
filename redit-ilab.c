@@ -506,24 +506,28 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'M': /* MOB */
 	{
 		MOB_INDEX_DATA *mob = get_mob_index (pReset->arg1);
-        sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%ds  [%%s]",
-                35 + ( mob ? strlen(mob->short_descr) - strlen_color(mob->short_descr) : 0));
-        sprintf( buf, buf2, 
-		//sprintf (buf, "%2d> [%5d] %-2s   %-40s (%s)",
-					number, pReset->arg1, 
-					(mob && mob->pShop) ? "Y " : "",
-					mob ? mob->short_descr : "(non-existant)",
-					reboot);
-		break;
+                sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%ds  [%%s]",
+                    35 + ( mob ? strlen(mob->short_descr) - strlen_color(mob->short_descr) : 0));
+                sprintf( buf, buf2,
+                    number, 
+                    pReset->arg1, 
+                    (mob && mob->pShop) ? "Y " : "",
+                    mob ? mob->short_descr : "(non-existant)",
+                    reboot);
+                break;
 	} /* case MOB */
 	
 	case 'O': /* Obj on the floor */
 	{
 		OBJ_INDEX_DATA* obj = get_obj_index (pReset->arg1);
-		sprintf (buf, "%2d> [%5d] Lv%3d  %-30s (%s)",
-         number, pReset->arg1, obj ? obj->level : last_level,
-					obj ? obj->short_descr : "(non-existant)",
-					reboot);
+                sprintf (buf2, "%%2d> [%%5d]    <in room>           Lv%%3d %%-%ds (%%s)",
+                    28 + ( obj ? strlen(obj->short_descr) - strlen_color(obj->short_descr) : 0));
+                sprintf( buf, buf2,
+                    number, 
+                    pReset->arg1, 
+                    obj ? obj->level : last_level,
+                    obj ? obj->short_descr : "(non-existant)",
+                    reboot);
 		break;
 		
 	} /* case OBJ */
@@ -535,30 +539,29 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 		
 		strcpy (spaces, "          "); /* fill spaces.. with spaces! */
 		spaces[nesting*2] = '\0'; /* spaces now has nesting*2 spaces */
-		
-		sprintf (buf, "%2d>  %s<inside [%5d] %s> [%5d] L%d %s (%s)",
-				    number, spaces, /* num and indentation */
-				    pReset->arg3, /* vnum of container */
-				    container ? container->short_descr : "(non-existant)",
-                pReset->arg1, obj ? obj->level : last_level, /* obj vnum, last level */
-				    obj ? obj->short_descr : "(non-existant)",
-				    reboot);
-		break;
+                sprintf (buf2, "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%ds (%%s)",
+                    28 + ( obj ? strlen(obj->short_descr) - strlen_color(obj->short_descr) : 0));
+                sprintf (buf, buf2,
+                    number,                                      /* reset number */
+                    pReset->arg1,                                /* obj vnum */
+                    pReset->arg3,                                /* container vnum */
+                    obj ? obj->level : last_level,               /* obj level */
+                    obj ? obj->short_descr : "(non-existant)",   /* obj short desc */
+                    reboot);                                     /* reboot or always */
+                break;
 	} /* case PUT */
 	
 	case 'G': /* Give to mob */
 	{
-		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-		
-/*		sprintf (buf, "%2d>  <inventory>         [%5d] L%d %s (%s)",
-         number, pReset->arg1, obj ? obj->level : last_level,
-					  obj ? obj->short_descr : "(non-existant)",
-					  reboot); */
-                                     
-		sprintf (buf, "%2d>  ^[%5d]  <inventory>  Lv%3d   %-30s (%s)",
-         number, pReset->arg1, obj ? obj->level : last_level,
-					  obj ? obj->short_descr : "(non-existant)",
-					  reboot); 
+		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);                                     
+                sprintf (buf2, "%%2d>  ^[%%5d]  <inventory>         Lv%%3d %%-%ds (%%s)",
+                    28 + ( obj ? strlen(obj->short_descr) - strlen_color(obj->short_descr) : 0));
+                sprintf (buf, buf2,
+                    number, 
+                    pReset->arg1, 
+                    obj ? obj->level : last_level,
+                    obj ? obj->short_descr : "(non-existant)",
+                    reboot); 
 
 		break;
 	} /* case GIVE */
@@ -566,17 +569,18 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'E': /* Equip mob */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-		
-		sprintf (buf, "%2d>  %s[%5d] L%d %s (%s)",
-					   number,
-
-					   /* check for correct location */
-					   ((pReset->arg3 < 0) || (pReset->arg3 >= MAX_WEAR))
-					   ? " <invalid location> "
-					   : where_name[pReset->arg3],
-                  pReset->arg1, obj ? obj->level : last_level,/* obj vnum */
-					   obj ? obj->short_descr : "(non-existant)",
-					   reboot); /* reboot status */
+//		sprintf (buf, "%2d>  ^[%5d]  %sLv%3d %-28s (%s)",
+		sprintf (buf2, "%%2d>  ^[%%5d]  %%sLv%%3d %%-%ds (%%s)",
+                    28 + ( obj ? strlen(obj->short_descr) - strlen_color(obj->short_descr) : 0));
+                sprintf (buf, buf2,
+                    number,
+                    pReset->arg1, 
+                    ((pReset->arg3 < 0) || (pReset->arg3 >= MAX_WEAR))
+                        ? " <invalid location> "
+                        : where_name[pReset->arg3], /* check for correct location */
+                    obj ? obj->level : last_level,  /* obj vnum */
+                    obj ? obj->short_descr : "(non-existant)",
+                    reboot); /* reboot status */
 		break;
 					   
 	} /* case EQUIP */
@@ -637,12 +641,12 @@ void do_rlook (CHAR_DATA *ch, char *argument)
 	RESET_DATA *p, *q;
 	bool last_mob_here = FALSE;
 	
-	sprintf (buf, "  Room #:  %5d   Room Name: (%s)\n\r", 
+	sprintf (buf, "  Room #: [%5d]  Room Name: [%s]\n\r", 
 	              ch->in_room->vnum, ch->in_room->name);
 	send_to_char (buf,ch);
-        sprintf (buf, "     Vnum   Shop   Short Desc                       Max:Area - Room\n\r");
+        sprintf (buf, "     Vnum   Shop?  Short Desc                       Max:Area - Room\n\r");
         send_to_char (buf,ch);
-        send_to_char ("-------------------------------------------------------------------\n\r",ch);
+        send_to_char ("------------------------------------------------------------------------------\n\r",ch);
 	              
 	for (p = ch->in_room->reset_first; p ; p = p->next)
 	{
