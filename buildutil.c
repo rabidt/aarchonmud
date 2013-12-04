@@ -2129,6 +2129,11 @@ MSETFUN( pkill )
         send_to_char( "You are no longer a pkiller.\n\r", victim );
         return TRUE;
     }
+    else
+    {
+        ptc( ch, "%s not a player killer.\n\r", victim->name);
+        return FALSE;
+    }
 }
 
 MSETFUN( killer )
@@ -2146,6 +2151,11 @@ MSETFUN( killer )
         send_to_char( "You are no longer a KILLER.\n\r", victim );
         return TRUE;
     }
+    else
+    {
+        ptc( ch, "%s not a killer.\n\r", victim->name);
+        return FALSE;
+    }
 }
 
 MSETFUN( thief )
@@ -2162,6 +2172,11 @@ MSETFUN( thief )
         send_to_char( "Thief flag removed.\n\r", ch );
         send_to_char( "You are no longer a THIEF.\n\r", victim );
         return TRUE;
+    }
+    else
+    {
+        ptc( ch, "%s not a player thief.\n\r", victim->name);
+        return FALSE;
     }
 }
 
@@ -2184,6 +2199,11 @@ MSETFUN( hardcore )
         send_to_char( "Hardcore turned off.\n\r", ch );
         send_to_char( "You are no longer a hardcore pkiller.\n\r", victim );
         return TRUE;
+    }
+    else
+    {
+        ptc( ch, "%s not a hardcore player killer.\n\r", victim->name);
+        return FALSE;
     }
 }
 
@@ -2343,6 +2363,7 @@ void do_mset( CHAR_DATA *ch, char *argument )
             ptc( ch, " %s", mset_table[i].field );
             rc++;
         }        
+        stc("\n\r",ch);
         return;
     }
     
@@ -2391,11 +2412,11 @@ void do_mset( CHAR_DATA *ch, char *argument )
 
             if (mset_table[i].func( ch, victim, arg3, value ) )
             {
-                ptc(ch, "%s set.\n\r", arg3 );
+                ptc(ch, "%s set.\n\r", arg2 );
             }
             else
             {
-                ptc(ch, "%s not set.\n\r", arg3 );
+                ptc(ch, "%s not set.\n\r", arg2 );
             }
                 
             return;
