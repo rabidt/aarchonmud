@@ -90,7 +90,6 @@ DECLARE_DO_FUN( do_balance  );
 DECLARE_DO_FUN( do_blackjack );
 DECLARE_DO_FUN( do_circle   );
 DECLARE_DO_FUN( do_classes  );
-DECLARE_DO_FUN( do_clear    ); /* formerly "pardon" */
 DECLARE_DO_FUN( do_bamfin   );
 DECLARE_DO_FUN( do_bamfout  );
 DECLARE_DO_FUN( do_ban      );
@@ -570,7 +569,6 @@ DECLARE_DO_FUN( do_rput         );
 DECLARE_DO_FUN( do_rrandom      );
 DECLARE_DO_FUN( do_rgive        );
 DECLARE_DO_FUN( do_rwear        );
-DECLARE_DO_FUN( do_rfind        );
 DECLARE_DO_FUN( do_rwhere       );
 DECLARE_DO_FUN( do_rview        );
 DECLARE_DO_FUN( do_rdoor        );
