@@ -2351,6 +2351,17 @@ HELPTOPIC CH_mdo_help = {};
 
 static int CH_tell (lua_State *LS)
 {
+    if (lua_isstring(LS, 2))
+    {
+        char buf[MIL];
+        sprintf( buf,
+                "'%s' %s",
+                check_string(LS, 2, 25),
+                check_fstring(LS, 3, MIL-30) );
+        do_tell( check_CH(LS, 1), buf );
+        return 0;
+    }
+
     tell_char( check_CH( LS, 1),
             check_CH( LS, 2),
             check_fstring( LS, 3, MIL) );
@@ -2360,10 +2371,12 @@ HELPTOPIC CH_tell_help =
 {
     .summary="Send tell to another CH.",
     .info="Arguments: victim[CH], message[string] (accepts format arguments)\n\r\n\r"
+          "           name[string], message[string] (accepts format arguments)\n\r"
           "Return: none\n\r\n\r"
           "Example:\n\r"
           "mob:tell(ch, \"Hey there big boy!\")\n\r"
-          "mob:tell(ch, \"Hey there %s\", ch.name)\n\r\n\r"
+          "mob:tell(ch, \"Hey there %s\", ch.name)\n\r"
+          "mob:tell(ch.name, \"u r so %s\", \"beautiful\")\n\r\n\r"
           "Note:\n\r"
           "May fail silently due to deaf or quiet modes, or forget.\n\r"
 };
