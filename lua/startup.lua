@@ -757,7 +757,7 @@ function colorize( text, ch )
                 nestlevel=nestlevel+1
                 table.insert(rtn, "\t"..(config["function"] or 'C')..word.."\tn")
             -- these two words account for do, while, if, and for
-            elseif word=="do" or word=="then" then
+            elseif word=="do" or word=="if" then
                 nestlevel=nestlevel+1
                 table.insert(rtn, "\t"..(config["keywords"] or 'Y')..word.."\tn")
             elseif word=="end" then
