@@ -716,6 +716,36 @@ HELPTOPIC glob_getmobworld_help={
           "If no instances exist, an empty table is returned.\n\r"
 };
 
+static int glob_getpc (lua_State *LS)
+{
+    const char *name=check_string (LS, 1, MIL );
+    
+    CHAR_DATA *ch;
+    for (ch=char_list; ch; ch=ch->next)
+    {
+        if (IS_NPC(ch))
+            continue;
+
+        if (!str_cmp(name, ch->name))
+        {
+            make_CH(LS, ch);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+HELPTOPIC glob_getpc_help =
+{
+    .summary="Return CH of the PC with given name or nil.",
+    .info="Arguments: name[string]\n\r\n\r"
+          "Return: CH\n\r\n\r"
+          "Example:\n\r"
+          "local dumbo=getpc(\"vodur\")\n\r\n\r"
+          "Note:\n\r"
+          "Return nil if PC is not connected.\n\r"
+};
+
 static int glob_pagetochar (lua_State *LS)
 {
     if (!lua_isnone(LS, 3) )
@@ -1042,6 +1072,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getobjworld,   0),
     GFUN(getmobproto,   0),
     GFUN(getmobworld,   0),
+    GFUN(getpc,         0),
     GFUN(sendtochar,    0),
     GFUN(pagetochar,    0),
     GFUN(log,           0),
