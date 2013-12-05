@@ -750,9 +750,8 @@ function colorize( text, ch )
             table.insert(rtn, "\t"..(config["operator"] or 'G')..char.."\tn")
         -- Words
         elseif string.find(char, "%a") then
-            local start,finish=string.find(text,"([%w%.]+)",i)
-            word=text:sub(start,finish)
-            i=finish
+            local start,finish,word=string.find(text,"(%a[%w_%.]*)[^%w_%.]",i)
+            i=finish-1
             if word=="function" then
                 table.insert(funtrack,1,nestlevel)
                 nestlevel=nestlevel+1
