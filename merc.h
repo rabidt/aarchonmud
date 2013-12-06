@@ -28,9 +28,6 @@
 #include "protocol.h"
 #include <lua.h>
 
-/* change this value to 0 for running on darkhorse */
-#define SOCR 1
-
 #ifdef TESTER
 #define FSTAT
 #define LAG_FREE

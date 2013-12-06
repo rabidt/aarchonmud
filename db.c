@@ -54,9 +54,6 @@
 extern  int _filbuf     args( (FILE *) );
 
 #if !defined(OLD_RAND)
-#if !defined(SOCR)
-long random();
-#endif
 void srandom(unsigned int);
 int getpid();
 time_t time(time_t *tloc);

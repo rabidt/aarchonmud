@@ -50,7 +50,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <signal.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -80,11 +80,8 @@ extern  int malloc_debug    args( ( int  ) );
 extern  int malloc_verify   args( ( void ) );
 #endif
 
-#if defined(SOCR)
-#include "signal.h"
-#else
-#include <signal.h>
-#endif
+
+
 
 /*
  * Socket and TCP/IP stuff.
@@ -112,19 +109,6 @@ int     dup2            args( ( int oldfd, int newfd ) );
 int     execl           args( ( const char *path, const char *arg, ... ) );
 
 int close       args( ( int fd ) );
-#if !defined(SOCR)
-int getpeername args( ( int s, struct sockaddr *name, int *namelen ) );
-int getsockname args( ( int s, struct sockaddr *name, int *namelen ) );
-int listen      args( ( int s, int backlog ) );
-
-int gettimeofday    args( ( struct timeval *tp, struct timezone *tzp ) );
-int read        args( ( int fd, char *buf, int nbyte ) );
-int select      args( ( int width, fd_set *readfds, fd_set *writefds,
-            fd_set *exceptfds, struct timeval *timeout ) );
-int socket      args( ( int domain, int type, int protocol ) );
-int write       args( ( int fd, char *buf, int nbyte ) );
-#endif
-
 
 /*
  * Global variables.
