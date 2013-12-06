@@ -2757,7 +2757,6 @@ struct  pc_data
 	int                 religion_lost;
 	int                 religion_kills;
     QUEST_DATA *qdata;
-    long house;            /* Settable by imms, shows only in do_worth, lets people feel their house is part of their assets */
     tattoo_list tattoos;
     FOLLOWER_DATA *ch_rel;
     time_t prayed_at;
@@ -4252,6 +4251,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define MAX_WHO_FILE   "maxwho.txt"
 #define LUA_STARTUP    LUA_DIR "startup.lua"
 #define ptc printf_to_char
+#define stc send_to_char
 
 /* string constants */
 //#define PROMPT_DEFAULT "{g<{r%h{g/%Hhp {b%m{g/%Mmn {c%v{g/%Vmv {y%X{getl{W%z{x>{x "
