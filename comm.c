@@ -1026,6 +1026,11 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     {
         int nRead;
 
+        /* There is no more space in the input buffer for now */
+        if ( iStart >= maxRead )
+                break;
+
+
         nRead = read( d->descriptor, read_buf + iStart, maxRead - iStart );
 
         if ( nRead > 0 )
