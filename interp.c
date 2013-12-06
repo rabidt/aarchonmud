@@ -581,9 +581,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "vnum",       do_vnum,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "zecho",      do_zecho,   POS_DEAD,   L6,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "pflag",      do_pflag,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "namecolor",  do_namecolor,POS_DEAD,  L4,	 LOG_NORMAL, 1, FALSE, FALSE },
-    { "ptitle",	    do_ptitle,  POS_DEAD,   L4,  LOG_NORMAL, 1, FALSE, FALSE },
-
     
     { "clone",      do_clone,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     
@@ -598,7 +595,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "grant",      do_grant,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "gstat",      do_gstat,   POS_DEAD,   L1,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "revoke",     do_revoke,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "immflag",    do_immflag, POS_SLEEPING, L8,  LOG_NORMAL, 0, FALSE, FALSE },
     { "slookup",    do_slookup, POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "clandump",   do_clan_dump,  POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE  },
     { "crimelist",  do_crimelist,  POS_DEAD, L8, LOG_NORMAL, 1, FALSE, FALSE  },
