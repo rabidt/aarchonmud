@@ -533,7 +533,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "setskill",   do_setskill,POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "shutdow",    do_shutdow, POS_DEAD,   ML,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "shutdown",   do_shutdown,    POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "clear",      do_clear,   POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "copyove",    do_copyove,   POS_DEAD,   L2, LOG_ALWAYS, 1, FALSE, FALSE },
     { "copyover",   do_copyover,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "wizlock",    do_wizlock, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -582,9 +581,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "vnum",       do_vnum,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "zecho",      do_zecho,   POS_DEAD,   L6,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "pflag",      do_pflag,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "namecolor",  do_namecolor,POS_DEAD,  L4,	 LOG_NORMAL, 1, FALSE, FALSE },
-    { "ptitle",	    do_ptitle,  POS_DEAD,   L4,  LOG_NORMAL, 1, FALSE, FALSE },
-
     
     { "clone",      do_clone,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     
@@ -599,7 +595,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "grant",      do_grant,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "gstat",      do_gstat,   POS_DEAD,   L1,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "revoke",     do_revoke,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "immflag",    do_immflag, POS_SLEEPING, L8,  LOG_NORMAL, 0, FALSE, FALSE },
     { "slookup",    do_slookup, POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "clandump",   do_clan_dump,  POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE  },
     { "crimelist",  do_crimelist,  POS_DEAD, L8, LOG_NORMAL, 1, FALSE, FALSE  },
@@ -655,7 +650,6 @@ const   struct  cmd_type    cmd_table   [] =
     * Erwin's REDIT
     */
     { "rlook",      do_rlook,    POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
-    { "rfind",      do_rfind,    POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rwhere",     do_rwhere,   POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rrandom",    do_rrandom,  POS_DEAD,  L9,  LOG_ALWAYS, 1, TRUE, FALSE },
     /*
