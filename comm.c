@@ -1199,9 +1199,17 @@ void read_from_buffer( DESCRIPTOR_DATA *d )
     /*
      * Shift the input buffer.
      */
+    bool got_n = FALSE, got_r=FALSE;
+
+    for (;d->inbuf[i] == '\r' || d->inbuf[i] == '\n';i++)
+    {
+        if (d->inbuf[i] == '\r' && got_r++)
+            break;
+
+        else if (d->inbuf[i] == '\n' && got_n++)
+            break;
+    }
     
-    while ( d->inbuf[i] == '\n' || d->inbuf[i] == '\r' )
-        i++;
 
     for ( j = 0; ( d->inbuf[j] = d->inbuf[i+j] ) != '\0'; j++ )
         ;
