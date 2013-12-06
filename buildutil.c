@@ -2274,7 +2274,19 @@ MSETFUN( law )
     }
 }
 
+MSETFUN( ptitle )
+{
+    char buf[MIL];
+    sprintf(buf, "%s ", arg3);
+    free_string( victim->pcdata->pre_title );
+    victim->pcdata->pre_title = str_dup( buf );
+    return TRUE;
+}
 
+MSETFUN( namecolor )
+{
+    return color_name( ch, arg3, victim );
+}
 
 struct
 {
@@ -2320,6 +2332,8 @@ struct
     {"void",      MSETPCONLY,   mset_void},
     {"security",  MSETPCONLY,   mset_security},
     {"law",       MSETPCONLY,   mset_law},
+    {"ptitle",    MSETPCONLY,   mset_ptitle},
+    {"namecolor", MSETPCONLY,   mset_namecolor},
     {NULL,        MSETNONE,     NULL}
 };
    
