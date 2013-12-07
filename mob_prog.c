@@ -400,7 +400,8 @@ bool has_item( CHAR_DATA *ch, int vnum, int item_type, bool fWear )
     for ( obj = ch->carrying; obj; obj = obj->next_content )
 	if ( ( vnum < 0 || obj->pIndexData->vnum == vnum )
 	&&   ( item_type < 0 || obj->pIndexData->item_type == item_type )
-	&&   ( !fWear || obj->wear_loc != WEAR_NONE ) )
+	&&   ( !fWear || obj->wear_loc != WEAR_NONE )
+    &&   !obj->must_extract )
 	    return TRUE;
     return FALSE;
 }
@@ -418,6 +419,9 @@ bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
 
 	for ( container = ch->carrying;  container != NULL;  container = container->next_content )
 	{
+        if (container->must_extract) 
+            continue;
+
 	    if( container->item_type != ITEM_CONTAINER )
 		continue;
 
@@ -440,6 +444,9 @@ bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
 
 	for( obj = container->contains; obj; obj=obj->next_content )
 	{
+        if (obj->must_extract) 
+            continue;
+
 	    if( vnum < 0 && is_either_name(obj_name, obj->name) )
 		return TRUE;
 	    if( vnum > 0 && obj->pIndexData->vnum == vnum )
