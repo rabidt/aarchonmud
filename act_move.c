@@ -95,7 +95,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
         return FALSE;
     }
         
-    if ( room_is_private(to_room) && !is_room_owner(ch, to_room) )
+    if ( !IS_NPC(ch) && room_is_private(to_room) && !is_room_owner(ch, to_room) )
     {
         if ( show )
             send_to_char("That room is private right now.\n\r", ch);
@@ -469,16 +469,10 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    /*checks for a snare -- Siva*/
    if (IS_SET(ch->in_room->room_flags,ROOM_SNARE))
    {
-       chance = 0;
-       chance += get_curr_stat(ch,STAT_AGI)/6;
-       chance += get_curr_stat(ch,STAT_DEX)/10;
-       chance += get_skill(ch, gsn_avoidance)/5;
-       chance += (get_skill(ch, gsn_duck)/5);
-       chance += (get_skill(ch, gsn_dodge)/10);
+       chance = (get_curr_stat(ch, STAT_AGI) + get_skill(ch, gsn_avoidance)) / 4;
        if (number_percent () < chance)
        {
            send_to_char ("You narrowly avoid a deadly snare!\n\r", ch);
-           REMOVE_BIT(ch->in_room->room_flags, ROOM_SNARE );   
        }
        else
        {
@@ -495,7 +489,9 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
                    act( "$n is caught in a nearby snare!", ch, NULL, NULL, TO_ROOM );
                }
            }
-           DAZE_STATE(ch, 6 * PULSE_VIOLENCE);
+           WAIT_STATE(ch, PULSE_VIOLENCE);
+           DAZE_STATE(ch, 2 * PULSE_VIOLENCE);
+           check_lose_stance(ch);
            set_pos( ch, POS_RESTING );
            ch->in_room=in_room;
            REMOVE_BIT(ch->in_room->room_flags, ROOM_SNARE );  
@@ -505,11 +501,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    /* Check for peels, Tryste */
    if (IS_SET(ch->in_room->room_flags,ROOM_PEEL) && !IS_AFFECTED( ch, AFF_FLYING ))
    {
-       chance = 0;   
-       chance += get_curr_stat(ch,STAT_AGI)/6;
-       chance += get_curr_stat(ch,STAT_DEX)/10;
-       chance += get_skill(ch, gsn_avoidance)/5;
-       chance += (get_skill(ch, gsn_dodge)/10);  
+       chance = (get_curr_stat(ch, STAT_AGI) + get_skill(ch, gsn_avoidance)) / 4;
        if (number_percent () < chance)
        {
            send_to_char ("You step over a banana peel!\n\r", ch);
@@ -529,8 +521,10 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
                    act( "$n slipped on a banana peel nearby!", ch, NULL, NULL, TO_ROOM);
                }
            }
-           DAZE_STATE(ch, 6 * PULSE_VIOLENCE);   
-           set_pos( ch, POS_SITTING );
+           WAIT_STATE(ch, PULSE_VIOLENCE);
+           DAZE_STATE(ch, 2 * PULSE_VIOLENCE);
+           check_lose_stance(ch);
+           set_pos( ch, POS_RESTING );
            ch->in_room=in_room;
            REMOVE_BIT(ch->in_room->room_flags, ROOM_PEEL );
        }

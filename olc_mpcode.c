@@ -17,6 +17,7 @@
 #include "recycle.h"
 #include "mob_cmds.h"
 #include "lua_scripting.h"
+#include "lua_main.h"
 
 #define MPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
 
@@ -306,16 +307,18 @@ MPEDIT(mpedit_show)
     char buf[MAX_STRING_LENGTH];
     EDIT_MPCODE(ch,pMcode);
 
-    sprintf(buf,
+    ptc(ch,
            "Vnum:       [%d]\n\r"
            "Lua:        %s\n\r"
            "Security:   %d\n\r"
-           "Code:\n\r%s\n\r",
+           "Code:\n\r",
            pMcode->vnum,
            pMcode->is_lua ? "True" : "False",
-           pMcode->security,
-           pMcode->code  );
-    page_to_char_new(buf, ch, TRUE);
+           pMcode->security);
+    if (pMcode->is_lua)
+        dump_prog(ch, pMcode->code, TRUE);
+    else
+        page_to_char_new( pMcode->code, ch, TRUE);
 
     return FALSE;
 }
@@ -399,7 +402,6 @@ MPEDIT(mpedit_lua)
 
 /* Procedure to run when MPROG is changed and needs to be updated
    on mobs using it */
-
 MPEDIT(mpedit_code)
 {
     MPROG_CODE *pMcode;

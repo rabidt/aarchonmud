@@ -1490,45 +1490,6 @@ void do_rwhere (CHAR_DATA *ch, char *argument)
 }
 
 /*
- * Finds every mob or object in the current area with the specified keyword
- */
-void do_rfind (CHAR_DATA *ch, char *argument)
-{
-	MOB_INDEX_DATA *mob;
-	OBJ_INDEX_DATA *obj;
-	int i,number;
-	char buf[MAX_STRING_LENGTH];
-	
-	if (!argument[0])
-	{
-		send_to_char ("Find mobs/objects with which keyword?\n\r",ch);
-		return;
-	}
-
-	number = 1;	
-	for (i = 0; i < MAX_KEY_HASH; i++)
-		for (mob = mob_index_hash[i]; mob ; mob = mob->next)
-			if ((mob->area == ch->in_room->area) &&
-			    is_name (argument, mob->player_name) )
-			   {
-					sprintf (buf, "%3d> [%5d] %s\n\r", number, mob->vnum, mob->short_descr);
-					send_to_char (buf,ch);
-					number++;
-			   }
-
-	number = 1;
-	for (i = 0; i < MAX_KEY_HASH; i++)
-		for (obj = obj_index_hash[i]; obj ; obj = obj->next)
-			if ((obj->area == ch->in_room->area) &&
-			    is_name (argument, obj->name))
-			   {
-					sprintf (buf, "%3d> [%5d] %s\n\r", number, obj->vnum, obj->short_descr);
-					send_to_char (buf,ch);
-					number++;
-			   }
-}
-
-/*
  * Removes a reset in the current room
  * rkill <number> ["confirm" ["all"]]
  * Will warn if the mob had any G/E on it, if so ALL is required to purge

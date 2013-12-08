@@ -523,7 +523,7 @@ void do_disconnect( CHAR_DATA *ch, char *argument )
 }
 
 
-
+/* cleanup later -- astark
 void do_clear( CHAR_DATA *ch, char *argument )
 {
     char arg1[MAX_INPUT_LENGTH];
@@ -633,7 +633,7 @@ void do_clear( CHAR_DATA *ch, char *argument )
     send_to_char( "Syntax: clear <character> <killer|thief|bounty|pkill|hardcore|rp>.\n\r", ch );
     return;
 }
-
+*/
 
 
 void do_echo( CHAR_DATA *ch, char *argument )
@@ -3032,7 +3032,6 @@ void do_as(CHAR_DATA *ch, char *argument)
 * Update  : Characters returned to Original room by: Anthony Michael Tregre
 */
 
-/* #define USE_MOUNT */
 void do_pload( CHAR_DATA *ch, char *argument )
 {
     DESCRIPTOR_DATA d;
@@ -3081,14 +3080,6 @@ void do_pload( CHAR_DATA *ch, char *argument )
     d.character->was_in_room = d.character->in_room;
     char_to_room(d.character, ch->in_room);
 
-	update_lboard( LBOARD_MKILL, d.character, d.character->pcdata->mob_kills, 0);
-	update_lboard( LBOARD_BHD, d.character, d.character->pcdata->behead_cnt, 0);
-	update_lboard( LBOARD_QCOMP, d.character, d.character->pcdata->quest_success, 0);
-	update_lboard( LBOARD_WKILL, d.character, d.character->pcdata->war_kills, 0);
-	update_lboard( LBOARD_EXPL, d.character, d.character->pcdata->explored->set, 0);
-	update_lboard( LBOARD_QFAIL, d.character, d.character->pcdata->quest_failed, 0);
-	update_lboard( LBOARD_PKILL, d.character, d.character->pcdata->pkill_count, 0);
-    
     if (d.character->pet != NULL)
     {
         char_to_room(d.character->pet,d.character->in_room);
@@ -3775,34 +3766,6 @@ void do_printlist(CHAR_DATA *ch, char *argument)
     {
         do_printlist( ch, "");
     }
-}
-
-void do_charloadtest(CHAR_DATA *ch, char *argument)
-{
-   char buf[100000];
-   char chName[MSL];
-   FILE *fp;
-
-   fp = popen( "ls -1 ../player", "r" );
-
-   fgetf( buf, 100000, fp );
-
-   pclose( fp );
-
-   char * pch;
-   pch = strtok (buf, "\n\r");
-
-   while (pch != NULL)
-   {
-	//printf_to_char(ch,"%s\n\rbreak\n\r",pch);
-	do_pload(ch, pch);
-	do_punload(ch,pch);	
-
-	pch = strtok( NULL, "\n\r");
-   }
-   //page_to_char(buf,ch);
-  
-   return;
 }
 
 void do_mortlag(CHAR_DATA *ch, char *argument)

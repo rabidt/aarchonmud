@@ -25,6 +25,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
+#include "lua_main.h"
 
 char *string_linedel( char *, int );
 char *string_lineadd( char *, char *, int );
@@ -124,29 +125,30 @@ void string_append( CHAR_DATA *ch, char **pString )
     {
         *pString = str_dup( "" );
     }
+    /* wackyhacky for syntax highlighting for lua scripts */
+    MPROG_CODE *mpc;
+    switch( ch->desc->editor)
+    {
+        case ED_MPCODE:
+             EDIT_MPCODE(ch, mpc);
+             if (mpc->is_lua)
+                dump_prog( ch, *pString, TRUE);
+             else
+                send_to_char_new( numlineas(*pString), ch, TRUE );/* RAW */
+             break;
+        case ED_APCODE:
+        case ED_OPCODE:
+        case ED_RPCODE:
+            dump_prog( ch, *pString, TRUE);
+            break;
+        default:
+            send_to_char_new( numlineas(*pString), ch, TRUE );/* RAW */
+    } 
     
-    if (IS_SET(ch->act, PLR_MUDFTP))
-    {
-        ch->desc->pString = pString;
-        if (ftp_push(ch->desc)) /* ftp: PUSH mode */
-            send_to_char("Editing string via mudFTP push connection.  Use ~ or @ to abort.\n",ch);
-        else /* PULL mode */
-        {
-            char buf[MAX_STRING_LENGTH];
-            sprintf(buf,"Sending mudFTP request. If your client does not support mudFTP, abort this\n"
-                "edit (type ~ or @ on a blank line), toggle mudftp off, and try again.\n"
-                "\ntmp/%lu%c\n", (unsigned long) pString, 230);
-            send_to_char(buf,ch);
-        }
-    }
-    else
-    {
-        send_to_char_new( numlineas(*pString), ch, TRUE );
-        if ( *(*pString + strlen( *pString ) - 1) != '\r' )
-            send_to_char( "\n\r", ch );
-        
-        ch->desc->pString = pString;
-    }
+    if ( *(*pString + strlen( *pString ) - 1) != '\r' )
+        send_to_char( "\n\r", ch );
+
+    ch->desc->pString = pString;
     
     return;
 }
@@ -203,13 +205,6 @@ void string_add( CHAR_DATA *ch, char *argument )
     * Thanks to James Seng
     */
    smash_tilde( argument );
-
-   if (IS_SET(ch->act, PLR_MUDFTP) && str_cmp(argument, "@"))
-   {
-       send_to_char ("Type @ to manually abort FTP mode.\n\r"
-           "If mudFTP is not supported by your client, abort this edit and toggle mudftp off.\n\r",ch);
-       return;
-   }
 
    if ( !str_cmp(argument, ".q") || *argument == '~' || *argument == '@' )
    {
@@ -270,9 +265,27 @@ void string_add( CHAR_DATA *ch, char *argument )
       
       if ( !str_cmp( arg1, ".s" ) )
       {
-         send_to_char( "String so far:\n\r", ch );
-         send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
-         return;
+        send_to_char( "String so far:\n\r", ch );
+        /* wackyhacky for syntax highlighting for lua scripts */
+        MPROG_CODE *mpc;
+        switch( ch->desc->editor)
+        {
+            case ED_MPCODE:
+                 EDIT_MPCODE(ch, mpc);
+                 if (mpc->is_lua)
+                    dump_prog( ch, *ch->desc->pString, TRUE);
+                 else
+                    send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
+                 break;
+            case ED_APCODE:
+            case ED_OPCODE:
+            case ED_RPCODE:
+                dump_prog( ch, *ch->desc->pString, TRUE);
+                break;
+            default: 
+                send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
+        }
+        return;
       }
       
       if ( !str_cmp( arg1, ".r" ) )
