@@ -506,27 +506,31 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'M': /* MOB */
 	{
 		MOB_INDEX_DATA *mob = get_mob_index (pReset->arg1);
-                sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%ds  [%%s]",
-                    35 + ( mob ? strlen(mob->short_descr) - strlen_color(mob->short_descr) : 0));
+                char *sdesc=truncate_color_string( mob->short_descr, 35);
+                sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%ds  {x[%%s]",
+                    35 + ( mob ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf( buf, buf2,
                     number, 
                     pReset->arg1, 
                     (mob && mob->pShop) ? "Y " : "",
-                    mob ? mob->short_descr : "(non-existant)",
+                    mob ? sdesc : "(non-existant)",
                     reboot);
                 break;
 	} /* case MOB */
 	
 	case 'O': /* Obj on the floor */
 	{
-		OBJ_INDEX_DATA* obj = get_obj_index (pReset->arg1);
-                sprintf (buf2, "%%2d> [%%5d]    <in room>           Lv%%3d %%-%ds (%%s)",
-                    28 + ( obj ? strlen(obj->short_descr) - strlen_color(obj->short_descr) : 0));
+        OBJ_INDEX_DATA* obj = get_obj_index (pReset->arg1);
+        char *sdesc=truncate_color_string( obj->short_descr, 28);
+
+                sprintf (buf2, "%%2d> [%%5d]    <in room>           Lv%%3d %%-%ds {x(%%s)",
+                    28 + ( obj ? strlen(sdesc)  - strlen_color(sdesc) : 0));
+
                 sprintf( buf, buf2,
                     number, 
                     pReset->arg1, 
                     obj ? obj->level : last_level,
-                    obj ? obj->short_descr : "(non-existant)",
+                    obj ? sdesc : "(non-existant)",
                     reboot);
 		break;
 		
@@ -535,32 +539,34 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'P': /* Put inside */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
+                char *sdesc=truncate_color_string( obj->short_descr, 28);
 		OBJ_INDEX_DATA *container = get_obj_index (pReset->arg3);
 		
 		strcpy (spaces, "          "); /* fill spaces.. with spaces! */
 		spaces[nesting*2] = '\0'; /* spaces now has nesting*2 spaces */
-                sprintf (buf2, "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%ds (%%s)",
-                    28 + ( obj ? strlen(obj->short_descr) - strlen_color(obj->short_descr) : 0));
+                sprintf (buf2, "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%ds {x(%%s)",
+                    28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
                     number,                                      /* reset number */
                     pReset->arg1,                                /* obj vnum */
                     pReset->arg3,                                /* container vnum */
                     obj ? obj->level : last_level,               /* obj level */
-                    obj ? obj->short_descr : "(non-existant)",   /* obj short desc */
+                    obj ? sdesc : "(non-existant)",   /* obj short desc */
                     reboot);                                     /* reboot or always */
                 break;
 	} /* case PUT */
 	
 	case 'G': /* Give to mob */
 	{
-		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);                                     
-                sprintf (buf2, "%%2d>  ^[%%5d]  <inventory>         Lv%%3d %%-%ds (%%s)",
-                    28 + ( obj ? strlen(obj->short_descr) - strlen_color(obj->short_descr) : 0));
+		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
+                char *sdesc=truncate_color_string( obj->short_descr, 28);
+                sprintf (buf2, "%%2d>  ^[%%5d]  <inventory>         Lv%%3d %%-%ds {x(%%s)",
+                    28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
                     number, 
                     pReset->arg1, 
                     obj ? obj->level : last_level,
-                    obj ? obj->short_descr : "(non-existant)",
+                    obj ? sdesc : "(non-existant)",
                     reboot); 
 
 		break;
@@ -569,9 +575,9 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'E': /* Equip mob */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-//		sprintf (buf, "%2d>  ^[%5d]  %sLv%3d %-28s (%s)",
-		sprintf (buf2, "%%2d>  ^[%%5d]  %%sLv%%3d %%-%ds (%%s)",
-                    28 + ( obj ? strlen(obj->short_descr) - strlen_color(obj->short_descr) : 0));
+                char *sdesc=truncate_color_string( obj->short_descr, 28);
+		sprintf (buf2, "%%2d>  ^[%%5d]  %%sLv%%3d %%-%ds {x(%%s)",
+                    28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
                     number,
                     pReset->arg1, 
@@ -579,7 +585,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
                         ? " <invalid location> "
                         : where_name[pReset->arg3], /* check for correct location */
                     obj ? obj->level : last_level,  /* obj vnum */
-                    obj ? obj->short_descr : "(non-existant)",
+                    obj ? sdesc : "(non-existant)",
                     reboot); /* reboot status */
 		break;
 					   
