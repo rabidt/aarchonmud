@@ -2172,6 +2172,13 @@ void do_order( CHAR_DATA *ch, char *argument )
     return;
 }
 
+char* ch_name(CHAR_DATA *ch)
+{
+    if ( !ch )
+        return "";
+    return IS_NPC(ch) ? ch->short_descr : ch->name;
+}
+
 void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
 {
     char buf[MAX_STRING_LENGTH];
@@ -2199,12 +2206,10 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         (gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
 
     sprintf( buf,
-        "[%3d %s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s%s %5d etl\n\r",
+        "[%3d %.3s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s%s %5d etl\n\r",
         gch->level,
-        IS_NPC(gch) ? "Mob" : class_table[gch->class].who_name,
-        /* Commented out so colored names work -- Maedhros 11/27/11 */
-        /*capitalize( PERS(gch, ch) ), */
-        IS_NPC(gch)?gch->short_descr:gch->name,
+        !IS_NPC(gch) ? class_table[gch->class].who_name : IS_AFFECTED(gch, AFF_CHARM) ? ch_name(gch->leader) : "Mob",
+        ch_name(gch),
         hp_col, gch->hit,   gch->max_hit,
         mn_col, gch->mana,  gch->max_mana,
         mv_col, gch->move,  gch->max_move,

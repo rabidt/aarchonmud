@@ -3295,7 +3295,8 @@ bool room_is_private( ROOM_INDEX_DATA *pRoomIndex )
     
     count = 0;
     for ( rch = pRoomIndex->people; rch != NULL; rch = rch->next_in_room )
-        count++;
+        if ( !IS_NPC(rch) && !IS_IMMORTAL(rch) )
+            count++;
     
     if ( IS_SET(pRoomIndex->room_flags, ROOM_PRIVATE)  && count >= 2 )
         return TRUE;
@@ -3576,6 +3577,9 @@ bool can_see_obj( CHAR_DATA *ch, OBJ_DATA *obj )
         return FALSE;
     
     if ( ch == NULL)
+        return FALSE;
+    
+    if ( obj->must_extract )
         return FALSE;
     
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_HOLYLIGHT) )

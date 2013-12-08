@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include "merc.h"
 #include "recycle.h"
+#include "lua_arclib.h"
 
 void free_quest(QUEST_DATA *quest);
 
@@ -170,9 +171,6 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 
     lua_unregister_desc(d);
 	free_string( d->host );
-	free_string( d->username );
-	free_string( d->ftp.data );
-	free_string( d->ftp.filename );
 	free_mem( d->outbuf, d->outsize );
     ProtocolDestroy( d->pProtocol );
 	INVALIDATE(d);
@@ -300,6 +298,7 @@ OBJ_DATA *new_obj(void)
 	VALIDATE(obj);
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
+    obj->luavals=NULL;
 
 	return obj;
 }
@@ -331,6 +330,15 @@ void free_obj(OBJ_DATA *obj)
 	free_string( obj->short_descr );
 	free_string( obj->owner     );
     free_string( obj->material  );
+
+    LUA_EXTRA_VAL *luaval;
+    LUA_EXTRA_VAL *luaval_next=NULL;
+    for ( luaval=obj->luavals; luaval; luaval=luaval_next )
+    {
+        luaval_next=luaval->next;
+        free_luaval(luaval);
+    }
+
 	INVALIDATE(obj);
 
 	obj->next   = obj_free;
@@ -380,6 +388,7 @@ CHAR_DATA *new_char (void)
 	ch->just_killed = FALSE;
 	ch->must_extract = FALSE;
     ch->trig_timer              = NULL;
+    ch->luavals                 = NULL;
 	
 	for (i = 0; i < MAX_STATS; i ++)
 	{
@@ -435,6 +444,13 @@ void free_char (CHAR_DATA *ch)
 	free_string(ch->prompt);
 	free_string(ch->prefix);
 
+    LUA_EXTRA_VAL *luaval;
+    LUA_EXTRA_VAL *luaval_next=NULL;
+    for ( luaval=ch->luavals; luaval; luaval=luaval_next )
+    {
+        luaval_next=luaval->next;
+        free_luaval( luaval );
+    }
 
 	if (ch->pcdata != NULL)
 	    free_pcdata(ch->pcdata);

@@ -500,6 +500,36 @@ HELPTOPIC glob_sendtochar_help =
 
 };
 
+static int glob_dammessage (lua_State *LS)
+{
+    const char *vs;
+    const char *vp;
+    char punct;
+    char punctstr[2];
+    get_damage_messages( 
+            luaL_checkinteger( LS, 1 ),
+            0, &vs, &vp, &punct );
+
+    punctstr[0]=punct;
+    punctstr[1]='\0';
+
+    lua_pushstring( LS, vs );
+    lua_pushstring( LS, vp );
+    lua_pushstring( LS, punctstr);
+
+    return 3;
+}
+HELPTOPIC glob_dammessage_help =
+{
+    .summary="Return the appropriate message for given damage amount",
+    .info="Arguments: damage[number]\n\r\n\r"
+          "Return: singular[string],plural[string],punctuation[string]\n\r\n\r"
+          "Example:\n\r"
+          "local sng,pl,pnct=dammessage(111)\n\r\n\r"
+          "Note:\n\r\n\r"
+};
+
+
 static int glob_clearloopcount (lua_State *LS)
 {
     g_LoopCheckCounter=0;
@@ -684,6 +714,36 @@ HELPTOPIC glob_getmobworld_help={
           "local moblist=getmobworld(31404)\n\r\n\r"
           "Note:\n\r"
           "If no instances exist, an empty table is returned.\n\r"
+};
+
+static int glob_getpc (lua_State *LS)
+{
+    const char *name=check_string (LS, 1, MIL );
+    
+    CHAR_DATA *ch;
+    for (ch=char_list; ch; ch=ch->next)
+    {
+        if (IS_NPC(ch))
+            continue;
+
+        if (!str_cmp(name, ch->name))
+        {
+            make_CH(LS, ch);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+HELPTOPIC glob_getpc_help =
+{
+    .summary="Return CH of the PC with given name or nil.",
+    .info="Arguments: name[string]\n\r\n\r"
+          "Return: CH\n\r\n\r"
+          "Example:\n\r"
+          "local dumbo=getpc(\"vodur\")\n\r\n\r"
+          "Note:\n\r"
+          "Return nil if PC is not connected.\n\r"
 };
 
 static int glob_pagetochar (lua_State *LS)
@@ -959,13 +1019,22 @@ static int glob_arguments ( lua_State *LS)
 {   
     const char *argument=check_string( LS, 1, MIL );
     char buf[MIL];
+    bool keepcase=FALSE;
+
+    if (!lua_isnone(LS,2))
+    {
+        keepcase=lua_toboolean(LS, 2);
+    }
     
     lua_newtable( LS );
     int index=1;
 
     while ( argument[0] != '\0' )
     {
-        argument = one_argument( argument, buf );
+        if (keepcase)
+            argument=one_argument_keep_case( argument, buf);
+        else
+            argument = one_argument( argument, buf );
         lua_pushstring( LS, buf );
         lua_rawseti( LS, -2, index++ );
     }
@@ -1003,6 +1072,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getobjworld,   0),
     GFUN(getmobproto,   0),
     GFUN(getmobworld,   0),
+    GFUN(getpc,         0),
     GFUN(sendtochar,    0),
     GFUN(pagetochar,    0),
     GFUN(log,           0),
@@ -1010,6 +1080,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getmoblist,    9),
     GFUN(getplayerlist, 9),
     GFUN(getarealist,   9),
+    GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
 
     GODF(confuse),
@@ -1142,6 +1213,169 @@ void register_globals( lua_State *LS )
 /* end global section */
 
 /* common section */
+LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool persist )
+{
+    LUA_EXTRA_VAL *new=alloc_mem(sizeof(LUA_EXTRA_VAL));
+    new->type=type;
+    new->name=name;
+    new->val=val;
+    new->persist=persist;
+
+    return new;
+}
+
+void free_luaval( LUA_EXTRA_VAL *luaval)
+{
+    free_string(luaval->name);
+    free_string(luaval->val);
+
+    free_mem(luaval, sizeof(LUA_EXTRA_VAL) );
+}
+
+static void push_luaval( lua_State *LS, LUA_EXTRA_VAL *luaval )
+{
+    switch(luaval->type)
+    {
+        case LUA_TSTRING:
+            lua_pushstring(LS, luaval->val);
+            return 1;
+
+        case LUA_TNUMBER:
+            lua_getglobal( LS, "tonumber");
+            lua_pushstring(LS, luaval->val);
+            lua_call( LS, 1, 1 );
+            return 1;
+
+        case LUA_TBOOLEAN:
+            lua_pushboolean( LS, !strcmp( luaval->val, "true" ) );
+            return 1;
+
+        default:
+            luaL_error(LS, "Invalid type '%s'",
+                    lua_typename( LS, luaval->type) );
+    }
+}
+
+static int get_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
+{
+    if (lua_isnone( LS, 1 ) )
+    {
+        /* no argument, send a table of all vals */
+        lua_newtable( LS );
+        LUA_EXTRA_VAL *luaval;
+
+        for (luaval=*luavals; luaval; luaval=luaval->next)
+        {
+            lua_pushstring( LS, luaval->name);
+            push_luaval( LS, luaval );
+            lua_rawset( LS, -3 );
+        }
+        return 1;
+    }
+
+    const char *name=check_string(LS, 1, MIL );
+
+    LUA_EXTRA_VAL *luaval;
+
+    for ( luaval=*luavals; luaval; luaval=luaval->next )
+    {
+        if (!strcmp( name, luaval->name) )
+        {
+            push_luaval( LS, luaval );
+            return 1;
+        }
+    }
+
+    lua_pushnil( LS );
+    return 1;
+}
+
+static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
+{
+    const char *name=check_string(LS, 1, MIL );
+    int type=lua_type(LS, 2 );
+    const char *val;
+    bool persist=FALSE;
+    if (!lua_isnone(LS,3))
+    {
+        persist=lua_toboolean(LS, 3);
+        lua_remove(LS,3);
+    }
+
+    switch(type)
+    {
+        case LUA_TNONE:
+        case LUA_TNIL:
+            break;
+
+        case LUA_TSTRING:
+        case LUA_TNUMBER:
+            val=check_string(LS, 2, MIL );
+            break;
+
+        case LUA_TBOOLEAN:
+            lua_getglobal( LS, "tostring");
+            lua_insert( LS, -2 );
+            lua_call( LS, 1, 1 );
+            val=check_string( LS, 2, MIL );
+            break;
+
+        default:
+            luaL_error( LS, "Cannot set value type '%s'.",
+                    lua_typename( LS, type ) );
+    }
+
+    LUA_EXTRA_VAL *luaval;
+    LUA_EXTRA_VAL *prev=NULL;
+    LUA_EXTRA_VAL *luaval_next=NULL;
+
+    for ( luaval=*luavals; luaval; luaval=luaval_next )
+    {
+        luaval_next=luaval->next;
+
+        if (!strcmp( name, luaval->name) )
+        {
+            /* sending nil as 2nd arg actually comes through
+               as "no value" (LUA_TNONE) for whatever reason*/
+            if ( type == LUA_TNONE || type == LUA_TNIL)
+            {
+                if (prev)
+                {
+                    prev->next=luaval->next;
+                }
+                else
+                {
+                    /* top of the list */
+                    *luavals=luaval->next;
+                }
+                free_luaval(luaval);
+                return 0;
+            }
+            
+            free_string( luaval->val );
+            luaval->val=str_dup( val );
+            luaval->type = type;
+            luaval->persist= persist;
+            return 0;
+        }
+
+        prev=luaval;
+    }
+    
+    /* didn't exist yet, if nil then get out of here otherwise create and set */
+    if ( type==LUA_TNONE || type==LUA_TNIL )
+        return 0;
+
+    luaval=new_luaval( 
+            type, 
+            str_dup( name ), 
+            str_dup( val ),
+            persist );
+    luaval->next = *luavals;
+    *luavals     = luaval;
+    return 0;
+}
+
 static int set_flag( lua_State *LS,
         const char *funcname, 
         const struct flag_type *flagtbl, 
@@ -1432,6 +1666,22 @@ int L_cancel (lua_State *LS)
 /* end common section */
 
 /* CH section */
+static int CH_setval ( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_remove(LS, 1);
+    return set_luaval( LS, &(ud_ch->luavals) );
+}
+HELPTOPIC CH_setval_help = {};
+
+static int CH_getval ( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_remove(LS,1);
+    return get_luaval( LS, &(ud_ch->luavals) );
+}
+HELPTOPIC CH_getval_help={};
+
 static int CH_randchar (lua_State *LS)
 {
     CHAR_DATA *ch=get_random_char(check_CH(LS,1) );
@@ -2099,6 +2349,38 @@ static int CH_mdo (lua_State *LS)
 }
 HELPTOPIC CH_mdo_help = {};
 
+static int CH_tell (lua_State *LS)
+{
+    if (lua_isstring(LS, 2))
+    {
+        char buf[MIL];
+        sprintf( buf,
+                "'%s' %s",
+                check_string(LS, 2, 25),
+                check_fstring(LS, 3, MIL-30) );
+        do_tell( check_CH(LS, 1), buf );
+        return 0;
+    }
+
+    tell_char( check_CH( LS, 1),
+            check_CH( LS, 2),
+            check_fstring( LS, 3, MIL) );
+    return 0;
+}
+HELPTOPIC CH_tell_help =
+{
+    .summary="Send tell to another CH.",
+    .info="Arguments: victim[CH], message[string] (accepts format arguments)\n\r\n\r"
+          "           name[string], message[string] (accepts format arguments)\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "mob:tell(ch, \"Hey there big boy!\")\n\r"
+          "mob:tell(ch, \"Hey there %s\", ch.name)\n\r"
+          "mob:tell(ch.name, \"u r so %s\", \"beautiful\")\n\r\n\r"
+          "Note:\n\r"
+          "May fail silently due to deaf or quiet modes, or forget.\n\r"
+};
+
 static int CH_mobhere (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1); 
@@ -2444,14 +2726,47 @@ HELPTOPIC CH_resist_help = {};
 static int CH_skilled (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring( LS, 2, MIL);
+    const char *argument = check_string( LS, 2, MIL);
+    bool prac=FALSE;
+    if (!lua_isnone(LS, 3))
+    {
+        prac=lua_toboolean(LS, 3);
+    }
 
-    lua_pushboolean( LS,  ud_ch != NULL && skill_lookup(argument) != -1
-            && get_skill(ud_ch, skill_lookup(argument)) > 0 );
+    int sn=skill_lookup(argument);
+    if (sn==-1)
+        luaL_error(LS, "No such skill '%s'", argument);
 
+    int skill=get_skill(ud_ch, sn);
+    
+    if (skill<1)
+    {
+        lua_pushboolean( LS, FALSE);
+        return 1;
+    }
+
+    if (prac)
+    {
+        lua_pushinteger( LS, get_skill_prac( ud_ch, sn) );
+        return 1;
+    }
+
+    lua_pushinteger(LS, skill);
     return 1;
 }
-HELPTOPIC CH_skilled_help = {};
+HELPTOPIC CH_skilled_help = {
+    .summary="Return skill level of a given skill.",
+    .info="Arguments: skillname[string] <, practice[boolean]>\n\r\n\r"
+          "Return: boolean/number\n\r\n\r"
+          "Example:\n\r"
+          "local pcnt=mob:skilled(\"kick\")\n\r\n\r"
+          "Note:\n\r"
+          "If skill percentage is <1, returns false, otherwise returns \n\r"
+          "skill percentage.\n\r"
+          "Optional second argument determines whether 'practiced' skill\n\r"
+          "percentage is returned. If not supplied, 'practice' defaults\n\r"
+          "to false and the 'effective' skill percentage is returned.\n\r"
+};
 
 static int CH_ccarries (lua_State *LS)
 {
@@ -3331,6 +3646,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(say, 0),
     CHMETH(emote, 0),
     CHMETH(mdo, 0),
+    CHMETH(tell, 0),
     CHMETH(asound, 0),
     CHMETH(gecho, 0),
     CHMETH(zecho, 0),
@@ -3372,6 +3688,8 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(olc, 0),
     CHMETH(delay, 0),
     CHMETH(cancel, 0), 
+    CHMETH(setval, 0),
+    CHMETH(getval, 0),
     ENDPTABLE
 }; 
 
@@ -3407,6 +3725,23 @@ static int OBJ_loadfunction (lua_State *LS)
     return 0;
 }
 HELPTOPIC OBJ_loadfunction_help = {};
+
+static int OBJ_setval (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_remove( LS, 1 );
+    return set_luaval( LS, &(ud_obj->luavals) );
+}
+HELPTOPIC OBJ_setval_help={};
+
+static int OBJ_getval (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_remove( LS, 1);
+
+    return get_luaval( LS, &(ud_obj->luavals) );
+}
+HELPTOPIC OBJ_getval_help={};
 
 static int OBJ_delay (lua_State *LS)
 {
@@ -3960,7 +4295,9 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     OBJMETH(tprint, 0),
     OBJMETH(delay, 0),
     OBJMETH(cancel, 0),
-
+    OBJMETH(setval, 0),
+    OBJMETH(getval, 0),
+    
     /* portal only */
     OBJMETH(exitflag, 0),
     OBJMETH(portalflag, 0),
@@ -4182,7 +4519,7 @@ static int AREA_get_rooms( lua_State *LS)
     {
         if ((room=get_room_index(vnum))==NULL)
             continue;
-        if (make_AREA(LS, room))
+        if (make_ROOM(LS, room))
             lua_rawseti(LS, -2, index++);
     }
     return 1;

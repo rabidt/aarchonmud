@@ -92,7 +92,7 @@ ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnu
                 &&   !IS_SET(room->room_flags, ROOM_SOLITARY) 
                 &&   !IS_SET(room->room_flags, ROOM_SAFE) 
                 &&   !IS_SET(room->room_flags, ROOM_JAIL) 
-                &&   !IS_SET(room->room_flags, ROOM_NO_RANDOM) 
+                &&   !IS_SET(room->room_flags, ROOM_NO_TELEPORT)
                 &&   !(IS_NPC(ch) 
 		       && IS_SET(ch->act,ACT_AGGRESSIVE) 
 		       && IS_SET(room->room_flags,ROOM_LAW)))
