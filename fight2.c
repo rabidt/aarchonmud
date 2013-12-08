@@ -2913,7 +2913,7 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
             int dam = one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_WIELD))
                     + one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_SECONDARY));
             int dt_rend = TYPE_HIT + 102; // see attack_table in const.c
-            deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE, FALSE);
+            deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE);
         }
     }
 }
