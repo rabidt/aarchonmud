@@ -146,7 +146,6 @@ typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
 typedef struct  board_data       BOARD_DATA;
-typedef struct  colour_data      COLOUR_DATA;
 typedef struct  penalty_data     PENALTY_DATA;
 typedef struct  crime_data       CRIME_DATA;
 typedef struct  reserved_data    RESERVED_DATA;
@@ -742,9 +741,12 @@ struct penalty_data
 #define CON_READ_IMOTD          13
 #define CON_READ_MOTD           14
 #define CON_BREAK_CONNECT       15
+/* removed */
+/*
 #define CON_FTP_COMMAND         16
 #define CON_FTP_DATA            17
 #define CON_FTP_AUTH            18
+*/
 #define CON_GET_CREATION_MODE   19
 #define CON_ROLL_STATS          20
 #define CON_GET_STAT_PRIORITY   21
@@ -769,8 +771,6 @@ struct penalty_data
 #define CREATION_EXPERT          2
 #define CREATION_REMORT          3
 
-
-typedef enum { FTP_NORMAL, FTP_PUSH, FTP_PUSH_WAIT } ftp_mode;
 
 /*
  * Descriptor (channel) structure.
@@ -808,15 +808,6 @@ struct  descriptor_data
     } lua;
 
 	int     inactive;
-	char *      username;
-	struct
-	{
-		char *      filename;   /* Filename being written to */
-		char *      data;       /* Data being written    */
-		short int   lines_left; /* Lines left        */
-		short int   lines_sent; /* Lines sent so far     */
-		ftp_mode    mode;       /* FTP_xxx           */
-	} ftp;
     protocol_t *        pProtocol;
 
 #ifdef LAG_FREE
@@ -2027,7 +2018,7 @@ struct  kill_data
 #define ROOM_INDOORS        (D)
 #define ROOM_NO_SCOUT       (E)
 #define ROOM_TATTOO_SHOP    (F)
-#define ROOM_NO_RANDOM      (G)
+#define ROOM_NO_TELEPORT    (G)
 #define ROOM_PRIVATE        (J)
 #define ROOM_SAFE           (K)
 #define ROOM_SOLITARY       (L)
@@ -2174,7 +2165,8 @@ typedef int tattoo_list[MAX_WEAR];
  * ACT bits for players.
  */
 #define PLR_IS_NPC      (A)     /* Don't EVER set.  */
-#define PLR_MUDFTP      (B)
+/*removed*/
+/*#define PLR_MUDFTP      (B)*/
 
 /* RT auto flags */
 #define PLR_AUTOASSIST      (C)
@@ -2590,6 +2582,7 @@ struct  char_data
 	#endif
 
     TIMER_NODE *trig_timer; /* should not be touched except in timer.c */
+    struct lua_extra_val *luavals;
 };
 
 
@@ -2601,9 +2594,7 @@ struct  char_data
 struct  pc_data
 {
     PC_DATA *       next;
-    /*BUFFER *        buffer; old buffer for replay */
 	bool	new_tells; /* whether there are unread tells */
-    COLOUR_DATA *   code;
     SORT_TABLE *    bounty_sort;
     bool        valid;
     char *      pwd;
@@ -2728,7 +2719,6 @@ struct  pc_data
 	int proclaim[3];        /* {9 */
 	int proclaim_text[3];   /* {0 */
 
-#if 1
 	/* quest stuff */
 	CHAR_DATA *         questgiver; /* Vassago */
 	int                 questpoints;  /* Vassago */
@@ -2766,9 +2756,7 @@ struct  pc_data
 	int                 religion_won;
 	int                 religion_lost;
 	int                 religion_kills;
-#endif
     QUEST_DATA *qdata;
-    long house;            /* Settable by imms, shows only in do_worth, lets people feel their house is part of their assets */
     tattoo_list tattoos;
     FOLLOWER_DATA *ch_rel;
     time_t prayed_at;
@@ -2878,7 +2866,7 @@ struct  obj_index_data
 };
 
 
-
+struct lua_extra_val; /* defined in lua_arclib */
 /*
  * One object.
  */
@@ -2916,6 +2904,7 @@ struct  obj_data
 
     bool        must_extract; /* for delayed obj purging */
     TIMER_NODE *otrig_timer; /* should not be touched except in timer.c */
+    struct lua_extra_val *luavals; /* list of extra vals set via script */
 };
 
 
@@ -3848,7 +3837,7 @@ struct achievement_entry
  * Character macros.
  */
 #define IS_NPC(ch)      (IS_SET((ch)->act, ACT_IS_NPC))
-#define IS_IMMORTAL(ch) (ch->desc ? is_granted_name(ch,"immflag") : get_trust(ch) >= LEVEL_IMMORTAL)
+#define IS_IMMORTAL(ch)     (get_trust(ch) >= LEVEL_IMMORTAL)
 #define IS_HERO(ch)     ((!IS_NPC((ch))&&((ch)->level >= ((LEVEL_HERO - 10)+((ch)->pcdata->remorts)))))
 #define IS_HELPER(ch)   (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER))
 #define IS_ACTIVE_HELPER(ch)    (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER) && !IS_SET((ch)->act, PLR_INACTIVE_HELPER))
@@ -4262,6 +4251,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define MAX_WHO_FILE   "maxwho.txt"
 #define LUA_STARTUP    LUA_DIR "startup.lua"
 #define ptc printf_to_char
+#define stc send_to_char
 
 /* string constants */
 //#define PROMPT_DEFAULT "{g<{r%h{g/%Hhp {b%m{g/%Mmn {c%v{g/%Vmv {y%X{getl{W%z{x>{x "
@@ -4312,6 +4302,7 @@ int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
 void check_explore args( ( CHAR_DATA *, ROOM_INDEX_DATA * ) );
 void explore_vnum args( (CHAR_DATA *, int ) );
 bool explored_vnum args( (CHAR_DATA *, int ) );
+bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show );
 bool can_move_dir( CHAR_DATA *ch, int dir, bool show );
 int get_random_exit( CHAR_DATA *ch );
 
@@ -4408,8 +4399,11 @@ OD *    create_object   args( ( OBJ_INDEX_DATA *pObjIndex, int level ) );
 void    clone_object    args( ( OBJ_DATA *parent, OBJ_DATA *clone ) );
 void    clear_char  args( ( CHAR_DATA *ch ) );
 char *  get_extra_descr args( ( const char *name, EXTRA_DESCR_DATA *ed ) );
+MID *   get_mob_index_safe args( ( int vnum ) );
 MID *   get_mob_index   args( ( int vnum ) );
+OID *   get_obj_index_safe args( ( int vnum ) );
 OID *   get_obj_index   args( ( int vnum ) );
+RID *   get_room_index_safe args( ( int vnum ) );
 RID *   get_room_index  args( ( int vnum ) );
 MPC *   get_mprog_index args( ( int vnum ) );
 OPC *   get_oprog_index args( ( int vnum ) );
@@ -4480,9 +4474,7 @@ bool    is_ranged_weapon( OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
-
-/* ftp.c */
-bool    ftp_push    args( (DESCRIPTOR_DATA *d) );
+bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* grant.c */
 bool is_granted_name    args( ( CHAR_DATA *ch, char *argument ) );

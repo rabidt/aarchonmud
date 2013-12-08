@@ -49,6 +49,7 @@
 #include "buffer_util.h"
 #include "simsave.h"
 #include "religion.h"
+#include "lua_arclib.h"
 
 #if !defined(macintosh)
 extern  int     _filbuf         args( (FILE *) );
@@ -782,9 +783,6 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (ch->pcdata->questpoints != 0)
         bprintf( buf, "QuestPnts %d\n",  ch->pcdata->questpoints );
 
-    if (ch->pcdata->house > 0)
-        bprintf( buf, "House %ld\n",     ch->pcdata->house );
-
     if (ch->pcdata->nextquest != 0)
         bprintf( buf, "QuestNext %d\n",  ch->pcdata->nextquest   );
     else if (ch->pcdata->countdown != 0)
@@ -830,6 +828,24 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "Tattoos %s\n", print_tattoos(ch->pcdata->tattoos) );
 
     bprintf( buf, "Smc %d %d %d\n", ch->pcdata->smc_mastered, ch->pcdata->smc_grandmastered, ch->pcdata->smc_retrained );
+
+    LUA_EXTRA_VAL *luaval;
+    for ( luaval=ch->luavals ; luaval; luaval=luaval->next )
+    {
+        if (!luaval->persist)
+            continue;
+        bprintf( buf, "LuaVal %d %s~ %s~\n",
+                luaval->type,
+                luaval->name,
+                luaval->val);
+    }
+    
+    const char *luaconfig=save_luaconfig( ch );
+    if (luaconfig)
+    {
+        bprintf( buf, "LuaCfg %s~\n", luaconfig );
+    }
+    
     
     bprintf( buf, "End\n\n" );
     return;
@@ -1087,6 +1103,17 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
         bprintf( buf, "ExDe %s~ %s~\n",
             ed->keyword, ed->description );
     }
+
+    LUA_EXTRA_VAL *luaval;
+    for ( luaval = obj->luavals; luaval; luaval=luaval->next )
+    {
+        if (!luaval->persist)
+            continue;
+        bprintf( buf, "LuaVal %d %s~ %s~\n", 
+                luaval->type,
+                luaval->name, 
+                luaval->val );
+    }
     
     bprintf( buf, "End\n\n" );
     
@@ -1128,7 +1155,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
     ch->pcdata->confirm_pkill     = FALSE;
     ch->pcdata->pkpoints     = 0;
     ch->pcdata->pkill_count  = 0;
-    ch->pcdata->house = 0;
     ch->pcdata->field        = 0;
     ch->pcdata->remorts =0;
     ch->pcdata->smith = NULL;
@@ -1857,7 +1883,6 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Hitroll", ch->hitroll,        bread_number( buf ) );
         KEY( "Hit",     ch->hitroll,        bread_number( buf ) );
         KEY( "HLev",    ch->pcdata->highest_level, bread_number( buf ) );
-        KEY( "House",   ch->pcdata->house,   bread_number( buf ) );
         	
         if ( !str_cmp( word, "HpManaMove" ) || !str_cmp(word,"HMV"))
         {
@@ -1941,6 +1966,28 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "LogO",    lastlogoff,     bread_number( buf ) );
         KEYS( "LongDescr",   ch->long_descr,     bread_string( buf ) );
         KEYS( "LnD",     ch->long_descr,     bread_string( buf ) );
+
+        if ( !strcmp( word, "LuaCfg") )
+        {
+            const char *temp=bread_string( buf );
+            load_luaconfig( ch, temp );
+            free_string( temp );
+            fMatch=TRUE;
+        }
+
+        if ( !strcmp( word, "LuaVal") )
+        {
+            LUA_EXTRA_VAL *luaval;
+            int type=bread_number( buf );
+            char *name= bread_string( buf );
+            char *val = bread_string( buf );
+            luaval=new_luaval( type, name, val, TRUE );
+
+            luaval->next=ch->luavals;
+            ch->luavals=luaval;
+            fMatch=TRUE;
+        }
+
         break;
         
     case 'M':
@@ -2720,6 +2767,18 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         case 'L':
             KEY( "Level",   obj->level,     bread_number( buf ) );
             KEY( "Lev",     obj->level,     bread_number( buf ) );
+            if ( !strcmp( word, "LuaVal" ) )
+            {
+                LUA_EXTRA_VAL *luaval;
+                int type=bread_number( buf );
+                char *name=bread_string( buf );
+                char *val=bread_string( buf );
+                luaval=new_luaval( type, name, val, TRUE );
+
+                luaval->next=obj->luavals;
+                obj->luavals=luaval;
+                fMatch=TRUE;
+            }
             break;
             
         case 'M':

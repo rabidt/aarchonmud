@@ -684,29 +684,221 @@ void do_wizhelp( CHAR_DATA *ch, char *argument )
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
-#if 0
-    char buf[MAX_STRING_LENGTH];
-    int cmd;
-    int col;
-    int i;
+}
 
-    col = 0;
-    for ( cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
+static CHAR_DATA *clt_list;
+static int L_charloadtest( lua_State *LS )
+{
+    /* 1 is script function */
+    /* 2 is ch */
+    DESCRIPTOR_DATA d;
+    clt_list=NULL;
+
+    lua_getglobal( LS, "list_files");
+    lua_pushliteral( LS, "../area");
+    lua_call( LS, 1, 1 );
+  
+    lua_newtable( LS ); /* the table of chars */ 
+    /* iterate the table */
+    int index;
+    int newindex=1;
+    for ( index=1 ; ; index++ )
     {
-        if ( cmd_table[cmd].level >= LEVEL_HERO
-            &&   is_granted(ch,cmd_table[cmd].do_fun)
-            &&   cmd_table[cmd].show)
+        lua_rawgeti( LS, -2, index );
+        if (lua_isnil( LS, -1) )
         {
-            sprintf( buf, "(%d) %-12s", cmd_table[cmd].level, cmd_table[cmd].name);
-            send_to_char( buf, ch );
-            if ( ++col % 4 == 0 )
-                send_to_char( "\n\r", ch );
+            lua_pop( LS, 1 );
+            break;
         }
+        if (!load_char_obj( &d, check_string( LS, -1, MIL ) ) )
+        {
+            lua_pop( LS, 1 );
+            continue;
+            //luaL_error( LS, "Couldn't load '%s'", check_string( LS, -1, MIL) );
+        }
+        lua_pop( LS, 1 );
+
+        d.character->next=clt_list;
+        clt_list=d.character;
+
+        d.character->desc=NULL;
+        reset_char(d.character);
+        if (!make_CH(LS, d.character) )
+            luaL_error( LS, "Couldn't make UD for %s", d.character->name);
+        lua_rawseti( LS, -2, newindex++);
+    }
+    
+    lua_remove( LS, -2 ); /* kill name table */
+    stackDump(LS);
+
+    lua_call( LS, 2, 0 );
+    return 0;
+
+}
+        
+void do_charloadtest( CHAR_DATA *ch, char *argument )
+{
+    char arg1[MIL];
+    char arg2[MIL];
+    const char *code=NULL;
+
+    argument=one_argument(argument, arg1);
+    argument=one_argument(argument, arg2);
+
+    if (is_number(arg1))
+    {
+        MPROG_CODE *prg=get_mprog_index( atoi(arg1));
+        if (!prg)
+        {
+            ptc( ch, "No such mprog: %s\n\r", arg1 );
+            return;
+        }
+        code=prg->code;
+    }
+    else
+    {
+        ptc(ch, "'%s' is not a valid mprog vnum.\n\r", arg1 );
+        return;
     }
 
-    if ( col % 6 != 0 )
-        send_to_char( "\n\r", ch );
+    char buf[MAX_SCRIPT_LENGTH + MSL ];
+
+    sprintf(buf, "return function (ch, players)\n"
+            "%s\n"
+            "end",
+            code);
+
+    if (luaL_loadstring ( g_mud_LS, buf) ||
+            CallLuaWithTraceBack ( g_mud_LS, 0, 1) )
+    {
+        ptc( ch, "Error loading vnum %s: %s",
+                arg1,
+                lua_tostring( g_mud_LS, -1));
+        lua_settop( g_mud_LS, 0);
+        return;
+    }
+
+    make_CH( g_mud_LS, ch);
+    lua_pushcfunction(g_mud_LS, L_charloadtest);
+    lua_insert( g_mud_LS, 1);
+
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_charloadtest:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+
+    /* clean up the stuff */
+    CHAR_DATA *tch, *next;
+    for ( tch=clt_list ; tch ; tch = next )
+    {
+        next=tch->next;
+        unregister_lua( tch );
+        free_char( tch );
+    }
+
+    clt_list=NULL;
 
     return;
-#endif
+}
+
+const char *save_luaconfig( CHAR_DATA *ch )
+{
+    if (!IS_IMMORTAL(ch))
+        return NULL;
+
+    lua_getglobal(g_mud_LS, "save_luaconfig" );
+    make_CH(g_mud_LS, ch);
+    if (CallLuaWithTraceBack( g_mud_LS, 1, 1 ) )
+    {
+        ptc (ch, "Error with save_luaconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+        return NULL;
+    }
+
+    if (lua_isnil(g_mud_LS, -1) || lua_isnone(g_mud_LS, -1) )
+        return NULL;
+
+    if (!lua_isstring(g_mud_LS, -1))
+    {
+        bugf("String wasn't returned in save_luaconfig.");
+        return NULL;
+    }
+
+    return luaL_checkstring( g_mud_LS, -1 );
+}
+
+void load_luaconfig( CHAR_DATA *ch, const char *text )
+{
+    lua_getglobal(g_mud_LS, "load_luaconfig" );
+    make_CH(g_mud_LS, ch);
+    lua_pushstring( g_mud_LS, text );
+
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0 ) )
+    {
+        ptc (ch, "Error with load_luaconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+        return NULL;
+    }
+}
+
+void do_luaconfig( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_luaconfig");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_luaconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+static int L_dump_prog( lua_State *LS)
+{
+    // 1 is ch
+    // 2 is prog 
+    // 3 is numberlines
+    bool numberlines=lua_toboolean(LS, 3);
+    lua_pop(LS,1);
+
+
+    lua_getglobal( LS, "colorize");
+    lua_insert( LS, -2 );
+    lua_pushvalue(LS,1); //push a copy of ch
+    lua_call( LS, 2, 1 );
+
+    // 1 is ch
+    // 2 is colorized text
+    if (numberlines)
+    {
+        lua_getglobal( LS, "linenumber");
+        lua_insert( LS, -2);
+        lua_call(LS, 1, 1);
+    }
+    page_to_char_new( 
+            luaL_checkstring(LS, 2),
+            check_CH(LS, 1),
+            TRUE);
+
+    return 0;
+}
+
+void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines)
+{
+    lua_pushcfunction( g_mud_LS, L_dump_prog);
+    make_CH(g_mud_LS, ch);
+    lua_pushstring( g_mud_LS, prog);
+    lua_pushboolean( g_mud_LS, numberlines);
+
+    if (CallLuaWithTraceBack( g_mud_LS, 3, 0) )
+    {
+        ptc (ch, "Error with dump_prog:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
 }

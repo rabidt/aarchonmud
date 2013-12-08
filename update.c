@@ -1931,7 +1931,7 @@ void affect_update( CHAR_DATA *ch )
             dam *= 4;
         ch->mana = UMAX(ch->mana - dam, 0);
         ch->move = UMAX(ch->move - dam, 0);
-        deal_damage( ch, ch, dam, gsn_plague, DAM_DISEASE, FALSE, FALSE, FALSE);
+        deal_damage( ch, ch, dam, gsn_plague, DAM_DISEASE, FALSE, FALSE);
         if ( IS_DEAD(ch) )
             return;
     }
@@ -2034,7 +2034,7 @@ void affect_update( CHAR_DATA *ch )
         {
             act( "$n shivers and suffers.", ch, NULL, NULL, TO_ROOM );
             send_to_char( "You shiver and suffer.\n\r", ch );
-            deal_damage(ch,ch,poison->level/10 + 1,gsn_poison, DAM_POISON,FALSE,FALSE,FALSE);
+            deal_damage(ch,ch,poison->level/10 + 1,gsn_poison, DAM_POISON,FALSE,FALSE);
         }
     }
 
