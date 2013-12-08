@@ -155,7 +155,7 @@ void  check_reset_stance args( ( CHAR_DATA *ch) );
 void  stance_hit    args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 bool is_normal_hit( int dt );
 bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
-bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
+bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
 bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -555,7 +555,7 @@ void special_affect_update(CHAR_DATA *ch)
     {
         int damage = number_range (5, 25) + ch->level*3/2;
         send_to_char( "Your festering wound oozes blood.\n\r", ch );
-        deal_damage( ch, ch, damage, gsn_infectious_arrow, DAM_DISEASE, TRUE, FALSE, FALSE );
+        deal_damage( ch, ch, damage, gsn_infectious_arrow, DAM_DISEASE, TRUE, FALSE );
     }
 
     /* Rupture - DOT - Damage over time */
@@ -563,7 +563,7 @@ void special_affect_update(CHAR_DATA *ch)
     {
         int damage = number_range (5, 25) + ch->level*3/2;
         send_to_char( "Your ruptured wound oozes blood.\n\r", ch );
-        deal_damage( ch, ch, damage, gsn_rupture, DAM_PIERCE, TRUE, FALSE, FALSE );
+        deal_damage( ch, ch, damage, gsn_rupture, DAM_PIERCE, TRUE, FALSE );
     }
 
     /* Paralysis - DOT - Damage over time - Astark Oct 2012 */
@@ -571,7 +571,7 @@ void special_affect_update(CHAR_DATA *ch)
     {
         int damage = number_range (5, 25) + ch->level*3/2;
         send_to_char( "The paralyzing poison cripples you.\n\r", ch );
-        deal_damage( ch, ch, damage, gsn_paralysis_poison, DAM_POISON, TRUE, FALSE, FALSE );
+        deal_damage( ch, ch, damage, gsn_paralysis_poison, DAM_POISON, TRUE, FALSE );
     }
     
 }
@@ -1273,6 +1273,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1830,6 +1832,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         offence = deduct_move_cost(ch, offence_cost);
     }
     
+    start_combat(ch, victim);
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
         /* Miss. */
@@ -1842,6 +1845,10 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         tail_chain( );
         return FALSE;
     }
+    
+    // Check for parry, dodge, etc. and fade
+    if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+        return FALSE;
         
     if (sn != -1)
 	check_improve( ch, sn, TRUE, 10 );
@@ -2651,7 +2658,7 @@ void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
 bool damage( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
 	     bool show )
 {
-    /* damage reduction */
+    // damage reduction
     if ( dam > 40)
     {
         dam = (2*dam - 80)/3 + 40;
@@ -2667,7 +2674,7 @@ bool damage( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
         }
     }
 
-    return deal_damage( ch, victim, dam, dt, dam_type, show, TRUE, TRUE );
+    return deal_damage( ch, victim, dam, dt, dam_type, show, TRUE );
 }
 
 // if ch is a charmed NPC and leader is present, returns leader, otherwise ch
@@ -2717,10 +2724,10 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
 */
 bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show )
 {
-    return deal_damage(ch, victim, dam, dt, dam_type, show, TRUE, TRUE);
+    return deal_damage(ch, victim, dam, dt, dam_type, show, TRUE);
 }
 
-bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable )
+bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal )
 {
     bool immune;
     char buf[MAX_STRING_LENGTH];
@@ -2730,6 +2737,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( stop_attack(ch, victim) )
         return FALSE;
     
+    if ( is_safe(ch, victim) )
+        return FALSE;
+
     /*
     * Stop up any residual loopholes.
     */
@@ -2744,41 +2754,13 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     
     if ( victim != ch )
     {
-    /*
-    * Certain attacks are forbidden.
-    * Most other attacks are returned.
-        */
-        if ( is_safe( ch, victim ) )
+        
+        check_killer(ch, victim);
+        if ( !start_combat(ch, victim) )
             return FALSE;
         
-        check_killer( ch, victim );
-        
         if ( victim->position > POS_STUNNED )
         {
-            if ( victim->fighting == NULL )
-            {
-                set_fighting( victim, ch );
-		/* trick to make mob peace work properly */
-		if ( victim->fighting == NULL )
-		    return FALSE;
-		/*
-		if ( check_kill_trigger(ch, victim) )
-		    return FALSE;
-		*/
-            }
-	    /* what has timer to do with getting up?
-            if (victim->timer <= 4)
-		set_pos( victim, POS_FIGHTING );
-	    */
-        }
-        
-        if ( victim->position > POS_STUNNED )
-        {
-            if ( ch->fighting == NULL )
-            {
-                set_fighting( ch, victim );
-            }
-            
             if ( IS_NPC(ch)
                 &&   IS_NPC(victim)
                 &&   IS_AFFECTED(victim, AFF_CHARM)
@@ -2791,8 +2773,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 return FALSE;
             }
         }
-        
-        attack_affect_strip(ch, victim);
     
     } /* if ( ch != victim ) */
 
@@ -2840,12 +2820,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 
     immune = FALSE;
     
-    /*
-    * Check for parry, dodge, etc. and fade
-    */
-    if ( avoidable && is_normal_hit(dt) && check_avoid_hit(ch, victim, show) )
-	return FALSE;
-
     /* check imm/res/vuln for single & mixed dam types */
     if ( dam > 0 )
 	if (IS_MIXED_DAMAGE(dam_type))
@@ -4645,13 +4619,19 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
       set_pos( ch, POS_FIGHTING );
 }
 
-void start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
+bool start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
 {
+    attack_affect_strip(ch, victim);
     if ( !ch->fighting )
+    {
         set_fighting(ch, victim);
-    // double check that set_fighting worked in case kill_trigger stopped it
-    if ( ch->fighting && !victim->fighting )
-        set_fighting(victim, ch);
+        // double check that set_fighting worked in case kill_trigger stopped it
+        if ( ch->fighting != victim )
+            return FALSE;
+    }
+    if ( !victim->fighting )
+        set_fighting_new(victim, ch, FALSE);
+    return TRUE;
 }
 
 /*
