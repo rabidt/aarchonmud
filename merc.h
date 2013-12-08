@@ -2201,7 +2201,7 @@ typedef int tattoo_list[MAX_WEAR];
 /* penalty flags */
 #define PLR_PERMIT      (U)
 #define PLR_LOG         (W)
-#define PLR_DENY        (X)
+#define PLR_DENY        (X) // deny command removed 12-8-13. Should be ok to recycle at some point -Astark
 #define PLR_THIEF       (Z)
 #define PLR_KILLER      (aa)
 
