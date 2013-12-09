@@ -458,7 +458,6 @@ DECLARE_DO_FUN( do_up       );
 DECLARE_DO_FUN( do_uppercut );
 DECLARE_DO_FUN( do_value    );
 DECLARE_DO_FUN( do_visible  );
-DECLARE_DO_FUN( do_violate  );
 DECLARE_DO_FUN( do_vlist    );
 DECLARE_DO_FUN( do_vnum     );
 DECLARE_DO_FUN( do_wake     );
