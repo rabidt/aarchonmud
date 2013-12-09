@@ -2637,6 +2637,10 @@ void do_omni( CHAR_DATA *ch, char *argument )
     int immmatch;
     int mortmatch;
     int hptemp;
+    CHAR_DATA       *vch;    int             count;
+    char *          st;
+    char            s[100];
+    char            idle[10];
     
     /*
     * Initalize Variables.
@@ -2653,18 +2657,13 @@ void do_omni( CHAR_DATA *ch, char *argument )
     
     sprintf( buf, " ----Immortals:----\n\r");
     add_buf(output,buf);
-    sprintf( buf, "Name           Level   Wiz     Incog  [ Vnum ]\n\r");
+    sprintf( buf, "Name         Level   Wiz     Incog  [Vnum]\n\r");
     add_buf(output,buf);
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         CHAR_DATA *wch;
         
-	/*
-        if ( d->connected != CON_PLAYING || !can_see( ch, d->character ) )
-            continue;
-	*/
-
         wch = ( d->original != NULL ) ? d->original : d->character;
         
         if ( wch == NULL
@@ -2676,7 +2675,7 @@ void do_omni( CHAR_DATA *ch, char *argument )
         
         immmatch++;
         
-        sprintf( buf, "%-14s %03d     %03d     %03d    [ %05d]\n\r",
+        sprintf( buf, "%-12s %3d     %3d     %3d    [%5d]\n\r",
             wch->name, wch->level, wch->invis_level, wch->incog_level, wch->in_room->vnum);
         add_buf(output,buf);
     }
@@ -2687,7 +2686,7 @@ void do_omni( CHAR_DATA *ch, char *argument )
      */
     sprintf( buf, " \n\r ----Mortals:----\n\r");
     add_buf(output,buf);
-    sprintf( buf, "Name           Race    Class   Position        Lev  %%hps   [  Vnum ]  [Quest]\n\r");
+    sprintf( buf, "Name         State    Position   Lev   %%hps   [Vnum ]  Quest?     Host\n\r");
     add_buf(output,buf);
     hptemp = 0;
     
@@ -2696,11 +2695,6 @@ void do_omni( CHAR_DATA *ch, char *argument )
         CHAR_DATA *wch;
         char const *class;
         
-	/*
-        if ( d->connected != CON_PLAYING || !can_see( ch, d->character ) )
-            continue;
-	*/
-
         wch = ( d->original != NULL ) ? d->original : d->character;
         
         if ( wch == NULL
@@ -2718,20 +2712,79 @@ void do_omni( CHAR_DATA *ch, char *argument )
             hptemp = 100;
         else if (wch->hit < 0)
             hptemp = 0;
-        
+            
+        if ( d->character && can_see( ch, d->character ) )
+        {
+            /* NB: You may need to edit the CON_ values */
+            /* I updated to all current rom CON_ values -Silverhand */
+            switch( d->connected % MAX_CON_STATE)
+            {
+            case CON_PLAYING:              st = "PLAYING ";    break;
+            case CON_GET_NAME:             st = "Get Name";    break;
+            case CON_GET_OLD_PASSWORD:     st = "Passwd  ";    break;
+            case CON_CONFIRM_NEW_NAME:     st = "New Nam ";    break;
+            case CON_GET_NEW_PASSWORD:     st = "New Pwd ";    break;
+            case CON_CONFIRM_NEW_PASSWORD: st = "Con Pwd ";    break;
+            case CON_GET_NEW_RACE:         st = "New Rac ";    break;
+            case CON_GET_NEW_SEX:          st = "New Sex ";    break;
+            case CON_GET_NEW_CLASS:        st = "New Cls ";    break;
+            case CON_GET_ALIGNMENT:        st = "New Aln ";	 break;
+            case CON_DEFAULT_CHOICE:	     st = "Default ";	 break;
+            case CON_GET_CREATION_MODE:	     st = "Cre Mod ";	 break;
+            case CON_ROLL_STATS:	     st = "Roll St ";	 break;
+            case CON_GET_STAT_PRIORITY:	     st = "Sta Pri ";	 break;
+            case CON_NOTE_TO:              st = "Note To ";    break;
+            case CON_NOTE_SUBJECT:         st = "Note Sub";    break;
+            case CON_NOTE_EXPIRE:          st = "Note Exp";    break;
+            case CON_NOTE_TEXT:            st = "Note Txt";    break;
+            case CON_NOTE_FINISH:          st = "Note Fin";    break;
+            case CON_GEN_GROUPS:	     st = " Custom ";	 break;
+            case CON_PICK_WEAPON:	     st = " Weapon ";	 break;
+            case CON_READ_IMOTD:  	     st = " IMOTD  "; 	 break;
+            case CON_BREAK_CONNECT:	     st = "LINKDEAD";	 break;
+            case CON_READ_MOTD:            st = "  MOTD  ";    break;
+	        case CON_GET_COLOUR:	   st = " Colour?";    break;
+            default:                       st = "UNKNOWN!";    break;
+            }
+            count++;
+            
+            /* Format "login" value... */
+            vch = d->original ? d->original : d->character;
+            strftime( s, 100, "%I:%M%p", localtime( &vch->logon ) );
+            
+            if ( vch->timer > 0 )
+                sprintf( idle, "%-4d", vch->timer );
+            else
+                sprintf( idle, "    " );
+            
+            sprintf( buf, "| [%-3d %-8s %7s  %4s]  %-12s   %-30s |\n\r",
+                d->descriptor,
+                st,
+                s,
+                idle,
+                ( d->original ) ? d->original->name
+                : ( d->character )  ? d->character->name
+                : "(None!)",
+                d->host );
+            
+            strcat( buf2, buf );
+            
+        }
+
+            
         class = class_table[wch->class].who_name;
         /* Added an extra  %s for the questing check below - Astark Oct 2012 */
-        sprintf( buf, "%-14s %6s  %3s     %-15s %-2d   %3d%%   [ %6d]    %s\n\r",
+        sprintf( buf, "%-12s %7.7s  %-10s %-3d   %3d%%   [%5d]    %s      %s\n\r",
             wch->name,
-            wch->race < MAX_PC_RACE ? pc_race_table[wch->race].who_name : "     ",
-            class,
+            st,
             capitalize( position_table[wch->position].name) , 
             wch->level,
             hptemp,
             wch->in_room->vnum,
             /* Added to let IMMs see when players are questing. Allows for
                complaint-free copyovers - Astark Oct 2012 */
-            IS_QUESTOR(wch) || IS_QUESTORHARD(wch) ? "Yes" : "No");
+            IS_QUESTOR(wch) || IS_QUESTORHARD(wch) ? "Y" : "N",
+            d->host);
         add_buf(output,buf);
     }
     
@@ -2746,7 +2799,6 @@ void do_omni( CHAR_DATA *ch, char *argument )
     free_buf(output);
     return;
 }
-
 
 void do_as(CHAR_DATA *ch, char *argument)
 {
