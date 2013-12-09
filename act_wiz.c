@@ -689,11 +689,14 @@ void do_goto( CHAR_DATA *ch, char *argument )
     for ( rch = location->people; rch != NULL; rch = rch->next_in_room )
         count++;
     
-    if (!is_room_owner(ch,location) && room_is_private(location) 
-        &&  (count > 1 || get_trust(ch) < MAX_LEVEL))
+    if (ch->level < L2)
     {
-        send_to_char( "That room is private right now.\n\r", ch );
-        return;
+        if (!is_room_owner(ch,location) && room_is_private(location) 
+            &&  (count > 1 || get_trust(ch) < MAX_LEVEL))
+        {
+            send_to_char( "That room is private right now.\n\r", ch );
+            return;
+        }
     }
     
     if ( ch->fighting != NULL )
@@ -728,63 +731,6 @@ void do_goto( CHAR_DATA *ch, char *argument )
     do_look( ch, "auto" );
     return;
 }
-
-void do_violate( CHAR_DATA *ch, char *argument )
-{
-    ROOM_INDEX_DATA *location;
-    CHAR_DATA *rch;
-    
-    if ( argument[0] == '\0' )
-    {
-        send_to_char( "Goto where?\n\r", ch );
-        return;
-    }
-    
-    if ( ( location = find_location( ch, argument ) ) == NULL )
-    {
-        send_to_char( "No such location.\n\r", ch );
-        return;
-    }
-    
-    if (!room_is_private( location ))
-    {
-        send_to_char( "That room isn't private, use goto.\n\r", ch );
-        return;
-    }
-    
-    if ( ch->fighting != NULL )
-        stop_fighting( ch, TRUE );
-    
-    for (rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room)
-    {
-        if (get_trust(rch) >= ch->invis_level)
-        {
-            if (ch->pcdata != NULL && ch->pcdata->bamfout[0] != '\0')
-                act("$t",ch,ch->pcdata->bamfout,rch,TO_VICT);
-            else
-                act("$n leaves in a swirling mist.",ch,NULL,rch,TO_VICT);
-        }
-    }
-    
-    char_from_room( ch );
-    char_to_room( ch, location );
-    
-    
-    for (rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room)
-    {
-        if (get_trust(rch) >= ch->invis_level)
-        {
-            if (ch->pcdata != NULL && ch->pcdata->bamfin[0] != '\0')
-                act("$t",ch,ch->pcdata->bamfin,rch,TO_VICT);
-            else
-                act("$n appears in a swirling mist.",ch,NULL,rch,TO_VICT);
-        }
-    }
-    
-    do_look( ch, "auto" );
-    return;
-}
-
 
 void do_copyove( CHAR_DATA *ch, char *argument )
 {
