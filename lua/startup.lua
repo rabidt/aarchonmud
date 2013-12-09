@@ -493,9 +493,9 @@ function do_scriptdump( ch, argument )
     end
 
     if not(args[3]=="false") then
-        pagetochar( ch, linenumber(colorize(GetScript( args[1], args[2] ), ch)), true )
+        pagetochar( ch, linenumber(colorize(GetScript( args[1], args[2] ), ch)).."\n\r", true )
     else
-        pagetochar( ch, colorize(GetScript( args[1], args[2] )), true )
+        pagetochar( ch, colorize(GetScript( args[1], args[2] )).."\n\r", true )
     end
 
 end
