@@ -417,7 +417,6 @@ DECLARE_DO_FUN( do_socials  );
 DECLARE_DO_FUN( do_south    );
 DECLARE_DO_FUN( do_southeast);
 DECLARE_DO_FUN( do_southwest);
-DECLARE_DO_FUN( do_sockets  );
 DECLARE_DO_FUN( do_spells   );
 DECLARE_DO_FUN( do_spellup  );
 DECLARE_DO_FUN( do_split    );
