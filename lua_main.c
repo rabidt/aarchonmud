@@ -880,6 +880,8 @@ static int L_dump_prog( lua_State *LS)
         lua_insert( LS, -2);
         lua_call(LS, 1, 1);
     }
+    lua_pushstring(LS, "\n\r");
+    lua_concat( LS, 2);
     page_to_char_new( 
             luaL_checkstring(LS, 2),
             check_CH(LS, 1),
