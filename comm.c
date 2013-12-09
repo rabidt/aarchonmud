@@ -1743,7 +1743,28 @@ void bust_a_prompt( CHAR_DATA *ch )
  */
 void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
 {
-    txt = ProtocolOutput( d, txt, &length );
+    write_to_buffer_new( d, txt, length, FALSE );
+}
+
+void write_to_buffer_new( DESCRIPTOR_DATA *d, const char *txt, int length, bool raw )
+{
+    if ( raw || ( d->character && IS_SET( d->character->act, PLR_COLOUR_VERBATIM) ) )
+    {
+        char *tmp=txt;
+        while (*tmp != '\0')
+        {
+            if (*tmp == '\t' && *(tmp+1) != '\t')
+            {
+                *tmp='~';
+                tmp++; //skip the next char
+            }
+            tmp++;
+        }
+    }
+    else
+    {
+        txt = ProtocolOutput( d, txt, &length );
+    }
     if ( d->pProtocol==NULL )
         bugf("pProtocl null");
     if ( d->pProtocol->WriteOOB > 0 )
