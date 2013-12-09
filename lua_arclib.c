@@ -1354,6 +1354,7 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
             
             free_string( luaval->val );
             luaval->val=str_dup( val );
+            smash_tilde(luaval->val);
             luaval->type = type;
             luaval->persist= persist;
             return 0;
@@ -1371,6 +1372,7 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
             str_dup( name ), 
             str_dup( val ),
             persist );
+    smash_tilde(luaval->val);
     luaval->next = *luavals;
     *luavals     = luaval;
     return 0;
