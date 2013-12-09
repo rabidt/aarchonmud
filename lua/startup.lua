@@ -109,12 +109,19 @@ end
 
 function linenumber( text )
     local cnt=1
-    rtn={}
-    for line in string.gmatch( text, "(.-\n\r?)") do
-        rtn[cnt]=string.format("%3d. %s", cnt, line)
-        cnt=cnt+1
-    end
+    local rtn={}
+    table.insert(rtn, string.format("%3d. ", cnt))
+    cnt=cnt+1
 
+    for i=1,#text do
+        local char=text:sub(i,i)
+        table.insert(rtn, char)
+        if char == '\n' then
+            table.insert(rtn, string.format("%3d. ", cnt))
+            cnt=cnt+1
+        end
+    end
+            
     return table.concat(rtn)
 end
 
@@ -488,7 +495,7 @@ function do_scriptdump( ch, argument )
     if not(args[3]=="false") then
         pagetochar( ch, linenumber(colorize(GetScript( args[1], args[2] ), ch)), true )
     else
-        pagetochar( ch, GetScript( args[1], args[2] ), true )
+        pagetochar( ch, colorize(GetScript( args[1], args[2] )), true )
     end
 
 end
@@ -736,10 +743,12 @@ function colorize( text, ch )
             table.insert(rtn, "\t"..(config["comment"] or 'c').."--")
             i=i+1
             waitfor='\n'
+        elseif char=='\t' then
+            table.insert(rtn, "    ")
         -- Operators
         elseif char=='[' or char==']'
             or char=='(' or char==')'
-            or char=='='
+            or char=='=' or char=='%'
             or char=='<' or char=='>'
             or char=='{' or char=='}'
             or char=='/' or char=='*'
@@ -750,8 +759,8 @@ function colorize( text, ch )
             table.insert(rtn, "\t"..(config["operator"] or 'G')..char.."\tn")
         -- Words
         elseif string.find(char, "%a") then
-            local start,finish,word=string.find(text,"(%a[%w_%.]*)[^%w_%.]",i)
-            i=finish-1
+            local start,finish,word=string.find(text,"(%a[%w_%.]*)",i)
+            i=finish
             if word=="function" then
                 table.insert(funtrack,1,nestlevel)
                 nestlevel=nestlevel+1
@@ -770,7 +779,6 @@ function colorize( text, ch )
                 end
             -- boolean
             elseif word=="true" or word=="false" then
-                --sendtochar( ch,"config.boolean "..config["boolean"])
                 table.insert(rtn, "\t"..(config["boolean"] or 'r')..word.."\tn")
             -- 'keywords'
             elseif word=="and" or word=="in" or word=="repeat"
