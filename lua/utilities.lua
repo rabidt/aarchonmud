@@ -9,6 +9,10 @@
 --         HELPER FUNCTIONS
 -- -----------------------------------------------------------------------------
 
+local P={}
+setmetatable(P, {__index = _G})
+setfenv(1, P)
+
 -- trim leading and trailing spaces from a string
 function trim (s)
   return (string.gsub (s, "^%s*(.-)%s*$", "%1"))
@@ -16,7 +20,7 @@ end -- trim
 
 -- round "up" to absolute value, so we treat negative differently
 --  that is, round (-1.5) will return -2
-function round (x)
+local function round (x)
   if x >= 0 then
     return math.floor (x + 0.5)
   end  -- if positive
@@ -24,7 +28,7 @@ function round (x)
   return math.ceil (x - 0.5)
 end -- function round
 
-function convert_time_helper (secs)
+local function convert_time_helper (secs)
 
   -- handle negative numbers
   local sign = ""
@@ -57,8 +61,12 @@ function convert_time_helper (secs)
   return sign .. round (secs), "s"    
 end -- function convert_time_helper
 
+local convert_time_long
 -- eg. 4m
-function convert_time (secs)
+function convert_time (secs, long)
+  if long==true then
+    return convert_time_long(secs)
+  end
   local n, u = convert_time_helper (secs)
   return n .. " " .. u 
 end -- function convert_time
@@ -72,7 +80,7 @@ time_units = {
   }
   
 -- eg. 4 minutes
-function convert_time_long (secs)
+convert_time_long = function (secs)
   local n, u = convert_time_helper (secs)
   local long_units = time_units [u]
   local s = ""
@@ -86,37 +94,63 @@ function capitalize (s)
   return string.upper (string.sub (s, 1, 1)) .. string.sub (s, 2)
 end -- capitalize 
 
--- substitutions in descriptions
-function fix_description (s, a1, a2, a3, a4, a5, a6, a7, a8, a9)
-  local t = {
-    ["$n"] = mud.char_name (),   -- $n = name
-    ["$c"] = string.lower (mud.class ()),  -- $c = class
-    ["$r"] = string.lower (mud.race ()),   -- $r = race
-    
-    -- some way to include a $ symbol
-    ["$$"] = "$",
-    
-    -- argument substitution
-    ["$1"] = a1 or "$1",
-    ["$2"] = a2 or "$2",
-    ["$3"] = a3 or "$3",
-    ["$4"] = a4 or "$4",
-    ["$5"] = a5 or "$5",
-    ["$6"] = a6 or "$6",
-    ["$7"] = a7 or "$7",
-    ["$8"] = a8 or "$8",
-    ["$9"] = a9 or "$9",
-    }
-    
-  return (string.gsub (s, "$[%a%d$]", t))
-end -- fix_description
+-- Pluralize
 
-function heading (title, colour)
-  local hyphens = math.floor ((76 - #title) / 2)
-  send (colour or "&Y", ("-"):rep (hyphens), " ", title, " ", ("-"):rep (hyphens))
-end -- heading
+-- Standard rules.
+local rule1 = 
+{
+    ['Note'] = 'Singular noun ending in a sibilant, needing es.',
+    ['EndsWith'] = { 's', 'sh', 'tch', 'se', 'ge', 'x' },
+    ['Plural'] = 'es',
+    ['Drop'] = 'e'
+}
 
--- a line of hyphens
-function hyphens ()
-  send (("-"):rep (79))
-end -- hyphens
+local rule2 =
+{
+    ['Note'] = 'Nouns ending in o preceded by a consonant, need es. Exceptions apply.',
+    ['EndsWith'] = { '[^aeiou]o' }, 
+    ['Plural'] = 'es',
+    ['Drop'] = ''
+}
+
+local rule3 =
+{
+    ['Note'] = 'Nouns ending in y preceded by a consonant or quy replace y with ies.',
+    ['EndsWith'] = { '[^aeiou]y', 'quy' },
+    ['Plural'] = 'ies',
+    ['Drop'] = 'y'
+}
+
+local ruleSet = { rule1, rule2, rule3 }
+
+-- Produces a string with proper pluralization. Doesn't account
+-- for a lot of exceptional words, so an optional override can
+-- be provided.
+-- (int) count: The number of items to determine if plural or not.
+-- (string) noun: The item word to pluralize.
+-- [string] override: Optional override word to use for plurals.
+function pluralize(count, noun, override)
+    if count == 1 then
+        return count .. " " .. noun
+    else
+        -- Done if we have an override.
+        if not (override == nil) then
+            return string.format("%d %s", count, override)
+        end
+
+        -- Check against rules.
+        for _,ruleSet in ipairs(ruleSet) do
+            for _,endsWith in ipairs(ruleSet.EndsWith) do
+                if not (string.match(noun, endsWith .. "$") == nil) then
+                    return string.format("%d %s%s", count, string.gsub(noun, ruleSet.Drop .. "$", ''), ruleSet.Plural)
+                end
+            end
+        end
+
+        -- If we get here we didn't match and existing rule. Just add s.
+        return string.format("%d %ss", count, noun)
+    end
+end
+
+
+return P

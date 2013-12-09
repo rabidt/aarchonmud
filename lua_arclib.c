@@ -337,6 +337,59 @@ static OBJ_TYPE *new_obj_type(
 }
 
 /* global section */
+static int utillib_func (lua_State *LS, const char *funcname)
+{
+    int narg=lua_gettop(LS);
+    lua_getglobal( LS, "util");
+    lua_getfield( LS, -1, funcname);
+    lua_remove( LS, -2 );
+    lua_insert( LS, 1 );
+    lua_call( LS, narg, LUA_MULTRET );
+
+    return lua_gettop(LS);
+}
+
+static int utillib_trim (lua_State *LS )
+{
+    return utillib_func( LS, "trim");
+}
+HELPTOPIC utillib_trim_help = 
+{
+    .summary="Trim leading and trailing spaces from a string."
+};
+
+static int utillib_convert_time (lua_State *LS )
+{
+    return utillib_func( LS, "convert_time");
+}
+HELPTOPIC utillib_convert_time_help =
+{
+    .summary="Convert # of secs to string value.",
+    .info = "Arguments: secs <, long[boolean]\n\r\n\r"
+          "Return: [string]\n\r\n\r"
+          "Example:\n\r"
+          "util.convert_time(12345)\n\r\n\r"
+          "Note:\n\r"
+          "If optional second argument is true then long format is returned."
+};
+
+static int utillib_capitalize( lua_State *LS )
+{
+    return utillib_func( LS, "capitalize");
+}
+HELPTOPIC utillib_capitalize_help =
+{
+    .summary="Return argument string with 1st letter capitalized."
+};
+
+static int utillib_pluralize( lua_State *LS )
+{
+    return utillib_func( LS, "pluralize");
+}
+HELPTOPIC utillib_pluralize_help =
+{
+};
+
 static int godlib_bless (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
@@ -1061,6 +1114,8 @@ typedef struct glob_type
 #define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, & lib ## lib_ ## fun ## _help, STS_ACTIVE}
 #define GODF( fun ) LFUN( god, fun, 9 )
 #define DBGF( fun ) LFUN( dbg, fun, 9 )
+#define UTILF( fun ) LFUN( util, fun, 0)
+
 GLOB_TYPE glob_table[] =
 {
     GFUN(hour,          0),
@@ -1096,6 +1151,11 @@ GLOB_TYPE glob_table[] =
     GODF(haunt),
     GODF(cleanse),
     GODF(defy),
+
+    UTILF(trim),
+    UTILF(convert_time),
+    UTILF(capitalize),
+    UTILF(pluralize),
     
     DBGF(show),
 
