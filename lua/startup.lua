@@ -2,7 +2,7 @@ package.path = mud.luadir() .. "?.lua"
 
 glob_tprintstr=require "tprint"
 require "serialize"
-require "utilities"
+util=require "utilities"
 require "leaderboard"
 
 udtbl={} -- used to store game object tables, (read only proxies to origtbl)
