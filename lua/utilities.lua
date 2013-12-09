@@ -152,5 +152,38 @@ function pluralize(count, noun, override)
     end
 end
 
+local function unpackArgs(items)
+  if items == nil then
+    return {}
+  end
+  local result = {}
+  for i,v in pairs(items) do
+    if type(v) == "table" then
+      local unpacked = unpackArgs(v)
+      for i2,v2 in pairs(unpacked) do
+        table.insert(result, v2)
+      end
+    elseif not (v == nil) then
+      table.insert(result, v)
+    end
+  end
+
+  return result
+end
+
+function format_list(separator, ...)
+  arg.n = nil
+  items = unpackArgs(arg)
+  string = table.concat(items, ", " .. separator .. " ")
+  if #items > 2 then
+    return string.gsub(string, ", "..separator .. " ", ", ", #items-2)
+  elseif #items == 2 then
+    return string.gsub(string, ", ", " ", #items)
+  else
+    return string
+  end
+end
+
+
 
 return P

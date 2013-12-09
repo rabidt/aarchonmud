@@ -390,6 +390,14 @@ HELPTOPIC utillib_pluralize_help =
 {
 };
 
+static int utillib_format_list( lua_State *LS )
+{
+    return utillib_func( LS, "format_list");
+}
+HELPTOPIC utillib_format_list_help =
+{
+};
+
 static int godlib_bless (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
@@ -1156,6 +1164,7 @@ GLOB_TYPE glob_table[] =
     UTILF(convert_time),
     UTILF(capitalize),
     UTILF(pluralize),
+    UTILF(format_list),
     
     DBGF(show),
 
