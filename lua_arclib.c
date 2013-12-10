@@ -2942,12 +2942,21 @@ static int CH_set_level (lua_State *LS)
     int num = (int)luaL_checknumber (LS, 2);
     if ( num < 1 || num > 200 )
         luaL_error( LS, "Invalid level: %d, range is 1 to 200.", num);
+
+    float hppcnt= (float)ud_ch->hit/ud_ch->max_hit;
+    float mppcnt= (float)ud_ch->mana/ud_ch->max_mana;
+    float mvpcnt= (float)ud_ch->move/ud_ch->max_move;
+
     set_mob_level( ud_ch, num );
+
+    ud_ch->hit  = UMAX(1,hppcnt*ud_ch->max_hit);
+    ud_ch->mana = UMAX(0,mppcnt*ud_ch->max_mana);
+    ud_ch->move = UMAX(0,mvpcnt*ud_ch->max_move);
     return 0;
 }
 HELPTOPIC CH_set_level_help = 
 {
-    .summary="NPC only. Range 1-200. Restores mob to full health."
+    .summary="NPC only. Range 1-200. Preserves hp/mana/move ratio."
 };
 
 static int CH_setlevel (lua_State *LS)
