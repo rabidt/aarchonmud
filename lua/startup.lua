@@ -129,7 +129,7 @@ function GetScript(subdir, name)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
-  if string.find(name, "[^a-zA-Z0-9_]") then
+  if string.find(name, "[^a-zA-Z0-9_/]") then
     error("Invalid character in name.")
   end
 
