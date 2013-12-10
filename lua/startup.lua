@@ -450,29 +450,6 @@ function run_lua_interpret(env, str )
     return 0
 end
 
-function wait_lua_interpret(env, str)
-    interptbl[env.udid].buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
-
-    table.insert(interptbl[env.udid].buff, str)
-    return 0
-end
-
-function go_lua_interpret(env, str)
-    local buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
-
-    if #buff>0 then
-        interptbl[env.udid].buff=nil
-        local f,err= loadstring(table.concat(buff,"\n"))
-        if not(f) then
-            error(err)
-        end
-
-        setfenv(f, env)
-        f()
-    end
-    return 0
-end
-
 local function scriptdumpusage( ch )
     sendtochar(ch, [[
 scriptdump <userdir> <scriptname> [true|false]
