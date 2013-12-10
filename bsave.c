@@ -29,18 +29,12 @@
    changed to buffered save by Henning Koehler (aka Bobble)
 */
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#endif
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#if !defined(unix)
 #include <malloc.h>
-#endif
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -51,9 +45,7 @@
 #include "religion.h"
 #include "lua_arclib.h"
 
-#if !defined(macintosh)
 extern  int     _filbuf         args( (FILE *) );
-#endif
 
 int fingertime;
 /*int rename(const char *oldfname, const char *newfname);*/
@@ -3035,8 +3027,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
         else if (IS_IMMORTAL(ch))
             sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
-            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
-        
+            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );       
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
         else
@@ -3108,13 +3099,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
         }
     }
 	
-    /* Date Created */
-    sprintf(buf, "{D|{x Date Created: %s   ",
-	    time_format(wch->id, custombuf));
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
@@ -3129,6 +3113,13 @@ void do_finger(CHAR_DATA *ch, char *argument)
             add_buf( output, buf );
         }
     }
+
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     
     if (wch->level <= LEVEL_HERO)

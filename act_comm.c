@@ -25,14 +25,8 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#if !defined (WIN32)
 #include <sys/time.h>
-#endif
-#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -40,7 +34,6 @@
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
-#include "signal.h"
 #include "special.h"
 
 /* command procedures needed */
