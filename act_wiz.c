@@ -25,11 +25,7 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#endif
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
@@ -41,10 +37,9 @@
 #include "magic.h"
 #include "simsave.h"
 #include "buffer_util.h"
-#if defined(linux)
+
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
-#endif
 
 
 
@@ -3086,16 +3081,6 @@ void do_pload( CHAR_DATA *ch, char *argument )
         act("$n appears in the room.",d.character->pet,NULL,NULL,TO_ROOM);
     }
     
-#if defined(USE_MOUNT)
-    if (d.character->mount != NULL)
-    {
-        char_to_room(d.character->mount,d.character->in_room);
-        act("$n has left reality behind once more!",d.character->mount,NULL,NULL,TO_ROOM);
-        add_follower(d.character->mount,d.character);
-        do_mount(d.character, d.character->mount->name);
-    }
-
-#endif
 } /* end do_pload */
 
 

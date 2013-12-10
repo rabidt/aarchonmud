@@ -19,11 +19,7 @@
 
 /* This version ported to ROM 2.4b4/Ivan's OLC 1.6 by Brian Castle */
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#endif
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
