@@ -195,6 +195,7 @@ static int newindex_metamethod( lua_State *LS )
 {
     OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
     const char *arg=check_string( LS, 2, MIL );
+    lua_remove(LS, 2);
 
     LUA_PROP_TYPE *set=obj->set_table;
 
@@ -203,12 +204,11 @@ static int newindex_metamethod( lua_State *LS )
     {
         if ( !strcmp(set[i].field, arg) )
         {
-            void *gobj=obj->check(obj, LS, 1 ); 
+            obj->check(obj, LS, 1 ); 
             if ( set[i].func )
             {
                 lua_pushcfunction( LS, set[i].func );
-                lua_pushvalue( LS, 1);
-                lua_pushvalue( LS, 3);
+                lua_insert( LS, 1 );
                 lua_call(LS, 2, 0);
                 return 0;
             }
