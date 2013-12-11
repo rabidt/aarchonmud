@@ -2,7 +2,7 @@ package.path = mud.luadir() .. "?.lua"
 
 glob_tprintstr=require "tprint"
 require "serialize"
-require "utilities"
+util=require "utilities"
 require "leaderboard"
 
 udtbl={} -- used to store game object tables, (read only proxies to origtbl)
@@ -109,12 +109,19 @@ end
 
 function linenumber( text )
     local cnt=1
-    rtn={}
-    for line in string.gmatch( text, "(.-\n\r?)") do
-        rtn[cnt]=string.format("%3d. %s", cnt, line)
-        cnt=cnt+1
-    end
+    local rtn={}
+    table.insert(rtn, string.format("%3d. ", cnt))
+    cnt=cnt+1
 
+    for i=1,#text do
+        local char=text:sub(i,i)
+        table.insert(rtn, char)
+        if char == '\n' then
+            table.insert(rtn, string.format("%3d. ", cnt))
+            cnt=cnt+1
+        end
+    end
+            
     return table.concat(rtn)
 end
 
@@ -122,7 +129,7 @@ function GetScript(subdir, name)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
-  if string.find(name, "[^a-zA-Z0-9_]") then
+  if string.find(name, "[^a-zA-Z0-9_/]") then
     error("Invalid character in name.")
   end
 
@@ -443,29 +450,6 @@ function run_lua_interpret(env, str )
     return 0
 end
 
-function wait_lua_interpret(env, str)
-    interptbl[env.udid].buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
-
-    table.insert(interptbl[env.udid].buff, str)
-    return 0
-end
-
-function go_lua_interpret(env, str)
-    local buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
-
-    if #buff>0 then
-        interptbl[env.udid].buff=nil
-        local f,err= loadstring(table.concat(buff,"\n"))
-        if not(f) then
-            error(err)
-        end
-
-        setfenv(f, env)
-        f()
-    end
-    return 0
-end
-
 local function scriptdumpusage( ch )
     sendtochar(ch, [[
 scriptdump <userdir> <scriptname> [true|false]
@@ -486,9 +470,9 @@ function do_scriptdump( ch, argument )
     end
 
     if not(args[3]=="false") then
-        pagetochar( ch, linenumber(colorize(GetScript( args[1], args[2] ), ch)), true )
+        pagetochar( ch, linenumber(colorize(GetScript( args[1], args[2] ), ch)).."\n\r", true )
     else
-        pagetochar( ch, GetScript( args[1], args[2] ), true )
+        pagetochar( ch, colorize(GetScript( args[1], args[2] )).."\n\r", true )
     end
 
 end
@@ -736,10 +720,12 @@ function colorize( text, ch )
             table.insert(rtn, "\t"..(config["comment"] or 'c').."--")
             i=i+1
             waitfor='\n'
+        elseif char=='\t' then
+            table.insert(rtn, "    ")
         -- Operators
         elseif char=='[' or char==']'
             or char=='(' or char==')'
-            or char=='='
+            or char=='=' or char=='%'
             or char=='<' or char=='>'
             or char=='{' or char=='}'
             or char=='/' or char=='*'
@@ -750,8 +736,8 @@ function colorize( text, ch )
             table.insert(rtn, "\t"..(config["operator"] or 'G')..char.."\tn")
         -- Words
         elseif string.find(char, "%a") then
-            local start,finish,word=string.find(text,"(%a[%w_%.]*)[^%w_%.]",i)
-            i=finish-1
+            local start,finish,word=string.find(text,"(%a[%w_%.]*)",i)
+            i=finish
             if word=="function" then
                 table.insert(funtrack,1,nestlevel)
                 nestlevel=nestlevel+1
@@ -770,7 +756,6 @@ function colorize( text, ch )
                 end
             -- boolean
             elseif word=="true" or word=="false" then
-                --sendtochar( ch,"config.boolean "..config["boolean"])
                 table.insert(rtn, "\t"..(config["boolean"] or 'r')..word.."\tn")
             -- 'keywords'
             elseif word=="and" or word=="in" or word=="repeat"

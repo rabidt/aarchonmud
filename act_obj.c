@@ -2348,6 +2348,12 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
 
     one_argument( argument, arg );
 
+    if (IS_REMORT(ch))
+    {
+        send_to_char("Not in remort, chucklehead.\n\r",ch);
+        return;
+    }
+
     if ( (god_name = get_god_name(ch)) == NULL )
     {
         god_name = clan_table[ch->clan].patron;
