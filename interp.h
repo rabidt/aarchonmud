@@ -578,7 +578,6 @@ DECLARE_DO_FUN( do_lagfree);
 DECLARE_DO_FUN( do_cmotd);
 DECLARE_DO_FUN( do_smith);
 DECLARE_DO_FUN( do_pgrep);
-DECLARE_DO_FUN( do_void);
 DECLARE_DO_FUN( do_mprun);
 DECLARE_DO_FUN( do_aprun);
 DECLARE_DO_FUN( do_oprun);
