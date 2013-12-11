@@ -134,14 +134,8 @@ typedef struct  room_index_data  ROOM_INDEX_DATA;
 typedef struct  shop_data        SHOP_DATA;
 typedef struct  time_info_data   TIME_INFO_DATA;
 typedef struct  weather_data     WEATHER_DATA;
-typedef struct  mprog_list       MPROG_LIST;
-typedef struct  mprog_code       MPROG_CODE;
-typedef struct  oprog_code       OPROG_CODE;
-typedef struct  oprog_list       OPROG_LIST;
-typedef struct  aprog_code       APROG_CODE;
-typedef struct  aprog_list       APROG_LIST;
-typedef struct  rprog_code       RPROG_CODE;
-typedef struct  rprog_list       RPROG_LIST;
+typedef struct  prog_list        PROG_LIST;
+typedef struct  prog_code        PROG_CODE;
 typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
@@ -2363,7 +2357,7 @@ struct  mob_index_data_old
 	MOB_INDEX_DATA_OLD *    next;
 	SPEC_FUN *      spec_fun;
 	SHOP_DATA *     pShop;
-	MPROG_LIST *        mprogs;
+	PROG_LIST *        mprogs;
 	AREA_DATA *     area;       /* OLC */
 	int      vnum;
 	sh_int      group;
@@ -2410,7 +2404,7 @@ struct  mob_index_data
     MOB_INDEX_DATA* next;
     SPEC_FUN*   spec_fun;
     SHOP_DATA*  pShop;
-    MPROG_LIST* mprogs;
+    PROG_LIST* mprogs;
     AREA_DATA*  area;
     int         vnum;
     sh_int      group;
@@ -2858,10 +2852,10 @@ struct  obj_index_data
 	sh_int      durability;
 	sh_int	    clan;
 	sh_int	    rank;
-        int         combine_vnum;
-        sh_int      diff_rating; /* difficulty to get object */
-        OPROG_LIST *oprogs;
-        tflag   oprog_flags;
+    int         combine_vnum;
+    sh_int      diff_rating; /* difficulty to get object */
+    PROG_LIST *oprogs;
+    tflag   oprog_flags;
 };
 
 
@@ -2987,7 +2981,7 @@ struct  area_data
         int      maxlevel;
         int      miniquests;
 
-    APROG_LIST *aprogs;
+    PROG_LIST *aprogs;
     tflag   aprog_flags;
 
     TIMER_NODE *atrig_timer; /* should not be touched except in timer.c */
@@ -3019,7 +3013,7 @@ struct  room_index_data
     sh_int      clan;
     sh_int      clan_rank;
 
-    RPROG_LIST *rprogs;
+    PROG_LIST *rprogs;
     tflag rprog_flags;
 
     TIMER_NODE *rtrig_timer; /* should not be touched except in timer.c */
@@ -3205,82 +3199,25 @@ struct  mastery_group_type
 #define RTRIG_EXIT  (I)
 #define RTRIG_LOOK  (J)
 
-struct mprog_list
+struct prog_list
 {
 	int         trig_type;
 	char *      trig_phrase;
-	MPROG_LIST *    next;
+	PROG_LIST *    next;
     int vnum;
-    MPROG_CODE *    script;
+    PROG_CODE *    script;
 	bool        valid;
 };
 
-struct mprog_code
+struct prog_code
 {
     bool        is_lua;
 	int         vnum;
 	char *      code;
     int         security;
-	MPROG_CODE *    next;
+	PROG_CODE *    next;
 };
 
-struct oprog_list
-{
-    int         trig_type;
-    char *      trig_phrase;
-    int         vnum;
-    OPROG_CODE *    script;
-    OPROG_LIST *    next;
-    bool        valid;
-};
-
-struct oprog_code
-{
-    /* always lua */
-    int     vnum;
-    int     security;
-    char    * code;
-    OPROG_CODE *    next;
-};
-
-struct aprog_list
-{
-    int         trig_type;
-    char *      trig_phrase;
-    int         vnum;
-    APROG_CODE *    script;
-    APROG_LIST *    next;
-    bool        valid;
-};
-
-struct aprog_code
-{
-    /* always lua */
-    int     vnum;
-    int     security;
-    char    * code;
-    APROG_CODE *    next;
-};
-
-
-struct rprog_list
-{
-    int trig_type;
-    char * trig_phrase;
-    int vnum;
-    RPROG_CODE * script;
-    RPROG_LIST * next;
-    bool valid;
-};
-
-struct rprog_code
-{
-    /* always lua */
-    int vnum;
-    int security;
-    char * code;
-    RPROG_CODE * next;
-};
 
 extern sh_int race_werewolf;
 extern sh_int race_naga;
@@ -4052,10 +3989,10 @@ extern      CHAR_DATA     * char_list;
 extern      DESCRIPTOR_DATA   * descriptor_list;
 extern      OBJ_DATA      * object_list;
 
-extern      MPROG_CODE    * mprog_list;
-extern      OPROG_CODE    * oprog_list;
-extern      APROG_CODE    * aprog_list;
-extern      RPROG_CODE    * rprog_list;
+extern      PROG_CODE    * mprog_list;
+extern      PROG_CODE    * oprog_list;
+extern      PROG_CODE    * aprog_list;
+extern      PROG_CODE    * rprog_list;
 
 extern      char            bug_buf     [];
 extern      time_t          current_time;
@@ -4267,10 +4204,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define RID ROOM_INDEX_DATA
 #define SF  SPEC_FUN
 #define AD  AFFECT_DATA
-#define MPC MPROG_CODE
-#define OPC OPROG_CODE
-#define APC APROG_CODE
-#define RPC RPROG_CODE
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
