@@ -195,6 +195,7 @@ static int newindex_metamethod( lua_State *LS )
 {
     OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
     const char *arg=check_string( LS, 2, MIL );
+    lua_remove(LS, 2);
 
     LUA_PROP_TYPE *set=obj->set_table;
 
@@ -203,12 +204,11 @@ static int newindex_metamethod( lua_State *LS )
     {
         if ( !strcmp(set[i].field, arg) )
         {
-            void *gobj=obj->check(obj, LS, 1 ); 
+            obj->check(obj, LS, 1 ); 
             if ( set[i].func )
             {
                 lua_pushcfunction( LS, set[i].func );
-                lua_pushvalue( LS, 1);
-                lua_pushvalue( LS, 3);
+                lua_insert( LS, 1 );
                 lua_call(LS, 2, 0);
                 return 0;
             }
@@ -2883,6 +2883,52 @@ static int CH_cancel (lua_State *LS)
 }
 HELPTOPIC CH_cancel_help = {};
 
+static int CH_get_hitroll (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            GET_HITROLL( check_CH( LS, 1 ) ) );
+    return 1;
+}
+HELPTOPIC CH_get_hitroll_help = {};
+
+static int CH_set_hitroll (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set hitroll on PCs.");
+
+    /* analogous to mob_base_hitroll */
+    ud_ch->hitroll= ud_ch->level * luaL_checkinteger( LS, 2 ) / 100 ; 
+    return 0;
+}
+HELPTOPIC CH_set_hitroll_help = 
+{
+    .summary="NPC only. Sets mob hitroll percentage."
+};
+
+static int CH_get_damroll (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            GET_DAMROLL( check_CH( LS, 1 ) ) );
+    return 1;
+}
+HELPTOPIC CH_get_damroll_help = {};
+
+static int CH_set_damroll (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set damroll on PCs.");
+
+    /* analogous to mob_base_damroll */
+    ud_ch->damroll= ud_ch->level * luaL_checkinteger( LS, 2 ) / 100 ;
+    return 0;
+}
+HELPTOPIC CH_set_damroll_help =
+{
+    .summary="NPC only. Sets mob damroll percentage."
+};
+
 static int CH_get_hp (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2942,12 +2988,21 @@ static int CH_set_level (lua_State *LS)
     int num = (int)luaL_checknumber (LS, 2);
     if ( num < 1 || num > 200 )
         luaL_error( LS, "Invalid level: %d, range is 1 to 200.", num);
+
+    float hppcnt= (float)ud_ch->hit/ud_ch->max_hit;
+    float mppcnt= (float)ud_ch->mana/ud_ch->max_mana;
+    float mvpcnt= (float)ud_ch->move/ud_ch->max_move;
+
     set_mob_level( ud_ch, num );
+
+    ud_ch->hit  = UMAX(1,hppcnt*ud_ch->max_hit);
+    ud_ch->mana = UMAX(0,mppcnt*ud_ch->max_mana);
+    ud_ch->move = UMAX(0,mvpcnt*ud_ch->max_move);
     return 0;
 }
 HELPTOPIC CH_set_level_help = 
 {
-    .summary="NPC only. Range 1-200. Restores mob to full health."
+    .summary="NPC only. Range 1-200. Preserves hp/mana/move ratio."
 };
 
 static int CH_setlevel (lua_State *LS)
@@ -3617,6 +3672,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(wis, 0),
     CHGET(dis, 0),
     CHGET(cha, 0),
+    CHGET(hitroll, 0),
+    CHGET(damroll, 0),
     CHGET(luc, 0),
     CHGET(clan, 0),
     CHGET(class, 0),
@@ -3672,6 +3729,8 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(dis, 9),
     CHSET(cha, 9),
     CHSET(luc, 9),
+    CHSET(hitroll, 9),
+    CHSET(damroll, 9),
     CHSET(race, 9),
     CHSET(shortdescr, 9),
     CHSET(longdescr, 9),

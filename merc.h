@@ -803,7 +803,6 @@ struct  descriptor_data
     struct
     {
         bool interpret; /* Whether in lua interpreter mode */
-        bool wait; /* whether in WAIT mode for multiline chunks*/
         bool incmpl;/* whether incomplete was detected */
     } lua;
 
