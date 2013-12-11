@@ -179,12 +179,9 @@ void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic )
 
 bool op_hit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage)
 {
-    if ( !HAS_OTRIG( obj, OTRIG_HIT) )
-        return TRUE;
-
     char damstr[MSL];
     sprintf( damstr, "%d", damage);
-    return op_percent_trigger(NULL, NULL, obj, ch, vic, OTRIG_HIT);
+    return op_percent_trigger(NULL, obj, NULL, ch, vic, OTRIG_HIT);
 }
 
 void op_timer_trigger( OBJ_DATA *obj )
