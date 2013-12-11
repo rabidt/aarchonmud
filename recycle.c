@@ -155,7 +155,6 @@ DESCRIPTOR_DATA *new_descriptor(void)
 
     d->lua.interpret=FALSE;
     d->lua.incmpl=FALSE;
-    d->lua.wait=FALSE;
 
 #ifdef LAG_FREE
     d->lag_free=FALSE;

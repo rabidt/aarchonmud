@@ -1494,34 +1494,37 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
 
     for ( mob = ch->in_room->people; mob != NULL; mob = mob->next_in_room )
     {    
-	if ( IS_NPC( mob )
-	&&   ( HAS_TRIGGER(mob, TRIG_EXIT) || HAS_TRIGGER(mob, TRIG_EXALL) ) )
-	{
-	    for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
-	    {
-		/*
-		 * Exit trigger works only if the mobile is not busy
-		 * (fighting etc.). If you want to be sure all players
-		 * are caught, use ExAll trigger
-		 */
-		if ( prg->trig_type == TRIG_EXIT
-		&&  dir == atoi( prg->trig_phrase )
-		&&  (mob->position >= mob->pIndexData->default_pos ||
-			mob->position == POS_FIGHTING)
-		&&  check_see( mob, ch ) )
-		{
-		    program_flow( dir_name[dir], prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL,0, NULL,0, TRIG_EXIT, prg->script->security );
-		    return TRUE;
-		}
-		else
-		if ( prg->trig_type == TRIG_EXALL
-		&&   dir == atoi( prg->trig_phrase ) )
-		{
-		    program_flow( dir_name[dir], prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL,0, NULL,0, TRIG_EXALL, prg->script->security );
-		    return TRUE;
-		}
-	    }
-	}
+        if ( IS_NPC( mob )
+                &&   ( HAS_TRIGGER(mob, TRIG_EXIT) || HAS_TRIGGER(mob, TRIG_EXALL) ) )
+        {
+            for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
+            {
+                /*
+                 * Exit trigger works only if the mobile is not busy
+                 * (fighting etc.). If you want to be sure all players
+                 * are caught, use ExAll trigger
+                 */
+                if ( prg->trig_type == TRIG_EXIT
+                        &&  (dir == atoi( prg->trig_phrase ) 
+                            || !str_cmp( dir_name[dir], prg->trig_phrase ) 
+                            || !strcmp( "*", prg->trig_phrase) )
+                        &&  (mob->position >= mob->pIndexData->default_pos ||
+                            mob->position == POS_FIGHTING)
+                        &&  check_see( mob, ch ) )
+                {
+                    program_flow( dir_name[dir], prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL,0, NULL,0, TRIG_EXIT, prg->script->security );
+                    return TRUE;
+                }
+                else if ( prg->trig_type == TRIG_EXALL
+                        &&   (dir == atoi( prg->trig_phrase )
+                             || !str_cmp( dir_name[dir], prg->trig_phrase ) 
+                             || !strcmp( "*", prg->trig_phrase) ) )
+                {
+                    program_flow( dir_name[dir], prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL,0, NULL,0, TRIG_EXALL, prg->script->security );
+                    return TRUE;
+                }
+            }
+        }
     }
     return FALSE;
 }

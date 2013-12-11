@@ -195,6 +195,7 @@ static int newindex_metamethod( lua_State *LS )
 {
     OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
     const char *arg=check_string( LS, 2, MIL );
+    lua_remove(LS, 2);
 
     LUA_PROP_TYPE *set=obj->set_table;
 
@@ -203,12 +204,11 @@ static int newindex_metamethod( lua_State *LS )
     {
         if ( !strcmp(set[i].field, arg) )
         {
-            void *gobj=obj->check(obj, LS, 1 ); 
+            obj->check(obj, LS, 1 ); 
             if ( set[i].func )
             {
                 lua_pushcfunction( LS, set[i].func );
-                lua_pushvalue( LS, 1);
-                lua_pushvalue( LS, 3);
+                lua_insert( LS, 1 );
                 lua_call(LS, 2, 0);
                 return 0;
             }
@@ -337,6 +337,67 @@ static OBJ_TYPE *new_obj_type(
 }
 
 /* global section */
+static int utillib_func (lua_State *LS, const char *funcname)
+{
+    int narg=lua_gettop(LS);
+    lua_getglobal( LS, "util");
+    lua_getfield( LS, -1, funcname);
+    lua_remove( LS, -2 );
+    lua_insert( LS, 1 );
+    lua_call( LS, narg, LUA_MULTRET );
+
+    return lua_gettop(LS);
+}
+
+static int utillib_trim (lua_State *LS )
+{
+    return utillib_func( LS, "trim");
+}
+HELPTOPIC utillib_trim_help = 
+{
+    .summary="Trim leading and trailing spaces from a string."
+};
+
+static int utillib_convert_time (lua_State *LS )
+{
+    return utillib_func( LS, "convert_time");
+}
+HELPTOPIC utillib_convert_time_help =
+{
+    .summary="Convert # of secs to string value.",
+    .info = "Arguments: secs <, long[boolean]\n\r\n\r"
+          "Return: [string]\n\r\n\r"
+          "Example:\n\r"
+          "util.convert_time(12345)\n\r\n\r"
+          "Note:\n\r"
+          "If optional second argument is true then long format is returned."
+};
+
+static int utillib_capitalize( lua_State *LS )
+{
+    return utillib_func( LS, "capitalize");
+}
+HELPTOPIC utillib_capitalize_help =
+{
+    .summary="Return argument string with 1st letter capitalized."
+};
+
+static int utillib_pluralize( lua_State *LS )
+{
+    return utillib_func( LS, "pluralize");
+}
+HELPTOPIC utillib_pluralize_help =
+{
+};
+
+static int utillib_format_list( lua_State *LS )
+{
+    return utillib_func( LS, "format_list");
+}
+HELPTOPIC utillib_format_list_help =
+{
+};
+
 static int godlib_bless (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
@@ -1061,6 +1122,8 @@ typedef struct glob_type
 #define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, & lib ## lib_ ## fun ## _help, STS_ACTIVE}
 #define GODF( fun ) LFUN( god, fun, 9 )
 #define DBGF( fun ) LFUN( dbg, fun, 9 )
+#define UTILF( fun ) LFUN( util, fun, 0)
+
 GLOB_TYPE glob_table[] =
 {
     GFUN(hour,          0),
@@ -1096,6 +1159,12 @@ GLOB_TYPE glob_table[] =
     GODF(haunt),
     GODF(cleanse),
     GODF(defy),
+
+    UTILF(trim),
+    UTILF(convert_time),
+    UTILF(capitalize),
+    UTILF(pluralize),
+    UTILF(format_list),
     
     DBGF(show),
 
@@ -1354,6 +1423,7 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
             
             free_string( luaval->val );
             luaval->val=str_dup( val );
+            smash_tilde(luaval->val);
             luaval->type = type;
             luaval->persist= persist;
             return 0;
@@ -1371,6 +1441,7 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
             str_dup( name ), 
             str_dup( val ),
             persist );
+    smash_tilde(luaval->val);
     luaval->next = *luavals;
     *luavals     = luaval;
     return 0;
@@ -2812,6 +2883,52 @@ static int CH_cancel (lua_State *LS)
 }
 HELPTOPIC CH_cancel_help = {};
 
+static int CH_get_hitroll (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            GET_HITROLL( check_CH( LS, 1 ) ) );
+    return 1;
+}
+HELPTOPIC CH_get_hitroll_help = {};
+
+static int CH_set_hitroll (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set hitroll on PCs.");
+
+    /* analogous to mob_base_hitroll */
+    ud_ch->hitroll= ud_ch->level * luaL_checkinteger( LS, 2 ) / 100 ; 
+    return 0;
+}
+HELPTOPIC CH_set_hitroll_help = 
+{
+    .summary="NPC only. Sets mob hitroll percentage."
+};
+
+static int CH_get_damroll (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            GET_DAMROLL( check_CH( LS, 1 ) ) );
+    return 1;
+}
+HELPTOPIC CH_get_damroll_help = {};
+
+static int CH_set_damroll (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set damroll on PCs.");
+
+    /* analogous to mob_base_damroll */
+    ud_ch->damroll= ud_ch->level * luaL_checkinteger( LS, 2 ) / 100 ;
+    return 0;
+}
+HELPTOPIC CH_set_damroll_help =
+{
+    .summary="NPC only. Sets mob damroll percentage."
+};
+
 static int CH_get_hp (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -2871,12 +2988,21 @@ static int CH_set_level (lua_State *LS)
     int num = (int)luaL_checknumber (LS, 2);
     if ( num < 1 || num > 200 )
         luaL_error( LS, "Invalid level: %d, range is 1 to 200.", num);
+
+    float hppcnt= (float)ud_ch->hit/ud_ch->max_hit;
+    float mppcnt= (float)ud_ch->mana/ud_ch->max_mana;
+    float mvpcnt= (float)ud_ch->move/ud_ch->max_move;
+
     set_mob_level( ud_ch, num );
+
+    ud_ch->hit  = UMAX(1,hppcnt*ud_ch->max_hit);
+    ud_ch->mana = UMAX(0,mppcnt*ud_ch->max_mana);
+    ud_ch->move = UMAX(0,mvpcnt*ud_ch->max_move);
     return 0;
 }
 HELPTOPIC CH_set_level_help = 
 {
-    .summary="NPC only. Range 1-200. Restores mob to full health."
+    .summary="NPC only. Range 1-200. Preserves hp/mana/move ratio."
 };
 
 static int CH_setlevel (lua_State *LS)
@@ -3546,6 +3672,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(wis, 0),
     CHGET(dis, 0),
     CHGET(cha, 0),
+    CHGET(hitroll, 0),
+    CHGET(damroll, 0),
     CHGET(luc, 0),
     CHGET(clan, 0),
     CHGET(class, 0),
@@ -3601,6 +3729,8 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(dis, 9),
     CHSET(cha, 9),
     CHSET(luc, 9),
+    CHSET(hitroll, 9),
+    CHSET(damroll, 9),
     CHSET(race, 9),
     CHSET(shortdescr, 9),
     CHSET(longdescr, 9),
