@@ -29,7 +29,6 @@ const struct olc_cmd_type mpedit_table[] =
    {  "create",   mpedit_create  },
    {  "code",     mpedit_code    },
    {  "show",     mpedit_show    },
-   {  "list",     mpedit_list    },
    {  "if",       mpedit_if      },
    {  "mob",      mpedit_mob     },
    {  "?",        show_help      },
@@ -415,53 +414,6 @@ MPEDIT(mpedit_code)
 
     send_to_char("Syntax: code\n\r",ch);
     return FALSE;
-}
-
-MPEDIT( mpedit_list )
-{
-   int count = 1;
-   PROG_CODE *mprg;
-   char buf[MAX_STRING_LENGTH];
-   BUFFER *buffer;
-   bool fAll = !str_cmp(argument, "all");
-   char blah;
-   AREA_DATA *ad;
-   
-   buffer = new_buf();
-   
-   for (mprg = mprog_list; mprg !=NULL; mprg = mprg->next)
-      if ( fAll || IS_BETWEEN(ch->in_room->area->min_vnum, mprg->vnum, ch->in_room->area->max_vnum) )
-      {
-         ad = get_vnum_area(mprg->vnum);
-         
-         if ( ad == NULL )
-            blah = '?';
-         else
-            if ( IS_BUILDER(ch, ad) )
-               blah = '*';
-            else
-               blah = ' ';
-            
-            sprintf(buf, "[%3d] (%c) %5d\n\r", count, blah, mprg->vnum );
-            add_buf(buffer, buf);
-            
-            count++;
-      }
-      
-      if ( count == 1 )
-      {
-         if ( fAll )
-            add_buf( buffer, "No existen MobPrograms.\n\r" );
-         else
-            add_buf( buffer, "No existen MobPrograms en esta area.\n\r" );
-         
-      }
-      
-      page_to_char(buf_string(buffer), ch);
-      free_buf(buffer);
-      
-      return FALSE;
-      
 }
 
 /* define in mob_prog.c and mob_cmd.c */

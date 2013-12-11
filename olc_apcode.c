@@ -28,12 +28,7 @@ const struct olc_cmd_type apedit_table[] =
    {  "code",     apedit_code    },
    {  "show",     apedit_show    },
    {  "security", apedit_security},
-   //{  "list",     apedit_list    },
-   //{  "if",       apedit_if      },
-   //{  "mob",      apedit_mob     },
    {  "?",        show_help      },
-   //{  "lua",      apedit_lua     },
-   
    {  NULL,       0              }
 };
 
@@ -351,7 +346,7 @@ void fix_aprog_areas( CHAR_DATA *ch, PROG_CODE *pAcode )
 
 }
 
-/* Procedure to run when MPROG is changed and needs to be updated
+/* Procedure to run when APROG is changed and needs to be updated
    on mobs using it */
 
 APEDIT(apedit_code)
