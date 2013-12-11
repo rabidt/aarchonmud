@@ -382,6 +382,12 @@ void do_luai( CHAR_DATA *ch, char *argument)
 {
     if IS_NPC(ch)
         return;
+    
+    if ( ch->desc->lua.interpret )
+    {
+        ptc(ch, "Lua interpreter already active!\n\r");
+        return;
+    }
 
     char arg1[MSL];
     char *name;
