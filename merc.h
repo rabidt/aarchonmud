@@ -3648,6 +3648,9 @@ struct achievement_entry
 #define	ACHV_MAXMV	12
 #define ACHV_EXPLORED   13
 //#define ACHV_TATT	14
+#define ACHV_MASKILLS   14
+#define ACHV_GMSKILLS   15
+#define ACHV_RETRAINED  16
 
 /*bitvector for achievement tflag*/
 #define    ACHIEVE_LEVEL_1 1
@@ -3758,6 +3761,21 @@ struct achievement_entry
 #define    ACHIEVE_EXPLORED_6 103
 #define    ACHIEVE_EXPLORED_7 104
 #define    ACHIEVE_EXPLORED_8 105
+#define    ACHIEVE_MASKILLS_1 106
+#define    ACHIEVE_MASKILLS_2 107
+#define    ACHIEVE_MASKILLS_3 108
+#define    ACHIEVE_MASKILLS_4 109
+#define    ACHIEVE_MASKILLS_5 110
+#define    ACHIEVE_GMSKILLS_1 111
+#define    ACHIEVE_GMSKILLS_2 112
+#define    ACHIEVE_GMSKILLS_3 113
+#define    ACHIEVE_GMSKILLS_4 114
+#define    ACHIEVE_GMSKILLS_5 115
+#define    ACHIEVE_RETRAINED_1 116
+#define    ACHIEVE_RETRAINED_2 117
+#define    ACHIEVE_RETRAINED_3 118
+#define    ACHIEVE_RETRAINED_4 119
+#define    ACHIEVE_RETRAINED_5 120
 
 /*
 #define ACHIEVE_LEVEL_1    A
