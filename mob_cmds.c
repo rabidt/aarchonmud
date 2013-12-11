@@ -344,7 +344,7 @@ int r_atoi_obj( OBJ_DATA *obj, char *arg )
 void do_mpstat( CHAR_DATA *ch, char *argument )
 {
     char        arg[ MAX_STRING_LENGTH  ];
-    MPROG_LIST  *mprg;
+    PROG_LIST  *mprg;
     CHAR_DATA   *victim;
     int i;
 
@@ -415,7 +415,7 @@ void do_rpdump( CHAR_DATA *ch, char *argument )
 {
    char buf[ MAX_INPUT_LENGTH ];
    char arg2[MIL];
-   RPROG_CODE *rprg;
+   PROG_CODE *rprg;
    AREA_DATA *area;
 
    argument=one_argument( argument, buf );
@@ -448,7 +448,7 @@ void do_apdump( CHAR_DATA *ch, char *argument )
 {
    char buf[ MAX_INPUT_LENGTH ];
    char arg2[MIL];
-   APROG_CODE *aprg;
+   PROG_CODE *aprg;
    AREA_DATA *area;
 
    argument=one_argument( argument, buf );
@@ -481,7 +481,7 @@ void do_opdump( CHAR_DATA *ch, char *argument )
 {
    char buf[ MAX_INPUT_LENGTH ];
    char arg2[MIL];
-   OPROG_CODE *oprg;
+   PROG_CODE *oprg;
    AREA_DATA *area;
 
    argument=one_argument( argument, buf );
@@ -514,7 +514,7 @@ void do_mpdump( CHAR_DATA *ch, char *argument )
 {
    char buf[ MAX_INPUT_LENGTH ];
    char arg2[MIL];
-   MPROG_CODE *mprg;
+   PROG_CODE *mprg;
    AREA_DATA *area;
 
    argument=one_argument( argument, buf );
@@ -1630,7 +1630,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     char arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *vch;
     OBJ_DATA *obj1, *obj2;
-    MPROG_CODE *prg;
+    PROG_CODE *prg;
 
     argument = one_argument( argument, arg );
     if ( arg[0] == '\0' )

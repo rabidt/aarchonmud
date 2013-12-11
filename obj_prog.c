@@ -20,7 +20,7 @@ bool op_percent_trigger(
     if ( !HAS_OTRIG(obj, type) )
         return TRUE;
 
-    OPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
     {
@@ -44,7 +44,7 @@ bool op_percent_trigger(
 bool op_act_trigger(
         OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
 {
-    OPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
     {
@@ -177,7 +177,7 @@ void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic )
 
 void op_timer_trigger( OBJ_DATA *obj )
 {
-    OPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg=obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
     {
@@ -196,7 +196,7 @@ void oprog_timer_init( OBJ_DATA *obj)
     /* Set up timer stuff if not already */
     if (HAS_OTRIG(obj, OTRIG_TIMER) && !obj->otrig_timer)
     {
-        OPROG_LIST *prg;
+        PROG_LIST *prg;
         for ( prg = obj->pIndexData->oprogs; prg; prg= prg->next )
         {
             if ( prg->trig_type == OTRIG_TIMER )

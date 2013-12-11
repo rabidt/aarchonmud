@@ -39,7 +39,7 @@ const struct olc_cmd_type apedit_table[] =
 
 void apedit( CHAR_DATA *ch, char *argument)
 {
-    APROG_CODE *pAcode;
+    PROG_CODE *pAcode;
     char arg[MAX_INPUT_LENGTH];
     char command[MAX_INPUT_LENGTH];
     int cmd;
@@ -113,7 +113,7 @@ void do_aprun( CHAR_DATA *ch, char *argument)
     int vnum=0;
     char arg[MSL];
     char arg2[MSL];
-    APROG_CODE *pAcode;
+    PROG_CODE *pAcode;
     bool result=FALSE;
 
     if ( argument[0]=='\0' )
@@ -170,7 +170,7 @@ void do_aprun( CHAR_DATA *ch, char *argument)
 
 void do_apedit(CHAR_DATA *ch, char *argument)
 {
-    APROG_CODE *pAcode;
+    PROG_CODE *pAcode;
     char command[MAX_INPUT_LENGTH];
 
     argument = one_argument(argument, command);
@@ -232,7 +232,7 @@ void do_apedit(CHAR_DATA *ch, char *argument)
 
 APEDIT (apedit_create)
 {
-    APROG_CODE *pAcode;
+    PROG_CODE *pAcode;
     int value = atoi(argument);
     AREA_DATA *ad;
 
@@ -284,7 +284,7 @@ APEDIT (apedit_create)
 
 APEDIT(apedit_show)
 {
-    APROG_CODE *pAcode;
+    PROG_CODE *pAcode;
     EDIT_APCODE(ch,pAcode);
 
     ptc(ch,
@@ -300,7 +300,7 @@ APEDIT(apedit_show)
 
 APEDIT(apedit_security)
 {
-    APROG_CODE *pAcode;
+    PROG_CODE *pAcode;
     EDIT_APCODE(ch, pAcode);
     int newsec;
 
@@ -339,9 +339,9 @@ APEDIT(apedit_security)
 
 }
 
-void fix_aprog_areas( CHAR_DATA *ch, APROG_CODE *pAcode )
+void fix_aprog_areas( CHAR_DATA *ch, PROG_CODE *pAcode )
 {
-    APROG_LIST *apl;
+    PROG_LIST *apl;
     int hash;
     char buf[MSL];
     AREA_DATA *area;
@@ -356,7 +356,7 @@ void fix_aprog_areas( CHAR_DATA *ch, APROG_CODE *pAcode )
 
 APEDIT(apedit_code)
 {
-    APROG_CODE *pAcode;
+    PROG_CODE *pAcode;
     EDIT_APCODE(ch, pAcode);
 
     if (argument[0] =='\0')

@@ -713,7 +713,7 @@ void do_charloadtest( CHAR_DATA *ch, char *argument )
 
     if (is_number(arg1))
     {
-        MPROG_CODE *prg=get_mprog_index( atoi(arg1));
+        PROG_CODE *prg=get_mprog_index( atoi(arg1));
         if (!prg)
         {
             ptc( ch, "No such mprog: %s\n\r", arg1 );
