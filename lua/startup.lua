@@ -129,7 +129,7 @@ function GetScript(subdir, name)
   if string.find(subdir, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
   end
-  if string.find(name, "[^a-zA-Z0-9_]") then
+  if string.find(name, "[^a-zA-Z0-9_/]") then
     error("Invalid character in name.")
   end
 
@@ -447,29 +447,6 @@ function run_lua_interpret(env, str )
     interptbl[env.udid].incmpl=nil
     setfenv(f, env)
     f()
-    return 0
-end
-
-function wait_lua_interpret(env, str)
-    interptbl[env.udid].buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
-
-    table.insert(interptbl[env.udid].buff, str)
-    return 0
-end
-
-function go_lua_interpret(env, str)
-    local buff=interptbl[env.udid] and interptbl[env.udid].buff or {}
-
-    if #buff>0 then
-        interptbl[env.udid].buff=nil
-        local f,err= loadstring(table.concat(buff,"\n"))
-        if not(f) then
-            error(err)
-        end
-
-        setfenv(f, env)
-        f()
-    end
     return 0
 end
 
