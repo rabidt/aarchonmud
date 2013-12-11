@@ -541,7 +541,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
             type->type_name,
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
-    ptc(ch, "Use DO and END to create multiline chunks.\n\r");
+    ptc(ch, "Use do and end to create multiline chunks.\n\r");
     lua_settop(g_mud_LS, 0);
     return;
 }
