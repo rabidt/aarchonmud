@@ -5484,7 +5484,10 @@ msl_string achievement_display [] =
         "Max HP",
         "Max Mana",
         "Max Moves",
-        "Explored"
+        "Explored",
+        "MA Skills",
+        "GM Skills",
+        "Retrain"
 };
 
 
@@ -5671,6 +5674,15 @@ void check_achievement( CHAR_DATA *ch )
             case ACHV_EXPLORED:
                 current = ch->pcdata->explored->set;
                 break;
+            case ACHV_MASKILLS:
+                current = ch->pcdata->smc_mastered;
+                break;
+            case ACHV_GMSKILLS:
+                current = ch->pcdata->smc_grandmastered;
+                break;
+            case ACHV_RETRAINED:
+                current = ch->pcdata->smc_retrained;
+                break;
 	    default:
 		bug("Invalid achievement entry. Check achievement type", 0);
 		//bug message here
@@ -5703,8 +5715,9 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
         gain_exp(ch, achievement_table[table_index].exp_reward);
         ch->pcdata->achpoints += achievement_table[table_index].ach_reward;
         //send_to_char("Achievement unlocked -- TEST.\n\r",ch);
-	printf_to_char(ch, "Achievement %s %d unlocked.\n\r", achievement_display[achievement_table[table_index].type], achievement_table[table_index].limit);
-	send_to_char( "Your reward:\n\r",ch);
+        printf_to_char(ch, "--------------------------------------\n\r");
+	printf_to_char(ch, "{wAchievement {R%s %d{w unlocked{x.\n\r", achievement_display[achievement_table[table_index].type], achievement_table[table_index].limit);
+	send_to_char( "{wYour reward{x:\n\r",ch);
 	if (achievement_table[table_index].gold_reward>0)
 	  printf_to_char(ch, "%6d gold\n\r", achievement_table[table_index].gold_reward);
 	if (achievement_table[table_index].quest_reward>0)
@@ -5722,6 +5735,7 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
 	*/
         
     }
+    printf_to_char(ch, "\n\r");
 }
 
 
