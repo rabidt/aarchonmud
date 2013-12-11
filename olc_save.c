@@ -198,7 +198,7 @@ void reverse_affect_order(OBJ_INDEX_DATA *pObjIndex)
  *****************************************************************/
 void reverse_mprog_order(MOB_INDEX_DATA *pMobIndex)
 {
-    MPROG_LIST
+    PROG_LIST
         *new_mprog_list = NULL,
         *next_mprog;
     
@@ -218,7 +218,7 @@ void reverse_mprog_order(MOB_INDEX_DATA *pMobIndex)
 
 void reverse_oprog_order(OBJ_INDEX_DATA *pObjIndex)
 {
-    OPROG_LIST
+    PROG_LIST
         *new_oprog_list = NULL,
         *next_oprog;
 
@@ -238,7 +238,7 @@ void reverse_oprog_order(OBJ_INDEX_DATA *pObjIndex)
 
 void reverse_aprog_order(AREA_DATA *pArea)
 {
-    APROG_LIST
+    PROG_LIST
         *new_aprog_list = NULL,
         *next_aprog;
 
@@ -258,7 +258,7 @@ void reverse_aprog_order(AREA_DATA *pArea)
 
 void reverse_rprog_order(ROOM_INDEX_DATA *pRoom)
 {
-    RPROG_LIST
+    PROG_LIST
         *new_rprog_list = NULL,
         *next_rprog;
 
@@ -278,7 +278,7 @@ void reverse_rprog_order(ROOM_INDEX_DATA *pRoom)
 
 void save_mobprogs( FILE *fp, AREA_DATA *pArea )
 {
-    MPROG_CODE *pMprog;
+    PROG_CODE *pMprog;
     int i;
     
     fprintf(fp, "#MOBPROGS\n");
@@ -301,7 +301,7 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
 
 void save_objprogs( FILE *fp, AREA_DATA *pArea )
 {
-    OPROG_CODE *pOprog;
+    PROG_CODE *pOprog;
     int i;
 
     fprintf(fp, "#OBJPROGS\n");
@@ -323,7 +323,7 @@ void save_objprogs( FILE *fp, AREA_DATA *pArea )
 
 void save_areaprogs( FILE *fp, AREA_DATA *pArea )
 {
-    APROG_CODE *pAprog;
+    PROG_CODE *pAprog;
     int i;
 
     fprintf(fp, "#AREAPROGS\n");
@@ -345,7 +345,7 @@ void save_areaprogs( FILE *fp, AREA_DATA *pArea )
 
 void save_roomprogs( FILE *fp, AREA_DATA *pArea )
 {
-    RPROG_CODE *pRprog;
+    PROG_CODE *pRprog;
     int i;
 
     fprintf(fp, "#ROOMPROGS\n");
@@ -380,7 +380,7 @@ Called by:      save_mobbles (below).
 void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
 {
     sh_int race = pMobIndex->race;
-    MPROG_LIST *pMprog;
+    PROG_LIST *pMprog;
     
     fprintf( fp, "#%d\n",       pMobIndex->vnum );
     rfprintf( fp, "NAME %s~\n",  pMobIndex->player_name );
@@ -658,7 +658,7 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     /* save oprogs if any */
     if (pObjIndex->oprogs != NULL)
     {
-        OPROG_LIST *pOprog;
+        PROG_LIST *pOprog;
         reverse_oprog_order(pObjIndex);
         for (pOprog = pObjIndex->oprogs; pOprog; pOprog = pOprog->next)
         {
@@ -809,7 +809,7 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                 /* save rprogs if any */
                 if (pRoomIndex->rprogs != NULL)
                 {
-                    RPROG_LIST *pRprog;
+                    PROG_LIST *pRprog;
                     reverse_rprog_order(pRoomIndex);
                     for (pRprog = pRoomIndex->rprogs; pRprog; pRprog = pRprog->next)
                     {
@@ -1181,7 +1181,7 @@ void save_area( AREA_DATA *pArea )
     /* save aprogs if any */
     if (pArea->aprogs != NULL)
     {
-        APROG_LIST *pAprog;
+        PROG_LIST *pAprog;
         reverse_aprog_order(pArea);
         for (pAprog = pArea->aprogs; pAprog; pAprog = pAprog->next)
         {

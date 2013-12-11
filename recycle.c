@@ -873,12 +873,12 @@ char *buf_string(BUFFER *buffer)
 }
 
 /* stuff for recycling mobprograms */
-MPROG_LIST *mprog_free;
+PROG_LIST *mprog_free;
  
-MPROG_LIST *new_mprog(void)
+PROG_LIST *new_mprog(void)
 {
-   static MPROG_LIST mp_zero;
-   MPROG_LIST *mp;
+   static PROG_LIST mp_zero;
+   PROG_LIST *mp;
 
    if (mprog_free == NULL)
 	   mp = alloc_perm(sizeof(*mp));
@@ -896,7 +896,7 @@ MPROG_LIST *new_mprog(void)
    return mp;
 }
 
-void free_mprog(MPROG_LIST *mp)
+void free_mprog(PROG_LIST *mp)
 {
    if (!IS_VALID(mp))
 	  return;
@@ -906,12 +906,12 @@ void free_mprog(MPROG_LIST *mp)
    mprog_free = mp;
 }
 
-OPROG_LIST *oprog_free;
+PROG_LIST *oprog_free;
 
-OPROG_LIST *new_oprog(void)
+PROG_LIST *new_oprog(void)
 {
-   static OPROG_LIST op_zero;
-   OPROG_LIST *op;
+   static PROG_LIST op_zero;
+   PROG_LIST *op;
 
    if (oprog_free == NULL)
        op = alloc_perm(sizeof(*op));
@@ -929,7 +929,7 @@ OPROG_LIST *new_oprog(void)
    return op;
 }
 
-void free_oprog(OPROG_LIST *op)
+void free_oprog(PROG_LIST *op)
 {
    if (!IS_VALID(op))
       return;
@@ -939,12 +939,12 @@ void free_oprog(OPROG_LIST *op)
    oprog_free = op;
 }
 
-APROG_LIST *aprog_free;
+PROG_LIST *aprog_free;
 
-APROG_LIST *new_aprog(void)
+PROG_LIST *new_aprog(void)
 {
-   static APROG_LIST ap_zero;
-   APROG_LIST *ap;
+   static PROG_LIST ap_zero;
+   PROG_LIST *ap;
 
    if (aprog_free == NULL)
        ap = alloc_perm(sizeof(*ap));
@@ -962,7 +962,7 @@ APROG_LIST *new_aprog(void)
    return ap;
 }
 
-void free_aprog(APROG_LIST *ap)
+void free_aprog(PROG_LIST *ap)
 {
    if (!IS_VALID(ap))
       return;
@@ -972,12 +972,12 @@ void free_aprog(APROG_LIST *ap)
    aprog_free = ap;
 }
 
-RPROG_LIST *rprog_free;
+PROG_LIST *rprog_free;
 
-RPROG_LIST *new_rprog(void)
+PROG_LIST *new_rprog(void)
 {
-    static RPROG_LIST rp_zero;
-    RPROG_LIST *rp;
+    static PROG_LIST rp_zero;
+    PROG_LIST *rp;
     
     if (rprog_free == NULL)
         rp = alloc_perm(sizeof(*rp));
@@ -995,7 +995,7 @@ RPROG_LIST *new_rprog(void)
     return rp;
 }
 
-void free_rprog(RPROG_LIST *rp)
+void free_rprog(PROG_LIST *rp)
 {
     if (!IS_VALID(rp))
         return;

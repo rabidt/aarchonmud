@@ -239,13 +239,13 @@ void shift_shop( SHOP_DATA *shop )
 	SHIFT(shop->keeper);
 }
 
-void shift_mprog_list( MPROG_LIST *list )
+void shift_mprog_list( PROG_LIST *list )
 {
     for ( ; list != NULL; list = list->next )
 	SHIFT( list->vnum );
 }
 
-void shift_oprog_list( OPROG_LIST *list )
+void shift_oprog_list( PROG_LIST *list )
 {
     for ( ; list != NULL; list = list->next )
     SHIFT( list->vnum );
@@ -301,7 +301,7 @@ void shift_obj( OBJ_INDEX_DATA *obj )
 
 /***************************** MPROGS **********************/
 
-void shift_mprog_code( MPROG_CODE *mprog )
+void shift_mprog_code( PROG_CODE *mprog )
 {
     if ( mprog == NULL )
     {
@@ -319,7 +319,7 @@ void shift_area( AREA_DATA *area, int shift, bool area_only )
     ROOM_INDEX_DATA *room;
     MOB_INDEX_DATA *mob;
     OBJ_INDEX_DATA *obj;
-    MPROG_CODE *mprog;
+    PROG_CODE *mprog;
     int index;
 
     if ( area == NULL )
@@ -500,7 +500,7 @@ char* rel_string( char *str, int min_vnum, int max_vnum )
     return rel_str;
 }
 
-void rel_mprog_list( MPROG_LIST *list, int min_vnum, int max_vnum )
+void rel_mprog_list( PROG_LIST *list, int min_vnum, int max_vnum )
 {
     char *rel;
 
@@ -519,7 +519,7 @@ void rel_mprog_list( MPROG_LIST *list, int min_vnum, int max_vnum )
     }
 }
 
-void rel_mprog_code( MPROG_CODE *mprog, int min_vnum, int max_vnum )
+void rel_mprog_code( PROG_CODE *mprog, int min_vnum, int max_vnum )
 {
     char *rel;
 
@@ -540,7 +540,7 @@ void rel_mprog_code( MPROG_CODE *mprog, int min_vnum, int max_vnum )
 void rel_area( AREA_DATA *area )
 {
     MOB_INDEX_DATA *mob;
-    MPROG_CODE *mprog;
+    PROG_CODE *mprog;
     int index;
 
     for ( index = area->min_vnum; index <= area->max_vnum; index++ )

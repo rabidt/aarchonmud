@@ -39,7 +39,7 @@ const struct olc_cmd_type opedit_table[] =
 
 void opedit( CHAR_DATA *ch, char *argument)
 {
-    OPROG_CODE *pOcode;
+    PROG_CODE *pOcode;
     char arg[MAX_INPUT_LENGTH];
     char command[MAX_INPUT_LENGTH];
     int cmd;
@@ -113,7 +113,7 @@ void do_oprun(CHAR_DATA *ch, char *argument)
     int vnum=0;
     char arg[MSL];
     char arg2[MSL];
-    OPROG_CODE *pOcode;
+    PROG_CODE *pOcode;
     bool result;
 
     if ( argument[0]=='\0' )
@@ -169,7 +169,7 @@ void do_oprun(CHAR_DATA *ch, char *argument)
 
 void do_opedit(CHAR_DATA *ch, char *argument)
 {
-    OPROG_CODE *pOcode;
+    PROG_CODE *pOcode;
     char command[MAX_INPUT_LENGTH];
 
     argument = one_argument(argument, command);
@@ -231,7 +231,7 @@ void do_opedit(CHAR_DATA *ch, char *argument)
 
 OPEDIT (opedit_create)
 {
-    OPROG_CODE *pOcode;
+    PROG_CODE *pOcode;
     int value = atoi(argument);
     AREA_DATA *ad;
 
@@ -283,7 +283,7 @@ OPEDIT (opedit_create)
 
 OPEDIT(opedit_show)
 {
-    OPROG_CODE *pOcode;
+    PROG_CODE *pOcode;
     EDIT_OPCODE(ch,pOcode);
 
     ptc(ch,
@@ -299,7 +299,7 @@ OPEDIT(opedit_show)
 
 OPEDIT(opedit_security)
 {
-    OPROG_CODE *pOcode;
+    PROG_CODE *pOcode;
     EDIT_OPCODE(ch, pOcode);
     int newsec;
 
@@ -338,9 +338,9 @@ OPEDIT(opedit_security)
 
 }
 
-void fix_oprog_objs( CHAR_DATA *ch, OPROG_CODE *pOcode )
+void fix_oprog_objs( CHAR_DATA *ch, PROG_CODE *pOcode )
 {
-    OPROG_LIST *mpl;
+    PROG_LIST *mpl;
     int hash;
     char buf[MSL];
     OBJ_INDEX_DATA *obj;
@@ -374,7 +374,7 @@ OPEDIT(opedit_lua)
 
 OPEDIT(opedit_code)
 {
-    OPROG_CODE *pOcode;
+    PROG_CODE *pOcode;
     EDIT_OPCODE(ch, pOcode);
 
     if (argument[0] =='\0')
