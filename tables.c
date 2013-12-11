@@ -1441,6 +1441,24 @@ const ACHIEVEMENT achievement_table [] =
     { ACHV_EXPLORED,15000, 250, 1000, 10000,    50,       0, ACHIEVE_EXPLORED_8},
     /*                     595, 2425, 18750,   190,      NA,               */
     /*      type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
+    { ACHV_MASKILLS,    1,   5,   25,   100,     5,       0, ACHIEVE_MASKILLS_1},
+    { ACHV_MASKILLS,    3,  15,   75,   500,    10,       0, ACHIEVE_MASKILLS_2},
+    { ACHV_MASKILLS,    5,  25,  125,  1000,    15,       0, ACHIEVE_MASKILLS_3},
+    { ACHV_MASKILLS,   10,  50,  250,  2500,    20,       0, ACHIEVE_MASKILLS_4},
+    { ACHV_MASKILLS,   15,  75,  500,  5000,    25,       0, ACHIEVE_MASKILLS_5},
+    /*      type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
+    { ACHV_GMSKILLS,    1,   5,   25,   100,     5,       0, ACHIEVE_GMSKILLS_1},
+    { ACHV_GMSKILLS,    3,  15,   75,   500,    10,       0, ACHIEVE_GMSKILLS_2},
+    { ACHV_GMSKILLS,    5,  25,  125,  1000,    15,       0, ACHIEVE_GMSKILLS_3},
+    { ACHV_GMSKILLS,   10,  50,  250,  2500,    20,       0, ACHIEVE_GMSKILLS_4},
+    { ACHV_GMSKILLS,   15,  75,  500,  5000,    25,       0, ACHIEVE_GMSKILLS_5},
+    /*      type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
+    { ACHV_RETRAINED,   1,   5,   25,   100,     5,       0, ACHIEVE_RETRAINED_1},
+    { ACHV_RETRAINED,   3,  15,   75,   500,    10,       0, ACHIEVE_RETRAINED_2},
+    { ACHV_RETRAINED,   5,  25,  125,  1000,    15,       0, ACHIEVE_RETRAINED_3},
+    { ACHV_RETRAINED,  10,  50,  250,  2500,    20,       0, ACHIEVE_RETRAINED_4},
+    { ACHV_RETRAINED,  15,  75,  500,  5000,    25,       0, ACHIEVE_RETRAINED_5},
+    /*      type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
     { NULL,             0,   0,    0,     0,     0,       0,                  0}
 };
 /*          type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
