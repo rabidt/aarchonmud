@@ -262,7 +262,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     {
         /* kick out of interpret */
         d->lua.interpret=FALSE;
-        d->lua.wait=FALSE;
         d->lua.incmpl=FALSE;
 
         lua_unregister_desc(d);
@@ -271,42 +270,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         return TRUE;
     }
 
-    if (!strcmp( d->incomm, "WAIT") )
-    {
-        if (d->lua.incmpl)
-        {
-            ptc(d->character, "Can't enter WAIT mode with incomplete statement.\n\r"
-                              "Finish statement or exit and re-enter interpreter.\n\r");
-            return TRUE;
-        }
-
-        /* set wait mode for multiline chunks*/
-        if (d->lua.wait)
-            ptc(d->character, "Already in WAIT mode.\n\r");
-        else
-            d->lua.wait=TRUE;
-        return TRUE;
-    }
-
-    if (!strcmp( d->incomm, "GO") )
-    {
-        /* turn WAIT mode off and go for it */
-        if (!d->lua.wait)
-        {
-            ptc( d->character, "Can only use GO to end WAIT mode.\n\r");
-            return TRUE; 
-        }
-        d->lua.wait=FALSE;
-        lua_getglobal( g_mud_LS, "go_lua_interpret");
-    }
-    else if (d->lua.wait) /* WAIT mode enabled for multiline chunk */
-    {
-        lua_getglobal( g_mud_LS, "wait_lua_interpret");
-    }
-    else
-    {
-        lua_getglobal( g_mud_LS, "run_lua_interpret"); //what we'll call if no errors
-    }
+    lua_getglobal( g_mud_LS, "run_lua_interpret"); //what we'll call if no errors
 
     /* Check this all in C so we can exit interpreter for missing env */
     lua_pushlightuserdata( g_mud_LS, d); /* we'll check this against the table */
@@ -336,7 +300,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         ptc( d->character, "Interpreter session was closed, was object destroyed?\n\r"
                 "Exiting interpreter.\n\r");
         d->lua.interpret=FALSE;
-        d->lua.wait=FALSE;
 
         ptc(d->character, "Exited lua interpreter.\n\r");
         lua_settop(g_mud_LS, 0);
@@ -364,7 +327,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         ptc( d->character, "Couldn't find game object, was it destroyed?\n\r"
                 "Exiting interpreter.\n\r");
         d->lua.interpret=FALSE;
-        d->lua.wait=FALSE;
 
         ptc(d->character, "Exited lua interpreter.\n\r");
         lua_settop(g_mud_LS, 0);
@@ -380,7 +342,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     {
         ptc(d->character,  "LUA error for lua_interpret:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
-        d->lua.incmpl=FALSE; //force it whehter it was or wasn't
+        d->lua.incmpl=FALSE; //force it whether it was or wasn't
     } 
     else
     {
@@ -420,6 +382,12 @@ void do_luai( CHAR_DATA *ch, char *argument)
 {
     if IS_NPC(ch)
         return;
+    
+    if ( ch->desc->lua.interpret )
+    {
+        ptc(ch, "Lua interpreter already active!\n\r");
+        return;
+    }
 
     char arg1[MSL];
     char *name;
@@ -567,15 +535,13 @@ void do_luai( CHAR_DATA *ch, char *argument)
 
     /* finally, if everything worked out, we can set this stuff */
     ch->desc->lua.interpret=TRUE;
-    ch->desc->lua.wait=FALSE;
     ch->desc->lua.incmpl=FALSE;
 
     ptc(ch, "Entered lua interpreter mode for for %s %s\n\r", 
             type->type_name,
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
-    ptc(ch, "Use WAIT to enable WAIT mode for multiline chunks.\n\r");
-    ptc(ch, "Use GO on a blank line to end WAIT mode and process the buffer.\n\r");
+    ptc(ch, "Use do and end to create multiline chunks.\n\r");
     lua_settop(g_mud_LS, 0);
     return;
 }

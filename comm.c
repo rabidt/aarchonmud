@@ -1321,9 +1321,7 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
             if (d->lua.interpret)
             {
                 write_to_buffer( d, "lua", 3);
-                if (d->lua.wait)
-                    write_to_buffer( d, "W", 1);
-                else if (d->lua.incmpl)
+                if (d->lua.incmpl)
                     write_to_buffer( d, ">", 1);
 
             }
