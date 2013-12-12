@@ -3414,6 +3414,14 @@ void do_pgrep( CHAR_DATA *ch, char *argument)
     char buf[MSL];
     sprintf( buf, "grep \"%s\" ../player/*", argument);
     do_pipe(ch, buf);
+
+    send_to_char( "\n\r",ch);
+
+    sprintf( buf, "grep \"%s\" ../box/*", argument);
+    do_pipe(ch, buf);
+
+    send_to_char( "\n\r",ch);
+    return;
 } 
 
 /* do_tables stuff */
