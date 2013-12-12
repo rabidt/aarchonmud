@@ -532,7 +532,7 @@ void rel_prog_code( PROG_CODE *prog, int min_vnum, int max_vnum )
     if ( prog == NULL )
 	return;
 
-    if ( IS_BETWEEN(min_vnum, prog->vnum, max_vnum) )
+    if ( !prog->is_lua && IS_BETWEEN(min_vnum, prog->vnum, max_vnum) )
     {
 	rel = rel_string( prog->code, min_vnum, max_vnum );
 	if ( strcmp(rel, prog->code) )
