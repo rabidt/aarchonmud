@@ -1268,8 +1268,8 @@ void battle_prompt( DESCRIPTOR_DATA *d )
                 color = 'r';
 
             sprintf(buf,
-                    "{W[{%c                                {W] ({%c%d%%{W){x\n\r",
-                    color, color, percent);
+                    "{W[{%c                                {W] %s {W({%c%d%%{W){x\n\r",
+                    color, IS_NPC(victim) ? victim->short_descr : victim->name, color, percent);
 
             bars=UMIN(((percent*32)/100), 32);
             for (i=0; i<bars; i++)
