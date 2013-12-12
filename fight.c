@@ -1949,8 +1949,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( dam <= 0 )
 	dam = 1;
 
-    /* hit trigger for weapons */
-    if ( wield && !op_hit_trigger( wield, ch, victim, dam ) )
+    /* prehit trigger for weapons */
+    if ( wield && !op_prehit_trigger( wield, ch, victim, dam ) )
         return FALSE;
 
     /* If oprog didn't stop the hit then do the rest of crit strike stuff */
@@ -2011,6 +2011,13 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
         one_hit(ch, victim, dt, secondary);
     }
+
+   if ( wield )
+   {
+       op_percent_trigger( NULL, wield, NULL, ch, victim, OTRIG_HIT );
+       if ( stop_attack(ch, victim) )
+            return TRUE;
+   }
 
    tail_chain( );
    return TRUE;
