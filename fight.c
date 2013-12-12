@@ -1935,11 +1935,11 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( IS_AFFECTED(ch, AFF_PLAGUE) )
         dam -= dam / 20;
 
-    if ( check_critical(ch,secondary) == TRUE )
+    /* Crit strike stuff split up for oprog */
+    /* first apply dam bonus */
+    bool crit=check_critical(ch,secondary);
+    if ( crit )
     {
-	act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
-        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
-        check_improve(ch,gsn_critical,TRUE,4);
         dam *= 2;
     }
 
@@ -1948,7 +1948,19 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     if ( dam <= 0 )
 	dam = 1;
-    
+
+    /* hit trigger for weapons */
+    if ( wield && !op_hit_trigger( wield, ch, victim, dam ) )
+        return FALSE;
+
+    /* If oprog didn't stop the hit then do the rest of crit strike stuff */
+    if ( crit )
+    {
+        act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
+        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
+        check_improve(ch,gsn_critical,TRUE,4);
+    }
+
     result = full_dam( ch, victim, dam, dt, dam_type, TRUE );
     
     /* arrow damage & handling */
