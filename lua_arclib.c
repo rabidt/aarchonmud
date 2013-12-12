@@ -4458,10 +4458,57 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(arrowdamage, 0),
     OBJGET(arrowdamtype, 0),
 
+    /* wand, staff */
+    OBJGET(spelllevel, 0),
+    OBJGET(chargestotal, 0),
+    OBJGET(chargesleft, 0),
+    OBJGET(spellname, 0),
+
+    /* portal */
+    // chargesleft
+    OBJGET(toroom, 0),
+
+    /* furniture */
+    OBJGET(maxpeople, 0),
+    OBJGET(maxweight, 0),
+    OBJGET(healbonus, 0),
+    OBJGET(manabonus, 0),
+
+    /* scroll, potion, pill */
+    //OBJGET(spelllevel, 0),
+    OBJGET(spells, 0),
+
+    /* armor */
+    OBJGET( acpierce, 0),
+    OBJGET( acbash, 0),
+    OBJGET( acslash, 0),
+    OBJGET( acexotic, 0),
+
+    /* weapon */
+    OBJGET( weapontype, 0),
+    OBJGET( numdice, 0),
+    OBJGET( dicetype, 0),
+    OBJGET( attacktype, 0),
+
+    /* drink container */
+    OBJGET( liquidtotal, 0),
+    OBJGET( liquidleft, 0),
+    OBJGET( liquid, 0),
+    OBJGET( poisoned, 0),
+
     /*fountain*/
-    OBJGET(liquid, 0),
-    OBJGET(liquidleft, 0),
-    OBJGET(liquidtotal, 0),
+    //OBJGET(liquid, 0),
+    //OBJGET(liquidleft, 0),
+    //OBJGET(liquidtotal, 0),
+
+    /* food */
+    OBJGET( foodhours, 0),
+    OBJGET( fullhours, 0),
+    // poisoned
+
+    /* money */
+    OBJGET( silver, 0),
+    OBJGET( gold, 0),
     
     ENDPTABLE
 };
