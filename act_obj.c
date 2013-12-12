@@ -48,10 +48,6 @@ DECLARE_DO_FUN(do_say       );
 DECLARE_DO_FUN(do_wake      );
 
 bool can_steal( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose );
-bool op_percent_trigger(
-        const char *trigger,
-        OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2,
-        int type );
 
 
 
