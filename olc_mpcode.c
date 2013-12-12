@@ -29,7 +29,6 @@ const struct olc_cmd_type mpedit_table[] =
    {  "create",   mpedit_create  },
    {  "code",     mpedit_code    },
    {  "show",     mpedit_show    },
-   {  "list",     mpedit_list    },
    {  "if",       mpedit_if      },
    {  "mob",      mpedit_mob     },
    {  "?",        show_help      },
@@ -41,7 +40,7 @@ const struct olc_cmd_type mpedit_table[] =
 
 void mpedit( CHAR_DATA *ch, char *argument)
 {
-    MPROG_CODE *pMcode;
+    PROG_CODE *pMcode;
     char arg[MAX_INPUT_LENGTH];
     char command[MAX_INPUT_LENGTH];
     int cmd;
@@ -118,7 +117,7 @@ void do_mprun(CHAR_DATA *ch, char *argument)
     int vnum=0;
     char arg[MSL];
     char arg2[MSL];
-    MPROG_CODE *pMcode;
+    PROG_CODE *pMcode;
 
     if ( argument[0]=='\0' )
     {
@@ -188,7 +187,7 @@ void do_mprun(CHAR_DATA *ch, char *argument)
 
 void do_mpedit(CHAR_DATA *ch, char *argument)
 {
-    MPROG_CODE *pMcode;
+    PROG_CODE *pMcode;
     char command[MAX_INPUT_LENGTH];
 
     argument = one_argument(argument, command);
@@ -250,7 +249,7 @@ void do_mpedit(CHAR_DATA *ch, char *argument)
 
 MPEDIT (mpedit_create)
 {
-    MPROG_CODE *pMcode;
+    PROG_CODE *pMcode;
     int value = atoi(argument);
     AREA_DATA *ad;
 
@@ -303,7 +302,7 @@ MPEDIT (mpedit_create)
 
 MPEDIT(mpedit_show)
 {
-    MPROG_CODE *pMcode;
+    PROG_CODE *pMcode;
     char buf[MAX_STRING_LENGTH];
     EDIT_MPCODE(ch,pMcode);
 
@@ -323,9 +322,9 @@ MPEDIT(mpedit_show)
     return FALSE;
 }
 
-void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
+void fix_mprog_mobs( CHAR_DATA *ch, PROG_CODE *pMcode )
 {
-    MPROG_LIST *mpl;
+    PROG_LIST *mpl;
     int hash;
     char buf[MSL];
     MOB_INDEX_DATA *mob;
@@ -340,8 +339,8 @@ void fix_mprog_mobs( CHAR_DATA *ch, MPROG_CODE *pMcode )
 
 MPEDIT(mpedit_security)
 {
-    MPROG_CODE *pMcode;
-    MPROG_LIST *mpl;
+    PROG_CODE *pMcode;
+    PROG_LIST *mpl;
     EDIT_MPCODE(ch, pMcode);
     int newsec;
 
@@ -383,8 +382,8 @@ MPEDIT(mpedit_security)
 
 MPEDIT(mpedit_lua)
 {
-    MPROG_CODE *pMcode;
-    MPROG_LIST *mpl;
+    PROG_CODE *pMcode;
+    PROG_LIST *mpl;
     EDIT_MPCODE(ch, pMcode);
     
     int hash;
@@ -404,7 +403,7 @@ MPEDIT(mpedit_lua)
    on mobs using it */
 MPEDIT(mpedit_code)
 {
-    MPROG_CODE *pMcode;
+    PROG_CODE *pMcode;
     EDIT_MPCODE(ch, pMcode);
 
     if (argument[0] =='\0')
@@ -415,53 +414,6 @@ MPEDIT(mpedit_code)
 
     send_to_char("Syntax: code\n\r",ch);
     return FALSE;
-}
-
-MPEDIT( mpedit_list )
-{
-   int count = 1;
-   MPROG_CODE *mprg;
-   char buf[MAX_STRING_LENGTH];
-   BUFFER *buffer;
-   bool fAll = !str_cmp(argument, "all");
-   char blah;
-   AREA_DATA *ad;
-   
-   buffer = new_buf();
-   
-   for (mprg = mprog_list; mprg !=NULL; mprg = mprg->next)
-      if ( fAll || IS_BETWEEN(ch->in_room->area->min_vnum, mprg->vnum, ch->in_room->area->max_vnum) )
-      {
-         ad = get_vnum_area(mprg->vnum);
-         
-         if ( ad == NULL )
-            blah = '?';
-         else
-            if ( IS_BUILDER(ch, ad) )
-               blah = '*';
-            else
-               blah = ' ';
-            
-            sprintf(buf, "[%3d] (%c) %5d\n\r", count, blah, mprg->vnum );
-            add_buf(buffer, buf);
-            
-            count++;
-      }
-      
-      if ( count == 1 )
-      {
-         if ( fAll )
-            add_buf( buffer, "No existen MobPrograms.\n\r" );
-         else
-            add_buf( buffer, "No existen MobPrograms en esta area.\n\r" );
-         
-      }
-      
-      page_to_char(buf_string(buffer), ch);
-      free_buf(buffer);
-      
-      return FALSE;
-      
 }
 
 /* define in mob_prog.c and mob_cmd.c */

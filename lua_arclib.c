@@ -1945,7 +1945,7 @@ static int CH_loadprog (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
     int num = (int)luaL_checknumber (LS, 2);
-    MPROG_CODE *pMcode;
+    PROG_CODE *pMcode;
 
     if ( (pMcode = get_mprog_index(num)) == NULL )
     {
@@ -3950,7 +3950,7 @@ static int OBJ_loadprog (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS, 1);
     int num = (int)luaL_checknumber (LS, 2);
-    OPROG_CODE *pOcode;
+    PROG_CODE *pOcode;
 
     if ( (pOcode = get_oprog_index(num)) == NULL )
     {
@@ -4521,7 +4521,7 @@ static int AREA_loadprog (lua_State *LS)
 {
     AREA_DATA *ud_area=check_AREA(LS, 1);
     int num = (int)luaL_checknumber (LS, 2);
-    APROG_CODE *pAcode;
+    PROG_CODE *pAcode;
 
     if ( (pAcode = get_aprog_index(num)) == NULL )
     {
@@ -4952,7 +4952,7 @@ static int ROOM_loadprog (lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
     int num = (int)luaL_checknumber (LS, 2);
-    RPROG_CODE *pRcode;
+    PROG_CODE *pRcode;
 
     if ( (pRcode = get_rprog_index(num)) == NULL )
     {

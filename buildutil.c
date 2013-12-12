@@ -182,10 +182,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
     ROOM_INDEX_DATA *room = NULL;
     OBJ_INDEX_DATA *obj = NULL;
     MOB_INDEX_DATA *mob = NULL;
-    MPROG_CODE *mprog = NULL;
-    OPROG_CODE *oprog = NULL;
-    APROG_CODE *aprog = NULL;
-    RPROG_CODE *rprog = NULL;
+    PROG_CODE *mprog = NULL;
+    PROG_CODE *oprog = NULL;
+    PROG_CODE *aprog = NULL;
+    PROG_CODE *rprog = NULL;
 
     if (!IS_BUILDER(ch, ch->in_room->area))
     {
@@ -1306,7 +1306,7 @@ bool is_substr( char *sub, char *str )
 void do_mpfind( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH];
-    MPROG_CODE *mprog;
+    PROG_CODE *mprog;
     int i;
 
     if (!IS_BUILDER(ch, ch->in_room->area))
@@ -2670,7 +2670,7 @@ void do_frfind( CHAR_DATA *ch, char *argument )
     AREA_DATA *area;
     RESET_DATA *p;
     MOB_INDEX_DATA *mob;
-    MPROG_LIST *mprog;
+    PROG_LIST *mprog;
     int i, nr, min, max;
 
     area = ch->in_room->area;
