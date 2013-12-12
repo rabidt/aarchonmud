@@ -21,7 +21,7 @@ static bool rp_percent_trigger(
     if ( !HAS_RTRIG(room, type) )
         return TRUE;
 
-    RPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = room->rprogs; prg != NULL; prg = prg->next )
     {
@@ -71,7 +71,7 @@ static bool exit_trigger( CHAR_DATA *ch, ROOM_INDEX_DATA *room, int door, int ty
     if ( !HAS_RTRIG(room, type) )
         return TRUE;
 
-    RPROG_LIST *prg;
+    PROG_LIST *prg;
 
     const char *dirname=dir_name[door];
     for ( prg = room->rprogs ; prg ; prg = prg->next )
@@ -122,7 +122,7 @@ void rp_timer_trigger( ROOM_INDEX_DATA *room )
         return;
     }
 
-    RPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg=room->rprogs; prg != NULL; prg = prg->next )
     {
@@ -148,7 +148,7 @@ void rprog_timer_init( ROOM_INDEX_DATA *room)
     /* Set up timer stuff if not already */
     if (HAS_RTRIG(room, RTRIG_TIMER) && !room->rtrig_timer)
     {
-        RPROG_LIST *prg;
+        PROG_LIST *prg;
         for ( prg = room->rprogs; prg; prg= prg->next )
         {
             if ( prg->trig_type == RTRIG_TIMER )

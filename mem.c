@@ -52,7 +52,7 @@ HELP_DATA		*	help_last;
 
 void	free_extra_descr	args( ( EXTRA_DESCR_DATA *pExtra ) );
 void	free_affect		args( ( AFFECT_DATA *af ) );
-void	free_mprog              args ( ( MPROG_LIST *mp ) );
+void	free_mprog              args ( ( PROG_LIST *mp ) );
 
 
 RESET_DATA *new_reset_data( void )
@@ -448,11 +448,11 @@ void free_mob_index( MOB_INDEX_DATA *pMob )
     return;
 }
 
-MPROG_CODE              *       mpcode_free;
+PROG_CODE              *       mpcode_free;
 
-MPROG_CODE *new_mpcode(void)
+PROG_CODE *new_mpcode(void)
 {
-     MPROG_CODE *NewCode;
+     PROG_CODE *NewCode;
 
      if (!mpcode_free)
      {
@@ -473,7 +473,7 @@ MPROG_CODE *new_mpcode(void)
      return NewCode;
 }
 
-void free_mpcode(MPROG_CODE *pMcode)
+void free_mpcode(PROG_CODE *pMcode)
 {
     free_string(pMcode->code);
     pMcode->next = mpcode_free;
@@ -481,11 +481,11 @@ void free_mpcode(MPROG_CODE *pMcode)
     return;
 }
 
-OPROG_CODE              *       opcode_free;
+PROG_CODE              *       opcode_free;
 
-OPROG_CODE *new_opcode(void)
+PROG_CODE *new_opcode(void)
 {
-     OPROG_CODE *NewCode;
+     PROG_CODE *NewCode;
 
      if (!opcode_free)
      {
@@ -499,6 +499,7 @@ OPROG_CODE *new_opcode(void)
      }
 
      NewCode->vnum    = 0;
+     NewCode->is_lua  = TRUE;
      NewCode->code    = str_dup("");
      NewCode->next    = NULL;
      NewCode->security= 0;
@@ -506,7 +507,7 @@ OPROG_CODE *new_opcode(void)
      return NewCode;
 }
 
-void free_opcode(OPROG_CODE *pOcode)
+void free_opcode(PROG_CODE *pOcode)
 {
     free_string(pOcode->code);
     pOcode->next = opcode_free;
@@ -514,11 +515,11 @@ void free_opcode(OPROG_CODE *pOcode)
     return;
 }
 
-APROG_CODE              *       apcode_free;
+PROG_CODE              *       apcode_free;
 
-APROG_CODE *new_apcode(void)
+PROG_CODE *new_apcode(void)
 {
-     APROG_CODE *NewCode;
+     PROG_CODE *NewCode;
 
      if (!apcode_free)
      {
@@ -532,6 +533,7 @@ APROG_CODE *new_apcode(void)
      }
 
      NewCode->vnum    = 0;
+     NewCode->is_lua  = TRUE;
      NewCode->code    = str_dup("");
      NewCode->next    = NULL;
      NewCode->security = 0;
@@ -539,7 +541,7 @@ APROG_CODE *new_apcode(void)
      return NewCode;
 }
 
-void free_apcode(APROG_CODE *pAcode)
+void free_apcode(PROG_CODE *pAcode)
 {
     free_string(pAcode->code);
     pAcode->next = apcode_free;
@@ -547,11 +549,11 @@ void free_apcode(APROG_CODE *pAcode)
     return;
 }
 
-RPROG_CODE * rpcode_free;
+PROG_CODE * rpcode_free;
 
-RPROG_CODE *new_rpcode(void)
+PROG_CODE *new_rpcode(void)
 {
-    RPROG_CODE *NewCode;
+    PROG_CODE *NewCode;
 
     if (!rpcode_free)
     {
@@ -565,6 +567,7 @@ RPROG_CODE *new_rpcode(void)
     }
 
     NewCode->vnum = 0;
+    NewCode->is_lua  = TRUE;
     NewCode->code = str_dup("");
     NewCode->next = NULL;
     NewCode->security = 0;
@@ -572,7 +575,7 @@ RPROG_CODE *new_rpcode(void)
     return NewCode;
 }
 
-void free_rpcode(RPROG_CODE *pRcode)
+void free_rpcode(PROG_CODE *pRcode)
 {
     free_string(pRcode->code);
     pRcode->next = rpcode_free;

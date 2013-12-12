@@ -337,6 +337,9 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     lua_pushstring( g_mud_LS, d->incomm);
 
     g_ScriptSecurity= d->character->pcdata->security ;
+    g_LoopCheckCounter=0;
+    g_LuaScriptInProgress = TRUE;
+
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
     if (error > 0 )
     {
@@ -359,7 +362,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     }
 
     g_ScriptSecurity = 0;
-
+    g_LuaScriptInProgress=FALSE;
 
     lua_settop( g_mud_LS, 0);
     return TRUE;
@@ -713,7 +716,7 @@ void do_charloadtest( CHAR_DATA *ch, char *argument )
 
     if (is_number(arg1))
     {
-        MPROG_CODE *prg=get_mprog_index( atoi(arg1));
+        PROG_CODE *prg=get_mprog_index( atoi(arg1));
         if (!prg)
         {
             ptc( ch, "No such mprog: %s\n\r", arg1 );
