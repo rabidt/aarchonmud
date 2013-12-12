@@ -26,6 +26,7 @@
 ***************************************************************************/
 #include "timer.h"
 #include "protocol.h"
+#include <sqlite3.h>
 #include <lua.h>
 
 /* change this value to 0 for running on darkhorse */
@@ -232,6 +233,7 @@ bool is_sticky_obj( OBJ_DATA *obj );
 bool is_drop_obj( OBJ_DATA *obj );
 bool is_questeq( OBJ_DATA *obj );
 
+extern sqlite3 *db;
 
 /*
  * String and memory management parameters.
