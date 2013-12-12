@@ -503,6 +503,7 @@ const   struct  cmd_type    cmd_table   [] =
 #endif
     /*  { "dump",       do_dump,    POS_DEAD,   ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     /*	{ "newdump",    do_new_dump, POS_DEAD,  ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
+    { "sqldump",    do_sqldump, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "trust",      do_trust,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
 //    { "pipe",       do_pipe,    POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "pgrep",      do_pgrep,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
