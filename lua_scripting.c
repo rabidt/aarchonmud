@@ -90,31 +90,71 @@ http://www.gammon.com.au/forum/?id=8015
 /* TRIGTYPE_ARG */
 #define NUM_RPROG_RESULTS 1
 
-bool lua_load_mprog( lua_State *LS, int vnum, const char *code )
+typedef struct lua_scripter
+{
+    const char *name;
+    OBJ_TYPE *type;
+    const char *setup_fun;
+
+    int narg; /* set during init */
+    const int nrtn;
+
+    const char *arg_list[];
+
+} LUA_SCRIPTER; 
+
+LUA_SCRIPTER mpscripter =
+{
+    .name= "MPROG",
+    .type= &CH_type,
+    .setup_fun = "mob_program_setup",
+    .narg=8,
+    .nrtn=0,
+    .arg_list=
+    {
+        CH_ARG,
+        TRIG_ARG,
+        OBJ1_ARG,
+        OBJ2_ARG,
+        TEXT1_ARG,
+        TEXT2_ARG,
+        VICTIM_ARG,
+        TRIGTYPE_ARG,
+        NULL
+    }
+};
+
+static bool lua_load_prog( lua_State *LS, int vnum, const char *code, LUA_SCRIPTER *scripter)
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
 
     if ( strlen(code) >= MAX_SCRIPT_LENGTH )
     {
-        bugf("MPROG script %d exceeds %d characters.",
-                vnum, MAX_SCRIPT_LENGTH);
+        bugf("%s script %d exceeds %d characters.",
+                scripter->name, vnum, MAX_SCRIPT_LENGTH);
         return FALSE;
     }
 
-    sprintf(buf, "return function (%s,%s,%s,%s,%s,%s,%s,%s)\n"
-            "%s\n"
-            "end",
-            CH_ARG, TRIG_ARG, OBJ1_ARG,
-            OBJ2_ARG, TEXT1_ARG, TEXT2_ARG, VICTIM_ARG, TRIGTYPE_ARG,
-            code);
-
+    strcpy( buf, "return function (" );
+    
+    int i;
+    for (i=0; scripter->arg_list[i] ; i++)
+    {
+        if (i>0)
+            strcat( buf, ",");
+        strcat( buf, scripter->arg_list[i] );
+    }
+    strcat( buf, ")\n");
+    strcat( buf, code );
+    strcat( buf, "\nend");
 
     if (luaL_loadstring ( LS, buf) ||
             CallLuaWithTraceBack ( LS, 0, 1))
     {
         if ( vnum == LOADSCRIPT_VNUM )
             luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
-        bugf ( "LUA mprog error loading vnum%d:\n %s",
+        bugf ( "LUA %s error loading vnum%d:\n %s",
+                scripter->name,
                 vnum,
                 lua_tostring( LS, -1));
         lua_settop( LS, 0 );
@@ -126,6 +166,11 @@ bool lua_load_mprog( lua_State *LS, int vnum, const char *code )
        return TRUE;
     }
 
+}
+
+bool lua_load_mprog( lua_State *LS, int vnum, const char *code )
+{
+    return lua_load_prog( LS, vnum, code, &mpscripter);
 }
 
 void check_mprog( lua_State *LS, int vnum, const char *code )
@@ -255,12 +300,13 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
         const void *arg2, sh_int arg2type,
         int trig_type,
         int security ) 
+
 {
     lua_getglobal( g_mud_LS, "mob_program_setup");
 
     if ( !make_CH( g_mud_LS, mob ) )
     {
-        /* Most likely failed because the mob was destroyed */
+        /* Most likely failed because the gobj was destroyed */
         return;
     }
     if (lua_isnil(g_mud_LS, -1) )
