@@ -4337,31 +4337,47 @@ static int OBJ_get_liquid (lua_State *LS)
 }
 HELPTOPIC OBJ_get_liquid_help={};
 
-static int OBJ_get_total (lua_State *LS)
+static int OBJ_get_liquidtotal (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     
     if (ud_obj->item_type != ITEM_FOUNTAIN)
-        luaL_error(LS, "Total for fountain only.");
+        luaL_error(LS, "Liquidotal for fountain only.");
         
-    lua_pushstring(LS, ud_obj->value[0]);
+    lua_pushinteger(LS, ud_obj->value[0]);
     
     return 1;
 }
-HELPTOPIC OBJ_get_total_help={};
+HELPTOPIC OBJ_get_liquidtotal_help={};
 
-static int OBJ_get_left (lua_State *LS)
+static int OBJ_get_liquidleft (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     
     if (ud_obj->item_type != ITEM_FOUNTAIN)
-        luaL_error(LS, "Left for fountain only.");
+        luaL_error(LS, "Liquidleft for fountain only.");
         
-    lua_pushstring(LS, ud_obj->value[1]);
+    lua_pushinteger(LS, ud_obj->value[1]);
     
     return 1;
 }
-HELPTOPIC OBJ_get_left_help={};
+HELPTOPIC OBJ_get_liquidleft_help={};
+
+static int OBJ_get_light (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_LIGHT)
+        luaL_error(LS, "Light for light only.");
+
+    lua_pushinteger(LS, ud_obj->value[2]);
+
+    return 1;
+}
+HELPTOPIC OBJ_get_light_help =
+{
+    .summary = "Light only. Amount of light left."
+};
 
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
@@ -4388,10 +4404,13 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(contents, 0),
     OBJGET(proto, 0),
     
+    /*light*/
+    OBJGET(light, 0),
+
     /*fountain*/
     OBJGET(liquid, 0),
-    OBJGET(left, 0),
-    OBJGET(total, 0),
+    OBJGET(liquidleft, 0),
+    OBJGET(liquidtotal, 0),
     
     ENDPTABLE
 };
