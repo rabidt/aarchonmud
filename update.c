@@ -42,6 +42,7 @@
 #include "religion.h"
 #include "olc.h"
 #include "mob_stats.h"
+#include "lua_scripting.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );

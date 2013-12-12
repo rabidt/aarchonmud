@@ -46,6 +46,7 @@
 #include "lookup.h"
 #include "interp.h"
 #include "religion.h"
+#include "lua_scripting.h"
 
 bool commen_wear_pos( tflag wear_flag1, tflag wear_flag2 );
 void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all);
@@ -4209,7 +4210,7 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     
     ch->mana -= skill_table[sn].min_mana;
 
-    if (!op_percent_trigger( obj, NULL, ch, NULL, OTRIG_LORE) )
+    if (!op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_LORE) )
         return;
 
     /* ok, he knows something.. */
