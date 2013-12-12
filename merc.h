@@ -3168,6 +3168,7 @@ struct  mastery_group_type
 #define OTRIG_TIMER (R)
 #define OTRIG_FIGHT (S)
 #define OTRIG_HIT   (T)
+#define OTRIG_PREHIT (U)
 
 /*
  * AREAprog definitions
