@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include "merc.h"
 #include "warfare.h"
+#include "lua_scripting.h"
 
 ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnum);
 
@@ -224,7 +225,7 @@ void do_enter( CHAR_DATA *ch, char *argument)
     /* check for exit triggers */
     if ( !IS_NPC(ch) )
     {
-        if ( !op_percent_trigger( portal, NULL, ch, NULL, OTRIG_ENTER ) )
+        if ( !op_percent_trigger( NULL, portal, NULL, ch, NULL, OTRIG_ENTER ) )
             return;
         if ( !rp_exit_trigger(ch) )
             return;
