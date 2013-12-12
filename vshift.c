@@ -1,6 +1,6 @@
 /*
  * tool for shifting an area's vnum range, e.g. to clone remort chambers
- * areas shifted must use relative vnums only in mprogs/triggers
+ * areas shifted must use relative vnums only in progs/triggers
  * be very careful on using this, since vnums in player/clan/? files are not shifted
  * by Henning Koehler <koehlerh@in.tum.de>
  */
@@ -229,6 +229,9 @@ void shift_room( ROOM_INDEX_DATA *room )
 	    shift_exit( room->exit[door] );
 
     shift_reset_list( room->reset_first );
+
+    if ( room->rprogs != NULL )
+        shift_prog_list( room->rprogs );
 }
 
 /***************************** MOB *************************/
@@ -239,16 +242,10 @@ void shift_shop( SHOP_DATA *shop )
 	SHIFT(shop->keeper);
 }
 
-void shift_mprog_list( MPROG_LIST *list )
+void shift_prog_list( PROG_LIST *list )
 {
     for ( ; list != NULL; list = list->next )
 	SHIFT( list->vnum );
-}
-
-void shift_oprog_list( OPROG_LIST *list )
-{
-    for ( ; list != NULL; list = list->next )
-    SHIFT( list->vnum );
 }
 
 void shift_mob( MOB_INDEX_DATA *mob )
@@ -268,7 +265,7 @@ void shift_mob( MOB_INDEX_DATA *mob )
 	shift_shop( mob->pShop );
     
     if ( mob->mprogs != NULL )
-	shift_mprog_list( mob->mprogs );
+	shift_prog_list( mob->mprogs );
 }
 
 /***************************** OBJ *************************/
@@ -296,20 +293,20 @@ void shift_obj( OBJ_INDEX_DATA *obj )
 	SHIFT( obj->value[2] );
 
     if ( obj->oprogs != NULL )
-    shift_oprog_list( obj->oprogs );
+    shift_prog_list( obj->oprogs );
 }
 
 /***************************** MPROGS **********************/
 
-void shift_mprog_code( MPROG_CODE *mprog )
+void shift_prog_code( PROG_CODE *prog )
 {
-    if ( mprog == NULL )
+    if ( prog == NULL )
     {
-	bugf( "shift_mprog: NULL pointer given" );
+	bugf( "shift_prog: NULL pointer given" );
 	return;
     }
 
-    SHIFT( mprog->vnum );
+    SHIFT( prog->vnum );
 }
 
 /* now the big mama functions */
@@ -319,61 +316,70 @@ void shift_area( AREA_DATA *area, int shift, bool area_only )
     ROOM_INDEX_DATA *room;
     MOB_INDEX_DATA *mob;
     OBJ_INDEX_DATA *obj;
-    MPROG_CODE *mprog;
+    PROG_CODE *prog;
     int index;
 
     if ( area == NULL )
     {
-	bugf( "shift_area: NULL pointer given" );
-	return;
+        bugf( "shift_area: NULL pointer given" );
+        return;
     }
-    
+
     if ( !range_is_free(area->min_vnum + shift, area->max_vnum + shift) )
     {
-	bugf( "shift_area: range not free (%d - %d -> %d)",
-	      area->min_vnum, area->max_vnum, area->min_vnum + shift );
-	return;
+        bugf( "shift_area: range not free (%d - %d -> %d)",
+                area->min_vnum, area->max_vnum, area->min_vnum + shift );
+        return;
     }
 
     /* set global shift parameters */
     org_min_vnum = area->min_vnum;
     org_max_vnum = area->max_vnum;
     vnum_shift = shift;
-    
+
     /* do the shift on everything needed */
     if ( area_only )
     {
-	shift_area_data( area );
-	for ( index = org_min_vnum; index <= org_max_vnum; index++ )
-	{
-	    if ( (room = get_room_index(index)) != NULL )
-		shift_room( room );
-	    if ( (mob = get_mob_index(index)) != NULL )
-		shift_mob( mob );
-	    if ( (obj = get_obj_index(index)) != NULL )
-		shift_obj( obj );
-	}
+        shift_area_data( area );
+        for ( index = org_min_vnum; index <= org_max_vnum; index++ )
+        {
+            if ( (room = get_room_index(index)) != NULL )
+                shift_room( room );
+            if ( (mob = get_mob_index(index)) != NULL )
+                shift_mob( mob );
+            if ( (obj = get_obj_index(index)) != NULL )
+                shift_obj( obj );
+        }
     }
     else
     {
-	for ( area = area_first; area != NULL; area = area->next )
-	    shift_area_data( area );
+        for ( area = area_first; area != NULL; area = area->next )
+            shift_area_data( area );
 
-	for ( index = 1; index <= top_vnum_room; index++ )
-	    if ( (room = get_room_index(index)) != NULL )
-		shift_room( room );
+        for ( index = 1; index <= top_vnum_room; index++ )
+            if ( (room = get_room_index(index)) != NULL )
+                shift_room( room );
 
-	for ( index = 1; index <= top_vnum_mob; index++ )
-	    if ( (mob = get_mob_index(index)) != NULL )
-		shift_mob( mob );
+        for ( index = 1; index <= top_vnum_mob; index++ )
+            if ( (mob = get_mob_index(index)) != NULL )
+                shift_mob( mob );
 
-	for ( index = 1; index <= top_vnum_obj; index++ )
-	    if ( (obj = get_obj_index(index)) != NULL )
-		shift_obj( obj );
+        for ( index = 1; index <= top_vnum_obj; index++ )
+            if ( (obj = get_obj_index(index)) != NULL )
+                shift_obj( obj );
     }
 
-    for ( mprog = mprog_list; mprog != NULL; mprog = mprog->next )
-	shift_mprog_code( mprog );
+    for ( prog = mprog_list; prog != NULL; prog = prog->next )
+        shift_prog_code( prog );
+    for ( prog = oprog_list; prog != NULL; prog = prog->next )
+        shift_prog_code( prog );
+    for ( prog = aprog_list; prog != NULL; prog = prog->next )
+        shift_prog_code( prog );
+    for ( prog = rprog_list; prog != NULL; prog = prog->next )
+        shift_prog_code( prog );
+
+    if ( area->aprogs != NULL )
+        shift_prog_list( area->aprogs );
 }
 
 void do_ashift( CHAR_DATA *ch, char *argument )
@@ -395,7 +401,7 @@ void do_ashift( CHAR_DATA *ch, char *argument )
 	 || !is_number(arg1) || !is_number(arg2) )
     {
 	send_to_char( "Syntax: ashift <area vnum> <new min_vnum> <area|world>\n\r", ch );
-	send_to_char( "Make sure that the area uses relative vnums in mprogs.\n\r", ch );
+	send_to_char( "Make sure that the area uses relative vnums in progs.\n\r", ch );
 	return;
     }
 
@@ -500,7 +506,7 @@ char* rel_string( char *str, int min_vnum, int max_vnum )
     return rel_str;
 }
 
-void rel_mprog_list( MPROG_LIST *list, int min_vnum, int max_vnum )
+void rel_prog_list( PROG_LIST *list, int min_vnum, int max_vnum )
 {
     char *rel;
 
@@ -519,20 +525,20 @@ void rel_mprog_list( MPROG_LIST *list, int min_vnum, int max_vnum )
     }
 }
 
-void rel_mprog_code( MPROG_CODE *mprog, int min_vnum, int max_vnum )
+void rel_prog_code( PROG_CODE *prog, int min_vnum, int max_vnum )
 {
     char *rel;
 
-    if ( mprog == NULL )
+    if ( prog == NULL )
 	return;
 
-    if ( IS_BETWEEN(min_vnum, mprog->vnum, max_vnum) )
+    if ( !prog->is_lua && IS_BETWEEN(min_vnum, prog->vnum, max_vnum) )
     {
-	rel = rel_string( mprog->code, min_vnum, max_vnum );
-	if ( strcmp(rel, mprog->code) )
+	rel = rel_string( prog->code, min_vnum, max_vnum );
+	if ( strcmp(rel, prog->code) )
 	{
-	    free_string( mprog->code );
-	    mprog->code = str_dup( rel );
+	    free_string( prog->code );
+	    prog->code = str_dup( rel );
 	}
     }
 }
@@ -540,17 +546,36 @@ void rel_mprog_code( MPROG_CODE *mprog, int min_vnum, int max_vnum )
 void rel_area( AREA_DATA *area )
 {
     MOB_INDEX_DATA *mob;
-    MPROG_CODE *mprog;
+    OBJ_INDEX_DATA *oid;
+    ROOM_INDEX_DATA *rid;
+    PROG_CODE *prog;
     int index;
 
     for ( index = area->min_vnum; index <= area->max_vnum; index++ )
     {
-	if ( (mob = get_mob_index(index)) != NULL )
-	    rel_mprog_list( mob->mprogs, area->min_vnum, area->max_vnum );
+        if ( (mob = get_mob_index(index)) != NULL )
+            rel_prog_list( mob->mprogs, area->min_vnum, area->max_vnum );
+        if ( (oid = get_obj_index(index)) != NULL )
+            rel_prog_list( oid->oprogs, area->min_vnum, area->max_vnum );
+        if ( (rid = get_room_index(index)) != NULL )
+            rel_prog_list( rid->rprogs, area->min_vnum, area->max_vnum );
+
+        rel_prog_list( area->aprogs, area->min_vnum, area->max_vnum );
+
     }
 
-    for ( mprog = mprog_list; mprog != NULL; mprog = mprog->next )
-	rel_mprog_code( mprog, area->min_vnum, area->max_vnum );
+    for ( prog = mprog_list; prog != NULL; prog = prog->next )
+        rel_prog_code( prog, area->min_vnum, area->max_vnum );
+
+    for ( prog = oprog_list; prog != NULL; prog = prog->next )
+        rel_prog_code( prog, area->min_vnum, area->max_vnum );
+
+    for ( prog = aprog_list; prog != NULL; prog = prog->next )
+        rel_prog_code( prog, area->min_vnum, area->max_vnum );
+
+    for ( prog = rprog_list; prog != NULL; prog = prog->next )
+        rel_prog_code( prog, area->min_vnum, area->max_vnum );
+
 
     SET_BIT( area->area_flags, AREA_CHANGED );
 }
@@ -591,7 +616,7 @@ void do_rvnum( CHAR_DATA *ch, char *argument )
          return;
     }
 
-    sprintf( buf, "Making vnums in mprogs & triggers in area %s relative.\n\r",
+    sprintf( buf, "Making vnums in progs & triggers in area %s relative.\n\r",
 	     area->name );
     log_string( buf );
     send_to_char( buf, ch );
