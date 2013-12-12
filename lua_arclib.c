@@ -4379,6 +4379,52 @@ HELPTOPIC OBJ_get_light_help =
     .summary = "Light only. Amount of light left."
 };
 
+static int OBJ_get_arrowcount (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_ARROWS)
+        luaL_error(LS, "Arrowcount for arrows only.");
+
+    lua_pushinteger(LS, ud_obj->value[0]);
+
+    return 1;
+}
+HELPTOPIC OBJ_get_arrowcount_help =
+{
+};
+
+static int OBJ_get_arrowdamage (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_ARROWS)
+        luaL_error(LS, "Arrowdamage for arrows only.");
+
+    lua_pushinteger(LS, ud_obj->value[1]);
+
+    return 1;
+}
+HELPTOPIC OBJ_get_arrowdamage_help =
+{
+};
+
+static int OBJ_get_arrowdamtype (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_ARROWS)
+        luaL_error(LS, "Arrowdamtype for arrows only.");
+
+    lua_pushstring(LS, 
+            flag_stat_string(damage_type, ud_obj->value[2]) ) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_arrowdamtype_help =
+{
+};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -4406,6 +4452,11 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     
     /*light*/
     OBJGET(light, 0),
+
+    /*arrows*/
+    OBJGET(arrowcount, 0),
+    OBJGET(arrowdamage, 0),
+    OBJGET(arrowdamtype, 0),
 
     /*fountain*/
     OBJGET(liquid, 0),
