@@ -3793,6 +3793,9 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     char buf[MAX_STRING_LENGTH], arg[MAX_INPUT_LENGTH];
     int c, pos;
 
+    sprintf( buf, "%s", obj->short_descr);
+    do_say(ch, buf);
+
     sprintf( buf, "The %s is %s.",
 	     item_name(obj->item_type),
 	     extra_bits_name(obj->extra_flags) );
