@@ -514,6 +514,8 @@ PC_DATA *new_pcdata(void)
     pcdata->mob_deaths              = 0;
     pcdata->quest_failed            = 0;
     pcdata->quest_success           = 0;
+    pcdata->quest_hard_success      = 0;
+    pcdata->quest_hard_failed       = 0;
     pcdata->gender_kills            = 0;
     pcdata->gender_lost             = 0;
     pcdata->gender_won              = 0;
