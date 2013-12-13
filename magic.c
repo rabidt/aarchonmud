@@ -4086,7 +4086,7 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
     if ( (ch->level+10) < obj->level)
     {
-        sprintf( buf, "%s is too powerful for you to identify.\n\r" , obj->name);
+        sprintf( buf, "You must be at least level %d to identify %s{x.\n\r" , obj->level - 10, obj->short_descr);
         send_to_char(buf, ch);
         return;
     }
