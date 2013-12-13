@@ -4445,6 +4445,58 @@ HELPTOPIC OBJ_get_spelllevel_help =
 {
 };
 
+static int OBJ_get_chargestotal (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_WAND
+        && ud_obj->item_type != ITEM_STAFF )
+        luaL_error(LS, "Chargestotal for wands and staves only.");
+
+    lua_pushinteger(LS,
+            ud_obj->value[1]) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_chargestotal_help =
+{
+};
+
+static int OBJ_get_chargesleft (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_WAND
+        && ud_obj->item_type != ITEM_STAFF )
+        luaL_error(LS, "Chargesleft for wands and staves only.");
+
+    lua_pushinteger(LS,
+            ud_obj->value[2]) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_chargesleft_help =
+{
+};
+
+static int OBJ_get_spellname (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_WAND
+        && ud_obj->item_type != ITEM_STAFF )
+        luaL_error(LS, "Spellname for wands and staves only.");
+
+    lua_pushstring(LS,
+            ud_obj->value[3] != -1 ? skill_table[ud_obj->value[3]].name
+                : "reserved" );
+
+    return 1;
+}
+HELPTOPIC OBJ_get_spellname_help =
+{
+};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -4480,11 +4532,10 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     
     /* wand, staff */
     OBJGET(spelllevel, 0),
-#if 0    
     OBJGET(chargestotal, 0),
     OBJGET(chargesleft, 0),
     OBJGET(spellname, 0),
-
+#if 0
     /* portal */
     // chargesleft
     OBJGET(toroom, 0),
