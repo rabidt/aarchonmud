@@ -4348,103 +4348,57 @@ static int OBJ_get_v4 (lua_State *LS)
 }
 HELPTOPIC OBJ_get_v4_help={};
 
-static int OBJ_get_liquid (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-    
-    if (ud_obj->item_type != ITEM_FOUNTAIN)
-        luaL_error(LS, "Liquid for fountain only.");
-        
-    lua_pushstring(LS, liq_table[ud_obj->value[2]].liq_name);
-    
-    return 1;
+#define OBJVGETINT( funcname, otype, vind ) \
+static int OBJ_get_ ## funcname (lua_State *LS)\
+{\
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);\
+    \
+    if (ud_obj->item_type != otype )\
+        luaL_error(LS, #funcname " for %s only.", \
+                item_name( otype ) );\
+    \
+    lua_pushinteger( LS, ud_obj->value[ vind ] );\
 }
+
+#define OBJVGETSTR( funcname, otype, vval )\
+static int OBJ_get_ ## funcname (lua_State *LS)\
+{\
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);\
+    \
+    if (ud_obj->item_type != otype )\
+        luaL_error(LS, #funcname " for %s only.", \
+                item_name( otype ) );\
+    \
+    lua_pushstring( LS, vval );\
+}
+
+OBJVGETSTR( liquid, ITEM_FOUNTAIN, liq_table[ud_obj->value[2]].liq_name )
 HELPTOPIC OBJ_get_liquid_help={};
 
-static int OBJ_get_liquidtotal (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-    
-    if (ud_obj->item_type != ITEM_FOUNTAIN)
-        luaL_error(LS, "Liquidotal for fountain only.");
-        
-    lua_pushinteger(LS, ud_obj->value[0]);
-    
-    return 1;
-}
+OBJVGETINT( liquidtotal, ITEM_FOUNTAIN, 0 )
 HELPTOPIC OBJ_get_liquidtotal_help={};
 
-static int OBJ_get_liquidleft (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-    
-    if (ud_obj->item_type != ITEM_FOUNTAIN)
-        luaL_error(LS, "Liquidleft for fountain only.");
-        
-    lua_pushinteger(LS, ud_obj->value[1]);
-    
-    return 1;
-}
+OBJVGETINT( liquidleft, ITEM_FOUNTAIN, 1 )
 HELPTOPIC OBJ_get_liquidleft_help={};
 
-static int OBJ_get_light (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    if (ud_obj->item_type != ITEM_LIGHT)
-        luaL_error(LS, "Light for light only.");
-
-    lua_pushinteger(LS, ud_obj->value[2]);
-
-    return 1;
-}
+OBJVGETINT( light, ITEM_LIGHT, 2 )
 HELPTOPIC OBJ_get_light_help =
 {
     .summary = "Light only. Amount of light left."
 };
 
-static int OBJ_get_arrowcount (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    if (ud_obj->item_type != ITEM_ARROWS)
-        luaL_error(LS, "Arrowcount for arrows only.");
-
-    lua_pushinteger(LS, ud_obj->value[0]);
-
-    return 1;
-}
+OBJVGETINT( arrowcount, ITEM_ARROWS, 0 )
 HELPTOPIC OBJ_get_arrowcount_help =
 {
 };
 
-static int OBJ_get_arrowdamage (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    if (ud_obj->item_type != ITEM_ARROWS)
-        luaL_error(LS, "Arrowdamage for arrows only.");
-
-    lua_pushinteger(LS, ud_obj->value[1]);
-
-    return 1;
-}
+OBJVGETINT( arrowdamage, ITEM_ARROWS, 1 )
 HELPTOPIC OBJ_get_arrowdamage_help =
 {
 };
 
-static int OBJ_get_arrowdamtype (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    if (ud_obj->item_type != ITEM_ARROWS)
-        luaL_error(LS, "Arrowdamtype for arrows only.");
-
-    lua_pushstring(LS, 
-            flag_stat_string(damage_type, ud_obj->value[2]) ) ;
-
-    return 1;
-}
+OBJVGETSTR( arrowdamtype, ITEM_ARROWS, 
+        flag_stat_string(damage_type, ud_obj->value[2]) )
 HELPTOPIC OBJ_get_arrowdamtype_help =
 {
 };
@@ -4540,34 +4494,12 @@ HELPTOPIC OBJ_get_spellname_help =
 {
 };
 
-static int OBJ_get_toroom (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    if (ud_obj->item_type != ITEM_PORTAL)
-        luaL_error(LS, "Toroom for portals only.");
-
-    lua_pushinteger(LS,
-            ud_obj->value[3]) ;
-
-    return 1;
-}
+OBJVGETINT( toroom, ITEM_PORTAL, 3 )
 HELPTOPIC OBJ_get_toroom_help =
 {
 };
 
-static int OBJ_get_maxpeople (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    if (ud_obj->item_type != ITEM_FURNITURE)
-        luaL_error(LS, "Maxpeople for furniture only.");
-
-    lua_pushinteger(LS,
-            ud_obj->value[0]) ;
-
-    return 1;
-}
+OBJVGETINT( maxpeople, ITEM_FURNITURE, 0 )
 HELPTOPIC OBJ_get_maxpeople_help =
 {
 };
@@ -4596,34 +4528,12 @@ HELPTOPIC OBJ_get_maxweight_help =
 {
 };
 
-static int OBJ_get_healbonus (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    if (ud_obj->item_type != ITEM_FURNITURE)
-        luaL_error(LS, "Healbonus for furniture only.");
-
-    lua_pushinteger(LS,
-            ud_obj->value[3]) ;
-
-    return 1;
-}
+OBJVGETINT( healbonus, ITEM_FURNITURE, 3 )
 HELPTOPIC OBJ_get_healbonus_help =
 {
 };
 
-static int OBJ_get_manabonus (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    if (ud_obj->item_type != ITEM_FURNITURE)
-        luaL_error(LS, "Manabonus for furniture only.");
-
-    lua_pushinteger(LS,
-            ud_obj->value[4]) ;
-
-    return 1;
-}
+OBJVGETINT( manabonus, ITEM_FURNITURE, 4 )
 HELPTOPIC OBJ_get_manabonus_help =
 {
 };
@@ -4658,6 +4568,32 @@ static int OBJ_get_spells (lua_State *LS)
     return 0;
 }
 HELPTOPIC OBJ_get_spells_help = {};
+
+OBJVGETINT( acpierce, ITEM_ARMOR, 0 )
+HELPTOPIC OBJ_get_acpierce_help = {};
+
+OBJVGETINT( acbash, ITEM_ARMOR, 1 )
+HELPTOPIC OBJ_get_acbash_help = {};
+
+OBJVGETINT( acslash, ITEM_ARMOR, 2 )
+HELPTOPIC OBJ_get_acslash_help = {};
+
+OBJVGETINT( acexotic, ITEM_ARMOR, 3 )
+HELPTOPIC OBJ_get_acexotic_help = {};
+
+OBJVGETSTR( weapontype, ITEM_WEAPON,
+        flag_stat_string( weapon_class, ud_obj->value[0] ) )
+HELPTOPIC OBJ_get_weapontype_help = {};
+
+OBJVGETINT( numdice, ITEM_WEAPON, 1 )
+HELPTOPIC OBJ_get_numdice_help = {};
+
+OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
+HELPTOPIC OBJ_get_dicetype_help = {};
+
+OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
+HELPTOPIC OBJ_get_attacktype_help = {};
+
 
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
@@ -4712,7 +4648,6 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     //OBJGET(spelllevel, 0),
     OBJGET(spells, 0),
 
-#if 0
     /* armor */
     OBJGET( acpierce, 0),
     OBJGET( acbash, 0),
@@ -4725,6 +4660,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( dicetype, 0),
     OBJGET( attacktype, 0),
 
+#if 0
     /* container */
     //OBJGET( maxweight, 0);
     OBJGET( key, 0);
