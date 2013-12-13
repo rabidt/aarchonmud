@@ -1646,6 +1646,7 @@ void do_look( CHAR_DATA *ch, char *argument )
     char *pdesc;
     int door;
     int number,count;
+    sh_int num_items;
     
     if ( ch->desc == NULL )
         return;
@@ -1809,11 +1810,12 @@ void do_look( CHAR_DATA *ch, char *argument )
             show_list_to_char( obj->contains, ch, TRUE, TRUE );
             /* Show item count in storage boxes*/
 //            if (obj->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
-//            { 
-                sh_int num_items=get_obj_number(obj);
+            if (obj->item_type == ITEM_CONTAINER)
+            { 
+                num_items = get_obj_number(obj);
                 printf_to_char(ch,"\n\r%d %s.\n\r",num_items,
-                        num_items==1?"item":"items");
-//            }
+                        num_items == 1 ? "item" : "items");
+            }
             break;
         }
         return;
