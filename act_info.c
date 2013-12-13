@@ -5491,7 +5491,8 @@ msl_string achievement_display [] =
         "Explored",
         "MA Skills",
         "GM Skills",
-        "Retrain"
+        "Retrain",
+        "Hard Qsts"
 };
 
 
@@ -5686,6 +5687,9 @@ void check_achievement( CHAR_DATA *ch )
                 break;
             case ACHV_RETRAINED:
                 current = ch->pcdata->smc_retrained;
+                break;
+            case ACHV_QHCOMP:
+                current = ch->pcdata->quest_hard_success;
                 break;
 	    default:
 		bug("Invalid achievement entry. Check achievement type", 0);

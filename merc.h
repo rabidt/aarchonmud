@@ -2743,6 +2743,8 @@ struct  pc_data
 	int                 mob_deaths;
 	int                 quest_failed;
 	int                 quest_success;
+        int                 quest_hard_success;
+        int                 quest_hard_failed;
 	int                 gender_won;
 	int                 gender_lost;
 	int                 gender_kills;
@@ -3590,6 +3592,7 @@ struct achievement_entry
 #define ACHV_MASKILLS   14
 #define ACHV_GMSKILLS   15
 #define ACHV_RETRAINED  16
+#define ACHV_QHCOMP     17
 
 /*bitvector for achievement tflag*/
 #define    ACHIEVE_LEVEL_1 1
@@ -3715,6 +3718,12 @@ struct achievement_entry
 #define    ACHIEVE_RETRAINED_3 118
 #define    ACHIEVE_RETRAINED_4 119
 #define    ACHIEVE_RETRAINED_5 120
+#define    ACHIEVE_QHCOMP_1    121 // 1
+#define    ACHIEVE_QHCOMP_2    122 // 10
+#define    ACHIEVE_QHCOMP_3    123 // 50
+#define    ACHIEVE_QHCOMP_4    124 // 100
+#define    ACHIEVE_QHCOMP_5    125 // 250
+#define    ACHIEVE_QHCOMP_6    126 // 500
 
 /*
 #define ACHIEVE_LEVEL_1    A
