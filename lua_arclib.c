@@ -1758,6 +1758,321 @@ int L_cancel (lua_State *LS)
 
     return 0;
 }
+
+/* macro the heck out of this stuff so we don't have to rewrite for OBJ_DATA and OBJ_INDEX_DATA */
+#define OBJVGT( funcname, funcbody ) \
+static int OBJ_get_ ## funcname (lua_State *LS)\
+{\
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);\
+    \
+    funcbody \
+}\
+\
+static int OBJPROTO_get_ ## funcname (lua_State *LS)\
+{\
+    OBJ_INDEX_DATA *ud_obj=check_OBJPROTO(LS,1);\
+    \
+    funcbody \
+}
+
+#define OBJVGETINT( funcname, otype, vind ) \
+OBJVGT( funcname, \
+    if (ud_obj->item_type != otype )\
+        luaL_error(LS, #funcname " for %s only.", \
+                item_name( otype ) );\
+    \
+    lua_pushinteger( LS, ud_obj->value[ vind ] );\
+    return 1;\
+)
+
+#define OBJVGETSTR( funcname, otype, vval )\
+OBJVGT( funcname, \
+    if (ud_obj->item_type != otype )\
+        luaL_error(LS, #funcname " for %s only.", \
+                item_name( otype ) );\
+    \
+    lua_pushstring( LS, vval );\
+    return 1;\
+)
+
+OBJVGETINT( light, ITEM_LIGHT, 2 )
+HELPTOPIC OBJ_get_light_help =
+{
+    .summary = "Light only. Amount of light left."
+};
+
+OBJVGETINT( arrowcount, ITEM_ARROWS, 0 )
+HELPTOPIC OBJ_get_arrowcount_help =
+{
+};
+
+OBJVGETINT( arrowdamage, ITEM_ARROWS, 1 )
+HELPTOPIC OBJ_get_arrowdamage_help =
+{
+};
+
+OBJVGETSTR( arrowdamtype, ITEM_ARROWS, 
+        flag_stat_string(damage_type, ud_obj->value[2]) )
+HELPTOPIC OBJ_get_arrowdamtype_help =
+{
+};
+
+OBJVGT( spelllevel,  
+    switch(ud_obj->item_type)
+    {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+        case ITEM_SCROLL:
+        case ITEM_POTION:
+        case ITEM_PILL:
+            lua_pushinteger( LS,
+                    ud_obj->value[0]);
+            return 1;
+        default:
+            luaL_error(LS, "Spelllevel for wands, staves, scrolls, potions, and pills only.");
+    }
+    return 0;
+)
+HELPTOPIC OBJ_get_spelllevel_help =
+{
+};
+
+OBJVGT( chargestotal,
+    switch(ud_obj->item_type)
+    {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+            lua_pushinteger( LS,
+                    ud_obj->value[1]);
+            return 1;
+        default:
+            luaL_error(LS, "Chargestotal for wands and staves only.");
+    }
+
+    return 1;
+)
+HELPTOPIC OBJ_get_chargestotal_help =
+{
+};
+
+OBJVGT( chargesleft,
+    switch(ud_obj->item_type)
+    {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+            lua_pushinteger(LS,
+                    ud_obj->value[2]);
+            return 1;
+        case ITEM_PORTAL:
+            lua_pushinteger(LS,
+                    ud_obj->value[0]);
+            return 1;
+        default:
+            luaL_error(LS, "Chargesleft for wands, staves, and portals only.");
+    }
+
+    return 0;
+)
+HELPTOPIC OBJ_get_chargesleft_help =
+{
+};
+
+OBJVGT( spellname, 
+    switch(ud_obj->item_type)
+    {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+            lua_pushstring( LS,
+                    ud_obj->value[3] != -1 ? skill_table[ud_obj->value[3]].name
+                        : "reserved" );
+            return 1; 
+        default:
+            luaL_error(LS, "Spellname for wands and staves only.");
+    }
+
+    return 1;
+)
+HELPTOPIC OBJ_get_spellname_help =
+{
+};
+
+OBJVGETINT( toroom, ITEM_PORTAL, 3 )
+HELPTOPIC OBJ_get_toroom_help =
+{
+};
+
+OBJVGETINT( maxpeople, ITEM_FURNITURE, 0 )
+HELPTOPIC OBJ_get_maxpeople_help =
+{
+};
+
+OBJVGT( maxweight, 
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FURNITURE:
+            lua_pushinteger( LS,
+                    ud_obj->value[1] );
+            return 1;
+        case ITEM_CONTAINER:
+            lua_pushinteger( LS,
+                    ud_obj->value[0] );
+            return 1;
+        default:
+            luaL_error(LS, "Maxweight for furniture and containers only.");
+    }
+
+    return 0;
+)
+HELPTOPIC OBJ_get_maxweight_help =
+{
+};
+
+OBJVGETINT( healbonus, ITEM_FURNITURE, 3 )
+HELPTOPIC OBJ_get_healbonus_help =
+{
+};
+
+OBJVGETINT( manabonus, ITEM_FURNITURE, 4 )
+HELPTOPIC OBJ_get_manabonus_help =
+{
+};
+
+OBJVGT( spells, 
+    switch(ud_obj->item_type)
+    {
+        case ITEM_PILL:
+        case ITEM_POTION:
+        case ITEM_SCROLL:
+            lua_newtable(LS);
+            int index=1;
+            int i;
+
+            for ( i=1 ; i<5 ; i++ )
+            {
+                if ( ud_obj->value[i] < 1 )
+                    continue;
+
+                lua_pushstring( LS,
+                        skill_table[ud_obj->value[i]].name );
+                lua_rawseti( LS, -2, index++ );
+            } 
+            return 1;
+        default:
+            luaL_error( LS, "Spells for pill, potion, and scroll only.");
+    }
+    
+    return 0;
+)
+HELPTOPIC OBJ_get_spells_help = {};
+
+OBJVGETINT( acpierce, ITEM_ARMOR, 0 )
+HELPTOPIC OBJ_get_acpierce_help = {};
+
+OBJVGETINT( acbash, ITEM_ARMOR, 1 )
+HELPTOPIC OBJ_get_acbash_help = {};
+
+OBJVGETINT( acslash, ITEM_ARMOR, 2 )
+HELPTOPIC OBJ_get_acslash_help = {};
+
+OBJVGETINT( acexotic, ITEM_ARMOR, 3 )
+HELPTOPIC OBJ_get_acexotic_help = {};
+
+OBJVGETSTR( weapontype, ITEM_WEAPON,
+        flag_stat_string( weapon_class, ud_obj->value[0] ) )
+HELPTOPIC OBJ_get_weapontype_help = {};
+
+OBJVGETINT( numdice, ITEM_WEAPON, 1 )
+HELPTOPIC OBJ_get_numdice_help = {};
+
+OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
+HELPTOPIC OBJ_get_dicetype_help = {};
+
+OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
+HELPTOPIC OBJ_get_attacktype_help = {};
+
+OBJVGETINT( key, ITEM_CONTAINER, 2 )
+HELPTOPIC OBJ_get_key_help = {};
+
+OBJVGETINT( capacity, ITEM_CONTAINER, 3 )
+HELPTOPIC OBJ_get_capacity_help = {};
+
+OBJVGETINT( weightmult, ITEM_CONTAINER, 4 )
+HELPTOPIC OBJ_get_weightmult_help = {};
+
+
+OBJVGT( liquidtotal, 
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FOUNTAIN:
+        case ITEM_DRINK_CON:
+            lua_pushinteger( LS, ud_obj->value[0] );
+            return 1;
+        default:
+            luaL_error(LS, "liquidtotal for drinkcontainer and fountain only");
+    }
+
+    return 0;
+)
+HELPTOPIC OBJ_get_liquidtotal_help={};
+
+OBJVGT( liquidleft,
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FOUNTAIN:
+        case ITEM_DRINK_CON:
+            lua_pushinteger( LS, ud_obj->value[1] );
+            return 1;
+        default:
+            luaL_error(LS, "liquidleft for drinkcontainer and fountain only");
+    }
+
+    return 0;
+)
+HELPTOPIC OBJ_get_liquidleft_help={};
+
+OBJVGT( liquid,
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FOUNTAIN:
+        case ITEM_DRINK_CON:
+            lua_pushstring( LS,
+                    liq_table[ud_obj->value[2]].liq_name);
+            return 1;
+        default:
+            luaL_error(LS, "liquid for drinkcontainer and fountain only");
+    }
+
+    return 0;
+)
+HELPTOPIC OBJ_get_liquid_help={};
+
+OBJVGT( poisoned, 
+    switch(ud_obj->item_type)
+    {
+        case ITEM_DRINK_CON:
+        case ITEM_FOOD:
+            lua_pushboolean( LS, ud_obj->value[3] );
+            return 1;
+        default:
+            luaL_error(LS, "poisoned for drinkcontainer and food only");
+    }
+
+    return 0;
+)
+HELPTOPIC OBJ_get_poisoned_help = {};
+
+OBJVGETINT( foodhours, ITEM_FOOD, 0 )
+HELPTOPIC OBJ_get_foodhours_help = {};
+
+OBJVGETINT( fullhours, ITEM_FOOD, 1 )
+HELPTOPIC OBJ_get_fullhours_help = {};
+
+OBJVGETINT( silver, ITEM_MONEY, 0 )
+HELPTOPIC OBJ_get_silver_help = {};
+
+OBJVGETINT( gold, ITEM_MONEY, 1 )
+HELPTOPIC OBJ_get_gold_help = {};
+
 /* end common section */
 
 /* CH section */
@@ -4347,339 +4662,6 @@ static int OBJ_get_v4 (lua_State *LS)
     return 1;
 }
 HELPTOPIC OBJ_get_v4_help={};
-
-#define OBJVGETINT( funcname, otype, vind ) \
-static int OBJ_get_ ## funcname (lua_State *LS)\
-{\
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);\
-    \
-    if (ud_obj->item_type != otype )\
-        luaL_error(LS, #funcname " for %s only.", \
-                item_name( otype ) );\
-    \
-    lua_pushinteger( LS, ud_obj->value[ vind ] );\
-    return 1;\
-}
-
-#define OBJVGETSTR( funcname, otype, vval )\
-static int OBJ_get_ ## funcname (lua_State *LS)\
-{\
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);\
-    \
-    if (ud_obj->item_type != otype )\
-        luaL_error(LS, #funcname " for %s only.", \
-                item_name( otype ) );\
-    \
-    lua_pushstring( LS, vval );\
-    return 1;\
-}
-
-OBJVGETINT( light, ITEM_LIGHT, 2 )
-HELPTOPIC OBJ_get_light_help =
-{
-    .summary = "Light only. Amount of light left."
-};
-
-OBJVGETINT( arrowcount, ITEM_ARROWS, 0 )
-HELPTOPIC OBJ_get_arrowcount_help =
-{
-};
-
-OBJVGETINT( arrowdamage, ITEM_ARROWS, 1 )
-HELPTOPIC OBJ_get_arrowdamage_help =
-{
-};
-
-OBJVGETSTR( arrowdamtype, ITEM_ARROWS, 
-        flag_stat_string(damage_type, ud_obj->value[2]) )
-HELPTOPIC OBJ_get_arrowdamtype_help =
-{
-};
-
-static int OBJ_get_spelllevel (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_WAND:
-        case ITEM_STAFF:
-        case ITEM_SCROLL:
-        case ITEM_POTION:
-        case ITEM_PILL:
-            lua_pushinteger( LS,
-                    ud_obj->value[0]);
-            return 1;
-        default:
-            luaL_error(LS, "Spelllevel for wands, staves, scrolls, potions, and pills only.");
-    }
-    return 0;
-}
-HELPTOPIC OBJ_get_spelllevel_help =
-{
-};
-
-static int OBJ_get_chargestotal (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_WAND:
-        case ITEM_STAFF:
-            lua_pushinteger( LS,
-                    ud_obj->value[1]);
-            return 1;
-        default:
-            luaL_error(LS, "Chargestotal for wands and staves only.");
-    }
-
-    return 1;
-}
-HELPTOPIC OBJ_get_chargestotal_help =
-{
-};
-
-static int OBJ_get_chargesleft (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_WAND:
-        case ITEM_STAFF:
-            lua_pushinteger(LS,
-                    ud_obj->value[2]);
-            return 1;
-        case ITEM_PORTAL:
-            lua_pushinteger(LS,
-                    ud_obj->value[0]);
-            return 1;
-        default:
-            luaL_error(LS, "Chargesleft for wands, staves, and portals only.");
-    }
-
-    return 0;
-}
-HELPTOPIC OBJ_get_chargesleft_help =
-{
-};
-
-static int OBJ_get_spellname (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_WAND:
-        case ITEM_STAFF:
-            lua_pushstring( LS,
-                    ud_obj->value[3] != -1 ? skill_table[ud_obj->value[3]].name
-                        : "reserved" );
-            return 1; 
-        default:
-            luaL_error(LS, "Spellname for wands and staves only.");
-    }
-
-    return 1;
-}
-HELPTOPIC OBJ_get_spellname_help =
-{
-};
-
-OBJVGETINT( toroom, ITEM_PORTAL, 3 )
-HELPTOPIC OBJ_get_toroom_help =
-{
-};
-
-OBJVGETINT( maxpeople, ITEM_FURNITURE, 0 )
-HELPTOPIC OBJ_get_maxpeople_help =
-{
-};
-
-static int OBJ_get_maxweight (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_FURNITURE:
-            lua_pushinteger( LS,
-                    ud_obj->value[1] );
-            return 1;
-        case ITEM_CONTAINER:
-            lua_pushinteger( LS,
-                    ud_obj->value[0] );
-            return 1;
-        default:
-            luaL_error(LS, "Maxweight for furniture and containers only.");
-    }
-
-    return 0;
-}
-HELPTOPIC OBJ_get_maxweight_help =
-{
-};
-
-OBJVGETINT( healbonus, ITEM_FURNITURE, 3 )
-HELPTOPIC OBJ_get_healbonus_help =
-{
-};
-
-OBJVGETINT( manabonus, ITEM_FURNITURE, 4 )
-HELPTOPIC OBJ_get_manabonus_help =
-{
-};
-
-static int OBJ_get_spells (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_PILL:
-        case ITEM_POTION:
-        case ITEM_SCROLL:
-            lua_newtable(LS);
-            int index=1;
-            int i;
-
-            for ( i=1 ; i<5 ; i++ )
-            {
-                if ( ud_obj->value[i] < 1 )
-                    continue;
-
-                lua_pushstring( LS,
-                        skill_table[ud_obj->value[i]].name );
-                lua_rawseti( LS, -2, index++ );
-            } 
-            return 1;
-        default:
-            luaL_error( LS, "Spells for pill, potion, and scroll only.");
-    }
-    
-    return 0;
-}
-HELPTOPIC OBJ_get_spells_help = {};
-
-OBJVGETINT( acpierce, ITEM_ARMOR, 0 )
-HELPTOPIC OBJ_get_acpierce_help = {};
-
-OBJVGETINT( acbash, ITEM_ARMOR, 1 )
-HELPTOPIC OBJ_get_acbash_help = {};
-
-OBJVGETINT( acslash, ITEM_ARMOR, 2 )
-HELPTOPIC OBJ_get_acslash_help = {};
-
-OBJVGETINT( acexotic, ITEM_ARMOR, 3 )
-HELPTOPIC OBJ_get_acexotic_help = {};
-
-OBJVGETSTR( weapontype, ITEM_WEAPON,
-        flag_stat_string( weapon_class, ud_obj->value[0] ) )
-HELPTOPIC OBJ_get_weapontype_help = {};
-
-OBJVGETINT( numdice, ITEM_WEAPON, 1 )
-HELPTOPIC OBJ_get_numdice_help = {};
-
-OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
-HELPTOPIC OBJ_get_dicetype_help = {};
-
-OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
-HELPTOPIC OBJ_get_attacktype_help = {};
-
-OBJVGETINT( key, ITEM_CONTAINER, 2 )
-HELPTOPIC OBJ_get_key_help = {};
-
-OBJVGETINT( capacity, ITEM_CONTAINER, 3 )
-HELPTOPIC OBJ_get_capacity_help = {};
-
-OBJVGETINT( weightmult, ITEM_CONTAINER, 4 )
-HELPTOPIC OBJ_get_weightmult_help = {};
-
-static int OBJ_get_liquidtotal (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_FOUNTAIN:
-        case ITEM_DRINK_CON:
-            lua_pushinteger( LS, ud_obj->value[0] );
-            return 1;
-        default:
-            luaL_error(LS, "liquidtotal for drinkcontainer and fountain only");
-    }
-
-    return 0;
-}
-HELPTOPIC OBJ_get_liquidtotal_help={};
-
-static int OBJ_get_liquidleft (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_FOUNTAIN:
-        case ITEM_DRINK_CON:
-            lua_pushinteger( LS, ud_obj->value[1] );
-            return 1;
-        default:
-            luaL_error(LS, "liquidleft for drinkcontainer and fountain only");
-    }
-
-    return 0;
-}
-HELPTOPIC OBJ_get_liquidleft_help={};
-
-static int OBJ_get_liquid (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_FOUNTAIN:
-        case ITEM_DRINK_CON:
-            lua_pushstring( LS,
-                    liq_table[ud_obj->value[2]].liq_name);
-            return 1;
-        default:
-            luaL_error(LS, "liquid for drinkcontainer and fountain only");
-    }
-
-    return 0;
-}
-HELPTOPIC OBJ_get_liquid_help={};
-
-static int OBJ_get_poisoned (lua_State *LS)
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-
-    switch(ud_obj->item_type)
-    {
-        case ITEM_DRINK_CON:
-        case ITEM_FOOD:
-            lua_pushboolean( LS, ud_obj->value[3] );
-            return 1;
-        default:
-            luaL_error(LS, "poisoned for drinkcontainer and food only");
-    }
-
-    return 0;
-}
-HELPTOPIC OBJ_get_poisoned_help = {};
-
-OBJVGETINT( foodhours, ITEM_FOOD, 0 )
-HELPTOPIC OBJ_get_foodhours_help = {};
-
-OBJVGETINT( fullhours, ITEM_FOOD, 1 )
-HELPTOPIC OBJ_get_fullhours_help = {};
-
-OBJVGETINT( silver, ITEM_MONEY, 0 )
-HELPTOPIC OBJ_get_silver_help = {};
-
-OBJVGETINT( gold, ITEM_MONEY, 1 )
-HELPTOPIC OBJ_get_gold_help = {};
 
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
