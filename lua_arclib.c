@@ -4425,6 +4425,26 @@ HELPTOPIC OBJ_get_arrowdamtype_help =
 {
 };
 
+static int OBJ_get_spelllevel (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_WAND 
+        && ud_obj->item_type != ITEM_STAFF
+        && ud_obj->item_type != ITEM_SCROLL
+        && ud_obj->item_type != ITEM_POTION
+        && ud_obj->item_type != ITEM_PILL)
+        luaL_error(LS, "Spelllevel for wands, staves, scrolls, potions, and pills only.");
+
+    lua_pushinteger(LS,
+            ud_obj->value[0]) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_spelllevel_help =
+{
+};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -4457,9 +4477,10 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(arrowcount, 0),
     OBJGET(arrowdamage, 0),
     OBJGET(arrowdamtype, 0),
-
+    
     /* wand, staff */
     OBJGET(spelllevel, 0),
+#if 0    
     OBJGET(chargestotal, 0),
     OBJGET(chargesleft, 0),
     OBJGET(spellname, 0),
@@ -4509,6 +4530,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     /* money */
     OBJGET( silver, 0),
     OBJGET( gold, 0),
+#endif 
     
     ENDPTABLE
 };
