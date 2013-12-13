@@ -1808,12 +1808,12 @@ void do_look( CHAR_DATA *ch, char *argument )
             act( "$p holds:", ch, obj, NULL, TO_CHAR );
             show_list_to_char( obj->contains, ch, TRUE, TRUE );
             /* Show item count in storage boxes*/
-            if (obj->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
-            {
+//            if (obj->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
+//            { 
                 sh_int num_items=get_obj_number(obj);
                 printf_to_char(ch,"\n\r%d %s.\n\r",num_items,
                         num_items==1?"item":"items");
-            }
+//            }
             break;
         }
         return;
