@@ -2515,8 +2515,9 @@ void do_omni( CHAR_DATA *ch, char *argument )
         }
           
         /* Added an extra  %s for the questing check below - Astark Oct 2012 */
-        sprintf( buf, "%-3d  %-12s %7s %5s %7.7s  %-5.5s  [%5d]   %s   %s\n\r",
+        sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%s	</send>\n\r",
             d->descriptor,                          /* ID */
+            wch->name,                              /* Send name through pgrep */
             wch->name,                              /* Name */
             login,                                  /* Login Time */
             idle,                                   /* How long idle */
@@ -2525,6 +2526,7 @@ void do_omni( CHAR_DATA *ch, char *argument )
             wch->in_room->vnum,                     /* Room player is in */
             IS_QUESTOR(wch) 
                 || IS_QUESTORHARD(wch) ? "Y" : "N", /* Is player on a quest? */
+            d->host,                                /* Send IP through pgrep */
             d->host);                               /* IP Address */
         add_buf(output,buf);
     }
