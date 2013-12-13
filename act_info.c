@@ -4541,12 +4541,13 @@ void do_stance_list( CHAR_DATA *ch, char *argument )
 	if ( skill == 0 )
 	    continue;
 
-	sprintf( buf, "%-20s %3d%%(%3d%%) %10dmv     %s %s\n\r",
+	sprintf( buf, "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
 		 stances[i].name,
 		 ch->pcdata->learned[*(stances[i].gsn)], skill,
 		 stance_cost(ch, i),
 		 stances[i].weapon ? "w" : " ",
-		 stances[i].martial ? "m" : " ");
+		 stances[i].martial ? "m" : " ",
+                 flag_stat_string(damage_type, stances[i].type));
 	send_to_char( buf, ch );
     }
 }
