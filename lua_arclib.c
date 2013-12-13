@@ -4358,6 +4358,7 @@ static int OBJ_get_ ## funcname (lua_State *LS)\
                 item_name( otype ) );\
     \
     lua_pushinteger( LS, ud_obj->value[ vind ] );\
+    return 1;\
 }
 
 #define OBJVGETSTR( funcname, otype, vval )\
@@ -4370,6 +4371,7 @@ static int OBJ_get_ ## funcname (lua_State *LS)\
                 item_name( otype ) );\
     \
     lua_pushstring( LS, vval );\
+    return 1;\
 }
 
 OBJVGETINT( light, ITEM_LIGHT, 2 )
