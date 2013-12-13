@@ -4372,15 +4372,6 @@ static int OBJ_get_ ## funcname (lua_State *LS)\
     lua_pushstring( LS, vval );\
 }
 
-OBJVGETSTR( liquid, ITEM_FOUNTAIN, liq_table[ud_obj->value[2]].liq_name )
-HELPTOPIC OBJ_get_liquid_help={};
-
-OBJVGETINT( liquidtotal, ITEM_FOUNTAIN, 0 )
-HELPTOPIC OBJ_get_liquidtotal_help={};
-
-OBJVGETINT( liquidleft, ITEM_FOUNTAIN, 1 )
-HELPTOPIC OBJ_get_liquidleft_help={};
-
 OBJVGETINT( light, ITEM_LIGHT, 2 )
 HELPTOPIC OBJ_get_light_help =
 {
@@ -4603,6 +4594,78 @@ HELPTOPIC OBJ_get_capacity_help = {};
 OBJVGETINT( weightmult, ITEM_CONTAINER, 4 )
 HELPTOPIC OBJ_get_weightmult_help = {};
 
+static int OBJ_get_liquidtotal (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FOUNTAIN:
+        case ITEM_DRINK_CON:
+            lua_pushinteger( LS, ud_obj->value[0] );
+            return 1;
+        default:
+            luaL_error(LS, "liquidtotal for drinkcontainer and fountain only");
+    }
+
+    return 0;
+}
+HELPTOPIC OBJ_get_liquidtotal_help={};
+
+static int OBJ_get_liquidleft (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FOUNTAIN:
+        case ITEM_DRINK_CON:
+            lua_pushinteger( LS, ud_obj->value[1] );
+            return 1;
+        default:
+            luaL_error(LS, "liquidleft for drinkcontainer and fountain only");
+    }
+
+    return 0;
+}
+HELPTOPIC OBJ_get_liquidleft_help={};
+
+static int OBJ_get_liquid (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FOUNTAIN:
+        case ITEM_DRINK_CON:
+            lua_pushstring( LS,
+                    liq_table[ud_obj->value[2]].liq_name);
+            return 1;
+        default:
+            luaL_error(LS, "liquid for drinkcontainer and fountain only");
+    }
+
+    return 0;
+}
+HELPTOPIC OBJ_get_liquid_help={};
+
+static int OBJ_get_poisoned (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    switch(ud_obj->item_type)
+    {
+        case ITEM_DRINK_CON:
+        case ITEM_FOOD:
+            lua_pushboolean( LS, ud_obj->value[3] );
+            return 1;
+        default:
+            luaL_error(LS, "poisoned for drinkcontainer and food only");
+    }
+
+    return 0;
+}
+HELPTOPIC OBJ_get_poisoned_help = {};
 
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
@@ -4675,7 +4738,6 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( capacity, 0),
     OBJGET( weightmult, 0),
 
-#if 0
     /* drink container */
     OBJGET( liquidtotal, 0),
     OBJGET( liquidleft, 0),
@@ -4687,6 +4749,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     //OBJGET(liquidleft, 0),
     //OBJGET(liquidtotal, 0),
 
+#if 0
     /* food */
     OBJGET( foodhours, 0),
     OBJGET( fullhours, 0),
