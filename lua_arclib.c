@@ -839,6 +839,29 @@ HELPTOPIC glob_pagetochar_help={
           "so \"{{rHello!{x\" would show as \"{{rHello!{x\" instead of \"{rHello!{x\" "
 };
 
+static int glob_getobjlist (lua_State *LS)
+{
+    OBJ_DATA *obj;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( obj=object_list ; obj ; obj=obj->next )
+    {
+        if (make_OBJ(LS, obj))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+HELPTOPIC glob_getobjlist_help={
+    .summary="Return a table of all objects in the game.",
+    .info="Arguments: none\n\r\n\r"
+          "Return: objects[table of OBJs]\n\r\n\r"
+          "Example:\n\r"
+          "local objlist=getobjlist()\n\r\n\r"
+};
+
 static int glob_getcharlist (lua_State *LS)
 {
     CHAR_DATA *ch;
@@ -1140,6 +1163,7 @@ GLOB_TYPE glob_table[] =
     GFUN(pagetochar,    0),
     GFUN(log,           0),
     GFUN(getcharlist,   9),
+    GFUN(getobjlist,    9),
     GFUN(getmoblist,    9),
     GFUN(getplayerlist, 9),
     GFUN(getarealist,   9),
@@ -4429,17 +4453,20 @@ static int OBJ_get_spelllevel (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
 
-    if (ud_obj->item_type != ITEM_WAND 
-        && ud_obj->item_type != ITEM_STAFF
-        && ud_obj->item_type != ITEM_SCROLL
-        && ud_obj->item_type != ITEM_POTION
-        && ud_obj->item_type != ITEM_PILL)
-        luaL_error(LS, "Spelllevel for wands, staves, scrolls, potions, and pills only.");
-
-    lua_pushinteger(LS,
-            ud_obj->value[0]) ;
-
-    return 1;
+    switch(ud_obj->item_type)
+    {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+        case ITEM_SCROLL:
+        case ITEM_POTION:
+        case ITEM_PILL:
+            lua_pushinteger( LS,
+                    ud_obj->value[0]);
+            return 1;
+        default:
+            luaL_error(LS, "Spelllevel for wands, staves, scrolls, potions, and pills only.");
+    }
+    return 0;
 }
 HELPTOPIC OBJ_get_spelllevel_help =
 {
@@ -4449,12 +4476,16 @@ static int OBJ_get_chargestotal (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
 
-    if (ud_obj->item_type != ITEM_WAND
-        && ud_obj->item_type != ITEM_STAFF )
-        luaL_error(LS, "Chargestotal for wands and staves only.");
-
-    lua_pushinteger(LS,
-            ud_obj->value[1]) ;
+    switch(ud_obj->item_type)
+    {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+            lua_pushinteger( LS,
+                    ud_obj->value[1]);
+            return 1;
+        default:
+            luaL_error(LS, "Chargestotal for wands and staves only.");
+    }
 
     return 1;
 }
@@ -4466,14 +4497,22 @@ static int OBJ_get_chargesleft (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
 
-    if (ud_obj->item_type != ITEM_WAND
-        && ud_obj->item_type != ITEM_STAFF )
-        luaL_error(LS, "Chargesleft for wands and staves only.");
+    switch(ud_obj->item_type)
+    {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+            lua_pushinteger(LS,
+                    ud_obj->value[2]);
+            return 1;
+        case ITEM_PORTAL:
+            lua_pushinteger(LS,
+                    ud_obj->value[0]);
+            return 1;
+        default:
+            luaL_error(LS, "Chargesleft for wands, staves, and portals only.");
+    }
 
-    lua_pushinteger(LS,
-            ud_obj->value[2]) ;
-
-    return 1;
+    return 0;
 }
 HELPTOPIC OBJ_get_chargesleft_help =
 {
@@ -4483,17 +4522,37 @@ static int OBJ_get_spellname (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
 
-    if (ud_obj->item_type != ITEM_WAND
-        && ud_obj->item_type != ITEM_STAFF )
-        luaL_error(LS, "Spellname for wands and staves only.");
-
-    lua_pushstring(LS,
-            ud_obj->value[3] != -1 ? skill_table[ud_obj->value[3]].name
-                : "reserved" );
+    switch(ud_obj->item_type)
+    {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+            lua_pushstring( LS,
+                    ud_obj->value[3] != -1 ? skill_table[ud_obj->value[3]].name
+                        : "reserved" );
+            return 1; 
+        default:
+            luaL_error(LS, "Spellname for wands and staves only.");
+    }
 
     return 1;
 }
 HELPTOPIC OBJ_get_spellname_help =
+{
+};
+
+static int OBJ_get_toroom (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_PORTAL)
+        luaL_error(LS, "Toroom for portals only.");
+
+    lua_pushinteger(LS,
+            ud_obj->value[3]) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_toroom_help =
 {
 };
 
@@ -4535,11 +4594,12 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(chargestotal, 0),
     OBJGET(chargesleft, 0),
     OBJGET(spellname, 0),
-#if 0
+    
     /* portal */
     // chargesleft
     OBJGET(toroom, 0),
 
+#if 0
     /* furniture */
     OBJGET(maxpeople, 0),
     OBJGET(maxweight, 0),
