@@ -2058,6 +2058,60 @@ OBJVH( silver, "", "");
 OBJVGETINT( gold, ITEM_MONEY, 1 )
 OBJVH( gold, "", "");
 
+#define OBJVM( funcname, body ) \
+static int OBJ_ ## funcname ( lua_State *LS )\
+{\
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);\
+    body \
+}\
+static int OBJPROTO_ ## funcname ( lua_State *LS )\
+{\
+    OBJ_INDEX_DATA *ud_obj=check_OBJPROTO(LS,1);\
+    body \
+}
+
+#define OBJVIF( funcname, otype, vind, flagtbl ) \
+OBJVM( funcname, \
+    if (ud_obj->item_type != otype)\
+        luaL_error( LS, #funcname " for %s only", item_name( otype ) );\
+    \
+    return check_iflag( LS, #funcname, flagtbl, ud_obj->value[ vind ] );\
+)
+
+OBJVIF ( exitflag, ITEM_PORTAL, 1, exit_flags )
+/*    
+static int OBJ_exitflag( lua_State *LS )
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    if (ud_obj->item_type != ITEM_PORTAL)
+        luaL_error( LS, "%s(%d) is not a portal.",
+                ud_obj->name, ud_obj->pIndexData->vnum);
+    return check_iflag( LS, "exit", exit_flags, ud_obj->value[1] );
+}*/
+HELPTOPIC OBJ_exitflag_help={};
+HELPTOPIC OBJPROTO_exitflag_help={};
+
+
+static int OBJ_portalflag( lua_State *LS )
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    if (ud_obj->item_type != ITEM_PORTAL)
+        luaL_error( LS, "%s(%d) is not a portal.",
+                ud_obj->name, ud_obj->pIndexData->vnum);
+    return check_iflag( LS, "portal", portal_flags, ud_obj->value[2] );
+}
+HELPTOPIC OBJ_portalflag_help={};
+
+static int OBJPROTO_portalflag( lua_State *LS )
+{
+    OBJ_INDEX_DATA *ud_op=check_OBJPROTO(LS,1);
+    if (ud_op->item_type != ITEM_PORTAL)
+        luaL_error( LS, "%s(%d) is not a portal.",
+                ud_op->name, ud_op->vnum);
+    return check_iflag( LS, "portal", portal_flags, ud_op->value[2] );
+}
+HELPTOPIC OBJPROTO_portalflag_help={};
+
 /* end common section */
 
 /* CH section */
@@ -4150,26 +4204,6 @@ static const LUA_PROP_TYPE CH_method_table [] =
 /* end CH section */
 
 /* OBJ section */
-static int OBJ_exitflag( lua_State *LS )
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-    if (ud_obj->item_type != ITEM_PORTAL)
-        luaL_error( LS, "%s(%d) is not a portal.",
-                ud_obj->name, ud_obj->pIndexData->vnum);
-    return check_iflag( LS, "exit", exit_flags, ud_obj->value[1] );
-}
-HELPTOPIC OBJ_exitflag_help={};
-
-static int OBJ_portalflag( lua_State *LS )
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-    if (ud_obj->item_type != ITEM_PORTAL)
-        luaL_error( LS, "%s(%d) is not a portal.",
-                ud_obj->name, ud_obj->pIndexData->vnum);
-    return check_iflag( LS, "portal", portal_flags, ud_obj->value[2] );
-}
-HELPTOPIC OBJ_portalflag_help={};
-
 static int OBJ_loadfunction (lua_State *LS)
 {
     lua_obj_program( NULL, RUNDELAY_VNUM, NULL,
@@ -5763,26 +5797,6 @@ static const LUA_PROP_TYPE RESET_method_table [] =
 /* end RESET section */
 
 /* OBJPROTO section */
-static int OBJPROTO_exitflag( lua_State *LS )
-{
-    OBJ_INDEX_DATA *ud_op=check_OBJPROTO(LS,1);
-    if (ud_op->item_type != ITEM_PORTAL)
-        luaL_error( LS, "%s(%d) is not a portal.",
-                ud_op->name, ud_op->vnum);
-    return check_iflag( LS, "exit", exit_flags, ud_op->value[1] );
-}
-HELPTOPIC OBJPROTO_exitflag_help={};
-
-static int OBJPROTO_portalflag( lua_State *LS )
-{
-    OBJ_INDEX_DATA *ud_op=check_OBJPROTO(LS,1);
-    if (ud_op->item_type != ITEM_PORTAL)
-        luaL_error( LS, "%s(%d) is not a portal.",
-                ud_op->name, ud_op->vnum);
-    return check_iflag( LS, "portal", portal_flags, ud_op->value[2] );
-}
-HELPTOPIC OBJPROTO_portalflag_help={};
-
 static int OBJPROTO_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
