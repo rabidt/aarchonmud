@@ -926,6 +926,11 @@ void do_story(CHAR_DATA *ch, char *argument)
     do_help(ch,"story");
 }
 
+void do_dirs(CHAR_DATA *ch, char *argument)
+{
+    do_help(ch,"dirs");
+}
+
 /*
 void do_wizlist(CHAR_DATA *ch, char *argument)
 {
