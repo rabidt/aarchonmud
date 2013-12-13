@@ -4667,6 +4667,12 @@ static int OBJ_get_poisoned (lua_State *LS)
 }
 HELPTOPIC OBJ_get_poisoned_help = {};
 
+OBJVGETINT( foodhours, ITEM_FOOD, 0 )
+HELPTOPIC OBJ_get_foodhours_help = {};
+
+OBJVGETINT( fullhours, ITEM_FOOD, 1 )
+HELPTOPIC OBJ_get_fullhours_help = {};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -4717,7 +4723,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(manabonus, 0),
 
     /* scroll, potion, pill */
-    //OBJGET(spelllevel, 0),
+    //spelllevel
     OBJGET(spells, 0),
 
     /* armor */
@@ -4733,7 +4739,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( attacktype, 0),
 
     /* container */
-    //OBJGET( maxweight, 0);
+    //maxweight
     OBJGET( key, 0),
     OBJGET( capacity, 0),
     OBJGET( weightmult, 0),
@@ -4745,16 +4751,15 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( poisoned, 0),
 
     /*fountain*/
-    //OBJGET(liquid, 0),
-    //OBJGET(liquidleft, 0),
-    //OBJGET(liquidtotal, 0),
+    //liquid
+    //liquidleft
+    //liquidtotal
 
-#if 0
     /* food */
     OBJGET( foodhours, 0),
     OBJGET( fullhours, 0),
     // poisoned
-
+#if 0
     /* money */
     OBJGET( silver, 0),
     OBJGET( gold, 0),
