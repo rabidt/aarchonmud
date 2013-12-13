@@ -142,6 +142,7 @@ DECLARE_DO_FUN( do_description  );
 DECLARE_DO_FUN( do_detoxify );
 DECLARE_DO_FUN( do_die );
 DECLARE_DO_FUN( do_dirt     );
+DECLARE_DO_FUN( do_dirs     );
 DECLARE_DO_FUN( do_disable  );
 DECLARE_DO_FUN( do_disarm   );
 DECLARE_DO_FUN( do_disarm_trap  );

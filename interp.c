@@ -144,6 +144,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "consider",   do_consider,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "count",      do_count,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "credits",    do_credits, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "dirs",       do_dirs,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "equipment",  do_equipment,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "eqhelp",     do_eqhelp,  POS_DEAD,   0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "etls",       do_etls,    POS_DEAD,   0,  LOG_NORMAL, 1, FALSE, FALSE  },
