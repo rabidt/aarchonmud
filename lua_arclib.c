@@ -1775,6 +1775,18 @@ static int OBJPROTO_get_ ## funcname (lua_State *LS)\
     funcbody \
 }
 
+#define OBJVH( funcname, hsumm, hinfo ) \
+HELPTOPIC OBJ_get_ ## funcname ## _help = \
+{\
+    .summary = hsumm ,\
+    .info = hinfo \
+};\
+HELPTOPIC OBJPROTO_get_ ## funcname ## _help = \
+{\
+    .summary = hsumm ,\
+    .info = hinfo \
+}\
+
 #define OBJVGETINT( funcname, otype, vind ) \
 OBJVGT( funcname, \
     if (ud_obj->item_type != otype )\
@@ -1796,26 +1808,17 @@ OBJVGT( funcname, \
 )
 
 OBJVGETINT( light, ITEM_LIGHT, 2 )
-HELPTOPIC OBJ_get_light_help =
-{
-    .summary = "Light only. Amount of light left."
-};
+OBJVH( light, "", "");
 
 OBJVGETINT( arrowcount, ITEM_ARROWS, 0 )
-HELPTOPIC OBJ_get_arrowcount_help =
-{
-};
+OBJVH( arrowcount, "", "");
 
 OBJVGETINT( arrowdamage, ITEM_ARROWS, 1 )
-HELPTOPIC OBJ_get_arrowdamage_help =
-{
-};
+OBJVH( arrowdamage, "", "");
 
 OBJVGETSTR( arrowdamtype, ITEM_ARROWS, 
         flag_stat_string(damage_type, ud_obj->value[2]) )
-HELPTOPIC OBJ_get_arrowdamtype_help =
-{
-};
+OBJVH( arrowdamtype, "", "");
 
 OBJVGT( spelllevel,  
     switch(ud_obj->item_type)
@@ -1833,9 +1836,7 @@ OBJVGT( spelllevel,
     }
     return 0;
 )
-HELPTOPIC OBJ_get_spelllevel_help =
-{
-};
+OBJVH( spelllevel, "", "");
 
 OBJVGT( chargestotal,
     switch(ud_obj->item_type)
@@ -1851,9 +1852,7 @@ OBJVGT( chargestotal,
 
     return 1;
 )
-HELPTOPIC OBJ_get_chargestotal_help =
-{
-};
+OBJVH( chargestotal, "", "");
 
 OBJVGT( chargesleft,
     switch(ud_obj->item_type)
@@ -1873,9 +1872,7 @@ OBJVGT( chargesleft,
 
     return 0;
 )
-HELPTOPIC OBJ_get_chargesleft_help =
-{
-};
+OBJVH( chargesleft, "", "");
 
 OBJVGT( spellname, 
     switch(ud_obj->item_type)
@@ -1892,19 +1889,13 @@ OBJVGT( spellname,
 
     return 1;
 )
-HELPTOPIC OBJ_get_spellname_help =
-{
-};
+OBJVH( spellname, "", "");
 
 OBJVGETINT( toroom, ITEM_PORTAL, 3 )
-HELPTOPIC OBJ_get_toroom_help =
-{
-};
+OBJVH( toroom, "", "");
 
 OBJVGETINT( maxpeople, ITEM_FURNITURE, 0 )
-HELPTOPIC OBJ_get_maxpeople_help =
-{
-};
+OBJVH( maxpeople, "", "");
 
 OBJVGT( maxweight, 
     switch(ud_obj->item_type)
@@ -1923,19 +1914,13 @@ OBJVGT( maxweight,
 
     return 0;
 )
-HELPTOPIC OBJ_get_maxweight_help =
-{
-};
+OBJVH( maxweight, "", "");
 
 OBJVGETINT( healbonus, ITEM_FURNITURE, 3 )
-HELPTOPIC OBJ_get_healbonus_help =
-{
-};
+OBJVH( healbonus, "", "");
 
 OBJVGETINT( manabonus, ITEM_FURNITURE, 4 )
-HELPTOPIC OBJ_get_manabonus_help =
-{
-};
+OBJVH( manabonus, "", "");
 
 OBJVGT( spells, 
     switch(ud_obj->item_type)
@@ -1963,41 +1948,41 @@ OBJVGT( spells,
     
     return 0;
 )
-HELPTOPIC OBJ_get_spells_help = {};
+OBJVH( spells, "", "");
 
 OBJVGETINT( acpierce, ITEM_ARMOR, 0 )
-HELPTOPIC OBJ_get_acpierce_help = {};
+OBJVH( acpierce, "", "");
 
 OBJVGETINT( acbash, ITEM_ARMOR, 1 )
-HELPTOPIC OBJ_get_acbash_help = {};
+OBJVH( acbash, "", "");
 
 OBJVGETINT( acslash, ITEM_ARMOR, 2 )
-HELPTOPIC OBJ_get_acslash_help = {};
+OBJVH( acslash, "", "");
 
 OBJVGETINT( acexotic, ITEM_ARMOR, 3 )
-HELPTOPIC OBJ_get_acexotic_help = {};
+OBJVH( acexotic, "", "");
 
 OBJVGETSTR( weapontype, ITEM_WEAPON,
         flag_stat_string( weapon_class, ud_obj->value[0] ) )
-HELPTOPIC OBJ_get_weapontype_help = {};
+OBJVH( weapontype, "", "");
 
 OBJVGETINT( numdice, ITEM_WEAPON, 1 )
-HELPTOPIC OBJ_get_numdice_help = {};
+OBJVH( numdice, "", "");
 
 OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
-HELPTOPIC OBJ_get_dicetype_help = {};
+OBJVH( dicetype, "", "");
 
 OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
-HELPTOPIC OBJ_get_attacktype_help = {};
+OBJVH( attacktype, "", "");
 
 OBJVGETINT( key, ITEM_CONTAINER, 2 )
-HELPTOPIC OBJ_get_key_help = {};
+OBJVH( key, "", "");
 
 OBJVGETINT( capacity, ITEM_CONTAINER, 3 )
-HELPTOPIC OBJ_get_capacity_help = {};
+OBJVH( capacity, "", "");
 
 OBJVGETINT( weightmult, ITEM_CONTAINER, 4 )
-HELPTOPIC OBJ_get_weightmult_help = {};
+OBJVH( weightmult, "", "");
 
 
 OBJVGT( liquidtotal, 
@@ -2013,7 +1998,7 @@ OBJVGT( liquidtotal,
 
     return 0;
 )
-HELPTOPIC OBJ_get_liquidtotal_help={};
+OBJVH( liquidtotal, "", "");
 
 OBJVGT( liquidleft,
     switch(ud_obj->item_type)
@@ -2028,7 +2013,7 @@ OBJVGT( liquidleft,
 
     return 0;
 )
-HELPTOPIC OBJ_get_liquidleft_help={};
+OBJVH( liquidleft, "", "");
 
 OBJVGT( liquid,
     switch(ud_obj->item_type)
@@ -2044,7 +2029,7 @@ OBJVGT( liquid,
 
     return 0;
 )
-HELPTOPIC OBJ_get_liquid_help={};
+OBJVH( liquid, "", "");
 
 OBJVGT( poisoned, 
     switch(ud_obj->item_type)
@@ -2059,19 +2044,19 @@ OBJVGT( poisoned,
 
     return 0;
 )
-HELPTOPIC OBJ_get_poisoned_help = {};
+OBJVH( poisoned, "", "");
 
 OBJVGETINT( foodhours, ITEM_FOOD, 0 )
-HELPTOPIC OBJ_get_foodhours_help = {};
+OBJVH( foodhours, "", "");
 
 OBJVGETINT( fullhours, ITEM_FOOD, 1 )
-HELPTOPIC OBJ_get_fullhours_help = {};
+OBJVH( fullhours, "", "");
 
 OBJVGETINT( silver, ITEM_MONEY, 0 )
-HELPTOPIC OBJ_get_silver_help = {};
+OBJVH( silver, "", "");
 
 OBJVGETINT( gold, ITEM_MONEY, 1 )
-HELPTOPIC OBJ_get_gold_help = {};
+OBJVH( gold, "", "");
 
 /* end common section */
 
@@ -5924,6 +5909,72 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( v2, 0),
     OPGET( v3, 0),
     OPGET( v4, 0),
+        /*light*/
+    OPGET(light, 0),
+
+    /*arrows*/
+    OPGET(arrowcount, 0),
+    OPGET(arrowdamage, 0),
+    OPGET(arrowdamtype, 0),
+    
+    /* wand, staff */
+    OPGET(spelllevel, 0),
+    OPGET(chargestotal, 0),
+    OPGET(chargesleft, 0),
+    OPGET(spellname, 0),
+    
+    /* portal */
+    // chargesleft
+    OPGET(toroom, 0),
+
+    /* furniture */
+    OPGET(maxpeople, 0),
+    OPGET(maxweight, 0),
+    OPGET(healbonus, 0),
+    OPGET(manabonus, 0),
+
+    /* scroll, potion, pill */
+    //spelllevel
+    OPGET(spells, 0),
+
+    /* armor */
+    OPGET( acpierce, 0),
+    OPGET( acbash, 0),
+    OPGET( acslash, 0),
+    OPGET( acexotic, 0),
+
+    /* weapon */
+    OPGET( weapontype, 0),
+    OPGET( numdice, 0),
+    OPGET( dicetype, 0),
+    OPGET( attacktype, 0),
+
+    /* container */
+    //maxweight
+    OPGET( key, 0),
+    OPGET( capacity, 0),
+    OPGET( weightmult, 0),
+
+    /* drink container */
+    OPGET( liquidtotal, 0),
+    OPGET( liquidleft, 0),
+    OPGET( liquid, 0),
+    OPGET( poisoned, 0),
+
+    /*fountain*/
+    //liquid
+    //liquidleft
+    //liquidtotal
+
+    /* food */
+    OPGET( foodhours, 0),
+    OPGET( fullhours, 0),
+    // poisoned
+    
+    /* money */
+    OPGET( silver, 0),
+    OPGET( gold, 0),
+
     ENDPTABLE
 };
 
