@@ -6555,9 +6555,17 @@ void do_stance (CHAR_DATA *ch, char *argument)
 	 || (!IS_NPC(ch) && get_skill(ch, *(stances[i].gsn))==0)
 	 || (is_pet && i != ch->pIndexData->stance) )
     {
-	ch->stance = 0;
-	send_to_char("You do not know that stance.\n\r", ch);
-	return;
+        if (!ch->stance && !stances[i].name)
+        {
+            char buffer[80];
+            if (sprintf(buffer, "You do not know that stance so you stay in the %s stance.\n\r", stances[i].name) > 0)
+            {
+                send_to_char(buffer, ch);    
+            }
+        }
+        
+        send_to_char("You do not know that stance.\n\r", ch);
+        return;
     }
         
     if ( ch->stance == i )
