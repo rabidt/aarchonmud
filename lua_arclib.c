@@ -4556,6 +4556,78 @@ HELPTOPIC OBJ_get_toroom_help =
 {
 };
 
+static int OBJ_get_maxpeople (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_FURNITURE)
+        luaL_error(LS, "Maxpeople for furniture only.");
+
+    lua_pushinteger(LS,
+            ud_obj->value[0]) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_maxpeople_help =
+{
+};
+
+static int OBJ_get_maxweight (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FURNITURE:
+            lua_pushinteger( LS,
+                    ud_obj->value[1] );
+            return 1;
+        case ITEM_CONTAINER:
+            lua_pushinteger( LS,
+                    ud_obj->value[0] );
+            return 1;
+        default:
+            luaL_error(LS, "Maxweight for furniture and containers only.");
+    }
+
+    return 0;
+}
+HELPTOPIC OBJ_get_maxweight_help =
+{
+};
+
+static int OBJ_get_healbonus (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_FURNITURE)
+        luaL_error(LS, "Healbonus for furniture only.");
+
+    lua_pushinteger(LS,
+            ud_obj->value[3]) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_healbonus_help =
+{
+};
+
+static int OBJ_get_manabonus (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_FURNITURE)
+        luaL_error(LS, "Manabonus for furniture only.");
+
+    lua_pushinteger(LS,
+            ud_obj->value[4]) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_manabonus_help =
+{
+};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -4599,13 +4671,13 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     // chargesleft
     OBJGET(toroom, 0),
 
-#if 0
     /* furniture */
     OBJGET(maxpeople, 0),
     OBJGET(maxweight, 0),
     OBJGET(healbonus, 0),
     OBJGET(manabonus, 0),
 
+#if 0
     /* scroll, potion, pill */
     //OBJGET(spelllevel, 0),
     OBJGET(spells, 0),
@@ -4621,6 +4693,12 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( numdice, 0),
     OBJGET( dicetype, 0),
     OBJGET( attacktype, 0),
+
+    /* container */
+    //OBJGET( maxweight, 0);
+    OBJGET( key, 0);
+    OBJGET( capacity, 0);
+    OBJGET( weightmult, 0);
 
     /* drink container */
     OBJGET( liquidtotal, 0),
