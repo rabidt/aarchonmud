@@ -4337,31 +4337,113 @@ static int OBJ_get_liquid (lua_State *LS)
 }
 HELPTOPIC OBJ_get_liquid_help={};
 
-static int OBJ_get_total (lua_State *LS)
+static int OBJ_get_liquidtotal (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     
     if (ud_obj->item_type != ITEM_FOUNTAIN)
-        luaL_error(LS, "Total for fountain only.");
+        luaL_error(LS, "Liquidotal for fountain only.");
         
-    lua_pushstring(LS, ud_obj->value[0]);
+    lua_pushinteger(LS, ud_obj->value[0]);
     
     return 1;
 }
-HELPTOPIC OBJ_get_total_help={};
+HELPTOPIC OBJ_get_liquidtotal_help={};
 
-static int OBJ_get_left (lua_State *LS)
+static int OBJ_get_liquidleft (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     
     if (ud_obj->item_type != ITEM_FOUNTAIN)
-        luaL_error(LS, "Left for fountain only.");
+        luaL_error(LS, "Liquidleft for fountain only.");
         
-    lua_pushstring(LS, ud_obj->value[1]);
+    lua_pushinteger(LS, ud_obj->value[1]);
     
     return 1;
 }
-HELPTOPIC OBJ_get_left_help={};
+HELPTOPIC OBJ_get_liquidleft_help={};
+
+static int OBJ_get_light (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_LIGHT)
+        luaL_error(LS, "Light for light only.");
+
+    lua_pushinteger(LS, ud_obj->value[2]);
+
+    return 1;
+}
+HELPTOPIC OBJ_get_light_help =
+{
+    .summary = "Light only. Amount of light left."
+};
+
+static int OBJ_get_arrowcount (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_ARROWS)
+        luaL_error(LS, "Arrowcount for arrows only.");
+
+    lua_pushinteger(LS, ud_obj->value[0]);
+
+    return 1;
+}
+HELPTOPIC OBJ_get_arrowcount_help =
+{
+};
+
+static int OBJ_get_arrowdamage (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_ARROWS)
+        luaL_error(LS, "Arrowdamage for arrows only.");
+
+    lua_pushinteger(LS, ud_obj->value[1]);
+
+    return 1;
+}
+HELPTOPIC OBJ_get_arrowdamage_help =
+{
+};
+
+static int OBJ_get_arrowdamtype (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_ARROWS)
+        luaL_error(LS, "Arrowdamtype for arrows only.");
+
+    lua_pushstring(LS, 
+            flag_stat_string(damage_type, ud_obj->value[2]) ) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_arrowdamtype_help =
+{
+};
+
+static int OBJ_get_spelllevel (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_WAND 
+        && ud_obj->item_type != ITEM_STAFF
+        && ud_obj->item_type != ITEM_SCROLL
+        && ud_obj->item_type != ITEM_POTION
+        && ud_obj->item_type != ITEM_PILL)
+        luaL_error(LS, "Spelllevel for wands, staves, scrolls, potions, and pills only.");
+
+    lua_pushinteger(LS,
+            ud_obj->value[0]) ;
+
+    return 1;
+}
+HELPTOPIC OBJ_get_spelllevel_help =
+{
+};
 
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
@@ -4388,10 +4470,67 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(contents, 0),
     OBJGET(proto, 0),
     
+    /*light*/
+    OBJGET(light, 0),
+
+    /*arrows*/
+    OBJGET(arrowcount, 0),
+    OBJGET(arrowdamage, 0),
+    OBJGET(arrowdamtype, 0),
+    
+    /* wand, staff */
+    OBJGET(spelllevel, 0),
+#if 0    
+    OBJGET(chargestotal, 0),
+    OBJGET(chargesleft, 0),
+    OBJGET(spellname, 0),
+
+    /* portal */
+    // chargesleft
+    OBJGET(toroom, 0),
+
+    /* furniture */
+    OBJGET(maxpeople, 0),
+    OBJGET(maxweight, 0),
+    OBJGET(healbonus, 0),
+    OBJGET(manabonus, 0),
+
+    /* scroll, potion, pill */
+    //OBJGET(spelllevel, 0),
+    OBJGET(spells, 0),
+
+    /* armor */
+    OBJGET( acpierce, 0),
+    OBJGET( acbash, 0),
+    OBJGET( acslash, 0),
+    OBJGET( acexotic, 0),
+
+    /* weapon */
+    OBJGET( weapontype, 0),
+    OBJGET( numdice, 0),
+    OBJGET( dicetype, 0),
+    OBJGET( attacktype, 0),
+
+    /* drink container */
+    OBJGET( liquidtotal, 0),
+    OBJGET( liquidleft, 0),
+    OBJGET( liquid, 0),
+    OBJGET( poisoned, 0),
+
     /*fountain*/
-    OBJGET(liquid, 0),
-    OBJGET(left, 0),
-    OBJGET(total, 0),
+    //OBJGET(liquid, 0),
+    //OBJGET(liquidleft, 0),
+    //OBJGET(liquidtotal, 0),
+
+    /* food */
+    OBJGET( foodhours, 0),
+    OBJGET( fullhours, 0),
+    // poisoned
+
+    /* money */
+    OBJGET( silver, 0),
+    OBJGET( gold, 0),
+#endif 
     
     ENDPTABLE
 };
