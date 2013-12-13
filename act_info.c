@@ -2058,6 +2058,8 @@ void do_examine( CHAR_DATA *ch, char *argument )
 	 else if( obj->weight < 180 ) strcat(buf, "and it has a good weight to it.\n\r");
 	 else if( obj->weight < 260 ) strcat(buf, "and it is quite massive.\n\r");
 	 else strcat(buf, "and it is extremely heavy.\n\r");
+        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS))
+           strcat(buf, "It requires two hands to wield.\n\r");
 	send_to_char(buf,ch);
 	break;
 
