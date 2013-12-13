@@ -1461,6 +1461,12 @@ const ACHIEVEMENT achievement_table [] =
     { ACHV_RETRAINED,  10,  50,  250,  2500,    20,       0, ACHIEVE_RETRAINED_4},
     { ACHV_RETRAINED,  15,  75,  500,  5000,    25,       0, ACHIEVE_RETRAINED_5},
     /*      type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
+    { ACHV_QHCOMP,      1,   5,   25,   250,     5,       0,   ACHIEVE_QHCOMP_1},
+    { ACHV_QHCOMP,     10,  10,   50,   500,    10,       0,   ACHIEVE_QHCOMP_2},
+    { ACHV_QHCOMP,     50,  25,  100,   250,    25,       0,   ACHIEVE_QHCOMP_3},
+    { ACHV_QHCOMP,    100,  50,  250,   250,    50,       0,   ACHIEVE_QHCOMP_4},
+    { ACHV_QHCOMP,    250,  75,  500,   250,   100,       0,   ACHIEVE_QHCOMP_5},
+    { ACHV_QHCOMP,    500, 100,  750,   250,   250,       0,   ACHIEVE_QHCOMP_6},
     { NULL,             0,   0,    0,     0,     0,       0,                  0}
 };
 /*          type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */

@@ -745,6 +745,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 if ( per_chance(20) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(50, 100+luck);
+                ch->pcdata->quest_hard_success++;
             }
             else
             {
@@ -769,6 +770,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 if ( per_chance(20) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
+                ch->pcdata->quest_hard_success++;
             }
             else
             {
