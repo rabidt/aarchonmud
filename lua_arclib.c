@@ -4673,6 +4673,12 @@ HELPTOPIC OBJ_get_foodhours_help = {};
 OBJVGETINT( fullhours, ITEM_FOOD, 1 )
 HELPTOPIC OBJ_get_fullhours_help = {};
 
+OBJVGETINT( silver, ITEM_MONEY, 0 )
+HELPTOPIC OBJ_get_silver_help = {};
+
+OBJVGETINT( gold, ITEM_MONEY, 1 )
+HELPTOPIC OBJ_get_gold_help = {};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -4759,11 +4765,10 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( foodhours, 0),
     OBJGET( fullhours, 0),
     // poisoned
-#if 0
+    
     /* money */
     OBJGET( silver, 0),
     OBJGET( gold, 0),
-#endif 
     
     ENDPTABLE
 };
