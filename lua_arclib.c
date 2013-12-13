@@ -4628,6 +4628,37 @@ HELPTOPIC OBJ_get_manabonus_help =
 {
 };
 
+static int OBJ_get_spells (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    switch(ud_obj->item_type)
+    {
+        case ITEM_PILL:
+        case ITEM_POTION:
+        case ITEM_SCROLL:
+            lua_newtable(LS);
+            int index=1;
+            int i;
+
+            for ( i=1 ; i<5 ; i++ )
+            {
+                if ( ud_obj->value[i] < 1 )
+                    continue;
+
+                lua_pushstring( LS,
+                        skill_table[ud_obj->value[i]].name );
+                lua_rawseti( LS, -2, index++ );
+            } 
+            return 1;
+        default:
+            luaL_error( LS, "Spells for pill, potion, and scroll only.");
+    }
+    
+    return 0;
+}
+HELPTOPIC OBJ_get_spells_help = {};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -4677,11 +4708,11 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(healbonus, 0),
     OBJGET(manabonus, 0),
 
-#if 0
     /* scroll, potion, pill */
     //OBJGET(spelllevel, 0),
     OBJGET(spells, 0),
 
+#if 0
     /* armor */
     OBJGET( acpierce, 0),
     OBJGET( acbash, 0),
