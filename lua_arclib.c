@@ -4594,6 +4594,15 @@ HELPTOPIC OBJ_get_dicetype_help = {};
 OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
 HELPTOPIC OBJ_get_attacktype_help = {};
 
+OBJVGETINT( key, ITEM_CONTAINER, 2 )
+HELPTOPIC OBJ_get_key_help = {};
+
+OBJVGETINT( capacity, ITEM_CONTAINER, 3 )
+HELPTOPIC OBJ_get_capacity_help = {};
+
+OBJVGETINT( weightmult, ITEM_CONTAINER, 4 )
+HELPTOPIC OBJ_get_weightmult_help = {};
+
 
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
@@ -4660,13 +4669,13 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( dicetype, 0),
     OBJGET( attacktype, 0),
 
-#if 0
     /* container */
     //OBJGET( maxweight, 0);
-    OBJGET( key, 0);
-    OBJGET( capacity, 0);
-    OBJGET( weightmult, 0);
+    OBJGET( key, 0),
+    OBJGET( capacity, 0),
+    OBJGET( weightmult, 0),
 
+#if 0
     /* drink container */
     OBJGET( liquidtotal, 0),
     OBJGET( liquidleft, 0),
