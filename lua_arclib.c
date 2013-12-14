@@ -2078,7 +2078,26 @@ OBJVM( funcname, \
     return check_iflag( LS, #funcname, flagtbl, ud_obj->value[ vind ] );\
 )
 
+#define OBJVHM( funcname, hsumm, hinfo ) \
+HELPTOPIC OBJ_ ## funcname ## _help = \
+{\
+    .summary = hsumm , \
+    .info = hinfo \
+};\
+HELPTOPIC OBJPROTO_ ## funcname ## _help = \
+{\
+    .summary = hsumm , \
+    .info = hinfo \
+}
 OBJVIF ( exitflag, ITEM_PORTAL, 1, exit_flags )
+OBJVHM ( exitflag, "", "" );
+
+OBJVIF ( portalflag, ITEM_PORTAL, 2, portal_flags )
+OBJVHM ( portalflag, "", "" );
+
+OBJVIF ( furnitureflag, ITEM_FURNITURE, 2, furniture_flags )
+OBJVHM ( furnitureflag, "", "" );
+
 /*    
 static int OBJ_exitflag( lua_State *LS )
 {
@@ -2088,29 +2107,6 @@ static int OBJ_exitflag( lua_State *LS )
                 ud_obj->name, ud_obj->pIndexData->vnum);
     return check_iflag( LS, "exit", exit_flags, ud_obj->value[1] );
 }*/
-HELPTOPIC OBJ_exitflag_help={};
-HELPTOPIC OBJPROTO_exitflag_help={};
-
-
-static int OBJ_portalflag( lua_State *LS )
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-    if (ud_obj->item_type != ITEM_PORTAL)
-        luaL_error( LS, "%s(%d) is not a portal.",
-                ud_obj->name, ud_obj->pIndexData->vnum);
-    return check_iflag( LS, "portal", portal_flags, ud_obj->value[2] );
-}
-HELPTOPIC OBJ_portalflag_help={};
-
-static int OBJPROTO_portalflag( lua_State *LS )
-{
-    OBJ_INDEX_DATA *ud_op=check_OBJPROTO(LS,1);
-    if (ud_op->item_type != ITEM_PORTAL)
-        luaL_error( LS, "%s(%d) is not a portal.",
-                ud_op->name, ud_op->vnum);
-    return check_iflag( LS, "portal", portal_flags, ud_op->value[2] );
-}
-HELPTOPIC OBJPROTO_portalflag_help={};
 
 /* end common section */
 
@@ -4811,6 +4807,10 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     /* portal only */
     OBJMETH(exitflag, 0),
     OBJMETH(portalflag, 0),
+
+    /* furniture only */
+    OBJMETH(furnitureflag, 0),
+    
     ENDPTABLE
 }; 
 
@@ -6005,6 +6005,9 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
     /* portal only */
     OPMETH( exitflag, 0),
     OPMETH( portalflag, 0),
+    
+    /* furniture only */
+    OPMETH(furnitureflag, 0),
     ENDPTABLE
 }; 
 
