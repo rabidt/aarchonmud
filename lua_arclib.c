@@ -2098,6 +2098,12 @@ OBJVHM ( portalflag, "", "" );
 OBJVIF ( furnitureflag, ITEM_FURNITURE, 2, furniture_flags )
 OBJVHM ( furnitureflag, "", "" );
 
+OBJVIF ( weaponflag, ITEM_WEAPON, 4, weapon_type2 )
+OBJVHM ( weaponflag, "", "" );
+
+OBJVIF ( containerflag, ITEM_CONTAINER, 1, container_flags )
+OBJVHM ( containerflag, "", "" );
+
 /*    
 static int OBJ_exitflag( lua_State *LS )
 {
@@ -4811,6 +4817,12 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     /* furniture only */
     OBJMETH(furnitureflag, 0),
     
+    /* weapon only */
+    OBJMETH(weaponflag, 0),
+    
+    /* container only */
+    OBJMETH(containerflag, 0),
+    
     ENDPTABLE
 }; 
 
@@ -6008,6 +6020,13 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
     
     /* furniture only */
     OPMETH(furnitureflag, 0),
+    
+    /* weapon only */
+    OPMETH(weaponflag, 0),
+    
+    /* container only */
+    OPMETH(containerflag, 0),
+    
     ENDPTABLE
 }; 
 
