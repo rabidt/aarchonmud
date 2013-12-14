@@ -1808,17 +1808,17 @@ OBJVGT( funcname, \
 )
 
 OBJVGETINT( light, ITEM_LIGHT, 2 )
-OBJVH( light, "", "");
+OBJVH( light, "light only. Hours of light left.", "");
 
 OBJVGETINT( arrowcount, ITEM_ARROWS, 0 )
-OBJVH( arrowcount, "", "");
+OBJVH( arrowcount, "arrows only. Number of arrows.", "");
 
 OBJVGETINT( arrowdamage, ITEM_ARROWS, 1 )
-OBJVH( arrowdamage, "", "");
+OBJVH( arrowdamage, "arrows only. Extra arrow damage.", "");
 
 OBJVGETSTR( arrowdamtype, ITEM_ARROWS, 
         flag_stat_string(damage_type, ud_obj->value[2]) )
-OBJVH( arrowdamtype, "", "");
+OBJVH( arrowdamtype, "arrows only. Arrow damage type. See 'damage_type' table.", "");
 
 OBJVGT( spelllevel,  
     switch(ud_obj->item_type)
@@ -1836,7 +1836,7 @@ OBJVGT( spelllevel,
     }
     return 0;
 )
-OBJVH( spelllevel, "", "");
+OBJVH( spelllevel, "wand, staff, scroll, potion, pill only. Spell level for attached spells.", "");
 
 OBJVGT( chargestotal,
     switch(ud_obj->item_type)
@@ -1852,7 +1852,7 @@ OBJVGT( chargestotal,
 
     return 1;
 )
-OBJVH( chargestotal, "", "");
+OBJVH( chargestotal, "wand and staff only. Maximum charges.", "");
 
 OBJVGT( chargesleft,
     switch(ud_obj->item_type)
@@ -1872,7 +1872,7 @@ OBJVGT( chargesleft,
 
     return 0;
 )
-OBJVH( chargesleft, "", "");
+OBJVH( chargesleft, "wand, staff, portal only. Current number of charges.", "");
 
 OBJVGT( spellname, 
     switch(ud_obj->item_type)
@@ -1889,13 +1889,13 @@ OBJVGT( spellname,
 
     return 1;
 )
-OBJVH( spellname, "", "");
+OBJVH( spellname, "wand, staff only. Name of attached spell.", "");
 
 OBJVGETINT( toroom, ITEM_PORTAL, 3 )
-OBJVH( toroom, "", "");
+OBJVH( toroom, "portal only. Vnum of room the portal leads to.", "");
 
 OBJVGETINT( maxpeople, ITEM_FURNITURE, 0 )
-OBJVH( maxpeople, "", "");
+OBJVH( maxpeople, "furniture only. Max people allowed.", "");
 
 OBJVGT( maxweight, 
     switch(ud_obj->item_type)
@@ -1914,13 +1914,13 @@ OBJVGT( maxweight,
 
     return 0;
 )
-OBJVH( maxweight, "", "");
+OBJVH( maxweight, "furniture, container only. Maximum weight allowed.", "");
 
 OBJVGETINT( healbonus, ITEM_FURNITURE, 3 )
-OBJVH( healbonus, "", "");
+OBJVH( healbonus, "furniture only.", "");
 
 OBJVGETINT( manabonus, ITEM_FURNITURE, 4 )
-OBJVH( manabonus, "", "");
+OBJVH( manabonus, "furniture only.", "");
 
 OBJVGT( spells, 
     switch(ud_obj->item_type)
@@ -1948,41 +1948,41 @@ OBJVGT( spells,
     
     return 0;
 )
-OBJVH( spells, "", "");
+OBJVH( spells, "pill, potion, scroll only. Table of the names of spells  attached to object.", "");
 
 OBJVGETINT( acpierce, ITEM_ARMOR, 0 )
-OBJVH( acpierce, "", "");
+OBJVH( acpierce, "armor only", "");
 
 OBJVGETINT( acbash, ITEM_ARMOR, 1 )
-OBJVH( acbash, "", "");
+OBJVH( acbash, "armor only", "");
 
 OBJVGETINT( acslash, ITEM_ARMOR, 2 )
-OBJVH( acslash, "", "");
+OBJVH( acslash, "armor only", "");
 
 OBJVGETINT( acexotic, ITEM_ARMOR, 3 )
-OBJVH( acexotic, "", "");
+OBJVH( acexotic, "armor only", "");
 
 OBJVGETSTR( weapontype, ITEM_WEAPON,
         flag_stat_string( weapon_class, ud_obj->value[0] ) )
-OBJVH( weapontype, "", "");
+OBJVH( weapontype, "weapon only. See 'weapon_class' table.", "");
 
 OBJVGETINT( numdice, ITEM_WEAPON, 1 )
-OBJVH( numdice, "", "");
+OBJVH( numdice, "weapon only.", "");
 
 OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
-OBJVH( dicetype, "", "");
+OBJVH( dicetype, "weapon only.", "");
 
 OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
-OBJVH( attacktype, "", "");
+OBJVH( attacktype, "weapon only. See 'attack_table' table. Value corresponds to 'name' column.", "");
 
 OBJVGETINT( key, ITEM_CONTAINER, 2 )
-OBJVH( key, "", "");
+OBJVH( key, "container only. Vnum of container's key.", "");
 
 OBJVGETINT( capacity, ITEM_CONTAINER, 3 )
-OBJVH( capacity, "", "");
+OBJVH( capacity, "container only.", "");
 
 OBJVGETINT( weightmult, ITEM_CONTAINER, 4 )
-OBJVH( weightmult, "", "");
+OBJVH( weightmult, "container only. Weight multiplier.", "");
 
 
 OBJVGT( liquidtotal, 
@@ -1998,7 +1998,7 @@ OBJVGT( liquidtotal,
 
     return 0;
 )
-OBJVH( liquidtotal, "", "");
+OBJVH( liquidtotal, "fountain, drinkcontainer only. Max liquid value.", "");
 
 OBJVGT( liquidleft,
     switch(ud_obj->item_type)
@@ -2013,7 +2013,7 @@ OBJVGT( liquidleft,
 
     return 0;
 )
-OBJVH( liquidleft, "", "");
+OBJVH( liquidleft, "fountain, drinkcontainer only. Current liquid value.", "");
 
 OBJVGT( liquid,
     switch(ud_obj->item_type)
@@ -2029,7 +2029,7 @@ OBJVGT( liquid,
 
     return 0;
 )
-OBJVH( liquid, "", "");
+OBJVH( liquid, "fountain, drinkcontainer only. Name of liquid. See 'liq_table' table.", "");
 
 OBJVGT( poisoned, 
     switch(ud_obj->item_type)
@@ -2044,19 +2044,19 @@ OBJVGT( poisoned,
 
     return 0;
 )
-OBJVH( poisoned, "", "");
+OBJVH( poisoned, "drinkcontainer, food only. Return is boolean.", "");
 
 OBJVGETINT( foodhours, ITEM_FOOD, 0 )
-OBJVH( foodhours, "", "");
+OBJVH( foodhours, "food only.", "");
 
 OBJVGETINT( fullhours, ITEM_FOOD, 1 )
-OBJVH( fullhours, "", "");
+OBJVH( fullhours, "food only.", "");
 
 OBJVGETINT( silver, ITEM_MONEY, 0 )
-OBJVH( silver, "", "");
+OBJVH( silver, "money only.", "");
 
 OBJVGETINT( gold, ITEM_MONEY, 1 )
-OBJVH( gold, "", "");
+OBJVH( gold, "money only.", "");
 
 #define OBJVM( funcname, body ) \
 static int OBJ_ ## funcname ( lua_State *LS )\
@@ -2090,29 +2090,19 @@ HELPTOPIC OBJPROTO_ ## funcname ## _help = \
     .info = hinfo \
 }
 OBJVIF ( exitflag, ITEM_PORTAL, 1, exit_flags )
-OBJVHM ( exitflag, "", "" );
+OBJVHM ( exitflag, "portal only. See 'exit_flags' table.", "" );
 
 OBJVIF ( portalflag, ITEM_PORTAL, 2, portal_flags )
-OBJVHM ( portalflag, "", "" );
+OBJVHM ( portalflag, "portal only. See 'portal_flags' table.", "" );
 
 OBJVIF ( furnitureflag, ITEM_FURNITURE, 2, furniture_flags )
-OBJVHM ( furnitureflag, "", "" );
+OBJVHM ( furnitureflag, "furniture only. See 'furniture_flags' table.", "" );
 
 OBJVIF ( weaponflag, ITEM_WEAPON, 4, weapon_type2 )
-OBJVHM ( weaponflag, "", "" );
+OBJVHM ( weaponflag, "weapon only. See 'weapon_type2' table.", "" );
 
 OBJVIF ( containerflag, ITEM_CONTAINER, 1, container_flags )
-OBJVHM ( containerflag, "", "" );
-
-/*    
-static int OBJ_exitflag( lua_State *LS )
-{
-    OBJ_DATA *ud_obj=check_OBJ(LS,1);
-    if (ud_obj->item_type != ITEM_PORTAL)
-        luaL_error( LS, "%s(%d) is not a portal.",
-                ud_obj->name, ud_obj->pIndexData->vnum);
-    return check_iflag( LS, "exit", exit_flags, ud_obj->value[1] );
-}*/
+OBJVHM ( containerflag, "container only. See 'container_flags' table.", "" );
 
 /* end common section */
 
