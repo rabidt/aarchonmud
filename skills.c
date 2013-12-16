@@ -2153,6 +2153,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
    char buf[MAX_STRING_LENGTH];
    int sn;
    int skill;
+   int prac_curr, prac_gain;
 
    if ( IS_NPC(ch) )
 	  return;
@@ -2272,15 +2273,27 @@ void do_practice( CHAR_DATA *ch, char *argument )
 	  {
 		  WAIT_STATE(ch, 8);
 		ch->practice--;
-		 ch->pcdata->learned[sn] +=
-			ch_int_learn(ch) / skill_table[sn].rating[ch->class];
+              prac_curr = ch->pcdata->learned[sn];
+              prac_gain = ch_int_learn(ch) / skill_table[sn].rating[ch->class];
+		 ch->pcdata->learned[sn] += prac_gain;
+                 /*
 		 if ( ch->pcdata->learned[sn] < adept )
 		 {
 			act( "You practice $T.",
 			   ch, NULL, skill_table[sn].name, TO_CHAR );
 			act( "$n practices $T.",
 			   ch, NULL, skill_table[sn].name, TO_ROOM );
-		 }
+		 } 
+                 */
+                 /* Practices output now shows amount gained */
+                 if (ch->pcdata->learned[sn] < adept)
+                 {
+                     sprintf(buf, "You practice %s from %d%% to %d%%.\n\r",
+                         skill_table[sn].name, prac_curr, prac_curr + prac_gain);
+                     send_to_char(buf, ch);
+                     act( "$n practices $T.",
+                         ch, NULL, skill_table[sn].name, TO_ROOM );
+                 }
 		 else
 		 {
 			ch->pcdata->learned[sn] = adept;
@@ -2289,6 +2302,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
 			act( "$n is now learned at $T.",
 			   ch, NULL, skill_table[sn].name, TO_ROOM );
 		 }
+
 	  }
    }
    return;
