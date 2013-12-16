@@ -42,6 +42,7 @@
 #include "religion.h"
 #include "olc.h"
 #include "mob_stats.h"
+#include "lua_scripting.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -2109,7 +2110,7 @@ void obj_update( void )
             }
         }
 
-        if ( !op_percent_trigger( obj, NULL, NULL, NULL, OTRIG_RAND) )
+        if ( !op_percent_trigger( NULL, obj, NULL, NULL, NULL, OTRIG_RAND) )
             continue;
 
         if ( obj->timer <= 0 || --obj->timer > 0 )

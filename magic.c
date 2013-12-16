@@ -4082,10 +4082,11 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     char buf[MAX_STRING_LENGTH];
     AFFECT_DATA *paf;
+    int pos;
 
     if ( (ch->level+10) < obj->level)
     {
-        sprintf( buf, "%s is too powerful for you to identify.\n\r" , obj->name);
+        sprintf( buf, "You must be at least level %d to identify %s{x.\n\r" , obj->level - 10, obj->short_descr);
         send_to_char(buf, ch);
         return;
     }
@@ -4217,6 +4218,20 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             break;
 
         case ITEM_ARMOR:
+            sprintf( buf, "" );
+            for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
+            {
+                if( !IS_SET(obj->wear_flags, pos) )
+                    continue;
+        
+                if( !strcmp( wear_bit_name(pos), "shield" ) )
+                    sprintf( buf, "It is used as a shield.\n\r" );
+                    else if( !strcmp( wear_bit_name(pos), "float" ) )
+                    sprintf( buf, "It would float nearby.\n\r" );
+                else if ( pos != ITEM_TAKE && pos != ITEM_NO_SAC && pos != ITEM_TRANSLUCENT )
+                    sprintf( buf, "It is worn on the %s.\n\r", wear_bit_name(pos) );
+            }
+            send_to_char( buf, ch );
             sprintf( buf, 
                     "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic.\n\r", 
                     obj->value[0], obj->value[1], obj->value[2], obj->value[3] );

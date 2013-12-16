@@ -4115,6 +4115,8 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
         af.modifier  = 0;
         af.bitvector = 0;
         affect_to_char(ch,&af);
+
+        victim->stance = 0; // now destances.
     }
     else
     {

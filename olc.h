@@ -371,16 +371,16 @@ DECLARE_OLC_FUN( raceedit_remskill );
                                         (HELP_DATA *)Ch->desc->pEdit : \
                                         NULL )
 #define EDIT_MPCODE(Ch, Code) ( Code = (Ch->desc->editor == ED_MPCODE) ? \
-                                        (MPROG_CODE*)Ch->desc->pEdit : \
+                                        (PROG_CODE*)Ch->desc->pEdit : \
                                         NULL)
 #define EDIT_OPCODE(Ch, Code) ( Code = (Ch->desc->editor == ED_OPCODE) ? \
-                                        (OPROG_CODE*)Ch->desc->pEdit : \
+                                        (PROG_CODE*)Ch->desc->pEdit : \
                                         NULL )
 #define EDIT_APCODE(Ch, Code) ( Code = (Ch->desc->editor == ED_APCODE) ? \
-                                        (APROG_CODE*)Ch->desc->pEdit : \
+                                        (PROG_CODE*)Ch->desc->pEdit : \
                                         NULL )
 #define EDIT_RPCODE(Ch, Code) ( Code = (Ch->desc->editor == ED_RPCODE) ? \
-                                        (RPROG_CODE*)Ch->desc->pEdit : \
+                                        (PROG_CODE*)Ch->desc->pEdit : \
                                         NULL )
 
 
@@ -414,25 +414,25 @@ void		show_liqlist		args ( ( CHAR_DATA *ch ) );
 void		show_damlist		args ( ( CHAR_DATA *ch ) );
 
 char *		mprog_type_to_name	args ( ( int type ) );
-MPROG_LIST      *new_mprog              args ( ( void ) );
-void            free_mprog              args ( ( MPROG_LIST *mp ) );
-MPROG_CODE	*new_mpcode		args ( (void) );
-void		free_mpcode		args ( ( MPROG_CODE *pMcode));
+PROG_LIST      *new_mprog              args ( ( void ) );
+void            free_mprog              args ( ( PROG_LIST *mp ) );
+PROG_CODE	*new_mpcode		args ( (void) );
+void		free_mpcode		args ( ( PROG_CODE *pMcode));
 
-OPROG_LIST      *new_oprog              args ( ( void ) );
-void            free_oprog              args ( ( OPROG_LIST *op ) );
-OPROG_CODE *new_opcode      args ( (void) );
-void        free_opcode     args ( ( OPROG_CODE *pOcode));
+PROG_LIST      *new_oprog              args ( ( void ) );
+void            free_oprog              args ( ( PROG_LIST *op ) );
+PROG_CODE *new_opcode      args ( (void) );
+void        free_opcode     args ( ( PROG_CODE *pOcode));
 
-APROG_LIST      *new_aprog              args ( ( void ) );
-void            free_aprog              args ( ( APROG_LIST *ap ) );
-APROG_CODE *new_apcode      args ( (void) );
-void        free_apcode     args ( ( APROG_CODE *pAcode));
+PROG_LIST      *new_aprog              args ( ( void ) );
+void            free_aprog              args ( ( PROG_LIST *ap ) );
+PROG_CODE *new_apcode      args ( (void) );
+void        free_apcode     args ( ( PROG_CODE *pAcode));
 
-RPROG_LIST      *new_rprog              args ( ( void ) );
-void            free_rprog              args ( ( RPROG_LIST *rp ) );
-RPROG_CODE *new_rpcode      args ( (void) );
-void        free_rpcode     args ( ( RPROG_CODE *pRcode));
+PROG_LIST      *new_rprog              args ( ( void ) );
+void            free_rprog              args ( ( PROG_LIST *rp ) );
+PROG_CODE *new_rpcode      args ( (void) );
+void        free_rpcode     args ( ( PROG_CODE *pRcode));
 
 
 HELP_DATA *new_help args ( (void) );
