@@ -821,9 +821,10 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
 
     one_argument(argument,arg);
     
+
     if (!strcmp(arg,"help"))
     {
-	argument = one_argument(argument,arg);
+    argument = one_argument(argument,arg);
 	if (argument[0] == '\0')
 	    do_help(ch,"race help");
 	else
@@ -841,9 +842,18 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
 
     if (!strcmp(arg,"stats"))
     {
-	char r[6];
-	sprintf( r, "< r%d", ch->pcdata->remorts );
-	do_stats(ch, r);
+    	argument = one_argument(argument,arg);
+    	if (argument[0] == '\0')
+    	{
+			char r[6];
+			sprintf( r, "< r%d", ch->pcdata->remorts );
+			do_stats(ch, r);
+		}
+		else
+		{
+			do_stats(ch, argument);
+		}
+
 	if (ch->pcdata->remorts>0)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
@@ -857,9 +867,18 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
     
     if (!strcmp(arg,"etls"))
     {
-	char r[6];
-	sprintf( r, "< r%d", ch->pcdata->remorts );
-	do_etls(ch, r);
+    	argument = one_argument(argument,arg);
+    	if (argument[0] == '\0')
+    	{
+			char r[6];
+			sprintf( r, "< r%d", ch->pcdata->remorts );
+			do_etls(ch, r);
+		}
+		else
+		{
+			do_etls(ch, argument);
+		}
+
 	if (ch->pcdata->remorts>0)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
@@ -869,6 +888,17 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
 	write_to_buffer(d,buffer,0);
 
 	return FALSE;
+    }
+
+    if (!strcmp(arg,"showrace"))
+    {
+    	argument = one_argument(argument,arg);
+    	if (argument[0])
+    	{
+    		do_showrace(ch, argument);
+    	}
+
+    	return FALSE;
     }
 
     race = race_lookup(argument);
@@ -1056,9 +1086,22 @@ bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
 	if (!strcmp(arg,"help"))
 	{
 		if (argument[0] == '\0')
-		do_help(ch,"classes");
+		{
+			do_help(ch,"classes");
+		}
 		else
-		do_help(ch,argument);
+		{
+			// Special case help assassin to go to help assassin class instead
+			// of showing help assassination.
+			if (!str_prefix(argument, "assassin"))
+			{
+				do_help(ch, "assassin class");
+			}
+			else
+			{
+				do_help(ch,argument);
+			}	
+		}
 
 //		sprintf( buf, "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
 		sprintf( buf, "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
@@ -1071,9 +1114,16 @@ bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
 
 	if (!strcmp(arg,"stats"))
 	{
-		char r[6];
-		sprintf( r, "< r%d", ch->pcdata->remorts );
-		do_stats(ch,r);
+		if (argument[0] == '\0')
+		{
+			char r[6];
+			sprintf( r, "< r%d", ch->pcdata->remorts );
+			do_stats(ch,r);
+		}
+		else
+		{
+			do_stats(ch,argument);
+		}
 
 //		sprintf( buf, "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
                 sprintf( buf, "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
@@ -1086,9 +1136,16 @@ bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
 
 	if (!strcmp(arg,"etls"))
 	{
-		char r[6];
-		sprintf( r, "< r%d", ch->pcdata->remorts );
-		do_etls(ch,r);
+		if (argument[0] == '\0')
+		{
+			char r[6];
+			sprintf( r, "< r%d", ch->pcdata->remorts );
+			do_etls(ch,r);
+		}
+		else
+		{
+			do_etls(ch,argument);
+		}
 
 //		sprintf( buf, "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
                 sprintf( buf, "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
@@ -1097,6 +1154,14 @@ bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
 		write_to_buffer( d, buffer, 0 );
 
 		return FALSE;
+	}
+
+	if (!strcmp(arg,"showrace"))
+	{
+		if (argument[0])
+		{
+			do_showrace(ch, argument);
+		}
 	}
 
 	i = class_lookup(arg);
@@ -1456,7 +1521,7 @@ bool	pick_weapon ( DESCRIPTOR_DATA *d, char *argument )
 		        sprintf( msg, "[ {W" );
 			for ( w = 0; weapon_table[w].name != NULL; w++)
 			{
-			if (ch->pcdata->learned[*weapon_table[w].gsn] > 0 
+				if (ch->pcdata->learned[*weapon_table[w].gsn] > 0 
 				&& skill_table[*weapon_table[w].gsn].skill_level[ch->class] == 1)
 				{
 				    strcat(msg,weapon_table[w].name);
@@ -1464,12 +1529,11 @@ bool	pick_weapon ( DESCRIPTOR_DATA *d, char *argument )
 				}
 				if (ch->pcdata->learned[gsn_hand_to_hand]>0)
 				    strcat(msg,"unarmed");
-		        }
+		    }
 		        strcat( msg, "{x ]\n\r" );
 
         		pbuff = buffer;
 		        colourconv( pbuff, msg, d->character );
-	        	write_to_buffer(d,buffer,0);
 
 			strcat(msg,"{CYour choice of weapon (Press enter to take your class default)?{x ");
         		pbuff = buffer;
