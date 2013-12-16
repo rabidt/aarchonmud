@@ -1477,8 +1477,11 @@ static int set_flag( lua_State *LS,
         tflag flagvar )
 {
     const char *argument = check_string( LS, 2, MIL);
-    luaL_checktype( LS, 3, LUA_TBOOLEAN );
-    bool set=lua_toboolean( LS, 3 );
+    bool set = TRUE;
+    if (!lua_isnone( LS, 3 ) )
+    {
+        set = lua_toboolean( LS, 3 );
+    }
     
     int flag=flag_lookup( argument, flagtbl );
     if ( flag == NO_FLAG )
