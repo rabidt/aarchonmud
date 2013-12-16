@@ -1026,6 +1026,11 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     {
         int nRead;
 
+        /* There is no more space in the input buffer for now */
+        if ( iStart >= maxRead )
+                break;
+
+
         nRead = read( d->descriptor, read_buf + iStart, maxRead - iStart );
 
         if ( nRead > 0 )
@@ -1199,9 +1204,17 @@ void read_from_buffer( DESCRIPTOR_DATA *d )
     /*
      * Shift the input buffer.
      */
+    bool got_n = FALSE, got_r=FALSE;
+
+    for (;d->inbuf[i] == '\r' || d->inbuf[i] == '\n';i++)
+    {
+        if (d->inbuf[i] == '\r' && got_r++)
+            break;
+
+        else if (d->inbuf[i] == '\n' && got_n++)
+            break;
+    }
     
-    while ( d->inbuf[i] == '\n' || d->inbuf[i] == '\r' )
-        i++;
 
     for ( j = 0; ( d->inbuf[j] = d->inbuf[i+j] ) != '\0'; j++ )
         ;
@@ -1255,8 +1268,8 @@ void battle_prompt( DESCRIPTOR_DATA *d )
                 color = 'r';
 
             sprintf(buf,
-                    "{W[{%c                                {W] ({%c%d%%{W){x\n\r",
-                    color, color, percent);
+                    "{W[{%c                                {W] %s {W({%c%d%%{W){x\n\r",
+                    color, IS_NPC(victim) ? victim->short_descr : victim->name, color, percent);
 
             bars=UMIN(((percent*32)/100), 32);
             for (i=0; i<bars; i++)
@@ -1308,9 +1321,7 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
             if (d->lua.interpret)
             {
                 write_to_buffer( d, "lua", 3);
-                if (d->lua.wait)
-                    write_to_buffer( d, "W", 1);
-                else if (d->lua.incmpl)
+                if (d->lua.incmpl)
                     write_to_buffer( d, ">", 1);
 
             }

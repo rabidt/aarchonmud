@@ -51,7 +51,6 @@ bool can_steal( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose );
 
 
 
-
 /*
  * Local functions.
  */
@@ -262,7 +261,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
         REMOVE_BIT(obj->extra_flags,ITEM_HAD_TIMER);
     }
 
-    if ( !op_percent_trigger( obj, container, ch, NULL, OTRIG_GET) )
+    if ( !op_percent_trigger( NULL, obj, container, ch, NULL, OTRIG_GET) )
         return;
 
     if ( container != NULL )
@@ -606,7 +605,7 @@ void do_put( CHAR_DATA *ch, char *argument )
             return;
         }
 
-        if ( !op_percent_trigger( obj, container, ch, NULL, OTRIG_PUT) ) 
+        if ( !op_percent_trigger( NULL, obj, container, ch, NULL, OTRIG_PUT) ) 
             return;
 
         obj_from_char( obj );
@@ -667,7 +666,7 @@ void do_put( CHAR_DATA *ch, char *argument )
                         <= container->value[3])
                     &&   !is_relic_obj(obj) )
             {
-                if ( !op_percent_trigger( obj, container, ch, NULL, OTRIG_PUT) )
+                if ( !op_percent_trigger( NULL, obj, container, ch, NULL, OTRIG_PUT) )
                     continue;
                 obj_from_char( obj );
                 obj_to_obj( obj, container );
@@ -840,7 +839,7 @@ void do_drop( CHAR_DATA *ch, char *argument )
                 obj->timer = number_range(100,200);
         }
 
-        if (!op_percent_trigger( obj, NULL, ch, NULL, OTRIG_DROP) )
+        if (!op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_DROP) )
             return;
 
         obj_from_char( obj );
@@ -887,8 +886,7 @@ void do_drop( CHAR_DATA *ch, char *argument )
 
                 check_bomb(ch, obj);
 
-                /* TBC, add HAS_OTRIG to check bit */
-                if (!op_percent_trigger( obj, NULL, ch, NULL, OTRIG_DROP) )
+                if (!op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_DROP) )
                     continue;
 
                 obj_from_char( obj );
@@ -1144,7 +1142,7 @@ void do_give( CHAR_DATA *ch, char *argument )
     }
 
     /* oprog check */
-    if (!op_percent_trigger( obj, NULL, ch, victim, OTRIG_GIVE) )
+    if (!op_percent_trigger( NULL, obj, NULL, ch, victim, OTRIG_GIVE) )
         return;
 
     obj_from_char( obj );
@@ -1737,7 +1735,7 @@ void do_eat( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    if ( !op_percent_trigger( obj, NULL, ch, NULL, OTRIG_EAT) )
+    if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_EAT) )
         return;
 
     act( "You eat $p.", ch, obj, NULL, TO_CHAR );
@@ -2256,7 +2254,7 @@ void do_wear( CHAR_DATA *ch, char *argument )
         {
             obj_next = obj->next_content;
             if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) )
-                if (op_percent_trigger(obj, NULL, ch, NULL, OTRIG_WEAR) )
+                if (op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_WEAR) )
                     wear_obj( ch, obj, FALSE );
         }
         return;
@@ -2269,7 +2267,7 @@ void do_wear( CHAR_DATA *ch, char *argument )
             return;
         }
 
-        if (op_percent_trigger( obj, NULL, ch, NULL, OTRIG_WEAR) )
+        if (op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_WEAR) )
             wear_obj( ch, obj, TRUE );
         else
             return;
@@ -2296,7 +2294,7 @@ void do_remove( CHAR_DATA *ch, char *argument )
         {
             obj_next = obj->next_content;
             if(obj->wear_loc != WEAR_NONE) 
-                if (op_percent_trigger(obj, NULL, ch, NULL, OTRIG_REMOVE) )
+                if (op_percent_trigger(NULL, obj, NULL, ch, NULL, OTRIG_REMOVE) )
                     remove_obj(ch,obj->wear_loc, TRUE);
         }
         return;
@@ -2308,7 +2306,7 @@ void do_remove( CHAR_DATA *ch, char *argument )
             send_to_char( "You do not have that item.\n\r", ch );
             return;
         }
-        if (op_percent_trigger( obj, NULL, ch, NULL, OTRIG_REMOVE) )
+        if (op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_REMOVE) )
             remove_obj( ch, obj->wear_loc, TRUE );
         return;
     }
@@ -2347,6 +2345,12 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
     char buffer[100];
 
     one_argument( argument, arg );
+
+    if (IS_REMORT(ch))
+    {
+        send_to_char("Not in remort, chucklehead.\n\r",ch);
+        return;
+    }
 
     if ( (god_name = get_god_name(ch)) == NULL )
     {
@@ -2412,7 +2416,7 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
             }
     }
 
-    if ( !op_percent_trigger( obj, NULL, ch, NULL, OTRIG_SACRIFICE) )
+    if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SACRIFICE) )
         return;
 
     silver = UMAX(1,obj->level * 3);

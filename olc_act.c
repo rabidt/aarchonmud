@@ -661,7 +661,7 @@ AREA_DATA *get_vnum_area( int vnum )
  *****************************************************************/
 void update_aprog_flags( AREA_DATA *pArea )
 {
-    APROG_LIST *list;
+    PROG_LIST *list;
 
     /* clear flags */
     flag_clear( pArea->aprog_flags );
@@ -674,8 +674,8 @@ void update_aprog_flags( AREA_DATA *pArea )
 AEDIT ( aedit_delaprog )
 {
     AREA_DATA *pArea;
-    APROG_LIST *list;
-    APROG_LIST *list_next;
+    PROG_LIST *list;
+    PROG_LIST *list_next;
     char aprog[MAX_STRING_LENGTH];
     int value;
     int cnt = 0;
@@ -736,8 +736,8 @@ AEDIT ( aedit_addaprog )
 {
     int value;
     AREA_DATA *pArea;
-    APROG_LIST *list;
-    APROG_CODE *code;
+    PROG_LIST *list;
+    PROG_CODE *code;
     char trigger[MAX_STRING_LENGTH];
     char phrase[MAX_STRING_LENGTH];
     char num[MAX_STRING_LENGTH];
@@ -795,7 +795,7 @@ AEDIT ( aedit_addaprog )
 AEDIT( aedit_show )
 {
     AREA_DATA *pArea;
-    APROG_LIST *list;
+    PROG_LIST *list;
     char buf  [MAX_STRING_LENGTH];
     int i;
     
@@ -1564,7 +1564,7 @@ AEDIT( aedit_uvnum )
  *****************************************************************/
 void update_rprog_flags( ROOM_INDEX_DATA *pRoom )
 {
-    RPROG_LIST *list;
+    PROG_LIST *list;
 
     /* clear flags */
     flag_clear( pRoom->rprog_flags );
@@ -1577,8 +1577,8 @@ void update_rprog_flags( ROOM_INDEX_DATA *pRoom )
 REDIT ( redit_delrprog )
 {
     ROOM_INDEX_DATA *pRoom;
-    RPROG_LIST *list;
-    RPROG_LIST *list_next;
+    PROG_LIST *list;
+    PROG_LIST *list_next;
     char rprog[MAX_STRING_LENGTH];
     int value;
     int cnt = 0;
@@ -1639,8 +1639,8 @@ REDIT ( redit_addrprog )
 {
     int value;
     ROOM_INDEX_DATA *pRoom;
-    RPROG_LIST *list;
-    RPROG_CODE *code;
+    PROG_LIST *list;
+    PROG_CODE *code;
     char trigger[MAX_STRING_LENGTH];
     char phrase[MAX_STRING_LENGTH];
     char num[MAX_STRING_LENGTH];
@@ -1878,7 +1878,7 @@ REDIT( redit_show )
 
     if ( pRoom->rprogs )
     {
-        RPROG_LIST *list;
+        PROG_LIST *list;
         int cnt;
 
         sprintf(buf, "\n\rROOMPrograms for [%5d]:\n\r", pRoom->vnum);
@@ -3593,7 +3593,7 @@ char* get_rating_name( int rating )
  *****************************************************************/
 void update_oprog_flags( OBJ_INDEX_DATA *pObj )
 {
-    OPROG_LIST *list;
+    PROG_LIST *list;
 
     /* clear flags */
     flag_clear( pObj->oprog_flags );
@@ -3606,8 +3606,8 @@ void update_oprog_flags( OBJ_INDEX_DATA *pObj )
 OEDIT ( oedit_deloprog )
 {
     OBJ_INDEX_DATA *pObj;
-    OPROG_LIST *list;
-    OPROG_LIST *list_next;
+    PROG_LIST *list;
+    PROG_LIST *list_next;
     char oprog[MAX_STRING_LENGTH];
     int value;
     int cnt = 0;
@@ -3668,8 +3668,8 @@ OEDIT ( oedit_addoprog )
 {
     int value;
     OBJ_INDEX_DATA *pObj;
-    OPROG_LIST *list;
-    OPROG_CODE *code;
+    PROG_LIST *list;
+    PROG_CODE *code;
     char trigger[MAX_STRING_LENGTH];
     char phrase[MAX_STRING_LENGTH];
     char num[MAX_STRING_LENGTH];
@@ -3720,7 +3720,7 @@ OEDIT ( oedit_addoprog )
 OEDIT( oedit_show )
 {
     OBJ_INDEX_DATA *pObj;
-    OPROG_LIST *list;
+    PROG_LIST *list;
     char buf[MAX_STRING_LENGTH];
     AFFECT_DATA *paf;
     int cnt;
@@ -5013,7 +5013,7 @@ MEDIT( medit_show )
 {
     MOB_INDEX_DATA *pMob;
     char buf[MAX_STRING_LENGTH];
-    MPROG_LIST *list;
+    PROG_LIST *list;
     
     EDIT_MOB(ch, pMob);
     
@@ -6459,8 +6459,8 @@ MEDIT ( medit_addmprog )
 {
     int value;
     MOB_INDEX_DATA *pMob;
-    MPROG_LIST *list;
-    MPROG_CODE *code;
+    PROG_LIST *list;
+    PROG_CODE *code;
     char trigger[MAX_STRING_LENGTH];
     char phrase[MAX_STRING_LENGTH];
     char num[MAX_STRING_LENGTH];
@@ -6515,7 +6515,7 @@ MEDIT ( medit_addmprog )
  *****************************************************************/
 void update_mprog_flags( MOB_INDEX_DATA *pMob )
 {
-    MPROG_LIST *list;
+    PROG_LIST *list;
     
     /* clear flags */
     flag_clear( pMob->mprog_flags );
@@ -6529,8 +6529,8 @@ void update_mprog_flags( MOB_INDEX_DATA *pMob )
 MEDIT ( medit_delmprog )
 {
     MOB_INDEX_DATA *pMob;
-    MPROG_LIST *list;
-    MPROG_LIST *list_next;
+    PROG_LIST *list;
+    PROG_LIST *list_next;
     char mprog[MAX_STRING_LENGTH];
     int value;
     int cnt = 0;

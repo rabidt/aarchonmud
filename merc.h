@@ -134,14 +134,8 @@ typedef struct  room_index_data  ROOM_INDEX_DATA;
 typedef struct  shop_data        SHOP_DATA;
 typedef struct  time_info_data   TIME_INFO_DATA;
 typedef struct  weather_data     WEATHER_DATA;
-typedef struct  mprog_list       MPROG_LIST;
-typedef struct  mprog_code       MPROG_CODE;
-typedef struct  oprog_code       OPROG_CODE;
-typedef struct  oprog_list       OPROG_LIST;
-typedef struct  aprog_code       APROG_CODE;
-typedef struct  aprog_list       APROG_LIST;
-typedef struct  rprog_code       RPROG_CODE;
-typedef struct  rprog_list       RPROG_LIST;
+typedef struct  prog_list        PROG_LIST;
+typedef struct  prog_code        PROG_CODE;
 typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
@@ -270,7 +264,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
-#define MAX_ALIAS          35
+#define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
 #define MAX_CLASS          15
 #define MAX_PC_RACE        65 /*accurate jan 2013 */
 #define MAX_BOARD          12
@@ -803,7 +797,6 @@ struct  descriptor_data
     struct
     {
         bool interpret; /* Whether in lua interpreter mode */
-        bool wait; /* whether in WAIT mode for multiline chunks*/
         bool incmpl;/* whether incomplete was detected */
     } lua;
 
@@ -2201,7 +2194,7 @@ typedef int tattoo_list[MAX_WEAR];
 /* penalty flags */
 #define PLR_PERMIT      (U)
 #define PLR_LOG         (W)
-#define PLR_DENY        (X)
+#define PLR_DENY        (X) // deny command removed 12-8-13. Should be ok to recycle at some point -Astark
 #define PLR_THIEF       (Z)
 #define PLR_KILLER      (aa)
 
@@ -2364,7 +2357,7 @@ struct  mob_index_data_old
 	MOB_INDEX_DATA_OLD *    next;
 	SPEC_FUN *      spec_fun;
 	SHOP_DATA *     pShop;
-	MPROG_LIST *        mprogs;
+	PROG_LIST *        mprogs;
 	AREA_DATA *     area;       /* OLC */
 	int      vnum;
 	sh_int      group;
@@ -2411,7 +2404,7 @@ struct  mob_index_data
     MOB_INDEX_DATA* next;
     SPEC_FUN*   spec_fun;
     SHOP_DATA*  pShop;
-    MPROG_LIST* mprogs;
+    PROG_LIST* mprogs;
     AREA_DATA*  area;
     int         vnum;
     sh_int      group;
@@ -2750,6 +2743,8 @@ struct  pc_data
 	int                 mob_deaths;
 	int                 quest_failed;
 	int                 quest_success;
+        int                 quest_hard_success;
+        int                 quest_hard_failed;
 	int                 gender_won;
 	int                 gender_lost;
 	int                 gender_kills;
@@ -2757,7 +2752,6 @@ struct  pc_data
 	int                 religion_lost;
 	int                 religion_kills;
     QUEST_DATA *qdata;
-    long house;            /* Settable by imms, shows only in do_worth, lets people feel their house is part of their assets */
     tattoo_list tattoos;
     FOLLOWER_DATA *ch_rel;
     time_t prayed_at;
@@ -2860,10 +2854,10 @@ struct  obj_index_data
 	sh_int      durability;
 	sh_int	    clan;
 	sh_int	    rank;
-        int         combine_vnum;
-        sh_int      diff_rating; /* difficulty to get object */
-        OPROG_LIST *oprogs;
-        tflag   oprog_flags;
+    int         combine_vnum;
+    sh_int      diff_rating; /* difficulty to get object */
+    PROG_LIST *oprogs;
+    tflag   oprog_flags;
 };
 
 
@@ -2989,7 +2983,7 @@ struct  area_data
         int      maxlevel;
         int      miniquests;
 
-    APROG_LIST *aprogs;
+    PROG_LIST *aprogs;
     tflag   aprog_flags;
 
     TIMER_NODE *atrig_timer; /* should not be touched except in timer.c */
@@ -3021,7 +3015,7 @@ struct  room_index_data
     sh_int      clan;
     sh_int      clan_rank;
 
-    RPROG_LIST *rprogs;
+    PROG_LIST *rprogs;
     tflag rprog_flags;
 
     TIMER_NODE *rtrig_timer; /* should not be touched except in timer.c */
@@ -3175,6 +3169,8 @@ struct  mastery_group_type
 #define OTRIG_ENTER (Q)
 #define OTRIG_TIMER (R)
 #define OTRIG_FIGHT (S)
+#define OTRIG_HIT   (T)
+#define OTRIG_PREHIT (U)
 
 /*
  * AREAprog definitions
@@ -3207,82 +3203,25 @@ struct  mastery_group_type
 #define RTRIG_EXIT  (I)
 #define RTRIG_LOOK  (J)
 
-struct mprog_list
+struct prog_list
 {
 	int         trig_type;
 	char *      trig_phrase;
-	MPROG_LIST *    next;
+	PROG_LIST *    next;
     int vnum;
-    MPROG_CODE *    script;
+    PROG_CODE *    script;
 	bool        valid;
 };
 
-struct mprog_code
+struct prog_code
 {
     bool        is_lua;
 	int         vnum;
 	char *      code;
     int         security;
-	MPROG_CODE *    next;
+	PROG_CODE *    next;
 };
 
-struct oprog_list
-{
-    int         trig_type;
-    char *      trig_phrase;
-    int         vnum;
-    OPROG_CODE *    script;
-    OPROG_LIST *    next;
-    bool        valid;
-};
-
-struct oprog_code
-{
-    /* always lua */
-    int     vnum;
-    int     security;
-    char    * code;
-    OPROG_CODE *    next;
-};
-
-struct aprog_list
-{
-    int         trig_type;
-    char *      trig_phrase;
-    int         vnum;
-    APROG_CODE *    script;
-    APROG_LIST *    next;
-    bool        valid;
-};
-
-struct aprog_code
-{
-    /* always lua */
-    int     vnum;
-    int     security;
-    char    * code;
-    APROG_CODE *    next;
-};
-
-
-struct rprog_list
-{
-    int trig_type;
-    char * trig_phrase;
-    int vnum;
-    RPROG_CODE * script;
-    RPROG_LIST * next;
-    bool valid;
-};
-
-struct rprog_code
-{
-    /* always lua */
-    int vnum;
-    int security;
-    char * code;
-    RPROG_CODE * next;
-};
 
 extern sh_int race_werewolf;
 extern sh_int race_naga;
@@ -3650,6 +3589,10 @@ struct achievement_entry
 #define	ACHV_MAXMV	12
 #define ACHV_EXPLORED   13
 //#define ACHV_TATT	14
+#define ACHV_MASKILLS   14
+#define ACHV_GMSKILLS   15
+#define ACHV_RETRAINED  16
+#define ACHV_QHCOMP     17
 
 /*bitvector for achievement tflag*/
 #define    ACHIEVE_LEVEL_1 1
@@ -3760,6 +3703,27 @@ struct achievement_entry
 #define    ACHIEVE_EXPLORED_6 103
 #define    ACHIEVE_EXPLORED_7 104
 #define    ACHIEVE_EXPLORED_8 105
+#define    ACHIEVE_MASKILLS_1 106
+#define    ACHIEVE_MASKILLS_2 107
+#define    ACHIEVE_MASKILLS_3 108
+#define    ACHIEVE_MASKILLS_4 109
+#define    ACHIEVE_MASKILLS_5 110
+#define    ACHIEVE_GMSKILLS_1 111
+#define    ACHIEVE_GMSKILLS_2 112
+#define    ACHIEVE_GMSKILLS_3 113
+#define    ACHIEVE_GMSKILLS_4 114
+#define    ACHIEVE_GMSKILLS_5 115
+#define    ACHIEVE_RETRAINED_1 116
+#define    ACHIEVE_RETRAINED_2 117
+#define    ACHIEVE_RETRAINED_3 118
+#define    ACHIEVE_RETRAINED_4 119
+#define    ACHIEVE_RETRAINED_5 120
+#define    ACHIEVE_QHCOMP_1    121 // 1
+#define    ACHIEVE_QHCOMP_2    122 // 10
+#define    ACHIEVE_QHCOMP_3    123 // 50
+#define    ACHIEVE_QHCOMP_4    124 // 100
+#define    ACHIEVE_QHCOMP_5    125 // 250
+#define    ACHIEVE_QHCOMP_6    126 // 500
 
 /*
 #define ACHIEVE_LEVEL_1    A
@@ -3838,7 +3802,7 @@ struct achievement_entry
  * Character macros.
  */
 #define IS_NPC(ch)      (IS_SET((ch)->act, ACT_IS_NPC))
-#define IS_IMMORTAL(ch) (ch->desc ? is_granted_name(ch,"immflag") : get_trust(ch) >= LEVEL_IMMORTAL)
+#define IS_IMMORTAL(ch)     (get_trust(ch) >= LEVEL_IMMORTAL)
 #define IS_HERO(ch)     ((!IS_NPC((ch))&&((ch)->level >= ((LEVEL_HERO - 10)+((ch)->pcdata->remorts)))))
 #define IS_HELPER(ch)   (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER))
 #define IS_ACTIVE_HELPER(ch)    (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER) && !IS_SET((ch)->act, PLR_INACTIVE_HELPER))
@@ -4054,10 +4018,10 @@ extern      CHAR_DATA     * char_list;
 extern      DESCRIPTOR_DATA   * descriptor_list;
 extern      OBJ_DATA      * object_list;
 
-extern      MPROG_CODE    * mprog_list;
-extern      OPROG_CODE    * oprog_list;
-extern      APROG_CODE    * aprog_list;
-extern      RPROG_CODE    * rprog_list;
+extern      PROG_CODE    * mprog_list;
+extern      PROG_CODE    * oprog_list;
+extern      PROG_CODE    * aprog_list;
+extern      PROG_CODE    * rprog_list;
 
 extern      char            bug_buf     [];
 extern      time_t          current_time;
@@ -4252,6 +4216,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define MAX_WHO_FILE   "maxwho.txt"
 #define LUA_STARTUP    LUA_DIR "startup.lua"
 #define ptc printf_to_char
+#define stc send_to_char
 
 /* string constants */
 //#define PROMPT_DEFAULT "{g<{r%h{g/%Hhp {b%m{g/%Mmn {c%v{g/%Vmv {y%X{getl{W%z{x>{x "
@@ -4268,10 +4233,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define RID ROOM_INDEX_DATA
 #define SF  SPEC_FUN
 #define AD  AFFECT_DATA
-#define MPC MPROG_CODE
-#define OPC OPROG_CODE
-#define APC APROG_CODE
-#define RPC RPROG_CODE
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
@@ -4405,10 +4366,10 @@ OID *   get_obj_index_safe args( ( int vnum ) );
 OID *   get_obj_index   args( ( int vnum ) );
 RID *   get_room_index_safe args( ( int vnum ) );
 RID *   get_room_index  args( ( int vnum ) );
-MPC *   get_mprog_index args( ( int vnum ) );
-OPC *   get_oprog_index args( ( int vnum ) );
-APC *   get_aprog_index args( ( int vnum ) );
-RPC *   get_rprog_index args( ( int vnum ) );
+PROG_CODE *   get_mprog_index args( ( int vnum ) );
+PROG_CODE *   get_oprog_index args( ( int vnum ) );
+PROG_CODE *   get_aprog_index args( ( int vnum ) );
+PROG_CODE *   get_rprog_index args( ( int vnum ) );
 char    fread_letter    args( ( FILE *fp ) );
 int fread_number    args( ( FILE *fp ) );
 long    fread_flag  args( ( FILE *fp ) );
