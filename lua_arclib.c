@@ -907,11 +907,11 @@ static int glob_getplayerlist (lua_State *LS)
     return 1;
 }
 HELPTOPIC glob_getplayerlist_help={
-    .summary="Return a table of all mobs in the game.",
+    .summary="Return a table of all players in the game.",
     .info="Arguments: none\n\r\n\r"
           "Return: chars[table of CHs]\n\r\n\r"
           "Example:\n\r"
-          "local moblist=getmoblist()\n\r\n\r"
+          "local pclist=getplayerlist()\n\r\n\r"
 };
 
 static int glob_getarealist (lua_State *LS)
