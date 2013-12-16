@@ -2090,19 +2090,29 @@ HELPTOPIC OBJPROTO_ ## funcname ## _help = \
     .info = hinfo \
 }
 OBJVIF ( exitflag, ITEM_PORTAL, 1, exit_flags )
-OBJVHM ( exitflag, "portal only. See 'exit_flags' table.", "" );
+OBJVHM ( exitflag, "portal only. Check exit flags.",
+"See 'exit_flags' table.\n\r"
+"See 'luahelp other flags'" );
 
 OBJVIF ( portalflag, ITEM_PORTAL, 2, portal_flags )
-OBJVHM ( portalflag, "portal only. See 'portal_flags' table.", "" );
+OBJVHM ( portalflag, "portal only. Check portal flags.",
+"See 'portal_flags' table.\n\r"
+"See 'luahelp other flags'");
 
 OBJVIF ( furnitureflag, ITEM_FURNITURE, 2, furniture_flags )
-OBJVHM ( furnitureflag, "furniture only. See 'furniture_flags' table.", "" );
+OBJVHM ( furnitureflag, "furniture only. Check furniture flags.",
+"See 'furniture_flags' table.\n\r"
+"See 'luahelp other flags'" );
 
 OBJVIF ( weaponflag, ITEM_WEAPON, 4, weapon_type2 )
-OBJVHM ( weaponflag, "weapon only. See 'weapon_type2' table.", "" );
+OBJVHM ( weaponflag, "weapon only. Check weapon flags.",
+"See 'weapon_type2' table.\n\r"
+"See 'luahelp other flags'" );
 
 OBJVIF ( containerflag, ITEM_CONTAINER, 1, container_flags )
-OBJVHM ( containerflag, "container only. See 'container_flags' table.", "" );
+OBJVHM ( containerflag, "container only. Check container flags.",
+"See 'container_flags' table.\n\r"
+"See 'luahelp other flags'");
 
 /* end common section */
 
@@ -2996,43 +3006,58 @@ static int CH_act (lua_State *LS)
         return check_flag( LS, "act[PC]", plr_flags, ud_ch->act );
     }
 }
-HELPTOPIC CH_act_help = {};
+HELPTOPIC CH_act_help = 
+{
+    .summary = "Check ACT flag (NPCs) or PLR flag (PCs).",
+    .info =
+"See 'act_flags' and 'plr_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int CH_setact (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (lua_isnone(LS, 3) )
-    {
-        /* only 1 arg so using old syntax */
-        do_mpact( ud_ch, check_fstring( LS, 2, MIL));
-        return 0;
-    }
-
-    /* new syntax */
     if (IS_NPC(ud_ch))
     {
         return set_flag( LS, "act[NPC]", act_flags, ud_ch->act );
     }
     else
-    {
-        return check_flag( LS, "act[PC]", plr_flags, ud_ch->act );
-    }
+        luaL_error( LS, "'setact' for NPC only.");
+
 }
-HELPTOPIC CH_setact_help = {};
+HELPTOPIC CH_setact_help = 
+{
+    .summary = "Set act flags.",
+    .info =
+"See 'act_flags' table.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int CH_offensive (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     return check_flag( LS, "offensive",off_flags, ud_ch->off_flags );
 }
-HELPTOPIC CH_offensive_help = {};
+HELPTOPIC CH_offensive_help = 
+{
+    .summary = "Check offensive flags.",
+    .info =
+"See 'off_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int CH_immune (lua_State *LS)
 { 
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     return check_flag( LS, "immune", imm_flags, ud_ch->imm_flags );
 }
-HELPTOPIC CH_immune_help = {};
+HELPTOPIC CH_immune_help = 
+{
+    .summary = "Check immune flags.",
+    .info =
+"See 'imm_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int CH_carries (lua_State *LS)
 {
@@ -3141,7 +3166,13 @@ static int CH_vuln (lua_State *LS)
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     return check_flag( LS, "vuln", vuln_flags, ud_ch->vuln_flags );
 }
-HELPTOPIC CH_vuln_help = {};
+HELPTOPIC CH_vuln_help = 
+{
+    .summary = "Check vuln flags.",
+    .info =
+"See 'vuln_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int CH_qstatus (lua_State *LS)
 {
@@ -3162,7 +3193,13 @@ static int CH_resist (lua_State *LS)
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     return check_flag( LS, "resist", res_flags, ud_ch->res_flags );
 }
-HELPTOPIC CH_resist_help = {};
+HELPTOPIC CH_resist_help = 
+{
+    .summary = "Check resist flags.",
+    .info =
+"See 'res_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int CH_skilled (lua_State *LS)
 {
@@ -4360,14 +4397,26 @@ static int OBJ_extra( lua_State *LS)
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
     return check_flag( LS, "extra", extra_flags, ud_obj->extra_flags );
 }
-HELPTOPIC OBJ_extra_help={};
+HELPTOPIC OBJ_extra_help=
+{
+    .summary = "Check extra flags.",
+    .info =
+"See 'extra_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int OBJ_wear( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
     return check_flag( LS, "wear", wear_flags, ud_obj->wear_flags );
 }
-HELPTOPIC OBJ_wear_help={};
+HELPTOPIC OBJ_wear_help=
+{
+    .summary = "Check wear flags.",
+    .info =
+"See 'wear_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int OBJ_echo( lua_State *LS)
 {
@@ -4923,7 +4972,13 @@ static int AREA_flag( lua_State *LS)
     AREA_DATA *ud_area = check_AREA(LS, 1);
     return check_flag( LS, "area", area_flags, ud_area->area_flags );
 }
-HELPTOPIC AREA_flag_help={};
+HELPTOPIC AREA_flag_help=
+{
+    .summary = "Check area flags.",
+    .info =
+"See 'area_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int AREA_echo( lua_State *LS)
 {
@@ -5233,7 +5288,13 @@ static int ROOM_flag( lua_State *LS)
     ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
     return check_flag( LS, "room", room_flags, ud_room->room_flags );
 }
-HELPTOPIC ROOM_flag_help={};
+HELPTOPIC ROOM_flag_help=
+{
+    .summary = "Check room flags.",
+    .info =
+"See 'room_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int ROOM_echo( lua_State *LS)
 {
@@ -5623,14 +5684,26 @@ static int EXIT_flag (lua_State *LS)
     EXIT_DATA *ed=EXIT_type->check(EXIT_type, LS, 1 );
     return check_flag( LS, "exit", exit_flags, ed->exit_info );
 }
-HELPTOPIC EXIT_flag_help={};
+HELPTOPIC EXIT_flag_help=
+{
+    .summary = "Check exit flags.",
+    .info =
+"See 'exit_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int EXIT_setflag( lua_State *LS)
 {
     EXIT_DATA *ud_exit = check_EXIT(LS, 1);
     return set_flag( LS, "exit", exit_flags, ud_exit->exit_info); 
 }
-HELPTOPIC EXIT_setflag_help={};
+HELPTOPIC EXIT_setflag_help=
+{
+    .summary = "Set exit flags.",
+    .info =
+"See 'exit_flags' table.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int EXIT_lock( lua_State *LS)
 {
@@ -5804,14 +5877,26 @@ static int OBJPROTO_wear( lua_State *LS)
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
     return check_flag( LS, "wear", wear_flags, ud_objp->wear_flags );
 }
-HELPTOPIC OBJPROTO_wear_help={};
+HELPTOPIC OBJPROTO_wear_help=
+{
+    .summary = "Check wear flags.",
+    .info =
+"See 'wear_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int OBJPROTO_extra( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
     return check_flag( LS, "extra", extra_flags, ud_objp->extra_flags );
 }
-HELPTOPIC OBJPROTO_extra_help={};
+HELPTOPIC OBJPROTO_extra_help=
+{
+    .summary = "Check extra flags.",
+    .info =
+"See 'extra_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int OBJPROTO_get_name (lua_State *LS)
 {
@@ -6028,42 +6113,78 @@ static int MOBPROTO_affected (lua_State *LS)
     MOB_INDEX_DATA *ud_mobp = check_MOBPROTO (LS, 1);
     return check_flag( LS, "affected", affect_flags, ud_mobp->affect_field );
 }
-HELPTOPIC MOBPROTO_affected_help={};
+HELPTOPIC MOBPROTO_affected_help=
+{
+    .summary = "Check affect flags.",
+    .info =
+"See 'affect_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int MOBPROTO_act (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
     return check_flag( LS, "act", act_flags, ud_mobp->act );
 }
-HELPTOPIC MOBPROTO_act_help={};
+HELPTOPIC MOBPROTO_act_help=
+{
+    .summary = "Check act flags.",
+    .info =
+"See 'act_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int MOBPROTO_offensive (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
     return check_flag( LS, "offensive", off_flags, ud_mobp->off_flags );
 }
-HELPTOPIC MOBPROTO_offensive_help={};
+HELPTOPIC MOBPROTO_offensive_help=
+{
+    .summary = "Check offensive flags.",
+    .info =
+"See 'off_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int MOBPROTO_immune (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
     return check_flag( LS, "immune", imm_flags, ud_mobp->imm_flags );
 }
-HELPTOPIC MOBPROTO_immune_help={};
+HELPTOPIC MOBPROTO_immune_help=
+{
+    .summary = "Check immune flags.",
+    .info =
+"See 'imm_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int MOBPROTO_vuln (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
     return check_flag( LS, "vuln", vuln_flags, ud_mobp->vuln_flags );
 }
-HELPTOPIC MOBPROTO_vuln_help={};
+HELPTOPIC MOBPROTO_vuln_help=
+{
+    .summary = "Check vuln flags.",
+    .info =
+"See 'vuln_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 static int MOBPROTO_resist (lua_State *LS)
 {
     MOB_INDEX_DATA * ud_mobp = check_MOBPROTO (LS, 1);
     return check_flag( LS, "resist", res_flags, ud_mobp->res_flags );
 }
-HELPTOPIC MOBPROTO_resist_help={};
+HELPTOPIC MOBPROTO_resist_help=
+{
+    .summary = "Check resist flags.",
+    .info =
+"See 'res_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
 
 #define MPGETSTR( field, val, helpval ) static int MOBPROTO_get_ ## field (lua_State *LS)\
 {\
@@ -6157,6 +6278,29 @@ static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 
 /* help section */
 
+struct 
+{
+    const char *name;
+    HELPTOPIC help;
+} other_helps [] =
+{
+    { "flags",
+        { .summary = "Details on using flag methods.",
+          .info = 
+"For flag check methods, if called with no argument, a table of currently\n\r"
+"set flags is returned. Othwerise argument is a flag name and return value\n\r"
+"is a boolean representing whether that flag is set.\n\r\n\r"
+
+"For flag set methods, 1st argument is a flag name.\n\r"
+"The optional 2nd argument is a boolean. If 2nd argument is true, flag is\n\r"
+"toggled ON, if false it is toggled OFF. If not provided, defaults to true.\n\r\n\r"
+        }
+    },
+    {NULL, {NULL, NULL}}
+};
+
+
+
 /* add ptable output to existing buffer */
 static void print_ptable( BUFFER *buffer, const struct prop_type *ptable )
 {
@@ -6194,6 +6338,8 @@ static void print_help_usage( CHAR_DATA *ch )
 
     ptc( ch, "global\n\r\n\r" );
 
+    ptc( ch, "other\n\r\n\r"  );
+
     for ( i=0 ; type_list[i] ; i++ )
     {
         ot=*(OBJ_TYPE **)type_list[i];
@@ -6209,6 +6355,7 @@ static void print_help_usage( CHAR_DATA *ch )
     "Examples: \n\r"
     "    luahelp ch\n\r"
     "    luahelp global\n\r"
+    "    luahelp other flags\n\r"
     "    luahelp obj meth\n\r"
     "    luahelp obj name\n\r"
     "    luahelp global sendtochar\n\r");
@@ -6248,6 +6395,20 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 {
     OBJ_TYPE *ot;
     int i;
+
+    if ( !str_prefix("other", arg1) )
+    {
+        for ( i=0 ; other_helps[i].name ; i++ )
+        {
+            if (!strcmp( other_helps[i].name, arg2 ) )
+            {
+                print_topic( ch, &other_helps[i].help );
+                return ;
+            }
+        }
+        ptc(ch, "No other help named '%s'\n\r", arg2 );
+        return ;
+    }
 
     if ( !str_prefix("glob", arg1) )
     {
@@ -6366,6 +6527,24 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
 {
     OBJ_TYPE *ot;
     int i;
+
+    if ( !str_prefix("other", arg1) )
+    {
+        ptc( ch, "\n\rOTHER HELP TOPICS\n\r");
+        bool col=FALSE;
+        for ( i=0 ; other_helps[i].name ; i++ )
+        {
+            char buf[MSL];
+            ptc(ch, "{%c %-16s - ",
+                    col ? CALT : CDEF,
+                    other_helps[i].name);
+            col=!col;
+            if ( other_helps[i].help.summary != NULL)
+                ptc( ch, other_helps[i].help.summary );
+            ptc( ch, "\n\r{x");
+        }
+        return;
+    }
 
     if ( !str_prefix("glob", arg1) )
     {
