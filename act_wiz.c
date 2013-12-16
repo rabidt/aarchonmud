@@ -3427,7 +3427,7 @@ void do_pgrep( CHAR_DATA *ch, char *argument)
 } 
 
 /* do_tables stuff */
-void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)
+static void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)
 {
     char buf[MSL];
     BUFFER *buffer=new_buf();
@@ -3452,7 +3452,7 @@ void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)
     return;
 }
 
-void print_item_table( CHAR_DATA *ch, const struct item_type *tbl)
+static void print_item_table( CHAR_DATA *ch, const struct item_type *tbl)
 {
     ptc( ch, "Name\n\r");
     ptc( ch, "------------------------------\n\r");
@@ -3460,6 +3460,40 @@ void print_item_table( CHAR_DATA *ch, const struct item_type *tbl)
     for (i=0 ; tbl[i].name ; i++)
     {
         ptc(ch, "%s\n\r", tbl[i].name );
+    }
+}
+
+static void print_attack_table( CHAR_DATA *ch, const struct attack_type *tbl)
+{
+    ptc( ch, "%-20s %-20s %-20s\n\r", "Name", "Noun", "Damtype");
+    ptc( ch, "--------------------------------------------------------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].name ; i++)
+    {
+        ptc(ch, "%-20s %-20s %-20s\n\r",
+                tbl[i].name,
+                tbl[i].noun,
+                flag_stat_string( damage_type, tbl[i].damage) );
+    }
+}
+
+static void print_liq_table( CHAR_DATA *ch, const struct liq_type *tbl)
+{
+    ptc( ch, "%-20s %-20s %5s %5s %5s %5s %5s\n\r",
+            "Name", "Color",
+            "Proof", "Full", "Thrst", "Food", "Ssize");
+    ptc( ch, "--------------------------------------------------------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].liq_name ; i++)
+    {
+        ptc( ch, "%-20s %-20s %5d %5d %5d %5d %5d\n\r",
+                tbl[i].liq_name,
+                tbl[i].liq_color,
+                tbl[i].liq_affect[0],
+                tbl[i].liq_affect[1],
+                tbl[i].liq_affect[2],
+                tbl[i].liq_affect[3],
+                tbl[i].liq_affect[4] );
     }
 }
 
@@ -3512,6 +3546,8 @@ struct
     PRFLAG( togg_flags, ""),
 
     { "item_table", print_item_table, item_table, "Item types." },
+    { "attack_table", print_attack_table, attack_table, "Attack types."},
+    { "liq_table", print_liq_table, liq_table, "Liquid types."},
     { NULL, NULL, NULL, NULL}
 };
 
