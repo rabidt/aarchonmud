@@ -1976,7 +1976,11 @@ OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
 OBJVH( dicetype, "weapon only.", "");
 
 OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
-OBJVH( attacktype, "weapon only. See 'attack_table' table. Value corresponds to 'name' column.", "");
+OBJVH( attacktype, "weapon only. See 'attack_table' table. Value corresponds to 'Name' column.", "");
+
+OBJVGETSTR( damtype, ITEM_WEAPON, 
+        flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) );
+OBJVH( damtype, "weapon only. See 'attack_table' table. Value corresponds to 'Damtype' column.", "");
 
 OBJVGETINT( key, ITEM_CONTAINER, 2 )
 OBJVH( key, "container only. Vnum of container's key.", "");
@@ -4790,6 +4794,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( numdice, 0),
     OBJGET( dicetype, 0),
     OBJGET( attacktype, 0),
+    OBJGET( damtype, 0),
 
     /* container */
     //maxweight
@@ -6052,6 +6057,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( numdice, 0),
     OPGET( dicetype, 0),
     OPGET( attacktype, 0),
+    OPGET( damtype, 0),
 
     /* container */
     //maxweight
