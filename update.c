@@ -2126,17 +2126,25 @@ void obj_update( void )
                 case ITEM_CORPSE_NPC: message = "$p decays into dust."; break;
                 case ITEM_CORPSE_PC:  message = "$p decays into dust."; break;
                 case ITEM_EXPLOSIVE:  
-                                      if (IS_SET((get_obj_room(obj))->room_flags, ROOM_SAFE)
-                                              ||  IS_SET((get_obj_room(obj))->room_flags, ROOM_LAW))
-                                          message = "$p is whisked away swiftly by an imp.";
-                                      else if (number_percent() <= 10)
-                                          message = "$p sputters a little and dies out.";
-                                      else
-                                      {
-                                          message = "$p explodes violently, throwing you to the floor!";
-                                          explode(obj);
-                                      }
-                                      break;
+                {
+                    ROOM_INDEX_DATA *room=get_obj_room(obj);
+                    if (!room)
+                    {
+                        bugf("No room for %d.", obj->pIndexData->vnum);
+                        break;
+                    }
+                    if ( IS_SET(room->room_flags, ROOM_SAFE)
+                            ||  IS_SET(room->room_flags, ROOM_LAW) )
+                        message = "$p is whisked away swiftly by an imp.";
+                    else if (number_percent() <= 10)
+                        message = "$p sputters a little and dies out.";
+                    else
+                    {
+                        message = "$p explodes violently, throwing you to the floor!";
+                        explode(obj);
+                    }
+                    break;
+                }
 
                 case ITEM_FOOD:       message = "$p decomposes.";   break;
                 case ITEM_POTION:     message = "$p has evaporated from disuse.";   
@@ -2589,6 +2597,11 @@ void explode(OBJ_DATA *obj)
     long int dam;
     bool contained = FALSE;
 
+    if (get_obj_room(obj) == NULL )
+    {
+        bugf( "explode: no room for %d", obj->pIndexData->vnum);
+        return;
+    }
     if (IS_SET((get_obj_room(obj))->room_flags, ROOM_SAFE)
             || IS_SET((get_obj_room(obj))->room_flags, ROOM_LAW))
         return;
