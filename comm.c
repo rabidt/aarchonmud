@@ -3010,7 +3010,7 @@ void do_copyover (CHAR_DATA *ch, char * argument)
     sprintf (arg1, "%d", port);
     sprintf (arg2, "%s", "copyover");
     sprintf (arg3, "%d", control);
-    logpf( "do_copyover: executing '%s %s %s %s %s'", arg0, arg1, arg2, arg3 );
+    logpf( "do_copyover: executing '%s %s %s %s'", arg0, arg1, arg2, arg3 );
     execl (EXE_FILE, arg0, arg1, arg2, arg3, (char *) NULL);
 
     /* Failed - sucessful exec will not return */
