@@ -1,0 +1,294 @@
+udtbl=udtbl or {} -- used to store game object tables, (read only proxies to origtbl)
+origtbl=origtbl or {} -- where the REAL ud tables live
+delaytbl=delaytbl or {} -- used on the C side mostly
+
+
+function UdCnt()
+    local cnt=0
+    for k,v in pairs(udtbl) do
+        cnt=cnt+1
+    end
+    return cnt
+end
+
+function EnvCnt()
+    local cnt=0
+    for k,v in pairs(envtbl) do
+        cnt=cnt+1
+    end
+    return cnt
+end
+
+function MakeUdProxy(ud)
+    local proxy={}
+    setmetatable(proxy, {
+            __index = ud,
+            __newindex = getmetatable(ud)["__newindex"], 
+            __tostring= function() return tostring(ud) end,
+            __metatable=0 -- any value here protects it
+            }
+    )
+    return proxy
+end
+
+function RegisterUd(ud)
+    if ud == nil then
+        error("ud is nil")
+        return
+    end
+    origtbl[ud.tableid]=ud
+    udtbl[ud.tableid]=MakeUdProxy(origtbl[ud.tableid])
+    return udtbl[ud.tableid]
+end
+
+function UnregisterUd(lightud)
+    if udtbl[lightud] then
+        -- cancel delayed functions linked to object
+        --cancel( udtbl[lightud] )
+
+        setmetatable(origtbl[lightud], nil)
+        rawset(origtbl[lightud], "tableid", nil)
+        origtbl[lightud]=nil
+        udtbl[lightud]={}
+        udtbl[lightud]=nil
+    end
+
+    if envtbl[lightud] then
+        setmetatable(origenv[lightud], nil)
+        rawset(origenv[lightud], "udid", nil)
+        origenv[lightud]=nil
+        envtbl[lightud]={}
+        envtbl[lightud]=nil
+    end
+
+    interptbl[lightud]=nil
+
+end
+
+function UnregisterDesc(desc)
+    for k,v in pairs(interptbl) do
+        if v.desc==desc then
+            interptbl[k]=nil
+        end
+    end
+end
+
+function glob_rand(pcnt)
+    return ( (mt.rand()*100) < pcnt)
+end
+
+function glob_randnum(low, high)
+    return math.floor( (mt.rand()*(high+1-low) + low)) -- people usually want inclusive
+end
+
+function SaveTable( name, tbl, areaFname )
+  if string.find(name, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
+  local dir=string.match(areaFname, "(%w+)\.are")
+  if not os.rename(dir, dir) then
+    os.execute("mkdir '" .. dir .. "'")
+  end
+  local f=io.open( dir .. "/" .. name .. ".lua", "w")
+  out,saved=serialize.save(name,tbl)
+  f:write(out)
+
+  f:close()
+end
+
+function linenumber( text )
+    local cnt=1
+    local rtn={}
+    table.insert(rtn, string.format("%3d. ", cnt))
+    cnt=cnt+1
+
+    for i=1,#text do
+        local char=text:sub(i,i)
+        table.insert(rtn, char)
+        if char == '\n' then
+            table.insert(rtn, string.format("%3d. ", cnt))
+            cnt=cnt+1
+        end
+    end
+            
+    return table.concat(rtn)
+end
+
+function GetScript(subdir, name)
+  if string.find(subdir, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+  if string.find(name, "[^a-zA-Z0-9_/]") then
+    error("Invalid character in name.")
+  end
+
+
+  local fname = mud.userdir() .. subdir .. "/" .. name .. ".lua"
+  local f,err=io.open(fname,"r")
+  if f==nil then
+    error( fname .. "error: " ..  err)
+  end
+
+  rtn=f:read("*all")
+  f:close()
+  return rtn
+end
+
+function LoadTable(name, areaFname)
+  if string.find(name, "[^a-zA-Z0-9_]") then
+    error("Invalid character in name.")
+  end
+
+  local dir=string.match(areaFname, "(%w+)\.are")
+  local f=loadfile( dir .. "/"  .. name .. ".lua")
+  if f==nil then
+    return nil
+  end
+
+  return f()
+end
+
+-- Standard functionality avaiable for any env type
+-- doesn't require access to env variables
+function MakeLibProxy(tbl)
+    local mt={
+        __index=tbl,
+        __newindex=function(t,k,v)
+            error("Cannot alter library functions.")
+        end,
+        __metatable=0 -- any value here protects it
+    }
+    
+    local proxy={}
+    setmetatable(proxy, mt)
+    return proxy
+end
+
+main_lib={  require=require,
+		assert=assert,
+		error=error,
+		ipairs=ipairs,
+		next=next,
+		pairs=pairs,
+		--pcall=pcall, -- remove so can't bypass infinite loop check
+        print=print,
+        select=select,
+		tonumber=tonumber,
+		tostring=tostring,
+		type=type,
+		unpack=unpack,
+		_VERSION=_VERSION,
+		--xpcall=xpcall, -- remove so can't bypass infinite loop check
+		coroutine={create=coroutine.create,
+					resume=coroutine.resume,
+					running=coroutine.running,
+					status=coroutine.status,
+					wrap=coroutine.wrap,
+					yield=coroutine.yield},
+		string= {byte=string.byte,
+				char=string.char,
+				find=string.find,
+				format=string.format,
+				gmatch=string.gmatch,
+				gsub=string.gsub,
+				len=string.len,
+				lower=string.lower,
+				match=string.match,
+				rep=string.rep,
+				reverse=string.reverse,
+				sub=string.sub,
+				upper=string.upper},
+				
+		table={insert=table.insert,
+				maxn=table.maxn,
+				remove=table.remove,
+				sort=table.sort,
+				getn=table.getn,
+				concat=table.concat},
+				
+		math={abs=math.abs,
+				acos=math.acos,
+				asin=math.asin,
+				atan=math.atan,
+				atan2=math.atan2,
+				ceil=math.ceil,
+				cos=math.cos,
+				cosh=math.cosh,
+				deg=math.deg,
+				exp=math.exp,
+				floor=math.floor,
+				fmod=math.fmod,
+				frexp=math.frexp,
+				huge=math.huge,
+				ldexp=math.ldexp,
+				log=math.log,
+				log10=math.log10,
+				max=math.max,
+				min=math.min,
+				modf=math.modf,
+				pi=math.pi,
+				pow=math.pow,
+				rad=math.rad,
+				random=math.random,
+				sin=math.sin,
+				sinh=math.sinh,
+				sqrt=math.sqrt,
+				tan=math.tan,
+				tanh=math.tanh},
+		os={time=os.time,
+			clock=os.clock,
+			difftime=os.difftime},
+        -- this is safe because we protected the game object and main lib
+        --  metatables.
+		setmetatable=setmetatable,
+}
+
+-- add script_globs to main_lib
+for k,v in pairs(script_globs) do
+    print("Adding "..k.." to main_lib.")
+    if type(v)=="table" then
+        for j,w in pairs(v) do
+            print(j)
+        end
+    end
+    main_lib[k]=v
+end
+
+-- Need to protect our library funcs from evil scripters
+function ProtectLib(lib)
+    for k,v in pairs(lib) do
+        if type(v) == "table" then
+            ProtectLib(v) -- recursion in case we add some nested libs
+            lib[k]=MakeLibProxy(v)
+        end
+    end
+    return MakeLibProxy(lib)
+end
+
+-- Before we protect it, we want to make a list of names for syntax highligting
+main_lib_names={}
+for k,v in pairs(main_lib) do
+    if type(v) == "function" then
+        table.insert(main_lib_names, k)
+    elseif type(v) == "table" then
+        for l,w in pairs(v) do
+            table.insert(main_lib_names, k.."."..l)
+        end
+    end
+end
+main_lib=ProtectLib(main_lib)
+
+function list_files ( path )
+    local f=assert(io.popen('find ../player -type f -printf "%f\n"', 'r'))
+    
+    local txt=f:read("*all")
+    f:close()
+    
+    local rtn={}
+    for nm in string.gmatch( txt, "(%a+)\n") do
+        table.insert(rtn, nm)
+    end
+
+    return rtn
+end
