@@ -17,6 +17,32 @@ int        g_LoopCheckCounter;
 #define LUA_LOOP_CHECK_INCREMENT 100
 #define ERR_INF_LOOP      -1
 
+#define LUA_IMM_COMMAND( funcname ) \
+void funcname ( CHAR_DATA *ch, char *argument )\
+{\
+    lua_getglobal( g_mud_LS, #funcname );\
+    make_CH( g_mud_LS, ch );\
+    lua_pushstring( g_mud_LS, argument);\
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )\
+    {\
+        ptc( ch, #funcname ": %s", lua_tostring(g_mud_LS, -1));\
+        lua_pop(g_mud_LS, 1);\
+    }\
+}
+
+#define LUA_COMMAND( funcname ) \
+void funcname ( CHAR_DATA *ch, char *argument )\
+{\
+    lua_getglobal( g_mud_LS, #funcname );\
+    make_CH( g_mud_LS, ch );\
+    lua_pushstring( g_mud_LS, argument);\
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )\
+    {\
+        bugf( #funcname ": %s", lua_tostring(g_mud_LS, -1));\
+        lua_pop(g_mud_LS, 1);\
+    }\
+}
+
 int GetLuaMemoryUsage()
 {
     return lua_gc( g_mud_LS, LUA_GCCOUNT, 0);
@@ -175,31 +201,8 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
-void do_lboard( CHAR_DATA *ch, char *argument)
-{
-    lua_getglobal(g_mud_LS, "do_lboard");
-    make_CH(g_mud_LS, ch);
-    lua_pushstring(g_mud_LS, argument);
-    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
-    {
-        bugf ( "Error with do_lboard:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        lua_pop( g_mud_LS, 1);
-    }
-}
-
-void do_lhistory( CHAR_DATA *ch, char *argument)
-{
-    lua_getglobal(g_mud_LS, "do_lhistory");
-    make_CH(g_mud_LS, ch);
-    lua_pushstring(g_mud_LS, argument);
-    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
-    {
-        bugf ( "Error with do_lhistory:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        lua_pop( g_mud_LS, 1);
-    }
-}
+LUA_COMMAND( do_lboard )
+LUA_COMMAND( do_lhistory )
 
 void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
 {
@@ -594,19 +597,8 @@ void open_lua ()
 
 }  /* end of open_lua */
 
-void do_scriptdump( CHAR_DATA *ch, char *argument )
-{
-    lua_getglobal(g_mud_LS, "do_scriptdump");
-    make_CH(g_mud_LS, ch);
-    lua_pushstring(g_mud_LS, argument);
-    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
-    {
-        ptc (ch, "Error with do_scriptdump:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        lua_pop( g_mud_LS, 1);
-    }
+LUA_IMM_COMMAND( do_scriptdump )
 
-}
 static int L_wizhelp( LS )
 {
     CHAR_DATA *ud_ch=check_CH(LS, 1);
@@ -814,18 +806,7 @@ void load_luaconfig( CHAR_DATA *ch, const char *text )
     }
 }
 
-void do_luaconfig( CHAR_DATA *ch, char *argument)
-{
-    lua_getglobal(g_mud_LS, "do_luaconfig");
-    make_CH(g_mud_LS, ch);
-    lua_pushstring(g_mud_LS, argument);
-    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
-    {
-        ptc (ch, "Error with do_luaconfig:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        lua_pop( g_mud_LS, 1);
-    }
-}
+LUA_IMM_COMMAND( do_luaconfig )
 
 static int L_dump_prog( lua_State *LS)
 {
@@ -873,3 +854,5 @@ void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines)
         lua_pop( g_mud_LS, 1);
     }
 }
+
+LUA_COMMAND( do_luareset )

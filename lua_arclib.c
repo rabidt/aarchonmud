@@ -126,7 +126,6 @@ static void * check_func( OBJ_TYPE *self,
         luaL_error(LS, "Bad parameter %d. Expected %s. ",
                 index, self->type_name );
     }
-
     lua_getfield(LS, index, "tableid");
     luaL_checktype( LS, -1, LUA_TLIGHTUSERDATA);
     void *game_object=lua_touserdata(LS, -1 );
