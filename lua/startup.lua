@@ -814,7 +814,37 @@ end
 local function luaquery_usage( ch )
     sendtochar( ch,
 [[
-    luaquery <type> <selection> <filter> <sort>
+luaquery <type> <selection> [filter] [sort]
+
+Types:
+    area    - AREAs (area_list)
+    op      - OBJPROTOs
+    objs    - OBJs (object_list)
+    mp      - MOBPROTOs
+    room    - ROOMs
+
+Selection:
+    Determines which fields are shown on output. Fields supplied in a list separated by '|' character.
+
+Filter (optional):
+    Expression used to filter which results are shown. Argument is a statement 
+    that can be evaluated to a boolean result. 'x' can be used optionally to
+    qualify referenced fields. It is necessary to use 'x' when invoking methods.
+
+Sort (optional):
+    One or more values determining the sort order of the output. Format is same as Selection.
+
+Notes: 
+    'x' can be used optionally to qualify fields. 'x' is necessary to invoke
+    methods (see examples).
+
+    A field must be in the selection in order to be used in sort.
+
+Examples:
+    luaquery op level|vnum|shortdescr|x:extra("glow")|area.name 'otype=="weapon" and x:weaponflag("flaming")' level|x:extra("glow")
+
+    Shows level, vnum, shortdescr, glow flag (true/false), and area.name for all OBJPROTOs that are weapons with flaming wflag. Sorted by level then by glow flag.
+
 ]])
 
 end
@@ -861,6 +891,10 @@ function do_luaquery( ch, argument)
             end
             return rooms
         end
+    elseif args[1]=="mobs" then
+        getfun=getmoblist
+    elseif args[1]=="objs" then
+        getfun=getobjlist
     else
         sendtochar(ch,"Invalid arg 1: "..args[1])
         return
@@ -886,7 +920,7 @@ function do_luaquery( ch, argument)
     if args[1] then
         local filterfun=function(gobj)
             local vf,err=loadstring("return function(x) return "..args[1].." end" )
-            if err then sendtochar(ch, err) return end
+            if err then error(err) return end
             setfenv(vf, 
                     setmetatable({}, { __index=gobj } ) )
             local val=vf()(gobj)
