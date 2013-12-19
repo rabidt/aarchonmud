@@ -888,27 +888,40 @@ function do_luaquery( ch, argument)
 
     -- now sort
     if args[1] and not(args[1]=="") then
-        table.sort(output, function(a,b)
-                local aval
-                for k,v in pairs(a) do
-                    if v.col==args[1] then
-                        aval=v.val
-                        break
-                    end
-                end
+        local sorts={}
+        for srt in args[1]:gmatch("[^|]+") do
+            table.insert(sorts, srt)
+        end
 
-                local bval
-                for k,v in pairs(b) do
-                    if v.col==args[1] then
-                        bval=v.val
-                        break
-                    end
+        local fun
+        fun=function(a,b,lvl)
+            local aval
+            for k,v in pairs(a) do
+                if v.col==sorts[lvl] then
+                    aval=v.val
+                    break
                 end
+            end
 
-                if tonumber(aval) then aval=tonumber(aval) end
-                if tonumber(bval) then bval=tonumber(bval) end
+            local bval
+            for k,v in pairs(b) do
+                if v.col==sorts[lvl] then
+                    bval=v.val
+                    break
+                end
+            end
+
+            if tonumber(aval) then aval=tonumber(aval) end
+            if tonumber(bval) then bval=tonumber(bval) end
+            if aval==bval and sorts[lvl+1] then
+                return fun(a, b, lvl+1)
+            else
                 return aval>bval
-        end)
+            end
+        end
+
+        table.sort(output, function(a,b) return fun(a,b,1) end )
+
     end
 
 
