@@ -859,11 +859,11 @@ function do_luaquery( ch, argument)
     -- let's get our result
 
     local filterfun=function(gobj)
-        local vf,err=loadstring("return "..args[1] )
+        local vf,err=loadstring("return function(x) return "..args[1].." end" )
         if err then error(err) end
         setfenv(vf, 
                 setmetatable({}, { __index=gobj } ) )
-        local val=vf()
+        local val=vf()(gobj)
         if val then return true
         else return false end
     end
@@ -882,11 +882,11 @@ function do_luaquery( ch, argument)
     for _,gobj in pairs(rslt) do
         local line={}
         for _,sel in ipairs(select) do
-            local vf,err=loadstring("return "..sel)
+            local vf,err=loadstring("return function(x) return "..sel.." end")
             if err then error(err) end
             setfenv(vf,
                     setmetatable({}, { __index=gobj} ) )
-            table.insert(line, { col=sel, val=tostring(vf(sel))} )
+            table.insert(line, { col=sel, val=tostring(vf()(gobj))} )
         end
         table.insert(output, line)
     end

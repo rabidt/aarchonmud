@@ -6017,6 +6017,14 @@ static int OBJPROTO_get_ingame ( lua_State *LS )
 }
 HELPTOPIC OBJPROTO_get_ingame_help = {};
 
+static int OBJPROTO_get_area ( lua_State *LS )
+{
+    if (make_AREA(LS, (check_OBJPROTO(LS,1))->area) )
+        return 1;
+    return 0;
+}
+HELPTOPIC OBJPROTO_get_area_help = {};
+
 
 static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
@@ -6035,6 +6043,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( v2, 0),
     OPGET( v3, 0),
     OPGET( v4, 0),
+    OPGET( area, 0),
     OPGET( ingame, 0),
         /*light*/
     OPGET(light, 0),
