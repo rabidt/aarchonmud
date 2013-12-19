@@ -892,36 +892,53 @@ function do_luaquery( ch, argument)
     end
 
     -- now sort
-    table.sort(output, function(a,b)
-            local aval
-            for k,v in pairs(a) do
-                if v.col==args[1] then
-                    aval=v.val
-                    break
+    if args[1] and not(args[1]=="") then
+        table.sort(output, function(a,b)
+                local aval
+                for k,v in pairs(a) do
+                    if v.col==args[1] then
+                        aval=v.val
+                        break
+                    end
                 end
-            end
 
-            local bval
-            for k,v in pairs(b) do
-                if v.col==args[1] then
-                    bval=v.val
-                    break
+                local bval
+                for k,v in pairs(b) do
+                    if v.col==args[1] then
+                        bval=v.val
+                        break
+                    end
                 end
-            end
 
-            if tonumber(aval) then aval=tonumber(aval) end
-            if tonumber(bval) then bval=tonumber(bval) end
-            return aval>bval
-    end)
+                if tonumber(aval) then aval=tonumber(aval) end
+                if tonumber(bval) then bval=tonumber(bval) end
+                return aval>bval
+        end)
+    end
 
 
     -- NOW PRINT
+     -- first scan through to determine column widths
+    local widths={}
+    for _,v in pairs(output) do
+        for _,v2 in pairs(v) do
+            if not(widths[v2.col]) then
+                widths[v2.col]=v2.val:len()
+            else
+                local ln=v2.val:len()
+                if ln>widths[v2.col] then
+                    widths[v2.col]=ln
+                end
+            end
+        end
+    end
+
     local printing={}
     for _,v in ipairs(output) do
         local line={}
         for _,v2 in ipairs(v) do
             table.insert(line,
-                    string.format("%10.10s", v2.val))
+                    string.format("%-"..(widths[v2.col]+2).."s", v2.val))
         end
         table.insert(printing, table.concat(line))
     end
