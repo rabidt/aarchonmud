@@ -640,7 +640,19 @@ static int L_wizhelp( LS )
 
     return 0;
 }
-            
+     
+void do_luaquery( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal( g_mud_LS, "do_luaquery");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_luaquery:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}    
 
 void do_wizhelp( CHAR_DATA *ch, char *argument )
 {

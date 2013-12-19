@@ -6266,6 +6266,14 @@ MPGETSTR( size, flag_stat_string( size_flags, ud_mobp->size ), );
 MPGETSTR( stance, stances[ud_mobp->stance].name, );
 MPGETBOOL( ingame, is_mob_ingame( ud_mobp ), );
 
+static int MOBPROTO_get_area (lua_State *LS)
+{
+    if (make_AREA( LS, (check_MOBPROTO( LS, 1))->area))
+        return 1;
+    return 0;
+}
+HELPTOPIC MOBPROTO_get_area_help = {};
+
     
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
@@ -6291,6 +6299,7 @@ static const LUA_PROP_TYPE MOBPROTO_get_table [] =
     MPGET( wealthpcnt, 0),
     MPGET( size, 0),
     MPGET( stance, 0),
+    MPGET( area, 0),
     MPGET( ingame, 0),
     ENDPTABLE
 };
