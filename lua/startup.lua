@@ -811,8 +811,22 @@ function load_luaconfig( ch, text )
     configs_table[ch]=loadstring(text)()
 end
 
+local function luaquery_usage( ch )
+    sendtochar( ch,
+[[
+    luaquery <type> <selection> <filter> <sort>
+]])
+
+end
+
 function do_luaquery( ch, argument)
     args=arguments(argument, true)
+
+    if not(args[1]) then
+        luaquery_usage(ch)
+        return
+    end
+
     -- what type area we searching ?
     local getfun
     if args[1]=="area" then
@@ -837,48 +851,65 @@ function do_luaquery( ch, argument)
             end
             return mps
         end
+    elseif args[1]=="room" then
+        getfun=function()
+            local rooms={}
+            for _,area in pairs(getarealist()) do
+                for _,room in pairs(area.rooms) do
+                    table.insert(rooms, room)
+                end
+            end
+            return rooms
+        end
     else
-        error("Invalid arg 1: "..args[1])
+        sendtochar(ch,"Invalid arg 1: "..args[1])
+        return
     end
     table.remove(args,1)
 
     -- which columns are we selecting for output ?
-    local select={}
-    for word in args[1]:gmatch("[^|]+") do
-        table.insert(select, word)
+    if not(args[1]) then
+        sendtochar( ch, "Must provide selection argument.\n\r")
+        return
     end
-    --ch:tprint(select)
+
+    local selection={}
+    for word in args[1]:gmatch("[^|]+") do
+        table.insert(selection, word)
+    end
 
     table.remove(args,1)
 
     -- let's get our result
-
-    local filterfun=function(gobj)
-        local vf,err=loadstring("return function(x) return "..args[1].." end" )
-        if err then error(err) end
-        setfenv(vf, 
-                setmetatable({}, { __index=gobj } ) )
-        local val=vf()(gobj)
-        if val then return true
-        else return false end
-    end
-
     local lst=getfun()
     local rslt={}
-    for k,v in pairs(lst) do
-        if filterfun(v) then table.insert(rslt, v) end
-    end
+    if args[1] then
+        local filterfun=function(gobj)
+            local vf,err=loadstring("return function(x) return "..args[1].." end" )
+            if err then sendtochar(ch, err) return end
+            setfenv(vf, 
+                    setmetatable({}, { __index=gobj } ) )
+            local val=vf()(gobj)
+            if val then return true
+            else return false end
+        end
 
-    table.remove(args,1)
+        for k,v in pairs(lst) do
+            if filterfun(v) then table.insert(rslt, v) end
+        end
+        table.remove(args,1)
+    else
+        rslt=lst
+    end
 
 
     -- now populate output table based on our column selection
     local output={}
     for _,gobj in pairs(rslt) do
         local line={}
-        for _,sel in ipairs(select) do
+        for _,sel in ipairs(selection) do
             local vf,err=loadstring("return function(x) return "..sel.." end")
-            if err then error(err) end
+            if err then sendtochar(ch, err) return  end
             setfenv(vf,
                     setmetatable({}, { __index=gobj} ) )
             table.insert(line, { col=sel, val=tostring(vf()(gobj))} )
@@ -902,6 +933,10 @@ function do_luaquery( ch, argument)
                     break
                 end
             end
+            
+            if not(aval) then
+                error("Bad sort argument '"..sorts[lvl].."'\n\r")
+            end
 
             local bval
             for k,v in pairs(b) do
@@ -920,7 +955,13 @@ function do_luaquery( ch, argument)
             end
         end
 
-        table.sort(output, function(a,b) return fun(a,b,1) end )
+        local status,err=pcall( function()
+            table.sort(output, function(a,b) return fun(a,b,1) end )
+        end)
+        if not(status) then
+            sendtochar(ch,err.."\n\r")
+            return
+        end
 
     end
 
@@ -946,13 +987,17 @@ function do_luaquery( ch, argument)
         local line={}
         for _,v2 in ipairs(v) do
             local cc=v2.val:len()-util.strlen_color(v2.val)
+            -- string.format won't let you have triple digit width or precision
             table.insert(line,
-                    string.format("%-"..(widths[v2.col]+cc+2).."s", v2.val))
+                    string.format("%-"..math.min((widths[v2.col]+cc+2),99).."s", v2.val))
         end
         table.insert(printing, table.concat(line))
     end
 
-    pagetochar(ch, table.concat(printing,"\n\r"))
+    pagetochar(ch, table.concat(printing,"\n\r")..
+            "\n\r\n\r"..
+            "Total results: "..#printing.."\n\r")
+    
 
 
 end
