@@ -818,6 +818,7 @@ end
 function do_luaquery( ch, argument)
     args=arguments(argument, true)
 
+    -- what type area we searching ?
     local getfun
     if args[1]=="area" then
         getfun=getarealist
@@ -846,38 +847,86 @@ function do_luaquery( ch, argument)
     end
     table.remove(args,1)
 
+    -- which columns are we selecting for output ?
     local select={}
-    for word in args[1]:gmatch("%w+") do
+    for word in args[1]:gmatch("[^|]+") do
         table.insert(select, word)
     end
-    ch:tprint(select)
+    --ch:tprint(select)
 
     table.remove(args,1)
 
+    -- let's get our result
+
     local filterfun=function(gobj)
-        for k,v in pairs(args) do
-            local vf,err=loadstring("return function(gobj) return gobj"..v.." end")
-            if err then error(err) end
-            local val=vf()(gobj)
-            if val then return true
-            else return false end
-        end
+        local vf,err=loadstring("return "..args[1] )
+        if err then error(err) end
+        setfenv(vf, 
+                setmetatable({}, { __index=gobj } ) )
+        local val=vf()
+        if val then return true
+        else return false end
     end
 
     local lst=getfun()
-    ch:say(#lst)
     local rslt={}
     for k,v in pairs(lst) do
         if filterfun(v) then table.insert(rslt, v) end
     end
 
-    for k,v in pairs(rslt) do
+    table.remove(args,1)
+
+
+    -- now populate output table based on our column selection
+    local output={}
+    for _,gobj in pairs(rslt) do
         local line={}
         for _,sel in ipairs(select) do
-            table.insert( line, tostring(v[sel]) )
+            local vf,err=loadstring("return "..sel)
+            if err then error(err) end
+            setfenv(vf,
+                    setmetatable({}, { __index=gobj} ) )
+            table.insert(line, { col=sel, val=tostring(vf(sel))} )
         end
-        sendtochar( ch, table.concat(line).."\n\r")
+        table.insert(output, line)
     end
+
+    -- now sort
+    table.sort(output, function(a,b)
+            local aval
+            for k,v in pairs(a) do
+                if v.col==args[1] then
+                    aval=v.val
+                    break
+                end
+            end
+
+            local bval
+            for k,v in pairs(b) do
+                if v.col==args[1] then
+                    bval=v.val
+                    break
+                end
+            end
+
+            if tonumber(aval) then aval=tonumber(aval) end
+            if tonumber(bval) then bval=tonumber(bval) end
+            return aval>bval
+    end)
+
+
+    -- NOW PRINT
+    local printing={}
+    for _,v in ipairs(output) do
+        local line={}
+        for _,v2 in ipairs(v) do
+            table.insert(line,
+                    string.format("%10.10s", v2.val))
+        end
+        table.insert(printing, table.concat(line))
+    end
+
+    pagetochar(ch, table.concat(printing,"\n\r"))
 
 
 end
