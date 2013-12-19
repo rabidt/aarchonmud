@@ -1976,7 +1976,11 @@ OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
 OBJVH( dicetype, "weapon only.", "");
 
 OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
-OBJVH( attacktype, "weapon only. See 'attack_table' table. Value corresponds to 'name' column.", "");
+OBJVH( attacktype, "weapon only. See 'attack_table' table. Value corresponds to 'Name' column.", "");
+
+OBJVGETSTR( damtype, ITEM_WEAPON, 
+        flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) );
+OBJVH( damtype, "weapon only. See 'attack_table' table. Value corresponds to 'Damtype' column.", "");
 
 OBJVGETINT( key, ITEM_CONTAINER, 2 )
 OBJVH( key, "container only. Vnum of container's key.", "");
@@ -4790,6 +4794,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( numdice, 0),
     OBJGET( dicetype, 0),
     OBJGET( attacktype, 0),
+    OBJGET( damtype, 0),
 
     /* container */
     //maxweight
@@ -5624,6 +5629,14 @@ static int ROOM_get_resets (lua_State *LS)
 }
 HELPTOPIC ROOM_get_resets_help={};
 
+static int ROOM_get_ingame( lua_State *LS )
+{
+    lua_pushboolean( LS,
+            is_room_ingame( check_ROOM(LS,1) ) );
+    return 1;
+}
+HELPTOPIC ROOM_get_ingame_help = {};
+
 
 static const LUA_PROP_TYPE ROOM_get_table [] =
 {
@@ -5635,6 +5648,7 @@ static const LUA_PROP_TYPE ROOM_get_table [] =
     ROOMGET(manarate, 0),
     ROOMGET(owner, 0),
     ROOMGET(description, 0),
+    ROOMGET(ingame, 0),
     ROOMGET(sector, 0),
     ROOMGET(contents, 0),
     ROOMGET(area, 0),
@@ -5995,6 +6009,14 @@ OPGETV(2);
 OPGETV(3);
 OPGETV(4);
 
+static int OBJPROTO_get_ingame ( lua_State *LS )
+{
+    lua_pushboolean( LS,
+            is_obj_ingame( check_OBJPROTO(LS,1) ) );
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_ingame_help = {};
+
 
 static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
@@ -6013,6 +6035,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( v2, 0),
     OPGET( v3, 0),
     OPGET( v4, 0),
+    OPGET( ingame, 0),
         /*light*/
     OPGET(light, 0),
 
@@ -6052,6 +6075,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( numdice, 0),
     OPGET( dicetype, 0),
     OPGET( attacktype, 0),
+    OPGET( damtype, 0),
 
     /* container */
     //maxweight
@@ -6205,6 +6229,14 @@ HELPTOPIC MOBPROTO_get_ ## field ## _help = { helpval }
 }\
 HELPTOPIC MOBPROTO_get_ ## field ## _help = { helpval }
 
+#define MPGETBOOL( field, val, helpval ) static int MOBPROTO_get_ ## field (lua_State *LS)\
+{\
+    MOB_INDEX_DATA *ud_mobp=check_MOBPROTO(LS,1);\
+    lua_pushboolean(LS, val );\
+    return 1;\
+}\
+HELPTOPIC MOBPROTO_get_ ## field ## _help = { helpval }
+
 MPGETINT( vnum, ud_mobp->vnum, );
 MPGETSTR( name, ud_mobp->player_name, );
 MPGETSTR( shortdescr, ud_mobp->short_descr, );
@@ -6232,6 +6264,8 @@ MPGETSTR( race, race_table[ud_mobp->race].name, );
 MPGETINT( wealthpcnt, ud_mobp->wealth_percent, );
 MPGETSTR( size, flag_stat_string( size_flags, ud_mobp->size ), );
 MPGETSTR( stance, stances[ud_mobp->stance].name, );
+MPGETBOOL( ingame, is_mob_ingame( ud_mobp ), );
+
     
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
@@ -6257,6 +6291,7 @@ static const LUA_PROP_TYPE MOBPROTO_get_table [] =
     MPGET( wealthpcnt, 0),
     MPGET( size, 0),
     MPGET( stance, 0),
+    MPGET( ingame, 0),
     ENDPTABLE
 };
 

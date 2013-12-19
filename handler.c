@@ -2117,7 +2117,6 @@ void obj_from_world( OBJ_DATA *obj )
     else if ( obj->in_obj != NULL )
         obj_from_obj( obj );
 
-    bugf( "obj_from_world: no location for %d", obj->pIndexData->vnum);
 }
 
 /*
