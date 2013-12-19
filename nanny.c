@@ -893,10 +893,15 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
     if (!strcmp(arg,"showrace"))
     {
     	argument = one_argument(argument,arg);
-    	if (argument[0])
-    	{
-    		do_showrace(ch, argument);
-    	}
+    	
+        if (argument[0])
+        {
+            do_showrace(ch, argument);
+        }
+        else
+        {
+            send_to_char("Syntax: showrace <pc race>\n\r", ch);
+        }
 
     	return FALSE;
     }
@@ -1158,10 +1163,16 @@ bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
 
 	if (!strcmp(arg,"showrace"))
 	{
-		if (argument[0])
-		{
-			do_showrace(ch, argument);
-		}
+        if (argument[0])
+        {
+            do_showrace(ch, argument);
+        }
+        else
+        {
+            send_to_char("Syntax: showrace <pc race>\n\r", ch);
+        }
+
+		return FALSE;
 	}
 
 	i = class_lookup(arg);
