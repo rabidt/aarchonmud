@@ -810,3 +810,74 @@ end
 function load_luaconfig( ch, text )
     configs_table[ch]=loadstring(text)()
 end
+
+local function area_query( ch, args)
+
+end
+
+function do_luaquery( ch, argument)
+    args=arguments(argument, true)
+
+    local getfun
+    if args[1]=="area" then
+        getfun=getarealist
+    elseif args[1]=="op" then
+        getfun=function()
+            local ops={}
+            for _,area in pairs(getarealist()) do
+                for _,op in pairs(area.objprotos) do
+                    table.insert(ops, op)
+                end
+            end
+            return ops
+        end
+    elseif args[1]=="mp" then
+        getfun=function()
+            local mps={}
+            for _,area in pairs(getarealist()) do
+                for _,mp in pairs(area.mobprotos) do
+                    table.insert(mps, mp)
+                end
+            end
+            return mps
+        end
+    else
+        error("Invalid arg 1: "..args[1])
+    end
+    table.remove(args,1)
+
+    local select={}
+    for word in args[1]:gmatch("%w+") do
+        table.insert(select, word)
+    end
+    ch:tprint(select)
+
+    table.remove(args,1)
+
+    local filterfun=function(gobj)
+        for k,v in pairs(args) do
+            local vf,err=loadstring("return function(gobj) return gobj"..v.." end")
+            if err then error(err) end
+            local val=vf()(gobj)
+            if val then return true
+            else return false end
+        end
+    end
+
+    local lst=getfun()
+    ch:say(#lst)
+    local rslt={}
+    for k,v in pairs(lst) do
+        if filterfun(v) then table.insert(rslt, v) end
+    end
+
+    for k,v in pairs(rslt) do
+        local line={}
+        for _,sel in ipairs(select) do
+            table.insert( line, tostring(v[sel]) )
+        end
+        sendtochar( ch, table.concat(line).."\n\r")
+    end
+
+
+end
