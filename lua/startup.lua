@@ -2,7 +2,7 @@ package.path = mud.luadir() .. "?.lua"
 
 glob_tprintstr=require "tprint"
 require "serialize"
-util=require "utilities"
+glob_util=require "utilities"
 require "leaderboard"
 
 udtbl={} -- used to store game object tables, (read only proxies to origtbl)
@@ -811,13 +811,8 @@ function load_luaconfig( ch, text )
     configs_table[ch]=loadstring(text)()
 end
 
-local function area_query( ch, args)
-
-end
-
 function do_luaquery( ch, argument)
     args=arguments(argument, true)
-
     -- what type area we searching ?
     local getfun
     if args[1]=="area" then
@@ -923,9 +918,9 @@ function do_luaquery( ch, argument)
     for _,v in pairs(output) do
         for _,v2 in pairs(v) do
             if not(widths[v2.col]) then
-                widths[v2.col]=v2.val:len()
+                widths[v2.col]=util.strlen_color(v2.val)
             else
-                local ln=v2.val:len()
+                local ln=util.strlen_color(v2.val)
                 if ln>widths[v2.col] then
                     widths[v2.col]=ln
                 end
@@ -937,8 +932,9 @@ function do_luaquery( ch, argument)
     for _,v in ipairs(output) do
         local line={}
         for _,v2 in ipairs(v) do
+            local cc=v2.val:len()-util.strlen_color(v2.val)
             table.insert(line,
-                    string.format("%-"..(widths[v2.col]+2).."s", v2.val))
+                    string.format("%-"..(widths[v2.col]+cc+2).."s", v2.val))
         end
         table.insert(printing, table.concat(line))
     end

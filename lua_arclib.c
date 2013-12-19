@@ -340,7 +340,7 @@ static OBJ_TYPE *new_obj_type(
 static int utillib_func (lua_State *LS, const char *funcname)
 {
     int narg=lua_gettop(LS);
-    lua_getglobal( LS, "util");
+    lua_getglobal( LS, "glob_util");
     lua_getfield( LS, -1, funcname);
     lua_remove( LS, -2 );
     lua_insert( LS, 1 );
@@ -397,6 +397,15 @@ static int utillib_format_list( lua_State *LS )
 HELPTOPIC utillib_format_list_help =
 {
 };
+
+static int utillib_strlen_color( lua_State *LS )
+{
+   lua_pushinteger( LS,
+           strlen_color( luaL_checkstring( LS, 1) ) );
+   return 1;
+}
+HELPTOPIC utillib_strlen_color_help = {};
+              
 
 static int godlib_bless (lua_State *LS)
 {
@@ -1189,6 +1198,7 @@ GLOB_TYPE glob_table[] =
     UTILF(capitalize),
     UTILF(pluralize),
     UTILF(format_list),
+    UTILF(strlen_color),
     
     DBGF(show),
 
