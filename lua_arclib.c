@@ -405,6 +405,30 @@ static int utillib_strlen_color( lua_State *LS )
    return 1;
 }
 HELPTOPIC utillib_strlen_color_help = {};
+
+static int utillib_truncate_color_string( lua_State *LS )
+{
+    lua_pushstring( LS,
+            truncate_color_string( 
+                check_string( LS, 1, MSL),
+                luaL_checkinteger( LS, 2 )
+            ) 
+    );
+    return 1;
+}
+HELPTOPIC utillib_truncate_color_string_help = {};
+
+static int utillib_format_color_string( lua_State *LS )
+{
+    lua_pushstring( LS,
+            format_color_string(
+                check_string( LS, 1, MSL),
+                luaL_checkinteger( LS, 2 )
+            )
+    );
+    return 1;
+}
+HELPTOPIC utillib_format_color_string_help = {};
               
 
 static int godlib_bless (lua_State *LS)
@@ -1199,6 +1223,8 @@ GLOB_TYPE glob_table[] =
     UTILF(pluralize),
     UTILF(format_list),
     UTILF(strlen_color),
+    UTILF(truncate_color_string),
+    UTILF(format_color_string),
     
     DBGF(show),
 
