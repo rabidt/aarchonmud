@@ -849,6 +849,54 @@ Examples:
 
 end
 
+local lqtbl={
+
+    area={ 
+        getfun=getarealist,
+        default_sel="name"
+    },
+
+    op={
+        getfun=function()
+            local ops={}
+            for _,area in pairs(getarealist()) do
+                for _,op in pairs(area.objprotos) do
+                    table.insert(ops, op)
+                end
+            end
+            return ops
+        end ,
+        default_sel="vnum|level|shortdescr"
+    },
+
+    mp={
+        getfun=function()
+            local mps={}
+            for _,area in pairs(getarealist()) do
+                for _,mp in pairs(area.mobprotos) do
+                    table.insert(mps, mp)
+                end
+            end
+            return mps
+        end,
+        default_sel="vnum|level|shortdescr"
+    },
+
+    mobs={
+        getfun=getmoblist,
+        default_sel="vnum|level|shortdescr"
+    },
+
+    objs={
+        getfun=getobjlist,
+        default_sel="vnum|level|shortdescr"
+    }
+}
+
+    
+
+
+
 function do_luaquery( ch, argument)
     args=arguments(argument, true)
 
@@ -858,43 +906,9 @@ function do_luaquery( ch, argument)
     end
 
     -- what type area we searching ?
-    local getfun
-    if args[1]=="area" then
-        getfun=getarealist
-    elseif args[1]=="op" then
-        getfun=function()
-            local ops={}
-            for _,area in pairs(getarealist()) do
-                for _,op in pairs(area.objprotos) do
-                    table.insert(ops, op)
-                end
-            end
-            return ops
-        end
-    elseif args[1]=="mp" then
-        getfun=function()
-            local mps={}
-            for _,area in pairs(getarealist()) do
-                for _,mp in pairs(area.mobprotos) do
-                    table.insert(mps, mp)
-                end
-            end
-            return mps
-        end
-    elseif args[1]=="room" then
-        getfun=function()
-            local rooms={}
-            for _,area in pairs(getarealist()) do
-                for _,room in pairs(area.rooms) do
-                    table.insert(rooms, room)
-                end
-            end
-            return rooms
-        end
-    elseif args[1]=="mobs" then
-        getfun=getmoblist
-    elseif args[1]=="objs" then
-        getfun=getobjlist
+    local lqent=lqtbl[args[1]]
+    if lqent then
+        getfun=lqent.getfun
     else
         sendtochar(ch,"Invalid arg 1: "..args[1])
         return
@@ -905,6 +919,8 @@ function do_luaquery( ch, argument)
     if not(args[1]) then
         sendtochar( ch, "Must provide selection argument.\n\r")
         return
+    elseif args[1]=="" or args[1]=="default" then
+        args[1]=lqent.default_sel
     end
 
     local selection={}
@@ -1020,13 +1036,21 @@ function do_luaquery( ch, argument)
     for _,v in ipairs(output) do
         local line={}
         for _,v2 in ipairs(v) do
-            local cc=v2.val:len()-util.strlen_color(v2.val)
-            -- string.format won't let you have triple digit width or precision
-            table.insert(line,
-                    string.format("%-"..math.min((widths[v2.col]+cc+2),99).."s", v2.val))
+            local cc=v2.val:len() - util.strlen_color(v2.val)
+            local width=widths[v2.col]
+            table.insert( line,
+                    util.format_color_string(
+                        v2.val,
+                        widths[v2.col]+2
+                    )
+            )
         end
-        table.insert(printing, table.concat(line))
+        local ln=table.concat(line)
+        table.insert(printing, 
+                util.format_color_string(ln,78).."{x")
     end
+
+  
 
     pagetochar(ch, table.concat(printing,"\n\r")..
             "\n\r\n\r"..

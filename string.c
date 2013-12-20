@@ -869,20 +869,18 @@ char * string_proper( char * argument )
 }
 
 /* truncate an optionally colored string to a certain length 
-   The actual truncation will happen at limit-1 and an extra
-   space is added to ensure that any hanging '{' will at least
-   be completed */
+   */
 char *truncate_color_string( const char *argument, int limit )
 {
     if ( strlen_color(argument) <= limit )
         return argument;
-    else if ( strlen(argument) > MSL) 
+    else if ( strlen(argument) > 4*MSL) 
     {
-        bugf("truncate_color_string received string with length > MSL");
+        bugf("truncate_color_string received string with length > 4*MSL");
         return "ERROR"; /* So it won't crash */
     }
 
-    static char rtn[MSL]; 
+    static char rtn[4*MSL]; 
     int i=0;
     int len=0;
     for ( i=0 ; len < limit ; i++ ) 
@@ -899,6 +897,48 @@ char *truncate_color_string( const char *argument, int limit )
                 len--;
         }
 
+    }
+
+    rtn[i]='\0';
+
+    return rtn;
+}
+
+char *format_color_string( const char *argument, int width )
+{
+    int lencolor=strlen_color(argument);
+    if ( lencolor > width )
+        return truncate_color_string( argument, width );
+    else if ( lencolor == width ) /* just in case */
+        return argument;
+
+    static char rtn[4*MSL];
+    int i;
+    int len=0;
+
+    for ( i=0 ; *(argument+i) != '\0' ; i++ )
+    {
+        rtn[i]=*(argument+i);
+        len++;
+
+        if (rtn[i] == '{')
+        {
+            i++;
+
+            if ( *(argument+i) == '\0')
+                break;
+
+            rtn[i]=*(argument+i);
+
+            if (rtn[i] != '{')
+                len--;
+        }
+    }
+
+    for ( ; len < width ; i++ )
+    {
+       rtn[i]=' ';
+       len++;
     }
 
     rtn[i]='\0';
