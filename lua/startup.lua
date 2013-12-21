@@ -893,10 +893,6 @@ local lqtbl={
     }
 }
 
-    
-
-
-
 function do_luaquery( ch, argument)
     args=arguments(argument, true)
 
@@ -961,7 +957,12 @@ function do_luaquery( ch, argument)
             local vf,err=loadstring("return function(x) return "..sel.." end")
             if err then sendtochar(ch, err) return  end
             setfenv(vf,
-                    setmetatable({}, { __index=gobj} ) )
+                    setmetatable({}, { __index=gobj,
+                                       __newindex=function () 
+                                            error("Can't set values with luaquery") 
+                                            end
+                                            } )
+                   )
             table.insert(line, { col=sel, val=tostring(vf()(gobj))} )
         end
         table.insert(output, line)
