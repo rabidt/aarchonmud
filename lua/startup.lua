@@ -1046,9 +1046,9 @@ function do_luaquery( ch, argument)
                     )
             )
         end
-        local ln=table.concat(line)
+        local ln=table.concat(line,"|")
         table.insert(printing, 
-                util.format_color_string(ln,78).."{x")
+                util.format_color_string("|"..ln,75).." {x|")
     end
 
   
