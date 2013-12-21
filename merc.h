@@ -3202,6 +3202,7 @@ struct  mastery_group_type
 #define RTRIG_ENTER (H)
 #define RTRIG_EXIT  (I)
 #define RTRIG_LOOK  (J)
+#define RTRIG_TRY   (K)
 
 struct prog_list
 {
