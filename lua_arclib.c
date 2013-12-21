@@ -160,19 +160,24 @@ static int index_metamethod( lua_State *LS)
     {
         if (!strcmp(get[i].field, arg) )
         {
-           void *gobj=obj->check(obj, LS, 1 );
-           if (get[i].func)
-           {
-               int val;
-               val=(get[i].func)(LS, gobj);
-               return val;
-           }
-           else
-           {
-               bugf("No function entry for %s %s.", 
-                       obj->type_name, arg );
-               luaL_error(LS, "No function found.");
-           }
+            if ( get[i].security > g_ScriptSecurity )
+                luaL_error( LS, "Current security %d. Getting field requires %d.",
+                        g_ScriptSecurity,
+                        get[i].security);
+
+            void *gobj=obj->check(obj, LS, 1 );
+            if (get[i].func)
+            {
+                int val;
+                val=(get[i].func)(LS, gobj);
+                return val;
+            }
+            else
+            {
+                bugf("No function entry for %s %s.", 
+                        obj->type_name, arg );
+                luaL_error(LS, "No function found.");
+            }
 
         }
     }
@@ -181,8 +186,13 @@ static int index_metamethod( lua_State *LS)
 
     for (i=0; method[i].field; i++ )
     {
-        if (!strcmp(method[i].field, arg) )
+        if (!strcmp(method[i].field, arg) ) 
         {
+            if ( method[i].security > g_ScriptSecurity )
+                luaL_error( LS, "Current security %d. Method requires %d.",
+                        g_ScriptSecurity,
+                        method[i].security);
+
             lua_pushcfunction(LS, method[i].func);
             return 1;
         }
@@ -204,6 +214,11 @@ static int newindex_metamethod( lua_State *LS )
     {
         if ( !strcmp(set[i].field, arg) )
         {
+            if ( set[i].security > g_ScriptSecurity ) 
+                luaL_error( LS, "Current security %d. Setting field requires %d.",
+                        g_ScriptSecurity,
+                        set[i].security);
+
             obj->check(obj, LS, 1 ); 
             if ( set[i].func )
             {
@@ -4218,58 +4233,58 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(ccarries, 0),
     CHMETH(qtimer, 0),
     CHMETH(canattack, 0),
-    CHMETH(destroy, 0),
-    CHMETH(oload, 0),
+    CHMETH(destroy, 1),
+    CHMETH(oload, 1),
     /* deprecated */
     //CHMETH(setlevel, 0),
-    { "setlevel", CH_setlevel, 0, &CH_setlevel_help, STS_DEPRECATED},
-    CHMETH(say, 0),
-    CHMETH(emote, 0),
-    CHMETH(mdo, 0),
-    CHMETH(tell, 0),
-    CHMETH(asound, 0),
-    CHMETH(gecho, 0),
-    CHMETH(zecho, 0),
-    CHMETH(kill, 0),
-    CHMETH(assist, 0),
-    CHMETH(junk, 0),
-    CHMETH(echo, 0),
-    CHMETH(echoaround, 0),
-    CHMETH(echoat, 0),
-    CHMETH(mload, 0),
-    CHMETH(purge, 0),
-    CHMETH(goto, 0),
-    CHMETH(at, 0),
-    CHMETH(transfer, 0),
-    CHMETH(gtransfer, 0),
-    CHMETH(otransfer, 0),
-    CHMETH(force, 0),
-    CHMETH(gforce, 0),
-    CHMETH(vforce, 0),
-    CHMETH(cast, 0),
-    CHMETH(damage, 0),
-    CHMETH(remove, 0),
-    CHMETH(remort, 0),
-    CHMETH(qset, 0),
-    CHMETH(qadvance, 0),
-    CHMETH(reward, 0),
-    CHMETH(peace, 0),
-    CHMETH(restore, 0),
-    CHMETH(setact, 0),
-    CHMETH(hit, 0),
+    { "setlevel", CH_setlevel, 1, &CH_setlevel_help, STS_DEPRECATED},
+    CHMETH(say, 1),
+    CHMETH(emote, 1),
+    CHMETH(mdo, 1),
+    CHMETH(tell, 1),
+    CHMETH(asound, 1),
+    CHMETH(gecho, 1),
+    CHMETH(zecho, 1),
+    CHMETH(kill, 1),
+    CHMETH(assist, 1),
+    CHMETH(junk, 1),
+    CHMETH(echo, 1),
+    CHMETH(echoaround, 1),
+    CHMETH(echoat, 1),
+    CHMETH(mload, 1),
+    CHMETH(purge, 1),
+    CHMETH(goto, 1),
+    CHMETH(at, 1),
+    CHMETH(transfer, 1),
+    CHMETH(gtransfer, 1),
+    CHMETH(otransfer, 1),
+    CHMETH(force, 1),
+    CHMETH(gforce, 1),
+    CHMETH(vforce, 1),
+    CHMETH(cast, 1),
+    CHMETH(damage, 1),
+    CHMETH(remove, 1),
+    CHMETH(remort, 1),
+    CHMETH(qset, 1),
+    CHMETH(qadvance, 1),
+    CHMETH(reward, 1),
+    CHMETH(peace, 1),
+    CHMETH(restore, 1),
+    CHMETH(setact, 1),
+    CHMETH(hit, 1),
     CHMETH(randchar, 0),
-    CHMETH(loadprog, 0),
-    CHMETH(loadscript, 0),
-    CHMETH(loadstring, 0),
-    CHMETH(loadfunction, 0),
-    CHMETH(savetbl, 0),
-    CHMETH(loadtbl, 0),
-    CHMETH(tprint, 0),
-    CHMETH(olc, 0),
-    CHMETH(delay, 0),
-    CHMETH(cancel, 0), 
-    CHMETH(setval, 0),
-    CHMETH(getval, 0),
+    CHMETH(loadprog, 1),
+    CHMETH(loadscript, 1),
+    CHMETH(loadstring, 1),
+    CHMETH(loadfunction, 1),
+    CHMETH(savetbl, 1),
+    CHMETH(loadtbl, 1),
+    CHMETH(tprint, 1),
+    CHMETH(olc, 1),
+    CHMETH(delay, 1),
+    CHMETH(cancel, 1), 
+    CHMETH(setval, 1),
+    CHMETH(getval, 1),
     ENDPTABLE
 }; 
 
@@ -4878,20 +4893,20 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
 {
     OBJMETH(extra, 0),
     OBJMETH(wear, 0),
-    OBJMETH(destroy, 0),
-    OBJMETH(echo, 0),
-    OBJMETH(loadprog, 0),
-    OBJMETH(loadscript, 0),
-    OBJMETH(loadstring, 0),
-    OBJMETH(loadfunction, 0),
-    OBJMETH(oload, 0),
-    OBJMETH(savetbl, 0),
-    OBJMETH(loadtbl, 0),
-    OBJMETH(tprint, 0),
-    OBJMETH(delay, 0),
-    OBJMETH(cancel, 0),
-    OBJMETH(setval, 0),
-    OBJMETH(getval, 0),
+    OBJMETH(destroy, 1),
+    OBJMETH(echo, 1),
+    OBJMETH(loadprog, 1),
+    OBJMETH(loadscript, 1),
+    OBJMETH(loadstring, 1),
+    OBJMETH(loadfunction, 1),
+    OBJMETH(oload, 1),
+    OBJMETH(savetbl, 1),
+    OBJMETH(loadtbl, 1),
+    OBJMETH(tprint, 1),
+    OBJMETH(delay, 1),
+    OBJMETH(cancel, 1),
+    OBJMETH(setval, 1),
+    OBJMETH(getval, 1),
     
     /* portal only */
     OBJMETH(exitflag, 0),
@@ -5259,16 +5274,16 @@ static const LUA_PROP_TYPE AREA_set_table [] =
 static const LUA_PROP_TYPE AREA_method_table [] =
 {
     AREAMETH(flag, 0),
-    AREAMETH(echo, 0),
-    AREAMETH(loadprog, 0),
-    AREAMETH(loadscript, 0),
-    AREAMETH(loadstring, 0),
-    AREAMETH(loadfunction, 0),
-    AREAMETH(savetbl, 0),
-    AREAMETH(loadtbl, 0),
-    AREAMETH(tprint, 0),
-    AREAMETH(delay, 0),
-    AREAMETH(cancel, 0),
+    AREAMETH(echo, 1),
+    AREAMETH(loadprog, 1),
+    AREAMETH(loadscript, 1),
+    AREAMETH(loadstring, 1),
+    AREAMETH(loadfunction, 1),
+    AREAMETH(savetbl, 1),
+    AREAMETH(loadtbl, 1),
+    AREAMETH(tprint, 1),
+    AREAMETH(delay, 1),
+    AREAMETH(cancel, 1),
     ENDPTABLE
 }; 
 
@@ -5714,18 +5729,18 @@ static const LUA_PROP_TYPE ROOM_set_table [] =
 static const LUA_PROP_TYPE ROOM_method_table [] =
 {
     ROOMMETH(flag, 0),
-    ROOMMETH(oload, 0),
-    ROOMMETH(mload, 0),
-    ROOMMETH(echo, 0),
-    ROOMMETH(loadprog, 0),
-    ROOMMETH(loadscript, 0),
-    ROOMMETH(loadstring, 0),
-    ROOMMETH(loadfunction, 0),
-    ROOMMETH(tprint, 0),
-    ROOMMETH(delay, 0),
-    ROOMMETH(cancel, 0),
-    ROOMMETH(savetbl, 0),
-    ROOMMETH(loadtbl, 0),
+    ROOMMETH(oload, 1),
+    ROOMMETH(mload, 1),
+    ROOMMETH(echo, 1),
+    ROOMMETH(loadprog, 1),
+    ROOMMETH(loadscript, 1),
+    ROOMMETH(loadstring, 1),
+    ROOMMETH(loadfunction, 1),
+    ROOMMETH(tprint, 1),
+    ROOMMETH(delay, 1),
+    ROOMMETH(cancel, 1),
+    ROOMMETH(savetbl, 1),
+    ROOMMETH(loadtbl, 1),
     ENDPTABLE
 }; 
 
