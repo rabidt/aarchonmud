@@ -1991,7 +1991,7 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
 {
     const  char    *point;
     char    *point2;
-    char    buf[ MAX_STRING_LENGTH * 5 ]; // some safety space
+    char    buf[ MAX_BUF_INDEX + MSL ]; // some safety space
     int skip = 0;
 
     /* savety-net for super-long texts */

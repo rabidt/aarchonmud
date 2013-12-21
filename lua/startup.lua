@@ -824,7 +824,9 @@ Types:
     room    - ROOMs
 
 Selection:
-    Determines which fields are shown on output. Fields supplied in a list separated by '|' character.
+    Determines which fields are shown on output. If '' or default then default
+    values area used, otherwise fields supplied in a list separated by '|' 
+    character.
 
 Filter (optional):
     Expression used to filter which results are shown. Argument is a statement 
@@ -832,7 +834,8 @@ Filter (optional):
     qualify referenced fields. It is necessary to use 'x' when invoking methods.
 
 Sort (optional):
-    One or more values determining the sort order of the output. Format is same as Selection.
+    One or more values determining the sort order of the output. Format is same
+    as Selection.
 
 Notes: 
     'x' can be used optionally to qualify fields. 'x' is necessary to invoke
@@ -843,7 +846,9 @@ Notes:
 Examples:
     luaquery op level|vnum|shortdescr|x:extra("glow")|area.name 'otype=="weapon" and x:weaponflag("flaming")' level|x:extra("glow")
 
-    Shows level, vnum, shortdescr, glow flag (true/false), and area.name for all OBJPROTOs that are weapons with flaming wflag. Sorted by level then by glow flag.
+    Shows level, vnum, shortdescr, glow flag (true/false), and area.name for all
+    OBJPROTOs that are weapons with flaming wflag. Sorted by level then by glow
+    flag.
 
 ]])
 
@@ -894,6 +899,8 @@ local lqtbl={
 }
 
 function do_luaquery( ch, argument)
+    local maxwidth=100
+
     args=arguments(argument, true)
 
     if not(args[1]) then
@@ -1020,10 +1027,12 @@ function do_luaquery( ch, argument)
     -- NOW PRINT
      -- first scan through to determine column widths
     local widths={}
+    local hdr={}
     for _,v in pairs(output) do
-        for _,v2 in pairs(v) do
+        for _,v2 in ipairs(v) do
             if not(widths[v2.col]) then
                 widths[v2.col]=util.strlen_color(v2.val)
+                table.insert(hdr, v2.col)
             else
                 local ln=util.strlen_color(v2.val)
                 if ln>widths[v2.col] then
@@ -1034,6 +1043,16 @@ function do_luaquery( ch, argument)
     end
 
     local printing={}
+    -- header
+    local hdrstr={}
+    for _,v in ipairs(hdr) do
+        table.insert(hdrstr,
+                util.format_color_string( v, widths[v]+1))
+                --string.format( "%-"..(widths[v]+1).."."..(widths[v]+1).."s", v ) )
+    end
+    table.insert(printing, 
+            util.format_color_string("|"..table.concat(hdrstr, "|"), maxwidth-1).."|")
+
     for _,v in ipairs(output) do
         local line={}
         for _,v2 in ipairs(v) do
@@ -1042,13 +1061,13 @@ function do_luaquery( ch, argument)
             table.insert( line,
                     util.format_color_string(
                         v2.val,
-                        widths[v2.col]+2
+                        widths[v2.col]+1
                     )
             )
         end
         local ln=table.concat(line,"|")
         table.insert(printing, 
-                util.format_color_string("|"..ln,75).." {x|")
+                util.format_color_string("|"..ln,maxwidth-1).."{x|")
     end
 
   
