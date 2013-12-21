@@ -583,6 +583,7 @@ const struct flag_type rprog_flags[] =
     {   "enter",        RTRIG_ENTER,     TRUE    },
     {   "exit",         RTRIG_EXIT,      TRUE    },
     {   "look",         RTRIG_LOOK,      TRUE    },
+    {   "try",          RTRIG_TRY,       TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
