@@ -1051,7 +1051,7 @@ function do_luaquery( ch, argument)
                 --string.format( "%-"..(widths[v]+1).."."..(widths[v]+1).."s", v ) )
     end
     table.insert(printing, 
-            util.format_color_string("|"..table.concat(hdrstr, "|"), maxwidth-1).."|")
+            util.truncate_color_string("|"..table.concat(hdrstr, "|"), maxwidth-1).."|")
 
     for _,v in ipairs(output) do
         local line={}
@@ -1067,7 +1067,7 @@ function do_luaquery( ch, argument)
         end
         local ln=table.concat(line,"|")
         table.insert(printing, 
-                util.format_color_string("|"..ln,maxwidth-1).."{x|")
+                util.truncate_color_string("|"..ln,maxwidth-1).."{x|")
     end
 
   
