@@ -21,6 +21,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
+#include "lua_main.h"
 
 char *string_linedel( char *, int );
 char *string_lineadd( char *, char *, int );
@@ -120,8 +121,26 @@ void string_append( CHAR_DATA *ch, char **pString )
     {
         *pString = str_dup( "" );
     }
+    /* wackyhacky for syntax highlighting for lua scripts */
+    PROG_CODE *mpc;
+    switch( ch->desc->editor)
+    {
+        case ED_MPCODE:
+             EDIT_MPCODE(ch, mpc);
+             if (mpc->is_lua)
+                dump_prog( ch, *pString, TRUE);
+             else
+                send_to_char_new( numlineas(*pString), ch, TRUE );/* RAW */
+             break;
+        case ED_APCODE:
+        case ED_OPCODE:
+        case ED_RPCODE:
+            dump_prog( ch, *pString, TRUE);
+            break;
+        default:
+            send_to_char_new( numlineas(*pString), ch, TRUE );/* RAW */
+    } 
     
-    send_to_char_new( numlineas(*pString), ch, TRUE );
     if ( *(*pString + strlen( *pString ) - 1) != '\r' )
         send_to_char( "\n\r", ch );
 
@@ -187,25 +206,25 @@ void string_add( CHAR_DATA *ch, char *argument )
    {
       if ( ch->desc->editor == ED_MPCODE ) /* for mobprogs */
       {
-         MPROG_CODE *mpc;
+         PROG_CODE *mpc;
          EDIT_MPCODE(ch, mpc);
          fix_mprog_mobs( ch, mpc);
       }
       else if ( ch->desc->editor == ED_OPCODE ) /* for objprogs */
       {
-          OPROG_CODE *opc;
+          PROG_CODE *opc;
           EDIT_OPCODE(ch, opc);
           fix_oprog_objs( ch, opc);
       }
       else if ( ch->desc->editor == ED_APCODE ) /* for areaprogs */
       {
-          APROG_CODE *apc;
+          PROG_CODE *apc;
           EDIT_APCODE(ch, apc);
           fix_aprog_areas(ch, apc);
       }
       else if ( ch->desc->editor == ED_RPCODE ) /* for roomprogs */
       {
-          RPROG_CODE *rpc;
+          PROG_CODE *rpc;
           EDIT_RPCODE(ch, rpc);
           fix_rprog_rooms(ch, rpc);
       }
@@ -242,9 +261,27 @@ void string_add( CHAR_DATA *ch, char *argument )
       
       if ( !str_cmp( arg1, ".s" ) )
       {
-         send_to_char( "String so far:\n\r", ch );
-         send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
-         return;
+        send_to_char( "String so far:\n\r", ch );
+        /* wackyhacky for syntax highlighting for lua scripts */
+        PROG_CODE *mpc;
+        switch( ch->desc->editor)
+        {
+            case ED_MPCODE:
+                 EDIT_MPCODE(ch, mpc);
+                 if (mpc->is_lua)
+                    dump_prog( ch, *ch->desc->pString, TRUE);
+                 else
+                    send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
+                 break;
+            case ED_APCODE:
+            case ED_OPCODE:
+            case ED_RPCODE:
+                dump_prog( ch, *ch->desc->pString, TRUE);
+                break;
+            default: 
+                send_to_char_new( numlineas(*ch->desc->pString), ch, TRUE );/* RAW */
+        }
+        return;
       }
       
       if ( !str_cmp( arg1, ".r" ) )
@@ -827,6 +864,43 @@ char * string_proper( char * argument )
     return argument;
 }
 
+/* truncate an optionally colored string to a certain length 
+   The actual truncation will happen at limit-1 and an extra
+   space is added to ensure that any hanging '{' will at least
+   be completed */
+char *truncate_color_string( const char *argument, int limit )
+{
+    if ( strlen_color(argument) <= limit )
+        return argument;
+    else if ( strlen(argument) > MSL) 
+    {
+        bugf("truncate_color_string received string with length > MSL");
+        return "ERROR"; /* So it won't crash */
+    }
+
+    static char rtn[MSL]; 
+    int i=0;
+    int len=0;
+    for ( i=0 ; len < limit ; i++ ) 
+    {
+        rtn[i]=*(argument+i);
+        len++;
+
+        if (rtn[i] == '{')
+        {
+            i++;
+            rtn[i]=*(argument+i);
+
+            if (rtn[i] != '{')
+                len--;
+        }
+
+    }
+
+    rtn[i]='\0';
+
+    return rtn;
+}
 
 /*
  * This is a modified version of a function written by Wreck.

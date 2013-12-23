@@ -173,6 +173,8 @@ void do_alias(CHAR_DATA *ch, char *argument)
                 rch->pcdata->alias_sub[pos]);
             send_to_char(buf,ch);
         }
+        sprintf(buf,"(%d/%d aliases used)",pos,MAX_ALIAS);
+            send_to_char(buf,ch);
         return;
     }
     

@@ -175,10 +175,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
     ROOM_INDEX_DATA *room = NULL;
     OBJ_INDEX_DATA *obj = NULL;
     MOB_INDEX_DATA *mob = NULL;
-    MPROG_CODE *mprog = NULL;
-    OPROG_CODE *oprog = NULL;
-    APROG_CODE *aprog = NULL;
-    RPROG_CODE *rprog = NULL;
+    PROG_CODE *mprog = NULL;
+    PROG_CODE *oprog = NULL;
+    PROG_CODE *aprog = NULL;
+    PROG_CODE *rprog = NULL;
 
     if (!IS_BUILDER(ch, ch->in_room->area))
     {
@@ -1299,7 +1299,7 @@ bool is_substr( char *sub, char *str )
 void do_mpfind( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH];
-    MPROG_CODE *mprog;
+    PROG_CODE *mprog;
     int i;
 
     if (!IS_BUILDER(ch, ch->in_room->area))
@@ -1792,10 +1792,550 @@ void do_sset( CHAR_DATA *ch, char *argument )
     return;
 }
 
+#define MSETNONE    0
+#define MSETPCONLY  1
+#define MSETNPCONLY 2
+#define MSETANY     3
 
+#define MSETFUN( field ) bool mset_ ## field ( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg3, int value )
+
+bool mset_stat( CHAR_DATA *ch, CHAR_DATA *victim, int stat, int value )
+{
+    int j;
+    if ( value < 1 || value > (j = pc_race_table[victim->race].max_stats[stat]+
+        class_bonus(victim->class, stat) ) )
+    {
+        ptc( ch, "%s range is 1 to %d.\n\r", stat_table[stat].name, j);
+        return FALSE;
+    }
+
+    victim->perm_stat[stat] = value;
+    victim->pcdata->original_stats[stat] = value;
+    return TRUE;
+}
+#define MSETSTAT( statname, statval ) MSETFUN( statname ) \
+{\
+    return mset_stat( ch, victim, statval, value );\
+}
+MSETSTAT( str, STAT_STR)
+MSETSTAT( con, STAT_CON)
+MSETSTAT( vit, STAT_VIT)
+MSETSTAT( agi, STAT_AGI)
+MSETSTAT( dex, STAT_DEX)
+MSETSTAT( int, STAT_INT)
+MSETSTAT( wis, STAT_WIS)
+MSETSTAT( dis, STAT_DIS)
+MSETSTAT( cha, STAT_CHA)
+MSETSTAT( luc, STAT_LUC)
+
+
+MSETFUN ( class )
+{
+    int class;               
+    class = class_lookup(arg3);
+    if ( class == -1 )
+    {
+        char buf[MAX_STRING_LENGTH];
+       
+        strcpy( buf, "Possible classes are: " );
+        for ( class = 0; class < MAX_CLASS; class++ )
+        {
+            if ( class > 0 )
+                strcat( buf, " " );
+            strcat( buf, class_table[class].name );
+        }
+        strcat( buf, ".\n\r" );
+       
+        send_to_char(buf,ch);
+        return FALSE;
+    }
+   
+    victim->class = class;
+    return TRUE;
+
+}
+
+
+MSETFUN( race )
+{
+    int race;
+    
+    race = race_lookup(arg3);
+    
+    if ( race == 0)
+    {
+        send_to_char("That is not a valid race.\n\r",ch);
+        return FALSE;
+    }
+    
+    if (!IS_NPC(victim) && !race_table[race].pc_race)
+    {
+        send_to_char("That is not a valid player race.\n\r",ch);
+        return FALSE;
+    }
+    
+    victim->race = race;
+    morph_update(victim);
+    return TRUE;
+}
+
+
+MSETFUN( sex )
+{
+    if ( value < 0 || value > 2 )
+    {
+        send_to_char( "Sex range is 0 to 2. 0 = Sexless, 1 = Male, 2 = Female\n\r", ch );
+        return FALSE;
+    }
+    victim->sex = value;
+    if (!IS_NPC(victim))
+        victim->pcdata->true_sex = value;
+    return TRUE;
+}
+
+
+MSETFUN( group )
+{
+    victim->group = value;
+    return TRUE;
+}
+
+
+MSETFUN( align )
+{
+    if ( value < -1000 || value > 1000 )
+    {
+        send_to_char( "Alignment range is -1000 to 1000.\n\r", ch );
+        return FALSE;
+    }
+
+    victim->alignment = value;
+    return TRUE;
+}
+
+
+MSETFUN( hunt )
+{
+    CHAR_DATA *hunted = 0;
+
+    if (victim->hunting)
+        stop_hunting(ch);
+
+    if ( str_cmp( arg3, "." ) )
+        if ( (hunted = get_char_area(victim, arg3)) == NULL )
+        {
+            send_to_char("Mob couldn't locate the victim to hunt.\n\r", ch);
+            return FALSE;
+        }
+    
+    victim->hunting = strdup(hunted->name);
+    return TRUE;
+}
+
+
+MSETFUN( gold )
+{
+    victim->gold = value;
+    return TRUE;
+}
+
+
+MSETFUN( silver )
+{
+    victim->silver = value;
+    return TRUE;
+}
+
+
+MSETFUN( bounty )
+{
+    victim->pcdata->bounty = value;
+    update_bounty(victim);
+    return TRUE;
+}
+
+
+MSETFUN( practice )
+{
+    if ( value < 0 || value > 5000 )
+    {
+        send_to_char( "Practice range is 0 to 5000 sessions.\n\r", ch );
+        return FALSE;
+    }
+    victim->practice = value;
+    return TRUE;
+
+}
+
+
+MSETFUN( train )
+{
+    if (value < 0 || value > 1000 )
+    {
+        send_to_char("Training session range is 0 to 1000 sessions.\n\r",ch);
+        return FALSE;
+    }
+    victim->train = value;
+    return TRUE;
+}
+
+
+MSETFUN( questpoints )
+{
+    printf_to_char(ch, "%s's quest points modified from %d to %d.\n\r",
+        victim->name, victim->pcdata->questpoints, (victim->pcdata->questpoints + value));
+    printf_to_char(victim, "%s has modified your quest points from %d to %d.\n\r",
+        ch->name, victim->pcdata->questpoints, (victim->pcdata->questpoints + value));
+    victim->pcdata->questpoints += value;
+    return TRUE;
+}
+
+
+MSETFUN( thirst )
+{
+   if ( value < -1 || value > 100 )
+   {
+       send_to_char( "Thirst range is -1 to 100.\n\r", ch );
+       return FALSE;
+   }
+   
+   victim->pcdata->condition[COND_THIRST] = value;
+   return TRUE;
+}
+
+
+MSETFUN( hunger )
+{
+    if ( value < -1 || value > 100 )
+    {
+        send_to_char( "Full range is -1 to 100.\n\r", ch );
+        return FALSE;
+    }
+    
+    victim->pcdata->condition[COND_HUNGER] = value;
+    return TRUE;
+}
+
+
+MSETFUN( drunk )
+{
+    if ( value < -1 || value > 100 )
+    {
+        send_to_char( "Drunk range is -1 to 100.\n\r", ch );
+        return FALSE;
+    }
+    
+    victim->pcdata->condition[COND_DRUNK] = value;
+    return TRUE;
+}
+
+
+MSETFUN( full )
+{
+   if ( value < -1 || value > 100 )
+   {
+       send_to_char( "Full range is -1 to 100.\n\r", ch );
+       return FALSE;
+   }
+   
+   victim->pcdata->condition[COND_FULL] = value;
+   return TRUE;
+}
+
+
+MSETFUN( hp )
+{
+   if ( value < -10 || value > 30000 )
+   {
+       send_to_char( "Hp range is -10 to 30,000 hit points.\n\r", ch );
+       return FALSE;
+   }
+
+   victim->max_hit = value;
+   if (!IS_NPC(victim))
+       victim->pcdata->perm_hit = value;
+   return TRUE;
+}
+
+
+MSETFUN( mana )
+{
+    if ( value < 0 || value > 30000 )
+    {
+        send_to_char( "Mana range is 0 to 30,000 mana points.\n\r", ch );
+        return FALSE;
+    }
+
+    victim->max_mana = value;
+    if (!IS_NPC(victim))
+        victim->pcdata->perm_mana = value;
+    return TRUE;
+}
+
+
+MSETFUN( move )
+{
+    if ( value < 0 || value > 30000 )
+    {
+        send_to_char( "Move range is 0 to 30,000 move points.\n\r", ch );
+        return FALSE;
+    }
+
+    victim->max_move = value;
+    if (!IS_NPC(victim))
+        victim->pcdata->perm_move = value;
+    return TRUE;
+}
+
+
+MSETFUN( level )
+{
+    if ( value < 0 || value > 200 )
+    {
+        send_to_char( "Level range is 0 to 200.\n\r", ch );
+        return FALSE;
+    }
+    victim->level = value;
+    return TRUE;
+}
+
+
+MSETFUN( pkill )
+{
+    if ( IS_SET(victim->act, PLR_PERM_PKILL) )
+    {
+        if ( str_cmp( arg3, "off" ) )         
+        {
+            send_to_char("Pkill flag can only be turned 'off'.\n\r", ch);
+            return FALSE;
+        }
+
+        if (get_trust(ch) < IMPLEMENTOR)
+        {
+            send_to_char( "Only an implementor can turn off permanent pkill.\n\r", ch);
+            return FALSE;
+        }
+
+        REMOVE_BIT( victim->act, PLR_PERM_PKILL );
+        REMOVE_BIT( victim->act, PLR_HARDCORE );
+        send_to_char( "Pkill turned off.\n\r", ch );
+        send_to_char( "You are no longer a pkiller.\n\r", victim );
+        return TRUE;
+    }
+    else
+    {
+        ptc( ch, "%s not a player killer.\n\r", victim->name);
+        return FALSE;
+    }
+}
+
+MSETFUN( killer )
+{
+    if ( IS_SET(victim->act, PLR_KILLER) )
+    {
+        if ( str_cmp( arg3, "off" ) )         
+        {
+            send_to_char("Killer flag can only be turned 'off'.\n\r", ch);
+            return FALSE;
+        }
+
+        REMOVE_BIT( victim->act, PLR_KILLER );
+        send_to_char( "Killer flag removed.\n\r", ch );
+        send_to_char( "You are no longer a KILLER.\n\r", victim );
+        return TRUE;
+    }
+    else
+    {
+        ptc( ch, "%s not a killer.\n\r", victim->name);
+        return FALSE;
+    }
+}
+
+MSETFUN( thief )
+{
+    if ( IS_SET(victim->act, PLR_THIEF) )
+    {
+        if ( str_cmp( arg3, "off" ) )         
+        {
+            send_to_char("Thief flag can only be turned 'off'.\n\r", ch);
+            return FALSE;
+        }
+
+        REMOVE_BIT( victim->act, PLR_THIEF );
+        send_to_char( "Thief flag removed.\n\r", ch );
+        send_to_char( "You are no longer a THIEF.\n\r", victim );
+        return TRUE;
+    }
+    else
+    {
+        ptc( ch, "%s not a player thief.\n\r", victim->name);
+        return FALSE;
+    }
+}
+
+MSETFUN( hardcore )
+{
+    if ( IS_SET(victim->act, PLR_HARDCORE) )
+    {
+        if ( str_cmp( arg3, "off" ) )         
+        {
+            send_to_char("Hardcore flag can only be turned 'off'.\n\r", ch);
+            return FALSE;
+        }
+
+        if (get_trust(ch) < IMPLEMENTOR)
+        {
+            send_to_char( "Only an implementor can turn off hardcore pkill.\n\r", ch);
+            return FALSE;
+        }
+        REMOVE_BIT( victim->act, PLR_HARDCORE );
+        send_to_char( "Hardcore turned off.\n\r", ch );
+        send_to_char( "You are no longer a hardcore pkiller.\n\r", victim );
+        return TRUE;
+    }
+    else
+    {
+        ptc( ch, "%s not a hardcore player killer.\n\r", victim->name);
+        return FALSE;
+    }
+}
+
+
+MSETFUN( void )
+{  
+    if (IS_IMMORTAL(victim))
+    {
+        send_to_char("Can't void out an immortal!\n\r", ch);
+        return FALSE;
+    }
+    else if ( get_trust( victim ) >= get_trust( ch ) )
+    {
+        send_to_char("Victim too powerful!\n\r", ch);
+        return FALSE;
+    }
+    else if ( victim->timer >= 12 )
+    {
+        ptc( ch, "Timer for %s already at %d.\n\r", victim->name, victim->timer);
+        return FALSE;
+    }
+
+    victim->timer=12;
+    ptc(ch, "%s's timer was set to %d (will void on next tick).\n\r", victim->name, victim->timer);
+    return TRUE; 
+}
+
+MSETFUN( security )
+{
+    if ( (value > ch->pcdata->security && get_trust(ch) < IMPLEMENTOR) || value < 0 || value > 9 )
+    {
+        if ( ch->pcdata->security != 0 )
+        {
+            ptc( ch, "Valid security is 0-%d.\n\r",
+                ch->pcdata->security );
+        }
+        else
+        {
+            send_to_char( "Valid security is 0 only.\n\r", ch );
+        }
+        return FALSE;
+    }
+    victim->pcdata->security = value;
+    return TRUE;
+}
+
+MSETFUN( law )
+{
+    if ( get_trust(ch) < IMPLEMENTOR )
+    {
+        send_to_char( "Only IMPs can assign law Aarchons.\n\r", ch );
+        return FALSE;
+    }
+    if ( value == 0 )
+    {
+        REMOVE_BIT( victim->act, PLR_LAW );
+        return TRUE;
+    }
+    else if ( value == 1 )
+    {
+        SET_BIT( victim->act, PLR_LAW );
+        return TRUE;
+    }
+    else
+    {
+        send_to_char( "Value must be 0 to remove or 1 to set.\n\r", ch );
+        return FALSE;
+    }
+}
+
+MSETFUN( ptitle )
+{
+    char buf[MIL];
+    sprintf(buf, "%s ", arg3);
+    free_string( victim->pcdata->pre_title );
+    victim->pcdata->pre_title = str_dup( buf );
+    return TRUE;
+}
+
+MSETFUN( namecolor )
+{
+    return color_name( ch, arg3, victim );
+}
+
+struct
+{
+    const char *field;
+    int status;
+    bool (*func)(CHAR_DATA *, CHAR_DATA *, const char *, int);
+} mset_table [] =
+{
+    {"str",       MSETANY,      mset_str},
+    {"con",       MSETANY,      mset_con},
+    {"vit",       MSETANY,      mset_vit},
+    {"agi",       MSETANY,      mset_agi},
+    {"dex",       MSETANY,      mset_dex},
+    {"int",       MSETANY,      mset_int},
+    {"wis",       MSETANY,      mset_wis},
+    {"dis",       MSETANY,      mset_dis},
+    {"cha",       MSETANY,      mset_cha},
+    {"luc",       MSETANY,      mset_luc},
+    {"class",     MSETPCONLY,   mset_class},
+    {"race",      MSETPCONLY,   mset_race},
+    {"sex",       MSETANY,      mset_sex},
+    {"group",     MSETNPCONLY,  mset_group},
+    {"align",     MSETANY,      mset_align},
+    {"hunt",      MSETANY,      mset_hunt},
+    {"gold",      MSETANY,      mset_gold},
+    {"silver",    MSETANY,      mset_silver}, 
+    {"bounty",    MSETPCONLY,   mset_bounty},
+    {"practice",  MSETPCONLY,   mset_practice},
+    {"train",     MSETPCONLY,   mset_train},
+    {"questpoints",MSETPCONLY,   mset_questpoints},
+    {"thirst",    MSETPCONLY,   mset_thirst},
+    {"hunger",    MSETPCONLY,   mset_hunger},
+    {"drunk",     MSETPCONLY,   mset_drunk},
+    {"full",      MSETPCONLY,   mset_full},
+    {"hp",        MSETANY,      mset_hp},
+    {"mana",      MSETANY,      mset_mana},
+    {"move",      MSETANY,      mset_move},
+    {"level",     MSETNPCONLY,  mset_level},
+    {"pkill",     MSETPCONLY,   mset_pkill},
+    {"killer",    MSETPCONLY,   mset_killer},
+    {"thief",     MSETPCONLY,   mset_thief},
+    {"hardcore",  MSETPCONLY,   mset_hardcore},
+    {"void",      MSETPCONLY,   mset_void},
+    {"security",  MSETPCONLY,   mset_security},
+    {"law",       MSETPCONLY,   mset_law},
+    {"ptitle",    MSETPCONLY,   mset_ptitle},
+    {"namecolor", MSETPCONLY,   mset_namecolor},
+    {NULL,        MSETNONE,     NULL}
+};
+   
 
 void do_mset( CHAR_DATA *ch, char *argument )
 {
+    if (IS_NPC(ch))
+        return;
+
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
     char arg3 [MAX_INPUT_LENGTH];
@@ -1813,12 +2353,24 @@ void do_mset( CHAR_DATA *ch, char *argument )
         send_to_char("Syntax:\n\r",ch);
         send_to_char("  set char <name> <field> <value>\n\r",ch); 
         send_to_char( "  Field being one of:\n\r",          ch );
-        send_to_char( "    str con vit agi dex int wis dis cha luc\n\r", ch );
-        send_to_char( "    class race sex group align hunt\n\r", ch );
-	send_to_char( "    gold silver bounty prac train quest house\n\r", ch );
-	send_to_char( "    thirst hunger drunk full\n\r", ch );
-	send_to_char( "    hp mana move level\n\r", ch );
-	send_to_char( "    security law\n\r", ch );
+        int i; 
+        int rc;
+        for ( i=0,rc=0; mset_table[i].field ; i++)
+        {
+            if (rc>4)
+            {
+                send_to_char( "\n\r", ch);
+                rc=0;
+            }
+            if (rc==0)
+            {
+                send_to_char("    ", ch);
+            }
+            
+            ptc( ch, " %s", mset_table[i].field );
+            rc++;
+        }        
+        stc("\n\r",ch);
         return;
     }
     
@@ -1828,16 +2380,6 @@ void do_mset( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    /* nothing of this should be done to NPCs */
-    if ( IS_NPC(victim) )
-    {
-        send_to_char( "Not on NPCs.\n\r", ch );
-        return;
-    }
-    
-    /* clear zones for mobs */
-    victim->zone = NULL;
-    
     /*
     * Snarf the value (which need not be numeric).
     */
@@ -1846,430 +2388,53 @@ void do_mset( CHAR_DATA *ch, char *argument )
     /*
     * Set something.
     */
-    for (stat=0; stat<MAX_STATS; stat++)
-        if (!str_prefix(arg2, stat_table[stat].name))
-            break; 
-        if (stat<MAX_STATS)
+    int i;
+    for ( i=0; mset_table[i].field ; i++ )
+    {
+        if (!str_prefix(arg2, mset_table[i].field) )
         {
-            if ( value < 1 || value > (j = pc_race_table[victim->race].max_stats[stat]+
-                class_bonus(victim->class, stat) ) )
+            switch( mset_table[i].status )
             {
-                sprintf(buf,
-                    "%s range is 1 to %d.\n\r", stat_table[stat].name, j);
-                send_to_char(buf,ch);
-                return;
-            }
-            
-            victim->perm_stat[stat] = value;
-            victim->pcdata->original_stats[stat] = value;
-            return;
-        }	
-        
-        if ( !str_cmp( arg2, "security" ) )	/* OLC */
-        {
-            if ( IS_NPC(ch) )
-            {
-                send_to_char( "Not for NPC's.\n\r", ch );
-                return;
-            }
-            
-            if ( IS_NPC( victim ) )
-            {
-                send_to_char( "Not on NPC's.\n\r", ch );
-                return;
-            }
-            
-            if ( (value > ch->pcdata->security && get_trust(ch) < IMPLEMENTOR) 
-		 || value < 0 )
-            {
-                if ( ch->pcdata->security != 0 )
-                {
-                    sprintf( buf, "Valid security is 0-%d.\n\r",
-                        ch->pcdata->security );
-                    send_to_char( buf, ch );
-                }
-                else
-                {
-                    send_to_char( "Valid security is 0 only.\n\r", ch );
-                }
-                return;
-            }
-            victim->pcdata->security = value;
-            return;
-        }
-
-        if ( !str_cmp( arg2, "law" ) )
-        {
-	    if ( IS_NPC(victim) )
-	    {
-		send_to_char( "Not on NPCs.\n\r", ch );
-		return;
-	    }
-	    if ( IS_NPC(ch) || get_trust(ch) < IMPLEMENTOR )
-	    {
-		send_to_char( "Only IMPs can assign law Aarchons.\n\r", ch );
-		return;
-	    }
-	    if ( value == 0 )
-		REMOVE_BIT( victim->act, PLR_LAW );
-	    else if ( value == 1 )
-		SET_BIT( victim->act, PLR_LAW );
-	    else
-		send_to_char( "Value must be 0 to remove or 1 to set.\n\r", ch );
-
-	    return;
-	}
-        
-        if ( !str_prefix( arg2, "sex" ) )
-        {
-            if ( value < 0 || value > 2 )
-            {
-                send_to_char( "Sex range is 0 to 2.\n\r", ch );
-                return;
-            }
-            victim->sex = value;
-            if (!IS_NPC(victim))
-                victim->pcdata->true_sex = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "class" ) )
-        {
-            int class;
-            
-            if (IS_NPC(victim))
-            {
-                send_to_char("Mobiles have no class.\n\r",ch);
-                return;
-            }
-            
-            class = class_lookup(arg3);
-            if ( class == -1 )
-            {
-                char buf[MAX_STRING_LENGTH];
-                
-                strcpy( buf, "Possible classes are: " );
-                for ( class = 0; class < MAX_CLASS; class++ )
-                {
-                    if ( class > 0 )
-                        strcat( buf, " " );
-                    strcat( buf, class_table[class].name );
-                }
-                strcat( buf, ".\n\r" );
-                
-                send_to_char(buf,ch);
-                return;
-            }
-            
-            victim->class = class;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "level" ) )
-        {
-            if ( !IS_NPC(victim) )
-            {
-                send_to_char( "Not on PC's.\n\r", ch );
-                return;
-            }
-            
-            if ( value < 0 || value > 200 )
-            {
-                send_to_char( "Level range is 0 to 200.\n\r", ch );
-                return;
-            }
-            victim->level = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "gold" ) )
-        {
-            victim->gold = value;
-            return;
-        }
-        
-        if ( !str_prefix(arg2, "silver" ) )
-        {
-            victim->silver = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "hp" ) )
-        {
-            if ( value < -10 || value > 30000 )
-            {
-                send_to_char( "Hp range is -10 to 30,000 hit points.\n\r", ch );
-                return;
-            }
-            victim->max_hit = value;
-            if (!IS_NPC(victim))
-                victim->pcdata->perm_hit = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "mana" ) )
-        {
-            if ( value < 0 || value > 30000 )
-            {
-                send_to_char( "Mana range is 0 to 30,000 mana points.\n\r", ch );
-                return;
-            }
-            victim->max_mana = value;
-            if (!IS_NPC(victim))
-                victim->pcdata->perm_mana = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "move" ) )
-        {
-            if ( value < 0 || value > 30000 )
-            {
-                send_to_char( "Move range is 0 to 30,000 move points.\n\r", ch );
-                return;
-            }
-            victim->max_move = value;
-            if (!IS_NPC(victim))
-                victim->pcdata->perm_move = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "practice" ) )
-        {
-            if ( value < 0 || value > 2500 )
-            {
-                send_to_char( "Practice range is 0 to 2500 sessions.\n\r", ch );
-                return;
-            }
-            victim->practice = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "train" ))
-        {
-            if (value < 0 || value > 500 )
-            {
-                send_to_char("Training session range is 0 to 500 sessions.\n\r",ch);
-                return;
-            }
-            victim->train = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "align" ) )
-        {
-            if ( value < -1000 || value > 1000 )
-            {
-                send_to_char( "Alignment range is -1000 to 1000.\n\r", ch );
-                return;
-            }
-            victim->alignment = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "thirst" ) )
-        {
-            if ( IS_NPC(victim) )
-            {
-                send_to_char( "Not on NPC's.\n\r", ch );
-                return;
-            }
-            
-            if ( value < -1 || value > 100 )
-            {
-                send_to_char( "Thirst range is -1 to 100.\n\r", ch );
-                return;
-            }
-            
-            victim->pcdata->condition[COND_THIRST] = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "drunk" ) )
-        {
-            if ( IS_NPC(victim) )
-            {
-                send_to_char( "Not on NPC's.\n\r", ch );
-                return;
-            }
-            
-            if ( value < -1 || value > 100 )
-            {
-                send_to_char( "Drunk range is -1 to 100.\n\r", ch );
-                return;
-            }
-            
-            victim->pcdata->condition[COND_DRUNK] = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "full" ) )
-        {
-            if ( IS_NPC(victim) )
-            {
-                send_to_char( "Not on NPC's.\n\r", ch );
-                return;
-            }
-            
-            if ( value < -1 || value > 100 )
-            {
-                send_to_char( "Full range is -1 to 100.\n\r", ch );
-                return;
-            }
-            
-            victim->pcdata->condition[COND_FULL] = value;
-            return;
-        }
-        
-        if ( !str_prefix( arg2, "hunger" ) )
-        {
-            if ( IS_NPC(victim) )
-            {
-                send_to_char( "Not on NPC's.\n\r", ch );
-                return;
-            }
-            
-            if ( value < -1 || value > 100 )
-            {
-                send_to_char( "Full range is -1 to 100.\n\r", ch );
-                return;
-            }
-            
-            victim->pcdata->condition[COND_HUNGER] = value;
-            return;
-        }
-        
-        if (!str_prefix( arg2, "race" ) )
-        {
-            int race;
-            
-            race = race_lookup(arg3);
-            
-            if ( race == 0)
-            {
-                send_to_char("That is not a valid race.\n\r",ch);
-                return;
-            }
-            
-            if (!IS_NPC(victim) && !race_table[race].pc_race)
-            {
-                send_to_char("That is not a valid player race.\n\r",ch);
-                return;
-            }
-            
-            victim->race = race;
-	    morph_update(victim);
-            return;
-        }
-        
-        if (!str_prefix(arg2,"group"))
-        {
-            if (!IS_NPC(victim))
-            {
-                send_to_char("Only on NPCs.\n\r",ch);
-                return;
-            }
-            victim->group = value;
-            return;
-        }
-        
-        /* Change their hunting status. */
-        if ( !str_prefix(arg2, "hunt" ) )
-        {
-            CHAR_DATA *hunted = 0;
-            
-            if ( !IS_NPC(victim) )
-            {
-                send_to_char( "Not on PC's.\n\r", ch );
-                return;
-            }
-
-			if (victim->hunting)
-				stop_hunting(ch);
-
-            if ( str_cmp( arg3, "." ) )
-                if ( (hunted = get_char_area(victim, arg3)) == NULL )
-                {
-                    send_to_char("Mob couldn't locate the victim to hunt.\n\r", ch);
+                case MSETANY:
+                    break;
+                case MSETNPCONLY:
+                    if (!IS_NPC(victim))
+                    {
+                        ptc(ch, "Can only set %s on NPCs.\n\r", arg2);
+                        return;
+                    }
+                    break;
+                case MSETPCONLY:
+                    if (IS_NPC(victim))
+                    {
+                        ptc(ch, "Can only set %s on PCs.\n\r", arg2);
+                        return;
+                    }
+                    break;
+                default:
+                    bugf("Invalid status in do_mset for %s: %d",
+                            arg2, mset_table[i].status);
                     return;
-                }
+            }
+
+            if (mset_table[i].func( ch, victim, arg3, value ) )
+            {
+                ptc(ch, "%s set.\n\r", arg2 );
+            }
+            else
+            {
+                ptc(ch, "%s not set.\n\r", arg2 );
+            }
                 
-                victim->hunting = str_dup(hunted->name);
-                return;
-        }
-        
-        if ( !str_prefix(arg2, "bounty") )
-        {
-            if ( IS_NPC(victim) )
-            {
-                send_to_char( "Not on NPC's.\n\r", ch );
-                return;
-            }
-            
-            victim->pcdata->bounty = value;
-            update_bounty(victim);
-            return;
-        }		
-        
-        if ( !str_prefix(arg2, "questpoints") )
-        {
-            if ( IS_NPC(victim) )
-            {
-                send_to_char("Not on NPC's.\n\r",ch);
-                return;
-            }
-            
-            printf_to_char(ch, "%s's quest points modified from %d to %d.\n\r",
-                victim->name, victim->pcdata->questpoints, (victim->pcdata->questpoints + value));
-            printf_to_char(victim, "%s has modified your quest points from %d to %d.\n\r",
-                ch->name, victim->pcdata->questpoints, (victim->pcdata->questpoints + value));
-            victim->pcdata->questpoints += value;
             return;
         }
-
-        if ( !str_prefix( arg2, "remort" ) )
-        {
-            if ( IS_NPC(victim) )
-            {
-                send_to_char( "Not on NPC's.\n\r", ch );
-                return;
-            }
-            
-            if ( value < 0 || value > 10 )
-            {
-                send_to_char( "Remort range is 0 through 10.\n\r", ch );
-                return;
-            }
-            victim->pcdata->remorts = value;
-            return;
-        }
+    }
         
-        if ( !str_prefix( arg2, "house" ) )     /* House ownership .. RP only concept, shown in do_worth */
-        {
-            if ( IS_NPC(ch) )
-            {
-                send_to_char( "Not for NPC's.\n\r", ch );
-                return;
-            }
-         
-            if ( IS_NPC( victim ) )
-            {
-                send_to_char( "Not on NPC's.\n\r", ch );
-                return;
-            }
-
-	    victim->pcdata->house = value;
-	    printf_to_char(ch, "The value of %s's house is set to %d gold.\n\r",
-	        victim->name, victim->pcdata->house );
-            printf_to_char(victim, "%s has recorded that your house is worth %d gold.\n\r",
-                ch->name, victim->pcdata->house );
-            return;
-        }        
-        
-        /*
-        * Generate usage message.
-        */
-        do_mset( ch, "" );
-        return;
+    /*
+    * Generate usage message.
+    */
+    do_mset( ch, "" );
+    return;
 }
 
 void do_oset( CHAR_DATA *ch, char *argument )
@@ -2498,7 +2663,7 @@ void do_frfind( CHAR_DATA *ch, char *argument )
     AREA_DATA *area;
     RESET_DATA *p;
     MOB_INDEX_DATA *mob;
-    MPROG_LIST *mprog;
+    PROG_LIST *mprog;
     int i, nr, min, max;
 
     area = ch->in_room->area;

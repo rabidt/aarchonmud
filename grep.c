@@ -1730,7 +1730,7 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
 
 bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
 {
-    MPROG_LIST *mprog;
+    PROG_LIST *mprog;
 
     for ( mprog = mob->mprogs; mprog != NULL; mprog = mprog->next )
 	if ( mprog->vnum == vnum )
@@ -1740,7 +1740,7 @@ bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
 
 bool has_oprog( OBJ_INDEX_DATA *obj, int vnum )
 {
-    OPROG_LIST *oprog;
+    PROG_LIST *oprog;
 
     for ( oprog = obj->oprogs; oprog != NULL; oprog = oprog->next )
     if ( oprog->vnum == vnum )

@@ -3247,10 +3247,15 @@ void do_gag( CHAR_DATA *ch, char *argument )
 
 void do_try ( CHAR_DATA *ch, char *argument )
 {
+  if (IS_NPC(ch))
+      return;
+
   if (argument[0] == '\0')
     send_to_char("Try to do what?\n\r", ch);
   else
-    if (!mp_try_trigger(argument, ch) && !op_try_trigger(argument, ch))
+    if (!mp_try_trigger(argument, ch) 
+            && !op_try_trigger(argument, ch)
+            && !rp_try_trigger(argument, ch) )
       send_to_char("That didn't work.\n\r", ch);
 
 }

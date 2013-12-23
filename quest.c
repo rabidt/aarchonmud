@@ -221,10 +221,8 @@ void quest_update   args(( void ));
 bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
 bool chance     args(( int num ));
 
-/* Added for Vodurs ptitle and name color -- Maedhros 11/12/11 */
-void color_name( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
+bool  color_name( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
 void set_pre_title ( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
-/* End of ptitle and color */
 
 /* Added for "hard" quest option -- Astark Feb2012 */
 void generate_quest_hard args(( CHAR_DATA *ch, CHAR_DATA *questman ));
@@ -359,16 +357,20 @@ void do_quest(CHAR_DATA *ch, char *argument)
         act("$n admits defeat and fails $s quest.",ch,NULL,NULL,TO_ROOM);
         send_to_char("You shamefully admit defeat before your questmaster.\n\r",ch);
         send_to_char("You will be given the chance to redeem yourself in 10 minutes.\n\r",ch);
-        REMOVE_BIT(ch->act, PLR_QUESTOR);
-        REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         ch->pcdata->quest_failed++;
 		update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
+
+        if (IS_SET(ch->act,PLR_QUESTORHARD))
+            ch->pcdata->quest_hard_failed++;
+
         ch->pcdata->questgiver = NULL;
         ch->pcdata->countdown = 0;
         ch->pcdata->questmob = 0;
         ch->pcdata->questobj = 0;
 	ch->pcdata->questroom = 0;
 	ch->pcdata->questarea = 0;
+        REMOVE_BIT(ch->act, PLR_QUESTOR);
+        REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         
         /* Changed to include a define - Maedhros, Feb 7, 2006 */
 	/* ch->pcdata->nextquest = 10; */
@@ -747,6 +749,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 if ( per_chance(20) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(50, 100+luck);
+                ch->pcdata->quest_hard_success++;
             }
             else
             {
@@ -771,6 +774,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 if ( per_chance(20) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
+                ch->pcdata->quest_hard_success++;
             }
             else
             {
@@ -1496,10 +1500,7 @@ void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch )
     }
 }
 
-/* Added for code submitted by Vodur to change name color and give a title */
-/* Maedhros 11-12-11 */
-
-void color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
+bool color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
 {
   char arg2 [MAX_INPUT_LENGTH];
   char buf [3] = "";
@@ -1512,20 +1513,20 @@ void color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
   if ( !strcmp(arg2, "" ))
   {
     send_to_char("Available colors: {rred{x, {yyellow{x, {ggreen{x, {Bhi-blue{x, {mmagenta{x, {wwhite{x, {ccyan{x and {Dgrey{x.  \n\r'clear' argument removes current color at no cost. \n\r",ch);
-    return;
+    return FALSE;
   }
 
   if ( IS_NPC(victim) )
   {
-    return;
+    return FALSE;
   }
 
   if (!strcmp(arg2, "clear"))
   {
     free_string(victim->pcdata->name_color);
     victim->pcdata->name_color = str_dup("");
-    send_to_char("Name color cleared.",ch);
-    return;
+    send_to_char("Name color cleared.\n\r",ch);
+    return TRUE;
   }
 
   if (!strcmp(arg2, "red"))
@@ -1577,13 +1578,13 @@ void color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
   {
 	  send_to_char("Available colors: {rred{x, {yyellow{x, {ggreen{x, {Bhi-blue{x, {mmagenta{x, {wwhite{x, {ccyan{x and {Dgrey{x.  \n\r'clear' argument removes current color at no cost. \n\r",ch);
 	 
-    return;
+    return FALSE;
   }
 
   if (!strcmp(victim->pcdata->name_color,buf))
   {
     send_to_char("That color is already set!\n\r",ch);
-    return;
+    return FALSE;
   }
 
   free_string( victim->pcdata->name_color );
@@ -1595,7 +1596,7 @@ void color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
     victim->pcdata->questpoints -= 200;
   }
 
-  return;
+  return TRUE;
 }
 
 void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
@@ -1723,8 +1724,6 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
   fpReserve = fopen( NULL_FILE, "r" );
   return TRUE;
 }
-/* End of Vodurs Pretitle and name color */
-
 
 
 void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit )

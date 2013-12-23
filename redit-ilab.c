@@ -473,6 +473,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 {
 	char reboot[20]; /* description of reboot status */
 	char buf[200];   /* buffer to hold reset line */
+    char buf2[MSL];
 	char spaces[11]; /* for indentation */
 	
 	/* This buffer is only used for the items where arg2 really IS reboot arg */
@@ -480,7 +481,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 		strcpy (reboot, "reboot");
 	else
 	if (pReset->command == 'M')
-		sprintf (reboot, "max %d", pReset->arg2);
+		sprintf (reboot, "%2d  - %2d ", pReset->arg2, pReset->arg4);
 	else /* non-zero limit for objects means chance of loading */
 		if (pReset->arg2 < 2)
 			sprintf (reboot, "always");
@@ -501,21 +502,32 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'M': /* MOB */
 	{
 		MOB_INDEX_DATA *mob = get_mob_index (pReset->arg1);
-		sprintf (buf, "%2d> [%5d] %s %s (%s)",
-					number, pReset->arg1, 
-					(mob && mob->pShop) ? "(shop)" : "",
-					mob ? mob->short_descr : "(non-existant)",
-					reboot);
-		break;
+                char *sdesc=truncate_color_string( mob->short_descr, 35);
+                sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%ds  {x[%%s]",
+                    35 + ( mob ? strlen(sdesc) - strlen_color(sdesc) : 0));
+                sprintf( buf, buf2,
+                    number, 
+                    pReset->arg1, 
+                    (mob && mob->pShop) ? "Y " : "",
+                    mob ? sdesc : "(non-existant)",
+                    reboot);
+                break;
 	} /* case MOB */
 	
 	case 'O': /* Obj on the floor */
 	{
-		OBJ_INDEX_DATA* obj = get_obj_index (pReset->arg1);
-		sprintf (buf, "%2d> [%5d] L%d %s (%s)",
-         number, pReset->arg1, obj ? obj->level : last_level,
-					obj ? obj->short_descr : "(non-existant)",
-					reboot);
+        OBJ_INDEX_DATA* obj = get_obj_index (pReset->arg1);
+        char *sdesc=truncate_color_string( obj->short_descr, 28);
+
+                sprintf (buf2, "%%2d> [%%5d]    <in room>           Lv%%3d %%-%ds {x(%%s)",
+                    28 + ( obj ? strlen(sdesc)  - strlen_color(sdesc) : 0));
+
+                sprintf( buf, buf2,
+                    number, 
+                    pReset->arg1, 
+                    obj ? obj->level : last_level,
+                    obj ? sdesc : "(non-existant)",
+                    reboot);
 		break;
 		
 	} /* case OBJ */
@@ -523,46 +535,54 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'P': /* Put inside */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
+                char *sdesc=truncate_color_string( obj->short_descr, 28);
 		OBJ_INDEX_DATA *container = get_obj_index (pReset->arg3);
 		
 		strcpy (spaces, "          "); /* fill spaces.. with spaces! */
 		spaces[nesting*2] = '\0'; /* spaces now has nesting*2 spaces */
-		
-		sprintf (buf, "%2d>  %s<inside [%5d] %s> [%5d] L%d %s (%s)",
-				    number, spaces, /* num and indentation */
-				    pReset->arg3, /* vnum of container */
-				    container ? container->short_descr : "(non-existant)",
-                pReset->arg1, obj ? obj->level : last_level, /* obj vnum, last level */
-				    obj ? obj->short_descr : "(non-existant)",
-				    reboot);
-		break;
+                sprintf (buf2, "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%ds {x(%%s)",
+                    28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
+                sprintf (buf, buf2,
+                    number,                                      /* reset number */
+                    pReset->arg1,                                /* obj vnum */
+                    pReset->arg3,                                /* container vnum */
+                    obj ? obj->level : last_level,               /* obj level */
+                    obj ? sdesc : "(non-existant)",   /* obj short desc */
+                    reboot);                                     /* reboot or always */
+                break;
 	} /* case PUT */
 	
 	case 'G': /* Give to mob */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-		
-		sprintf (buf, "%2d>  <inventory>         [%5d] L%d %s (%s)",
-         number, pReset->arg1, obj ? obj->level : last_level,
-					  obj ? obj->short_descr : "(non-existant)",
-					  reboot);
+                char *sdesc=truncate_color_string( obj->short_descr, 28);
+                sprintf (buf2, "%%2d>  ^[%%5d]  <inventory>         Lv%%3d %%-%ds {x(%%s)",
+                    28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
+                sprintf (buf, buf2,
+                    number, 
+                    pReset->arg1, 
+                    obj ? obj->level : last_level,
+                    obj ? sdesc : "(non-existant)",
+                    reboot); 
+
 		break;
 	} /* case GIVE */
 	
 	case 'E': /* Equip mob */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-		
-		sprintf (buf, "%2d>  %s[%5d] L%d %s (%s)",
-					   number,
-
-					   /* check for correct location */
-					   ((pReset->arg3 < 0) || (pReset->arg3 >= MAX_WEAR))
-					   ? " <invalid location> "
-					   : where_name[pReset->arg3],
-                  pReset->arg1, obj ? obj->level : last_level,/* obj vnum */
-					   obj ? obj->short_descr : "(non-existant)",
-					   reboot); /* reboot status */
+                char *sdesc=truncate_color_string( obj->short_descr, 28);
+		sprintf (buf2, "%%2d>  ^[%%5d]  %%sLv%%3d %%-%ds {x(%%s)",
+                    28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
+                sprintf (buf, buf2,
+                    number,
+                    pReset->arg1, 
+                    ((pReset->arg3 < 0) || (pReset->arg3 >= MAX_WEAR))
+                        ? " <invalid location> "
+                        : where_name[pReset->arg3], /* check for correct location */
+                    obj ? obj->level : last_level,  /* obj vnum */
+                    obj ? sdesc : "(non-existant)",
+                    reboot); /* reboot status */
 		break;
 					   
 	} /* case EQUIP */
@@ -623,9 +643,12 @@ void do_rlook (CHAR_DATA *ch, char *argument)
 	RESET_DATA *p, *q;
 	bool last_mob_here = FALSE;
 	
-	sprintf (buf, "Resets for room %d (%s)\n\r", 
+	sprintf (buf, "  Room #: [%5d]  Room Name: [%s]\n\r", 
 	              ch->in_room->vnum, ch->in_room->name);
-	send_to_char (buf,ch);	        
+	send_to_char (buf,ch);
+        sprintf (buf, "     Vnum   Shop?  Short Desc                       Max:Area - Room\n\r");
+        send_to_char (buf,ch);
+        send_to_char ("------------------------------------------------------------------------------\n\r",ch);
 	              
 	for (p = ch->in_room->reset_first; p ; p = p->next)
 	{
@@ -1463,45 +1486,6 @@ void do_rwhere (CHAR_DATA *ch, char *argument)
 }
 
 /*
- * Finds every mob or object in the current area with the specified keyword
- */
-void do_rfind (CHAR_DATA *ch, char *argument)
-{
-	MOB_INDEX_DATA *mob;
-	OBJ_INDEX_DATA *obj;
-	int i,number;
-	char buf[MAX_STRING_LENGTH];
-	
-	if (!argument[0])
-	{
-		send_to_char ("Find mobs/objects with which keyword?\n\r",ch);
-		return;
-	}
-
-	number = 1;	
-	for (i = 0; i < MAX_KEY_HASH; i++)
-		for (mob = mob_index_hash[i]; mob ; mob = mob->next)
-			if ((mob->area == ch->in_room->area) &&
-			    is_name (argument, mob->player_name) )
-			   {
-					sprintf (buf, "%3d> [%5d] %s\n\r", number, mob->vnum, mob->short_descr);
-					send_to_char (buf,ch);
-					number++;
-			   }
-
-	number = 1;
-	for (i = 0; i < MAX_KEY_HASH; i++)
-		for (obj = obj_index_hash[i]; obj ; obj = obj->next)
-			if ((obj->area == ch->in_room->area) &&
-			    is_name (argument, obj->name))
-			   {
-					sprintf (buf, "%3d> [%5d] %s\n\r", number, obj->vnum, obj->short_descr);
-					send_to_char (buf,ch);
-					number++;
-			   }
-}
-
-/*
  * Removes a reset in the current room
  * rkill <number> ["confirm" ["all"]]
  * Will warn if the mob had any G/E on it, if so ALL is required to purge
@@ -2099,47 +2083,4 @@ void do_rforce (CHAR_DATA *ch, char* argument)
         if ( pRoomIndex != NULL && area == pRoomIndex->area )
         	area->age = 15 - 3;
 	}
-}
-
-
-/*
- * Raw view of resets, for debugging purposes
- */
-void do_rview (CHAR_DATA *ch, char *argument)
-{
-	char buf2[100];
-	BUFFER *buffer = new_buf_size (4000);
-    int i;
-    ROOM_INDEX_DATA *p;
-    RESET_DATA *r;
-
-	add_buf (buffer, "Resets for this area:\n\r");
-	
-
-    for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++)
-    {
-        if ((p = get_room_index(i)) != NULL)
-            for (r = p->reset_first; r; r = r->next)
-            {
-                sprintf (buf2, "%c %d %d", r->command, r->arg1, r->arg2);
-                add_buf(buffer, buf2);
-
-                if (r->command != 'G' && r->command != 'R')
-                {
-                    sprintf (buf2, " %d", r->arg3);
-                    add_buf(buffer, buf2);
-                    
-                    if (r->command == 'P' || r->command == 'M')
-                    {
-                        sprintf (buf2, " %d", r->arg4);
-                        add_buf(buffer, buf2);
-                    }
-                }
-                sprintf(buf2, "\n\r");
-                add_buf (buffer, buf2);
-            }
-    }
-	
-	send_to_char (buffer->string,ch); /* allow for pager to kick in */
-	free_buf (buffer);
 }

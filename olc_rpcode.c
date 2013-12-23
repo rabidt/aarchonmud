@@ -31,7 +31,7 @@ const struct olc_cmd_type rpedit_table[] =
 
 void rpedit( CHAR_DATA *ch, char *argument)
 {
-    RPROG_CODE *pRcode;
+    PROG_CODE *pRcode;
     char arg[MAX_INPUT_LENGTH];
     char command[MAX_INPUT_LENGTH];
     int cmd;
@@ -105,7 +105,7 @@ void do_rprun( CHAR_DATA *ch, char *argument)
     int vnum=0;
     char arg[MSL];
     char arg2[MSL];
-    RPROG_CODE *pRcode;
+    PROG_CODE *pRcode;
     bool result=FALSE;
 
     if ( argument[0]=='\0' )
@@ -160,7 +160,7 @@ void do_rprun( CHAR_DATA *ch, char *argument)
 
 void do_rpedit(CHAR_DATA *ch, char *argument)
 {
-    RPROG_CODE *pRcode;
+    PROG_CODE *pRcode;
     char command[MAX_INPUT_LENGTH];
 
     argument = one_argument(argument, command);
@@ -222,7 +222,7 @@ void do_rpedit(CHAR_DATA *ch, char *argument)
 
 RPEDIT (rpedit_create)
 {
-    RPROG_CODE *pRcode;
+    PROG_CODE *pRcode;
     int value = atoi(argument);
     AREA_DATA *ad;
 
@@ -274,25 +274,24 @@ RPEDIT (rpedit_create)
 
 RPEDIT(rpedit_show)
 {
-    RPROG_CODE *pRcode;
-    char buf[MAX_STRING_LENGTH];
+    PROG_CODE *pRcode;
     EDIT_RPCODE(ch,pRcode);
 
-    sprintf(buf,
+    ptc( ch,
            "Vnum:       [%d]\n\r"
            "Security:   %d\n\r"
-           "Code:\n\r%s\n\r",
+           "Code:\n\r",
            pRcode->vnum,
-           pRcode->security,
-           pRcode->code  );
-    page_to_char_new(buf, ch, TRUE);
+           pRcode->security);
 
+    dump_prog( ch, pRcode->code, TRUE);
+    
     return FALSE;
 }
 
 RPEDIT(rpedit_security)
 {
-    RPROG_CODE *pRcode;
+    PROG_CODE *pRcode;
     EDIT_RPCODE(ch, pRcode);
     int newsec;
 
@@ -331,9 +330,9 @@ RPEDIT(rpedit_security)
 
 }
 
-void fix_rprog_rooms( CHAR_DATA *ch, RPROG_CODE *pRcode )
+void fix_rprog_rooms( CHAR_DATA *ch, PROG_CODE *pRcode )
 {
-    RPROG_LIST *rpl;
+    PROG_LIST *rpl;
     int hash;
     char buf[MSL];
     ROOM_INDEX_DATA *room;
@@ -346,7 +345,7 @@ void fix_rprog_rooms( CHAR_DATA *ch, RPROG_CODE *pRcode )
 
 RPEDIT(rpedit_code)
 {
-    RPROG_CODE *pRcode;
+    PROG_CODE *pRcode;
     EDIT_RPCODE(ch, pRcode);
 
     if (argument[0] =='\0')

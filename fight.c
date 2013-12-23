@@ -155,7 +155,7 @@ void  check_reset_stance args( ( CHAR_DATA *ch) );
 void  stance_hit    args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 bool is_normal_hit( int dt );
 bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
-bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
+bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
 bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -555,7 +555,7 @@ void special_affect_update(CHAR_DATA *ch)
     {
         int damage = number_range (5, 25) + ch->level*3/2;
         send_to_char( "Your festering wound oozes blood.\n\r", ch );
-        deal_damage( ch, ch, damage, gsn_infectious_arrow, DAM_DISEASE, TRUE, FALSE, FALSE );
+        deal_damage( ch, ch, damage, gsn_infectious_arrow, DAM_DISEASE, TRUE, FALSE );
     }
 
     /* Rupture - DOT - Damage over time */
@@ -563,7 +563,7 @@ void special_affect_update(CHAR_DATA *ch)
     {
         int damage = number_range (5, 25) + ch->level*3/2;
         send_to_char( "Your ruptured wound oozes blood.\n\r", ch );
-        deal_damage( ch, ch, damage, gsn_rupture, DAM_PIERCE, TRUE, FALSE, FALSE );
+        deal_damage( ch, ch, damage, gsn_rupture, DAM_PIERCE, TRUE, FALSE );
     }
 
     /* Paralysis - DOT - Damage over time - Astark Oct 2012 */
@@ -571,7 +571,7 @@ void special_affect_update(CHAR_DATA *ch)
     {
         int damage = number_range (5, 25) + ch->level*3/2;
         send_to_char( "The paralyzing poison cripples you.\n\r", ch );
-        deal_damage( ch, ch, damage, gsn_paralysis_poison, DAM_POISON, TRUE, FALSE, FALSE );
+        deal_damage( ch, ch, damage, gsn_paralysis_poison, DAM_POISON, TRUE, FALSE );
     }
     
 }
@@ -1830,6 +1830,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         offence = deduct_move_cost(ch, offence_cost);
     }
     
+    start_combat(ch, victim);
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
         /* Miss. */
@@ -1842,6 +1843,10 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         tail_chain( );
         return FALSE;
     }
+    
+    // Check for parry, dodge, etc. and fade
+    if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+        return FALSE;
         
     if (sn != -1)
 	check_improve( ch, sn, TRUE, 10 );
@@ -1926,11 +1931,11 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( IS_AFFECTED(ch, AFF_PLAGUE) )
         dam -= dam / 20;
 
-    if ( check_critical(ch,secondary) == TRUE )
+    /* Crit strike stuff split up for oprog */
+    /* first apply dam bonus */
+    bool crit=check_critical(ch,secondary);
+    if ( crit )
     {
-	act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
-        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
-        check_improve(ch,gsn_critical,TRUE,4);
         dam *= 2;
     }
 
@@ -1939,7 +1944,19 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     if ( dam <= 0 )
 	dam = 1;
-    
+
+    /* prehit trigger for weapons */
+    if ( wield && !op_prehit_trigger( wield, ch, victim, dam ) )
+        return FALSE;
+
+    /* If oprog didn't stop the hit then do the rest of crit strike stuff */
+    if ( crit )
+    {
+        act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
+        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
+        check_improve(ch,gsn_critical,TRUE,4);
+    }
+
     result = full_dam( ch, victim, dam, dt, dam_type, TRUE );
     
     /* arrow damage & handling */
@@ -1990,6 +2007,13 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
         one_hit(ch, victim, dt, secondary);
     }
+
+   if ( wield )
+   {
+       op_percent_trigger( NULL, wield, NULL, ch, victim, OTRIG_HIT );
+       if ( stop_attack(ch, victim) )
+            return TRUE;
+   }
 
    tail_chain( );
    return TRUE;
@@ -2651,7 +2675,7 @@ void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
 bool damage( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
 	     bool show )
 {
-    /* damage reduction */
+    // damage reduction
     if ( dam > 40)
     {
         dam = (2*dam - 80)/3 + 40;
@@ -2667,7 +2691,7 @@ bool damage( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
         }
     }
 
-    return deal_damage( ch, victim, dam, dt, dam_type, show, TRUE, TRUE );
+    return deal_damage( ch, victim, dam, dt, dam_type, show, TRUE );
 }
 
 // if ch is a charmed NPC and leader is present, returns leader, otherwise ch
@@ -2717,10 +2741,10 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
 */
 bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show )
 {
-    return deal_damage(ch, victim, dam, dt, dam_type, show, TRUE, TRUE);
+    return deal_damage(ch, victim, dam, dt, dam_type, show, TRUE);
 }
 
-bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable )
+bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal )
 {
     bool immune;
     char buf[MAX_STRING_LENGTH];
@@ -2730,6 +2754,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( stop_attack(ch, victim) )
         return FALSE;
     
+    if ( is_safe(ch, victim) )
+        return FALSE;
+
     /*
     * Stop up any residual loopholes.
     */
@@ -2744,41 +2771,13 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     
     if ( victim != ch )
     {
-    /*
-    * Certain attacks are forbidden.
-    * Most other attacks are returned.
-        */
-        if ( is_safe( ch, victim ) )
+        
+        check_killer(ch, victim);
+        if ( !start_combat(ch, victim) )
             return FALSE;
         
-        check_killer( ch, victim );
-        
         if ( victim->position > POS_STUNNED )
         {
-            if ( victim->fighting == NULL )
-            {
-                set_fighting( victim, ch );
-		/* trick to make mob peace work properly */
-		if ( victim->fighting == NULL )
-		    return FALSE;
-		/*
-		if ( check_kill_trigger(ch, victim) )
-		    return FALSE;
-		*/
-            }
-	    /* what has timer to do with getting up?
-            if (victim->timer <= 4)
-		set_pos( victim, POS_FIGHTING );
-	    */
-        }
-        
-        if ( victim->position > POS_STUNNED )
-        {
-            if ( ch->fighting == NULL )
-            {
-                set_fighting( ch, victim );
-            }
-            
             if ( IS_NPC(ch)
                 &&   IS_NPC(victim)
                 &&   IS_AFFECTED(victim, AFF_CHARM)
@@ -2791,8 +2790,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 return FALSE;
             }
         }
-        
-        attack_affect_strip(ch, victim);
     
     } /* if ( ch != victim ) */
 
@@ -2840,12 +2837,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 
     immune = FALSE;
     
-    /*
-    * Check for parry, dodge, etc. and fade
-    */
-    if ( avoidable && is_normal_hit(dt) && check_avoid_hit(ch, victim, show) )
-	return FALSE;
-
     /* check imm/res/vuln for single & mixed dam types */
     if ( dam > 0 )
 	if (IS_MIXED_DAMAGE(dam_type))
@@ -4645,13 +4636,19 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
       set_pos( ch, POS_FIGHTING );
 }
 
-void start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
+bool start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
 {
+    attack_affect_strip(ch, victim);
     if ( !ch->fighting )
+    {
         set_fighting(ch, victim);
-    // double check that set_fighting worked in case kill_trigger stopped it
-    if ( ch->fighting && !victim->fighting )
-        set_fighting(victim, ch);
+        // double check that set_fighting worked in case kill_trigger stopped it
+        if ( ch->fighting != victim )
+            return FALSE;
+    }
+    if ( !victim->fighting )
+        set_fighting_new(victim, ch, FALSE);
+    return TRUE;
 }
 
 /*
@@ -5575,6 +5572,67 @@ void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gai
     return;
 }        
 
+/* return gagtype if any */
+int get_damage_messages( int dam, int dt, char **vs, char **vp, char *punct )
+{
+    int gag_type=0;
+    if (dam<100)
+        if (dam < 39)
+        {
+            if ( dam < 1 )
+            { 
+                *vs = "miss"; *vp = "misses";
+                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick )
+                    gag_type = GAG_MISS;
+            }
+            else if ( dam <   2 ) { *vs = "{mbother{ ";  *vp = "{mbothers{ "; }
+            else if ( dam <   5 ) { *vs = "{mscratch{ "; *vp = "{mscratches{ ";   }
+            else if ( dam <   8 ) { *vs = "{mbruise{ ";  *vp = "{mbruises{ "; }
+            else if ( dam <  11 ) { *vs = "{bglance{ ";  *vp = "{bglances{ "; }
+            else if ( dam <  15 ) { *vs = "{bhurt{ ";    *vp = "{bhurts{ ";   }
+            else if ( dam <  20 ) { *vs = "{Bgraze{ ";   *vp = "{Bgrazes{ ";  }
+            else if ( dam <  27 ) { *vs = "{Bhit{ ";     *vp = "{Bhits{ ";    }
+            else if ( dam <  31 ) { *vs = "{Binjure{ ";  *vp = "{Binjures{ "; }
+            else if ( dam <  35 ) { *vs = "{Cwound{ ";   *vp = "{Cwounds{ ";  }
+            else { *vs = "{CPUMMEL{ ";  *vp = "{CPUMMELS{ "; }
+        } else {
+            if ( dam <  44 ) { *vs = "{CMAUL{ ";        *vp = "{CMAULS{ ";   }
+            else if ( dam <  48 ) { *vs = "{GDECIMATE{ ";    *vp = "{GDECIMATES{ ";   }
+            else if ( dam <  52 ) { *vs = "{GDEVASTATE{ ";   *vp = "{GDEVASTATES{ ";}
+            else if ( dam <  56 ) { *vs = "{GMAIM{ ";        *vp = "{GMAIMS{ ";   }
+            else if ( dam <  60 ) { *vs = "{yMANGLE{ ";  *vp = "{yMANGLES{ "; }
+            else if ( dam <  64 ) { *vs = "{yDEMOLISH{ ";    *vp = "{yDEMOLISHES{ ";}
+            else if ( dam <  70 ) { *vs = "*** {yMUTILATE{  ***"; *vp = "*** {yMUTILATES{  ***";}
+            else if ( dam <  80 ) { *vs = "*** {YPULVERIZE{  ***";   *vp = "*** {YPULVERIZES{  ***";}
+            else if ( dam <  90 ) { *vs = "=== {YDISMEMBER{  ==="; *vp = "=== {YDISMEMBERS{  ===";}
+            else { *vs = "=== {YDISEMBOWEL{  ==="; *vp = "=== {YDISEMBOWELS{  ===";}
+        }
+        else
+            if (dam < 220)
+            {
+                if ( dam <  110) { *vs = ">>> {rMASSACRE{  <<<"; *vp = ">>> {rMASSACRES{  <<<";}
+                else if ( dam < 120)  { *vs = ">>> {rOBLITERATE{  <<<"; *vp = ">>> {rOBLITERATES{  <<<";}
+                else if ( dam < 135)  { *vs = "{r<<< ANNIHILATE >>>{ "; *vp = "{r<<< ANNIHILATES >>>{ ";}
+                else if ( dam < 150)  { *vs = "{r<<< DESTROY >>>{ "; *vp = "{r<<< DESTROYS >>>{ ";}
+                else if ( dam < 165)  { *vs = "{R!!! ERADICATE !!!{ "; *vp = "{R!!! ERADICATES !!!{ ";}
+                else if ( dam < 190)  { *vs = "{R!!! LIQUIDATE !!!{ "; *vp = "{R!!! LIQUIDATES !!!{ ";}
+                else { *vs = "{RXXX VAPORIZE XXX{ "; *vp = "{RXXX VAPORIZES XXX{ ";}
+            } else {
+                if ( dam < 250)  { *vs = "{RXXX DISINTEGRATE XXX{ "; *vp = "{RXXX DISINTEGRATES XXX{ ";}
+                else if ( dam < 300)  { *vs = "do {+SICKENING{  damage to"; *vp = "does {+SICKENING{  damage to";}
+                else if ( dam < 400)  { *vs = "do {+INSANE{  damage to"; *vp = "does {+INSANE{  damage to";}
+                else if ( dam < 600)  { *vs = "do {+UNSPEAKABLE{  things to"; *vp = "does {+UNSPEAKABLE{  things to";}
+                else if ( dam < 1000)  { *vs = "do {+{%BLASPHEMOUS{  things to"; *vp = "does {+{%BLASPHEMOUS{  things to";}
+                else if ( dam < 1500)  { *vs = "do {+{%UNBELIEVABLE{  things to"; *vp = "does {+{%UNBELIEVABLE{  things to";}
+                else    { *vs = "do {+{%INCONCEIVABLE{  things to"; *vp = "does {+{%INCONCEIVABLE{  things to";}
+            }
+
+    *punct   = (dam < 31) ? '.' : '!';
+
+    return gag_type;
+
+}
+
 void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 {
     char buf[256], buf1[256], buf2[256], buf3[256];
@@ -5603,58 +5661,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 	victmeter = ((IS_AFFECTED(victim, AFF_BATTLE_METER) && (dam>0)) ? buf : "");
 	#endif
 
-	if (dam<100)
-	if (dam < 39)
-	{
-	    if ( dam < 1 )
-	    { 
-		vs = "miss"; vp = "misses";
-		if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick )
-		    gag_type = GAG_MISS;
-	    }
-        else if ( dam <   2 ) { vs = "{mbother{ ";  vp = "{mbothers{ "; }
-        else if ( dam <   5 ) { vs = "{mscratch{ "; vp = "{mscratches{ ";   }
-        else if ( dam <   8 ) { vs = "{mbruise{ ";  vp = "{mbruises{ "; }
-        else if ( dam <  11 ) { vs = "{bglance{ ";  vp = "{bglances{ "; }
-        else if ( dam <  15 ) { vs = "{bhurt{ ";    vp = "{bhurts{ ";   }
-        else if ( dam <  20 ) { vs = "{Bgraze{ ";   vp = "{Bgrazes{ ";  }
-        else if ( dam <  27 ) { vs = "{Bhit{ ";     vp = "{Bhits{ ";    }
-        else if ( dam <  31 ) { vs = "{Binjure{ ";  vp = "{Binjures{ "; }
-        else if ( dam <  35 ) { vs = "{Cwound{ ";   vp = "{Cwounds{ ";  }
-        else { vs = "{CPUMMEL{ ";  vp = "{CPUMMELS{ "; }
-		} else {
-        if ( dam <  44 ) { vs = "{CMAUL{ ";        vp = "{CMAULS{ ";   }
-        else if ( dam <  48 ) { vs = "{GDECIMATE{ ";    vp = "{GDECIMATES{ ";   }
-        else if ( dam <  52 ) { vs = "{GDEVASTATE{ ";   vp = "{GDEVASTATES{ ";}
-        else if ( dam <  56 ) { vs = "{GMAIM{ ";        vp = "{GMAIMS{ ";   }
-        else if ( dam <  60 ) { vs = "{yMANGLE{ ";  vp = "{yMANGLES{ "; }
-        else if ( dam <  64 ) { vs = "{yDEMOLISH{ ";    vp = "{yDEMOLISHES{ ";}
-        else if ( dam <  70 ) { vs = "*** {yMUTILATE{  ***"; vp = "*** {yMUTILATES{  ***";}
-        else if ( dam <  80 ) { vs = "*** {YPULVERIZE{  ***";   vp = "*** {YPULVERIZES{  ***";}
-        else if ( dam <  90 ) { vs = "=== {YDISMEMBER{  ==="; vp = "=== {YDISMEMBERS{  ===";}
-        else { vs = "=== {YDISEMBOWEL{  ==="; vp = "=== {YDISEMBOWELS{  ===";}
-		}
-    else
-		if (dam < 220)
-		{
-        if ( dam <  110) { vs = ">>> {rMASSACRE{  <<<"; vp = ">>> {rMASSACRES{  <<<";}
-        else if ( dam < 120)  { vs = ">>> {rOBLITERATE{  <<<"; vp = ">>> {rOBLITERATES{  <<<";}
-        else if ( dam < 135)  { vs = "{r<<< ANNIHILATE >>>{ "; vp = "{r<<< ANNIHILATES >>>{ ";}
-        else if ( dam < 150)  { vs = "{r<<< DESTROY >>>{ "; vp = "{r<<< DESTROYS >>>{ ";}
-        else if ( dam < 165)  { vs = "{R!!! ERADICATE !!!{ "; vp = "{R!!! ERADICATES !!!{ ";}
-        else if ( dam < 190)  { vs = "{R!!! LIQUIDATE !!!{ "; vp = "{R!!! LIQUIDATES !!!{ ";}
-        else { vs = "{RXXX VAPORIZE XXX{ "; vp = "{RXXX VAPORIZES XXX{ ";}
-		} else {
-        if ( dam < 250)  { vs = "{RXXX DISINTEGRATE XXX{ "; vp = "{RXXX DISINTEGRATES XXX{ ";}
-        else if ( dam < 300)  { vs = "do {+SICKENING{  damage to"; vp = "does {+SICKENING{  damage to";}
-        else if ( dam < 400)  { vs = "do {+INSANE{  damage to"; vp = "does {+INSANE{  damage to";}
-        else if ( dam < 600)  { vs = "do {+UNSPEAKABLE{  things to"; vp = "does {+UNSPEAKABLE{  things to";}
-        else if ( dam < 1000)  { vs = "do {+{%BLASPHEMOUS{  things to"; vp = "does {+{%BLASPHEMOUS{  things to";}
-        else if ( dam < 1500)  { vs = "do {+{%UNBELIEVABLE{  things to"; vp = "does {+{%UNBELIEVABLE{  things to";}
-        else    { vs = "do {+{%INCONCEIVABLE{  things to"; vp = "does {+{%INCONCEIVABLE{  things to";}
-		}
-    
-    punct   = (dam < 31) ? '.' : '!';
+    gag_type = get_damage_messages( dam, dt, &vs, &vp, &punct);
     
 #ifdef DEBUG_DAMTYPE
     if (dt == 1000 + DEBUG_DAMTYPE) {
@@ -6563,9 +6570,18 @@ void do_stance (CHAR_DATA *ch, char *argument)
 	 || (!IS_NPC(ch) && get_skill(ch, *(stances[i].gsn))==0)
 	 || (is_pet && i != ch->pIndexData->stance) )
     {
-	ch->stance = 0;
-	send_to_char("You do not know that stance.\n\r", ch);
-	return;
+        if (ch->stance && stances[ch->stance].name)
+        {
+            char buffer[80];
+            if (sprintf(buffer, "You do not know that stance so you stay in the %s stance.\n\r", stances[ch->stance].name) > 0)
+            {
+                send_to_char(buffer, ch);    
+                return;
+            }
+        }
+        
+        send_to_char("You do not know that stance.\n\r", ch);
+        return;
     }
         
     if ( ch->stance == i )
