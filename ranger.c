@@ -7,15 +7,8 @@
 *   Another batch added by James Stewart a.k.a "Siva".                 * 
 ***********************************************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#include <time.h>
-#else
 #include <sys/types.h>
-#if !defined(WIN32)
 #include <sys/time.h>
-#endif
-#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
