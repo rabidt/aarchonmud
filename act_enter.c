@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include "merc.h"
 #include "warfare.h"
+#include "lua_scripting.h"
 
 ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnum);
 
@@ -85,7 +86,7 @@ ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnu
                 &&   !IS_SET(room->room_flags, ROOM_SOLITARY) 
                 &&   !IS_SET(room->room_flags, ROOM_SAFE) 
                 &&   !IS_SET(room->room_flags, ROOM_JAIL) 
-                &&   !IS_SET(room->room_flags, ROOM_NO_RANDOM) 
+                &&   !IS_SET(room->room_flags, ROOM_NO_TELEPORT)
                 &&   !(IS_NPC(ch) 
 		       && IS_SET(ch->act,ACT_AGGRESSIVE) 
 		       && IS_SET(room->room_flags,ROOM_LAW)))
@@ -217,7 +218,7 @@ void do_enter( CHAR_DATA *ch, char *argument)
     /* check for exit triggers */
     if ( !IS_NPC(ch) )
     {
-        if ( !op_percent_trigger( portal, NULL, ch, NULL, OTRIG_ENTER ) )
+        if ( !op_percent_trigger( NULL, portal, NULL, ch, NULL, OTRIG_ENTER ) )
             return;
         if ( !rp_exit_trigger(ch) )
             return;

@@ -2146,6 +2146,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
    char buf[MAX_STRING_LENGTH];
    int sn;
    int skill;
+   int prac_curr, prac_gain;
 
    if ( IS_NPC(ch) )
 	  return;
@@ -2265,15 +2266,27 @@ void do_practice( CHAR_DATA *ch, char *argument )
 	  {
 		  WAIT_STATE(ch, 8);
 		ch->practice--;
-		 ch->pcdata->learned[sn] +=
-			ch_int_learn(ch) / skill_table[sn].rating[ch->class];
+              prac_curr = ch->pcdata->learned[sn];
+              prac_gain = ch_int_learn(ch) / skill_table[sn].rating[ch->class];
+		 ch->pcdata->learned[sn] += prac_gain;
+                 /*
 		 if ( ch->pcdata->learned[sn] < adept )
 		 {
 			act( "You practice $T.",
 			   ch, NULL, skill_table[sn].name, TO_CHAR );
 			act( "$n practices $T.",
 			   ch, NULL, skill_table[sn].name, TO_ROOM );
-		 }
+		 } 
+                 */
+                 /* Practices output now shows amount gained */
+                 if (ch->pcdata->learned[sn] < adept)
+                 {
+                     sprintf(buf, "You practice %s from %d%% to %d%%.\n\r",
+                         skill_table[sn].name, prac_curr, prac_curr + prac_gain);
+                     send_to_char(buf, ch);
+                     act( "$n practices $T.",
+                         ch, NULL, skill_table[sn].name, TO_ROOM );
+                 }
 		 else
 		 {
 			ch->pcdata->learned[sn] = adept;
@@ -2282,6 +2295,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
 			act( "$n is now learned at $T.",
 			   ch, NULL, skill_table[sn].name, TO_ROOM );
 		 }
+
 	  }
    }
    return;
@@ -2339,7 +2353,7 @@ void do_raceskills( CHAR_DATA *ch, char *argument )
  ********************************************************/
 
 /* Color, group support, buffers and other tweaks by Rimbol, 10/99. */
-void show_skill(char *argument, BUFFER *buffer);
+void show_skill(char *argument, BUFFER *buffer, CHAR_DATA *ch);
 void show_skill_all(BUFFER *buffer);
 void do_showskill(CHAR_DATA *ch,char *argument)
 {
@@ -2392,13 +2406,13 @@ void do_showskill(CHAR_DATA *ch,char *argument)
             if (group_table[group].spells[sn] == NULL)
                 break;
             
-            show_skill(group_table[group].spells[sn], buffer);
+            show_skill(group_table[group].spells[sn], buffer, ch);
             add_buf( buffer, "\n\r" );
         }
     }
     else           /* Argument was a valid skill/spell/stance name */
     {
-        show_skill(arg1, buffer);
+        show_skill(arg1, buffer, ch);
         show_groups(skill, buffer);
         show_mastery_groups(skill, buffer);
         show_races(skill, buffer);
@@ -2500,7 +2514,7 @@ void show_races( int skill, BUFFER *buffer )
 	add_buf( buffer, "\n\r" );
 }
 
-void show_skill(char *argument, BUFFER *buffer)
+void show_skill(char *argument, BUFFER *buffer, CHAR_DATA *ch)
 {
     int skill, cls = 0;
     int stance;
@@ -2527,13 +2541,14 @@ void show_skill(char *argument, BUFFER *buffer)
     {
         add_buff( buffer, "Base Mana: %d  Lag: %d  Duration: %s\n\r",
             skill_table[skill].min_mana, skill_table[skill].beats,
-            spell_duration_names[skill_table[skill].duration] );
+            spell_duration_names[skill_table[skill].duration]);
         add_buff( buffer, "Target: %s  Combat: %s\n\r",
             spell_target_names[skill_table[skill].target],
             skill_table[skill].minimum_position <= POS_FIGHTING ? "yes" : "no" );
     }
     else if (stances[stance].cost != 0)
-        add_buff(buffer, "Base Move: %d\n\r", stances[stance].cost);
+        add_buff(buffer, "Base Move: %d\n\r", 
+            stances[stance].cost);
     else
     {
         bool found = FALSE;
@@ -2563,6 +2578,9 @@ void show_skill(char *argument, BUFFER *buffer)
         stat_table[skill_table[skill].stat_second].name,
         (skill_table[skill].stat_third>=STAT_NONE) ? "none" :
         stat_table[skill_table[skill].stat_third].name);
+
+    if (IS_IMMORTAL(ch))
+        add_buff(buffer, "Skill Number: %d\n\r", skill_lookup(argument));
     
     add_buff(buffer, "\n\r{wClass          Level Points  Max  Mastery{x\n\r");
     add_buff(buffer,     "{w------------   ----- ------ ----- -------{x\n\r");

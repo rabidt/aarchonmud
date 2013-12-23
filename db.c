@@ -91,10 +91,10 @@ SHOP_DATA *     shop_last;
 
 NOTE_DATA *     note_free;
 
-MPROG_CODE *    mprog_list;
-OPROG_CODE *    oprog_list;
-APROG_CODE *    aprog_list;
-RPROG_CODE *    rprog_list;
+PROG_CODE *    mprog_list;
+PROG_CODE *    oprog_list;
+PROG_CODE *    aprog_list;
+PROG_CODE *    rprog_list;
 
 char            bug_buf     [2*MAX_INPUT_LENGTH];
 CHAR_DATA *     char_list;
@@ -751,8 +751,6 @@ void boot_db()
         fix_roomprogs( );
 
         
-        fBootDb = FALSE;
-        
 	/* load socials and disabled commands before resetting area,
 	 * reset triggers might want to call 'em --Bobble */
         log_string("Loading socials");
@@ -763,7 +761,14 @@ void boot_db()
         log_string("Converting objects from old to new format");
         convert_objects( );           /* ROM OLC */
         log_string("Resetting areas");
-        area_update( TRUE );
+        // reset multiple times to ensure the world isn't too empty
+        {
+            int count = 3;
+            while ( count-- )
+                area_update(TRUE);
+        }
+        log_string("Resetting herbs");
+        reset_herbs_world();
         
         log_string("Loading note boards");
         load_boards(); /* Load all boards */
@@ -788,6 +793,8 @@ void boot_db()
         load_portal_list();
 
     }
+
+    fBootDb = FALSE;
 
     // start checking for memory leaks now that we're ready
     reset_str_dup();
@@ -912,10 +919,7 @@ void load_area_file( FILE *fp, bool clone )
 		continue;
 	    }
 
-	    /* little hack to prevent get_obj_index etc. from exiting */
-	    fBootDb = FALSE;
 	    shift_area( current_area, shift, TRUE );
-	    fBootDb = TRUE;
 
 	    SET_BIT( current_area->area_flags, AREA_CLONE );
 	    rewind( fpArea );
@@ -1032,7 +1036,7 @@ void new_load_area( FILE *fp )
         case 'A':
             if (!str_cmp(word, "AProg") )
             {
-                APROG_LIST *pAprog;
+                PROG_LIST *pAprog;
                 char *word;
                 int trigger = 0;
 
@@ -1324,13 +1328,11 @@ void load_old_mob( FILE *fp )
         if ( vnum == 0 )
             break;
         
-        fBootDb = FALSE;
         if ( get_mob_index( vnum ) != NULL )
         {
             bug( "Load_mobiles: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
         
         pMobIndex                   = alloc_mem( sizeof(*pMobIndex) );
         pMobIndex->vnum         = vnum;
@@ -1503,13 +1505,11 @@ void load_old_obj( FILE *fp )
         if ( vnum == 0 )
             break;
         
-        fBootDb = FALSE;
         if ( get_obj_index( vnum ) != NULL )
         {
             bug( "Load_old_objects: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
         
         pObjIndex           = alloc_perm( sizeof(*pObjIndex) );
         pObjIndex->vnum         = vnum;
@@ -1730,7 +1730,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
              exit(1);
          }
 
-         new_reset( get_room_index(rVnum), pReset );
+         new_reset( get_room_index_safe(rVnum), pReset );
      }
      
      return;
@@ -1777,13 +1777,11 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          if ( vnum == 0 )
              break;
          
-         fBootDb = FALSE;
          if ( get_room_index( vnum ) != NULL )
          {
              bug( "Load_rooms: vnum %d duplicated.", vnum );
              exit( 1 );
          }
-         fBootDb = TRUE;
          
          pRoomIndex          = alloc_perm( sizeof(*pRoomIndex) );
          pRoomIndex->owner       = str_dup("");
@@ -1928,7 +1926,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
 
              else if (letter == 'P')
              {
-                 RPROG_LIST *pRprog;
+                 PROG_LIST *pRprog;
                  char *word;
                  int trigger=0;
 
@@ -1992,7 +1990,7 @@ void load_shops( FILE *fp )
         pShop->open_hour    = fread_number( fp );
         pShop->close_hour   = fread_number( fp );
         fread_to_eol( fp );
-        pMobIndex       = get_mob_index( pShop->keeper );
+        pMobIndex       = get_mob_index_safe( pShop->keeper );
         pMobIndex->pShop    = pShop;
         
         if ( shop_first == NULL )
@@ -2032,7 +2030,7 @@ void load_specials( FILE *fp )
             break;
             
         case 'M':
-            pMobIndex       = get_mob_index ( fread_number ( fp ) );
+            pMobIndex       = get_mob_index_safe ( fread_number ( fp ) );
             pMobIndex->spec_fun = spec_lookup   ( fread_word   ( fp ) );
             if ( pMobIndex->spec_fun == 0 )
             {
@@ -2078,17 +2076,17 @@ void fix_exits( void )
                     break;
                     
                 case 'M':
-                    get_mob_index( pReset->arg1 );
-                    iLastRoom = get_room_index( pReset->arg3 );
+                    get_mob_index_safe( pReset->arg1 );
+                    iLastRoom = get_room_index_safe( pReset->arg3 );
                     break;
                     
                 case 'O':
-                    get_obj_index( pReset->arg1 );
-                    iLastObj = get_room_index( pReset->arg3 );
+                    get_obj_index_safe( pReset->arg1 );
+                    iLastObj = get_room_index_safe( pReset->arg3 );
                     break;
                     
                 case 'P':
-                    get_obj_index( pReset->arg1 );
+                    get_obj_index_safe( pReset->arg1 );
                     if (iLastObj == NULL)
                     {
                         bugf( "fix_exits : reset in room %d with iLastObj NULL", pRoomIndex->vnum );
@@ -2098,7 +2096,7 @@ void fix_exits( void )
                     
                 case 'G':
                 case 'E':
-                    get_obj_index( pReset->arg1 );
+                    get_obj_index_safe( pReset->arg1 );
                     if (iLastRoom == NULL)
                     {
                         bugf( "fix_exits : reset in room %d with iLastRoom NULL", pRoomIndex->vnum );
@@ -2112,7 +2110,7 @@ void fix_exits( void )
                     break;
                     
                 case 'R':
-                    get_room_index( pReset->arg1 );
+                    get_room_index_safe( pReset->arg1 );
                     if ( pReset->arg2 < 0 || pReset->arg2 > MAX_DIR )
                     {
                         bugf( "fix_exits : reset in room %d with arg2 %d >= MAX_DIR",
@@ -2135,7 +2133,7 @@ void fix_exits( void )
                     else
                     {
                         fexit = TRUE; 
-                        pexit->u1.to_room = get_room_index( pexit->u1.vnum );
+                        pexit->u1.to_room = get_room_index_safe( pexit->u1.vnum );
                     }
                 }
             }
@@ -2154,7 +2152,7 @@ void fix_exits( void )
 */
 void load_roomprogs( FILE *fp )
 {
-    RPROG_CODE *pRprog;
+    PROG_CODE *pRprog;
 
     if ( area_last == NULL )
     {
@@ -2178,13 +2176,11 @@ void load_roomprogs( FILE *fp )
         if ( vnum == 0 )
             break;
 
-        fBootDb = FALSE;
         if ( get_rprog_index( vnum ) != NULL )
         {
             bug( "Load_roomprogs: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
 
         pRprog      = alloc_perm( sizeof(*pRprog) );
         pRprog->vnum    = vnum;
@@ -2230,7 +2226,7 @@ void load_roomprogs( FILE *fp )
 */
 void load_areaprogs( FILE *fp )
 {
-    APROG_CODE *pAprog;
+    PROG_CODE *pAprog;
 
     if ( area_last == NULL )
     {
@@ -2254,13 +2250,11 @@ void load_areaprogs( FILE *fp )
         if ( vnum == 0 )
             break;
 
-        fBootDb = FALSE;
         if ( get_aprog_index( vnum ) != NULL )
         {
             bug( "Load_areaprogs: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
 
         pAprog      = alloc_perm( sizeof(*pAprog) );
         pAprog->vnum    = vnum;
@@ -2315,7 +2309,7 @@ void load_areaprogs( FILE *fp )
 */
 void load_objprogs( FILE *fp )
 {
-    OPROG_CODE *pOprog;
+    PROG_CODE *pOprog;
 
     if ( area_last == NULL )
     {
@@ -2339,13 +2333,11 @@ void load_objprogs( FILE *fp )
         if ( vnum == 0 ) /* end of section */
             break;
 
-        fBootDb = FALSE;
         if ( get_oprog_index( vnum ) != NULL )
         {
             bug( "Load_objprogs: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
 
         pOprog      = alloc_perm( sizeof(*pOprog) );
         pOprog->vnum    = vnum;
@@ -2399,7 +2391,7 @@ void load_objprogs( FILE *fp )
 */
 void load_mobprogs( FILE *fp )
 {
-    MPROG_CODE *pMprog;
+    PROG_CODE *pMprog;
     
     if ( area_last == NULL )
     {
@@ -2423,13 +2415,11 @@ void load_mobprogs( FILE *fp )
         if ( vnum == 0 )
             break;
         
-        fBootDb = FALSE;
         if ( get_mprog_index( vnum ) != NULL )
         {
             bug( "Load_mobprogs: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
         
         pMprog      = alloc_perm( sizeof(*pMprog) );
         pMprog->vnum    = vnum;
@@ -2511,8 +2501,8 @@ void load_mobprogs( FILE *fp )
 void fix_mobprogs( void )
 {
     MOB_INDEX_DATA *pMobIndex;
-    MPROG_LIST        *list;
-    MPROG_CODE        *prog;
+    PROG_LIST        *list;
+    PROG_CODE        *prog;
     int iHash;
     int mprog_count = 0;
     
@@ -2544,8 +2534,8 @@ void fix_mobprogs( void )
 void fix_objprogs( void )
 {
     OBJ_INDEX_DATA *pObjIndex;
-    OPROG_LIST        *list;
-    OPROG_CODE        *prog;
+    PROG_LIST        *list;
+    PROG_CODE        *prog;
     int iHash;
     int oprog_count = 0;
 
@@ -2577,8 +2567,8 @@ void fix_objprogs( void )
 void fix_areaprogs( void )
 {
     AREA_DATA *pArea;
-    APROG_LIST        *list;
-    APROG_CODE        *prog;
+    PROG_LIST        *list;
+    PROG_CODE        *prog;
     int iHash;
     int aprog_count = 0;
 
@@ -2609,8 +2599,8 @@ void fix_areaprogs( void )
 void fix_roomprogs( void )
 {
     ROOM_INDEX_DATA *pRoom;
-    RPROG_LIST        *list;
-    RPROG_CODE        *prog;
+    PROG_LIST        *list;
+    PROG_CODE        *prog;
     int iHash;
     int rprog_count = 0;
 
@@ -2651,28 +2641,29 @@ void area_update( bool all )
     for ( pArea = area_first; pArea != NULL; pArea = pArea->next )
     {
         if ( !all && IS_SET(pArea->area_flags, AREA_NOREPOP) )
-	    continue;
-        
-        if ( ++pArea->age < 3 )
             continue;
-        
-	/*
-	 * Check age and reset.
-	 */
-        if ( (!pArea->empty && (pArea->nplayer == 0 || pArea->age >= pArea->reset_time))
-	     || pArea->age > 2*pArea->reset_time)
+        // check age (=time since last reset)
+        if ( !fBootDb )
         {
-            reset_area( pArea );
-            sprintf(buf,"%s has just been reset.",pArea->name);
-            wiznet(buf,NULL,NULL,WIZ_RESETS,0,0);
-            
-            pArea->age = number_range( 0, 3 );
-            if (pArea->nplayer == 0) 
-                pArea->empty = TRUE;
+            if ( ++pArea->age < 3 ) // just reset
+                continue;
+            if ( pArea->age < 2*pArea->reset_time ) // reset not overdue yet
+            {
+                if ( pArea->empty ) // area hasn't been visited since last reset
+                    continue;
+                // don't reset until we must while players are in the area
+                if ( pArea->nplayer > 0 && pArea->age < pArea->reset_time )
+                    continue;
+            }
         }
+        // reset
+        reset_area(pArea);
+        sprintf(buf, "%s has just been reset.", pArea->name);
+        wiznet(buf, NULL, NULL, WIZ_RESETS, 0, 0);
+        pArea->age = number_range(0, 3);
+        if ( pArea->nplayer == 0 )
+            pArea->empty = TRUE;
     }
-    
-    return;
 }
 
 
@@ -3786,7 +3777,16 @@ char *get_extra_descr( const char *name, EXTRA_DESCR_DATA *ed )
     return NULL;
 }
 
-
+MOB_INDEX_DATA *get_mob_index_safe( int vnum )
+{
+    MOB_INDEX_DATA *index = get_mob_index(vnum);
+    if ( !index )
+    {
+        bug( "get_mob_index_safe: bad vnum %d.", vnum );
+        exit( 1 );
+    }
+    return index;
+}
 
 /*
 * Translates mob virtual number to its mob index struct.
@@ -3804,16 +3804,19 @@ MOB_INDEX_DATA *get_mob_index( int vnum )
             return pMobIndex;
     }
     
-    if ( fBootDb )
-    {
-        bug( "Get_mob_index: bad vnum %d.", vnum );
-        exit( 1 );
-    }
-    
     return NULL;
 }
 
-
+OBJ_INDEX_DATA *get_obj_index_safe( int vnum )
+{
+    OBJ_INDEX_DATA *index = get_obj_index(vnum);
+    if ( !index )
+    {
+        bug( "get_obj_index_safe: bad vnum %d.", vnum );
+        exit( 1 );
+    }
+    return index;
+}
 
 /*
 * Translates obj virtual number to its obj index struct.
@@ -3831,16 +3834,19 @@ OBJ_INDEX_DATA *get_obj_index( int vnum )
             return pObjIndex;
     }
     
-    if ( fBootDb )
-    {
-        bug( "Get_obj_index: bad vnum %d.", vnum );
-        exit( 1 );
-    }
-    
     return NULL;
 }
 
-
+ROOM_INDEX_DATA *get_room_index_safe( int vnum )
+{
+    ROOM_INDEX_DATA *index = get_room_index(vnum);
+    if ( !index )
+    {
+        bug( "get_room_index_safe: bad vnum %d.", vnum );
+        exit( 1 );
+    }
+    return index;
+}
 
 /*
 * Translates room virtual number to its room index struct.
@@ -3858,18 +3864,12 @@ ROOM_INDEX_DATA *get_room_index( int vnum )
             return pRoomIndex;
     }
     
-    if ( fBootDb )
-    {
-        bug( "Get_room_index: bad vnum %d.", vnum );
-        exit( 1 );
-    }
-    
     return NULL;
 }
 
-MPROG_CODE *get_mprog_index( int vnum )
+PROG_CODE *get_mprog_index( int vnum )
 {
-    MPROG_CODE *prg;
+    PROG_CODE *prg;
     for( prg = mprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )
@@ -3878,9 +3878,9 @@ MPROG_CODE *get_mprog_index( int vnum )
     return NULL;
 }    
 
-OPROG_CODE *get_oprog_index( int vnum )
+PROG_CODE *get_oprog_index( int vnum )
 {
-    OPROG_CODE *prg;
+    PROG_CODE *prg;
     for( prg = oprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )
@@ -3889,9 +3889,9 @@ OPROG_CODE *get_oprog_index( int vnum )
     return NULL;
 }
 
-APROG_CODE *get_aprog_index( int vnum )
+PROG_CODE *get_aprog_index( int vnum )
 {
-    APROG_CODE *prg;
+    PROG_CODE *prg;
     for( prg = aprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )
@@ -3900,9 +3900,9 @@ APROG_CODE *get_aprog_index( int vnum )
     return NULL;
 }
 
-RPROG_CODE *get_rprog_index( int vnum )
+PROG_CODE *get_rprog_index( int vnum )
 {
-    RPROG_CODE *prg;
+    PROG_CODE *prg;
     for( prg = rprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )

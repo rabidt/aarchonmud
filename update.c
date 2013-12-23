@@ -38,6 +38,7 @@
 #include "religion.h"
 #include "olc.h"
 #include "mob_stats.h"
+#include "lua_scripting.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -1927,7 +1928,7 @@ void affect_update( CHAR_DATA *ch )
             dam *= 4;
         ch->mana = UMAX(ch->mana - dam, 0);
         ch->move = UMAX(ch->move - dam, 0);
-        deal_damage( ch, ch, dam, gsn_plague, DAM_DISEASE, FALSE, FALSE, FALSE);
+        deal_damage( ch, ch, dam, gsn_plague, DAM_DISEASE, FALSE, FALSE);
         if ( IS_DEAD(ch) )
             return;
     }
@@ -2030,7 +2031,7 @@ void affect_update( CHAR_DATA *ch )
         {
             act( "$n shivers and suffers.", ch, NULL, NULL, TO_ROOM );
             send_to_char( "You shiver and suffer.\n\r", ch );
-            deal_damage(ch,ch,poison->level/10 + 1,gsn_poison, DAM_POISON,FALSE,FALSE,FALSE);
+            deal_damage(ch,ch,poison->level/10 + 1,gsn_poison, DAM_POISON,FALSE,FALSE);
         }
     }
 
@@ -2105,7 +2106,7 @@ void obj_update( void )
             }
         }
 
-        if ( !op_percent_trigger( obj, NULL, NULL, NULL, OTRIG_RAND) )
+        if ( !op_percent_trigger( NULL, obj, NULL, NULL, NULL, OTRIG_RAND) )
             continue;
 
         if ( obj->timer <= 0 || --obj->timer > 0 )
@@ -2121,17 +2122,25 @@ void obj_update( void )
                 case ITEM_CORPSE_NPC: message = "$p decays into dust."; break;
                 case ITEM_CORPSE_PC:  message = "$p decays into dust."; break;
                 case ITEM_EXPLOSIVE:  
-                                      if (IS_SET((get_obj_room(obj))->room_flags, ROOM_SAFE)
-                                              ||  IS_SET((get_obj_room(obj))->room_flags, ROOM_LAW))
-                                          message = "$p is whisked away swiftly by an imp.";
-                                      else if (number_percent() <= 10)
-                                          message = "$p sputters a little and dies out.";
-                                      else
-                                      {
-                                          message = "$p explodes violently, throwing you to the floor!";
-                                          explode(obj);
-                                      }
-                                      break;
+                {
+                    ROOM_INDEX_DATA *room=get_obj_room(obj);
+                    if (!room)
+                    {
+                        bugf("No room for %d.", obj->pIndexData->vnum);
+                        break;
+                    }
+                    if ( IS_SET(room->room_flags, ROOM_SAFE)
+                            ||  IS_SET(room->room_flags, ROOM_LAW) )
+                        message = "$p is whisked away swiftly by an imp.";
+                    else if (number_percent() <= 10)
+                        message = "$p sputters a little and dies out.";
+                    else
+                    {
+                        message = "$p explodes violently, throwing you to the floor!";
+                        explode(obj);
+                    }
+                    break;
+                }
 
                 case ITEM_FOOD:       message = "$p decomposes.";   break;
                 case ITEM_POTION:     message = "$p has evaporated from disuse.";   
@@ -2584,6 +2593,11 @@ void explode(OBJ_DATA *obj)
     long int dam;
     bool contained = FALSE;
 
+    if (get_obj_room(obj) == NULL )
+    {
+        bugf( "explode: no room for %d", obj->pIndexData->vnum);
+        return;
+    }
     if (IS_SET((get_obj_room(obj))->room_flags, ROOM_SAFE)
             || IS_SET((get_obj_room(obj))->room_flags, ROOM_LAW))
         return;

@@ -3626,12 +3626,9 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
     ignore_invisible = FALSE;
 
-    if ( IS_SET(victim->in_room->room_flags, ROOM_SAFE)
-            ||   is_guild_room(victim->in_room)
-            ||   IS_SET(victim->in_room->room_flags, ROOM_PRIVATE)
-            ||   IS_SET(victim->in_room->room_flags, ROOM_SOLITARY)
+    if ( !can_move_room(ch, victim->in_room, FALSE)
             ||   IS_SET(victim->in_room->room_flags, ROOM_JAIL)
-            ||   IS_SET(victim->in_room->room_flags, ROOM_NO_RECALL) )
+            ||   IS_SET(victim->in_room->room_flags, ROOM_NO_TELEPORT) )
     {
         send_to_char( "Your powers can't get you there.\n\r", ch );
         return;
@@ -4081,10 +4078,11 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     char buf[MAX_STRING_LENGTH];
     AFFECT_DATA *paf;
+    int pos;
 
     if ( (ch->level+10) < obj->level)
     {
-        sprintf( buf, "%s is too powerful for you to identify.\n\r" , obj->name);
+        sprintf( buf, "You must be at least level %d to identify %s{x.\n\r" , obj->level - 10, obj->short_descr);
         send_to_char(buf, ch);
         return;
     }
@@ -4216,6 +4214,20 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             break;
 
         case ITEM_ARMOR:
+            sprintf( buf, "" );
+            for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
+            {
+                if( !IS_SET(obj->wear_flags, pos) )
+                    continue;
+        
+                if( !strcmp( wear_bit_name(pos), "shield" ) )
+                    sprintf( buf, "It is used as a shield.\n\r" );
+                    else if( !strcmp( wear_bit_name(pos), "float" ) )
+                    sprintf( buf, "It would float nearby.\n\r" );
+                else if ( pos != ITEM_TAKE && pos != ITEM_NO_SAC && pos != ITEM_TRANSLUCENT )
+                    sprintf( buf, "It is worn on the %s.\n\r", wear_bit_name(pos) );
+            }
+            send_to_char( buf, ch );
             sprintf( buf, 
                     "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic.\n\r", 
                     obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
@@ -5311,12 +5323,9 @@ void spell_summon( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
     if ( !IS_NPC(ch) && IS_TAG(ch) 
             || IS_REMORT(ch)
-            || IS_SET(ch->in_room->room_flags, ROOM_PRIVATE)
-            || IS_SET(ch->in_room->room_flags, ROOM_SOLITARY)
-            || IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL)
-            || IS_SET(ch->in_room->room_flags, ROOM_ARENA)
-            || is_guild_room(ch->in_room->vnum)
-            || room_is_private(ch->in_room) )
+            || !can_move_room(victim, ch->in_room, FALSE)
+            || IS_SET(ch->in_room->room_flags, ROOM_NO_TELEPORT)
+            || IS_SET(ch->in_room->room_flags, ROOM_ARENA))
     {
         send_to_char( "You can't summon anyone here!\n\r", ch );
         return;
@@ -5345,35 +5354,6 @@ void spell_summon( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         send_to_char( "Your target can't be summoned from its location!\n\r", ch );
         return;
     }
-
-    /*
-       if ( ( victim = get_char_world( ch, target_name ) ) == NULL
-       ||   victim == ch
-       ||   victim->in_room == NULL
-       ||   IS_TAG(ch) || IS_TAG(victim)
-       ||   IS_NPC(victim)
-       ||   IS_REMORT(ch)
-       ||   IS_REMORT(victim)
-       ||   IS_SET(ch->in_room->room_flags, ROOM_SAFE)
-       ||   IS_SET(victim->in_room->room_flags, ROOM_SAFE)
-       ||   IS_SET(victim->in_room->room_flags, ROOM_PRIVATE)
-       ||   IS_SET(victim->in_room->room_flags, ROOM_SOLITARY)
-       ||   IS_SET(victim->in_room->room_flags, ROOM_NO_RECALL)
-       ||   (IS_NPC(victim) && IS_SET(victim->act,ACT_AGGRESSIVE))
-       ||   victim->level >= level + 3
-       ||   (!IS_NPC(victim) && victim->level >= LEVEL_IMMORTAL)
-       ||   victim->fighting != NULL
-       ||   (IS_NPC(victim) && IS_SET(victim->imm_flags,IMM_SUMMON))
-       ||   (IS_NPC(victim) && victim->pIndexData->pShop != NULL)
-       ||   (!IS_NPC(victim) && IS_SET(victim->act,PLR_NOSUMMON))
-       ||   (IS_NPC(victim) && saves_spell(level, victim,DAM_OTHER))
-       ||   IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL) )
-
-       {
-       send_to_char( "You failed.\n\r", ch );
-       return;
-       }
-     */
 
     check_sn_multiplay( ch, victim, sn );
     /* check for possibly illegal summoning */
@@ -5426,11 +5406,9 @@ void spell_teleport( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             || pRoomIndex->area->security > 8 /* Added this - Astark 1-7-13 */ 
             || !can_see_room(ch,pRoomIndex) 
             /* Teleport wasn't working because the IS_SET check was missing - Astark 1-7-13 */
-            || IS_SET(pRoomIndex->room_flags, ROOM_PRIVATE)
-            || IS_SET(pRoomIndex->room_flags, ROOM_SOLITARY)
-            || IS_SET(pRoomIndex->room_flags, ROOM_JAIL)
-            || is_guild_room(pRoomIndex->vnum)
-            || room_is_private(pRoomIndex) )
+            || !can_move_room(victim, pRoomIndex, FALSE)
+            || IS_SET(pRoomIndex->room_flags, ROOM_NO_TELEPORT)
+            || IS_SET(pRoomIndex->room_flags, ROOM_JAIL))
     {
         send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
         return;
