@@ -33,6 +33,10 @@ bool lua_load_oprog( lua_State *LS, int vnum, const char *code);
 bool lua_load_aprog( lua_State *LS, int vnum, const char *code);
 bool lua_load_rprog( lua_State *LS, int vnum, const char *code);
 
+bool op_percent_trigger(
+        const char *trigger,
+        OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2,
+        int type );
         
 void do_lboard( CHAR_DATA *ch, char *argument);
 void do_lhistory( CHAR_DATA *ch, char *argument);

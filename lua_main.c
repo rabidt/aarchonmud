@@ -262,7 +262,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     {
         /* kick out of interpret */
         d->lua.interpret=FALSE;
-        d->lua.wait=FALSE;
         d->lua.incmpl=FALSE;
 
         lua_unregister_desc(d);
@@ -271,42 +270,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         return TRUE;
     }
 
-    if (!strcmp( d->incomm, "WAIT") )
-    {
-        if (d->lua.incmpl)
-        {
-            ptc(d->character, "Can't enter WAIT mode with incomplete statement.\n\r"
-                              "Finish statement or exit and re-enter interpreter.\n\r");
-            return TRUE;
-        }
-
-        /* set wait mode for multiline chunks*/
-        if (d->lua.wait)
-            ptc(d->character, "Already in WAIT mode.\n\r");
-        else
-            d->lua.wait=TRUE;
-        return TRUE;
-    }
-
-    if (!strcmp( d->incomm, "GO") )
-    {
-        /* turn WAIT mode off and go for it */
-        if (!d->lua.wait)
-        {
-            ptc( d->character, "Can only use GO to end WAIT mode.\n\r");
-            return TRUE; 
-        }
-        d->lua.wait=FALSE;
-        lua_getglobal( g_mud_LS, "go_lua_interpret");
-    }
-    else if (d->lua.wait) /* WAIT mode enabled for multiline chunk */
-    {
-        lua_getglobal( g_mud_LS, "wait_lua_interpret");
-    }
-    else
-    {
-        lua_getglobal( g_mud_LS, "run_lua_interpret"); //what we'll call if no errors
-    }
+    lua_getglobal( g_mud_LS, "run_lua_interpret"); //what we'll call if no errors
 
     /* Check this all in C so we can exit interpreter for missing env */
     lua_pushlightuserdata( g_mud_LS, d); /* we'll check this against the table */
@@ -336,7 +300,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         ptc( d->character, "Interpreter session was closed, was object destroyed?\n\r"
                 "Exiting interpreter.\n\r");
         d->lua.interpret=FALSE;
-        d->lua.wait=FALSE;
 
         ptc(d->character, "Exited lua interpreter.\n\r");
         lua_settop(g_mud_LS, 0);
@@ -364,7 +327,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         ptc( d->character, "Couldn't find game object, was it destroyed?\n\r"
                 "Exiting interpreter.\n\r");
         d->lua.interpret=FALSE;
-        d->lua.wait=FALSE;
 
         ptc(d->character, "Exited lua interpreter.\n\r");
         lua_settop(g_mud_LS, 0);
@@ -375,12 +337,15 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     lua_pushstring( g_mud_LS, d->incomm);
 
     g_ScriptSecurity= d->character->pcdata->security ;
+    g_LoopCheckCounter=0;
+    g_LuaScriptInProgress = TRUE;
+
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
     if (error > 0 )
     {
         ptc(d->character,  "LUA error for lua_interpret:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
-        d->lua.incmpl=FALSE; //force it whehter it was or wasn't
+        d->lua.incmpl=FALSE; //force it whether it was or wasn't
     } 
     else
     {
@@ -397,7 +362,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     }
 
     g_ScriptSecurity = 0;
-
+    g_LuaScriptInProgress=FALSE;
 
     lua_settop( g_mud_LS, 0);
     return TRUE;
@@ -420,6 +385,12 @@ void do_luai( CHAR_DATA *ch, char *argument)
 {
     if IS_NPC(ch)
         return;
+    
+    if ( ch->desc->lua.interpret )
+    {
+        ptc(ch, "Lua interpreter already active!\n\r");
+        return;
+    }
 
     char arg1[MSL];
     char *name;
@@ -567,15 +538,13 @@ void do_luai( CHAR_DATA *ch, char *argument)
 
     /* finally, if everything worked out, we can set this stuff */
     ch->desc->lua.interpret=TRUE;
-    ch->desc->lua.wait=FALSE;
     ch->desc->lua.incmpl=FALSE;
 
     ptc(ch, "Entered lua interpreter mode for for %s %s\n\r", 
             type->type_name,
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
-    ptc(ch, "Use WAIT to enable WAIT mode for multiline chunks.\n\r");
-    ptc(ch, "Use GO on a blank line to end WAIT mode and process the buffer.\n\r");
+    ptc(ch, "Use do and end to create multiline chunks.\n\r");
     lua_settop(g_mud_LS, 0);
     return;
 }
@@ -684,31 +653,6 @@ void do_wizhelp( CHAR_DATA *ch, char *argument )
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
-#if 0
-    char buf[MAX_STRING_LENGTH];
-    int cmd;
-    int col;
-    int i;
-
-    col = 0;
-    for ( cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
-    {
-        if ( cmd_table[cmd].level >= LEVEL_HERO
-            &&   is_granted(ch,cmd_table[cmd].do_fun)
-            &&   cmd_table[cmd].show)
-        {
-            sprintf( buf, "(%d) %-12s", cmd_table[cmd].level, cmd_table[cmd].name);
-            send_to_char( buf, ch );
-            if ( ++col % 4 == 0 )
-                send_to_char( "\n\r", ch );
-        }
-    }
-
-    if ( col % 6 != 0 )
-        send_to_char( "\n\r", ch );
-
-    return;
-#endif
 }
 
 static CHAR_DATA *clt_list;
@@ -772,7 +716,7 @@ void do_charloadtest( CHAR_DATA *ch, char *argument )
 
     if (is_number(arg1))
     {
-        MPROG_CODE *prg=get_mprog_index( atoi(arg1));
+        PROG_CODE *prg=get_mprog_index( atoi(arg1));
         if (!prg)
         {
             ptc( ch, "No such mprog: %s\n\r", arg1 );
@@ -826,4 +770,106 @@ void do_charloadtest( CHAR_DATA *ch, char *argument )
     clt_list=NULL;
 
     return;
+}
+
+const char *save_luaconfig( CHAR_DATA *ch )
+{
+    if (!IS_IMMORTAL(ch))
+        return NULL;
+
+    lua_getglobal(g_mud_LS, "save_luaconfig" );
+    make_CH(g_mud_LS, ch);
+    if (CallLuaWithTraceBack( g_mud_LS, 1, 1 ) )
+    {
+        ptc (ch, "Error with save_luaconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+        return NULL;
+    }
+
+    if (lua_isnil(g_mud_LS, -1) || lua_isnone(g_mud_LS, -1) )
+        return NULL;
+
+    if (!lua_isstring(g_mud_LS, -1))
+    {
+        bugf("String wasn't returned in save_luaconfig.");
+        return NULL;
+    }
+
+    return luaL_checkstring( g_mud_LS, -1 );
+}
+
+void load_luaconfig( CHAR_DATA *ch, const char *text )
+{
+    lua_getglobal(g_mud_LS, "load_luaconfig" );
+    make_CH(g_mud_LS, ch);
+    lua_pushstring( g_mud_LS, text );
+
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0 ) )
+    {
+        ptc (ch, "Error with load_luaconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+        return NULL;
+    }
+}
+
+void do_luaconfig( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_luaconfig");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_luaconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+static int L_dump_prog( lua_State *LS)
+{
+    // 1 is ch
+    // 2 is prog 
+    // 3 is numberlines
+    bool numberlines=lua_toboolean(LS, 3);
+    lua_pop(LS,1);
+
+
+    lua_getglobal( LS, "colorize");
+    lua_insert( LS, -2 );
+    lua_pushvalue(LS,1); //push a copy of ch
+    lua_call( LS, 2, 1 );
+
+    // 1 is ch
+    // 2 is colorized text
+    if (numberlines)
+    {
+        lua_getglobal( LS, "linenumber");
+        lua_insert( LS, -2);
+        lua_call(LS, 1, 1);
+    }
+    lua_pushstring(LS, "\n\r");
+    lua_concat( LS, 2);
+    page_to_char_new( 
+            luaL_checkstring(LS, 2),
+            check_CH(LS, 1),
+            TRUE);
+
+    return 0;
+}
+
+void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines)
+{
+    lua_pushcfunction( g_mud_LS, L_dump_prog);
+    make_CH(g_mud_LS, ch);
+    lua_pushstring( g_mud_LS, prog);
+    lua_pushboolean( g_mud_LS, numberlines);
+
+    if (CallLuaWithTraceBack( g_mud_LS, 3, 0) )
+    {
+        ptc (ch, "Error with dump_prog:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
 }

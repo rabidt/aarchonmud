@@ -588,10 +588,3 @@ void do_gstat( CHAR_DATA *ch, char *argument )
     return;
 }
 
-/* This is a placeholder function.  To grant or revoke the "immflag" command acts
-   as a trigger to enable or disable all immortal commands for a given player. */
-void do_immflag( CHAR_DATA *ch, char *argument )
-{
-    send_to_char( "Huh?\n\r", ch );
-    return;
-}

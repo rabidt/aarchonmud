@@ -20,7 +20,7 @@ bool ap_percent_trigger(
     if ( !HAS_ATRIG(area, type) )
         return TRUE;
 
-    APROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = area->aprogs; prg != NULL; prg = prg->next )
     {
@@ -186,7 +186,7 @@ bool ap_recall_trigger( CHAR_DATA *ch)
 
 void ap_timer_trigger( AREA_DATA *area )
 {
-    APROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg=area->aprogs; prg != NULL; prg = prg->next )
     {
@@ -204,7 +204,7 @@ void aprog_timer_init( AREA_DATA *area)
     /* Set up timer stuff if not already */
     if (HAS_ATRIG(area, ATRIG_TIMER) && !area->atrig_timer)
     {
-        APROG_LIST *prg;
+        PROG_LIST *prg;
         for ( prg = area->aprogs; prg; prg= prg->next )
         {
             if ( prg->trig_type == ATRIG_TIMER )

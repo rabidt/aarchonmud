@@ -120,10 +120,10 @@ char *olc_ed_vnum( CHAR_DATA *ch )
    ROOM_INDEX_DATA *pRoom;
    OBJ_INDEX_DATA *pObj;
    MOB_INDEX_DATA *pMob;
-   MPROG_CODE *pMprog;
-   OPROG_CODE *pOprog;
-   APROG_CODE *pAprog;
-   RPROG_CODE *pRprog;
+   PROG_CODE *pMprog;
+   PROG_CODE *pOprog;
+   PROG_CODE *pAprog;
+   PROG_CODE *pRprog;
    static char buf[10];
    
    buf[0] = '\0';
@@ -146,19 +146,19 @@ char *olc_ed_vnum( CHAR_DATA *ch )
       sprintf( buf, "%d", pMob ? pMob->vnum : 0 );
       break;
    case ED_MPCODE:
-      pMprog = (MPROG_CODE *)ch->desc->pEdit;
+      pMprog = (PROG_CODE *)ch->desc->pEdit;
       sprintf( buf, "%d", pMprog ? pMprog->vnum : 0 );
       break;
    case ED_OPCODE:
-      pOprog = (OPROG_CODE *)ch->desc->pEdit;
+      pOprog = (PROG_CODE *)ch->desc->pEdit;
       sprintf( buf, "%d", pOprog ? pOprog->vnum : 0 );
       break;
    case ED_APCODE:
-      pAprog = (APROG_CODE *)ch->desc->pEdit;
+      pAprog = (PROG_CODE *)ch->desc->pEdit;
       sprintf( buf, "%d", pAprog ? pAprog->vnum : 0 );
       break;
    case ED_RPCODE:
-      pRprog = (RPROG_CODE *)ch->desc->pEdit;
+      pRprog = (PROG_CODE *)ch->desc->pEdit;
       sprintf( buf, "%d", pRprog ? pRprog->vnum : 0 );
       break;
    default:
@@ -1471,16 +1471,7 @@ void do_resets( CHAR_DATA *ch, char *argument )
    */
    if ( arg1[0] == '\0' )
    {
-      if ( ch->in_room->reset_first )
-      {
-         send_to_char(
-            "Resets: M = mobile, R = room, O = object, "
-            "P = pet, S = shopkeeper\n\r", ch );
-         display_resets( ch, ch->in_room );
-      }
-      else
-         send_to_char( "No resets in this room.\n\r", ch );
-      return;
+       do_rlook(ch);
    }
    
    clone_warning( ch, ch->in_room->area );

@@ -344,7 +344,7 @@ int r_atoi_obj( OBJ_DATA *obj, char *arg )
 void do_mpstat( CHAR_DATA *ch, char *argument )
 {
     char        arg[ MAX_STRING_LENGTH  ];
-    MPROG_LIST  *mprg;
+    PROG_LIST  *mprg;
     CHAR_DATA   *victim;
     int i;
 
@@ -414,10 +414,12 @@ void do_mpstat( CHAR_DATA *ch, char *argument )
 void do_rpdump( CHAR_DATA *ch, char *argument )
 {
    char buf[ MAX_INPUT_LENGTH ];
-   RPROG_CODE *rprg;
+   char arg2[MIL];
+   PROG_CODE *rprg;
    AREA_DATA *area;
 
-   one_argument( argument, buf );
+   argument=one_argument( argument, buf );
+   argument=one_argument( argument, arg2 );
    if ( ( rprg = get_rprog_index( atoi(buf) ) ) == NULL )
    {
     send_to_char( "No such ROOMprogram.\n\r", ch );
@@ -431,7 +433,10 @@ void do_rpdump( CHAR_DATA *ch, char *argument )
        return;
    }
 
-   page_to_char_new( rprg->code, ch, TRUE );
+   if (strcmp( arg2, "false"))
+       dump_prog( ch, rprg->code, TRUE);
+   else
+       dump_prog( ch, rprg->code, FALSE );
 }
 
 /*
@@ -442,10 +447,12 @@ void do_rpdump( CHAR_DATA *ch, char *argument )
 void do_apdump( CHAR_DATA *ch, char *argument )
 {
    char buf[ MAX_INPUT_LENGTH ];
-   APROG_CODE *aprg;
+   char arg2[MIL];
+   PROG_CODE *aprg;
    AREA_DATA *area;
 
-   one_argument( argument, buf );
+   argument=one_argument( argument, buf );
+   argument=one_argument( argument, arg2 );
    if ( ( aprg = get_aprog_index( atoi(buf) ) ) == NULL )
    {
     send_to_char( "No such AREAprogram.\n\r", ch );
@@ -458,8 +465,11 @@ void do_apdump( CHAR_DATA *ch, char *argument )
        send_to_char( "You're not a builder for this aprog's area.\n\r", ch);
        return;
    }
-
-   page_to_char_new( aprg->code, ch, TRUE );
+   
+   if (strcmp(arg2, "false"))
+      dump_prog( ch, aprg->code, TRUE);
+   else
+      dump_prog( ch, aprg->code, FALSE); 
 }
 
 /*
@@ -470,10 +480,12 @@ void do_apdump( CHAR_DATA *ch, char *argument )
 void do_opdump( CHAR_DATA *ch, char *argument )
 {
    char buf[ MAX_INPUT_LENGTH ];
-   OPROG_CODE *oprg;
+   char arg2[MIL];
+   PROG_CODE *oprg;
    AREA_DATA *area;
 
-   one_argument( argument, buf );
+   argument=one_argument( argument, buf );
+   argument=one_argument( argument, arg2 );
    if ( ( oprg = get_oprog_index( atoi(buf) ) ) == NULL )
    {
     send_to_char( "No such OBJprogram.\n\r", ch );
@@ -487,7 +499,10 @@ void do_opdump( CHAR_DATA *ch, char *argument )
        return;
    }
 
-   page_to_char_new( oprg->code, ch, TRUE );
+   if (strcmp(arg2, "false"))
+       dump_prog( ch, oprg->code, TRUE);
+   else
+       dump_prog( ch, oprg->code, FALSE);
 }
 
 /*
@@ -498,10 +513,12 @@ void do_opdump( CHAR_DATA *ch, char *argument )
 void do_mpdump( CHAR_DATA *ch, char *argument )
 {
    char buf[ MAX_INPUT_LENGTH ];
-   MPROG_CODE *mprg;
+   char arg2[MIL];
+   PROG_CODE *mprg;
    AREA_DATA *area;
 
-   one_argument( argument, buf );
+   argument=one_argument( argument, buf );
+   argument=one_argument( argument, arg2);
    if ( ( mprg = get_mprog_index( atoi(buf) ) ) == NULL )
    {
 	send_to_char( "No such MOBprogram.\n\r", ch );
@@ -514,8 +531,14 @@ void do_mpdump( CHAR_DATA *ch, char *argument )
        send_to_char( "You're not a builder for this mprog's area.\n\r", ch);
        return;
    }
-
-   page_to_char_new( mprg->code, ch, TRUE );
+   
+   if (mprg->is_lua)
+       if (strcmp(arg2, "false"))
+           dump_prog( ch, mprg->code, TRUE );
+       else
+           dump_prog( ch, mprg->code, FALSE );
+   else
+       page_to_char_new( mprg->code, ch, TRUE);
 }
 
 /*
@@ -1607,7 +1630,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     char arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *vch;
     OBJ_DATA *obj1, *obj2;
-    MPROG_CODE *prg;
+    PROG_CODE *prg;
 
     argument = one_argument( argument, arg );
     if ( arg[0] == '\0' )

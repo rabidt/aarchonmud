@@ -121,7 +121,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "practice",   do_practice,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "rest",       do_rest,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "sit",        do_sit,     POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "sockets",    do_sockets, POS_DEAD,       L4,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "stand",      do_stand,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "stat",       do_stat,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "tell",       do_tell,    POS_SLEEPING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -141,6 +140,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "consider",   do_consider,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "count",      do_count,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "credits",    do_credits, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "dirs",       do_dirs,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "equipment",  do_equipment,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "eqhelp",     do_eqhelp,  POS_DEAD,   0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "etls",       do_etls,    POS_DEAD,   0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -501,17 +501,13 @@ const   struct  cmd_type    cmd_table   [] =
     /*  { "dump",       do_dump,    POS_DEAD,   ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     /*	{ "newdump",    do_new_dump, POS_DEAD,  ML,  LOG_ALWAYS, 0, FALSE, FALSE  },*/
     { "trust",      do_trust,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "violate",    do_violate, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
 //    { "pipe",       do_pipe,    POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "void",       do_void,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "pgrep",      do_pgrep,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "pload",      do_pload,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "punload",    do_punload, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "allow",      do_allow,   POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "ban",        do_ban,     POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "deny",       do_deny,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "disable",    do_disable, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "disconnect", do_disconnect,  POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "divorce",    do_divorce, POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     /* No legitimate in game use for this -- Maedhros 12/12/2011 */
 		/*    { "flag",       do_flag,    POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  }, */
@@ -529,11 +525,9 @@ const   struct  cmd_type    cmd_table   [] =
     { "setskill",   do_setskill,POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "shutdow",    do_shutdow, POS_DEAD,   ML,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "shutdown",   do_shutdown,    POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "clear",      do_clear,   POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "copyove",    do_copyove,   POS_DEAD,   L2, LOG_ALWAYS, 1, FALSE, FALSE },
     { "copyover",   do_copyover,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "wizlock",    do_wizlock, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    
     { "force",      do_force,   POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "load",       do_load,    POS_DEAD,   L9,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "newlock",    do_newlock, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -556,7 +550,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "slay",       do_slay,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "teleport",   do_transfer,    POS_DEAD,   L9,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "transfer",   do_transfer,    POS_DEAD,   L9,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    
     { "poofin",     do_bamfin,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "poofout",    do_bamfout, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "gecho",      do_echo,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -578,12 +571,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "vnum",       do_vnum,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "zecho",      do_zecho,   POS_DEAD,   L6,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "pflag",      do_pflag,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "namecolor",  do_namecolor,POS_DEAD,  L4,	 LOG_NORMAL, 1, FALSE, FALSE },
-    { "ptitle",	    do_ptitle,  POS_DEAD,   L4,  LOG_NORMAL, 1, FALSE, FALSE },
-
-    
     { "clone",      do_clone,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    
     { "wiznet",     do_wiznet,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "savantalk",  do_savantalk, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "immtalk",    do_immtalk, POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -595,8 +583,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "grant",      do_grant,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "gstat",      do_gstat,   POS_DEAD,   L1,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "revoke",     do_revoke,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "immflag",    do_immflag, POS_SLEEPING, L8,  LOG_NORMAL, 0, FALSE, FALSE },
-    { "slookup",    do_slookup, POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "clandump",   do_clan_dump,  POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE  },
     { "crimelist",  do_crimelist,  POS_DEAD, L8, LOG_NORMAL, 1, FALSE, FALSE  },
     { "review",     do_review,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -615,6 +601,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "tables",     do_tables,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luai",       do_luai,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luahelp",    do_luahelp, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "luaconfig",  do_luaconfig, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
 
     /*
     * OLC
@@ -650,7 +637,6 @@ const   struct  cmd_type    cmd_table   [] =
     * Erwin's REDIT
     */
     { "rlook",      do_rlook,    POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
-    { "rfind",      do_rfind,    POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rwhere",     do_rwhere,   POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rrandom",    do_rrandom,  POS_DEAD,  L9,  LOG_ALWAYS, 1, TRUE, FALSE },
     /*
@@ -661,7 +647,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "rdrop",      do_rdrop,    POS_DEAD,  L9,  LOG_ALWAYS, 1, TRUE, FALSE },
     { "rkill",      do_rkill,    POS_DEAD,  L9,  LOG_ALWAYS, 1, TRUE, FALSE },
     */
-    { "rview",      do_rview,    POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rdoor",      do_rdoor,    POS_DEAD,  L9,  LOG_ALWAYS, 1, TRUE, FALSE },
     { "findlock",   do_findlock, POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rforce",     do_rforce,   POS_DEAD,  L6,  LOG_ALWAYS, 1, TRUE, FALSE },

@@ -15,19 +15,21 @@
  * number is less than trigger phrase
  */
 bool op_percent_trigger(
-        OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type)
+        const char *trigger, 
+        OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, 
+        int type )
 {
     if ( !HAS_OTRIG(obj, type) )
         return TRUE;
 
-    OPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
     {
         if ( prg->trig_type == type
                 && number_percent() <= atoi( prg->trig_phrase ) )
         {
-            return ( lua_obj_program( NULL, prg->vnum, prg->script->code, obj, obj2, ch1, ch2, type, prg->script->security)
+            return ( lua_obj_program( trigger, prg->vnum, prg->script->code, obj, obj2, ch1, ch2, type, prg->script->security)
                      && ( obj ? !obj->must_extract : TRUE )
                      && ( obj2 ? !obj2->must_extract : TRUE )
                      && ( ch1 ? !ch1->must_extract : TRUE )
@@ -44,7 +46,7 @@ bool op_percent_trigger(
 bool op_act_trigger(
         OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
 {
-    OPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
     {
@@ -153,7 +155,7 @@ void op_greet_trigger( CHAR_DATA *ch )
 
         if ( HAS_OTRIG(obj, OTRIG_GREET) )
         {
-            op_percent_trigger(obj, NULL, ch, NULL, OTRIG_GREET);
+            op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_GREET);
         }
     }
 }
@@ -170,14 +172,21 @@ void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic )
         /* only checking worn and wielded items */
         if ( obj->wear_loc != WEAR_NONE && HAS_OTRIG(obj, OTRIG_FIGHT) )
         {
-            op_percent_trigger(obj, NULL, ch, vic, OTRIG_FIGHT);
+            op_percent_trigger(NULL, obj, NULL, ch, vic, OTRIG_FIGHT);
         }
     }
 }
 
+bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage)
+{
+    char damstr[MSL];
+    sprintf( damstr, "%d", damage);
+    return op_percent_trigger(damstr, obj, NULL, ch, vic, OTRIG_PREHIT);
+}
+
 void op_timer_trigger( OBJ_DATA *obj )
 {
-    OPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg=obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
     {
@@ -196,7 +205,7 @@ void oprog_timer_init( OBJ_DATA *obj)
     /* Set up timer stuff if not already */
     if (HAS_OTRIG(obj, OTRIG_TIMER) && !obj->otrig_timer)
     {
-        OPROG_LIST *prg;
+        PROG_LIST *prg;
         for ( prg = obj->pIndexData->oprogs; prg; prg= prg->next )
         {
             if ( prg->trig_type == OTRIG_TIMER )

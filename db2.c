@@ -76,13 +76,11 @@ void load_mobiles( FILE *fp )
         if ( vnum == 0 )
             break;
 
-        fBootDb = FALSE;
         if ( get_mob_index( vnum ) != NULL )
         {
             bug( "Load_mobiles: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
 
         pMobIndex                       = alloc_mem( sizeof(*pMobIndex) );
         pMobIndex->vnum                 = vnum;
@@ -198,7 +196,7 @@ void load_mobiles( FILE *fp )
             }
             else if ( letter == 'M' )
             {
-                MPROG_LIST *pMprog;
+                PROG_LIST *pMprog;
                 char *word;
                 int trigger = 0;
 
@@ -368,13 +366,11 @@ void load_mobbles( FILE *fp )
         if ( vnum == 0 )
             break;
 
-        fBootDb = FALSE;
         if ( get_mob_index( vnum ) != NULL )
         {
             bug( "Load_mobbles: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
 
         pMobIndex                       = alloc_perm( sizeof(*pMobIndex) );
         pMobIndex->vnum                 = vnum;
@@ -483,7 +479,7 @@ void load_mobbles( FILE *fp )
                 pMobIndex->default_pos = position_lookup(fread_word(fp));
             else if KEY("MPROG")
             {
-                MPROG_LIST *pMprog;
+                PROG_LIST *pMprog;
                 char *word;
                 int trigger = 0;
 
@@ -548,13 +544,11 @@ void load_objects( FILE *fp )
         if ( vnum == 0 )
             break;
 
-        fBootDb = FALSE;
         if ( get_obj_index( vnum ) != NULL )
         {
             bug( "Load_objects: vnum %d duplicated.", vnum );
             exit( 1 );
         }
-        fBootDb = TRUE;
 
         pObjIndex                       = alloc_perm( sizeof(*pObjIndex) );
         pObjIndex->vnum                 = vnum;
@@ -778,7 +772,7 @@ void load_objects( FILE *fp )
         letter = fread_letter( fp );
         if ( letter == 'O' ) /* we have oprogs */
         {
-            OPROG_LIST *pOprog;
+            PROG_LIST *pOprog;
             char *word;
             int trigger = 0;
 

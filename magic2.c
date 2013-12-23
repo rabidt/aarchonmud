@@ -80,30 +80,6 @@ void spell_portal( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     if ( !can_cast_transport(ch) )
 	return;
 
-    /*
-    if ( ( victim = get_char_world( ch, target_name ) ) == NULL
-        ||   victim == ch
-        ||   victim->in_room == NULL
-        ||   !can_see_room(ch,victim->in_room)
-        ||   IS_TAG(ch)
-        ||   IS_TAG(victim)
-        ||   IS_SET(victim->in_room->room_flags, ROOM_SAFE)
-        ||   IS_SET(victim->in_room->room_flags, ROOM_PRIVATE)
-        ||   IS_SET(victim->in_room->room_flags, ROOM_SOLITARY)
-        ||   IS_SET(victim->in_room->room_flags, ROOM_NO_RECALL)
-        ||   IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL)
-        ||   victim->level >= level + 3
-        ||   (!IS_NPC(victim) && victim->level >= LEVEL_HERO) 
-        ||   (IS_NPC(victim) && IS_SET(victim->imm_flags,IMM_SUMMON))
-        ||   (!IS_NPC(victim) && IS_SET(victim->act,PLR_NOSUMMON))
-        ||   victim->in_room->area->security < 5
-        ||   (IS_NPC(victim) && saves_spell( level, victim,DAM_NONE) ) )
-    {
-        send_to_char( "You failed.\n\r", ch );
-        return;
-    }   
-    */
-    
     if ( target_name[0] == '\0' )
     {
 	send_to_char( "Where should the portal lead to?\n\r", ch );
@@ -165,31 +141,6 @@ void spell_nexus( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 	return;
 
     from_room = ch->in_room;
-
-    /*
-    if ( ( victim = get_char_world( ch, target_name ) ) == NULL
-        ||   victim == ch
-        ||   (to_room = victim->in_room) == NULL
-        ||   !can_see_room(ch,to_room) || !can_see_room(ch,from_room)
-        ||   IS_TAG(ch)
-        ||   IS_TAG(victim)
-        ||   IS_SET(to_room->room_flags, ROOM_SAFE)
-        ||   IS_SET(from_room->room_flags,ROOM_SAFE)
-        ||   IS_SET(to_room->room_flags, ROOM_PRIVATE)
-        ||   IS_SET(to_room->room_flags, ROOM_SOLITARY)
-        ||   IS_SET(to_room->room_flags, ROOM_NO_RECALL)
-        ||   IS_SET(from_room->room_flags,ROOM_NO_RECALL)
-        ||   victim->level >= level + 3
-        ||   (!IS_NPC(victim) && victim->level >= LEVEL_HERO)
-        ||   (IS_NPC(victim) && IS_SET(victim->imm_flags,IMM_SUMMON))
-        ||   (!IS_NPC(victim) && IS_SET(victim->act,PLR_NOSUMMON))
-        ||    victim->in_room->area->security < 5
-        ||   (IS_NPC(victim) && saves_spell( level, victim,DAM_NONE) ) )
-    {
-        send_to_char( "You failed.\n\r", ch );
-        return;
-    }   
-    */
 
     if ( target_name[0] == '\0' )
     {
