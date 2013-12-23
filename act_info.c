@@ -5338,6 +5338,13 @@ void do_percentages( CHAR_DATA *ch, char *argument )
     );
     add_buf(output, "{D|{x\n\r");
     
+    int crit = critical_chance(ch, FALSE);
+    if ( crit )
+    {
+        add_buff_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%", crit / 20.0);
+        add_buf(output, "{D|{x\n\r");
+    }
+    
     add_buf(output, "{D:===========================================================================:{x\n\r");
     page_to_char(buf_string(output), ch);
     free_buf(output);

@@ -160,28 +160,24 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
 
-
-bool check_critical(CHAR_DATA *ch, bool secondary)
+// return critical chance as multiple of 0.05% (100 = 5% chance)
+int critical_chance(CHAR_DATA *ch, bool secondary)
 {
     // need a weapon
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
-        return false;
-    
+        return 0;
+    int weapon_sn = get_weapon_sn_new(ch, secondary);
+    return get_skill(ch, gsn_critical) + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
+}
+
+bool check_critical(CHAR_DATA *ch, bool secondary)
+{
     // max chance is 5% critical skill + 5% critical mastery + 5% weapon mastery = max 15%
     if ( per_chance(85) )
         return FALSE;
     
-    int weapon_sn = get_weapon_sn_new(ch, secondary);
-    int weapon_mastery = get_mastery(ch, weapon_sn);
-    int critical_mastery = get_mastery(ch, gsn_critical);    
-    int chance = get_skill(ch, gsn_critical);
-
-    if ( weapon_mastery )
-        chance += 20 + 40 * weapon_mastery;
-    if ( critical_mastery )
-        chance += 20 + 40 * critical_mastery;
-    
-    return per_chance(chance / 3);
+    int chance = critical_chance(ch, secondary) / 3;
+    return per_chance(chance);
 }
 
 /*
