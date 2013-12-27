@@ -921,7 +921,8 @@ local lqtbl={
             local progs={}
             for _,area in pairs(getarealist()) do
                 for _,prog in pairs(area.mprogs) do
-                    table.insert(progs, prog)
+                    table.insert( progs,
+                            setmetatable( { ["area"]=area}, {__index=prog}) )
                 end
             end
             return progs
