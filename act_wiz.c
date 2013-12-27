@@ -3482,6 +3482,31 @@ static void print_liq_table( CHAR_DATA *ch, const struct liq_type *tbl)
     }
 }
 
+static void print_stances( CHAR_DATA *ch, const struct stance_type *tbl)
+{
+    ptc( ch, "%-18s %-10s %-16s %-3s %-3s %-4s\n\r",
+            "Name",
+            "Damtype",
+            "Verb",
+            "Hth",
+            "Wpn",
+            "Cost");
+    ptc( ch, "--------------------------------------------------------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].name ; i++)
+    {
+        ptc( ch, "%-18s %-10s %-16s %-3s %-3s %4d\n\r",
+                tbl[i].name,
+                flag_stat_string( damage_type, tbl[i].type),
+                tbl[i].verb,
+                tbl[i].martial ? "YES" : "no",
+                tbl[i].weapon ? "YES" : "no",
+                tbl[i].cost);
+    }
+
+}
+
+
 #define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note}
 
 struct
@@ -3533,6 +3558,7 @@ struct
     { "item_table", print_item_table, item_table, "Item types." },
     { "attack_table", print_attack_table, attack_table, "Attack types."},
     { "liq_table", print_liq_table, liq_table, "Liquid types."},
+    { "stances", print_stances, stances, "Stances."},
     { NULL, NULL, NULL, NULL}
 };
 
