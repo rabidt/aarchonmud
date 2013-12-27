@@ -900,6 +900,19 @@ local lqtbl={
     objs={
         getfun=getobjlist,
         default_sel="vnum|level|shortdescr"
+    },
+
+    room={
+        getfun=function()
+            local rooms={}
+            for _,area in pairs(getarealist()) do
+                for _,room in pairs(area.rooms) do
+                    table.insert( rooms, room )
+                end
+            end
+            return rooms
+        end,
+        default_sel="area.name|vnum|shortdescr"
     }
 }
 
