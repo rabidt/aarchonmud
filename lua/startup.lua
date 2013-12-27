@@ -814,7 +814,7 @@ end
 local function luaquery_usage( ch )
     sendtochar( ch,
 [[
-luaquery <type> <selection> [filter] [sort]
+luaquery <type> <selection> [filter] [sort] [width]
 
 Types:
     area    - AREAs (area_list)
@@ -837,6 +837,10 @@ Filter (optional):
 Sort (optional):
     One or more values determining the sort order of the output. Format is same
     as Selection.
+
+Width (optional):
+    An integer value which limits the width of the output columns to the given
+    number of characters.
 
 Notes: 
     'x' can be used optionally to qualify fields. 'x' is necessary to invoke
