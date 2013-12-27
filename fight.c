@@ -1480,7 +1480,12 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     if ( wield != NULL )
     {
         int weapon_dam = get_weapon_damage( wield );
-        weapon_dam += weapon_dam * get_twohand_bonus(ch, wield, TRUE) / 100;
+        int bonus = get_twohand_bonus(ch, wield, TRUE);
+        if ( bonus )
+        {
+            weapon_dam += weapon_dam * get_twohand_bonus(ch, wield, TRUE) / 100;
+            weapon_dam += ch->level * mastery_bonus(ch, gsn_two_handed, 15, 25) / 100;
+        }
         dam += weapon_dam;
     }
     else
