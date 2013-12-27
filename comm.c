@@ -1934,7 +1934,8 @@ void show_string(struct descriptor_data *d, char *input)
     int show_lines;
 
     one_argument(input,buf);
-    if (buf[0] != '\0')
+    // quick-and-dirty trick for quick downloading of notes */
+    if (buf[0] != '\0' && strcmp(buf, "note") )
     {
         if (d->showstr_head)
         {
