@@ -899,46 +899,49 @@ local lqtbl={
 }
 
 function do_luaquery( ch, argument)
-    local maxwidth=100
 
+    -- arg checking stuff
     args=arguments(argument, true)
-
+    
     if not(args[1]) then
         luaquery_usage(ch)
         return
     end
 
-    -- what type area we searching ?
-    local lqent=lqtbl[args[1]]
+    local typearg=args[1]
+    local columnarg=args[2]
+    local filterarg=args[3]
+    local sortarg=args[4]
+    local widtharg=args[5] and tonumber(args[5])
+
+    -- what type are we searching ?
+    local lqent=lqtbl[typearg]
     if lqent then
         getfun=lqent.getfun
     else
-        sendtochar(ch,"Invalid arg 1: "..args[1])
+        sendtochar(ch,"Invalid type arg: "..typearg)
         return
     end
-    table.remove(args,1)
 
     -- which columns are we selecting for output ?
-    if not(args[1]) then
+    if not(columnarg) then
         sendtochar( ch, "Must provide selection argument.\n\r")
         return
-    elseif args[1]=="" or args[1]=="default" then
-        args[1]=lqent.default_sel
+    elseif columnarg=="" or columnarg=="default" then
+        columnarg=lqent.default_sel
     end
 
     local selection={}
-    for word in args[1]:gmatch("[^|]+") do
+    for word in columnarg:gmatch("[^|]+") do
         table.insert(selection, word)
     end
-
-    table.remove(args,1)
 
     -- let's get our result
     local lst=getfun()
     local rslt={}
-    if args[1] then
+    if filterarg then
         local filterfun=function(gobj)
-            local vf,err=loadstring("return function(x) return "..args[1].." end" )
+            local vf,err=loadstring("return function(x) return "..filterarg.." end" )
             if err then error(err) return end
             setfenv(vf, 
                     setmetatable({}, { __index=gobj } ) )
@@ -950,11 +953,9 @@ function do_luaquery( ch, argument)
         for k,v in pairs(lst) do
             if filterfun(v) then table.insert(rslt, v) end
         end
-        table.remove(args,1)
     else
         rslt=lst
     end
-
 
     -- now populate output table based on our column selection
     local output={}
@@ -973,12 +974,18 @@ function do_luaquery( ch, argument)
             table.insert(line, { col=sel, val=tostring(vf()(gobj))} )
         end
         table.insert(output, line)
+
+    end
+
+    if #output<1 then
+        sendtochar( ch, "No results.\n\r")
+        return
     end
 
     -- now sort
-    if args[1] and not(args[1]=="") then
+    if sortarg and not(sortarg=="") then
         local sorts={}
-        for srt in args[1]:gmatch("[^|]+") do
+        for srt in sortarg:gmatch("[^|]+") do
             table.insert(sorts, srt)
         end
 
@@ -1031,10 +1038,14 @@ function do_luaquery( ch, argument)
     for _,v in pairs(output) do
         for _,v2 in ipairs(v) do
             if not(widths[v2.col]) then
-                widths[v2.col]=util.strlen_color(v2.val)
+                widths[v2.col]=widtharg and 
+                    math.min(util.strlen_color(v2.val), widtharg) or
+                    util.strlen_color(v2.val)
                 table.insert(hdr, v2.col)
             else
-                local ln=util.strlen_color(v2.val)
+                local ln=widtharg and
+                    math.min(util.strlen_color(v2.val), widtharg) or
+                    util.strlen_color(v2.val)
                 if ln>widths[v2.col] then
                     widths[v2.col]=ln
                 end
@@ -1048,10 +1059,9 @@ function do_luaquery( ch, argument)
     for _,v in ipairs(hdr) do
         table.insert(hdrstr,
                 util.format_color_string( v, widths[v]+1))
-                --string.format( "%-"..(widths[v]+1).."."..(widths[v]+1).."s", v ) )
     end
     table.insert(printing, 
-            util.truncate_color_string("|"..table.concat(hdrstr, "|"), maxwidth-1).."|")
+            "|"..table.concat(hdrstr,"|").."|")
 
     for _,v in ipairs(output) do
         local line={}
@@ -1061,21 +1071,20 @@ function do_luaquery( ch, argument)
             table.insert( line,
                     util.format_color_string(
                         v2.val,
-                        widths[v2.col]+1
+                        widths[v2.col]
                     )
+                    .." {x"
             )
         end
         local ln=table.concat(line,"|")
         table.insert(printing, 
-                util.truncate_color_string("|"..ln,maxwidth-1).."{x|")
+                "|"..ln.."|")
     end
 
   
 
     pagetochar(ch, table.concat(printing,"\n\r")..
             "\n\r\n\r"..
-            "Total results: "..#printing.."\n\r")
+            "Total results: "..(#output).."\n\r")
     
-
-
 end
