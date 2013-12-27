@@ -823,6 +823,7 @@ Types:
     mp      - MOBPROTOs
     mobs    - CHs (all mobs from char_list)
     room    - ROOMs
+    mprog   - PROGs (all mprogs)
 
 Selection:
     Determines which fields are shown on output. If '' or default then default
@@ -913,6 +914,19 @@ local lqtbl={
             return rooms
         end,
         default_sel="area.name|vnum|shortdescr"
+    },
+
+    mprog={
+        getfun=function()
+            local progs={}
+            for _,area in pairs(getarealist()) do
+                for _,prog in pairs(area.mprogs) do
+                    table.insert(progs, prog)
+                end
+            end
+            return progs
+        end,
+        default_sel="vnum"
     }
 }
 
