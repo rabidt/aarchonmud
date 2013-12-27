@@ -2033,6 +2033,30 @@ OBJVGETSTR( damtype, ITEM_WEAPON,
         flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) );
 OBJVH( damtype, "weapon only. See 'attack_table' table. Value corresponds to 'Damtype' column.", "");
 
+static int OBJ_get_damavg( lua_State *LS )
+{
+    OBJ_DATA *ud_obj=check_OBJ( LS, 1);
+    if (ud_obj->item_type != ITEM_WEAPON )
+        luaL_error(LS, "damavg for %s only.", 
+                item_name( ITEM_WEAPON ) );
+    
+    lua_pushinteger( LS, average_weapon_dam( ud_obj ) );
+    return 1;
+}
+
+static int OBJPROTO_get_damavg( lua_State *LS )
+{
+    OBJ_INDEX_DATA *ud_obj=check_OBJPROTO( LS, 1);
+    if (ud_obj->item_type != ITEM_WEAPON )
+        luaL_error(LS, "damavg for %s only.",
+                item_name( ITEM_WEAPON ) );
+    
+    lua_pushinteger( LS, average_weapon_index_dam( ud_obj ) );
+    return 1;
+}
+OBJVH( damavg, "weapon only. Average damage.", "");
+
+
 OBJVGETINT( key, ITEM_CONTAINER, 2 )
 OBJVH( key, "container only. Vnum of container's key.", "");
 
@@ -4059,6 +4083,20 @@ static int CH_get_proto( lua_State *LS)
 }
 HELPTOPIC CH_get_proto_help={};
 
+static int CH_get_ingame( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch)) luaL_error(LS, "Can't get ingame on PCs.");
+
+    lua_pushboolean( LS, is_mob_ingame( ud_ch->pIndexData ) );
+    return 1;
+}
+HELPTOPIC CH_get_ingame_help=
+{
+    .summary="NPC only.",
+    .info=""
+};
+
 static int CH_get_shortdescr( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4164,6 +4202,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     /* NPC only */
     CHGET(vnum, 0),
     CHGET(proto,0),
+    CHGET(ingame,0),
     CHGET(shortdescr, 0),
     CHGET(longdescr, 0),    
     ENDPTABLE
@@ -4693,6 +4732,14 @@ static int OBJ_get_proto (lua_State *LS)
 }
 HELPTOPIC OBJ_get_proto_help={};
 
+static int OBJ_get_ingame (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_pushboolean( LS, is_obj_ingame( ud_obj->pIndexData ) );
+    return 1;
+}
+HELPTOPIC OBJ_get_ingame_help={};
+
 static int OBJ_get_contents (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
@@ -4805,6 +4852,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(wearlocation, 0),
     OBJGET(contents, 0),
     OBJGET(proto, 0),
+    OBJGET(ingame, 0),
     
     /*light*/
     OBJGET(light, 0),
@@ -4846,6 +4894,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( dicetype, 0),
     OBJGET( attacktype, 0),
     OBJGET( damtype, 0),
+    OBJGET( damavg, 0),
 
     /* container */
     //maxweight
@@ -6136,6 +6185,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( dicetype, 0),
     OPGET( attacktype, 0),
     OPGET( damtype, 0),
+    OPGET( damavg, 0),
 
     /* container */
     //maxweight
