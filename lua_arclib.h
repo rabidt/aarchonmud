@@ -41,6 +41,7 @@ extern OBJ_TYPE *EXIT_type;
 extern OBJ_TYPE *RESET_type;
 extern OBJ_TYPE *OBJPROTO_type;
 extern OBJ_TYPE *MOBPROTO_type;
+extern OBJ_TYPE *PROG_type;
 
 void register_globals( lua_State *LS );
 
@@ -52,6 +53,8 @@ void register_globals( lua_State *LS );
 #define check_RESET( LS, index) ((RESET_DATA *)RESET_type->check( RESET_type, LS, index))
 #define check_MOBPROTO( LS, index) ((MOB_INDEX_DATA *)MOBPROTO_type->check( MOBPROTO_type, LS, index))
 #define check_OBJPROTO( LS, index) ((OBJ_INDEX_DATA *)OBJPROTO_type->check( OBJPROTO_type, LS, index))
+#define check_PROG( LS, index) ((PROG_CODE *)PROG_type->check( PROG_type, LS, index))
+
 
 #define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
 #define make_OBJ(LS, obj) OBJ_type->make( OBJ_type, LS, obj )
@@ -61,6 +64,7 @@ void register_globals( lua_State *LS );
 #define make_RESET(LS, reset) RESET_type->make( RESET_type, LS, reset )
 #define make_MOBPROTO(LS, mp) MOBPROTO_type->make( MOBPROTO_type, LS, mp)
 #define make_OBJPROTO(LS, op) OBJPROTO_type->make( OBJPROTO_type, LS, op)
+#define make_PROG(LS, prog) PROG_type->make( PROG_type, LS, prog)
 
 #define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
 #define is_OBJ(LS, obj ) OBJ_type->is( OBJ_type, LS, obj )

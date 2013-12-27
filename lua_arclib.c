@@ -64,6 +64,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 #define RSTSET( field, sec ) SETP( RESET, field sec)
 #define RSTMETH( field, sec ) METH( RESET, field, sec)
 
+#define PROGGET( field, sec) GETP( PROG, field, sec)
+
 typedef struct lua_help_topic
 {
     char *summary;
@@ -91,6 +93,7 @@ OBJ_TYPE *EXIT_type=NULL;
 OBJ_TYPE *RESET_type=NULL;
 OBJ_TYPE *OBJPROTO_type=NULL;
 OBJ_TYPE *MOBPROTO_type=NULL;
+OBJ_TYPE *PROG_type=NULL;
 
 /* for iterating */
 OBJ_TYPE *type_list [] =
@@ -103,6 +106,7 @@ OBJ_TYPE *type_list [] =
     &RESET_type,
     &OBJPROTO_type,
     &MOBPROTO_type,
+    &PROG_type,
     NULL
 };
 
@@ -5331,6 +5335,25 @@ HELPTOPIC AREA_get_objprotos_help = {
     .summary="A table of all OBJPROTOS in the area."
 };
 
+static int AREA_get_mprogs( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    int vnum=0;
+    lua_newtable(LS);
+    PROG_CODE *prog;
+    for ( vnum = ud_area->min_vnum ; vnum <= ud_area->max_vnum ; vnum++ )
+    {
+        if ((prog=get_mprog_index(vnum)) != NULL )
+        {
+            if (make_PROG(LS, prog))
+                lua_rawseti(LS, -2, index++);
+        }
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_mprogs_help = {};
+
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
     AREAGET(name, 0),
@@ -5346,6 +5369,7 @@ static const LUA_PROP_TYPE AREA_get_table [] =
     AREAGET(mobs, 0),
     AREAGET(mobprotos, 0),
     AREAGET(objprotos, 0),
+    AREAGET(mprogs, 0),
     ENDPTABLE
 };
 
@@ -6477,6 +6501,61 @@ static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 
 /* end MOBPROTO section */
 
+/* PROG section */
+static int PROG_get_islua ( lua_State *LS )
+{
+    lua_pushboolean( LS,
+            (check_PROG( LS, 1) )->is_lua);
+    return 1;
+}
+HELPTOPIC PROG_get_islua_help = {};
+
+static int PROG_get_vnum ( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            (check_PROG( LS, 1) )->vnum);
+    return 1;
+}
+HELPTOPIC PROG_get_vnum_help={};
+
+static int PROG_get_code ( lua_State *LS )
+{
+    lua_pushstring( LS,
+            (check_PROG( LS, 1) )->code);
+    return 1;
+}
+HELPTOPIC PROG_get_code_help={};
+
+static int PROG_get_security ( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            (check_PROG( LS, 1) )->security);
+    return 1;
+}
+HELPTOPIC PROG_get_security_help={};
+
+static const LUA_PROP_TYPE PROG_get_table [] =
+{
+    PROGGET( islua, 0),
+    PROGGET( vnum, 0),
+    PROGGET( code, 0),
+    PROGGET( security, 0),
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE PROG_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE PROG_method_table [] =
+{
+    ENDPTABLE
+};
+
+
+
+/* end PROG section */
 
 /* help section */
 
@@ -6878,4 +6957,5 @@ void type_init( lua_State *LS)
     TYPEINIT(RESET);
     TYPEINIT(OBJPROTO);
     TYPEINIT(MOBPROTO);
+    TYPEINIT(PROG);
 }
