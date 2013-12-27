@@ -26,11 +26,6 @@
  * Further mods by Rimbol for port to ROM 2.4b4 (24-Jun-97)
  */
 
-#if defined(WIN32)
-#define NO_BCOPY
-#define NO_BZERO
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

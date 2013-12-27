@@ -25,14 +25,8 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#if !defined (WIN32)
 #include <sys/time.h>
-#endif
-#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -40,7 +34,6 @@
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
-#include "signal.h"
 #include "special.h"
 
 /* command procedures needed */
@@ -3254,10 +3247,15 @@ void do_gag( CHAR_DATA *ch, char *argument )
 
 void do_try ( CHAR_DATA *ch, char *argument )
 {
+  if (IS_NPC(ch))
+      return;
+
   if (argument[0] == '\0')
     send_to_char("Try to do what?\n\r", ch);
   else
-    if (!mp_try_trigger(argument, ch) && !op_try_trigger(argument, ch))
+    if (!mp_try_trigger(argument, ch) 
+            && !op_try_trigger(argument, ch)
+            && !rp_try_trigger(argument, ch) )
       send_to_char("That didn't work.\n\r", ch);
 
 }

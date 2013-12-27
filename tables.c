@@ -25,11 +25,7 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#endif
 #include <stdio.h>
 #include <time.h>
 #include "merc.h"
@@ -583,6 +579,7 @@ const struct flag_type rprog_flags[] =
     {   "enter",        RTRIG_ENTER,     TRUE    },
     {   "exit",         RTRIG_EXIT,      TRUE    },
     {   "look",         RTRIG_LOOK,      TRUE    },
+    {   "try",          RTRIG_TRY,       TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
