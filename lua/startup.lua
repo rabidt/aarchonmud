@@ -819,8 +819,9 @@ luaquery <type> <selection> [filter] [sort]
 Types:
     area    - AREAs (area_list)
     op      - OBJPROTOs
-    objs    - OBJs (object_list)
+    objs    - OBJs (object_list, live objects)
     mp      - MOBPROTOs
+    mobs    - CHs (all mobs from char_list)
     room    - ROOMs
 
 Selection:
