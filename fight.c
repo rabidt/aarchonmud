@@ -1220,6 +1220,15 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
 
+    // second & third attack mastery
+    mastery_chance = mastery_bonus(ch, gsn_second_attack, 15, 25) + mastery_bonus(ch, gsn_third_attack, 15, 25);
+    if ( per_chance(mastery_chance) )
+    {
+        one_hit(ch, victim, dt, FALSE);
+        if ( ch->fighting != victim )
+            return;
+    }
+
     if ( ch->hit <= ch->max_hit/4 
 	 && number_percent() < get_skill(ch, gsn_ashura) )
     {
