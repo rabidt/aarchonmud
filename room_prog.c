@@ -38,6 +38,55 @@ static bool rp_percent_trigger(
     return TRUE;
 }
 
+static bool rp_act_trigger(
+        ROOM_INDEX_DATA *room, 
+        CHAR_DATA *ch1, CHAR_DATA *ch2, 
+        OBJ_DATA *obj1, OBJ_DATA *obj2,
+        const char *trigger, int type)
+{
+    if ( !HAS_RTRIG(room, type) )
+        return TRUE;
+
+    PROG_LIST *prg;
+
+    for ( prg = room->rprogs; prg != NULL; prg = prg->next )
+    {
+        if (prg->trig_type == type
+            && ( strstr(cap_all(trigger), cap_all(prg->trig_phrase)) != NULL
+                ||  !strcmp(prg->trig_phrase, "*") ) )
+        {
+            return lua_room_program( NULL, prg->vnum, prg->script->code, room, ch1, ch2, obj1, obj2, type, prg->script->security)
+                && (ch1 ? !ch1->must_extract : TRUE )
+                && (ch2 ? !ch2->must_extract : TRUE )
+                && (obj1 ? !obj1->must_extract : TRUE )
+                && (obj2 ? !obj2->must_extract : TRUE );
+        }
+    }
+    return TRUE;
+}
+
+/* returns whether a trigger was found */
+bool rp_try_trigger( char *argument, CHAR_DATA *ch )
+{
+    if ( !ch->in_room )
+    {
+        bugf( "rp_try_trigger: no room for %s",
+                ch->name);
+        return FALSE;
+    }
+
+    if ( !HAS_RTRIG( ch->in_room, RTRIG_TRY ) )
+        return FALSE; 
+
+    rp_act_trigger( ch->in_room,
+            ch, NULL,
+            NULL, NULL,
+            argument, RTRIG_TRY );
+
+    return TRUE;
+
+}
+
 bool rp_enter_trigger( CHAR_DATA *ch )
 {
     return rp_percent_trigger(

@@ -3,15 +3,8 @@
 * <eidsod01@condor.stcloud.msus.edu>    *
 *****************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#include <time.h>
-#else
 #include <sys/types.h>
-#if !defined(WIN32)
 #include <sys/time.h>
-#endif
-#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

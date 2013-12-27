@@ -25,14 +25,8 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#if !defined(WIN32)
 #include <sys/time.h>
-#endif
-#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -5343,6 +5337,13 @@ void do_percentages( CHAR_DATA *ch, char *argument )
         shield_block_chance(ch, FALSE)
     );
     add_buf(output, "{D|{x\n\r");
+    
+    int crit = critical_chance(ch, FALSE);
+    if ( crit )
+    {
+        add_buff_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%", crit / 20.0);
+        add_buf(output, "{D|{x\n\r");
+    }
     
     add_buf(output, "{D:===========================================================================:{x\n\r");
     page_to_char(buf_string(output), ch);
