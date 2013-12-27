@@ -1,8 +1,4 @@
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#endif
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -2908,6 +2904,9 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
         if ( one_hit(ch, victim, gsn_double_strike, TRUE) )
             hits++;
         check_improve( ch, gsn_double_strike, TRUE, 3 );
+
+        if ( stop_attack(ch, victim) )
+            return;
 
         if ( hits == 2 && per_chance(mastery_bonus(ch, gsn_double_strike, 40, 50)) )
         {

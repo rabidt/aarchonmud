@@ -826,7 +826,7 @@ Types:
 
 Selection:
     Determines which fields are shown on output. If '' or default then default
-    values area used, otherwise fields supplied in a list separated by '|' 
+    values are used, otherwise fields supplied in a list separated by '|' 
     character.
 
 Filter (optional):

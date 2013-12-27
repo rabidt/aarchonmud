@@ -4599,6 +4599,25 @@ static int OBJ_set_shortdescr (lua_State *LS)
 }
 HELPTOPIC OBJ_set_shortdescr_help={};
 
+static int OBJ_get_description (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJ(LS,1))->description);
+    return 1;
+}
+HELPTOPIC OBJ_get_description_help={};
+
+static int OBJ_set_description (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    const char *arg=check_string(LS,2,MIL);
+    free_string(ud_obj->description);
+    ud_obj->description=str_dup(arg);
+    return 0;
+}
+HELPTOPIC OBJ_set_description_help={};
+
+
 static int OBJ_get_clan (lua_State *LS)
 {
     lua_pushstring( LS,
@@ -4832,6 +4851,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
     OBJGET(shortdescr, 0),
+    OBJGET(description, 0),
     OBJGET(clan, 0),
     OBJGET(clanrank, 0),
     OBJGET(level, 0),
@@ -4929,6 +4949,7 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
 {
     OBJSET(name, 5 ),
     OBJSET(shortdescr, 5),
+    OBJSET(description, 5),
     OBJSET(level, 5),
     OBJSET(owner, 5),
     OBJSET(material, 5),
@@ -6031,6 +6052,14 @@ static int OBJPROTO_get_shortdescr (lua_State *LS)
 }
 HELPTOPIC OBJPROTO_get_shortdescr_help={};
 
+static int OBJPROTO_get_description (lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_OBJPROTO(LS,1))->description);
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_description_help={};
+
 static int OBJPROTO_get_clan (lua_State *LS)
 {
     lua_pushstring( LS,
@@ -6130,6 +6159,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
     OPGET( name, 0),
     OPGET( shortdescr, 0),
+    OPGET( description, 0),
     OPGET( clan, 0),
     OPGET( clanrank, 0),
     OPGET( level, 0),

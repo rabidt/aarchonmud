@@ -5,11 +5,7 @@
 * Portions inspired by Smaug 1.4 codebase.                          *
 *********************************************************************/
 
-#if defined(macintosh)
-#include <types.h>
-#else
 #include <sys/types.h>
-#endif
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
