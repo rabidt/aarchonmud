@@ -1833,7 +1833,7 @@ void page_to_char_bw( const char *txt, CHAR_DATA *ch )
             return;
         }
 
-    ch->desc->showstr_head = alloc_mem(strlen(txt) + 1);
+    ch->desc->showstr_head = malloc(strlen(txt) + 1);
     strcpy(ch->desc->showstr_head,txt);
     ch->desc->showstr_point = ch->desc->showstr_head;
     show_string(ch->desc,"");
@@ -1843,7 +1843,7 @@ void page_to_char_bw( const char *txt, CHAR_DATA *ch )
 /*
  * Page to one char, new colour version, by Lope.
  */
-#define MAX_BUF_INDEX (MAX_STRING_LENGTH*4)
+#define MAX_BUF_INDEX (MAX_STRING_LENGTH*12)
 void page_to_char( const char *txt, CHAR_DATA *ch )
 {
     page_to_char_new( txt, ch, FALSE );
@@ -1856,7 +1856,7 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
     char    buf[ MAX_BUF_INDEX + MSL ]; // some safety space
     int skip = 0;
 
-    /* savety-net for super-long texts */
+    /* safety-net for super-long texts */
     if ( strlen(txt) > MAX_BUF_INDEX )
     {
         bugf( "page_to_char: string paged to %s too long: %d",
@@ -1897,7 +1897,7 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
 
             }           
             *point2 = '\0';
-            ch->desc->showstr_head  = alloc_mem( strlen( buf ) + 1 );
+            ch->desc->showstr_head  = malloc( strlen( buf ) + 1 );
             strcpy( ch->desc->showstr_head, buf );
             ch->desc->showstr_point = ch->desc->showstr_head;
             show_string( ch->desc, "" );
@@ -1915,7 +1915,7 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
                 *++point2 = '\0';
             }
             *point2 = '\0';
-            ch->desc->showstr_head  = alloc_mem( strlen( buf ) + 1 );
+            ch->desc->showstr_head  = malloc( strlen( buf ) + 1 );
             strcpy( ch->desc->showstr_head, buf );
             ch->desc->showstr_point = ch->desc->showstr_head;
             show_string( ch->desc, "" );
@@ -1934,12 +1934,11 @@ void show_string(struct descriptor_data *d, char *input)
     int show_lines;
 
     one_argument(input,buf);
-    // quick-and-dirty trick for quick downloading of notes */
-    if (buf[0] != '\0' && strcmp(buf, "note") )
+    if (buf[0] != '\0')
     {
         if (d->showstr_head)
         {
-            free_mem(d->showstr_head,strlen(d->showstr_head));
+            free(d->showstr_head);
             d->showstr_head = 0;
         }
         d->showstr_point  = 0;
@@ -1953,6 +1952,13 @@ void show_string(struct descriptor_data *d, char *input)
 
     for (scan = buffer; ; scan++, d->showstr_point++)
     {
+        if ( (scan - buffer) >= (MSL*4))
+        {
+            bugf( "show_string: buffer overflow for %s, first 100 chars below\n\r%.100s",
+                    d->character ? d->character->name : "NULL",
+                    buffer);
+            return;
+        }
         if (((*scan = *d->showstr_point) == '\n' || *scan == '\r')
                 && (toggle = -toggle) < 0)
             lines++;
@@ -1967,7 +1973,7 @@ void show_string(struct descriptor_data *d, char *input)
                 {
                     if (d->showstr_head)
                     {
-                        free_mem(d->showstr_head,strlen(d->showstr_head));
+                        free(d->showstr_head);
                         d->showstr_head = 0;
                     }
                     d->showstr_point  = 0;
