@@ -6122,6 +6122,7 @@ HELPTOPIC RESET_get_command_help={};
 {\
     lua_pushinteger( LS,\
             (check_RESET(LS,1))->arg ## num);\
+    return 1;\
 }\
 HELPTOPIC RESET_get_arg ## num ## _help={}
 
