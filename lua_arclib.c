@@ -66,6 +66,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 
 #define PROGGET( field, sec) GETP( PROG, field, sec)
 
+#define TRIGGET( field, sec) GETP( TRIG, field, sec)
+
+
 typedef struct lua_help_topic
 {
     char *summary;
@@ -94,6 +97,10 @@ OBJ_TYPE *RESET_type=NULL;
 OBJ_TYPE *OBJPROTO_type=NULL;
 OBJ_TYPE *MOBPROTO_type=NULL;
 OBJ_TYPE *PROG_type=NULL;
+OBJ_TYPE *MTRIG_type=NULL;
+OBJ_TYPE *OTRIG_type=NULL;
+OBJ_TYPE *ATRIG_type=NULL;
+OBJ_TYPE *RTRIG_type=NULL;
 
 /* for iterating */
 OBJ_TYPE *type_list [] =
@@ -107,6 +114,10 @@ OBJ_TYPE *type_list [] =
     &OBJPROTO_type,
     &MOBPROTO_type,
     &PROG_type,
+    &MTRIG_type,
+    &OTRIG_type,
+    &ATRIG_type,
+    &RTRIG_type,
     NULL
 };
 
@@ -5354,6 +5365,80 @@ static int AREA_get_mprogs( lua_State *LS)
 }
 HELPTOPIC AREA_get_mprogs_help = {};
 
+static int AREA_get_oprogs( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    int vnum=0;
+    lua_newtable(LS);
+    PROG_CODE *prog;
+    for ( vnum = ud_area->min_vnum ; vnum <= ud_area->max_vnum ; vnum++ )
+    {
+        if ((prog=get_oprog_index(vnum)) != NULL )
+        {
+            if (make_PROG(LS, prog))
+                lua_rawseti(LS, -2, index++);
+        }
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_oprogs_help = {};
+
+static int AREA_get_aprogs( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    int vnum=0;
+    lua_newtable(LS);
+    PROG_CODE *prog;
+    for ( vnum = ud_area->min_vnum ; vnum <= ud_area->max_vnum ; vnum++ )
+    {
+        if ((prog=get_aprog_index(vnum)) != NULL )
+        {
+            if (make_PROG(LS, prog))
+                lua_rawseti(LS, -2, index++);
+        }
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_aprogs_help = {};
+
+static int AREA_get_rprogs( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA(LS, 1);
+    int index=1;
+    int vnum=0;
+    lua_newtable(LS);
+    PROG_CODE *prog;
+    for ( vnum = ud_area->min_vnum ; vnum <= ud_area->max_vnum ; vnum++ )
+    {
+        if ((prog=get_rprog_index(vnum)) != NULL )
+        {
+            if (make_PROG(LS, prog))
+                lua_rawseti(LS, -2, index++);
+        }
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_rprogs_help = {};
+
+static int AREA_get_atrigs ( lua_State *LS)
+{
+    AREA_DATA *ud_area=check_AREA( LS, 1);
+    PROG_LIST *atrig;
+
+    int index=1;
+    lua_newtable( LS );
+
+    for ( atrig = ud_area->aprogs ; atrig ; atrig = atrig->next )
+    {
+        if (make_ATRIG( LS, atrig) )
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC AREA_get_atrigs_help = {};
+
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
     AREAGET(name, 0),
@@ -5370,6 +5455,10 @@ static const LUA_PROP_TYPE AREA_get_table [] =
     AREAGET(mobprotos, 0),
     AREAGET(objprotos, 0),
     AREAGET(mprogs, 0),
+    AREAGET(oprogs, 0),
+    AREAGET(aprogs, 0),
+    AREAGET(rprogs, 0),
+    AREAGET(atrigs, 0),
     ENDPTABLE
 };
 
@@ -5795,6 +5884,22 @@ static int ROOM_get_ingame( lua_State *LS )
 }
 HELPTOPIC ROOM_get_ingame_help = {};
 
+static int ROOM_get_rtrigs ( lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM( LS, 1);
+    PROG_LIST *rtrig;
+
+    int index=1;
+    lua_newtable( LS );
+
+    for ( rtrig = ud_room->rprogs ; rtrig ; rtrig = rtrig->next )
+    {
+        if (make_RTRIG( LS, rtrig) )
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC ROOM_get_rtrigs_help = {};
 
 static const LUA_PROP_TYPE ROOM_get_table [] =
 {
@@ -5825,6 +5930,7 @@ static const LUA_PROP_TYPE ROOM_get_table [] =
     ROOMGET(up, 0),
     ROOMGET(down, 0),
     ROOMGET(resets, 0),
+    ROOMGET(rtrigs, 0),
     ENDPTABLE
 };
 
@@ -6191,6 +6297,22 @@ static int OBJPROTO_get_area ( lua_State *LS )
 }
 HELPTOPIC OBJPROTO_get_area_help = {};
 
+static int OBJPROTO_get_otrigs ( lua_State *LS)
+{
+    OBJ_INDEX_DATA *ud_oid=check_OBJPROTO( LS, 1);
+    PROG_LIST *otrig;
+
+    int index=1;
+    lua_newtable( LS );
+
+    for ( otrig = ud_oid->oprogs ; otrig ; otrig = otrig->next )
+    {
+        if (make_OTRIG( LS, otrig) )
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_otrigs_help = {};
 
 static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
@@ -6212,7 +6334,8 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( v4, 0),
     OPGET( area, 0),
     OPGET( ingame, 0),
-        /*light*/
+    OPGET( otrigs, 0),
+    /*light*/
     OPGET(light, 0),
 
     /*arrows*/
@@ -6453,6 +6576,23 @@ static int MOBPROTO_get_area (lua_State *LS)
 }
 HELPTOPIC MOBPROTO_get_area_help = {};
 
+static int MOBPROTO_get_mtrigs ( lua_State *LS)
+{
+    MOB_INDEX_DATA *ud_mid=check_MOBPROTO( LS, 1);
+    PROG_LIST *mtrig;
+    
+    int index=1;
+    lua_newtable( LS );
+
+    for ( mtrig = ud_mid->mprogs ; mtrig ; mtrig = mtrig->next )
+    {
+        if (make_MTRIG( LS, mtrig) )
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC MOBPROTO_get_mtrigs_help = {};
+
     
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
@@ -6480,6 +6620,7 @@ static const LUA_PROP_TYPE MOBPROTO_get_table [] =
     MPGET( stance, 0),
     MPGET( area, 0),
     MPGET( ingame, 0),
+    MPGET( mtrigs, 0),
     ENDPTABLE
 };
 
@@ -6552,10 +6693,106 @@ static const LUA_PROP_TYPE PROG_method_table [] =
 {
     ENDPTABLE
 };
-
-
-
 /* end PROG section */
+
+/* TRIG section */
+static int TRIG_get_trigtype ( lua_State *LS )
+{
+    struct flag_type *tbl;
+
+    lua_getfield(LS, 1, "TYPE");
+    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+
+    if (type==MTRIG_type)
+    {
+        tbl=mprog_flags;
+    }
+    else if (type==OTRIG_type)
+    {
+        tbl=oprog_flags;
+    }
+    else if (type==ATRIG_type)
+    {
+        tbl=aprog_flags;
+    }
+    else if (type==RTRIG_type)
+    {
+        tbl=rprog_flags;
+    }
+    else
+    {
+        luaL_error( LS,
+                "Invalid type: %s.",
+                type->type_name);
+    }
+
+    lua_pushstring( LS,
+            flag_stat_string(
+                tbl,
+                ((PROG_LIST *) type->check( type, LS, 1 ) )->trig_type ) );
+    return 1;
+}
+HELPTOPIC TRIG_get_trigtype_help = {};
+
+static int TRIG_get_trigphrase ( lua_State *LS )
+{
+    lua_getfield(LS, 1, "TYPE");
+    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+
+    if ( type != MTRIG_type
+            && type != OTRIG_type
+            && type != ATRIG_type
+            && type != RTRIG_type )
+        luaL_error( LS,
+                "Invalid type: %s.",
+                type->type_name);
+
+    lua_pushstring( LS,
+            ((PROG_LIST *) type->check( type, LS, 1 ) )->trig_phrase);
+    return 1;
+}
+HELPTOPIC TRIG_get_trigphrase_help ={};
+
+static int TRIG_get_prog ( lua_State *LS )
+{
+    lua_getfield(LS, 1, "TYPE");
+    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+
+    if ( type != MTRIG_type
+            && type != OTRIG_type
+            && type != ATRIG_type
+            && type != RTRIG_type )
+        luaL_error( LS,
+                "Invalid type: %s.",
+                type->type_name);
+
+    if ( make_PROG( LS,
+            ((PROG_LIST *) type->check( type, LS, 1 ) )->script ) )
+        return 1;
+    return 0;
+}    
+HELPTOPIC TRIG_get_prog_help = {};
+
+
+static const LUA_PROP_TYPE TRIG_get_table [] =
+{
+    TRIGGET( trigtype, 0),
+    TRIGGET( trigphrase, 0),
+    TRIGGET( prog, 0),
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE TRIG_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE TRIG_method_table [] =
+{
+    ENDPTABLE
+};
+
+/* end TRIG section */
 
 /* help section */
 
@@ -6958,4 +7195,33 @@ void type_init( lua_State *LS)
     TYPEINIT(OBJPROTO);
     TYPEINIT(MOBPROTO);
     TYPEINIT(PROG);
+    if (!MTRIG_type)
+        MTRIG_type=new_obj_type(
+                LS,
+                "MTRIG",
+                TRIG_get_table,
+                TRIG_set_table,
+                TRIG_method_table);
+    if (!OTRIG_type)
+        OTRIG_type=new_obj_type(
+                LS,
+                "OTRIG",
+                TRIG_get_table,
+                TRIG_set_table,
+                TRIG_method_table);
+    if (!ATRIG_type)
+        ATRIG_type=new_obj_type(
+                LS,
+                "ATRIG",
+                TRIG_get_table,
+                TRIG_set_table,
+                TRIG_method_table);
+    if (!RTRIG_type)
+        RTRIG_type=new_obj_type(
+                LS,
+                "RTRIG",
+                TRIG_get_table,
+                TRIG_set_table,
+                TRIG_method_table);
+
 }
