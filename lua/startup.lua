@@ -812,7 +812,7 @@ function load_luaconfig( ch, text )
 end
 
 local function luaquery_usage( ch )
-    sendtochar( ch,
+    pagetochar( ch,
 [[
 luaquery <type> <selection> [filter] [sort] [width]
 
@@ -823,7 +823,17 @@ Types:
     mp      - MOBPROTOs
     mobs    - CHs (all mobs from char_list)
     room    - ROOMs
-    mprog   - PROGs (all mprogs)
+
+    mprog   - PROGs (all mprogs, includes 'area')
+    oprog   - PROGS (all oprogs, includes 'area')
+    aprog   - PROGs (all aprogs, includes 'area')
+    rprog   - PROGs (all rprogs, includes 'area')
+
+    mtrig   - MTRIGs (all mprog triggers, includes 'area' and 'mobproto')
+    otrig   - OTRIGs (all oprog triggers, includes 'area' and 'objproto')
+    atrig   - ATRIGs (all aprog triggers, includes 'area')
+    rtrig   - RTRIGs (all rprog triggers, includes 'area' and 'room')
+
 
 Selection:
     Determines which fields are shown on output. If '' or default then default
@@ -849,12 +859,22 @@ Notes:
 
     A field must be in the selection in order to be used in sort.
 
+    For types listed above with "includes" in the description, these are variables
+    included in the query (available for selection/filter/sort) that are not
+    fields of the specified object type by default. For instance, PROG type does
+    not have a field called 'area' but for the purposes of PROG queries it is
+    accessible.
+
 Examples:
-    luaquery op level|vnum|shortdescr|x:extra("glow")|area.name 'otype=="weapon" and x:weaponflag("flaming")' level|x:extra("glow")
+    luaquery op level|vnum|shortdescr|x:extra("glow")|area.name 'otype=="weapon" and x:weaponflag("flaming")' level|x:extra("glow") 20
 
     Shows level, vnum, shortdescr, glow flag (true/false), and area.name for all
     OBJPROTOs that are weapons with flaming wflag. Sorted by level then by glow
-    flag.
+    flag, with each column limited to 20 characters width.
+
+    luaquery mtrig '' 'mobproto.level==90' '' 15
+    Shows default selection for all mprog trigs that are attached to mobs of level 90.
+    Results are unsorted but columns are limited to 15 characters.
 
 ]])
 
