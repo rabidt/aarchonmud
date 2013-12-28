@@ -42,6 +42,10 @@ extern OBJ_TYPE *RESET_type;
 extern OBJ_TYPE *OBJPROTO_type;
 extern OBJ_TYPE *MOBPROTO_type;
 extern OBJ_TYPE *PROG_type;
+extern OBJ_TYPE *MTRIG_type;
+extern OBJ_TYPE *OTRIG_type;
+extern OBJ_TYPE *ATRIG_type;
+extern OBJ_TYPE *RTRIG_type;
 
 void register_globals( lua_State *LS );
 
@@ -54,6 +58,10 @@ void register_globals( lua_State *LS );
 #define check_MOBPROTO( LS, index) ((MOB_INDEX_DATA *)MOBPROTO_type->check( MOBPROTO_type, LS, index))
 #define check_OBJPROTO( LS, index) ((OBJ_INDEX_DATA *)OBJPROTO_type->check( OBJPROTO_type, LS, index))
 #define check_PROG( LS, index) ((PROG_CODE *)PROG_type->check( PROG_type, LS, index))
+#define check_MTRIG( LS, index) ((PROG_LIST *)MTRIG_type->check( MTRIG_type, LS, index))
+#define check_OTRIG( LS, index) ((PROG_LIST *)OTRIG_type->check( OTRIG_type, LS, index))
+#define check_ATRIG( LS, index) ((PROG_LIST *)ATRIG_type->check( ATRIG_type, LS, index))
+#define check_RTRIG( LS, index) ((PROG_LIST *)RTRIG_type->check( RTRIG_type, LS, index))
 
 
 #define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
@@ -65,10 +73,16 @@ void register_globals( lua_State *LS );
 #define make_MOBPROTO(LS, mp) MOBPROTO_type->make( MOBPROTO_type, LS, mp)
 #define make_OBJPROTO(LS, op) OBJPROTO_type->make( OBJPROTO_type, LS, op)
 #define make_PROG(LS, prog) PROG_type->make( PROG_type, LS, prog)
+#define make_MTRIG(LS, trig) MTRIG_type->make( MTRIG_type, LS, trig)
+#define make_OTRIG(LS, trig) OTRIG_type->make( OTRIG_type, LS, trig)
+#define make_ATRIG(LS, trig) ATRIG_type->make( ATRIG_type, LS, trig)
+#define make_RTRIG(LS, trig) RTRIG_type->make( RTRIG_type, LS, trig)
 
 #define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
 #define is_OBJ(LS, obj ) OBJ_type->is( OBJ_type, LS, obj )
 #define is_AREA(LS, area ) AREA_type->is( AREA_type, LS, area )
 #define is_ROOM(LS, room ) ROOM_type->is( ROOM_type, LS, room )
+#define is_MTRIG(LS, trig ) MTRIG_type->is( MTRIG_type, LS, trig )
+#define is_OTRIG(LS, trig ) OTRIG_type->is( OTRIG_type, LS, trig )
 
 #endif
