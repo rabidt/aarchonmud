@@ -823,6 +823,7 @@ Types:
     mp      - MOBPROTOs
     mobs    - CHs (all mobs from char_list)
     room    - ROOMs
+    reset   - RESETs (includes 'area' and 'room')
 
     mprog   - PROGs (all mprogs, includes 'area')
     oprog   - PROGS (all oprogs, includes 'area')
@@ -875,6 +876,9 @@ Examples:
     luaquery mtrig '' 'mobproto.level==90' '' 15
     Shows default selection for all mprog trigs that are attached to mobs of level 90.
     Results are unsorted but columns are limited to 15 characters.
+
+    luaq reset '' 'command=="M" and arg1==10256'
+    Show default selection for all resets of mob vnum 10256.
 
 ]])
 
@@ -935,6 +939,25 @@ local lqtbl={
         end,
         default_sel="area.name|vnum|shortdescr"
     },
+
+
+    reset={
+        getfun=function()
+            local resets={}
+            for _,area in pairs(getarealist()) do
+                for _,room in pairs(area.rooms) do
+                    for _,reset in pairs(room.resets) do
+                        table.insert( resets,
+                                setmetatable( { ["area"]=area, ["room"]=room },
+                                              {__index=reset} ) )
+                    end
+                end
+            end
+            return resets
+        end,
+        default_sel="area.name|room.name|room.vnum|command|arg1|arg2|arg3|arg4"
+    },
+
 
     mprog={
         getfun=function()
