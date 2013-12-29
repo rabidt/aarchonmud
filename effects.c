@@ -171,7 +171,7 @@ void acid_effect(void *vo, int level, int dam, int target)
 		if (obj->in_room != NULL)
 			obj_to_room(t_obj,obj->in_room);
 		else if (obj->carried_by != NULL)
-			obj_to_room(t_obj,obj->carried_by->in_room);
+			obj_to_char(t_obj,obj->carried_by);
 		else
 		{
 			extract_obj(t_obj);
@@ -434,7 +434,7 @@ void fire_effect(void *vo, int level, int dam, int target)
 		if (obj->in_room != NULL)
 					obj_to_room(t_obj,obj->in_room);
 		else if (obj->carried_by != NULL)
-			obj_to_room(t_obj,obj->carried_by->in_room);
+			obj_to_char(t_obj,obj->carried_by);
 		else
 		{
 			extract_obj(t_obj);

@@ -1423,7 +1423,7 @@ bool mp_act_trigger(
 	const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type,
     int type )
 {
-    MPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
     {
@@ -1450,7 +1450,7 @@ bool mp_percent_trigger(
 	const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type,
     int type )
 {
-    MPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
     {
@@ -1466,7 +1466,7 @@ bool mp_percent_trigger(
 
 void mp_bribe_trigger( CHAR_DATA *mob, CHAR_DATA *ch, int amount )
 {
-    MPROG_LIST *prg;
+    PROG_LIST *prg;
 
     /*
      * Original MERC 2.2 MOBprograms used to create a money object
@@ -1490,38 +1490,41 @@ void mp_bribe_trigger( CHAR_DATA *mob, CHAR_DATA *ch, int amount )
 bool mp_exit_trigger( CHAR_DATA *ch, int dir )
 {
     CHAR_DATA *mob;
-    MPROG_LIST   *prg;
+    PROG_LIST   *prg;
 
     for ( mob = ch->in_room->people; mob != NULL; mob = mob->next_in_room )
     {    
-	if ( IS_NPC( mob )
-	&&   ( HAS_TRIGGER(mob, TRIG_EXIT) || HAS_TRIGGER(mob, TRIG_EXALL) ) )
-	{
-	    for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
-	    {
-		/*
-		 * Exit trigger works only if the mobile is not busy
-		 * (fighting etc.). If you want to be sure all players
-		 * are caught, use ExAll trigger
-		 */
-		if ( prg->trig_type == TRIG_EXIT
-		&&  dir == atoi( prg->trig_phrase )
-		&&  (mob->position >= mob->pIndexData->default_pos ||
-			mob->position == POS_FIGHTING)
-		&&  check_see( mob, ch ) )
-		{
-		    program_flow( dir_name[dir], prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL,0, NULL,0, TRIG_EXIT, prg->script->security );
-		    return TRUE;
-		}
-		else
-		if ( prg->trig_type == TRIG_EXALL
-		&&   dir == atoi( prg->trig_phrase ) )
-		{
-		    program_flow( dir_name[dir], prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL,0, NULL,0, TRIG_EXALL, prg->script->security );
-		    return TRUE;
-		}
-	    }
-	}
+        if ( IS_NPC( mob )
+                &&   ( HAS_TRIGGER(mob, TRIG_EXIT) || HAS_TRIGGER(mob, TRIG_EXALL) ) )
+        {
+            for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
+            {
+                /*
+                 * Exit trigger works only if the mobile is not busy
+                 * (fighting etc.). If you want to be sure all players
+                 * are caught, use ExAll trigger
+                 */
+                if ( prg->trig_type == TRIG_EXIT
+                        &&  (dir == atoi( prg->trig_phrase ) 
+                            || !str_cmp( dir_name[dir], prg->trig_phrase ) 
+                            || !strcmp( "*", prg->trig_phrase) )
+                        &&  (mob->position >= mob->pIndexData->default_pos ||
+                            mob->position == POS_FIGHTING)
+                        &&  check_see( mob, ch ) )
+                {
+                    program_flow( dir_name[dir], prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL,0, NULL,0, TRIG_EXIT, prg->script->security );
+                    return TRUE;
+                }
+                else if ( prg->trig_type == TRIG_EXALL
+                        &&   (dir == atoi( prg->trig_phrase )
+                             || !str_cmp( dir_name[dir], prg->trig_phrase ) 
+                             || !strcmp( "*", prg->trig_phrase) ) )
+                {
+                    program_flow( dir_name[dir], prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL,0, NULL,0, TRIG_EXALL, prg->script->security );
+                    return TRUE;
+                }
+            }
+        }
     }
     return FALSE;
 }
@@ -1530,7 +1533,7 @@ bool mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 {
 
     char        buf[MAX_INPUT_LENGTH], *p;
-    MPROG_LIST  *prg;
+    PROG_LIST  *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
 	if ( prg->trig_type == TRIG_GIVE )
@@ -1601,7 +1604,7 @@ void mp_greet_trigger( CHAR_DATA *ch )
 
 void mp_hprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 {
-    MPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
 	if ( ( prg->trig_type == TRIG_HPCNT )
@@ -1616,7 +1619,7 @@ void mp_hprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 
 void mp_mprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 {
-    MPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
 	if ( ( prg->trig_type == TRIG_MPCNT )
@@ -1634,7 +1637,7 @@ void mp_mprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 
 void mp_timer_trigger( CHAR_DATA *mob )
 {
-    MPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg=mob->pIndexData->mprogs; prg != NULL; prg = prg->next )
     {
@@ -1702,7 +1705,7 @@ bool can_trigger( CHAR_DATA *mob, int trigger )
 // does the mob have a trigger of the given type with vnum as parameter
 bool has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum )
 {
-    MPROG_LIST *prg;
+    PROG_LIST *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
     {
@@ -1721,7 +1724,7 @@ void mprog_timer_init( CHAR_DATA *mob)
     /* Set up timer stuff if not already */
     if (HAS_TRIGGER(mob, TRIG_TIMER) && !mob->trig_timer)
     {
-        MPROG_LIST *prg;
+        PROG_LIST *prg;
         for ( prg = mob->pIndexData->mprogs; prg; prg= prg->next )
         {
             if ( prg->trig_type == TRIG_TIMER )

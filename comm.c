@@ -1130,8 +1130,8 @@ void battle_prompt( DESCRIPTOR_DATA *d )
                 color = 'r';
 
             sprintf(buf,
-                    "{W[{%c                                {W] ({%c%d%%{W){x\n\r",
-                    color, color, percent);
+                    "{W[{%c                                {W] %s {W({%c%d%%{W){x\n\r",
+                    color, IS_NPC(victim) ? victim->short_descr : victim->name, color, percent);
 
             bars=UMIN(((percent*32)/100), 32);
             for (i=0; i<bars; i++)
@@ -1183,9 +1183,7 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
             if (d->lua.interpret)
             {
                 write_to_buffer( d, "lua", 3);
-                if (d->lua.wait)
-                    write_to_buffer( d, "W", 1);
-                else if (d->lua.incmpl)
+                if (d->lua.incmpl)
                     write_to_buffer( d, ">", 1);
 
             }
@@ -1835,7 +1833,7 @@ void page_to_char_bw( const char *txt, CHAR_DATA *ch )
             return;
         }
 
-    ch->desc->showstr_head = alloc_mem(strlen(txt) + 1);
+    ch->desc->showstr_head = malloc(strlen(txt) + 1);
     strcpy(ch->desc->showstr_head,txt);
     ch->desc->showstr_point = ch->desc->showstr_head;
     show_string(ch->desc,"");
@@ -1845,7 +1843,7 @@ void page_to_char_bw( const char *txt, CHAR_DATA *ch )
 /*
  * Page to one char, new colour version, by Lope.
  */
-#define MAX_BUF_INDEX (MAX_STRING_LENGTH*4)
+#define MAX_BUF_INDEX (MAX_STRING_LENGTH*12)
 void page_to_char( const char *txt, CHAR_DATA *ch )
 {
     page_to_char_new( txt, ch, FALSE );
@@ -1855,10 +1853,10 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
 {
     const  char    *point;
     char    *point2;
-    char    buf[ MAX_STRING_LENGTH * 5 ]; // some safety space
+    char    buf[ MAX_BUF_INDEX + MSL ]; // some safety space
     int skip = 0;
 
-    /* savety-net for super-long texts */
+    /* safety-net for super-long texts */
     if ( strlen(txt) > MAX_BUF_INDEX )
     {
         bugf( "page_to_char: string paged to %s too long: %d",
@@ -1899,7 +1897,7 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
 
             }           
             *point2 = '\0';
-            ch->desc->showstr_head  = alloc_mem( strlen( buf ) + 1 );
+            ch->desc->showstr_head  = malloc( strlen( buf ) + 1 );
             strcpy( ch->desc->showstr_head, buf );
             ch->desc->showstr_point = ch->desc->showstr_head;
             show_string( ch->desc, "" );
@@ -1917,7 +1915,7 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
                 *++point2 = '\0';
             }
             *point2 = '\0';
-            ch->desc->showstr_head  = alloc_mem( strlen( buf ) + 1 );
+            ch->desc->showstr_head  = malloc( strlen( buf ) + 1 );
             strcpy( ch->desc->showstr_head, buf );
             ch->desc->showstr_point = ch->desc->showstr_head;
             show_string( ch->desc, "" );
@@ -1941,7 +1939,7 @@ void show_string(struct descriptor_data *d, char *input)
     {
         if (d->showstr_head)
         {
-            free_mem(d->showstr_head,strlen(d->showstr_head));
+            free(d->showstr_head);
             d->showstr_head = 0;
         }
         d->showstr_point  = 0;
@@ -1955,6 +1953,13 @@ void show_string(struct descriptor_data *d, char *input)
 
     for (scan = buffer; ; scan++, d->showstr_point++)
     {
+        if ( (scan - buffer) >= (MSL*4))
+        {
+            bugf( "show_string: buffer overflow for %s, first 100 chars below\n\r%.100s",
+                    d->character ? d->character->name : "NULL",
+                    buffer);
+            return;
+        }
         if (((*scan = *d->showstr_point) == '\n' || *scan == '\r')
                 && (toggle = -toggle) < 0)
             lines++;
@@ -1969,7 +1974,7 @@ void show_string(struct descriptor_data *d, char *input)
                 {
                     if (d->showstr_head)
                     {
-                        free_mem(d->showstr_head,strlen(d->showstr_head));
+                        free(d->showstr_head);
                         d->showstr_head = 0;
                     }
                     d->showstr_point  = 0;
@@ -2874,7 +2879,7 @@ void do_copyover (CHAR_DATA *ch, char * argument)
     sprintf (arg1, "%d", port);
     sprintf (arg2, "%s", "copyover");
     sprintf (arg3, "%d", control);
-    logpf( "do_copyover: executing '%s %s %s %s %s'", arg0, arg1, arg2, arg3 );
+    logpf( "do_copyover: executing '%s %s %s %s'", arg0, arg1, arg2, arg3 );
     execl (EXE_FILE, arg0, arg1, arg2, arg3, (char *) NULL);
 
     /* Failed - sucessful exec will not return */

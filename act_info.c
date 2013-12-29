@@ -40,6 +40,7 @@
 #include "lookup.h"
 #include "interp.h"
 #include "religion.h"
+#include "lua_scripting.h"
 
 bool commen_wear_pos( tflag wear_flag1, tflag wear_flag2 );
 void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all);
@@ -919,6 +920,11 @@ void do_story(CHAR_DATA *ch, char *argument)
     do_help(ch,"story");
 }
 
+void do_dirs(CHAR_DATA *ch, char *argument)
+{
+    do_help(ch,"dirs");
+}
+
 /*
 void do_wizlist(CHAR_DATA *ch, char *argument)
 {
@@ -1634,6 +1640,7 @@ void do_look( CHAR_DATA *ch, char *argument )
     char *pdesc;
     int door;
     int number,count;
+    sh_int num_items;
     
     if ( ch->desc == NULL )
         return;
@@ -1796,11 +1803,12 @@ void do_look( CHAR_DATA *ch, char *argument )
             act( "$p holds:", ch, obj, NULL, TO_CHAR );
             show_list_to_char( obj->contains, ch, TRUE, TRUE );
             /* Show item count in storage boxes*/
-            if (obj->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
-            {
-                sh_int num_items=get_obj_number(obj);
+//            if (obj->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
+            if (obj->item_type == ITEM_CONTAINER)
+            { 
+                num_items = get_obj_number(obj);
                 printf_to_char(ch,"\n\r%d %s.\n\r",num_items,
-                        num_items==1?"item":"items");
+                        num_items == 1 ? "item" : "items");
             }
             break;
         }
@@ -2046,6 +2054,8 @@ void do_examine( CHAR_DATA *ch, char *argument )
 	 else if( obj->weight < 180 ) strcat(buf, "and it has a good weight to it.\n\r");
 	 else if( obj->weight < 260 ) strcat(buf, "and it is quite massive.\n\r");
 	 else strcat(buf, "and it is extremely heavy.\n\r");
+        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS))
+           strcat(buf, "It requires two hands to wield.\n\r");
 	send_to_char(buf,ch);
 	break;
 
@@ -3786,6 +3796,9 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     char buf[MAX_STRING_LENGTH], arg[MAX_INPUT_LENGTH];
     int c, pos;
 
+    sprintf( buf, "%s", obj->short_descr);
+    do_say(ch, buf);
+
     sprintf( buf, "The %s is %s.",
 	     item_name(obj->item_type),
 	     extra_bits_name(obj->extra_flags) );
@@ -4203,7 +4216,7 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     
     ch->mana -= skill_table[sn].min_mana;
 
-    if (!op_percent_trigger( obj, NULL, ch, NULL, OTRIG_LORE) )
+    if (!op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_LORE) )
         return;
 
     /* ok, he knows something.. */
@@ -4544,12 +4557,13 @@ void do_stance_list( CHAR_DATA *ch, char *argument )
 	if ( skill == 0 )
 	    continue;
 
-	sprintf( buf, "%-20s %3d%%(%3d%%) %10dmv     %s %s\n\r",
+	sprintf( buf, "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
 		 stances[i].name,
 		 ch->pcdata->learned[*(stances[i].gsn)], skill,
 		 stance_cost(ch, i),
 		 stances[i].weapon ? "w" : " ",
-		 stances[i].martial ? "m" : " ");
+		 stances[i].martial ? "m" : " ",
+                 flag_stat_string(damage_type, stances[i].type));
 	send_to_char( buf, ch );
     }
 }
@@ -5337,6 +5351,13 @@ void do_percentages( CHAR_DATA *ch, char *argument )
     );
     add_buf(output, "{D|{x\n\r");
     
+    int crit = critical_chance(ch, FALSE);
+    if ( crit )
+    {
+        add_buff_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%", crit / 20.0);
+        add_buf(output, "{D|{x\n\r");
+    }
+    
     add_buf(output, "{D:===========================================================================:{x\n\r");
     page_to_char(buf_string(output), ch);
     free_buf(output);
@@ -5491,7 +5512,11 @@ msl_string achievement_display [] =
         "Max HP",
         "Max Mana",
         "Max Moves",
-        "Explored"
+        "Explored",
+        "MA Skills",
+        "GM Skills",
+        "Retrain",
+        "Hard Qsts"
 };
 
 
@@ -5678,6 +5703,18 @@ void check_achievement( CHAR_DATA *ch )
             case ACHV_EXPLORED:
                 current = ch->pcdata->explored->set;
                 break;
+            case ACHV_MASKILLS:
+                current = ch->pcdata->smc_mastered;
+                break;
+            case ACHV_GMSKILLS:
+                current = ch->pcdata->smc_grandmastered;
+                break;
+            case ACHV_RETRAINED:
+                current = ch->pcdata->smc_retrained;
+                break;
+            case ACHV_QHCOMP:
+                current = ch->pcdata->quest_hard_success;
+                break;
 	    default:
 		bug("Invalid achievement entry. Check achievement type", 0);
 		//bug message here
@@ -5710,8 +5747,9 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
         gain_exp(ch, achievement_table[table_index].exp_reward);
         ch->pcdata->achpoints += achievement_table[table_index].ach_reward;
         //send_to_char("Achievement unlocked -- TEST.\n\r",ch);
-	printf_to_char(ch, "Achievement %s %d unlocked.\n\r", achievement_display[achievement_table[table_index].type], achievement_table[table_index].limit);
-	send_to_char( "Your reward:\n\r",ch);
+        printf_to_char(ch, "--------------------------------------\n\r");
+	printf_to_char(ch, "{wAchievement {R%s %d{w unlocked{x.\n\r", achievement_display[achievement_table[table_index].type], achievement_table[table_index].limit);
+	send_to_char( "{wYour reward{x:\n\r",ch);
 	if (achievement_table[table_index].gold_reward>0)
 	  printf_to_char(ch, "%6d gold\n\r", achievement_table[table_index].gold_reward);
 	if (achievement_table[table_index].quest_reward>0)
@@ -5729,6 +5767,7 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
 	*/
         
     }
+    printf_to_char(ch, "\n\r");
 }
 
 
