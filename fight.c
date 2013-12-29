@@ -160,28 +160,24 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
 
-
-bool check_critical(CHAR_DATA *ch, bool secondary)
+// return critical chance as multiple of 0.05% (100 = 5% chance)
+int critical_chance(CHAR_DATA *ch, bool secondary)
 {
     // need a weapon
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
-        return false;
-    
+        return 0;
+    int weapon_sn = get_weapon_sn_new(ch, secondary);
+    return get_skill(ch, gsn_critical) + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
+}
+
+bool check_critical(CHAR_DATA *ch, bool secondary)
+{
     // max chance is 5% critical skill + 5% critical mastery + 5% weapon mastery = max 15%
     if ( per_chance(85) )
         return FALSE;
     
-    int weapon_sn = get_weapon_sn_new(ch, secondary);
-    int weapon_mastery = get_mastery(ch, weapon_sn);
-    int critical_mastery = get_mastery(ch, gsn_critical);    
-    int chance = get_skill(ch, gsn_critical);
-
-    if ( weapon_mastery )
-        chance += 20 + 40 * weapon_mastery;
-    if ( critical_mastery )
-        chance += 20 + 40 * critical_mastery;
-    
-    return per_chance(chance / 3);
+    int chance = critical_chance(ch, secondary) / 3;
+    return per_chance(chance);
 }
 
 /*
@@ -1224,6 +1220,15 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
 
+    // second & third attack mastery
+    mastery_chance = mastery_bonus(ch, gsn_second_attack, 15, 25) + mastery_bonus(ch, gsn_third_attack, 15, 25);
+    if ( per_chance(mastery_chance) )
+    {
+        one_hit(ch, victim, dt, FALSE);
+        if ( ch->fighting != victim )
+            return;
+    }
+
     if ( ch->hit <= ch->max_hit/4 
 	 && number_percent() < get_skill(ch, gsn_ashura) )
     {
@@ -1477,7 +1482,12 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     if ( wield != NULL )
     {
         int weapon_dam = get_weapon_damage( wield );
-        weapon_dam += weapon_dam * get_twohand_bonus(ch, wield, TRUE) / 100;
+        int bonus = get_twohand_bonus(ch, wield, TRUE);
+        if ( bonus )
+        {
+            weapon_dam += weapon_dam * get_twohand_bonus(ch, wield, TRUE) / 100;
+            weapon_dam += ch->level * mastery_bonus(ch, gsn_two_handed, 15, 25) / 100;
+        }
         dam += weapon_dam;
     }
     else
@@ -1933,11 +1943,11 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( IS_AFFECTED(ch, AFF_PLAGUE) )
         dam -= dam / 20;
 
-    if ( check_critical(ch,secondary) == TRUE )
+    /* Crit strike stuff split up for oprog */
+    /* first apply dam bonus */
+    bool crit=check_critical(ch,secondary);
+    if ( crit )
     {
-	act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
-        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
-        check_improve(ch,gsn_critical,TRUE,4);
         dam *= 2;
     }
 
@@ -1946,7 +1956,19 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     if ( dam <= 0 )
 	dam = 1;
-    
+
+    /* prehit trigger for weapons */
+    if ( wield && !op_prehit_trigger( wield, ch, victim, dam ) )
+        return FALSE;
+
+    /* If oprog didn't stop the hit then do the rest of crit strike stuff */
+    if ( crit )
+    {
+        act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
+        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
+        check_improve(ch,gsn_critical,TRUE,4);
+    }
+
     result = full_dam( ch, victim, dam, dt, dam_type, TRUE );
     
     /* arrow damage & handling */
@@ -1997,6 +2019,13 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
         one_hit(ch, victim, dt, secondary);
     }
+
+   if ( wield )
+   {
+       op_percent_trigger( NULL, wield, NULL, ch, victim, OTRIG_HIT );
+       if ( stop_attack(ch, victim) )
+            return TRUE;
+   }
 
    tail_chain( );
    return TRUE;
@@ -6553,9 +6582,18 @@ void do_stance (CHAR_DATA *ch, char *argument)
 	 || (!IS_NPC(ch) && get_skill(ch, *(stances[i].gsn))==0)
 	 || (is_pet && i != ch->pIndexData->stance) )
     {
-	ch->stance = 0;
-	send_to_char("You do not know that stance.\n\r", ch);
-	return;
+        if (ch->stance && stances[ch->stance].name)
+        {
+            char buffer[80];
+            if (sprintf(buffer, "You do not know that stance so you stay in the %s stance.\n\r", stances[ch->stance].name) > 0)
+            {
+                send_to_char(buffer, ch);    
+                return;
+            }
+        }
+        
+        send_to_char("You do not know that stance.\n\r", ch);
+        return;
     }
         
     if ( ch->stance == i )

@@ -1483,79 +1483,105 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 
 void do_shoot_lock( CHAR_DATA *ch, char *argument )
 {
-   char arg[MAX_INPUT_LENGTH];
-   OBJ_DATA *obj;
-   int door;
+    char arg[MAX_INPUT_LENGTH];
+    CHAR_DATA *gch;
+    OBJ_DATA *obj;
+    int door;
+    int skill;
    
-   one_argument( argument, arg );
-  
-   if (get_weapon_sn(ch) != gsn_gun)
-   {
-       send_to_char("You need a gun to shoot a lock.\n\r", ch);
-       return;
-   }
+    one_argument( argument, arg );
+   
+    if (get_weapon_sn(ch) != gsn_gun)
+    {
+        send_to_char("You need a gun to shoot a lock.\n\r", ch);
+        return;
+    }
 
-	obj = (get_eq_char(ch, WEAR_WIELD));
-	if (IS_SET(obj->extra_flags, ITEM_JAMMED))
-		{
-		send_to_char( "Not with a jammed gun.\n\r", ch);
-		return;
-		}
-   if ( arg[0] == '\0' )
-   {
-	  send_to_char( "Shoot what now?\n\r", ch );
-	  return;
-   }
-   
-   WAIT_STATE( ch, skill_table[gsn_shoot_lock].beats );
-   
-   if ( !IS_NPC(ch) && number_percent( ) > get_skill(ch,gsn_shoot_lock))
-   {
-	  send_to_char( "You miss the lock completely.\n\r", ch);
-	  check_improve(ch,gsn_shoot_lock,FALSE,2);
-	  return;
-   }
+    obj = (get_eq_char(ch, WEAR_WIELD));
+    if (IS_SET(obj->extra_flags, ITEM_JAMMED))
+    {
+        send_to_char( "Not with a jammed gun.\n\r", ch);
+        return;
+    }
+        
+    if ( arg[0] == '\0' )
+    {
+        send_to_char( "Shoot what now?\n\r", ch );
+        return;
+    }
 
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
-   {
-       send_to_char("But you could damage whatever's inside!\n\r",ch);
-       return;
-   }
+    WAIT_STATE( ch, skill_table[gsn_shoot_lock].beats );
    
-   if ( ( door = find_door( ch, arg ) ) >= 0 )
-   {
-       /* 'pick door' */
-       ROOM_INDEX_DATA *to_room;
-       EXIT_DATA *pexit;
-       EXIT_DATA *pexit_rev;
-	  
-       pexit = ch->in_room->exit[door];
-       if ( !IS_SET(pexit->exit_info, EX_CLOSED) && !IS_IMMORTAL(ch))
-       { send_to_char( "It's not closed, why shoot the lock?\n\r", ch ); return; }
-       if ( pexit->key < 0 && !IS_IMMORTAL(ch))
-       { send_to_char( "Your gun is useless against this strong lock.\n\r", ch ); return; }
-       if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
-       { send_to_char( "It was already unlocked, but . . .\n\r", ch ); return; }
-       if ( IS_SET(pexit->exit_info, EX_PICKPROOF)
-	    || IS_SET(pexit->exit_info, EX_HARD)
-	    || IS_SET(pexit->exit_info, EX_INFURIATING) )
-       { send_to_char( "Nope, shooting the lock did no good.\n\r", ch ); return; }
-	  
-	  REMOVE_BIT(pexit->exit_info, EX_LOCKED);
-	  send_to_char( "*BLAM!*\n\r", ch );
-	  act( "$n blows away the lock on the $d.", ch, NULL, pexit->keyword, TO_ROOM );
-	  check_improve(ch,gsn_shoot_lock,TRUE,2);
-	  
-	  /* pick the other side */
-	  if ( ( to_room   = pexit->u1.to_room            ) != NULL
-		 &&   ( pexit_rev = to_room->exit[rev_dir[door]] ) != NULL
-		 &&   pexit_rev->u1.to_room == ch->in_room )
-	  {
-		 REMOVE_BIT( pexit_rev->exit_info, EX_LOCKED );
-	  }
-   }
+    skill = get_skill(ch,gsn_shoot_lock) * (ch->level + get_curr_stat(ch, STAT_LUC) + 200)/500;
    
-   return;
+    if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+    {
+        send_to_char("But you could damage whatever's inside!\n\r",ch);
+        return;
+    }
+         
+    if ( ( door = find_door( ch, arg ) ) >= 0 )
+    {
+        /* 'pick door' */
+        ROOM_INDEX_DATA *to_room;
+        EXIT_DATA *pexit;
+        EXIT_DATA *pexit_rev;
+	  
+        pexit = ch->in_room->exit[door];
+        
+        /* different difficulties */
+        if (IS_SET(pexit->exit_info,EX_INFURIATING))
+            skill -= 50;
+        else if (IS_SET(pexit->exit_info,EX_HARD))
+            skill -= 25;
+        else if (IS_SET(pexit->exit_info,EX_EASY))
+            skill += 25;
+          
+        if ( !IS_NPC(ch) && number_percent() > skill )
+        {
+            send_to_char( "You miss the lock completely.\n\r", ch);
+	        check_improve(ch,gsn_shoot_lock,FALSE,2);
+	        return;
+        }  
+        
+        if ( !IS_SET(pexit->exit_info, EX_CLOSED) && !IS_IMMORTAL(ch))
+        { 
+            send_to_char( "It's not closed, why shoot the lock?\n\r", ch ); 
+            return; 
+        }
+        
+        if ( pexit->key < 0 && !IS_IMMORTAL(ch))
+        { 
+            send_to_char( "Your gun is useless against this strong lock.\n\r", ch ); 
+            return; 
+        }
+        
+        if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
+        { 
+            send_to_char( "It was already unlocked, but . . .\n\r", ch ); 
+            return; 
+        }
+        
+        if ( IS_SET(pexit->exit_info, EX_PICKPROOF))
+        { 
+            send_to_char( "Nope, shooting the lock did no good.\n\r", ch ); 
+            return; 
+        }
+	  
+	    REMOVE_BIT(pexit->exit_info, EX_LOCKED);
+	    send_to_char( "*BLAM!*\n\r", ch );
+	    act( "$n blows away the lock on the $d.", ch, NULL, pexit->keyword, TO_ROOM );
+	    check_improve(ch,gsn_shoot_lock,TRUE,2);
+	  
+	    /* pick the other side */
+	    if ( ( to_room   = pexit->u1.to_room            ) != NULL
+		    &&   ( pexit_rev = to_room->exit[rev_dir[door]] ) != NULL
+		    &&   pexit_rev->u1.to_room == ch->in_room )
+	    {
+		    REMOVE_BIT( pexit_rev->exit_info, EX_LOCKED );
+	    }
+    }
+    return;
 }
 
 void do_unjam(CHAR_DATA *ch, char *argument)

@@ -812,6 +812,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     bprintf( buf, "MobDeaths %d\n", ch->pcdata->mob_deaths );
     bprintf( buf, "QuestsFailed %d\n", ch->pcdata->quest_failed );
     bprintf( buf, "QuestsSuccess %d\n", ch->pcdata->quest_success );
+    bprintf( buf, "QuestsHardSuccess %d\n", ch->pcdata->quest_hard_success );
+    bprintf( buf, "QuestsHardFailed %d\n", ch->pcdata->quest_hard_failed );
     bprintf( buf, "PkillDeaths %d\n", ch->pcdata->pkill_deaths );
 
     save_quest( ch, buf );
@@ -2072,6 +2074,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "QuestPnts",   ch->pcdata->questpoints,        bread_number( buf ) );
         KEY( "QuestNext",   ch->pcdata->nextquest,          bread_number( buf ) );
         KEY( "QuestsSuccess",ch->pcdata->quest_success,         bread_number( buf ) );
+        KEY( "QuestsHardSuccess", ch->pcdata->quest_hard_success, bread_number( buf ) );
+        KEY( "QuestsHardFailed", ch->pcdata->quest_hard_failed, bread_number( buf ) );
         KEY( "QuestsFailed",ch->pcdata->quest_failed,       bread_number( buf ) );
 
 	if ( !str_cmp(word, "QStat") )
@@ -3107,8 +3111,8 @@ void do_finger(CHAR_DATA *ch, char *argument)
         }
         else
         {
-            sprintf(buf, "{D|{x Last host: %s", wch->pcdata->last_host);
-            for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+            sprintf(buf, "{D|{x Last host: 	<send 'pgrep %15s'>%s	</send>", wch->pcdata->last_host, wch->pcdata->last_host);
+            for ( ; strlen_color(buf) <= 106; strcat( buf, " " ));
             strcat( buf, "{D|{x\n\r" );
             add_buf( output, buf );
         }
@@ -3139,12 +3143,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
         sprintf(buf,"{D:===================================================================:{x\n\r" );
         add_buf( output, buf );
      
-/*        sprintf(buf,
-	    "{D|{x     Pkill Grade:  {W<<%s{W>>{x {D|{x Warfare Grade: {W<<%s{W>>{x  Total Wars: %5d{x {D|{x\n\r",
-			pkgrade_table[pk].grade, pkgrade_table[war].grade, wch->pcdata->total_wars );
-        add_buf( output, buf ); */
-
-
         sprintf(buf,
 	    "{D|{x                         {D|{x Warfare Grade: {W<<%s{W>>{x  Total Wars: %5d{x {D|{x\n\r",
 			pkgrade_table[war].grade, wch->pcdata->total_wars );
@@ -3156,33 +3154,28 @@ void do_finger(CHAR_DATA *ch, char *argument)
         add_buf( output, buf );
 
         sprintf(buf,
-	    "{D|{x                         {D|{x      {rA{Drmageddons:{x {D|{x {r%4d{x {D|{x {r%4d{x {D|{x {r%5d{x {D|{x\n\r",
-	    		wch->pcdata->armageddon_won, wch->pcdata->armageddon_lost, wch->pcdata->armageddon_kills );
+	    "{D|{x     Mobs Killed: {R%6d{x {D|{x      {rA{Drmageddons:{x {D|{x {r%4d{x {D|{x {r%4d{x {D|{x {r%5d{x {D|{x\n\r",
+             wch->pcdata->mob_kills, wch->pcdata->armageddon_won, wch->pcdata->armageddon_lost, wch->pcdata->armageddon_kills );
         add_buf( output, buf ); 
 
-/*        sprintf(buf,
-	    "{D|{x         Pdeaths:  {C%5d{x {D|{x      {rA{Drmageddons:{x {D|{x {r%4d{x {D|{x {r%4d{x {D|{x {r%5d{x {D|{x\n\r",
-	    		wch->pcdata->pkill_deaths, wch->pcdata->armageddon_won, wch->pcdata->armageddon_lost, wch->pcdata->armageddon_kills );
-        add_buf( output, buf ); */
-
         sprintf(buf,
-	    "{D|{x     Mobs Killed: {R%6d{x {D|{x        {yC{Dlan {yW{Dars:{x {D|{x {y%4d{x {D|{x {y%4d{x {D|{x {y%5d{x {D|{x\n\r",
-            wch->pcdata->mob_kills, wch->pcdata->clan_won, wch->pcdata->clan_lost, wch->pcdata->clan_kills );
+	    "{D|{x         Beheads:  {R%5d{D |{x        {yC{Dlan {yW{Dars:{x {D|{x {y%4d{x {D|{x {y%4d{x {D|{x {y%5d{x {D|{x\n\r",
+            wch->pcdata->behead_cnt, wch->pcdata->clan_won, wch->pcdata->clan_lost, wch->pcdata->clan_kills );
         add_buf( output, buf );
             
         sprintf(buf,
-	    "{D|{x         Beheads:  {R%5d{x {D|{x       {gC{Dlass {gW{Dars:{x {D|{x {g%4d{x {D|{x {g%4d{x {D|{x {g%5d{x {D|{x\n\r",
-	    wch->pcdata->behead_cnt, wch->pcdata->class_won, wch->pcdata->class_lost, wch->pcdata->class_kills );
+	    "{D|=========================|{x       {gC{Dlass {gW{Dars:{x {D|{x {g%4d{x {D|{x {g%4d{x {D|{x {g%5d{x {D|{x\n\r",
+	    wch->pcdata->class_won, wch->pcdata->class_lost, wch->pcdata->class_kills );
         add_buf( output, buf );
             
         sprintf(buf,
-	    "{D|=========================|{x        {cR{Dace {cW{Dars:{x {D|{x {c%4d{x {D|{x {c%4d{x {D|{x {c%5d{x {D|{x\n\r", 
-	    wch->pcdata->race_won, wch->pcdata->race_lost, wch->pcdata->race_kills );
+	    "{D|{x Quests Complete: %6d {D|{x        {cR{Dace {cW{Dars:{x {D|{x {c%4d{x {D|{x {c%4d{x {D|{x {c%5d{x {D|{x\n\r", 
+	    wch->pcdata->quest_success, wch->pcdata->race_won, wch->pcdata->race_lost, wch->pcdata->race_kills );
         add_buf( output, buf );
             
         sprintf(buf,
-	    "{D|{x Quests Complete: %6d {D|{x      {bR{Delign {bW{Dars:{x {D|{x {b%4d{x {D|{x {b%4d{x {D|{x {b%5d{x {D|{x\n\r",
-	    wch->pcdata->quest_success, wch->pcdata->religion_won, wch->pcdata->religion_lost, wch->pcdata->religion_kills );
+	    "{D|{x Hard Qst Complt: %6d {D|{x      {bR{Delign {bW{Dars:{x {D|{x {b%4d{x {D|{x {b%4d{x {D|{x {b%5d{x {D|{x\n\r",
+	    wch->pcdata->quest_hard_success, wch->pcdata->religion_won, wch->pcdata->religion_lost, wch->pcdata->religion_kills );
 	add_buf( output, buf );
 
 	sprintf(buf,
@@ -3315,6 +3308,8 @@ void do_oldfinger(CHAR_DATA *ch, char *argument)
     sprintf(buf, "Beheads: %d\n\r", wch->pcdata->behead_cnt);
     add_buf(output, buf);
     sprintf(buf, "Quests Complete: %d\n\r", wch->pcdata->quest_success);
+    add_buf(output, buf);
+    sprintf(buf, "Hard Quests Complete: %d\n\r", wch->pcdata->quest_hard_success);
     add_buf(output, buf);
     sprintf(buf, "Quests Failed: %d\n\r", wch->pcdata->quest_failed);
     add_buf(output, buf);

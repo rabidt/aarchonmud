@@ -418,219 +418,6 @@ void do_bamfout( CHAR_DATA *ch, char *argument )
 
 
 
-void do_deny( CHAR_DATA *ch, char *argument )
-{
-    char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];
-    CHAR_DATA *victim;
-    
-    one_argument( argument, arg );
-    if ( arg[0] == '\0' )
-    {
-        send_to_char( "Deny whom?\n\r", ch );
-        return;
-    }
-    
-    if ( ( victim = get_char_world( ch, arg ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
-        return;
-    }
-    
-    if ( IS_NPC(victim) )
-    {
-        send_to_char( "Not on NPC's.\n\r", ch );
-        return;
-    }
-    
-    if ( get_trust( victim ) >= get_trust( ch ) )
-    {
-        send_to_char( "You failed.\n\r", ch );
-        return;
-    }
-    
-    SET_BIT(victim->act, PLR_DENY);
-    send_to_char( "You are denied access!\n\r", victim );
-    sprintf(buf,"$N denies access to %s",victim->name);
-    wiznet(buf,ch,NULL,WIZ_PENALTIES,WIZ_SECURE,0);
-    send_to_char( "OK.\n\r", ch );
-    stop_fighting(victim,TRUE);
-    do_quit( victim, "" );
-    
-    return;
-}
-
-
-
-void do_disconnect( CHAR_DATA *ch, char *argument )
-{
-    char arg[MAX_INPUT_LENGTH];
-    DESCRIPTOR_DATA *d;
-    CHAR_DATA *victim;
-    
-    one_argument( argument, arg );
-    if ( arg[0] == '\0' )
-    {
-        send_to_char( "Disconnect whom?\n\r", ch );
-        return;
-    }
-    
-    if (is_number(arg))
-    {
-        int desc;
-        
-        desc = atoi(arg);
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            if ( d->descriptor == desc )
-            {
-                close_socket( d );
-                send_to_char( "Ok.\n\r", ch );
-                return;
-            }
-        }
-    }
-    
-    if ( ( victim = get_char_world( ch, arg ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
-        return;
-    }
-    
-    if ( victim->desc == NULL )
-    {
-        act( "$N doesn't have a descriptor.", ch, NULL, victim, TO_CHAR );
-        return;
-    }
-    
-    for ( d = descriptor_list; d != NULL; d = d->next )
-    {
-        if ( d == victim->desc )
-        {
-            close_socket( d );
-            send_to_char( "Ok.\n\r", ch );
-            return;
-        }
-    }
-    
-    bug( "Do_disconnect: desc not found.", 0 );
-    send_to_char( "Descriptor not found!\n\r", ch );
-    return;
-}
-
-
-/* cleanup later -- astark
-void do_clear( CHAR_DATA *ch, char *argument )
-{
-    char arg1[MAX_INPUT_LENGTH];
-    char arg2[MAX_INPUT_LENGTH];
-    CHAR_DATA *victim;
-    
-    argument = one_argument( argument, arg1 );
-    argument = one_argument( argument, arg2 );
-    
-    if ( arg1[0] == '\0' || arg2[0] == '\0' )
-    {
-        send_to_char( "Syntax: clear <character> <killer|thief|bounty|pkill|hardcore|rp>.\n\r", ch );
-        return;
-    }
-    
-    if ( ( victim = get_char_world( ch, arg1 ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
-        return;
-    }
-    
-    if ( IS_NPC(victim) )
-    {
-        send_to_char( "Not on NPC's.\n\r", ch );
-        return;
-    }
-    
-    if ( !str_cmp( arg2, "bounty" ) )
-    {
-        victim->pcdata->bounty =0;
-        send_to_char("Bounty removed.\n\r", ch);
-        send_to_char("Your bounty has been pardoned.\n\r", victim);
-        return;
-    }
-    
-    if ( !str_cmp( arg2, "killer" ) )
-    {
-        if ( IS_SET(victim->act, PLR_KILLER) )
-        {
-            REMOVE_BIT( victim->act, PLR_KILLER );
-            send_to_char( "Killer flag removed.\n\r", ch );
-            send_to_char( "You are no longer a KILLER.\n\r", victim );
-        }
-        return;
-    }
-    
-    if ( !str_cmp( arg2, "thief" ) )
-    {
-        if ( IS_SET(victim->act, PLR_THIEF) )
-        {
-            REMOVE_BIT( victim->act, PLR_THIEF );
-            send_to_char( "Thief flag removed.\n\r", ch );
-            send_to_char( "You are no longer a THIEF.\n\r", victim );
-        }
-        return;
-    }
-    
-    if ( !str_cmp( arg2, "pkill" ) )
-    {
-        if ( IS_SET(victim->act, PLR_PERM_PKILL) )
-        {
-            if (get_trust(ch) < IMPLEMENTOR)
-            {
-                send_to_char( "Only an implementor can turn off permanent pkill.\n\r", ch);
-                return;
-            }
-            REMOVE_BIT( victim->act, PLR_PERM_PKILL );
-            REMOVE_BIT( victim->act, PLR_HARDCORE );
-            send_to_char( "Pkill turned off.\n\r", ch );
-            send_to_char( "You are no longer a pkiller.\n\r", victim );
-        }
-        return;
-    }
-    
-    if ( !str_cmp( arg2, "hardcore" ) )
-    {
-        if ( IS_SET(victim->act, PLR_HARDCORE) )
-        {
-            if (get_trust(ch) < IMPLEMENTOR)
-            {
-                send_to_char( "Only an implementor can turn off hardcore pkill.\n\r", ch);
-                return;
-            }
-            REMOVE_BIT( victim->act, PLR_HARDCORE );
-            send_to_char( "Hardcore turned off.\n\r", ch );
-            send_to_char( "You are no longer a hardcore pkiller.\n\r", victim );
-        }
-        return;
-    }
-
-    if ( !str_cmp( arg2, "rp" ) )
-    {
-        if ( IS_SET(victim->act, PLR_RP) )
-        {
-            if (get_trust(ch) < IMPLEMENTOR)
-            {
-                send_to_char( "Only an implementor can turn off roleplay.\n\r", ch);
-                return;
-            }
-            REMOVE_BIT( victim->act, PLR_RP );
-            send_to_char( "Roleplay turned off.\n\r", ch );
-            send_to_char( "You are no longer a roleplayer.\n\r", victim );
-        }
-        return;
-    }
-
-    send_to_char( "Syntax: clear <character> <killer|thief|bounty|pkill|hardcore|rp>.\n\r", ch );
-    return;
-}
-*/
-
-
 void do_echo( CHAR_DATA *ch, char *argument )
 {
     DESCRIPTOR_DATA *d;
@@ -897,11 +684,14 @@ void do_goto( CHAR_DATA *ch, char *argument )
     for ( rch = location->people; rch != NULL; rch = rch->next_in_room )
         count++;
     
-    if (!is_room_owner(ch,location) && room_is_private(location) 
-        &&  (count > 1 || get_trust(ch) < MAX_LEVEL))
+    if (ch->level < L2)
     {
-        send_to_char( "That room is private right now.\n\r", ch );
-        return;
+        if (!is_room_owner(ch,location) && room_is_private(location) 
+            &&  (count > 1 || get_trust(ch) < MAX_LEVEL))
+        {
+            send_to_char( "That room is private right now.\n\r", ch );
+            return;
+        }
     }
     
     if ( ch->fighting != NULL )
@@ -936,63 +726,6 @@ void do_goto( CHAR_DATA *ch, char *argument )
     do_look( ch, "auto" );
     return;
 }
-
-void do_violate( CHAR_DATA *ch, char *argument )
-{
-    ROOM_INDEX_DATA *location;
-    CHAR_DATA *rch;
-    
-    if ( argument[0] == '\0' )
-    {
-        send_to_char( "Goto where?\n\r", ch );
-        return;
-    }
-    
-    if ( ( location = find_location( ch, argument ) ) == NULL )
-    {
-        send_to_char( "No such location.\n\r", ch );
-        return;
-    }
-    
-    if (!room_is_private( location ))
-    {
-        send_to_char( "That room isn't private, use goto.\n\r", ch );
-        return;
-    }
-    
-    if ( ch->fighting != NULL )
-        stop_fighting( ch, TRUE );
-    
-    for (rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room)
-    {
-        if (get_trust(rch) >= ch->invis_level)
-        {
-            if (ch->pcdata != NULL && ch->pcdata->bamfout[0] != '\0')
-                act("$t",ch,ch->pcdata->bamfout,rch,TO_VICT);
-            else
-                act("$n leaves in a swirling mist.",ch,NULL,rch,TO_VICT);
-        }
-    }
-    
-    char_from_room( ch );
-    char_to_room( ch, location );
-    
-    
-    for (rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room)
-    {
-        if (get_trust(rch) >= ch->invis_level)
-        {
-            if (ch->pcdata != NULL && ch->pcdata->bamfin[0] != '\0')
-                act("$t",ch,ch->pcdata->bamfin,rch,TO_VICT);
-            else
-                act("$n appears in a swirling mist.",ch,NULL,rch,TO_VICT);
-        }
-    }
-    
-    do_look( ch, "auto" );
-    return;
-}
-
 
 void do_copyove( CHAR_DATA *ch, char *argument )
 {
@@ -2346,146 +2079,6 @@ void do_string( CHAR_DATA *ch, char *argument )
     do_string(ch,"");
 }
 
-
-
-
-
-
-/* Enhanced sockets command by Stumpy, with mods by Silverhand */
-void do_sockets( CHAR_DATA *ch, char *argument )
-{
-    CHAR_DATA       *vch;
-    DESCRIPTOR_DATA *d;
-    char            buf  [ MAX_STRING_LENGTH ];
-    char            buf2 [ MAX_STRING_LENGTH ];
-    int             count;
-    char *          st;
-    char            s[100];
-    char            idle[10];
-    
-    
-    count       = 0;
-    buf[0]      = '\0';
-    buf2[0]     = '\0';
-    
-    strcat( buf2,
-        "\n\r:=============================================================================:\n\r" );
-    strcat( buf2, "|<><><><><><><><><><><><><><><><>  Sockets  <><><><><><><><><><><><><><><><><>|\n\r");  
-    strcat( buf2, ":=============================================================================:\n\r");
-    strcat( buf2, "|  [Num  State    Login  Idle ] [ Player Name ] [     Host     ]              |\n\r"); 
-    strcat( buf2, ":=============================================================================:\n\r");
-    
-    for ( d = descriptor_list; d; d = d->next )
-    {
-        if ( d->character && can_see( ch, d->character ) )
-        {
-            /* NB: You may need to edit the CON_ values */
-            /* I updated to all current rom CON_ values -Silverhand */
-            switch( d->connected % MAX_CON_STATE)
-            {
-            case CON_PLAYING:              st = "PLAYING ";    break;
-            case CON_GET_NAME:             st = "Get Name";    break;
-            case CON_GET_OLD_PASSWORD:     st = "Passwd  ";    break;
-            case CON_CONFIRM_NEW_NAME:     st = "New Nam ";    break;
-            case CON_GET_NEW_PASSWORD:     st = "New Pwd ";    break;
-            case CON_CONFIRM_NEW_PASSWORD: st = "Con Pwd ";    break;
-            case CON_GET_NEW_RACE:         st = "New Rac ";    break;
-            case CON_GET_NEW_SEX:          st = "New Sex ";    break;
-            case CON_GET_NEW_CLASS:        st = "New Cls ";    break;
-            case CON_GET_ALIGNMENT:        st = "New Aln ";	 break;
-            case CON_DEFAULT_CHOICE:	     st = "Default ";	 break;
-            case CON_GET_CREATION_MODE:	     st = "Cre Mod ";	 break;
-            case CON_ROLL_STATS:	     st = "Roll St ";	 break;
-            case CON_GET_STAT_PRIORITY:	     st = "Sta Pri ";	 break;
-            case CON_NOTE_TO:              st = "Note To ";    break;
-            case CON_NOTE_SUBJECT:         st = "Note Sub";    break;
-            case CON_NOTE_EXPIRE:          st = "Note Exp";    break;
-            case CON_NOTE_TEXT:            st = "Note Txt";    break;
-            case CON_NOTE_FINISH:          st = "Note Fin";    break;
-            case CON_GEN_GROUPS:	     st = " Custom ";	 break;
-            case CON_PICK_WEAPON:	     st = " Weapon ";	 break;
-            case CON_READ_IMOTD:  	     st = " IMOTD  "; 	 break;
-            case CON_BREAK_CONNECT:	     st = "LINKDEAD";	 break;
-            case CON_READ_MOTD:            st = "  MOTD  ";    break;
-	    case CON_GET_COLOUR:	   st = " Colour?";    break;
-            default:                       st = "UNKNOWN!";    break;
-            }
-            count++;
-            
-            /* Format "login" value... */
-            vch = d->original ? d->original : d->character;
-            strftime( s, 100, "%I:%M%p", localtime( &vch->logon ) );
-            
-            if ( vch->timer > 0 )
-                sprintf( idle, "%-4d", vch->timer );
-            else
-                sprintf( idle, "    " );
-            
-            sprintf( buf, "| [%-3d %-8s %7s  %4s]  %-12s   %-30s |\n\r",
-                d->descriptor,
-                st,
-                s,
-                idle,
-                ( d->original ) ? d->original->name
-                : ( d->character )  ? d->character->name
-                : "(None!)",
-                d->host );
-            
-            strcat( buf2, buf );
-            
-        }
-    }
-    
-    strcat( buf2, "|                                                                             |");
-    sprintf( buf, "\n\r|  Users: %-2d                                                                  |\n\r", count );
-    strcat( buf2, buf );
-    strcat( buf2, ":=============================================================================:");
-    send_to_char( buf2, ch );
-    return;
-}
-
-/*
-void do_sockets( CHAR_DATA *ch, char *argument )
-{
-char buf[2 * MAX_STRING_LENGTH];
-char buf2[MAX_STRING_LENGTH];
-char arg[MAX_INPUT_LENGTH];
-DESCRIPTOR_DATA *d;
-int count;
-
-  count   = 0;
-  buf[0]  = '\0';
-  
-    one_argument(argument,arg);
-    for ( d = descriptor_list; d != NULL; d = d->next )
-    {
-    if ( d->character != NULL && can_see( ch, d->character ) 
-    && (arg[0] == '\0' || is_name(arg,d->character->name)
-    || (d->original && is_name(arg,d->original->name))))
-    {
-    count++;
-    sprintf( buf + strlen(buf), "[%3d %2d] %s@%s\n\r",
-    d->descriptor,
-    d->connected,
-    d->original  ? d->original->name  :
-    d->character ? d->character->name : "(none)",
-    d->host
-    );
-    }
-    }
-    if (count == 0)
-    {
-    send_to_char("No one by that name is connected.\n\r",ch);
-    return;
-    }
-    
-    sprintf( buf2, "%d user%s\n\r", count, count == 1 ? "" : "s" );
-    strcat(buf,buf2);
-    page_to_char( buf, ch );
-    return;
-    }
-*/
-      
       
 /*
  * Thanks to Grodyn for pointing out bugs in this function.
@@ -2835,120 +2428,108 @@ void do_slay( CHAR_DATA *ch, char *argument )
 
 
 
-/* Omni wiz command by Prism <snazzy@ssnlink.net> */
+/* Omni wiz command by Prism <snazzy@ssnlink.net>. 
+     Updated 12-8-13 by Astark to include functionality from sockets */
+
 void do_omni( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
     BUFFER *output;
     DESCRIPTOR_DATA *d;
-    int immmatch;
-    int mortmatch;
-    int hptemp;
-    
-    /*
-    * Initalize Variables.
-    */
-    
-    immmatch  = 0;
-    mortmatch = 0;
+    int players = 0;
+    CHAR_DATA       *vch;    
+    char *          state;
+    char            login[100];
+    char            idle[10];
     buf[0]    = '\0';
     output    = new_buf();
     
-    /*
-    * Count and output the IMMs.
-    */
-    
-    sprintf( buf, " ----Immortals:----\n\r");
+    sprintf( buf, "--------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
-    sprintf( buf, "Name           Level   Wiz     Incog  [ Vnum ]\n\r");
+    sprintf( buf, "Num  Name         Login   Idle  State    Pos    [Vnum ]  Qst? Host\n\r");
+    add_buf(output,buf);    
+    sprintf( buf, "--------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
-    
-    for ( d = descriptor_list; d != NULL; d = d->next )
-    {
-        CHAR_DATA *wch;
-        
-	/*
-        if ( d->connected != CON_PLAYING || !can_see( ch, d->character ) )
-            continue;
-	*/
-
-        wch = ( d->original != NULL ) ? d->original : d->character;
-        
-        if ( wch == NULL
-	     || (d->connected != CON_PLAYING && !IS_WRITING_NOTE(d->connected)) )
-            continue;
-
-        if (!can_see(ch,wch) || !IS_IMMORTAL(wch))
-            continue;
-        
-        immmatch++;
-        
-        sprintf( buf, "%-14s %03d     %03d     %03d    [ %05d]\n\r",
-            wch->name, wch->level, wch->invis_level, wch->incog_level, wch->in_room->vnum);
-        add_buf(output,buf);
-    }
-    
-    
-    /*
-     * Count and output the Morts.
-     */
-    sprintf( buf, " \n\r ----Mortals:----\n\r");
-    add_buf(output,buf);
-    sprintf( buf, "Name           Race    Class   Position        Lev  %%hps   [  Vnum ]  [Quest]\n\r");
-    add_buf(output,buf);
-    hptemp = 0;
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         CHAR_DATA *wch;
         char const *class;
         
-	/*
-        if ( d->connected != CON_PLAYING || !can_see( ch, d->character ) )
-            continue;
-	*/
-
         wch = ( d->original != NULL ) ? d->original : d->character;
         
         if ( wch == NULL
-	     || (d->connected != CON_PLAYING && !IS_WRITING_NOTE(d->connected)) )
+	        || (d->connected != CON_PLAYING && !IS_WRITING_NOTE(d->connected)))
             continue;
 
-        if (!can_see(ch,wch) || IS_IMMORTAL(wch))
-            continue;
-        
-        mortmatch++;
-        
-        if ((wch->max_hit != wch->hit) && (wch->hit > 0))
-            hptemp = (wch->hit*100)/wch->max_hit;
-        else if (wch->max_hit == wch->hit)
-            hptemp = 100;
-        else if (wch->hit < 0)
-            hptemp = 0;
-        
-        class = class_table[wch->class].who_name;
+        players++;
+                   
+        if ( d->character && can_see( ch, d->character ) )
+        {
+            /* NB: You may need to edit the CON_ values */
+            /* I updated to all current rom CON_ values -Silverhand */
+            switch( d->connected % MAX_CON_STATE)
+            {
+            case CON_PLAYING:              state = "PLAYING ";    break;
+            case CON_GET_NAME:             state = "Get Name";    break;
+            case CON_GET_OLD_PASSWORD:     state = "Passwd  ";    break;
+            case CON_CONFIRM_NEW_NAME:     state = "New Nam ";    break;
+            case CON_GET_NEW_PASSWORD:     state = "New Pwd ";    break;
+            case CON_CONFIRM_NEW_PASSWORD: state = "Con Pwd ";    break;
+            case CON_GET_NEW_RACE:         state = "New Rac ";    break;
+            case CON_GET_NEW_SEX:          state = "New Sex ";    break;
+            case CON_GET_NEW_CLASS:        state = "New Cls ";    break;
+            case CON_GET_ALIGNMENT:        state = "New Aln ";    break;
+            case CON_DEFAULT_CHOICE:       state = "Default ";    break;
+            case CON_GET_CREATION_MODE:    state = "Cre Mod ";    break;
+            case CON_ROLL_STATS:           state = "Roll St ";    break;
+            case CON_GET_STAT_PRIORITY:    state = "Sta Pri ";    break;
+            case CON_NOTE_TO:              state = "Note To ";    break;
+            case CON_NOTE_SUBJECT:         state = "Note Sub";    break;
+            case CON_NOTE_EXPIRE:          state = "Note Exp";    break;
+            case CON_NOTE_TEXT:            state = "Note Txt";    break;
+            case CON_NOTE_FINISH:          state = "Note Fin";    break;
+            case CON_GEN_GROUPS:           state = " Custom ";    break;
+            case CON_PICK_WEAPON:          state = " Weapon ";    break;
+            case CON_READ_IMOTD:           state = " IMOTD  ";    break;
+            case CON_BREAK_CONNECT:        state = "LINKDEAD";    break;
+            case CON_READ_MOTD:            state = "  MOTD  ";    break;
+            case CON_GET_COLOUR:           state = " Colour?";    break;
+            default:                       state = "UNKNOWN!";    break;
+            }
+            
+            /* Format "login" value... */
+            vch = d->original ? d->original : d->character;
+            strftime( login, 100, "%I:%M%p", localtime( &vch->logon ) );
+            
+            if ( vch->timer > 0 )
+                sprintf( idle, "%-4d", vch->timer );
+            else
+                sprintf( idle, "    " );
+        }
+          
         /* Added an extra  %s for the questing check below - Astark Oct 2012 */
-        sprintf( buf, "%-14s %6s  %3s     %-15s %-2d   %3d%%   [ %6d]    %s\n\r",
-            wch->name,
-            wch->race < MAX_PC_RACE ? pc_race_table[wch->race].who_name : "     ",
-            class,
-            capitalize( position_table[wch->position].name) , 
-            wch->level,
-            hptemp,
-            wch->in_room->vnum,
-            /* Added to let IMMs see when players are questing. Allows for
-               complaint-free copyovers - Astark Oct 2012 */
-            IS_QUESTOR(wch) || IS_QUESTORHARD(wch) ? "Yes" : "No");
+        sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%s	</send>\n\r",
+            d->descriptor,                          /* ID */
+            wch->name,                              /* Send name through pgrep */
+            wch->name,                              /* Name */
+            login,                                  /* Login Time */
+            idle,                                   /* How long idle */
+            state,                                  /* State (Playing, creation, etc. */
+            capitalize( position_table[wch->position].name),  /* Position */
+            wch->in_room->vnum,                     /* Room player is in */
+            IS_QUESTOR(wch) 
+                || IS_QUESTORHARD(wch) ? "Y" : "N", /* Is player on a quest? */
+            d->host,                                /* Send IP through pgrep */
+            d->host);                               /* IP Address */
         add_buf(output,buf);
     }
     
     /*
     * Tally the counts and send the whole list out.
     */
-    sprintf( buf2, "\n\rImmortals found: %d\n\r", immmatch );
-    add_buf(output,buf2);
-    sprintf( buf2, "  Mortals found: %d\n\r", mortmatch );
+    sprintf( buf2, "  Players found: %d\n\r", players );
     add_buf(output,buf2);
     page_to_char( buf_string(output), ch );
     free_buf(output);
@@ -3820,48 +3401,18 @@ void do_pgrep( CHAR_DATA *ch, char *argument)
     char buf[MSL];
     sprintf( buf, "grep \"%s\" ../player/*", argument);
     do_pipe(ch, buf);
+
+    send_to_char( "\n\r",ch);
+
+    sprintf( buf, "grep \"%s\" ../box/*", argument);
+    do_pipe(ch, buf);
+
+    send_to_char( "\n\r",ch);
+    return;
 } 
 
-/* Send a player into the void */
-void do_void( CHAR_DATA *ch, char *argument)
-{
-    CHAR_DATA *victim;
-
-    if  ( (victim = get_char_world(ch, argument) ) == NULL )
-    {
-        send_to_char("Target not found.\n\r",ch);
-        return;
-    }
-    else if (IS_NPC(victim))
-    {
-        send_to_char("Can't void out an NPC!\n\r", ch);
-        return;
-    }
-    else if (IS_IMMORTAL(victim))
-    {
-        send_to_char("Can't void out an immortal!\n\r", ch);
-        return;
-    }
-    else if ( get_trust( victim ) >= get_trust( ch ) )
-    {
-        send_to_char("Victim too powerful!\n\r", ch);
-        return;
-    }
-    else if ( victim->timer >= 12 )
-    {
-        ptc( ch, "Timer for %s already at %d.\n\r", victim->name, victim->timer);
-        return;
-    }
-
-    victim->timer=12;
-
-    ptc(ch, "%s's timer was set to %d (will void on next tick).\n\r", victim->name, victim->timer);
-
-    return; 
-}
-
 /* do_tables stuff */
-void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)
+static void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)
 {
     char buf[MSL];
     BUFFER *buffer=new_buf();
@@ -3886,7 +3437,7 @@ void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)
     return;
 }
 
-void print_item_table( CHAR_DATA *ch, const struct item_type *tbl)
+static void print_item_table( CHAR_DATA *ch, const struct item_type *tbl)
 {
     ptc( ch, "Name\n\r");
     ptc( ch, "------------------------------\n\r");
@@ -3896,6 +3447,65 @@ void print_item_table( CHAR_DATA *ch, const struct item_type *tbl)
         ptc(ch, "%s\n\r", tbl[i].name );
     }
 }
+
+static void print_attack_table( CHAR_DATA *ch, const struct attack_type *tbl)
+{
+    ptc( ch, "%-20s %-20s %-20s\n\r", "Name", "Noun", "Damtype");
+    ptc( ch, "--------------------------------------------------------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].name ; i++)
+    {
+        ptc(ch, "%-20s %-20s %-20s\n\r",
+                tbl[i].name,
+                tbl[i].noun,
+                flag_stat_string( damage_type, tbl[i].damage) );
+    }
+}
+
+static void print_liq_table( CHAR_DATA *ch, const struct liq_type *tbl)
+{
+    ptc( ch, "%-20s %-20s %5s %5s %5s %5s %5s\n\r",
+            "Name", "Color",
+            "Proof", "Full", "Thrst", "Food", "Ssize");
+    ptc( ch, "--------------------------------------------------------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].liq_name ; i++)
+    {
+        ptc( ch, "%-20s %-20s %5d %5d %5d %5d %5d\n\r",
+                tbl[i].liq_name,
+                tbl[i].liq_color,
+                tbl[i].liq_affect[0],
+                tbl[i].liq_affect[1],
+                tbl[i].liq_affect[2],
+                tbl[i].liq_affect[3],
+                tbl[i].liq_affect[4] );
+    }
+}
+
+static void print_stances( CHAR_DATA *ch, const struct stance_type *tbl)
+{
+    ptc( ch, "%-18s %-10s %-16s %-3s %-3s %-4s\n\r",
+            "Name",
+            "Damtype",
+            "Verb",
+            "Hth",
+            "Wpn",
+            "Cost");
+    ptc( ch, "--------------------------------------------------------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].name ; i++)
+    {
+        ptc( ch, "%-18s %-10s %-16s %-3s %-3s %4d\n\r",
+                tbl[i].name,
+                flag_stat_string( damage_type, tbl[i].type),
+                tbl[i].verb,
+                tbl[i].martial ? "YES" : "no",
+                tbl[i].weapon ? "YES" : "no",
+                tbl[i].cost);
+    }
+
+}
+
 
 #define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note}
 
@@ -3946,6 +3556,9 @@ struct
     PRFLAG( togg_flags, ""),
 
     { "item_table", print_item_table, item_table, "Item types." },
+    { "attack_table", print_attack_table, attack_table, "Attack types."},
+    { "liq_table", print_liq_table, liq_table, "Liquid types."},
+    { "stances", print_stances, stances, "Stances."},
     { NULL, NULL, NULL, NULL}
 };
 

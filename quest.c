@@ -357,16 +357,20 @@ void do_quest(CHAR_DATA *ch, char *argument)
         act("$n admits defeat and fails $s quest.",ch,NULL,NULL,TO_ROOM);
         send_to_char("You shamefully admit defeat before your questmaster.\n\r",ch);
         send_to_char("You will be given the chance to redeem yourself in 10 minutes.\n\r",ch);
-        REMOVE_BIT(ch->act, PLR_QUESTOR);
-        REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         ch->pcdata->quest_failed++;
 		update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
+
+        if (IS_SET(ch->act,PLR_QUESTORHARD))
+            ch->pcdata->quest_hard_failed++;
+
         ch->pcdata->questgiver = NULL;
         ch->pcdata->countdown = 0;
         ch->pcdata->questmob = 0;
         ch->pcdata->questobj = 0;
 	ch->pcdata->questroom = 0;
 	ch->pcdata->questarea = 0;
+        REMOVE_BIT(ch->act, PLR_QUESTOR);
+        REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         
         /* Changed to include a define - Maedhros, Feb 7, 2006 */
 	/* ch->pcdata->nextquest = 10; */
@@ -745,6 +749,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 if ( per_chance(20) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(50, 100+luck);
+                ch->pcdata->quest_hard_success++;
             }
             else
             {
@@ -769,6 +774,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
                 if ( per_chance(20) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
+                ch->pcdata->quest_hard_success++;
             }
             else
             {

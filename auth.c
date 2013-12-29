@@ -459,7 +459,7 @@ void check_auth_state( CHAR_DATA *ch )
             "\n\r{RThe Immortals have found the name %s\n\r"
             "to be unacceptable. You must choose a new one.\n\r"
             "The name you choose must be clean and original.\n\r"
-            "See 'help name'.{x\n\r", ch->name);
+            "See 'help names'.{x\n\r", ch->name);
     }
     else if ( old_auth->state == AUTH_DENIED )
     {
@@ -863,7 +863,7 @@ void do_authorize( CHAR_DATA *ch, char *argument )
                     "\n\r{RThe Immortals have found the name %s\n\r"
                     "to be unacceptable. You must choose a new one.\n\r"
                     "The name you choose must be clean and original.\n\r"
-                    "See 'help name'.{x\n\r", victim->name);
+                    "See 'help names'.{x\n\r", victim->name);
 
                 printf_to_char( ch, "You have requested that %s change names.\n\r", victim->name);
 

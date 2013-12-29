@@ -2905,6 +2905,9 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
             hits++;
         check_improve( ch, gsn_double_strike, TRUE, 3 );
 
+        if ( stop_attack(ch, victim) )
+            return;
+
         if ( hits == 2 && per_chance(mastery_bonus(ch, gsn_double_strike, 40, 50)) )
         {
             act("You bury your weapons deep in $N, then rip them out sideways!", ch, NULL, victim, TO_CHAR);
@@ -4111,6 +4114,8 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
         af.modifier  = 0;
         af.bitvector = 0;
         affect_to_char(ch,&af);
+
+        victim->stance = 0; // now destances.
     }
     else
     {

@@ -91,10 +91,10 @@ SHOP_DATA *     shop_last;
 
 NOTE_DATA *     note_free;
 
-MPROG_CODE *    mprog_list;
-OPROG_CODE *    oprog_list;
-APROG_CODE *    aprog_list;
-RPROG_CODE *    rprog_list;
+PROG_CODE *    mprog_list;
+PROG_CODE *    oprog_list;
+PROG_CODE *    aprog_list;
+PROG_CODE *    rprog_list;
 
 char            bug_buf     [2*MAX_INPUT_LENGTH];
 CHAR_DATA *     char_list;
@@ -1036,7 +1036,7 @@ void new_load_area( FILE *fp )
         case 'A':
             if (!str_cmp(word, "AProg") )
             {
-                APROG_LIST *pAprog;
+                PROG_LIST *pAprog;
                 char *word;
                 int trigger = 0;
 
@@ -1926,7 +1926,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
 
              else if (letter == 'P')
              {
-                 RPROG_LIST *pRprog;
+                 PROG_LIST *pRprog;
                  char *word;
                  int trigger=0;
 
@@ -2152,7 +2152,7 @@ void fix_exits( void )
 */
 void load_roomprogs( FILE *fp )
 {
-    RPROG_CODE *pRprog;
+    PROG_CODE *pRprog;
 
     if ( area_last == NULL )
     {
@@ -2226,7 +2226,7 @@ void load_roomprogs( FILE *fp )
 */
 void load_areaprogs( FILE *fp )
 {
-    APROG_CODE *pAprog;
+    PROG_CODE *pAprog;
 
     if ( area_last == NULL )
     {
@@ -2309,7 +2309,7 @@ void load_areaprogs( FILE *fp )
 */
 void load_objprogs( FILE *fp )
 {
-    OPROG_CODE *pOprog;
+    PROG_CODE *pOprog;
 
     if ( area_last == NULL )
     {
@@ -2391,7 +2391,7 @@ void load_objprogs( FILE *fp )
 */
 void load_mobprogs( FILE *fp )
 {
-    MPROG_CODE *pMprog;
+    PROG_CODE *pMprog;
     
     if ( area_last == NULL )
     {
@@ -2501,8 +2501,8 @@ void load_mobprogs( FILE *fp )
 void fix_mobprogs( void )
 {
     MOB_INDEX_DATA *pMobIndex;
-    MPROG_LIST        *list;
-    MPROG_CODE        *prog;
+    PROG_LIST        *list;
+    PROG_CODE        *prog;
     int iHash;
     int mprog_count = 0;
     
@@ -2534,8 +2534,8 @@ void fix_mobprogs( void )
 void fix_objprogs( void )
 {
     OBJ_INDEX_DATA *pObjIndex;
-    OPROG_LIST        *list;
-    OPROG_CODE        *prog;
+    PROG_LIST        *list;
+    PROG_CODE        *prog;
     int iHash;
     int oprog_count = 0;
 
@@ -2567,8 +2567,8 @@ void fix_objprogs( void )
 void fix_areaprogs( void )
 {
     AREA_DATA *pArea;
-    APROG_LIST        *list;
-    APROG_CODE        *prog;
+    PROG_LIST        *list;
+    PROG_CODE        *prog;
     int iHash;
     int aprog_count = 0;
 
@@ -2599,8 +2599,8 @@ void fix_areaprogs( void )
 void fix_roomprogs( void )
 {
     ROOM_INDEX_DATA *pRoom;
-    RPROG_LIST        *list;
-    RPROG_CODE        *prog;
+    PROG_LIST        *list;
+    PROG_CODE        *prog;
     int iHash;
     int rprog_count = 0;
 
@@ -3867,9 +3867,9 @@ ROOM_INDEX_DATA *get_room_index( int vnum )
     return NULL;
 }
 
-MPROG_CODE *get_mprog_index( int vnum )
+PROG_CODE *get_mprog_index( int vnum )
 {
-    MPROG_CODE *prg;
+    PROG_CODE *prg;
     for( prg = mprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )
@@ -3878,9 +3878,9 @@ MPROG_CODE *get_mprog_index( int vnum )
     return NULL;
 }    
 
-OPROG_CODE *get_oprog_index( int vnum )
+PROG_CODE *get_oprog_index( int vnum )
 {
-    OPROG_CODE *prg;
+    PROG_CODE *prg;
     for( prg = oprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )
@@ -3889,9 +3889,9 @@ OPROG_CODE *get_oprog_index( int vnum )
     return NULL;
 }
 
-APROG_CODE *get_aprog_index( int vnum )
+PROG_CODE *get_aprog_index( int vnum )
 {
-    APROG_CODE *prg;
+    PROG_CODE *prg;
     for( prg = aprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )
@@ -3900,9 +3900,9 @@ APROG_CODE *get_aprog_index( int vnum )
     return NULL;
 }
 
-RPROG_CODE *get_rprog_index( int vnum )
+PROG_CODE *get_rprog_index( int vnum )
 {
-    RPROG_CODE *prg;
+    PROG_CODE *prg;
     for( prg = rprog_list; prg; prg = prg->next )
     {
         if ( prg->vnum == vnum )

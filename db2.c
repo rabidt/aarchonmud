@@ -196,7 +196,7 @@ void load_mobiles( FILE *fp )
             }
             else if ( letter == 'M' )
             {
-                MPROG_LIST *pMprog;
+                PROG_LIST *pMprog;
                 char *word;
                 int trigger = 0;
 
@@ -479,7 +479,7 @@ void load_mobbles( FILE *fp )
                 pMobIndex->default_pos = position_lookup(fread_word(fp));
             else if KEY("MPROG")
             {
-                MPROG_LIST *pMprog;
+                PROG_LIST *pMprog;
                 char *word;
                 int trigger = 0;
 
@@ -772,7 +772,7 @@ void load_objects( FILE *fp )
         letter = fread_letter( fp );
         if ( letter == 'O' ) /* we have oprogs */
         {
-            OPROG_LIST *pOprog;
+            PROG_LIST *pOprog;
             char *word;
             int trigger = 0;
 
