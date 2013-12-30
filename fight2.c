@@ -837,7 +837,7 @@ void do_aim( CHAR_DATA *ch, char *argument )
     OBJ_DATA *obj; 
     int i, chance;
     int aim_target = AIM_NORMAL;
-    bool secondgun = FALSE;
+    bool secondgun = FALSE, hit = FALSE;
 
     argument = one_argument( argument, arg );
         
@@ -960,21 +960,18 @@ void do_aim( CHAR_DATA *ch, char *argument )
        (more reduction for lower skill, up to 35)        */ 
     if ( secondgun )
         chance += get_skill(ch, gsn_dual_gun)/4 - 35;
-
-    if ( number_percent() < chance || ( get_skill(ch,gsn_aim) >= 2 && !IS_AWAKE(victim) ) )
+    
+    if ( !IS_AWAKE(victim) )
+        chance = (100 + chance) / 2;
+    
+    if ( per_chance(chance) && one_hit(ch, victim, gsn_aim, secondgun) )
     {
         switch (aim_target)
         {
         case AIM_NORMAL:
             break;
         case AIM_HEAD:
-            if ( !number_bits(6) )
-            {
-                act("Your bullet hits $N right between the eyes.",ch,NULL,victim,TO_CHAR);
-                act("$n's bullet hits you right between the eyes.",ch,NULL,victim,TO_VICT);
-                act("$n's bullet hits $N right between the eyes.",ch,NULL,victim,TO_NOTVICT);
-                behead(ch, victim);
-            }
+            check_assassinate(ch, victim, obj, 5);
             break;
         case AIM_HAND:
             if ( number_percent() < 50 )
@@ -995,19 +992,8 @@ void do_aim( CHAR_DATA *ch, char *argument )
         default:
             bug("AIM: invalid aim_target: %d", aim_target);
         }
-    
+        check_jam(ch, 1, secondgun);
         check_improve(ch,gsn_aim,TRUE,1);
-        if( secondgun )
-        {
-            one_hit( ch, victim, gsn_aim, TRUE );
-            check_improve(ch,gsn_dual_gun,TRUE,16);
-            check_jam( ch, 1, TRUE );
-        }
-        else
-        {
-            one_hit( ch, victim, gsn_aim, FALSE );
-            check_jam( ch, 1, FALSE );
-        }
     }   
     else
     {
@@ -1216,32 +1202,11 @@ void do_snipe( CHAR_DATA *ch, char *argument )
     if ( secondgun )
         skill += get_skill(ch, gsn_dual_gun)/4 - 35;
 
-    if ( number_percent() < skill || (skill >= 2 && !IS_AWAKE(victim)) )
+    if ( per_chance(skill) || !IS_AWAKE(victim) )
     {   
-        skill = get_skill(ch, gsn_assassination);
-        if ( number_bits(5) == 0
-             && (!check_see_combat(victim, ch) || number_bits(1))
-             && number_percent() < skill )
-        {
-            act("You blow $n's brains out!",victim,NULL,ch,TO_VICT);
-            act("$N blows $n's brains out!",victim,NULL,ch,TO_NOTVICT);
-            act("$N blows your brains out!",victim,NULL,ch,TO_CHAR);
-            behead(ch,victim);
-            check_improve(ch,gsn_assassination,TRUE,0);
-        }
-        else
-        {
-            if( secondgun )
-	    {
-                one_hit( ch, victim, gsn_snipe, TRUE );
-                check_jam( ch, 2, TRUE );
-	    }
-            else
-	    {
-                one_hit( ch, victim, gsn_snipe, FALSE );
-                check_jam( ch, 2, FALSE );
-            }
-        }
+        if ( one_hit(ch, victim, gsn_snipe, secondgun) )
+            check_assassinate(ch, victim, obj, 5);
+        check_jam(ch, 2, secondgun);
         check_improve(ch,gsn_snipe,TRUE,1);
     }
     else

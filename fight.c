@@ -2528,44 +2528,58 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
 {
-    int extra_chance;
-
-    if ( wield == NULL || wield->value[0] != WEAPON_DAGGER )
-	return;
+    // guns can assassinate via aim or snipe
+    if ( wield == NULL || (wield->value[0] != WEAPON_DAGGER && wield->value[0] != WEAPON_GUN) )
+        return;
 
     // assassination mastery increases chance by up to factor 2, depending on victim's health
     int dam_taken = (victim->max_hit - victim->hit) * 100 / victim->max_hit;
-    if ( per_chance(dam_taken) && per_chance(mastery_bonus(ch, gsn_beheading, 60, 100)) )
+    if ( per_chance(dam_taken) && per_chance(mastery_bonus(ch, gsn_assassination, 60, 100)) )
         chance = UMAX(0, chance - 1);
+
+    int base_chance = get_skill(ch, gsn_assassination);
+    // aim head and snipe can behead without the skill
+    if ( wield->value[0] == WEAPON_GUN )
+        base_chance = (100 + base_chance) / 2;
     
-    extra_chance = 50 + (get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 4;
+    int extra_chance = 50 + (get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 4;
+    if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
+        chance += 2;
     if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
-	extra_chance += 10;
+        extra_chance += 10;
 
     if ( number_bits(chance) == 0
-	 && number_percent() <= extra_chance
-	 && (ch->stance == STANCE_AMBUSH || number_bits(1))
-	 && number_percent() <= get_skill(ch, gsn_assassination) )
+        && per_chance(base_chance)
+        && per_chance(extra_chance)
+        && (ch->stance == STANCE_AMBUSH || number_bits(1))
+        )
     {
-        if (IS_SET(victim->act, ACT_NOBEHEAD))
+        if ( IS_NPC(victim) && IS_SET(victim->act, ACT_NOBEHEAD) )
         {
-            act("You try to cut $N's head off, but it won't budge!",
-                ch,NULL,victim,TO_CHAR);
-            act("$n tries to cut $N's head off, but it won't budge!",
-                ch,NULL,victim,TO_ROOM);
+            act("You try to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_CHAR);
+            act("$n tries to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_ROOM);
             return;
         }
         else
         {
-	    act("You sneak up behind $N, and slash $S throat!",ch,NULL,victim,TO_CHAR);
-	    act("$n sneaks up behind you and slashes your throat!",ch,NULL,victim,TO_VICT);
-	    act("$n sneaks up behind $N, and slashes $S throat!",ch,NULL,victim,TO_NOTVICT);
-	    behead(ch,victim);
-	    check_improve(ch,gsn_assassination,TRUE,0);
+            if ( wield->value[0] == WEAPON_GUN )
+            {
+                act("You blow $N's brains out!", ch, NULL, victim, TO_CHAR);
+                act("$n blows your brains out!", ch, NULL, victim, TO_VICT);
+                act("$n blows $N's brains out!", ch, NULL, victim, TO_NOTVICT);
+            }
+            else
+            {
+                act("You sneak up behind $N, and slash $S throat!", ch, NULL, victim, TO_CHAR);
+                act("$n sneaks up behind you and slashes your throat!", ch, NULL, victim, TO_VICT);
+                act("$n sneaks up behind $N, and slashes $S throat!", ch, NULL, victim, TO_NOTVICT);
+            }
+            behead(ch, victim);
+            check_improve(ch,gsn_assassination,TRUE,0);
         }
     }
     else
-	check_improve(ch,gsn_assassination,FALSE,3);
+        check_improve(ch,gsn_assassination,FALSE,3);
 }
 
 /* adjust damage according to imm/res/vuln of ch 
