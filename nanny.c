@@ -1989,5 +1989,11 @@ void enter_game ( DESCRIPTOR_DATA *d )
     if ( is_clan(ch) )
         do_cmotd(ch, "");
 
+    if ( IS_IMMORTAL(ch))
+    {
+        // Refresh imm commands.
+        do_login_grant(ch);
+    }
+
     return;
 }
