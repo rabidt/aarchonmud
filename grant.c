@@ -9,6 +9,8 @@
 #include "interp.h"
 #include "recycle.h"
 
+#define DURATION_PERMANENT   -1
+#define DURATION_REVOKED     -2
 
 const   struct  pair_type        pair_table       [] =
 {
@@ -19,6 +21,22 @@ const   struct  pair_type        pair_table       [] =
     {"", "",FALSE}
 };
 
+bool is_revoked( CHAR_DATA *ch, DO_FUN *do_fun)
+{
+    GRANT_DATA * gran;
+
+    ch = original_char( ch );
+
+    for (gran = ch->pcdata->granted; gran != NULL; gran = gran->next)
+    {
+        if (do_fun == gran->do_fun)
+        {
+            return gran->duration == DURATION_REVOKED;
+        }
+    }
+
+    return FALSE;
+}
 
 bool is_granted( CHAR_DATA *ch, DO_FUN *do_fun)
 {
@@ -27,8 +45,12 @@ bool is_granted( CHAR_DATA *ch, DO_FUN *do_fun)
     ch = original_char( ch );
     
     for (gran = ch->pcdata->granted; gran != NULL; gran = gran->next)
+    {
         if (do_fun == gran->do_fun)
-            return TRUE;
+        {
+            return gran->duration != DURATION_REVOKED && (gran->duration == DURATION_PERMANENT || gran->duration > 0);
+        }
+    }
         
     return FALSE;
 }
@@ -40,8 +62,12 @@ bool is_granted_name( CHAR_DATA *ch, char *name)
     ch = original_char( ch );
     
     for (gran = ch->pcdata->granted; gran != NULL; gran = gran->next)
+    {
         if (is_exact_name(gran->name,name))
-            return TRUE;
+        {
+            return gran->duration != DURATION_REVOKED && (gran->duration == DURATION_PERMANENT || gran->duration > 0);
+        }
+    }
         
     return FALSE;
 }
@@ -81,14 +107,24 @@ void grant_add(CHAR_DATA *ch, char *name, DO_FUN *do_fun, int duration, int leve
     
     ch = original_char( ch );
     
-    gran = alloc_mem(sizeof(*gran));
-    gran->name = str_dup(name);
-    gran->do_fun = do_fun;
+    gran = ch->pcdata->granted;
+
+    while (gran && gran->do_fun != do_fun)
+    {
+        gran = gran->next;
+    }
+
+    if (gran == NULL)
+    {
+        gran = alloc_mem(sizeof(*gran));
+        gran->name = str_dup(name);
+        gran->do_fun = do_fun;
+        gran->next = ch->pcdata->granted;
+        ch->pcdata->granted = gran;
+    }
+
     gran->duration = duration;
     gran->level = level;
-    
-    gran->next = ch->pcdata->granted;
-    ch->pcdata->granted = gran;
     
     return;
 }
@@ -131,6 +167,41 @@ void grant_remove(CHAR_DATA *ch, DO_FUN *do_fun, bool mshow)
     return;
 }
 
+void grant_revoke(CHAR_DATA *ch, char *name, DO_FUN *do_fun, bool mshow)
+{
+    GRANT_DATA *gran;
+    char buf[MAX_STRING_LENGTH];
+    CHAR_DATA *rch;
+    
+    rch = original_char( ch );
+    gran = rch->pcdata->granted;
+
+    while (gran && gran->do_fun != do_fun)
+    {
+        gran = gran->next;
+    }
+    
+    if (gran == NULL)
+    {
+        gran = alloc_mem(sizeof(*gran));
+        gran->name = str_dup(name);
+        gran->do_fun = do_fun;
+        gran->next = rch->pcdata->granted;
+        rch->pcdata->granted = gran;
+    }
+
+    gran->duration = DURATION_REVOKED;
+
+    sprintf(buf,"Your access to the %s command has been revoked.\n\r",gran->name);
+
+    if (mshow)
+    { 
+        send_to_char(buf,ch);
+    }
+    
+    return;
+}
+
 void grant_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, int duration )
 {
     int cmd;
@@ -149,7 +220,7 @@ void grant_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, int duration )
         return;
 }
 
-void revoke_level( CHAR_DATA *ch, CHAR_DATA *victim, int level )
+void revoke_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, bool removeOnly )
 {
     int cmd;
     
@@ -158,9 +229,37 @@ void revoke_level( CHAR_DATA *ch, CHAR_DATA *victim, int level )
             && is_granted(victim, cmd_table[cmd].do_fun)
             && grant_duration(ch, cmd_table[cmd].do_fun) == -1)
         {
-            grant_remove(victim,cmd_table[cmd].do_fun,FALSE);
+            if (removeOnly)
+            {
+                grant_remove(victim, cmd_table[cmd].do_fun, FALSE);
+            }
+            else
+            {
+                grant_revoke(victim, cmd_table[cmd].name, cmd_table[cmd].do_fun, FALSE);
+            }
         }
         return;
+}
+
+void do_login_grant(CHAR_DATA *ch)
+{
+    char buf[MAX_STRING_LENGTH];
+    int cmd;
+    int lvl;
+
+    for (lvl = IM; lvl <= ch->level ; lvl++ )
+    {
+        for (cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
+        {
+            if (cmd_table[cmd].level == lvl && !is_granted(ch, cmd_table[cmd].do_fun) && !is_revoked(ch, cmd_table[cmd].do_fun))
+            {
+                sprintf(buf,"Granting you the %s command.\n\r", cmd_table[cmd].name);
+                send_to_char(buf, ch);
+                grant_add(ch, cmd_table[cmd].name, cmd_table[cmd].do_fun, DURATION_PERMANENT, lvl);
+            }
+        }
+        
+    }
 }
 
 void do_grant( CHAR_DATA *ch, char *argument )
@@ -442,7 +541,7 @@ void do_revoke( CHAR_DATA *ch, char *argument )
             return;
         }
 
-        revoke_level(ch, victim, atoi(arg2));
+        revoke_level(ch, victim, atoi(arg2), FALSE);
         printf_to_char(ch, "You have revoked level %d commands from %s.\n\r", atoi(arg2), victim->name);
         printf_to_char(victim, "You have lost access to level %d commands.\n\r", atoi(arg2));
 
@@ -475,7 +574,7 @@ void do_revoke( CHAR_DATA *ch, char *argument )
                 return;
             }
             
-            grant_remove(victim,cmd_table[cmd].do_fun,TRUE);
+            grant_revoke(victim, cmd_table[cmd].name, cmd_table[cmd].do_fun,TRUE);
             
             printf_to_char(ch,"%s has lost access to the %s command.\n\r",
                 rvictim->name,cmd_table[cmd].name);
