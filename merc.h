@@ -4118,7 +4118,7 @@ void    check_sex   args( ( CHAR_DATA *ch) );
 void    add_follower    args( ( CHAR_DATA *ch, CHAR_DATA *master ) );
 void    stop_follower   args( ( CHAR_DATA *ch ) );
 void    nuke_pets   args( ( CHAR_DATA *ch ) );
-void    die_follower    args( ( CHAR_DATA *ch ) );
+void    die_follower    args( ( CHAR_DATA *ch, bool preservePets ) );
 bool    is_same_group   args( ( CHAR_DATA *ach, CHAR_DATA *bch ) );
 void    info_message  args( ( CHAR_DATA *ch, char *argument, bool show_to_char) );
 char    *makedrunk      args( (char *string ,CHAR_DATA *ch) );
