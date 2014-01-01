@@ -2351,7 +2351,7 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     ch->pet = NULL; /* just in case */
     
     if ( fPull )
-        die_follower( ch );
+        die_follower( ch, false );
     
     stop_fighting( ch, TRUE );
 
