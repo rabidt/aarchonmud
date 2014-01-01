@@ -2138,7 +2138,54 @@ int get_weapon_skill(CHAR_DATA *ch, int sn)
 	return URANGE(0,skill,100);
 }
 
+// hard practice - above 75%
+void do_hpractice( CHAR_DATA *ch, char *argument )
+{
+    bool introspect = TRUE;
+    CHAR_DATA *trainer = find_trainer(ch, ACT_PRACTICE, &introspect);
 
+    if ( !trainer && !introspect || IS_NPC(ch) )
+        return;
+    
+    if ( !argument[0] )
+    {
+        send_to_char( "Syntax: hpractice <skill>\n\r", ch );
+        send_to_char( "Hard practice will increase your skill beyond normal limits, at increasing cost.\n\r", ch );
+        return;
+    }
+
+    int sn = skill_lookup(argument);
+    int adapt = class_table[ch->class].skill_adept;
+    if ( sn < 0 || IS_NPC(ch) || ch->level < skill_table[sn].skill_level[ch->class] )
+    {
+        send_to_char( "You can't practice that.\n\r", ch );
+        return;
+    }
+
+    int learned = ch->pcdata->learned[sn];
+    if ( learned < adapt )
+    {
+        send_to_char( "Try practicing normally.\n\r", ch );
+        return;
+    }
+    if ( learned >= 100 )
+    {
+        send_to_char( "You are as good as it gets.\n\r", ch );
+        return;
+    }
+    
+    int cost = 1 + (learned - adapt);
+    if ( ch->practice < cost )
+    {
+        printf_to_char(ch, "It costs %d practice sessions to improve %s.\n\r", cost, skill_table[sn].name);
+        return;
+    }
+    
+    ch->practice -= cost;
+    ch->pcdata->learned[sn]++;
+    printf_to_char(ch, "Your hard practice improves %s from %d%% to %d%%, at the cost of %d session%s.\n\r",
+        skill_table[sn].name, learned, ch->pcdata->learned[sn], cost, cost > 1 ? "s" : "");
+}
 
 void do_practice( CHAR_DATA *ch, char *argument )
 {
@@ -2258,9 +2305,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
 	
 	  if ( ch->pcdata->learned[sn] >= adept )
 	  {
-		 sprintf( buf, "You are already learned at %s.\n\r",
-			skill_table[sn].name );
-		 send_to_char( buf, ch );
+          printf_to_char(ch, "You are already learned at %s. Try \t(hpractice\t) instead.\n\r", skill_table[sn].name);
 	  }
 	  else
 	  {
