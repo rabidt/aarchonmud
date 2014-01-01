@@ -215,6 +215,7 @@ DECLARE_DO_FUN( do_helper   );
 DECLARE_DO_FUN( do_herbs    );
 DECLARE_DO_FUN( do_hide     );
 DECLARE_DO_FUN( do_holylight);
+DECLARE_DO_FUN( do_hpractice);
 DECLARE_DO_FUN( do_hunt     );
 DECLARE_DO_FUN( do_ignite   );
 DECLARE_DO_FUN( do_immflag  );
