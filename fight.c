@@ -4872,10 +4872,6 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
                 continue;
         }
         
-        if (obj->item_type == ITEM_POTION)
-            obj->timer = number_range(500,1000);
-        if (obj->item_type == ITEM_SCROLL)
-            obj->timer = number_range(1000,2500);
         if ( IS_SET(obj->extra_flags, ITEM_ROT_DEATH) )
         {
             obj->timer = number_range(5,10);

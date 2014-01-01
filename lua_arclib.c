@@ -1876,6 +1876,7 @@ OBJVGT( funcname, \
     return 1;\
 )
 
+
 OBJVGETINT( light, ITEM_LIGHT, 2 )
 OBJVH( light, "light only. Hours of light left.", "");
 
@@ -4875,6 +4876,13 @@ static int OBJ_get_v4 (lua_State *LS)
 }
 HELPTOPIC OBJ_get_v4_help={};
 
+static int OBJ_get_timer (lua_State *LS)
+{
+    lua_pushinteger( LS, (check_OBJ(LS,1))->timer);
+    return 1;
+}
+HELPTOPIC OBJ_get_timer_help={};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -4901,6 +4909,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(contents, 0),
     OBJGET(proto, 0),
     OBJGET(ingame, 0),
+    OBJGET(timer, 0),
     
     /*light*/
     OBJGET(light, 0),
@@ -6336,6 +6345,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( area, 0),
     OPGET( ingame, 0),
     OPGET( otrigs, 0),
+
     /*light*/
     OPGET(light, 0),
 
