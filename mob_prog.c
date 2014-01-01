@@ -1595,7 +1595,7 @@ void mp_greet_trigger( CHAR_DATA *ch )
                 &&   check_see( mob, ch ) )
                 mp_percent_trigger( mob, ch, NULL,0, NULL,0, TRIG_GREET );
             else                 
-                if ( HAS_TRIGGER( mob, TRIG_GRALL ) )
+                if ( HAS_TRIGGER( mob, TRIG_GRALL ) && ch->invis_level < LEVEL_IMMORTAL)
                     mp_percent_trigger( mob, ch, NULL,0, NULL,0, TRIG_GRALL );
         }
     }
