@@ -2143,6 +2143,7 @@ void obj_update( void )
                 }
 
                 case ITEM_FOOD:       message = "$p decomposes.";   break;
+                /* pots shouldn't have timers set anymore - Vodur Jan2014 */
                 case ITEM_POTION:     message = "$p has evaporated from disuse.";   
                                       break;
                 case ITEM_TRASH:      message = "$p collapses into nothingness."; break;
