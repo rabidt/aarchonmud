@@ -2050,12 +2050,12 @@ void nuke_pets( CHAR_DATA *ch )
 
 
 
-void die_follower( CHAR_DATA *ch )
+void die_follower( CHAR_DATA *ch, bool preservePets )
 {
     CHAR_DATA *fch;
     
     if (ch->master != NULL)
-    {
+    {   
         if (ch->master->pet == ch)
             ch->master->pet = NULL;
         stop_follower( ch );
@@ -2065,7 +2065,7 @@ void die_follower( CHAR_DATA *ch )
     
     for ( fch = char_list; fch != NULL; fch = fch->next )
     {
-        if ( fch->master == ch )
+        if ( fch->master == ch && (!preservePets || !IS_NPC(fch)))
             stop_follower( fch );
         if ( fch->leader == ch )
             fch->leader = fch;
