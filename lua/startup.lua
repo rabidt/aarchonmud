@@ -937,7 +937,7 @@ local lqtbl={
             end
             return rooms
         end,
-        default_sel="area.name|vnum|shortdescr"
+        default_sel="area.name|vnum|name"
     },
 
 
