@@ -247,6 +247,7 @@ main_lib={  require=require,
 				tan=math.tan,
 				tanh=math.tanh},
 		os={time=os.time,
+            date=os.date,
 			clock=os.clock,
 			difftime=os.difftime},
         -- this is safe because we protected the game object and main lib
