@@ -1084,7 +1084,6 @@ local lqtbl={
 }
 
 function do_luaquery( ch, argument)
-
     -- arg checking stuff
     args=arguments(argument, true)
     
@@ -1272,4 +1271,11 @@ function do_luaquery( ch, argument)
             "\n\r\n\r"..
             "Total results: "..(#output).."\n\r")
     
+end
+
+function do_luareset( ch, argument )
+    if argument=="lboard" then
+        dofile( mud.luadir().."leaderboard.lua")
+        sendtochar(ch, "Resetted lboard\n\r")
+    end
 end
