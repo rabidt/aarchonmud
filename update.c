@@ -1400,7 +1400,7 @@ void char_update( void )
                 if ( !IS_NPC(ch) && ch->race == race_werewolf )
                     morph_update( ch );
 
-                if (!IS_NPC(ch) && ch->position == POS_SLEEPING)
+                if ( !IS_NPC(ch) && (ch->position == POS_SLEEPING || ch->position == POS_RESTING) )
                 {
                     healmessage = (ch->hit < ch->max_hit || ch->mana < ch->max_mana ||
                             ch->move < ch->max_move);
