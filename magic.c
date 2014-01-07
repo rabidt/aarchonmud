@@ -4523,13 +4523,14 @@ void spell_mass_healing(int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        if ((IS_NPC(ch) && IS_NPC(gch)) ||
-                (!IS_NPC(ch) && !IS_NPC(gch)))
-        {
-            spell_heal(heal_num,level,ch,(void *) gch,TARGET_CHAR);
-            spell_refresh(refresh_num,level,ch,(void *) gch,TARGET_CHAR);  
-            check_sn_multiplay( ch, gch, sn );
-        }
+        if ( !can_spellup(ch, gch, sn) )
+            continue;
+        if ( gch->fighting && is_same_group(ch, gch->fighting) )
+            continue;
+
+        spell_heal(heal_num, level, ch, (void *) gch, TARGET_CHAR);
+        spell_refresh(refresh_num, level, ch, (void *) gch, TARGET_CHAR);  
+        check_sn_multiplay(ch, gch, sn);
     }
 }
 
