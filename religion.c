@@ -3375,8 +3375,8 @@ void do_prayer( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    if( find_path(ch->in_room->vnum, rel->altar_room_vnum, ch, -1000, TRUE) != -1 )
-	in_temple = TRUE;
+    if ( find_path(ch->in_room->vnum, rel->altar_room_vnum, TRUE, 10, NULL) != -1 )
+        in_temple = TRUE;
 
     argument = one_argument( argument, arg2 );
 
