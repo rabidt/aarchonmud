@@ -386,7 +386,6 @@ void do_hunt( CHAR_DATA *ch, char *argument )
     char arg[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
     int direction, chance, skill;
-    bool fArea;
     
     one_argument( argument, arg );
     
@@ -414,15 +413,11 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    /* only imps can hunt to different areas */
-    fArea = ( get_trust(ch) < ARCHON );
-    
     /* invisible victims leave tracks as well */
     ignore_invisible = TRUE;
 
-    if ( fArea )
-        victim = get_char_area( ch, arg );
-    else
+    victim = get_char_area( ch, arg );
+    if ( !victim )
         victim = get_char_world( ch, arg );
     
     if ( victim == NULL || !can_locate(ch, victim) )
@@ -475,7 +470,8 @@ void do_hunt( CHAR_DATA *ch, char *argument )
     }
     
     int max_depth = IS_IMMORTAL(ch) ? 100 : skill/5;
-    direction = find_path( ch->in_room->vnum, victim->in_room->vnum, FALSE, max_depth, NULL );
+    int distance = 0;
+    direction = find_path( ch->in_room->vnum, victim->in_room->vnum, FALSE, max_depth, &distance );
     
     if( direction == -1 )
     {
@@ -490,6 +486,10 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    // tracking is harder the further away you are
+    if ( !IS_IMMORTAL(ch) )
+        skill -= 4 * distance;
+
    /*
     * Give a random direction if the player misses the die roll.
     */
@@ -599,7 +599,6 @@ void do_scout( CHAR_DATA *ch, char *argument )
     char arg[MAX_STRING_LENGTH];
     ROOM_INDEX_DATA *target;
     int direction, chance;
-    bool fArea;
     int skill, sn;
     
     /*one_argument( argument, arg );*/
@@ -632,13 +631,9 @@ void do_scout( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    /* only imps can scout to different areas */
-    fArea = ( get_trust(ch) < ARCHON );
-    
-    if ( fArea )
-	target = get_room_area( ch->in_room->area, arg );
-    else
-	target = get_room_world( arg );
+    target = get_room_area( ch->in_room->area, arg );
+    if ( !target )
+        target = get_room_world( arg );
 
     if ( target == NULL )
     {
@@ -672,7 +667,8 @@ void do_scout( CHAR_DATA *ch, char *argument )
     act( "$n carefully examines the landscape.", ch, NULL, NULL, TO_ROOM );
     WAIT_STATE( ch, skill_table[sn].beats );
     int max_depth = IS_IMMORTAL(ch) ? 100 : skill/5;
-    direction = find_path( ch->in_room->vnum, target->vnum, FALSE, max_depth, NULL );
+    int distance = 0;
+    direction = find_path( ch->in_room->vnum, target->vnum, FALSE, max_depth, &distance );
     
     if( direction == -1 )
     {
@@ -688,6 +684,10 @@ void do_scout( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    // tracking is harder the further away you are
+    if ( !IS_IMMORTAL(ch) )
+        skill -= 4 * distance;
+
    /*
     * Give a random direction if the player misses the die roll.
     */
