@@ -2526,7 +2526,7 @@ struct  char_data
 	sh_int      dam_type;
 	sh_int      start_pos;
 	sh_int      default_pos;
-	  sh_int        mprog_delay;
+    sh_int        mprog_delay;
 	char *hunting;
 	sh_int  stance;
 	sh_int      slow_move;
@@ -3116,6 +3116,7 @@ struct  mastery_group_type
 #define TRIG_SPELL  (X)
 #define TRIG_CALL   (Y) /* not settable */ 
 #define TRIG_TIMER  (Z)
+#define TRIG_COMMAND (aa)
 
 /*
  * OBJprog definitions
@@ -3141,6 +3142,7 @@ struct  mastery_group_type
 #define OTRIG_FIGHT (S)
 #define OTRIG_HIT   (T)
 #define OTRIG_PREHIT (U)
+#define OTRIG_COMMAND (V)
 
 /*
  * AREAprog definitions
@@ -3157,6 +3159,7 @@ struct  mastery_group_type
 #define ATRIG_RECALL (J)
 #define ATRIG_CALL  (K)
 #define ATRIG_TIMER (L)
+#define ATRIG_COMMAND (M)
 
 
 /*
@@ -3173,6 +3176,7 @@ struct  mastery_group_type
 #define RTRIG_EXIT  (I)
 #define RTRIG_LOOK  (J)
 #define RTRIG_TRY   (K)
+#define RTRIG_COMMAND (L)
 
 struct prog_list
 {
