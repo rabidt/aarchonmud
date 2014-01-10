@@ -288,7 +288,7 @@ bool is_questeq( OBJ_DATA *obj );
 #endif
 /* version numbers for downward compatibility
  */
-#define CURR_AREA_VERSION 2 
+#define CURR_AREA_VERSION 3 
 
 /*#define CREATOR         (MAX_LEVEL - 1)
 #define SUPREME         (MAX_LEVEL - 2)

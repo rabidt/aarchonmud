@@ -44,6 +44,7 @@ int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
 char *flag_string( const struct flag_type *flag_table, tflag bits );
 char *flag_stat_string( const struct flag_type *flag_table, int bit );
 
+#define VER_NEW_MOB_LDESC 3
 #define FLAG_READ_SET(fp,flag,set_flag) fread_tflag(fp,flag); flag_set_field(flag,set_flag)
 
 /*
@@ -90,6 +91,33 @@ void load_mobiles( FILE *fp )
         pMobIndex->player_name          = fread_string( fp );
         pMobIndex->short_descr          = fread_string( fp );
         pMobIndex->long_descr           = fread_string( fp );
+        extern int area_version;
+        if ( area_version < VER_NEW_MOB_LDESC )
+        {
+            /* old format always had \n\r appended to the
+               actual long_descr, let's kill that */
+
+            /* we'll double check the characters JUST IN CASE */
+            char *ldesc=pMobIndex->long_descr;
+            int len=strlen( ldesc );
+            if ( len > 1
+                    && ldesc[len-2] == '\n'
+                    && ldesc[len-1] == '\r' )
+            {
+                char buf[MSL];
+                sprintf(buf,
+                        "%.*s",
+                        len-2,
+                        ldesc);
+                free_string( pMobIndex->long_descr );
+                pMobIndex->long_descr=str_dup(buf);
+            }
+            else
+            {
+                bugf("Old format long_descr doesn't have \\n\\r: %s",
+                        pMobIndex->long_descr);
+            }
+        }
         pMobIndex->description          = fread_string( fp );
         pMobIndex->race		 	= race_lookup(fread_string( fp ));
 
@@ -408,6 +436,34 @@ void load_mobbles( FILE *fp )
             {
                 pMobIndex->long_descr = fread_string( fp );
                 pMobIndex->long_descr[0] = UPPER(pMobIndex->long_descr[0]);
+
+                extern int area_version;
+                if ( area_version < VER_NEW_MOB_LDESC )
+                {
+                    /* old format always had \n\r appended to the
+                       actual long_descr, let's kill that */
+
+                    /* we'll double check the characters JUST IN CASE */
+                    char *ldesc=pMobIndex->long_descr;
+                    int len=strlen( ldesc );
+                    if ( len > 1 
+                            && ldesc[len-2] == '\n'
+                            && ldesc[len-1] == '\r' )
+                    {
+                        char buf[MSL];
+                        sprintf(buf,
+                                "%.*s",
+                                len-2,
+                                ldesc);
+                        free_string( pMobIndex->long_descr );
+                        pMobIndex->long_descr=str_dup(buf);
+                    }
+                    else
+                    {
+                        bugf("Old format long_descr doesn't have \\n\\r: %s",
+                                pMobIndex->long_descr);
+                    }
+                }
             }
             else if KEY("DESC")
             {
