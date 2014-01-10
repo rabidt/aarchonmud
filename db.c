@@ -513,7 +513,8 @@ int         sAllocPerm;
 /* version numbers for downward compatibility */
 #define VER_EXIT_FLAGS 1
 #define VER_NEW_PROG_FORMAT 2
-static int area_version = 0;
+#define VER_NEW_MOB_LDESC 3
+int area_version = 0;
 
 /*
 * Semi-locals.
