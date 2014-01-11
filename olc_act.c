@@ -5133,7 +5133,7 @@ MEDIT( medit_show )
         send_to_char( buf, ch );
     }
     
-    sprintf( buf, "Short descr: %s\n\rLong descr:\n\r%s",
+    sprintf( buf, "Short descr: %s\n\rLong descr:\n\r%s\n\r",
         pMob->short_descr,
         pMob->long_descr );
     send_to_char( buf, ch );
@@ -5622,7 +5622,6 @@ MEDIT( medit_long )
     }
     
     free_string( pMob->long_descr );
-    strcat( argument, "\n\r" );
     pMob->long_descr = str_dup( argument );
     pMob->long_descr[0] = UPPER( pMob->long_descr[0]  );
     
