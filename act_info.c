@@ -324,6 +324,7 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
 	if ( mimic != NULL && mimic->long_descr[0] != '\0' )
 	{
 	    strcat( buf, mimic->long_descr );
+        strcat( buf, "\n\r");
 	    send_to_char( buf, ch );
 	    return;
 	}
@@ -332,6 +333,7 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
     if ( victim->position == victim->start_pos && victim->long_descr[0] != '\0' )
     {
         strcat( buf, victim->long_descr );
+        strcat( buf, "\n\r");
         send_to_char( buf, ch );
         return;
     }
