@@ -454,7 +454,13 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    WAIT_STATE( ch, skill_table[gsn_hunt].beats );
+    if ( !per_chance(get_skill(ch, gsn_stalk)) )
+    {
+        WAIT_STATE(ch, skill_table[gsn_hunt].beats);
+        check_improve(ch, gsn_stalk, FALSE, 4);
+    }
+    else
+        check_improve(ch, gsn_stalk, TRUE, 4);
     
     /* let's not make the hunter visible */
     ignore_invisible = FALSE;
@@ -835,11 +841,8 @@ void hunt_victim( CHAR_DATA *ch )
 
 void do_stalk( CHAR_DATA *ch, char *argument )
 {
-    if (IS_NPC(ch)||get_skill(ch, gsn_stalk)==0)
-    {
-        send_to_char("You wouldnt know how to stalk someone.\n\r",ch);
+    if ( IS_NPC(ch) )
         return;
-    }
     
     if (argument[0]=='\0')
     {
