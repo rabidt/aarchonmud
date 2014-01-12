@@ -361,6 +361,17 @@ int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth,
     return -1;
 }
 
+// formulas used for max distance & skill reduction by hunt, pathfinding, etc.
+int hunt_max_distance(int skill)
+{
+    return skill / 3;
+}
+
+int hunt_fail_chance(int skill, int distance)
+{
+    return (100-skill) + 2 * distance;
+}
+
 bool is_wilderness( int sector )
 {
     return sector != SECT_CITY
@@ -443,7 +454,13 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    WAIT_STATE( ch, skill_table[gsn_hunt].beats );
+    if ( !per_chance(get_skill(ch, gsn_stalk)) )
+    {
+        WAIT_STATE(ch, skill_table[gsn_hunt].beats);
+        check_improve(ch, gsn_stalk, FALSE, 4);
+    }
+    else
+        check_improve(ch, gsn_stalk, TRUE, 4);
     
     /* let's not make the hunter visible */
     ignore_invisible = FALSE;
@@ -469,7 +486,7 @@ void do_hunt( CHAR_DATA *ch, char *argument )
 	return;
     }
     
-    int max_depth = IS_IMMORTAL(ch) ? 100 : skill/5;
+    int max_depth = IS_IMMORTAL(ch) ? 100 : hunt_max_distance(skill);
     int distance = 0;
     direction = find_path( ch->in_room->vnum, victim->in_room->vnum, FALSE, max_depth, &distance );
     
@@ -486,14 +503,10 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    // tracking is harder the further away you are
-    if ( !IS_IMMORTAL(ch) )
-        skill -= 4 * distance;
-
    /*
     * Give a random direction if the player misses the die roll.
     */
-    if ( !per_chance(skill) )
+    if ( !IS_IMMORTAL(ch) && per_chance(hunt_fail_chance(skill, distance)) )
     {
         do
         {
@@ -666,7 +679,7 @@ void do_scout( CHAR_DATA *ch, char *argument )
     
     act( "$n carefully examines the landscape.", ch, NULL, NULL, TO_ROOM );
     WAIT_STATE( ch, skill_table[sn].beats );
-    int max_depth = IS_IMMORTAL(ch) ? 100 : skill/5;
+    int max_depth = IS_IMMORTAL(ch) ? 100 : hunt_max_distance(skill);
     int distance = 0;
     direction = find_path( ch->in_room->vnum, target->vnum, FALSE, max_depth, &distance );
     
@@ -684,14 +697,10 @@ void do_scout( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    // tracking is harder the further away you are
-    if ( !IS_IMMORTAL(ch) )
-        skill -= 4 * distance;
-
    /*
     * Give a random direction if the player misses the die roll.
     */
-    if( number_percent() > skill )
+    if ( !IS_IMMORTAL(ch) && per_chance(hunt_fail_chance(skill, distance)) )
     {
         do
         {
@@ -832,11 +841,8 @@ void hunt_victim( CHAR_DATA *ch )
 
 void do_stalk( CHAR_DATA *ch, char *argument )
 {
-    if (IS_NPC(ch)||get_skill(ch, gsn_stalk)==0)
-    {
-        send_to_char("You wouldnt know how to stalk someone.\n\r",ch);
+    if ( IS_NPC(ch) )
         return;
-    }
     
     if (argument[0]=='\0')
     {
