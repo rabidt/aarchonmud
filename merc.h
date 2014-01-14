@@ -2179,7 +2179,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_NOACCEPT    (ii)
 #define PLR_NOSURR      (jj)
 #define PLR_RP          (kk)
-#define PLR_TRIG_SAFE   (ll)
+//#define PLR_TRIG_SAFE   (ll) /* removed */
 #define PLR_INACTIVE_HELPER (mm)
 #define PLR_ANTI_HELEPR (nn)
 #define PLR_NOEXP       (oo)
