@@ -2804,7 +2804,6 @@ struct  obj_index_data
 	EXTRA_DESCR_DATA *  extra_descr;
 	AFFECT_DATA *   affected;
 	AREA_DATA *        area;       /* OLC */
-	bool        new_format;
 	char *      name;
 	char *      short_descr;
 	char *      description;

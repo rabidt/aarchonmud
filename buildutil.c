@@ -603,8 +603,7 @@ void do_ostat( CHAR_DATA *ch, char *argument )
       obj->owner ? obj->owner : "(unrestricted)");
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Vnum: %d  Format: %s  Type: %s  Resets: %d\n\r",
-	obj->pIndexData->vnum, obj->pIndexData->new_format ? "new" : "old",
+	sprintf( buf, "Vnum: %d  Type: %s  Resets: %d\n\r",
 	item_name(obj->item_type), obj->pIndexData->reset_num );
 	send_to_char( buf, ch );
 
@@ -755,14 +754,9 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 			send_to_char("unknown\n\r",ch);
 			break;
 		}
-		if (obj->pIndexData->new_format)
-			sprintf(buf,"Damage is %dd%d (average %d)\n\r",
+		sprintf(buf,"Damage is %dd%d (average %d)\n\r",
 			obj->value[1],obj->value[2],
 			(1 + obj->value[2]) * obj->value[1] / 2);
-		else
-			sprintf( buf, "Damage is %d to %d (average %d)\n\r",
-				obj->value[1], obj->value[2],
-				( obj->value[1] + obj->value[2] ) / 2 );
 		send_to_char( buf, ch );
 
 		sprintf(buf,"Damage noun is %s.\n\r",
