@@ -484,7 +484,6 @@ int  top_aprog_index;    /* OLC */
 int  top_rprog_index;    /* OLC */
 int  lua_mprogs=0;
 int  mobile_count = 0;
-int  newmobs = 0;
 int  newobjs = 0;
 int  top_jail_room = -1;
 
@@ -879,7 +878,6 @@ void load_area_file( FILE *fp, bool clone )
 	else if ( !str_cmp( word, "AREA"     ) ) load_area    (fpArea);
 	else if ( !str_cmp( word, "AREADATA" ) ) new_load_area(fpArea); /* OLC */
 	else if ( !str_cmp( word, "HELPS"    ) ) load_helps   (fpArea, strArea);
-	else if ( !str_cmp( word, "MOBOLD"   ) ) load_old_mob (fpArea);
 	else if ( !str_cmp( word, "MOBILES"  ) ) load_mobiles (fpArea);
         else if ( !str_cmp( word, "MOBBLES"  ) ) load_mobbles (fpArea);
 	else if ( !str_cmp( word, "MOBPROGS" ) ) load_mobprogs(fpArea);
@@ -1280,154 +1278,6 @@ void load_helps( FILE *fp, char *fname )
     return;
 }
 
-
-
-/*
-* Snarf a mob section.  old style 
-*/
-void load_old_mob( FILE *fp )
-{
-    MOB_INDEX_DATA_OLD *pMobIndex;
-    /* for race updating */
-    int race;
-    char name[MAX_STRING_LENGTH];
-    
-    /* init default values */
-    tflag off_default = { OFF_DODGE, OFF_DISARM, OFF_TRIP, ASSIST_VNUM };
-    tflag off_default_race = { OFF_DODGE, OFF_DISARM, OFF_TRIP, ASSIST_RACE };
-    tflag form_default = { FORM_EDIBLE, FORM_SENTIENT, FORM_BIPED, FORM_MAMMAL };
-    tflag parts_default = { PART_HEAD, PART_ARMS, PART_LEGS, PART_HEART, PART_BRAINS,
-			    PART_GUTS };
-    /* convert default values to proper format */
-    bit_list_to_tflag( off_default );
-    bit_list_to_tflag( off_default_race );
-    bit_list_to_tflag( form_default );
-    bit_list_to_tflag( parts_default );
-    
-    if ( !area_last )   /* OLC */
-    {
-        bug( "Load_mobiles: no #AREA seen yet.", 0 );
-        exit( 1 );
-    }
-    
-    
-    for ( ; ; )
-    {
-        int vnum;
-        char letter;
-        int iHash;
-        
-        letter              = fread_letter( fp );
-        if ( letter != '#' )
-        {
-            bug( "Load_mobiles: # not found.", 0 );
-            exit( 1 );
-        }
-        
-        vnum                = fread_number( fp );
-        if ( vnum == 0 )
-            break;
-        
-        if ( get_mob_index( vnum ) != NULL )
-        {
-            bug( "Load_mobiles: vnum %d duplicated.", vnum );
-            exit( 1 );
-        }
-        
-        pMobIndex                   = alloc_mem( sizeof(*pMobIndex) );
-        pMobIndex->vnum         = vnum;
-        pMobIndex->area                 = area_last;               /* OLC */
-        pMobIndex->new_format       = FALSE;
-        pMobIndex->player_name      = fread_string( fp );
-        pMobIndex->short_descr      = fread_string( fp );
-        pMobIndex->long_descr       = fread_string( fp );
-        pMobIndex->description      = fread_string( fp );
-        
-        pMobIndex->long_descr[0]    = UPPER(pMobIndex->long_descr[0]);
-        pMobIndex->description[0]   = UPPER(pMobIndex->description[0]);
-        
-        fread_tflag( fp, pMobIndex->act );
-	SET_BIT( pMobIndex->act, ACT_IS_NPC );
-        fread_tflag( fp, pMobIndex->affect_field );
-        pMobIndex->pShop        = NULL;
-        pMobIndex->alignment        = fread_number( fp );
-        letter              = fread_letter( fp );
-        pMobIndex->level        = fread_number( fp );
-        
-        /*
-        * The unused stuff is for imps who want to use the old-style
-        * stats-in-files method.
-        */
-        fread_number( fp );   /* Unused */
-        fread_number( fp );   /* Unused */
-        fread_number( fp );   /* Unused */
-        /* 'd'      */        fread_letter( fp );   /* Unused */
-        fread_number( fp );   /* Unused */
-        /* '+'      */        fread_letter( fp );   /* Unused */
-        fread_number( fp );   /* Unused */
-        fread_number( fp );   /* Unused */
-        /* 'd'      */        fread_letter( fp );   /* Unused */
-        fread_number( fp );   /* Unused */
-        /* '+'      */        fread_letter( fp );   /* Unused */
-        fread_number( fp );   /* Unused */
-        pMobIndex->wealth               = fread_number( fp )/20;    
-        /* xp can't be used! */       fread_number( fp );   /* Unused */
-        pMobIndex->start_pos        = fread_number( fp );   /* Unused */
-        pMobIndex->default_pos      = fread_number( fp );   /* Unused */
-        
-        if (pMobIndex->start_pos < POS_SLEEPING)
-            pMobIndex->start_pos = POS_STANDING;
-        if (pMobIndex->default_pos < POS_SLEEPING)
-            pMobIndex->default_pos = POS_STANDING;
-        
-            /*
-            * Back to meaningful values.
-        */
-        pMobIndex->sex          = fread_number( fp );
-        
-        /* compute the race BS */
-        one_argument(pMobIndex->player_name,name);
-        
-        if (name[0] == '\0' || (race =  race_lookup(name)) == 0)
-        {
-            /* fill in with blanks */
-            pMobIndex->race = race_lookup("human");
-            flag_copy( pMobIndex->off_flags, off_default );
-            flag_clear( pMobIndex->imm_flags );
-            flag_clear( pMobIndex->res_flags );
-            flag_clear( pMobIndex->vuln_flags );
-            flag_copy( pMobIndex->form, form_default );
-            flag_copy( pMobIndex->parts, parts_default );
-        }
-        else
-        {
-            pMobIndex->race = race;
-            flag_copy( pMobIndex->off_flags, off_default_race );
-            flag_set_field( pMobIndex->off_flags, race_table[race].off );
-            flag_copy( pMobIndex->imm_flags, race_table[race].imm );
-            flag_copy( pMobIndex->res_flags, race_table[race].res );
-            flag_copy( pMobIndex->vuln_flags, race_table[race].vuln );
-            flag_copy( pMobIndex->form, race_table[race].form );
-            flag_copy( pMobIndex->parts, race_table[race].parts );
-        }
-        
-        if ( letter != 'S' )
-        {
-            bug( "Load_mobiles: vnum %d non-S.", vnum );
-            exit( 1 );
-        }
-        
-        // convert to ROM-style mobile
-        convert_mobile( pMobIndex );                           /* ROM OLC */
-        // convert to Bobble-style mobile
-        MOB_INDEX_DATA *pMobbleIndex = convert_to_mobble( pMobIndex );
-        free_mem( pMobIndex, sizeof(*pMobIndex) );
-        
-        index_mobile ( pMobbleIndex );
-    }
-    
-    return;
-}
 
 /*
  * Add mobile template to global indices
@@ -4758,7 +4608,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     sprintf( buf, "Exits   %5d\n\r", top_exit      ); send_to_char( buf, ch );
     sprintf( buf, "Helps   %5d\n\r", top_help      ); send_to_char( buf, ch );
     sprintf( buf, "Socials %5d\n\r", maxSocial  ); send_to_char( buf, ch );
-    sprintf( buf, "Mobs    %5d(%d new format)\n\r", top_mob_index,newmobs ); 
+    sprintf( buf, "Mobs    %5d\n\r", top_mob_index ); 
     send_to_char( buf, ch );
     sprintf( buf, "(in use)%5d\n\r", mobile_count  ); send_to_char( buf, ch );
     sprintf( buf, "Mprogs  %5d(%d lua)\n\r", top_mprog_index, lua_mprogs); send_to_char( buf, ch);
