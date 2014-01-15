@@ -2331,7 +2331,6 @@ struct  mob_index_data_old
 	AREA_DATA *     area;       /* OLC */
 	int      vnum;
 	sh_int      group;
-	bool        new_format;
 	sh_int      count;
 	sh_int      killed;
 	char *      player_name;
