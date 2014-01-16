@@ -604,7 +604,8 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 	send_to_char( buf, ch );
 
 	sprintf( buf, "Vnum: %d  Type: %s  Resets: %d\n\r",
-	item_name(obj->item_type), obj->pIndexData->reset_num );
+            obj->pIndexData->vnum,
+	        item_name(obj->item_type), obj->pIndexData->reset_num );
 	send_to_char( buf, ch );
 
 	sprintf( buf, "Short description: %s\n\rLong description: %s\n\r",

@@ -989,6 +989,7 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
             fprintf( fp, buf );
 
             sprintf( buf, "Vnum: %d  Type: %s  Number: %d/%d  Weight: %d/%d\n",
+                    obj->pIndexData->vnum,
                     flag_stat_string(type_flags, obj->item_type), 1, get_obj_number( obj ),
                     obj->weight, get_obj_weight( obj ) );
             fprintf( fp, buf );
