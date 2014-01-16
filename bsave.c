@@ -2179,7 +2179,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
-            set_title(ch, bread_string(buf));
+            char *temp=bread_string(buf);
+            set_title(ch, temp);
+            free_string(temp);
             fMatch = TRUE;
             break;
         }
