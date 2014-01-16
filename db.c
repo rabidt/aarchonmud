@@ -67,8 +67,8 @@ extern  DESCRIPTOR_DATA *descriptor_free;
 extern  PC_DATA     *pcdata_free;
 extern  AFFECT_DATA *affect_free;
 
-static int REAL_NUM_STRINGS = 0;
-static int HIGHEST_REAL_NUM_STRINGS = 0;
+static int STR_DUP_STRINGS = 0;
+static int HIGHEST_STR_DUP_STRINGS = 0;
 
 void format_init_flags( void );
 void format_race_flags( void );
@@ -4537,12 +4537,12 @@ void remember_str_dup(const char *str)
     
     if (str_dup_hash[key] == NULL)
         str_dup_hash[key] = str;
-    REAL_NUM_STRINGS += 1;
+    STR_DUP_STRINGS += 1;
     // auto-dump recently duplicated strings when memory leak is suspected
-    if (HIGHEST_REAL_NUM_STRINGS < REAL_NUM_STRINGS)
+    if (HIGHEST_STR_DUP_STRINGS < STR_DUP_STRINGS)
     {
-        HIGHEST_REAL_NUM_STRINGS = REAL_NUM_STRINGS;
-        if (HIGHEST_REAL_NUM_STRINGS % 5000 == 0 && str_dup_ready)
+        HIGHEST_STR_DUP_STRINGS = STR_DUP_STRINGS;
+        if (HIGHEST_STR_DUP_STRINGS % 1000 == 0 && str_dup_ready)
             dump_str_dup();
     }
     return;
@@ -4554,7 +4554,7 @@ void forget_str_dup(const char *str)
     
     if (str_dup_hash[key] == str)
         str_dup_hash[key] = NULL;
-    REAL_NUM_STRINGS -= 1;
+    STR_DUP_STRINGS -= 1;
     return;
 }
 
@@ -4775,7 +4775,8 @@ void do_memory( CHAR_DATA *ch, char *argument )
     sprintf( buf, "Perms   %5d blocks  of %7d bytes.\n\r",
         nAllocPerm, sAllocPerm );
     send_to_char( buf, ch );
-    sprintf( buf, "REAL_NUM_STRINGS    %d\n\r",REAL_NUM_STRINGS);
+    sprintf( buf, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
+    sprintf( buf, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
     send_to_char( buf, ch);
     ptc( ch, "Lua usage: %d\n\r", GetLuaMemoryUsage());
     ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
