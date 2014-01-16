@@ -363,7 +363,7 @@ function do_luaquery( ch, argument)
             local vf,err=loadstring("return function(x) return "..filterarg.." end" )
             if err then error(err) return end
             setfenv(vf, 
-                    setmetatable({}, { __index=gobj } ) )
+                    setmetatable({pairs=pairs}, { __index=gobj } ) )
             local val=vf()(gobj)
             if val then return true
             else return false end
