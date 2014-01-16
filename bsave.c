@@ -987,8 +987,6 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     
     bprintf( buf, "#O\n" );
     bprintf( buf, "Vnum %d\n",   obj->pIndexData->vnum        );
-    if (!obj->pIndexData->new_format)
-        bprintf( buf, "Oldstyle\n");
     if (obj->owner)
         bprintf(buf, "Owner %s~\n", obj->owner);
     bprintf( buf, "Nest %d\n",   iNest            );
@@ -2193,7 +2191,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
-            set_title(ch, bread_string(buf));
+            char *temp=bread_string(buf);
+            set_title(ch, temp);
+            free_string(temp);
             fMatch = TRUE;
             break;
         }
@@ -2527,14 +2527,12 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
     bool fNest;
     bool fVnum;
     bool first;
-    bool new_format;  /* to prevent errors */
     bool make_new;    /* update object */
     bool ignore_affects = FALSE; /* catch for old pfiles */
     
     fVnum = FALSE;
     obj = NULL;
     first = TRUE;  /* used to counter buf offset */
-    new_format = FALSE;
     make_new = FALSE;
     
     word   = beof( buf ) ? "End" : bread_word( buf );
@@ -2551,7 +2549,6 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         else
         {
             obj = create_object(get_obj_index(vnum),-1);
-            new_format = TRUE;
         }
         
     }
@@ -2727,21 +2724,6 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                         free_obj( obj );
                         obj = create_object( get_obj_index( OBJ_VNUM_DUMMY ), 0 );
                     }
-                    
-                    if (!new_format)
-                    {
-                        obj->next   = object_list;
-                        object_list = obj;
-                        obj->pIndexData->count++;
-                    }
-                    
-                    if (!obj->pIndexData->new_format 
-                        && obj->item_type == ITEM_ARMOR
-                        &&  obj->value[1] == 0)
-                    {
-                        obj->value[1] = obj->value[0];
-                        obj->value[2] = obj->value[0];
-                    }
 
                     if (make_new)
                     {
@@ -2823,14 +2805,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             
         case 'O':
             KEYS( "Owner",    obj->owner,      bread_string( buf ) );
-            
-            if ( !str_cmp( word,"Oldstyle" ) )
-            {
-                if (obj->pIndexData != NULL && obj->pIndexData->new_format)
-                    make_new = TRUE;
-                fMatch = TRUE;
                 break;
-            }
             break;
             
             

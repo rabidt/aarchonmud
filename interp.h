@@ -447,7 +447,6 @@ DECLARE_DO_FUN( do_toggle   );
 DECLARE_DO_FUN( do_torch    );
 DECLARE_DO_FUN( do_train    );
 DECLARE_DO_FUN( do_transfer );
-DECLARE_DO_FUN( do_trigger_safe );
 DECLARE_DO_FUN( do_trip     );
 DECLARE_DO_FUN( do_trust    );
 DECLARE_DO_FUN( do_try      );

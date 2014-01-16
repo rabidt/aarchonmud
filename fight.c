@@ -1402,10 +1402,7 @@ int get_weapon_damage( OBJ_DATA *wield )
     if ( wield == NULL )
 	return 0;
     
-    if ( wield->pIndexData->new_format )
 	weapon_dam = dice( wield->value[1], wield->value[2] );
-    else
-	weapon_dam = number_range( wield->value[1], wield->value[2] );
 
     /* sharpness! */
     if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) )
