@@ -653,6 +653,17 @@ HELPTOPIC glob_dammessage_help =
           "Note:\n\r\n\r"
 };
 
+static int glob_do_luaquery ( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "do_luaquery");
+    lua_insert(LS, 1);
+    lua_call( LS, top, LUA_MULTRET );
+
+    return lua_gettop(LS);
+}
+HELPTOPIC glob_do_luaquery_help={};
+
 
 static int glob_clearloopcount (lua_State *LS)
 {
@@ -1232,6 +1243,9 @@ GLOB_TYPE glob_table[] =
     GFUN(getarealist,   9),
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
+#ifdef TESTER
+    GFUN(do_luaquery,   9),
+#endif
 
     GODF(confuse),
     GODF(curse),
@@ -3157,6 +3171,25 @@ HELPTOPIC CH_immune_help =
 "See 'luahelp other flags'"
 };
 
+static int CH_setimmune (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "immune", imm_flags, ud_ch->imm_flags );
+    }
+    else
+        luaL_error( LS, "'setimmune' for NPC only.");
+
+}
+HELPTOPIC CH_setimmune_help =
+{
+    .summary = "Set immune flags. NPC only.",
+    .info =
+"See 'imm_flags' table.\n\r"
+"See 'luahelp other flags'"
+};
+
 static int CH_carries (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -3272,6 +3305,25 @@ HELPTOPIC CH_vuln_help =
 "See 'luahelp other flags'"
 };
 
+static int CH_setvuln (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "vuln", vuln_flags, ud_ch->vuln_flags );
+    }
+    else
+        luaL_error( LS, "'setvuln' for NPC only.");
+
+}
+HELPTOPIC CH_setvuln_help =
+{
+    .summary = "Set vuln flags. NPC only.",
+    .info =
+"See 'vuln_flags' table.\n\r"
+"See 'luahelp other flags'"
+};
+
 static int CH_qstatus (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -3296,6 +3348,25 @@ HELPTOPIC CH_resist_help =
     .summary = "Check resist flags.",
     .info =
 "See 'res_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
+
+static int CH_setresist (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "resist", res_flags, ud_ch->res_flags );
+    }
+    else
+        luaL_error( LS, "'setresist' for NPC only.");
+
+}
+HELPTOPIC CH_setresist_help =
+{
+    .summary = "Set resist flags. NPC only.",
+    .info =
+"See 'res_flags' table.\n\r"
 "See 'luahelp other flags'"
 };
 
@@ -4339,6 +4410,9 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(peace, 1),
     CHMETH(restore, 1),
     CHMETH(setact, 1),
+    CHMETH(setvuln, 1),
+    CHMETH(setimmune, 1),
+    CHMETH(setresist, 1),
     CHMETH(hit, 1),
     CHMETH(randchar, 0),
     CHMETH(loadprog, 1),
@@ -6817,7 +6891,7 @@ struct
         { .summary = "Details on using flag methods.",
           .info = 
 "For flag check methods, if called with no argument, a table of currently\n\r"
-"set flags is returned. Othwerise argument is a flag name and return value\n\r"
+"set flags is returned. Otherwise argument is a flag name and return value\n\r"
 "is a boolean representing whether that flag is set.\n\r\n\r"
 
 "For flag set methods, 1st argument is a flag name.\n\r"

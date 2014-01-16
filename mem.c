@@ -341,8 +341,6 @@ OBJ_INDEX_DATA *new_obj_index( void )
     pObj->combine_vnum  = 0;
     pObj->diff_rating   = 0;
 
-    pObj->new_format    = TRUE; /* ROM */
-
     return pObj;
 }
 

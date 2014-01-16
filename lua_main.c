@@ -885,3 +885,16 @@ void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines)
         lua_pop( g_mud_LS, 1);
     }
 }
+
+void do_luareset( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_luareset");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_luareset:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
