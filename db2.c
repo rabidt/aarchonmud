@@ -102,13 +102,7 @@ void load_mobiles( FILE *fp )
                     && ldesc[len-2] == '\n'
                     && ldesc[len-1] == '\r' )
             {
-                char buf[MSL];
-                sprintf(buf,
-                        "%.*s",
-                        len-2,
-                        ldesc);
-                free_string( pMobIndex->long_descr );
-                pMobIndex->long_descr=str_dup(buf);
+                ldesc[len-2]='\0';
             }
             else
             {
@@ -448,13 +442,7 @@ void load_mobbles( FILE *fp )
                             && ldesc[len-2] == '\n'
                             && ldesc[len-1] == '\r' )
                     {
-                        char buf[MSL];
-                        sprintf(buf,
-                                "%.*s",
-                                len-2,
-                                ldesc);
-                        free_string( pMobIndex->long_descr );
-                        pMobIndex->long_descr=str_dup(buf);
+                        ldesc[len-2]='\0';
                     }
                     else
                     {
