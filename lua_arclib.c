@@ -653,6 +653,17 @@ HELPTOPIC glob_dammessage_help =
           "Note:\n\r\n\r"
 };
 
+static int glob_do_luaquery ( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "do_luaquery");
+    lua_insert(LS, 1);
+    lua_call( LS, top, LUA_MULTRET );
+
+    return lua_gettop(LS);
+}
+HELPTOPIC glob_do_luaquery_help={};
+
 
 static int glob_clearloopcount (lua_State *LS)
 {
@@ -1232,6 +1243,9 @@ GLOB_TYPE glob_table[] =
     GFUN(getarealist,   9),
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
+#ifdef TESTER
+    GFUN(do_luaquery,   9),
+#endif
 
     GODF(confuse),
     GODF(curse),
