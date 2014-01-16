@@ -4238,8 +4238,17 @@ static int CH_set_description (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set description on PCs.");
     const char *new=check_string(LS, 2, MIL);
+    int len=strlen(new);
+    if ( len>1 &&
+            !( new[len-2]=='\n' && new[len-1]=='\r') )
+    {
+        char buf[MIL+2];
+        sprintf(buf, "%s\n\r",new);
+        new=buf;
+    }
+    char buf[MIL+2];
     free_string( ud_ch->description );
-    ud_ch->long_descr=str_dup(new);
+    ud_ch->description=str_dup(new);
     return 0;
 }
 HELPTOPIC CH_set_description_help = {
