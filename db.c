@@ -4776,6 +4776,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
         nAllocPerm, sAllocPerm );
     send_to_char( buf, ch );
     sprintf( buf, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
+    send_to_char( buf, ch);
     sprintf( buf, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
     send_to_char( buf, ch);
     ptc( ch, "Lua usage: %d\n\r", GetLuaMemoryUsage());
