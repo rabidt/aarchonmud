@@ -2179,7 +2179,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_NOACCEPT    (ii)
 #define PLR_NOSURR      (jj)
 #define PLR_RP          (kk)
-#define PLR_TRIG_SAFE   (ll)
+//#define PLR_TRIG_SAFE   (ll) /* removed */
 #define PLR_INACTIVE_HELPER (mm)
 #define PLR_ANTI_HELEPR (nn)
 #define PLR_NOEXP       (oo)
@@ -2331,7 +2331,6 @@ struct  mob_index_data_old
 	AREA_DATA *     area;       /* OLC */
 	int      vnum;
 	sh_int      group;
-	bool        new_format;
 	sh_int      count;
 	sh_int      killed;
 	char *      player_name;
@@ -2805,7 +2804,6 @@ struct  obj_index_data
 	EXTRA_DESCR_DATA *  extra_descr;
 	AFFECT_DATA *   affected;
 	AREA_DATA *        area;       /* OLC */
-	bool        new_format;
 	char *      name;
 	char *      short_descr;
 	char *      description;
