@@ -393,7 +393,7 @@ MOB_INDEX_DATA *new_mob_index( void )
     pMob->area          =   NULL;
     pMob->player_name   =   str_dup( "no name" );
     pMob->short_descr   =   str_dup( "(no short description)" );
-    pMob->long_descr    =   str_dup( "(no long description)\n\r" );
+    pMob->long_descr    =   str_dup( "(no long description)" );
     pMob->description   =   &str_empty[0];
     pMob->vnum          =   0;
     pMob->count         =   0;
