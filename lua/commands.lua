@@ -505,7 +505,7 @@ function do_luaquery( ch, argument)
     pagetochar(ch, table.concat(printing,"\n\r")..
             "\n\r\n\r"..
             "Total results: "..(#output).."\n\r")
-    
+    lua_arcgc() -- force a garbage collection 
 end
 -- end luaquery section
 
