@@ -4229,51 +4229,6 @@ void free_string( char *pstr )
     return;
 }
 
-
-/*
-void do_areas(CHAR_DATA *ch, char *argument)
-{
-   
-    char buf[MAX_STRING_LENGTH];
-    char arg[ MAX_INPUT_LENGTH ];
-    AREA_DATA *pArea;
-    BUFFER *output;
-    int iArea, value, value2, count, level = 0;
-    output = new_buf();
-
-    if (argument[0] != '\0')
-    {
-        send_to_char_bw("No argument is used with this command.\n\r",ch);
-        return;
-    }
- 
-    pArea = area_first;
-	for (iArea = 0; iArea < top_area; iArea++)
-	{
-        if (pArea->security>4) count++;
-	    pArea = pArea->next;
-    }
-
-	    if ((level = pArea->minlevel) < pArea->maxlevel
-		&&  level >= pArea->minlevel && level <= pArea->maxlevel)
-		{
-		level = pArea->minlevel;
-		sprintf(buf,"%-3d-%-3d) %s ",
-			pArea->minlevel, pArea->maxlevel, pArea->credits);
-		
-		
-	}
-} */
-
-/*
-int compare_area (const void *v1, const void *v2)
-{
-    int val1 = *(int*)v1;
-    int val2 = *(int*)v2;
-    return (val1 - val2); 
-} */
-
-
 /* Erwins sample for sorting areas. Change the relational
    operators to reverse sorting. Currently it goes from lowest
    to highest. Can make a duplicate function later with the

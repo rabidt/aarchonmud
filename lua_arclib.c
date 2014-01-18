@@ -5584,6 +5584,46 @@ static int AREA_get_atrigs ( lua_State *LS)
 }
 HELPTOPIC AREA_get_atrigs_help = {};
 
+static int AREA_get_vnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_vnum_help={};
+
+static int AREA_get_minvnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->min_vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_minvnum_help={};
+
+static int AREA_get_maxvnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->max_vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_maxvnum_help={};
+
+static int AREA_get_credits ( lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_AREA(LS,1))->credits);
+    return 1;
+}
+HELPTOPIC AREA_get_credits_help={};
+
+static int AREA_get_builders ( lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_AREA(LS,1))->builders);
+    return 1;
+}
+HELPTOPIC AREA_get_builders_help={};
+
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
     AREAGET(name, 0),
@@ -5592,6 +5632,11 @@ static const LUA_PROP_TYPE AREA_get_table [] =
     AREAGET(minlevel, 0),
     AREAGET(maxlevel, 0),
     AREAGET(security, 0),
+    AREAGET(vnum, 0),
+    AREAGET(minvnum, 0),
+    AREAGET(maxvnum, 0),
+    AREAGET(credits, 0),
+    AREAGET(builders, 0),
     AREAGET(ingame, 0),
     AREAGET(rooms, 0),
     AREAGET(people, 0),

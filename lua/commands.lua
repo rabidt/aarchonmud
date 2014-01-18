@@ -864,3 +864,87 @@ function wizhelp( ch, argument, commands )
 
 end
 --end wizhelp section
+
+-- alist section
+local alist_col={
+    "vnum",
+    "name",
+    "builders",
+    "minvnum",
+    "maxvnum",
+    "security"
+}
+function do_alist( ch, argument )
+    local args=arguments(argument, true)
+    local sort
+    local filterfun
+
+    if not(args[1]) then
+        sort="vnum"
+    elseif args[1]=="find" then
+        sort="vnum"
+        filterfun=function(area)
+            log("blah")
+            log(args[1])
+            log(args[2])
+            log(area.name)
+            log(area.builders)
+            if area.name:find(args[2])
+                or area.builders:find(args[2])
+                then
+                log("true")
+                return true
+            end
+            return false
+        end
+    else
+        for k,v in pairs(alist_col) do
+            if v==args[1] then
+                sort=v
+                break
+            end
+        end
+    end
+
+    if not(sort) then
+        alist_usage( ch )
+        return
+    end
+
+    local data={}
+    for _,area in pairs(getarealist()) do
+        local fil
+        if filterfun then
+            fil=filterfun(area)
+        else
+            fil=true
+        end
+
+        if fil then
+            local row={}
+            for _,col in pairs(alist_col) do
+                row[col]=area[col]
+            end
+            table.insert(data, row)
+        end
+    end
+
+    table.sort( data, function(a,b) return a[sort]<b[sort] end )
+
+    local output={}
+    for _,v in ipairs(data) do
+        table.insert( output,
+                string.format("[%3d] [%-26s] [%-20s] (%-6d-%6d) [%-3d]",
+                    v.vnum,
+                    util.format_color_string(v.name,24).."{x",
+                    v.builders,
+                    v.minvnum,
+                    v.maxvnum,
+                    v.security)
+        )
+    end
+
+    pagetochar( ch, table.concat(output, "\n\r").."\n\r" )
+
+end
+--end alist section
