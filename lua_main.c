@@ -902,3 +902,14 @@ void do_luareset( CHAR_DATA *ch, char *argument)
         lua_pop( g_mud_LS, 1);
     }
 }
+
+void lua_arcgc()
+{
+    lua_getglobal( g_mud_LS, "lua_arcgc");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    {
+        bugf( "Error with lua_arcgc:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
