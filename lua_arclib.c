@@ -4218,7 +4218,10 @@ static int CH_get_longdescr( lua_State *LS)
             ud_ch->long_descr);
     return 1;
 }
-HELPTOPIC CH_get_longdescr_help={};
+HELPTOPIC CH_get_longdescr_help=
+{
+    .summary="NPC only."
+};
 
 static int CH_set_longdescr (lua_State *LS)
 {
@@ -4226,13 +4229,47 @@ static int CH_set_longdescr (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set longdescr on PCs.");
     const char *new=check_string(LS, 2, MIL);
-    char buf[MSL];
-    sprintf(buf, "%s\n\r", new);
     free_string( ud_ch->long_descr );
-    ud_ch->long_descr=str_dup(buf);
+    ud_ch->long_descr=str_dup(new);
     return 0;
 }
 HELPTOPIC CH_set_longdescr_help = {
+    .summary="NPC only."
+};
+
+static int CH_get_description( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS,
+            ud_ch->description);
+    return 1;
+}
+HELPTOPIC CH_get_description_help={};
+
+static int CH_set_description (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set description on PCs.");
+    const char *new=check_string(LS, 2, MSL);
+
+    // Need to make sure \n\r at the end but don't add if already there.
+    int len=strlen(new);
+    if ( len>1 &&
+            !( new[len-2]=='\n' && new[len-1]=='\r') )
+    {
+        if ( len > (MSL-3) )
+            luaL_error( LS, "Description must be %d characters or less.", MSL-3);
+
+        char buf[MSL];
+        sprintf(buf, "%s\n\r",new);
+        new=buf;
+    }
+    free_string( ud_ch->description );
+    ud_ch->description=str_dup(new);
+    return 0;
+}
+HELPTOPIC CH_set_description_help = {
     .summary="NPC only."
 };
 
@@ -4305,6 +4342,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(ingame,0),
     CHGET(shortdescr, 0),
     CHGET(longdescr, 0),    
+    CHGET(description, 0),
     ENDPTABLE
 };
 
@@ -4338,6 +4376,7 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(race, 5),
     CHSET(shortdescr, 5),
     CHSET(longdescr, 5),
+    CHSET(description, 5),
     ENDPTABLE
 };
 
@@ -6626,7 +6665,7 @@ MPGETINT( vnum, ud_mobp->vnum ,"" ,"" );
 MPGETSTR( name, ud_mobp->player_name , "" ,"");
 MPGETSTR( shortdescr, ud_mobp->short_descr,"" ,"");
 MPGETSTR( longdescr, ud_mobp->long_descr,"" ,"");
-MPGETSTR( description, ud_mobp->description,"" ,"");
+MPGETSTR( description, ud_mobp->description, "", "");
 MPGETINT( alignment, ud_mobp->alignment,"" ,"");
 MPGETINT( level, ud_mobp->level,"" ,"");
 MPGETINT( hppcnt, ud_mobp->hitpoint_percent,"" ,"");
