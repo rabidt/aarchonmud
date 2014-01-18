@@ -913,3 +913,16 @@ void lua_arcgc()
         lua_pop( g_mud_LS, 1);
     }
 }
+
+void do_alist(CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_alist");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_alist:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
