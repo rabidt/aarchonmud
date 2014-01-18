@@ -319,6 +319,7 @@ local lqtbl={
 }
 
 function do_luaquery( ch, argument)
+    do -- actual func wrapped in do/end so scope is destroyed before gc called
     -- arg checking stuff
     args=arguments(argument, true)
     
@@ -505,6 +506,7 @@ function do_luaquery( ch, argument)
     pagetochar(ch, table.concat(printing,"\n\r")..
             "\n\r\n\r"..
             "Total results: "..(#output).."\n\r")
+    end -- actual func wrapped in do/end so scope is destroyed before gc called
     lua_arcgc() -- force a garbage collection 
 end
 -- end luaquery section
