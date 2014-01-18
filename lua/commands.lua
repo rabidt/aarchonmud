@@ -874,6 +874,31 @@ local alist_col={
     "maxvnum",
     "security"
 }
+
+local function alist_usage( ch )
+    sendtochar( ch,
+[[
+Syntax:  alist
+         alist [column name] <ingame>
+         alist find [text]
+
+
+'alist' with no argument shows all areas, sorted by area vnum.
+
+With a column name argument, the list is sorted by the given column name.
+'ingame' is used as an optional 3rd argument to show only in game areas.
+
+With 'find' argument, the area names and builders are searched for the
+given text (case sensitive)  and only areas that match are shown.
+
+Columns:
+]])
+
+    for k,v in pairs(alist_col) do
+        sendtochar( ch, v.."\n\r")
+    end
+end
+
 function do_alist( ch, argument )
     local args=arguments(argument, true)
     local sort
@@ -883,16 +908,14 @@ function do_alist( ch, argument )
         sort="vnum"
     elseif args[1]=="find" then
         sort="vnum"
+        if not(args[2]) then
+            alist_usage( ch )
+            return
+        end
         filterfun=function(area)
-            log("blah")
-            log(args[1])
-            log(args[2])
-            log(area.name)
-            log(area.builders)
             if area.name:find(args[2])
                 or area.builders:find(args[2])
                 then
-                log("true")
                 return true
             end
             return false
@@ -902,6 +925,11 @@ function do_alist( ch, argument )
             if v==args[1] then
                 sort=v
                 break
+            end
+        end
+        if args[2]=="ingame" then
+            filterfun=function(area)
+                return area.ingame
             end
         end
     end
@@ -932,11 +960,15 @@ function do_alist( ch, argument )
     table.sort( data, function(a,b) return a[sort]<b[sort] end )
 
     local output={}
+    --header
+    table.insert( output,
+            string.format("[%3s] [%-26s] [%-20s] (%-6s-%6s) [%-3s]",
+                "Num", "Name", "Builders", "Lvnum", "Mvnum", "Sec"))
     for _,v in ipairs(data) do
         table.insert( output,
                 string.format("[%3d] [%-26s] [%-20s] (%-6d-%6d) [%-3d]",
                     v.vnum,
-                    util.format_color_string(v.name,24).."{x",
+                    util.format_color_string(v.name,25).." {x",
                     v.builders,
                     v.minvnum,
                     v.maxvnum,
