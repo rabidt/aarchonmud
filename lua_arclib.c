@@ -4237,16 +4237,20 @@ static int CH_set_description (lua_State *LS)
     CHAR_DATA *ud_ch=check_CH( LS, 1);
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set description on PCs.");
-    const char *new=check_string(LS, 2, MIL);
+    const char *new=check_string(LS, 2, MSL);
+
+    // Need to make sure \n\r at the end but don't add if already there.
     int len=strlen(new);
     if ( len>1 &&
             !( new[len-2]=='\n' && new[len-1]=='\r') )
     {
-        char buf[MIL+2];
+        if ( len > (MSL-3) )
+            luaL_error( LS, "Description must be %d characters or less.", MSL-3);
+
+        char buf[MSL];
         sprintf(buf, "%s\n\r",new);
         new=buf;
     }
-    char buf[MIL+2];
     free_string( ud_ch->description );
     ud_ch->description=str_dup(new);
     return 0;
