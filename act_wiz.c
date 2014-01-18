@@ -1984,7 +1984,6 @@ void do_string( CHAR_DATA *ch, char *argument )
         if ( !str_prefix( arg2, "long" ) )
         {
             free_string( victim->long_descr );
-            strcat(arg3,"\n\r");
             victim->long_descr = str_dup( arg3 );
             return;
         }

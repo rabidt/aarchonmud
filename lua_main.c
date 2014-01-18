@@ -101,9 +101,13 @@ const char *check_string( lua_State *LS, int index, size_t size)
 {
     size_t rtn_size;
     const char *rtn=luaL_checklstring( LS, index, &rtn_size );
+    /* Check >= because we assume 'size' argument refers to
+       size of a char buffer rather than desired strlen.
+       If called with MSL then the result (including terminating '\0'
+       will fit in MSL sized buffer. */
     if (rtn_size >= size )
         luaL_error( LS, "String size %d exceeds maximum %d.",
-                (int)rtn_size, (int)size );
+                (int)rtn_size, (int)size-1 );
 
     return rtn;
 }
