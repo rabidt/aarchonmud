@@ -4605,6 +4605,28 @@ static int OBJ_destroy( lua_State *LS)
 }
 HELPTOPIC OBJ_destroy_help={};
 
+static int OBJ_clone( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+
+    OBJ_DATA *clone = create_object(ud_obj->pIndexData,0);
+    clone_object( ud_obj, clone );
+    if (ud_obj->carried_by)
+        obj_to_char( clone, ud_obj->carried_by );
+    else if (ud_obj->in_room)
+        obj_to_room( clone, ud_obj->in_room );
+    else if (ud_obj->in_obj)
+        obj_to_obj( clone, ud_obj->in_obj );
+    else
+        luaL_error( LS, "Cloned object has no location.");
+
+    if (make_OBJ( LS, clone))
+        return 1;
+    else
+        return 0;
+}
+HELPTOPIC OBJ_clone_help={};
+
 static int OBJ_oload (lua_State *LS)
 {
     OBJ_DATA * ud_obj = check_OBJ (LS, 1);
@@ -5114,6 +5136,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     OBJMETH(extra, 0),
     OBJMETH(wear, 0),
     OBJMETH(destroy, 1),
+    OBJMETH(clone, 1),
     OBJMETH(echo, 1),
     OBJMETH(loadprog, 1),
     OBJMETH(loadscript, 1),
