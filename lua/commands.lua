@@ -81,6 +81,7 @@ Filter (optional):
     Expression used to filter which results are shown. Argument is a statement 
     that can be evaluated to a boolean result. 'x' can be used optionally to
     qualify referenced fields. It is necessary to use 'x' when invoking methods.
+    Using 'thisarea' in the filter produces results from current area only.
 
 Sort (optional):
     One or more values determining the sort order of the output. Format is same
@@ -364,7 +365,21 @@ function do_luaquery( ch, argument)
             local vf,err=loadstring("return function(x) return "..filterarg.." end" )
             if err then error(err) return end
             setfenv(vf, 
-                    setmetatable({pairs=pairs}, { __index=gobj } ) )
+                    setmetatable(
+                        {
+                            pairs=pairs
+                        }, 
+                        { 
+                            __index=function(t,k)
+                                if k=="thisarea" then
+                                    return ch.room.area==gobj.area
+                                else
+                                    return gobj[k] 
+                                end
+                            end
+                        } 
+                    ) 
+            )
             local val=vf()(gobj)
             if val then return true
             else return false end
