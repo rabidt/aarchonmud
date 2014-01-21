@@ -56,7 +56,7 @@ void do_heal(CHAR_DATA *ch, char *argument)
         return;
     }
     
-    one_argument(argument,arg);
+    argument=one_argument(argument,arg);
     
     if (arg[0] == '\0')
     {
@@ -257,7 +257,14 @@ void do_heal(CHAR_DATA *ch, char *argument)
     default:
         break;
     }
-    
+   
+    extern char *target_name;
+    static char tname_buf[MIL];
+    sprintf( tname_buf, "%s %s",
+          ch->name,
+          argument);
+    target_name=tname_buf;
+            
     spell(sn,100,mob,ch,TARGET_CHAR);
 }
 
