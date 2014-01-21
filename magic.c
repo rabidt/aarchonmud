@@ -574,7 +574,7 @@ int mana_cost (CHAR_DATA *ch, int sn, int skill)
 
 /* returns wether a valid spell target was found */
 bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
-        int *target, CHAR_DATA **vo ) /* output */
+        int *target, CHAR_DATA **vo, bool show ) /* output */
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -1243,7 +1243,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
     }
 
     /* Locate targets */
-    if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
+    if ( !get_spell_target( ch, target_name, sn, &target, &vo, TRUE ) )
         return;
     
     // strip meta-magic options that are invalid for the spell & target
@@ -1433,7 +1433,7 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg 
     }
 
     /* get target */
-    if ( !get_spell_target( ch, arg, sn, &target, &vo ) )
+    if ( !get_spell_target( ch, arg, sn, &target, &vo, TRUE ) )
         return FALSE;
 
     if ( cast_self && vo != ch )

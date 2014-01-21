@@ -2721,8 +2721,100 @@ HELPTOPIC CH_vforce_help = {};
 
 static int CH_cast (lua_State *LS)
 {
+    if (lua_isnone( LS, 3))
+    {
+        do_mpcast( check_CH(LS, 1), check_string( LS, 2, MIL));
+        return 0;
+    }
 
-    do_mpcast( check_CH(LS, 1), check_fstring( LS, 2, MIL));
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    char *spell=check_string(LS,2);
+    int sn=spell_lookup( spell );
+    if (sn == -1)
+        luaL_error(LS,"No such spell: %s", spell);
+    
+    int target=skill_table[sn].target;
+    void *victim=NULL;
+
+    switch ( target )
+    {
+        case TAR_IGNORE:
+        case TAR_CHAR_SELF:
+            luaL_error(LS,"Not supported with target.")
+
+        case TAR_OBJ_CHAR_OFF:
+            if (is_OBJ( LS, 3 ))
+            {
+                victim=check_OBJ( LS, 3 );
+                if ( ((OBJ_DATA *)victim)->in_room != ud_ch->in_room
+                     && ((OBJ_DATA *)victim)->carried_by != ud_ch )
+                    luaL_error( LS, "%s can't cast %s on %s. Not in same room.",
+                            ud_ch->name,
+                            spell,
+                            ((OBJ_DATA *)victim)->short_descr);
+                break;
+            }
+            // else treat as vis char off
+        case TAR_VIS_CHAR_OFF:
+            victim=check_CH( LS, 3 );
+            if ( !IS_NPC( ud_ch ) )
+            {
+                if (is_safe_spell(ud_ch,victim, FALSE) && victim != ud_ch)
+                {
+                    send_to_char("Not on that target.\n\r",ud_ch);
+                    return 0;
+                }
+                check_killer(ud_ch,victim); 
+            }
+            if ( IS_AFFECTED(victim, AFF_CHARM) && victim->leader == ud_ch )
+            {
+                send_to_char( "You can't do that to your own follower.\n\r", ch );
+                return 0;
+            }
+            break;
+
+        case TAR_CHAR_DEFENSIVE:
+            victim=check_CH( LS, 3 );
+            break;
+
+        case TAR_OBJ_INV:
+            victim=check_OBJ( LS, 3 );
+            if ( victim->carried_by != ud_ch )
+                luaL_error(LS, "%s can't cast %s on %s. Not in inventory.",
+                        ud_ch->name,
+                        spell,
+                        ((OBJ_DATA *)victim)->short_descr);
+            break;
+
+        case TAR_OBJ_CHAR_DEF:
+            if ( is_CH( LS, 3 ) )
+            {
+                victim=check_CH(LS,3);
+                break;
+            }
+            else if ( is_OBJ( LS, 3 ) )
+            {
+                victim=check_OBJ(LS,3)
+                break;
+            }
+            else
+                luaL_error(LS,"Bad spell target.")
+        
+        case TAR_CHAR_NEUTRAL:
+            victim=check_CH( LS, 3 );
+            if ( ud_ch == victim
+                    || ud_ch->fighting == victim
+                    || victim->fighting == ud_ch
+                    || (!IS_NPC(victim) && !IS_SET(victim->act, PLR_NOCANCEL))
+                    || (IS_AFFECTED(victim, AFF_CHARM) && victim->master == ud_ch) )
+                break;
+            else
+            {
+                send_to_char("Your target wouldn't like that. Initiate combat first.\n\r",ch);
+                return 0;
+            } 
+
+    }
 
     return 0;
 }
