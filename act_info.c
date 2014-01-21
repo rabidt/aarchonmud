@@ -3655,7 +3655,7 @@ void do_wimpy( CHAR_DATA *ch, char *argument )
     else if ( wimpy == 100 )
         printf_to_char( ch, "You will run at the first hint of danger.\n\r");
     else 
-        printf_to_char( ch, "You will now flee when dropping below %d%% of your hit points.\n\r", wimpy );
+        printf_to_char( ch, "You will now flee when dropping below %d hp (%d%%).\n\r", (wimpy*ch->max_hit/100), wimpy);
     return;
 }
 
@@ -3683,7 +3683,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     else if ( calm == 100 )
         printf_to_char( ch, "You will always be calm.\n\r");
     else 
-        printf_to_char( ch, "You will now calm down when dropping below %d%% of your moves.\n\r", calm );
+        printf_to_char( ch, "You will now calm down when dropping below %d moves (%d%%).\n\r", (calm*ch->max_move/100), calm );
     return;
 }
 
