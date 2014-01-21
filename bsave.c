@@ -1566,6 +1566,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                     ch->pcdata->last_note[i] = bread_number (buf);
             }     /* for */
             fMatch = TRUE;
+            break;
         } /* Boards */
         
         break;
@@ -1580,6 +1581,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->clan=clan_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
         KEYS( "CFlag",   ch->pcdata->customflag, bread_string(buf));
         KEY( "CDur",    ch->pcdata->customduration, bread_number(buf));
@@ -1611,6 +1613,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->pcdata->clan_rank=clan_rank_lookup(ch->clan, temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
 
 	if ( !str_cmp(word, "Crime") )
@@ -1816,6 +1819,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 			}
 			ch->pcdata->explored->set=set;
 			fMatch = TRUE;
+            break;
 			
 		}
 		else if(!str_cmp(word, "ExploredN") )
@@ -1843,6 +1847,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 				}
 			}
 			fMatch = TRUE;
+            break;
 		}
         break;
         
@@ -1868,6 +1873,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             else
                 gn_add(ch,gn);
             fMatch = TRUE;
+            break;
         }
         break;
         
@@ -1906,6 +1912,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 ch->pcdata->invitation[i] = bread_string(buf);
                                        
             fMatch = TRUE;
+            break;
         }
 
         if ( !str_cmp( word, "Icmd" ) )
@@ -1944,6 +1951,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 		}
                 
                 fMatch = TRUE;
+                break;
         }
         
         break;
@@ -1965,6 +1973,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             load_luaconfig( ch, temp );
             free_string( temp );
             fMatch=TRUE;
+            break;
         }
 
         if ( !strcmp( word, "LuaVal") )
@@ -1978,6 +1987,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             luaval->next=ch->luavals;
             ch->luavals=luaval;
             fMatch=TRUE;
+            break;
         }
 
         break;
@@ -2006,6 +2016,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             else
                 ch->pcdata->mastered[sn] = value;
             fMatch = TRUE;
+            break;
         }
 
     case 'N':
@@ -2106,6 +2117,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->race=race_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
         KEY( "Remort",  ch->pcdata->remorts,    bread_number(buf));
         
@@ -2150,6 +2162,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             else
                 ch->pcdata->learned[sn] = value;
             fMatch = TRUE;
+            break;
         }
 
         if ( !str_cmp(word, "SkillMasteryCount") || !str_cmp(word, "Smc") )
@@ -2158,6 +2171,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->pcdata->smc_grandmastered = bread_number(buf);
             ch->pcdata->smc_retrained = bread_number(buf);
             fMatch = TRUE;
+            break;
         }
 
         KEY( "Stance",  ch->stance, bread_number( buf ) );
@@ -2393,6 +2407,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
                 pet->clan=clan_lookup(temp);
                 free_string(temp);
                 fMatch=TRUE;
+                break;
             }
             KEYF( "Comm",   pet->comm );
             break;
@@ -2480,6 +2495,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
                 pet->race=race_lookup(temp);
                 free_string(temp);
                 fMatch=TRUE;
+                break;
             }
             break;
             
@@ -2645,6 +2661,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             obj->clan=clan_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
         if (!str_cmp(word, "CRank") )
         {
@@ -2652,6 +2669,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             obj->rank=clan_rank_lookup(obj->clan, temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
             break;
             
@@ -2685,6 +2703,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                 ed->next        = obj->extra_descr;
                 obj->extra_descr    = ed;
                 fMatch = TRUE;
+                break;
             }
             
             if ( !str_cmp( word, "End" ) )
@@ -2756,6 +2775,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                 luaval->next=obj->luavals;
                 obj->luavals=luaval;
                 fMatch=TRUE;
+                break;
             }
             break;
             
@@ -2779,11 +2799,13 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                     fNest = TRUE;
                 }
                 fMatch = TRUE;
+                break;
             }
             break;
             
         case 'O':
             KEYS( "Owner",    obj->owner,      bread_string( buf ) );
+                break;
             break;
             
             

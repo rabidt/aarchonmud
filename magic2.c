@@ -2015,7 +2015,7 @@ void spell_water_elemental( int sn, int level, CHAR_DATA *ch, void *vo, int targ
     rename(name);
     sprintf(buf, "A %s elemental", liquid_name);
     rename(short_descr);
-    sprintf(buf, "A %s elemental flows along.\n\r", liquid_name);
+    sprintf(buf, "A %s elemental flows along.", liquid_name);
     rename(long_descr);
     sprintf(buf, "%s has imbued this blob of %s with an elemental spirit.\n\r", ch->name, liquid_name);
     rename(description);

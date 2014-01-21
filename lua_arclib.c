@@ -4218,7 +4218,10 @@ static int CH_get_longdescr( lua_State *LS)
             ud_ch->long_descr);
     return 1;
 }
-HELPTOPIC CH_get_longdescr_help={};
+HELPTOPIC CH_get_longdescr_help=
+{
+    .summary="NPC only."
+};
 
 static int CH_set_longdescr (lua_State *LS)
 {
@@ -4226,13 +4229,47 @@ static int CH_set_longdescr (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set longdescr on PCs.");
     const char *new=check_string(LS, 2, MIL);
-    char buf[MSL];
-    sprintf(buf, "%s\n\r", new);
     free_string( ud_ch->long_descr );
-    ud_ch->long_descr=str_dup(buf);
+    ud_ch->long_descr=str_dup(new);
     return 0;
 }
 HELPTOPIC CH_set_longdescr_help = {
+    .summary="NPC only."
+};
+
+static int CH_get_description( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS,
+            ud_ch->description);
+    return 1;
+}
+HELPTOPIC CH_get_description_help={};
+
+static int CH_set_description (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set description on PCs.");
+    const char *new=check_string(LS, 2, MSL);
+
+    // Need to make sure \n\r at the end but don't add if already there.
+    int len=strlen(new);
+    if ( len>1 &&
+            !( new[len-2]=='\n' && new[len-1]=='\r') )
+    {
+        if ( len > (MSL-3) )
+            luaL_error( LS, "Description must be %d characters or less.", MSL-3);
+
+        char buf[MSL];
+        sprintf(buf, "%s\n\r",new);
+        new=buf;
+    }
+    free_string( ud_ch->description );
+    ud_ch->description=str_dup(new);
+    return 0;
+}
+HELPTOPIC CH_set_description_help = {
     .summary="NPC only."
 };
 
@@ -4305,6 +4342,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(ingame,0),
     CHGET(shortdescr, 0),
     CHGET(longdescr, 0),    
+    CHGET(description, 0),
     ENDPTABLE
 };
 
@@ -4338,6 +4376,7 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(race, 5),
     CHSET(shortdescr, 5),
     CHSET(longdescr, 5),
+    CHSET(description, 5),
     ENDPTABLE
 };
 
@@ -4565,6 +4604,28 @@ static int OBJ_destroy( lua_State *LS)
     return 0;
 }
 HELPTOPIC OBJ_destroy_help={};
+
+static int OBJ_clone( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+
+    OBJ_DATA *clone = create_object(ud_obj->pIndexData,0);
+    clone_object( ud_obj, clone );
+    if (ud_obj->carried_by)
+        obj_to_char( clone, ud_obj->carried_by );
+    else if (ud_obj->in_room)
+        obj_to_room( clone, ud_obj->in_room );
+    else if (ud_obj->in_obj)
+        obj_to_obj( clone, ud_obj->in_obj );
+    else
+        luaL_error( LS, "Cloned object has no location.");
+
+    if (make_OBJ( LS, clone))
+        return 1;
+    else
+        return 0;
+}
+HELPTOPIC OBJ_clone_help={};
 
 static int OBJ_oload (lua_State *LS)
 {
@@ -5075,6 +5136,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     OBJMETH(extra, 0),
     OBJMETH(wear, 0),
     OBJMETH(destroy, 1),
+    OBJMETH(clone, 1),
     OBJMETH(echo, 1),
     OBJMETH(loadprog, 1),
     OBJMETH(loadscript, 1),
@@ -5522,6 +5584,46 @@ static int AREA_get_atrigs ( lua_State *LS)
 }
 HELPTOPIC AREA_get_atrigs_help = {};
 
+static int AREA_get_vnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_vnum_help={};
+
+static int AREA_get_minvnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->min_vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_minvnum_help={};
+
+static int AREA_get_maxvnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->max_vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_maxvnum_help={};
+
+static int AREA_get_credits ( lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_AREA(LS,1))->credits);
+    return 1;
+}
+HELPTOPIC AREA_get_credits_help={};
+
+static int AREA_get_builders ( lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_AREA(LS,1))->builders);
+    return 1;
+}
+HELPTOPIC AREA_get_builders_help={};
+
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
     AREAGET(name, 0),
@@ -5530,6 +5632,11 @@ static const LUA_PROP_TYPE AREA_get_table [] =
     AREAGET(minlevel, 0),
     AREAGET(maxlevel, 0),
     AREAGET(security, 0),
+    AREAGET(vnum, 0),
+    AREAGET(minvnum, 0),
+    AREAGET(maxvnum, 0),
+    AREAGET(credits, 0),
+    AREAGET(builders, 0),
     AREAGET(ingame, 0),
     AREAGET(rooms, 0),
     AREAGET(people, 0),
@@ -6626,7 +6733,7 @@ MPGETINT( vnum, ud_mobp->vnum ,"" ,"" );
 MPGETSTR( name, ud_mobp->player_name , "" ,"");
 MPGETSTR( shortdescr, ud_mobp->short_descr,"" ,"");
 MPGETSTR( longdescr, ud_mobp->long_descr,"" ,"");
-MPGETSTR( description, ud_mobp->description,"" ,"");
+MPGETSTR( description, ud_mobp->description, "", "");
 MPGETINT( alignment, ud_mobp->alignment,"" ,"");
 MPGETINT( level, ud_mobp->level,"" ,"");
 MPGETINT( hppcnt, ud_mobp->hitpoint_percent,"" ,"");
