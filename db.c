@@ -484,6 +484,7 @@ int  top_aprog_index;    /* OLC */
 int  top_rprog_index;    /* OLC */
 int  lua_mprogs=0;
 int  mobile_count = 0;
+int  object_count = 0;
 int  top_jail_room = -1;
 
 
@@ -511,7 +512,8 @@ int         sAllocPerm;
 /* version numbers for downward compatibility */
 #define VER_EXIT_FLAGS 1
 #define VER_NEW_PROG_FORMAT 2
-static int area_version = 0;
+#define VER_NEW_MOB_LDESC 3
+int area_version = 0;
 
 /*
 * Semi-locals.
@@ -3153,6 +3155,7 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
 	*/
 	return NULL;
     }
+    object_count++;
     
     obj = new_obj();
     
@@ -4226,51 +4229,6 @@ void free_string( char *pstr )
     return;
 }
 
-
-/*
-void do_areas(CHAR_DATA *ch, char *argument)
-{
-   
-    char buf[MAX_STRING_LENGTH];
-    char arg[ MAX_INPUT_LENGTH ];
-    AREA_DATA *pArea;
-    BUFFER *output;
-    int iArea, value, value2, count, level = 0;
-    output = new_buf();
-
-    if (argument[0] != '\0')
-    {
-        send_to_char_bw("No argument is used with this command.\n\r",ch);
-        return;
-    }
- 
-    pArea = area_first;
-	for (iArea = 0; iArea < top_area; iArea++)
-	{
-        if (pArea->security>4) count++;
-	    pArea = pArea->next;
-    }
-
-	    if ((level = pArea->minlevel) < pArea->maxlevel
-		&&  level >= pArea->minlevel && level <= pArea->maxlevel)
-		{
-		level = pArea->minlevel;
-		sprintf(buf,"%-3d-%-3d) %s ",
-			pArea->minlevel, pArea->maxlevel, pArea->credits);
-		
-		
-	}
-} */
-
-/*
-int compare_area (const void *v1, const void *v2)
-{
-    int val1 = *(int*)v1;
-    int val2 = *(int*)v2;
-    return (val1 - val2); 
-} */
-
-
 /* Erwins sample for sorting areas. Change the relational
    operators to reverse sorting. Currently it goes from lowest
    to highest. Can make a duplicate function later with the
@@ -4367,36 +4325,38 @@ void do_areas( CHAR_DATA *ch )
 
 void do_memory( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH];
     
-    sprintf( buf, "Affects %5d\n\r", top_affect    ); send_to_char( buf, ch );
-    sprintf( buf, "Areas   %5d\n\r", top_area      ); send_to_char( buf, ch );
-    sprintf( buf, "ExDes   %5d\n\r", top_ed        ); send_to_char( buf, ch );
-    sprintf( buf, "Exits   %5d\n\r", top_exit      ); send_to_char( buf, ch );
-    sprintf( buf, "Helps   %5d\n\r", top_help      ); send_to_char( buf, ch );
-    sprintf( buf, "Socials %5d\n\r", maxSocial  ); send_to_char( buf, ch );
-    sprintf( buf, "Mobs    %5d\n\r", top_mob_index ); 
-    send_to_char( buf, ch );
-    sprintf( buf, "(in use)%5d\n\r", mobile_count  ); send_to_char( buf, ch );
-    sprintf( buf, "Mprogs  %5d(%d lua)\n\r", top_mprog_index, lua_mprogs); send_to_char( buf, ch);
-    sprintf( buf, "Objs    %5d\n\r", top_obj_index ); 
-    send_to_char( buf, ch );
-    sprintf( buf, "Resets  %5d\n\r", top_reset     ); send_to_char( buf, ch );
-    sprintf( buf, "Rooms   %5d\n\r", top_room      ); send_to_char( buf, ch );
-    sprintf( buf, "Shops   %5d\n\r", top_shop      ); send_to_char( buf, ch );
+    ptc( ch, "Affects   %5d\n\r", top_affect    ); 
+    ptc( ch, "Areas     %5d\n\r", top_area      ); 
+    ptc( ch, "ExDes     %5d\n\r", top_ed        ); 
+    ptc( ch, "Exits     %5d\n\r", top_exit      ); 
+    ptc( ch, "Helps     %5d\n\r", top_help      ); 
+    ptc( ch, "Socials   %5d\n\r", maxSocial  ); 
+    ptc( ch, "Resets    %5d\n\r", top_reset     ); 
+    ptc( ch, "Rooms     %5d\n\r", top_room      ); 
+    ptc( ch, "Shops     %5d\n\r", top_shop      ); 
+    ptc( ch, "\n\r");
+    ptc( ch, "Mobs      %5d\n\r", top_mob_index );
+    ptc( ch, " (in use) %5d\n\r", mobile_count  );
+    ptc( ch, "Objs      %5d\n\r", top_obj_index );
+    ptc( ch, " (in use) %5d\n\r", object_count  );
+    ptc( ch, "\n\r");
+    ptc( ch, "Mprogs    %5d\n\r", top_mprog_index);
+    ptc( ch, " (lua)    %5d\n\r", lua_mprogs);
+    ptc( ch, "Oprogs    %5d\n\r", top_oprog_index);
+    ptc( ch, "Aprogs    %5d\n\r", top_aprog_index);
+    ptc( ch, "Rprogs    %5d\n\r", top_rprog_index);
+    ptc( ch, "\n\r");
     
-    sprintf( buf, "Strings %5d strings of %7d bytes (max %d).\n\r",
+    ptc( ch, "Strings %5d strings of %7d bytes (max %d).\n\r",
         nAllocString, sAllocString, MAX_STRING );
-    send_to_char( buf, ch );
     
-    sprintf( buf, "Perms   %5d blocks  of %7d bytes.\n\r",
+    ptc( ch, "Perms   %5d blocks  of %7d bytes.\n\r",
         nAllocPerm, sAllocPerm );
-    send_to_char( buf, ch );
-    sprintf( buf, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
-    send_to_char( buf, ch);
-    sprintf( buf, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
-    send_to_char( buf, ch);
-    ptc( ch, "Lua usage: %d\n\r", GetLuaMemoryUsage());
+    ptc( ch, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
+    ptc( ch, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
+    ptc( ch, "\n\r");
+    ptc( ch, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());
     ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
     ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
 

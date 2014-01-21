@@ -81,6 +81,7 @@ Filter (optional):
     Expression used to filter which results are shown. Argument is a statement 
     that can be evaluated to a boolean result. 'x' can be used optionally to
     qualify referenced fields. It is necessary to use 'x' when invoking methods.
+    Using 'thisarea' in the filter produces results from current area only.
 
 Sort (optional):
     One or more values determining the sort order of the output. Format is same
@@ -319,6 +320,7 @@ local lqtbl={
 }
 
 function do_luaquery( ch, argument)
+    do -- actual func wrapped in do/end so scope is destroyed before gc called
     -- arg checking stuff
     args=arguments(argument, true)
     
@@ -363,7 +365,21 @@ function do_luaquery( ch, argument)
             local vf,err=loadstring("return function(x) return "..filterarg.." end" )
             if err then error(err) return end
             setfenv(vf, 
-                    setmetatable({pairs=pairs}, { __index=gobj } ) )
+                    setmetatable(
+                        {
+                            pairs=pairs
+                        }, 
+                        { 
+                            __index=function(t,k)
+                                if k=="thisarea" then
+                                    return ch.room.area==gobj.area
+                                else
+                                    return gobj[k] 
+                                end
+                            end
+                        } 
+                    ) 
+            )
             local val=vf()(gobj)
             if val then return true
             else return false end
@@ -505,7 +521,8 @@ function do_luaquery( ch, argument)
     pagetochar(ch, table.concat(printing,"\n\r")..
             "\n\r\n\r"..
             "Total results: "..(#output).."\n\r")
-    
+    end -- actual func wrapped in do/end so scope is destroyed before gc called
+    lua_arcgc() -- force a garbage collection 
 end
 -- end luaquery section
 
@@ -862,3 +879,119 @@ function wizhelp( ch, argument, commands )
 
 end
 --end wizhelp section
+
+-- alist section
+local alist_col={
+    "vnum",
+    "name",
+    "builders",
+    "minvnum",
+    "maxvnum",
+    "security"
+}
+
+local function alist_usage( ch )
+    sendtochar( ch,
+[[
+Syntax:  alist
+         alist [column name] <ingame>
+         alist find [text]
+
+
+'alist' with no argument shows all areas, sorted by area vnum.
+
+With a column name argument, the list is sorted by the given column name.
+'ingame' is used as an optional 3rd argument to show only in game areas.
+
+With 'find' argument, the area names and builders are searched for the
+given text (case sensitive)  and only areas that match are shown.
+
+Columns:
+]])
+
+    for k,v in pairs(alist_col) do
+        sendtochar( ch, v.."\n\r")
+    end
+end
+
+function do_alist( ch, argument )
+    local args=arguments(argument, true)
+    local sort
+    local filterfun
+
+    if not(args[1]) then
+        sort="vnum"
+    elseif args[1]=="find" then
+        sort="vnum"
+        if not(args[2]) then
+            alist_usage( ch )
+            return
+        end
+        filterfun=function(area)
+            if area.name:find(args[2])
+                or area.builders:find(args[2])
+                then
+                return true
+            end
+            return false
+        end
+    else
+        for k,v in pairs(alist_col) do
+            if v==args[1] then
+                sort=v
+                break
+            end
+        end
+        if args[2]=="ingame" then
+            filterfun=function(area)
+                return area.ingame
+            end
+        end
+    end
+
+    if not(sort) then
+        alist_usage( ch )
+        return
+    end
+
+    local data={}
+    for _,area in pairs(getarealist()) do
+        local fil
+        if filterfun then
+            fil=filterfun(area)
+        else
+            fil=true
+        end
+
+        if fil then
+            local row={}
+            for _,col in pairs(alist_col) do
+                row[col]=area[col]
+            end
+            table.insert(data, row)
+        end
+    end
+
+    table.sort( data, function(a,b) return a[sort]<b[sort] end )
+
+    local output={}
+    --header
+    table.insert( output,
+            string.format("[%3s] [%-26s] [%-20s] (%-6s-%6s) [%-3s]",
+                "Num", "Name", "Builders", "Lvnum", "Mvnum", "Sec"))
+    for _,v in ipairs(data) do
+        table.insert( output,
+                string.format("[%3d] [%-26s] [%-20s] (%-6d-%6d) [%-3d]",
+                    v.vnum,
+                    util.format_color_string(v.name,25).." {x",
+                    v.builders,
+                    v.minvnum,
+                    v.maxvnum,
+                    v.security)
+        )
+    end
+
+    pagetochar( ch, table.concat(output, "\n\r").."\n\r" )
+
+end
+--end alist section

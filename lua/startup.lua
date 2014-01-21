@@ -466,3 +466,12 @@ function list_files ( path )
     return rtn
 end
 
+function lua_arcgc()
+    -- Destroy game object tables who don't have envs
+    for k,v in pairs(origtbl) do
+        if not(envtbl[v.tableid]) then
+            UnregisterUd(v.tableid)
+        end
+    end
+    collectgarbage()
+end
