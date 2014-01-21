@@ -1434,7 +1434,8 @@ void do_mpvforce( CHAR_DATA *ch, char *argument )
 /* imped in magic.c */
 extern char *target_name;
 bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
-		       int *target, CHAR_DATA **vo ); /* output */
+		       int *target, CHAR_DATA **vo, /* output */
+               bool show ); 
 void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target );
 
 /*
@@ -1476,7 +1477,7 @@ void do_mpcast( CHAR_DATA *ch, char *argument )
 	return;
     }
     
-    if ( !get_spell_target( ch, target_name, sn, &target_type, &victim ) )
+    if ( !get_spell_target( ch, target_name, sn, &target_type, &victim, TRUE ) )
 	return;
     victim = check_reflection( sn, ch->level, ch, victim, target_type );
 
