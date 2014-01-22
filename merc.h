@@ -323,6 +323,9 @@ bool is_questeq( OBJ_DATA *obj );
 #define IM  LEVEL_IMMORTAL  /* builder */
 #define HE  LEVEL_HERO  /* hero */
 
+/* Used to tell god functions to use their default duration. */
+#define GOD_FUNC_DEFAULT_DURATION -1
+
 /*
  * Colour stuff by Lope of Loping Through The MUD
  */
