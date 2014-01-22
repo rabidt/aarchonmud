@@ -459,17 +459,8 @@ static int utillib_format_color_string( lua_State *LS )
     return 1;
 }
 HELPTOPIC utillib_format_color_string_help = {};
-              
-
-static int godlib_bless (lua_State *LS)
-{
-    CHAR_DATA *ch=check_CH(LS,1);
-
-    lua_pushboolean( LS,
-            god_bless( NULL, ch, "" ));
-    return 1;
-}
-#define GODLIBHELP( funcname ) \
+            
+#define GODLIBHELP_INSTANT( funcname ) \
 HELPTOPIC godlib_ ## funcname ## _help = \
 {\
     .summary="God " #funcname " target CH.", \
@@ -481,17 +472,54 @@ HELPTOPIC godlib_ ## funcname ## _help = \
     "Note:\n\r"\
     "Return value is whether the " #funcname " was successful."\
 }
-GODLIBHELP( bless );
+
+#define GODLIBHELP_DURATION( funcname ) \
+HELPTOPIC godlib_ ## funcname ## _help = \
+{\
+    .summary="God " #funcname " target CH.", \
+    .info=\
+    "Arguments: target[CH] <, duration[int]\n\r\n\r"\
+    "Return: success[boolean]\n\r\n\r"\
+    "Example:\n\r"\
+    "god." #funcname "(ch)\n\r\n\r"\
+    "Note:\n\r"\
+    "Return value is whether the " #funcname " was successful. "\
+    "If optional second argument is given it will override the "\
+    "default duration for " #funcname "."\
+}
+
+static int godlib_helper_get_duration(lua_State* LS, int index)
+{
+    if (lua_isnone(LS, index))
+    {
+        return GOD_FUNC_DEFAULT_DURATION;
+    }
+    else
+    {
+        return luaL_checkinteger(LS, index);
+    }
+}
+
+static int godlib_bless (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+
+    lua_pushboolean( LS,
+            god_bless( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
+    return 1;
+}
+GODLIBHELP_DURATION( bless );
+
 
 static int godlib_curse (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_curse( NULL, ch, "" ));
+            god_curse( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( curse );
+GODLIBHELP_DURATION( curse );
 
 static int godlib_heal (lua_State *LS)
 {
@@ -499,112 +527,112 @@ static int godlib_heal (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_heal( NULL, ch, "" ));
+            god_heal( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( heal );
+GODLIBHELP_DURATION( heal );
 
 static int godlib_speed (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_speed( NULL, ch, "" ));
+            god_speed( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1; 
 }
-
-GODLIBHELP( speed );
+GODLIBHELP_DURATION( speed );
 
 static int godlib_slow (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_slow( NULL, ch, "" ));
+            god_slow( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1; 
 }
-
-GODLIBHELP( slow );
+GODLIBHELP_DURATION( slow );
 
 static int godlib_cleanse (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_cleanse( NULL, ch, "" ));
+            god_cleanse( NULL, ch, "", GOD_FUNC_DEFAULT_DURATION ));
     return 1; 
 }
-GODLIBHELP( cleanse );
+GODLIBHELP_INSTANT( cleanse );
 
 static int godlib_defy (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_defy( NULL, ch, "" ));
+            god_defy( NULL, ch, "", GOD_FUNC_DEFAULT_DURATION ));
     return 1; 
 }
-GODLIBHELP( defy );
+GODLIBHELP_INSTANT( defy );
 
 static int godlib_enlighten (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_enlighten( NULL, ch, "" ));
+            god_enlighten( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1; 
 }
-GODLIBHELP( enlighten );
+GODLIBHELP_DURATION( enlighten );
 
 static int godlib_protect (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_protect( NULL, ch, "" ));
+            god_protect( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( protect );
+GODLIBHELP_DURATION( protect );
 
 static int godlib_fortune (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_fortune( NULL, ch, "" ));
+            god_fortune( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( fortune );
+GODLIBHELP_DURATION( fortune );
 
 static int godlib_haunt (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_haunt( NULL, ch, "" ));
+            god_haunt( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( haunt );
+GODLIBHELP_DURATION( haunt );
 
 static int godlib_plague (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_plague( NULL, ch, "" ));
+            god_plague( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( plague );
+GODLIBHELP_DURATION( plague );
 
 static int godlib_confuse (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
+    
+
     lua_pushboolean( LS,
-            god_confuse( NULL, ch, "" ));
+            god_confuse( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( confuse );
+GODLIBHELP_DURATION( confuse );
 
 static int glob_sendtochar (lua_State *LS)
 {
