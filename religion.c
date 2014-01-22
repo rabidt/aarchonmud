@@ -12,7 +12,6 @@
 #include "buffer_util.h"
 #include "religion.h"
 
-#define DEFAULT_DURATION -1
 #define DEFINE_GOD_FUNCTION(name) bool name( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration );
 
 void show_religion_syntax( CHAR_DATA *ch );
@@ -2518,9 +2517,10 @@ void show_god_syntax( CHAR_DATA *ch )
     int i;
     char buf[MSL];
 
-    send_to_char( "Syntax: god <action> <name>\n\r", ch );
-    send_to_char( "        god <action> all\n\r", ch );
-    send_to_char( "        god <action> world\n\r", ch );
+    send_to_char( "Syntax: god <action> <name> [duration]\n\r", ch );
+    send_to_char( "        god <action> all [duration]\n\r", ch );
+    send_to_char( "        god <action> world [duration]\n\r", ch );
+    send_to_char( "        Duration is optional.\n\r", ch );
     send_to_char( "Valid actions and cost:\n\r", ch );
 
     for ( i = 0; god_table[i].name != NULL; i++ )
@@ -2629,7 +2629,7 @@ void do_god( CHAR_DATA *ch, char *argument )
 		}
 
 		// See if we have a defined duration.
-		sh_int duration = DEFAULT_DURATION;
+		sh_int duration = GOD_FUNC_DEFAULT_DURATION;
 		if (is_number(arg3))
 		{
 			duration = atoi(arg3);
@@ -2665,7 +2665,7 @@ bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_HITROLL;
     af.modifier  = 100;
     af.bitvector = AFF_SANCTUARY;
@@ -2708,7 +2708,7 @@ bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_HITROLL;
     af.modifier  = -100;
     af.bitvector = AFF_CURSE;
@@ -2749,7 +2749,7 @@ bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_VIT;
     af.modifier  = 50;
     af.bitvector = AFF_HEAL;
@@ -2788,7 +2788,7 @@ bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_AGI;
     af.modifier  = 50;
     af.bitvector = AFF_HASTE;
@@ -2831,7 +2831,7 @@ bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_AGI;
     af.modifier  = -50;
     af.bitvector = AFF_SLOW;
@@ -2933,7 +2933,7 @@ bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int dur
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_INT;
     af.modifier  = 50;
     af.bitvector = AFF_LEARN;
@@ -2972,7 +2972,7 @@ bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
     af.where	 = TO_AFFECTS;
     af.type	 = gsn_god_bless;
     af.level	 = 100;
-    af.duration	 = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration	 = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.modifier	 = -500;
     af.location	 = APPLY_AC;
     af.bitvector = AFF_PROTECT_MAGIC;
@@ -3010,7 +3010,7 @@ bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_CHA;
     af.modifier  = 50;
     af.bitvector = AFF_FORTUNE;
@@ -3051,7 +3051,7 @@ bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_LUC;
     af.modifier  = -50;
     af.bitvector = AFF_HAUNTED;
@@ -3089,7 +3089,7 @@ bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durati
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_VIT;
     af.modifier  = -50;
     af.bitvector = AFF_PLAGUE;
@@ -3127,7 +3127,7 @@ bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = duration != DEFAULT_DURATION ? duration : 10;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 10;
     af.location  = APPLY_INT;
     af.modifier  = -50;
     af.bitvector = AFF_INSANE;
@@ -3660,7 +3660,7 @@ void grant_prayer( CHAR_DATA *ch )
 	    return;
 	}
 
-	if( (*god_table[prayer->prayer_num].fun)( NULL, prayer->victim, get_god_name(ch), DEFAULT_DURATION ) )
+	if( (*god_table[prayer->prayer_num].fun)( NULL, prayer->victim, get_god_name(ch), GOD_FUNC_DEFAULT_DURATION ) )
 	{
 	    send_to_char( "Your prayer has been granted.\n\r", ch );
 
