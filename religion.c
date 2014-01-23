@@ -12,6 +12,7 @@
 #include "buffer_util.h"
 #include "religion.h"
 
+#define DEFINE_GOD_FUNCTION(name) bool name( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration );
 
 void show_religion_syntax( CHAR_DATA *ch );
 void list_religions( CHAR_DATA *ch );
@@ -2465,7 +2466,7 @@ void do_religion_set( CHAR_DATA *ch, char *argument )
 
 /* curses and blessings */
 
-typedef bool GOD_FUN( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
+typedef bool GOD_FUN( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration );
 typedef struct god_action GOD_ACTION;
 
 struct god_action
@@ -2478,19 +2479,19 @@ struct god_action
 };
 
 /* god functions */
-bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_cleanse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_defy( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
-bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name );
+DEFINE_GOD_FUNCTION(god_bless)
+DEFINE_GOD_FUNCTION(god_curse)
+DEFINE_GOD_FUNCTION(god_heal)
+DEFINE_GOD_FUNCTION(god_cleanse)
+DEFINE_GOD_FUNCTION(god_defy)
+DEFINE_GOD_FUNCTION(god_speed)
+DEFINE_GOD_FUNCTION(god_slow)
+DEFINE_GOD_FUNCTION(god_enlighten)
+DEFINE_GOD_FUNCTION(god_protect)
+DEFINE_GOD_FUNCTION(god_fortune)
+DEFINE_GOD_FUNCTION(god_haunt)
+DEFINE_GOD_FUNCTION(god_plague)
+DEFINE_GOD_FUNCTION(god_confuse)
 
 GOD_ACTION god_table[] =
 {
@@ -2516,9 +2517,10 @@ void show_god_syntax( CHAR_DATA *ch )
     int i;
     char buf[MSL];
 
-    send_to_char( "Syntax: god <action> <name>\n\r", ch );
-    send_to_char( "        god <action> all\n\r", ch );
-    send_to_char( "        god <action> world\n\r", ch );
+    send_to_char( "Syntax: god <action> <name> [duration]\n\r", ch );
+    send_to_char( "        god <action> all [duration]\n\r", ch );
+    send_to_char( "        god <action> world [duration]\n\r", ch );
+    send_to_char( "        Duration is optional.\n\r", ch );
     send_to_char( "Valid actions and cost:\n\r", ch );
 
     for ( i = 0; god_table[i].name != NULL; i++ )
@@ -2550,7 +2552,7 @@ void show_pray_syntax( CHAR_DATA *ch )
 void do_god( CHAR_DATA *ch, char *argument )
 {
     DESCRIPTOR_DATA *d;
-    char arg1[MIL], arg2[MIL];
+    char arg1[MIL], arg2[MIL], arg3[MIL];
     CHAR_DATA *victim;
     RELIGION_DATA *rel;
     bool all = FALSE;
@@ -2565,6 +2567,7 @@ void do_god( CHAR_DATA *ch, char *argument )
 
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
+    argument = one_argument( argument, arg3 );
     
     /* find command */
     for ( i = 0; god_table[i].name != NULL; i++ )
@@ -2625,8 +2628,15 @@ void do_god( CHAR_DATA *ch, char *argument )
 		    return;
 		}
 
+		// See if we have a defined duration.
+		sh_int duration = GOD_FUNC_DEFAULT_DURATION;
+		if (is_number(arg3))
+		{
+			duration = atoi(arg3);
+		}
+
 		/* execute command */
-		if ( (*god_table[i].fun)(ch, victim, "") )
+		if ( (*god_table[i].fun)(ch, victim, "", duration) )
 		    rel->god_power -= god_table[i].cost;
 
 		if ( !all )
@@ -2640,7 +2650,7 @@ void do_god( CHAR_DATA *ch, char *argument )
 	send_to_char( "Not possible -- victim is either in remort, warfare, or is nonexistant.\n\r", ch );
 }
 
-bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2655,7 +2665,7 @@ bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_HITROLL;
     af.modifier  = 100;
     af.bitvector = AFF_SANCTUARY;
@@ -2683,7 +2693,7 @@ bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2698,7 +2708,7 @@ bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_HITROLL;
     af.modifier  = -100;
     af.bitvector = AFF_CURSE;
@@ -2724,7 +2734,7 @@ bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2739,7 +2749,7 @@ bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_VIT;
     af.modifier  = 50;
     af.bitvector = AFF_HEAL;
@@ -2761,7 +2771,7 @@ bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2778,7 +2788,7 @@ bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_AGI;
     af.modifier  = 50;
     af.bitvector = AFF_HASTE;
@@ -2804,7 +2814,7 @@ bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2821,7 +2831,7 @@ bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_AGI;
     af.modifier  = -50;
     af.bitvector = AFF_SLOW;
@@ -2848,7 +2858,7 @@ bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_cleanse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_cleanse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     char buf[MSL];
 
@@ -2878,7 +2888,7 @@ bool god_cleanse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_defy( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_defy( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     char buf[MSL];
 
@@ -2908,7 +2918,7 @@ bool god_defy( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration)
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2923,7 +2933,7 @@ bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_INT;
     af.modifier  = 50;
     af.bitvector = AFF_LEARN;
@@ -2946,7 +2956,7 @@ bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2962,7 +2972,7 @@ bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where	 = TO_AFFECTS;
     af.type	 = gsn_god_bless;
     af.level	 = 100;
-    af.duration	 = 100;
+    af.duration	 = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.modifier	 = -500;
     af.location	 = APPLY_AC;
     af.bitvector = AFF_PROTECT_MAGIC;
@@ -2985,7 +2995,7 @@ bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -3000,7 +3010,7 @@ bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_bless;
     af.level     = 100;
-    af.duration  = 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_CHA;
     af.modifier  = 50;
     af.bitvector = AFF_FORTUNE;
@@ -3026,7 +3036,7 @@ bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -3041,7 +3051,7 @@ bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_LUC;
     af.modifier  = -50;
     af.bitvector = AFF_HAUNTED;
@@ -3064,7 +3074,7 @@ bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -3079,7 +3089,7 @@ bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = 100;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_VIT;
     af.modifier  = -50;
     af.bitvector = AFF_PLAGUE;
@@ -3102,7 +3112,7 @@ bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     return TRUE;
 }
 
-bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
+bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -3117,7 +3127,7 @@ bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name )
     af.where     = TO_AFFECTS;
     af.type      = gsn_god_curse;
     af.level     = 100;
-    af.duration  = 10;
+    af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 10;
     af.location  = APPLY_INT;
     af.modifier  = -50;
     af.bitvector = AFF_INSANE;
@@ -3650,7 +3660,7 @@ void grant_prayer( CHAR_DATA *ch )
 	    return;
 	}
 
-	if( (*god_table[prayer->prayer_num].fun)( NULL, prayer->victim, get_god_name(ch) ) )
+	if( (*god_table[prayer->prayer_num].fun)( NULL, prayer->victim, get_god_name(ch), GOD_FUNC_DEFAULT_DURATION ) )
 	{
 	    send_to_char( "Your prayer has been granted.\n\r", ch );
 
