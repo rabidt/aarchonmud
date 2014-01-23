@@ -324,6 +324,7 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
 	if ( mimic != NULL && mimic->long_descr[0] != '\0' )
 	{
 	    strcat( buf, mimic->long_descr );
+        strcat( buf, "\n\r");
 	    send_to_char( buf, ch );
 	    return;
 	}
@@ -332,6 +333,7 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
     if ( victim->position == victim->start_pos && victim->long_descr[0] != '\0' )
     {
         strcat( buf, victim->long_descr );
+        strcat( buf, "\n\r");
         send_to_char( buf, ch );
         return;
     }
@@ -1660,20 +1662,6 @@ void do_look( CHAR_DATA *ch, char *argument )
     if ( !check_blind( ch ) )
         return;
     
-    /* player might still be able to look at mobs with infravision --Bobble
-    if ( !IS_NPC(ch)
-	 && !IS_SET(ch->act, PLR_HOLYLIGHT)
-	 && !IS_AFFECTED(ch, AFF_DARK_VISION)
-	 && room_is_dark( ch->in_room ) )
-    {
-        send_to_char( "It is pitch black ... \n\r", ch );
-        // added so that objects (i.e. glowing ones) are shown 
-        show_list_to_char( ch->in_room->contents, ch, FALSE, FALSE );
-        show_char_to_char( ch->in_room->people, ch );
-        return;
-    }
-    */
-    
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     number = number_argument(arg1,arg3);
@@ -1703,15 +1691,6 @@ void do_look( CHAR_DATA *ch, char *argument )
             sprintf( buf," [Room %d %s]", ch->in_room->vnum,
 		     flag_bit_name(sector_flags, ch->in_room->sector_type) );
             send_to_char(buf,ch);
-	    /*
-	    if ( PLR_ACT(ch, PLR_HOLYLIGHT) )
-	    {
-		sprintf( buf,"\n\r[Sector: %s  Flags: %s]",
-			 flag_bit_name(sector_flags, ch->in_room->sector_type),
-			 flag_bits_name(room_flags, ch->in_room->room_flags) );
-		send_to_char(buf,ch);
-	    }
-	    */
         }
         
         send_to_char( "{x\n\r", ch );
@@ -1735,13 +1714,14 @@ void do_look( CHAR_DATA *ch, char *argument )
         show_list_to_char( ch->in_room->contents, ch, FALSE, FALSE );
         show_char_to_char( ch->in_room->people,   ch );
         
-        if (!IS_NPC(ch) && ch->hunting &&number_percent()<=get_skill(ch,gsn_stalk))
+        if ( !IS_NPC(ch) && ch->hunting )
         {
-            count=ch->wait;
+            // we may be lagged, so any hunting time is additive; stalk is handled in do_hunt
+            int old_wait = ch->wait;
+            ch->wait = 0;
             do_hunt(ch, ch->hunting);
             ignore_invisible = FALSE;
-            ch->wait=count;
-            check_improve(ch,gsn_stalk,TRUE,4);
+            ch->wait += old_wait;
         }
         
         return;
@@ -1774,16 +1754,6 @@ void do_look( CHAR_DATA *ch, char *argument )
                 send_to_char( "It is empty.\n\r", ch );
                 break;
             }
-            
-	    /*
-            sprintf( buf, "It's %sfilled with a %s liquid.\n\r",
-                obj->value[1] < obj->value[0] / 4
-                ? "less than half-" :
-            obj->value[1] < 3 * obj->value[0] / 4
-                ? "about half-"     : "more than half-",
-                liq_table[obj->value[2]].liq_color
-                );
-	    */
 	    sprintf( buf, "It's filled with %d out of %d units of %s liquid.\n\r",
 		     obj->value[1], obj->value[0],
 		     liq_table[obj->value[2]].liq_color );
@@ -1823,69 +1793,6 @@ void do_look( CHAR_DATA *ch, char *argument )
     
     if ( look_obj(ch, arg1) != NULL )
 	return;
-    /*
-    for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
-    {
-        if ( can_see_obj( ch, obj ) )
-        {
-            pdesc = get_extra_descr( arg3, obj->extra_descr );
-            if ( pdesc != NULL )
-                if (++count == number)
-                {
-                    send_to_char( pdesc, ch );
-                    return;
-                }
-                else continue;
-                
-	    pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
-	    if ( pdesc != NULL )
-		if (++count == number)
-                {   
-		    send_to_char( pdesc, ch );
-		    return;
-		}
-		else continue;
-	    
-	    if ( is_name( arg3, obj->name ) )
-		if (++count == number)
-		{
-		    send_to_char( obj->description, ch );
-		    send_to_char( "\n\r",ch);
-		    return;
-		}
-        }
-    }
-    
-    for ( obj = ch->in_room->contents; obj != NULL; obj = obj->next_content )
-    {
-        if ( can_see_obj( ch, obj ) )
-        {
-            pdesc = get_extra_descr( arg3, obj->extra_descr );
-            if ( pdesc != NULL )
-                if (++count == number)
-                {
-                    send_to_char( pdesc, ch );
-                    return;
-                }
-                
-	    pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
-	    if ( pdesc != NULL )
-		if (++count == number)
-                {
-		    send_to_char( pdesc, ch );
-		    return;
-		}
-	    
-	    if ( is_name( arg3, obj->name ) )
-		if (++count == number)
-		{
-		    send_to_char( obj->description, ch );
-		    send_to_char("\n\r",ch);
-		    return;
-		}
-        }
-    }
-    */
     
     pdesc = get_extra_descr(arg3,ch->in_room->extra_descr);
     if (pdesc != NULL)
@@ -3653,7 +3560,7 @@ void do_wimpy( CHAR_DATA *ch, char *argument )
     else if ( wimpy == 100 )
         printf_to_char( ch, "You will run at the first hint of danger.\n\r");
     else 
-        printf_to_char( ch, "You will now flee when dropping below %d%% of your hit points.\n\r", wimpy );
+        printf_to_char( ch, "You will now flee when dropping below %d hp (%d%%).\n\r", (wimpy*ch->max_hit/100), wimpy);
     return;
 }
 
@@ -3681,7 +3588,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     else if ( calm == 100 )
         printf_to_char( ch, "You will always be calm.\n\r");
     else 
-        printf_to_char( ch, "You will now calm down when dropping below %d%% of your moves.\n\r", calm );
+        printf_to_char( ch, "You will now calm down when dropping below %d moves (%d%%).\n\r", (calm*ch->max_move/100), calm );
     return;
 }
 
@@ -4251,13 +4158,26 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )
             continue;
         check_improve( rch, gsn_lore, 2, TRUE );
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
         if ( weapon )
             check_improve( rch, gsn_weapons_lore, 2, TRUE );
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+        }
     }
 }
 
@@ -4533,25 +4453,27 @@ void do_disguise( CHAR_DATA *ch, char *argument )
 
 void do_stance_list( CHAR_DATA *ch, char *argument )
 {
-    int i, skill;
+    int i, skill, prac;
     char buf[MSL];
 
     send_to_char( "You know the following stances:\n\r", ch );
 
     for (i = 1; stances[i].name != NULL; i++)
     {
-	skill = get_skill(ch, *(stances[i].gsn));
-	if ( skill == 0 )
-	    continue;
+        prac = get_skill_prac( ch, *(stances[i].gsn));
+        if ( prac == 0 )
+            continue; 
 
-	sprintf( buf, "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
-		 stances[i].name,
-		 ch->pcdata->learned[*(stances[i].gsn)], skill,
-		 stance_cost(ch, i),
-		 stances[i].weapon ? "w" : " ",
-		 stances[i].martial ? "m" : " ",
-                 flag_stat_string(damage_type, stances[i].type));
-	send_to_char( buf, ch );
+        skill = get_skill(ch, *(stances[i].gsn));
+
+        sprintf( buf, "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
+                stances[i].name,
+                ch->pcdata->learned[*(stances[i].gsn)], skill,
+                stance_cost(ch, i),
+                stances[i].weapon ? "w" : " ",
+                stances[i].martial ? "m" : " ",
+                flag_stat_string(damage_type, stances[i].type));
+        send_to_char( buf, ch );
     }
 }
 

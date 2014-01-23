@@ -987,8 +987,6 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     
     bprintf( buf, "#O\n" );
     bprintf( buf, "Vnum %d\n",   obj->pIndexData->vnum        );
-    if (!obj->pIndexData->new_format)
-        bprintf( buf, "Oldstyle\n");
     if (obj->owner)
         bprintf(buf, "Owner %s~\n", obj->owner);
     bprintf( buf, "Nest %d\n",   iNest            );
@@ -1568,6 +1566,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                     ch->pcdata->last_note[i] = bread_number (buf);
             }     /* for */
             fMatch = TRUE;
+            break;
         } /* Boards */
         
         break;
@@ -1582,6 +1581,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->clan=clan_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
         KEYS( "CFlag",   ch->pcdata->customflag, bread_string(buf));
         KEY( "CDur",    ch->pcdata->customduration, bread_number(buf));
@@ -1613,6 +1613,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->pcdata->clan_rank=clan_rank_lookup(ch->clan, temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
 
 	if ( !str_cmp(word, "Crime") )
@@ -1818,6 +1819,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 			}
 			ch->pcdata->explored->set=set;
 			fMatch = TRUE;
+            break;
 			
 		}
 		else if(!str_cmp(word, "ExploredN") )
@@ -1845,6 +1847,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 				}
 			}
 			fMatch = TRUE;
+            break;
 		}
         break;
         
@@ -1870,6 +1873,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             else
                 gn_add(ch,gn);
             fMatch = TRUE;
+            break;
         }
         break;
         
@@ -1908,6 +1912,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 ch->pcdata->invitation[i] = bread_string(buf);
                                        
             fMatch = TRUE;
+            break;
         }
 
         if ( !str_cmp( word, "Icmd" ) )
@@ -1946,6 +1951,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 		}
                 
                 fMatch = TRUE;
+                break;
         }
         
         break;
@@ -1967,6 +1973,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             load_luaconfig( ch, temp );
             free_string( temp );
             fMatch=TRUE;
+            break;
         }
 
         if ( !strcmp( word, "LuaVal") )
@@ -1980,6 +1987,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             luaval->next=ch->luavals;
             ch->luavals=luaval;
             fMatch=TRUE;
+            break;
         }
 
         break;
@@ -2008,6 +2016,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             else
                 ch->pcdata->mastered[sn] = value;
             fMatch = TRUE;
+            break;
         }
 
     case 'N':
@@ -2108,6 +2117,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->race=race_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
         KEY( "Remort",  ch->pcdata->remorts,    bread_number(buf));
         
@@ -2152,6 +2162,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             else
                 ch->pcdata->learned[sn] = value;
             fMatch = TRUE;
+            break;
         }
 
         if ( !str_cmp(word, "SkillMasteryCount") || !str_cmp(word, "Smc") )
@@ -2160,6 +2171,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->pcdata->smc_grandmastered = bread_number(buf);
             ch->pcdata->smc_retrained = bread_number(buf);
             fMatch = TRUE;
+            break;
         }
 
         KEY( "Stance",  ch->stance, bread_number( buf ) );
@@ -2179,7 +2191,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
-            set_title(ch, bread_string(buf));
+            char *temp=bread_string(buf);
+            set_title(ch, temp);
+            free_string(temp);
             fMatch = TRUE;
             break;
         }
@@ -2393,6 +2407,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
                 pet->clan=clan_lookup(temp);
                 free_string(temp);
                 fMatch=TRUE;
+                break;
             }
             KEYF( "Comm",   pet->comm );
             break;
@@ -2480,6 +2495,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
                 pet->race=race_lookup(temp);
                 free_string(temp);
                 fMatch=TRUE;
+                break;
             }
             break;
             
@@ -2511,14 +2527,12 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
     bool fNest;
     bool fVnum;
     bool first;
-    bool new_format;  /* to prevent errors */
     bool make_new;    /* update object */
     bool ignore_affects = FALSE; /* catch for old pfiles */
     
     fVnum = FALSE;
     obj = NULL;
     first = TRUE;  /* used to counter buf offset */
-    new_format = FALSE;
     make_new = FALSE;
     
     word   = beof( buf ) ? "End" : bread_word( buf );
@@ -2535,7 +2549,6 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         else
         {
             obj = create_object(get_obj_index(vnum),-1);
-            new_format = TRUE;
         }
         
     }
@@ -2648,6 +2661,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             obj->clan=clan_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
         if (!str_cmp(word, "CRank") )
         {
@@ -2655,6 +2669,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             obj->rank=clan_rank_lookup(obj->clan, temp);
             free_string(temp);
             fMatch=TRUE;
+            break;
         }
             break;
             
@@ -2688,6 +2703,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                 ed->next        = obj->extra_descr;
                 obj->extra_descr    = ed;
                 fMatch = TRUE;
+                break;
             }
             
             if ( !str_cmp( word, "End" ) )
@@ -2707,21 +2723,6 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                     {
                         free_obj( obj );
                         obj = create_object( get_obj_index( OBJ_VNUM_DUMMY ), 0 );
-                    }
-                    
-                    if (!new_format)
-                    {
-                        obj->next   = object_list;
-                        object_list = obj;
-                        obj->pIndexData->count++;
-                    }
-                    
-                    if (!obj->pIndexData->new_format 
-                        && obj->item_type == ITEM_ARMOR
-                        &&  obj->value[1] == 0)
-                    {
-                        obj->value[1] = obj->value[0];
-                        obj->value[2] = obj->value[0];
                     }
 
                     if (make_new)
@@ -2774,6 +2775,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                 luaval->next=obj->luavals;
                 obj->luavals=luaval;
                 fMatch=TRUE;
+                break;
             }
             break;
             
@@ -2797,18 +2799,13 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                     fNest = TRUE;
                 }
                 fMatch = TRUE;
+                break;
             }
             break;
             
         case 'O':
             KEYS( "Owner",    obj->owner,      bread_string( buf ) );
-            
-            if ( !str_cmp( word,"Oldstyle" ) )
-            {
-                if (obj->pIndexData != NULL && obj->pIndexData->new_format)
-                    make_new = TRUE;
-                fMatch = TRUE;
-            }
+                break;
             break;
             
             
@@ -3031,8 +3028,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
         else if (IS_IMMORTAL(ch))
             sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
-            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
-        
+            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );       
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
         else
@@ -3104,13 +3100,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
         }
     }
 	
-    /* Date Created */
-    sprintf(buf, "{D|{x Date Created: %s   ",
-	    time_format(wch->id, custombuf));
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
@@ -3125,6 +3114,13 @@ void do_finger(CHAR_DATA *ch, char *argument)
             add_buf( output, buf );
         }
     }
+
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     
     if (wch->level <= LEVEL_HERO)

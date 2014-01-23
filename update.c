@@ -1012,7 +1012,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -1400,7 +1400,7 @@ void char_update( void )
                 if ( !IS_NPC(ch) && ch->race == race_werewolf )
                     morph_update( ch );
 
-                if (!IS_NPC(ch) && ch->position == POS_SLEEPING)
+                if ( !IS_NPC(ch) && (ch->position == POS_SLEEPING || ch->position == POS_RESTING) )
                 {
                     healmessage = (ch->hit < ch->max_hit || ch->mana < ch->max_mana ||
                             ch->move < ch->max_move);
@@ -2143,6 +2143,7 @@ void obj_update( void )
                 }
 
                 case ITEM_FOOD:       message = "$p decomposes.";   break;
+                /* pots shouldn't have timers set anymore - Vodur Jan2014 */
                 case ITEM_POTION:     message = "$p has evaporated from disuse.";   
                                       break;
                 case ITEM_TRASH:      message = "$p collapses into nothingness."; break;
@@ -2453,10 +2454,17 @@ void update_handler( void )
     static  int     pulse_herb;
     static  int     pulse_msdp;
     static  int     pulse_timer;
+    static  int     pulse_lua_arcgc;
     static bool hour_update = TRUE;
     static bool minute_update = TRUE;
     /* if nobody is logged on, update less to safe CPU power */
     bool update_all = (descriptor_list != NULL );
+
+    if ( --pulse_lua_arcgc <= 0 )
+    {
+        pulse_lua_arcgc  = PULSE_LUA_ARCGC;
+        lua_arcgc();
+    }
 
     if ( --pulse_timer <= 0 )
     {
@@ -2551,6 +2559,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */

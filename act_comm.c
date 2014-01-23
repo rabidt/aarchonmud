@@ -3323,23 +3323,6 @@ void do_turn_in ( CHAR_DATA *ch, char *argument )
     REMOVE_BIT( ch->act, PLR_THIEF  );
 }
 
-void do_trigger_safe( CHAR_DATA *ch, char *argument )
-{
-    if ( IS_NPC(ch) )
-	return;
-
-    if (IS_SET(ch->act, PLR_TRIG_SAFE))
-    {
-        send_to_char("Trigger abuse protection turned OFF.\n\r",ch);
-        REMOVE_BIT(ch->act, PLR_TRIG_SAFE);
-    }
-    else
-    {
-        send_to_char("Trigger abuse protection turned ON.\n\r",ch);
-        SET_BIT(ch->act, PLR_TRIG_SAFE);
-    }
-}
-
 void do_action( CHAR_DATA *ch, char *argument )
 {
     char buf[MSL];
