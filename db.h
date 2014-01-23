@@ -27,8 +27,6 @@
 
 /* vals from db.c */
 extern bool fBootDb;
-extern int		newmobs;
-extern int		newobjs;
 extern MOB_INDEX_DATA 	* mob_index_hash          [MAX_KEY_HASH];
 extern OBJ_INDEX_DATA 	* obj_index_hash          [MAX_KEY_HASH];
 extern int		top_mob_index;
@@ -51,8 +49,4 @@ void assign_area_vnum( int vnum );                    /* OLC */
 void index_mobile( MOB_INDEX_DATA *pMobIndex );
 
 /* from db2.c */
- 
-void convert_mobile( MOB_INDEX_DATA_OLD *pMobIndex );        /* OLC ROM */
-void convert_objects( void );                                /* OLC ROM */
-void convert_object( OBJ_INDEX_DATA *pObjIndex );            /* OLC ROM */
 MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld );
