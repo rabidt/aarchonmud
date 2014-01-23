@@ -324,6 +324,7 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
 	if ( mimic != NULL && mimic->long_descr[0] != '\0' )
 	{
 	    strcat( buf, mimic->long_descr );
+        strcat( buf, "\n\r");
 	    send_to_char( buf, ch );
 	    return;
 	}
@@ -332,6 +333,7 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
     if ( victim->position == victim->start_pos && victim->long_descr[0] != '\0' )
     {
         strcat( buf, victim->long_descr );
+        strcat( buf, "\n\r");
         send_to_char( buf, ch );
         return;
     }
@@ -3653,7 +3655,7 @@ void do_wimpy( CHAR_DATA *ch, char *argument )
     else if ( wimpy == 100 )
         printf_to_char( ch, "You will run at the first hint of danger.\n\r");
     else 
-        printf_to_char( ch, "You will now flee when dropping below %d%% of your hit points.\n\r", wimpy );
+        printf_to_char( ch, "You will now flee when dropping below %d hp (%d%%).\n\r", (wimpy*ch->max_hit/100), wimpy);
     return;
 }
 
@@ -3681,7 +3683,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     else if ( calm == 100 )
         printf_to_char( ch, "You will always be calm.\n\r");
     else 
-        printf_to_char( ch, "You will now calm down when dropping below %d%% of your moves.\n\r", calm );
+        printf_to_char( ch, "You will now calm down when dropping below %d moves (%d%%).\n\r", (calm*ch->max_move/100), calm );
     return;
 }
 
@@ -4533,25 +4535,27 @@ void do_disguise( CHAR_DATA *ch, char *argument )
 
 void do_stance_list( CHAR_DATA *ch, char *argument )
 {
-    int i, skill;
+    int i, skill, prac;
     char buf[MSL];
 
     send_to_char( "You know the following stances:\n\r", ch );
 
     for (i = 1; stances[i].name != NULL; i++)
     {
-	skill = get_skill(ch, *(stances[i].gsn));
-	if ( skill == 0 )
-	    continue;
+        prac = get_skill_prac( ch, *(stances[i].gsn));
+        if ( prac == 0 )
+            continue; 
 
-	sprintf( buf, "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
-		 stances[i].name,
-		 ch->pcdata->learned[*(stances[i].gsn)], skill,
-		 stance_cost(ch, i),
-		 stances[i].weapon ? "w" : " ",
-		 stances[i].martial ? "m" : " ",
-                 flag_stat_string(damage_type, stances[i].type));
-	send_to_char( buf, ch );
+        skill = get_skill(ch, *(stances[i].gsn));
+
+        sprintf( buf, "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
+                stances[i].name,
+                ch->pcdata->learned[*(stances[i].gsn)], skill,
+                stance_cost(ch, i),
+                stances[i].weapon ? "w" : " ",
+                stances[i].martial ? "m" : " ",
+                flag_stat_string(damage_type, stances[i].type));
+        send_to_char( buf, ch );
     }
 }
 
