@@ -1376,7 +1376,7 @@ void do_nofollow(CHAR_DATA *ch, char *argument)
         send_to_char("You no longer accept followers.\n\r",ch);
         SET_BIT(ch->act,PLR_NOFOLLOW);
 		if (!IS_AFFECTED(ch, AFF_CHARM))
-			die_follower( ch );
+			die_follower( ch, false );
     }
 }
 
