@@ -681,6 +681,17 @@ HELPTOPIC glob_dammessage_help =
           "Note:\n\r\n\r"
 };
 
+static int glob_do_luaquery ( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "do_luaquery");
+    lua_insert(LS, 1);
+    lua_call( LS, top, LUA_MULTRET );
+
+    return lua_gettop(LS);
+}
+HELPTOPIC glob_do_luaquery_help={};
+
 
 static int glob_clearloopcount (lua_State *LS)
 {
@@ -1260,6 +1271,9 @@ GLOB_TYPE glob_table[] =
     GFUN(getarealist,   9),
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
+#ifdef TESTER
+    GFUN(do_luaquery,   9),
+#endif
 
     GODF(confuse),
     GODF(curse),
@@ -1903,6 +1917,7 @@ OBJVGT( funcname, \
     lua_pushstring( LS, vval );\
     return 1;\
 )
+
 
 OBJVGETINT( light, ITEM_LIGHT, 2 )
 OBJVH( light, "light only. Hours of light left.", "");
@@ -3184,6 +3199,25 @@ HELPTOPIC CH_immune_help =
 "See 'luahelp other flags'"
 };
 
+static int CH_setimmune (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "immune", imm_flags, ud_ch->imm_flags );
+    }
+    else
+        luaL_error( LS, "'setimmune' for NPC only.");
+
+}
+HELPTOPIC CH_setimmune_help =
+{
+    .summary = "Set immune flags. NPC only.",
+    .info =
+"See 'imm_flags' table.\n\r"
+"See 'luahelp other flags'"
+};
+
 static int CH_carries (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -3299,6 +3333,25 @@ HELPTOPIC CH_vuln_help =
 "See 'luahelp other flags'"
 };
 
+static int CH_setvuln (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "vuln", vuln_flags, ud_ch->vuln_flags );
+    }
+    else
+        luaL_error( LS, "'setvuln' for NPC only.");
+
+}
+HELPTOPIC CH_setvuln_help =
+{
+    .summary = "Set vuln flags. NPC only.",
+    .info =
+"See 'vuln_flags' table.\n\r"
+"See 'luahelp other flags'"
+};
+
 static int CH_qstatus (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -3323,6 +3376,25 @@ HELPTOPIC CH_resist_help =
     .summary = "Check resist flags.",
     .info =
 "See 'res_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
+
+static int CH_setresist (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "resist", res_flags, ud_ch->res_flags );
+    }
+    else
+        luaL_error( LS, "'setresist' for NPC only.");
+
+}
+HELPTOPIC CH_setresist_help =
+{
+    .summary = "Set resist flags. NPC only.",
+    .info =
+"See 'res_flags' table.\n\r"
 "See 'luahelp other flags'"
 };
 
@@ -4174,7 +4246,10 @@ static int CH_get_longdescr( lua_State *LS)
             ud_ch->long_descr);
     return 1;
 }
-HELPTOPIC CH_get_longdescr_help={};
+HELPTOPIC CH_get_longdescr_help=
+{
+    .summary="NPC only."
+};
 
 static int CH_set_longdescr (lua_State *LS)
 {
@@ -4182,13 +4257,47 @@ static int CH_set_longdescr (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set longdescr on PCs.");
     const char *new=check_string(LS, 2, MIL);
-    char buf[MSL];
-    sprintf(buf, "%s\n\r", new);
     free_string( ud_ch->long_descr );
-    ud_ch->long_descr=str_dup(buf);
+    ud_ch->long_descr=str_dup(new);
     return 0;
 }
 HELPTOPIC CH_set_longdescr_help = {
+    .summary="NPC only."
+};
+
+static int CH_get_description( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS,
+            ud_ch->description);
+    return 1;
+}
+HELPTOPIC CH_get_description_help={};
+
+static int CH_set_description (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set description on PCs.");
+    const char *new=check_string(LS, 2, MSL);
+
+    // Need to make sure \n\r at the end but don't add if already there.
+    int len=strlen(new);
+    if ( len>1 &&
+            !( new[len-2]=='\n' && new[len-1]=='\r') )
+    {
+        if ( len > (MSL-3) )
+            luaL_error( LS, "Description must be %d characters or less.", MSL-3);
+
+        char buf[MSL];
+        sprintf(buf, "%s\n\r",new);
+        new=buf;
+    }
+    free_string( ud_ch->description );
+    ud_ch->description=str_dup(new);
+    return 0;
+}
+HELPTOPIC CH_set_description_help = {
     .summary="NPC only."
 };
 
@@ -4261,6 +4370,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(ingame,0),
     CHGET(shortdescr, 0),
     CHGET(longdescr, 0),    
+    CHGET(description, 0),
     ENDPTABLE
 };
 
@@ -4294,6 +4404,7 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(race, 5),
     CHSET(shortdescr, 5),
     CHSET(longdescr, 5),
+    CHSET(description, 5),
     ENDPTABLE
 };
 
@@ -4366,6 +4477,9 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(peace, 1),
     CHMETH(restore, 1),
     CHMETH(setact, 1),
+    CHMETH(setvuln, 1),
+    CHMETH(setimmune, 1),
+    CHMETH(setresist, 1),
     CHMETH(hit, 1),
     CHMETH(randchar, 0),
     CHMETH(loadprog, 1),
@@ -4518,6 +4632,28 @@ static int OBJ_destroy( lua_State *LS)
     return 0;
 }
 HELPTOPIC OBJ_destroy_help={};
+
+static int OBJ_clone( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+
+    OBJ_DATA *clone = create_object(ud_obj->pIndexData,0);
+    clone_object( ud_obj, clone );
+    if (ud_obj->carried_by)
+        obj_to_char( clone, ud_obj->carried_by );
+    else if (ud_obj->in_room)
+        obj_to_room( clone, ud_obj->in_room );
+    else if (ud_obj->in_obj)
+        obj_to_obj( clone, ud_obj->in_obj );
+    else
+        luaL_error( LS, "Cloned object has no location.");
+
+    if (make_OBJ( LS, clone))
+        return 1;
+    else
+        return 0;
+}
+HELPTOPIC OBJ_clone_help={};
 
 static int OBJ_oload (lua_State *LS)
 {
@@ -4903,6 +5039,13 @@ static int OBJ_get_v4 (lua_State *LS)
 }
 HELPTOPIC OBJ_get_v4_help={};
 
+static int OBJ_get_timer (lua_State *LS)
+{
+    lua_pushinteger( LS, (check_OBJ(LS,1))->timer);
+    return 1;
+}
+HELPTOPIC OBJ_get_timer_help={};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -4929,6 +5072,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(contents, 0),
     OBJGET(proto, 0),
     OBJGET(ingame, 0),
+    OBJGET(timer, 0),
     
     /*light*/
     OBJGET(light, 0),
@@ -5020,6 +5164,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     OBJMETH(extra, 0),
     OBJMETH(wear, 0),
     OBJMETH(destroy, 1),
+    OBJMETH(clone, 1),
     OBJMETH(echo, 1),
     OBJMETH(loadprog, 1),
     OBJMETH(loadscript, 1),
@@ -5467,6 +5612,46 @@ static int AREA_get_atrigs ( lua_State *LS)
 }
 HELPTOPIC AREA_get_atrigs_help = {};
 
+static int AREA_get_vnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_vnum_help={};
+
+static int AREA_get_minvnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->min_vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_minvnum_help={};
+
+static int AREA_get_maxvnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->max_vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_maxvnum_help={};
+
+static int AREA_get_credits ( lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_AREA(LS,1))->credits);
+    return 1;
+}
+HELPTOPIC AREA_get_credits_help={};
+
+static int AREA_get_builders ( lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_AREA(LS,1))->builders);
+    return 1;
+}
+HELPTOPIC AREA_get_builders_help={};
+
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
     AREAGET(name, 0),
@@ -5475,6 +5660,11 @@ static const LUA_PROP_TYPE AREA_get_table [] =
     AREAGET(minlevel, 0),
     AREAGET(maxlevel, 0),
     AREAGET(security, 0),
+    AREAGET(vnum, 0),
+    AREAGET(minvnum, 0),
+    AREAGET(maxvnum, 0),
+    AREAGET(credits, 0),
+    AREAGET(builders, 0),
     AREAGET(ingame, 0),
     AREAGET(rooms, 0),
     AREAGET(people, 0),
@@ -6150,6 +6340,7 @@ HELPTOPIC RESET_get_command_help={};
 {\
     lua_pushinteger( LS,\
             (check_RESET(LS,1))->arg ## num);\
+    return 1;\
 }\
 HELPTOPIC RESET_get_arg ## num ## _help={}
 
@@ -6363,6 +6554,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( area, 0),
     OPGET( ingame, 0),
     OPGET( otrigs, 0),
+
     /*light*/
     OPGET(light, 0),
 
@@ -6569,7 +6761,7 @@ MPGETINT( vnum, ud_mobp->vnum ,"" ,"" );
 MPGETSTR( name, ud_mobp->player_name , "" ,"");
 MPGETSTR( shortdescr, ud_mobp->short_descr,"" ,"");
 MPGETSTR( longdescr, ud_mobp->long_descr,"" ,"");
-MPGETSTR( description, ud_mobp->description,"" ,"");
+MPGETSTR( description, ud_mobp->description, "", "");
 MPGETINT( alignment, ud_mobp->alignment,"" ,"");
 MPGETINT( level, ud_mobp->level,"" ,"");
 MPGETINT( hppcnt, ud_mobp->hitpoint_percent,"" ,"");
@@ -6834,7 +7026,7 @@ struct
         { .summary = "Details on using flag methods.",
           .info = 
 "For flag check methods, if called with no argument, a table of currently\n\r"
-"set flags is returned. Othwerise argument is a flag name and return value\n\r"
+"set flags is returned. Otherwise argument is a flag name and return value\n\r"
 "is a boolean representing whether that flag is set.\n\r\n\r"
 
 "For flag set methods, 1st argument is a flag name.\n\r"

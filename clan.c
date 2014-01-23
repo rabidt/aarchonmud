@@ -1711,10 +1711,10 @@ void clan_dump_obj(CHAR_DATA *ch, int clan)
             nMatch++;
             if (pObjIndex->clan == clan)
             {
-                printf_to_char(ch, "%d\t%s", pObjIndex->vnum, pObjIndex->short_descr);
+                printf_to_char(ch, "%d\t\t%s", pObjIndex->vnum, pObjIndex->short_descr);
                 
                 if (pObjIndex->rank > 0)
-                    printf_to_char(ch, "\tRank: %s\n\r", clan_table[clan].rank_list[pObjIndex->rank].name);
+                    printf_to_char(ch, "\t\tRank: %s\n\r", clan_table[clan].rank_list[pObjIndex->rank].name);
                 else
                     send_to_char("\n\r", ch);
             }
@@ -1739,10 +1739,10 @@ void clan_dump_room(CHAR_DATA *ch, int clan)
         {
             if ( pRoomIndex->clan == clan)
             {
-                printf_to_char(ch, "%d\t%s", pRoomIndex->vnum, pRoomIndex->name);
+                printf_to_char(ch, "%d\t\t%s", pRoomIndex->vnum, pRoomIndex->name);
                 
                 if (pRoomIndex->clan_rank > 0)
-                    printf_to_char(ch, "\tRank: %s\n\r", clan_table[clan].rank_list[pRoomIndex->clan_rank].name);
+                    printf_to_char(ch, "\t\tRank: %s\n\r", clan_table[clan].rank_list[pRoomIndex->clan_rank].name);
                 else
                     send_to_char("\n\r", ch);
             }
@@ -1766,7 +1766,7 @@ void do_cmotd( CHAR_DATA *ch, char * argument )
 	if ( !strcmp( clan_table[ch->clan].motd , "" ) )
 	    return;
 
-	send_to_char("\n",ch);
+	send_to_char("\n\r",ch);
     	send_to_char("{D***********************************{yClan MOTD{D************************************{x\n\r",ch);
     	send_to_char(clan_table[ch->clan].motd,ch);
     	send_to_char("{x\n\r",ch);
