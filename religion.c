@@ -2860,6 +2860,7 @@ bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration
 
 bool god_cleanse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
+    // duration is ignored
     char buf[MSL];
 
     if ( !is_affected(victim, gsn_god_curse) )
@@ -2890,6 +2891,7 @@ bool god_cleanse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
 
 bool god_defy( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
+    // duration is ignored
     char buf[MSL];
 
     if ( !is_affected(victim, gsn_god_bless) )
