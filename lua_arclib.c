@@ -68,6 +68,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 
 #define TRIGGET( field, sec) GETP( TRIG, field, sec)
 
+#define SHOPGET( field, sec) GETP( SHOP, field, sec)
+#define SHOPMETH( field, sec) METH( SHOP, field, sec)
 
 typedef struct lua_help_topic
 {
@@ -96,6 +98,7 @@ OBJ_TYPE *EXIT_type=NULL;
 OBJ_TYPE *RESET_type=NULL;
 OBJ_TYPE *OBJPROTO_type=NULL;
 OBJ_TYPE *MOBPROTO_type=NULL;
+OBJ_TYPE *SHOP_type=NULL;
 OBJ_TYPE *PROG_type=NULL;
 OBJ_TYPE *MTRIG_type=NULL;
 OBJ_TYPE *OTRIG_type=NULL;
@@ -113,6 +116,7 @@ OBJ_TYPE *type_list [] =
     &RESET_type,
     &OBJPROTO_type,
     &MOBPROTO_type,
+    &SHOP_type,
     &PROG_type,
     &MTRIG_type,
     &OTRIG_type,
@@ -1062,6 +1066,30 @@ HELPTOPIC glob_getarealist_help={
           "local arealist=getarealist()\n\r\n\r"
 };
 
+static int glob_getshoplist ( lua_State *LS)
+{
+    SHOP_DATA *shop;
+    
+    int index=1;
+    lua_newtable(LS);
+
+    for ( shop=shop_first ; shop ; shop=shop->next )
+    {
+        if (make_SHOP(LS, shop))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+HELPTOPIC glob_getshoplist_help=
+{
+    .summary="Return a table of all shops in the game.",
+    .info="Arguments: non\n\r\n\r"
+          "Return: shops[table of SHOPs]\n\r\n\r"
+          "Exampe:\n\r"
+          "local shoplist=getshoplist()\n\r\n\r"
+};
+
 /* Mersenne Twister pseudo-random number generator */
 
 static int mtlib_srand (lua_State *LS)
@@ -1269,6 +1297,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getmoblist,    9),
     GFUN(getplayerlist, 9),
     GFUN(getarealist,   9),
+    GFUN(getshoplist,   9),
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
 #ifdef TESTER
@@ -4353,6 +4382,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(room, 0),
     CHGET(groupsize, 0),
     CHGET(stance, 0),
+    CHGET(description, 0),
     /* PC only */
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
@@ -4370,7 +4400,6 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(ingame,0),
     CHGET(shortdescr, 0),
     CHGET(longdescr, 0),    
-    CHGET(description, 0),
     ENDPTABLE
 };
 
@@ -6813,6 +6842,20 @@ static int MOBPROTO_get_mtrigs ( lua_State *LS)
 }
 HELPTOPIC MOBPROTO_get_mtrigs_help = {};
 
+static int MOBPROTO_get_shop ( lua_State *LS)
+{
+    MOB_INDEX_DATA *ud_mid=check_MOBPROTO( LS, 1);
+    if ( ud_mid->pShop )
+    {
+        if ( make_SHOP(LS, ud_mid->pShop) )
+            return 1;
+        else
+            return 0;
+    }
+    else
+        return 0;
+}
+HELPTOPIC MOBPROTO_get_shop_help={};
     
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
@@ -6841,6 +6884,7 @@ static const LUA_PROP_TYPE MOBPROTO_get_table [] =
     MPGET( area, 0),
     MPGET( ingame, 0),
     MPGET( mtrigs, 0),
+    MPGET( shop, 0),
     ENDPTABLE
 };
 
@@ -6861,6 +6905,96 @@ static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 }; 
 
 /* end MOBPROTO section */
+
+/* SHOP section */
+#define SHOPGETINT( lfield, cfield ) static int SHOP_get_ ## lfield ( lua_State *LS )\
+{\
+    SHOP_DATA *ud_shop=check_SHOP( LS, 1);\
+    lua_pushinteger( LS,\
+            ud_shop->cfield );\
+    return 1;\
+}
+
+SHOPGETINT( keeper, keeper)
+HELPTOPIC SHOP_get_keeper_help={
+    .summary="Vnum of shopkeeper."
+};
+SHOPGETINT( profitbuy, profit_buy)
+HELPTOPIC SHOP_get_profitbuy_help = {};
+SHOPGETINT( profitsell, profit_sell)
+HELPTOPIC SHOP_get_profitsell_help = {};
+SHOPGETINT( openhour, open_hour)
+HELPTOPIC SHOP_get_openhour_help = {};
+SHOPGETINT( closehour, close_hour)
+HELPTOPIC SHOP_get_closehour_help={};
+
+static int SHOP_buytype ( lua_State *LS )
+{
+    SHOP_DATA *ud_shop=check_SHOP(LS, 1);
+    if (lua_isnone( LS, 2) ) // no arg
+    {
+        lua_newtable(LS);
+        int i;
+        int index=1;
+        for (i=0; i<MAX_TRADE; i++)
+        {
+            if (ud_shop->buy_type[i] != 0)
+            {
+                lua_pushstring( LS,
+                        flag_stat_string( type_flags, ud_shop->buy_type[i]));
+                lua_rawseti( LS, -2, index++);
+            }
+        }
+        return 1;
+    } 
+
+    // arg was given
+    const char *arg=check_string(LS, 2, MIL);
+    int flag=flag_lookup(arg, type_flags);
+    if ( flag==NO_FLAG )
+        luaL_error(LS, "No such type flag '%s'", arg);
+
+    int i;
+    for (i=0; i<MAX_TRADE ; i++)
+    {
+        if (ud_shop->buy_type[i] == flag)
+        {
+            lua_pushboolean( LS, TRUE);
+            return 1;
+        }
+    }
+
+    lua_pushboolean( LS, FALSE );
+    return 1;
+}
+HELPTOPIC SHOP_buytype_help= {
+    .summary="List of buytypes or check if given buytype is set.",
+    .info="See 'types' table. Works similarly to flags (see 'luahelp other flags'\n\r"
+          "though it is not actually stored as a flag variable."
+};
+       
+
+static const LUA_PROP_TYPE SHOP_get_table [] =
+{
+    SHOPGET( keeper, 0),
+    SHOPGET( profitbuy, 0),
+    SHOPGET( profitsell, 0),
+    SHOPGET( openhour, 0),
+    SHOPGET( closehour, 0),
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE SHOP_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE SHOP_method_table [] =
+{
+    SHOPMETH( buytype, 0), 
+    ENDPTABLE
+};
+/* end SHOP section */
 
 /* PROG section */
 static int PROG_get_islua ( lua_State *LS )
@@ -7414,6 +7548,7 @@ void type_init( lua_State *LS)
     TYPEINIT(RESET);
     TYPEINIT(OBJPROTO);
     TYPEINIT(MOBPROTO);
+    TYPEINIT(SHOP);
     TYPEINIT(PROG);
     if (!MTRIG_type)
         MTRIG_type=new_obj_type(
