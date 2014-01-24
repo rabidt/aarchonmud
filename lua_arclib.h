@@ -41,6 +41,7 @@ extern OBJ_TYPE *EXIT_type;
 extern OBJ_TYPE *RESET_type;
 extern OBJ_TYPE *OBJPROTO_type;
 extern OBJ_TYPE *MOBPROTO_type;
+extern OBJ_TYPE *SHOP_type;
 extern OBJ_TYPE *PROG_type;
 extern OBJ_TYPE *MTRIG_type;
 extern OBJ_TYPE *OTRIG_type;
@@ -62,6 +63,7 @@ void register_globals( lua_State *LS );
 #define check_OTRIG( LS, index) ((PROG_LIST *)OTRIG_type->check( OTRIG_type, LS, index))
 #define check_ATRIG( LS, index) ((PROG_LIST *)ATRIG_type->check( ATRIG_type, LS, index))
 #define check_RTRIG( LS, index) ((PROG_LIST *)RTRIG_type->check( RTRIG_type, LS, index))
+#define check_SHOP( LS, index) ((SHOP_DATA *)SHOP_type->check( SHOP_type, LS, index))
 
 
 #define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
@@ -77,6 +79,7 @@ void register_globals( lua_State *LS );
 #define make_OTRIG(LS, trig) OTRIG_type->make( OTRIG_type, LS, trig)
 #define make_ATRIG(LS, trig) ATRIG_type->make( ATRIG_type, LS, trig)
 #define make_RTRIG(LS, trig) RTRIG_type->make( RTRIG_type, LS, trig)
+#define make_SHOP(LS, shop) SHOP_type->make( SHOP_type, LS, shop)
 
 #define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
 #define is_OBJ(LS, obj ) OBJ_type->is( OBJ_type, LS, obj )
