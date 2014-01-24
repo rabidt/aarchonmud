@@ -376,6 +376,9 @@ function do_luaquery( ch, argument)
                                 else
                                     return gobj[k] 
                                 end
+                            end,
+                            __newindex=function ()
+                                error("Can't set values with luaquery")
                             end
                         } 
                     ) 
@@ -400,12 +403,17 @@ function do_luaquery( ch, argument)
             local vf,err=loadstring("return function(x) return "..sel.." end")
             if err then sendtochar(ch, err) return  end
             setfenv(vf,
-                    setmetatable({}, { __index=gobj,
-                                       __newindex=function () 
-                                            error("Can't set values with luaquery") 
-                                            end
-                                            } )
-                   )
+                    setmetatable(
+                        {
+                            pairs=pairs
+                        }, 
+                        {   __index=gobj,
+                            __newindex=function () 
+                                error("Can't set values with luaquery") 
+                            end
+                        } 
+                    )
+            )
             table.insert(line, { col=sel, val=tostring(vf()(gobj))} )
         end
         table.insert(output, line)
