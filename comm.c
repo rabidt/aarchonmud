@@ -3101,7 +3101,7 @@ void nasty_signal_handler (int no)
     if (forkpid>0)
     {
         /* wait for forked process to exit */
-        waitpid(forkpid, NULL, WNOHANG|WUNTRACED);
+        waitpid(forkpid, NULL, 0);
         /* try to catch things with a copyover */
         if ( (ch=create_mobile(get_mob_index(2))) != NULL )
             do_copyover ( ch, "system error: trying to recover with copyover" );
