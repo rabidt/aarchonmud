@@ -388,14 +388,20 @@ int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth,
 }
 
 // formulas used for max distance & skill reduction by hunt, pathfinding, etc.
-int hunt_max_distance(int skill)
+int hunt_max_distance(int skill, int mastery)
 {
-    return skill / 3;
+    if ( mastery >= 2 )
+        return skill / 2;
+    else
+        return skill / 3;
 }
 
-int hunt_fail_chance(int skill, int distance)
+int hunt_fail_chance(int skill, int distance, int mastery)
 {
-    return (100-skill) + 2 * distance;
+    if ( mastery >= 1 )
+        return (100-skill) + distance;
+    else
+        return (100-skill) + 2 * distance;
 }
 
 bool is_wilderness( int sector )
@@ -512,7 +518,8 @@ void do_hunt( CHAR_DATA *ch, char *argument )
 	return;
     }
     
-    int max_depth = IS_IMMORTAL(ch) ? 100 : hunt_max_distance(skill);
+    int mastery = get_mastery(ch, gsn_hunt);
+    int max_depth = IS_IMMORTAL(ch) ? 100 : hunt_max_distance(skill, mastery);
     int distance = 0;
     direction = find_path( ch->in_room->vnum, victim->in_room->vnum, FALSE, max_depth, &distance );
     
@@ -538,7 +545,7 @@ void do_hunt( CHAR_DATA *ch, char *argument )
    /*
     * Give a random direction if the player misses the die roll.
     */
-    if ( !IS_IMMORTAL(ch) && per_chance(hunt_fail_chance(skill, distance)) )
+    if ( !IS_IMMORTAL(ch) && per_chance(hunt_fail_chance(skill, distance, mastery)) )
     {
         do
         {
@@ -717,7 +724,8 @@ void do_scout( CHAR_DATA *ch, char *argument )
     
     act( "$n carefully examines the landscape.", ch, NULL, NULL, TO_ROOM );
     WAIT_STATE( ch, skill_table[sn].beats );
-    int max_depth = IS_IMMORTAL(ch) ? 100 : hunt_max_distance(skill);
+    int mastery = get_mastery(ch, sn);
+    int max_depth = IS_IMMORTAL(ch) ? 100 : hunt_max_distance(skill, mastery);
     int distance = 0;
     direction = find_path( ch->in_room->vnum, target->vnum, FALSE, max_depth, &distance );
     
@@ -744,7 +752,7 @@ void do_scout( CHAR_DATA *ch, char *argument )
    /*
     * Give a random direction if the player misses the die roll.
     */
-    if ( !IS_IMMORTAL(ch) && per_chance(hunt_fail_chance(skill, distance)) )
+    if ( !IS_IMMORTAL(ch) && per_chance(hunt_fail_chance(skill, distance, mastery)) )
     {
         do
         {
