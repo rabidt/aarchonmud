@@ -263,6 +263,8 @@ void donothing()
 #define DD(dir, dist) ((dir) + ((dist) << 4))
 #define DD_DIR(dd) ((dd) & 15)
 #define DD_DIST(dd) ((dd) >> 4)
+// maximal number of exists to search from a room, including portals (easier than list)
+#define MAX_BRANCH (MAX_DIR+10)
 
 // return direction indicating first edge of shortest path
 int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth, int *distance )
@@ -273,6 +275,8 @@ int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth,
     bool thru_doors = TRUE;
     ROOM_INDEX_DATA *herep, *startp;
     EXIT_DATA *exitp;
+    // destinations from current room
+    int branch_rooms[MAX_BRANCH];
     
     startp = get_room_index( in_room_vnum );
     
@@ -289,24 +293,46 @@ int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth,
     {
         herep = get_room_index( q_head->room_nr );
         /* for each room test all directions */
-        if( herep->area == startp->area || !in_zone )
+        if ( herep && (herep->area == startp->area || !in_zone) )
         {
             // direction and distance of successors
             // direction is that of ancestor (unless first step, then updated below)
             int dir_dist = (int)hash_find(&x_room, q_head->room_nr);
             int dist = DD_DIST(dir_dist) + 1;
             int dir = DD_DIR(dir_dist);
-            /* only look in this zone... saves cpu time and prevents NPCs from wandering off */
+            // regular exits
             for( i = 0; i < MAX_DIR; i++ )
             {
                 exitp = herep->exit[i];
-                if( exit_ok(exitp) && ( thru_doors ? GO_OK_SMARTER : GO_OK ) )
+                if ( exit_ok(exitp) && ( thru_doors ? GO_OK_SMARTER : GO_OK ) )
+                    branch_rooms[i] = herep->exit[i]->u1.to_room->vnum;
+                else
+                    branch_rooms[i] = 0;
+            }
+            // portals
+            OBJ_DATA *portal = herep->contents;
+            while ( i < MAX_BRANCH )
+            {
+                // no objects left => clear remainder of array
+                if ( portal == NULL )
+                {
+                    branch_rooms[i++] = 0;
+                    continue;
+                }
+                if ( portal->item_type == ITEM_PORTAL && portal->value[3] > 0 )
+                    branch_rooms[i++] = portal->value[3];
+                portal = portal->next_content;
+            }
+            // handle all "exits" that we found
+            for( i = 0; i < MAX_BRANCH; i++ )
+            {
+                if ( branch_rooms[i] > 0 )
                 {
                     /* next room */
-                    tmp_room = herep->exit[i]->u1.to_room->vnum;
+                    tmp_room = branch_rooms[i];
                     // don't use ancestor direction if it's the first step we're taking
                     if ( dist == 1 )
-                        dir = i;
+                        dir = (i < MAX_DIR ? i : DIR_PORTAL);
 
                     if( tmp_room != out_room_vnum )
                     {
@@ -497,6 +523,12 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    if ( direction == DIR_PORTAL )
+    {
+        send_to_char( "The trail suddenly ends here.\n\r", ch );
+        return;
+    }
+
     if( direction < 0 || direction > 9 )
     {
         send_to_char( "Hmm... Something seems to be wrong.\n\r", ch );
@@ -589,6 +621,12 @@ void do_hunt_relic( CHAR_DATA *ch )
     {
         act( "You couldn't find a path to $p from here.",
             ch, rel->relic_obj, NULL, TO_CHAR );
+        return;
+    }
+    
+    if ( direction == DIR_PORTAL )
+    {
+        send_to_char( "The trail suddenly ends here.\n\r", ch );
         return;
     }
     
@@ -691,6 +729,12 @@ void do_scout( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    if ( direction == DIR_PORTAL )
+    {
+        send_to_char( "The trail suddenly ends here.\n\r", ch );
+        return;
+    }
+
     if( direction < 0 || direction > 9 )
     {
         send_to_char( "Hmm... Something seems to be wrong.\n\r", ch );
