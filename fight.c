@@ -1278,6 +1278,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1402,10 +1404,7 @@ int get_weapon_damage( OBJ_DATA *wield )
     if ( wield == NULL )
 	return 0;
     
-    if ( wield->pIndexData->new_format )
 	weapon_dam = dice( wield->value[1], wield->value[2] );
-    else
-	weapon_dam = number_range( wield->value[1], wield->value[2] );
 
     /* sharpness! */
     if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) )

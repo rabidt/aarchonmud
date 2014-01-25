@@ -35,7 +35,7 @@ local function new_lbtables(typ)
     return rtn
 end
 
-local lb_tables={
+lb_tables = lb_tables or {
     daily={
         timeout=0,
         tables=new_lbtables("daily")
@@ -54,7 +54,7 @@ local lb_tables={
     }
 }
 
-local lh_tables={
+lh_tables = lh_tables or {
     daily={},
     weekly={},
     monthly={}
