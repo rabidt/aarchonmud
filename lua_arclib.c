@@ -281,6 +281,12 @@ static void register_type( OBJ_TYPE *tp,
 static bool make_func( OBJ_TYPE *self,
         lua_State *LS, void *game_obj)
 {
+    if (!game_obj)
+    {
+        bugf("make_%s called with NULL object", self->type_name);
+        return FALSE;
+    }
+
     /* we don't want stuff that was destroyed */
     if ( self == CH_type && ((CHAR_DATA *)game_obj)->must_extract )
         return FALSE;
@@ -4079,10 +4085,13 @@ HELPTOPIC CH_get_inventory_help={};
 static int CH_get_room (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!make_ROOM(LS, check_CH(LS,1)->in_room) )
+    
+    if (!ud_ch->in_room)
         return 0;
-    else
+    else if ( make_ROOM(LS, check_CH(LS,1)->in_room) )
         return 1;
+    else
+        return 0;
 }
 HELPTOPIC CH_get_room_help={};
 
@@ -5000,10 +5009,10 @@ static int OBJ_get_room (lua_State *LS)
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     if (!ud_obj->in_room)
         return 0;
-    if ( !make_ROOM(LS, ud_obj->in_room) )
-        return 0;
-    else
+    if ( make_ROOM(LS, ud_obj->in_room) )
         return 1;
+    else
+        return 0;
 }
 HELPTOPIC OBJ_get_room_help={};
 
