@@ -1245,18 +1245,6 @@ bool flush_descriptor( DESCRIPTOR_DATA *d )
         else
             ch = d->character;
 
-        if ( IS_SET(ch->act, PLR_TRIG_SAFE) )
-        {
-            char *p, *lastp;
-
-            lastp = &(d->outbuf[d->outtop]);
-            for ( p = d->outbuf; p < lastp; p++ )
-            {
-                /* look for following char to see if it's color code */
-                if ( *p == ';' && p[1] != '3' )
-                    *p = ',';
-            }
-        }
     }
 
     int written = write_to_descriptor(d->descriptor, d->outbuf, d->outtop);

@@ -219,7 +219,6 @@ const   struct  cmd_type    cmd_table   [] =
 	{ "toggle",	    do_toggle,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "unalias",    do_unalias, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "wimpy",      do_wimpy,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "triggersafe", do_trigger_safe, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "noexp",      do_noexp,       POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
     { "nohelp",     do_nohelp,      POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
     
@@ -604,6 +603,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "luahelp",    do_luahelp, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaconfig",  do_luaconfig, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaquery",   do_luaquery, POS_DEAD,  ML,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  }, 
 
     /*
     * OLC

@@ -1012,7 +1012,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -2454,10 +2454,17 @@ void update_handler( void )
     static  int     pulse_herb;
     static  int     pulse_msdp;
     static  int     pulse_timer;
+    static  int     pulse_lua_arcgc;
     static bool hour_update = TRUE;
     static bool minute_update = TRUE;
     /* if nobody is logged on, update less to safe CPU power */
     bool update_all = (descriptor_list != NULL );
+
+    if ( --pulse_lua_arcgc <= 0 )
+    {
+        pulse_lua_arcgc  = PULSE_LUA_ARCGC;
+        lua_arcgc();
+    }
 
     if ( --pulse_timer <= 0 )
     {
@@ -2552,6 +2559,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */
