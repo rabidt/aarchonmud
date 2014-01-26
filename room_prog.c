@@ -65,6 +65,13 @@ static bool rp_act_trigger(
     return TRUE;
 }
 
+bool rp_command_trigger( CHAR_DATA *ch, const char *command )
+{
+
+
+}
+
+
 /* returns whether a trigger was found */
 bool rp_try_trigger( char *argument, CHAR_DATA *ch )
 {
