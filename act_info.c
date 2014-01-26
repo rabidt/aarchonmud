@@ -3640,7 +3640,7 @@ void do_wimpy( CHAR_DATA *ch, char *argument )
     
     if ( arg[0] == '\0' )
     {
-        printf_to_char( ch, "Your current wimpy threshold is set to %d%%.\n\r", ch->wimpy );
+        printf_to_char( ch, "Your current wimpy threshold is set to %d hp (%d%%).\n\r", (wimpy*ch->max_hit/100), ch->wimpy );
         printf_to_char( ch, "To change type: wimpy <percentage>\n\r" );
         return;
     }
@@ -3668,7 +3668,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     
     if ( arg[0] == '\0' )
     {
-        printf_to_char( ch, "Your current calm threshold is set to %d%%.\n\r", ch->calm );
+        printf_to_char( ch, "Your current calm threshold is set to %d moves (%d%%).\n\r", (calm*ch->maxmove/100), ch->calm );
         printf_to_char( ch, "To change type: calm <percentage>\n\r" );
         return;
     }
