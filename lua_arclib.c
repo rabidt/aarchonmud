@@ -2091,6 +2091,9 @@ OBJVGETSTR( damtype, ITEM_WEAPON,
         flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) );
 OBJVH( damtype, "weapon only. See 'attack_table' table. Value corresponds to 'Damtype' column.", "");
 
+OBJVGETSTR( damnoun, ITEM_WEAPON, attack_table[ud_obj->value[3]].noun )
+OBJVH( damnoun, "weapon only. See 'attack_table' table. Value corresponds to 'Noun' column.", "");
+
 static int OBJ_get_damavg( lua_State *LS )
 {
     OBJ_DATA *ud_obj=check_OBJ( LS, 1);
@@ -2170,6 +2173,22 @@ OBJVGT( liquid,
     return 0;
 )
 OBJVH( liquid, "fountain, drinkcontainer only. Name of liquid. See 'liq_table' table.", "");
+
+OBJVGT( liquidcolor,
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FOUNTAIN:
+        case ITEM_DRINK_CON:
+            lua_pushstring( LS,
+                    liq_table[ud_obj->value[2]].liq_color);
+            return 1;
+        default:
+            luaL_error(LS, "liquidcolor for drinkcontainer and fountain only");
+    }
+
+    return 0;
+)
+OBJVH( liquidcolor, "fountain, drinkcontainer only. Color of liquid. See 'liq_table' table.", "");
 
 OBJVGT( poisoned, 
     switch(ud_obj->item_type)
@@ -5114,6 +5133,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( dicetype, 0),
     OBJGET( attacktype, 0),
     OBJGET( damtype, 0),
+    OBJGET( damnoun, 0),
     OBJGET( damavg, 0),
 
     /* container */
@@ -5126,6 +5146,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( liquidtotal, 0),
     OBJGET( liquidleft, 0),
     OBJGET( liquid, 0),
+    OBJGET( liquidcolor, 0),
     OBJGET( poisoned, 0),
 
     /*fountain*/
@@ -6595,6 +6616,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( dicetype, 0),
     OPGET( attacktype, 0),
     OPGET( damtype, 0),
+    OPGET( damnoun, 0),
     OPGET( damavg, 0),
 
     /* container */
@@ -6607,6 +6629,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( liquidtotal, 0),
     OPGET( liquidleft, 0),
     OPGET( liquid, 0),
+    OPGET( liquidcolor, 0),
     OPGET( poisoned, 0),
 
     /*fountain*/
