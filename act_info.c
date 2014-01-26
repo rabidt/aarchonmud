@@ -3668,7 +3668,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     
     if ( arg[0] == '\0' )
     {
-        printf_to_char( ch, "Your current calm threshold is set to %d moves (%d%%).\n\r", (calm*ch->maxmove/100), ch->calm );
+        printf_to_char( ch, "Your current calm threshold is set to %d moves (%d%%).\n\r", (calm*ch->max_move/100), ch->calm );
         printf_to_char( ch, "To change type: calm <percentage>\n\r" );
         return;
     }
