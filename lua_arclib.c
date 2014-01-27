@@ -6837,6 +6837,7 @@ MPGETSTR( stance, stances[ud_mobp->stance].name,
     "Mob's default stance." ,
     "See 'stances' table.");
 MPGETBOOL( ingame, is_mob_ingame( ud_mobp ),"" ,"");
+MPGETINT( count, ud_mobp->count, "", "");
 
 static int MOBPROTO_get_area (lua_State *LS)
 {
@@ -6906,6 +6907,7 @@ static const LUA_PROP_TYPE MOBPROTO_get_table [] =
     MPGET( ingame, 0),
     MPGET( mtrigs, 0),
     MPGET( shop, 0),
+    MPGET( count,0),
     ENDPTABLE
 };
 
