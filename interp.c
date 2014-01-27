@@ -806,9 +806,6 @@ void interpret( CHAR_DATA *ch, char *argument )
     * Look for command trigger or command table.
     */
     
-    if ( rp_command_trigger( ch, command , TRUE ) )
-        return;
-
     if ( (cmd = find_command(ch, command, TRUE)) == -1
 	 && !check_social_new(ch, command, argument, TRUE)
 	 && (cmd = find_command(ch, command, FALSE)) == -1
@@ -820,6 +817,12 @@ void interpret( CHAR_DATA *ch, char *argument )
     
     if ( cmd == -1 )
 	return;
+
+    if ( !rp_command_trigger( ch, cmd, argument ) )
+        return;
+
+    if ( mp_command_trigger( ch, cmd, argument ) )
+        return;
 
     /*
     * Log and snoop.
