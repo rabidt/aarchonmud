@@ -8,6 +8,7 @@
 #include "tables.h"
 #include "lookup.h"
 #include "lua_scripting.h"
+#include "interp.h"
 
 
 /*
@@ -65,9 +66,20 @@ static bool rp_act_trigger(
     return TRUE;
 }
 
-bool rp_command_trigger( CHAR_DATA *ch, const char *command )
+bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
 {
+    if ( !ch->in_room )
+    {
+        bugf( "rp_command_trigger: no room for %s",
+                ch->name);
+        return FALSE;
+    }
 
+    return rp_act_trigger(
+            ch->in_room,
+            ch, NULL,
+            NULL, NULL,
+            cmd_table[cmd].name, RTRIG_COMMAND);
 
 }
 

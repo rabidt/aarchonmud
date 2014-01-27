@@ -45,6 +45,7 @@
 #include "tables.h"
 #include "lookup.h"
 #include "lua_scripting.h"
+#include "interp.h"
 
 extern int flag_lookup( const char *word, const struct flag_type *flag_table );
 
@@ -1665,7 +1666,29 @@ bool mp_spell_trigger( char* argument, CHAR_DATA *mob, CHAR_DATA *ch)
     return found;
 }
 
+bool mp_command_trigger( CHAR_DATA *ch, int cmd )
+{
+    CHAR_DATA *mob;
+    CHAR_DATA *next_char;
 
+    if ( !ch->in_room )
+    {
+        bugf("ch->in_room NULL for %s in mp_command_trigger", ch->name);
+        return FALSE;
+    }
+
+    for ( mob = ch->in_room->people; mob; mob=next_char )
+    {
+        next_char = mob->next_in_room;
+        if ( IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_COMMAND) )
+        {
+            if (mp_act_trigger(cmd_table[cmd].name, mob, ch, NULL, 0, NULL, 0, TRIG_COMMAND))
+                return TRUE;
+        }
+    }
+
+    return FALSE;
+}
 
 bool mp_try_trigger( char* argument, CHAR_DATA *ch )
 {
