@@ -940,7 +940,15 @@ bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact 
     
     if ( !found )
         return FALSE;
-    
+
+    /* for debug, record social as last command */
+    if ( !IS_NPC(ch) )
+        sprintf (last_command, "[%5d] %s in [%5d]: (social) %s %s",
+             IS_NPC(ch) ? ch->pIndexData->vnum : 0,
+             IS_NPC(ch) ? ch->short_descr : ch->name,
+             ch->in_room ? ch->in_room->vnum : 0,
+             command, argument);
+
     if ( !IS_NPC(ch) && IS_SET(ch->penalty, PENALTY_NOEMOTE) )
     {
         send_to_char( "You are anti-social!\n\r", ch );

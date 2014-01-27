@@ -285,8 +285,8 @@ void do_extract( CHAR_DATA *ch, char *argument)
 
     if ( (skill = get_skill(ch, gsn_craft)) == 0 )
     {
-	send_to_char( "You need to learn crafting before you can extract anything.\n\r", ch );
-	return;
+        send_to_char( "You need to learn crafting before you can extract anything.\n\r", ch );
+        return;
     }
 
     if ( arg[0] == '\0' )
@@ -301,15 +301,15 @@ void do_extract( CHAR_DATA *ch, char *argument)
         return;
     }
 
- /* We should allow sticky items to be extracted, as many of them are worthless
-    depending on the players' class. No_extract now working - Astark 12-23-12 
-    if (is_sticky_obj(obj)) */
+    /* We should allow sticky items to be extracted, as many of them are worthless
+       depending on the players' class. No_extract now working - Astark 12-23-12 
+       if (is_sticky_obj(obj)) */
     if (IS_SET(obj->extra_flags, ITEM_NO_EXTRACT))
-     {
-         send_to_char("You can't extract materials from that item.\n\r",ch);
-         return;
-     }
-   
+    {
+        send_to_char("You can't extract materials from that item.\n\r",ch);
+        return;
+    }
+
     /* Only weapons and armor can be extracted */
     if ( obj->item_type != ITEM_ARMOR && obj->item_type != ITEM_WEAPON)
     {
@@ -329,7 +329,7 @@ void do_extract( CHAR_DATA *ch, char *argument)
     /* The materials you get are dependent on the level and rating of the object that you extract */
     if ( obj->level < 90)
     { 
- 	mtable = obj->level;      
+        mtable = obj->level;      
     }
     else
     {
@@ -337,100 +337,99 @@ void do_extract( CHAR_DATA *ch, char *argument)
         mtable += ((obj->level - 90) * 3);
         mtable += obj->pIndexData->diff_rating * 2;
     }
- 
+
     chance2 = rand() %100;
- 
-/* Used for verifying that the integers are working properly. Commented out on purpose 
-    sprintf( buf, "mtable = %d , chance2= %d.\n\r", mtable, chance2 ); 
-	send_to_char( buf, ch ); 
 
-*/
+    /* Used for verifying that the integers are working properly. Commented out on purpose 
+       sprintf( buf, "mtable = %d , chance2= %d.\n\r", mtable, chance2 ); 
+       send_to_char( buf, ch ); 
+
+     */
 
 
 
-/* Items level 90 and below can only make items rarity 0-1 */
+    /* Items level 90 and below can only make items rarity 0-1 */
     if (mtable <= 90)
     {
         switch (number_range(0,6))
         {
-            case 0: material = create_object(get_obj_index(8600), 0); break; // foul essence
-            case 1: material = create_object(get_obj_index(8601), 0); break; // sparkling essence
-            case 2: material = create_object(get_obj_index(8603), 0); break; // bronze smelt
-            case 3: material = create_object(get_obj_index(8604), 0); break; // iron smelt
-            case 4: material = create_object(get_obj_index(8607), 0); break; // heavy straps
-            case 5: material = create_object(get_obj_index(8608), 0); break; // metal scraps
-            case 6: material = create_object(get_obj_index(8614), 0); break; // steel rivet
+            case 0: material = 8600; break; // foul essence
+            case 1: material = 8601; break; // sparkling essence
+            case 2: material = 8603; break; // bronze smelt
+            case 3: material = 8604; break; // iron smelt
+            case 4: material = 8607; break; // heavy straps
+            case 5: material = 8608; break; // metal scraps
+            case 6: material = 8614; break; // steel rivet
         }
     }
 
 
-/* level 90 - 93 items (up to rating 2) can make items from 1-2 */
+    /* level 90 - 93 items (up to rating 2) can make items from 1-2 */
     if (mtable > 90 && mtable < 107)
     {
         switch (number_range(0,8))
         {
-            case 0: material = create_object(get_obj_index(8601), 0); break; // sparkling essence
-            case 1: material = create_object(get_obj_index(8602), 0); break; // blissful essence
-            case 2: material = create_object(get_obj_index(8604), 0); break; // iron smelt
-            case 3: material = create_object(get_obj_index(8605), 0); break; // gold smelt
-            case 4: material = create_object(get_obj_index(8608), 0); break; // metal scraps
-            case 5: material = create_object(get_obj_index(8609), 0); break; // fastening bolts
-            case 6: material = create_object(get_obj_index(8614), 0); break; // steel rivet
-            case 7: material = create_object(get_obj_index(8615), 0); break; // wire band
-            case 8: material = create_object(get_obj_index(8653), 0); break; // titanium thread
+            case 0: material = 8601; break; // sparkling essence
+            case 1: material = 8602; break; // blissful essence
+            case 2: material = 8604; break; // iron smelt
+            case 3: material = 8605; break; // gold smelt
+            case 4: material = 8608; break; // metal scraps
+            case 5: material = 8609; break; // fastening bolts
+            case 6: material = 8614; break; // steel rivet
+            case 7: material = 8615; break; // wire band
+            case 8: material = 8653; break; // titanium thread
         }
     }
 
-/* level 93 (rating 3) - 95 (rating 2) items can make items from 2-3 */
+    /* level 93 (rating 3) - 95 (rating 2) items can make items from 2-3 */
     if (mtable >= 107 && mtable <= 115)
     {
         switch (number_range(0,7))
         {
-            case 0: material = create_object(get_obj_index(8602), 0); break; // blissful essence
-            case 1: material = create_object(get_obj_index(8605), 0); break; // gold smelt
-            case 2: material = create_object(get_obj_index(8606), 0); break; // adamantium smelt
-            case 3: material = create_object(get_obj_index(8609), 0); break; // fastening bolts
-            case 4: material = create_object(get_obj_index(8610), 0); break; // mephiston's inspiration
-            case 5: material = create_object(get_obj_index(8611), 0); break; // rynor's creativity
-            case 6: material = create_object(get_obj_index(8615), 0); break; // wire band
-            case 7: material = create_object(get_obj_index(8653), 0); break; // titanium thread
+            case 0: material = 8602; break; // blissful essence
+            case 1: material = 8605; break; // gold smelt
+            case 2: material = 8606; break; // adamantium smelt
+            case 3: material = 8609; break; // fastening bolts
+            case 4: material = 8610; break; // mephiston's inspiration
+            case 5: material = 8611; break; // rynor's creativity
+            case 6: material = 8615; break; // wire band
+            case 7: material = 8653; break; // titanium thread
         }
     }
 
 
-/* level 95 (rating 3) - 97 (rating 5) items can make items from 3-4 */
+    /* level 95 (rating 3) - 97 (rating 5) items can make items from 3-4 */
     if (mtable >= 116)
     {
         switch (number_range(0,6))
         {
-            case 0: material = create_object(get_obj_index(8606), 0); break; // adamantium smelt
-            case 1: material = create_object(get_obj_index(8610), 0); break; // mephiston's inspiration
-            case 2: material = create_object(get_obj_index(8611), 0); break; // rynor's creativity
-            case 3: material = create_object(get_obj_index(8612), 0); break; // bobble's brilliance
-            case 4: material = create_object(get_obj_index(8613), 0); break; // rimbols strength
-            case 5: material = create_object(get_obj_index(8651), 0); break; // vodurs mischief
-            case 6: material = create_object(get_obj_index(8652), 0); break; // astarks ambition
+            case 0: material = 8606; break; // adamantium smelt
+            case 1: material = 8610; break; // mephiston's inspiration
+            case 2: material = 8611; break; // rynor's creativity
+            case 3: material = 8612; break; // bobble's brilliance
+            case 4: material = 8613; break; // rimbols strength
+            case 5: material = 8651; break; // vodurs mischief
+            case 6: material = 8652; break; // astarks ambition
         }
     }
 
-    extracted = material;
-    extract_obj( obj );
 
-    WAIT_STATE( ch, skill_table[gsn_craft].beats );
     if ( chance(skill-5) )
     {
+        extracted=create_object(get_obj_index(material),0);
         sprintf(buf, "%s vanishes as you extract %s from it.\n\r", obj->short_descr, extracted->short_descr);
         send_to_char(buf,ch);
         act( "$n extracts $p from $P.", ch, extracted, obj, TO_ROOM );
-        obj_to_char(material, ch);
-	check_improve( ch, gsn_craft, TRUE, 1 );
+        obj_to_char(extracted, ch);
+        check_improve( ch, gsn_craft, TRUE, 1 );
     }
     else
     {
-	send_to_char( "Hmmm.. That didn't go as planned..\n\r", ch );
-	check_improve( ch, gsn_craft, FALSE, 1 );
-	return;
+        send_to_char( "Hmmm.. That didn't go as planned..\n\r", ch );
+        check_improve( ch, gsn_craft, FALSE, 1 );
     }
+    WAIT_STATE( ch, skill_table[gsn_craft].beats );
+    extract_obj( obj );
 
     return;
 }
