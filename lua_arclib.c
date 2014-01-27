@@ -2123,8 +2123,11 @@ OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
 OBJVH( attacktype, "weapon only. See 'attack_table' table. Value corresponds to 'Name' column.", "");
 
 OBJVGETSTR( damtype, ITEM_WEAPON, 
-        flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) );
+        flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) )
 OBJVH( damtype, "weapon only. See 'attack_table' table. Value corresponds to 'Damtype' column.", "");
+
+OBJVGETSTR( damnoun, ITEM_WEAPON, attack_table[ud_obj->value[3]].noun )
+OBJVH( damnoun, "weapon only. See 'attack_table' table. Value corresponds to 'Noun' column.", "");
 
 static int OBJ_get_damavg( lua_State *LS )
 {
@@ -2168,12 +2171,12 @@ OBJVGT( liquidtotal,
             lua_pushinteger( LS, ud_obj->value[0] );
             return 1;
         default:
-            luaL_error(LS, "liquidtotal for drinkcontainer and fountain only");
+            luaL_error(LS, "liquidtotal for drink and fountain only");
     }
 
     return 0;
 )
-OBJVH( liquidtotal, "fountain, drinkcontainer only. Max liquid value.", "");
+OBJVH( liquidtotal, "fountain, drink only. Max liquid value.", "");
 
 OBJVGT( liquidleft,
     switch(ud_obj->item_type)
@@ -2183,12 +2186,12 @@ OBJVGT( liquidleft,
             lua_pushinteger( LS, ud_obj->value[1] );
             return 1;
         default:
-            luaL_error(LS, "liquidleft for drinkcontainer and fountain only");
+            luaL_error(LS, "liquidleft for drink and fountain only");
     }
 
     return 0;
 )
-OBJVH( liquidleft, "fountain, drinkcontainer only. Current liquid value.", "");
+OBJVH( liquidleft, "fountain, drink only. Current liquid value.", "");
 
 OBJVGT( liquid,
     switch(ud_obj->item_type)
@@ -2199,12 +2202,28 @@ OBJVGT( liquid,
                     liq_table[ud_obj->value[2]].liq_name);
             return 1;
         default:
-            luaL_error(LS, "liquid for drinkcontainer and fountain only");
+            luaL_error(LS, "liquid for drink and fountain only");
     }
 
     return 0;
 )
-OBJVH( liquid, "fountain, drinkcontainer only. Name of liquid. See 'liq_table' table.", "");
+OBJVH( liquid, "fountain, drink only. Name of liquid. See 'liq_table' table.", "");
+
+OBJVGT( liquidcolor,
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FOUNTAIN:
+        case ITEM_DRINK_CON:
+            lua_pushstring( LS,
+                    liq_table[ud_obj->value[2]].liq_color);
+            return 1;
+        default:
+            luaL_error(LS, "liquidcolor for drink and fountain only");
+    }
+
+    return 0;
+)
+OBJVH( liquidcolor, "fountain, drink only. Color of liquid. See 'liq_table' table.", "");
 
 OBJVGT( poisoned, 
     switch(ud_obj->item_type)
@@ -2214,12 +2233,12 @@ OBJVGT( poisoned,
             lua_pushboolean( LS, ud_obj->value[3] );
             return 1;
         default:
-            luaL_error(LS, "poisoned for drinkcontainer and food only");
+            luaL_error(LS, "poisoned for drink and food only");
     }
 
     return 0;
 )
-OBJVH( poisoned, "drinkcontainer, food only. Return is boolean.", "");
+OBJVH( poisoned, "drink, food only. Return is boolean.", "");
 
 OBJVGETINT( foodhours, ITEM_FOOD, 0 )
 OBJVH( foodhours, "food only.", "");
@@ -4351,6 +4370,17 @@ HELPTOPIC CH_get_stance_help =
     .info="See 'stances' table."
 };
 
+static int CH_get_pet (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if ( ud_ch->pet && make_CH(LS, ud_ch->pet) )
+        return 1;
+    else
+        return 0;
+}
+HELPTOPIC CH_get_pet_help = {};
+
 static const LUA_PROP_TYPE CH_get_table [] =
 {
     CHGET(name, 0),
@@ -4392,6 +4422,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(groupsize, 0),
     CHGET(stance, 0),
     CHGET(description, 0),
+    CHGET(pet, 0),
     /* PC only */
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
@@ -4943,7 +4974,9 @@ static int OBJ_get_otype (lua_State *LS)
             item_name((check_OBJ(LS,1))->item_type));
     return 1;
 }
-HELPTOPIC OBJ_get_otype_help={};
+HELPTOPIC OBJ_get_otype_help={
+    .summary="Object's item type. See 'item_table' table."
+};
 
 static int OBJ_get_weight (lua_State *LS)
 {
@@ -5152,6 +5185,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( dicetype, 0),
     OBJGET( attacktype, 0),
     OBJGET( damtype, 0),
+    OBJGET( damnoun, 0),
     OBJGET( damavg, 0),
 
     /* container */
@@ -5164,6 +5198,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( liquidtotal, 0),
     OBJGET( liquidleft, 0),
     OBJGET( liquid, 0),
+    OBJGET( liquidcolor, 0),
     OBJGET( poisoned, 0),
 
     /*fountain*/
@@ -6633,6 +6668,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( dicetype, 0),
     OPGET( attacktype, 0),
     OPGET( damtype, 0),
+    OPGET( damnoun, 0),
     OPGET( damavg, 0),
 
     /* container */
@@ -6645,6 +6681,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( liquidtotal, 0),
     OPGET( liquidleft, 0),
     OPGET( liquid, 0),
+    OPGET( liquidcolor, 0),
     OPGET( poisoned, 0),
 
     /*fountain*/
@@ -6825,6 +6862,7 @@ MPGETSTR( stance, stances[ud_mobp->stance].name,
     "Mob's default stance." ,
     "See 'stances' table.");
 MPGETBOOL( ingame, is_mob_ingame( ud_mobp ),"" ,"");
+MPGETINT( count, ud_mobp->count, "", "");
 
 static int MOBPROTO_get_area (lua_State *LS)
 {
@@ -6894,6 +6932,7 @@ static const LUA_PROP_TYPE MOBPROTO_get_table [] =
     MPGET( ingame, 0),
     MPGET( mtrigs, 0),
     MPGET( shop, 0),
+    MPGET( count,0),
     ENDPTABLE
 };
 
