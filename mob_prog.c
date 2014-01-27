@@ -92,7 +92,7 @@ char last_debug[MSL] = "";
 #define CHK_ISVISIBLE   (21)
 #define CHK_HASTARGET   (22)
 #define CHK_ISTARGET    (23)
-#define CHK_EXISTS      (24)
+/*#define CHK_EXISTS      (24) never used*/
 #define CHK_AFFECTED    (25)
 #define CHK_ACT         (26)
 #define CHK_OFF         (27)
