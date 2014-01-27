@@ -520,6 +520,7 @@ const struct flag_type mprog_flags[] =
     {   "spell",        TRIG_SPELL,     TRUE    },
     {   "call",         TRIG_CALL,      FALSE   },
     {   "timer",        TRIG_TIMER,     TRUE    },
+    {   "command",      TRIG_COMMAND,   TRUE    },
 	{   NULL,           0,          TRUE    }
 };
 

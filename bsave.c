@@ -2427,6 +2427,12 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
         case 'E':
             if (!str_cmp(word,"End"))
             {
+                if (ch->pet) /* Already has pet? Probably a reconnect */
+                {
+                    /* don't load it after all*/
+                    extract_char(pet);
+                    return;
+                }
                 pet->leader = ch;
                 pet->master = ch;
                 ch->pet = pet;
