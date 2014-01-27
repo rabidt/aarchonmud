@@ -1695,6 +1695,16 @@ bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
             }
             else
             {
+                /* if there was a pet in the pfile then it
+                   was loaded up and we need to kill it */
+                if (d->character->pet)
+                {
+                    /* extract_char  because it's on the char_list */
+                    extract_char( d->character->pet, TRUE );
+                    
+                }
+
+                /* free_char because it's not on the char_list */
                 free_char( d->character );
                 d->character = ch;
                 ch->desc     = d;

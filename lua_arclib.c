@@ -4351,6 +4351,17 @@ HELPTOPIC CH_get_stance_help =
     .info="See 'stances' table."
 };
 
+static int CH_get_pet (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if ( ud_ch->pet && make_CH(LS, ud_ch->pet) )
+        return 1;
+    else
+        return 0;
+}
+HELPTOPIC CH_get_pet_help = {};
+
 static const LUA_PROP_TYPE CH_get_table [] =
 {
     CHGET(name, 0),
@@ -4392,6 +4403,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(groupsize, 0),
     CHGET(stance, 0),
     CHGET(description, 0),
+    CHGET(pet, 0),
     /* PC only */
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
