@@ -4973,7 +4973,9 @@ void bug_string( const char *str )
             wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
     }
     
-    sprintf(buf, "[*****] BUG: %s", str );
+    sprintf(buf, "[*****] BUG: %s\n\rLast command: %s", 
+            str,
+            last_command );
     log_string( buf );
     
     if ( enable_wiznet )
