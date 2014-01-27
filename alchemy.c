@@ -53,7 +53,8 @@ void reset_herbs_world()
     for ( i = 0; i < 24; i++ )
 #endif
     for ( pArea = area_first; pArea != NULL; pArea = pArea->next )
-        if ( pArea->security > 2 )
+        /* In game areas only -- Astark */
+        if ( pArea->security > 4 && pArea->security < 9 )
 	    reset_herbs_area( pArea );
 #ifdef HERB_DEBUG
     update_herb_reset();
@@ -76,7 +77,7 @@ void reset_herbs( ROOM_INDEX_DATA *room )
     int i;
     OBJ_DATA *herb;
 
-    if ( room == NULL || IS_SET(room->room_flags, ROOM_BARREN) )
+    if ( room == NULL || IS_SET(room->room_flags, ROOM_BARREN))
 	return;
 
     for ( i = 0; herb_table[i].vnum != 0; i++ )
