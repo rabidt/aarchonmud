@@ -17,7 +17,9 @@
  */
 static bool rp_percent_trigger(
         ROOM_INDEX_DATA *room, CHAR_DATA *ch1, CHAR_DATA *ch2, 
-        OBJ_DATA *obj1, OBJ_DATA *obj2, int type)
+        OBJ_DATA *obj1, OBJ_DATA *obj2, 
+        const char *text1,
+        int type)
 {
     if ( !HAS_RTRIG(room, type) )
         return TRUE;
@@ -29,7 +31,7 @@ static bool rp_percent_trigger(
 		if ( prg->trig_type == type
                 && number_percent() <= atoi( prg->trig_phrase ) )
         {
-            return lua_room_program( NULL, prg->vnum, prg->script->code, room, ch1, ch2, obj1, obj2, type, prg->script->security)
+            return lua_room_program( NULL, prg->vnum, prg->script->code, room, ch1, ch2, obj1, obj2, text1, type, prg->script->security)
                 && (ch1 ? !ch1->must_extract : TRUE )
                 && (ch2 ? !ch2->must_extract : TRUE )
                 && (obj1 ? !obj1->must_extract : TRUE )
@@ -43,6 +45,7 @@ static bool rp_act_trigger(
         ROOM_INDEX_DATA *room, 
         CHAR_DATA *ch1, CHAR_DATA *ch2, 
         OBJ_DATA *obj1, OBJ_DATA *obj2,
+        const char *text1,
         const char *trigger, int type)
 {
     if ( !HAS_RTRIG(room, type) )
@@ -56,7 +59,7 @@ static bool rp_act_trigger(
             && ( strstr(cap_all(trigger), cap_all(prg->trig_phrase)) != NULL
                 ||  !strcmp(prg->trig_phrase, "*") ) )
         {
-            return lua_room_program( NULL, prg->vnum, prg->script->code, room, ch1, ch2, obj1, obj2, type, prg->script->security)
+            return lua_room_program( NULL, prg->vnum, prg->script->code, room, ch1, ch2, obj1, obj2, text1, type, prg->script->security)
                 && (ch1 ? !ch1->must_extract : TRUE )
                 && (ch2 ? !ch2->must_extract : TRUE )
                 && (obj1 ? !obj1->must_extract : TRUE )
@@ -66,6 +69,7 @@ static bool rp_act_trigger(
     return TRUE;
 }
 
+/* similar to act trigger but it needs its own logic in the end */
 bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
 {
     if ( !ch->in_room )
@@ -75,12 +79,25 @@ bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
         return FALSE;
     }
 
-    return rp_act_trigger(
-            ch->in_room,
-            ch, NULL,
-            NULL, NULL,
-            cmd_table[cmd].name, RTRIG_COMMAND);
+    if ( !HAS_RTRIG(ch->in_room, RTRIG_COMMAND) )
+        return TRUE;
 
+    PROG_LIST *prg;
+
+    for ( prg = ch->in_room->rprogs; prg ; prg = prg->next )
+    {
+        if ( prg->trig_type == RTRIG_COMMAND
+                && !str_cmp( cmd_table[cmd].name, prg->trig_phrase ) )
+        {
+            return lua_room_program( cmd_table[cmd].name, 
+                    prg->vnum, prg->script->code,
+                    ch->in_room, ch, NULL, NULL, NULL, argument, 
+                    RTRIG_COMMAND, 
+                    prg->script->security)
+                && (ch ? !ch->must_extract : TRUE );
+        }
+    }
+    return TRUE;
 }
 
 
@@ -100,6 +117,7 @@ bool rp_try_trigger( char *argument, CHAR_DATA *ch )
     rp_act_trigger( ch->in_room,
             ch, NULL,
             NULL, NULL,
+            NULL,
             argument, RTRIG_TRY );
 
     return TRUE;
@@ -110,21 +128,21 @@ bool rp_enter_trigger( CHAR_DATA *ch )
 {
     return rp_percent_trigger(
             ch->in_room, ch, NULL,
-            NULL, NULL, RTRIG_ENTER);
+            NULL, NULL, NULL, RTRIG_ENTER);
 }
 
 bool rp_exit_trigger( CHAR_DATA *ch )
 {
     return rp_percent_trigger(
             ch->in_room, ch, NULL,
-            NULL, NULL, RTRIG_EXIT);
+            NULL, NULL, NULL, RTRIG_EXIT);
 }
 
 bool rp_look_trigger( CHAR_DATA *ch )
 {
     return rp_percent_trigger(
             ch->in_room, ch, NULL,
-            NULL, NULL, RTRIG_LOOK);
+            NULL, NULL, NULL, RTRIG_LOOK);
 }
 
 /* base function for exit specific triggers */
@@ -148,7 +166,7 @@ static bool exit_trigger( CHAR_DATA *ch, ROOM_INDEX_DATA *room, int door, int ty
                 && ( !strcmp(prg->trig_phrase, dirname ) )
                     || !strcmp(prg->trig_phrase, "*" ) )
         {
-            return lua_room_program( dirname, prg->vnum, prg->script->code, room, ch, NULL, NULL, NULL, type, prg->script->security)
+            return lua_room_program( dirname, prg->vnum, prg->script->code, room, ch, NULL, NULL, NULL, NULL, type, prg->script->security)
                 && (ch ? !ch->must_extract : TRUE );
         }
     }
@@ -198,7 +216,7 @@ void rp_timer_trigger( ROOM_INDEX_DATA *room )
         {
             lua_room_program( NULL, prg->vnum, prg->script->code, 
                    room,
-                   NULL, NULL, NULL, NULL,
+                   NULL, NULL, NULL, NULL, NULL,
                    RTRIG_TIMER, prg->script->security);
             return;
         }
