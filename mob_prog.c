@@ -1666,10 +1666,12 @@ bool mp_spell_trigger( char* argument, CHAR_DATA *mob, CHAR_DATA *ch)
     return found;
 }
 
-bool mp_command_trigger( CHAR_DATA *ch, int cmd )
+/* similar to act trigger but needs its own logic */
+bool mp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
 {
     CHAR_DATA *mob;
     CHAR_DATA *next_char;
+    PROG_LIST *prg;
 
     if ( !ch->in_room )
     {
@@ -1680,10 +1682,21 @@ bool mp_command_trigger( CHAR_DATA *ch, int cmd )
     for ( mob = ch->in_room->people; mob; mob=next_char )
     {
         next_char = mob->next_in_room;
-        if ( IS_NPC(mob) && HAS_TRIGGER(mob, TRIG_COMMAND) )
+        if ( IS_NPC(mob) 
+                && HAS_TRIGGER(mob, TRIG_COMMAND) )
         {
-            if (mp_act_trigger(cmd_table[cmd].name, mob, ch, NULL, 0, NULL, 0, TRIG_COMMAND))
-                return TRUE;
+            for ( prg=mob->pIndexData->mprogs ; prg ; prg = prg->next )
+            {
+                if ( prg->trig_type == TRIG_COMMAND
+                        && !str_cmp( cmd_table[cmd].name, prg->trig_phrase) )
+                {
+                    program_flow( cmd_table[cmd].name, prg->script->is_lua,
+                            prg->vnum, prg->script->code,
+                            mob, ch, argument, ACT_ARG_TEXT, NULL, 0, RTRIG_COMMAND,
+                            prg->script->security );
+                    return TRUE;
+                }
+            }
         }
     }
 
