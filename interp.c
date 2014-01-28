@@ -515,7 +515,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "jail",       do_jail,    POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "penlist",    do_penlist, POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "omni",       do_omni,    POS_DEAD,   L4,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "otype",      do_otype,    POS_DEAD,   L4,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "permban",    do_permban, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "portal",     do_portal,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "reboo",      do_reboo,   POS_DEAD,   ML,  LOG_NORMAL, 0, FALSE, FALSE  },
