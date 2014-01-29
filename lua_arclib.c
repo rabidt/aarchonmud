@@ -71,6 +71,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 #define SHOPGET( field, sec) GETP( SHOP, field, sec)
 #define SHOPMETH( field, sec) METH( SHOP, field, sec)
 
+#define AFFGET( field, sec) GETP( AFFECT, field, sec)
+
 typedef struct lua_help_topic
 {
     char *summary;
@@ -99,6 +101,7 @@ OBJ_TYPE *RESET_type=NULL;
 OBJ_TYPE *OBJPROTO_type=NULL;
 OBJ_TYPE *MOBPROTO_type=NULL;
 OBJ_TYPE *SHOP_type=NULL;
+OBJ_TYPE *AFFECT_type=NULL;
 OBJ_TYPE *PROG_type=NULL;
 OBJ_TYPE *MTRIG_type=NULL;
 OBJ_TYPE *OTRIG_type=NULL;
@@ -117,6 +120,7 @@ OBJ_TYPE *type_list [] =
     &OBJPROTO_type,
     &MOBPROTO_type,
     &SHOP_type,
+    &AFFECT_type,
     &PROG_type,
     &MTRIG_type,
     &OTRIG_type,
@@ -7064,6 +7068,33 @@ static const LUA_PROP_TYPE SHOP_method_table [] =
 };
 /* end SHOP section */
 
+/* AFFECT section */
+static const LUA_PROP_TYPE AFFECT_get_table [] =
+{
+/*    AFFGET( where, 0),
+    AFFGET( type, 0),
+    AFFGET( level, 0),
+    AFFGET( duration, 0),
+    AFFGET( location, 0),
+    AFFGET( modifier, 0),
+    AFFGET( bitvector, 0),
+    AFFGET( detectlevel, 0),*/
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE AFFECT_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE AFFECT_method_table [] =
+{
+    ENDPTABLE
+};
+
+
+/* end AFFECT section */
+
 /* PROG section */
 static int PROG_get_islua ( lua_State *LS )
 {
@@ -7617,6 +7648,7 @@ void type_init( lua_State *LS)
     TYPEINIT(OBJPROTO);
     TYPEINIT(MOBPROTO);
     TYPEINIT(SHOP);
+    TYPEINIT(AFFECT);
     TYPEINIT(PROG);
     if (!MTRIG_type)
         MTRIG_type=new_obj_type(
