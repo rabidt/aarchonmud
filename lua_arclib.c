@@ -6629,6 +6629,23 @@ static int OBJPROTO_get_otrigs ( lua_State *LS)
 }
 HELPTOPIC OBJPROTO_get_otrigs_help = {};
 
+static int OBJPROTO_get_affects ( lua_State *LS)
+{
+    OBJ_INDEX_DATA *ud_oid=check_OBJPROTO( LS, 1);
+    AFFECT_DATA *af;
+    
+    int index=1;
+    lua_newtable( LS );
+
+    for ( af = ud_oid->affected ; af ; af = af->next )
+    {
+        if (make_AFFECT( LS, af) )
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_affects_help = {};
+
 static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
     OPGET( name, 0),
@@ -6650,6 +6667,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( area, 0),
     OPGET( ingame, 0),
     OPGET( otrigs, 0),
+    OPGET( affects, 0),
 
     /*light*/
     OPGET(light, 0),
@@ -7069,15 +7087,99 @@ static const LUA_PROP_TYPE SHOP_method_table [] =
 /* end SHOP section */
 
 /* AFFECT section */
+static int AFFECT_get_where ( lua_State *LS )
+{
+    AFFECT_DATA *ud_af=check_AFFECT(LS,1);
+
+    lua_pushstring( LS,
+            flag_stat_string( apply_types, ud_af->where ) );
+    return 1;
+}
+HELPTOPIC AFFECT_get_where_help ={};
+
+static int AFFECT_get_type ( lua_State *LS )
+{
+    AFFECT_DATA *ud_af=check_AFFECT(LS,1);
+
+    if (ud_af->type < 1)
+    {
+        lua_pushliteral( LS, "none");
+        return 1;
+    }
+    else
+    {
+        lua_pushstring( LS,
+                skill_table[ud_af->type].name );
+        return 1;
+    }
+}
+HELPTOPIC AFFECT_get_type_help = {};
+
+static int AFFECT_get_location ( lua_State *LS )
+{
+    AFFECT_DATA *ud_af=check_AFFECT(LS,1);
+
+    lua_pushstring( LS,
+            flag_stat_string( apply_flags, ud_af->location ) );
+    return 1;
+}
+HELPTOPIC AFFECT_get_location_help = {};
+
+static int AFFECT_get_bitvector ( lua_State *LS )
+{
+    AFFECT_DATA *ud_af=check_AFFECT(LS,1);
+
+    switch (ud_af->where)
+    {
+        case TO_AFFECTS:
+            lua_pushstring(LS,
+                    flag_bit_name( affect_flags, ud_af->bitvector ) ); 
+            break;
+        case TO_OBJECT:
+            lua_pushstring(LS, 
+                    flag_bit_name( extra_flags, ud_af->bitvector ) ); 
+            break;
+        case TO_WEAPON:
+            /* tbc, make it return table of flags */
+            lua_pushstring(LS,
+                    i_flag_bits_name( weapon_type2, ud_af->bitvector ) );
+            break;
+        case TO_IMMUNE:
+            lua_pushstring(LS,
+                    flag_bit_name( imm_flags, ud_af->bitvector ) );
+            break;
+        case TO_RESIST:
+            lua_pushstring(LS,
+                    flag_bit_name( res_flags, ud_af->bitvector ) );
+            break;
+        case TO_VULN:
+            lua_pushstring(LS,
+                    flag_bit_name( vuln_flags, ud_af->bitvector ) );
+            break;
+        case TO_SPECIAL:
+            lua_pushinteger( LS, ud_af->bitvector );
+            break;
+        default:
+            luaL_error( LS, "Invalid where." );
+    }
+    return 1;
+}
+HELPTOPIC AFFECT_get_bitvector_help = {};
+
 static const LUA_PROP_TYPE AFFECT_get_table [] =
 {
-/*    AFFGET( where, 0),
+    AFFGET( where, 0),
     AFFGET( type, 0),
+    /*
     AFFGET( level, 0),
     AFFGET( duration, 0),
+    */
     AFFGET( location, 0),
+    /*
     AFFGET( modifier, 0),
+    */
     AFFGET( bitvector, 0),
+    /*
     AFFGET( detectlevel, 0),*/
     ENDPTABLE
 };
