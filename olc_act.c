@@ -3984,6 +3984,11 @@ OEDIT( oedit_addapply )
         show_help( ch, "apptype" );
         return FALSE;
     }
+    else if ( !apply_types[typ].settable )
+    {
+        send_to_char( "Cannot set type.\n\r", ch );
+        return FALSE;
+    }
     
     if ( bvector[0] == '\0' || 
 	 ( bv = flag_value( bitvector_type[typ].table, bvector ) ) == NO_FLAG )
