@@ -54,8 +54,8 @@ void reset_herbs_world()
 #endif
     for ( pArea = area_first; pArea != NULL; pArea = pArea->next )
         /* In game areas only -- Astark */
-        if ( pArea->security > 4 && pArea->security < 9 )
-	    reset_herbs_area( pArea );
+        if ( is_area_ingame( pArea ) )
+	        reset_herbs_area( pArea );
 #ifdef HERB_DEBUG
     update_herb_reset();
 #endif
