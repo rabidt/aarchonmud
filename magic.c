@@ -3618,7 +3618,7 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             || IS_TAG(ch) || IS_TAG(victim)
             || victim->in_room == NULL
             || !can_see_room(ch,victim->in_room) 
-            || victim->in_room->area->security < 5
+            || !is_room_ingame(victim->in_room)
             || (!IS_NPC(victim) && victim->level >= LEVEL_HERO) ) /*not trust*/
     {
         send_to_char( "You failed completely.\n\r", ch );
@@ -5398,8 +5398,7 @@ void spell_teleport( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     pRoomIndex = get_random_room(victim);
 
     if ( pRoomIndex == NULL 
-            || pRoomIndex->area->security < 5
-            || pRoomIndex->area->security > 8 /* Added this - Astark 1-7-13 */ 
+            || !is_room_ingame(pRoomIndex)
             || !can_see_room(ch,pRoomIndex) 
             /* Teleport wasn't working because the IS_SET check was missing - Astark 1-7-13 */
             || !can_move_room(victim, pRoomIndex, FALSE)
