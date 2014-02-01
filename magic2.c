@@ -88,7 +88,7 @@ void spell_portal( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     if ( (room = get_portal_room(target_name)) == NULL
 	 || !can_see_room(ch, room)
-	 || (room->area->security < 5) )
+	 || !is_room_ingame(room) )
     {
 	send_to_char( "Spell failed to create a portal.\n\r", ch );
 	return;
@@ -150,7 +150,7 @@ void spell_nexus( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
     if ( (to_room = get_portal_room(target_name)) == NULL
 	 || !can_see_room(ch, to_room)
-	 || (to_room->area->security < 5) )
+	 || !is_room_ingame(to_room) )
     {
 	send_to_char( "Spell failed to create a nexus.\n\r", ch );
 	return;
@@ -2015,7 +2015,7 @@ void spell_water_elemental( int sn, int level, CHAR_DATA *ch, void *vo, int targ
     rename(name);
     sprintf(buf, "A %s elemental", liquid_name);
     rename(short_descr);
-    sprintf(buf, "A %s elemental flows along.\n\r", liquid_name);
+    sprintf(buf, "A %s elemental flows along.", liquid_name);
     rename(long_descr);
     sprintf(buf, "%s has imbued this blob of %s with an elemental spirit.\n\r", ch->name, liquid_name);
     rename(description);

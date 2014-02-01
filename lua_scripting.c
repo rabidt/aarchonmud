@@ -153,7 +153,7 @@ static bool lua_load_prog( lua_State *LS, int vnum, const char *code, LUA_SCRIPT
     {
         if ( vnum == LOADSCRIPT_VNUM )
             luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
-        bugf ( "LUA %s error loading vnum%d:\n %s",
+        bugf ( "LUA %s error loading vnum %d:\n %s",
                 scripter->name,
                 vnum,
                 lua_tostring( LS, -1));
