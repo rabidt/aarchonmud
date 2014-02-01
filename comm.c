@@ -1245,18 +1245,6 @@ bool flush_descriptor( DESCRIPTOR_DATA *d )
         else
             ch = d->character;
 
-        if ( IS_SET(ch->act, PLR_TRIG_SAFE) )
-        {
-            char *p, *lastp;
-
-            lastp = &(d->outbuf[d->outtop]);
-            for ( p = d->outbuf; p < lastp; p++ )
-            {
-                /* look for following char to see if it's color code */
-                if ( *p == ';' && p[1] != '3' )
-                    *p = ',';
-            }
-        }
     }
 
     int written = write_to_descriptor(d->descriptor, d->outbuf, d->outtop);
@@ -3109,10 +3097,21 @@ void nasty_signal_handler (int no)
 
     write_last_command();
 
-    /* try to catch things with a copyover */
-    if ( (ch=create_mobile(get_mob_index(2))) != NULL )
-        do_copyover ( ch, "system error: trying to recover with copyover" );
-    exit(0);
+    pid_t forkpid=fork();
+    if (forkpid>0)
+    {
+        /* wait for forked process to exit */
+        waitpid(forkpid, NULL, 0);
+        /* try to catch things with a copyover */
+        if ( (ch=create_mobile(get_mob_index(2))) != NULL )
+            do_copyover ( ch, "system error: trying to recover with copyover" );
+        exit(0);
+    }
+    else
+    {
+        /* forked process */
+        abort(); /* make the core */
+    }
 }
 
 /* Call this before starting the game_loop */

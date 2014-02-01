@@ -364,7 +364,7 @@ void do_combat( CHAR_DATA *ch, char *argument )
         affect_strip( ch, gsn_god_bless );
         affect_strip( ch, gsn_god_curse );
     }
-    die_follower( ch );
+    die_follower( ch, true );
     ch->pcdata->warfare_hp=ch->hit;
     ch->pcdata->warfare_mana=ch->mana;
     ch->pcdata->warfare_move=ch->move;
