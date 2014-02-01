@@ -1714,7 +1714,8 @@ void do_look( CHAR_DATA *ch, char *argument )
         show_list_to_char( ch->in_room->contents, ch, FALSE, FALSE );
         show_char_to_char( ch->in_room->people,   ch );
         
-        if ( !IS_NPC(ch) && ch->hunting )
+        // stalk "all" is special usage for ambush, shouldn't trigger hunt
+        if ( !IS_NPC(ch) && ch->hunting && strcmp(ch->hunting, "all") )
         {
             // we may be lagged, so any hunting time is additive; stalk is handled in do_hunt
             int old_wait = ch->wait;

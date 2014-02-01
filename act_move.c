@@ -532,7 +532,8 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             && fch->position == POS_STANDING
             && per_chance(get_skill(fch, gsn_ambush))
             && !is_safe_spell(fch, ch, TRUE)
-            && (IS_NPC(fch) || fch->hunting==NULL || is_name(fch->hunting, ch->name)))
+            && fch->hunting
+            && (!strcmp(fch->hunting, "all") || is_name(fch->hunting, ch->name)) )
         {
             check_improve(fch, gsn_ambush, TRUE, 2);
             backstab_char( fch, ch );
