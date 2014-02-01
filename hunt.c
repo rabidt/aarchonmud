@@ -908,10 +908,12 @@ void do_stalk( CHAR_DATA *ch, char *argument )
     }
     
     if (ch->hunting) free_string(ch->hunting);
-    ch->hunting = str_dup( argument );
+        ch->hunting = str_dup( argument );
     
-    if (ch->fighting == NULL)
-	do_hunt(ch, argument);
+    if ( !strcmp(argument, "all") )
+        send_to_char("You prepare to ambush anyone who comes along.", ch);
+    else if ( ch->fighting == NULL )
+        do_hunt(ch, argument);
 }
 
 
