@@ -3618,7 +3618,7 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             || IS_TAG(ch) || IS_TAG(victim)
             || victim->in_room == NULL
             || !can_see_room(ch,victim->in_room) 
-            || victim->in_room->area->security < 5
+            || !is_room_ingame(victim->in_room)
             || (!IS_NPC(victim) && victim->level >= LEVEL_HERO) ) /*not trust*/
     {
         send_to_char( "You failed completely.\n\r", ch );
@@ -4196,15 +4196,10 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
                 case(WEAPON_BOW): send_to_char("bow.\n\r",ch);  break; 
                 default     : send_to_char("unknown.\n\r",ch);  break;
             }
-            if (obj->pIndexData->new_format)
-                sprintf(buf,"It does %s damage of %dd%d (average %d).\n\r",
-                        attack_table[obj->value[3]].noun,
-                        obj->value[1],obj->value[2],
-                        (1 + obj->value[2]) * obj->value[1] / 2);
-            else
-                sprintf( buf, "Damage is %d to %d (average %d).\n\r",
-                        obj->value[1], obj->value[2],
-                        ( obj->value[1] + obj->value[2] ) / 2 );
+            sprintf(buf,"It does %s damage of %dd%d (average %d).\n\r",
+                    attack_table[obj->value[3]].noun,
+                    obj->value[1],obj->value[2],
+                    (1 + obj->value[2]) * obj->value[1] / 2);
             send_to_char( buf, ch );
             if (obj->value[4])  /* weapon flags */
             {
@@ -4523,13 +4518,14 @@ void spell_mass_healing(int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        if ((IS_NPC(ch) && IS_NPC(gch)) ||
-                (!IS_NPC(ch) && !IS_NPC(gch)))
-        {
-            spell_heal(heal_num,level,ch,(void *) gch,TARGET_CHAR);
-            spell_refresh(refresh_num,level,ch,(void *) gch,TARGET_CHAR);  
-            check_sn_multiplay( ch, gch, sn );
-        }
+        if ( !can_spellup(ch, gch, sn) )
+            continue;
+        if ( gch->fighting && is_same_group(ch, gch->fighting) )
+            continue;
+
+        spell_heal(heal_num, level, ch, (void *) gch, TARGET_CHAR);
+        spell_refresh(refresh_num, level, ch, (void *) gch, TARGET_CHAR);  
+        check_sn_multiplay(ch, gch, sn);
     }
 }
 
@@ -5402,8 +5398,7 @@ void spell_teleport( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     pRoomIndex = get_random_room(victim);
 
     if ( pRoomIndex == NULL 
-            || pRoomIndex->area->security < 5
-            || pRoomIndex->area->security > 8 /* Added this - Astark 1-7-13 */ 
+            || !is_room_ingame(pRoomIndex)
             || !can_see_room(ch,pRoomIndex) 
             /* Teleport wasn't working because the IS_SET check was missing - Astark 1-7-13 */
             || !can_move_room(victim, pRoomIndex, FALSE)

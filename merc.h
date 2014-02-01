@@ -268,6 +268,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define PULSE_HERB            ( 15 * 60 * PULSE_PER_SECOND )
 #define PULSE_TIMER_TRIG      ( PULSE_PER_SECOND )
 #define PULSE_PER_MINUTE	( 60 * PULSE_PER_SECOND )
+#define PULSE_LUA_ARCGC     ( 5 * PULSE_PER_MINUTE )
 /* #define PULSE_HERB            ( 15 * PULSE_PER_SECOND ) */
 
 /* times */
@@ -288,7 +289,7 @@ bool is_questeq( OBJ_DATA *obj );
 #endif
 /* version numbers for downward compatibility
  */
-#define CURR_AREA_VERSION 2 
+#define CURR_AREA_VERSION 3 
 
 /*#define CREATOR         (MAX_LEVEL - 1)
 #define SUPREME         (MAX_LEVEL - 2)
@@ -322,6 +323,9 @@ bool is_questeq( OBJ_DATA *obj );
 #define L9  MAX_LEVEL - 9   /* builder */
 #define IM  LEVEL_IMMORTAL  /* builder */
 #define HE  LEVEL_HERO  /* hero */
+
+/* Used to tell god functions to use their default duration. */
+#define GOD_FUNC_DEFAULT_DURATION -1
 
 /*
  * Colour stuff by Lope of Loping Through The MUD
@@ -2179,7 +2183,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_NOACCEPT    (ii)
 #define PLR_NOSURR      (jj)
 #define PLR_RP          (kk)
-#define PLR_TRIG_SAFE   (ll)
+//#define PLR_TRIG_SAFE   (ll) /* removed */
 #define PLR_INACTIVE_HELPER (mm)
 #define PLR_ANTI_HELEPR (nn)
 #define PLR_NOEXP       (oo)
@@ -2331,7 +2335,6 @@ struct  mob_index_data_old
 	AREA_DATA *     area;       /* OLC */
 	int      vnum;
 	sh_int      group;
-	bool        new_format;
 	sh_int      count;
 	sh_int      killed;
 	char *      player_name;
@@ -2805,7 +2808,6 @@ struct  obj_index_data
 	EXTRA_DESCR_DATA *  extra_descr;
 	AFFECT_DATA *   affected;
 	AREA_DATA *        area;       /* OLC */
-	bool        new_format;
 	char *      name;
 	char *      short_descr;
 	char *      description;
@@ -4118,7 +4120,7 @@ void    check_sex   args( ( CHAR_DATA *ch) );
 void    add_follower    args( ( CHAR_DATA *ch, CHAR_DATA *master ) );
 void    stop_follower   args( ( CHAR_DATA *ch ) );
 void    nuke_pets   args( ( CHAR_DATA *ch ) );
-void    die_follower    args( ( CHAR_DATA *ch ) );
+void    die_follower    args( ( CHAR_DATA *ch, bool preservePets ) );
 bool    is_same_group   args( ( CHAR_DATA *ach, CHAR_DATA *bch ) );
 void    info_message  args( ( CHAR_DATA *ch, char *argument, bool show_to_char) );
 char    *makedrunk      args( (char *string ,CHAR_DATA *ch) );

@@ -1402,10 +1402,7 @@ int get_weapon_damage( OBJ_DATA *wield )
     if ( wield == NULL )
 	return 0;
     
-    if ( wield->pIndexData->new_format )
 	weapon_dam = dice( wield->value[1], wield->value[2] );
-    else
-	weapon_dam = number_range( wield->value[1], wield->value[2] );
 
     /* sharpness! */
     if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) )
@@ -2984,11 +2981,26 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	int iron_dam;
         int dam_cap;
 
- /* Added the IS_NPC(ch) check because it wasn't working properly - Astark 1-6-13 */
-        if (IS_NPC(victim) && IS_NPC(ch))
-            dam = 0;
-
-	if ( IS_NPC(ch) )
+    if ( IS_NPC(ch) )
+    {
+        if ( IS_NPC(victim) )
+        {
+            iron_dam = 0; /* NPC vs NPC hits don't cause iron maiden damage */
+        }
+        else
+        {
+            iron_dam = dam/2; /* PC -> NPC hit */
+        }
+    }
+    else
+    {
+        iron_dam = dam/4; /* NPC/PC -> PC hit */
+    }
+        
+              
+    if ( IS_NPC(victim) && IS_NPC(ch))
+        iron_dam = 0;
+    else if ( IS_NPC(ch) )
 	    iron_dam = dam/2;
 	else
 	    iron_dam = dam/4;

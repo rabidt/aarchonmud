@@ -219,7 +219,6 @@ const   struct  cmd_type    cmd_table   [] =
 	{ "toggle",	    do_toggle,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "unalias",    do_unalias, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "wimpy",      do_wimpy,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "triggersafe", do_trigger_safe, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "noexp",      do_noexp,       POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
     { "nohelp",     do_nohelp,      POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
     
@@ -516,7 +515,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "jail",       do_jail,    POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "penlist",    do_penlist, POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "omni",       do_omni,    POS_DEAD,   L4,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "otype",      do_otype,    POS_DEAD,   L4,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "permban",    do_permban, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "portal",     do_portal,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "reboo",      do_reboo,   POS_DEAD,   ML,  LOG_NORMAL, 0, FALSE, FALSE  },
@@ -604,6 +602,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "luahelp",    do_luahelp, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaconfig",  do_luaconfig, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaquery",   do_luaquery, POS_DEAD,  ML,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  }, 
 
     /*
     * OLC
@@ -933,7 +932,15 @@ bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact 
     
     if ( !found )
         return FALSE;
-    
+
+    /* for debug, record social as last command */
+    if ( !IS_NPC(ch) )
+        sprintf (last_command, "[%5d] %s in [%5d]: (social) %s %s",
+             IS_NPC(ch) ? ch->pIndexData->vnum : 0,
+             IS_NPC(ch) ? ch->short_descr : ch->name,
+             ch->in_room ? ch->in_room->vnum : 0,
+             command, argument);
+
     if ( !IS_NPC(ch) && IS_SET(ch->penalty, PENALTY_NOEMOTE) )
     {
         send_to_char( "You are anti-social!\n\r", ch );

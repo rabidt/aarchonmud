@@ -68,6 +68,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 
 #define TRIGGET( field, sec) GETP( TRIG, field, sec)
 
+#define SHOPGET( field, sec) GETP( SHOP, field, sec)
+#define SHOPMETH( field, sec) METH( SHOP, field, sec)
 
 typedef struct lua_help_topic
 {
@@ -96,6 +98,7 @@ OBJ_TYPE *EXIT_type=NULL;
 OBJ_TYPE *RESET_type=NULL;
 OBJ_TYPE *OBJPROTO_type=NULL;
 OBJ_TYPE *MOBPROTO_type=NULL;
+OBJ_TYPE *SHOP_type=NULL;
 OBJ_TYPE *PROG_type=NULL;
 OBJ_TYPE *MTRIG_type=NULL;
 OBJ_TYPE *OTRIG_type=NULL;
@@ -113,6 +116,7 @@ OBJ_TYPE *type_list [] =
     &RESET_type,
     &OBJPROTO_type,
     &MOBPROTO_type,
+    &SHOP_type,
     &PROG_type,
     &MTRIG_type,
     &OTRIG_type,
@@ -277,6 +281,12 @@ static void register_type( OBJ_TYPE *tp,
 static bool make_func( OBJ_TYPE *self,
         lua_State *LS, void *game_obj)
 {
+    if (!game_obj)
+    {
+        bugf("make_%s called with NULL object", self->type_name);
+        return FALSE;
+    }
+
     /* we don't want stuff that was destroyed */
     if ( self == CH_type && ((CHAR_DATA *)game_obj)->must_extract )
         return FALSE;
@@ -459,17 +469,8 @@ static int utillib_format_color_string( lua_State *LS )
     return 1;
 }
 HELPTOPIC utillib_format_color_string_help = {};
-              
-
-static int godlib_bless (lua_State *LS)
-{
-    CHAR_DATA *ch=check_CH(LS,1);
-
-    lua_pushboolean( LS,
-            god_bless( NULL, ch, "" ));
-    return 1;
-}
-#define GODLIBHELP( funcname ) \
+            
+#define GODLIBHELP_INSTANT( funcname ) \
 HELPTOPIC godlib_ ## funcname ## _help = \
 {\
     .summary="God " #funcname " target CH.", \
@@ -481,17 +482,54 @@ HELPTOPIC godlib_ ## funcname ## _help = \
     "Note:\n\r"\
     "Return value is whether the " #funcname " was successful."\
 }
-GODLIBHELP( bless );
+
+#define GODLIBHELP_DURATION( funcname ) \
+HELPTOPIC godlib_ ## funcname ## _help = \
+{\
+    .summary="God " #funcname " target CH.", \
+    .info=\
+    "Arguments: target[CH] <, duration[int]\n\r\n\r"\
+    "Return: success[boolean]\n\r\n\r"\
+    "Example:\n\r"\
+    "god." #funcname "(ch)\n\r\n\r"\
+    "Note:\n\r"\
+    "Return value is whether the " #funcname " was successful. "\
+    "If optional second argument is given it will override the "\
+    "default duration for " #funcname "."\
+}
+
+static int godlib_helper_get_duration(lua_State* LS, int index)
+{
+    if (lua_isnone(LS, index))
+    {
+        return GOD_FUNC_DEFAULT_DURATION;
+    }
+    else
+    {
+        return luaL_checkinteger(LS, index);
+    }
+}
+
+static int godlib_bless (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+
+    lua_pushboolean( LS,
+            god_bless( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
+    return 1;
+}
+GODLIBHELP_DURATION( bless );
+
 
 static int godlib_curse (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_curse( NULL, ch, "" ));
+            god_curse( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( curse );
+GODLIBHELP_DURATION( curse );
 
 static int godlib_heal (lua_State *LS)
 {
@@ -499,112 +537,112 @@ static int godlib_heal (lua_State *LS)
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_heal( NULL, ch, "" ));
+            god_heal( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( heal );
+GODLIBHELP_DURATION( heal );
 
 static int godlib_speed (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_speed( NULL, ch, "" ));
+            god_speed( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1; 
 }
-
-GODLIBHELP( speed );
+GODLIBHELP_DURATION( speed );
 
 static int godlib_slow (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_slow( NULL, ch, "" ));
+            god_slow( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1; 
 }
-
-GODLIBHELP( slow );
+GODLIBHELP_DURATION( slow );
 
 static int godlib_cleanse (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_cleanse( NULL, ch, "" ));
+            god_cleanse( NULL, ch, "", GOD_FUNC_DEFAULT_DURATION ));
     return 1; 
 }
-GODLIBHELP( cleanse );
+GODLIBHELP_INSTANT( cleanse );
 
 static int godlib_defy (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_defy( NULL, ch, "" ));
+            god_defy( NULL, ch, "", GOD_FUNC_DEFAULT_DURATION ));
     return 1; 
 }
-GODLIBHELP( defy );
+GODLIBHELP_INSTANT( defy );
 
 static int godlib_enlighten (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_enlighten( NULL, ch, "" ));
+            god_enlighten( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1; 
 }
-GODLIBHELP( enlighten );
+GODLIBHELP_DURATION( enlighten );
 
 static int godlib_protect (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_protect( NULL, ch, "" ));
+            god_protect( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( protect );
+GODLIBHELP_DURATION( protect );
 
 static int godlib_fortune (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_fortune( NULL, ch, "" ));
+            god_fortune( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( fortune );
+GODLIBHELP_DURATION( fortune );
 
 static int godlib_haunt (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_haunt( NULL, ch, "" ));
+            god_haunt( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( haunt );
+GODLIBHELP_DURATION( haunt );
 
 static int godlib_plague (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
     lua_pushboolean( LS,
-            god_plague( NULL, ch, "" ));
+            god_plague( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( plague );
+GODLIBHELP_DURATION( plague );
 
 static int godlib_confuse (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
 
+    
+
     lua_pushboolean( LS,
-            god_confuse( NULL, ch, "" ));
+            god_confuse( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP( confuse );
+GODLIBHELP_DURATION( confuse );
 
 static int glob_sendtochar (lua_State *LS)
 {
@@ -652,6 +690,17 @@ HELPTOPIC glob_dammessage_help =
           "local sng,pl,pnct=dammessage(111)\n\r\n\r"
           "Note:\n\r\n\r"
 };
+
+static int glob_do_luaquery ( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "do_luaquery");
+    lua_insert(LS, 1);
+    lua_call( LS, top, LUA_MULTRET );
+
+    return lua_gettop(LS);
+}
+HELPTOPIC glob_do_luaquery_help={};
 
 
 static int glob_clearloopcount (lua_State *LS)
@@ -1023,6 +1072,30 @@ HELPTOPIC glob_getarealist_help={
           "local arealist=getarealist()\n\r\n\r"
 };
 
+static int glob_getshoplist ( lua_State *LS)
+{
+    SHOP_DATA *shop;
+    
+    int index=1;
+    lua_newtable(LS);
+
+    for ( shop=shop_first ; shop ; shop=shop->next )
+    {
+        if (make_SHOP(LS, shop))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+HELPTOPIC glob_getshoplist_help=
+{
+    .summary="Return a table of all shops in the game.",
+    .info="Arguments: non\n\r\n\r"
+          "Return: shops[table of SHOPs]\n\r\n\r"
+          "Exampe:\n\r"
+          "local shoplist=getshoplist()\n\r\n\r"
+};
+
 /* Mersenne Twister pseudo-random number generator */
 
 static int mtlib_srand (lua_State *LS)
@@ -1230,8 +1303,12 @@ GLOB_TYPE glob_table[] =
     GFUN(getmoblist,    9),
     GFUN(getplayerlist, 9),
     GFUN(getarealist,   9),
+    GFUN(getshoplist,   9),
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
+#ifdef TESTER
+    GFUN(do_luaquery,   9),
+#endif
 
     GODF(confuse),
     GODF(curse),
@@ -2046,8 +2123,11 @@ OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
 OBJVH( attacktype, "weapon only. See 'attack_table' table. Value corresponds to 'Name' column.", "");
 
 OBJVGETSTR( damtype, ITEM_WEAPON, 
-        flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) );
+        flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) )
 OBJVH( damtype, "weapon only. See 'attack_table' table. Value corresponds to 'Damtype' column.", "");
+
+OBJVGETSTR( damnoun, ITEM_WEAPON, attack_table[ud_obj->value[3]].noun )
+OBJVH( damnoun, "weapon only. See 'attack_table' table. Value corresponds to 'Noun' column.", "");
 
 static int OBJ_get_damavg( lua_State *LS )
 {
@@ -2091,12 +2171,12 @@ OBJVGT( liquidtotal,
             lua_pushinteger( LS, ud_obj->value[0] );
             return 1;
         default:
-            luaL_error(LS, "liquidtotal for drinkcontainer and fountain only");
+            luaL_error(LS, "liquidtotal for drink and fountain only");
     }
 
     return 0;
 )
-OBJVH( liquidtotal, "fountain, drinkcontainer only. Max liquid value.", "");
+OBJVH( liquidtotal, "fountain, drink only. Max liquid value.", "");
 
 OBJVGT( liquidleft,
     switch(ud_obj->item_type)
@@ -2106,12 +2186,12 @@ OBJVGT( liquidleft,
             lua_pushinteger( LS, ud_obj->value[1] );
             return 1;
         default:
-            luaL_error(LS, "liquidleft for drinkcontainer and fountain only");
+            luaL_error(LS, "liquidleft for drink and fountain only");
     }
 
     return 0;
 )
-OBJVH( liquidleft, "fountain, drinkcontainer only. Current liquid value.", "");
+OBJVH( liquidleft, "fountain, drink only. Current liquid value.", "");
 
 OBJVGT( liquid,
     switch(ud_obj->item_type)
@@ -2122,12 +2202,28 @@ OBJVGT( liquid,
                     liq_table[ud_obj->value[2]].liq_name);
             return 1;
         default:
-            luaL_error(LS, "liquid for drinkcontainer and fountain only");
+            luaL_error(LS, "liquid for drink and fountain only");
     }
 
     return 0;
 )
-OBJVH( liquid, "fountain, drinkcontainer only. Name of liquid. See 'liq_table' table.", "");
+OBJVH( liquid, "fountain, drink only. Name of liquid. See 'liq_table' table.", "");
+
+OBJVGT( liquidcolor,
+    switch(ud_obj->item_type)
+    {
+        case ITEM_FOUNTAIN:
+        case ITEM_DRINK_CON:
+            lua_pushstring( LS,
+                    liq_table[ud_obj->value[2]].liq_color);
+            return 1;
+        default:
+            luaL_error(LS, "liquidcolor for drink and fountain only");
+    }
+
+    return 0;
+)
+OBJVH( liquidcolor, "fountain, drink only. Color of liquid. See 'liq_table' table.", "");
 
 OBJVGT( poisoned, 
     switch(ud_obj->item_type)
@@ -2137,12 +2233,12 @@ OBJVGT( poisoned,
             lua_pushboolean( LS, ud_obj->value[3] );
             return 1;
         default:
-            luaL_error(LS, "poisoned for drinkcontainer and food only");
+            luaL_error(LS, "poisoned for drink and food only");
     }
 
     return 0;
 )
-OBJVH( poisoned, "drinkcontainer, food only. Return is boolean.", "");
+OBJVH( poisoned, "drink, food only. Return is boolean.", "");
 
 OBJVGETINT( foodhours, ITEM_FOOD, 0 )
 OBJVH( foodhours, "food only.", "");
@@ -2187,6 +2283,24 @@ HELPTOPIC OBJPROTO_ ## funcname ## _help = \
     .summary = hsumm , \
     .info = hinfo \
 }
+
+OBJVM( apply,
+    const char *type=check_string(LS,2,MIL);
+    AFFECT_DATA *pAf;
+    for (pAf=ud_obj->affected ; pAf ; pAf=pAf->next)
+    {
+        if ( !strcmp(
+                flag_stat_string( apply_flags, pAf->location ),
+                type ) )
+        {
+            lua_pushinteger( LS, pAf->modifier );
+            return 1;
+        }
+    }
+    return 0;
+)
+OBJVHM( apply, "", "");
+
 OBJVIF ( exitflag, ITEM_PORTAL, 1, exit_flags )
 OBJVHM ( exitflag, "portal only. Check exit flags.",
 "See 'exit_flags' table.\n\r"
@@ -3157,6 +3271,25 @@ HELPTOPIC CH_immune_help =
 "See 'luahelp other flags'"
 };
 
+static int CH_setimmune (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "immune", imm_flags, ud_ch->imm_flags );
+    }
+    else
+        luaL_error( LS, "'setimmune' for NPC only.");
+
+}
+HELPTOPIC CH_setimmune_help =
+{
+    .summary = "Set immune flags. NPC only.",
+    .info =
+"See 'imm_flags' table.\n\r"
+"See 'luahelp other flags'"
+};
+
 static int CH_carries (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -3272,6 +3405,25 @@ HELPTOPIC CH_vuln_help =
 "See 'luahelp other flags'"
 };
 
+static int CH_setvuln (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "vuln", vuln_flags, ud_ch->vuln_flags );
+    }
+    else
+        luaL_error( LS, "'setvuln' for NPC only.");
+
+}
+HELPTOPIC CH_setvuln_help =
+{
+    .summary = "Set vuln flags. NPC only.",
+    .info =
+"See 'vuln_flags' table.\n\r"
+"See 'luahelp other flags'"
+};
+
 static int CH_qstatus (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -3296,6 +3448,25 @@ HELPTOPIC CH_resist_help =
     .summary = "Check resist flags.",
     .info =
 "See 'res_flags' tables.\n\r"
+"See 'luahelp other flags'"
+};
+
+static int CH_setresist (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "resist", res_flags, ud_ch->res_flags );
+    }
+    else
+        luaL_error( LS, "'setresist' for NPC only.");
+
+}
+HELPTOPIC CH_setresist_help =
+{
+    .summary = "Set resist flags. NPC only.",
+    .info =
+"See 'res_flags' table.\n\r"
 "See 'luahelp other flags'"
 };
 
@@ -3951,10 +4122,13 @@ HELPTOPIC CH_get_inventory_help={};
 static int CH_get_room (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
-    if (!make_ROOM(LS, check_CH(LS,1)->in_room) )
+    
+    if (!ud_ch->in_room)
         return 0;
-    else
+    else if ( make_ROOM(LS, check_CH(LS,1)->in_room) )
         return 1;
+    else
+        return 0;
 }
 HELPTOPIC CH_get_room_help={};
 
@@ -4147,7 +4321,10 @@ static int CH_get_longdescr( lua_State *LS)
             ud_ch->long_descr);
     return 1;
 }
-HELPTOPIC CH_get_longdescr_help={};
+HELPTOPIC CH_get_longdescr_help=
+{
+    .summary="NPC only."
+};
 
 static int CH_set_longdescr (lua_State *LS)
 {
@@ -4155,13 +4332,47 @@ static int CH_set_longdescr (lua_State *LS)
     if (!IS_NPC(ud_ch))
         luaL_error(LS, "Can't set longdescr on PCs.");
     const char *new=check_string(LS, 2, MIL);
-    char buf[MSL];
-    sprintf(buf, "%s\n\r", new);
     free_string( ud_ch->long_descr );
-    ud_ch->long_descr=str_dup(buf);
+    ud_ch->long_descr=str_dup(new);
     return 0;
 }
 HELPTOPIC CH_set_longdescr_help = {
+    .summary="NPC only."
+};
+
+static int CH_get_description( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS,
+            ud_ch->description);
+    return 1;
+}
+HELPTOPIC CH_get_description_help={};
+
+static int CH_set_description (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set description on PCs.");
+    const char *new=check_string(LS, 2, MSL);
+
+    // Need to make sure \n\r at the end but don't add if already there.
+    int len=strlen(new);
+    if ( len>1 &&
+            !( new[len-2]=='\n' && new[len-1]=='\r') )
+    {
+        if ( len > (MSL-3) )
+            luaL_error( LS, "Description must be %d characters or less.", MSL-3);
+
+        char buf[MSL];
+        sprintf(buf, "%s\n\r",new);
+        new=buf;
+    }
+    free_string( ud_ch->description );
+    ud_ch->description=str_dup(new);
+    return 0;
+}
+HELPTOPIC CH_set_description_help = {
     .summary="NPC only."
 };
 
@@ -4176,6 +4387,17 @@ HELPTOPIC CH_get_stance_help =
     .summary="The CH's current stance.",
     .info="See 'stances' table."
 };
+
+static int CH_get_pet (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if ( ud_ch->pet && make_CH(LS, ud_ch->pet) )
+        return 1;
+    else
+        return 0;
+}
+HELPTOPIC CH_get_pet_help = {};
 
 static const LUA_PROP_TYPE CH_get_table [] =
 {
@@ -4217,6 +4439,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(room, 0),
     CHGET(groupsize, 0),
     CHGET(stance, 0),
+    CHGET(description, 0),
+    CHGET(pet, 0),
     /* PC only */
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
@@ -4267,6 +4491,7 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(race, 5),
     CHSET(shortdescr, 5),
     CHSET(longdescr, 5),
+    CHSET(description, 5),
     ENDPTABLE
 };
 
@@ -4339,6 +4564,9 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(peace, 1),
     CHMETH(restore, 1),
     CHMETH(setact, 1),
+    CHMETH(setvuln, 1),
+    CHMETH(setimmune, 1),
+    CHMETH(setresist, 1),
     CHMETH(hit, 1),
     CHMETH(randchar, 0),
     CHMETH(loadprog, 1),
@@ -4491,6 +4719,28 @@ static int OBJ_destroy( lua_State *LS)
     return 0;
 }
 HELPTOPIC OBJ_destroy_help={};
+
+static int OBJ_clone( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+
+    OBJ_DATA *clone = create_object(ud_obj->pIndexData,0);
+    clone_object( ud_obj, clone );
+    if (ud_obj->carried_by)
+        obj_to_char( clone, ud_obj->carried_by );
+    else if (ud_obj->in_room)
+        obj_to_room( clone, ud_obj->in_room );
+    else if (ud_obj->in_obj)
+        obj_to_obj( clone, ud_obj->in_obj );
+    else
+        luaL_error( LS, "Cloned object has no location.");
+
+    if (make_OBJ( LS, clone))
+        return 1;
+    else
+        return 0;
+}
+HELPTOPIC OBJ_clone_help={};
 
 static int OBJ_oload (lua_State *LS)
 {
@@ -4742,7 +4992,9 @@ static int OBJ_get_otype (lua_State *LS)
             item_name((check_OBJ(LS,1))->item_type));
     return 1;
 }
-HELPTOPIC OBJ_get_otype_help={};
+HELPTOPIC OBJ_get_otype_help={
+    .summary="Object's item type. See 'item_table' table."
+};
 
 static int OBJ_get_weight (lua_State *LS)
 {
@@ -4808,10 +5060,10 @@ static int OBJ_get_room (lua_State *LS)
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     if (!ud_obj->in_room)
         return 0;
-    if ( !make_ROOM(LS, ud_obj->in_room) )
-        return 0;
-    else
+    if ( make_ROOM(LS, ud_obj->in_room) )
         return 1;
+    else
+        return 0;
 }
 HELPTOPIC OBJ_get_room_help={};
 
@@ -4951,6 +5203,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( dicetype, 0),
     OBJGET( attacktype, 0),
     OBJGET( damtype, 0),
+    OBJGET( damnoun, 0),
     OBJGET( damavg, 0),
 
     /* container */
@@ -4963,6 +5216,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET( liquidtotal, 0),
     OBJGET( liquidleft, 0),
     OBJGET( liquid, 0),
+    OBJGET( liquidcolor, 0),
     OBJGET( poisoned, 0),
 
     /*fountain*/
@@ -5000,7 +5254,9 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
 {
     OBJMETH(extra, 0),
     OBJMETH(wear, 0),
+    OBJMETH(apply, 0),
     OBJMETH(destroy, 1),
+    OBJMETH(clone, 1),
     OBJMETH(echo, 1),
     OBJMETH(loadprog, 1),
     OBJMETH(loadscript, 1),
@@ -5448,6 +5704,46 @@ static int AREA_get_atrigs ( lua_State *LS)
 }
 HELPTOPIC AREA_get_atrigs_help = {};
 
+static int AREA_get_vnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_vnum_help={};
+
+static int AREA_get_minvnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->min_vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_minvnum_help={};
+
+static int AREA_get_maxvnum ( lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_AREA(LS,1))->max_vnum);
+    return 1;
+}
+HELPTOPIC AREA_get_maxvnum_help={};
+
+static int AREA_get_credits ( lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_AREA(LS,1))->credits);
+    return 1;
+}
+HELPTOPIC AREA_get_credits_help={};
+
+static int AREA_get_builders ( lua_State *LS)
+{
+    lua_pushstring( LS,
+            (check_AREA(LS,1))->builders);
+    return 1;
+}
+HELPTOPIC AREA_get_builders_help={};
+
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
     AREAGET(name, 0),
@@ -5456,6 +5752,11 @@ static const LUA_PROP_TYPE AREA_get_table [] =
     AREAGET(minlevel, 0),
     AREAGET(maxlevel, 0),
     AREAGET(security, 0),
+    AREAGET(vnum, 0),
+    AREAGET(minvnum, 0),
+    AREAGET(maxvnum, 0),
+    AREAGET(credits, 0),
+    AREAGET(builders, 0),
     AREAGET(ingame, 0),
     AREAGET(rooms, 0),
     AREAGET(people, 0),
@@ -6386,6 +6687,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( dicetype, 0),
     OPGET( attacktype, 0),
     OPGET( damtype, 0),
+    OPGET( damnoun, 0),
     OPGET( damavg, 0),
 
     /* container */
@@ -6398,6 +6700,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( liquidtotal, 0),
     OPGET( liquidleft, 0),
     OPGET( liquid, 0),
+    OPGET( liquidcolor, 0),
     OPGET( poisoned, 0),
 
     /*fountain*/
@@ -6426,6 +6729,7 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 {
     OPMETH( extra, 0),
     OPMETH( wear, 0),
+    OPMETH( apply, 0),
    
     /* portal only */
     OPMETH( exitflag, 0),
@@ -6552,7 +6856,7 @@ MPGETINT( vnum, ud_mobp->vnum ,"" ,"" );
 MPGETSTR( name, ud_mobp->player_name , "" ,"");
 MPGETSTR( shortdescr, ud_mobp->short_descr,"" ,"");
 MPGETSTR( longdescr, ud_mobp->long_descr,"" ,"");
-MPGETSTR( description, ud_mobp->description,"" ,"");
+MPGETSTR( description, ud_mobp->description, "", "");
 MPGETINT( alignment, ud_mobp->alignment,"" ,"");
 MPGETINT( level, ud_mobp->level,"" ,"");
 MPGETINT( hppcnt, ud_mobp->hitpoint_percent,"" ,"");
@@ -6578,6 +6882,7 @@ MPGETSTR( stance, stances[ud_mobp->stance].name,
     "Mob's default stance." ,
     "See 'stances' table.");
 MPGETBOOL( ingame, is_mob_ingame( ud_mobp ),"" ,"");
+MPGETINT( count, ud_mobp->count, "", "");
 
 static int MOBPROTO_get_area (lua_State *LS)
 {
@@ -6604,6 +6909,20 @@ static int MOBPROTO_get_mtrigs ( lua_State *LS)
 }
 HELPTOPIC MOBPROTO_get_mtrigs_help = {};
 
+static int MOBPROTO_get_shop ( lua_State *LS)
+{
+    MOB_INDEX_DATA *ud_mid=check_MOBPROTO( LS, 1);
+    if ( ud_mid->pShop )
+    {
+        if ( make_SHOP(LS, ud_mid->pShop) )
+            return 1;
+        else
+            return 0;
+    }
+    else
+        return 0;
+}
+HELPTOPIC MOBPROTO_get_shop_help={};
     
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
@@ -6632,6 +6951,8 @@ static const LUA_PROP_TYPE MOBPROTO_get_table [] =
     MPGET( area, 0),
     MPGET( ingame, 0),
     MPGET( mtrigs, 0),
+    MPGET( shop, 0),
+    MPGET( count,0),
     ENDPTABLE
 };
 
@@ -6652,6 +6973,96 @@ static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 }; 
 
 /* end MOBPROTO section */
+
+/* SHOP section */
+#define SHOPGETINT( lfield, cfield ) static int SHOP_get_ ## lfield ( lua_State *LS )\
+{\
+    SHOP_DATA *ud_shop=check_SHOP( LS, 1);\
+    lua_pushinteger( LS,\
+            ud_shop->cfield );\
+    return 1;\
+}
+
+SHOPGETINT( keeper, keeper)
+HELPTOPIC SHOP_get_keeper_help={
+    .summary="Vnum of shopkeeper."
+};
+SHOPGETINT( profitbuy, profit_buy)
+HELPTOPIC SHOP_get_profitbuy_help = {};
+SHOPGETINT( profitsell, profit_sell)
+HELPTOPIC SHOP_get_profitsell_help = {};
+SHOPGETINT( openhour, open_hour)
+HELPTOPIC SHOP_get_openhour_help = {};
+SHOPGETINT( closehour, close_hour)
+HELPTOPIC SHOP_get_closehour_help={};
+
+static int SHOP_buytype ( lua_State *LS )
+{
+    SHOP_DATA *ud_shop=check_SHOP(LS, 1);
+    if (lua_isnone( LS, 2) ) // no arg
+    {
+        lua_newtable(LS);
+        int i;
+        int index=1;
+        for (i=0; i<MAX_TRADE; i++)
+        {
+            if (ud_shop->buy_type[i] != 0)
+            {
+                lua_pushstring( LS,
+                        flag_stat_string( type_flags, ud_shop->buy_type[i]));
+                lua_rawseti( LS, -2, index++);
+            }
+        }
+        return 1;
+    } 
+
+    // arg was given
+    const char *arg=check_string(LS, 2, MIL);
+    int flag=flag_lookup(arg, type_flags);
+    if ( flag==NO_FLAG )
+        luaL_error(LS, "No such type flag '%s'", arg);
+
+    int i;
+    for (i=0; i<MAX_TRADE ; i++)
+    {
+        if (ud_shop->buy_type[i] == flag)
+        {
+            lua_pushboolean( LS, TRUE);
+            return 1;
+        }
+    }
+
+    lua_pushboolean( LS, FALSE );
+    return 1;
+}
+HELPTOPIC SHOP_buytype_help= {
+    .summary="List of buytypes or check if given buytype is set.",
+    .info="See 'types' table. Works similarly to flags (see 'luahelp other flags'\n\r"
+          "though it is not actually stored as a flag variable."
+};
+       
+
+static const LUA_PROP_TYPE SHOP_get_table [] =
+{
+    SHOPGET( keeper, 0),
+    SHOPGET( profitbuy, 0),
+    SHOPGET( profitsell, 0),
+    SHOPGET( openhour, 0),
+    SHOPGET( closehour, 0),
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE SHOP_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE SHOP_method_table [] =
+{
+    SHOPMETH( buytype, 0), 
+    ENDPTABLE
+};
+/* end SHOP section */
 
 /* PROG section */
 static int PROG_get_islua ( lua_State *LS )
@@ -6817,7 +7228,7 @@ struct
         { .summary = "Details on using flag methods.",
           .info = 
 "For flag check methods, if called with no argument, a table of currently\n\r"
-"set flags is returned. Othwerise argument is a flag name and return value\n\r"
+"set flags is returned. Otherwise argument is a flag name and return value\n\r"
 "is a boolean representing whether that flag is set.\n\r\n\r"
 
 "For flag set methods, 1st argument is a flag name.\n\r"
@@ -7205,6 +7616,7 @@ void type_init( lua_State *LS)
     TYPEINIT(RESET);
     TYPEINIT(OBJPROTO);
     TYPEINIT(MOBPROTO);
+    TYPEINIT(SHOP);
     TYPEINIT(PROG);
     if (!MTRIG_type)
         MTRIG_type=new_obj_type(

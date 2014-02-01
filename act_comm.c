@@ -2050,12 +2050,12 @@ void nuke_pets( CHAR_DATA *ch )
 
 
 
-void die_follower( CHAR_DATA *ch )
+void die_follower( CHAR_DATA *ch, bool preservePets )
 {
     CHAR_DATA *fch;
     
     if (ch->master != NULL)
-    {
+    {   
         if (ch->master->pet == ch)
             ch->master->pet = NULL;
         stop_follower( ch );
@@ -2065,7 +2065,7 @@ void die_follower( CHAR_DATA *ch )
     
     for ( fch = char_list; fch != NULL; fch = fch->next )
     {
-        if ( fch->master == ch )
+        if ( fch->master == ch && (!preservePets || !IS_NPC(fch)))
             stop_follower( fch );
         if ( fch->leader == ch )
             fch->leader = fch;
@@ -3321,23 +3321,6 @@ void do_turn_in ( CHAR_DATA *ch, char *argument )
     ch->pcdata->questpoints -= qp;
     REMOVE_BIT( ch->act, PLR_KILLER );
     REMOVE_BIT( ch->act, PLR_THIEF  );
-}
-
-void do_trigger_safe( CHAR_DATA *ch, char *argument )
-{
-    if ( IS_NPC(ch) )
-	return;
-
-    if (IS_SET(ch->act, PLR_TRIG_SAFE))
-    {
-        send_to_char("Trigger abuse protection turned OFF.\n\r",ch);
-        REMOVE_BIT(ch->act, PLR_TRIG_SAFE);
-    }
-    else
-    {
-        send_to_char("Trigger abuse protection turned ON.\n\r",ch);
-        SET_BIT(ch->act, PLR_TRIG_SAFE);
-    }
 }
 
 void do_action( CHAR_DATA *ch, char *argument )
