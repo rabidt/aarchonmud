@@ -911,7 +911,7 @@ void do_stalk( CHAR_DATA *ch, char *argument )
         ch->hunting = str_dup( argument );
     
     if ( !strcmp(argument, "all") )
-        send_to_char("You prepare to ambush anyone who comes along.", ch);
+        send_to_char("You prepare to ambush anyone who comes along.\n\r", ch);
     else if ( ch->fighting == NULL )
         do_hunt(ch, argument);
 }
