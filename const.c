@@ -736,6 +736,13 @@ struct align_type align_table [] =
 	{},      {RES_DISEASE}, {},
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
+//9
+    {
+    "revenant",        TRUE,
+    {},      {AFF_DARK_VISION, AFF_DEATHS_DOOR},   {},
+    {},      {RES_POISON,RES_DISEASE}, {},
+    {A,H,I,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K}
+    },
 //10
 	{
 	"behemoth",        TRUE,
@@ -1629,6 +1636,21 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           SIZE_LARGE, SEX_BOTH, 8
         },
    
+// R9
+         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
+        { 
+          "revenant",   "Revena",
+          { 285, 290, 285, 285, 285, 285, 290, 290, 290, 290, 285, 290, 285, 290, 280 },
+          3, { "regeneration", "true grit", "animate dead" },
+          {1, 10, 30}, {100, 90, 80},
+          {  65,  85,  65,  55,  55,      65,  75,  80,  50,  55 },
+          { 145, 155, 145, 140, 140,     145, 150, 150, 140, 140 },   
+          {   4,   5,   4,   4,   4,       4,   4,   4,   3,   4 },
+          SIZE_MEDIUM, SEX_BOTH, 9
+        },
+
+// R10
+         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
         { 
           "behemoth",   "Behemo",
           { 305, 305, 315, 315, 305, 310, 310, 305, 305, 315, 310, 315, 305, 305, 315 },
