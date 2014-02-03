@@ -1278,6 +1278,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -4535,9 +4537,11 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     if ( ch->stance==STANCE_TOAD
         || ch->stance==STANCE_SWAYDES_MERCY
         || ch->stance==STANCE_AVERSION
-        || ch->stance==STANCE_BUNNY
-        || IS_SET(ch->form, FORM_DOUBLE_JOINTED) )
+        || ch->stance==STANCE_BUNNY)
         chance += 15;
+
+    if ( IS_SET(ch->form, FORM_DOUBLE_JOINTED) )
+        chance += 10;
 
     if ( IS_AFFECTED(ch, AFF_SORE) )
         chance -= 10;

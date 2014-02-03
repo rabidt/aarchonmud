@@ -1248,8 +1248,11 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
         }
 
     /* initialize race */
-        if (ch->race == 0)
-            ch->race = race_lookup("human");
+    if (ch->race == 0)
+        ch->race = race_lookup("human");
+    // djinn got renamed to efreet when djinn was added as R9 race
+    else if ( ch->race == race_lookup("djinn") && ch->pcdata->remorts < 9 && !IS_IMMORTAL(ch) )
+        ch->race = race_lookup("efreet");
         
         ch->size = pc_race_table[ch->race].size;
         ch->dam_type = 17; /*punch */
@@ -3028,8 +3031,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
         else if (IS_IMMORTAL(ch))
             sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
-            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
-        
+            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );       
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
         else
@@ -3101,13 +3103,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
         }
     }
 	
-    /* Date Created */
-    sprintf(buf, "{D|{x Date Created: %s   ",
-	    time_format(wch->id, custombuf));
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
@@ -3122,6 +3117,13 @@ void do_finger(CHAR_DATA *ch, char *argument)
             add_buf( output, buf );
         }
     }
+
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     
     if (wch->level <= LEVEL_HERO)
