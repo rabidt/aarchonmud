@@ -4535,9 +4535,11 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     if ( ch->stance==STANCE_TOAD
         || ch->stance==STANCE_SWAYDES_MERCY
         || ch->stance==STANCE_AVERSION
-        || ch->stance==STANCE_BUNNY
-        || IS_SET(ch->form, FORM_DOUBLE_JOINTED) )
+        || ch->stance==STANCE_BUNNY)
         chance += 15;
+
+    if ( IS_SET(ch->form, FORM_DOUBLE_JOINTED) )
+        chance += 10;
 
     if ( IS_AFFECTED(ch, AFF_SORE) )
         chance -= 10;
