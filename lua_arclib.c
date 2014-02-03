@@ -4015,9 +4015,10 @@ HELPTOPIC CH_get_race_help={};
 static int CH_set_race (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
+#ifndef TESTER
     if (!IS_NPC(ud_ch))
         luaL_error( LS, "Can't set race on PCs.");
-    
+#endif    
     const char * arg=check_string(LS, 2, MIL);
     int race=race_lookup(arg);
     if (race==0)
