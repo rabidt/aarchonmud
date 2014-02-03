@@ -1196,32 +1196,15 @@ void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 char *target_name = NULL;
 bool was_obj_cast = FALSE;
 
-void do_cast( CHAR_DATA *ch, char *argument )
+void cast_spell( CHAR_DATA *ch, int sn, int chance )
 {
-    char arg1[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     void *vo;
     int mana;
-    int sn, level, chance, wait;
+    int level, wait;
     int target;
     bool concentrate = FALSE;
     bool overcharging = (IS_AFFECTED(ch, AFF_OVERCHARGE) && !ch->fighting);
-
-    target_name = one_argument( argument, arg1 );
-
-    if ( arg1[0] == '\0' )
-    {
-        send_to_char( "Cast which what where?\n\r", ch );
-        return;
-    }
-
-    if ((sn = find_spell(ch,arg1)) < 1
-            ||  skill_table[sn].spell_fun == spell_null
-            ||  (chance=get_skill(ch, sn))==0)
-    {
-        send_to_char( "You don't know any spells of that name.\n\r", ch );
-        return;
-    }
 
     /* check to see if spell is disabled */
     if (check_spell_disabled (&skill_table[sn]))
@@ -1365,7 +1348,69 @@ void do_cast( CHAR_DATA *ch, char *argument )
     return;
 }
 
+void do_cast( CHAR_DATA *ch, char *argument )
+{
+    char arg1[MAX_INPUT_LENGTH];
+    int sn, chance;
 
+    target_name = one_argument( argument, arg1 );
+
+    if ( arg1[0] == '\0' )
+    {
+        send_to_char( "Cast which what where?\n\r", ch );
+        return;
+    }
+
+    if ((sn = find_spell(ch,arg1)) < 1
+            ||  skill_table[sn].spell_fun == spell_null
+            ||  (chance=get_skill(ch, sn))==0)
+    {
+        send_to_char( "You don't know any spells of that name.\n\r", ch );
+        return;
+    }
+    
+    cast_spell(ch, sn, chance);
+}
+
+// Djinn wish casting
+void do_wish( CHAR_DATA *ch, char *argument )
+{
+    char arg1[MAX_INPUT_LENGTH];
+    int sn, chance, class;
+
+    target_name = one_argument( argument, arg1 );
+
+    if ( (chance = get_skill(ch, gsn_wish)) == 0 )
+    {
+        send_to_char( "Yeah, you wish!\n\r", ch );
+        return;
+    }
+    
+    if ( arg1[0] == '\0' )
+    {
+        send_to_char( "What do you wish for?\n\r", ch );
+        return;
+    }
+
+    if ( (sn = find_spell(ch,arg1)) < 1 || skill_table[sn].spell_fun == spell_null )
+    {
+        send_to_char( "No spell of that name exists.\n\r", ch );
+        return;
+    }
+
+    // find minimum level required to cast
+    int min_level = LEVEL_IMMORTAL;
+    for ( class = 0; class < MAX_CLASS; class++ )
+        min_level = UMIN(min_level, skill_table[sn].skill_level[class]);
+    
+    if ( ch->level < min_level )
+    {
+        send_to_char( "This spell is beyond your power.\n\r", ch );
+        return;
+    }
+    
+    cast_spell(ch, sn, chance);
+}
 
 /*
  * Cast spells at targets using a magical object.
@@ -4986,7 +5031,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -5009,7 +5054,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;

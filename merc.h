@@ -230,13 +230,13 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         426
+#define MAX_SKILL         427
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
 #define MAX_CLASS          15
-#define MAX_PC_RACE        65 /*accurate jan 2013 */
+#define MAX_PC_RACE        67 /*accurate feb 2014 */
 #define MAX_BOARD          12
 #define MAX_CLAN           12
 #define MAX_CLAN_RANK      13
@@ -1303,8 +1303,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -3523,6 +3523,7 @@ extern sh_int  gsn_extend_spell;
 extern sh_int  gsn_empower_spell;
 extern sh_int  gsn_quicken_spell;
 extern sh_int  gsn_chain_spell;
+extern sh_int  gsn_wish;
 
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
@@ -4311,6 +4312,7 @@ void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+bool    is_ranged_weapon( OBJ_DATA *weapon );
 CD *    get_local_leader( CHAR_DATA *ch );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );
