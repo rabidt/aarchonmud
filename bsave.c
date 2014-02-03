@@ -1248,8 +1248,11 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
         }
 
     /* initialize race */
-        if (ch->race == 0)
-            ch->race = race_lookup("human");
+    if (ch->race == 0)
+        ch->race = race_lookup("human");
+    // djinn got renamed to efreet when djinn was added as R9 race
+    else if ( ch->race == race_lookup("djinn") && ch->pcdata->remorts < 9 && !IS_IMMORTAL(ch) )
+        ch->race = race_lookup("efreet");
         
         ch->size = pc_race_table[ch->race].size;
         ch->dam_type = 17; /*punch */

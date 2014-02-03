@@ -665,7 +665,7 @@ struct align_type align_table [] =
 	},
 
 	{
-	"djinn",        TRUE,
+	"efreet",        TRUE,
 	{},      {},   {},
 	{},      {RES_FIRE}, {VULN_DROWNING,VULN_SOUND},
 	{C,K,S,ii},	{A,B,C,D,E,F,G,H,I,J,K},
@@ -742,6 +742,13 @@ struct align_type align_table [] =
     {},      {AFF_DARK_VISION, AFF_DEATHS_DOOR},   {},
     {},      {RES_POISON,RES_DISEASE}, {},
     {A,H,I,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K}
+    },
+
+    {
+    "djinn",        TRUE,
+    {},      {AFF_FLYING},   {},
+    {},      {RES_ACID}, {},
+    {A,C,H,M,gg},      {A,B,C,D,E,F,G,H,I,J,K}
     },
 //10
 	{
@@ -1522,7 +1529,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         { 
-          "djinn",   "Djinn ",
+          "efreet",   "Efreet",
           { 250, 250, 245, 245, 250, 250, 250, 250, 250, 250, 245, 245, 250, 250, 245 },
           5, { "burning hands", "plague", "flamestrike", "fire breath", "immolation" },
           {1, 10, 25, 55, 75}, {100, 100, 100, 90, 80},
@@ -1644,9 +1651,20 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           3, { "regeneration", "true grit", "animate dead" },
           {1, 10, 30}, {100, 90, 80},
           {  65,  85,  65,  55,  55,      65,  75,  80,  50,  55 },
-          { 145, 155, 145, 140, 140,     145, 150, 150, 140, 140 },   
+          { 145, 155, 145, 140, 140,     145, 150, 150, 140, 140 },
           {   4,   5,   4,   4,   4,       4,   4,   4,   3,   4 },
           SIZE_MEDIUM, SEX_BOTH, 9
+        },
+
+        { 
+          "djinn",   "Djinn ",
+          { 290, 290, 285, 280, 290, 290, 290, 290, 290, 290, 285, 280, 290, 290, 285 },
+          1, { "wish casting" },
+          {1}, {100},
+          {  60,  60,  65,  70,  65,      70,  70,  60,  65,  65 },
+          { 140, 140, 145, 150, 145,     150, 150, 140, 145, 145 },
+          {   3,   3,   4,   5,   4,       5,   5,   3,   4,   4 },
+          SIZE_LARGE, SEX_BOTH, 9
         },
 
 // R10
