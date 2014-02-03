@@ -469,6 +469,7 @@ DECLARE_DO_FUN( do_where    );
 DECLARE_DO_FUN( do_who      );
 DECLARE_DO_FUN( do_whois    );
 DECLARE_DO_FUN( do_wimpy    );
+DECLARE_DO_FUN( do_wish     );
 DECLARE_DO_FUN( do_withdraw );
 DECLARE_DO_FUN( do_wizhelp  );
 DECLARE_DO_FUN( do_wizlock  );
