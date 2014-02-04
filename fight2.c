@@ -500,7 +500,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( check_see_combat(victim, ch) )
     {
         chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-        chance -= 75;
+        chance -= 75 - mastery_bonus(ch, gsn_backstab, 20, 25);
     }
     
     check_killer( ch, victim );

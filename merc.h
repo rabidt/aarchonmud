@@ -2023,8 +2023,8 @@ struct  kill_data
 #define DIR_SOUTHEAST       7
 #define DIR_SOUTHWEST       8
 #define DIR_NORTHWEST       9
-
-
+// special direction used for hunting
+#define DIR_PORTAL          10
 
 /*
  * Exit flags.
