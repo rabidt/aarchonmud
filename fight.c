@@ -1996,6 +1996,15 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     stance_after_hit( ch, victim, wield );
     if ( stop_attack(ch, victim) )
         return TRUE;
+    
+    /* dark reaping */
+    AFFECT_DATA *reaping = affect_find(ch->affected, gsn_dark_reaping);
+    if ( reaping && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
+    {
+        full_dam(ch, victim, reaping->level, gsn_dark_reaping, DAM_NEGATIVE, TRUE);
+        if ( stop_attack(ch, victim) )
+            return TRUE;
+    }
 
     /* retribution */
     if ( (victim->stance == STANCE_PORCUPINE 
@@ -3434,7 +3443,25 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	    update_bounty(victim);      
 	}
     }
-        
+
+    if ( check_skill(ch, gsn_dark_reaping) && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
+    {
+        int power = IS_NPC(victim) ? victim->level/2 : victim->level;
+        AFFECT_DATA af;
+
+        af.where    = TO_AFFECTS;
+        af.type     = gsn_dark_reaping;
+        af.level    = power;
+        af.duration = 1;
+        af.modifier = power/10;
+        af.bitvector = 0;
+        af.location = APPLY_HITROLL;
+        affect_join(ch, &af);
+
+        send_to_char("{DA dark power fills you as you start to reap the living!{x\n\r", ch);
+        act("{D$n {Dis filled with a dark power!{x", ch, NULL, NULL, TO_ROOM);
+    }
+    
     /*
      * Death trigger
      */
