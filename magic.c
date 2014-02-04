@@ -1195,6 +1195,7 @@ void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
  */
 char *target_name = NULL;
 bool was_obj_cast = FALSE;
+bool was_wish_cast = FALSE;
 
 void cast_spell( CHAR_DATA *ch, int sn, int chance )
 {
@@ -1228,6 +1229,13 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     /* Locate targets */
     if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
         return;
+    
+    /* wish casting restrictions */
+    if ( was_wish_cast && (target != TARGET_CHAR || vo == ch) )
+    {
+        send_to_char ("You can only grant wishes to others.\n\r", ch);
+        return;
+    }
     
     // strip meta-magic options that are invalid for the spell & target
     meta_magic_strip(ch, sn, target);
@@ -1398,6 +1406,14 @@ void do_wish( CHAR_DATA *ch, char *argument )
         return;
     }
 
+    if ( skill_table[sn].target != TAR_CHAR_DEFENSIVE &&
+         skill_table[sn].target != TAR_CHAR_NEUTRAL &&
+         skill_table[sn].target != TAR_OBJ_CHAR_DEF )
+    {
+        send_to_char( "You cannot grant that wish.\n\r", ch );
+        return;
+    }
+    
     // find minimum level required to cast
     int min_level = LEVEL_IMMORTAL;
     for ( class = 0; class < MAX_CLASS; class++ )
@@ -1409,7 +1425,9 @@ void do_wish( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    was_wish_cast = TRUE;
     cast_spell(ch, sn, chance);
+    was_wish_cast = FALSE;
 }
 
 /*
