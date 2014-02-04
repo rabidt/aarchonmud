@@ -1797,7 +1797,7 @@ static int L_rundelay( lua_State *LS)
     {
         lua_room_program( NULL, RUNDELAY_VNUM, NULL, 
                 check_ROOM(LS, -2), NULL,
-                NULL, NULL, NULL,
+                NULL, NULL, NULL, NULL,
                 TRIG_CALL, sec );
     }
     else
@@ -5801,7 +5801,7 @@ static int ROOM_loadfunction ( lua_State *LS)
 {
     lua_room_program( NULL, RUNDELAY_VNUM, NULL,
                 check_ROOM(LS, -2), NULL,
-                NULL, NULL, NULL,
+                NULL, NULL, NULL, NULL,
                 TRIG_CALL, 0 );
     return 0;
 }
@@ -5942,7 +5942,7 @@ static int ROOM_loadscript (lua_State *LS)
 
     lua_pushboolean( LS,
             lua_room_program( NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH),
-                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+                ud_room, NULL, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
     return 1;
 }
 HELPTOPIC ROOM_loadscript_help={};
@@ -5952,7 +5952,7 @@ static int ROOM_loadstring (lua_State *LS)
     ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
     lua_pushboolean( LS,
             lua_room_program( NULL, LOADSCRIPT_VNUM, check_string(LS, 2, MAX_SCRIPT_LENGTH),
-                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+                ud_room, NULL, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
     return 1;
 }
 HELPTOPIC ROOM_loadstring_help={};
@@ -5971,7 +5971,7 @@ static int ROOM_loadprog (lua_State *LS)
 
     lua_pushboolean( LS,
             lua_room_program( NULL, num, pRcode->code,
-                ud_room, NULL, NULL, NULL, NULL,
+                ud_room, NULL, NULL, NULL, NULL, NULL,
                 RTRIG_CALL, 0) );
     return 1;
 }
