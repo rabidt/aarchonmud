@@ -1648,8 +1648,8 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "revenant",   "Revena",
           { 285, 290, 285, 285, 285, 285, 290, 290, 290, 290, 285, 290, 285, 290, 280 },
-          3, { "regeneration", "true grit", "animate dead" },
-          {1, 10, 30}, {100, 90, 80},
+          4, { "regeneration", "dark reaping", "true grit", "animate dead" },
+          {1, 10, 20, 30}, {100, 100, 80, 70},
           {  65,  85,  65,  55,  55,      65,  75,  80,  50,  55 },
           { 145, 155, 145, 140, 140,     145, 150, 150, 140, 140 },
           {   4,   5,   4,   4,   4,       4,   4,   4,   3,   4 },
@@ -4333,6 +4333,17 @@ struct  skill_type  skill_table [MAX_SKILL] =
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_wish, SLOT(0), 0, 0, DUR_NONE,
     "", "!wish casting!", "", NULL
+    },
+
+    {
+    "dark reaping",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CON, STAT_WIS, STAT_DIS,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_dark_reaping, SLOT(0), 0, 0, DUR_SPECIAL,
+    "dark reaping", "You no longer reap the living.", "", NULL
     },
 
 /*
