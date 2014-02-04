@@ -4977,6 +4977,7 @@ void bug_string( const char *str )
             str,
             last_command );
     log_string( buf );
+    log_trace();
     
     if ( enable_wiznet )
         wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );

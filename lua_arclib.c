@@ -2283,6 +2283,24 @@ HELPTOPIC OBJPROTO_ ## funcname ## _help = \
     .summary = hsumm , \
     .info = hinfo \
 }
+
+OBJVM( apply,
+    const char *type=check_string(LS,2,MIL);
+    AFFECT_DATA *pAf;
+    for (pAf=ud_obj->affected ; pAf ; pAf=pAf->next)
+    {
+        if ( !strcmp(
+                flag_stat_string( apply_flags, pAf->location ),
+                type ) )
+        {
+            lua_pushinteger( LS, pAf->modifier );
+            return 1;
+        }
+    }
+    return 0;
+)
+OBJVHM( apply, "", "");
+
 OBJVIF ( exitflag, ITEM_PORTAL, 1, exit_flags )
 OBJVHM ( exitflag, "portal only. Check exit flags.",
 "See 'exit_flags' table.\n\r"
@@ -3997,9 +4015,10 @@ HELPTOPIC CH_get_race_help={};
 static int CH_set_race (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
+#ifndef TESTER
     if (!IS_NPC(ud_ch))
         luaL_error( LS, "Can't set race on PCs.");
-    
+#endif    
     const char * arg=check_string(LS, 2, MIL);
     int race=race_lookup(arg);
     if (race==0)
@@ -5236,6 +5255,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
 {
     OBJMETH(extra, 0),
     OBJMETH(wear, 0),
+    OBJMETH(apply, 0),
     OBJMETH(destroy, 1),
     OBJMETH(clone, 1),
     OBJMETH(echo, 1),
@@ -6710,6 +6730,7 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 {
     OPMETH( extra, 0),
     OPMETH( wear, 0),
+    OPMETH( apply, 0),
    
     /* portal only */
     OPMETH( exitflag, 0),

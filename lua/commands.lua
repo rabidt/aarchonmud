@@ -50,7 +50,7 @@ end
 local function luaquery_usage( ch )
     pagetochar( ch,
 [[
-luaquery <type> <selection> [filter] [sort] [width]
+luaquery <type> <selection> [filter] [sort] [width] [limit]
 
 Types:
     area    - AREAs (area_list)
@@ -90,6 +90,11 @@ Sort (optional):
 Width (optional):
     An integer value which limits the width of the output columns to the given
     number of characters.
+
+Limit (optional):
+    An integer value which limits the number of results printed. If the value
+    is positive then top results are printed. If the value is negative then
+    bottom results are printed.
 
 Notes: 
     'x' can be used optionally to qualify fields. 'x' is necessary to invoke
@@ -334,6 +339,7 @@ function do_luaquery( ch, argument)
     local filterarg=args[3]
     local sortarg=args[4]
     local widtharg=args[5] and tonumber(args[5])
+    local limitarg=args[6] and tonumber(args[6])
 
     -- what type are we searching ?
     local lqent=lqtbl[typearg]
@@ -506,7 +512,30 @@ function do_luaquery( ch, argument)
     table.insert(printing, 
             "|"..table.concat(hdrstr,"|").."|")
 
-    for _,v in ipairs(output) do
+    local iter
+    if not(limitarg) then
+        iter=ipairs
+    elseif limitarg<0 then
+        iter=function(tbl)
+            local i=math.max(1,#tbl+limitarg) -- limitarg is negative
+            local limit=#tbl
+            return function()
+                i=i+1
+                if i<=limit then return i,tbl[i] end
+            end
+        end
+    else
+        iter=function(tbl)
+            local i=0
+            local limit=math.min(#tbl, limitarg)
+            return function()
+                i=i+1
+                if i<=limit then return i,tbl[i] end
+            end
+        end
+    end
+
+    for _,v in iter(output) do
         local line={}
         for _,v2 in ipairs(v) do
             local cc=v2.val:len() - util.strlen_color(v2.val)
@@ -525,10 +554,15 @@ function do_luaquery( ch, argument)
     end
 
   
-
-    pagetochar(ch, table.concat(printing,"\n\r")..
+    local final=table.concat(printing,"\n\r")..
             "\n\r\n\r"..
-            "Total results: "..(#output).."\n\r")
+            "Total results: "..(#output).."\n\r"
+    if limitarg then
+        final=final..string.format("(%s %d results shown)\n\r", 
+                (limitarg<0) and "Last" or "First",
+                math.abs(limitarg) )
+    end
+    pagetochar(ch, final)
     end -- actual func wrapped in do/end so scope is destroyed before gc called
     lua_arcgc() -- force a garbage collection 
 end

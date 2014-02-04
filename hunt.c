@@ -165,11 +165,6 @@ void _hash_enter(struct hash_header *ht,int key,void *data)
     ht->klistlen++;
 }
 
-ROOM_INDEX_DATA *room_find(ROOM_INDEX_DATA *room_db[],int key)
-{
-    return((key<WORLD_SIZE&&key>-1)?room_db[key]:0);
-}
-
 void *hash_find(struct hash_header *ht,int key)
 {
     struct hash_link *scan;
@@ -182,17 +177,6 @@ void *hash_find(struct hash_header *ht,int key)
     return scan ? scan->data : NULL;
 }
 
-int room_enter(ROOM_INDEX_DATA *rb[],int key,ROOM_INDEX_DATA *rm)
-{
-    ROOM_INDEX_DATA *temp;
-    
-    temp = room_find(rb,key);
-    if(temp) return(0);
-    
-    rb[key] = rm;
-    return(1);
-}
-
 int hash_enter(struct hash_header *ht,int key,void *data)
 {
     void *temp;
@@ -202,45 +186,6 @@ int hash_enter(struct hash_header *ht,int key,void *data)
     
     _hash_enter(ht,key,data);
     return 1;
-}
-
-ROOM_INDEX_DATA *room_find_or_create(ROOM_INDEX_DATA *rb[],int key)
-{
-    ROOM_INDEX_DATA *rv;
-    
-    rv = room_find(rb,key);
-    if(rv) return rv;
-    
-    rv = (ROOM_INDEX_DATA *)malloc(sizeof(ROOM_INDEX_DATA));
-    rb[key] = rv;
-    
-    return rv;
-}
-
-void *hash_find_or_create(struct hash_header *ht,int key)
-{
-    void *rval;
-    
-    rval = hash_find(ht, key);
-    if(rval) return rval;
-    
-    rval = (void*)malloc(ht->rec_size);
-    _hash_enter(ht,key,rval);
-    
-    return rval;
-}
-
-int room_remove(ROOM_INDEX_DATA *rb[],int key)
-{
-    ROOM_INDEX_DATA *tmp;
-    
-    tmp = room_find(rb,key);
-    if(tmp)
-    {
-        rb[key] = 0;
-        free(tmp);
-    }
-    return(0);
 }
 
 void *hash_remove(struct hash_header *ht,int key)
@@ -279,19 +224,6 @@ void *hash_remove(struct hash_header *ht,int key)
     return NULL;
 }
 
-void room_iterate(ROOM_INDEX_DATA *rb[],void (*func)(),void *cdata)
-{
-    register int i;
-    
-    for(i=0;i<WORLD_SIZE;i++)
-    {
-        ROOM_INDEX_DATA *temp;
-        
-        temp = room_find(rb,i);
-        if(temp) (*func)(i,temp,cdata);
-    }
-}
-
 void hash_iterate(struct hash_header *ht,void (*func)(),void *cdata)
 {
     int i;
@@ -327,30 +259,29 @@ void donothing()
     return;
 }
 
-int find_path( int in_room_vnum, int out_room_vnum, CHAR_DATA *ch, 
-	       int depth, int in_zone )
+// encode distance + initial direction in a single int
+#define DD(dir, dist) ((dir) + ((dist) << 4))
+#define DD_DIR(dd) ((dd) & 15)
+#define DD_DIST(dd) ((dd) >> 4)
+// maximal number of exists to search from a room, including portals (easier than list)
+#define MAX_BRANCH (MAX_DIR+10)
+
+// return direction indicating first edge of shortest path
+int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth, int *distance )
 {
-    struct room_q     *tmp_q, *q_head, *q_tail;
-    struct hash_header    x_room;
-    int           i, tmp_room, count=0, thru_doors;
-    ROOM_INDEX_DATA   *herep;
-    ROOM_INDEX_DATA   *startp;
-    EXIT_DATA     *exitp;
-    
-    if ( depth < 0 )
-    {
-        thru_doors = TRUE;
-        depth = -depth;
-    }
-    else
-    {
-        thru_doors = FALSE;
-    }
+    struct room_q *tmp_q, *q_head, *q_tail;
+    struct hash_header x_room;
+    int i, tmp_room;
+    bool thru_doors = TRUE;
+    ROOM_INDEX_DATA *herep, *startp;
+    EXIT_DATA *exitp;
+    // destinations from current room
+    int branch_rooms[MAX_BRANCH];
     
     startp = get_room_index( in_room_vnum );
     
     init_hash_table( &x_room, sizeof(int), 2048 );
-    hash_enter( &x_room, in_room_vnum, (void *) - 1 );
+    hash_enter( &x_room, in_room_vnum, (void *) DD(0,0) );
     
     /* initialize queue */
     q_head = (struct room_q *) malloc(sizeof(struct room_q));
@@ -362,40 +293,60 @@ int find_path( int in_room_vnum, int out_room_vnum, CHAR_DATA *ch,
     {
         herep = get_room_index( q_head->room_nr );
         /* for each room test all directions */
-        if( herep->area == startp->area || !in_zone )
+        if ( herep && (herep->area == startp->area || !in_zone) )
         {
-        /* only look in this zone...
-	   saves cpu time and  makes world safer for players  */
+            // direction and distance of successors
+            // direction is that of ancestor (unless first step, then updated below)
+            int dir_dist = (int)hash_find(&x_room, q_head->room_nr);
+            int dist = DD_DIST(dir_dist) + 1;
+            int dir = DD_DIR(dir_dist);
+            // regular exits
             for( i = 0; i < MAX_DIR; i++ )
             {
                 exitp = herep->exit[i];
-                if( exit_ok(exitp) && ( thru_doors ? GO_OK_SMARTER : GO_OK ) )
+                if ( exit_ok(exitp) && ( thru_doors ? GO_OK_SMARTER : GO_OK ) )
+                    branch_rooms[i] = herep->exit[i]->u1.to_room->vnum;
+                else
+                    branch_rooms[i] = 0;
+            }
+            // portals
+            OBJ_DATA *portal = herep->contents;
+            while ( i < MAX_BRANCH )
+            {
+                // no objects left => clear remainder of array
+                if ( portal == NULL )
+                {
+                    branch_rooms[i++] = 0;
+                    continue;
+                }
+                if ( portal->item_type == ITEM_PORTAL && portal->value[3] > 0 )
+                    branch_rooms[i++] = portal->value[3];
+                portal = portal->next_content;
+            }
+            // handle all "exits" that we found
+            for( i = 0; i < MAX_BRANCH; i++ )
+            {
+                if ( branch_rooms[i] > 0 )
                 {
                     /* next room */
-                    tmp_room = herep->exit[i]->u1.to_room->vnum;
+                    tmp_room = branch_rooms[i];
+                    // don't use ancestor direction if it's the first step we're taking
+                    if ( dist == 1 )
+                        dir = (i < MAX_DIR ? i : DIR_PORTAL);
+
                     if( tmp_room != out_room_vnum )
                     {
-                    /* shall we add room to queue ?
-                        count determines total breadth and depth */
-                        if( !hash_find( &x_room, tmp_room )
-                            && ( count < depth ) )
-                            /* && !IS_SET( RM_FLAGS(tmp_room), DEATH ) ) */
+                        // shall we add room to queue?
+                        if ( !hash_find(&x_room, tmp_room) && dist < max_depth )
                         {
-                            count++;
                             /* mark room as visted and put on queue */
-                            
-                            tmp_q = (struct room_q *)
-                                malloc(sizeof(struct room_q));
+                            tmp_q = (struct room_q *) malloc(sizeof(struct room_q));
                             tmp_q->room_nr = tmp_room;
                             tmp_q->next_q = 0;
                             q_tail->next_q = tmp_q;
                             q_tail = tmp_q;
-                            
-                            /* ancestor for first layer is the direction */
-                            hash_enter( &x_room, tmp_room,
-                                ((int)hash_find(&x_room,q_head->room_nr)
-                                == -1) ? (void*)(i+1)
-                                : hash_find(&x_room,q_head->room_nr));
+                            //logpf("Hunting: #%d -> #%d (%d), dir=%d, dist=%d", q_head->room_nr, tmp_room, i, dir, dist);
+                            hash_enter( &x_room, tmp_room, (void*) DD(dir,dist) );
                         }
                     }
                     else
@@ -407,29 +358,15 @@ int find_path( int in_room_vnum, int out_room_vnum, CHAR_DATA *ch,
                             tmp_q = q_head->next_q;
                             free(q_head);
                         }
-                        /* return direction if first layer */
-                        if ((int)hash_find(&x_room,tmp_room)==-1)
+                        if (x_room.buckets)
                         {
-                            if (x_room.buckets)
-                            {
-                                /* junk left over from a previous track */
-                                destroy_hash_table(&x_room, donothing);
-                            }
-                            return(i);
+                            /* junk left over from a previous track */
+                            destroy_hash_table(&x_room, donothing);
                         }
-                        else
-                        {
-                            /* else return the ancestor */
-                            int i;
-                            
-                            i = (int)hash_find(&x_room,tmp_room);
-                            if (x_room.buckets)
-                            {
-                                /* junk left over from a previous track */
-                                destroy_hash_table(&x_room, donothing);
-                            }
-                            return( -1+i);
-                        }
+                        // return of distance is optional
+                        if ( distance != NULL )
+                            *distance = dist;
+                        return dir;
                     }
                 }
             }
@@ -448,6 +385,23 @@ int find_path( int in_room_vnum, int out_room_vnum, CHAR_DATA *ch,
         destroy_hash_table( &x_room, donothing );
     }
     return -1;
+}
+
+// formulas used for max distance & skill reduction by hunt, pathfinding, etc.
+int hunt_max_distance(int skill, int mastery)
+{
+    if ( mastery >= 2 )
+        return skill / 2;
+    else
+        return skill / 3;
+}
+
+int hunt_fail_chance(int skill, int distance, int mastery)
+{
+    if ( mastery >= 1 )
+        return (100-skill) + distance;
+    else
+        return (100-skill) + 2 * distance;
 }
 
 bool is_wilderness( int sector )
@@ -474,8 +428,7 @@ void do_hunt( CHAR_DATA *ch, char *argument )
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
-    int direction, chance;
-    bool fArea;
+    int direction, chance, skill;
     
     one_argument( argument, arg );
     
@@ -485,7 +438,7 @@ void do_hunt( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    if ( !IS_NPC(ch) && get_skill(ch, gsn_hunt)==0 )
+    if ( (skill = get_skill(ch, gsn_hunt)) == 0 )
     {
         send_to_char("You wouldn't know how to track.\n\r", ch);
         return;
@@ -503,15 +456,11 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    /* only imps can hunt to different areas */
-    fArea = ( get_trust(ch) < ARCHON );
-    
     /* invisible victims leave tracks as well */
     ignore_invisible = TRUE;
 
-    if ( fArea )
-        victim = get_char_area( ch, arg );
-    else
+    victim = get_char_area( ch, arg );
+    if ( !victim )
         victim = get_char_world( ch, arg );
     
     if ( victim == NULL || !can_locate(ch, victim) )
@@ -537,7 +486,13 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    WAIT_STATE( ch, skill_table[gsn_hunt].beats );
+    if ( !per_chance(get_skill(ch, gsn_stalk)) )
+    {
+        WAIT_STATE(ch, skill_table[gsn_hunt].beats);
+        check_improve(ch, gsn_stalk, FALSE, 4);
+    }
+    else
+        check_improve(ch, gsn_stalk, TRUE, 4);
     
     /* let's not make the hunter visible */
     ignore_invisible = FALSE;
@@ -563,8 +518,10 @@ void do_hunt( CHAR_DATA *ch, char *argument )
 	return;
     }
     
-    direction = find_path( ch->in_room->vnum, victim->in_room->vnum,
-        ch, -40000, fArea );
+    int mastery = get_mastery(ch, gsn_hunt);
+    int max_depth = IS_IMMORTAL(ch) ? 100 : hunt_max_distance(skill, mastery);
+    int distance = 0;
+    direction = find_path( ch->in_room->vnum, victim->in_room->vnum, FALSE, max_depth, &distance );
     
     if( direction == -1 )
     {
@@ -573,6 +530,12 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    if ( direction == DIR_PORTAL )
+    {
+        send_to_char( "The trail suddenly ends here.\n\r", ch );
+        return;
+    }
+
     if( direction < 0 || direction > 9 )
     {
         send_to_char( "Hmm... Something seems to be wrong.\n\r", ch );
@@ -582,7 +545,7 @@ void do_hunt( CHAR_DATA *ch, char *argument )
    /*
     * Give a random direction if the player misses the die roll.
     */
-    if( number_percent () > (IS_NPC(ch) ? 75 : get_skill(ch,gsn_hunt)))
+    if ( !IS_IMMORTAL(ch) && per_chance(hunt_fail_chance(skill, distance, mastery)) )
     {
         do
         {
@@ -627,7 +590,6 @@ void do_hunt_relic( CHAR_DATA *ch )
     ROOM_INDEX_DATA *room;
     char buf[MAX_STRING_LENGTH];
     int direction;
-    bool fArea;
 
     if ( !is_priest(ch) && !IS_IMMORTAL(ch) )
     {
@@ -659,14 +621,19 @@ void do_hunt_relic( CHAR_DATA *ch )
 	return;
     }
 
-    fArea = !IS_IMMORTAL(ch) && !is_high_priest(ch);
-    direction = find_path( ch->in_room->vnum, room->vnum,
-        ch, -40000, fArea );
+    int max_depth = (IS_IMMORTAL(ch) || is_high_priest(ch)) ? 100 : ch->level / 2;
+    direction = find_path( ch->in_room->vnum, room->vnum, FALSE, max_depth, NULL );
     
     if( direction == -1 )
     {
         act( "You couldn't find a path to $p from here.",
             ch, rel->relic_obj, NULL, TO_CHAR );
+        return;
+    }
+    
+    if ( direction == DIR_PORTAL )
+    {
+        send_to_char( "The trail suddenly ends here.\n\r", ch );
         return;
     }
     
@@ -690,7 +657,6 @@ void do_scout( CHAR_DATA *ch, char *argument )
     char arg[MAX_STRING_LENGTH];
     ROOM_INDEX_DATA *target;
     int direction, chance;
-    bool fArea;
     int skill, sn;
     
     /*one_argument( argument, arg );*/
@@ -723,13 +689,9 @@ void do_scout( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    /* only imps can scout to different areas */
-    fArea = ( get_trust(ch) < ARCHON );
-    
-    if ( fArea )
-	target = get_room_area( ch->in_room->area, arg );
-    else
-	target = get_room_world( arg );
+    target = get_room_area( ch->in_room->area, arg );
+    if ( !target )
+        target = get_room_world( arg );
 
     if ( target == NULL )
     {
@@ -762,8 +724,10 @@ void do_scout( CHAR_DATA *ch, char *argument )
     
     act( "$n carefully examines the landscape.", ch, NULL, NULL, TO_ROOM );
     WAIT_STATE( ch, skill_table[sn].beats );
-    direction = find_path( ch->in_room->vnum, target->vnum,
-        ch, -40000, fArea );
+    int mastery = get_mastery(ch, sn);
+    int max_depth = IS_IMMORTAL(ch) ? 100 : hunt_max_distance(skill, mastery);
+    int distance = 0;
+    direction = find_path( ch->in_room->vnum, target->vnum, FALSE, max_depth, &distance );
     
     if( direction == -1 )
     {
@@ -773,6 +737,12 @@ void do_scout( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    if ( direction == DIR_PORTAL )
+    {
+        send_to_char( "The trail suddenly ends here.\n\r", ch );
+        return;
+    }
+
     if( direction < 0 || direction > 9 )
     {
         send_to_char( "Hmm... Something seems to be wrong.\n\r", ch );
@@ -782,7 +752,7 @@ void do_scout( CHAR_DATA *ch, char *argument )
    /*
     * Give a random direction if the player misses the die roll.
     */
-    if( number_percent() > skill )
+    if ( !IS_IMMORTAL(ch) && per_chance(hunt_fail_chance(skill, distance, mastery)) )
     {
         do
         {
@@ -862,9 +832,8 @@ void hunt_victim( CHAR_DATA *ch )
     
     WAIT_STATE( ch, skill_table[gsn_hunt].beats );
 
-    /* mobs hunt in area -> saves cpu time */
-    dir = find_path( ch->in_room->vnum, victim->in_room->vnum,
-		     ch, -4000, TRUE );
+    /* mobs hunt in area -> saves cpu time and prevents wandering off */
+    dir = find_path( ch->in_room->vnum, victim->in_room->vnum, TRUE, UMAX(5, ch->level/5), NULL);
     
     if( dir < 0 || dir > 9 )
     {
@@ -924,11 +893,8 @@ void hunt_victim( CHAR_DATA *ch )
 
 void do_stalk( CHAR_DATA *ch, char *argument )
 {
-    if (IS_NPC(ch)||get_skill(ch, gsn_stalk)==0)
-    {
-        send_to_char("You wouldnt know how to stalk someone.\n\r",ch);
+    if ( IS_NPC(ch) )
         return;
-    }
     
     if (argument[0]=='\0')
     {
@@ -942,10 +908,12 @@ void do_stalk( CHAR_DATA *ch, char *argument )
     }
     
     if (ch->hunting) free_string(ch->hunting);
-    ch->hunting = str_dup( argument );
+        ch->hunting = str_dup( argument );
     
-    if (ch->fighting == NULL)
-	do_hunt(ch, argument);
+    if ( !strcmp(argument, "all") )
+        send_to_char("You prepare to ambush anyone who comes along.\n\r", ch);
+    else if ( ch->fighting == NULL )
+        do_hunt(ch, argument);
 }
 
 
