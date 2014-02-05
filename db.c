@@ -434,6 +434,7 @@ sh_int race_werewolf;
 sh_int race_doppelganger;
 sh_int race_naga;
 sh_int race_vampire;
+sh_int race_rakshasa;
 
 
 /* channel slot numbers */
@@ -629,6 +630,7 @@ void boot_db()
     race_doppelganger = race_lookup("doppelganger");
     race_naga = race_lookup("naga");
     race_vampire = race_lookup("vampire");
+    race_rakshasa = race_lookup("rakshasa");
     
     /*
     * Assign gsn's for skills which have them.

@@ -750,6 +750,13 @@ struct align_type align_table [] =
     {},      {RES_ACID}, {},
     {A,C,H,M,gg},      {A,B,C,D,E,F,G,H,I,J,K}
     },
+
+    {
+    "rakshasa",        TRUE,
+    {},      {AFF_PROTECT_MAGIC},   {},
+    {},      {RES_WEAPON,RES_MAGIC}, {VULN_PIERCE,VULN_HOLY},
+    {A,C,H,M},      {A,B,C,D,E,F,G,H,I,J,K,U,V}
+    },
 //10
 	{
 	"behemoth",        TRUE,
@@ -1647,7 +1654,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
          /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
         { 
           "revenant",   "Revena",
-          { 285, 290, 285, 285, 285, 285, 290, 290, 290, 290, 285, 290, 285, 290, 280 },
+          { 290, 290, 285, 285, 285, 290, 290, 290, 290, 290, 285, 290, 285, 290, 280 },
           4, { "fast healing", "dark reaping", "true grit", "animate dead" },
           {1, 10, 30, 50}, {100, 100, 80, 60},
           {  75,  85,  65,  55,  65,      55,  65,  80,  50,  55 },
@@ -1665,6 +1672,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 140, 140, 145, 150, 145,     150, 150, 140, 145, 145 },
           {   3,   3,   4,   5,   4,       5,   5,   3,   4,   4 },
           SIZE_LARGE, SEX_BOTH, 9
+        },
+
+        { 
+          "rakshasa",   "Raksha",
+          { 290, 290, 290, 280, 290, 290, 295, 290, 290, 290, 290, 280, 290, 290, 285 },
+          5, { "magic missile", "fireball", "lightning bolt", "acid blast", "focus" },
+          {1, 10, 20, 30, 50}, {100, 95, 90, 85, 60},
+          {  60,  60,  60,  65,  65,      70,  70,  65,  70,  65 },
+          { 140, 140, 140, 145, 145,     150, 150, 145, 150, 145 },
+          {   3,   3,   3,   4,   4,       5,   5,   4,   5,   4 },
+          SIZE_MEDIUM, SEX_BOTH, 9
         },
 
 // R10
