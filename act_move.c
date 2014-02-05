@@ -2775,6 +2775,21 @@ void do_recall( CHAR_DATA *ch, char *argument )
     return;
 }
 
+// maximum remort race you can morph into
+int morph_power( CHAR_DATA *ch )
+{
+    if ( IS_NPC(ch) )
+        return -1;
+
+    if ( ch->race == race_doppelganger || ch->race == race_naga || ch->race == race_werewolf )
+        return ch->pcdata->remorts;
+
+    if ( ch->race == race_rakshasa )
+        return ch->pcdata->remorts - 1;
+
+    return -1;
+}
+
 void do_morph(CHAR_DATA *ch, char *argument)
 {
     AFFECT_DATA *paf;
@@ -2788,7 +2803,7 @@ void do_morph(CHAR_DATA *ch, char *argument)
 
 	if (IS_NPC(ch))
 		send_to_char("You pretend you're a doppelganger.\n\r", ch);
-	else if (ch->race == race_doppelganger)
+	else if ( ch->race == race_doppelganger || ch->race == race_rakshasa )
 	{
 		if ((arg[0]=='\0') && ch->pcdata->morph_race)
 		{
@@ -2806,14 +2821,13 @@ void do_morph(CHAR_DATA *ch, char *argument)
 			return;
 		}
 
-		if ( (race=victim->race) == race_doppelganger )
+		if ( (race=victim->race) == ch->race )
 		{
-			send_to_char("Your victim is a doppelganger too.\n\r", ch);
+			send_to_char("Your victim has the same race as you.\n\r", ch);
 			return;
 		}
 
-		if (!race_table[race].pc_race ||
-		    (ch->pcdata->remorts<pc_race_table[race].remorts))
+		if ( !race_table[race].pc_race || pc_race_table[race].remorts > morph_power(ch) )
 		{
 			sprintf(buf, "You cant morph into a %s.\n\r",
 				race_table[race].name);
