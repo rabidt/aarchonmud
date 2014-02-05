@@ -1615,11 +1615,11 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     new_hp = 100 + level_factor * stat_factor * class_factor / 1000;
     /* size and form bonus */
     new_hp += (ch->level + 10) * (ch->size - SIZE_MEDIUM);
-    if ( IS_SET(race_table[ch->race].form, FORM_TOUGH) )
+    if ( IS_SET(ch->form, FORM_TOUGH) )
 	new_hp += ch->level * 10;
     /* train bonus */
     trained_hp_bonus = UMIN(max_train,ch->pcdata->trained_hit) * train_factor * class_factor / 2000;
-    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
+    if ( IS_SET(ch->form, FORM_CONSTRUCT) )
         trained_hp_bonus += 2 * UMIN(max_train,ch->pcdata->trained_hit);
     softcap = (new_hp + hp_bonus) / 2;
     if (trained_hp_bonus > softcap)
@@ -1630,7 +1630,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     class_factor = class_table[ch->class].mana_gain;
     new_mana = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
-    if ( IS_SET(race_table[ch->race].form, FORM_WISE) )
+    if ( IS_SET(ch->form, FORM_WISE) )
 	new_mana += ch->level * 10;
     /* train bonus */
     trained_mana_bonus = UMIN(max_train,ch->pcdata->trained_mana) * train_factor * class_factor / 2000;
@@ -1643,11 +1643,11 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     class_factor = class_table[ch->class].move_gain;
     new_move = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
-    if ( IS_SET(race_table[ch->race].form, FORM_AGILE) )
+    if ( IS_SET(ch->form, FORM_AGILE) )
 	new_move += ch->level * 10;
     /* train bonus */
     trained_move_bonus = UMIN(max_train,ch->pcdata->trained_move) * train_factor * class_factor / 2000;
-    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
+    if ( IS_SET(ch->form, FORM_CONSTRUCT) )
         trained_move_bonus += UMIN(max_train,ch->pcdata->trained_move);
     softcap = (new_move + move_bonus) / 2;
     if (trained_move_bonus > softcap)
