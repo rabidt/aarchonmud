@@ -50,7 +50,7 @@ int get_curr_stat( CHAR_DATA *ch, int stat )
         bonus = i - step + ((bonus + i - j) * step) / i;
     }
     
-    if ( !IS_NPC(ch) && (ch->race == race_doppelganger || ch->race == race_rakshasa) && (ch->pcdata->morph_race > 0) )
+    if ( !IS_NPC(ch) && MULTI_MORPH(ch) && (ch->pcdata->morph_race > 0) )
     {
 	int org_min, org_max, new_min, new_max,
 	    ch_class_bonus, stat_roll, new_base,
@@ -1782,7 +1782,7 @@ struct race_type* get_morph_race_type( CHAR_DATA *ch )
 	return &race_table[ch->race];
 
     /* doppelganger */
-    if ( (ch->race == race_doppelganger || ch->race == race_rakshasa) && ch->pcdata->morph_race > 0 )
+    if ( MULTI_MORPH(ch) && ch->pcdata->morph_race > 0 )
     {
 	/* watch out for morphing into other morph races */
 	if ( ch->pcdata->morph_race == race_naga )
@@ -1824,7 +1824,7 @@ struct pc_race_type* get_morph_pc_race_type( CHAR_DATA *ch )
     }
 
     /* doppelganger */
-    if ( (ch->race == race_doppelganger || ch->race == race_rakshasa) && ch->pcdata->morph_race > 0 )
+    if ( MULTI_MORPH(ch) && ch->pcdata->morph_race > 0 )
 	return &pc_race_table[ch->pcdata->morph_race];
 
     /* naga */
