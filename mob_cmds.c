@@ -1656,7 +1656,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
     argument = one_argument( argument, arg );
     if ( arg[0] != '\0' )
     	obj2 = get_obj_here( ch, arg );
-    program_flow( argument, prg->is_lua,prg->vnum, prg->code, ch, vch, (void *)obj1, ACT_ARG_OBJ, (void *)obj2, ACT_ARG_OBJ, TRIG_CALL, 0 );
+    program_flow( argument, prg->is_lua,prg->vnum, prg->code, ch, vch, (void *)obj1, ACT_ARG_OBJ, (void *)obj2, ACT_ARG_OBJ, TRIG_CALL, prg->security );
 }
 
 /*
