@@ -665,7 +665,7 @@ struct align_type align_table [] =
 	},
 
 	{
-	"efreet",        TRUE,
+	"djinn",        TRUE,
 	{},      {},   {},
 	{},      {RES_FIRE}, {VULN_DROWNING,VULN_SOUND},
 	{C,K,S,ii},	{A,B,C,D,E,F,G,H,I,J,K},
@@ -745,7 +745,7 @@ struct align_type align_table [] =
     },
 
     {
-    "djinn",        TRUE,
+    "genie",        TRUE,
     {},      {AFF_FLYING},   {},
     {},      {RES_ACID}, {},
     {A,C,H,M,gg},      {A,B,C,D,E,F,G,H,I,J,K}
@@ -1536,7 +1536,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         { 
-          "efreet",   "Efreet",
+          "djinn",   "Djinn ",
           { 250, 250, 245, 245, 250, 250, 250, 250, 250, 250, 245, 245, 250, 250, 245 },
           5, { "burning hands", "plague", "flamestrike", "fire breath", "immolation" },
           {1, 10, 25, 55, 75}, {100, 100, 100, 90, 80},
@@ -1664,7 +1664,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         { 
-          "djinn",   "Djinn ",
+          "genie",   "Genie ",
           { 290, 290, 285, 280, 290, 290, 290, 290, 290, 290, 285, 280, 290, 290, 285 },
           1, { "wish casting" },
           {1}, {70},
