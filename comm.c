@@ -1542,7 +1542,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                 i = buf2; break;
 
             case 'p' :
-                if( !IS_NPC(ch) && ch->race == race_doppelganger )
+                if( !IS_NPC(ch) && MULTI_MORPH(ch) )
                 {
                     if( ch->pcdata->morph_race > 0 )
                         sprintf( buf2, "%s", race_table[ch->pcdata->morph_race].name );
@@ -1560,7 +1560,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                 i = buf2; break;
 
             case 'P' :
-                if( !IS_NPC(ch) && ch->race == race_doppelganger )
+                if( !IS_NPC(ch) && MULTI_MORPH(ch) )
                 {
                     if( ch->pcdata->morph_race > 0 )
                         sprintf( buf2, "%d", ch->pcdata->morph_time );

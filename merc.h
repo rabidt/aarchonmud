@@ -3789,6 +3789,7 @@ struct achievement_entry
 #define IS_DEAD(ch) ((ch)->just_killed || (ch)->position == POS_DEAD || !IS_VALID(ch))
 #define CHECK_RETURN(ch, victim) if (stop_attack(ch, victim)) return
 #define IS_UNDEAD(ch) (IS_SET(ch->form, FORM_UNDEAD) || NPC_ACT(ch,ACT_UNDEAD))
+#define MULTI_MORPH(ch) (ch->race == race_doppelganger || ch->race == race_rakshasa)
 
 #define SET_AFFECT(ch, sn)          SET_BIT((ch)->affect_field, sn)
 #define REMOVE_AFFECT(ch, sn)       REMOVE_BIT((ch)->affect_field, sn)
