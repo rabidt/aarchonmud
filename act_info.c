@@ -4889,7 +4889,7 @@ void do_score( CHAR_DATA *ch, char *argument )
     if( ch->pcdata != NULL )
     {
         /* Morph info, and there's also room for STANCE details here */
-        if( ch->race == race_doppelganger )
+        if ( MULTI_MORPH(ch) )
         {
             if( ch->pcdata->morph_race > 0 )
                 sprintf( buf, "{D|{x Morph race: {G%s{x with {G%d{x hours remaining.   ",
@@ -6008,7 +6008,7 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
     }
 
     /* morphing info */
-    if ( ch->race == race_doppelganger )
+    if ( MULTI_MORPH(ch) )
     {
         if ( ch->pcdata->morph_race > 0 )
         {

@@ -2803,7 +2803,7 @@ void do_morph(CHAR_DATA *ch, char *argument)
 
 	if (IS_NPC(ch))
 		send_to_char("You pretend you're a doppelganger.\n\r", ch);
-	else if ( ch->race == race_doppelganger || ch->race == race_rakshasa )
+	else if ( MULTI_MORPH(ch) )
 	{
 		if ((arg[0]=='\0') && ch->pcdata->morph_race)
 		{
