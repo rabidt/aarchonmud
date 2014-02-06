@@ -757,6 +757,13 @@ struct align_type align_table [] =
     {},      {RES_WEAPON,RES_MAGIC}, {VULN_PIERCE,VULN_HOLY},
     {A,C,H,M},      {A,B,C,D,E,F,G,H,I,J,K,U,V}
     },
+
+    {
+    "lillend",        TRUE,
+    {},      {AFF_FLYING},   {},
+    {},      {RES_LIGHTNING,RES_POISON}, {},
+    {A,C,H,Y,ll},    {A,B,C,D,E,F,G,H,I,J,K,Q,X}
+    },
 //10
 	{
 	"behemoth",        TRUE,
@@ -1683,6 +1690,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 140, 140, 140, 145, 145,     150, 150, 145, 150, 145 },
           {   3,   3,   3,   4,   4,       5,   5,   4,   5,   4 },
           SIZE_MEDIUM, SEX_BOTH, 9
+        },
+
+        { 
+          "lillend",   "Lillen",
+          { 290, 285, 285, 285, 290, 290, 290, 290, 285, 290, 285, 285, 290, 285, 290 },
+          3, { "inspiring song", "charm person", "cure serious" },
+          {10, 20, 30}, {100, 90, 80},
+          {  60,  60,  60,  60,  60,      60,  60,  60,  60,  60 },
+          { 145, 145, 150, 145, 145,     145, 145, 140, 155, 145 },
+          {   4,   4,   4,   4,   4,       4,   4,   3,   5,   4 },
+          SIZE_LARGE, SEX_BOTH, 9
         },
 
 // R10
