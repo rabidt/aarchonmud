@@ -6201,7 +6201,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
 		&gsn_boa,           SLOT( 0),       0,      0, DUR_NONE,
-		"",     "",   "", NULL
+		"constriction",     "",   "", NULL
 	},
 
 	{
