@@ -1934,6 +1934,7 @@ struct  kill_data
 #define APPLY_DIS              28
 #define APPLY_CHA              29
 #define APPLY_LUC              30
+#define APPLY_STATS            31 // all stats (str..luc)
 // #define APPLY_COMBO              31
 
 
