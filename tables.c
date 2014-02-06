@@ -429,7 +429,8 @@ const struct flag_type form_flags[] =
 	{   "frost_aura",   FORM_FROST, TRUE    },
 	{   "burning_aura", FORM_BURN,  TRUE    },
 	{   "wise",         FORM_WISE,  TRUE    },
-        {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
+    {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
+    {   "constrict",    FORM_CONSTRICT,     TRUE    },
 	{   NULL,           0,          0   }
 };
 

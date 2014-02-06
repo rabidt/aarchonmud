@@ -1168,6 +1168,7 @@ void do_showrace(CHAR_DATA *ch, char *argument)
     SFORM( FORM_WISE );
     SFORM( FORM_BURN );
     SFORM( FORM_CONDUCTIVE );
+    SFORM( FORM_CONSTRICT );
 #undef SFORM
 
     if ( !flag_is_empty(special_forms) )
