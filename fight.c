@@ -1007,6 +1007,13 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     return chance;
 }
 
+bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
+{
+    int ch_roll = (10+ch->level) + get_hitroll(ch)/2 + ch->size * 20;
+    int victim_roll = (10+victim->level) - get_save(victim, TRUE) + victim->size * 20;
+    return number_range(0, ch_roll) >= number_range(0, victim_roll);
+}
+
 /*
 * Do one group of attacks.
 */
@@ -1244,8 +1251,20 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             else if ( number_bits(1) )
                 one_hit(ch, victim, dt, FALSE);
         }
+        if ( ch->fighting != victim )
+            return;
     }
-     
+
+    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim) )
+    {
+        send_to_char("You are constricted and unable to act.\n\r", victim);
+        act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
+        WAIT_STATE(victim, PULSE_VIOLENCE);
+        victim->stop++;
+        int dam = martial_damage(ch, gsn_boa) * 2;
+        full_dam(ch, victim, dam, gsn_boa, DAM_BASH, TRUE);
+    }
+    
     return;
 }
 
