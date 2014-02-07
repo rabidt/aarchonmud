@@ -230,13 +230,13 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         428
+#define MAX_SKILL         429
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
 #define MAX_CLASS          15
-#define MAX_PC_RACE        68 /*accurate feb 2014 */
+#define MAX_PC_RACE        69 /*accurate feb 2014 */
 #define MAX_BOARD          12
 #define MAX_CLAN           12
 #define MAX_CLAN_RANK      13
@@ -1489,6 +1489,7 @@ struct  kill_data
 #define FORM_BURN               (ii) //burning aura
 #define FORM_WISE               (jj) //10 mana per level
 #define FORM_CONDUCTIVE         (kk) //electric aura
+#define FORM_CONSTRICT          (ll) //constriction attack
 
 /* body parts */
 #define PART_HEAD               (A)
@@ -1934,6 +1935,7 @@ struct  kill_data
 #define APPLY_DIS              28
 #define APPLY_CHA              29
 #define APPLY_LUC              30
+#define APPLY_STATS            31 // all stats (str..luc)
 // #define APPLY_COMBO              31
 
 
@@ -3482,6 +3484,7 @@ extern sh_int  gsn_elemental_blade;
 extern sh_int  gsn_ashura;
 extern sh_int  gsn_shan_ya;
 extern sh_int  gsn_dark_reaping;
+extern sh_int  gsn_inspiring_song;
 
 /* astark stuff */
 

@@ -395,6 +395,7 @@ sh_int  gsn_elemental_blade;
 sh_int  gsn_ashura;
 sh_int  gsn_shan_ya;
 sh_int  gsn_dark_reaping;
+sh_int  gsn_inspiring_song;
 sh_int  gsn_aversion;
 sh_int  gsn_strafe;
 /* sh_int  gsn_combo_attack; */

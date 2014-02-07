@@ -332,6 +332,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "scout",      do_scout,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "surrender",  do_surrender,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "ignite",     do_ignite,  POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "inspire",    do_inspire,  POS_FIGHTING, 0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "headbutt",   do_headbutt, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "net",        do_net, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE},
     { "mug",        do_mug, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE},
