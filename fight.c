@@ -5831,6 +5831,8 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
             || sn == gsn_quirkys_insanity
             || sn == gsn_phantasmal_image )
         gag_type = GAG_AURA;
+        if ( sn == gsn_dark_reaping )
+            gag_type = GAG_WFLAG;
     }
 
     if (ch == victim)
