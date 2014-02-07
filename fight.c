@@ -2020,7 +2020,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     AFFECT_DATA *reaping = affect_find(ch->affected, gsn_dark_reaping);
     if ( reaping && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
     {
-        full_dam(ch, victim, reaping->level, gsn_dark_reaping, DAM_NEGATIVE, TRUE);
+        dam = dice(1,8) + reaping->level/3;
+        full_dam(ch, victim, dam, gsn_dark_reaping, DAM_NEGATIVE, TRUE);
         if ( stop_attack(ch, victim) )
             return TRUE;
     }
@@ -3465,16 +3466,16 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( check_skill(ch, gsn_dark_reaping) && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
     {
-        int power = IS_NPC(victim) ? victim->level/2 : victim->level;
+        int power = victim->level;
         AFFECT_DATA af;
 
         af.where    = TO_AFFECTS;
         af.type     = gsn_dark_reaping;
         af.level    = power;
         af.duration = 1;
-        af.modifier = power/10;
+        af.modifier = 0;
         af.bitvector = 0;
-        af.location = APPLY_HITROLL;
+        af.location = APPLY_NONE;
         affect_join(ch, &af);
 
         send_to_char("{DA dark power fills you as you start to reap the living!{x\n\r", ch);
