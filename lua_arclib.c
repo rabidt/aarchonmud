@@ -3249,6 +3249,51 @@ static int CH_say (lua_State *LS)
 }
 HELPTOPIC CH_say_help = {};
 
+static int CH_browse (lua_State *LS)
+{
+    bool cleanUp = false;
+    AFFECT_DATA *paf;
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    OBJ_DATA * ud_obj;
+
+    if (lua_isnumber(LS, 2))
+    {
+        int num = (int)luaL_checknumber (LS, 2);
+        OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
+
+        if (!pObjIndex)
+        {
+            luaL_error(LS, "No object with vnum: %d", num);
+        }
+
+        ud_obj = create_object( pObjIndex, 0);
+        cleanUp = true;
+    }
+    else
+    {
+        ud_obj = check_OBJ(LS, 2);
+    }
+
+    describe_item(ud_ch, ud_obj);
+
+    if (cleanUp)
+    {
+        free_obj(ud_obj);
+    }
+
+    return 0;
+}
+HELPTOPIC CH_browse_help =
+{
+    .summary = "The CH will describe an object like a shop keeper does with the browse command.",
+    .info="Arguments: object[OBJ]\n\r"
+          "           object vnum[INT]\n\r\n\r"
+          "OBJ Example:\n\r"
+          "mob:browse(mob.inventory[1])\n\r\n\r"
+          "OBJ Vnum Example:\n\r"
+          "mob:browse(12345)\n\r\n\r"
+};
+
 static int CH_oload (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -4466,6 +4511,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(cancel, 1), 
     CHMETH(setval, 1),
     CHMETH(getval, 1),
+    CHMETH(browse, 1),
     ENDPTABLE
 }; 
 
