@@ -4585,3 +4585,71 @@ void do_smite( CHAR_DATA *ch, char *argument )
 
     check_improve(ch, gsn_smite, TRUE, 2);
 }
+
+void do_inspire( CHAR_DATA *ch, char *argument )
+{
+    AFFECT_DATA af;
+    CHAR_DATA *vch;
+    
+    int skill = get_skill(ch, gsn_inspiring_song);
+    int chance = (100 + skill) / 2;
+    int cost = skill_table[gsn_inspiring_song].min_mana * 200 / (100 + skill);
+    int level = ch->level * (100 + skill) / 200;
+    
+    if ( !skill )
+    {
+        send_to_char("You don't know how.\n\r", ch);
+        return;
+    }
+    
+    if ( ch->mana < cost )
+    {
+        send_to_char("You have run out of inspiration.\n\r", ch);
+        return;
+    }
+    
+    WAIT_STATE( ch, skill_table[gsn_inspiring_song].beats );
+
+    if ( !per_chance(chance) )
+    {
+        ch->mana -= cost/2;
+        send_to_char("Your song isn't very inspirational.\n\r", ch);
+        return;
+    }
+        
+    ch->mana -= cost;
+    send_to_char("You sing an inspiring melody!\n\r", ch);
+    act("$n sings an inspiring melody!", ch, NULL, NULL, TO_ROOM);
+        
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_inspiring_song;
+    af.level     = level;
+    af.duration  = get_duration(gsn_inspiring_song, level);
+    af.bitvector = 0;
+
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
+    {
+        if ( !is_same_group(vch, ch) )
+            continue;
+
+        send_to_char("You feel truly inspired.\n\r", vch);
+        if ( vch != ch )
+            act("Your song inspires $N.", ch, NULL, vch, TO_CHAR);
+        
+        affect_strip(vch, gsn_inspiring_song);
+
+        af.modifier = 5 + level / 9;
+        af.location = APPLY_STATS;
+        affect_to_char(vch, &af);
+        af.location = APPLY_HITROLL;
+        affect_to_char(vch, &af);
+        af.location = APPLY_DAMROLL;
+        affect_to_char(vch, &af);
+        af.modifier *= -1;
+        af.location = APPLY_SAVES;
+        affect_to_char(vch, &af);
+        af.modifier *= 10;
+        af.location = APPLY_AC;
+        affect_to_char(vch, &af);
+    }
+}

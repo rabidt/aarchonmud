@@ -224,6 +224,7 @@ DECLARE_DO_FUN( do_incognito);
 DECLARE_DO_FUN( do_info     );
 DECLARE_DO_FUN( do_clantalk );
 DECLARE_DO_FUN( do_imotd    );
+DECLARE_DO_FUN( do_inspire  );
 DECLARE_DO_FUN( do_intimidate );
 DECLARE_DO_FUN( do_inventory);
 DECLARE_DO_FUN( do_invis    );
