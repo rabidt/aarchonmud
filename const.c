@@ -4382,6 +4382,17 @@ struct  skill_type  skill_table [MAX_SKILL] =
     "dark reaping", "You no longer reap the living.", "", NULL
     },
 
+    {
+    "inspiring song",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_inspiring_song, SLOT(0), 100, 24, DUR_BRIEF,
+    "", "Your no longer feel inspired.", "", NULL
+    },
+
 /*
  * Spells for mega1.are from Glop/Erkenbrand.
  */
