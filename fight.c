@@ -4059,7 +4059,8 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	    check_improve( ch, gsn_woodland_combat, FALSE, 10 );
     }
 
-    try_avoid = !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) && !IS_AFFECTED(victim, AFF_FLEE);
+    try_avoid = !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) &&
+        !IS_AFFECTED(victim, AFF_FLEE) && !IS_AFFECTED(victim, AFF_PETRIFIED);
     if ( try_avoid )
     {
         if ( check_outmaneuver( ch, victim ) )
