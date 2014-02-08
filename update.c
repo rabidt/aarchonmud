@@ -854,7 +854,7 @@ void mobile_update( void )
     {
         ch_next = ch->next;
 
-        if ( !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch,AFF_CHARM))
+        if ( !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch, AFF_CHARM) || IS_AFFECTED(ch, AFF_PETRIFIED) )
             continue;
 
         if (ch->in_room->area->empty && !IS_SET(ch->act,ACT_UPDATE_ALWAYS))
