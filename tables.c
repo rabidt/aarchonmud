@@ -363,6 +363,7 @@ const struct flag_type off_flags[] =
 	{   "hunt",		X,  TRUE    },
 	{   "armed",            aa, TRUE    },
 	{   "circle",           bb, TRUE    },
+    {   "petrify",          cc, TRUE    },
 	{   NULL,           0,  0   }
 };
 

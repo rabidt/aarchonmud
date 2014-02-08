@@ -369,6 +369,9 @@ int get_save(CHAR_DATA *ch, bool physical)
 bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
 {
     int hit_roll, save_roll, save_factor;
+    
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
+        return TRUE;
 
     /* automatic saves/failures */
     switch(check_immune(victim,dam_type))
@@ -403,6 +406,9 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
 bool saves_physical( CHAR_DATA *victim, int level, int dam_type )
 {
     int hit_roll, save_roll, save_factor;
+
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
+        return TRUE;
 
     /* automatic saves/failures */
 
