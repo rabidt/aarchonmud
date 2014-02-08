@@ -858,6 +858,12 @@ void interpret( CHAR_DATA *ch, char *argument )
             send_position_message(ch);
             return;
         }
+    
+    if ( IS_AFFECTED(ch, AFF_PETRIFIED) && cmd_table[cmd].position > POS_DEAD )
+    {
+        send_to_char("You cannot do that while petrified.\n\r", ch);
+        return;
+    }
         
 	/* Record the command */
 	if ( !IS_NPC(ch) )
