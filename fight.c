@@ -182,7 +182,7 @@ bool check_critical(CHAR_DATA *ch, bool secondary)
 
 bool can_attack(CHAR_DATA *ch)
 {
-    if ( ch->position < POS_RESTING || ch->stop > 0 || IS_AFFECTED(ch, AFF_PETRIFIED) )
+    if ( ch == NULL || ch->position < POS_RESTING || ch->stop > 0 || IS_AFFECTED(ch, AFF_PETRIFIED) )
         return FALSE;
     return TRUE;
 }
@@ -380,15 +380,6 @@ void check_rescue( CHAR_DATA *ch )
   send_to_char( buf, ch );
   do_rescue( ch, target->name );
 }
-
-/* saving throw against attacks that affect the body */
-/*
-bool save_body_affect( CHAR_DATA *ch, int level )
-{
-    int resist = ch->level * (100 + get_curr_stat(ch, STAT_VIT)) / 200;
-    return number_range( 0, level ) < number_range( 0, resist );
-}
-*/
 
 /* handle affects that do things each round */
 void special_affect_update(CHAR_DATA *ch)
@@ -1021,6 +1012,43 @@ bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
     return number_range(0, ch_roll) >= number_range(0, victim_roll);
 }
 
+bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
+{
+    AFFECT_DATA af;
+
+    // saving throw to avoid completely
+    if ( saves_spell(ch->level, victim, DAM_HARM) )
+        return FALSE;
+
+    // may already be partially petrified (slowed)
+    affect_strip(victim, gsn_petrify);
+
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_petrify;
+    af.level     = ch->level;
+    af.duration  = 1;
+    af.location  = APPLY_AGI;
+    
+    // second saving throw to reduce effect to slow
+    if ( saves_physical(victim, ch->level, DAM_HARM) )
+    {
+        af.modifier  = -10;
+        af.bitvector = AFF_SLOW;
+        affect_to_char(victim, &af);
+        act("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR);
+        act("$n is moving more stiffly.", victim, NULL, NULL, TO_ROOM);
+        return FALSE; // still a fail
+    }
+
+    // we have a statue
+    af.modifier  = -100;
+    af.bitvector = AFF_PETRIFIED;
+    affect_to_char(victim, &af);
+    act("{WYou are turned to stone!{x", victim, NULL, NULL, TO_CHAR);
+    act("{W$n is turned to stone!{x", victim, NULL, NULL, TO_ROOM);
+    return TRUE;
+}
+
 /*
 * Do one group of attacks.
 */
@@ -1042,6 +1070,15 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     /* no attacks for stunnies -- just a check */
     if ( !can_attack(ch) )
         return;
+    
+    // chance to get petrified if not averting gaze
+    if ( per_chance(20) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) )
+    {
+        act("You accidentally catch $N's gaze.", ch, NULL, victim, TO_CHAR);
+        act("You catch $n with your gaze.", ch, NULL, victim, TO_VICT);
+        if ( check_petrify(victim, ch) )
+            return;
+    }
     
     if (IS_NPC(ch))
     {

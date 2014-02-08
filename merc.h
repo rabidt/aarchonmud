@@ -230,7 +230,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         429
+#define MAX_SKILL         430
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1366,6 +1366,7 @@ struct  kill_data
 #define OFF_HUNT		(X)
 #define OFF_ARMED               (aa)
 #define OFF_CIRCLE              (bb)
+#define OFF_PETRIFY             (cc)
 
 /* return values for check_imm */
 #define IS_NORMAL           0
@@ -3209,6 +3210,7 @@ extern sh_int race_rakshasa;
  * These are skill_lookup return values for common skills and spells.
  */
 extern  sh_int  gsn_mindflay;
+extern  sh_int  gsn_petrify;
 extern  sh_int  gsn_backstab;
 extern  sh_int  gsn_blackjack;
 extern  sh_int  gsn_beheading;
@@ -4325,6 +4327,7 @@ bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
 bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
+bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* grant.c */
 bool is_granted_name    args( ( CHAR_DATA *ch, char *argument ) );
@@ -4528,6 +4531,7 @@ int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 int get_group_base_cost( int gn, int class );
 int get_group_cost( CHAR_DATA *ch, int gn );
 int get_mastery( CHAR_DATA *ch, int sn );
+bool check_skill( CHAR_DATA *ch, int sn );
 
 /* social-edit.c */
 void load_social_table();
