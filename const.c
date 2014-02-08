@@ -4420,7 +4420,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_INT, STAT_WIS,
     spell_null,    TAR_VIS_CHAR_OFF,     POS_FIGHTING,
-    &gsn_petrify,              SLOT( 0),       0,      12, DUR_SPECIAL,
+    &gsn_petrify,              SLOT( 0),       0,      24, DUR_SPECIAL,
     "petrification",   "Your flesh reverts to its normal state.",  "", NULL
     },
 
