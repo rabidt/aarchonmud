@@ -4653,3 +4653,55 @@ void do_inspire( CHAR_DATA *ch, char *argument )
         affect_to_char(vch, &af);
     }
 }
+
+void do_gaze( CHAR_DATA *ch, char *argument )
+{
+    CHAR_DATA *victim;
+    int skill = get_skill(ch, gsn_petrify);
+
+    if ( skill == 0)
+    {
+        check_social( ch, "gaze", argument );
+        return;
+    }
+
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
+    if ( victim == ch )
+    {
+        send_to_char("Not without a mirror. And better not at all.\n\r", ch);
+        return;
+    }
+    
+    if ( !can_see_combat(ch, victim) )
+    {
+        send_to_char("You need to see them to gaze at them.\n\r", ch);
+        return;
+    }
+
+    if ( !can_see_combat(victim, ch) )
+    {
+        send_to_char("They cannot see you.\n\r", ch);
+        return;
+    }
+    
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) )
+    {
+        send_to_char("They are already petrified.\n\r", ch);
+        return;
+    }
+
+    if ( is_safe(ch,victim) )
+        return;
+
+    // ok, it's happening
+    WAIT_STATE(ch, skill_table[gsn_petrify].beats);
+    act("You focus your gaze on $N.", ch, NULL, victim, TO_CHAR);
+    act("$n focuses $s gaze on you.", ch, NULL, victim, TO_VICT);
+    act("$n focuses $s gaze on $N.", ch, NULL, victim, TO_NOTVICT);
+
+    check_killer(ch, victim);
+    if ( !check_petrify(ch, victim) )
+        start_combat(ch, victim);
+}

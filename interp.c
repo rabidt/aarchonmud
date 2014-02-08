@@ -299,6 +299,7 @@ const   struct  cmd_type    cmd_table   [] =
     * Combat commands.
     */
     { "mindflay",   do_mindflay, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
+    { "gaze",       do_gaze, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
     { "gouge",      do_gouge, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "chop",       do_chop, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "bite",       do_bite, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
