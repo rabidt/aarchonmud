@@ -736,6 +736,7 @@ struct align_type align_table [] =
 	{},      {RES_DISEASE}, {},
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
+
 //9
     {
     "revenant",        TRUE,
@@ -764,6 +765,14 @@ struct align_type align_table [] =
     {},      {RES_LIGHTNING,RES_POISON}, {},
     {A,C,H,Y,ll},    {A,B,C,D,E,F,G,H,I,J,K,Q,X}
     },
+
+    {
+    "medusa",        TRUE,
+    {},      {},   {},
+    {},      {}, {},
+    {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
+    },
+
 //10
 	{
 	"behemoth",        TRUE,
@@ -1701,6 +1710,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 145, 145, 150, 145, 145,     145, 145, 140, 155, 145 },
           {   4,   4,   4,   4,   4,       4,   4,   3,   5,   4 },
           SIZE_LARGE, SEX_BOTH, 9
+        },
+
+        {
+          "medusa",   "Medusa",
+          { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
+          5, { "venom bite", "maul", "petrifying gaze", "sticks to snakes", "alertness" },
+          {1, 10, 20, 30, 50}, {100, 100, 100, 90, 80},
+          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
+          { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
+          {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
+          SIZE_MEDIUM, SEX_FEMALE, 9
         },
 
 // R10
@@ -4391,6 +4411,17 @@ struct  skill_type  skill_table [MAX_SKILL] =
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_inspiring_song, SLOT(0), 100, 24, DUR_BRIEF,
     "", "Your no longer feel inspired.", "", NULL
+    },
+    
+    {
+    "petrifying gaze",  
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_INT, STAT_WIS,
+    spell_null,    TAR_VIS_CHAR_OFF,     POS_FIGHTING,
+    &gsn_petrify,              SLOT( 0),       0,      24, DUR_SPECIAL,
+    "petrification",   "Your flesh reverts to its normal state.",  "", NULL
     },
 
 /*

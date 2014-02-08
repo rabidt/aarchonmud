@@ -1853,6 +1853,10 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
     else
 	charmed = FALSE;
 
+    // some skills are both active and passive
+    if ( sn == gsn_petrify )
+        return IS_SET(ch->off_flags, OFF_PETRIFY);
+    
     /* if a mob uses an active skill (not ordered), he knows it */
     if ( !charmed
 	 && (sn >= 0 && sn < MAX_SKILL)
