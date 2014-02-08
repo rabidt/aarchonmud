@@ -180,6 +180,13 @@ bool check_critical(CHAR_DATA *ch, bool secondary)
     return per_chance(chance);
 }
 
+bool can_attack(CHAR_DATA *ch)
+{
+    if ( ch->position < POS_RESTING || ch->stop > 0 || IS_AFFECTED(ch, AFF_PETRIFIED) )
+        return FALSE;
+    return TRUE;
+}
+
 /*
  * Control the fights going on.
  * Called periodically by update_handler.
@@ -328,7 +335,7 @@ void check_rescue( CHAR_DATA *ch )
     CHAR_DATA *attacker, *target = NULL;
     char buf[MSL];
 
-    if ( !wants_to_rescue(ch) )
+    if ( !wants_to_rescue(ch) || !can_attack(ch) )
         return;
 
     // get target
@@ -594,17 +601,17 @@ void check_reset_stance(CHAR_DATA *ch)
 {
     int chance;
     
+    if ( is_affected(ch, gsn_paroxysm) || IS_AFFECTED(ch, AFF_PETRIFIED) )
+    {
+        ch->stance = STANCE_DEFAULT;
+        return;
+    }
+
     if ( !IS_NPC(ch) || ch->stance != STANCE_DEFAULT
 	 || ch->pIndexData->stance == STANCE_DEFAULT
 	 || ch->position < POS_FIGHTING )
       return;
     
-    if ( is_affected(ch, gsn_paroxysm) )
-    {
-        ch->stance = 0;
-        return;
-    }
-
     chance = 20 + ch->level / 4;
     if (number_percent() < chance)
         do_stance(ch, stances[ch->pIndexData->stance].name);
@@ -619,7 +626,7 @@ void check_jump_up( CHAR_DATA *ch )
     
     if ( ch == NULL || ch->fighting == NULL
 	 || ch->position >= POS_FIGHTING
-	 || ch->position <= POS_SLEEPING )
+	 || !can_attack(ch) )
       return;
 
     chance = 25 + ch->level/4 + get_curr_stat(ch, STAT_AGI)/8
@@ -651,7 +658,7 @@ void check_assist(CHAR_DATA *ch,CHAR_DATA *victim)
     {
         rch_next = rch->next_in_room;
         
-        if (IS_AWAKE(rch) && rch->fighting == NULL)
+        if ( can_attack(rch) && rch->fighting == NULL )
         {
             
             /* quick check for ASSIST_PLAYER */
@@ -1033,7 +1040,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     CHECK_RETURN(ch, victim);
 
     /* no attacks for stunnies -- just a check */
-    if (ch->position < POS_RESTING)
+    if ( !can_attack(ch) )
         return;
     
     if (IS_NPC(ch))
@@ -1734,7 +1741,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     /* prevent attack chains through re-retributions */
     static bool is_retribute = FALSE;
 
-    sn = -1;
+    if ( !can_attack(ch) )
+        return;
     
     if ( (dt == TYPE_UNDEFINED || is_normal_hit(dt))
 	 && IS_AFFECTED(ch, AFF_INSANE)
@@ -2866,7 +2874,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	else
             dam /= 2;
     }
-    
+
+    // petrified characters are resistant to damage
+    if ( dam > 1 && IS_AFFECTED(victim, AFF_PETRIFIED) )
+        dam /= 2;
+
     if ( dam > 1 && ((IS_AFFECTED(victim, AFF_PROTECT_EVIL) && IS_EVIL(ch) )
         ||           (IS_AFFECTED(victim, AFF_PROTECT_GOOD) && IS_GOOD(ch) )))
     {
@@ -6120,7 +6132,7 @@ bool check_lasso( CHAR_DATA *victim )
     {
 	next_opp = opp->next_in_room;
 
-	if (opp->fighting != victim)
+	if ( opp->fighting != victim || !can_attack(opp) )
 	    continue;
 	
 	if ( (lasso=get_eq_char(opp, WEAR_HOLD)) == NULL
@@ -6192,7 +6204,7 @@ void check_back_leap( CHAR_DATA *victim )
     {
 	next_opp = opp->next_in_room;
 
-	if ( opp->fighting != victim || !can_see_combat(opp, victim) )
+	if ( opp->fighting != victim || !can_see_combat(opp, victim) || !can_attack(opp) )
 	    continue;
 	
 	wield = get_eq_char( opp, WEAR_WIELD );
