@@ -736,6 +736,7 @@ struct align_type align_table [] =
 	{},      {RES_DISEASE}, {},
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
+
 //9
     {
     "revenant",        TRUE,
@@ -764,6 +765,14 @@ struct align_type align_table [] =
     {},      {RES_LIGHTNING,RES_POISON}, {},
     {A,C,H,Y,ll},    {A,B,C,D,E,F,G,H,I,J,K,Q,X}
     },
+
+    {
+    "medusa",        TRUE,
+    {},      {},   {},
+    {},      {}, {},
+    {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
+    },
+
 //10
 	{
 	"behemoth",        TRUE,
@@ -1701,6 +1710,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 145, 145, 150, 145, 145,     145, 145, 140, 155, 145 },
           {   4,   4,   4,   4,   4,       4,   4,   3,   5,   4 },
           SIZE_LARGE, SEX_BOTH, 9
+        },
+
+        {
+          "medusa",   "Medusa",
+          { 290, 290, 285, 290, 290, 290, 290, 290, 290, 290, 290, 290, 290, 285, 290 },
+          4, { "venom bite", "maul", "petrifying gaze", "sticks to snakes" },
+          {1, 10, 20, 30}, {100, 100, 100, 90},
+          {  65,  65,  65,  65,  65,      65,  65,  65,  65,  65 },
+          { 145, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
+          {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
+          SIZE_MEDIUM, SEX_FEMALE, 9
         },
 
 // R10
