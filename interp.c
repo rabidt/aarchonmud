@@ -299,6 +299,7 @@ const   struct  cmd_type    cmd_table   [] =
     * Combat commands.
     */
     { "mindflay",   do_mindflay, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
+    { "gaze",       do_gaze, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
     { "gouge",      do_gouge, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "chop",       do_chop, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "bite",       do_bite, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
@@ -858,6 +859,12 @@ void interpret( CHAR_DATA *ch, char *argument )
             send_position_message(ch);
             return;
         }
+    
+    if ( IS_AFFECTED(ch, AFF_PETRIFIED) && cmd_table[cmd].position > POS_DEAD )
+    {
+        send_to_char("You cannot do that while petrified.\n\r", ch);
+        return;
+    }
         
 	/* Record the command */
 	if ( !IS_NPC(ch) )
