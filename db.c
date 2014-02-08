@@ -111,6 +111,7 @@ bool            wait_for_auth = AUTH_STATUS_ENABLED;
 bool            exits_fixed = FALSE;
 
 sh_int  gsn_mindflay;
+sh_int  gsn_petrify;
 sh_int  gsn_backstab;
 sh_int  gsn_blackjack;
 sh_int  gsn_circle;
