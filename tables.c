@@ -333,6 +333,7 @@ const struct flag_type affect_flags[] =
     { "fortune",           AFF_FORTUNE,              TRUE  },
     { "shield",            AFF_SHIELD,               TRUE  },
     { "stone_skin",        AFF_STONE_SKIN,           TRUE  },
+    { "petrified",         AFF_PETRIFIED,            TRUE  },
     { NULL,                0,                        0     }
 };
 
