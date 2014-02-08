@@ -192,6 +192,7 @@ DECLARE_DO_FUN( do_fvlist   );
 DECLARE_DO_FUN( do_gag      );
 DECLARE_DO_FUN( do_gain     );
 DECLARE_DO_FUN( do_gametalk );
+DECLARE_DO_FUN( do_gaze     );
 DECLARE_DO_FUN( do_get      );
 DECLARE_DO_FUN( do_give     );
 DECLARE_DO_FUN( do_glance   );
