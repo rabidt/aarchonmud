@@ -5506,6 +5506,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         base_exp += base_exp/10;
     
     off_bonus = 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 20 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 5 : 0;
