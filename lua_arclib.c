@@ -2329,6 +2329,36 @@ OBJVHM ( containerflag, "container only. Check container flags.",
 /* end common section */
 
 /* CH section */
+static int CH_addpet ( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    CHAR_DATA *pet=check_CH(LS,2);
+
+    if (IS_NPC(ud_ch))
+        luaL_error(LS,
+                "Can only add pets to PCs.");
+    else if (!IS_NPC(pet))
+        luaL_error(LS,
+                "Can only add NPCs as pets.");
+    else if (ud_ch->pet)
+        luaL_error(LS,
+                "%s already has a pet.", ud_ch->name);
+
+    SET_BIT(pet->act, ACT_PET);
+    SET_BIT(pet->affect_field, AFF_CHARM);
+    flag_clear( pet->penalty );
+    SET_BIT( pet->penalty, PENALTY_NOTELL );
+    SET_BIT( pet->penalty, PENALTY_NOSHOUT );
+    SET_BIT( pet->penalty, PENALTY_NOCHANNEL );
+    add_follower( pet, ud_ch );
+    pet->leader = ud_ch;
+    ud_ch->pet = pet;
+
+    return 0;
+}
+HELPTOPIC CH_addpet_help = {};
+
+
 static int CH_setval ( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4570,6 +4600,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(setresist, 1),
     CHMETH(hit, 1),
     CHMETH(randchar, 0),
+    CHMETH(addpet, 1),
     CHMETH(loadprog, 1),
     CHMETH(loadscript, 1),
     CHMETH(loadstring, 1),
