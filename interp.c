@@ -318,7 +318,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "circle",     do_circle,      POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "slash",      do_slash_throat,POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "bash",       do_bash,        POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "bs",         do_backstab,    POS_FIGHTING,    0,  LOG_NORMAL, 0, FALSE, TRUE  },
+    { "bs",         do_backstab,    POS_STANDING,    0,  LOG_NORMAL, 0, FALSE, TRUE  },
     { "berserk",    do_berserk, POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "dirt",       do_dirt,    POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "disarm",     do_disarm,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
