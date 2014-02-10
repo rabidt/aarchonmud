@@ -4414,6 +4414,9 @@ static int CH_set_pet (lua_State *LS)
     else if (ud_ch->pet)
         luaL_error(LS,
                 "%s already has a pet.", ud_ch->name);
+    else if (IS_AFFECTED(pet, AFF_CHARM))
+        luaL_error(LS,
+                "%s is already charmed.", pet->name);
 
     SET_BIT(pet->act, ACT_PET);
     SET_BIT(pet->affect_field, AFF_CHARM);
