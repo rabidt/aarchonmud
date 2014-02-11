@@ -1259,7 +1259,8 @@ const char* spell_target_names[] =
     "obj_char_defensive",
     "obj_char_offensive",
     "visible_char_offensive",
-    "char_neutral"
+    "char_neutral",
+    "ignore_offensive"
 };
 
 const char* spell_duration_names[] =
