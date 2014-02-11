@@ -346,7 +346,10 @@ bool show_help( CHAR_DATA *ch, char *argument )
                             if ( !str_prefix( spell, "all" ) )
                                 show_skill_cmds( ch, -1 );
                             else if ( !str_prefix( spell, "ignore" ) )
+                            {
                                 show_skill_cmds( ch, TAR_IGNORE );
+                                show_skill_cmds( ch, TAR_IGNORE_OFF );
+                            }
                             else if ( !str_prefix( spell, "attack" ) )
                             {
                                 send_to_char("   Non-targetted attack spells:\n\r",ch);
