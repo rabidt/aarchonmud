@@ -330,7 +330,8 @@ bool is_offensive( int sn )
 
     return target == TAR_CHAR_OFFENSIVE
         || target == TAR_OBJ_CHAR_OFF
-        || target == TAR_VIS_CHAR_OFF;
+        || target == TAR_VIS_CHAR_OFF
+        || target == TAR_IGNORE_OFF;
 }
 
 int get_save(CHAR_DATA *ch, bool physical)
@@ -600,6 +601,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
             return FALSE;
 
         case TAR_IGNORE:
+        case TAR_IGNORE_OFF:
             break;
 
         case TAR_VIS_CHAR_OFF:
@@ -1127,6 +1129,7 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
         }
 
         if ( target == TAR_IGNORE
+            || target == TAR_IGNORE_OFF
             || sn == skill_lookup("betray")
             || sn == skill_lookup("chain lightning") )
         {

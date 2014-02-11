@@ -2817,7 +2817,8 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
         return FALSE;
 
     // direct-target spells are harder to evade
-    if ( skill_table[sn].target != TAR_IGNORE && !per_chance(mastery_bonus(victim, gsn_evasion, 30, 50)) )
+    if ( skill_table[sn].target != TAR_IGNORE && skill_table[sn].target != TAR_IGNORE_OFF
+         && !per_chance(mastery_bonus(victim, gsn_evasion, 30, 50)) )
         chance /= 2;
 
     bool success = per_chance(chance);

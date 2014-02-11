@@ -3021,6 +3021,7 @@ struct  room_index_data
 #define TAR_OBJ_CHAR_OFF        6
 #define TAR_VIS_CHAR_OFF        7
 #define TAR_CHAR_NEUTRAL        8
+#define TAR_IGNORE_OFF          9 // for area spells that bestow affects
 
 #define TARGET_CHAR         0
 #define TARGET_OBJ          1
