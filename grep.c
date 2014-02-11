@@ -1316,6 +1316,7 @@ int get_affect_cap( int location, int level )
     case APPLY_DIS:
     case APPLY_CHA:
     case APPLY_LUC:
+    case APPLY_STATS:
         return level < 90 ? 10 : level - 80;
     case APPLY_MANA:
     case APPLY_HIT:
@@ -1333,6 +1334,26 @@ int get_affect_cap( int location, int level )
     }
 }
 
+bool is_basic_stat( int location )
+{
+    switch ( location )
+    {
+    case APPLY_STR:
+    case APPLY_CON:
+    case APPLY_VIT:
+    case APPLY_AGI:
+    case APPLY_DEX:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_DIS:
+    case APPLY_CHA:
+    case APPLY_LUC:
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
 bool is_affect_cap_hard( int location )
 {
     switch ( location )
@@ -1347,6 +1368,7 @@ bool is_affect_cap_hard( int location )
     case APPLY_DIS:
     case APPLY_CHA:
     case APPLY_LUC:
+    case APPLY_STATS:
         return TRUE;
     default:
         return FALSE;
@@ -1370,6 +1392,7 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
     case APPLY_DIS:
     case APPLY_CHA:
     case APPLY_LUC: factor = 0.25; break;
+    case APPLY_STATS: factor = 2.5; break;
     case APPLY_MANA:
     case APPLY_HIT:
     case APPLY_MOVE: factor = 0.1; break;
@@ -1606,13 +1629,19 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 	return FALSE;
     }
 
+    // APPLY_STATS counts towards the cap of STR...LUC
+    int all_stats = 0;
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
+        if ( aff->location == APPLY_STATS )
+            all_stats += aff->modifier;
+    
     /* affects - checks for hard caps per guidelines */
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
     {
         if ( is_affect_cap_hard(aff->location) )
         {
             spec = get_affect_cap( aff->location, obj->level );
-            value = aff->modifier;
+            value = aff->modifier + (is_basic_stat(aff->location) ? all_stats : 0);
             if ( value > spec )
             {
                 sprintf( msg, "%s = %d/%d", name_lookup(aff->location, apply_flags), value, spec );

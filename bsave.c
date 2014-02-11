@@ -1248,8 +1248,8 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
         }
 
     /* initialize race */
-        if (ch->race == 0)
-            ch->race = race_lookup("human");
+    if (ch->race == 0)
+        ch->race = race_lookup("human");
         
         ch->size = pc_race_table[ch->race].size;
         ch->dam_type = 17; /*punch */

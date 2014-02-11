@@ -372,6 +372,49 @@ int get_base_sex(CHAR_DATA *ch)
     return ch->pcdata->true_sex;
 }
 
+void add_apply(CHAR_DATA *ch, int mod, int location)
+{
+    int i;
+
+    switch (location)
+    {
+        case APPLY_STR:     ch->mod_stat[STAT_STR]  += mod; break;
+        case APPLY_DEX:     ch->mod_stat[STAT_DEX]  += mod; break;
+        case APPLY_INT:     ch->mod_stat[STAT_INT]  += mod; break;
+        case APPLY_WIS:     ch->mod_stat[STAT_WIS]  += mod; break;
+        case APPLY_CON:     ch->mod_stat[STAT_CON]  += mod; break;
+        case APPLY_VIT:     ch->mod_stat[STAT_VIT]  += mod; break;
+        case APPLY_AGI:     ch->mod_stat[STAT_AGI]  += mod; break;
+        case APPLY_DIS:     ch->mod_stat[STAT_DIS]  += mod; break;
+        case APPLY_CHA:     ch->mod_stat[STAT_CHA]  += mod; break;
+        case APPLY_LUC:     ch->mod_stat[STAT_LUC]  += mod; break;
+        case APPLY_STATS:
+            for ( i = 0; i < MAX_STATS; i++)
+                ch->mod_stat[i] += mod;
+            break;
+            
+        case APPLY_SEX:     ch->sex         += mod; break;
+        case APPLY_MANA:    ch->max_mana    += mod; break;
+        case APPLY_HIT:     ch->max_hit     += mod; break;
+        case APPLY_MOVE:    ch->max_move    += mod; break;
+            
+        case APPLY_AC:
+            for (i = 0; i < 4; i ++)
+                ch->armor[i] += mod;
+            break;
+        case APPLY_HITROLL: ch->hitroll     += mod; break;
+        case APPLY_DAMROLL: ch->damroll     += mod; break;
+            
+        case APPLY_SAVES:           ch->saving_throw += mod; break;
+        case APPLY_SAVING_ROD:      ch->saving_throw += mod; break;
+        case APPLY_SAVING_PETRI:    ch->saving_throw += mod; break;
+        case APPLY_SAVING_BREATH:   ch->saving_throw += mod; break;
+        case APPLY_SAVING_SPELL:    ch->saving_throw += mod; break;
+        
+        default: break;
+    }
+}
+
 /* used to de-screw characters */
 void reset_char(CHAR_DATA *ch)
 {
@@ -414,114 +457,15 @@ void reset_char(CHAR_DATA *ch)
             ch->armor[i] -= apply_ac( obj, loc, i );
         
             for ( af = obj->pIndexData->affected; af != NULL; af = af->next )
-            {
-                mod = af->modifier;
-                switch(af->location)
-                {
-                case APPLY_STR:     ch->mod_stat[STAT_STR]  += mod; break;
-                case APPLY_DEX:     ch->mod_stat[STAT_DEX]  += mod; break;
-                case APPLY_INT:     ch->mod_stat[STAT_INT]  += mod; break;
-                case APPLY_WIS:     ch->mod_stat[STAT_WIS]  += mod; break;
-                case APPLY_CON:     ch->mod_stat[STAT_CON]  += mod; break;
-                case APPLY_VIT:     ch->mod_stat[STAT_VIT]  += mod; break;
-                case APPLY_AGI:     ch->mod_stat[STAT_AGI]  += mod; break;
-                case APPLY_DIS:     ch->mod_stat[STAT_DIS]  += mod; break;
-                case APPLY_CHA:     ch->mod_stat[STAT_CHA]  += mod; break;
-                case APPLY_LUC:     ch->mod_stat[STAT_LUC]  += mod; break;
-                    
-                case APPLY_SEX:     ch->sex         += mod; break;
-                case APPLY_MANA:    ch->max_mana        += mod; break;
-                case APPLY_HIT:     ch->max_hit     += mod; break;
-                case APPLY_MOVE:    ch->max_move        += mod; break;
-                    
-                case APPLY_AC:
-                    for (i = 0; i < 4; i ++)
-                        ch->armor[i] += mod;
-                    break;
-                case APPLY_HITROLL: ch->hitroll     += mod; break;
-                case APPLY_DAMROLL: ch->damroll     += mod; break;
-                    
-                case APPLY_SAVES:       ch->saving_throw += mod; break;
-                case APPLY_SAVING_ROD:      ch->saving_throw += mod; break;
-                case APPLY_SAVING_PETRI:    ch->saving_throw += mod; break;
-                case APPLY_SAVING_BREATH:   ch->saving_throw += mod; break;
-                case APPLY_SAVING_SPELL:    ch->saving_throw += mod; break;
-                }
-            }
+                add_apply(ch, af->modifier, af->location);
             
             for ( af = obj->affected; af != NULL; af = af->next )
-            {
-                mod = af->modifier;
-                switch(af->location)
-                {
-                case APPLY_STR:         ch->mod_stat[STAT_STR]  += mod; break;
-                case APPLY_DEX:         ch->mod_stat[STAT_DEX]  += mod; break;
-                case APPLY_INT:         ch->mod_stat[STAT_INT]  += mod; break;
-                case APPLY_WIS:         ch->mod_stat[STAT_WIS]  += mod; break;
-                case APPLY_CON:         ch->mod_stat[STAT_CON]  += mod; break;
-                case APPLY_VIT:     ch->mod_stat[STAT_VIT]  += mod; break;
-                case APPLY_AGI:     ch->mod_stat[STAT_AGI]  += mod; break;
-                case APPLY_DIS:     ch->mod_stat[STAT_DIS]  += mod; break;
-                case APPLY_CHA:     ch->mod_stat[STAT_CHA]  += mod; break;
-                case APPLY_LUC:     ch->mod_stat[STAT_LUC]  += mod; break;
-                    
-                case APPLY_SEX:         ch->sex                 += mod; break;
-                case APPLY_MANA:        ch->max_mana            += mod; break;
-                case APPLY_HIT:         ch->max_hit             += mod; break;
-                case APPLY_MOVE:        ch->max_move            += mod; break;
-                    
-                case APPLY_AC:
-                    for (i = 0; i < 4; i ++)
-                        ch->armor[i] += mod;
-                    break;
-                case APPLY_HITROLL:     ch->hitroll             += mod; break;
-                case APPLY_DAMROLL:     ch->damroll             += mod; break;
-                    
-                case APPLY_SAVES:         ch->saving_throw += mod; break;
-                case APPLY_SAVING_ROD:          ch->saving_throw += mod; break;
-                case APPLY_SAVING_PETRI:        ch->saving_throw += mod; break;
-                case APPLY_SAVING_BREATH:       ch->saving_throw += mod; break;
-                case APPLY_SAVING_SPELL:        ch->saving_throw += mod; break;
-                }
-            }
+                add_apply(ch, af->modifier, af->location);
     }
     
     /* now add back spell effects */
     for (af = ch->affected; af != NULL; af = af->next)
-    {
-        mod = af->modifier;
-        switch(af->location)
-        {
-        case APPLY_STR:     ch->mod_stat[STAT_STR]  += mod; break;
-        case APPLY_DEX:     ch->mod_stat[STAT_DEX]  += mod; break;
-        case APPLY_INT:     ch->mod_stat[STAT_INT]  += mod; break;
-        case APPLY_WIS:     ch->mod_stat[STAT_WIS]  += mod; break;
-        case APPLY_CON:     ch->mod_stat[STAT_CON]  += mod; break;
-        case APPLY_VIT:     ch->mod_stat[STAT_VIT]  += mod; break;
-        case APPLY_AGI:     ch->mod_stat[STAT_AGI]  += mod; break;
-        case APPLY_DIS:     ch->mod_stat[STAT_DIS]  += mod; break;
-        case APPLY_CHA:     ch->mod_stat[STAT_CHA]  += mod; break;
-        case APPLY_LUC:     ch->mod_stat[STAT_LUC]  += mod; break;
-            
-        case APPLY_SEX:     ch->sex                 += mod; break;
-        case APPLY_MANA:    ch->max_mana            += mod; break;
-        case APPLY_HIT:     ch->max_hit             += mod; break;
-        case APPLY_MOVE:    ch->max_move            += mod; break;
-            
-        case APPLY_AC:
-            for (i = 0; i < 4; i ++)
-                ch->armor[i] += mod;
-            break;
-        case APPLY_HITROLL:     ch->hitroll             += mod; break;
-        case APPLY_DAMROLL:     ch->damroll             += mod; break;
-            
-        case APPLY_SAVES:               ch->saving_throw += mod; break;
-        case APPLY_SAVING_ROD:          ch->saving_throw += mod; break;
-        case APPLY_SAVING_PETRI:        ch->saving_throw += mod; break;
-        case APPLY_SAVING_BREATH:       ch->saving_throw += mod; break;
-        case APPLY_SAVING_SPELL:        ch->saving_throw += mod; break;
-        }
-    }
+        add_apply(ch, af->modifier, af->location);
     
     /* make sure sex is RIGHT!!!! */
     if (ch->sex < 0 || ch->sex > 2)
@@ -876,48 +820,7 @@ void affect_modify_new( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd, bool drop )
         mod = 0 - mod;
     }
     
-    switch ( paf->location )
-    {
-    default:
-        bug( "Affect_modify: unknown location %d.", paf->location );
-        return;
-        
-    case APPLY_NONE:                        break;
-    case APPLY_STR:           ch->mod_stat[STAT_STR]    += mod; break;
-    case APPLY_DEX:           ch->mod_stat[STAT_DEX]    += mod; break;
-    case APPLY_INT:           ch->mod_stat[STAT_INT]    += mod; break;
-    case APPLY_WIS:           ch->mod_stat[STAT_WIS]    += mod; break;
-    case APPLY_CON:           ch->mod_stat[STAT_CON]    += mod; break;
-    case APPLY_VIT:     ch->mod_stat[STAT_VIT]  += mod; break;
-    case APPLY_AGI:     ch->mod_stat[STAT_AGI]  += mod; break;
-    case APPLY_DIS:     ch->mod_stat[STAT_DIS]  += mod; break;
-    case APPLY_CHA:     ch->mod_stat[STAT_CHA]  += mod; break;
-    case APPLY_LUC:     ch->mod_stat[STAT_LUC]  += mod; break;
-    case APPLY_SEX:           ch->sex           += mod; break;
-    case APPLY_CLASS:                       break;
-    case APPLY_LEVEL:                       break;
-    case APPLY_AGE:                     break;
-    case APPLY_HEIGHT:                      break;
-    case APPLY_WEIGHT:                      break;
-    case APPLY_MANA:          ch->max_mana      += mod; break;
-    case APPLY_HIT:           ch->max_hit       += mod; break;
-    case APPLY_MOVE:          ch->max_move      += mod; break;
-    case APPLY_GOLD:                        break;
-    case APPLY_EXP:                     break;
-    case APPLY_AC:
-        for (i = 0; i < 4; i ++)
-            ch->armor[i] += mod;
-        break;
-    case APPLY_HITROLL:       ch->hitroll       += mod; break;
-    case APPLY_DAMROLL:       ch->damroll       += mod; break;
-    case APPLY_SAVES:   ch->saving_throw        += mod; break;
-    case APPLY_SAVING_ROD:    ch->saving_throw      += mod; break;
-    case APPLY_SAVING_PETRI:  ch->saving_throw      += mod; break;
-    case APPLY_SAVING_BREATH: ch->saving_throw      += mod; break;
-    case APPLY_SAVING_SPELL:  ch->saving_throw      += mod; break;
-    case APPLY_SPELL_AFFECT:                    break;
-//    case APPLY_COMBO:    ch->combo_points += mod; break;
-    }
+    add_apply(ch, mod, paf->location);
 
     if ( drop )
 	check_drop_weapon( ch );
@@ -3651,6 +3554,7 @@ char *affect_loc_name( int location )
     case APPLY_DIS:     return "discipline";
     case APPLY_CHA:     return "charisma";
     case APPLY_LUC:     return "luck";
+    case APPLY_STATS:   return "all stats";
     case APPLY_SEX:     return "sex";
     case APPLY_CLASS:   return "class";
     case APPLY_LEVEL:   return "level";

@@ -333,6 +333,7 @@ const struct flag_type affect_flags[] =
     { "fortune",           AFF_FORTUNE,              TRUE  },
     { "shield",            AFF_SHIELD,               TRUE  },
     { "stone_skin",        AFF_STONE_SKIN,           TRUE  },
+    { "petrified",         AFF_PETRIFIED,            TRUE  },
     { NULL,                0,                        0     }
 };
 
@@ -362,6 +363,7 @@ const struct flag_type off_flags[] =
 	{   "hunt",		X,  TRUE    },
 	{   "armed",            aa, TRUE    },
 	{   "circle",           bb, TRUE    },
+    {   "petrify",          cc, TRUE    },
 	{   NULL,           0,  0   }
 };
 
@@ -429,7 +431,8 @@ const struct flag_type form_flags[] =
 	{   "frost_aura",   FORM_FROST, TRUE    },
 	{   "burning_aura", FORM_BURN,  TRUE    },
 	{   "wise",         FORM_WISE,  TRUE    },
-        {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
+    {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
+    {   "constrict",    FORM_CONSTRICT,     TRUE    },
 	{   NULL,           0,          0   }
 };
 
@@ -842,6 +845,7 @@ const struct flag_type apply_flags[] =
     {   "discipline",       APPLY_DIS,      TRUE    },
     {   "charisma",         APPLY_CHA,      TRUE    },
     {   "luck",             APPLY_LUC,      TRUE    },
+    {   "stats",            APPLY_STATS,    TRUE    },
     {   "hp",               APPLY_HIT,      TRUE    },
     {   "mana",             APPLY_MANA,     TRUE    },
     {   "move",             APPLY_MOVE,     TRUE    },
