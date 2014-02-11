@@ -230,13 +230,13 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         426
+#define MAX_SKILL         430
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
 #define MAX_CLASS          15
-#define MAX_PC_RACE        65 /*accurate jan 2013 */
+#define MAX_PC_RACE        70 /*accurate feb 2014 */
 #define MAX_BOARD          12
 #define MAX_CLAN           12
 #define MAX_CLAN_RANK      13
@@ -1366,6 +1366,7 @@ struct  kill_data
 #define OFF_HUNT		(X)
 #define OFF_ARMED               (aa)
 #define OFF_CIRCLE              (bb)
+#define OFF_PETRIFY             (cc)
 
 /* return values for check_imm */
 #define IS_NORMAL           0
@@ -1489,6 +1490,7 @@ struct  kill_data
 #define FORM_BURN               (ii) //burning aura
 #define FORM_WISE               (jj) //10 mana per level
 #define FORM_CONDUCTIVE         (kk) //electric aura
+#define FORM_CONSTRICT          (ll) //constriction attack
 
 /* body parts */
 #define PART_HEAD               (A)
@@ -1599,6 +1601,7 @@ struct  kill_data
 #define AFF_FORTUNE           77
 #define AFF_SHIELD            78
 #define AFF_STONE_SKIN        79
+#define AFF_PETRIFIED         80
 
 
 /*
@@ -1934,6 +1937,7 @@ struct  kill_data
 #define APPLY_DIS              28
 #define APPLY_CHA              29
 #define APPLY_LUC              30
+#define APPLY_STATS            31 // all stats (str..luc)
 // #define APPLY_COMBO              31
 
 
@@ -3200,11 +3204,13 @@ extern sh_int race_werewolf;
 extern sh_int race_naga;
 extern sh_int race_doppelganger;
 extern sh_int race_vampire;
+extern sh_int race_rakshasa;
 
 /*
  * These are skill_lookup return values for common skills and spells.
  */
 extern  sh_int  gsn_mindflay;
+extern  sh_int  gsn_petrify;
 extern  sh_int  gsn_backstab;
 extern  sh_int  gsn_blackjack;
 extern  sh_int  gsn_beheading;
@@ -3480,6 +3486,8 @@ extern sh_int  gsn_dimensional_blade;
 extern sh_int  gsn_elemental_blade;
 extern sh_int  gsn_ashura;
 extern sh_int  gsn_shan_ya;
+extern sh_int  gsn_dark_reaping;
+extern sh_int  gsn_inspiring_song;
 
 /* astark stuff */
 
@@ -3523,6 +3531,7 @@ extern sh_int  gsn_extend_spell;
 extern sh_int  gsn_empower_spell;
 extern sh_int  gsn_quicken_spell;
 extern sh_int  gsn_chain_spell;
+extern sh_int  gsn_wish;
 
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
@@ -3786,6 +3795,7 @@ struct achievement_entry
 #define IS_DEAD(ch) ((ch)->just_killed || (ch)->position == POS_DEAD || !IS_VALID(ch))
 #define CHECK_RETURN(ch, victim) if (stop_attack(ch, victim)) return
 #define IS_UNDEAD(ch) (IS_SET(ch->form, FORM_UNDEAD) || NPC_ACT(ch,ACT_UNDEAD))
+#define MULTI_MORPH(ch) (ch->race == race_doppelganger || ch->race == race_rakshasa)
 
 #define SET_AFFECT(ch, sn)          SET_BIT((ch)->affect_field, sn)
 #define REMOVE_AFFECT(ch, sn)       REMOVE_BIT((ch)->affect_field, sn)
@@ -4317,6 +4327,7 @@ bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
 bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
+bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* grant.c */
 bool is_granted_name    args( ( CHAR_DATA *ch, char *argument ) );
@@ -4520,6 +4531,7 @@ int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 int get_group_base_cost( int gn, int class );
 int get_group_cost( CHAR_DATA *ch, int gn );
 int get_mastery( CHAR_DATA *ch, int sn );
+bool check_skill( CHAR_DATA *ch, int sn );
 
 /* social-edit.c */
 void load_social_table();

@@ -180,6 +180,13 @@ bool check_critical(CHAR_DATA *ch, bool secondary)
     return per_chance(chance);
 }
 
+bool can_attack(CHAR_DATA *ch)
+{
+    if ( ch == NULL || ch->position < POS_RESTING || ch->stop > 0 || IS_AFFECTED(ch, AFF_PETRIFIED) )
+        return FALSE;
+    return TRUE;
+}
+
 /*
  * Control the fights going on.
  * Called periodically by update_handler.
@@ -328,7 +335,7 @@ void check_rescue( CHAR_DATA *ch )
     CHAR_DATA *attacker, *target = NULL;
     char buf[MSL];
 
-    if ( !wants_to_rescue(ch) )
+    if ( !wants_to_rescue(ch) || !can_attack(ch) )
         return;
 
     // get target
@@ -373,15 +380,6 @@ void check_rescue( CHAR_DATA *ch )
   send_to_char( buf, ch );
   do_rescue( ch, target->name );
 }
-
-/* saving throw against attacks that affect the body */
-/*
-bool save_body_affect( CHAR_DATA *ch, int level )
-{
-    int resist = ch->level * (100 + get_curr_stat(ch, STAT_VIT)) / 200;
-    return number_range( 0, level ) < number_range( 0, resist );
-}
-*/
 
 /* handle affects that do things each round */
 void special_affect_update(CHAR_DATA *ch)
@@ -594,17 +592,17 @@ void check_reset_stance(CHAR_DATA *ch)
 {
     int chance;
     
+    if ( is_affected(ch, gsn_paroxysm) || IS_AFFECTED(ch, AFF_PETRIFIED) )
+    {
+        ch->stance = STANCE_DEFAULT;
+        return;
+    }
+
     if ( !IS_NPC(ch) || ch->stance != STANCE_DEFAULT
 	 || ch->pIndexData->stance == STANCE_DEFAULT
 	 || ch->position < POS_FIGHTING )
       return;
     
-    if ( is_affected(ch, gsn_paroxysm) )
-    {
-        ch->stance = 0;
-        return;
-    }
-
     chance = 20 + ch->level / 4;
     if (number_percent() < chance)
         do_stance(ch, stances[ch->pIndexData->stance].name);
@@ -619,7 +617,7 @@ void check_jump_up( CHAR_DATA *ch )
     
     if ( ch == NULL || ch->fighting == NULL
 	 || ch->position >= POS_FIGHTING
-	 || ch->position <= POS_SLEEPING )
+	 || !can_attack(ch) )
       return;
 
     chance = 25 + ch->level/4 + get_curr_stat(ch, STAT_AGI)/8
@@ -651,7 +649,7 @@ void check_assist(CHAR_DATA *ch,CHAR_DATA *victim)
     {
         rch_next = rch->next_in_room;
         
-        if (IS_AWAKE(rch) && rch->fighting == NULL)
+        if ( can_attack(rch) && rch->fighting == NULL )
         {
             
             /* quick check for ASSIST_PLAYER */
@@ -1007,6 +1005,50 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     return chance;
 }
 
+bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
+{
+    int ch_roll = (10+ch->level) + get_hitroll(ch)/2 + ch->size * 20;
+    int victim_roll = (10+victim->level) - get_save(victim, TRUE) + victim->size * 20;
+    return number_range(0, ch_roll) >= number_range(0, victim_roll);
+}
+
+bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
+{
+    AFFECT_DATA af;
+
+    // saving throw to avoid completely
+    if ( saves_spell(ch->level, victim, DAM_HARM) )
+        return FALSE;
+
+    // may already be partially petrified (slowed)
+    affect_strip(victim, gsn_petrify);
+
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_petrify;
+    af.level     = ch->level;
+    af.duration  = 1;
+    af.location  = APPLY_AGI;
+    
+    // second saving throw to reduce effect to slow
+    if ( saves_physical(victim, ch->level, DAM_HARM) )
+    {
+        af.modifier  = -10;
+        af.bitvector = AFF_SLOW;
+        affect_to_char(victim, &af);
+        act("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR);
+        act("$n is moving more stiffly.", victim, NULL, NULL, TO_ROOM);
+        return FALSE; // still a fail
+    }
+
+    // we have a statue
+    af.modifier  = -100;
+    af.bitvector = AFF_PETRIFIED;
+    affect_to_char(victim, &af);
+    act("{WYou are turned to stone!{x", victim, NULL, NULL, TO_CHAR);
+    act("{W$n is turned to stone!{x", victim, NULL, NULL, TO_ROOM);
+    return TRUE;
+}
+
 /*
 * Do one group of attacks.
 */
@@ -1026,8 +1068,17 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     CHECK_RETURN(ch, victim);
 
     /* no attacks for stunnies -- just a check */
-    if (ch->position < POS_RESTING)
+    if ( !can_attack(ch) )
         return;
+    
+    // chance to get petrified if not averting gaze
+    if ( per_chance(20) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) )
+    {
+        act("You accidentally catch $N's gaze.", ch, NULL, victim, TO_CHAR);
+        act("You catch $n with your gaze.", ch, NULL, victim, TO_VICT);
+        if ( check_petrify(victim, ch) )
+            return;
+    }
     
     if (IS_NPC(ch))
     {
@@ -1244,8 +1295,20 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             else if ( number_bits(1) )
                 one_hit(ch, victim, dt, FALSE);
         }
+        if ( ch->fighting != victim )
+            return;
     }
-     
+
+    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim) )
+    {
+        send_to_char("You are constricted and unable to act.\n\r", victim);
+        act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
+        WAIT_STATE(victim, PULSE_VIOLENCE);
+        victim->stop++;
+        int dam = martial_damage(ch, gsn_boa) * 2;
+        full_dam(ch, victim, dam, gsn_boa, DAM_BASH, TRUE);
+    }
+    
     return;
 }
 
@@ -1715,7 +1778,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     /* prevent attack chains through re-retributions */
     static bool is_retribute = FALSE;
 
-    sn = -1;
+    if ( !can_attack(ch) )
+        return;
     
     if ( (dt == TYPE_UNDEFINED || is_normal_hit(dt))
 	 && IS_AFFECTED(ch, AFF_INSANE)
@@ -1996,6 +2060,16 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     stance_after_hit( ch, victim, wield );
     if ( stop_attack(ch, victim) )
         return TRUE;
+    
+    /* dark reaping */
+    AFFECT_DATA *reaping = affect_find(ch->affected, gsn_dark_reaping);
+    if ( reaping && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
+    {
+        dam = dice(1,8) + reaping->level/3;
+        full_dam(ch, victim, dam, gsn_dark_reaping, DAM_NEGATIVE, TRUE);
+        if ( stop_attack(ch, victim) )
+            return TRUE;
+    }
 
     /* retribution */
     if ( (victim->stance == STANCE_PORCUPINE 
@@ -2837,7 +2911,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	else
             dam /= 2;
     }
-    
+
+    // petrified characters are resistant to damage
+    if ( dam > 1 && IS_AFFECTED(victim, AFF_PETRIFIED) )
+        dam /= 2;
+
     if ( dam > 1 && ((IS_AFFECTED(victim, AFF_PROTECT_EVIL) && IS_EVIL(ch) )
         ||           (IS_AFFECTED(victim, AFF_PROTECT_GOOD) && IS_GOOD(ch) )))
     {
@@ -3434,7 +3512,25 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	    update_bounty(victim);      
 	}
     }
-        
+
+    if ( check_skill(ch, gsn_dark_reaping) && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
+    {
+        int power = victim->level;
+        AFFECT_DATA af;
+
+        af.where    = TO_AFFECTS;
+        af.type     = gsn_dark_reaping;
+        af.level    = power;
+        af.duration = 1;
+        af.modifier = 0;
+        af.bitvector = 0;
+        af.location = APPLY_NONE;
+        affect_join(ch, &af);
+
+        send_to_char("{DA dark power fills you as you start to reap the living!{x\n\r", ch);
+        act("{D$n {Dis filled with a dark power!{x", ch, NULL, NULL, TO_ROOM);
+    }
+    
     /*
      * Death trigger
      */
@@ -3963,7 +4059,8 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	    check_improve( ch, gsn_woodland_combat, FALSE, 10 );
     }
 
-    try_avoid = !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) && !IS_AFFECTED(victim, AFF_FLEE);
+    try_avoid = !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) &&
+        !IS_AFFECTED(victim, AFF_FLEE) && !IS_AFFECTED(victim, AFF_PETRIFIED);
     if ( try_avoid )
     {
         if ( check_outmaneuver( ch, victim ) )
@@ -4535,9 +4632,11 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     if ( ch->stance==STANCE_TOAD
         || ch->stance==STANCE_SWAYDES_MERCY
         || ch->stance==STANCE_AVERSION
-        || ch->stance==STANCE_BUNNY
-        || IS_SET(ch->form, FORM_DOUBLE_JOINTED) )
+        || ch->stance==STANCE_BUNNY)
         chance += 15;
+
+    if ( IS_SET(ch->form, FORM_DOUBLE_JOINTED) )
+        chance += 10;
 
     if ( IS_AFFECTED(ch, AFF_SORE) )
         chance -= 10;
@@ -5407,6 +5506,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         base_exp += base_exp/10;
     
     off_bonus = 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 20 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 5 : 0;
@@ -5782,6 +5882,8 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
             || sn == gsn_quirkys_insanity
             || sn == gsn_phantasmal_image )
         gag_type = GAG_AURA;
+        if ( sn == gsn_dark_reaping )
+            gag_type = GAG_WFLAG;
     }
 
     if (ch == victim)
@@ -6069,7 +6171,7 @@ bool check_lasso( CHAR_DATA *victim )
     {
 	next_opp = opp->next_in_room;
 
-	if (opp->fighting != victim)
+	if ( opp->fighting != victim || !can_attack(opp) )
 	    continue;
 	
 	if ( (lasso=get_eq_char(opp, WEAR_HOLD)) == NULL
@@ -6141,7 +6243,7 @@ void check_back_leap( CHAR_DATA *victim )
     {
 	next_opp = opp->next_in_room;
 
-	if ( opp->fighting != victim || !can_see_combat(opp, victim) )
+	if ( opp->fighting != victim || !can_see_combat(opp, victim) || !can_attack(opp) )
 	    continue;
 	
 	wield = get_eq_char( opp, WEAR_WIELD );

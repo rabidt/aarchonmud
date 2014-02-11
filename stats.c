@@ -50,24 +50,27 @@ int get_curr_stat( CHAR_DATA *ch, int stat )
         bonus = i - step + ((bonus + i - j) * step) / i;
     }
     
-    if (!IS_NPC(ch) && (ch->race==race_doppelganger) && (ch->pcdata->morph_race > 0))
+    if ( !IS_NPC(ch) && MULTI_MORPH(ch) && (ch->pcdata->morph_race > 0) )
     {
 	int org_min, org_max, new_min, new_max,
-	    ch_class_bonus, stat_roll, new_base, remort_bonus;
+	    ch_class_bonus, stat_roll, new_base,
+        org_remort_bonus, remort_bonus;
 	struct pc_race_type *new_race_type;
 	/* adjust base stat for new race */
-	org_min = pc_race_table[race_doppelganger].min_stats[stat];
-	org_max = pc_race_table[race_doppelganger].max_stats[stat];
+	org_min = pc_race_table[ch->race].min_stats[stat];
+	org_max = pc_race_table[ch->race].max_stats[stat];
 	new_race_type = &pc_race_table[ch->pcdata->morph_race];
 	new_min = new_race_type->min_stats[stat];
 	new_max = new_race_type->max_stats[stat];
 	ch_class_bonus = class_bonus( ch->class, stat );
-	stat_roll = ch->perm_stat[stat] - ch_class_bonus - org_min;
+    org_remort_bonus = (ch->pcdata->remorts - pc_race_table[ch->race].remorts) *
+        pc_race_table[ch->race].remort_bonus[stat];
+	stat_roll = ch->perm_stat[stat] - ch_class_bonus - org_remort_bonus - org_min;
 	new_base = new_min
 	    + (new_max - new_min) * stat_roll / (org_max - org_min)
 	    + ch_class_bonus;
 	/* remort bonus */
-	remort_bonus = (ch->pcdata->remorts - new_race_type->remorts) * 
+	remort_bonus = (morph_power(ch) - new_race_type->remorts) *
 	    new_race_type->remort_bonus[stat];
 	/* sum it up */
 	bonus += new_base - ch->perm_stat[stat] + remort_bonus;
@@ -1165,6 +1168,7 @@ void do_showrace(CHAR_DATA *ch, char *argument)
     SFORM( FORM_WISE );
     SFORM( FORM_BURN );
     SFORM( FORM_CONDUCTIVE );
+    SFORM( FORM_CONSTRICT );
 #undef SFORM
 
     if ( !flag_is_empty(special_forms) )
@@ -1612,11 +1616,11 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     new_hp = 100 + level_factor * stat_factor * class_factor / 1000;
     /* size and form bonus */
     new_hp += (ch->level + 10) * (ch->size - SIZE_MEDIUM);
-    if ( IS_SET(race_table[ch->race].form, FORM_TOUGH) )
+    if ( IS_SET(ch->form, FORM_TOUGH) )
 	new_hp += ch->level * 10;
     /* train bonus */
     trained_hp_bonus = UMIN(max_train,ch->pcdata->trained_hit) * train_factor * class_factor / 2000;
-    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
+    if ( IS_SET(ch->form, FORM_CONSTRUCT) )
         trained_hp_bonus += 2 * UMIN(max_train,ch->pcdata->trained_hit);
     softcap = (new_hp + hp_bonus) / 2;
     if (trained_hp_bonus > softcap)
@@ -1627,7 +1631,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     class_factor = class_table[ch->class].mana_gain;
     new_mana = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
-    if ( IS_SET(race_table[ch->race].form, FORM_WISE) )
+    if ( IS_SET(ch->form, FORM_WISE) )
 	new_mana += ch->level * 10;
     /* train bonus */
     trained_mana_bonus = UMIN(max_train,ch->pcdata->trained_mana) * train_factor * class_factor / 2000;
@@ -1640,11 +1644,11 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     class_factor = class_table[ch->class].move_gain;
     new_move = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
-    if ( IS_SET(race_table[ch->race].form, FORM_AGILE) )
+    if ( IS_SET(ch->form, FORM_AGILE) )
 	new_move += ch->level * 10;
     /* train bonus */
     trained_move_bonus = UMIN(max_train,ch->pcdata->trained_move) * train_factor * class_factor / 2000;
-    if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
+    if ( IS_SET(ch->form, FORM_CONSTRUCT) )
         trained_move_bonus += UMIN(max_train,ch->pcdata->trained_move);
     softcap = (new_move + move_bonus) / 2;
     if (trained_move_bonus > softcap)
@@ -1779,7 +1783,7 @@ struct race_type* get_morph_race_type( CHAR_DATA *ch )
 	return &race_table[ch->race];
 
     /* doppelganger */
-    if ( ch->race == race_doppelganger && ch->pcdata->morph_race > 0)
+    if ( MULTI_MORPH(ch) && ch->pcdata->morph_race > 0 )
     {
 	/* watch out for morphing into other morph races */
 	if ( ch->pcdata->morph_race == race_naga )
@@ -1821,7 +1825,7 @@ struct pc_race_type* get_morph_pc_race_type( CHAR_DATA *ch )
     }
 
     /* doppelganger */
-    if ( ch->race == race_doppelganger && ch->pcdata->morph_race > 0)
+    if ( MULTI_MORPH(ch) && ch->pcdata->morph_race > 0 )
 	return &pc_race_table[ch->pcdata->morph_race];
 
     /* naga */
