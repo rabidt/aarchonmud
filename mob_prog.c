@@ -45,6 +45,7 @@
 #include "tables.h"
 #include "lookup.h"
 #include "lua_scripting.h"
+#include "interp.h"
 
 extern int flag_lookup( const char *word, const struct flag_type *flag_table );
 
@@ -91,7 +92,7 @@ char last_debug[MSL] = "";
 #define CHK_ISVISIBLE   (21)
 #define CHK_HASTARGET   (22)
 #define CHK_ISTARGET    (23)
-#define CHK_EXISTS      (24)
+/*#define CHK_EXISTS      (24) never used*/
 #define CHK_AFFECTED    (25)
 #define CHK_ACT         (26)
 #define CHK_OFF         (27)
@@ -1665,7 +1666,42 @@ bool mp_spell_trigger( char* argument, CHAR_DATA *mob, CHAR_DATA *ch)
     return found;
 }
 
+/* similar to act trigger but needs its own logic */
+bool mp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
+{
+    CHAR_DATA *mob;
+    CHAR_DATA *next_char;
+    PROG_LIST *prg;
 
+    if ( !ch->in_room )
+    {
+        bugf("ch->in_room NULL for %s in mp_command_trigger", ch->name);
+        return FALSE;
+    }
+
+    for ( mob = ch->in_room->people; mob; mob=next_char )
+    {
+        next_char = mob->next_in_room;
+        if ( IS_NPC(mob) 
+                && HAS_TRIGGER(mob, TRIG_COMMAND) )
+        {
+            for ( prg=mob->pIndexData->mprogs ; prg ; prg = prg->next )
+            {
+                if ( prg->trig_type == TRIG_COMMAND
+                        && !str_cmp( cmd_table[cmd].name, prg->trig_phrase) )
+                {
+                    program_flow( cmd_table[cmd].name, prg->script->is_lua,
+                            prg->vnum, prg->script->code,
+                            mob, ch, argument, ACT_ARG_TEXT, NULL, 0, RTRIG_COMMAND,
+                            prg->script->security );
+                    return TRUE;
+                }
+            }
+        }
+    }
+
+    return FALSE;
+}
 
 bool mp_try_trigger( char* argument, CHAR_DATA *ch )
 {

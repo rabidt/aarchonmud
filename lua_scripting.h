@@ -25,6 +25,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
         ROOM_INDEX_DATA *room, 
         CHAR_DATA *ch1, CHAR_DATA *ch2,
         OBJ_DATA *obj1, OBJ_DATA *obj2,
+        const char *text1,
         int trig_type,
         int security);
    

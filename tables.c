@@ -523,6 +523,7 @@ const struct flag_type mprog_flags[] =
     {   "spell",        TRIG_SPELL,     TRUE    },
     {   "call",         TRIG_CALL,      FALSE   },
     {   "timer",        TRIG_TIMER,     TRUE    },
+    {   "command",      TRIG_COMMAND,   TRUE    },
 	{   NULL,           0,          TRUE    }
 };
 
@@ -582,6 +583,7 @@ const struct flag_type rprog_flags[] =
     {   "exit",         RTRIG_EXIT,      TRUE    },
     {   "look",         RTRIG_LOOK,      TRUE    },
     {   "try",          RTRIG_TRY,       TRUE    },
+    {   "command",      RTRIG_COMMAND,   TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
