@@ -848,6 +848,7 @@ const struct flag_type apply_flags[] =
     {   "charisma",         APPLY_CHA,      TRUE    },
     {   "luck",             APPLY_LUC,      TRUE    },
     {   "stats",            APPLY_STATS,    TRUE    },
+    {   "skills",           APPLY_SKILLS,   TRUE    },
     {   "hp",               APPLY_HIT,      TRUE    },
     {   "mana",             APPLY_MANA,     TRUE    },
     {   "move",             APPLY_MOVE,     TRUE    },
