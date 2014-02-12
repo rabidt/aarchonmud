@@ -297,6 +297,7 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
         if ( IS_AFFECTED(victim, AFF_ASTRAL)      ) strcat( buf, "(Astral) "     );  
         if ( IS_AFFECTED(victim, AFF_CHARM)       ) strcat( buf, "(Charmed) "    );
         if ( IS_AFFECTED(victim, AFF_PASS_DOOR)   ) strcat( buf, "(Translucent) ");
+        if ( IS_AFFECTED(victim, AFF_PETRIFIED)   ) strcat( buf, "(Petrified) "  );
         if ( IS_AFFECTED(victim, AFF_FAERIE_FIRE) ) strcat( buf, "(Pink Aura) "  );
         if ( IS_EVIL(victim)
             &&   IS_AFFECTED(ch, AFF_DETECT_EVIL)     ) strcat( buf, "(Red Aura) "   );
@@ -4159,13 +4160,26 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     }
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )
             continue;
         check_improve( rch, gsn_lore, 2, TRUE );
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
         if ( weapon )
             check_improve( rch, gsn_weapons_lore, 2, TRUE );
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+        }
     }
 }
 

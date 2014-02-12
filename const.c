@@ -1715,8 +1715,8 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         {
           "medusa",   "Medusa",
           { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
-          5, { "venom bite", "maul", "petrifying gaze", "sticks to snakes", "alertness" },
-          {1, 10, 20, 30, 50}, {100, 100, 100, 90, 80},
+          5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
+          {1, 10, 20, 30, 50}, {100, 100, 80, 50, 50},
           {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
           { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
