@@ -2912,10 +2912,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             dam /= 2;
     }
 
-    // petrified characters are resistant to damage
-    if ( dam > 1 && IS_AFFECTED(victim, AFF_PETRIFIED) )
-        dam /= 2;
-
     if ( dam > 1 && ((IS_AFFECTED(victim, AFF_PROTECT_EVIL) && IS_EVIL(ch) )
         ||           (IS_AFFECTED(victim, AFF_PROTECT_GOOD) && IS_GOOD(ch) )))
     {
@@ -3024,6 +3020,21 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             aff->duration -= 1;
     }
     
+    // petrified characters are resistant to damage
+    if ( dam > 1 && IS_AFFECTED(victim, AFF_PETRIFIED) )
+    {
+        // damage can break petrification
+        if ( per_chance(200 * dam / victim->max_hit) )
+        {
+            printf_to_char(victim, "%s\n\r", skill_table[gsn_petrify].msg_off);
+            act("The petrification on $n is broken!", victim, NULL, NULL, TO_ROOM);
+            affect_strip_flag(victim, AFF_PETRIFIED);
+            REMOVE_BIT(victim->affect_field, AFF_PETRIFIED);
+        }
+        else
+            dam /= 2;
+    }
+
     if (dt == gsn_beheading)
     {
         immune = FALSE;
