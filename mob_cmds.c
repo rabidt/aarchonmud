@@ -178,6 +178,7 @@ char *mprog_type_to_name( int type )
     case TRIG_MPCNT:           	return "MPCNT";
     case TRIG_SPELL:            return "SPELL";
     case TRIG_TIMER:            return "TIMER";
+    case TRIG_COMMAND:          return "COMMAND";
     default:                  	return "ERROR";
     }
 }
