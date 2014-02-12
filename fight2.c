@@ -4702,6 +4702,5 @@ void do_gaze( CHAR_DATA *ch, char *argument )
     act("$n focuses $s gaze on $N.", ch, NULL, victim, TO_NOTVICT);
 
     check_killer(ch, victim);
-    if ( !check_petrify(ch, victim) )
-        start_combat(ch, victim);
+    start_combat(ch, victim);
 }
