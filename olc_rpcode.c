@@ -151,7 +151,7 @@ void do_rprun( CHAR_DATA *ch, char *argument)
             ch->name);
 
     result=lua_room_program( NULL, vnum, pRcode->code, room,
-           ch, NULL, NULL, NULL,
+           ch, NULL, NULL, NULL, NULL,
            RTRIG_CALL, pRcode->security );
 
     ptc( ch, "Rprog completed. Result: %s\n\r", result ? "TRUE" : "FALSE" );
