@@ -3289,9 +3289,9 @@ HELPTOPIC CH_describe_help =
     .info="Arguments: object[OBJ]\n\r"
           "           object vnum[INT]\n\r\n\r"
           "OBJ Example:\n\r"
-          "mob:browse(mob.inventory[1])\n\r\n\r"
+          "mob:describe(mob.inventory[1])\n\r\n\r"
           "OBJ Vnum Example:\n\r"
-          "mob:browse(12345)\n\r\n\r"
+          "mob:describe(12345)\n\r\n\r"
 };
 
 static int CH_oload (lua_State *LS)
