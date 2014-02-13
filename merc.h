@@ -4169,6 +4169,7 @@ void    wear_obj    args( (CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace) );
 void    get_obj         args( ( CHAR_DATA *ch, OBJ_DATA *obj,
 							OBJ_DATA *container ) );
 bool in_donation_room args((OBJ_DATA *obj));
+void describe_item      args( (CHAR_DATA *ch, OBJ_DATA *obj) );
 
 /* act_wiz.c */
 void wiznet     args( (char *string, CHAR_DATA *ch, OBJ_DATA *obj,
