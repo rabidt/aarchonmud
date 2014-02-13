@@ -3249,7 +3249,7 @@ static int CH_say (lua_State *LS)
 }
 HELPTOPIC CH_say_help = {};
 
-static int CH_browse (lua_State *LS)
+static int CH_describe (lua_State *LS)
 {
     bool cleanUp = false;
     AFFECT_DATA *paf;
@@ -3283,7 +3283,7 @@ static int CH_browse (lua_State *LS)
 
     return 0;
 }
-HELPTOPIC CH_browse_help =
+HELPTOPIC CH_describe_help =
 {
     .summary = "The CH will describe an object like a shop keeper does with the browse command.",
     .info="Arguments: object[OBJ]\n\r"
@@ -4511,7 +4511,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(cancel, 1), 
     CHMETH(setval, 1),
     CHMETH(getval, 1),
-    CHMETH(browse, 1),
+    CHMETH(describe, 1),
     ENDPTABLE
 }; 
 
