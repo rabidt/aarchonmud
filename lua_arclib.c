@@ -1229,6 +1229,42 @@ HELPTOPIC glob_tprintstr_help={
           "echo(tprintstr({{\"hi\",\"bye\",3456}))\n\r\n\r"
 };
 
+static int glob_getrandomroom ( lua_State *LS)
+{
+    ROOM_INDEX_DATA *room;
+
+    int i;
+    for ( i=0; i<10000; i++ ) // limit to 10k loops just in case
+    {
+        room=get_room_index(number_range(0,65535));
+        if ( ( room )
+                &&   !room_is_private(room)
+                &&   !IS_SET(room->room_flags, ROOM_PRIVATE)
+                &&   !IS_SET(room->room_flags, ROOM_SOLITARY)
+                &&   !IS_SET(room->room_flags, ROOM_SAFE)
+                &&   !IS_SET(room->room_flags, ROOM_JAIL)
+                &&   !IS_SET(room->room_flags, ROOM_NO_TELEPORT) )
+            break;
+    }
+
+    if (!room)
+        luaL_error(LS, "Couldn't get a random room.");
+
+    if (make_ROOM(LS,room))
+        return 1;
+    else
+        return 0;
+
+}
+HELPTOPIC glob_getrandomroom_help=
+{
+    .summary="Returns a random ingame room.",
+    .info="Arguments: none\n\r\n\r"
+          "Return: ROOM\n\r\n\r"
+          "Example:\n\r"
+          "local room=getrandomroom()\n\r\n\r"
+};
+
 static int glob_cancel ( lua_State *LS)
 {
     return L_cancel(LS);
@@ -1295,6 +1331,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getmobproto,   0),
     GFUN(getmobworld,   0),
     GFUN(getpc,         0),
+    GFUN(getrandomroom, 0),
     GFUN(sendtochar,    0),
     GFUN(pagetochar,    0),
     GFUN(log,           0),
