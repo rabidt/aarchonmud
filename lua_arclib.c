@@ -1238,6 +1238,7 @@ static int glob_getrandomroom ( lua_State *LS)
     {
         room=get_room_index(number_range(0,65535));
         if ( ( room )
+                &&   is_room_ingame( room )
                 &&   !room_is_private(room)
                 &&   !IS_SET(room->room_flags, ROOM_PRIVATE)
                 &&   !IS_SET(room->room_flags, ROOM_SOLITARY)
