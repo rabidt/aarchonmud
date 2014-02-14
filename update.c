@@ -2061,6 +2061,11 @@ void obj_update( void )
 
     for ( obj = object_list; obj != NULL; obj = obj_next )
     {
+        if (!IS_VALID(obj))
+        {
+            bugf("Invalid obj in obj_update. Breaking loop.");
+            break;
+        }
         CHAR_DATA *rch;
         char *message;
 
@@ -2211,7 +2216,10 @@ void obj_update( void )
                      */
                     obj_to_char(t_obj,obj->carried_by);
                 else if (obj->in_room == NULL)  /* destroy it */
+                {
+                    bugf("obj_update: destroying container %s (%d) but nowhere to dump contents.", obj->name, obj->pIndexData->vnum);
                     extract_obj(t_obj);
+                }
 
                 else /* to a room */
                 {
@@ -2419,22 +2427,43 @@ void death_update( void )
 /* delayed removal of purged chars */
 void extract_update( void )
 {
+    bool complete;
     CHAR_DATA *ch, *ch_next;
     OBJ_DATA  *obj, *obj_next;
 
-    for ( ch = char_list; ch != NULL; ch = ch_next )
+    do 
     {
-        ch_next = ch->next;
-        if ( ch->must_extract )
-            extract_char( ch, TRUE );
-    }
+        complete=TRUE;
+        for ( ch = char_list; ch != NULL; ch = ch_next )
+        {
+            if (!IS_VALID(ch))
+            {
+                bugf("Invalid ch in extract_update.");
+                complete=FALSE;
+                break;
+            }
+            ch_next = ch->next;
+            if ( ch->must_extract )
+                extract_char( ch, TRUE );
+        }
+    } while (!complete);
 
-    for ( obj=object_list; obj != NULL ; obj=obj_next )
-    {  
-        obj_next = obj->next;
-        if ( obj->must_extract )
-            extract_obj( obj );
-    }
+    do
+    {
+        complete=TRUE;
+        for ( obj=object_list; obj != NULL ; obj=obj_next )
+        {  
+            if (!IS_VALID(obj))
+            {
+                bugf("Invalid obj in extract_update.");
+                complete=FALSE;
+                break;
+            }
+            obj_next = obj->next;
+            if ( obj->must_extract )
+                extract_obj( obj );
+        }
+    } while (!complete);
 }
 
 /*
