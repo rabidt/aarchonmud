@@ -5147,6 +5147,27 @@ static int OBJ_get_room (lua_State *LS)
 }
 HELPTOPIC OBJ_get_room_help={};
 
+static int OBJ_set_room (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    ROOM_INDEX_DATA *rid=check_ROOM(LS,2);
+
+    if (ud_obj->in_room)
+        obj_from_room(ud_obj);
+    else if (ud_obj->carried_by)
+        obj_from_char(ud_obj);
+    else if (ud_obj->in_obj)
+        obj_from_obj(ud_obj);
+    else
+        luaL_error(LS, "No location for %s (%d)", 
+                ud_obj->name, 
+                ud_obj->pIndexData->vnum);
+
+    obj_to_room(ud_obj, rid);
+    return 0;
+}
+HELPTOPIC OBJ_set_room_help={};
+
 static int OBJ_get_inobj (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
@@ -5171,6 +5192,28 @@ static int OBJ_get_carriedby (lua_State *LS)
         return 1;
 }
 HELPTOPIC OBJ_get_carriedby_help={};
+
+static int OBJ_set_carriedby (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    CHAR_DATA *ch=check_CH(LS,2);
+
+    if (ud_obj->carried_by)
+        obj_from_char(ud_obj);
+    else if (ud_obj->in_room)
+        obj_from_room(ud_obj);
+    else if (ud_obj->in_obj)
+        obj_from_obj(ud_obj);
+    else
+        luaL_error(LS, "No location for %s (%d)",
+                ud_obj->name,
+                ud_obj->pIndexData->vnum);
+    
+    obj_to_char( ud_obj, ch );
+
+    return 0;
+}
+HELPTOPIC OBJ_set_carriedby_help={};
 
 static int OBJ_get_v0 (lua_State *LS)
 {
@@ -5325,6 +5368,8 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
     OBJSET(owner, 5),
     OBJSET(material, 5),
     OBJSET(weight, 5),
+    OBJSET(room, 5),
+    OBJSET(carriedby, 5),
        
     ENDPTABLE
 };
