@@ -3416,7 +3416,7 @@ static int CH_describe (lua_State *LS)
 
     if (cleanUp)
     {
-        free_obj(ud_obj);
+        extract_obj(ud_obj);
     }
 
     return 0;
