@@ -1276,9 +1276,10 @@ void char_update( void )
     {
         if (!IS_VALID(ch))
         {
-            bugf("Invalid ch in char_update (%d). Breaking loop.",
+            bugf("Invalid ch in char_update (%d).",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
-            break;
+            /* Invalid on list is a serious issue, need to exit */
+            exit(1);
         }
         
         ch_next = ch->next;
@@ -2074,7 +2075,8 @@ void obj_update( void )
         if (!IS_VALID(obj))
         {
             bugf("Invalid obj in obj_update (%d). Breaking loop.", obj->pIndexData->vnum);
-            break;
+            /* Invalid on list is a serious issue, need to exit */
+            exit(1);
         }
 
         CHAR_DATA *rch;
@@ -2441,45 +2443,36 @@ void death_update( void )
 /* delayed removal of purged chars */
 void extract_update( void )
 {
-    bool complete;
     CHAR_DATA *ch, *ch_next;
     OBJ_DATA  *obj, *obj_next;
 
-    do 
+    for ( ch = char_list; ch != NULL; ch = ch_next )
     {
-        complete=TRUE;
-        for ( ch = char_list; ch != NULL; ch = ch_next )
+        if (!IS_VALID(ch))
         {
-            if (!IS_VALID(ch))
-            {
-                bugf("Invalid ch in extract_update: %d",
-                        ch->pIndexData ? ch->pIndexData->vnum : 0 );
-                complete=FALSE;
-                break;
-            }
-            ch_next = ch->next;
-            if ( ch->must_extract )
-                extract_char( ch, TRUE );
+            bugf("Invalid ch in extract_update: %d",
+                    ch->pIndexData ? ch->pIndexData->vnum : 0 );
+            /* Invalid on list is a serious issue, need to exit */
+            exit(1);
         }
-    } while (!complete);
+        ch_next = ch->next;
+        if ( ch->must_extract )
+            extract_char( ch, TRUE );
+    }
 
-    do
-    {
-        complete=TRUE;
-        for ( obj=object_list; obj != NULL ; obj=obj_next )
-        {  
-            if (!IS_VALID(obj))
-            {
-                bugf("Invalid obj in extract_update: %d",
-                        obj->pIndexData ? obj->pIndexData->vnum : 0 );
-                complete=FALSE;
-                break;
-            }
-            obj_next = obj->next;
-            if ( obj->must_extract )
-                extract_obj( obj );
+    for ( obj=object_list; obj != NULL ; obj=obj_next )
+    {  
+        if (!IS_VALID(obj))
+        {
+            bugf("Invalid obj in extract_update: %d",
+                    obj->pIndexData ? obj->pIndexData->vnum : 0 );
+            /* Invalid on list is a serious issue, need to exit */
+            exit(1);
         }
-    } while (!complete);
+        obj_next = obj->next;
+        if ( obj->must_extract )
+            extract_obj( obj );
+    }
 }
 
 /*
