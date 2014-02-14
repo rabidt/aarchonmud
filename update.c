@@ -1280,10 +1280,11 @@ void char_update( void )
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
             break;
         }
-        else if (ch->must_extract)
-            continue;
-
+        
         ch_next = ch->next;
+
+        if (ch->must_extract)
+            continue;
 
         if ( ch->timer > 30 )
             ch_quit = ch;
@@ -2075,13 +2076,14 @@ void obj_update( void )
             bugf("Invalid obj in obj_update (%d). Breaking loop.", obj->pIndexData->vnum);
             break;
         }
-        else if ( obj->must_extract )
-            continue;
 
         CHAR_DATA *rch;
         char *message;
 
         obj_next = obj->next;
+
+        if (obj->must_extract)
+            continue;
 
         /* go through affects and decrement */
         for ( paf = obj->affected; paf != NULL; paf = paf_next )
