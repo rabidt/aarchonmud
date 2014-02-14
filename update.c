@@ -1274,6 +1274,15 @@ void char_update( void )
 
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
+        if (!IS_VALID(ch))
+        {
+            bugf("Invalid ch in char_update (%d). Breaking loop.",
+                    ch->pIndexData ? ch->pIndexData->vnum : 0 );
+            break;
+        }
+        else if (ch->must_extract)
+            continue;
+
         ch_next = ch->next;
 
         if ( ch->timer > 30 )
@@ -2063,9 +2072,12 @@ void obj_update( void )
     {
         if (!IS_VALID(obj))
         {
-            bugf("Invalid obj in obj_update. Breaking loop.");
+            bugf("Invalid obj in obj_update (%d). Breaking loop.", obj->pIndexData->vnum);
             break;
         }
+        else if ( obj->must_extract )
+            continue;
+
         CHAR_DATA *rch;
         char *message;
 
@@ -2438,7 +2450,8 @@ void extract_update( void )
         {
             if (!IS_VALID(ch))
             {
-                bugf("Invalid ch in extract_update.");
+                bugf("Invalid ch in extract_update: %d",
+                        ch->pIndexData ? ch->pIndexData->vnum : 0 );
                 complete=FALSE;
                 break;
             }
@@ -2455,7 +2468,8 @@ void extract_update( void )
         {  
             if (!IS_VALID(obj))
             {
-                bugf("Invalid obj in extract_update.");
+                bugf("Invalid obj in extract_update: %d",
+                        obj->pIndexData ? obj->pIndexData->vnum : 0 );
                 complete=FALSE;
                 break;
             }
