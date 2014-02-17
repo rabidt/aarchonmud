@@ -773,6 +773,13 @@ struct align_type align_table [] =
     {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
     },
 
+    {
+    "ettin",        TRUE,
+    {},      {},   {},
+    {},      {RES_MENTAL}, {},
+    {A,C,H,M,mm},    {A,B,C,D,E,F,G,H,I,J,K}
+    },
+
 //10
 	{
 	"behemoth",        TRUE,
@@ -1721,6 +1728,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
           SIZE_MEDIUM, SEX_FEMALE, 9
+        },
+
+        {
+          "ettin",   "Ettin ",
+          { 285, 290, 290, 290, 285, 285, 290, 290, 290, 290, 290, 290, 290, 285, 290 },
+          2, { "ambidextrous", "double strike" },
+          {10, 20}, {100, 100},
+          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
+          { 155, 150, 145, 140, 150,     145, 145, 140, 135, 145 },
+          {   5,   5,   4,   3,   5,       4,   4,   3,   3,   4 },
+          SIZE_HUGE, SEX_BOTH, 9
         },
 
 // R10

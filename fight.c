@@ -3038,7 +3038,10 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if (dt == gsn_beheading)
     {
         immune = FALSE;
-        dam = victim->hit + 100;
+        if ( IS_SET(victim->form, FORM_MULTI_HEADED) )
+            dam = UMAX(1, victim->hit / 2);
+        else
+            dam = victim->hit + 100;
     }
     
     if (show)
