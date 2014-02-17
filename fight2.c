@@ -3704,7 +3704,7 @@ void do_rake( CHAR_DATA *ch, char *argument )
 	   if ( check_hit(ch, vch, gsn_razor_claws, DAM_SLASH, skill) )
 	   {
 	       check_killer(ch, vch);
-	       if ( number_bits(6) == 0 )
+	       if ( number_bits(8) == 0 || IS_IMMORTAL(ch) )
 	       {
 		   /* behead */
 		   act("In a mighty strike, your claws separate $N's neck.",
