@@ -2487,77 +2487,48 @@ void death_update( void )
 /* delayed removal of purged chars */
 void extract_update( void )
 {
-    CHAR_DATA *ch, *ch_next;
-    OBJ_DATA  *obj, *obj_next;
-
-    for ( ch = char_list; ch != NULL; ch = ch_next )
+    // extraction of containers or character with pets may trigger extraction of the next object or object in the list
+    // hence we start new after any (potentially recursive) extraction
+    CHAR_DATA *ch = char_list;
+    while ( ch )
     {
-        ch_next = ch->next;
-        if (!IS_VALID(ch))
+        if ( !IS_VALID(ch) )
         {
-            bugf("Invalid ch in extract_update: %d",
-                    ch->pIndexData ? ch->pIndexData->vnum : 0 );
-    
+            bugf("Invalid ch in extract_update: %d", ch->pIndexData ? ch->pIndexData->vnum : 0 );
             /* invalid should mean already freed, just kill it from the list */
-            if ( ch == char_list )
-            {
-                char_list = ch->next;
-            }
-            else
-            {
-                CHAR_DATA *prev;
-
-                for ( prev = char_list ; prev ; prev = prev->next )
-                {
-                    if ( prev->next == ch )
-                    {
-                        prev->next = ch->next;
-                        break;
-                    }
-                }
-
-                if (!prev)
-                    bugf("Couldn't find invalid ch in list to remove.");
-            }
-            continue;
+            char_from_char_list(ch);
+            ch = char_list;
         }
-        if ( ch->must_extract )
-            extract_char( ch, TRUE );
+        else if ( ch->must_extract )
+        {
+            extract_char(ch, TRUE);
+            ch = char_list;
+        }
+        else
+        {
+            ch = ch->next;
+        }
     }
 
-    for ( obj=object_list; obj != NULL ; obj=obj_next )
+    OBJ_DATA *obj = object_list;
+    while ( obj )
     {  
-        obj_next = obj->next;
-        if (!IS_VALID(obj))
+        if ( !IS_VALID(obj) )
         {
-            bugf("Invalid obj in extract_update: %d",
-                    obj->pIndexData ? obj->pIndexData->vnum : 0 );
-
+            bugf("Invalid obj in extract_update: %d", obj->pIndexData ? obj->pIndexData->vnum : 0 );
             /* invalid should mean already freed, just kill it from the list */
-            if ( object_list == obj )
-            {
-                object_list = obj->next;
-            }
-            else
-            {
-                OBJ_DATA *prev;
-
-                for ( prev = object_list ; prev ; prev = prev->next )
-                {
-                    if ( prev->next == obj )
-                    {
-                        prev->next = obj->next;
-                        break;
-                    }
-                }
-
-                if ( !prev )
-                    bugf( "Couldn't find invalid obj in list to remove.");
-            }
-            continue;
+            obj_from_object_list(obj);
+            obj = object_list;
         }
-        if ( obj->must_extract )
-            extract_obj( obj );
+        else if ( obj->must_extract )
+        {
+            extract_obj(obj);
+            obj = object_list;
+        }
+        else
+        {
+            obj = obj->next;
+        }
     }
 }
 
