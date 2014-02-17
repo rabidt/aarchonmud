@@ -2296,6 +2296,8 @@ void obj_update( void )
             }
         }
 
+        logpf( "obj_update: Extracting '%s' (%d) ",
+                obj->name, obj->pIndexData ? obj->pIndexData->vnum : 0 );
         extract_obj( obj );
     }
 
