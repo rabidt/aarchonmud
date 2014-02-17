@@ -1274,16 +1274,37 @@ void char_update( void )
 
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
-        if (!IS_VALID(ch))
-        {
-            bugf("Invalid ch in char_update (%d).",
-                    ch->pIndexData ? ch->pIndexData->vnum : 0 );
-            /* Invalid on list is a serious issue, need to exit */
-            exit(1);
-        }
-        
         ch_next = ch->next;
 
+        if (!IS_VALID(ch))
+        {
+            bugf("Invalid ch in char_update (%d). Removing from list.",
+                    ch->pIndexData ? ch->pIndexData->vnum : 0 );
+            /* invalid should mean already freed, just kill it from the list */
+            if ( ch == char_list )
+            {
+                char_list = ch->next;
+            }
+            else
+            {
+                CHAR_DATA *prev;
+
+                for ( prev = char_list ; prev ; prev = prev->next )
+                {
+                    if ( prev->next == ch )
+                    {
+                        prev->next = ch->next;
+                        break;
+                    }
+                }
+
+                if (!prev)
+                    bugf("Couldn't find invalid ch in list to remove.");
+
+            }
+            continue;
+        }
+        
         if (ch->must_extract)
             continue;
 
@@ -2072,17 +2093,38 @@ void obj_update( void )
 
     for ( obj = object_list; obj != NULL; obj = obj_next )
     {
+        obj_next = obj->next;
+
         if (!IS_VALID(obj))
         {
-            bugf("Invalid obj in obj_update (%d). Breaking loop.", obj->pIndexData->vnum);
-            /* Invalid on list is a serious issue, need to exit */
-            exit(1);
+            bugf("Invalid obj in obj_update (%d). Removing from list.", obj->pIndexData->vnum);
+            /* invalid should mean already freed, just kill it from the list */
+            if ( object_list == obj )
+            {
+                object_list = obj->next;
+            }
+            else
+            {
+                OBJ_DATA *prev;
+
+                for ( prev = object_list ; prev ; prev = prev->next )
+                {
+                    if ( prev->next == obj )
+                    {
+                        prev->next = obj->next;
+                        break;
+                    }
+                }
+
+                if ( !prev )
+                    bugf( "Couldn't find invalid obj in list to remove.");
+
+            }
+            continue;
         }
 
         CHAR_DATA *rch;
         char *message;
-
-        obj_next = obj->next;
 
         if (obj->must_extract)
             continue;
@@ -2448,28 +2490,70 @@ void extract_update( void )
 
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
+        ch_next = ch->next;
         if (!IS_VALID(ch))
         {
             bugf("Invalid ch in extract_update: %d",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
-            /* Invalid on list is a serious issue, need to exit */
-            exit(1);
+    
+            /* invalid should mean already freed, just kill it from the list */
+            if ( ch == char_list )
+            {
+                char_list = ch->next;
+            }
+            else
+            {
+                CHAR_DATA *prev;
+
+                for ( prev = char_list ; prev ; prev = prev->next )
+                {
+                    if ( prev->next == ch )
+                    {
+                        prev->next = ch->next;
+                        break;
+                    }
+                }
+
+                if (!prev)
+                    bugf("Couldn't find invalid ch in list to remove.");
+            }
+            continue;
         }
-        ch_next = ch->next;
         if ( ch->must_extract )
             extract_char( ch, TRUE );
     }
 
     for ( obj=object_list; obj != NULL ; obj=obj_next )
     {  
+        obj_next = obj->next;
         if (!IS_VALID(obj))
         {
             bugf("Invalid obj in extract_update: %d",
                     obj->pIndexData ? obj->pIndexData->vnum : 0 );
-            /* Invalid on list is a serious issue, need to exit */
-            exit(1);
+
+            /* invalid should mean already freed, just kill it from the list */
+            if ( object_list == obj )
+            {
+                object_list = obj->next;
+            }
+            else
+            {
+                OBJ_DATA *prev;
+
+                for ( prev = object_list ; prev ; prev = prev->next )
+                {
+                    if ( prev->next == obj )
+                    {
+                        prev->next = obj->next;
+                        break;
+                    }
+                }
+
+                if ( !prev )
+                    bugf( "Couldn't find invalid obj in list to remove.");
+            }
+            continue;
         }
-        obj_next = obj->next;
         if ( obj->must_extract )
             extract_obj( obj );
     }
