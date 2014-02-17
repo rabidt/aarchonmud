@@ -1733,8 +1733,8 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         {
           "ettin",   "Ettin ",
           { 285, 290, 290, 290, 285, 285, 290, 290, 290, 290, 290, 290, 290, 285, 290 },
-          2, { "ambidextrous", "double strike" },
-          {10, 20}, {100, 100},
+          4, { "ambidextrous", "double strike", "second attack", "third attack" },
+          {10, 20, 40, 60}, {100, 100, 33, 33},
           {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
           { 155, 150, 145, 140, 150,     145, 145, 140, 135, 145 },
           {   5,   5,   4,   3,   5,       4,   4,   3,   3,   4 },
