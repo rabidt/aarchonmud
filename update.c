@@ -2099,27 +2099,7 @@ void obj_update( void )
         {
             bugf("Invalid obj in obj_update (%d). Removing from list.", obj->pIndexData->vnum);
             /* invalid should mean already freed, just kill it from the list */
-            if ( object_list == obj )
-            {
-                object_list = obj->next;
-            }
-            else
-            {
-                OBJ_DATA *prev;
-
-                for ( prev = object_list ; prev ; prev = prev->next )
-                {
-                    if ( prev->next == obj )
-                    {
-                        prev->next = obj->next;
-                        break;
-                    }
-                }
-
-                if ( !prev )
-                    bugf( "Couldn't find invalid obj in list to remove.");
-
-            }
+            obj_from_object_list(obj);
             continue;
         }
 
@@ -2277,6 +2257,8 @@ void obj_update( void )
                 {
                     bugf("obj_update: destroying container %s (%d) but nowhere to dump contents.", obj->name, obj->pIndexData->vnum);
                     extract_obj(t_obj);
+                    // extraction is recursive, so obj_next may no longer be valid
+                    obj_next = object_list;
                 }
 
                 else /* to a room */
@@ -2299,6 +2281,8 @@ void obj_update( void )
         logpf( "obj_update: Extracting '%s' (%d) ",
                 obj->name, obj->pIndexData ? obj->pIndexData->vnum : 0 );
         extract_obj( obj );
+        // extraction is recursive, so obj_next may no longer be valid
+        obj_next = object_list;
     }
 
     return;
