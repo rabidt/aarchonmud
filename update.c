@@ -2277,8 +2277,6 @@ void obj_update( void )
             }
         }
 
-        logpf( "obj_update: Extracting '%s' (%d) ",
-                obj->name, obj->pIndexData ? obj->pIndexData->vnum : 0 );
         // immediate extraction could cause obj_next to become invalid
         obj->must_extract = TRUE;
     }
