@@ -2256,9 +2256,8 @@ void obj_update( void )
                 else if (obj->in_room == NULL)  /* destroy it */
                 {
                     bugf("obj_update: destroying container %s (%d) but nowhere to dump contents.", obj->name, obj->pIndexData->vnum);
-                    extract_obj(t_obj);
-                    // extraction is recursive, so obj_next may no longer be valid
-                    obj_next = object_list;
+                    // immediate extraction could cause obj_next to become invalid
+                    t_obj->must_extract = TRUE;
                 }
 
                 else /* to a room */
@@ -2280,9 +2279,8 @@ void obj_update( void )
 
         logpf( "obj_update: Extracting '%s' (%d) ",
                 obj->name, obj->pIndexData ? obj->pIndexData->vnum : 0 );
-        extract_obj( obj );
-        // extraction is recursive, so obj_next may no longer be valid
-        obj_next = object_list;
+        // immediate extraction could cause obj_next to become invalid
+        obj->must_extract = TRUE;
     }
 
     return;
