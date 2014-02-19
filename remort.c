@@ -192,6 +192,24 @@ void do_remort(CHAR_DATA *ch, char *argument)
     send_to_char("For more information, type 'HELP REMORT'.\n\r", ch);
 }
 
+// remort is 1..10
+int remort_cost_gold(int remort)
+{
+#ifdef TESTER
+    return 1;
+#else
+    return 1000 * (1 << remort/2) * (remort % 2 ? 14 : 10);
+#endif
+}
+
+int remort_cost_qp(int remort)
+{
+#ifdef TESTER
+    return 1;
+#else
+    return 150 + 50 * remort;
+#endif
+}
 
 void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
 {
@@ -232,13 +250,8 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
         }
     }
     
-#ifdef TESTER
-    qpcost = 1;
-    goldcost=1;
-#else
-    qpcost = 200 + 50 * ch->pcdata->remorts;
-    goldcost = 1000 * ( 20 + 8 * ch->pcdata->remorts + (1<<(ch->pcdata->remorts)));
-#endif /*TESTER*/
+    qpcost = remort_cost_qp(ch->pcdata->remorts + 1);
+    goldcost = remort_cost_gold(ch->pcdata->remorts + 1);
     
     if (ch->pcdata->questpoints < qpcost)
     {
@@ -292,8 +305,8 @@ void remort_cancel(CHAR_DATA *ch, CHAR_DATA *adept)
     char buf[MAX_STRING_LENGTH];
     bool found=FALSE;
     
-    qpcost = 200 + 50 * ch->pcdata->remorts;
-    goldcost = 1000 * ( 20 + 8 * ch->pcdata->remorts + (1<<(ch->pcdata->remorts)));
+    qpcost = remort_cost_qp(ch->pcdata->remorts + 1);
+    goldcost = remort_cost_gold(ch->pcdata->remorts + 1);
     
     for (i = wait_list; i != NULL; i = i->next)
     {
@@ -714,7 +727,7 @@ void remort_remove(CHAR_DATA *ch, bool success)
                 remort_save();
 		/* reimburst half of qp cost */
 		if (!success)
-		    ch->pcdata->questpoints += 100 + 25*ch->pcdata->remorts;
+		    ch->pcdata->questpoints += remort_cost_qp(ch->pcdata->remorts + 1) / 2;
 		/* clear all money char holds */
 		ch->gold = 0;
 		ch->silver = 0;
@@ -1029,9 +1042,8 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, char *arg )
     }
 
     // half cost of initial remort
-    int remort_level = ch->pcdata->remorts - 1;
-    int qpcost = 100 + 25 * remort_level;
-    int goldcost = 500 * ( 20 + 8 * remort_level + (1<<remort_level) );
+    int qpcost = remort_cost_qp(ch->pcdata->remorts) / 2;
+    int goldcost = remort_cost_gold(ch->pcdata->remorts) / 2;
     
     if ( strcmp(arg, "confirm") )
     {
