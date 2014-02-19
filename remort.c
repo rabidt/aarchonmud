@@ -725,9 +725,15 @@ void remort_remove(CHAR_DATA *ch, bool success)
                 purge_area(pArea);
                 reset_area(pArea);
                 remort_save();
-		/* reimburst half of qp cost */
-		if (!success)
-		    ch->pcdata->questpoints += remort_cost_qp(ch->pcdata->remorts + 1) / 2;
+        // reimburst half cost
+        if ( !success )
+        {
+            int reimb_qp = remort_cost_qp(ch->pcdata->remorts + 1) / 2;
+            int reimb_gold = remort_cost_gold(ch->pcdata->remorts + 1) / 2;
+            ch->pcdata->questpoints += reimb_qp;
+            ch->pcdata->bank += reimb_gold;
+            logpf("%s has been reimburst %d qps and %d gold", ch->name, reimb_qp, reimb_gold);
+        }
 		/* clear all money char holds */
 		ch->gold = 0;
 		ch->silver = 0;
