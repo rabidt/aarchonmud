@@ -4519,6 +4519,23 @@ static int CH_set_pet (lua_State *LS)
 }
 HELPTOPIC CH_set_pet_help={};
 
+static int CH_get_affects ( lua_State *LS )
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    AFFECT_DATA *af;
+
+    int index=1;
+    lua_newtable( LS );
+
+    for ( af=ud_ch->affected ; af ; af=af->next )
+    {
+        if (make_AFFECT(LS,af))
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC CH_get_affects_help = {};
+
 static const LUA_PROP_TYPE CH_get_table [] =
 {
     CHGET(name, 0),
@@ -4561,6 +4578,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(stance, 0),
     CHGET(description, 0),
     CHGET(pet, 0),
+    CHGET(affects, 0),
     /* PC only */
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
@@ -5300,6 +5318,23 @@ static int OBJ_get_timer (lua_State *LS)
 }
 HELPTOPIC OBJ_get_timer_help={};
 
+static int OBJ_get_affects ( lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJPROTO( LS, 1);
+    AFFECT_DATA *af;
+
+    int index=1;
+    lua_newtable( LS );
+
+    for ( af = ud_obj->affected ; af ; af = af->next )
+    {
+        if (make_AFFECT( LS, af) )
+            lua_rawseti(LS, -2, index++);
+    }
+    return 1;
+}
+HELPTOPIC OBJ_get_affects_help = {};
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -5327,6 +5362,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(proto, 0),
     OBJGET(ingame, 0),
     OBJGET(timer, 0),
+    OBJGET(affects, 0),
     
     /*light*/
     OBJGET(light, 0),
@@ -7288,6 +7324,46 @@ static int AFFECT_get_location ( lua_State *LS )
 }
 HELPTOPIC AFFECT_get_location_help = {};
 
+static int AFFECT_get_level ( lua_State *LS )
+{
+    AFFECT_DATA *ud_af=check_AFFECT(LS,1);
+
+    lua_pushinteger( LS,
+            ud_af->level);
+    return 1;
+}
+HELPTOPIC AFFECT_get_level_help = {};
+
+static int AFFECT_get_duration ( lua_State *LS )
+{
+    AFFECT_DATA *ud_af=check_AFFECT(LS,1);
+
+    lua_pushinteger( LS,
+            ud_af->duration);
+    return 1;
+}
+HELPTOPIC AFFECT_get_duration_help = {};
+
+static int AFFECT_get_modifier ( lua_State *LS )
+{
+    AFFECT_DATA *ud_af=check_AFFECT(LS,1);
+
+    lua_pushinteger( LS,
+            ud_af->modifier);
+    return 1;
+}
+HELPTOPIC AFFECT_get_modifier_help = {};
+
+static int AFFECT_get_detectlevel ( lua_State *LS )
+{
+    AFFECT_DATA *ud_af=check_AFFECT(LS,1);
+
+    lua_pushinteger( LS,
+            ud_af->detect_level);
+    return 1;
+}
+HELPTOPIC AFFECT_get_detectlevel_help = {};
+
 static int AFFECT_get_bitvector ( lua_State *LS )
 {
     AFFECT_DATA *ud_af=check_AFFECT(LS,1);
@@ -7333,17 +7409,12 @@ static const LUA_PROP_TYPE AFFECT_get_table [] =
 {
     AFFGET( where, 0),
     AFFGET( type, 0),
-    /*
     AFFGET( level, 0),
     AFFGET( duration, 0),
-    */
     AFFGET( location, 0),
-    /*
     AFFGET( modifier, 0),
-    */
     AFFGET( bitvector, 0),
-    /*
-    AFFGET( detectlevel, 0),*/
+    AFFGET( detectlevel, 0),
     ENDPTABLE
 };
 
