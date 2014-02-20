@@ -81,11 +81,12 @@ http://www.gammon.com.au/forum/?id=8015
 
 /* rprog args */
 #define ROOM_ARG "room"
-#define NUM_RPROG_ARGS 6
+#define NUM_RPROG_ARGS 7 
 /* CH1_ARG */
 /* CH2_ARG */
 /* OBJ1_ARG */
 /* OBJ2_ARG */
+/* TEXT1_ARG */
 /* TRIG_ARG */
 /* TRIGTYPE_ARG */
 #define NUM_RPROG_RESULTS 1
@@ -226,11 +227,11 @@ bool lua_load_rprog( lua_State *LS, int vnum, const char *code)
         return FALSE;
     }
 
-    sprintf(buf, "return function (%s,%s,%s,%s,%s,%s)\n"
+    sprintf(buf, "return function (%s,%s,%s,%s,%s,%s,%s)\n"
             "%s\n"
             "end",
             CH1_ARG, CH2_ARG, OBJ1_ARG, OBJ2_ARG,
-            TRIG_ARG, TRIGTYPE_ARG,
+            TEXT1_ARG, TRIG_ARG, TRIGTYPE_ARG,
             code);
 
 
@@ -576,6 +577,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
 bool lua_room_program( const char *trigger, int pvnum, const char *source, 
         ROOM_INDEX_DATA *room, 
         CHAR_DATA *ch1, CHAR_DATA *ch2, OBJ_DATA *obj1, OBJ_DATA *obj2,
+        const char *text1,
         int trig_type,
         int security ) 
 {
@@ -628,6 +630,12 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
 
     /* OBJ2_ARG */
     if ( !(obj2 && make_OBJ(g_mud_LS,(void *) obj2)))
+        lua_pushnil(g_mud_LS);
+
+    /* TEXT1_ARG */
+    if ( text1 )
+        lua_pushstring(g_mud_LS,text1);
+    else
         lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */

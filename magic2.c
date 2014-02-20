@@ -88,7 +88,7 @@ void spell_portal( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     if ( (room = get_portal_room(target_name)) == NULL
 	 || !can_see_room(ch, room)
-	 || (room->area->security < 5) )
+	 || !is_room_ingame(room) )
     {
 	send_to_char( "Spell failed to create a portal.\n\r", ch );
 	return;
@@ -150,7 +150,7 @@ void spell_nexus( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
     if ( (to_room = get_portal_room(target_name)) == NULL
 	 || !can_see_room(ch, to_room)
-	 || (to_room->area->security < 5) )
+	 || !is_room_ingame(to_room) )
     {
 	send_to_char( "Spell failed to create a nexus.\n\r", ch );
 	return;
@@ -2417,25 +2417,7 @@ void spell_heroism( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     affect_to_char( victim, &af );
     af.location  = APPLY_DAMROLL;
     affect_to_char(victim, &af);
-    af.location  = APPLY_STR;
-    affect_to_char(victim, &af);
-    af.location  = APPLY_CON;
-    affect_to_char(victim, &af);
-    af.location  = APPLY_VIT;
-    affect_to_char(victim, &af);
-    af.location  = APPLY_AGI;
-    affect_to_char(victim, &af);
-    af.location  = APPLY_DEX;
-    affect_to_char(victim, &af);
-    af.location  = APPLY_INT;
-    affect_to_char(victim, &af);
-    af.location  = APPLY_WIS;
-    affect_to_char(victim, &af);
-    af.location  = APPLY_DIS;
-    affect_to_char(victim, &af);
-    af.location  = APPLY_CHA;
-    affect_to_char(victim, &af);
-    af.location  = APPLY_LUC;
+    af.location  = APPLY_STATS;
     affect_to_char(victim, &af);
     af.location  = APPLY_SAVES;
     af.modifier  = 0 - level / 10;

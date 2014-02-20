@@ -1662,20 +1662,6 @@ void do_look( CHAR_DATA *ch, char *argument )
     if ( !check_blind( ch ) )
         return;
     
-    /* player might still be able to look at mobs with infravision --Bobble
-    if ( !IS_NPC(ch)
-	 && !IS_SET(ch->act, PLR_HOLYLIGHT)
-	 && !IS_AFFECTED(ch, AFF_DARK_VISION)
-	 && room_is_dark( ch->in_room ) )
-    {
-        send_to_char( "It is pitch black ... \n\r", ch );
-        // added so that objects (i.e. glowing ones) are shown 
-        show_list_to_char( ch->in_room->contents, ch, FALSE, FALSE );
-        show_char_to_char( ch->in_room->people, ch );
-        return;
-    }
-    */
-    
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     number = number_argument(arg1,arg3);
@@ -1705,15 +1691,6 @@ void do_look( CHAR_DATA *ch, char *argument )
             sprintf( buf," [Room %d %s]", ch->in_room->vnum,
 		     flag_bit_name(sector_flags, ch->in_room->sector_type) );
             send_to_char(buf,ch);
-	    /*
-	    if ( PLR_ACT(ch, PLR_HOLYLIGHT) )
-	    {
-		sprintf( buf,"\n\r[Sector: %s  Flags: %s]",
-			 flag_bit_name(sector_flags, ch->in_room->sector_type),
-			 flag_bits_name(room_flags, ch->in_room->room_flags) );
-		send_to_char(buf,ch);
-	    }
-	    */
         }
         
         send_to_char( "{x\n\r", ch );
@@ -1737,13 +1714,15 @@ void do_look( CHAR_DATA *ch, char *argument )
         show_list_to_char( ch->in_room->contents, ch, FALSE, FALSE );
         show_char_to_char( ch->in_room->people,   ch );
         
-        if (!IS_NPC(ch) && ch->hunting &&number_percent()<=get_skill(ch,gsn_stalk))
+        // stalk "all" is special usage for ambush, shouldn't trigger hunt
+        if ( !IS_NPC(ch) && ch->hunting && strcmp(ch->hunting, "all") )
         {
-            count=ch->wait;
+            // we may be lagged, so any hunting time is additive; stalk is handled in do_hunt
+            int old_wait = ch->wait;
+            ch->wait = 0;
             do_hunt(ch, ch->hunting);
             ignore_invisible = FALSE;
-            ch->wait=count;
-            check_improve(ch,gsn_stalk,TRUE,4);
+            ch->wait += old_wait;
         }
         
         return;
@@ -1776,16 +1755,6 @@ void do_look( CHAR_DATA *ch, char *argument )
                 send_to_char( "It is empty.\n\r", ch );
                 break;
             }
-            
-	    /*
-            sprintf( buf, "It's %sfilled with a %s liquid.\n\r",
-                obj->value[1] < obj->value[0] / 4
-                ? "less than half-" :
-            obj->value[1] < 3 * obj->value[0] / 4
-                ? "about half-"     : "more than half-",
-                liq_table[obj->value[2]].liq_color
-                );
-	    */
 	    sprintf( buf, "It's filled with %d out of %d units of %s liquid.\n\r",
 		     obj->value[1], obj->value[0],
 		     liq_table[obj->value[2]].liq_color );
@@ -1825,69 +1794,6 @@ void do_look( CHAR_DATA *ch, char *argument )
     
     if ( look_obj(ch, arg1) != NULL )
 	return;
-    /*
-    for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
-    {
-        if ( can_see_obj( ch, obj ) )
-        {
-            pdesc = get_extra_descr( arg3, obj->extra_descr );
-            if ( pdesc != NULL )
-                if (++count == number)
-                {
-                    send_to_char( pdesc, ch );
-                    return;
-                }
-                else continue;
-                
-	    pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
-	    if ( pdesc != NULL )
-		if (++count == number)
-                {   
-		    send_to_char( pdesc, ch );
-		    return;
-		}
-		else continue;
-	    
-	    if ( is_name( arg3, obj->name ) )
-		if (++count == number)
-		{
-		    send_to_char( obj->description, ch );
-		    send_to_char( "\n\r",ch);
-		    return;
-		}
-        }
-    }
-    
-    for ( obj = ch->in_room->contents; obj != NULL; obj = obj->next_content )
-    {
-        if ( can_see_obj( ch, obj ) )
-        {
-            pdesc = get_extra_descr( arg3, obj->extra_descr );
-            if ( pdesc != NULL )
-                if (++count == number)
-                {
-                    send_to_char( pdesc, ch );
-                    return;
-                }
-                
-	    pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
-	    if ( pdesc != NULL )
-		if (++count == number)
-                {
-		    send_to_char( pdesc, ch );
-		    return;
-		}
-	    
-	    if ( is_name( arg3, obj->name ) )
-		if (++count == number)
-		{
-		    send_to_char( obj->description, ch );
-		    send_to_char("\n\r",ch);
-		    return;
-		}
-        }
-    }
-    */
     
     pdesc = get_extra_descr(arg3,ch->in_room->extra_descr);
     if (pdesc != NULL)
@@ -3640,7 +3546,7 @@ void do_wimpy( CHAR_DATA *ch, char *argument )
     
     if ( arg[0] == '\0' )
     {
-        printf_to_char( ch, "Your current wimpy threshold is set to %d hp (%d%%).\n\r", (wimpy*ch->max_hit/100), ch->wimpy );
+        printf_to_char( ch, "Your current wimpy threshold is set to %d hp (%d%%).\n\r", (ch->wimpy*ch->max_hit/100), ch->wimpy );
         printf_to_char( ch, "To change type: wimpy <percentage>\n\r" );
         return;
     }
@@ -3668,7 +3574,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     
     if ( arg[0] == '\0' )
     {
-        printf_to_char( ch, "Your current calm threshold is set to %d moves (%d%%).\n\r", (calm*ch->max_move/100), ch->calm );
+        printf_to_char( ch, "Your current calm threshold is set to %d moves (%d%%).\n\r", (ch->calm*ch->max_move/100), ch->calm );
         printf_to_char( ch, "To change type: calm <percentage>\n\r" );
         return;
     }
@@ -4983,7 +4889,7 @@ void do_score( CHAR_DATA *ch, char *argument )
     if( ch->pcdata != NULL )
     {
         /* Morph info, and there's also room for STANCE details here */
-        if( ch->race == race_doppelganger )
+        if ( MULTI_MORPH(ch) )
         {
             if( ch->pcdata->morph_race > 0 )
                 sprintf( buf, "{D|{x Morph race: {G%s{x with {G%d{x hours remaining.   ",
@@ -6102,7 +6008,7 @@ void do_oldscore( CHAR_DATA *ch, char *argument )
     }
 
     /* morphing info */
-    if ( ch->race == race_doppelganger )
+    if ( MULTI_MORPH(ch) )
     {
         if ( ch->pcdata->morph_race > 0 )
         {

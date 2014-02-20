@@ -369,6 +369,7 @@ CHAR_DATA *new_char (void)
 		ch->armor[i]            = 100;
 	ch->hunting					= NULL;
 	ch->aggressors				= NULL;
+    ch->pet                     = NULL;
 	ch->position                = POS_STANDING;
 	ch->hit                     = 100;
 	ch->max_hit                 = 100;
