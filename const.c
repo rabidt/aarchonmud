@@ -736,6 +736,43 @@ struct align_type align_table [] =
 	{},      {RES_DISEASE}, {},
 	{A,H,V,M},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
+
+//9
+    {
+    "revenant",        TRUE,
+    {},      {AFF_DARK_VISION, AFF_DEATHS_DOOR},   {},
+    {},      {RES_NEGATIVE,RES_POISON,RES_DISEASE}, {VULN_HOLY},
+    {A,H,I,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K}
+    },
+
+    {
+    "genie",        TRUE,
+    {},      {AFF_FLYING},   {},
+    {},      {RES_ACID}, {},
+    {A,C,H,M,gg},      {A,B,C,D,E,F,G,H,I,J,K}
+    },
+
+    {
+    "rakshasa",        TRUE,
+    {},      {AFF_PROTECT_MAGIC},   {},
+    {},      {RES_WEAPON,RES_MAGIC}, {VULN_PIERCE,VULN_HOLY},
+    {A,C,H,M},      {A,B,C,D,E,F,G,H,I,J,K,U,V}
+    },
+
+    {
+    "lillend",        TRUE,
+    {},      {AFF_FLYING},   {},
+    {},      {RES_LIGHTNING,RES_POISON}, {},
+    {A,C,H,Y,ll},    {A,B,C,D,E,F,G,H,I,J,K,Q,X}
+    },
+
+    {
+    "medusa",        TRUE,
+    {},      {},   {},
+    {},      {}, {},
+    {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
+    },
+
 //10
 	{
 	"behemoth",        TRUE,
@@ -1629,6 +1666,65 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           SIZE_LARGE, SEX_BOTH, 8
         },
    
+// R9
+         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
+        { 
+          "revenant",   "Revena",
+          { 290, 290, 285, 285, 285, 290, 290, 290, 290, 290, 285, 290, 285, 290, 280 },
+          4, { "fast healing", "dark reaping", "true grit", "animate dead" },
+          {1, 10, 30, 50}, {100, 100, 80, 60},
+          {  75,  85,  65,  55,  65,      55,  65,  80,  50,  55 },
+          { 150, 155, 145, 140, 145,     140, 145, 150, 140, 140 },
+          {   4,   5,   4,   4,   4,       4,   4,   4,   3,   4 },
+          SIZE_MEDIUM, SEX_BOTH, 9
+        },
+
+        { 
+          "genie",   "Genie ",
+          { 290, 290, 285, 280, 290, 290, 290, 290, 290, 290, 285, 280, 290, 290, 285 },
+          1, { "wish casting" },
+          {1}, {70},
+          {  60,  60,  65,  70,  65,      70,  70,  60,  65,  65 },
+          { 140, 140, 145, 150, 145,     150, 150, 140, 145, 145 },
+          {   3,   3,   4,   5,   4,       5,   5,   3,   4,   4 },
+          SIZE_LARGE, SEX_BOTH, 9
+        },
+
+        { 
+          "rakshasa",   "Raksha",
+          { 290, 290, 290, 280, 290, 290, 295, 290, 290, 290, 290, 280, 290, 290, 285 },
+          5, { "fireball", "lightning bolt", "acid blast", "meteor swarm", "focus" },
+          {10, 20, 30, 50, 70}, {100, 95, 90, 85, 60},
+          {  60,  60,  60,  65,  65,      70,  70,  65,  70,  65 },
+          { 140, 140, 140, 145, 145,     150, 150, 145, 150, 145 },
+          {   3,   3,   3,   4,   4,       5,   5,   4,   5,   4 },
+          SIZE_MEDIUM, SEX_BOTH, 9
+        },
+
+        { 
+          "lillend",   "Lillen",
+          { 290, 285, 285, 285, 290, 290, 290, 290, 285, 290, 285, 285, 290, 285, 290 },
+          3, { "inspiring song", "charm person", "cure serious" },
+          {10, 20, 30}, {100, 90, 80},
+          {  60,  60,  60,  60,  60,      60,  60,  60,  60,  60 },
+          { 145, 145, 150, 145, 145,     145, 145, 140, 155, 145 },
+          {   4,   4,   4,   4,   4,       4,   4,   3,   5,   4 },
+          SIZE_LARGE, SEX_BOTH, 9
+        },
+
+        {
+          "medusa",   "Medusa",
+          { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
+          5, { "venom bite", "maul", "petrifying gaze", "sticks to snakes", "alertness" },
+          {1, 10, 20, 30, 50}, {100, 100, 100, 90, 80},
+          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
+          { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
+          {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
+          SIZE_MEDIUM, SEX_FEMALE, 9
+        },
+
+// R10
+         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
         { 
           "behemoth",   "Behemo",
           { 305, 305, 315, 315, 305, 310, 310, 305, 305, 315, 310, 315, 305, 305, 315 },
@@ -2506,7 +2602,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_call_lightning,   TAR_IGNORE,     POS_FIGHTING,
+	spell_call_lightning,   TAR_IGNORE_OFF,     POS_FIGHTING,
 	&gsn_call_lightning,           SLOT( 6),   15, 9, DUR_NONE,
 	"lightning bolt",   "!Call Lightning!", "", NULL
 	},
@@ -2659,7 +2755,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
  	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-        spell_mass_confusion, TAR_IGNORE, POS_FIGHTING,
+        spell_mass_confusion, TAR_IGNORE_OFF, POS_FIGHTING,
         &gsn_mass_confusion,           SLOT(2040),   25, 18, DUR_BRIEF,
         "",     "You put the pieces of your head back together.",   "", NULL
         },
@@ -3014,7 +3110,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_earthquake,   TAR_IGNORE,     POS_FIGHTING,
+	spell_earthquake,   TAR_IGNORE_OFF,     POS_FIGHTING,
 	NULL,           SLOT(23),   15, 12, DUR_NONE,
 	"earthquake",       "!Earthquake!",     "", NULL
 	},
@@ -3158,7 +3254,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_fire_breath,  TAR_IGNORE, POS_FIGHTING,
+	spell_fire_breath,  TAR_IGNORE_OFF, POS_FIGHTING,
 	&gsn_fire_breath,           SLOT(201),  12,    4, DUR_NONE,
 	"blast of flame",   "The smoke leaves your eyes.",  "", NULL
 	},
@@ -3169,7 +3265,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_fireball,     TAR_IGNORE, POS_FIGHTING,
+	spell_fireball,     TAR_IGNORE_OFF, POS_FIGHTING,
 	NULL,           SLOT(26),   15, 12, DUR_NONE,
 	"fireball",     "!Fireball!",       "", NULL
 	},
@@ -3235,7 +3331,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_frost_breath, TAR_IGNORE, POS_FIGHTING,
+	spell_frost_breath, TAR_IGNORE_OFF, POS_FIGHTING,
 	NULL,           SLOT(202),  14,    4, DUR_NONE,
 	"blast of frost",   "!Frost Breath!",   "", NULL
 	},
@@ -3246,7 +3342,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_gas_breath,   TAR_IGNORE,     POS_FIGHTING,
+	spell_gas_breath,   TAR_IGNORE_OFF,     POS_FIGHTING,
 	NULL,           SLOT(203),  20,    4, DUR_NONE,
 	"blast of gas",     "!Gas Breath!",     "", NULL
 	},
@@ -3636,7 +3732,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_null,    TAR_IGNORE,     POS_FIGHTING,
+	spell_null,    TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
 	&gsn_mindflay,              SLOT( 0),       0,      12, DUR_SPECIAL,
 	"mindflaying",         "You mind starts working again.",  "", NULL
 	},
@@ -3669,7 +3765,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-		spell_monsoon,          TAR_IGNORE,     POS_FIGHTING,
+		spell_monsoon,          TAR_IGNORE_OFF,     POS_FIGHTING,
 		&gsn_monsoon,           SLOT(300),      60, 18, DUR_NONE,
 		"torrential rain",      "!Monsoon!",    "",     NULL
 		},
@@ -4072,7 +4168,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_turn_undead,  TAR_IGNORE, POS_FIGHTING,
+	spell_turn_undead,  TAR_IGNORE_OFF, POS_FIGHTING,
 	NULL,           SLOT(668),    8,  12, DUR_NONE,
 	"turn",     "!Turn Undead!","", NULL
 	},
@@ -4131,7 +4227,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_cone_of_exhaustion, TAR_IGNORE, POS_FIGHTING,
+	spell_cone_of_exhaustion, TAR_IGNORE_OFF, POS_FIGHTING,
 	NULL,           SLOT(2100),  14,    4, DUR_NONE,
 	"exhausting cone",   "!cone of exhaustion!",   "", NULL
 	},
@@ -4164,7 +4260,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_zombie_breath, TAR_IGNORE, POS_FIGHTING,
+	spell_zombie_breath, TAR_IGNORE_OFF, POS_FIGHTING,
 	NULL,           SLOT(2103),  14,    4, DUR_NONE,
 	"zombie breath",   "!zombie breath!",   "", NULL
 	},
@@ -4175,7 +4271,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_zone_of_damnation, TAR_IGNORE, POS_FIGHTING,
+	spell_zone_of_damnation, TAR_IGNORE_OFF, POS_FIGHTING,
 	NULL,           SLOT(2104),  14,    4, DUR_NONE,
 	"damnation",   "!zone of damnation!",   "", NULL
 	},
@@ -4282,6 +4378,50 @@ struct  skill_type  skill_table [MAX_SKILL] =
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_chain_spell, SLOT(0), 0, 0, DUR_NONE,
     "", "!chain spell!", "", NULL
+    },
+
+    {
+    "wish casting",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_NONE, STAT_NONE, STAT_NONE,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_wish, SLOT(0), 0, 0, DUR_NONE,
+    "", "!wish casting!", "", NULL
+    },
+
+    {
+    "dark reaping",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CON, STAT_WIS, STAT_DIS,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_dark_reaping, SLOT(0), 0, 0, DUR_SPECIAL,
+    "dark reaping", "You no longer reap the living.", "", NULL
+    },
+
+    {
+    "inspiring song",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_inspiring_song, SLOT(0), 100, 24, DUR_BRIEF,
+    "", "Your no longer feel inspired.", "", NULL
+    },
+    
+    {
+    "petrifying gaze",  
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_INT, STAT_WIS,
+    spell_null,    TAR_VIS_CHAR_OFF,     POS_FIGHTING,
+    &gsn_petrify,              SLOT( 0),       0,      24, DUR_SPECIAL,
+    "petrification",   "Your flesh reverts to its normal state.",  "", NULL
     },
 
 /*
@@ -4526,7 +4666,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_windwar,          TAR_IGNORE,     POS_FIGHTING,
+	spell_windwar,          TAR_IGNORE_OFF,     POS_FIGHTING,
 	NULL,           SLOT(2001),      50, 18, DUR_NONE,
 	"warring winds",      "!Wind War!",    "",     NULL
 	},
@@ -4797,7 +4937,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"backstab",
 	{ 102,  2, 102, 102, 102, 102, 102,  1, 38, 102, 102, 50, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_STANDING,
@@ -5424,7 +5564,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"hunt",
 	{ 102, 55, 102, 102, 102, 102, 102, 15, 102, 102, 60, 102, 18, 10, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 5,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_RESTING,
@@ -5435,7 +5575,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"path finding",
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  40, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_RESTING,
@@ -5446,7 +5586,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"street wisdom",
 	{ 102,  40, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_RESTING,
@@ -6103,7 +6243,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
 		&gsn_boa,           SLOT( 0),       0,      0, DUR_NONE,
-		"",     "",   "", NULL
+		"constriction",     "",   "", NULL
 	},
 
 	{
@@ -6813,7 +6953,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_rimbols_invocation,   TAR_IGNORE, POS_FIGHTING,
+	spell_rimbols_invocation,   TAR_IGNORE_OFF, POS_FIGHTING,
 	NULL,           SLOT(2043),   125, 24, DUR_NONE,
 	"rimbols invocation",   "!Rimbols Invocation!", "", NULL
 	},

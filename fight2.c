@@ -500,7 +500,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( check_see_combat(victim, ch) )
     {
         chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-        chance -= 75;
+        chance -= 75 - mastery_bonus(ch, gsn_backstab, 20, 25);
     }
     
     check_killer( ch, victim );
@@ -4584,4 +4584,124 @@ void do_smite( CHAR_DATA *ch, char *argument )
     }
 
     check_improve(ch, gsn_smite, TRUE, 2);
+}
+
+void do_inspire( CHAR_DATA *ch, char *argument )
+{
+    AFFECT_DATA af;
+    CHAR_DATA *vch;
+    
+    int skill = get_skill(ch, gsn_inspiring_song);
+    int chance = (100 + skill) / 2;
+    int cost = skill_table[gsn_inspiring_song].min_mana * 200 / (100 + skill);
+    int level = ch->level * (100 + skill) / 200;
+    
+    if ( !skill )
+    {
+        send_to_char("You don't know how.\n\r", ch);
+        return;
+    }
+    
+    if ( ch->mana < cost )
+    {
+        send_to_char("You have run out of inspiration.\n\r", ch);
+        return;
+    }
+    
+    WAIT_STATE( ch, skill_table[gsn_inspiring_song].beats );
+
+    if ( !per_chance(chance) )
+    {
+        ch->mana -= cost/2;
+        send_to_char("Your song isn't very inspirational.\n\r", ch);
+        return;
+    }
+        
+    ch->mana -= cost;
+    send_to_char("You sing an inspiring melody!\n\r", ch);
+    act("$n sings an inspiring melody!", ch, NULL, NULL, TO_ROOM);
+        
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_inspiring_song;
+    af.level     = level;
+    af.duration  = get_duration(gsn_inspiring_song, level);
+    af.bitvector = 0;
+
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
+    {
+        if ( !is_same_group(vch, ch) )
+            continue;
+
+        send_to_char("You feel truly inspired.\n\r", vch);
+        if ( vch != ch )
+            act("Your song inspires $N.", ch, NULL, vch, TO_CHAR);
+        
+        affect_strip(vch, gsn_inspiring_song);
+
+        af.modifier = 5 + level / 9;
+        af.location = APPLY_STATS;
+        affect_to_char(vch, &af);
+        af.location = APPLY_HITROLL;
+        affect_to_char(vch, &af);
+        af.location = APPLY_DAMROLL;
+        affect_to_char(vch, &af);
+        af.modifier *= -1;
+        af.location = APPLY_SAVES;
+        affect_to_char(vch, &af);
+        af.modifier *= 10;
+        af.location = APPLY_AC;
+        affect_to_char(vch, &af);
+    }
+}
+
+void do_gaze( CHAR_DATA *ch, char *argument )
+{
+    CHAR_DATA *victim;
+    int skill = get_skill(ch, gsn_petrify);
+
+    if ( skill == 0)
+    {
+        check_social( ch, "gaze", argument );
+        return;
+    }
+
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
+    if ( victim == ch )
+    {
+        send_to_char("Not without a mirror. And better not at all.\n\r", ch);
+        return;
+    }
+    
+    if ( !can_see_combat(ch, victim) )
+    {
+        send_to_char("You need to see them to gaze at them.\n\r", ch);
+        return;
+    }
+
+    if ( !can_see_combat(victim, ch) )
+    {
+        send_to_char("They cannot see you.\n\r", ch);
+        return;
+    }
+    
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) )
+    {
+        send_to_char("They are already petrified.\n\r", ch);
+        return;
+    }
+
+    if ( is_safe(ch,victim) )
+        return;
+
+    // ok, it's happening
+    WAIT_STATE(ch, skill_table[gsn_petrify].beats);
+    act("You focus your gaze on $N.", ch, NULL, victim, TO_CHAR);
+    act("$n focuses $s gaze on you.", ch, NULL, victim, TO_VICT);
+    act("$n focuses $s gaze on $N.", ch, NULL, victim, TO_NOTVICT);
+
+    check_killer(ch, victim);
+    if ( !check_petrify(ch, victim) )
+        start_combat(ch, victim);
 }
