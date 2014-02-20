@@ -1853,6 +1853,10 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
     else
 	charmed = FALSE;
 
+    // some skills are both active and passive
+    if ( sn == gsn_petrify )
+        return IS_SET(ch->off_flags, OFF_PETRIFY);
+    
     /* if a mob uses an active skill (not ordered), he knows it */
     if ( !charmed
 	 && (sn >= 0 && sn < MAX_SKILL)
@@ -1953,10 +1957,10 @@ int get_race_skill( CHAR_DATA *ch, int sn )
 	return 0;
 
     /* doppelganger don't get skills of morph_race */
-    if ( ch->race == race_doppelganger )
-	race = &pc_race_table[race_doppelganger];
+    if ( MULTI_MORPH(ch) )
+        race = &pc_race_table[ch->race];
     else
-	race = get_morph_pc_race_type( ch );
+        race = get_morph_pc_race_type( ch );
 
     /* check for racial skill */
     for (i=0; i < race->num_skills; i++)

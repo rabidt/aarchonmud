@@ -907,7 +907,7 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
             if (( victim = get_mob_vnum_world( mob_vnum ) ) == NULL
                 || ( room = victim->in_room ) == NULL
                 || (IS_GOOD(ch) && IS_GOOD(victim))
-                || victim->in_room->area->security<5
+                || !is_room_ingame(victim->in_room)
 		|| is_guild_room( room->vnum )
                 || IS_SET(victim->in_room->room_flags, ROOM_SAFE)
                 || IS_SET(victim->in_room->room_flags, ROOM_JAIL)
@@ -1108,7 +1108,7 @@ void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
             if (( victim = get_mob_vnum_world( mob_vnum ) ) == NULL
                 || ( room = victim->in_room ) == NULL
                 || (IS_GOOD(ch) && IS_GOOD(victim))
-                || victim->in_room->area->security<5
+                || !is_room_ingame(victim->in_room)
 		|| is_guild_room( room->vnum )
                 || IS_SET(victim->in_room->room_flags, ROOM_SAFE)
                 || IS_SET(victim->in_room->room_flags, ROOM_JAIL)

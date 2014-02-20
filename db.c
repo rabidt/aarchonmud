@@ -111,6 +111,7 @@ bool            wait_for_auth = AUTH_STATUS_ENABLED;
 bool            exits_fixed = FALSE;
 
 sh_int  gsn_mindflay;
+sh_int  gsn_petrify;
 sh_int  gsn_backstab;
 sh_int  gsn_blackjack;
 sh_int  gsn_circle;
@@ -394,6 +395,8 @@ sh_int  gsn_dimensional_blade;
 sh_int  gsn_elemental_blade;
 sh_int  gsn_ashura;
 sh_int  gsn_shan_ya;
+sh_int  gsn_dark_reaping;
+sh_int  gsn_inspiring_song;
 sh_int  gsn_aversion;
 sh_int  gsn_strafe;
 /* sh_int  gsn_combo_attack; */
@@ -424,6 +427,7 @@ sh_int  gsn_extend_spell;
 sh_int  gsn_empower_spell;
 sh_int  gsn_quicken_spell;
 sh_int  gsn_chain_spell;
+sh_int  gsn_wish;
 
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;
@@ -432,6 +436,7 @@ sh_int race_werewolf;
 sh_int race_doppelganger;
 sh_int race_naga;
 sh_int race_vampire;
+sh_int race_rakshasa;
 
 
 /* channel slot numbers */
@@ -627,6 +632,7 @@ void boot_db()
     race_doppelganger = race_lookup("doppelganger");
     race_naga = race_lookup("naga");
     race_vampire = race_lookup("vampire");
+    race_rakshasa = race_lookup("rakshasa");
     
     /*
     * Assign gsn's for skills which have them.
@@ -4977,6 +4983,7 @@ void bug_string( const char *str )
             str,
             last_command );
     log_string( buf );
+    log_trace();
     
     if ( enable_wiznet )
         wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );

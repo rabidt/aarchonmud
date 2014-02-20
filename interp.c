@@ -299,6 +299,7 @@ const   struct  cmd_type    cmd_table   [] =
     * Combat commands.
     */
     { "mindflay",   do_mindflay, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
+    { "gaze",       do_gaze, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
     { "gouge",      do_gouge, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "chop",       do_chop, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "bite",       do_bite, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
@@ -318,7 +319,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "circle",     do_circle,      POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "slash",      do_slash_throat,POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "bash",       do_bash,        POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "bs",         do_backstab,    POS_FIGHTING,    0,  LOG_NORMAL, 0, FALSE, TRUE  },
+    { "bs",         do_backstab,    POS_STANDING,    0,  LOG_NORMAL, 0, FALSE, TRUE  },
     { "berserk",    do_berserk, POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "dirt",       do_dirt,    POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "disarm",     do_disarm,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -332,6 +333,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "scout",      do_scout,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "surrender",  do_surrender,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "ignite",     do_ignite,  POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "inspire",    do_inspire,  POS_FIGHTING, 0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "headbutt",   do_headbutt, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "net",        do_net, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE},
     { "mug",        do_mug, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE},
@@ -378,6 +380,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "pcast",      do_pcast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "qcast",      do_qcast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "ccast",      do_ccast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "wish",       do_wish,    POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
 
    /*
     * Ranger commands.
@@ -802,19 +805,26 @@ void interpret( CHAR_DATA *ch, char *argument )
     }
     
     /*
-    * Look for command in command table.
+    * Look for command trigger or command table.
     */
+    
     if ( (cmd = find_command(ch, command, TRUE)) == -1
 	 && !check_social_new(ch, command, argument, TRUE)
 	 && (cmd = find_command(ch, command, FALSE)) == -1
 	 && !check_social_new(ch, command, argument, FALSE) )
     {
-	send_to_char( "Huh?\n\r", ch );
+        send_to_char( "Huh?\n\r", ch );
         return;
     }
     
     if ( cmd == -1 )
 	return;
+
+    if ( !rp_command_trigger( ch, cmd, argument ) )
+        return;
+
+    if ( mp_command_trigger( ch, cmd, argument ) )
+        return;
 
     /*
     * Log and snoop.
@@ -856,6 +866,12 @@ void interpret( CHAR_DATA *ch, char *argument )
             send_position_message(ch);
             return;
         }
+    
+    if ( IS_AFFECTED(ch, AFF_PETRIFIED) && cmd_table[cmd].position > POS_DEAD )
+    {
+        send_to_char("You cannot do that while petrified.\n\r", ch);
+        return;
+    }
         
 	/* Record the command */
 	if ( !IS_NPC(ch) )

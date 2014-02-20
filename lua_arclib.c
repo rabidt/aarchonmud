@@ -1233,6 +1233,43 @@ HELPTOPIC glob_tprintstr_help={
           "echo(tprintstr({{\"hi\",\"bye\",3456}))\n\r\n\r"
 };
 
+static int glob_getrandomroom ( lua_State *LS)
+{
+    ROOM_INDEX_DATA *room;
+
+    int i;
+    for ( i=0; i<10000; i++ ) // limit to 10k loops just in case
+    {
+        room=get_room_index(number_range(0,65535));
+        if ( ( room )
+                &&   is_room_ingame( room )
+                &&   !room_is_private(room)
+                &&   !IS_SET(room->room_flags, ROOM_PRIVATE)
+                &&   !IS_SET(room->room_flags, ROOM_SOLITARY)
+                &&   !IS_SET(room->room_flags, ROOM_SAFE)
+                &&   !IS_SET(room->room_flags, ROOM_JAIL)
+                &&   !IS_SET(room->room_flags, ROOM_NO_TELEPORT) )
+            break;
+    }
+
+    if (!room)
+        luaL_error(LS, "Couldn't get a random room.");
+
+    if (make_ROOM(LS,room))
+        return 1;
+    else
+        return 0;
+
+}
+HELPTOPIC glob_getrandomroom_help=
+{
+    .summary="Returns a random ingame room.",
+    .info="Arguments: none\n\r\n\r"
+          "Return: ROOM\n\r\n\r"
+          "Example:\n\r"
+          "local room=getrandomroom()\n\r\n\r"
+};
+
 static int glob_cancel ( lua_State *LS)
 {
     return L_cancel(LS);
@@ -1299,6 +1336,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getmobproto,   0),
     GFUN(getmobworld,   0),
     GFUN(getpc,         0),
+    GFUN(getrandomroom, 0),
     GFUN(sendtochar,    0),
     GFUN(pagetochar,    0),
     GFUN(log,           0),
@@ -1801,7 +1839,7 @@ static int L_rundelay( lua_State *LS)
     {
         lua_room_program( NULL, RUNDELAY_VNUM, NULL, 
                 check_ROOM(LS, -2), NULL,
-                NULL, NULL, NULL,
+                NULL, NULL, NULL, NULL,
                 TRIG_CALL, sec );
     }
     else
@@ -3353,6 +3391,51 @@ static int CH_say (lua_State *LS)
 }
 HELPTOPIC CH_say_help = {};
 
+static int CH_describe (lua_State *LS)
+{
+    bool cleanUp = false;
+    AFFECT_DATA *paf;
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    OBJ_DATA * ud_obj;
+
+    if (lua_isnumber(LS, 2))
+    {
+        int num = (int)luaL_checknumber (LS, 2);
+        OBJ_INDEX_DATA *pObjIndex = get_obj_index( num );
+
+        if (!pObjIndex)
+        {
+            luaL_error(LS, "No object with vnum: %d", num);
+        }
+
+        ud_obj = create_object( pObjIndex, 0);
+        cleanUp = true;
+    }
+    else
+    {
+        ud_obj = check_OBJ(LS, 2);
+    }
+
+    describe_item(ud_ch, ud_obj);
+
+    if (cleanUp)
+    {
+        extract_obj(ud_obj);
+    }
+
+    return 0;
+}
+HELPTOPIC CH_describe_help =
+{
+    .summary = "The CH will describe an object like a shop keeper does with the browse command.",
+    .info="Arguments: object[OBJ]\n\r"
+          "           object vnum[INT]\n\r\n\r"
+          "OBJ Example:\n\r"
+          "mob:describe(mob.inventory[1])\n\r\n\r"
+          "OBJ Vnum Example:\n\r"
+          "mob:describe(12345)\n\r\n\r"
+};
+
 static int CH_oload (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -4019,9 +4102,10 @@ HELPTOPIC CH_get_race_help={};
 static int CH_set_race (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
+#ifndef TESTER
     if (!IS_NPC(ud_ch))
         luaL_error( LS, "Can't set race on PCs.");
-    
+#endif    
     const char * arg=check_string(LS, 2, MIL);
     int race=race_lookup(arg);
     if (race==0)
@@ -4403,6 +4487,38 @@ static int CH_get_pet (lua_State *LS)
 }
 HELPTOPIC CH_get_pet_help = {};
 
+static int CH_set_pet (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    CHAR_DATA *pet=check_CH(LS,2);
+
+    if (IS_NPC(ud_ch))
+        luaL_error(LS,
+                "Can only add pets to PCs.");
+    else if (!IS_NPC(pet))
+        luaL_error(LS,
+                "Can only add NPCs as pets.");
+    else if (ud_ch->pet)
+        luaL_error(LS,
+                "%s already has a pet.", ud_ch->name);
+    else if (IS_AFFECTED(pet, AFF_CHARM))
+        luaL_error(LS,
+                "%s is already charmed.", pet->name);
+
+    SET_BIT(pet->act, ACT_PET);
+    SET_BIT(pet->affect_field, AFF_CHARM);
+    flag_clear( pet->penalty );
+    SET_BIT( pet->penalty, PENALTY_NOTELL );
+    SET_BIT( pet->penalty, PENALTY_NOSHOUT );
+    SET_BIT( pet->penalty, PENALTY_NOCHANNEL );
+    add_follower( pet, ud_ch );
+    pet->leader = ud_ch;
+    ud_ch->pet = pet;
+
+    return 0;
+}
+HELPTOPIC CH_set_pet_help={};
+
 static const LUA_PROP_TYPE CH_get_table [] =
 {
     CHGET(name, 0),
@@ -4496,6 +4612,7 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(shortdescr, 5),
     CHSET(longdescr, 5),
     CHSET(description, 5),
+    CHSET(pet, 5),
     ENDPTABLE
 };
 
@@ -4585,6 +4702,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(cancel, 1), 
     CHMETH(setval, 1),
     CHMETH(getval, 1),
+    CHMETH(describe, 1),
     ENDPTABLE
 }; 
 
@@ -5071,6 +5189,27 @@ static int OBJ_get_room (lua_State *LS)
 }
 HELPTOPIC OBJ_get_room_help={};
 
+static int OBJ_set_room (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    ROOM_INDEX_DATA *rid=check_ROOM(LS,2);
+
+    if (ud_obj->in_room)
+        obj_from_room(ud_obj);
+    else if (ud_obj->carried_by)
+        obj_from_char(ud_obj);
+    else if (ud_obj->in_obj)
+        obj_from_obj(ud_obj);
+    else
+        luaL_error(LS, "No location for %s (%d)", 
+                ud_obj->name, 
+                ud_obj->pIndexData->vnum);
+
+    obj_to_room(ud_obj, rid);
+    return 0;
+}
+HELPTOPIC OBJ_set_room_help={};
+
 static int OBJ_get_inobj (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
@@ -5095,6 +5234,28 @@ static int OBJ_get_carriedby (lua_State *LS)
         return 1;
 }
 HELPTOPIC OBJ_get_carriedby_help={};
+
+static int OBJ_set_carriedby (lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    CHAR_DATA *ch=check_CH(LS,2);
+
+    if (ud_obj->carried_by)
+        obj_from_char(ud_obj);
+    else if (ud_obj->in_room)
+        obj_from_room(ud_obj);
+    else if (ud_obj->in_obj)
+        obj_from_obj(ud_obj);
+    else
+        luaL_error(LS, "No location for %s (%d)",
+                ud_obj->name,
+                ud_obj->pIndexData->vnum);
+    
+    obj_to_char( ud_obj, ch );
+
+    return 0;
+}
+HELPTOPIC OBJ_set_carriedby_help={};
 
 static int OBJ_get_v0 (lua_State *LS)
 {
@@ -5249,6 +5410,8 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
     OBJSET(owner, 5),
     OBJSET(material, 5),
     OBJSET(weight, 5),
+    OBJSET(room, 5),
+    OBJSET(carriedby, 5),
        
     ENDPTABLE
 };
@@ -5804,7 +5967,7 @@ static int ROOM_loadfunction ( lua_State *LS)
 {
     lua_room_program( NULL, RUNDELAY_VNUM, NULL,
                 check_ROOM(LS, -2), NULL,
-                NULL, NULL, NULL,
+                NULL, NULL, NULL, NULL,
                 TRIG_CALL, 0 );
     return 0;
 }
@@ -5945,7 +6108,7 @@ static int ROOM_loadscript (lua_State *LS)
 
     lua_pushboolean( LS,
             lua_room_program( NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH),
-                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+                ud_room, NULL, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
     return 1;
 }
 HELPTOPIC ROOM_loadscript_help={};
@@ -5955,7 +6118,7 @@ static int ROOM_loadstring (lua_State *LS)
     ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
     lua_pushboolean( LS,
             lua_room_program( NULL, LOADSCRIPT_VNUM, check_string(LS, 2, MAX_SCRIPT_LENGTH),
-                ud_room, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
+                ud_room, NULL, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
     return 1;
 }
 HELPTOPIC ROOM_loadstring_help={};
@@ -5974,7 +6137,7 @@ static int ROOM_loadprog (lua_State *LS)
 
     lua_pushboolean( LS,
             lua_room_program( NULL, num, pRcode->code,
-                ud_room, NULL, NULL, NULL, NULL,
+                ud_room, NULL, NULL, NULL, NULL, NULL,
                 RTRIG_CALL, 0) );
     return 1;
 }
