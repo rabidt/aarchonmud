@@ -3436,6 +3436,77 @@ HELPTOPIC CH_describe_help =
           "mob:describe(12345)\n\r\n\r"
 };
 
+static int CH_addaffect (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    AFFECT_DATA af;
+    char *temp=NULL;
+    struct flag_type *flag_table;
+
+
+    /* where */
+    temp=check_string(LS,2,MIL);
+    af.where=flag_lookup(
+            temp,
+            apply_types);
+
+    if (af.where==NO_FLAG)
+        luaL_error(LS, "No such 'apply_type' flag: %s", temp); 
+
+    /* type */
+    temp=check_string(LS,3,MIL);
+    if (!strcmp(temp, "none"))
+    {
+        af.type=0;
+    }
+    else
+    {
+        af.type=skill_lookup( temp );
+
+        if (af.type == -1)
+            luaL_error("Invalid skill: %s", temp);
+    }
+
+    af.level=luaL_checkinteger(LS,4);
+    af.duration=luaL_checkinteger(LS,5);
+
+    /* location */
+    temp=check_string(LS,6,MIL);
+    af.location=flag_lookup( temp, apply_flags );
+    if (af.location == NO_FLAG)
+        luaL_error(LS, "Invalid location: %s", temp);
+
+    af.modifier=luaL_checkinteger(LS,7);
+
+    /* bitvector */
+    temp=check_string(LS,8,MIL);
+    if (!strcmp(temp, "none"))
+    {
+        af.bitvector=0;
+    }
+    else
+    {
+        switch (af.where)
+        {
+            case TO_AFFECTS:
+                flag_table=affect_flags;
+                break;
+            default:
+                luaL_error(LS, "'where' not supported");
+        }
+        af.bitvector=flag_lookup(
+                temp,
+                flag_table);
+        if (af.bitvector==NO_FLAG)
+            luaL_error(LS, "Invalid bitvector: %s", temp);
+    }
+    
+    affect_to_char( ud_ch, &af );
+
+    return 0;
+}
+HELPTOPIC CH_addaffect_help={};
+
 static int CH_oload (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -4721,6 +4792,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(setval, 1),
     CHMETH(getval, 1),
     CHMETH(describe, 1),
+    CHMETH(addaffect, 9),
     ENDPTABLE
 }; 
 
