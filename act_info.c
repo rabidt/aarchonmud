@@ -297,6 +297,7 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
         if ( IS_AFFECTED(victim, AFF_ASTRAL)      ) strcat( buf, "(Astral) "     );  
         if ( IS_AFFECTED(victim, AFF_CHARM)       ) strcat( buf, "(Charmed) "    );
         if ( IS_AFFECTED(victim, AFF_PASS_DOOR)   ) strcat( buf, "(Translucent) ");
+        if ( IS_AFFECTED(victim, AFF_PETRIFIED)   ) strcat( buf, "(Petrified) "  );
         if ( IS_AFFECTED(victim, AFF_FAERIE_FIRE) ) strcat( buf, "(Pink Aura) "  );
         if ( IS_EVIL(victim)
             &&   IS_AFFECTED(ch, AFF_DETECT_EVIL)     ) strcat( buf, "(Red Aura) "   );
