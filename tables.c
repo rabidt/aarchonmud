@@ -433,6 +433,7 @@ const struct flag_type form_flags[] =
 	{   "wise",         FORM_WISE,  TRUE    },
     {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
     {   "constrict",    FORM_CONSTRICT,     TRUE    },
+    {   "multi-headed", FORM_MULTI_HEADED,  TRUE    },
 	{   NULL,           0,          0   }
 };
 
