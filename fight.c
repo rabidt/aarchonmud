@@ -473,7 +473,7 @@ void special_affect_update(CHAR_DATA *ch)
 		/* tune to fit char level */
 		sunlight = (ch->level + 10) * sunlight/100;
         
-		if ( !saves_spell(sunlight, ch, DAM_LIGHT) )
+		if ( !saves_spell(ch, NULL, sunlight, DAM_LIGHT) )
 		{
 			if ( IS_AFFECTED(ch, AFF_SHROUD))
 			{
@@ -1019,7 +1019,7 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     AFFECT_DATA af;
 
     // saving throw to avoid completely
-    if ( saves_spell(ch->level, victim, DAM_HARM) )
+    if ( saves_spell(victim, ch, ch->level, DAM_HARM) )
         return FALSE;
 
     // may already be partially petrified (slowed)
@@ -1032,7 +1032,7 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     af.location  = APPLY_AGI;
     
     // second saving throw to reduce effect to slow
-    if ( saves_physical(victim, ch->level, DAM_HARM) )
+    if ( saves_physical(victim, ch, ch->level, DAM_HARM) )
     {
         af.modifier  = -10;
         af.bitvector = AFF_SLOW;
@@ -2246,7 +2246,7 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     int dam = aff_level;
 
     // save for half damage is possible but harder than normal
-    if ( is_affected(ch, gsn_fervent_rage) || saves_spell(2*aff_level, ch, dam_type) )
+    if ( is_affected(ch, gsn_fervent_rage) || saves_spell(ch, victim, 2*aff_level, dam_type) )
         dam /= 2;
 
     full_dam(victim, ch, dam, aff_sn, dam_type, TRUE);
@@ -4186,7 +4186,7 @@ bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( per_chance(get_skill(ch, gsn_alertness)) || number_bits(2) )
     {
         check_improve(ch, gsn_alertness, TRUE, 3);
-        if ( saves_spell(aff->level, ch, DAM_MENTAL) )
+        if ( saves_spell(ch, victim, aff->level, DAM_MENTAL) )
             return FALSE;
     }
     else
@@ -4230,7 +4230,7 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( per_chance(get_skill(ch, gsn_alertness)) || number_bits(2) )
     {
         check_improve(ch, gsn_alertness, TRUE, 3);
-        if ( saves_spell(aff->level, ch, DAM_MENTAL) )
+        if ( saves_spell(ch, victim, aff->level, DAM_MENTAL) )
             return FALSE;
     }
     else
@@ -4256,7 +4256,7 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
         {
             dam = dice(4, aff->level);
             // allow hard save for half damage
-            if ( saves_spell(2*aff->level, ch, DAM_LIGHT) )
+            if ( saves_spell(ch, victim, 2*aff->level, DAM_LIGHT) )
                 dam /= 2;
             full_dam(victim, ch, dam, gsn_phantasmal_image, DAM_LIGHT, TRUE);
         }

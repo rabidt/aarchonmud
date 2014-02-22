@@ -70,7 +70,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
         
       if (vch == victim) /* full damage */
       {
-	if (saves_spell(level, vch, dam_type))
+	if (saves_spell(vch, ch, level, dam_type))
 	{
 	  (*effect_fun)(vch, level/2, dam/2, TARGET_CHAR);
 	  full_dam(ch, vch, dam/2, sn, dam_type, TRUE);
@@ -83,7 +83,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
       }
       else /* half damage */
       {
-	if (saves_spell(level, vch, dam_type))
+	if (saves_spell(vch, ch, level, dam_type))
 	{
 	  (*effect_fun)(vch, level/2, dam/4, TARGET_CHAR);
 	  full_dam(ch, vch, dam/4, sn, dam_type, TRUE);
@@ -103,7 +103,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
       bug("proto_spell_breath: NULL victim", 0);
       return;
     }
-    if (saves_spell(level, victim, dam_type))
+    if (saves_spell(victim, ch, level, dam_type))
     {
       (*effect_fun)(victim, level/2, dam/2, TARGET_CHAR);
       full_dam(ch, victim, dam/2, sn, dam_type, TRUE);
@@ -215,7 +215,7 @@ void slow_effect( void *vo, int level, int dam, int target )
     return;
 
   /* saving throw */
-  if ( number_bits(1) || saves_spell(level / 4 + dam / 20, victim, DAM_OTHER) )
+  if ( number_bits(1) || saves_spell(victim, NULL, level / 4 + dam / 20, DAM_OTHER) )
     return;
   
   if (IS_AFFECTED(victim,AFF_HASTE))
@@ -251,7 +251,7 @@ void ooze_effect( void *vo, int level, int dam, int target )
     return;
 
   /* saving throw */
-  if ( saves_spell(level / 4 + dam / 20, victim, DAM_OTHER) )
+  if ( saves_spell(victim, NULL, level / 4 + dam / 20, DAM_OTHER) )
     return;
 
   af.where     = TO_AFFECTS;
@@ -276,7 +276,7 @@ void plague_effect( void *vo, int level, int dam, int target )
     return;
 
   /* saving throw */
-  if ( number_bits(1) || saves_spell(level / 4 + dam / 20, victim, DAM_DISEASE) )
+  if ( number_bits(1) || saves_spell(victim, NULL, level / 4 + dam / 20, DAM_DISEASE) )
     return;
 
   if (!IS_AFFECTED(victim, AFF_PLAGUE))
@@ -304,7 +304,7 @@ void weak_effect( void *vo, int level, int dam, int target )
     return;
 
   /* saving throw */
-  if ( number_bits(1) || saves_spell(level / 4 + dam / 20, victim, DAM_OTHER) )
+  if ( number_bits(1) || saves_spell(victim, NULL, level / 4 + dam / 20, DAM_OTHER) )
     return;
   
   if (!IS_AFFECTED(victim,AFF_WEAKEN))
@@ -331,7 +331,7 @@ void curse_effect( void *vo, int level, int dam, int target )
     return;
 
   /* saving throw */
-  if ( number_bits(1) || saves_spell(level / 4 + dam / 20, victim, DAM_NEGATIVE) )
+  if ( number_bits(1) || saves_spell(victim, NULL, level / 4 + dam / 20, DAM_NEGATIVE) )
     return;
   
   if (!IS_AFFECTED(victim,AFF_CURSE))
