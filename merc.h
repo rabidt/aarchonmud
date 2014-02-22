@@ -4130,7 +4130,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define OID OBJ_INDEX_DATA
 #define RID ROOM_INDEX_DATA
 #define SF  SPEC_FUN
-#define AD  AFFECT_DATA
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
@@ -4343,7 +4342,7 @@ bool is_granted      args( ( CHAR_DATA *ch, DO_FUN *do_fun ) );
 
 
 /* handler.c */
-AD      *affect_find args( (AFFECT_DATA *paf, int sn));
+AFFECT_DATA      *affect_find args( (AFFECT_DATA *paf, int sn));
 void    affect_check    args( (CHAR_DATA *ch, int where, int vector) );
 int count_users args( (OBJ_DATA *obj) );
 void    deduct_cost args( (CHAR_DATA *ch, int cost) );
@@ -4633,7 +4632,6 @@ void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );
 #undef  OID
 #undef  RID
 #undef  SF
-#undef AD
 
 /*****************************************************************************
  *                                    OLC                                    *

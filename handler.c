@@ -3597,7 +3597,7 @@ char *affect_loc_name( int location )
 /* returns the name of a flag */
 char* flag_bit_name( struct flag_type flag_table[], int flag )
 {
-    char buf[100];
+    static char buf[100];
     int i;
     for ( i = 0; flag_table[i].name != NULL; i++ )
 	if ( flag_table[i].bit == flag )
