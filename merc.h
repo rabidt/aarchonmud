@@ -4455,8 +4455,8 @@ int     mana_cost   (CHAR_DATA *ch, int sn, int skill);
 int get_duration( int sn, int level );
 int skill_lookup    args( ( const char *name ) );
 int slot_lookup args( ( int slot ) );
-bool    saves_spell args( ( int level, CHAR_DATA *victim, int dam_type ) );
-bool saves_physical( CHAR_DATA *victim, int level, int dam_type );
+bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
+bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 
 /* mob_prog.c */
