@@ -90,5 +90,6 @@ void register_globals( lua_State *LS );
 #define is_ROOM(LS, room ) ROOM_type->is( ROOM_type, LS, room )
 #define is_MTRIG(LS, trig ) MTRIG_type->is( MTRIG_type, LS, trig )
 #define is_OTRIG(LS, trig ) OTRIG_type->is( OTRIG_type, LS, trig )
+#define is_AFFECT(LS, aff) AFFECT_type->is( AFFECT_type, LS, aff )
 
 #endif
