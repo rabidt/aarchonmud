@@ -3443,32 +3443,36 @@ static int CH_addaffect (lua_State *LS)
     char *temp=NULL;
     struct flag_type *flag_table;
 
-
     /* where */
     temp=check_string(LS,2,MIL);
-    af.where=flag_lookup(
-            temp,
-            apply_types);
+    af.where=flag_lookup( temp, apply_types);
 
     if (af.where==NO_FLAG)
         luaL_error(LS, "No such 'apply_type' flag: %s", temp); 
+    else if (af.where != TO_AFFECTS /*&&
+             af.where != TO_IMMUNE &&
+             af.where != TO_RESIST &&
+             af.where != TO_VULN &&
+             af.where != TO_SPECIAL*/ /* not supported yet */
+            )
+        luaL_error(LS, "%s not supported for CH affects.", temp);
 
     /* type */
     temp=check_string(LS,3,MIL);
-    if (!strcmp(temp, "none"))
-    {
-        af.type=0;
-    }
-    else
-    {
-        af.type=skill_lookup( temp );
+    af.type=skill_lookup( temp );
 
-        if (af.type == -1)
-            luaL_error("Invalid skill: %s", temp);
-    }
+    if (af.type == -1)
+        luaL_error("Invalid skill: %s", temp);
 
+    /* level */
     af.level=luaL_checkinteger(LS,4);
+    if (af.level<1)
+        luaL_error(LS, "Level must be > 0.");
+
+    /* duration */
     af.duration=luaL_checkinteger(LS,5);
+    if (af.duration<-1)
+        luaL_error(LS, "Duration must be -1 (indefinite) or greater.");
 
     /* location */
     temp=check_string(LS,6,MIL);
@@ -3476,6 +3480,7 @@ static int CH_addaffect (lua_State *LS)
     if (af.location == NO_FLAG)
         luaL_error(LS, "Invalid location: %s", temp);
 
+    /* modifier */
     af.modifier=luaL_checkinteger(LS,7);
 
     /* bitvector */
@@ -3494,9 +3499,7 @@ static int CH_addaffect (lua_State *LS)
             default:
                 luaL_error(LS, "'where' not supported");
         }
-        af.bitvector=flag_lookup(
-                temp,
-                flag_table);
+        af.bitvector=flag_lookup( temp, flag_table);
         if (af.bitvector==NO_FLAG)
             luaL_error(LS, "Invalid bitvector: %s", temp);
     }
@@ -3506,6 +3509,28 @@ static int CH_addaffect (lua_State *LS)
     return 0;
 }
 HELPTOPIC CH_addaffect_help={};
+
+static int CH_removeaffect (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    
+    if (is_AFFECT(LS,2))
+    {
+        /* remove a specific affect */
+        affect_remove( ud_ch, check_AFFECT(LS,2));
+        return 0;
+    }
+
+    /* remove by sn */
+    char *skill=check_string(LS,2,MIL);
+    int sn=skill_lookup( skill );
+    if (sn==-1)
+       luaL_error(LS, "Invalid skill: %s", skill);
+    
+    affect_strip( ud_ch, sn );
+    return 0;
+} 
+HELPTOPIC CH_removeaffect_help={};
 
 static int CH_oload (lua_State *LS)
 {
@@ -4793,6 +4818,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(getval, 1),
     CHMETH(describe, 1),
     CHMETH(addaffect, 9),
+    CHMETH(removeaffect,9),
     ENDPTABLE
 }; 
 
