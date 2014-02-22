@@ -3438,53 +3438,81 @@ HELPTOPIC CH_describe_help =
 
 static int CH_addaffect (lua_State *LS)
 {
-    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    int arg_index=1;
+    CHAR_DATA * ud_ch = check_CH (LS, arg_index++);
     AFFECT_DATA af;
     char *temp=NULL;
     struct flag_type *flag_table;
 
     /* where */
-    temp=check_string(LS,2,MIL);
+    temp=check_string(LS,arg_index++,MIL);
     af.where=flag_lookup( temp, apply_types);
 
     if (af.where==NO_FLAG)
         luaL_error(LS, "No such 'apply_type' flag: %s", temp); 
-    else if (af.where != TO_AFFECTS /*&&
+    else if (af.where != TO_AFFECTS &&
              af.where != TO_IMMUNE &&
              af.where != TO_RESIST &&
-             af.where != TO_VULN &&
+             af.where != TO_VULN /* &&
              af.where != TO_SPECIAL*/ /* not supported yet */
             )
         luaL_error(LS, "%s not supported for CH affects.", temp);
 
     /* type */
-    temp=check_string(LS,3,MIL);
+    temp=check_string(LS,arg_index++,MIL);
     af.type=skill_lookup( temp );
 
     if (af.type == -1)
         luaL_error("Invalid skill: %s", temp);
 
     /* level */
-    af.level=luaL_checkinteger(LS,4);
+    af.level=luaL_checkinteger(LS,arg_index++);
     if (af.level<1)
         luaL_error(LS, "Level must be > 0.");
 
     /* duration */
-    af.duration=luaL_checkinteger(LS,5);
+    af.duration=luaL_checkinteger(LS,arg_index++);
     if (af.duration<-1)
         luaL_error(LS, "Duration must be -1 (indefinite) or greater.");
 
     /* location */
-    temp=check_string(LS,6,MIL);
-    af.location=flag_lookup( temp, apply_flags );
-    if (af.location == NO_FLAG)
-        luaL_error(LS, "Invalid location: %s", temp);
+    switch (af.where)
+    {
+        case TO_IMMUNE:
+        case TO_RESIST:
+        case TO_VULN:
+            af.location=APPLY_NONE;
+            break;
+        case TO_AFFECTS:
+        {
+            temp=check_string(LS,arg_index++,MIL);
+            af.location=flag_lookup( temp, apply_flags );
+            if (af.location == NO_FLAG)
+                luaL_error(LS, "Invalid location: %s", temp);
+            break;
+        }
+        default:
+            luaL_error(LS, "Invalid where.");
+      
+    }
 
     /* modifier */
-    af.modifier=luaL_checkinteger(LS,7);
+    switch (af.where)
+    {
+        case TO_IMMUNE:
+        case TO_RESIST:
+        case TO_VULN:
+            af.modifier=0;
+            break;
+        case TO_AFFECTS:
+            af.modifier=luaL_checkinteger(LS,arg_index++);
+            break;
+        default:
+            luaL_error(LS, "Invalid where.");
+    }
 
     /* bitvector */
-    temp=check_string(LS,8,MIL);
+    temp=check_string(LS,arg_index++,MIL);
     if (!strcmp(temp, "none"))
     {
         af.bitvector=0;
@@ -3495,6 +3523,15 @@ static int CH_addaffect (lua_State *LS)
         {
             case TO_AFFECTS:
                 flag_table=affect_flags;
+                break;
+            case TO_IMMUNE:
+                flag_table=imm_flags;
+                break;
+            case TO_RESIST:
+                flag_table=res_flags;
+                break;
+            case TO_VULN:
+                flag_table=vuln_flags;
                 break;
             default:
                 luaL_error(LS, "'where' not supported");
