@@ -1393,6 +1393,7 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
     case APPLY_CHA:
     case APPLY_LUC: factor = 0.25; break;
     case APPLY_STATS: factor = 2.5; break;
+    case APPLY_SKILLS: factor = 10; break;
     case APPLY_MANA:
     case APPLY_HIT:
     case APPLY_MOVE: factor = 0.1; break;
