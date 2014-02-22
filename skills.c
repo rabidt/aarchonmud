@@ -2060,6 +2060,19 @@ int get_skill(CHAR_DATA *ch, int sn)
 	else
 	    skill = pc_get_skill(ch, sn);
 
+    if ( skill == 0 )
+        return 0;
+    
+    // generic modifier to all skills
+    if ( ch->mod_skills )
+    {
+        int mod = URANGE(-100, ch->mod_skills, 100);
+        if ( mod > 0 )
+            skill += (100 - skill) * mod / 100;
+        else
+            skill = skill * (100 + mod) / 100;
+    }
+    
     if (ch->daze > 0)
     {
         if (skill_table[sn].spell_fun != spell_null)

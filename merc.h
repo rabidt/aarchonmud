@@ -1940,7 +1940,7 @@ struct  kill_data
 #define APPLY_LUC              30
 #define APPLY_STATS            31 // all stats (str..luc)
 // #define APPLY_COMBO              31
-
+#define APPLY_SKILLS           32
 
 /*
  * Values for containers (value[1]).
@@ -2515,6 +2515,7 @@ struct  char_data
 	sh_int      hitroll;
 	sh_int      damroll;
 	sh_int      armor[4];
+    sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
 	sh_int      wimpy;
     sh_int      calm;
         tflag       penalty;
