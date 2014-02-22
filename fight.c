@@ -965,8 +965,10 @@ int dual_wield_skill( CHAR_DATA *ch, bool improve )
             check_improve(ch, gsn_dual, TRUE, 8);
     }
 
-    // combine the two skills, rounding down
-    return dual_wield + (100 - dual_wield) * dual_weapon / 100;
+    // combine the two skills, rounding down; also ambidextrous skill comes in here
+    int dual_skill = dual_wield + (100 - dual_wield) * dual_weapon / 100;
+    dual_skill += (100 - dual_skill) * get_skill(ch, gsn_ambidextrous) / 100;
+    return dual_skill;
 }
 
 /*
@@ -1173,43 +1175,47 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 
     chance = offhand_attack_chance(ch, TRUE);
     
+#define OFFHAND_ATTACK {one_hit(ch,victim,dt,TRUE);if(ch->fighting!=victim)return;}
     if ( per_chance(chance) )
     {
-        one_hit(ch, victim, dt, TRUE);
-        if ( ch->fighting != victim )
-            return;
-        
         int gsn_dual = dual_weapon_sn(ch);
         int mastery = get_mastery(ch, gsn_dual_wield) + (gsn_dual ? get_mastery(ch, gsn_dual) : 0);
-        chance = ch_dex_extrahit(ch) + (mastery ? 5 + 10*mastery : 0);
-        if ( per_chance(chance) )
-        {
-            one_hit(ch, victim, dt, TRUE);
-            if ( ch->fighting != victim )
-                return;
-        }
+        int dex_chance = ch_dex_extrahit(ch);
+
+        // one attack for wielding an offhand weapon
+        OFFHAND_ATTACK
         
+        // mastery bonus attack
+        if ( per_chance(mastery ? 5 + 10*mastery : 0) )
+            OFFHAND_ATTACK
+
+        // extra attack is 2/3 main hand and 1/3 offhand
         if ( per_chance(get_skill(ch, gsn_extra_attack)/3) )
+            OFFHAND_ATTACK
+        
+        // ambidexterity allows full use of second and third attack skills
+        bool ambidextrous = per_chance(get_skill(ch, gsn_ambidextrous));
+        if ( ambidextrous )
         {
-            one_hit(ch,victim,dt,TRUE);
-            if (ch->fighting != victim)
-                return;
+            if ( per_chance(get_skill(ch, gsn_second_attack) * 2/3) + dex_chance )
+                OFFHAND_ATTACK
+            if ( per_chance(get_skill(ch, gsn_third_attack) * 2/3) + dex_chance )
+                OFFHAND_ATTACK
+        }
+        else
+        {
+            // normal chance for extra offhand attack based on dex
+            if ( per_chance(dex_chance) )
+                OFFHAND_ATTACK
         }
 
-        if ( IS_AFFECTED(ch,AFF_HASTE) && number_bits(1) == 0 )
-        {
-            one_hit(ch,victim,dt,TRUE);
-            if (ch->fighting != victim)
-                return;
-        }
+        if ( IS_AFFECTED(ch,AFF_HASTE) && (number_bits(1) == 0 || ambidextrous) )
+                OFFHAND_ATTACK
 
         if ( second != NULL && second->value[0] == WEAPON_DAGGER && number_bits(4) == 0 )
-        {
-            one_hit(ch,victim,dt,TRUE);
-            if (ch->fighting != victim)
-                return;
-        }
+                OFFHAND_ATTACK
     }
+#undef OFFHAND_ATTACK
 
     if ( IS_AFFECTED(ch, AFF_MANTRA) && ch->mana > 0 )
     {
@@ -2913,10 +2919,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             dam /= 2;
     }
 
-    // petrified characters are resistant to damage
-    if ( dam > 1 && IS_AFFECTED(victim, AFF_PETRIFIED) )
-        dam /= 2;
-
     if ( dam > 1 && ((IS_AFFECTED(victim, AFF_PROTECT_EVIL) && IS_EVIL(ch) )
         ||           (IS_AFFECTED(victim, AFF_PROTECT_GOOD) && IS_GOOD(ch) )))
     {
@@ -3025,10 +3027,28 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             aff->duration -= 1;
     }
     
+    // petrified characters are resistant to damage
+    if ( dam > 1 && IS_AFFECTED(victim, AFF_PETRIFIED) )
+    {
+        // damage can break petrification
+        if ( per_chance(200 * dam / victim->max_hit) )
+        {
+            printf_to_char(victim, "%s\n\r", skill_table[gsn_petrify].msg_off);
+            act("The petrification on $n is broken!", victim, NULL, NULL, TO_ROOM);
+            affect_strip_flag(victim, AFF_PETRIFIED);
+            REMOVE_BIT(victim->affect_field, AFF_PETRIFIED);
+        }
+        else
+            dam /= 2;
+    }
+
     if (dt == gsn_beheading)
     {
         immune = FALSE;
-        dam = victim->hit + 100;
+        if ( IS_SET(victim->form, FORM_MULTI_HEADED) )
+            dam = UMAX(1, victim->hit / 2);
+        else
+            dam = victim->hit + 100;
     }
     
     if (show)

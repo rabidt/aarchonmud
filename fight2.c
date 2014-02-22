@@ -3704,7 +3704,7 @@ void do_rake( CHAR_DATA *ch, char *argument )
 	   if ( check_hit(ch, vch, gsn_razor_claws, DAM_SLASH, skill) )
 	   {
 	       check_killer(ch, vch);
-	       if ( number_bits(6) == 0 )
+	       if ( number_bits(8) == 0 || IS_IMMORTAL(ch) )
 	       {
 		   /* behead */
 		   act("In a mighty strike, your claws separate $N's neck.",
@@ -4702,6 +4702,5 @@ void do_gaze( CHAR_DATA *ch, char *argument )
     act("$n focuses $s gaze on $N.", ch, NULL, victim, TO_NOTVICT);
 
     check_killer(ch, victim);
-    if ( !check_petrify(ch, victim) )
-        start_combat(ch, victim);
+    start_combat(ch, victim);
 }
