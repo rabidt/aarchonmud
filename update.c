@@ -1276,6 +1276,38 @@ void char_update( void )
     {
         ch_next = ch->next;
 
+        if (!IS_VALID(ch))
+        {
+            bugf("Invalid ch in char_update (%d). Removing from list.",
+                    ch->pIndexData ? ch->pIndexData->vnum : 0 );
+            /* invalid should mean already freed, just kill it from the list */
+            if ( ch == char_list )
+            {
+                char_list = ch->next;
+            }
+            else
+            {
+                CHAR_DATA *prev;
+
+                for ( prev = char_list ; prev ; prev = prev->next )
+                {
+                    if ( prev->next == ch )
+                    {
+                        prev->next = ch->next;
+                        break;
+                    }
+                }
+
+                if (!prev)
+                    bugf("Couldn't find invalid ch in list to remove.");
+
+            }
+            continue;
+        }
+        
+        if (ch->must_extract)
+            continue;
+
         if ( ch->timer > 30 )
             ch_quit = ch;
 
@@ -2061,10 +2093,21 @@ void obj_update( void )
 
     for ( obj = object_list; obj != NULL; obj = obj_next )
     {
+        obj_next = obj->next;
+
+        if (!IS_VALID(obj))
+        {
+            bugf("Invalid obj in obj_update (%d). Removing from list.", obj->pIndexData->vnum);
+            /* invalid should mean already freed, just kill it from the list */
+            obj_from_object_list(obj);
+            continue;
+        }
+
         CHAR_DATA *rch;
         char *message;
 
-        obj_next = obj->next;
+        if (obj->must_extract)
+            continue;
 
         /* go through affects and decrement */
         for ( paf = obj->affected; paf != NULL; paf = paf_next )
@@ -2211,7 +2254,11 @@ void obj_update( void )
                      */
                     obj_to_char(t_obj,obj->carried_by);
                 else if (obj->in_room == NULL)  /* destroy it */
-                    extract_obj(t_obj);
+                {
+                    bugf("obj_update: destroying container %s (%d) but nowhere to dump contents.", obj->name, obj->pIndexData->vnum);
+                    // immediate extraction could cause obj_next to become invalid
+                    t_obj->must_extract = TRUE;
+                }
 
                 else /* to a room */
                 {
@@ -2230,7 +2277,8 @@ void obj_update( void )
             }
         }
 
-        extract_obj( obj );
+        // immediate extraction could cause obj_next to become invalid
+        obj->must_extract = TRUE;
     }
 
     return;
@@ -2419,21 +2467,48 @@ void death_update( void )
 /* delayed removal of purged chars */
 void extract_update( void )
 {
-    CHAR_DATA *ch, *ch_next;
-    OBJ_DATA  *obj, *obj_next;
-
-    for ( ch = char_list; ch != NULL; ch = ch_next )
+    // extraction of containers or character with pets may trigger extraction of the next object or object in the list
+    // hence we start new after any (potentially recursive) extraction
+    CHAR_DATA *ch = char_list;
+    while ( ch )
     {
-        ch_next = ch->next;
-        if ( ch->must_extract )
-            extract_char( ch, TRUE );
+        if ( !IS_VALID(ch) )
+        {
+            bugf("Invalid ch in extract_update: %d", ch->pIndexData ? ch->pIndexData->vnum : 0 );
+            /* invalid should mean already freed, just kill it from the list */
+            char_from_char_list(ch);
+            ch = char_list;
+        }
+        else if ( ch->must_extract )
+        {
+            extract_char(ch, TRUE);
+            ch = char_list;
+        }
+        else
+        {
+            ch = ch->next;
+        }
     }
 
-    for ( obj=object_list; obj != NULL ; obj=obj_next )
+    OBJ_DATA *obj = object_list;
+    while ( obj )
     {  
-        obj_next = obj->next;
-        if ( obj->must_extract )
-            extract_obj( obj );
+        if ( !IS_VALID(obj) )
+        {
+            bugf("Invalid obj in extract_update: %d", obj->pIndexData ? obj->pIndexData->vnum : 0 );
+            /* invalid should mean already freed, just kill it from the list */
+            obj_from_object_list(obj);
+            obj = object_list;
+        }
+        else if ( obj->must_extract )
+        {
+            extract_obj(obj);
+            obj = object_list;
+        }
+        else
+        {
+            obj = obj->next;
+        }
     }
 }
 
