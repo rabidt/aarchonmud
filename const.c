@@ -773,6 +773,13 @@ struct align_type align_table [] =
     {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
     },
 
+    {
+    "ettin",        TRUE,
+    {},      {},   {},
+    {},      {RES_MENTAL}, {},
+    {A,C,H,M,mm},    {A,B,C,D,E,F,G,H,I,J,K}
+    },
+
 //10
 	{
 	"behemoth",        TRUE,
@@ -1715,12 +1722,23 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         {
           "medusa",   "Medusa",
           { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
-          5, { "venom bite", "maul", "petrifying gaze", "sticks to snakes", "alertness" },
-          {1, 10, 20, 30, 50}, {100, 100, 100, 90, 80},
+          5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
+          {1, 10, 20, 30, 50}, {100, 100, 80, 50, 50},
           {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
           { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
           SIZE_MEDIUM, SEX_FEMALE, 9
+        },
+
+        {
+          "ettin",   "Ettin ",
+          { 285, 290, 290, 290, 285, 285, 290, 290, 290, 290, 290, 290, 290, 285, 290 },
+          4, { "ambidextrous", "double strike", "second attack", "third attack" },
+          {10, 20, 40, 60}, {100, 100, 33, 33},
+          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
+          { 155, 150, 145, 140, 150,     145, 145, 140, 135, 145 },
+          {   5,   5,   4,   3,   5,       4,   4,   3,   3,   4 },
+          SIZE_HUGE, SEX_BOTH, 9
         },
 
 // R10
@@ -4414,14 +4432,25 @@ struct  skill_type  skill_table [MAX_SKILL] =
     },
     
     {
-    "petrifying gaze",  
+    "petrifying gaze",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_INT, STAT_WIS,
-    spell_null,    TAR_VIS_CHAR_OFF,     POS_FIGHTING,
-    &gsn_petrify,              SLOT( 0),       0,      24, DUR_SPECIAL,
-    "petrification",   "Your flesh reverts to its normal state.",  "", NULL
+    spell_null, TAR_VIS_CHAR_OFF, POS_FIGHTING,
+    &gsn_petrify, SLOT(0), 0, 24, DUR_SPECIAL,
+    "petrification", "Your flesh reverts to its normal state.", "", NULL
+    },
+
+    {
+    "ambidextrous",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_DEX, STAT_INT, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_ambidextrous, SLOT(0), 0, 0, DUR_NONE,
+    "", "!ambidextrous!", "", NULL
     },
 
 /*

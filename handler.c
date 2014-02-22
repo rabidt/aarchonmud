@@ -2020,6 +2020,33 @@ void obj_from_world( OBJ_DATA *obj )
 
 }
 
+void obj_from_object_list( OBJ_DATA *obj )
+{
+    if ( object_list == obj )
+    {
+        object_list = obj->next;
+    }
+    else
+    {
+        OBJ_DATA *prev;
+        
+        for ( prev = object_list; prev != NULL; prev = prev->next )
+        {
+            if ( prev->next == obj )
+            {
+                prev->next = obj->next;
+                break;
+            }
+        }
+        
+        if ( prev == NULL )
+        {
+            bug( "obj_from_object_list: obj %d not found.", obj->pIndexData->vnum );
+            return;
+        }
+    }
+}
+
 /*
  * Extract an obj from the world.
  */
@@ -2056,30 +2083,8 @@ void extract_obj( OBJ_DATA *obj )
         extract_obj( obj_content );
     }
 
-    if ( object_list == obj )
-    {
-        object_list = obj->next;
-    }
-    else
-    {
-        OBJ_DATA *prev;
-        
-        for ( prev = object_list; prev != NULL; prev = prev->next )
-        {
-            if ( prev->next == obj )
-            {
-                prev->next = obj->next;
-                break;
-            }
-        }
-        
-        if ( prev == NULL )
-        {
-            bug( "Extract_obj: obj %d not found.", obj->pIndexData->vnum );
-            return;
-        }
-    }
-    
+    obj_from_object_list(obj);
+
     --obj->pIndexData->count;
     free_obj(obj);
     return;
@@ -2213,6 +2218,33 @@ void get_eq_corpse( CHAR_DATA *ch, OBJ_DATA *corpse )
     }
 }
 
+void char_from_char_list( CHAR_DATA *ch )
+{
+    if ( ch == char_list )
+    {
+        char_list = ch->next;
+    }
+    else
+    {
+        CHAR_DATA *prev;
+        
+        for ( prev = char_list; prev != NULL; prev = prev->next )
+        {
+            if ( prev->next == ch )
+            {
+                prev->next = ch->next;
+                break;
+            }
+        }
+        
+        if ( prev == NULL )
+        {
+            bug( "char_from_char_list: char not found.", 0 );
+            return;
+        }
+    }
+}
+
 /*
  * Extract a char from the world.
  */
@@ -2307,29 +2339,7 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             wch->mprog_target = NULL;
     }
 
-    if ( ch == char_list )
-    {
-        char_list = ch->next;
-    }
-    else
-    {
-        CHAR_DATA *prev;
-        
-        for ( prev = char_list; prev != NULL; prev = prev->next )
-        {
-            if ( prev->next == ch )
-            {
-                prev->next = ch->next;
-                break;
-            }
-        }
-        
-        if ( prev == NULL )
-        {
-            bug( "Extract_char: char not found.", 0 );
-            return;
-        }
-    }
+    char_from_char_list(ch);
     
     if ( ch->desc != NULL )
     {
@@ -3590,7 +3600,7 @@ char *affect_loc_name( int location )
 /* returns the name of a flag */
 char* flag_bit_name( struct flag_type flag_table[], int flag )
 {
-    char buf[100];
+    static char buf[100];
     int i;
     for ( i = 0; flag_table[i].name != NULL; i++ )
 	if ( flag_table[i].bit == flag )

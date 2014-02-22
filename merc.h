@@ -230,13 +230,13 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         430
+#define MAX_SKILL         431
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
 #define MAX_CLASS          15
-#define MAX_PC_RACE        70 /*accurate feb 2014 */
+#define MAX_PC_RACE        71 /*accurate feb 2014 */
 #define MAX_BOARD          12
 #define MAX_CLAN           12
 #define MAX_CLAN_RANK      13
@@ -1491,6 +1491,7 @@ struct  kill_data
 #define FORM_WISE               (jj) //10 mana per level
 #define FORM_CONDUCTIVE         (kk) //electric aura
 #define FORM_CONSTRICT          (ll) //constriction attack
+#define FORM_MULTI_HEADED       (mm) //beheading resistance
 
 /* body parts */
 #define PART_HEAD               (A)
@@ -3494,6 +3495,7 @@ extern sh_int  gsn_ashura;
 extern sh_int  gsn_shan_ya;
 extern sh_int  gsn_dark_reaping;
 extern sh_int  gsn_inspiring_song;
+extern sh_int  gsn_ambidextrous;
 
 /* astark stuff */
 
@@ -4129,7 +4131,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define OID OBJ_INDEX_DATA
 #define RID ROOM_INDEX_DATA
 #define SF  SPEC_FUN
-#define AD  AFFECT_DATA
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
@@ -4170,6 +4171,7 @@ void    wear_obj    args( (CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace) );
 void    get_obj         args( ( CHAR_DATA *ch, OBJ_DATA *obj,
 							OBJ_DATA *container ) );
 bool in_donation_room args((OBJ_DATA *obj));
+void describe_item      args( (CHAR_DATA *ch, OBJ_DATA *obj) );
 
 /* act_wiz.c */
 void wiznet     args( (char *string, CHAR_DATA *ch, OBJ_DATA *obj,
@@ -4341,7 +4343,7 @@ bool is_granted      args( ( CHAR_DATA *ch, DO_FUN *do_fun ) );
 
 
 /* handler.c */
-AD      *affect_find args( (AFFECT_DATA *paf, int sn));
+AFFECT_DATA      *affect_find args( (AFFECT_DATA *paf, int sn));
 void    affect_check    args( (CHAR_DATA *ch, int where, int vector) );
 int count_users args( (OBJ_DATA *obj) );
 void    deduct_cost args( (CHAR_DATA *ch, int cost) );
@@ -4631,7 +4633,6 @@ void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );
 #undef  OID
 #undef  RID
 #undef  SF
-#undef AD
 
 /*****************************************************************************
  *                                    OLC                                    *

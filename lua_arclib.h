@@ -47,6 +47,7 @@ extern OBJ_TYPE *MTRIG_type;
 extern OBJ_TYPE *OTRIG_type;
 extern OBJ_TYPE *ATRIG_type;
 extern OBJ_TYPE *RTRIG_type;
+extern OBJ_TYPE *AFFECT_type;
 
 void register_globals( lua_State *LS );
 
@@ -64,6 +65,7 @@ void register_globals( lua_State *LS );
 #define check_ATRIG( LS, index) ((PROG_LIST *)ATRIG_type->check( ATRIG_type, LS, index))
 #define check_RTRIG( LS, index) ((PROG_LIST *)RTRIG_type->check( RTRIG_type, LS, index))
 #define check_SHOP( LS, index) ((SHOP_DATA *)SHOP_type->check( SHOP_type, LS, index))
+#define check_AFFECT( LS, index) ((AFFECT_DATA *)AFFECT_type->check( AFFECT_type, LS, index))
 
 
 #define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
@@ -80,6 +82,7 @@ void register_globals( lua_State *LS );
 #define make_ATRIG(LS, trig) ATRIG_type->make( ATRIG_type, LS, trig)
 #define make_RTRIG(LS, trig) RTRIG_type->make( RTRIG_type, LS, trig)
 #define make_SHOP(LS, shop) SHOP_type->make( SHOP_type, LS, shop)
+#define make_AFFECT(LS, aff) AFFECT_type->make( AFFECT_type, LS, aff)
 
 #define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
 #define is_OBJ(LS, obj ) OBJ_type->is( OBJ_type, LS, obj )
@@ -87,5 +90,6 @@ void register_globals( lua_State *LS );
 #define is_ROOM(LS, room ) ROOM_type->is( ROOM_type, LS, room )
 #define is_MTRIG(LS, trig ) MTRIG_type->is( MTRIG_type, LS, trig )
 #define is_OTRIG(LS, trig ) OTRIG_type->is( OTRIG_type, LS, trig )
+#define is_AFFECT(LS, aff) AFFECT_type->is( AFFECT_type, LS, aff )
 
 #endif

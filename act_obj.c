@@ -3819,18 +3819,32 @@ void do_browse( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    do_say( keeper, "Ah, excellent choice." );
-    say_basic_obj_data( keeper, obj );
-
-    for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
-        if ( paf->detect_level >= 0 )
-            show_affect(keeper, paf, TRUE);
-
-    for ( paf = obj->affected; paf != NULL; paf = paf->next )
-        if ( paf->detect_level >= 0 )
-            show_affect(keeper, paf, TRUE);    
+    describe_item(keeper, obj);
 }
 
+void describe_item( CHAR_DATA *ch, OBJ_DATA* obj )
+{
+    AFFECT_DATA *paf;
+
+    do_say( ch, "Ah, excellent choice." );
+    say_basic_obj_data( ch, obj );
+
+    for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
+    {
+        if ( paf->detect_level >= 0 )
+        {
+            show_affect(ch, paf, TRUE);
+        }
+    }
+
+    for ( paf = obj->affected; paf != NULL; paf = paf->next )
+    {
+        if ( paf->detect_level >= 0 )
+        {
+            show_affect(ch, paf, TRUE);    
+        }
+    }
+}
 
 /* This donate command is derived from the publicly available snippet, 
    modified by Brian Castle to work with donation rooms.  The

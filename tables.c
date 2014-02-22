@@ -433,6 +433,7 @@ const struct flag_type form_flags[] =
 	{   "wise",         FORM_WISE,  TRUE    },
     {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
     {   "constrict",    FORM_CONSTRICT,     TRUE    },
+    {   "multi-headed", FORM_MULTI_HEADED,  TRUE    },
 	{   NULL,           0,          0   }
 };
 
@@ -1134,11 +1135,12 @@ const struct flag_type furniture_flags[]=
 const   struct  flag_type   apply_types []  =
 {
 	{   "affects",  TO_AFFECTS, TRUE    },
-	//	{   "object",   TO_OBJECT,  TRUE    },
+	{   "object",   TO_OBJECT,  FALSE   },
 	{   "immune",   TO_IMMUNE,  TRUE    },
 	{   "resist",   TO_RESIST,  TRUE    },
 	{   "vuln",     TO_VULN,    TRUE    },
-	//	{   "weapon",   TO_WEAPON,  TRUE    },
+	{   "weapon",   TO_WEAPON,  FALSE   },
+    {   "special",  TO_SPECIAL, FALSE   },
 	{   NULL,       0,      TRUE    }
 };
 
