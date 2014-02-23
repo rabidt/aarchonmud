@@ -253,6 +253,7 @@ AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, float level, bool basic )
     memcpy( &taff, aff, sizeof(AFFECT_DATA) );
     taff.next = NULL;
     taff.modifier = (int)(aff->modifier * factor/100);
+    taff.tag = NULL;
 
     return &taff;
 }

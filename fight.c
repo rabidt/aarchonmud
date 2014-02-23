@@ -494,7 +494,7 @@ void special_affect_update(CHAR_DATA *ch)
     if ( ch->fighting != NULL && !IS_AFFECTED(ch, AFF_BERSERK)
 	 && number_bits(5) == 0 && check_skill(ch, gsn_shan_ya) )
     {
-	AFFECT_DATA af;
+	AFFECT_DATA af={0};
 
 	af.where    = TO_AFFECTS;
 	af.type     = gsn_shan_ya;
@@ -1016,7 +1016,7 @@ bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
 
 bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
 
     // saving throw to avoid completely
     if ( saves_spell(ch->level, victim, DAM_HARM) )
@@ -2477,7 +2477,7 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
     if ( IS_WEAPON_STAT(wield, WEAPON_PUNCTURE) )
     {
-	AFFECT_DATA af;
+	AFFECT_DATA af={0};
 
 	af.where    = TO_AFFECTS;
 	af.type     = gsn_puncture;
@@ -3537,7 +3537,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( check_skill(ch, gsn_dark_reaping) && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
     {
         int power = victim->level;
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
 
         af.where    = TO_AFFECTS;
         af.type     = gsn_dark_reaping;
@@ -6179,7 +6179,7 @@ bool check_lasso( CHAR_DATA *victim )
 {
     CHAR_DATA *opp, *next_opp;
     OBJ_DATA *lasso;
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int skill, chance;
     
     if (victim == NULL || victim->in_room == NULL)

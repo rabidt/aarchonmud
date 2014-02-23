@@ -70,7 +70,7 @@ void check_enchant_obj( OBJ_DATA *obj )
 
 void enchant_obj( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA aff;
+    AFFECT_DATA aff={0};
     int add;
 
     if ( obj == NULL || ops <= 0 )
@@ -92,7 +92,7 @@ void enchant_obj( OBJ_DATA *obj, int ops )
 /* add str, con, .. */
 void enchant_obj_stat( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int add, total, max;
     
     af.where        = TO_OBJECT;
@@ -140,7 +140,7 @@ void enchant_obj_stat( OBJ_DATA *obj, int ops )
 /* add hit, dam, ac, saves */
 void enchant_obj_roll( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int add, total, max, choice;
     
     af.where        = TO_OBJECT;
@@ -196,7 +196,7 @@ void enchant_obj_roll( OBJ_DATA *obj, int ops )
 /* add hp, mana, move */
 void enchant_obj_max( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int add, total, max;
     
     af.where        = TO_OBJECT;

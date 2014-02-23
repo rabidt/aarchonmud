@@ -2447,7 +2447,7 @@ void do_wake( CHAR_DATA *ch, char *argument )
 
 void do_sneak( CHAR_DATA *ch, char *argument )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     
     if ( !strcmp(argument, "stop") )
     {
@@ -2501,7 +2501,7 @@ void do_sneak( CHAR_DATA *ch, char *argument )
 
 void do_hide( CHAR_DATA *ch, char *argument )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     
     send_to_char( "You attempt to hide.\n\r", ch );
     
@@ -3111,7 +3111,7 @@ void do_disarm_trap( CHAR_DATA *ch, char *argument )
 void do_root( CHAR_DATA *ch, char *argument )
 {
     char arg[MIL];
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
 
     argument = one_argument( argument, arg );
 

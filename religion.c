@@ -2652,7 +2652,7 @@ void do_god( CHAR_DATA *ch, char *argument )
 
 bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_bless) )
@@ -2695,7 +2695,7 @@ bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
 
 bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_curse) )
@@ -2736,7 +2736,7 @@ bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
 
 bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_bless) )
@@ -2773,7 +2773,7 @@ bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration
 
 bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_bless) )
@@ -2816,7 +2816,7 @@ bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
 
 bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_curse) )
@@ -2922,7 +2922,7 @@ bool god_defy( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration
 
 bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration)
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_bless) )
@@ -2960,7 +2960,7 @@ bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int dur
 
 bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim,gsn_god_bless) )
@@ -2999,7 +2999,7 @@ bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
 
 bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_bless) )
@@ -3040,7 +3040,7 @@ bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
 
 bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_curse) )
@@ -3078,7 +3078,7 @@ bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
 
 bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_curse) )
@@ -3116,7 +3116,7 @@ bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durati
 
 bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL];
 
     if ( is_affected(victim, gsn_god_curse) )

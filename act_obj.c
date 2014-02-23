@@ -1190,7 +1190,7 @@ int flag_add_malus( OBJ_DATA *weapon )
 void do_envenom(CHAR_DATA *ch, char *argument)
 {
     OBJ_DATA *obj;
-    AFFECT_DATA af; 
+    AFFECT_DATA af={0}; 
     int percent,skill;
 
     /* find out what */
@@ -1298,7 +1298,7 @@ void do_envenom(CHAR_DATA *ch, char *argument)
 void do_paralysis_poison(CHAR_DATA *ch, char *argument)
 {
     OBJ_DATA *obj;
-    AFFECT_DATA af; 
+    AFFECT_DATA af={0}; 
     int percent,skill;
 
     if (argument[0] == '\0')
@@ -1658,7 +1658,7 @@ void do_drink( CHAR_DATA *ch, char *argument )
     if ( obj->value[3] != 0 )
     {
         /* The drink was poisoned ! */
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
 
         af.where     = TO_AFFECTS;
         af.type      = gsn_poison;
@@ -1754,7 +1754,7 @@ void do_eat( CHAR_DATA *ch, char *argument )
             if ( obj->value[3] != 0 )
             {
                 /* The food was poisoned! */
-                AFFECT_DATA af;
+                AFFECT_DATA af={0};
 
                 af.where     = TO_AFFECTS;
                 af.type      = gsn_poison;
@@ -4447,7 +4447,7 @@ void do_sire( CHAR_DATA *ch, char *argument )
 {
     OBJ_DATA *corpse;
     CHAR_DATA *mob;
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int mlevel;
 
     if ( IS_NPC(ch) || ch->race != race_vampire )

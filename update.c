@@ -1314,7 +1314,7 @@ void char_update( void )
         /* Check for natural resistance */
         if ( get_skill(ch, gsn_natural_resistance) >= 0)
         {
-            AFFECT_DATA af;
+            AFFECT_DATA af={0};
             affect_strip (ch, gsn_natural_resistance);
             /* Added this in to stop immortals from bugging when using avatar and set skill - Astark 1-6-13 */
             affect_strip (ch, skill_lookup("reserved") );
@@ -1322,7 +1322,7 @@ void char_update( void )
         if ( get_skill(ch, gsn_natural_resistance) > 0)
         {
             int bonus = ch->level * (get_skill(ch, gsn_natural_resistance) + mastery_bonus(ch, gsn_natural_resistance, 60, 100)) / 500;
-            AFFECT_DATA af;
+            AFFECT_DATA af={0};
             af.where    = TO_AFFECTS;
             af.type     = gsn_natural_resistance;
             af.level    = ch->level;
@@ -1337,7 +1337,7 @@ void char_update( void )
         /* Check for iron hide */
         if ( get_skill(ch, gsn_iron_hide) >= 0)
         {
-            AFFECT_DATA af;
+            AFFECT_DATA af={0};
             affect_strip (ch, gsn_iron_hide);
             /* Added this in to stop immortals from bugging when using avatar and set skill - Astark 1-6-13 */
             affect_strip (ch, skill_lookup("reserved") );
@@ -1345,7 +1345,7 @@ void char_update( void )
         if ( get_skill(ch, gsn_iron_hide) > 0)
         {   
             int bonus = ch->level * (get_skill(ch, gsn_iron_hide) + mastery_bonus(ch, gsn_iron_hide, 60, 100)) / 50;
-            AFFECT_DATA af;
+            AFFECT_DATA af={0};
             af.where    = TO_AFFECTS;
             af.type     = gsn_iron_hide;
             af.level    = ch->level;
@@ -1848,7 +1848,7 @@ void affect_update( CHAR_DATA *ch )
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
     {
-        AFFECT_DATA af, *old_af = affect_find( ch->affected, gsn_decompose );
+        AFFECT_DATA af={0}, *old_af = affect_find( ch->affected, gsn_decompose );
         int level, part = number_range( 0, 3 );
         if ( old_af == NULL )
         {
@@ -2385,7 +2385,7 @@ void aggr_update( void )
                     act( "$N soothes you with $s peaceful presence.", ch, NULL, victim, TO_CHAR );
                     act( "$N soothes $n with $s peaceful presence.", ch, NULL, victim, TO_NOTVICT );
                     // apply calm effect
-                    AFFECT_DATA af;
+                    AFFECT_DATA af={0};
                     af.where = TO_AFFECTS;
                     af.type = gsn_soothe;
                     af.level = victim->level;
@@ -3054,7 +3054,7 @@ void check_equipment_align( CHAR_DATA *gch )
 // chance to summon best pet with beast mastery
 void check_beast_mastery( CHAR_DATA *ch )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     CHAR_DATA *mob;
     MOB_INDEX_DATA *mobIndex;
     char buf[MAX_STRING_LENGTH];

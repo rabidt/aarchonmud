@@ -2938,7 +2938,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
 {
     CHAR_DATA *mob;
     int i;
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     tflag mob_pen = {};/*{ PENALTY_NOCHANNEL, PENALTY_NOSHOUT, PENALTY_NOTELL };*/
     bit_list_to_tflag( mob_pen );
     
@@ -3019,7 +3019,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
 
 void check_affect_add( CHAR_DATA *mob, int affect, int sn )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
 
     if ( IS_SET(race_table[mob->race].affect_field, affect) )
 	return;

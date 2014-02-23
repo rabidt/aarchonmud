@@ -371,7 +371,7 @@ void do_brew( CHAR_DATA *ch, char *argument )
                     send_to_char("You've already been changed.\n\r",ch);
                    return;
                }
-               AFFECT_DATA af;
+               AFFECT_DATA af={0};
                af.where     = TO_AFFECTS;
                af.type      = i;
                af.level     = 50;

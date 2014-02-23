@@ -257,6 +257,7 @@ AFFECT_DATA *new_affect(void)
 	VALIDATE(af);
 	af->next = NULL;
 	af->detect_level = 0;
+    af->tag=NULL;
 	
 	return af;
 }
@@ -265,6 +266,11 @@ void free_affect(AFFECT_DATA *af)
 {
 	if (!IS_VALID(af))
 	return;
+
+    if (af->tag)
+    {
+        free_string(af->tag);
+    }
 
 	INVALIDATE(af);
 	af->next = affect_free;
