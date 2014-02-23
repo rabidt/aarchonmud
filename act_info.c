@@ -2104,11 +2104,21 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
         if ( !show_all && !IS_SPELL(paf->type) )
             continue;
 
-        if (paf_last != NULL && paf->type == paf_last->type)
+        if (paf->tag)
+        {
+            ptc( to_ch, "Special: %-15s{x", paf->tag );
+        }
+        else if (paf_last != NULL && paf->type == paf_last->type)
+        {
             if (show_long)
+            {
                 printf_to_char( to_ch, "                        ");
+            }
             else
+            {
                 continue;
+            }
+        }
         else
         {
            /* More information for players regarding maledictions - Astark */
@@ -4359,7 +4369,7 @@ void show_disguise_list( CHAR_DATA *ch )
 /* disguise yourself to avoid killer/thief flag detection */
 void do_disguise( CHAR_DATA *ch, char *argument )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     char buf[MSL], arg1[MIL];
     int skill;
     MOB_INDEX_DATA *mob;

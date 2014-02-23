@@ -209,7 +209,7 @@ void spell_zone_of_damnation( int sn, int level, CHAR_DATA *ch, void *vo,int tar
 void slow_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  AFFECT_DATA af;
+  AFFECT_DATA af={0};
 
   if (target != TARGET_CHAR)
     return;
@@ -244,7 +244,7 @@ void slow_effect( void *vo, int level, int dam, int target )
 void ooze_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  AFFECT_DATA af;
+  AFFECT_DATA af={0};
   int sn = skill_lookup("forboding ooze");
 
   if (target != TARGET_CHAR)
@@ -269,7 +269,7 @@ void ooze_effect( void *vo, int level, int dam, int target )
 void plague_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  AFFECT_DATA af;
+  AFFECT_DATA af={0};
   int chance;
 
   if (target != TARGET_CHAR)
@@ -297,7 +297,7 @@ void plague_effect( void *vo, int level, int dam, int target )
 void weak_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  AFFECT_DATA af;
+  AFFECT_DATA af={0};
   int chance;
 
   if (target != TARGET_CHAR)
@@ -325,7 +325,7 @@ void weak_effect( void *vo, int level, int dam, int target )
 void curse_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
-  AFFECT_DATA af;
+  AFFECT_DATA af={0};
 
   if (target != TARGET_CHAR)
     return;

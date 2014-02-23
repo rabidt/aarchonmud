@@ -158,7 +158,7 @@ void do_torch(CHAR_DATA *ch)
 void do_shelter( CHAR_DATA *ch ) 
 {
 	CHAR_DATA *gch;
-	AFFECT_DATA af;
+	AFFECT_DATA af={0};
 	bool ready;
 	int gcount;
 	int skill;
@@ -380,7 +380,7 @@ void do_firstaid( CHAR_DATA *ch, char *argument )
 void do_detoxify( CHAR_DATA *ch, char *argument )
 {
    OBJ_DATA *obj;
-   AFFECT_DATA af;
+   AFFECT_DATA af={0};
    AFFECT_DATA *paf;
    int percent,skill;
 	char arg[MAX_INPUT_LENGTH];
@@ -497,7 +497,7 @@ void do_detoxify( CHAR_DATA *ch, char *argument )
 void do_tame( CHAR_DATA *ch, char *argument )
 {
 	CHAR_DATA *victim;
-	AFFECT_DATA af;
+	AFFECT_DATA af={0};
 	char arg1 [MAX_INPUT_LENGTH];
 	int skill;
 
@@ -928,7 +928,7 @@ void do_treat_weapon(CHAR_DATA *ch, char *argument)
 {
 	char arg[MAX_STRING_LENGTH];           
 	OBJ_DATA *obj, *herb;
-	AFFECT_DATA af;
+	AFFECT_DATA af={0};
 	int percent,skill;
 	int flag_bit;
 	

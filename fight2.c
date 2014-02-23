@@ -112,7 +112,7 @@ void do_berserk( CHAR_DATA *ch, char *argument )
     
     if (number_percent() < chance)
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         
         WAIT_STATE(ch, skill_table[gsn_berserk].beats);
         ch->move -= cost;
@@ -344,7 +344,7 @@ void do_dirt( CHAR_DATA *ch, char *argument )
     /* now the attack */
     if ( number_percent() <= chance/2 )
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         act("$n is blinded by the dirt in $s eyes!",victim,NULL,NULL,TO_ROOM);
         act("$n kicks dirt in your eyes!",ch,NULL,victim,TO_VICT);
         damage(ch,victim,number_range(2,5),gsn_dirt,DAM_NONE,FALSE);
@@ -627,7 +627,7 @@ void do_net( CHAR_DATA *ch, char *argument )
     /* now the attack */
     if (number_percent() < chance)
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         act("$N is trapped in your net!",ch, NULL, victim, TO_CHAR);
         act("$n traps $N in a net!",ch, NULL, victim, TO_ROOM);
         act("$n entraps you in a net!",ch,NULL,victim,TO_VICT);
@@ -754,7 +754,7 @@ void do_hogtie(CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim;
     OBJ_DATA *rope;
     int chance, skill;
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     
     if ( (skill = get_skill(ch, gsn_hogtie)) == 0 )
     {
@@ -1058,7 +1058,7 @@ void do_drunken_fury( CHAR_DATA *ch, char *argument)
     
     if (number_percent() < chance)
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         
         WAIT_STATE(ch, skill_table[gsn_drunken_fury].beats);
         ch->move -= cost;
@@ -1359,7 +1359,7 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
 
     if ( per_chance(chance) )
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
 
         check_improve(ch,gsn_slash_throat,TRUE,3);
 
@@ -1840,7 +1840,7 @@ void do_gouge( CHAR_DATA *ch, char *argument )
     /* now the attack */
     if (number_percent() < chance)
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         act("$n is blinded as $s eyes are gouged out!",victim,NULL,NULL,TO_ROOM);
         act("$n gouges your eyes out!",ch,NULL,victim,TO_VICT);
         damage(ch,victim,number_range(10,30),gsn_gouge,DAM_NONE,FALSE);
@@ -1943,7 +1943,7 @@ void do_leg_sweep( CHAR_DATA *ch, char *argument )
 
 void do_melee( CHAR_DATA *ch, char *argument)
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     
     if (get_skill(ch,gsn_melee) == 0)
     {
@@ -1989,7 +1989,7 @@ void do_melee( CHAR_DATA *ch, char *argument)
 
 void do_brawl( CHAR_DATA *ch, char *argument)
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     
     if (get_skill(ch,gsn_brawl) == 0)
     {
@@ -2090,7 +2090,7 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
 
 void do_war_cry( CHAR_DATA *ch, char *argument)
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     CHAR_DATA *vch;
     int skill, cost, chance, level, modifier;
     int mastery = get_mastery(ch, gsn_war_cry);
@@ -2224,7 +2224,7 @@ void do_guard( CHAR_DATA *ch, char *argument )
     /* now the attack */
     if (number_percent() < chance)
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         
         act("$n vigilantly guards against your attack.",ch,NULL,victim,TO_VICT);
         act("You vigilantly guard against $N's attack.",ch,NULL,victim,TO_CHAR);
@@ -2304,7 +2304,7 @@ void do_tumble( CHAR_DATA *ch, char *argument)
     
     if (number_percent() < chance)
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         
         ch->move -= cost;
         
@@ -2984,7 +2984,7 @@ void do_spit( CHAR_DATA *ch, char *argument )
     /* now the attack */
     if (number_percent() < chance)
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         act("$n is blinded by the glob of spit in $s eyes!",victim,NULL,NULL,TO_ROOM);
         act("$n places a glob of spit in your eyes!",ch,NULL,victim,TO_VICT);
         
@@ -3071,7 +3071,7 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
     /* now the attack */
     if ( number_percent() <= chance )
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         
         act("$n grabs you by the neck and begins to squeeze.",ch,NULL,victim,TO_VICT);
         act("You grab $N by the neck and begin to squeeze.",ch,NULL,victim,TO_CHAR);
@@ -3540,7 +3540,7 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int chance, dam, chance_stun;
 
     one_argument( argument, arg );
@@ -3728,7 +3728,7 @@ void do_rake( CHAR_DATA *ch, char *argument )
 
 void do_puncture( CHAR_DATA *ch, char *argument )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     CHAR_DATA *victim;
     OBJ_DATA *wield;
     int skill, dam;
@@ -3910,7 +3910,7 @@ void do_strafe( CHAR_DATA *ch, char *argument )
 
 void do_infectious_arrow( CHAR_DATA *ch, char *argument )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     CHAR_DATA *victim;
     OBJ_DATA *wield;
     int skill, dam;
@@ -4048,7 +4048,7 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
     WAIT_STATE( ch, skill_table[gsn_paroxysm].beats );
     if (number_percent() <= chance)
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
 
         check_improve(ch,gsn_paroxysm,TRUE,5);
 
@@ -4120,7 +4120,7 @@ void do_fervent_rage( CHAR_DATA *ch, char *argument )
         return;
     }
     
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
         
         WAIT_STATE(ch, skill_table[gsn_fervent_rage].beats);
         ch->move -= cost;
@@ -4213,7 +4213,7 @@ void do_rupture( CHAR_DATA *ch, char *argument )
     WAIT_STATE( ch, skill_table[gsn_rupture].beats );
     if (number_percent() <= chance)
     {
-        AFFECT_DATA af;
+        AFFECT_DATA af={0};
 
         check_improve(ch,gsn_rupture,TRUE,3);
 
@@ -4347,7 +4347,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
     int dam;
     int chance_hit, chance_stun, skill;
     char arg[MAX_INPUT_LENGTH];
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int sn;
     
     one_argument(argument, arg);
@@ -4474,7 +4474,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
 
 void do_mindflay( CHAR_DATA *ch, char *argument )
 {
-  AFFECT_DATA af;
+  AFFECT_DATA af={0};
   CHAR_DATA *victim;
   int skill, dam, level;
   bool confuse = TRUE;
@@ -4588,7 +4588,7 @@ void do_smite( CHAR_DATA *ch, char *argument )
 
 void do_inspire( CHAR_DATA *ch, char *argument )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     CHAR_DATA *vch;
     
     int skill = get_skill(ch, gsn_inspiring_song);

@@ -29,7 +29,7 @@ void passive_update(CHAR_DATA *ch)
         }
             if ( get_skill(ch, gsn_natural_resistance) > 0)
         {   
-            AFFECT_DATA af;
+            AFFECT_DATA af={0};
             af.where    = TO_AFFECTS;
             af.type     = gsn_natural_resistance;
             af.level    = ch->level;

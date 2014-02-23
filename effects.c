@@ -210,7 +210,7 @@ void cold_effect(void *vo, int level, int dam, int target)
 	/* chill touch effect */
 	if (!saves_spell(level/4 + dam / 20, victim, DAM_COLD))
 	{
-		AFFECT_DATA af;
+		AFFECT_DATA af={0};
 
 		act("$n turns blue and shivers.",victim,NULL,NULL,TO_ROOM);
 		act("A chill sinks deep into your bones.",victim,NULL,NULL,TO_CHAR);
@@ -319,7 +319,7 @@ void fire_effect(void *vo, int level, int dam, int target)
 	&&  !saves_spell(level / 4 + dam / 20, victim,DAM_FIRE)
 	&&  !number_bits(2))
 	{
-	    AFFECT_DATA af;
+	    AFFECT_DATA af={0};
 	    act("$n is blinded by smoke!",victim,NULL,NULL,TO_ROOM);
 	    act("Your eyes tear up from smoke...you can't see a thing!",
 		victim,NULL,NULL,TO_CHAR);
@@ -472,7 +472,7 @@ void poison_effect(void *vo,int level, int dam, int target)
 	    /* chance of poisoning */
 	    if (!number_bits(1) && !saves_spell(level / 4 + dam / 20,victim,DAM_POISON))
 	    {
-		AFFECT_DATA af;
+		AFFECT_DATA af={0};
 		
 		send_to_char("You feel poison coursing through your veins.\n\r",
 			     victim);
@@ -637,7 +637,7 @@ void dumb_effect(void *vo, int level, int dam, int target)
 	/* feeblemind effect */
 	if (!saves_spell(level/4 + dam / 20, victim, DAM_SOUND))
 	{
-	    AFFECT_DATA af;
+	    AFFECT_DATA af={0};
 	    
 	    act("$n is having trouble thinking.",victim,NULL,NULL,TO_ROOM);
 	    act("UuuhNnNNhhh. You're losing what's left of your feeble mind!" ,victim,NULL,NULL,TO_CHAR);
@@ -666,7 +666,7 @@ void paralysis_effect(void *vo,int level, int dam, int target)
 	    /* chance of poisoning */
 	    if (!number_bits(1) && !saves_spell(level / 4 + dam / 20,victim,DAM_POISON))
 	    {
-		AFFECT_DATA af;
+		AFFECT_DATA af={0};
 		
 		send_to_char("A paralysis poison makes your limbs feel heavy and weak.\n\r",
 			     victim);

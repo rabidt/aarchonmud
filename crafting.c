@@ -527,7 +527,7 @@ void add_craft_affect( OBJ_DATA *obj, AFFECT_DATA *aff )
 /* Section added for physical paramter */
 void craft_obj_physical( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA aff;
+    AFFECT_DATA aff={0};
     int add;
 
     if ( obj == NULL || ops <= 0 )
@@ -547,7 +547,7 @@ void craft_obj_physical( OBJ_DATA *obj, int ops )
 /* add str, con, .. */
 void craft_obj_stat_physical( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     AFFECT_DATA *aff;
     int add, total, max;
     
@@ -609,7 +609,7 @@ void craft_obj_stat_physical( OBJ_DATA *obj, int ops )
 /* add hit, dam, ac, saves */
 void craft_obj_roll_physical( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int add, total, max, choice;
     
     af.where        = TO_OBJECT;
@@ -670,7 +670,7 @@ void craft_obj_roll_physical( OBJ_DATA *obj, int ops )
 /* add hp, mana, move */
 void craft_obj_max_physical( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int add, total, max, choice;
     
     af.where        = TO_OBJECT;
@@ -738,7 +738,7 @@ void add_craft_affect_physical( OBJ_DATA *obj, AFFECT_DATA *aff )
 /* Section added for caster parameter */
 void craft_obj_caster( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA aff;
+    AFFECT_DATA aff={0};
     int add;
 
     if ( obj == NULL || ops <= 0 )
@@ -759,7 +759,7 @@ void craft_obj_caster( OBJ_DATA *obj, int ops )
 /* add str, con, .. */
 void craft_obj_stat_caster( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     AFFECT_DATA *aff;
     int add, total, max;
     
@@ -806,7 +806,7 @@ void craft_obj_stat_caster( OBJ_DATA *obj, int ops )
 /* add hit, dam, ac, saves */
 void craft_obj_roll_caster( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int add, total, max, choice;
     
     af.where        = TO_OBJECT;
@@ -865,7 +865,7 @@ void craft_obj_roll_caster( OBJ_DATA *obj, int ops )
 /* add hp, mana, move */
 void craft_obj_max_caster( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA af;
+    AFFECT_DATA af={0};
     int add, total, max, choice;
     
     af.where        = TO_OBJECT;

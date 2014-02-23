@@ -1020,6 +1020,7 @@ struct  affect_data
     sh_int      modifier;
     int         bitvector;
     sh_int      detect_level;
+    char *      tag; /* optional custom tag or name */
 };
 
 /* where definitions */
