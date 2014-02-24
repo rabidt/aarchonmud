@@ -369,7 +369,7 @@ int get_save(CHAR_DATA *ch, bool physical)
  */
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
-    int hit_roll, save_roll, save_factor;
+    int hit_roll, save_roll;
     
     if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
@@ -393,7 +393,10 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
-    hit_roll = (level + 10) * 6/5;
+    if ( ch && !was_obj_cast )
+        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (has_focus_obj(ch) ? 50 : 0)) / 500;
+    else
+        hit_roll = (level + 10) * 6/5;
 
     if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
         save_roll = save_roll * 2/3;
@@ -406,7 +409,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
-    int hit_roll, save_roll, save_factor;
+    int hit_roll, save_roll;
 
     if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
@@ -1575,14 +1578,18 @@ int get_spell_heal( int mana, int lag, int level )
     return base_heal * (100 + 3 * level) / 400;
 }
 
-int get_focus_bonus( CHAR_DATA *ch )
+bool has_focus_obj( CHAR_DATA *ch )
 {
     OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
     bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
-    bool has_focus_obj = !has_shield && (obj != NULL && obj->item_type != ITEM_ARROWS);
+    return !has_shield && (obj && obj->item_type != ITEM_ARROWS);
+}
+
+int get_focus_bonus( CHAR_DATA *ch )
+{
     int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 15, 25);
 
-    if ( has_focus_obj )
+    if ( has_focus_obj(ch) )
         return 10 + skill / 2;
     else
         return skill / 4;
@@ -1591,10 +1598,6 @@ int get_focus_bonus( CHAR_DATA *ch )
 /* needes to be seperate for dracs */
 int adjust_spell_damage( int dam, CHAR_DATA *ch )
 {
-    OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
-    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
-    bool has_focus = !has_shield && (obj != NULL && obj->item_type != ITEM_ARROWS);
-
     if ( was_obj_cast )
         return dam;
 

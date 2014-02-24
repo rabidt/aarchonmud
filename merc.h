@@ -4044,7 +4044,9 @@ extern      char last_command [MSL];
 extern      char last_mprog [MSL];
 extern      char last_debug [MSL];
 
+extern      bool was_obj_cast;
 extern      tflag meta_magic;
+
 
 #define META_MAGIC_EXTEND   (A)
 #define META_MAGIC_EMPOWER  (B)
@@ -4458,6 +4460,7 @@ int slot_lookup args( ( int slot ) );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
+bool has_focus_obj( CHAR_DATA *ch );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
