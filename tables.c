@@ -292,7 +292,6 @@ const struct flag_type affect_flags[] =
     { "shelter",           AFF_SHELTER,              TRUE  },
     { "chaos_fade",        AFF_CHAOS_FADE,           TRUE  },
     { "feeblemind",        AFF_FEEBLEMIND,           TRUE  },
-    { "split",             AFF_SPLIT,                TRUE  },
     { "guard",             AFF_GUARD,                TRUE  },
     { "ritual",            AFF_RITUAL,               TRUE  },
     { "necrosis",          AFF_NECROSIS,             TRUE  },
