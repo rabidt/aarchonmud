@@ -1462,7 +1462,7 @@ void char_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
         
         for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
         {
-            if (!saves_spell(plague.level - 2,vch,DAM_DISEASE)
+            if (!saves_spell(vch, NULL, plague.level - 2, DAM_DISEASE)
                 &&  !IS_IMMORTAL(vch) &&
                 !IS_AFFECTED(vch,AFF_PLAGUE) && number_bits(6) == 0)
             {
@@ -1512,7 +1512,7 @@ void char_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
         
         for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
         {
-            if (!saves_spell(laugh.level - 2,vch,DAM_MENTAL)
+            if (!saves_spell(vch, NULL, laugh.level - 2, DAM_MENTAL)
                 &&  !IS_IMMORTAL(vch) &&
                 !IS_AFFECTED(vch,AFF_LAUGH) && number_bits(6) == 0)
             {

@@ -40,7 +40,6 @@ void wear_obj    args( ( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace ) );
 void do_flee     args( ( CHAR_DATA *ch, char *argument ) );
 bool check_spell_disabled args( (const struct skill_type *command) );
 
-bool saves_spell  args(( int level, CHAR_DATA *victim, int dam_type ));
 bool saves_dispel args(( int dis_level, int spell_level, int duration));
 bool check_dispel args(( int dis_level, CHAR_DATA *victim, int sn));
 
@@ -59,7 +58,6 @@ DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_where );
 
 extern char *target_name;
-extern bool was_obj_cast;
 
 void spell_farsight( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
@@ -369,7 +367,7 @@ void spell_betray( int sn, int level, CHAR_DATA *ch, void *vo, int target )
         if ( is_safe_spell(ch, traitor, TRUE) || is_safe_spell(traitor, victim, FALSE) )
             continue;
 
-        if ( saves_spell(level, traitor, DAM_MENTAL) )
+        if ( saves_spell(traitor, ch, level, DAM_MENTAL) )
         {
             act("You feel a momentary urge to attack $N.", traitor, NULL, victim, TO_CHAR);
             act("$N resists your command.", ch, NULL, traitor, TO_CHAR);
@@ -476,7 +474,7 @@ void spell_pacify(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-        if ( saves_spell( level, rch, DAM_MENTAL) )
+        if ( saves_spell(rch, ch, level, DAM_MENTAL) )
         {
             send_to_char("You failed to pacify!\n\r",ch);     
             return;
@@ -504,7 +502,7 @@ void spell_feeblemind ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         return;
     }
     
-    if ( saves_spell( level, victim, DAM_MENTAL ) )
+    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
     {
         act("Could it be that $N's brain isn't as pathetic as we thought?",ch,NULL,victim,TO_CHAR);
         return;
@@ -538,7 +536,7 @@ void spell_fear( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 	return;
     }
 
-    if ( saves_spell(level, victim, DAM_MENTAL) )
+    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
     {
 	act( "$n tries to look scary but looks rather funny.",
 	     ch, NULL, victim, TO_VICT );
@@ -692,7 +690,7 @@ void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
             }
 	    else if (IS_GOOD(ch))
 	    {   /* Good chars harm undead */
-		if ( saves_spell(level, vch, DAM_HOLY) )
+		if ( saves_spell(vch, ch, level, DAM_HOLY) )
 		    full_dam( ch, vch, dam/2, sn, DAM_HOLY, TRUE );
 		else
 		    full_dam( ch, vch, dam, sn, DAM_HOLY, TRUE );
@@ -719,7 +717,7 @@ void spell_necrosis ( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     
     if (IS_AFFECTED(victim, AFF_NECROSIS) 
 	|| IS_AFFECTED(victim, AFF_PLAGUE)
-	|| saves_spell(level,victim,DAM_DISEASE)
+	|| saves_spell(victim, ch, level, DAM_DISEASE)
 	|| (IS_NPC(victim) && IS_SET(victim->act,ACT_UNDEAD)))
     {
         if (ch == victim)
@@ -774,7 +772,7 @@ void spell_dominate_soul( int sn, int level, CHAR_DATA *ch, void *vo,int target 
     */
 
     if ( (IS_NPC(victim) || IS_SET(victim->act, PLR_NOCANCEL))
-	  && saves_spell(level, victim, DAM_MENTAL) )
+	  && saves_spell(victim, ch, level, DAM_MENTAL) )
     {
         act("$n is toying with your mind.", ch, NULL, victim, TO_VICT );
         act("You fail to influence $N.",ch,NULL,victim,TO_CHAR);
@@ -1698,7 +1696,7 @@ void spell_monsoon( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         {
             if ( vch != ch && ( IS_NPC(ch) ? !IS_NPC(vch) : TRUE ))
                 full_dam( ch, vch,
-                saves_spell( level,vch,DAM_DROWNING) ? dam / 2 : dam,
+                saves_spell(vch, ch, level, DAM_DROWNING) ? dam / 2 : dam,
                 sn,DAM_DROWNING,TRUE);
             continue;
         }
@@ -1735,7 +1733,7 @@ void spell_hailstorm( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     for (hailstone=0; hailstone<max; hailstone++)
     {
         dam = dice( dice_nr, 19 );
-        if ( saves_spell(level, victim, DAM_COLD) )
+        if ( saves_spell(victim, ch, level, DAM_COLD) )
             dam /= 2;
         full_dam( ch, victim, dam, sn, DAM_COLD ,TRUE);
 	CHECK_RETURN(ch, victim);
@@ -1764,13 +1762,13 @@ void spell_meteor_swarm( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         
         if (meteor%2==0)
         {
-            if ( saves_spell( level, victim,DAM_FIRE) )
+            if ( saves_spell(victim, ch, level, DAM_FIRE) )
                 dam /= 2;
             full_dam( ch, victim, dam, sn, DAM_FIRE ,TRUE);
         }
         else
         {
-            if ( saves_spell( level, victim, DAM_HARM) )
+            if ( saves_spell(victim, ch, level, DAM_HARM) )
                 dam /= 2;
             full_dam( ch, victim, dam, sn, DAM_HARM, TRUE);
         }
@@ -1855,7 +1853,7 @@ void spell_entangle ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
        }
     */
     
-    if ( saves_spell( level, victim, DAM_ENERGY ) )
+    if ( saves_spell(victim, ch, level, DAM_ENERGY ) )
     {
         act("$N evades your entangling flora!",ch,NULL,victim,TO_CHAR);
         return;
@@ -2079,13 +2077,13 @@ void spell_windwar( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 	if (weather_info.sky == SKY_RAINING )    
 	{
 	    full_dam( ch, vch,
-		    saves_spell(level,vch,DAM_DROWNING) ? dam / 2 : dam,
+		    saves_spell(vch, ch, level ,DAM_DROWNING) ? dam / 2 : dam,
 		    sn,DAM_DROWNING,TRUE);
 	}   
 	else
 	{
 	    full_dam( ch, vch,
-		    saves_spell(level,vch,DAM_BASH) ? dam / 2 : dam,
+		    saves_spell(vch, ch, level, DAM_BASH) ? dam / 2 : dam,
 		    sn,DAM_BASH,TRUE);
 	}   
 
@@ -2322,7 +2320,7 @@ void spell_laughing_fit( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
 */
 
-    if ( saves_spell( level, victim,DAM_MENTAL) )
+    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
     {
         send_to_char("Spell failed to have an effect.\n\r", ch );
         send_to_char("You find everything unusually funny for a moment.\n\r", victim );
@@ -2362,7 +2360,7 @@ void spell_mass_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int targe
 
 	check_killer( ch, victim );
 
-        if  ( saves_spell(level/2,victim,DAM_MENTAL) )
+        if  ( saves_spell(victim, ch, level/2, DAM_MENTAL) )
 	      /* || saves_spell(level,victim,DAM_CHARM)) */
         {
             if (ch == victim)
@@ -2569,7 +2567,7 @@ void spell_glyph_of_evil(int sn, int level, CHAR_DATA *ch, void *vo,int target)
 	    send_to_char("You are struck down!\n\r",vch);
 
 	    curr_dam = dam;
-	    if ( saves_spell( level, vch, DAM_NEGATIVE ) )
+	    if ( saves_spell(vch, ch, level, DAM_NEGATIVE) )
 		curr_dam /= 2;
 	    full_dam(ch,vch,curr_dam,sn,DAM_NEGATIVE,TRUE);
         }
@@ -2595,7 +2593,7 @@ void spell_tomb_rot( int sn, int level, CHAR_DATA *ch, void *vo, int target )
         return;
     }
     
-    if ( saves_spell(level,victim,DAM_DISEASE) )
+    if ( saves_spell(victim, ch, level, DAM_DISEASE) )
     {
         if (ch == victim)
             send_to_char("You feel momentarily ill, but it passes.\n\r",ch);
@@ -2638,7 +2636,7 @@ void spell_soreness( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
     
-    if ( saves_spell(level,victim,DAM_OTHER) )
+    if ( saves_spell(victim, ch, level, DAM_OTHER) )
     {
         if (victim != ch)
             send_to_char("Nothing seemed to happen.\n\r",ch);
@@ -2722,7 +2720,7 @@ void spell_rimbols_invocation(int sn,int level,CHAR_DATA *ch,void *vo,int target
         if ( !is_opponent(ch,vch) )
             continue;
         
-        if ( saves_spell( level, vch, DAM_BASH) )
+        if ( saves_spell(vch, ch, level, DAM_BASH) )
 	    dam /= 2;
 
 	full_dam( ch, vch, dam, sn, DAM_BASH ,TRUE);
@@ -2744,7 +2742,7 @@ void spell_rimbols_invocation(int sn,int level,CHAR_DATA *ch,void *vo,int target
         else
             dam = dam * 3/4;
 
-        if ( saves_spell( level, vch,DAM_SLASH) )
+        if ( saves_spell(vch, ch, level, DAM_SLASH) )
             dam /= 2;
         
         full_dam( ch, vch, dam, sn, DAM_SLASH ,TRUE);
@@ -2761,7 +2759,7 @@ void spell_rimbols_invocation(int sn,int level,CHAR_DATA *ch,void *vo,int target
         if ( !is_opponent(ch,vch) )
             continue;
         
-        if ( saves_spell( level, vch,DAM_FIRE) )
+        if ( saves_spell(vch, ch, level, DAM_FIRE) )
             dam /= 2;
         
         full_dam( ch, vch, dam, sn, DAM_FIRE ,TRUE);
@@ -2778,7 +2776,7 @@ void spell_rimbols_invocation(int sn,int level,CHAR_DATA *ch,void *vo,int target
         if ( !is_opponent(ch,vch) )
             continue;
         
-        if ( saves_spell( level, vch,DAM_DROWNING) )
+        if ( saves_spell(vch, ch, level, DAM_DROWNING) )
             dam /= 2;
         
         full_dam( ch, vch, dam, sn, DAM_DROWNING ,TRUE);
@@ -3003,7 +3001,7 @@ void spell_stop(int sn, int level, CHAR_DATA *ch, void *vo, int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     
-    if ( saves_spell(level,victim,DAM_MENTAL) )
+    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
     {
         if (victim != ch)
             send_to_char("Nothing seemed to happen.\n\r",ch);
@@ -3101,7 +3099,7 @@ void spell_decompose(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 	return;
     }
     
-    if ( saves_spell(level,victim,DAM_HARM) || saves_physical(victim, level, DAM_HARM) )
+    if ( saves_spell(victim, ch, level, DAM_HARM) || saves_physical(victim, ch, level, DAM_HARM) )
     {
 	send_to_char( "A wave of malvolent energy passes over your body.\n\r", victim );
 	send_to_char( "Spell failed to start decomposing.\n\r", ch );
@@ -3465,7 +3463,7 @@ void spell_haunt(int sn, int level, CHAR_DATA *ch, void *vo, int target)
 	return;
     }
     
-    if ( saves_spell(level,victim,DAM_OTHER) )
+    if ( saves_spell(victim, ch, level, DAM_OTHER) )
     {
         if (victim != ch)
 	    send_to_char("The spirits don't answer your call.\n\r",ch);
@@ -3539,7 +3537,7 @@ void spell_mana_burn( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 	return;
     }
     
-    if ( saves_spell(level,victim,DAM_OTHER) )
+    if ( saves_spell(victim, ch, level, DAM_OTHER) )
     {
         if (victim != ch)
 	    send_to_char( "Their mana remains cool.\n\r",ch);
@@ -3571,7 +3569,7 @@ void spell_iron_maiden( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 	return;
     }
     
-    if ( saves_spell(level,victim,DAM_MENTAL) )
+    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
     {
         if (victim != ch)
 	    send_to_char( "They resist your torturing attempts.\n\r",ch);
@@ -3612,7 +3610,7 @@ void spell_solar_flare( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     act( "$n calls upon the heat of the sun to sear your flesh!", ch, NULL, victim, TO_VICT);
     act( "$n calls upon the heat of the sun to sear $N's flesh!", ch, NULL, victim, TO_NOTVICT);
     
-    if ( !saves_spell(level, victim, DAM_FIRE) )
+    if ( !saves_spell(victim, ch, level, DAM_FIRE) )
         full_dam(ch, victim, dam, sn, DAM_FIRE, TRUE);
     else
         full_dam(ch, victim, dam/2, sn, DAM_FIRE, TRUE);
@@ -3624,7 +3622,7 @@ void spell_solar_flare( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     act( "$n calls upon the light of the sun to blind you!", ch, NULL, victim, TO_VICT);
     act( "$n calls upon the light of the sun to blind $N!", ch, NULL, victim, TO_NOTVICT);
     
-    if ( !saves_spell(level, victim, DAM_LIGHT) )
+    if ( !saves_spell(victim, ch, level, DAM_LIGHT) )
     {
         full_dam(ch, victim, dam, sn, DAM_LIGHT, TRUE);
         CHECK_RETURN(ch, victim);
@@ -3685,7 +3683,7 @@ void spell_unearth( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     
     int dam = get_sn_damage(sn, level, ch);
 
-    if ( saves_spell(level, victim, DAM_BASH) )
+    if ( saves_spell(victim, ch, level, DAM_BASH) )
         dam /= 2;
     else
     {
@@ -3827,7 +3825,7 @@ void spell_conviction (int sn, int level, CHAR_DATA *ch, void *vo, int target)
     else 
         dam = dam * align_diff / 1350;
     
-    if ( saves_spell(level, victim, DAM_MENTAL) )
+    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
         dam /= 2;
     
     full_dam(ch, victim, dam, sn, DAM_MENTAL, TRUE);
@@ -4032,7 +4030,7 @@ void spell_paralysis_poison( int sn, int level, CHAR_DATA *ch, void *vo, int tar
         return;
     }
     
-    if ( saves_spell( level, victim, DAM_POISON ) )
+    if ( saves_spell(victim, ch, level, DAM_POISON) )
     {
         act("$N's body resists the poison!",ch,NULL,victim,TO_CHAR);
         return;

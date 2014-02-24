@@ -732,7 +732,8 @@ void remort_remove(CHAR_DATA *ch, bool success)
             int reimb_gold = remort_cost_gold(ch->pcdata->remorts + 1) / 2;
             ch->pcdata->questpoints += reimb_qp;
             ch->pcdata->bank += reimb_gold;
-            logpf("%s has been reimburst %d qps and %d gold", ch->name, reimb_qp, reimb_gold);
+            logpf("%s has been reimbursed %d qps and %d gold", ch->name, reimb_qp, reimb_gold);
+            printf_to_char(ch, "You have been reimbursed %d qps, and %d gold has been deposited into your bank account.\n\r", reimb_qp, reimb_gold);
         }
 		/* clear all money char holds */
 		ch->gold = 0;

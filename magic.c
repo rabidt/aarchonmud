@@ -367,9 +367,9 @@ int get_save(CHAR_DATA *ch, bool physical)
  * Compute a saving throw.
  * Negative applys make saving throw better.
  */
-bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
+bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
-    int hit_roll, save_roll, save_factor;
+    int hit_roll, save_roll;
     
     if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
@@ -393,7 +393,10 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
 
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
-    hit_roll = (level + 10) * 6/5;
+    if ( ch && !was_obj_cast )
+        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (has_focus_obj(ch) ? 50 : 0)) / 500;
+    else
+        hit_roll = (level + 10) * 6/5;
 
     if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
         save_roll = save_roll * 2/3;
@@ -404,9 +407,9 @@ bool saves_spell( int level, CHAR_DATA *victim, int dam_type )
         return number_range(0, hit_roll) <= number_range(0, save_roll);
 }
 
-bool saves_physical( CHAR_DATA *victim, int level, int dam_type )
+bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
-    int hit_roll, save_roll, save_factor;
+    int hit_roll, save_roll;
 
     if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
@@ -1575,14 +1578,18 @@ int get_spell_heal( int mana, int lag, int level )
     return base_heal * (100 + 3 * level) / 400;
 }
 
-int get_focus_bonus( CHAR_DATA *ch )
+bool has_focus_obj( CHAR_DATA *ch )
 {
     OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
     bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
-    bool has_focus_obj = !has_shield && (obj != NULL && obj->item_type != ITEM_ARROWS);
+    return !has_shield && (obj && obj->item_type != ITEM_ARROWS);
+}
+
+int get_focus_bonus( CHAR_DATA *ch )
+{
     int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 15, 25);
 
-    if ( has_focus_obj )
+    if ( has_focus_obj(ch) )
         return 10 + skill / 2;
     else
         return skill / 4;
@@ -1591,10 +1598,6 @@ int get_focus_bonus( CHAR_DATA *ch )
 /* needes to be seperate for dracs */
 int adjust_spell_damage( int dam, CHAR_DATA *ch )
 {
-    OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
-    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
-    bool has_focus = !has_shield && (obj != NULL && obj->item_type != ITEM_ARROWS);
-
     if ( was_obj_cast )
         return dam;
 
@@ -1670,7 +1673,7 @@ void spell_acid_blast( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     int dam;
 
     dam = get_sn_damage( sn, level, ch );
-    if ( saves_spell( level, victim, DAM_ACID ) )
+    if ( saves_spell(victim, ch, level, DAM_ACID ) )
         dam /= 2;
 
     full_dam( ch, victim, dam, sn,DAM_ACID,TRUE);
@@ -1811,7 +1814,7 @@ void spell_blindness( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         return;
     }
 
-    if ( saves_spell(level * 2/3, victim, DAM_OTHER) )
+    if ( saves_spell(victim, ch, level * 2/3, DAM_OTHER) )
     {
         if ( victim != ch )
             act( "$N blinks $S eyes, and the spell has no effect.", ch, NULL, victim, TO_CHAR );
@@ -1842,7 +1845,7 @@ void spell_burning_hands(int sn,int level, CHAR_DATA *ch, void *vo, int target)
     if ( check_hit( ch, victim, sn, DAM_FIRE, 100 ) )
     {
         dam = get_sn_damage( sn, level, ch ) * 14/10;
-        if ( saves_spell( level, victim, DAM_FIRE) )
+        if ( saves_spell(victim, ch, level, DAM_FIRE) )
             dam /= 2;
         fire_effect( victim, level, dam, TARGET_CHAR );
     }
@@ -1882,7 +1885,7 @@ void spell_call_lightning( int sn, int level,CHAR_DATA *ch,void *vo,int target)
         if ( is_safe_spell(ch, vch, TRUE) )
             continue;
 
-        if ( saves_spell(level, vch, DAM_LIGHTNING) )
+        if ( saves_spell(vch, ch, level, DAM_LIGHTNING) )
             full_dam( ch, vch, dam/2, sn,DAM_LIGHTNING,TRUE);
         else
             full_dam( ch, vch, dam, sn,DAM_LIGHTNING,TRUE);
@@ -1927,7 +1930,7 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
             continue;
         
         // failure
-        if ( is_safe(ch, vch) || saves_spell(level, vch, DAM_MENTAL) )
+        if ( is_safe(ch, vch) || saves_spell(vch, ch, level, DAM_MENTAL) )
             continue;
         
         if ( IS_AFFECTED(vch, AFF_BERSERK) )
@@ -2132,7 +2135,7 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
         if( number_range(25,125) < get_skill(ch,gsn_focus) )
             per += number_range(1,3);
 
-        if ( saves_spell(level, victim, dam_type) )
+        if ( saves_spell(victim, ch, level, dam_type) )
             curr_dam /= 2;
 
         next_vict = victim->next_in_room;
@@ -2146,7 +2149,7 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
             send_to_char("The chain of magical energy arcs back to you!\n\r",ch);
             act("$n's spell arcs back to $mself!",ch,NULL,NULL,TO_ROOM);
             curr_dam = dam * (per+10)/100;
-            if ( saves_spell(level, victim, dam_type) )
+            if ( saves_spell(ch, ch, level, dam_type) )
                 curr_dam /= 2;
             full_dam(ch,ch,curr_dam,sn,dam_type,TRUE);
         }
@@ -2197,7 +2200,7 @@ void spell_change_sex( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
 
-    if ( ch != victim && saves_spell(level, victim, DAM_OTHER) )
+    if ( ch != victim && saves_spell(victim, ch, level, DAM_OTHER) )
     {
         act("Hmmm... nope, $E's still a $E.",ch,NULL,victim,TO_CHAR );
         return;
@@ -2270,7 +2273,7 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         || (ch->sex == SEX_MALE && victim->sex == SEX_FEMALE);
 
     /* PCs are harder to charm */
-    if ( saves_spell(level, victim, DAM_CHARM)
+    if ( saves_spell(victim, ch, level, DAM_CHARM)
             || number_range(1, 200) > get_curr_stat(ch, STAT_CHA)
             || (!sex_bonus && number_bits(1) == 0)
             || (!IS_NPC(victim) && number_bits(2)) )
@@ -2313,7 +2316,7 @@ void spell_chill_touch( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     if ( check_hit(ch, victim, sn, DAM_COLD, 100) )
     {
         dam = get_sn_damage(sn, level, ch) * 14/10;
-        if ( saves_spell( level, victim, DAM_COLD) )
+        if ( saves_spell(victim, ch, level, DAM_COLD) )
             dam /= 2;
         cold_effect( victim, level, dam, TARGET_CHAR );
     }
@@ -2332,7 +2335,7 @@ void spell_colour_spray( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     int dam;
 
     dam = get_sn_damage(sn, level, ch) * 3/4;
-    if ( saves_spell( level, victim, DAM_LIGHT) )
+    if ( saves_spell(victim, ch, level, DAM_LIGHT) )
         dam /= 2;
     else 
         spell_blindness( gsn_blindness, level/2, ch,(void *) victim,TARGET_CHAR );
@@ -2744,7 +2747,7 @@ void spell_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
 
-    if ( saves_spell(level, victim, DAM_NEGATIVE) )
+    if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
     {
         act("$N feels a shiver, but resists your curse.",ch,NULL,victim,TO_CHAR);
         return;
@@ -2794,7 +2797,7 @@ void spell_demonfire(int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     dam = get_sn_damage( sn, level, ch );
 
-    if ( saves_spell(level, victim, DAM_NEGATIVE) )
+    if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
         dam /= 2;
 
     if ( IS_GOOD(victim) && !IS_AFFECTED(victim, AFF_CURSE) )
@@ -2823,7 +2826,7 @@ void spell_angel_smite(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
 
     dam = get_sn_damage( sn, level, ch );
-    if ( saves_spell( level, victim, DAM_HOLY) )
+    if ( saves_spell(victim, ch, level, DAM_HOLY) )
         dam /= 2;
 
     if ( IS_EVIL(victim) && !IS_AFFECTED(victim, AFF_CURSE) )
@@ -3023,7 +3026,7 @@ void spell_dispel_evil( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     dam = get_sn_damage( sn, level, ch );
     dam += dam * (ch->alignment - victim->alignment) / 4000;
-    if ( saves_spell( level, victim,DAM_HOLY) )
+    if ( saves_spell(victim, ch, level, DAM_HOLY) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_HOLY, TRUE);
     return;
@@ -3056,7 +3059,7 @@ void spell_dispel_good( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
     dam = get_sn_damage( sn, level, ch );
     dam += dam * (victim->alignment - ch->alignment) / 4000;
-    if ( saves_spell( level, victim, DAM_NEGATIVE) )
+    if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_NEGATIVE ,TRUE);
     return;
@@ -3070,7 +3073,7 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
 
-    if (saves_spell(level, victim,DAM_OTHER))
+    if (saves_spell(victim, ch, level, DAM_OTHER))
     {     
         send_to_char( "You feel a brief tingling sensation.\n\r",victim);
         send_to_char( "You failed.\n\r", ch);
@@ -3376,7 +3379,7 @@ void spell_energy_drain( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int drain, drain_mana, drain_move;
 
-    if ( saves_spell( level, victim, DAM_NEGATIVE) )
+    if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
     {
         act( "$N shivers slightly as the spell passes harmlessly over $S body.",
                 ch, NULL, victim, TO_CHAR );
@@ -3426,7 +3429,7 @@ void spell_fireball( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         if ( is_safe_spell(ch,vch,TRUE) )
             continue;
 
-        if (saves_spell(level,vch,DAM_FIRE))
+        if (saves_spell(vch, ch, level, DAM_FIRE))
             full_dam(ch,vch,dam/2,sn,DAM_FIRE,TRUE);
         else
             full_dam(ch,vch,dam,sn,DAM_FIRE,TRUE);
@@ -3465,7 +3468,7 @@ void spell_flamestrike( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     int dam;
 
     dam = get_sn_damage( sn, level, ch );
-    if ( saves_spell( level, victim,DAM_FIRE) )
+    if ( saves_spell(victim, ch, level, DAM_FIRE) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_FIRE ,TRUE);
     return;
@@ -3510,7 +3513,7 @@ void spell_faerie_fog( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         if (ich->invis_level > 0)
             continue;
 
-        if ( ich == ch || saves_spell( level, ich, DAM_OTHER) )
+        if ( ich == ch || saves_spell(ich, ch, level, DAM_OTHER) )
             continue;
 
         affect_strip ( ich, gsn_hide            );
@@ -3928,7 +3931,7 @@ void spell_heat_metal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
 
-    if (!saves_spell(level, victim, DAM_FIRE) 
+    if (!saves_spell(victim, ch, level, DAM_FIRE) 
             &&  !IS_SET(victim->imm_flags,IMM_FIRE))
     {
         for ( obj_lose = victim->carrying;
@@ -3937,7 +3940,7 @@ void spell_heat_metal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         {
             obj_next = obj_lose->next_content;
             if ( number_range(1,2 * level) > obj_lose->level 
-                    &&   !saves_spell(level,victim,DAM_FIRE)
+                    &&   !saves_spell(victim, ch, level, DAM_FIRE)
                     &&   !IS_OBJ_STAT(obj_lose,ITEM_NONMETAL)
                     &&   !IS_OBJ_STAT(obj_lose,ITEM_BURN_PROOF)
                     &&   !IS_OBJ_STAT(obj_lose,ITEM_STICKY))
@@ -4052,7 +4055,7 @@ void spell_heat_metal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
     else /* damage! */
     {
-        if (saves_spell(level,victim,DAM_FIRE))
+        if (saves_spell(victim, ch, level, DAM_FIRE))
             dam = 2 * dam / 3;
         full_dam(ch,victim,dam,sn,DAM_FIRE,TRUE);
     }
@@ -4131,7 +4134,7 @@ void spell_holy_word(int sn, int level, CHAR_DATA *ch, void *vo,int target)
             curr_dam = dam;
             if ( IS_UNDEAD(vch) )
                 curr_dam = curr_dam * 3/2;
-            if ( saves_spell( level, vch, dam_type ) )
+            if ( saves_spell(vch, ch, level, dam_type) )
                 curr_dam /= 2;
             full_dam(ch,vch,curr_dam,sn,dam_type,TRUE);
         }
@@ -4477,7 +4480,7 @@ void spell_lightning_bolt(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     int dam;
 
     dam = get_sn_damage( sn, level, ch );
-    if ( saves_spell( level, victim,DAM_LIGHTNING) )
+    if ( saves_spell(victim, ch, level, DAM_LIGHTNING) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_LIGHTNING ,TRUE);
     return;
@@ -4572,7 +4575,7 @@ void spell_magic_missile( int sn, int level, CHAR_DATA *ch,void *vo,int target)
     for (missle=0; missle<max; missle++)
     {
         dam = dice(4,4);
-        if ( saves_spell(level, victim, DAM_ENERGY) )
+        if ( saves_spell(victim, ch, level, DAM_ENERGY) )
             dam /= 2;
         full_dam( ch, victim, dam, sn, DAM_ENERGY ,TRUE);
         CHECK_RETURN(ch, victim);
@@ -4682,7 +4685,7 @@ void spell_plague( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
-    if (saves_spell(level,victim,DAM_DISEASE))
+    if (saves_spell(victim, ch, level, DAM_DISEASE))
     {
         if (ch == victim)
             send_to_char("You feel momentarily ill, but it passes.\n\r",ch);
@@ -4717,7 +4720,7 @@ void spell_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int target )
         return;
     }
     
-    if ( saves_spell(level*2/3,victim,DAM_MENTAL) )
+    if ( saves_spell(victim, ch, level*2/3, DAM_MENTAL) )
         // || saves_spell(level,victim,DAM_CHARM))
     {
         if (ch == victim)
@@ -4811,7 +4814,7 @@ void spell_poison( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     if ( is_safe( ch, victim ) )
         return;
 
-    if ( saves_spell( level, victim, DAM_POISON) )
+    if ( saves_spell(victim, ch, level, DAM_POISON) )
     {
         act("$n turns slightly green, but it passes.",victim,NULL,NULL,TO_ROOM);
         send_to_char("You feel momentarily ill, but it passes.\n\r",victim);
@@ -4942,7 +4945,7 @@ void spell_ray_of_truth (int sn, int level, CHAR_DATA *ch, void *vo,int target)
     dam = get_sn_damage( sn, level, ch );
     dam = dam * ( 1000 - victim->alignment ) / 2000;
 
-    if ( saves_spell( level, victim,DAM_HOLY) )
+    if ( saves_spell(victim, ch, level, DAM_HOLY) )
         dam /= 2;
 
     full_dam( ch, victim, dam, sn, DAM_HOLY, TRUE);
@@ -5201,7 +5204,7 @@ void spell_shocking_grasp(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     if ( check_hit( ch, victim, sn, DAM_LIGHTNING, 100 ) )
     {
         dam = get_sn_damage( sn, level, ch ) * 14/10;
-        if ( saves_spell( level, victim, DAM_LIGHTNING) )
+        if ( saves_spell(victim, ch, level, DAM_LIGHTNING) )
             dam /= 2;
         shock_effect( victim, level, dam, TARGET_CHAR );
     }
@@ -5238,7 +5241,7 @@ void spell_sleep( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         return;
     }
 
-    if ( saves_spell(level, victim, DAM_MENTAL)
+    if ( saves_spell(victim, ch, level, DAM_MENTAL)
             || number_bits(1)
             || (!IS_NPC(victim) && number_bits(1))
             || IS_IMMORTAL(victim) )
@@ -5286,7 +5289,7 @@ void spell_slow( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         return;
     }
 
-    if (saves_spell(level,victim,DAM_OTHER) 
+    if (saves_spell(victim, ch, level, DAM_OTHER) 
             ||  IS_SET(victim->imm_flags,IMM_MAGIC))
     {
         if (victim != ch)
@@ -5458,7 +5461,7 @@ void spell_teleport( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             || ( victim != ch && IS_SET(victim->imm_flags,IMM_SUMMON))
             || ( !IS_NPC(ch) && victim->fighting != NULL )
             || ( victim != ch
-                && ( saves_spell( level - 5, victim,DAM_OTHER))))
+                && ( saves_spell(victim, ch, level - 5, DAM_OTHER))))
     {
         send_to_char( "You failed.\n\r", ch );
         return;
@@ -5530,7 +5533,7 @@ void spell_ventriloquate( int sn, int level, CHAR_DATA *ch,void *vo,int target)
         {
             if ( vch == ch )
                 act( "{sYou make $n say {S'$t'{x", vo, target_name, vch, TO_VICT );
-            else if ( saves_spell(level,vch,DAM_OTHER) )
+            else if ( saves_spell(vch, ch, level, DAM_OTHER) )
                 act( "{s$n says {S'$t'{x", vo, target_name, vch, TO_VICT );
             else
                 act( "{sSomeone makes $n say {S'$t'{x", vo, target_name, vch, TO_VICT );
@@ -5556,7 +5559,7 @@ void spell_weaken( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         return;
     }
 
-    if ( saves_spell( level, victim,DAM_OTHER) )
+    if ( saves_spell(victim, ch, level, DAM_OTHER) )
     {
         send_to_char("Your weakening failed to have an effect.\n\r", ch );
         send_to_char("Your strength fails you for a moment.\n\r", victim );
@@ -5698,7 +5701,7 @@ void spell_general_purpose(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     int dam;
 
     dam = number_range( 25, 100 );
-    if ( saves_spell( level, victim, DAM_PIERCE) )
+    if ( saves_spell(victim, ch, level, DAM_PIERCE) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_PIERCE ,TRUE);
     return;
@@ -5710,7 +5713,7 @@ void spell_high_explosive(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     int dam;
 
     dam = number_range( 30, 120 );
-    if ( saves_spell( level, victim, DAM_PIERCE) )
+    if ( saves_spell(victim, ch, level, DAM_PIERCE) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_PIERCE ,TRUE);
     return;
