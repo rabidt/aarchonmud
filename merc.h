@@ -230,7 +230,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         431
+#define MAX_SKILL         432
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1020,6 +1020,7 @@ struct  affect_data
     sh_int      modifier;
     int         bitvector;
     sh_int      detect_level;
+    char        * tag; /* for custom names or other tagging purposes */
 };
 
 /* where definitions */
@@ -3543,6 +3544,8 @@ extern sh_int  gsn_wish;
 
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
+
+extern sh_int  gsn_custom_affect;
 
 /*
  * Struct information for achievements_entry

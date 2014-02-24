@@ -433,6 +433,8 @@ sh_int  gsn_wish;
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;
 
+sh_int  gsn_custom_affect;
+
 sh_int race_werewolf;
 sh_int race_doppelganger;
 sh_int race_naga;
