@@ -3424,7 +3424,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
         dam += move_loss * 4;
             
         /* chance to stun */
-        int stun_level = (ch->level/2 + move_loss/4) * (100 + get_curr_stat(ch, STAT_STR)) / 200;
+        int stun_level = (ch->level/2 + move_loss/4);
         if ( number_bits(1) && !saves_physical(victim, ch, stun_level, DAM_BASH) )
         {
             act( "You stun $N with a crushing blow to $S temple!", ch, NULL, victim, TO_CHAR );

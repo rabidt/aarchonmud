@@ -428,7 +428,13 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
     /* now the resisted roll */
     save_roll = -get_save(victim, TRUE);
-    hit_roll = (level + 10);
+    if ( ch )
+    {
+        int size_diff = ch->size - victim->size;
+        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_STR) + 20 * size_diff) / 500;
+    }
+    else
+        hit_roll = (level + 10) * 6/5;
 
     if ( save_roll <= 0 )
         return FALSE;
