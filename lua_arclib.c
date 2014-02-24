@@ -3539,6 +3539,8 @@ static int CH_addaffect (lua_State *LS)
         af.bitvector=flag_lookup( temp, flag_table);
         if (af.bitvector==NO_FLAG)
             luaL_error(LS, "Invalid bitvector: %s", temp);
+        else if ( !flag_table[index_lookup(af.bitvector, flag_table)].settable )
+            luaL_error(LS, "Flag '%s' is not settable.", temp);
     }
 
     /* tag (custom_affect only) */
