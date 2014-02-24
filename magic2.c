@@ -58,7 +58,6 @@ DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_where );
 
 extern char *target_name;
-extern bool was_obj_cast;
 
 void spell_farsight( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
