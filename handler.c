@@ -1187,6 +1187,27 @@ void affect_strip( CHAR_DATA *ch, int sn )
 }
 
 /*
+ * Strip all custom_affects of a given tag.
+ */
+void custom_affect_strip( CHAR_DATA *ch, const char *tag )
+{
+    AFFECT_DATA *paf;
+    AFFECT_DATA *paf_next;
+
+    for ( paf = ch->affected; paf != NULL; paf = paf_next )
+    {
+        paf_next = paf->next;
+        if ( paf->type == gsn_custom_affect 
+                && !str_cmp( tag, paf->tag ) )
+        {
+            affect_remove( ch, paf );
+        }
+    }
+    
+    return;
+}
+
+/*
  * Strip all offensive affects
  */
 void affect_strip_offensive( CHAR_DATA *ch )
