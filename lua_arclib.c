@@ -3541,7 +3541,8 @@ static int CH_addaffect (lua_State *LS)
             luaL_error(LS, "Invalid bitvector: %s", temp);
     }
 
-    if (!lua_isnone(LS,arg_index))
+    /* tag (custom_affect only) */
+    if (af.type==gsn_custom_affect)
     {
         af.tag=str_dup(check_string(LS,arg_index++,MIL));
     }
