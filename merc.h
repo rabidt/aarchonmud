@@ -230,7 +230,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         431
+#define MAX_SKILL         432
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1020,6 +1020,7 @@ struct  affect_data
     sh_int      modifier;
     int         bitvector;
     sh_int      detect_level;
+    char        * tag; /* for custom names or other tagging purposes */
 };
 
 /* where definitions */
@@ -1559,7 +1560,7 @@ struct  kill_data
 #define AFF_SHELTER           34
 #define AFF_CHAOS_FADE        35
 #define AFF_FEEBLEMIND        36
-#define AFF_SPLIT             37
+/* #define AFF_SPLIT             37 */ /* removed, re-use 37 when necessary */
 #define AFF_GUARD             38
 #define AFF_RITUAL            39
 #define AFF_NECROSIS          40
@@ -1940,7 +1941,7 @@ struct  kill_data
 #define APPLY_LUC              30
 #define APPLY_STATS            31 // all stats (str..luc)
 // #define APPLY_COMBO              31
-
+#define APPLY_SKILLS           32
 
 /*
  * Values for containers (value[1]).
@@ -2515,6 +2516,7 @@ struct  char_data
 	sh_int      hitroll;
 	sh_int      damroll;
 	sh_int      armor[4];
+    sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
 	sh_int      wimpy;
     sh_int      calm;
         tflag       penalty;
@@ -3543,6 +3545,8 @@ extern sh_int  gsn_wish;
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
 
+extern sh_int  gsn_custom_affect;
+
 /*
  * Struct information for achievements_entry
  */
@@ -4132,7 +4136,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define OID OBJ_INDEX_DATA
 #define RID ROOM_INDEX_DATA
 #define SF  SPEC_FUN
-#define AD  AFFECT_DATA
 
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
@@ -4345,7 +4348,7 @@ bool is_granted      args( ( CHAR_DATA *ch, DO_FUN *do_fun ) );
 
 
 /* handler.c */
-AD      *affect_find args( (AFFECT_DATA *paf, int sn));
+AFFECT_DATA      *affect_find args( (AFFECT_DATA *paf, int sn));
 void    affect_check    args( (CHAR_DATA *ch, int where, int vector) );
 int count_users args( (OBJ_DATA *obj) );
 void    deduct_cost args( (CHAR_DATA *ch, int cost) );
@@ -4636,7 +4639,6 @@ void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );
 #undef  OID
 #undef  RID
 #undef  SF
-#undef AD
 
 /*****************************************************************************
  *                                    OLC                                    *
