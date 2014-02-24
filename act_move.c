@@ -3198,7 +3198,7 @@ void check_bleed( CHAR_DATA *ch, int dir )
 	return;
 
     int hp_below_min = ch->max_hit/4 - ch->hit;
-    if ( !is_affected(ch,gsn_rupture) && (hp_below_min <= 0 || saves_physical(ch, hp_below_min/10, DAM_OTHER)) )
+    if ( !is_affected(ch,gsn_rupture) && (hp_below_min <= 0 || saves_physical(ch, NULL, hp_below_min/10, DAM_OTHER)) )
         return;
 
     /* create blood object */

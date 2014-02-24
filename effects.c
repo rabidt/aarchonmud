@@ -208,7 +208,7 @@ void cold_effect(void *vo, int level, int dam, int target)
 	OBJ_DATA *obj, *obj_next;
 	
 	/* chill touch effect */
-	if (!saves_spell(level/4 + dam / 20, victim, DAM_COLD))
+	if (!saves_spell(victim, NULL, level/4 + dam / 20, DAM_COLD))
 	{
 		AFFECT_DATA af;
 
@@ -316,7 +316,7 @@ void fire_effect(void *vo, int level, int dam, int target)
 
 	/* chance of blindness */
 	if (!IS_AFFECTED(victim,AFF_BLIND)
-	&&  !saves_spell(level / 4 + dam / 20, victim,DAM_FIRE)
+	&&  !saves_spell(victim, NULL, level / 4 + dam / 20, DAM_FIRE)
 	&&  !number_bits(2))
 	{
 	    AFFECT_DATA af;
@@ -470,7 +470,7 @@ void poison_effect(void *vo,int level, int dam, int target)
 	    OBJ_DATA *obj, *obj_next;
 	    
 	    /* chance of poisoning */
-	    if (!number_bits(1) && !saves_spell(level / 4 + dam / 20,victim,DAM_POISON))
+	    if (!number_bits(1) && !saves_spell(victim, NULL, level / 4 + dam / 20, DAM_POISON))
 	    {
 		AFFECT_DATA af;
 		
@@ -560,7 +560,7 @@ void shock_effect(void *vo,int level, int dam, int target)
 	OBJ_DATA *obj, *obj_next;
 
 	/* daze and confused? */
-	if (!saves_spell(level/4 + dam/20,victim,DAM_LIGHTNING))
+	if (!saves_spell(victim, NULL, level/4 + dam/20, DAM_LIGHTNING))
 	{
 	    send_to_char("Your muscles stop responding.\n\r",victim);
 	    act( "$n's muscles stop responding.", victim, NULL, NULL, TO_ROOM );
@@ -635,7 +635,7 @@ void dumb_effect(void *vo, int level, int dam, int target)
 	CHAR_DATA *victim = (CHAR_DATA *) vo;
 
 	/* feeblemind effect */
-	if (!saves_spell(level/4 + dam / 20, victim, DAM_SOUND))
+	if (!saves_spell(victim, NULL, level/4 + dam / 20, DAM_SOUND))
 	{
 	    AFFECT_DATA af;
 	    
@@ -664,7 +664,7 @@ void paralysis_effect(void *vo,int level, int dam, int target)
 	    OBJ_DATA *obj, *obj_next;
 	    
 	    /* chance of poisoning */
-	    if (!number_bits(1) && !saves_spell(level / 4 + dam / 20,victim,DAM_POISON))
+	    if (!number_bits(1) && !saves_spell(victim, NULL, level / 4 + dam / 20, DAM_POISON))
 	    {
 		AFFECT_DATA af;
 		

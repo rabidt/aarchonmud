@@ -3425,7 +3425,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
             
         /* chance to stun */
         int stun_level = (ch->level/2 + move_loss/4) * (100 + get_curr_stat(ch, STAT_STR)) / 200;
-        if ( number_bits(1) && !saves_physical(victim, stun_level, DAM_BASH) )
+        if ( number_bits(1) && !saves_physical(victim, ch, stun_level, DAM_BASH) )
         {
             act( "You stun $N with a crushing blow to $S temple!", ch, NULL, victim, TO_CHAR );
             act( "$n stuns you with a crushing blow to your temple!", ch, NULL, victim, TO_VICT );
@@ -3482,7 +3482,7 @@ void do_intimidate( CHAR_DATA *ch, char *argument )
 	level = ch->level;
 
     WAIT_STATE( ch, skill_table[gsn_intimidation].beats );
-    if ( !chance(skill) || saves_spell(level, victim, DAM_MENTAL) )
+    if ( !chance(skill) || saves_spell(victim, ch, level, DAM_MENTAL) )
     {
         act( "You don't really intimidate $N.", ch, NULL, victim, TO_CHAR );
         act( "$n tried to intimidate you, but you won't take $s crap.",
@@ -3609,7 +3609,7 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
 	return;
     }
 
-    if ( saves_physical(victim, ch->level * chance/100, DAM_BASH)
+    if ( saves_physical(victim, ch, ch->level * chance/100, DAM_BASH)
 	 || (IS_NPC(victim) && HAS_TRIGGER(victim, TRIG_KILL))
 	 || IS_UNDEAD(victim) )
     {
@@ -4504,7 +4504,7 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
   level = ch->level * (100 + skill) / 200;
   dam = (10 + level) * (50 + get_curr_stat(ch, STAT_INT)) / 50;
 
-  if ( saves_spell(level*5/3, victim, DAM_MENTAL) )
+  if ( saves_spell(victim, ch, level*5/3, DAM_MENTAL) )
   {
     send_to_char( "They manage to shield their mind from you.\n\r", ch );
     send_to_char( "You feel something grappling for your mind.\n\r", victim);
@@ -4522,7 +4522,7 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
   af.modifier   = -(level/8);
   af.bitvector  = AFF_FEEBLEMIND;
 
-  if ( saves_spell(level + 10, victim, DAM_MENTAL) )
+  if ( saves_spell(victim, ch, level + 10, DAM_MENTAL) )
   {
     dam /= 2;
     confuse = FALSE;
@@ -4579,7 +4579,7 @@ void do_smite( CHAR_DATA *ch, char *argument )
     {
         int level = ch->level * skill / 100;
         act("Your smite disrupts $N's magic defenses!", ch, NULL, victim, TO_CHAR);
-        if ( saves_spell(level, victim, DAM_OTHER) || !check_dispel_magic(level, victim) )
+        if ( saves_spell(victim, ch, level, DAM_OTHER) || !check_dispel_magic(level, victim) )
             send_to_char("You feel a brief tingling sensation.\n\r", victim);
     }
 
