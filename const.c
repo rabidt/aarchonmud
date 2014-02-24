@@ -7221,6 +7221,16 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	"charge",         "!charge!",  "", NULL
 	},
 
+    {
+    "custom_affect",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_NONE, STAT_NONE, STAT_NONE,
+    spell_null,    TAR_IGNORE,     POS_STANDING,
+    &gsn_custom_affect,           SLOT(0),   0, 0, DUR_SPECIAL,
+    "",   "!custom_affect!",  "", NULL
+    },
 	{
 	"god_bless", 
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },

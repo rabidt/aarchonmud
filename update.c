@@ -1834,7 +1834,11 @@ void affect_update( CHAR_DATA *ch )
                     ||   paf_next->type != paf->type
                     ||   paf_next->duration > 0 )
             {
-                if ( paf->type > 0 && skill_table[paf->type].msg_off )
+                if ( paf->type == gsn_custom_affect )
+                {
+                    ptc( ch, "Your %s affect has worn off.\n\r", paf->tag );
+                }
+                else if ( paf->type > 0 && skill_table[paf->type].msg_off )
                 {
                     send_to_char( skill_table[paf->type].msg_off, ch );
                     send_to_char( "\n\r", ch );

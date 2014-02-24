@@ -3378,6 +3378,17 @@ static void print_stances( CHAR_DATA *ch, const struct stance_type *tbl)
 
 }
 
+static void print_skill_table (CHAR_DATA *ch, const struct skill_type *tbl)
+{
+    ptc( ch, "%3s %s\n\r", "SN","Name");
+    int sn;
+    for ( sn=0 ; tbl[sn].name ; sn++)
+    {
+        ptc( ch, "%3d %s\n\r",
+                sn,
+                tbl[sn].name);
+    }
+}
 
 #define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note}
 
@@ -3431,6 +3442,7 @@ struct
     { "attack_table", print_attack_table, attack_table, "Attack types."},
     { "liq_table", print_liq_table, liq_table, "Liquid types."},
     { "stances", print_stances, stances, "Stances."},
+    { "skill_table", print_skill_table, skill_table, "Skills."},
     { NULL, NULL, NULL, NULL}
 };
 

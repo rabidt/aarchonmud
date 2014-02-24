@@ -392,6 +392,7 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
             for ( i = 0; i < MAX_STATS; i++)
                 ch->mod_stat[i] += mod;
             break;
+        case APPLY_SKILLS:  ch->mod_skills  += mod; break;
             
         case APPLY_SEX:     ch->sex         += mod; break;
         case APPLY_MANA:    ch->max_mana    += mod; break;
@@ -435,6 +436,7 @@ void reset_char(CHAR_DATA *ch)
     for (stat = 0; stat < MAX_STATS; stat++)
         ch->mod_stat[stat] = 0;
     
+    ch->mod_skills = 0;
     ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->trained_hit_bonus = 0;
     ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
     ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
@@ -989,7 +991,8 @@ void affect_check(CHAR_DATA *ch,int where,int vector)
 /*
  * Give an affect to a char.
  */
-void affect_to_char( CHAR_DATA *ch, AFFECT_DATA *paf )
+
+void affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
     AFFECT_DATA *paf_new = new_affect();
     *paf_new = *paf;
@@ -1000,8 +1003,15 @@ void affect_to_char( CHAR_DATA *ch, AFFECT_DATA *paf )
     return;
 }
 
+void affect_to_char( CHAR_DATA *ch, AFFECT_DATA *paf )
+{
+    paf->tag=NULL;
+    affect_to_char_tagsafe( ch, paf );
+    return;
+}
+
 /* give an affect to an object */
-void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
+void affect_to_obj_tagsafe(OBJ_DATA *obj, AFFECT_DATA *paf)
 {
     AFFECT_DATA *paf_new;
     
@@ -1026,7 +1036,12 @@ void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
     return;
 }
 
-
+void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
+{
+    paf->tag=NULL;
+    affect_to_obj_tagsafe( obj, paf );
+    return;
+}
 
 /*
  * Remove an affect from a char.
@@ -1166,6 +1181,27 @@ void affect_strip( CHAR_DATA *ch, int sn )
         paf_next = paf->next;
         if ( paf->type == sn )
             affect_remove( ch, paf );
+    }
+    
+    return;
+}
+
+/*
+ * Strip all custom_affects of a given tag.
+ */
+void custom_affect_strip( CHAR_DATA *ch, const char *tag )
+{
+    AFFECT_DATA *paf;
+    AFFECT_DATA *paf_next;
+
+    for ( paf = ch->affected; paf != NULL; paf = paf_next )
+    {
+        paf_next = paf->next;
+        if ( paf->type == gsn_custom_affect 
+                && !str_cmp( tag, paf->tag ) )
+        {
+            affect_remove( ch, paf );
+        }
     }
     
     return;
@@ -3565,6 +3601,7 @@ char *affect_loc_name( int location )
     case APPLY_CHA:     return "charisma";
     case APPLY_LUC:     return "luck";
     case APPLY_STATS:   return "all stats";
+    case APPLY_SKILLS:  return "all skills";
     case APPLY_SEX:     return "sex";
     case APPLY_CLASS:   return "class";
     case APPLY_LEVEL:   return "level";
@@ -3597,7 +3634,7 @@ char *affect_loc_name( int location )
 /* returns the name of a flag */
 char* flag_bit_name( struct flag_type flag_table[], int flag )
 {
-    char buf[100];
+    static char buf[100];
     int i;
     for ( i = 0; flag_table[i].name != NULL; i++ )
 	if ( flag_table[i].bit == flag )
