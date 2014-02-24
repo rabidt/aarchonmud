@@ -3540,8 +3540,15 @@ static int CH_addaffect (lua_State *LS)
         if (af.bitvector==NO_FLAG)
             luaL_error(LS, "Invalid bitvector: %s", temp);
     }
+
+    if (!lua_isnone(LS,arg_index))
+    {
+        af.tag=str_dup(check_string(LS,arg_index++,MIL));
+    }
+    else
+        af.tag=NULL;
     
-    affect_to_char( ud_ch, &af );
+    affect_to_char_tagsafe( ud_ch, &af );
 
     return 0;
 }
@@ -7540,6 +7547,19 @@ static int AFFECT_get_bitvector ( lua_State *LS )
 }
 HELPTOPIC AFFECT_get_bitvector_help = {};
 
+static int AFFECT_get_tag ( lua_State *LS )
+{
+    AFFECT_DATA *ud_af=check_AFFECT(LS,1);
+
+    if (ud_af->type != gsn_custom_affect)
+        luaL_error(LS, "Can only get tag for custom_affect type.");
+
+    lua_pushstring( LS, ud_af->tag);
+    return 1;
+}
+HELPTOPIC AFFECT_get_tag_help = {};
+
+
 static const LUA_PROP_TYPE AFFECT_get_table [] =
 {
     AFFGET( where, 0),
@@ -7550,6 +7570,7 @@ static const LUA_PROP_TYPE AFFECT_get_table [] =
     AFFGET( modifier, 0),
     AFFGET( bitvector, 0),
     AFFGET( detectlevel, 0),
+    AFFGET( tag, 0),
     ENDPTABLE
 };
 

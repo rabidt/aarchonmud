@@ -991,7 +991,8 @@ void affect_check(CHAR_DATA *ch,int where,int vector)
 /*
  * Give an affect to a char.
  */
-void affect_to_char( CHAR_DATA *ch, AFFECT_DATA *paf )
+
+void affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
     AFFECT_DATA *paf_new = new_affect();
     *paf_new = *paf;
@@ -1002,8 +1003,15 @@ void affect_to_char( CHAR_DATA *ch, AFFECT_DATA *paf )
     return;
 }
 
+void affect_to_char( CHAR_DATA *ch, AFFECT_DATA *paf )
+{
+    paf->tag=NULL;
+    affect_to_char_tagsafe( ch, paf );
+    return;
+}
+
 /* give an affect to an object */
-void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
+void affect_to_obj_tagsafe(OBJ_DATA *obj, AFFECT_DATA *paf)
 {
     AFFECT_DATA *paf_new;
     
@@ -1028,7 +1036,12 @@ void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
     return;
 }
 
-
+void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
+{
+    paf->tag=NULL;
+    affect_to_obj_tagsafe( obj, paf );
+    return;
+}
 
 /*
  * Remove an affect from a char.
