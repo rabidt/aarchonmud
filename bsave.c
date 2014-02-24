@@ -754,16 +754,31 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     {
         if (paf->type < 0 || paf->type>= MAX_SKILL)
             continue;
-        
-        bprintf( buf, "Affc '%s' %3d %3d %3d %3d %3d %10d\n",
-            skill_table[paf->type].name,
-            paf->where,
-            paf->level,
-            paf->duration,
-            paf->modifier,
-            paf->location,
-            paf->bitvector
-            );
+
+        if (paf->type == gsn_custom_affect)
+        {
+            bprintf( buf, "AffCust %s~ %3d %3d %3d %3d %3d %10d\n",
+                    paf->tag,
+                    paf->where,
+                    paf->level,
+                    paf->duration,
+                    paf->modifier,
+                    paf->location,
+                    paf->bitvector
+                   );
+        }
+        else
+        {
+            bprintf( buf, "Affc '%s' %3d %3d %3d %3d %3d %10d\n",
+                    skill_table[paf->type].name,
+                    paf->where,
+                    paf->level,
+                    paf->duration,
+                    paf->modifier,
+                    paf->location,
+                    paf->bitvector
+                   );
+        }
     }
 
     if (ch->pcdata->achievements != 0)
@@ -948,14 +963,22 @@ void bwrite_pet( CHAR_DATA *pet, DBUFFER *buf)
         if (paf->type < 0 || paf->type >= MAX_SKILL)
             continue;
 
-	/* don't save permanent affects - they will be added automatically */
-	if ( paf->duration == -1 )
-	    continue;
-        
+        if (paf->type == gsn_custom_affect)
+        {
+            bprintf(buf, "AffCust %s~ %3d %3d %3d %3d %10d\n",
+                    paf->tag,
+                    paf->where, paf->level, paf->duration, paf->modifier,
+                    paf->location, paf->bitvector);
+            continue;
+        }
+        /* don't save permanent affects - they will be added automatically */
+        if ( paf->duration == -1 )
+            continue;
+
         bprintf(buf, "Affc '%s' %3d %3d %3d %3d %3d %10d\n",
-            skill_table[paf->type].name,
-            paf->where, paf->level, paf->duration, paf->modifier,paf->location,
-            paf->bitvector);
+                skill_table[paf->type].name,
+                paf->where, paf->level, paf->duration, paf->modifier,paf->location,
+                paf->bitvector);
     }
     
     bprintf(buf,"End\n");
@@ -1079,15 +1102,31 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     {
         if (paf->type < 0 || paf->type >= MAX_SKILL)
             continue;
-        bprintf( buf, "Affc '%s' %3d %3d %3d %3d %3d %10d\n",
-            skill_table[paf->type].name,
-            paf->where,
-            paf->level,
-            paf->duration,
-            paf->modifier,
-            paf->location,
-            paf->bitvector
-            );
+
+        if (paf->type == gsn_custom_affect)
+        {
+            bprintf( buf, "AffCust %s~ %3d %3d %3d %3d %3d %10d\n",
+                    paf->tag,
+                    paf->where,
+                    paf->level,
+                    paf->duration,
+                    paf->modifier,
+                    paf->location,
+                    paf->bitvector
+                   );
+        }
+        else
+        {
+            bprintf( buf, "Affc '%s' %3d %3d %3d %3d %3d %10d\n",
+                    skill_table[paf->type].name,
+                    paf->where,
+                    paf->level,
+                    paf->duration,
+                    paf->modifier,
+                    paf->location,
+                    paf->bitvector
+                   );
+        }
     }
     
     for ( ed = obj->extra_descr; ed != NULL; ed = ed->next )
@@ -1481,6 +1520,26 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 fMatch = TRUE;
                 break;
             }
+
+            if (!str_cmp(word, "AffCust"))
+            {
+                AFFECT_DATA *paf;
+                
+                paf = new_affect();
+
+                paf->type = gsn_custom_affect;
+                paf->tag = bread_string( buf );
+                paf->where = bread_number(buf);
+                paf->level = bread_number(buf);
+                paf->duration = bread_number(buf);
+                paf->modifier = bread_number(buf);
+                paf->location = bread_number(buf);
+                paf->bitvector = bread_number(buf);
+                paf->next = ch->affected;
+                ch->affected = paf;
+                fMatch = TRUE;
+                break;
+            } 
             
             if ( !str_cmp( word, "AttrMod"  ) || !str_cmp(word,"AMod"))
             {
@@ -2378,6 +2437,26 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
                 fMatch          = TRUE;
                 break;
             }
+
+            if (!str_cmp(word, "AffCust"))
+            {
+                AFFECT_DATA *paf;
+
+                paf = new_affect();
+
+                paf->type=gsn_custom_affect;
+                paf->tag = bread_string(buf);
+                paf->where=bread_number(buf);
+                paf->level=bread_number(buf);
+                paf->duration=bread_number(buf);
+                paf->modifier=bread_number(buf);
+                paf->location=bread_number(buf);
+                paf->bitvector=bread_number(buf);
+                paf->next=pet->affected;
+                pet->affected=paf;
+                fMatch=TRUE;
+                break;
+            }
             
             if (!str_cmp(word,"AMod"))
             {
@@ -2641,6 +2720,31 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                 fMatch          = TRUE;
                 break;
             }
+
+            if (!str_cmp(word, "AffCust"))
+            {
+                AFFECT_DATA *paf;
+
+                paf=new_affect();
+
+                paf->type=gsn_custom_affect;
+                paf->tag=bread_string(buf);
+                paf->where=bread_number(buf);
+                paf->level=bread_number(buf);
+                paf->duration=bread_number(buf);
+                paf->modifier=bread_number(buf);
+                paf->location=bread_number(buf);
+                paf->bitvector=bread_number(buf);
+
+                if (ignore_affects)
+                   free_affect( paf );
+                else
+                   obj->affected = affect_insert( obj->affected, paf );
+                
+                fMatch=TRUE;
+                break;
+            }
+
             break;
             
         case 'C':

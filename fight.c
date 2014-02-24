@@ -124,7 +124,7 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool blind_penalty( CHAR_DATA *ch );
-void  check_assist  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+void  check_assist  args( ( CHAR_DATA *ch ) );
 bool  check_dodge   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_killer  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_parry   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
@@ -208,6 +208,15 @@ void violence_update( void )
     {
         ch_next = ch->next;
 
+        // people assisting ch
+        check_assist(ch);
+
+        if ( ch->stop > 0 )
+        {
+            ch->stop--;
+            continue;
+        }
+        
         check_reset_stance(ch);
 
 	/* handle affects that do things each round */
@@ -235,12 +244,9 @@ void violence_update( void )
         if ( ( victim = ch->fighting ) == NULL )
             continue;
         
-       /*
-        * Fun for the whole family!
-        */
-        check_assist(ch,victim);
-	check_rescue( ch );
-        
+        // ch rescues someone
+        check_rescue(ch);
+
         if ( IS_NPC( ch ) )
         {
             if ( HAS_TRIGGER( ch, TRIG_FIGHT ) )
@@ -641,9 +647,12 @@ void check_jump_up( CHAR_DATA *ch )
 
 
 /* for auto assisting */
-void check_assist(CHAR_DATA *ch,CHAR_DATA *victim)
+void check_assist(CHAR_DATA *ch)
 {
-    CHAR_DATA *rch, *rch_next;
+    CHAR_DATA *rch, *rch_next, *victim;
+    
+    if ( !(victim = ch->fighting) )
+        return;
 
     for (rch = ch->in_room->people; rch != NULL; rch = rch_next)
     {

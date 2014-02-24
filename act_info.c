@@ -2104,11 +2104,17 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
         if ( !show_all && !IS_SPELL(paf->type) )
             continue;
 
-        if (paf_last != NULL && paf->type == paf_last->type)
+        if (paf_last != NULL && paf->type == paf_last->type
+                && ( paf->type != gsn_custom_affect 
+                     || !strcmp(paf->tag, paf_last->tag) ) )
             if (show_long)
                 printf_to_char( to_ch, "                        ");
             else
                 continue;
+        else if (paf->type==gsn_custom_affect)
+        {
+            ptc(to_ch, "Special: %-15s", paf->tag);
+        }
         else
         {
            /* More information for players regarding maledictions - Astark */
