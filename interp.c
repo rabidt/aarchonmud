@@ -304,8 +304,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "chop",       do_chop, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "bite",       do_bite, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "bitch",      do_bitch,POS_SLEEPING,  0,  LOG_NORMAL, 1, FALSE, TRUE },/* Purposely after bite */
-    /*    { "melee",      do_melee, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
-	  { "brawl",      do_brawl, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },*/
     { "guard",      do_guard, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "leg",        do_leg_sweep, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "uppercut",   do_uppercut, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
