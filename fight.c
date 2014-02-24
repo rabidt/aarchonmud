@@ -1032,7 +1032,7 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     af.location  = APPLY_AGI;
     
     // second saving throw to reduce effect to slow
-    if ( saves_physical(victim, ch, ch->level, DAM_HARM) )
+    if ( saves_physical(victim, NULL, ch->level, DAM_HARM) )
     {
         af.modifier  = -10;
         af.bitvector = AFF_SLOW;

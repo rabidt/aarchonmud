@@ -3099,7 +3099,7 @@ void spell_decompose(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 	return;
     }
     
-    if ( saves_spell(victim, ch, level, DAM_HARM) || saves_physical(victim, ch, level, DAM_HARM) )
+    if ( saves_spell(victim, ch, level, DAM_HARM) || saves_physical(victim, NULL, level, DAM_HARM) )
     {
 	send_to_char( "A wave of malvolent energy passes over your body.\n\r", victim );
 	send_to_char( "Spell failed to start decomposing.\n\r", ch );
