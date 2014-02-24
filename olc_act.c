@@ -6164,15 +6164,23 @@ MEDIT( medit_race )
     {
         EDIT_MOB( ch, pMob );
         
-        pMob->race = race;
         flag_set_field( pMob->act,          race_table[race].act );
-        flag_set_field( pMob->affect_field, race_table[race].affect_field );
         flag_set_field( pMob->off_flags,    race_table[race].off );
-        flag_set_field( pMob->imm_flags,    race_table[race].imm );
-        flag_set_field( pMob->res_flags,    race_table[race].res );
-        flag_set_field( pMob->vuln_flags,   race_table[race].vuln );
-        flag_set_field( pMob->form,         race_table[race].form );
-        flag_set_field( pMob->parts,        race_table[race].parts );
+        // affect fields may be from previous race, or extra - we update racial ones which is likely what you want
+        flag_remove_field( pMob->affect_field, race_table[pMob->race].affect_field );
+        flag_set_field( pMob->affect_field, race_table[race].affect_field );
+        flag_copy( pMob->imm_flags,         race_table[race].imm );
+        flag_copy( pMob->res_flags,         race_table[race].res );
+        flag_copy( pMob->vuln_flags,        race_table[race].vuln );
+        flag_copy( pMob->form,              race_table[race].form );
+        flag_copy( pMob->parts,             race_table[race].parts );
+        if ( race < MAX_PC_RACE )
+        {
+            pMob->size = pc_race_table[race].size;
+            if ( pc_race_table[race].gender == SEX_FEMALE || pc_race_table[race].gender == SEX_MALE )
+                pMob->sex = pc_race_table[race].gender;
+        }
+        pMob->race = race;
         
         send_to_char( "Race set.\n\r", ch );
         return TRUE;
