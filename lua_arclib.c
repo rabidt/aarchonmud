@@ -3571,8 +3571,15 @@ static int CH_removeaffect (lua_State *LS)
     int sn=skill_lookup( skill );
     if (sn==-1)
        luaL_error(LS, "Invalid skill: %s", skill);
-    
-    affect_strip( ud_ch, sn );
+    else if (sn==gsn_custom_affect)
+    {
+        custom_affect_strip( ud_ch, check_string(LS,3,MIL) );
+    }
+    else
+    {
+        affect_strip( ud_ch, sn );
+    }
+
     return 0;
 } 
 HELPTOPIC CH_removeaffect_help={};
