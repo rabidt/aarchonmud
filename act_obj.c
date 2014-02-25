@@ -3546,9 +3546,9 @@ void do_list( CHAR_DATA *ch, char *argument )
                     found = TRUE;
                     send_to_char( "Pets for sale:\n\r", ch );
                 }
-                sprintf( buf, "[%2d] %8d - %s\n\r",
+                sprintf( buf, "[%2d] %8.2f - %s\n\r",
                         pet->level,
-                        10 * pet->level * pet->level,
+                        0.1 * pet->level * pet->level,
                         pet->short_descr );
                 send_to_char( buf, ch );
             }
@@ -3584,15 +3584,15 @@ void do_list( CHAR_DATA *ch, char *argument )
                     /* send_to_char( "[Lv Price Qty] Item\n\r", ch ); 
                      * Making this look better - Astark 
                      */
-                    send_to_char("[ Lvl  Price     Qty] Item\n\r", ch);
+                    send_to_char("[ Lvl  Price    Qty ] Item\n\r", ch);
                 }
 
                 if (IS_OBJ_STAT(obj,ITEM_INVENTORY))
                     /* sprintf(buf,"[%2d %5d -- ] %s\n\r",
                      * Making this look better - Astark
                      */
-                    sprintf(buf,"[ %-3d  %-9d -- ] %s\n\r",
-                            obj->level,cost,obj->short_descr);
+                    sprintf(buf,"[ %3d %9.2f  -- ] %s\n\r",
+                            obj->level,cost*0.01,obj->short_descr);
                 else
                 {
                     count = 1;
@@ -3607,8 +3607,8 @@ void do_list( CHAR_DATA *ch, char *argument )
                     }
                     /* sprintf(buf,"[%2d %5d %2d ] %s\n\r",
                      */
-                    sprintf(buf,"[ %-3d  %-9d %-3d ] %s\n\r",
-                            obj->level,cost,count,obj->short_descr);
+                    sprintf(buf,"[ %3d %9.2f  %2d ] %s\n\r",
+                            obj->level,cost*0.01,count,obj->short_descr);
                 }
                 send_to_char( buf, ch );
             }
