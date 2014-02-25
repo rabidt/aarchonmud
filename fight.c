@@ -4900,7 +4900,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     OBJ_DATA *corpse;
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
-    char *name;
+    char *name, *desc;
     ROOM_INDEX_DATA *location;
     bool eqloot = TRUE;
     
@@ -4911,7 +4911,8 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     
     if ( IS_NPC(victim) )  /* MOB Death */
     {
-        name        = victim->short_descr;
+        name        = victim->name;
+        desc        = victim->short_descr;
         corpse      = create_object(get_obj_index(OBJ_VNUM_CORPSE_NPC), 0);
         corpse->timer   = number_range( 25, 40 );
         
@@ -4947,6 +4948,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     else  /* Player death */
     {
         name        = victim->name;
+        desc        = victim->name;
         corpse      = create_object(get_obj_index(OBJ_VNUM_CORPSE_PC), 0);
         corpse->timer   = number_range( 25, 40 );
         
@@ -4977,11 +4979,15 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     
     corpse->level = victim->level;
     
-    sprintf( buf, corpse->short_descr, name );
+    sprintf( buf, corpse->name, name );
+    free_string( corpse->name );
+    corpse->name = str_dup( buf );
+
+    sprintf( buf, corpse->short_descr, desc );
     free_string( corpse->short_descr );
     corpse->short_descr = str_dup( buf );
     
-    sprintf( buf, corpse->description, name );
+    sprintf( buf, corpse->description, desc );
     free_string( corpse->description );
     corpse->description = str_dup( buf );
     
