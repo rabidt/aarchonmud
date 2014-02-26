@@ -1441,13 +1441,24 @@ void char_update( void )
 
                 /* PCs heal always to consider negative healing ratio */
                 if ( !IS_NPC(ch) || ch->hit < ch->max_hit )
-                    ch->hit += hit_gain(ch);
+                {
+                    // calculate hit_gain first, as it could modify ch->hit
+                    // happens if fast healing skill improves, and the xp causes level-up and renewal
+                    int gain = hit_gain(ch);
+                    ch->hit += gain;
+                }
 
                 if ( !IS_NPC(ch) || ch->mana < ch->max_mana )
-                    ch->mana += mana_gain(ch);
+                {
+                    int gain = mana_gain(ch);
+                    ch->mana += gain;
+                }
 
                 if ( !IS_NPC(ch) || ch->move < ch->max_move )
-                    ch->move += move_gain(ch);
+                {
+                    int gain = move_gain(ch);
+                    ch->move += gain;
+                }
 
                 if (healmessage)
                 {
