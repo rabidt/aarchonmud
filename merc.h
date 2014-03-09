@@ -3073,7 +3073,6 @@ struct  skill_type
 	sh_int  target;         /* Legal targets        */
 	sh_int  minimum_position;   /* Position for caster / user   */
 	sh_int *pgsn;           /* Pointer to associated gsn    */
-	sh_int  slot;           /* Slot for #OBJECT loading */
 	sh_int  min_mana;       /* Minimum mana used        */
 	sh_int  beats;          /* Waiting time after use   */
 	sh_int  duration;       /* Duration of affects */
@@ -4459,7 +4458,6 @@ int find_spell  args( ( CHAR_DATA *ch, const char *name) );
 int     mana_cost   (CHAR_DATA *ch, int sn, int skill);
 int get_duration( int sn, int level );
 int skill_lookup    args( ( const char *name ) );
-int slot_lookup args( ( int slot ) );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
