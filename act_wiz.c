@@ -2437,7 +2437,6 @@ void do_omni( CHAR_DATA *ch, char *argument )
     BUFFER *output;
     DESCRIPTOR_DATA *d;
     int players = 0;
-    CHAR_DATA       *vch;    
     char *          state;
     char            login[100];
     char            idle[10];
@@ -2446,25 +2445,21 @@ void do_omni( CHAR_DATA *ch, char *argument )
     
     sprintf( buf, "--------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
-    sprintf( buf, "Num  Name         Login   Idle  State    Pos    [Vnum ]  Qst? Host\n\r");
+    sprintf( buf, "Num  Name         Login   Idle  State    Pos    [Room ]  Qst? Host\n\r");
     add_buf(output,buf);    
     sprintf( buf, "--------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        CHAR_DATA *wch;
-        char const *class;
+        CHAR_DATA *wch = ( d->original != NULL ) ? d->original : d->character;
         
-        wch = ( d->original != NULL ) ? d->original : d->character;
-        
-        if ( wch == NULL
-	        || (d->connected != CON_PLAYING && !IS_WRITING_NOTE(d->connected)))
+        if ( wch == NULL )
             continue;
 
         players++;
                    
-        if ( d->character && can_see( ch, d->character ) )
+        if ( wch && can_see( ch, wch ) )
         {
             /* NB: You may need to edit the CON_ values */
             /* I updated to all current rom CON_ values -Silverhand */
@@ -2499,11 +2494,10 @@ void do_omni( CHAR_DATA *ch, char *argument )
             }
             
             /* Format "login" value... */
-            vch = d->original ? d->original : d->character;
-            strftime( login, 100, "%I:%M%p", localtime( &vch->logon ) );
+            strftime( login, 100, "%I:%M%p", localtime( &wch->logon ) );
             
-            if ( vch->timer > 0 )
-                sprintf( idle, "%-4d", vch->timer );
+            if ( wch->timer > 0 )
+                sprintf( idle, "%-4d", wch->timer );
             else
                 sprintf( idle, "    " );
         }
@@ -2517,7 +2511,7 @@ void do_omni( CHAR_DATA *ch, char *argument )
             idle,                                   /* How long idle */
             state,                                  /* State (Playing, creation, etc. */
             capitalize( position_table[wch->position].name),  /* Position */
-            wch->in_room->vnum,                     /* Room player is in */
+            wch->in_room ? wch->in_room->vnum : 0,  /* Room player is in */
             IS_QUESTOR(wch) 
                 || IS_QUESTORHARD(wch) ? "Y" : "N", /* Is player on a quest? */
             d->host,                                /* Send IP through pgrep */
@@ -2528,7 +2522,7 @@ void do_omni( CHAR_DATA *ch, char *argument )
     /*
     * Tally the counts and send the whole list out.
     */
-    sprintf( buf2, "  Players found: %d\n\r", players );
+    sprintf( buf2, "\n\rPlayers found: %d\n\r", players );
     add_buf(output,buf2);
     page_to_char( buf_string(output), ch );
     free_buf(output);
