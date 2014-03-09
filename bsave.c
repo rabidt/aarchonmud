@@ -179,8 +179,13 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
         bwrite_obj( ch, ch->pcdata->smith->old_obj, mf->buf, 0 );
 
     /* save the pets */
-    if (ch->pet != NULL && ch->pet->in_room == ch->in_room)
-      bwrite_pet(ch->pet, mf->buf);
+    if ( ch->pet != NULL )
+    {
+        CHAR_DATA *pet = ch->pet;
+        bwrite_pet(pet, mf->buf);
+        if ( pet->carrying != NULL )
+            bwrite_obj(pet, pet->carrying, mf->buf, 0);
+    }
     bprintf( mf->buf, "#END\n" );
 
     /* mem_save_storage_box will now make the storage_box mf and add it to
@@ -1275,8 +1280,8 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
             word = bread_word( buf );
             if      ( !str_cmp( word, "VER"    ) ) pfile_version = bread_number ( buf );
             else if ( !str_cmp( word, "PLAYER" ) ) bread_char ( ch, buf );
-            else if ( !str_cmp( word, "OBJECT" ) ) bread_obj  ( ch, buf,NULL );
-            else if ( !str_cmp( word, "O"      ) ) bread_obj  ( ch, buf,NULL );
+            else if ( !str_cmp( word, "OBJECT" ) ) bread_obj  ( ch->pet ? ch->pet : ch, buf, NULL );
+            else if ( !str_cmp( word, "O"      ) ) bread_obj  ( ch->pet ? ch->pet : ch, buf, NULL );
             else if ( !str_cmp( word, "PET"    ) ) bread_pet  ( ch, buf );
             else if ( !str_cmp( word, "END"    ) ) break;
             else
