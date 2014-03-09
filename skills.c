@@ -2874,8 +2874,8 @@ void do_slookup( CHAR_DATA *ch, char *argument )
         {
             if ( skill_table[sn].name == NULL )
                 break;
-            sprintf( buf, "Sn: %3d  Slot: %3d  Skill/spell: '%s'\n\r",
-                sn, skill_table[sn].slot, skill_table[sn].name );
+            sprintf( buf, "Sn: %3d  Skill/spell: '%s'\n\r",
+                sn, skill_table[sn].name );
             send_to_char( buf, ch );
         }
     }
@@ -2887,8 +2887,8 @@ void do_slookup( CHAR_DATA *ch, char *argument )
             return;
         }
         
-        sprintf( buf, "Sn: %3d  Slot: %3d  Skill/spell: '%s'\n\r",
-            sn, skill_table[sn].slot, skill_table[sn].name );
+        sprintf( buf, "Sn: %3d  Skill/spell: '%s'\n\r",
+            sn, skill_table[sn].name );
         send_to_char( buf, ch );
     }
     
