@@ -469,12 +469,13 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
        }
        else
        {
+           int dr;
            in_room=ch->in_room;
            send_to_char ("You are caught in a snare!\n\r", ch);
            act( "$n is caught in a deadly snare!", ch, NULL, NULL, TO_ROOM );
-           for ( door = 0; door<MAX_DIR; door++ )
+           for ( dr = 0; dr<MAX_DIR; dr++ )
            {
-               if ( ( pexit = in_room->exit[door] ) != NULL
+               if ( ( pexit = in_room->exit[dr] ) != NULL
                    &&   pexit->u1.to_room != NULL
                    &&   pexit->u1.to_room != in_room )
                {
@@ -501,12 +502,13 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
        }
        else
        {
+           int dr;
            in_room=ch->in_room;
            send_to_char ("You slip on a banana peel!\n\r", ch);
            act( "$n slips on a banana peel! Point and Laugh!", ch, NULL, NULL,TO_ROOM);
-           for ( door = 0; door<MAX_DIR; door++ )
+           for ( dr = 0; dr<MAX_DIR; dr++ )
            {
-               if ( ( pexit = in_room->exit[door] ) != NULL
+               if ( ( pexit = in_room->exit[dr] ) != NULL
                    &&   pexit->u1.to_room != NULL   
                    &&   pexit->u1.to_room != in_room )
                {
