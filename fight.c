@@ -1286,8 +1286,8 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
 
-    if ( ch->hit <= ch->max_hit/4 
-	 && number_percent() < get_skill(ch, gsn_ashura) )
+    if ( per_chance(get_skill(ch, gsn_ashura))
+        && ch->max_hit > 0 && !per_chance(100 * ch->hit / ch->max_hit) )
     {
         one_hit( ch, victim, dt, FALSE);
         check_improve(ch,gsn_ashura,TRUE,3);
