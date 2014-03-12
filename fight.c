@@ -742,48 +742,38 @@ void check_assist(CHAR_DATA *ch)
  */
 void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
-    CHAR_DATA *vch;
-    CHAR_DATA *vch_next;
-    int i, tempest;
+    CHAR_DATA *vch, *vch_next;
+    int tempest;
     
-    if (ch->stance==STANCE_JIHAD
-	|| ch->stance==STANCE_KAMIKAZE
-	|| ch->stance==STANCE_GOBLINCLEAVER)
-	for (i=0; i<3; i++)
-	{
-            if ( ch->in_room == NULL )
+    // area attacks
+    if ( ch->stance == STANCE_JIHAD
+        || ch->stance == STANCE_KAMIKAZE
+        || ch->stance == STANCE_GOBLINCLEAVER )
+    {
+        if ( ch->in_room == NULL )
+        {
+            bugf("stance_hit: ch->in_room NULL for %s", ch->name);
+            return;
+        }
+        for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
+        {
+            vch_next = vch->next_in_room;
+            if ( vch->fighting && is_same_group(vch->fighting, ch) )
             {
-                bugf("stance_hit: ch->in_room NULL for %s", ch->name);
-		break;
-	    }
+                one_hit(ch, vch, dt, FALSE);
+                // goblin cleaver grants 3 extra attacks (total) against each opponent
+                if ( ch->stance == STANCE_GOBLINCLEAVER )
+                {
+                    one_hit(ch, vch, dt, FALSE);
+                    one_hit(ch, vch, dt, FALSE);
+                }
+                // kamikaze grants 1 additional attack against each opponent targeting you
+                else if ( ch->stance == STANCE_KAMIKAZE && vch->fighting == ch )
+                    one_hit(ch, vch, dt, FALSE);
+            }
+        }
+    }
 
-	    for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
-	    {
-		vch_next = vch->next_in_room;
-		if (vch->fighting && (is_same_group(vch->fighting, ch)))
-		    one_hit(ch,vch,dt, FALSE);
-	    }
-	    /* check if more attacks follow.. */
-	    if ( ch->stance == STANCE_GOBLINCLEAVER )
-		continue;
-	    if ( ch->stance == STANCE_KAMIKAZE
-		 && ch->hit <= ch->max_hit/4 
-		 && number_percent() < get_skill(ch, gsn_ashura) )
-		continue;
-	    break;
-	}
-        
-    /*
-    if (ch->stance==STANCE_GOBLINCLEAVER)
-	for (i=0; i<3; i++)
-	    for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
-            {
-		vch_next = vch->next_in_room;
-		if (vch->fighting && is_same_group(vch->fighting, ch))
-		    one_hit(ch,vch,dt, FALSE);
-	    }
-    */
-      
     if ( ch->stance == STANCE_ANKLEBITER )
     {
 	int wait = ch->wait;
@@ -915,6 +905,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         one_hit(ch, victim, dt, TRUE);
 
     CHECK_RETURN(ch, victim);
+    // free attack for anyone attacking a character in kamikaze - works both ways
     if ( victim->stance==STANCE_KAMIKAZE )
         one_hit(ch, victim, dt, FALSE);
 }
