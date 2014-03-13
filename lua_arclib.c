@@ -2371,6 +2371,20 @@ OBJVHM ( containerflag, "container only. Check container flags.",
 /* end common section */
 
 /* CH section */
+static int CH_rvnum ( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    luaL_checkinteger( LS, 2 );
+    lua_pushliteral( LS, "r");
+    lua_insert( LS, 2 );
+    lua_concat( LS, 2 );
+    lua_pushinteger( LS,
+            r_atoi( ud_ch, check_string( LS, 2, MIL) ) );
+    return 1;
+
+}
+HELPTOPIC CH_rvnum_help = {};
+
 static int CH_setval ( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4870,6 +4884,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(cancel, 1), 
     CHMETH(setval, 1),
     CHMETH(getval, 1),
+    CHMETH(rvnum, 0),
     CHMETH(describe, 1),
     CHMETH(addaffect, 9),
     CHMETH(removeaffect,9),
