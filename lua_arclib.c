@@ -1656,6 +1656,21 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
     return 0;
 }
 
+static int L_rvnum( lua_State *LS, AREA_DATA *area )
+{
+    if (!area)
+        luaL_error(LS, "NULL area in L_rvnum.");
+
+    int nr=luaL_checkinteger(LS,1);
+    int vnum=area->min_vnum + nr;
+
+    if ( vnum < area->min_vnum || vnum > area->max_vnum )
+        luaL_error(LS, "Rvnum %d (%d) out of area vnum bounds.", vnum, nr );
+
+    lua_pushinteger(LS, vnum);
+    return 1;
+}
+
 static int set_flag( lua_State *LS,
         const char *funcname, 
         const struct flag_type *flagtbl, 
@@ -2374,14 +2389,14 @@ OBJVHM ( containerflag, "container only. Check container flags.",
 static int CH_rvnum ( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
-    luaL_checkinteger( LS, 2 );
-    lua_pushliteral( LS, "r");
-    lua_insert( LS, 2 );
-    lua_concat( LS, 2 );
-    lua_pushinteger( LS,
-            r_atoi( ud_ch, check_string( LS, 2, MIL) ) );
-    return 1;
+    lua_remove(LS,1);
 
+    if (IS_NPC(ud_ch))
+        return L_rvnum( LS, ud_ch->pIndexData->area );
+    else if (!ud_ch->in_room)
+        luaL_error(LS, "%s not in a room.", ud_ch->name );
+    else
+        return L_rvnum( LS, ud_ch->in_room->area );
 }
 HELPTOPIC CH_rvnum_help = {};
 
