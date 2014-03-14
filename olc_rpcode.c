@@ -262,6 +262,7 @@ RPEDIT (rpedit_create)
 
     pRcode			= new_rpcode();
     pRcode->vnum		= value;
+    pRcode->security    = ch->pcdata->security;
     pRcode->next		= rprog_list;
     rprog_list			= pRcode;
     ch->desc->pEdit		= (void *)pRcode;
