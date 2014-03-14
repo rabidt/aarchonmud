@@ -964,40 +964,39 @@ void do_aim( CHAR_DATA *ch, char *argument )
     if ( !IS_AWAKE(victim) )
         chance = (100 + chance) / 2;
     
-    if ( per_chance(chance) && one_hit(ch, victim, gsn_aim, secondgun) )
+    if ( per_chance(chance) )
     {
-        switch (aim_target)
+        if ( one_hit(ch, victim, gsn_aim, secondgun) )
         {
-        case AIM_NORMAL:
-            break;
-        case AIM_HEAD:
-            check_assassinate(ch, victim, obj, 5);
-            break;
-        case AIM_HAND:
-            if ( number_percent() < 50 )
-                disarm(ch, victim, FALSE, get_mastery(ch, gsn_aim));
-            break;
-        case AIM_FOOT:
-            act("Your bullet hits $N in the foot, making $M hop around for a few moments.",
-                ch,NULL,victim,TO_CHAR);
-            act("$n's bullet hits you in the foot!!  The pain makes it difficult to stand on it.",
-                ch,NULL,victim,TO_VICT);
-            act("$n's bullet hits $N in the foot, making $M hop around for a few moments.",
-                ch,NULL,victim,TO_NOTVICT);
-            WAIT_STATE( victim, 2*PULSE_VIOLENCE );
-            victim->slow_move = UMAX(ch->slow_move, PULSE_VIOLENCE * 6);
-            if( number_bits(1) )
-                destance(victim, get_mastery(ch, gsn_aim));
-            break;
-        default:
-            bug("AIM: invalid aim_target: %d", aim_target);
+            switch (aim_target)
+            {
+            case AIM_NORMAL:
+                break;
+            case AIM_HEAD:
+                check_assassinate(ch, victim, obj, 5);
+                break;
+            case AIM_HAND:
+                if ( number_percent() < 50 )
+                    disarm(ch, victim, FALSE, get_mastery(ch, gsn_aim));
+                break;
+            case AIM_FOOT:
+                act("Your bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_CHAR);
+                act("$n's bullet hits you in the foot!!  The pain makes it difficult to stand on it.", ch, NULL, victim, TO_VICT);
+                act("$n's bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_NOTVICT);
+                WAIT_STATE( victim, 2*PULSE_VIOLENCE );
+                victim->slow_move = UMAX(ch->slow_move, PULSE_VIOLENCE * 6);
+                if( number_bits(1) )
+                    destance(victim, get_mastery(ch, gsn_aim));
+                break;
+            default:
+                bug("AIM: invalid aim_target: %d", aim_target);
+            }
         }
         check_jam(ch, 1, secondgun);
-        check_improve(ch,gsn_aim,TRUE,1);
-    }   
+        check_improve(ch, gsn_aim, TRUE, 1);
+    }
     else
     {
-        check_improve(ch,gsn_aim,FALSE,1);
         damage( ch, victim, 0, gsn_aim,DAM_NONE,TRUE);
     }
         
