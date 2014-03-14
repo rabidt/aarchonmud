@@ -4909,6 +4909,15 @@ static const LUA_PROP_TYPE CH_method_table [] =
 /* end CH section */
 
 /* OBJ section */
+static int OBJ_rvnum ( lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_remove(LS,1);
+
+    return L_rvnum( LS, ud_obj->pIndexData->area );
+}
+HELPTOPIC OBJ_rvnum_help = {};
+
 static int OBJ_loadfunction (lua_State *LS)
 {
     lua_obj_program( NULL, RUNDELAY_VNUM, NULL,
@@ -5655,6 +5664,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     OBJMETH(cancel, 1),
     OBJMETH(setval, 1),
     OBJMETH(getval, 1),
+    OBJMETH(rvnum, 1),
     
     /* portal only */
     OBJMETH(exitflag, 0),
@@ -5675,6 +5685,15 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
 /* end OBJ section */
 
 /* AREA section */
+static int AREA_rvnum ( lua_State *LS)
+{
+    OBJ_DATA *ud_area=check_AREA(LS,1);
+    lua_remove(LS,1);
+
+    return L_rvnum( LS, ud_area );
+}
+HELPTOPIC AREA_rvnum_help = {};
+
 static int AREA_loadfunction( lua_State *LS)
 {
     lua_area_program( NULL, RUNDELAY_VNUM, NULL,
@@ -6175,12 +6194,22 @@ static const LUA_PROP_TYPE AREA_method_table [] =
     AREAMETH(tprint, 1),
     AREAMETH(delay, 1),
     AREAMETH(cancel, 1),
+    AREAMETH(rvnum, 1),
     ENDPTABLE
 }; 
 
 /* end AREA section */
 
 /* ROOM section */
+static int ROOM_rvnum ( lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    lua_remove(LS,1);
+
+    return L_rvnum( LS, ud_room->area );
+}
+HELPTOPIC ROOM_rvnum_help = {};
+
 static int ROOM_loadfunction ( lua_State *LS)
 {
     lua_room_program( NULL, RUNDELAY_VNUM, NULL,
@@ -6649,6 +6678,7 @@ static const LUA_PROP_TYPE ROOM_method_table [] =
     ROOMMETH(cancel, 1),
     ROOMMETH(savetbl, 1),
     ROOMMETH(loadtbl, 1),
+    ROOMMETH(rvnum, 1),
     ENDPTABLE
 }; 
 
