@@ -263,6 +263,7 @@ APEDIT (apedit_create)
 
     pAcode			= new_apcode();
     pAcode->vnum		= value;
+    pAcode->security    = ch->pcdata->security;
     pAcode->next		= aprog_list;
     aprog_list			= pAcode;
     ch->desc->pEdit		= (void *)pAcode;
