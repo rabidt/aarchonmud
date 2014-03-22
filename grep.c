@@ -1574,6 +1574,23 @@ int get_obj_spec( OBJ_DATA *obj )
     return get_obj_index_spec(obj->pIndexData, obj->level);
 }
 
+int weapon_index_dam_spec( OBJ_INDEX_DATA *obj )
+{
+    if ( obj->level < 90 )
+    {
+        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) )
+            return (obj->level + 10) * 9/10;
+        else
+            return (obj->level + 10) * 6/10;
+    }
+    else
+    {
+        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) )
+            return (obj->level - 60) * 3;
+        else
+            return (obj->level - 60) * 2;
+    }
+}
 
 int average_weapon_dam( OBJ_DATA *obj )
 {
@@ -1687,23 +1704,13 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
     /* check weapon damage */
     if ( obj->item_type == ITEM_WEAPON )
     {
-	if ( obj->level < 90 )
-	    spec = (obj->level * 2 + 2)/3;
-	else
-	    spec = 60 + 2 * (obj->level - 90);
-
-
-	value = average_weapon_index_dam( obj );
-
-	if ( obj->value[4], WEAPON_TWO_HANDS )
-	    spec += 5;
-
+        spec = weapon_index_dam_spec(obj);
+        value = average_weapon_index_dam(obj);
         if ( value > spec )
-	{
-	    sprintf( msg, "dam=%d/%d", value, spec );
-	    return FALSE;
-	}
-        
+        {
+            sprintf( msg, "dam=%d/%d", value, spec );
+            return FALSE;
+        }
     }
 
     /* check armor class */
@@ -1727,7 +1734,7 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
     int value, spec;
     AFFECT_DATA *aff;
 
-    if ( obj->level >= LEVEL_IMMORTAL || !can_wear(obj) )
+    if ( obj->level >= LEVEL_IMMORTAL || obj->level == 0 || !can_wear(obj) )
         return FALSE;
     
     /* check ops */
@@ -1743,17 +1750,29 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
     /* check penalties */
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
     {
-        int spec = get_affect_cap( aff->location, obj->level );
-        int value = aff->modifier;
+        spec = get_affect_cap( aff->location, obj->level );
+        value = aff->modifier;
         int factor = spec < 0 ? -1 : 1; // saves & AC
 
         // below negative spec
         if ( value*factor < -spec*factor )
         {
-            sprintf( msg, "%s = %d/%d", name_lookup(aff->location, apply_flags), value, spec );
+            sprintf( msg, "%s=%d/%d", name_lookup(aff->location, apply_flags), value, spec );
             return TRUE;
         }
-    }    
+    }
+    
+    /* check weapon damage */
+    if ( obj->item_type == ITEM_WEAPON )
+    {
+        spec = weapon_index_dam_spec(obj);
+        value = average_weapon_index_dam(obj);
+        if ( value < spec )
+        {
+            sprintf( msg, "dam=%d/%d", value, spec );
+            return TRUE;
+        }
+    }
     
     return FALSE;
 }
