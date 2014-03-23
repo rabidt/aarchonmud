@@ -4954,6 +4954,18 @@ void set_weapon_index_dam( OBJ_INDEX_DATA *pObj, int dam )
     pObj->value[2] = die;
 }
 
+bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj )
+{
+    int dam = weapon_index_dam_spec(pObj);
+    if ( average_weapon_index_dam(pObj) != dam )
+    {
+        set_weapon_index_dam(pObj, dam);
+        return TRUE;
+    }
+    else
+        return FALSE;
+}
+
 /* Sets values for Armor Class based on level, and also
  * cost by using adjust drop or adjust shop.
  * Check the table above for values in case they need to
@@ -5014,12 +5026,8 @@ OEDIT( oedit_adjust )
     // damage
     else if ( pObj->item_type == ITEM_WEAPON )
     {
-        int dam = weapon_index_dam_spec(pObj);
-        if ( average_weapon_index_dam(pObj) != dam )
-        {
-            set_weapon_index_dam(pObj, dam);
+        if ( adjust_weapon_dam(pObj) )
             send_to_char("Damage has been adjusted.\n\r", ch);
-        }
     }
     
     // cost
