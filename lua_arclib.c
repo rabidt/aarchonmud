@@ -6879,6 +6879,22 @@ static const LUA_PROP_TYPE RESET_method_table [] =
 /* end RESET section */
 
 /* OBJPROTO section */
+static int OBJPROTO_adjustdamage( lua_State *LS)
+{
+
+    OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
+    if ( ud_objp->item_type != ITEM_WEAPON )
+        luaL_error( LS, "adjustdamage for weapon only");
+
+    lua_pushboolean( LS, adjust_weapon_dam( ud_objp ) );
+    return 1;
+}
+HELPTOPIC OBJPROTO_adjustdamage_help =
+{
+    .summary = "weapon only. Auto-adjust damage (permanent change).",
+    .info = "Returns false if no adjust needed, otherwise adjusts and returns true."
+};
+
 static int OBJPROTO_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -7173,6 +7189,7 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
     
     /* weapon only */
     OPMETH(weaponflag, 0),
+    OPMETH(adjustdamage, 9),
     
     /* container only */
     OPMETH(containerflag, 0),
