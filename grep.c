@@ -1574,22 +1574,27 @@ int get_obj_spec( OBJ_DATA *obj )
     return get_obj_index_spec(obj->pIndexData, obj->level);
 }
 
-int weapon_index_dam_spec( OBJ_INDEX_DATA *obj )
+int weapon_dam_spec( int level, bool twohanded )
 {
-    if ( obj->level < 90 )
+    if ( level < 90 )
     {
-        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) )
-            return (obj->level + 10) * 9/10;
+        if ( twohanded )
+            return (level + 10) * 9/10;
         else
-            return (obj->level + 10) * 6/10;
+            return (level + 10) * 6/10;
     }
     else
     {
-        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) )
-            return (obj->level - 60) * 3;
+        if ( twohanded )
+            return (level - 60) * 3;
         else
-            return (obj->level - 60) * 2;
+            return (level - 60) * 2;
     }
+}
+
+int weapon_index_dam_spec( OBJ_INDEX_DATA *obj )
+{
+    return weapon_dam_spec(obj->level, IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS));
 }
 
 int average_weapon_dam( OBJ_DATA *obj )
