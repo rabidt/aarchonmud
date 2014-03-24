@@ -1656,6 +1656,21 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
     return 0;
 }
 
+static int L_rvnum( lua_State *LS, AREA_DATA *area )
+{
+    if (!area)
+        luaL_error(LS, "NULL area in L_rvnum.");
+
+    int nr=luaL_checkinteger(LS,1);
+    int vnum=area->min_vnum + nr;
+
+    if ( vnum < area->min_vnum || vnum > area->max_vnum )
+        luaL_error(LS, "Rvnum %d (%d) out of area vnum bounds.", vnum, nr );
+
+    lua_pushinteger(LS, vnum);
+    return 1;
+}
+
 static int set_flag( lua_State *LS,
         const char *funcname, 
         const struct flag_type *flagtbl, 
@@ -2371,6 +2386,20 @@ OBJVHM ( containerflag, "container only. Check container flags.",
 /* end common section */
 
 /* CH section */
+static int CH_rvnum ( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_remove(LS,1);
+
+    if (IS_NPC(ud_ch))
+        return L_rvnum( LS, ud_ch->pIndexData->area );
+    else if (!ud_ch->in_room)
+        luaL_error(LS, "%s not in a room.", ud_ch->name );
+    else
+        return L_rvnum( LS, ud_ch->in_room->area );
+}
+HELPTOPIC CH_rvnum_help = {};
+
 static int CH_setval ( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4870,6 +4899,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(cancel, 1), 
     CHMETH(setval, 1),
     CHMETH(getval, 1),
+    CHMETH(rvnum, 0),
     CHMETH(describe, 1),
     CHMETH(addaffect, 9),
     CHMETH(removeaffect,9),
@@ -4879,6 +4909,15 @@ static const LUA_PROP_TYPE CH_method_table [] =
 /* end CH section */
 
 /* OBJ section */
+static int OBJ_rvnum ( lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+    lua_remove(LS,1);
+
+    return L_rvnum( LS, ud_obj->pIndexData->area );
+}
+HELPTOPIC OBJ_rvnum_help = {};
+
 static int OBJ_loadfunction (lua_State *LS)
 {
     lua_obj_program( NULL, RUNDELAY_VNUM, NULL,
@@ -5625,6 +5664,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     OBJMETH(cancel, 1),
     OBJMETH(setval, 1),
     OBJMETH(getval, 1),
+    OBJMETH(rvnum, 1),
     
     /* portal only */
     OBJMETH(exitflag, 0),
@@ -5645,6 +5685,15 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
 /* end OBJ section */
 
 /* AREA section */
+static int AREA_rvnum ( lua_State *LS)
+{
+    OBJ_DATA *ud_area=check_AREA(LS,1);
+    lua_remove(LS,1);
+
+    return L_rvnum( LS, ud_area );
+}
+HELPTOPIC AREA_rvnum_help = {};
+
 static int AREA_loadfunction( lua_State *LS)
 {
     lua_area_program( NULL, RUNDELAY_VNUM, NULL,
@@ -6145,12 +6194,22 @@ static const LUA_PROP_TYPE AREA_method_table [] =
     AREAMETH(tprint, 1),
     AREAMETH(delay, 1),
     AREAMETH(cancel, 1),
+    AREAMETH(rvnum, 1),
     ENDPTABLE
 }; 
 
 /* end AREA section */
 
 /* ROOM section */
+static int ROOM_rvnum ( lua_State *LS)
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    lua_remove(LS,1);
+
+    return L_rvnum( LS, ud_room->area );
+}
+HELPTOPIC ROOM_rvnum_help = {};
+
 static int ROOM_loadfunction ( lua_State *LS)
 {
     lua_room_program( NULL, RUNDELAY_VNUM, NULL,
@@ -6619,6 +6678,7 @@ static const LUA_PROP_TYPE ROOM_method_table [] =
     ROOMMETH(cancel, 1),
     ROOMMETH(savetbl, 1),
     ROOMMETH(loadtbl, 1),
+    ROOMMETH(rvnum, 1),
     ENDPTABLE
 }; 
 
@@ -6819,6 +6879,22 @@ static const LUA_PROP_TYPE RESET_method_table [] =
 /* end RESET section */
 
 /* OBJPROTO section */
+static int OBJPROTO_adjustdamage( lua_State *LS)
+{
+
+    OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
+    if ( ud_objp->item_type != ITEM_WEAPON )
+        luaL_error( LS, "adjustdamage for weapon only");
+
+    lua_pushboolean( LS, adjust_weapon_dam( ud_objp ) );
+    return 1;
+}
+HELPTOPIC OBJPROTO_adjustdamage_help =
+{
+    .summary = "weapon only. Auto-adjust damage (permanent change).",
+    .info = "Returns false if no adjust needed, otherwise adjusts and returns true."
+};
+
 static int OBJPROTO_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -7113,6 +7189,7 @@ static const LUA_PROP_TYPE OBJPROTO_method_table [] =
     
     /* weapon only */
     OPMETH(weaponflag, 0),
+    OPMETH(adjustdamage, 9),
     
     /* container only */
     OPMETH(containerflag, 0),

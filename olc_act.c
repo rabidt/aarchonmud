@@ -4929,6 +4929,48 @@ bool adjust_obj_weight( OBJ_INDEX_DATA *obj )
     return TRUE;
 }
 
+// find a nice damage die to use to get to given average damage
+int nice_dam_die( int dam )
+{
+    int i;
+    // special case
+    if ( dam <= 1 )
+        return 1;
+    // try to find a nice die
+#define MAX_DIE 8
+    int dice[MAX_DIE] = {20,12,10,8,6,4,3,2};
+    for ( i = 0; i < MAX_DIE; i++ )
+        if ( (2*dam) % (dice[i]+1) == 0 )
+            return dice[i];
+#undef MAX_DIE
+    // no nice solution
+    return dam - 1;
+}
+
+void set_weapon_index_dam( OBJ_INDEX_DATA *pObj, int dam )
+{
+    int die = nice_dam_die(dam);
+    pObj->value[1] = (2*dam) / (die+1);
+    pObj->value[2] = die;
+}
+
+bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj )
+{
+    if ( !pObj || pObj->item_type != ITEM_WEAPON )
+        return FALSE;
+    
+    int dam = weapon_index_dam_spec(pObj);
+    if ( average_weapon_index_dam(pObj) != dam )
+    {
+        set_weapon_index_dam(pObj, dam);
+        // ensure area change is marked if called from lua
+        SET_BIT(pObj->area->area_flags, AREA_CHANGED);
+        return TRUE;
+    }
+    else
+        return FALSE;
+}
+
 /* Sets values for Armor Class based on level, and also
  * cost by using adjust drop or adjust shop.
  * Check the table above for values in case they need to
@@ -4985,6 +5027,12 @@ OEDIT( oedit_adjust )
             pObj->value[3] = ovalue[OBJ_STAT_AC_EXOTIC];
             send_to_char("AC has been adjusted.\n\r", ch);
         }
+    }
+    // damage
+    else if ( pObj->item_type == ITEM_WEAPON )
+    {
+        if ( adjust_weapon_dam(pObj) )
+            send_to_char("Damage has been adjusted.\n\r", ch);
     }
     
     // cost

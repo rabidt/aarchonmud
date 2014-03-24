@@ -263,6 +263,7 @@ OPEDIT (opedit_create)
 
     pOcode			= new_opcode();
     pOcode->vnum		= value;
+    pOcode->security    = ch->pcdata->security;
     pOcode->next		= oprog_list;
     oprog_list			= pOcode;
     ch->desc->pEdit		= (void *)pOcode;
