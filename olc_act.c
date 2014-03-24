@@ -4947,6 +4947,13 @@ int nice_dam_die( int dam )
     return dam - 1;
 }
 
+void set_weapon_dam( OBJ_DATA *pObj, int dam )
+{
+    int die = nice_dam_die(dam);
+    pObj->value[1] = (2*dam) / (die+1);
+    pObj->value[2] = die;
+}
+
 void set_weapon_index_dam( OBJ_INDEX_DATA *pObj, int dam )
 {
     int die = nice_dam_die(dam);
