@@ -4956,10 +4956,15 @@ void set_weapon_index_dam( OBJ_INDEX_DATA *pObj, int dam )
 
 bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj )
 {
+    if ( !pObj || pObj->item_type != ITEM_WEAPON )
+        return FALSE;
+    
     int dam = weapon_index_dam_spec(pObj);
     if ( average_weapon_index_dam(pObj) != dam )
     {
         set_weapon_index_dam(pObj, dam);
+        // ensure area change is marked if called from lua
+        SET_BIT(pObj->area->area_flags, AREA_CHANGED);
         return TRUE;
     }
     else
