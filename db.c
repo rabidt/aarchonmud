@@ -1681,11 +1681,15 @@ void load_shops( FILE *fp )
     {
         MOB_INDEX_DATA *pMobIndex;
         int iTrade;
+        int keeper;
+
+        keeper=fread_number(fp);
+        if ( keeper == 0 )
+            break;
         
         pShop           = alloc_perm( sizeof(*pShop) );
-        pShop->keeper       = fread_number( fp );
-        if ( pShop->keeper == 0 )
-            break;
+        pShop->keeper       = keeper;
+
         for ( iTrade = 0; iTrade < MAX_TRADE; iTrade++ )
             pShop->buy_type[iTrade] = fread_number( fp );
         pShop->profit_buy   = fread_number( fp );
