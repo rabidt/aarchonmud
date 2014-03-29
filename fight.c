@@ -758,7 +758,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
         {
             vch_next = vch->next_in_room;
-            if ( vch->fighting && is_same_group(vch->fighting, ch) )
+            if ( vch->fighting && is_same_group(vch->fighting, ch) && !is_safe_check(ch, vch, TRUE, FALSE, FALSE) )
             {
                 one_hit(ch, vch, dt, FALSE);
                 // goblin cleaver grants 3 extra attacks (total) against each opponent
@@ -1119,6 +1119,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             vch_next = vch->next_in_room;
             if ( vch->fighting != NULL
                 && is_same_group(vch->fighting, ch)
+                && !is_safe_check(ch, vch, TRUE, FALSE, FALSE)
                 && ch->fighting != vch )
             {
                 one_hit(ch, vch, dt, FALSE);
@@ -1802,15 +1803,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             }
     }
 
-    /* just in case */
-    if (victim == ch || ch == NULL || victim == NULL)
-        return FALSE;
-    
-    /*
-     * Can't beat a dead char!
-     * Guard against weird room-leavings.
-     */
-    if ( victim->position == POS_DEAD || ch->in_room != victim->in_room )
+    // another safety net
+    if ( stop_attack(ch, victim) || is_safe(ch, victim) )
         return FALSE;
     
     /*
