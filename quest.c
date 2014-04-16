@@ -55,8 +55,8 @@ DECLARE_DO_FUN( do_startwar );
 
 /* Quest timer defines - Maedhros, Feb 8, 2007 */ 
  
-#define QUEST_COUNTDOWN_MIN 15           /* Original value: 15 */
-#define QUEST_COUNTDOWN_MAX 30           /* Original value: 30 */
+#define QUEST_COUNTDOWN_MIN 30           /* Original value: 15 */
+#define QUEST_COUNTDOWN_MAX 60           /* Original value: 30 */
 #define QUEST_NEXTQUEST_MIN 1            /* Original value: 2 */
 #define QUEST_NEXTQUEST_MAX 10           /* Original value: 10 */
 
