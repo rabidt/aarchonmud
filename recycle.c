@@ -303,6 +303,8 @@ void free_obj(OBJ_DATA *obj)
 	if (!IS_VALID(obj))
 	return;
 
+    object_count--;
+
 	for (paf = obj->affected; paf != NULL; paf = paf_next)
 	{
 	    paf_next = paf->next;
