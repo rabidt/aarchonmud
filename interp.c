@@ -1259,7 +1259,7 @@ void do_commands( CHAR_DATA *ch, char *argument )
             &&   cmd_table[cmd].show
             &&   (!cmd_table[cmd].olc || (!IS_NPC(ch)&&ch->pcdata->security>0)) )
         {
-            sprintf( buf, "%-.12s", cmd_table[cmd].name );
+            sprintf( buf, "%-12s", cmd_table[cmd].name );
             send_to_char( buf, ch );
             if ( ++col % 6 == 0 )
                 send_to_char( "\n\r", ch );
