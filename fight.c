@@ -4759,14 +4759,8 @@ void set_fighting( CHAR_DATA *ch, CHAR_DATA *victim )
 
 void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
 {
-    /*
-    if ( ch->fighting != NULL )
-    {
-        //  bug( "Set_fighting: already fighting", 0 );
-        ch->fighting = victim;
+    if ( ch == victim )
         return;
-    }
-    */
 
     if ( IS_AFFECTED( ch, AFF_OVERCHARGE))
     {
