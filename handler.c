@@ -3309,6 +3309,9 @@ bool ignore_invisible = FALSE; // hunt etc.
  */
 int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
 {
+    if ( victim->must_extract )
+        return SEE_CANT;
+    
     /* RT changed so that WIZ_INVIS has levels */
     if ( ch == victim )
         return SEE_CAN;
