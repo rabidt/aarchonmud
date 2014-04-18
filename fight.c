@@ -541,9 +541,9 @@ void special_affect_update(CHAR_DATA *ch)
 	int heal;
 
 	if ( ch->level < 90 || IS_NPC(ch) )
-	    heal = 20 + ch->level;
+	    heal = 10 + ch->level/2;
 	else
-	    heal = 150 + 10 * (ch->level - 90);
+	    heal = 100 + 5 * (ch->level - 90);
 
 	send_to_char( "You replenish yourself.\n\r", ch ); 
 	ch->hit = UMIN(ch->max_hit, ch->hit + heal);
