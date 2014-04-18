@@ -4113,8 +4113,8 @@ void spell_replenish( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
     af.where     = TO_AFFECTS;
     af.type      = sn;
-    af.level     = ch->level;
-    af.duration  = 1;
+    af.level     = level;
+    af.duration  = 2;
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_REPLENISH;
@@ -4122,7 +4122,7 @@ void spell_replenish( int sn, int level, CHAR_DATA *ch, void *vo, int target)
        
     af.where     = TO_AFFECTS;
     af.type      = gsn_replenish_cooldown;
-    af.duration  = 5;
+    af.duration  = 10;
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = 0;
