@@ -467,9 +467,17 @@ function list_files ( path )
 end
 
 function lua_arcgc()
-    -- Destroy game object tables who don't have envs
+    -- Destroy game object tables who don't have envs or pending timer
+
+    -- make temporary timer table for tableid lookup
+    local tmr={}
+    for k,v in pairs(delaytbl) do
+        tmr[v.udobj.tableid]=true
+    end
+
+
     for k,v in pairs(origtbl) do
-        if not(envtbl[v.tableid]) then
+        if not(envtbl[v.tableid]) and not(tmr[v.tableid]) then
             UnregisterUd(v.tableid)
         end
     end
