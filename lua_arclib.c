@@ -5054,9 +5054,33 @@ HELPTOPIC OBJ_destroy_help={};
 static int OBJ_clone( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+    bool copy_luavals=FALSE;
+
+    if (!lua_isnone(LS,2))
+    {
+        copy_luavals=lua_toboolean(LS,2);
+    }
 
     OBJ_DATA *clone = create_object(ud_obj->pIndexData,0);
     clone_object( ud_obj, clone );
+
+    if (copy_luavals)
+    {
+        LUA_EXTRA_VAL *luaval;
+        LUA_EXTRA_VAL *cloneval;
+        for ( luaval=ud_obj->luavals; luaval ; luaval=luaval->next )
+        {
+            cloneval=new_luaval(
+                    luaval->type,
+                    str_dup( luaval->name ),
+                    str_dup( luaval->val ),
+                    luaval->persist);
+
+            cloneval->next=clone->luavals;
+            clone->luavals=cloneval;
+        }
+    }
+
     if (ud_obj->carried_by)
         obj_to_char( clone, ud_obj->carried_by );
     else if (ud_obj->in_room)
@@ -5071,7 +5095,17 @@ static int OBJ_clone( lua_State *LS)
     else
         return 0;
 }
-HELPTOPIC OBJ_clone_help={};
+HELPTOPIC OBJ_clone_help={
+    .summary="Returns a clone of the OBJ.",
+    .info = "Arguments:  <copy_luavals[boolean]\n\r\n\r"
+          "Return: [OBJ]\n\r\n\r"
+          "Example:\n\r"
+          "local newobj=obj:clone()\n\r"
+          "local newobj=obj:clone(true)\n\r\n\r"
+          "Note:\n\r"
+          "Optional 'copy_luavals' argument is false by default. If true, any values\n\r"
+          "set by setval() will be copied to the cloned object."
+};
 
 static int OBJ_oload (lua_State *LS)
 {
