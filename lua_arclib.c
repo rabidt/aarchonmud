@@ -648,6 +648,59 @@ static int godlib_confuse (lua_State *LS)
 }
 GODLIBHELP_DURATION( confuse );
 
+static int glob_transfer (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    const char *arg=check_string(LS,2,MIL);
+    ROOM_INDEX_DATA *location=find_mp_location( ch, arg); 
+
+    if (!location)
+    {
+        lua_pushboolean( LS, FALSE);
+        return 1;
+    }
+    
+    transfer_char( ch, location );
+    lua_pushboolean( LS, TRUE);
+    return 1;
+}
+HELPTOPIC glob_transfer_help = 
+{
+    .summary="Transfer a CH to another location.",
+    .info="Return false if location wasn't found."
+};
+
+static int glob_gtransfer (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    const char *arg=check_string(LS,2,MIL);
+    ROOM_INDEX_DATA *location=find_location( ch, arg);
+
+    if (!location)
+    {
+        lua_pushboolean( LS, FALSE);
+        return 1;
+    }
+
+    CHAR_DATA *victim, *next_char;
+    for ( victim=ch->in_room->people; victim; victim=next_char )
+    {
+        next_char=victim->next_in_room;
+        if ( is_same_group( ch, victim ) )
+        {
+            transfer_char(victim, location);
+        }
+    }
+
+    lua_pushboolean( LS, TRUE);
+    return 1;
+}
+HELPTOPIC glob_gtransfer_help =
+{
+    .summary="Transfer CH's and all group members in same room to a location.",
+    .info="Return false if location wasn't found."
+};
+
 static int glob_sendtochar (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
@@ -1386,6 +1439,8 @@ GLOB_TYPE glob_table[] =
     GFUN(getmobworld,   0),
     GFUN(getpc,         0),
     GFUN(getrandomroom, 0),
+    GFUN(transfer,      0),
+    GFUN(gtransfer,     0),
     GFUN(sendtochar,    0),
     GFUN(echoat,        0),
     GFUN(echoaround,    0),
@@ -2883,7 +2938,7 @@ static int CH_goto (lua_State *LS)
 
     if (!hidden)
     {
-        do_look( ud_ch, "");
+        do_look( ud_ch, "auto");
     }
 
     return 0;
@@ -4934,8 +4989,13 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(purge, 1),
     CHMETH(goto, 1),
     CHMETH(at, 1),
+    /* deprecated in favor of global funcs */
+    /*
     CHMETH(transfer, 1),
     CHMETH(gtransfer, 1),
+    */
+    { "transfer", CH_transfer, 1, &CH_transfer_help, STS_DEPRECATED},
+    { "gtransfer", CH_gtransfer, 1, &CH_gtransfer_help, STS_DEPRECATED},
     CHMETH(otransfer, 1),
     CHMETH(force, 1),
     CHMETH(gforce, 1),
