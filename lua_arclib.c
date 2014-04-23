@@ -2871,8 +2871,20 @@ HELPTOPIC CH_purge_help = {};
 
 static int CH_goto (lua_State *LS)
 {
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    char *location=check_string(LS,2,MIL);
+    bool hidden=FALSE;
+    if ( !lua_isnone(LS,3) )
+    {
+        hidden=lua_toboolean(LS,3);
+    }
 
-    do_mpgoto( check_CH(LS, 1), check_fstring( LS, 2, MIL));
+    do_mpgoto( ud_ch, location);
+
+    if (!hidden)
+    {
+        do_look( ud_ch, "");
+    }
 
     return 0;
 }
