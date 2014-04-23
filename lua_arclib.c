@@ -666,6 +666,55 @@ HELPTOPIC glob_sendtochar_help =
 
 };
 
+static int glob_echoat (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    char *msg=check_fstring( LS, 2, MSL);
+
+    send_to_char(msg, ch);
+    send_to_char("\n\r",ch);
+    return 0;
+}
+HELPTOPIC glob_echoat_help =
+{
+    .summary="Send text to target CH, appended by a newline.",
+    .info="Arguments: target[CH], text[string]\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "echoat(ch, \"Hello there\")"
+
+};
+
+static int glob_echoaround (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    char *msg=check_fstring( LS, 2, MSL);
+
+    CHAR_DATA *tochar, *next_char;
+
+    for ( tochar=ch->in_room->people; tochar ; tochar=next_char )
+    {
+        next_char=tochar->next_in_room;
+        if ( tochar == ch )
+            continue;
+
+        send_to_char( msg, tochar );
+        send_to_char( "\n\r", tochar);
+    }
+
+    return 0;
+}
+HELPTOPIC glob_echoaround_help =
+{
+    .summary="Send text to everybody in CH's room EXCEPT the CH, appended by a newline.",
+    .info="Arguments: target[CH], text[string]\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "echoaround(ch, \"Hello there\")"
+
+};
+        
+
 static int glob_dammessage (lua_State *LS)
 {
     const char *vs;
@@ -1338,6 +1387,8 @@ GLOB_TYPE glob_table[] =
     GFUN(getpc,         0),
     GFUN(getrandomroom, 0),
     GFUN(sendtochar,    0),
+    GFUN(echoat,        0),
+    GFUN(echoaround,    0),
     GFUN(pagetochar,    0),
     GFUN(log,           0),
     GFUN(getcharlist,   9),
@@ -4860,8 +4911,13 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(assist, 1),
     CHMETH(junk, 1),
     CHMETH(echo, 1),
+    /* deprecated in favor of global funcs */
+    /*
     CHMETH(echoaround, 1),
     CHMETH(echoat, 1),
+    */
+    { "echoaround", CH_echoaround, 1, &CH_echoaround_help, STS_DEPRECATED},
+    { "echoat", CH_echoat, 1, &CH_echoat_help, STS_DEPRECATED},
     CHMETH(mload, 1),
     CHMETH(purge, 1),
     CHMETH(goto, 1),
