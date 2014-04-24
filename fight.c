@@ -2132,13 +2132,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     else
 	ac_dam_type = FIRST_DAMAGE( dam_type );
 
-    switch( ac_dam_type )
-    {
-    case(DAM_PIERCE): victim_ac = GET_AC(victim,AC_PIERCE)/10;   break;
-    case(DAM_BASH):   victim_ac = GET_AC(victim,AC_BASH)/10;     break;
-    case(DAM_SLASH):  victim_ac = GET_AC(victim,AC_SLASH)/10;    break;
-    default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
-    }
+    victim_ac = GET_AC(victim)/10;
 
     /* basic values */
     ch_roll = GET_HITROLL(ch);
