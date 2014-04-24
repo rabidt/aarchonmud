@@ -7235,6 +7235,20 @@ static int OBJPROTO_get_affects ( lua_State *LS)
 }
 HELPTOPIC OBJPROTO_get_affects_help = {};
 
+static int OBJPROTO_get_rating ( lua_State *LS)
+{
+    OBJ_INDEX_DATA *ud_oid=check_OBJPROTO( LS, 1);
+
+    lua_pushinteger( LS,
+            ud_oid->diff_rating);
+
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_rating_help = {
+    .summary="OBJPROTO's difficulty rating.",
+    .info=""
+};
+
 static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
     OPGET( name, 0),
@@ -7248,6 +7262,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( vnum, 0),
     OPGET( otype, 0),
     OPGET( weight, 0),
+    OPGET( rating, 0),
     OPGET( v0, 0),
     OPGET( v1, 0),
     OPGET( v2, 0),
