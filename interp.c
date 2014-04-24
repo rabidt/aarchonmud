@@ -909,14 +909,15 @@ void interpret( CHAR_DATA *ch, char *argument )
         
 	/* Record that the command was the last done, but it is finished */
 	if ( !IS_NPC(ch) )
-	    sprintf (last_command, "(Finished) [%5d] %s in [%5d]: %s",
-		     IS_NPC(ch) ? ch->pIndexData->vnum : 0,
-		     IS_NPC(ch) ? ch->short_descr : ch->name,
-		     ch->in_room ? ch->in_room->vnum : 0,
-		     logline);
+    {
+        /* if player quit, they're char is no longer valid so we
+           need to just re-use info in last_command */
+        strcpy(buf, last_command);
+        sprintf (last_command, "(Finished) %s", buf );
+    }
 	
-        tail_chain( );
-        return;
+    tail_chain( );
+    return;
 }
 
 
