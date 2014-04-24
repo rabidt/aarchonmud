@@ -3422,7 +3422,6 @@ struct
     PRFLAG( apply_flags, ""),
     PRFLAG( wear_loc_strings, ""),
     PRFLAG( container_flags, ""),
-    PRFLAG( ac_type, ""),
     PRFLAG( size_flags, ""),
     PRFLAG( weapon_class, ""),
     PRFLAG( weapon_type2, ""),
