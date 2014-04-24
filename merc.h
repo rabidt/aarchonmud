@@ -289,7 +289,7 @@ bool is_questeq( OBJ_DATA *obj );
 #endif
 /* version numbers for downward compatibility
  */
-#define CURR_AREA_VERSION 3 
+#define CURR_AREA_VERSION 4 
 
 /*#define CREATOR         (MAX_LEVEL - 1)
 #define SUPREME         (MAX_LEVEL - 2)
@@ -1615,12 +1615,6 @@ struct  kill_data
 #define SEX_FEMALE          2
 #define SEX_BOTH            3
 
-/* AC types */
-#define AC_PIERCE           0
-#define AC_BASH             1
-#define AC_SLASH            2
-#define AC_EXOTIC           3
-
 /* dice */
 #define DICE_NUMBER         0
 #define DICE_TYPE           1
@@ -2355,7 +2349,7 @@ struct  mob_index_data_old
 	int         hit[3];
 	int         mana[3];
 	sh_int      damage[3];
-	sh_int      ac[4];
+	sh_int      ac;
 	sh_int      dam_type;
 	tflag        off_flags;
 	tflag        imm_flags;
@@ -2515,7 +2509,7 @@ struct  char_data
 	sh_int      alignment;
 	sh_int      hitroll;
 	sh_int      damroll;
-	sh_int      armor[4];
+	sh_int      armor;
     sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
 	sh_int      wimpy;
     sh_int      calm;
@@ -3828,7 +3822,7 @@ struct achievement_entry
 #define IS_NEUTRAL(ch)      (!IS_GOOD(ch) && !IS_EVIL(ch))
 
 #define IS_AWAKE(ch)        (ch->position > POS_SLEEPING)
-#define GET_AC(ch,type) get_ac(ch,type)
+#define GET_AC(ch) get_ac(ch)
 #define GET_HITROLL(ch) get_hitroll(ch)
 #define GET_DAMROLL(ch) get_damroll(ch)
 
@@ -4382,7 +4376,7 @@ void    char_from_room  args( ( CHAR_DATA *ch ) );
 void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
 void    obj_from_char   args( ( OBJ_DATA *obj ) );
-int apply_ac    args( ( OBJ_DATA *obj, int iWear, int type ) );
+int apply_ac    args( ( OBJ_DATA *obj, int iWear ) );
 OD *    get_eq_char args( ( CHAR_DATA *ch, int iWear ) );
 void    equip_char  args( ( CHAR_DATA *ch, OBJ_DATA *obj, int iWear ) );
 void    unequip_char    args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
