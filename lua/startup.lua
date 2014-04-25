@@ -112,21 +112,9 @@ function linenumber( text )
     local cnt=1
     local rtn={}
 
-    table.insert(rtn, string.format("%3d. ", cnt))
-    cnt=cnt+1
-
-    local len=#text
-    for i=1,len do
-        local char=text:sub(i,i)
-        table.insert(rtn, char)
-        if char == '\n' then
-            if i==len or (i==len-1 and text:sub(len,len)=="\r") then
-                break
-            else
-                table.insert(rtn, string.format("%3d. ", cnt))
-                cnt=cnt+1
-            end
-        end
+    for line in text:gmatch(".-\n\r?") do
+        table.insert(rtn, string.format("%3d. %s", cnt, line))
+        cnt=cnt+1
     end
             
     return table.concat(rtn)
