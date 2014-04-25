@@ -141,9 +141,10 @@ static OBJ_TYPE *new_obj_type(
 static void * check_func( OBJ_TYPE *self,
         lua_State *LS, int index )
 {
-    lua_getfield(LS, index, "TYPE");
+    lua_getmetatable(LS, index);
+    lua_getfield(LS, -1, "TYPE");
     OBJ_TYPE *type=lua_touserdata( LS, -1 );
-    lua_pop(LS, 1);
+    lua_pop(LS, 2);
     if ( type != self )
     {
         luaL_error(LS, "Bad parameter %d. Expected %s. ",
@@ -165,12 +166,7 @@ static int index_metamethod( lua_State *LS)
 
     LUA_PROP_TYPE *get=obj->get_table;
     
-    if (!strcmp("TYPE", arg) )
-    {
-        lua_pushlightuserdata( LS, obj );
-        return 1;
-    }
-    else if (!strcmp("valid", arg) )
+    if (!strcmp("valid", arg) )
     {
         /* if the metatable is still working
            then the game object is still valid */
@@ -279,6 +275,11 @@ static void register_type( OBJ_TYPE *tp,
     lua_pushcclosure( LS, newindex_metamethod, 1 );
 
     lua_setfield( LS, -2, "__newindex");
+
+    lua_pushlightuserdata( LS, ( void *)tp);
+    
+    lua_setfield( LS, -2, "TYPE");
+
     lua_pop(LS, 1);
 }
 
@@ -346,9 +347,10 @@ bool is_func( OBJ_TYPE *self,
     if ( !lua_istable(LS, arg ) )
         return FALSE;
 
-    lua_getfield(LS, arg, "TYPE");
+    lua_getmetatable(LS, arg);
+    lua_getfield(LS, -1, "TYPE");
     OBJ_TYPE *type=lua_touserdata(LS, -1);
-    lua_pop(LS, 1);
+    lua_pop(LS, 2);
     return ( type == self );
 }
 
@@ -7909,7 +7911,8 @@ static int TRIG_get_trigtype ( lua_State *LS )
 {
     struct flag_type *tbl;
 
-    lua_getfield(LS, 1, "TYPE");
+    lua_getmetatable(LS,1);
+    lua_getfield(LS, -1, "TYPE");
     OBJ_TYPE *type=lua_touserdata( LS, -1 );
 
     if (type==MTRIG_type)
@@ -7945,7 +7948,8 @@ HELPTOPIC TRIG_get_trigtype_help = {};
 
 static int TRIG_get_trigphrase ( lua_State *LS )
 {
-    lua_getfield(LS, 1, "TYPE");
+    lua_getmetatable(LS,1);
+    lua_getfield(LS, -1, "TYPE");
     OBJ_TYPE *type=lua_touserdata( LS, -1 );
 
     if ( type != MTRIG_type
@@ -7964,7 +7968,8 @@ HELPTOPIC TRIG_get_trigphrase_help ={};
 
 static int TRIG_get_prog ( lua_State *LS )
 {
-    lua_getfield(LS, 1, "TYPE");
+    lua_getmetatable(LS,1);
+    lua_getfield(LS, -1, "TYPE");
     OBJ_TYPE *type=lua_touserdata( LS, -1 );
 
     if ( type != MTRIG_type
