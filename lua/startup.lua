@@ -36,6 +36,7 @@ function MakeUdProxy(ud)
             __index = ud,
             __newindex = getmetatable(ud)["__newindex"], 
             __tostring= function() return tostring(ud) end,
+            TYPE=getmetatable(ud)["TYPE"],
             __metatable=0 -- any value here protects it
             }
     )
