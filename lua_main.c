@@ -77,24 +77,24 @@ void stackDump (lua_State *LS) {
         switch (t) {
 
             case LUA_TSTRING:  /* strings */
-                bugf("`%s'", lua_tostring(LS, i));
+                logpf("`%s'", lua_tostring(LS, i));
                 break;
 
             case LUA_TBOOLEAN:  /* booleans */
-                bugf(lua_toboolean(LS, i) ? "true" : "false");
+                logpf(lua_toboolean(LS, i) ? "true" : "false");
                 break;
 
             case LUA_TNUMBER:  /* numbers */
-                bugf("%g", lua_tonumber(LS, i));
+                logpf("%g", lua_tonumber(LS, i));
                 break;
 
             default:  /* other values */
-                bugf("%s", lua_typename(LS, t));
+                logpf("%s", lua_typename(LS, t));
                 break;
 
         }
     }
-    bugf("\n");  /* end the listing */
+    logpf("\n");  /* end the listing */
 }
 
 const char *check_string( lua_State *LS, int index, size_t size)
