@@ -3485,33 +3485,29 @@ static int CH_carries (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     const char *argument = check_string( LS, 2, MIL);
+    int count=0;
 
     if ( is_number( argument ) )
     {
         int vnum=atoi( argument );
         OBJ_DATA *obj;
 
-        bool found=FALSE;
-        int index=1;
-        lua_newtable( LS );
         for ( obj=ud_ch->carrying ; obj ; obj=obj->next )
         {
             if ( obj->pIndexData->vnum == vnum )
             {
-                found=TRUE;
-                if (make_OBJ(LS,obj))
-                    lua_rawseti(LS, -2, index++);
+                count++;
             }
         }
 
-        if (!found)
+        if (count<1)
         {
             lua_pushboolean(LS, FALSE);
             return 1;
         }
         else
         {
-            /* object table is at top of stack */
+            lua_pushinteger(LS, count);
             return 1;
         } 
     }
@@ -3524,28 +3520,23 @@ static int CH_carries (lua_State *LS)
             exact=lua_toboolean(LS,3);
         }
 
-        bool found=FALSE;
-        int index=1;
-        lua_newtable( LS );
         for ( obj=ud_ch->carrying ; obj ; obj=obj->next )
         {
             if (    obj->wear_loc == WEAR_NONE 
                  && is_either_name( argument, obj->name, exact))
             {
-                found=TRUE;
-                if (make_OBJ(LS,obj))
-                    lua_rawseti(LS, -2, index++);
+                count++;
             }
         }
 
-        if (!found)
+        if (count<1)
         {
             lua_pushboolean(LS, FALSE);
             return 1;
         }
         else
         {
-            /* object table is at top of stack */
+            lua_pushinteger(LS, count);
             return 1;
         }
     }
@@ -3553,18 +3544,19 @@ static int CH_carries (lua_State *LS)
 HELPTOPIC CH_carries_help = { 
     .summary="Check if CH carries object(s) with given vnum or name.",
     .info = "Arguments: name[string]/vnum[number <, exact[boolean]>\n\r\n\r"
-          "Return: boolean/table of OBJ\n\r\n\r"
+          "Return: boolean/integer\n\r\n\r"
           "Examples:\n\r"
           "if ch:carries(31404) then ch:say(\"yep\") end\n\r"
           "if ch:carries(\"sword\") then ch:say(\"i have a sword\") end\n\r"
-          "if ch:carries(\"\'black sword\'\", true) then ch:say(\"yep\") end\n\r\n\r"
+          "if ch:carries(\"\'black sword\'\", true) then ch:say(\"yep\") end\n\r"
+          "local count=ch:carries(31404) or 0\n\r"
           "Notes:\n\r"
           "Optional second argument 'exact' is checked in the case where the\n\r"
           "first argument is a name. If 'exact' is true then the name must\n\r"
           "match the name argument exactly (use \'\' to match multi-word names\n\r"
           "exactly).\n\r\n\r"
           "Function return value is false if no object is found, \n\r"
-          "otherwise a table of the OBJ(s) is returned."
+          "otherwise the count of matching objects is returned."
 };
 
 static int CH_wears (lua_State *LS)
