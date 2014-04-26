@@ -3492,7 +3492,7 @@ static int CH_carries (lua_State *LS)
         int vnum=atoi( argument );
         OBJ_DATA *obj;
 
-        for ( obj=ud_ch->carrying ; obj ; obj=obj->next )
+        for ( obj=ud_ch->carrying ; obj ; obj=obj->next_content )
         {
             if ( obj->pIndexData->vnum == vnum )
             {
@@ -3520,7 +3520,7 @@ static int CH_carries (lua_State *LS)
             exact=lua_toboolean(LS,3);
         }
 
-        for ( obj=ud_ch->carrying ; obj ; obj=obj->next )
+        for ( obj=ud_ch->carrying ; obj ; obj=obj->next_content )
         {
             if (    obj->wear_loc == WEAR_NONE 
                  && is_either_name( argument, obj->name, exact))
