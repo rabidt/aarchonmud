@@ -3484,16 +3484,88 @@ HELPTOPIC CH_setimmune_help =
 static int CH_carries (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring( LS, 2, MIL);
+    const char *argument = check_string( LS, 2, MIL);
 
-    if ( is_r_number( argument ) )
-        lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, r_atoi(ud_ch, argument), -1, FALSE ) );
+    if ( is_number( argument ) )
+    {
+        int vnum=atoi( argument );
+        OBJ_DATA *obj;
+
+        bool found=FALSE;
+        int index=1;
+        lua_newtable( LS );
+        for ( obj=ud_ch->carrying ; obj ; obj=obj->next )
+        {
+            if ( obj->pIndexData->vnum == vnum )
+            {
+                found=TRUE;
+                if (make_OBJ(LS,obj))
+                    lua_rawseti(LS, -2, index++);
+            }
+        }
+
+        if (!found)
+        {
+            lua_pushboolean(LS, FALSE);
+            return 1;
+        }
+        else
+        {
+            /* object table is at top of stack */
+            return 1;
+        } 
+    }
     else
-        lua_pushboolean( LS, ud_ch != NULL && (get_obj_carry( ud_ch, argument, ud_ch ) != NULL) );
+    {
+        OBJ_DATA *obj;
+        bool exact=FALSE;
+        if (!lua_isnone(LS,3))
+        {
+            exact=lua_toboolean(LS,3);
+        }
 
-    return 1;
+        bool found=FALSE;
+        int index=1;
+        lua_newtable( LS );
+        for ( obj=ud_ch->carrying ; obj ; obj=obj->next )
+        {
+            if (    obj->wear_loc == WEAR_NONE 
+                 && is_either_name( argument, obj->name, exact))
+            {
+                found=TRUE;
+                if (make_OBJ(LS,obj))
+                    lua_rawseti(LS, -2, index++);
+            }
+        }
+
+        if (!found)
+        {
+            lua_pushboolean(LS, FALSE);
+            return 1;
+        }
+        else
+        {
+            /* object table is at top of stack */
+            return 1;
+        }
+    }
 }
-HELPTOPIC CH_carries_help = {};
+HELPTOPIC CH_carries_help = { 
+    .summary="Check if CH carries object(s) with given vnum or name.",
+    .info = "Arguments: name[string]/vnum[number <, exact[boolean]>\n\r\n\r"
+          "Return: boolean/table of OBJ\n\r\n\r"
+          "Examples:\n\r"
+          "if ch:carries(31404) then ch:say(\"yep\") end\n\r"
+          "if ch:carries(\"sword\") then ch:say(\"i have a sword\") end\n\r"
+          "if ch:carries(\"\'black sword\'\", true) then ch:say(\"yep\") end\n\r\n\r"
+          "Notes:\n\r"
+          "Optional second argument 'exact' is checked in the case where the\n\r"
+          "first argument is a name. If 'exact' is true then the name must\n\r"
+          "match the name argument exactly (use \'\' to match multi-word names\n\r"
+          "exactly).\n\r\n\r"
+          "Function return value is false if no object is found, \n\r"
+          "otherwise a table of the OBJ(s) is returned."
+};
 
 static int CH_wears (lua_State *LS)
 {
