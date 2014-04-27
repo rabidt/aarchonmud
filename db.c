@@ -4338,6 +4338,9 @@ void do_areas( CHAR_DATA *ch )
 
 void do_memory( CHAR_DATA *ch, char *argument )
 {
+    ptc( ch, ( (TYPE_CONTAINER *)ch)->type->name);
+    ptc( ch, "\n\r");
+    ptc( ch, "%d\n\r", ( (TYPE_CONTAINER *)ch)->type->count);
     
     ptc( ch, "Affects   %5d\n\r", top_affect    ); 
     ptc( ch, "Areas     %5d\n\r", top_area      ); 
@@ -4369,6 +4372,11 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
     ptc( ch, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
     ptc( ch, "\n\r");
+    ptc( ch, "CHAR_DATA count         %d\n\r", type_CHAR.count); 
+    ptc( ch, "OBJ_DATA count          %d\n\r", type_OBJ.count);
+    ptc( ch, "PC_DATA count           %d\n\r", type_PC.count);
+    ptc( ch, "\n\r");
+
     ptc( ch, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());
     ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
     ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
@@ -5658,4 +5666,20 @@ char* bread_word( RBUFFER *rbuf )
     return NULL;
 }
 
+TYPE_DATA type_CHAR=
+{
+    .name="CHAR",
+    .count=0
+};
 
+TYPE_DATA type_OBJ=
+{
+    .name="OBJ",
+    .count=0
+};
+
+TYPE_DATA type_PC=
+{
+    .name="PC",
+    .count=0
+};

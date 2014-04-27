@@ -288,6 +288,8 @@ OBJ_DATA *new_obj(void)
 	}
 	*obj = obj_zero;
 	VALIDATE(obj);
+    ((TYPE_CONTAINER *)obj)->type = &type_OBJ;
+    ((TYPE_CONTAINER *)obj)->type->count++;
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
     obj->luavals=NULL;
@@ -333,6 +335,7 @@ void free_obj(OBJ_DATA *obj)
         free_luaval(luaval);
     }
 
+    ((TYPE_CONTAINER *)obj)->type->count--;
 	INVALIDATE(obj);
 
 	obj->next   = obj_free;
@@ -359,6 +362,9 @@ CHAR_DATA *new_char (void)
 
 	*ch             = ch_zero;
 	VALIDATE(ch);
+    ((TYPE_CONTAINER *)ch)->type = &type_CHAR;
+    ((TYPE_CONTAINER *)ch)->type->count++;
+
 	ch->name                    = &str_empty[0];
 	ch->short_descr             = &str_empty[0];
 	ch->long_descr              = &str_empty[0];
@@ -453,6 +459,7 @@ void free_char (CHAR_DATA *ch)
 	ch->next = char_free;
 	char_free  = ch;
 
+    ( (TYPE_CONTAINER *)ch)->type->count--;
 	INVALIDATE(ch);
 	return;
 }
@@ -519,6 +526,8 @@ PC_DATA *new_pcdata(void)
     pcdata->tell_history	    = pers_history_new();
     pcdata->clan_history	    = pers_history_new();
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
+    ( (TYPE_CONTAINER *)pcdata)->type=&type_PC;
+    ( (TYPE_CONTAINER *)pcdata)->type->count++;
     VALIDATE(pcdata);
 
     return pcdata;
@@ -593,7 +602,7 @@ void free_pcdata(PC_DATA *pcdata)
         free_crime(crime);
     }
 
-
+    ( (TYPE_CONTAINER *)pcdata)->type->count--;
 
     INVALIDATE(pcdata);
     pcdata->next = pcdata_free;
