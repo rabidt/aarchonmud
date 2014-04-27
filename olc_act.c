@@ -4385,6 +4385,98 @@ OEDIT( oedit_rating )
     send_to_char( "Difficulty rating set.\n\r", ch );
 }
 
+OEDIT( oedit_delete )
+{
+    OBJ_INDEX_DATA *pObj;
+    AREA_DATA *pArea;
+    int value;
+    int iHash;
+
+    value = atoi( argument );
+    if ( argument[0] == '\0' || value == 0 )
+    {
+        send_to_char( "Syntax:  oedit delete [vnum]\n\r", ch );
+        return FALSE;
+    }
+
+    pArea = get_vnum_area( value );
+    if ( !pArea )
+    {
+        send_to_char( "OEdit:  That vnum is not assigned an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER( ch, pArea ) )
+    {
+        send_to_char( "OEdit:  Vnum in an area you cannot build in.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( (pObj = get_obj_index( value ) ) == NULL )
+    {
+        send_to_char( "OEdit:  No such object.\n\r", ch );
+        return FALSE;
+    }
+    
+    /* check for resets */
+    ROOM_INDEX_DATA *room;
+    RESET_DATA *rst;
+    int rvnum;
+
+    for ( rvnum=0 ; rvnum <= top_vnum_room ; rvnum++ )
+    {
+        if ( (room=get_room_index(rvnum) ) == NULL )
+            continue;
+
+        for ( rst=room->reset_first ; rst ; rst=rst->next )
+        {
+            switch (rst->command)
+            {
+                case 'O':
+                case 'P':
+                case 'G':
+                case 'E':
+                    break;
+                default:
+                    continue;
+            }
+
+            if ( rst->arg1 == value )
+            {
+                send_to_char( "OEdit:  Can't delete, resets exist.\n\r", ch );
+                return FALSE;
+            } 
+        }
+    }
+
+    /* got here means we're good to delete */
+    iHash=value % MAX_KEY_HASH;
+
+    OBJ_INDEX_DATA *curr, *last=NULL;
+
+    for ( curr=obj_index_hash[iHash]; curr; curr=curr->next )
+    {
+        if ( curr == pObj )
+        {
+            if ( !last )
+            {
+                obj_index_hash[iHash]=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            free_obj_index( pObj );
+            send_to_char( "Object deleted.\n\r", ch );
+            return TRUE;
+        }
+        
+        last=curr;
+    }
+
+}
+
 OEDIT( oedit_create )
 {
     OBJ_INDEX_DATA *pObj;
