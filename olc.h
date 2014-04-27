@@ -302,6 +302,7 @@ DECLARE_OLC_FUN( medit_wealth    );
 /* Mobprog editor */
 
 DECLARE_OLC_FUN( mpedit_create   );
+DECLARE_OLC_FUN( mpedit_delete   );
 DECLARE_OLC_FUN( mpedit_code     );
 DECLARE_OLC_FUN( mpedit_show     );
 DECLARE_OLC_FUN( mpedit_list     );
