@@ -285,11 +285,12 @@ OBJ_DATA *new_obj(void)
 	{
 	obj = obj_free;
 	obj_free = obj_free->next;
+    type_OBJ.free_count--;
 	}
 	*obj = obj_zero;
 	VALIDATE(obj);
-    ((TYPE_CONTAINER *)obj)->type = &type_OBJ;
-    ((TYPE_CONTAINER *)obj)->type->count++;
+    GET_TYPE( obj ) = &type_OBJ;
+    type_OBJ.count++;
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
     obj->luavals=NULL;
@@ -335,11 +336,12 @@ void free_obj(OBJ_DATA *obj)
         free_luaval(luaval);
     }
 
-    ((TYPE_CONTAINER *)obj)->type->count--;
+    type_OBJ.count--;
 	INVALIDATE(obj);
 
 	obj->next   = obj_free;
 	obj_free    = obj; 
+    type_OBJ.free_count++;
 }
 
 
@@ -358,12 +360,13 @@ CHAR_DATA *new_char (void)
 	{
 	ch = char_free;
 	char_free = char_free->next;
+    type_CHAR.free_count--;
 	}
 
 	*ch             = ch_zero;
 	VALIDATE(ch);
-    ((TYPE_CONTAINER *)ch)->type = &type_CHAR;
-    ((TYPE_CONTAINER *)ch)->type->count++;
+    GET_TYPE( ch )  = &type_CHAR;
+    type_CHAR.count++;
 
 	ch->name                    = &str_empty[0];
 	ch->short_descr             = &str_empty[0];
@@ -459,7 +462,9 @@ void free_char (CHAR_DATA *ch)
 	ch->next = char_free;
 	char_free  = ch;
 
-    ( (TYPE_CONTAINER *)ch)->type->count--;
+    type_CHAR.free_count++;
+
+    type_CHAR.count--;
 	INVALIDATE(ch);
 	return;
 }
@@ -479,6 +484,7 @@ PC_DATA *new_pcdata(void)
     {
         pcdata = pcdata_free;
         pcdata_free = pcdata_free->next;
+        type_PC.free_count--;
     }
     
     *pcdata = pcdata_zero;
@@ -526,8 +532,8 @@ PC_DATA *new_pcdata(void)
     pcdata->tell_history	    = pers_history_new();
     pcdata->clan_history	    = pers_history_new();
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
-    ( (TYPE_CONTAINER *)pcdata)->type=&type_PC;
-    ( (TYPE_CONTAINER *)pcdata)->type->count++;
+    GET_TYPE( pcdata )=&type_PC;
+    type_PC.count++;
     VALIDATE(pcdata);
 
     return pcdata;
@@ -602,11 +608,12 @@ void free_pcdata(PC_DATA *pcdata)
         free_crime(crime);
     }
 
-    ( (TYPE_CONTAINER *)pcdata)->type->count--;
+    type_PC.count--;
 
     INVALIDATE(pcdata);
     pcdata->next = pcdata_free;
     pcdata_free = pcdata;
+    type_PC.free_count++;
     
     return;
 }
