@@ -3308,127 +3308,79 @@ static int CH_canattack (lua_State *LS)
 }
 HELPTOPIC CH_canattack_help = {};
 
-static int CH_isnpc (lua_State *LS)
+static int CH_get_isnpc (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && IS_NPC( ud_ch ) );
     return 1;
 }
-HELPTOPIC CH_isnpc_help = {};
+HELPTOPIC CH_get_isnpc_help = {};
 
-static int CH_get_isnpc (lua_State *LS)
-{
-    return CH_isnpc(LS);
-}
-HELPTOPIC CH_get_isnpc_help={};
-
-static int CH_isgood (lua_State *LS)
+static int CH_get_isgood (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean(  LS, ud_ch != NULL && IS_GOOD( ud_ch ) ) ;
     return 1;
 }
-HELPTOPIC CH_isgood_help = {};
-
-static int CH_get_isgood (lua_State *LS)
-{
-    return CH_isgood( LS );
-}
 HELPTOPIC CH_get_isgood_help = {};
 
-static int CH_isevil (lua_State *LS)
+static int CH_get_isevil (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean(  LS, ud_ch != NULL && IS_EVIL( ud_ch ) ) ;
     return 1;
 }
-HELPTOPIC CH_isevil_help = {};
-
-static int CH_get_isevil (lua_State *LS)
-{
-    return CH_isevil( LS );
-}
 HELPTOPIC CH_get_isevil_help = {};
 
-static int CH_isneutral (lua_State *LS)
+static int CH_get_isneutral (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean(  LS, ud_ch != NULL && IS_NEUTRAL( ud_ch ) ) ;
     return 1;
 }
-HELPTOPIC CH_isneutral_help = {};
-
-static int CH_get_isneutral (lua_State *LS)
-{
-    return CH_isneutral( LS );
-}
 HELPTOPIC CH_get_isneutral_help = {};
 
-static int CH_isimmort (lua_State *LS)
+static int CH_get_isimmort (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && IS_IMMORTAL( ud_ch ) ) ;
     return 1;
 }
-HELPTOPIC CH_isimmort_help = {};
-
-static int CH_get_isimmort (lua_State *LS)
-{
-    return CH_isimmort( LS );
-}
 HELPTOPIC CH_get_isimmort_help = {};
 
-static int CH_ischarm (lua_State *LS)
+static int CH_get_ischarm (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && IS_AFFECTED( ud_ch, AFF_CHARM ) ) ;
     return 1;
 }
-HELPTOPIC CH_ischarm_help = {};
-
-static int CH_get_ischarm (lua_State *LS)
-{
-    return CH_ischarm( LS );
-}
 HELPTOPIC CH_get_ischarm_help = {};
 
-static int CH_isfollow (lua_State *LS)
+static int CH_get_isfollow (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->master != NULL ) ;
     return 1;
 }
-HELPTOPIC CH_isfollow_help = {};
-
-static int CH_get_isfollow (lua_State *LS)
-{
-        return CH_isfollow( LS );
-}
 HELPTOPIC CH_get_isfollow_help = {};
 
-static int CH_isactive (lua_State *LS)
+static int CH_get_isactive (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->position > POS_SLEEPING ) ;
     return 1;
 }
-HELPTOPIC CH_isactive_help = {};
-
-static int CH_get_isactive (lua_State *LS)
-{
-        return CH_isactive( LS );
-}
 HELPTOPIC CH_get_isactive_help = {};
 
-static int CH_isvisible (lua_State *LS)
+static int CH_get_isvisible (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH(LS, 1);
     CHAR_DATA * ud_vic = check_CH (LS, 2);
@@ -3436,12 +3388,6 @@ static int CH_isvisible (lua_State *LS)
     lua_pushboolean( LS, ud_ch != NULL && ud_vic != NULL && can_see( ud_ch, ud_vic ) ) ;
 
     return 1;
-}
-HELPTOPIC CH_isvisible_help = {};
-
-static int CH_get_isvisible (lua_State *LS)
-{
-        return CH_isvisible( LS );
 }
 HELPTOPIC CH_get_isvisible_help = {};
 
@@ -5069,17 +5015,6 @@ static const LUA_PROP_TYPE CH_set_table [] =
 
 static const LUA_PROP_TYPE CH_method_table [] =
 {
-    /* deprecated in favor of boolean properties */
-    { "ispc", CH_ispc, 0, &CH_ispc_help, STS_DEPRECATED},
-    { "isnpc", CH_isnpc, 0, &CH_isnpc_help, STS_DEPRECATED},
-    { "isgood", CH_isgood, 0, &CH_isgood_help, STS_DEPRECATED},
-    { "isevil", CH_isevil, 0, &CH_isevil_help, STS_DEPRECATED},
-    { "isneutral", CH_isneutral, 0, &CH_isneutral_help, STS_DEPRECATED},
-    { "isimmort", CH_isimmort, 0, &CH_isimmort_help, STS_DEPRECATED},
-    { "ischarm", CH_ischarm, 0, &CH_ischarm_help, STS_DEPRECATED},
-    { "isfollow", CH_isfollow, 0, &CH_isfollow_help, STS_DEPRECATED},
-    { "isactive", CH_isactive, 0, &CH_isactive_help, STS_DEPRECATED},
-    { "isvisible", CH_isvisible, 0, &CH_isvisible_help, STS_DEPRECATED},
     CHMETH(mobhere, 0),
     CHMETH(objhere, 0),
     CHMETH(mobexists, 0),
