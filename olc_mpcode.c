@@ -329,6 +329,7 @@ MPEDIT (mpedit_delete)
             send_to_char( "Mprog deleted.\n\r", ch );
             return TRUE;
         }
+        last=curr;
     }
 }
 
