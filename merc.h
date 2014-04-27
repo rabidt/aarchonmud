@@ -144,6 +144,7 @@ typedef struct type_data
 {
     const char *name;
     int count;
+    int free_count;
 } TYPE_DATA;
 
 typedef struct type_container
@@ -154,6 +155,8 @@ typedef struct type_container
 extern TYPE_DATA type_CHAR;
 extern TYPE_DATA type_OBJ;
 extern TYPE_DATA type_PC;
+
+#define GET_TYPE( ptr ) ( ( (TYPE_CONTAINER *)( ptr ) )->type)
 
 typedef struct comm_history_entry COMM_ENTRY;
 typedef struct comm_history_type COMM_HISTORY;
