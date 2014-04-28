@@ -264,6 +264,7 @@ DECLARE_OLC_FUN( oedit_deloprog  );  /* ROM */
  */
 DECLARE_OLC_FUN( medit_show		);
 DECLARE_OLC_FUN( medit_create		);
+DECLARE_OLC_FUN( medit_delete       );
 DECLARE_OLC_FUN( medit_name		);
 DECLARE_OLC_FUN( medit_short		);
 DECLARE_OLC_FUN( medit_long		);
