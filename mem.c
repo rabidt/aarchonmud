@@ -435,7 +435,8 @@ void free_mob_index( MOB_INDEX_DATA *pMob )
     free_string( pMob->description );
     free_mprog( pMob->mprogs );
 
-    free_shop( pMob->pShop );
+    if ( pMob->pShop )
+        free_shop( pMob->pShop );
 
     pMob->next              = mob_index_free;
     mob_index_free          = pMob;
