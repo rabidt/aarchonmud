@@ -5354,6 +5354,94 @@ MEDIT( medit_show )
     return FALSE;
 }
 
+MEDIT( medit_delete )
+{
+    MOB_INDEX_DATA *pMob;
+    AREA_DATA *pArea;
+    int value;
+    int iHash;
+
+    value = atoi( argument );
+    if ( argument[0] == '\0' || value == 0 )
+    {
+        send_to_char( "Syntax:  medit delete [vnum]\n\r", ch );
+        return FALSE;
+    }
+
+    pArea = get_vnum_area( value );
+    if ( !pArea )
+    {
+        send_to_char( "MEdit:  That vnum is not assigned an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER( ch, pArea ) )
+    {
+        send_to_char( "MEdit:  Vnum in an area you cannot build in.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( (pMob = get_mob_index( value ) ) == NULL )
+    {
+        send_to_char( "MEdit:  No such object.\n\r", ch );
+        return FALSE;
+    }
+    
+    /* check for resets */
+    ROOM_INDEX_DATA *room;
+    RESET_DATA *rst;
+    int rvnum;
+
+    for ( rvnum=0 ; rvnum <= top_vnum_room ; rvnum++ )
+    {
+        if ( (room=get_room_index(rvnum) ) == NULL )
+            continue;
+
+        for ( rst=room->reset_first ; rst ; rst=rst->next )
+        {
+            switch (rst->command)
+            {
+                case 'M':
+                    break;
+                default:
+                    continue;
+            }
+
+            if ( rst->arg1 == value )
+            {
+                send_to_char( "MEdit:  Can't delete, resets exist.\n\r", ch );
+                return FALSE;
+            } 
+        }
+    }
+
+    /* got here means we're good to delete */
+    iHash=value % MAX_KEY_HASH;
+
+    MOB_INDEX_DATA *curr, *last=NULL;
+
+    for ( curr=mob_index_hash[iHash]; curr; curr=curr->next )
+    {
+        if ( curr == pMob )
+        {
+            if ( !last )
+            {
+                mob_index_hash[iHash]=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            free_mob_index( pMob );
+            send_to_char( "Mob deleted.\n\r", ch );
+            return TRUE;
+        }
+        
+        last=curr;
+    }
+
+}
 
 
 MEDIT( medit_create )
