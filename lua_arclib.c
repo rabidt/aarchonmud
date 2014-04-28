@@ -3285,21 +3285,15 @@ static int CH_objexists (lua_State *LS)
 }
 HELPTOPIC CH_objexists_help = {};
 
-static int CH_ispc (lua_State *LS)
+static int CH_get_ispc (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && !IS_NPC( ud_ch ) );
     return 1;
 }
-HELPTOPIC CH_ispc_help = {
+HELPTOPIC CH_get_ispc_help = {
 };
-
-static int CH_get_ispc (lua_State *LS)
-{
-    return CH_ispc(LS);
-}
-HELPTOPIC CH_get_ispc_help={};
 
 static int CH_canattack (lua_State *LS)
 {
@@ -3380,7 +3374,7 @@ static int CH_get_isactive (lua_State *LS)
 }
 HELPTOPIC CH_get_isactive_help = {};
 
-static int CH_get_isvisible (lua_State *LS)
+static int CH_cansee (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH(LS, 1);
     CHAR_DATA * ud_vic = check_CH (LS, 2);
@@ -3389,7 +3383,7 @@ static int CH_get_isvisible (lua_State *LS)
 
     return 1;
 }
-HELPTOPIC CH_get_isvisible_help = {};
+HELPTOPIC CH_cansee_help = {};
 
 static int CH_affected (lua_State *LS)
 {
@@ -4946,7 +4940,6 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(ischarm, 0),
     CHGET(isfollow, 0),
     CHGET(isactive, 0),
-    CHGET(isvisible, 0),
     CHGET(fighting, 0),
     CHGET(heshe, 0),
     CHGET(himher, 0),
@@ -5033,11 +5026,11 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(skilled, 0),
     CHMETH(ccarries, 0),
     CHMETH(qtimer, 0),
+    CHMETH(cansee, 0),
     CHMETH(canattack, 0),
     CHMETH(destroy, 1),
     CHMETH(oload, 1),
     /* deprecated */
-    //CHMETH(setlevel, 0),
     { "setlevel", CH_setlevel, 1, &CH_setlevel_help, STS_DEPRECATED},
     CHMETH(say, 1),
     CHMETH(emote, 1),
@@ -5051,10 +5044,6 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(junk, 1),
     CHMETH(echo, 1),
     /* deprecated in favor of global funcs */
-    /*
-    CHMETH(echoaround, 1),
-    CHMETH(echoat, 1),
-    */
     { "echoaround", CH_echoaround, 1, &CH_echoaround_help, STS_DEPRECATED},
     { "echoat", CH_echoat, 1, &CH_echoat_help, STS_DEPRECATED},
     CHMETH(mload, 1),
@@ -5062,10 +5051,6 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(goto, 1),
     CHMETH(at, 1),
     /* deprecated in favor of global funcs */
-    /*
-    CHMETH(transfer, 1),
-    CHMETH(gtransfer, 1),
-    */
     { "transfer", CH_transfer, 1, &CH_transfer_help, STS_DEPRECATED},
     { "gtransfer", CH_gtransfer, 1, &CH_gtransfer_help, STS_DEPRECATED},
     CHMETH(otransfer, 1),
