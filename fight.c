@@ -3610,7 +3610,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( victim->pcdata != NULL && victim->pcdata->remorts==0 && morgue )
     {
-	send_to_char( "HINT: You can retrieve lost items from your corpse.\n\r", victim );
+	send_to_char( "HINT: You can retrieve lost money from your corpse at the morgue.\n\r", victim );
 	send_to_char( "      Check 'help corpse' for details.\n\r", victim );
     }
 
