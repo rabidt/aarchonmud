@@ -2603,9 +2603,9 @@ HELPTOPIC CH_olc_help = {
     .info="Arguments: string (accepts format arguments)\n\r\n\r"
           "Return: none\n\r\n\r"
           "Example:\n\r"
-          "mdo(\"redit\")\n\r"
+          "do(\"redit\")\n\r"
           "olc(\"name AWESOME ROOM\")\n\r"
-          "mdo(\"done\")\n\r\n\r"
+          "do(\"done\")\n\r\n\r"
           "Note:\n\r"
           "Error is thrown if not in olc editor mode.\n\r"
 
@@ -3195,13 +3195,19 @@ static int CH_hit (lua_State *LS)
 }
 HELPTOPIC CH_hit_help = {};
 
-static int CH_mdo (lua_State *LS)
+static int CH_do (lua_State *LS)
 {
     interpret( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
-HELPTOPIC CH_mdo_help = {};
+HELPTOPIC CH_do_help = {};
+
+static int CH_mdo (lua_State *LS)
+{
+    return CH_do( LS );
+}
+HELPTOPIC CH_mdo_help={};
 
 static int CH_tell (lua_State *LS)
 {
@@ -4131,22 +4137,6 @@ HELPTOPIC CH_set_level_help =
     .summary="NPC only. Range 1-200. Preserves hp/mana/move ratio."
 };
 
-static int CH_setlevel (lua_State *LS)
-{
-    /*
-    CHAR_DATA * ud_ch = check_CH (LS, 1);
-    if (!IS_NPC(ud_ch))
-        luaL_error(LS, "Cannot set level on PC.");
-
-    int num = (int)luaL_checknumber (LS, 2);
-    if ( num < 1 || num > 200 )
-        luaL_error( LS, "Invalid level: %d, range is 1 to 200.", num);
-    set_mob_level( ud_ch, num );
-    return 0;*/
-    return CH_set_level (LS);
-}
-HELPTOPIC CH_setlevel_help = {};
-
 static int CH_get_maxhp (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -5030,11 +5020,10 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(canattack, 0),
     CHMETH(destroy, 1),
     CHMETH(oload, 1),
-    /* deprecated */
-    { "setlevel", CH_setlevel, 1, &CH_setlevel_help, STS_DEPRECATED},
     CHMETH(say, 1),
     CHMETH(emote, 1),
-    CHMETH(mdo, 1),
+    { "mdo", CH_do, 1, &CH_do_help, STS_DEPRECATED},
+    CHMETH(do, 1),
     CHMETH(tell, 1),
     CHMETH(asound, 1),
     CHMETH(gecho, 1),
