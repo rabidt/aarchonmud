@@ -3195,19 +3195,13 @@ static int CH_hit (lua_State *LS)
 }
 HELPTOPIC CH_hit_help = {};
 
-static int CH_do (lua_State *LS)
+static int CH_mdo (lua_State *LS)
 {
     interpret( check_CH(LS, 1), check_fstring( LS, 2, MIL));
 
     return 0;
 }
-HELPTOPIC CH_do_help = {};
-
-static int CH_mdo (lua_State *LS)
-{
-    return CH_do( LS );
-}
-HELPTOPIC CH_mdo_help={};
+HELPTOPIC CH_mdo_help = {};
 
 static int CH_tell (lua_State *LS)
 {
@@ -5022,8 +5016,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(oload, 1),
     CHMETH(say, 1),
     CHMETH(emote, 1),
-    { "mdo", CH_do, 1, &CH_do_help, STS_DEPRECATED},
-    CHMETH(do, 1),
+    CHMETH(mdo, 1),
     CHMETH(tell, 1),
     CHMETH(asound, 1),
     CHMETH(gecho, 1),
