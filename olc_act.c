@@ -3075,14 +3075,8 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         
     case ITEM_ARMOR:
         sprintf( buf,
-            "[v0] Ac pierce       [%d]\n\r"
-            "[v1] Ac bash         [%d]\n\r"
-            "[v2] Ac slash        [%d]\n\r"
-            "[v3] Ac exotic       [%d]\n\r",
-            obj->value[0],
-            obj->value[1],
-            obj->value[2],
-            obj->value[3] );
+            "[v0] Ac              [%d]\n\r",
+            obj->value[0] );
         send_to_char( buf, ch );
         break;
         
@@ -3312,20 +3306,8 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *a
 		do_help( ch, "ITEM_ARMOR" );
 		return FALSE;
 	    case 0:
-		send_to_char( "AC PIERCE SET.\n\r\n\r", ch );
+		send_to_char( "AC SET.\n\r\n\r", ch );
 		pObj->value[0] = atoi( argument );
-		break;
-	    case 1:
-		send_to_char( "AC BASH SET.\n\r\n\r", ch );
-		pObj->value[1] = atoi( argument );
-		break;
-	    case 2:
-		send_to_char( "AC SLASH SET.\n\r\n\r", ch );
-		pObj->value[2] = atoi( argument );
-		break;
-	    case 3:
-		send_to_char( "AC EXOTIC SET.\n\r\n\r", ch );
-		pObj->value[3] = atoi( argument );
 		break;
 	    }
 	break;
