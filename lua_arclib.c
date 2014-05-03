@@ -79,37 +79,22 @@ typedef struct lua_help_topic
     char *info;
 } HELPTOPIC;
 
-struct prop_type
+typedef struct lua_prop_type
 {
     char *field;
     int  (*func)();
     int security;
     HELPTOPIC *help;
     int status; 
-};
+} LUA_PROP_TYPE;
+
 #define STS_ACTIVE     0
 #define STS_DEPRECATED 1
 
 #define ENDPTABLE {NULL, NULL, 0, NULL, 0}
 
-OBJ_TYPE *CH_type=NULL;
-OBJ_TYPE *OBJ_type=NULL;
-OBJ_TYPE *AREA_type=NULL;
-OBJ_TYPE *ROOM_type=NULL;
-OBJ_TYPE *EXIT_type=NULL;
-OBJ_TYPE *RESET_type=NULL;
-OBJ_TYPE *OBJPROTO_type=NULL;
-OBJ_TYPE *MOBPROTO_type=NULL;
-OBJ_TYPE *SHOP_type=NULL;
-OBJ_TYPE *AFFECT_type=NULL;
-OBJ_TYPE *PROG_type=NULL;
-OBJ_TYPE *MTRIG_type=NULL;
-OBJ_TYPE *OTRIG_type=NULL;
-OBJ_TYPE *ATRIG_type=NULL;
-OBJ_TYPE *RTRIG_type=NULL;
-
 /* for iterating */
-OBJ_TYPE *type_list [] =
+LUA_OBJ_TYPE *type_list [] =
 {
     &CH_type,
     &OBJ_type,
@@ -130,7 +115,7 @@ OBJ_TYPE *type_list [] =
 };
 
 
-static OBJ_TYPE *new_obj_type(
+static LUA_OBJ_TYPE *new_obj_type(
         lua_State *LS,
         const char *type_name,
         const LUA_PROP_TYPE *get_table,
@@ -138,17 +123,17 @@ static OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *method_table);
 
 /* base functionality for lua object types */
-static void * check_func( OBJ_TYPE *self,
+void * lua_check_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, int index )
 {
     lua_getmetatable(LS, index);
     lua_getfield(LS, -1, "TYPE");
-    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
     lua_pop(LS, 2);
-    if ( type != self )
+    if ( type != tp )
     {
         luaL_error(LS, "Bad parameter %d. Expected %s. ",
-                index, self->type_name );
+                index, tp->type_name );
     }
 
     lua_getfield(LS, index, "tableid");
@@ -161,7 +146,7 @@ static void * check_func( OBJ_TYPE *self,
 
 static int index_metamethod( lua_State *LS)
 {
-    OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+    LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
     const char *arg=luaL_checkstring( LS, 2 );
 
     LUA_PROP_TYPE *get=obj->get_table;
@@ -184,7 +169,7 @@ static int index_metamethod( lua_State *LS)
                         g_ScriptSecurity,
                         get[i].security);
 
-            void *gobj=obj->check(obj, LS, 1 );
+            void *gobj=lua_check_type(obj, LS, 1 );
             if (get[i].func)
             {
                 int val;
@@ -222,7 +207,7 @@ static int index_metamethod( lua_State *LS)
 
 static int newindex_metamethod( lua_State *LS )
 {
-    OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+    LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
     const char *arg=check_string( LS, 2, MIL );
     lua_remove(LS, 2);
 
@@ -238,7 +223,7 @@ static int newindex_metamethod( lua_State *LS )
                         g_ScriptSecurity,
                         set[i].security);
 
-            obj->check(obj, LS, 1 ); 
+            lua_check_type(obj, LS, 1 ); 
             if ( set[i].func )
             {
                 lua_pushcfunction( LS, set[i].func );
@@ -261,7 +246,7 @@ static int newindex_metamethod( lua_State *LS )
     return 0;
 }
 
-static void register_type( OBJ_TYPE *tp,
+static void register_type( LUA_OBJ_TYPE *tp,
         lua_State *LS)
 {
     luaL_newmetatable(LS, tp->type_name);
@@ -283,19 +268,19 @@ static void register_type( OBJ_TYPE *tp,
     lua_pop(LS, 1);
 }
 
-static bool make_func( OBJ_TYPE *self,
+bool lua_make_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, void *game_obj)
 {
     if (!game_obj)
     {
-        bugf("make_%s called with NULL object", self->type_name);
+        bugf("make_%s called with NULL object", tp->type_name);
         return FALSE;
     }
 
     /* we don't want stuff that was destroyed */
-    if ( self == CH_type && ((CHAR_DATA *)game_obj)->must_extract )
+    if ( tp == &CH_type && ((CHAR_DATA *)game_obj)->must_extract )
         return FALSE;
-    if ( self == OBJ_type && ((OBJ_DATA *)game_obj)->must_extract )
+    if ( tp == &OBJ_type && ((OBJ_DATA *)game_obj)->must_extract )
         return FALSE;
 
     /* see if it exists already */
@@ -319,7 +304,7 @@ static bool make_func( OBJ_TYPE *self,
 
     lua_newtable( LS);
 
-    luaL_getmetatable (LS, self->type_name);
+    luaL_getmetatable (LS, tp->type_name);
     lua_setmetatable (LS, -2);  /* set metatable for object data */
     
     lua_pushstring( LS, "tableid");
@@ -341,7 +326,7 @@ static bool make_func( OBJ_TYPE *self,
     return TRUE;
 }
 
-bool is_func( OBJ_TYPE *self,
+bool lua_is_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, int arg )
 {
     if ( !lua_istable(LS, arg ) )
@@ -349,37 +334,9 @@ bool is_func( OBJ_TYPE *self,
 
     lua_getmetatable(LS, arg);
     lua_getfield(LS, -1, "TYPE");
-    OBJ_TYPE *type=lua_touserdata(LS, -1);
+    LUA_OBJ_TYPE *type=lua_touserdata(LS, -1);
     lua_pop(LS, 2);
-    return ( type == self );
-}
-
-
-static OBJ_TYPE *new_obj_type(
-        lua_State *LS,
-        const char *type_name,
-        const LUA_PROP_TYPE *get_table,
-        const LUA_PROP_TYPE *set_table,
-        const LUA_PROP_TYPE *method_table)
-{
-    /*tbc check for table structure correctness */
-    /*check_table(get_table)
-      check-table(set_table)
-      check_table(method_table)
-      */
-
-    OBJ_TYPE *tp=alloc_mem(sizeof(OBJ_TYPE));
-    tp->type_name=type_name;
-    tp->set_table=set_table;
-    tp->get_table=get_table;
-    tp->method_table=method_table;
-
-    tp->check=check_func;
-    tp->make=make_func;
-    tp->is=is_func;
-
-    register_type( tp, LS );
-    return tp;
+    return ( type == tp );
 }
 
 /* global section */
@@ -6888,7 +6845,7 @@ static const LUA_PROP_TYPE ROOM_method_table [] =
 /* EXIT section */
 static int EXIT_flag (lua_State *LS)
 {
-    EXIT_DATA *ed=EXIT_type->check(EXIT_type, LS, 1 );
+    EXIT_DATA *ed=check_EXIT( LS, 1 );
     return check_flag( LS, "exit", exit_flags, ed->exit_info );
 }
 HELPTOPIC EXIT_flag_help=
@@ -7950,21 +7907,21 @@ static int TRIG_get_trigtype ( lua_State *LS )
 
     lua_getmetatable(LS,1);
     lua_getfield(LS, -1, "TYPE");
-    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
 
-    if (type==MTRIG_type)
+    if (type==&MTRIG_type)
     {
         tbl=mprog_flags;
     }
-    else if (type==OTRIG_type)
+    else if (type==&OTRIG_type)
     {
         tbl=oprog_flags;
     }
-    else if (type==ATRIG_type)
+    else if (type==&ATRIG_type)
     {
         tbl=aprog_flags;
     }
-    else if (type==RTRIG_type)
+    else if (type==&RTRIG_type)
     {
         tbl=rprog_flags;
     }
@@ -7978,7 +7935,7 @@ static int TRIG_get_trigtype ( lua_State *LS )
     lua_pushstring( LS,
             flag_stat_string(
                 tbl,
-                ((PROG_LIST *) type->check( type, LS, 1 ) )->trig_type ) );
+                ((PROG_LIST *) lua_check_type( type, LS, 1 ) )->trig_type ) );
     return 1;
 }
 HELPTOPIC TRIG_get_trigtype_help = {};
@@ -7987,18 +7944,18 @@ static int TRIG_get_trigphrase ( lua_State *LS )
 {
     lua_getmetatable(LS,1);
     lua_getfield(LS, -1, "TYPE");
-    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
 
-    if ( type != MTRIG_type
-            && type != OTRIG_type
-            && type != ATRIG_type
-            && type != RTRIG_type )
+    if ( type != &MTRIG_type
+            && type != &OTRIG_type
+            && type != &ATRIG_type
+            && type != &RTRIG_type )
         luaL_error( LS,
                 "Invalid type: %s.",
                 type->type_name);
 
     lua_pushstring( LS,
-            ((PROG_LIST *) type->check( type, LS, 1 ) )->trig_phrase);
+            ((PROG_LIST *) lua_check_type( type, LS, 1 ) )->trig_phrase);
     return 1;
 }
 HELPTOPIC TRIG_get_trigphrase_help ={};
@@ -8007,18 +7964,18 @@ static int TRIG_get_prog ( lua_State *LS )
 {
     lua_getmetatable(LS,1);
     lua_getfield(LS, -1, "TYPE");
-    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
 
-    if ( type != MTRIG_type
-            && type != OTRIG_type
-            && type != ATRIG_type
-            && type != RTRIG_type )
+    if ( type != &MTRIG_type
+            && type != &OTRIG_type
+            && type != &ATRIG_type
+            && type != &RTRIG_type )
         luaL_error( LS,
                 "Invalid type: %s.",
                 type->type_name);
 
     if ( make_PROG( LS,
-            ((PROG_LIST *) type->check( type, LS, 1 ) )->script ) )
+            ((PROG_LIST *)lua_check_type( type, LS, 1 ) )->script ) )
         return 1;
     return 0;
 }    
@@ -8071,7 +8028,7 @@ struct
 
 
 /* add ptable output to existing buffer */
-static void print_ptable( BUFFER *buffer, const struct prop_type *ptable )
+static void print_ptable( BUFFER *buffer, const struct lua_prop_type *ptable )
 {
     char buf[MSL];
     
@@ -8100,7 +8057,7 @@ static void print_ptable( BUFFER *buffer, const struct prop_type *ptable )
     
 static void print_help_usage( CHAR_DATA *ch )
 {
-    OBJ_TYPE *ot;
+    LUA_OBJ_TYPE *ot;
     int i;
 
     ptc( ch, "\n\rSECTIONS: \n\r\n\r" );
@@ -8111,7 +8068,7 @@ static void print_help_usage( CHAR_DATA *ch )
 
     for ( i=0 ; type_list[i] ; i++ )
     {
-        ot=*(OBJ_TYPE **)type_list[i];
+        ot=type_list[i];
         ptc( ch, "%s\n\r", ot->type_name);
     }
     
@@ -8162,7 +8119,7 @@ static void print_topic( CHAR_DATA *ch, HELPTOPIC *topic )
 
 static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 {
-    OBJ_TYPE *ot;
+    LUA_OBJ_TYPE *ot;
     int i;
 
     if ( !str_prefix("other", arg1) )
@@ -8214,7 +8171,7 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 
     for ( i=0 ; type_list[i] ; i++ )
     {
-        ot=*(OBJ_TYPE **)type_list[i];
+        ot=type_list[i];
         
         if (!str_cmp( ot->type_name, arg1 ) )
         {
@@ -8294,7 +8251,7 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 
 static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
 {
-    OBJ_TYPE *ot;
+    LUA_OBJ_TYPE *ot;
     int i;
 
     if ( !str_prefix("other", arg1) )
@@ -8356,7 +8313,7 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
 
     for ( i=0 ; type_list[i] ; i++ )
     {
-        ot=*(OBJ_TYPE **)type_list[i];
+        ot=type_list[i];
         if (!str_cmp( ot->type_name, arg1 ) )
         {
             int j;
@@ -8434,47 +8391,69 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
         typename ## _get_table,\
         typename ## _set_table,\
         typename ## _method_table)
-
 void type_init( lua_State *LS)
 {
-    TYPEINIT(CH);
-    TYPEINIT(OBJ);
-    TYPEINIT(AREA);
-    TYPEINIT(ROOM);
-    TYPEINIT(EXIT);
-    TYPEINIT(RESET);
-    TYPEINIT(OBJPROTO);
-    TYPEINIT(MOBPROTO);
-    TYPEINIT(SHOP);
-    TYPEINIT(AFFECT);
-    TYPEINIT(PROG);
-    if (!MTRIG_type)
-        MTRIG_type=new_obj_type(
-                LS,
-                "MTRIG",
-                TRIG_get_table,
-                TRIG_set_table,
-                TRIG_method_table);
-    if (!OTRIG_type)
-        OTRIG_type=new_obj_type(
-                LS,
-                "OTRIG",
-                TRIG_get_table,
-                TRIG_set_table,
-                TRIG_method_table);
-    if (!ATRIG_type)
-        ATRIG_type=new_obj_type(
-                LS,
-                "ATRIG",
-                TRIG_get_table,
-                TRIG_set_table,
-                TRIG_method_table);
-    if (!RTRIG_type)
-        RTRIG_type=new_obj_type(
-                LS,
-                "RTRIG",
-                TRIG_get_table,
-                TRIG_set_table,
-                TRIG_method_table);
+    int i;
+    LUA_OBJ_TYPE *tp;
 
+    for ( i=0 ; type_list[i] ; i=i++ )
+    {
+        register_type( type_list[i], LS );
+    }
 }
+#define DECLARETYPE( ltype, ctype ) \
+LUA_OBJ_TYPE ltype ## _type = { \
+    .type_name= #ltype ,\
+    .get_table= ltype ## _get_table ,\
+    .set_table= ltype ## _set_table ,\
+    .method_table = ltype ## _method_table \
+};\
+ctype * check_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_check_type( & ltype ## _type , LS, index );\
+}\
+bool    is_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_is_type( & ltype ## _type, LS, index );\
+}\
+bool    make_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_make_type( & ltype ## _type, LS, index);\
+}
+
+#define DECLARETRIG( ltype, ctype ) \
+LUA_OBJ_TYPE ltype ## _type = { \
+    .type_name= #ltype ,\
+    .get_table= TRIG_get_table ,\
+    .set_table= TRIG_set_table ,\
+    .method_table = TRIG_method_table \
+};\
+ctype * check_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_check_type( & ltype ## _type , LS, index );\
+}\
+bool    is_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_is_type( & ltype ## _type, LS, index );\
+}\
+bool    make_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_make_type( & ltype ## _type, LS, index);\
+}
+
+DECLARETYPE( CH, CHAR_DATA );
+DECLARETYPE( OBJ, OBJ_DATA );
+DECLARETYPE( AREA, AREA_DATA );
+DECLARETYPE( ROOM, ROOM_INDEX_DATA );
+DECLARETYPE( EXIT, EXIT_DATA );
+DECLARETYPE( RESET, RESET_DATA );
+DECLARETYPE( OBJPROTO, OBJ_INDEX_DATA );
+DECLARETYPE( MOBPROTO, MOB_INDEX_DATA );
+DECLARETYPE( SHOP, SHOP_DATA );
+DECLARETYPE( AFFECT, AFFECT_DATA );
+DECLARETYPE( PROG, PROG_CODE );
+DECLARETRIG( MTRIG, PROG_LIST );
+DECLARETRIG( OTRIG, PROG_LIST );
+DECLARETRIG( ATRIG, PROG_LIST );
+DECLARETRIG( RTRIG, PROG_LIST );
+
