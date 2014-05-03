@@ -94,7 +94,7 @@ http://www.gammon.com.au/forum/?id=8015
 typedef struct lua_scripter
 {
     const char *name;
-    OBJ_TYPE *type;
+    LUA_OBJ_TYPE *type;
     const char *setup_fun;
 
     int narg; /* set during init */
