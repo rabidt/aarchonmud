@@ -62,7 +62,7 @@ static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
     else
     {
         /* exit */
-        luaL_error( g_mud_LS, "Interrupted infinite loop." );
+        luaL_error( LS, "Interrupted infinite loop." );
         return;
     }
 }
@@ -605,7 +605,7 @@ void do_scriptdump( CHAR_DATA *ch, char *argument )
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
-        ptc (ch, "Error with do_scriptdump:\n %s",
+        ptc (ch, "Error with do_scriptdump:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
@@ -652,7 +652,7 @@ void do_luaquery( CHAR_DATA *ch, char *argument)
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
-        ptc (ch, "Error with do_luaquery:\n %s",
+        ptc (ch, "Error with do_luaquery:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
@@ -665,7 +665,7 @@ void do_wizhelp( CHAR_DATA *ch, char *argument )
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
-        ptc (ch, "Error with do_wizhelp:\n %s",
+        ptc (ch, "Error with do_wizhelp:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
@@ -837,7 +837,7 @@ void do_luaconfig( CHAR_DATA *ch, char *argument)
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
-        ptc (ch, "Error with do_luaconfig:\n %s",
+        ptc (ch, "Error with do_luaconfig:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
@@ -884,7 +884,7 @@ void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines)
 
     if (CallLuaWithTraceBack( g_mud_LS, 3, 0) )
     {
-        ptc (ch, "Error with dump_prog:\n %s",
+        ptc (ch, "Error with dump_prog:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
@@ -897,7 +897,7 @@ void do_luareset( CHAR_DATA *ch, char *argument)
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
-        ptc (ch, "Error with do_luareset:\n %s",
+        ptc (ch, "Error with do_luareset:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
@@ -921,7 +921,7 @@ void do_alist(CHAR_DATA *ch, char *argument)
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
-        ptc (ch, "Error with do_alist:\n %s",
+        ptc (ch, "Error with do_alist:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }

@@ -303,6 +303,8 @@ void free_obj(OBJ_DATA *obj)
 	if (!IS_VALID(obj))
 	return;
 
+    object_count--;
+
 	for (paf = obj->affected; paf != NULL; paf = paf_next)
 	{
 	    paf_next = paf->next;
@@ -365,8 +367,7 @@ CHAR_DATA *new_char (void)
 	ch->prefix          = &str_empty[0];
 	ch->logon                   = current_time;
 	ch->lines                   = PAGELEN;
-	for (i = 0; i < 4; i++)
-		ch->armor[i]            = 100;
+	ch->armor                   = 100;
 	ch->hunting					= NULL;
 	ch->aggressors				= NULL;
     ch->pet                     = NULL;

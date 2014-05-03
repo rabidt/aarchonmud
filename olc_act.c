@@ -141,7 +141,6 @@ const struct olc_help_type help_table[] =
     
     /* ROM specific bits: */
     
-    {	"armor",	ac_type,	 "Ac for different attacks."	 },
     {   "apply",	apply_flags,	 "Apply flags"			 },
     {	"form",		form_flags,	 "Mobile body form."	         },
     {	"part",		part_flags,	 "Mobile body parts."		 },
@@ -5562,8 +5561,7 @@ void set_mob_level( CHAR_DATA *mob, int level )
     mob->hitroll = mob_base_hitroll( pMobIndex, level );
     mob->damroll = mob_base_damroll( pMobIndex, level );
     mob->saving_throw = mob_base_saves( pMobIndex, level );
-    for (i = 0; i < 4; i++)
-        mob->armor[i] = mob_base_ac( pMobIndex, level );
+    mob->armor = mob_base_ac( pMobIndex, level );
 
     /* str ... luc */
     compute_mob_stats(mob);    
