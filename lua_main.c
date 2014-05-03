@@ -402,12 +402,12 @@ void do_luai( CHAR_DATA *ch, char *argument)
     argument=one_argument(argument, arg1);
 
     void *victim=NULL;
-    OBJ_TYPE *type;
+    LUA_OBJ_TYPE *type;
 
     if ( arg1[0]== '\0' )
     {
         victim=(void *)ch;
-        type=CH_type;
+        type=&CH_type;
         name=ch->name;
     }
     else if (!strcmp( arg1, "mob") )
@@ -426,7 +426,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
         }
 
         victim = (void *)mob;
-        type= CH_type;
+        type= &CH_type;
         name=mob->name;
     }
     else if (!strcmp( arg1, "obj") )
@@ -441,7 +441,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
         }
 
         victim= (void *)obj;
-        type=OBJ_type;
+        type=&OBJ_type;
         name=obj->name;
     }
     else if (!strcmp( arg1, "area") )
@@ -453,7 +453,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
         }
 
         victim= (void *)(ch->in_room->area);
-        type=AREA_type;
+        type=&AREA_type;
         name=ch->in_room->area->name;
     }
     else if (!strcmp( arg1, "room") )
@@ -465,7 +465,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
         }
         
         victim= (void *)(ch->in_room);
-        type=ROOM_type;
+        type=&ROOM_type;
         name=ch->in_room->name;
     }
     else
@@ -486,33 +486,33 @@ void do_luai( CHAR_DATA *ch, char *argument)
 
     /* do the stuff */
     lua_getglobal( g_mud_LS, "interp_setup");
-    if ( !type->make(type, g_mud_LS, victim) )
+    if ( !lua_make_type(type, g_mud_LS, victim) )
     {
-        bugf("do_luai: couldn't make udtable for %s, argument %s",
-                type->type_name, argument);
+        bugf("do_luai: couldn't make udtable argument %s",
+                argument);
         lua_settop(g_mud_LS, 0);
         return;
     }
 
-    if ( type == CH_type )
+    if ( type == &CH_type )
     {
         lua_pushliteral( g_mud_LS, "mob"); 
     }
-    else if ( type == OBJ_type )
+    else if ( type == &OBJ_type )
     {
         lua_pushliteral( g_mud_LS, "obj"); 
     }
-    else if ( type == AREA_type )
+    else if ( type == &AREA_type )
     {
         lua_pushliteral( g_mud_LS, "area"); 
     }
-    else if ( type == ROOM_type )
+    else if ( type == &ROOM_type )
     {
         lua_pushliteral( g_mud_LS, "room"); 
     }
     else
     {
-            bugf("do_luai: invalid type %s", type->type_name);
+            bugf("do_luai: invalid type: %s", type->type_name);
             lua_settop(g_mud_LS, 0);
             return;
     }
@@ -544,7 +544,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
     ch->desc->lua.interpret=TRUE;
     ch->desc->lua.incmpl=FALSE;
 
-    ptc(ch, "Entered lua interpreter mode for for %s %s\n\r", 
+    ptc(ch, "Entered lua interpreter mode for %s %s\n\r", 
             type->type_name,
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
