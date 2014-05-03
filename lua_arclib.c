@@ -648,6 +648,59 @@ static int godlib_confuse (lua_State *LS)
 }
 GODLIBHELP_DURATION( confuse );
 
+static int glob_transfer (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    const char *arg=check_string(LS,2,MIL);
+    ROOM_INDEX_DATA *location=find_mp_location( ch, arg); 
+
+    if (!location)
+    {
+        lua_pushboolean( LS, FALSE);
+        return 1;
+    }
+    
+    transfer_char( ch, location );
+    lua_pushboolean( LS, TRUE);
+    return 1;
+}
+HELPTOPIC glob_transfer_help = 
+{
+    .summary="Transfer a CH to another location.",
+    .info="Return false if location wasn't found."
+};
+
+static int glob_gtransfer (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    const char *arg=check_string(LS,2,MIL);
+    ROOM_INDEX_DATA *location=find_location( ch, arg);
+
+    if (!location)
+    {
+        lua_pushboolean( LS, FALSE);
+        return 1;
+    }
+
+    CHAR_DATA *victim, *next_char;
+    for ( victim=ch->in_room->people; victim; victim=next_char )
+    {
+        next_char=victim->next_in_room;
+        if ( is_same_group( ch, victim ) )
+        {
+            transfer_char(victim, location);
+        }
+    }
+
+    lua_pushboolean( LS, TRUE);
+    return 1;
+}
+HELPTOPIC glob_gtransfer_help =
+{
+    .summary="Transfer CH's and all group members in same room to a location.",
+    .info="Return false if location wasn't found."
+};
+
 static int glob_sendtochar (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
@@ -665,6 +718,55 @@ HELPTOPIC glob_sendtochar_help =
           "sendtochar(ch, \"Hello there\")"
 
 };
+
+static int glob_echoat (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    char *msg=check_fstring( LS, 2, MSL);
+
+    send_to_char(msg, ch);
+    send_to_char("\n\r",ch);
+    return 0;
+}
+HELPTOPIC glob_echoat_help =
+{
+    .summary="Send text to target CH, appended by a newline.",
+    .info="Arguments: target[CH], text[string]\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "echoat(ch, \"Hello there\")"
+
+};
+
+static int glob_echoaround (lua_State *LS)
+{
+    CHAR_DATA *ch=check_CH(LS,1);
+    char *msg=check_fstring( LS, 2, MSL);
+
+    CHAR_DATA *tochar, *next_char;
+
+    for ( tochar=ch->in_room->people; tochar ; tochar=next_char )
+    {
+        next_char=tochar->next_in_room;
+        if ( tochar == ch )
+            continue;
+
+        send_to_char( msg, tochar );
+        send_to_char( "\n\r", tochar);
+    }
+
+    return 0;
+}
+HELPTOPIC glob_echoaround_help =
+{
+    .summary="Send text to everybody in CH's room EXCEPT the CH, appended by a newline.",
+    .info="Arguments: target[CH], text[string]\n\r\n\r"
+          "Return: none\n\r\n\r"
+          "Example:\n\r"
+          "echoaround(ch, \"Hello there\")"
+
+};
+        
 
 static int glob_dammessage (lua_State *LS)
 {
@@ -1337,7 +1439,11 @@ GLOB_TYPE glob_table[] =
     GFUN(getmobworld,   0),
     GFUN(getpc,         0),
     GFUN(getrandomroom, 0),
+    GFUN(transfer,      0),
+    GFUN(gtransfer,     0),
     GFUN(sendtochar,    0),
+    GFUN(echoat,        0),
+    GFUN(echoaround,    0),
     GFUN(pagetochar,    0),
     GFUN(log,           0),
     GFUN(getcharlist,   9),
@@ -2154,17 +2260,8 @@ OBJVGT( spells,
 )
 OBJVH( spells, "pill, potion, scroll only. Table of the names of spells  attached to object.", "");
 
-OBJVGETINT( acpierce, ITEM_ARMOR, 0 )
-OBJVH( acpierce, "armor only", "");
-
-OBJVGETINT( acbash, ITEM_ARMOR, 1 )
-OBJVH( acbash, "armor only", "");
-
-OBJVGETINT( acslash, ITEM_ARMOR, 2 )
-OBJVH( acslash, "armor only", "");
-
-OBJVGETINT( acexotic, ITEM_ARMOR, 3 )
-OBJVH( acexotic, "armor only", "");
+OBJVGETINT( ac, ITEM_ARMOR, 0 )
+OBJVH( ac, "armor only", "");
 
 OBJVGETSTR( weapontype, ITEM_WEAPON,
         flag_stat_string( weapon_class, ud_obj->value[0] ) )
@@ -2820,8 +2917,20 @@ HELPTOPIC CH_purge_help = {};
 
 static int CH_goto (lua_State *LS)
 {
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    char *location=check_string(LS,2,MIL);
+    bool hidden=FALSE;
+    if ( !lua_isnone(LS,3) )
+    {
+        hidden=lua_toboolean(LS,3);
+    }
 
-    do_mpgoto( check_CH(LS, 1), check_fstring( LS, 2, MIL));
+    do_mpgoto( ud_ch, location);
+
+    if (!hidden)
+    {
+        do_look( ud_ch, "auto");
+    }
 
     return 0;
 }
@@ -4860,14 +4969,24 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(assist, 1),
     CHMETH(junk, 1),
     CHMETH(echo, 1),
+    /* deprecated in favor of global funcs */
+    /*
     CHMETH(echoaround, 1),
     CHMETH(echoat, 1),
+    */
+    { "echoaround", CH_echoaround, 1, &CH_echoaround_help, STS_DEPRECATED},
+    { "echoat", CH_echoat, 1, &CH_echoat_help, STS_DEPRECATED},
     CHMETH(mload, 1),
     CHMETH(purge, 1),
     CHMETH(goto, 1),
     CHMETH(at, 1),
+    /* deprecated in favor of global funcs */
+    /*
     CHMETH(transfer, 1),
     CHMETH(gtransfer, 1),
+    */
+    { "transfer", CH_transfer, 1, &CH_transfer_help, STS_DEPRECATED},
+    { "gtransfer", CH_gtransfer, 1, &CH_gtransfer_help, STS_DEPRECATED},
     CHMETH(otransfer, 1),
     CHMETH(force, 1),
     CHMETH(gforce, 1),
@@ -5054,9 +5173,33 @@ HELPTOPIC OBJ_destroy_help={};
 static int OBJ_clone( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+    bool copy_luavals=FALSE;
+
+    if (!lua_isnone(LS,2))
+    {
+        copy_luavals=lua_toboolean(LS,2);
+    }
 
     OBJ_DATA *clone = create_object(ud_obj->pIndexData,0);
     clone_object( ud_obj, clone );
+
+    if (copy_luavals)
+    {
+        LUA_EXTRA_VAL *luaval;
+        LUA_EXTRA_VAL *cloneval;
+        for ( luaval=ud_obj->luavals; luaval ; luaval=luaval->next )
+        {
+            cloneval=new_luaval(
+                    luaval->type,
+                    str_dup( luaval->name ),
+                    str_dup( luaval->val ),
+                    luaval->persist);
+
+            cloneval->next=clone->luavals;
+            clone->luavals=cloneval;
+        }
+    }
+
     if (ud_obj->carried_by)
         obj_to_char( clone, ud_obj->carried_by );
     else if (ud_obj->in_room)
@@ -5071,7 +5214,17 @@ static int OBJ_clone( lua_State *LS)
     else
         return 0;
 }
-HELPTOPIC OBJ_clone_help={};
+HELPTOPIC OBJ_clone_help={
+    .summary="Returns a clone of the OBJ.",
+    .info = "Arguments:  <copy_luavals[boolean]\n\r\n\r"
+          "Return: [OBJ]\n\r\n\r"
+          "Example:\n\r"
+          "local newobj=obj:clone()\n\r"
+          "local newobj=obj:clone(true)\n\r\n\r"
+          "Note:\n\r"
+          "Optional 'copy_luavals' argument is false by default. If true, any values\n\r"
+          "set by setval() will be copied to the cloned object."
+};
 
 static int OBJ_oload (lua_State *LS)
 {
@@ -5584,10 +5737,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(spells, 0),
 
     /* armor */
-    OBJGET( acpierce, 0),
-    OBJGET( acbash, 0),
-    OBJGET( acslash, 0),
-    OBJGET( acexotic, 0),
+    OBJGET( ac, 0),
 
     /* weapon */
     OBJGET( weapontype, 0),
@@ -7125,10 +7275,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET(spells, 0),
 
     /* armor */
-    OPGET( acpierce, 0),
-    OPGET( acbash, 0),
-    OPGET( acslash, 0),
-    OPGET( acexotic, 0),
+    OPGET( ac, 0),
 
     /* weapon */
     OPGET( weapontype, 0),

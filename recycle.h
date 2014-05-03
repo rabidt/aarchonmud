@@ -28,6 +28,7 @@
 /* externs */
 extern char str_empty[1];
 extern int mobile_count;
+extern int object_count;
 
 /* stuff for providing a crash-proof buffer */
 

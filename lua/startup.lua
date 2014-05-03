@@ -111,15 +111,21 @@ end
 function linenumber( text )
     local cnt=1
     local rtn={}
+
     table.insert(rtn, string.format("%3d. ", cnt))
     cnt=cnt+1
 
-    for i=1,#text do
+    local len=#text
+    for i=1,len do
         local char=text:sub(i,i)
         table.insert(rtn, char)
         if char == '\n' then
-            table.insert(rtn, string.format("%3d. ", cnt))
-            cnt=cnt+1
+            if i==len or (i==len-1 and text:sub(len,len)=="\r") then
+                break
+            else
+                table.insert(rtn, string.format("%3d. ", cnt))
+                cnt=cnt+1
+            end
         end
     end
             
@@ -467,9 +473,17 @@ function list_files ( path )
 end
 
 function lua_arcgc()
-    -- Destroy game object tables who don't have envs
+    -- Destroy game object tables who don't have envs or pending timer
+
+    -- make temporary timer table for tableid lookup
+    local tmr={}
+    for k,v in pairs(delaytbl) do
+        tmr[v.udobj.tableid]=true
+    end
+
+
     for k,v in pairs(origtbl) do
-        if not(envtbl[v.tableid]) then
+        if not(envtbl[v.tableid]) and not(tmr[v.tableid]) then
             UnregisterUd(v.tableid)
         end
     end

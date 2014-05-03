@@ -2570,15 +2570,15 @@ bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
         return FALSE;
 
     if ( IS_NPC(ach) && IS_NPC(bch)
-	 && ach->group > 0
-	 && ach->group == bch->group )
-	return TRUE;
+            && !IS_AFFECTED(ach, AFF_CHARM) && !IS_AFFECTED(bch, AFF_CHARM)
+            && ach->group > 0 && ach->group == bch->group )
+        return TRUE;
 
     /* charmies belong to same group as master */
     while ( IS_AFFECTED(ach, AFF_CHARM) && ach->master != NULL )
-	ach = ach->master;
+        ach = ach->master;
     while ( IS_AFFECTED(bch, AFF_CHARM) && bch->master != NULL )
-	bch = bch->master;
+        bch = bch->master;
     
     if ( ach->leader != NULL ) ach = ach->leader;
     if ( bch->leader != NULL ) bch = bch->leader;

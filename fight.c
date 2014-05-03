@@ -541,9 +541,9 @@ void special_affect_update(CHAR_DATA *ch)
 	int heal;
 
 	if ( ch->level < 90 || IS_NPC(ch) )
-	    heal = 20 + ch->level;
+	    heal = 10 + ch->level/2;
 	else
-	    heal = 150 + 10 * (ch->level - 90);
+	    heal = 100 + 5 * (ch->level - 90);
 
 	send_to_char( "You replenish yourself.\n\r", ch ); 
 	ch->hit = UMIN(ch->max_hit, ch->hit + heal);
@@ -758,7 +758,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
         {
             vch_next = vch->next_in_room;
-            if ( vch->fighting && is_same_group(vch->fighting, ch) )
+            if ( vch->fighting && is_same_group(vch->fighting, ch) && !is_safe_check(ch, vch, TRUE, FALSE, FALSE) )
             {
                 one_hit(ch, vch, dt, FALSE);
                 // goblin cleaver grants 3 extra attacks (total) against each opponent
@@ -1119,6 +1119,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             vch_next = vch->next_in_room;
             if ( vch->fighting != NULL
                 && is_same_group(vch->fighting, ch)
+                && !is_safe_check(ch, vch, TRUE, FALSE, FALSE)
                 && ch->fighting != vch )
             {
                 one_hit(ch, vch, dt, FALSE);
@@ -1809,15 +1810,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             }
     }
 
-    /* just in case */
-    if (victim == ch || ch == NULL || victim == NULL)
-        return FALSE;
-    
-    /*
-     * Can't beat a dead char!
-     * Guard against weird room-leavings.
-     */
-    if ( victim->position == POS_DEAD || ch->in_room != victim->in_room )
+    // another safety net
+    if ( stop_attack(ch, victim) || is_safe(ch, victim) )
         return FALSE;
     
     /*
@@ -2140,13 +2134,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     else
 	ac_dam_type = FIRST_DAMAGE( dam_type );
 
-    switch( ac_dam_type )
-    {
-    case(DAM_PIERCE): victim_ac = GET_AC(victim,AC_PIERCE)/10;   break;
-    case(DAM_BASH):   victim_ac = GET_AC(victim,AC_BASH)/10;     break;
-    case(DAM_SLASH):  victim_ac = GET_AC(victim,AC_SLASH)/10;    break;
-    default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
-    }
+    victim_ac = GET_AC(victim)/10;
 
     /* basic values */
     ch_roll = GET_HITROLL(ch);
@@ -4767,14 +4755,8 @@ void set_fighting( CHAR_DATA *ch, CHAR_DATA *victim )
 
 void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
 {
-    /*
-    if ( ch->fighting != NULL )
-    {
-        //  bug( "Set_fighting: already fighting", 0 );
-        ch->fighting = victim;
+    if ( ch == victim )
         return;
-    }
-    */
 
     if ( IS_AFFECTED( ch, AFF_OVERCHARGE))
     {
