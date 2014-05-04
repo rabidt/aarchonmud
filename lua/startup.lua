@@ -478,3 +478,24 @@ function lua_arcgc()
     end
     collectgarbage()
 end
+
+function save_mudconfig()
+    local tbl=mudconfig()
+    local f=io.open("mudconfig.lua", "w")
+    out,saved=serialize.save("mudconfig", tbl)
+    f:write(out)
+
+    f:close()
+end
+
+function load_mudconfig()
+    local f=loadfile("mudconfig.lua")
+    if f==nil then return end
+
+    tmp=f()
+    if not(tmp==nil) then
+        for k,v in pairs(tmp) do
+            mudconfig(k,v)
+        end
+    end
+end
