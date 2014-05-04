@@ -4113,6 +4113,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define RELIGION_FILE  "religion.txt"
 #define LBOARD_FILE    "lboard.txt"
 #define LBOARD_RESULT_FILE "lboard_result.txt"
+#define CONFIG_FILE    "mudconfig.lua"
 #define CHEAT_LIST     "../log/cheatlog.txt"
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"

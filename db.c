@@ -695,6 +695,12 @@ void boot_db()
     log_string( "Loading leaderboards" );
     load_lboards();
 
+    log_string("Initializing mudconfig." );
+    mudconfig_init();
+
+    log_string("Loading mudconfig." );
+    load_mudconfig();
+
     log_string( "Loading areas" );
     /*
     * Read in all the area files.
