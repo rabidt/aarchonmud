@@ -728,6 +728,9 @@ void mem_sim_save_other()
         other_save_list = mf;
     }*/
 
+    /* mudconfig */
+    save_mudconfig();
+
 #if defined(SIM_DEBUG)
    log_string("mem_sim_save_other: done");
 #endif
