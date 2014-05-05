@@ -484,7 +484,6 @@ PC_DATA *new_pcdata(void)
     {
         pcdata = pcdata_free;
         pcdata_free = pcdata_free->next;
-        type_PC.free_count--;
     }
     
     *pcdata = pcdata_zero;
@@ -532,8 +531,6 @@ PC_DATA *new_pcdata(void)
     pcdata->tell_history	    = pers_history_new();
     pcdata->clan_history	    = pers_history_new();
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
-    GET_TYPE( pcdata )=&type_PC;
-    type_PC.count++;
     VALIDATE(pcdata);
 
     return pcdata;
@@ -608,12 +605,9 @@ void free_pcdata(PC_DATA *pcdata)
         free_crime(crime);
     }
 
-    type_PC.count--;
-
     INVALIDATE(pcdata);
     pcdata->next = pcdata_free;
     pcdata_free = pcdata;
-    type_PC.free_count++;
     
     return;
 }
