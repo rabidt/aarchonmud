@@ -495,7 +495,11 @@ function load_mudconfig()
     tmp=f()
     if not(tmp==nil) then
         for k,v in pairs(tmp) do
-            mudconfig(k,v)
+            -- do pcall cause we might have dropped some options
+            local res,err=pcall(mudconfig, k, v)
+            if not(res) then
+                log("Couldn't set option '"..k.."'")
+            end
         end
     end
 end
