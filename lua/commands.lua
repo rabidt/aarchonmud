@@ -1037,3 +1037,51 @@ function do_alist( ch, argument )
 
 end
 --end alist section
+
+--mudconfig section
+local function mudconfig_usage(ch)
+    sendtochar(ch,
+[[
+Syntax:
+   mudconfig                  -- get the current value for all options
+   mudconfig <option>         -- get the current value for given option
+   mudconfig <option> <value> -- set a new value for the given option
+]])
+end
+function do_mudconfig( ch, argument )
+    local args=arguments(argument)
+    local nargs=#args
+    -- setting
+    if nargs==2 then
+        -- lua won't parse/convert booleans for us
+        if args[2]=="true" or args[2]=="TRUE" then
+            args[2]=true
+        elseif args[2]=="false" or args[2]=="FALSE" then
+            args[2]=false
+        end
+
+        mudconfig(unpack(args))
+        -- show result
+        do_mudconfig( ch, args[1])
+        sendtochar(ch, "Done.\n\r")
+        return
+    end
+
+    if nargs==1 then
+        local rtn=mudconfig(args[1])
+        sendtochar(ch, "%-20s %s\n\r", args[1], tostring(rtn))
+        return
+    end
+
+    if nargs==0 then
+        local rtn=mudconfig()
+        for k,v in pairs(rtn) do
+            sendtochar(ch, "%-20s %s\n\r", k, tostring(v))
+        end
+        return
+    end
+
+    mudconfig_usage(ch)
+    return
+end
+--end mudconfig section

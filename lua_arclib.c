@@ -859,6 +859,7 @@ static int glob_mudconfig (lua_State *LS)
                     }
                 case CFG_BOOL:
                     {
+                        luaL_checktype( LS, 2, LUA_TBOOLEAN );
                         *((bool *)(en->value))=lua_toboolean(LS, 2 );
                         break;
                     }
