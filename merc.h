@@ -154,7 +154,8 @@ typedef struct type_container
 
 extern TYPE_DATA type_CHAR;
 extern TYPE_DATA type_OBJ;
-extern TYPE_DATA type_PC;
+extern TYPE_DATA type_ROOM;
+extern TYPE_DATA type_AREA;
 
 #define GET_TYPE( ptr ) ( ( (TYPE_CONTAINER *)( ptr ) )->type)
 
@@ -2966,8 +2967,11 @@ struct  reset_data
  */
 struct  area_data
 {
+    /* must be first entry */
+    TYPE_CONTAINER _type;
+
 	AREA_DATA * next;
-        HELP_AREA * helps;
+    HELP_AREA * helps;
 	char *      file_name;
 	char *      name;
 	char *      credits;
@@ -3002,6 +3006,9 @@ struct  area_data
  */
 struct  room_index_data
 {
+    /* must be first entry */
+    TYPE_CONTAINER _type;
+
     ROOM_INDEX_DATA *   next;
     CHAR_DATA *     people;
     OBJ_DATA *      contents;
