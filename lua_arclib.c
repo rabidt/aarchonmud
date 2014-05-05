@@ -6,6 +6,7 @@
 #include "lua_main.h"
 #include "olc.h"
 #include "tables.h"
+#include "mudconfig.h"
 
 bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
 
@@ -767,6 +768,114 @@ static int glob_do_luaquery ( lua_State *LS)
 }
 HELPTOPIC glob_do_luaquery_help={};
 
+static void push_mudconfig_val( lua_State *LS, CFG_DATA_ENTRY *en )
+{
+    switch( en->type )
+    {
+        case CFG_INT:
+            {
+                lua_pushinteger( LS, *((int *)(en->value)));
+                break;
+            }
+        case CFG_FLOAT:
+            {
+                lua_pushnumber( LS, *((float *)(en->value)));
+                break;
+            }
+        case CFG_STRING:
+            {
+                lua_pushstring( LS, *((char **)(en->value)));
+                break;
+            }
+        case CFG_BOOL:
+            {
+                lua_pushboolean( LS, *((bool *)(en->value)));
+                break;
+            }
+        default:
+            {
+                luaL_error( LS, "Bad type.");
+            }
+    }
+}
+
+static int glob_mudconfig (lua_State *LS)
+{
+    int i;
+    CFG_DATA_ENTRY *en;
+
+    /* no arg, return the whole table */
+    if (lua_isnone(LS,1))
+    {
+        lua_newtable(LS);
+        for ( i=0 ; mudconfig_table[i].name ; i++ )
+        {
+            en=&mudconfig_table[i];
+            push_mudconfig_val( LS, en );
+            lua_setfield(LS, -2, en->name);
+        }
+        return 1;
+    }
+
+    const char *arg1=check_string(LS, 1, MIL);
+    /* 1 argument, return the value */
+    if (lua_isnone(LS, 2))
+    {
+        for ( i=0 ; mudconfig_table[i].name ; i++ )
+        {
+            en=&mudconfig_table[i];
+            if (!strcmp(en->name, arg1))
+            {
+                push_mudconfig_val( LS, en );
+                return 1;
+            }
+        }
+        luaL_error(LS, "No such mudconfig value: %s", arg1);
+    }
+
+    /* 2 args, set the value */
+    for ( i=0 ; mudconfig_table[i].name ; i++ )
+    {
+        en=&mudconfig_table[i];
+        if (!strcmp(en->name, arg1))
+        {
+            switch( en->type )
+            {
+                case CFG_INT:
+                    {
+                        *((int *)(en->value))=luaL_checkinteger( LS, 2 );
+                        break;
+                    }
+                case CFG_FLOAT:
+                    {
+                        *((float *)(en->value))=luaL_checknumber(LS, 2 );
+                        break;
+                    }
+                case CFG_STRING:
+                    {
+                        const char *newval=check_string(LS, 2, MIL);
+                        *((char **)(en->value))=str_dup(newval);
+                        break;
+                    }
+                case CFG_BOOL:
+                    {
+                        luaL_checktype( LS, 2, LUA_TBOOLEAN );
+                        *((bool *)(en->value))=lua_toboolean(LS, 2 );
+                        break;
+                    }
+                default:
+                    {
+                        luaL_error( LS, "Bad type.");
+                    }
+            }
+            return 0;
+        }
+    }
+    luaL_error(LS, "No such mudconfig value: %s", arg1);
+
+    return 0;
+}
+HELPTOPIC glob_mudconfig_help={};
 
 static int glob_clearloopcount (lua_State *LS)
 {
@@ -1413,6 +1522,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getshoplist,   9),
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
+    GFUN(mudconfig,     9),
 #ifdef TESTER
     GFUN(do_luaquery,   9),
 #endif
