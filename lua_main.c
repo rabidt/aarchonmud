@@ -993,3 +993,16 @@ void do_alist(CHAR_DATA *ch, char *argument)
         lua_pop( g_mud_LS, 1);
     }
 }
+
+void do_mudconfig( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_mudconfig");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_mudconfig:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
