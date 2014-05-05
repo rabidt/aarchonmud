@@ -6,6 +6,7 @@
 #include "lua_main.h"
 #include "lua_arclib.h"
 #include "interp.h"
+#include "mudconfig.h"
 
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
@@ -255,6 +256,72 @@ void check_lboard_reset()
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
+}
+
+static int L_save_mudconfig(lua_State *LS)
+{
+    int i;
+    CFG_DATA_ENTRY *en;
+
+    lua_getglobal(LS, "SaveTbl");
+    lua_newtable(LS);
+    for ( i=0 ; mudconfig_table[i].name ; i++ )
+    {
+        en=&mudconfig_table[i];
+        switch( en->type )
+        {
+            case CFG_INT:
+            {
+                lua_pushinteger( LS, *((int *)(en->value)));
+                break;
+            }
+            case CFG_FLOAT:
+            {
+                lua_pushnumber( LS, *((float *)(en->value)));
+                break;
+            }
+            case CFG_STRING:
+            {
+                lua_pushstring( LS, *((char **)(en->value)));
+                break;
+            }
+            case CFG_BOOL:
+            {
+                lua_pushboolean( LS, *((bool *)(en->value)));
+                break;
+            }
+            default:
+            {
+                luaL_error( LS, "Bad type.");
+            }
+        }
+
+        lua_setfield(LS, -2, en->name);
+    }
+
+    return 1;
+}
+
+void save_mudconfig()
+{
+    lua_getglobal( g_mud_LS, "save_mudconfig");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    {
+        bugf ( "Error with save_mudconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+void load_mudconfig()
+{
+    lua_getglobal( g_mud_LS, "load_mudconfig");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    {
+        bugf ( "Error with load_mudconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }    
 }
 
 bool run_lua_interpret( DESCRIPTOR_DATA *d)
@@ -922,6 +989,19 @@ void do_alist(CHAR_DATA *ch, char *argument)
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         ptc (ch, "Error with do_alist:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+void do_mudconfig( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_mudconfig");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_mudconfig:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
