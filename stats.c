@@ -1713,6 +1713,9 @@ void set_mob_race( CHAR_DATA *ch, int race )
     OBJ_DATA *obj;
     struct race_type *race_en=&race_table[race];
 
+    /* set the race */
+    ch->race=race;
+
     /* set size if it's a pc race, else mob's default */
     if ( race_en->pc_race )
     {
