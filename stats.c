@@ -1700,6 +1700,65 @@ void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap )
     return;
 }
 
+/* set a mob race and update fields accordingly */
+void set_mob_race( CHAR_DATA *ch, int race )
+{
+    if ( !IS_NPC(ch) )
+    {
+        bugf("set_mob_race called on PC: %s", ch->name);
+        return;
+    }
+    int pc_race;
+    AFFECT_DATA *paf;
+    OBJ_DATA *obj;
+    struct race_type *race_en=&race_table[race];
+
+    /* set size if it's a pc race, else mob's default */
+    if ( race_en->pc_race )
+    {
+        pc_race=pc_race_lookup( race_en->name );
+        if (pc_race==0)
+        {
+            bugf("set_mob_race: Couldn't find pc_race");
+            return;
+        }
+        
+        ch->size = pc_race_table[pc_race].size;
+    }
+    else
+    {
+        ch->size = ch->pIndexData->size;
+    }
+    
+    flag_copy( ch->form, race_en->form );
+    flag_copy( ch->parts, race_en->parts ); 
+
+    /* reset flags to racial defaults */
+    flag_copy( ch->affect_field, race_en->affect_field );
+    flag_copy( ch->imm_flags, race_en->imm );
+    flag_copy( ch->res_flags, race_en->res );
+    flag_copy( ch->vuln_flags, race_en->vuln );
+
+    /* add spell flags */
+    for ( paf = ch->affected; paf != NULL; paf = paf->next )
+    set_affect_flag( ch, paf );
+
+    /* add object flags */
+    for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
+    {
+    if (obj->wear_loc == -1)
+        continue;
+
+    for (paf = obj->pIndexData->affected; paf != NULL; paf = paf->next)
+        set_affect_flag( ch, paf );
+
+    for (paf = obj->affected; paf != NULL; paf = paf->next)
+        set_affect_flag( ch, paf );
+    }
+
+    return;
+}
+
 /* Bobble: update all affect, immune, vuln, resist flags on ch
  */
 void update_flags( CHAR_DATA *ch )
