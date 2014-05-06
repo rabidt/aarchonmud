@@ -2844,6 +2844,12 @@ void arm_npc( CHAR_DATA *mob )
 	obj->weight = obj->weight * 3/2;
     }
 
+    /* override damtype with mob's setting? */
+    if (mob->pIndexData->dam_type != DAM_NONE)
+    {
+        obj->value[3]=mob->pIndexData->dam_type;
+    }
+
     /* equip weapon */
     obj_to_char( obj, mob );
     equip_char( mob, obj, WEAR_WIELD );
