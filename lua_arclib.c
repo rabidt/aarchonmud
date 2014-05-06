@@ -4525,7 +4525,17 @@ static int CH_set_race (lua_State *LS)
     if (race==0)
         luaL_error(LS, "No such race: %s", arg );
 
-    ud_ch->race=race;
+#ifdef TESTER
+    if ( !IS_NPC(ud_ch) )
+    {
+        if ( !race_table[race].pc_race )
+            luaL_error(LS, "Not a valid player race: %s", arg);
+        ud_ch->race=race;
+        morph_update( ud_ch );
+        return 0;
+    }
+#endif
+    set_mob_race( ud_ch, race );
     return 0;
 }
 HELPTOPIC CH_set_race_help={
