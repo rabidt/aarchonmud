@@ -3873,8 +3873,8 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 	do_say(ch, buf);
 
         sprintf( buf, 
-            "It provides an armor class of %d pierce, %d bash, %d slash, and %d vs. magic.", 
-            obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+            "It provides an armor class of %d.", 
+            obj->value[0]);
         do_say(ch, buf);
             
         break;
@@ -4042,8 +4042,8 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 	do_say(ch, buf);
 
         sprintf( buf, 
-            "It provides an armor class of %d pierce, %d bash, %d slash, and %d vs. magic.", 
-            obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+            "It provides an armor class of %d.", 
+            obj->value[0] );
         do_say(ch, buf);
             
             break;
