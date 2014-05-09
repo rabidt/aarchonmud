@@ -4122,6 +4122,65 @@ HELPTOPIC CH_set_damroll_help =
     .summary="NPC only. Sets mob damroll percentage."
 };
 
+static int CH_get_attacktype( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS, attack_table[ud_ch->dam_type].name );
+    return 1;
+}
+HELPTOPIC CH_get_attacktype_help=
+{
+    .summary="See 'attack_table' table. Value corresponds to 'Name' column."
+};
+
+static int CH_set_attacktype (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set attacktype on PCs.");
+
+    const char *arg=check_string(LS,2, MIL);
+
+    int i;
+    for ( i=0 ; attack_table[i].name ; i++ )
+    {
+        if (!strcmp( attack_table[i].name, arg ) )
+        {
+            ud_ch->dam_type=i;
+            return 0;
+        }
+    }
+
+    luaL_error(LS, "No such attacktype: %s", arg );
+}
+HELPTOPIC CH_set_attacktype_help =
+{
+    .summary="NPC only. See 'attack_table' table. Value corresponds to 'Name' column."
+};
+
+static int CH_get_damtype (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS,
+            flag_stat_string( damage_type, attack_table[ud_ch->dam_type].damage) );
+    return 1;
+}
+HELPTOPIC CH_get_damtype_help =
+{
+    .summary="See 'attack_table' table. Value corresponds to 'Damtype' column."
+};
+
+static int CH_get_damnoun (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS, attack_table[ud_ch->dam_type].noun );
+    return 1;
+}
+HELPTOPIC CH_get_damnoun_help =
+{
+    .summary="See 'attack_table' table. Value corresponds to 'Noun' column."
+};
+
 static int CH_get_hp (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -4988,6 +5047,9 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(cha, 0),
     CHGET(hitroll, 0),
     CHGET(damroll, 0),
+    CHGET(attacktype, 0),
+    CHGET(damnoun, 0),
+    CHGET(damtype, 0),
     CHGET(luc, 0),
     CHGET(clan, 0),
     CHGET(class, 0),
@@ -5059,6 +5121,7 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(luc, 5),
     CHSET(hitroll, 5),
     CHSET(damroll, 5),
+    CHSET(attacktype, 5),
     CHSET(race, 5),
     CHSET(shortdescr, 5),
     CHSET(longdescr, 5),
