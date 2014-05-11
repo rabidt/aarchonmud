@@ -2704,15 +2704,17 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
 }
 
 /* create a default weapon for the mob --Bobble */
-void arm_npc_explicit( CHAR_DATA *mob, int wtype )
+void arm_npc( CHAR_DATA *mob )
 {
     OBJ_DATA *obj;
     int i, dam, level;
     char buf[MSL];
 
-    if ( mob == NULL || !IS_NPC(mob))
-        return;
-    
+    if ( mob == NULL || !IS_NPC(mob) || !IS_SET(mob->off_flags, OFF_ARMED) )
+	return;
+    else
+	REMOVE_BIT( mob->off_flags, OFF_ARMED );
+
     if ( get_eq_char(mob, WEAR_WIELD) != NULL
 	 || (obj = create_object(get_obj_index(OBJ_VNUM_MOB_WEAPON), 0)) == NULL )
 	return;
@@ -2728,8 +2730,43 @@ void arm_npc_explicit( CHAR_DATA *mob, int wtype )
     obj->value[1] = 2;
     obj->value[2] = UMAX(1, dam-1);
 
-    /* set weapon type */
-    obj->value[0] = wtype;
+    /* determin weapon type */
+    if ( IS_SET(mob->act, ACT_GUN) )
+	obj->value[0] = WEAPON_GUN;
+    else if ( IS_SET(mob->act, ACT_THIEF)
+	 || IS_SET(mob->off_flags, OFF_BACKSTAB)
+	 || IS_SET(mob->off_flags, OFF_CIRCLE) )
+	obj->value[0] = WEAPON_DAGGER;
+    else if ( IS_SET(mob->act, ACT_WARRIOR) )
+	if ( IS_SET(mob->off_flags, OFF_PARRY) || number_bits(1) )
+	    obj->value[0] = WEAPON_SWORD;
+	else if ( number_bits(1) )
+	    obj->value[0] = WEAPON_POLEARM;
+	else
+	    obj->value[0] = WEAPON_AXE;
+    else if ( IS_SET(mob->act, ACT_CLERIC) )
+	obj->value[0] = WEAPON_MACE;
+    else if ( IS_SET(mob->act, ACT_MAGE) )
+	obj->value[0] = WEAPON_SPEAR;
+    else
+    {
+	switch ( number_range(0,8) )
+	{
+	case 0: obj->value[0] = WEAPON_SWORD; break;
+	case 1: obj->value[0] = WEAPON_DAGGER; break;
+	case 2: obj->value[0] = WEAPON_SPEAR; break;
+	case 3: obj->value[0] = WEAPON_MACE; break;
+	case 4: obj->value[0] = WEAPON_AXE; break;
+	case 5: obj->value[0] = WEAPON_FLAIL; break;
+	case 6: obj->value[0] = WEAPON_WHIP; break;
+	case 7: obj->value[0] = WEAPON_POLEARM; break;
+	default: // low chance for exotic weapon :)
+	    if ( number_bits(2) )
+		obj->value[0] = WEAPON_SWORD;
+	    else
+		obj->value[0] = WEAPON_EXOTIC;
+	}
+    }
     
     /* set proper descriptions and flags */
     switch ( obj->value[0] )
@@ -2816,67 +2853,6 @@ void arm_npc_explicit( CHAR_DATA *mob, int wtype )
     /* equip weapon */
     obj_to_char( obj, mob );
     equip_char( mob, obj, WEAR_WIELD );
-}
-
-void arm_npc_auto( CHAR_DATA *mob )
-{
-    if ( mob == NULL || !IS_NPC(mob))
-        return;
-
-    int wtype;
-    
-    /* determine weapon type */
-    if ( IS_SET(mob->act, ACT_GUN) )
-	wtype = WEAPON_GUN;
-    else if ( IS_SET(mob->act, ACT_THIEF)
-	 || IS_SET(mob->off_flags, OFF_BACKSTAB)
-	 || IS_SET(mob->off_flags, OFF_CIRCLE) )
-	wtype = WEAPON_DAGGER;
-    else if ( IS_SET(mob->act, ACT_WARRIOR) )
-	if ( IS_SET(mob->off_flags, OFF_PARRY) || number_bits(1) )
-	    wtype = WEAPON_SWORD;
-	else if ( number_bits(1) )
-	    wtype = WEAPON_POLEARM;
-	else
-	    wtype = WEAPON_AXE;
-    else if ( IS_SET(mob->act, ACT_CLERIC) )
-	wtype = WEAPON_MACE;
-    else if ( IS_SET(mob->act, ACT_MAGE) )
-	wtype = WEAPON_SPEAR;
-    else
-    {
-	switch ( number_range(0,8) )
-	{
-	case 0: wtype = WEAPON_SWORD; break;
-	case 1: wtype = WEAPON_DAGGER; break;
-	case 2: wtype = WEAPON_SPEAR; break;
-	case 3: wtype = WEAPON_MACE; break;
-	case 4: wtype = WEAPON_AXE; break;
-	case 5: wtype = WEAPON_FLAIL; break;
-	case 6: wtype = WEAPON_WHIP; break;
-	case 7: wtype = WEAPON_POLEARM; break;
-	default: // low chance for exotic weapon :)
-	    if ( number_bits(2) )
-		wtype = WEAPON_SWORD;
-	    else
-		wtype = WEAPON_EXOTIC;
-	}
-    }
-    
-    arm_npc_explicit( mob, wtype );
-    return;
-}
-
-/* called when mobs are loaded, arm only if OFF_ARMED is set */
-void arm_npc( CHAR_DATA *mob )
-{
-    if ( mob == NULL || !IS_NPC(mob) || !IS_SET(mob->off_flags, OFF_ARMED) )
-        return;
-    else
-        REMOVE_BIT( mob->off_flags, OFF_ARMED );
-    
-    arm_npc_auto( mob );
-    return;
 }
 
 void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description )

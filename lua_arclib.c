@@ -3716,44 +3716,6 @@ HELPTOPIC CH_describe_help =
           "mob:describe(12345)\n\r\n\r"
 };
 
-static int CH_arm (lua_State *LS)
-{
-    CHAR_DATA *ud_ch = check_CH(LS, 1);
-    
-    if (!IS_NPC(ud_ch))
-        luaL_error(LS, "Can't arm PCs.");
-
-    if ( get_eq_char(ud_ch, WEAR_WIELD) != NULL )
-        luaL_error(LS, "NPC already wielding a weapon.");
-
-    if ( lua_isnone(LS,2) )
-    {
-        /* no argument, call arm_npc */
-        arm_npc_auto(ud_ch);
-        return 0;
-    }
-
-    const char *arg=check_string(LS,2,MIL);
-    int wtype=weapon_lookup( arg );
-    if (wtype == -1)
-        luaL_error(LS, "No such weapon type: %s", arg);
-
-    arm_npc_explicit(ud_ch, 
-            weapon_table[wtype].type);
-    return 0;
-}
-HELPTOPIC CH_arm_help=
-{
-    .summary = "NPC only. Arm a mob with a weapon.",
-    .info="Arguments: <type[string]>\n\r\n\r"
-          "Example:\n\r"
-          "mob:arm()\n\r"
-          "mob:arm(\"sword\"):\n\r\n\r"
-          "Notes:\n\r"
-          "If no type argument is given, a weapon is chosen automatically based on\n\r"
-          "act flags and chance." 
-};
-
 static int CH_addaffect (lua_State *LS)
 {
     int arg_index=1;
@@ -5246,7 +5208,6 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(getval, 1),
     CHMETH(rvnum, 0),
     CHMETH(describe, 1),
-    CHMETH(arm, 1),
     CHMETH(addaffect, 9),
     CHMETH(removeaffect,9),
     ENDPTABLE
