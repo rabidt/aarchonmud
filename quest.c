@@ -17,6 +17,7 @@
 #include <time.h>
 #include "merc.h"
 #include "special.h"
+#include "lua_arclib.h"
 
 DECLARE_DO_FUN( do_say );
 DECLARE_DO_FUN( do_startwar );
@@ -1498,6 +1499,36 @@ void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch )
 	sprintf( buf, "%-10d%-9d%d\n\r", qdata->id, qdata->status, qdata->timer);
 	send_to_char( buf, to_ch );
     }
+}
+
+void show_luavals( CHAR_DATA *ch, CHAR_DATA *to_ch )
+{
+    char buf[MSL];
+    LUA_EXTRA_VAL *luaval;
+
+    if ( ch == NULL || to_ch == NULL )
+    {
+        bugf( "show_luavals: NULL pointer" );
+        return;
+    }
+
+    if ( !ch->luavals )
+    {
+        send_to_char( "No luavals.\n\r", to_ch );
+        return;
+    }
+
+    ptc( to_ch, "%-20s %-20s %s\n\r", "Name", "Value", "Persist" );
+    send_to_char( "=================================================\n\r", to_ch );
+
+    for ( luaval = ch->luavals ; luaval ; luaval = luaval->next )
+    {
+        ptc( to_ch, "%-20s %-20s %s\n\r",
+                luaval->name,
+                luaval->val,
+                luaval->persist ? "TRUE" : "FALSE" );
+    }
+    return;
 }
 
 bool color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)

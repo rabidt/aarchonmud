@@ -2930,6 +2930,9 @@ void do_qlist( CHAR_DATA *ch, char *argument )
     sprintf( buf, "Quests for %s:\n\r\n\r", victim->name );
     send_to_char( buf, ch );
     show_quests( victim, ch );
+
+    send_to_char( "\n\r", ch);
+    show_luavals( victim, ch );
 }
 
 void check_sn_multiplay( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
