@@ -616,6 +616,13 @@ void do_luai( CHAR_DATA *ch, char *argument)
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
     ptc(ch, "Use do and end to create multiline chunks.\n\r");
+    ptc(ch, "Use '%s' to access target's self.\n\r",
+            type == &CH_type ? "mob" :
+            type == &OBJ_type ? "obj" :
+            type == &ROOM_type ? "room" :
+            type == &AREA_type ? "area" :
+            "ERROR" );
+
     lua_settop(g_mud_LS, 0);
     return;
 }
