@@ -135,11 +135,11 @@ BOARD_DATA boards[MAX_BOARD] =
    { "Mechanics","Game Mechanics",               0, 2, BOARD_NONE, "all", DEF_NORMAL,  45, 200, NULL, FALSE },
    { "Bugs",     "Typos, bugs, errors",          0, 2, BOARD_NONE, "imm", DEF_NORMAL,  45, 200, NULL, FALSE },
    { "Pkill",    "Player killers only!",         0, 2, BOARD_PKILL, "pkill", DEF_NORMAL,  45, 200, NULL, FALSE }, 
-   { "Roleplay", "Role Playing / Family notes",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  45, 300, NULL, FALSE }, 
+   { "Roleplay", "Role Playing / Family notes",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  45, 200, NULL, FALSE }, 
    { "Quest",    "Quest-related messages",       0, 2, BOARD_NONE, "all", DEF_NORMAL,  90, 200, NULL, FALSE },
    { "Builder",  "Area building",                0, 2, BOARD_BUILDER, "builder", DEF_NORMAL, 90, 200, NULL, FALSE }, 
    { "News",     "Announcements from Immortals", 0, DEMIGOD, BOARD_NONE, "all", DEF_NORMAL, 90, 500, NULL, FALSE },
-   { "Immortal", "Immortals only",            DEMIGOD, DEMIGOD, BOARD_NONE, "imm", DEF_NORMAL, 90, 300, NULL, FALSE },
+   { "Immortal", "Immortals only",            DEMIGOD, DEMIGOD, BOARD_NONE, "imm", DEF_NORMAL, 90, 500, NULL, FALSE },
    { "Penalty",  "Penalty notes (imm only)",     0, DEMIGOD, BOARD_NONE, "imm", DEF_NORMAL, 90, 200, NULL, FALSE },
 };
 
