@@ -951,38 +951,38 @@ void do_etls( CHAR_DATA *ch, char *argument )
     char racebuf[5];
     int i, j, race;
     BUFFER *output;
+    int tier = -1;
     
     if (argument[0] == '\0')
     {
         output = new_buf();
 
-        add_buf(output,"\n\rThis table shows the number of experience points");
-        add_buf(output,"\n\rrequired to gain one level.");
-        add_buf(output,"\n\r\n\rTo get more information, type: HELP ETLS\n\r");
-        
-        add_buf(output, "Race");
-        for (i=0; i<MAX_CLASS; i++)
-        {
-            sprintf(buf, "  %3s", class_table[i].who_name);
-            add_buf(output, buf);
-        }
+        add_buf(output,"\n\rThis table shows the number of experience points required to gain one level.");
+        add_buf(output,"\n\rTo get more information, type: HELP ETLS");
         
         for (i=1; i<MAX_PC_RACE; i++)
         {
-            for (j=0; j<4 && pc_race_table[i].who_name[j]; j++)
-                racebuf[j]=pc_race_table[i].who_name[j];
-            racebuf[j]='\0';
-            
-            sprintf(buf, "\n\r%s", racebuf);
-            add_buf(output, buf);
+            if (pc_race_table[i].remorts > tier)          
+            {
+                tier = pc_race_table[i].remorts;
+                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++++\n\r",tier);
+                add_buf(output, buf);
+                add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
+                add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x");
+            }
+
+	    sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
+            add_buf(output,buf);
+
             for (j=0; j<MAX_CLASS; j++)
             {
-                sprintf(buf, " %3d0", pc_race_table[i].class_mult[j]);
-                add_buf(output, buf);
+                sprintf(buf, " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
+                add_buf(output,buf);
             }
+
+            add_buf(output, "{x");
+
         }
-        
-        
         
         page_to_char(buf_string(output),ch);
         free_buf(output);
@@ -1003,28 +1003,27 @@ void do_etls( CHAR_DATA *ch, char *argument )
         }
         
         output = new_buf();
-        
-        add_buf(output, "Race");
-	for( i=0; i<MAX_CLASS; i++ )
-	{
-            sprintf(buf, "  %3s", class_table[i].who_name);
-            add_buf(output, buf);
-	}
 
         for( i=1; i<MAX_PC_RACE; i++ )
         {
             if( pc_race_table[i].remorts > r_num )
-                continue;
+                break;
+
+            if (pc_race_table[i].remorts > tier)
+            {
+                tier = pc_race_table[i].remorts;
+                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++++\n\r",tier);
+                add_buf(output, buf);
+                add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
+                add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x");
+            }
         
-            for (j=0; j<4 && pc_race_table[i].who_name[j]; j++)
-                racebuf[j]=pc_race_table[i].who_name[j];
-            racebuf[j]='\0';
-            sprintf(buf, "\n\r%s", racebuf);
+            sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
 
             for (j=0; j<MAX_CLASS; j++)
             {
-                sprintf(buf, " %3d0", pc_race_table[i].class_mult[j]);
+                sprintf(buf, " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
                 add_buf(output,buf);
             }
         }
@@ -1048,28 +1047,23 @@ void do_etls( CHAR_DATA *ch, char *argument )
         }
         
         output = new_buf();
+        sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++ {CRemort %3d{x ++++++++++++++++++++++++++++++++++\n\r", r_num);
+        add_buf(output, buf);
+        add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
+        add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x");
          
-        add_buf(output, "Race");
-	for( i=0; i<MAX_CLASS; i++ )
-	{
-            sprintf(buf, "  %3s", class_table[i].who_name);
-            add_buf(output, buf);
-	}
         
         for( i=1; i<MAX_PC_RACE; i++ )
         {
             if( pc_race_table[i].remorts != r_num )
                 continue;
-
-            for (j=0; j<4 && pc_race_table[i].who_name[j]; j++)
-                racebuf[j]=pc_race_table[i].who_name[j];
-            racebuf[j]='\0';
-            sprintf(buf, "\n\r%s", racebuf);
+            sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
+
 
             for (j=0; j<MAX_CLASS; j++)
             {
-                sprintf(buf, " %3d0", pc_race_table[i].class_mult[j]);
+                sprintf(buf, " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
                 add_buf(output,buf);
             }
         }   
