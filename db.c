@@ -4350,8 +4350,6 @@ void do_areas( CHAR_DATA *ch )
 
 void do_memory( CHAR_DATA *ch, char *argument )
 {
-    ptc( ch, "%s", ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-    
     ptc( ch, "Affects   %5d\n\r", top_affect    ); 
     ptc( ch, "Areas     %5d\n\r", top_area      ); 
     ptc( ch, "ExDes     %5d\n\r", top_ed        ); 
