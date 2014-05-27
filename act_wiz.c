@@ -2443,11 +2443,11 @@ void do_omni( CHAR_DATA *ch, char *argument )
     buf[0]    = '\0';
     output    = new_buf();
     
-    sprintf( buf, "--------------------------------------------------------------------------\n\r");
+    sprintf( buf, "----------------------------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
-    sprintf( buf, "Num  Name         Login   Idle  State    Pos    [Room ]  Qst? Host\n\r");
+    sprintf( buf, "Num  Name         Login   Idle  State    Pos    [Room ]  Qst? Host            Client\n\r");
     add_buf(output,buf);    
-    sprintf( buf, "--------------------------------------------------------------------------\n\r");
+    sprintf( buf, "----------------------------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
     
     for ( d = descriptor_list; d != NULL; d = d->next )
@@ -2503,7 +2503,7 @@ void do_omni( CHAR_DATA *ch, char *argument )
         }
           
         /* Added an extra  %s for the questing check below - Astark Oct 2012 */
-        sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%s	</send>\n\r",
+        sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%-15s	</send> %s\n\r",
             d->descriptor,                          /* ID */
             wch->name,                              /* Send name through pgrep */
             wch->name,                              /* Name */
@@ -2515,7 +2515,8 @@ void do_omni( CHAR_DATA *ch, char *argument )
             IS_QUESTOR(wch) 
                 || IS_QUESTORHARD(wch) ? "Y" : "N", /* Is player on a quest? */
             d->host,                                /* Send IP through pgrep */
-            d->host);                               /* IP Address */
+            d->host,
+            d->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
         add_buf(output,buf);
     }
     
