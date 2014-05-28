@@ -61,11 +61,29 @@ int get_enchant_ops( OBJ_DATA *obj, int level )
 /* enchants 'random' flagged objects */
 void check_enchant_obj( OBJ_DATA *obj )
 {
-    if ( obj == NULL || !IS_OBJ_STAT(obj, ITEM_RANDOM) )
+    if ( obj == NULL || !IS_OBJ_STAT(obj, ITEM_RANDOM) 
+      && !IS_OBJ_STAT(obj, ITEM_RANDOM_PHYSICAL) 
+      && !IS_OBJ_STAT(obj, ITEM_RANDOM_CASTER))
 	return;
 
-    REMOVE_BIT( obj->extra_flags, ITEM_RANDOM );
-    enchant_obj( obj, get_obj_spec(obj) - get_obj_ops(obj) );
+    if (IS_OBJ_STAT(obj, ITEM_RANDOM))
+    {
+        REMOVE_BIT( obj->extra_flags, ITEM_RANDOM );
+        enchant_obj( obj, get_obj_spec(obj) - get_obj_ops(obj) );
+    }
+    else if (IS_OBJ_STAT(obj, ITEM_RANDOM_PHYSICAL))
+    {
+        REMOVE_BIT( obj->extra_flags, ITEM_RANDOM_PHYSICAL );
+        craft_obj_physical( obj, get_obj_spec(obj) - get_obj_ops(obj) );
+    }
+    else if (IS_OBJ_STAT(obj, ITEM_RANDOM_CASTER))
+    {
+        REMOVE_BIT( obj->extra_flags, ITEM_RANDOM_CASTER );
+        craft_obj_caster( obj, get_obj_spec(obj) - get_obj_ops(obj) );
+    }
+    else
+        bugf("check_enchant_obj failed on obj : %d", obj->pIndexData->vnum);    
+
 }
 
 void enchant_obj( OBJ_DATA *obj, int ops )
