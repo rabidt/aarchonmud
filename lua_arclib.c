@@ -2329,17 +2329,8 @@ OBJVGT( spells,
 )
 OBJVH( spells, "pill, potion, scroll only. Table of the names of spells  attached to object.", "");
 
-OBJVGETINT( acpierce, ITEM_ARMOR, 0 )
-OBJVH( acpierce, "armor only", "");
-
-OBJVGETINT( acbash, ITEM_ARMOR, 1 )
-OBJVH( acbash, "armor only", "");
-
-OBJVGETINT( acslash, ITEM_ARMOR, 2 )
-OBJVH( acslash, "armor only", "");
-
-OBJVGETINT( acexotic, ITEM_ARMOR, 3 )
-OBJVH( acexotic, "armor only", "");
+OBJVGETINT( ac, ITEM_ARMOR, 0 )
+OBJVH( ac, "armor only", "");
 
 OBJVGETSTR( weapontype, ITEM_WEAPON,
         flag_stat_string( weapon_class, ud_obj->value[0] ) )
@@ -5925,10 +5916,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(spells, 0),
 
     /* armor */
-    OBJGET( acpierce, 0),
-    OBJGET( acbash, 0),
-    OBJGET( acslash, 0),
-    OBJGET( acexotic, 0),
+    OBJGET( ac, 0),
 
     /* weapon */
     OBJGET( weapontype, 0),
@@ -7481,10 +7469,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET(spells, 0),
 
     /* armor */
-    OPGET( acpierce, 0),
-    OPGET( acbash, 0),
-    OPGET( acslash, 0),
-    OPGET( acexotic, 0),
+    OPGET( ac, 0),
 
     /* weapon */
     OPGET( weapontype, 0),
