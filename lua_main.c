@@ -1013,3 +1013,26 @@ void do_mudconfig( CHAR_DATA *ch, char *argument)
         lua_pop( g_mud_LS, 1);
     }
 }
+
+
+const char *lua_str_dup( const char *str )
+{
+    lua_State *LS=g_mud_LS;
+
+    lua_getglobal(LS, "str_dup_table");
+    lua_pushstring( LS, str );
+    char *new=luaL_checkstring( LS, -1 );
+    lua_pushlightuserdata( LS, new );
+    lua_settable(LS, -3);
+    return new;
+}
+
+void lua_free_string( const char *str )
+{
+    lua_State *LS=g_mud_LS;
+
+    lua_getglobal(LS, "str_dup_table");
+    lua_pushnil( LS );
+    lua_pushlightuserdata(LS, str );
+    lua_settable(LS, -3);
+}
