@@ -808,7 +808,7 @@ void boot_db()
     fBootDb = FALSE;
 
     // start checking for memory leaks now that we're ready
-    reset_str_dup();
+    //reset_str_dup();
     
     return;
 }
@@ -4165,6 +4165,7 @@ void *alloc_perm( int sMem )
 * Hashtable of strings recently allocated and not freed
 * Used for debugging memory leaks
 */
+/*
 #define MAX_STR_DUP_KEY 1009
 static char* str_dup_hash[MAX_STR_DUP_KEY];
 static bool str_dup_ready = FALSE;
@@ -4216,25 +4217,20 @@ void dump_str_dup()
     reset_str_dup();
     return;
 }
-
+*/
 /*
 * Duplicate a string into dynamic memory.
 * Fread_strings are read-only and shared.
 */
 char *str_dup( const char *str )
 {
-    char *str_new;
-    
     if ( str[0] == '\0' )
         return &str_empty[0];
     
     if ( str >= string_space && str < top_string )
         return (char *) str;
     
-    str_new = alloc_mem( strlen(str) + 1 );
-    strcpy( str_new, str );
-    remember_str_dup( str_new );
-    return str_new;
+    return lua_str_dup( str );
 }
 
 /*
@@ -4249,8 +4245,7 @@ void free_string( char *pstr )
         || ( pstr >= string_space && pstr < top_string ) )
         return;
     
-    forget_str_dup( pstr );
-    free_mem( pstr, strlen(pstr) + 1 );
+    lua_free_string( pstr ); 
     return;
 }
 
@@ -4377,7 +4372,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     
     ptc( ch, "Perms   %5d blocks  of %7d bytes.\n\r",
         nAllocPerm, sAllocPerm );
-    ptc( ch, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
+    ptc( ch, "STR_DUP_STRINGS         %d\n\r", GetStrDupCount());
     ptc( ch, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
     ptc( ch, "\n\r");
     ptc( ch, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());

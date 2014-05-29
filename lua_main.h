@@ -27,6 +27,11 @@ void stackDump (lua_State *LS);
 void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines);
 
 
+const char *lua_str_dup( const char *str );
+void lua_free_string( const char *str );
+
+
+
 extern lua_State *g_mud_LS;
 extern bool       g_LuaScriptInProgress;
 int               g_ScriptSecurity;
