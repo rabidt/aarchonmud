@@ -5162,7 +5162,7 @@ void do_attributes( CHAR_DATA *ch, char *argument )
             else if( ac >= -150 )  sprintf( rating, "amazing!"  );
             else                             sprintf( rating, "fantastic!" );
 
-        sprintf( buf, "{D|{x {CA{crmor {CC{rating :{x %s   {CHit{croll, {CDam{croll:{x %d, %d",
+        sprintf( buf, "{D|{x {CA{crmor {CC{class :{x %d (%s)   {CHit{croll, {CDam{croll:{x %d, %d",
             ac, rating, GET_HITROLL(ch), GET_DAMROLL(ch) );
 
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
