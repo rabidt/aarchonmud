@@ -140,11 +140,15 @@ typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo,
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 
+/* forward declare, in lua_arclib.h */
+struct lua_obj_type;
+
 typedef struct type_data
 {
     const char *name;
     int count;
     int free_count;
+    struct lua_obj_type *lua_type;
 } TYPE_DATA;
 
 typedef struct type_container

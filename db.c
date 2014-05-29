@@ -50,6 +50,7 @@
 #include "olc.h"
 #include "buffer_util.h"
 #include "mob_stats.h"
+#include "lua_arclib.h"
 
 extern  int _filbuf     args( (FILE *) );
 
@@ -5688,21 +5689,25 @@ char* bread_word( RBUFFER *rbuf )
 
 TYPE_DATA type_CHAR=
 {
-    .name="CHAR"
+    .name="CHAR",
+    .lua_type=&CH_type
 };
 
 TYPE_DATA type_OBJ=
 {
-    .name="OBJ"
+    .name="OBJ",
+    .lua_type=&OBJ_type
 };
 
 TYPE_DATA type_ROOM=
 {
-    .name="ROOM"
+    .name="ROOM",
+    .lua_type=&ROOM_type
 };
 
 TYPE_DATA type_AREA=
 {
-    .name="AREA"
+    .name="AREA",
+    .lua_type=&AREA_type
 };
 
