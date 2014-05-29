@@ -599,12 +599,12 @@ void do_authorize( CHAR_DATA *ch, char *argument )
 
     if ( arg1[0] == '\0' )
     {
-        send_to_char( "To approve a waiting character:              auth <name>\n\r", ch );
-        send_to_char( "To deny a waiting character:                 auth <name> deny\n\r", ch );
-        send_to_char( "To ask a waiting character to change names:  auth <name> name\n\r", ch );
-	send_to_char( "To get a list of authed or denied names:     auth list\n\r", ch );
-        send_to_char( "To verify existence of players on the list:  auth cleanup\n\r", ch );
-        send_to_char( "To toggle the auth system on/off:            auth toggle\n\r", ch);
+        send_to_char( "Approve a waiting character:                 auth <name>\n\r", ch );
+        send_to_char( "Deny a waiting character (destroys pfile):   auth <name> deny\n\r", ch );
+        send_to_char( "Ask a waiting character to change names:     auth <name> name\n\r", ch );
+	send_to_char( "Get a list of authed or denied names:        auth list\n\r", ch );
+        send_to_char( "Verify existence of players on the list:     auth cleanup\n\r", ch );
+        send_to_char( "Toggle the auth system on/off:               auth toggle\n\r", ch);
         
         send_to_char("\n\r{+--- Characters awaiting approval ---{x\n\r", ch);
         
@@ -752,6 +752,14 @@ void do_authorize( CHAR_DATA *ch, char *argument )
             }
             else if ( !str_cmp( arg2, "no" ) || !str_cmp( arg2, "deny" ) )
             {
+
+                if (!IS_IMMORTAL(ch))
+                {
+                    printf_to_char(ch, "This command is reserved for immortal use only.\n\r");
+                    printf_to_char(ch, "Use : auth <name> name , to request a name change.\n\r");
+                    return;
+                }
+
                 auth->state = AUTH_DENIED;
                 auth->denied_by = str_dup( ch->name );
                 save_auth_list();
@@ -815,6 +823,14 @@ void do_authorize( CHAR_DATA *ch, char *argument )
             }
             else if ( !str_cmp( arg2, "no" ) || !str_cmp( arg2, "deny" ) )
             {
+
+               if (!IS_IMMORTAL(ch))
+                {
+                    printf_to_char(ch, "This command is reserved for immortal use only.\n\r");
+                    printf_to_char(ch, "Use : auth <name> name , to request a name change.\n\r");
+                    return;
+                }
+
 		char filename[MIL];
 
                 send_to_char( "{RYou have been denied access.{x\n\r", victim );
@@ -863,7 +879,7 @@ void do_authorize( CHAR_DATA *ch, char *argument )
                     "\n\r{RThe Immortals have found the name %s\n\r"
                     "to be unacceptable. You must choose a new one.\n\r"
                     "The name you choose must be clean and original.\n\r"
-                    "See 'help names'.{x\n\r", victim->name);
+                    "See '\t<send href='help names'>{whelp names{x\t</send>'.{x\n\r", victim->name);
 
                 printf_to_char( ch, "You have requested that %s change names.\n\r", victim->name);
 
