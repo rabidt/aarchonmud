@@ -538,7 +538,7 @@ void craft_obj_physical( OBJ_DATA *obj, int ops )
     add = number_range( 0, add );
     craft_obj_stat_physical( obj, add );  
     ops -= add;                            /* lower available ops to keep item in spec */
-    add = number_range( ops/7, ops/2 );     /* will determine how many ops to spent on HR/DR/AC/Saves */
+    add = number_range( 0, ops/2 );     /* will determine how many ops to spent on HR/DR/AC/Saves */
     craft_obj_roll_physical( obj, add );  
     ops -= add;                     
     craft_obj_max_physical( obj, ops );   /* uses the rest on HP/Mana/Move */
@@ -573,7 +573,7 @@ void craft_obj_stat_physical( OBJ_DATA *obj, int ops )
 	af.modifier = add;
 
 	/* location */
-        if ( !number_bits(1) )
+        if ( !number_bits(2) )
         {
     	    switch ( number_range(0, 7) )
 	    {
@@ -695,7 +695,7 @@ void craft_obj_max_physical( OBJ_DATA *obj, int ops )
 	af.modifier = add;
 
 	/* location */
-        if (!number_bits(2))
+        if (!number_bits(3))
             choice = number_range(0,1); /* Better chance of getting HP, than Move */
         else
             choice = number_range(0,0);
@@ -745,14 +745,14 @@ void craft_obj_caster( OBJ_DATA *obj, int ops )
 	return;
 
     /* stats */
-    add = number_range( 0, ops );         /* min of 4, max of 18 ops for stats */
+    add = number_range( 0, ops/2 );         
     add = number_range( 0, add );
     craft_obj_stat_caster( obj, add );   
-    ops -= add;                          /* lower available ops to keep item in spec */
-    add = number_range( ops/8, ops/2 );  /* will determine how many ops to spent on HR/DR/AC/Saves */
+    ops -= add;                          
+    add = number_range( 0, ops/6 );  
     craft_obj_roll_caster( obj, add );   
     ops -= add;                          
-    craft_obj_max_caster( obj, ops );    /* uses the rest on HP/Mana/Move */
+    craft_obj_max_caster( obj, ops );    
 
 }
 
@@ -785,17 +785,30 @@ void craft_obj_stat_caster( OBJ_DATA *obj, int ops )
 	af.modifier = add;
 
 	/* location */
-	switch ( number_range(0, 7) )
-	{
-	case 0: af.location = APPLY_CON; break;
-	case 1: af.location = APPLY_VIT; break;
-	case 2: af.location = APPLY_AGI; break;
-	case 3: af.location = APPLY_INT; break;
-	case 4: af.location = APPLY_WIS; break;
-	case 5: af.location = APPLY_DIS; break;
-	case 6: af.location = APPLY_CHA; break;
-	case 7: af.location = APPLY_LUC; break;
-	}
+        if ( !number_bits(3) )
+        {
+        
+    	    switch ( number_range(0, 1) )
+	    {
+	    case 0: af.location = APPLY_INT; break;
+	    case 1: af.location = APPLY_WIS; break;
+	    }
+        }
+        else
+        {
+
+    	    switch ( number_range(0, 7) )
+	    {
+	    case 0: af.location = APPLY_CON; break;
+	    case 1: af.location = APPLY_VIT; break;
+	    case 2: af.location = APPLY_AGI; break;
+            case 3: af.location = APPLY_INT; break;
+            case 4: af.location = APPLY_WIS; break;
+	    case 5: af.location = APPLY_DIS; break;
+	    case 6: af.location = APPLY_CHA; break;
+	    case 7: af.location = APPLY_LUC; break;
+	    }
+        }
 
 	add_craft_affect( obj, &af );
 	
@@ -831,12 +844,12 @@ void craft_obj_roll_caster( OBJ_DATA *obj, int ops )
 	default:
 	    choice = number_range(0,3); break;
 	case ITEM_WEAPON:
-	    if ( !number_bits(2) )             // You have a better chance of getting saves & AC than HR/DR
+	    if ( !number_bits(3) )             // You have a better chance of getting saves & AC than HR/DR
 		choice = number_range(0,3);
 	    else
 		choice = number_range(2,3);
 	case ITEM_ARMOR:
-	    if ( !number_bits(2) )             // You have a better chance of getting saves & AC than HR/DR
+	    if ( !number_bits(3) )             // You have a better chance of getting saves & AC than HR/DR
 		choice = number_range(0,3);
 	    else
 		choice = number_range(2,3);
@@ -890,7 +903,7 @@ void craft_obj_max_caster( OBJ_DATA *obj, int ops )
 	af.modifier = add;
 
 	/* location */
-        if ( !number_bits(3) )
+        if ( !number_bits(4) )
             choice = number_range(0,2); /* Better chance of getting Mana than HP or Move */
         else if ( !number_bits(1) )
             choice = number_range(0,1);
