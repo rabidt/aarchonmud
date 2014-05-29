@@ -386,7 +386,7 @@ static void load_board (BOARD_DATA *board)
       while ( isspace(letter) );
       ungetc( letter, fp );
       
-      pnote             = alloc_perm( sizeof(*pnote) );
+      pnote             = lua_new_note();
       
       if ( str_cmp( fread_word( fp ), "sender" ) )
          break;
