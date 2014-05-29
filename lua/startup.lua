@@ -14,6 +14,9 @@ interptbl={} -- key is game object pointer, table of desc=desc pointer, name=cha
 delaytbl={} -- used on the C side mostly
 
 
+NOTE_table={}
+
+
 function UdCnt()
     local cnt=0
     for k,v in pairs(udtbl) do

@@ -36,21 +36,12 @@
 
 void free_quest(QUEST_DATA *quest);
 
-/* stuff for recyling notes */
-NOTE_DATA *note_free;
-
 /* Allocate memory for a new note or recycle (Erwin's version) */
 NOTE_DATA *new_note ()
 {
 	NOTE_DATA *note;
 	
-	if (note_free)
-	{
-		note = note_free;
-		note_free = note_free->next;
-	}
-	else
-		note = alloc_mem (sizeof(NOTE_DATA));
+	note = lua_new_note();
 
 	/* Zero all the field - Envy does not gurantee zeroed memory */ 
 	note->next = NULL;
@@ -78,8 +69,7 @@ void free_note(NOTE_DATA *note)
 	free_string( note->sender  );
 	INVALIDATE(note);
 
-	note->next = note_free;
-	note_free   = note;
+    lua_free_note( note );
 }
 
 	
