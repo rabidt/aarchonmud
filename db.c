@@ -50,6 +50,7 @@
 #include "olc.h"
 #include "buffer_util.h"
 #include "mob_stats.h"
+#include "lua_arclib.h"
 
 extern  int _filbuf     args( (FILE *) );
 
@@ -965,6 +966,8 @@ void load_area( FILE *fp )
     pArea->nplayer  = 0;
     pArea->empty    = FALSE;
     pArea->atrig_timer=NULL;
+
+    GET_TYPE( pArea )=&type_AREA;
     
     if ( !area_first )
         area_first = pArea;
@@ -980,6 +983,7 @@ void load_area( FILE *fp )
     current_area = pArea;
     
     top_area++;
+    type_AREA.count++;
 
     logpf("Loading area: %s\t\t%Min: %ld  Max: %ld  Sec: %d  Credits: %s",
         pArea->name, pArea->min_vnum, pArea->max_vnum, pArea->security, pArea->credits);
@@ -1103,6 +1107,8 @@ void new_load_area( FILE *fp )
                 area_last    = pArea;
                 pArea->next  = NULL;
                 current_area = pArea;
+                GET_TYPE( pArea ) = &type_AREA;
+                type_AREA.count++;
                 top_area++;
                 
                 return;
@@ -1666,6 +1672,8 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          iHash           = vnum % MAX_KEY_HASH;
          pRoomIndex->next    = room_index_hash[iHash];
          room_index_hash[iHash]  = pRoomIndex;
+         GET_TYPE( pRoomIndex ) = &type_ROOM;
+         type_ROOM.count++;
          top_room++;
          top_vnum_room = top_vnum_room < vnum ? vnum : top_vnum_room; /* OLC */
          assign_area_vnum( vnum );                                    /* OLC */
@@ -4380,6 +4388,16 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
     ptc( ch, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
     ptc( ch, "\n\r");
+    ptc( ch, "CHAR_DATA count         %d\n\r", type_CHAR.count); 
+    ptc( ch, "  free                  %d\n\r", type_CHAR.free_count);
+    ptc( ch, "OBJ_DATA count          %d\n\r", type_OBJ.count);
+    ptc( ch, "  free                  %d\n\r", type_OBJ.free_count);
+    ptc( ch, "ROOM_INDEX_DATA count   %d\n\r", type_ROOM.count);
+    ptc( ch, "  free                  %d\n\r", type_ROOM.free_count);
+    ptc( ch, "AREA_DATA count         %d\n\r", type_AREA.count);
+    ptc( ch, "  free                  %d\n\r", type_AREA.free_count);
+    ptc( ch, "\n\r");
+
     ptc( ch, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());
     ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
     ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
@@ -5669,4 +5687,27 @@ char* bread_word( RBUFFER *rbuf )
     return NULL;
 }
 
+TYPE_DATA type_CHAR=
+{
+    .name="CHAR",
+    .lua_type=&CH_type
+};
+
+TYPE_DATA type_OBJ=
+{
+    .name="OBJ",
+    .lua_type=&OBJ_type
+};
+
+TYPE_DATA type_ROOM=
+{
+    .name="ROOM",
+    .lua_type=&ROOM_type
+};
+
+TYPE_DATA type_AREA=
+{
+    .name="AREA",
+    .lua_type=&AREA_type
+};
 
