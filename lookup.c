@@ -181,6 +181,21 @@ int race_lookup (const char *name)
    return 0;
 } 
 
+/* returns pc race number */
+int pc_race_lookup (const char *name)
+{
+    int race;
+    
+    for ( race = 0; pc_race_table[race].name != NULL; race++)
+    {
+        if (LOWER(name[0]) == LOWER(pc_race_table[race].name[0])
+           &&  !str_prefix(name, pc_race_table[race].name))
+           return race;
+    }
+    
+    return 0;
+}
+
 /* returns alignment */
 int align_lookup (const char *name)
 {

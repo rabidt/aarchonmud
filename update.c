@@ -39,6 +39,7 @@
 #include "olc.h"
 #include "mob_stats.h"
 #include "lua_scripting.h"
+#include "mudconfig.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -153,9 +154,10 @@ void advance_level( CHAR_DATA *ch, bool hide )
 }   
 
 
-void gain_exp( CHAR_DATA *ch, int gain)
+void gain_exp( CHAR_DATA *ch, int gain_base)
 {
     char buf[MAX_STRING_LENGTH];
+    int gain;
     long field, max;
 
     if ( IS_NPC(ch) || IS_HERO(ch) )
@@ -163,6 +165,16 @@ void gain_exp( CHAR_DATA *ch, int gain)
 
     if ( IS_SET(ch->act,PLR_NOEXP) && gain > 0 )
         return;
+
+    if ( cfg_enable_exp_mult && gain_base > 0)
+    {
+        gain=(int)(gain_base * cfg_exp_mult);
+        ptc(ch, "There's currently an exp bonus of %d%%!\n\r", (int)((cfg_exp_mult*100)-100));
+    }
+    else
+    {
+        gain=gain_base;
+    }
 
     field = UMAX((ch_wis_field(ch)*gain)/100,0);
     gain-=field;
@@ -1012,7 +1024,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -2649,6 +2661,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */

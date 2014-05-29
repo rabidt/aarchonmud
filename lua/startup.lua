@@ -36,6 +36,7 @@ function MakeUdProxy(ud)
             __index = ud,
             __newindex = getmetatable(ud)["__newindex"], 
             __tostring= function() return tostring(ud) end,
+            TYPE=getmetatable(ud)["TYPE"],
             __metatable=0 -- any value here protects it
             }
     )
@@ -112,21 +113,9 @@ function linenumber( text )
     local cnt=1
     local rtn={}
 
-    table.insert(rtn, string.format("%3d. ", cnt))
-    cnt=cnt+1
-
-    local len=#text
-    for i=1,len do
-        local char=text:sub(i,i)
-        table.insert(rtn, char)
-        if char == '\n' then
-            if i==len or (i==len-1 and text:sub(len,len)=="\r") then
-                break
-            else
-                table.insert(rtn, string.format("%3d. ", cnt))
-                cnt=cnt+1
-            end
-        end
+    for line in text:gmatch(".-\n\r?") do
+        table.insert(rtn, string.format("%3d. %s", cnt, line))
+        cnt=cnt+1
     end
             
     return table.concat(rtn)
@@ -488,4 +477,29 @@ function lua_arcgc()
         end
     end
     collectgarbage()
+end
+
+function save_mudconfig()
+    local tbl=mudconfig()
+    local f=io.open("mudconfig.lua", "w")
+    out,saved=serialize.save("mudconfig", tbl)
+    f:write(out)
+
+    f:close()
+end
+
+function load_mudconfig()
+    local f=loadfile("mudconfig.lua")
+    if f==nil then return end
+
+    tmp=f()
+    if not(tmp==nil) then
+        for k,v in pairs(tmp) do
+            -- do pcall cause we might have dropped some options
+            local res,err=pcall(mudconfig, k, v)
+            if not(res) then
+                log("Couldn't set option '"..k.."'")
+            end
+        end
+    end
 end

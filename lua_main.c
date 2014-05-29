@@ -6,6 +6,7 @@
 #include "lua_main.h"
 #include "lua_arclib.h"
 #include "interp.h"
+#include "mudconfig.h"
 
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
@@ -77,24 +78,24 @@ void stackDump (lua_State *LS) {
         switch (t) {
 
             case LUA_TSTRING:  /* strings */
-                bugf("`%s'", lua_tostring(LS, i));
+                logpf("`%s'", lua_tostring(LS, i));
                 break;
 
             case LUA_TBOOLEAN:  /* booleans */
-                bugf(lua_toboolean(LS, i) ? "true" : "false");
+                logpf(lua_toboolean(LS, i) ? "true" : "false");
                 break;
 
             case LUA_TNUMBER:  /* numbers */
-                bugf("%g", lua_tonumber(LS, i));
+                logpf("%g", lua_tonumber(LS, i));
                 break;
 
             default:  /* other values */
-                bugf("%s", lua_typename(LS, t));
+                logpf("%s", lua_typename(LS, t));
                 break;
 
         }
     }
-    bugf("\n");  /* end the listing */
+    logpf("\n");  /* end the listing */
 }
 
 const char *check_string( lua_State *LS, int index, size_t size)
@@ -257,6 +258,72 @@ void check_lboard_reset()
     }
 }
 
+static int L_save_mudconfig(lua_State *LS)
+{
+    int i;
+    CFG_DATA_ENTRY *en;
+
+    lua_getglobal(LS, "SaveTbl");
+    lua_newtable(LS);
+    for ( i=0 ; mudconfig_table[i].name ; i++ )
+    {
+        en=&mudconfig_table[i];
+        switch( en->type )
+        {
+            case CFG_INT:
+            {
+                lua_pushinteger( LS, *((int *)(en->value)));
+                break;
+            }
+            case CFG_FLOAT:
+            {
+                lua_pushnumber( LS, *((float *)(en->value)));
+                break;
+            }
+            case CFG_STRING:
+            {
+                lua_pushstring( LS, *((char **)(en->value)));
+                break;
+            }
+            case CFG_BOOL:
+            {
+                lua_pushboolean( LS, *((bool *)(en->value)));
+                break;
+            }
+            default:
+            {
+                luaL_error( LS, "Bad type.");
+            }
+        }
+
+        lua_setfield(LS, -2, en->name);
+    }
+
+    return 1;
+}
+
+void save_mudconfig()
+{
+    lua_getglobal( g_mud_LS, "save_mudconfig");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    {
+        bugf ( "Error with save_mudconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+void load_mudconfig()
+{
+    lua_getglobal( g_mud_LS, "load_mudconfig");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    {
+        bugf ( "Error with load_mudconfig:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }    
+}
+
 bool run_lua_interpret( DESCRIPTOR_DATA *d)
 {
     if (!d->lua.interpret) /* not in interpreter */
@@ -402,12 +469,12 @@ void do_luai( CHAR_DATA *ch, char *argument)
     argument=one_argument(argument, arg1);
 
     void *victim=NULL;
-    OBJ_TYPE *type;
+    LUA_OBJ_TYPE *type;
 
     if ( arg1[0]== '\0' )
     {
         victim=(void *)ch;
-        type=CH_type;
+        type=&CH_type;
         name=ch->name;
     }
     else if (!strcmp( arg1, "mob") )
@@ -426,7 +493,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
         }
 
         victim = (void *)mob;
-        type= CH_type;
+        type= &CH_type;
         name=mob->name;
     }
     else if (!strcmp( arg1, "obj") )
@@ -441,7 +508,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
         }
 
         victim= (void *)obj;
-        type=OBJ_type;
+        type=&OBJ_type;
         name=obj->name;
     }
     else if (!strcmp( arg1, "area") )
@@ -453,7 +520,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
         }
 
         victim= (void *)(ch->in_room->area);
-        type=AREA_type;
+        type=&AREA_type;
         name=ch->in_room->area->name;
     }
     else if (!strcmp( arg1, "room") )
@@ -465,7 +532,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
         }
         
         victim= (void *)(ch->in_room);
-        type=ROOM_type;
+        type=&ROOM_type;
         name=ch->in_room->name;
     }
     else
@@ -486,33 +553,33 @@ void do_luai( CHAR_DATA *ch, char *argument)
 
     /* do the stuff */
     lua_getglobal( g_mud_LS, "interp_setup");
-    if ( !type->make(type, g_mud_LS, victim) )
+    if ( !lua_make_type(type, g_mud_LS, victim) )
     {
-        bugf("do_luai: couldn't make udtable for %s, argument %s",
-                type->type_name, argument);
+        bugf("do_luai: couldn't make udtable argument %s",
+                argument);
         lua_settop(g_mud_LS, 0);
         return;
     }
 
-    if ( type == CH_type )
+    if ( type == &CH_type )
     {
         lua_pushliteral( g_mud_LS, "mob"); 
     }
-    else if ( type == OBJ_type )
+    else if ( type == &OBJ_type )
     {
         lua_pushliteral( g_mud_LS, "obj"); 
     }
-    else if ( type == AREA_type )
+    else if ( type == &AREA_type )
     {
         lua_pushliteral( g_mud_LS, "area"); 
     }
-    else if ( type == ROOM_type )
+    else if ( type == &ROOM_type )
     {
         lua_pushliteral( g_mud_LS, "room"); 
     }
     else
     {
-            bugf("do_luai: invalid type %s", type->type_name);
+            bugf("do_luai: invalid type: %s", type->type_name);
             lua_settop(g_mud_LS, 0);
             return;
     }
@@ -544,11 +611,18 @@ void do_luai( CHAR_DATA *ch, char *argument)
     ch->desc->lua.interpret=TRUE;
     ch->desc->lua.incmpl=FALSE;
 
-    ptc(ch, "Entered lua interpreter mode for for %s %s\n\r", 
+    ptc(ch, "Entered lua interpreter mode for %s %s\n\r", 
             type->type_name,
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
     ptc(ch, "Use do and end to create multiline chunks.\n\r");
+    ptc(ch, "Use '%s' to access target's self.\n\r",
+            type == &CH_type ? "mob" :
+            type == &OBJ_type ? "obj" :
+            type == &ROOM_type ? "room" :
+            type == &AREA_type ? "area" :
+            "ERROR" );
+
     lua_settop(g_mud_LS, 0);
     return;
 }
@@ -922,6 +996,19 @@ void do_alist(CHAR_DATA *ch, char *argument)
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         ptc (ch, "Error with do_alist:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+void do_mudconfig( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_mudconfig");
+    make_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_mudconfig:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
