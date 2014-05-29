@@ -102,6 +102,7 @@ AREA_DATA *new_area( void )
     {
         pArea       =   area_free;
         area_free   =   area_free->next;
+        type_AREA.free_count--;
     }
 
     pArea->next             =   NULL;
@@ -122,6 +123,9 @@ AREA_DATA *new_area( void )
     pArea->vnum             =   top_area-1;
     pArea->atrig_timer      =   NULL;
 
+    GET_TYPE( pArea ) = &type_AREA;
+    type_AREA.count++;
+
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
 	pArea->clones[i] = 0;
 
@@ -139,6 +143,7 @@ void free_area( AREA_DATA *pArea )
 
     pArea->next         =   area_free->next;
     area_free           =   pArea;
+    type_AREA.free_count++;
     return;
 }
 
@@ -198,6 +203,7 @@ ROOM_INDEX_DATA *new_room_index( void )
     {
         pRoom           =   room_index_free;
         room_index_free =   room_index_free->next;
+        type_ROOM.free_count--;
     }
 
     pRoom->next             =   NULL;
@@ -219,6 +225,9 @@ ROOM_INDEX_DATA *new_room_index( void )
     pRoom->clan		    =	0;
     pRoom->heal_rate	    =   100;
     pRoom->mana_rate	    =   100;
+
+    GET_TYPE( pRoom ) = &type_ROOM;
+    type_ROOM.count++;
 
     return pRoom;
 }
@@ -253,6 +262,9 @@ void free_room_index( ROOM_INDEX_DATA *pRoom )
 
     pRoom->next     =   room_index_free;
     room_index_free =   pRoom;
+
+    type_ROOM.free_count++;
+    type_ROOM.count--;
     return;
 }
 
