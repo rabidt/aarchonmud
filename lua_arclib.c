@@ -8640,7 +8640,7 @@ DECLARETRIG( OTRIG, PROG_LIST );
 DECLARETRIG( ATRIG, PROG_LIST );
 DECLARETRIG( RTRIG, PROG_LIST );
 
-
+/*
 NOTE_DATA *lua_new_note()
 {
     lua_getglobal( g_mud_LS, "NOTE_table");
@@ -8661,3 +8661,4 @@ void lua_free_note( NOTE_DATA *note )
     lua_settable( g_mud_LS, -3 );
     lua_pop( g_mud_LS, 1);
 }
+*/

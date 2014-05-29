@@ -1013,3 +1013,28 @@ void do_mudconfig( CHAR_DATA *ch, char *argument)
         lua_pop( g_mud_LS, 1);
     }
 }
+
+void *lua_new_ud( TYPE_DATA *type )
+{
+    lua_getglobal( g_mud_LS, "UD_TABLES");
+    lua_getfield( g_mud_LS, -1, type->name );
+    void *ud=lua_newuserdata( g_mud_LS, type->size );
+    lua_pushlightuserdata( g_mud_LS, ud );
+    lua_pushvalue( g_mud_LS, -2);
+    lua_settable( g_mud_LS, -4);
+    lua_pop( g_mud_LS, 3 );
+
+    GET_TYPE( ud )=type;
+    return ud;
+}
+
+void lua_free_ud( void *ud )
+{
+    TYPE_DATA *type=GET_TYPE(ud);
+    lua_getglobal( g_mud_LS, "UD_TABLES");
+    lua_getfield( g_mud_LS, -1, type->name );
+    lua_pushlightuserdata( g_mud_LS, ud );
+    lua_pushnil( g_mud_LS );
+    lua_settable( g_mud_LS, -3 );
+    lua_pop( g_mud_LS, 2 );
+}
