@@ -140,6 +140,25 @@ typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo,
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 
+typedef struct type_data
+{
+    const char *name;
+    int count;
+    int free_count;
+} TYPE_DATA;
+
+typedef struct type_container
+{
+    TYPE_DATA *type;
+} TYPE_CONTAINER;
+
+extern TYPE_DATA type_CHAR;
+extern TYPE_DATA type_OBJ;
+extern TYPE_DATA type_ROOM;
+extern TYPE_DATA type_AREA;
+
+#define GET_TYPE( ptr ) ( ( (TYPE_CONTAINER *)( ptr ) )->type)
+
 typedef struct comm_history_entry COMM_ENTRY;
 typedef struct comm_history_type COMM_HISTORY;
 typedef struct pers_comm_entry PERS_ENTRY;
@@ -2444,6 +2463,9 @@ struct mem_data
  */
 struct  char_data
 {
+    /* must be first entry */
+    TYPE_CONTAINER _type;
+
 	CHAR_DATA *     next;
 	CHAR_DATA *     next_in_room;
 	CHAR_DATA *     master;
@@ -2566,6 +2588,9 @@ struct  char_data
  */
 struct  pc_data
 {
+    /* must be first entry */
+    TYPE_CONTAINER _type;
+
     PC_DATA *       next;
 	bool	new_tells; /* whether there are unread tells */
     SORT_TABLE *    bounty_sort;
@@ -2846,6 +2871,9 @@ struct lua_extra_val; /* defined in lua_arclib */
  */
 struct  obj_data
 {
+    /* must be first entry */
+    TYPE_CONTAINER _type;
+
 	OBJ_DATA *      next;
 	OBJ_DATA *      next_content;
 	OBJ_DATA *      contains;
@@ -2939,8 +2967,11 @@ struct  reset_data
  */
 struct  area_data
 {
+    /* must be first entry */
+    TYPE_CONTAINER _type;
+
 	AREA_DATA * next;
-        HELP_AREA * helps;
+    HELP_AREA * helps;
 	char *      file_name;
 	char *      name;
 	char *      credits;
@@ -2975,6 +3006,9 @@ struct  area_data
  */
 struct  room_index_data
 {
+    /* must be first entry */
+    TYPE_CONTAINER _type;
+
     ROOM_INDEX_DATA *   next;
     CHAR_DATA *     people;
     OBJ_DATA *      contents;

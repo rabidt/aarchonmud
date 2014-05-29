@@ -285,9 +285,12 @@ OBJ_DATA *new_obj(void)
 	{
 	obj = obj_free;
 	obj_free = obj_free->next;
+    type_OBJ.free_count--;
 	}
 	*obj = obj_zero;
 	VALIDATE(obj);
+    GET_TYPE( obj ) = &type_OBJ;
+    type_OBJ.count++;
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
     obj->luavals=NULL;
@@ -333,10 +336,12 @@ void free_obj(OBJ_DATA *obj)
         free_luaval(luaval);
     }
 
+    type_OBJ.count--;
 	INVALIDATE(obj);
 
 	obj->next   = obj_free;
 	obj_free    = obj; 
+    type_OBJ.free_count++;
 }
 
 
@@ -355,10 +360,14 @@ CHAR_DATA *new_char (void)
 	{
 	ch = char_free;
 	char_free = char_free->next;
+    type_CHAR.free_count--;
 	}
 
 	*ch             = ch_zero;
 	VALIDATE(ch);
+    GET_TYPE( ch )  = &type_CHAR;
+    type_CHAR.count++;
+
 	ch->name                    = &str_empty[0];
 	ch->short_descr             = &str_empty[0];
 	ch->long_descr              = &str_empty[0];
@@ -453,6 +462,9 @@ void free_char (CHAR_DATA *ch)
 	ch->next = char_free;
 	char_free  = ch;
 
+    type_CHAR.free_count++;
+
+    type_CHAR.count--;
 	INVALIDATE(ch);
 	return;
 }
@@ -592,8 +604,6 @@ void free_pcdata(PC_DATA *pcdata)
         crime_next=crime->next;
         free_crime(crime);
     }
-
-
 
     INVALIDATE(pcdata);
     pcdata->next = pcdata_free;
