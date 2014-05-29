@@ -1791,6 +1791,9 @@ struct  kill_data
 #define ITEM_EASY_DROP      (ff)
 #define ITEM_NO_EXTRACT     (gg)
 #define ITEM_QUESTEQ        (hh)
+#define ITEM_RANDOM_PHYSICAL (ii)
+#define ITEM_RANDOM_CASTER  (jj)
+
 
 /* class restriction flags */
 #define ITEM_ALLOW_WARRIOR        100
