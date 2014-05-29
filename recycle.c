@@ -41,7 +41,7 @@ NOTE_DATA *new_note ()
 {
 	NOTE_DATA *note;
 	
-	note = lua_new_note();
+	note = lua_new_ud(&type_NOTE);
 
 	/* Zero all the field - Envy does not gurantee zeroed memory */ 
 	note->next = NULL;
@@ -69,7 +69,7 @@ void free_note(NOTE_DATA *note)
 	free_string( note->sender  );
 	INVALIDATE(note);
 
-    lua_free_note( note );
+    lua_free_ud( note );
 }
 
 	

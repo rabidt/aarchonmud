@@ -62,7 +62,6 @@ time_t time(time_t *tloc);
 
 
 /* externals for counting purposes */
-extern  OBJ_DATA    *obj_free;
 extern  CHAR_DATA   *char_free;
 extern  DESCRIPTOR_DATA *descriptor_free;
 extern  PC_DATA     *pcdata_free;
@@ -89,8 +88,6 @@ HELP_AREA *     had_list;
 
 SHOP_DATA *     shop_first;
 SHOP_DATA *     shop_last;
-
-NOTE_DATA *     note_free;
 
 PROG_CODE *    mprog_list;
 PROG_CODE *    oprog_list;
@@ -4444,8 +4441,8 @@ void do_dump( CHAR_DATA *ch, char *argument )
         for (af = fch->affected; af != NULL; af = af->next)
             aff_count++;
     }
-    for (fch = char_free; fch != NULL; fch = fch->next)
-        count2++;
+    //for (fch = char_free; fch != NULL; fch = fch->next)
+    //    count2++;
     
     fprintf(fp,"Mobs	%4d (%8d bytes), %2d free (%d bytes)\n",
         count, count * (sizeof(*fch)), count2, count2 * (sizeof(*fch)));
@@ -4489,8 +4486,8 @@ void do_dump( CHAR_DATA *ch, char *argument )
             for (af = obj->affected; af != NULL; af = af->next)
                 aff_count++;
         }
-        for (obj = obj_free; obj != NULL; obj = obj->next)
-            count2++;
+        //for (obj = obj_free; obj != NULL; obj = obj->next)
+        //    count2++;
         
         fprintf(fp,"Objs	%4d (%8d bytes), %2d free (%d bytes)\n",
             count, count * (sizeof(*obj)), count2, count2 * (sizeof(*obj)));
@@ -5690,12 +5687,14 @@ char* bread_word( RBUFFER *rbuf )
 TYPE_DATA type_CHAR=
 {
     .name="CHAR",
+    .size=sizeof(CHAR_DATA),
     .lua_type=&CH_type
 };
 
 TYPE_DATA type_OBJ=
 {
     .name="OBJ",
+    .size=sizeof(OBJ_DATA),
     .lua_type=&OBJ_type
 };
 
@@ -5711,3 +5710,8 @@ TYPE_DATA type_AREA=
     .lua_type=&AREA_type
 };
 
+TYPE_DATA type_NOTE=
+{
+    .name="NOTE",
+    .size=sizeof(NOTE_DATA)
+};

@@ -146,22 +146,25 @@ struct lua_obj_type;
 typedef struct type_data
 {
     const char *name;
+    size_t size;
     int count;
     int free_count;
     struct lua_obj_type *lua_type;
 } TYPE_DATA;
 
-typedef struct type_container
+typedef struct type_base
 {
     TYPE_DATA *type;
-} TYPE_CONTAINER;
+    bool valid;
+} TYPE_BASE;
 
 extern TYPE_DATA type_CHAR;
 extern TYPE_DATA type_OBJ;
 extern TYPE_DATA type_ROOM;
 extern TYPE_DATA type_AREA;
+extern TYPE_DATA type_NOTE;
 
-#define GET_TYPE( ptr ) ( ( (TYPE_CONTAINER *)( ptr ) )->type)
+#define GET_TYPE( ptr ) ( ( (TYPE_BASE *)( ptr ) )->type)
 
 typedef struct comm_history_entry COMM_ENTRY;
 typedef struct comm_history_type COMM_HISTORY;
@@ -981,6 +984,9 @@ struct spec_type
 
 struct  note_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	NOTE_DATA * next;
 	bool    valid;
 	sh_int  type;
@@ -2468,7 +2474,7 @@ struct mem_data
 struct  char_data
 {
     /* must be first entry */
-    TYPE_CONTAINER _type;
+    TYPE_BASE       _base;
 
 	CHAR_DATA *     next;
 	CHAR_DATA *     next_in_room;
@@ -2593,7 +2599,7 @@ struct  char_data
 struct  pc_data
 {
     /* must be first entry */
-    TYPE_CONTAINER _type;
+    TYPE_BASE       _base;
 
     PC_DATA *       next;
 	bool	new_tells; /* whether there are unread tells */
@@ -2876,7 +2882,7 @@ struct lua_extra_val; /* defined in lua_arclib */
 struct  obj_data
 {
     /* must be first entry */
-    TYPE_CONTAINER _type;
+    TYPE_BASE       _base;
 
 	OBJ_DATA *      next;
 	OBJ_DATA *      next_content;
@@ -2972,7 +2978,7 @@ struct  reset_data
 struct  area_data
 {
     /* must be first entry */
-    TYPE_CONTAINER _type;
+    TYPE_BASE   _base;
 
 	AREA_DATA * next;
     HELP_AREA * helps;
@@ -3011,7 +3017,7 @@ struct  area_data
 struct  room_index_data
 {
     /* must be first entry */
-    TYPE_CONTAINER _type;
+    TYPE_BASE           _base;
 
     ROOM_INDEX_DATA *   next;
     CHAR_DATA *     people;
