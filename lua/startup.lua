@@ -12,6 +12,7 @@ origtbl={} -- where the REAL ud tables live
 origenv={} -- where the REAL env tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
+str_dup_table={}
 
 
 function UdCnt()
@@ -25,6 +26,14 @@ end
 function EnvCnt()
     local cnt=0
     for k,v in pairs(envtbl) do
+        cnt=cnt+1
+    end
+    return cnt
+end
+
+function StrDupCnt()
+    local cnt=0
+    for k,v in pairs(str_dup_table) do
         cnt=cnt+1
     end
     return cnt

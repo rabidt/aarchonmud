@@ -37,6 +37,22 @@ int GetLuaGameObjectCount()
 
 }
 
+int GetStrDupCount()
+{
+    lua_State *LS=g_mud_LS;
+
+    lua_getglobal( LS, "StrDupCnt");
+    if (CallLuaWithTraceBack( LS, 0, 1) )
+    {
+        bugf ( "Error with StrDupCnt:\n %s",
+                lua_tostring( LS, -1));
+        return -1;
+    }
+
+    return luaL_checkinteger( LS, -1 );
+}
+    
+
 int GetLuaEnvironmentCount()
 {
     lua_getglobal( g_mud_LS, "EnvCnt");  
@@ -1012,4 +1028,30 @@ void do_mudconfig( CHAR_DATA *ch, char *argument)
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
+}
+
+
+const char *lua_str_dup( const char *str )
+{
+    lua_State *LS=g_mud_LS;
+
+    lua_getglobal(LS, "str_dup_table");
+    lua_pushstring( LS, str );
+    char *new=luaL_checkstring( LS, -1 );
+    lua_pushlightuserdata( LS, new );
+    lua_pushvalue( LS, -2 );
+    lua_settable(LS, -4);
+    lua_pop(LS, 2);
+    return new;
+}
+
+void lua_free_string( const char *str )
+{
+    lua_State *LS=g_mud_LS;
+
+    lua_getglobal(LS, "str_dup_table");
+    lua_pushlightuserdata(LS, str );
+    lua_pushnil( LS );
+    lua_settable(LS, -3);
+    lua_pop(LS, 1);
 }
