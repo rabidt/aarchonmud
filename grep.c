@@ -1554,7 +1554,9 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
         spec += 1;
     
     // bonus for randomness
-    if ( IS_OBJ_STAT(obj, ITEM_RANDOM) )
+    if ( IS_OBJ_STAT(obj, ITEM_RANDOM)
+      || IS_OBJ_STAT(obj, ITEM_RANDOM_PHYSICAL)
+      || IS_OBJ_STAT(obj, ITEM_RANDOM_CASTER))
     {
         int ops = get_obj_index_ops(obj);
         if ( ops <= spec/2 )
@@ -1745,7 +1747,9 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
     spec = get_obj_index_spec( obj, obj->level );
     value = get_obj_index_ops( obj );
     // ignore objects with no bonuses at all
-    if ( 0 < value && value < spec && !IS_SET(obj->extra_flags, ITEM_RANDOM) )
+    if ( 0 < value && value < spec && !IS_SET(obj->extra_flags, ITEM_RANDOM) 
+      || !IS_SET(obj->extra_flags, ITEM_RANDOM_PHYSICAL) 
+      || !IS_SET(obj->extra_flags, ITEM_RANDOM_CASTER) )
     {
         sprintf( msg, "ops=%d/%d", value, spec );
         return TRUE;

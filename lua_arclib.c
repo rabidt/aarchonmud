@@ -6,6 +6,7 @@
 #include "lua_main.h"
 #include "olc.h"
 #include "tables.h"
+#include "mudconfig.h"
 
 bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
 
@@ -79,37 +80,22 @@ typedef struct lua_help_topic
     char *info;
 } HELPTOPIC;
 
-struct prop_type
+typedef struct lua_prop_type
 {
     char *field;
     int  (*func)();
     int security;
     HELPTOPIC *help;
     int status; 
-};
+} LUA_PROP_TYPE;
+
 #define STS_ACTIVE     0
 #define STS_DEPRECATED 1
 
 #define ENDPTABLE {NULL, NULL, 0, NULL, 0}
 
-OBJ_TYPE *CH_type=NULL;
-OBJ_TYPE *OBJ_type=NULL;
-OBJ_TYPE *AREA_type=NULL;
-OBJ_TYPE *ROOM_type=NULL;
-OBJ_TYPE *EXIT_type=NULL;
-OBJ_TYPE *RESET_type=NULL;
-OBJ_TYPE *OBJPROTO_type=NULL;
-OBJ_TYPE *MOBPROTO_type=NULL;
-OBJ_TYPE *SHOP_type=NULL;
-OBJ_TYPE *AFFECT_type=NULL;
-OBJ_TYPE *PROG_type=NULL;
-OBJ_TYPE *MTRIG_type=NULL;
-OBJ_TYPE *OTRIG_type=NULL;
-OBJ_TYPE *ATRIG_type=NULL;
-OBJ_TYPE *RTRIG_type=NULL;
-
 /* for iterating */
-OBJ_TYPE *type_list [] =
+LUA_OBJ_TYPE *type_list [] =
 {
     &CH_type,
     &OBJ_type,
@@ -130,7 +116,7 @@ OBJ_TYPE *type_list [] =
 };
 
 
-static OBJ_TYPE *new_obj_type(
+static LUA_OBJ_TYPE *new_obj_type(
         lua_State *LS,
         const char *type_name,
         const LUA_PROP_TYPE *get_table,
@@ -138,16 +124,17 @@ static OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *method_table);
 
 /* base functionality for lua object types */
-static void * check_func( OBJ_TYPE *self,
+void * lua_check_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, int index )
 {
-    lua_getfield(LS, index, "TYPE");
-    OBJ_TYPE *type=lua_touserdata( LS, -1 );
-    lua_pop(LS, 1);
-    if ( type != self )
+    lua_getmetatable(LS, index);
+    lua_getfield(LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_pop(LS, 2);
+    if ( type != tp )
     {
         luaL_error(LS, "Bad parameter %d. Expected %s. ",
-                index, self->type_name );
+                index, tp->type_name );
     }
 
     lua_getfield(LS, index, "tableid");
@@ -160,17 +147,12 @@ static void * check_func( OBJ_TYPE *self,
 
 static int index_metamethod( lua_State *LS)
 {
-    OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+    LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
     const char *arg=luaL_checkstring( LS, 2 );
 
     LUA_PROP_TYPE *get=obj->get_table;
     
-    if (!strcmp("TYPE", arg) )
-    {
-        lua_pushlightuserdata( LS, obj );
-        return 1;
-    }
-    else if (!strcmp("valid", arg) )
+    if (!strcmp("valid", arg) )
     {
         /* if the metatable is still working
            then the game object is still valid */
@@ -188,7 +170,7 @@ static int index_metamethod( lua_State *LS)
                         g_ScriptSecurity,
                         get[i].security);
 
-            void *gobj=obj->check(obj, LS, 1 );
+            void *gobj=lua_check_type(obj, LS, 1 );
             if (get[i].func)
             {
                 int val;
@@ -226,7 +208,7 @@ static int index_metamethod( lua_State *LS)
 
 static int newindex_metamethod( lua_State *LS )
 {
-    OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+    LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
     const char *arg=check_string( LS, 2, MIL );
     lua_remove(LS, 2);
 
@@ -242,7 +224,7 @@ static int newindex_metamethod( lua_State *LS )
                         g_ScriptSecurity,
                         set[i].security);
 
-            obj->check(obj, LS, 1 ); 
+            lua_check_type(obj, LS, 1 ); 
             if ( set[i].func )
             {
                 lua_pushcfunction( LS, set[i].func );
@@ -265,7 +247,7 @@ static int newindex_metamethod( lua_State *LS )
     return 0;
 }
 
-static void register_type( OBJ_TYPE *tp,
+static void register_type( LUA_OBJ_TYPE *tp,
         lua_State *LS)
 {
     luaL_newmetatable(LS, tp->type_name);
@@ -279,22 +261,27 @@ static void register_type( OBJ_TYPE *tp,
     lua_pushcclosure( LS, newindex_metamethod, 1 );
 
     lua_setfield( LS, -2, "__newindex");
+
+    lua_pushlightuserdata( LS, ( void *)tp);
+    
+    lua_setfield( LS, -2, "TYPE");
+
     lua_pop(LS, 1);
 }
 
-static bool make_func( OBJ_TYPE *self,
+bool lua_make_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, void *game_obj)
 {
     if (!game_obj)
     {
-        bugf("make_%s called with NULL object", self->type_name);
+        bugf("make_%s called with NULL object", tp->type_name);
         return FALSE;
     }
 
     /* we don't want stuff that was destroyed */
-    if ( self == CH_type && ((CHAR_DATA *)game_obj)->must_extract )
+    if ( tp == &CH_type && ((CHAR_DATA *)game_obj)->must_extract )
         return FALSE;
-    if ( self == OBJ_type && ((OBJ_DATA *)game_obj)->must_extract )
+    if ( tp == &OBJ_type && ((OBJ_DATA *)game_obj)->must_extract )
         return FALSE;
 
     /* see if it exists already */
@@ -318,7 +305,7 @@ static bool make_func( OBJ_TYPE *self,
 
     lua_newtable( LS);
 
-    luaL_getmetatable (LS, self->type_name);
+    luaL_getmetatable (LS, tp->type_name);
     lua_setmetatable (LS, -2);  /* set metatable for object data */
     
     lua_pushstring( LS, "tableid");
@@ -340,44 +327,17 @@ static bool make_func( OBJ_TYPE *self,
     return TRUE;
 }
 
-bool is_func( OBJ_TYPE *self,
+bool lua_is_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, int arg )
 {
     if ( !lua_istable(LS, arg ) )
         return FALSE;
 
-    lua_getfield(LS, arg, "TYPE");
-    OBJ_TYPE *type=lua_touserdata(LS, -1);
-    lua_pop(LS, 1);
-    return ( type == self );
-}
-
-
-static OBJ_TYPE *new_obj_type(
-        lua_State *LS,
-        const char *type_name,
-        const LUA_PROP_TYPE *get_table,
-        const LUA_PROP_TYPE *set_table,
-        const LUA_PROP_TYPE *method_table)
-{
-    /*tbc check for table structure correctness */
-    /*check_table(get_table)
-      check-table(set_table)
-      check_table(method_table)
-      */
-
-    OBJ_TYPE *tp=alloc_mem(sizeof(OBJ_TYPE));
-    tp->type_name=type_name;
-    tp->set_table=set_table;
-    tp->get_table=get_table;
-    tp->method_table=method_table;
-
-    tp->check=check_func;
-    tp->make=make_func;
-    tp->is=is_func;
-
-    register_type( tp, LS );
-    return tp;
+    lua_getmetatable(LS, arg);
+    lua_getfield(LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata(LS, -1);
+    lua_pop(LS, 2);
+    return ( type == tp );
 }
 
 /* global section */
@@ -808,6 +768,114 @@ static int glob_do_luaquery ( lua_State *LS)
 }
 HELPTOPIC glob_do_luaquery_help={};
 
+static void push_mudconfig_val( lua_State *LS, CFG_DATA_ENTRY *en )
+{
+    switch( en->type )
+    {
+        case CFG_INT:
+            {
+                lua_pushinteger( LS, *((int *)(en->value)));
+                break;
+            }
+        case CFG_FLOAT:
+            {
+                lua_pushnumber( LS, *((float *)(en->value)));
+                break;
+            }
+        case CFG_STRING:
+            {
+                lua_pushstring( LS, *((char **)(en->value)));
+                break;
+            }
+        case CFG_BOOL:
+            {
+                lua_pushboolean( LS, *((bool *)(en->value)));
+                break;
+            }
+        default:
+            {
+                luaL_error( LS, "Bad type.");
+            }
+    }
+}
+
+static int glob_mudconfig (lua_State *LS)
+{
+    int i;
+    CFG_DATA_ENTRY *en;
+
+    /* no arg, return the whole table */
+    if (lua_isnone(LS,1))
+    {
+        lua_newtable(LS);
+        for ( i=0 ; mudconfig_table[i].name ; i++ )
+        {
+            en=&mudconfig_table[i];
+            push_mudconfig_val( LS, en );
+            lua_setfield(LS, -2, en->name);
+        }
+        return 1;
+    }
+
+    const char *arg1=check_string(LS, 1, MIL);
+    /* 1 argument, return the value */
+    if (lua_isnone(LS, 2))
+    {
+        for ( i=0 ; mudconfig_table[i].name ; i++ )
+        {
+            en=&mudconfig_table[i];
+            if (!strcmp(en->name, arg1))
+            {
+                push_mudconfig_val( LS, en );
+                return 1;
+            }
+        }
+        luaL_error(LS, "No such mudconfig value: %s", arg1);
+    }
+
+    /* 2 args, set the value */
+    for ( i=0 ; mudconfig_table[i].name ; i++ )
+    {
+        en=&mudconfig_table[i];
+        if (!strcmp(en->name, arg1))
+        {
+            switch( en->type )
+            {
+                case CFG_INT:
+                    {
+                        *((int *)(en->value))=luaL_checkinteger( LS, 2 );
+                        break;
+                    }
+                case CFG_FLOAT:
+                    {
+                        *((float *)(en->value))=luaL_checknumber(LS, 2 );
+                        break;
+                    }
+                case CFG_STRING:
+                    {
+                        const char *newval=check_string(LS, 2, MIL);
+                        *((char **)(en->value))=str_dup(newval);
+                        break;
+                    }
+                case CFG_BOOL:
+                    {
+                        luaL_checktype( LS, 2, LUA_TBOOLEAN );
+                        *((bool *)(en->value))=lua_toboolean(LS, 2 );
+                        break;
+                    }
+                default:
+                    {
+                        luaL_error( LS, "Bad type.");
+                    }
+            }
+            return 0;
+        }
+    }
+    luaL_error(LS, "No such mudconfig value: %s", arg1);
+
+    return 0;
+}
+HELPTOPIC glob_mudconfig_help={};
 
 static int glob_clearloopcount (lua_State *LS)
 {
@@ -1454,6 +1522,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getshoplist,   9),
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
+    GFUN(mudconfig,     9),
 #ifdef TESTER
     GFUN(do_luaquery,   9),
 #endif
@@ -2592,9 +2661,9 @@ HELPTOPIC CH_olc_help = {
     .info="Arguments: string (accepts format arguments)\n\r\n\r"
           "Return: none\n\r\n\r"
           "Example:\n\r"
-          "mdo(\"redit\")\n\r"
+          "do(\"redit\")\n\r"
           "olc(\"name AWESOME ROOM\")\n\r"
-          "mdo(\"done\")\n\r\n\r"
+          "do(\"done\")\n\r\n\r"
           "Note:\n\r"
           "Error is thrown if not in olc editor mode.\n\r"
 
@@ -3274,14 +3343,14 @@ static int CH_objexists (lua_State *LS)
 }
 HELPTOPIC CH_objexists_help = {};
 
-static int CH_ispc (lua_State *LS)
+static int CH_get_ispc (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && !IS_NPC( ud_ch ) );
     return 1;
 }
-HELPTOPIC CH_ispc_help = {
+HELPTOPIC CH_get_ispc_help = {
 };
 
 static int CH_canattack (lua_State *LS)
@@ -3291,79 +3360,79 @@ static int CH_canattack (lua_State *LS)
 }
 HELPTOPIC CH_canattack_help = {};
 
-static int CH_isnpc (lua_State *LS)
+static int CH_get_isnpc (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && IS_NPC( ud_ch ) );
     return 1;
 }
-HELPTOPIC CH_isnpc_help = {};
+HELPTOPIC CH_get_isnpc_help = {};
 
-static int CH_isgood (lua_State *LS)
+static int CH_get_isgood (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean(  LS, ud_ch != NULL && IS_GOOD( ud_ch ) ) ;
     return 1;
 }
-HELPTOPIC CH_isgood_help = {};
+HELPTOPIC CH_get_isgood_help = {};
 
-static int CH_isevil (lua_State *LS)
+static int CH_get_isevil (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean(  LS, ud_ch != NULL && IS_EVIL( ud_ch ) ) ;
     return 1;
 }
-HELPTOPIC CH_isevil_help = {};
+HELPTOPIC CH_get_isevil_help = {};
 
-static int CH_isneutral (lua_State *LS)
+static int CH_get_isneutral (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean(  LS, ud_ch != NULL && IS_NEUTRAL( ud_ch ) ) ;
     return 1;
 }
-HELPTOPIC CH_isneutral_help = {};
+HELPTOPIC CH_get_isneutral_help = {};
 
-static int CH_isimmort (lua_State *LS)
+static int CH_get_isimmort (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && IS_IMMORTAL( ud_ch ) ) ;
     return 1;
 }
-HELPTOPIC CH_isimmort_help = {};
+HELPTOPIC CH_get_isimmort_help = {};
 
-static int CH_ischarm (lua_State *LS)
+static int CH_get_ischarm (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && IS_AFFECTED( ud_ch, AFF_CHARM ) ) ;
     return 1;
 }
-HELPTOPIC CH_ischarm_help = {};
+HELPTOPIC CH_get_ischarm_help = {};
 
-static int CH_isfollow (lua_State *LS)
+static int CH_get_isfollow (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->master != NULL ) ;
     return 1;
 }
-HELPTOPIC CH_isfollow_help = {};
+HELPTOPIC CH_get_isfollow_help = {};
 
-static int CH_isactive (lua_State *LS)
+static int CH_get_isactive (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
 
     lua_pushboolean( LS, ud_ch != NULL && ud_ch->position > POS_SLEEPING ) ;
     return 1;
 }
-HELPTOPIC CH_isactive_help = {};
+HELPTOPIC CH_get_isactive_help = {};
 
-static int CH_isvisible (lua_State *LS)
+static int CH_cansee (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH(LS, 1);
     CHAR_DATA * ud_vic = check_CH (LS, 2);
@@ -3372,7 +3441,7 @@ static int CH_isvisible (lua_State *LS)
 
     return 1;
 }
-HELPTOPIC CH_isvisible_help = {};
+HELPTOPIC CH_cansee_help = {};
 
 static int CH_affected (lua_State *LS)
 {
@@ -3473,16 +3542,80 @@ HELPTOPIC CH_setimmune_help =
 static int CH_carries (lua_State *LS)
 {
     CHAR_DATA * ud_ch = check_CH (LS, 1);
-    const char *argument = check_fstring( LS, 2, MIL);
+    const char *argument = check_string( LS, 2, MIL);
+    int count=0;
 
-    if ( is_r_number( argument ) )
-        lua_pushboolean( LS, ud_ch != NULL && has_item( ud_ch, r_atoi(ud_ch, argument), -1, FALSE ) );
+    if ( is_number( argument ) )
+    {
+        int vnum=atoi( argument );
+        OBJ_DATA *obj;
+
+        for ( obj=ud_ch->carrying ; obj ; obj=obj->next_content )
+        {
+            if ( obj->pIndexData->vnum == vnum )
+            {
+                count++;
+            }
+        }
+
+        if (count<1)
+        {
+            lua_pushboolean(LS, FALSE);
+            return 1;
+        }
+        else
+        {
+            lua_pushinteger(LS, count);
+            return 1;
+        } 
+    }
     else
-        lua_pushboolean( LS, ud_ch != NULL && (get_obj_carry( ud_ch, argument, ud_ch ) != NULL) );
+    {
+        OBJ_DATA *obj;
+        bool exact=FALSE;
+        if (!lua_isnone(LS,3))
+        {
+            exact=lua_toboolean(LS,3);
+        }
 
-    return 1;
+        for ( obj=ud_ch->carrying ; obj ; obj=obj->next_content )
+        {
+            if (    obj->wear_loc == WEAR_NONE 
+                 && is_either_name( argument, obj->name, exact))
+            {
+                count++;
+            }
+        }
+
+        if (count<1)
+        {
+            lua_pushboolean(LS, FALSE);
+            return 1;
+        }
+        else
+        {
+            lua_pushinteger(LS, count);
+            return 1;
+        }
+    }
 }
-HELPTOPIC CH_carries_help = {};
+HELPTOPIC CH_carries_help = { 
+    .summary="Check if CH carries object(s) with given vnum or name.",
+    .info = "Arguments: name[string]/vnum[number <, exact[boolean]>\n\r\n\r"
+          "Return: boolean/integer\n\r\n\r"
+          "Examples:\n\r"
+          "if ch:carries(31404) then ch:say(\"yep\") end\n\r"
+          "if ch:carries(\"sword\") then ch:say(\"i have a sword\") end\n\r"
+          "if ch:carries(\"\'black sword\'\", true) then ch:say(\"yep\") end\n\r"
+          "local count=ch:carries(31404) or 0\n\r"
+          "Notes:\n\r"
+          "Optional second argument 'exact' is checked in the case where the\n\r"
+          "first argument is a name. If 'exact' is true then the name must\n\r"
+          "match the name argument exactly (use \'\' to match multi-word names\n\r"
+          "exactly).\n\r\n\r"
+          "Function return value is false if no object is found, \n\r"
+          "otherwise the count of matching objects is returned."
+};
 
 static int CH_wears (lua_State *LS)
 {
@@ -3980,6 +4113,65 @@ HELPTOPIC CH_set_damroll_help =
     .summary="NPC only. Sets mob damroll percentage."
 };
 
+static int CH_get_attacktype( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS, attack_table[ud_ch->dam_type].name );
+    return 1;
+}
+HELPTOPIC CH_get_attacktype_help=
+{
+    .summary="See 'attack_table' table. Value corresponds to 'Name' column."
+};
+
+static int CH_set_attacktype (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set attacktype on PCs.");
+
+    const char *arg=check_string(LS,2, MIL);
+
+    int i;
+    for ( i=0 ; attack_table[i].name ; i++ )
+    {
+        if (!strcmp( attack_table[i].name, arg ) )
+        {
+            ud_ch->dam_type=i;
+            return 0;
+        }
+    }
+
+    luaL_error(LS, "No such attacktype: %s", arg );
+}
+HELPTOPIC CH_set_attacktype_help =
+{
+    .summary="NPC only. See 'attack_table' table. Value corresponds to 'Name' column."
+};
+
+static int CH_get_damtype (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS,
+            flag_stat_string( damage_type, attack_table[ud_ch->dam_type].damage) );
+    return 1;
+}
+HELPTOPIC CH_get_damtype_help =
+{
+    .summary="See 'attack_table' table. Value corresponds to 'Damtype' column."
+};
+
+static int CH_get_damnoun (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    lua_pushstring( LS, attack_table[ud_ch->dam_type].noun );
+    return 1;
+}
+HELPTOPIC CH_get_damnoun_help =
+{
+    .summary="See 'attack_table' table. Value corresponds to 'Noun' column."
+};
+
 static int CH_get_hp (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -4055,22 +4247,6 @@ HELPTOPIC CH_set_level_help =
 {
     .summary="NPC only. Range 1-200. Preserves hp/mana/move ratio."
 };
-
-static int CH_setlevel (lua_State *LS)
-{
-    /*
-    CHAR_DATA * ud_ch = check_CH (LS, 1);
-    if (!IS_NPC(ud_ch))
-        luaL_error(LS, "Cannot set level on PC.");
-
-    int num = (int)luaL_checknumber (LS, 2);
-    if ( num < 1 || num > 200 )
-        luaL_error( LS, "Invalid level: %d, range is 1 to 200.", num);
-    set_mob_level( ud_ch, num );
-    return 0;*/
-    return CH_set_level (LS);
-}
-HELPTOPIC CH_setlevel_help = {};
 
 static int CH_get_maxhp (lua_State *LS)
 {
@@ -4399,7 +4575,17 @@ static int CH_set_race (lua_State *LS)
     if (race==0)
         luaL_error(LS, "No such race: %s", arg );
 
-    ud_ch->race=race;
+#ifdef TESTER
+    if ( !IS_NPC(ud_ch) )
+    {
+        if ( !race_table[race].pc_race )
+            luaL_error(LS, "Not a valid player race: %s", arg);
+        ud_ch->race=race;
+        morph_update( ud_ch );
+        return 0;
+    }
+#endif
+    set_mob_race( ud_ch, race );
     return 0;
 }
 HELPTOPIC CH_set_race_help={
@@ -4852,10 +5038,22 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(cha, 0),
     CHGET(hitroll, 0),
     CHGET(damroll, 0),
+    CHGET(attacktype, 0),
+    CHGET(damnoun, 0),
+    CHGET(damtype, 0),
     CHGET(luc, 0),
     CHGET(clan, 0),
     CHGET(class, 0),
     CHGET(race, 0),
+    CHGET(ispc, 0),
+    CHGET(isnpc, 0),
+    CHGET(isgood, 0),
+    CHGET(isevil, 0),
+    CHGET(isneutral, 0),
+    CHGET(isimmort, 0),
+    CHGET(ischarm, 0),
+    CHGET(isfollow, 0),
+    CHGET(isactive, 0),
     CHGET(fighting, 0),
     CHGET(heshe, 0),
     CHGET(himher, 0),
@@ -4914,6 +5112,7 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(luc, 5),
     CHSET(hitroll, 5),
     CHSET(damroll, 5),
+    CHSET(attacktype, 5),
     CHSET(race, 5),
     CHSET(shortdescr, 5),
     CHSET(longdescr, 5),
@@ -4924,16 +5123,6 @@ static const LUA_PROP_TYPE CH_set_table [] =
 
 static const LUA_PROP_TYPE CH_method_table [] =
 {
-    CHMETH(ispc, 0),
-    CHMETH(isnpc, 0),
-    CHMETH(isgood, 0),
-    CHMETH(isevil, 0),
-    CHMETH(isneutral, 0),
-    CHMETH(isimmort, 0),
-    CHMETH(ischarm, 0),
-    CHMETH(isfollow, 0),
-    CHMETH(isactive, 0),
-    CHMETH(isvisible, 0),
     CHMETH(mobhere, 0),
     CHMETH(objhere, 0),
     CHMETH(mobexists, 0),
@@ -4952,12 +5141,10 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(skilled, 0),
     CHMETH(ccarries, 0),
     CHMETH(qtimer, 0),
+    CHMETH(cansee, 0),
     CHMETH(canattack, 0),
     CHMETH(destroy, 1),
     CHMETH(oload, 1),
-    /* deprecated */
-    //CHMETH(setlevel, 0),
-    { "setlevel", CH_setlevel, 1, &CH_setlevel_help, STS_DEPRECATED},
     CHMETH(say, 1),
     CHMETH(emote, 1),
     CHMETH(mdo, 1),
@@ -4970,10 +5157,6 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(junk, 1),
     CHMETH(echo, 1),
     /* deprecated in favor of global funcs */
-    /*
-    CHMETH(echoaround, 1),
-    CHMETH(echoat, 1),
-    */
     { "echoaround", CH_echoaround, 1, &CH_echoaround_help, STS_DEPRECATED},
     { "echoat", CH_echoat, 1, &CH_echoat_help, STS_DEPRECATED},
     CHMETH(mload, 1),
@@ -4981,10 +5164,6 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(goto, 1),
     CHMETH(at, 1),
     /* deprecated in favor of global funcs */
-    /*
-    CHMETH(transfer, 1),
-    CHMETH(gtransfer, 1),
-    */
     { "transfer", CH_transfer, 1, &CH_transfer_help, STS_DEPRECATED},
     { "gtransfer", CH_gtransfer, 1, &CH_gtransfer_help, STS_DEPRECATED},
     CHMETH(otransfer, 1),
@@ -6837,7 +7016,7 @@ static const LUA_PROP_TYPE ROOM_method_table [] =
 /* EXIT section */
 static int EXIT_flag (lua_State *LS)
 {
-    EXIT_DATA *ed=EXIT_type->check(EXIT_type, LS, 1 );
+    EXIT_DATA *ed=check_EXIT( LS, 1 );
     return check_flag( LS, "exit", exit_flags, ed->exit_info );
 }
 HELPTOPIC EXIT_flag_help=
@@ -7223,6 +7402,20 @@ static int OBJPROTO_get_affects ( lua_State *LS)
 }
 HELPTOPIC OBJPROTO_get_affects_help = {};
 
+static int OBJPROTO_get_rating ( lua_State *LS)
+{
+    OBJ_INDEX_DATA *ud_oid=check_OBJPROTO( LS, 1);
+
+    lua_pushinteger( LS,
+            ud_oid->diff_rating);
+
+    return 1;
+}
+HELPTOPIC OBJPROTO_get_rating_help = {
+    .summary="OBJPROTO's difficulty rating.",
+    .info=""
+};
+
 static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
     OPGET( name, 0),
@@ -7236,6 +7429,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( vnum, 0),
     OPGET( otype, 0),
     OPGET( weight, 0),
+    OPGET( rating, 0),
     OPGET( v0, 0),
     OPGET( v1, 0),
     OPGET( v2, 0),
@@ -7879,22 +8073,23 @@ static int TRIG_get_trigtype ( lua_State *LS )
 {
     struct flag_type *tbl;
 
-    lua_getfield(LS, 1, "TYPE");
-    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_getmetatable(LS,1);
+    lua_getfield(LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
 
-    if (type==MTRIG_type)
+    if (type==&MTRIG_type)
     {
         tbl=mprog_flags;
     }
-    else if (type==OTRIG_type)
+    else if (type==&OTRIG_type)
     {
         tbl=oprog_flags;
     }
-    else if (type==ATRIG_type)
+    else if (type==&ATRIG_type)
     {
         tbl=aprog_flags;
     }
-    else if (type==RTRIG_type)
+    else if (type==&RTRIG_type)
     {
         tbl=rprog_flags;
     }
@@ -7908,45 +8103,47 @@ static int TRIG_get_trigtype ( lua_State *LS )
     lua_pushstring( LS,
             flag_stat_string(
                 tbl,
-                ((PROG_LIST *) type->check( type, LS, 1 ) )->trig_type ) );
+                ((PROG_LIST *) lua_check_type( type, LS, 1 ) )->trig_type ) );
     return 1;
 }
 HELPTOPIC TRIG_get_trigtype_help = {};
 
 static int TRIG_get_trigphrase ( lua_State *LS )
 {
-    lua_getfield(LS, 1, "TYPE");
-    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_getmetatable(LS,1);
+    lua_getfield(LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
 
-    if ( type != MTRIG_type
-            && type != OTRIG_type
-            && type != ATRIG_type
-            && type != RTRIG_type )
+    if ( type != &MTRIG_type
+            && type != &OTRIG_type
+            && type != &ATRIG_type
+            && type != &RTRIG_type )
         luaL_error( LS,
                 "Invalid type: %s.",
                 type->type_name);
 
     lua_pushstring( LS,
-            ((PROG_LIST *) type->check( type, LS, 1 ) )->trig_phrase);
+            ((PROG_LIST *) lua_check_type( type, LS, 1 ) )->trig_phrase);
     return 1;
 }
 HELPTOPIC TRIG_get_trigphrase_help ={};
 
 static int TRIG_get_prog ( lua_State *LS )
 {
-    lua_getfield(LS, 1, "TYPE");
-    OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_getmetatable(LS,1);
+    lua_getfield(LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
 
-    if ( type != MTRIG_type
-            && type != OTRIG_type
-            && type != ATRIG_type
-            && type != RTRIG_type )
+    if ( type != &MTRIG_type
+            && type != &OTRIG_type
+            && type != &ATRIG_type
+            && type != &RTRIG_type )
         luaL_error( LS,
                 "Invalid type: %s.",
                 type->type_name);
 
     if ( make_PROG( LS,
-            ((PROG_LIST *) type->check( type, LS, 1 ) )->script ) )
+            ((PROG_LIST *)lua_check_type( type, LS, 1 ) )->script ) )
         return 1;
     return 0;
 }    
@@ -7999,7 +8196,7 @@ struct
 
 
 /* add ptable output to existing buffer */
-static void print_ptable( BUFFER *buffer, const struct prop_type *ptable )
+static void print_ptable( BUFFER *buffer, const struct lua_prop_type *ptable )
 {
     char buf[MSL];
     
@@ -8028,7 +8225,7 @@ static void print_ptable( BUFFER *buffer, const struct prop_type *ptable )
     
 static void print_help_usage( CHAR_DATA *ch )
 {
-    OBJ_TYPE *ot;
+    LUA_OBJ_TYPE *ot;
     int i;
 
     ptc( ch, "\n\rSECTIONS: \n\r\n\r" );
@@ -8039,7 +8236,7 @@ static void print_help_usage( CHAR_DATA *ch )
 
     for ( i=0 ; type_list[i] ; i++ )
     {
-        ot=*(OBJ_TYPE **)type_list[i];
+        ot=type_list[i];
         ptc( ch, "%s\n\r", ot->type_name);
     }
     
@@ -8090,7 +8287,7 @@ static void print_topic( CHAR_DATA *ch, HELPTOPIC *topic )
 
 static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 {
-    OBJ_TYPE *ot;
+    LUA_OBJ_TYPE *ot;
     int i;
 
     if ( !str_prefix("other", arg1) )
@@ -8142,7 +8339,7 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 
     for ( i=0 ; type_list[i] ; i++ )
     {
-        ot=*(OBJ_TYPE **)type_list[i];
+        ot=type_list[i];
         
         if (!str_cmp( ot->type_name, arg1 ) )
         {
@@ -8222,7 +8419,7 @@ static void help_two_arg( CHAR_DATA *ch, const char *arg1, const char *arg2 )
 
 static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
 {
-    OBJ_TYPE *ot;
+    LUA_OBJ_TYPE *ot;
     int i;
 
     if ( !str_prefix("other", arg1) )
@@ -8284,7 +8481,7 @@ static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
 
     for ( i=0 ; type_list[i] ; i++ )
     {
-        ot=*(OBJ_TYPE **)type_list[i];
+        ot=type_list[i];
         if (!str_cmp( ot->type_name, arg1 ) )
         {
             int j;
@@ -8362,47 +8559,69 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
         typename ## _get_table,\
         typename ## _set_table,\
         typename ## _method_table)
-
 void type_init( lua_State *LS)
 {
-    TYPEINIT(CH);
-    TYPEINIT(OBJ);
-    TYPEINIT(AREA);
-    TYPEINIT(ROOM);
-    TYPEINIT(EXIT);
-    TYPEINIT(RESET);
-    TYPEINIT(OBJPROTO);
-    TYPEINIT(MOBPROTO);
-    TYPEINIT(SHOP);
-    TYPEINIT(AFFECT);
-    TYPEINIT(PROG);
-    if (!MTRIG_type)
-        MTRIG_type=new_obj_type(
-                LS,
-                "MTRIG",
-                TRIG_get_table,
-                TRIG_set_table,
-                TRIG_method_table);
-    if (!OTRIG_type)
-        OTRIG_type=new_obj_type(
-                LS,
-                "OTRIG",
-                TRIG_get_table,
-                TRIG_set_table,
-                TRIG_method_table);
-    if (!ATRIG_type)
-        ATRIG_type=new_obj_type(
-                LS,
-                "ATRIG",
-                TRIG_get_table,
-                TRIG_set_table,
-                TRIG_method_table);
-    if (!RTRIG_type)
-        RTRIG_type=new_obj_type(
-                LS,
-                "RTRIG",
-                TRIG_get_table,
-                TRIG_set_table,
-                TRIG_method_table);
+    int i;
+    LUA_OBJ_TYPE *tp;
 
+    for ( i=0 ; type_list[i] ; i=i++ )
+    {
+        register_type( type_list[i], LS );
+    }
 }
+#define DECLARETYPE( ltype, ctype ) \
+LUA_OBJ_TYPE ltype ## _type = { \
+    .type_name= #ltype ,\
+    .get_table= ltype ## _get_table ,\
+    .set_table= ltype ## _set_table ,\
+    .method_table = ltype ## _method_table \
+};\
+ctype * check_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_check_type( & ltype ## _type , LS, index );\
+}\
+bool    is_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_is_type( & ltype ## _type, LS, index );\
+}\
+bool    make_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_make_type( & ltype ## _type, LS, index);\
+}
+
+#define DECLARETRIG( ltype, ctype ) \
+LUA_OBJ_TYPE ltype ## _type = { \
+    .type_name= #ltype ,\
+    .get_table= TRIG_get_table ,\
+    .set_table= TRIG_set_table ,\
+    .method_table = TRIG_method_table \
+};\
+ctype * check_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_check_type( & ltype ## _type , LS, index );\
+}\
+bool    is_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_is_type( & ltype ## _type, LS, index );\
+}\
+bool    make_ ## ltype ( lua_State *LS, int index )\
+{\
+    return lua_make_type( & ltype ## _type, LS, index);\
+}
+
+DECLARETYPE( CH, CHAR_DATA );
+DECLARETYPE( OBJ, OBJ_DATA );
+DECLARETYPE( AREA, AREA_DATA );
+DECLARETYPE( ROOM, ROOM_INDEX_DATA );
+DECLARETYPE( EXIT, EXIT_DATA );
+DECLARETYPE( RESET, RESET_DATA );
+DECLARETYPE( OBJPROTO, OBJ_INDEX_DATA );
+DECLARETYPE( MOBPROTO, MOB_INDEX_DATA );
+DECLARETYPE( SHOP, SHOP_DATA );
+DECLARETYPE( AFFECT, AFFECT_DATA );
+DECLARETYPE( PROG, PROG_CODE );
+DECLARETRIG( MTRIG, PROG_LIST );
+DECLARETRIG( OTRIG, PROG_LIST );
+DECLARETRIG( ATRIG, PROG_LIST );
+DECLARETRIG( RTRIG, PROG_LIST );
+

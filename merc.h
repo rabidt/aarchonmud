@@ -1304,8 +1304,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -1785,6 +1785,9 @@ struct  kill_data
 #define ITEM_EASY_DROP      (ff)
 #define ITEM_NO_EXTRACT     (gg)
 #define ITEM_QUESTEQ        (hh)
+#define ITEM_RANDOM_PHYSICAL (ii)
+#define ITEM_RANDOM_CASTER  (jj)
+
 
 /* class restriction flags */
 #define ITEM_ALLOW_WARRIOR        100
@@ -4107,6 +4110,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define RELIGION_FILE  "religion.txt"
 #define LBOARD_FILE    "lboard.txt"
 #define LBOARD_RESULT_FILE "lboard_result.txt"
+#define CONFIG_FILE    "mudconfig.lua"
 #define CHEAT_LIST     "../log/cheatlog.txt"
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
@@ -4327,6 +4331,7 @@ void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+bool    is_ranged_weapon( OBJ_DATA *weapon );
 CD *    get_local_leader( CHAR_DATA *ch );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );

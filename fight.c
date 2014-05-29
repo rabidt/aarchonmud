@@ -1348,6 +1348,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -3604,7 +3606,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( victim->pcdata != NULL && victim->pcdata->remorts==0 && morgue )
     {
-	send_to_char( "HINT: You can retrieve lost items from your corpse.\n\r", victim );
+	send_to_char( "HINT: You can retrieve lost money from your corpse at the morgue.\n\r", victim );
 	send_to_char( "      Check 'help corpse' for details.\n\r", victim );
     }
 

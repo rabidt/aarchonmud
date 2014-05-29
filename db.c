@@ -695,6 +695,12 @@ void boot_db()
     log_string( "Loading leaderboards" );
     load_lboards();
 
+    log_string("Initializing mudconfig." );
+    mudconfig_init();
+
+    log_string("Loading mudconfig." );
+    load_mudconfig();
+
     log_string( "Loading areas" );
     /*
     * Read in all the area files.
@@ -2838,6 +2844,12 @@ void arm_npc( CHAR_DATA *mob )
 	obj->weight = obj->weight * 3/2;
     }
 
+    /* override damtype with mob's setting? */
+    if (mob->pIndexData->dam_type != DAM_NONE)
+    {
+        obj->value[3]=mob->pIndexData->dam_type;
+    }
+
     /* equip weapon */
     obj_to_char( obj, mob );
     equip_char( mob, obj, WEAR_WIELD );
@@ -4336,7 +4348,6 @@ void do_areas( CHAR_DATA *ch )
 
 void do_memory( CHAR_DATA *ch, char *argument )
 {
-    
     ptc( ch, "Affects   %5d\n\r", top_affect    ); 
     ptc( ch, "Areas     %5d\n\r", top_area      ); 
     ptc( ch, "ExDes     %5d\n\r", top_ed        ); 
