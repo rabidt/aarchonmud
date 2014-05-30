@@ -853,7 +853,7 @@ void do_charloadtest( CHAR_DATA *ch, char *argument )
     for ( tch=clt_list ; tch ; tch = next )
     {
         next=tch->next;
-        unregister_lua( tch );
+        //unregister_lua( tch );
         free_char( tch );
     }
 
@@ -969,6 +969,7 @@ void do_luareset( CHAR_DATA *ch, char *argument)
     lua_getglobal(g_mud_LS, "do_luareset");
     make_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
+    stackDump( g_mud_LS );
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         ptc (ch, "Error with do_luareset:\n %s\n\r",
@@ -1020,6 +1021,11 @@ void *lua_new_ud( TYPE_DATA *type )
     lua_getfield( g_mud_LS, -1, type->name );
     void *ud=lua_newuserdata( g_mud_LS, type->size );
     memset( ud, 0, type->size );
+    if ( type->lua_type )
+    {
+        luaL_getmetatable( g_mud_LS, type->lua_type->type_name );
+        lua_setmetatable( g_mud_LS, -2 );
+    }
     lua_pushlightuserdata( g_mud_LS, ud );
     lua_pushvalue( g_mud_LS, -2);
     lua_settable( g_mud_LS, -4);

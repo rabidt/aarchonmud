@@ -572,7 +572,7 @@ function do_luaquery( ch, argument)
     end
     pagetochar(ch, final)
     end -- actual func wrapped in do/end so scope is destroyed before gc called
-    lua_arcgc() -- force a garbage collection 
+    --lua_arcgc() -- force a garbage collection 
 end
 -- end luaquery section
 

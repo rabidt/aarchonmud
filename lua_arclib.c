@@ -136,11 +136,7 @@ void * lua_check_type( LUA_OBJ_TYPE *tp,
         luaL_error(LS, "Bad parameter %d. Expected %s. ",
                 index, tp->type_name );
     }
-
-    lua_getfield(LS, index, "tableid");
-    luaL_checktype( LS, -1, LUA_TLIGHTUSERDATA);
-    void *game_object=lua_touserdata(LS, -1 );
-    lua_pop(LS, 1);
+    void *game_object=lua_touserdata(LS, index );
 
     return game_object;
 }
@@ -278,66 +274,36 @@ bool lua_make_type( LUA_OBJ_TYPE *tp,
         return FALSE;
     }
 
-    /* we don't want stuff that was destroyed */
-    if ( tp == &CH_type && ((CHAR_DATA *)game_obj)->must_extract )
-        return FALSE;
-    if ( tp == &OBJ_type && ((OBJ_DATA *)game_obj)->must_extract )
-        return FALSE;
-
+    TYPE_DATA *type=GET_TYPE( game_obj );
     /* see if it exists already */
-    lua_getglobal( LS, UD_TABLE_NAME);
-    if ( lua_isnil( LS, -1) )
-    {
-        bugf("udtbl is nil in make_ud_table.");
-        return FALSE;
-    }
-
-    lua_pushlightuserdata(LS, game_obj);
-    lua_gettable( LS, -2);
-    lua_remove( LS, -2); /* don't need udtbl anymore */
+    lua_getglobal( LS, "UD_TABLES" );
+    lua_getfield( LS, -1, type->name );
+    lua_remove(LS, -2);
+    lua_pushlightuserdata( LS, game_obj );
+    lua_gettable( LS, -2 );
+    lua_remove(LS, -2);
 
     if ( !lua_isnil(LS, -1) )
     {
         /* already exists, now at top of stack */
         return TRUE;
     }
-    lua_remove(LS, -1); // kill the nil
-
-    lua_newtable( LS);
-
-    luaL_getmetatable (LS, tp->type_name);
-    lua_setmetatable (LS, -2);  /* set metatable for object data */
-    
-    lua_pushstring( LS, "tableid");
-    lua_pushlightuserdata( LS, game_obj);
-    lua_rawset( LS, -3 );
-
-    lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
-    lua_pushvalue( LS, -2);
-    if (CallLuaWithTraceBack( LS, 1, 1) )
+    else
     {
-        bugf ( "Error registering UD:\n %s",
-                lua_tostring(LS, -1));
         return FALSE;
     }
-
-    /* get rid of our original table, register sends back a new version */
-    lua_remove( LS, -2 );
-
-    return TRUE;
 }
 
 bool lua_is_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, int arg )
 {
-    if ( !lua_istable(LS, arg ) )
+    if ( !lua_isuserdata(LS, arg ) )
         return FALSE;
 
-    lua_getmetatable(LS, arg);
-    lua_getfield(LS, -1, "TYPE");
-    LUA_OBJ_TYPE *type=lua_touserdata(LS, -1);
-    lua_pop(LS, 2);
-    return ( type == tp );
+    void *game_obj=lua_touserdata( LS, arg );
+    TYPE_DATA *type=GET_TYPE( game_obj );
+    
+    return type->lua_type == tp;
 }
 
 /* global section */
@@ -663,7 +629,9 @@ HELPTOPIC glob_gtransfer_help =
 
 static int glob_sendtochar (lua_State *LS)
 {
+    stackDump(LS);
     CHAR_DATA *ch=check_CH(LS,1);
+    stackDump(LS);
     char *msg=check_fstring( LS, 2, MSL);
 
     send_to_char(msg, ch);
@@ -1931,7 +1899,7 @@ static int check_iflag( lua_State *LS,
             NULL,
             iflagvar);
 }
-
+/*
 static void unregister_UD( lua_State *LS,  void *ptr )
 {
     if (!LS)
@@ -1949,9 +1917,10 @@ static void unregister_UD( lua_State *LS,  void *ptr )
     }
 
 }
-
+*/
 /* unregister_lua, to be called when destroying in game structures that may
    be registered in an active lua state*/
+/*
 void unregister_lua( void *ptr )
 {
     if (ptr == NULL)
@@ -1962,6 +1931,7 @@ void unregister_lua( void *ptr )
 
     unregister_UD( g_mud_LS, ptr );
 }
+*/
 
 static int L_rundelay( lua_State *LS)
 {
@@ -6801,6 +6771,7 @@ HELPTOPIC ROOM_get_owner_help={};
 
 static int ROOM_get_description (lua_State *LS)
 {
+    stackDump(LS);
     lua_pushstring( LS,
             (check_ROOM(LS,1))->description);
     return 1;
