@@ -2565,7 +2565,7 @@ void update_handler( void )
     if ( --pulse_lua_arcgc <= 0 )
     {
         pulse_lua_arcgc  = PULSE_LUA_ARCGC;
-        lua_arcgc();
+        //lua_arcgc();
     }
 
     if ( --pulse_timer <= 0 )
