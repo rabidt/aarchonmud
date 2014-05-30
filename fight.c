@@ -4403,26 +4403,27 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !IS_AWAKE(victim) )
         return FALSE;
     
-    if ( get_weapon_sn(ch) != gsn_gun && get_weapon_sn(ch) != gsn_bow )
-        return FALSE;
-    
     int skill = get_skill(victim,gsn_duck);
     
     if (skill == 0)
         return FALSE;
 
+    // mastery allows you to duck any attack
+    int mastery = mastery_bonus(victim, gsn_duck, 6, 10);
+
+    if ( get_weapon_sn(ch) != gsn_gun && get_weapon_sn(ch) != gsn_bow && !per_chance(mastery) )
+        return FALSE;
+    
     int level_diff = victim->level - ch->level;
     int stat_diff = get_curr_stat(victim, STAT_AGI) - get_curr_stat(ch, STAT_DEX);
     int opponent_adjust = (level_diff + stat_diff/4) / 2;
-    int chance = (skill + opponent_adjust) / 3;
+    int chance = (skill + opponent_adjust) / 3 + mastery;
 
     if (victim->stance==STANCE_SHOWDOWN)
         chance += 30;
 
     if ( IS_AFFECTED(victim, AFF_SORE) )
         chance -= 10;
-
-    chance += mastery_bonus(ch, gsn_duck, 3, 5);
 
     chance = URANGE(0, chance, 75);
     
@@ -4432,9 +4433,9 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !per_chance(chance) )
         return FALSE;
     
-    act_gag( "You duck $n's shot!", ch, NULL, victim, TO_VICT, GAG_MISS );
-    act_gag( "$N ducks your shot!", ch, NULL, victim, TO_CHAR, GAG_MISS );
-    act_gag( "$N ducks $n's shot.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
+    act_gag( "You duck $n's attack!", ch, NULL, victim, TO_VICT, GAG_MISS );
+    act_gag( "$N ducks your attack!", ch, NULL, victim, TO_CHAR, GAG_MISS );
+    act_gag( "$N ducks $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
     check_improve(victim,gsn_duck,TRUE,15);
     return TRUE;
 }
