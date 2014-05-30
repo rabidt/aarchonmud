@@ -629,9 +629,7 @@ HELPTOPIC glob_gtransfer_help =
 
 static int glob_sendtochar (lua_State *LS)
 {
-    stackDump(LS);
     CHAR_DATA *ch=check_CH(LS,1);
-    stackDump(LS);
     char *msg=check_fstring( LS, 2, MSL);
 
     send_to_char(msg, ch);
@@ -6771,7 +6769,6 @@ HELPTOPIC ROOM_get_owner_help={};
 
 static int ROOM_get_description (lua_State *LS)
 {
-    stackDump(LS);
     lua_pushstring( LS,
             (check_ROOM(LS,1))->description);
     return 1;

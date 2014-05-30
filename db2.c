@@ -220,7 +220,7 @@ void load_mobiles( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pMprog              = alloc_perm(sizeof(*pMprog));
+                pMprog              = lua_new_ud( &type_MPROG_LIST );
                 word   		    = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -525,7 +525,7 @@ void load_mobbles( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pMprog              = alloc_perm(sizeof(*pMprog));
+                pMprog              = lua_new_ud( &type_MPROG_LIST );
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -816,7 +816,7 @@ void load_objects( FILE *fp )
             char *word;
             int trigger = 0;
 
-            pOprog              = alloc_perm(sizeof(*pOprog));
+            pOprog              = lua_new_ud( &type_OPROG_LIST );
             word                = fread_word( fp );
             if ( (trigger = flag_lookup( word, oprog_flags )) == NO_FLAG )
             {
