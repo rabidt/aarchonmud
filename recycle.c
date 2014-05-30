@@ -41,19 +41,9 @@ NOTE_DATA *new_note ()
 {
 	NOTE_DATA *note;
 	
-	note = lua_new_ud(&type_NOTE);
+	note = lua_new_ud(&type_NOTE_DATA);
 
-	/* Zero all the field - Envy does not gurantee zeroed memory */ 
-	note->next = NULL;
-	note->sender = NULL;        
-	note->expire = 0;
-	note->to_list = NULL;
-	note->subject = NULL;
-	note->date = NULL;
-	note->date_stamp = 0;
-	note->text = NULL;
-
-	  VALIDATE(note);   
+	VALIDATE(note);   
 	return note;
 }
 
@@ -261,29 +251,13 @@ void free_affect(AFFECT_DATA *af)
 	affect_free = af;
 }
 
-/* stuff for recycling objects */
-OBJ_DATA *obj_free;
-
 OBJ_DATA *new_obj(void)
 {
-	static OBJ_DATA obj_zero;
 	OBJ_DATA *obj;
 
-	if (obj_free == NULL)
-	obj = alloc_perm(sizeof(*obj));
-	else
-	{
-	obj = obj_free;
-	obj_free = obj_free->next;
-    type_OBJ.free_count--;
-	}
-	*obj = obj_zero;
+	obj = lua_new_ud( &type_OBJ_DATA );
 	VALIDATE(obj);
-    GET_TYPE( obj ) = &type_OBJ;
-    type_OBJ.count++;
     obj->must_extract=FALSE;
-    obj->otrig_timer=NULL;
-    obj->luavals=NULL;
 
 	return obj;
 }
@@ -326,37 +300,20 @@ void free_obj(OBJ_DATA *obj)
         free_luaval(luaval);
     }
 
-    type_OBJ.count--;
 	INVALIDATE(obj);
 
-	obj->next   = obj_free;
-	obj_free    = obj; 
-    type_OBJ.free_count++;
+    obj->next=NULL;
+    lua_free_ud( obj );
 }
-
-
-/* stuff for recyling characters */
-CHAR_DATA *char_free;
 
 CHAR_DATA *new_char (void)
 {
-	static CHAR_DATA ch_zero;
 	CHAR_DATA *ch;
 	int i;
 
-	if (char_free == NULL)
-	ch = alloc_perm(sizeof(*ch));
-	else
-	{
-	ch = char_free;
-	char_free = char_free->next;
-    type_CHAR.free_count--;
-	}
-
-	*ch             = ch_zero;
-	VALIDATE(ch);
-    GET_TYPE( ch )  = &type_CHAR;
-    type_CHAR.count++;
+	ch = lua_new_ud( &type_CHAR_DATA ); 
+	
+    VALIDATE(ch);
 
 	ch->name                    = &str_empty[0];
 	ch->short_descr             = &str_empty[0];
@@ -449,34 +406,20 @@ void free_char (CHAR_DATA *ch)
 	if (ch->pcdata != NULL)
 	    free_pcdata(ch->pcdata);
 
-	ch->next = char_free;
-	char_free  = ch;
-
-    type_CHAR.free_count++;
-
-    type_CHAR.count--;
+	ch->next = NULL; 
 	INVALIDATE(ch);
+
+    lua_free_ud( ch );
 	return;
 }
-
-PC_DATA *pcdata_free;
 
 PC_DATA *new_pcdata(void)
 {
     int alias, i;
     
-    static PC_DATA pcdata_zero;
     PC_DATA *pcdata;
     
-    if (pcdata_free == NULL)
-        pcdata = alloc_perm(sizeof(*pcdata));
-    else
-    {
-        pcdata = pcdata_free;
-        pcdata_free = pcdata_free->next;
-    }
-    
-    *pcdata = pcdata_zero;
+    pcdata = lua_new_ud( &type_PC_DATA );
     
     for (alias = 0; alias < MAX_ALIAS; alias++)
     {
@@ -596,8 +539,8 @@ void free_pcdata(PC_DATA *pcdata)
     }
 
     INVALIDATE(pcdata);
-    pcdata->next = pcdata_free;
-    pcdata_free = pcdata;
+    pcdata->next = NULL;
+    lua_free_ud( pcdata );
     
     return;
 }

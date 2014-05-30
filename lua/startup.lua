@@ -15,9 +15,16 @@ delaytbl={} -- used on the C side mostly
 
 UD_TABLES=
 {
-    NOTE={},
-    CHAR={},
-    OBJ={}
+    NOTE_DATA={},
+    CHAR_DATA={},
+    PC_DATA={},
+    MOB_INDEX_DATA={},
+    OBJ_DATA={},
+    OBJ_INDEX_DATA={},
+    AREA_DATA={},
+    ROOM_INDEX_DATA={},
+    RESET_DATA={},
+    EXIT_DATA={}
 }
 
 

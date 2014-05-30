@@ -23,6 +23,14 @@ Valid args:
 end
 
 function do_luareset(ch, argument)
+    for k,v in pairs(UD_TABLES) do
+        local cnt=0
+        for _,_ in pairs(v) do
+            cnt=cnt+1
+        end
+        sendtochar( ch, k.." "..cnt.."\n\r")
+    end
+
     local found=false
     for _,arg in pairs(reset_table) do
         if arg == argument then

@@ -155,14 +155,20 @@ typedef struct type_data
 typedef struct type_base
 {
     TYPE_DATA *type;
-    bool valid;
 } TYPE_BASE;
 
-extern TYPE_DATA type_CHAR;
-extern TYPE_DATA type_OBJ;
-extern TYPE_DATA type_ROOM;
-extern TYPE_DATA type_AREA;
-extern TYPE_DATA type_NOTE;
+extern TYPE_DATA type_CHAR_DATA;
+extern TYPE_DATA type_PC_DATA;
+extern TYPE_DATA type_MOB_INDEX_DATA;
+extern TYPE_DATA type_OBJ_DATA;
+extern TYPE_DATA type_OBJ_INDEX_DATA;
+extern TYPE_DATA type_ROOM_INDEX_DATA;
+extern TYPE_DATA type_AREA_DATA;
+extern TYPE_DATA type_NOTE_DATA;
+extern TYPE_DATA type_EXIT_DATA;
+extern TYPE_DATA type_RESET_DATA;
+extern TYPE_DATA type_PROG_CODE;
+extern TYPE_DATA type_PROG_LIST;
 
 #define GET_TYPE( ptr ) ( ( (TYPE_BASE *)( ptr ) )->type)
 
@@ -2363,6 +2369,9 @@ extern sh_int sn_overall;
  */
 struct  mob_index_data_old
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	MOB_INDEX_DATA_OLD *    next;
 	SPEC_FUN *      spec_fun;
 	SHOP_DATA *     pShop;
@@ -2409,6 +2418,9 @@ struct  mob_index_data_old
  */
 struct  mob_index_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
     MOB_INDEX_DATA* next;
     SPEC_FUN*   spec_fun;
     SHOP_DATA*  pShop;
@@ -2846,6 +2858,9 @@ struct  extra_descr_data
  */
 struct  obj_index_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	OBJ_INDEX_DATA *    next;
 	EXTRA_DESCR_DATA *  extra_descr;
 	AFFECT_DATA *   affected;
@@ -2926,6 +2941,9 @@ struct  obj_data
  */
 struct  exit_data
 {
+    /* must be first entry */
+    TYPE_BASE           _base;
+
     /* u1 read in as vnum from area file then
        converted to to_room in fix_exits */
 	union
@@ -2962,6 +2980,9 @@ struct  exit_data
  */
 struct  reset_data
 {
+    /* must be first entry */
+    TYPE_BASE           _base;
+
 	RESET_DATA *    next;
 	char        command;
 	sh_int      arg1;
@@ -3233,6 +3254,9 @@ struct  mastery_group_type
 
 struct prog_list
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	int         trig_type;
 	char *      trig_phrase;
 	PROG_LIST *    next;
@@ -3243,6 +3267,9 @@ struct prog_list
 
 struct prog_code
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
     bool        is_lua;
 	int         vnum;
 	char *      code;
