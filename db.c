@@ -941,7 +941,7 @@ void load_area( FILE *fp )
 {
     AREA_DATA *pArea;
     
-    pArea               = alloc_perm( sizeof(*pArea) );
+    pArea               = lua_new_ud(&type_AREA_DATA);
     pArea->file_name    = fread_string(fp);
     
     flag_clear( pArea->area_flags );
@@ -964,8 +964,6 @@ void load_area( FILE *fp )
     pArea->empty    = FALSE;
     pArea->atrig_timer=NULL;
 
-    GET_TYPE( pArea )=&type_AREA;
-    
     if ( !area_first )
         area_first = pArea;
     
@@ -980,7 +978,6 @@ void load_area( FILE *fp )
     current_area = pArea;
     
     top_area++;
-    type_AREA.count++;
 
     logpf("Loading area: %s\t\t%Min: %ld  Max: %ld  Sec: %d  Credits: %s",
         pArea->name, pArea->min_vnum, pArea->max_vnum, pArea->security, pArea->credits);
@@ -1017,7 +1014,7 @@ void new_load_area( FILE *fp )
     char      *word;
     bool      fMatch;
     
-    pArea               = alloc_perm( sizeof(*pArea) );
+    pArea               = lua_new_ud( &type_AREA_DATA);
     pArea->age          = 15;
     pArea->nplayer      = 0;
     pArea->reset_time   = 15;
@@ -1104,8 +1101,6 @@ void new_load_area( FILE *fp )
                 area_last    = pArea;
                 pArea->next  = NULL;
                 current_area = pArea;
-                GET_TYPE( pArea ) = &type_AREA;
-                type_AREA.count++;
                 top_area++;
                 
                 return;
@@ -1495,7 +1490,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
              exit( 1 );
          }
          
-         pRoomIndex          = alloc_perm( sizeof(*pRoomIndex) );
+         pRoomIndex          = lua_new_ud( &type_ROOM_INDEX_DATA );
          pRoomIndex->owner       = str_dup("");
          pRoomIndex->people      = NULL;
          pRoomIndex->contents    = NULL;
@@ -1572,7 +1567,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
                      exit( 1 );
                  }
                  
-                 pexit           = alloc_perm( sizeof(*pexit) );
+                 pexit           = lua_new_ud( &type_EXIT_DATA );
                  pexit->description  = fread_string( fp );
                  pexit->keyword      = fread_string( fp );
 
@@ -1669,8 +1664,6 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          iHash           = vnum % MAX_KEY_HASH;
          pRoomIndex->next    = room_index_hash[iHash];
          room_index_hash[iHash]  = pRoomIndex;
-         GET_TYPE( pRoomIndex ) = &type_ROOM;
-         type_ROOM.count++;
          top_room++;
          top_vnum_room = top_vnum_room < vnum ? vnum : top_vnum_room; /* OLC */
          assign_area_vnum( vnum );                                    /* OLC */
@@ -4385,7 +4378,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
     ptc( ch, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
     ptc( ch, "\n\r");
-    ptc( ch, "CHAR_DATA count         %d\n\r", type_CHAR.count); 
+/*    ptc( ch, "CHAR_DATA count         %d\n\r", type_CHAR.count); 
     ptc( ch, "  free                  %d\n\r", type_CHAR.free_count);
     ptc( ch, "OBJ_DATA count          %d\n\r", type_OBJ.count);
     ptc( ch, "  free                  %d\n\r", type_OBJ.free_count);
@@ -4394,7 +4387,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "AREA_DATA count         %d\n\r", type_AREA.count);
     ptc( ch, "  free                  %d\n\r", type_AREA.free_count);
     ptc( ch, "\n\r");
-
+*/
     ptc( ch, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());
     ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
     ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
@@ -4449,8 +4442,8 @@ void do_dump( CHAR_DATA *ch, char *argument )
     
     /* pcdata */
     count = 0;
-    for (pc = pcdata_free; pc != NULL; pc = pc->next)
-        count++; 
+    //for (pc = pcdata_free; pc != NULL; pc = pc->next)
+    //    count++; 
     
     fprintf(fp,"Pcdata	%4d (%8d bytes), %2d free (%d bytes)\n",
         num_pcs, num_pcs * (sizeof(*pc)), count, count * (sizeof(*pc)));
@@ -5684,34 +5677,27 @@ char* bread_word( RBUFFER *rbuf )
     return NULL;
 }
 
-TYPE_DATA type_CHAR=
+#define decl( typename, luatype ) \
+TYPE_DATA type_ ## typename = \
+{\
+    .name= #typename ,\
+    .size=sizeof(typename) ,\
+    .lua_type = luatype \
+}
+/*
+TYPE_DATA type_CHAR_DATA=
 {
-    .name="CHAR",
+    .name="CHAR_DATA",
     .size=sizeof(CHAR_DATA),
     .lua_type=&CH_type
-};
-
-TYPE_DATA type_OBJ=
-{
-    .name="OBJ",
-    .size=sizeof(OBJ_DATA),
-    .lua_type=&OBJ_type
-};
-
-TYPE_DATA type_ROOM=
-{
-    .name="ROOM",
-    .lua_type=&ROOM_type
-};
-
-TYPE_DATA type_AREA=
-{
-    .name="AREA",
-    .lua_type=&AREA_type
-};
-
-TYPE_DATA type_NOTE=
-{
-    .name="NOTE",
-    .size=sizeof(NOTE_DATA)
-};
+};*/
+decl( CHAR_DATA, &CH_type );
+decl( PC_DATA, NULL );
+decl( MOB_INDEX_DATA, &MOBPROTO_type );
+decl( OBJ_DATA, &OBJ_type );
+decl( OBJ_INDEX_DATA, &OBJPROTO_type );
+decl( ROOM_INDEX_DATA, &ROOM_type );
+decl( AREA_DATA, &AREA_type );
+decl( NOTE_DATA, NULL );
+decl( RESET_DATA, &RESET_type );
+decl( EXIT_DATA, &EXIT_type );

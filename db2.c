@@ -83,7 +83,7 @@ void load_mobiles( FILE *fp )
             exit( 1 );
         }
 
-        pMobIndex                       = alloc_mem( sizeof(*pMobIndex) );
+        pMobIndex                       = lua_new_ud( &type_MOB_INDEX_DATA );
         pMobIndex->vnum                 = vnum;
         pMobIndex->area                 = area_last;               /* OLC */
         pMobIndex->player_name          = fread_string( fp );
@@ -256,7 +256,7 @@ void load_mobiles( FILE *fp )
 
         // convert to MOB_INDEX_DATA
         MOB_INDEX_DATA *pMobbleIndex = convert_to_mobble( pMobIndex );
-        free_mem( pMobIndex, sizeof(*pMobIndex) );
+        lua_free_ud( pMobIndex );
 
         index_mobile ( pMobbleIndex );
     }
@@ -274,7 +274,7 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
     MOB_INDEX_DATA *pMobIndex;
     long actual, spec, base;
 
-    pMobIndex = alloc_perm( sizeof(*pMobIndex) );
+    pMobIndex = lua_new_ud( &type_MOB_INDEX_DATA);
 
     // identical fields, just copy
     MCOPY(vnum);
@@ -392,7 +392,7 @@ void load_mobbles( FILE *fp )
             exit( 1 );
         }
 
-        pMobIndex                       = alloc_perm( sizeof(*pMobIndex) );
+        pMobIndex                       = lua_new_ud( &type_MOB_INDEX_DATA );
         pMobIndex->vnum                 = vnum;
         pMobIndex->area                 = area_last;
         pMobIndex->pShop                = NULL;
@@ -592,7 +592,7 @@ void load_objects( FILE *fp )
             exit( 1 );
         }
 
-        pObjIndex                       = alloc_perm( sizeof(*pObjIndex) );
+        pObjIndex                       = lua_new_ud( &type_OBJ_INDEX_DATA );
         pObjIndex->vnum                 = vnum;
         pObjIndex->area                 = area_last;            /* OLC */
         pObjIndex->reset_num		= 0;

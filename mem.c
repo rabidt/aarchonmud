@@ -34,14 +34,8 @@ extern      int         top_oprog_index;
 extern      int         top_aprog_index;
 extern      int         top_rprog_index;
 
-AREA_DATA		*	area_free;
 EXTRA_DESCR_DATA	*	extra_descr_free;
-EXIT_DATA		*	exit_free;
-ROOM_INDEX_DATA		*	room_index_free;
-OBJ_INDEX_DATA		*	obj_index_free;
 SHOP_DATA		*	shop_free;
-MOB_INDEX_DATA		*	mob_index_free;
-RESET_DATA		*	reset_free;
 HELP_DATA		*	help_free;
 
 HELP_DATA		*	help_last;
@@ -55,16 +49,8 @@ RESET_DATA *new_reset_data( void )
 {
     RESET_DATA *pReset;
 
-    if ( !reset_free )
-    {
-        pReset          =   alloc_perm( sizeof(*pReset) );
-        top_reset++;
-    }
-    else
-    {
-        pReset          =   reset_free;
-        reset_free      =   reset_free->next;
-    }
+    pReset          =   lua_new_ud( &type_RESET_DATA );
+    top_reset++;
 
     pReset->next        =   NULL;
     pReset->command     =   'X';
@@ -80,8 +66,8 @@ RESET_DATA *new_reset_data( void )
 
 void free_reset_data( RESET_DATA *pReset )
 {
-    pReset->next            = reset_free;
-    reset_free              = pReset;
+    pReset->next            = NULL;
+    lua_free_ud( pReset );
     return;
 }
 
@@ -93,17 +79,7 @@ AREA_DATA *new_area( void )
     char buf[MAX_INPUT_LENGTH];
     int i;
 
-    if ( !area_free )
-    {
-        pArea   =   alloc_perm( sizeof(*pArea) );
-        top_area++;
-    }
-    else
-    {
-        pArea       =   area_free;
-        area_free   =   area_free->next;
-        type_AREA.free_count--;
-    }
+    pArea   =   lua_new_ud( &type_AREA_DATA );
 
     pArea->next             =   NULL;
     pArea->name             =   str_dup( "New area" );
@@ -123,9 +99,6 @@ AREA_DATA *new_area( void )
     pArea->vnum             =   top_area-1;
     pArea->atrig_timer      =   NULL;
 
-    GET_TYPE( pArea ) = &type_AREA;
-    type_AREA.count++;
-
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
 	pArea->clones[i] = 0;
 
@@ -141,9 +114,9 @@ void free_area( AREA_DATA *pArea )
     free_string( pArea->builders );
     free_string( pArea->credits );
 
-    pArea->next         =   area_free->next;
-    area_free           =   pArea;
-    type_AREA.free_count++;
+    pArea->next         =   NULL;
+
+    lua_free_ud( pArea );
     return;
 }
 
@@ -153,16 +126,8 @@ EXIT_DATA *new_exit( void )
 {
     EXIT_DATA *pExit;
 
-    if ( !exit_free )
-    {
-        pExit           =   alloc_perm( sizeof(*pExit) );
-        top_exit++;
-    }
-    else
-    {
-        pExit           =   exit_free;
-        exit_free       =   exit_free->next;
-    }
+    pExit           =   lua_new_ud( &type_EXIT_DATA );
+    top_exit++;
 
     pExit->u1.to_room   =   NULL;                  /* ROM OLC */
     pExit->next         =   NULL;
@@ -183,8 +148,8 @@ void free_exit( EXIT_DATA *pExit )
     free_string( pExit->keyword );
     free_string( pExit->description );
 
-    pExit->next         =   exit_free;
-    exit_free           =   pExit;
+    pExit->next         =   NULL;
+    lua_free_ud( pExit );
     return;
 }
 
@@ -194,17 +159,8 @@ ROOM_INDEX_DATA *new_room_index( void )
     ROOM_INDEX_DATA *pRoom;
     int door;
 
-    if ( !room_index_free )
-    {
-        pRoom           =   alloc_perm( sizeof(*pRoom) );
-        top_room++;
-    }
-    else
-    {
-        pRoom           =   room_index_free;
-        room_index_free =   room_index_free->next;
-        type_ROOM.free_count--;
-    }
+    pRoom           =   lua_new_ud( &type_ROOM_INDEX_DATA );
+    top_room++;
 
     pRoom->next             =   NULL;
     pRoom->people           =   NULL;
@@ -225,9 +181,6 @@ ROOM_INDEX_DATA *new_room_index( void )
     pRoom->clan		    =	0;
     pRoom->heal_rate	    =   100;
     pRoom->mana_rate	    =   100;
-
-    GET_TYPE( pRoom ) = &type_ROOM;
-    type_ROOM.count++;
 
     return pRoom;
 }
@@ -259,12 +212,10 @@ void free_room_index( ROOM_INDEX_DATA *pRoom )
     {
         free_reset_data( pReset );
     }
+    lua_free_ud( pRoom );
 
-    pRoom->next     =   room_index_free;
-    room_index_free =   pRoom;
+    pRoom->next     =   NULL;
 
-    type_ROOM.free_count++;
-    type_ROOM.count--;
     return;
 }
 
@@ -310,23 +261,13 @@ void free_shop( SHOP_DATA *pShop )
     return;
 }
 
-
-
 OBJ_INDEX_DATA *new_obj_index( void )
 {
     OBJ_INDEX_DATA *pObj;
     int value;
 
-    if ( !obj_index_free )
-    {
-        pObj           =   alloc_perm( sizeof(*pObj) );
-        top_obj_index++;
-    }
-    else
-    {
-        pObj            =   obj_index_free;
-        obj_index_free  =   obj_index_free->next;
-    }
+    pObj           =   lua_new_ud( &type_OBJ_INDEX_DATA );
+    top_obj_index++;
 
     pObj->next          =   NULL;
     pObj->extra_descr   =   NULL;
@@ -356,8 +297,6 @@ OBJ_INDEX_DATA *new_obj_index( void )
     return pObj;
 }
 
-
-
 void free_obj_index( OBJ_INDEX_DATA *pObj )
 {
     EXTRA_DESCR_DATA *pExtra;
@@ -377,8 +316,9 @@ void free_obj_index( OBJ_INDEX_DATA *pObj )
         free_extra_descr( pExtra );
     }
     
-    pObj->next              = obj_index_free;
-    obj_index_free          = pObj;
+    pObj->next              = NULL;
+
+    lua_free_ud( pObj );
     return;
 }
 
@@ -388,16 +328,8 @@ MOB_INDEX_DATA *new_mob_index( void )
 {
     MOB_INDEX_DATA *pMob;
 
-    if ( !mob_index_free )
-    {
-        pMob           =   alloc_perm( sizeof(*pMob) );
-        top_mob_index++;
-    }
-    else
-    {
-        pMob            =   mob_index_free;
-        mob_index_free  =   mob_index_free->next;
-    }
+    pMob           = lua_new_ud( &type_MOB_INDEX_DATA ); 
+    top_mob_index++;
 
     pMob->next          =   NULL;
     pMob->spec_fun      =   NULL;
@@ -449,8 +381,8 @@ void free_mob_index( MOB_INDEX_DATA *pMob )
 
     free_shop( pMob->pShop );
 
-    pMob->next              = mob_index_free;
-    mob_index_free          = pMob;
+    pMob->next              = NULL;
+    lua_free_ud( pMob );
     return;
 }
 

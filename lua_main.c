@@ -1019,12 +1019,13 @@ void *lua_new_ud( TYPE_DATA *type )
     lua_getglobal( g_mud_LS, "UD_TABLES");
     lua_getfield( g_mud_LS, -1, type->name );
     void *ud=lua_newuserdata( g_mud_LS, type->size );
+    memset( ud, 0, type->size );
     lua_pushlightuserdata( g_mud_LS, ud );
     lua_pushvalue( g_mud_LS, -2);
     lua_settable( g_mud_LS, -4);
     lua_pop( g_mud_LS, 3 );
 
-    GET_TYPE( ud )=type;
+    GET_TYPE( ud ) = type;
     return ud;
 }
 
