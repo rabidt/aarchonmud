@@ -62,10 +62,8 @@ time_t time(time_t *tloc);
 
 
 /* externals for counting purposes */
-extern  CHAR_DATA   *char_free;
 extern  DESCRIPTOR_DATA *descriptor_free;
 extern  PC_DATA     *pcdata_free;
-extern  AFFECT_DATA *affect_free;
 
 static int STR_DUP_STRINGS = 0;
 static int HIGHEST_STR_DUP_STRINGS = 0;
@@ -730,7 +728,6 @@ void boot_db()
                     exit( 1 );
                 }
             }
-            
 	    load_area_file( fpArea, TRUE );
             
             if ( fpArea != stdin )
@@ -1047,7 +1044,7 @@ void new_load_area( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pAprog              = alloc_perm(sizeof(*pAprog));
+                pAprog              = lua_new_ud( &type_APROG_LIST );
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, aprog_flags )) == NO_FLAG )
                 {   
@@ -1637,7 +1634,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
                  char *word;
                  int trigger=0;
 
-                 pRprog = alloc_perm(sizeof(*pRprog));
+                 pRprog = lua_new_ud( &type_RPROG_LIST );
                  word=fread_word( fp );
                  if ( ( trigger=flag_lookup( word, rprog_flags)) == NO_FLAG)
                  {
@@ -1691,7 +1688,7 @@ void load_shops( FILE *fp )
         if ( keeper == 0 )
             break;
         
-        pShop           = alloc_perm( sizeof(*pShop) );
+        pShop           = lua_new_ud( &type_SHOP_DATA );
         pShop->keeper       = keeper;
 
         for ( iTrade = 0; iTrade < MAX_TRADE; iTrade++ )
@@ -1893,7 +1890,7 @@ void load_roomprogs( FILE *fp )
             exit( 1 );
         }
 
-        pRprog      = alloc_perm( sizeof(*pRprog) );
+        pRprog      = lua_new_ud( &type_PROG_CODE );
         pRprog->vnum    = vnum;
 
         char *word;
@@ -1967,7 +1964,7 @@ void load_areaprogs( FILE *fp )
             exit( 1 );
         }
 
-        pAprog      = alloc_perm( sizeof(*pAprog) );
+        pAprog      = lua_new_ud( &type_PROG_CODE );
         pAprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2050,7 +2047,7 @@ void load_objprogs( FILE *fp )
             exit( 1 );
         }
 
-        pOprog      = alloc_perm( sizeof(*pOprog) );
+        pOprog      = lua_new_ud( &type_PROG_CODE );
         pOprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2132,7 +2129,7 @@ void load_mobprogs( FILE *fp )
             exit( 1 );
         }
         
-        pMprog      = alloc_perm( sizeof(*pMprog) );
+        pMprog      = lua_new_ud( &type_PROG_CODE );
         pMprog->vnum    = vnum;
         pMprog->is_lua  = FALSE; /* new progs default to true but
                                     when loading we need to default to false */
@@ -4487,8 +4484,8 @@ void do_dump( CHAR_DATA *ch, char *argument )
         
         /* affects */
         count = 0;
-        for (af = affect_free; af != NULL; af = af->next)
-            count++;
+        //for (af = affect_free; af != NULL; af = af->next)
+        //    count++;
         
         fprintf(fp,"Affects	%4d (%8d bytes), %2d free (%d bytes)\n",
             aff_count, aff_count * (sizeof(*af)), count, count * (sizeof(*af)));
@@ -5701,3 +5698,33 @@ decl( AREA_DATA, &AREA_type );
 decl( NOTE_DATA, NULL );
 decl( RESET_DATA, &RESET_type );
 decl( EXIT_DATA, &EXIT_type );
+decl( SHOP_DATA, &SHOP_type );
+decl( AFFECT_DATA, &AFFECT_type );
+decl( PROG_CODE, &PROG_type );
+TYPE_DATA type_MPROG_LIST =
+{
+    .name = "MPROG_LIST",
+    .size = sizeof(PROG_LIST),
+    .lua_type = &MTRIG_type
+};
+
+TYPE_DATA type_OPROG_LIST =
+{
+    .name = "OPROG_LIST",
+    .size = sizeof(PROG_LIST),
+    .lua_type = &OTRIG_type
+};
+
+TYPE_DATA type_RPROG_LIST =
+{
+    .name = "RPROG_LIST",
+    .size = sizeof(PROG_LIST),
+    .lua_type = &RTRIG_type
+};
+
+TYPE_DATA type_APROG_LIST =
+{
+    .name = "APROG_LIST",
+    .size = sizeof(PROG_LIST),
+    .lua_type = &ATRIG_type
+};

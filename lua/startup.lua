@@ -24,7 +24,14 @@ UD_TABLES=
     AREA_DATA={},
     ROOM_INDEX_DATA={},
     RESET_DATA={},
-    EXIT_DATA={}
+    AFFECT_DATA={},
+    SHOP_DATA={},
+    EXIT_DATA={},
+    PROG_CODE={},
+    MPROG_LIST={},
+    OPROG_LIST={},
+    RPROG_LIST={},
+    APROG_LIST={}
 }
 
 

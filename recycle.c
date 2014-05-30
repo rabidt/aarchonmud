@@ -215,24 +215,11 @@ void free_extra_descr(EXTRA_DESCR_DATA *ed)
 	extra_descr_free = ed;
 }
 
-
-/* stuff for recycling affects */
-AFFECT_DATA *affect_free;
-
 AFFECT_DATA *new_affect(void)
 {
-	static AFFECT_DATA af_zero;
 	AFFECT_DATA *af;
 
-	if (affect_free == NULL)
-	af = alloc_perm(sizeof(*af));
-	else
-	{
-	af = affect_free;
-	affect_free = affect_free->next;
-	}
-
-	*af = af_zero;
+	af = lua_new_ud( &type_AFFECT_DATA );
 
 	VALIDATE(af);
 	af->next = NULL;
@@ -247,8 +234,9 @@ void free_affect(AFFECT_DATA *af)
 	return;
 
 	INVALIDATE(af);
-	af->next = affect_free;
-	affect_free = af;
+	af->next = NULL; 
+
+    lua_free_ud( af );
 }
 
 OBJ_DATA *new_obj(void)
@@ -813,23 +801,12 @@ char *buf_string(BUFFER *buffer)
 	return buffer->string;
 }
 
-/* stuff for recycling mobprograms */
-PROG_LIST *mprog_free;
- 
 PROG_LIST *new_mprog(void)
 {
-   static PROG_LIST mp_zero;
    PROG_LIST *mp;
 
-   if (mprog_free == NULL)
-	   mp = alloc_perm(sizeof(*mp));
-   else
-   {
-	   mp = mprog_free;
-	   mprog_free=mprog_free->next;
-   }
+   mp = lua_new_ud( &type_MPROG_LIST );
 
-   *mp = mp_zero;
    mp->vnum             = 0;
    mp->trig_type        = 0;
    mp->script           = NULL;
@@ -843,26 +820,16 @@ void free_mprog(PROG_LIST *mp)
 	  return;
 
    INVALIDATE(mp);
-   mp->next = mprog_free;
-   mprog_free = mp;
+   mp->next = NULL;
+   lua_free_ud( mp );
 }
-
-PROG_LIST *oprog_free;
 
 PROG_LIST *new_oprog(void)
 {
-   static PROG_LIST op_zero;
    PROG_LIST *op;
 
-   if (oprog_free == NULL)
-       op = alloc_perm(sizeof(*op));
-   else
-   {
-       op = oprog_free;
-       oprog_free=oprog_free->next;
-   }
+   op = lua_new_ud( &type_OPROG_LIST ); 
 
-   *op = op_zero;
    op->vnum             = 0;
    op->trig_type        = 0;
    op->script           = NULL;
@@ -876,26 +843,16 @@ void free_oprog(PROG_LIST *op)
       return;
 
    INVALIDATE(op);
-   op->next = oprog_free;
-   oprog_free = op;
+   op->next = NULL;
+   lua_free_ud( op );
 }
-
-PROG_LIST *aprog_free;
 
 PROG_LIST *new_aprog(void)
 {
-   static PROG_LIST ap_zero;
    PROG_LIST *ap;
 
-   if (aprog_free == NULL)
-       ap = alloc_perm(sizeof(*ap));
-   else
-   {
-       ap = aprog_free;
-       aprog_free=aprog_free->next;
-   }
+   ap = lua_new_ud( &type_APROG_LIST );
 
-   *ap = ap_zero;
    ap->vnum             = 0;
    ap->trig_type        = 0;
    ap->script           = NULL;
@@ -909,26 +866,16 @@ void free_aprog(PROG_LIST *ap)
       return;
 
    INVALIDATE(ap);
-   ap->next = aprog_free;
-   aprog_free = ap;
+   ap->next = NULL;
+   lua_free_ud( ap );
 }
-
-PROG_LIST *rprog_free;
 
 PROG_LIST *new_rprog(void)
 {
-    static PROG_LIST rp_zero;
     PROG_LIST *rp;
     
-    if (rprog_free == NULL)
-        rp = alloc_perm(sizeof(*rp));
-    else
-    {
-        rp = rprog_free;
-        rprog_free=rprog_free->next;
-    }
+    rp = lua_new_ud( &type_RPROG_LIST );
 
-    *rp = rp_zero;
     rp->vnum        = 0;
     rp->trig_type   = 0;
     rp->script      = NULL;
@@ -942,8 +889,8 @@ void free_rprog(PROG_LIST *rp)
         return;
 
     INVALIDATE(rp);
-    rp->next = rprog_free;
-    rprog_free = rp;
+    rp->next = NULL;
+    lua_free_ud( rp );
 }
 
 HELP_AREA * had_free;

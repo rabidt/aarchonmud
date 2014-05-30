@@ -788,7 +788,6 @@ static int L_charloadtest( lua_State *LS )
     }
     
     lua_remove( LS, -2 ); /* kill name table */
-    stackDump(LS);
 
     lua_call( LS, 2, 0 );
     return 0;
@@ -969,7 +968,6 @@ void do_luareset( CHAR_DATA *ch, char *argument)
     lua_getglobal(g_mud_LS, "do_luareset");
     make_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
-    stackDump( g_mud_LS );
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         ptc (ch, "Error with do_luareset:\n %s\n\r",

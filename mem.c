@@ -229,7 +229,7 @@ SHOP_DATA *new_shop( void )
 
     if ( !shop_free )
     {
-        pShop           =   alloc_perm( sizeof(*pShop) );
+        pShop           =   lua_new_ud( &type_SHOP_DATA );
         top_shop++;
     }
     else
@@ -386,22 +386,13 @@ void free_mob_index( MOB_INDEX_DATA *pMob )
     return;
 }
 
-PROG_CODE              *       mpcode_free;
-
 PROG_CODE *new_mpcode(void)
 {
      PROG_CODE *NewCode;
 
-     if (!mpcode_free)
-     {
-         NewCode = alloc_perm(sizeof(*NewCode) );
-         top_mprog_index++;
-     }
-     else
-     {
-         NewCode     = mpcode_free;
-         mpcode_free = mpcode_free->next;
-     }
+     NewCode = lua_new_ud( &type_PROG_CODE );
+     top_mprog_index++;
+
      NewCode->security = 0;
      NewCode->is_lua  = TRUE;
      NewCode->vnum    = 0;
@@ -414,27 +405,17 @@ PROG_CODE *new_mpcode(void)
 void free_mpcode(PROG_CODE *pMcode)
 {
     free_string(pMcode->code);
-    pMcode->next = mpcode_free;
-    mpcode_free  = pMcode;
+    pMcode->next = NULL;
+    lua_free_ud( pMcode );
     return;
 }
-
-PROG_CODE              *       opcode_free;
 
 PROG_CODE *new_opcode(void)
 {
      PROG_CODE *NewCode;
 
-     if (!opcode_free)
-     {
-         NewCode = alloc_perm(sizeof(*NewCode) );
-         top_oprog_index++;
-     }
-     else
-     {
-         NewCode     = opcode_free;
-         opcode_free = opcode_free->next;
-     }
+     NewCode = lua_new_ud( &type_PROG_CODE );
+     top_oprog_index++;
 
      NewCode->vnum    = 0;
      NewCode->is_lua  = TRUE;
@@ -448,27 +429,17 @@ PROG_CODE *new_opcode(void)
 void free_opcode(PROG_CODE *pOcode)
 {
     free_string(pOcode->code);
-    pOcode->next = opcode_free;
-    opcode_free  = pOcode;
+    pOcode->next = NULL;
+    lua_free_ud( pOcode );
     return;
 }
-
-PROG_CODE              *       apcode_free;
 
 PROG_CODE *new_apcode(void)
 {
      PROG_CODE *NewCode;
 
-     if (!apcode_free)
-     {
-         NewCode = alloc_perm(sizeof(*NewCode) );
-         top_aprog_index++;
-     }
-     else
-     {
-         NewCode     = apcode_free;
-         apcode_free = apcode_free->next;
-     }
+     NewCode = lua_new_ud( &type_PROG_CODE ); 
+     top_aprog_index++;
 
      NewCode->vnum    = 0;
      NewCode->is_lua  = TRUE;
@@ -482,27 +453,17 @@ PROG_CODE *new_apcode(void)
 void free_apcode(PROG_CODE *pAcode)
 {
     free_string(pAcode->code);
-    pAcode->next = apcode_free;
-    apcode_free  = pAcode;
+    pAcode->next = NULL;
+    lua_free_ud( pAcode );
     return;
 }
-
-PROG_CODE * rpcode_free;
 
 PROG_CODE *new_rpcode(void)
 {
     PROG_CODE *NewCode;
-
-    if (!rpcode_free)
-    {
-        NewCode = alloc_perm(sizeof(*NewCode) );
-        top_rprog_index++;
-    }
-    else
-    {
-        NewCode = rpcode_free;
-        rpcode_free = rpcode_free->next;
-    }
+    
+    NewCode = lua_new_ud( &type_PROG_CODE ); 
+    top_rprog_index++;
 
     NewCode->vnum = 0;
     NewCode->is_lua  = TRUE;
@@ -516,8 +477,8 @@ PROG_CODE *new_rpcode(void)
 void free_rpcode(PROG_CODE *pRcode)
 {
     free_string(pRcode->code);
-    pRcode->next = rpcode_free;
-    rpcode_free=pRcode;
+    pRcode->next = NULL;
+    lua_free_ud( pRcode );
     return;
 }
 

@@ -167,8 +167,13 @@ extern TYPE_DATA type_AREA_DATA;
 extern TYPE_DATA type_NOTE_DATA;
 extern TYPE_DATA type_EXIT_DATA;
 extern TYPE_DATA type_RESET_DATA;
+extern TYPE_DATA type_SHOP_DATA;
+extern TYPE_DATA type_AFFECT_DATA;
 extern TYPE_DATA type_PROG_CODE;
-extern TYPE_DATA type_PROG_LIST;
+extern TYPE_DATA type_MPROG_LIST;
+extern TYPE_DATA type_OPROG_LIST;
+extern TYPE_DATA type_APROG_LIST;
+extern TYPE_DATA type_RPROG_LIST;
 
 #define GET_TYPE( ptr ) ( ( (TYPE_BASE *)( ptr ) )->type)
 
@@ -858,6 +863,9 @@ struct help_area_data
 
 struct  shop_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	SHOP_DATA * next;           /* Next shop in list        */
 	sh_int  keeper;         /* Vnum of shop keeper mob  */
 	sh_int  buy_type [MAX_TRADE];   /* Item types shop will buy */
@@ -1045,6 +1053,9 @@ struct board_data
  */
 struct  affect_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
     AFFECT_DATA *   next;
     bool        valid;
     sh_int      where;
