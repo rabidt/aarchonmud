@@ -148,7 +148,6 @@ typedef struct type_data
     const char *name;
     size_t size;
     int count;
-    int free_count;
     struct lua_obj_type *lua_type;
 } TYPE_DATA;
 

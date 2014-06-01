@@ -9,12 +9,14 @@ require "commands"
 --udtbl={} -- used to store game object tables, (read only proxies to origtbl)
 envtbl={} -- game object script environments
 --origtbl={} -- where the REAL ud tables live
-origenv={} -- where the REAL env tables live
+--origenv={} -- where the REAL env tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
+cleanuptbl={}
 
 UD_TABLES=
 {
+    str_dup={},
     NOTE_DATA={},
     CHAR_DATA={},
     PC_DATA={},
@@ -37,8 +39,10 @@ UD_TABLES=
 
 function UdCnt()
     local cnt=0
-    for k,v in pairs(udtbl) do
-        cnt=cnt+1
+    for k,v in pairs(UD_TABLES) do
+        for _,_ in pairs(v) do
+            cnt=cnt+1
+        end
     end
     return cnt
 end
@@ -315,89 +319,34 @@ main_lib=ProtectLib(main_lib)
 
 
 -- First look for main_lib funcs, then mob/area/obj funcs
-CH_env_meta={
+env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif type(tbl.mob[key])=="function" then 
+        elseif type(tbl.self[key])=="function" then 
             return function(...) 
-                        table.insert(arg, 1, tbl.mob)
-                        return tbl.mob[key](unpack(arg)) 
+                        table.insert(arg, 1, tbl.self)
+                        return tbl.self[key](unpack(arg)) 
                    end
         end
     end
 }
 
-OBJ_env_meta={
-    __index=function(tbl,key)
-        if main_lib[key] then
-            return main_lib[key]
-        elseif type(tbl.obj[key])=="function" then
-            return function(...) 
-                        table.insert(arg, 1, tbl.obj)
-                        return tbl.obj[key](unpack(arg)) 
-                   end
-        end
-    end
-}
-
-AREA_env_meta={
-    __index=function(tbl,key)
-        if main_lib[key] then
-            return main_lib[key]
-        elseif type(tbl.area[key])=="function" then
-            return function(...)
-                        table.insert(arg, 1, tbl.area) 
-                        return tbl.area[key](unpack(arg)) 
-                   end
-        end
-    end
-}
-
-ROOM_env_meta={
-    __index=function(tbl,key)
-        if main_lib[key] then
-            return main_lib[key]
-        elseif type(tbl.room[key])=="function" then
-            return function(...)
-                        table.insert(arg, 1, tbl.room)
-                        return tbl.room[key](unpack(arg))
-                   end
-        end
-    end
-}
-
-function MakeEnvProxy(env)
-    local proxy={}
-    proxy._G=proxy
-    setmetatable(proxy, {
-            __index = env,
-            __newindex = function (t,k,v)
-                if k=="tableid" then
-                    error("Cannot alter tableid of environment.")
-                elseif k=="udid" then
-                    error("Cannot alter udid of environment.")
+function new_script_env(ud, objname)
+    local env=setmetatable({}, {
+            __index=function (t,k)
+                if k=="self" or k==objname then
+                    return ud
                 else
-                    rawset(t,k,v)
+                    return env_meta.__index(t,k)
                 end
-            end,
-            __metatable=0 -- any value here protects it
-            }
-    )
-
-    return proxy
-end
-
-function new_script_env(ud, objname, meta)
-    local env={ udid=ud, [objname]=ud}
-    setmetatable(env, meta)
-    origenv[ud]=env
-    return MakeEnvProxy(env)
+            end})
+    return env
 end
 
 function mob_program_setup(ud, f)
     if envtbl[ud]==nil then
-        envtbl[ud]=new_script_env(ud, "mob", CH_env_meta) 
+        envtbl[ud]=new_script_env(ud, "mob") 
     end
     setfenv(f, envtbl[ud])
     return f
@@ -405,7 +354,7 @@ end
 
 function obj_program_setup(ud, f)
     if envtbl[ud]==nil then
-        envtbl[ud]=new_script_env(ud, "obj", OBJ_env_meta)
+        envtbl[ud]=new_script_env(ud, "obj")
     end
     setfenv(f, envtbl[ud])
     return f
@@ -413,7 +362,7 @@ end
 
 function area_program_setup(ud, f)
     if envtbl[ud]==nil then
-        envtbl[ud]=new_script_env(ud, "area", AREA_env_meta)
+        envtbl[ud]=new_script_env(ud, "area")
     end
     setfenv(f, envtbl[ud])
     return f
@@ -421,7 +370,7 @@ end
 
 function room_program_setup(ud, f)
     if envtbl[ud]==nil then
-        envtbl[ud]=new_script_env(ud, "room", ROOM_env_meta)
+        envtbl[ud]=new_script_env(ud, "room")
     end
     setfenv(f, envtbl[ud])
     return f
@@ -434,13 +383,13 @@ function interp_setup( ud, typ, desc, name)
 
     if envtbl[ud]== nil then
         if typ=="mob" then
-            envtbl[ud]=new_script_env(ud,"mob", CH_env_meta)
+            envtbl[ud]=new_script_env(ud,"mob")
         elseif typ=="obj" then
-            envtbl[ud]=new_script_env(ud,"obj", OBJ_env_meta)
+            envtbl[ud]=new_script_env(ud,"obj")
         elseif typ=="area" then
-            envtbl[ud]=new_script_env(ud,"area", AREA_env_meta)
+            envtbl[ud]=new_script_env(ud,"area")
         elseif typ=="room" then
-            envtbl[ud]=new_script_env(ud,"room", ROOM_env_meta)
+            envtbl[ud]=new_script_env(ud,"room")
         else
             error("Invalid type in interp_setup: "..typ)
         end
@@ -452,10 +401,10 @@ end
 
 function run_lua_interpret(env, str )
     local f,err
-    interptbl[env.udid].incmpl=interptbl[env.udid].incmpl or {}
+    interptbl[env.self].incmpl=interptbl[env.self].incmpl or {}
 
-    table.insert(interptbl[env.udid].incmpl, str)
-    f,err=loadstring(table.concat(interptbl[env.udid].incmpl, "\n"))
+    table.insert(interptbl[env.self].incmpl, str)
+    f,err=loadstring(table.concat(interptbl[env.self].incmpl, "\n"))
 
     if not(f) then
         -- Check if incomplete, same way the real cli checks
@@ -463,12 +412,12 @@ function run_lua_interpret(env, str )
         if sf==err:len()-1 then
             return 1 -- incomplete
         else
-           interptbl[env.udid].incmpl=nil
+           interptbl[env.self].incmpl=nil
            error(err)
         end
     end
 
-    interptbl[env.udid].incmpl=nil
+    interptbl[env.self].incmpl=nil
     setfenv(f, env)
     f()
     return 0
@@ -490,7 +439,6 @@ end
 
 function lua_arcgc()
     -- Destroy game object tables who don't have envs or pending timer
-    return 
     -- make temporary timer table for tableid lookup
     --[[
     local tmr={}
@@ -498,14 +446,13 @@ function lua_arcgc()
         tmr[v.udobj]=true
     end
 
-
     for k,v in pairs(origtbl) do
         if not(envtbl[v]) and not(tmr[v]) then
             UnregisterUd(v)
         end
     end
-    collectgarbage()
     --]]
+    collectgarbage()
 end
 
 function save_mudconfig()
