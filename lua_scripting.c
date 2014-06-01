@@ -333,6 +333,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
     {
         bugf ( "LUA error for mob_program_setup:\n %s",
                 lua_tostring(g_mud_LS, -1));
+        return FALSE;
     } 
 
     /* CH_ARG */
@@ -385,7 +386,14 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
     error=CallLuaWithTraceBack (g_mud_LS, NUM_MPROG_ARGS, 0) ;
     if (error > 0 )
     {
-        bugf ( "LUA mprog error for %s(%d), mprog %d:\n %s",
+        if (nest)
+            luaL_error( g_mud_LS, "LUA mprog error for %s(%d), mprog %d:\n %s",
+                mob->name,
+                mob->pIndexData ? mob->pIndexData->vnum : 0,
+                pvnum,
+                lua_tostring(g_mud_LS, -1)); 
+        else
+            bugf ( "LUA mprog error for %s(%d), mprog %d:\n %s",
                 mob->name,
                 mob->pIndexData ? mob->pIndexData->vnum : 0,
                 pvnum,
@@ -441,6 +449,7 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     {
         bugf ( "LUA error running obj_program_setup: %s",
                 lua_tostring(g_mud_LS, -1));
+        return FALSE;
     }
 
     /* OBJ2_ARG */
@@ -475,7 +484,12 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     error=CallLuaWithTraceBack (g_mud_LS, NUM_OPROG_ARGS, NUM_OPROG_RESULTS) ;
     if (error > 0 )
     {
-        bugf ( "LUA oprog error for vnum %d:\n %s",
+        if ( nest )
+            luaL_error( g_mud_LS, "LUA oprog error for vnum %d:\n %s",
+                pvnum,
+                lua_tostring(g_mud_LS, -1));
+        else 
+            bugf ( "LUA oprog error for vnum %d:\n %s",
                 pvnum,
                 lua_tostring(g_mud_LS, -1));
     }
@@ -531,6 +545,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
     {
         bugf ( "LUA error running area_program_setup: %s",
                 lua_tostring(g_mud_LS, -1));
+        return FALSE;
     }
 
     /* CH1_ARG */
@@ -557,7 +572,12 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
     error=CallLuaWithTraceBack (g_mud_LS, NUM_APROG_ARGS, NUM_APROG_RESULTS) ;
     if (error > 0 )
     {
-        bugf ( "LUA aprog error for vnum %d:\n %s",
+        if (nest)
+            luaL_error( g_mud_LS, "LUA aprog error for vnum %d:\n %s",
+                pvnum,
+                lua_tostring(g_mud_LS, -1));
+        else
+            bugf ( "LUA aprog error for vnum %d:\n %s",
                 pvnum,
                 lua_tostring(g_mud_LS, -1));
     }
@@ -614,6 +634,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
     {
         bugf ( "LUA error running room_program_setup: %s",
                 lua_tostring(g_mud_LS, -1));
+        return FALSE;
     }
 
     /* CH1_ARG */
@@ -658,7 +679,12 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
     error=CallLuaWithTraceBack (g_mud_LS, NUM_RPROG_ARGS, NUM_RPROG_RESULTS) ;
     if (error > 0 )
     {
-        bugf ( "LUA rprog error for vnum %d:\n %s",
+        if (nest)
+            luaL_error( g_mud_LS, "LUA rprog error for vnum %d:\n %s",
+                pvnum,
+                lua_tostring(g_mud_LS, -1));
+        else
+            bugf ( "LUA rprog error for vnum %d:\n %s",
                 pvnum,
                 lua_tostring(g_mud_LS, -1));
     }

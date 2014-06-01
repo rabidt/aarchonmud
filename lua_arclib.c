@@ -127,6 +127,7 @@ static LUA_OBJ_TYPE *new_obj_type(
 void * lua_check_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, int index )
 {
+    /* safer this way than grabbing the UD and using GET_TYPE */
     lua_getmetatable(LS, index);
     lua_getfield(LS, -1, "TYPE");
     LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
@@ -225,7 +226,7 @@ static int newindex_metamethod( lua_State *LS )
             {
                 lua_pushcfunction( LS, set[i].func );
                 lua_insert( LS, 1 );
-                lua_call(LS, 2, 0);
+                lua_call_trusted(LS, 2, 0);
                 return 0;
             }
             else
@@ -314,7 +315,7 @@ static int utillib_func (lua_State *LS, const char *funcname)
     lua_getfield( LS, -1, funcname);
     lua_remove( LS, -2 );
     lua_insert( LS, 1 );
-    lua_call( LS, narg, LUA_MULTRET );
+    lua_call_trusted( LS, narg, LUA_MULTRET );
 
     return lua_gettop(LS);
 }
@@ -728,7 +729,7 @@ static int glob_do_luaquery ( lua_State *LS)
     int top=lua_gettop(LS);
     lua_getglobal( LS, "do_luaquery");
     lua_insert(LS, 1);
-    lua_call( LS, top, LUA_MULTRET );
+    lua_call_trusted( LS, top, LUA_MULTRET );
 
     return lua_gettop(LS);
 }
@@ -1301,7 +1302,7 @@ static int dbglib_show ( lua_State *LS)
 {
     lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
     lua_getglobal( LS, luaL_checkstring( LS, 1 ) );
-    lua_call( LS, 1, 1 );
+    lua_call_trusted( LS, 1, 1 );
 
     return 1;
 }
@@ -1321,7 +1322,7 @@ static int glob_randnum ( lua_State *LS)
     int top=lua_gettop(LS);
     lua_getglobal( LS, "glob_randnum");
     lua_insert( LS, 1);
-    lua_call( LS, top, LUA_MULTRET );
+    lua_call_trusted( LS, top, LUA_MULTRET );
     
     return lua_gettop(LS);
 }
@@ -1338,7 +1339,7 @@ static int glob_rand ( lua_State *LS)
     int top=lua_gettop(LS);
     lua_getglobal( LS, "glob_rand");
     lua_insert( LS, 1 );
-    lua_call( LS, top, LUA_MULTRET );
+    lua_call_trusted( LS, top, LUA_MULTRET );
     
     return lua_gettop(LS);
 }
@@ -1357,7 +1358,7 @@ static int glob_tprintstr ( lua_State *LS)
     int top=lua_gettop(LS);
     lua_getglobal( LS, "glob_tprintstr");
     lua_insert(LS, 1);
-    lua_call( LS, top, LUA_MULTRET );
+    lua_call_trusted( LS, top, LUA_MULTRET );
     
     return lua_gettop(LS);
 }
@@ -1662,7 +1663,7 @@ static void push_luaval( lua_State *LS, LUA_EXTRA_VAL *luaval )
         case LUA_TNUMBER:
             lua_getglobal( LS, "tonumber");
             lua_pushstring(LS, luaval->val);
-            lua_call( LS, 1, 1 );
+            lua_call_trusted( LS, 1, 1 );
             return 1;
 
         case LUA_TBOOLEAN:
@@ -1735,7 +1736,7 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
         case LUA_TBOOLEAN:
             lua_getglobal( LS, "tostring");
             lua_insert( LS, -2 );
-            lua_call( LS, 1, 1 );
+            lua_call_trusted( LS, 1, 1 );
             val=check_string( LS, 2, MIL );
             break;
 
@@ -2654,7 +2655,7 @@ static int CH_tprint ( lua_State *LS)
 
     /* Push original arg into tprintstr */
     lua_pushvalue( LS, 2);
-    lua_call( LS, 1, 1 );
+    lua_call_trusted( LS, 1, 1 );
 
     do_say( ud_ch, check_string(LS, -1, MIL));
 
@@ -2685,7 +2686,7 @@ static int CH_savetbl (lua_State *LS)
     lua_pushvalue( LS, 2 );
     lua_pushvalue( LS, 3 );
     lua_pushstring( LS, ud_ch->pIndexData->area->file_name );
-    lua_call( LS, 3, 0);
+    lua_call_trusted( LS, 3, 0);
 
     return 0;
 }
@@ -2705,7 +2706,7 @@ static int CH_loadtbl (lua_State *LS)
     /* Push original args into LoadTable */
     lua_pushvalue( LS, 2 );
     lua_pushstring( LS, ud_ch->pIndexData->area->file_name );
-    lua_call( LS, 2, 1);
+    lua_call_trusted( LS, 2, 1);
 
     return 1;
 }
@@ -2720,7 +2721,7 @@ static int CH_loadscript (lua_State *LS)
     /* Push original args into GetScript */
     lua_pushvalue( LS, 2 );
     lua_pushvalue( LS, 3 );
-    lua_call( LS, 2, 1);
+    lua_call_trusted( LS, 2, 1);
 
     /* now run the result as a regular mprog with vnum 0*/
     lua_mob_program( NULL, LOADSCRIPT_VNUM, check_string(LS, -1, MAX_SCRIPT_LENGTH), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
@@ -5242,7 +5243,7 @@ static int OBJ_savetbl (lua_State *LS)
     lua_pushvalue( LS, 2 );
     lua_pushvalue( LS, 3 );
     lua_pushstring( LS, ud_obj->pIndexData->area->file_name );
-    lua_call( LS, 3, 0);
+    lua_call_trusted( LS, 3, 0);
 
     return 0;
 }
@@ -5257,7 +5258,7 @@ static int OBJ_loadtbl (lua_State *LS)
     /* Push original args into LoadTable */
     lua_pushvalue( LS, 2 );
     lua_pushstring( LS, ud_obj->pIndexData->area->file_name );
-    lua_call( LS, 2, 1);
+    lua_call_trusted( LS, 2, 1);
 
     return 1;
 }
@@ -5272,7 +5273,7 @@ static int OBJ_loadscript (lua_State *LS)
     /* Push original args into GetScript */
     lua_pushvalue( LS, 2 );
     lua_pushvalue( LS, 3 );
-    lua_call( LS, 2, 1);
+    lua_call_trusted( LS, 2, 1);
 
     /* now run the result as a regular oprog with vnum 0*/
 
@@ -5468,14 +5469,14 @@ static int OBJ_tprint ( lua_State *LS)
 
     /* Push original arg into tprintstr */
     lua_pushvalue( LS, 2);
-    lua_call( LS, 1, 1 );
+    lua_call_trusted( LS, 1, 1 );
 
     lua_pushcfunction( LS, OBJ_echo );
     /* now line up arguments for echo */
     lua_pushvalue( LS, 1); /* obj */
     lua_pushvalue( LS, -3); /* return from tprintstr */
 
-    lua_call( LS, 2, 0);
+    lua_call_trusted( LS, 2, 0);
 
     return 0;
 
@@ -6034,7 +6035,7 @@ static int AREA_savetbl (lua_State *LS)
     lua_pushvalue( LS, 2 );
     lua_pushvalue( LS, 3 );
     lua_pushstring( LS, ud_area->file_name );
-    lua_call( LS, 3, 0);
+    lua_call_trusted( LS, 3, 0);
 
     return 0;
 }
@@ -6049,7 +6050,7 @@ static int AREA_loadtbl (lua_State *LS)
     /* Push original args into LoadTable */
     lua_pushvalue( LS, 2 );
     lua_pushstring( LS, ud_area->file_name );
-    lua_call( LS, 2, 1);
+    lua_call_trusted( LS, 2, 1);
 
     return 1;
 }
@@ -6064,7 +6065,7 @@ static int AREA_loadscript (lua_State *LS)
     /* Push original args into GetScript */
     lua_pushvalue( LS, 2 );
     lua_pushvalue( LS, 3 );
-    lua_call( LS, 2, 1);
+    lua_call_trusted( LS, 2, 1);
 
     /* now run the result as a regular aprog with vnum 0*/
     lua_pushboolean( LS,
@@ -6147,14 +6148,14 @@ static int AREA_tprint ( lua_State *LS)
 
     /* Push original arg into tprintstr */
     lua_pushvalue( LS, 2);
-    lua_call( LS, 1, 1 );
+    lua_call_trusted( LS, 1, 1 );
 
     lua_pushcfunction( LS, AREA_echo );
     /* now line up arguments for echo */
     lua_pushvalue( LS, 1); /* area */
     lua_pushvalue( LS, -3); /* return from tprintstr */
 
-    lua_call( LS, 2, 0);
+    lua_call_trusted( LS, 2, 0);
 
     return 0;
 
@@ -6609,14 +6610,14 @@ static int ROOM_tprint ( lua_State *LS)
 
     /* Push original arg into tprintstr */
     lua_pushvalue( LS, 2);
-    lua_call( LS, 1, 1 );
+    lua_call_trusted( LS, 1, 1 );
 
     lua_pushcfunction( LS, ROOM_echo );
     /* now line up argumenets for echo */
     lua_pushvalue( LS, 1); /* obj */
     lua_pushvalue( LS, -3); /* return from tprintstr */
 
-    lua_call( LS, 2, 0);
+    lua_call_trusted( LS, 2, 0);
 
     return 0;
 }
@@ -6631,7 +6632,7 @@ static int ROOM_savetbl (lua_State *LS)
     lua_pushvalue( LS, 2 );
     lua_pushvalue( LS, 3 );
     lua_pushstring( LS, ud_room->area->file_name );
-    lua_call( LS, 3, 0);
+    lua_call_trusted( LS, 3, 0);
 
     return 0;
 }
@@ -6645,7 +6646,7 @@ static int ROOM_loadtbl (lua_State *LS)
 
     lua_pushvalue( LS, 2 );
     lua_pushstring( LS, ud_room->area->file_name );
-    lua_call( LS, 2, 1);
+    lua_call_trusted( LS, 2, 1);
 
     return 1;
 }
@@ -6660,7 +6661,7 @@ static int ROOM_loadscript (lua_State *LS)
     /* Push original args into GetScript */
     lua_pushvalue( LS, 2 );
     lua_pushvalue( LS, 3 );
-    lua_call( LS, 2, 1);
+    lua_call_trusted( LS, 2, 1);
 
     lua_pushboolean( LS,
             lua_room_program( NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH),

@@ -4226,8 +4226,7 @@ char *str_dup( const char *str )
     if ( str >= string_space && str < top_string )
         return (char *) str;
     
-    str_new = alloc_mem( strlen(str) + 1 );
-    strcpy( str_new, str );
+    str_new = lua_str_dup( str ); 
     remember_str_dup( str_new );
     return str_new;
 }
@@ -4245,7 +4244,7 @@ void free_string( char *pstr )
         return;
     
     forget_str_dup( pstr );
-    free_mem( pstr, strlen(pstr) + 1 );
+    lua_free_string( pstr );
     return;
 }
 
@@ -4345,20 +4344,21 @@ void do_areas( CHAR_DATA *ch )
 
 void do_memory( CHAR_DATA *ch, char *argument )
 {
-    ptc( ch, "Affects   %5d\n\r", top_affect    ); 
-    ptc( ch, "Areas     %5d\n\r", top_area      ); 
+    //ptc( ch, "Affects   %5d\n\r", top_affect    ); 
+    ptc( ch, "Affects   %5d\n\r", type_count(&type_AFFECT_DATA) );
+    ptc( ch, "Areas     %5d\n\r", type_count(&type_AREA_DATA) ); 
     ptc( ch, "ExDes     %5d\n\r", top_ed        ); 
-    ptc( ch, "Exits     %5d\n\r", top_exit      ); 
+    ptc( ch, "Exits     %5d\n\r", type_count(&type_EXIT_DATA) ); 
     ptc( ch, "Helps     %5d\n\r", top_help      ); 
     ptc( ch, "Socials   %5d\n\r", maxSocial  ); 
-    ptc( ch, "Resets    %5d\n\r", top_reset     ); 
-    ptc( ch, "Rooms     %5d\n\r", top_room      ); 
-    ptc( ch, "Shops     %5d\n\r", top_shop      ); 
+    ptc( ch, "Resets    %5d\n\r", type_count(&type_RESET_DATA) ); 
+    ptc( ch, "Rooms     %5d\n\r", type_count(&type_ROOM_INDEX_DATA) ); 
+    ptc( ch, "Shops     %5d\n\r", type_count(&type_SHOP_DATA) ); 
     ptc( ch, "\n\r");
-    ptc( ch, "Mobs      %5d\n\r", top_mob_index );
+    ptc( ch, "Mobs      %5d\n\r", type_count(&type_MOB_INDEX_DATA) );
     ptc( ch, " (in use) %5d\n\r", mobile_count  );
-    ptc( ch, "Objs      %5d\n\r", top_obj_index );
-    ptc( ch, " (in use) %5d\n\r", object_count  );
+    ptc( ch, "Objs      %5d\n\r", type_count(&type_OBJ_INDEX_DATA) );
+    ptc( ch, " (in use) %5d\n\r", type_count(&type_OBJ_DATA) );
     ptc( ch, "\n\r");
     ptc( ch, "Mprogs    %5d\n\r", top_mprog_index);
     ptc( ch, " (lua)    %5d\n\r", lua_mprogs);

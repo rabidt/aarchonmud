@@ -10,12 +10,13 @@
 
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
+static bool s_TrustedCode=FALSE;
 bool       g_LuaScriptInProgress=FALSE;
 int        g_ScriptSecurity=0;
 int        g_LoopCheckCounter;
 
-#define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
-#define LUA_LOOP_CHECK_INCREMENT 100
+#define LUA_LOOP_CHECK_MAX_CNT 1000 /* give 1000000 instructions */
+#define LUA_LOOP_CHECK_INCREMENT 1000
 #define ERR_INF_LOOP      -1
 
 int GetLuaMemoryUsage()
@@ -52,7 +53,7 @@ int GetLuaEnvironmentCount()
 
 static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
 {
-    if (!g_LuaScriptInProgress)
+    if (!g_LuaScriptInProgress || s_TrustedCode )
         return;
 
     if ( g_LoopCheckCounter < LUA_LOOP_CHECK_MAX_CNT)
@@ -126,7 +127,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
         /* kill string table */
         lua_remove( LS, -2);
         lua_insert( LS, index );
-        lua_call( LS, narg, 1);
+        lua_call_trusted( LS, narg, 1);
     }
 
     return check_string( LS, index, size);
@@ -179,6 +180,23 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
 
     return error;
 }  /* end of CallLuaWithTraceBack  */
+
+/* Call lua code without infinite loop protection */
+void lua_call_trusted( lua_State *LS, const int nArg, const int nRtn )
+{
+    bool recur=FALSE;
+
+    if (s_TrustedCode)
+        recur=TRUE;
+    else
+        s_TrustedCode=TRUE;
+
+    lua_call( LS, nArg, nRtn );
+    
+    if (!recur)
+        s_TrustedCode=FALSE;
+
+}
 
 void do_lboard( CHAR_DATA *ch, char *argument)
 {
@@ -714,7 +732,7 @@ static int L_wizhelp( LS )
     lua_getglobal( LS, "wizhelp" );
     lua_insert( LS, 1 ); /* shove it to the top */
 
-    lua_call( LS, lua_gettop(LS)-1, 0 );
+    lua_call_trusted( LS, lua_gettop(LS)-1, 0 );
 
     return 0;
 }
@@ -755,7 +773,7 @@ static int L_charloadtest( lua_State *LS )
 
     lua_getglobal( LS, "list_files");
     lua_pushliteral( LS, "../area");
-    lua_call( LS, 1, 1 );
+    lua_call_trusted( LS, 1, 1 );
   
     lua_newtable( LS ); /* the table of chars */ 
     /* iterate the table */
@@ -789,7 +807,7 @@ static int L_charloadtest( lua_State *LS )
     
     lua_remove( LS, -2 ); /* kill name table */
 
-    lua_call( LS, 2, 0 );
+    lua_call_trusted( LS, 2, 0 );
     return 0;
 
 }
@@ -928,7 +946,7 @@ static int L_dump_prog( lua_State *LS)
     lua_getglobal( LS, "colorize");
     lua_insert( LS, -2 );
     lua_pushvalue(LS,1); //push a copy of ch
-    lua_call( LS, 2, 1 );
+    lua_call_trusted( LS, 2, 1 );
 
     // 1 is ch
     // 2 is colorized text
@@ -936,7 +954,7 @@ static int L_dump_prog( lua_State *LS)
     {
         lua_getglobal( LS, "linenumber");
         lua_insert( LS, -2);
-        lua_call(LS, 1, 1);
+        lua_call_trusted(LS, 1, 1);
     }
     lua_pushstring(LS, "\n\r");
     lua_concat( LS, 2);
@@ -976,17 +994,6 @@ void do_luareset( CHAR_DATA *ch, char *argument)
     }
 }
 
-void lua_arcgc()
-{
-    lua_getglobal( g_mud_LS, "lua_arcgc");
-    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
-    {
-        bugf( "Error with lua_arcgc:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        lua_pop( g_mud_LS, 1);
-    }
-}
-
 void do_alist(CHAR_DATA *ch, char *argument)
 {
     lua_getglobal(g_mud_LS, "do_alist");
@@ -1013,6 +1020,20 @@ void do_mudconfig( CHAR_DATA *ch, char *argument)
     }
 }
 
+void *lua_str_dup( const char *str )
+{
+    lua_getglobal( g_mud_LS, "UD_TABLES");
+    lua_getfield( g_mud_LS, -1, "str_dup");
+    lua_pushstring( g_mud_LS, str );
+    const char *new_str=luaL_checkstring( g_mud_LS, -1);
+    lua_pushlightuserdata( g_mud_LS, new_str );
+    lua_pushvalue( g_mud_LS, -2 );
+    lua_settable( g_mud_LS, -4 );
+    lua_pop( g_mud_LS, 3 );
+
+    return new_str;
+}
+
 void *lua_new_ud( TYPE_DATA *type )
 {
     lua_getglobal( g_mud_LS, "UD_TABLES");
@@ -1030,7 +1051,18 @@ void *lua_new_ud( TYPE_DATA *type )
     lua_pop( g_mud_LS, 3 );
 
     GET_TYPE( ud ) = type;
+    type->count++;
     return ud;
+}
+
+void lua_free_string( const char *str )
+{
+    lua_getglobal( g_mud_LS, "UD_TABLES");
+    lua_getfield( g_mud_LS, -1, "str_dup");
+    lua_pushlightuserdata( g_mud_LS, str );
+    lua_pushnil( g_mud_LS );
+    lua_settable( g_mud_LS, -3 );
+    lua_pop( g_mud_LS, 2 );
 }
 
 void lua_free_ud( void *ud )
@@ -1042,4 +1074,10 @@ void lua_free_ud( void *ud )
     lua_pushnil( g_mud_LS );
     lua_settable( g_mud_LS, -3 );
     lua_pop( g_mud_LS, 2 );
+    type->count--;
+}
+
+int type_count( TYPE_DATA *type )
+{
+    return type->count;
 }
