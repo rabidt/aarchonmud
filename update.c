@@ -2679,6 +2679,7 @@ void update_handler( void )
         aggr_update();
         death_update();
         extract_update();
+        lua_cleanup_uds();
     }
 
     tail_chain( );

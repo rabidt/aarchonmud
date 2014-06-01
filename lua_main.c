@@ -1052,6 +1052,7 @@ void *lua_new_ud( TYPE_DATA *type )
 
     GET_TYPE( ud ) = type;
     type->count++;
+    ((TYPE_BASE *)ud)->valid=TRUE;
     return ud;
 }
 
@@ -1068,13 +1069,32 @@ void lua_free_string( const char *str )
 void lua_free_ud( void *ud )
 {
     TYPE_DATA *type=GET_TYPE(ud);
+
     lua_getglobal( g_mud_LS, "UD_TABLES");
     lua_getfield( g_mud_LS, -1, type->name );
+
+
+    /* thrown into the cleanup table */
+    lua_getglobal( g_mud_LS, "cleanuptbl" );
+    int ind=1 + lua_objlen( g_mud_LS, -1 );
+    lua_pushlightuserdata( g_mud_LS, ud );
+    lua_gettable( g_mud_LS, -3);
+    lua_rawseti( g_mud_LS, -2, ind );
+    lua_pop( g_mud_LS, 1 );
+
+
     lua_pushlightuserdata( g_mud_LS, ud );
     lua_pushnil( g_mud_LS );
     lua_settable( g_mud_LS, -3 );
     lua_pop( g_mud_LS, 2 );
     type->count--;
+    ((TYPE_BASE *)ud)->valid=FALSE;
+}
+
+void lua_cleanup_uds()
+{
+    lua_newtable( g_mud_LS );
+    lua_setglobal( g_mud_LS, "cleanuptbl");
 }
 
 int type_count( TYPE_DATA *type )
