@@ -1801,7 +1801,8 @@ void do_look( CHAR_DATA *ch, char *argument )
     {
         if (++count == number)
         {
-            send_to_char(pdesc,ch);
+            if ( rp_look_ed_trigger( ch, arg3 ) )
+                send_to_char( pdesc, ch );
             return;
         }
     }
