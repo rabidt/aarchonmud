@@ -2537,6 +2537,9 @@ void do_quaff( CHAR_DATA *ch, char *argument )
         return;
     }
 
+    if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_QUAFF) )
+        return;
+
     WAIT_STATE( ch, PULSE_VIOLENCE );
 
     act( "$n quaffs $p.", ch, obj, NULL, TO_ROOM );
