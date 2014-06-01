@@ -145,6 +145,11 @@ void * lua_check_type( LUA_OBJ_TYPE *tp,
 static int index_metamethod( lua_State *LS)
 {
     LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+
+    void *game_obj=lua_touserdata( LS, 1 );
+    if ( !((TYPE_BASE *)game_obj)->valid )
+        luaL_error( LS, "Tried to index invalid %s.", obj->type_name );
+
     const char *arg=luaL_checkstring( LS, 2 );
 
     LUA_PROP_TYPE *get=obj->get_table;
@@ -206,6 +211,11 @@ static int index_metamethod( lua_State *LS)
 static int newindex_metamethod( lua_State *LS )
 {
     LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+
+    void *game_obj=lua_touserdata( LS, 1 );
+    if ( !((TYPE_BASE *)game_obj)->valid )
+        luaL_error( LS, "Tried to index invalid %s.", obj->type_name );
+
     const char *arg=check_string( LS, 2, MIL );
     lua_remove(LS, 2);
 
