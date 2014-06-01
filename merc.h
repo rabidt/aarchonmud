@@ -3155,6 +3155,7 @@ struct  mastery_group_type
 #define OTRIG_HIT   (T)
 #define OTRIG_PREHIT (U)
 #define OTRIG_COMMAND (V)
+#define OTRIG_QUAFF (W)
 
 /*
  * AREAprog definitions
