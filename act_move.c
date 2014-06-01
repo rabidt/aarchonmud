@@ -845,6 +845,9 @@ void do_open( CHAR_DATA *ch, char *argument )
 	  if ( check_item_trap_hit(ch, obj) )
 	      return;
 
+      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_OPEN) )
+          return;
+
 	  I_REMOVE_BIT(obj->value[1], CONT_CLOSED);
 	  act("You open $p.",ch,obj,NULL,TO_CHAR);
 	  act( "$n opens $p.", ch, obj, NULL, TO_ROOM );
@@ -1268,6 +1271,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	     key = find_key( ch, obj->value[2]);
 	  if ( !I_IS_SET(obj->value[1], CONT_LOCKED) )
 	  { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
+
+      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_UNLOCK) )
+        return;
 	  
 	  I_REMOVE_BIT(obj->value[1], CONT_LOCKED);
 	  act("You unlock $p.",ch,obj,NULL,TO_CHAR);
