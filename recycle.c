@@ -40,10 +40,7 @@ void free_quest(QUEST_DATA *quest);
 NOTE_DATA *new_note ()
 {
 	NOTE_DATA *note;
-	
 	note = lua_new_ud(&type_NOTE_DATA);
-
-	VALIDATE(note);   
 	return note;
 }
 
@@ -57,30 +54,16 @@ void free_note(NOTE_DATA *note)
 	free_string( note->to_list );
 	free_string( note->date    );
 	free_string( note->sender  );
-	INVALIDATE(note);
-
+    
     lua_free_ud( note );
 }
 
 	
-/* stuff for recycling ban structures */
-BAN_DATA *ban_free;
-
 BAN_DATA *new_ban(void)
 {
-	static BAN_DATA ban_zero;
 	BAN_DATA *ban;
 
-	if (ban_free == NULL)
-	ban = alloc_perm(sizeof(*ban));
-	else
-	{
-	ban = ban_free;
-	ban_free = ban_free->next;
-	}
-
-	*ban = ban_zero;
-	VALIDATE(ban);
+	ban = lua_new_ud( &type_BAN_DATA );
 	ban->name = &str_empty[0];
 	return ban;
 }
@@ -88,41 +71,22 @@ BAN_DATA *new_ban(void)
 void free_ban(BAN_DATA *ban)
 {
 	if (!IS_VALID(ban))
-	return;
+	    return;
 
 	free_string(ban->name);
-	INVALIDATE(ban);
 
-	ban->next = ban_free;
-	ban_free = ban;
+	ban->next = NULL;
+    lua_free_ud( ban );
 }
-
-/* stuff for recycling descriptors */
-DESCRIPTOR_DATA *descriptor_free;
 
 DESCRIPTOR_DATA *new_descriptor(void)
 {
-	static DESCRIPTOR_DATA d_zero;
 	DESCRIPTOR_DATA *d;
 
-	if (descriptor_free == NULL)
-	d = alloc_perm(sizeof(*d));
-	else
-	{
-	d = descriptor_free;
-	descriptor_free = descriptor_free->next;
-	}
-	
-	*d = d_zero;
-	VALIDATE(d);
+	d = lua_new_ud( &type_DESCRIPTOR_DATA );
 	
 	d->connected    = CON_GET_NAME;
-	d->showstr_head = NULL;
-	d->showstr_point = NULL;
 	d->outsize  = 2000;
-	d->pEdit        = NULL;         /* OLC */
-	d->pString  = NULL;         /* OLC */
-	d->editor   = 0;            /* OLC */
 	d->outbuf   = alloc_mem( d->outsize );
     d->pProtocol= ProtocolCreate();
 
@@ -145,28 +109,15 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 	free_string( d->host );
 	free_mem( d->outbuf, d->outsize );
     ProtocolDestroy( d->pProtocol );
-	INVALIDATE(d);
-	d->next = descriptor_free;
-	descriptor_free = d;
+	d->next = NULL;
+    lua_free_ud( d );
 }
-
-/* stuff for recycling gen_data */
-GEN_DATA *gen_data_free;
 
 GEN_DATA *new_gen_data(void)
 {
-	static GEN_DATA gen_zero;
 	GEN_DATA *gen;
 
-	if (gen_data_free == NULL)
-	gen = alloc_perm(sizeof(*gen));
-	else
-	{
-	gen = gen_data_free;
-	gen_data_free = gen_data_free->next;
-	}
-	*gen = gen_zero;
-	VALIDATE(gen);
+	gen = lua_new_ud( &type_GEN_DATA );
 	return gen;
 }
 
@@ -175,30 +126,18 @@ void free_gen_data(GEN_DATA *gen)
 	if (!IS_VALID(gen))
 	return;
 
-	INVALIDATE(gen);
-
-	gen->next = gen_data_free;
-	gen_data_free = gen;
+	gen->next = NULL;
+    lua_free_ud( gen );
 } 
-
-/* stuff for recycling extended descs */
-EXTRA_DESCR_DATA *extra_descr_free;
 
 EXTRA_DESCR_DATA *new_extra_descr(void)
 {
 	EXTRA_DESCR_DATA *ed;
 
-	if (extra_descr_free == NULL)
-	ed = alloc_perm(sizeof(*ed));
-	else
-	{
-	ed = extra_descr_free;
-	extra_descr_free = extra_descr_free->next;
-	}
-
-	ed->keyword = &str_empty[0];
+	ed = lua_new_ud( &type_EXTRA_DESCR_DATA );
+	
+    ed->keyword = &str_empty[0];
 	ed->description = &str_empty[0];
-	VALIDATE(ed);
 	return ed;
 }
 
@@ -209,22 +148,14 @@ void free_extra_descr(EXTRA_DESCR_DATA *ed)
 
 	free_string(ed->keyword);
 	free_string(ed->description);
-	INVALIDATE(ed);
-	
-	ed->next = extra_descr_free;
-	extra_descr_free = ed;
+	ed->next = NULL;
+    lua_free_ud( ed );
 }
 
 AFFECT_DATA *new_affect(void)
 {
 	AFFECT_DATA *af;
-
 	af = lua_new_ud( &type_AFFECT_DATA );
-
-	VALIDATE(af);
-	af->next = NULL;
-	af->detect_level = 0;
-	
 	return af;
 }
 
@@ -233,20 +164,14 @@ void free_affect(AFFECT_DATA *af)
 	if (!IS_VALID(af))
 	return;
 
-	INVALIDATE(af);
 	af->next = NULL; 
-
     lua_free_ud( af );
 }
 
 OBJ_DATA *new_obj(void)
 {
 	OBJ_DATA *obj;
-
 	obj = lua_new_ud( &type_OBJ_DATA );
-	VALIDATE(obj);
-    obj->must_extract=FALSE;
-
 	return obj;
 }
 
@@ -288,8 +213,6 @@ void free_obj(OBJ_DATA *obj)
         free_luaval(luaval);
     }
 
-	INVALIDATE(obj);
-
     obj->next=NULL;
     lua_free_ud( obj );
 }
@@ -301,8 +224,6 @@ CHAR_DATA *new_char (void)
 
 	ch = lua_new_ud( &type_CHAR_DATA ); 
 	
-    VALIDATE(ch);
-
 	ch->name                    = &str_empty[0];
 	ch->short_descr             = &str_empty[0];
 	ch->long_descr              = &str_empty[0];
@@ -395,7 +316,6 @@ void free_char (CHAR_DATA *ch)
 	    free_pcdata(ch->pcdata);
 
 	ch->next = NULL; 
-	INVALIDATE(ch);
 
     lua_free_ud( ch );
 	return;
@@ -421,38 +341,10 @@ PC_DATA *new_pcdata(void)
         pcdata->history_stats[i] = 0;
     }
     
-//    pcdata->buffer = new_buf();
-    pcdata->pkill_count = 0;
-    pcdata->pkill_deaths = 0;
-    pcdata->pkpoints = 0;
-    pcdata->remorts = 0;
-    pcdata->authed_by = NULL;
-    
-    pcdata->armageddon_won            = 0;
-    pcdata->armageddon_lost           = 0;
-    pcdata->clan_won                = 0;
-    pcdata->clan_lost               = 0;
-    pcdata->race_won                = 0;
-    pcdata->race_lost               = 0;
-    pcdata->class_won               = 0;
-    pcdata->class_lost              = 0;
-    pcdata->total_wars              = 0;
-    pcdata->war_kills               = 0;
-    pcdata->warpoints               = 0;
-    pcdata->mob_kills               = 0;
-    pcdata->mob_deaths              = 0;
-    pcdata->quest_failed            = 0;
-    pcdata->quest_success           = 0;
-    pcdata->quest_hard_success      = 0;
-    pcdata->quest_hard_failed       = 0;
-    pcdata->gender_kills            = 0;
-    pcdata->gender_lost             = 0;
-    pcdata->gender_won              = 0;
     pcdata->gtell_history	    = pers_history_new();
     pcdata->tell_history	    = pers_history_new();
     pcdata->clan_history	    = pers_history_new();
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
-    VALIDATE(pcdata);
 
     return pcdata;
 }
@@ -526,32 +418,15 @@ void free_pcdata(PC_DATA *pcdata)
         free_crime(crime);
     }
 
-    INVALIDATE(pcdata);
-    pcdata->next = NULL;
     lua_free_ud( pcdata );
     
     return;
 }
 
-/* stuff for recycling quests */
-QUEST_DATA *quest_free;
-
 QUEST_DATA *new_quest(void)
 {
-    static QUEST_DATA quest_zero;
     QUEST_DATA *quest;
-    
-    if (quest_free == NULL)
-	quest = alloc_perm(sizeof(*quest));
-    else
-    {
-	quest = quest_free;
-	quest_free = quest_free->next;
-    }
-    
-    *quest = quest_zero;
-    
-    VALIDATE(quest);
+	quest=lua_new_ud( &type_QUEST_DATA ); 
     return quest;
 }
 
@@ -560,30 +435,15 @@ void free_quest(QUEST_DATA *quest)
     if (!IS_VALID(quest))
 	return;
     
-    INVALIDATE(quest);
-    quest->next = quest_free;
-    quest_free = quest;
+    quest->next = NULL;
+    lua_free_ud( quest );
 }
-
-/* stuff for recycling portals */
-PORTAL_DATA *portal_free;
 
 PORTAL_DATA *new_portal( void )
 {
     PORTAL_DATA *portal;
-    
-    if (portal_free == NULL)
-	portal = alloc_perm(sizeof(*portal));
-    else
-    {
-	portal = portal_free;
-	portal_free = portal_free->next;
-    }
-    
-    portal->vnum = 0;
+	portal = lua_new_ud( &type_PORTAL_DATA );
     portal->name = &str_empty[0];
-    
-    VALIDATE(portal);
     return portal;
 }
 
@@ -594,9 +454,8 @@ void free_portal( PORTAL_DATA *portal )
     
     free_string( portal->name );
 
-    INVALIDATE(portal);
-    portal->next = portal_free;
-    portal_free = portal;
+    portal->next = NULL;
+    lua_free_ud( portal );
 }
 
 /* stuff for setting ids */
@@ -618,30 +477,10 @@ long get_mob_id(void)
 	return last_mob_id;
 }
 
-MEM_DATA *mem_data_free;
-
-/* procedures and constants needed for buffering */
-
-BUFFER *buf_free;
-
 MEM_DATA *new_mem_data(void)
 {
 	MEM_DATA *memory;
-  
-	if (mem_data_free == NULL)
-	memory = alloc_mem(sizeof(*memory));
-	else
-	{
-	memory = mem_data_free;
-	mem_data_free = mem_data_free->next;
-	}
-
-	memory->next = NULL;
-	memory->id = 0;
-	memory->reaction = 0;
-	memory->when = 0;
-	VALIDATE(memory);
-
+	memory = lua_new_ud( &type_MEM_DATA );
 	return memory;
 }
 
@@ -650,9 +489,8 @@ void free_mem_data(MEM_DATA *memory)
 	if (!IS_VALID(memory))
 	return;
 
-	memory->next = mem_data_free;
-	mem_data_free = memory;
-	INVALIDATE(memory);
+	memory->next = NULL;
+    lua_free_ud( memory );
 }
 
 
@@ -685,13 +523,7 @@ BUFFER *new_buf()
 {
 	BUFFER *buffer;
 
-	if (buf_free == NULL) 
-	buffer = alloc_perm(sizeof(*buffer));
-	else
-	{
-	buffer = buf_free;
-	buf_free = buf_free->next;
-	}
+	buffer = lua_new_ud( &type_BUFFER );
 
 	buffer->next    = NULL;
 	buffer->state   = BUFFER_SAFE;
@@ -699,7 +531,6 @@ BUFFER *new_buf()
 
 	buffer->string  = alloc_mem(buffer->size);
 	buffer->string[0]   = '\0';
-	VALIDATE(buffer);
 
 	return buffer;
 }
@@ -708,13 +539,7 @@ BUFFER *new_buf_size(int size)
 {
 	BUFFER *buffer;
  
-	if (buf_free == NULL)
-		buffer = alloc_perm(sizeof(*buffer));
-	else
-	{
-		buffer = buf_free;
-		buf_free = buf_free->next;
-	}
+	buffer = lua_new_ud( &type_BUFFER ); 
  
 	buffer->next        = NULL;
 	buffer->state       = BUFFER_SAFE;
@@ -726,8 +551,6 @@ BUFFER *new_buf_size(int size)
 	}
 	buffer->string      = alloc_mem(buffer->size);
 	buffer->string[0]   = '\0';
-	VALIDATE(buffer);
- 
 	return buffer;
 }
 
@@ -741,10 +564,9 @@ void free_buf(BUFFER *buffer)
 	buffer->string = NULL;
 	buffer->size   = 0;
 	buffer->state  = BUFFER_FREED;
-	INVALIDATE(buffer);
 
-	buffer->next  = buf_free;
-	buf_free      = buffer;
+	buffer->next  = NULL;
+    lua_free_ud( buffer );
 }
 
 
@@ -804,13 +626,7 @@ char *buf_string(BUFFER *buffer)
 PROG_LIST *new_mprog(void)
 {
    PROG_LIST *mp;
-
    mp = lua_new_ud( &type_MPROG_LIST );
-
-   mp->vnum             = 0;
-   mp->trig_type        = 0;
-   mp->script           = NULL;
-   VALIDATE(mp);
    return mp;
 }
 
@@ -819,7 +635,6 @@ void free_mprog(PROG_LIST *mp)
    if (!IS_VALID(mp))
 	  return;
 
-   INVALIDATE(mp);
    mp->next = NULL;
    lua_free_ud( mp );
 }
@@ -827,13 +642,7 @@ void free_mprog(PROG_LIST *mp)
 PROG_LIST *new_oprog(void)
 {
    PROG_LIST *op;
-
    op = lua_new_ud( &type_OPROG_LIST ); 
-
-   op->vnum             = 0;
-   op->trig_type        = 0;
-   op->script           = NULL;
-   VALIDATE(op);
    return op;
 }
 
@@ -842,7 +651,6 @@ void free_oprog(PROG_LIST *op)
    if (!IS_VALID(op))
       return;
 
-   INVALIDATE(op);
    op->next = NULL;
    lua_free_ud( op );
 }
@@ -850,13 +658,7 @@ void free_oprog(PROG_LIST *op)
 PROG_LIST *new_aprog(void)
 {
    PROG_LIST *ap;
-
    ap = lua_new_ud( &type_APROG_LIST );
-
-   ap->vnum             = 0;
-   ap->trig_type        = 0;
-   ap->script           = NULL;
-   VALIDATE(ap);
    return ap;
 }
 
@@ -865,7 +667,6 @@ void free_aprog(PROG_LIST *ap)
    if (!IS_VALID(ap))
       return;
 
-   INVALIDATE(ap);
    ap->next = NULL;
    lua_free_ud( ap );
 }
@@ -873,13 +674,7 @@ void free_aprog(PROG_LIST *ap)
 PROG_LIST *new_rprog(void)
 {
     PROG_LIST *rp;
-    
     rp = lua_new_ud( &type_RPROG_LIST );
-
-    rp->vnum        = 0;
-    rp->trig_type   = 0;
-    rp->script      = NULL;
-    VALIDATE(rp);
     return rp;
 }
 
@@ -888,7 +683,6 @@ void free_rprog(PROG_LIST *rp)
     if (!IS_VALID(rp))
         return;
 
-    INVALIDATE(rp);
     rp->next = NULL;
     lua_free_ud( rp );
 }
@@ -933,24 +727,10 @@ HELP_DATA * new_help ( void )
    return help;
 }
 
-	
-SORT_TABLE *sort_free;
-
 SORT_TABLE *new_sort(void)
 {
-   static SORT_TABLE *sort;
-
-   if (sort_free == NULL) 
-	  sort = alloc_perm(sizeof(*sort));
-   else
-   {
-	  sort = sort_free;
-	  sort_free = sort_free->next;
-   }
-   
-   VALIDATE(sort);
-   
-   return sort;
+    SORT_TABLE *sort = lua_new_ud( &type_SORT_TABLE );
+    return sort;
 }
 
 void free_sort(SORT_TABLE *sort)
@@ -958,30 +738,15 @@ void free_sort(SORT_TABLE *sort)
 	if (!IS_VALID(sort))
 	return;
 
-	INVALIDATE(sort);
-
-	sort->next  = sort_free;
-	sort_free      = sort;
+	sort->next  = NULL;
+    lua_free_ud( sort );
 }
-
-/* stuff for recycling wizlist structures */
-WIZ_DATA *wiz_free;
 
 WIZ_DATA *new_wiz(void)
 {
-    static WIZ_DATA wiz_zero;
     WIZ_DATA *wiz;
     
-    if (wiz_free == NULL)
-        wiz = alloc_perm(sizeof(*wiz));
-    else
-    {
-        wiz = wiz_free;
-        wiz_free = wiz_free->next;
-    }
-    
-    *wiz = wiz_zero;
-    VALIDATE(wiz);
+    wiz = lua_new_ud( &type_WIZ_DATA );
     wiz->name = &str_empty[0];
     return wiz;
 }
@@ -992,38 +757,14 @@ void free_wiz(WIZ_DATA *wiz)
         return;
     
     free_string(wiz->name);
-    INVALIDATE(wiz);
-    
-    wiz->next = wiz_free;
-    wiz_free = wiz;
+    wiz->next = NULL;
+    lua_free_ud( wiz );
 }
-
-
-/* Recycle crime list */
-CRIME_DATA *crime_free;
 
 CRIME_DATA *new_crime(void)
 {
-    static CRIME_DATA crime_zero;
     CRIME_DATA *crime;
-    
-    if (crime_free == NULL)
-        crime = alloc_perm(sizeof(*crime));
-    else
-    {
-        crime = crime_free;
-        crime_free = crime_free->next;
-    }
-    
-    *crime = crime_zero;
-
-    VALIDATE(crime);
-
-    crime->name      = NULL;
-    crime->desc      = NULL;
-    crime->imm_name  = NULL;
-    crime->timestamp = 0;
-    crime->forgive   = 0;
+    crime = lua_new_ud( &type_CRIME_DATA );
     return crime;
 }
 
@@ -1035,9 +776,8 @@ void free_crime(CRIME_DATA *crime)
     free_string(crime->name);
     free_string(crime->desc);
     free_string(crime->imm_name);
-    INVALIDATE(crime);
     
-    crime->next = crime_free;
-    crime_free = crime;
+    crime->next = NULL;
+    lua_free_ud( crime );
 }
 

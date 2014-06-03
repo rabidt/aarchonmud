@@ -1052,7 +1052,7 @@ void *lua_new_ud( TYPE_DATA *type )
 
     GET_TYPE( ud ) = type;
     type->count++;
-    ((TYPE_BASE *)ud)->valid=TRUE;
+    VALIDATE( ud );
     return ud;
 }
 
@@ -1088,7 +1088,7 @@ void lua_free_ud( void *ud )
     lua_settable( g_mud_LS, -3 );
     lua_pop( g_mud_LS, 2 );
     type->count--;
-    ((TYPE_BASE *)ud)->valid=FALSE;
+    INVALIDATE( ud );
 }
 
 void lua_cleanup_uds()

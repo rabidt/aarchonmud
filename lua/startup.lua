@@ -33,7 +33,18 @@ UD_TABLES=
     MPROG_LIST={},
     OPROG_LIST={},
     RPROG_LIST={},
-    APROG_LIST={}
+    APROG_LIST={},
+    DESCRIPTOR_DATA={},
+    GEN_DATA={},
+    EXTRA_DESCR_DATA={},
+    QUEST_DATA={},
+    PORTAL_DATA={},
+    MEM_DATA={},
+    BUFFER={},
+    SORT_TABLE={},
+    WIZ_DATA={},
+    CRIME_DATA={},
+    BAN_DATA={}
 }
 
 

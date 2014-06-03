@@ -138,6 +138,8 @@ void * lua_check_type( LUA_OBJ_TYPE *tp,
                 index, tp->type_name );
     }
     void *game_object=lua_touserdata(LS, index );
+    if ( !((TYPE_BASE *)game_object)->valid )
+        luaL_error( LS, "Argument %d is an invalid %s", index, type->type_name );
 
     return game_object;
 }
