@@ -4449,8 +4449,8 @@ void do_dump( CHAR_DATA *ch, char *argument )
     count = 0; count2 = 0;
     for (d = descriptor_list; d != NULL; d = d->next)
         count++;
-    for (d= descriptor_free; d != NULL; d = d->next)
-        count2++;
+    //for (d= descriptor_free; d != NULL; d = d->next)
+        //count2++;
     
     fprintf(fp, "Descs	%4d (%8d bytes), %2d free (%d bytes)\n",
         count, count * (sizeof(*d)), count2, count2 * (sizeof(*d)));
@@ -5700,6 +5700,18 @@ decl( RESET_DATA, &RESET_type );
 decl( EXIT_DATA, &EXIT_type );
 decl( SHOP_DATA, &SHOP_type );
 decl( AFFECT_DATA, &AFFECT_type );
+decl( BAN_DATA, NULL );
+decl( DESCRIPTOR_DATA, NULL );
+decl( GEN_DATA, NULL ); 
+decl( EXTRA_DESCR_DATA, NULL );
+decl( QUEST_DATA, NULL );
+decl( PORTAL_DATA, NULL );
+decl( MEM_DATA, NULL );
+decl( BUFFER, NULL );
+decl( SORT_TABLE, NULL );
+decl( WIZ_DATA, NULL );
+decl( CRIME_DATA, NULL );
+
 decl( PROG_CODE, &PROG_type );
 TYPE_DATA type_MPROG_LIST =
 {
@@ -5728,3 +5740,5 @@ TYPE_DATA type_APROG_LIST =
     .size = sizeof(PROG_LIST),
     .lua_type = &ATRIG_type
 };
+
+#undef decl

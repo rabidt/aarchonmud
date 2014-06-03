@@ -174,6 +174,17 @@ extern TYPE_DATA type_MPROG_LIST;
 extern TYPE_DATA type_OPROG_LIST;
 extern TYPE_DATA type_APROG_LIST;
 extern TYPE_DATA type_RPROG_LIST;
+extern TYPE_DATA type_DESCRIPTOR_DATA;
+extern TYPE_DATA type_GEN_DATA;
+extern TYPE_DATA type_EXTRA_DESCR_DATA;
+extern TYPE_DATA type_QUEST_DATA;
+extern TYPE_DATA type_PORTAL_DATA;
+extern TYPE_DATA type_MEM_DATA;
+extern TYPE_DATA type_BUFFER;
+extern TYPE_DATA type_SORT_TABLE;
+extern TYPE_DATA type_WIZ_DATA;
+extern TYPE_DATA type_CRIME_DATA;
+extern TYPE_DATA type_BAN_DATA;
 
 #define GET_TYPE( ptr ) ( ( (TYPE_BASE *)( ptr ) )->type)
 
@@ -447,8 +458,10 @@ typedef struct exploration_data
 
 struct  ban_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	BAN_DATA *  next;
-	bool    valid;
 	tflag   ban_flags;
 	sh_int  level;
 	char *  name;
@@ -456,8 +469,10 @@ struct  ban_data
 
 struct	wiz_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
     WIZ_DATA *	next;
-    bool	valid;
     sh_int	level;
     char *	name;
 };
@@ -471,8 +486,10 @@ struct struckdrunk
 
 struct buf_type
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	BUFFER *    next;
-	bool        valid;
 	sh_int      state;  /* error state of the buffer */
 	sh_int      size;   /* size in k */
 	char *      string; /* buffer's string */
@@ -494,11 +511,13 @@ struct buffer_type
 
 struct sort_table
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	SORT_TABLE *    prev;
 	SORT_TABLE *    next;
 	CHAR_DATA  *    owner;
 	int         score;
-	bool            valid;
 };
 
 /* ring-buffer for methods returning pointers to local static strings
@@ -678,13 +697,15 @@ struct disabled_data
 /* List of crime categories. */
 struct crime_data
 {
-   CRIME_DATA *next;
-   char   *name;     /* Keyword */
-   char   *desc;     /* Description of crime (used primarily for crime type list) */
-   char   *imm_name; /* Immortal that convicted or forgave the player */
-   time_t timestamp; /* Date/time player convicted or forgiven */
-   bool   forgive;   /* 0 = conviction, 1 = forgiven.  Tracked for audit purposes. */
-   bool   valid;
+    /* must be first entry */
+    TYPE_BASE       _base;
+
+    CRIME_DATA *next;
+    char   *name;     /* Keyword */
+    char   *desc;     /* Description of crime (used primarily for crime type list) */
+    char   *imm_name; /* Immortal that convicted or forgave the player */
+    time_t timestamp; /* Date/time player convicted or forgiven */
+    bool   forgive;   /* 0 = conviction, 1 = forgiven.  Tracked for audit purposes. */
 };
 
 
@@ -782,11 +803,13 @@ struct penalty_data
  */
 struct  descriptor_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	DESCRIPTOR_DATA *   next;
 	DESCRIPTOR_DATA *   snoop_by;
 	CHAR_DATA *     character;
 	CHAR_DATA *     original;
-	bool        valid;
 	char *      host;
 	sh_int      descriptor;
 	sh_int      connected;
@@ -1002,7 +1025,6 @@ struct  note_data
     TYPE_BASE       _base;
 
 	NOTE_DATA * next;
-	bool    valid;
 	sh_int  type;
 	char *  sender;
 	char *  date;
@@ -1057,7 +1079,6 @@ struct  affect_data
     TYPE_BASE       _base;
 
     AFFECT_DATA *   next;
-    bool        valid;
     sh_int      where;
     sh_int      type;
     sh_int      level;
@@ -2482,8 +2503,10 @@ struct  mob_index_data
 /* memory for mobs */
 struct mem_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
     MEM_DATA    *next;
-    bool    valid;
     int     id;     
     int     reaction;
     time_t  when;
@@ -2520,7 +2543,6 @@ struct  char_data
 	AREA_DATA *     zone;
 	PC_DATA *       pcdata;
 	GEN_DATA *      gen_data;
-	bool        valid;
 	char *      name;
 	long        id;
 	sh_int      version;
@@ -2627,7 +2649,6 @@ struct  pc_data
     PC_DATA *       next;
 	bool	new_tells; /* whether there are unread tells */
     SORT_TABLE *    bounty_sort;
-    bool        valid;
     char *      pwd;
     char *      bamfin;
     char *      bamfout;
@@ -2806,10 +2827,12 @@ struct  pc_data
 /* Data for special quests */
 struct quest_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
     QUEST_DATA *next;
     int id;
     int status;
-    bool valid;
     int timer; /* Used for repeatable Mini Quests -Astark 10-9-12 */
     time_t limit;
 };
@@ -2817,17 +2840,21 @@ struct quest_data
 /* Data for portal locations */
 struct portal_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
     PORTAL_DATA *next;
     int vnum;
     char *name;
-    bool valid;
 };
 
 /* Data for generating characters -- only used during generation */
 struct gen_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	GEN_DATA    *next;
-	bool    valid;
 	bool    skill_chosen[MAX_SKILL];
 	bool    group_chosen[MAX_GROUP];
 	int     unused_die[MAX_EXT_STATS];
@@ -2856,8 +2883,10 @@ struct  liq_type
  */
 struct  extra_descr_data
 {
+    /* must be first entry */
+    TYPE_BASE       _base;
+
 	EXTRA_DESCR_DATA *next; /* Next in list                     */
-	bool valid;
 	char *keyword;              /* Keyword in look/examine          */
 	char *description;          /* What to see                      */
 };
@@ -2920,7 +2949,6 @@ struct  obj_data
 	AFFECT_DATA *   affected;
 	OBJ_INDEX_DATA *    pIndexData;
 	ROOM_INDEX_DATA *   in_room;
-	bool        valid;
 	char *          owner;
 	char *      name;
 	char *      short_descr;
@@ -3273,7 +3301,6 @@ struct prog_list
 	PROG_LIST *    next;
     int vnum;
     PROG_CODE *    script;
-	bool        valid;
 };
 
 struct prog_code
@@ -3821,9 +3848,13 @@ struct achievement_entry
 /*
  * Utility macros.
  */
-#define IS_VALID(data)      ((data) != NULL && (data)->valid)
-#define VALIDATE(data)      ((data)->valid = TRUE)
-#define INVALIDATE(data)    ((data)->valid = FALSE)
+//#define IS_VALID(data)      ((data) != NULL && (data)->valid)
+#define IS_VALID( data )        ( ((TYPE_BASE *)data)->valid )
+//#define VALIDATE(data)      ((data)->valid = TRUE)
+#define VALIDATE( data )        ( ((TYPE_BASE *)data)->valid = TRUE )
+//#define INVALIDATE(data)    ((data)->valid = FALSE)
+#define INVALIDATE( data )      ( ((TYPE_BASE *)data)->valid = FALSE )
+
 #define UMIN(a, b)      ((a) < (b) ? (a) : (b))
 #define UMAX(a, b)      ((a) > (b) ? (a) : (b))
 #define URANGE(a, b, c)     ((b) < (a) ? (a) : ((b) > (c) ? (c) : (b)))
