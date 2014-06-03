@@ -77,7 +77,7 @@ void clone_area( AREA_DATA *pArea )
     }
 
     /* create clone */
-    clone = lua_new_ud( &type_AREA_DATA );
+    clone = lua_new_ud( type_AREA_DATA );
     clone->next = NULL;
     clone->helps = NULL;
     clone->name = str_dup( pArea->name );

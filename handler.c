@@ -996,7 +996,7 @@ void affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
     AFFECT_DATA *paf_new = new_affect();
     *paf_new = *paf;
-    GET_TYPE(paf_new)=&type_AFFECT_DATA;
+    GET_TYPE(paf_new)=type_AFFECT_DATA;
 
     ch->affected = affect_insert(ch->affected, paf_new);
 
@@ -1018,7 +1018,7 @@ void affect_to_obj_tagsafe(OBJ_DATA *obj, AFFECT_DATA *paf)
     
     paf_new = new_affect();
     *paf_new        = *paf;
-    GET_TYPE(paf_new)=&type_AFFECT_DATA;
+    GET_TYPE(paf_new)=type_AFFECT_DATA;
 
 
     obj->affected   = affect_insert(obj->affected, paf_new);

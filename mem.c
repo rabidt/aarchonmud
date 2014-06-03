@@ -49,7 +49,7 @@ RESET_DATA *new_reset_data( void )
 {
     RESET_DATA *pReset;
 
-    pReset          =   lua_new_ud( &type_RESET_DATA );
+    pReset          =   lua_new_ud( type_RESET_DATA );
     top_reset++;
 
     pReset->next        =   NULL;
@@ -79,7 +79,7 @@ AREA_DATA *new_area( void )
     char buf[MAX_INPUT_LENGTH];
     int i;
 
-    pArea   =   lua_new_ud( &type_AREA_DATA );
+    pArea   =   lua_new_ud( type_AREA_DATA );
 
     pArea->next             =   NULL;
     pArea->name             =   str_dup( "New area" );
@@ -126,7 +126,7 @@ EXIT_DATA *new_exit( void )
 {
     EXIT_DATA *pExit;
 
-    pExit           =   lua_new_ud( &type_EXIT_DATA );
+    pExit           =   lua_new_ud( type_EXIT_DATA );
     top_exit++;
 
     pExit->u1.to_room   =   NULL;                  /* ROM OLC */
@@ -159,7 +159,7 @@ ROOM_INDEX_DATA *new_room_index( void )
     ROOM_INDEX_DATA *pRoom;
     int door;
 
-    pRoom           =   lua_new_ud( &type_ROOM_INDEX_DATA );
+    pRoom           =   lua_new_ud( type_ROOM_INDEX_DATA );
     top_room++;
 
     pRoom->next             =   NULL;
@@ -229,7 +229,7 @@ SHOP_DATA *new_shop( void )
 
     if ( !shop_free )
     {
-        pShop           =   lua_new_ud( &type_SHOP_DATA );
+        pShop           =   lua_new_ud( type_SHOP_DATA );
         top_shop++;
     }
     else
@@ -266,7 +266,7 @@ OBJ_INDEX_DATA *new_obj_index( void )
     OBJ_INDEX_DATA *pObj;
     int value;
 
-    pObj           =   lua_new_ud( &type_OBJ_INDEX_DATA );
+    pObj           =   lua_new_ud( type_OBJ_INDEX_DATA );
     top_obj_index++;
 
     pObj->next          =   NULL;
@@ -328,7 +328,7 @@ MOB_INDEX_DATA *new_mob_index( void )
 {
     MOB_INDEX_DATA *pMob;
 
-    pMob           = lua_new_ud( &type_MOB_INDEX_DATA ); 
+    pMob           = lua_new_ud( type_MOB_INDEX_DATA ); 
     top_mob_index++;
 
     pMob->next          =   NULL;
@@ -390,7 +390,7 @@ PROG_CODE *new_mpcode(void)
 {
      PROG_CODE *NewCode;
 
-     NewCode = lua_new_ud( &type_PROG_CODE );
+     NewCode = lua_new_ud( type_PROG_CODE );
      top_mprog_index++;
 
      NewCode->security = 0;
@@ -414,7 +414,7 @@ PROG_CODE *new_opcode(void)
 {
      PROG_CODE *NewCode;
 
-     NewCode = lua_new_ud( &type_PROG_CODE );
+     NewCode = lua_new_ud( type_PROG_CODE );
      top_oprog_index++;
 
      NewCode->vnum    = 0;
@@ -438,7 +438,7 @@ PROG_CODE *new_apcode(void)
 {
      PROG_CODE *NewCode;
 
-     NewCode = lua_new_ud( &type_PROG_CODE ); 
+     NewCode = lua_new_ud( type_PROG_CODE ); 
      top_aprog_index++;
 
      NewCode->vnum    = 0;
@@ -462,7 +462,7 @@ PROG_CODE *new_rpcode(void)
 {
     PROG_CODE *NewCode;
     
-    NewCode = lua_new_ud( &type_PROG_CODE ); 
+    NewCode = lua_new_ud( type_PROG_CODE ); 
     top_rprog_index++;
 
     NewCode->vnum = 0;
