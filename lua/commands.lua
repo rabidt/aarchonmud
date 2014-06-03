@@ -1074,9 +1074,15 @@ function do_mudconfig( ch, argument )
     end
 
     if nargs==0 then
-        local rtn=mudconfig()
-        for k,v in pairs(rtn) do
-            sendtochar(ch, "%-20s %s\n\r", k, tostring(v))
+        local sorted={}
+        for k,v in pairs(mudconfig()) do
+            table.insert(sorted, { key=k, value=v } )
+        end
+
+        table.sort( sorted, function(a,b) return a.key<b.key end )
+
+        for _,v in ipairs(sorted) do
+            sendtochar(ch, "%-20s %s\n\r", v.key, tostring(v.value))
         end
         return
     end
