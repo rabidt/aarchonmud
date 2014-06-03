@@ -3,63 +3,30 @@
 #include "merc.h"
 #include "mudconfig.h"
 
+bool cfg_show_exp_mult=FALSE;
 bool cfg_enable_exp_mult=FALSE;
-
 float cfg_exp_mult;
 const float cfg_exp_mult_default=1;
+
+bool cfg_show_qp_mult=FALSE;
+bool cfg_enable_qp_mult=FALSE;
+float cfg_qp_mult;
+const float cfg_qp_mult_default=1;
 
 char *cfg_word_of_day;
 const char *cfg_word_of_day_default="bananahammock";
 
 CFG_DATA_ENTRY mudconfig_table[] =
 {
-    { "enable_exp_mult", CFG_BOOL, &cfg_enable_exp_mult, NULL }, 
-    { "exp_mult", CFG_FLOAT, &cfg_exp_mult, &cfg_exp_mult_default },
-    { "word_of_day", CFG_STRING, &cfg_word_of_day, &cfg_word_of_day_default},
+    { "enable_exp_mult",    CFG_BOOL,   &cfg_enable_exp_mult,   NULL }, 
+    { "show_exp_mult",      CFG_BOOL,   &cfg_show_exp_mult,     NULL },
+    { "exp_mult",           CFG_FLOAT,  &cfg_exp_mult,          &cfg_exp_mult_default },
+    { "show_qp_mult",       CFG_BOOL,   &cfg_show_qp_mult,      NULL },
+    { "enable_qp_mult",     CFG_BOOL,   &cfg_enable_qp_mult,    NULL },
+    { "qp_mult",            CFG_FLOAT,  &cfg_qp_mult,           &cfg_qp_mult_default },
+    { "word_of_day",        CFG_STRING, &cfg_word_of_day,       &cfg_word_of_day_default},
     { NULL, NULL, NULL, NULL }
 };
-/*
-void do_mudconfig( CHAR_DATA *ch, char *argument)
-{
-    struct config_data_entry *en;
-    int i;
-    for ( i=0 ; mudconfig_table[i].name ; i++ )
-    {
-        en=&mudconfig_table[i];
-
-        char fmt;
-        switch(en->type)
-        {
-            case CFG_FLOAT:
-            {
-                ptc( ch, "%-50s %f\n\r", en->name,  *((float *)(en->value)));
-                break;
-            }
-            case CFG_INT:
-            {
-                ptc( ch, "%-50s %d\n\r", en->name, *((int *)(en->value)));
-                break;
-            }
-            case CFG_STRING:
-            {
-                ptc( ch, "%-50s %s\n\r", en->name, *((char **)(en->value)));
-                break;
-            }
-            case CFG_BOOL:
-            {
-                ptc( ch, "%-50s %s\n\r", en->name, *((bool *)(en->value)) ? "TRUE":"FALSE");
-                break;
-            }
-            default:
-            {
-                bugf("Bad type in do_mudconfig.");
-                return;
-            }
-        }
-
-    }
-}
-*/
 void mudconfig_init()
 {
     /* set defaults, especially important for strings, others can

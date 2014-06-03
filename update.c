@@ -169,7 +169,11 @@ void gain_exp( CHAR_DATA *ch, int gain_base)
     if ( cfg_enable_exp_mult && gain_base > 0)
     {
         gain=(int)(gain_base * cfg_exp_mult);
-        ptc(ch, "There's currently an exp bonus of %d%%!\n\r", (int)((cfg_exp_mult*100)-100));
+        if ( cfg_show_exp_mult  )
+        {
+            ptc(ch, "There's currently an exp bonus of %d%%!\n\r", 
+                    (int)((cfg_exp_mult*100)-100));
+        }
     }
     else
     {
