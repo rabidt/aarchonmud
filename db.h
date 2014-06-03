@@ -35,6 +35,13 @@ extern int  		top_affect;
 extern int		top_ed; 
 extern AREA_DATA 	* area_first;
 
+struct types_table_entry
+{
+    struct type_data **ptr;
+    struct type_data type;
+};
+extern struct types_table_entry aarchon_types[];
+
 /* Values from Social-edit.c */
 extern int	maxSocial; /* Max number of socials */
 

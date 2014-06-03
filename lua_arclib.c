@@ -8560,7 +8560,7 @@ void type_init( lua_State *LS)
     int i;
     LUA_OBJ_TYPE *tp;
 
-    for ( i=0 ; type_list[i] ; i=i++ )
+    for ( i=0 ; type_list[i] ; i++ )
     {
         register_type( type_list[i], LS );
     }

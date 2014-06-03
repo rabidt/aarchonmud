@@ -7,7 +7,7 @@
 #include "lua_arclib.h"
 #include "interp.h"
 #include "mudconfig.h"
-
+#include "db.h"
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 static bool s_TrustedCode=FALSE;
@@ -659,6 +659,29 @@ static int RegisterLuaRoutines (lua_State *LS)
 
 }  /* end of RegisterLuaRoutines */
 
+void arc_type_init( lua_State *LS )
+{
+    lua_newtable( LS );
+    lua_pushvalue( LS, -1 );
+    lua_setglobal( LS, "UD_TABLES" );
+    
+    int i;
+    for ( i=0 ; aarchon_types[i].ptr ; i++ )
+    {
+        lua_newtable( LS );
+        lua_setfield( LS, -2, aarchon_types[i].type.name );
+    }
+
+    lua_newtable( LS );
+    lua_setfield( LS, -2, "str_dup" );
+
+    lua_pop( LS, 1 );
+
+    lua_newtable( LS );
+    lua_setglobal( LS, "cleanuptbl" );
+}
+
+
 void open_lua ()
 {
     lua_State *LS = luaL_newstate ();   /* opens Lua */
@@ -677,6 +700,9 @@ void open_lua ()
     lua_call(LS, 0, 0);
 
     lua_sethook(LS, infinite_loop_check_hook, LUA_MASKCOUNT, LUA_LOOP_CHECK_INCREMENT);
+
+    arc_type_init(LS);
+
     /* run initialiation script */
     if (luaL_loadfile (LS, LUA_STARTUP) ||
             CallLuaWithTraceBack (LS, 0, 0))
@@ -1066,6 +1092,7 @@ void lua_free_string( const char *str )
     lua_pop( g_mud_LS, 2 );
 }
 
+#define USE_CLEANUP_TABLE
 void lua_free_ud( void *ud )
 {
     TYPE_DATA *type=GET_TYPE(ud);
@@ -1073,7 +1100,7 @@ void lua_free_ud( void *ud )
     lua_getglobal( g_mud_LS, "UD_TABLES");
     lua_getfield( g_mud_LS, -1, type->name );
 
-
+#ifdef USE_CLEANUP_TABLE
     /* thrown into the cleanup table */
     lua_getglobal( g_mud_LS, "cleanuptbl" );
     int ind=1 + lua_objlen( g_mud_LS, -1 );
@@ -1081,7 +1108,7 @@ void lua_free_ud( void *ud )
     lua_gettable( g_mud_LS, -3);
     lua_rawseti( g_mud_LS, -2, ind );
     lua_pop( g_mud_LS, 1 );
-
+#endif
 
     lua_pushlightuserdata( g_mud_LS, ud );
     lua_pushnil( g_mud_LS );

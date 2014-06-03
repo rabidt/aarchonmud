@@ -560,6 +560,7 @@ void    load_crime_list args ( ( void ) );
 void    load_penalties args ( ( void ) );
 void    load_reserved   args( ( void ) );
 void    sort_reserved   args( ( RESERVED_DATA *pRes ) );
+void    aarchon_type_init();
 
 
 /*
@@ -580,6 +581,15 @@ void boot_db()
         top_string  = string_space;
         fBootDb     = TRUE;
     }
+
+    /*
+     * Init some type stuff.
+     */
+    aarchon_type_init();
+
+
+    log_string( "Lua init.");
+    open_lua();
     
     /*
     * Init random number generator.
@@ -684,9 +694,6 @@ void boot_db()
 
     log_string( "Counting stats" );
     count_stats();
-
-    log_string( "Lua init.");
-    open_lua();
 
     log_string( "Loading leaderboards" );
     load_lboards();
@@ -938,7 +945,7 @@ void load_area( FILE *fp )
 {
     AREA_DATA *pArea;
     
-    pArea               = lua_new_ud(&type_AREA_DATA);
+    pArea               = lua_new_ud(type_AREA_DATA);
     pArea->file_name    = fread_string(fp);
     
     flag_clear( pArea->area_flags );
@@ -1011,7 +1018,7 @@ void new_load_area( FILE *fp )
     char      *word;
     bool      fMatch;
     
-    pArea               = lua_new_ud( &type_AREA_DATA);
+    pArea               = lua_new_ud( type_AREA_DATA);
     pArea->age          = 15;
     pArea->nplayer      = 0;
     pArea->reset_time   = 15;
@@ -1044,7 +1051,7 @@ void new_load_area( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pAprog              = lua_new_ud( &type_APROG_LIST );
+                pAprog              = lua_new_ud( type_APROG_LIST );
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, aprog_flags )) == NO_FLAG )
                 {   
@@ -1487,7 +1494,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
              exit( 1 );
          }
          
-         pRoomIndex          = lua_new_ud( &type_ROOM_INDEX_DATA );
+         pRoomIndex          = lua_new_ud( type_ROOM_INDEX_DATA );
          pRoomIndex->owner       = str_dup("");
          pRoomIndex->people      = NULL;
          pRoomIndex->contents    = NULL;
@@ -1564,7 +1571,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
                      exit( 1 );
                  }
                  
-                 pexit           = lua_new_ud( &type_EXIT_DATA );
+                 pexit           = lua_new_ud( type_EXIT_DATA );
                  pexit->description  = fread_string( fp );
                  pexit->keyword      = fread_string( fp );
 
@@ -1634,7 +1641,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
                  char *word;
                  int trigger=0;
 
-                 pRprog = lua_new_ud( &type_RPROG_LIST );
+                 pRprog = lua_new_ud( type_RPROG_LIST );
                  word=fread_word( fp );
                  if ( ( trigger=flag_lookup( word, rprog_flags)) == NO_FLAG)
                  {
@@ -1688,7 +1695,7 @@ void load_shops( FILE *fp )
         if ( keeper == 0 )
             break;
         
-        pShop           = lua_new_ud( &type_SHOP_DATA );
+        pShop           = lua_new_ud( type_SHOP_DATA );
         pShop->keeper       = keeper;
 
         for ( iTrade = 0; iTrade < MAX_TRADE; iTrade++ )
@@ -1890,7 +1897,7 @@ void load_roomprogs( FILE *fp )
             exit( 1 );
         }
 
-        pRprog      = lua_new_ud( &type_PROG_CODE );
+        pRprog      = lua_new_ud( type_PROG_CODE );
         pRprog->vnum    = vnum;
 
         char *word;
@@ -1964,7 +1971,7 @@ void load_areaprogs( FILE *fp )
             exit( 1 );
         }
 
-        pAprog      = lua_new_ud( &type_PROG_CODE );
+        pAprog      = lua_new_ud( type_PROG_CODE );
         pAprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2047,7 +2054,7 @@ void load_objprogs( FILE *fp )
             exit( 1 );
         }
 
-        pOprog      = lua_new_ud( &type_PROG_CODE );
+        pOprog      = lua_new_ud( type_PROG_CODE );
         pOprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2129,7 +2136,7 @@ void load_mobprogs( FILE *fp )
             exit( 1 );
         }
         
-        pMprog      = lua_new_ud( &type_PROG_CODE );
+        pMprog      = lua_new_ud( type_PROG_CODE );
         pMprog->vnum    = vnum;
         pMprog->is_lua  = FALSE; /* new progs default to true but
                                     when loading we need to default to false */
@@ -4345,20 +4352,20 @@ void do_areas( CHAR_DATA *ch )
 void do_memory( CHAR_DATA *ch, char *argument )
 {
     //ptc( ch, "Affects   %5d\n\r", top_affect    ); 
-    ptc( ch, "Affects   %5d\n\r", type_count(&type_AFFECT_DATA) );
-    ptc( ch, "Areas     %5d\n\r", type_count(&type_AREA_DATA) ); 
+    ptc( ch, "Affects   %5d\n\r", type_count(type_AFFECT_DATA) );
+    ptc( ch, "Areas     %5d\n\r", type_count(type_AREA_DATA) ); 
     ptc( ch, "ExDes     %5d\n\r", top_ed        ); 
-    ptc( ch, "Exits     %5d\n\r", type_count(&type_EXIT_DATA) ); 
+    ptc( ch, "Exits     %5d\n\r", type_count(type_EXIT_DATA) ); 
     ptc( ch, "Helps     %5d\n\r", top_help      ); 
     ptc( ch, "Socials   %5d\n\r", maxSocial  ); 
-    ptc( ch, "Resets    %5d\n\r", type_count(&type_RESET_DATA) ); 
-    ptc( ch, "Rooms     %5d\n\r", type_count(&type_ROOM_INDEX_DATA) ); 
-    ptc( ch, "Shops     %5d\n\r", type_count(&type_SHOP_DATA) ); 
+    ptc( ch, "Resets    %5d\n\r", type_count(type_RESET_DATA) ); 
+    ptc( ch, "Rooms     %5d\n\r", type_count(type_ROOM_INDEX_DATA) ); 
+    ptc( ch, "Shops     %5d\n\r", type_count(type_SHOP_DATA) ); 
     ptc( ch, "\n\r");
-    ptc( ch, "Mobs      %5d\n\r", type_count(&type_MOB_INDEX_DATA) );
+    ptc( ch, "Mobs      %5d\n\r", type_count(type_MOB_INDEX_DATA) );
     ptc( ch, " (in use) %5d\n\r", mobile_count  );
-    ptc( ch, "Objs      %5d\n\r", type_count(&type_OBJ_INDEX_DATA) );
-    ptc( ch, " (in use) %5d\n\r", type_count(&type_OBJ_DATA) );
+    ptc( ch, "Objs      %5d\n\r", type_count(type_OBJ_INDEX_DATA) );
+    ptc( ch, " (in use) %5d\n\r", type_count(type_OBJ_DATA) );
     ptc( ch, "\n\r");
     ptc( ch, "Mprogs    %5d\n\r", top_mprog_index);
     ptc( ch, " (lua)    %5d\n\r", lua_mprogs);
@@ -4385,6 +4392,14 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "  free                  %d\n\r", type_AREA.free_count);
     ptc( ch, "\n\r");
 */
+
+    int i;
+    for ( i=0 ; aarchon_types[i].ptr ; i++ )
+    {
+        ptc( ch, "%-20s %d\n\r", 
+                aarchon_types[i].type.name, 
+                aarchon_types[i].type.count );
+    }
     ptc( ch, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());
     ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
     ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
@@ -4394,149 +4409,6 @@ void do_memory( CHAR_DATA *ch, char *argument )
     
     return;
 }
-
-void do_dump( CHAR_DATA *ch, char *argument )
-{
-    int count,count2,num_pcs,aff_count;
-    CHAR_DATA *fch;
-    MOB_INDEX_DATA *pMobIndex;
-    PC_DATA *pc;
-    OBJ_DATA *obj;
-    OBJ_INDEX_DATA *pObjIndex;
-    DESCRIPTOR_DATA *d;
-    AFFECT_DATA *af;
-    FILE *fp;
-    int vnum,nMatch = 0;
-    
-    /* open file */
-    fclose(fpReserve);
-    fp = fopen("mem.dmp","w");
-    
-    /* report use of data structures */
-    
-    num_pcs = 0;
-    aff_count = 0;
-    
-    /* mobile prototypes */
-    fprintf(fp,"MobProt	%4d (%8d bytes)\n",
-        top_mob_index, top_mob_index * (sizeof(*pMobIndex))); 
-    
-    /* mobs */
-    count = 0;  count2 = 0;
-    for (fch = char_list; fch != NULL; fch = fch->next)
-    {
-        count++;
-        if (fch->pcdata != NULL)
-            num_pcs++;
-        for (af = fch->affected; af != NULL; af = af->next)
-            aff_count++;
-    }
-    //for (fch = char_free; fch != NULL; fch = fch->next)
-    //    count2++;
-    
-    fprintf(fp,"Mobs	%4d (%8d bytes), %2d free (%d bytes)\n",
-        count, count * (sizeof(*fch)), count2, count2 * (sizeof(*fch)));
-    
-    /* pcdata */
-    count = 0;
-    //for (pc = pcdata_free; pc != NULL; pc = pc->next)
-    //    count++; 
-    
-    fprintf(fp,"Pcdata	%4d (%8d bytes), %2d free (%d bytes)\n",
-        num_pcs, num_pcs * (sizeof(*pc)), count, count * (sizeof(*pc)));
-    
-    /* descriptors */
-    count = 0; count2 = 0;
-    for (d = descriptor_list; d != NULL; d = d->next)
-        count++;
-    //for (d= descriptor_free; d != NULL; d = d->next)
-        //count2++;
-    
-    fprintf(fp, "Descs	%4d (%8d bytes), %2d free (%d bytes)\n",
-        count, count * (sizeof(*d)), count2, count2 * (sizeof(*d)));
-    
-    /* object prototypes */
-    for ( vnum = 0; nMatch < top_obj_index; vnum++ )
-        if ( ( pObjIndex = get_obj_index( vnum ) ) != NULL )
-        {
-            for (af = pObjIndex->affected; af != NULL; af = af->next)
-                aff_count++;
-            nMatch++;
-        }
-        
-        fprintf(fp,"ObjProt	%4d (%8d bytes)\n",
-            top_obj_index, top_obj_index * (sizeof(*pObjIndex)));
-        
-        
-        /* objects */
-        count = 0;  count2 = 0;
-        for (obj = object_list; obj != NULL; obj = obj->next)
-        {
-            count++;
-            for (af = obj->affected; af != NULL; af = af->next)
-                aff_count++;
-        }
-        //for (obj = obj_free; obj != NULL; obj = obj->next)
-        //    count2++;
-        
-        fprintf(fp,"Objs	%4d (%8d bytes), %2d free (%d bytes)\n",
-            count, count * (sizeof(*obj)), count2, count2 * (sizeof(*obj)));
-        
-        /* affects */
-        count = 0;
-        //for (af = affect_free; af != NULL; af = af->next)
-        //    count++;
-        
-        fprintf(fp,"Affects	%4d (%8d bytes), %2d free (%d bytes)\n",
-            aff_count, aff_count * (sizeof(*af)), count, count * (sizeof(*af)));
-        
-        /* rooms */
-        fprintf(fp,"Rooms	%4d (%8d bytes)\n",
-            top_room, top_room * (sizeof(ROOM_INDEX_DATA)));
-        
-        /* exits */
-        fprintf(fp,"Exits	%4d (%8d bytes)\n",
-            top_exit, top_exit * (sizeof(EXIT_DATA)));
-        
-        fclose(fp);
-        
-        /* start printing out mobile data */
-        fp = fopen("mob.dmp","w");
-        
-        fprintf(fp,"\nMobile Analysis\n");
-        fprintf(fp,  "---------------\n");
-        nMatch = 0;
-        for (vnum = 0; nMatch < top_mob_index; vnum++)
-            if ((pMobIndex = get_mob_index(vnum)) != NULL)
-            {
-                nMatch++;
-                fprintf(fp,"#%-4d %3d active %3d killed     %s\n",
-                    pMobIndex->vnum,pMobIndex->count,
-                    pMobIndex->killed,pMobIndex->short_descr);
-            }
-            fclose(fp);
-            
-            /* start printing out object data */
-            fp = fopen("obj.dmp","w");
-            
-            fprintf(fp,"\nObject Analysis\n");
-            fprintf(fp,  "---------------\n");
-            nMatch = 0;
-            for (vnum = 0; nMatch < top_obj_index; vnum++)
-                if ((pObjIndex = get_obj_index(vnum)) != NULL)
-                {
-                    nMatch++;
-                    fprintf(fp,"#%-4d %3d active %3d reset      %s\n",
-                        pObjIndex->vnum,pObjIndex->count,
-                        pObjIndex->reset_num,pObjIndex->short_descr);
-                }
-                
-                /* close file */
-                fclose(fp);
-                fpReserve = fopen( NULL_FILE, "r" );
-}
-
-
 
 /*
 * Stick a little fuzz on a number.
@@ -4551,8 +4423,6 @@ int number_fuzzy( int number )
     
     return UMAX( 1, number );
 }
-
-
 
 /*
 * Generate a random number.
@@ -5674,71 +5544,113 @@ char* bread_word( RBUFFER *rbuf )
     return NULL;
 }
 
+TYPE_DATA *type_CHAR_DATA;
+TYPE_DATA *type_PC_DATA;
+TYPE_DATA *type_MOB_INDEX_DATA;
+TYPE_DATA *type_OBJ_DATA;
+TYPE_DATA *type_OBJ_INDEX_DATA;
+TYPE_DATA *type_ROOM_INDEX_DATA;
+TYPE_DATA *type_AREA_DATA;
+TYPE_DATA *type_NOTE_DATA;
+TYPE_DATA *type_EXIT_DATA;
+TYPE_DATA *type_RESET_DATA;
+TYPE_DATA *type_SHOP_DATA;
+TYPE_DATA *type_AFFECT_DATA;
+TYPE_DATA *type_PROG_CODE;
+TYPE_DATA *type_MPROG_LIST;
+TYPE_DATA *type_OPROG_LIST;
+TYPE_DATA *type_APROG_LIST;
+TYPE_DATA *type_RPROG_LIST;
+TYPE_DATA *type_DESCRIPTOR_DATA;
+TYPE_DATA *type_GEN_DATA;
+TYPE_DATA *type_EXTRA_DESCR_DATA;
+TYPE_DATA *type_QUEST_DATA;
+TYPE_DATA *type_PORTAL_DATA;
+TYPE_DATA *type_MEM_DATA;
+TYPE_DATA *type_BUFFER;
+TYPE_DATA *type_SORT_TABLE;
+TYPE_DATA *type_WIZ_DATA;
+TYPE_DATA *type_CRIME_DATA;
+TYPE_DATA *type_BAN_DATA;
+
 #define decl( typename, luatype ) \
-TYPE_DATA type_ ## typename = \
 {\
-    .name= #typename ,\
-    .size=sizeof(typename) ,\
-    .lua_type = luatype \
+    &type_ ## typename,\
+    {\
+        .name=#typename ,\
+        .size=sizeof(typename) ,\
+        .lua_type = luatype \
+    }\
 }
-/*
-TYPE_DATA type_CHAR_DATA=
-{
-    .name="CHAR_DATA",
-    .size=sizeof(CHAR_DATA),
-    .lua_type=&CH_type
-};*/
-decl( CHAR_DATA, &CH_type );
-decl( PC_DATA, NULL );
-decl( MOB_INDEX_DATA, &MOBPROTO_type );
-decl( OBJ_DATA, &OBJ_type );
-decl( OBJ_INDEX_DATA, &OBJPROTO_type );
-decl( ROOM_INDEX_DATA, &ROOM_type );
-decl( AREA_DATA, &AREA_type );
-decl( NOTE_DATA, NULL );
-decl( RESET_DATA, &RESET_type );
-decl( EXIT_DATA, &EXIT_type );
-decl( SHOP_DATA, &SHOP_type );
-decl( AFFECT_DATA, &AFFECT_type );
-decl( BAN_DATA, NULL );
-decl( DESCRIPTOR_DATA, NULL );
-decl( GEN_DATA, NULL ); 
-decl( EXTRA_DESCR_DATA, NULL );
-decl( QUEST_DATA, NULL );
-decl( PORTAL_DATA, NULL );
-decl( MEM_DATA, NULL );
-decl( BUFFER, NULL );
-decl( SORT_TABLE, NULL );
-decl( WIZ_DATA, NULL );
-decl( CRIME_DATA, NULL );
 
-decl( PROG_CODE, &PROG_type );
-TYPE_DATA type_MPROG_LIST =
+struct types_table_entry aarchon_types [] =
 {
-    .name = "MPROG_LIST",
-    .size = sizeof(PROG_LIST),
-    .lua_type = &MTRIG_type
+    decl( CHAR_DATA, &CH_type ),
+    decl( PC_DATA, NULL ),
+    decl( MOB_INDEX_DATA, &MOBPROTO_type ),
+    decl( OBJ_DATA, &OBJ_type ),
+    decl( OBJ_INDEX_DATA, &OBJPROTO_type ),
+    decl( ROOM_INDEX_DATA, &ROOM_type ),
+    decl( AREA_DATA, &AREA_type ), 
+    decl( RESET_DATA, &RESET_type ),
+    decl( EXIT_DATA, &EXIT_type ),
+    decl( SHOP_DATA, &SHOP_type ),
+    decl( AFFECT_DATA, &AFFECT_type ),
+    decl( BAN_DATA, NULL ),
+    decl( DESCRIPTOR_DATA, NULL ),
+    decl( GEN_DATA, NULL ),
+    decl( EXTRA_DESCR_DATA, NULL ),
+    decl( QUEST_DATA, NULL ),
+    decl( PORTAL_DATA, NULL ),
+    decl( MEM_DATA, NULL ),
+    decl( BUFFER, NULL ),
+    decl( SORT_TABLE, NULL ),
+    decl( WIZ_DATA, NULL ),
+    decl( CRIME_DATA, NULL ),
+    decl( NOTE_DATA, NULL ),
+    decl( PROG_CODE, &PROG_type ),
+    {
+        &type_MPROG_LIST,
+        {
+            .name = "MPROG_LIST",
+            .size = sizeof(PROG_LIST),
+            .lua_type = &MTRIG_type 
+        }
+    },
+    {
+        &type_OPROG_LIST,
+        {
+            .name = "OPROG_LIST",
+            .size = sizeof(PROG_LIST),
+            .lua_type = &OTRIG_type
+        }
+    },
+    {
+        &type_RPROG_LIST,
+        {
+            .name = "RPROG_LIST",
+            .size = sizeof(PROG_LIST),
+            .lua_type = &RTRIG_type
+        }
+    },
+    {
+        &type_APROG_LIST,
+        {
+            .name = "APROG_LIST",
+            .size = sizeof(PROG_LIST),
+            .lua_type = &ATRIG_type
+        }
+    },
+    { NULL, { NULL, NULL, NULL } }
 };
-
-TYPE_DATA type_OPROG_LIST =
-{
-    .name = "OPROG_LIST",
-    .size = sizeof(PROG_LIST),
-    .lua_type = &OTRIG_type
-};
-
-TYPE_DATA type_RPROG_LIST =
-{
-    .name = "RPROG_LIST",
-    .size = sizeof(PROG_LIST),
-    .lua_type = &RTRIG_type
-};
-
-TYPE_DATA type_APROG_LIST =
-{
-    .name = "APROG_LIST",
-    .size = sizeof(PROG_LIST),
-    .lua_type = &ATRIG_type
-};
-
 #undef decl
+
+void aarchon_type_init()
+{
+    int i;
+
+    for ( i=0 ; aarchon_types[i].ptr ; i++ )
+    {
+        *(aarchon_types[i].ptr)=&(aarchon_types[i].type);
+    }
+}

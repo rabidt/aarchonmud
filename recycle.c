@@ -40,7 +40,7 @@ void free_quest(QUEST_DATA *quest);
 NOTE_DATA *new_note ()
 {
 	NOTE_DATA *note;
-	note = lua_new_ud(&type_NOTE_DATA);
+	note = lua_new_ud(type_NOTE_DATA);
 	return note;
 }
 
@@ -63,7 +63,7 @@ BAN_DATA *new_ban(void)
 {
 	BAN_DATA *ban;
 
-	ban = lua_new_ud( &type_BAN_DATA );
+	ban = lua_new_ud( type_BAN_DATA );
 	ban->name = &str_empty[0];
 	return ban;
 }
@@ -83,7 +83,7 @@ DESCRIPTOR_DATA *new_descriptor(void)
 {
 	DESCRIPTOR_DATA *d;
 
-	d = lua_new_ud( &type_DESCRIPTOR_DATA );
+	d = lua_new_ud( type_DESCRIPTOR_DATA );
 	
 	d->connected    = CON_GET_NAME;
 	d->outsize  = 2000;
@@ -117,7 +117,7 @@ GEN_DATA *new_gen_data(void)
 {
 	GEN_DATA *gen;
 
-	gen = lua_new_ud( &type_GEN_DATA );
+	gen = lua_new_ud( type_GEN_DATA );
 	return gen;
 }
 
@@ -134,7 +134,7 @@ EXTRA_DESCR_DATA *new_extra_descr(void)
 {
 	EXTRA_DESCR_DATA *ed;
 
-	ed = lua_new_ud( &type_EXTRA_DESCR_DATA );
+	ed = lua_new_ud( type_EXTRA_DESCR_DATA );
 	
     ed->keyword = &str_empty[0];
 	ed->description = &str_empty[0];
@@ -155,7 +155,7 @@ void free_extra_descr(EXTRA_DESCR_DATA *ed)
 AFFECT_DATA *new_affect(void)
 {
 	AFFECT_DATA *af;
-	af = lua_new_ud( &type_AFFECT_DATA );
+	af = lua_new_ud( type_AFFECT_DATA );
 	return af;
 }
 
@@ -171,7 +171,7 @@ void free_affect(AFFECT_DATA *af)
 OBJ_DATA *new_obj(void)
 {
 	OBJ_DATA *obj;
-	obj = lua_new_ud( &type_OBJ_DATA );
+	obj = lua_new_ud( type_OBJ_DATA );
 	return obj;
 }
 
@@ -222,7 +222,7 @@ CHAR_DATA *new_char (void)
 	CHAR_DATA *ch;
 	int i;
 
-	ch = lua_new_ud( &type_CHAR_DATA ); 
+	ch = lua_new_ud( type_CHAR_DATA ); 
 	
 	ch->name                    = &str_empty[0];
 	ch->short_descr             = &str_empty[0];
@@ -327,7 +327,7 @@ PC_DATA *new_pcdata(void)
     
     PC_DATA *pcdata;
     
-    pcdata = lua_new_ud( &type_PC_DATA );
+    pcdata = lua_new_ud( type_PC_DATA );
     
     for (alias = 0; alias < MAX_ALIAS; alias++)
     {
@@ -426,7 +426,7 @@ void free_pcdata(PC_DATA *pcdata)
 QUEST_DATA *new_quest(void)
 {
     QUEST_DATA *quest;
-	quest=lua_new_ud( &type_QUEST_DATA ); 
+	quest=lua_new_ud( type_QUEST_DATA ); 
     return quest;
 }
 
@@ -442,7 +442,7 @@ void free_quest(QUEST_DATA *quest)
 PORTAL_DATA *new_portal( void )
 {
     PORTAL_DATA *portal;
-	portal = lua_new_ud( &type_PORTAL_DATA );
+	portal = lua_new_ud( type_PORTAL_DATA );
     portal->name = &str_empty[0];
     return portal;
 }
@@ -480,7 +480,7 @@ long get_mob_id(void)
 MEM_DATA *new_mem_data(void)
 {
 	MEM_DATA *memory;
-	memory = lua_new_ud( &type_MEM_DATA );
+	memory = lua_new_ud( type_MEM_DATA );
 	return memory;
 }
 
@@ -523,7 +523,7 @@ BUFFER *new_buf()
 {
 	BUFFER *buffer;
 
-	buffer = lua_new_ud( &type_BUFFER );
+	buffer = lua_new_ud( type_BUFFER );
 
 	buffer->next    = NULL;
 	buffer->state   = BUFFER_SAFE;
@@ -539,7 +539,7 @@ BUFFER *new_buf_size(int size)
 {
 	BUFFER *buffer;
  
-	buffer = lua_new_ud( &type_BUFFER ); 
+	buffer = lua_new_ud( type_BUFFER ); 
  
 	buffer->next        = NULL;
 	buffer->state       = BUFFER_SAFE;
@@ -626,7 +626,7 @@ char *buf_string(BUFFER *buffer)
 PROG_LIST *new_mprog(void)
 {
    PROG_LIST *mp;
-   mp = lua_new_ud( &type_MPROG_LIST );
+   mp = lua_new_ud( type_MPROG_LIST );
    return mp;
 }
 
@@ -642,7 +642,7 @@ void free_mprog(PROG_LIST *mp)
 PROG_LIST *new_oprog(void)
 {
    PROG_LIST *op;
-   op = lua_new_ud( &type_OPROG_LIST ); 
+   op = lua_new_ud( type_OPROG_LIST ); 
    return op;
 }
 
@@ -658,7 +658,7 @@ void free_oprog(PROG_LIST *op)
 PROG_LIST *new_aprog(void)
 {
    PROG_LIST *ap;
-   ap = lua_new_ud( &type_APROG_LIST );
+   ap = lua_new_ud( type_APROG_LIST );
    return ap;
 }
 
@@ -674,7 +674,7 @@ void free_aprog(PROG_LIST *ap)
 PROG_LIST *new_rprog(void)
 {
     PROG_LIST *rp;
-    rp = lua_new_ud( &type_RPROG_LIST );
+    rp = lua_new_ud( type_RPROG_LIST );
     return rp;
 }
 
@@ -729,7 +729,7 @@ HELP_DATA * new_help ( void )
 
 SORT_TABLE *new_sort(void)
 {
-    SORT_TABLE *sort = lua_new_ud( &type_SORT_TABLE );
+    SORT_TABLE *sort = lua_new_ud( type_SORT_TABLE );
     return sort;
 }
 
@@ -746,7 +746,7 @@ WIZ_DATA *new_wiz(void)
 {
     WIZ_DATA *wiz;
     
-    wiz = lua_new_ud( &type_WIZ_DATA );
+    wiz = lua_new_ud( type_WIZ_DATA );
     wiz->name = &str_empty[0];
     return wiz;
 }
@@ -764,7 +764,7 @@ void free_wiz(WIZ_DATA *wiz)
 CRIME_DATA *new_crime(void)
 {
     CRIME_DATA *crime;
-    crime = lua_new_ud( &type_CRIME_DATA );
+    crime = lua_new_ud( type_CRIME_DATA );
     return crime;
 }
 

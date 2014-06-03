@@ -12,41 +12,6 @@ envtbl={} -- game object script environments
 --origenv={} -- where the REAL env tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
-cleanuptbl={}
-
-UD_TABLES=
-{
-    str_dup={},
-    NOTE_DATA={},
-    CHAR_DATA={},
-    PC_DATA={},
-    MOB_INDEX_DATA={},
-    OBJ_DATA={},
-    OBJ_INDEX_DATA={},
-    AREA_DATA={},
-    ROOM_INDEX_DATA={},
-    RESET_DATA={},
-    AFFECT_DATA={},
-    SHOP_DATA={},
-    EXIT_DATA={},
-    PROG_CODE={},
-    MPROG_LIST={},
-    OPROG_LIST={},
-    RPROG_LIST={},
-    APROG_LIST={},
-    DESCRIPTOR_DATA={},
-    GEN_DATA={},
-    EXTRA_DESCR_DATA={},
-    QUEST_DATA={},
-    PORTAL_DATA={},
-    MEM_DATA={},
-    BUFFER={},
-    SORT_TABLE={},
-    WIZ_DATA={},
-    CRIME_DATA={},
-    BAN_DATA={}
-}
-
 
 function UdCnt()
     local cnt=0
