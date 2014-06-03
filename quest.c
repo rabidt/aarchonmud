@@ -18,6 +18,7 @@
 #include "merc.h"
 #include "special.h"
 #include "lua_arclib.h"
+#include "mudconfig.h"
 
 DECLARE_DO_FUN( do_say );
 DECLARE_DO_FUN( do_startwar );
@@ -834,6 +835,17 @@ void do_quest(CHAR_DATA *ch, char *argument)
         
         // general adjustments
         reward_points += reward_points * get_religion_bonus(ch) / 100;
+        if ( cfg_enable_qp_mult )
+        {
+            reward_points = (int)(reward_points * cfg_qp_mult );
+            if ( cfg_show_qp_mult )
+            {
+                sprintf(buf, "There's currently a qp bonus of %d%%!",
+                    (int)((cfg_qp_mult*100)-100));
+                do_say(questman, buf );
+            }
+
+        }
 
         // notify of rewards
         sprintf(buf, "Congratulations on completing your quest!");
