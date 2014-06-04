@@ -229,14 +229,11 @@ CHAR_DATA *new_char (void)
 	ch->long_descr              = &str_empty[0];
 	ch->description             = &str_empty[0];
 	ch->prompt                  = &str_empty[0];
-	ch->prefix          = &str_empty[0];
+	ch->prefix                  = &str_empty[0];
 	ch->logon                   = current_time;
 	ch->lines                   = PAGELEN;
 	for (i = 0; i < 4; i++)
 		ch->armor[i]            = 100;
-	ch->hunting					= NULL;
-	ch->aggressors				= NULL;
-    ch->pet                     = NULL;
 	ch->position                = POS_STANDING;
 	ch->hit                     = 100;
 	ch->max_hit                 = 100;
@@ -244,11 +241,6 @@ CHAR_DATA *new_char (void)
 	ch->max_mana                = 100;
 	ch->move                    = 100;
 	ch->max_move                = 100;
-	ch->stance=0;
-	ch->just_killed = FALSE;
-	ch->must_extract = FALSE;
-    ch->trig_timer              = NULL;
-    ch->luavals                 = NULL;
 	
 	for (i = 0; i < MAX_STATS; i ++)
 	{
@@ -687,42 +679,21 @@ void free_rprog(PROG_LIST *rp)
     lua_free_ud( rp );
 }
 
-HELP_AREA * had_free;
-
 HELP_AREA * new_had ( void )
 {
    HELP_AREA * had;
-   
-   if ( had_free )
-   {
-	  had       = had_free;
-	  had_free  = had_free->next;
-   }
-   else
-	  had       = alloc_perm( sizeof( *had ) );
-   
+   had       = lua_new_ud( type_HELP_AREA );
    return had;
 }
-
-HELP_DATA * help_free;
 
 HELP_DATA * new_help ( void )
 {
    HELP_DATA * help;
    
-   if ( help_free == NULL )
-	  help       = alloc_perm( sizeof( *help ) );
-   else
-   {
-	  help       = help_free;
-	  help_free = help_free->next;
-   }
+   help       = lua_new_ud( type_HELP_DATA );
 
-   help->level   = 0;
    help->keyword = str_dup("");
    help->text    = str_dup("");
-   help->next    = NULL;
-   help->next_area = NULL;
 
    return help;
 }

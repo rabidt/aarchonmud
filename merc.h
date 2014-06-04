@@ -185,6 +185,8 @@ extern TYPE_DATA *type_SORT_TABLE;
 extern TYPE_DATA *type_WIZ_DATA;
 extern TYPE_DATA *type_CRIME_DATA;
 extern TYPE_DATA *type_BAN_DATA;
+extern TYPE_DATA *type_HELP_AREA;
+extern TYPE_DATA *type_HELP_DATA;
 
 #define GET_TYPE( ptr ) ( ( (TYPE_BASE *)( ptr ) )->type)
 
@@ -860,22 +862,28 @@ struct  descriptor_data
  */
 struct  help_data
 {
-   HELP_DATA * next;
-   HELP_DATA * next_area;
-   sh_int  level;
-   char *  keyword;
-   char *  text;
-   bool delete;    
+    /* must be first entry */
+    TYPE_BASE       _base;
+
+    HELP_DATA * next;
+    HELP_DATA * next_area;
+    sh_int  level;
+    char *  keyword;
+    char *  text;
+    bool delete;    
 };
 
 
 struct help_area_data
 {
-   HELP_AREA *  next;
-   HELP_DATA *  first;
-   HELP_DATA *  last;
-   AREA_DATA *  area;
-   char * filename;
+    /* must be first entry */
+    TYPE_BASE       _base;
+
+    HELP_AREA *  next;
+    HELP_DATA *  first;
+    HELP_DATA *  last;
+    AREA_DATA *  area;
+    char * filename;
 };
 
 
