@@ -787,7 +787,7 @@ void load_objects( FILE *fp )
             {
                 EXTRA_DESCR_DATA *ed;
 
-                ed                      = alloc_perm( sizeof(*ed) );
+                ed                      = lua_new_ud( type_EXTRA_DESCR_DATA );
                 ed->keyword             = fread_string( fp );
                 ed->description         = fread_string( fp );
                 ed->next                = pObjIndex->extra_descr;

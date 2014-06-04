@@ -1616,7 +1616,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
              {
                  EXTRA_DESCR_DATA *ed;
                  
-                 ed          = alloc_perm( sizeof(*ed) );
+                 ed          = lua_new_ud( type_EXTRA_DESCR_DATA );
                  ed->keyword     = fread_string( fp );
                  ed->description     = fread_string( fp );
                  ed->next        = pRoomIndex->extra_descr;
@@ -4037,36 +4037,13 @@ char *fread_word( FILE *fp )
 void *alloc_mem( int sMem )
 {
     void *pMem;
-    int iList;
     
 #ifdef MAGIC_CHECKING
     int *magic;
     sMem += sizeof(*magic);
 #endif
     
-    for ( iList = 0; iList < MAX_MEM_LIST; iList++ )
-    {
-        if ( sMem <= rgSizeList[iList] )
-            break;
-    }
-    
-    if ( iList == MAX_MEM_LIST )
-    {
-        bug( "Alloc_mem: size %d too large.", sMem );
-        exit( 1 );
-    }
-    
-    if ( rgFreeList[iList] == NULL )
-    {
-        pMem              = alloc_perm( rgSizeList[iList] );
-    }
-    else
-    {
-        pMem              = rgFreeList[iList];
-        rgFreeList[iList] = * ((void **) rgFreeList[iList]);
-        // clear memory before usage - alloc_perm does it too, so the two can be used (more or less) interchangeably
-        memset(pMem, 0, sMem);
-    }
+    pMem=calloc(1, sMem );
     
 #ifdef MAGIC_CHECKING
     magic = (int *) pMem;
@@ -4077,11 +4054,8 @@ void *alloc_mem( int sMem )
     /* pMem = (void*) magic[1];   // mkw:should have intended effect */
 #endif
     
-    
     return pMem;
 }
-
-
 
 /*
 * Free some memory.
@@ -4089,8 +4063,6 @@ void *alloc_mem( int sMem )
 */
 void free_mem( void *pMem, int sMem )
 {
-    int iList;
-    
 #ifdef MAGIC_CHECKING
     int *magic;
     
@@ -4107,61 +4079,9 @@ void free_mem( void *pMem, int sMem )
     sMem += sizeof(*magic);
 #endif
     
-    for ( iList = 0; iList < MAX_MEM_LIST; iList++ )
-    {
-        if ( sMem <= rgSizeList[iList] )
-            break;
-    }
-    
-    if ( iList == MAX_MEM_LIST )
-    {
-        bug( "Free_mem: size %d too large.", sMem );
-        exit( 1 );
-    }
-    
-    * ((void **) pMem) = rgFreeList[iList];
-    rgFreeList[iList]  = pMem;
-    
+    free( pMem ); 
     return;
 }
-
-
-/*
-* Allocate some permanent memory.
-* Permanent memory is never freed,
-*   pointers into it may be copied safely.
-*/
-void *alloc_perm( int sMem )
-{
-    static char *pMemPerm;
-    static int iMemPerm;
-    void *pMem;
-    
-    while ( sMem % sizeof(long) != 0 )
-        sMem++;
-    if ( sMem > MAX_PERM_BLOCK )
-    {
-        bug( "Alloc_perm: %d too large.", sMem );
-        exit( 1 );
-    }
-    
-    if ( pMemPerm == NULL || iMemPerm + sMem > MAX_PERM_BLOCK )
-    {
-        iMemPerm = 0;
-        if ( ( pMemPerm = calloc( 1, MAX_PERM_BLOCK ) ) == NULL )
-        {
-            log_error( "Alloc_perm" );
-            exit( 1 );
-        }
-    }
-    
-    pMem        = pMemPerm + iMemPerm;
-    iMemPerm   += sMem;
-    nAllocPerm += 1;
-    sAllocPerm += sMem;
-    return pMem;
-}
-
 
 /*
 * Hashtable of strings recently allocated and not freed
@@ -4393,13 +4313,25 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "\n\r");
 */
 
+    int total_count=0;
+    int total_size=0;
     int i;
     for ( i=0 ; aarchon_types[i].ptr ; i++ )
     {
-        ptc( ch, "%-20s %d\n\r", 
+        ptc( ch, "%-20s %6d (%d bytes)\n\r", 
                 aarchon_types[i].type.name, 
-                aarchon_types[i].type.count );
+                aarchon_types[i].type.count,
+                aarchon_types[i].type.size * aarchon_types[i].type.count );
+
+        total_count += aarchon_types[i].type.count;
+        total_size  += aarchon_types[i].type.size * aarchon_types[i].type.count;
+
     }
+    ptc( ch, "%-20s %6d (%d kbytes)\n\r", 
+            "Total", 
+            total_count,  
+            (total_size/1000) );
+
     ptc( ch, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());
     ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
     ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
@@ -5572,6 +5504,8 @@ TYPE_DATA *type_SORT_TABLE;
 TYPE_DATA *type_WIZ_DATA;
 TYPE_DATA *type_CRIME_DATA;
 TYPE_DATA *type_BAN_DATA;
+TYPE_DATA *type_HELP_DATA;
+TYPE_DATA *type_HELP_AREA;
 
 #define decl( typename, luatype ) \
 {\
@@ -5608,6 +5542,8 @@ struct types_table_entry aarchon_types [] =
     decl( WIZ_DATA, NULL ),
     decl( CRIME_DATA, NULL ),
     decl( NOTE_DATA, NULL ),
+    decl( HELP_DATA, NULL ),
+    decl( HELP_AREA, NULL ),
     decl( PROG_CODE, &PROG_type ),
     {
         &type_MPROG_LIST,

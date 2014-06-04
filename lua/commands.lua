@@ -23,8 +23,44 @@ Valid args:
 end
 
 function do_luareset(ch, argument)
+    --[[local str={}
+    for _,val in pairs(UD_TABLES.str_dup) do
+        table.insert(str, val)
+    end
+
+    table.sort(str)
+
+    local str2={}
+    local cnt=0
+    local prev
+    for _,v in pairs(str) do
+        if v:find('hippos') then sendtochar(ch, "blah\n\r") end
+        if prev==nil then
+            cnt=1
+        elseif prev==v then
+            cnt=cnt+1
+        else
+            table.insert(str2, {str=prev, cnt=cnt})
+            cnt=1
+        end
+        prev=v
+    end
+
+    table.sort(str2, function(a,b) return a.cnt<b.cnt end)
+
+    for k,v in pairs(str2) do
+        --if v.str:find('hippos') then
+            sendtochar(ch, v.cnt.." "..v.str.."\n\r")
+        --end
+    end
+--]]
+    local cnt=0
+    for k,v in pairs(UD_TABLES.str_dup) do
+        cnt=cnt+1
+    end
+    sendtochar(ch, cnt.."\n\r")
+
     local found=false
-    sendtochar(ch, #cleanuptbl.."\n\r")
     for _,arg in pairs(reset_table) do
         if arg == argument then
             found=true

@@ -482,21 +482,3 @@ void free_rpcode(PROG_CODE *pRcode)
     return;
 }
 
-
-/* Help Editor - kermit 1/98 */
-/*
-HELP_DATA *new_help(void)
-{
-     HELP_DATA *NewHelp;
-
-     NewHelp = alloc_perm(sizeof(*NewHelp) );
-
-     NewHelp->level   = 0;
-     NewHelp->keyword = str_dup("");
-     NewHelp->text    = str_dup("");
-     NewHelp->next    = NULL;
-
-     return NewHelp;
-}
-*/
-
