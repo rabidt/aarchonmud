@@ -84,10 +84,14 @@ void rpedit( CHAR_DATA *ch, char *argument)
     {
         if (!str_prefix(command, rpedit_table[cmd].name) )
         {
-           if ((*rpedit_table[cmd].olc_fun) (ch, argument) && pRcode)
-              if ((ad = get_vnum_area(pRcode->vnum)) != NULL)
-                 SET_BIT(ad->area_flags, AREA_CHANGED);
-              return;
+            if ( strlen(rpedit_table[cmd].name) >= 3
+                    && strlen(command) < 3 )
+                break;
+
+            if ((*rpedit_table[cmd].olc_fun) (ch, argument) && pRcode)
+                if ((ad = get_vnum_area(pRcode->vnum)) != NULL)
+                    SET_BIT(ad->area_flags, AREA_CHANGED);
+            return;
         }
     }
 
