@@ -264,13 +264,13 @@ char* reformat(const char *fmt, va_list va)
     }
     *next_new = '\0';
     
-    // debug
+    /* debug -- commented out 6-5-14 to reduce log file size - Astark
     if ( strcmp(fmt, new_fmt) )
     {
         char buf[MSL];
         vsnprintf(buf, MSL, new_fmt, va_orig);
         logpf("reformatted \"%s\" to \"%s\" => \"%s\"", escape_ws(fmt), escape_ws(new_fmt), escape_ws(buf));
-    }
+    } */
     va_end(va_orig);
     
     return new_fmt;
