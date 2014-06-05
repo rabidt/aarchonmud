@@ -291,9 +291,8 @@ bool lua_make_type( LUA_OBJ_TYPE *tp,
     /* see if it exists already */
     lua_getglobal( LS, "UD_TABLES" );
     lua_getfield( LS, -1, type->name );
-    lua_remove(LS, -2);
-    lua_pushlightuserdata( LS, game_obj );
-    lua_gettable( LS, -2 );
+    lua_remove( LS, -2);
+    lua_rawgeti( LS, -1, ((TYPE_BASE *)game_obj)->ref );
     lua_remove(LS, -2);
 
     if ( !lua_isnil(LS, -1) )

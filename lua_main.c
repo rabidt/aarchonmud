@@ -1051,13 +1051,51 @@ void *lua_str_dup( const char *str )
     lua_getglobal( g_mud_LS, "UD_TABLES");
     lua_getfield( g_mud_LS, -1, "str_dup");
     lua_pushstring( g_mud_LS, str );
-    const char *new_str=luaL_checkstring( g_mud_LS, -1);
-    lua_pushlightuserdata( g_mud_LS, new_str );
-    lua_pushvalue( g_mud_LS, -2 );
-    lua_settable( g_mud_LS, -4 );
-    lua_pop( g_mud_LS, 3 );
+    lua_pushvalue( g_mud_LS, -1 );
+    const char *lstr=luaL_checkstring( g_mud_LS, -1 );
+    lua_gettable( g_mud_LS, -3 );
+    if ( lua_isnil( g_mud_LS, -1 ) )
+    {
+        lua_pushinteger( g_mud_LS, 1 );
+    }
+    else
+    {
+        lua_pushinteger( g_mud_LS,
+               luaL_checkinteger( g_mud_LS, -1 ) + 1 );
+    }
+    lua_remove( g_mud_LS, -2 ); /* kill nil or current cnt */
+    lua_settable( g_mud_LS, -3 );
+    lua_pop( g_mud_LS, 2 );
+    return lstr;
+}
 
-    return new_str;
+void lua_free_string( const char *str )
+{
+    lua_getglobal( g_mud_LS, "UD_TABLES");
+    lua_getfield( g_mud_LS, -1, "str_dup");
+    lua_pushstring( g_mud_LS, str );
+    lua_pushvalue( g_mud_LS, -1 );
+    lua_gettable( g_mud_LS, -3 );
+    if ( lua_isnil( g_mud_LS, -1 ) )
+    {
+        bugf( "lua_free_string: not found in str_dup table");
+    }
+    else
+    {
+        int cnt=luaL_checkinteger( g_mud_LS, -1 );
+        lua_pop( g_mud_LS, 1 );
+        if ( cnt > 1 )
+        {
+            lua_pushinteger( g_mud_LS, cnt-1 );
+        }
+        else
+        {
+            lua_pushnil( g_mud_LS );
+        }
+        lua_settable( g_mud_LS, -3 );
+    }
+
+    lua_pop( g_mud_LS, 2 );
 }
 
 void *lua_new_ud( TYPE_DATA *type )
@@ -1071,25 +1109,14 @@ void *lua_new_ud( TYPE_DATA *type )
         luaL_getmetatable( g_mud_LS, type->lua_type->type_name );
         lua_setmetatable( g_mud_LS, -2 );
     }
-    lua_pushlightuserdata( g_mud_LS, ud );
-    lua_pushvalue( g_mud_LS, -2);
-    lua_settable( g_mud_LS, -4);
-    lua_pop( g_mud_LS, 3 );
+    ((TYPE_BASE *)ud)->ref = luaL_ref( g_mud_LS, -2 );
+    
+    lua_pop( g_mud_LS, 2 );
 
     GET_TYPE( ud ) = type;
     type->count++;
     VALIDATE( ud );
     return ud;
-}
-
-void lua_free_string( const char *str )
-{
-    lua_getglobal( g_mud_LS, "UD_TABLES");
-    lua_getfield( g_mud_LS, -1, "str_dup");
-    lua_pushlightuserdata( g_mud_LS, str );
-    lua_pushnil( g_mud_LS );
-    lua_settable( g_mud_LS, -3 );
-    lua_pop( g_mud_LS, 2 );
 }
 
 #define USE_CLEANUP_TABLE
@@ -1100,19 +1127,18 @@ void lua_free_ud( void *ud )
     lua_getglobal( g_mud_LS, "UD_TABLES");
     lua_getfield( g_mud_LS, -1, type->name );
 
+    
 #ifdef USE_CLEANUP_TABLE
     /* thrown into the cleanup table */
-    lua_getglobal( g_mud_LS, "cleanuptbl" );
+    /*lua_getglobal( g_mud_LS, "cleanuptbl" );
     int ind=1 + lua_objlen( g_mud_LS, -1 );
     lua_pushlightuserdata( g_mud_LS, ud );
     lua_gettable( g_mud_LS, -3);
     lua_rawseti( g_mud_LS, -2, ind );
-    lua_pop( g_mud_LS, 1 );
+    lua_pop( g_mud_LS, 1 );*/
 #endif
+    luaL_unref( g_mud_LS, -1, ((TYPE_BASE *)ud)->ref );
 
-    lua_pushlightuserdata( g_mud_LS, ud );
-    lua_pushnil( g_mud_LS );
-    lua_settable( g_mud_LS, -3 );
     lua_pop( g_mud_LS, 2 );
     type->count--;
     INVALIDATE( ud );

@@ -155,6 +155,7 @@ typedef struct type_base
 {
     TYPE_DATA *type;
     bool valid;
+    int ref;
 } TYPE_BASE;
 
 extern TYPE_DATA *type_CHAR_DATA;

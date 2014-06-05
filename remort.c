@@ -765,30 +765,32 @@ void remort_load()
     for (i = 0; chambers[i].name != NULL; i++)
     {
         s = str_dup(fread_word (fp));
-	/* safety-net in case of newly added remort-chambers */
-	if ( s && str_cmp(s, "END") )
-	    if ( str_cmp(s, "X") )
-	    {
-		p = alloc_mem(sizeof(REMORT_TABLE));
-		p->name = s;
-		p->remorts = fread_number(fp);
-		p->signup = fread_number(fp);
-		p->limit = fread_number(fp);
-		chamber_list[i] = p;
-	    }
-	    else
-	    {
-		chamber_list[i] = NULL;
-		free_string(s);
-	    }
-	else
-	{
-	    for ( ; chambers[i].name != NULL; i++)
-		chamber_list[i] = NULL;
-	    free_string(s);
-	    fclose (fp);
-	    return;
-	}
+        /* safety-net in case of newly added remort-chambers */
+        if ( s && str_cmp(s, "END") )
+        {
+            if ( str_cmp(s, "X") )
+            {
+                p = alloc_mem(sizeof(REMORT_TABLE));
+                p->name = s;
+                p->remorts = fread_number(fp);
+                p->signup = fread_number(fp);
+                p->limit = fread_number(fp);
+                chamber_list[i] = p;
+            }
+            else
+            {
+                chamber_list[i] = NULL;
+                free_string(s);
+            }
+        }
+        else
+        {
+            for ( ; chambers[i].name != NULL; i++)
+                chamber_list[i] = NULL;
+            free_string(s);
+            fclose (fp);
+            return;
+        }
     }
     
     s = str_dup(fread_word (fp));
