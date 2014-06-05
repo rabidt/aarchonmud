@@ -1057,7 +1057,9 @@ function do_mudconfig( ch, argument )
     table.sort( st, function(a,b) return a.cnt>b.cnt end )
 
     for k,v in ipairs(st) do
-        sendtochar( ch, v.cnt.." "..v.str.."\n\r" )
+        if v.cnt>100 then
+            sendtochar( ch, v.cnt.." "..v.str.."\n\r" )
+        end
     end
         
     local args=arguments(argument)

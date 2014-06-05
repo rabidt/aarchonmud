@@ -465,8 +465,6 @@ AREA_DATA *     area_last;
 AREA_DATA *     current_area;
 
 
-char *  string_space;
-char *  top_string;
 char    str_empty   [1];
 
 int  top_affect;
@@ -573,12 +571,6 @@ void boot_db()
      * Init some data space stuff.
      */
     {
-        if ( ( string_space = calloc( 1, MAX_STRING ) ) == NULL )
-        {
-            bug( "Boot_db: can't alloc %d string space.", MAX_STRING );
-            exit( 1 );
-        }
-        top_string  = string_space;
         fBootDb     = TRUE;
     }
 
@@ -3707,16 +3699,10 @@ long flag_convert(char letter )
 */
 char *fread_string( FILE *fp )
 {
-    char *plast;
+    char buf[MSL];
+    char *plast=buf;
     char c;
     bool stripped = FALSE;
-    
-    plast = top_string + sizeof(char *);
-    if ( plast > &string_space[MAX_STRING - MAX_STRING_LENGTH] )
-    {
-        bug( "Fread_string: MAX_STRING %d exceeded.", MAX_STRING );
-        exit( 1 );
-    }
     
     /*
     * Skip blanks.
@@ -3772,52 +3758,11 @@ char *fread_string( FILE *fp )
         case '~':
             plast++;
             {
-                union
-                {
-                    char *  pc;
-                    char    rgc[sizeof(char *)];
-                } u1;
-                int ic;
-                int iHash;
-                char *pHash;
-                char *pHashPrev;
-                char *pString;
-                
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
                 if ( stripped )
-                    logpf("String with leading '^' read: %s", top_string + sizeof(char *));
-                // intern string if possible to save memory
-                iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
-                for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
-                {
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        u1.rgc[ic] = pHash[ic];
-                    pHashPrev = u1.pc;
-                    pHash    += sizeof(char *);
-                    
-                    if ( top_string[sizeof(char *)] == pHash[0]
-                        &&   !strcmp( top_string+sizeof(char *)+1, pHash+1 ) )
-                        return pHash;
-                }
-                
-                if ( fBootDb )
-                {
-                    pString     = top_string;
-                    top_string      = plast;
-                    u1.pc       = string_hash[iHash];
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        pString[ic] = u1.rgc[ic];
-                    string_hash[iHash]  = pString;
-                    
-                    nAllocString += 1;
-                    sAllocString += top_string - pString;
-                    return pString + sizeof(char *);
-                }
-                else
-                {
-                    return str_dup( top_string + sizeof(char *) );
-                }
+                    logpf("String with leading '^' read: %s", buf);
+                return str_dup( buf );
             }
         }
     }
@@ -3863,7 +3808,8 @@ char *fread_string_eol( FILE *fp )
 char *fread_string_eol_old( FILE *fp )
 {
     static bool char_special[256-EOF];
-    char *plast;
+    char buf[MSL];
+    char *plast=buf;
     char c;
     
     if ( char_special[EOF-EOF] != TRUE )
@@ -3871,13 +3817,6 @@ char *fread_string_eol_old( FILE *fp )
         char_special[EOF -  EOF] = TRUE;
         char_special['\n' - EOF] = TRUE;
         char_special['\r' - EOF] = TRUE;
-    }
-    
-    plast = top_string + sizeof(char *);
-    if ( plast > &string_space[MAX_STRING - MAX_STRING_LENGTH] )
-    {
-        bug( "Fread_string: MAX_STRING %d exceeded.", MAX_STRING );
-        exit( 1 );
     }
     
     /*
@@ -3912,48 +3851,8 @@ char *fread_string_eol_old( FILE *fp )
             
         case '\n':  case '\r':
             {
-                union
-                {
-                    char *      pc;
-                    char        rgc[sizeof(char *)];
-                } u1;
-                int ic;
-                int iHash;
-                char *pHash;
-                char *pHashPrev;
-                char *pString;
-                
                 plast[-1] = '\0';
-                iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
-                for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
-                {
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        u1.rgc[ic] = pHash[ic];
-                    pHashPrev = u1.pc;
-                    pHash    += sizeof(char *);
-                    
-                    if ( top_string[sizeof(char *)] == pHash[0]
-                        &&   !strcmp( top_string+sizeof(char *)+1, pHash+1 ) )
-                        return pHash;
-                }
-                
-                if ( fBootDb )
-                {
-                    pString             = top_string;
-                    top_string          = plast;
-                    u1.pc               = string_hash[iHash];
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        pString[ic] = u1.rgc[ic];
-                    string_hash[iHash]  = pString;
-                    
-                    nAllocString += 1;
-                    sAllocString += top_string - pString;
-                    return pString + sizeof(char *);
-                }
-                else
-                {
-                    return str_dup( top_string + sizeof(char *) );
-                }
+                return str_dup( buf );
             }
         }
     }
@@ -4149,10 +4048,6 @@ char *str_dup( const char *str )
     
     if ( str[0] == '\0' )
         return &str_empty[0];
-    
-    if ( str >= string_space && str < top_string )
-        return (char *) str;
-    
     str_new = lua_str_dup( str ); 
     remember_str_dup( str_new );
     return str_new;
@@ -4166,8 +4061,7 @@ char *str_dup( const char *str )
 void free_string( char *pstr )
 {
     if ( pstr == NULL
-        ||   pstr == &str_empty[0]
-        || ( pstr >= string_space && pstr < top_string ) )
+        ||   pstr == &str_empty[0] )
         return;
     
     forget_str_dup( pstr );
@@ -5172,19 +5066,13 @@ long bread_flag( RBUFFER *rbuf )
 */
 char* bread_string( RBUFFER *rbuf )
 {
-    char *plast;
+    char buf[MSL];
+    char *plast=buf;
     char c;
     bool stripped = FALSE;
 #if defined(BREAD_DEBUG)
    log_string("bread_string: start");
 #endif
-    
-    plast = top_string + sizeof(char *);
-    if ( plast > &string_space[MAX_STRING - MAX_STRING_LENGTH] )
-    {
-        bug( "bread_string: MAX_STRING %d exceeded.", MAX_STRING );
-        exit( 1 );
-    }
     
     /*
     * Skip blanks.
@@ -5240,52 +5128,11 @@ char* bread_string( RBUFFER *rbuf )
         case '~':
             plast++;
             {
-                union
-                {
-                    char *  pc;
-                    char    rgc[sizeof(char *)];
-                } u1;
-                int ic;
-                int iHash;
-                char *pHash;
-                char *pHashPrev;
-                char *pString;
-                
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
                 if ( stripped )
-                    logpf("String with leading '^' read: %s", top_string + sizeof(char *));
-                // intern string if possible to save memory
-                iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
-                for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
-                {
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        u1.rgc[ic] = pHash[ic];
-                    pHashPrev = u1.pc;
-                    pHash    += sizeof(char *);
-                    
-                    if ( top_string[sizeof(char *)] == pHash[0]
-                        &&   !strcmp( top_string+sizeof(char *)+1, pHash+1 ) )
-                        return pHash;
-                }
-                
-                if ( fBootDb )
-                {
-                    pString     = top_string;
-                    top_string      = plast;
-                    u1.pc       = string_hash[iHash];
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        pString[ic] = u1.rgc[ic];
-                    string_hash[iHash]  = pString;
-                    
-                    nAllocString += 1;
-                    sAllocString += top_string - pString;
-                    return pString + sizeof(char *);
-                }
-                else
-                {
-                    return str_dup( top_string + sizeof(char *) );
-                }
+                    logpf("String with leading '^' read: %s", buf);
+                return str_dup( buf );
             }
         }
     }
@@ -5294,7 +5141,8 @@ char* bread_string( RBUFFER *rbuf )
 char* bread_string_eol( RBUFFER *rbuf )
 {
     static bool char_special[256-EOF];
-    char *plast;
+    char buf[MSL];
+    char *plast=buf;
     char c;
 #if defined(BREAD_DEBUG)
    log_string("bread_string_eol: start");
@@ -5305,13 +5153,6 @@ char* bread_string_eol( RBUFFER *rbuf )
         char_special[EOF -  EOF] = TRUE;
         char_special['\n' - EOF] = TRUE;
         char_special['\r' - EOF] = TRUE;
-    }
-    
-    plast = top_string + sizeof(char *);
-    if ( plast > &string_space[MAX_STRING - MAX_STRING_LENGTH] )
-    {
-        bug( "bread_string: MAX_STRING %d exceeded.", MAX_STRING );
-        exit( 1 );
     }
     
     /*
@@ -5346,48 +5187,8 @@ char* bread_string_eol( RBUFFER *rbuf )
             
         case '\n':  case '\r':
             {
-                union
-                {
-                    char *      pc;
-                    char        rgc[sizeof(char *)];
-                } u1;
-                int ic;
-                int iHash;
-                char *pHash;
-                char *pHashPrev;
-                char *pString;
-                
                 plast[-1] = '\0';
-                iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
-                for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
-                {
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        u1.rgc[ic] = pHash[ic];
-                    pHashPrev = u1.pc;
-                    pHash    += sizeof(char *);
-                    
-                    if ( top_string[sizeof(char *)] == pHash[0]
-                        &&   !strcmp( top_string+sizeof(char *)+1, pHash+1 ) )
-                        return pHash;
-                }
-                
-                if ( fBootDb )
-                {
-                    pString             = top_string;
-                    top_string          = plast;
-                    u1.pc               = string_hash[iHash];
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        pString[ic] = u1.rgc[ic];
-                    string_hash[iHash]  = pString;
-                    
-                    nAllocString += 1;
-                    sAllocString += top_string - pString;
-                    return pString + sizeof(char *);
-                }
-                else
-                {
-                    return str_dup( top_string + sizeof(char *) );
-                }
+                return str_dup( buf );
             }
         }
     }

@@ -988,15 +988,23 @@ void affect_check(CHAR_DATA *ch,int where,int vector)
         }
 }
 
+AFFECT_DATA *affect_copy( AFFECT_DATA *paf )
+{
+    AFFECT_DATA *paf_new = new_affect();
+
+    memcpy( ((char *)paf_new) + sizeof(TYPE_BASE),
+            ((char *)paf) + sizeof(TYPE_BASE),
+            sizeof(AFFECT_DATA) - sizeof(TYPE_BASE) );
+    return paf_new;
+}
+
 /*
  * Give an affect to a char.
  */
 
 void affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
-    AFFECT_DATA *paf_new = new_affect();
-    *paf_new = *paf;
-    GET_TYPE(paf_new)=type_AFFECT_DATA;
+    AFFECT_DATA *paf_new = affect_copy( paf );
 
     ch->affected = affect_insert(ch->affected, paf_new);
 
@@ -1014,13 +1022,8 @@ void affect_to_char( CHAR_DATA *ch, AFFECT_DATA *paf )
 /* give an affect to an object */
 void affect_to_obj_tagsafe(OBJ_DATA *obj, AFFECT_DATA *paf)
 {
-    AFFECT_DATA *paf_new;
+    AFFECT_DATA *paf_new = affect_copy( paf ); 
     
-    paf_new = new_affect();
-    *paf_new        = *paf;
-    GET_TYPE(paf_new)=type_AFFECT_DATA;
-
-
     obj->affected   = affect_insert(obj->affected, paf_new);
     
     /* apply any affect vectors to the object's extra_flags */
