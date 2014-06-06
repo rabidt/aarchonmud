@@ -50,6 +50,7 @@
 #include "olc.h"
 #include "buffer_util.h"
 #include "mob_stats.h"
+#include "lua_main.h"
 #include "lua_arclib.h"
 
 extern  int _filbuf     args( (FILE *) );
@@ -492,10 +493,8 @@ int  top_jail_room = -1;
 
 /*
 * Memory management.
-* Increase MAX_STRING if you have too.
 * Tune the others only if you understand what you're doing.
 */
-#define         MAX_STRING  9000000
 #define         MAX_PERM_BLOCK  131072
 /*#define         MAX_MEM_LIST    16*/
 
@@ -505,11 +504,6 @@ const int       rgSizeList  [MAX_MEM_LIST]  =
     16, 32, 64, 128, 256, 1024, 2048, 4096, 8192, 16384, 32768, 65536,
     128*1024, 256*1024, 512*1024, 1024*1024-64
 };
-
-extern int         nAllocString;
-int         sAllocString;
-extern int         nAllocPerm;
-int         sAllocPerm;
 
 /* version numbers for downward compatibility */
 #define VER_EXIT_FLAGS 1
@@ -4188,11 +4182,6 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "Rprogs    %5d\n\r", top_rprog_index);
     ptc( ch, "\n\r");
     
-    ptc( ch, "Strings %5d strings of %7d bytes (max %d).\n\r",
-        nAllocString, sAllocString, MAX_STRING );
-    
-    ptc( ch, "Perms   %5d blocks  of %7d bytes.\n\r",
-        nAllocPerm, sAllocPerm );
     ptc( ch, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
     ptc( ch, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
     ptc( ch, "\n\r");

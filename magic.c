@@ -38,6 +38,7 @@
 
 #include "warfare.h"
 #include "religion.h"
+#include "lua_main.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );

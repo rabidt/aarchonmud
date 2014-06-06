@@ -27,6 +27,7 @@
 #include "lookup.h"
 #include "buffer_util.h"
 #include "religion.h"
+#include "lua_main.h"
 
 /*
 

@@ -11,6 +11,7 @@
 #include "merc.h"
 #include "buffer_util.h"
 #include "religion.h"
+#include "lua_main.h"
 
 #define DEFINE_GOD_FUNCTION(name) bool name( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration );
 

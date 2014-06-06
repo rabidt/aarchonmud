@@ -13,6 +13,7 @@
 #include "tables.h"
 #include "lookup.h"
 #include "religion.h"
+#include "lua_main.h"
 
 /* Locals */
 DECLARE_DO_FUN(do_rstat     );

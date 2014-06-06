@@ -675,6 +675,9 @@ void arc_type_init( lua_State *LS )
     lua_newtable( LS );
     lua_setfield( LS, -2, "str_dup" );
 
+    lua_newtable( LS );
+    lua_setfield( LS, -2, "buffers" );
+
     lua_pop( LS, 1 );
 
     lua_newtable( LS );
@@ -1154,3 +1157,56 @@ int type_count( TYPE_DATA *type )
 {
     return type->count;
 }
+
+BUFFER *new_buf()
+{
+    BUFFER *buffer=alloc_mem(sizeof(BUFFER));
+    lua_getglobal( g_mud_LS, "UD_TABLES");
+    lua_getfield( g_mud_LS, -1, "buffers" );
+    lua_newtable( g_mud_LS );
+    buffer->ref=luaL_ref( g_mud_LS, -2 );
+    lua_pop( g_mud_LS, 2 );
+    return buffer;
+}
+
+void free_buf( BUFFER *buffer )
+{
+    lua_getglobal( g_mud_LS, "UD_TABLES");
+    lua_getfield( g_mud_LS, -1, "buffers" );
+    luaL_unref( g_mud_LS, -1, buffer->ref );
+    lua_pop( g_mud_LS, 2 );
+
+    free_mem(buffer, sizeof(BUFFER) );
+}
+
+bool add_buf( BUFFER *buffer, const char *string )
+{
+    lua_getglobal( g_mud_LS, "UD_TABLES");
+    lua_getfield( g_mud_LS, -1, "buffers");
+    lua_rawgeti( g_mud_LS, -1, buffer->ref );
+    size_t ind=1 + lua_objlen( g_mud_LS, -1 );
+    lua_pushstring( g_mud_LS, string );
+    lua_rawseti( g_mud_LS, -2, ind );
+    lua_pop( g_mud_LS, 3 );
+
+    return TRUE;
+}
+
+const char *buf_string( BUFFER *buffer )
+{
+    lua_getglobal( g_mud_LS, "UD_TABLES");
+    lua_getfield( g_mud_LS, -1, "buffers");
+
+    lua_getglobal( g_mud_LS, "table" );
+    lua_getfield( g_mud_LS, -1, "concat" );
+    lua_remove( g_mud_LS, -2 );
+   
+    lua_rawgeti( g_mud_LS, -2, buffer->ref );
+    lua_call( g_mud_LS, 1, 1 );
+
+    const char *string=luaL_checkstring( g_mud_LS, -1 );
+    lua_pop( g_mud_LS, 3 );
+
+    return string;
+}
+

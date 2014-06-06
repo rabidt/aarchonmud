@@ -8,6 +8,7 @@
 #include "merc.h"
 #include "interp.h"
 #include "recycle.h"
+#include "lua_main.h"
 
 #define DURATION_PERMANENT   -1
 #define DURATION_REVOKED     -2

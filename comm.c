@@ -54,6 +54,7 @@
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
+#include "lua_main.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );

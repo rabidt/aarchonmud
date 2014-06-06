@@ -25,6 +25,7 @@
 #include "recycle.h"
 #include "lookup.h"
 #include <sys/stat.h>
+#include "lua_main.h"
 
 char * mprog_type_to_name ( int type );
 

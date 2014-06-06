@@ -28,6 +28,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
+#include "lua_main.h"
 
 /*
  * MACROS AND EXTERNALS

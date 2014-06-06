@@ -31,4 +31,10 @@ extern lua_State *g_mud_LS;
 extern bool       g_LuaScriptInProgress;
 int               g_ScriptSecurity;
 int               g_LoopCheckCounter;
+
+typedef struct lua_buffer_type BUFFER;
+struct lua_buffer_type
+{
+    int ref;
+};
 #endif
