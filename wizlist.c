@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include "merc.h"
 #include "recycle.h"
+#include "lua_main.h"
 
 WIZ_DATA *wiz_list;
 

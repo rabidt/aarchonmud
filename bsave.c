@@ -43,6 +43,7 @@
 #include "buffer_util.h"
 #include "simsave.h"
 #include "religion.h"
+#include "lua_main.h"
 #include "lua_arclib.h"
 
 extern  int     _filbuf         args( (FILE *) );

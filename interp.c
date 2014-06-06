@@ -58,7 +58,6 @@ char last_command[MSL] = ""; /* Global variable to hold the last input line */
  */
 bool                fLogAll     = FALSE;
 
-int nAllocString;
 int nAllocPerm;
 
 
@@ -751,8 +750,6 @@ void interpret( CHAR_DATA *ch, char *argument )
     bool found;
     
     /*memleak additions*/
-    int string_count = nAllocString ;
-    int perm_count = nAllocPerm ;
     char cmd_copy[MAX_INPUT_LENGTH] ;
     char buf[MAX_STRING_LENGTH] ;
     strcpy(cmd_copy, argument) ;
@@ -877,31 +874,12 @@ void interpret( CHAR_DATA *ch, char *argument )
 		     ch->in_room ? ch->in_room->vnum : 0,
 		     logline);
 
-        /*
-        * Dispatch the command.
-        */
-        (*cmd_table[cmd].do_fun) ( ch, argument );
+    /*
+     * Dispatch the command.
+     */
+    (*cmd_table[cmd].do_fun) ( ch, argument );
 
-	/* memleak tracker additions*/
-#if defined(MEMCHECK_ENABLE)
-	if (string_count < nAllocString)
-	{
-	    sprintf(buf,
-	    "Memcheck : Increase in strings :: %s : %s (from %d to %d)"
-	    , ch->name, cmd_copy, string_count, nAllocString) ;
-	    wiznet(buf, NULL, NULL, WIZ_MEMCHECK,0,0) ;
-	}
-
-	if (perm_count < nAllocPerm)
-	{
-	    sprintf(buf,
-	    "Increase in perms :: %s : %s (from %d to %d)"
-	    , ch->name, cmd_copy, perm_count, nAllocPerm) ;
-	    wiznet(buf, NULL, NULL, WIZ_MEMCHECK, 0,0) ;
-	}
-#endif
-
-	/* reset variables that are only set for one command */
+    /* reset variables that are only set for one command */
 	helper_visible = FALSE;
 	ignore_invisible = FALSE;
         

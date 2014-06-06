@@ -12,6 +12,7 @@
 #include "tables.h"
 #include "lookup.h"
 #include "mob_stats.h"
+#include "lua_main.h"
 
 bool is_obj_ingame( OBJ_INDEX_DATA *obj );
 bool is_mob_ingame( MOB_INDEX_DATA *mob );

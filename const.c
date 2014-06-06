@@ -32,7 +32,6 @@
 #include "magic.h"
 #include "interp.h"
 
-extern int nAllocString;
 extern int nAllocPerm;
 
 /* item type list */

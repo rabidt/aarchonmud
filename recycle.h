@@ -124,12 +124,14 @@ MD	*find_memory args( (MEM_DATA *memory, long id) );
 #undef MD
 
 /* buffer procedures */
-BUFFER     * new_buf      args( (void) );
+#if 0
 BUFFER     * new_buf_size args( (int size) );
 void         free_buf     args( (BUFFER *buffer) );
 bool         add_buf      args( (BUFFER *buffer, char *string) );
 void         clear_buf    args( (BUFFER *buffer) );
 char       * buf_string   args( (BUFFER *buffer) );
+
+#endif
 HELP_AREA  * new_had		  args( (void) );
 HELP_DATA  * new_help	  args( (void) );
 SORT_TABLE * new_sort     args( (void) );

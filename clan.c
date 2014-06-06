@@ -16,6 +16,7 @@
 #include "recycle.h"
 #include "buffer_util.h"
 #include "simsave.h"
+#include "lua_main.h"
 
 /* Locals */
 void load_clan_file (const char *filename);

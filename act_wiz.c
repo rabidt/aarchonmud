@@ -37,6 +37,7 @@
 #include "magic.h"
 #include "simsave.h"
 #include "buffer_util.h"
+#include "lua_main.h"
 
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );

@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include "merc.h"
 #include "recycle.h"
+#include "lua_main.h"
 
 BAN_DATA *ban_list;
 

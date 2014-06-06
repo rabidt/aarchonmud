@@ -40,6 +40,7 @@
 #include "lookup.h"
 #include "interp.h"
 #include "religion.h"
+#include "lua_main.h"
 #include "lua_scripting.h"
 
 bool commen_wear_pos( tflag wear_flag1, tflag wear_flag2 );

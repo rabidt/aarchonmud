@@ -14,6 +14,7 @@ Version date: 1/31/2013
 #include <stdlib.h>
 #include "merc.h"
 #include "tables.h"
+#include "lua_main.h"
 
 
 #define MAX_COMM_HISTORY 70

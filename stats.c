@@ -8,6 +8,7 @@
 #include "magic.h"
 #include "recycle.h"
 #include "tables.h"
+#include "lua_main.h"
 
 void take_default_stats args((CHAR_DATA *ch));
 void get_random_stats args((CHAR_DATA *ch));

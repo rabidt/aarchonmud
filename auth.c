@@ -47,6 +47,7 @@
 #endif
 #include <string.h>
 #include "merc.h"
+#include "lua_main.h"
 
 
 /* Function declarations */

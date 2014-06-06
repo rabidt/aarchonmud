@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include "merc.h"
 #include "warfare.h"
+#include "lua_main.h"
 #include "lua_scripting.h"
 
 ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnum);
