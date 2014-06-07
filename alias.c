@@ -49,7 +49,7 @@ void punish_spam()
 }
 
 /* does aliasing and other fun stuff */
-void substitute_alias(DESCRIPTOR_DATA *d, char *argument)
+void substitute_alias(DESCRIPTOR_DATA *d, const char *argument)
 {
     CHAR_DATA *ch;
     char buf[MAX_STRING_LENGTH],prefix[MAX_INPUT_LENGTH],name[MAX_INPUT_LENGTH];
