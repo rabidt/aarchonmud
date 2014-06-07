@@ -861,6 +861,8 @@ void mobile_update( void )
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
     EXIT_DATA *pexit;
+    OBJ_DATA *obj;
+    OBJ_DATA *obj_next;
 
     int door;
     bool success;

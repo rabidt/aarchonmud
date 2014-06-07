@@ -239,8 +239,7 @@ void say_spell( CHAR_DATA *ch, int sn )
     for ( rch = ch->in_room->people; rch; rch = rch->next_in_room )
     {
         if ( rch != ch )
-            act((!IS_NPC(rch) && ch->class==rch->class) ? buf : buf2,
-                    ch, NULL, rch, TO_VICT );
+            act((!IS_NPC(ch) && ch->class==rch->class) ? buf : buf2, ch, NULL, rch, TO_VICT );
     }
 
     return;
