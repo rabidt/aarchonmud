@@ -3728,7 +3728,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     }
     */
 
-    sprintf( buf, "It weighs %d, and its level of power is %d.",
+    sprintf( buf, "It weighs %d pounds, and its level of power is %d.",
 	     obj->weight / 10,
 	     obj->level );
     do_say(ch, buf);
@@ -3902,7 +3902,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     }
     */
 
-    sprintf( buf, "It weighs %d, and its level of power is %d.",
+    sprintf( buf, "It weighs %d pounds, and its level of power is %d.",
 	     obj->weight / 10,
 	     obj->level );
     do_say(ch, buf);
