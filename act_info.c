@@ -1304,9 +1304,10 @@ void do_prompt( CHAR_DATA *ch, const char *argument)
         strcpy( buf, PROMPT_DEFAULT );     
     else
     {
-        if ( strlen_color(argument) > MAX_PROMPT_LENGTH )
+        strcpy( buf, argument );
+        if ( strlen_color(buf) > MAX_PROMPT_LENGTH )
         {
-            for( temp = argument; *temp != '/0'; temp++ )
+            for( temp = buf; *temp != '/0'; temp++ )
             {
                 chars++;
                 if( *temp == '{' )
@@ -1314,11 +1315,10 @@ void do_prompt( CHAR_DATA *ch, const char *argument)
                 else noncol++;
                 if( noncol > MAX_PROMPT_LENGTH )  break;
             }
-            argument[chars] = '\0';
+            buf[chars] = '\0';
 
         }
         
-        strcpy( buf, argument );
         smash_tilde( buf );
         if (str_suffix("%c",buf))
             strcat(buf," ");
@@ -3381,15 +3381,15 @@ void do_title( CHAR_DATA *ch, const char *argument)
     
     if ( strlen_color(argument) > 45 )
     {
-	for( temp = argument; *temp != '\0' ; temp++ )
-	{
-	    chars++;
-	    if( *temp == '{' )
-		noncol--;
-	    else noncol++;
-	    if( noncol > 45 )  break;
-	}
-	argument[chars] = '\0';
+        for( temp = argument; *temp != '\0' ; temp++ )
+        {
+            chars++;
+            if( *temp == '{' )
+                noncol--;
+            else noncol++;
+            if( noncol > 45 )  break;
+        }
+        argument[chars] = '\0';
     }
     
     smash_beep_n_blink( argument );
