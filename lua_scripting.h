@@ -39,20 +39,20 @@ bool op_percent_trigger(
         OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2,
         int type );
         
-void do_lboard( CHAR_DATA *ch, char *argument);
-void do_lhistory( CHAR_DATA *ch, char *argument);
+void do_lboard( CHAR_DATA *ch, const char *argument);
+void do_lhistory( CHAR_DATA *ch, const char *argument);
 void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment );
 void save_lboards();
 void load_lboards();
 void check_lboard_reset();
-void do_lua(CHAR_DATA *ch, char *argument);
+void do_lua( CHAR_DATA *ch, const char *argument);
 bool run_lua_interpret( DESCRIPTOR_DATA *d );
 void lua_unregister_desc( DESCRIPTOR_DATA *d );
 void unregister_lua( void *ptr );
 void run_delayed_function( TIMER_NODE *tmr );
 void open_lua();
 bool run_lua_interpret( DESCRIPTOR_DATA *d);
-void do_luai( CHAR_DATA *ch, char *argument);
+void do_luai( CHAR_DATA *ch, const char *argument);
 
 int GetLuaMemoryUsage();
 int GetLuaGameObjectCount();

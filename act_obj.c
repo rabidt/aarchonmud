@@ -316,7 +316,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
 
 
 
-void do_get( CHAR_DATA *ch, char *argument )
+void do_get( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -511,7 +511,7 @@ void do_get( CHAR_DATA *ch, char *argument )
 
 
 
-void do_put( CHAR_DATA *ch, char *argument )
+void do_put( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -708,7 +708,7 @@ void do_put( CHAR_DATA *ch, char *argument )
 
 
 
-void do_drop( CHAR_DATA *ch, char *argument )
+void do_drop( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -913,7 +913,7 @@ void do_drop( CHAR_DATA *ch, char *argument )
 
 
 
-void do_give( CHAR_DATA *ch, char *argument )
+void do_give( CHAR_DATA *ch, const char *argument)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -1187,7 +1187,7 @@ int flag_add_malus( OBJ_DATA *weapon )
 }
 
 /* for poisoning weapons and food/drink */
-void do_envenom(CHAR_DATA *ch, char *argument)
+void do_envenom( CHAR_DATA *ch, const char *argument)
 {
     OBJ_DATA *obj;
     AFFECT_DATA af; 
@@ -1295,7 +1295,7 @@ void do_envenom(CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_paralysis_poison(CHAR_DATA *ch, char *argument)
+void do_paralysis_poison( CHAR_DATA *ch, const char *argument)
 {
     OBJ_DATA *obj;
     AFFECT_DATA af; 
@@ -1360,7 +1360,7 @@ void do_paralysis_poison(CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_fill( CHAR_DATA *ch, char *argument )
+void do_fill( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
@@ -1418,7 +1418,7 @@ void do_fill( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_pour (CHAR_DATA *ch, char *argument)
+void do_pour( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_STRING_LENGTH],buf[MAX_STRING_LENGTH];
     OBJ_DATA *out, *in;
@@ -1545,7 +1545,7 @@ void do_pour (CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_drink( CHAR_DATA *ch, char *argument )
+void do_drink( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -1677,7 +1677,7 @@ void do_drink( CHAR_DATA *ch, char *argument )
 
 
 
-void do_eat( CHAR_DATA *ch, char *argument )
+void do_eat( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -1782,7 +1782,7 @@ void do_eat( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_smoke( CHAR_DATA *ch, char *argument )
+void do_smoke( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -2226,7 +2226,7 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
 }
 
 
-void do_wear( CHAR_DATA *ch, char *argument )
+void do_wear( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -2270,7 +2270,7 @@ void do_wear( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_remove( CHAR_DATA *ch, char *argument )
+void do_remove( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -2324,7 +2324,7 @@ int get_obj_faith_worth( OBJ_DATA *obj )
     return worth;
 }
 
-void do_sacrifice( CHAR_DATA *ch, char *argument )
+void do_sacrifice( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
@@ -2500,7 +2500,7 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
 
 
 
-void do_quaff( CHAR_DATA *ch, char *argument )
+void do_quaff( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -2554,7 +2554,7 @@ void do_quaff( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_recite( CHAR_DATA *ch, char *argument )
+void do_recite( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -2634,7 +2634,7 @@ void do_recite( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_brandish( CHAR_DATA *ch, char *argument )
+void do_brandish( CHAR_DATA *ch, const char *argument)
 {
     OBJ_DATA *staff;
 
@@ -2701,7 +2701,7 @@ void do_brandish( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_zap( CHAR_DATA *ch, char *argument )
+void do_zap( CHAR_DATA *ch, const char *argument)
 {
     OBJ_DATA *wand;
 
@@ -2772,7 +2772,7 @@ void do_zap( CHAR_DATA *ch, char *argument )
 }
 
 /* Steal command, gutted and reworked 7/97 by Rimbol */
-void do_steal( CHAR_DATA *ch, char *argument )
+void do_steal( CHAR_DATA *ch, const char *argument)
 {
     char buf  [MAX_STRING_LENGTH];
     char arg1 [MAX_INPUT_LENGTH];
@@ -3220,7 +3220,7 @@ int haggle_cost( CHAR_DATA *ch, int cost, int base_cost )
     return new_cost;
 }
 
-void do_buy( CHAR_DATA *ch, char *argument )
+void do_buy( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     int cost,roll, chance;
@@ -3492,7 +3492,7 @@ void do_buy( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_list( CHAR_DATA *ch, char *argument )
+void do_list( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
 
@@ -3633,7 +3633,7 @@ void do_list( CHAR_DATA *ch, char *argument )
 
 
 
-void do_sell( CHAR_DATA *ch, char *argument )
+void do_sell( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -3744,7 +3744,7 @@ void do_sell( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_value( CHAR_DATA *ch, char *argument )
+void do_value( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -3796,7 +3796,7 @@ void do_value( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_browse( CHAR_DATA *ch, char *argument )
+void do_browse( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *keeper;
@@ -3852,7 +3852,7 @@ void describe_item( CHAR_DATA *ch, OBJ_DATA* obj )
 /* This donate command is derived from the publicly available snippet, 
    modified by Brian Castle to work with donation rooms.  The
    original code was not signed, and the original author is unknown. */
-void do_donate( CHAR_DATA *ch, char *argument)
+void do_donate( CHAR_DATA *ch, const char *argument)
 {
     OBJ_DATA *obj;
 
@@ -3946,7 +3946,7 @@ void do_donate( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_balance ( CHAR_DATA *ch, char *argument )
+void do_balance( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
 
@@ -3958,7 +3958,7 @@ void do_balance ( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_deposit ( CHAR_DATA *ch, char *argument )
+void do_deposit( CHAR_DATA *ch, const char *argument)
 {
     CHAR_DATA *banker;
     char arg[MAX_INPUT_LENGTH];
@@ -4047,7 +4047,7 @@ void do_deposit ( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_withdraw ( CHAR_DATA *ch, char *argument )
+void do_withdraw( CHAR_DATA *ch, const char *argument)
 {
     CHAR_DATA *banker;
     char arg[MAX_INPUT_LENGTH];
@@ -4113,7 +4113,7 @@ void do_withdraw ( CHAR_DATA *ch, char *argument )
 }
 
 /* Explosives ala Rimbol.  Original idea from Wurm. */
-void do_ignite( CHAR_DATA *ch, char *argument )
+void do_ignite( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -4235,7 +4235,7 @@ void check_bomb( CHAR_DATA *ch, OBJ_DATA *obj )
 }
 
 
-void do_second (CHAR_DATA *ch, char *argument)
+void do_second( CHAR_DATA *ch, const char *argument)
 {
 
     /* Code originally written by Erwin S. Andreason */
@@ -4370,7 +4370,7 @@ void merge_arrows( CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2 )
 }
 
 /* Bobble: combine two objects */
-void do_merge( CHAR_DATA *ch, char *argument )
+void do_merge( CHAR_DATA *ch, const char *argument)
 {
     OBJ_DATA *obj1, *obj2, *combine_obj;
     OBJ_INDEX_DATA *pObjIndex;
@@ -4446,7 +4446,7 @@ void do_merge( CHAR_DATA *ch, char *argument )
 }
 
 /* Bobble: sire a vampire follower from a corpse */
-void do_sire( CHAR_DATA *ch, char *argument )
+void do_sire( CHAR_DATA *ch, const char *argument)
 {
     OBJ_DATA *corpse;
     CHAR_DATA *mob;

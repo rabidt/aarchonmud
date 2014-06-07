@@ -3011,7 +3011,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 
 
 
-void do_finger(CHAR_DATA *ch, char *argument)
+void do_finger( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     BUFFER *output;
@@ -3315,7 +3315,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
 }
 
 /* finger command by Smote, added to and made pretty by Quirky :P */
-void do_oldfinger(CHAR_DATA *ch, char *argument)
+void do_oldfinger( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     BUFFER *output;

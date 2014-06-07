@@ -85,15 +85,15 @@ static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num);
 int unread_notes (CHAR_DATA *ch, BOARD_DATA *board);
 static bool next_board (CHAR_DATA *ch);
 
-static void do_nwrite (CHAR_DATA *ch, char *argument);
-static void do_nread (CHAR_DATA *ch, char *argument);
-static void do_nremove (CHAR_DATA *ch, char *argument);
-static void do_nlist (CHAR_DATA *ch, char *argument);
-static void do_ncatchup (CHAR_DATA *ch, char *argument);
+static void do_nwrite( CHAR_DATA *ch, const char *argument);
+static void do_nread( CHAR_DATA *ch, const char *argument);
+static void do_nremove( CHAR_DATA *ch, const char *argument);
+static void do_nlist( CHAR_DATA *ch, const char *argument);
+static void do_ncatchup( CHAR_DATA *ch, const char *argument);
 static void do_ncatchup_all (CHAR_DATA *ch);
 
-void do_note (CHAR_DATA *ch, char *argument);
-void do_board (CHAR_DATA *ch, char *argument);
+void do_note( CHAR_DATA *ch, const char *argument);
+void do_board( CHAR_DATA *ch, const char *argument);
 
 void handle_con_note_to (DESCRIPTOR_DATA *d, char * argument);
 void handle_con_note_subject (DESCRIPTOR_DATA *d, char * argument);
@@ -551,7 +551,7 @@ int unread_notes (CHAR_DATA *ch, BOARD_DATA *board)
  */
 
 /* Start writing a note */
-static void do_nwrite (CHAR_DATA *ch, char *argument)
+static void do_nwrite( CHAR_DATA *ch, const char *argument)
 {
    char *strtime;
    char buf[200];
@@ -651,7 +651,7 @@ static void do_nwrite (CHAR_DATA *ch, char *argument)
 
 
 /* Read next note in current group. If no more notes, go to next board */
-static void do_nread (CHAR_DATA *ch, char *argument)
+static void do_nread( CHAR_DATA *ch, const char *argument)
 {
    NOTE_DATA *p;
    int count = 0, number;
@@ -701,7 +701,7 @@ static void do_nread (CHAR_DATA *ch, char *argument)
 }
 
 /* Remove a note */
-static void do_nremove (CHAR_DATA *ch, char *argument)
+static void do_nremove( CHAR_DATA *ch, const char *argument)
 {
    NOTE_DATA *p;
    
@@ -734,7 +734,7 @@ static void do_nremove (CHAR_DATA *ch, char *argument)
 
 /* List all notes or if argument given, list N of the last notes */
 /* Shows REAL note numbers! */
-static void do_nlist (CHAR_DATA *ch, char *argument)
+static void do_nlist( CHAR_DATA *ch, const char *argument)
 {
    int count= 0, show = 0, num = 0, has_shown = 0;
    time_t last_note;
@@ -790,7 +790,7 @@ static void do_nlist (CHAR_DATA *ch, char *argument)
 }
 
 /* catch up with some notes */
-static void do_ncatchup (CHAR_DATA *ch, char *argument)
+static void do_ncatchup( CHAR_DATA *ch, const char *argument)
 {
     if (argument[0] != '\0')
     {
@@ -835,7 +835,7 @@ static void do_ncatchup_all ( CHAR_DATA *ch)
 }
 
 /* Dispatch function for backwards compatibility */
-void do_note (CHAR_DATA *ch, char *argument)
+void do_note( CHAR_DATA *ch, const char *argument)
 {
    char arg[MAX_INPUT_LENGTH];
    
@@ -891,7 +891,7 @@ void do_note (CHAR_DATA *ch, char *argument)
 /* Show all accessible boards with their numbers of unread messages OR
    change board. New board name can be given as a number or as a name (e.g.
    board personal or board 4 */
-void do_board (CHAR_DATA *ch, char *argument)
+void do_board( CHAR_DATA *ch, const char *argument)
 {
    int i, count, number;
    char buf[200];

@@ -486,7 +486,7 @@ int construct_train_cost( int from, int to )
     return total;
 }
 
-void do_train( CHAR_DATA *ch, char *argument )
+void do_train( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
@@ -786,7 +786,7 @@ void compute_mob_stats(CHAR_DATA *mob)
     return;
 }
 
-void do_stats( CHAR_DATA *ch, char *argument )
+void do_stats( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     int i, j, race;
@@ -945,7 +945,7 @@ void show_remort_bonus( CHAR_DATA *ch, int race )
     send_to_char( "\n\r", ch );
 }
 
-void do_etls( CHAR_DATA *ch, char *argument )
+void do_etls( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char racebuf[5];
@@ -1094,7 +1094,7 @@ void do_etls( CHAR_DATA *ch, char *argument )
 
 
 DECLARE_DO_FUN( do_raceskills);
-void do_showrace(CHAR_DATA *ch, char *argument)
+void do_showrace( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     int race, part;
@@ -1220,7 +1220,7 @@ void show_pc_race_ratings( CHAR_DATA *ch, int race )
     send_to_char( buf, ch );        
 }
 
-void do_racelist(CHAR_DATA *ch, char *argument)
+void do_racelist( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     int i, j=0, tier = -1;

@@ -278,7 +278,7 @@ int delete_clanwar_node(CLANWAR_DATA *node)
 
 
 /*  ==== This is delicate code - modify at your own risk ==== */
-void do_clanwar(CHAR_DATA *ch, char *argument)
+void do_clanwar( CHAR_DATA *ch, const char *argument)
 {
    
    char arg1[MAX_STRING_LENGTH];

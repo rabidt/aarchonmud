@@ -180,7 +180,7 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
-void do_lboard( CHAR_DATA *ch, char *argument)
+void do_lboard( CHAR_DATA *ch, const char *argument)
 {
     lua_getglobal(g_mud_LS, "do_lboard");
     make_CH(g_mud_LS, ch);
@@ -193,7 +193,7 @@ void do_lboard( CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_lhistory( CHAR_DATA *ch, char *argument)
+void do_lhistory( CHAR_DATA *ch, const char *argument)
 {
     lua_getglobal(g_mud_LS, "do_lhistory");
     make_CH(g_mud_LS, ch);
@@ -452,7 +452,7 @@ void lua_unregister_desc (DESCRIPTOR_DATA *d)
     }
 }
 
-void do_luai( CHAR_DATA *ch, char *argument)
+void do_luai( CHAR_DATA *ch, const char *argument)
 {
     if IS_NPC(ch)
         return;
@@ -672,7 +672,7 @@ void open_lua ()
 
 }  /* end of open_lua */
 
-void do_scriptdump( CHAR_DATA *ch, char *argument )
+void do_scriptdump( CHAR_DATA *ch, const char *argument)
 {
     lua_getglobal(g_mud_LS, "do_scriptdump");
     make_CH(g_mud_LS, ch);
@@ -719,7 +719,7 @@ static int L_wizhelp( LS )
     return 0;
 }
      
-void do_luaquery( CHAR_DATA *ch, char *argument)
+void do_luaquery( CHAR_DATA *ch, const char *argument)
 {
     lua_getglobal( g_mud_LS, "do_luaquery");
     make_CH(g_mud_LS, ch);
@@ -732,7 +732,7 @@ void do_luaquery( CHAR_DATA *ch, char *argument)
     }
 }    
 
-void do_wizhelp( CHAR_DATA *ch, char *argument )
+void do_wizhelp( CHAR_DATA *ch, const char *argument)
 {
     lua_pushcfunction(g_mud_LS, L_wizhelp);
     make_CH(g_mud_LS, ch);
@@ -795,7 +795,7 @@ static int L_charloadtest( lua_State *LS )
 
 }
         
-void do_charloadtest( CHAR_DATA *ch, char *argument )
+void do_charloadtest( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MIL];
     char arg2[MIL];
@@ -904,7 +904,7 @@ void load_luaconfig( CHAR_DATA *ch, const char *text )
     }
 }
 
-void do_luaconfig( CHAR_DATA *ch, char *argument)
+void do_luaconfig( CHAR_DATA *ch, const char *argument)
 {
     lua_getglobal(g_mud_LS, "do_luaconfig");
     make_CH(g_mud_LS, ch);
@@ -964,7 +964,7 @@ void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines)
     }
 }
 
-void do_luareset( CHAR_DATA *ch, char *argument)
+void do_luareset( CHAR_DATA *ch, const char *argument)
 {
     lua_getglobal(g_mud_LS, "do_luareset");
     make_CH(g_mud_LS, ch);
@@ -988,7 +988,7 @@ void lua_arcgc()
     }
 }
 
-void do_alist(CHAR_DATA *ch, char *argument)
+void do_alist( CHAR_DATA *ch, const char *argument)
 {
     lua_getglobal(g_mud_LS, "do_alist");
     make_CH(g_mud_LS, ch);
@@ -1001,7 +1001,7 @@ void do_alist(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_mudconfig( CHAR_DATA *ch, char *argument)
+void do_mudconfig( CHAR_DATA *ch, const char *argument)
 {
     lua_getglobal(g_mud_LS, "do_mudconfig");
     make_CH(g_mud_LS, ch);

@@ -23,8 +23,8 @@ int ftag_table[4][2]=
 void show_ftag_status( CHAR_DATA *ch, bool final );
 void give_ftag_reward(int team, int amount);
 void check_team_frozen ( CHAR_DATA *ch );
-void do_ftag( CHAR_DATA *ch, char *arg );
-void do_look( CHAR_DATA *ch, char *arg );
+void do_ftag( CHAR_DATA *ch, const char *argument);
+void do_look( CHAR_DATA *ch, const char *argument);
 
 int ftag_reward = 0;
 int ftag_chamber=0;
@@ -33,7 +33,7 @@ bool going=FALSE;
 
 DECLARE_DO_FUN( do_transfer );
 
-void do_red( CHAR_DATA *ch, char *argument )
+void do_red( CHAR_DATA *ch, const char *argument)
 {
     DESCRIPTOR_DATA *d;
     char buf [MAX_STRING_LENGTH];
@@ -70,7 +70,7 @@ void do_red( CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_blue( CHAR_DATA *ch, char *argument )
+void do_blue( CHAR_DATA *ch, const char *argument)
 {
     DESCRIPTOR_DATA *d;
     char buf [MAX_STRING_LENGTH];
@@ -216,7 +216,7 @@ void ftag_reset_player(CHAR_DATA *ch, char *argument)
     
 }
 
-void do_ftag( CHAR_DATA *ch, char *argument )
+void do_ftag( CHAR_DATA *ch, const char *argument)
 {
     DESCRIPTOR_DATA *d;
     char arg1 [MAX_INPUT_LENGTH];
@@ -478,7 +478,7 @@ void show_ftag_status( CHAR_DATA *ch, bool final )
     return;
 }
 
-void do_tag( CHAR_DATA *ch, char *argument )
+void do_tag( CHAR_DATA *ch, const char *argument)
 {
     char arg [MAX_INPUT_LENGTH], temp[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;

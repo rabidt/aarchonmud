@@ -118,7 +118,7 @@ struct crafting_type crafting_table[] =
 
 
 
-void do_supplies( CHAR_DATA *ch, char *argument )
+void do_supplies( CHAR_DATA *ch, const char *argument)
 {
     int i;
     char buf[MSL], *rarity;
@@ -146,7 +146,7 @@ void do_supplies( CHAR_DATA *ch, char *argument )
 /* Updated November 2012 - Includes a second argument so players can specifiy
 whether or not they want Physical or Mental stats - Astark */
 
-void do_craft( CHAR_DATA *ch, char *argument )
+void do_craft( CHAR_DATA *ch, const char *argument)
 {
     int i, j, skill, craft, type;
     char buf[MSL];
@@ -272,7 +272,7 @@ void do_craft( CHAR_DATA *ch, char *argument )
 
 
 
-void do_extract( CHAR_DATA *ch, char *argument)
+void do_extract( CHAR_DATA *ch, const char *argument)
 {
     int mtable, chance2, material, skill;
     OBJ_DATA *obj;

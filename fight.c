@@ -5980,7 +5980,7 @@ int get_exit_count( CHAR_DATA *ch )
     return count;
 }
 
-void do_flee( CHAR_DATA *ch, char *argument )
+void do_flee( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH], buf[80];
     ROOM_INDEX_DATA *was_in, *now_in;
@@ -6372,7 +6372,7 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
   return victim;
 }
 
-void do_kill( CHAR_DATA *ch, char *argument )
+void do_kill( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -6444,7 +6444,7 @@ void do_kill( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_die( CHAR_DATA *ch, char *argument )
+void do_die( CHAR_DATA *ch, const char *argument)
 {
     if( ch->hit > 0 || NOT_AUTHED(ch) )
     {
@@ -6473,7 +6473,7 @@ void do_die( CHAR_DATA *ch, char *argument )
 
 // players may want to stop raging to preserve moves
 /*
-void do_calm( CHAR_DATA *ch, char *argument )
+void do_calm( CHAR_DATA *ch, const char *argument)
 {
     if ( !IS_AFFECTED(ch, AFF_BERSERK) )
     {
@@ -6512,13 +6512,13 @@ void do_calm( CHAR_DATA *ch, char *argument )
 }
 */
 
-void do_murde( CHAR_DATA *ch, char *argument )
+void do_murde( CHAR_DATA *ch, const char *argument)
 {
     send_to_char( "If you want to MURDER, spell it out.\n\r", ch );
     return;
 }
 
-void do_murder( CHAR_DATA *ch, char *argument )
+void do_murder( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -6696,7 +6696,7 @@ void check_stance(CHAR_DATA *ch)
 }
 
 
-void do_stance (CHAR_DATA *ch, char *argument)
+void do_stance( CHAR_DATA *ch, const char *argument)
 {
     int i;
     bool is_pet;
@@ -6925,7 +6925,7 @@ int get_pkgrade_level( int pts )
 }
 
 #ifdef TESTER
-void do_fstat( CHAR_DATA *ch, char *argument)
+void do_fstat( CHAR_DATA *ch, const char *argument)
 {
     if ( argument[0] != '\0' && !str_prefix( argument, "clear" ) )
     {

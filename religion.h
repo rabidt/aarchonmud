@@ -158,6 +158,6 @@ bool is_relic_obj( OBJ_DATA *obj );
 void free_relic( OBJ_DATA *obj );
 bool is_religion_member( CHAR_DATA *ch );
 double adjust_align_change( CHAR_DATA *ch, double change );
-void do_religion( CHAR_DATA *ch, char *argument );
+void do_religion( CHAR_DATA *ch, const char *argument);
 
 #endif

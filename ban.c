@@ -248,17 +248,17 @@ void ban_site(CHAR_DATA *ch, char *argument, bool fPerm)
     return;
 }
 
-void do_ban(CHAR_DATA *ch, char *argument)
+void do_ban( CHAR_DATA *ch, const char *argument)
 {
     ban_site(ch,argument,FALSE);
 }
 
-void do_permban(CHAR_DATA *ch, char *argument)
+void do_permban( CHAR_DATA *ch, const char *argument)
 {
     ban_site(ch,argument,TRUE);
 }
 
-void do_allow( CHAR_DATA *ch, char *argument )                        
+void do_allow( CHAR_DATA *ch, const char *argument)                        
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];

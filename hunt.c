@@ -423,7 +423,7 @@ bool is_wilderness( int sector )
     */
 }
 
-void do_hunt( CHAR_DATA *ch, char *argument )
+void do_hunt( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_STRING_LENGTH];
@@ -651,7 +651,7 @@ void do_hunt_relic( CHAR_DATA *ch )
 }
 
 /* 'hunts' for a room */
-void do_scout( CHAR_DATA *ch, char *argument )
+void do_scout( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_STRING_LENGTH];
@@ -891,7 +891,7 @@ void hunt_victim( CHAR_DATA *ch )
     return;
 }
 
-void do_stalk( CHAR_DATA *ch, char *argument )
+void do_stalk( CHAR_DATA *ch, const char *argument)
 {
     if ( IS_NPC(ch) )
         return;

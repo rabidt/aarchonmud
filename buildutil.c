@@ -33,7 +33,7 @@ char* first_line( char* str );
 /* show a list of all used AreaVNUMS */
 /* By The Mage */
 /* Usage of buffers, page_to_char by Brian Castle. */
-void do_fvlist (CHAR_DATA *ch, char *argument)
+void do_fvlist( CHAR_DATA *ch, const char *argument)
 {
     int i,j;
     BUFFER *buffer;
@@ -166,7 +166,7 @@ void do_fvlist (CHAR_DATA *ch, char *argument)
 
 /* Show used vnums, with descriptions.  -Brian Castle 9/98.  
    Patterned after The Mage's fvlist command. */
-void do_vlist (CHAR_DATA *ch, char *argument)
+void do_vlist( CHAR_DATA *ch, const char *argument)
 {
     BUFFER *buffer;
     char buf[2*MAX_STRING_LENGTH];
@@ -348,7 +348,7 @@ char* first_line( char* str )
  *   Syntax is simple:  openvlist
  *   Displays blocks of vnums not currently assigned to areas.
  */   
-void do_openvlist( CHAR_DATA *ch, char *argument )
+void do_openvlist( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     BUFFER *buffer;
@@ -407,7 +407,7 @@ void do_openvlist( CHAR_DATA *ch, char *argument )
 
 /* RT to replace the 3 stat commands */
 
-void do_stat ( CHAR_DATA *ch, char *argument )
+void do_stat( CHAR_DATA *ch, const char *argument)
 {
    char arg[MAX_INPUT_LENGTH];
    char *string;
@@ -474,7 +474,7 @@ void do_stat ( CHAR_DATA *ch, char *argument )
 
 
 
-void do_rstat( CHAR_DATA *ch, char *argument )
+void do_rstat( CHAR_DATA *ch, const char *argument)
 {
 	char buf[MAX_STRING_LENGTH];
 	char arg[MAX_INPUT_LENGTH];
@@ -578,7 +578,7 @@ void do_rstat( CHAR_DATA *ch, char *argument )
 
 
 
-void do_ostat( CHAR_DATA *ch, char *argument )
+void do_ostat( CHAR_DATA *ch, const char *argument)
 {
 	char buf[MAX_STRING_LENGTH];
 	char arg[MAX_INPUT_LENGTH];
@@ -913,7 +913,7 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 
 
 
-void do_mstat( CHAR_DATA *ch, char *argument )
+void do_mstat( CHAR_DATA *ch, const char *argument)
 {
 	char buf[MAX_STRING_LENGTH];
 	char arg[MAX_INPUT_LENGTH];
@@ -1233,7 +1233,7 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 
 /* ofind and mfind replaced with vnum, vnum skill also added */
 
-void do_vnum(CHAR_DATA *ch, char *argument)
+void do_vnum( CHAR_DATA *ch, const char *argument)
 {
 	char arg[MAX_INPUT_LENGTH];
 	char *string;
@@ -1291,7 +1291,7 @@ bool is_substr( char *sub, char *str )
 }
 
 /* find mprog with given substring */
-void do_mpfind( CHAR_DATA *ch, char *argument )
+void do_mpfind( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     PROG_CODE *mprog;
@@ -1319,7 +1319,7 @@ void do_mpfind( CHAR_DATA *ch, char *argument )
 }
 
 /* find links into or out of an area */
-void do_lfind( CHAR_DATA *ch, char *argument )
+void do_lfind( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     BUFFER *buffer;
@@ -1416,7 +1416,7 @@ void do_lfind( CHAR_DATA *ch, char *argument )
     free_buf( buffer );
 }
 
-void do_mfind( CHAR_DATA *ch, char *argument )
+void do_mfind( CHAR_DATA *ch, const char *argument)
 {
 	extern int top_mob_index;
 	char buf[MAX_STRING_LENGTH];
@@ -1467,7 +1467,7 @@ void do_mfind( CHAR_DATA *ch, char *argument )
 
 
 
-void do_ofind( CHAR_DATA *ch, char *argument )
+void do_ofind( CHAR_DATA *ch, const char *argument)
 {
 	extern int top_obj_index;
 	char buf[MAX_STRING_LENGTH];
@@ -1517,7 +1517,7 @@ void do_ofind( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_owhere(CHAR_DATA *ch, char *argument )
+void do_owhere( CHAR_DATA *ch, const char *argument)
 {
 	char buf[MAX_INPUT_LENGTH];
 	BUFFER *buffer;
@@ -1584,7 +1584,7 @@ void do_owhere(CHAR_DATA *ch, char *argument )
 }
 
 
-void do_mwhere( CHAR_DATA *ch, char *argument )
+void do_mwhere( CHAR_DATA *ch, const char *argument)
 {
 	char buf[MAX_STRING_LENGTH];
 	BUFFER *buffer;
@@ -1659,7 +1659,7 @@ void do_mwhere( CHAR_DATA *ch, char *argument )
 
 /* RT set replaces sset, mset, oset, and rset */
 
-void do_set( CHAR_DATA *ch, char *argument )
+void do_set( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     
@@ -1712,7 +1712,7 @@ void do_set( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sset( CHAR_DATA *ch, char *argument )
+void do_sset( CHAR_DATA *ch, const char *argument)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -2326,7 +2326,7 @@ struct
 };
    
 
-void do_mset( CHAR_DATA *ch, char *argument )
+void do_mset( CHAR_DATA *ch, const char *argument)
 {
     if (IS_NPC(ch))
         return;
@@ -2432,7 +2432,7 @@ void do_mset( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_oset( CHAR_DATA *ch, char *argument )
+void do_oset( CHAR_DATA *ch, const char *argument)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -2573,7 +2573,7 @@ void do_oset( CHAR_DATA *ch, char *argument )
 
 
 
-void do_rset( CHAR_DATA *ch, char *argument )
+void do_rset( CHAR_DATA *ch, const char *argument)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -2651,7 +2651,7 @@ void clone_warning( CHAR_DATA *ch, AREA_DATA *area )
 }
 
 /* find 'foreign' resets and mprogs not belonging to area */
-void do_frfind( CHAR_DATA *ch, char *argument )
+void do_frfind( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     ROOM_INDEX_DATA *room;

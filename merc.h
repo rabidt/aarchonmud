@@ -133,7 +133,7 @@ typedef struct mem_file_type MEMFILE;
 /*
  * Function types.
  */
-typedef void DO_FUN args( ( CHAR_DATA *ch, char *argument ) );
+typedef void DO_FUN args( ( CHAR_DATA *ch, const char *argument ) );
 typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
 typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo,
 				int target ) );
@@ -4620,7 +4620,7 @@ int		check_anger		args((CHAR_DATA *ch, CHAR_DATA *victim));
 
 bool chance(int num);
 bool per_chance(int num);
-void do_quest args((CHAR_DATA *ch, char *argument)); 
+void do_quest args((CHAR_DATA *ch, const char *argument)); 
 void quest_update   args(( void ));   
 
 /* update.c */

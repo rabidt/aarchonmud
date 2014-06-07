@@ -19,15 +19,15 @@ typedef struct war_data WAR_DATA;
 
 extern WAR_DATA war;
 
-void do_startwar( CHAR_DATA *ch, char *argument );
-void do_stopwar( CHAR_DATA *ch, char *argument );
-void do_combat( CHAR_DATA *ch, char *argument );
-void do_warstatus( CHAR_DATA *ch, char *argument );
+void do_startwar( CHAR_DATA *ch, const char *argument);
+void do_stopwar( CHAR_DATA *ch, const char *argument);
+void do_combat( CHAR_DATA *ch, const char *argument);
+void do_warstatus( CHAR_DATA *ch, const char *argument);
 void war_update( void );
 void warfare args( ( char *argument ) );
-void do_nowar( CHAR_DATA *ch, char *argument );
+void do_nowar( CHAR_DATA *ch, const char *argument);
 void add_war_kills( CHAR_DATA *ch );
-void do_warsit( CHAR_DATA *ch, char *argument );
+void do_warsit( CHAR_DATA *ch, const char *argument);
 void check_war_win( void );
 void war_remove( CHAR_DATA *ch, bool killed );
 bool is_same_team( CHAR_DATA *ch1, CHAR_DATA *ch2 );

@@ -635,7 +635,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 /*
  * Shows to the character what resets in this room.
  */
-void do_rlook (CHAR_DATA *ch, char *argument)
+void do_rlook( CHAR_DATA *ch, const char *argument)
 {
 	char buf[200];
 	int number = 1;
@@ -699,7 +699,7 @@ void do_rlook (CHAR_DATA *ch, char *argument)
  * rmob <mob vnum|mob keyword> [limit]
  * Default limit is 1.
  */
-void do_rmob (CHAR_DATA *ch, char *argument)
+void do_rmob( CHAR_DATA *ch, const char *argument)
 {
 	int vnum;
 	int count;
@@ -786,7 +786,7 @@ void do_rmob (CHAR_DATA *ch, char *argument)
  * Gives an item to a mob (G Reset)
  * rgive <mob-keyword> <item-vnum|item-keyword> [reboot|limit-number]
  */
-void do_rgive (CHAR_DATA *ch, char *argument)
+void do_rgive( CHAR_DATA *ch, const char *argument)
 {
 	char mob_name[MAX_INPUT_LENGTH];
 	char obj_name[MAX_INPUT_LENGTH];
@@ -885,7 +885,7 @@ void do_rgive (CHAR_DATA *ch, char *argument)
 /*
  * Adds an E Reset to a mob
  */
-void do_rwear (CHAR_DATA *ch, char *argument)
+void do_rwear( CHAR_DATA *ch, const char *argument)
 {
 	char mob_name[MAX_INPUT_LENGTH];
 	char obj_name[MAX_INPUT_LENGTH];
@@ -1099,7 +1099,7 @@ void do_rwear (CHAR_DATA *ch, char *argument)
  * if second argument is 0, the object is placed in front of the list, level
  * being 0.
  */
-void do_rdrop (CHAR_DATA *ch, char *argument)
+void do_rdrop( CHAR_DATA *ch, const char *argument)
 {
 	OBJ_INDEX_DATA* obj;
 	char arg1[MAX_INPUT_LENGTH];
@@ -1266,7 +1266,7 @@ void do_rdrop (CHAR_DATA *ch, char *argument)
  * Adds a R Reset to the room
  * rrandom <1-6|"remove">
  */
-void do_rrandom (CHAR_DATA *ch, char *argument)
+void do_rrandom( CHAR_DATA *ch, const char *argument)
 {
 	RESET_DATA *pReset;
 	int count;
@@ -1337,7 +1337,7 @@ void do_rrandom (CHAR_DATA *ch, char *argument)
 /*
  * Finds every reset in this area that involves something with the given keyword
  */
-void do_rwhere (CHAR_DATA *ch, char *argument)
+void do_rwhere( CHAR_DATA *ch, const char *argument)
 {
 	RESET_DATA *p;
 	char buf[200];
@@ -1492,7 +1492,7 @@ void do_rwhere (CHAR_DATA *ch, char *argument)
  * those too.
  * CONFIRM just removes the item no matter what.
  */
-void do_rkill (CHAR_DATA *ch, char *argument)
+void do_rkill( CHAR_DATA *ch, const char *argument)
 {
 	bool fAll = FALSE; /* set to remove recursively */
 	bool fConfirm = FALSE; /* set to confirm remove */
@@ -1705,7 +1705,7 @@ void do_rkill (CHAR_DATA *ch, char *argument)
  * Inserts a P Reset
  * rput <keyword|vnum of item> <keyword of container> [limit|"reboot"]
  */
-void do_rput (CHAR_DATA *ch, char *argument)
+void do_rput( CHAR_DATA *ch, const char *argument)
 {
 	char item_name[MAX_INPUT_LENGTH];
 	char container_name[MAX_INPUT_LENGTH]; 
@@ -1864,7 +1864,7 @@ void do_rput (CHAR_DATA *ch, char *argument)
  * D <Direction> <open|close|lock|magicclose|magiclock|"remove">
  */
 
-void do_rdoor (CHAR_DATA *ch, char *argument)
+void do_rdoor( CHAR_DATA *ch, const char *argument)
 {
 	char dir_str[MAX_INPUT_LENGTH];
 	char buf[100];
@@ -1968,7 +1968,7 @@ void do_rdoor (CHAR_DATA *ch, char *argument)
  * Find every exit/container requiring this given key
  *  findlock <key-vnum|key-keyword>
  */
-void do_findlock (CHAR_DATA *ch, char *argument)
+void do_findlock( CHAR_DATA *ch, const char *argument)
 {
 	OBJ_INDEX_DATA *obj, *container;
 	char buf [MAX_STRING_LENGTH];

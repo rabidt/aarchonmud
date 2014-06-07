@@ -4348,7 +4348,7 @@ void do_areas( CHAR_DATA *ch )
     return;
 } 
 
-void do_memory( CHAR_DATA *ch, char *argument )
+void do_memory( CHAR_DATA *ch, const char *argument)
 {
     ptc( ch, "Affects   %5d\n\r", top_affect    ); 
     ptc( ch, "Areas     %5d\n\r", top_area      ); 
@@ -4390,7 +4390,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_dump( CHAR_DATA *ch, char *argument )
+void do_dump( CHAR_DATA *ch, const char *argument)
 {
     int count,count2,num_pcs,aff_count;
     CHAR_DATA *fch;
@@ -5131,7 +5131,7 @@ void cheat_log( const char *str )
     fpReserve = fopen( NULL_FILE, "r" );    
 }
 
-void do_cheatlog( CHAR_DATA *ch, char *argument )
+void do_cheatlog( CHAR_DATA *ch, const char *argument)
 {
     FILE *fp;
     BUFFER *output;

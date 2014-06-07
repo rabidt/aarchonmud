@@ -561,7 +561,7 @@ CHAR_DATA *get_waiting_desc( CHAR_DATA *ch, char *name )
 } 
 
 
-void do_authorize( CHAR_DATA *ch, char *argument )
+void do_authorize( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -902,7 +902,7 @@ void do_authorize( CHAR_DATA *ch, char *argument )
 }
 
 /* new auth */
-void do_name( CHAR_DATA *ch, char *argument )
+void do_name( CHAR_DATA *ch, const char *argument)
 {
     char fname[1024];
 #if defined (WIN32)
