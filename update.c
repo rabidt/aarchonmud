@@ -950,7 +950,7 @@ void mobile_update( void )
            that a few rare mobs are holding weapons that they aren't meant to
            equip, but we'll cross that bridge if and when we come to it 
            - Astark 1-7-13 
-           - 6-7-14, enabling this code finally - Astark */
+           - 6-7-14, enabling this code finally - Astark - JK (1 hour later)
 
         if ( ch->position == POS_FIGHTING && !number_bits(2))
         {
@@ -962,7 +962,7 @@ void mobile_update( void )
                     break;
                 }
             }
-        }
+        } */
 
 
         /* That's all for sleeping / busy monster, and empty zones */
