@@ -2974,15 +2974,15 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         
     case ITEM_LIGHT:
         if ( obj->value[2] == -1 || obj->value[2] == 999 ) /* ROM OLC */
-            sprintf( buf, "[v2] Light:  Infinite[-1]\n\r" );
+            sprintf( buf, "[v2] Light Hours:  Infinite[-1]\n\r" );
         else
-            sprintf( buf, "[v2] Light:  [%d]\n\r", obj->value[2] );
+            sprintf( buf, "[v2] Light Hours:  [%d]\n\r", obj->value[2] );
         send_to_char( buf, ch );
         break;
 
     case ITEM_ARROWS:
         sprintf( buf,
-		 "[v0] Ammount:        [%d]\n\r"
+		 "[v0] Amount:         [%d]\n\r"
 		 "[v1] Damage:         [%d]\n\r"
 		 "[v2] Damage Type:    %s\n\r",
 		 obj->value[0],
@@ -2994,7 +2994,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     case ITEM_WAND:
     case ITEM_STAFF:
         sprintf( buf,
-            "[v0] Level:          [%d]\n\r"
+            "[v0] Spell Level:    [%d]\n\r"
             "[v1] Charges Total:  [%d]\n\r"
             "[v2] Charges Left:   [%d]\n\r"
             "[v3] Spell:          %s\n\r",
@@ -3022,7 +3022,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     case ITEM_FURNITURE:          
         sprintf( buf,
             "[v0] Max people:      [%d]\n\r"
-            "[v1] Max weight:      [%d]\n\r"
+            "[v1] Max weight:      [%d] (unused in game)\n\r"
             "[v2] Furniture Flags: %s\n\r"
             "[v3] Heal bonus:      [%d]\n\r"
             "[v4] Mana bonus:      [%d]\n\r",
@@ -3038,11 +3038,11 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     case ITEM_POTION:
     case ITEM_PILL:
         sprintf( buf,
-            "[v0] Level:  [%d]\n\r"
-            "[v1] Spell:  %s\n\r"
-            "[v2] Spell:  %s\n\r"
-            "[v3] Spell:  %s\n\r"
-            "[v4] Spell:  %s\n\r",
+            "[v0] Spell Level:  [%d]\n\r"
+            "[v1] Spell:     %s\n\r"
+            "[v2] Spell:     %s\n\r"
+            "[v3] Spell:     %s\n\r"
+            "[v4] Spell:     %s\n\r",
             obj->value[0],
             obj->value[1] != -1 ? skill_table[obj->value[1]].name
             : "reserved",
@@ -3098,7 +3098,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         send_to_char( buf, ch );
         sprintf( buf, "[v2] Type of dice:   [%d]\n\r", obj->value[2] );
         send_to_char( buf, ch );
-        sprintf( buf, "[v3] Type:           %s\n\r",
+        sprintf( buf, "[v3] Damage Type:    %s\n\r",
             attack_table[obj->value[3]].name );
         send_to_char( buf, ch );
         sprintf( buf, "[v4] Special type:   %s\n\r",
@@ -3108,11 +3108,11 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         
     case ITEM_CONTAINER:
         sprintf( buf,
-            "[v0] Weight:     [%d kg]\n\r"
-            "[v1] Flags:      [%s]\n\r"
-            "[v2] Key:     %s [%d]\n\r"
-            "[v3] Capacity    [%d]\n\r"
-            "[v4] Weight Mult [%d]\n\r",
+            "[v0] Weight Capacity: [%d lbs]\n\r"
+            "[v1] Flags:           [%s]\n\r"
+            "[v2] Key:        %s [%d]\n\r"
+            "[v3] Item Capacity    [%d]\n\r"
+            "[v4] Weight Mult(%%)   [%d]\n\r",
             obj->value[0],
             i_flag_string( container_flags, obj->value[1] ),
             get_obj_index(obj->value[2])
@@ -3128,7 +3128,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         sprintf( buf,
             "[v0] Liquid Total: [%d]\n\r"
             "[v1] Liquid Left:  [%d]\n\r"
-            "[v2] Liquid:       %s\n\r"
+            "[v2] Liquid Type:  %s\n\r"
             "[v3] Poisoned:     %s\n\r",
             obj->value[0],
             obj->value[1],
@@ -3141,7 +3141,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         sprintf( buf,
             "[v0] Liquid Total: [%d]\n\r"
             "[v1] Liquid Left:  [%d]\n\r"
-            "[v2] Liquid:	    %s\n\r",
+            "[v2] Liquid Type:  %s\n\r",
             obj->value[0],
             obj->value[1],
             liq_table[obj->value[2]].liq_name );
