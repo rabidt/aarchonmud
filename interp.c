@@ -1246,7 +1246,7 @@ char *one_argument_keep_case( char *argument, char *arg_first )
 /*
 * Contributed by Alander.
 */
-void do_commands( CHAR_DATA *ch, char *argument )
+void do_commands( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     int cmd;
@@ -1272,7 +1272,7 @@ void do_commands( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_disable (CHAR_DATA *ch, char *argument)
+void do_disable( CHAR_DATA *ch, const char *argument)
 {
     int i;
     DISABLED_DATA *p,*q;

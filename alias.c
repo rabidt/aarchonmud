@@ -128,13 +128,13 @@ void substitute_alias(DESCRIPTOR_DATA *d, char *argument)
     anti_spam_interpret(d->character,buf);
 }
 
-void do_alia(CHAR_DATA *ch, char *argument)
+void do_alia( CHAR_DATA *ch, const char *argument)
 {
     send_to_char("I'm sorry, alias must be entered in full.\n\r",ch);
     return;
 }
 
-void do_alias(CHAR_DATA *ch, char *argument)
+void do_alias( CHAR_DATA *ch, const char *argument)
 {
     CHAR_DATA *rch;
     char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];
@@ -240,7 +240,7 @@ void do_alias(CHAR_DATA *ch, char *argument)
 }
 
 
-void do_unalias(CHAR_DATA *ch, char *argument)
+void do_unalias( CHAR_DATA *ch, const char *argument)
 {
     CHAR_DATA *rch;
     char arg[MAX_INPUT_LENGTH];

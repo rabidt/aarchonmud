@@ -304,7 +304,7 @@ int rand_div(int divident, int divisor)
 }
 
 /* The main quest function */
-void do_quest(CHAR_DATA *ch, char *argument)
+void do_quest( CHAR_DATA *ch, const char *argument)
 {
     CHAR_DATA *questman;
     OBJ_DATA *obj=NULL, *obj_next;

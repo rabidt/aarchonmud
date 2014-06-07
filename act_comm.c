@@ -67,12 +67,12 @@ else if ( !str_prefix( argument, "nobeep" ) ) {ch->pcdata->type[2] = 0;} \
 else { send_to_char_bw( "Unrecognized colour. Unchanged.\n\r", ch ); return;}
 
 
-void do_delet( CHAR_DATA *ch, char *argument)
+void do_delet( CHAR_DATA *ch, const char *argument)
 {
     send_to_char("You must type the full command to delete yourself.\n\r",ch);
 }
 
-void do_delete( CHAR_DATA *ch, char *argument)
+void do_delete( CHAR_DATA *ch, const char *argument)
 {
     char filename[MAX_INPUT_LENGTH];
     char arg1[MIL], arg2[MIL];
@@ -156,7 +156,7 @@ print_pub_chan( sh_int sn, CHAR_DATA *ch)
 
 /* RT code to display channel status */
 
-void do_channels( CHAR_DATA *ch, char *argument)
+void do_channels( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
 
@@ -289,7 +289,7 @@ void do_channels( CHAR_DATA *ch, char *argument)
 
 /* RT deaf blocks out all shouts */
 
-void do_deaf( CHAR_DATA *ch, char *argument)
+void do_deaf( CHAR_DATA *ch, const char *argument)
 {
     
     if (IS_SET(ch->comm,COMM_DEAF))
@@ -365,7 +365,7 @@ void do_busy ( CHAR_DATA *ch, char * argument)
 }
 
 
-void do_replay (CHAR_DATA *ch, char *argument)
+void do_replay( CHAR_DATA *ch, const char *argument)
 {
 	do_playback( ch, "tell" );
 }
@@ -540,24 +540,24 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_gossip( CHAR_DATA *ch, char *argument )
+void do_gossip( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_gossip], ch, argument );
 }
 
 
-void do_newbie( CHAR_DATA *ch, char *argument )
+void do_newbie( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_newbie], ch, argument );
 }
 
 
 
-void do_bitch( CHAR_DATA *ch, char *argument )
+void do_bitch( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_bitch], ch, argument );
 }
-void do_gametalk( CHAR_DATA *ch, char *argument )
+void do_gametalk( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_gametalk], ch, argument );
 }
@@ -616,36 +616,36 @@ void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char,
     }
 }
 
-void do_gratz( CHAR_DATA *ch, char *argument )
+void do_gratz( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_gratz], ch, argument );
 }
 
-void do_quote( CHAR_DATA *ch, char *argument )
+void do_quote( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_quote], ch, argument );
 }
 
 /* RT question channel */
-void do_question( CHAR_DATA *ch, char *argument )
+void do_question( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_question], ch, argument );
 }
 
 /* RT answer channel - uses same line as questions */
-void do_answer( CHAR_DATA *ch, char *argument )
+void do_answer( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_answer], ch, argument );
 }
 
 /* RT music channel */
-void do_music( CHAR_DATA *ch, char *argument )
+void do_music( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_music], ch, argument );
 }
 
 /* clan channels */
-void do_clantalk( CHAR_DATA *ch, char *argument )
+void do_clantalk( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -737,7 +737,7 @@ void do_clantalk( CHAR_DATA *ch, char *argument )
 }
 
 /* religion channels */
-void do_religion_talk( CHAR_DATA *ch, char *argument )
+void do_religion_talk( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -831,7 +831,7 @@ void do_religion_talk( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_immtalk( CHAR_DATA *ch, char *argument )
+void do_immtalk( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_immtalk], ch, argument );
 }
@@ -845,7 +845,7 @@ bool check_immtalk( CHAR_DATA *ch )
 argument) which toggles COMM_NOINFO.  As with the other
 channels, if COMM_NOINFO or COMM_QUIET is set, INFO messages
 will not be sent to that player.  -- Rimbol */
-void do_info( CHAR_DATA *ch, char *argument )
+void do_info( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -885,7 +885,7 @@ void do_info( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_say( CHAR_DATA *ch, char *argument )
+void do_say( CHAR_DATA *ch, const char *argument)
 {
     char *mid1, *mid2, *scan;
     char buf[MAX_STRING_LENGTH];
@@ -980,7 +980,7 @@ void do_say( CHAR_DATA *ch, char *argument )
 
 
 
-void do_shout( CHAR_DATA *ch, char *argument )
+void do_shout( CHAR_DATA *ch, const char *argument)
 {
     DESCRIPTOR_DATA *d;
     bool found;
@@ -1167,7 +1167,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
         mp_act_trigger( argument, victim, ch, NULL,0, NULL,0, TRIG_SPEECH );
 }
 
-void do_tell( CHAR_DATA *ch, char *argument )
+void do_tell( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
@@ -1231,7 +1231,7 @@ void do_tell( CHAR_DATA *ch, char *argument )
 
 
 
-void do_reply( CHAR_DATA *ch, char *argument )
+void do_reply( CHAR_DATA *ch, const char *argument)
 {
     CHAR_DATA *victim;
     char buf[MAX_STRING_LENGTH];
@@ -1263,7 +1263,7 @@ void do_reply( CHAR_DATA *ch, char *argument )
     tell_char( ch, victim, argument );
 }
 
-void do_yell( CHAR_DATA *ch, char *argument )
+void do_yell( CHAR_DATA *ch, const char *argument)
 {
     DESCRIPTOR_DATA *d;
     bool found;
@@ -1332,7 +1332,7 @@ void do_yell( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_emote( CHAR_DATA *ch, char *argument )
+void do_emote( CHAR_DATA *ch, const char *argument)
 {
 
     bool keep_space = (argument[0] != '\'');
@@ -1368,7 +1368,7 @@ void do_emote( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_pmote( CHAR_DATA *ch, char *argument )
+void do_pmote( CHAR_DATA *ch, const char *argument)
 {
     CHAR_DATA *vch;
     char *letter,*name;
@@ -1700,7 +1700,7 @@ const   struct  pose_table_type pose_table  [MAX_POSE]  =
 
 
 
-void do_pose( CHAR_DATA *ch, char *argument )
+void do_pose( CHAR_DATA *ch, const char *argument)
 {
     int level;
     int pose;
@@ -1770,35 +1770,35 @@ void log_bugs(char *str)
         return;
 }    
 
-void do_bug( CHAR_DATA *ch, char *argument )
+void do_bug( CHAR_DATA *ch, const char *argument)
 {
     append_file( ch, BUG_FILE, argument );
     send_to_char( "Bug logged.\n\r", ch );
     return;
 }
 
-void do_typo( CHAR_DATA *ch, char *argument )
+void do_typo( CHAR_DATA *ch, const char *argument)
 {
     append_file( ch, TYPO_FILE, argument );
     send_to_char( "Typo logged.\n\r", ch );
     return;
 }
 
-void do_rent( CHAR_DATA *ch, char *argument )
+void do_rent( CHAR_DATA *ch, const char *argument)
 {
     send_to_char( "There is no rent here.  Just quit.\n\r", ch );
     return;
 }
 
 
-void do_qui( CHAR_DATA *ch, char *argument )
+void do_qui( CHAR_DATA *ch, const char *argument)
 {
     send_to_char( "If you want to QUIT, you have to spell it out.\n\r", ch );
     return;
 }
 
 
-void do_quit( CHAR_DATA *ch, char *argument )
+void do_quit( CHAR_DATA *ch, const char *argument)
 {
     if ( IS_NPC(ch) || ch->pcdata == NULL )
         return;
@@ -1916,13 +1916,13 @@ void quit_char( CHAR_DATA *ch )
 }
 
 
-void do_save( CHAR_DATA *ch, char *argument )
+void do_save( CHAR_DATA *ch, const char *argument)
 {
     send_to_char("Your character is saved automatically here.\n\r", ch);
 }
 
 
-void do_follow( CHAR_DATA *ch, char *argument )
+void do_follow( CHAR_DATA *ch, const char *argument)
 {
     /* RT changed to allow unlimited following and follow the NOFOLLOW rules */
     char arg[MAX_INPUT_LENGTH];
@@ -2075,7 +2075,7 @@ void die_follower( CHAR_DATA *ch, bool preservePets )
 }
 
 
-void do_order( CHAR_DATA *ch, char *argument )
+void do_order( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH];
@@ -2220,7 +2220,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
     send_to_char( buf, ch );
 }
 
-void do_group( CHAR_DATA *ch, char *argument )
+void do_group( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -2395,7 +2395,7 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
 /*
 * 'Split' originally by Gnort, God of Chaos.
 */
-void do_split( CHAR_DATA *ch, char *argument )
+void do_split( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char arg1[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH];
@@ -2515,7 +2515,7 @@ void do_split( CHAR_DATA *ch, char *argument )
 
 
 
-void do_gtell( CHAR_DATA *ch, char *argument )
+void do_gtell( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *gch;
@@ -2589,7 +2589,7 @@ bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
 * Colour setting and unsetting, way cool, Lope Oct '94
 * (most of) Lope's V2.0 update added to Aarchon Sept '98 by Quirky
 */
-void do_colour( CHAR_DATA *ch, char *argument )
+void do_colour( CHAR_DATA *ch, const char *argument)
 {
     char   arg[ MAX_STRING_LENGTH ];
     
@@ -2824,7 +2824,7 @@ void do_colour( CHAR_DATA *ch, char *argument )
     
 }
 
-void do_bounty( CHAR_DATA *ch, char *argument )
+void do_bounty( CHAR_DATA *ch, const char *argument)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -3166,13 +3166,13 @@ char * makedrunk (char *string, CHAR_DATA * ch)
 }
 
 /* RT auction rewritten in ROM style */
-void do_auction( CHAR_DATA *ch, char *argument )
+void do_auction( CHAR_DATA *ch, const char *argument)
 {
 	public_channel( &public_channel_table[sn_auction], ch, argument );
 }
 
 /* Sardonic 10/99 */
-void do_savantalk( CHAR_DATA *ch, char *argument )
+void do_savantalk( CHAR_DATA *ch, const char *argument)
 {
    public_channel( &public_channel_table[sn_savantalk], ch, argument );
 }
@@ -3208,7 +3208,7 @@ bool check_gag_arg(char* arg, char* cmp_str, long value, CHAR_DATA *ch)
 }
 
 /* Toggle gagging options. */
-void do_gag( CHAR_DATA *ch, char *argument )
+void do_gag( CHAR_DATA *ch, const char *argument)
 {
     if ( argument[0] == '\0' )
     {
@@ -3245,7 +3245,7 @@ void do_gag( CHAR_DATA *ch, char *argument )
     send_to_char("Syntax: gag [miss|wflag|fade|bleed|immune|equip|sunburn]\n\r", ch);
 }
 
-void do_try ( CHAR_DATA *ch, char *argument )
+void do_try( CHAR_DATA *ch, const char *argument)
 {
   if (IS_NPC(ch))
       return;
@@ -3260,7 +3260,7 @@ void do_try ( CHAR_DATA *ch, char *argument )
 
 }
 
-void do_turn_in ( CHAR_DATA *ch, char *argument )
+void do_turn_in( CHAR_DATA *ch, const char *argument)
 {
     CHAR_DATA *judge;
     char buf[MSL];
@@ -3323,7 +3323,7 @@ void do_turn_in ( CHAR_DATA *ch, char *argument )
     REMOVE_BIT( ch->act, PLR_THIEF  );
 }
 
-void do_action( CHAR_DATA *ch, char *argument )
+void do_action( CHAR_DATA *ch, const char *argument)
 {
     char buf[MSL];
 
@@ -3363,7 +3363,7 @@ void do_action( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_noreply( CHAR_DATA *ch, char *argument )
+void do_noreply( CHAR_DATA *ch, const char *argument)
 {
     DESCRIPTOR_DATA *d;
     CHAR_DATA *found_ch;

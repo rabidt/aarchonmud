@@ -378,7 +378,7 @@ void shift_area( AREA_DATA *area, int shift, bool area_only )
         shift_prog_list( area->aprogs );
 }
 
-void do_ashift( CHAR_DATA *ch, char *argument )
+void do_ashift( CHAR_DATA *ch, const char *argument)
 {
     char buf[MSL];
     char arg1[MIL];
@@ -576,7 +576,7 @@ void rel_area( AREA_DATA *area )
     SET_BIT( area->area_flags, AREA_CHANGED );
 }
 
-void do_rvnum( CHAR_DATA *ch, char *argument )
+void do_rvnum( CHAR_DATA *ch, const char *argument)
 {
     char buf[MSL];
     char arg1[MIL];

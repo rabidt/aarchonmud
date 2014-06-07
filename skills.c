@@ -40,7 +40,7 @@ DECLARE_DO_FUN(do_groups    );
 DECLARE_DO_FUN(do_help      );
 DECLARE_DO_FUN(do_say       );
 
-void do_skills(CHAR_DATA *ch, char *argument);
+void do_skills( CHAR_DATA *ch, const char *argument);
 bool train_stat(int trained, CHAR_DATA *ch);
 void show_groups( int skill, BUFFER *buffer );
 void show_races( int skill, BUFFER *buffer );
@@ -252,7 +252,7 @@ void gain_skill(CHAR_DATA *ch, int sn, CHAR_DATA *trainer)
 }
 
 /* used to get new skills */
-void do_gain(CHAR_DATA *ch, char *argument)
+void do_gain( CHAR_DATA *ch, const char *argument)
 {
 	char buf[MAX_STRING_LENGTH];
     char *argPtr;
@@ -692,7 +692,7 @@ static void show_master_list( CHAR_DATA *ch )
     free_buf(buf);
 }
 
-void do_master( CHAR_DATA *ch, char *argument )
+void do_master( CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH], *arg2;
     int sn;
@@ -859,7 +859,7 @@ void do_master( CHAR_DATA *ch, char *argument )
     show_master_syntax(ch);
 }
 
-void do_skill( CHAR_DATA *ch, char *argument )
+void do_skill( CHAR_DATA *ch, const char *argument)
 {
     char buf[MSL];
     int sn, level, skill, mana;
@@ -929,7 +929,7 @@ void do_skill( CHAR_DATA *ch, char *argument )
 
 /* RT spells and skills show the players spells (or skills) */
 
-void do_spells(CHAR_DATA *ch, char *argument)
+void do_spells( CHAR_DATA *ch, const char *argument)
 {
 	BUFFER *buffer;
 	char arg[MAX_INPUT_LENGTH];
@@ -1052,7 +1052,7 @@ void do_spells(CHAR_DATA *ch, char *argument)
 	free_buf(buffer);
 }
 
-void do_skills(CHAR_DATA *ch, char *argument)
+void do_skills( CHAR_DATA *ch, const char *argument)
 {
 	BUFFER *buffer;
 	char arg[MAX_INPUT_LENGTH];
@@ -1571,7 +1571,7 @@ bool parse_gen_groups(CHAR_DATA *ch,char *argument)
 		
 
 /* shows all groups, or the sub-members of a group */
-void do_groups(CHAR_DATA *ch, char *argument)
+void do_groups( CHAR_DATA *ch, const char *argument)
 {
    char buf[100];
    int gn,sn,col,i;
@@ -2156,7 +2156,7 @@ int get_weapon_skill(CHAR_DATA *ch, int sn)
 }
 
 // hard practice - above 75%
-void do_hpractice( CHAR_DATA *ch, char *argument )
+void do_hpractice( CHAR_DATA *ch, const char *argument)
 {
     bool introspect = TRUE;
     CHAR_DATA *trainer = find_trainer(ch, ACT_PRACTICE, &introspect);
@@ -2204,7 +2204,7 @@ void do_hpractice( CHAR_DATA *ch, char *argument )
         skill_table[sn].name, learned, ch->pcdata->learned[sn], cost, cost > 1 ? "s" : "");
 }
 
-void do_practice( CHAR_DATA *ch, char *argument )
+void do_practice( CHAR_DATA *ch, const char *argument)
 {
 	BUFFER *buffer;
    char buf[MAX_STRING_LENGTH];
@@ -2364,7 +2364,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_raceskills( CHAR_DATA *ch, char *argument )
+void do_raceskills( CHAR_DATA *ch, const char *argument)
 {
 	int race, i;
 	char buf[MAX_STRING_LENGTH];
@@ -2417,7 +2417,7 @@ void do_raceskills( CHAR_DATA *ch, char *argument )
 /* Color, group support, buffers and other tweaks by Rimbol, 10/99. */
 void show_skill(char *argument, BUFFER *buffer, CHAR_DATA *ch);
 void show_skill_all(BUFFER *buffer);
-void do_showskill(CHAR_DATA *ch,char *argument)
+void do_showskill( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MIL];
     int skill, group = -1;
@@ -2741,7 +2741,7 @@ static void setskill_syntax( CHAR_DATA *ch )
 }
 
 extern int dice_lookup(char *);
-void do_setskill(CHAR_DATA *ch, char *argument)
+void do_setskill( CHAR_DATA *ch, const char *argument)
 {
 	char arg1[MAX_INPUT_LENGTH];
 	char arg2[MAX_INPUT_LENGTH];
@@ -2855,7 +2855,7 @@ void do_setskill(CHAR_DATA *ch, char *argument)
 }
 
 
-void do_slookup( CHAR_DATA *ch, char *argument )
+void do_slookup( CHAR_DATA *ch, const char *argument)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];

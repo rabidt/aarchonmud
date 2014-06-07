@@ -994,7 +994,7 @@ void meta_magic_cast( CHAR_DATA *ch, char *meta_arg, char *argument )
     flag_clear(meta_magic);
 }
 
-void do_mmcast( CHAR_DATA *ch, char *argument )
+void do_mmcast( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH];
 
@@ -1002,22 +1002,22 @@ void do_mmcast( CHAR_DATA *ch, char *argument )
     meta_magic_cast(ch, arg1, argument);
 }
 
-void do_ecast( CHAR_DATA *ch, char *argument )
+void do_ecast( CHAR_DATA *ch, const char *argument)
 {
     meta_magic_cast(ch, "e", argument);
 }
 
-void do_pcast( CHAR_DATA *ch, char *argument )
+void do_pcast( CHAR_DATA *ch, const char *argument)
 {
     meta_magic_cast(ch, "p", argument);
 }
 
-void do_qcast( CHAR_DATA *ch, char *argument )
+void do_qcast( CHAR_DATA *ch, const char *argument)
 {
     meta_magic_cast(ch, "q", argument);
 }
 
-void do_ccast( CHAR_DATA *ch, char *argument )
+void do_ccast( CHAR_DATA *ch, const char *argument)
 {
     meta_magic_cast(ch, "c", argument);
 }
@@ -1344,7 +1344,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     return;
 }
 
-void do_cast( CHAR_DATA *ch, char *argument )
+void do_cast( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH];
     int sn, chance;
@@ -1369,7 +1369,7 @@ void do_cast( CHAR_DATA *ch, char *argument )
 }
 
 // Djinn wish casting
-void do_wish( CHAR_DATA *ch, char *argument )
+void do_wish( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH];
     int sn, chance, class;
@@ -5728,7 +5728,7 @@ int check_cha_follow( CHAR_DATA *ch, int required )
     return UMAX(0, max - charmed);
 }
 
-void do_scribe( CHAR_DATA *ch, char *argument )
+void do_scribe( CHAR_DATA *ch, const char *argument)
 {
     int skill, sn, spell_skill, cost, level;
     char arg1[MSL], arg2[MSL], buf[MSL], buf2[MSL], buf3[MSL];

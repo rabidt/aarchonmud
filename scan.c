@@ -93,7 +93,7 @@ void do_stare(CHAR_DATA *ch)
     return;
 }
 
-void do_scan(CHAR_DATA *ch, char *argument)
+void do_scan( CHAR_DATA *ch, const char *argument)
 {
     extern char *const dir_name[];
     char arg1[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];

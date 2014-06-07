@@ -122,7 +122,7 @@ void remort_speed args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_repeat args( (CHAR_DATA *ch, CHAR_DATA *adept, char *arg) );
 void remort_save args( ( void ) );
 
-void do_remort(CHAR_DATA *ch, char *argument)
+void do_remort( CHAR_DATA *ch, const char *argument)
 {
     CHAR_DATA *adept;
     char arg [MAX_INPUT_LENGTH];

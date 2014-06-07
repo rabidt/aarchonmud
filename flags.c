@@ -36,7 +36,7 @@
 
 int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
 
-void do_flag(CHAR_DATA *ch, char *argument)
+void do_flag( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH],arg3[MAX_INPUT_LENGTH];
     char word[MAX_INPUT_LENGTH], buf[MSL];
@@ -456,7 +456,7 @@ void print_pkill_expire( CHAR_DATA *ch)
 }
 
 /* Pkill code by Rimbol, 7/20/97 */
-void do_pkill( CHAR_DATA *ch, char *argument)
+void do_pkill( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MIL], arg2[MIL];
 
@@ -514,7 +514,7 @@ void do_pkill( CHAR_DATA *ch, char *argument)
 }
 
 /* roleplay flag by Bobble */
-void do_roleplay( CHAR_DATA *ch, char *argument)
+void do_roleplay( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MIL], arg2[MIL];
 

@@ -80,7 +80,7 @@ void free_grep_list( GREP_DATA *gd )
 #define GREP_MOB  1
 #define GREP_ROOM 2
 
-void do_grep( CHAR_DATA *ch, char *argument )
+void do_grep( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MIL];
     char arg2[MIL];

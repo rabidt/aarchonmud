@@ -152,7 +152,7 @@ void update_herb_reset()
     log_string( outbuf );
 }
 
-void do_herbs( CHAR_DATA *ch, char *argument )
+void do_herbs( CHAR_DATA *ch, const char *argument)
 {
     int i;
     char buf[MSL], *rarity;
@@ -239,7 +239,7 @@ OBJ_DATA* obj_on_char( CHAR_DATA *ch, int vnum )
     return NULL;
 }
 
-void do_brew( CHAR_DATA *ch, char *argument )
+void do_brew( CHAR_DATA *ch, const char *argument)
 {
     int i, j, skill, recipe;
     char buf[MSL];

@@ -15,7 +15,7 @@
 #include "lookup.h"
 
 
-void do_consent( CHAR_DATA *ch, char *argument )
+void do_consent( CHAR_DATA *ch, const char *argument)
 {
     if (IS_NPC(ch))
         return;
@@ -33,7 +33,7 @@ void do_consent( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_marry( CHAR_DATA *ch, char *argument)
+void do_marry( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -124,7 +124,7 @@ void do_marry( CHAR_DATA *ch, char *argument)
 }
 
 
-void do_divorce( CHAR_DATA *ch, char *argument)
+void do_divorce( CHAR_DATA *ch, const char *argument)
 {
     char arg1[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;

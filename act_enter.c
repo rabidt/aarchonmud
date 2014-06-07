@@ -103,7 +103,7 @@ ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnu
 }
 
 /* RT Enter portals */
-void do_enter( CHAR_DATA *ch, char *argument)
+void do_enter( CHAR_DATA *ch, const char *argument)
 {    
 	ROOM_INDEX_DATA *location; 
 	bool stay_area = FALSE;
@@ -413,7 +413,7 @@ ROOM_INDEX_DATA* get_portal_room( char *name )
     return NULL;
 }
 
-void do_portal( CHAR_DATA *ch, char *argument )
+void do_portal( CHAR_DATA *ch, const char *argument)
 {
     char buf[MSL],
 	arg1[MIL], arg2[MIL], arg3[MIL];
