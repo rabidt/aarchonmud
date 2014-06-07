@@ -82,7 +82,6 @@ typedef unsigned char           bool;
 typedef struct  affect_data      AFFECT_DATA;
 typedef struct  area_data        AREA_DATA;
 typedef struct  ban_data         BAN_DATA;
-//typedef struct  buf_type         BUFFER;
 typedef struct  string_ring_buf  SR_BUF;
 typedef struct  char_data        CHAR_DATA;
 typedef struct  descriptor_data  DESCRIPTOR_DATA;
@@ -181,7 +180,6 @@ extern TYPE_DATA *type_EXTRA_DESCR_DATA;
 extern TYPE_DATA *type_QUEST_DATA;
 extern TYPE_DATA *type_PORTAL_DATA;
 extern TYPE_DATA *type_MEM_DATA;
-extern TYPE_DATA *type_BUFFER;
 extern TYPE_DATA *type_SORT_TABLE;
 extern TYPE_DATA *type_WIZ_DATA;
 extern TYPE_DATA *type_CRIME_DATA;
@@ -486,18 +484,6 @@ struct struckdrunk
 		int     number_of_rep;
 		char    *replacement[11];
 };
-#if 0
-struct buf_type
-{
-    /* must be first entry */
-    TYPE_BASE       _base;
-
-	BUFFER *    next;
-	sh_int      state;  /* error state of the buffer */
-	sh_int      size;   /* size in k */
-	char *      string; /* buffer's string */
-};
-#endif
 
 /* Erwin's dynamic buffer system. */
 typedef struct buffer_type DBUFFER;

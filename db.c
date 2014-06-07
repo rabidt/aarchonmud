@@ -3935,8 +3935,8 @@ void *alloc_mem( int sMem )
     int *magic;
     sMem += sizeof(*magic);
 #endif
-    
-    pMem=calloc(1, sMem );
+    //pMem=calloc(1, sMem );
+    pMem=lua_alloc_mem( sMem ); 
     
 #ifdef MAGIC_CHECKING
     magic = (int *) pMem;
@@ -3972,7 +3972,8 @@ void free_mem( void *pMem, int sMem )
     sMem += sizeof(*magic);
 #endif
     
-    free( pMem ); 
+    //free( pMem ); 
+    lua_free_mem( pMem );
     return;
 }
 
@@ -5327,7 +5328,6 @@ struct types_table_entry aarchon_types [] =
     decl( QUEST_DATA, NULL ),
     decl( PORTAL_DATA, NULL ),
     decl( MEM_DATA, NULL ),
-    decl( BUFFER, NULL ),
     decl( SORT_TABLE, NULL ),
     decl( WIZ_DATA, NULL ),
     decl( CRIME_DATA, NULL ),

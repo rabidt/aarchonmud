@@ -24,15 +24,6 @@ struct mem_file_type
   MEMFILE *next;
   DBUFFER *buf;
   char filename[MAX_INPUT_LENGTH];
-  /* quick and easy way to make saving pfiles and
-     storage box files at the same time not too
-     complicated.
-     just set storage_box when pfile is saved to mem
-     then when saving pfile always just check if 
-     storage_box is null, if not also save 
-     storage_box
-     WHAT COULD GO WRONG*/
-  //MEMFILE *storage_box;
 };
 
 /* read-buffer methods */
