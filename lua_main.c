@@ -1147,6 +1147,27 @@ void lua_free_ud( void *ud )
     INVALIDATE( ud );
 }
 
+void *lua_alloc_mem( int sMem )
+{
+    sMem += sizeof(int);
+    
+    void *pMem=lua_newuserdata( g_mud_LS, sMem );
+    int ref=luaL_ref( g_mud_LS, LUA_REGISTRYINDEX );
+
+    (*(int *)pMem)=ref;
+    
+    pMem = (void *)((char *)pMem)+sizeof(int);
+
+    return pMem;
+}
+
+void *lua_free_mem( void *pMem )
+{
+    pMem = (void *)((char *)pMem-sizeof(int));
+    int ref=(*(int *)pMem);
+    luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref );
+}
+
 void lua_cleanup_uds()
 {
     lua_newtable( g_mud_LS );
