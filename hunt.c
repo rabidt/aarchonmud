@@ -809,7 +809,7 @@ void hunt_victim( CHAR_DATA *ch )
 	/* mob might have hunted victim down but now can't see it */
 	if ( !can_see(ch, victim) )
 	{
-	    act( "$n sniffs the air, then get a red glare in $s eyes.",
+	    act( "$n sniffs the air, then gets a red glare in $s eyes.",
 		 ch, NULL, victim, TO_ROOM );
 	    act( "You sniff the air and notice that $N must be nearby.",
 		 ch, NULL, victim, TO_CHAR );
