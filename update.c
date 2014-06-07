@@ -950,17 +950,17 @@ void mobile_update( void )
            - Astark 1-7-13 
            - 6-7-14, enabling this code finally - Astark */
 
-           if ( ch->position == POS_FIGHTING && !number_bits(2))
-           {
-               for ( obj = ch->carrying; obj != NULL; obj = obj_next )
-               {
-                   if (obj->item_type == ITEM_WEAPON)
-                   {
-                       do_wear(ch,obj->name);
-                       break;
-                   }
-               }
-           }
+        if ( ch->position == POS_FIGHTING && !number_bits(2))
+        {
+            for ( obj = ch->carrying; obj != NULL; obj = obj_next )
+            {
+                if (obj->item_type == ITEM_WEAPON)
+                {
+                    do_wear(ch,obj->name);
+                    break;
+                }
+            }
+        }
 
 
         /* That's all for sleeping / busy monster, and empty zones */
