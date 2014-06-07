@@ -3239,6 +3239,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         send_to_char( 
             "You are mortally wounded, and will die soon, if not aided.\n\r",
             victim );
+        send_to_char(
+            "You can ask for assistance on the newbie or clan channels.\n\r",
+            victim );
         break;
         
     case POS_INCAP:
@@ -3246,6 +3249,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             victim, NULL, NULL, TO_ROOM );
         send_to_char(
             "You are incapacitated and will slowly die, if not aided.\n\r",
+            victim );
+        send_to_char(
+            "You can ask for assistance on the newbie or clan channels.\n\r",
             victim );
         break;
         
