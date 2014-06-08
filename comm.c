@@ -612,7 +612,6 @@ void game_loop_unix( int control )
             {
                 struct timeval stall_time;
 
-                logpf( "%d %d", secDelta, usecDelta );
                 stall_time.tv_usec = usecDelta;
                 stall_time.tv_sec  = secDelta;
                 if ( select( 0, NULL, NULL, NULL, &stall_time ) < 0 )
