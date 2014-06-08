@@ -558,6 +558,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "invis",      do_invis,   POS_DEAD,   L8,  LOG_NORMAL, 0, FALSE , FALSE },
     { "log",        do_log,     POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "memory",     do_memory,  POS_DEAD,   L2,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "perfmon",    do_perfmon, POS_DEAD,   L2,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "where",      do_where,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "mwhere",     do_mwhere,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "owhere",     do_owhere,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
