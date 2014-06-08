@@ -13,7 +13,6 @@ origenv={} -- where the REAL env tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
 
-
 function UdCnt()
     local cnt=0
     for k,v in pairs(udtbl) do
