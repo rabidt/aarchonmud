@@ -1144,7 +1144,7 @@ function log_perf( val )
     -- 1 hour complete, add to table
     total=0
     for i=1,60 do
-        total=total+hourtbl[i]
+        total=total+mintbl[i]
     end
 
     hourtbl[hourind]=total/60
