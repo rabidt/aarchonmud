@@ -2725,7 +2725,13 @@ void do_recall( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    move_cost = ch->level * 5;
+    /* This vnum specification is for Bastion. Cheaper to recall from Bastion
+       than other areas. Added to help newbies who get lost in our huge city. */
+
+    if (ch->in_room->area->min_vnum == 10200)
+        move_cost = ch->level * 5/2;
+    else
+        move_cost = ch->level * 5;
 
     if ( !IS_NPC(ch) && ch->move < move_cost)
     {
