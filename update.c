@@ -950,19 +950,17 @@ void mobile_update( void )
            that a few rare mobs are holding weapons that they aren't meant to
            equip, but we'll cross that bridge if and when we come to it 
            - Astark 1-7-13 
-           - 6-7-14, enabling this code finally - Astark - JK (1 hour later)
+           - 6-7-14, enabling this code finally - Astark */
 
-        if ( ch->position == POS_FIGHTING && !number_bits(2))
+        if ( ch->position == POS_FIGHTING && number_bits( 2 ) == 0 )
         {
             for ( obj = ch->carrying; obj != NULL; obj = obj_next )
             {
-                if (obj->item_type == ITEM_WEAPON)
-                {
-                    do_wear(ch,obj->name);
-                    break;
-                }
+              obj_next = obj->next_content;
+              if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) && obj->item_type == ITEM_WEAPON )
+                  wear_obj( ch, obj, FALSE );
             }
-        } */
+        } 
 
 
         /* That's all for sleeping / busy monster, and empty zones */
