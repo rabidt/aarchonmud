@@ -2339,7 +2339,9 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
 
     one_argument( argument, arg );
 
-    if (IS_REMORT(ch))
+    obj = get_obj_list( ch, arg, ch->in_room->contents );
+
+    if (IS_REMORT(ch) && obj->item_type != ITEM_CORPSE_NPC )
     {
         send_to_char("Not in remort, chucklehead.\n\r",ch);
         return;
@@ -2369,7 +2371,6 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    obj = get_obj_list( ch, arg, ch->in_room->contents );
     if ( obj == NULL )
     {
         send_to_char( "You can't find it.\n\r", ch );
