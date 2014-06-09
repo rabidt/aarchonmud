@@ -15,10 +15,15 @@ delaytbl={} -- used on the C side mostly
 
 
 function UdCnt()
+    local reg=debug.getregistry()
+
     local cnt=0
-    for k,v in pairs(udtbl) do
-        cnt=cnt+1
+    for k,v in pairs(reg) do
+        if type(v)=="userdata" then
+            cnt=cnt+1
+        end
     end
+
     return cnt
 end
 
