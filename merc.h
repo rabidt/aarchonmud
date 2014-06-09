@@ -142,6 +142,7 @@ typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 /* forward declare, in lua_arclib.h */
 struct lua_obj_type;
 
+#define SIZE_VARIABLE -1
 typedef struct type_data
 {
     const char *name;
@@ -150,13 +151,7 @@ typedef struct type_data
     struct lua_obj_type *lua_type;
 } TYPE_DATA;
 
-typedef struct type_base
-{
-    TYPE_DATA *type;
-    bool valid;
-    int ref;
-} TYPE_BASE;
-
+extern TYPE_DATA *type_CSTRING;
 extern TYPE_DATA *type_CHAR_DATA;
 extern TYPE_DATA *type_PC_DATA;
 extern TYPE_DATA *type_MOB_INDEX_DATA;
@@ -186,8 +181,6 @@ extern TYPE_DATA *type_CRIME_DATA;
 extern TYPE_DATA *type_BAN_DATA;
 extern TYPE_DATA *type_HELP_AREA;
 extern TYPE_DATA *type_HELP_DATA;
-
-#define GET_TYPE( ptr ) ( ( (TYPE_BASE *)( ptr ) )->type)
 
 typedef struct comm_history_entry COMM_ENTRY;
 typedef struct comm_history_type COMM_HISTORY;
@@ -459,9 +452,6 @@ typedef struct exploration_data
 
 struct  ban_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	BAN_DATA *  next;
 	tflag   ban_flags;
 	sh_int  level;
@@ -470,9 +460,6 @@ struct  ban_data
 
 struct	wiz_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     WIZ_DATA *	next;
     sh_int	level;
     char *	name;
@@ -501,9 +488,6 @@ struct buffer_type
 
 struct sort_table
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	SORT_TABLE *    prev;
 	SORT_TABLE *    next;
 	CHAR_DATA  *    owner;
@@ -687,9 +671,6 @@ struct disabled_data
 /* List of crime categories. */
 struct crime_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     CRIME_DATA *next;
     char   *name;     /* Keyword */
     char   *desc;     /* Description of crime (used primarily for crime type list) */
@@ -793,9 +774,6 @@ struct penalty_data
  */
 struct  descriptor_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	DESCRIPTOR_DATA *   next;
 	DESCRIPTOR_DATA *   snoop_by;
 	CHAR_DATA *     character;
@@ -850,9 +828,6 @@ struct  descriptor_data
  */
 struct  help_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     HELP_DATA * next;
     HELP_DATA * next_area;
     sh_int  level;
@@ -864,9 +839,6 @@ struct  help_data
 
 struct help_area_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     HELP_AREA *  next;
     HELP_DATA *  first;
     HELP_DATA *  last;
@@ -882,9 +854,6 @@ struct help_area_data
 
 struct  shop_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	SHOP_DATA * next;           /* Next shop in list        */
 	sh_int  keeper;         /* Vnum of shop keeper mob  */
 	sh_int  buy_type [MAX_TRADE];   /* Item types shop will buy */
@@ -1017,9 +986,6 @@ struct spec_type
 
 struct  note_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	NOTE_DATA * next;
 	sh_int  type;
 	char *  sender;
@@ -1071,9 +1037,6 @@ struct board_data
  */
 struct  affect_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     AFFECT_DATA *   next;
     sh_int      where;
     sh_int      type;
@@ -2397,9 +2360,6 @@ extern sh_int sn_overall;
  */
 struct  mob_index_data_old
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	MOB_INDEX_DATA_OLD *    next;
 	SPEC_FUN *      spec_fun;
 	SHOP_DATA *     pShop;
@@ -2446,9 +2406,6 @@ struct  mob_index_data_old
  */
 struct  mob_index_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     MOB_INDEX_DATA* next;
     SPEC_FUN*   spec_fun;
     SHOP_DATA*  pShop;
@@ -2499,9 +2456,6 @@ struct  mob_index_data
 /* memory for mobs */
 struct mem_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     MEM_DATA    *next;
     int     id;     
     int     reaction;
@@ -2515,9 +2469,6 @@ struct mem_data
  */
 struct  char_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	CHAR_DATA *     next;
 	CHAR_DATA *     next_in_room;
 	CHAR_DATA *     master;
@@ -2639,9 +2590,6 @@ struct  char_data
  */
 struct  pc_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     PC_DATA *       next;
 	bool	new_tells; /* whether there are unread tells */
     SORT_TABLE *    bounty_sort;
@@ -2823,9 +2771,6 @@ struct  pc_data
 /* Data for special quests */
 struct quest_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     QUEST_DATA *next;
     int id;
     int status;
@@ -2836,9 +2781,6 @@ struct quest_data
 /* Data for portal locations */
 struct portal_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     PORTAL_DATA *next;
     int vnum;
     char *name;
@@ -2847,9 +2789,6 @@ struct portal_data
 /* Data for generating characters -- only used during generation */
 struct gen_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	GEN_DATA    *next;
 	bool    skill_chosen[MAX_SKILL];
 	bool    group_chosen[MAX_GROUP];
@@ -2879,9 +2818,6 @@ struct  liq_type
  */
 struct  extra_descr_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	EXTRA_DESCR_DATA *next; /* Next in list                     */
 	char *keyword;              /* Keyword in look/examine          */
 	char *description;          /* What to see                      */
@@ -2894,9 +2830,6 @@ struct  extra_descr_data
  */
 struct  obj_index_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	OBJ_INDEX_DATA *    next;
 	EXTRA_DESCR_DATA *  extra_descr;
 	AFFECT_DATA *   affected;
@@ -2932,9 +2865,6 @@ struct lua_extra_val; /* defined in lua_arclib */
  */
 struct  obj_data
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	OBJ_DATA *      next;
 	OBJ_DATA *      next_content;
 	OBJ_DATA *      contains;
@@ -2976,9 +2906,6 @@ struct  obj_data
  */
 struct  exit_data
 {
-    /* must be first entry */
-    TYPE_BASE           _base;
-
     /* u1 read in as vnum from area file then
        converted to to_room in fix_exits */
 	union
@@ -3015,9 +2942,6 @@ struct  exit_data
  */
 struct  reset_data
 {
-    /* must be first entry */
-    TYPE_BASE           _base;
-
 	RESET_DATA *    next;
 	char        command;
 	sh_int      arg1;
@@ -3033,9 +2957,6 @@ struct  reset_data
  */
 struct  area_data
 {
-    /* must be first entry */
-    TYPE_BASE   _base;
-
 	AREA_DATA * next;
     HELP_AREA * helps;
 	char *      file_name;
@@ -3072,9 +2993,6 @@ struct  area_data
  */
 struct  room_index_data
 {
-    /* must be first entry */
-    TYPE_BASE           _base;
-
     ROOM_INDEX_DATA *   next;
     CHAR_DATA *     people;
     OBJ_DATA *      contents;
@@ -3289,9 +3207,6 @@ struct  mastery_group_type
 
 struct prog_list
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
 	int         trig_type;
 	char *      trig_phrase;
 	PROG_LIST *    next;
@@ -3301,9 +3216,6 @@ struct prog_list
 
 struct prog_code
 {
-    /* must be first entry */
-    TYPE_BASE       _base;
-
     bool        is_lua;
 	int         vnum;
 	char *      code;
@@ -3845,11 +3757,11 @@ struct achievement_entry
  * Utility macros.
  */
 //#define IS_VALID(data)      ((data) != NULL && (data)->valid)
-#define IS_VALID( data )        ( ((TYPE_BASE *)data)->valid )
+//#define IS_VALID( data )        ( ((TYPE_BASE *)data)->valid )
 //#define VALIDATE(data)      ((data)->valid = TRUE)
-#define VALIDATE( data )        ( ((TYPE_BASE *)data)->valid = TRUE )
+//#define VALIDATE( data )        ( ((TYPE_BASE *)data)->valid = TRUE )
 //#define INVALIDATE(data)    ((data)->valid = FALSE)
-#define INVALIDATE( data )      ( ((TYPE_BASE *)data)->valid = FALSE )
+//#define INVALIDATE( data )      ( ((TYPE_BASE *)data)->valid = FALSE )
 
 #define UMIN(a, b)      ((a) < (b) ? (a) : (b))
 #define UMAX(a, b)      ((a) > (b) ? (a) : (b))

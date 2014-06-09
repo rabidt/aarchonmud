@@ -5267,6 +5267,7 @@ char* bread_word( RBUFFER *rbuf )
     return NULL;
 }
 
+TYPE_DATA *type_CSTRING;
 TYPE_DATA *type_CHAR_DATA;
 TYPE_DATA *type_PC_DATA;
 TYPE_DATA *type_MOB_INDEX_DATA;
@@ -5310,6 +5311,14 @@ TYPE_DATA *type_HELP_AREA;
 
 struct types_table_entry aarchon_types [] =
 {
+    {
+        &type_CSTRING,
+        {
+            .name="CSTRING",
+            .size=SIZE_VARIABLE,
+            .lua_type = &CSTRING_type
+        }
+    },
     decl( CHAR_DATA, &CH_type ),
     decl( PC_DATA, NULL ),
     decl( MOB_INDEX_DATA, &MOBPROTO_type ),

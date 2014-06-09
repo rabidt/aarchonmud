@@ -1101,12 +1101,33 @@ void lua_free_string( const char *str )
     lua_pop( g_mud_LS, 2 );
 }
 
+typedef struct type_base
+{
+    TYPE_DATA *type;
+    bool valid;
+    int ref;
+} TYPE_BASE;
+
+bool IS_VALID( void *ud )
+{
+    return ((TYPE_BASE *)(((char *)ud)-sizeof(TYPE_BASE)))->valid;
+}
+
+int GET_REF( void *ud )
+{
+    return ((TYPE_BASE *)(((char *)ud)-sizeof(TYPE_BASE)))->ref;
+}
+
+TYPE_DATA *GET_TYPE( void *ud )
+{
+    return ((TYPE_BASE *)(((char *)ud)-sizeof(TYPE_BASE)))->type;
+}
+
 void *lua_new_ud( TYPE_DATA *type )
 {
     lua_getglobal( g_mud_LS, "UD_TABLES");
     lua_getfield( g_mud_LS, -1, type->name );
-    void *ud=lua_newuserdata( g_mud_LS, type->size );
-    memset( ud, 0, type->size );
+    void *ud=lua_newuserdata( g_mud_LS, type->size + sizeof(TYPE_BASE) );
     if ( type->lua_type )
     {
         luaL_getmetatable( g_mud_LS, type->lua_type->type_name );
@@ -1116,16 +1137,20 @@ void *lua_new_ud( TYPE_DATA *type )
     
     lua_pop( g_mud_LS, 2 );
 
-    GET_TYPE( ud ) = type;
+    ((TYPE_BASE *)ud)->type=type;
+    ((TYPE_BASE *)ud)->valid=TRUE;
     type->count++;
-    VALIDATE( ud );
+
+    ud = (void *)(((char *)ud)+sizeof(TYPE_BASE));
+    memset( ud, 0, type->size );
     return ud;
 }
 
 #define USE_CLEANUP_TABLE
 void lua_free_ud( void *ud )
 {
-    TYPE_DATA *type=GET_TYPE(ud);
+    ud = (void *)(((char *)ud)-sizeof(TYPE_BASE));
+    TYPE_DATA *type=((TYPE_BASE *)ud)->type;
 
     lua_getglobal( g_mud_LS, "UD_TABLES");
     lua_getfield( g_mud_LS, -1, type->name );
@@ -1144,19 +1169,20 @@ void lua_free_ud( void *ud )
 
     lua_pop( g_mud_LS, 2 );
     type->count--;
-    INVALIDATE( ud );
+    ((TYPE_BASE *)ud)->valid=FALSE;
 }
 
 void *lua_alloc_mem( int sMem )
 {
-    sMem += sizeof(int);
+    int tsMem = sMem + sizeof(int);
     
-    void *pMem=lua_newuserdata( g_mud_LS, sMem );
+    void *pMem=lua_newuserdata( g_mud_LS, tsMem );
     int ref=luaL_ref( g_mud_LS, LUA_REGISTRYINDEX );
 
     (*(int *)pMem)=ref;
     
     pMem = (void *)((char *)pMem)+sizeof(int);
+    memset( pMem, 0, sMem );
 
     return pMem;
 }
