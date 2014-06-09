@@ -138,7 +138,7 @@ void * lua_check_type( LUA_OBJ_TYPE *tp,
                 index, tp->type_name );
     }
     void *game_object=lua_touserdata(LS, index );
-    if ( !((TYPE_BASE *)game_object)->valid )
+    if ( !(IS_VALID(game_object) ) )
         luaL_error( LS, "Argument %d is an invalid %s", index, type->type_name );
 
     return game_object;
@@ -146,11 +146,13 @@ void * lua_check_type( LUA_OBJ_TYPE *tp,
 
 static int index_metamethod( lua_State *LS)
 {
+    stackDump( LS );
     LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
 
-    void *game_obj=lua_touserdata( LS, 1 );
-    bool valid=((TYPE_BASE *)game_obj)->valid;
+    void *game_obj=lua_check_type( obj, LS, 1);
+    bool valid=IS_VALID( game_obj );
     const char *arg=luaL_checkstring( LS, 2 );
+
     if (!strcmp("valid", arg) )
     {
         lua_pushboolean( LS, valid );
@@ -180,11 +182,10 @@ static int index_metamethod( lua_State *LS)
                         g_ScriptSecurity,
                         get[i].security);
 
-            void *gobj=lua_check_type(obj, LS, 1 );
             if (get[i].func)
             {
                 int val;
-                val=(get[i].func)(LS, gobj);
+                val=(get[i].func)(LS, game_obj);
                 return val;
             }
             else
@@ -221,7 +222,7 @@ static int newindex_metamethod( lua_State *LS )
     LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
 
     void *game_obj=lua_touserdata( LS, 1 );
-    if ( !((TYPE_BASE *)game_obj)->valid )
+    if ( !(IS_VALID(game_obj) ) )
         luaL_error( LS, "Tried to index invalid %s.", obj->type_name );
 
     const char *arg=check_string( LS, 2, MIL );
@@ -266,19 +267,32 @@ static void register_type( LUA_OBJ_TYPE *tp,
         lua_State *LS)
 {
     luaL_newmetatable(LS, tp->type_name);
+   
+    if (tp->get_table) 
+    {
+        lua_pushlightuserdata( LS, ( void *)tp);
+        lua_pushcclosure( LS, index_metamethod, 1 );
+
+        lua_setfield( LS, -2, "__index");
+    }
+
+    if (tp->set_table)
+    {
+        lua_pushlightuserdata( LS, ( void *)tp);
+        lua_pushcclosure( LS, newindex_metamethod, 1 );
+
+        lua_setfield( LS, -2, "__newindex");
+    }
     
+    /*
+
+    char buf[MSL];
+    sprintf(buf, "return %s", tp->type_name );
+    luaL_loadstring( LS, buf );
+    lua_setfield( LS, -2, "__tostring");
+
+*/
     lua_pushlightuserdata( LS, ( void *)tp);
-    lua_pushcclosure( LS, index_metamethod, 1 );
-
-    lua_setfield( LS, -2, "__index");
-
-    lua_pushlightuserdata( LS, ( void *)tp);
-    lua_pushcclosure( LS, newindex_metamethod, 1 );
-
-    lua_setfield( LS, -2, "__newindex");
-
-    lua_pushlightuserdata( LS, ( void *)tp);
-    
     lua_setfield( LS, -2, "TYPE");
 
     lua_pop(LS, 1);
@@ -298,7 +312,7 @@ bool lua_make_type( LUA_OBJ_TYPE *tp,
     lua_getglobal( LS, "UD_TABLES" );
     lua_getfield( LS, -1, type->name );
     lua_remove( LS, -2);
-    lua_rawgeti( LS, -1, ((TYPE_BASE *)game_obj)->ref );
+    lua_rawgeti( LS, -1, GET_REF(game_obj) );
     lua_remove(LS, -2);
 
     if ( !lua_isnil(LS, -1) )
@@ -8604,6 +8618,11 @@ bool    make_ ## ltype ( lua_State *LS, int index )\
     return lua_make_type( & ltype ## _type, LS, index);\
 }
 
+/* don't need much functionality for these */
+LUA_OBJ_TYPE CSTRING_type =
+{
+    .type_name="CSTRING",
+};
 DECLARETYPE( CH, CHAR_DATA );
 DECLARETYPE( OBJ, OBJ_DATA );
 DECLARETYPE( AREA, AREA_DATA );

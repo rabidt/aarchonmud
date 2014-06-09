@@ -46,9 +46,6 @@ NOTE_DATA *new_note ()
 
 void free_note(NOTE_DATA *note)
 {
-	if (!IS_VALID(note))
-	return;
-
 	free_string( note->text    );
 	free_string( note->subject );
 	free_string( note->to_list );
@@ -70,9 +67,6 @@ BAN_DATA *new_ban(void)
 
 void free_ban(BAN_DATA *ban)
 {
-	if (!IS_VALID(ban))
-	    return;
-
 	free_string(ban->name);
 
 	ban->next = NULL;
@@ -102,9 +96,6 @@ DESCRIPTOR_DATA *new_descriptor(void)
 
 void free_descriptor(DESCRIPTOR_DATA *d)
 {
-	if (!IS_VALID(d))
-	return;
-
     lua_unregister_desc(d);
 	free_string( d->host );
 	free_mem( d->outbuf, d->outsize );
@@ -123,9 +114,6 @@ GEN_DATA *new_gen_data(void)
 
 void free_gen_data(GEN_DATA *gen)
 {
-	if (!IS_VALID(gen))
-	return;
-
 	gen->next = NULL;
     lua_free_ud( gen );
 } 
@@ -143,9 +131,6 @@ EXTRA_DESCR_DATA *new_extra_descr(void)
 
 void free_extra_descr(EXTRA_DESCR_DATA *ed)
 {
-	if (!IS_VALID(ed))
-	return;
-
 	free_string(ed->keyword);
 	free_string(ed->description);
 	ed->next = NULL;
@@ -161,9 +146,6 @@ AFFECT_DATA *new_affect(void)
 
 void free_affect(AFFECT_DATA *af)
 {
-	if (!IS_VALID(af))
-	return;
-
 	af->next = NULL; 
     lua_free_ud( af );
 }
@@ -179,9 +161,6 @@ void free_obj(OBJ_DATA *obj)
 {
 	AFFECT_DATA *paf, *paf_next;
 	EXTRA_DESCR_DATA *ed, *ed_next;
-
-	if (!IS_VALID(obj))
-	return;
 
     object_count--;
 
@@ -259,9 +238,6 @@ void free_char (CHAR_DATA *ch)
 	AFFECT_DATA *paf;
 	AFFECT_DATA *paf_next;
 
-
-	if (!IS_VALID(ch))
-	    return;
 
 	if (IS_NPC(ch))
     {
@@ -348,9 +324,6 @@ void free_pcdata(PC_DATA *pcdata)
     GRANT_DATA *gran, *gran_next;
     QUEST_DATA *qdata;
     
-    if (!IS_VALID(pcdata))
-        return;
-    
     free_string(pcdata->pwd);
     free_string(pcdata->bamfin);
     free_string(pcdata->bamfout);
@@ -424,9 +397,6 @@ QUEST_DATA *new_quest(void)
 
 void free_quest(QUEST_DATA *quest)
 {
-    if (!IS_VALID(quest))
-	return;
-    
     quest->next = NULL;
     lua_free_ud( quest );
 }
@@ -441,9 +411,6 @@ PORTAL_DATA *new_portal( void )
 
 void free_portal( PORTAL_DATA *portal )
 {
-    if (!IS_VALID(portal))
-	return;
-    
     free_string( portal->name );
 
     portal->next = NULL;
@@ -478,9 +445,6 @@ MEM_DATA *new_mem_data(void)
 
 void free_mem_data(MEM_DATA *memory)
 {
-	if (!IS_VALID(memory))
-	return;
-
 	memory->next = NULL;
     lua_free_ud( memory );
 }
@@ -505,9 +469,6 @@ PROG_LIST *new_mprog(void)
 
 void free_mprog(PROG_LIST *mp)
 {
-   if (!IS_VALID(mp))
-	  return;
-
    mp->next = NULL;
    lua_free_ud( mp );
 }
@@ -521,9 +482,6 @@ PROG_LIST *new_oprog(void)
 
 void free_oprog(PROG_LIST *op)
 {
-   if (!IS_VALID(op))
-      return;
-
    op->next = NULL;
    lua_free_ud( op );
 }
@@ -537,9 +495,6 @@ PROG_LIST *new_aprog(void)
 
 void free_aprog(PROG_LIST *ap)
 {
-   if (!IS_VALID(ap))
-      return;
-
    ap->next = NULL;
    lua_free_ud( ap );
 }
@@ -553,9 +508,6 @@ PROG_LIST *new_rprog(void)
 
 void free_rprog(PROG_LIST *rp)
 {
-    if (!IS_VALID(rp))
-        return;
-
     rp->next = NULL;
     lua_free_ud( rp );
 }
@@ -587,9 +539,6 @@ SORT_TABLE *new_sort(void)
 
 void free_sort(SORT_TABLE *sort)
 {
-	if (!IS_VALID(sort))
-	return;
-
 	sort->next  = NULL;
     lua_free_ud( sort );
 }
@@ -605,9 +554,6 @@ WIZ_DATA *new_wiz(void)
 
 void free_wiz(WIZ_DATA *wiz)
 {
-    if (!IS_VALID(wiz))
-        return;
-    
     free_string(wiz->name);
     wiz->next = NULL;
     lua_free_ud( wiz );
@@ -622,9 +568,6 @@ CRIME_DATA *new_crime(void)
 
 void free_crime(CRIME_DATA *crime)
 {
-    if (!IS_VALID(crime))
-        return;
-    
     free_string(crime->name);
     free_string(crime->desc);
     free_string(crime->imm_name);

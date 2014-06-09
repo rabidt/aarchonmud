@@ -41,6 +41,7 @@ extern LUA_OBJ_TYPE OTRIG_type;
 extern LUA_OBJ_TYPE ATRIG_type;
 extern LUA_OBJ_TYPE RTRIG_type;
 extern LUA_OBJ_TYPE AFFECT_type;
+extern LUA_OBJ_TYPE CSTRING_type;
 
 void register_globals( lua_State *LS );
 bool lua_make_type( LUA_OBJ_TYPE *tp,
