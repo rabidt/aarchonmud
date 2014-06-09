@@ -4426,8 +4426,8 @@ void do_dump( CHAR_DATA *ch, char *argument )
         for (af = fch->affected; af != NULL; af = af->next)
             aff_count++;
     }
-    for (fch = char_free; fch != NULL; fch = fch->next)
-        count2++;
+    //for (fch = char_free; fch != NULL; fch = fch->next)
+    //    count2++;
     
     fprintf(fp,"Mobs	%4d (%8d bytes), %2d free (%d bytes)\n",
         count, count * (sizeof(*fch)), count2, count2 * (sizeof(*fch)));
@@ -4471,8 +4471,8 @@ void do_dump( CHAR_DATA *ch, char *argument )
             for (af = obj->affected; af != NULL; af = af->next)
                 aff_count++;
         }
-        for (obj = obj_free; obj != NULL; obj = obj->next)
-            count2++;
+        //for (obj = obj_free; obj != NULL; obj = obj->next)
+        //    count2++;
         
         fprintf(fp,"Objs	%4d (%8d bytes), %2d free (%d bytes)\n",
             count, count * (sizeof(*obj)), count2, count2 * (sizeof(*obj)));

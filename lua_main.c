@@ -853,7 +853,7 @@ void do_charloadtest( CHAR_DATA *ch, char *argument )
     for ( tch=clt_list ; tch ; tch = next )
     {
         next=tch->next;
-        unregister_lua( tch );
+        //unregister_lua( tch );
         free_char( tch );
     }
 

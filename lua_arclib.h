@@ -10,6 +10,7 @@ typedef struct lua_obj_type
     struct lua_prop_type * const set_table;
     struct lua_prop_type * const method_table;
 
+    size_t size;
 } LUA_OBJ_TYPE;
 
 typedef struct lua_extra_val
@@ -53,7 +54,9 @@ void * lua_check_type( LUA_OBJ_TYPE *tp,
 #define declf( ltype, ctype ) \
 ctype * check_ ## ltype ( lua_State *LS, int index ); \
 bool    is_ ## ltype ( lua_State *LS, int index ); \
-bool    make_ ## ltype ( lua_State *LS, int index );
+bool    make_ ## ltype ( lua_State *LS, int index );\
+ctype * new_ ## ltype (void) ;\
+void    free_ ## ltype ( ctype * ud );
 
 
 declf(CH, CHAR_DATA)
