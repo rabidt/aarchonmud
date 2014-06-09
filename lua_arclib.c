@@ -164,17 +164,21 @@ void * lua_check_type( LUA_OBJ_TYPE *tp,
 static int index_metamethod( lua_State *LS)
 {
     LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+    void *gobj=lua_check_type(obj, LS, 1 );
     const char *arg=luaL_checkstring( LS, 2 );
 
     LUA_PROP_TYPE *get=obj->get_table;
+
+    bool valid=GET_REF( gobj ) != REF_FREED;
     
     if (!strcmp("valid", arg) )
     {
-        /* if the metatable is still working
-           then the game object is still valid */
-        lua_pushboolean( LS, TRUE );
+        lua_pushboolean( LS, valid );
         return 1;
     }
+
+    if ( !valid )
+        luaL_error( LS, "Tried to index a freed %s", obj->type_name );
 
     int i;
     for (i=0; get[i].field; i++ )
@@ -186,7 +190,6 @@ static int index_metamethod( lua_State *LS)
                         g_ScriptSecurity,
                         get[i].security);
 
-            void *gobj=lua_check_type(obj, LS, 1 );
             if (get[i].func)
             {
                 int val;
