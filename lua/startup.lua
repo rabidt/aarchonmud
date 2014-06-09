@@ -6,9 +6,9 @@ glob_util=require "utilities"
 require "leaderboard"
 require "commands"
 
-udtbl={} -- used to store game object tables, (read only proxies to origtbl)
+--udtbl={} -- used to store game object tables, (read only proxies to origtbl)
 envtbl={} -- game object script environments
-origtbl={} -- where the REAL ud tables live
+--origtbl={} -- where the REAL ud tables live
 origenv={} -- where the REAL env tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
@@ -42,7 +42,7 @@ function MakeUdProxy(ud)
     )
     return proxy
 end
-
+--[[
 function RegisterUd(ud)
     if ud == nil then
         error("ud is nil")
@@ -76,7 +76,7 @@ function UnregisterUd(lightud)
     interptbl[lightud]=nil
 
 end
-
+--]]
 function UnregisterDesc(desc)
     for k,v in pairs(interptbl) do
         if v.desc==desc then
@@ -346,9 +346,7 @@ function MakeEnvProxy(env)
     setmetatable(proxy, {
             __index = env,
             __newindex = function (t,k,v)
-                if k=="tableid" then
-                    error("Cannot alter tableid of environment.")
-                elseif k=="udid" then
+                if k=="udid" then
                     error("Cannot alter udid of environment.")
                 else
                     rawset(t,k,v)
@@ -362,64 +360,64 @@ function MakeEnvProxy(env)
 end
 
 function new_script_env(ud, objname, meta)
-    local env={ udid=ud.tableid, [objname]=ud}
+    local env={ udid=ud, [objname]=ud}
     setmetatable(env, meta)
-    origenv[ud.tableid]=env
+    origenv[ud]=env
     return MakeEnvProxy(env)
 end
 
 function mob_program_setup(ud, f)
-    if envtbl[ud.tableid]==nil then
-        envtbl[ud.tableid]=new_script_env(ud, "mob", CH_env_meta) 
+    if envtbl[ud]==nil then
+        envtbl[ud]=new_script_env(ud, "mob", CH_env_meta) 
     end
-    setfenv(f, envtbl[ud.tableid])
+    setfenv(f, envtbl[ud])
     return f
 end
 
 function obj_program_setup(ud, f)
-    if envtbl[ud.tableid]==nil then
-        envtbl[ud.tableid]=new_script_env(ud, "obj", OBJ_env_meta)
+    if envtbl[ud]==nil then
+        envtbl[ud]=new_script_env(ud, "obj", OBJ_env_meta)
     end
-    setfenv(f, envtbl[ud.tableid])
+    setfenv(f, envtbl[ud])
     return f
 end
 
 function area_program_setup(ud, f)
-    if envtbl[ud.tableid]==nil then
-        envtbl[ud.tableid]=new_script_env(ud, "area", AREA_env_meta)
+    if envtbl[ud]==nil then
+        envtbl[ud]=new_script_env(ud, "area", AREA_env_meta)
     end
-    setfenv(f, envtbl[ud.tableid])
+    setfenv(f, envtbl[ud])
     return f
 end
 
 function room_program_setup(ud, f)
-    if envtbl[ud.tableid]==nil then
-        envtbl[ud.tableid]=new_script_env(ud, "room", ROOM_env_meta)
+    if envtbl[ud]==nil then
+        envtbl[ud]=new_script_env(ud, "room", ROOM_env_meta)
     end
-    setfenv(f, envtbl[ud.tableid])
+    setfenv(f, envtbl[ud])
     return f
 end
 
 function interp_setup( ud, typ, desc, name)
-    if interptbl[ud.tableid] then
-        return 0, interptbl[ud.tableid].name
+    if interptbl[ud] then
+        return 0, interptbl[ud].name
     end
 
-    if envtbl[ud.tableid]== nil then
+    if envtbl[ud]== nil then
         if typ=="mob" then
-            envtbl[ud.tableid]=new_script_env(ud,"mob", CH_env_meta)
+            envtbl[ud]=new_script_env(ud,"mob", CH_env_meta)
         elseif typ=="obj" then
-            envtbl[ud.tableid]=new_script_env(ud,"obj", OBJ_env_meta)
+            envtbl[ud]=new_script_env(ud,"obj", OBJ_env_meta)
         elseif typ=="area" then
-            envtbl[ud.tableid]=new_script_env(ud,"area", AREA_env_meta)
+            envtbl[ud]=new_script_env(ud,"area", AREA_env_meta)
         elseif typ=="room" then
-            envtbl[ud.tableid]=new_script_env(ud,"room", ROOM_env_meta)
+            envtbl[ud]=new_script_env(ud,"room", ROOM_env_meta)
         else
             error("Invalid type in interp_setup: "..typ)
         end
     end
 
-    interptbl[ud.tableid]={name=name, desc=desc}
+    interptbl[ud]={name=name, desc=desc}
     return 1,nil
 end
 
@@ -465,7 +463,7 @@ function lua_arcgc()
     -- Destroy game object tables who don't have envs or pending timer
 
     -- make temporary timer table for tableid lookup
-    local tmr={}
+--[[    local tmr={}
     for k,v in pairs(delaytbl) do
         tmr[v.udobj.tableid]=true
     end
@@ -475,7 +473,7 @@ function lua_arcgc()
         if not(envtbl[v.tableid]) and not(tmr[v.tableid]) then
             UnregisterUd(v.tableid)
         end
-    end
+    end --]]
     collectgarbage()
 end
 

@@ -10,6 +10,9 @@
 
 bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
 
+#define GET_REF( ud ) ( * ( (int *)( (char *)ud - sizeof(int) ) ) )
+#define REF_FREED -1
+
 /* Define game object types and global functions */
 
 #define GETP(type, field, sec ) { \
@@ -123,26 +126,39 @@ static LUA_OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *set_table,
         const LUA_PROP_TYPE *method_table);
 
+
+void * lua_new_ud( lua_State *LS, LUA_OBJ_TYPE *tp )
+{
+    size_t size=tp->size + sizeof(int);
+
+    void *ud = lua_newuserdata( LS, size );
+
+    luaL_getmetatable( LS, tp->type_name );
+    lua_setmetatable( LS, -2 );
+
+    *((int *)ud) = luaL_ref( LS, LUA_REGISTRYINDEX );
+
+    ud = (void *)( ( (char *)ud ) + sizeof(int) );
+
+    memset( ud, 0, tp->size );
+
+    return ud;
+}
+
+void lua_free_ud( void *ud )
+{
+    int ref=GET_REF(ud);
+    GET_REF(ud)=REF_FREED;
+    luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref ); 
+}
+
 /* base functionality for lua object types */
 void * lua_check_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, int index )
 {
-    lua_getmetatable(LS, index);
-    lua_getfield(LS, -1, "TYPE");
-    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
-    lua_pop(LS, 2);
-    if ( type != tp )
-    {
-        luaL_error(LS, "Bad parameter %d. Expected %s. ",
-                index, tp->type_name );
-    }
-
-    lua_getfield(LS, index, "tableid");
-    luaL_checktype( LS, -1, LUA_TLIGHTUSERDATA);
-    void *game_object=lua_touserdata(LS, -1 );
-    lua_pop(LS, 1);
-
-    return game_object;
+    void * ud=luaL_checkudata( LS, index, tp->type_name );
+    ud = (void *)( ( (char *)ud ) + sizeof(int) );
+    return ud;
 }
 
 static int index_metamethod( lua_State *LS)
@@ -278,51 +294,9 @@ bool lua_make_type( LUA_OBJ_TYPE *tp,
         return FALSE;
     }
 
-    /* we don't want stuff that was destroyed */
-    if ( tp == &CH_type && ((CHAR_DATA *)game_obj)->must_extract )
+    lua_rawgeti( LS, LUA_REGISTRYINDEX, GET_REF( game_obj ) );
+    if ( lua_isnil( LS, -1 ) )
         return FALSE;
-    if ( tp == &OBJ_type && ((OBJ_DATA *)game_obj)->must_extract )
-        return FALSE;
-
-    /* see if it exists already */
-    lua_getglobal( LS, UD_TABLE_NAME);
-    if ( lua_isnil( LS, -1) )
-    {
-        bugf("udtbl is nil in make_ud_table.");
-        return FALSE;
-    }
-
-    lua_pushlightuserdata(LS, game_obj);
-    lua_gettable( LS, -2);
-    lua_remove( LS, -2); /* don't need udtbl anymore */
-
-    if ( !lua_isnil(LS, -1) )
-    {
-        /* already exists, now at top of stack */
-        return TRUE;
-    }
-    lua_remove(LS, -1); // kill the nil
-
-    lua_newtable( LS);
-
-    luaL_getmetatable (LS, tp->type_name);
-    lua_setmetatable (LS, -2);  /* set metatable for object data */
-    
-    lua_pushstring( LS, "tableid");
-    lua_pushlightuserdata( LS, game_obj);
-    lua_rawset( LS, -3 );
-
-    lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
-    lua_pushvalue( LS, -2);
-    if (CallLuaWithTraceBack( LS, 1, 1) )
-    {
-        bugf ( "Error registering UD:\n %s",
-                lua_tostring(LS, -1));
-        return FALSE;
-    }
-
-    /* get rid of our original table, register sends back a new version */
-    lua_remove( LS, -2 );
 
     return TRUE;
 }
@@ -330,14 +304,14 @@ bool lua_make_type( LUA_OBJ_TYPE *tp,
 bool lua_is_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, int arg )
 {
-    if ( !lua_istable(LS, arg ) )
-        return FALSE;
+    lua_getmetatable( LS, arg );
+    luaL_getmetatable( LS, tp->type_name );
 
-    lua_getmetatable(LS, arg);
-    lua_getfield(LS, -1, "TYPE");
-    LUA_OBJ_TYPE *type=lua_touserdata(LS, -1);
-    lua_pop(LS, 2);
-    return ( type == tp );
+    bool result=lua_equal( LS, -1, -2 );
+
+    lua_pop( LS, 2 );
+    
+    return result;
 }
 
 /* global section */
@@ -1931,7 +1905,7 @@ static int check_iflag( lua_State *LS,
             NULL,
             iflagvar);
 }
-
+/*
 static void unregister_UD( lua_State *LS,  void *ptr )
 {
     if (!LS)
@@ -1949,9 +1923,10 @@ static void unregister_UD( lua_State *LS,  void *ptr )
     }
 
 }
-
+*/
 /* unregister_lua, to be called when destroying in game structures that may
    be registered in an active lua state*/
+/*
 void unregister_lua( void *ptr )
 {
     if (ptr == NULL)
@@ -1962,7 +1937,7 @@ void unregister_lua( void *ptr )
 
     unregister_UD( g_mud_LS, ptr );
 }
-
+*/
 static int L_rundelay( lua_State *LS)
 {
     lua_getglobal( LS, "delaytbl"); /*2*/
@@ -8589,7 +8564,8 @@ LUA_OBJ_TYPE ltype ## _type = { \
     .type_name= #ltype ,\
     .get_table= ltype ## _get_table ,\
     .set_table= ltype ## _set_table ,\
-    .method_table = ltype ## _method_table \
+    .method_table = ltype ## _method_table ,\
+    .size = sizeof( ctype )\
 };\
 ctype * check_ ## ltype ( lua_State *LS, int index )\
 {\
@@ -8602,6 +8578,14 @@ bool    is_ ## ltype ( lua_State *LS, int index )\
 bool    make_ ## ltype ( lua_State *LS, int index )\
 {\
     return lua_make_type( & ltype ## _type, LS, index);\
+}\
+ctype * new_ ## ltype ( )\
+{\
+    return lua_new_ud( g_mud_LS, & ltype ## _type );\
+}\
+void free_ ## ltype ( ctype * ud )\
+{\
+    lua_free_ud( (void *)ud );\
 }
 
 #define DECLARETRIG( ltype, ctype ) \
@@ -8609,7 +8593,8 @@ LUA_OBJ_TYPE ltype ## _type = { \
     .type_name= #ltype ,\
     .get_table= TRIG_get_table ,\
     .set_table= TRIG_set_table ,\
-    .method_table = TRIG_method_table \
+    .method_table = TRIG_method_table ,\
+    .size = sizeof( ctype ) \
 };\
 ctype * check_ ## ltype ( lua_State *LS, int index )\
 {\
@@ -8622,6 +8607,14 @@ bool    is_ ## ltype ( lua_State *LS, int index )\
 bool    make_ ## ltype ( lua_State *LS, int index )\
 {\
     return lua_make_type( & ltype ## _type, LS, index);\
+}\
+ctype * new_ ## ltype ( )\
+{\
+    return lua_new_ud( g_mud_LS, & ltype ## _type );\
+}\
+void free_ ## ltype ( ctype * ud )\
+{\
+    lua_free_ud( (void *)ud );\
 }
 
 DECLARETYPE( CH, CHAR_DATA );
