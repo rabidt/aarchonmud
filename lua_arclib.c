@@ -228,10 +228,22 @@ static int index_metamethod( lua_State *LS)
 static int newindex_metamethod( lua_State *LS )
 {
     LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
+    void *gobj=lua_check_type(obj, LS, 1 );
     const char *arg=check_string( LS, 2, MIL );
     lua_remove(LS, 2);
 
     LUA_PROP_TYPE *set=obj->set_table;
+
+    bool valid=GET_REF( gobj ) != REF_FREED;
+
+    if (!strcmp("valid", arg) )
+    {
+        lua_pushboolean( LS, valid );
+        return 1;
+    }
+
+    if ( !valid )
+        luaL_error( LS, "Tried to index a freed %s", obj->type_name );
 
     int i;
     for (i=0 ; set[i].field ; i++ )
@@ -243,7 +255,6 @@ static int newindex_metamethod( lua_State *LS )
                         g_ScriptSecurity,
                         set[i].security);
 
-            lua_check_type(obj, LS, 1 ); 
             if ( set[i].func )
             {
                 lua_pushcfunction( LS, set[i].func );
@@ -280,6 +291,11 @@ static void register_type( LUA_OBJ_TYPE *tp,
     lua_pushcclosure( LS, newindex_metamethod, 1 );
 
     lua_setfield( LS, -2, "__newindex");
+
+    char buf[MSL];
+    sprintf( buf, "return \"%s\"", tp->type_name );
+    luaL_loadstring( LS, buf );
+    lua_setfield( LS, -2, "__tostring");
 
     lua_pushlightuserdata( LS, ( void *)tp);
     

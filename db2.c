@@ -83,7 +83,7 @@ void load_mobiles( FILE *fp )
             exit( 1 );
         }
 
-        pMobIndex                       = alloc_mem( sizeof(*pMobIndex) );
+        pMobIndex                       = new_mob_index();
         pMobIndex->vnum                 = vnum;
         pMobIndex->area                 = area_last;               /* OLC */
         pMobIndex->player_name          = fread_string( fp );
@@ -220,7 +220,7 @@ void load_mobiles( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pMprog              = alloc_perm(sizeof(*pMprog));
+                pMprog              = new_mprog();
                 word   		    = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -256,7 +256,7 @@ void load_mobiles( FILE *fp )
 
         // convert to MOB_INDEX_DATA
         MOB_INDEX_DATA *pMobbleIndex = convert_to_mobble( pMobIndex );
-        free_mem( pMobIndex, sizeof(*pMobIndex) );
+        free_mob_index( pMobIndex );
 
         index_mobile ( pMobbleIndex );
     }
@@ -274,7 +274,7 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
     MOB_INDEX_DATA *pMobIndex;
     long actual, spec, base;
 
-    pMobIndex = alloc_perm( sizeof(*pMobIndex) );
+    pMobIndex = new_mob_index();
 
     // identical fields, just copy
     MCOPY(vnum);
@@ -392,7 +392,7 @@ void load_mobbles( FILE *fp )
             exit( 1 );
         }
 
-        pMobIndex                       = alloc_perm( sizeof(*pMobIndex) );
+        pMobIndex                       = new_mob_index();
         pMobIndex->vnum                 = vnum;
         pMobIndex->area                 = area_last;
         pMobIndex->pShop                = NULL;
@@ -525,7 +525,7 @@ void load_mobbles( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pMprog              = alloc_perm(sizeof(*pMprog));
+                pMprog              = new_mprog();
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -592,7 +592,7 @@ void load_objects( FILE *fp )
             exit( 1 );
         }
 
-        pObjIndex                       = alloc_perm( sizeof(*pObjIndex) );
+        pObjIndex                       = new_obj_index();
         pObjIndex->vnum                 = vnum;
         pObjIndex->area                 = area_last;            /* OLC */
         pObjIndex->reset_num		= 0;
@@ -816,7 +816,7 @@ void load_objects( FILE *fp )
             char *word;
             int trigger = 0;
 
-            pOprog              = alloc_perm(sizeof(*pOprog));
+            pOprog              = new_oprog();
             word                = fread_word( fp );
             if ( (trigger = flag_lookup( word, oprog_flags )) == NO_FLAG )
             {

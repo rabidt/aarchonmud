@@ -1049,6 +1049,17 @@ Syntax:
 ]])
 end
 function do_mudconfig( ch, argument )
+    local reg=debug.getregistry()
+    local cnt=0
+    for k,v in pairs(reg) do
+        if tostring(v)=="CH" then
+            cnt=cnt+1
+        end
+    end
+
+    sendtochar( ch, cnt.."\n\r")
+    sendtochar( ch, #getcharlist().."\n\r")
+
     local args=arguments(argument)
     local nargs=#args
     -- setting
