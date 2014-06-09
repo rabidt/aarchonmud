@@ -943,7 +943,7 @@ void load_area( FILE *fp )
 {
     AREA_DATA *pArea;
     
-    pArea               = alloc_perm( sizeof(*pArea) );
+    pArea               = new_area();
     pArea->file_name    = fread_string(fp);
     
     flag_clear( pArea->area_flags );
@@ -1016,7 +1016,7 @@ void new_load_area( FILE *fp )
     char      *word;
     bool      fMatch;
     
-    pArea               = alloc_perm( sizeof(*pArea) );
+    pArea               = new_area();
     pArea->age          = 15;
     pArea->nplayer      = 0;
     pArea->reset_time   = 15;
@@ -1049,7 +1049,7 @@ void new_load_area( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pAprog              = alloc_perm(sizeof(*pAprog));
+                pAprog              = new_aprog();
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, aprog_flags )) == NO_FLAG )
                 {   
@@ -1492,7 +1492,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
              exit( 1 );
          }
          
-         pRoomIndex          = alloc_perm( sizeof(*pRoomIndex) );
+         pRoomIndex          = new_room_index();
          pRoomIndex->owner       = str_dup("");
          pRoomIndex->people      = NULL;
          pRoomIndex->contents    = NULL;
@@ -1569,7 +1569,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
                      exit( 1 );
                  }
                  
-                 pexit           = alloc_perm( sizeof(*pexit) );
+                 pexit           = new_exit();
                  pexit->description  = fread_string( fp );
                  pexit->keyword      = fread_string( fp );
 
@@ -1639,7 +1639,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
                  char *word;
                  int trigger=0;
 
-                 pRprog = alloc_perm(sizeof(*pRprog));
+                 pRprog = new_rprog();
                  word=fread_word( fp );
                  if ( ( trigger=flag_lookup( word, rprog_flags)) == NO_FLAG)
                  {
@@ -1693,7 +1693,7 @@ void load_shops( FILE *fp )
         if ( keeper == 0 )
             break;
         
-        pShop           = alloc_perm( sizeof(*pShop) );
+        pShop           = new_shop();
         pShop->keeper       = keeper;
 
         for ( iTrade = 0; iTrade < MAX_TRADE; iTrade++ )
@@ -1895,7 +1895,7 @@ void load_roomprogs( FILE *fp )
             exit( 1 );
         }
 
-        pRprog      = alloc_perm( sizeof(*pRprog) );
+        pRprog      = new_rpcode();
         pRprog->vnum    = vnum;
 
         char *word;
@@ -1969,7 +1969,7 @@ void load_areaprogs( FILE *fp )
             exit( 1 );
         }
 
-        pAprog      = alloc_perm( sizeof(*pAprog) );
+        pAprog      = new_apcode();
         pAprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2052,7 +2052,7 @@ void load_objprogs( FILE *fp )
             exit( 1 );
         }
 
-        pOprog      = alloc_perm( sizeof(*pOprog) );
+        pOprog      = new_opcode();
         pOprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2134,7 +2134,7 @@ void load_mobprogs( FILE *fp )
             exit( 1 );
         }
         
-        pMprog      = alloc_perm( sizeof(*pMprog) );
+        pMprog      = new_mpcode();
         pMprog->vnum    = vnum;
         pMprog->is_lua  = FALSE; /* new progs default to true but
                                     when loading we need to default to false */
@@ -4389,149 +4389,6 @@ void do_memory( CHAR_DATA *ch, char *argument )
     
     return;
 }
-
-void do_dump( CHAR_DATA *ch, char *argument )
-{
-    int count,count2,num_pcs,aff_count;
-    CHAR_DATA *fch;
-    MOB_INDEX_DATA *pMobIndex;
-    PC_DATA *pc;
-    OBJ_DATA *obj;
-    OBJ_INDEX_DATA *pObjIndex;
-    DESCRIPTOR_DATA *d;
-    AFFECT_DATA *af;
-    FILE *fp;
-    int vnum,nMatch = 0;
-    
-    /* open file */
-    fclose(fpReserve);
-    fp = fopen("mem.dmp","w");
-    
-    /* report use of data structures */
-    
-    num_pcs = 0;
-    aff_count = 0;
-    
-    /* mobile prototypes */
-    fprintf(fp,"MobProt	%4d (%8d bytes)\n",
-        top_mob_index, top_mob_index * (sizeof(*pMobIndex))); 
-    
-    /* mobs */
-    count = 0;  count2 = 0;
-    for (fch = char_list; fch != NULL; fch = fch->next)
-    {
-        count++;
-        if (fch->pcdata != NULL)
-            num_pcs++;
-        for (af = fch->affected; af != NULL; af = af->next)
-            aff_count++;
-    }
-    //for (fch = char_free; fch != NULL; fch = fch->next)
-    //    count2++;
-    
-    fprintf(fp,"Mobs	%4d (%8d bytes), %2d free (%d bytes)\n",
-        count, count * (sizeof(*fch)), count2, count2 * (sizeof(*fch)));
-    
-    /* pcdata */
-    count = 0;
-    for (pc = pcdata_free; pc != NULL; pc = pc->next)
-        count++; 
-    
-    fprintf(fp,"Pcdata	%4d (%8d bytes), %2d free (%d bytes)\n",
-        num_pcs, num_pcs * (sizeof(*pc)), count, count * (sizeof(*pc)));
-    
-    /* descriptors */
-    count = 0; count2 = 0;
-    for (d = descriptor_list; d != NULL; d = d->next)
-        count++;
-    for (d= descriptor_free; d != NULL; d = d->next)
-        count2++;
-    
-    fprintf(fp, "Descs	%4d (%8d bytes), %2d free (%d bytes)\n",
-        count, count * (sizeof(*d)), count2, count2 * (sizeof(*d)));
-    
-    /* object prototypes */
-    for ( vnum = 0; nMatch < top_obj_index; vnum++ )
-        if ( ( pObjIndex = get_obj_index( vnum ) ) != NULL )
-        {
-            for (af = pObjIndex->affected; af != NULL; af = af->next)
-                aff_count++;
-            nMatch++;
-        }
-        
-        fprintf(fp,"ObjProt	%4d (%8d bytes)\n",
-            top_obj_index, top_obj_index * (sizeof(*pObjIndex)));
-        
-        
-        /* objects */
-        count = 0;  count2 = 0;
-        for (obj = object_list; obj != NULL; obj = obj->next)
-        {
-            count++;
-            for (af = obj->affected; af != NULL; af = af->next)
-                aff_count++;
-        }
-        //for (obj = obj_free; obj != NULL; obj = obj->next)
-        //    count2++;
-        
-        fprintf(fp,"Objs	%4d (%8d bytes), %2d free (%d bytes)\n",
-            count, count * (sizeof(*obj)), count2, count2 * (sizeof(*obj)));
-        
-        /* affects */
-        count = 0;
-        for (af = affect_free; af != NULL; af = af->next)
-            count++;
-        
-        fprintf(fp,"Affects	%4d (%8d bytes), %2d free (%d bytes)\n",
-            aff_count, aff_count * (sizeof(*af)), count, count * (sizeof(*af)));
-        
-        /* rooms */
-        fprintf(fp,"Rooms	%4d (%8d bytes)\n",
-            top_room, top_room * (sizeof(ROOM_INDEX_DATA)));
-        
-        /* exits */
-        fprintf(fp,"Exits	%4d (%8d bytes)\n",
-            top_exit, top_exit * (sizeof(EXIT_DATA)));
-        
-        fclose(fp);
-        
-        /* start printing out mobile data */
-        fp = fopen("mob.dmp","w");
-        
-        fprintf(fp,"\nMobile Analysis\n");
-        fprintf(fp,  "---------------\n");
-        nMatch = 0;
-        for (vnum = 0; nMatch < top_mob_index; vnum++)
-            if ((pMobIndex = get_mob_index(vnum)) != NULL)
-            {
-                nMatch++;
-                fprintf(fp,"#%-4d %3d active %3d killed     %s\n",
-                    pMobIndex->vnum,pMobIndex->count,
-                    pMobIndex->killed,pMobIndex->short_descr);
-            }
-            fclose(fp);
-            
-            /* start printing out object data */
-            fp = fopen("obj.dmp","w");
-            
-            fprintf(fp,"\nObject Analysis\n");
-            fprintf(fp,  "---------------\n");
-            nMatch = 0;
-            for (vnum = 0; nMatch < top_obj_index; vnum++)
-                if ((pObjIndex = get_obj_index(vnum)) != NULL)
-                {
-                    nMatch++;
-                    fprintf(fp,"#%-4d %3d active %3d reset      %s\n",
-                        pObjIndex->vnum,pObjIndex->count,
-                        pObjIndex->reset_num,pObjIndex->short_descr);
-                }
-                
-                /* close file */
-                fclose(fp);
-                fpReserve = fopen( NULL_FILE, "r" );
-}
-
-
 
 /*
 * Stick a little fuzz on a number.
