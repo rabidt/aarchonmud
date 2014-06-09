@@ -2093,7 +2093,7 @@ void extract_obj( OBJ_DATA *obj )
 	return;
     }
 
-    unregister_lua( obj ); /* always unregister, even if delaying extract */
+    //unregister_lua( obj ); /* always unregister, even if delaying extract */
     unregister_obj_timer( obj );
 
     if (g_LuaScriptInProgress || is_mprog_running())
@@ -2296,7 +2296,7 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     /* fPull should be TRUE if NPC or quitting player (char will get freed) */
     if ( fPull )
     {
-        unregister_lua( ch ); /* always unregister even if delaying actual extract */
+        //unregister_lua( ch ); /* always unregister even if delaying actual extract */
         unregister_ch_timer( ch );
         if (g_LuaScriptInProgress || is_mprog_running())
         {

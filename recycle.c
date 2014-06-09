@@ -271,22 +271,11 @@ void free_affect(AFFECT_DATA *af)
 	affect_free = af;
 }
 
-/* stuff for recycling objects */
-OBJ_DATA *obj_free;
-
 OBJ_DATA *new_obj(void)
 {
-	static OBJ_DATA obj_zero;
 	OBJ_DATA *obj;
 
-	if (obj_free == NULL)
-	obj = alloc_perm(sizeof(*obj));
-	else
-	{
-	obj = obj_free;
-	obj_free = obj_free->next;
-	}
-	*obj = obj_zero;
+	obj = new_OBJ();
 	VALIDATE(obj);
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
@@ -335,29 +324,18 @@ void free_obj(OBJ_DATA *obj)
 
 	INVALIDATE(obj);
 
-	obj->next   = obj_free;
-	obj_free    = obj; 
+	obj->next   = NULL;
+    free_OBJ( obj );
 }
 
 
-/* stuff for recyling characters */
-CHAR_DATA *char_free;
-
 CHAR_DATA *new_char (void)
 {
-	static CHAR_DATA ch_zero;
 	CHAR_DATA *ch;
 	int i;
 
-	if (char_free == NULL)
-	ch = alloc_perm(sizeof(*ch));
-	else
-	{
-	ch = char_free;
-	char_free = char_free->next;
-	}
+	ch = new_CH();
 
-	*ch             = ch_zero;
 	VALIDATE(ch);
 	ch->name                    = &str_empty[0];
 	ch->short_descr             = &str_empty[0];
@@ -450,10 +428,11 @@ void free_char (CHAR_DATA *ch)
 	if (ch->pcdata != NULL)
 	    free_pcdata(ch->pcdata);
 
-	ch->next = char_free;
-	char_free  = ch;
+	ch->next = NULL; 
 
 	INVALIDATE(ch);
+
+    free_CH( ch );
 	return;
 }
 
