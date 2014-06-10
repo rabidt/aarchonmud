@@ -136,7 +136,7 @@ void  death_cry     args( ( CHAR_DATA *ch ) );
 void  group_gain    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 int   xp_compute    args( ( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align ) );
 bool  is_safe       args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-void  make_corpse   args( ( CHAR_DATA *ch, CHAR_DATA *killer, bool to_morgue ) );
+void  push_corpse   args( ( CHAR_DATA *ch, CHAR_DATA *killer, bool to_morgue ) );
 void  split_attack  args( ( CHAR_DATA *ch, int dt ) );
 void  mob_hit       args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 void  raw_kill      args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
@@ -4878,7 +4878,7 @@ void extract_sticky_to_char( CHAR_DATA *ch, OBJ_DATA *obj )
 /*
 * Make a corpse out of a character.
 */
-void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
+void push_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
 {
     char buf[MAX_STRING_LENGTH];
     OBJ_DATA *corpse;
@@ -5202,7 +5202,7 @@ void raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 	drop_eq( victim );
     }
     else if ( IS_NPC(victim) || !IS_SET(kill_room->room_flags, ROOM_ARENA) )
-	make_corpse( victim, killer, to_morgue);
+	push_corpse( victim, killer, to_morgue);
     
     if ( IS_NPC(victim) )
     {

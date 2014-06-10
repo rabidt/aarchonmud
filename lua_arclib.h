@@ -54,7 +54,7 @@ void * lua_check_type( LUA_OBJ_TYPE *tp,
 #define declf( ltype, ctype ) \
 ctype * check_ ## ltype ( lua_State *LS, int index ); \
 bool    is_ ## ltype ( lua_State *LS, int index ); \
-bool    make_ ## ltype ( lua_State *LS, int index );\
+bool    push_ ## ltype ( lua_State *LS, int index );\
 ctype * new_ ## ltype (void) ;\
 void    free_ ## ltype ( ctype * ud );
 

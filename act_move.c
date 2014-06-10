@@ -2592,7 +2592,7 @@ void do_hide( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void make_visible( CHAR_DATA *ch )
+void push_visible( CHAR_DATA *ch )
 {
    affect_strip ( ch, gsn_hide        );
    affect_strip ( ch, gsn_invis       );
@@ -2610,7 +2610,7 @@ void make_visible( CHAR_DATA *ch )
 */
 void do_visible( CHAR_DATA *ch, char *argument )
 {
-    make_visible( ch );
+    push_visible( ch );
     send_to_char( "Ok.\n\r", ch );
     return;
 }
