@@ -600,6 +600,14 @@ void game_loop_unix( int control )
                 secDelta  += 1;
             }
 
+            
+            /* calculate the percentage of the pulse used */
+            double usage=100-
+                (double)( (secDelta*1000000)+(usecDelta) )/
+                (double)(10000/PULSE_PER_SECOND);
+
+            lua_log_perf( usage );
+
             if ( secDelta > 0 || ( secDelta == 0 && usecDelta > 0 ) )
             {
                 struct timeval stall_time;

@@ -88,12 +88,17 @@ void mpedit( CHAR_DATA *ch, char *argument)
 
     for (cmd = 0; mpedit_table[cmd].name != NULL; cmd++)
     {
+
         if (!str_prefix(command, mpedit_table[cmd].name) )
         {
-           if ((*mpedit_table[cmd].olc_fun) (ch, argument) && pMcode)
-              if ((ad = get_vnum_area(pMcode->vnum)) != NULL)
-                 SET_BIT(ad->area_flags, AREA_CHANGED);
-              return;
+            if ( strlen(mpedit_table[cmd].name) >= 3
+                    && strlen(command) < 3 )
+                break;
+
+            if ((*mpedit_table[cmd].olc_fun) (ch, argument) && pMcode)
+                if ((ad = get_vnum_area(pMcode->vnum)) != NULL)
+                    SET_BIT(ad->area_flags, AREA_CHANGED);
+            return;
         }
     }
 

@@ -84,10 +84,14 @@ void opedit( CHAR_DATA *ch, char *argument)
     {
         if (!str_prefix(command, opedit_table[cmd].name) )
         {
-           if ((*opedit_table[cmd].olc_fun) (ch, argument) && pOcode)
-              if ((ad = get_vnum_area(pOcode->vnum)) != NULL)
-                 SET_BIT(ad->area_flags, AREA_CHANGED);
-              return;
+            if ( strlen(opedit_table[cmd].name) >= 3
+                    && strlen(command) < 3 )
+                break;
+
+            if ((*opedit_table[cmd].olc_fun) (ch, argument) && pOcode)
+                if ((ad = get_vnum_area(pOcode->vnum)) != NULL)
+                    SET_BIT(ad->area_flags, AREA_CHANGED);
+            return;
         }
     }
 
