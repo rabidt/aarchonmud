@@ -531,16 +531,20 @@ void aedit( CHAR_DATA *ch, char *argument )
    /* Search Table and Dispatch Command. */
    for ( cmd = 0; aedit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, aedit_table[cmd].name ) )
-      {
-         if ( (*aedit_table[cmd].olc_fun) ( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            return;
-         }
-         else
-            return;
-      }
+       if ( !str_prefix( command, aedit_table[cmd].name ) )
+       {
+           if ( strlen(aedit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+
+           if ( (*aedit_table[cmd].olc_fun) ( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               return;
+           }
+           else
+               return;
+       }
    }
    
    /* search for area flag to be toggled */
@@ -609,18 +613,22 @@ void redit( CHAR_DATA *ch, char *argument )
    /* Search Table and Dispatch Command. */
    for ( cmd = 0; redit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, redit_table[cmd].name ) )
-      {
-         if ( (*redit_table[cmd].olc_fun) ( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            return;
-         }
-         else
-            return;
-      }
+       if ( !str_prefix( command, redit_table[cmd].name ) )
+       {
+           if ( strlen(redit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+
+           if ( (*redit_table[cmd].olc_fun) ( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               return;
+           }
+           else
+               return;
+       }
    }
-   
+
    /* Default to Standard Interpreter. */
    interpret( ch, arg );
    return;
@@ -672,16 +680,20 @@ void oedit( CHAR_DATA *ch, char *argument )
    /* Search Table and Dispatch Command. */
    for ( cmd = 0; oedit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, oedit_table[cmd].name ) )
-      {
-         if ( (*oedit_table[cmd].olc_fun) ( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            return;
-         }
-         else
-            return;
-      }
+       if ( !str_prefix( command, oedit_table[cmd].name ) )
+       {
+           if ( strlen(oedit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+
+           if ( (*oedit_table[cmd].olc_fun) ( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               return;
+           }
+           else
+               return;
+       }
    }
    
    /* Default to Standard Interpreter. */
@@ -736,16 +748,20 @@ void medit( CHAR_DATA *ch, char *argument )
    /* Search Table and Dispatch Command. */
    for ( cmd = 0; medit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, medit_table[cmd].name ) )
-      {
-         if ( (*medit_table[cmd].olc_fun) ( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            return;
-         }
-         else
-            return;
-      }
+       if ( !str_prefix( command, medit_table[cmd].name ) )
+       {
+           if ( strlen(medit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+
+           if ( (*medit_table[cmd].olc_fun) ( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               return;
+           }
+           else
+               return;
+       }
    }
    
    /* Default to Standard Interpreter. */
@@ -1725,11 +1741,14 @@ void hedit( CHAR_DATA *ch, char *argument)
    
    for ( cmd = 0; hedit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, hedit_table[cmd].name ) )
-      {
-         (*hedit_table[cmd].olc_fun) ( ch, argument );
-         return;
-      }
+       if ( !str_prefix( command, hedit_table[cmd].name ) )
+       {
+           if ( strlen(hedit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+           (*hedit_table[cmd].olc_fun) ( ch, argument );
+           return;
+       }
    }
    
    interpret( ch, arg );

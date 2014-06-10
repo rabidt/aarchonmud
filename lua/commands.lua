@@ -1085,9 +1085,15 @@ function do_mudconfig( ch, argument )
     end
 
     if nargs==0 then
-        local rtn=mudconfig()
-        for k,v in pairs(rtn) do
-            sendtochar(ch, "%-20s %s\n\r", k, tostring(v))
+        local sorted={}
+        for k,v in pairs(mudconfig()) do
+            table.insert(sorted, { key=k, value=v } )
+        end
+
+        table.sort( sorted, function(a,b) return a.key<b.key end )
+
+        for _,v in ipairs(sorted) do
+            sendtochar(ch, "%-20s %s\n\r", v.key, tostring(v.value))
         end
         return
     end
@@ -1096,3 +1102,97 @@ function do_mudconfig( ch, argument )
     return
 end
 --end mudconfig section
+
+-- perfmon section
+local pulsetbl={}
+local pulseind=1
+local sectbl={}
+local secind=1
+local mintbl={}
+local minind=1
+local hourtbl={}
+local hourind=1
+function log_perf( val )
+    pulsetbl[pulseind]=val
+
+    if pulseind<4 then 
+        pulseind=pulseind+1
+        return 
+    else
+        pulseind=1
+    end
+
+    -- 1 second complete, add to table
+    local total=0
+    for i=1,4 do
+        total=total+pulsetbl[i]
+    end
+
+    sectbl[secind]=total/4
+
+    if secind<60 then
+        secind=secind+1
+        return
+    else
+        secind=1
+    end
+
+    -- 1 minute complete, add to table
+    total=0
+    for i=1,60 do
+        total=total+sectbl[i]
+    end
+
+    mintbl[minind]=total/60
+
+    if minind<60 then
+        minind=minind+1
+        return
+    else
+        minind=1
+    end
+
+    -- 1 hour complete, add to table
+    total=0
+    for i=1,60 do
+        total=total+mintbl[i]
+    end
+
+    hourtbl[hourind]=total/60
+
+    if hourind<24 then
+        hourind=hourind+1
+        return
+    else
+        hourind=1
+    end
+        
+end
+
+function do_perfmon( ch, argument )
+    local function avg( tbl )
+        local cnt=0
+        local ttl=0
+        for k,v in pairs(tbl) do
+            cnt=cnt+1
+            ttl=ttl+v
+        end
+
+        return ttl/cnt
+    end
+
+    pagetochar( ch,
+([[
+Averages
+  %3d Pulses:   %f
+  %3d Seconds:  %f
+  %3d Minutes:  %f
+  %3d Hours:    %f
+]]):format( #pulsetbl, avg(pulsetbl),
+            #sectbl, avg(sectbl),
+            #mintbl, avg(mintbl),
+            #hourtbl, avg(hourtbl) ) )
+
+end
+
+--end perfmon section

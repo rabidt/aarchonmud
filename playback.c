@@ -16,11 +16,11 @@ Version date: 1/31/2013
 #include "tables.h"
 
 
-#define MAX_COMM_HISTORY 70
+#define MAX_COMM_HISTORY 300
 /* Default number of results, needs to  be <=MAX_COMM_HISTORY */
 #define DEFAULT_RESULTS 35
 
-#define MAX_PERS_HISTORY 50
+#define MAX_PERS_HISTORY 50 
 
 
 /* declare the actual structures we will use*/

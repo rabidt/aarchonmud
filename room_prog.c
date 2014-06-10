@@ -138,6 +138,15 @@ bool rp_exit_trigger( CHAR_DATA *ch )
             NULL, NULL, NULL, RTRIG_EXIT);
 }
 
+bool rp_look_ed_trigger( CHAR_DATA *ch, const char *ed )
+{
+    return rp_act_trigger( ch->in_room,
+            ch, NULL,
+            NULL, NULL,
+            NULL,
+            ed, RTRIG_LOOK );
+}
+
 bool rp_look_trigger( CHAR_DATA *ch )
 {
     return rp_percent_trigger(
