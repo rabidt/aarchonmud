@@ -6,10 +6,7 @@ glob_util=require "utilities"
 require "leaderboard"
 require "commands"
 
---udtbl={} -- used to store game object tables, (read only proxies to origtbl)
 envtbl={} -- game object script environments
---origtbl={} -- where the REAL ud tables live
-origenv={} -- where the REAL env tables live
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
 
@@ -47,41 +44,7 @@ function MakeUdProxy(ud)
     )
     return proxy
 end
---[[
-function RegisterUd(ud)
-    if ud == nil then
-        error("ud is nil")
-        return
-    end
-    origtbl[ud.tableid]=ud
-    udtbl[ud.tableid]=MakeUdProxy(origtbl[ud.tableid])
-    return udtbl[ud.tableid]
-end
 
-function UnregisterUd(lightud)
-    if udtbl[lightud] then
-        -- cancel delayed functions linked to object
-        --cancel( udtbl[lightud] )
-
-        setmetatable(origtbl[lightud], nil)
-        rawset(origtbl[lightud], "tableid", nil)
-        origtbl[lightud]=nil
-        udtbl[lightud]={}
-        udtbl[lightud]=nil
-    end
-
-    if envtbl[lightud] then
-        setmetatable(origenv[lightud], nil)
-        rawset(origenv[lightud], "udid", nil)
-        origenv[lightud]=nil
-        envtbl[lightud]={}
-        envtbl[lightud]=nil
-    end
-
-    interptbl[lightud]=nil
-
-end
---]]
 function UnregisterDesc(desc)
     for k,v in pairs(interptbl) do
         if v.desc==desc then
@@ -293,82 +256,29 @@ main_lib=ProtectLib(main_lib)
 
 
 -- First look for main_lib funcs, then mob/area/obj funcs
-CH_env_meta={
+env_meta={
     __index=function(tbl,key)
         if main_lib[key] then
             return main_lib[key]
-        elseif type(tbl.mob[key])=="function" then 
+        elseif type(tbl.self[key])=="function" then 
             return function(...) 
-                        table.insert(arg, 1, tbl.mob)
-                        return tbl.mob[key](unpack(arg)) 
+                        table.insert(arg, 1, tbl.self)
+                        return tbl.self[key](unpack(arg)) 
                    end
         end
     end
 }
 
-OBJ_env_meta={
-    __index=function(tbl,key)
-        if main_lib[key] then
-            return main_lib[key]
-        elseif type(tbl.obj[key])=="function" then
-            return function(...) 
-                        table.insert(arg, 1, tbl.obj)
-                        return tbl.obj[key](unpack(arg)) 
-                   end
-        end
-    end
-}
-
-AREA_env_meta={
-    __index=function(tbl,key)
-        if main_lib[key] then
-            return main_lib[key]
-        elseif type(tbl.area[key])=="function" then
-            return function(...)
-                        table.insert(arg, 1, tbl.area) 
-                        return tbl.area[key](unpack(arg)) 
-                   end
-        end
-    end
-}
-
-ROOM_env_meta={
-    __index=function(tbl,key)
-        if main_lib[key] then
-            return main_lib[key]
-        elseif type(tbl.room[key])=="function" then
-            return function(...)
-                        table.insert(arg, 1, tbl.room)
-                        return tbl.room[key](unpack(arg))
-                   end
-        end
-    end
-}
-
-function MakeEnvProxy(env)
-    local proxy={}
-    proxy._G=proxy
-    setmetatable(proxy, {
-            __index = env,
-            __newindex = function (t,k,v)
-                if k=="udid" then
-                    error("Cannot alter udid of environment.")
+function new_script_env(ud, objname)
+    local env=setmetatable( {}, {
+            __index=function(t,k)
+                if k=="self" or k==objname then
+                    return ud
                 else
-                    rawset(t,k,v)
+                    return env_meta.__index(t,k)
                 end
-            end,
-            __metatable=0 -- any value here protects it
-            }
-    )
-
-    return proxy
-end
-
-function new_script_env(ud, objname, meta)
-    local env={ udid=ud, [objname]=ud}
-    setmetatable(env, meta)
-    origenv[ud]=env
-    return MakeEnvProxy(env)
+            end})
+    return env
 end
 
 function mob_program_setup(ud, f)
@@ -428,10 +338,10 @@ end
 
 function run_lua_interpret(env, str )
     local f,err
-    interptbl[env.udid].incmpl=interptbl[env.udid].incmpl or {}
+    interptbl[env.self].incmpl=interptbl[env.self].incmpl or {}
 
-    table.insert(interptbl[env.udid].incmpl, str)
-    f,err=loadstring(table.concat(interptbl[env.udid].incmpl, "\n"))
+    table.insert(interptbl[env.self].incmpl, str)
+    f,err=loadstring(table.concat(interptbl[env.self].incmpl, "\n"))
 
     if not(f) then
         -- Check if incomplete, same way the real cli checks
@@ -439,12 +349,12 @@ function run_lua_interpret(env, str )
         if sf==err:len()-1 then
             return 1 -- incomplete
         else
-           interptbl[env.udid].incmpl=nil
+           interptbl[env.self].incmpl=nil
            error(err)
         end
     end
 
-    interptbl[env.udid].incmpl=nil
+    interptbl[env.self].incmpl=nil
     setfenv(f, env)
     f()
     return 0
