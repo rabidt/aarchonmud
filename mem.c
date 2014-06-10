@@ -213,6 +213,7 @@ void free_room_index( ROOM_INDEX_DATA *pRoom )
     }
 
     pRoom->next     =   NULL;
+    free_ROOM( pRoom );
     return;
 }
 
