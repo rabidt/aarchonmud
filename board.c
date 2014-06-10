@@ -1013,10 +1013,10 @@ void do_board (CHAR_DATA *ch, char *argument)
 /* Send a note to someone on the personal board */
 void personal_message (const char *sender, const char *to, const char *subject, const int expire_days, const char *text)
 {
-   push_note ("Personal", sender, to, subject, expire_days, text);
+   make_note ("Personal", sender, to, subject, expire_days, text);
 }
 
-void push_note (const char* board_name, const char *sender, const char *to, const char *subject, const int expire_days, const char *text)
+void make_note (const char* board_name, const char *sender, const char *to, const char *subject, const int expire_days, const char *text)
 {
    int board_index = board_lookup (board_name);
    BOARD_DATA *board;
@@ -1025,13 +1025,13 @@ void push_note (const char* board_name, const char *sender, const char *to, cons
    
    if (board_index == BOARD_NOTFOUND)
    {
-      bug ("push_note: board not found",0);
+      bug ("make_note: board not found",0);
       return;
    }
    
    if (strlen(text) > MAX_NOTE_TEXT)
    {
-      bug ("push_note: text too long (%d bytes)", strlen(text));
+      bug ("make_note: text too long (%d bytes)", strlen(text));
       return;
    }
    
