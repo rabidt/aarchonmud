@@ -119,8 +119,15 @@ local lib_mt={
     __metatable=0 -- any value here protects it
 }
 function MakeLibProxy(tbl)
+    local mt={
+        __index=tbl,
+        __newindex=function(t,k,v)
+            error("Cannot alter library functions.")
+            end,
+        __metatable=0 -- any value here protects it
+    }
     local proxy={}
-    setmetatable(proxy, lib_mt)
+    setmetatable(proxy, mt)
     return proxy
 end
 
@@ -202,7 +209,7 @@ main_lib={  require=require,
         -- this is safe because we protected the game object and main lib
         --  metatables.
 		setmetatable=setmetatable,
-        getmetatable=getmetatable
+        --getmetatable=getmetatable
 }
 
 -- add script_globs to main_lib
