@@ -550,6 +550,9 @@ const struct flag_type oprog_flags[] =
     {   "fight",        OTRIG_FIGHT,     TRUE    },
     {   "hit",          OTRIG_HIT,       TRUE    },
     {   "prehit",       OTRIG_PREHIT,    TRUE    },
+    {   "quaff",        OTRIG_QUAFF,     TRUE    },
+    {   "open",         OTRIG_OPEN,      TRUE    },
+    {   "unlock",       OTRIG_UNLOCK,    TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -800,7 +803,9 @@ const struct flag_type extra_flags[] =
 	{   "class_ranger",        ITEM_CLASS_RANGER         , TRUE },
 	{   "class_necromancer",   ITEM_CLASS_NECROMANCER    , TRUE },
 	{   "no_extract",          ITEM_NO_EXTRACT           , TRUE },
-    {   "questeq",             ITEM_QUESTEQ              , TRUE },
+        {   "questeq",             ITEM_QUESTEQ              , TRUE },
+        {   "random_physical",     ITEM_RANDOM_PHYSICAL      , TRUE },
+        {   "random_caster",       ITEM_RANDOM_CASTER        , TRUE },
 	{   NULL,           0,          0   }
 };
 

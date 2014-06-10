@@ -877,16 +877,24 @@ const char *save_luaconfig( CHAR_DATA *ch )
         return NULL;
     }
 
+    const char *rtn;
     if (lua_isnil(g_mud_LS, -1) || lua_isnone(g_mud_LS, -1) )
-        return NULL;
-
-    if (!lua_isstring(g_mud_LS, -1))
+    {
+        rtn=NULL;
+    }
+    else if (!lua_isstring(g_mud_LS, -1))
     {
         bugf("String wasn't returned in save_luaconfig.");
-        return NULL;
+        rtn=NULL;
+    }
+    else
+    {
+        rtn=luaL_checkstring( g_mud_LS, -1 );
     }
 
-    return luaL_checkstring( g_mud_LS, -1 );
+    lua_pop( g_mud_LS, 1 );
+
+    return rtn;
 }
 
 void load_luaconfig( CHAR_DATA *ch, const char *text )
@@ -1012,4 +1020,24 @@ void do_mudconfig( CHAR_DATA *ch, char *argument)
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
+}
+
+void do_perfmon( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_perfmon");
+    push_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_perfmon:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+void lua_log_perf( double value )
+{
+    lua_getglobal( g_mud_LS, "log_perf" );
+    lua_pushnumber( g_mud_LS, value );
+    lua_call( g_mud_LS, 1, 0 );
 }

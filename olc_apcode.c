@@ -83,10 +83,14 @@ void apedit( CHAR_DATA *ch, char *argument)
     {
         if (!str_prefix(command, apedit_table[cmd].name) )
         {
-           if ((*apedit_table[cmd].olc_fun) (ch, argument) && pAcode)
-              if ((ad = get_vnum_area(pAcode->vnum)) != NULL)
-                 SET_BIT(ad->area_flags, AREA_CHANGED);
-              return;
+            if ( strlen(apedit_table[cmd].name) >= 3
+                    && strlen(command) < 3 )
+                break;
+
+            if ((*apedit_table[cmd].olc_fun) (ch, argument) && pAcode)
+                if ((ad = get_vnum_area(pAcode->vnum)) != NULL)
+                    SET_BIT(ad->area_flags, AREA_CHANGED);
+            return;
         }
     }
 
