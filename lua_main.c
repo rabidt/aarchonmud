@@ -877,16 +877,24 @@ const char *save_luaconfig( CHAR_DATA *ch )
         return NULL;
     }
 
+    const char *rtn;
     if (lua_isnil(g_mud_LS, -1) || lua_isnone(g_mud_LS, -1) )
-        return NULL;
-
-    if (!lua_isstring(g_mud_LS, -1))
+    {
+        rtn=NULL;
+    }
+    else if (!lua_isstring(g_mud_LS, -1))
     {
         bugf("String wasn't returned in save_luaconfig.");
-        return NULL;
+        rtn=NULL;
+    }
+    else
+    {
+        rtn=luaL_checkstring( g_mud_LS, -1 );
     }
 
-    return luaL_checkstring( g_mud_LS, -1 );
+    lua_pop( g_mud_LS, 1 );
+
+    return rtn;
 }
 
 void load_luaconfig( CHAR_DATA *ch, const char *text )
