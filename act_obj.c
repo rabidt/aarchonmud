@@ -2944,7 +2944,7 @@ void do_steal( CHAR_DATA *ch, char *argument )
         /* Failed roll */
         send_to_char( "Oops.\n\r", ch );
 
-        push_visible( ch );
+        make_visible( ch );
 
         if ( !IS_AWAKE(victim) )
             send_to_char( "Someone tried to steal from you.\n\r", victim );
