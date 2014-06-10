@@ -2611,13 +2611,13 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
     bool fNest;
     bool fVnum;
     bool first;
-    bool make_new;    /* update object */
+    bool push_new;    /* update object */
     bool ignore_affects = FALSE; /* catch for old pfiles */
     
     fVnum = FALSE;
     obj = NULL;
     first = TRUE;  /* used to counter buf offset */
-    make_new = FALSE;
+    push_new = FALSE;
     
     word   = beof( buf ) ? "End" : bread_word( buf );
     if (!str_cmp(word,"Vnum" ))
@@ -2834,7 +2834,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                         obj = create_object( get_obj_index( OBJ_VNUM_DUMMY ), 0 );
                     }
 
-                    if (make_new)
+                    if (push_new)
                     {
                         int wear;
                         

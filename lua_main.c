@@ -183,7 +183,7 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
 void do_lboard( CHAR_DATA *ch, char *argument)
 {
     lua_getglobal(g_mud_LS, "do_lboard");
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
@@ -196,7 +196,7 @@ void do_lboard( CHAR_DATA *ch, char *argument)
 void do_lhistory( CHAR_DATA *ch, char *argument)
 {
     lua_getglobal(g_mud_LS, "do_lhistory");
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
@@ -553,7 +553,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
 
     /* do the stuff */
     lua_getglobal( g_mud_LS, "interp_setup");
-    if ( !lua_make_type(type, g_mud_LS, victim) )
+    if ( !lua_push_type(type, g_mud_LS, victim) )
     {
         bugf("do_luai: couldn't make udtable argument %s",
                 argument);
@@ -675,7 +675,7 @@ void open_lua ()
 void do_scriptdump( CHAR_DATA *ch, char *argument )
 {
     lua_getglobal(g_mud_LS, "do_scriptdump");
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
@@ -722,7 +722,7 @@ static int L_wizhelp( LS )
 void do_luaquery( CHAR_DATA *ch, char *argument)
 {
     lua_getglobal( g_mud_LS, "do_luaquery");
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
@@ -735,7 +735,7 @@ void do_luaquery( CHAR_DATA *ch, char *argument)
 void do_wizhelp( CHAR_DATA *ch, char *argument )
 {
     lua_pushcfunction(g_mud_LS, L_wizhelp);
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
@@ -782,7 +782,7 @@ static int L_charloadtest( lua_State *LS )
 
         d.character->desc=NULL;
         reset_char(d.character);
-        if (!make_CH(LS, d.character) )
+        if (!push_CH(LS, d.character) )
             luaL_error( LS, "Couldn't make UD for %s", d.character->name);
         lua_rawseti( LS, -2, newindex++);
     }
@@ -837,7 +837,7 @@ void do_charloadtest( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    make_CH( g_mud_LS, ch);
+    push_CH( g_mud_LS, ch);
     lua_pushcfunction(g_mud_LS, L_charloadtest);
     lua_insert( g_mud_LS, 1);
 
@@ -868,7 +868,7 @@ const char *save_luaconfig( CHAR_DATA *ch )
         return NULL;
 
     lua_getglobal(g_mud_LS, "save_luaconfig" );
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     if (CallLuaWithTraceBack( g_mud_LS, 1, 1 ) )
     {
         ptc (ch, "Error with save_luaconfig:\n %s",
@@ -892,7 +892,7 @@ const char *save_luaconfig( CHAR_DATA *ch )
 void load_luaconfig( CHAR_DATA *ch, const char *text )
 {
     lua_getglobal(g_mud_LS, "load_luaconfig" );
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring( g_mud_LS, text );
 
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0 ) )
@@ -907,7 +907,7 @@ void load_luaconfig( CHAR_DATA *ch, const char *text )
 void do_luaconfig( CHAR_DATA *ch, char *argument)
 {
     lua_getglobal(g_mud_LS, "do_luaconfig");
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
@@ -952,7 +952,7 @@ static int L_dump_prog( lua_State *LS)
 void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines)
 {
     lua_pushcfunction( g_mud_LS, L_dump_prog);
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring( g_mud_LS, prog);
     lua_pushboolean( g_mud_LS, numberlines);
 
@@ -967,7 +967,7 @@ void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines)
 void do_luareset( CHAR_DATA *ch, char *argument)
 {
     lua_getglobal(g_mud_LS, "do_luareset");
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
@@ -991,7 +991,7 @@ void lua_arcgc()
 void do_alist(CHAR_DATA *ch, char *argument)
 {
     lua_getglobal(g_mud_LS, "do_alist");
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
@@ -1004,7 +1004,7 @@ void do_alist(CHAR_DATA *ch, char *argument)
 void do_mudconfig( CHAR_DATA *ch, char *argument)
 {
     lua_getglobal(g_mud_LS, "do_mudconfig");
-    make_CH(g_mud_LS, ch);
+    push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
