@@ -325,7 +325,6 @@ local lqtbl={
 }
 
 function do_luaquery( ch, argument)
-    do -- actual func wrapped in do/end so scope is destroyed before gc called
     -- arg checking stuff
     args=arguments(argument, true)
     
@@ -563,8 +562,6 @@ function do_luaquery( ch, argument)
                 math.abs(limitarg) )
     end
     pagetochar(ch, final)
-    end -- actual func wrapped in do/end so scope is destroyed before gc called
-    lua_arcgc() -- force a garbage collection 
 end
 -- end luaquery section
 
