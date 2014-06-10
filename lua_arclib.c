@@ -301,6 +301,10 @@ static void register_type( LUA_OBJ_TYPE *tp,
     
     lua_setfield( LS, -2, "TYPE");
 
+    /* any value here protects from set/get metatable from lua side */
+    lua_pushinteger( LS, 0 );
+    lua_setfield( LS, -2, "__metatable" );
+
     lua_pop(LS, 1);
 }
 

@@ -31,19 +31,6 @@ function EnvCnt()
     return cnt
 end
 
-function MakeUdProxy(ud)
-    local proxy={}
-    setmetatable(proxy, {
-            __index = ud,
-            __newindex = getmetatable(ud)["__newindex"], 
-            __tostring= function() return tostring(ud) end,
-            TYPE=getmetatable(ud)["TYPE"],
-            __metatable=0 -- any value here protects it
-            }
-    )
-    return proxy
-end
-
 function UnregisterDesc(desc)
     for k,v in pairs(interptbl) do
         if v.desc==desc then
@@ -122,19 +109,18 @@ function LoadTable(name, areaFname)
   return f()
 end
 
--- Standard functionality avaiable for any env type
+-- Standard functionality available for any env type
 -- doesn't require access to env variables
-function MakeLibProxy(tbl)
-    local mt={
-        __index=tbl,
-        __newindex=function(t,k,v)
-            error("Cannot alter library functions.")
+local lib_mt={
+    __index=tbl,
+    __newindex=function(t,k,v)
+        error("Cannot alter library functions.")
         end,
-        __metatable=0 -- any value here protects it
-    }
-    
+    __metatable=0 -- any value here protects it
+}
+function MakeLibProxy(tbl)
     local proxy={}
-    setmetatable(proxy, mt)
+    setmetatable(proxy, lib_mt)
     return proxy
 end
 
@@ -216,6 +202,7 @@ main_lib={  require=require,
         -- this is safe because we protected the game object and main lib
         --  metatables.
 		setmetatable=setmetatable,
+        getmetatable=getmetatable
 }
 
 -- add script_globs to main_lib
@@ -276,7 +263,8 @@ function new_script_env(ud, objname)
                 else
                     return env_meta.__index(t,k)
                 end
-            end})
+            end,
+            __metatable=0 })
     return env
 end
 
@@ -371,24 +359,6 @@ function list_files ( path )
     end
 
     return rtn
-end
-
-function lua_arcgc()
-    -- Destroy game object tables who don't have envs or pending timer
-
-    -- make temporary timer table for tableid lookup
---[[    local tmr={}
-    for k,v in pairs(delaytbl) do
-        tmr[v.udobj.tableid]=true
-    end
-
-
-    for k,v in pairs(origtbl) do
-        if not(envtbl[v.tableid]) and not(tmr[v.tableid]) then
-            UnregisterUd(v.tableid)
-        end
-    end --]]
-    collectgarbage()
 end
 
 function save_mudconfig()
