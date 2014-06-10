@@ -329,7 +329,7 @@ void do_ftag( CHAR_DATA *ch, char *argument )
         REMOVE_BIT( victim->affect_field, AFF_SNEAK );
 	affect_strip( victim, gsn_disguise );
 	affect_strip( victim, gsn_mimic );
-	push_visible( victim );
+	make_visible( victim );
         act( "You are on the {RRED{x team!", ch, NULL, victim, TO_VICT );
         act( "$N is on the {RRED{x team!",   ch, NULL, victim, TO_NOTVICT );
         act( "$N is on the {RRED{x team!",   ch, NULL, victim, TO_CHAR );
@@ -356,7 +356,7 @@ void do_ftag( CHAR_DATA *ch, char *argument )
         REMOVE_BIT( victim->affect_field, AFF_SNEAK );
 	affect_strip( victim, gsn_disguise );
 	affect_strip( victim, gsn_mimic );
-	push_visible( victim );
+	make_visible( victim );
         act( "You are on the {BBLUE{x team!", ch, NULL, victim, TO_VICT );
         act( "$N is on the {BBLUE{x team!",   ch, NULL, victim, TO_NOTVICT );
         act( "$N is on the {BBLUE{x team!",   ch, NULL, victim, TO_CHAR );

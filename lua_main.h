@@ -1,13 +1,10 @@
 #ifndef LUA_MAIN_H
 #define LUA_MAIN_H
 
-#define UD_TABLE_NAME "udtbl"
 #define ENV_TABLE_NAME "envtbl"
 #define INTERP_TABLE_NAME "interptbl"
 
 /* Names of some functions declared on the lua side */
-#define REGISTER_UD_FUNCTION "RegisterUd"
-#define UNREGISTER_UD_FUNCTION "UnregisterUd"
 #define GETSCRIPT_FUNCTION "GetScript"
 #define SAVETABLE_FUNCTION "SaveTable"
 #define LOADTABLE_FUNCTION "LoadTable"
