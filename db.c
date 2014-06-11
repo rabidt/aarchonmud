@@ -50,6 +50,7 @@
 #include "olc.h"
 #include "buffer_util.h"
 #include "mob_stats.h"
+#include "lua_arclib.h"
 
 extern  int _filbuf     args( (FILE *) );
 
@@ -979,7 +980,6 @@ void load_area( FILE *fp )
     pArea->next      = NULL;
     current_area = pArea;
     
-    top_area++;
 
     logpf("Loading area: %s\t\t%Min: %ld  Max: %ld  Sec: %d  Credits: %s",
         pArea->name, pArea->min_vnum, pArea->max_vnum, pArea->security, pArea->credits);
@@ -1103,7 +1103,6 @@ void new_load_area( FILE *fp )
                 area_last    = pArea;
                 pArea->next  = NULL;
                 current_area = pArea;
-                top_area++;
                 
                 return;
             }
@@ -1299,7 +1298,6 @@ void index_mobile( MOB_INDEX_DATA *pMobIndex )
     int iHash = vnum % MAX_KEY_HASH;    
     pMobIndex->next = mob_index_hash[iHash];
     mob_index_hash[iHash] = pMobIndex;
-    top_mob_index++;
     top_vnum_mob = top_vnum_mob < vnum ? vnum : top_vnum_mob;  /* OLC */
     assign_area_vnum( vnum );                                  /* OLC */
     kill_table[URANGE(0, pMobIndex->level, MAX_LEVEL-1)].number++;
@@ -1608,7 +1606,6 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
 		 */
 
                  pRoomIndex->exit[door]  = pexit;
-                 top_exit++;
              }
              else if ( letter == 'E' )
              {
@@ -1666,7 +1663,6 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          iHash           = vnum % MAX_KEY_HASH;
          pRoomIndex->next    = room_index_hash[iHash];
          room_index_hash[iHash]  = pRoomIndex;
-         top_room++;
          top_vnum_room = top_vnum_room < vnum ? vnum : top_vnum_room; /* OLC */
          assign_area_vnum( vnum );                                    /* OLC */
     }
@@ -1713,7 +1709,6 @@ void load_shops( FILE *fp )
         
         shop_last   = pShop;
         pShop->next = NULL;
-        top_shop++;
     }
     
     return;
@@ -1929,7 +1924,6 @@ void load_roomprogs( FILE *fp )
             pRprog->next = rprog_list;
             rprog_list  = pRprog;
         }
-        top_rprog_index++;
     }
     return;
 }
@@ -2012,7 +2006,6 @@ void load_areaprogs( FILE *fp )
             pAprog->next = aprog_list;
             aprog_list  = pAprog;
         }
-        top_aprog_index++;
     }
     return;
 }
@@ -2095,7 +2088,6 @@ void load_objprogs( FILE *fp )
             pOprog->next = oprog_list;
             oprog_list  = pOprog;
         }
-        top_oprog_index++;
     }
     return;
 }
@@ -2203,7 +2195,6 @@ void load_mobprogs( FILE *fp )
 
         if (pMprog->is_lua)
             lua_mprogs++;
-        top_mprog_index++;
     } /* end for loop */
     return;
 }
@@ -4350,26 +4341,30 @@ void do_areas( CHAR_DATA *ch )
 
 void do_memory( CHAR_DATA *ch, char *argument )
 {
-    ptc( ch, "Affects   %5d\n\r", top_affect    ); 
-    ptc( ch, "Areas     %5d\n\r", top_area      ); 
+    ptc( ch, "          %-5s %s\n\r", "C", "Lua" );
+    ptc( ch, "Affects   %5d %5d\n\r", top_affect, count_AFFECT()); 
+    ptc( ch, "Areas     %5d %5d\n\r", top_area, count_AREA()); 
     ptc( ch, "ExDes     %5d\n\r", top_ed        ); 
-    ptc( ch, "Exits     %5d\n\r", top_exit      ); 
+    ptc( ch, "Exits     %5d %5d\n\r", top_exit, count_EXIT()); 
     ptc( ch, "Helps     %5d\n\r", top_help      ); 
     ptc( ch, "Socials   %5d\n\r", maxSocial  ); 
-    ptc( ch, "Resets    %5d\n\r", top_reset     ); 
-    ptc( ch, "Rooms     %5d\n\r", top_room      ); 
-    ptc( ch, "Shops     %5d\n\r", top_shop      ); 
+    ptc( ch, "Resets    %5d %5d\n\r", top_reset, count_RESET()); 
+    ptc( ch, "Rooms     %5d %5d\n\r", top_room, count_ROOM()); 
+    ptc( ch, "Shops     %5d\n\r", top_shop, count_SHOP()); 
     ptc( ch, "\n\r");
     ptc( ch, "Mobs      %5d\n\r", top_mob_index );
     ptc( ch, " (in use) %5d\n\r", mobile_count  );
-    ptc( ch, "Objs      %5d\n\r", top_obj_index );
-    ptc( ch, " (in use) %5d\n\r", object_count  );
+    ptc( ch, "Objs      %5d %5d\n\r", top_obj_index, count_OBJPROTO());
+    ptc( ch, " (in use) %5d %5d\n\r", object_count, count_OBJ());
     ptc( ch, "\n\r");
     ptc( ch, "Mprogs    %5d\n\r", top_mprog_index);
     ptc( ch, " (lua)    %5d\n\r", lua_mprogs);
     ptc( ch, "Oprogs    %5d\n\r", top_oprog_index);
     ptc( ch, "Aprogs    %5d\n\r", top_aprog_index);
     ptc( ch, "Rprogs    %5d\n\r", top_rprog_index);
+    ptc( ch, "Total     %5d %5d\n\r",
+            top_mprog_index + top_oprog_index + top_aprog_index + top_rprog_index,
+            count_PROG() );
     ptc( ch, "\n\r");
     
     ptc( ch, "Strings %5d strings of %7d bytes (max %d).\n\r",
