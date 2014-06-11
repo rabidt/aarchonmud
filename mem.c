@@ -48,7 +48,7 @@ RESET_DATA *new_reset_data( void )
 {
     RESET_DATA *pReset;
 
-    pReset          =   new_RESET();
+    pReset          =   alloc_RESET();
     top_reset++;
 
     pReset->next        =   NULL;
@@ -78,7 +78,7 @@ AREA_DATA *new_area( void )
     char buf[MAX_INPUT_LENGTH];
     int i;
 
-    pArea   =   new_AREA();
+    pArea   =   alloc_AREA();
     top_area++;
 
     pArea->next             =   NULL;
@@ -125,7 +125,7 @@ EXIT_DATA *new_exit( void )
 {
     EXIT_DATA *pExit;
 
-    pExit           =   new_EXIT();
+    pExit           =   alloc_EXIT();
     top_exit++;
 
     pExit->u1.to_room   =   NULL;                  /* ROM OLC */
@@ -158,7 +158,7 @@ ROOM_INDEX_DATA *new_room_index( void )
     ROOM_INDEX_DATA *pRoom;
     int door;
 
-    pRoom           =   new_ROOM();
+    pRoom           =   alloc_ROOM();
     top_room++;
 
     pRoom->next             =   NULL;
@@ -222,7 +222,7 @@ SHOP_DATA *new_shop( void )
     SHOP_DATA *pShop;
     int buy;
 
-    pShop           =   new_SHOP();
+    pShop           =   alloc_SHOP();
     top_shop++;
 
     pShop->next         =   NULL;
@@ -253,7 +253,7 @@ OBJ_INDEX_DATA *new_obj_index( void )
     OBJ_INDEX_DATA *pObj;
     int value;
 
-    pObj           =   new_OBJPROTO();
+    pObj           =   alloc_OBJPROTO();
     top_obj_index++;
 
     pObj->next          =   NULL;
@@ -314,7 +314,7 @@ MOB_INDEX_DATA *new_mob_index( void )
 {
     MOB_INDEX_DATA *pMob;
 
-    pMob           =   new_MOBPROTO();
+    pMob           =   alloc_MOBPROTO();
     top_mob_index++;
 
     pMob->next          =   NULL;
@@ -376,7 +376,7 @@ PROG_CODE *new_mpcode(void)
 {
      PROG_CODE *NewCode;
 
-     NewCode = new_PROG();
+     NewCode = alloc_PROG();
      top_mprog_index++;
 
      NewCode->security = 0;
@@ -400,7 +400,7 @@ PROG_CODE *new_opcode(void)
 {
      PROG_CODE *NewCode;
 
-     NewCode = new_PROG();
+     NewCode = alloc_PROG();
      top_oprog_index++;
 
      NewCode->vnum    = 0;
@@ -424,7 +424,7 @@ PROG_CODE *new_apcode(void)
 {
      PROG_CODE *NewCode;
 
-     NewCode = new_PROG();
+     NewCode = alloc_PROG();
      top_aprog_index++;
 
      NewCode->vnum    = 0;
@@ -448,7 +448,7 @@ PROG_CODE *new_rpcode(void)
 {
     PROG_CODE *NewCode;
 
-    NewCode = new_PROG();
+    NewCode = alloc_PROG();
     top_rprog_index++;
 
     NewCode->vnum = 0;

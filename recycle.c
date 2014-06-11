@@ -240,8 +240,7 @@ AFFECT_DATA *new_affect(void)
 {
 	AFFECT_DATA *af;
 
-	af = new_AFFECT();
-    top_affect++;
+	af = alloc_AFFECT();
 
 	VALIDATE(af);
 	af->next = NULL;
@@ -257,7 +256,6 @@ void free_affect(AFFECT_DATA *af)
 
 	INVALIDATE(af);
 	af->next = NULL;
-    top_affect--;
     free_AFFECT( af );
 }
 
@@ -265,7 +263,7 @@ OBJ_DATA *new_obj(void)
 {
 	OBJ_DATA *obj;
 
-	obj = new_OBJ();
+	obj = alloc_OBJ();
 	VALIDATE(obj);
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
@@ -324,7 +322,7 @@ CHAR_DATA *new_char (void)
 	CHAR_DATA *ch;
 	int i;
 
-	ch = new_CH();
+	ch = alloc_CH();
 
 	VALIDATE(ch);
 	ch->name                    = &str_empty[0];
@@ -843,7 +841,7 @@ PROG_LIST *new_mprog(void)
 {
    PROG_LIST *mp;
 
-   mp = new_MTRIG();
+   mp = alloc_MTRIG();
    
    mp->vnum             = 0;
    mp->trig_type        = 0;
@@ -866,7 +864,7 @@ PROG_LIST *new_oprog(void)
 {
    PROG_LIST *op;
 
-   op = new_OTRIG();
+   op = alloc_OTRIG();
    
    op->vnum             = 0;
    op->trig_type        = 0;
@@ -889,7 +887,7 @@ PROG_LIST *new_aprog(void)
 {
    PROG_LIST *ap;
 
-   ap = new_ATRIG(); 
+   ap = alloc_ATRIG(); 
 
    ap->vnum             = 0;
    ap->trig_type        = 0;
@@ -912,7 +910,7 @@ PROG_LIST *new_rprog(void)
 {
     PROG_LIST *rp;
     
-    rp = new_RTRIG(); 
+    rp = alloc_RTRIG(); 
 
     rp->vnum        = 0;
     rp->trig_type   = 0;

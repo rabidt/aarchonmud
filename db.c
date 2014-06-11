@@ -944,7 +944,7 @@ void load_area( FILE *fp )
 {
     AREA_DATA *pArea;
     
-    pArea               = new_area();
+    pArea               = alloc_AREA();
     pArea->file_name    = fread_string(fp);
     
     flag_clear( pArea->area_flags );
@@ -979,7 +979,8 @@ void load_area( FILE *fp )
     area_last        = pArea;
     pArea->next      = NULL;
     current_area = pArea;
-    
+
+    top_area++;
 
     logpf("Loading area: %s\t\t%Min: %ld  Max: %ld  Sec: %d  Credits: %s",
         pArea->name, pArea->min_vnum, pArea->max_vnum, pArea->security, pArea->credits);
@@ -1016,7 +1017,7 @@ void new_load_area( FILE *fp )
     char      *word;
     bool      fMatch;
     
-    pArea               = new_area();
+    pArea               = alloc_AREA();
     pArea->age          = 15;
     pArea->nplayer      = 0;
     pArea->reset_time   = 15;
@@ -1049,7 +1050,7 @@ void new_load_area( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pAprog              = new_aprog();
+                pAprog              = alloc_ATRIG();
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, aprog_flags )) == NO_FLAG )
                 {   
@@ -1103,6 +1104,7 @@ void new_load_area( FILE *fp )
                 area_last    = pArea;
                 pArea->next  = NULL;
                 current_area = pArea;
+                top_area++;
                 
                 return;
             }
@@ -1298,6 +1300,7 @@ void index_mobile( MOB_INDEX_DATA *pMobIndex )
     int iHash = vnum % MAX_KEY_HASH;    
     pMobIndex->next = mob_index_hash[iHash];
     mob_index_hash[iHash] = pMobIndex;
+    top_mob_index++;
     top_vnum_mob = top_vnum_mob < vnum ? vnum : top_vnum_mob;  /* OLC */
     assign_area_vnum( vnum );                                  /* OLC */
     kill_table[URANGE(0, pMobIndex->level, MAX_LEVEL-1)].number++;
@@ -1490,7 +1493,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
              exit( 1 );
          }
          
-         pRoomIndex          = new_room_index();
+         pRoomIndex          = alloc_ROOM();
          pRoomIndex->owner       = str_dup("");
          pRoomIndex->people      = NULL;
          pRoomIndex->contents    = NULL;
@@ -1567,7 +1570,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
                      exit( 1 );
                  }
                  
-                 pexit           = new_exit();
+                 pexit           = alloc_EXIT();
                  pexit->description  = fread_string( fp );
                  pexit->keyword      = fread_string( fp );
 
@@ -1606,6 +1609,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
 		 */
 
                  pRoomIndex->exit[door]  = pexit;
+                 top_exit++;
              }
              else if ( letter == 'E' )
              {
@@ -1636,7 +1640,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
                  char *word;
                  int trigger=0;
 
-                 pRprog = new_rprog();
+                 pRprog = alloc_RTRIG();
                  word=fread_word( fp );
                  if ( ( trigger=flag_lookup( word, rprog_flags)) == NO_FLAG)
                  {
@@ -1663,6 +1667,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
          iHash           = vnum % MAX_KEY_HASH;
          pRoomIndex->next    = room_index_hash[iHash];
          room_index_hash[iHash]  = pRoomIndex;
+         top_room++;
          top_vnum_room = top_vnum_room < vnum ? vnum : top_vnum_room; /* OLC */
          assign_area_vnum( vnum );                                    /* OLC */
     }
@@ -1689,7 +1694,7 @@ void load_shops( FILE *fp )
         if ( keeper == 0 )
             break;
         
-        pShop           = new_shop();
+        pShop           = alloc_SHOP(); 
         pShop->keeper       = keeper;
 
         for ( iTrade = 0; iTrade < MAX_TRADE; iTrade++ )
@@ -1709,6 +1714,7 @@ void load_shops( FILE *fp )
         
         shop_last   = pShop;
         pShop->next = NULL;
+        top_shop++;
     }
     
     return;
@@ -1890,7 +1896,7 @@ void load_roomprogs( FILE *fp )
             exit( 1 );
         }
 
-        pRprog      = new_rpcode();
+        pRprog      = alloc_PROG();
         pRprog->vnum    = vnum;
 
         char *word;
@@ -1924,6 +1930,7 @@ void load_roomprogs( FILE *fp )
             pRprog->next = rprog_list;
             rprog_list  = pRprog;
         }
+        top_rprog_index++;
     }
     return;
 }
@@ -1963,7 +1970,7 @@ void load_areaprogs( FILE *fp )
             exit( 1 );
         }
 
-        pAprog      = new_apcode();
+        pAprog      = alloc_PROG();
         pAprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2006,6 +2013,7 @@ void load_areaprogs( FILE *fp )
             pAprog->next = aprog_list;
             aprog_list  = pAprog;
         }
+        top_aprog_index++;
     }
     return;
 }
@@ -2045,7 +2053,7 @@ void load_objprogs( FILE *fp )
             exit( 1 );
         }
 
-        pOprog      = new_opcode();
+        pOprog      = alloc_PROG();
         pOprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2088,6 +2096,7 @@ void load_objprogs( FILE *fp )
             pOprog->next = oprog_list;
             oprog_list  = pOprog;
         }
+        top_oprog_index++;
     }
     return;
 }
@@ -2126,7 +2135,7 @@ void load_mobprogs( FILE *fp )
             exit( 1 );
         }
         
-        pMprog      = new_mpcode();
+        pMprog      = alloc_PROG();
         pMprog->vnum    = vnum;
         pMprog->is_lua  = FALSE; /* new progs default to true but
                                     when loading we need to default to false */
@@ -2195,6 +2204,7 @@ void load_mobprogs( FILE *fp )
 
         if (pMprog->is_lua)
             lua_mprogs++;
+        top_mprog_index++;
     } /* end for loop */
     return;
 }
@@ -4350,7 +4360,7 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "Socials   %5d\n\r", maxSocial  ); 
     ptc( ch, "Resets    %5d %5d\n\r", top_reset, count_RESET()); 
     ptc( ch, "Rooms     %5d %5d\n\r", top_room, count_ROOM()); 
-    ptc( ch, "Shops     %5d\n\r", top_shop, count_SHOP()); 
+    ptc( ch, "Shops     %5d %5d\n\r", top_shop, count_SHOP()); 
     ptc( ch, "\n\r");
     ptc( ch, "Mobs      %5d\n\r", top_mob_index );
     ptc( ch, " (in use) %5d\n\r", mobile_count  );
