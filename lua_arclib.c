@@ -112,6 +112,7 @@ LUA_OBJ_TYPE *type_list [] =
     &OTRIG_type,
     &ATRIG_type,
     &RTRIG_type,
+    &HELP_type,
     NULL
 };
 
@@ -1270,6 +1271,22 @@ HELPTOPIC glob_getshoplist_help=
           "local shoplist=getshoplist()\n\r\n\r"
 };
 
+static int glob_gethelplist ( lua_State *LS )
+{
+    HELP_DATA *help;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( help=help_first ; help ; help=help->next )
+    {
+        if (make_HELP(LS, help))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+HELPTOPIC glob_gethelplist_help= {};
 /* Mersenne Twister pseudo-random number generator */
 
 static int mtlib_srand (lua_State *LS)
@@ -1520,11 +1537,14 @@ GLOB_TYPE glob_table[] =
     GFUN(getplayerlist, 9),
     GFUN(getarealist,   9),
     GFUN(getshoplist,   9),
+    GFUN(gethelplist,   9),
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
     GFUN(mudconfig,     9),
 #ifdef TESTER
     GFUN(do_luaquery,   9),
+#else
+    GFUN(do_luaquery,   SEC_NOSCRIPT),
 #endif
 
     GODF(confuse),
@@ -8185,6 +8205,56 @@ static const LUA_PROP_TYPE TRIG_method_table [] =
 
 /* end TRIG section */
 
+/* HELP section */
+static int HELP_get_level( lua_State *LS )
+{
+    lua_pushinteger( LS, check_HELP( LS, 1 )->level );
+    return 1;
+}
+HELPTOPIC HELP_get_level_help = {};
+
+static int HELP_get_keywords( lua_State *LS )
+{
+    lua_pushstring( LS, check_HELP( LS, 1 )->keyword );
+    return 1;
+}
+HELPTOPIC HELP_get_keywords_help = {};
+
+static int HELP_get_text( lua_State *LS )
+{
+    lua_pushstring( LS, check_HELP( LS, 1 )->text );
+    return 1;
+}
+HELPTOPIC HELP_get_text_help = {};
+
+static int HELP_get_delete( lua_State *LS )
+{
+    lua_pushboolean( LS, check_HELP( LS, 1 )->delete );
+    return 1;
+}
+HELPTOPIC HELP_get_delete_help = {};
+
+static const LUA_PROP_TYPE HELP_get_table [] =
+{
+    GETP( HELP, level, 0 ),
+    GETP( HELP, keywords, 0 ),
+    GETP( HELP, text, 0 ),
+    GETP( HELP, delete, 0 ),
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE HELP_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE HELP_method_table [] =
+{
+    ENDPTABLE
+};
+
+/* end HELP section */
+
 /* help section */
 
 struct 
@@ -8639,4 +8709,6 @@ DECLARETRIG( MTRIG, PROG_LIST );
 DECLARETRIG( OTRIG, PROG_LIST );
 DECLARETRIG( ATRIG, PROG_LIST );
 DECLARETRIG( RTRIG, PROG_LIST );
+
+DECLARETYPE( HELP, HELP_DATA );
 
