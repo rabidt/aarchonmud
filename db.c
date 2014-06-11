@@ -4356,13 +4356,13 @@ void do_memory( CHAR_DATA *ch, char *argument )
     ptc( ch, "Areas     %5d %5d\n\r", top_area, count_AREA()); 
     ptc( ch, "ExDes     %5d\n\r", top_ed        ); 
     ptc( ch, "Exits     %5d %5d\n\r", top_exit, count_EXIT()); 
-    ptc( ch, "Helps     %5d\n\r", top_help      ); 
+    ptc( ch, "Helps     %5d %5d\n\r", top_help, count_HELP()); 
     ptc( ch, "Socials   %5d\n\r", maxSocial  ); 
     ptc( ch, "Resets    %5d %5d\n\r", top_reset, count_RESET()); 
     ptc( ch, "Rooms     %5d %5d\n\r", top_room, count_ROOM()); 
     ptc( ch, "Shops     %5d %5d\n\r", top_shop, count_SHOP()); 
     ptc( ch, "\n\r");
-    ptc( ch, "Mobs      %5d\n\r", top_mob_index );
+    ptc( ch, "Mobs      %5d %5d\n\r", top_mob_index, count_MOBPROTO());
     ptc( ch, " (in use) %5d\n\r", mobile_count  );
     ptc( ch, "Objs      %5d %5d\n\r", top_obj_index, count_OBJPROTO());
     ptc( ch, " (in use) %5d %5d\n\r", object_count, count_OBJ());
