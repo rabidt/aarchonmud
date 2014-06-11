@@ -83,7 +83,7 @@ void load_mobiles( FILE *fp )
             exit( 1 );
         }
 
-        pMobIndex                       = new_mob_index();
+        pMobIndex                       = alloc_mem( sizeof(*pMobIndex) );
         pMobIndex->vnum                 = vnum;
         pMobIndex->area                 = area_last;               /* OLC */
         pMobIndex->player_name          = fread_string( fp );
@@ -220,7 +220,7 @@ void load_mobiles( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pMprog              = new_mprog();
+                pMprog              = alloc_MTRIG();
                 word   		    = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -256,7 +256,7 @@ void load_mobiles( FILE *fp )
 
         // convert to MOB_INDEX_DATA
         MOB_INDEX_DATA *pMobbleIndex = convert_to_mobble( pMobIndex );
-        free_mob_index( pMobIndex );
+        free_mem( pMobIndex, sizeof(*pMobIndex) );
 
         index_mobile ( pMobbleIndex );
     }
@@ -274,7 +274,7 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
     MOB_INDEX_DATA *pMobIndex;
     long actual, spec, base;
 
-    pMobIndex = new_mob_index();
+    pMobIndex = alloc_MOBPROTO();
 
     // identical fields, just copy
     MCOPY(vnum);
@@ -392,7 +392,7 @@ void load_mobbles( FILE *fp )
             exit( 1 );
         }
 
-        pMobIndex                       = new_mob_index();
+        pMobIndex                       = alloc_MOBPROTO();
         pMobIndex->vnum                 = vnum;
         pMobIndex->area                 = area_last;
         pMobIndex->pShop                = NULL;
@@ -525,7 +525,7 @@ void load_mobbles( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pMprog              = new_mprog();
+                pMprog              = alloc_MTRIG();
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -592,7 +592,7 @@ void load_objects( FILE *fp )
             exit( 1 );
         }
 
-        pObjIndex                       = new_obj_index();
+        pObjIndex                       = alloc_OBJPROTO();
         pObjIndex->vnum                 = vnum;
         pObjIndex->area                 = area_last;            /* OLC */
         pObjIndex->reset_num		= 0;
@@ -709,6 +709,7 @@ void load_objects( FILE *fp )
                 paf->modifier           = fread_number( fp );
                 paf->bitvector          = 0;
                 pObjIndex->affected     = affect_insert( pObjIndex->affected, paf );
+                top_affect++;
             }
 
             else if (letter == 'B')
@@ -779,6 +780,7 @@ void load_objects( FILE *fp )
                 }
 
                 pObjIndex->affected     = affect_insert( pObjIndex->affected, paf );
+                top_affect++;
             }
 
             else if ( letter == 'E' )
@@ -814,7 +816,7 @@ void load_objects( FILE *fp )
             char *word;
             int trigger = 0;
 
-            pOprog              = new_oprog();
+            pOprog              = alloc_OTRIG();
             word                = fread_word( fp );
             if ( (trigger = flag_lookup( word, oprog_flags )) == NO_FLAG )
             {
@@ -838,6 +840,7 @@ void load_objects( FILE *fp )
         iHash                   = vnum % MAX_KEY_HASH;
         pObjIndex->next         = obj_index_hash[iHash];
         obj_index_hash[iHash]   = pObjIndex;
+        top_obj_index++;
         top_vnum_obj = top_vnum_obj < vnum ? vnum : top_vnum_obj;   /* OLC */
         assign_area_vnum( vnum );                                   /* OLC */
     }
