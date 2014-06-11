@@ -272,7 +272,7 @@ local lqtbl={
             return trigs
         end,
         default_sel="mobproto.vnum|mobproto.shortdescr|trigtype|trigphrase|prog.vnum"
-   },
+    },
     otrig={
         getfun=function()
             local trigs={}
@@ -288,7 +288,7 @@ local lqtbl={
             return trigs
         end,
         default_sel="objproto.vnum|objproto.shortdescr|trigtype|trigphrase|prog.vnum"
-   },
+    },
    
     atrig={
         getfun=function()
@@ -303,7 +303,7 @@ local lqtbl={
             return trigs
         end,
         default_sel="area.name|trigtype|trigphrase|prog.vnum"
-   },
+    },
     
     rtrig={
         getfun=function()
@@ -320,7 +320,13 @@ local lqtbl={
             return trigs
         end,
         default_sel="room.vnum|room.name|trigtype|trigphrase|prog.vnum"
-   }
+    },
+
+    help={
+        getfun=gethelplist,
+        default_sel="level|keywords"
+    }
+
 
 }
 
