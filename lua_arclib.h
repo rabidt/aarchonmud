@@ -42,6 +42,7 @@ extern LUA_OBJ_TYPE OTRIG_type;
 extern LUA_OBJ_TYPE ATRIG_type;
 extern LUA_OBJ_TYPE RTRIG_type;
 extern LUA_OBJ_TYPE AFFECT_type;
+extern LUA_OBJ_TYPE HELP_type;
 
 void register_globals( lua_State *LS );
 bool lua_make_type( LUA_OBJ_TYPE *tp,
@@ -75,6 +76,7 @@ declf(ATRIG, PROG_LIST)
 declf(RTRIG, PROG_LIST)
 declf(SHOP, SHOP_DATA)
 declf(AFFECT, AFFECT_DATA)
+declf(HELP, HELP_DATA)
 #undef declf
 
 
