@@ -392,3 +392,16 @@ function load_mudconfig()
         end
     end
 end
+
+function count_type( typename)
+    local reg=debug.getregistry()
+    local cnt=0
+
+    for k,v in pairs(reg) do
+        if tostring(v) == typename then
+            cnt=cnt+1
+        end
+    end
+
+    return cnt
+end

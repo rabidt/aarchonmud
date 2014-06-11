@@ -241,6 +241,7 @@ AFFECT_DATA *new_affect(void)
 	AFFECT_DATA *af;
 
 	af = new_AFFECT();
+    top_affect++;
 
 	VALIDATE(af);
 	af->next = NULL;
@@ -256,6 +257,7 @@ void free_affect(AFFECT_DATA *af)
 
 	INVALIDATE(af);
 	af->next = NULL;
+    top_affect--;
     free_AFFECT( af );
 }
 

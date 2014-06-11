@@ -56,7 +56,8 @@ ctype * check_ ## ltype ( lua_State *LS, int index ); \
 bool    is_ ## ltype ( lua_State *LS, int index ); \
 bool    push_ ## ltype ( lua_State *LS, int index );\
 ctype * new_ ## ltype (void) ;\
-void    free_ ## ltype ( ctype * ud );
+void    free_ ## ltype ( ctype * ud );\
+int     count_ ## ltype (void) ;
 
 
 declf(CH, CHAR_DATA)
