@@ -1287,7 +1287,7 @@ static int glob_gethelplist ( lua_State *LS )
 
     for ( help=help_first ; help ; help=help->next )
     {
-        if (make_HELP(LS, help))
+        if (push_HELP(LS, help))
             lua_rawseti(LS, -2, index++);
     }
 

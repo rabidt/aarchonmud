@@ -946,19 +946,11 @@ HELP_AREA * new_had ( void )
    return had;
 }
 
-HELP_DATA * help_free;
-
 HELP_DATA * new_help ( void )
 {
    HELP_DATA * help;
    
-   if ( help_free == NULL )
-	  help       = alloc_perm( sizeof( *help ) );
-   else
-   {
-	  help       = help_free;
-	  help_free = help_free->next;
-   }
+   help       = alloc_HELP();
 
    help->level   = 0;
    help->keyword = str_dup("");
