@@ -8612,7 +8612,7 @@ bool    push_ ## ltype ( lua_State *LS, int index )\
 {\
     return lua_push_type( & ltype ## _type, LS, index);\
 }\
-ctype * new_ ## ltype ( )\
+ctype * alloc_ ## ltype ( void )\
 {\
     return lua_new_ud( g_mud_LS, & ltype ## _type );\
 }\
@@ -8645,7 +8645,7 @@ bool    push_ ## ltype ( lua_State *LS, int index )\
 {\
     return lua_push_type( & ltype ## _type, LS, index);\
 }\
-ctype * new_ ## ltype ( )\
+ctype * alloc_ ## ltype ( void )\
 {\
     return lua_new_ud( g_mud_LS, & ltype ## _type );\
 }\
@@ -8673,4 +8673,3 @@ DECLARETRIG( MTRIG, PROG_LIST );
 DECLARETRIG( OTRIG, PROG_LIST );
 DECLARETRIG( ATRIG, PROG_LIST );
 DECLARETRIG( RTRIG, PROG_LIST );
-
