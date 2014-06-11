@@ -308,6 +308,16 @@ static void register_type( LUA_OBJ_TYPE *tp,
     lua_pop(LS, 1);
 }
 
+int lua_count_type( LUA_OBJ_TYPE *tp )
+{
+    lua_getglobal( g_mud_LS, "count_type" );
+    lua_pushstring( g_mud_LS, tp->type_name );
+    lua_call( g_mud_LS, 1, 1 );
+    int rtn=luaL_checkint( g_mud_LS, -1 );
+    lua_pop( g_mud_LS, 1);
+    return rtn;
+}
+
 bool lua_push_type( LUA_OBJ_TYPE *tp,
         lua_State *LS, void *game_obj)
 {
@@ -8609,6 +8619,10 @@ ctype * new_ ## ltype ( )\
 void free_ ## ltype ( ctype * ud )\
 {\
     lua_free_ud( (void *)ud );\
+}\
+int count_ ## ltype ( void )\
+{\
+    return lua_count_type( & ltype ## _type );\
 }
 
 #define DECLARETRIG( ltype, ctype ) \
@@ -8638,6 +8652,10 @@ ctype * new_ ## ltype ( )\
 void free_ ## ltype ( ctype * ud )\
 {\
     lua_free_ud( (void *)ud );\
+}\
+int count_ ## ltype ( void )\
+{\
+    return lua_count_type( & ltype ## _type );\
 }
 
 DECLARETYPE( CH, CHAR_DATA );

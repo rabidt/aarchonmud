@@ -709,7 +709,6 @@ void load_objects( FILE *fp )
                 paf->modifier           = fread_number( fp );
                 paf->bitvector          = 0;
                 pObjIndex->affected     = affect_insert( pObjIndex->affected, paf );
-                top_affect++;
             }
 
             else if (letter == 'B')
@@ -780,7 +779,6 @@ void load_objects( FILE *fp )
                 }
 
                 pObjIndex->affected     = affect_insert( pObjIndex->affected, paf );
-                top_affect++;
             }
 
             else if ( letter == 'E' )
@@ -840,7 +838,6 @@ void load_objects( FILE *fp )
         iHash                   = vnum % MAX_KEY_HASH;
         pObjIndex->next         = obj_index_hash[iHash];
         obj_index_hash[iHash]   = pObjIndex;
-        top_obj_index++;
         top_vnum_obj = top_vnum_obj < vnum ? vnum : top_vnum_obj;   /* OLC */
         assign_area_vnum( vnum );                                   /* OLC */
     }
