@@ -47,10 +47,15 @@ end
 -- end luareset section
 
 -- luaquery section
+local query_results={}
+
 local function luaquery_usage( ch )
     pagetochar( ch,
 [[
-luaquery <type> <selection> [filter] [sort] [width] [limit]
+{Cluaquery <type> <selection> [filter] [sort] [width] [limit]
+    {xExecute a query and show first page of results.
+{Cluaquery next
+    {xShow the next page of results.
 
 Types:
     area    - AREAs (area_list)
@@ -60,6 +65,7 @@ Types:
     mobs    - CHs (all mobs from char_list)
     room    - ROOMs
     reset   - RESETs (includes 'area' and 'room')
+    help    - HELPs
 
     mprog   - PROGs (all mprogs, includes 'area')
     oprog   - PROGS (all oprogs, includes 'area')
@@ -330,6 +336,40 @@ local lqtbl={
 
 }
 
+local function show_next_results( ch )
+    if not(query_results[ch.name]) then return end
+
+    local res=query_results[ch.name]
+
+    local ind=res.index
+    local scroll=(ch.scroll == 0 ) and 100 or ch.scroll
+    local toind=math.min(ind+scroll-4, res.total ) -- -2 is normal, -3 for extra line at bottom, -4 for query at top
+
+    local out={}
+    table.insert(out, "Query: "..res.query)
+    table.insert(out, res.header)
+    for i=ind,toind do
+        table.insert(out, res.results[i] )
+    end
+
+    table.insert( out, ("Results %d through %d (of %d)."):format( ind, toind, res.total) )
+
+    if toind==res.total then
+        query_results[ch.name]=nil
+    else
+        res.index=toind+1
+    end
+
+    pagetochar( ch, table.concat( out, "\n\r").."\n\r")
+end
+
+local luaq_nav=
+{
+    ["next"]=function( ch )
+        show_next_results( ch )
+    end
+}
+
 function do_luaquery( ch, argument)
     do -- actual func wrapped in do/end so scope is destroyed before gc called
     -- arg checking stuff
@@ -337,6 +377,11 @@ function do_luaquery( ch, argument)
     
     if not(args[1]) then
         luaquery_usage(ch)
+        return
+    end
+
+    if luaq_nav[args[1]] then
+        luaq_nav[args[1]]( ch )
         return
     end
 
@@ -515,8 +560,7 @@ function do_luaquery( ch, argument)
         table.insert(hdrstr,
                 util.format_color_string( v, widths[v]+1))
     end
-    table.insert(printing, 
-            "|"..table.concat(hdrstr,"|").."|")
+    local hdr="|"..table.concat(hdrstr,"|").."|"
 
     local iter
     if not(limitarg) then
@@ -559,16 +603,18 @@ function do_luaquery( ch, argument)
                 "|"..ln.."|")
     end
 
-  
-    local final=table.concat(printing,"\n\r")..
-            "\n\r\n\r"..
-            "Total results: "..(#output).."\n\r"
-    if limitarg then
-        final=final..string.format("(%s %d results shown)\n\r", 
-                (limitarg<0) and "Last" or "First",
-                math.abs(limitarg) )
-    end
-    pagetochar(ch, final)
+    -- stick in in query_results table for browsing
+    query_results[ch.name]=
+    {
+        query=argument,
+        index=1,
+        total=#printing,
+        header=hdr,
+        results=printing
+    }
+
+    show_next_results( ch )
+
     end -- actual func wrapped in do/end so scope is destroyed before gc called
     lua_arcgc() -- force a garbage collection 
 end
