@@ -111,14 +111,11 @@ void save_clanwars()
 		return;
 	}
 
-    fclose(fpReserve);
-
 	fp = fopen (CLANWAR_FILE, "w");
 	
 	if (!fp)
 	{
 		bug ("Could not open " CLANWAR_FILE " for writing",0);
-        fpReserve = fopen( NULL_FILE, "r" );
 		return;
 	}
 	
@@ -136,8 +133,6 @@ void save_clanwars()
 	fprintf (fp, "END\n");
 		
 	fclose (fp);
-
-    fpReserve = fopen( NULL_FILE, "r" );
 }
 
 

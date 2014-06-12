@@ -1140,7 +1140,6 @@ void save_area( AREA_DATA *pArea )
     if ( pArea == NULL || IS_SET(pArea->area_flags, AREA_CLONE) )
 	return;
 
-    fclose( fpReserve );
     if ( !( fp = fopen( pArea->file_name, "w" ) ) )
     {
         bug( "Open_area: fopen", 0 );
@@ -1206,7 +1205,6 @@ void save_area( AREA_DATA *pArea )
     fprintf( fp, "#$\n" );
     
     fclose( fp );
-    fpReserve = fopen( NULL_FILE, "r" );
     return;
 }
 
