@@ -3666,12 +3666,12 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
     if ( IS_IMMORTAL(ch) && ch->level > LEVEL_IMMORTAL && !area )
         return FALSE;
 
-    if ( IS_IMMORTAL(victim) && !IS_IMMORTAL(ch) )
+    if ( IS_IMMORTAL(victim) && (!IS_IMMORTAL(ch) && !IS_NPC(ch)) )
     {
 	if ( !quiet )
-	    send_to_char("You would get squashed!\n\r",ch);
+            send_to_char("You would get squashed!\n\r",ch);
         return TRUE;
-    }
+    } 
 
     /* fear */
     if ( !theory && IS_AFFECTED(ch, AFF_FEAR) )
