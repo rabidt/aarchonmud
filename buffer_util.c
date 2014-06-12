@@ -356,18 +356,15 @@ bool save_to_dir( MEMFILE *mf, char *dir )
   }
 
   sprintf(strsave, "%s%s", dir, mf->filename);
-  fclose( fpReserve );
   if ( ( fp = fopen( strsave, "w" ) ) == NULL )
   {
     sprintf(bug_buf, "save_to_dir: couldn't open %s", strsave);
     bug(bug_buf, 0);
-    fpReserve = fopen( NULL_FILE, "r" );
     return FALSE;
   }
 
   success = write_buffer_to_file( mf->buf, fp );
   fclose( fp );
-  fpReserve = fopen( NULL_FILE, "r" );
 
   if (!success)
   {
