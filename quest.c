@@ -1769,7 +1769,10 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
       send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
     else
       send_to_char("Title not found. 'ptitle list' for titles,\n\r",ch);
-    return;
+
+    fclose(fp);
+    fpReserve = fopen( NULL_FILE, "r" );
+    return FALSE;
   }
 
   cost = fread_number( fp );
