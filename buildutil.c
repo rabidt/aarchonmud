@@ -775,8 +775,8 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 
 		case ITEM_ARMOR:
 		sprintf( buf, 
-		"Armor class is %d pierce, %d bash, %d slash, and %d vs. magic\n\r",
-			obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+		"Armor class is %d.\n\r",
+			obj->value[0] );
 		send_to_char( buf, ch );
 	break;
 
@@ -1048,9 +1048,8 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 	victim->gold, victim->silver, victim->exp );
 	send_to_char( buf, ch );
 
-	sprintf(buf,"Armor: pierce: %d  bash: %d  slash: %d  magic: %d\n\r",
-		GET_AC(victim,AC_PIERCE), GET_AC(victim,AC_BASH),
-		GET_AC(victim,AC_SLASH),  GET_AC(victim,AC_EXOTIC));
+	sprintf(buf,"Armor: %d\n\r",
+		GET_AC(victim));
 	send_to_char(buf,ch);
 
 	sprintf( buf, 
