@@ -4025,7 +4025,6 @@ extern      PROG_CODE    * rprog_list;
 extern      char            bug_buf     [];
 extern      time_t          current_time;
 extern      bool            fLogAll;
-extern      FILE *          fpReserve;
 extern      KILL_DATA       kill_table  [];
 extern      char            log_buf     [];
 extern      TIME_INFO_DATA      time_info;
@@ -4083,15 +4082,11 @@ char *  crypt       args( ( const char *key, const char *salt ) );
  * All files are read in completely at bootup.
  * Most output files (bug, idea, typo, shutdown) are append-only.
  *
- * The NULL_FILE is held open so that we have a stream handle in reserve,
- *   so players can go ahead and telnet to all the other descriptors.
- * Then we close it whenever we need to open a file (e.g. a save file).
  */
 
 #define PLAYER_DIR      "../player/"            /* Player files */
 #define GOD_DIR         "../gods/"          /* list of gods */
 #define TEMP_FILE   "../player/romtmp"
-#define NULL_FILE   "/dev/null"     /* To reserve one stream */
 #define NOTE_DIR    "../notes/"
 #define CLAN_DIR	"../clans/"
 #define LUA_DIR     "../src/lua/"

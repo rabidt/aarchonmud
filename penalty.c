@@ -1305,8 +1305,6 @@ void save_crime_list(void)
     FILE *fp;
     bool found = FALSE;
     
-    fclose( fpReserve ); 
-
     if ( ( fp = fopen( CRIME_FILE, "w" ) ) == NULL )
     {
         log_error( CRIME_FILE );
@@ -1319,7 +1317,6 @@ void save_crime_list(void)
     }
     
     fclose(fp);
-    fpReserve = fopen( NULL_FILE, "r" );
     if (!found)
         unlink(CRIME_FILE);
 }

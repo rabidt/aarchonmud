@@ -1552,14 +1552,11 @@ void save_disabled()
         return;
     }
 
-    fclose(fpReserve);
-
     fp = fopen (DISABLED_FILE, "w");
     
     if (!fp)
     {
         bug ("Could not open " DISABLED_FILE " for writing",0);
-        fpReserve = fopen( NULL_FILE, "r" );
         return;
     }
     
@@ -1569,6 +1566,4 @@ void save_disabled()
     fprintf (fp, "%s\n",END_MARKER);
     
     fclose (fp);
-
-    fpReserve = fopen( NULL_FILE, "r" );
 }

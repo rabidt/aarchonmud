@@ -41,7 +41,6 @@ void save_bans(void)
     FILE *fp;
     bool found = FALSE;
 
-    fclose( fpReserve ); 
     if ( ( fp = fopen( BAN_FILE, "w" ) ) == NULL )
     {
         log_error( BAN_FILE );
@@ -58,7 +57,6 @@ void save_bans(void)
      }
 
      fclose(fp);
-     fpReserve = fopen( NULL_FILE, "r" );
      if (!found)
 	unlink(BAN_FILE);
 }
