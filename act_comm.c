@@ -2169,7 +2169,7 @@ char* ch_name(CHAR_DATA *ch)
 {
     if ( !ch )
         return "";
-    return IS_NPC(ch) ? ch->short_descr : ch->name;
+    return IS_NPC(ch) ? remove_color(ch->short_descr) : ch->name;
 }
 
 void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
