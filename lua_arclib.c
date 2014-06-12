@@ -10,8 +10,27 @@
 
 bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
 
-#define GET_REF( ud ) ( * ( (int *)( (char *)ud - sizeof(int) ) ) )
-#define REF_FREED -1
+/* for iterating */
+LUA_OBJ_TYPE *type_list [] =
+{
+    &CH_type,
+    &OBJ_type,
+    &AREA_type,
+    &ROOM_type,
+    &EXIT_type,
+    &RESET_type,
+    &OBJPROTO_type,
+    &MOBPROTO_type,
+    &SHOP_type,
+    &AFFECT_type,
+    &PROG_type,
+    &MTRIG_type,
+    &OTRIG_type,
+    &ATRIG_type,
+    &RTRIG_type,
+    &HELP_type,
+    NULL
+};
 
 /* Define game object types and global functions */
 
@@ -97,29 +116,6 @@ typedef struct lua_prop_type
 
 #define ENDPTABLE {NULL, NULL, 0, NULL, 0}
 
-/* for iterating */
-LUA_OBJ_TYPE *type_list [] =
-{
-    &CH_type,
-    &OBJ_type,
-    &AREA_type,
-    &ROOM_type,
-    &EXIT_type,
-    &RESET_type,
-    &OBJPROTO_type,
-    &MOBPROTO_type,
-    &SHOP_type,
-    &AFFECT_type,
-    &PROG_type,
-    &MTRIG_type,
-    &OTRIG_type,
-    &ATRIG_type,
-    &RTRIG_type,
-    &HELP_type,
-    NULL
-};
-
-
 static LUA_OBJ_TYPE *new_obj_type(
         lua_State *LS,
         const char *type_name,
@@ -128,49 +124,16 @@ static LUA_OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *method_table);
 
 
-void * lua_new_ud( lua_State *LS, LUA_OBJ_TYPE *tp )
-{
-    size_t size=tp->size + sizeof(int);
-
-    void *ud = lua_newuserdata( LS, size );
-
-    luaL_getmetatable( LS, tp->type_name );
-    lua_setmetatable( LS, -2 );
-
-    *((int *)ud) = luaL_ref( LS, LUA_REGISTRYINDEX );
-
-    ud = (void *)( ( (char *)ud ) + sizeof(int) );
-
-    memset( ud, 0, tp->size );
-
-    return ud;
-}
-
-void lua_free_ud( void *ud )
-{
-    int ref=GET_REF(ud);
-    GET_REF(ud)=REF_FREED;
-    luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref ); 
-}
-
 /* base functionality for lua object types */
-void * lua_check_type( LUA_OBJ_TYPE *tp,
-        lua_State *LS, int index )
-{
-    void * ud=luaL_checkudata( LS, index, tp->type_name );
-    ud = (void *)( ( (char *)ud ) + sizeof(int) );
-    return ud;
-}
-
 static int index_metamethod( lua_State *LS)
 {
     LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
-    void *gobj=lua_check_type(obj, LS, 1 );
+    void *gobj=obj->check( LS, 1 );
     const char *arg=luaL_checkstring( LS, 2 );
 
     LUA_PROP_TYPE *get=obj->get_table;
 
-    bool valid=GET_REF( gobj ) != REF_FREED;
+    bool valid=obj->valid(gobj);
     
     if (!strcmp("valid", arg) )
     {
@@ -229,13 +192,13 @@ static int index_metamethod( lua_State *LS)
 static int newindex_metamethod( lua_State *LS )
 {
     LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
-    void *gobj=lua_check_type(obj, LS, 1 );
+    void *gobj=obj->check( LS, 1 );
     const char *arg=check_string( LS, 2, MIL );
     lua_remove(LS, 2);
 
     LUA_PROP_TYPE *set=obj->set_table;
 
-    bool valid=GET_REF( gobj ) != REF_FREED;
+    bool valid=obj->valid( gobj );
 
     if (!strcmp("valid", arg) )
     {
@@ -307,45 +270,6 @@ static void register_type( LUA_OBJ_TYPE *tp,
     lua_setfield( LS, -2, "__metatable" );
 
     lua_pop(LS, 1);
-}
-
-int lua_count_type( LUA_OBJ_TYPE *tp )
-{
-    lua_getglobal( g_mud_LS, "count_type" );
-    lua_pushstring( g_mud_LS, tp->type_name );
-    lua_call( g_mud_LS, 1, 1 );
-    int rtn=luaL_checkint( g_mud_LS, -1 );
-    lua_pop( g_mud_LS, 1);
-    return rtn;
-}
-
-bool lua_push_type( LUA_OBJ_TYPE *tp,
-        lua_State *LS, void *game_obj)
-{
-    if (!game_obj)
-    {
-        bugf("push_%s called with NULL object", tp->type_name);
-        return FALSE;
-    }
-
-    lua_rawgeti( LS, LUA_REGISTRYINDEX, GET_REF( game_obj ) );
-    if ( lua_isnil( LS, -1 ) )
-        return FALSE;
-
-    return TRUE;
-}
-
-bool lua_is_type( LUA_OBJ_TYPE *tp,
-        lua_State *LS, int arg )
-{
-    lua_getmetatable( LS, arg );
-    luaL_getmetatable( LS, tp->type_name );
-
-    bool result=lua_equal( LS, -1, -2 );
-
-    lua_pop( LS, 2 );
-    
-    return result;
 }
 
 /* global section */
@@ -8146,7 +8070,7 @@ static int TRIG_get_trigtype ( lua_State *LS )
     lua_pushstring( LS,
             flag_stat_string(
                 tbl,
-                ((PROG_LIST *) lua_check_type( type, LS, 1 ) )->trig_type ) );
+                ((PROG_LIST *) type->check( LS, 1 ) )->trig_type ) );
     return 1;
 }
 HELPTOPIC TRIG_get_trigtype_help = {};
@@ -8166,7 +8090,7 @@ static int TRIG_get_trigphrase ( lua_State *LS )
                 type->type_name);
 
     lua_pushstring( LS,
-            ((PROG_LIST *) lua_check_type( type, LS, 1 ) )->trig_phrase);
+            ((PROG_LIST *) type->check( LS, 1 ) )->trig_phrase);
     return 1;
 }
 HELPTOPIC TRIG_get_trigphrase_help ={};
@@ -8186,7 +8110,7 @@ static int TRIG_get_prog ( lua_State *LS )
                 type->type_name);
 
     if ( push_PROG( LS,
-            ((PROG_LIST *)lua_check_type( type, LS, 1 ) )->script ) )
+            ((PROG_LIST *)type->check( LS, 1 ) )->script ) )
         return 1;
     return 0;
 }    
@@ -8645,13 +8569,7 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
 }
 
 /* end help section */
-#define TYPEINIT( typename ) if (! typename ## _type ) \
-    typename ## _type=new_obj_type(\
-        LS,\
-        #typename,\
-        typename ## _get_table,\
-        typename ## _set_table,\
-        typename ## _method_table)
+
 void type_init( lua_State *LS)
 {
     int i;
@@ -8662,71 +8580,79 @@ void type_init( lua_State *LS)
         register_type( type_list[i], LS );
     }
 }
-#define DECLARETYPE( ltype, ctype ) \
-LUA_OBJ_TYPE ltype ## _type = { \
-    .type_name= #ltype ,\
-    .get_table= ltype ## _get_table ,\
-    .set_table= ltype ## _set_table ,\
-    .method_table = ltype ## _method_table ,\
-    .size = sizeof( ctype )\
-};\
-ctype * check_ ## ltype ( lua_State *LS, int index )\
-{\
-    return lua_check_type( & ltype ## _type , LS, index );\
-}\
-bool    is_ ## ltype ( lua_State *LS, int index )\
-{\
-    return lua_is_type( & ltype ## _type, LS, index );\
-}\
-bool    push_ ## ltype ( lua_State *LS, int index )\
-{\
-    return lua_push_type( & ltype ## _type, LS, index);\
-}\
-ctype * alloc_ ## ltype ( void )\
-{\
-    return lua_new_ud( g_mud_LS, & ltype ## _type );\
-}\
-void free_ ## ltype ( ctype * ud )\
-{\
-    lua_free_ud( (void *)ud );\
-}\
-int count_ ## ltype ( void )\
-{\
-    return lua_count_type( & ltype ## _type );\
-}
 
-#define DECLARETRIG( ltype, ctype ) \
-LUA_OBJ_TYPE ltype ## _type = { \
-    .type_name= #ltype ,\
-    .get_table= TRIG_get_table ,\
-    .set_table= TRIG_set_table ,\
-    .method_table = TRIG_method_table ,\
-    .size = sizeof( ctype ) \
-};\
-ctype * check_ ## ltype ( lua_State *LS, int index )\
+#define REF_FREED -1
+
+#define declb( LTYPE , CTYPE , TPREFIX ) \
+typedef struct\
 {\
-    return lua_check_type( & ltype ## _type , LS, index );\
+    CTYPE a;\
+    int ref;\
+} LTYPE ## _wrapper;\
+bool valid_ ## LTYPE ( CTYPE *ud )\
+{\
+    return (( LTYPE ## _wrapper *)ud)->ref != REF_FREED;\
 }\
-bool    is_ ## ltype ( lua_State *LS, int index )\
+CTYPE * check_ ## LTYPE ( lua_State *LS, int index )\
 {\
-    return lua_is_type( & ltype ## _type, LS, index );\
+    return luaL_checkudata( LS, index, #LTYPE );\
 }\
-bool    push_ ## ltype ( lua_State *LS, int index )\
+bool    is_ ## LTYPE ( lua_State *LS, int index )\
 {\
-    return lua_push_type( & ltype ## _type, LS, index);\
+    lua_getmetatable( LS, index );\
+    luaL_getmetatable( LS, #LTYPE );\
+    bool result=lua_equal( LS, -1, -2 );\
+    lua_pop( LS, 2 );\
+    return result;\
 }\
-ctype * alloc_ ## ltype ( void )\
+bool    push_ ## LTYPE ( lua_State *LS, CTYPE *ud )\
 {\
-    return lua_new_ud( g_mud_LS, & ltype ## _type );\
+    int ref=(( LTYPE ## _wrapper *)ud)->ref;\
+    if (ref==REF_FREED)\
+        return FALSE;\
+\
+    lua_rawgeti( LS, LUA_REGISTRYINDEX, ref );\
+\
+    return TRUE;\
 }\
-void free_ ## ltype ( ctype * ud )\
+CTYPE * alloc_ ## LTYPE ( void )\
 {\
-    lua_free_ud( (void *)ud );\
+    LTYPE ## _wrapper *wrap=lua_newuserdata( g_mud_LS, sizeof( LTYPE ## _wrapper ) );\
+    luaL_getmetatable( g_mud_LS, #LTYPE );\
+    lua_setmetatable( g_mud_LS, -2 );\
+    wrap->ref=luaL_ref( g_mud_LS, LUA_REGISTRYINDEX );\
+    LTYPE ## _type.count++;\
+    memset( wrap, 0, sizeof( CTYPE ) );\
+    return wrap;\
 }\
-int count_ ## ltype ( void )\
+void free_ ## LTYPE ( CTYPE * ud )\
 {\
-    return lua_count_type( & ltype ## _type );\
-}
+    LTYPE ## _wrapper *wrap=ud;\
+    int ref=wrap->ref;\
+    wrap->ref=REF_FREED;\
+    luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref );\
+    LTYPE ## _type.count--;\
+}\
+int count_ ## LTYPE ( void ) { return LTYPE ## _type.count; }\
+\
+LUA_OBJ_TYPE LTYPE ## _type = { \
+    .type_name= #LTYPE ,\
+    .valid = valid_ ## LTYPE ,\
+    .check = check_ ## LTYPE ,\
+    .is    = is_ ## LTYPE ,\
+    .push  = push_ ## LTYPE ,\
+    .alloc = alloc_ ## LTYPE ,\
+    .free  = free_ ## LTYPE ,\
+\
+    .get_table= TPREFIX ## _get_table ,\
+    .set_table= TPREFIX ## _set_table ,\
+    .method_table = TPREFIX ## _method_table ,\
+\
+    .count=0 \
+};
+
+#define DECLARETYPE( LTYPE, CTYPE ) declb( LTYPE, CTYPE, LTYPE )
+#define DECLARETRIG( LTYPE, CTYPE ) declb( LTYPE, CTYPE, TRIG ) 
 
 DECLARETYPE( CH, CHAR_DATA );
 DECLARETYPE( OBJ, OBJ_DATA );

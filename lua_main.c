@@ -553,7 +553,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
 
     /* do the stuff */
     lua_getglobal( g_mud_LS, "interp_setup");
-    if ( !lua_push_type(type, g_mud_LS, victim) )
+    if ( !type->push(g_mud_LS, victim) )
     {
         bugf("do_luai: couldn't make udtable argument %s",
                 argument);
