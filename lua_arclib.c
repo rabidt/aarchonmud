@@ -116,13 +116,6 @@ typedef struct lua_prop_type
 
 #define ENDPTABLE {NULL, NULL, 0, NULL, 0}
 
-static LUA_OBJ_TYPE *new_obj_type(
-        lua_State *LS,
-        const char *type_name,
-        const LUA_PROP_TYPE *get_table,
-        const LUA_PROP_TYPE *set_table,
-        const LUA_PROP_TYPE *method_table);
-
 /* global section */
 static int utillib_func (lua_State *LS, const char *funcname)
 {
