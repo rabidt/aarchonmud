@@ -30,6 +30,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
