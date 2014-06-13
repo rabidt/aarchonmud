@@ -111,13 +111,6 @@ end
 
 -- Standard functionality available for any env type
 -- doesn't require access to env variables
-local lib_mt={
-    __index=tbl,
-    __newindex=function(t,k,v)
-        error("Cannot alter library functions.")
-        end,
-    __metatable=0 -- any value here protects it
-}
 function MakeLibProxy(tbl)
     local mt={
         __index=tbl,
@@ -391,17 +384,4 @@ function load_mudconfig()
             end
         end
     end
-end
-
-function count_type( typename)
-    local reg=debug.getregistry()
-    local cnt=0
-
-    for k,v in pairs(reg) do
-        if tostring(v) == typename then
-            cnt=cnt+1
-        end
-    end
-
-    return cnt
 end
