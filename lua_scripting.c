@@ -37,6 +37,7 @@ http://www.gammon.com.au/forum/?id=8015
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
 

@@ -35,6 +35,7 @@
 #include <string.h>
 #include <time.h>
 #include <malloc.h>
+#include <lua.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
