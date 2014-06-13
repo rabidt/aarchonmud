@@ -1868,6 +1868,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    SET_BIT(ch->act, PLR_AUTOLOOT);
 	    SET_BIT(ch->act, PLR_AUTOGOLD);
 	    SET_BIT(ch->act, PLR_AUTOSPLIT);
+            SET_BIT(ch->act, PLR_AUTOASSIST);
 
 	    sprintf( buf, "the %s",
 		     title_table [ch->class] [(ch->level+4-(ch->level+4)%5)/5]);

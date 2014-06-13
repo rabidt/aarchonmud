@@ -1167,7 +1167,7 @@ void do_autorescue(CHAR_DATA *ch, char *argument)
     }
     else
     {
-        send_to_char("Your will now protect your friends.\n\r",ch);
+        send_to_char("You will now protect your friends.\n\r",ch);
         SET_BIT(ch->act,PLR_AUTORESCUE);
     }
 }
