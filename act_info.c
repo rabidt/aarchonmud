@@ -33,6 +33,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
+#include <lua.h>
 #include "merc.h"
 #include "magic.h"
 #include "recycle.h"

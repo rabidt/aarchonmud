@@ -24,9 +24,8 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
-#include "timer.h"
 #include "protocol.h"
-#include <lua.h>
+#include "timer.h"
 
 #ifdef TESTER
 #define FSTAT
@@ -4715,7 +4714,6 @@ extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
 void open_lua  ();  /* set up Lua state */
 void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
-extern lua_State *mud_LS;
 
 #define ACT_ARG_UNDEFINED 0
 #define ACT_ARG_OBJ 1

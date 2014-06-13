@@ -695,6 +695,9 @@ void boot_db()
     log_string( "Loading leaderboards" );
     load_lboards();
 
+    log_string( "Loading comm histories" );
+    load_comm_histories();
+
     log_string("Initializing mudconfig." );
     mudconfig_init();
 
