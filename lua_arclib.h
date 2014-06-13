@@ -13,6 +13,11 @@ typedef struct lua_obj_type
     void *(*alloc);
     void (*free)();
 
+    int (*index)();
+    int (*newindex)();
+
+    void (*reg)();
+
     struct lua_prop_type * const get_table;
     struct lua_prop_type * const set_table;
     struct lua_prop_type * const method_table;
