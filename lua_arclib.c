@@ -4798,6 +4798,16 @@ static int CH_set_pet (lua_State *LS)
 }
 HELPTOPIC CH_set_pet_help={};
 
+static int CH_get_scroll ( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_CH(LS,1)->lines );
+    return 1;
+}
+HELPTOPIC CH_get_scroll_help = {
+    .summary="Paging scroll setting."
+};
+
 static int CH_get_affects ( lua_State *LS )
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4870,6 +4880,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(description, 0),
     CHGET(pet, 0),
     CHGET(affects, 0),
+    CHGET(scroll, 0),
     /* PC only */
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
