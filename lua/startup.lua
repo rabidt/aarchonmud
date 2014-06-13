@@ -502,3 +502,18 @@ function load_mudconfig()
         end
     end
 end
+
+function save_comm( name, tbl )
+    local f=io.open(name..".lua", "w")
+    out,saved=serialize.save("tbl", tbl)
+    f:write(out)
+
+    f:close()
+end
+
+function load_comm( name )
+    local f=loadfile(name..".lua")
+    if f==nil then return {} end
+
+    return f()
+end
