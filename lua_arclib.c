@@ -123,155 +123,6 @@ static LUA_OBJ_TYPE *new_obj_type(
         const LUA_PROP_TYPE *set_table,
         const LUA_PROP_TYPE *method_table);
 
-
-/* base functionality for lua object types */
-static int index_metamethod( lua_State *LS)
-{
-    LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
-    void *gobj=obj->check( LS, 1 );
-    const char *arg=luaL_checkstring( LS, 2 );
-
-    LUA_PROP_TYPE *get=obj->get_table;
-
-    bool valid=obj->valid(gobj);
-    
-    if (!strcmp("valid", arg) )
-    {
-        lua_pushboolean( LS, valid );
-        return 1;
-    }
-
-    if ( !valid )
-        luaL_error( LS, "Tried to index a freed %s", obj->type_name );
-
-    int i;
-    for (i=0; get[i].field; i++ )
-    {
-        if (!strcmp(get[i].field, arg) )
-        {
-            if ( get[i].security > g_ScriptSecurity )
-                luaL_error( LS, "Current security %d. Getting field requires %d.",
-                        g_ScriptSecurity,
-                        get[i].security);
-
-            if (get[i].func)
-            {
-                int val;
-                val=(get[i].func)(LS, gobj);
-                return val;
-            }
-            else
-            {
-                bugf("No function entry for %s %s.", 
-                        obj->type_name, arg );
-                luaL_error(LS, "No function found.");
-            }
-
-        }
-    }
-
-    LUA_PROP_TYPE *method=obj->method_table;
-
-    for (i=0; method[i].field; i++ )
-    {
-        if (!strcmp(method[i].field, arg) ) 
-        {
-            if ( method[i].security > g_ScriptSecurity )
-                luaL_error( LS, "Current security %d. Method requires %d.",
-                        g_ScriptSecurity,
-                        method[i].security);
-
-            lua_pushcfunction(LS, method[i].func);
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-static int newindex_metamethod( lua_State *LS )
-{
-    LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
-    void *gobj=obj->check( LS, 1 );
-    const char *arg=check_string( LS, 2, MIL );
-    lua_remove(LS, 2);
-
-    LUA_PROP_TYPE *set=obj->set_table;
-
-    bool valid=obj->valid( gobj );
-
-    if (!strcmp("valid", arg) )
-    {
-        lua_pushboolean( LS, valid );
-        return 1;
-    }
-
-    if ( !valid )
-        luaL_error( LS, "Tried to index a freed %s", obj->type_name );
-
-    int i;
-    for (i=0 ; set[i].field ; i++ )
-    {
-        if ( !strcmp(set[i].field, arg) )
-        {
-            if ( set[i].security > g_ScriptSecurity ) 
-                luaL_error( LS, "Current security %d. Setting field requires %d.",
-                        g_ScriptSecurity,
-                        set[i].security);
-
-            if ( set[i].func )
-            {
-                lua_pushcfunction( LS, set[i].func );
-                lua_insert( LS, 1 );
-                lua_call(LS, 2, 0);
-                return 0;
-            }
-            else
-            {
-                bugf("No function entry for %s %s.",
-                        obj->type_name, arg );
-                luaL_error(LS, "No function found.");
-            }
-        }
-    }
-
-    luaL_error(LS, "Can't set field '%s' for type %s.",
-            arg, obj->type_name );
-
-    return 0;
-}
-
-static void register_type( LUA_OBJ_TYPE *tp,
-        lua_State *LS)
-{
-    luaL_newmetatable(LS, tp->type_name);
-    
-    lua_pushlightuserdata( LS, ( void *)tp);
-    lua_pushcclosure( LS, index_metamethod, 1 );
-
-    lua_setfield( LS, -2, "__index");
-
-    lua_pushlightuserdata( LS, ( void *)tp);
-    lua_pushcclosure( LS, newindex_metamethod, 1 );
-
-    lua_setfield( LS, -2, "__newindex");
-
-    char buf[MSL];
-    sprintf( buf, "return \"%s\"", tp->type_name );
-    luaL_loadstring( LS, buf );
-    lua_setfield( LS, -2, "__tostring");
-
-    lua_pushlightuserdata( LS, ( void *)tp);
-    
-    lua_setfield( LS, -2, "TYPE");
-
-    /* any value here protects from set/get metatable from lua side */
-    lua_pushinteger( LS, 0 );
-    lua_setfield( LS, -2, "__metatable" );
-
-    lua_pop(LS, 1);
-}
-
 /* global section */
 static int utillib_func (lua_State *LS, const char *funcname)
 {
@@ -8577,7 +8428,7 @@ void type_init( lua_State *LS)
 
     for ( i=0 ; type_list[i] ; i=i++ )
     {
-        register_type( type_list[i], LS );
+        type_list[i]->reg( LS );
     }
 }
 
@@ -8589,14 +8440,17 @@ typedef struct\
     CTYPE a;\
     int ref;\
 } LTYPE ## _wrapper;\
+\
 bool valid_ ## LTYPE ( CTYPE *ud )\
 {\
     return (( LTYPE ## _wrapper *)ud)->ref != REF_FREED;\
 }\
+\
 CTYPE * check_ ## LTYPE ( lua_State *LS, int index )\
 {\
     return luaL_checkudata( LS, index, #LTYPE );\
 }\
+\
 bool    is_ ## LTYPE ( lua_State *LS, int index )\
 {\
     lua_getmetatable( LS, index );\
@@ -8605,16 +8459,18 @@ bool    is_ ## LTYPE ( lua_State *LS, int index )\
     lua_pop( LS, 2 );\
     return result;\
 }\
+\
 bool    push_ ## LTYPE ( lua_State *LS, CTYPE *ud )\
 {\
     int ref=(( LTYPE ## _wrapper *)ud)->ref;\
     if (ref==REF_FREED)\
         return FALSE;\
-\
+    \
     lua_rawgeti( LS, LUA_REGISTRYINDEX, ref );\
-\
+    \
     return TRUE;\
 }\
+\
 CTYPE * alloc_ ## LTYPE ( void )\
 {\
     LTYPE ## _wrapper *wrap=lua_newuserdata( g_mud_LS, sizeof( LTYPE ## _wrapper ) );\
@@ -8625,6 +8481,7 @@ CTYPE * alloc_ ## LTYPE ( void )\
     memset( wrap, 0, sizeof( CTYPE ) );\
     return wrap;\
 }\
+\
 void free_ ## LTYPE ( CTYPE * ud )\
 {\
     LTYPE ## _wrapper *wrap=ud;\
@@ -8633,7 +8490,135 @@ void free_ ## LTYPE ( CTYPE * ud )\
     luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref );\
     LTYPE ## _type.count--;\
 }\
+\
 int count_ ## LTYPE ( void ) { return LTYPE ## _type.count; }\
+\
+int newindex_ ## LTYPE ( lua_State *LS )\
+{\
+    CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
+    const char *arg=check_string( LS, 2, MIL );\
+    \
+    if (! valid_ ## LTYPE ( gobj ) )\
+    {\
+        luaL_error( LS, "Tried to index invalid " #LTYPE ".");\
+    }\
+    \
+    lua_remove(LS, 2);\
+    \
+    LUA_PROP_TYPE *set= & TPREFIX ## _set_table ;\
+    \
+    int i;\
+    for (i=0 ; set[i].field ; i++ )\
+    {\
+        if ( !strcmp(set[i].field, arg) )\
+        {\
+            if ( set[i].security > g_ScriptSecurity )\
+                luaL_error( LS, "Current security %d. Setting field requires %d.",\
+                        g_ScriptSecurity,\
+                        set[i].security);\
+            \
+            if ( set[i].func )\
+            {\
+                lua_pushcfunction( LS, set[i].func );\
+                lua_insert( LS, 1 );\
+                lua_call(LS, 2, 0);\
+                return 0;\
+            }\
+            else\
+            {\
+                bugf("No function entry for %s %s.",\
+                        #LTYPE , arg );\
+                luaL_error(LS, "No function found.");\
+            }\
+        }\
+    }\
+    \
+    luaL_error(LS, "Can't set field '%s' for type %s.",\
+            arg, #LTYPE );\
+    \
+    return 0;\
+}\
+\
+int index_ ## LTYPE ( lua_State *LS )\
+{\
+    CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
+    const char *arg=luaL_checkstring( LS, 2 );\
+    LUA_PROP_TYPE *get=& TPREFIX ## _get_table;\
+    \
+    bool valid=valid_ ## LTYPE ( gobj );\
+    if (!strcmp("valid", arg))\
+    {\
+        lua_pushboolean( LS, valid );\
+        return 1;\
+    }\
+    \
+    if (!valid)\
+    {\
+        luaL_error( LS, "Tried to index invalid " #LTYPE ".");\
+    }\
+    \
+    int i;\
+    for (i=0; get[i].field; i++ )\
+    {\
+        if (!strcmp(get[i].field, arg) )\
+        {\
+            if ( get[i].security > g_ScriptSecurity )\
+                luaL_error( LS, "Current security %d. Getting field requires %d.",\
+                        g_ScriptSecurity,\
+                        get[i].security);\
+            \
+            if (get[i].func)\
+            {\
+                int val;\
+                val=(get[i].func)(LS, gobj);\
+                return val;\
+            }\
+            else\
+            {\
+                bugf("No function entry for %s %s.",\
+                        #LTYPE, arg );\
+                luaL_error(LS, "No function found.");\
+            }\
+        }\
+    }\
+    \
+    LUA_PROP_TYPE *method= & TPREFIX ## _method_table ;\
+    \
+    for (i=0; method[i].field; i++ )\
+    {\
+        if (!strcmp(method[i].field, arg) )\
+        {\
+            if ( method[i].security > g_ScriptSecurity )\
+                luaL_error( LS, "Current security %d. Method requires %d.",\
+                        g_ScriptSecurity,\
+                        method[i].security);\
+            \
+            lua_pushcfunction(LS, method[i].func);\
+            return 1;\
+        }\
+    }\
+    \
+    return 0;\
+}\
+\
+void reg_ ## LTYPE (lua_State *LS)\
+{\
+    luaL_newmetatable( LS, #LTYPE );\
+    \
+    lua_pushcfunction( LS, index_ ## LTYPE );\
+    lua_setfield( LS, -2, "__index");\
+    \
+    lua_pushcfunction( LS, newindex_ ## LTYPE );\
+    lua_setfield( LS, -2, "__newindex");\
+    \
+    luaL_loadstring( LS, "return " #LTYPE );\
+    lua_setfield( LS, -2, "__tostring");\
+    \
+    lua_pushlightuserdata( LS, (void *)  & LTYPE ## _type);\
+    lua_setfield( LS, -2, "TYPE" );\
+    \
+    lua_pop( LS, 1 );\
+}\
 \
 LUA_OBJ_TYPE LTYPE ## _type = { \
     .type_name= #LTYPE ,\
@@ -8643,11 +8628,16 @@ LUA_OBJ_TYPE LTYPE ## _type = { \
     .push  = push_ ## LTYPE ,\
     .alloc = alloc_ ## LTYPE ,\
     .free  = free_ ## LTYPE ,\
-\
+    \
+    .index = index_ ## LTYPE ,\
+    .newindex= newindex_ ## LTYPE ,\
+    \
+    .reg   = reg_ ## LTYPE ,\
+    \
     .get_table= TPREFIX ## _get_table ,\
     .set_table= TPREFIX ## _set_table ,\
     .method_table = TPREFIX ## _method_table ,\
-\
+    \
     .count=0 \
 };
 
