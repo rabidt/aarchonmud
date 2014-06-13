@@ -779,7 +779,7 @@ void hunt_victim( CHAR_DATA *ch )
     CHAR_DATA *tmp;
     CHAR_DATA *victim;
 
-    if( ch == NULL || ch->hunting == NULL || !IS_NPC(ch) )
+    if( ch == NULL || ch->hunting == NULL || !IS_NPC(ch) || IS_AFFECTED(ch, AFF_CHARM))
         return;
     
    /*
