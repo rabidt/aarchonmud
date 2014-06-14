@@ -308,7 +308,7 @@ OPEDIT (opedit_delete)
             }
 
             free_opcode( pOcode );
-            SET_BIT( ad, AREA_CHANGED);
+            SET_BIT( ad->area_flags, AREA_CHANGED);
             send_to_char( "Oprog deleted.\n\r", ch );
             return TRUE;
         }
