@@ -316,6 +316,7 @@ DECLARE_OLC_FUN( mpedit_security );
 
 /* Objprog editor */
 DECLARE_OLC_FUN( opedit_create   );
+DECLARE_OLC_FUN( opedit_delete   );
 DECLARE_OLC_FUN( opedit_code     );
 DECLARE_OLC_FUN( opedit_show     );
 DECLARE_OLC_FUN( opedit_security );
