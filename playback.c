@@ -466,7 +466,7 @@ static void load_comm_history( lua_State *LS, COMM_HISTORY *history )
 
     for ( i=1 ; i<=n ; i++ )
     {
-        lua_rawgeti( LS, 1, i );
+        lua_rawgeti( LS, -1, i );
 
         if ( lua_isnil( LS, -1 ) )
         {
@@ -488,7 +488,7 @@ static void load_comm_history( lua_State *LS, COMM_HISTORY *history )
         int sn;
         for ( sn=0 ; public_channel_table[sn].name ; sn++ )
         {
-            if ( !strcmp("chan", public_channel_table[sn].name) )
+            if ( !strcmp( chan, public_channel_table[sn].name) )
             {
                 en->channel=sn;
                 break;
@@ -518,6 +518,7 @@ static void load_comm_history( lua_State *LS, COMM_HISTORY *history )
         add_to_comm_history( history, en );
         lua_pop( LS, 1 );
     }
+    lua_pop( LS, 1 );
 }
 static int L_save_comm_histories( lua_State *LS )
 {
