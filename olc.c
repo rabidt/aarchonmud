@@ -875,90 +875,103 @@ void do_aedit( CHAR_DATA *ch, char *argument )
 /* Entry point for editing room_index_data. */
 void do_redit( CHAR_DATA *ch, char *argument )
 {
-   AREA_DATA *pArea;
-   ROOM_INDEX_DATA *pRoom;
-   char arg1[MAX_STRING_LENGTH];
+    AREA_DATA *pArea;
+    ROOM_INDEX_DATA *pRoom;
+    char arg1[MAX_STRING_LENGTH];
 
-   if ( IS_NPC(ch) )
-      return;
+    if ( IS_NPC(ch) )
+        return;
 
-   argument = one_argument( argument, arg1 );
-   
-   pRoom = ch->in_room;
-   
-   if ( !str_cmp( arg1, "reset" ) ) /* redit reset */
-   {
-      if ( !IS_BUILDER( ch, pRoom->area ) )
-      {
-         send_to_char( "REdit: Insufficient security to reset this room.\n\r" , ch );
-         return;
-      }
-      
-      reset_room( pRoom );
-      send_to_char( "Room reset.\n\r", ch );
+    argument = one_argument( argument, arg1 );
 
-      return;
-   }
-   else
-      if ( !str_cmp( arg1, "create" ) ) /* redit create <vnum> */
-      {
-         if ( argument[0] == '\0' || atoi( argument ) == 0 )
-         {
-            send_to_char( "Syntax:  edit room create [vnum]\n\r", ch );
+    pRoom = ch->in_room;
+
+    if ( !str_cmp( arg1, "reset" ) ) /* redit reset */
+    {
+        if ( !IS_BUILDER( ch, pRoom->area ) )
+        {
+            send_to_char( "REdit: Insufficient security to reset this room.\n\r" , ch );
             return;
-         }
-         
-         if ( redit_create( ch, argument ) ) /* pEdit = new room */
-         {
-            ch->desc->editor = ED_ROOM;
+        }
+
+        reset_room( pRoom );
+        send_to_char( "Room reset.\n\r", ch );
+
+        return;
+    }
+    else
+    {
+        if ( !str_cmp( arg1, "create" ) ) /* redit create <vnum> */
+        {
+            if ( argument[0] == '\0' || atoi( argument ) == 0 )
+            {
+                send_to_char( "Syntax:  edit room create [vnum]\n\r", ch );
+                return;
+            }
+
+            if ( redit_create( ch, argument ) ) /* pEdit = new room */
+            {
+                ch->desc->editor = ED_ROOM;
+                char_from_room( ch );
+                char_to_room( ch, ch->desc->pEdit );
+                pArea = ((ROOM_INDEX_DATA *)ch->desc->pEdit)->area;
+                SET_BIT( pArea->area_flags, AREA_CHANGED );
+                clone_warning( ch, pArea );
+            }
+
+            return;
+        }
+        else if ( !str_cmp( arg1, "delete" ) ) /* redit delete <vnum> */
+        {
+            if ( argument[0] == '\0' || atoi( argument ) == 0 )
+            {
+                send_to_char( "Syntax:  redit delete [vnum]\n\r", ch );
+                return;
+            }
+
+            redit_delete( ch, argument );
+            return;
+        }
+        else if ( !IS_NULLSTR(arg1) )	/* redit <vnum> */
+        {
+            pRoom = get_room_index(atoi(arg1));
+
+            if ( !pRoom )
+            {
+                send_to_char( "REdit : Room does not exist.\n\r", ch );
+                return;
+            }
+
+            if ( !IS_BUILDER(ch, pRoom->area) )
+            {
+                send_to_char( "REdit : Insufficient security to edit room.\n\r", ch );
+                return;
+            }
+
+            if (room_is_private(pRoom))
+            {
+                send_to_char("That room is private at the moment.\n\r",ch);
+                return;
+            }
+
             char_from_room( ch );
-            char_to_room( ch, ch->desc->pEdit );
-	    pArea = ((ROOM_INDEX_DATA *)ch->desc->pEdit)->area;
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-	    clone_warning( ch, pArea );
-         }
+            char_to_room( ch, pRoom );
 
-         return;
-      }
-      else if ( !IS_NULLSTR(arg1) )	/* redit <vnum> */
-      {
-         pRoom = get_room_index(atoi(arg1));
-         
-         if ( !pRoom )
-         {
-            send_to_char( "REdit : Room does not exist.\n\r", ch );
-            return;
-         }
-         
-         if ( !IS_BUILDER(ch, pRoom->area) )
-         {
-            send_to_char( "REdit : Insufficient security to edit room.\n\r", ch );
-            return;
-         }
-         
-         if (room_is_private(pRoom))
-         {
-             send_to_char("That room is private at the moment.\n\r",ch);
-             return;
-         }
+        }
+    }
 
-         char_from_room( ch );
-         char_to_room( ch, pRoom );
-         
-      }
-      
-      if ( !IS_BUILDER(ch, pRoom->area) )
-      {
-         send_to_char( "REdit: Insufficient security to edit rooms.\n\r" , ch );
-         return;
-      }
+    if ( !IS_BUILDER(ch, pRoom->area) )
+    {
+        send_to_char( "REdit: Insufficient security to edit rooms.\n\r" , ch );
+        return;
+    }
 
-      clone_warning( ch, pRoom->area );
+    clone_warning( ch, pRoom->area );
 
-      ch->desc->pEdit	= (void *) pRoom;
-      ch->desc->editor	= ED_ROOM;
-      
-      return;
+    ch->desc->pEdit	= (void *) pRoom;
+    ch->desc->editor	= ED_ROOM;
+
+    return;
 }
 
 
@@ -1004,45 +1017,57 @@ void do_oedit( CHAR_DATA *ch, char *argument )
    }
    else
    {
-      if ( !str_cmp( arg1, "create" ) )
-      {
-         value = atoi( argument );
-         if ( argument[0] == '\0' || value == 0 )
-         {
-            send_to_char( "Syntax:  edit object create [vnum]\n\r", ch );
-            return;
-         }
-         
-         pArea = get_vnum_area( value );
-         
-         if ( !pArea )
-         {
-            send_to_char( "OEdit:  That vnum is not assigned an area.\n\r", ch );
-            return;
-         }
-         
-         if ( !IS_BUILDER( ch, pArea ) )
-         {
-            send_to_char( "OEdit: Insufficient security to edit object.\n\r" , ch );
-            return;
-         }
-         
-	 if ( ch->in_room->area != pArea )
-	 {
-	     send_to_char( "OEdit: Object lies outside current area.\n\r", ch );
-	     return;
-	 }
+       value = atoi( argument );
+       if ( argument[0] == '\0' || value == 0 )
+       {
+           send_to_char( "Syntax:  oedit create [vnum]\n\r", ch );
+           send_to_char( "Syntax:  oedit delete [vnum]\n\r", ch );
+           return;
+       }
 
-         if ( oedit_create( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            ch->desc->editor = ED_OBJECT;
-	    clone_warning( ch, pArea );
-         }
-         return;
-      }
+       pArea = get_vnum_area( value );
+
+       if ( !pArea )
+       {
+           send_to_char( "OEdit:  That vnum is not assigned an area.\n\r", ch );
+           return;
+       }
+
+       if ( !IS_BUILDER( ch, pArea ) )
+       {
+           send_to_char( "OEdit: Insufficient security to edit object.\n\r" , ch );
+           return;
+       }
+
+       if ( ch->in_room->area != pArea )
+       {
+           send_to_char( "OEdit: Object lies outside current area.\n\r", ch );
+           return;
+       }
+
+       if ( !str_cmp( arg1, "create") )
+       {
+           if ( oedit_create( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               ch->desc->editor = ED_OBJECT;
+               clone_warning( ch, pArea );
+           }
+           return;
+       }
+
+       if ( !str_cmp( arg1, "delete" ) )
+       {
+           if ( oedit_delete( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               clone_warning( ch, pArea );
+           }
+           return;
+       }
+
    }
-   
+
    send_to_char( "OEdit:  There is no default object to edit.\n\r", ch );
    return;
 }
@@ -1090,43 +1115,54 @@ void do_medit( CHAR_DATA *ch, char *argument )
    }
    else
    {
-      if ( !str_cmp( arg1, "create" ) )
-      {
-         value = atoi( argument );
-         if ( arg1[0] == '\0' || value == 0 )
-         {
-            send_to_char( "Syntax:  edit mobile create [vnum]\n\r", ch );
-            return;
-         }
-         
-         pArea = get_vnum_area( value );
-         
-         if ( !pArea )
-         {
-            send_to_char( "MEdit:  That vnum is not assigned an area.\n\r", ch );
-            return;
-         }
-         
-         if ( !IS_BUILDER( ch, pArea ) )
-         {
-            send_to_char( "MEdit: Insufficient security to edit mob.\n\r" , ch );
-            return;
-         }
-         
-	 if ( ch->in_room->area != pArea )
-	 {
-	     send_to_char( "MEdit: Mob lies outside current area.\n\r", ch );
-	     return;
-	 }
+       value = atoi( argument );
+       if ( arg1[0] == '\0' || value == 0 )
+       {
+           send_to_char( "Syntax:  medit create [vnum]\n\r", ch );
+           send_to_char( "Syntax:  medit delete [vnum]\n\r", ch );
+           return;
+       }
 
-         if ( medit_create( ch, argument ) )
-         {
-	     clone_warning( ch, pArea );
-	     SET_BIT( pArea->area_flags, AREA_CHANGED );
-	     ch->desc->editor = ED_MOBILE;
-         }
-         return;
-      }
+       pArea = get_vnum_area( value );
+
+       if ( !pArea )
+       {
+           send_to_char( "MEdit:  That vnum is not assigned an area.\n\r", ch );
+           return;
+       }
+
+       if ( !IS_BUILDER( ch, pArea ) )
+       {
+           send_to_char( "MEdit: Insufficient security to edit mob.\n\r" , ch );
+           return;
+       }
+
+       if ( ch->in_room->area != pArea )
+       {
+           send_to_char( "MEdit: Mob lies outside current area.\n\r", ch );
+           return;
+       }
+
+       if ( !str_cmp( arg1, "create") )
+       {
+           if ( medit_create( ch, argument ) )
+           {
+               clone_warning( ch, pArea );
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               ch->desc->editor = ED_MOBILE;
+           }
+           return;
+       }
+
+       if ( !str_cmp( arg1, "delete") )
+       {
+           if ( medit_delete( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               clone_warning( ch, pArea );
+           }
+           return;
+       }
    }
    
    send_to_char( "MEdit:  There is no default mobile to edit.\n\r", ch );
