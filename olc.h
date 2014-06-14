@@ -323,12 +323,14 @@ DECLARE_OLC_FUN( opedit_security );
 
 /* Areaprog editor */
 DECLARE_OLC_FUN( apedit_create   );
+DECLARE_OLC_FUN( apedit_delete   );
 DECLARE_OLC_FUN( apedit_code     );
 DECLARE_OLC_FUN( apedit_show     );
 DECLARE_OLC_FUN( apedit_security );
 
 /* Roomprog editor */
 DECLARE_OLC_FUN( rpedit_create   );
+DECLARE_OLC_FUN( rpedit_delete   );
 DECLARE_OLC_FUN( rpedit_code     );
 DECLARE_OLC_FUN( rpedit_show     );
 DECLARE_OLC_FUN( rpedit_security );
