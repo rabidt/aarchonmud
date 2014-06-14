@@ -228,6 +228,7 @@ DECLARE_OLC_FUN( redit_delrprog );
  */
 DECLARE_OLC_FUN( oedit_show		);
 DECLARE_OLC_FUN( oedit_create		);
+DECLARE_OLC_FUN( oedit_delete   );
 DECLARE_OLC_FUN( oedit_name		);
 DECLARE_OLC_FUN( oedit_short		);
 DECLARE_OLC_FUN( oedit_long		);
@@ -263,6 +264,7 @@ DECLARE_OLC_FUN( oedit_deloprog  );  /* ROM */
  */
 DECLARE_OLC_FUN( medit_show		);
 DECLARE_OLC_FUN( medit_create		);
+DECLARE_OLC_FUN( medit_delete       );
 DECLARE_OLC_FUN( medit_name		);
 DECLARE_OLC_FUN( medit_short		);
 DECLARE_OLC_FUN( medit_long		);
@@ -302,6 +304,7 @@ DECLARE_OLC_FUN( medit_wealth    );
 /* Mobprog editor */
 
 DECLARE_OLC_FUN( mpedit_create   );
+DECLARE_OLC_FUN( mpedit_delete   );
 DECLARE_OLC_FUN( mpedit_code     );
 DECLARE_OLC_FUN( mpedit_show     );
 DECLARE_OLC_FUN( mpedit_list     );
