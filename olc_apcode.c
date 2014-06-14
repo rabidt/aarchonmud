@@ -220,10 +220,95 @@ void do_apedit(CHAR_DATA *ch, char *argument)
        return;
     }
 
+    if ( !str_cmp(command, "delete") )
+    {
+        if (argument[0] == '\0')
+        {
+            send_to_char( "Syntax : apedit delete [vnum]\n\r", ch );
+            return;
+        }
+
+        apedit_delete(ch, argument);
+        return;
+    }
+
     send_to_char( "Syntax : apedit [vnum]\n\r", ch );
     send_to_char( "         apedit create [vnum]\n\r", ch );
 
     return;
+}
+
+APEDIT (apedit_delete)
+{
+    PROG_CODE *pAcode;
+    char command[MIL];
+
+    argument = one_argument(argument, command);
+
+    if (!is_number(command))
+    {
+        send_to_char( "Syntax : apedit create [vnum]\n\r", ch );
+        return FALSE;
+    }
+
+    int vnum=atoi(command);
+
+    if ( (pAcode = get_aprog_index(vnum)) == NULL )
+    {
+        send_to_char("Aprog does not exist.\n\r", ch );
+        return FALSE;
+    }
+
+    AREA_DATA *ad = get_vnum_area( vnum );
+
+    if ( ad == NULL )
+    {
+        send_to_char("Vnum not assigned to an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER(ch,ad) )
+    {
+        send_to_char( "Insufficient security to delete aprog.\n\r", ch );
+        return FALSE;
+    }
+
+    AREA_DATA *a;
+    PROG_LIST *lst;
+    for ( a=area_first ; a ; a=a->next )
+    {
+        for ( lst=a->aprogs ; lst ; lst=lst->next )
+        {
+            if ( lst->script == pAcode )
+            {
+                send_to_char( "Can't delete aprog, it is used.\n\r", ch);
+                return FALSE;
+            }
+        }
+    }
+
+    /* if we got here, we're good to delete */
+    PROG_CODE *curr, *last=NULL;
+    for ( curr=aprog_list ; curr ; curr=curr->next )
+    {
+        if ( curr==pAcode )
+        {
+            if (!last)
+            {
+                mprog_list=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            free_apcode( pAcode );
+            SET_BIT( ad, AREA_CHANGED);
+            send_to_char( "Aprog deleted.\n\r", ch );
+            return TRUE;
+        }
+        last=curr;
+    }
 }
 
 APEDIT (apedit_create)
