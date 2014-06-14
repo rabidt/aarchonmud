@@ -4551,7 +4551,18 @@ OEDIT( oedit_delete )
         send_to_char( "OEdit:  No such object.\n\r", ch );
         return FALSE;
     }
-    
+   
+    /* check for instances */
+    OBJ_DATA *obj;
+    for ( obj=object_list ; obj ; obj=obj->next )
+    {
+        if ( obj->pIndexData == pObj )
+        {
+            send_to_char( "Can't delete, instances exist.\n\r", ch );
+            return FALSE;
+        }
+    }
+
     /* check for resets */
     ROOM_INDEX_DATA *room;
     RESET_DATA *rst;
