@@ -1632,7 +1632,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
     {
         char *outbuf;
 
-        if (d->outsize >= 32000)
+        if (d->outsize >= 32768)
         {
             /* just trash new messages.. --Bobble */
             //bug("Buffer overflow. Closing.\n\r",0);
@@ -1682,7 +1682,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
  * If this gives errors on very long blocks (like 'ofind all'),
  *   try lowering the max block size.
  */
-#define MAX_BLOCK_SIZE 4096
+#define MAX_BLOCK_SIZE 32768 
 int write_to_descriptor( int desc, char *txt, int length )
 {
     int iStart;
@@ -1693,7 +1693,7 @@ int write_to_descriptor( int desc, char *txt, int length )
         length = strlen(txt);
     
     // limit total output written "in one go" to avoid write errors
-    length = UMIN(length, MAX_BLOCK_SIZE * 3);
+    length = UMIN(length, MAX_BLOCK_SIZE );
 
     for ( iStart = 0; iStart < length; iStart += nWrite )
     {
