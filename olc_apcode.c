@@ -303,7 +303,7 @@ APEDIT (apedit_delete)
             }
 
             free_apcode( pAcode );
-            SET_BIT( ad, AREA_CHANGED);
+            SET_BIT( ad->area_flags, AREA_CHANGED);
             send_to_char( "Aprog deleted.\n\r", ch );
             return TRUE;
         }

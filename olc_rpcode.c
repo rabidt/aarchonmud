@@ -307,7 +307,7 @@ RPEDIT (rpedit_delete)
             }
 
             free_rpcode( pRcode );
-            SET_BIT( ad, AREA_CHANGED);
+            SET_BIT( ad->area_flags, AREA_CHANGED);
             send_to_char( "Rprog deleted.\n\r", ch );
             return TRUE;
         }

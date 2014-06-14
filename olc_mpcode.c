@@ -331,7 +331,7 @@ MPEDIT (mpedit_delete)
             }
 
             free_mpcode( pMcode );
-            SET_BIT( ad, AREA_CHANGED);
+            SET_BIT( ad->area_flags, AREA_CHANGED);
             send_to_char( "Mprog deleted.\n\r", ch );
             return TRUE;
         }
