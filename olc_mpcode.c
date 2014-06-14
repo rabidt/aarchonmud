@@ -286,7 +286,7 @@ MPEDIT (mpedit_delete)
 
     if ( ad == NULL )
     {
-        send_to_char("Vnum not assigned to this area.\n\r", ch );
+        send_to_char("Vnum not assigned to an area.\n\r", ch );
         return FALSE;
     }
 

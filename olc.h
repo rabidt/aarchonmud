@@ -191,6 +191,7 @@ DECLARE_OLC_FUN( aedit_delaprog  );  /* ROM */
  */
 DECLARE_OLC_FUN( redit_show		);
 DECLARE_OLC_FUN( redit_create		);
+DECLARE_OLC_FUN( redit_delete       );
 DECLARE_OLC_FUN( redit_name		);
 DECLARE_OLC_FUN( redit_desc		);
 DECLARE_OLC_FUN( redit_ed		);
