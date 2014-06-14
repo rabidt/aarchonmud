@@ -192,13 +192,13 @@ ROOM_INDEX_DATA *new_room_index( void )
     if ( !room_index_free )
     {
         pRoom           =   alloc_perm( sizeof(*pRoom) );
-        top_room++;
     }
     else
     {
         pRoom           =   room_index_free;
         room_index_free =   room_index_free->next;
     }
+    top_room++;
 
     pRoom->next             =   NULL;
     pRoom->people           =   NULL;
@@ -250,6 +250,8 @@ void free_room_index( ROOM_INDEX_DATA *pRoom )
     {
         free_reset_data( pReset );
     }
+
+    top_room--;
 
     pRoom->next     =   room_index_free;
     room_index_free =   pRoom;
@@ -308,13 +310,13 @@ OBJ_INDEX_DATA *new_obj_index( void )
     if ( !obj_index_free )
     {
         pObj           =   alloc_perm( sizeof(*pObj) );
-        top_obj_index++;
     }
     else
     {
         pObj            =   obj_index_free;
         obj_index_free  =   obj_index_free->next;
     }
+    top_obj_index++;
 
     pObj->next          =   NULL;
     pObj->extra_descr   =   NULL;
@@ -365,6 +367,8 @@ void free_obj_index( OBJ_INDEX_DATA *pObj )
         free_extra_descr( pExtra );
     }
     
+    top_obj_index--;
+
     pObj->next              = obj_index_free;
     obj_index_free          = pObj;
     return;
@@ -379,13 +383,13 @@ MOB_INDEX_DATA *new_mob_index( void )
     if ( !mob_index_free )
     {
         pMob           =   alloc_perm( sizeof(*pMob) );
-        top_mob_index++;
     }
     else
     {
         pMob            =   mob_index_free;
         mob_index_free  =   mob_index_free->next;
     }
+    top_mob_index++;
 
     pMob->next          =   NULL;
     pMob->spec_fun      =   NULL;
@@ -437,6 +441,8 @@ void free_mob_index( MOB_INDEX_DATA *pMob )
 
     if ( pMob->pShop )
         free_shop( pMob->pShop );
+
+    top_mob_index--;
 
     pMob->next              = mob_index_free;
     mob_index_free          = pMob;
