@@ -2462,6 +2462,140 @@ REDIT( redit_ed )
     return FALSE;
 }
 
+REDIT( redit_delete )
+{
+    ROOM_INDEX_DATA *pRoom=NULL;
+    char command[MIL];
+
+    argument = one_argument(argument, command);
+
+    if (!is_number(command))
+    {
+        send_to_char( "Syntax : redit delete [vnum]\n\r", ch);
+        return FALSE;
+    }
+
+    int vnum=atoi(command);
+
+    if ( (pRoom = get_room_index(vnum)) == NULL )
+    {
+        send_to_char("Room does not exist.\n\r", ch );
+        return FALSE;
+    }
+
+    AREA_DATA *ad = get_vnum_area( vnum );
+
+    if ( ad == NULL )
+    {
+        send_to_char("Vnum not assigned to an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER(ch,ad) )
+    {
+        send_to_char( "Insufficient security to delete room.\n\r", ch );
+        return FALSE;
+    }
+
+    /* should be empty first */
+    if ( pRoom->contents || pRoom->people )
+    {
+        send_to_char( "Room is not empty.\n\r", ch );
+        return FALSE;
+    }
+
+    /* check for resets */
+    if ( pRoom->reset_first )
+    {
+        send_to_char( "Please remove all resets first.\n\r", ch );
+        return FALSE;
+    }
+
+    /* check for progs */
+    if ( pRoom->rprogs )
+    {
+        send_to_char( "Please remove all rprogs first.\n\r", ch );
+        return FALSE;
+    }
+
+    /* check for links */
+    AREA_DATA *a;
+    for ( a=area_first ; a ; a=a->next )
+    {
+        ROOM_INDEX_DATA *r;
+        int vnum;
+        for ( vnum=a->min_vnum ; vnum <= a->max_vnum ; vnum++ )
+        {
+            r=get_room_index(vnum);
+            if (!r)
+                continue;
+
+            int i;
+            EXIT_DATA *ex;
+            for ( i=0 ; i<10 ; i++ )
+            {
+                ex=r->exit[i];
+                if (!ex)
+                    continue;
+                if (ex->u1.to_room == pRoom)
+                {
+                    ptc( ch, "Can't delete room %d, room %d still links to it.\n\r", pRoom->vnum, r->vnum );
+                    return FALSE;
+                }
+            }
+        }
+    }
+
+    /* and portals for good measure */
+    for ( a=area_first ; a ; a=a->next )
+    {
+        OBJ_INDEX_DATA *oid;
+        int vnum;
+        for ( vnum=a->min_vnum ; vnum <= a->max_vnum ; vnum++ )
+        {
+            oid=get_obj_index(vnum);
+            if (!oid)
+                continue;
+
+            if (oid->item_type != ITEM_PORTAL )
+                continue;
+
+            if (oid->value[3] == pRoom->vnum)
+            {
+                ptc( ch, "Can't delete room %d, object %d links to it.\n\r", pRoom->vnum, oid->vnum );
+                return FALSE;
+            }
+        }
+    }
+
+    /* if we're here, it's ok to delete */
+    int iHash=vnum % MAX_KEY_HASH;
+
+    ROOM_INDEX_DATA *curr, *last=NULL;
+
+    for ( curr=room_index_hash[iHash]; curr; curr=curr->next )
+    {
+        if ( curr == pRoom )
+        {
+            if ( !last )
+            {
+                room_index_hash[iHash]=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            SET_BIT( ad->area_flags, AREA_CHANGED );
+            clone_warning( ch, ad );
+            free_room_index( pRoom );
+            send_to_char( "Room deleted.\n\r", ch );
+            return TRUE;
+        }
+
+        last=curr;
+    }
+}
 
 
 REDIT( redit_create )
@@ -5412,6 +5546,16 @@ MEDIT( medit_delete )
                 send_to_char( "MEdit:  Can't delete, resets exist.\n\r", ch );
                 return FALSE;
             } 
+        }
+    }
+
+    CHAR_DATA *m;
+    for ( m=char_list ; m ; m=m->next )
+    {
+        if ( m->pIndexData == pMob )
+        {
+            send_to_char( "MEdit:  Can't delete, instances exist.\n\r", ch );
+            return FALSE;
         }
     }
 
