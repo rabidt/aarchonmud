@@ -218,11 +218,101 @@ void do_rpedit(CHAR_DATA *ch, char *argument)
        rpedit_create(ch, argument);
        return;
     }
+    
+    if ( !str_cmp(command, "delete") )
+    {
+        if (argument[0] == '\0')
+        {
+            send_to_char( "Syntax : rpedit delete [vnum]\n\r", ch );
+            return;
+        }
+
+        rpedit_delete(ch, argument);
+        return;
+    }
 
     send_to_char( "Syntax : rpedit [vnum]\n\r", ch );
     send_to_char( "         rpedit create [vnum]\n\r", ch );
 
     return;
+}
+
+RPEDIT (rpedit_delete)
+{
+    PROG_CODE *pRcode;
+    char command[MIL];
+
+    argument = one_argument(argument, command);
+
+    if (!is_number(command))
+    {
+        send_to_char( "Syntax : rpedit create [vnum]\n\r", ch );
+        return FALSE;
+    }
+
+    int vnum=atoi(command);
+
+    if ( (pRcode = get_rprog_index(vnum)) == NULL )
+    {
+        send_to_char("Rprog does not exist.\n\r", ch );
+        return FALSE;
+    }
+
+    AREA_DATA *ad = get_vnum_area( vnum );
+
+    if ( ad == NULL )
+    {
+        send_to_char("Vnum not assigned to an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER(ch,ad) )
+    {
+        send_to_char( "Insufficient security to delete rprog.\n\r", ch );
+        return FALSE;
+    }
+
+    ROOM_INDEX_DATA *rid;
+    PROG_LIST *lst;
+    int rvnum;
+    for ( rvnum=0 ; rvnum <= top_vnum_room ; rvnum++ )
+    {
+        rid=get_room_index( rvnum );
+        if (!rid)
+            continue;
+
+        for ( lst=rid->rprogs ; lst ; lst=lst->next )
+        {
+            if ( lst->script == pRcode )
+            {
+                send_to_char( "Can't delete rprog, it is used.\n\r", ch);
+                return FALSE;
+            }
+        }
+    }
+
+    /* if we got here, we're good to delete */
+    PROG_CODE *curr, *last=NULL;
+    for ( curr=rprog_list ; curr ; curr=curr->next )
+    {
+        if ( curr==pRcode )
+        {
+            if (!last)
+            {
+                rprog_list=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            free_rpcode( pRcode );
+            SET_BIT( ad, AREA_CHANGED);
+            send_to_char( "Rprog deleted.\n\r", ch );
+            return TRUE;
+        }
+        last=curr;
+    }
 }
 
 RPEDIT (rpedit_create)
