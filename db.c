@@ -4825,16 +4825,12 @@ void bug( const char *fmt, int param )
 
 void bug_string( const char *str )
 {
-    static bool recursion=FALSE;
-    bool enable_wiznet=TRUE;
+    static bool bug_in_progress=FALSE;
+    bool recurse;
     char buf[MAX_STRING_LENGTH];
 
-    if ( recursion )
-    {
-        log_string("[*****] BUG: recursion in bug(), not sending to wiznet");
-        enable_wiznet=FALSE;
-    }
-    recursion=TRUE;
+    recurse=bug_in_progress;
+    bug_in_progress=TRUE;
     
     if ( fpArea != NULL )
     {
@@ -4860,20 +4856,30 @@ void bug_string( const char *str )
         sprintf( buf, "[*****] FILE: %s LINE: %d", strArea, iLine );
         log_string( buf );
 
-        if ( enable_wiznet)
+        if ( !recurse )
             wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
     }
     
-    sprintf(buf, "[*****] BUG: %s\n\rLast command: %s", 
-            str,
-            last_command );
+    sprintf(buf, "[*****] BUG: %s", str );
+    if (!recurse)
+    {
+        strcat( buf, "\n\rLast command: " );
+        strcat( buf, last_command );
+    }
+
     log_string( buf );
     log_trace();
     
-    if ( enable_wiznet )
+    if ( !recurse )
+    {
         wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
+        bug_in_progress=FALSE;
+    }
+    else
+    {
+        log_string("[*****] BUG: recursion in bug(), not sending to wiznet");
+    }
 
-    recursion=FALSE;
     return;
 }
 
