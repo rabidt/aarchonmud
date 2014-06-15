@@ -2562,17 +2562,10 @@ void update_handler( void )
     static  int     pulse_herb;
     static  int     pulse_msdp;
     static  int     pulse_timer;
-    static  int     pulse_lua_arcgc;
     static bool hour_update = TRUE;
     static bool minute_update = TRUE;
     /* if nobody is logged on, update less to safe CPU power */
     bool update_all = (descriptor_list != NULL );
-
-    if ( --pulse_lua_arcgc <= 0 )
-    {
-        pulse_lua_arcgc  = PULSE_LUA_ARCGC;
-        lua_arcgc();
-    }
 
     if ( --pulse_timer <= 0 )
     {
