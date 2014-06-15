@@ -835,7 +835,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
                     wch->mprog_target = NULL;
             }
 
-            unregister_lua( ch );
+            //unregister_lua( ch );
             free_char(dclose->original ? dclose->original : dclose->character );
         }
     }
