@@ -933,7 +933,7 @@ void remort_begin(CHAR_DATA *ch)
         if ( ch->mprog_target == wch )
             wch->mprog_target = NULL;
     }
-    unregister_lua( ch );
+    //unregister_lua( ch );
 
     for (i = 0; i < MAX_STATS; i++)
         ch->pcdata->history_stats[i] += ch->pcdata->original_stats[i];

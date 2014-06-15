@@ -10,6 +10,28 @@
 
 bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
 
+/* for iterating */
+LUA_OBJ_TYPE *type_list [] =
+{
+    &CH_type,
+    &OBJ_type,
+    &AREA_type,
+    &ROOM_type,
+    &EXIT_type,
+    &RESET_type,
+    &OBJPROTO_type,
+    &MOBPROTO_type,
+    &SHOP_type,
+    &AFFECT_type,
+    &PROG_type,
+    &MTRIG_type,
+    &OTRIG_type,
+    &ATRIG_type,
+    &RTRIG_type,
+    &HELP_type,
+    NULL
+};
+
 /* Define game object types and global functions */
 
 #define GETP(type, field, sec ) { \
@@ -93,253 +115,6 @@ typedef struct lua_prop_type
 #define STS_DEPRECATED 1
 
 #define ENDPTABLE {NULL, NULL, 0, NULL, 0}
-
-/* for iterating */
-LUA_OBJ_TYPE *type_list [] =
-{
-    &CH_type,
-    &OBJ_type,
-    &AREA_type,
-    &ROOM_type,
-    &EXIT_type,
-    &RESET_type,
-    &OBJPROTO_type,
-    &MOBPROTO_type,
-    &SHOP_type,
-    &AFFECT_type,
-    &PROG_type,
-    &MTRIG_type,
-    &OTRIG_type,
-    &ATRIG_type,
-    &RTRIG_type,
-    &HELP_type,
-    NULL
-};
-
-
-static LUA_OBJ_TYPE *new_obj_type(
-        lua_State *LS,
-        const char *type_name,
-        const LUA_PROP_TYPE *get_table,
-        const LUA_PROP_TYPE *set_table,
-        const LUA_PROP_TYPE *method_table);
-
-/* base functionality for lua object types */
-void * lua_check_type( LUA_OBJ_TYPE *tp,
-        lua_State *LS, int index )
-{
-    lua_getmetatable(LS, index);
-    lua_getfield(LS, -1, "TYPE");
-    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
-    lua_pop(LS, 2);
-    if ( type != tp )
-    {
-        luaL_error(LS, "Bad parameter %d. Expected %s. ",
-                index, tp->type_name );
-    }
-
-    lua_getfield(LS, index, "tableid");
-    luaL_checktype( LS, -1, LUA_TLIGHTUSERDATA);
-    void *game_object=lua_touserdata(LS, -1 );
-    lua_pop(LS, 1);
-
-    return game_object;
-}
-
-static int index_metamethod( lua_State *LS)
-{
-    LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
-    const char *arg=luaL_checkstring( LS, 2 );
-
-    LUA_PROP_TYPE *get=obj->get_table;
-    
-    if (!strcmp("valid", arg) )
-    {
-        /* if the metatable is still working
-           then the game object is still valid */
-        lua_pushboolean( LS, TRUE );
-        return 1;
-    }
-
-    int i;
-    for (i=0; get[i].field; i++ )
-    {
-        if (!strcmp(get[i].field, arg) )
-        {
-            if ( get[i].security > g_ScriptSecurity )
-                luaL_error( LS, "Current security %d. Getting field requires %d.",
-                        g_ScriptSecurity,
-                        get[i].security);
-
-            void *gobj=lua_check_type(obj, LS, 1 );
-            if (get[i].func)
-            {
-                int val;
-                val=(get[i].func)(LS, gobj);
-                return val;
-            }
-            else
-            {
-                bugf("No function entry for %s %s.", 
-                        obj->type_name, arg );
-                luaL_error(LS, "No function found.");
-            }
-
-        }
-    }
-
-    LUA_PROP_TYPE *method=obj->method_table;
-
-    for (i=0; method[i].field; i++ )
-    {
-        if (!strcmp(method[i].field, arg) ) 
-        {
-            if ( method[i].security > g_ScriptSecurity )
-                luaL_error( LS, "Current security %d. Method requires %d.",
-                        g_ScriptSecurity,
-                        method[i].security);
-
-            lua_pushcfunction(LS, method[i].func);
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-static int newindex_metamethod( lua_State *LS )
-{
-    LUA_OBJ_TYPE *obj=lua_touserdata( LS, lua_upvalueindex(1));
-    const char *arg=check_string( LS, 2, MIL );
-    lua_remove(LS, 2);
-
-    LUA_PROP_TYPE *set=obj->set_table;
-
-    int i;
-    for (i=0 ; set[i].field ; i++ )
-    {
-        if ( !strcmp(set[i].field, arg) )
-        {
-            if ( set[i].security > g_ScriptSecurity ) 
-                luaL_error( LS, "Current security %d. Setting field requires %d.",
-                        g_ScriptSecurity,
-                        set[i].security);
-
-            lua_check_type(obj, LS, 1 ); 
-            if ( set[i].func )
-            {
-                lua_pushcfunction( LS, set[i].func );
-                lua_insert( LS, 1 );
-                lua_call(LS, 2, 0);
-                return 0;
-            }
-            else
-            {
-                bugf("No function entry for %s %s.",
-                        obj->type_name, arg );
-                luaL_error(LS, "No function found.");
-            }
-        }
-    }
-
-    luaL_error(LS, "Can't set field '%s' for type %s.",
-            arg, obj->type_name );
-
-    return 0;
-}
-
-static void register_type( LUA_OBJ_TYPE *tp,
-        lua_State *LS)
-{
-    luaL_newmetatable(LS, tp->type_name);
-    
-    lua_pushlightuserdata( LS, ( void *)tp);
-    lua_pushcclosure( LS, index_metamethod, 1 );
-
-    lua_setfield( LS, -2, "__index");
-
-    lua_pushlightuserdata( LS, ( void *)tp);
-    lua_pushcclosure( LS, newindex_metamethod, 1 );
-
-    lua_setfield( LS, -2, "__newindex");
-
-    lua_pushlightuserdata( LS, ( void *)tp);
-    
-    lua_setfield( LS, -2, "TYPE");
-
-    lua_pop(LS, 1);
-}
-
-bool lua_make_type( LUA_OBJ_TYPE *tp,
-        lua_State *LS, void *game_obj)
-{
-    if (!game_obj)
-    {
-        bugf("make_%s called with NULL object", tp->type_name);
-        return FALSE;
-    }
-
-    /* we don't want stuff that was destroyed */
-    if ( tp == &CH_type && ((CHAR_DATA *)game_obj)->must_extract )
-        return FALSE;
-    if ( tp == &OBJ_type && ((OBJ_DATA *)game_obj)->must_extract )
-        return FALSE;
-
-    /* see if it exists already */
-    lua_getglobal( LS, UD_TABLE_NAME);
-    if ( lua_isnil( LS, -1) )
-    {
-        bugf("udtbl is nil in make_ud_table.");
-        return FALSE;
-    }
-
-    lua_pushlightuserdata(LS, game_obj);
-    lua_gettable( LS, -2);
-    lua_remove( LS, -2); /* don't need udtbl anymore */
-
-    if ( !lua_isnil(LS, -1) )
-    {
-        /* already exists, now at top of stack */
-        return TRUE;
-    }
-    lua_remove(LS, -1); // kill the nil
-
-    lua_newtable( LS);
-
-    luaL_getmetatable (LS, tp->type_name);
-    lua_setmetatable (LS, -2);  /* set metatable for object data */
-    
-    lua_pushstring( LS, "tableid");
-    lua_pushlightuserdata( LS, game_obj);
-    lua_rawset( LS, -3 );
-
-    lua_getfield( LS, LUA_GLOBALSINDEX, REGISTER_UD_FUNCTION);
-    lua_pushvalue( LS, -2);
-    if (CallLuaWithTraceBack( LS, 1, 1) )
-    {
-        bugf ( "Error registering UD:\n %s",
-                lua_tostring(LS, -1));
-        return FALSE;
-    }
-
-    /* get rid of our original table, register sends back a new version */
-    lua_remove( LS, -2 );
-
-    return TRUE;
-}
-
-bool lua_is_type( LUA_OBJ_TYPE *tp,
-        lua_State *LS, int arg )
-{
-    if ( !lua_istable(LS, arg ) )
-        return FALSE;
-
-    lua_getmetatable(LS, arg);
-    lua_getfield(LS, -1, "TYPE");
-    LUA_OBJ_TYPE *type=lua_touserdata(LS, -1);
-    lua_pop(LS, 2);
-    return ( type == tp );
-}
 
 /* global section */
 static int utillib_func (lua_State *LS, const char *funcname)
@@ -941,7 +716,7 @@ static int glob_getroom (lua_State *LS)
     if (!room)
         return 0;
 
-    if ( !make_ROOM( LS, room) )
+    if ( !push_ROOM( LS, room) )
         return 0;
     else
         return 1;
@@ -966,7 +741,7 @@ static int glob_getobjproto (lua_State *LS)
     if (!obj)
         return 0;
 
-    if ( !make_OBJPROTO( LS, obj) )
+    if ( !push_OBJPROTO( LS, obj) )
         return 0;
     else
         return 1;
@@ -993,7 +768,7 @@ static int glob_getobjworld (lua_State *LS)
     {
         if ( obj->pIndexData->vnum == num )
         {
-            if (make_OBJ( LS, obj))
+            if (push_OBJ( LS, obj))
                 lua_rawseti(LS, -2, index++);
         }
     }
@@ -1018,7 +793,7 @@ static int glob_getmobproto (lua_State *LS)
     if (!mob)
         return 0;
 
-    if ( !make_MOBPROTO( LS, mob) )
+    if ( !push_MOBPROTO( LS, mob) )
         return 0;
     else
         return 1;
@@ -1047,7 +822,7 @@ static int glob_getmobworld (lua_State *LS)
         {
             if ( ch->pIndexData->vnum == num )
             {
-                if (make_CH( LS, ch))
+                if (push_CH( LS, ch))
                     lua_rawseti(LS, -2, index++);
             }
         }
@@ -1076,7 +851,7 @@ static int glob_getpc (lua_State *LS)
 
         if (!str_cmp(name, ch->name))
         {
-            make_CH(LS, ch);
+            push_CH(LS, ch);
             return 1;
         }
     }
@@ -1135,7 +910,7 @@ static int glob_getobjlist (lua_State *LS)
 
     for ( obj=object_list ; obj ; obj=obj->next )
     {
-        if (make_OBJ(LS, obj))
+        if (push_OBJ(LS, obj))
             lua_rawseti(LS, -2, index++);
     }
 
@@ -1158,7 +933,7 @@ static int glob_getcharlist (lua_State *LS)
 
     for ( ch=char_list ; ch ; ch=ch->next )
     {
-        if (make_CH(LS, ch))
+        if (push_CH(LS, ch))
             lua_rawseti(LS, -2, index++);
     }
 
@@ -1183,7 +958,7 @@ static int glob_getmoblist (lua_State *LS)
     {
         if ( IS_NPC(ch) )
         {
-            if (make_CH(LS, ch))
+            if (push_CH(LS, ch))
                 lua_rawseti(LS, -2, index++);
         }
     }
@@ -1209,7 +984,7 @@ static int glob_getplayerlist (lua_State *LS)
     {
         if ( !IS_NPC(ch) )
         {
-            if (make_CH(LS, ch))
+            if (push_CH(LS, ch))
                 lua_rawseti(LS, -2, index++);
         }
     }
@@ -1233,7 +1008,7 @@ static int glob_getarealist (lua_State *LS)
 
     for ( area=area_first ; area ; area=area->next )
     {
-        if (make_AREA(LS, area))
+        if (push_AREA(LS, area))
             lua_rawseti(LS, -2, index++);
     }
 
@@ -1256,7 +1031,7 @@ static int glob_getshoplist ( lua_State *LS)
 
     for ( shop=shop_first ; shop ; shop=shop->next )
     {
-        if (make_SHOP(LS, shop))
+        if (push_SHOP(LS, shop))
             lua_rawseti(LS, -2, index++);
     }
 
@@ -1280,7 +1055,7 @@ static int glob_gethelplist ( lua_State *LS )
 
     for ( help=help_first ; help ; help=help->next )
     {
-        if (make_HELP(LS, help))
+        if (push_HELP(LS, help))
             lua_rawseti(LS, -2, index++);
     }
 
@@ -1442,7 +1217,7 @@ static int glob_getrandomroom ( lua_State *LS)
     if (!room)
         luaL_error(LS, "Couldn't get a random room.");
 
-    if (make_ROOM(LS,room))
+    if (push_ROOM(LS,room))
         return 1;
     else
         return 0;
@@ -1951,7 +1726,7 @@ static int check_iflag( lua_State *LS,
             NULL,
             iflagvar);
 }
-
+/*
 static void unregister_UD( lua_State *LS,  void *ptr )
 {
     if (!LS)
@@ -1969,9 +1744,10 @@ static void unregister_UD( lua_State *LS,  void *ptr )
     }
 
 }
-
+*/
 /* unregister_lua, to be called when destroying in game structures that may
    be registered in an active lua state*/
+/*
 void unregister_lua( void *ptr )
 {
     if (ptr == NULL)
@@ -1982,7 +1758,7 @@ void unregister_lua( void *ptr )
 
     unregister_UD( g_mud_LS, ptr );
 }
-
+*/
 static int L_rundelay( lua_State *LS)
 {
     lua_getglobal( LS, "delaytbl"); /*2*/
@@ -2617,7 +2393,7 @@ static int CH_randchar (lua_State *LS)
     if ( ! ch )
         return 0;
 
-    if ( !make_CH(LS,ch))
+    if ( !push_CH(LS,ch))
         return 0;
     else
         return 1;
@@ -2980,7 +2756,7 @@ HELPTOPIC CH_echoat_help = {
 static int CH_mload (lua_State *LS)
 {
     CHAR_DATA *mob=mpmload( check_CH(LS, 1), check_fstring( LS, 2, MIL));
-    if ( mob && make_CH(LS,mob) )
+    if ( mob && push_CH(LS,mob) )
         return 1;
     else
         return 0;
@@ -3900,7 +3676,7 @@ static int CH_oload (lua_State *LS)
 
     obj_to_char(obj,ud_ch);
 
-    if ( !make_OBJ(LS, obj) )
+    if ( !push_OBJ(LS, obj) )
         return 0;
     else
         return 1;
@@ -4625,7 +4401,7 @@ static int CH_get_fighting (lua_State *LS)
     CHAR_DATA *ud_ch=check_CH(LS,1);
     if (!ud_ch->fighting)
         return 0;
-    else if (!make_CH(LS, ud_ch->fighting) )
+    else if (!push_CH(LS, ud_ch->fighting) )
         return 0;
     else
         return 1;
@@ -4703,7 +4479,7 @@ static int CH_get_inventory (lua_State *LS)
     OBJ_DATA *obj;
     for (obj=ud_ch->carrying ; obj ; obj=obj->next_content)
     {
-        if (make_OBJ(LS, obj))
+        if (push_OBJ(LS, obj))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -4716,7 +4492,7 @@ static int CH_get_room (lua_State *LS)
     
     if (!ud_ch->in_room)
         return 0;
-    else if ( make_ROOM(LS, check_CH(LS,1)->in_room) )
+    else if ( push_ROOM(LS, check_CH(LS,1)->in_room) )
         return 1;
     else
         return 0;
@@ -4857,7 +4633,7 @@ static int CH_get_proto( lua_State *LS)
     CHAR_DATA *ud_ch=check_CH(LS,1);
     if (!IS_NPC(ud_ch)) luaL_error(LS, "Can't get proto on PCs.");
 
-    if (!make_MOBPROTO( LS, ud_ch->pIndexData ) )
+    if (!push_MOBPROTO( LS, ud_ch->pIndexData ) )
         return 0;
     else
         return 1;
@@ -4983,7 +4759,7 @@ static int CH_get_pet (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
 
-    if ( ud_ch->pet && make_CH(LS, ud_ch->pet) )
+    if ( ud_ch->pet && push_CH(LS, ud_ch->pet) )
         return 1;
     else
         return 0;
@@ -5042,7 +4818,7 @@ static int CH_get_affects ( lua_State *LS )
 
     for ( af=ud_ch->affected ; af ; af=af->next )
     {
-        if (make_AFFECT(LS,af))
+        if (push_AFFECT(LS,af))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -5428,7 +5204,7 @@ static int OBJ_clone( lua_State *LS)
     else
         luaL_error( LS, "Cloned object has no location.");
 
-    if (make_OBJ( LS, clone))
+    if (push_OBJ( LS, clone))
         return 1;
     else
         return 0;
@@ -5463,7 +5239,7 @@ static int OBJ_oload (lua_State *LS)
     check_enchant_obj( obj );
     obj_to_obj(obj,ud_obj);
 
-    if ( !make_OBJ(LS, obj) )
+    if ( !push_OBJ(LS, obj) )
         return 0;
     else
         return 1;
@@ -5728,7 +5504,7 @@ HELPTOPIC OBJ_get_wearlocation_help={};
 static int OBJ_get_proto (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
-    if (!make_OBJPROTO( LS, ud_obj->pIndexData) )
+    if (!push_OBJPROTO( LS, ud_obj->pIndexData) )
         return 0;
     else
         return 1;
@@ -5751,7 +5527,7 @@ static int OBJ_get_contents (lua_State *LS)
     OBJ_DATA *obj;
     for (obj=ud_obj->contains ; obj ; obj=obj->next_content)
     {
-        if ( make_OBJ(LS, obj) )
+        if ( push_OBJ(LS, obj) )
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -5763,7 +5539,7 @@ static int OBJ_get_room (lua_State *LS)
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     if (!ud_obj->in_room)
         return 0;
-    if ( make_ROOM(LS, ud_obj->in_room) )
+    if ( push_ROOM(LS, ud_obj->in_room) )
         return 1;
     else
         return 0;
@@ -5797,7 +5573,7 @@ static int OBJ_get_inobj (lua_State *LS)
     if (!ud_obj->in_obj)
         return 0;
 
-    if ( !make_OBJ(LS, ud_obj->in_obj) )
+    if ( !push_OBJ(LS, ud_obj->in_obj) )
         return 0;
     else
         return 1;
@@ -5809,7 +5585,7 @@ static int OBJ_get_carriedby (lua_State *LS)
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     if (!ud_obj->carried_by )
         return 0;
-    else if (!make_CH( LS, ud_obj->carried_by) )
+    else if (!push_CH( LS, ud_obj->carried_by) )
         return 0;
     else
         return 1;
@@ -5891,7 +5667,7 @@ static int OBJ_get_affects ( lua_State *LS)
 
     for ( af = ud_obj->affected ; af ; af = af->next )
     {
-        if (make_AFFECT( LS, af) )
+        if (push_AFFECT( LS, af) )
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6284,7 +6060,7 @@ static int AREA_get_rooms( lua_State *LS)
     {
         if ((room=get_room_index(vnum))==NULL)
             continue;
-        if (make_ROOM(LS, room))
+        if (push_ROOM(LS, room))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6302,7 +6078,7 @@ static int AREA_get_people( lua_State *LS)
         if ( !people || !people->in_room
                 || (people->in_room->area != ud_area) )
             continue;
-        if (make_CH(LS, people))
+        if (push_CH(LS, people))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6321,7 +6097,7 @@ static int AREA_get_players( lua_State *LS)
                 || !people || !people->in_room
                 || (people->in_room->area != ud_area) )
             continue;
-        if (make_CH(LS, people))
+        if (push_CH(LS, people))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6340,7 +6116,7 @@ static int AREA_get_mobs( lua_State *LS)
                 || !people || !people->in_room
                 || (people->in_room->area != ud_area) )
             continue;
-        if (make_CH(LS, people))
+        if (push_CH(LS, people))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6358,7 +6134,7 @@ static int AREA_get_mobprotos( lua_State *LS)
     {
         if ((mid=get_mob_index(vnum)) != NULL )
         {
-            if (make_MOBPROTO(LS, mid))
+            if (push_MOBPROTO(LS, mid))
                 lua_rawseti(LS, -2, index++);
         }
     }
@@ -6377,7 +6153,7 @@ static int AREA_get_objprotos( lua_State *LS)
     {
         if ((oid=get_obj_index(vnum)) != NULL )
         {
-            if (make_OBJPROTO(LS, oid))
+            if (push_OBJPROTO(LS, oid))
                 lua_rawseti(LS, -2, index++);
         }
     }
@@ -6398,7 +6174,7 @@ static int AREA_get_mprogs( lua_State *LS)
     {
         if ((prog=get_mprog_index(vnum)) != NULL )
         {
-            if (make_PROG(LS, prog))
+            if (push_PROG(LS, prog))
                 lua_rawseti(LS, -2, index++);
         }
     }
@@ -6417,7 +6193,7 @@ static int AREA_get_oprogs( lua_State *LS)
     {
         if ((prog=get_oprog_index(vnum)) != NULL )
         {
-            if (make_PROG(LS, prog))
+            if (push_PROG(LS, prog))
                 lua_rawseti(LS, -2, index++);
         }
     }
@@ -6436,7 +6212,7 @@ static int AREA_get_aprogs( lua_State *LS)
     {
         if ((prog=get_aprog_index(vnum)) != NULL )
         {
-            if (make_PROG(LS, prog))
+            if (push_PROG(LS, prog))
                 lua_rawseti(LS, -2, index++);
         }
     }
@@ -6455,7 +6231,7 @@ static int AREA_get_rprogs( lua_State *LS)
     {
         if ((prog=get_rprog_index(vnum)) != NULL )
         {
-            if (make_PROG(LS, prog))
+            if (push_PROG(LS, prog))
                 lua_rawseti(LS, -2, index++);
         }
     }
@@ -6473,7 +6249,7 @@ static int AREA_get_atrigs ( lua_State *LS)
 
     for ( atrig = ud_area->aprogs ; atrig ; atrig = atrig->next )
     {
-        if (make_ATRIG( LS, atrig) )
+        if (push_ATRIG( LS, atrig) )
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6605,7 +6381,7 @@ static int ROOM_mload (lua_State *LS)
     arm_npc( mob );
     char_to_room(mob,ud_room);
 
-    if ( !make_CH(LS, mob))
+    if ( !push_CH(LS, mob))
         return 0;
     else
         return 1;
@@ -6626,7 +6402,7 @@ static int ROOM_oload (lua_State *LS)
     check_enchant_obj( obj );
     obj_to_room(obj,ud_room);
 
-    if ( !make_OBJ(LS, obj) )
+    if ( !push_OBJ(LS, obj) )
         return 0;
     else
         return 1;
@@ -6854,7 +6630,7 @@ static int ROOM_get_contents (lua_State *LS)
     OBJ_DATA *obj;
     for (obj=ud_room->contents ; obj ; obj=obj->next_content)
     {
-        if (make_OBJ(LS, obj))
+        if (push_OBJ(LS, obj))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6864,7 +6640,7 @@ HELPTOPIC ROOM_get_contents_help={};
 static int ROOM_get_area (lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
-    if ( !make_AREA(LS, ud_room->area))
+    if ( !push_AREA(LS, ud_room->area))
         return 0;
     else
         return 1;
@@ -6879,7 +6655,7 @@ static int ROOM_get_people (lua_State *LS)
     CHAR_DATA *people;
     for (people=ud_room->people ; people ; people=people->next_in_room)
     {
-        if (make_CH(LS, people))
+        if (push_CH(LS, people))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6894,7 +6670,7 @@ static int ROOM_get_players (lua_State *LS)
     CHAR_DATA *plr;
     for ( plr=ud_room->people ; plr ; plr=plr->next_in_room)
     {
-        if (!IS_NPC(plr) && make_CH(LS, plr))
+        if (!IS_NPC(plr) && push_CH(LS, plr))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6909,7 +6685,7 @@ static int ROOM_get_mobs (lua_State *LS)
     CHAR_DATA *mob;
     for ( mob=ud_room->people ; mob ; mob=mob->next_in_room)
     {
-        if ( IS_NPC(mob) && make_CH(LS, mob))
+        if ( IS_NPC(mob) && push_CH(LS, mob))
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6939,7 +6715,7 @@ HELPTOPIC ROOM_get_exits_help={};
     ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);\
     if (!ud_room->exit[dirnumber])\
         return 0;\
-    if (!make_EXIT(LS, ud_room->exit[dirnumber]))\
+    if (!push_EXIT(LS, ud_room->exit[dirnumber]))\
         return 0;\
     else\
         return 1;\
@@ -6965,7 +6741,7 @@ static int ROOM_get_resets (lua_State *LS)
     RESET_DATA *reset;
     for ( reset=ud_room->reset_first; reset; reset=reset->next)
     {
-        if (make_RESET(LS, reset) )
+        if (push_RESET(LS, reset) )
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -6990,7 +6766,7 @@ static int ROOM_get_rtrigs ( lua_State *LS)
 
     for ( rtrig = ud_room->rprogs ; rtrig ; rtrig = rtrig->next )
     {
-        if (make_RTRIG( LS, rtrig) )
+        if (push_RTRIG( LS, rtrig) )
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -7147,7 +6923,7 @@ HELPTOPIC EXIT_open_help={};
 static int EXIT_get_toroom (lua_State *LS)
 {
     EXIT_DATA *ud_exit=check_EXIT(LS,1);
-    if ( !make_ROOM( LS, ud_exit->u1.to_room ))
+    if ( !push_ROOM( LS, ud_exit->u1.to_room ))
         return 0;
     else
         return 1;
@@ -7405,7 +7181,7 @@ HELPTOPIC OBJPROTO_get_ingame_help = {};
 
 static int OBJPROTO_get_area ( lua_State *LS )
 {
-    if (make_AREA(LS, (check_OBJPROTO(LS,1))->area) )
+    if (push_AREA(LS, (check_OBJPROTO(LS,1))->area) )
         return 1;
     return 0;
 }
@@ -7421,7 +7197,7 @@ static int OBJPROTO_get_otrigs ( lua_State *LS)
 
     for ( otrig = ud_oid->oprogs ; otrig ; otrig = otrig->next )
     {
-        if (make_OTRIG( LS, otrig) )
+        if (push_OTRIG( LS, otrig) )
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -7438,7 +7214,7 @@ static int OBJPROTO_get_affects ( lua_State *LS)
 
     for ( af = ud_oid->affected ; af ; af = af->next )
     {
-        if (make_AFFECT( LS, af) )
+        if (push_AFFECT( LS, af) )
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -7723,7 +7499,7 @@ MPGETINT( count, ud_mobp->count, "", "");
 
 static int MOBPROTO_get_area (lua_State *LS)
 {
-    if (make_AREA( LS, (check_MOBPROTO( LS, 1))->area))
+    if (push_AREA( LS, (check_MOBPROTO( LS, 1))->area))
         return 1;
     return 0;
 }
@@ -7739,7 +7515,7 @@ static int MOBPROTO_get_mtrigs ( lua_State *LS)
 
     for ( mtrig = ud_mid->mprogs ; mtrig ; mtrig = mtrig->next )
     {
-        if (make_MTRIG( LS, mtrig) )
+        if (push_MTRIG( LS, mtrig) )
             lua_rawseti(LS, -2, index++);
     }
     return 1;
@@ -7751,7 +7527,7 @@ static int MOBPROTO_get_shop ( lua_State *LS)
     MOB_INDEX_DATA *ud_mid=check_MOBPROTO( LS, 1);
     if ( ud_mid->pShop )
     {
-        if ( make_SHOP(LS, ud_mid->pShop) )
+        if ( push_SHOP(LS, ud_mid->pShop) )
             return 1;
         else
             return 0;
@@ -8149,7 +7925,7 @@ static int TRIG_get_trigtype ( lua_State *LS )
     lua_pushstring( LS,
             flag_stat_string(
                 tbl,
-                ((PROG_LIST *) lua_check_type( type, LS, 1 ) )->trig_type ) );
+                ((PROG_LIST *) type->check( LS, 1 ) )->trig_type ) );
     return 1;
 }
 HELPTOPIC TRIG_get_trigtype_help = {};
@@ -8169,7 +7945,7 @@ static int TRIG_get_trigphrase ( lua_State *LS )
                 type->type_name);
 
     lua_pushstring( LS,
-            ((PROG_LIST *) lua_check_type( type, LS, 1 ) )->trig_phrase);
+            ((PROG_LIST *) type->check( LS, 1 ) )->trig_phrase);
     return 1;
 }
 HELPTOPIC TRIG_get_trigphrase_help ={};
@@ -8188,8 +7964,8 @@ static int TRIG_get_prog ( lua_State *LS )
                 "Invalid type: %s.",
                 type->type_name);
 
-    if ( make_PROG( LS,
-            ((PROG_LIST *)lua_check_type( type, LS, 1 ) )->script ) )
+    if ( push_PROG( LS,
+            ((PROG_LIST *)type->check( LS, 1 ) )->script ) )
         return 1;
     return 0;
 }    
@@ -8648,13 +8424,7 @@ void do_luahelp( CHAR_DATA *ch, const char *argument )
 }
 
 /* end help section */
-#define TYPEINIT( typename ) if (! typename ## _type ) \
-    typename ## _type=new_obj_type(\
-        LS,\
-        #typename,\
-        typename ## _get_table,\
-        typename ## _set_table,\
-        typename ## _method_table)
+
 void type_init( lua_State *LS)
 {
     int i;
@@ -8662,48 +8432,221 @@ void type_init( lua_State *LS)
 
     for ( i=0 ; type_list[i] ; i=i++ )
     {
-        register_type( type_list[i], LS );
+        type_list[i]->reg( LS );
     }
 }
-#define DECLARETYPE( ltype, ctype ) \
-LUA_OBJ_TYPE ltype ## _type = { \
-    .type_name= #ltype ,\
-    .get_table= ltype ## _get_table ,\
-    .set_table= ltype ## _set_table ,\
-    .method_table = ltype ## _method_table \
-};\
-ctype * check_ ## ltype ( lua_State *LS, int index )\
-{\
-    return lua_check_type( & ltype ## _type , LS, index );\
-}\
-bool    is_ ## ltype ( lua_State *LS, int index )\
-{\
-    return lua_is_type( & ltype ## _type, LS, index );\
-}\
-bool    make_ ## ltype ( lua_State *LS, int index )\
-{\
-    return lua_make_type( & ltype ## _type, LS, index);\
-}
 
-#define DECLARETRIG( ltype, ctype ) \
-LUA_OBJ_TYPE ltype ## _type = { \
-    .type_name= #ltype ,\
-    .get_table= TRIG_get_table ,\
-    .set_table= TRIG_set_table ,\
-    .method_table = TRIG_method_table \
-};\
-ctype * check_ ## ltype ( lua_State *LS, int index )\
+#define REF_FREED -1
+
+#define declb( LTYPE , CTYPE , TPREFIX ) \
+typedef struct\
 {\
-    return lua_check_type( & ltype ## _type , LS, index );\
+    CTYPE a;\
+    int ref;\
+} LTYPE ## _wrapper;\
+\
+bool valid_ ## LTYPE ( CTYPE *ud )\
+{\
+    return (( LTYPE ## _wrapper *)ud)->ref != REF_FREED;\
 }\
-bool    is_ ## ltype ( lua_State *LS, int index )\
+\
+CTYPE * check_ ## LTYPE ( lua_State *LS, int index )\
 {\
-    return lua_is_type( & ltype ## _type, LS, index );\
+    return luaL_checkudata( LS, index, #LTYPE );\
 }\
-bool    make_ ## ltype ( lua_State *LS, int index )\
+\
+bool    is_ ## LTYPE ( lua_State *LS, int index )\
 {\
-    return lua_make_type( & ltype ## _type, LS, index);\
-}
+    lua_getmetatable( LS, index );\
+    luaL_getmetatable( LS, #LTYPE );\
+    bool result=lua_equal( LS, -1, -2 );\
+    lua_pop( LS, 2 );\
+    return result;\
+}\
+\
+bool    push_ ## LTYPE ( lua_State *LS, CTYPE *ud )\
+{\
+    int ref=(( LTYPE ## _wrapper *)ud)->ref;\
+    if (ref==REF_FREED)\
+        return FALSE;\
+    \
+    lua_rawgeti( LS, LUA_REGISTRYINDEX, ref );\
+    \
+    return TRUE;\
+}\
+\
+CTYPE * alloc_ ## LTYPE ( void )\
+{\
+    LTYPE ## _wrapper *wrap=lua_newuserdata( g_mud_LS, sizeof( LTYPE ## _wrapper ) );\
+    luaL_getmetatable( g_mud_LS, #LTYPE );\
+    lua_setmetatable( g_mud_LS, -2 );\
+    wrap->ref=luaL_ref( g_mud_LS, LUA_REGISTRYINDEX );\
+    LTYPE ## _type.count++;\
+    memset( wrap, 0, sizeof( CTYPE ) );\
+    return wrap;\
+}\
+\
+void free_ ## LTYPE ( CTYPE * ud )\
+{\
+    LTYPE ## _wrapper *wrap=ud;\
+    int ref=wrap->ref;\
+    wrap->ref=REF_FREED;\
+    luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref );\
+    LTYPE ## _type.count--;\
+}\
+\
+int count_ ## LTYPE ( void ) { return LTYPE ## _type.count; }\
+\
+int newindex_ ## LTYPE ( lua_State *LS )\
+{\
+    CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
+    const char *arg=check_string( LS, 2, MIL );\
+    \
+    if (! valid_ ## LTYPE ( gobj ) )\
+    {\
+        luaL_error( LS, "Tried to index invalid " #LTYPE ".");\
+    }\
+    \
+    lua_remove(LS, 2);\
+    \
+    LUA_PROP_TYPE *set= & TPREFIX ## _set_table ;\
+    \
+    int i;\
+    for (i=0 ; set[i].field ; i++ )\
+    {\
+        if ( !strcmp(set[i].field, arg) )\
+        {\
+            if ( set[i].security > g_ScriptSecurity )\
+                luaL_error( LS, "Current security %d. Setting field requires %d.",\
+                        g_ScriptSecurity,\
+                        set[i].security);\
+            \
+            if ( set[i].func )\
+            {\
+                lua_pushcfunction( LS, set[i].func );\
+                lua_insert( LS, 1 );\
+                lua_call(LS, 2, 0);\
+                return 0;\
+            }\
+            else\
+            {\
+                bugf("No function entry for %s %s.",\
+                        #LTYPE , arg );\
+                luaL_error(LS, "No function found.");\
+            }\
+        }\
+    }\
+    \
+    luaL_error(LS, "Can't set field '%s' for type %s.",\
+            arg, #LTYPE );\
+    \
+    return 0;\
+}\
+\
+int index_ ## LTYPE ( lua_State *LS )\
+{\
+    CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
+    const char *arg=luaL_checkstring( LS, 2 );\
+    LUA_PROP_TYPE *get=& TPREFIX ## _get_table;\
+    \
+    bool valid=valid_ ## LTYPE ( gobj );\
+    if (!strcmp("valid", arg))\
+    {\
+        lua_pushboolean( LS, valid );\
+        return 1;\
+    }\
+    \
+    if (!valid)\
+    {\
+        luaL_error( LS, "Tried to index invalid " #LTYPE ".");\
+    }\
+    \
+    int i;\
+    for (i=0; get[i].field; i++ )\
+    {\
+        if (!strcmp(get[i].field, arg) )\
+        {\
+            if ( get[i].security > g_ScriptSecurity )\
+                luaL_error( LS, "Current security %d. Getting field requires %d.",\
+                        g_ScriptSecurity,\
+                        get[i].security);\
+            \
+            if (get[i].func)\
+            {\
+                int val;\
+                val=(get[i].func)(LS, gobj);\
+                return val;\
+            }\
+            else\
+            {\
+                bugf("No function entry for %s %s.",\
+                        #LTYPE, arg );\
+                luaL_error(LS, "No function found.");\
+            }\
+        }\
+    }\
+    \
+    LUA_PROP_TYPE *method= & TPREFIX ## _method_table ;\
+    \
+    for (i=0; method[i].field; i++ )\
+    {\
+        if (!strcmp(method[i].field, arg) )\
+        {\
+            if ( method[i].security > g_ScriptSecurity )\
+                luaL_error( LS, "Current security %d. Method requires %d.",\
+                        g_ScriptSecurity,\
+                        method[i].security);\
+            \
+            lua_pushcfunction(LS, method[i].func);\
+            return 1;\
+        }\
+    }\
+    \
+    return 0;\
+}\
+\
+void reg_ ## LTYPE (lua_State *LS)\
+{\
+    luaL_newmetatable( LS, #LTYPE );\
+    \
+    lua_pushcfunction( LS, index_ ## LTYPE );\
+    lua_setfield( LS, -2, "__index");\
+    \
+    lua_pushcfunction( LS, newindex_ ## LTYPE );\
+    lua_setfield( LS, -2, "__newindex");\
+    \
+    luaL_loadstring( LS, "return " #LTYPE );\
+    lua_setfield( LS, -2, "__tostring");\
+    \
+    lua_pushlightuserdata( LS, (void *)  & LTYPE ## _type);\
+    lua_setfield( LS, -2, "TYPE" );\
+    \
+    lua_pop( LS, 1 );\
+}\
+\
+LUA_OBJ_TYPE LTYPE ## _type = { \
+    .type_name= #LTYPE ,\
+    .valid = valid_ ## LTYPE ,\
+    .check = check_ ## LTYPE ,\
+    .is    = is_ ## LTYPE ,\
+    .push  = push_ ## LTYPE ,\
+    .alloc = alloc_ ## LTYPE ,\
+    .free  = free_ ## LTYPE ,\
+    \
+    .index = index_ ## LTYPE ,\
+    .newindex= newindex_ ## LTYPE ,\
+    \
+    .reg   = reg_ ## LTYPE ,\
+    \
+    .get_table= TPREFIX ## _get_table ,\
+    .set_table= TPREFIX ## _set_table ,\
+    .method_table = TPREFIX ## _method_table ,\
+    \
+    .count=0 \
+};
+
+#define DECLARETYPE( LTYPE, CTYPE ) declb( LTYPE, CTYPE, LTYPE )
+#define DECLARETRIG( LTYPE, CTYPE ) declb( LTYPE, CTYPE, TRIG ) 
 
 DECLARETYPE( CH, CHAR_DATA );
 DECLARETYPE( OBJ, OBJ_DATA );
@@ -8722,4 +8665,3 @@ DECLARETRIG( ATRIG, PROG_LIST );
 DECLARETRIG( RTRIG, PROG_LIST );
 
 DECLARETYPE( HELP, HELP_DATA );
-
