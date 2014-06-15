@@ -1726,39 +1726,7 @@ static int check_iflag( lua_State *LS,
             NULL,
             iflagvar);
 }
-/*
-static void unregister_UD( lua_State *LS,  void *ptr )
-{
-    if (!LS)
-    {
-        bugf("NULL LS passed to unregister_UD.");
-        return;
-    }
 
-    lua_getfield( LS, LUA_GLOBALSINDEX, UNREGISTER_UD_FUNCTION);
-    lua_pushlightuserdata( LS, ptr );
-    if (CallLuaWithTraceBack( LS, 1, 0) )
-    {
-        bugf ( "Error unregistering UD:\n %s",
-                lua_tostring(LS, -1));
-    }
-
-}
-*/
-/* unregister_lua, to be called when destroying in game structures that may
-   be registered in an active lua state*/
-/*
-void unregister_lua( void *ptr )
-{
-    if (ptr == NULL)
-    {
-        bugf("NULL ptr in unregister_lua.");
-        return;
-    }
-
-    unregister_UD( g_mud_LS, ptr );
-}
-*/
 static int L_rundelay( lua_State *LS)
 {
     lua_getglobal( LS, "delaytbl"); /*2*/
