@@ -77,7 +77,7 @@ void clone_area( AREA_DATA *pArea )
     }
 
     /* create clone */
-    clone = alloc_perm( sizeof(AREA_DATA) );
+    clone = alloc_AREA_DATA();
     clone->next = NULL;
     clone->helps = NULL;
     clone->name = str_dup( pArea->name );
