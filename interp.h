@@ -594,3 +594,4 @@ DECLARE_DO_FUN( do_luaquery);
 DECLARE_DO_FUN( do_luareset);
 DECLARE_DO_FUN( do_mudconfig);
 DECLARE_DO_FUN( do_perfmon);
+DECLARE_DO_FUN( do_findreset);
