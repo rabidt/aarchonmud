@@ -3157,6 +3157,8 @@ struct  mastery_group_type
 #define OTRIG_QUAFF (W)
 #define OTRIG_OPEN  (X)
 #define OTRIG_UNLOCK (Z)
+#define OTRIG_SIT   (aa)
+#define OTRIG_WAKE  (bb)
 
 /*
  * AREAprog definitions
