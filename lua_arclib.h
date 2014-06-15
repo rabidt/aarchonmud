@@ -6,10 +6,23 @@ typedef struct lua_obj_type
 {
     const char *type_name;
 
+    bool (*valid)();
+    void *(*check)();
+    bool (*is)();
+    bool (*push)();
+    void *(*alloc);
+    void (*free)();
+
+    int (*index)();
+    int (*newindex)();
+
+    void (*reg)();
+
     struct lua_prop_type * const get_table;
     struct lua_prop_type * const set_table;
     struct lua_prop_type * const method_table;
 
+    int count;
 } LUA_OBJ_TYPE;
 
 typedef struct lua_extra_val
@@ -44,18 +57,13 @@ extern LUA_OBJ_TYPE AFFECT_type;
 extern LUA_OBJ_TYPE HELP_type;
 
 void register_globals( lua_State *LS );
-bool lua_make_type( LUA_OBJ_TYPE *tp,
-                lua_State *LS, void *game_obj);
-bool lua_is_type( LUA_OBJ_TYPE *tp,
-                lua_State *LS, int arg );
-void * lua_check_type( LUA_OBJ_TYPE *tp,
-                lua_State *LS, int index );
 
 #define declf( ltype, ctype ) \
 ctype * check_ ## ltype ( lua_State *LS, int index ); \
 bool    is_ ## ltype ( lua_State *LS, int index ); \
-bool    make_ ## ltype ( lua_State *LS, int index );
-
+bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
+ctype * alloc_ ## ltype (void) ;\
+void    free_ ## ctype ( ctype * ud );\
 
 declf(CH, CHAR_DATA)
 declf(OBJ, OBJ_DATA)
@@ -74,6 +82,5 @@ declf(SHOP, SHOP_DATA)
 declf(AFFECT, AFFECT_DATA)
 declf(HELP, HELP_DATA)
 #undef declf
-
 
 #endif

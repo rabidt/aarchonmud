@@ -2090,12 +2090,9 @@ void extract_obj( OBJ_DATA *obj )
 
     if (obj == NULL)
     {
-	bug("BUG: extract_obj, obj == NULL",0);
-	return;
+        bug("BUG: extract_obj, obj == NULL",0);
+        return;
     }
-
-    unregister_lua( obj ); /* always unregister, even if delaying extract */
-    unregister_obj_timer( obj );
 
     if (g_LuaScriptInProgress || is_mprog_running())
     {
@@ -2109,6 +2106,7 @@ void extract_obj( OBJ_DATA *obj )
     OBJ_DATA *obj_content;
     OBJ_DATA *obj_next;
     
+    unregister_obj_timer( obj );
     obj_from_world( obj );
     free_relic( obj );
     
@@ -2297,8 +2295,6 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     /* fPull should be TRUE if NPC or quitting player (char will get freed) */
     if ( fPull )
     {
-        unregister_lua( ch ); /* always unregister even if delaying actual extract */
-        unregister_ch_timer( ch );
         if (g_LuaScriptInProgress || is_mprog_running())
         {
             ch->must_extract=TRUE;
@@ -2312,60 +2308,61 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
 
 
     /* doesn't seem to be necessary
-    if ( ch->in_room == NULL )
-    {
-    bug( "Extract_char: NULL.", 0 );
-    return;
-    }
-    */
-    
+       if ( ch->in_room == NULL )
+       {
+       bug( "Extract_char: NULL.", 0 );
+       return;
+       }
+     */
+    unregister_ch_timer( ch );
+
     nuke_pets(ch);
     ch->pet = NULL; /* just in case */
-    
+
     if ( fPull )
         die_follower( ch, false );
-    
+
     stop_fighting( ch, TRUE );
 
     /* drop all easy_drop items */
     extract_char_eq( ch, &is_drop_obj, TO_ROOM );
 
     if (extract_objects)
-	for ( obj = ch->carrying; obj != NULL; obj = obj_next )
-	{
-	    obj_next = obj->next_content;
+        for ( obj = ch->carrying; obj != NULL; obj = obj_next )
+        {
+            obj_next = obj->next_content;
 
-	    if (!IS_NPC(ch)
-		&& !fPull
-		&& IS_SET(obj->extra_flags, ITEM_STICKY))
-		continue;  /* Leave item on player, not on corpse. Only for PC deaths in-game. */
-	    
-	    extract_obj( obj );
-	}
-    
+            if (!IS_NPC(ch)
+                    && !fPull
+                    && IS_SET(obj->extra_flags, ITEM_STICKY))
+                continue;  /* Leave item on player, not on corpse. Only for PC deaths in-game. */
+
+            extract_obj( obj );
+        }
+
     if (ch->in_room != NULL)
         char_from_room( ch );
-    
+
     /* Death room is set in the clan table now */
     if ( !fPull )
     {
-	/* make sure vampires don't get toasted over and over again */
-	if ( IS_SET(ch->form, FORM_SUNBURN) )
-	    char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
-	else
-	    char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
+        /* make sure vampires don't get toasted over and over again */
+        if ( IS_SET(ch->form, FORM_SUNBURN) )
+            char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
+        else
+            char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
         return;
     }
-    
+
     if ( IS_NPC(ch) )
         --ch->pIndexData->count;
-    
+
     if ( ch->desc != NULL && ch->desc->original != NULL )
     {
         do_return( ch, "" );
         ch->desc = NULL;
     }
-    
+
     for ( wch = char_list; wch != NULL; wch = wch->next )
     {
         if ( wch->reply == ch )
@@ -2375,7 +2372,7 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     }
 
     char_from_char_list(ch);
-    
+
     if ( ch->desc != NULL )
     {
         ch->desc->character = NULL;
