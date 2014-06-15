@@ -2299,7 +2299,7 @@ void do_sit (CHAR_DATA *ch, char *argument )
 		 send_to_char( "You wake and sit up.\n\r", ch );
 		 act( "$n wakes and sits up.", ch, NULL, NULL, TO_ROOM );
 	  }
-      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
       {
          return;
       }
@@ -2338,7 +2338,7 @@ void do_sit (CHAR_DATA *ch, char *argument )
    case POS_RESTING:
 	  if (obj == NULL)
 		 send_to_char("You stop resting.\n\r",ch);
-      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
       {
          return;
       }
@@ -2366,7 +2366,7 @@ void do_sit (CHAR_DATA *ch, char *argument )
 		 send_to_char("You sit down.\n\r",ch);
 		 act("$n sits down on the ground.",ch,NULL,NULL,TO_ROOM);
 	  }
-      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
       {
          return;
       }
