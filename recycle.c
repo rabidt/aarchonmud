@@ -123,19 +123,11 @@ DESCRIPTOR_DATA *descriptor_free;
 
 DESCRIPTOR_DATA *new_descriptor(void)
 {
-	static DESCRIPTOR_DATA d_zero;
 	DESCRIPTOR_DATA *d;
 
-	if (descriptor_free == NULL)
-	d = alloc_perm(sizeof(*d));
-	else
-	{
-	d = descriptor_free;
-	descriptor_free = descriptor_free->next;
-	}
+	d = alloc_DESCRIPTOR();
 	
-	*d = d_zero;
-	VALIDATE(d);
+    VALIDATE(d);
 	
 	d->connected    = CON_GET_NAME;
 	d->showstr_head = NULL;
@@ -167,8 +159,8 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 	free_mem( d->outbuf, d->outsize );
     ProtocolDestroy( d->pProtocol );
 	INVALIDATE(d);
-	d->next = descriptor_free;
-	descriptor_free = d;
+	d->next = NULL;
+    free_DESCRIPTOR( d );
 }
 
 /* stuff for recycling gen_data */

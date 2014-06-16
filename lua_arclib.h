@@ -55,6 +55,7 @@ extern LUA_OBJ_TYPE ATRIG_type;
 extern LUA_OBJ_TYPE RTRIG_type;
 extern LUA_OBJ_TYPE AFFECT_type;
 extern LUA_OBJ_TYPE HELP_type;
+extern LUA_OBJ_TYPE DESCRIPTOR_type;
 
 void register_globals( lua_State *LS );
 
@@ -63,7 +64,7 @@ ctype * check_ ## ltype ( lua_State *LS, int index ); \
 bool    is_ ## ltype ( lua_State *LS, int index ); \
 bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
 ctype * alloc_ ## ltype (void) ;\
-void    free_ ## ctype ( ctype * ud );\
+void    free_ ## ltype ( ctype * ud );\
 
 declf(CH, CHAR_DATA)
 declf(OBJ, OBJ_DATA)
@@ -81,6 +82,7 @@ declf(RTRIG, PROG_LIST)
 declf(SHOP, SHOP_DATA)
 declf(AFFECT, AFFECT_DATA)
 declf(HELP, HELP_DATA)
+declf(DESCRIPTOR, DESCRIPTOR_DATA)
 #undef declf
 
 #endif
