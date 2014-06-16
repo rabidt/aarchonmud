@@ -146,6 +146,7 @@ void free_exit( EXIT_DATA *pExit )
 {
     free_string( pExit->keyword );
     free_string( pExit->description );
+    top_exit--;
 
     pExit->next         =   NULL;
     free_EXIT( pExit );
