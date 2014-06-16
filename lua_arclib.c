@@ -8470,7 +8470,30 @@ void free_ ## LTYPE ( CTYPE * ud )\
     LTYPE ## _type.count--;\
 }\
 \
-int count_ ## LTYPE ( void ) { return LTYPE ## _type.count; }\
+int count_ ## LTYPE ( void )\
+{\
+    int count=0;\
+    luaL_getmetatable( g_mud_LS, #LTYPE );\
+    lua_pushnil( g_mud_LS );\
+    \
+    while (lua_next( g_mud_LS, LUA_REGISTRYINDEX ))\
+    {\
+        if ( lua_isuserdata( g_mud_LS, -1 ) )\
+        {\
+            lua_getmetatable( g_mud_LS, -1 );\
+            if (lua_equal( g_mud_LS, -1, -4 ))\
+            {\
+                count++;\
+            }\
+            lua_pop( g_mud_LS, 1 );\
+        }\
+        lua_pop( g_mud_LS, 1 );\
+    }\
+    \
+    lua_pop( g_mud_LS, 1 );\
+    \
+    return count;\
+}\
 \
 int newindex_ ## LTYPE ( lua_State *LS )\
 {\
