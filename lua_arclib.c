@@ -8458,6 +8458,13 @@ void free_ ## LTYPE ( CTYPE * ud )\
 {\
     LTYPE ## _wrapper *wrap=ud;\
     int ref=wrap->ref;\
+    /* destroy env */\
+    lua_getglobal( g_mud_LS, "envtbl" );\
+    push_ ## LTYPE ( g_mud_LS, ud );\
+    lua_pushnil( g_mud_LS );\
+    lua_settable( g_mud_LS, -3 );\
+    lua_pop( g_mud_LS, 1 ); /* pop envtbl */\
+    \
     wrap->ref=REF_FREED;\
     luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref );\
     LTYPE ## _type.count--;\
