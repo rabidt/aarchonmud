@@ -29,6 +29,7 @@ LUA_OBJ_TYPE *type_list [] =
     &ATRIG_type,
     &RTRIG_type,
     &HELP_type,
+    &DESCRIPTOR_type,
     NULL
 };
 
@@ -973,6 +974,23 @@ HELPTOPIC glob_getmoblist_help={
           "local moblist=getmoblist()\n\r\n\r"
 };
 
+static int glob_getdescriptorlist (lua_State *LS)
+{
+    DESCRIPTOR_DATA *d;
+
+    int index=1;
+    lua_newtable(LS);
+
+    for ( d=descriptor_list ; d ; d=d->next )
+    {
+        if (push_DESCRIPTOR(LS, d))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+HELPTOPIC glob_getdescriptorlist_help={};
+
 static int glob_getplayerlist (lua_State *LS)
 {
     CHAR_DATA *ch;
@@ -1313,6 +1331,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getarealist,   9),
     GFUN(getshoplist,   9),
     GFUN(gethelplist,   9),
+    GFUN(getdescriptorlist, 9),
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
     GFUN(mudconfig,     9),
@@ -8010,6 +8029,36 @@ static const LUA_PROP_TYPE HELP_method_table [] =
 
 /* end HELP section */
 
+/* DESCRIPTOR section */
+static int DESCRIPTOR_get_character( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1 );
+
+    if ( push_CH( LS,
+                ud_d->original ? ud_d->original : ud_d->character ) )
+        return 1;
+    else
+        return 0;
+}
+HELPTOPIC DESCRIPTOR_get_character_help = {};
+
+static const LUA_PROP_TYPE DESCRIPTOR_get_table [] =
+{
+    GETP( DESCRIPTOR, character, 0 ),
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE DESCRIPTOR_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE DESCRIPTOR_method_table [] =
+{
+    ENDPTABLE
+};
+/* end DESCRIPTOR section */
+
 /* help section */
 
 struct 
@@ -8663,3 +8712,4 @@ DECLARETRIG( ATRIG, PROG_LIST );
 DECLARETRIG( RTRIG, PROG_LIST );
 
 DECLARETYPE( HELP, HELP_DATA );
+DECLARETYPE( DESCRIPTOR, DESCRIPTOR_DATA );
