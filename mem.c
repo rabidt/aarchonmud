@@ -66,6 +66,7 @@ void free_reset_data( RESET_DATA *pReset )
 {
     pReset->next            = NULL;
     free_RESET( pReset );
+    top_reset--;
     return;
 }
 
