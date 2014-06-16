@@ -8613,7 +8613,7 @@ void reg_ ## LTYPE (lua_State *LS)\
     lua_pushcfunction( LS, newindex_ ## LTYPE );\
     lua_setfield( LS, -2, "__newindex");\
     \
-    luaL_loadstring( LS, "return " #LTYPE );\
+    luaL_loadstring( LS, "return \"" #LTYPE "\"" );\
     lua_setfield( LS, -2, "__tostring");\
     \
     lua_pushlightuserdata( LS, (void *)  & LTYPE ## _type);\
