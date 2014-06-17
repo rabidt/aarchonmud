@@ -115,7 +115,6 @@ int close       args( ( int fd ) );
  */
 DESCRIPTOR_DATA *   descriptor_list;    /* All open descriptors     */
 DESCRIPTOR_DATA *   d_next;     /* Next descriptor in loop  */
-FILE *          fpReserve;      /* Reserved file handle     */
 bool            god;        /* All new chars are gods!  */
 bool            merc_down;      /* Shutdown         */
 bool            wizlock;        /* Game is wizlocked        */
@@ -171,15 +170,6 @@ int main( int argc, char **argv )
 
     /* Log some info about the binary if present */
     log_string(bin_info_string);
-
-    /*
-     * Reserve one channel for our use.
-     */
-    if ( ( fpReserve = fopen( NULL_FILE, "r" ) ) == NULL )
-    {
-        log_error( NULL_FILE );
-        exit( 1 );
-    }
 
     /*
      * Get the port number.
@@ -2865,10 +2855,6 @@ void do_copyover (CHAR_DATA *ch, char * argument)
     fprintf (fp, "-1\n");
     fclose (fp);
 
-    /* Close reserve and other always-open files and release other resources */
-
-    fclose (fpReserve);
-
     /* exec - descriptors are inherited */
 
     sprintf (arg0, "%s", "aeaea");
@@ -2882,9 +2868,6 @@ void do_copyover (CHAR_DATA *ch, char * argument)
 
     log_error ("do_copyover: execl");
     send_to_char ("Copyover FAILED!\n\r",ch);
-
-    /* Here you might want to reopen fpReserve */
-    fpReserve = fopen (NULL_FILE, "r");
 }
 
 /* Recover from a copyover - load players */

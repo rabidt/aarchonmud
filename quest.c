@@ -1720,7 +1720,6 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
 
   if (!strcmp(arg2, "list"))
   {
-    fclose(fpReserve);
     strcpy(buf, "../area/pre_titles.txt");
     if (!(fp = fopen(buf, "r")))
     {
@@ -1741,12 +1740,10 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
     }
     send_to_char("Use 'clear' argument to remove pretitle at no cost.\n\r",ch);
     fclose (fp);
-    fpReserve = fopen( NULL_FILE, "r" );
     return FALSE;
   }
 
 
-  fclose(fpReserve);
   strcpy(buf, "../area/pre_titles.txt");
   if (!(fp = fopen(buf, "r")))
   {
@@ -1772,7 +1769,6 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
       send_to_char("Title not found. 'ptitle list' for titles,\n\r",ch);
 
     fclose(fp);
-    fpReserve = fopen( NULL_FILE, "r" );
     return FALSE;
   }
 
@@ -1807,7 +1803,6 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
     }
   }
   fclose(fp);
-  fpReserve = fopen( NULL_FILE, "r" );
   return TRUE;
 }
 

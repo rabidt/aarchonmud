@@ -256,13 +256,10 @@ void save_auth_list()
     FILE *fpout;
     AUTH_LIST *list;
     
-    fclose(fpReserve);
-
     if ( ( fpout = fopen( AUTH_FILE, "w" ) ) == NULL )
     {
         bug( "Cannot open auth.txt for writing.", 0 );
         log_error( AUTH_FILE );
-        fpReserve = fopen( NULL_FILE, "r" );
         return;
     }
     
@@ -275,8 +272,6 @@ void save_auth_list()
     fprintf( fpout, "#END\n" );
     fclose( fpout );
     fpout = NULL;
-
-    fpReserve = fopen( NULL_FILE, "r" );
 }
 
 void load_auth_list()
