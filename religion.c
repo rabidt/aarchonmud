@@ -812,11 +812,9 @@ void load_religions()
     religion_list = NULL;
 
     /* open file */
-    fclose( fpReserve );
     if ( ( fp = fopen( RELIGION_FILE, "r" ) ) == NULL )
     {
 	bugf( "load_religions: couldn't open %s", RELIGION_FILE );
-	fpReserve = fopen( NULL_FILE, "r" );
 	return;
     }
 
@@ -850,7 +848,6 @@ void load_religions()
 
     /* close file */
     fclose( fp );
-    fpReserve = fopen( NULL_FILE, "r" );  
 
 //    /* fix the religion wars */
 //    assign_religion_war_opp();

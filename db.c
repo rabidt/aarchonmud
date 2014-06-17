@@ -4824,7 +4824,6 @@ void append_file( CHAR_DATA *ch, char *file, char *str )
     if ( IS_NPC(ch) || str[0] == '\0' )
         return;
     
-    fclose( fpReserve );
     if ( ( fp = fopen( file, "a" ) ) == NULL )
     {
         log_error( file );
@@ -4841,7 +4840,6 @@ void append_file( CHAR_DATA *ch, char *file, char *str )
         fclose( fp );
     }
     
-    fpReserve = fopen( NULL_FILE, "r" );
     return;
 }
 
@@ -5017,13 +5015,11 @@ void cheat_log( const char *str )
     FILE *fp;
     char ts[MSL];
 
-    fclose(fpReserve);
     fp = fopen (CHEAT_LIST, "a");
     
     if (!fp)
     {
         bug ("Could not open " CHEAT_LIST " for writing", 0);
-        fpReserve = fopen( NULL_FILE, "r" );
         return;
     }
     
@@ -5035,7 +5031,6 @@ void cheat_log( const char *str )
     fprintf( fp, "%s::%s\n",ts, str );
 
     fclose (fp);
-    fpReserve = fopen( NULL_FILE, "r" );    
 }
 
 void do_cheatlog( CHAR_DATA *ch, char *argument )
@@ -5047,13 +5042,11 @@ void do_cheatlog( CHAR_DATA *ch, char *argument )
 
     if ( argument[0] == '\0' )
     {
-	fclose(fpReserve);
 	fp = fopen (CHEAT_LIST, "r");
     
 	if (!fp)
 	{
 	    bug ("Could not open " CHEAT_LIST " for reading", 0);
-	    fpReserve = fopen( NULL_FILE, "r" );
 	    send_to_char( "No cheating log found.\n\r", ch );
 	    return;
 	}
@@ -5073,7 +5066,6 @@ void do_cheatlog( CHAR_DATA *ch, char *argument )
 	}
 
 	fclose (fp);
-	fpReserve = fopen( NULL_FILE, "r" );    
 
 	page_to_char( buf_string(output), ch );
 	free_buf(output);
@@ -5083,18 +5075,15 @@ void do_cheatlog( CHAR_DATA *ch, char *argument )
     
     if ( !strcmp(argument, "clear") )
     {
-	fclose(fpReserve);
 	fp = fopen (CHEAT_LIST, "w");
     
 	if (!fp)
 	{
 	    bug ("Could not open " CHEAT_LIST " for writing", 0);
-	    fpReserve = fopen( NULL_FILE, "r" );
 	    return;
 	}
     
 	fclose (fp);
-	fpReserve = fopen( NULL_FILE, "r" );    
 
 	send_to_char( "Cheating log cleared.\n\r", ch );
 	return;

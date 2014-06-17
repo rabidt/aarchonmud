@@ -1777,7 +1777,6 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
         char buf [MSL];
         int cost;
 
-        fclose(fpReserve);
         strcpy(buf, "../area/pre_titles.txt");
         if (!(fp = fopen(buf, "r")))
         {
@@ -1796,7 +1795,6 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
         }
         send_to_char("\n\r",victim);
         fclose(fp);
-        fpReserve = fopen( NULL_FILE, "r" );
         return FALSE;
     }
 
@@ -2735,12 +2733,10 @@ void save_reserved(void)
     RESERVED_DATA *res;
     FILE *fp;
     
-    fclose(fpReserve);
     if (!(fp = fopen(RESERVED_LIST, "w")))
     {
         bug( "Save_reserved: cannot open " RESERVED_LIST, 0 );
         log_error(RESERVED_LIST);
-        fpReserve = fopen( NULL_FILE, "r" );
         return;
     }
     
@@ -2749,7 +2745,6 @@ void save_reserved(void)
     
     fprintf(fp, "$~\n");
     fclose(fp);
-    fpReserve = fopen(NULL_FILE, "r");
     return;
 }
 
