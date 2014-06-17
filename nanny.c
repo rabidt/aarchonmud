@@ -463,6 +463,13 @@ bool get_name ( DESCRIPTOR_DATA *d, char *argument )
     if ( !check_parse_name( argument, (bool)(!fOld) ) )
     {
         write_to_buffer( d, "Illegal name, try another.\n\rName: ", 0 );
+        /* load_char_obj can load "default" char, so we should free
+           it if so */
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
         return FALSE;
     }
     
