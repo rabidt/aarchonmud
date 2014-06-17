@@ -865,9 +865,6 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
     AFFECT_DATA *paf;
     CHAR_DATA *mob;
 
-    /* open file */
-    fclose(fpReserve);
-
     /* start printing out mobile data */
     fp = fopen("../mob.txt","w");
 
@@ -1333,8 +1330,6 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
 
     /* close file */
     fclose(fp);
-
-    fpReserve = fopen( NULL_FILE, "r" );
 
     send_to_char( "Done writing files...\n\r", ch );
 }

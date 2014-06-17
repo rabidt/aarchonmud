@@ -341,8 +341,6 @@ void save_portal_list()
     PORTAL_DATA *portal;
     FILE *fp;
 
-    fclose( fpReserve );
-
     if ( (fp = fopen(PORTAL_FILE, "w")) == NULL )
     {
 	bugf( "save_portal_list: fopen failed" );
@@ -356,8 +354,6 @@ void save_portal_list()
 	fprintf( fp, "END\n\r" );
 	fclose( fp );
     }
-
-    fpReserve = fopen( NULL_FILE, "r" );
 }
 
 void load_portal_list()
@@ -371,7 +367,6 @@ void load_portal_list()
 	return;
     }
 
-    fclose(fpReserve);
     if ( (fp = fopen(PORTAL_FILE, "r")) == NULL )
     {
 	bugf( "load_portal_list: fopen failed" );
@@ -399,8 +394,6 @@ void load_portal_list()
 	
 	fclose( fp );
     }
-
-    fpReserve = fopen( NULL_FILE, "r" );
 }
 
 ROOM_INDEX_DATA* get_portal_room( char *name )
