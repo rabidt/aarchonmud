@@ -4571,6 +4571,17 @@ static int CH_get_questpoints( lua_State *LS)
 }
 HELPTOPIC CH_get_questpoints_help={};
 
+static int CH_get_achpoints( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get achpoints on NPCs.");
+
+    lua_pushinteger( LS,
+            ud_ch->pcdata->achpoints);
+    return 1;
+}
+HELPTOPIC CH_get_achpoints_help={};
+
 static int CH_get_bank( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4876,6 +4887,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(pkills, 0),
     CHGET(pkdeaths, 0),
     CHGET(questpoints, 0),
+    CHGET(achpoints, 0),
     CHGET(bank, 0),
     CHGET(mobkills, 0),
     CHGET(mobdeaths, 0),
