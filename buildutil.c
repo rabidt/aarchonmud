@@ -227,7 +227,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((mob = get_mob_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s{x\n\r", i, mob->short_descr);
+                sprintf(buf,"{C%8d{x %s | %s{x\n\r", 
+                        i, 
+                        format_color_string(mob->short_descr, 30 ),
+                        format_color_string(first_line( mob->notes ), 30 ) );
                 add_buf(buffer,buf);
             }
 

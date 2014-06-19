@@ -5440,6 +5440,9 @@ MEDIT( medit_show )
     
     sprintf( buf, "Description:\n\r%s", pMob->description );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Notes:\n\r%s", pMob->notes );
+    send_to_char( buf, ch );
     
     if ( pMob->pShop )
     {
@@ -6004,8 +6007,21 @@ MEDIT( medit_desc )
     return FALSE;
 }
 
+MEDIT( medit_notes)
+{
+    MOB_INDEX_DATA *pMob;
 
+    EDIT_MOB(ch, pMob);
 
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pMob->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes   - line edit\n\r", ch );
+    return FALSE;
+}
 
 MEDIT( medit_long )
 {

@@ -383,6 +383,7 @@ void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
     rfprintf( fp, "SDESC %s~\n", pMobIndex->short_descr );
     rfprintf( fp, "LDESC %s~\n", fix_string(pMobIndex->long_descr) );
     rfprintf( fp, "DESC %s~\n",  fix_string(pMobIndex->description) );
+    rfprintf( fp, "NOTES %s~\n", fix_string(pMobIndex->notes) );
     rfprintf( fp, "RACE %s~\n",  race_table[race].name );
     fprintf( fp, "SEX %s\n",    sex_table[pMobIndex->sex].name );
     

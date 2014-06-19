@@ -271,6 +271,7 @@ DECLARE_OLC_FUN( medit_short		);
 DECLARE_OLC_FUN( medit_long		);
 DECLARE_OLC_FUN( medit_shop		);
 DECLARE_OLC_FUN( medit_desc		);
+DECLARE_OLC_FUN( medit_notes    );
 DECLARE_OLC_FUN( medit_level		);
 DECLARE_OLC_FUN( medit_align		);
 DECLARE_OLC_FUN( medit_spec		);
