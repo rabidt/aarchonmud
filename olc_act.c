@@ -1893,6 +1893,9 @@ REDIT( redit_show )
     }
     
     send_to_char( buf1, ch );
+    
+    sprintf( buf, "Notes:\n\r%s", pRoom->notes );
+    send_to_char( buf, ch );
 
     if ( pRoom->rprogs )
     {
@@ -2690,7 +2693,21 @@ REDIT( redit_name )
     return TRUE;
 }
 
+REDIT( redit_notes )
+{
+    ROOM_INDEX_DATA *pRoom;
 
+    EDIT_ROOM(ch, pRoom);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pRoom->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes\n\r", ch );
+    return FALSE;
+}
 
 REDIT( redit_desc )
 {

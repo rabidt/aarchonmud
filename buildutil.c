@@ -249,7 +249,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((room = get_room_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s{x\n\r", i, room->name);
+                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                        i, 
+                        format_color_string(room->name, 30 ),
+                        format_color_string(first_line( room->notes ), 30 ) );
                 add_buf(buffer,buf);
             }
 

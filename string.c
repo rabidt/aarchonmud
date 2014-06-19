@@ -913,11 +913,6 @@ char *format_color_string( const char *argument, int width )
         return truncate_color_string( argument, width );
     else if ( lencolor == width ) /* just in case */
         return argument;
-    else if ( lencolor == 0 )
-    {
-        sprintf( rtn, "%.*s", width, " " );
-        return rtn;
-    }
 
     int i=0;
     int len=0;
