@@ -198,6 +198,7 @@ void free_room_index( ROOM_INDEX_DATA *pRoom )
     free_string( pRoom->name );
     free_string( pRoom->description );
     free_string( pRoom->owner );
+    free_string( pRoom->notes );
 
     for ( door = 0; door < MAX_DIR; door++ )
     {
