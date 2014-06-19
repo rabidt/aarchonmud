@@ -847,6 +847,9 @@ AEDIT( aedit_show )
     
     sprintf( buf, "Flags:      [%s]\n\r", flag_string( area_flags, pArea->area_flags ) );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Notes:\n\r%s", pArea->notes );
+    send_to_char( buf, ch );
     
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
 	if ( pArea->clones[i] > 0 )
@@ -1346,6 +1349,22 @@ AEDIT( aedit_security )
     
     send_to_char( "Security set.\n\r", ch );
     return TRUE;
+}
+
+AEDIT( aedit_notes)
+{
+    AREA_DATA *pArea;
+
+    EDIT_AREA(ch, pArea);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pArea->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes   - line edit\n\r", ch );
+    return FALSE;
 }
 
 AEDIT( aedit_builder )
@@ -1874,6 +1893,9 @@ REDIT( redit_show )
     }
     
     send_to_char( buf1, ch );
+    
+    sprintf( buf, "Notes:\n\r%s", pRoom->notes );
+    send_to_char( buf, ch );
 
     if ( pRoom->rprogs )
     {
@@ -2671,7 +2693,21 @@ REDIT( redit_name )
     return TRUE;
 }
 
+REDIT( redit_notes )
+{
+    ROOM_INDEX_DATA *pRoom;
 
+    EDIT_ROOM(ch, pRoom);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pRoom->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes\n\r", ch );
+    return FALSE;
+}
 
 REDIT( redit_desc )
 {
@@ -3942,6 +3978,9 @@ OEDIT( oedit_show )
     sprintf( buf, "Short desc:  %s\n\rLong desc:\n\r     %s\n\r",
         pObj->short_descr, pObj->description );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Notes:\n\r%s", pObj->notes );
+    send_to_char( buf, ch );
     
     for ( cnt = 0, paf = pObj->affected; paf; paf = paf->next )
     {
@@ -4318,7 +4357,21 @@ OEDIT( oedit_long )
     return TRUE;
 }
 
+OEDIT( oedit_notes)
+{
+    OBJ_INDEX_DATA *pObj;
 
+    EDIT_OBJ(ch, pObj);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pObj->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes   - line edit\n\r", ch );
+    return FALSE;
+}
 
 bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, char *argument, int value )
 {
@@ -5440,6 +5493,9 @@ MEDIT( medit_show )
     
     sprintf( buf, "Description:\n\r%s", pMob->description );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Notes:\n\r%s", pMob->notes );
+    send_to_char( buf, ch );
     
     if ( pMob->pShop )
     {
@@ -6004,8 +6060,21 @@ MEDIT( medit_desc )
     return FALSE;
 }
 
+MEDIT( medit_notes)
+{
+    MOB_INDEX_DATA *pMob;
 
+    EDIT_MOB(ch, pMob);
 
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pMob->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes   - line edit\n\r", ch );
+    return FALSE;
+}
 
 MEDIT( medit_long )
 {
