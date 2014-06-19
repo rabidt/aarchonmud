@@ -253,6 +253,7 @@ const struct olc_cmd_type aedit_table[] =
    /*  {   command      function   }, */
    {   "age",      aedit_age          },
    {   "builder",  aedit_builder      }, /* s removed -- Hugin */
+   {   "notes",    aedit_notes        },
    {   "commands", show_commands      },
    {   "create",   aedit_create       },
    {   "scrap",    aedit_scrap        },
@@ -293,6 +294,7 @@ const struct olc_cmd_type redit_table[] =
    {   "commands",  show_commands     },
    {   "create",    redit_create      },
    {   "desc",      redit_desc        },
+   {   "notes",     redit_notes       },
    {   "ed",        redit_ed          },
    {   "format",    redit_format      },
    {   "name",      redit_name        },
@@ -350,6 +352,7 @@ const struct olc_cmd_type oedit_table[] =
    {   "long",       oedit_long      },
    {   "name",       oedit_name      },
    {   "short",      oedit_short     },
+   {   "notes",      oedit_notes     },
    {   "show",       oedit_show      },
    {   "v0",         oedit_value0    },
    {   "v1",         oedit_value1    },
@@ -386,6 +389,7 @@ const struct olc_cmd_type medit_table[] =
    {   "commands",     show_commands   },
    {   "create",       medit_create    },
    {   "desc",         medit_desc      },
+   {   "notes",        medit_notes     },
    {   "level",        medit_level     },
    {   "long",         medit_long      },
    {   "name",         medit_name      },

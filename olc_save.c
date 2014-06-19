@@ -383,6 +383,7 @@ void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
     rfprintf( fp, "SDESC %s~\n", pMobIndex->short_descr );
     rfprintf( fp, "LDESC %s~\n", fix_string(pMobIndex->long_descr) );
     rfprintf( fp, "DESC %s~\n",  fix_string(pMobIndex->description) );
+    rfprintf( fp, "NOTES %s~\n", fix_string(pMobIndex->notes) );
     rfprintf( fp, "RACE %s~\n",  race_table[race].name );
     fprintf( fp, "SEX %s\n",    sex_table[pMobIndex->sex].name );
     
@@ -662,6 +663,8 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
         }
         reverse_oprog_order(pObjIndex); 
     }
+
+    rfprintf( fp, "N %s~\n", fix_string( pObjIndex->notes ) );
     
     return;
 }
@@ -813,6 +816,8 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                     }
                     reverse_rprog_order(pRoomIndex);
                 }
+
+                rfprintf ( fp, "N %s~\n", pRoomIndex->notes );
                 
                 fprintf( fp, "S\n" );
             }
@@ -1157,6 +1162,7 @@ void save_area( AREA_DATA *pArea )
     fprintf( fp, "\n#AREADATA\n" );
     rfprintf( fp, "Name %s~\n",        pArea->name );
     rfprintf( fp, "Builders %s~\n",    fix_string( pArea->builders ) );
+    rfprintf( fp, "Notes %s~\n",       fix_string( pArea->notes ) );
     fprintf( fp, "VNUMs %d %d\n",     pArea->min_vnum, pArea->max_vnum );
     rfprintf( fp, "Credits %s~\n",     pArea->credits );
   /* Added minlevel, maxlevel, and miniquests for new areas command

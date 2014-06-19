@@ -456,6 +456,10 @@ void load_mobbles( FILE *fp )
                 pMobIndex->description = fread_string( fp );
                 pMobIndex->description[0] = UPPER(pMobIndex->description[0]);
             }
+            else if KEY("NOTES")
+            {
+                pMobIndex->notes = fread_string( fp );
+            }
             else if KEY("RACE")
             {
                 int race = pMobIndex->race = race_lookup(fread_string( fp ));
@@ -547,6 +551,9 @@ void load_mobbles( FILE *fp )
         } // end of single mob 
 
         SET_BIT( pMobIndex->act, ACT_IS_NPC );
+
+        if ( !pMobIndex->notes )
+            pMobIndex->notes=str_dup("");
 
         index_mobile ( pMobIndex );
     }
@@ -809,34 +816,41 @@ void load_objects( FILE *fp )
         /* load obj progs if any */
         while (TRUE)
         {
-        letter = fread_letter( fp );
-        if ( letter == 'O' ) /* we have oprogs */
-        {
-            PROG_LIST *pOprog;
-            char *word;
-            int trigger = 0;
-
-            pOprog              = alloc_OTRIG();
-            word                = fread_word( fp );
-            if ( (trigger = flag_lookup( word, oprog_flags )) == NO_FLAG )
+            letter = fread_letter( fp );
+            if ( letter == 'O' ) /* we have oprogs */
             {
-                bugf("load_obj.O: invalid trigger '%s' for object %d.", word, vnum);
-                exit(1);
+                PROG_LIST *pOprog;
+                char *word;
+                int trigger = 0;
+
+                pOprog              = alloc_OTRIG();
+                word                = fread_word( fp );
+                if ( (trigger = flag_lookup( word, oprog_flags )) == NO_FLAG )
+                {
+                    bugf("load_obj.O: invalid trigger '%s' for object %d.", word, vnum);
+                    exit(1);
+                }
+                SET_BIT( pObjIndex->oprog_flags, trigger );
+                pOprog->trig_type   = trigger;
+                pOprog->vnum        = fread_number( fp );
+                pOprog->trig_phrase = fread_string( fp );
+                pOprog->next        = pObjIndex->oprogs;
+                pObjIndex->oprogs   = pOprog;
             }
-            SET_BIT( pObjIndex->oprog_flags, trigger );
-            pOprog->trig_type   = trigger;
-            pOprog->vnum        = fread_number( fp );
-            pOprog->trig_phrase = fread_string( fp );
-            pOprog->next        = pObjIndex->oprogs;
-            pObjIndex->oprogs   = pOprog;
-        }
-        else
-        {
-            ungetc( letter, fp );
-            break;
-        }
+            else if ( letter == 'N' )
+            {
+                pObjIndex->notes = fread_string( fp );
+            }
+            else
+            {
+                ungetc( letter, fp );
+                break;
+            }
         }
         
+        if ( !pObjIndex->notes )
+            pObjIndex->notes = str_dup( "" );
+
         iHash                   = vnum % MAX_KEY_HASH;
         pObjIndex->next         = obj_index_hash[iHash];
         obj_index_hash[iHash]   = pObjIndex;

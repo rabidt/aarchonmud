@@ -2395,6 +2395,7 @@ struct  mob_index_data
     char*       short_descr;
     char*       long_descr;
     char*       description;
+    char*       notes;
     tflag       act;
     tflag       affect_field;
     sh_int      alignment;
@@ -2820,6 +2821,7 @@ struct  obj_index_data
 	char *      name;
 	char *      short_descr;
 	char *      description;
+    char *      notes;
 	int         vnum;
 	sh_int      reset_num;
 	char *      material;
@@ -2946,6 +2948,7 @@ struct  area_data
 	char *      file_name;
 	char *      name;
 	char *      credits;
+    char *      notes;
 	sh_int      age;
 	sh_int      nplayer;
 	sh_int      reset_time;
@@ -2986,6 +2989,7 @@ struct  room_index_data
     RESET_DATA *   reset_first;    /* OLC */
     char *      name;
     char *      description;
+    char *      notes;
     char *      owner;
     int      vnum;
     tflag       room_flags;
