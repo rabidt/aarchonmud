@@ -171,6 +171,7 @@ DECLARE_OLC_FUN( aedit_reset		);
 DECLARE_OLC_FUN( aedit_purge		);
 DECLARE_OLC_FUN( aedit_security		);
 DECLARE_OLC_FUN( aedit_builder		);
+DECLARE_OLC_FUN( aedit_notes        );
 DECLARE_OLC_FUN( aedit_vnum		);
 DECLARE_OLC_FUN( aedit_lvnum		);
 DECLARE_OLC_FUN( aedit_uvnum		);
