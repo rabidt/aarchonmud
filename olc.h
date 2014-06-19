@@ -234,6 +234,7 @@ DECLARE_OLC_FUN( oedit_delete   );
 DECLARE_OLC_FUN( oedit_name		);
 DECLARE_OLC_FUN( oedit_short		);
 DECLARE_OLC_FUN( oedit_long		);
+DECLARE_OLC_FUN( oedit_notes    );
 DECLARE_OLC_FUN( oedit_addaffect	);
 DECLARE_OLC_FUN( oedit_addapply		);
 DECLARE_OLC_FUN( oedit_delaffect	);
