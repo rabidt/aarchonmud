@@ -847,6 +847,9 @@ AEDIT( aedit_show )
     
     sprintf( buf, "Flags:      [%s]\n\r", flag_string( area_flags, pArea->area_flags ) );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Notes:\n\r%s", pArea->notes );
+    send_to_char( buf, ch );
     
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
 	if ( pArea->clones[i] > 0 )
@@ -1346,6 +1349,22 @@ AEDIT( aedit_security )
     
     send_to_char( "Security set.\n\r", ch );
     return TRUE;
+}
+
+AEDIT( aedit_notes)
+{
+    AREA_DATA *pArea;
+
+    EDIT_AREA(ch, pArea);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pArea->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes   - line edit\n\r", ch );
+    return FALSE;
 }
 
 AEDIT( aedit_builder )

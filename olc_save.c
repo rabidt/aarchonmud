@@ -1158,6 +1158,7 @@ void save_area( AREA_DATA *pArea )
     fprintf( fp, "\n#AREADATA\n" );
     rfprintf( fp, "Name %s~\n",        pArea->name );
     rfprintf( fp, "Builders %s~\n",    fix_string( pArea->builders ) );
+    rfprintf( fp, "Notes %s~\n",       fix_string( pArea->notes ) );
     fprintf( fp, "VNUMs %d %d\n",     pArea->min_vnum, pArea->max_vnum );
     rfprintf( fp, "Credits %s~\n",     pArea->credits );
   /* Added minlevel, maxlevel, and miniquests for new areas command
