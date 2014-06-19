@@ -456,6 +456,10 @@ void load_mobbles( FILE *fp )
                 pMobIndex->description = fread_string( fp );
                 pMobIndex->description[0] = UPPER(pMobIndex->description[0]);
             }
+            else if KEY("NOTES")
+            {
+                pMobIndex->notes = fread_string( fp );
+            }
             else if KEY("RACE")
             {
                 int race = pMobIndex->race = race_lookup(fread_string( fp ));
@@ -547,6 +551,9 @@ void load_mobbles( FILE *fp )
         } // end of single mob 
 
         SET_BIT( pMobIndex->act, ACT_IS_NPC );
+
+        if ( !pMobIndex->notes )
+            pMobIndex->notes=str_dup("");
 
         index_mobile ( pMobIndex );
     }
