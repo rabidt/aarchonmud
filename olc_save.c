@@ -663,6 +663,8 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
         }
         reverse_oprog_order(pObjIndex); 
     }
+
+    rfprintf( fp, "N %s~\n", fix_string( pObjIndex->notes ) );
     
     return;
 }

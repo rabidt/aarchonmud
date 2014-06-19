@@ -351,6 +351,7 @@ const struct olc_cmd_type oedit_table[] =
    {   "long",       oedit_long      },
    {   "name",       oedit_name      },
    {   "short",      oedit_short     },
+   {   "notes",      oedit_notes     },
    {   "show",       oedit_show      },
    {   "v0",         oedit_value0    },
    {   "v1",         oedit_value1    },
