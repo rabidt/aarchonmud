@@ -2821,6 +2821,7 @@ struct  obj_index_data
 	char *      name;
 	char *      short_descr;
 	char *      description;
+    char *      notes;
 	int         vnum;
 	sh_int      reset_num;
 	char *      material;

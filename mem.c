@@ -268,6 +268,7 @@ OBJ_INDEX_DATA *new_obj_index( void )
     pObj->name          =   str_dup( "no name" );
     pObj->short_descr   =   str_dup( "(no short description)" );
     pObj->description   =   str_dup( "(no description)" );
+    pObj->notes         =   str_dup( "" );
     pObj->vnum          =   0;
     pObj->item_type     =   ITEM_TRASH;
     flag_clear( pObj->extra_flags );
@@ -299,6 +300,7 @@ void free_obj_index( OBJ_INDEX_DATA *pObj )
     free_string( pObj->name );
     free_string( pObj->short_descr );
     free_string( pObj->description );
+    free_string( pObj->notes );
 
     for ( pAf = pObj->affected; pAf; pAf = pAf->next )
     {

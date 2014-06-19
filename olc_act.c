@@ -3961,6 +3961,9 @@ OEDIT( oedit_show )
     sprintf( buf, "Short desc:  %s\n\rLong desc:\n\r     %s\n\r",
         pObj->short_descr, pObj->description );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Notes:\n\r%s", pObj->notes );
+    send_to_char( buf, ch );
     
     for ( cnt = 0, paf = pObj->affected; paf; paf = paf->next )
     {
@@ -4337,7 +4340,21 @@ OEDIT( oedit_long )
     return TRUE;
 }
 
+OEDIT( oedit_notes)
+{
+    OBJ_INDEX_DATA *pObj;
 
+    EDIT_OBJ(ch, pObj);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pObj->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes   - line edit\n\r", ch );
+    return FALSE;
+}
 
 bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, char *argument, int value )
 {
