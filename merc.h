@@ -2989,6 +2989,7 @@ struct  room_index_data
     RESET_DATA *   reset_first;    /* OLC */
     char *      name;
     char *      description;
+    char *      notes;
     char *      owner;
     int      vnum;
     tflag       room_flags;

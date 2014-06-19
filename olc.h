@@ -195,6 +195,7 @@ DECLARE_OLC_FUN( redit_create		);
 DECLARE_OLC_FUN( redit_delete       );
 DECLARE_OLC_FUN( redit_name		);
 DECLARE_OLC_FUN( redit_desc		);
+DECLARE_OLC_FUN( redit_notes    );
 DECLARE_OLC_FUN( redit_ed		);
 DECLARE_OLC_FUN( redit_format		);
 DECLARE_OLC_FUN( redit_north		);

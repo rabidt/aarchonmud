@@ -816,6 +816,8 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                     }
                     reverse_rprog_order(pRoomIndex);
                 }
+
+                rfprintf ( fp, "N %s~\n", pRoomIndex->notes );
                 
                 fprintf( fp, "S\n" );
             }
