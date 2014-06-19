@@ -2395,6 +2395,7 @@ struct  mob_index_data
     char*       short_descr;
     char*       long_descr;
     char*       description;
+    char*       notes;
     tflag       act;
     tflag       affect_field;
     sh_int      alignment;

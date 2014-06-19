@@ -386,6 +386,7 @@ const struct olc_cmd_type medit_table[] =
    {   "commands",     show_commands   },
    {   "create",       medit_create    },
    {   "desc",         medit_desc      },
+   {   "notes",        medit_notes     },
    {   "level",        medit_level     },
    {   "long",         medit_long      },
    {   "name",         medit_name      },
