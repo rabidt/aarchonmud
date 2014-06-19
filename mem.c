@@ -88,6 +88,7 @@ AREA_DATA *new_area( void )
     /* SET_BIT( pArea->area_flags, AREA_ADDED ); */
     pArea->security         =   1;
     pArea->builders         =   str_dup( "None" );
+    pArea->notes            =   str_dup( "" );
     pArea->min_vnum         =   0;
     pArea->max_vnum         =   0;
     pArea->age              =   0;
@@ -113,6 +114,7 @@ void free_area( AREA_DATA *pArea )
     free_string( pArea->file_name );
     free_string( pArea->builders );
     free_string( pArea->credits );
+    free_string( pArea->notes );
 
     pArea->next         =   NULL;
     free_AREA( pArea );
@@ -330,6 +332,7 @@ MOB_INDEX_DATA *new_mob_index( void )
     pMob->short_descr   =   str_dup( "(no short description)" );
     pMob->long_descr    =   str_dup( "(no long description)" );
     pMob->description   =   &str_empty[0];
+    pMob->notes         =   str_dup( "" );
     pMob->vnum          =   0;
     pMob->count         =   0;
     pMob->killed        =   0;
@@ -368,6 +371,7 @@ void free_mob_index( MOB_INDEX_DATA *pMob )
     free_string( pMob->short_descr );
     free_string( pMob->long_descr );
     free_string( pMob->description );
+    free_string( pMob->notes );
     free_mprog( pMob->mprogs );
 
     if ( pMob->pShop )

@@ -253,6 +253,7 @@ const struct olc_cmd_type aedit_table[] =
    /*  {   command      function   }, */
    {   "age",      aedit_age          },
    {   "builder",  aedit_builder      }, /* s removed -- Hugin */
+   {   "notes",    aedit_notes        },
    {   "commands", show_commands      },
    {   "create",   aedit_create       },
    {   "scrap",    aedit_scrap        },

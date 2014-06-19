@@ -1030,6 +1030,7 @@ void new_load_area( FILE *fp )
     pArea->vnum         = top_area;
     pArea->name         = str_dup( "New Area" );
     pArea->builders     = str_dup( "" );
+    pArea->notes        = str_dup( "" );
     pArea->security     = 9;                    /* 9 -- Hugin */
     pArea->min_vnum        = 0;
     pArea->save         = TRUE;
@@ -1077,9 +1078,16 @@ void new_load_area( FILE *fp )
         case 'N':
             SKEY( "Name", pArea->name );
             if ( !str_cmp(word, "NoQuest"))
+            {
                 SET_BIT(pArea->area_flags,AREA_NOQUEST);
+                break;
+            }
             if ( !str_cmp(word, "NoHide"))
+            {
                 SET_BIT(pArea->area_flags,AREA_NOHIDE);
+                break;
+            }
+            SKEY( "Notes", pArea->notes );
             break;
         case 'R':
             if ( !str_cmp(word, "Remort"))

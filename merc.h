@@ -2947,6 +2947,7 @@ struct  area_data
 	char *      file_name;
 	char *      name;
 	char *      credits;
+    char *      notes;
 	sh_int      age;
 	sh_int      nplayer;
 	sh_int      reset_time;
