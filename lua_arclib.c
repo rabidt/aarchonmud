@@ -540,6 +540,94 @@ static int glob_mudconfig (lua_State *LS)
     return 0;
 }
 
+static int glob_getluatype (lua_State *LS)
+{
+    if ( lua_isnone( LS, 1 ) )
+    {
+        /* Send a list of types */
+        lua_newtable( LS );
+        int i;
+        int index=1;
+        for ( i=0 ; type_list[i] ; i++ )
+        {
+            lua_pushstring( LS, type_list[i]->type_name );
+            lua_rawseti( LS, -2, index++ );
+        }
+        return 1;
+    }
+
+    const char *arg1=luaL_checkstring( LS, 1 );
+    int i;
+
+    LUA_OBJ_TYPE *tp=NULL;
+    for ( i=0 ; type_list[i] ; i++ )
+    {
+        if (!str_cmp( arg1, type_list[i]->type_name ) )
+        {
+            tp=type_list[i];
+        }
+    } 
+
+    if (!tp)
+        return 0;
+
+    lua_newtable( LS ); /* main table */
+
+    int index=1;
+    lua_newtable( LS ); /* get table */
+    for ( i=0 ; tp->get_table[i].field ; i++ )
+    {
+        if ( tp->get_table[i].status == STS_ACTIVE )
+        {
+            lua_newtable( LS ); /* get entry */
+            lua_pushstring( LS, tp->get_table[i].field );
+            lua_setfield( LS, -2, "field" );
+            lua_pushinteger( LS, tp->get_table[i].security );
+            lua_setfield( LS, -2, "security" );
+            
+            lua_rawseti( LS, -2, index++ );
+        }
+    }
+    lua_setfield( LS, -2, "get" );
+
+
+    index=1;
+    lua_newtable( LS ); /* set table */
+    for ( i=0 ; tp->set_table[i].field ; i++ )
+    {
+        if ( tp->set_table[i].status == STS_ACTIVE )
+        {
+            lua_newtable( LS ); /* get entry */
+            lua_pushstring( LS, tp->set_table[i].field );
+            lua_setfield( LS, -2, "field" );
+            lua_pushinteger( LS, tp->set_table[i].security );
+            lua_setfield( LS, -2, "security" );
+
+            lua_rawseti( LS, -2, index++ );
+        }
+    }
+    lua_setfield( LS, -2, "set" );
+
+    index=1;
+    lua_newtable( LS ); /* method table */
+    for ( i=0 ; tp->method_table[i].field ; i++ )
+    {
+        if ( tp->method_table[i].status == STS_ACTIVE )
+        {
+            lua_newtable( LS ); /* get entry */
+            lua_pushstring( LS, tp->method_table[i].field );
+            lua_setfield( LS, -2, "field" );
+            lua_pushinteger( LS, tp->method_table[i].security );
+            lua_setfield( LS, -2, "security" );
+            
+            lua_rawseti( LS, -2, index++ );
+        }
+    }
+    lua_setfield( LS, -2, "method" );
+
+    return 1;
+}
+
 static int glob_clearloopcount (lua_State *LS)
 {
     g_LoopCheckCounter=0;
@@ -1029,6 +1117,7 @@ GLOB_TYPE glob_table[] =
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
     GFUN(mudconfig,     9),
+    GFUN(getluatype,    SEC_NOSCRIPT),
 #ifdef TESTER
     GFUN(do_luaquery,   9),
 #else
@@ -6952,149 +7041,6 @@ static const LUA_PROP_TYPE DESCRIPTOR_method_table [] =
 };
 /* end DESCRIPTOR section */
 
-/* help section */
-
-/* add ptable output to existing buffer */
-static void print_ptable( BUFFER *buffer, const struct lua_prop_type *ptable, const char *type_name )
-{
-    char buf[MSL];
-    
-    int j;
-    #define CDEF 'w'
-    #define CALT 'D'
-    bool col=FALSE;
-    add_buf( buffer, "\n\rSec Name\n\r");
-    for ( j=0 ; ptable[j].field ; j++ )
-    {
-        if ( ptable[j].status == STS_DEPRECATED )
-            continue;
-            
-        sprintf( buf, "{%c[%d] %-16s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>", 
-                col ? CALT : CDEF,
-                ptable[j].security,
-                ptable[j].field,
-                type_name,
-                ptable[j].field );
-        col=!col;
-        strcat( buf, "\n\r{x");
-        add_buf( buffer, buf );
-    }
-    
-    return;
-}
-    
-static void print_help_usage( CHAR_DATA *ch )
-{
-    LUA_OBJ_TYPE *ot;
-    int i;
-
-    ptc( ch, "\n\rSECTIONS: \n\r\n\r" );
-
-    ptc( ch, "global\n\r\n\r" );
-
-    for ( i=0 ; type_list[i] ; i++ )
-    {
-        ot=type_list[i];
-        ptc( ch, "%s\n\r", ot->type_name);
-    }
-    
-    ptc( ch,
-    "\n\rSyntax: \n\r"
-    "    luahelp <section>                - List all entries in section.\n\r"
-    "    luahelp <section> <get|set|meth> - List only get/set/method entries respectively.\n\r"
-    "    luahelp <section> <topic>        - Print full topic.\n\r"
-    "\n\r"
-    "Examples: \n\r"
-    "    luahelp ch\n\r"
-    "    luahelp global\n\r"
-    "    luahelp other flags\n\r"
-    "    luahelp obj meth\n\r"
-    "    luahelp obj name\n\r"
-    "    luahelp global sendtochar\n\r");
-}
-
-static void help_one_arg( CHAR_DATA *ch, const char *arg1 )
-{
-    LUA_OBJ_TYPE *ot;
-    int i;
-
-    if ( !str_prefix("glob", arg1) )
-    {
-        ptc( ch, "\n\rGLOBAL functions\n\r");
-
-        ptc( ch, "\n\rSec Name\n\r");
-        bool col=FALSE;
-        for ( i=0 ; glob_table[i].name ; i++ )
-        {
-            if (glob_table[i].status == STS_DEPRECATED || glob_table[i].security == SEC_NOSCRIPT)
-                continue;
-            
-            
-            if (glob_table[i].lib)
-            {
-                char buf[MSL];
-                sprintf(buf, "{%c[%d] %s.%s", 
-                        col ? CALT : CDEF,
-                        glob_table[i].security, glob_table[i].lib, glob_table[i].name);
-                col=!col;
-                ptc( ch, "%-40s - ", buf);
-                ptc( ch, "\t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:globals:%s:%s\">Reference\t</a>",
-                        glob_table[i].lib,
-                        glob_table[i].name);
-                ptc( ch, "\n\r{x");
-            }
-            else
-            {
-                ptc( ch, "{%c[%d] %-34s - ", 
-                    col ? CALT : CDEF,
-                    glob_table[i].security, glob_table[i].name);
-                col=!col;
-                ptc( ch, "\t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:globals:%s\">Reference\t</a>",
-                        glob_table[i].name);
-                ptc( ch, "\n\r{x");
-            }
-
-        }
-        return;
-    } 
-
-    for ( i=0 ; type_list[i] ; i++ )
-    {
-        ot=type_list[i];
-        if (!str_cmp( ot->type_name, arg1 ) )
-        {
-            int j;
-            BUFFER *buffer=new_buf();
-            add_buf(buffer, "\n\rGET fields\n\r");
-            print_ptable( buffer, ot->get_table, ot->type_name );
-            add_buf(buffer, "\n\rSET fields\n\r");
-            print_ptable( buffer, ot->set_table, ot->type_name );
-            add_buf(buffer, "\n\rMETHODS\n\r");
-            print_ptable( buffer, ot->method_table, ot->type_name );
-            
-            page_to_char(buf_string(buffer), ch);
-
-            return;
-        }
-    }
-
-    ptc( ch, "No help for %s.\n\r", arg1);
-    return;
-}
-
-void do_luahelp( CHAR_DATA *ch, const char *argument )
-{
-    if (argument[0]=='\0')
-    {
-        print_help_usage( ch );
-        return;
-    }
-
-    help_one_arg(ch, argument );
-
-}
-
-/* end help section */
 
 void type_init( lua_State *LS)
 {

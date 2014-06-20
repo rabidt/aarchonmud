@@ -1430,3 +1430,108 @@ function do_findreset( ch, argument )
     findreset_usage( ch )
 end
 -- end findreset section
+
+-- luahelp section
+local luatypes=getluatype() -- list of type names
+local function luahelp_usage( ch )
+    local out={}
+    table.insert( out, "SECTIONS: \n\r\n\r" )
+    table.insert( out, "global\n\r" )
+    for _,v in ipairs(luatypes) do
+        table.insert( out, v.."\n\r" )
+    end
+
+    table.insert( out, [[
+Syntax: 
+    luahelp <section>
+    luahelp <section> <get|set|meth>
+
+Examples:
+    luahelp ch
+    luahelp global
+    luahelp objproto meth
+]])
+
+    pagetochar( ch, table.concat(out) )
+end
+
+local rowtoggle
+local function nextrowcolor()
+    rowtoggle=not(rowtoggle)
+    return rowtoggle and 'w' or 'D'
+end
+
+function do_luahelp( ch, argument )
+    if argument=="" then
+        luahelp_usage( ch )
+        return
+    end
+
+    local args=arguments(argument)
+
+    if #args<1 then
+        luahelp_usage( ch )
+        return
+    end
+
+    if args[1] == "global" then
+        -- do stuff
+        return
+    else
+        local out={}
+        local t=getluatype(args[1])
+        if not(t) then
+            sendtochar( ch, "No such section: "..args[1].."\n\r")
+            return
+        end
+        
+        local subsect=args[2]
+
+        if not(subsect) or subsect=="get" then
+            table.insert( out, "\n\rGET properties\n\r")
+            for i,v in ipairs(t.get) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-16s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end            
+
+        if not(subsect) or subsect=="set" then
+            table.insert( out, "\n\rSET properties\n\r")
+            for i,v in ipairs(t.set) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-16s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end
+
+        if not(subsect) or subsect=="meth" then
+            table.insert( out, "\n\rMETHODS\n\r")
+            for i,v in ipairs(t.method) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-16s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end
+ 
+        pagetochar( ch, table.concat(out) )                
+    
+    end
+end
+
+-- end luahelp section
