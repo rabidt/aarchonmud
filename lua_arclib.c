@@ -108,6 +108,18 @@ typedef struct lua_prop_type
 #define ENDPTABLE {NULL, NULL, 0, 0}
 
 /* global section */
+#define SEC_NOSCRIPT -1
+typedef struct glob_type
+{
+    char *lib;
+    char *name;
+    int (*func)();
+    int security; /* if SEC_NOSCRIPT then not available in prog scripts */
+    int status;
+} GLOB_TYPE;
+
+struct glob_type glob_table[];
+
 static int utillib_func (lua_State *LS, const char *funcname)
 {
     int narg=lua_gettop(LS);
@@ -538,6 +550,36 @@ static int glob_mudconfig (lua_State *LS)
     luaL_error(LS, "No such mudconfig value: %s", arg1);
 
     return 0;
+}
+
+static int glob_getglobals (lua_State *LS)
+{
+    int i;
+    int index=1;
+    lua_newtable( LS );
+
+    for ( i=0 ; glob_table[i].name ; i++ )
+    {
+        if ( glob_table[i].status == STS_ACTIVE && glob_table[i].security != SEC_NOSCRIPT )
+        {
+            lua_newtable( LS );
+            
+            if (glob_table[i].lib)
+            {
+                lua_pushstring( LS, glob_table[i].lib );
+                lua_setfield( LS, -2, "lib" );
+            }
+
+            lua_pushstring( LS, glob_table[i].name );
+            lua_setfield( LS, -2, "name" );
+
+            lua_pushinteger( LS, glob_table[i].security );
+            lua_setfield( LS, -2, "security" );
+
+            lua_rawseti( LS, -2, index++ );
+        }
+    }
+    return 1;
 }
 
 static int glob_getluatype (lua_State *LS)
@@ -1069,16 +1111,6 @@ static int glob_arguments ( lua_State *LS)
         
 
 
-#define SEC_NOSCRIPT -1
-typedef struct glob_type
-{
-    char *lib;
-    char *name;
-    int (*func)();
-    int security; /* if SEC_NOSCRIPT then not available in prog scripts */ 
-    int status;
-} GLOB_TYPE;
-
 #define ENDGTABLE { NULL, NULL, 0, NULL, 0 }
 #define GFUN( fun, sec ) { NULL, #fun , glob_ ## fun , sec, STS_ACTIVE }
 #define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, STS_ACTIVE}
@@ -1118,6 +1150,7 @@ GLOB_TYPE glob_table[] =
     GFUN(clearloopcount,9),
     GFUN(mudconfig,     9),
     GFUN(getluatype,    SEC_NOSCRIPT),
+    GFUN(getglobals,    SEC_NOSCRIPT),
 #ifdef TESTER
     GFUN(do_luaquery,   9),
 #else
