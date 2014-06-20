@@ -1461,6 +1461,76 @@ local function nextrowcolor()
     return rowtoggle and 'w' or 'D'
 end
 
+local function luahelp_dump( ch, args )
+    if args[1]=="glob" or args[1]=="global" then
+        local out={}
+        local g=getglobals()
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Function^Security^\n\r")
+        for i,v in ipairs(g) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %d |\n\r",
+                        v.lib and (v.lib..":"..v.name) or v.name,
+                        v.lib and (v.lib.."."..v.name) or v.name,
+                        v.security)
+            )
+        end
+
+        table.insert( out, "</sortable>\n\r" )
+
+        pagetochar(ch, table.concat(out) )
+        return
+    else
+        local t=getluatype(args[1])
+        if not(t) then
+            sendtochar( ch, "No such type.\n\r")
+            return
+        end
+
+        local props={}
+        for k,v in pairs(t.get) do
+            props[v.field]=props[v.field] or {}
+            props[v.field].get=v.security
+        end
+        for k,v in pairs(t.set) do
+            props[v.field]=props[v.field] or {}
+            props[v.field].set=v.security
+        end
+        local out={}
+
+        table.insert( out, "Properties\n\r")
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Field^Get^Set^\n\r")
+        for k,v in pairs(props) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %s | %s |\n\r",
+                        k,
+                        k,
+                        v.get and v.get or "",
+                        v.set and v.set or "")
+            )
+        end
+
+        table.insert( out, "</sortable>\n\r")
+
+        table.insert( out, "Methods\n\r")
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Method^Security^\n\r")
+        for k,v in pairs(t.method) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %d |\n\r",
+                        v.field,
+                        v.field,
+                        v.security)
+            )
+        end
+        table.insert( out, "</sortable>\n\r")
+
+        pagetochar( ch, table.concat( out ) )
+
+    end
+end
+
 function do_luahelp( ch, argument )
     if argument=="" then
         luahelp_usage( ch )
@@ -1471,6 +1541,12 @@ function do_luahelp( ch, argument )
 
     if #args<1 then
         luahelp_usage( ch )
+        return
+    end
+
+    if args[1] == "dump" then
+        table.remove(args, 1 )
+        luahelp_dump( ch, args )
         return
     end
 
