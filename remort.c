@@ -648,6 +648,13 @@ void remort_update()
 		    extract_char_eq( d->character, &is_remort_obj, -1 );
                 }
                 quit_save_char_obj(d->character);
+                /* load_char_obj still loads "default" character
+                   even if player not found, so need to free it */
+                if (d->character)
+                {
+                    free_char(d->character);
+                    d->character=NULL;
+                }
                 free_descriptor(d);
             }
             
