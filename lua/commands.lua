@@ -1474,8 +1474,24 @@ function do_luahelp( ch, argument )
         return
     end
 
-    if args[1] == "global" then
-        -- do stuff
+    if args[1] == "global" or args[1] == "glob" then
+        local out={}
+        
+        table.insert(out, "GLOBAL functions\n\r" )
+        local g=getglobals()
+        for i,v in ipairs(g) do
+            table.insert( out, string.format(
+                    "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                    nextrowcolor(),
+                    v.security,
+                    v.lib and (v.lib.."."..v.name) or v.name,
+                    "global",
+                    v.lib and (v.lib..":"..v.name) or v.name)
+            )
+        end
+
+        pagetochar( ch, table.concat(out) ) 
+
         return
     else
         local out={}
@@ -1491,7 +1507,7 @@ function do_luahelp( ch, argument )
             table.insert( out, "\n\rGET properties\n\r")
             for i,v in ipairs(t.get) do
                 table.insert( out, string.format(
-                            "{%s[%d] %-16s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
                             v.security,
                             v.field,
@@ -1505,7 +1521,7 @@ function do_luahelp( ch, argument )
             table.insert( out, "\n\rSET properties\n\r")
             for i,v in ipairs(t.set) do
                 table.insert( out, string.format(
-                            "{%s[%d] %-16s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
                             v.security,
                             v.field,
@@ -1519,7 +1535,7 @@ function do_luahelp( ch, argument )
             table.insert( out, "\n\rMETHODS\n\r")
             for i,v in ipairs(t.method) do
                 table.insert( out, string.format(
-                            "{%s[%d] %-16s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
                             v.security,
                             v.field,
