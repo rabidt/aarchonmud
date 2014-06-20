@@ -2655,7 +2655,7 @@ HELPTOPIC CH_kill_help = {
 static int CH_assist (lua_State *LS)
 {
     if ( lua_isstring(LS, 2) )
-        do_mpassist( check_CH(LS, 1), check_fstring( LS, 2, MIL));
+        do_mpassist( check_CH(LS, 1), check_string( LS, 2, MIL));
     else
         mpassist( check_CH(LS, 1), 
                 check_CH(LS, 2) );
