@@ -5461,12 +5461,19 @@ void do_achievements( CHAR_DATA *ch, char *argument )
     {
     	d = new_descriptor();
     
-    	if (!load_char_obj(d, argument))
-    	{
-           send_to_char("Character not found.\n\r", ch);
-           free_descriptor(d);
-           return;
-    	}
+        if (!load_char_obj(d, argument))
+        {
+            send_to_char("Character not found.\n\r", ch);
+            /* load_char_obj still loads "default" character
+               even if player not found, so need to free it */
+            if (d->character)
+            {
+                free_char(d->character);
+                d->character=NULL;
+            }
+            free_descriptor(d);
+            return;
+        }
         victim = d->character;
     }
 
@@ -5512,6 +5519,9 @@ void do_achievements( CHAR_DATA *ch, char *argument )
 	add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
     page_to_char(buf_string(output),ch);
     free_buf(output);
+
+    free_char( d->character );
+    free_descriptor( d );
 	
 }
 

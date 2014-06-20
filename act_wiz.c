@@ -2627,6 +2627,13 @@ void do_pload( CHAR_DATA *ch, char *argument )
     if (!isChar) 
     {
         send_to_char("Load Who? Are you sure? I can't seem to find them.\n\r", ch);
+         /* load_char_obj still loads "default" character
+           even if player not found, so need to free it */
+        if (d.character)
+        {
+            free_char(d.character);
+            d.character=NULL;
+        }
         return;
     }
     
