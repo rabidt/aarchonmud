@@ -2635,7 +2635,7 @@ HELPTOPIC CH_zecho_help = {
 static int CH_kill (lua_State *LS)
 {
     if ( lua_isstring(LS, 2) )
-        do_mpkill( check_CH(LS, 1), check_fstring( LS, 2, MIL));
+        do_mpkill( check_CH(LS, 1), check_string( LS, 2, MIL));
     else
         mpkill( check_CH(LS, 1),
                 check_CH(LS, 2) );
@@ -2644,7 +2644,7 @@ static int CH_kill (lua_State *LS)
 }
 HELPTOPIC CH_kill_help = {
     .summary="Attack target if possible.",
-    .info="Arguments: target[string] (accepts format arguments)\n\r"
+    .info="Arguments: target[string]\n\r"
           "           target[CH]\n\r\n\r"
           "Return: none\n\r\n\r"
           "Example:\n\r"
