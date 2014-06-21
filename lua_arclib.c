@@ -8046,6 +8046,9 @@ static int DESCRIPTOR_get_character( lua_State *LS )
 {
     DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1 );
 
+    if (!ud_d->character)
+        return 0;
+
     if ( push_CH( LS,
                 ud_d->original ? ud_d->original : ud_d->character ) )
         return 1;
@@ -8495,6 +8498,11 @@ bool    is_ ## LTYPE ( lua_State *LS, int index )\
 \
 bool    push_ ## LTYPE ( lua_State *LS, CTYPE *ud )\
 {\
+    if (!ud)\
+    {\
+        bugf( "NULL ud passed to push_" #LTYPE );\
+        return FALSE;\
+    }\
     int ref=(( LTYPE ## _wrapper *)ud)->ref;\
     if (ref==REF_FREED)\
         return FALSE;\
