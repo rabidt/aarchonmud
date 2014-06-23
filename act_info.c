@@ -5442,7 +5442,7 @@ void do_achievements( CHAR_DATA *ch, char *argument )
     char buf2[MSL];
     int i;
     CHAR_DATA *victim;
-    DESCRIPTOR_DATA *d;
+    DESCRIPTOR_DATA *d=NULL;
     BUFFER *output;
     int col;
     int totalach = 0;
@@ -5520,9 +5520,12 @@ void do_achievements( CHAR_DATA *ch, char *argument )
     page_to_char(buf_string(output),ch);
     free_buf(output);
 
-    free_char( d->character );
-    free_descriptor( d );
-	
+    /* if not self, need to free stuff */
+    if ( d )
+    {
+        free_char( d->character );
+         free_descriptor( d );
+    }
 }
 
 void print_ach_rewards(CHAR_DATA *ch)
