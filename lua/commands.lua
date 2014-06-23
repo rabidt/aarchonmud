@@ -1430,3 +1430,80 @@ function do_findreset( ch, argument )
     findreset_usage( ch )
 end
 -- end findreset section
+
+-- diagnostic section
+local function CH_diag( ch, args )
+    local chs={}
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="CH" then
+            chs[v]=true
+        end
+    end
+
+    for k,v in pairs(reg) do
+        if tostring(v)=="DESCRIPTOR" then
+            if v.character then
+                chs[v.character]=nil
+            end
+        end
+    end
+
+    for k,v in pairs(getcharlist()) do
+        chs[v]=nil
+    end
+
+    sendtochar( ch, "Leaked CHAR_DATAs:\n\r")
+    local cnt=0
+    for k,v in pairs(chs) do
+        sendtochar( ch, k.name.."\n\r")
+        cnt=cnt+1
+    end
+
+    sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
+
+end
+
+local function DESCRIPTOR_diag( ch, args )
+    local ds={}
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="DESCRIPTOR" then
+            ds[v]=true
+        end
+    end
+
+    for k,v in pairs(getdescriptorlist()) do
+        ds[v]=nil
+    end
+
+    sendtochar( ch, "Leaked DESCRIPTORs:\n\r")
+    local cnt=0
+    for k,v in pairs(ds) do
+        if v.character then
+            sendtochar( ch, v.character.name.."\n\r")
+        else
+            sendtochar( ch, "NULL character\n\r")
+        end
+        cnt=cnt+1
+    end
+
+    sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
+end
+
+local function diagnostic_usage( ch )
+    pagetochar( ch, [[
+diagnostic ch   -- Run CHAR_DATA diagnostic
+diagnostic desc -- Run DESCRIPTOR_DATA diagnostic
+]])
+end
+function do_diagnostic( ch, argument )
+    if argument=="ch" then
+        CH_diag( ch )
+    elseif argument=="desc" then
+        DESCRIPTOR_diag( ch )
+    else
+        diagnostic_usage( ch )
+    end
+end
+-- end diagnostic section

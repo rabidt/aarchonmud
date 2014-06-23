@@ -4370,42 +4370,8 @@ void do_areas( CHAR_DATA *ch )
     return;
 } 
 
-void memory_diag( CHAR_DATA *ch )
-{
-    int char_count=0;
-    CHAR_DATA *chd;
-    for ( chd=char_list ; chd ; chd=chd->next )
-    {
-        char_count++;
-    }
-
-    int obj_count=0;
-    OBJ_DATA *obj;
-    for ( obj=object_list ; obj ; obj=obj->next )
-    {
-        obj_count++;
-    }
-
-    int area_count=0;
-    AREA_DATA *area;
-    for ( area=area_first ; area ; area=area->next )
-    {
-        area_count++;
-    } 
-
-    ptc(ch, "CHAR %6d %6d\n\r", char_count, count_CH() );
-    ptc(ch, "OBJ  %6d %6d\n\r", obj_count, count_OBJ() );
-    ptc(ch, "AREA %6d %6d\n\r", area_count, count_AREA() );
-
-}
-
 void do_memory( CHAR_DATA *ch, char *argument )
 {
-    if (!strcmp(argument, "diag"))
-    {
-        memory_diag( ch );
-        return;
-    }
     ptc( ch, "          %-5s %s\n\r", "C", "Lua" );
     ptc( ch, "Affects   %5d %5d\n\r", top_affect, count_AFFECT()); 
     ptc( ch, "Areas     %5d %5d\n\r", top_area, count_AREA()); 
