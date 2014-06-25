@@ -40,6 +40,7 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 #include <sys/resource.h>
 
 #include <lua.h>
@@ -574,6 +575,14 @@ void    sort_reserved   args( ( RESERVED_DATA *pRes ) );
 */
 void boot_db()
 {
+    /*
+     * Make sure some dirs exist
+     */
+    struct stat st = {0};
+    if (stat(AREA_BACKUP_DIR, &st) == -1)
+    {
+        mkdir(AREA_BACKUP_DIR, 0700);
+    }
     
     /*
      * Init some data space stuff.
