@@ -20,6 +20,7 @@
 */
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1139,11 +1140,23 @@ Called by:	do_asave(olc_save.c).
 ****************************************************************************/
 void save_area( AREA_DATA *pArea )
 {
+    struct stat st = {0};
     FILE *fp;
     int i;
+    char buf[MSL];
     
     if ( pArea == NULL || IS_SET(pArea->area_flags, AREA_CLONE) )
 	return;
+
+    if ( stat(pArea->file_name, &st) == 0 )
+    {
+        sprintf( buf, AREA_BACKUP_DIR "%s", pArea->file_name );
+        int result=rename( pArea->file_name, buf );
+        if ( result != 0 )
+        {
+            perror("Error: ");
+        }
+    }
 
     if ( !( fp = fopen( pArea->file_name, "w" ) ) )
     {

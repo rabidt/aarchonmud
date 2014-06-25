@@ -4096,6 +4096,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define CLAN_DIR	"../clans/"
 #define LUA_DIR     "../src/lua/"
 #define USER_DIR    "../user/"
+#define AREA_BACKUP_DIR "./backup/"
 
 #define AREA_LIST       "area.lst"  /* List of areas*/
 #define CLAN_LIST       "clan.lst"
