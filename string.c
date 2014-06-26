@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
@@ -868,15 +869,17 @@ char * string_proper( char * argument )
    */
 char *truncate_color_string( const char *argument, int limit )
 {
+    static SR_BUF sr_buf;
+    char *rtn = next_sr_buf( &sr_buf );
+
     if ( strlen_color(argument) <= limit )
         return argument;
-    else if ( strlen(argument) > 4*MSL) 
+    else if ( strlen(argument) > MSL) 
     {
-        bugf("truncate_color_string received string with length > 4*MSL");
+        bugf("truncate_color_string received string with length > MSL");
         return "ERROR"; /* So it won't crash */
     }
 
-    static char rtn[4*MSL]; 
     int i=0;
     int len=0;
     for ( i=0 ; len < limit ; i++ ) 
@@ -902,17 +905,19 @@ char *truncate_color_string( const char *argument, int limit )
 
 char *format_color_string( const char *argument, int width )
 {
+    static SR_BUF sr_buf;
+    char *rtn = next_sr_buf( &sr_buf );
+
     int lencolor=strlen_color(argument);
     if ( lencolor > width )
         return truncate_color_string( argument, width );
     else if ( lencolor == width ) /* just in case */
         return argument;
 
-    static char rtn[4*MSL];
-    int i;
+    int i=0;
     int len=0;
 
-    for ( i=0 ; *(argument+i) != '\0' ; i++ )
+    for (  ; *(argument+i) != '\0' ; i++ )
     {
         rtn[i]=*(argument+i);
         len++;

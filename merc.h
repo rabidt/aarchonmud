@@ -24,9 +24,8 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
-#include "timer.h"
 #include "protocol.h"
-#include <lua.h>
+#include "timer.h"
 
 #ifdef TESTER
 #define FSTAT
@@ -2390,6 +2389,7 @@ struct  mob_index_data
     char*       short_descr;
     char*       long_descr;
     char*       description;
+    char*       notes;
     tflag       act;
     tflag       affect_field;
     sh_int      alignment;
@@ -2815,6 +2815,7 @@ struct  obj_index_data
 	char *      name;
 	char *      short_descr;
 	char *      description;
+    char *      notes;
 	int         vnum;
 	sh_int      reset_num;
 	char *      material;
@@ -2941,6 +2942,7 @@ struct  area_data
 	char *      file_name;
 	char *      name;
 	char *      credits;
+    char *      notes;
 	sh_int      age;
 	sh_int      nplayer;
 	sh_int      reset_time;
@@ -2981,6 +2983,7 @@ struct  room_index_data
     RESET_DATA *   reset_first;    /* OLC */
     char *      name;
     char *      description;
+    char *      notes;
     char *      owner;
     int      vnum;
     tflag       room_flags;
@@ -3152,6 +3155,8 @@ struct  mastery_group_type
 #define OTRIG_QUAFF (W)
 #define OTRIG_OPEN  (X)
 #define OTRIG_UNLOCK (Z)
+#define OTRIG_SIT   (aa)
+#define OTRIG_WAKE  (bb)
 
 /*
  * AREAprog definitions
@@ -4085,6 +4090,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define CLAN_DIR	"../clans/"
 #define LUA_DIR     "../src/lua/"
 #define USER_DIR    "../user/"
+#define AREA_BACKUP_DIR "./backup/"
 
 #define AREA_LIST       "area.lst"  /* List of areas*/
 #define CLAN_LIST       "clan.lst"
@@ -4389,8 +4395,11 @@ void    obj_to_room args( ( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_obj  args( ( OBJ_DATA *obj, OBJ_DATA *obj_to ) );
 void    obj_from_obj    args( ( OBJ_DATA *obj ) );
 void    extract_obj args( ( OBJ_DATA *obj ) );
-void    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
-void    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
+void    char_list_insert( CHAR_DATA *ch );
+CHAR_DATA* char_list_next( long current_id );
+void    char_from_char_list( CHAR_DATA *ch );
+bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
+bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
 CHAR_DATA* get_player( char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_world  args( ( CHAR_DATA *ch, char *argument ) );
@@ -4705,7 +4714,6 @@ extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
 void open_lua  ();  /* set up Lua state */
 void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
-extern lua_State *mud_LS;
 
 #define ACT_ARG_UNDEFINED 0
 #define ACT_ARG_OBJ 1

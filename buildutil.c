@@ -212,7 +212,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((obj = get_obj_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s{x\n\r", i, obj->short_descr);
+                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                        i, 
+                        format_color_string(obj->short_descr, 30 ),
+                        format_color_string(( obj->notes ), 30 ) );
                 add_buf(buffer,buf);
             }
 
@@ -227,7 +230,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((mob = get_mob_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s{x\n\r", i, mob->short_descr);
+                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                        i, 
+                        format_color_string(mob->short_descr, 30 ),
+                        format_color_string(first_line( mob->notes ), 30 ) );
                 add_buf(buffer,buf);
             }
 
@@ -243,7 +249,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((room = get_room_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s{x\n\r", i, room->name);
+                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                        i, 
+                        format_color_string(room->name, 30 ),
+                        format_color_string(first_line( room->notes ), 30 ) );
                 add_buf(buffer,buf);
             }
 
@@ -327,18 +336,18 @@ char* first_line( char* str )
 {
     static char buf[MIL];
     int i = 0;
-    
+
     if ( str == NULL )
     {
-	bug( "first_line: NULL string given", 0 );
-	buf[0] = '\0';
-	return buf;
+        bug( "first_line: NULL string given", 0 );
+        buf[0] = '\0';
+        return buf;
     }
 
     while ( i < MIL - 1 && str[i] != '\0' && str[i] != '\n' && str[i] != '\r' )
     {
-	buf[i] = str[i];
-	i++;
+        buf[i] = str[i];
+        i++;
     }
     buf[i] = '\0';
     return buf;

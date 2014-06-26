@@ -463,6 +463,13 @@ bool get_name ( DESCRIPTOR_DATA *d, char *argument )
     if ( !check_parse_name( argument, (bool)(!fOld) ) )
     {
         write_to_buffer( d, "Illegal name, try another.\n\rName: ", 0 );
+        /* load_char_obj can load "default" char, so we should free
+           it if so */
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
         return FALSE;
     }
     
@@ -1821,8 +1828,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	}
 
 	write_to_buffer( d, "\n\rWelcome to Aarchon!  May your time here be pleasantly wasted.\n\r",	0 );
-	ch->next    = char_list;
-	char_list   = ch;
+    char_list_insert(ch);
 	d->connected    = CON_PLAYING;
       /* Removed by Vodur, messes with box saving
           no downside to keeping it on the list*/
@@ -1868,6 +1874,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    SET_BIT(ch->act, PLR_AUTOLOOT);
 	    SET_BIT(ch->act, PLR_AUTOGOLD);
 	    SET_BIT(ch->act, PLR_AUTOSPLIT);
+            SET_BIT(ch->act, PLR_AUTOASSIST);
 
 	    sprintf( buf, "the %s",
 		     title_table [ch->class] [(ch->level+4-(ch->level+4)%5)/5]);

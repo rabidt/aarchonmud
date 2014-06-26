@@ -35,6 +35,7 @@
 #include <string.h>
 #include <time.h>
 #include <malloc.h>
+#include <lua.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -3046,6 +3047,13 @@ void do_finger(CHAR_DATA *ch, char *argument)
     if (!load_char_obj(d, argument))
     {
         send_to_char("Character not found.\n\r", ch);
+        /* load_char_obj still loads "default" character
+           even if player not found, so need to free it */
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
         free_descriptor(d);
         return;
     }
@@ -3337,6 +3345,11 @@ void do_oldfinger(CHAR_DATA *ch, char *argument)
     if (!load_char_obj(d, argument))
     {
         send_to_char("Character not found.\n\r", ch);
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
         free_descriptor(d);
         sprintf( last_debug, "" );
         return;

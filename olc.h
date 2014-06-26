@@ -171,6 +171,7 @@ DECLARE_OLC_FUN( aedit_reset		);
 DECLARE_OLC_FUN( aedit_purge		);
 DECLARE_OLC_FUN( aedit_security		);
 DECLARE_OLC_FUN( aedit_builder		);
+DECLARE_OLC_FUN( aedit_notes        );
 DECLARE_OLC_FUN( aedit_vnum		);
 DECLARE_OLC_FUN( aedit_lvnum		);
 DECLARE_OLC_FUN( aedit_uvnum		);
@@ -191,8 +192,10 @@ DECLARE_OLC_FUN( aedit_delaprog  );  /* ROM */
  */
 DECLARE_OLC_FUN( redit_show		);
 DECLARE_OLC_FUN( redit_create		);
+DECLARE_OLC_FUN( redit_delete       );
 DECLARE_OLC_FUN( redit_name		);
 DECLARE_OLC_FUN( redit_desc		);
+DECLARE_OLC_FUN( redit_notes    );
 DECLARE_OLC_FUN( redit_ed		);
 DECLARE_OLC_FUN( redit_format		);
 DECLARE_OLC_FUN( redit_north		);
@@ -228,9 +231,11 @@ DECLARE_OLC_FUN( redit_delrprog );
  */
 DECLARE_OLC_FUN( oedit_show		);
 DECLARE_OLC_FUN( oedit_create		);
+DECLARE_OLC_FUN( oedit_delete   );
 DECLARE_OLC_FUN( oedit_name		);
 DECLARE_OLC_FUN( oedit_short		);
 DECLARE_OLC_FUN( oedit_long		);
+DECLARE_OLC_FUN( oedit_notes    );
 DECLARE_OLC_FUN( oedit_addaffect	);
 DECLARE_OLC_FUN( oedit_addapply		);
 DECLARE_OLC_FUN( oedit_delaffect	);
@@ -263,11 +268,13 @@ DECLARE_OLC_FUN( oedit_deloprog  );  /* ROM */
  */
 DECLARE_OLC_FUN( medit_show		);
 DECLARE_OLC_FUN( medit_create		);
+DECLARE_OLC_FUN( medit_delete       );
 DECLARE_OLC_FUN( medit_name		);
 DECLARE_OLC_FUN( medit_short		);
 DECLARE_OLC_FUN( medit_long		);
 DECLARE_OLC_FUN( medit_shop		);
 DECLARE_OLC_FUN( medit_desc		);
+DECLARE_OLC_FUN( medit_notes    );
 DECLARE_OLC_FUN( medit_level		);
 DECLARE_OLC_FUN( medit_align		);
 DECLARE_OLC_FUN( medit_spec		);
@@ -302,6 +309,7 @@ DECLARE_OLC_FUN( medit_wealth    );
 /* Mobprog editor */
 
 DECLARE_OLC_FUN( mpedit_create   );
+DECLARE_OLC_FUN( mpedit_delete   );
 DECLARE_OLC_FUN( mpedit_code     );
 DECLARE_OLC_FUN( mpedit_show     );
 DECLARE_OLC_FUN( mpedit_list     );
@@ -312,18 +320,21 @@ DECLARE_OLC_FUN( mpedit_security );
 
 /* Objprog editor */
 DECLARE_OLC_FUN( opedit_create   );
+DECLARE_OLC_FUN( opedit_delete   );
 DECLARE_OLC_FUN( opedit_code     );
 DECLARE_OLC_FUN( opedit_show     );
 DECLARE_OLC_FUN( opedit_security );
 
 /* Areaprog editor */
 DECLARE_OLC_FUN( apedit_create   );
+DECLARE_OLC_FUN( apedit_delete   );
 DECLARE_OLC_FUN( apedit_code     );
 DECLARE_OLC_FUN( apedit_show     );
 DECLARE_OLC_FUN( apedit_security );
 
 /* Roomprog editor */
 DECLARE_OLC_FUN( rpedit_create   );
+DECLARE_OLC_FUN( rpedit_delete   );
 DECLARE_OLC_FUN( rpedit_code     );
 DECLARE_OLC_FUN( rpedit_show     );
 DECLARE_OLC_FUN( rpedit_security );

@@ -703,6 +703,9 @@ void mem_sim_save_other()
 
     /* leaderboards */
     save_lboards();
+
+    /* playback */
+    save_comm_histories();
    /* mf = save_lboards();
     {
         mf->next = other_save_list;

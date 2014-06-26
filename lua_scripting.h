@@ -2,8 +2,6 @@
 #define LUA_SCRIPTING_H
 
 
-void unregister_lua( void *ptr );
-
 void lua_mob_program( const char *text, int pvnum, const char *source,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, sh_int arg1type,
@@ -48,7 +46,6 @@ void check_lboard_reset();
 void do_lua(CHAR_DATA *ch, char *argument);
 bool run_lua_interpret( DESCRIPTOR_DATA *d );
 void lua_unregister_desc( DESCRIPTOR_DATA *d );
-void unregister_lua( void *ptr );
 void run_delayed_function( TIMER_NODE *tmr );
 void open_lua();
 bool run_lua_interpret( DESCRIPTOR_DATA *d);

@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "special.h"
 #include "lua_arclib.h"

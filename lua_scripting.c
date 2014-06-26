@@ -37,6 +37,7 @@ http://www.gammon.com.au/forum/?id=8015
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
 
@@ -305,14 +306,14 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
 {
     lua_getglobal( g_mud_LS, "mob_program_setup");
 
-    if ( !make_CH( g_mud_LS, mob ) )
+    if ( !push_CH( g_mud_LS, mob ) )
     {
         /* Most likely failed because the gobj was destroyed */
         return;
     }
     if (lua_isnil(g_mud_LS, -1) )
     {
-        bugf("make_ud_table pushed nil to lua_mob_program");
+        bugf("push_ud_table pushed nil to lua_mob_program");
         return;
     }
 
@@ -336,7 +337,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
     } 
 
     /* CH_ARG */
-    if ( !(ch && make_CH( g_mud_LS,(void *) ch)))
+    if ( !(ch && push_CH( g_mud_LS,(void *) ch)))
         lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */
@@ -346,12 +347,12 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
 
     /* OBJ1_ARG */
     if ( !((arg1type== ACT_ARG_OBJ && arg1) 
-                && make_OBJ(g_mud_LS, arg1)))
+                && push_OBJ(g_mud_LS, arg1)))
         lua_pushnil(g_mud_LS);
 
     /* OBJ2_ARG */
     if ( !((arg2type== ACT_ARG_OBJ && arg2)
-                && make_OBJ( g_mud_LS, arg2)))
+                && push_OBJ( g_mud_LS, arg2)))
         lua_pushnil(g_mud_LS);
 
     /* TEXT1_ARG */
@@ -366,7 +367,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
 
     /* VICTIM_ARG */
     if ( !((arg2type== ACT_ARG_CHARACTER && arg2)
-                && make_CH( g_mud_LS, arg2)) )
+                && push_CH( g_mud_LS, arg2)) )
         lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
@@ -410,7 +411,7 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
 
     lua_getglobal( g_mud_LS, "obj_program_setup");
 
-    if (!make_OBJ( g_mud_LS, obj))
+    if (!push_OBJ( g_mud_LS, obj))
     {
         /* Most likely failed because the obj was destroyed */
         return;
@@ -418,7 +419,7 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
 
     if (lua_isnil(g_mud_LS, -1) )
     {
-        bugf("make_ud_table pushed nil to lua_obj_program");
+        bugf("push_ud_table pushed nil to lua_obj_program");
         return FALSE;
     }
 
@@ -444,15 +445,15 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     }
 
     /* OBJ2_ARG */
-    if ( !(obj2 && make_OBJ(g_mud_LS,(void *) obj2)))
+    if ( !(obj2 && push_OBJ(g_mud_LS,(void *) obj2)))
         lua_pushnil(g_mud_LS);
 
     /* CH1_ARG */
-    if ( !(ch1 && make_CH(g_mud_LS,(void *) ch1)))
+    if ( !(ch1 && push_CH(g_mud_LS,(void *) ch1)))
         lua_pushnil(g_mud_LS);
 
     /* CH2_ARG */
-    if ( !(ch2 && make_CH(g_mud_LS,(void *) ch2)))
+    if ( !(ch2 && push_CH(g_mud_LS,(void *) ch2)))
         lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */
@@ -502,7 +503,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
 
     lua_getglobal( g_mud_LS, "area_program_setup");
 
-    if (!make_AREA( g_mud_LS, area))
+    if (!push_AREA( g_mud_LS, area))
     {
         bugf("Make_ud_table failed in lua_area_program. %s : %d",
                 area->name,
@@ -512,7 +513,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
 
     if (lua_isnil(g_mud_LS, -1) )
     {
-        bugf("make_ud_table pushed nil to lua_area_program");
+        bugf("push_ud_table pushed nil to lua_area_program");
         return FALSE;
     }
 
@@ -534,7 +535,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
     }
 
     /* CH1_ARG */
-    if ( !(ch1 && make_CH(g_mud_LS,(void *) ch1)))
+    if ( !(ch1 && push_CH(g_mud_LS,(void *) ch1)))
         lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */
@@ -585,7 +586,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
 
     lua_getglobal( g_mud_LS, "room_program_setup");
 
-    if (!make_ROOM( g_mud_LS, room))
+    if (!push_ROOM( g_mud_LS, room))
     {
         bugf("Make_ud_table failed in lua_room_program. %d : %d",
                 room->vnum,
@@ -595,7 +596,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
 
     if (lua_isnil(g_mud_LS, -1) )
     {
-        bugf("make_ud_table pushed nil to lua_room_program");
+        bugf("push_ud_table pushed nil to lua_room_program");
         return FALSE;
     }
     
@@ -617,19 +618,19 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
     }
 
     /* CH1_ARG */
-    if ( !(ch1 && make_CH(g_mud_LS,(void *) ch1)))
+    if ( !(ch1 && push_CH(g_mud_LS,(void *) ch1)))
         lua_pushnil(g_mud_LS);
         
     /* CH2_ARG */
-    if ( !(ch2 && make_CH(g_mud_LS,(void *) ch2)))
+    if ( !(ch2 && push_CH(g_mud_LS,(void *) ch2)))
         lua_pushnil(g_mud_LS);
 
     /* OBJ1_ARG */
-    if ( !(obj1 && make_OBJ(g_mud_LS,(void *) obj1)))
+    if ( !(obj1 && push_OBJ(g_mud_LS,(void *) obj1)))
         lua_pushnil(g_mud_LS);
 
     /* OBJ2_ARG */
-    if ( !(obj2 && make_OBJ(g_mud_LS,(void *) obj2)))
+    if ( !(obj2 && push_OBJ(g_mud_LS,(void *) obj2)))
         lua_pushnil(g_mud_LS);
 
     /* TEXT1_ARG */
