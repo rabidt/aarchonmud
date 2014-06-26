@@ -3547,7 +3547,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         af.where    = TO_AFFECTS;
         af.type     = gsn_dark_reaping;
         af.level    = power;
-        af.duration = 1;
+        af.duration = 1 + (power/60);
         af.modifier = 0;
         af.bitvector = 0;
         af.location = APPLY_NONE;
