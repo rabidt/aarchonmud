@@ -4400,6 +4400,8 @@ void    obj_to_room args( ( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_obj  args( ( OBJ_DATA *obj, OBJ_DATA *obj_to ) );
 void    obj_from_obj    args( ( OBJ_DATA *obj ) );
 void    extract_obj args( ( OBJ_DATA *obj ) );
+void    char_list_insert( CHAR_DATA *ch );
+void    char_from_char_list( CHAR_DATA *ch );
 void    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
 void    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
 CHAR_DATA* get_player( char *name );
