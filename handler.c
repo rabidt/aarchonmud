@@ -2251,6 +2251,32 @@ void get_eq_corpse( CHAR_DATA *ch, OBJ_DATA *corpse )
     }
 }
 
+void char_list_insert( CHAR_DATA *ch )
+{
+    // insert so that char_list remains sorted (descending) by id
+    if ( !char_list || char_list->id < ch->id )
+    {
+        ch->next = char_list;
+        char_list = ch;
+        return;
+    }
+    // find point to insert within sorted list
+    CHAR_DATA *prev = char_list;
+    while ( prev->next && prev->next->id > ch->id )
+        prev = prev->next;
+    // insert
+    ch->next = prev->next;
+    prev->next = ch;
+}
+
+void assert_char_list()
+{
+    CHAR_DATA *ch;
+    for ( ch = char_list; ch && ch->next; ch = ch->next )
+        if ( ch->id < ch->next->id )
+            bugf("assert_char_list: %d < %d\n", ch->id, ch->next->id);
+}
+
 void char_from_char_list( CHAR_DATA *ch )
 {
     if ( ch == char_list )
