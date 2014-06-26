@@ -2277,6 +2277,16 @@ void assert_char_list()
             bugf("assert_char_list: %d < %d\n", ch->id, ch->next->id);
 }
 
+// returns first character in char_list with id < current_id
+CHAR_DATA* char_list_next( long current_id )
+{
+    CHAR_DATA *ch;
+    for ( ch = char_list; ch; ch = ch->next )
+        if ( ch->id < current_id )
+            return ch;
+    return NULL;
+}
+
 void char_from_char_list( CHAR_DATA *ch )
 {
     if ( ch == char_list )
@@ -2305,14 +2315,14 @@ void char_from_char_list( CHAR_DATA *ch )
 }
 
 /*
- * Extract a char from the world.
+ * Extract a char from the world. Returns true if removed from char_list (i.e., not delayed)
  */
-void extract_char( CHAR_DATA *ch, bool fPull )
+bool extract_char( CHAR_DATA *ch, bool fPull )
 {
-    extract_char_new(ch, fPull, TRUE);
+    return extract_char_new(ch, fPull, TRUE);
 }
 
-void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
+bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
 {
     CHAR_DATA *wch;
     OBJ_DATA *obj;
@@ -2324,22 +2334,13 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
         if (g_LuaScriptInProgress || is_mprog_running())
         {
             ch->must_extract=TRUE;
-            return;
+            return FALSE;
         }
     }
 
     /* safety-net against infinite extracting */
     ch->must_extract = FALSE;
 
-
-
-    /* doesn't seem to be necessary
-       if ( ch->in_room == NULL )
-       {
-       bug( "Extract_char: NULL.", 0 );
-       return;
-       }
-     */
     unregister_ch_timer( ch );
 
     nuke_pets(ch);
@@ -2405,7 +2406,7 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     }
 
     free_char( ch );
-    return;
+    return TRUE;
 }
 
 /*
