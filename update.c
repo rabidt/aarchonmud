@@ -1290,6 +1290,10 @@ void char_update( void )
 
     /*update_fighting();*/
 
+    // debug - ensure character list is sorted as expected
+    // we need it sorted so that we know where to continue iterating after extracting characters
+    assert_char_list();
+
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
         ch_next = ch->next;
@@ -1299,27 +1303,7 @@ void char_update( void )
             bugf("Invalid ch in char_update (%d). Removing from list.",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
             /* invalid should mean already freed, just kill it from the list */
-            if ( ch == char_list )
-            {
-                char_list = ch->next;
-            }
-            else
-            {
-                CHAR_DATA *prev;
-
-                for ( prev = char_list ; prev ; prev = prev->next )
-                {
-                    if ( prev->next == ch )
-                    {
-                        prev->next = ch->next;
-                        break;
-                    }
-                }
-
-                if (!prev)
-                    bugf("Couldn't find invalid ch in list to remove.");
-
-            }
+            char_from_char_list(ch);
             continue;
         }
         
