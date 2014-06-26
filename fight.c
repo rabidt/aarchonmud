@@ -3030,7 +3030,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( dam > 1 && IS_AFFECTED(victim, AFF_PETRIFIED) )
     {
         // damage can break petrification
-        if ( per_chance(200 * dam / victim->max_hit) )
+        if ( per_chance(400 * dam / victim->max_hit) )
         {
             printf_to_char(victim, "%s\n\r", skill_table[gsn_petrify].msg_off);
             act("The petrification on $n is broken!", victim, NULL, NULL, TO_ROOM);
@@ -3038,7 +3038,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             REMOVE_BIT(victim->affect_field, AFF_PETRIFIED);
         }
         else
-            dam /= 2;
+            dam -= dam/3;
     }
 
     if (dt == gsn_beheading)
