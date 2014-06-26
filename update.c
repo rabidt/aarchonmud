@@ -30,6 +30,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -1272,11 +1273,11 @@ void char_update( void )
 {   
     static int curr_tick=0;
     CHAR_DATA *ch;
-    CHAR_DATA *ch_next;
     CHAR_DATA *ch_quit;
-    bool healmessage;
+    bool healmessage, extracted;
     char buf[MSL];
     static bool hour_update = TRUE;
+    long current_id = 0;
 
     ch_quit = NULL;
 
@@ -1289,44 +1290,28 @@ void char_update( void )
 
     /*update_fighting();*/
 
-    for ( ch = char_list; ch != NULL; ch = ch_next )
+    // debug - ensure character list is sorted as expected
+    // we need it sorted so that we know where to continue iterating after extracting characters
+    assert_char_list();
+
+    for ( ch = char_list; ch != NULL; ch = extracted ? char_list_next(current_id) : ch->next )
     {
-        ch_next = ch->next;
+        // if we don't extract, we can just use ch->next (faster)
+        extracted = FALSE;
+        // if we do extract, find next character to check using current ID
+        current_id = ch->id;
 
         if (!IS_VALID(ch))
         {
             bugf("Invalid ch in char_update (%d). Removing from list.",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
             /* invalid should mean already freed, just kill it from the list */
-            if ( ch == char_list )
-            {
-                char_list = ch->next;
-            }
-            else
-            {
-                CHAR_DATA *prev;
-
-                for ( prev = char_list ; prev ; prev = prev->next )
-                {
-                    if ( prev->next == ch )
-                    {
-                        prev->next = ch->next;
-                        break;
-                    }
-                }
-
-                if (!prev)
-                    bugf("Couldn't find invalid ch in list to remove.");
-
-            }
+            char_from_char_list(ch);
             continue;
         }
         
         if (ch->must_extract)
             continue;
-
-        if ( ch->timer > 30 )
-            ch_quit = ch;
 
         /* Check for natural resistance */
         if ( get_skill(ch, gsn_natural_resistance) >= 0)
@@ -1386,7 +1371,7 @@ void char_update( void )
                         && !IS_AFFECTED(ch,AFF_CHARM) && number_percent() < 5)
                 {
                     act("$n wanders on home.",ch,NULL,NULL,TO_ROOM);
-                    extract_char(ch,TRUE);
+                    extracted = extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1395,7 +1380,7 @@ void char_update( void )
                 {
                     act("$n crumbles into dust.",ch,NULL,NULL,TO_ROOM);
                     drop_eq( ch );
-                    extract_char(ch,TRUE);
+                    extracted = extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1404,7 +1389,7 @@ void char_update( void )
                         && number_bits(3)==0 )
                 {
                     act("$n vanishes into the ether.",ch,NULL,NULL,TO_ROOM);
-                    extract_char(ch,TRUE);
+                    extracted = extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1414,7 +1399,7 @@ void char_update( void )
                         && number_bits(3)==0 )
                 {
                     act("$n wanders off.",ch,NULL,NULL,TO_ROOM);
-                    extract_char(ch,TRUE);
+                    extracted = extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1562,6 +1547,13 @@ void char_update( void )
 
                     char_from_room( ch );
                     char_to_room( ch, get_room_index( ROOM_VNUM_LIMBO ) );
+                }
+
+                if ( ch->timer > 30 )
+                {
+                    do_quit( ch, "" );
+                    extracted = TRUE;
+                    continue;
                 }
             }
 
@@ -1712,23 +1704,6 @@ void char_update( void )
         if ( !IS_NPC(ch) )
             check_beast_mastery( ch );
 
-    }
-
-    /*
-     * Autosave and autoquit.
-     * Check that these chars still exist.
-     */
-    for ( ch = char_list; ch != NULL; ch = ch_next )
-    {
-        ch_next = ch->next;
-
-        /* Bobble: we got simultanious saves now
-           if (ch->desc != NULL && ch->desc->descriptor % 30 == save_number)
-           save_char_obj(ch);
-         */
-
-        if ( ch == ch_quit )
-            do_quit( ch, "" );
     }
 
     return;
@@ -2561,17 +2536,10 @@ void update_handler( void )
     static  int     pulse_herb;
     static  int     pulse_msdp;
     static  int     pulse_timer;
-    static  int     pulse_lua_arcgc;
     static bool hour_update = TRUE;
     static bool minute_update = TRUE;
     /* if nobody is logged on, update less to safe CPU power */
     bool update_all = (descriptor_list != NULL );
-
-    if ( --pulse_lua_arcgc <= 0 )
-    {
-        pulse_lua_arcgc  = PULSE_LUA_ARCGC;
-        lua_arcgc();
-    }
 
     if ( --pulse_timer <= 0 )
     {

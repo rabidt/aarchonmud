@@ -40,7 +40,10 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 #include <sys/resource.h>
+
+#include <lua.h>
 
 #include "merc.h"
 #include "db.h"
@@ -50,6 +53,7 @@
 #include "olc.h"
 #include "buffer_util.h"
 #include "mob_stats.h"
+#include "lua_arclib.h"
 
 extern  int _filbuf     args( (FILE *) );
 
@@ -571,6 +575,14 @@ void    sort_reserved   args( ( RESERVED_DATA *pRes ) );
 */
 void boot_db()
 {
+    /*
+     * Make sure some dirs exist
+     */
+    struct stat st = {0};
+    if (stat(AREA_BACKUP_DIR, &st) == -1)
+    {
+        mkdir(AREA_BACKUP_DIR, 0700);
+    }
     
     /*
      * Init some data space stuff.
@@ -694,6 +706,9 @@ void boot_db()
 
     log_string( "Loading leaderboards" );
     load_lboards();
+
+    log_string( "Loading comm histories" );
+    load_comm_histories();
 
     log_string("Initializing mudconfig." );
     mudconfig_init();
@@ -943,7 +958,7 @@ void load_area( FILE *fp )
 {
     AREA_DATA *pArea;
     
-    pArea               = alloc_perm( sizeof(*pArea) );
+    pArea               = alloc_AREA();
     pArea->file_name    = fread_string(fp);
     
     flag_clear( pArea->area_flags );
@@ -978,7 +993,7 @@ void load_area( FILE *fp )
     area_last        = pArea;
     pArea->next      = NULL;
     current_area = pArea;
-    
+
     top_area++;
 
     logpf("Loading area: %s\t\t%Min: %ld  Max: %ld  Sec: %d  Credits: %s",
@@ -1016,7 +1031,7 @@ void new_load_area( FILE *fp )
     char      *word;
     bool      fMatch;
     
-    pArea               = alloc_perm( sizeof(*pArea) );
+    pArea               = alloc_AREA();
     pArea->age          = 15;
     pArea->nplayer      = 0;
     pArea->reset_time   = 15;
@@ -1024,6 +1039,7 @@ void new_load_area( FILE *fp )
     pArea->vnum         = top_area;
     pArea->name         = str_dup( "New Area" );
     pArea->builders     = str_dup( "" );
+    pArea->notes        = str_dup( "" );
     pArea->security     = 9;                    /* 9 -- Hugin */
     pArea->min_vnum        = 0;
     pArea->save         = TRUE;
@@ -1049,7 +1065,7 @@ void new_load_area( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pAprog              = alloc_perm(sizeof(*pAprog));
+                pAprog              = alloc_ATRIG();
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, aprog_flags )) == NO_FLAG )
                 {   
@@ -1071,9 +1087,16 @@ void new_load_area( FILE *fp )
         case 'N':
             SKEY( "Name", pArea->name );
             if ( !str_cmp(word, "NoQuest"))
+            {
                 SET_BIT(pArea->area_flags,AREA_NOQUEST);
+                break;
+            }
             if ( !str_cmp(word, "NoHide"))
+            {
                 SET_BIT(pArea->area_flags,AREA_NOHIDE);
+                break;
+            }
+            SKEY( "Notes", pArea->notes );
             break;
         case 'R':
             if ( !str_cmp(word, "Remort"))
@@ -1449,228 +1472,236 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
  /*
  * Snarf a room section.
  */
- void load_rooms( FILE *fp )
- {
-     ROOM_INDEX_DATA *pRoomIndex;
+void load_rooms( FILE *fp )
+{
+    ROOM_INDEX_DATA *pRoomIndex;
 
-     int i;
-     /* prepare lock flags */
-     tflag lock_values[4] = { { EX_ISDOOR },
-			      { EX_ISDOOR, EX_PICKPROOF },
-			      { EX_ISDOOR, EX_NOPASS },
-			      { EX_ISDOOR, EX_NOPASS, EX_PICKPROOF } };
-     for ( i = 0; i < 4; i++ )
-	 bit_list_to_tflag( lock_values[i] );
+    int i;
+    /* prepare lock flags */
+    tflag lock_values[4] = { { EX_ISDOOR },
+        { EX_ISDOOR, EX_PICKPROOF },
+        { EX_ISDOOR, EX_NOPASS },
+        { EX_ISDOOR, EX_NOPASS, EX_PICKPROOF } };
+    for ( i = 0; i < 4; i++ )
+        bit_list_to_tflag( lock_values[i] );
 
-     if ( area_last == NULL )
-     {
-         bug( "Load_resets: no #AREA seen yet.", 0 );
-         exit( 1 );
-     }
-     
-     for ( ; ; )
-     {
-         int vnum;
-         char letter;
-         int door;
-         int iHash;
-         
-         letter              = fread_letter( fp );
-         if ( letter != '#' )
-         {
-             bug( "Load_rooms: # not found.", 0 );
-             exit( 1 );
-         }
-         
-         vnum                = fread_number( fp );
-         if ( vnum == 0 )
-             break;
-         
-         if ( get_room_index( vnum ) != NULL )
-         {
-             bug( "Load_rooms: vnum %d duplicated.", vnum );
-             exit( 1 );
-         }
-         
-         pRoomIndex          = alloc_perm( sizeof(*pRoomIndex) );
-         pRoomIndex->owner       = str_dup("");
-         pRoomIndex->people      = NULL;
-         pRoomIndex->contents    = NULL;
-         pRoomIndex->extra_descr = NULL;
-         pRoomIndex->area        = area_last;
-         pRoomIndex->vnum        = vnum;
-         pRoomIndex->name        = fread_string( fp );
-         pRoomIndex->description = fread_string( fp );
-         /* Area number */         fread_number( fp );
-         fread_tflag( fp, pRoomIndex->room_flags );
-         
-
-         if (IS_SET(pRoomIndex->room_flags, ROOM_JAIL) 
-			 && top_jail_room < (MAX_JAIL_ROOM - 1))
-         {
-             SET_BIT(pRoomIndex->room_flags, ROOM_NO_RECALL);
-             SET_BIT(pRoomIndex->room_flags, ROOM_SAFE);
-             jail_room_list[++top_jail_room] = pRoomIndex->vnum;
-         } 
-         
-         pRoomIndex->sector_type     = fread_number( fp );
-         pRoomIndex->light       = 0;
-         for ( door = 0; door < MAX_DIR; door++ )
-             pRoomIndex->exit[door] = NULL;
-         
-         /* defaults */
-         pRoomIndex->heal_rate = 100;
-         pRoomIndex->mana_rate = 100;
-         pRoomIndex->clan      = 0;
-         pRoomIndex->clan_rank = 0;
-         
-         for ( ; ; )
-         {
-             letter = fread_letter( fp );
-             
-             if ( letter == 'S' )
-                 break;
-             
-             if ( letter == 'H') /* healing room */
-                 pRoomIndex->heal_rate = fread_number(fp);
-             
-             else if ( letter == 'M') /* mana room */
-                 pRoomIndex->mana_rate = fread_number(fp);
-             
-             else if ( letter == 'C') /* clan */
-             {
-                 if (pRoomIndex->clan)
-                 {
-                     bug("Load_rooms: duplicate clan fields.",0);
-                     exit(1);
-                 }
-                 pRoomIndex->clan = clan_lookup(fread_string(fp));
-             }
-             
-             else if ( letter == 'R') /* Clan rank */
-             {
-                 if (pRoomIndex->clan_rank)
-                 {
-                     bug("Load_rooms: duplicate clan_rank fields.",0);
-                     exit(1);
-                 }
-                 pRoomIndex->clan_rank = clan_rank_lookup(pRoomIndex->clan, fread_string(fp));
-             }
-             
-             else if ( letter == 'D' )
-             {
-                 EXIT_DATA *pexit;
-                 int locks;		 
-                 
-                 door = fread_number( fp );
-                 if ( door < 0 || door >= MAX_DIR )
-                 {
-                     bug( "Fread_rooms: vnum %d has bad door number.", vnum );
-                     exit( 1 );
-                 }
-                 
-                 pexit           = alloc_perm( sizeof(*pexit) );
-                 pexit->description  = fread_string( fp );
-                 pexit->keyword      = fread_string( fp );
-
-		 if ( area_version < VER_EXIT_FLAGS )
-		 {
-		     flag_clear( pexit->rs_flags  );       /* OLC */
-		     locks = fread_number( fp );
-		     if ( 1 <= locks && locks <= 4 )
-			 flag_copy( pexit->rs_flags, lock_values[locks - 1] );
-		 }
-		 else
-		     fread_tflag( fp, pexit->rs_flags );
-		 flag_copy( pexit->exit_info, pexit->rs_flags );
-		     
-                 pexit->key      = fread_number( fp );
-                 pexit->u1.vnum      = fread_number( fp );
-                 pexit->orig_door    = door;         /* OLC */
-                 
-		 /*
-                 switch ( locks )
-                 {
-                 case 1: pexit->exit_info = EX_ISDOOR;               
-                     pexit->rs_flags  = EX_ISDOOR;            break;
-                 case 2: pexit->exit_info = EX_ISDOOR | EX_PICKPROOF;
-                     pexit->rs_flags  = EX_ISDOOR | EX_PICKPROOF; break;
-                 case 3: pexit->exit_info = EX_ISDOOR | EX_NOPASS;    
-                     pexit->rs_flags  = EX_ISDOOR | EX_NOPASS;    break;
-                 case 4: pexit->exit_info = EX_ISDOOR|EX_NOPASS|EX_PICKPROOF;
-                     pexit->rs_flags  = EX_ISDOOR|EX_NOPASS|EX_PICKPROOF;
-                     break;
-                 case 5:
-                     pexit->exit_info = EX_HIDDEN;
-                     pexit->rs_flags = EX_HIDDEN;
-                     break;
-                 }
-		 */
-
-                 pRoomIndex->exit[door]  = pexit;
-                 top_exit++;
-             }
-             else if ( letter == 'E' )
-             {
-                 EXTRA_DESCR_DATA *ed;
-                 
-                 ed          = alloc_perm( sizeof(*ed) );
-                 ed->keyword     = fread_string( fp );
-                 ed->description     = fread_string( fp );
-                 ed->next        = pRoomIndex->extra_descr;
-                 pRoomIndex->extra_descr = ed;
-                 top_ed++;
-             }
-             
-             else if (letter == 'O')
-             {
-                 if (pRoomIndex->owner[0] != '\0')
-                 {
-                     bug("Load_rooms: duplicate owner.",0);
-                     exit(1);
-                 }
-                 
-                 pRoomIndex->owner = fread_string(fp);
-             }
-
-             else if (letter == 'P')
-             {
-                 PROG_LIST *pRprog;
-                 char *word;
-                 int trigger=0;
-
-                 pRprog = alloc_perm(sizeof(*pRprog));
-                 word=fread_word( fp );
-                 if ( ( trigger=flag_lookup( word, rprog_flags)) == NO_FLAG)
-                 {
-                     bugf("load_rooms.P: invalid trigger '%s' for room %d.",
-                             word, pRoomIndex->vnum);
-                     exit(1);
-                 }
-                 SET_BIT( pRoomIndex->rprog_flags, trigger );
-                 pRprog->trig_type      = trigger;
-                 pRprog->vnum           = fread_number( fp );
-                 pRprog->trig_phrase    = fread_string( fp );
-                 pRprog->next           = pRoomIndex->rprogs;
-                 pRoomIndex->rprogs     = pRprog;
-             }
-                 
-             
-             else
-             {
-                 bug( "Load_rooms: vnum %d has flag not 'DES'.", vnum );
-                 exit( 1 );
-             }
-         }
-         
-         iHash           = vnum % MAX_KEY_HASH;
-         pRoomIndex->next    = room_index_hash[iHash];
-         room_index_hash[iHash]  = pRoomIndex;
-         top_room++;
-         top_vnum_room = top_vnum_room < vnum ? vnum : top_vnum_room; /* OLC */
-         assign_area_vnum( vnum );                                    /* OLC */
+    if ( area_last == NULL )
+    {
+        bug( "Load_resets: no #AREA seen yet.", 0 );
+        exit( 1 );
     }
-    
+
+    for ( ; ; )
+    {
+        int vnum;
+        char letter;
+        int door;
+        int iHash;
+
+        letter              = fread_letter( fp );
+        if ( letter != '#' )
+        {
+            bug( "Load_rooms: # not found.", 0 );
+            exit( 1 );
+        }
+
+        vnum                = fread_number( fp );
+        if ( vnum == 0 )
+            break;
+
+        if ( get_room_index( vnum ) != NULL )
+        {
+            bug( "Load_rooms: vnum %d duplicated.", vnum );
+            exit( 1 );
+        }
+
+        pRoomIndex          = alloc_ROOM();
+        pRoomIndex->owner       = str_dup("");
+        pRoomIndex->people      = NULL;
+        pRoomIndex->contents    = NULL;
+        pRoomIndex->extra_descr = NULL;
+        pRoomIndex->area        = area_last;
+        pRoomIndex->vnum        = vnum;
+        pRoomIndex->name        = fread_string( fp );
+        pRoomIndex->description = fread_string( fp );
+        /* Area number */         fread_number( fp );
+        fread_tflag( fp, pRoomIndex->room_flags );
+
+
+        if (IS_SET(pRoomIndex->room_flags, ROOM_JAIL) 
+                && top_jail_room < (MAX_JAIL_ROOM - 1))
+        {
+            SET_BIT(pRoomIndex->room_flags, ROOM_NO_RECALL);
+            SET_BIT(pRoomIndex->room_flags, ROOM_SAFE);
+            jail_room_list[++top_jail_room] = pRoomIndex->vnum;
+        } 
+
+        pRoomIndex->sector_type     = fread_number( fp );
+        pRoomIndex->light       = 0;
+        for ( door = 0; door < MAX_DIR; door++ )
+            pRoomIndex->exit[door] = NULL;
+
+        /* defaults */
+        pRoomIndex->heal_rate = 100;
+        pRoomIndex->mana_rate = 100;
+        pRoomIndex->clan      = 0;
+        pRoomIndex->clan_rank = 0;
+
+        for ( ; ; )
+        {
+            letter = fread_letter( fp );
+
+            if ( letter == 'S' )
+                break;
+
+            if ( letter == 'H') /* healing room */
+                pRoomIndex->heal_rate = fread_number(fp);
+
+            else if ( letter == 'M') /* mana room */
+                pRoomIndex->mana_rate = fread_number(fp);
+
+            else if ( letter == 'C') /* clan */
+            {
+                if (pRoomIndex->clan)
+                {
+                    bug("Load_rooms: duplicate clan fields.",0);
+                    exit(1);
+                }
+                pRoomIndex->clan = clan_lookup(fread_string(fp));
+            }
+
+            else if ( letter == 'R') /* Clan rank */
+            {
+                if (pRoomIndex->clan_rank)
+                {
+                    bug("Load_rooms: duplicate clan_rank fields.",0);
+                    exit(1);
+                }
+                pRoomIndex->clan_rank = clan_rank_lookup(pRoomIndex->clan, fread_string(fp));
+            }
+
+            else if ( letter == 'D' )
+            {
+                EXIT_DATA *pexit;
+                int locks;		 
+
+                door = fread_number( fp );
+                if ( door < 0 || door >= MAX_DIR )
+                {
+                    bug( "Fread_rooms: vnum %d has bad door number.", vnum );
+                    exit( 1 );
+                }
+
+                pexit           = alloc_EXIT();
+                pexit->description  = fread_string( fp );
+                pexit->keyword      = fread_string( fp );
+
+                if ( area_version < VER_EXIT_FLAGS )
+                {
+                    flag_clear( pexit->rs_flags  );       /* OLC */
+                    locks = fread_number( fp );
+                    if ( 1 <= locks && locks <= 4 )
+                        flag_copy( pexit->rs_flags, lock_values[locks - 1] );
+                }
+                else
+                    fread_tflag( fp, pexit->rs_flags );
+                flag_copy( pexit->exit_info, pexit->rs_flags );
+
+                pexit->key      = fread_number( fp );
+                pexit->u1.vnum      = fread_number( fp );
+                pexit->orig_door    = door;         /* OLC */
+
+                /*
+                   switch ( locks )
+                   {
+                   case 1: pexit->exit_info = EX_ISDOOR;               
+                   pexit->rs_flags  = EX_ISDOOR;            break;
+                   case 2: pexit->exit_info = EX_ISDOOR | EX_PICKPROOF;
+                   pexit->rs_flags  = EX_ISDOOR | EX_PICKPROOF; break;
+                   case 3: pexit->exit_info = EX_ISDOOR | EX_NOPASS;    
+                   pexit->rs_flags  = EX_ISDOOR | EX_NOPASS;    break;
+                   case 4: pexit->exit_info = EX_ISDOOR|EX_NOPASS|EX_PICKPROOF;
+                   pexit->rs_flags  = EX_ISDOOR|EX_NOPASS|EX_PICKPROOF;
+                   break;
+                   case 5:
+                   pexit->exit_info = EX_HIDDEN;
+                   pexit->rs_flags = EX_HIDDEN;
+                   break;
+                   }
+                 */
+
+                pRoomIndex->exit[door]  = pexit;
+                top_exit++;
+            }
+            else if ( letter == 'E' )
+            {
+                EXTRA_DESCR_DATA *ed;
+
+                ed          = alloc_perm( sizeof(*ed) );
+                ed->keyword     = fread_string( fp );
+                ed->description     = fread_string( fp );
+                ed->next        = pRoomIndex->extra_descr;
+                pRoomIndex->extra_descr = ed;
+                top_ed++;
+            }
+
+            else if (letter == 'N')
+            {
+                pRoomIndex->notes = fread_string(fp);
+            }
+
+            else if (letter == 'O')
+            {
+                if (pRoomIndex->owner[0] != '\0')
+                {
+                    bug("Load_rooms: duplicate owner.",0);
+                    exit(1);
+                }
+
+                pRoomIndex->owner = fread_string(fp);
+            }
+
+            else if (letter == 'P')
+            {
+                PROG_LIST *pRprog;
+                char *word;
+                int trigger=0;
+
+                pRprog = alloc_RTRIG();
+                word=fread_word( fp );
+                if ( ( trigger=flag_lookup( word, rprog_flags)) == NO_FLAG)
+                {
+                    bugf("load_rooms.P: invalid trigger '%s' for room %d.",
+                            word, pRoomIndex->vnum);
+                    exit(1);
+                }
+                SET_BIT( pRoomIndex->rprog_flags, trigger );
+                pRprog->trig_type      = trigger;
+                pRprog->vnum           = fread_number( fp );
+                pRprog->trig_phrase    = fread_string( fp );
+                pRprog->next           = pRoomIndex->rprogs;
+                pRoomIndex->rprogs     = pRprog;
+            }
+
+
+            else
+            {
+                bug( "Load_rooms: vnum %d has flag not 'DES'.", vnum );
+                exit( 1 );
+            }
+        }
+
+        if (!pRoomIndex->notes)
+            pRoomIndex->notes = str_dup( "" );
+
+        iHash           = vnum % MAX_KEY_HASH;
+        pRoomIndex->next    = room_index_hash[iHash];
+        room_index_hash[iHash]  = pRoomIndex;
+        top_room++;
+        top_vnum_room = top_vnum_room < vnum ? vnum : top_vnum_room; /* OLC */
+        assign_area_vnum( vnum );                                    /* OLC */
+    }
+
     return;
 }
 
@@ -1693,7 +1724,7 @@ void load_shops( FILE *fp )
         if ( keeper == 0 )
             break;
         
-        pShop           = alloc_perm( sizeof(*pShop) );
+        pShop           = alloc_SHOP(); 
         pShop->keeper       = keeper;
 
         for ( iTrade = 0; iTrade < MAX_TRADE; iTrade++ )
@@ -1895,7 +1926,7 @@ void load_roomprogs( FILE *fp )
             exit( 1 );
         }
 
-        pRprog      = alloc_perm( sizeof(*pRprog) );
+        pRprog      = alloc_PROG();
         pRprog->vnum    = vnum;
 
         char *word;
@@ -1969,7 +2000,7 @@ void load_areaprogs( FILE *fp )
             exit( 1 );
         }
 
-        pAprog      = alloc_perm( sizeof(*pAprog) );
+        pAprog      = alloc_PROG();
         pAprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2052,7 +2083,7 @@ void load_objprogs( FILE *fp )
             exit( 1 );
         }
 
-        pOprog      = alloc_perm( sizeof(*pOprog) );
+        pOprog      = alloc_PROG();
         pOprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2134,7 +2165,7 @@ void load_mobprogs( FILE *fp )
             exit( 1 );
         }
         
-        pMprog      = alloc_perm( sizeof(*pMprog) );
+        pMprog      = alloc_PROG();
         pMprog->vnum    = vnum;
         pMprog->is_lua  = FALSE; /* new progs default to true but
                                     when loading we need to default to false */
@@ -3028,8 +3059,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mprog_setup(mob);
     
     /* link the mob to the world list */
-    mob->next       = char_list;
-    char_list       = mob;
+    char_list_insert(mob);
     pMobIndex->count++;
 
     return mob;
@@ -4348,26 +4378,30 @@ void do_areas( CHAR_DATA *ch )
 
 void do_memory( CHAR_DATA *ch, char *argument )
 {
-    ptc( ch, "Affects   %5d\n\r", top_affect    ); 
-    ptc( ch, "Areas     %5d\n\r", top_area      ); 
+    ptc( ch, "          %-5s %s\n\r", "C", "Lua" );
+    ptc( ch, "Affects   %5d %5d\n\r", top_affect, count_AFFECT()); 
+    ptc( ch, "Areas     %5d %5d\n\r", top_area, count_AREA()); 
     ptc( ch, "ExDes     %5d\n\r", top_ed        ); 
-    ptc( ch, "Exits     %5d\n\r", top_exit      ); 
-    ptc( ch, "Helps     %5d\n\r", top_help      ); 
+    ptc( ch, "Exits     %5d %5d\n\r", top_exit, count_EXIT()); 
+    ptc( ch, "Helps     %5d %5d\n\r", top_help, count_HELP()); 
     ptc( ch, "Socials   %5d\n\r", maxSocial  ); 
-    ptc( ch, "Resets    %5d\n\r", top_reset     ); 
-    ptc( ch, "Rooms     %5d\n\r", top_room      ); 
-    ptc( ch, "Shops     %5d\n\r", top_shop      ); 
+    ptc( ch, "Resets    %5d %5d\n\r", top_reset, count_RESET()); 
+    ptc( ch, "Rooms     %5d %5d\n\r", top_room, count_ROOM()); 
+    ptc( ch, "Shops     %5d %5d\n\r", top_shop, count_SHOP()); 
     ptc( ch, "\n\r");
-    ptc( ch, "Mobs      %5d\n\r", top_mob_index );
+    ptc( ch, "Mobs      %5d %5d\n\r", top_mob_index, count_MOBPROTO());
     ptc( ch, " (in use) %5d\n\r", mobile_count  );
-    ptc( ch, "Objs      %5d\n\r", top_obj_index );
-    ptc( ch, " (in use) %5d\n\r", object_count  );
+    ptc( ch, "Objs      %5d %5d\n\r", top_obj_index, count_OBJPROTO());
+    ptc( ch, " (in use) %5d %5d\n\r", object_count, count_OBJ());
     ptc( ch, "\n\r");
     ptc( ch, "Mprogs    %5d\n\r", top_mprog_index);
     ptc( ch, " (lua)    %5d\n\r", lua_mprogs);
     ptc( ch, "Oprogs    %5d\n\r", top_oprog_index);
     ptc( ch, "Aprogs    %5d\n\r", top_aprog_index);
     ptc( ch, "Rprogs    %5d\n\r", top_rprog_index);
+    ptc( ch, "Total     %5d %5d\n\r",
+            top_mprog_index + top_oprog_index + top_aprog_index + top_rprog_index,
+            count_PROG() );
     ptc( ch, "\n\r");
     
     ptc( ch, "Strings %5d strings of %7d bytes (max %d).\n\r",
@@ -4387,147 +4421,6 @@ void do_memory( CHAR_DATA *ch, char *argument )
     
     return;
 }
-
-void do_dump( CHAR_DATA *ch, char *argument )
-{
-    int count,count2,num_pcs,aff_count;
-    CHAR_DATA *fch;
-    MOB_INDEX_DATA *pMobIndex;
-    PC_DATA *pc;
-    OBJ_DATA *obj;
-    OBJ_INDEX_DATA *pObjIndex;
-    DESCRIPTOR_DATA *d;
-    AFFECT_DATA *af;
-    FILE *fp;
-    int vnum,nMatch = 0;
-    
-    /* open file */
-    fp = fopen("mem.dmp","w");
-    
-    /* report use of data structures */
-    
-    num_pcs = 0;
-    aff_count = 0;
-    
-    /* mobile prototypes */
-    fprintf(fp,"MobProt	%4d (%8d bytes)\n",
-        top_mob_index, top_mob_index * (sizeof(*pMobIndex))); 
-    
-    /* mobs */
-    count = 0;  count2 = 0;
-    for (fch = char_list; fch != NULL; fch = fch->next)
-    {
-        count++;
-        if (fch->pcdata != NULL)
-            num_pcs++;
-        for (af = fch->affected; af != NULL; af = af->next)
-            aff_count++;
-    }
-    for (fch = char_free; fch != NULL; fch = fch->next)
-        count2++;
-    
-    fprintf(fp,"Mobs	%4d (%8d bytes), %2d free (%d bytes)\n",
-        count, count * (sizeof(*fch)), count2, count2 * (sizeof(*fch)));
-    
-    /* pcdata */
-    count = 0;
-    for (pc = pcdata_free; pc != NULL; pc = pc->next)
-        count++; 
-    
-    fprintf(fp,"Pcdata	%4d (%8d bytes), %2d free (%d bytes)\n",
-        num_pcs, num_pcs * (sizeof(*pc)), count, count * (sizeof(*pc)));
-    
-    /* descriptors */
-    count = 0; count2 = 0;
-    for (d = descriptor_list; d != NULL; d = d->next)
-        count++;
-    for (d= descriptor_free; d != NULL; d = d->next)
-        count2++;
-    
-    fprintf(fp, "Descs	%4d (%8d bytes), %2d free (%d bytes)\n",
-        count, count * (sizeof(*d)), count2, count2 * (sizeof(*d)));
-    
-    /* object prototypes */
-    for ( vnum = 0; nMatch < top_obj_index; vnum++ )
-        if ( ( pObjIndex = get_obj_index( vnum ) ) != NULL )
-        {
-            for (af = pObjIndex->affected; af != NULL; af = af->next)
-                aff_count++;
-            nMatch++;
-        }
-        
-        fprintf(fp,"ObjProt	%4d (%8d bytes)\n",
-            top_obj_index, top_obj_index * (sizeof(*pObjIndex)));
-        
-        
-        /* objects */
-        count = 0;  count2 = 0;
-        for (obj = object_list; obj != NULL; obj = obj->next)
-        {
-            count++;
-            for (af = obj->affected; af != NULL; af = af->next)
-                aff_count++;
-        }
-        for (obj = obj_free; obj != NULL; obj = obj->next)
-            count2++;
-        
-        fprintf(fp,"Objs	%4d (%8d bytes), %2d free (%d bytes)\n",
-            count, count * (sizeof(*obj)), count2, count2 * (sizeof(*obj)));
-        
-        /* affects */
-        count = 0;
-        for (af = affect_free; af != NULL; af = af->next)
-            count++;
-        
-        fprintf(fp,"Affects	%4d (%8d bytes), %2d free (%d bytes)\n",
-            aff_count, aff_count * (sizeof(*af)), count, count * (sizeof(*af)));
-        
-        /* rooms */
-        fprintf(fp,"Rooms	%4d (%8d bytes)\n",
-            top_room, top_room * (sizeof(ROOM_INDEX_DATA)));
-        
-        /* exits */
-        fprintf(fp,"Exits	%4d (%8d bytes)\n",
-            top_exit, top_exit * (sizeof(EXIT_DATA)));
-        
-        fclose(fp);
-        
-        /* start printing out mobile data */
-        fp = fopen("mob.dmp","w");
-        
-        fprintf(fp,"\nMobile Analysis\n");
-        fprintf(fp,  "---------------\n");
-        nMatch = 0;
-        for (vnum = 0; nMatch < top_mob_index; vnum++)
-            if ((pMobIndex = get_mob_index(vnum)) != NULL)
-            {
-                nMatch++;
-                fprintf(fp,"#%-4d %3d active %3d killed     %s\n",
-                    pMobIndex->vnum,pMobIndex->count,
-                    pMobIndex->killed,pMobIndex->short_descr);
-            }
-            fclose(fp);
-            
-            /* start printing out object data */
-            fp = fopen("obj.dmp","w");
-            
-            fprintf(fp,"\nObject Analysis\n");
-            fprintf(fp,  "---------------\n");
-            nMatch = 0;
-            for (vnum = 0; nMatch < top_obj_index; vnum++)
-                if ((pObjIndex = get_obj_index(vnum)) != NULL)
-                {
-                    nMatch++;
-                    fprintf(fp,"#%-4d %3d active %3d reset      %s\n",
-                        pObjIndex->vnum,pObjIndex->count,
-                        pObjIndex->reset_num,pObjIndex->short_descr);
-                }
-                
-                /* close file */
-                fclose(fp);
-}
-
-
 
 /*
 * Stick a little fuzz on a number.
@@ -4952,16 +4845,12 @@ void bug( const char *fmt, int param )
 
 void bug_string( const char *str )
 {
-    static bool recursion=FALSE;
-    bool enable_wiznet=TRUE;
+    static bool bug_in_progress=FALSE;
+    bool recurse;
     char buf[MAX_STRING_LENGTH];
 
-    if ( recursion )
-    {
-        log_string("[*****] BUG: recursion in bug(), not sending to wiznet");
-        enable_wiznet=FALSE;
-    }
-    recursion=TRUE;
+    recurse=bug_in_progress;
+    bug_in_progress=TRUE;
     
     if ( fpArea != NULL )
     {
@@ -4987,20 +4876,30 @@ void bug_string( const char *str )
         sprintf( buf, "[*****] FILE: %s LINE: %d", strArea, iLine );
         log_string( buf );
 
-        if ( enable_wiznet)
+        if ( !recurse )
             wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
     }
     
-    sprintf(buf, "[*****] BUG: %s\n\rLast command: %s", 
-            str,
-            last_command );
+    sprintf(buf, "[*****] BUG: %s", str );
+    if (!recurse)
+    {
+        strcat( buf, "\n\rLast command: " );
+        strcat( buf, last_command );
+    }
+
     log_string( buf );
     log_trace();
     
-    if ( enable_wiznet )
+    if ( !recurse )
+    {
         wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
+        bug_in_progress=FALSE;
+    }
+    else
+    {
+        log_string("[*****] BUG: recursion in bug(), not sending to wiznet");
+    }
 
-    recursion=FALSE;
     return;
 }
 

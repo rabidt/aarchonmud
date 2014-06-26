@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "magic.h"
 #include "recycle.h"
@@ -2082,12 +2083,9 @@ void extract_obj( OBJ_DATA *obj )
 
     if (obj == NULL)
     {
-	bug("BUG: extract_obj, obj == NULL",0);
-	return;
+        bug("BUG: extract_obj, obj == NULL",0);
+        return;
     }
-
-    unregister_lua( obj ); /* always unregister, even if delaying extract */
-    unregister_obj_timer( obj );
 
     if (g_LuaScriptInProgress || is_mprog_running())
     {
@@ -2101,6 +2099,7 @@ void extract_obj( OBJ_DATA *obj )
     OBJ_DATA *obj_content;
     OBJ_DATA *obj_next;
     
+    unregister_obj_timer( obj );
     obj_from_world( obj );
     free_relic( obj );
     
@@ -2245,6 +2244,42 @@ void get_eq_corpse( CHAR_DATA *ch, OBJ_DATA *corpse )
     }
 }
 
+void char_list_insert( CHAR_DATA *ch )
+{
+    // insert so that char_list remains sorted (descending) by id
+    if ( !char_list || char_list->id < ch->id )
+    {
+        ch->next = char_list;
+        char_list = ch;
+        return;
+    }
+    // find point to insert within sorted list
+    CHAR_DATA *prev = char_list;
+    while ( prev->next && prev->next->id > ch->id )
+        prev = prev->next;
+    // insert
+    ch->next = prev->next;
+    prev->next = ch;
+}
+
+void assert_char_list()
+{
+    CHAR_DATA *ch;
+    for ( ch = char_list; ch && ch->next; ch = ch->next )
+        if ( ch->id < ch->next->id )
+            bugf("assert_char_list: %d < %d\n", ch->id, ch->next->id);
+}
+
+// returns first character in char_list with id < current_id
+CHAR_DATA* char_list_next( long current_id )
+{
+    CHAR_DATA *ch;
+    for ( ch = char_list; ch; ch = ch->next )
+        if ( ch->id < current_id )
+            return ch;
+    return NULL;
+}
+
 void char_from_char_list( CHAR_DATA *ch )
 {
     if ( ch == char_list )
@@ -2273,14 +2308,14 @@ void char_from_char_list( CHAR_DATA *ch )
 }
 
 /*
- * Extract a char from the world.
+ * Extract a char from the world. Returns true if removed from char_list (i.e., not delayed)
  */
-void extract_char( CHAR_DATA *ch, bool fPull )
+bool extract_char( CHAR_DATA *ch, bool fPull )
 {
-    extract_char_new(ch, fPull, TRUE);
+    return extract_char_new(ch, fPull, TRUE);
 }
 
-void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
+bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
 {
     CHAR_DATA *wch;
     OBJ_DATA *obj;
@@ -2289,75 +2324,65 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     /* fPull should be TRUE if NPC or quitting player (char will get freed) */
     if ( fPull )
     {
-        unregister_lua( ch ); /* always unregister even if delaying actual extract */
-        unregister_ch_timer( ch );
         if (g_LuaScriptInProgress || is_mprog_running())
         {
             ch->must_extract=TRUE;
-            return;
+            return FALSE;
         }
     }
 
     /* safety-net against infinite extracting */
     ch->must_extract = FALSE;
 
+    unregister_ch_timer( ch );
 
-
-    /* doesn't seem to be necessary
-    if ( ch->in_room == NULL )
-    {
-    bug( "Extract_char: NULL.", 0 );
-    return;
-    }
-    */
-    
     nuke_pets(ch);
     ch->pet = NULL; /* just in case */
-    
+
     if ( fPull )
         die_follower( ch, false );
-    
+
     stop_fighting( ch, TRUE );
 
     /* drop all easy_drop items */
     extract_char_eq( ch, &is_drop_obj, TO_ROOM );
 
     if (extract_objects)
-	for ( obj = ch->carrying; obj != NULL; obj = obj_next )
-	{
-	    obj_next = obj->next_content;
+        for ( obj = ch->carrying; obj != NULL; obj = obj_next )
+        {
+            obj_next = obj->next_content;
 
-	    if (!IS_NPC(ch)
-		&& !fPull
-		&& IS_SET(obj->extra_flags, ITEM_STICKY))
-		continue;  /* Leave item on player, not on corpse. Only for PC deaths in-game. */
-	    
-	    extract_obj( obj );
-	}
-    
+            if (!IS_NPC(ch)
+                    && !fPull
+                    && IS_SET(obj->extra_flags, ITEM_STICKY))
+                continue;  /* Leave item on player, not on corpse. Only for PC deaths in-game. */
+
+            extract_obj( obj );
+        }
+
     if (ch->in_room != NULL)
         char_from_room( ch );
-    
+
     /* Death room is set in the clan table now */
     if ( !fPull )
     {
-	/* make sure vampires don't get toasted over and over again */
-	if ( IS_SET(ch->form, FORM_SUNBURN) )
-	    char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
-	else
-	    char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
+        /* make sure vampires don't get toasted over and over again */
+        if ( IS_SET(ch->form, FORM_SUNBURN) )
+            char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
+        else
+            char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
         return;
     }
-    
+
     if ( IS_NPC(ch) )
         --ch->pIndexData->count;
-    
+
     if ( ch->desc != NULL && ch->desc->original != NULL )
     {
         do_return( ch, "" );
         ch->desc = NULL;
     }
-    
+
     for ( wch = char_list; wch != NULL; wch = wch->next )
     {
         if ( wch->reply == ch )
@@ -2367,14 +2392,14 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     }
 
     char_from_char_list(ch);
-    
+
     if ( ch->desc != NULL )
     {
         ch->desc->character = NULL;
     }
 
     free_char( ch );
-    return;
+    return TRUE;
 }
 
 /*

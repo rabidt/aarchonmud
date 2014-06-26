@@ -33,6 +33,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
+#include <lua.h>
 #include "merc.h"
 #include "magic.h"
 #include "recycle.h"
@@ -1167,7 +1168,7 @@ void do_autorescue(CHAR_DATA *ch, char *argument)
     }
     else
     {
-        send_to_char("Your will now protect your friends.\n\r",ch);
+        send_to_char("You will now protect your friends.\n\r",ch);
         SET_BIT(ch->act,PLR_AUTORESCUE);
     }
 }
@@ -5452,7 +5453,7 @@ void do_achievements( CHAR_DATA *ch, char *argument )
     char buf2[MSL];
     int i;
     CHAR_DATA *victim;
-    DESCRIPTOR_DATA *d;
+    DESCRIPTOR_DATA *d=NULL;
     BUFFER *output;
     int col;
     int totalach = 0;
@@ -5471,12 +5472,19 @@ void do_achievements( CHAR_DATA *ch, char *argument )
     {
     	d = new_descriptor();
     
-    	if (!load_char_obj(d, argument))
-    	{
-           send_to_char("Character not found.\n\r", ch);
-           free_descriptor(d);
-           return;
-    	}
+        if (!load_char_obj(d, argument))
+        {
+            send_to_char("Character not found.\n\r", ch);
+            /* load_char_obj still loads "default" character
+               even if player not found, so need to free it */
+            if (d->character)
+            {
+                free_char(d->character);
+                d->character=NULL;
+            }
+            free_descriptor(d);
+            return;
+        }
         victim = d->character;
     }
 
@@ -5522,7 +5530,13 @@ void do_achievements( CHAR_DATA *ch, char *argument )
 	add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
     page_to_char(buf_string(output),ch);
     free_buf(output);
-	
+
+    /* if not self, need to free stuff */
+    if ( d )
+    {
+        free_char( d->character );
+         free_descriptor( d );
+    }
 }
 
 void print_ach_rewards(CHAR_DATA *ch)

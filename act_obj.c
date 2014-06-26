@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <lua.h>
 #include "merc.h"
 #include "tables.h"
 #include "lua_scripting.h"

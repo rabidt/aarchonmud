@@ -846,6 +846,9 @@ AEDIT( aedit_show )
     
     sprintf( buf, "Flags:      [%s]\n\r", flag_string( area_flags, pArea->area_flags ) );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Notes:\n\r%s", pArea->notes );
+    send_to_char( buf, ch );
     
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
 	if ( pArea->clones[i] > 0 )
@@ -1345,6 +1348,22 @@ AEDIT( aedit_security )
     
     send_to_char( "Security set.\n\r", ch );
     return TRUE;
+}
+
+AEDIT( aedit_notes)
+{
+    AREA_DATA *pArea;
+
+    EDIT_AREA(ch, pArea);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pArea->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes   - line edit\n\r", ch );
+    return FALSE;
 }
 
 AEDIT( aedit_builder )
@@ -1873,6 +1892,9 @@ REDIT( redit_show )
     }
     
     send_to_char( buf1, ch );
+    
+    sprintf( buf, "Notes:\n\r%s", pRoom->notes );
+    send_to_char( buf, ch );
 
     if ( pRoom->rprogs )
     {
@@ -2461,6 +2483,140 @@ REDIT( redit_ed )
     return FALSE;
 }
 
+REDIT( redit_delete )
+{
+    ROOM_INDEX_DATA *pRoom=NULL;
+    char command[MIL];
+
+    argument = one_argument(argument, command);
+
+    if (!is_number(command))
+    {
+        send_to_char( "Syntax : redit delete [vnum]\n\r", ch);
+        return FALSE;
+    }
+
+    int vnum=atoi(command);
+
+    if ( (pRoom = get_room_index(vnum)) == NULL )
+    {
+        send_to_char("Room does not exist.\n\r", ch );
+        return FALSE;
+    }
+
+    AREA_DATA *ad = get_vnum_area( vnum );
+
+    if ( ad == NULL )
+    {
+        send_to_char("Vnum not assigned to an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER(ch,ad) )
+    {
+        send_to_char( "Insufficient security to delete room.\n\r", ch );
+        return FALSE;
+    }
+
+    /* should be empty first */
+    if ( pRoom->contents || pRoom->people )
+    {
+        send_to_char( "Room is not empty.\n\r", ch );
+        return FALSE;
+    }
+
+    /* check for resets */
+    if ( pRoom->reset_first )
+    {
+        send_to_char( "Please remove all resets first.\n\r", ch );
+        return FALSE;
+    }
+
+    /* check for progs */
+    if ( pRoom->rprogs )
+    {
+        send_to_char( "Please remove all rprogs first.\n\r", ch );
+        return FALSE;
+    }
+
+    /* check for links */
+    AREA_DATA *a;
+    for ( a=area_first ; a ; a=a->next )
+    {
+        ROOM_INDEX_DATA *r;
+        int vnum;
+        for ( vnum=a->min_vnum ; vnum <= a->max_vnum ; vnum++ )
+        {
+            r=get_room_index(vnum);
+            if (!r)
+                continue;
+
+            int i;
+            EXIT_DATA *ex;
+            for ( i=0 ; i<10 ; i++ )
+            {
+                ex=r->exit[i];
+                if (!ex)
+                    continue;
+                if (ex->u1.to_room == pRoom)
+                {
+                    ptc( ch, "Can't delete room %d, room %d still links to it.\n\r", pRoom->vnum, r->vnum );
+                    return FALSE;
+                }
+            }
+        }
+    }
+
+    /* and portals for good measure */
+    for ( a=area_first ; a ; a=a->next )
+    {
+        OBJ_INDEX_DATA *oid;
+        int vnum;
+        for ( vnum=a->min_vnum ; vnum <= a->max_vnum ; vnum++ )
+        {
+            oid=get_obj_index(vnum);
+            if (!oid)
+                continue;
+
+            if (oid->item_type != ITEM_PORTAL )
+                continue;
+
+            if (oid->value[3] == pRoom->vnum)
+            {
+                ptc( ch, "Can't delete room %d, object %d links to it.\n\r", pRoom->vnum, oid->vnum );
+                return FALSE;
+            }
+        }
+    }
+
+    /* if we're here, it's ok to delete */
+    int iHash=vnum % MAX_KEY_HASH;
+
+    ROOM_INDEX_DATA *curr, *last=NULL;
+
+    for ( curr=room_index_hash[iHash]; curr; curr=curr->next )
+    {
+        if ( curr == pRoom )
+        {
+            if ( !last )
+            {
+                room_index_hash[iHash]=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            SET_BIT( ad->area_flags, AREA_CHANGED );
+            clone_warning( ch, ad );
+            free_room_index( pRoom );
+            send_to_char( "Room deleted.\n\r", ch );
+            return TRUE;
+        }
+
+        last=curr;
+    }
+}
 
 
 REDIT( redit_create )
@@ -2536,7 +2692,21 @@ REDIT( redit_name )
     return TRUE;
 }
 
+REDIT( redit_notes )
+{
+    ROOM_INDEX_DATA *pRoom;
 
+    EDIT_ROOM(ch, pRoom);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pRoom->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes\n\r", ch );
+    return FALSE;
+}
 
 REDIT( redit_desc )
 {
@@ -3789,6 +3959,9 @@ OEDIT( oedit_show )
     sprintf( buf, "Short desc:  %s\n\rLong desc:\n\r     %s\n\r",
         pObj->short_descr, pObj->description );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Notes:\n\r%s", pObj->notes );
+    send_to_char( buf, ch );
     
     for ( cnt = 0, paf = pObj->affected; paf; paf = paf->next )
     {
@@ -4165,7 +4338,21 @@ OEDIT( oedit_long )
     return TRUE;
 }
 
+OEDIT( oedit_notes)
+{
+    OBJ_INDEX_DATA *pObj;
 
+    EDIT_OBJ(ch, pObj);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pObj->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes   - line edit\n\r", ch );
+    return FALSE;
+}
 
 bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, char *argument, int value )
 {
@@ -4364,6 +4551,109 @@ OEDIT( oedit_rating )
     /* set the rating */
     pObj->diff_rating = value;
     send_to_char( "Difficulty rating set.\n\r", ch );
+}
+
+OEDIT( oedit_delete )
+{
+    OBJ_INDEX_DATA *pObj;
+    AREA_DATA *pArea;
+    int value;
+    int iHash;
+
+    value = atoi( argument );
+    if ( argument[0] == '\0' || value == 0 )
+    {
+        send_to_char( "Syntax:  oedit delete [vnum]\n\r", ch );
+        return FALSE;
+    }
+
+    pArea = get_vnum_area( value );
+    if ( !pArea )
+    {
+        send_to_char( "OEdit:  That vnum is not assigned an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER( ch, pArea ) )
+    {
+        send_to_char( "OEdit:  Vnum in an area you cannot build in.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( (pObj = get_obj_index( value ) ) == NULL )
+    {
+        send_to_char( "OEdit:  No such object.\n\r", ch );
+        return FALSE;
+    }
+   
+    /* check for instances */
+    OBJ_DATA *obj;
+    for ( obj=object_list ; obj ; obj=obj->next )
+    {
+        if ( obj->pIndexData == pObj )
+        {
+            send_to_char( "Can't delete, instances exist.\n\r", ch );
+            return FALSE;
+        }
+    }
+
+    /* check for resets */
+    ROOM_INDEX_DATA *room;
+    RESET_DATA *rst;
+    int rvnum;
+
+    for ( rvnum=0 ; rvnum <= top_vnum_room ; rvnum++ )
+    {
+        if ( (room=get_room_index(rvnum) ) == NULL )
+            continue;
+
+        for ( rst=room->reset_first ; rst ; rst=rst->next )
+        {
+            switch (rst->command)
+            {
+                case 'O':
+                case 'P':
+                case 'G':
+                case 'E':
+                    break;
+                default:
+                    continue;
+            }
+
+            if ( rst->arg1 == value )
+            {
+                send_to_char( "OEdit:  Can't delete, resets exist.\n\r", ch );
+                return FALSE;
+            } 
+        }
+    }
+
+    /* got here means we're good to delete */
+    iHash=value % MAX_KEY_HASH;
+
+    OBJ_INDEX_DATA *curr, *last=NULL;
+
+    for ( curr=obj_index_hash[iHash]; curr; curr=curr->next )
+    {
+        if ( curr == pObj )
+        {
+            if ( !last )
+            {
+                obj_index_hash[iHash]=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            free_obj_index( pObj );
+            send_to_char( "Object deleted.\n\r", ch );
+            return TRUE;
+        }
+        
+        last=curr;
+    }
+
 }
 
 OEDIT( oedit_create )
@@ -5179,6 +5469,9 @@ MEDIT( medit_show )
     
     sprintf( buf, "Description:\n\r%s", pMob->description );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Notes:\n\r%s", pMob->notes );
+    send_to_char( buf, ch );
     
     if ( pMob->pShop )
     {
@@ -5238,6 +5531,104 @@ MEDIT( medit_show )
     return FALSE;
 }
 
+MEDIT( medit_delete )
+{
+    MOB_INDEX_DATA *pMob;
+    AREA_DATA *pArea;
+    int value;
+    int iHash;
+
+    value = atoi( argument );
+    if ( argument[0] == '\0' || value == 0 )
+    {
+        send_to_char( "Syntax:  medit delete [vnum]\n\r", ch );
+        return FALSE;
+    }
+
+    pArea = get_vnum_area( value );
+    if ( !pArea )
+    {
+        send_to_char( "MEdit:  That vnum is not assigned an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER( ch, pArea ) )
+    {
+        send_to_char( "MEdit:  Vnum in an area you cannot build in.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( (pMob = get_mob_index( value ) ) == NULL )
+    {
+        send_to_char( "MEdit:  No such object.\n\r", ch );
+        return FALSE;
+    }
+    
+    /* check for resets */
+    ROOM_INDEX_DATA *room;
+    RESET_DATA *rst;
+    int rvnum;
+
+    for ( rvnum=0 ; rvnum <= top_vnum_room ; rvnum++ )
+    {
+        if ( (room=get_room_index(rvnum) ) == NULL )
+            continue;
+
+        for ( rst=room->reset_first ; rst ; rst=rst->next )
+        {
+            switch (rst->command)
+            {
+                case 'M':
+                    break;
+                default:
+                    continue;
+            }
+
+            if ( rst->arg1 == value )
+            {
+                send_to_char( "MEdit:  Can't delete, resets exist.\n\r", ch );
+                return FALSE;
+            } 
+        }
+    }
+
+    CHAR_DATA *m;
+    for ( m=char_list ; m ; m=m->next )
+    {
+        if ( m->pIndexData == pMob )
+        {
+            send_to_char( "MEdit:  Can't delete, instances exist.\n\r", ch );
+            return FALSE;
+        }
+    }
+
+    /* got here means we're good to delete */
+    iHash=value % MAX_KEY_HASH;
+
+    MOB_INDEX_DATA *curr, *last=NULL;
+
+    for ( curr=mob_index_hash[iHash]; curr; curr=curr->next )
+    {
+        if ( curr == pMob )
+        {
+            if ( !last )
+            {
+                mob_index_hash[iHash]=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            free_mob_index( pMob );
+            send_to_char( "Mob deleted.\n\r", ch );
+            return TRUE;
+        }
+        
+        last=curr;
+    }
+
+}
 
 
 MEDIT( medit_create )
@@ -5642,8 +6033,21 @@ MEDIT( medit_desc )
     return FALSE;
 }
 
+MEDIT( medit_notes)
+{
+    MOB_INDEX_DATA *pMob;
 
+    EDIT_MOB(ch, pMob);
 
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pMob->notes );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  notes   - line edit\n\r", ch );
+    return FALSE;
+}
 
 MEDIT( medit_long )
 {

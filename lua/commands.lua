@@ -371,7 +371,6 @@ local luaq_nav=
 }
 
 function do_luaquery( ch, argument)
-    do -- actual func wrapped in do/end so scope is destroyed before gc called
     -- arg checking stuff
     args=arguments(argument, true)
     
@@ -615,8 +614,6 @@ function do_luaquery( ch, argument)
 
     show_next_results( ch )
 
-    end -- actual func wrapped in do/end so scope is destroyed before gc called
-    lua_arcgc() -- force a garbage collection 
 end
 -- end luaquery section
 
@@ -1237,3 +1234,276 @@ Averages
 end
 
 --end perfmon section
+
+-- findreset section
+local function find_obj_noreset( ch, arg )
+    local ingame= ( arg == "ingame" )
+    -- build reset lookup
+    local lookup={}
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,reset in pairs(room.resets) do
+                local cmd=reset.command
+                if cmd=="O" or
+                   cmd=="P" or
+                   cmd=="G" or
+                   cmd=="E" then 
+                    lookup[reset.arg1]=true
+                end
+            end
+        end
+    end
+
+    -- now do the check
+    local result={}
+    for _,area in pairs(getarealist()) do
+        for _,op in pairs(area.objprotos) do
+            if not(lookup[op.vnum]) then
+                if not(ingame) and true or op.ingame then
+                table.insert( result,
+                        ("%s{x [%6d] %s{x"):format(
+                                util.format_color_string( area.name, 15 ),
+                                op.vnum,
+                                op.shortdescr) )
+                end
+            end
+        end
+    end
+
+    local out={}
+    table.insert(out, "Objs with no resets")
+    for i,v in ipairs(result) do
+        table.insert( out, ("%3d. "):format(i)..v )
+    end
+    pagetochar( ch, table.concat( out, "\n\r" ).."\n\r" )
+end
+
+local function find_mob_noreset( ch, arg )
+    local ingame= ( arg == "ingame" )
+    -- build reset lookup
+    local lookup={}
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,reset in pairs(room.resets) do
+                if reset.command=="M" then
+                    lookup[reset.arg1]=true
+                end
+            end
+        end
+    end
+
+    -- now do the check
+    local result={}
+    for _,area in pairs(getarealist()) do
+        for _,mp in pairs(area.mobprotos) do
+            if not(lookup[mp.vnum]) then
+                if not(ingame) and true or mp.ingame then
+                table.insert( result,
+                        ("%s{x [%6d] %s{x"):format(
+                                util.format_color_string( area.name, 15 ),
+                                mp.vnum,
+                                mp.shortdescr) )
+                end
+            end
+        end
+    end
+
+    local out={}
+    table.insert(out, "Mobs with no resets")
+    for i,v in ipairs(result) do
+        table.insert( out, ("%3d. "):format(i)..v )
+    end
+    pagetochar( ch, table.concat( out, "\n\r" ).."\n\r" )
+end
+
+local function find_mob_reset( ch, vnum )
+    local mp=getmobproto( vnum )
+    if not(mp) then
+        sendtochar( ch, "Invalid mob vnum "..vnum..".\n\r")
+        return
+    end
+
+    vnum=tonumber(vnum)
+
+    local result={}
+
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,reset in pairs(room.resets) do
+                if reset.command=="M" then
+                    if reset.arg1==vnum then
+                        table.insert( result,
+                                ("[%6d] %s"):format(room.vnum, room.name) )
+                    end
+                end
+            end
+        end
+    end
+
+    if #result<1 then
+        sendtochar(ch, "No reset found.\n\r")
+        return
+    end
+  
+    local out={}
+    table.insert( out, "Resets for mob '"..mp.shortdescr.."' ("..vnum..")")
+    for i,v in ipairs(result) do
+        table.insert( out, ("%3d. "):format(i)..v )
+    end 
+    pagetochar( ch, table.concat( out, "\n\r" ).."\n\r" )   
+end
+
+local function find_obj_reset( ch, vnum )
+    local op=getobjproto( vnum )
+    if not(op) then
+        sendtochar( ch, "Invalid obj vnum "..vnum..".\n\r")
+        return
+    end
+
+    vnum=tonumber(vnum)
+
+    local result={}
+
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,reset in pairs(room.resets) do
+                local cmd=reset.command
+                if (cmd=='O' or
+                   cmd=='P' or
+                   cmd=='G' or
+                   cmd=='E') and
+                   reset.arg1==vnum 
+                   then
+                   table.insert( result,
+                           ("[%6d] %s"):format(room.vnum, room.name) )
+                end
+            end
+        end
+    end
+
+    if #result<1 then
+        sendtochar(ch, "No reset found.\n\r")
+        return
+    end
+
+    local out={}
+    table.insert( out, "Resets for obj '"..op.shortdescr.."' ("..vnum..")")
+    for i,v in ipairs(result) do
+        table.insert( out, ("%3d. "):format(i)..v )
+    end
+    pagetochar( ch, table.concat( out, "\n\r" ).."\n\r" )
+end
+
+local function findreset_usage( ch )
+    pagetochar( ch,
+[[
+Find resets for given mob or object:
+    findreset mob [vnum]
+    findreset obj [vnum]
+
+Find mobs or objects with no resets:
+    findreset mob noreset <ingame>
+    findreset obj noreset <ingame>
+]])
+
+end
+
+function do_findreset( ch, argument )
+    local args=arguments(argument)
+
+    if args[1] == "mob" then
+        if args[2] == "noreset" then
+            find_mob_noreset( ch, args[3] )
+        else
+            find_mob_reset( ch, args[2] )
+        end
+        return
+    elseif args[1] == "obj" then
+        if args[2] == "noreset" then
+            find_obj_noreset( ch, args[3] )
+        else
+            find_obj_reset( ch, args[2] )
+        end
+        return
+    end
+
+    findreset_usage( ch )
+end
+-- end findreset section
+
+-- diagnostic section
+local function CH_diag( ch, args )
+    local chs={}
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="CH" then
+            chs[v]=true
+        end
+    end
+
+    for k,v in pairs(reg) do
+        if tostring(v)=="DESCRIPTOR" then
+            if v.character then
+                chs[v.character]=nil
+            end
+        end
+    end
+
+    for k,v in pairs(getcharlist()) do
+        chs[v]=nil
+    end
+
+    sendtochar( ch, "Leaked CHAR_DATAs:\n\r")
+    local cnt=0
+    for k,v in pairs(chs) do
+        sendtochar( ch, k.name.."\n\r")
+        cnt=cnt+1
+    end
+
+    sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
+
+end
+
+local function DESCRIPTOR_diag( ch, args )
+    local ds={}
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="DESCRIPTOR" then
+            ds[v]=true
+        end
+    end
+
+    for k,v in pairs(getdescriptorlist()) do
+        ds[v]=nil
+    end
+
+    sendtochar( ch, "Leaked DESCRIPTORs:\n\r")
+    local cnt=0
+    for k,v in pairs(ds) do
+        if v.character then
+            sendtochar( ch, v.character.name.."\n\r")
+        else
+            sendtochar( ch, "NULL character\n\r")
+        end
+        cnt=cnt+1
+    end
+
+    sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
+end
+
+local function diagnostic_usage( ch )
+    pagetochar( ch, [[
+diagnostic ch   -- Run CHAR_DATA diagnostic
+diagnostic desc -- Run DESCRIPTOR_DATA diagnostic
+]])
+end
+function do_diagnostic( ch, argument )
+    if argument=="ch" then
+        CH_diag( ch )
+    elseif argument=="desc" then
+        DESCRIPTOR_diag( ch )
+    else
+        diagnostic_usage( ch )
+    end
+end
+-- end diagnostic section

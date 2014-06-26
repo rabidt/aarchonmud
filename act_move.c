@@ -1998,6 +1998,10 @@ void do_stand( CHAR_DATA *ch, char *argument )
 	  if ( IS_AFFECTED(ch, AFF_SLEEP) )
 	  { send_to_char( "You can't wake up!\n\r", ch ); return; }
 	  
+      if ( ch->on && !op_percent_trigger( NULL, ch->on, NULL, ch, NULL, OTRIG_WAKE) )
+      {
+          return;
+      }
 	  if (obj == NULL)
 	  {
 		 send_to_char( "You wake and stand up.\n\r", ch );
@@ -2040,6 +2044,10 @@ void do_stand( CHAR_DATA *ch, char *argument )
 	  break;
 	  
    case POS_RESTING: case POS_SITTING:
+      if ( ch->on && !op_percent_trigger( NULL, ch->on, NULL, ch, NULL, OTRIG_WAKE) )
+      {
+          return;
+      }
 	  if (obj == NULL)
 	  {
 		 send_to_char( "You stand up.\n\r", ch );
@@ -2290,6 +2298,10 @@ void do_sit (CHAR_DATA *ch, char *argument )
 		 send_to_char( "You wake and sit up.\n\r", ch );
 		 act( "$n wakes and sits up.", ch, NULL, NULL, TO_ROOM );
 	  }
+      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+      {
+         return;
+      }
 	  else if (I_IS_SET(obj->value[2],SIT_AT))
 	  {
 		 act_new("You wake and sit at $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
@@ -2325,6 +2337,10 @@ void do_sit (CHAR_DATA *ch, char *argument )
    case POS_RESTING:
 	  if (obj == NULL)
 		 send_to_char("You stop resting.\n\r",ch);
+      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+      {
+         return;
+      }
 	  else if (I_IS_SET(obj->value[2],SIT_AT))
 	  {
 		 act("You sit at $p.",ch,obj,NULL,TO_CHAR);
@@ -2349,6 +2365,10 @@ void do_sit (CHAR_DATA *ch, char *argument )
 		 send_to_char("You sit down.\n\r",ch);
 		 act("$n sits down on the ground.",ch,NULL,NULL,TO_ROOM);
 	  }
+      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+      {
+         return;
+      }
 	  else if (I_IS_SET(obj->value[2],SIT_AT))
 	  {
 		 act("You sit down at $p.",ch,obj,NULL,TO_CHAR);

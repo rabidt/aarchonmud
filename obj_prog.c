@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <ctype.h>
+#include <lua.h>
 #include "merc.h"
 #include "tables.h"
 #include "lookup.h"
@@ -19,6 +20,12 @@ bool op_percent_trigger(
         OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, 
         int type )
 {
+    if (!obj)
+    {
+        bugf("NULL obj passed to op_percent_trigger");
+        return TRUE;
+    }
+
     if ( !HAS_OTRIG(obj, type) )
         return TRUE;
 
