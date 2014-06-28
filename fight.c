@@ -985,7 +985,11 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     if ( wield == NULL )
     {
         if ( second == NULL && !hold && !shield )
-            return (100 + 2 * UMIN(ch->level, 100)) / 3;
+        {
+            int base = (100 + 2 * UMIN(ch->level, 100)) / 3;
+            base += (100 - base) * get_skill(ch, gsn_ambidextrous) / 100;
+            return base;
+        }
         else
             return 0;
     }
