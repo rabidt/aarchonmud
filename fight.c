@@ -6030,6 +6030,8 @@ void do_flee( CHAR_DATA *ch, char *argument )
     
     // we now have a chance to escape, so lag is given now, regardless of success
     int wait = rand_div(PULSE_VIOLENCE * (10 - mastery_bonus(ch, gsn_flee, 4, 5)), 10);
+    if ( IS_AFFECTED(ch, AFF_HASTE) )
+        wait = rand_div(wait * 2, 3);
     if ( ch->stance == STANCE_BUNNY )
         wait = rand_div(wait, 2);
     WAIT_STATE(ch, wait);
@@ -6090,7 +6092,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
     
     for ( opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room )
     {
-        if ( opp->fighting != ch || is_wimpy(opp) )
+        if ( opp->fighting != ch || !can_attack(opp) || is_wimpy(opp) )
             continue;
         
         // harder to flee from PCs
