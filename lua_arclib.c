@@ -4796,6 +4796,14 @@ static int CH_set_pet (lua_State *LS)
 }
 HELPTOPIC CH_set_pet_help={};
 
+static int CH_get_id ( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_CH(LS,1)->id );
+    return 1;
+}
+HELPTOPIC CH_get_id_help = {};
+
 static int CH_get_scroll ( lua_State *LS )
 {
     lua_pushinteger( LS,
@@ -4879,6 +4887,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(pet, 0),
     CHGET(affects, 0),
     CHGET(scroll, 0),
+    CHGET(id, 0 ),
     /* PC only */
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
