@@ -2864,27 +2864,37 @@ void do_morph(CHAR_DATA *ch, char *argument)
 		send_to_char("You pretend you're a doppelganger.\n\r", ch);
 	else if ( MULTI_MORPH(ch) )
 	{
-		if ((arg[0]=='\0') && ch->pcdata->morph_race)
-		{
-			WAIT_STATE(ch, PULSE_VIOLENCE);
-			send_to_char("You revert to your original form.\n\r", ch);
-			ch->pcdata->morph_time = 0;
-			ch->pcdata->morph_race = 0;
-			morph_update( ch );
-			return;
-		}
+        if ( arg[0] == '\0' )
+        {
+            if ( ch->pcdata->morph_race )
+            {
+                WAIT_STATE(ch, PULSE_VIOLENCE);
+                send_to_char("You revert to your original form.\n\r", ch);
+                ch->pcdata->morph_time = 0;
+                ch->pcdata->morph_race = 0;
+                morph_update( ch );
+            }
+            else
+                send_to_char("You must select a victim or race to emulate.\n\r", ch);
+            return;
+        }
+        
+        if ( (victim = get_char_room(ch, arg)) )
+            race = victim->race;
+        else
+            race = pc_race_lookup(arg);
+        
+        if ( !race )
+        {
+            send_to_char("That's not a valid victim or race.\n\r", ch);
+            return;
+        }
 
-		if (arg[0]=='\0' || (victim=get_char_room(ch, arg))==NULL)
-		{
-			send_to_char("You must select a victim to emulate.\n\r", ch);
-			return;
-		}
-
-		if ( (race=victim->race) == ch->race )
-		{
-			send_to_char("Your victim has the same race as you.\n\r", ch);
-			return;
-		}
+        if ( race == ch->race )
+        {
+            send_to_char("You are already of that race.\n\r", ch);
+            return;
+        }
 
 		if ( !race_table[race].pc_race || pc_race_table[race].remorts > morph_power(ch) )
 		{
@@ -2894,7 +2904,9 @@ void do_morph(CHAR_DATA *ch, char *argument)
 			return;
 		}
 
-		cost = (pc_race_table[race].remorts + 1) * ch->level;
+        cost = (pc_race_table[race].remorts + 5) * (20 + ch->level);
+        if ( victim )
+            cost /= 2;
 		if ( (ch->mana < cost ) || (ch->move < 2*cost) )
 		{
 			sprintf(buf,"You need %d mana and %d move to morph into a %s.\n\r",
@@ -2910,7 +2922,7 @@ void do_morph(CHAR_DATA *ch, char *argument)
 			ch->move-=2*cost;
 			ch->mana-=cost;
 			ch->pcdata->morph_race = race;
-			ch->pcdata->morph_time = ch->level*2 + 10;
+			ch->pcdata->morph_time = get_duration_by_type(DUR_EXTREME, ch->level);
 			morph_update( ch );
 		}
 	}
