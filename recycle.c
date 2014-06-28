@@ -326,8 +326,7 @@ CHAR_DATA *new_char (void)
 	ch->prefix          = &str_empty[0];
 	ch->logon                   = current_time;
 	ch->lines                   = PAGELEN;
-	for (i = 0; i < 4; i++)
-		ch->armor[i]            = 100;
+	ch->armor                   = 100;
 	ch->hunting					= NULL;
 	ch->aggressors				= NULL;
     ch->pet                     = NULL;
