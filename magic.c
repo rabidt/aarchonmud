@@ -1218,9 +1218,9 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         return;
     
     /* wish casting restrictions */
-    if ( was_wish_cast && (target != TARGET_CHAR || vo == ch) )
+    if ( was_wish_cast && target != TARGET_CHAR )
     {
-        send_to_char ("You can only grant wishes to others.\n\r", ch);
+        send_to_char ("You can only grant wishes to characters.\n\r", ch);
         return;
     }
     
@@ -1232,6 +1232,9 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     mana = meta_magic_adjust_cost(ch, mana, TRUE);
     if ( overcharging )
         mana *= 2;
+    // granting wishes to yourself costs extra
+    if ( was_wish_cast && vo == ch )
+        mana += mana/2;
 
     if ( ch->mana < mana )
     {
@@ -4274,8 +4277,8 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             }
             send_to_char( buf, ch );
             sprintf( buf, 
-                    "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic.\n\r", 
-                    obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+                    "Armor class is %d.\n\r", 
+                    obj->value[0]);
             send_to_char( buf, ch );
             break;
 
@@ -5038,7 +5041,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -5061,7 +5064,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
