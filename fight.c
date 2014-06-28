@@ -6079,7 +6079,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
         }
     }
     
-    int ch_base = (10 + ch->level) * (100 + get_skill(ch, gsn_flee)) / 100;
+    int ch_base = (100 + ch->level) * (100 + get_skill(ch, gsn_flee)) / 100;
     int ch_roll = number_range(0, ch_base);
 
     if ( ch->slow_move > 0 )
@@ -6094,8 +6094,8 @@ void do_flee( CHAR_DATA *ch, char *argument )
             continue;
         
         // harder to flee from PCs
-        int entrapment_factor = (IS_NPC(opp) ? 100 : 200) + get_skill(opp, gsn_entrapment);
-        int opp_base = (10 + opp->level) * entrapment_factor / 100;
+        int entrapment_factor = (IS_NPC(opp) ? 100 : 150) + get_skill(opp, gsn_entrapment);
+        int opp_base = (100 + opp->level) * entrapment_factor / 100;
         int opp_roll = number_range(0, opp_base);
 
         //printf_to_char(ch, "ch_roll(%d) = %d vs %d = opp_roll(%d)\n\r", ch_base, ch_roll, opp_roll, opp_base);
