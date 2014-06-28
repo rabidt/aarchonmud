@@ -985,7 +985,11 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     if ( wield == NULL )
     {
         if ( second == NULL && !hold && !shield )
-            return (100 + 2 * UMIN(ch->level, 100)) / 3;
+        {
+            int base = (100 + 2 * UMIN(ch->level, 100)) / 3;
+            base += (100 - base) * get_skill(ch, gsn_ambidextrous) / 100;
+            return base;
+        }
         else
             return 0;
     }
@@ -1014,10 +1018,32 @@ bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
     return number_range(0, ch_roll) >= number_range(0, victim_roll);
 }
 
-bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
+// apply petrification effect (petrified or only slowed)
+void apply_petrify(CHAR_DATA *ch, bool full)
 {
     AFFECT_DATA af;
+    
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_petrify;
+    af.level     = ch->level;
+    af.duration  = 1;
+    af.location  = APPLY_AGI;
+    
+    if ( full )
+    {
+        af.modifier  = -100;
+        af.bitvector = AFF_PETRIFIED;
+    }
+    else
+    {
+        af.modifier  = -10;
+        af.bitvector = AFF_SLOW;
+    }
+    affect_to_char(ch, &af);
+}
 
+bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
+{
     // saving throw to avoid completely
     if ( saves_spell(victim, ch, ch->level, DAM_HARM) )
         return FALSE;
@@ -1025,27 +1051,17 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     // may already be partially petrified (slowed)
     affect_strip(victim, gsn_petrify);
 
-    af.where     = TO_AFFECTS;
-    af.type      = gsn_petrify;
-    af.level     = ch->level;
-    af.duration  = 1;
-    af.location  = APPLY_AGI;
-    
     // second saving throw to reduce effect to slow
     if ( saves_physical(victim, NULL, ch->level, DAM_HARM) )
     {
-        af.modifier  = -10;
-        af.bitvector = AFF_SLOW;
-        affect_to_char(victim, &af);
+        apply_petrify(victim, FALSE);
         act("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR);
         act("$n is moving more stiffly.", victim, NULL, NULL, TO_ROOM);
         return FALSE; // still a fail
     }
 
     // we have a statue
-    af.modifier  = -100;
-    af.bitvector = AFF_PETRIFIED;
-    affect_to_char(victim, &af);
+    apply_petrify(victim, TRUE);
     act("{WYou are turned to stone!{x", victim, NULL, NULL, TO_CHAR);
     act("{W$n is turned to stone!{x", victim, NULL, NULL, TO_ROOM);
     return TRUE;
@@ -3026,15 +3042,17 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( dam > 1 && IS_AFFECTED(victim, AFF_PETRIFIED) )
     {
         // damage can break petrification
-        if ( per_chance(200 * dam / victim->max_hit) )
+        if ( per_chance(500 * dam / victim->max_hit) )
         {
             printf_to_char(victim, "%s\n\r", skill_table[gsn_petrify].msg_off);
             act("The petrification on $n is broken!", victim, NULL, NULL, TO_ROOM);
             affect_strip_flag(victim, AFF_PETRIFIED);
             REMOVE_BIT(victim->affect_field, AFF_PETRIFIED);
+            // still partially petrified (slowed) afterwards
+            apply_petrify(victim, FALSE);
         }
         else
-            dam /= 2;
+            dam -= dam/4;
     }
 
     if (dt == gsn_beheading)
@@ -3543,7 +3561,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         af.where    = TO_AFFECTS;
         af.type     = gsn_dark_reaping;
         af.level    = power;
-        af.duration = 1;
+        af.duration = 1 + (power/60);
         af.modifier = 0;
         af.bitvector = 0;
         af.location = APPLY_NONE;

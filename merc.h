@@ -4052,6 +4052,7 @@ extern      char last_mprog [MSL];
 extern      char last_debug [MSL];
 
 extern      bool was_obj_cast;
+extern      bool was_wish_cast;
 extern      tflag meta_magic;
 
 
