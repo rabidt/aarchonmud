@@ -3813,8 +3813,10 @@ char *fread_string( FILE *fp )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
@@ -5332,8 +5334,10 @@ char* bread_string( RBUFFER *rbuf )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
