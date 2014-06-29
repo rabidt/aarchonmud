@@ -196,13 +196,13 @@ void violence_update( void )
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
     CHAR_DATA *victim;
-    //bool reverse_order;
+    bool reverse_order;
 
-    //reverse_order = (number_bits(1) == 0);
+    reverse_order = (number_bits(1) == 0);
 
     /* reverse the order in which the chars attack */
-    //if ( reverse_order )
-	//reverse_char_list();
+    if ( reverse_order )
+        reverse_char_list();
     
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
@@ -266,8 +266,8 @@ void violence_update( void )
     }
     
     /* restore the old order in char list */
-    //if ( reverse_order )
-	//reverse_char_list();
+    if ( reverse_order )
+        reverse_char_list();
 }
 
 void reverse_char_list()

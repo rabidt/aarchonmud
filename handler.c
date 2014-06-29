@@ -2254,12 +2254,13 @@ void get_eq_corpse( CHAR_DATA *ch, OBJ_DATA *corpse )
 void char_list_insert( CHAR_DATA *ch )
 {
     // insert so that char_list remains sorted (descending) by id
-    if ( !char_list || char_list->id < ch->id )
+    //if ( !char_list || char_list->id < ch->id )
     {
         ch->next = char_list;
         char_list = ch;
         return;
     }
+    /*
     // find point to insert within sorted list
     CHAR_DATA *prev = char_list;
     while ( prev->next && prev->next->id > ch->id )
@@ -2267,8 +2268,10 @@ void char_list_insert( CHAR_DATA *ch )
     // insert
     ch->next = prev->next;
     prev->next = ch;
+    */
 }
 
+/*
 void assert_char_list()
 {
     CHAR_DATA *ch;
@@ -2286,6 +2289,7 @@ CHAR_DATA* char_list_next( long current_id )
             return ch;
     return NULL;
 }
+*/
 
 void char_from_char_list( CHAR_DATA *ch )
 {
@@ -2328,23 +2332,13 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
 
-    /* fPull should be TRUE if NPC or quitting player (char will get freed) */
-    if ( fPull )
-    {
-        if (g_LuaScriptInProgress || is_mprog_running())
-        {
-            ch->must_extract=TRUE;
-            return FALSE;
-        }
-    }
-
-    /* safety-net against infinite extracting */
-    ch->must_extract = FALSE;
+    /* safety-net against infinite extracting and double-counting */
+    if ( ch->must_extract )
+        return FALSE;
 
     unregister_ch_timer( ch );
 
     nuke_pets(ch);
-    ch->pet = NULL; /* just in case */
 
     if ( fPull )
         die_follower( ch, false );
@@ -2378,8 +2372,11 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
         else
             char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
-        return;
+        return TRUE;
     }
+    
+    // mark for full extraction later on
+    ch->must_extract = TRUE;
 
     if ( IS_NPC(ch) )
         --ch->pIndexData->count;
@@ -2398,14 +2395,11 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             wch->mprog_target = NULL;
     }
 
-    char_from_char_list(ch);
-
     if ( ch->desc != NULL )
     {
         ch->desc->character = NULL;
     }
 
-    free_char( ch );
     return TRUE;
 }
 
