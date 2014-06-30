@@ -401,8 +401,7 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
         case APPLY_MOVE:    ch->max_move    += mod; break;
             
         case APPLY_AC:
-            for (i = 0; i < 4; i ++)
-                ch->armor[i] += mod;
+            ch->armor += mod;
             break;
         case APPLY_HITROLL: ch->hitroll     += mod; break;
         case APPLY_DAMROLL: ch->damroll     += mod; break;
@@ -423,7 +422,6 @@ void reset_char(CHAR_DATA *ch)
     int loc,mod,stat;
     OBJ_DATA *obj;
     AFFECT_DATA *af;
-    int i;
     
     if (IS_NPC(ch))
         return;
@@ -442,8 +440,7 @@ void reset_char(CHAR_DATA *ch)
     ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
     ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
     
-    for (i = 0; i < 4; i++)
-        ch->armor[i]    = 100;
+    ch->armor       = 100;
     
     ch->hitroll     = 0;
     ch->damroll     = 0;
@@ -456,8 +453,7 @@ void reset_char(CHAR_DATA *ch)
         obj = get_eq_char(ch,loc);
         if (obj == NULL)
             continue;
-        for (i = 0; i < 4; i++)
-            ch->armor[i] -= apply_ac( obj, loc, i );
+        ch->armor -= apply_ac( obj, loc );
         
             for ( af = obj->pIndexData->affected; af != NULL; af = af->next )
                 add_apply(ch, af->modifier, af->location);
@@ -1652,30 +1648,30 @@ void obj_from_char( OBJ_DATA *obj )
 /*
  * Find the ac value of an obj, including position effect.
  */
-int apply_ac( OBJ_DATA *obj, int iWear, int type )
+int apply_ac( OBJ_DATA *obj, int iWear )
 {
     if ( obj->item_type != ITEM_ARMOR )
         return 0;
     
     switch ( iWear )
     {
-    case WEAR_TORSO:   return 3 * obj->value[type];
-    case WEAR_HEAD:    return 2 * obj->value[type];
-    case WEAR_LEGS:    return 2 * obj->value[type];
-    case WEAR_FEET:    return     obj->value[type];
-    case WEAR_HANDS:   return     obj->value[type];
-    case WEAR_ARMS:    return     obj->value[type];
-    case WEAR_SHIELD:  return     obj->value[type];
-    case WEAR_NECK_1:  return     obj->value[type];
-    case WEAR_NECK_2:  return     obj->value[type];
-    case WEAR_ABOUT:   return 2 * obj->value[type];
-    case WEAR_WAIST:   return     obj->value[type];
-    case WEAR_WRIST_L: return     obj->value[type];
-    case WEAR_WRIST_R: return     obj->value[type];
-    case WEAR_HOLD:    return     obj->value[type];
-    case WEAR_FINGER_L: return    obj->value[type];
-    case WEAR_FINGER_R: return    obj->value[type];
-    case WEAR_FLOAT:   return     obj->value[type];
+    case WEAR_TORSO:   return 3 * obj->value[0];
+    case WEAR_HEAD:    return 2 * obj->value[0];
+    case WEAR_LEGS:    return 2 * obj->value[0];
+    case WEAR_FEET:    return     obj->value[0];
+    case WEAR_HANDS:   return     obj->value[0];
+    case WEAR_ARMS:    return     obj->value[0];
+    case WEAR_SHIELD:  return     obj->value[0];
+    case WEAR_NECK_1:  return     obj->value[0];
+    case WEAR_NECK_2:  return     obj->value[0];
+    case WEAR_ABOUT:   return 2 * obj->value[0];
+    case WEAR_WAIST:   return     obj->value[0];
+    case WEAR_WRIST_L: return     obj->value[0];
+    case WEAR_WRIST_R: return     obj->value[0];
+    case WEAR_HOLD:    return     obj->value[0];
+    case WEAR_FINGER_L: return    obj->value[0];
+    case WEAR_FINGER_R: return    obj->value[0];
+    case WEAR_FLOAT:   return     obj->value[0];
     }
     
     return 0;
@@ -1710,7 +1706,6 @@ bool class_can_use_obj( int class, OBJ_DATA *obj );
 void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
 {
     AFFECT_DATA *paf;
-    int i;
     
     if (ch == NULL || obj == NULL) {
 	bugf("Equip_char: NULL pointer");
@@ -1759,8 +1754,7 @@ void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
     tattoo_modify_equip( ch, iWear, TRUE, FALSE, FALSE );
     
     // add item armor / affects
-    for (i = 0; i < 4; i++)
-        ch->armor[i] -= apply_ac( obj, iWear,i );
+    ch->armor -= apply_ac( obj, iWear );
     
     for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
         if ( paf->location != APPLY_SPELL_AFFECT )
@@ -1793,7 +1787,7 @@ void unequip_char( CHAR_DATA *ch, OBJ_DATA *obj )
     AFFECT_DATA *paf = NULL;
     AFFECT_DATA *lpaf = NULL;
     AFFECT_DATA *lpaf_next = NULL;
-    int i, iWear;
+    int iWear;
     OBJ_DATA *secondary;
     
     if ((obj->wear_loc == WEAR_WIELD) &&
@@ -1814,8 +1808,7 @@ void unequip_char( CHAR_DATA *ch, OBJ_DATA *obj )
     tattoo_modify_equip( ch, iWear, TRUE, FALSE, FALSE );
 
     // add item armor / affects
-    for (i = 0; i < 4; i++)
-        ch->armor[i] += apply_ac( obj, iWear, i );
+    ch->armor += apply_ac( obj, iWear );
     
     for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
         if ( paf->location == APPLY_SPELL_AFFECT )
@@ -2254,12 +2247,13 @@ void get_eq_corpse( CHAR_DATA *ch, OBJ_DATA *corpse )
 void char_list_insert( CHAR_DATA *ch )
 {
     // insert so that char_list remains sorted (descending) by id
-    if ( !char_list || char_list->id < ch->id )
+    //if ( !char_list || char_list->id < ch->id )
     {
         ch->next = char_list;
         char_list = ch;
         return;
     }
+    /*
     // find point to insert within sorted list
     CHAR_DATA *prev = char_list;
     while ( prev->next && prev->next->id > ch->id )
@@ -2267,8 +2261,10 @@ void char_list_insert( CHAR_DATA *ch )
     // insert
     ch->next = prev->next;
     prev->next = ch;
+    */
 }
 
+/*
 void assert_char_list()
 {
     CHAR_DATA *ch;
@@ -2286,6 +2282,7 @@ CHAR_DATA* char_list_next( long current_id )
             return ch;
     return NULL;
 }
+*/
 
 void char_from_char_list( CHAR_DATA *ch )
 {
@@ -2328,23 +2325,13 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
 
-    /* fPull should be TRUE if NPC or quitting player (char will get freed) */
-    if ( fPull )
-    {
-        if (g_LuaScriptInProgress || is_mprog_running())
-        {
-            ch->must_extract=TRUE;
-            return FALSE;
-        }
-    }
-
-    /* safety-net against infinite extracting */
-    ch->must_extract = FALSE;
+    /* safety-net against infinite extracting and double-counting */
+    if ( ch->must_extract )
+        return FALSE;
 
     unregister_ch_timer( ch );
 
     nuke_pets(ch);
-    ch->pet = NULL; /* just in case */
 
     if ( fPull )
         die_follower( ch, false );
@@ -2378,8 +2365,11 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
         else
             char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
-        return;
+        return TRUE;
     }
+    
+    // mark for full extraction later on
+    ch->must_extract = TRUE;
 
     if ( IS_NPC(ch) )
         --ch->pIndexData->count;
@@ -2398,14 +2388,11 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             wch->mprog_target = NULL;
     }
 
-    char_from_char_list(ch);
-
     if ( ch->desc != NULL )
     {
         ch->desc->character = NULL;
     }
 
-    free_char( ch );
     return TRUE;
 }
 

@@ -1030,7 +1030,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -1274,10 +1274,9 @@ void char_update( void )
     static int curr_tick=0;
     CHAR_DATA *ch;
     CHAR_DATA *ch_quit;
-    bool healmessage, extracted;
+    bool healmessage;
     char buf[MSL];
     static bool hour_update = TRUE;
-    long current_id = 0;
 
     ch_quit = NULL;
 
@@ -1290,17 +1289,8 @@ void char_update( void )
 
     /*update_fighting();*/
 
-    // debug - ensure character list is sorted as expected
-    // we need it sorted so that we know where to continue iterating after extracting characters
-    assert_char_list();
-
-    for ( ch = char_list; ch != NULL; ch = extracted ? char_list_next(current_id) : ch->next )
+    for ( ch = char_list; ch != NULL; ch = ch->next )
     {
-        // if we don't extract, we can just use ch->next (faster)
-        extracted = FALSE;
-        // if we do extract, find next character to check using current ID
-        current_id = ch->id;
-
         if (!IS_VALID(ch))
         {
             bugf("Invalid ch in char_update (%d). Removing from list.",
@@ -1371,7 +1361,7 @@ void char_update( void )
                         && !IS_AFFECTED(ch,AFF_CHARM) && number_percent() < 5)
                 {
                     act("$n wanders on home.",ch,NULL,NULL,TO_ROOM);
-                    extracted = extract_char(ch,TRUE);
+                    extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1380,7 +1370,7 @@ void char_update( void )
                 {
                     act("$n crumbles into dust.",ch,NULL,NULL,TO_ROOM);
                     drop_eq( ch );
-                    extracted = extract_char(ch,TRUE);
+                    extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1389,7 +1379,7 @@ void char_update( void )
                         && number_bits(3)==0 )
                 {
                     act("$n vanishes into the ether.",ch,NULL,NULL,TO_ROOM);
-                    extracted = extract_char(ch,TRUE);
+                    extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1399,7 +1389,7 @@ void char_update( void )
                         && number_bits(3)==0 )
                 {
                     act("$n wanders off.",ch,NULL,NULL,TO_ROOM);
-                    extracted = extract_char(ch,TRUE);
+                    extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1552,7 +1542,6 @@ void char_update( void )
                 if ( ch->timer > 30 )
                 {
                     do_quit( ch, "" );
-                    extracted = TRUE;
                     continue;
                 }
             }
@@ -2488,7 +2477,8 @@ void extract_update( void )
         }
         else if ( ch->must_extract )
         {
-            extract_char(ch, TRUE);
+            char_from_char_list(ch);
+            free_char(ch);
             ch = char_list;
         }
         else
@@ -2634,6 +2624,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */
