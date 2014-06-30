@@ -767,7 +767,7 @@ struct align_type align_table [] =
     },
 
     {
-    "medusa",        TRUE,
+    "gorgon",        TRUE,
     {},      {},   {},
     {},      {}, {},
     {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
@@ -1720,7 +1720,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         {
-          "medusa",   "Medusa",
+          "gorgon",   "Gorgon",
           { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
           5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
           {1, 10, 20, 30, 50}, {100, 100, 80, 50, 50},

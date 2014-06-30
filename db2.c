@@ -45,6 +45,7 @@ char *flag_string( const struct flag_type *flag_table, tflag bits );
 char *flag_stat_string( const struct flag_type *flag_table, int bit );
 
 #define VER_NEW_MOB_LDESC 3
+#define VER_ONE_AC_VAL    4
 #define FLAG_READ_SET(fp,flag,set_flag) fread_tflag(fp,flag); flag_set_field(flag,set_flag)
 
 /*
@@ -153,10 +154,14 @@ void load_mobiles( FILE *fp )
         pMobIndex->dam_type		= attack_lookup(fread_word(fp));
 
         /* read armor class */
-        pMobIndex->ac[AC_PIERCE]	= fread_number( fp ) * 10;
-        pMobIndex->ac[AC_BASH]		= fread_number( fp ) * 10;
-        pMobIndex->ac[AC_SLASH]		= fread_number( fp ) * 10;
-        pMobIndex->ac[AC_EXOTIC]	= fread_number( fp ) * 10;
+        pMobIndex->ac           = fread_number( fp ) * 10;
+        if (area_version < VER_ONE_AC_VAL)
+        {
+            /* read the first value, burn the other 3 */
+            fread_number( fp );
+            fread_number( fp );
+            fread_number( fp );
+        }
 
         /* read flags and add in data from the race table */
         FLAG_READ_SET( fp, pMobIndex->off_flags, race_table[pMobIndex->race].off );
@@ -951,9 +956,8 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
                     attack_table[mob->dam_type].name);
             fprintf( fp, buf );
 
-            sprintf(buf,"Armor: pierce: %d  bash: %d  slash: %d  magic: %d\n",
-                    GET_AC(mob,AC_PIERCE), GET_AC(mob,AC_BASH),
-                    GET_AC(mob,AC_SLASH),  GET_AC(mob,AC_EXOTIC));
+            sprintf(buf,"Armor: %d\n",
+                    GET_AC(mob));
             fprintf( fp, buf );
 
             sprintf(buf, "Act: %s\n",act_bits_name(mob->act));

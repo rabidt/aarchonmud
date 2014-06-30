@@ -196,13 +196,13 @@ void violence_update( void )
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
     CHAR_DATA *victim;
-    //bool reverse_order;
+    bool reverse_order;
 
-    //reverse_order = (number_bits(1) == 0);
+    reverse_order = (number_bits(1) == 0);
 
     /* reverse the order in which the chars attack */
-    //if ( reverse_order )
-	//reverse_char_list();
+    if ( reverse_order )
+        reverse_char_list();
     
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
@@ -266,8 +266,8 @@ void violence_update( void )
     }
     
     /* restore the old order in char list */
-    //if ( reverse_order )
-	//reverse_char_list();
+    if ( reverse_order )
+        reverse_char_list();
 }
 
 void reverse_char_list()
@@ -985,7 +985,11 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     if ( wield == NULL )
     {
         if ( second == NULL && !hold && !shield )
-            return (100 + 2 * UMIN(ch->level, 100)) / 3;
+        {
+            int base = (100 + 2 * UMIN(ch->level, 100)) / 3;
+            base += (100 - base) * get_skill(ch, gsn_ambidextrous) / 100;
+            return base;
+        }
         else
             return 0;
     }
@@ -1014,10 +1018,32 @@ bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
     return number_range(0, ch_roll) >= number_range(0, victim_roll);
 }
 
-bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
+// apply petrification effect (petrified or only slowed)
+void apply_petrify(CHAR_DATA *ch, bool full)
 {
     AFFECT_DATA af;
+    
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_petrify;
+    af.level     = ch->level;
+    af.duration  = 1;
+    af.location  = APPLY_AGI;
+    
+    if ( full )
+    {
+        af.modifier  = -100;
+        af.bitvector = AFF_PETRIFIED;
+    }
+    else
+    {
+        af.modifier  = -10;
+        af.bitvector = AFF_SLOW;
+    }
+    affect_to_char(ch, &af);
+}
 
+bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
+{
     // saving throw to avoid completely
     if ( saves_spell(victim, ch, ch->level, DAM_HARM) )
         return FALSE;
@@ -1025,27 +1051,17 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     // may already be partially petrified (slowed)
     affect_strip(victim, gsn_petrify);
 
-    af.where     = TO_AFFECTS;
-    af.type      = gsn_petrify;
-    af.level     = ch->level;
-    af.duration  = 1;
-    af.location  = APPLY_AGI;
-    
     // second saving throw to reduce effect to slow
     if ( saves_physical(victim, NULL, ch->level, DAM_HARM) )
     {
-        af.modifier  = -10;
-        af.bitvector = AFF_SLOW;
-        affect_to_char(victim, &af);
+        apply_petrify(victim, FALSE);
         act("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR);
         act("$n is moving more stiffly.", victim, NULL, NULL, TO_ROOM);
         return FALSE; // still a fail
     }
 
     // we have a statue
-    af.modifier  = -100;
-    af.bitvector = AFF_PETRIFIED;
-    affect_to_char(victim, &af);
+    apply_petrify(victim, TRUE);
     act("{WYou are turned to stone!{x", victim, NULL, NULL, TO_CHAR);
     act("{W$n is turned to stone!{x", victim, NULL, NULL, TO_ROOM);
     return TRUE;
@@ -1348,6 +1364,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -2138,13 +2156,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     else
 	ac_dam_type = FIRST_DAMAGE( dam_type );
 
-    switch( ac_dam_type )
-    {
-    case(DAM_PIERCE): victim_ac = GET_AC(victim,AC_PIERCE)/10;   break;
-    case(DAM_BASH):   victim_ac = GET_AC(victim,AC_BASH)/10;     break;
-    case(DAM_SLASH):  victim_ac = GET_AC(victim,AC_SLASH)/10;    break;
-    default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
-    }
+    victim_ac = GET_AC(victim)/10;
 
     /* basic values */
     ch_roll = GET_HITROLL(ch);
@@ -3036,15 +3048,17 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( dam > 1 && IS_AFFECTED(victim, AFF_PETRIFIED) )
     {
         // damage can break petrification
-        if ( per_chance(200 * dam / victim->max_hit) )
+        if ( per_chance(500 * dam / victim->max_hit) )
         {
             printf_to_char(victim, "%s\n\r", skill_table[gsn_petrify].msg_off);
             act("The petrification on $n is broken!", victim, NULL, NULL, TO_ROOM);
             affect_strip_flag(victim, AFF_PETRIFIED);
             REMOVE_BIT(victim->affect_field, AFF_PETRIFIED);
+            // still partially petrified (slowed) afterwards
+            apply_petrify(victim, FALSE);
         }
         else
-            dam /= 2;
+            dam -= dam/4;
     }
 
     if (dt == gsn_beheading)
@@ -3553,7 +3567,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         af.where    = TO_AFFECTS;
         af.type     = gsn_dark_reaping;
         af.level    = power;
-        af.duration = 1;
+        af.duration = 1 + (power/60);
         af.modifier = 0;
         af.bitvector = 0;
         af.location = APPLY_NONE;
@@ -6036,6 +6050,8 @@ void do_flee( CHAR_DATA *ch, char *argument )
     
     // we now have a chance to escape, so lag is given now, regardless of success
     int wait = rand_div(PULSE_VIOLENCE * (10 - mastery_bonus(ch, gsn_flee, 4, 5)), 10);
+    if ( IS_AFFECTED(ch, AFF_HASTE) )
+        wait = rand_div(wait * 2, 3);
     if ( ch->stance == STANCE_BUNNY )
         wait = rand_div(wait, 2);
     WAIT_STATE(ch, wait);
@@ -6085,7 +6101,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
         }
     }
     
-    int ch_base = (10 + ch->level) * (100 + get_skill(ch, gsn_flee)) / 100;
+    int ch_base = (100 + ch->level) * (100 + get_skill(ch, gsn_flee)) / 100;
     int ch_roll = number_range(0, ch_base);
 
     if ( ch->slow_move > 0 )
@@ -6096,12 +6112,12 @@ void do_flee( CHAR_DATA *ch, char *argument )
     
     for ( opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room )
     {
-        if ( opp->fighting != ch || is_wimpy(opp) )
+        if ( opp->fighting != ch || !can_attack(opp) || is_wimpy(opp) )
             continue;
         
         // harder to flee from PCs
-        int entrapment_factor = (IS_NPC(opp) ? 100 : 200) + get_skill(opp, gsn_entrapment);
-        int opp_base = (10 + opp->level) * entrapment_factor / 100;
+        int entrapment_factor = (IS_NPC(opp) ? 100 : 150) + get_skill(opp, gsn_entrapment);
+        int opp_base = (100 + opp->level) * entrapment_factor / 100;
         int opp_roll = number_range(0, opp_base);
 
         //printf_to_char(ch, "ch_roll(%d) = %d vs %d = opp_roll(%d)\n\r", ch_base, ch_roll, opp_roll, opp_base);
