@@ -1312,7 +1312,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
         WAIT_STATE(victim, PULSE_VIOLENCE);
         victim->stop++;
-        int dam = martial_damage(ch, gsn_boa) * 2;
+        int dam = martial_damage(ch, victim, gsn_boa) * 2;
         full_dam(ch, victim, dam, gsn_boa, DAM_BASH, TRUE);
     }
     
@@ -1538,7 +1538,7 @@ int get_twohand_bonus( CHAR_DATA *ch, OBJ_DATA *wield, bool improve )
 }
 
 /* returns the damage ch deals with one hit */
-int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
+int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
 {
     int dam;
 
@@ -1605,6 +1605,12 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
 	dam *= 2;
     else if ( dt == gsn_parry )
 	dam /= 2;
+    // flanking
+    else if ( victim && victim != ch && victim->fighting && victim->fighting != ch )
+    {
+        dam += ch->level * (get_skill(ch, gsn_flanking) + mastery_bonus(ch, gsn_flanking, 30, 50)) / 150;
+        check_improve (ch, gsn_flanking, TRUE, 5);
+    }
 
     /* anatomy */
     if ( (dt == gsn_backstab || dt == gsn_back_leap || dt == gsn_circle || dt == gsn_slash_throat) && chance(get_skill(ch, gsn_anatomy)) )
@@ -1618,9 +1624,9 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     return number_range( dam * 2/3, dam );
 }
 
-int martial_damage( CHAR_DATA *ch, int sn )
+int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 {
-    int dam = one_hit_damage( ch, sn, NULL );
+    int dam = one_hit_damage( ch, victim, sn, NULL );
     
     dam += dam * mastery_bonus(ch, sn, 15, 25) / 100;
 
@@ -1931,7 +1937,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
      * Hit.
      * Calc damage.
      */
-    dam = one_hit_damage( ch, dt, wield );
+    dam = one_hit_damage( ch, victim, dt, wield );
     
     if ( offence )
     {
@@ -4392,7 +4398,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	     && !IS_NPC(ch)
 	     && (wield = get_eq_char(victim, WEAR_WIELD)) != NULL )
 	{
-	    dam = one_hit_damage(victim, gsn_parry, wield) * (100 - mastery_bonus(ch, gsn_hand_to_hand, 30, 50)) / 100;
+	    dam = one_hit_damage(victim, ch, gsn_parry, wield) * (100 - mastery_bonus(ch, gsn_hand_to_hand, 30, 50)) / 100;
 	    dam_type = get_weapon_damtype( wield );
 	    full_dam( victim, ch, dam, gsn_parry, dam_type, TRUE );
 	}
