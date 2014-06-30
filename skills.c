@@ -1875,8 +1875,8 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 	 || (sn==-1) )
 	return TRUE;
 
-    if ((sn==gsn_backstab) || (sn==gsn_circle))
-	return IS_SET(ch->act, ACT_THIEF);
+    if ( sn==gsn_backstab || sn==gsn_circle || sn==gsn_flanking )
+        return IS_SET(ch->act, ACT_THIEF);
     if ((sn==gsn_lore) || (sn==gsn_arcane_lore))
 	return IS_SET(ch->act, ACT_MAGE);
     if ( sn == gsn_enhanced_damage )
