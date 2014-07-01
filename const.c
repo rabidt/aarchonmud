@@ -767,7 +767,7 @@ struct align_type align_table [] =
     },
 
     {
-    "medusa",        TRUE,
+    "gorgon",        TRUE,
     {},      {},   {},
     {},      {}, {},
     {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
@@ -1633,7 +1633,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           "phantom",   "Phantm",
           { 270, 265, 270, 270, 270, 275, 275, 265, 260, 270, 270, 255, 270, 270, 270 },
           5, { "invisibility", "shadowclaw", "shadowsoul", "basic apparition", "phantasmal image" },
-          {1, 10, 20, 40, 50}, {100, 95, 95, 90, 80},
+          {1, 10, 20, 40, 50}, {100, 95, 95, 70, 60},
           {  45,  50,  50,  65,  65,      65,  65,  65,  45,  60 },
           { 135, 135, 135, 150, 150,     145, 140, 140, 135, 140 },   
           {   3,   4,   4,   5,   5,       4,   4,   4,   3,   4 },
@@ -1666,7 +1666,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           "voadkin",   "Voadki",
           { 270, 265, 270, 270, 270, 270, 270, 265, 265, 270, 265, 270, 265, 260, 275 },
           5, { "bow", "fledging", "woodland combat", "hunt", "beast mastery" },
-          { 10, 10, 20, 30, 40 }, { 95, 95, 90, 80, 80 },
+          { 10, 10, 20, 30, 40 }, { 100, 100, 95, 90, 100 },
           {  55,  55,  55,  55,  55,      55,  55,  55,  55,  55 },
           { 140, 140, 140, 140, 145,     140, 145, 140, 140, 140 },   
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
@@ -1720,7 +1720,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         {
-          "medusa",   "Medusa",
+          "gorgon",   "Gorgon",
           { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
           5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
           {1, 10, 20, 30, 50}, {100, 100, 80, 50, 50},
@@ -4859,6 +4859,16 @@ struct  skill_type  skill_table [MAX_SKILL] =
 		"",                     "!Enhanced Damage!",    "", NULL
 	},
 
+    {
+    "flanking", 
+    { 102, 13, 102, 102,  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 12, 10,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_DEX, STAT_LUC, STAT_AGI,
+    spell_null,             TAR_IGNORE,             POS_FIGHTING,
+    &gsn_flanking,           0,     0, DUR_NONE,
+    "",                     "!Flanking!",    "", NULL
+    },
 
 	{
 	"ashura", 
