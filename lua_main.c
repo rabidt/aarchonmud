@@ -33,8 +33,9 @@ int GetLuaGameObjectCount()
         return -1;
     }
 
-    return (int)luaL_checknumber( g_mud_LS, -1 ); 
-
+    int rtn=luaL_checkinteger( g_mud_LS, -1 );
+    lua_pop( g_mud_LS, 1 );
+    return rtn;
 }
 
 int GetLuaEnvironmentCount()
@@ -47,7 +48,9 @@ int GetLuaEnvironmentCount()
         return -1;
     }
 
-    return (int)luaL_checknumber( g_mud_LS, -1 );
+    int rtn=luaL_checkinteger( g_mud_LS, -1 );
+    lua_pop( g_mud_LS, 1 );
+    return rtn;
 }
 
 static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
@@ -1055,3 +1058,14 @@ void do_diagnostic( CHAR_DATA *ch, char *argument)
         lua_pop( g_mud_LS, 1);
     }
 }
+
+void check_lua_stack()
+{
+    int top=lua_gettop( g_mud_LS );
+    if ( top > 0 )
+    {
+        bugf("%d items left on Lua stack. Clearing.", top );
+        lua_settop( g_mud_LS, 0);
+    }
+}
+
