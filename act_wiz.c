@@ -2638,8 +2638,7 @@ void do_pload( CHAR_DATA *ch, char *argument )
     }
     
     d.character->desc 	= NULL;
-    d.character->next	= char_list;
-    char_list    		= d.character;
+    char_list_insert(d.character);
     d.connected   	= CON_PLAYING;
     reset_char(d.character);
     
@@ -3428,7 +3427,6 @@ struct
     PRFLAG( apply_flags, ""),
     PRFLAG( wear_loc_strings, ""),
     PRFLAG( container_flags, ""),
-    PRFLAG( ac_type, ""),
     PRFLAG( size_flags, ""),
     PRFLAG( weapon_class, ""),
     PRFLAG( weapon_type2, ""),

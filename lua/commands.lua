@@ -1491,17 +1491,135 @@ local function DESCRIPTOR_diag( ch, args )
     sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
 end
 
+local function rexit_diag_here( ch, args )
+    local out={}
+    local here=ch.room
+
+    table.insert( out, "Room exits linking here: \n\r" )
+    local cnt=0
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,exit in pairs(room.exits) do
+                if room[exit].toroom==here then
+                    cnt=cnt+1
+                    table.insert( out, 
+                      ("%3d. %s{x [%6d] %s{x %s\n\r"):format(
+                        cnt,
+                        util.format_color_string( area.name, 20 ),
+                        room.vnum,
+                        util.format_color_string( room.name, 20 ),
+                        exit)
+                    )
+                end
+            end
+        end
+    end
+
+    table.insert( out, "\n\r")
+
+    table.insert( out, "Portals linking here: \n\r" )
+    cnt=0
+    for _,area in pairs(getarealist()) do
+        for _,op in pairs(area.objprotos) do
+            if op.otype=="portal" then
+                if op.toroom==here.vnum then
+                    cnt=cnt+1
+                    table.insert( out,
+                      ("%3d. %s{x [%6d] %s{x\n\r"):format(
+                        cnt,
+                        util.format_color_string( area.name, 20 ),
+                        op.vnum,
+                        op.shortdescr)
+                    )
+                end
+            end
+        end
+    end
+    
+    pagetochar( ch, table.concat( out ).."\n\r" )
+end
+
+local function rexit_diag( ch, args )
+    local ingame=args[1]=="ingame"
+    local unlinked={}
+    local rooms={}
+    local portals={}
+
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="ROOM" then
+            unlinked[v]=true
+            table.insert(rooms, v )
+        end
+    end
+
+    for _,room in pairs(rooms) do
+        for _,exit in pairs(room.exits) do
+            if room[exit].toroom then
+                unlinked[room[exit].toroom]=nil
+            end
+        end
+    end
+
+    for k,v in pairs(reg) do
+        if tostring(v)=="OBJPROTO" then
+            if v.otype=="portal" then
+                table.insert(portals, v)
+            end
+        end
+    end
+
+    for _,portal in pairs(portals) do
+        local r=getroom(portal.toroom)
+        if r then
+            unlinked[r]=nil
+        end
+    end
+
+    local cnt=0
+    local out={}
+    local sorted={}
+    for k,v in pairs(unlinked) do
+        if (not(ingame)  or k.ingame) then
+            table.insert(sorted, k)
+        end
+    end
+    table.sort(sorted, function(a,b) return a.area.name<b.area.name end )
+    for k,v in pairs(sorted) do
+        cnt=cnt+1
+        table.insert( out, ("%3d. [%6d] %s{x %s{x\n\r"):format( 
+                cnt, 
+                v.vnum, 
+                util.format_color_string(v.area.name,20), 
+                v.name ) )
+    end
+    sendtochar( ch, cnt.."\n\r")
+    pagetochar( ch, table.concat(out).."\n\r" )
+end
+
 local function diagnostic_usage( ch )
     pagetochar( ch, [[
 diagnostic ch   -- Run CHAR_DATA diagnostic
 diagnostic desc -- Run DESCRIPTOR_DATA diagnostic
+diagnostic rexit -- List rooms that have no link to them from room or portal
+                    Optional arg 'ingame' to show only ingame rooms.
+diagnostic rexit here -- List all exits leading to current room.
 ]])
 end
 function do_diagnostic( ch, argument )
-    if argument=="ch" then
-        CH_diag( ch )
-    elseif argument=="desc" then
-        DESCRIPTOR_diag( ch )
+    local args=arguments(argument)
+    local arg1=args[1]
+    table.remove(args,1)
+    if arg1=="ch" then
+        CH_diag( ch, args )
+    elseif arg1=="desc" then
+        DESCRIPTOR_diag( ch, args )
+    elseif arg1=="rexit" then
+        if args[1]=="here" then
+            rexit_diag_here( ch, args )
+        else
+            rexit_diag( ch, args )
+        end
     else
         diagnostic_usage( ch )
     end
