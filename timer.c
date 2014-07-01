@@ -372,7 +372,7 @@ char * print_timer_list()
     int i=1;
     for ( tmr=first_timer; tmr; tmr=tmr->next )
     {
-        if ( !valid_UD( tmr->game_obj ) )
+        if ( tmr->tm_type==TM_PROG && !valid_UD( tmr->game_obj ) )
         {
             bugf("Invalid game_obj in print_timer_list.");
             continue;
