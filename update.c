@@ -2650,6 +2650,7 @@ void update_handler( void )
         aggr_update();
         death_update();
         extract_update();
+        cleanup_uds();
     }
 
     tail_chain( );
