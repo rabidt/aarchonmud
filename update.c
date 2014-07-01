@@ -2468,9 +2468,9 @@ void extract_update( void )
     CHAR_DATA *ch = char_list;
     while ( ch )
     {
-        if ( !IS_VALID(ch) )
+        if ( !valid_CH(ch) )
         {
-            bugf("Invalid ch in extract_update: %d", ch->pIndexData ? ch->pIndexData->vnum : 0 );
+            bugf("Invalid ch in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
             char_from_char_list(ch);
             ch = char_list;
@@ -2490,9 +2490,9 @@ void extract_update( void )
     OBJ_DATA *obj = object_list;
     while ( obj )
     {  
-        if ( !IS_VALID(obj) )
+        if ( !valid_OBJ(obj) )
         {
-            bugf("Invalid obj in extract_update: %d", obj->pIndexData ? obj->pIndexData->vnum : 0 );
+            bugf("Invalid obj in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
             obj_from_object_list(obj);
             obj = object_list;

@@ -4723,7 +4723,7 @@ void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
 #define ACT_ARG_TEXT 2
 #define ACT_ARG_CHARACTER 3
 
-
+bool valid_UD( const char *ud );
 #define declf( ltype, ctype ) \
 ctype * check_ ## ltype ( lua_State *LS, int index ); \
 bool    is_ ## ltype ( lua_State *LS, int index ); \
