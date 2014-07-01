@@ -1055,3 +1055,13 @@ void do_diagnostic( CHAR_DATA *ch, char *argument)
         lua_pop( g_mud_LS, 1);
     }
 }
+
+void check_lua_stack()
+{
+    int top=lua_gettop( g_mud_LS );
+    if ( top > 0 )
+    {
+        bugf("%d items left on Lua stack.", top );
+    }
+}
+

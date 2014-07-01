@@ -10,6 +10,9 @@ envtbl={} -- game object script environments
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
 
+cleanup={}
+validuds={}
+
 function UdCnt()
     local reg=debug.getregistry()
 
