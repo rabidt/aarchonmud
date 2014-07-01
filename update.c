@@ -2478,7 +2478,6 @@ void extract_update( void )
         else if ( ch->must_extract )
         {
             char_from_char_list(ch);
-            unregister_ch_timer( ch );
             free_char(ch);
             ch = char_list;
         }
