@@ -131,6 +131,7 @@ sh_int  gsn_disarm_trap;
 
 sh_int  gsn_disarm;
 sh_int  gsn_enhanced_damage;
+sh_int  gsn_flanking;
 sh_int  gsn_kick;
 sh_int  gsn_gouge;
 sh_int  gsn_chop;
@@ -3059,8 +3060,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mprog_setup(mob);
     
     /* link the mob to the world list */
-    mob->next       = char_list;
-    char_list       = mob;
+    char_list_insert(mob);
     pMobIndex->count++;
 
     return mob;
@@ -3154,8 +3154,7 @@ void clone_mobile(CHAR_DATA *parent, CHAR_DATA *clone)
     clone->default_pos  = parent->default_pos;
     clone->spec_fun = parent->spec_fun;
     
-    for (i = 0; i < 4; i++)
-        clone->armor[i] = parent->armor[i];
+    clone->armor = parent->armor;
     
     for (i = 0; i < MAX_STATS; i++)
     {
@@ -3422,8 +3421,7 @@ void clear_char( CHAR_DATA *ch )
     ch->prompt                  = &str_empty[0];
     ch->logon           = current_time;
     ch->lines           = PAGELEN;
-    for (i = 0; i < 4; i++)
-        ch->armor[i]        = 100;
+    ch->armor           = 100;
     ch->position        = POS_STANDING;
     ch->hit         = 20;
     ch->max_hit         = 20;
@@ -3814,8 +3812,10 @@ char *fread_string( FILE *fp )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
@@ -5333,8 +5333,10 @@ char* bread_string( RBUFFER *rbuf )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )

@@ -1030,7 +1030,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -1273,7 +1273,6 @@ void char_update( void )
 {   
     static int curr_tick=0;
     CHAR_DATA *ch;
-    CHAR_DATA *ch_next;
     CHAR_DATA *ch_quit;
     bool healmessage;
     char buf[MSL];
@@ -1290,44 +1289,19 @@ void char_update( void )
 
     /*update_fighting();*/
 
-    for ( ch = char_list; ch != NULL; ch = ch_next )
+    for ( ch = char_list; ch != NULL; ch = ch->next )
     {
-        ch_next = ch->next;
-
         if (!IS_VALID(ch))
         {
             bugf("Invalid ch in char_update (%d). Removing from list.",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
             /* invalid should mean already freed, just kill it from the list */
-            if ( ch == char_list )
-            {
-                char_list = ch->next;
-            }
-            else
-            {
-                CHAR_DATA *prev;
-
-                for ( prev = char_list ; prev ; prev = prev->next )
-                {
-                    if ( prev->next == ch )
-                    {
-                        prev->next = ch->next;
-                        break;
-                    }
-                }
-
-                if (!prev)
-                    bugf("Couldn't find invalid ch in list to remove.");
-
-            }
+            char_from_char_list(ch);
             continue;
         }
         
         if (ch->must_extract)
             continue;
-
-        if ( ch->timer > 30 )
-            ch_quit = ch;
 
         /* Check for natural resistance */
         if ( get_skill(ch, gsn_natural_resistance) >= 0)
@@ -1564,6 +1538,12 @@ void char_update( void )
                     char_from_room( ch );
                     char_to_room( ch, get_room_index( ROOM_VNUM_LIMBO ) );
                 }
+
+                if ( ch->timer > 30 )
+                {
+                    do_quit( ch, "" );
+                    continue;
+                }
             }
 
             if ((ch->desc == NULL) || IS_WRITING_NOTE(ch->desc->connected)) {}
@@ -1713,23 +1693,6 @@ void char_update( void )
         if ( !IS_NPC(ch) )
             check_beast_mastery( ch );
 
-    }
-
-    /*
-     * Autosave and autoquit.
-     * Check that these chars still exist.
-     */
-    for ( ch = char_list; ch != NULL; ch = ch_next )
-    {
-        ch_next = ch->next;
-
-        /* Bobble: we got simultanious saves now
-           if (ch->desc != NULL && ch->desc->descriptor % 30 == save_number)
-           save_char_obj(ch);
-         */
-
-        if ( ch == ch_quit )
-            do_quit( ch, "" );
     }
 
     return;
@@ -2514,7 +2477,8 @@ void extract_update( void )
         }
         else if ( ch->must_extract )
         {
-            extract_char(ch, TRUE);
+            char_from_char_list(ch);
+            free_char(ch);
             ch = char_list;
         }
         else
@@ -2660,6 +2624,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */

@@ -4859,6 +4859,16 @@ struct  skill_type  skill_table [MAX_SKILL] =
 		"",                     "!Enhanced Damage!",    "", NULL
 	},
 
+    {
+    "flanking", 
+    { 102, 13, 102, 102,  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 12, 10,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_DEX, STAT_LUC, STAT_AGI,
+    spell_null,             TAR_IGNORE,             POS_FIGHTING,
+    &gsn_flanking,           0,     0, DUR_NONE,
+    "",                     "!Flanking!",    "", NULL
+    },
 
 	{
 	"ashura", 
