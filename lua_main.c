@@ -33,8 +33,9 @@ int GetLuaGameObjectCount()
         return -1;
     }
 
-    return (int)luaL_checknumber( g_mud_LS, -1 ); 
-
+    int rtn=luaL_checkinteger( g_mud_LS, -1 );
+    lua_pop( g_mud_LS, 1 );
+    return rtn;
 }
 
 int GetLuaEnvironmentCount()
@@ -47,7 +48,9 @@ int GetLuaEnvironmentCount()
         return -1;
     }
 
-    return (int)luaL_checknumber( g_mud_LS, -1 );
+    int rtn=luaL_checkinteger( g_mud_LS, -1 );
+    lua_pop( g_mud_LS, 1 );
+    return rtn;
 }
 
 static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
