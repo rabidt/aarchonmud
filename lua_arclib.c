@@ -8483,6 +8483,12 @@ void cleanup_uds()
     lua_setglobal( g_mud_LS, "cleanup" );
 } 
 
+/* all the valid checks do the same ATM, fix this if they ever don't */
+bool valid_UD( const char *ud )
+{
+    return valid_CH( ud );
+}
+
 #define REF_FREED -1
 
 #define declb( LTYPE , CTYPE , TPREFIX ) \
