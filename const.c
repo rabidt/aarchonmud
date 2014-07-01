@@ -2673,7 +2673,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_cause_critical,   TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+	spell_cause_harm,   TAR_CHAR_OFFENSIVE, POS_FIGHTING,
 	NULL,              20, 12, DUR_NONE,
 	"spell",        "!Cause Critical!", "", NULL
 	},
@@ -2684,7 +2684,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_cause_light,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+	spell_cause_harm,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
 	NULL,              15, 12, DUR_NONE,
 	"spell",        "!Cause Light!",    "", NULL
 	},
@@ -2695,7 +2695,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_cause_serious,    TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+	spell_cause_harm,    TAR_CHAR_OFFENSIVE, POS_FIGHTING,
 	NULL,              17, 12, DUR_NONE,
 	"spell",        "!Cause Serious!",  "", NULL
 	},
@@ -3461,7 +3461,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_harm,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+	spell_cause_harm,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
 	NULL,              35, 12, DUR_NONE,
 	"harm spell",       "!Harm!",       "", NULL
 	},

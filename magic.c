@@ -2022,45 +2022,6 @@ void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
 }
 
-void spell_cause_light( int sn, int level, CHAR_DATA *ch, void *vo,int target )
-{
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage( sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/16),0);
-    direct_damage(ch, victim, harm, sn);
-    if ( ch != victim )
-        send_to_char( "Ok.\n\r", ch );
-
-    return;
-}
-
-void spell_cause_critical(int sn,int level,CHAR_DATA *ch,void *vo,int target)
-{
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage( sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/4),0);
-    direct_damage(ch, victim, harm, sn);
-    if ( ch != victim )
-        send_to_char( "Ok.\n\r", ch );
-
-    return;
-}
-
-void spell_cause_serious(int sn,int level,CHAR_DATA *ch,void *vo,int target)
-{
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage( sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/8),0);
-    direct_damage(ch, victim, harm, sn);
-    if ( ch != victim )
-        send_to_char( "Ok.\n\r", ch );
-
-    return;
-}
-
 CHAR_DATA* get_next_victim( CHAR_DATA *ch, CHAR_DATA *start_victim )
 {
     CHAR_DATA *victim;
@@ -3791,19 +3752,16 @@ void spell_giant_strength(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-
-
-void spell_harm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+/* used for harm as well as cause X spells */
+void spell_cause_harm( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage(sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/2),0);
+    int harm = get_sn_damage(sn, level, ch);
+    // scale with victim's health
+    harm *= (0.5 + (float)victim->hit / victim->max_hit) / 2;
     direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
-
-    return;
 }
 
 /* RT haste spell */
