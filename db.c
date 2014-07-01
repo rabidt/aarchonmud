@@ -665,15 +665,19 @@ void boot_db()
         for ( i = 0; i<MAX_PC_RACE; i++)
             for (j=0; j<pc_race_table[i].num_skills; j++)
             {
-                pc_race_table[i].skill_gsns[j]=
-                    skill_lookup(pc_race_table[i].skills[j]);
+                sn = skill_lookup_exact(pc_race_table[i].skills[j]);
+                if ( sn < 0 )
+                    bugf("Unknown %s racial skill %s.", pc_race_table[i].name, pc_race_table[i].skills[j]);
+                pc_race_table[i].skill_gsns[j] = sn;
             }
 	/* morph races */
         for ( i = 0; i < MAX_MORPH_RACE; i++)
             for (j=0; j < morph_pc_race_table[i].num_skills; j++)
             {
-                morph_pc_race_table[i].skill_gsns[j]=
-                    skill_lookup(morph_pc_race_table[i].skills[j]);
+                sn = skill_lookup_exact(morph_pc_race_table[i].skills[j]);
+                if ( sn < 0 )
+                    bugf("Unknown %s morphed skill %s.", morph_pc_race_table[i].name, morph_pc_race_table[i].skills[j]);
+                morph_pc_race_table[i].skill_gsns[j] = sn;
             }
     }
 
@@ -3813,8 +3817,10 @@ char *fread_string( FILE *fp )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
@@ -5332,8 +5338,10 @@ char* bread_string( RBUFFER *rbuf )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
