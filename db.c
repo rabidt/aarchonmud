@@ -53,7 +53,6 @@
 #include "olc.h"
 #include "buffer_util.h"
 #include "mob_stats.h"
-#include "lua_arclib.h"
 
 extern  int _filbuf     args( (FILE *) );
 
