@@ -2291,6 +2291,26 @@ CHAR_DATA* char_list_next( long current_id )
 }
 */
 
+CHAR_DATA* char_list_next_char( CHAR_DATA *ch )
+{
+    // safety net
+    if ( ch == NULL )
+        return NULL;
+    
+    ch = ch->next;
+    // skip characters marked for extraction and look for invalid ones
+    while ( ch && (!valid_CH(ch) || ch->must_extract) )
+    {
+        if ( !valid_CH(ch) )
+        {
+            bugf("char_list_next_char: invalid character");
+            return NULL;
+        }
+        ch = ch->next;
+    }
+    return ch;
+}
+
 void char_from_char_list( CHAR_DATA *ch )
 {
     if ( ch == char_list )
