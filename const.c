@@ -6969,7 +6969,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_mephistons_scrutiny,        TAR_CHAR_DEFENSIVE, POS_STANDING,
+	spell_mephistons_scrutiny,        TAR_CHAR_SELF, POS_STANDING,
 	NULL,               50, 12, DUR_NONE,
 	"",         "Your prayers are no longer heard by Mephiston.","", NULL
 	},
