@@ -2782,7 +2782,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_continual_light,  TAR_IGNORE,     POS_STANDING,
+	spell_continual_light,  TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,               7, 12, DUR_SPECIAL,
 	"",         "!Continual Light!",    "", NULL
 	},
@@ -2815,7 +2815,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_create_bomb,    TAR_IGNORE,         POS_STANDING,
+	spell_create_bomb,    TAR_IGNORE_OBJ,         POS_STANDING,
 	NULL,                     30,     12, DUR_NONE,
 	"",         "!Create Bomb!",    "", NULL
 	},  
@@ -2826,7 +2826,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_create_food,  TAR_IGNORE,     POS_STANDING,
+	spell_create_food,  TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,               5, 12, DUR_NONE,
 	"",         "!Create Food!",    "", NULL
 	},
@@ -2837,7 +2837,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_create_rose,  TAR_IGNORE,     POS_STANDING,
+	spell_create_rose,  TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,             30,     12, DUR_NONE,
 	"",         "!Create Rose!",    "", NULL
 	},  
@@ -2848,7 +2848,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_create_spring,    TAR_IGNORE,     POS_STANDING,
+	spell_create_spring,    TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,              20, 12, DUR_NORMAL,
 	"",         "!Create Spring!",  "", NULL
 	},
@@ -3104,7 +3104,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_divine_light, TAR_IGNORE,     POS_STANDING,
+	spell_divine_light, TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,             7, 12, DUR_SPECIAL,
 	"",         "!Divine Light!",   "", NULL
 	},
@@ -3325,7 +3325,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_floating_disc,    TAR_IGNORE,     POS_STANDING,
+	spell_floating_disc,    TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,             40, 24, DUR_EXTREME,
 	"",         "!Floating disc!",  "", NULL
 	},
@@ -3402,7 +3402,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_goodberry,             TAR_IGNORE,             POS_FIGHTING,
+	spell_goodberry,             TAR_IGNORE_OBJ,             POS_FIGHTING,
 	NULL,                  16,      10, DUR_NONE,
 	"",     "",   "", NULL
 	},
@@ -3449,7 +3449,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_hand_of_siva,    TAR_IGNORE,     POS_STANDING,
+	spell_hand_of_siva,    TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,               250, 40, DUR_NONE,
 	"",         "",  "", NULL
 	},
