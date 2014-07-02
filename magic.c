@@ -149,8 +149,9 @@ int find_spell( CHAR_DATA *ch, const char *name )
         {
             if (skill_table[sn].name == NULL)
                 break;
-            if (LOWER(name[0]) == LOWER(skill_table[sn].name[0])
-                    &&  !str_prefix(name,skill_table[sn].name))
+            if ( LOWER(name[0]) == LOWER(skill_table[sn].name[0])
+                 && !str_prefix(name,skill_table[sn].name)
+                 && skill_table[sn].spell_fun != spell_null )
             {
                 if ( found == -1)
                     found = sn;
@@ -580,6 +581,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
 
         case TAR_IGNORE:
         case TAR_IGNORE_OFF:
+        case TAR_IGNORE_OBJ:
             break;
 
         case TAR_VIS_CHAR_OFF:
@@ -1108,6 +1110,7 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
 
         if ( target == TAR_IGNORE
             || target == TAR_IGNORE_OFF
+            || target == TAR_IGNORE_OBJ
             || sn == skill_lookup("betray")
             || sn == skill_lookup("chain lightning") )
         {
@@ -1218,11 +1221,13 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         return;
     
     /* wish casting restrictions */
+    /*
     if ( was_wish_cast && target != TARGET_CHAR )
     {
         send_to_char ("You can only grant wishes to characters.\n\r", ch);
         return;
     }
+    */
     
     // strip meta-magic options that are invalid for the spell & target
     meta_magic_strip(ch, sn, target);
@@ -1375,11 +1380,17 @@ bool can_wish_cast( int sn )
     if ( skill_table[sn].spell_fun == spell_null )
         return FALSE;
 
+    // exceptions for specific spells
+    if ( sn == gsn_mimic )
+        return FALSE;
+    
     switch ( skill_table[sn].target )
     {
         case TAR_CHAR_DEFENSIVE:
         case TAR_CHAR_NEUTRAL:
         case TAR_OBJ_CHAR_DEF:
+        case TAR_OBJ_INV:
+        case TAR_IGNORE_OBJ:
             return TRUE;
         default:
             return FALSE;
