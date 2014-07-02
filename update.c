@@ -1291,7 +1291,7 @@ void char_update( void )
 
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
-        if (!IS_VALID(ch))
+        if ( !valid_CH(ch) )
         {
             bugf("Invalid ch in char_update (%d). Removing from list.",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
@@ -2091,7 +2091,7 @@ void obj_update( void )
     {
         obj_next = obj->next;
 
-        if (!IS_VALID(obj))
+        if ( !valid_OBJ(obj) )
         {
             bugf("Invalid obj in obj_update (%d). Removing from list.", obj->pIndexData->vnum);
             /* invalid should mean already freed, just kill it from the list */
