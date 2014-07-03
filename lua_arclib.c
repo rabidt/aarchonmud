@@ -4796,6 +4796,14 @@ static int CH_set_pet (lua_State *LS)
 }
 HELPTOPIC CH_set_pet_help={};
 
+static int CH_get_id ( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_CH(LS,1)->id );
+    return 1;
+}
+HELPTOPIC CH_get_id_help = {};
+
 static int CH_get_scroll ( lua_State *LS )
 {
     lua_pushinteger( LS,
@@ -4879,6 +4887,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(pet, 0),
     CHGET(affects, 0),
     CHGET(scroll, 0),
+    CHGET(id, 0 ),
     /* PC only */
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
@@ -8468,6 +8477,18 @@ void type_init( lua_State *LS)
     }
 }
 
+void cleanup_uds()
+{
+    lua_newtable( g_mud_LS );
+    lua_setglobal( g_mud_LS, "cleanup" );
+} 
+
+/* all the valid checks do the same ATM, fix this if they ever don't */
+bool valid_UD( const char *ud )
+{
+    return valid_CH( ud );
+}
+
 #define REF_FREED -1
 
 #define declb( LTYPE , CTYPE , TPREFIX ) \
@@ -8479,7 +8500,16 @@ typedef struct\
 \
 bool valid_ ## LTYPE ( CTYPE *ud )\
 {\
-    return (( LTYPE ## _wrapper *)ud)->ref != REF_FREED;\
+    bool rtn;\
+    lua_getfield( g_mud_LS, LUA_GLOBALSINDEX, "validuds" );\
+    lua_pushlightuserdata( g_mud_LS, ud );\
+    lua_gettable( g_mud_LS, -2 );\
+    if (lua_isnil( g_mud_LS, -1 ))\
+        rtn=FALSE;\
+    else\
+        rtn=TRUE;\
+    lua_pop( g_mud_LS, 2 ); /* pop result and validuds */\
+    return rtn;\
 }\
 \
 CTYPE * check_ ## LTYPE ( lua_State *LS, int index )\
@@ -8503,6 +8533,11 @@ bool    push_ ## LTYPE ( lua_State *LS, CTYPE *ud )\
         bugf( "NULL ud passed to push_" #LTYPE );\
         return FALSE;\
     }\
+    if ( ! valid_ ## LTYPE ( ud ) )\
+    {\
+        bugf( "Invalid " #CTYPE " in push_" #LTYPE );\
+        return FALSE;\
+    }\
     int ref=(( LTYPE ## _wrapper *)ud)->ref;\
     if (ref==REF_FREED)\
         return FALSE;\
@@ -8520,13 +8555,29 @@ CTYPE * alloc_ ## LTYPE ( void )\
     wrap->ref=luaL_ref( g_mud_LS, LUA_REGISTRYINDEX );\
     LTYPE ## _type.count++;\
     memset( wrap, 0, sizeof( CTYPE ) );\
+    /* register in validuds table for valid checks later on */\
+    lua_getfield( g_mud_LS, LUA_GLOBALSINDEX, "validuds" );\
+    lua_pushlightuserdata( g_mud_LS, wrap );\
+    lua_pushboolean( g_mud_LS, TRUE );\
+    lua_settable( g_mud_LS, -3 );\
+    lua_pop( g_mud_LS, 1 );\
     return wrap;\
 }\
 \
 void free_ ## LTYPE ( CTYPE * ud )\
 {\
+    if ( ! valid_ ## LTYPE ( ud ) )\
+    {\
+        bugf( "Invalid " #CTYPE " in free_" #LTYPE );\
+        return;\
+    }\
     LTYPE ## _wrapper *wrap=ud;\
     int ref=wrap->ref;\
+    if ( ref == REF_FREED )\
+    {\
+        bugf( "Tried to free already freed " #LTYPE );\
+        return;\
+    }\
     /* destroy env */\
     lua_getglobal( g_mud_LS, "envtbl" );\
     push_ ## LTYPE ( g_mud_LS, ud );\
@@ -8534,9 +8585,21 @@ void free_ ## LTYPE ( CTYPE * ud )\
     lua_settable( g_mud_LS, -3 );\
     lua_pop( g_mud_LS, 1 ); /* pop envtbl */\
     \
+    /* move to cleanup table */\
+    lua_getglobal( g_mud_LS, "cleanup" );\
+    push_ ## LTYPE ( g_mud_LS, ud );\
+    luaL_ref( g_mud_LS, -2 );\
+    lua_pop( g_mud_LS, 1 ); /* pop cleanup */\
+    \
     wrap->ref=REF_FREED;\
     luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref );\
     LTYPE ## _type.count--;\
+    /* unregister from validuds table */\
+    lua_getfield( g_mud_LS, LUA_GLOBALSINDEX, "validuds" );\
+    lua_pushlightuserdata( g_mud_LS, ud );\
+    lua_pushnil( g_mud_LS );\
+    lua_settable( g_mud_LS, -3 );\
+    lua_pop( g_mud_LS, 1 );\
 }\
 \
 int count_ ## LTYPE ( void )\
@@ -8564,7 +8627,7 @@ int count_ ## LTYPE ( void )\
     return count;\
 }\
 \
-int newindex_ ## LTYPE ( lua_State *LS )\
+static int newindex_ ## LTYPE ( lua_State *LS )\
 {\
     CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
     const char *arg=check_string( LS, 2, MIL );\
@@ -8610,7 +8673,7 @@ int newindex_ ## LTYPE ( lua_State *LS )\
     return 0;\
 }\
 \
-int index_ ## LTYPE ( lua_State *LS )\
+static int index_ ## LTYPE ( lua_State *LS )\
 {\
     CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
     const char *arg=luaL_checkstring( LS, 2 );\

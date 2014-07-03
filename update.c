@@ -1274,10 +1274,9 @@ void char_update( void )
     static int curr_tick=0;
     CHAR_DATA *ch;
     CHAR_DATA *ch_quit;
-    bool healmessage, extracted;
+    bool healmessage;
     char buf[MSL];
     static bool hour_update = TRUE;
-    long current_id = 0;
 
     ch_quit = NULL;
 
@@ -1290,18 +1289,9 @@ void char_update( void )
 
     /*update_fighting();*/
 
-    // debug - ensure character list is sorted as expected
-    // we need it sorted so that we know where to continue iterating after extracting characters
-    assert_char_list();
-
-    for ( ch = char_list; ch != NULL; ch = extracted ? char_list_next(current_id) : ch->next )
+    for ( ch = char_list; ch != NULL; ch = ch->next )
     {
-        // if we don't extract, we can just use ch->next (faster)
-        extracted = FALSE;
-        // if we do extract, find next character to check using current ID
-        current_id = ch->id;
-
-        if (!IS_VALID(ch))
+        if ( !valid_CH(ch) )
         {
             bugf("Invalid ch in char_update (%d). Removing from list.",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
@@ -1371,7 +1361,7 @@ void char_update( void )
                         && !IS_AFFECTED(ch,AFF_CHARM) && number_percent() < 5)
                 {
                     act("$n wanders on home.",ch,NULL,NULL,TO_ROOM);
-                    extracted = extract_char(ch,TRUE);
+                    extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1380,7 +1370,7 @@ void char_update( void )
                 {
                     act("$n crumbles into dust.",ch,NULL,NULL,TO_ROOM);
                     drop_eq( ch );
-                    extracted = extract_char(ch,TRUE);
+                    extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1389,7 +1379,7 @@ void char_update( void )
                         && number_bits(3)==0 )
                 {
                     act("$n vanishes into the ether.",ch,NULL,NULL,TO_ROOM);
-                    extracted = extract_char(ch,TRUE);
+                    extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1399,7 +1389,7 @@ void char_update( void )
                         && number_bits(3)==0 )
                 {
                     act("$n wanders off.",ch,NULL,NULL,TO_ROOM);
-                    extracted = extract_char(ch,TRUE);
+                    extract_char(ch,TRUE);
                     continue;
                 }
 
@@ -1552,7 +1542,6 @@ void char_update( void )
                 if ( ch->timer > 30 )
                 {
                     do_quit( ch, "" );
-                    extracted = TRUE;
                     continue;
                 }
             }
@@ -2102,7 +2091,7 @@ void obj_update( void )
     {
         obj_next = obj->next;
 
-        if (!IS_VALID(obj))
+        if ( !valid_OBJ(obj) )
         {
             bugf("Invalid obj in obj_update (%d). Removing from list.", obj->pIndexData->vnum);
             /* invalid should mean already freed, just kill it from the list */
@@ -2479,16 +2468,17 @@ void extract_update( void )
     CHAR_DATA *ch = char_list;
     while ( ch )
     {
-        if ( !IS_VALID(ch) )
+        if ( !valid_CH(ch) )
         {
-            bugf("Invalid ch in extract_update: %d", ch->pIndexData ? ch->pIndexData->vnum : 0 );
+            bugf("Invalid ch in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
             char_from_char_list(ch);
             ch = char_list;
         }
         else if ( ch->must_extract )
         {
-            extract_char(ch, TRUE);
+            char_from_char_list(ch);
+            free_char(ch);
             ch = char_list;
         }
         else
@@ -2500,9 +2490,9 @@ void extract_update( void )
     OBJ_DATA *obj = object_list;
     while ( obj )
     {  
-        if ( !IS_VALID(obj) )
+        if ( !valid_OBJ(obj) )
         {
-            bugf("Invalid obj in extract_update: %d", obj->pIndexData ? obj->pIndexData->vnum : 0 );
+            bugf("Invalid obj in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
             obj_from_object_list(obj);
             obj = object_list;
@@ -2659,6 +2649,7 @@ void update_handler( void )
         aggr_update();
         death_update();
         extract_update();
+        cleanup_uds();
     }
 
     tail_chain( );

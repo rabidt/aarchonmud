@@ -59,12 +59,18 @@ extern LUA_OBJ_TYPE DESCRIPTOR_type;
 
 void register_globals( lua_State *LS );
 
+/* moved to merc.h cause what if a file calls 
+   valid_CH without including lua_arclib.h?
+   It assumes int and doesn't work right.
+   */
+/*
 #define declf( ltype, ctype ) \
 ctype * check_ ## ltype ( lua_State *LS, int index ); \
 bool    is_ ## ltype ( lua_State *LS, int index ); \
 bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
 ctype * alloc_ ## ltype (void) ;\
 void    free_ ## ltype ( ctype * ud );\
+bool valid_ ## ltype ( ctype *ud );
 
 declf(CH, CHAR_DATA)
 declf(OBJ, OBJ_DATA)
@@ -83,6 +89,7 @@ declf(SHOP, SHOP_DATA)
 declf(AFFECT, AFFECT_DATA)
 declf(HELP, HELP_DATA)
 declf(DESCRIPTOR, DESCRIPTOR_DATA)
+*/
 #undef declf
 
 #endif
