@@ -3567,8 +3567,11 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
      */
     if ( IS_NPC( victim ) && HAS_TRIGGER( victim, TRIG_DEATH) )
     {
+        // ensure mob is able to execute mprog correctly
         set_pos( victim, POS_STANDING );
+        victim->just_killed = FALSE;
         mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_DEATH );
+        victim->just_killed = TRUE;
         // guard against silly mprogs where mobs purge themselves on death
         if ( victim->must_extract )
             return;
