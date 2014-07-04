@@ -3357,19 +3357,18 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 /* previously part of method damage --Bobble */
 void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    static bool recursion_check = FALSE;
     char buf[MSL];
     OBJ_DATA *corpse;
     bool killed_in_war = FALSE;
     bool morgue = FALSE;
 
     /* safety-net */
-    if ( recursion_check )
+    if ( victim->just_killed )
     {
-	bugf( "handle_death: recursive kill" );
+        bugf( "handle_death: repeat kill" );
         return;
     }
-    recursion_check = TRUE;
+    victim->just_killed = TRUE;
 
     /* Clan counters */
     if (IS_NPC(ch) && IS_NPC(victim) || ch == victim)
@@ -3629,9 +3628,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	send_to_char( "      Check 'help corpse' for details.\n\r", victim );
     }
 
-    victim->just_killed = TRUE;
-    recursion_check = FALSE;
-} 
+}
 
 bool is_safe( CHAR_DATA *ch, CHAR_DATA *victim )
 {
