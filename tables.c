@@ -844,6 +844,7 @@ const struct flag_type wear_flags[] =
 const struct flag_type apply_flags[] =
 {
     {   "none",             APPLY_NONE,     TRUE    },
+    {   "level",            APPLY_LEVEL,    TRUE    },
     {   "strength",         APPLY_STR,      TRUE    },
     {   "constitution",     APPLY_CON,      TRUE    },
     {   "vitality",         APPLY_VIT,      TRUE    },

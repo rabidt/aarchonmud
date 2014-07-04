@@ -394,6 +394,7 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
                 ch->mod_stat[i] += mod;
             break;
         case APPLY_SKILLS:  ch->mod_skills  += mod; break;
+        case APPLY_LEVEL:   ch->mod_level   += mod; break;
             
         case APPLY_SEX:     ch->sex         += mod; break;
         case APPLY_MANA:    ch->max_mana    += mod; break;
@@ -438,6 +439,7 @@ void reset_char(CHAR_DATA *ch)
         ch->mod_stat[stat] = 0;
     
     ch->mod_skills = 0;
+    ch->mod_level = 0;
     ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->trained_hit_bonus = 0;
     ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
     ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
