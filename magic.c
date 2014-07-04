@@ -307,6 +307,7 @@ int get_save(CHAR_DATA *ch, bool physical)
 {
     int saves = ch->saving_throw;
     int save_factor = 100;
+    int level = modified_level(ch);
     
     // level bonus
     if ( IS_NPC(ch) )
@@ -323,11 +324,11 @@ int get_save(CHAR_DATA *ch, bool physical)
         // tweak so physically oriented classes get better physical and worse magic saves
         save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
     }
-    saves -= (ch->level + 10) * save_factor/100;
+    saves -= (level + 10) * save_factor/100;
     
     // WIS or VIT bonus
     int stat = physical ? get_curr_stat(ch, STAT_CON) : get_curr_stat(ch, STAT_WIS);
-    saves -= (ch->level + 10) * stat / 500;
+    saves -= (level + 10) * stat / 500;
 
     return saves;
 }
