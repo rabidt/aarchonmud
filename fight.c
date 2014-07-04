@@ -3570,6 +3570,9 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         set_pos( victim, POS_STANDING );
         mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_DEATH );
+        // guard against silly mprogs where mobs purge themselves on death
+        if ( victim->must_extract )
+            return;
     }
 
     remort_remove(victim, FALSE);
