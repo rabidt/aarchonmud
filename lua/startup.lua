@@ -5,6 +5,7 @@ require "serialize"
 glob_util=require "utilities"
 require "leaderboard"
 require "commands"
+Queue = require "Queue"
 
 envtbl={} -- game object script environments
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
@@ -411,14 +412,14 @@ function findpath( start, finish )
     local previous={}
     local dirs={}
 
-    local Q = { start }
+    local Q = Queue.new()
+    Queue.pushleft( Q, start )
     local finished={}
     local found
 
     local lowest
-    while next(Q) do
-      local lowest=Q[1]
-      table.remove(Q,1)
+    while not( Queue.isempty( Q ) ) do
+      local lowest=Queue.popleft( Q )
         
       if not(finished[lowest]) then
  
@@ -432,7 +433,7 @@ function findpath( start, finish )
         for _,dirname in pairs(lowest.exits) do
             local toroom = lowest[dirname].toroom
             if not(finished[toroom]) then
-                table.insert(Q, toroom)
+                Queue.pushright( Q, toroom )
             end
 
             dist[toroom] = dist[toroom] or math.huge
@@ -448,7 +449,7 @@ function findpath( start, finish )
                 local toroom=getroom(obj.toroom) 
                 if toroom then
                     if not(finished[toroom]) then
-                        table.insert(Q, toroom)
+                        Queue.pushright( Q, toroom )
                     end
 
                     dist[toroom] = dist[toroom] or math.huge
