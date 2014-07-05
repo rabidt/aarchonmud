@@ -2333,10 +2333,10 @@ void do_group( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    victim->leader = ch;
     act_new("$N joins $n's group.",ch,NULL,victim,TO_NOTVICT,POS_RESTING);
     act_new("You join $n's group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
     act_new("$N joins your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+    change_leader(victim, ch);
 
     if ( ch != victim && is_same_player(ch, victim) )
     {
@@ -2376,18 +2376,30 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
     }
     CHAR_DATA *gch;
 
+    change_leader(ch, victim);
+}
+
+void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader )
+{
+    CHAR_DATA *gch;
     for ( gch = char_list; gch != NULL; gch = gch->next )
     {
         if ( IS_NPC(gch) )
             continue;
-        if ( gch->leader==ch || gch==ch)
+        if ( gch->leader == old_leader || gch == old_leader )
         {
-            gch->leader=victim;
-            gch->master=victim;
-            if ( gch==victim)
+            if ( gch == new_leader )
+            {
+                gch->leader = NULL;
+                gch->master = NULL;
                 ptc( gch, "You now lead the group.\n\r");
+            }
             else
-                ptc( gch, "%s now leads your group.\n\r", victim->name );
+            {
+                gch->leader = new_leader;
+                gch->master = new_leader;
+                ptc( gch, "%s now leads your group.\n\r", new_leader->name );
+            }
         }
     }
 }
