@@ -1625,3 +1625,88 @@ function do_diagnostic( ch, argument )
     end
 end
 -- end diagnostic section
+
+-- path section
+local pathshort={
+    north="n",
+    south="s",
+    east="e",
+    west="w",
+    up="u",
+    down="d",
+    northeast="ne",
+    southeast="se",
+    southwest="sw",
+    northwest="nw"
+}
+local function pretty_path( path )
+    local p={}
+    local ind=0
+    local cnt
+    local last
+    for i,v in pairs(path) do
+        if v==last then
+            p[ind].count=p[ind].count+1
+        else
+            ind=ind+1
+            p[ind]={count=1, dir=pathshort[v] and pathshort[v] or "\""..v.."\""}
+            last=v
+        end
+    end
+
+    local rtn={}
+    for i,v in ipairs(p) do
+        table.insert(rtn, ( (v.count>1) and v.count or "" )..v.dir)
+    end
+
+    return rtn
+end
+
+local function path_usage( ch )
+    sendtochar( ch, [[
+Print the path between two rooms.
+
+Syntax:
+  path <fromvnum> <tovnum>
+  path <tovnum> -- Uses current room as the 'from' room.
+
+Examples:
+
+  path 10204 10256
+  path 1234
+]] )
+end
+
+function do_path( ch, argument )
+    local args=arguments(argument)
+    
+    local fromroom
+    local toroom
+
+    if #args==1 then
+        fromroom=ch.room
+        toroom=getroom(tonumber(args[1]))
+    elseif #args==2 then
+        fromroom=getroom(tonumber(args[1]))
+        toroom=getroom(tonumber(args[2]))
+    else
+        path_usage( ch )
+        return
+    end
+    assert(fromroom, "Invalid start room.")
+    assert(toroom, "Invalid target room.")
+
+
+    local path=findpath( fromroom, toroom )
+
+    if not(path) then
+        sendtochar( ch, ("No path from %d to %d\n\r"):format( 
+                    fromroom.vnum, toroom.vnum) )
+        return
+    end
+
+    pagetochar( ch, ("Path from %d to %d:\n\r"):format(
+                fromroom.vnum, toroom.vnum)
+                ..table.concat(pretty_path(path), " " ).."\n\r" )
+
+end
