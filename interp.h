@@ -596,3 +596,4 @@ DECLARE_DO_FUN( do_mudconfig);
 DECLARE_DO_FUN( do_perfmon);
 DECLARE_DO_FUN( do_findreset);
 DECLARE_DO_FUN( do_diagnostic);
+DECLARE_DO_FUN( do_path);

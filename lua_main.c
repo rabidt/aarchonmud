@@ -1069,3 +1069,15 @@ void check_lua_stack()
     }
 }
 
+void do_path( CHAR_DATA *ch, char *argument)
+{
+    lua_getglobal(g_mud_LS, "do_path");
+    push_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_path:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}

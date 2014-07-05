@@ -403,3 +403,76 @@ function load_comm( name )
 
     return f()
 end
+
+-- Dijkstra style shortest path algorithm
+function findpath( start, finish )
+    local dist={}
+    dist[start]=0
+    local previous={}
+    local dirs={}
+
+    local Q = { start }
+    local finished={}
+    local found
+
+    local lowest
+    while next(Q) do
+      local lowest=Q[1]
+      table.remove(Q,1)
+        
+      if not(finished[lowest]) then
+ 
+        finished[lowest]=true
+
+        if lowest==finish then found=true break end
+
+        -- any exit has a length of 1
+        local alt = dist[lowest] + 1
+        -- handle normal exits
+        for _,dirname in pairs(lowest.exits) do
+            local toroom = lowest[dirname].toroom
+            if not(finished[toroom]) then
+                table.insert(Q, toroom)
+            end
+
+            dist[toroom] = dist[toroom] or math.huge
+            if alt < dist[toroom] then
+                dist[toroom] = alt
+                previous[toroom] = lowest
+                dirs[toroom] = dirname
+            end
+        end
+        -- handle portals
+        for _,obj in pairs(lowest.contents) do
+            if obj.otype=="portal" then
+                local toroom=getroom(obj.toroom) 
+                if toroom then
+                    if not(finished[toroom]) then
+                        table.insert(Q, toroom)
+                    end
+
+                    dist[toroom] = dist[toroom] or math.huge
+                    if alt < dist[toroom] then
+                        dist[toroom] = alt
+                        previous[toroom] = lowest
+                        dirs[toroom] = "enter "..obj.name
+                    end
+                end
+            end
+        end
+      end
+    end
+
+    if not found then
+        return nil
+    end
+
+    local result={}
+    local rm=finish
+    while previous[rm] do
+        table.insert( result, 1, dirs[rm] )
+        rm=previous[rm]
+    end
+
+    return result
+end
