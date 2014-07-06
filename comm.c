@@ -311,6 +311,8 @@ void game_loop_unix( int control )
     /* Main loop */
     while ( !merc_down )
     {
+        check_lua_stack();
+
         fd_set in_set;
         fd_set out_set;
         fd_set exc_set;
@@ -2942,8 +2944,7 @@ void copyover_recover ()
                 d->character->in_room = get_room_index (ROOM_VNUM_TEMPLE);
 
             /* Insert in the char_list */
-            d->character->next = char_list;
-            char_list = d->character;
+            char_list_insert(d->character);
 
             char_to_room (d->character, d->character->in_room);
             do_look (d->character, "auto");

@@ -2251,6 +2251,66 @@ void get_eq_corpse( CHAR_DATA *ch, OBJ_DATA *corpse )
     }
 }
 
+void char_list_insert( CHAR_DATA *ch )
+{
+    // insert so that char_list remains sorted (descending) by id
+    //if ( !char_list || char_list->id < ch->id )
+    {
+        ch->next = char_list;
+        char_list = ch;
+        return;
+    }
+    /*
+    // find point to insert within sorted list
+    CHAR_DATA *prev = char_list;
+    while ( prev->next && prev->next->id > ch->id )
+        prev = prev->next;
+    // insert
+    ch->next = prev->next;
+    prev->next = ch;
+    */
+}
+
+/*
+void assert_char_list()
+{
+    CHAR_DATA *ch;
+    for ( ch = char_list; ch && ch->next; ch = ch->next )
+        if ( ch->id < ch->next->id )
+            bugf("assert_char_list: %d < %d\n", ch->id, ch->next->id);
+}
+
+// returns first character in char_list with id < current_id
+CHAR_DATA* char_list_next( long current_id )
+{
+    CHAR_DATA *ch;
+    for ( ch = char_list; ch; ch = ch->next )
+        if ( ch->id < current_id )
+            return ch;
+    return NULL;
+}
+*/
+
+CHAR_DATA* char_list_next_char( CHAR_DATA *ch )
+{
+    // safety net
+    if ( ch == NULL )
+        return NULL;
+    
+    ch = ch->next;
+    // skip characters marked for extraction and look for invalid ones
+    while ( ch && (!valid_CH(ch) || ch->must_extract) )
+    {
+        if ( !valid_CH(ch) )
+        {
+            bugf("char_list_next_char: invalid character");
+            return NULL;
+        }
+        ch = ch->next;
+    }
+    return ch;
+}
+
 void char_from_char_list( CHAR_DATA *ch )
 {
     if ( ch == char_list )
@@ -2279,45 +2339,26 @@ void char_from_char_list( CHAR_DATA *ch )
 }
 
 /*
- * Extract a char from the world.
+ * Extract a char from the world. Returns true if removed from char_list (i.e., not delayed)
  */
-void extract_char( CHAR_DATA *ch, bool fPull )
+bool extract_char( CHAR_DATA *ch, bool fPull )
 {
-    extract_char_new(ch, fPull, TRUE);
+    return extract_char_new(ch, fPull, TRUE);
 }
 
-void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
+bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
 {
     CHAR_DATA *wch;
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
 
-    /* fPull should be TRUE if NPC or quitting player (char will get freed) */
-    if ( fPull )
-    {
-        if (g_LuaScriptInProgress || is_mprog_running())
-        {
-            ch->must_extract=TRUE;
-            return;
-        }
-    }
+    /* safety-net against infinite extracting and double-counting */
+    if ( ch->must_extract )
+        return FALSE;
 
-    /* safety-net against infinite extracting */
-    ch->must_extract = FALSE;
-
-
-
-    /* doesn't seem to be necessary
-       if ( ch->in_room == NULL )
-       {
-       bug( "Extract_char: NULL.", 0 );
-       return;
-       }
-     */
     unregister_ch_timer( ch );
 
     nuke_pets(ch);
-    ch->pet = NULL; /* just in case */
 
     if ( fPull )
         die_follower( ch, false );
@@ -2351,8 +2392,11 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
         else
             char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
-        return;
+        return TRUE;
     }
+    
+    // mark for full extraction later on
+    ch->must_extract = TRUE;
 
     if ( IS_NPC(ch) )
         --ch->pIndexData->count;
@@ -2371,15 +2415,12 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             wch->mprog_target = NULL;
     }
 
-    char_from_char_list(ch);
-
     if ( ch->desc != NULL )
     {
         ch->desc->character = NULL;
     }
 
-    free_char( ch );
-    return;
+    return TRUE;
 }
 
 /*
