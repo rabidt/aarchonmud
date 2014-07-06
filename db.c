@@ -40,6 +40,7 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 #include <sys/resource.h>
 
 #include <lua.h>
@@ -52,7 +53,6 @@
 #include "olc.h"
 #include "buffer_util.h"
 #include "mob_stats.h"
-#include "lua_arclib.h"
 
 extern  int _filbuf     args( (FILE *) );
 
@@ -130,6 +130,7 @@ sh_int  gsn_disarm_trap;
 
 sh_int  gsn_disarm;
 sh_int  gsn_enhanced_damage;
+sh_int  gsn_flanking;
 sh_int  gsn_kick;
 sh_int  gsn_gouge;
 sh_int  gsn_chop;
@@ -574,6 +575,14 @@ void    sort_reserved   args( ( RESERVED_DATA *pRes ) );
 */
 void boot_db()
 {
+    /*
+     * Make sure some dirs exist
+     */
+    struct stat st = {0};
+    if (stat(AREA_BACKUP_DIR, &st) == -1)
+    {
+        mkdir(AREA_BACKUP_DIR, 0700);
+    }
     
     /*
      * Init some data space stuff.
@@ -656,15 +665,19 @@ void boot_db()
         for ( i = 0; i<MAX_PC_RACE; i++)
             for (j=0; j<pc_race_table[i].num_skills; j++)
             {
-                pc_race_table[i].skill_gsns[j]=
-                    skill_lookup(pc_race_table[i].skills[j]);
+                sn = skill_lookup_exact(pc_race_table[i].skills[j]);
+                if ( sn < 0 )
+                    bugf("Unknown %s racial skill %s.", pc_race_table[i].name, pc_race_table[i].skills[j]);
+                pc_race_table[i].skill_gsns[j] = sn;
             }
 	/* morph races */
         for ( i = 0; i < MAX_MORPH_RACE; i++)
             for (j=0; j < morph_pc_race_table[i].num_skills; j++)
             {
-                morph_pc_race_table[i].skill_gsns[j]=
-                    skill_lookup(morph_pc_race_table[i].skills[j]);
+                sn = skill_lookup_exact(morph_pc_race_table[i].skills[j]);
+                if ( sn < 0 )
+                    bugf("Unknown %s morphed skill %s.", morph_pc_race_table[i].name, morph_pc_race_table[i].skills[j]);
+                morph_pc_race_table[i].skill_gsns[j] = sn;
             }
     }
 
@@ -3050,8 +3063,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mprog_setup(mob);
     
     /* link the mob to the world list */
-    mob->next       = char_list;
-    char_list       = mob;
+    char_list_insert(mob);
     pMobIndex->count++;
 
     return mob;
@@ -3805,8 +3817,10 @@ char *fread_string( FILE *fp )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
@@ -4370,42 +4384,8 @@ void do_areas( CHAR_DATA *ch )
     return;
 } 
 
-void memory_diag( CHAR_DATA *ch )
-{
-    int char_count=0;
-    CHAR_DATA *chd;
-    for ( chd=char_list ; chd ; chd=chd->next )
-    {
-        char_count++;
-    }
-
-    int obj_count=0;
-    OBJ_DATA *obj;
-    for ( obj=object_list ; obj ; obj=obj->next )
-    {
-        obj_count++;
-    }
-
-    int area_count=0;
-    AREA_DATA *area;
-    for ( area=area_first ; area ; area=area->next )
-    {
-        area_count++;
-    } 
-
-    ptc(ch, "CHAR %6d %6d\n\r", char_count, count_CH() );
-    ptc(ch, "OBJ  %6d %6d\n\r", obj_count, count_OBJ() );
-    ptc(ch, "AREA %6d %6d\n\r", area_count, count_AREA() );
-
-}
-
 void do_memory( CHAR_DATA *ch, char *argument )
 {
-    if (!strcmp(argument, "diag"))
-    {
-        memory_diag( ch );
-        return;
-    }
     ptc( ch, "          %-5s %s\n\r", "C", "Lua" );
     ptc( ch, "Affects   %5d %5d\n\r", top_affect, count_AFFECT()); 
     ptc( ch, "Areas     %5d %5d\n\r", top_area, count_AREA()); 
@@ -5358,8 +5338,10 @@ char* bread_string( RBUFFER *rbuf )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
