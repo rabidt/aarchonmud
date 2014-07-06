@@ -1710,3 +1710,200 @@ function do_path( ch, argument )
                 ..table.concat(pretty_path(path), " " ).."\n\r" )
 
 end
+
+-- luahelp section
+local luatypes=getluatype() -- list of type names
+local function luahelp_usage( ch )
+    local out={}
+    table.insert( out, "SECTIONS: \n\r\n\r" )
+    table.insert( out, "global\n\r" )
+    for _,v in ipairs(luatypes) do
+        table.insert( out, v.."\n\r" )
+    end
+
+    table.insert( out, [[
+Syntax: 
+    luahelp <section>
+    luahelp <section> <get|set|meth>
+
+Examples:
+    luahelp ch
+    luahelp global
+    luahelp objproto meth
+]])
+
+    pagetochar( ch, table.concat(out) )
+end
+
+local rowtoggle
+local function nextrowcolor()
+    rowtoggle=not(rowtoggle)
+    return rowtoggle and 'w' or 'D'
+end
+
+local function luahelp_dump( ch, args )
+    if args[1]=="glob" or args[1]=="global" then
+        local out={}
+        local g=getglobals()
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Function^Security^\n\r")
+        for i,v in ipairs(g) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %d |\n\r",
+                        v.lib and (v.lib..":"..v.name) or v.name,
+                        v.lib and (v.lib.."."..v.name) or v.name,
+                        v.security)
+            )
+        end
+
+        table.insert( out, "</sortable>\n\r" )
+
+        pagetochar(ch, table.concat(out) )
+        return
+    else
+        local t=getluatype(args[1])
+        if not(t) then
+            sendtochar( ch, "No such type.\n\r")
+            return
+        end
+
+        local props={}
+        for k,v in pairs(t.get) do
+            props[v.field]=props[v.field] or {}
+            props[v.field].get=v.security
+        end
+        for k,v in pairs(t.set) do
+            props[v.field]=props[v.field] or {}
+            props[v.field].set=v.security
+        end
+        local out={}
+
+        table.insert( out, "Properties\n\r")
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Field^Get^Set^\n\r")
+        for k,v in pairs(props) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %s | %s |\n\r",
+                        k,
+                        k,
+                        v.get and v.get or "",
+                        v.set and v.set or "")
+            )
+        end
+
+        table.insert( out, "</sortable>\n\r")
+
+        table.insert( out, "Methods\n\r")
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Method^Security^\n\r")
+        for k,v in pairs(t.method) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %d |\n\r",
+                        v.field,
+                        v.field,
+                        v.security)
+            )
+        end
+        table.insert( out, "</sortable>\n\r")
+
+        pagetochar( ch, table.concat( out ) )
+
+    end
+end
+
+function do_luahelp( ch, argument )
+    if argument=="" then
+        luahelp_usage( ch )
+        return
+    end
+
+    local args=arguments(argument)
+
+    if #args<1 then
+        luahelp_usage( ch )
+        return
+    end
+
+    if args[1] == "dump" then
+        table.remove(args, 1 )
+        luahelp_dump( ch, args )
+        return
+    end
+
+    if args[1] == "global" or args[1] == "glob" then
+        local out={}
+        
+        table.insert(out, "GLOBAL functions\n\r" )
+        local g=getglobals()
+        for i,v in ipairs(g) do
+            table.insert( out, string.format(
+                    "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                    nextrowcolor(),
+                    v.security,
+                    v.lib and (v.lib.."."..v.name) or v.name,
+                    "global",
+                    v.lib and (v.lib..":"..v.name) or v.name)
+            )
+        end
+
+        pagetochar( ch, table.concat(out) ) 
+
+        return
+    else
+        local out={}
+        local t=getluatype(args[1])
+        if not(t) then
+            sendtochar( ch, "No such section: "..args[1].."\n\r")
+            return
+        end
+        
+        local subsect=args[2]
+
+        if not(subsect) or subsect=="get" then
+            table.insert( out, "\n\rGET properties\n\r")
+            for i,v in ipairs(t.get) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end            
+
+        if not(subsect) or subsect=="set" then
+            table.insert( out, "\n\rSET properties\n\r")
+            for i,v in ipairs(t.set) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end
+
+        if not(subsect) or subsect=="meth" then
+            table.insert( out, "\n\rMETHODS\n\r")
+            for i,v in ipairs(t.method) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end
+ 
+        pagetochar( ch, table.concat(out) )                
+    
+    end
+end
+
+-- end luahelp section
