@@ -4450,22 +4450,21 @@ void do_disguise( CHAR_DATA *ch, char *argument )
 
 void do_stance_list( CHAR_DATA *ch, char *argument )
 {
-    int i, skill, prac;
+    int i, skill, sn;
     char buf[MSL];
 
     send_to_char( "You know the following stances:\n\r", ch );
 
     for (i = 1; stances[i].name != NULL; i++)
     {
-        prac = get_skill_prac( ch, *(stances[i].gsn));
-        if ( prac == 0 )
-            continue; 
-
-        skill = get_skill(ch, *(stances[i].gsn));
+        sn = *(stances[i].gsn);
+        skill = get_skill(ch, sn);
+        if ( skill == 0 )
+            continue;
 
         sprintf( buf, "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
                 stances[i].name,
-                ch->pcdata->learned[*(stances[i].gsn)], skill,
+                get_skill_prac(ch, sn), skill,
                 stance_cost(ch, i),
                 stances[i].weapon ? "w" : " ",
                 stances[i].martial ? "m" : " ",
