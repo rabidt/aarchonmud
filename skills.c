@@ -1221,7 +1221,7 @@ void show_class_skills( CHAR_DATA *ch, char *argument )
 void list_group_costs(CHAR_DATA *ch)
 {
     char buf[MSL];
-    int gn,sn,col;
+    int gn,sn,col,seq;
     
     if (IS_NPC(ch))
         return;
@@ -1231,7 +1231,9 @@ void list_group_costs(CHAR_DATA *ch)
     sprintf(buf,"%-18s %-5s %-18s %-5s %-18s %-5s\n\r","group","cp","group","cp","group","cp");
     send_to_char(buf,ch);
     
-    for (gn = 0; gn < MAX_GROUP; gn++)
+    for ( seq=0
+            ; (gn=name_sorted_group_table(seq)) != -1
+            ; seq++ )
     {
         if (group_table[gn].name == NULL)
             break;
@@ -1256,7 +1258,9 @@ void list_group_costs(CHAR_DATA *ch)
     sprintf(buf,"%-16s%-6s    %-16s%-6s    %-16s%-6s\n\r","skill","lvl/cp","skill","lvl/cp","skill","lvl/cp");
     send_to_char(buf,ch);
     
-    for (sn = 0; sn < MAX_SKILL; sn++)
+    for ( seq=0
+            ; (sn=name_sorted_skill_table(seq)) != -1
+            ; seq++ )
     {
         if (skill_table[sn].name == NULL)
             break;
