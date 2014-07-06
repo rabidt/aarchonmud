@@ -202,7 +202,7 @@ void violence_update( void )
 
     /* reverse the order in which the chars attack */
     if ( reverse_order )
-	reverse_char_list();
+        reverse_char_list();
     
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
@@ -267,7 +267,7 @@ void violence_update( void )
     
     /* restore the old order in char list */
     if ( reverse_order )
-	reverse_char_list();
+        reverse_char_list();
 }
 
 void reverse_char_list()
@@ -1312,7 +1312,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
         WAIT_STATE(victim, PULSE_VIOLENCE);
         victim->stop++;
-        int dam = martial_damage(ch, gsn_boa) * 2;
+        int dam = martial_damage(ch, victim, gsn_boa) * 2;
         full_dam(ch, victim, dam, gsn_boa, DAM_BASH, TRUE);
     }
     
@@ -1538,7 +1538,7 @@ int get_twohand_bonus( CHAR_DATA *ch, OBJ_DATA *wield, bool improve )
 }
 
 /* returns the damage ch deals with one hit */
-int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
+int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
 {
     int dam;
 
@@ -1605,6 +1605,12 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
 	dam *= 2;
     else if ( dt == gsn_parry )
 	dam /= 2;
+    // flanking
+    else if ( victim && victim != ch && victim->fighting && victim->fighting != ch )
+    {
+        dam += ch->level * (get_skill(ch, gsn_flanking) + mastery_bonus(ch, gsn_flanking, 30, 50)) / 150;
+        check_improve (ch, gsn_flanking, TRUE, 5);
+    }
 
     /* anatomy */
     if ( (dt == gsn_backstab || dt == gsn_back_leap || dt == gsn_circle || dt == gsn_slash_throat) && chance(get_skill(ch, gsn_anatomy)) )
@@ -1618,9 +1624,9 @@ int one_hit_damage( CHAR_DATA *ch, int dt, OBJ_DATA *wield)
     return number_range( dam * 2/3, dam );
 }
 
-int martial_damage( CHAR_DATA *ch, int sn )
+int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 {
-    int dam = one_hit_damage( ch, sn, NULL );
+    int dam = one_hit_damage( ch, victim, sn, NULL );
     
     dam += dam * mastery_bonus(ch, sn, 15, 25) / 100;
 
@@ -1931,7 +1937,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
      * Hit.
      * Calc damage.
      */
-    dam = one_hit_damage( ch, dt, wield );
+    dam = one_hit_damage( ch, victim, dt, wield );
     
     if ( offence )
     {
@@ -3351,19 +3357,18 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 /* previously part of method damage --Bobble */
 void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    static bool recursion_check = FALSE;
     char buf[MSL];
     OBJ_DATA *corpse;
     bool killed_in_war = FALSE;
     bool morgue = FALSE;
 
     /* safety-net */
-    if ( recursion_check )
+    if ( victim->just_killed )
     {
-	bugf( "handle_death: recursive kill" );
+        bugf( "handle_death: repeat kill" );
         return;
     }
-    recursion_check = TRUE;
+    victim->just_killed = TRUE;
 
     /* Clan counters */
     if (IS_NPC(ch) && IS_NPC(victim) || ch == victim)
@@ -3562,8 +3567,14 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
      */
     if ( IS_NPC( victim ) && HAS_TRIGGER( victim, TRIG_DEATH) )
     {
+        // ensure mob is able to execute mprog correctly
         set_pos( victim, POS_STANDING );
+        victim->just_killed = FALSE;
         mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_DEATH );
+        victim->just_killed = TRUE;
+        // guard against silly mprogs where mobs purge themselves on death
+        if ( victim->must_extract )
+            return;
     }
 
     remort_remove(victim, FALSE);
@@ -3620,9 +3631,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	send_to_char( "      Check 'help corpse' for details.\n\r", victim );
     }
 
-    victim->just_killed = TRUE;
-    recursion_check = FALSE;
-} 
+}
 
 bool is_safe( CHAR_DATA *ch, CHAR_DATA *victim )
 {
@@ -4392,7 +4401,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	     && !IS_NPC(ch)
 	     && (wield = get_eq_char(victim, WEAR_WIELD)) != NULL )
 	{
-	    dam = one_hit_damage(victim, gsn_parry, wield) * (100 - mastery_bonus(ch, gsn_hand_to_hand, 30, 50)) / 100;
+	    dam = one_hit_damage(victim, ch, gsn_parry, wield) * (100 - mastery_bonus(ch, gsn_hand_to_hand, 30, 50)) / 100;
 	    dam_type = get_weapon_damtype( wield );
 	    full_dam( victim, ch, dam, gsn_parry, dam_type, TRUE );
 	}
@@ -6030,6 +6039,8 @@ void do_flee( CHAR_DATA *ch, char *argument )
     
     // we now have a chance to escape, so lag is given now, regardless of success
     int wait = rand_div(PULSE_VIOLENCE * (10 - mastery_bonus(ch, gsn_flee, 4, 5)), 10);
+    if ( IS_AFFECTED(ch, AFF_HASTE) )
+        wait = rand_div(wait * 2, 3);
     if ( ch->stance == STANCE_BUNNY )
         wait = rand_div(wait, 2);
     WAIT_STATE(ch, wait);
@@ -6079,7 +6090,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
         }
     }
     
-    int ch_base = (10 + ch->level) * (100 + get_skill(ch, gsn_flee)) / 100;
+    int ch_base = (100 + ch->level) * (100 + get_skill(ch, gsn_flee)) / 100;
     int ch_roll = number_range(0, ch_base);
 
     if ( ch->slow_move > 0 )
@@ -6090,12 +6101,12 @@ void do_flee( CHAR_DATA *ch, char *argument )
     
     for ( opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room )
     {
-        if ( opp->fighting != ch || is_wimpy(opp) )
+        if ( opp->fighting != ch || !can_attack(opp) || is_wimpy(opp) )
             continue;
         
         // harder to flee from PCs
-        int entrapment_factor = (IS_NPC(opp) ? 100 : 200) + get_skill(opp, gsn_entrapment);
-        int opp_base = (10 + opp->level) * entrapment_factor / 100;
+        int entrapment_factor = (IS_NPC(opp) ? 100 : 150) + get_skill(opp, gsn_entrapment);
+        int opp_base = (100 + opp->level) * entrapment_factor / 100;
         int opp_roll = number_range(0, opp_base);
 
         //printf_to_char(ch, "ch_roll(%d) = %d vs %d = opp_roll(%d)\n\r", ch_base, ch_roll, opp_roll, opp_base);

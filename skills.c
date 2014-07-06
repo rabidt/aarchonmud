@@ -259,6 +259,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 	char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 	CHAR_DATA *trainer;
 	int gn = 0, sn = 0;
+    int seq;
 	bool introspect = TRUE;
 	
 	if (IS_NPC(ch))
@@ -286,8 +287,10 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			sprintf(buf, "%-16s    %-5s %-16s    %-5s %-16s    %-5s\n\r",
 				"group","cost","group","cost","group","cost");
 			send_to_char(buf,ch);
-			for (gn = 0; gn < MAX_GROUP; gn++)
-			{
+            for ( seq=0
+                    ; (gn=name_sorted_group_table(seq)) != -1
+                    ; seq++ )
+            {
 				if (group_table[gn].name == NULL)
 					break;
 				if (!ch->pcdata->group_known[gn]
@@ -306,7 +309,9 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			sprintf(buf, "%-16slvl/%-5s %-16slvl/%-5s %-16slvl/%-5s\n\r",
 				"skill","cost","skill","cost","skill","cost");
 			send_to_char(buf,ch);
-			for (sn = 0; sn < MAX_SKILL; sn++)
+            for ( seq=0
+                    ; (sn=name_sorted_skill_table(seq)) != -1
+                    ; seq++ )
 			{
 				if (skill_table[sn].name == NULL)
 					break;
@@ -1277,7 +1282,7 @@ void list_group_costs(CHAR_DATA *ch)
     send_to_char(buf,ch);
     if ( ch->pcdata->points > OPT_CP )
     {
-        printf_to_char(ch, "NOTE: You may spend up to %d creation points, but it is recommended to safe some.\n\r", MAX_CP);
+        printf_to_char(ch, "NOTE: You may spend up to %d creation points, but it is recommended to save some.\n\r", MAX_CP);
         printf_to_char(ch, "      Unspent points convert to trains which can be used to train stats early on.\n\r");
     }
     return;
@@ -1875,8 +1880,8 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 	 || (sn==-1) )
 	return TRUE;
 
-    if ((sn==gsn_backstab) || (sn==gsn_circle))
-	return IS_SET(ch->act, ACT_THIEF);
+    if ( sn==gsn_backstab || sn==gsn_circle || sn==gsn_flanking )
+        return IS_SET(ch->act, ACT_THIEF);
     if ((sn==gsn_lore) || (sn==gsn_arcane_lore))
 	return IS_SET(ch->act, ACT_MAGE);
     if ( sn == gsn_enhanced_damage )
@@ -2209,6 +2214,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
 	BUFFER *buffer;
    char buf[MAX_STRING_LENGTH];
    int sn;
+   int seq;
    int skill;
    int prac_curr, prac_gain;
 
@@ -2221,7 +2227,9 @@ void do_practice( CHAR_DATA *ch, char *argument )
 	
 	  buffer = new_buf();
 	  col    = 0;
-	  for ( sn = 0; sn < MAX_SKILL; sn++ )
+      for ( seq=0
+              ; (sn=name_sorted_skill_table(seq)) != -1
+              ; seq++ )
 	  {
 		 if ( skill_table[sn].name == NULL )
 			break;
