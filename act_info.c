@@ -3708,6 +3708,30 @@ void do_password( CHAR_DATA *ch, char *argument )
     return;
 }
 
+char* wear_location_info( int pos )
+{
+    static char buf[MAX_STRING_LENGTH] = "";
+    char *pos_name = wear_bit_name(pos);
+    switch ( pos )
+    {
+        case ITEM_WEAR_SHIELD:
+            return "It can be used as a shield.";
+        case ITEM_HOLD:
+            return "It can be held.";
+        case ITEM_WIELD:
+            return "It can be wielded.";
+        case ITEM_WEAR_FLOAT:
+            return "It would float nearby.";
+        case ITEM_TAKE:
+        case ITEM_NO_SAC:
+        case ITEM_TRANSLUCENT:
+            return NULL;
+        default:
+            sprintf( buf, "It can be worn on the %s.", wear_bit_name(pos) );
+            return &buf;
+    }
+}
+
 void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     char buf[MAX_STRING_LENGTH], arg[MAX_INPUT_LENGTH];
@@ -3859,20 +3883,14 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
         break;
         
     case ITEM_ARMOR:
-	sprintf( buf, "" );
-	for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
-	{
-		if( !IS_SET(obj->wear_flags, pos) )
-		    continue;
-
-		if( !strcmp( wear_bit_name(pos), "shield" ) )
-		    sprintf( buf, "It is used as a shield." );
-        	else if( !strcmp( wear_bit_name(pos), "float" ) )
-		    sprintf( buf, "It would float nearby." );
-		else if ( pos != ITEM_TAKE && pos != ITEM_NO_SAC && pos != ITEM_TRANSLUCENT )
-		    sprintf( buf, "It is worn on the %s.", wear_bit_name(pos) );
-	}
-	do_say(ch, buf);
+        for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
+        {
+            if( !IS_SET(obj->wear_flags, pos) )
+                continue;
+            char *wear = wear_location_info(pos);
+            if ( wear )
+                do_say(ch, wear);
+        }
 
         sprintf( buf, 
             "It provides an armor class of %d pierce, %d bash, %d slash, and %d vs. magic.", 
@@ -4027,21 +4045,14 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         break;
         
     case ITEM_ARMOR:
-
-	sprintf( buf, "" );
-	for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
-	{
-		if( !IS_SET(obj->wear_flags, pos) )
-		    continue;
-
-		if( !strcmp( wear_bit_name(pos), "shield" ) )
-		    sprintf( buf, "It is used as a shield." );
-        	else if( !strcmp( wear_bit_name(pos), "float" ) )
-		    sprintf( buf, "It would float nearby." );
-		else if ( pos != ITEM_TAKE && pos != ITEM_NO_SAC && pos != ITEM_TRANSLUCENT )
-		    sprintf( buf, "It is worn on the %s.", wear_bit_name(pos) );
-	}
-	do_say(ch, buf);
+        for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
+        {
+            if( !IS_SET(obj->wear_flags, pos) )
+                continue;
+            char *wear = wear_location_info(pos);
+            if ( wear )
+                do_say(ch, wear);
+        }
 
         sprintf( buf, 
             "It provides an armor class of %d pierce, %d bash, %d slash, and %d vs. magic.", 
