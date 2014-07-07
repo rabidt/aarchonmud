@@ -2549,7 +2549,7 @@ void do_gtell( CHAR_DATA *ch, char *argument )
 		log_pers( ch->pcdata->gtell_history, buf);
     argument = makedrunk(argument,ch);
     
-    for ( gch = char_list; gch != NULL; gch = gch->next )
+    for ( gch = char_list; gch != NULL; gch = char_list_next_char(gch) )
     {
         if ( is_same_group( gch, ch ) )
 		{
