@@ -1850,7 +1850,7 @@ void spell_call_lightning( int sn, int level,CHAR_DATA *ch,void *vo,int target)
         return;
     }
 
-    dam = get_sn_damage( sn, level, ch ) * 3/4;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * 1.5;
 
     send_to_char( "Lightning leaps out of the sky to strike your foes!\n\r", ch );
     act( "$n calls lightning from the sky to strike $s foes!", ch, NULL, NULL, TO_ROOM );
@@ -2040,7 +2040,7 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
     bool found = TRUE;
     int per = 100;
 
-    dam = get_sn_damage( sn, level, ch ) / 3;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
     while ( per > 0 )
     {
         int count = 0;
@@ -3033,7 +3033,7 @@ void spell_earthquake( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     send_to_char( "The earth trembles beneath your feet!\n\r", ch );
     act( "$n makes the earth tremble and shiver.", ch, NULL, NULL, TO_ROOM );
 
-    dam = get_sn_damage( sn, level, ch ) / 3;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
 
     for ( vch = char_list; vch != NULL; vch = vch_next )
     {
@@ -3357,7 +3357,7 @@ void spell_fireball( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     act("A ball of fire explodes from $n's hands!",ch,NULL,NULL,TO_ROOM);
     act("A ball of fire explodes from your hands.",ch,NULL,NULL,TO_CHAR);
 
-    dam = get_sn_damage( sn, level, ch ) / 2;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
 
     for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
     {
@@ -4026,7 +4026,7 @@ void spell_holy_word(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     curse_num = skill_lookup("curse");
     frenzy_num = skill_lookup("frenzy");
 
-    dam = get_sn_damage(sn, level, ch) / 3;
+    dam = get_sn_damage(sn, level, ch) * AREA_SPELL_FACTOR;
 
     if ( IS_GOOD(ch) )
         dam_type = DAM_HOLY;
