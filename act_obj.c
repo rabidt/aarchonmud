@@ -3678,6 +3678,12 @@ void do_sell( CHAR_DATA *ch, char *argument )
         send_to_char( "You can't let go of it.\n\r", ch );
         return;
     }
+    
+    if ( obj->contains )
+    {
+        send_to_char( "You may want to empty it first.\n\r", ch );
+        return;
+    }
 
     if (!can_see_obj(keeper,obj))
     {

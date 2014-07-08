@@ -1936,6 +1936,7 @@ void affect_update( CHAR_DATA *ch )
             {
                 if (!saves_spell(vch, NULL, plague.level - 2, DAM_DISEASE)
                         &&  !IS_IMMORTAL(vch)
+                        &&  !(IS_NPC(vch) && IS_SET(vch->act, ACT_OBJ))
                         &&  !IS_AFFECTED(vch,AFF_PLAGUE) && number_bits(4) == 0)
                 {
                     send_to_char("You feel hot and feverish.\n\r",vch);
