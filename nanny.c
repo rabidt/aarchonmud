@@ -1828,8 +1828,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	}
 
 	write_to_buffer( d, "\n\rWelcome to Aarchon!  May your time here be pleasantly wasted.\n\r",	0 );
-	ch->next    = char_list;
-	char_list   = ch;
+    char_list_insert(ch);
 	d->connected    = CON_PLAYING;
       /* Removed by Vodur, messes with box saving
           no downside to keeping it on the list*/

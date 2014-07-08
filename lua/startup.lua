@@ -5,10 +5,14 @@ require "serialize"
 glob_util=require "utilities"
 require "leaderboard"
 require "commands"
+Queue = require "Queue"
 
 envtbl={} -- game object script environments
 interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
 delaytbl={} -- used on the C side mostly
+
+cleanup={}
+validuds={}
 
 function UdCnt()
     local reg=debug.getregistry()
@@ -399,4 +403,77 @@ function load_comm( name )
     if f==nil then return {} end
 
     return f()
+end
+
+-- Dijkstra style shortest path algorithm
+function findpath( start, finish )
+    local dist={}
+    dist[start]=0
+    local previous={}
+    local dirs={}
+
+    local Q = Queue.new()
+    Queue.pushleft( Q, start )
+    local finished={}
+    local found
+
+    local lowest
+    while not( Queue.isempty( Q ) ) do
+      local lowest=Queue.popleft( Q )
+        
+      if not(finished[lowest]) then
+ 
+        finished[lowest]=true
+
+        if lowest==finish then found=true break end
+
+        -- any exit has a length of 1
+        local alt = dist[lowest] + 1
+        -- handle normal exits
+        for _,dirname in pairs(lowest.exits) do
+            local toroom = lowest[dirname].toroom
+            if not(finished[toroom]) then
+                Queue.pushright( Q, toroom )
+            end
+
+            dist[toroom] = dist[toroom] or math.huge
+            if alt < dist[toroom] then
+                dist[toroom] = alt
+                previous[toroom] = lowest
+                dirs[toroom] = dirname
+            end
+        end
+        -- handle portals
+        for _,obj in pairs(lowest.contents) do
+            if obj.otype=="portal" then
+                local toroom=getroom(obj.toroom) 
+                if toroom then
+                    if not(finished[toroom]) then
+                        Queue.pushright( Q, toroom )
+                    end
+
+                    dist[toroom] = dist[toroom] or math.huge
+                    if alt < dist[toroom] then
+                        dist[toroom] = alt
+                        previous[toroom] = lowest
+                        dirs[toroom] = "enter "..obj.name
+                    end
+                end
+            end
+        end
+      end
+    end
+
+    if not found then
+        return nil
+    end
+
+    local result={}
+    local rm=finish
+    while previous[rm] do
+        table.insert( result, 1, dirs[rm] )
+        rm=previous[rm]
+    end
+
+    return result
 end

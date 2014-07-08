@@ -2340,7 +2340,12 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
 
     one_argument( argument, arg );
 
-    obj = get_obj_list( ch, arg, ch->in_room->contents );
+
+    if ((obj = get_obj_list( ch, arg, ch->in_room->contents )) == NULL)
+    {
+        send_to_char("You don't see that here.\n\r",ch);
+        return;
+    }
 
     if (IS_REMORT(ch) && obj->item_type != ITEM_CORPSE_NPC )
     {
@@ -3671,6 +3676,12 @@ void do_sell( CHAR_DATA *ch, char *argument )
     if ( !can_drop_obj( ch, obj ) )
     {
         send_to_char( "You can't let go of it.\n\r", ch );
+        return;
+    }
+    
+    if ( obj->contains )
+    {
+        send_to_char( "You may want to empty it first.\n\r", ch );
         return;
     }
 

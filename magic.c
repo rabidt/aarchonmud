@@ -61,6 +61,7 @@ void    dam_message     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
             int dt, bool immune ) );
 bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 RELIGION_DATA *get_religion args( ( CHAR_DATA *ch ) );
+char* wear_location_info( int pos );
 
 /*
  * Lookup a skill by name.
@@ -308,6 +309,7 @@ int get_save(CHAR_DATA *ch, bool physical)
 {
     int saves = ch->saving_throw;
     int save_factor = 100;
+    int level = modified_level(ch);
     
     // level bonus
     if ( IS_NPC(ch) )
@@ -324,11 +326,11 @@ int get_save(CHAR_DATA *ch, bool physical)
         // tweak so physically oriented classes get better physical and worse magic saves
         save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
     }
-    saves -= (ch->level + 10) * save_factor/100;
+    saves -= (level + 10) * save_factor/100;
     
     // WIS or VIT bonus
     int stat = physical ? get_curr_stat(ch, STAT_CON) : get_curr_stat(ch, STAT_WIS);
-    saves -= (ch->level + 10) * stat / 500;
+    saves -= (level + 10) * stat / 500;
 
     return saves;
 }
@@ -2108,45 +2110,6 @@ void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
 }
 
-void spell_cause_light( int sn, int level, CHAR_DATA *ch, void *vo,int target )
-{
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage( sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/16),0);
-    direct_damage(ch, victim, harm, sn);
-    if ( ch != victim )
-        send_to_char( "Ok.\n\r", ch );
-
-    return;
-}
-
-void spell_cause_critical(int sn,int level,CHAR_DATA *ch,void *vo,int target)
-{
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage( sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/4),0);
-    direct_damage(ch, victim, harm, sn);
-    if ( ch != victim )
-        send_to_char( "Ok.\n\r", ch );
-
-    return;
-}
-
-void spell_cause_serious(int sn,int level,CHAR_DATA *ch,void *vo,int target)
-{
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage( sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/8),0);
-    direct_damage(ch, victim, harm, sn);
-    if ( ch != victim )
-        send_to_char( "Ok.\n\r", ch );
-
-    return;
-}
-
 CHAR_DATA* get_next_victim( CHAR_DATA *ch, CHAR_DATA *start_victim )
 {
     CHAR_DATA *victim;
@@ -3877,19 +3840,16 @@ void spell_giant_strength(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-
-
-void spell_harm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+/* used for harm as well as cause X spells */
+void spell_cause_harm( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage(sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/2),0);
+    int harm = get_sn_damage(sn, level, ch);
+    // scale with victim's health
+    harm *= (0.5 + (float)victim->hit / victim->max_hit) / 2;
     direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
-
-    return;
 }
 
 /* RT haste spell */
@@ -4345,20 +4305,14 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             break;
 
         case ITEM_ARMOR:
-            sprintf( buf, "" );
             for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
             {
                 if( !IS_SET(obj->wear_flags, pos) )
                     continue;
-        
-                if( !strcmp( wear_bit_name(pos), "shield" ) )
-                    sprintf( buf, "It is used as a shield.\n\r" );
-                    else if( !strcmp( wear_bit_name(pos), "float" ) )
-                    sprintf( buf, "It would float nearby.\n\r" );
-                else if ( pos != ITEM_TAKE && pos != ITEM_NO_SAC && pos != ITEM_TRANSLUCENT )
-                    sprintf( buf, "It is worn on the %s.\n\r", wear_bit_name(pos) );
+                char *wear = wear_location_info(pos);
+                if ( wear )
+                    printf_to_char(ch, "%s\n\r", wear);
             }
-            send_to_char( buf, ch );
             sprintf( buf, 
                     "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic.\n\r", 
                     obj->value[0], obj->value[1], obj->value[2], obj->value[3] );

@@ -82,6 +82,16 @@ bool unregister_lua_timer( TIMER_NODE *tmr, const char *tag )
    in the form of void */
 TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
 {
+    if (!valid_CH( ch ))
+    {
+        bugf("Trying to register timer for invalid CH");
+        return NULL;
+    }
+    if (ch->must_extract)
+    {
+        bugf("Trying to register timer for CH pending extraction");
+        return NULL;
+    }
     if ( ch->trig_timer)
     {
         bugf("Tying to register timer for %s but already registered.", ch->name);
@@ -281,16 +291,18 @@ void timer_update()
                     {
                         case TYPE_CH: 
                             ch=(CHAR_DATA *)(tmr->game_obj);
-                            if (!IS_VALID(ch))
+                            if (ch->must_extract)
+                                break;
+
+                            if (!valid_CH( ch ) )
                             {
-                                /* Shouldn't happen since we unregister
-                                   on extract */
-                                bugf("timer_update: invalid ch %s", ch->name);
+                                /* Shouldn't happen ever */
+                                bugf("timer_update: invalid ch");
                                 break;
                             }
                             mp_timer_trigger( ch );
                             /* repeating timer, set it up again */
-                            if (IS_VALID(ch))
+                            if (valid_CH( ch ) && !ch->must_extract)
                             {
                                 ch->trig_timer=NULL;
                                 mprog_timer_init( ch );
@@ -299,13 +311,13 @@ void timer_update()
 
                         case TYPE_OBJ:
                             obj=(OBJ_DATA *)(tmr->game_obj);
-                            if (!IS_VALID(obj))
+                            if (!valid_OBJ( obj ) )
                             {
-                                bugf("timer_update: invalid obj %s", obj->name);
+                                bugf("timer_update: invalid obj");
                                 break;
                             }
                             op_timer_trigger( obj );
-                            if (IS_VALID(obj))
+                            if (valid_OBJ( obj ) && !obj->must_extract)
                             {
                                 obj->otrig_timer=NULL;
                                 oprog_timer_init( obj );
@@ -321,8 +333,12 @@ void timer_update()
                             break;
 
                         case TYPE_ROOM:
-                            /* no need for valid check on rooms */
                             room=(ROOM_INDEX_DATA *)(tmr->game_obj);
+                            if (!valid_ROOM( room ))
+                            {
+                                bugf("timer_update: invalid room");
+                                break;
+                            }
                             rp_timer_trigger( room );
                             room->rtrig_timer=NULL;
                             rprog_timer_init( room );
@@ -356,6 +372,11 @@ char * print_timer_list()
     int i=1;
     for ( tmr=first_timer; tmr; tmr=tmr->next )
     {
+        if ( tmr->tm_type==TM_PROG && !valid_UD( tmr->game_obj ) )
+        {
+            bugf("Invalid game_obj in print_timer_list.");
+            continue;
+        } 
         sprintf(buf, "%s\n\r%d %s %d %s", buf, i,
             tmr->tm_type == TM_LUAFUNC ? "luafunc" :
             tmr->go_type == TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
