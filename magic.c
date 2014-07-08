@@ -61,6 +61,7 @@ void    dam_message     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
             int dt, bool immune ) );
 bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 RELIGION_DATA *get_religion args( ( CHAR_DATA *ch ) );
+char* wear_location_info( int pos );
 
 /*
  * Lookup a skill by name.
@@ -4218,20 +4219,14 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             break;
 
         case ITEM_ARMOR:
-            sprintf( buf, "" );
             for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
             {
                 if( !IS_SET(obj->wear_flags, pos) )
                     continue;
-        
-                if( !strcmp( wear_bit_name(pos), "shield" ) )
-                    sprintf( buf, "It is used as a shield.\n\r" );
-                    else if( !strcmp( wear_bit_name(pos), "float" ) )
-                    sprintf( buf, "It would float nearby.\n\r" );
-                else if ( pos != ITEM_TAKE && pos != ITEM_NO_SAC && pos != ITEM_TRANSLUCENT )
-                    sprintf( buf, "It is worn on the %s.\n\r", wear_bit_name(pos) );
+                char *wear = wear_location_info(pos);
+                if ( wear )
+                    printf_to_char(ch, "%s\n\r", wear);
             }
-            send_to_char( buf, ch );
             sprintf( buf, 
                     "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic.\n\r", 
                     obj->value[0], obj->value[1], obj->value[2], obj->value[3] );

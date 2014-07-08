@@ -175,6 +175,7 @@ ROOM_INDEX_DATA *new_room_index( void )
 
     pRoom->name             =   &str_empty[0];
     pRoom->description      =   &str_empty[0];
+    pRoom->notes            =   &str_empty[0];
     pRoom->owner	    =	&str_empty[0];
     pRoom->vnum             =   0;
     flag_clear( pRoom->room_flags );
