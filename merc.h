@@ -2125,7 +2125,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define COND_SMOKE	      4
 #define COND_TOLERANCE        5
  */
-#define COND_DEEP_SLEEP       6
+#define COND_DEEP_SLEEP       4 
 
 /*
  * Positions.
@@ -2611,7 +2611,7 @@ struct  pc_data
     sh_int      true_sex;
     int         last_level;
     sh_int      highest_level; /* highest level reached during current remort */
-    sh_int      condition   [7];
+    sh_int      condition   [5];
     sh_int      learned     [MAX_SKILL];
     sh_int      mastered    [MAX_SKILL];
     bool        group_known [MAX_GROUP];
