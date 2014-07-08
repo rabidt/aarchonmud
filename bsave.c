@@ -537,13 +537,11 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	if (ch->pcdata->trained_move)
 	    bprintf(buf, "TMov %d\n", ch->pcdata->trained_move);
         
-	bprintf( buf, "Cond  %d %d %d %d %d %d\n",
+	bprintf( buf, "Cnd  %d %d %d %d\n",
             ch->pcdata->condition[0],
             ch->pcdata->condition[1],
             ch->pcdata->condition[2],
-            ch->pcdata->condition[3],
-            ch->pcdata->condition[4],
-            ch->pcdata->condition[5] );
+            ch->pcdata->condition[3] );
 
     bprintf( buf, "Stance %d\n", ch->stance );
         
@@ -1653,8 +1651,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->pcdata->condition[1] = bread_number( buf );
             ch->pcdata->condition[2] = bread_number( buf );
             ch->pcdata->condition[3] = bread_number( buf );
-            ch->pcdata->condition[4] = bread_number( buf );
-            ch->pcdata->condition[5] = bread_number( buf );
+            /*ch->pcdata->condition[4] =*/ bread_number( buf );
+            /*ch->pcdata->condition[5] =*/ bread_number( buf );
             fMatch = TRUE;
             break;
         }
