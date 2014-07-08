@@ -1291,7 +1291,7 @@ void char_update( void )
 
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
-        if (!IS_VALID(ch))
+        if ( !valid_CH(ch) )
         {
             bugf("Invalid ch in char_update (%d). Removing from list.",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
@@ -1936,6 +1936,7 @@ void affect_update( CHAR_DATA *ch )
             {
                 if (!saves_spell(vch, NULL, plague.level - 2, DAM_DISEASE)
                         &&  !IS_IMMORTAL(vch)
+                        &&  !(IS_NPC(vch) && IS_SET(vch->act, ACT_OBJ))
                         &&  !IS_AFFECTED(vch,AFF_PLAGUE) && number_bits(4) == 0)
                 {
                     send_to_char("You feel hot and feverish.\n\r",vch);
@@ -2091,7 +2092,7 @@ void obj_update( void )
     {
         obj_next = obj->next;
 
-        if (!IS_VALID(obj))
+        if ( !valid_OBJ(obj) )
         {
             bugf("Invalid obj in obj_update (%d). Removing from list.", obj->pIndexData->vnum);
             /* invalid should mean already freed, just kill it from the list */

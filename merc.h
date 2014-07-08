@@ -3059,6 +3059,9 @@ struct  room_index_data
 #define DUR_LONG        5
 #define DUR_EXTREME     6
 
+// damage factor for area spells - easily adjustable here
+#define AREA_SPELL_FACTOR 0.6
+
 /*
  * Skills include spells as a particular case.
  */
@@ -4400,7 +4403,8 @@ void    obj_to_obj  args( ( OBJ_DATA *obj, OBJ_DATA *obj_to ) );
 void    obj_from_obj    args( ( OBJ_DATA *obj ) );
 void    extract_obj args( ( OBJ_DATA *obj ) );
 void    char_list_insert( CHAR_DATA *ch );
-CHAR_DATA* char_list_next( long current_id );
+//CHAR_DATA* char_list_next( long current_id );
+CHAR_DATA* char_list_next_char( CHAR_DATA *ch );
 void    char_from_char_list( CHAR_DATA *ch );
 bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
 bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
