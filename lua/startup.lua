@@ -1,8 +1,8 @@
 package.path = mud.luadir() .. "?.lua"
 
-tprintstr=require "tprint"
+glob_tprintstr=require "tprint"
 require "serialize"
-util=require "utilities"
+glob_util=require "utilities"
 require "leaderboard"
 require "commands"
 Queue = require "Queue"
