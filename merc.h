@@ -2515,6 +2515,7 @@ struct  char_data
 	sh_int      damroll;
 	sh_int      armor;
     sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
+    sh_int      mod_level; // modifier to certain level-dependent calculations, 0 by default
 	sh_int      wimpy;
     sh_int      calm;
         tflag       penalty;
@@ -4589,6 +4590,7 @@ int ch_dis_field        args((CHAR_DATA *ch));
 int ch_luc_quest        args((CHAR_DATA *ch));
 void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
+int modified_level( CHAR_DATA *ch );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 

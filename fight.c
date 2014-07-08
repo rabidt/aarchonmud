@@ -1559,12 +1559,13 @@ int get_twohand_bonus( CHAR_DATA *ch, OBJ_DATA *wield, bool improve )
 int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
 {
     int dam;
+    int level = modified_level(ch);
 
     /* basic damage */
     if ( IS_NPC(ch) )
-	dam = dice(ch->damage[DICE_NUMBER], ch->damage[DICE_TYPE]);
+        dam = dice(ch->damage[DICE_NUMBER], ch->damage[DICE_TYPE]);
     else
-	dam = ch->level + dice( 2, 4 );
+        dam = level + dice( 2, 4 );
 
     /* weapon damage */
     if ( wield != NULL )
@@ -1580,9 +1581,9 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     }
     else
     {
-	/* level 90+ bonus */
-	if ( !IS_NPC(ch) && ch->level > (LEVEL_HERO - 10) )
-	    dam += ch->level - (LEVEL_HERO - 10);
+        /* level 90+ bonus */
+        if ( !IS_NPC(ch) && level > (LEVEL_HERO - 10) )
+            dam += level - (LEVEL_HERO - 10);
     }
 
     /* damage roll */
