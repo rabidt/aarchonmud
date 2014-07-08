@@ -1221,8 +1221,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
     ch->pcdata->condition[COND_THIRST]  = 72; 
     ch->pcdata->condition[COND_FULL]    = 72;
     ch->pcdata->condition[COND_HUNGER]  = 72;
-    ch->pcdata->condition[COND_SMOKE]    = 0;
-    ch->pcdata->condition[COND_TOLERANCE]  = 0;
     ch->pcdata->security        = 0;    /* OLC */
     ch->pcdata->clan_rank = 0;
     ch->pcdata->customduration = 0;

@@ -658,13 +658,6 @@ void load_objects( FILE *fp )
                 pObjIndex->value[3]		= skill_lookup(fread_word(fp));
                 pObjIndex->value[4]		= skill_lookup(fread_word(fp));
                 break;
-            case ITEM_CIGARETTE:
-                pObjIndex->value[0]		= fread_number(fp);
-                pObjIndex->value[1]		= fread_number(fp);
-                pObjIndex->value[2]		= skill_lookup(fread_word(fp));
-                pObjIndex->value[3]		= skill_lookup(fread_word(fp));
-                pObjIndex->value[4]		= skill_lookup(fread_word(fp));
-                break;
             case ITEM_EXPLOSIVE:
                 pObjIndex->value[0]      = fread_number(fp);
                 pObjIndex->value[1]      = fread_number(fp);

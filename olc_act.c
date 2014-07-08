@@ -3225,25 +3225,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         send_to_char( buf, ch );
         break;
         
-    case ITEM_CIGARETTE:
-        sprintf( buf,
-            "[v0] Nicotene:  [%d]\n\r"
-            "[v1] Level:     [%d]\n\r"
-            "[v2] Spell:     %s\n\r"
-            "[v3] Spell:     %s\n\r"
-            "[v4] Spell:     %s\n\r",
-            obj->value[0], obj->value[1],
-            obj->value[2] != -1 ? skill_table[obj->value[2]].name
-            : "reserved",
-            obj->value[3] != -1 ? skill_table[obj->value[3]].name
-            : "reserved",
-            obj->value[4] != -1 ? skill_table[obj->value[4]].name
-            : "reserved" );
-        send_to_char( buf, ch );
-        break;
-        
-        /* ARMOR for ROM */
-        
+    /* ARMOR for ROM */
     case ITEM_ARMOR:
         sprintf( buf,
             "[v0] Ac pierce       [%d]\n\r"
@@ -3445,37 +3427,7 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *a
 	}
 	break;
 	
-    case ITEM_CIGARETTE:
-	switch ( value_num )
-	    {
-	    default:
-		do_help( ch, "ITEM_CIGARETTE" );
-		return FALSE;
-	    case 0:
-		send_to_char( "NICOTENE SET.\n\r\n\r", ch );
-		pObj->value[0] = atoi( argument );
-		break;
-	    case 1:
-		send_to_char( "SPELL LEVEL SET.\n\r\n\r", ch );
-		pObj->value[1] = atoi( argument );
-		break;
-	    case 2:
-		send_to_char( "SPELL TYPE 1 SET.\n\r\n\r", ch );
-		pObj->value[2] = spell_lookup( argument );
-		break;
-	    case 3:
-		send_to_char( "SPELL TYPE 2 SET.\n\r\n\r", ch );
-		pObj->value[3] = spell_lookup( argument );
-		break;
-	    case 4:
-		send_to_char( "SPELL TYPE 3 SET.\n\r\n\r", ch );
-		pObj->value[4] = spell_lookup( argument );
-		break;
-	    }
-	break;
-	
 	/* ARMOR for ROM: */
-	
     case ITEM_ARMOR:
 	switch ( value_num )
 	    {
