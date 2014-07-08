@@ -3022,16 +3022,25 @@ void spell_earthquake( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
     for ( vch = char_list; vch != NULL; vch = vch_next )
     {
-        vch_next    = vch->next;
+        vch_next = vch->next;
         if ( vch->in_room == NULL )
             continue;
         if ( vch->in_room == ch->in_room )
         {
-            if ( !is_safe_spell(ch,vch,TRUE))
-                if (IS_AFFECTED(vch,AFF_FLYING))
+            if ( is_safe_spell(ch, vch, TRUE) || IS_AFFECTED(vch, AFF_FLYING) )
+                continue;
+            if ( saves_spell(vch, ch, level, DAM_BASH) )
+                full_dam(ch, vch, dam/2, sn, DAM_BASH, TRUE);
+            else
+            {
+                full_dam(ch, vch, dam, sn, DAM_BASH, TRUE);
+                if ( IS_DEAD(vch) )
                     continue;
-                else
-                    full_dam( ch,vch, dam, sn, DAM_BASH,TRUE);
+                send_to_char("You are knocked prone.\n\r", vch);
+                act("$n is knocked prone.", vch, NULL, NULL, TO_ROOM);
+                set_pos(vch, POS_RESTING);
+                check_lose_stance(vch);
+            }
             continue;
         }
 
