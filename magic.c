@@ -2053,24 +2053,8 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
             if( !is_safe_spell(ch,vch,TRUE) && vch != ch )
                 count++;
 
-        /* The fewer targets, the more the damage is reduced each chain */
-        if( count < 2 )
-            per -= 25;
-        else if( count < 4 )
-            per -= 15;
-        else if( count < 6 )
-            per -= 12;
-        else if( count < 10 )
-            per -= 10;
-        else
-            per -= 9;
-
-        /* Modify this loss with respect to chain skill and focus */
-        /* (Still even a 25% of each modification failing even at 100% skill) */
-        if( number_range(25,125) < get_skill(ch,sn) )
-            per += number_range(3,5);
-        if( number_range(25,125) < get_skill(ch,gsn_focus) )
-            per += number_range(1,3);
+        // -15% each arc means 385% damage total => good for 2 or 3 targets
+        per -= 15;
 
         if ( saves_spell(victim, ch, level, dam_type) )
             curr_dam /= 2;
@@ -2085,7 +2069,8 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
         {
             send_to_char("The chain of magical energy arcs back to you!\n\r",ch);
             act("$n's spell arcs back to $mself!",ch,NULL,NULL,TO_ROOM);
-            curr_dam = dam * (per+10)/100;
+            curr_dam = dam * per/100;
+            per -= 15;
             if ( saves_spell(ch, ch, level, dam_type) )
                 curr_dam /= 2;
             full_dam(ch,ch,curr_dam,sn,dam_type,TRUE);
