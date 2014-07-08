@@ -53,7 +53,6 @@
 #include "olc.h"
 #include "buffer_util.h"
 #include "mob_stats.h"
-#include "lua_arclib.h"
 
 extern  int _filbuf     args( (FILE *) );
 
@@ -131,6 +130,7 @@ sh_int  gsn_disarm_trap;
 
 sh_int  gsn_disarm;
 sh_int  gsn_enhanced_damage;
+sh_int  gsn_flanking;
 sh_int  gsn_kick;
 sh_int  gsn_gouge;
 sh_int  gsn_chop;
@@ -665,15 +665,19 @@ void boot_db()
         for ( i = 0; i<MAX_PC_RACE; i++)
             for (j=0; j<pc_race_table[i].num_skills; j++)
             {
-                pc_race_table[i].skill_gsns[j]=
-                    skill_lookup(pc_race_table[i].skills[j]);
+                sn = skill_lookup_exact(pc_race_table[i].skills[j]);
+                if ( sn < 0 )
+                    bugf("Unknown %s racial skill %s.", pc_race_table[i].name, pc_race_table[i].skills[j]);
+                pc_race_table[i].skill_gsns[j] = sn;
             }
 	/* morph races */
         for ( i = 0; i < MAX_MORPH_RACE; i++)
             for (j=0; j < morph_pc_race_table[i].num_skills; j++)
             {
-                morph_pc_race_table[i].skill_gsns[j]=
-                    skill_lookup(morph_pc_race_table[i].skills[j]);
+                sn = skill_lookup_exact(morph_pc_race_table[i].skills[j]);
+                if ( sn < 0 )
+                    bugf("Unknown %s morphed skill %s.", morph_pc_race_table[i].name, morph_pc_race_table[i].skills[j]);
+                morph_pc_race_table[i].skill_gsns[j] = sn;
             }
     }
 
@@ -3059,8 +3063,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     mprog_setup(mob);
     
     /* link the mob to the world list */
-    mob->next       = char_list;
-    char_list       = mob;
+    char_list_insert(mob);
     pMobIndex->count++;
 
     return mob;
@@ -3814,8 +3817,10 @@ char *fread_string( FILE *fp )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
@@ -5333,8 +5338,10 @@ char* bread_string( RBUFFER *rbuf )
                 
                 plast[-1] = '\0';
                 // log stripping for now to see how bad it'll be
+                /* No longer needed. Makes logs huge. --Astark 6-28-14
                 if ( stripped )
                     logpf("String with leading '^' read: %s", top_string + sizeof(char *));
+                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )

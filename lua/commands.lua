@@ -1491,19 +1491,419 @@ local function DESCRIPTOR_diag( ch, args )
     sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
 end
 
+local function rexit_diag_here( ch, args )
+    local out={}
+    local here=ch.room
+
+    table.insert( out, "Room exits linking here: \n\r" )
+    local cnt=0
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,exit in pairs(room.exits) do
+                if room[exit].toroom==here then
+                    cnt=cnt+1
+                    table.insert( out, 
+                      ("%3d. %s{x [%6d] %s{x %s\n\r"):format(
+                        cnt,
+                        util.format_color_string( area.name, 20 ),
+                        room.vnum,
+                        util.format_color_string( room.name, 20 ),
+                        exit)
+                    )
+                end
+            end
+        end
+    end
+
+    table.insert( out, "\n\r")
+
+    table.insert( out, "Portals linking here: \n\r" )
+    cnt=0
+    for _,area in pairs(getarealist()) do
+        for _,op in pairs(area.objprotos) do
+            if op.otype=="portal" then
+                if op.toroom==here.vnum then
+                    cnt=cnt+1
+                    table.insert( out,
+                      ("%3d. %s{x [%6d] %s{x\n\r"):format(
+                        cnt,
+                        util.format_color_string( area.name, 20 ),
+                        op.vnum,
+                        op.shortdescr)
+                    )
+                end
+            end
+        end
+    end
+    
+    pagetochar( ch, table.concat( out ).."\n\r" )
+end
+
+local function rexit_diag( ch, args )
+    local ingame=args[1]=="ingame"
+    local unlinked={}
+    local rooms={}
+    local portals={}
+
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="ROOM" then
+            unlinked[v]=true
+            table.insert(rooms, v )
+        end
+    end
+
+    for _,room in pairs(rooms) do
+        for _,exit in pairs(room.exits) do
+            if room[exit].toroom then
+                unlinked[room[exit].toroom]=nil
+            end
+        end
+    end
+
+    for k,v in pairs(reg) do
+        if tostring(v)=="OBJPROTO" then
+            if v.otype=="portal" then
+                table.insert(portals, v)
+            end
+        end
+    end
+
+    for _,portal in pairs(portals) do
+        local r=getroom(portal.toroom)
+        if r then
+            unlinked[r]=nil
+        end
+    end
+
+    local cnt=0
+    local out={}
+    local sorted={}
+    for k,v in pairs(unlinked) do
+        if (not(ingame)  or k.ingame) then
+            table.insert(sorted, k)
+        end
+    end
+    table.sort(sorted, function(a,b) return a.area.name<b.area.name end )
+    for k,v in pairs(sorted) do
+        cnt=cnt+1
+        table.insert( out, ("%3d. [%6d] %s{x %s{x\n\r"):format( 
+                cnt, 
+                v.vnum, 
+                util.format_color_string(v.area.name,20), 
+                v.name ) )
+    end
+    sendtochar( ch, cnt.."\n\r")
+    pagetochar( ch, table.concat(out).."\n\r" )
+end
+
 local function diagnostic_usage( ch )
     pagetochar( ch, [[
 diagnostic ch   -- Run CHAR_DATA diagnostic
 diagnostic desc -- Run DESCRIPTOR_DATA diagnostic
+diagnostic rexit -- List rooms that have no link to them from room or portal
+                    Optional arg 'ingame' to show only ingame rooms.
+diagnostic rexit here -- List all exits leading to current room.
 ]])
 end
 function do_diagnostic( ch, argument )
-    if argument=="ch" then
-        CH_diag( ch )
-    elseif argument=="desc" then
-        DESCRIPTOR_diag( ch )
+    local args=arguments(argument)
+    local arg1=args[1]
+    table.remove(args,1)
+    if arg1=="ch" then
+        CH_diag( ch, args )
+    elseif arg1=="desc" then
+        DESCRIPTOR_diag( ch, args )
+    elseif arg1=="rexit" then
+        if args[1]=="here" then
+            rexit_diag_here( ch, args )
+        else
+            rexit_diag( ch, args )
+        end
     else
         diagnostic_usage( ch )
     end
 end
 -- end diagnostic section
+
+-- path section
+local pathshort={
+    north="n",
+    south="s",
+    east="e",
+    west="w",
+    up="u",
+    down="d",
+    northeast="ne",
+    southeast="se",
+    southwest="sw",
+    northwest="nw"
+}
+local function pretty_path( path )
+    local p={}
+    local ind=0
+    local cnt
+    local last
+    for i,v in pairs(path) do
+        if v==last then
+            p[ind].count=p[ind].count+1
+        else
+            ind=ind+1
+            p[ind]={count=1, dir=pathshort[v] and pathshort[v] or "\""..v.."\""}
+            last=v
+        end
+    end
+
+    local rtn={}
+    for i,v in ipairs(p) do
+        table.insert(rtn, ( (v.count>1) and v.count or "" )..v.dir)
+    end
+
+    return rtn
+end
+
+local function path_usage( ch )
+    sendtochar( ch, [[
+Print the path between two rooms.
+
+Syntax:
+  path <fromvnum> <tovnum>
+  path <tovnum> -- Uses current room as the 'from' room.
+
+Examples:
+
+  path 10204 10256
+  path 1234
+]] )
+end
+
+function do_path( ch, argument )
+    local args=arguments(argument)
+    
+    local fromroom
+    local toroom
+
+    if #args==1 then
+        fromroom=ch.room
+        toroom=getroom(tonumber(args[1]))
+    elseif #args==2 then
+        fromroom=getroom(tonumber(args[1]))
+        toroom=getroom(tonumber(args[2]))
+    else
+        path_usage( ch )
+        return
+    end
+    assert(fromroom, "Invalid start room.")
+    assert(toroom, "Invalid target room.")
+
+
+    local path=findpath( fromroom, toroom )
+
+    if not(path) then
+        sendtochar( ch, ("No path from %d to %d\n\r"):format( 
+                    fromroom.vnum, toroom.vnum) )
+        return
+    end
+
+    pagetochar( ch, ("Path from %d to %d:\n\r"):format(
+                fromroom.vnum, toroom.vnum)
+                ..table.concat(pretty_path(path), " " ).."\n\r" )
+
+end
+
+-- luahelp section
+local luatypes=getluatype() -- list of type names
+local function luahelp_usage( ch )
+    local out={}
+    table.insert( out, "SECTIONS: \n\r\n\r" )
+    table.insert( out, "global\n\r" )
+    for _,v in ipairs(luatypes) do
+        table.insert( out, v.."\n\r" )
+    end
+
+    table.insert( out, [[
+Syntax: 
+    luahelp <section>
+    luahelp <section> <get|set|meth>
+
+Examples:
+    luahelp ch
+    luahelp global
+    luahelp objproto meth
+]])
+
+    pagetochar( ch, table.concat(out) )
+end
+
+local rowtoggle
+local function nextrowcolor()
+    rowtoggle=not(rowtoggle)
+    return rowtoggle and 'w' or 'D'
+end
+
+local function luahelp_dump( ch, args )
+    if args[1]=="glob" or args[1]=="global" then
+        local out={}
+        local g=getglobals()
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Function^Security^\n\r")
+        for i,v in ipairs(g) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %d |\n\r",
+                        v.lib and (v.lib..":"..v.name) or v.name,
+                        v.lib and (v.lib.."."..v.name) or v.name,
+                        v.security)
+            )
+        end
+
+        table.insert( out, "</sortable>\n\r" )
+
+        pagetochar(ch, table.concat(out) )
+        return
+    else
+        local t=getluatype(args[1])
+        if not(t) then
+            sendtochar( ch, "No such type.\n\r")
+            return
+        end
+
+        local props={}
+        for k,v in pairs(t.get) do
+            props[v.field]=props[v.field] or {}
+            props[v.field].get=v.security
+        end
+        for k,v in pairs(t.set) do
+            props[v.field]=props[v.field] or {}
+            props[v.field].set=v.security
+        end
+        local out={}
+
+        table.insert( out, "Properties\n\r")
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Field^Get^Set^\n\r")
+        for k,v in pairs(props) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %s | %s |\n\r",
+                        k,
+                        k,
+                        v.get and v.get or "",
+                        v.set and v.set or "")
+            )
+        end
+
+        table.insert( out, "</sortable>\n\r")
+
+        table.insert( out, "Methods\n\r")
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Method^Security^\n\r")
+        for k,v in pairs(t.method) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %d |\n\r",
+                        v.field,
+                        v.field,
+                        v.security)
+            )
+        end
+        table.insert( out, "</sortable>\n\r")
+
+        pagetochar( ch, table.concat( out ) )
+
+    end
+end
+
+function do_luahelp( ch, argument )
+    if argument=="" then
+        luahelp_usage( ch )
+        return
+    end
+
+    local args=arguments(argument)
+
+    if #args<1 then
+        luahelp_usage( ch )
+        return
+    end
+
+    if args[1] == "dump" then
+        table.remove(args, 1 )
+        luahelp_dump( ch, args )
+        return
+    end
+
+    if args[1] == "global" or args[1] == "glob" then
+        local out={}
+        
+        table.insert(out, "GLOBAL functions\n\r" )
+        local g=getglobals()
+        for i,v in ipairs(g) do
+            table.insert( out, string.format(
+                    "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                    nextrowcolor(),
+                    v.security,
+                    v.lib and (v.lib.."."..v.name) or v.name,
+                    "global",
+                    v.lib and (v.lib..":"..v.name) or v.name)
+            )
+        end
+
+        pagetochar( ch, table.concat(out) ) 
+
+        return
+    else
+        local out={}
+        local t=getluatype(args[1])
+        if not(t) then
+            sendtochar( ch, "No such section: "..args[1].."\n\r")
+            return
+        end
+        
+        local subsect=args[2]
+
+        if not(subsect) or subsect=="get" then
+            table.insert( out, "\n\rGET properties\n\r")
+            for i,v in ipairs(t.get) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end            
+
+        if not(subsect) or subsect=="set" then
+            table.insert( out, "\n\rSET properties\n\r")
+            for i,v in ipairs(t.set) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end
+
+        if not(subsect) or subsect=="meth" then
+            table.insert( out, "\n\rMETHODS\n\r")
+            for i,v in ipairs(t.method) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end
+ 
+        pagetochar( ch, table.concat(out) )                
+    
+    end
+end
+
+-- end luahelp section

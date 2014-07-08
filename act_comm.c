@@ -2068,7 +2068,7 @@ void die_follower( CHAR_DATA *ch, bool preservePets )
         if ( fch->master == ch && (!preservePets || !IS_NPC(fch)))
             stop_follower( fch );
         if ( fch->leader == ch )
-            fch->leader = fch;
+            fch->leader = NULL;
     }
     
     return;
@@ -2250,7 +2250,7 @@ void do_group( CHAR_DATA *ch, char *argument )
             }
         }
         // afterwards pick up all group members not in room
-        for ( gch = char_list; gch != NULL; gch = gch->next )
+        for ( gch = char_list; gch != NULL; gch = char_list_next_char(gch) )
         {
             if ( is_same_group( gch, ch ) && ch->in_room != gch->in_room)
                 show_group_member( ch, gch );
@@ -2333,10 +2333,10 @@ void do_group( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    victim->leader = ch;
     act_new("$N joins $n's group.",ch,NULL,victim,TO_NOTVICT,POS_RESTING);
     act_new("You join $n's group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
     act_new("$N joins your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+    change_leader(victim, ch);
 
     if ( ch != victim && is_same_player(ch, victim) )
     {
@@ -2376,18 +2376,30 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
     }
     CHAR_DATA *gch;
 
+    change_leader(ch, victim);
+}
+
+void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader )
+{
+    CHAR_DATA *gch;
     for ( gch = char_list; gch != NULL; gch = gch->next )
     {
         if ( IS_NPC(gch) )
             continue;
-        if ( gch->leader==ch || gch==ch)
+        if ( gch->leader == old_leader || gch == old_leader )
         {
-            gch->leader=victim;
-            gch->master=victim;
-            if ( gch==victim)
+            if ( gch == new_leader )
+            {
+                gch->leader = NULL;
+                gch->master = NULL;
                 ptc( gch, "You now lead the group.\n\r");
+            }
             else
-                ptc( gch, "%s now leads your group.\n\r", victim->name );
+            {
+                gch->leader = new_leader;
+                gch->master = new_leader;
+                ptc( gch, "%s now leads your group.\n\r", new_leader->name );
+            }
         }
     }
 }
@@ -2537,7 +2549,7 @@ void do_gtell( CHAR_DATA *ch, char *argument )
 		log_pers( ch->pcdata->gtell_history, buf);
     argument = makedrunk(argument,ch);
     
-    for ( gch = char_list; gch != NULL; gch = gch->next )
+    for ( gch = char_list; gch != NULL; gch = char_list_next_char(gch) )
     {
         if ( is_same_group( gch, ch ) )
 		{
@@ -2556,7 +2568,21 @@ void do_gtell( CHAR_DATA *ch, char *argument )
     return;
 }
 
-
+CHAR_DATA *ultimate_master( CHAR_DATA *ch )
+{
+    while ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL )
+    {
+        // safety net since we're getting crashes
+        if ( !valid_CH(ch->master) || ch->master->must_extract )
+        {
+            bugf("ultimate_master: invalid master for %s", IS_NPC(ch) ? ch->short_descr : ch->name);
+            ch->master = NULL;
+        }
+        else
+            ch = ch->master;
+    }
+    return ch;
+}
 
 /*
 * It is very important that this be an equivalence relation:
@@ -2568,6 +2594,10 @@ bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
 {
     if ( ach == NULL || bch == NULL)
         return FALSE;
+    
+    // safety net
+    if ( !valid_CH(ach) || !valid_CH(bch) || ach->must_extract || bch->must_extract )
+        return FALSE;
 
     if ( IS_NPC(ach) && IS_NPC(bch)
             && !IS_AFFECTED(ach, AFF_CHARM) && !IS_AFFECTED(bch, AFF_CHARM)
@@ -2575,10 +2605,8 @@ bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
         return TRUE;
 
     /* charmies belong to same group as master */
-    while ( IS_AFFECTED(ach, AFF_CHARM) && ach->master != NULL )
-        ach = ach->master;
-    while ( IS_AFFECTED(bch, AFF_CHARM) && bch->master != NULL )
-        bch = bch->master;
+    ach = ultimate_master(ach);
+    bch = ultimate_master(bch);
     
     if ( ach->leader != NULL ) ach = ach->leader;
     if ( bch->leader != NULL ) bch = bch->leader;

@@ -482,6 +482,7 @@ void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
     make_visible(ch, "");
     affect_strip( ch, gsn_god_bless );
     affect_strip( ch, gsn_god_curse );
+    die_follower(ch, FALSE);
     
     i->limit += 259200;
     
@@ -564,6 +565,7 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
     make_visible(ch, "");
     affect_strip( ch, gsn_god_bless );
     affect_strip( ch, gsn_god_curse );
+    die_follower(ch, FALSE);
     
     i->limit = current_time + 28800;
     
@@ -912,21 +914,7 @@ void remort_begin(CHAR_DATA *ch)
         return;
     }
     
-    if ( ch == char_list )
-    {
-        char_list = ch->next;
-    }
-    else
-    {
-        CHAR_DATA *prev;
-        
-        for ( prev = char_list; prev != NULL; prev = prev->next )
-            if ( prev->next == ch )
-            {
-                prev->next = ch->next;
-                break;
-            }
-    }
+    char_from_char_list(ch);
     
     if ( is_in_room(ch) )
         char_from_room(ch);
@@ -1024,8 +1012,7 @@ void remort_complete(CHAR_DATA *ch)
     do_outfit(ch,"");
     obj_to_char(create_object(get_obj_index(OBJ_VNUM_MAP),0),ch);
     
-    ch->next    = char_list;
-    char_list   = ch;
+    char_list_insert(ch);
     
     ch->desc->connected = CON_PLAYING;
     char_to_room( ch, get_room_index( ROOM_VNUM_SCHOOL ) );

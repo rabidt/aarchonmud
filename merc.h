@@ -24,6 +24,7 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
+#include <lua.h>
 #include "protocol.h"
 #include "timer.h"
 
@@ -229,7 +230,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         432
+#define MAX_SKILL         433
 #define MAX_GROUP          80 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -2520,6 +2521,7 @@ struct  char_data
 	sh_int      damroll;
 	sh_int      armor[4];
     sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
+    sh_int      mod_level; // modifier to certain level-dependent calculations, 0 by default
 	sh_int      wimpy;
     sh_int      calm;
         tflag       penalty;
@@ -3246,6 +3248,7 @@ extern  sh_int  gsn_disarm_trap;
 
 extern  sh_int  gsn_disarm;
 extern  sh_int  gsn_enhanced_damage;
+extern  sh_int  gsn_flanking;
 extern  sh_int  gsn_kick;
 extern sh_int  gsn_gouge;
 extern sh_int  gsn_chop;
@@ -4402,8 +4405,12 @@ void    obj_to_room args( ( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_obj  args( ( OBJ_DATA *obj, OBJ_DATA *obj_to ) );
 void    obj_from_obj    args( ( OBJ_DATA *obj ) );
 void    extract_obj args( ( OBJ_DATA *obj ) );
-void    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
-void    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
+void    char_list_insert( CHAR_DATA *ch );
+//CHAR_DATA* char_list_next( long current_id );
+CHAR_DATA* char_list_next_char( CHAR_DATA *ch );
+void    char_from_char_list( CHAR_DATA *ch );
+bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
+bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
 CHAR_DATA* get_player( char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_world  args( ( CHAR_DATA *ch, char *argument ) );
@@ -4585,6 +4592,7 @@ int ch_dis_field        args((CHAR_DATA *ch));
 int ch_luc_quest        args((CHAR_DATA *ch));
 void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
+int modified_level( CHAR_DATA *ch );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 
@@ -4724,3 +4732,31 @@ void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
 #define ACT_ARG_TEXT 2
 #define ACT_ARG_CHARACTER 3
 
+bool valid_UD( const char *ud );
+#define declf( ltype, ctype ) \
+ctype * check_ ## ltype ( lua_State *LS, int index ); \
+bool    is_ ## ltype ( lua_State *LS, int index ); \
+bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
+ctype * alloc_ ## ltype (void) ;\
+void    free_ ## ltype ( ctype * ud );\
+bool    valid_ ## ltype ( ctype *ud );\
+int     count_ ## ltype ( void );
+
+declf(CH, CHAR_DATA)
+declf(OBJ, OBJ_DATA)
+declf(AREA, AREA_DATA)
+declf(ROOM, ROOM_INDEX_DATA)
+declf(EXIT, EXIT_DATA)
+declf(RESET, RESET_DATA)
+declf(MOBPROTO, MOB_INDEX_DATA)
+declf(OBJPROTO, OBJ_INDEX_DATA)
+declf(PROG, PROG_CODE)
+declf(MTRIG, PROG_LIST)
+declf(OTRIG, PROG_LIST)
+declf(ATRIG, PROG_LIST)
+declf(RTRIG, PROG_LIST)
+declf(SHOP, SHOP_DATA)
+declf(AFFECT, AFFECT_DATA)
+declf(HELP, HELP_DATA)
+declf(DESCRIPTOR, DESCRIPTOR_DATA)
+#undef declf
