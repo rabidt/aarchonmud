@@ -2068,7 +2068,7 @@ void die_follower( CHAR_DATA *ch, bool preservePets )
         if ( fch->master == ch && (!preservePets || !IS_NPC(fch)))
             stop_follower( fch );
         if ( fch->leader == ch )
-            fch->leader = fch;
+            fch->leader = NULL;
     }
     
     return;
@@ -2568,7 +2568,21 @@ void do_gtell( CHAR_DATA *ch, char *argument )
     return;
 }
 
-
+CHAR_DATA *ultimate_master( CHAR_DATA *ch )
+{
+    while ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL )
+    {
+        // safety net since we're getting crashes
+        if ( !valid_CH(ch->master) || ch->master->must_extract )
+        {
+            bugf("ultimate_master: invalid master for %s", IS_NPC(ch) ? ch->short_descr : ch->name);
+            ch->master = NULL;
+        }
+        else
+            ch = ch->master;
+    }
+    return ch;
+}
 
 /*
 * It is very important that this be an equivalence relation:
@@ -2591,10 +2605,8 @@ bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
         return TRUE;
 
     /* charmies belong to same group as master */
-    while ( IS_AFFECTED(ach, AFF_CHARM) && ach->master != NULL )
-        ach = ach->master;
-    while ( IS_AFFECTED(bch, AFF_CHARM) && bch->master != NULL )
-        bch = bch->master;
+    ach = ultimate_master(ach);
+    bch = ultimate_master(bch);
     
     if ( ach->leader != NULL ) ach = ach->leader;
     if ( bch->leader != NULL ) bch = bch->leader;
