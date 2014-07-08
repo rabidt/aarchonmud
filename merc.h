@@ -3064,6 +3064,9 @@ struct  room_index_data
 #define DUR_LONG        5
 #define DUR_EXTREME     6
 
+// damage factor for area spells - easily adjustable here
+#define AREA_SPELL_FACTOR 0.6
+
 /*
  * Skills include spells as a particular case.
  */
