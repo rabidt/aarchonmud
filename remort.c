@@ -482,6 +482,7 @@ void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
     make_visible(ch, "");
     affect_strip( ch, gsn_god_bless );
     affect_strip( ch, gsn_god_curse );
+    die_follower(ch, FALSE);
     
     i->limit += 259200;
     
@@ -564,6 +565,7 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
     make_visible(ch, "");
     affect_strip( ch, gsn_god_bless );
     affect_strip( ch, gsn_god_curse );
+    die_follower(ch, FALSE);
     
     i->limit = current_time + 28800;
     

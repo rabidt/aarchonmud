@@ -637,6 +637,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "frfind",     do_frfind,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "findreset",  do_findreset, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "diagnostic",do_diagnostic, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "path",       do_path,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     
     /*
     * Erwin's REDIT

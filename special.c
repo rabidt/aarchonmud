@@ -77,50 +77,61 @@ const   struct  spec_type    spec_table[] =
 	{   NULL,               NULL            }
 };
 
-const char* spell_list_cleric[] = {
-    "dispel magic",
-    "blindness",
-    "curse",
-    "plague",
-    "poison",
-    "slow",
-    "weaken",
-    "flamestrike",
-    "harm",
-    "heal",
-    NULL
+struct spell_type
+{
+    char    *spell;
+    sh_int  min_level;
+    sh_int  max_level;
 };
 
-const char* spell_list_mage[] = {
-    "dispel magic",
-    "magic missile",
-    "chill touch",
-    "burning hands",
-    "colour spray",
-    "fireball",
-    "lightning bolt",
-    "acid blast",
-    "energy drain",
-    "stop",
-    NULL
+#define NO_MAX 200
+const struct spell_type spell_list_cleric[] =
+{
+    { "dispel magic", 40, NO_MAX },
+    { "blindness", 20, NO_MAX },
+    { "curse", 1, NO_MAX },
+    { "plague", 1, 120 },
+    { "poison", 1, 120 },
+    { "slow", 1, NO_MAX },
+    { "weaken", 1, NO_MAX },
+    { "flamestrike", 40, NO_MAX },
+    { "harm", 40, NO_MAX },
+    { "heal", 40, 120 },
+    { "cure mortal", 80, NO_MAX },
+    { "restoration", 120, NO_MAX },
+    { NULL, 0, 0 }
 };
 
-const char* spell_list_undead[] = {
-    "curse",
-    "weaken",
-    "chill touch",
-    "blindness",
-    "poison",
-    "harm",
-    "energy drain",
-    "plague",
-    "necrosis",
-    "tomb rot",
-    "soreness",
-    "haunt",
-    "mana burn",
-    "fear",
-    NULL
+const struct spell_type spell_list_mage[] = {
+    { "dispel magic", 20, NO_MAX },
+    { "magic missile", 1, 40 },
+    { "chill touch", 10, 80 },
+    { "burning hands", 10, 40 },
+    { "colour spray", 1, 40 },
+    { "fireball", 20, 120 },
+    { "lightning bolt", 20, 120 },
+    { "acid blast", 40, NO_MAX },
+    { "energy drain", 40, NO_MAX },
+    { "stop", 80, NO_MAX },
+    { NULL, 0, 0 }
+};
+
+const struct spell_type spell_list_undead[] = {
+    { "curse", 1, NO_MAX },
+    { "weaken", 1, NO_MAX },
+    { "chill touch", 10, 80 },
+    { "blindness", 20, NO_MAX },
+    { "poison", 1, 120 },
+    { "harm", 40, NO_MAX },
+    { "energy drain", 20, NO_MAX },
+    { "plague", 1, 120 },
+    { "necrosis", 40, NO_MAX },
+    { "tomb rot", 80, NO_MAX },
+    { "soreness", 40, NO_MAX },
+    { "haunt", 40, NO_MAX },
+    { "mana burn", 80, NO_MAX },
+    { "fear", 20, NO_MAX },
+    { NULL, 0, 0 }
 };
 
 /*
@@ -562,7 +573,7 @@ bool spec_cast_adept( CHAR_DATA *ch )
 	return FALSE;
 }
 
-char** get_spell_list( CHAR_DATA *ch )
+struct spell_type* get_spell_list( CHAR_DATA *ch )
 {
     SPEC_FUN *spec_fun = ch->pIndexData->spec_fun;
     
@@ -581,16 +592,28 @@ bool spec_cast_any( CHAR_DATA *ch )
     if ( ch->position != POS_FIGHTING )
         return FALSE;
 
-    char** spell_list = get_spell_list( ch );
+    struct spell_type* spell_list = get_spell_list( ch );
     if ( spell_list == NULL )
         return FALSE;
 
-    int max_spell = 0;
-    while (spell_list[max_spell])
-        max_spell++;    
+    // select a random spell to cast
+    int spell_count = 0;
+    int spell_selected = 0;
+    int spell_index = 0;
+    
+    while ( spell_list[spell_index].spell )
+    {
+        if ( spell_list[spell_index].min_level <= ch->level && ch->level <= spell_list[spell_index].max_level )
+        {
+            // uniform distribution with one parse of the list :)
+            if ( !number_range(0, spell_count++) )
+                spell_selected = spell_index;
+        }
+        spell_index++;
+    }
     
     char argument[255];
-    sprintf( argument, "'%s'", spell_list[number_range(0, max_spell-1)] );    
+    sprintf( argument, "'%s'", spell_list[spell_selected].spell );
     do_cast( ch, argument );
     return TRUE;
 }
