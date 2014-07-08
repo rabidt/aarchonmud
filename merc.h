@@ -1750,7 +1750,10 @@ struct  kill_data
 #define ITEM_BLACK_HERB      39
 #define ITEM_RED_HERB        40
 #define ITEM_MOTTLED_HERB    50
-#define ITEM_CIGARETTE	     51
+/* Removed, don't re-use the number
+   unless you're sure no area files are
+   using it */
+/*#define ITEM_CIGARETTE	     51*/
 #define ITEM_ARROWS          52
 
 /*
@@ -2118,8 +2121,10 @@ typedef int tattoo_list[MAX_WEAR];
 #define COND_FULL             1
 #define COND_THIRST           2
 #define COND_HUNGER           3
+/*
 #define COND_SMOKE	      4
 #define COND_TOLERANCE        5
+ */
 #define COND_DEEP_SLEEP       6
 
 /*

@@ -503,7 +503,6 @@ DECLARE_DO_FUN( do_taxidermy    );
 DECLARE_DO_FUN( do_camp_fire    );
 DECLARE_DO_FUN( do_treat_weapon );
 DECLARE_DO_FUN( do_fishing      );
-DECLARE_DO_FUN( do_smoke	);
 DECLARE_DO_FUN( do_shield_bash  );
 DECLARE_DO_FUN( do_choke_hold   );
 DECLARE_DO_FUN( do_roundhouse   );
