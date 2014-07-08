@@ -1273,7 +1273,6 @@ void char_update( void )
 {   
     static int curr_tick=0;
     CHAR_DATA *ch;
-    CHAR_DATA *ch_next;
     CHAR_DATA *ch_quit;
     bool healmessage;
     char buf[MSL];
@@ -1290,44 +1289,19 @@ void char_update( void )
 
     /*update_fighting();*/
 
-    for ( ch = char_list; ch != NULL; ch = ch_next )
+    for ( ch = char_list; ch != NULL; ch = ch->next )
     {
-        ch_next = ch->next;
-
-        if (!IS_VALID(ch))
+        if ( !valid_CH(ch) )
         {
             bugf("Invalid ch in char_update (%d). Removing from list.",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
             /* invalid should mean already freed, just kill it from the list */
-            if ( ch == char_list )
-            {
-                char_list = ch->next;
-            }
-            else
-            {
-                CHAR_DATA *prev;
-
-                for ( prev = char_list ; prev ; prev = prev->next )
-                {
-                    if ( prev->next == ch )
-                    {
-                        prev->next = ch->next;
-                        break;
-                    }
-                }
-
-                if (!prev)
-                    bugf("Couldn't find invalid ch in list to remove.");
-
-            }
+            char_from_char_list(ch);
             continue;
         }
         
         if (ch->must_extract)
             continue;
-
-        if ( ch->timer > 30 )
-            ch_quit = ch;
 
         /* Check for natural resistance */
         if ( get_skill(ch, gsn_natural_resistance) >= 0)
@@ -1564,6 +1538,12 @@ void char_update( void )
                     char_from_room( ch );
                     char_to_room( ch, get_room_index( ROOM_VNUM_LIMBO ) );
                 }
+
+                if ( ch->timer > 30 )
+                {
+                    do_quit( ch, "" );
+                    continue;
+                }
             }
 
             if ((ch->desc == NULL) || IS_WRITING_NOTE(ch->desc->connected)) {}
@@ -1713,23 +1693,6 @@ void char_update( void )
         if ( !IS_NPC(ch) )
             check_beast_mastery( ch );
 
-    }
-
-    /*
-     * Autosave and autoquit.
-     * Check that these chars still exist.
-     */
-    for ( ch = char_list; ch != NULL; ch = ch_next )
-    {
-        ch_next = ch->next;
-
-        /* Bobble: we got simultanious saves now
-           if (ch->desc != NULL && ch->desc->descriptor % 30 == save_number)
-           save_char_obj(ch);
-         */
-
-        if ( ch == ch_quit )
-            do_quit( ch, "" );
     }
 
     return;
@@ -1973,6 +1936,7 @@ void affect_update( CHAR_DATA *ch )
             {
                 if (!saves_spell(vch, NULL, plague.level - 2, DAM_DISEASE)
                         &&  !IS_IMMORTAL(vch)
+                        &&  !(IS_NPC(vch) && IS_SET(vch->act, ACT_OBJ))
                         &&  !IS_AFFECTED(vch,AFF_PLAGUE) && number_bits(4) == 0)
                 {
                     send_to_char("You feel hot and feverish.\n\r",vch);
@@ -2128,7 +2092,7 @@ void obj_update( void )
     {
         obj_next = obj->next;
 
-        if (!IS_VALID(obj))
+        if ( !valid_OBJ(obj) )
         {
             bugf("Invalid obj in obj_update (%d). Removing from list.", obj->pIndexData->vnum);
             /* invalid should mean already freed, just kill it from the list */
@@ -2505,16 +2469,17 @@ void extract_update( void )
     CHAR_DATA *ch = char_list;
     while ( ch )
     {
-        if ( !IS_VALID(ch) )
+        if ( !valid_CH(ch) )
         {
-            bugf("Invalid ch in extract_update: %d", ch->pIndexData ? ch->pIndexData->vnum : 0 );
+            bugf("Invalid ch in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
             char_from_char_list(ch);
             ch = char_list;
         }
         else if ( ch->must_extract )
         {
-            extract_char(ch, TRUE);
+            char_from_char_list(ch);
+            free_char(ch);
             ch = char_list;
         }
         else
@@ -2526,9 +2491,9 @@ void extract_update( void )
     OBJ_DATA *obj = object_list;
     while ( obj )
     {  
-        if ( !IS_VALID(obj) )
+        if ( !valid_OBJ(obj) )
         {
-            bugf("Invalid obj in extract_update: %d", obj->pIndexData ? obj->pIndexData->vnum : 0 );
+            bugf("Invalid obj in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
             obj_from_object_list(obj);
             obj = object_list;
@@ -2685,6 +2650,7 @@ void update_handler( void )
         aggr_update();
         death_update();
         extract_update();
+        cleanup_uds();
     }
 
     tail_chain( );
