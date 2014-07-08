@@ -671,7 +671,7 @@ void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     act( "$n calls to the gods for aid against the undead.\n\r",
 	 ch, NULL, NULL, TO_ROOM );
 
-    dam = get_sn_damage( sn, level, ch ) * 3/4;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * 1.5;
     for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
     {
         vch_next = vch->next_in_room;
@@ -1672,7 +1672,7 @@ void spell_monsoon( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         send_to_char ( "The weather is much too nice for that!", ch );
         return;
     }
-    dam = get_sn_damage( sn, level, ch) * 3/4;
+    dam = get_sn_damage( sn, level, ch) * AREA_SPELL_FACTOR * 1.5;
     
     send_to_char( "A torrent of rain drenches your foes!\n\r", ch );
     act( "$n calls down a monsoon to drench $s enemies!!!", ch, 
@@ -2039,7 +2039,7 @@ void spell_windwar( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         return;
     }
 
-    dam = get_sn_damage( sn, level, ch ) / 2;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
     if ((ch->in_room->sector_type) == SECT_MOUNTAIN)     
     {
         send_to_char ( "The mountain winds make war with your foes!\n\r", ch );
@@ -2527,7 +2527,7 @@ void spell_glyph_of_evil(int sn, int level, CHAR_DATA *ch, void *vo,int target)
 	return;
     }
 
-    dam = get_sn_damage(sn, level, ch) / 2;
+    dam = get_sn_damage(sn, level, ch) * AREA_SPELL_FACTOR;
 
     if ( (time_info.hour > 5) && (time_info.hour < 20) )
 	is_dark = FALSE;
@@ -2697,7 +2697,7 @@ void spell_rimbols_invocation(int sn,int level,CHAR_DATA *ch,void *vo,int target
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
-    int dam, main_dam = get_sn_damage( sn, level, ch ) / 8;
+    int dam, main_dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR / 4;
     
     act("Rimbol channels the power of earth to form an avalanche!",ch,NULL,NULL,TO_ROOM);
     send_to_char("Rimbol answers your prayers by bringing forth Earth's power!\n\r",ch);
