@@ -666,47 +666,41 @@ void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     AFFECT_DATA af;
     int dam;
     
-    act( "You call to the gods for aid against the undead.\n\r",
-	 ch, NULL, NULL, TO_CHAR );
-    act( "$n calls to the gods for aid against the undead.\n\r",
-	 ch, NULL, NULL, TO_ROOM );
+    act( "You call to the gods for aid against the undead.\n\r", ch, NULL, NULL, TO_CHAR );
+    act( "$n calls to the gods for aid against the undead.\n\r", ch, NULL, NULL, TO_ROOM );
 
-    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * 1.5;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * (1000 + ch->alignment) / 1000;
+    
     for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
     {
         vch_next = vch->next_in_room;
-        if ( !is_safe_spell(ch,vch,TRUE) 
-	     && IS_UNDEAD(vch) )
-        {
-	    check_killer(ch, vch);
+        if ( is_safe_spell(ch, vch, TRUE) || !IS_UNDEAD(vch) )
+            continue;
 
-            if (IS_EVIL(ch))
-	    {   /* Evil chars charm undead   */ 
-                if ( IS_AFFECTED(vch, AFF_CHARM) || ch->fighting == vch )
-                    continue;
+        check_killer(ch, vch);
 
-		spell_charm_person( gsn_charm_person, level, ch, (void*) vch,
-				    TARGET_CHAR );
-            }
-	    else if (IS_GOOD(ch))
-	    {   /* Good chars harm undead */
-		if ( saves_spell(vch, ch, level, DAM_HOLY) )
-		    full_dam( ch, vch, dam/2, sn, DAM_HOLY, TRUE );
-		else
-		    full_dam( ch, vch, dam, sn, DAM_HOLY, TRUE );
-            }
-	    else
-	    {   /* Neutral chars fear undead */
-		if ( IS_AFFECTED(vch, AFF_FEAR) )
-		    continue;
-		spell_fear( gsn_fear, level, ch, (void*) vch, TARGET_CHAR );
-            }
-
-	    if ( !IS_DEAD(ch) && !IS_DEAD(vch)
-		 && vch->fighting == NULL
-		 && !is_safe_spell(vch, ch, FALSE) )
-		multi_hit( vch, ch, TYPE_UNDEFINED );
+        if ( IS_EVIL(ch) )
+        {   /* Evil chars charm undead   */ 
+            if ( IS_AFFECTED(vch, AFF_CHARM) || ch->fighting == vch )
+                continue;
+            spell_charm_person( gsn_charm_person, level, ch, (void*) vch, TARGET_CHAR );
         }
+        else if (IS_GOOD(ch))
+        {   /* Good chars harm undead */
+            if ( saves_spell(vch, ch, level, DAM_HOLY) )
+                full_dam( ch, vch, dam/2, sn, DAM_HOLY, TRUE );
+            else
+                full_dam( ch, vch, dam, sn, DAM_HOLY, TRUE );
+        }
+        else
+        {   /* Neutral chars fear undead */
+            if ( IS_AFFECTED(vch, AFF_FEAR) )
+                continue;
+            spell_fear( gsn_fear, level, ch, (void*) vch, TARGET_CHAR );
+        }
+
+        if ( !IS_DEAD(ch) && !IS_DEAD(vch) && !vch->fighting && !is_safe_spell(vch, ch, FALSE) )
+            set_fighting(vch, ch);
     }
 }
 
