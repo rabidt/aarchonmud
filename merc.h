@@ -289,7 +289,7 @@ bool is_questeq( OBJ_DATA *obj );
 #endif
 /* version numbers for downward compatibility
  */
-#define CURR_AREA_VERSION 3 
+#define CURR_AREA_VERSION 4 
 
 /*#define CREATOR         (MAX_LEVEL - 1)
 #define SUPREME         (MAX_LEVEL - 2)
@@ -2526,6 +2526,7 @@ struct  char_data
 	sh_int      damroll;
 	sh_int      armor[4];
     sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
+    sh_int      mod_level; // modifier to certain level-dependent calculations, 0 by default
 	sh_int      wimpy;
     sh_int      calm;
         tflag       penalty;
@@ -2835,12 +2836,10 @@ struct  obj_index_data
 	tflag       extra_flags;
 	tflag       wear_flags;
 	sh_int      level;
-	sh_int      condition;
 	sh_int      count;
 	sh_int      weight;
 	int         cost;
 	int         value[5];
-	sh_int      durability;
 	sh_int	    clan;
 	sh_int	    rank;
     int         combine_vnum;
@@ -2878,11 +2877,9 @@ struct  obj_data
 	sh_int      weight;
 	int         cost;
 	sh_int      level;
-	sh_int      condition;
 	char *      material;
 	sh_int      timer;
 	int         value   [5];
-	sh_int  durability;
 	sh_int	clan;
 	sh_int	rank;
 
@@ -3037,6 +3034,7 @@ struct  room_index_data
 #define TAR_VIS_CHAR_OFF        7
 #define TAR_CHAR_NEUTRAL        8
 #define TAR_IGNORE_OFF          9 // for area spells that bestow affects
+#define TAR_IGNORE_OBJ         10 // spells that create objects
 
 #define TARGET_CHAR         0
 #define TARGET_OBJ          1
@@ -4065,6 +4063,7 @@ extern      char last_mprog [MSL];
 extern      char last_debug [MSL];
 
 extern      bool was_obj_cast;
+extern      bool was_wish_cast;
 extern      tflag meta_magic;
 
 
@@ -4594,6 +4593,7 @@ int ch_dis_field        args((CHAR_DATA *ch));
 int ch_luc_quest        args((CHAR_DATA *ch));
 void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
+int modified_level( CHAR_DATA *ch );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 

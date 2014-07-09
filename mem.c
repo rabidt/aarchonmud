@@ -175,6 +175,7 @@ ROOM_INDEX_DATA *new_room_index( void )
 
     pRoom->name             =   &str_empty[0];
     pRoom->description      =   &str_empty[0];
+    pRoom->notes            =   &str_empty[0];
     pRoom->owner	    =	&str_empty[0];
     pRoom->vnum             =   0;
     flag_clear( pRoom->room_flags );
@@ -278,7 +279,6 @@ OBJ_INDEX_DATA *new_obj_index( void )
     pObj->weight        =   0;
     pObj->cost          =   0;
     pObj->material      =   str_dup( "unknown" );      /* ROM */
-    pObj->condition     =   100;                        /* ROM */
     for ( value = 0; value < 5; value++ )               /* 5 - ROM */
         pObj->value[value]  =   0;
 

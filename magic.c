@@ -150,8 +150,9 @@ int find_spell( CHAR_DATA *ch, const char *name )
         {
             if (skill_table[sn].name == NULL)
                 break;
-            if (LOWER(name[0]) == LOWER(skill_table[sn].name[0])
-                    &&  !str_prefix(name,skill_table[sn].name))
+            if ( LOWER(name[0]) == LOWER(skill_table[sn].name[0])
+                 && !str_prefix(name,skill_table[sn].name)
+                 && skill_table[sn].spell_fun != spell_null )
             {
                 if ( found == -1)
                     found = sn;
@@ -308,6 +309,7 @@ int get_save(CHAR_DATA *ch, bool physical)
 {
     int saves = ch->saving_throw;
     int save_factor = 100;
+    int level = modified_level(ch);
     
     // level bonus
     if ( IS_NPC(ch) )
@@ -324,11 +326,11 @@ int get_save(CHAR_DATA *ch, bool physical)
         // tweak so physically oriented classes get better physical and worse magic saves
         save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
     }
-    saves -= (ch->level + 10) * save_factor/100;
+    saves -= (level + 10) * save_factor/100;
     
     // WIS or VIT bonus
     int stat = physical ? get_curr_stat(ch, STAT_CON) : get_curr_stat(ch, STAT_WIS);
-    saves -= (ch->level + 10) * stat / 500;
+    saves -= (level + 10) * stat / 500;
 
     return saves;
 }
@@ -581,6 +583,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
 
         case TAR_IGNORE:
         case TAR_IGNORE_OFF:
+        case TAR_IGNORE_OBJ:
             break;
 
         case TAR_VIS_CHAR_OFF:
@@ -1109,6 +1112,7 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
 
         if ( target == TAR_IGNORE
             || target == TAR_IGNORE_OFF
+            || target == TAR_IGNORE_OBJ
             || sn == skill_lookup("betray")
             || sn == skill_lookup("chain lightning") )
         {
@@ -1219,11 +1223,13 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         return;
     
     /* wish casting restrictions */
-    if ( was_wish_cast && (target != TARGET_CHAR || vo == ch) )
+    /*
+    if ( was_wish_cast && target != TARGET_CHAR )
     {
-        send_to_char ("You can only grant wishes to others.\n\r", ch);
+        send_to_char ("You can only grant wishes to characters.\n\r", ch);
         return;
     }
+    */
     
     // strip meta-magic options that are invalid for the spell & target
     meta_magic_strip(ch, sn, target);
@@ -1233,6 +1239,9 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     mana = meta_magic_adjust_cost(ch, mana, TRUE);
     if ( overcharging )
         mana *= 2;
+    // granting wishes to yourself costs extra
+    if ( was_wish_cast && vo == ch )
+        mana += mana/2;
 
     if ( ch->mana < mana )
     {
@@ -1368,6 +1377,85 @@ void do_cast( CHAR_DATA *ch, char *argument )
     cast_spell(ch, sn, chance);
 }
 
+bool can_wish_cast( int sn )
+{
+    if ( skill_table[sn].spell_fun == spell_null )
+        return FALSE;
+
+    // exceptions for specific spells
+    if ( sn == gsn_mimic )
+        return FALSE;
+    
+    switch ( skill_table[sn].target )
+    {
+        case TAR_CHAR_DEFENSIVE:
+        case TAR_CHAR_NEUTRAL:
+        case TAR_OBJ_CHAR_DEF:
+        case TAR_OBJ_INV:
+        case TAR_IGNORE_OBJ:
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+
+int wish_level( int sn )
+{
+    // find minimum level required to cast
+    int class, min_level = LEVEL_IMMORTAL;
+    for ( class = 0; class < MAX_CLASS; class++ )
+        min_level = UMIN(min_level, skill_table[sn].skill_level[class]);
+    return min_level;
+}
+
+void show_wishes( CHAR_DATA *ch )
+{
+    BUFFER *buffer;
+    char buf[MAX_STRING_LENGTH];
+    char spell_list[LEVEL_HERO + 1][MAX_STRING_LENGTH];
+    char spell_columns[LEVEL_HERO + 1];
+    int sn, level, skill, mana;
+
+    /* initialize data */
+    for ( level = 0; level <= LEVEL_HERO; level++ )
+    {
+        spell_columns[level] = 0;
+        spell_list[level][0] = '\0';
+    }
+    skill = get_skill(ch, gsn_wish);
+    
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !can_wish_cast(sn) )
+            continue;
+        if ( (level = wish_level(sn)) > LEVEL_HERO )
+            continue;
+        
+        mana = mana_cost(ch, sn, skill);
+        sprintf(buf, "  %-20s %3dm", skill_table[sn].name, mana);
+
+        if ( spell_list[level][0] == '\0' )
+            sprintf(spell_list[level], "\n\rLevel %2d:%s", level, buf);
+        else /* append */
+        {
+            if ( ++spell_columns[level] % 2 == 0 )
+                strcat(spell_list[level], "\n\r         ");
+            strcat(spell_list[level], buf);
+        }
+    }
+
+    buffer = new_buf();
+    add_buff(buffer, "Your effective wish casting skill is %d%%.\n\r", skill);
+    for ( level = 0; level <= LEVEL_HERO; level++ )
+        if (spell_list[level][0] != '\0')
+            add_buf(buffer, spell_list[level]);
+    add_buf(buffer,"\n\r");
+    page_to_char(buf_string(buffer), ch);
+    free_buf(buffer);
+}
+
 // Djinn wish casting
 void do_wish( CHAR_DATA *ch, char *argument )
 {
@@ -1384,7 +1472,13 @@ void do_wish( CHAR_DATA *ch, char *argument )
     
     if ( arg1[0] == '\0' )
     {
-        send_to_char( "What do you wish for?\n\r", ch );
+        send_to_char( "What do you wish for? Type \t(wish list\t) to see all possible wishes.\n\r", ch );
+        return;
+    }
+    
+    if ( !strcmp(arg1, "list") )
+    {
+        show_wishes(ch);
         return;
     }
 
@@ -1394,22 +1488,15 @@ void do_wish( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    if ( skill_table[sn].target != TAR_CHAR_DEFENSIVE &&
-         skill_table[sn].target != TAR_CHAR_NEUTRAL &&
-         skill_table[sn].target != TAR_OBJ_CHAR_DEF )
+    if ( !can_wish_cast(sn) )
     {
         send_to_char( "You cannot grant that wish.\n\r", ch );
         return;
     }
     
-    // find minimum level required to cast
-    int min_level = LEVEL_IMMORTAL;
-    for ( class = 0; class < MAX_CLASS; class++ )
-        min_level = UMIN(min_level, skill_table[sn].skill_level[class]);
-    
-    if ( ch->level < min_level )
+    if ( ch->level < wish_level(sn) )
     {
-        send_to_char( "This spell is beyond your power.\n\r", ch );
+        send_to_char( "This wish is beyond your power.\n\r", ch );
         return;
     }
     
