@@ -587,17 +587,6 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     fprintf( fp, "%d ", pObjIndex->level );
     fprintf( fp, "%d ", pObjIndex->weight );
     fprintf( fp, "%d ", pObjIndex->cost );
-    fprintf( fp, "%d ",	pObjIndex->durability );
-    
-    if ( pObjIndex->condition >  90 ) letter = 'P';
-    else if ( pObjIndex->condition >  75 ) letter = 'G';
-    else if ( pObjIndex->condition >  50 ) letter = 'A';
-    else if ( pObjIndex->condition >  25 ) letter = 'W';
-    else if ( pObjIndex->condition >  10 ) letter = 'D';
-    else if ( pObjIndex->condition >   0 ) letter = 'B';
-    else                                   letter = 'R';
-    
-    fprintf( fp, "%c\n", letter );
     
     if (pObjIndex->clan > 0)
         rfprintf ( fp, "C %s~\n" , clan_table[pObjIndex->clan].name );
