@@ -2752,17 +2752,17 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'C':
+        /*
             KEY( "Cond",    obj->condition, bread_number( buf ) );
-	    /*
             KEY( "Cost",    obj->cost,      bread_number( buf ) );
 	    */
-	    if ( !str_cmp(word, "Cost") )
-	    {
-		/* ignore cost */
-		bread_number( buf );
-		fMatch = TRUE;
-		break;
-	    }
+        if ( !str_cmp(word, "Cost") || !str_cmp(word, "Cond") )
+        {
+            /* ignore cost and condition */
+            bread_number( buf );
+            fMatch = TRUE;
+            break;
+        }
         if (!str_cmp(word, "Clan") )
         {
             char *temp=bread_string(buf);
@@ -2784,7 +2784,16 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         case 'D':
             KEYS( "Description", obj->description,   bread_string( buf ) );
             KEYS( "Desc",    obj->description,   bread_string( buf ) );
+            /*
             KEY( "Dur",    obj->durability,   bread_number( buf ) );
+            */
+            if ( !str_cmp( word, "Dur" ) )
+            {
+                /* ignore durability */
+                bread_number( buf );
+                fMatch = TRUE;
+                break;
+            }
             break;
             
         case 'E':

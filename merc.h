@@ -289,7 +289,7 @@ bool is_questeq( OBJ_DATA *obj );
 #endif
 /* version numbers for downward compatibility
  */
-#define CURR_AREA_VERSION 3 
+#define CURR_AREA_VERSION 4 
 
 /*#define CREATOR         (MAX_LEVEL - 1)
 #define SUPREME         (MAX_LEVEL - 2)
@@ -2831,12 +2831,10 @@ struct  obj_index_data
 	tflag       extra_flags;
 	tflag       wear_flags;
 	sh_int      level;
-	sh_int      condition;
 	sh_int      count;
 	sh_int      weight;
 	int         cost;
 	int         value[5];
-	sh_int      durability;
 	sh_int	    clan;
 	sh_int	    rank;
     int         combine_vnum;
@@ -2874,11 +2872,9 @@ struct  obj_data
 	sh_int      weight;
 	int         cost;
 	sh_int      level;
-	sh_int      condition;
 	char *      material;
 	sh_int      timer;
 	int         value   [5];
-	sh_int  durability;
 	sh_int	clan;
 	sh_int	rank;
 
