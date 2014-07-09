@@ -44,7 +44,6 @@ int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
 char *flag_string( const struct flag_type *flag_table, tflag bits );
 char *flag_stat_string( const struct flag_type *flag_table, int bit );
 
-#define VER_NEW_MOB_LDESC 3
 #define FLAG_READ_SET(fp,flag,set_flag) fread_tflag(fp,flag); flag_set_field(flag,set_flag)
 
 /*
@@ -567,6 +566,7 @@ void load_mobbles( FILE *fp )
  */
 void load_objects( FILE *fp )
 {
+    extern int area_version;
     OBJ_INDEX_DATA *pObjIndex;
 
     if ( !area_last )   /* OLC */
@@ -676,9 +676,14 @@ void load_objects( FILE *fp )
         pObjIndex->level		= fread_number( fp );
         pObjIndex->weight               = fread_number( fp );
         pObjIndex->cost                 = fread_number( fp );
-        pObjIndex->durability		= fread_number( fp ); 
+        /*pObjIndex->durability		= fread_number( fp );*/
+        if ( area_version < VER_UPDATE_OBJ_FMT )
+        {
+            fread_number( fp ); /* read durability */
 
         /* condition */
+            fread_letter( fp ); /* read condition */
+        /*
         letter 				= fread_letter( fp );
         switch (letter)
         {
@@ -690,6 +695,8 @@ void load_objects( FILE *fp )
             case ('B') :		pObjIndex->condition =  10; break;
             case ('R') :		pObjIndex->condition =   0; break;
             default:			pObjIndex->condition = 100; break;
+        }*/
+
         }
 
         for ( ; ; )
@@ -1052,8 +1059,8 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
                     wear_bits_name(obj->wear_flags), extra_bits_name( obj->extra_flags ) );
             fprintf( fp, buf );
 
-            sprintf( buf, "Level: %d  Cost: %d  Condition: %d  Timer: %d\n",
-                    obj->level, obj->cost, obj->condition, obj->timer );
+            sprintf( buf, "Level: %d  Cost: %d  Timer: %d\n",
+                    obj->level, obj->cost, obj->timer );
             fprintf( fp, buf );
 
             sprintf( buf,
