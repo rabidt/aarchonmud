@@ -630,8 +630,8 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 	obj->weight, get_obj_weight( obj ),get_true_weight(obj) );
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Level: %d  Cost: %d  Condition: %d  Timer: %d\n\r",
-	obj->level, obj->cost, obj->condition, obj->timer );
+	sprintf( buf, "Level: %d  Cost: %d  Timer: %d\n\r",
+	obj->level, obj->cost, obj->timer );
 	send_to_char( buf, ch );
 
 	sprintf( buf,

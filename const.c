@@ -767,7 +767,7 @@ struct align_type align_table [] =
     },
 
     {
-    "medusa",        TRUE,
+    "gorgon",        TRUE,
     {},      {},   {},
     {},      {}, {},
     {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
@@ -1633,7 +1633,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           "phantom",   "Phantm",
           { 270, 265, 270, 270, 270, 275, 275, 265, 260, 270, 270, 255, 270, 270, 270 },
           5, { "invisibility", "shadowclaw", "shadowsoul", "basic apparition", "phantasmal image" },
-          {1, 10, 20, 40, 50}, {100, 95, 95, 90, 80},
+          {1, 10, 20, 40, 50}, {100, 95, 95, 70, 60},
           {  45,  50,  50,  65,  65,      65,  65,  65,  45,  60 },
           { 135, 135, 135, 150, 150,     145, 140, 140, 135, 140 },   
           {   3,   4,   4,   5,   5,       4,   4,   4,   3,   4 },
@@ -1666,7 +1666,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           "voadkin",   "Voadki",
           { 270, 265, 270, 270, 270, 270, 270, 265, 265, 270, 265, 270, 265, 260, 275 },
           5, { "bow", "fledging", "woodland combat", "hunt", "beast mastery" },
-          { 10, 10, 20, 30, 40 }, { 95, 95, 90, 80, 80 },
+          { 10, 10, 20, 30, 40 }, { 100, 100, 95, 90, 100 },
           {  55,  55,  55,  55,  55,      55,  55,  55,  55,  55 },
           { 140, 140, 140, 140, 145,     140, 145, 140, 140, 140 },   
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
@@ -1720,7 +1720,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         {
-          "medusa",   "Medusa",
+          "gorgon",   "Gorgon",
           { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
           5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
           {1, 10, 20, 30, 50}, {100, 100, 80, 50, 50},
@@ -2782,7 +2782,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_continual_light,  TAR_IGNORE,     POS_STANDING,
+	spell_continual_light,  TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,               7, 12, DUR_SPECIAL,
 	"",         "!Continual Light!",    "", NULL
 	},
@@ -2815,7 +2815,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_create_bomb,    TAR_IGNORE,         POS_STANDING,
+	spell_create_bomb,    TAR_IGNORE_OBJ,         POS_STANDING,
 	NULL,                     30,     12, DUR_NONE,
 	"",         "!Create Bomb!",    "", NULL
 	},  
@@ -2826,7 +2826,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_create_food,  TAR_IGNORE,     POS_STANDING,
+	spell_create_food,  TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,               5, 12, DUR_NONE,
 	"",         "!Create Food!",    "", NULL
 	},
@@ -2837,7 +2837,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_create_rose,  TAR_IGNORE,     POS_STANDING,
+	spell_create_rose,  TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,             30,     12, DUR_NONE,
 	"",         "!Create Rose!",    "", NULL
 	},  
@@ -2848,7 +2848,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_create_spring,    TAR_IGNORE,     POS_STANDING,
+	spell_create_spring,    TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,              20, 12, DUR_NORMAL,
 	"",         "!Create Spring!",  "", NULL
 	},
@@ -3104,7 +3104,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_divine_light, TAR_IGNORE,     POS_STANDING,
+	spell_divine_light, TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,             7, 12, DUR_SPECIAL,
 	"",         "!Divine Light!",   "", NULL
 	},
@@ -3325,7 +3325,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_floating_disc,    TAR_IGNORE,     POS_STANDING,
+	spell_floating_disc,    TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,             40, 24, DUR_EXTREME,
 	"",         "!Floating disc!",  "", NULL
 	},
@@ -3402,7 +3402,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_goodberry,             TAR_IGNORE,             POS_FIGHTING,
+	spell_goodberry,             TAR_IGNORE_OBJ,             POS_FIGHTING,
 	NULL,                  16,      10, DUR_NONE,
 	"",     "",   "", NULL
 	},
@@ -3449,7 +3449,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_hand_of_siva,    TAR_IGNORE,     POS_STANDING,
+	spell_hand_of_siva,    TAR_IGNORE_OBJ,     POS_STANDING,
 	NULL,               250, 40, DUR_NONE,
 	"",         "",  "", NULL
 	},

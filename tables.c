@@ -844,6 +844,7 @@ const struct flag_type wear_flags[] =
 const struct flag_type apply_flags[] =
 {
     {   "none",             APPLY_NONE,     TRUE    },
+    {   "level",            APPLY_LEVEL,    TRUE    },
     {   "strength",         APPLY_STR,      TRUE    },
     {   "constitution",     APPLY_CON,      TRUE    },
     {   "vitality",         APPLY_VIT,      TRUE    },
@@ -1271,7 +1272,8 @@ const char* spell_target_names[] =
     "obj_char_offensive",
     "visible_char_offensive",
     "char_neutral",
-    "ignore_offensive"
+    "ignore_offensive",
+    "ignore_obj"
 };
 
 const char* spell_duration_names[] =

@@ -349,6 +349,7 @@ bool show_help( CHAR_DATA *ch, char *argument )
                             {
                                 show_skill_cmds( ch, TAR_IGNORE );
                                 show_skill_cmds( ch, TAR_IGNORE_OFF );
+                                show_skill_cmds( ch, TAR_IGNORE_OBJ );
                             }
                             else if ( !str_prefix( spell, "attack" ) )
                             {
@@ -3885,10 +3886,6 @@ OEDIT( oedit_show )
         pObj->material );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Condition:   [%5d]\n\r",               /* ROM */
-        pObj->condition );
-    send_to_char( buf, ch );
-    
     sprintf( buf, "Weight:      [%5d]\n\rCost:        [%5d]\n\r",
         pObj->weight, pObj->cost );
     send_to_char( buf, ch );
@@ -4933,32 +4930,6 @@ OEDIT( oedit_level )
     send_to_char( "Level set.\n\r", ch);
     return TRUE;
 }
-
-
-
-OEDIT( oedit_condition )
-{
-    OBJ_INDEX_DATA *pObj;
-    int value;
-    
-    if ( argument[0] != '\0'
-        && ( value = atoi (argument ) ) >= 0
-        && ( value <= 100 ) )
-    {
-        EDIT_OBJ( ch, pObj );
-        
-        pObj->condition = value;
-        send_to_char( "Condition set.\n\r", ch );
-        
-        return TRUE;
-    }
-    
-    send_to_char( "Syntax:  condition [number]\n\r"
-        "Where number can range from 0 (ruined) to 100 (perfect).\n\r",
-        ch );
-    return FALSE;
-}
-
 
 #define OBJ_STAT_AC_WEAPON    0
 #define OBJ_STAT_AC_EXOTIC    1

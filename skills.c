@@ -2318,7 +2318,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
             }
 	}
 	
-	  if ( ( sn = find_spell( ch,argument ) ) < 0
+	  if ( (sn = skill_lookup(argument)) < 0
 		 || ( !IS_NPC(ch)
 		 &&   (ch->level < skill_table[sn].skill_level[ch->class]
 		 ||    ch->pcdata->learned[sn] < 1 /* skill is not known */
