@@ -1612,7 +1612,7 @@ void spell_fade(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
     
-    if ( IS_AFFECTED(ch, AFF_FADE) || IS_AFFECTED(ch, AFF_MINOR_FADE))
+    if ( IS_AFFECTED(ch, AFF_FADE) )
     {
         send_to_char("You are already fading out of existence.\n\r",ch);
         return;
@@ -4084,7 +4084,7 @@ void spell_minor_fade(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
     
-    if ( IS_AFFECTED(ch, AFF_FADE) || IS_AFFECTED(ch, AFF_MINOR_FADE))
+    if ( IS_AFFECTED(ch, AFF_MINOR_FADE) )
     {
         send_to_char("You are already fading out of existence.\n\r",ch);
         return;

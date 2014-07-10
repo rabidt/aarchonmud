@@ -3716,7 +3716,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_minor_fade,    TAR_CHAR_SELF,     POS_STANDING,
-	&gsn_minor_fade,               30, 16, DUR_BRIEF,
+	&gsn_minor_fade,               15, 16, DUR_SHORT,
 	"",         "You stop phasing in and out of existence.",  "", NULL
 	},
 
