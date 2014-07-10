@@ -3225,25 +3225,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         send_to_char( buf, ch );
         break;
         
-    case ITEM_CIGARETTE:
-        sprintf( buf,
-            "[v0] Nicotene:  [%d]\n\r"
-            "[v1] Level:     [%d]\n\r"
-            "[v2] Spell:     %s\n\r"
-            "[v3] Spell:     %s\n\r"
-            "[v4] Spell:     %s\n\r",
-            obj->value[0], obj->value[1],
-            obj->value[2] != -1 ? skill_table[obj->value[2]].name
-            : "reserved",
-            obj->value[3] != -1 ? skill_table[obj->value[3]].name
-            : "reserved",
-            obj->value[4] != -1 ? skill_table[obj->value[4]].name
-            : "reserved" );
-        send_to_char( buf, ch );
-        break;
-        
-        /* ARMOR for ROM */
-        
+    /* ARMOR for ROM */
     case ITEM_ARMOR:
         sprintf( buf,
             "[v0] Ac              [%d]\n\r",
@@ -3439,37 +3421,7 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *a
 	}
 	break;
 	
-    case ITEM_CIGARETTE:
-	switch ( value_num )
-	    {
-	    default:
-		do_help( ch, "ITEM_CIGARETTE" );
-		return FALSE;
-	    case 0:
-		send_to_char( "NICOTENE SET.\n\r\n\r", ch );
-		pObj->value[0] = atoi( argument );
-		break;
-	    case 1:
-		send_to_char( "SPELL LEVEL SET.\n\r\n\r", ch );
-		pObj->value[1] = atoi( argument );
-		break;
-	    case 2:
-		send_to_char( "SPELL TYPE 1 SET.\n\r\n\r", ch );
-		pObj->value[2] = spell_lookup( argument );
-		break;
-	    case 3:
-		send_to_char( "SPELL TYPE 2 SET.\n\r\n\r", ch );
-		pObj->value[3] = spell_lookup( argument );
-		break;
-	    case 4:
-		send_to_char( "SPELL TYPE 3 SET.\n\r\n\r", ch );
-		pObj->value[4] = spell_lookup( argument );
-		break;
-	    }
-	break;
-	
 	/* ARMOR for ROM: */
-	
     case ITEM_ARMOR:
 	switch ( value_num )
 	    {
@@ -3913,10 +3865,6 @@ OEDIT( oedit_show )
     
     sprintf( buf, "Material:    [%s]\n\r",                /* ROM */
         pObj->material );
-    send_to_char( buf, ch );
-    
-    sprintf( buf, "Condition:   [%5d]\n\r",               /* ROM */
-        pObj->condition );
     send_to_char( buf, ch );
     
     sprintf( buf, "Weight:      [%5d]\n\rCost:        [%5d]\n\r",
@@ -4963,32 +4911,6 @@ OEDIT( oedit_level )
     send_to_char( "Level set.\n\r", ch);
     return TRUE;
 }
-
-
-
-OEDIT( oedit_condition )
-{
-    OBJ_INDEX_DATA *pObj;
-    int value;
-    
-    if ( argument[0] != '\0'
-        && ( value = atoi (argument ) ) >= 0
-        && ( value <= 100 ) )
-    {
-        EDIT_OBJ( ch, pObj );
-        
-        pObj->condition = value;
-        send_to_char( "Condition set.\n\r", ch );
-        
-        return TRUE;
-    }
-    
-    send_to_char( "Syntax:  condition [number]\n\r"
-        "Where number can range from 0 (ruined) to 100 (perfect).\n\r",
-        ch );
-    return FALSE;
-}
-
 
 #define OBJ_STAT_AC           0 
 #define OBJ_STAT_SHOP_COST    1

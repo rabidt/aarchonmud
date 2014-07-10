@@ -630,8 +630,8 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 	obj->weight, get_obj_weight( obj ),get_true_weight(obj) );
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Level: %d  Cost: %d  Condition: %d  Timer: %d\n\r",
-	obj->level, obj->cost, obj->condition, obj->timer );
+	sprintf( buf, "Level: %d  Cost: %d  Timer: %d\n\r",
+	obj->level, obj->cost, obj->timer );
 	send_to_char( buf, ch );
 
 	sprintf( buf,
@@ -1086,13 +1086,11 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 	if ( !IS_NPC(victim) )
 	{
 	sprintf( buf,
-		"Thirst: %d  Hunger: %d  Full: %d  Drunk: %d  Smoke: %d  Tolerance: %d  Deep Sleep: %d  Bounty: %d\n\r",
+		"Thirst: %d  Hunger: %d  Full: %d  Drunk: %d  Deep Sleep: %d  Bounty: %d\n\r",
 		victim->pcdata->condition[COND_THIRST],
 		victim->pcdata->condition[COND_HUNGER],
 		victim->pcdata->condition[COND_FULL],
 		victim->pcdata->condition[COND_DRUNK],
-		victim->pcdata->condition[COND_SMOKE],
-		victim->pcdata->condition[COND_TOLERANCE],
 		victim->pcdata->condition[COND_DEEP_SLEEP],
 		victim->pcdata->bounty );
 	send_to_char( buf, ch );

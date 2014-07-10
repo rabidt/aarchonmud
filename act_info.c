@@ -4888,10 +4888,6 @@ void do_score( CHAR_DATA *ch, char *argument )
             else if( (thirst > 0 && thirst < 20) )
                 strcat( buf, "thirsty" );
         }
-
-        /* Smoke code, not fully implemented yet */
-        if( ch->pcdata->condition[COND_SMOKE] < 0 )
-            strcat( buf, ", and you need a smoke" );
     }
     strcat( buf, "." );
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));

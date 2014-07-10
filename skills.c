@@ -2050,8 +2050,6 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 
 	if (ch->pcdata->condition[COND_DRUNK]>10 && !IS_AFFECTED(ch, AFF_BERSERK))
 		skill = 9 * skill / 10;
-	if (ch->pcdata->condition[COND_SMOKE]<-1 )
-		skill = 9 * skill / 10;
 
         skill = URANGE(0,skill/10,100);
 
@@ -2320,7 +2318,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
             }
 	}
 	
-	  if ( ( sn = find_spell( ch,argument ) ) < 0
+	  if ( (sn = skill_lookup(argument)) < 0
 		 || ( !IS_NPC(ch)
 		 &&   (ch->level < skill_table[sn].skill_level[ch->class]
 		 ||    ch->pcdata->learned[sn] < 1 /* skill is not known */

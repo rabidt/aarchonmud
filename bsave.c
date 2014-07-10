@@ -537,13 +537,11 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	if (ch->pcdata->trained_move)
 	    bprintf(buf, "TMov %d\n", ch->pcdata->trained_move);
         
-	bprintf( buf, "Cond  %d %d %d %d %d %d\n",
+	bprintf( buf, "Cnd  %d %d %d %d\n",
             ch->pcdata->condition[0],
             ch->pcdata->condition[1],
             ch->pcdata->condition[2],
-            ch->pcdata->condition[3],
-            ch->pcdata->condition[4],
-            ch->pcdata->condition[5] );
+            ch->pcdata->condition[3] );
 
     bprintf( buf, "Stance %d\n", ch->stance );
         
@@ -1221,8 +1219,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
     ch->pcdata->condition[COND_THIRST]  = 72; 
     ch->pcdata->condition[COND_FULL]    = 72;
     ch->pcdata->condition[COND_HUNGER]  = 72;
-    ch->pcdata->condition[COND_SMOKE]    = 0;
-    ch->pcdata->condition[COND_TOLERANCE]  = 0;
     ch->pcdata->security        = 0;    /* OLC */
     ch->pcdata->clan_rank = 0;
     ch->pcdata->customduration = 0;
@@ -1655,8 +1651,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->pcdata->condition[1] = bread_number( buf );
             ch->pcdata->condition[2] = bread_number( buf );
             ch->pcdata->condition[3] = bread_number( buf );
-            ch->pcdata->condition[4] = bread_number( buf );
-            ch->pcdata->condition[5] = bread_number( buf );
+            /*ch->pcdata->condition[4] =*/ bread_number( buf );
+            /*ch->pcdata->condition[5] =*/ bread_number( buf );
             fMatch = TRUE;
             break;
         }
@@ -2752,17 +2748,17 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'C':
+        /*
             KEY( "Cond",    obj->condition, bread_number( buf ) );
-	    /*
             KEY( "Cost",    obj->cost,      bread_number( buf ) );
 	    */
-	    if ( !str_cmp(word, "Cost") )
-	    {
-		/* ignore cost */
-		bread_number( buf );
-		fMatch = TRUE;
-		break;
-	    }
+        if ( !str_cmp(word, "Cost") || !str_cmp(word, "Cond") )
+        {
+            /* ignore cost and condition */
+            bread_number( buf );
+            fMatch = TRUE;
+            break;
+        }
         if (!str_cmp(word, "Clan") )
         {
             char *temp=bread_string(buf);
@@ -2784,7 +2780,16 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         case 'D':
             KEYS( "Description", obj->description,   bread_string( buf ) );
             KEYS( "Desc",    obj->description,   bread_string( buf ) );
+            /*
             KEY( "Dur",    obj->durability,   bread_number( buf ) );
+            */
+            if ( !str_cmp( word, "Dur" ) )
+            {
+                /* ignore durability */
+                bread_number( buf );
+                fMatch = TRUE;
+                break;
+            }
             break;
             
         case 'E':
