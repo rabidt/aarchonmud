@@ -375,6 +375,7 @@ sh_int  gsn_leadership;
 sh_int  gsn_reflection;
 sh_int  gsn_prot_magic;
 sh_int  gsn_focus;
+sh_int  gsn_dagger_focus;
 sh_int  gsn_anatomy;
 sh_int  gsn_mimic;
 sh_int  gsn_mirror_image;
