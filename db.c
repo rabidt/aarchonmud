@@ -375,6 +375,7 @@ sh_int  gsn_leadership;
 sh_int  gsn_reflection;
 sh_int  gsn_prot_magic;
 sh_int  gsn_focus;
+sh_int  gsn_dagger_focus;
 sh_int  gsn_anatomy;
 sh_int  gsn_mimic;
 sh_int  gsn_mirror_image;
@@ -521,10 +522,6 @@ int         sAllocString;
 extern int         nAllocPerm;
 int         sAllocPerm;
 
-/* version numbers for downward compatibility */
-#define VER_EXIT_FLAGS 1
-#define VER_NEW_PROG_FORMAT 2
-#define VER_NEW_MOB_LDESC 3
 int area_version = 0;
 
 /*
@@ -3239,7 +3236,6 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
     obj->weight     = pObjIndex->weight;
     obj->clan     = pObjIndex->clan;
     obj->rank     = pObjIndex->rank;
-    obj->durability = pObjIndex->durability;
     obj->timer      = 0;
     
     obj->cost = pObjIndex->cost;
@@ -3383,7 +3379,6 @@ void clone_object(OBJ_DATA *parent, OBJ_DATA *clone)
     clone->weight   = parent->weight;
     clone->cost     = parent->cost;
     clone->level    = parent->level;
-    clone->condition    = parent->condition;
     clone->material = str_dup(parent->material);
     clone->timer    = parent->timer;
     

@@ -553,25 +553,6 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
             : "");
         break;
         
-    case ITEM_CIGARETTE:
-        fprintf( fp, "%d %d '%s' '%s' '%s'\n",
-            pObjIndex->value[0] > 0 ? /* no negative numbers */
-            pObjIndex->value[0]
-            : 0,
-            pObjIndex->value[1] > 0 ? /* no negative numbers */
-            pObjIndex->value[1]
-            : 0,
-            pObjIndex->value[2] != -1 ?
-            skill_table[pObjIndex->value[2]].name
-            : "",
-            pObjIndex->value[3] != -1 ?
-            skill_table[pObjIndex->value[3]].name
-            : "",
-            pObjIndex->value[4] != -1 ?
-            skill_table[pObjIndex->value[4]].name
-            : "");
-        break;
-        
     case ITEM_STAFF:
     case ITEM_WAND:
         fprintf( fp, "%d %d %d '%s' %d\n",
@@ -587,17 +568,6 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     fprintf( fp, "%d ", pObjIndex->level );
     fprintf( fp, "%d ", pObjIndex->weight );
     fprintf( fp, "%d ", pObjIndex->cost );
-    fprintf( fp, "%d ",	pObjIndex->durability );
-    
-    if ( pObjIndex->condition >  90 ) letter = 'P';
-    else if ( pObjIndex->condition >  75 ) letter = 'G';
-    else if ( pObjIndex->condition >  50 ) letter = 'A';
-    else if ( pObjIndex->condition >  25 ) letter = 'W';
-    else if ( pObjIndex->condition >  10 ) letter = 'D';
-    else if ( pObjIndex->condition >   0 ) letter = 'B';
-    else                                   letter = 'R';
-    
-    fprintf( fp, "%c\n", letter );
     
     if (pObjIndex->clan > 0)
         rfprintf ( fp, "C %s~\n" , clan_table[pObjIndex->clan].name );

@@ -184,7 +184,7 @@ void gain_exp( CHAR_DATA *ch, int gain_base)
     field = UMAX((ch_wis_field(ch)*gain)/100,0);
     gain-=field;
 
-    max=exp_per_level(ch)+ch_dis_field(ch)+10*ch->pcdata->condition[COND_SMOKE];
+    max=exp_per_level(ch)+ch_dis_field(ch);
     if (ch->pcdata->field>max)
         send_to_char("Your mind is becoming overwhelmed with new information.\n\r",ch);
     max*=2;
@@ -236,7 +236,7 @@ void update_field( CHAR_DATA *ch)
     if (!IS_NPC(ch) && ch->desc == NULL) /* Linkdead PC */
         return;
 
-    gain = number_range(1, ch_int_field(ch)+ch->pcdata->condition[COND_SMOKE]/8);
+    gain = number_range(1, ch_int_field(ch));
     pos = ch->position;
 
     if (pos == POS_RESTING || pos == POS_SITTING) 
@@ -780,12 +780,9 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
         return;
 
     condition               = ch->pcdata->condition[iCond];
-    if ((condition == -1)&&(iCond!=COND_SMOKE))
+    if (condition == -1)
         return;
-    if (iCond!=COND_SMOKE)
-        ch->pcdata->condition[iCond]    = URANGE( 0, condition + value, 72 );
-    else
-        ch->pcdata->condition[iCond]	= UMIN(72, condition+value);
+    ch->pcdata->condition[iCond]    = URANGE( 0, condition + value, 72 );
 
     if ( ch->pcdata->condition[iCond] == 0 )
     {
@@ -1628,22 +1625,6 @@ void char_update( void )
                 if (ch->pcdata->morph_time==0)
                     do_morph(ch, "");
             }
-
-            if (ch->pcdata->condition[COND_SMOKE] > ch->pcdata->condition[COND_TOLERANCE]
-                    && number_bits(6) == 0 
-                    && number_percent() < ch->pcdata->condition[COND_SMOKE] - ch->pcdata->condition[COND_TOLERANCE] + 2)
-                ch->pcdata->condition[COND_TOLERANCE]++;
-
-            if (ch->pcdata->condition[COND_SMOKE] > -ch->pcdata->condition[COND_TOLERANCE])
-                gain_condition(ch, COND_SMOKE, -1);
-
-            else if (ch->pcdata->condition[COND_SMOKE] == -ch->pcdata->condition[COND_TOLERANCE]
-                    && number_bits(8) == 0)
-                if (number_bits(6) < ch->pcdata->condition[COND_TOLERANCE])
-                {
-                    ch->pcdata->condition[COND_TOLERANCE]--;
-                    ch->pcdata->condition[COND_SMOKE]++;
-                }
 
             /* Apply penalties - valid for imms as well as morts, so not in previous section */
             penalty_update(ch);
