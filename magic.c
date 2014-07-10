@@ -1675,6 +1675,8 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
 
     dam += dam * get_focus_bonus(ch) / 100;
     check_improve(ch, gsn_focus, TRUE, 1);
+    if ( get_dagger_focus(ch) )
+        check_improve(ch, gsn_dagger_focus, TRUE, 3);
 
     if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
     {
