@@ -145,7 +145,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
 bool can_move_dir( CHAR_DATA *ch, int dir, bool show )
 {
     ROOM_INDEX_DATA *in_room = ch->in_room;
-    EXIT_DATA *pexit = in_room->exit[dir];
+    EXIT_DATA *pexit = dir >= 0 ? in_room->exit[dir] : NULL;
     ROOM_INDEX_DATA *to_room = pexit ? pexit->u1.to_room : NULL;
     
     if ( !in_room 
