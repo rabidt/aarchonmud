@@ -366,7 +366,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
     if ( ch && !was_obj_cast )
-        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (has_focus_obj(ch) ? 50 : 0)) / 500;
+        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (has_focus_obj(ch) ? 100 : 0)) / 500;
     else
         hit_roll = (level + 10) * 6/5;
 
@@ -1650,12 +1650,12 @@ bool has_focus_obj( CHAR_DATA *ch )
 
 int get_focus_bonus( CHAR_DATA *ch )
 {
-    int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 15, 25);
+    int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 18, 30);
 
     if ( has_focus_obj(ch) )
-        return 10 + skill / 2;
+        return 20 + skill * 2/5;
     else
-        return skill / 4;
+        return skill / 5;
 }
 
 /* needes to be seperate for dracs */
