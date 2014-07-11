@@ -7661,7 +7661,7 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"shielding", { -1, -1, 8, 10, -1, -1, -1, -1, -1, -1, 10, 9, -1, -1, 10 },
-	{ "immolation", "epidemic", "electrocution", "absolute zero", "fade",
+	{ "immolation", "epidemic", "electrocution", "absolute zero", "fade", "minor fade",
 	  "protection magic", "reflection" }
 	},
 
