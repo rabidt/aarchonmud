@@ -672,7 +672,7 @@ const struct flag_type room_flags[] =
     {   "donation",     ROOM_DONATION,      TRUE    },
     {   "nowhere",      ROOM_NOWHERE,       TRUE    },
     {   "snare",        ROOM_SNARE,         FALSE   },   
-    {   "blacksmith",   ROOM_BLACKSMITH,    TRUE    },   
+    {   "blacksmith",   ROOM_BLACKSMITH,    FALSE   },   
     {   "peel",         ROOM_PEEL,          FALSE   },   
     {   "jail",         ROOM_JAIL,          TRUE    },   
     {   "no_quest",     ROOM_NO_QUEST,      TRUE    },   
@@ -945,18 +945,6 @@ const struct flag_type container_flags[] =
 /*****************************************************************************
 					  ROM - specific tables:
  ****************************************************************************/
-
-
-
-
-const struct flag_type ac_type[] =
-{
-	{   "pierce",        AC_PIERCE,            TRUE    },
-	{   "bash",          AC_BASH,              TRUE    },
-	{   "slash",         AC_SLASH,             TRUE    },
-	{   "exotic",        AC_EXOTIC,            TRUE    },
-	{   NULL,              0,                    0       }
-};
 
 
 const struct flag_type size_flags[] =

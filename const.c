@@ -7141,6 +7141,17 @@ struct  skill_type  skill_table [MAX_SKILL] =
 		"relic",         "!Focus!",     "", NULL
 	},
 
+    {
+    "dagger focus",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  66, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 15, 8,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_DIS, STAT_INT, STAT_DEX,
+    spell_null,     TAR_IGNORE,     POS_FIGHTING,
+    &gsn_dagger_focus,           0,  0, DUR_NONE,
+    "",         "!Dagger Focus!",     "", NULL
+    },
+
 	{
 	"anatomy",
 	{  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },

@@ -1364,6 +1364,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -2155,13 +2157,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     else
 	ac_dam_type = FIRST_DAMAGE( dam_type );
 
-    switch( ac_dam_type )
-    {
-    case(DAM_PIERCE): victim_ac = GET_AC(victim,AC_PIERCE)/10;   break;
-    case(DAM_BASH):   victim_ac = GET_AC(victim,AC_BASH)/10;     break;
-    case(DAM_SLASH):  victim_ac = GET_AC(victim,AC_SLASH)/10;    break;
-    default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
-    }
+    victim_ac = GET_AC(victim)/10;
 
     /* basic values */
     ch_roll = GET_HITROLL(ch);
@@ -4570,8 +4566,6 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     if ( get_eq_char(ch, WEAR_SHIELD) == NULL )
         return 0;
 
-    int chance = 10 + get_skill(ch, gsn_shield_block) / 4;
-
     // offhand occupied means reduced block chance
     bool offhand_occupied = get_eq_char(ch, WEAR_SECONDARY) != NULL || get_eq_char(ch, WEAR_HOLD) != NULL;
     OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
@@ -4579,8 +4573,10 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     if ( wield != NULL && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
         offhand_occupied = TRUE;
 
+    int chance = 20 + get_skill(ch, gsn_shield_block) / 4;
+
     if ( offhand_occupied )
-        chance = chance * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+        chance = (chance - 10) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
     
     if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
         chance += 10;
