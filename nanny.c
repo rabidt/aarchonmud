@@ -43,6 +43,7 @@ void auto_assign_stats args((CHAR_DATA *ch));
 bool parse_roll_stats args((CHAR_DATA *ch,char *argument));
 void do_stats args((CHAR_DATA *ch, char *argument));
 void do_etls args((CHAR_DATA *ch, char *argument));
+void skill_reimburse( CHAR_DATA *ch );
 
 bool	get_name			args( ( DESCRIPTOR_DATA *d, char *argument ) );
 bool	get_old_password		args( ( DESCRIPTOR_DATA *d, char *argument ) );
@@ -1995,14 +1996,9 @@ void enter_game ( DESCRIPTOR_DATA *d )
     morph_update( ch );
     check_spouse( ch );
 
-    /* fix for bug that caused players to lose a group */
-    {
-	int sn = skill_lookup( "sivas sacrifice" );
-	int gn = group_lookup( "sacred invocations" );
-	if ( sn > 0 && gn > 0 && ch->pcdata->learned[sn] > 0 )
-	    ch->pcdata->group_known[gn] = TRUE;
-    }
-
+    // reimburse players for lost skills
+    skill_reimburse(ch);
+    
     if ( is_clan(ch) )
         do_cmotd(ch, "");
 
