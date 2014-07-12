@@ -2898,7 +2898,7 @@ void do_morph(CHAR_DATA *ch, char *argument)
 
 		if ( !race_table[race].pc_race || pc_race_table[race].remorts > morph_power(ch) )
 		{
-			sprintf(buf, "You cant morph into a %s.\n\r",
+			sprintf(buf, "You can't morph into a %s.\n\r",
 				race_table[race].name);
 			send_to_char(buf, ch);
 			return;
@@ -2951,7 +2951,7 @@ void do_morph(CHAR_DATA *ch, char *argument)
 		morph_update( ch );
 	}
 	else if (ch->race == race_werewolf)
-		send_to_char("You cant control your lycanthropy.\n\r", ch);
+		send_to_char("You can't control your lycanthropy.\n\r", ch);
 	else
 		send_to_char("You pretend you're a doppelganger.\n\r", ch);
 }

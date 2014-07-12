@@ -7532,7 +7532,7 @@ struct group_type group_table[MAX_GROUP] =
 	},
 
 	{ 
-	"enhancement",      { 10, 10, -1, 3, -1, 5, -1, 9, 5, -1, 6, 5, 10, 10, 5 },
+	"enhancement",      { 10, 10, 5, 3, -1, 5, -1, 9, 5, -1, 6, 5, 10, 10, 5 },
 	{ "giant strength", "haste", "infravision", "refresh", "mantra" }
 	},
 
