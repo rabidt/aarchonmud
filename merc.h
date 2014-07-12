@@ -4352,6 +4352,7 @@ bool    is_ranged_weapon( OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
+bool    check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 
@@ -4480,6 +4481,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 bool has_focus_obj( CHAR_DATA *ch );
+void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
