@@ -1921,7 +1921,7 @@ void spell_call_lightning( int sn, int level,CHAR_DATA *ch,void *vo,int target)
         return;
     }
 
-    dam = get_sn_damage( sn, level, ch ) * 3/4;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * 1.5;
 
     send_to_char( "Lightning leaps out of the sky to strike your foes!\n\r", ch );
     act( "$n calls lightning from the sky to strike $s foes!", ch, NULL, NULL, TO_ROOM );
@@ -2111,7 +2111,7 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
     bool found = TRUE;
     int per = 100;
 
-    dam = get_sn_damage( sn, level, ch ) / 3;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
     while ( per > 0 )
     {
         int count = 0;
@@ -2124,24 +2124,8 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
             if( !is_safe_spell(ch,vch,TRUE) && vch != ch )
                 count++;
 
-        /* The fewer targets, the more the damage is reduced each chain */
-        if( count < 2 )
-            per -= 25;
-        else if( count < 4 )
-            per -= 15;
-        else if( count < 6 )
-            per -= 12;
-        else if( count < 10 )
-            per -= 10;
-        else
-            per -= 9;
-
-        /* Modify this loss with respect to chain skill and focus */
-        /* (Still even a 25% of each modification failing even at 100% skill) */
-        if( number_range(25,125) < get_skill(ch,sn) )
-            per += number_range(3,5);
-        if( number_range(25,125) < get_skill(ch,gsn_focus) )
-            per += number_range(1,3);
+        // -15% each arc means 385% damage total => good for 2 or 3 targets
+        per -= 15;
 
         if ( saves_spell(victim, ch, level, dam_type) )
             curr_dam /= 2;
@@ -2156,7 +2140,8 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
         {
             send_to_char("The chain of magical energy arcs back to you!\n\r",ch);
             act("$n's spell arcs back to $mself!",ch,NULL,NULL,TO_ROOM);
-            curr_dam = dam * (per+10)/100;
+            curr_dam = dam * per/100;
+            per -= 15;
             if ( saves_spell(ch, ch, level, dam_type) )
                 curr_dam /= 2;
             full_dam(ch,ch,curr_dam,sn,dam_type,TRUE);
@@ -3104,20 +3089,29 @@ void spell_earthquake( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     send_to_char( "The earth trembles beneath your feet!\n\r", ch );
     act( "$n makes the earth tremble and shiver.", ch, NULL, NULL, TO_ROOM );
 
-    dam = get_sn_damage( sn, level, ch ) / 3;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
 
     for ( vch = char_list; vch != NULL; vch = vch_next )
     {
-        vch_next    = vch->next;
+        vch_next = vch->next;
         if ( vch->in_room == NULL )
             continue;
         if ( vch->in_room == ch->in_room )
         {
-            if ( !is_safe_spell(ch,vch,TRUE))
-                if (IS_AFFECTED(vch,AFF_FLYING))
+            if ( is_safe_spell(ch, vch, TRUE) || IS_AFFECTED(vch, AFF_FLYING) )
+                continue;
+            if ( saves_spell(vch, ch, level, DAM_BASH) )
+                full_dam(ch, vch, dam/2, sn, DAM_BASH, TRUE);
+            else
+            {
+                full_dam(ch, vch, dam, sn, DAM_BASH, TRUE);
+                if ( IS_DEAD(vch) )
                     continue;
-                else
-                    full_dam( ch,vch, dam, sn, DAM_BASH,TRUE);
+                send_to_char("You are knocked prone.\n\r", vch);
+                act("$n is knocked prone.", vch, NULL, NULL, TO_ROOM);
+                set_pos(vch, POS_RESTING);
+                check_lose_stance(vch);
+            }
             continue;
         }
 
@@ -3428,7 +3422,7 @@ void spell_fireball( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     act("A ball of fire explodes from $n's hands!",ch,NULL,NULL,TO_ROOM);
     act("A ball of fire explodes from your hands.",ch,NULL,NULL,TO_CHAR);
 
-    dam = get_sn_damage( sn, level, ch ) / 2;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
 
     for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
     {
@@ -4097,7 +4091,7 @@ void spell_holy_word(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     curse_num = skill_lookup("curse");
     frenzy_num = skill_lookup("frenzy");
 
-    dam = get_sn_damage(sn, level, ch) / 3;
+    dam = get_sn_damage(sn, level, ch) * AREA_SPELL_FACTOR;
 
     if ( IS_GOOD(ch) )
         dam_type = DAM_HOLY;
