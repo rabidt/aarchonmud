@@ -683,9 +683,9 @@ void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         {   /* Evil chars charm undead   */ 
             if ( IS_AFFECTED(vch, AFF_CHARM) || ch->fighting == vch )
                 continue;
-            spell_charm_person( gsn_charm_person, level, ch, (void*) vch, TARGET_CHAR );
             if ( !ch->fighting && check_kill_trigger(ch, vch) )
                 return;
+            spell_charm_person( gsn_charm_person, level, ch, (void*) vch, TARGET_CHAR );
             post_spell_process(sn, ch, vch);
         }
         else if (IS_GOOD(ch))
