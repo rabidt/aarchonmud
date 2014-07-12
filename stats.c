@@ -487,193 +487,135 @@ int construct_train_cost( int from, int to )
     return total;
 }
 
+void show_can_train( CHAR_DATA *ch )
+{
+    char buf[MAX_STRING_LENGTH];
+    char buf2[MAX_STRING_LENGTH];
+    int stat, inc;
+    
+    strcpy( buf, "You can train:" );
+    for ( stat = 0; stat < MAX_STATS; stat++ )
+        if ( (inc = train_stat_inc(ch, stat)) > 0 )
+        {
+            sprintf( buf2, " %s(+%d)", stat_table[stat].abbreviation, inc );
+            strcat( buf, buf2); 
+        }
+        
+    if ( train_stat(ch->pcdata->trained_hit, ch) )
+        strcat(buf, " hp");
+    if ( train_stat(ch->pcdata->trained_move, ch) )
+        strcat(buf, " move");
+    if ( train_stat(ch->pcdata->trained_mana, ch) )
+        strcat(buf, " mana");
+    
+    if ( buf[strlen(buf)-1] != ':' )
+    {
+        strcat( buf, ".\n\r" );
+        send_to_char( buf, ch );
+    }
+    else
+    {
+        act( "You have nothing left to train, you $T!", ch, NULL,
+            ch->sex == SEX_MALE   ? "big stud" :
+            ch->sex == SEX_FEMALE ? "hot babe" :
+            "wild thing",
+            TO_CHAR );
+    }
+}
+
 void do_train( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
+    char arg[MAX_STRING_LENGTH];
     CHAR_DATA *mob;
-    sh_int stat = - 1;
+    sh_int stat = -1;
     int cost, max, inc;
     
     if ( IS_NPC(ch) )
         return;
-    
-   /*
-    * Check for trainer.
-    */
-    for ( mob = ch->in_room->people; mob; mob = mob->next_in_room )
-    {
-        if ( IS_NPC(mob) && IS_SET(mob->act, ACT_TRAIN) )
-            break;
-    }
-    
-    if ( mob == NULL )
-    {
-        if (get_skill(ch, gsn_introspection) > 1)
-        {
-            act( "$n thinks over what $e has experienced recently.", ch, NULL, NULL, TO_ROOM );
-            if ((get_skill(ch,gsn_introspection)) > number_percent ()) 
-                check_improve(ch,gsn_introspection,TRUE,8);
-            else
-            {
-                send_to_char("You've learned nothing from your recent experiences.\n\r",ch);     
-                check_improve(ch,gsn_introspection,FALSE,8);
-                return;
-            }
-        }    
-        else
-        {
-            send_to_char( "You can't do that here.\n\r", ch );
-            return;
-        }
-    }
-    
-    if ( argument[0] == '\0' )
+
+    argument = one_argument( argument, arg );
+    if ( arg[0] == '\0' )
     {
         sprintf( buf, "You have %d training sessions.\n\r", ch->train );
         send_to_char( buf, ch );
-        argument = "foo";
-    }
-    
-    cost = 1;
-
-    if ( !str_cmp(argument, "hp" ) )
-        cost = 1;
-    
-    else if ( !str_cmp(argument, "mana" ) )
-        cost = 1;
-    
-    else if ( !str_cmp(argument, "move" ) )
-        cost = 1;
-    
-    else   
-        for (stat=0; stat<MAX_STATS; stat++)
-            if (!str_prefix(argument, stat_table[stat].name))
-            {
-                cost=1;
-                break;
-            } 
-            
-    if (stat==MAX_STATS)
-    {
-        strcpy( buf, "You can train:" );
-        for (stat=0; stat<MAX_STATS; stat++)
-            if ( (inc = train_stat_inc(ch, stat)) > 0 )
-            {
-		sprintf( buf2, " %s(+%d)", stat_table[stat].abbreviation, inc );
-                strcat( buf, buf2); 
-            }
-            
-            if (train_stat(ch->pcdata->trained_hit, ch)) strcat(buf, " hp");
-            if (train_stat(ch->pcdata->trained_move, ch)) strcat(buf, " move");
-            if (train_stat(ch->pcdata->trained_mana, ch)) strcat(buf, " mana");
-            
-            if ( buf[strlen(buf)-1] != ':' )
-            {
-                strcat( buf, ".\n\r" );
-                send_to_char( buf, ch );
-            }
-            else
-            {
-            /*
-            * This message dedicated to Jordan ... you big stud!
-                */
-                act( "You have nothing left to train, you $T!",
-                    ch, NULL,
-                    ch->sex == SEX_MALE   ? "big stud" :
-                ch->sex == SEX_FEMALE ? "hot babe" :
-                "wild thing",
-                    TO_CHAR );
-            }
-            
-            return;
-    }
-
-   /* Warning: Don't modify the amount of hp/mana/move training
-      without adjusting the death_penalty method in fight.c
-      a corresponding amount */    
-    if (!str_cmp("hp",argument))
-    {
-        if ( cost > ch->train )
-        {
-            send_to_char( "You don't have enough training sessions.\n\r", ch );
-            return;
-        }
-        
-        if (!train_stat(ch->pcdata->trained_hit, ch))
-        {
-            send_to_char( "You cant train any more hps you freak.\n\r", ch);
-            return;
-        }
-        
-        ch->pcdata->trained_hit++;
-        ch->train -= cost;
-
-        update_perm_hp_mana_move(ch);
-
-//        WAIT_STATE(ch, 2);
-        WAIT_STATE(ch, 1);
-        act( "Your durability increases!",ch,NULL,NULL,TO_CHAR);
-        act( "$n's durability increases!",ch,NULL,NULL,TO_ROOM);
+        show_can_train(ch);
         return;
     }
-
-   /* Warning: Don't modify the amount of hp/mana/move training
-      without adjusting the death_penalty method in fight.c
-      a corresponding amount */       
-    if (!str_cmp("mana",argument))
+    
+    bool introspect = TRUE;
+    CHAR_DATA *trainer = find_trainer(ch, ACT_TRAIN, &introspect);
+    if ( !trainer && !introspect )
+        return;
+    
+    if ( !str_cmp(arg, "hp") || !str_cmp(arg, "mana") || !str_cmp(arg, "move") )
     {
+        // second argument lets you increase hp/mana/move by multiple points at once
+        if ( (inc = atoi(argument)) < 1 )
+            inc = 1;
+        cost = inc;
+        max = max_hmm_train(ch->level);
+        
         if ( cost > ch->train )
         {
-            send_to_char( "You don't have enough training sessions.\n\r", ch );
+            send_to_char("You don't have enough training sessions.\n\r", ch);
             return;
         }
-        
-        if (!train_stat(ch->pcdata->trained_mana, ch))
+    
+        if ( !str_cmp("hp", arg) )
         {
-            send_to_char( "You have as much mana as you possibly can, you freak.\n\r", ch);
-            return;
+            if (ch->pcdata->trained_hit + inc > max )
+            {
+                send_to_char("You can't train that many hps you freak.\n\r", ch);
+                return;
+            }
+            ch->pcdata->trained_hit += inc;
+            ch->train -= cost;
+            act("Your durability increases!", ch, NULL, NULL, TO_CHAR);
+            act("$n's durability increases!", ch, NULL, NULL, TO_ROOM);
         }
-        
-
-        ch->pcdata->trained_mana++;
-        ch->train -= cost;
+        else if ( !str_cmp("mana", arg) )
+        {
+            if (ch->pcdata->trained_mana + inc > max )
+            {
+                send_to_char("You can't train that much mana you freak.\n\r", ch);
+                return;
+            }
+            ch->pcdata->trained_mana += inc;
+            ch->train -= cost;
+            act("Your power increases!", ch, NULL, NULL, TO_CHAR);
+            act("$n's power increases!", ch, NULL, NULL, TO_ROOM);
+        }
+        else if ( !str_cmp("move", arg) )
+        {
+            if (ch->pcdata->trained_move + inc > max )
+            {
+                send_to_char("You can't train that many moves you freak.\n\r", ch);
+                return;
+            }
+            ch->pcdata->trained_move += inc;
+            ch->train -= cost;
+            act("Your stamina increases!", ch, NULL, NULL, TO_CHAR);
+            act("$n's stamina increases!", ch, NULL, NULL, TO_ROOM);
+        }
         update_perm_hp_mana_move(ch);
-
-//        WAIT_STATE(ch, 2);
-        WAIT_STATE(ch, 1);
-        act( "Your power increases!",ch,NULL,NULL,TO_CHAR);
-        act( "$n's power increases!",ch,NULL,NULL,TO_ROOM);
         return;
     }
-
-   /* Warning: Don't modify the amount of hp/mana/move training
-      without adjusting the death_penalty method in fight.c
-      a corresponding amount */       
-    if (!str_cmp("move",argument))
+    
+    // check for valid argument & find stat
+    for ( stat = 0; stat < MAX_STATS; stat++ )
+        if ( !str_prefix(arg, stat_table[stat].name) )
+            break;
+    
+    if ( stat == MAX_STATS )
     {
-        if ( cost > ch->train )
-        {
-            send_to_char( "You don't have enough training sessions.\n\r", ch );
-            return;
-        }
-        
-        if (!train_stat(ch->pcdata->trained_move, ch))
-        {
-            send_to_char( "You have as much stamina as you possibly can, you freak.\n\r", ch);
-            return;
-        }
-        
-        ch->pcdata->trained_move++;
-        ch->train -= cost;
-        update_perm_hp_mana_move(ch);
-        
-//        WAIT_STATE(ch, 2);
-        WAIT_STATE(ch, 1);
-        act( "Your stamina increases!",ch,NULL,NULL,TO_CHAR);
-        act( "$n's stamina increases!",ch,NULL,NULL,TO_ROOM);
+        send_to_char("Syntax: train <str|...|luc>\n\r", ch);
+        send_to_char("        train <hp|mana|move> [amount]\n\r", ch);
         return;
     }
+    else
+        cost = 1;
     
     if ( ch->perm_stat[stat]  >= (max=get_max_train(ch,stat)) )
     {
@@ -702,33 +644,9 @@ void do_train( CHAR_DATA *ch, char *argument )
             stat_table[stat].name, cost);
         send_to_char(buf, ch);
         ch->gold -= cost;
-        
-	/*
-        max -= ch->perm_stat[stat];
-        cost = UMIN(3, max);
-	*/
     } else {
         ch->train -= cost;
-        
-	/*
-        max-=ch->perm_stat[stat];
-        
-        if (max>45)
-            cost=5;
-        else if (max>21)
-            cost=4;
-        else if (max>9)
-            cost=3;
-        else if (max>3)
-            cost=2;
-        else
-            cost=1;
-        cost=UMIN(1 + ch->perm_stat[stat]/15, cost);
-	*/
     }
-    
-//    WAIT_STATE(ch, 2);
-      WAIT_STATE(ch, 1);
     
     ch->perm_stat[stat] += train_stat_inc(ch, stat);
     update_perm_hp_mana_move(ch);
