@@ -4568,6 +4568,7 @@ int get_group_base_cost( int gn, int class );
 int get_group_cost( CHAR_DATA *ch, int gn );
 int get_mastery( CHAR_DATA *ch, int sn );
 bool check_skill( CHAR_DATA *ch, int sn );
+CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect );
 
 /* social-edit.c */
 void load_social_table();
