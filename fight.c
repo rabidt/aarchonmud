@@ -4575,8 +4575,6 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     if ( get_eq_char(ch, WEAR_SHIELD) == NULL )
         return 0;
 
-    int chance = 10 + get_skill(ch, gsn_shield_block) / 4;
-
     // offhand occupied means reduced block chance
     bool offhand_occupied = get_eq_char(ch, WEAR_SECONDARY) != NULL || get_eq_char(ch, WEAR_HOLD) != NULL;
     OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
@@ -4584,8 +4582,10 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     if ( wield != NULL && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
         offhand_occupied = TRUE;
 
+    int chance = 20 + get_skill(ch, gsn_shield_block) / 4;
+
     if ( offhand_occupied )
-        chance = chance * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+        chance = (chance - 10) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
     
     if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
         chance += 10;

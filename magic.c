@@ -366,7 +366,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
     if ( ch && !was_obj_cast )
-        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (has_focus_obj(ch) ? 50 : 0)) / 500;
+        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (has_focus_obj(ch) ? 100 : get_dagger_focus(ch))) / 500;
     else
         hit_roll = (level + 10) * 6/5;
 
@@ -1632,14 +1632,23 @@ bool has_focus_obj( CHAR_DATA *ch )
     return !has_shield && (obj && obj->item_type != ITEM_ARROWS);
 }
 
+int get_dagger_focus( CHAR_DATA *ch )
+{
+    OBJ_DATA *obj = get_eq_char(ch, WEAR_SECONDARY);
+    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    if ( has_shield || !obj || obj->item_type != ITEM_WEAPON )
+        return 0;
+    return get_skill(ch, gsn_dagger_focus) + mastery_bonus(ch, gsn_dagger_focus, 18, 30);
+}
+
 int get_focus_bonus( CHAR_DATA *ch )
 {
-    int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 15, 25);
+    int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 18, 30);
 
     if ( has_focus_obj(ch) )
-        return 10 + skill / 2;
+        return 20 + skill * 2/5;
     else
-        return skill / 4;
+        return (get_dagger_focus(ch) + skill) / 5;
 }
 
 /* needes to be seperate for dracs */
@@ -1650,6 +1659,8 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
 
     dam += dam * get_focus_bonus(ch) / 100;
     check_improve(ch, gsn_focus, TRUE, 1);
+    if ( get_dagger_focus(ch) )
+        check_improve(ch, gsn_dagger_focus, TRUE, 3);
 
     if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
     {
