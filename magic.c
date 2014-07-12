@@ -1338,7 +1338,11 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         victim = (CHAR_DATA*) vo;
         // remove invisibility etc.
         if ( is_offensive(sn) && target == TARGET_CHAR )
+        {
             attack_affect_strip(ch, victim);
+            if ( !ch->fighting && check_kill_trigger(ch, victim) )
+                return;
+        }
 
         (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
         check_improve(ch,sn,TRUE,3);
@@ -1586,41 +1590,21 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg 
     target_name = arg;
     vo = check_reflection( sn, level, ch, vo, target );
 
-    /*
-       victim = (CHAR_DATA*) vo;
-       if ( is_offensive(sn)
-       && target == TARGET_CHAR
-       && victim->fighting == NULL
-       && check_kill_trigger(ch, victim) )
-       return;
-     */
+    // remove invisibility
+    if ( is_offensive(sn) && target == TARGET_CHAR )
+    {
+        attack_affect_strip(ch, (CHAR_DATA*)vo);
+        if ( !ch->fighting && check_kill_trigger(ch, (CHAR_DATA*)vo) )
+            return;
+    }        
 
     was_obj_cast = TRUE;
     (*skill_table[sn].spell_fun) ( sn, level, ch, vo, target);
     was_obj_cast = FALSE;
 
-    victim = (CHAR_DATA*) vo;
-    if ( (skill_table[sn].target == TAR_CHAR_OFFENSIVE
-                ||  skill_table[sn].target == TAR_VIS_CHAR_OFF
-                ||   (skill_table[sn].target == TAR_OBJ_CHAR_OFF && target == TARGET_CHAR))
-            &&   victim != ch
-            &&   victim->master != ch )
-    {
-        CHAR_DATA *vch;
-        CHAR_DATA *vch_next;
-
-        for ( vch = ch->in_room->people; vch; vch = vch_next )
-        {
-            vch_next = vch->next_in_room;
-            if ( victim == vch && victim->fighting == NULL )
-            {
-                check_killer(victim,ch);
-                multi_hit( victim, ch, TYPE_UNDEFINED );
-                break;
-            }
-        }
-    }
-
+    if ( target == TARGET_CHAR )
+        post_spell_process(sn, ch, (CHAR_DATA*)vo);
+    
     return TRUE;
 }
 

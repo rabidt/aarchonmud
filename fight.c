@@ -1089,6 +1089,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     if ( !can_attack(ch) )
         return;
     
+    if ( !start_combat(ch, victim) )
+        return;
+    
     // chance to get petrified if not averting gaze
     if ( per_chance(20) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) )
     {
@@ -1929,7 +1932,9 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         offence = deduct_move_cost(ch, offence_cost);
     }
     
-    start_combat(ch, victim);
+    if ( !start_combat(ch, victim) )
+        return FALSE;
+    
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
         /* Miss. */
@@ -6473,7 +6478,7 @@ void do_kill( CHAR_DATA *ch, char *argument )
     was_fighting = ch->fighting != NULL;
     set_fighting( ch, victim );
     
-    if ( was_fighting ) 
+    if ( was_fighting || !ch->fighting )
         return;
     
     multi_hit( ch, victim, TYPE_UNDEFINED );
@@ -6607,7 +6612,7 @@ void do_murder( CHAR_DATA *ch, char *argument )
     was_fighting = ch->fighting != NULL;
     set_fighting( ch, victim );
     
-    if ( was_fighting ) 
+    if ( was_fighting || !ch->fighting )
         return;
     
     if ((get_skill(victim, gsn_quick_draw)) != 0 && IS_AWAKE(victim))

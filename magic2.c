@@ -685,8 +685,11 @@ void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 if ( IS_AFFECTED(vch, AFF_CHARM) || ch->fighting == vch )
                     continue;
 
+            if ( !ch->fighting && check_kill_trigger(ch, vch) )
+                return;
 		spell_charm_person( gsn_charm_person, level, ch, (void*) vch,
 				    TARGET_CHAR );
+            post_spell_process(sn, ch, vch);
             }
 	    else if (IS_GOOD(ch))
 	    {   /* Good chars harm undead */
@@ -699,13 +702,12 @@ void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 	    {   /* Neutral chars fear undead */
 		if ( IS_AFFECTED(vch, AFF_FEAR) )
 		    continue;
+            if ( !ch->fighting && check_kill_trigger(ch, vch) )
+                return;
 		spell_fear( gsn_fear, level, ch, (void*) vch, TARGET_CHAR );
+            post_spell_process(sn, ch, vch);
             }
 
-	    if ( !IS_DEAD(ch) && !IS_DEAD(vch)
-		 && vch->fighting == NULL
-		 && !is_safe_spell(vch, ch, FALSE) )
-		multi_hit( vch, ch, TYPE_UNDEFINED );
         }
     }
 }
@@ -2350,36 +2352,34 @@ void spell_mass_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int targe
         if ( is_safe_spell(ch, victim, TRUE) || IS_AFFECTED(victim, AFF_INSANE) )
             continue;
 
-	check_killer( ch, victim );
+        check_killer( ch, victim );
+        if ( !ch->fighting && check_kill_trigger(ch, victim) )
+            return;
 
         if  ( saves_spell(victim, ch, level/2, DAM_MENTAL) )
-	      /* || saves_spell(level,victim,DAM_CHARM)) */
         {
             if (ch == victim)
                 send_to_char("{xYou feel momentarily {Ms{yi{Gl{Cl{Ry{x, but it passes.\n\r",ch);
             else
                 act("$N seems to keep $S sanity.",ch,NULL,victim,TO_CHAR);
         }
-	else
-	{
-	    af.where     = TO_AFFECTS;
-	    af.type      = sn;
-	    af.level     = level/2;
-	    af.duration  = get_duration(sn, level);
-	    af.location  = APPLY_INT;
-	    af.modifier  = -15;
-	    af.bitvector = AFF_INSANE;
-	    affect_join(victim,&af);
-        
-	    send_to_char("{MY{bo{Cu{Gr {%{yw{Ro{mr{Bl{Cd{x {gi{Ys {%{ra{Ml{Bi{cv{Ge{x {yw{Ri{Mt{bh{%{wcolors{x{C?{x\n\r",victim);
-	    act("$n giggles like $e lost $s mind.", victim,NULL,NULL,TO_ROOM);
-	}
-
-	if ( !IS_DEAD(ch) && !IS_DEAD(victim)
-	     && victim->fighting == NULL
-	     && !is_safe_spell(victim, ch, TRUE) )
-	    multi_hit( victim, ch, TYPE_UNDEFINED );
+        else
+        {
+            af.where     = TO_AFFECTS;
+            af.type      = sn;
+            af.level     = level/2;
+            af.duration  = get_duration(sn, level);
+            af.location  = APPLY_INT;
+            af.modifier  = -15;
+            af.bitvector = AFF_INSANE;
+            affect_join(victim,&af);
+            
+            send_to_char("{MY{bo{Cu{Gr {%{yw{Ro{mr{Bl{Cd{x {gi{Ys {%{ra{Ml{Bi{cv{Ge{x {yw{Ri{Mt{bh{%{wcolors{x{C?{x\n\r",victim);
+            act("$n giggles like $e lost $s mind.", victim,NULL,NULL,TO_ROOM);
+        }
+        post_spell_process(sn, ch, victim);
     }
+
     return;
     
 }
