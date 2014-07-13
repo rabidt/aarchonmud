@@ -7272,29 +7272,12 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	"divine curse",   "The curse of the gods has ended.",  "", NULL
 	},
 
-	{
-	"recall",   
-    {   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-	STAT_NONE, STAT_NONE, STAT_NONE,
-		spell_null,     TAR_IGNORE,     POS_STANDING,
-		&gsn_recall,           0,  12, DUR_NONE,
-		"",         "!Recall!",     "", NULL
-	},
-
-
 	{NULL}
 
 };
 
 struct group_type group_table[MAX_GROUP] =
 {
-
-	{
-	"rom basics",   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	{ "recall" }
-	},
 
 	{
 	"mage basics",      { -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },

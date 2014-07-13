@@ -1926,8 +1926,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             /* gn    = group_lookup( bread_word( buf ) ); */
             if ( gn < 0 )
             {
-                fprintf(stderr,"%s",temp);
-                bug( "Bread_char: unknown group. ", 0 );
+                if ( strcmp(temp, "rom basics") )
+                    bugf("bread_char: unknown group '%s'.", temp);
             }
             else
                 gn_add(ch,gn);
@@ -2215,8 +2215,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             /* sn    = skill_lookup( bread_word( buf ) ); */
             if ( sn < 0 )
             {
-                fprintf(stderr,"%s",temp);
-                bug( "Bread_char: unknown skill. ", 0 );
+                if ( strcmp(temp, "recall") )
+                    bugf("bread_char: unknown skill '%s'.", temp);
             }
             else
                 ch->pcdata->learned[sn] = value;
