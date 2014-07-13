@@ -2763,9 +2763,7 @@ void do_recall( CHAR_DATA *ch, char *argument )
     {
         int lose,skill;
         
-        skill = get_skill(ch,gsn_recall);
-        skill += get_curr_stat(ch, STAT_LUC)/5;
-		skill -= get_curr_stat(victim, STAT_LUC)/4;
+        skill = 50 + (get_curr_stat(ch, STAT_LUC) - get_curr_stat(victim, STAT_LUC)) / 5;
 
 		if (lose = get_skill(victim, gsn_entrapment))
 		{
@@ -2778,7 +2776,6 @@ void do_recall( CHAR_DATA *ch, char *argument )
         
         if (number_percent() > skill/3)
         {
-            check_improve(ch,gsn_recall,FALSE,6);
             WAIT_STATE( ch, 6 );
             sprintf( buf, "%s doesn't answer your prayer.\n\r", god_name);
             send_to_char( buf, ch );
@@ -2811,7 +2808,6 @@ void do_recall( CHAR_DATA *ch, char *argument )
         else
             send_to_char("You recall from combat!\n\r",ch);
 
-        check_improve(ch,gsn_recall,TRUE,4);
         stop_fighting( ch, TRUE );
         
     }
