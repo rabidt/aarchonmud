@@ -1296,9 +1296,7 @@ void take_rom_basics(DESCRIPTOR_DATA *d)
 {
 	CHAR_DATA *ch=d->character;
 
-	group_add(ch,"rom basics",FALSE);
 	group_add(ch,class_table[ch->class].base_group,FALSE);
-	ch->pcdata->learned[gsn_recall] = 50;
 	
 	return;
 }	
