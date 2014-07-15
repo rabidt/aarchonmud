@@ -1394,7 +1394,7 @@ void program_flow(
 #endif
 
 	  /* savety-net against mob disappearing during execution */
-	  if ( IS_DEAD(mob) )
+	  if ( mob->must_extract || !mob->in_room )
 	      break;
        }
     }
