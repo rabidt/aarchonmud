@@ -1328,7 +1328,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
 
         level = ch->level;
         level = (100+chance)*level/200;
-        level = URANGE(1, level, 120);
+        level = URANGE(1, level, 200);
         if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
             level += UMAX(1, level/8);
         level = mastery_adjust_level(level, get_mastery(ch, sn));
