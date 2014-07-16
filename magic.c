@@ -424,9 +424,9 @@ bool saves_dispel( int dis_level, int spell_level, int duration )
     if ( duration == -1 && number_bits(1) )
         return TRUE;
 
-    save = 50 + (spell_level - dis_level) / 2;
-    save = URANGE( 5, save, 95 );
-    return number_percent( ) < save;
+    int off_roll = number_range(0, dis_level);
+    int def_roll = number_range(0, spell_level);
+    return off_roll <= def_roll;
 }
 
 /* co-routine for dispel magic and cancellation */
