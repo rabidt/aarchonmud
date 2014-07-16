@@ -2373,6 +2373,43 @@ void do_practice( CHAR_DATA *ch, char *argument )
    return;
 }
 
+// reimburse character for skill gained and then lost due to class losing the skill
+void skill_reimburse( CHAR_DATA *ch )
+{
+    int sn;
+    
+    if ( !ch || !ch->pcdata || IS_IMMORTAL(ch) )
+        return;
+    
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        // still accessible
+        if ( skill_table[sn].skill_level[ch->class] <= LEVEL_HERO )
+            continue;
+        
+        int learned = ch->pcdata->learned[sn];
+        // racial skills or groups set learned to 1, don't reimburse for these
+        // characters who gained the skill but didn't practice it lose out, that's life
+        if ( learned <= 1 )
+            continue;
+        
+        int train_cost = skill_table[sn].min_rating;
+        // assume an int rating of 100 for the purpose of determining practice cost
+        int prac_cost = 1 + UMIN(learned, 75) * train_cost / int_app_learn(100);
+        // reimburse for practice above 75 as if hard practiced
+        if ( learned > 75 )
+            prac_cost += (learned - 75) * (learned - 74) / 2;
+        
+        printf_to_char(ch, "You have been reimbursed %d trains and %d practices for the loss of %s (%d%%).\n\r",
+            train_cost, prac_cost, skill_table[sn].name, learned);
+        logpf("%s has been reimbursed %d trains and %d practices for the loss of %s (%d%%).",
+            ch->name, train_cost, prac_cost, skill_table[sn].name, learned);
+        
+        ch->pcdata->learned[sn] = 0;
+        ch->train += train_cost;
+        ch->practice += prac_cost;
+    }
+}
 
 void do_raceskills( CHAR_DATA *ch, char *argument )
 {
