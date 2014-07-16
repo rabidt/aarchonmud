@@ -4302,8 +4302,8 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
                     printf_to_char(ch, "%s\n\r", wear);
             }
             sprintf( buf, 
-                    "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic.\n\r", 
-                    obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+                    "Armor class is %d.\n\r", 
+                    obj->value[0]);
             send_to_char( buf, ch );
             break;
 
@@ -5066,7 +5066,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -5089,7 +5089,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;

@@ -1724,8 +1724,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
     if ( obj->item_type == ITEM_ARMOR )
     {
 	spec = (obj->level * 2 + 8) / 9;
-	value = (obj->value[0] + obj->value[1] + obj->value[2] + 
-		 3 * obj->value[3]) / 6;
+	value = obj->value[0];
 	if ( value > spec )
 	{
 	    sprintf( msg, "ac=%d/%d", value, spec );
