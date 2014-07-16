@@ -3402,7 +3402,7 @@ void spell_energy_drain( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
     drop_align( ch );
 
-    drain = dice( level, 9 );
+    drain = get_sn_damage( sn, level, ch ) / 2;
     /* if one stat is fully drained, drain missing points on other */
     drain_mana = UMIN( drain, victim->mana );
     drain_move = UMIN( 2*drain - drain_mana, victim->move );
