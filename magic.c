@@ -424,8 +424,8 @@ bool saves_dispel( int dis_level, int spell_level, int duration )
     if ( duration == -1 && number_bits(1) )
         return TRUE;
 
-    int off_roll = number_range(0, dis_level);
-    int def_roll = number_range(0, spell_level);
+    int off_roll = number_range(0, 20 + dis_level);
+    int def_roll = number_range(0, 20 + spell_level);
     return off_roll <= def_roll;
 }
 
