@@ -1443,9 +1443,8 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 	     );
     send_to_char( buf, ch );
 
-    sprintf( buf, "Armor: pierce: %d  bash: %d  slash: %d  magic: %d\n\r",
-	     GET_AC(victim,AC_PIERCE), GET_AC(victim,AC_BASH),
-	     GET_AC(victim,AC_SLASH),  GET_AC(victim,AC_EXOTIC)
+    sprintf( buf, "Armor: %d\n\r",
+	     GET_AC(victim)
 	     );
     send_to_char(buf,ch);
 

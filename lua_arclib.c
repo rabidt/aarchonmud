@@ -1902,13 +1902,7 @@ OBJVGT( spells,
     return 0;
 )
 
-OBJVGETINT( acpierce, ITEM_ARMOR, 0 )
-
-OBJVGETINT( acbash, ITEM_ARMOR, 1 )
-
-OBJVGETINT( acslash, ITEM_ARMOR, 2 )
-
-OBJVGETINT( acexotic, ITEM_ARMOR, 3 )
+OBJVGETINT( ac, ITEM_ARMOR, 0 )
 
 OBJVGETSTR( weapontype, ITEM_WEAPON,
         flag_stat_string( weapon_class, ud_obj->value[0] ) )
@@ -4968,10 +4962,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(spells, 0),
 
     /* armor */
-    OBJGET( acpierce, 0),
-    OBJGET( acbash, 0),
-    OBJGET( acslash, 0),
-    OBJGET( acexotic, 0),
+    OBJGET( ac, 0),
 
     /* weapon */
     OBJGET( weapontype, 0),
@@ -6379,10 +6370,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET(spells, 0),
 
     /* armor */
-    OPGET( acpierce, 0),
-    OPGET( acbash, 0),
-    OPGET( acslash, 0),
-    OPGET( acexotic, 0),
+    OPGET( ac, 0),
 
     /* weapon */
     OPGET( weapontype, 0),

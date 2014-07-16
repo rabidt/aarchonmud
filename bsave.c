@@ -430,8 +430,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (ch->damroll != 0)
         bprintf( buf, "Dam   %d\n",  ch->damroll );
     
-    bprintf( buf, "ACs %d %d %d %d\n",   
-        ch->armor[0],ch->armor[1],ch->armor[2],ch->armor[3]);
+    bprintf( buf, "AC %d\n",   
+        ch->armor);
     
     if (ch->wimpy !=0 )
         bprintf( buf, "Wimp  %d\n",  ch->wimpy   );
@@ -934,8 +934,8 @@ void bwrite_pet( CHAR_DATA *pet, DBUFFER *buf)
     bprintf( buf, "Hit  %d\n", pet->hitroll );
     bprintf( buf, "DamDice %d %d\n", pet->damage[DICE_NUMBER], pet->damage[DICE_TYPE] );
     bprintf(buf, "Dam  %d\n", pet->damroll);
-    bprintf(buf, "ACs  %d %d %d %d\n",
-        pet->armor[0],pet->armor[1],pet->armor[2],pet->armor[3]);
+    bprintf(buf, "AC %d\n",
+        pet->armor);
     bprintf( buf, "Attr %d %d %d %d %d %d %d %d %d %d\n",
         pet->perm_stat[STAT_STR],
         pet->perm_stat[STAT_CON],
@@ -1451,19 +1451,19 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 break;
             }
             
-            if (!str_cmp( word, "AC") || !str_cmp(word,"Armor"))
+            if (!str_cmp( word, "AC") )
             {
-                bread_to_eol(buf);
+                ch->armor=bread_number(buf);
                 fMatch = TRUE;
                 break;
             }
             
             if (!str_cmp(word,"ACs"))
             {
-                int i;
-                
-                for (i = 0; i < 4; i++)
-                    ch->armor[i] = bread_number(buf);
+                /* old format */
+                ch->armor=bread_number(buf);
+                bread_to_eol(buf);
+
                 fMatch = TRUE;
                 break;
             }
@@ -2377,10 +2377,10 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
             
             if (!str_cmp(word,"ACs"))
             {
-                int i;
-                
-                for (i = 0; i < 4; i++)
-                    pet->armor[i] = bread_number(buf);
+                /* old format */
+                pet->armor=bread_number(buf);
+                bread_to_eol(buf);
+
                 fMatch = TRUE;
                 break;
             }
@@ -3148,8 +3148,7 @@ void do_finger(CHAR_DATA *ch, char *argument)
         else if (IS_IMMORTAL(ch))
             sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
-            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
-        
+            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );       
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
         else
@@ -3221,13 +3220,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
         }
     }
 	
-    /* Date Created */
-    sprintf(buf, "{D|{x Date Created: %s   ",
-	    time_format(wch->id, custombuf));
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
@@ -3242,6 +3234,13 @@ void do_finger(CHAR_DATA *ch, char *argument)
             add_buf( output, buf );
         }
     }
+
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     
     if (wch->level <= LEVEL_HERO)
