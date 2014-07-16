@@ -1367,6 +1367,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -2160,13 +2162,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     else
 	ac_dam_type = FIRST_DAMAGE( dam_type );
 
-    switch( ac_dam_type )
-    {
-    case(DAM_PIERCE): victim_ac = GET_AC(victim,AC_PIERCE)/10;   break;
-    case(DAM_BASH):   victim_ac = GET_AC(victim,AC_BASH)/10;     break;
-    case(DAM_SLASH):  victim_ac = GET_AC(victim,AC_SLASH)/10;    break;
-    default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
-    }
+    victim_ac = GET_AC(victim)/10;
 
     /* basic values */
     ch_roll = GET_HITROLL(ch);
@@ -3106,35 +3102,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     /* iron maiden returns part of the damage */
     if ( IS_AFFECTED(ch, AFF_IRON_MAIDEN) && ch != victim )
     {
-	int iron_dam;
-        int dam_cap;
-
-    if ( IS_NPC(ch) )
-    {
-        if ( IS_NPC(victim) )
-        {
-            iron_dam = 0; /* NPC vs NPC hits don't cause iron maiden damage */
-        }
-        else
-        {
-            iron_dam = dam/2; /* PC -> NPC hit */
-        }
-    }
-    else
-    {
-        iron_dam = dam/4; /* NPC/PC -> PC hit */
-    }
-        
-              
-    if ( IS_NPC(victim) && IS_NPC(ch))
-        iron_dam = 0;
-    else if ( IS_NPC(ch) )
-	    iron_dam = dam/2;
-	else
-	    iron_dam = dam/4;
-
-        if (IS_NPC(ch))
-            iron_dam = URANGE(0, iron_dam, 100);
+        int iron_dam = dam/4;
 
 	/* if-check to lower spam */
 	if ( show || iron_dam > ch->level )

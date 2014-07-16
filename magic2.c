@@ -3425,7 +3425,6 @@ void spell_mirror_image( int sn, int level, CHAR_DATA *ch, void *vo, int target 
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_phantasmal_image );
 
     af.type      = sn;
     af.level     = level;
@@ -3959,7 +3958,6 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_mirror_image );
 
     af.type      = sn;
     af.level     = level;

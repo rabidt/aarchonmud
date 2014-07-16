@@ -343,9 +343,6 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
     int hit_roll, save_roll;
     
-    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
-        return TRUE;
-
     /* automatic saves/failures */
     switch(check_immune(victim,dam_type))
     {
@@ -354,7 +351,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
 
-    if ( (victim->stance == STANCE_UNICORN) && per_chance(25) )
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PHASE) && per_chance(50) )
@@ -370,8 +367,10 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     else
         hit_roll = (level + 10) * 6/5;
 
-    if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
-        save_roll = save_roll * 2/3;
+    if ( ch && ch->stance == STANCE_INQUISITION )
+        hit_roll += hit_roll / 3;
+    if ( victim->stance == STANCE_INQUISITION || victim->stance == STANCE_UNICORN )
+        save_roll += save_roll / 3;
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -4303,8 +4302,8 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
                     printf_to_char(ch, "%s\n\r", wear);
             }
             sprintf( buf, 
-                    "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic.\n\r", 
-                    obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+                    "Armor class is %d.\n\r", 
+                    obj->value[0]);
             send_to_char( buf, ch );
             break;
 
@@ -5067,7 +5066,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -5090,7 +5089,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
