@@ -2852,7 +2852,7 @@ void do_morph(CHAR_DATA *ch, char *argument)
 	CHAR_DATA *victim;
 	char arg[MAX_INPUT_LENGTH];
 	char buf[MAX_STRING_LENGTH];
-	int race, cost;
+	int race;
 
 	one_argument(argument, arg);
 
@@ -2900,13 +2900,14 @@ void do_morph(CHAR_DATA *ch, char *argument)
 			return;
 		}
 
-        cost = (pc_race_table[race].remorts + 5) * (20 + ch->level);
-        if ( victim )
-            cost /= 2;
-		if ( (ch->mana < cost ) || (ch->move < 2*cost) )
+        int base_cost = (pc_race_table[race].remorts + 5) * (20 + ch->level) * (victim ? 1 : 2);
+        int mana_cost = base_cost * 0.4; // min mana factor for any class
+        int move_cost = base_cost * 0.7; // min move factor for any class
+        
+        if ( ch->mana < mana_cost || ch->move < move_cost )
 		{
 			sprintf(buf,"You need %d mana and %d move to morph into a %s.\n\r",
-					cost, 2*cost, race_table[race].name);
+                mana_cost, move_cost, race_table[race].name);
 			send_to_char(buf, ch);
 			return;
 		}
@@ -2915,8 +2916,8 @@ void do_morph(CHAR_DATA *ch, char *argument)
 			WAIT_STATE(ch, 2 * PULSE_VIOLENCE);
 			sprintf(buf, "You morph into a %s.\n\r", race_table[race].name);
 			send_to_char(buf, ch);
-			ch->move-=2*cost;
-			ch->mana-=cost;
+            ch->mana -= mana_cost;
+            ch->move -= move_cost;
 			ch->pcdata->morph_race = race;
 			ch->pcdata->morph_time = get_duration_by_type(DUR_EXTREME, ch->level);
 			morph_update( ch );
@@ -2931,18 +2932,12 @@ void do_morph(CHAR_DATA *ch, char *argument)
 		    ch->pcdata->morph_race = 0;
 		    ch->pcdata->morph_time = 0;
 		}
-		else if ( ch->move < (cost = 10) )
-		{
-		    send_to_char( "You are too exhausted to morph into humanoid form.\n\r", ch );
-		    return;
-		}
 		else
 		{
 		    WAIT_STATE(ch, PULSE_VIOLENCE);
 		    send_to_char("You morph into humanoid form.\n\r", ch);
 		    ch->pcdata->morph_race = race_naga;
 		    ch->pcdata->morph_time = 10;
-		    ch->move -= cost;
 		}
 		morph_update( ch );
 	}
