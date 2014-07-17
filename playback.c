@@ -544,6 +544,11 @@ static int L_save_comm_histories( lua_State *LS )
     push_comm_history( LS, &immtalk_history );
     lua_call( LS, 2, 0 );
 
+    lua_getglobal( LS, "save_comm" );
+    lua_pushliteral( LS, "savant_history" );
+    push_comm_history( LS, &savant_history );
+    lua_call( LS, 2, 0 );
+
     return 0;
 }
 
@@ -558,6 +563,11 @@ static int L_load_comm_histories( lua_State *LS )
     lua_pushliteral( LS, "immtalk_history" );
     lua_call( LS, 1, 1 );
     load_comm_history( LS, &immtalk_history );
+
+    lua_getglobal( LS, "load_comm" );
+    lua_pushliteral( LS, "savant_history" );
+    lua_call( LS, 1, 1 );
+    load_comm_history( LS, &savant_history );
 
     return 0;
 } 
