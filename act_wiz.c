@@ -2602,7 +2602,7 @@ void do_as(CHAR_DATA *ch, char *argument)
 
 void do_pload( CHAR_DATA *ch, char *argument )
 {
-    DESCRIPTOR_DATA d;
+    DESCRIPTOR_DATA d={0};
     bool isChar = FALSE;
     char name[MAX_INPUT_LENGTH];
     
