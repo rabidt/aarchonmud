@@ -1224,7 +1224,7 @@ function do_perfmon( ch, argument )
     pagetochar( ch,
 ([[
 Averages
-  %3d Pulse;    %f
+  %3d Pulse:    %f
   %3d Pulses:   %f
   %3d Seconds:  %f
   %3d Minutes:  %f
