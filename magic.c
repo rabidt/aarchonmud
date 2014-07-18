@@ -428,7 +428,23 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     if ( save_roll <= 0 )
         return FALSE;
     else
-        return number_range(0, hit_roll) <= number_range(0, save_roll);
+    {
+        int hit_rolled = number_range(0, hit_roll);
+        int save_rolled = number_range(0, save_roll);
+        bool success = hit_rolled <= save_rolled;
+        if ( cfg_show_rolls )
+        {
+            char buf[MSL];
+            sprintf(buf, "Saving throw vs physical: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+                    ch ? ch_name(ch) : "attacker", hit_rolled, hit_roll,
+                    ch_name(victim), save_rolled, save_roll,
+                    success ? "success" : "failure");
+            send_to_char(buf, victim);
+            if ( ch && ch != victim )
+                send_to_char(buf, ch);
+        }
+        return success;
+    }
 }
 
 /* RT save for dispels */
