@@ -1507,7 +1507,7 @@ int get_weapon_damage( OBJ_DATA *wield )
     if ( wield == NULL )
 	return 0;
     
-	weapon_dam = dice( wield->value[1], wield->value[2] );
+    weapon_dam = dice( wield->value[1], wield->value[2] );
 
     /* sharpness! */
     if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) )
@@ -1606,7 +1606,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* damage roll */
     int damroll = GET_DAMROLL(ch);
     if (damroll > 0) {
-        int damroll_roll = number_range(0, number_range(0, damroll));
+        int damroll_roll = cfg_const_damroll ? damroll / 4 : number_range(0, number_range(0, damroll));
         // bonus is partially capped
         int damroll_cap = 2 * (10 + ch->level + UMAX(0, ch->level - 90));
         if (damroll_roll > damroll_cap)
@@ -1657,7 +1657,10 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 400;
         check_improve(ch, gsn_anatomy, TRUE, 1);
     }
-    return number_range( dam * 2/3, dam );
+    if ( cfg_const_damroll )
+        return dam * 5/6;
+    else
+        return number_range( dam * 2/3, dam );
 }
 
 int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
