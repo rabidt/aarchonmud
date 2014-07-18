@@ -16,6 +16,8 @@ const float cfg_qp_mult_default=1;
 char *cfg_word_of_day;
 const char *cfg_word_of_day_default="bananahammock";
 
+bool cfg_show_rolls=FALSE;
+
 CFG_DATA_ENTRY mudconfig_table[] =
 {
     { "enable_exp_mult",    CFG_BOOL,   &cfg_enable_exp_mult,   NULL }, 
@@ -24,6 +26,7 @@ CFG_DATA_ENTRY mudconfig_table[] =
     { "show_qp_mult",       CFG_BOOL,   &cfg_show_qp_mult,      NULL },
     { "enable_qp_mult",     CFG_BOOL,   &cfg_enable_qp_mult,    NULL },
     { "qp_mult",            CFG_FLOAT,  &cfg_qp_mult,           &cfg_qp_mult_default },
+    { "show_rolls",         CFG_BOOL,   &cfg_show_rolls,        NULL },
     { "word_of_day",        CFG_STRING, &cfg_word_of_day,       &cfg_word_of_day_default},
     { NULL, NULL, NULL, NULL }
 };
