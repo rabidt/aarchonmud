@@ -3058,7 +3058,21 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         int victim_roll = -get_save(victim, TRUE);
         int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
-        if ( number_range(0,ch_roll) < number_range(0,victim_roll) )
+        int victim_rolled = number_range(0, victim_roll);
+        int ch_rolled = number_range(0, ch_roll);
+        int halved = ch_rolled <= victim_rolled;
+        if ( cfg_show_rolls )
+        {
+            char buf[MSL];
+            sprintf(buf, "Saving throw vs hit: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+                    ch_name(ch), ch_rolled, ch_roll,
+                    ch_name(victim), victim_rolled, victim_roll,
+                    halved ? "half damage" : "full damage");
+            send_to_char(buf, victim);
+            if ( ch && ch != victim )
+                send_to_char(buf, ch);
+        }
+        if ( halved )
             dam /= 2;
     }
     
