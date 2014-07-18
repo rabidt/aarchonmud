@@ -1014,8 +1014,12 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
 
 bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
 {
-    int ch_roll = (10+ch->level) + get_hitroll(ch)/2 + ch->size * 20;
-    int victim_roll = (10+victim->level) - get_save(victim, TRUE) + victim->size * 20;
+    // success chance ranges from 25% to 75%
+    if ( per_chance(50) )
+        return per_chance(50);
+    
+    int ch_roll = get_hitroll(ch) + ch->size * 20;
+    int victim_roll = -get_save(victim, TRUE) + victim->size * 20;
     int ch_rolled = number_range(0, ch_roll);
     int victim_rolled = number_range(0, victim_roll);
     int success = ch_rolled > victim_rolled;
