@@ -342,7 +342,7 @@ void do_combat( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL) || IS_AFFECTED(ch, AFF_CURSE) )
+    if ( IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL) || IS_AFFECTED(ch, AFF_CURSE) || ch->was_in_room )
     {
         send_to_char("You have been forsaken and cannot join the war.\n\r", ch );
         return;
@@ -368,10 +368,25 @@ void do_combat( CHAR_DATA *ch, char *argument )
     ch->mana = ch->max_mana;
     ch->move = ch->max_move;
     ch->pcdata->total_wars++;
+    // players only return to where they were if outside of Bastion when joining
+    if ( ch->in_room->area != get_room_index(ROOM_VNUM_RECALL)->area )
+        ch->was_in_room = ch->in_room;
     char_from_room( ch );
     char_to_room( ch, location );
     do_look( ch, "" );
     return;
+}
+
+// return ch to room stored in was_in_room, or to default if nothing stored
+void return_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *default_room )
+{
+    if ( ch->was_in_room )
+    {
+        char_to_room(ch, ch->was_in_room );
+        ch->was_in_room = NULL;
+    }
+    else
+        char_to_room(ch, default_room);
 }
 
 void do_warstatus( CHAR_DATA *ch, char *argument )
@@ -587,7 +602,7 @@ void war_end( bool success )
             
 	    stop_fighting( d->character, TRUE );
             char_from_room( d->character );
-            char_to_room( d->character, get_room_index( WAR_ROOM_WINNER ) );
+            return_to_room( d->character, get_room_index( WAR_ROOM_WINNER ) );
             REMOVE_BIT( d->character->act, PLR_WAR );
             affect_strip(d->character, 0);
             affect_unfreeze_sn(d->character, 0);
@@ -633,7 +648,7 @@ void war_end( bool success )
 	    d->character->mana=d->character->pcdata->warfare_mana;
 	    stop_fighting( d->character, TRUE );
             char_from_room( d->character );
-            char_to_room( d->character, get_room_index( ROOM_VNUM_TEMPLE ) );
+            return_to_room( d->character, get_room_index( ROOM_VNUM_TEMPLE ) );
             do_look( d->character, "" );
             d->character->pcdata->total_wars--;
         }
@@ -749,7 +764,7 @@ void war_remove( CHAR_DATA *ch, bool killed )
     if ( war.started )
     {
 	char_from_room( ch );
-	char_to_room( ch, get_room_index(WAR_ROOM_LOSER) );
+	return_to_room( ch, get_room_index(WAR_ROOM_LOSER) );
 	switch ( war.type )
 	{
 	case ARMAGEDDON_WAR:
@@ -776,7 +791,7 @@ void war_remove( CHAR_DATA *ch, bool killed )
     {
 	ch->pcdata->total_wars--;
 	char_from_room( ch );
-	char_to_room( ch, get_room_index(ROOM_VNUM_TEMPLE) );
+	return_to_room( ch, get_room_index(ROOM_VNUM_TEMPLE) );
     }
     do_look( ch, "" );
     
