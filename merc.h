@@ -2467,6 +2467,7 @@ struct  char_data
 	MOB_INDEX_DATA *    pIndexData;
 	DESCRIPTOR_DATA *   desc;
 	AFFECT_DATA *   affected;
+    AFFECT_DATA *   aff_stasis; // affects temporarily put into stasis
 	OBJ_DATA *      carrying;
 	OBJ_DATA *      on;
 	ROOM_INDEX_DATA *   in_room;
@@ -4393,6 +4394,9 @@ void    affect_to_char  args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
 void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
+AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
+void    affect_freeze_sn( CHAR_DATA *ch, int sn );
+void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );

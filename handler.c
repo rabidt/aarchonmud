@@ -1051,47 +1051,35 @@ void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
  */
 void affect_remove( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
-    int where;
-    int vector;
+    ch->affected = affect_remove_list(ch->affected, paf);
     
-    if ( ch->affected == NULL )
-    {
-        bug( "Affect_remove: no affect.", 0 );
-        return;
-    }
-    
-    affect_modify( ch, paf, FALSE );
-    where = paf->where;
-    vector = paf->bitvector;
-    
-    if ( paf == ch->affected )
-    {
-        ch->affected    = paf->next;
-    }
-    else
-    {
-        AFFECT_DATA *prev;
-        
-        for ( prev = ch->affected; prev != NULL; prev = prev->next )
-        {
-            if ( prev->next == paf )
-            {
-                prev->next = paf->next;
-                break;
-            }
-        }
-        
-        if ( prev == NULL )
-        {
-            bug( "Affect_remove: cannot find paf.", 0 );
-            return;
-        }
-    }
+    affect_modify(ch, paf, FALSE);
+    affect_check(ch, paf->where, paf->bitvector);
     
     free_affect(paf);
+}
+
+// temporarily disable an affect on ch
+void affect_freeze( CHAR_DATA *ch, AFFECT_DATA *paf )
+{
+    // remove from ch->affected
+    ch->affected = affect_remove_list(ch->affected, paf);
+    affect_modify(ch, paf, FALSE);
+    affect_check(ch, paf->where, paf->bitvector);
+
+    // move to ch->aff_stasis
+    ch->aff_stasis = affect_insert(ch->aff_stasis, paf);
+}
+
+// reenable a previously frozen affect
+void affect_unfreeze( CHAR_DATA *ch, AFFECT_DATA *paf )
+{
+    // remove from ch->aff_stasis
+    ch->aff_stasis = affect_remove_list(ch->aff_stasis, paf);
     
-    affect_check(ch,where,vector);
-    return;
+    // add to ch->affected
+    ch->affected = affect_insert(ch->affected, paf);
+    affect_modify(ch, paf, TRUE);
 }
 
 void affect_remove_obj( OBJ_DATA *obj, AFFECT_DATA *paf)
@@ -1172,7 +1160,7 @@ void affect_strip_obj( OBJ_DATA *obj, int sn )
 }
 
 /*
- * Strip all affects of a given sn.
+ * Strip all affects of a given sn, or all if sn = 0
  */
 void affect_strip( CHAR_DATA *ch, int sn )
 {
@@ -1182,12 +1170,45 @@ void affect_strip( CHAR_DATA *ch, int sn )
     for ( paf = ch->affected; paf != NULL; paf = paf_next )
     {
         paf_next = paf->next;
-        if ( paf->type == sn )
+        if ( !sn || paf->type == sn )
             affect_remove( ch, paf );
     }
     
     return;
 }
+
+/*
+ * Freeze all affects of a given sn, or all if sn = 0
+ */
+void affect_freeze_sn( CHAR_DATA *ch, int sn )
+{
+    AFFECT_DATA *paf;
+    AFFECT_DATA *paf_next;
+    
+    for ( paf = ch->affected; paf != NULL; paf = paf_next )
+    {
+        paf_next = paf->next;
+        if ( !sn || paf->type == sn )
+            affect_freeze(ch, paf);
+    }
+}
+
+/*
+ * Unfreeze all affects of a given sn, or all if sn = 0
+ */
+void affect_unfreeze_sn( CHAR_DATA *ch, int sn )
+{
+    AFFECT_DATA *paf;
+    AFFECT_DATA *paf_next;
+    
+    for ( paf = ch->aff_stasis; paf != NULL; paf = paf_next )
+    {
+        paf_next = paf->next;
+        if ( !sn || paf->type == sn )
+            affect_unfreeze(ch, paf);
+    }
+}
+
 
 /*
  * Strip all custom_affects of a given tag.
@@ -1321,6 +1342,33 @@ AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
     
     paf->next = prev->next;
     prev->next = paf;
+    
+    return affect_list;
+}
+
+/*
+ * removes an affect from a given list, returning the new list
+ */
+AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
+{
+    
+    if ( affect_list == NULL || paf == NULL )
+    {
+        bugf("affect_remove_list: NULL parameter");
+        return affect_list;
+    }
+    
+    if ( affect_list == paf )
+        return affect_list->next;
+    
+    AFFECT_DATA *prev = affect_list;
+    while ( prev->next && prev->next != paf )
+        prev = prev->next;
+    
+    if ( !prev->next )
+        bugf("affect_remove_list: affect not found");
+    else
+        prev->next = paf->next;
     
     return affect_list;
 }

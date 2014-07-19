@@ -382,6 +382,7 @@ void free_char (CHAR_DATA *ch)
 	extract_obj(obj);
 	}
 
+    affect_unfreeze_sn(ch, 0); // to ensure frozen affects get deallocated as well
 	for (paf = ch->affected; paf != NULL; paf = paf_next)
 	{
 	    paf_next = paf->next;
