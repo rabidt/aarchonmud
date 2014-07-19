@@ -359,11 +359,7 @@ void do_combat( CHAR_DATA *ch, char *argument )
     war.combatants++;
     send_to_char("Prepare for battle, my child.\n\r", ch );
 
-    if ( war.type != RELIGION_WAR )
-    {
-        affect_strip( ch, gsn_god_bless );
-        affect_strip( ch, gsn_god_curse );
-    }
+    affect_freeze_sn(ch, 0);
     die_follower( ch, true );
     ch->pcdata->warfare_hp=ch->hit;
     ch->pcdata->warfare_mana=ch->mana;
@@ -593,7 +589,8 @@ void war_end( bool success )
             char_from_room( d->character );
             char_to_room( d->character, get_room_index( WAR_ROOM_WINNER ) );
             REMOVE_BIT( d->character->act, PLR_WAR );
-	    affect_strip_offensive( d->character );
+            affect_strip(d->character, 0);
+            affect_unfreeze_sn(d->character, 0);
 	    d->character->hit= UMAX(1, d->character->pcdata->warfare_hp);
 	    d->character->move=d->character->pcdata->warfare_move;
 	    d->character->mana=d->character->pcdata->warfare_mana;
@@ -629,7 +626,8 @@ void war_end( bool success )
                 || !IS_SET( d->character->act, PLR_WAR ) )
                 continue;
             REMOVE_BIT( d->character->act, PLR_WAR );
-	    affect_strip_offensive( d->character );
+            affect_strip(d->character, 0);
+            affect_unfreeze_sn(d->character, 0);
 	    d->character->hit= UMAX(1, d->character->pcdata->warfare_hp);
 	    d->character->move=d->character->pcdata->warfare_move;
 	    d->character->mana=d->character->pcdata->warfare_mana;
@@ -741,7 +739,8 @@ void war_remove( CHAR_DATA *ch, bool killed )
         return;
     
     stop_fighting( ch, TRUE );
-    affect_strip_offensive( ch );
+    affect_strip(ch, 0);
+    affect_unfreeze_sn(ch, 0);
     ch->hit= UMAX(1, ch->pcdata->warfare_hp);
     ch->move=ch->pcdata->warfare_move;
     ch->mana=ch->pcdata->warfare_mana;
