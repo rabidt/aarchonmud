@@ -66,7 +66,6 @@ const struct flag_stat_type flag_stat_table[] =
 	
     {   form_flags,             FALSE   },
     {   part_flags,             FALSE   },
-    {   ac_type,                TRUE    },
     {   size_flags,             TRUE    },
     {   position_flags,         TRUE    },
     {   off_flags,              FALSE   },

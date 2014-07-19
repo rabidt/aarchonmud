@@ -35,6 +35,7 @@
 #include "warfare.h"
 #include "lookup.h"
 #include "special.h"
+#include "mudconfig.h"
 
 extern WAR_DATA war;
 
@@ -1014,9 +1015,28 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
 
 bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
 {
-    int ch_roll = (10+ch->level) + get_hitroll(ch)/2 + ch->size * 20;
-    int victim_roll = (10+victim->level) - get_save(victim, TRUE) + victim->size * 20;
-    return number_range(0, ch_roll) >= number_range(0, victim_roll);
+    // success chance ranges from 25% to 75%
+    if ( per_chance(50) )
+        return per_chance(50);
+    
+    int ch_roll = get_hitroll(ch) + ch->size * 20;
+    int victim_roll = -get_save(victim, TRUE) + victim->size * 20;
+    int ch_rolled = number_range(0, ch_roll);
+    int victim_rolled = number_range(0, victim_roll);
+    int success = ch_rolled > victim_rolled;
+    
+    if ( cfg_show_rolls )
+    {
+        char buf[MSL];
+        sprintf(buf, "Combat maneuver roll: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+                ch_name(ch), ch_rolled, ch_roll,
+                ch_name(victim), victim_rolled, victim_roll,
+                success ? "success" : "failure");
+        send_to_char(buf, victim);
+        send_to_char(buf, ch);
+    }
+    
+    return success;
 }
 
 // apply petrification effect (petrified or only slowed)
@@ -1368,6 +1388,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 100;    
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1492,7 +1514,7 @@ int get_weapon_damage( OBJ_DATA *wield )
     if ( wield == NULL )
 	return 0;
     
-	weapon_dam = dice( wield->value[1], wield->value[2] );
+    weapon_dam = dice( wield->value[1], wield->value[2] );
 
     /* sharpness! */
     if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) )
@@ -1591,7 +1613,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* damage roll */
     int damroll = GET_DAMROLL(ch);
     if (damroll > 0) {
-        int damroll_roll = number_range(0, number_range(0, damroll));
+        int damroll_roll = cfg_const_damroll ? damroll / 4 : number_range(0, number_range(0, damroll));
         // bonus is partially capped
         int damroll_cap = 2 * (10 + ch->level + UMAX(0, ch->level - 90));
         if (damroll_roll > damroll_cap)
@@ -1642,7 +1664,10 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 400;
         check_improve(ch, gsn_anatomy, TRUE, 1);
     }
-    return number_range( dam * 2/3, dam );
+    if ( cfg_const_damroll )
+        return dam * 5/6;
+    else
+        return number_range( dam * 2/3, dam );
 }
 
 int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
@@ -2161,13 +2186,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     else
 	ac_dam_type = FIRST_DAMAGE( dam_type );
 
-    switch( ac_dam_type )
-    {
-    case(DAM_PIERCE): victim_ac = GET_AC(victim,AC_PIERCE)/10;   break;
-    case(DAM_BASH):   victim_ac = GET_AC(victim,AC_BASH)/10;     break;
-    case(DAM_SLASH):  victim_ac = GET_AC(victim,AC_SLASH)/10;    break;
-    default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
-    }
+    victim_ac = GET_AC(victim)/10;
 
     /* basic values */
     ch_roll = GET_HITROLL(ch);
@@ -2223,11 +2242,16 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     int victim_rolled = number_range(0, victim_roll);
     bool is_hit = (ch_rolled > victim_rolled);
 
-#ifdef TESTER
-    if ( !IS_SET(ch->gag, GAG_MISS) )
-        printf_to_char( ch, "Attack Roll (%d) = %d vs %d = Defense Roll (%d) => %s\n\r",
-            ch_roll, ch_rolled, victim_rolled, victim_roll, is_hit ? "hit" : "miss" );
-#endif
+    if ( cfg_show_rolls )
+    {
+        char buf[MSL];
+        sprintf(buf, "To-hit roll: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+                ch_name(ch), ch_rolled, ch_roll,
+                ch_name(victim), victim_rolled, victim_roll,
+                is_hit ? "hit" : "miss");
+        send_to_char(buf, victim);
+        send_to_char(buf, ch);
+    }
 
     return is_hit;
 }
@@ -3038,7 +3062,21 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         int victim_roll = -get_save(victim, TRUE);
         int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
-        if ( number_range(0,ch_roll) < number_range(0,victim_roll) )
+        int victim_rolled = number_range(0, victim_roll);
+        int ch_rolled = number_range(0, ch_roll);
+        int halved = ch_rolled <= victim_rolled;
+        if ( cfg_show_rolls )
+        {
+            char buf[MSL];
+            sprintf(buf, "Saving throw vs hit: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+                    ch_name(ch), ch_rolled, ch_roll,
+                    ch_name(victim), victim_rolled, victim_roll,
+                    halved ? "half damage" : "full damage");
+            send_to_char(buf, victim);
+            if ( ch && ch != victim )
+                send_to_char(buf, ch);
+        }
+        if ( halved )
             dam /= 2;
     }
     
@@ -3107,35 +3145,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     /* iron maiden returns part of the damage */
     if ( IS_AFFECTED(ch, AFF_IRON_MAIDEN) && ch != victim )
     {
-	int iron_dam;
-        int dam_cap;
-
-    if ( IS_NPC(ch) )
-    {
-        if ( IS_NPC(victim) )
-        {
-            iron_dam = 0; /* NPC vs NPC hits don't cause iron maiden damage */
-        }
-        else
-        {
-            iron_dam = dam/2; /* PC -> NPC hit */
-        }
-    }
-    else
-    {
-        iron_dam = dam/4; /* NPC/PC -> PC hit */
-    }
-        
-              
-    if ( IS_NPC(victim) && IS_NPC(ch))
-        iron_dam = 0;
-    else if ( IS_NPC(ch) )
-	    iron_dam = dam/2;
-	else
-	    iron_dam = dam/4;
-
-        if (IS_NPC(ch))
-            iron_dam = URANGE(0, iron_dam, 100);
+        int iron_dam = dam/4;
 
 	/* if-check to lower spam */
 	if ( show || iron_dam > ch->level )

@@ -1700,8 +1700,8 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "rakshasa",   "Raksha",
           { 290, 290, 290, 280, 290, 290, 295, 290, 290, 290, 290, 280, 290, 290, 285 },
-          5, { "fireball", "lightning bolt", "acid blast", "meteor swarm", "focus" },
-          {10, 20, 30, 50, 70}, {100, 95, 90, 85, 60},
+          5, { "fireball", "lightning bolt", "acid blast", "dispel magic", "quicken spell" },
+          {10, 20, 30, 50, 70}, {100, 95, 90, 80, 75},
           {  60,  60,  60,  65,  65,      70,  70,  65,  70,  65 },
           { 140, 140, 140, 145, 145,     150, 150, 145, 150, 145 },
           {   3,   3,   3,   4,   4,       5,   5,   4,   5,   4 },
