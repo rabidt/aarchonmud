@@ -1301,13 +1301,7 @@ void char_update( void )
             continue;
 
         /* Check for natural resistance */
-        if ( get_skill(ch, gsn_natural_resistance) >= 0)
-        {
-            AFFECT_DATA af;
-            affect_strip (ch, gsn_natural_resistance);
-            /* Added this in to stop immortals from bugging when using avatar and set skill - Astark 1-6-13 */
-            affect_strip (ch, skill_lookup("reserved") );
-        }
+        affect_strip (ch, gsn_natural_resistance);
         if ( get_skill(ch, gsn_natural_resistance) > 0)
         {
             int bonus = ch->level * (get_skill(ch, gsn_natural_resistance) + mastery_bonus(ch, gsn_natural_resistance, 60, 100)) / 500;
@@ -1324,13 +1318,7 @@ void char_update( void )
         } 
 
         /* Check for iron hide */
-        if ( get_skill(ch, gsn_iron_hide) >= 0)
-        {
-            AFFECT_DATA af;
-            affect_strip (ch, gsn_iron_hide);
-            /* Added this in to stop immortals from bugging when using avatar and set skill - Astark 1-6-13 */
-            affect_strip (ch, skill_lookup("reserved") );
-        }
+        affect_strip (ch, gsn_iron_hide);
         if ( get_skill(ch, gsn_iron_hide) > 0)
         {   
             int bonus = ch->level * (get_skill(ch, gsn_iron_hide) + mastery_bonus(ch, gsn_iron_hide, 60, 100)) / 50;
