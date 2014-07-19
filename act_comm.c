@@ -2065,7 +2065,9 @@ void die_follower( CHAR_DATA *ch, bool preservePets )
     
     for ( fch = char_list; fch != NULL; fch = fch->next )
     {
-        if ( fch->master == ch && (!preservePets || !IS_NPC(fch)))
+        if ( preservePets && IS_NPC(fch) && IS_AFFECTED(fch, AFF_CHARM) )
+            continue;
+        if ( fch->master == ch )
             stop_follower( fch );
         if ( fch->leader == ch )
             fch->leader = NULL;
