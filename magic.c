@@ -38,6 +38,7 @@
 
 #include "warfare.h"
 #include "religion.h"
+#include "mudconfig.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );
@@ -343,9 +344,6 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
     int hit_roll, save_roll;
     
-    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
-        return TRUE;
-
     /* automatic saves/failures */
     switch(check_immune(victim,dam_type))
     {
@@ -354,7 +352,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
 
-    if ( (victim->stance == STANCE_UNICORN) && per_chance(25) )
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_PHASE) && per_chance(50) )
@@ -370,13 +368,31 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     else
         hit_roll = (level + 10) * 6/5;
 
-    if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
-        save_roll = save_roll * 2/3;
+    if ( ch && ch->stance == STANCE_INQUISITION )
+        hit_roll += hit_roll / 3;
+    if ( victim->stance == STANCE_INQUISITION || victim->stance == STANCE_UNICORN )
+        save_roll += save_roll / 3;
 
     if ( save_roll <= 0 )
         return FALSE;
     else
-        return number_range(0, hit_roll) <= number_range(0, save_roll);
+    {
+        int hit_rolled = number_range(0, hit_roll);
+        int save_rolled = number_range(0, save_roll);
+        bool success = hit_rolled <= save_rolled;
+        if ( cfg_show_rolls )
+        {
+            char buf[MSL];
+            sprintf(buf, "Saving throw vs spell: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+                    ch ? ch_name(ch) : "attacker", hit_rolled, hit_roll,
+                    ch_name(victim), save_rolled, save_roll,
+                    success ? "success" : "failure");
+            send_to_char(buf, victim);
+            if ( ch && ch != victim )
+                send_to_char(buf, ch);
+        }
+        return success;
+    }
 }
 
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
@@ -411,7 +427,23 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     if ( save_roll <= 0 )
         return FALSE;
     else
-        return number_range(0, hit_roll) <= number_range(0, save_roll);
+    {
+        int hit_rolled = number_range(0, hit_roll);
+        int save_rolled = number_range(0, save_roll);
+        bool success = hit_rolled <= save_rolled;
+        if ( cfg_show_rolls )
+        {
+            char buf[MSL];
+            sprintf(buf, "Saving throw vs physical: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+                    ch ? ch_name(ch) : "attacker", hit_rolled, hit_roll,
+                    ch_name(victim), save_rolled, save_roll,
+                    success ? "success" : "failure");
+            send_to_char(buf, victim);
+            if ( ch && ch != victim )
+                send_to_char(buf, ch);
+        }
+        return success;
+    }
 }
 
 /* RT save for dispels */
@@ -4303,8 +4335,8 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
                     printf_to_char(ch, "%s\n\r", wear);
             }
             sprintf( buf, 
-                    "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic.\n\r", 
-                    obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+                    "Armor class is %d.\n\r", 
+                    obj->value[0]);
             send_to_char( buf, ch );
             break;
 
@@ -5067,7 +5099,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -5090,7 +5122,6 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
