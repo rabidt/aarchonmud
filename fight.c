@@ -461,6 +461,7 @@ void special_affect_update(CHAR_DATA *ch)
 	 && !IS_AFFECTED(ch, AFF_SHELTER)
 	 // no linkdeads unless fighting
 	 && (IS_NPC(ch) || ch->desc != NULL || ch->fighting != NULL)
+        && !PLR_ACT(ch, PLR_WAR)
 	 && room_is_sunlit(ch->in_room) )
     {
 		int sunlight;
