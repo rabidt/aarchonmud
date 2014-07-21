@@ -2633,8 +2633,8 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
 {
-    // guns can assassinate via aim or snipe
-    if ( wield == NULL || (wield->value[0] != WEAPON_DAGGER && wield->value[0] != WEAPON_GUN) )
+    // guns and bows can assassinate via aim or snipe
+    if ( wield == NULL || (wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield)) )
         return;
 
     // assassination mastery increases chance by up to factor 2, depending on victim's health
@@ -2644,7 +2644,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
 
     int base_chance = get_skill(ch, gsn_assassination);
     // aim head and snipe can behead without the skill
-    if ( wield->value[0] == WEAPON_GUN )
+    if ( is_ranged_weapon(wield) )
         base_chance = (100 + base_chance) / 2;
     
     int extra_chance = 50 + (get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 4;
@@ -2667,7 +2667,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
         }
         else
         {
-            if ( wield->value[0] == WEAPON_GUN )
+            if ( is_ranged_weapon(wield) )
             {
                 act("You blow $N's brains out!", ch, NULL, victim, TO_CHAR);
                 act("$n blows your brains out!", ch, NULL, victim, TO_VICT);
