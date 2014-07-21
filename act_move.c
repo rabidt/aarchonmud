@@ -2982,20 +2982,25 @@ void morph_update( CHAR_DATA *ch )
 void trap_damage( CHAR_DATA *ch, bool can_behead )
 {
     ROOM_INDEX_DATA *was_in_room = ch->in_room;
-    int dam, dam_type;
 
-    if ( can_behead && number_bits(4) == 0 )
+    int dam_type = number_range(DAM_BASH, DAM_POISON);
+    int dam = 100 + dice( ch->level, 20 );
+
+    if ( can_behead )
     {
-	act( "Your head is chopped right off!", ch, NULL, NULL, TO_CHAR );
-	act( "$n's head is chopped right off!", ch, NULL, NULL, TO_ROOM );
-	behead( ch, ch );
-	return;
+        // no beheading in remort - instead damage is increased
+        if ( ch->pcdata && IS_REMORT(ch) )
+            dam += dam * (ch->pcdata->remorts + 1) / 5;
+        else if ( number_bits(4) == 0 )
+        {
+            act( "Your head is chopped right off!", ch, NULL, NULL, TO_CHAR );
+            act( "$n's head is chopped right off!", ch, NULL, NULL, TO_ROOM );
+            behead( ch, ch );
+            return;
+        }
     }
-
-    /* damage */
-    dam_type = number_range(DAM_BASH, DAM_POISON);
-    dam = 100 + dice( ch->level, ch->level );
-    damage( ch, ch, dam, 0, dam_type, FALSE);
+    
+    full_dam( ch, ch, dam, 0, dam_type, FALSE);
     
     if ( ch->in_room != was_in_room )
 	return;

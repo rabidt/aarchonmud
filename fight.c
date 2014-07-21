@@ -3107,35 +3107,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     /* iron maiden returns part of the damage */
     if ( IS_AFFECTED(ch, AFF_IRON_MAIDEN) && ch != victim )
     {
-	int iron_dam;
-        int dam_cap;
-
-    if ( IS_NPC(ch) )
-    {
-        if ( IS_NPC(victim) )
-        {
-            iron_dam = 0; /* NPC vs NPC hits don't cause iron maiden damage */
-        }
-        else
-        {
-            iron_dam = dam/2; /* PC -> NPC hit */
-        }
-    }
-    else
-    {
-        iron_dam = dam/4; /* NPC/PC -> PC hit */
-    }
-        
-              
-    if ( IS_NPC(victim) && IS_NPC(ch))
-        iron_dam = 0;
-    else if ( IS_NPC(ch) )
-	    iron_dam = dam/2;
-	else
-	    iron_dam = dam/4;
-
-        if (IS_NPC(ch))
-            iron_dam = URANGE(0, iron_dam, 100);
+        int iron_dam = dam/4;
 
 	/* if-check to lower spam */
 	if ( show || iron_dam > ch->level )

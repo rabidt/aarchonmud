@@ -677,6 +677,7 @@ bool can_order( char *command, CHAR_DATA *victim )
 	    if ( victim == NULL || IS_NPC(victim) )
 	    {
 		if ( cmd_table[cmd].do_fun == do_give
+            || cmd_table[cmd].do_fun == do_put
 		     || cmd_table[cmd].do_fun == do_drop )
 		    return TRUE;
 	    }
