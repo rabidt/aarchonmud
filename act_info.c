@@ -4555,71 +4555,69 @@ void do_survey( CHAR_DATA *ch, char *argument )
 /*  NEW do_score, do_attributes, and do_worth by Quirky in May 03 */
 void do_score( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH], flagsbuf[MAX_STRING_LENGTH/4];
-    char custombuf[MAX_STRING_LENGTH];
-    char alignbuf[MAX_STRING_LENGTH/2], positionbuf[MAX_STRING_LENGTH/4];
-    char remortbuf[MAX_STRING_LENGTH/4], temp[MAX_STRING_LENGTH];
+    char buf[MSL];
+    char flagsbuf[MSL/4];
+    char custombuf[MSL];
+    char alignbuf[MSL/2];
+    char positionbuf[MSL/4];
+    char remortbuf[MSL/4]; 
+    char temp[MSL];
+    char encumberbuf[MSL];
     BUFFER *output;
     RELIGION_DATA *religion = NULL;
-    int align, thirst, hunger, encumber;
+    int align;
+    int encumber;
+    int hunger;
+    int thirst;
+    int drunk;
     int LENGTH = 75;
+    int hp_cap, mana_cap, move_cap;
+    bool hungry = FALSE;
+    bool thirsty = FALSE;
+    bool drunken = FALSE;
 
-
-    /* Added by maedhros to toggle old score */
-
-    if (IS_SET(ch->togg, TOGG_OLDSCORE))
+    if (IS_NPC(ch))
     {
-      do_oldscore (ch, "oldscore");
-      return;
+        send_to_char("NPCs cannot use score.\n\r", ch);
+        return;
     }
-    else
-
     
-    /* setup */
+    /* These buffers help organize the output */
 
-    /* custombuf */
+    /* custombuf - specifically a 'pflag' set by an imm */
     if ( ch->pcdata != NULL && ch->pcdata->customflag[0] != '\0' )
         sprintf( custombuf, "(%s) ", ch->pcdata->customflag );
     else
         sprintf( custombuf, "" );
 
-    /* flagsbuf */
-    if ( !IS_NPC(ch) )
-    {
-        sprintf( flagsbuf, "%s%s%s%s%s",
-            IS_SET(ch->comm, COMM_AFK) ? "[AFK] " : "",
-            IS_SET(ch->act,PLR_HELPER) ? 
-                (!IS_SET(ch->act, PLR_INACTIVE_HELPER) ? "({GH{CE{cL{GP{CE{cR{G!{x) " : "{G*{x ") : "",
-            IS_SET(ch->act,PLR_RP) ? "[RP] " : "",
-            IS_SET(ch->act,PLR_KILLER) ? "(KILLER) " : "",
-            IS_SET(ch->act,PLR_THIEF) ? "(THIEF)" : "" );
-    }
-    else
-        sprintf( flagsbuf, "" );
+    /* flagsbuf - AFK, helper, rp, killer, thief, etc. */
+    sprintf( flagsbuf, "%s%s%s%s%s",
+        IS_SET(ch->comm, COMM_AFK) ? "[AFK] " : "",
+        IS_SET(ch->act,PLR_HELPER) ? 
+            (!IS_SET(ch->act, PLR_INACTIVE_HELPER) ? "({GH{CE{cL{GP{CE{cR{G!{x) " : "{G*{x ") : "",
+        IS_SET(ch->act,PLR_RP) ? "[RP] " : "",
+        IS_SET(ch->act,PLR_KILLER) ? "(KILLER) " : "",
+        IS_SET(ch->act,PLR_THIEF) ? "(THIEF)" : "" );
 
-    /* remortbuf */
-    if( ch->pcdata != NULL )
-    {
-        if( !IS_IMMORTAL(ch) )
-            sprintf( remortbuf, " (Remort %d)", ch->pcdata->remorts );
-        else if ( get_trust(ch) != ch->level )
-            sprintf( remortbuf, " (Trust %d)", get_trust(ch) );
-        else sprintf( remortbuf, "" );
-    } 
-    else
-        sprintf( remortbuf, "" );
+
+    /* remortbuf - display either remort or trust value*/
+    if( !IS_IMMORTAL(ch) )
+        sprintf( remortbuf, "(Remort %d)", ch->pcdata->remorts );
+    else if ( get_trust(ch) != ch->level || IS_IMMORTAL(ch))
+        sprintf( remortbuf, "(Trust %d)", get_trust(ch) );
+
 
     /* alignbuf */
     align = ch->alignment;
-    if( align > 900 )       sprintf( alignbuf, "{b%-5d (angelic){x ", align );
-    else if( align >  700 ) sprintf( alignbuf, "{b%-5d (saintly){x ", align );
-    else if( align >  350 ) sprintf( alignbuf, "{b%-5d (good){x    ", align );
-    else if( align >  100 ) sprintf( alignbuf, "{m%-5d (kind){x    ", align );
-    else if( align > -100 ) sprintf( alignbuf, "{m%-5d (neutral){x ", align );
-    else if( align > -350 ) sprintf( alignbuf, "{m%-5d (mean){x    ", align );
-    else if( align > -700 ) sprintf( alignbuf, "{r%-5d (evil){x    ", align );
-    else if( align > -900 ) sprintf( alignbuf, "{r%-5d (demonic){x ", align );
-    else                    sprintf( alignbuf, "{r%-5d (satanic){x ", align );
+    if( align > 900 )       sprintf( alignbuf, "{W%-6d (angelic){x ", align );
+    else if( align >  700 ) sprintf( alignbuf, "{c%-6d (saintly){x ", align );
+    else if( align >  350 ) sprintf( alignbuf, "{c%-6d (good){x    ", align );
+    else if( align >  100 ) sprintf( alignbuf, "{m%-6d (kind){x    ", align );
+    else if( align > -100 ) sprintf( alignbuf, "{m%-6d (neutral){x ", align );
+    else if( align > -350 ) sprintf( alignbuf, "{m%-6d (mean){x    ", align );
+    else if( align > -700 ) sprintf( alignbuf, "{r%-6d (evil){x    ", align );
+    else if( align > -900 ) sprintf( alignbuf, "{r%-6d (demonic){x ", align );
+    else                    sprintf( alignbuf, "{D%-6d (satanic){x ", align );
 
     /* positionbuf */
     switch( ch->position )
@@ -4635,134 +4633,119 @@ void do_score( CHAR_DATA *ch, char *argument )
     case POS_FIGHTING:	sprintf( positionbuf, "fighting" );  break;
     }
 
+    /* encumberbuf - how encumbered is the character */
+    if( (encumber = get_encumberance(ch)) > 0 )
+    {
+        if( encumber <= 25 )      sprintf( encumberbuf, "{mMild{x" );
+        else if( encumber <= 50 ) sprintf( encumberbuf, "{wModerate{x" );
+        else if( encumber <= 75 ) sprintf( encumberbuf, "{rSevere{x" );
+        else sprintf( encumberbuf, "{RExtreme{x" );
+    }
+    else
+        sprintf(encumberbuf, "None");
 
     output = new_buf();
 
-    /******* THE NEW, IMPROVED SCORE SCREEN *******/
 
-    add_buf(output, "{D:===========================================================================:{x\n\r");
-    /* Changed to allow for pretitle -- Maedhros 11/12/11 */
-    /* sprintf(buf, "{D|{x %s%s%s%s{x%s", flagsbuf, custombuf,IS_NPC(ch) ? "" : ch->pcdata->title ); */
-    sprintf(buf, "{D|{x %s%s%s%s%s{x%s", flagsbuf, custombuf,IS_NPC(ch) ? "" : ch->pcdata->name_color, IS_NPC(ch)?"":ch->pcdata->pre_title, ch->name,IS_NPC(ch) ? "" : ch->pcdata->title);
-
-    /* Only add the ending {D|{x if the line is short enough, otherwise just go to newline */
-    if( strlen_color(buf) <= LENGTH )
-    {
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-    }
-    else strcat( buf, "\n\r" );
-    add_buf(output, buf );
-
-    /* Level, Remorts/Trust,  Clan Details */
-    sprintf(buf, "{D|{x Level: %d%s", ch->level, remortbuf );
-
-    if( !IS_NPC(ch) && clan_table[ch->clan].active )
-    {
-        for( ; strlen_color(buf) <= 24; strcat(buf, " ") );
-        sprintf(temp, "Clan: %s%s{x",
-            clan_table[ch->clan].who_color,
-            clan_table[ch->clan].who_name   );
-        for( ; strlen_color(temp) <= 19; strcat(temp, " ") );
-        strcat( buf, temp );
-        sprintf(temp, "Rank: %s%s{x",
-            clan_table[ch->clan].who_color,
-            capitalize(clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].name) );
-        strcat( buf, temp );
-    }
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf(output, buf );
-
-    /* Class, Race, Sex */
-    sprintf(buf, "{D|{x Class: %s", IS_NPC(ch) ? "mobile" : class_table[ch->class].name );
-    for( ; strlen_color(buf) <= 24; strcat(buf, " ") );
-    sprintf(temp, "Race: %s", race_table[ch->race].name );
-    for( ; strlen_color(temp) <= 19; strcat(temp, " ") );
-    strcat( buf, temp );
-    sprintf(temp, "Gender: %s",
-         ch->sex == 0 ? "{msexless{x" : ch->sex == 1 ? "{bmale{x" : "{rfemale{x" );
-    strcat( buf, temp );
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf(output, buf );
+    /******* THE NEW, IMPROVED SCORE SCREEN - July 2014 *******/
 
     add_buf(output, "{D:===========================================================================:{x\n\r");
 
-    /* Some players-only stuff */
-    if( !IS_NPC(ch) )
+    /* Show pflags, regular flags, name color, pre_title, name, title, etc. */
+    sprintf(buf, "{D|{x %s%s%s%s%s{x%s", 
+        flagsbuf, 
+        custombuf, 
+        ch->pcdata->name_color, 
+        ch->pcdata->pre_title, 
+        ch->name, 
+        ch->pcdata->title);
+
+    /* This line is used throughout to close each score line */
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Level, Remorts/Trust, Clan Name, Clan Rank */
+    sprintf(buf, "{D|{x Level: %-3d  %-11s Clan: %s%-16s{x Rank: %s%s  {x", 
+        ch->level, 
+        remortbuf,
+        clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
+        clan_table[ch->clan].active ? clan_table[ch->clan].who_name : "None",
+        clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
+        clan_table[ch->clan].active ? capitalize(clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].name) : "None");
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Class, Race, Gender */
+    sprintf(buf, "{D|{x Class: %-16s Race: %-16s Gender: %-10s", 
+        class_table[ch->class].name, 
+        race_table[ch->race].name,
+        ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female" );
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Age, Hours Played, Married Status */
+    sprintf(buf, "{D|{x Age:   %-4d years       Played: %-5d hours    Married To: %s",
+        get_age(ch), 
+        (ch->played + (int)(current_time - ch->logon))/3600,
+        ch->pcdata->spouse ? ch->pcdata->spouse : "Single");
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+
+
+    /* Holy Light, Wizinvis and Incog Levels */
+    if( IS_IMMORTAL(ch) )
     {
-        /* Age, hours */
-        sprintf(buf, "{D|{x Age:  %d years  (Played: %d hours)",
-            get_age(ch), (ch->played + (int)(current_time - ch->logon))/3600 );
-        for( ; strlen_color(buf) <= 40; strcat(buf, " ") );
+        sprintf( buf, "{D|{x Holylight:  {W%-10s{x  Wizinvis: {W%-10d{x   Incognito: {W%d{x",
+            IS_SET(ch->act, PLR_HOLYLIGHT) ? "ON" : "OFF", 
+            IS_WIZI(ch) ? ch->invis_level : 0, 
+            IS_INCOG(ch) ? ch->incog_level : 0 );
 
-        /* on same line as above, Marriage details */
-        if( ch->pcdata->spouse )
-            sprintf( temp, "You are married to %s.", ch->pcdata->spouse );
-        else
-            sprintf( temp, "You are single." );
-        strcat( buf, temp );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    }
 
-        /* Imm stuff */
-        if( IS_IMMORTAL(ch) )
-        {
-            sprintf( buf, "{D|{x Holylight:  %s   ", IS_SET(ch->act, PLR_HOLYLIGHT) ? "{WON{x" : "{WOFF{x" );
-            if( ch->invis_level )
-            {
-                sprintf( temp, "Wizinvis: level {W%d{x   ", ch->invis_level );
-                strcat( buf, temp );
-            }
-            if( ch->incog_level )
-            {
-                sprintf( temp, "Incognito: level {W%d{x", ch->incog_level );
-                strcat( buf, temp );
-            }
-            for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
+    add_buf(output, "{D:===========================================================================:{x\n\r");
 
-        /* Practices, trains */
-        if( !IS_HERO(ch) && ch->pcdata->highest_level <= ch->level )
-            sprintf( temp, "{c(Expect to gain about{x %.2f {cnext level.)", ch_prac_gains(ch, ch->level + 1)/100.0 );
-        else
-            sprintf( temp, "" );
 
-        sprintf( buf, "{D|{x Practices:  {C%-5d{x  %s", ch->practice, temp );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+    /* Practices, Trains */
+    if( !IS_HERO(ch) && ch->pcdata->highest_level <= ch->level )
+        sprintf( temp, " {c(Expect to gain about{x %.2f {cnext level.)", ch_prac_gains(ch, ch->level + 1)/100.0 );
+    else
+        sprintf( temp, "" );
 
-        int hp_cap, mana_cap, move_cap;
-        get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
-        sprintf( buf, "{D|{x Trains:     {C%-5d {cSpent:{x %d/%d {chp,{x %d/%d {cmn,{x %d/%d {cmv  {c(MAX %d){x",
-            ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+    sprintf( buf, "{D|{x Practices:  {C%-5d{x  %s", ch->practice, temp );
+    
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
-    }   /* end of "some players-only stuff" section */
 
+    get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
+    sprintf( buf, "{D|{x Trains:     {C%-5d  {cSpent:{x %d/%d {chp,{x %d/%d {cmn,{x %d/%d {cmv  {c(MAX %d){x",
+        ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, 
+        mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Call the alignbuf here to show alignment */
     sprintf( buf, "{D|{x Alignment:  %s ", alignbuf );
 
-    /* Religion Stuff, same line as Align since they are related .. plus another line below */
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Commenting out all religion stuff since it's not used, but useful to preserve
+       in case we add it again later - Astark
+
     if( ch->pcdata != NULL && (religion = get_religion(ch)) != NULL )
     {
-        /* Finishing the "Align" line with some Religion stuff */
         for ( ; strlen_color(buf) <= 40; strcat( buf, " " ));
         sprintf( temp, "Your religion allows %d to %d.", religion->min_align, religion->max_align );
         strcat( buf, temp );
 
-        /* Split the two Religion lines with the proper formatting stuff */
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
 
-        /* Second line of Religion Stuff */
         if( IS_IMMORTAL(ch) )
         {
             bool rel_at_altar = FALSE;
@@ -4784,170 +4767,118 @@ void do_score( CHAR_DATA *ch, char *argument )
                 religion->name );
         }
     }
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-    /* end of align and religion stuff */
+    */
 
-    /* More player-only stuff */
-    if( ch->pcdata != NULL )
+
+    /* Mob kills, mob deaths, beheads */
+    sprintf(buf, "{D|{x Mob Kills:  %-6d      Mob Deaths: %-5d      Beheads:   %d",
+        ch->pcdata->mob_kills, 
+        ch->pcdata->mob_deaths, 
+        ch->pcdata->behead_cnt);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Warfare grade, kills and points */
+    sprintf( buf, "{D|{x War Kills:  %-6d      War Grade:  %s          War Points: %d",
+        ch->pcdata->war_kills, 
+        pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
+        ch->pcdata->warpoints);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Pkills and Pkill Deaths */
+    sprintf( buf, "{D|{x PKills:     %-6d      PK Deaths:  %d",
+        ch->pcdata->pkill_count, 
+        ch->pcdata->pkill_deaths);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    add_buf(output, "{D:===========================================================================:{x\n\r");
+
+
+    /* Display pflag, but only if it exists */
+    if( custombuf[0] != '\0' )
     {
-        if( !IS_IMMORTAL(ch) )
-        {
-            sprintf( temp, "Mobkills:   %d kills, %d deaths",
-	        ch->pcdata->mob_kills, ch->pcdata->mob_deaths );
-	    for ( ; strlen_color(temp) <= 47; strcat( temp, " " ));
-                sprintf(buf, "{D| {x %s Beheads: %d",
-	        temp, ch->pcdata->behead_cnt );
-
-	    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " "));
-	    strcat( buf, "{D|{x\n\r" );
-	    add_buf(output, buf);
-
-	    /* Warfare grade and number of kills */
-	    sprintf( buf, "{D|{x   Warfare:  Grade {W<{x%s{W>{x (%d points from %d warkills)",
-		pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
-		ch->pcdata->warpoints, ch->pcdata->war_kills );
-	    for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-	    strcat( buf, "{D|{x\n\r" );
-	    add_buf( output, buf );
-
-        /* Pkill status */
-        /* This section has been moved from up above to make the PKill
-           count display below warfare grade. Astark Oct 2012 */
-        if( IS_SET(ch->act, PLR_PERM_PKILL) )
-        {
-			sprintf( buf, "{D|{x   %s:  Kills {W<{R%d{W>{x ",
-				IS_SET(ch->act, PLR_HARDCORE) ? "PK (HC)" : "  Pkill",
-				ch->pcdata->pkill_count);
-			for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
-
-            /* ** Pflag hours remaining ** */
-            if( custombuf[0] != '\0' )
-            {
-                sprintf( buf, "{D|{x Your %sflag has %d hours remaining. ", custombuf, ch->pcdata->customduration );
-                for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-                strcat( buf, "{D|{x\n\r" );
-                add_buf( output, buf );
-            }
-
-        } /* end of some mortal-only stuff */
-
-    } /* end of more players-only stuff */
-
-    /* ** Position, drunk, hunger, thirst, smoke ** */
-    sprintf( buf, "{D|{x You are %s", positionbuf );
-    if( ch->pcdata != NULL )
-    {
-        bool hungry = FALSE;
-        bool thirsty = FALSE;
-
-        if( ch->pcdata->condition[COND_DRUNK] > 10 )
-            strcat( buf, ", drunk" );
-        else if( ch->pcdata->condition[COND_DRUNK] > 20 )
-            strcat( buf, ", VERY drunk" );
-
-        thirst = ch->pcdata->condition[COND_THIRST];
-        hunger = ch->pcdata->condition[COND_HUNGER];
-
-        if( (hunger >= 0 && hunger < 20) )  hungry = TRUE;
-        if( (thirst >= 0 && thirst < 20) )  thirsty = TRUE;
-
-        if( hungry || thirsty ) strcat( buf, ", feeling " );
-
-        if( hungry )
-        {
-            if( hunger == 0 )
-                strcat( buf, "{rvery{x hungry" );
-            else if( (hunger > 0 && hunger < 20) )
-                strcat( buf, "hungry" );
-        }
-
-        if( thirsty )
-        {
-            if( hungry ) strcat( buf, " and " );
-
-            if( thirst == 0 )
-                strcat( buf, "{rvery{x thirsty" );
-            else if( (thirst > 0 && thirst < 20) )
-                strcat( buf, "thirsty" );
-        }
-    }
-    strcat( buf, "." );
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
-    /* ** Carry details ** */
-    sprintf( buf, "{D|{x Carrying: %d/%d items (%d/%d pounds).",
-        ch->carry_number, can_carry_n(ch), get_carry_weight(ch)/10, can_carry_w(ch)/10 );
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
-    /* ** Encumberance ** */
-    if( (encumber = get_encumberance(ch)) > 0 )
-    {
-        if( encumber <= 25 )      sprintf( buf, "{D|{x You are slightly encumbered." );
-        else if( encumber <= 50 ) sprintf( buf, "{D|{x You are seriously encumbered." );
-        else if( encumber <= 75 ) sprintf( buf, "{D|{x You are heavily encumbered." );
-        else   sprintf( buf, "{D|{x {RYou can hardly move under the weight you carry!{x" );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+        sprintf( buf, "{D|{x Your %sflag has %d hours remaining. ", 
+            custombuf, 
+            ch->pcdata->customduration );
+        
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
 
-    /* ** More players-only stuff ** */
-    if( ch->pcdata != NULL )
+
+    /* Position and Stance */
+    sprintf(buf, "{D|{x Position: %s      Stance: {G%s{x",
+        positionbuf, 
+        capitalize(stances[ch->stance].name) );
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+    
+    /* Clean this part up some more, but will only show when booleans are true */
+    drunk  = ch->pcdata->condition[COND_DRUNK];
+    thirst = ch->pcdata->condition[COND_THIRST];
+    hunger = ch->pcdata->condition[COND_HUNGER];
+
+    if( (drunk  >= 10 )              )  drunken = TRUE;
+    if( (hunger >= 0 && hunger < 20) )  hungry  = TRUE;
+    if( (thirst >= 0 && thirst < 20) )  thirsty = TRUE;
+
+    if( drunken || hungry || thirsty )
     {
-        /* Morph info, and there's also room for STANCE details here */
-        if ( MULTI_MORPH(ch) )
-        {
-            if( ch->pcdata->morph_race > 0 )
-                sprintf( buf, "{D|{x Morph race: {G%s{x with {G%d{x hours remaining.   ",
-                    race_table[ch->pcdata->morph_race].name,  ch->pcdata->morph_time );
-            else
-                sprintf( buf, "{D|{x You are currently in {Gbasic form{x.   " );
+        sprintf(buf, "{D|{x Hungry:   %-12s  Thirsty: %-12s  Drunk: %-12s",
+            hunger == 0 ? "Very Hungry" : hunger > 0 && hunger < 20 ? "Hungry" : "None",
+            thirst == 0 ? "Very Thirsty" : thirst > 0 && thirst < 20 ? "Thirsty" : "None",
+            drunk > 20 ? "Very Drunk" : drunk > 10 && drunk < 20 ? "Drunk" : "None");
 
-            if( ch->stance != 0 )
-            {
-                sprintf( temp, "Stance: {G%s{x", capitalize(stances[ch->stance].name) );
-                strcat( buf, temp );
-            }
-
-            for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
-        else if( ch->race == race_naga )
-        {
-            if( ch->pcdata->morph_race == 0 )
-                sprintf( buf, "{D|{x You are currently in {Gserpent form{x.   " );
-            else
-                sprintf( buf, "{D|{x You are currently in humanoid form.   " );
-
-            if( ch->stance != 0 )
-            {
-                sprintf( temp, "Stance: {G%s{x", capitalize(stances[ch->stance].name) );
-                strcat( buf, temp );
-            }
-
-            for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
-        else if( ch->stance != 0 )
-        {
-            sprintf( buf, "{D|{x Stance: {G%s{x", capitalize(stances[ch->stance].name) );
-            for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
-
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
+
+
+    /* Items carried, carry weight, encumbered */
+    sprintf( buf, "{D|{x Items:    %4d/%-4d     Weight: %5d/%-5d    Encumbrance: %s",
+        ch->carry_number, 
+        can_carry_n(ch), 
+        get_carry_weight(ch)/10, 
+        can_carry_w(ch)/10, 
+        encumberbuf);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Morph information for races that utilize it */
+    if ( MULTI_MORPH(ch) )
+    {
+        if( ch->pcdata->morph_race > 0 )
+            sprintf( buf, "{D|{x Morph Race: {G%-11s{x Hours:  {G%d{x remaining",
+                race_table[ch->pcdata->morph_race].name,  ch->pcdata->morph_time );
+        else
+            sprintf( buf, "{D|{x Morph Race: {Gbasic form{x" );
+        
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    }
+    else if( ch->race == race_naga )
+    {
+        if( ch->pcdata->morph_race == 0 )
+            sprintf( buf, "{D|{x Morph Form: {Gserpent{x" );
+        else
+            sprintf( buf, "{D|{x Morph Form: {Ghumanoid{x" );
+    
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    }
+
+
+    /* Show command currently actioned */
+    if ( ch->pcdata->combat_action == NULL )
+        sprintf( buf, "{D|{x Command Actioned: None");
+    else
+        sprintf( buf, "{D|{x Command Actioned: %s", ch->pcdata->combat_action );
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
 
     add_buf(output, "{D:===========================================================================:{x\n\r");
     page_to_char(buf_string(output),ch);
