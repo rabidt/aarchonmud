@@ -3798,18 +3798,19 @@ void do_strafe( CHAR_DATA *ch, char *argument )
 
     WAIT_STATE( ch, skill_table[gsn_strafe].beats );
 
-    if ( number_percent() > (skill + 3))
+    if ( !per_chance(skill) )
     {
-	send_to_char( "You fumble your arrows.\n\r", ch );
-	check_improve( ch, gsn_strafe, FALSE, 3 );
+        send_to_char( "You fumble your arrows.\n\r", ch );
+        check_improve( ch, gsn_strafe, FALSE, 3 );
     }
     else
     {
-	act( "You strafe toward $N rapidly firing arrows!", ch, NULL, victim, TO_CHAR );
-	one_hit( ch, victim, gsn_strafe, FALSE );
-	one_hit( ch, victim, gsn_strafe, FALSE );
-	one_hit( ch, victim, gsn_strafe, FALSE );
-	check_improve( ch, gsn_strafe, TRUE, 3 );
+        act( "You strafe toward $N rapidly firing arrows!", ch, NULL, victim, TO_CHAR );
+        one_hit( ch, victim, gsn_strafe, FALSE );
+        one_hit( ch, victim, gsn_strafe, FALSE );
+        if ( per_chance(mastery_bonus(ch, gsn_strafe, 40, 50)) )
+            one_hit( ch, victim, gsn_strafe, FALSE );
+        check_improve( ch, gsn_strafe, TRUE, 3 );
     }
 }
 
