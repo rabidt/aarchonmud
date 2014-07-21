@@ -1083,6 +1083,9 @@ void do_mstat( CHAR_DATA *ch, char *argument )
         victim->wait, victim->daze, victim->stop
     );
     send_to_char( buf, ch );
+    
+    if ( victim->stance != 0 )
+        printf_to_char(ch, "Stance: %s\n\r", capitalize(stances[victim->stance].name));
 
 	if ( !IS_NPC(victim) )
 	{
