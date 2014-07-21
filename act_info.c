@@ -4771,7 +4771,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Mob kills, mob deaths, beheads */
-    sprintf(buf, "{D|{x Mob Kills:  %-6d      Mob Deaths: %-5d      Beheads:   %d",
+    sprintf(buf, "{D|{x Mob Kills:  %-6d      Mob Deaths: %-5d      Beheads:    %d",
         ch->pcdata->mob_kills, 
         ch->pcdata->mob_deaths, 
         ch->pcdata->behead_cnt);
@@ -4811,7 +4811,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Position and Stance */
-    sprintf(buf, "{D|{x Position: %s      Stance: {G%s{x",
+    sprintf(buf, "{D|{x Position:   %-8s    Stance: {G%s{x",
         positionbuf, 
         capitalize(stances[ch->stance].name) );
 
@@ -4839,7 +4839,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Items carried, carry weight, encumbered */
-    sprintf( buf, "{D|{x Items:    %4d/%-4d     Weight: %5d/%-5d    Encumbrance: %s",
+    sprintf( buf, "{D|{x Items:    %4d/%-4d     Weight: %-5d/%5d    Encumbrance: %s",
         ch->carry_number, 
         can_carry_n(ch), 
         get_carry_weight(ch)/10, 
