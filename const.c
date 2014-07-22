@@ -3337,7 +3337,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_frenzy,           TAR_CHAR_DEFENSIVE,     POS_STANDING,
-	NULL,                         30,     24, DUR_SHORT,
+	&gsn_frenzy,                         30,     24, DUR_SHORT,
 	"",                     "Your rage ebbs.",  "", NULL
 	},
 

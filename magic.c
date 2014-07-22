@@ -3077,6 +3077,12 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
 
+    if (IS_SET(victim->imm_flags, IMM_MAGIC))
+    {
+        send_to_char( "Your victim is immune to magic.\n\r", ch);
+        return;
+    }
+
     if (saves_spell(victim, ch, level, DAM_OTHER))
     {     
         send_to_char( "You feel a brief tingling sensation.\n\r",victim);
