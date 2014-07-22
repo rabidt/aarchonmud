@@ -1140,7 +1140,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
 	/* NPC's shouldn't be able to go AFK, but .. safety is worth the extra check! */
         if (!IS_NPC(victim))
         {
-            act("$E is AFK, and not receiving tells.",ch,NULL,victim,TO_CHAR);
+            act("$E is AFK, and may view your tell upon returning.",ch,NULL,victim,TO_CHAR);
 			victim->pcdata->new_tells=TRUE;
         }
     }
