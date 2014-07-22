@@ -3369,7 +3369,8 @@ bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
         return FALSE;
     
     if (!IS_IMMORTAL(ch) 
-        && !(IS_NPC(ch) && IS_SET(ch->act,ACT_PET))
+//        && !(IS_NPC(ch) && IS_SET(ch->act,ACT_PET))
+        && !IS_NPC(ch)
         && pRoomIndex->clan 
         && (ch->clan != pRoomIndex->clan
 	    || ch->pcdata->clan_rank < pRoomIndex->clan_rank) )
