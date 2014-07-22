@@ -120,7 +120,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
     
         if ( to_room->clan )
         {
-            if ( ch->clan != to_room->clan )
+            if ( !IS_NPC(ch) && ch->clan != to_room->clan )
             {
                 if ( show )
                     printf_to_char(ch, "That area is for clan %s only.\n\r",
