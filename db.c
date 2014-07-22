@@ -113,6 +113,7 @@ int             jail_room_list[MAX_JAIL_ROOM];
 bool            wait_for_auth = AUTH_STATUS_ENABLED;
 bool            exits_fixed = FALSE;
 
+sh_int  gsn_frenzy;
 sh_int  gsn_mindflay;
 sh_int  gsn_petrify;
 sh_int  gsn_backstab;

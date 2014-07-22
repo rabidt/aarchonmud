@@ -3235,6 +3235,7 @@ extern sh_int race_rakshasa;
 /*
  * These are skill_lookup return values for common skills and spells.
  */
+extern  sh_int  gsn_frenzy;
 extern  sh_int  gsn_mindflay;
 extern  sh_int  gsn_petrify;
 extern  sh_int  gsn_backstab;
