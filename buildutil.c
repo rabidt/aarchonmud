@@ -2286,6 +2286,18 @@ MSETFUN( namecolor )
     return color_name( ch, arg3, victim );
 }
 
+
+MSETFUN( remorts )
+{
+    if (value < 0 || value > 10 )
+    {
+        send_to_char("Remort range is 0 to 10.\n\r",ch);
+        return FALSE;
+    }
+    victim->pcdata->remorts = value;
+    return TRUE;
+}
+
 struct
 {
     const char *field;
@@ -2332,6 +2344,7 @@ struct
     {"law",       MSETPCONLY,   mset_law},
     {"ptitle",    MSETPCONLY,   mset_ptitle},
     {"namecolor", MSETPCONLY,   mset_namecolor},
+    {"remorts",   MSETPCONLY,   mset_remorts},
     {NULL,        MSETNONE,     NULL}
 };
    
