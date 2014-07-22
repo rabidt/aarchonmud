@@ -6152,6 +6152,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
     if ( now_in == was_in )
     {
         send_to_char( "You get turned around and flee back into the room!\n\r", ch );
+        check_improve(ch, gsn_flee, FALSE, 4);
         return;
     }
 
