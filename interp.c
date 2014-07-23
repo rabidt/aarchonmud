@@ -519,7 +519,11 @@ const   struct  cmd_type    cmd_table   [] =
     { "portal",     do_portal,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "reboo",      do_reboo,   POS_DEAD,   ML,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "reboot",     do_reboot,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+#ifdef TESTER
+    { "repeat",     do_repeat,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+#else
     { "repeat",     do_repeat,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
+#endif
     { "reserve",    do_reserve, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "set",        do_set,     POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "setskill",   do_setskill,POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
