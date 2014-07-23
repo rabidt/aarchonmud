@@ -3476,3 +3476,37 @@ void do_tables( CHAR_DATA *ch, const char *argument)
     do_tables( ch, "");
 
 }
+
+void do_repeat( CHAR_DATA *ch, const char *argument )
+{
+    char arg1[MIL];
+    int nr, i;
+    
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("Syntax: repeat <nr> command [arguments]\n\r", ch);
+        return;
+    }
+    
+    argument = one_argument(argument, arg1);
+    nr = atoi(arg1);
+    if ( nr < 1 || nr > 100 )
+    {
+        send_to_char("First argument must be a number between 1 and 100.\n\r", ch);
+        return;
+    }
+        
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("What command do you want to repeat?\n\r", ch);
+        return;
+    }
+    
+    for ( i = 0; i < nr; i++ )
+    {
+        interpret(ch, argument);
+        // saveguard against repeated quitting and other bright ideas
+        if ( !valid_CH(ch) || ch->must_extract )
+            return;
+    }
+}
