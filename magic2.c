@@ -1173,9 +1173,9 @@ void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     }
     if ( ch != victim )
         factor += factor / 3;
-    else if ( was_wish_cast )
-        factor -= factor / 3;
     factor *= 100.0 / mastery_adjust_cost(100, get_mastery(ch, sn));
+    if ( was_wish_cast )
+        factor *= 100.0 / wish_cast_adjust_cost(ch, 100, sn, ch == victim);
 
     if ( ch->mana < heal/factor )
 	heal = ch->mana * factor;
