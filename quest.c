@@ -841,8 +841,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             reward_points = (int)(reward_points * cfg_qp_mult );
             if ( cfg_show_qp_mult )
             {
-                sprintf(buf, "There's currently a qp bonus of %d%%!",
-                    (int)((cfg_qp_mult*100)-100));
+                sprintf(buf, "There's currently a qp bonus of %d%%!", (int)((cfg_qp_mult*100)-99.5));
                 do_say(questman, buf );
             }
 
