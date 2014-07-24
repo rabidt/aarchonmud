@@ -14,6 +14,9 @@ extern bool cfg_show_gold_mult;
 extern bool cfg_enable_gold_mult;
 extern float cfg_gold_mult;
 
+extern bool cfg_refund_tattoos;
+extern bool cfg_refund_qeq;
+
 extern char *cfg_word_of_day;
 
 typedef struct config_data_entry
