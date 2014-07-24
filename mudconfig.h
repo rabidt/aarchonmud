@@ -10,6 +10,10 @@ extern bool cfg_show_qp_mult;
 extern bool cfg_enable_qp_mult;
 extern float cfg_qp_mult;
 
+extern bool cfg_show_gold_mult;
+extern bool cfg_enable_gold_mult;
+extern float cfg_gold_mult;
+
 extern char *cfg_word_of_day;
 
 typedef struct config_data_entry

@@ -7,6 +7,7 @@
 #include <sys/time.h>
 
 #include "merc.h"
+#include "mudconfig.h"
 
 // wealth
 
@@ -25,7 +26,8 @@ long mob_base_wealth( MOB_INDEX_DATA *pMobIndex )
         level = 120;
         factor = 5;
     }
-    factor = factor * pMobIndex->wealth_percent / 100;    
+    factor = factor * pMobIndex->wealth_percent / 100;
+    factor *= cfg_gold_mult;
 
     return (long)(level_base_wealth(level) * factor);
 }
