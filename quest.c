@@ -219,7 +219,7 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 	    return FALSE;
 	}
 	
-	if (!strcmp(qi->name,""))
+	if ( !strcmp(qi->name,"") || cfg_refund_qeq )
 	{
 	    qp_gain = qi->cost;//refund full cost on old items
             do_say( quest_man, "As you like, I can refund you the whole cost!" );

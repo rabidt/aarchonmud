@@ -13,6 +13,7 @@
 #include "buffer_util.h"
 #include "tattoo.h"
 #include "tables.h"
+#include "mudconfig.h"
 
 #define TATTOO(ID)         tattoo_data_list[ID]
 #define TATTOO_ID(ch,loc)  (ch)->pcdata->tattoos[loc]
@@ -515,7 +516,10 @@ void do_tattoo( CHAR_DATA *ch, char *argument )
 	tattoo_modify_equip( ch, loc, FALSE, TRUE, TRUE );
 	tattoo_modify_equip( ch, loc, FALSE, TRUE, FALSE );
 	remove_tattoo( ch->pcdata->tattoos, loc );
-	cost = tattoo_cost(ID) * 9/10;
+    if ( cfg_refund_tattoos )
+        cost = tattoo_cost(ID);
+    else
+        cost = tattoo_cost(ID) * 9/10;
 
 	logpf( "%s removed tattoo '%s' at %s for %d qp",
 	       ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc), cost );
