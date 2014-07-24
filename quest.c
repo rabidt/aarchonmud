@@ -834,6 +834,9 @@ void do_quest(CHAR_DATA *ch, char *argument)
             return;
         }
         
+        sprintf(buf, "Congratulations on completing your quest!");
+        do_say(questman, buf);
+        
         // general adjustments
         reward_points += reward_points * get_religion_bonus(ch) / 100;
         if ( cfg_enable_qp_mult )
@@ -848,8 +851,6 @@ void do_quest(CHAR_DATA *ch, char *argument)
         }
 
         // notify of rewards
-        sprintf(buf, "Congratulations on completing your quest!");
-        do_say(questman, buf);
         sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.", reward_points, reward_silver);
         do_say(questman, buf);
         if ( reward_prac > 0 )
