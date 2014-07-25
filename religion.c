@@ -2492,20 +2492,20 @@ DEFINE_GOD_FUNCTION(god_confuse)
 
 GOD_ACTION god_table[] =
 {
-    /* name,    cost, function,		description			mean? */
-    { "confuse",   1, &god_confuse,	"insanity (short duration)", 	TRUE },
-    { "curse",     2, &god_curse, 	"curse",			TRUE },
-    { "plague",    2, &god_plague,	"plague",			TRUE },
-    { "bless",     3, &god_bless,	"sanctuary + death's door",	FALSE },
-    { "slow",      3, &god_slow,	"slow + weaken", 		TRUE },
-    { "speed",     3, &god_speed,	"haste + mantra", 		FALSE },
-    { "heal",      3, &god_heal,	"heals over time", 		FALSE },
-    { "enlighten", 3, &god_enlighten,	"improved exp gain and learning", FALSE },
-    { "protect",   3, &god_protect,	"improved AC and protection from magic", FALSE },
-    { "fortune",   3, &god_fortune,     "improved CHA, LUC, and gold from mobs", FALSE },
-    { "haunt",     4, &god_haunt,	"send ghosts to haunt",		TRUE },
-    { "cleanse",   5, &god_cleanse,	"remove divine curses",		FALSE },
-    { "defy",      5, &god_defy,	"remove divine blessings",	TRUE },
+    /* name,    cost, function,     description     negative effect? */
+    { "confuse",   1, &god_confuse, "insanity (short duration)", TRUE },
+    { "curse",     2, &god_curse,   "curse", TRUE },
+    { "plague",    2, &god_plague,  "plague", TRUE },
+    { "bless",     3, &god_bless,   "improved hitroll & stats, heroism & death's door", FALSE },
+    { "slow",      3, &god_slow,    "slow & weaken", TRUE },
+    { "speed",     3, &god_speed,   "improved AGI & DEX, haste & mantra", FALSE },
+    { "heal",      3, &god_heal,    "improved VIT, heals over time", FALSE },
+    { "enlighten", 3, &god_enlighten, "improved INT, +50% exp gain and faster learning", FALSE },
+    { "protect",   3, &god_protect, "improved AC & saves, sanctuary & protection from magic", FALSE },
+    { "fortune",   3, &god_fortune, "improved CHA & LUC, +50% gold, +5% chance to gain practices", FALSE },
+    { "haunt",     4, &god_haunt,   "send ghosts to haunt", TRUE },
+    { "cleanse",   5, &god_cleanse, "remove divine curses", FALSE },
+    { "defy",      5, &god_defy,    "remove divine blessings", TRUE },
     { NULL, 0, NULL, NULL }
 };
 
@@ -2665,12 +2665,12 @@ bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
     af.duration  = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
     af.location  = APPLY_HITROLL;
     af.modifier  = 100;
-    af.bitvector = AFF_SANCTUARY;
+    af.bitvector = AFF_DEATHS_DOOR;
     affect_to_char( victim, &af );
     
-    af.location  = APPLY_SAVES;
-    af.bitvector = AFF_DEATHS_DOOR;
-    af.modifier  *= -1;
+    af.location  = APPLY_STATS;
+    af.bitvector = AFF_HEROISM;
+    af.modifier  = 40;
     affect_to_char( victim, &af );
 
     /* When called through auto-granting, there is no ch */
@@ -2972,9 +2972,14 @@ bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
     af.type	 = gsn_god_bless;
     af.level	 = 100;
     af.duration	 = duration != GOD_FUNC_DEFAULT_DURATION ? duration : 100;
-    af.modifier	 = -500;
+    af.modifier	 = -1000;
     af.location	 = APPLY_AC;
+    af.bitvector = AFF_SANCTUARY;
+    affect_to_char( victim, &af );
+    
+    af.location  = APPLY_SAVES;
     af.bitvector = AFF_PROTECT_MAGIC;
+    af.modifier  = -100;
     affect_to_char( victim, &af );
 
     /* When called through auto-granting, there is no ch */
