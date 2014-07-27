@@ -4163,7 +4163,7 @@ void    nuke_pets   args( ( CHAR_DATA *ch ) );
 void    die_follower    args( ( CHAR_DATA *ch, bool preservePets ) );
 bool    is_same_group   args( ( CHAR_DATA *ach, CHAR_DATA *bch ) );
 void    info_message  args( ( CHAR_DATA *ch, char *argument, bool show_to_char) );
-char    *makedrunk      args( (char *string ,CHAR_DATA *ch) );
+char    *makedrunk      args( (const char *string, CHAR_DATA *ch) );
 void    printf_to_char args( ( CHAR_DATA *ch, char *fmt, ...) );
 void    logpf args( (char * fmt, ...) );
 void    bugf args( (char * fmt, ...) );
