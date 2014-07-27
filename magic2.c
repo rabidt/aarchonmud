@@ -2892,7 +2892,6 @@ void spell_smotes_anachronism( int sn, int level, CHAR_DATA *ch, void *vo,int ta
     
     act("Smote appears suddenly and slows down time!",ch,NULL,NULL,TO_ROOM);
     send_to_char("Your prayers are answered as Smote slows down time!\n\r",ch);
-    ch->wait += PULSE_VIOLENCE;
     
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
         
@@ -2901,7 +2900,9 @@ void spell_smotes_anachronism( int sn, int level, CHAR_DATA *ch, void *vo,int ta
 	     || was_obj_cast && gch != ch )
             continue;
         
-        gch->wait = UMAX(gch->wait - PULSE_VIOLENCE, 0);
+        // timer reduction is limited to PULSE_VIOLENCE to limit stacking
+        if ( gch->wait > PULSE_VIOLENCE && gch != ch )
+            gch->wait = UMAX(gch->wait - PULSE_VIOLENCE, PULSE_VIOLENCE);
         gch->daze = UMAX(gch->daze - PULSE_VIOLENCE, 0);
         victim = gch->fighting;
         
