@@ -20,6 +20,7 @@
 */
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -383,6 +384,7 @@ void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
     rfprintf( fp, "SDESC %s~\n", pMobIndex->short_descr );
     rfprintf( fp, "LDESC %s~\n", fix_string(pMobIndex->long_descr) );
     rfprintf( fp, "DESC %s~\n",  fix_string(pMobIndex->description) );
+    rfprintf( fp, "NOTES %s~\n", fix_string(pMobIndex->notes) );
     rfprintf( fp, "RACE %s~\n",  race_table[race].name );
     fprintf( fp, "SEX %s\n",    sex_table[pMobIndex->sex].name );
     
@@ -551,25 +553,6 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
             : "");
         break;
         
-    case ITEM_CIGARETTE:
-        fprintf( fp, "%d %d '%s' '%s' '%s'\n",
-            pObjIndex->value[0] > 0 ? /* no negative numbers */
-            pObjIndex->value[0]
-            : 0,
-            pObjIndex->value[1] > 0 ? /* no negative numbers */
-            pObjIndex->value[1]
-            : 0,
-            pObjIndex->value[2] != -1 ?
-            skill_table[pObjIndex->value[2]].name
-            : "",
-            pObjIndex->value[3] != -1 ?
-            skill_table[pObjIndex->value[3]].name
-            : "",
-            pObjIndex->value[4] != -1 ?
-            skill_table[pObjIndex->value[4]].name
-            : "");
-        break;
-        
     case ITEM_STAFF:
     case ITEM_WAND:
         fprintf( fp, "%d %d %d '%s' %d\n",
@@ -585,17 +568,6 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     fprintf( fp, "%d ", pObjIndex->level );
     fprintf( fp, "%d ", pObjIndex->weight );
     fprintf( fp, "%d ", pObjIndex->cost );
-    fprintf( fp, "%d ",	pObjIndex->durability );
-    
-    if ( pObjIndex->condition >  90 ) letter = 'P';
-    else if ( pObjIndex->condition >  75 ) letter = 'G';
-    else if ( pObjIndex->condition >  50 ) letter = 'A';
-    else if ( pObjIndex->condition >  25 ) letter = 'W';
-    else if ( pObjIndex->condition >  10 ) letter = 'D';
-    else if ( pObjIndex->condition >   0 ) letter = 'B';
-    else                                   letter = 'R';
-    
-    fprintf( fp, "%c\n", letter );
     
     if (pObjIndex->clan > 0)
         rfprintf ( fp, "C %s~\n" , clan_table[pObjIndex->clan].name );
@@ -662,6 +634,8 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
         }
         reverse_oprog_order(pObjIndex); 
     }
+
+    rfprintf( fp, "N %s~\n", fix_string( pObjIndex->notes ) );
     
     return;
 }
@@ -813,6 +787,8 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                     }
                     reverse_rprog_order(pRoomIndex);
                 }
+
+                rfprintf ( fp, "N %s~\n", pRoomIndex->notes );
                 
                 fprintf( fp, "S\n" );
             }
@@ -1134,13 +1110,24 @@ Called by:	do_asave(olc_save.c).
 ****************************************************************************/
 void save_area( AREA_DATA *pArea )
 {
+    struct stat st = {0};
     FILE *fp;
     int i;
+    char buf[MSL];
     
     if ( pArea == NULL || IS_SET(pArea->area_flags, AREA_CLONE) )
 	return;
 
-    fclose( fpReserve );
+    if ( stat(pArea->file_name, &st) == 0 )
+    {
+        sprintf( buf, AREA_BACKUP_DIR "%s", pArea->file_name );
+        int result=rename( pArea->file_name, buf );
+        if ( result != 0 )
+        {
+            perror("Error: ");
+        }
+    }
+
     if ( !( fp = fopen( pArea->file_name, "w" ) ) )
     {
         bug( "Open_area: fopen", 0 );
@@ -1158,6 +1145,7 @@ void save_area( AREA_DATA *pArea )
     fprintf( fp, "\n#AREADATA\n" );
     rfprintf( fp, "Name %s~\n",        pArea->name );
     rfprintf( fp, "Builders %s~\n",    fix_string( pArea->builders ) );
+    rfprintf( fp, "Notes %s~\n",       fix_string( pArea->notes ) );
     fprintf( fp, "VNUMs %d %d\n",     pArea->min_vnum, pArea->max_vnum );
     rfprintf( fp, "Credits %s~\n",     pArea->credits );
   /* Added minlevel, maxlevel, and miniquests for new areas command
@@ -1206,7 +1194,6 @@ void save_area( AREA_DATA *pArea )
     fprintf( fp, "#$\n" );
     
     fclose( fp );
-    fpReserve = fopen( NULL_FILE, "r" );
     return;
 }
 

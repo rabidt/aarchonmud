@@ -666,47 +666,45 @@ void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     AFFECT_DATA af;
     int dam;
     
-    act( "You call to the gods for aid against the undead.\n\r",
-	 ch, NULL, NULL, TO_CHAR );
-    act( "$n calls to the gods for aid against the undead.\n\r",
-	 ch, NULL, NULL, TO_ROOM );
+    act( "You call to the gods for aid against the undead.\n\r", ch, NULL, NULL, TO_CHAR );
+    act( "$n calls to the gods for aid against the undead.\n\r", ch, NULL, NULL, TO_ROOM );
 
-    dam = get_sn_damage( sn, level, ch ) * 3/4;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * (1000 + ch->alignment) / 1000;
+    
     for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
     {
         vch_next = vch->next_in_room;
-        if ( !is_safe_spell(ch,vch,TRUE) 
-	     && IS_UNDEAD(vch) )
-        {
-	    check_killer(ch, vch);
+        if ( is_safe_spell(ch, vch, TRUE) || !IS_UNDEAD(vch) )
+            continue;
 
-            if (IS_EVIL(ch))
-	    {   /* Evil chars charm undead   */ 
-                if ( IS_AFFECTED(vch, AFF_CHARM) || ch->fighting == vch )
-                    continue;
+        check_killer(ch, vch);
 
-		spell_charm_person( gsn_charm_person, level, ch, (void*) vch,
-				    TARGET_CHAR );
-            }
-	    else if (IS_GOOD(ch))
-	    {   /* Good chars harm undead */
-		if ( saves_spell(vch, ch, level, DAM_HOLY) )
-		    full_dam( ch, vch, dam/2, sn, DAM_HOLY, TRUE );
-		else
-		    full_dam( ch, vch, dam, sn, DAM_HOLY, TRUE );
-            }
-	    else
-	    {   /* Neutral chars fear undead */
-		if ( IS_AFFECTED(vch, AFF_FEAR) )
-		    continue;
-		spell_fear( gsn_fear, level, ch, (void*) vch, TARGET_CHAR );
-            }
-
-	    if ( !IS_DEAD(ch) && !IS_DEAD(vch)
-		 && vch->fighting == NULL
-		 && !is_safe_spell(vch, ch, FALSE) )
-		multi_hit( vch, ch, TYPE_UNDEFINED );
+        if ( IS_EVIL(ch) )
+        {   /* Evil chars charm undead   */ 
+            if ( IS_AFFECTED(vch, AFF_CHARM) || ch->fighting == vch )
+                continue;
+            if ( !ch->fighting && check_kill_trigger(ch, vch) )
+                return;
+            spell_charm_person( gsn_charm_person, level, ch, (void*) vch, TARGET_CHAR );
+            post_spell_process(sn, ch, vch);
         }
+        else if (IS_GOOD(ch))
+        {   /* Good chars harm undead */
+            if ( saves_spell(vch, ch, level, DAM_HOLY) )
+                full_dam( ch, vch, dam/2, sn, DAM_HOLY, TRUE );
+            else
+                full_dam( ch, vch, dam, sn, DAM_HOLY, TRUE );
+        }
+        else
+        {   /* Neutral chars fear undead */
+            if ( IS_AFFECTED(vch, AFF_FEAR) )
+                continue;
+            if ( !ch->fighting && check_kill_trigger(ch, vch) )
+                return;
+            spell_fear( gsn_fear, level, ch, (void*) vch, TARGET_CHAR );
+            post_spell_process(sn, ch, vch);
+        }
+
     }
 }
 
@@ -1176,6 +1174,8 @@ void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     if ( ch != victim )
         factor += factor / 3;
     factor *= 100.0 / mastery_adjust_cost(100, get_mastery(ch, sn));
+    if ( was_wish_cast )
+        factor *= 100.0 / wish_cast_adjust_cost(ch, 100, sn, ch == victim);
 
     if ( ch->mana < heal/factor )
 	heal = ch->mana * factor;
@@ -1610,7 +1610,7 @@ void spell_fade(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
     
-    if ( IS_AFFECTED(ch, AFF_FADE) || IS_AFFECTED(ch, AFF_MINOR_FADE))
+    if ( IS_AFFECTED(ch, AFF_FADE) )
     {
         send_to_char("You are already fading out of existence.\n\r",ch);
         return;
@@ -1672,7 +1672,7 @@ void spell_monsoon( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         send_to_char ( "The weather is much too nice for that!", ch );
         return;
     }
-    dam = get_sn_damage( sn, level, ch) * 3/4;
+    dam = get_sn_damage( sn, level, ch) * AREA_SPELL_FACTOR * 1.5;
     
     send_to_char( "A torrent of rain drenches your foes!\n\r", ch );
     act( "$n calls down a monsoon to drench $s enemies!!!", ch, 
@@ -2039,7 +2039,7 @@ void spell_windwar( int sn, int level, CHAR_DATA *ch, void *vo, int target)
         return;
     }
 
-    dam = get_sn_damage( sn, level, ch ) / 2;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
     if ((ch->in_room->sector_type) == SECT_MOUNTAIN)     
     {
         send_to_char ( "The mountain winds make war with your foes!\n\r", ch );
@@ -2125,7 +2125,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     
     chance = 100;
     snake_count = 0;
-    while ( (snake_count + 1) * mlevel < max_snake && number_percent() <= chance ) {
+    while ( (snake_count + 1) * mlevel <= max_snake && number_percent() <= chance ) {
         
         if ((mob = create_mobile(get_mob_index(MOB_VNUM_SNAKE)))==NULL)
             return;  
@@ -2348,36 +2348,34 @@ void spell_mass_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int targe
         if ( is_safe_spell(ch, victim, TRUE) || IS_AFFECTED(victim, AFF_INSANE) )
             continue;
 
-	check_killer( ch, victim );
+        check_killer( ch, victim );
+        if ( !ch->fighting && check_kill_trigger(ch, victim) )
+            return;
 
         if  ( saves_spell(victim, ch, level/2, DAM_MENTAL) )
-	      /* || saves_spell(level,victim,DAM_CHARM)) */
         {
             if (ch == victim)
                 send_to_char("{xYou feel momentarily {Ms{yi{Gl{Cl{Ry{x, but it passes.\n\r",ch);
             else
                 act("$N seems to keep $S sanity.",ch,NULL,victim,TO_CHAR);
         }
-	else
-	{
-	    af.where     = TO_AFFECTS;
-	    af.type      = sn;
-	    af.level     = level/2;
-	    af.duration  = get_duration(sn, level);
-	    af.location  = APPLY_INT;
-	    af.modifier  = -15;
-	    af.bitvector = AFF_INSANE;
-	    affect_join(victim,&af);
-        
-	    send_to_char("{MY{bo{Cu{Gr {%{yw{Ro{mr{Bl{Cd{x {gi{Ys {%{ra{Ml{Bi{cv{Ge{x {yw{Ri{Mt{bh{%{wcolors{x{C?{x\n\r",victim);
-	    act("$n giggles like $e lost $s mind.", victim,NULL,NULL,TO_ROOM);
-	}
-
-	if ( !IS_DEAD(ch) && !IS_DEAD(victim)
-	     && victim->fighting == NULL
-	     && !is_safe_spell(victim, ch, TRUE) )
-	    multi_hit( victim, ch, TYPE_UNDEFINED );
+        else
+        {
+            af.where     = TO_AFFECTS;
+            af.type      = sn;
+            af.level     = level/2;
+            af.duration  = get_duration(sn, level);
+            af.location  = APPLY_INT;
+            af.modifier  = -15;
+            af.bitvector = AFF_INSANE;
+            affect_join(victim,&af);
+            
+            send_to_char("{MY{bo{Cu{Gr {%{yw{Ro{mr{Bl{Cd{x {gi{Ys {%{ra{Ml{Bi{cv{Ge{x {yw{Ri{Mt{bh{%{wcolors{x{C?{x\n\r",victim);
+            act("$n giggles like $e lost $s mind.", victim,NULL,NULL,TO_ROOM);
+        }
+        post_spell_process(sn, ch, victim);
     }
+
     return;
     
 }
@@ -2527,7 +2525,7 @@ void spell_glyph_of_evil(int sn, int level, CHAR_DATA *ch, void *vo,int target)
 	return;
     }
 
-    dam = get_sn_damage(sn, level, ch) / 2;
+    dam = get_sn_damage(sn, level, ch) * AREA_SPELL_FACTOR;
 
     if ( (time_info.hour > 5) && (time_info.hour < 20) )
 	is_dark = FALSE;
@@ -2697,7 +2695,7 @@ void spell_rimbols_invocation(int sn,int level,CHAR_DATA *ch,void *vo,int target
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
-    int dam, main_dam = get_sn_damage( sn, level, ch ) / 8;
+    int dam, main_dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR / 4;
     
     act("Rimbol channels the power of earth to form an avalanche!",ch,NULL,NULL,TO_ROOM);
     send_to_char("Rimbol answers your prayers by bringing forth Earth's power!\n\r",ch);
@@ -2894,7 +2892,6 @@ void spell_smotes_anachronism( int sn, int level, CHAR_DATA *ch, void *vo,int ta
     
     act("Smote appears suddenly and slows down time!",ch,NULL,NULL,TO_ROOM);
     send_to_char("Your prayers are answered as Smote slows down time!\n\r",ch);
-    ch->wait += PULSE_VIOLENCE;
     
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
         
@@ -2903,7 +2900,9 @@ void spell_smotes_anachronism( int sn, int level, CHAR_DATA *ch, void *vo,int ta
 	     || was_obj_cast && gch != ch )
             continue;
         
-        gch->wait = UMAX(gch->wait - PULSE_VIOLENCE, 0);
+        // timer reduction is limited to PULSE_VIOLENCE to limit stacking
+        if ( gch->wait > PULSE_VIOLENCE && gch != ch )
+            gch->wait = UMAX(gch->wait - PULSE_VIOLENCE, PULSE_VIOLENCE);
         gch->daze = UMAX(gch->daze - PULSE_VIOLENCE, 0);
         victim = gch->fighting;
         
@@ -4082,7 +4081,7 @@ void spell_minor_fade(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
     
-    if ( IS_AFFECTED(ch, AFF_FADE) || IS_AFFECTED(ch, AFF_MINOR_FADE))
+    if ( IS_AFFECTED(ch, AFF_MINOR_FADE) )
     {
         send_to_char("You are already fading out of existence.\n\r",ch);
         return;

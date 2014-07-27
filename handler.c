@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "magic.h"
 #include "recycle.h"
@@ -393,6 +394,7 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
                 ch->mod_stat[i] += mod;
             break;
         case APPLY_SKILLS:  ch->mod_skills  += mod; break;
+        case APPLY_LEVEL:   ch->mod_level   += mod; break;
             
         case APPLY_SEX:     ch->sex         += mod; break;
         case APPLY_MANA:    ch->max_mana    += mod; break;
@@ -435,6 +437,7 @@ void reset_char(CHAR_DATA *ch)
         ch->mod_stat[stat] = 0;
     
     ch->mod_skills = 0;
+    ch->mod_level = 0;
     ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->trained_hit_bonus = 0;
     ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
     ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
@@ -1044,47 +1047,35 @@ void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
  */
 void affect_remove( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
-    int where;
-    int vector;
+    ch->affected = affect_remove_list(ch->affected, paf);
     
-    if ( ch->affected == NULL )
-    {
-        bug( "Affect_remove: no affect.", 0 );
-        return;
-    }
-    
-    affect_modify( ch, paf, FALSE );
-    where = paf->where;
-    vector = paf->bitvector;
-    
-    if ( paf == ch->affected )
-    {
-        ch->affected    = paf->next;
-    }
-    else
-    {
-        AFFECT_DATA *prev;
-        
-        for ( prev = ch->affected; prev != NULL; prev = prev->next )
-        {
-            if ( prev->next == paf )
-            {
-                prev->next = paf->next;
-                break;
-            }
-        }
-        
-        if ( prev == NULL )
-        {
-            bug( "Affect_remove: cannot find paf.", 0 );
-            return;
-        }
-    }
+    affect_modify(ch, paf, FALSE);
+    affect_check(ch, paf->where, paf->bitvector);
     
     free_affect(paf);
+}
+
+// temporarily disable an affect on ch
+void affect_freeze( CHAR_DATA *ch, AFFECT_DATA *paf )
+{
+    // remove from ch->affected
+    ch->affected = affect_remove_list(ch->affected, paf);
+    affect_modify(ch, paf, FALSE);
+    affect_check(ch, paf->where, paf->bitvector);
+
+    // move to ch->aff_stasis
+    ch->aff_stasis = affect_insert(ch->aff_stasis, paf);
+}
+
+// reenable a previously frozen affect
+void affect_unfreeze( CHAR_DATA *ch, AFFECT_DATA *paf )
+{
+    // remove from ch->aff_stasis
+    ch->aff_stasis = affect_remove_list(ch->aff_stasis, paf);
     
-    affect_check(ch,where,vector);
-    return;
+    // add to ch->affected
+    ch->affected = affect_insert(ch->affected, paf);
+    affect_modify(ch, paf, TRUE);
 }
 
 void affect_remove_obj( OBJ_DATA *obj, AFFECT_DATA *paf)
@@ -1165,7 +1156,7 @@ void affect_strip_obj( OBJ_DATA *obj, int sn )
 }
 
 /*
- * Strip all affects of a given sn.
+ * Strip all affects of a given sn, or all if sn = 0
  */
 void affect_strip( CHAR_DATA *ch, int sn )
 {
@@ -1175,12 +1166,45 @@ void affect_strip( CHAR_DATA *ch, int sn )
     for ( paf = ch->affected; paf != NULL; paf = paf_next )
     {
         paf_next = paf->next;
-        if ( paf->type == sn )
+        if ( !sn || paf->type == sn )
             affect_remove( ch, paf );
     }
     
     return;
 }
+
+/*
+ * Freeze all affects of a given sn, or all if sn = 0
+ */
+void affect_freeze_sn( CHAR_DATA *ch, int sn )
+{
+    AFFECT_DATA *paf;
+    AFFECT_DATA *paf_next;
+    
+    for ( paf = ch->affected; paf != NULL; paf = paf_next )
+    {
+        paf_next = paf->next;
+        if ( !sn || paf->type == sn )
+            affect_freeze(ch, paf);
+    }
+}
+
+/*
+ * Unfreeze all affects of a given sn, or all if sn = 0
+ */
+void affect_unfreeze_sn( CHAR_DATA *ch, int sn )
+{
+    AFFECT_DATA *paf;
+    AFFECT_DATA *paf_next;
+    
+    for ( paf = ch->aff_stasis; paf != NULL; paf = paf_next )
+    {
+        paf_next = paf->next;
+        if ( !sn || paf->type == sn )
+            affect_unfreeze(ch, paf);
+    }
+}
+
 
 /*
  * Strip all custom_affects of a given tag.
@@ -1314,6 +1338,33 @@ AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
     
     paf->next = prev->next;
     prev->next = paf;
+    
+    return affect_list;
+}
+
+/*
+ * removes an affect from a given list, returning the new list
+ */
+AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
+{
+    
+    if ( affect_list == NULL || paf == NULL )
+    {
+        bugf("affect_remove_list: NULL parameter");
+        return affect_list;
+    }
+    
+    if ( affect_list == paf )
+        return affect_list->next;
+    
+    AFFECT_DATA *prev = affect_list;
+    while ( prev->next && prev->next != paf )
+        prev = prev->next;
+    
+    if ( !prev->next )
+        bugf("affect_remove_list: affect not found");
+    else
+        prev->next = paf->next;
     
     return affect_list;
 }
@@ -2082,12 +2133,9 @@ void extract_obj( OBJ_DATA *obj )
 
     if (obj == NULL)
     {
-	bug("BUG: extract_obj, obj == NULL",0);
-	return;
+        bug("BUG: extract_obj, obj == NULL",0);
+        return;
     }
-
-    unregister_lua( obj ); /* always unregister, even if delaying extract */
-    unregister_obj_timer( obj );
 
     if (g_LuaScriptInProgress || is_mprog_running())
     {
@@ -2101,6 +2149,7 @@ void extract_obj( OBJ_DATA *obj )
     OBJ_DATA *obj_content;
     OBJ_DATA *obj_next;
     
+    unregister_obj_timer( obj );
     obj_from_world( obj );
     free_relic( obj );
     
@@ -2245,6 +2294,66 @@ void get_eq_corpse( CHAR_DATA *ch, OBJ_DATA *corpse )
     }
 }
 
+void char_list_insert( CHAR_DATA *ch )
+{
+    // insert so that char_list remains sorted (descending) by id
+    //if ( !char_list || char_list->id < ch->id )
+    {
+        ch->next = char_list;
+        char_list = ch;
+        return;
+    }
+    /*
+    // find point to insert within sorted list
+    CHAR_DATA *prev = char_list;
+    while ( prev->next && prev->next->id > ch->id )
+        prev = prev->next;
+    // insert
+    ch->next = prev->next;
+    prev->next = ch;
+    */
+}
+
+/*
+void assert_char_list()
+{
+    CHAR_DATA *ch;
+    for ( ch = char_list; ch && ch->next; ch = ch->next )
+        if ( ch->id < ch->next->id )
+            bugf("assert_char_list: %d < %d\n", ch->id, ch->next->id);
+}
+
+// returns first character in char_list with id < current_id
+CHAR_DATA* char_list_next( long current_id )
+{
+    CHAR_DATA *ch;
+    for ( ch = char_list; ch; ch = ch->next )
+        if ( ch->id < current_id )
+            return ch;
+    return NULL;
+}
+*/
+
+CHAR_DATA* char_list_next_char( CHAR_DATA *ch )
+{
+    // safety net
+    if ( ch == NULL )
+        return NULL;
+    
+    ch = ch->next;
+    // skip characters marked for extraction and look for invalid ones
+    while ( ch && (!valid_CH(ch) || ch->must_extract) )
+    {
+        if ( !valid_CH(ch) )
+        {
+            bugf("char_list_next_char: invalid character");
+            return NULL;
+        }
+        ch = ch->next;
+    }
+    return ch;
+}
+
 void char_from_char_list( CHAR_DATA *ch )
 {
     if ( ch == char_list )
@@ -2273,91 +2382,74 @@ void char_from_char_list( CHAR_DATA *ch )
 }
 
 /*
- * Extract a char from the world.
+ * Extract a char from the world. Returns true if removed from char_list (i.e., not delayed)
  */
-void extract_char( CHAR_DATA *ch, bool fPull )
+bool extract_char( CHAR_DATA *ch, bool fPull )
 {
-    extract_char_new(ch, fPull, TRUE);
+    return extract_char_new(ch, fPull, TRUE);
 }
 
-void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
+bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
 {
     CHAR_DATA *wch;
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
 
-    /* fPull should be TRUE if NPC or quitting player (char will get freed) */
-    if ( fPull )
-    {
-        unregister_lua( ch ); /* always unregister even if delaying actual extract */
-        unregister_ch_timer( ch );
-        if (g_LuaScriptInProgress || is_mprog_running())
-        {
-            ch->must_extract=TRUE;
-            return;
-        }
-    }
+    /* safety-net against infinite extracting and double-counting */
+    if ( ch->must_extract )
+        return FALSE;
 
-    /* safety-net against infinite extracting */
-    ch->must_extract = FALSE;
+    unregister_ch_timer( ch );
 
-
-
-    /* doesn't seem to be necessary
-    if ( ch->in_room == NULL )
-    {
-    bug( "Extract_char: NULL.", 0 );
-    return;
-    }
-    */
-    
     nuke_pets(ch);
-    ch->pet = NULL; /* just in case */
-    
+
     if ( fPull )
         die_follower( ch, false );
-    
+
     stop_fighting( ch, TRUE );
 
     /* drop all easy_drop items */
     extract_char_eq( ch, &is_drop_obj, TO_ROOM );
 
     if (extract_objects)
-	for ( obj = ch->carrying; obj != NULL; obj = obj_next )
-	{
-	    obj_next = obj->next_content;
+        for ( obj = ch->carrying; obj != NULL; obj = obj_next )
+        {
+            obj_next = obj->next_content;
 
-	    if (!IS_NPC(ch)
-		&& !fPull
-		&& IS_SET(obj->extra_flags, ITEM_STICKY))
-		continue;  /* Leave item on player, not on corpse. Only for PC deaths in-game. */
-	    
-	    extract_obj( obj );
-	}
-    
+            if (!IS_NPC(ch)
+                    && !fPull
+                    && IS_SET(obj->extra_flags, ITEM_STICKY))
+                continue;  /* Leave item on player, not on corpse. Only for PC deaths in-game. */
+
+            extract_obj( obj );
+        }
+
     if (ch->in_room != NULL)
         char_from_room( ch );
-    
+
     /* Death room is set in the clan table now */
     if ( !fPull )
     {
-	/* make sure vampires don't get toasted over and over again */
-	if ( IS_SET(ch->form, FORM_SUNBURN) )
-	    char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
-	else
-	    char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
-        return;
+        /* make sure vampires don't get toasted over and over again */
+        if ( IS_SET(ch->form, FORM_SUNBURN) )
+            char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
+        else
+            char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
+        return TRUE;
     }
     
+    // mark for full extraction later on
+    ch->must_extract = TRUE;
+
     if ( IS_NPC(ch) )
         --ch->pIndexData->count;
-    
+
     if ( ch->desc != NULL && ch->desc->original != NULL )
     {
         do_return( ch, "" );
         ch->desc = NULL;
     }
-    
+
     for ( wch = char_list; wch != NULL; wch = wch->next )
     {
         if ( wch->reply == ch )
@@ -2366,15 +2458,12 @@ void extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
             wch->mprog_target = NULL;
     }
 
-    char_from_char_list(ch);
-    
     if ( ch->desc != NULL )
     {
         ch->desc->character = NULL;
     }
 
-    free_char( ch );
-    return;
+    return TRUE;
 }
 
 /*
@@ -3273,7 +3362,8 @@ bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
         return FALSE;
     
     if (!IS_IMMORTAL(ch) 
-        && !(IS_NPC(ch) && IS_SET(ch->act,ACT_PET))
+//        && !(IS_NPC(ch) && IS_SET(ch->act,ACT_PET))
+        && !IS_NPC(ch)
         && pRoomIndex->clan 
         && (ch->clan != pRoomIndex->clan
 	    || ch->pcdata->clan_rank < pRoomIndex->clan_rank) )

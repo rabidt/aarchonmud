@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
@@ -84,10 +85,14 @@ void opedit( CHAR_DATA *ch, char *argument)
     {
         if (!str_prefix(command, opedit_table[cmd].name) )
         {
-           if ((*opedit_table[cmd].olc_fun) (ch, argument) && pOcode)
-              if ((ad = get_vnum_area(pOcode->vnum)) != NULL)
-                 SET_BIT(ad->area_flags, AREA_CHANGED);
-              return;
+            if ( strlen(opedit_table[cmd].name) >= 3
+                    && strlen(command) < 3 )
+                break;
+
+            if ((*opedit_table[cmd].olc_fun) (ch, argument) && pOcode)
+                if ((ad = get_vnum_area(pOcode->vnum)) != NULL)
+                    SET_BIT(ad->area_flags, AREA_CHANGED);
+            return;
         }
     }
 
@@ -215,10 +220,100 @@ void do_opedit(CHAR_DATA *ch, char *argument)
        return;
     }
 
+    if ( !str_cmp(command, "delete") )
+    {
+        if (argument[0] == '\0')
+        {
+            send_to_char( "Syntax : opedit delete [vnum]\n\r", ch );
+            return;
+        }
+
+        opedit_delete(ch, argument);
+        return;
+    }
+
     send_to_char( "Syntax : opedit [vnum]\n\r", ch );
     send_to_char( "         opedit create [vnum]\n\r", ch );
 
     return;
+}
+
+OPEDIT (opedit_delete)
+{
+    PROG_CODE *pOcode;
+    char command[MIL];
+
+    argument = one_argument(argument, command);
+
+    if (!is_number(command))
+    {
+        send_to_char( "Syntax : opedit create [vnum]\n\r", ch );
+        return FALSE;
+    }
+
+    int vnum=atoi(command);
+
+    if ( (pOcode = get_oprog_index(vnum)) == NULL )
+    {
+        send_to_char("Oprog does not exist.\n\r", ch );
+        return FALSE;
+    }
+
+    AREA_DATA *ad = get_vnum_area( vnum );
+
+    if ( ad == NULL )
+    {
+        send_to_char("Vnum not assigned to an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER(ch,ad) )
+    {
+        send_to_char( "Insufficient security to delete oprog.\n\r", ch );
+        return FALSE;
+    }
+
+    OBJ_INDEX_DATA *obj;
+    PROG_LIST *lst;
+    int ovnum;
+    for ( ovnum=0 ; ovnum <= top_vnum_obj ; ovnum++ )
+    {
+        obj=get_obj_index( ovnum );
+        if (!obj)
+            continue;
+
+        for ( lst=obj->oprogs ; lst ; lst=lst->next )
+        {
+            if ( lst->script == pOcode )
+            {
+                send_to_char( "Can't delete oprog, it is used.\n\r", ch);
+                return FALSE;
+            }
+        }
+    }
+
+    /* if we got here, we're good to delete */
+    PROG_CODE *curr, *last=NULL;
+    for ( curr=oprog_list ; curr ; curr=curr->next )
+    {
+        if ( curr==pOcode )
+        {
+            if (!last)
+            {
+                oprog_list=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            free_opcode( pOcode );
+            SET_BIT( ad->area_flags, AREA_CHANGED);
+            send_to_char( "Oprog deleted.\n\r", ch );
+            return TRUE;
+        }
+        last=curr;
+    }
 }
 
 OPEDIT (opedit_create)

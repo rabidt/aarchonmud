@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
@@ -88,12 +89,17 @@ void mpedit( CHAR_DATA *ch, char *argument)
 
     for (cmd = 0; mpedit_table[cmd].name != NULL; cmd++)
     {
+
         if (!str_prefix(command, mpedit_table[cmd].name) )
         {
-           if ((*mpedit_table[cmd].olc_fun) (ch, argument) && pMcode)
-              if ((ad = get_vnum_area(pMcode->vnum)) != NULL)
-                 SET_BIT(ad->area_flags, AREA_CHANGED);
-              return;
+            if ( strlen(mpedit_table[cmd].name) >= 3
+                    && strlen(command) < 3 )
+                break;
+
+            if ((*mpedit_table[cmd].olc_fun) (ch, argument) && pMcode)
+                if ((ad = get_vnum_area(pMcode->vnum)) != NULL)
+                    SET_BIT(ad->area_flags, AREA_CHANGED);
+            return;
         }
     }
 
@@ -237,11 +243,103 @@ void do_mpedit(CHAR_DATA *ch, char *argument)
        return;
     }
 
+    if ( !str_cmp(command, "delete") )
+    {
+        if (argument[0] == '\0')
+        {
+            send_to_char( "Syntax : mpedit delete [vnum]\n\r", ch );
+            return;
+        }
+
+        mpedit_delete(ch, argument);
+        return;
+    }
+
     send_to_char( "Syntax : mpedit [vnum]\n\r", ch );
     send_to_char( "         mpedit create [vnum]\n\r", ch );
 
     return;
 }
+
+MPEDIT (mpedit_delete)
+{
+    PROG_CODE *pMcode;
+    char command[MIL];
+
+    argument = one_argument(argument, command);
+
+    if (!is_number(command))
+    {
+        send_to_char( "Syntax : mpedit create [vnum]\n\r", ch );
+        return FALSE;
+    }
+
+    int vnum=atoi(command);
+
+    if ( (pMcode = get_mprog_index(vnum)) == NULL )
+    {
+        send_to_char("Mprog does not exist.\n\r", ch );
+        return FALSE;
+    }
+
+    AREA_DATA *ad = get_vnum_area( vnum );
+
+    if ( ad == NULL )
+    {
+        send_to_char("Vnum not assigned to an area.\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !IS_BUILDER(ch,ad) )
+    {
+        send_to_char( "Insufficient security to delete mprog.\n\r", ch );
+        return FALSE;
+    }
+    
+    MOB_INDEX_DATA *mob;
+    PROG_LIST *lst;
+    int mvnum;
+    for ( mvnum=0 ; mvnum <= top_vnum_mob ; mvnum++ )
+    {
+        mob=get_mob_index( mvnum );
+        if (!mob)
+            continue;
+
+        for ( lst=mob->mprogs ; lst ; lst=lst->next )
+        {
+            if ( lst->script == pMcode )
+            {
+                send_to_char( "Can't delete mprog, it is used.\n\r", ch);
+                return FALSE;
+            }
+        }
+    }
+
+    /* if we got here, we're good to delete */
+    PROG_CODE *curr, *last=NULL;
+    for ( curr=mprog_list ; curr ; curr=curr->next )
+    {
+        if ( curr==pMcode )
+        {
+            if (!last)
+            {
+                mprog_list=curr->next;
+            }
+            else
+            {
+                last->next=curr->next;
+            }
+
+            free_mpcode( pMcode );
+            SET_BIT( ad->area_flags, AREA_CHANGED);
+            send_to_char( "Mprog deleted.\n\r", ch );
+            return TRUE;
+        }
+        last=curr;
+    }
+}
+
+
 
 MPEDIT (mpedit_create)
 {

@@ -1,23 +1,29 @@
 #ifndef LUA_ARCLIB_H
 #define LUA_ARCLIB_H
 
-typedef struct prop_type LUA_PROP_TYPE;
-
-/* base functionality for lua object types */
-typedef struct obj_type
+struct lua_prop_type;
+typedef struct lua_obj_type
 {
-    char *type_name;
-    bool (*make)();
+    const char *type_name;
 
+    bool (*valid)();
     void *(*check)();
-
     bool (*is)();
+    bool (*push)();
+    void *(*alloc);
+    void (*free)();
 
-    LUA_PROP_TYPE *get_table;
-    LUA_PROP_TYPE *set_table;
-    LUA_PROP_TYPE *method_table;
+    int (*index)();
+    int (*newindex)();
 
-} OBJ_TYPE;
+    void (*reg)();
+
+    struct lua_prop_type * const get_table;
+    struct lua_prop_type * const set_table;
+    struct lua_prop_type * const method_table;
+
+    int count;
+} LUA_OBJ_TYPE;
 
 typedef struct lua_extra_val
 {
@@ -33,63 +39,57 @@ typedef struct lua_extra_val
 
 void type_init();
 
-extern OBJ_TYPE *CH_type;
-extern OBJ_TYPE *OBJ_type;
-extern OBJ_TYPE *AREA_type;
-extern OBJ_TYPE *ROOM_type;
-extern OBJ_TYPE *EXIT_type;
-extern OBJ_TYPE *RESET_type;
-extern OBJ_TYPE *OBJPROTO_type;
-extern OBJ_TYPE *MOBPROTO_type;
-extern OBJ_TYPE *SHOP_type;
-extern OBJ_TYPE *PROG_type;
-extern OBJ_TYPE *MTRIG_type;
-extern OBJ_TYPE *OTRIG_type;
-extern OBJ_TYPE *ATRIG_type;
-extern OBJ_TYPE *RTRIG_type;
-extern OBJ_TYPE *AFFECT_type;
+extern LUA_OBJ_TYPE CH_type;
+extern LUA_OBJ_TYPE OBJ_type;
+extern LUA_OBJ_TYPE AREA_type;
+extern LUA_OBJ_TYPE ROOM_type;
+extern LUA_OBJ_TYPE EXIT_type;
+extern LUA_OBJ_TYPE RESET_type;
+extern LUA_OBJ_TYPE OBJPROTO_type;
+extern LUA_OBJ_TYPE MOBPROTO_type;
+extern LUA_OBJ_TYPE SHOP_type;
+extern LUA_OBJ_TYPE PROG_type;
+extern LUA_OBJ_TYPE MTRIG_type;
+extern LUA_OBJ_TYPE OTRIG_type;
+extern LUA_OBJ_TYPE ATRIG_type;
+extern LUA_OBJ_TYPE RTRIG_type;
+extern LUA_OBJ_TYPE AFFECT_type;
+extern LUA_OBJ_TYPE HELP_type;
+extern LUA_OBJ_TYPE DESCRIPTOR_type;
 
 void register_globals( lua_State *LS );
 
-#define check_CH( LS, index) ((CHAR_DATA *)CH_type->check( CH_type, LS, index ))
-#define check_OBJ( LS, index) ((OBJ_DATA *)OBJ_type->check( OBJ_type, LS, index ))
-#define check_AREA( LS, index) ((AREA_DATA *)AREA_type->check( AREA_type, LS, index))
-#define check_ROOM( LS, index) ((ROOM_INDEX_DATA *)ROOM_type->check( ROOM_type, LS, index))
-#define check_EXIT( LS, index) ((EXIT_DATA *)EXIT_type->check( EXIT_type, LS, index))
-#define check_RESET( LS, index) ((RESET_DATA *)RESET_type->check( RESET_type, LS, index))
-#define check_MOBPROTO( LS, index) ((MOB_INDEX_DATA *)MOBPROTO_type->check( MOBPROTO_type, LS, index))
-#define check_OBJPROTO( LS, index) ((OBJ_INDEX_DATA *)OBJPROTO_type->check( OBJPROTO_type, LS, index))
-#define check_PROG( LS, index) ((PROG_CODE *)PROG_type->check( PROG_type, LS, index))
-#define check_MTRIG( LS, index) ((PROG_LIST *)MTRIG_type->check( MTRIG_type, LS, index))
-#define check_OTRIG( LS, index) ((PROG_LIST *)OTRIG_type->check( OTRIG_type, LS, index))
-#define check_ATRIG( LS, index) ((PROG_LIST *)ATRIG_type->check( ATRIG_type, LS, index))
-#define check_RTRIG( LS, index) ((PROG_LIST *)RTRIG_type->check( RTRIG_type, LS, index))
-#define check_SHOP( LS, index) ((SHOP_DATA *)SHOP_type->check( SHOP_type, LS, index))
-#define check_AFFECT( LS, index) ((AFFECT_DATA *)AFFECT_type->check( AFFECT_type, LS, index))
+/* moved to merc.h cause what if a file calls 
+   valid_CH without including lua_arclib.h?
+   It assumes int and doesn't work right.
+   */
+/*
+#define declf( ltype, ctype ) \
+ctype * check_ ## ltype ( lua_State *LS, int index ); \
+bool    is_ ## ltype ( lua_State *LS, int index ); \
+bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
+ctype * alloc_ ## ltype (void) ;\
+void    free_ ## ltype ( ctype * ud );\
+bool valid_ ## ltype ( ctype *ud );
 
-
-#define make_CH(LS, ch ) CH_type->make( CH_type, LS, ch )
-#define make_OBJ(LS, obj) OBJ_type->make( OBJ_type, LS, obj )
-#define make_AREA(LS, area) AREA_type->make( AREA_type, LS, area )
-#define make_ROOM(LS, room) ROOM_type->make( ROOM_type, LS, room )
-#define make_EXIT(LS, exit) EXIT_type->make( EXIT_type, LS, exit )
-#define make_RESET(LS, reset) RESET_type->make( RESET_type, LS, reset )
-#define make_MOBPROTO(LS, mp) MOBPROTO_type->make( MOBPROTO_type, LS, mp)
-#define make_OBJPROTO(LS, op) OBJPROTO_type->make( OBJPROTO_type, LS, op)
-#define make_PROG(LS, prog) PROG_type->make( PROG_type, LS, prog)
-#define make_MTRIG(LS, trig) MTRIG_type->make( MTRIG_type, LS, trig)
-#define make_OTRIG(LS, trig) OTRIG_type->make( OTRIG_type, LS, trig)
-#define make_ATRIG(LS, trig) ATRIG_type->make( ATRIG_type, LS, trig)
-#define make_RTRIG(LS, trig) RTRIG_type->make( RTRIG_type, LS, trig)
-#define make_SHOP(LS, shop) SHOP_type->make( SHOP_type, LS, shop)
-#define make_AFFECT(LS, aff) AFFECT_type->make( AFFECT_type, LS, aff)
-
-#define is_CH(LS, ch ) CH_type->is( CH_type, LS, ch )
-#define is_OBJ(LS, obj ) OBJ_type->is( OBJ_type, LS, obj )
-#define is_AREA(LS, area ) AREA_type->is( AREA_type, LS, area )
-#define is_ROOM(LS, room ) ROOM_type->is( ROOM_type, LS, room )
-#define is_MTRIG(LS, trig ) MTRIG_type->is( MTRIG_type, LS, trig )
-#define is_OTRIG(LS, trig ) OTRIG_type->is( OTRIG_type, LS, trig )
-#define is_AFFECT(LS, aff) AFFECT_type->is( AFFECT_type, LS, aff )
+declf(CH, CHAR_DATA)
+declf(OBJ, OBJ_DATA)
+declf(AREA, AREA_DATA)
+declf(ROOM, ROOM_INDEX_DATA)
+declf(EXIT, EXIT_DATA)
+declf(RESET, RESET_DATA)
+declf(MOBPROTO, MOB_INDEX_DATA)
+declf(OBJPROTO, OBJ_INDEX_DATA)
+declf(PROG, PROG_CODE)
+declf(MTRIG, PROG_LIST)
+declf(OTRIG, PROG_LIST)
+declf(ATRIG, PROG_LIST)
+declf(RTRIG, PROG_LIST)
+declf(SHOP, SHOP_DATA)
+declf(AFFECT, AFFECT_DATA)
+declf(HELP, HELP_DATA)
+declf(DESCRIPTOR, DESCRIPTOR_DATA)
+*/
+#undef declf
 
 #endif

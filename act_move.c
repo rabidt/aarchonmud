@@ -120,7 +120,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
     
         if ( to_room->clan )
         {
-            if ( ch->clan != to_room->clan )
+            if ( !IS_NPC(ch) && ch->clan != to_room->clan )
             {
                 if ( show )
                     printf_to_char(ch, "That area is for clan %s only.\n\r",
@@ -145,7 +145,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
 bool can_move_dir( CHAR_DATA *ch, int dir, bool show )
 {
     ROOM_INDEX_DATA *in_room = ch->in_room;
-    EXIT_DATA *pexit = in_room->exit[dir];
+    EXIT_DATA *pexit = dir >= 0 ? in_room->exit[dir] : NULL;
     ROOM_INDEX_DATA *to_room = pexit ? pexit->u1.to_room : NULL;
     
     if ( !in_room 
@@ -845,6 +845,9 @@ void do_open( CHAR_DATA *ch, char *argument )
 	  if ( check_item_trap_hit(ch, obj) )
 	      return;
 
+      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_OPEN) )
+          return;
+
 	  I_REMOVE_BIT(obj->value[1], CONT_CLOSED);
 	  act("You open $p.",ch,obj,NULL,TO_CHAR);
 	  act( "$n opens $p.", ch, obj, NULL, TO_ROOM );
@@ -1268,6 +1271,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	     key = find_key( ch, obj->value[2]);
 	  if ( !I_IS_SET(obj->value[1], CONT_LOCKED) )
 	  { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
+
+      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_UNLOCK) )
+        return;
 	  
 	  I_REMOVE_BIT(obj->value[1], CONT_LOCKED);
 	  act("You unlock $p.",ch,obj,NULL,TO_CHAR);
@@ -1737,193 +1743,218 @@ void do_peel ( CHAR_DATA *ch, char *argument)
 
 void do_pick( CHAR_DATA *ch, char *argument )
 {
-   char arg[MAX_INPUT_LENGTH];
-   CHAR_DATA *gch;
-   OBJ_DATA *obj;
-   int door;
-   int skill;
-   
-   one_argument( argument, arg );
-   
-   if ( arg[0] == '\0' )
-   {
-	  send_to_char( "Pick what?\n\r", ch );
-	  return;
-   }
-
-   if( !str_prefix(arg,"nort") )
-	{ do_pick(ch,"north"); return; }
-   if( !str_prefix(arg,"sout") )
-	{ do_pick(ch,"south"); return; }
-   if( !str_prefix(arg,"eas") )
-	{ do_pick(ch,"east"); return; }
-   if( !str_prefix(arg,"wes") )
-	{ do_pick(ch,"west"); return; }
-   if( !str_cmp(arg,"nw") )
-	{ do_pick(ch,"northwest"); return; }
-   if( !str_cmp(arg,"ne") )
-	{ do_pick(ch,"northeast"); return; }
-   if( !str_cmp(arg,"se") )
-	{ do_pick(ch,"southeast"); return; }
-   if( !str_cmp(arg,"sw") )
-	{ do_pick(ch,"southwest"); return; }
-   
-   WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
-   
-   /* look for guards */
-   for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
-   {
-	  if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
-	  {
-		 act( "$N is standing too close to the lock.",
-			ch, NULL, gch, TO_CHAR );
-		 return;
-	  }
-   }
-   
-   skill = get_skill(ch,gsn_pick_lock) * (ch->level + get_curr_stat(ch, STAT_DEX) + 200)/500;
-   
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
-   {
-	  /* portal stuff */
-	  if (obj->item_type == ITEM_PORTAL)
-	  {
-		 if (!I_IS_SET(obj->value[1],EX_ISDOOR))
-		 {   
-			send_to_char("You can't do that.\n\r",ch);
-			return;
-		 }
-		 
-		 if (!I_IS_SET(obj->value[1],EX_LOCKED))
-		 {
-			send_to_char("It's not locked.\n\r",ch);
-			return;
-		 }
-
-		 if (!I_IS_SET(obj->value[1],EX_CLOSED))
-		 {
-			send_to_char("It's not closed.\n\r",ch);
-			return;
-		 }
-		 
-		 if (obj->value[4] < 0)
-		 {
-			send_to_char("It can't be unlocked.\n\r",ch);
-			return;
-		 }
-
-		 if ( I_IS_SET(obj->value[1],EX_PICKPROOF) )
-		 {
-		    send_to_char( "You can't seem to figure out how to pick this lock.\n\r", ch );
-		    return;
-		 }
-		 
-		 /* different difficulties */
-		 if (I_IS_SET(obj->value[1],EX_INFURIATING))
-		     skill -= 50;
-		 else if (I_IS_SET(obj->value[1],EX_HARD))
-		     skill -= 25;
-		 else if (I_IS_SET(obj->value[1],EX_EASY))
-		     skill += 25;
-
-
-		 if ( number_percent() > skill )
-		 {
-		     send_to_char( "You failed.\n\r", ch);
-		     check_improve(ch,gsn_pick_lock,FALSE,2);
-		     return;
-		 }
-		 
-		 I_REMOVE_BIT(obj->value[1],EX_LOCKED);
-		 act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
-		 check_improve(ch,gsn_pick_lock,TRUE,2);
-		 return;
-	  }
-	  	  
-	  /* 'pick object' */
-	  if ( obj->item_type != ITEM_CONTAINER )
-	  { send_to_char( "That's not a container.\n\r", ch ); return; }
-	  if ( !I_IS_SET(obj->value[1], CONT_CLOSED) )
-	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
-	  if ( obj->value[2] < 0 )
-	  { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
-	  if ( !I_IS_SET(obj->value[1], CONT_LOCKED) )
-	  { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
-	  if ( I_IS_SET(obj->value[1],CONT_PICKPROOF) )
-	  { send_to_char( "You can't seem to figure out how to pick this lock.\n\r", ch ); return; }
-
-	  if (I_IS_SET(obj->value[1],CONT_INFURIATING))
-	      skill -= 50;
-	  else if (I_IS_SET(obj->value[1],CONT_HARD))
-	      skill -= 25;
-	  else if (I_IS_SET(obj->value[1],CONT_EASY))
-	      skill += 25;
-	  if ( number_percent() > skill )
-	  {
-	      send_to_char( "You failed.\n\r", ch);
-	      check_improve(ch,gsn_pick_lock,FALSE,2);
-	      return;
-	  }
-	  
-	  I_REMOVE_BIT(obj->value[1], CONT_LOCKED);
-	  act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
-	  act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
-	  check_improve(ch,gsn_pick_lock,TRUE,2);
-	  return;
-   }
-   
-   if ( ( door = find_door( ch, arg ) ) >= 0 )
-   {
-	  /* 'pick door' */
-	  ROOM_INDEX_DATA *to_room;
-	  EXIT_DATA *pexit;
-	  EXIT_DATA *pexit_rev;
-	  
-	  pexit = ch->in_room->exit[door];
-	  if ( !IS_SET(pexit->exit_info, EX_CLOSED) && !IS_IMMORTAL(ch))
-	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
-	  if ( pexit->key < 0 && !IS_IMMORTAL(ch))
-	  { send_to_char( "It can't be picked.\n\r",     ch ); return; }
-	  if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
-	  { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
-
-	  if ( IS_SET(pexit->exit_info, EX_PICKPROOF) && !IS_IMMORTAL(ch))
-	  { send_to_char( "You can't seem to figure out how to pick this lock.\n\r", ch ); return; }
-	  
-	  /* different difficulties */
-	  if (IS_SET(pexit->exit_info,EX_INFURIATING))
-	      skill -= 50;
-	  else if (IS_SET(pexit->exit_info,EX_HARD))
-	      skill -= 25;
-	  else if (IS_SET(pexit->exit_info,EX_EASY))
-	      skill += 25;
-	  
-	  if (  number_percent() > skill )
-	  {
-	      send_to_char( "You failed.\n\r", ch);
-	      check_improve(ch,gsn_pick_lock,FALSE,2);
-	      return;
-	  }
-
-	  REMOVE_BIT(pexit->exit_info, EX_LOCKED);
-	  send_to_char( "*Click*\n\r", ch );
-	  act( "$n picks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
-	  check_improve(ch,gsn_pick_lock,TRUE,2);
-	  
-	  /* pick the other side */
-	  if ( ( to_room   = pexit->u1.to_room            ) != NULL
-		 &&   ( pexit_rev = to_room->exit[rev_dir[door]] ) != NULL
-		 &&   pexit_rev->u1.to_room == ch->in_room )
-	  {
-		 REMOVE_BIT( pexit_rev->exit_info, EX_LOCKED );
-	  }
-   }
-   
-   return;
+    char arg[MAX_INPUT_LENGTH];
+    CHAR_DATA *gch;
+    OBJ_DATA *obj;
+    int door;
+    int skill;
+    
+    one_argument( argument, arg );
+    
+    if ( arg[0] == '\0' )
+    {
+        send_to_char( "Pick what?\n\r", ch );
+        return;
+    }
+    
+    if( !str_prefix(arg,"nort") )
+        { do_pick(ch,"north"); return; }
+    if( !str_prefix(arg,"sout") )
+        { do_pick(ch,"south"); return; }
+    if( !str_prefix(arg,"eas") )
+        { do_pick(ch,"east"); return; }
+    if( !str_prefix(arg,"wes") )
+        { do_pick(ch,"west"); return; }
+    if( !str_cmp(arg,"nw") )
+        { do_pick(ch,"northwest"); return; }
+    if( !str_cmp(arg,"ne") )
+        { do_pick(ch,"northeast"); return; }
+    if( !str_cmp(arg,"se") )
+        { do_pick(ch,"southeast"); return; }
+    if( !str_cmp(arg,"sw") )
+        { do_pick(ch,"southwest"); return; }
+    
+    WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
+    
+    
+    skill = get_skill(ch,gsn_pick_lock) * (ch->level + get_curr_stat(ch, STAT_DEX) + 200)/500;
+    
+    if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+    {
+        /* portal stuff */
+        if (obj->item_type == ITEM_PORTAL)
+        {
+    
+            /* look for guards */
+            for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
+            {
+                if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
+                {
+                    act( "$N is standing too close to the lock.", ch, NULL, gch, TO_CHAR );
+                    return;
+                }
+            }
+    
+            if (!I_IS_SET(obj->value[1],EX_ISDOOR))
+            {   
+                send_to_char("You can't do that.\n\r",ch);
+                return;
+            }
+            
+            if (!I_IS_SET(obj->value[1],EX_LOCKED))
+            {
+                send_to_char("It's not locked.\n\r",ch);
+                return;
+            }
+            
+            if (!I_IS_SET(obj->value[1],EX_CLOSED))
+            {
+                send_to_char("It's not closed.\n\r",ch);
+                return;
+            }
+            
+            if (obj->value[4] < 0)
+            {
+                send_to_char("It can't be unlocked.\n\r",ch);
+                return;
+            }
+            
+            if ( I_IS_SET(obj->value[1],EX_PICKPROOF) )
+            {
+                send_to_char( "You can't seem to figure out how to pick this lock.\n\r", ch );
+                return;
+            }
+            
+            /* different difficulties */
+            if (I_IS_SET(obj->value[1],EX_INFURIATING))
+                skill -= 50;
+            else if (I_IS_SET(obj->value[1],EX_HARD))
+                skill -= 25;
+            else if (I_IS_SET(obj->value[1],EX_EASY))
+                skill += 25;
+            
+            
+            if ( number_percent() > skill )
+            {
+                send_to_char( "You failed.\n\r", ch);
+                check_improve(ch,gsn_pick_lock,FALSE,2);
+                return;
+            }
+            
+            I_REMOVE_BIT(obj->value[1],EX_LOCKED);
+            act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
+            act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
+            check_improve(ch,gsn_pick_lock,TRUE,2);
+            return;
+        }
+        
+         if ( obj->carried_by == NULL )
+        {
+            /* look for guards */
+            for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
+            {
+                if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
+                {
+                    act( "$N is standing too close to the lock.", ch, NULL, gch, TO_CHAR );
+                    return;
+                }
+            }
+        }
+        else
+        {
+            /* 'pick object' */
+            if ( obj->item_type != ITEM_CONTAINER )
+                { send_to_char( "That's not a container.\n\r", ch ); return; }
+            if ( !I_IS_SET(obj->value[1], CONT_CLOSED) )
+                { send_to_char( "It's not closed.\n\r",        ch ); return; }
+            if ( obj->value[2] < 0 )
+                { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
+            if ( !I_IS_SET(obj->value[1], CONT_LOCKED) )
+                { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
+            if ( I_IS_SET(obj->value[1],CONT_PICKPROOF) )
+                { send_to_char( "You can't seem to figure out how to pick this lock.\n\r", ch ); return; }
+            
+            if (I_IS_SET(obj->value[1],CONT_INFURIATING))
+                skill -= 50;
+            else if (I_IS_SET(obj->value[1],CONT_HARD))
+                skill -= 25;
+            else if (I_IS_SET(obj->value[1],CONT_EASY))
+                skill += 25;
+            if ( number_percent() > skill )
+            {
+                send_to_char( "You failed.\n\r", ch);
+                check_improve(ch,gsn_pick_lock,FALSE,2);
+                return;
+            }
+        }
+         
+        I_REMOVE_BIT(obj->value[1], CONT_LOCKED);
+        act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
+        act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
+        check_improve(ch,gsn_pick_lock,TRUE,2);
+        return;
+    }
+    
+    if ( ( door = find_door( ch, arg ) ) >= 0 )
+    {
+        /* 'pick door' */
+        ROOM_INDEX_DATA *to_room;
+        EXIT_DATA *pexit;
+        EXIT_DATA *pexit_rev;
+        
+        /* look for guards */
+        for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
+        {
+            if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
+            {
+                act( "$N is standing too close to the lock.",
+                ch, NULL, gch, TO_CHAR );
+                return;
+            }
+        }
+        
+        pexit = ch->in_room->exit[door];
+        if ( !IS_SET(pexit->exit_info, EX_CLOSED) && !IS_IMMORTAL(ch))
+            { send_to_char( "It's not closed.\n\r",        ch ); return; }
+        if ( pexit->key < 0 && !IS_IMMORTAL(ch))
+            { send_to_char( "It can't be picked.\n\r",     ch ); return; }
+        if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
+            { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
+        
+        if ( IS_SET(pexit->exit_info, EX_PICKPROOF) && !IS_IMMORTAL(ch))
+            { send_to_char( "You can't seem to figure out how to pick this lock.\n\r", ch ); return; }
+        
+        /* different difficulties */
+        if (IS_SET(pexit->exit_info,EX_INFURIATING))
+            skill -= 50;
+        else if (IS_SET(pexit->exit_info,EX_HARD))
+            skill -= 25;
+        else if (IS_SET(pexit->exit_info,EX_EASY))
+            skill += 25;
+        
+        if (  number_percent() > skill )
+        {
+            send_to_char( "You failed.\n\r", ch);
+            check_improve(ch,gsn_pick_lock,FALSE,2);
+            return;
+        }
+        
+        REMOVE_BIT(pexit->exit_info, EX_LOCKED);
+        send_to_char( "*Click*\n\r", ch );
+        act( "$n picks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
+        check_improve(ch,gsn_pick_lock,TRUE,2);
+        
+        /* pick the other side */
+        if ( ( to_room   = pexit->u1.to_room            ) != NULL
+            &&   ( pexit_rev = to_room->exit[rev_dir[door]] ) != NULL
+            &&   pexit_rev->u1.to_room == ch->in_room )
+        {
+            REMOVE_BIT( pexit_rev->exit_info, EX_LOCKED );
+        }
+    }   
+        
+    return;
 }
-
-
 
 
 void do_stand( CHAR_DATA *ch, char *argument )
@@ -1967,6 +1998,10 @@ void do_stand( CHAR_DATA *ch, char *argument )
 	  if ( IS_AFFECTED(ch, AFF_SLEEP) )
 	  { send_to_char( "You can't wake up!\n\r", ch ); return; }
 	  
+      if ( ch->on && !op_percent_trigger( NULL, ch->on, NULL, ch, NULL, OTRIG_WAKE) )
+      {
+          return;
+      }
 	  if (obj == NULL)
 	  {
 		 send_to_char( "You wake and stand up.\n\r", ch );
@@ -2009,6 +2044,10 @@ void do_stand( CHAR_DATA *ch, char *argument )
 	  break;
 	  
    case POS_RESTING: case POS_SITTING:
+      if ( ch->on && !op_percent_trigger( NULL, ch->on, NULL, ch, NULL, OTRIG_WAKE) )
+      {
+          return;
+      }
 	  if (obj == NULL)
 	  {
 		 send_to_char( "You stand up.\n\r", ch );
@@ -2259,6 +2298,10 @@ void do_sit (CHAR_DATA *ch, char *argument )
 		 send_to_char( "You wake and sit up.\n\r", ch );
 		 act( "$n wakes and sits up.", ch, NULL, NULL, TO_ROOM );
 	  }
+      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+      {
+         return;
+      }
 	  else if (I_IS_SET(obj->value[2],SIT_AT))
 	  {
 		 act_new("You wake and sit at $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
@@ -2294,6 +2337,10 @@ void do_sit (CHAR_DATA *ch, char *argument )
    case POS_RESTING:
 	  if (obj == NULL)
 		 send_to_char("You stop resting.\n\r",ch);
+      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+      {
+         return;
+      }
 	  else if (I_IS_SET(obj->value[2],SIT_AT))
 	  {
 		 act("You sit at $p.",ch,obj,NULL,TO_CHAR);
@@ -2318,6 +2365,10 @@ void do_sit (CHAR_DATA *ch, char *argument )
 		 send_to_char("You sit down.\n\r",ch);
 		 act("$n sits down on the ground.",ch,NULL,NULL,TO_ROOM);
 	  }
+      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+      {
+         return;
+      }
 	  else if (I_IS_SET(obj->value[2],SIT_AT))
 	  {
 		 act("You sit down at $p.",ch,obj,NULL,TO_CHAR);
@@ -2693,7 +2744,13 @@ void do_recall( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    move_cost = ch->level * 5;
+    /* This vnum specification is for Bastion. Cheaper to recall from Bastion
+       than other areas. Added to help newbies who get lost in our huge city. */
+
+    if (ch->in_room->area->min_vnum == 10200)
+        move_cost = ch->level * 5/2;
+    else
+        move_cost = ch->level * 5;
 
     if ( !IS_NPC(ch) && ch->move < move_cost)
     {
@@ -2705,9 +2762,7 @@ void do_recall( CHAR_DATA *ch, char *argument )
     {
         int lose,skill;
         
-        skill = get_skill(ch,gsn_recall);
-        skill += get_curr_stat(ch, STAT_LUC)/5;
-		skill -= get_curr_stat(victim, STAT_LUC)/4;
+        skill = 50 + (get_curr_stat(ch, STAT_LUC) - get_curr_stat(victim, STAT_LUC)) / 5;
 
 		if (lose = get_skill(victim, gsn_entrapment))
 		{
@@ -2720,7 +2775,6 @@ void do_recall( CHAR_DATA *ch, char *argument )
         
         if (number_percent() > skill/3)
         {
-            check_improve(ch,gsn_recall,FALSE,6);
             WAIT_STATE( ch, 6 );
             sprintf( buf, "%s doesn't answer your prayer.\n\r", god_name);
             send_to_char( buf, ch );
@@ -2753,7 +2807,6 @@ void do_recall( CHAR_DATA *ch, char *argument )
         else
             send_to_char("You recall from combat!\n\r",ch);
 
-        check_improve(ch,gsn_recall,TRUE,4);
         stop_fighting( ch, TRUE );
         
     }
@@ -2798,7 +2851,7 @@ void do_morph(CHAR_DATA *ch, char *argument)
 	CHAR_DATA *victim;
 	char arg[MAX_INPUT_LENGTH];
 	char buf[MAX_STRING_LENGTH];
-	int race, cost;
+	int race;
 
 	one_argument(argument, arg);
 
@@ -2806,41 +2859,54 @@ void do_morph(CHAR_DATA *ch, char *argument)
 		send_to_char("You pretend you're a doppelganger.\n\r", ch);
 	else if ( MULTI_MORPH(ch) )
 	{
-		if ((arg[0]=='\0') && ch->pcdata->morph_race)
-		{
-			WAIT_STATE(ch, PULSE_VIOLENCE);
-			send_to_char("You revert to your original form.\n\r", ch);
-			ch->pcdata->morph_time = 0;
-			ch->pcdata->morph_race = 0;
-			morph_update( ch );
-			return;
-		}
+        if ( arg[0] == '\0' )
+        {
+            if ( ch->pcdata->morph_race )
+            {
+                WAIT_STATE(ch, PULSE_VIOLENCE);
+                send_to_char("You revert to your original form.\n\r", ch);
+                ch->pcdata->morph_time = 0;
+                ch->pcdata->morph_race = 0;
+                morph_update( ch );
+            }
+            else
+                send_to_char("You must select a victim or race to emulate.\n\r", ch);
+            return;
+        }
+        
+        if ( (victim = get_char_room(ch, arg)) )
+            race = victim->race;
+        else
+            race = pc_race_lookup(arg);
+        
+        if ( !race )
+        {
+            send_to_char("That's not a valid victim or race.\n\r", ch);
+            return;
+        }
 
-		if (arg[0]=='\0' || (victim=get_char_room(ch, arg))==NULL)
-		{
-			send_to_char("You must select a victim to emulate.\n\r", ch);
-			return;
-		}
-
-		if ( (race=victim->race) == ch->race )
-		{
-			send_to_char("Your victim has the same race as you.\n\r", ch);
-			return;
-		}
+        if ( race == ch->race )
+        {
+            send_to_char("You are already of that race.\n\r", ch);
+            return;
+        }
 
 		if ( !race_table[race].pc_race || pc_race_table[race].remorts > morph_power(ch) )
 		{
-			sprintf(buf, "You cant morph into a %s.\n\r",
+			sprintf(buf, "You can't morph into a %s.\n\r",
 				race_table[race].name);
 			send_to_char(buf, ch);
 			return;
 		}
 
-		cost = (pc_race_table[race].remorts + 1) * ch->level;
-		if ( (ch->mana < cost ) || (ch->move < 2*cost) )
+        int base_cost = (pc_race_table[race].remorts + 5) * (20 + ch->level) * (victim ? 1 : 2);
+        int mana_cost = base_cost * 0.4; // min mana factor for any class
+        int move_cost = base_cost * 0.7; // min move factor for any class
+        
+        if ( ch->mana < mana_cost || ch->move < move_cost )
 		{
 			sprintf(buf,"You need %d mana and %d move to morph into a %s.\n\r",
-					cost, 2*cost, race_table[race].name);
+                mana_cost, move_cost, race_table[race].name);
 			send_to_char(buf, ch);
 			return;
 		}
@@ -2849,10 +2915,10 @@ void do_morph(CHAR_DATA *ch, char *argument)
 			WAIT_STATE(ch, 2 * PULSE_VIOLENCE);
 			sprintf(buf, "You morph into a %s.\n\r", race_table[race].name);
 			send_to_char(buf, ch);
-			ch->move-=2*cost;
-			ch->mana-=cost;
+            ch->mana -= mana_cost;
+            ch->move -= move_cost;
 			ch->pcdata->morph_race = race;
-			ch->pcdata->morph_time = ch->level*2 + 10;
+			ch->pcdata->morph_time = get_duration_by_type(DUR_EXTREME, ch->level);
 			morph_update( ch );
 		}
 	}
@@ -2865,23 +2931,17 @@ void do_morph(CHAR_DATA *ch, char *argument)
 		    ch->pcdata->morph_race = 0;
 		    ch->pcdata->morph_time = 0;
 		}
-		else if ( ch->move < (cost = 10) )
-		{
-		    send_to_char( "You are too exhausted to morph into humanoid form.\n\r", ch );
-		    return;
-		}
 		else
 		{
 		    WAIT_STATE(ch, PULSE_VIOLENCE);
 		    send_to_char("You morph into humanoid form.\n\r", ch);
 		    ch->pcdata->morph_race = race_naga;
 		    ch->pcdata->morph_time = 10;
-		    ch->move -= cost;
 		}
 		morph_update( ch );
 	}
 	else if (ch->race == race_werewolf)
-		send_to_char("You cant control your lycanthropy.\n\r", ch);
+		send_to_char("You can't control your lycanthropy.\n\r", ch);
 	else
 		send_to_char("You pretend you're a doppelganger.\n\r", ch);
 }
@@ -2916,20 +2976,25 @@ void morph_update( CHAR_DATA *ch )
 void trap_damage( CHAR_DATA *ch, bool can_behead )
 {
     ROOM_INDEX_DATA *was_in_room = ch->in_room;
-    int dam, dam_type;
 
-    if ( can_behead && number_bits(4) == 0 )
+    int dam_type = number_range(DAM_BASH, DAM_POISON);
+    int dam = 100 + dice( ch->level, 20 );
+
+    if ( can_behead )
     {
-	act( "Your head is chopped right off!", ch, NULL, NULL, TO_CHAR );
-	act( "$n's head is chopped right off!", ch, NULL, NULL, TO_ROOM );
-	behead( ch, ch );
-	return;
+        // no beheading in remort - instead damage is increased
+        if ( ch->pcdata && IS_REMORT(ch) )
+            dam += dam * (ch->pcdata->remorts + 1) / 5;
+        else if ( number_bits(4) == 0 )
+        {
+            act( "Your head is chopped right off!", ch, NULL, NULL, TO_CHAR );
+            act( "$n's head is chopped right off!", ch, NULL, NULL, TO_ROOM );
+            behead( ch, ch );
+            return;
+        }
     }
-
-    /* damage */
-    dam_type = number_range(DAM_BASH, DAM_POISON);
-    dam = 100 + dice( ch->level, ch->level );
-    damage( ch, ch, dam, 0, dam_type, FALSE);
+    
+    full_dam( ch, ch, dam, 0, dam_type, FALSE);
     
     if ( ch->in_room != was_in_room )
 	return;

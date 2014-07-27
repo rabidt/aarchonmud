@@ -259,6 +259,7 @@ void do_gain(CHAR_DATA *ch, char *argument)
 	char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 	CHAR_DATA *trainer;
 	int gn = 0, sn = 0;
+    int seq;
 	bool introspect = TRUE;
 	
 	if (IS_NPC(ch))
@@ -286,8 +287,10 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			sprintf(buf, "%-16s    %-5s %-16s    %-5s %-16s    %-5s\n\r",
 				"group","cost","group","cost","group","cost");
 			send_to_char(buf,ch);
-			for (gn = 0; gn < MAX_GROUP; gn++)
-			{
+            for ( seq=0
+                    ; (gn=name_sorted_group_table(seq)) != -1
+                    ; seq++ )
+            {
 				if (group_table[gn].name == NULL)
 					break;
 				if (!ch->pcdata->group_known[gn]
@@ -306,7 +309,9 @@ void do_gain(CHAR_DATA *ch, char *argument)
 			sprintf(buf, "%-16slvl/%-5s %-16slvl/%-5s %-16slvl/%-5s\n\r",
 				"skill","cost","skill","cost","skill","cost");
 			send_to_char(buf,ch);
-			for (sn = 0; sn < MAX_SKILL; sn++)
+            for ( seq=0
+                    ; (sn=name_sorted_skill_table(seq)) != -1
+                    ; seq++ )
 			{
 				if (skill_table[sn].name == NULL)
 					break;
@@ -1216,7 +1221,7 @@ void show_class_skills( CHAR_DATA *ch, char *argument )
 void list_group_costs(CHAR_DATA *ch)
 {
     char buf[MSL];
-    int gn,sn,col;
+    int gn,sn,col,seq;
     
     if (IS_NPC(ch))
         return;
@@ -1226,7 +1231,9 @@ void list_group_costs(CHAR_DATA *ch)
     sprintf(buf,"%-18s %-5s %-18s %-5s %-18s %-5s\n\r","group","cp","group","cp","group","cp");
     send_to_char(buf,ch);
     
-    for (gn = 0; gn < MAX_GROUP; gn++)
+    for ( seq=0
+            ; (gn=name_sorted_group_table(seq)) != -1
+            ; seq++ )
     {
         if (group_table[gn].name == NULL)
             break;
@@ -1251,7 +1258,9 @@ void list_group_costs(CHAR_DATA *ch)
     sprintf(buf,"%-16s%-6s    %-16s%-6s    %-16s%-6s\n\r","skill","lvl/cp","skill","lvl/cp","skill","lvl/cp");
     send_to_char(buf,ch);
     
-    for (sn = 0; sn < MAX_SKILL; sn++)
+    for ( seq=0
+            ; (sn=name_sorted_skill_table(seq)) != -1
+            ; seq++ )
     {
         if (skill_table[sn].name == NULL)
             break;
@@ -1277,7 +1286,7 @@ void list_group_costs(CHAR_DATA *ch)
     send_to_char(buf,ch);
     if ( ch->pcdata->points > OPT_CP )
     {
-        printf_to_char(ch, "NOTE: You may spend up to %d creation points, but it is recommended to safe some.\n\r", MAX_CP);
+        printf_to_char(ch, "NOTE: You may spend up to %d creation points, but it is recommended to save some.\n\r", MAX_CP);
         printf_to_char(ch, "      Unspent points convert to trains which can be used to train stats early on.\n\r");
     }
     return;
@@ -1875,8 +1884,8 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 	 || (sn==-1) )
 	return TRUE;
 
-    if ((sn==gsn_backstab) || (sn==gsn_circle))
-	return IS_SET(ch->act, ACT_THIEF);
+    if ( sn==gsn_backstab || sn==gsn_circle || sn==gsn_flanking )
+        return IS_SET(ch->act, ACT_THIEF);
     if ((sn==gsn_lore) || (sn==gsn_arcane_lore))
 	return IS_SET(ch->act, ACT_MAGE);
     if ( sn == gsn_enhanced_damage )
@@ -2040,8 +2049,6 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	}
 
 	if (ch->pcdata->condition[COND_DRUNK]>10 && !IS_AFFECTED(ch, AFF_BERSERK))
-		skill = 9 * skill / 10;
-	if (ch->pcdata->condition[COND_SMOKE]<-1 )
 		skill = 9 * skill / 10;
 
         skill = URANGE(0,skill/10,100);
@@ -2209,6 +2216,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
 	BUFFER *buffer;
    char buf[MAX_STRING_LENGTH];
    int sn;
+   int seq;
    int skill;
    int prac_curr, prac_gain;
 
@@ -2221,7 +2229,9 @@ void do_practice( CHAR_DATA *ch, char *argument )
 	
 	  buffer = new_buf();
 	  col    = 0;
-	  for ( sn = 0; sn < MAX_SKILL; sn++ )
+      for ( seq=0
+              ; (sn=name_sorted_skill_table(seq)) != -1
+              ; seq++ )
 	  {
 		 if ( skill_table[sn].name == NULL )
 			break;
@@ -2308,7 +2318,7 @@ void do_practice( CHAR_DATA *ch, char *argument )
             }
 	}
 	
-	  if ( ( sn = find_spell( ch,argument ) ) < 0
+	  if ( (sn = skill_lookup(argument)) < 0
 		 || ( !IS_NPC(ch)
 		 &&   (ch->level < skill_table[sn].skill_level[ch->class]
 		 ||    ch->pcdata->learned[sn] < 1 /* skill is not known */
@@ -2363,6 +2373,43 @@ void do_practice( CHAR_DATA *ch, char *argument )
    return;
 }
 
+// reimburse character for skill gained and then lost due to class losing the skill
+void skill_reimburse( CHAR_DATA *ch )
+{
+    int sn;
+    
+    if ( !ch || !ch->pcdata || IS_IMMORTAL(ch) )
+        return;
+    
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        // still accessible
+        if ( skill_table[sn].skill_level[ch->class] <= LEVEL_HERO )
+            continue;
+        
+        int learned = ch->pcdata->learned[sn];
+        // racial skills or groups set learned to 1, don't reimburse for these
+        // characters who gained the skill but didn't practice it lose out, that's life
+        if ( learned <= 1 )
+            continue;
+        
+        int train_cost = skill_table[sn].min_rating;
+        // assume an int rating of 100 for the purpose of determining practice cost
+        int prac_cost = 1 + UMIN(learned, 75) * train_cost / int_app_learn(100);
+        // reimburse for practice above 75 as if hard practiced
+        if ( learned > 75 )
+            prac_cost += (learned - 75) * (learned - 74) / 2;
+        
+        printf_to_char(ch, "You have been reimbursed %d trains and %d practices for the loss of %s (%d%%).\n\r",
+            train_cost, prac_cost, skill_table[sn].name, learned);
+        logpf("%s has been reimbursed %d trains and %d practices for the loss of %s (%d%%).",
+            ch->name, train_cost, prac_cost, skill_table[sn].name, learned);
+        
+        ch->pcdata->learned[sn] = 0;
+        ch->train += train_cost;
+        ch->practice += prac_cost;
+    }
+}
 
 void do_raceskills( CHAR_DATA *ch, char *argument )
 {
