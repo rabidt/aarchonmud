@@ -35,6 +35,7 @@
 #include <string.h>
 #include <time.h>
 #include <malloc.h>
+#include <lua.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -138,7 +139,6 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     if (IS_IMMORTAL(ch) || ch->level >= LEVEL_IMMORTAL)
     {
         FILE *fp;
-        fclose(fpReserve);
         sprintf(strsave, "%s%s",GOD_DIR, capitalize(ch->name));
         if ((fp = fopen(strsave,"w")) == NULL)
         {
@@ -151,7 +151,6 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
 		    ch->level, get_trust(ch), ch->name, ch->pcdata->title);
 	    fclose( fp );
 	}
-	fpReserve = fopen( NULL_FILE, "r" );
     }
 #endif
     
@@ -538,13 +537,11 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	if (ch->pcdata->trained_move)
 	    bprintf(buf, "TMov %d\n", ch->pcdata->trained_move);
         
-	bprintf( buf, "Cond  %d %d %d %d %d %d\n",
+	bprintf( buf, "Cnd  %d %d %d %d\n",
             ch->pcdata->condition[0],
             ch->pcdata->condition[1],
             ch->pcdata->condition[2],
-            ch->pcdata->condition[3],
-            ch->pcdata->condition[4],
-            ch->pcdata->condition[5] );
+            ch->pcdata->condition[3] );
 
     bprintf( buf, "Stance %d\n", ch->stance );
         
@@ -1222,8 +1219,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
     ch->pcdata->condition[COND_THIRST]  = 72; 
     ch->pcdata->condition[COND_FULL]    = 72;
     ch->pcdata->condition[COND_HUNGER]  = 72;
-    ch->pcdata->condition[COND_SMOKE]    = 0;
-    ch->pcdata->condition[COND_TOLERANCE]  = 0;
     ch->pcdata->security        = 0;    /* OLC */
     ch->pcdata->clan_rank = 0;
     ch->pcdata->customduration = 0;
@@ -1656,8 +1651,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->pcdata->condition[1] = bread_number( buf );
             ch->pcdata->condition[2] = bread_number( buf );
             ch->pcdata->condition[3] = bread_number( buf );
-            ch->pcdata->condition[4] = bread_number( buf );
-            ch->pcdata->condition[5] = bread_number( buf );
+            /*ch->pcdata->condition[4] =*/ bread_number( buf );
+            /*ch->pcdata->condition[5] =*/ bread_number( buf );
             fMatch = TRUE;
             break;
         }
@@ -1931,8 +1926,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             /* gn    = group_lookup( bread_word( buf ) ); */
             if ( gn < 0 )
             {
-                fprintf(stderr,"%s",temp);
-                bug( "Bread_char: unknown group. ", 0 );
+                if ( strcmp(temp, "rom basics") )
+                    bugf("bread_char: unknown group '%s'.", temp);
             }
             else
                 gn_add(ch,gn);
@@ -2220,8 +2215,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             /* sn    = skill_lookup( bread_word( buf ) ); */
             if ( sn < 0 )
             {
-                fprintf(stderr,"%s",temp);
-                bug( "Bread_char: unknown skill. ", 0 );
+                if ( strcmp(temp, "recall") )
+                    bugf("bread_char: unknown skill '%s'.", temp);
             }
             else
                 ch->pcdata->learned[sn] = value;
@@ -2753,17 +2748,17 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'C':
+        /*
             KEY( "Cond",    obj->condition, bread_number( buf ) );
-	    /*
             KEY( "Cost",    obj->cost,      bread_number( buf ) );
 	    */
-	    if ( !str_cmp(word, "Cost") )
-	    {
-		/* ignore cost */
-		bread_number( buf );
-		fMatch = TRUE;
-		break;
-	    }
+        if ( !str_cmp(word, "Cost") || !str_cmp(word, "Cond") )
+        {
+            /* ignore cost and condition */
+            bread_number( buf );
+            fMatch = TRUE;
+            break;
+        }
         if (!str_cmp(word, "Clan") )
         {
             char *temp=bread_string(buf);
@@ -2785,7 +2780,16 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         case 'D':
             KEYS( "Description", obj->description,   bread_string( buf ) );
             KEYS( "Desc",    obj->description,   bread_string( buf ) );
+            /*
             KEY( "Dur",    obj->durability,   bread_number( buf ) );
+            */
+            if ( !str_cmp( word, "Dur" ) )
+            {
+                /* ignore durability */
+                bread_number( buf );
+                fMatch = TRUE;
+                break;
+            }
             break;
             
         case 'E':
@@ -3048,6 +3052,13 @@ void do_finger(CHAR_DATA *ch, char *argument)
     if (!load_char_obj(d, argument))
     {
         send_to_char("Character not found.\n\r", ch);
+        /* load_char_obj still loads "default" character
+           even if player not found, so need to free it */
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
         free_descriptor(d);
         return;
     }
@@ -3340,6 +3351,11 @@ void do_oldfinger(CHAR_DATA *ch, char *argument)
     if (!load_char_obj(d, argument))
     {
         send_to_char("Character not found.\n\r", ch);
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
         free_descriptor(d);
         sprintf( last_debug, "" );
         return;

@@ -253,6 +253,7 @@ const struct olc_cmd_type aedit_table[] =
    /*  {   command      function   }, */
    {   "age",      aedit_age          },
    {   "builder",  aedit_builder      }, /* s removed -- Hugin */
+   {   "notes",    aedit_notes        },
    {   "commands", show_commands      },
    {   "create",   aedit_create       },
    {   "scrap",    aedit_scrap        },
@@ -293,6 +294,7 @@ const struct olc_cmd_type redit_table[] =
    {   "commands",  show_commands     },
    {   "create",    redit_create      },
    {   "desc",      redit_desc        },
+   {   "notes",     redit_notes       },
    {   "ed",        redit_ed          },
    {   "format",    redit_format      },
    {   "name",      redit_name        },
@@ -350,6 +352,7 @@ const struct olc_cmd_type oedit_table[] =
    {   "long",       oedit_long      },
    {   "name",       oedit_name      },
    {   "short",      oedit_short     },
+   {   "notes",      oedit_notes     },
    {   "show",       oedit_show      },
    {   "v0",         oedit_value0    },
    {   "v1",         oedit_value1    },
@@ -363,7 +366,6 @@ const struct olc_cmd_type oedit_table[] =
    {   "type",       oedit_type      },  /* ROM */
    {   "material",   oedit_material  },  /* ROM */
    {   "level",      oedit_level     },  /* ROM */
-   {   "condition",  oedit_condition },  /* ROM */
    {   "combine",    oedit_combine   },
    {   "rating",     oedit_rating    },
    {   "adjust",     oedit_adjust    },
@@ -386,6 +388,7 @@ const struct olc_cmd_type medit_table[] =
    {   "commands",     show_commands   },
    {   "create",       medit_create    },
    {   "desc",         medit_desc      },
+   {   "notes",        medit_notes     },
    {   "level",        medit_level     },
    {   "long",         medit_long      },
    {   "name",         medit_name      },
@@ -531,16 +534,20 @@ void aedit( CHAR_DATA *ch, char *argument )
    /* Search Table and Dispatch Command. */
    for ( cmd = 0; aedit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, aedit_table[cmd].name ) )
-      {
-         if ( (*aedit_table[cmd].olc_fun) ( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            return;
-         }
-         else
-            return;
-      }
+       if ( !str_prefix( command, aedit_table[cmd].name ) )
+       {
+           if ( strlen(aedit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+
+           if ( (*aedit_table[cmd].olc_fun) ( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               return;
+           }
+           else
+               return;
+       }
    }
    
    /* search for area flag to be toggled */
@@ -609,18 +616,22 @@ void redit( CHAR_DATA *ch, char *argument )
    /* Search Table and Dispatch Command. */
    for ( cmd = 0; redit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, redit_table[cmd].name ) )
-      {
-         if ( (*redit_table[cmd].olc_fun) ( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            return;
-         }
-         else
-            return;
-      }
+       if ( !str_prefix( command, redit_table[cmd].name ) )
+       {
+           if ( strlen(redit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+
+           if ( (*redit_table[cmd].olc_fun) ( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               return;
+           }
+           else
+               return;
+       }
    }
-   
+
    /* Default to Standard Interpreter. */
    interpret( ch, arg );
    return;
@@ -672,16 +683,20 @@ void oedit( CHAR_DATA *ch, char *argument )
    /* Search Table and Dispatch Command. */
    for ( cmd = 0; oedit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, oedit_table[cmd].name ) )
-      {
-         if ( (*oedit_table[cmd].olc_fun) ( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            return;
-         }
-         else
-            return;
-      }
+       if ( !str_prefix( command, oedit_table[cmd].name ) )
+       {
+           if ( strlen(oedit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+
+           if ( (*oedit_table[cmd].olc_fun) ( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               return;
+           }
+           else
+               return;
+       }
    }
    
    /* Default to Standard Interpreter. */
@@ -736,16 +751,20 @@ void medit( CHAR_DATA *ch, char *argument )
    /* Search Table and Dispatch Command. */
    for ( cmd = 0; medit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, medit_table[cmd].name ) )
-      {
-         if ( (*medit_table[cmd].olc_fun) ( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            return;
-         }
-         else
-            return;
-      }
+       if ( !str_prefix( command, medit_table[cmd].name ) )
+       {
+           if ( strlen(medit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+
+           if ( (*medit_table[cmd].olc_fun) ( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               return;
+           }
+           else
+               return;
+       }
    }
    
    /* Default to Standard Interpreter. */
@@ -859,90 +878,103 @@ void do_aedit( CHAR_DATA *ch, char *argument )
 /* Entry point for editing room_index_data. */
 void do_redit( CHAR_DATA *ch, char *argument )
 {
-   AREA_DATA *pArea;
-   ROOM_INDEX_DATA *pRoom;
-   char arg1[MAX_STRING_LENGTH];
+    AREA_DATA *pArea;
+    ROOM_INDEX_DATA *pRoom;
+    char arg1[MAX_STRING_LENGTH];
 
-   if ( IS_NPC(ch) )
-      return;
+    if ( IS_NPC(ch) )
+        return;
 
-   argument = one_argument( argument, arg1 );
-   
-   pRoom = ch->in_room;
-   
-   if ( !str_cmp( arg1, "reset" ) ) /* redit reset */
-   {
-      if ( !IS_BUILDER( ch, pRoom->area ) )
-      {
-         send_to_char( "REdit: Insufficient security to reset this room.\n\r" , ch );
-         return;
-      }
-      
-      reset_room( pRoom );
-      send_to_char( "Room reset.\n\r", ch );
+    argument = one_argument( argument, arg1 );
 
-      return;
-   }
-   else
-      if ( !str_cmp( arg1, "create" ) ) /* redit create <vnum> */
-      {
-         if ( argument[0] == '\0' || atoi( argument ) == 0 )
-         {
-            send_to_char( "Syntax:  edit room create [vnum]\n\r", ch );
+    pRoom = ch->in_room;
+
+    if ( !str_cmp( arg1, "reset" ) ) /* redit reset */
+    {
+        if ( !IS_BUILDER( ch, pRoom->area ) )
+        {
+            send_to_char( "REdit: Insufficient security to reset this room.\n\r" , ch );
             return;
-         }
-         
-         if ( redit_create( ch, argument ) ) /* pEdit = new room */
-         {
-            ch->desc->editor = ED_ROOM;
+        }
+
+        reset_room( pRoom );
+        send_to_char( "Room reset.\n\r", ch );
+
+        return;
+    }
+    else
+    {
+        if ( !str_cmp( arg1, "create" ) ) /* redit create <vnum> */
+        {
+            if ( argument[0] == '\0' || atoi( argument ) == 0 )
+            {
+                send_to_char( "Syntax:  edit room create [vnum]\n\r", ch );
+                return;
+            }
+
+            if ( redit_create( ch, argument ) ) /* pEdit = new room */
+            {
+                ch->desc->editor = ED_ROOM;
+                char_from_room( ch );
+                char_to_room( ch, ch->desc->pEdit );
+                pArea = ((ROOM_INDEX_DATA *)ch->desc->pEdit)->area;
+                SET_BIT( pArea->area_flags, AREA_CHANGED );
+                clone_warning( ch, pArea );
+            }
+
+            return;
+        }
+        else if ( !str_cmp( arg1, "delete" ) ) /* redit delete <vnum> */
+        {
+            if ( argument[0] == '\0' || atoi( argument ) == 0 )
+            {
+                send_to_char( "Syntax:  redit delete [vnum]\n\r", ch );
+                return;
+            }
+
+            redit_delete( ch, argument );
+            return;
+        }
+        else if ( !IS_NULLSTR(arg1) )	/* redit <vnum> */
+        {
+            pRoom = get_room_index(atoi(arg1));
+
+            if ( !pRoom )
+            {
+                send_to_char( "REdit : Room does not exist.\n\r", ch );
+                return;
+            }
+
+            if ( !IS_BUILDER(ch, pRoom->area) )
+            {
+                send_to_char( "REdit : Insufficient security to edit room.\n\r", ch );
+                return;
+            }
+
+            if (room_is_private(pRoom))
+            {
+                send_to_char("That room is private at the moment.\n\r",ch);
+                return;
+            }
+
             char_from_room( ch );
-            char_to_room( ch, ch->desc->pEdit );
-	    pArea = ((ROOM_INDEX_DATA *)ch->desc->pEdit)->area;
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-	    clone_warning( ch, pArea );
-         }
+            char_to_room( ch, pRoom );
 
-         return;
-      }
-      else if ( !IS_NULLSTR(arg1) )	/* redit <vnum> */
-      {
-         pRoom = get_room_index(atoi(arg1));
-         
-         if ( !pRoom )
-         {
-            send_to_char( "REdit : Room does not exist.\n\r", ch );
-            return;
-         }
-         
-         if ( !IS_BUILDER(ch, pRoom->area) )
-         {
-            send_to_char( "REdit : Insufficient security to edit room.\n\r", ch );
-            return;
-         }
-         
-         if (room_is_private(pRoom))
-         {
-             send_to_char("That room is private at the moment.\n\r",ch);
-             return;
-         }
+        }
+    }
 
-         char_from_room( ch );
-         char_to_room( ch, pRoom );
-         
-      }
-      
-      if ( !IS_BUILDER(ch, pRoom->area) )
-      {
-         send_to_char( "REdit: Insufficient security to edit rooms.\n\r" , ch );
-         return;
-      }
+    if ( !IS_BUILDER(ch, pRoom->area) )
+    {
+        send_to_char( "REdit: Insufficient security to edit rooms.\n\r" , ch );
+        return;
+    }
 
-      clone_warning( ch, pRoom->area );
+    clone_warning( ch, pRoom->area );
 
-      ch->desc->pEdit	= (void *) pRoom;
-      ch->desc->editor	= ED_ROOM;
-      
-      return;
+    ch->desc->pEdit	= (void *) pRoom;
+    ch->desc->editor	= ED_ROOM;
+
+    return;
 }
 
 
@@ -988,45 +1020,57 @@ void do_oedit( CHAR_DATA *ch, char *argument )
    }
    else
    {
-      if ( !str_cmp( arg1, "create" ) )
-      {
-         value = atoi( argument );
-         if ( argument[0] == '\0' || value == 0 )
-         {
-            send_to_char( "Syntax:  edit object create [vnum]\n\r", ch );
-            return;
-         }
-         
-         pArea = get_vnum_area( value );
-         
-         if ( !pArea )
-         {
-            send_to_char( "OEdit:  That vnum is not assigned an area.\n\r", ch );
-            return;
-         }
-         
-         if ( !IS_BUILDER( ch, pArea ) )
-         {
-            send_to_char( "OEdit: Insufficient security to edit object.\n\r" , ch );
-            return;
-         }
-         
-	 if ( ch->in_room->area != pArea )
-	 {
-	     send_to_char( "OEdit: Object lies outside current area.\n\r", ch );
-	     return;
-	 }
+       value = atoi( argument );
+       if ( argument[0] == '\0' || value == 0 )
+       {
+           send_to_char( "Syntax:  oedit create [vnum]\n\r", ch );
+           send_to_char( "Syntax:  oedit delete [vnum]\n\r", ch );
+           return;
+       }
 
-         if ( oedit_create( ch, argument ) )
-         {
-            SET_BIT( pArea->area_flags, AREA_CHANGED );
-            ch->desc->editor = ED_OBJECT;
-	    clone_warning( ch, pArea );
-         }
-         return;
-      }
+       pArea = get_vnum_area( value );
+
+       if ( !pArea )
+       {
+           send_to_char( "OEdit:  That vnum is not assigned an area.\n\r", ch );
+           return;
+       }
+
+       if ( !IS_BUILDER( ch, pArea ) )
+       {
+           send_to_char( "OEdit: Insufficient security to edit object.\n\r" , ch );
+           return;
+       }
+
+       if ( ch->in_room->area != pArea )
+       {
+           send_to_char( "OEdit: Object lies outside current area.\n\r", ch );
+           return;
+       }
+
+       if ( !str_cmp( arg1, "create") )
+       {
+           if ( oedit_create( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               ch->desc->editor = ED_OBJECT;
+               clone_warning( ch, pArea );
+           }
+           return;
+       }
+
+       if ( !str_cmp( arg1, "delete" ) )
+       {
+           if ( oedit_delete( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               clone_warning( ch, pArea );
+           }
+           return;
+       }
+
    }
-   
+
    send_to_char( "OEdit:  There is no default object to edit.\n\r", ch );
    return;
 }
@@ -1074,43 +1118,54 @@ void do_medit( CHAR_DATA *ch, char *argument )
    }
    else
    {
-      if ( !str_cmp( arg1, "create" ) )
-      {
-         value = atoi( argument );
-         if ( arg1[0] == '\0' || value == 0 )
-         {
-            send_to_char( "Syntax:  edit mobile create [vnum]\n\r", ch );
-            return;
-         }
-         
-         pArea = get_vnum_area( value );
-         
-         if ( !pArea )
-         {
-            send_to_char( "MEdit:  That vnum is not assigned an area.\n\r", ch );
-            return;
-         }
-         
-         if ( !IS_BUILDER( ch, pArea ) )
-         {
-            send_to_char( "MEdit: Insufficient security to edit mob.\n\r" , ch );
-            return;
-         }
-         
-	 if ( ch->in_room->area != pArea )
-	 {
-	     send_to_char( "MEdit: Mob lies outside current area.\n\r", ch );
-	     return;
-	 }
+       value = atoi( argument );
+       if ( arg1[0] == '\0' || value == 0 )
+       {
+           send_to_char( "Syntax:  medit create [vnum]\n\r", ch );
+           send_to_char( "Syntax:  medit delete [vnum]\n\r", ch );
+           return;
+       }
 
-         if ( medit_create( ch, argument ) )
-         {
-	     clone_warning( ch, pArea );
-	     SET_BIT( pArea->area_flags, AREA_CHANGED );
-	     ch->desc->editor = ED_MOBILE;
-         }
-         return;
-      }
+       pArea = get_vnum_area( value );
+
+       if ( !pArea )
+       {
+           send_to_char( "MEdit:  That vnum is not assigned an area.\n\r", ch );
+           return;
+       }
+
+       if ( !IS_BUILDER( ch, pArea ) )
+       {
+           send_to_char( "MEdit: Insufficient security to edit mob.\n\r" , ch );
+           return;
+       }
+
+       if ( ch->in_room->area != pArea )
+       {
+           send_to_char( "MEdit: Mob lies outside current area.\n\r", ch );
+           return;
+       }
+
+       if ( !str_cmp( arg1, "create") )
+       {
+           if ( medit_create( ch, argument ) )
+           {
+               clone_warning( ch, pArea );
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               ch->desc->editor = ED_MOBILE;
+           }
+           return;
+       }
+
+       if ( !str_cmp( arg1, "delete") )
+       {
+           if ( medit_delete( ch, argument ) )
+           {
+               SET_BIT( pArea->area_flags, AREA_CHANGED );
+               clone_warning( ch, pArea );
+           }
+           return;
+       }
    }
    
    send_to_char( "MEdit:  There is no default mobile to edit.\n\r", ch );
@@ -1725,11 +1780,14 @@ void hedit( CHAR_DATA *ch, char *argument)
    
    for ( cmd = 0; hedit_table[cmd].name != NULL; cmd++ )
    {
-      if ( !str_prefix( command, hedit_table[cmd].name ) )
-      {
-         (*hedit_table[cmd].olc_fun) ( ch, argument );
-         return;
-      }
+       if ( !str_prefix( command, hedit_table[cmd].name ) )
+       {
+           if ( strlen(hedit_table[cmd].name) >= 3
+                   && strlen(command) < 3 )
+               break;
+           (*hedit_table[cmd].olc_fun) ( ch, argument );
+           return;
+       }
    }
    
    interpret( ch, arg );

@@ -47,10 +47,15 @@ end
 -- end luareset section
 
 -- luaquery section
+local query_results={}
+
 local function luaquery_usage( ch )
     pagetochar( ch,
 [[
-luaquery <type> <selection> [filter] [sort] [width] [limit]
+{Cluaquery <type> <selection> [filter] [sort] [width] [limit]
+    {xExecute a query and show first page of results.
+{Cluaquery next
+    {xShow the next page of results.
 
 Types:
     area    - AREAs (area_list)
@@ -60,6 +65,7 @@ Types:
     mobs    - CHs (all mobs from char_list)
     room    - ROOMs
     reset   - RESETs (includes 'area' and 'room')
+    help    - HELPs
 
     mprog   - PROGs (all mprogs, includes 'area')
     oprog   - PROGS (all oprogs, includes 'area')
@@ -272,7 +278,7 @@ local lqtbl={
             return trigs
         end,
         default_sel="mobproto.vnum|mobproto.shortdescr|trigtype|trigphrase|prog.vnum"
-   },
+    },
     otrig={
         getfun=function()
             local trigs={}
@@ -288,7 +294,7 @@ local lqtbl={
             return trigs
         end,
         default_sel="objproto.vnum|objproto.shortdescr|trigtype|trigphrase|prog.vnum"
-   },
+    },
    
     atrig={
         getfun=function()
@@ -303,7 +309,7 @@ local lqtbl={
             return trigs
         end,
         default_sel="area.name|trigtype|trigphrase|prog.vnum"
-   },
+    },
     
     rtrig={
         getfun=function()
@@ -320,17 +326,61 @@ local lqtbl={
             return trigs
         end,
         default_sel="room.vnum|room.name|trigtype|trigphrase|prog.vnum"
-   }
+    },
+
+    help={
+        getfun=gethelplist,
+        default_sel="level|keywords"
+    }
+
 
 }
 
+local function show_next_results( ch )
+    if not(query_results[ch.name]) then return end
+
+    local res=query_results[ch.name]
+
+    local ind=res.index
+    local scroll=(ch.scroll == 0 ) and 100 or ch.scroll
+    local toind=math.min(ind+scroll-4, res.total ) -- -2 is normal, -3 for extra line at bottom, -4 for query at top
+
+    local out={}
+    table.insert(out, "Query: "..res.query)
+    table.insert(out, res.header)
+    for i=ind,toind do
+        table.insert(out, res.results[i] )
+    end
+
+    table.insert( out, ("Results %d through %d (of %d)."):format( ind, toind, res.total) )
+
+    if toind==res.total then
+        query_results[ch.name]=nil
+    else
+        res.index=toind+1
+    end
+
+    pagetochar( ch, table.concat( out, "\n\r").."\n\r")
+end
+
+local luaq_nav=
+{
+    ["next"]=function( ch )
+        show_next_results( ch )
+    end
+}
+
 function do_luaquery( ch, argument)
-    do -- actual func wrapped in do/end so scope is destroyed before gc called
     -- arg checking stuff
     args=arguments(argument, true)
     
     if not(args[1]) then
         luaquery_usage(ch)
+        return
+    end
+
+    if luaq_nav[args[1]] then
+        luaq_nav[args[1]]( ch )
         return
     end
 
@@ -509,8 +559,7 @@ function do_luaquery( ch, argument)
         table.insert(hdrstr,
                 util.format_color_string( v, widths[v]+1))
     end
-    table.insert(printing, 
-            "|"..table.concat(hdrstr,"|").."|")
+    local hdr="|"..table.concat(hdrstr,"|").."|"
 
     local iter
     if not(limitarg) then
@@ -553,18 +602,18 @@ function do_luaquery( ch, argument)
                 "|"..ln.."|")
     end
 
-  
-    local final=table.concat(printing,"\n\r")..
-            "\n\r\n\r"..
-            "Total results: "..(#output).."\n\r"
-    if limitarg then
-        final=final..string.format("(%s %d results shown)\n\r", 
-                (limitarg<0) and "Last" or "First",
-                math.abs(limitarg) )
-    end
-    pagetochar(ch, final)
-    end -- actual func wrapped in do/end so scope is destroyed before gc called
-    lua_arcgc() -- force a garbage collection 
+    -- stick in in query_results table for browsing
+    query_results[ch.name]=
+    {
+        query=argument,
+        index=1,
+        total=#printing,
+        header=hdr,
+        results=printing
+    }
+
+    show_next_results( ch )
+
 end
 -- end luaquery section
 
@@ -1037,3 +1086,828 @@ function do_alist( ch, argument )
 
 end
 --end alist section
+
+--mudconfig section
+local function mudconfig_usage(ch)
+    sendtochar(ch,
+[[
+Syntax:
+   mudconfig                  -- get the current value for all options
+   mudconfig <option>         -- get the current value for given option
+   mudconfig <option> <value> -- set a new value for the given option
+]])
+end
+function do_mudconfig( ch, argument )
+    local args=arguments(argument)
+    local nargs=#args
+    -- setting
+    if nargs==2 then
+        -- lua won't parse/convert booleans for us
+        if args[2]=="true" or args[2]=="TRUE" then
+            args[2]=true
+        elseif args[2]=="false" or args[2]=="FALSE" then
+            args[2]=false
+        end
+
+        mudconfig(unpack(args))
+        -- show result
+        do_mudconfig( ch, args[1])
+        sendtochar(ch, "Done.\n\r")
+        return
+    end
+
+    if nargs==1 then
+        local rtn=mudconfig(args[1])
+        sendtochar(ch, "%-20s %s\n\r", args[1], tostring(rtn))
+        return
+    end
+
+    if nargs==0 then
+        local sorted={}
+        for k,v in pairs(mudconfig()) do
+            table.insert(sorted, { key=k, value=v } )
+        end
+
+        table.sort( sorted, function(a,b) return a.key<b.key end )
+
+        for _,v in ipairs(sorted) do
+            sendtochar(ch, "%-20s %s\n\r", v.key, tostring(v.value))
+        end
+        return
+    end
+
+    mudconfig_usage(ch)
+    return
+end
+--end mudconfig section
+
+-- perfmon section
+local lastpulse
+local pulsetbl={}
+local pulseind=1
+local sectbl={}
+local secind=1
+local mintbl={}
+local minind=1
+local hourtbl={}
+local hourind=1
+function log_perf( val )
+    lastpulse=val
+    pulsetbl[pulseind]=val
+
+    if pulseind<4 then 
+        pulseind=pulseind+1
+        return 
+    else
+        pulseind=1
+    end
+
+    -- 1 second complete, add to table
+    local total=0
+    for i=1,4 do
+        total=total+pulsetbl[i]
+    end
+
+    sectbl[secind]=total/4
+
+    if secind<60 then
+        secind=secind+1
+        return
+    else
+        secind=1
+    end
+
+    -- 1 minute complete, add to table
+    total=0
+    for i=1,60 do
+        total=total+sectbl[i]
+    end
+
+    mintbl[minind]=total/60
+
+    if minind<60 then
+        minind=minind+1
+        return
+    else
+        minind=1
+    end
+
+    -- 1 hour complete, add to table
+    total=0
+    for i=1,60 do
+        total=total+mintbl[i]
+    end
+
+    hourtbl[hourind]=total/60
+
+    if hourind<24 then
+        hourind=hourind+1
+        return
+    else
+        hourind=1
+    end
+        
+end
+
+function do_perfmon( ch, argument )
+    local function avg( tbl )
+        local cnt=0
+        local ttl=0
+        for k,v in pairs(tbl) do
+            cnt=cnt+1
+            ttl=ttl+v
+        end
+
+        return ttl/cnt
+    end
+
+    pagetochar( ch,
+([[
+Averages
+  %3d Pulse:    %f
+  %3d Pulses:   %f
+  %3d Seconds:  %f
+  %3d Minutes:  %f
+  %3d Hours:    %f
+]]):format( 1, lastpulse,
+            #pulsetbl, avg(pulsetbl),
+            #sectbl, avg(sectbl),
+            #mintbl, avg(mintbl),
+            #hourtbl, avg(hourtbl) ) )
+
+end
+
+--end perfmon section
+
+-- findreset section
+local function find_obj_noreset( ch, arg )
+    local ingame= ( arg == "ingame" )
+    -- build reset lookup
+    local lookup={}
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,reset in pairs(room.resets) do
+                local cmd=reset.command
+                if cmd=="O" or
+                   cmd=="P" or
+                   cmd=="G" or
+                   cmd=="E" then 
+                    lookup[reset.arg1]=true
+                end
+            end
+        end
+    end
+
+    -- now do the check
+    local result={}
+    for _,area in pairs(getarealist()) do
+        for _,op in pairs(area.objprotos) do
+            if not(lookup[op.vnum]) then
+                if not(ingame) and true or op.ingame then
+                table.insert( result,
+                        ("%s{x [%6d] %s{x"):format(
+                                util.format_color_string( area.name, 15 ),
+                                op.vnum,
+                                op.shortdescr) )
+                end
+            end
+        end
+    end
+
+    local out={}
+    table.insert(out, "Objs with no resets")
+    for i,v in ipairs(result) do
+        table.insert( out, ("%3d. "):format(i)..v )
+    end
+    pagetochar( ch, table.concat( out, "\n\r" ).."\n\r" )
+end
+
+local function find_mob_noreset( ch, arg )
+    local ingame= ( arg == "ingame" )
+    -- build reset lookup
+    local lookup={}
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,reset in pairs(room.resets) do
+                if reset.command=="M" then
+                    lookup[reset.arg1]=true
+                end
+            end
+        end
+    end
+
+    -- now do the check
+    local result={}
+    for _,area in pairs(getarealist()) do
+        for _,mp in pairs(area.mobprotos) do
+            if not(lookup[mp.vnum]) then
+                if not(ingame) and true or mp.ingame then
+                table.insert( result,
+                        ("%s{x [%6d] %s{x"):format(
+                                util.format_color_string( area.name, 15 ),
+                                mp.vnum,
+                                mp.shortdescr) )
+                end
+            end
+        end
+    end
+
+    local out={}
+    table.insert(out, "Mobs with no resets")
+    for i,v in ipairs(result) do
+        table.insert( out, ("%3d. "):format(i)..v )
+    end
+    pagetochar( ch, table.concat( out, "\n\r" ).."\n\r" )
+end
+
+local function find_mob_reset( ch, vnum )
+    local mp=getmobproto( vnum )
+    if not(mp) then
+        sendtochar( ch, "Invalid mob vnum "..vnum..".\n\r")
+        return
+    end
+
+    vnum=tonumber(vnum)
+
+    local result={}
+
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,reset in pairs(room.resets) do
+                if reset.command=="M" then
+                    if reset.arg1==vnum then
+                        table.insert( result,
+                                ("[%6d] %s"):format(room.vnum, room.name) )
+                    end
+                end
+            end
+        end
+    end
+
+    if #result<1 then
+        sendtochar(ch, "No reset found.\n\r")
+        return
+    end
+  
+    local out={}
+    table.insert( out, "Resets for mob '"..mp.shortdescr.."' ("..vnum..")")
+    for i,v in ipairs(result) do
+        table.insert( out, ("%3d. "):format(i)..v )
+    end 
+    pagetochar( ch, table.concat( out, "\n\r" ).."\n\r" )   
+end
+
+local function find_obj_reset( ch, vnum )
+    local op=getobjproto( vnum )
+    if not(op) then
+        sendtochar( ch, "Invalid obj vnum "..vnum..".\n\r")
+        return
+    end
+
+    vnum=tonumber(vnum)
+
+    local result={}
+
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,reset in pairs(room.resets) do
+                local cmd=reset.command
+                if (cmd=='O' or
+                   cmd=='P' or
+                   cmd=='G' or
+                   cmd=='E') and
+                   reset.arg1==vnum 
+                   then
+                   table.insert( result,
+                           ("[%6d] %s"):format(room.vnum, room.name) )
+                end
+            end
+        end
+    end
+
+    if #result<1 then
+        sendtochar(ch, "No reset found.\n\r")
+        return
+    end
+
+    local out={}
+    table.insert( out, "Resets for obj '"..op.shortdescr.."' ("..vnum..")")
+    for i,v in ipairs(result) do
+        table.insert( out, ("%3d. "):format(i)..v )
+    end
+    pagetochar( ch, table.concat( out, "\n\r" ).."\n\r" )
+end
+
+local function findreset_usage( ch )
+    pagetochar( ch,
+[[
+Find resets for given mob or object:
+    findreset mob [vnum]
+    findreset obj [vnum]
+
+Find mobs or objects with no resets:
+    findreset mob noreset <ingame>
+    findreset obj noreset <ingame>
+]])
+
+end
+
+function do_findreset( ch, argument )
+    local args=arguments(argument)
+
+    if args[1] == "mob" then
+        if args[2] == "noreset" then
+            find_mob_noreset( ch, args[3] )
+        else
+            find_mob_reset( ch, args[2] )
+        end
+        return
+    elseif args[1] == "obj" then
+        if args[2] == "noreset" then
+            find_obj_noreset( ch, args[3] )
+        else
+            find_obj_reset( ch, args[2] )
+        end
+        return
+    end
+
+    findreset_usage( ch )
+end
+-- end findreset section
+
+-- diagnostic section
+local function CH_diag( ch, args )
+    local chs={}
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="CH" then
+            chs[v]=true
+        end
+    end
+
+    for k,v in pairs(reg) do
+        if tostring(v)=="DESCRIPTOR" then
+            if v.character then
+                chs[v.character]=nil
+            end
+        end
+    end
+
+    for k,v in pairs(getcharlist()) do
+        chs[v]=nil
+    end
+
+    sendtochar( ch, "Leaked CHAR_DATAs:\n\r")
+    local cnt=0
+    for k,v in pairs(chs) do
+        sendtochar( ch, k.name.."\n\r")
+        cnt=cnt+1
+    end
+
+    sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
+
+end
+
+local function DESCRIPTOR_diag( ch, args )
+    local ds={}
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="DESCRIPTOR" then
+            ds[v]=true
+        end
+    end
+
+    for k,v in pairs(getdescriptorlist()) do
+        ds[v]=nil
+    end
+
+    sendtochar( ch, "Leaked DESCRIPTORs:\n\r")
+    local cnt=0
+    for k,v in pairs(ds) do
+        if v.character then
+            sendtochar( ch, v.character.name.."\n\r")
+        else
+            sendtochar( ch, "NULL character\n\r")
+        end
+        cnt=cnt+1
+    end
+
+    sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
+end
+
+local function rexit_diag_here( ch, args )
+    local out={}
+    local here=ch.room
+
+    table.insert( out, "Room exits linking here: \n\r" )
+    local cnt=0
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            for _,exit in pairs(room.exits) do
+                if room[exit].toroom==here then
+                    cnt=cnt+1
+                    table.insert( out, 
+                      ("%3d. %s{x [%6d] %s{x %s\n\r"):format(
+                        cnt,
+                        util.format_color_string( area.name, 20 ),
+                        room.vnum,
+                        util.format_color_string( room.name, 20 ),
+                        exit)
+                    )
+                end
+            end
+        end
+    end
+
+    table.insert( out, "\n\r")
+
+    table.insert( out, "Portals linking here: \n\r" )
+    cnt=0
+    for _,area in pairs(getarealist()) do
+        for _,op in pairs(area.objprotos) do
+            if op.otype=="portal" then
+                if op.toroom==here.vnum then
+                    cnt=cnt+1
+                    table.insert( out,
+                      ("%3d. %s{x [%6d] %s{x\n\r"):format(
+                        cnt,
+                        util.format_color_string( area.name, 20 ),
+                        op.vnum,
+                        op.shortdescr)
+                    )
+                end
+            end
+        end
+    end
+    
+    pagetochar( ch, table.concat( out ).."\n\r" )
+end
+
+local function rexit_diag( ch, args )
+    local ingame=args[1]=="ingame"
+    local unlinked={}
+    local rooms={}
+    local portals={}
+
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="ROOM" then
+            unlinked[v]=true
+            table.insert(rooms, v )
+        end
+    end
+
+    for _,room in pairs(rooms) do
+        for _,exit in pairs(room.exits) do
+            if room[exit].toroom then
+                unlinked[room[exit].toroom]=nil
+            end
+        end
+    end
+
+    for k,v in pairs(reg) do
+        if tostring(v)=="OBJPROTO" then
+            if v.otype=="portal" then
+                table.insert(portals, v)
+            end
+        end
+    end
+
+    for _,portal in pairs(portals) do
+        local r=getroom(portal.toroom)
+        if r then
+            unlinked[r]=nil
+        end
+    end
+
+    local cnt=0
+    local out={}
+    local sorted={}
+    for k,v in pairs(unlinked) do
+        if (not(ingame)  or k.ingame) then
+            table.insert(sorted, k)
+        end
+    end
+    table.sort(sorted, function(a,b) return a.area.name<b.area.name end )
+    for k,v in pairs(sorted) do
+        cnt=cnt+1
+        table.insert( out, ("%3d. [%6d] %s{x %s{x\n\r"):format( 
+                cnt, 
+                v.vnum, 
+                util.format_color_string(v.area.name,20), 
+                v.name ) )
+    end
+    sendtochar( ch, cnt.."\n\r")
+    pagetochar( ch, table.concat(out).."\n\r" )
+end
+
+local function diagnostic_usage( ch )
+    pagetochar( ch, [[
+diagnostic ch   -- Run CHAR_DATA diagnostic
+diagnostic desc -- Run DESCRIPTOR_DATA diagnostic
+diagnostic rexit -- List rooms that have no link to them from room or portal
+                    Optional arg 'ingame' to show only ingame rooms.
+diagnostic rexit here -- List all exits leading to current room.
+]])
+end
+function do_diagnostic( ch, argument )
+    local args=arguments(argument)
+    local arg1=args[1]
+    table.remove(args,1)
+    if arg1=="ch" then
+        CH_diag( ch, args )
+    elseif arg1=="desc" then
+        DESCRIPTOR_diag( ch, args )
+    elseif arg1=="rexit" then
+        if args[1]=="here" then
+            rexit_diag_here( ch, args )
+        else
+            rexit_diag( ch, args )
+        end
+    else
+        diagnostic_usage( ch )
+    end
+end
+-- end diagnostic section
+
+-- path section
+local pathshort={
+    north="n",
+    south="s",
+    east="e",
+    west="w",
+    up="u",
+    down="d",
+    northeast="ne",
+    southeast="se",
+    southwest="sw",
+    northwest="nw"
+}
+local function pretty_path( path )
+    local p={}
+    local ind=0
+    local cnt
+    local last
+    for i,v in pairs(path) do
+        if v==last then
+            p[ind].count=p[ind].count+1
+        else
+            ind=ind+1
+            p[ind]={count=1, dir=pathshort[v] and pathshort[v] or "\""..v.."\""}
+            last=v
+        end
+    end
+
+    local rtn={}
+    for i,v in ipairs(p) do
+        table.insert(rtn, ( (v.count>1) and v.count or "" )..v.dir)
+    end
+
+    return rtn
+end
+
+local function path_usage( ch )
+    sendtochar( ch, [[
+Print the path between two rooms.
+
+Syntax:
+  path <fromvnum> <tovnum>
+  path <tovnum> -- Uses current room as the 'from' room.
+
+Examples:
+
+  path 10204 10256
+  path 1234
+]] )
+end
+
+function do_path( ch, argument )
+    local args=arguments(argument)
+    
+    local fromroom
+    local toroom
+
+    if #args==1 then
+        fromroom=ch.room
+        toroom=getroom(tonumber(args[1]))
+    elseif #args==2 then
+        fromroom=getroom(tonumber(args[1]))
+        toroom=getroom(tonumber(args[2]))
+    else
+        path_usage( ch )
+        return
+    end
+    assert(fromroom, "Invalid start room.")
+    assert(toroom, "Invalid target room.")
+
+
+    local path=findpath( fromroom, toroom )
+
+    if not(path) then
+        sendtochar( ch, ("No path from %d to %d\n\r"):format( 
+                    fromroom.vnum, toroom.vnum) )
+        return
+    end
+
+    pagetochar( ch, ("Path from %d to %d:\n\r"):format(
+                fromroom.vnum, toroom.vnum)
+                ..table.concat(pretty_path(path), " " ).."\n\r" )
+
+end
+
+-- luahelp section
+local luatypes=getluatype() -- list of type names
+local function luahelp_usage( ch )
+    local out={}
+    table.insert( out, "SECTIONS: \n\r\n\r" )
+    table.insert( out, "global\n\r" )
+    for _,v in ipairs(luatypes) do
+        table.insert( out, v.."\n\r" )
+    end
+
+    table.insert( out, [[
+Syntax: 
+    luahelp <section>
+    luahelp <section> <get|set|meth>
+
+Examples:
+    luahelp ch
+    luahelp global
+    luahelp objproto meth
+]])
+
+    pagetochar( ch, table.concat(out) )
+end
+
+local rowtoggle
+local function nextrowcolor()
+    rowtoggle=not(rowtoggle)
+    return rowtoggle and 'w' or 'D'
+end
+
+local function luahelp_dump( ch, args )
+    if args[1]=="glob" or args[1]=="global" then
+        local out={}
+        local g=getglobals()
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Function^Security^\n\r")
+        for i,v in ipairs(g) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %d |\n\r",
+                        v.lib and (v.lib..":"..v.name) or v.name,
+                        v.lib and (v.lib.."."..v.name) or v.name,
+                        v.security)
+            )
+        end
+
+        table.insert( out, "</sortable>\n\r" )
+
+        pagetochar(ch, table.concat(out) )
+        return
+    else
+        local t=getluatype(args[1])
+        if not(t) then
+            sendtochar( ch, "No such type.\n\r")
+            return
+        end
+
+        local props={}
+        for k,v in pairs(t.get) do
+            props[v.field]=props[v.field] or {}
+            props[v.field].get=v.security
+        end
+        for k,v in pairs(t.set) do
+            props[v.field]=props[v.field] or {}
+            props[v.field].set=v.security
+        end
+        local out={}
+
+        table.insert( out, "Properties\n\r")
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Field^Get^Set^\n\r")
+        for k,v in pairs(props) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %s | %s |\n\r",
+                        k,
+                        k,
+                        v.get and v.get or "",
+                        v.set and v.set or "")
+            )
+        end
+
+        table.insert( out, "</sortable>\n\r")
+
+        table.insert( out, "Methods\n\r")
+        table.insert( out, "<sortable 1>\n\r")
+        table.insert( out, "^Method^Security^\n\r")
+        for k,v in pairs(t.method) do
+            table.insert( out, string.format(
+                        "| [[.%s|%s]] | %d |\n\r",
+                        v.field,
+                        v.field,
+                        v.security)
+            )
+        end
+        table.insert( out, "</sortable>\n\r")
+
+        pagetochar( ch, table.concat( out ) )
+
+    end
+end
+
+function do_luahelp( ch, argument )
+    if argument=="" then
+        luahelp_usage( ch )
+        return
+    end
+
+    local args=arguments(argument)
+
+    if #args<1 then
+        luahelp_usage( ch )
+        return
+    end
+
+    if args[1] == "dump" then
+        table.remove(args, 1 )
+        luahelp_dump( ch, args )
+        return
+    end
+
+    if args[1] == "global" or args[1] == "glob" then
+        local out={}
+        
+        table.insert(out, "GLOBAL functions\n\r" )
+        local g=getglobals()
+        for i,v in ipairs(g) do
+            table.insert( out, string.format(
+                    "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                    nextrowcolor(),
+                    v.security,
+                    v.lib and (v.lib.."."..v.name) or v.name,
+                    "global",
+                    v.lib and (v.lib..":"..v.name) or v.name)
+            )
+        end
+
+        pagetochar( ch, table.concat(out) ) 
+
+        return
+    else
+        local out={}
+        local t=getluatype(args[1])
+        if not(t) then
+            sendtochar( ch, "No such section: "..args[1].."\n\r")
+            return
+        end
+        
+        local subsect=args[2]
+
+        if not(subsect) or subsect=="get" then
+            table.insert( out, "\n\rGET properties\n\r")
+            for i,v in ipairs(t.get) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end            
+
+        if not(subsect) or subsect=="set" then
+            table.insert( out, "\n\rSET properties\n\r")
+            for i,v in ipairs(t.set) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end
+
+        if not(subsect) or subsect=="meth" then
+            table.insert( out, "\n\rMETHODS\n\r")
+            for i,v in ipairs(t.method) do
+                table.insert( out, string.format(
+                            "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                            nextrowcolor(),
+                            v.security,
+                            v.field,
+                            args[1],
+                            v.field)
+                )
+            end
+        end
+ 
+        pagetochar( ch, table.concat(out) )                
+    
+    end
+end
+
+-- end luahelp section

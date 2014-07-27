@@ -43,6 +43,7 @@ void auto_assign_stats args((CHAR_DATA *ch));
 bool parse_roll_stats args((CHAR_DATA *ch,char *argument));
 void do_stats args((CHAR_DATA *ch, char *argument));
 void do_etls args((CHAR_DATA *ch, char *argument));
+void skill_reimburse( CHAR_DATA *ch );
 
 bool	get_name			args( ( DESCRIPTOR_DATA *d, char *argument ) );
 bool	get_old_password		args( ( DESCRIPTOR_DATA *d, char *argument ) );
@@ -463,6 +464,13 @@ bool get_name ( DESCRIPTOR_DATA *d, char *argument )
     if ( !check_parse_name( argument, (bool)(!fOld) ) )
     {
         write_to_buffer( d, "Illegal name, try another.\n\rName: ", 0 );
+        /* load_char_obj can load "default" char, so we should free
+           it if so */
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
         return FALSE;
     }
     
@@ -1289,9 +1297,7 @@ void take_rom_basics(DESCRIPTOR_DATA *d)
 {
 	CHAR_DATA *ch=d->character;
 
-	group_add(ch,"rom basics",FALSE);
 	group_add(ch,class_table[ch->class].base_group,FALSE);
-	ch->pcdata->learned[gsn_recall] = 50;
 	
 	return;
 }	
@@ -1821,8 +1827,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	}
 
 	write_to_buffer( d, "\n\rWelcome to Aarchon!  May your time here be pleasantly wasted.\n\r",	0 );
-	ch->next    = char_list;
-	char_list   = ch;
+    char_list_insert(ch);
 	d->connected    = CON_PLAYING;
       /* Removed by Vodur, messes with box saving
           no downside to keeping it on the list*/
@@ -1868,6 +1873,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    SET_BIT(ch->act, PLR_AUTOLOOT);
 	    SET_BIT(ch->act, PLR_AUTOGOLD);
 	    SET_BIT(ch->act, PLR_AUTOSPLIT);
+            SET_BIT(ch->act, PLR_AUTOASSIST);
 
 	    sprintf( buf, "the %s",
 		     title_table [ch->class] [(ch->level+4-(ch->level+4)%5)/5]);
@@ -1988,14 +1994,9 @@ void enter_game ( DESCRIPTOR_DATA *d )
     morph_update( ch );
     check_spouse( ch );
 
-    /* fix for bug that caused players to lose a group */
-    {
-	int sn = skill_lookup( "sivas sacrifice" );
-	int gn = group_lookup( "sacred invocations" );
-	if ( sn > 0 && gn > 0 && ch->pcdata->learned[sn] > 0 )
-	    ch->pcdata->group_known[gn] = TRUE;
-    }
-
+    // reimburse players for lost skills
+    skill_reimburse(ch);
+    
     if ( is_clan(ch) )
         do_cmotd(ch, "");
 

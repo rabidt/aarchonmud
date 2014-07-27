@@ -44,6 +44,12 @@ extern int	maxSocial; /* Max number of socials */
 /* Magic number for memory allocation */
 #define MAGIC_NUM 52571214
 
+/* version numbers for downward compatibility */
+#define VER_EXIT_FLAGS 1
+#define VER_NEW_PROG_FORMAT 2
+#define VER_NEW_MOB_LDESC 3
+#define VER_UPDATE_OBJ_FMT 4 /* remove durability and condition */
+
 /* func from db.c */
 void assign_area_vnum( int vnum );                    /* OLC */
 void index_mobile( MOB_INDEX_DATA *pMobIndex );

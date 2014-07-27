@@ -226,6 +226,13 @@ void check_spouse( CHAR_DATA *ch )
 	    send_to_char( "Your spouse has vanished. You're single again.\n\r", ch );
 	    free_string( ch->pcdata->spouse );
 	    ch->pcdata->spouse = NULL;
+         /* load_char_obj still loads "default" character
+           even if player not found, so need to free it */
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
 	    free_descriptor(d);
 	    return;
 	}

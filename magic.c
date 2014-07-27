@@ -61,6 +61,7 @@ void    dam_message     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
             int dt, bool immune ) );
 bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 RELIGION_DATA *get_religion args( ( CHAR_DATA *ch ) );
+char* wear_location_info( int pos );
 
 /*
  * Lookup a skill by name.
@@ -149,8 +150,9 @@ int find_spell( CHAR_DATA *ch, const char *name )
         {
             if (skill_table[sn].name == NULL)
                 break;
-            if (LOWER(name[0]) == LOWER(skill_table[sn].name[0])
-                    &&  !str_prefix(name,skill_table[sn].name))
+            if ( LOWER(name[0]) == LOWER(skill_table[sn].name[0])
+                 && !str_prefix(name,skill_table[sn].name)
+                 && skill_table[sn].spell_fun != spell_null )
             {
                 if ( found == -1)
                     found = sn;
@@ -239,8 +241,7 @@ void say_spell( CHAR_DATA *ch, int sn )
     for ( rch = ch->in_room->people; rch; rch = rch->next_in_room )
     {
         if ( rch != ch )
-            act((!IS_NPC(rch) && ch->class==rch->class) ? buf : buf2,
-                    ch, NULL, rch, TO_VICT );
+            act((!IS_NPC(ch) && ch->class==rch->class) ? buf : buf2, ch, NULL, rch, TO_VICT );
     }
 
     return;
@@ -308,6 +309,7 @@ int get_save(CHAR_DATA *ch, bool physical)
 {
     int saves = ch->saving_throw;
     int save_factor = 100;
+    int level = modified_level(ch);
     
     // level bonus
     if ( IS_NPC(ch) )
@@ -324,11 +326,11 @@ int get_save(CHAR_DATA *ch, bool physical)
         // tweak so physically oriented classes get better physical and worse magic saves
         save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
     }
-    saves -= (ch->level + 10) * save_factor/100;
+    saves -= (level + 10) * save_factor/100;
     
     // WIS or VIT bonus
     int stat = physical ? get_curr_stat(ch, STAT_CON) : get_curr_stat(ch, STAT_WIS);
-    saves -= (ch->level + 10) * stat / 500;
+    saves -= (level + 10) * stat / 500;
 
     return saves;
 }
@@ -364,7 +366,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
     if ( ch && !was_obj_cast )
-        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (has_focus_obj(ch) ? 50 : 0)) / 500;
+        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (has_focus_obj(ch) ? 100 : get_dagger_focus(ch))) / 500;
     else
         hit_roll = (level + 10) * 6/5;
 
@@ -422,9 +424,9 @@ bool saves_dispel( int dis_level, int spell_level, int duration )
     if ( duration == -1 && number_bits(1) )
         return TRUE;
 
-    save = 50 + (spell_level - dis_level) / 2;
-    save = URANGE( 5, save, 95 );
-    return number_percent( ) < save;
+    int off_roll = number_range(0, 20 + dis_level);
+    int def_roll = number_range(0, 20 + spell_level);
+    return off_roll <= def_roll;
 }
 
 /* co-routine for dispel magic and cancellation */
@@ -581,6 +583,7 @@ bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
 
         case TAR_IGNORE:
         case TAR_IGNORE_OFF:
+        case TAR_IGNORE_OBJ:
             break;
 
         case TAR_VIS_CHAR_OFF:
@@ -1109,6 +1112,7 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
 
         if ( target == TAR_IGNORE
             || target == TAR_IGNORE_OFF
+            || target == TAR_IGNORE_OBJ
             || sn == skill_lookup("betray")
             || sn == skill_lookup("chain lightning") )
         {
@@ -1219,11 +1223,13 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         return;
     
     /* wish casting restrictions */
-    if ( was_wish_cast && (target != TARGET_CHAR || vo == ch) )
+    /*
+    if ( was_wish_cast && target != TARGET_CHAR )
     {
-        send_to_char ("You can only grant wishes to others.\n\r", ch);
+        send_to_char ("You can only grant wishes to characters.\n\r", ch);
         return;
     }
+    */
     
     // strip meta-magic options that are invalid for the spell & target
     meta_magic_strip(ch, sn, target);
@@ -1233,6 +1239,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     mana = meta_magic_adjust_cost(ch, mana, TRUE);
     if ( overcharging )
         mana *= 2;
+    if ( was_wish_cast )
+        mana = wish_cast_adjust_cost(ch, mana, sn, vo == ch);
 
     if ( ch->mana < mana )
     {
@@ -1319,7 +1327,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
 
         level = ch->level;
         level = (100+chance)*level/200;
-        level = URANGE(1, level, 120);
+        level = URANGE(1, level, 200);
         if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
             level += UMAX(1, level/8);
         level = mastery_adjust_level(level, get_mastery(ch, sn));
@@ -1329,7 +1337,11 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         victim = (CHAR_DATA*) vo;
         // remove invisibility etc.
         if ( is_offensive(sn) && target == TARGET_CHAR )
+        {
             attack_affect_strip(ch, victim);
+            if ( !ch->fighting && check_kill_trigger(ch, victim) )
+                return;
+        }
 
         (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
         check_improve(ch,sn,TRUE,3);
@@ -1368,6 +1380,105 @@ void do_cast( CHAR_DATA *ch, char *argument )
     cast_spell(ch, sn, chance);
 }
 
+bool can_wish_cast( int sn )
+{
+    if ( skill_table[sn].spell_fun == spell_null )
+        return FALSE;
+
+    // exceptions for specific spells
+    if ( sn == gsn_mimic )
+        return FALSE;
+    
+    switch ( skill_table[sn].target )
+    {
+        case TAR_CHAR_DEFENSIVE:
+        case TAR_CHAR_NEUTRAL:
+        case TAR_OBJ_CHAR_DEF:
+        case TAR_OBJ_INV:
+        case TAR_IGNORE_OBJ:
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+
+int wish_level( int sn )
+{
+    // find minimum level required to cast
+    int class, min_level = LEVEL_IMMORTAL;
+    for ( class = 0; class < MAX_CLASS; class++ )
+        min_level = UMIN(min_level, skill_table[sn].skill_level[class]);
+    return min_level;
+}
+
+// skill for wish-casting sn
+int wish_skill( CHAR_DATA *ch, int sn )
+{
+    int skill = get_skill(ch, gsn_wish);
+    if ( skill > 0 )
+        // bonus if spell is already known
+        skill += (100 - skill) * get_skill(ch, sn) / 100;
+    return skill;
+}
+
+// mana cost factor for wishcasting a spell
+int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self )
+{
+    // extra cost when casting on self
+    float factor = self ? 1.5 : 1.0;
+    // mana cost reduction to cast spell already known, in percent
+    float rebate = get_skill(ch, gsn_wish) * get_skill(ch, sn) / 30000.0;
+    return UMAX(1, mana * factor * (1-rebate));
+}
+
+void show_wishes( CHAR_DATA *ch )
+{
+    BUFFER *buffer;
+    char buf[MAX_STRING_LENGTH];
+    char spell_list[LEVEL_HERO + 1][MAX_STRING_LENGTH];
+    char spell_columns[LEVEL_HERO + 1];
+    int sn, level;
+
+    /* initialize data */
+    for ( level = 0; level <= LEVEL_HERO; level++ )
+    {
+        spell_columns[level] = 0;
+        spell_list[level][0] = '\0';
+    }
+    
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !can_wish_cast(sn) )
+            continue;
+        if ( (level = wish_level(sn)) > LEVEL_HERO )
+            continue;
+        
+        int skill = wish_skill(ch, sn);
+        int mana = mana_cost(ch, sn, skill);
+        mana = wish_cast_adjust_cost(ch, mana, sn, FALSE);
+        sprintf(buf, "  %-20s %3dm %3d%%", skill_table[sn].name, mana, skill);
+
+        if ( spell_list[level][0] == '\0' )
+            sprintf(spell_list[level], "\n\rLevel %2d:%s", level, buf);
+        else /* append */
+        {
+            if ( ++spell_columns[level] % 2 == 0 )
+                strcat(spell_list[level], "\n\r         ");
+            strcat(spell_list[level], buf);
+        }
+    }
+
+    buffer = new_buf();
+    for ( level = 0; level <= LEVEL_HERO; level++ )
+        if (spell_list[level][0] != '\0')
+            add_buf(buffer, spell_list[level]);
+    add_buf(buffer,"\n\r");
+    page_to_char(buf_string(buffer), ch);
+    free_buf(buffer);
+}
+
 // Djinn wish casting
 void do_wish( CHAR_DATA *ch, char *argument )
 {
@@ -1384,7 +1495,13 @@ void do_wish( CHAR_DATA *ch, char *argument )
     
     if ( arg1[0] == '\0' )
     {
-        send_to_char( "What do you wish for?\n\r", ch );
+        send_to_char( "What do you wish for? Type \t(wish list\t) to see all possible wishes.\n\r", ch );
+        return;
+    }
+    
+    if ( !strcmp(arg1, "list") )
+    {
+        show_wishes(ch);
         return;
     }
 
@@ -1394,24 +1511,20 @@ void do_wish( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    if ( skill_table[sn].target != TAR_CHAR_DEFENSIVE &&
-         skill_table[sn].target != TAR_CHAR_NEUTRAL &&
-         skill_table[sn].target != TAR_OBJ_CHAR_DEF )
+    if ( !can_wish_cast(sn) )
     {
         send_to_char( "You cannot grant that wish.\n\r", ch );
         return;
     }
     
-    // find minimum level required to cast
-    int min_level = LEVEL_IMMORTAL;
-    for ( class = 0; class < MAX_CLASS; class++ )
-        min_level = UMIN(min_level, skill_table[sn].skill_level[class]);
-    
-    if ( ch->level < min_level )
+    if ( ch->level < wish_level(sn) )
     {
-        send_to_char( "This spell is beyond your power.\n\r", ch );
+        send_to_char( "This wish is beyond your power.\n\r", ch );
         return;
     }
+    
+    // increase effective skill level if character posesses skill already
+    chance = wish_skill(ch, sn);
     
     was_wish_cast = TRUE;
     cast_spell(ch, sn, chance);
@@ -1499,41 +1612,21 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg 
     target_name = arg;
     vo = check_reflection( sn, level, ch, vo, target );
 
-    /*
-       victim = (CHAR_DATA*) vo;
-       if ( is_offensive(sn)
-       && target == TARGET_CHAR
-       && victim->fighting == NULL
-       && check_kill_trigger(ch, victim) )
-       return;
-     */
+    // remove invisibility
+    if ( is_offensive(sn) && target == TARGET_CHAR )
+    {
+        attack_affect_strip(ch, (CHAR_DATA*)vo);
+        if ( !ch->fighting && check_kill_trigger(ch, (CHAR_DATA*)vo) )
+            return;
+    }        
 
     was_obj_cast = TRUE;
     (*skill_table[sn].spell_fun) ( sn, level, ch, vo, target);
     was_obj_cast = FALSE;
 
-    victim = (CHAR_DATA*) vo;
-    if ( (skill_table[sn].target == TAR_CHAR_OFFENSIVE
-                ||  skill_table[sn].target == TAR_VIS_CHAR_OFF
-                ||   (skill_table[sn].target == TAR_OBJ_CHAR_OFF && target == TARGET_CHAR))
-            &&   victim != ch
-            &&   victim->master != ch )
-    {
-        CHAR_DATA *vch;
-        CHAR_DATA *vch_next;
-
-        for ( vch = ch->in_room->people; vch; vch = vch_next )
-        {
-            vch_next = vch->next_in_room;
-            if ( victim == vch && victim->fighting == NULL )
-            {
-                check_killer(victim,ch);
-                multi_hit( victim, ch, TYPE_UNDEFINED );
-                break;
-            }
-        }
-    }
-
+    if ( target == TARGET_CHAR )
+        post_spell_process(sn, ch, (CHAR_DATA*)vo);
+    
     return TRUE;
 }
 
@@ -1561,14 +1654,23 @@ bool has_focus_obj( CHAR_DATA *ch )
     return !has_shield && (obj && obj->item_type != ITEM_ARROWS);
 }
 
+int get_dagger_focus( CHAR_DATA *ch )
+{
+    OBJ_DATA *obj = get_eq_char(ch, WEAR_SECONDARY);
+    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    if ( has_shield || !obj || obj->item_type != ITEM_WEAPON )
+        return 0;
+    return get_skill(ch, gsn_dagger_focus) + mastery_bonus(ch, gsn_dagger_focus, 18, 30);
+}
+
 int get_focus_bonus( CHAR_DATA *ch )
 {
-    int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 15, 25);
+    int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 18, 30);
 
     if ( has_focus_obj(ch) )
-        return 10 + skill / 2;
+        return 20 + skill * 2/5;
     else
-        return skill / 4;
+        return (get_dagger_focus(ch) + skill) / 5;
 }
 
 /* needes to be seperate for dracs */
@@ -1579,6 +1681,8 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
 
     dam += dam * get_focus_bonus(ch) / 100;
     check_improve(ch, gsn_focus, TRUE, 1);
+    if ( get_dagger_focus(ch) )
+        check_improve(ch, gsn_dagger_focus, TRUE, 3);
 
     if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
     {
@@ -1850,7 +1954,7 @@ void spell_call_lightning( int sn, int level,CHAR_DATA *ch,void *vo,int target)
         return;
     }
 
-    dam = get_sn_damage( sn, level, ch ) * 3/4;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * 1.5;
 
     send_to_char( "Lightning leaps out of the sky to strike your foes!\n\r", ch );
     act( "$n calls lightning from the sky to strike $s foes!", ch, NULL, NULL, TO_ROOM );
@@ -2023,45 +2127,6 @@ void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
 }
 
-void spell_cause_light( int sn, int level, CHAR_DATA *ch, void *vo,int target )
-{
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage( sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/16),0);
-    direct_damage(ch, victim, harm, sn);
-    if ( ch != victim )
-        send_to_char( "Ok.\n\r", ch );
-
-    return;
-}
-
-void spell_cause_critical(int sn,int level,CHAR_DATA *ch,void *vo,int target)
-{
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage( sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/4),0);
-    direct_damage(ch, victim, harm, sn);
-    if ( ch != victim )
-        send_to_char( "Ok.\n\r", ch );
-
-    return;
-}
-
-void spell_cause_serious(int sn,int level,CHAR_DATA *ch,void *vo,int target)
-{
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage( sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/8),0);
-    direct_damage(ch, victim, harm, sn);
-    if ( ch != victim )
-        send_to_char( "Ok.\n\r", ch );
-
-    return;
-}
-
 CHAR_DATA* get_next_victim( CHAR_DATA *ch, CHAR_DATA *start_victim )
 {
     CHAR_DATA *victim;
@@ -2079,7 +2144,7 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
     bool found = TRUE;
     int per = 100;
 
-    dam = get_sn_damage( sn, level, ch ) / 3;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
     while ( per > 0 )
     {
         int count = 0;
@@ -2092,24 +2157,8 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
             if( !is_safe_spell(ch,vch,TRUE) && vch != ch )
                 count++;
 
-        /* The fewer targets, the more the damage is reduced each chain */
-        if( count < 2 )
-            per -= 25;
-        else if( count < 4 )
-            per -= 15;
-        else if( count < 6 )
-            per -= 12;
-        else if( count < 10 )
-            per -= 10;
-        else
-            per -= 9;
-
-        /* Modify this loss with respect to chain skill and focus */
-        /* (Still even a 25% of each modification failing even at 100% skill) */
-        if( number_range(25,125) < get_skill(ch,sn) )
-            per += number_range(3,5);
-        if( number_range(25,125) < get_skill(ch,gsn_focus) )
-            per += number_range(1,3);
+        // -15% each arc means 385% damage total => good for 2 or 3 targets
+        per -= 15;
 
         if ( saves_spell(victim, ch, level, dam_type) )
             curr_dam /= 2;
@@ -2124,7 +2173,8 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
         {
             send_to_char("The chain of magical energy arcs back to you!\n\r",ch);
             act("$n's spell arcs back to $mself!",ch,NULL,NULL,TO_ROOM);
-            curr_dam = dam * (per+10)/100;
+            curr_dam = dam * per/100;
+            per -= 15;
             if ( saves_spell(ch, ch, level, dam_type) )
                 curr_dam /= 2;
             full_dam(ch,ch,curr_dam,sn,dam_type,TRUE);
@@ -3049,6 +3099,12 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
 
+    if (IS_SET(victim->imm_flags, IMM_MAGIC))
+    {
+        send_to_char( "Your victim is immune to magic.\n\r", ch);
+        return;
+    }
+
     if (saves_spell(victim, ch, level, DAM_OTHER))
     {     
         send_to_char( "You feel a brief tingling sensation.\n\r",victim);
@@ -3072,20 +3128,29 @@ void spell_earthquake( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     send_to_char( "The earth trembles beneath your feet!\n\r", ch );
     act( "$n makes the earth tremble and shiver.", ch, NULL, NULL, TO_ROOM );
 
-    dam = get_sn_damage( sn, level, ch ) / 3;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
 
     for ( vch = char_list; vch != NULL; vch = vch_next )
     {
-        vch_next    = vch->next;
+        vch_next = vch->next;
         if ( vch->in_room == NULL )
             continue;
         if ( vch->in_room == ch->in_room )
         {
-            if ( !is_safe_spell(ch,vch,TRUE))
-                if (IS_AFFECTED(vch,AFF_FLYING))
+            if ( is_safe_spell(ch, vch, TRUE) || IS_AFFECTED(vch, AFF_FLYING) )
+                continue;
+            if ( saves_spell(vch, ch, level, DAM_BASH) )
+                full_dam(ch, vch, dam/2, sn, DAM_BASH, TRUE);
+            else
+            {
+                full_dam(ch, vch, dam, sn, DAM_BASH, TRUE);
+                if ( IS_DEAD(vch) )
                     continue;
-                else
-                    full_dam( ch,vch, dam, sn, DAM_BASH,TRUE);
+                send_to_char("You are knocked prone.\n\r", vch);
+                act("$n is knocked prone.", vch, NULL, NULL, TO_ROOM);
+                set_pos(vch, POS_RESTING);
+                check_lose_stance(vch);
+            }
             continue;
         }
 
@@ -3365,7 +3430,7 @@ void spell_energy_drain( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
     drop_align( ch );
 
-    drain = dice( level, 9 );
+    drain = get_sn_damage( sn, level, ch ) / 2;
     /* if one stat is fully drained, drain missing points on other */
     drain_mana = UMIN( drain, victim->mana );
     drain_move = UMIN( 2*drain - drain_mana, victim->move );
@@ -3396,7 +3461,7 @@ void spell_fireball( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     act("A ball of fire explodes from $n's hands!",ch,NULL,NULL,TO_ROOM);
     act("A ball of fire explodes from your hands.",ch,NULL,NULL,TO_CHAR);
 
-    dam = get_sn_damage( sn, level, ch ) / 2;
+    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
 
     for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
     {
@@ -3792,19 +3857,16 @@ void spell_giant_strength(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-
-
-void spell_harm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+/* used for harm as well as cause X spells */
+void spell_cause_harm( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage(sn, level, ch) / 2;
-
-    harm = UMAX(UMIN(harm, victim->hit - victim->max_hit/2),0);
+    int harm = get_sn_damage(sn, level, ch);
+    // scale with victim's health
+    harm *= (0.5 + (float)victim->hit / victim->max_hit) / 2;
     direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
-
-    return;
 }
 
 /* RT haste spell */
@@ -4068,7 +4130,7 @@ void spell_holy_word(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     curse_num = skill_lookup("curse");
     frenzy_num = skill_lookup("frenzy");
 
-    dam = get_sn_damage(sn, level, ch) / 3;
+    dam = get_sn_damage(sn, level, ch) * AREA_SPELL_FACTOR;
 
     if ( IS_GOOD(ch) )
         dam_type = DAM_HOLY;
@@ -4260,20 +4322,14 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             break;
 
         case ITEM_ARMOR:
-            sprintf( buf, "" );
             for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
             {
                 if( !IS_SET(obj->wear_flags, pos) )
                     continue;
-        
-                if( !strcmp( wear_bit_name(pos), "shield" ) )
-                    sprintf( buf, "It is used as a shield.\n\r" );
-                    else if( !strcmp( wear_bit_name(pos), "float" ) )
-                    sprintf( buf, "It would float nearby.\n\r" );
-                else if ( pos != ITEM_TAKE && pos != ITEM_NO_SAC && pos != ITEM_TRANSLUCENT )
-                    sprintf( buf, "It is worn on the %s.\n\r", wear_bit_name(pos) );
+                char *wear = wear_location_info(pos);
+                if ( wear )
+                    printf_to_char(ch, "%s\n\r", wear);
             }
-            send_to_char( buf, ch );
             sprintf( buf, 
                     "Armor class is %d.\n\r", 
                     obj->value[0]);
@@ -4572,6 +4628,8 @@ void spell_mass_healing(int sn, int level, CHAR_DATA *ch, void *vo, int target)
         if ( !can_spellup(ch, gch, sn) )
             continue;
         if ( gch->fighting && is_same_group(ch, gch->fighting) )
+            continue;
+        if ( IS_NPC(gch) && !IS_AFFECTED(gch, AFF_CHARM) && gch->fighting == NULL)
             continue;
 
         spell_heal(heal_num, level, ch, (void *) gch, TARGET_CHAR);

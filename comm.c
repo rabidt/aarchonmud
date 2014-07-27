@@ -115,7 +115,6 @@ int close       args( ( int fd ) );
  */
 DESCRIPTOR_DATA *   descriptor_list;    /* All open descriptors     */
 DESCRIPTOR_DATA *   d_next;     /* Next descriptor in loop  */
-FILE *          fpReserve;      /* Reserved file handle     */
 bool            god;        /* All new chars are gods!  */
 bool            merc_down;      /* Shutdown         */
 bool            wizlock;        /* Game is wizlocked        */
@@ -171,15 +170,6 @@ int main( int argc, char **argv )
 
     /* Log some info about the binary if present */
     log_string(bin_info_string);
-
-    /*
-     * Reserve one channel for our use.
-     */
-    if ( ( fpReserve = fopen( NULL_FILE, "r" ) ) == NULL )
-    {
-        log_error( NULL_FILE );
-        exit( 1 );
-    }
 
     /*
      * Get the port number.
@@ -321,6 +311,8 @@ void game_loop_unix( int control )
     /* Main loop */
     while ( !merc_down )
     {
+        check_lua_stack();
+
         fd_set in_set;
         fd_set out_set;
         fd_set exc_set;
@@ -600,6 +592,14 @@ void game_loop_unix( int control )
                 secDelta  += 1;
             }
 
+            
+            /* calculate the percentage of the pulse used */
+            double usage=100-
+                (double)( (secDelta*1000000)+(usecDelta) )/
+                (double)(10000/PULSE_PER_SECOND);
+
+            lua_log_perf( usage );
+
             if ( secDelta > 0 || ( secDelta == 0 && usecDelta > 0 ) )
             {
                 struct timeval stall_time;
@@ -827,7 +827,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
                     wch->mprog_target = NULL;
             }
 
-            unregister_lua( ch );
+            //unregister_lua( ch );
             free_char(dclose->original ? dclose->original : dclose->character );
         }
     }
@@ -1624,7 +1624,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
     {
         char *outbuf;
 
-        if (d->outsize >= 32000)
+        if (d->outsize >= 32768)
         {
             /* just trash new messages.. --Bobble */
             //bug("Buffer overflow. Closing.\n\r",0);
@@ -1674,7 +1674,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
  * If this gives errors on very long blocks (like 'ofind all'),
  *   try lowering the max block size.
  */
-#define MAX_BLOCK_SIZE 4096
+#define MAX_BLOCK_SIZE 32768 
 int write_to_descriptor( int desc, char *txt, int length )
 {
     int iStart;
@@ -1685,7 +1685,7 @@ int write_to_descriptor( int desc, char *txt, int length )
         length = strlen(txt);
     
     // limit total output written "in one go" to avoid write errors
-    length = UMIN(length, MAX_BLOCK_SIZE * 3);
+    length = UMIN(length, MAX_BLOCK_SIZE );
 
     for ( iStart = 0; iStart < length; iStart += nWrite )
     {
@@ -2857,10 +2857,6 @@ void do_copyover (CHAR_DATA *ch, char * argument)
     fprintf (fp, "-1\n");
     fclose (fp);
 
-    /* Close reserve and other always-open files and release other resources */
-
-    fclose (fpReserve);
-
     /* exec - descriptors are inherited */
 
     sprintf (arg0, "%s", "aeaea");
@@ -2874,9 +2870,6 @@ void do_copyover (CHAR_DATA *ch, char * argument)
 
     log_error ("do_copyover: execl");
     send_to_char ("Copyover FAILED!\n\r",ch);
-
-    /* Here you might want to reopen fpReserve */
-    fpReserve = fopen (NULL_FILE, "r");
 }
 
 /* Recover from a copyover - load players */
@@ -2951,8 +2944,7 @@ void copyover_recover ()
                 d->character->in_room = get_room_index (ROOM_VNUM_TEMPLE);
 
             /* Insert in the char_list */
-            d->character->next = char_list;
-            char_list = d->character;
+            char_list_insert(d->character);
 
             char_to_room (d->character, d->character->in_room);
             do_look (d->character, "auto");

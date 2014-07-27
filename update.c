@@ -30,6 +30,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -39,6 +40,7 @@
 #include "olc.h"
 #include "mob_stats.h"
 #include "lua_scripting.h"
+#include "mudconfig.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -153,9 +155,10 @@ void advance_level( CHAR_DATA *ch, bool hide )
 }   
 
 
-void gain_exp( CHAR_DATA *ch, int gain)
+void gain_exp( CHAR_DATA *ch, int gain_base)
 {
     char buf[MAX_STRING_LENGTH];
+    int gain;
     long field, max;
 
     if ( IS_NPC(ch) || IS_HERO(ch) )
@@ -164,10 +167,23 @@ void gain_exp( CHAR_DATA *ch, int gain)
     if ( IS_SET(ch->act,PLR_NOEXP) && gain > 0 )
         return;
 
+    if ( cfg_enable_exp_mult && gain_base > 0)
+    {
+        gain=(int)(gain_base * cfg_exp_mult);
+        if ( cfg_show_exp_mult  )
+        {
+            ptc(ch, "There's currently an exp bonus of %d%%!\n\r", (int)((cfg_exp_mult*100)-99.5));
+        }
+    }
+    else
+    {
+        gain=gain_base;
+    }
+
     field = UMAX((ch_wis_field(ch)*gain)/100,0);
     gain-=field;
 
-    max=exp_per_level(ch)+ch_dis_field(ch)+10*ch->pcdata->condition[COND_SMOKE];
+    max=exp_per_level(ch)+ch_dis_field(ch);
     if (ch->pcdata->field>max)
         send_to_char("Your mind is becoming overwhelmed with new information.\n\r",ch);
     max*=2;
@@ -219,7 +235,7 @@ void update_field( CHAR_DATA *ch)
     if (!IS_NPC(ch) && ch->desc == NULL) /* Linkdead PC */
         return;
 
-    gain = number_range(1, ch_int_field(ch)+ch->pcdata->condition[COND_SMOKE]/8);
+    gain = number_range(1, ch_int_field(ch));
     pos = ch->position;
 
     if (pos == POS_RESTING || pos == POS_SITTING) 
@@ -763,12 +779,9 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
         return;
 
     condition               = ch->pcdata->condition[iCond];
-    if ((condition == -1)&&(iCond!=COND_SMOKE))
+    if (condition == -1)
         return;
-    if (iCond!=COND_SMOKE)
-        ch->pcdata->condition[iCond]    = URANGE( 0, condition + value, 72 );
-    else
-        ch->pcdata->condition[iCond]	= UMIN(72, condition+value);
+    ch->pcdata->condition[iCond]    = URANGE( 0, condition + value, 72 );
 
     if ( ch->pcdata->condition[iCond] == 0 )
     {
@@ -845,6 +858,8 @@ void mobile_update( void )
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
     EXIT_DATA *pexit;
+    OBJ_DATA *obj;
+    OBJ_DATA *obj_next;
 
     int door;
     bool success;
@@ -932,19 +947,18 @@ void mobile_update( void )
            that a few rare mobs are holding weapons that they aren't meant to
            equip, but we'll cross that bridge if and when we come to it 
            - Astark 1-7-13 
+           - 6-7-14, enabling this code finally - Astark */
 
-           if ( ch->position == POS_FIGHTING && !number_bits(2))
-           {
-           for ( obj = ch->carrying; obj != NULL; obj = obj_next )
-           {
-           if (obj->item_type == ITEM_WEAPON)
-           {
-           do_wear(ch,obj->name);
-           break;
-           }
-           }
-           }
-         */
+        if ( ch->position == POS_FIGHTING && number_bits( 2 ) == 0 )
+        {
+            for ( obj = ch->carrying; obj != NULL; obj = obj_next )
+            {
+              obj_next = obj->next_content;
+              if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) && obj->item_type == ITEM_WEAPON )
+                  wear_obj( ch, obj, FALSE );
+            }
+        } 
+
 
         /* That's all for sleeping / busy monster, and empty zones */
         if ( ch->position != POS_STANDING )
@@ -1255,7 +1269,6 @@ void char_update( void )
 {   
     static int curr_tick=0;
     CHAR_DATA *ch;
-    CHAR_DATA *ch_next;
     CHAR_DATA *ch_quit;
     bool healmessage;
     char buf[MSL];
@@ -1272,53 +1285,22 @@ void char_update( void )
 
     /*update_fighting();*/
 
-    for ( ch = char_list; ch != NULL; ch = ch_next )
+    for ( ch = char_list; ch != NULL; ch = ch->next )
     {
-        ch_next = ch->next;
-
-        if (!IS_VALID(ch))
+        if ( !valid_CH(ch) )
         {
             bugf("Invalid ch in char_update (%d). Removing from list.",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
             /* invalid should mean already freed, just kill it from the list */
-            if ( ch == char_list )
-            {
-                char_list = ch->next;
-            }
-            else
-            {
-                CHAR_DATA *prev;
-
-                for ( prev = char_list ; prev ; prev = prev->next )
-                {
-                    if ( prev->next == ch )
-                    {
-                        prev->next = ch->next;
-                        break;
-                    }
-                }
-
-                if (!prev)
-                    bugf("Couldn't find invalid ch in list to remove.");
-
-            }
+            char_from_char_list(ch);
             continue;
         }
         
         if (ch->must_extract)
             continue;
 
-        if ( ch->timer > 30 )
-            ch_quit = ch;
-
         /* Check for natural resistance */
-        if ( get_skill(ch, gsn_natural_resistance) >= 0)
-        {
-            AFFECT_DATA af;
-            affect_strip (ch, gsn_natural_resistance);
-            /* Added this in to stop immortals from bugging when using avatar and set skill - Astark 1-6-13 */
-            affect_strip (ch, skill_lookup("reserved") );
-        }
+        affect_strip (ch, gsn_natural_resistance);
         if ( get_skill(ch, gsn_natural_resistance) > 0)
         {
             int bonus = ch->level * (get_skill(ch, gsn_natural_resistance) + mastery_bonus(ch, gsn_natural_resistance, 60, 100)) / 500;
@@ -1335,13 +1317,7 @@ void char_update( void )
         } 
 
         /* Check for iron hide */
-        if ( get_skill(ch, gsn_iron_hide) >= 0)
-        {
-            AFFECT_DATA af;
-            affect_strip (ch, gsn_iron_hide);
-            /* Added this in to stop immortals from bugging when using avatar and set skill - Astark 1-6-13 */
-            affect_strip (ch, skill_lookup("reserved") );
-        }
+        affect_strip (ch, gsn_iron_hide);
         if ( get_skill(ch, gsn_iron_hide) > 0)
         {   
             int bonus = ch->level * (get_skill(ch, gsn_iron_hide) + mastery_bonus(ch, gsn_iron_hide, 60, 100)) / 50;
@@ -1546,6 +1522,12 @@ void char_update( void )
                     char_from_room( ch );
                     char_to_room( ch, get_room_index( ROOM_VNUM_LIMBO ) );
                 }
+
+                if ( ch->timer > 30 )
+                {
+                    do_quit( ch, "" );
+                    continue;
+                }
             }
 
             if ((ch->desc == NULL) || IS_WRITING_NOTE(ch->desc->connected)) {}
@@ -1631,22 +1613,6 @@ void char_update( void )
                     do_morph(ch, "");
             }
 
-            if (ch->pcdata->condition[COND_SMOKE] > ch->pcdata->condition[COND_TOLERANCE]
-                    && number_bits(6) == 0 
-                    && number_percent() < ch->pcdata->condition[COND_SMOKE] - ch->pcdata->condition[COND_TOLERANCE] + 2)
-                ch->pcdata->condition[COND_TOLERANCE]++;
-
-            if (ch->pcdata->condition[COND_SMOKE] > -ch->pcdata->condition[COND_TOLERANCE])
-                gain_condition(ch, COND_SMOKE, -1);
-
-            else if (ch->pcdata->condition[COND_SMOKE] == -ch->pcdata->condition[COND_TOLERANCE]
-                    && number_bits(8) == 0)
-                if (number_bits(6) < ch->pcdata->condition[COND_TOLERANCE])
-                {
-                    ch->pcdata->condition[COND_TOLERANCE]--;
-                    ch->pcdata->condition[COND_SMOKE]++;
-                }
-
             /* Apply penalties - valid for imms as well as morts, so not in previous section */
             penalty_update(ch);
 
@@ -1695,23 +1661,6 @@ void char_update( void )
         if ( !IS_NPC(ch) )
             check_beast_mastery( ch );
 
-    }
-
-    /*
-     * Autosave and autoquit.
-     * Check that these chars still exist.
-     */
-    for ( ch = char_list; ch != NULL; ch = ch_next )
-    {
-        ch_next = ch->next;
-
-        /* Bobble: we got simultanious saves now
-           if (ch->desc != NULL && ch->desc->descriptor % 30 == save_number)
-           save_char_obj(ch);
-         */
-
-        if ( ch == ch_quit )
-            do_quit( ch, "" );
     }
 
     return;
@@ -1955,6 +1904,7 @@ void affect_update( CHAR_DATA *ch )
             {
                 if (!saves_spell(vch, NULL, plague.level - 2, DAM_DISEASE)
                         &&  !IS_IMMORTAL(vch)
+                        &&  !(IS_NPC(vch) && IS_SET(vch->act, ACT_OBJ))
                         &&  !IS_AFFECTED(vch,AFF_PLAGUE) && number_bits(4) == 0)
                 {
                     send_to_char("You feel hot and feverish.\n\r",vch);
@@ -2110,7 +2060,7 @@ void obj_update( void )
     {
         obj_next = obj->next;
 
-        if (!IS_VALID(obj))
+        if ( !valid_OBJ(obj) )
         {
             bugf("Invalid obj in obj_update (%d). Removing from list.", obj->pIndexData->vnum);
             /* invalid should mean already freed, just kill it from the list */
@@ -2487,16 +2437,17 @@ void extract_update( void )
     CHAR_DATA *ch = char_list;
     while ( ch )
     {
-        if ( !IS_VALID(ch) )
+        if ( !valid_CH(ch) )
         {
-            bugf("Invalid ch in extract_update: %d", ch->pIndexData ? ch->pIndexData->vnum : 0 );
+            bugf("Invalid ch in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
             char_from_char_list(ch);
             ch = char_list;
         }
         else if ( ch->must_extract )
         {
-            extract_char(ch, TRUE);
+            char_from_char_list(ch);
+            free_char(ch);
             ch = char_list;
         }
         else
@@ -2508,9 +2459,9 @@ void extract_update( void )
     OBJ_DATA *obj = object_list;
     while ( obj )
     {  
-        if ( !IS_VALID(obj) )
+        if ( !valid_OBJ(obj) )
         {
-            bugf("Invalid obj in extract_update: %d", obj->pIndexData ? obj->pIndexData->vnum : 0 );
+            bugf("Invalid obj in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
             obj_from_object_list(obj);
             obj = object_list;
@@ -2544,17 +2495,10 @@ void update_handler( void )
     static  int     pulse_herb;
     static  int     pulse_msdp;
     static  int     pulse_timer;
-    static  int     pulse_lua_arcgc;
     static bool hour_update = TRUE;
     static bool minute_update = TRUE;
     /* if nobody is logged on, update less to safe CPU power */
     bool update_all = (descriptor_list != NULL );
-
-    if ( --pulse_lua_arcgc <= 0 )
-    {
-        pulse_lua_arcgc  = PULSE_LUA_ARCGC;
-        lua_arcgc();
-    }
 
     if ( --pulse_timer <= 0 )
     {
@@ -2674,6 +2618,7 @@ void update_handler( void )
         aggr_update();
         death_update();
         extract_update();
+        cleanup_uds();
     }
 
     tail_chain( );
@@ -3108,7 +3053,7 @@ void check_beast_mastery( CHAR_DATA *ch )
 
     mob = create_mobile(mobIndex);
 
-    mlevel = dice(2,6) + ch->level * (100 + skill) / 300;
+    mlevel = dice(1,3) + ch->level * (80 + skill) / 200;
     mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 

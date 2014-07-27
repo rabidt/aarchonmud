@@ -24,9 +24,9 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
-#include "timer.h"
-#include "protocol.h"
 #include <lua.h>
+#include "protocol.h"
+#include "timer.h"
 
 #ifdef TESTER
 #define FSTAT
@@ -230,8 +230,8 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         432
-#define MAX_GROUP          80 /* accurate oct 2013 */
+#define MAX_SKILL         433
+#define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
@@ -1744,7 +1744,10 @@ struct  kill_data
 #define ITEM_BLACK_HERB      39
 #define ITEM_RED_HERB        40
 #define ITEM_MOTTLED_HERB    50
-#define ITEM_CIGARETTE	     51
+/* Removed, don't re-use the number
+   unless you're sure no area files are
+   using it */
+/*#define ITEM_CIGARETTE	     51*/
 #define ITEM_ARROWS          52
 
 /*
@@ -1785,6 +1788,9 @@ struct  kill_data
 #define ITEM_EASY_DROP      (ff)
 #define ITEM_NO_EXTRACT     (gg)
 #define ITEM_QUESTEQ        (hh)
+#define ITEM_RANDOM_PHYSICAL (ii)
+#define ITEM_RANDOM_CASTER  (jj)
+
 
 /* class restriction flags */
 #define ITEM_ALLOW_WARRIOR        100
@@ -2109,9 +2115,11 @@ typedef int tattoo_list[MAX_WEAR];
 #define COND_FULL             1
 #define COND_THIRST           2
 #define COND_HUNGER           3
+/*
 #define COND_SMOKE	      4
 #define COND_TOLERANCE        5
-#define COND_DEEP_SLEEP       6
+ */
+#define COND_DEEP_SLEEP       4 
 
 /*
  * Positions.
@@ -2387,6 +2395,7 @@ struct  mob_index_data
     char*       short_descr;
     char*       long_descr;
     char*       description;
+    char*       notes;
     tflag       act;
     tflag       affect_field;
     sh_int      alignment;
@@ -2452,6 +2461,7 @@ struct  char_data
 	MOB_INDEX_DATA *    pIndexData;
 	DESCRIPTOR_DATA *   desc;
 	AFFECT_DATA *   affected;
+    AFFECT_DATA *   aff_stasis; // affects temporarily put into stasis
 	OBJ_DATA *      carrying;
 	OBJ_DATA *      on;
 	ROOM_INDEX_DATA *   in_room;
@@ -2511,6 +2521,7 @@ struct  char_data
 	sh_int      damroll;
 	sh_int      armor;
     sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
+    sh_int      mod_level; // modifier to certain level-dependent calculations, 0 by default
 	sh_int      wimpy;
     sh_int      calm;
         tflag       penalty;
@@ -2596,7 +2607,7 @@ struct  pc_data
     sh_int      true_sex;
     int         last_level;
     sh_int      highest_level; /* highest level reached during current remort */
-    sh_int      condition   [7];
+    sh_int      condition   [5];
     sh_int      learned     [MAX_SKILL];
     sh_int      mastered    [MAX_SKILL];
     bool        group_known [MAX_GROUP];
@@ -2812,6 +2823,7 @@ struct  obj_index_data
 	char *      name;
 	char *      short_descr;
 	char *      description;
+    char *      notes;
 	int         vnum;
 	sh_int      reset_num;
 	char *      material;
@@ -2819,12 +2831,10 @@ struct  obj_index_data
 	tflag       extra_flags;
 	tflag       wear_flags;
 	sh_int      level;
-	sh_int      condition;
 	sh_int      count;
 	sh_int      weight;
 	int         cost;
 	int         value[5];
-	sh_int      durability;
 	sh_int	    clan;
 	sh_int	    rank;
     int         combine_vnum;
@@ -2862,11 +2872,9 @@ struct  obj_data
 	sh_int      weight;
 	int         cost;
 	sh_int      level;
-	sh_int      condition;
 	char *      material;
 	sh_int      timer;
 	int         value   [5];
-	sh_int  durability;
 	sh_int	clan;
 	sh_int	rank;
 
@@ -2938,6 +2946,7 @@ struct  area_data
 	char *      file_name;
 	char *      name;
 	char *      credits;
+    char *      notes;
 	sh_int      age;
 	sh_int      nplayer;
 	sh_int      reset_time;
@@ -2978,6 +2987,7 @@ struct  room_index_data
     RESET_DATA *   reset_first;    /* OLC */
     char *      name;
     char *      description;
+    char *      notes;
     char *      owner;
     int      vnum;
     tflag       room_flags;
@@ -3019,6 +3029,7 @@ struct  room_index_data
 #define TAR_VIS_CHAR_OFF        7
 #define TAR_CHAR_NEUTRAL        8
 #define TAR_IGNORE_OFF          9 // for area spells that bestow affects
+#define TAR_IGNORE_OBJ         10 // spells that create objects
 
 #define TARGET_CHAR         0
 #define TARGET_OBJ          1
@@ -3050,6 +3061,9 @@ struct  room_index_data
 #define DUR_NORMAL      4
 #define DUR_LONG        5
 #define DUR_EXTREME     6
+
+// damage factor for area spells - easily adjustable here
+#define AREA_SPELL_FACTOR 0.6
 
 /*
  * Skills include spells as a particular case.
@@ -3146,6 +3160,11 @@ struct  mastery_group_type
 #define OTRIG_HIT   (T)
 #define OTRIG_PREHIT (U)
 #define OTRIG_COMMAND (V)
+#define OTRIG_QUAFF (W)
+#define OTRIG_OPEN  (X)
+#define OTRIG_UNLOCK (Z)
+#define OTRIG_SIT   (aa)
+#define OTRIG_WAKE  (bb)
 
 /*
  * AREAprog definitions
@@ -3210,6 +3229,7 @@ extern sh_int race_rakshasa;
 /*
  * These are skill_lookup return values for common skills and spells.
  */
+extern  sh_int  gsn_frenzy;
 extern  sh_int  gsn_mindflay;
 extern  sh_int  gsn_petrify;
 extern  sh_int  gsn_backstab;
@@ -3228,6 +3248,7 @@ extern  sh_int  gsn_disarm_trap;
 
 extern  sh_int  gsn_disarm;
 extern  sh_int  gsn_enhanced_damage;
+extern  sh_int  gsn_flanking;
 extern  sh_int  gsn_kick;
 extern sh_int  gsn_gouge;
 extern sh_int  gsn_chop;
@@ -3332,7 +3353,6 @@ extern sh_int  gsn_two_handed;
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
 extern sh_int  gsn_wands;
-extern sh_int  gsn_recall;
 extern sh_int  gsn_flee;
 extern sh_int  gsn_retreat;
 extern sh_int  gsn_entrapment;
@@ -3463,6 +3483,7 @@ extern sh_int  gsn_leadership;
 extern sh_int  gsn_reflection;
 extern sh_int  gsn_prot_magic;
 extern sh_int  gsn_focus;
+extern sh_int  gsn_dagger_focus;
 extern sh_int  gsn_anatomy;
 extern sh_int  gsn_mimic;
 extern sh_int  gsn_mirror_image;
@@ -4013,7 +4034,6 @@ extern      PROG_CODE    * rprog_list;
 extern      char            bug_buf     [];
 extern      time_t          current_time;
 extern      bool            fLogAll;
-extern      FILE *          fpReserve;
 extern      KILL_DATA       kill_table  [];
 extern      char            log_buf     [];
 extern      TIME_INFO_DATA      time_info;
@@ -4042,6 +4062,7 @@ extern      char last_mprog [MSL];
 extern      char last_debug [MSL];
 
 extern      bool was_obj_cast;
+extern      bool was_wish_cast;
 extern      tflag meta_magic;
 
 
@@ -4071,19 +4092,16 @@ char *  crypt       args( ( const char *key, const char *salt ) );
  * All files are read in completely at bootup.
  * Most output files (bug, idea, typo, shutdown) are append-only.
  *
- * The NULL_FILE is held open so that we have a stream handle in reserve,
- *   so players can go ahead and telnet to all the other descriptors.
- * Then we close it whenever we need to open a file (e.g. a save file).
  */
 
 #define PLAYER_DIR      "../player/"            /* Player files */
 #define GOD_DIR         "../gods/"          /* list of gods */
 #define TEMP_FILE   "../player/romtmp"
-#define NULL_FILE   "/dev/null"     /* To reserve one stream */
 #define NOTE_DIR    "../notes/"
 #define CLAN_DIR	"../clans/"
 #define LUA_DIR     "../src/lua/"
 #define USER_DIR    "../user/"
+#define AREA_BACKUP_DIR "./backup/"
 
 #define AREA_LIST       "area.lst"  /* List of areas*/
 #define CLAN_LIST       "clan.lst"
@@ -4107,6 +4125,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define RELIGION_FILE  "religion.txt"
 #define LBOARD_FILE    "lboard.txt"
 #define LBOARD_RESULT_FILE "lboard_result.txt"
+#define CONFIG_FILE    "mudconfig.lua"
 #define CHEAT_LIST     "../log/cheatlog.txt"
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
@@ -4138,7 +4157,7 @@ void    nuke_pets   args( ( CHAR_DATA *ch ) );
 void    die_follower    args( ( CHAR_DATA *ch, bool preservePets ) );
 bool    is_same_group   args( ( CHAR_DATA *ach, CHAR_DATA *bch ) );
 void    info_message  args( ( CHAR_DATA *ch, char *argument, bool show_to_char) );
-char    *makedrunk      args( (char *string ,CHAR_DATA *ch) );
+char    *makedrunk      args( (const char *string, CHAR_DATA *ch) );
 void    printf_to_char args( ( CHAR_DATA *ch, char *fmt, ...) );
 void    logpf args( (char * fmt, ...) );
 void    bugf args( (char * fmt, ...) );
@@ -4332,6 +4351,7 @@ bool    is_ranged_weapon( OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
+bool    check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 
@@ -4369,6 +4389,9 @@ void    affect_to_char  args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
 void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
+AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
+void    affect_freeze_sn( CHAR_DATA *ch, int sn );
+void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
@@ -4386,8 +4409,12 @@ void    obj_to_room args( ( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_obj  args( ( OBJ_DATA *obj, OBJ_DATA *obj_to ) );
 void    obj_from_obj    args( ( OBJ_DATA *obj ) );
 void    extract_obj args( ( OBJ_DATA *obj ) );
-void    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
-void    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
+void    char_list_insert( CHAR_DATA *ch );
+//CHAR_DATA* char_list_next( long current_id );
+CHAR_DATA* char_list_next_char( CHAR_DATA *ch );
+void    char_from_char_list( CHAR_DATA *ch );
+bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
+bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
 CHAR_DATA* get_player( char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, char *argument ) );
 CD *    get_char_world  args( ( CHAR_DATA *ch, char *argument ) );
@@ -4456,6 +4483,9 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 bool has_focus_obj( CHAR_DATA *ch );
+void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
+int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base );
+int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
@@ -4538,6 +4568,7 @@ int get_group_base_cost( int gn, int class );
 int get_group_cost( CHAR_DATA *ch, int gn );
 int get_mastery( CHAR_DATA *ch, int sn );
 bool check_skill( CHAR_DATA *ch, int sn );
+CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect );
 
 /* social-edit.c */
 void load_social_table();
@@ -4569,6 +4600,7 @@ int ch_dis_field        args((CHAR_DATA *ch));
 int ch_luc_quest        args((CHAR_DATA *ch));
 void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
+int modified_level( CHAR_DATA *ch );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 
@@ -4702,10 +4734,37 @@ extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
 void open_lua  ();  /* set up Lua state */
 void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
-extern lua_State *mud_LS;
 
 #define ACT_ARG_UNDEFINED 0
 #define ACT_ARG_OBJ 1
 #define ACT_ARG_TEXT 2
 #define ACT_ARG_CHARACTER 3
 
+bool valid_UD( const char *ud );
+#define declf( ltype, ctype ) \
+ctype * check_ ## ltype ( lua_State *LS, int index ); \
+bool    is_ ## ltype ( lua_State *LS, int index ); \
+bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
+ctype * alloc_ ## ltype (void) ;\
+void    free_ ## ltype ( ctype * ud );\
+bool    valid_ ## ltype ( ctype *ud );\
+int     count_ ## ltype ( void );
+
+declf(CH, CHAR_DATA)
+declf(OBJ, OBJ_DATA)
+declf(AREA, AREA_DATA)
+declf(ROOM, ROOM_INDEX_DATA)
+declf(EXIT, EXIT_DATA)
+declf(RESET, RESET_DATA)
+declf(MOBPROTO, MOB_INDEX_DATA)
+declf(OBJPROTO, OBJ_INDEX_DATA)
+declf(PROG, PROG_CODE)
+declf(MTRIG, PROG_LIST)
+declf(OTRIG, PROG_LIST)
+declf(ATRIG, PROG_LIST)
+declf(RTRIG, PROG_LIST)
+declf(SHOP, SHOP_DATA)
+declf(AFFECT, AFFECT_DATA)
+declf(HELP, HELP_DATA)
+declf(DESCRIPTOR, DESCRIPTOR_DATA)
+#undef declf
