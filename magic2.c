@@ -2125,7 +2125,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     
     chance = 100;
     snake_count = 0;
-    while ( (snake_count + 1) * mlevel < max_snake && number_percent() <= chance ) {
+    while ( (snake_count + 1) * mlevel <= max_snake && number_percent() <= chance ) {
         
         if ((mob = create_mobile(get_mob_index(MOB_VNUM_SNAKE)))==NULL)
             return;  
