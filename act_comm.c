@@ -3053,7 +3053,7 @@ void do_bounty( CHAR_DATA *ch, char *argument )
     return;
 }
 
-char * makedrunk (char *string, CHAR_DATA * ch)
+char * makedrunk (const char *string, CHAR_DATA * ch)
 {
     /* This structure defines all changes for a character */
     struct struckdrunk drunk[] =
@@ -3112,39 +3112,34 @@ char * makedrunk (char *string, CHAR_DATA * ch)
         {"z", "z", "Z", "zZ", "szz", "sZZz", "ZSz", "ZzzZz", "Zzz", "Zsszzsz", }}
     };
     
-    static char buf[1024];
+    static char buf[MSL];
     char temp;
-    int pos = 0;
-    int drunklevel;
-    int randomnum,n1,n2,i;
+    int pos, drunklevel, randomnum;
+        
+    if ( string[0] == '\0' )
+        return string;
     
-    if (IS_AFFECTED(ch, AFF_INSANE))
+    if ( IS_AFFECTED(ch, AFF_INSANE) )
     {
-        for (pos=0; string[pos]!='\0'; pos++);
-        drunklevel=2+pos/12;
-        for (pos--; drunklevel>0; drunklevel--)
+        strcpy(buf, string);
+        // garble up character order using "reverse bubble-sort" - a "bobble sort" ;)
+        pos = 0;
+        while ( buf[pos+1] != '\0' )
         {
-            if (pos<16)
+            if ( !number_bits(2) )
             {
-                n1=number_range(0,pos);
-                n2=number_range(0,pos);
-                if (n1>n2)
-                {
-                    randomnum=n1;
-                    n1=n2;
-                    n2=randomnum;
-                }	
+                temp = buf[pos];
+                buf[pos] = buf[pos+1];
+                buf[pos+1] = temp;
+                if ( pos > 0 )
+                    pos--;
+                else
+                    pos++;
             }
             else
-            {
-                n1=number_range(0,pos-8);
-                n2=n1+number_range(1,8);
-            }
-            for (i=n1; i<=n2; i++)
-                buf[n2-i+n1]=string[i];
-            for (i=n1; i<=n2; i++)
-                string[i]=buf[i];
+                pos++;
         }
+        return buf;
     }
     
     /* Check how drunk a person is... */
