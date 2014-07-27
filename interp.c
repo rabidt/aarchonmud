@@ -112,7 +112,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "kill",       do_kill,    POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "look",       do_look,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "glance",     do_glance,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "clan",       do_clantalk,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "clan",       do_clantalk,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "cmotd",	    do_cmotd,	POS_SLEEPING, 	0,	LOG_NORMAL,  1, FALSE, TRUE },
     { "[",          do_clantalk, POS_SLEEPING, 0, LOG_NORMAL, 0, FALSE, TRUE  },
     { "proclaim",   do_religion_talk, POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -290,7 +290,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "appraise",   do_appraise, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, FALSE  },
     { "lore",       do_lore, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "zap",        do_zap,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "smoke",      do_smoke,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "tdisarm",    do_disarm_trap, POS_STANDING, 0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "spellup",    do_spellup, POS_STANDING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "smith",      do_smith,   POS_STANDING, 0, LOG_NORMAL, 1, FALSE, FALSE },
@@ -520,6 +519,11 @@ const   struct  cmd_type    cmd_table   [] =
     { "portal",     do_portal,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "reboo",      do_reboo,   POS_DEAD,   ML,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "reboot",     do_reboot,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+#ifdef TESTER
+    { "repeat",     do_repeat,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+#else
+    { "repeat",     do_repeat,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
+#endif
     { "reserve",    do_reserve, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "set",        do_set,     POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "setskill",   do_setskill,POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -558,6 +562,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "invis",      do_invis,   POS_DEAD,   L8,  LOG_NORMAL, 0, FALSE , FALSE },
     { "log",        do_log,     POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "memory",     do_memory,  POS_DEAD,   L2,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "perfmon",    do_perfmon, POS_DEAD,   L2,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "where",      do_where,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "mwhere",     do_mwhere,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "owhere",     do_owhere,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -603,7 +608,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "luahelp",    do_luahelp, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaconfig",  do_luaconfig, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaquery",   do_luaquery, POS_DEAD,  ML,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  }, 
+    { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  },    { "mudconfig",  do_mudconfig, POS_DEAD, ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
 
     /*
     * OLC
@@ -634,6 +639,9 @@ const   struct  cmd_type    cmd_table   [] =
     { "mpfind",     do_mpfind,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "lfind",      do_lfind,   POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "frfind",     do_frfind,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "findreset",  do_findreset, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "diagnostic",do_diagnostic, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "path",       do_path,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     
     /*
     * Erwin's REDIT
@@ -674,6 +682,7 @@ bool can_order( char *command, CHAR_DATA *victim )
 	    if ( victim == NULL || IS_NPC(victim) )
 	    {
 		if ( cmd_table[cmd].do_fun == do_give
+            || cmd_table[cmd].do_fun == do_put
 		     || cmd_table[cmd].do_fun == do_drop )
 		    return TRUE;
 	    }
@@ -1551,14 +1560,11 @@ void save_disabled()
         return;
     }
 
-    fclose(fpReserve);
-
     fp = fopen (DISABLED_FILE, "w");
     
     if (!fp)
     {
         bug ("Could not open " DISABLED_FILE " for writing",0);
-        fpReserve = fopen( NULL_FILE, "r" );
         return;
     }
     
@@ -1568,6 +1574,4 @@ void save_disabled()
     fprintf (fp, "%s\n",END_MARKER);
     
     fclose (fp);
-
-    fpReserve = fopen( NULL_FILE, "r" );
 }

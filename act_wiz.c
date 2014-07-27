@@ -1777,7 +1777,6 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
         char buf [MSL];
         int cost;
 
-        fclose(fpReserve);
         strcpy(buf, "../area/pre_titles.txt");
         if (!(fp = fopen(buf, "r")))
         {
@@ -1796,7 +1795,6 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
         }
         send_to_char("\n\r",victim);
         fclose(fp);
-        fpReserve = fopen( NULL_FILE, "r" );
         return FALSE;
     }
 
@@ -2443,11 +2441,11 @@ void do_omni( CHAR_DATA *ch, char *argument )
     buf[0]    = '\0';
     output    = new_buf();
     
-    sprintf( buf, "--------------------------------------------------------------------------\n\r");
+    sprintf( buf, "----------------------------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
-    sprintf( buf, "Num  Name         Login   Idle  State    Pos    [Room ]  Qst? Host\n\r");
+    sprintf( buf, "Num  Name         Login   Idle  State    Pos    [Room ]  Qst? Host            Client\n\r");
     add_buf(output,buf);    
-    sprintf( buf, "--------------------------------------------------------------------------\n\r");
+    sprintf( buf, "----------------------------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
     
     for ( d = descriptor_list; d != NULL; d = d->next )
@@ -2503,7 +2501,7 @@ void do_omni( CHAR_DATA *ch, char *argument )
         }
           
         /* Added an extra  %s for the questing check below - Astark Oct 2012 */
-        sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%s	</send>\n\r",
+        sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%-15s	</send> %s\n\r",
             d->descriptor,                          /* ID */
             wch->name,                              /* Send name through pgrep */
             wch->name,                              /* Name */
@@ -2515,7 +2513,8 @@ void do_omni( CHAR_DATA *ch, char *argument )
             IS_QUESTOR(wch) 
                 || IS_QUESTORHARD(wch) ? "Y" : "N", /* Is player on a quest? */
             d->host,                                /* Send IP through pgrep */
-            d->host);                               /* IP Address */
+            d->host,
+            d->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
         add_buf(output,buf);
     }
     
@@ -2603,7 +2602,7 @@ void do_as(CHAR_DATA *ch, char *argument)
 
 void do_pload( CHAR_DATA *ch, char *argument )
 {
-    DESCRIPTOR_DATA d;
+    DESCRIPTOR_DATA d={0};
     bool isChar = FALSE;
     char name[MAX_INPUT_LENGTH];
     
@@ -2628,12 +2627,18 @@ void do_pload( CHAR_DATA *ch, char *argument )
     if (!isChar) 
     {
         send_to_char("Load Who? Are you sure? I can't seem to find them.\n\r", ch);
+         /* load_char_obj still loads "default" character
+           even if player not found, so need to free it */
+        if (d.character)
+        {
+            free_char(d.character);
+            d.character=NULL;
+        }
         return;
     }
     
     d.character->desc 	= NULL;
-    d.character->next	= char_list;
-    char_list    		= d.character;
+    char_list_insert(d.character);
     d.connected   	= CON_PLAYING;
     reset_char(d.character);
     
@@ -2734,12 +2739,10 @@ void save_reserved(void)
     RESERVED_DATA *res;
     FILE *fp;
     
-    fclose(fpReserve);
     if (!(fp = fopen(RESERVED_LIST, "w")))
     {
         bug( "Save_reserved: cannot open " RESERVED_LIST, 0 );
         log_error(RESERVED_LIST);
-        fpReserve = fopen( NULL_FILE, "r" );
         return;
     }
     
@@ -2748,7 +2751,6 @@ void save_reserved(void)
     
     fprintf(fp, "$~\n");
     fclose(fp);
-    fpReserve = fopen(NULL_FILE, "r");
     return;
 }
 
@@ -2930,6 +2932,9 @@ void do_qlist( CHAR_DATA *ch, char *argument )
     sprintf( buf, "Quests for %s:\n\r\n\r", victim->name );
     send_to_char( buf, ch );
     show_quests( victim, ch );
+
+    send_to_char( "\n\r", ch);
+    show_luavals( victim, ch );
 }
 
 void check_sn_multiplay( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
@@ -3469,4 +3474,38 @@ void do_tables( CHAR_DATA *ch, const char *argument)
 
     do_tables( ch, "");
 
+}
+
+void do_repeat( CHAR_DATA *ch, const char *argument )
+{
+    char arg1[MIL];
+    int nr, i;
+    
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("Syntax: repeat <nr> command [arguments]\n\r", ch);
+        return;
+    }
+    
+    argument = one_argument(argument, arg1);
+    nr = atoi(arg1);
+    if ( nr < 1 || nr > 100 )
+    {
+        send_to_char("First argument must be a number between 1 and 100.\n\r", ch);
+        return;
+    }
+        
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("What command do you want to repeat?\n\r", ch);
+        return;
+    }
+    
+    for ( i = 0; i < nr; i++ )
+    {
+        interpret(ch, argument);
+        // saveguard against repeated quitting and other bright ideas
+        if ( !valid_CH(ch) || ch->must_extract )
+            return;
+    }
 }

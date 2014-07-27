@@ -33,6 +33,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
+#include <lua.h>
 #include "merc.h"
 #include "magic.h"
 #include "recycle.h"
@@ -1167,7 +1168,7 @@ void do_autorescue(CHAR_DATA *ch, char *argument)
     }
     else
     {
-        send_to_char("Your will now protect your friends.\n\r",ch);
+        send_to_char("You will now protect your friends.\n\r",ch);
         SET_BIT(ch->act,PLR_AUTORESCUE);
     }
 }
@@ -1801,7 +1802,8 @@ void do_look( CHAR_DATA *ch, char *argument )
     {
         if (++count == number)
         {
-            send_to_char(pdesc,ch);
+            if ( rp_look_ed_trigger( ch, arg3 ) )
+                send_to_char( pdesc, ch );
             return;
         }
     }
@@ -3706,6 +3708,30 @@ void do_password( CHAR_DATA *ch, char *argument )
     return;
 }
 
+char* wear_location_info( int pos )
+{
+    static char buf[MAX_STRING_LENGTH] = "";
+    char *pos_name = wear_bit_name(pos);
+    switch ( pos )
+    {
+        case ITEM_WEAR_SHIELD:
+            return "It can be used as a shield.";
+        case ITEM_HOLD:
+            return "It can be held.";
+        case ITEM_WIELD:
+            return "It can be wielded.";
+        case ITEM_WEAR_FLOAT:
+            return "It would float nearby.";
+        case ITEM_TAKE:
+        case ITEM_NO_SAC:
+        case ITEM_TRANSLUCENT:
+            return NULL;
+        default:
+            sprintf( buf, "It can be worn on the %s.", wear_bit_name(pos) );
+            return &buf;
+    }
+}
+
 void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     char buf[MAX_STRING_LENGTH], arg[MAX_INPUT_LENGTH];
@@ -3727,7 +3753,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     }
     */
 
-    sprintf( buf, "It weighs %d, and its level of power is %d.",
+    sprintf( buf, "It weighs %d pounds, and its level of power is %d.",
 	     obj->weight / 10,
 	     obj->level );
     do_say(ch, buf);
@@ -3857,20 +3883,14 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
         break;
         
     case ITEM_ARMOR:
-	sprintf( buf, "" );
-	for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
-	{
-		if( !IS_SET(obj->wear_flags, pos) )
-		    continue;
-
-		if( !strcmp( wear_bit_name(pos), "shield" ) )
-		    sprintf( buf, "It is used as a shield." );
-        	else if( !strcmp( wear_bit_name(pos), "float" ) )
-		    sprintf( buf, "It would float nearby." );
-		else if ( pos != ITEM_TAKE && pos != ITEM_NO_SAC && pos != ITEM_TRANSLUCENT )
-		    sprintf( buf, "It is worn on the %s.", wear_bit_name(pos) );
-	}
-	do_say(ch, buf);
+        for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
+        {
+            if( !IS_SET(obj->wear_flags, pos) )
+                continue;
+            char *wear = wear_location_info(pos);
+            if ( wear )
+                do_say(ch, wear);
+        }
 
         sprintf( buf, 
             "It provides an armor class of %d.", 
@@ -3901,7 +3921,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     }
     */
 
-    sprintf( buf, "It weighs %d, and its level of power is %d.",
+    sprintf( buf, "It weighs %d pounds, and its level of power is %d.",
 	     obj->weight / 10,
 	     obj->level );
     do_say(ch, buf);
@@ -4025,21 +4045,14 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         break;
         
     case ITEM_ARMOR:
-
-	sprintf( buf, "" );
-	for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
-	{
-		if( !IS_SET(obj->wear_flags, pos) )
-		    continue;
-
-		if( !strcmp( wear_bit_name(pos), "shield" ) )
-		    sprintf( buf, "It is used as a shield." );
-        	else if( !strcmp( wear_bit_name(pos), "float" ) )
-		    sprintf( buf, "It would float nearby." );
-		else if ( pos != ITEM_TAKE && pos != ITEM_NO_SAC && pos != ITEM_TRANSLUCENT )
-		    sprintf( buf, "It is worn on the %s.", wear_bit_name(pos) );
-	}
-	do_say(ch, buf);
+        for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
+        {
+            if( !IS_SET(obj->wear_flags, pos) )
+                continue;
+            char *wear = wear_location_info(pos);
+            if ( wear )
+                do_say(ch, wear);
+        }
 
         sprintf( buf, 
             "It provides an armor class of %d.", 
@@ -4448,22 +4461,21 @@ void do_disguise( CHAR_DATA *ch, char *argument )
 
 void do_stance_list( CHAR_DATA *ch, char *argument )
 {
-    int i, skill, prac;
+    int i, skill, sn;
     char buf[MSL];
 
     send_to_char( "You know the following stances:\n\r", ch );
 
     for (i = 1; stances[i].name != NULL; i++)
     {
-        prac = get_skill_prac( ch, *(stances[i].gsn));
-        if ( prac == 0 )
-            continue; 
-
-        skill = get_skill(ch, *(stances[i].gsn));
+        sn = *(stances[i].gsn);
+        skill = get_skill(ch, sn);
+        if ( skill == 0 )
+            continue;
 
         sprintf( buf, "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
                 stances[i].name,
-                ch->pcdata->learned[*(stances[i].gsn)], skill,
+                get_skill_prac(ch, sn), skill,
                 stance_cost(ch, i),
                 stances[i].weapon ? "w" : " ",
                 stances[i].martial ? "m" : " ",
@@ -4863,10 +4875,6 @@ void do_score( CHAR_DATA *ch, char *argument )
             else if( (thirst > 0 && thirst < 20) )
                 strcat( buf, "thirsty" );
         }
-
-        /* Smoke code, not fully implemented yet */
-        if( ch->pcdata->condition[COND_SMOKE] < 0 )
-            strcat( buf, ", and you need a smoke" );
     }
     strcat( buf, "." );
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
@@ -5438,7 +5446,7 @@ void do_achievements( CHAR_DATA *ch, char *argument )
     char buf2[MSL];
     int i;
     CHAR_DATA *victim;
-    DESCRIPTOR_DATA *d;
+    DESCRIPTOR_DATA *d=NULL;
     BUFFER *output;
     int col;
     int totalach = 0;
@@ -5457,12 +5465,19 @@ void do_achievements( CHAR_DATA *ch, char *argument )
     {
     	d = new_descriptor();
     
-    	if (!load_char_obj(d, argument))
-    	{
-           send_to_char("Character not found.\n\r", ch);
-           free_descriptor(d);
-           return;
-    	}
+        if (!load_char_obj(d, argument))
+        {
+            send_to_char("Character not found.\n\r", ch);
+            /* load_char_obj still loads "default" character
+               even if player not found, so need to free it */
+            if (d->character)
+            {
+                free_char(d->character);
+                d->character=NULL;
+            }
+            free_descriptor(d);
+            return;
+        }
         victim = d->character;
     }
 
@@ -5508,7 +5523,13 @@ void do_achievements( CHAR_DATA *ch, char *argument )
 	add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
     page_to_char(buf_string(output),ch);
     free_buf(output);
-	
+
+    /* if not self, need to free stuff */
+    if ( d )
+    {
+        free_char( d->character );
+         free_descriptor( d );
+    }
 }
 
 void print_ach_rewards(CHAR_DATA *ch)

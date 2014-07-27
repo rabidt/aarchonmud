@@ -212,7 +212,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((obj = get_obj_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s{x\n\r", i, obj->short_descr);
+                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                        i, 
+                        format_color_string(obj->short_descr, 30 ),
+                        format_color_string(( obj->notes ), 30 ) );
                 add_buf(buffer,buf);
             }
 
@@ -227,7 +230,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((mob = get_mob_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s{x\n\r", i, mob->short_descr);
+                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                        i, 
+                        format_color_string(mob->short_descr, 30 ),
+                        format_color_string(first_line( mob->notes ), 30 ) );
                 add_buf(buffer,buf);
             }
 
@@ -243,7 +249,10 @@ void do_vlist (CHAR_DATA *ch, char *argument)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((room = get_room_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s{x\n\r", i, room->name);
+                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                        i, 
+                        format_color_string(room->name, 30 ),
+                        format_color_string(first_line( room->notes ), 30 ) );
                 add_buf(buffer,buf);
             }
 
@@ -327,18 +336,18 @@ char* first_line( char* str )
 {
     static char buf[MIL];
     int i = 0;
-    
+
     if ( str == NULL )
     {
-	bug( "first_line: NULL string given", 0 );
-	buf[0] = '\0';
-	return buf;
+        bug( "first_line: NULL string given", 0 );
+        buf[0] = '\0';
+        return buf;
     }
 
     while ( i < MIL - 1 && str[i] != '\0' && str[i] != '\n' && str[i] != '\r' )
     {
-	buf[i] = str[i];
-	i++;
+        buf[i] = str[i];
+        i++;
     }
     buf[i] = '\0';
     return buf;
@@ -621,8 +630,8 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 	obj->weight, get_obj_weight( obj ),get_true_weight(obj) );
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Level: %d  Cost: %d  Condition: %d  Timer: %d\n\r",
-	obj->level, obj->cost, obj->condition, obj->timer );
+	sprintf( buf, "Level: %d  Cost: %d  Timer: %d\n\r",
+	obj->level, obj->cost, obj->timer );
 	send_to_char( buf, ch );
 
 	sprintf( buf,
@@ -1073,17 +1082,18 @@ void do_mstat( CHAR_DATA *ch, char *argument )
         victim->wait, victim->daze, victim->stop
     );
     send_to_char( buf, ch );
+    
+    if ( victim->stance != 0 )
+        printf_to_char(ch, "Stance: %s\n\r", capitalize(stances[victim->stance].name));
 
 	if ( !IS_NPC(victim) )
 	{
 	sprintf( buf,
-		"Thirst: %d  Hunger: %d  Full: %d  Drunk: %d  Smoke: %d  Tolerance: %d  Deep Sleep: %d  Bounty: %d\n\r",
+		"Thirst: %d  Hunger: %d  Full: %d  Drunk: %d  Deep Sleep: %d  Bounty: %d\n\r",
 		victim->pcdata->condition[COND_THIRST],
 		victim->pcdata->condition[COND_HUNGER],
 		victim->pcdata->condition[COND_FULL],
 		victim->pcdata->condition[COND_DRUNK],
-		victim->pcdata->condition[COND_SMOKE],
-		victim->pcdata->condition[COND_TOLERANCE],
 		victim->pcdata->condition[COND_DEEP_SLEEP],
 		victim->pcdata->bounty );
 	send_to_char( buf, ch );
@@ -1194,9 +1204,9 @@ void do_mstat( CHAR_DATA *ch, char *argument )
      } 
          
  
-	sprintf( buf, "Short description: %s\n\rLong  description: %s",
+	sprintf( buf, "Short description: %s\n\rLong  description: %s\n\r",
 	victim->short_descr,
-	victim->long_descr[0] != '\0' ? victim->long_descr : "(none)\n\r" );
+	victim->long_descr[0] != '\0' ? victim->long_descr : "(none)" );
 	send_to_char( buf, ch );
 
 	if ( IS_NPC(victim) && victim->spec_fun != 0 )
@@ -2275,6 +2285,18 @@ MSETFUN( namecolor )
     return color_name( ch, arg3, victim );
 }
 
+
+MSETFUN( remorts )
+{
+    if (value < 0 || value > 10 )
+    {
+        send_to_char("Remort range is 0 to 10.\n\r",ch);
+        return FALSE;
+    }
+    victim->pcdata->remorts = value;
+    return TRUE;
+}
+
 struct
 {
     const char *field;
@@ -2321,6 +2343,7 @@ struct
     {"law",       MSETPCONLY,   mset_law},
     {"ptitle",    MSETPCONLY,   mset_ptitle},
     {"namecolor", MSETPCONLY,   mset_namecolor},
+    {"remorts",   MSETPCONLY,   mset_remorts},
     {NULL,        MSETNONE,     NULL}
 };
    

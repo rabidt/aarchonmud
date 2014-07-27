@@ -44,7 +44,6 @@ int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
 char *flag_string( const struct flag_type *flag_table, tflag bits );
 char *flag_stat_string( const struct flag_type *flag_table, int bit );
 
-#define VER_NEW_MOB_LDESC 3
 #define VER_ONE_AC_VAL    4
 #define FLAG_READ_SET(fp,flag,set_flag) fread_tflag(fp,flag); flag_set_field(flag,set_flag)
 
@@ -225,7 +224,7 @@ void load_mobiles( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pMprog              = alloc_perm(sizeof(*pMprog));
+                pMprog              = alloc_MTRIG();
                 word   		    = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -279,7 +278,7 @@ MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
     MOB_INDEX_DATA *pMobIndex;
     long actual, spec, base;
 
-    pMobIndex = alloc_perm( sizeof(*pMobIndex) );
+    pMobIndex = alloc_MOBPROTO();
 
     // identical fields, just copy
     MCOPY(vnum);
@@ -397,7 +396,7 @@ void load_mobbles( FILE *fp )
             exit( 1 );
         }
 
-        pMobIndex                       = alloc_perm( sizeof(*pMobIndex) );
+        pMobIndex                       = alloc_MOBPROTO();
         pMobIndex->vnum                 = vnum;
         pMobIndex->area                 = area_last;
         pMobIndex->pShop                = NULL;
@@ -460,6 +459,10 @@ void load_mobbles( FILE *fp )
             {
                 pMobIndex->description = fread_string( fp );
                 pMobIndex->description[0] = UPPER(pMobIndex->description[0]);
+            }
+            else if KEY("NOTES")
+            {
+                pMobIndex->notes = fread_string( fp );
             }
             else if KEY("RACE")
             {
@@ -530,7 +533,7 @@ void load_mobbles( FILE *fp )
                 char *word;
                 int trigger = 0;
 
-                pMprog              = alloc_perm(sizeof(*pMprog));
+                pMprog              = alloc_MTRIG();
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -553,6 +556,9 @@ void load_mobbles( FILE *fp )
 
         SET_BIT( pMobIndex->act, ACT_IS_NPC );
 
+        if ( !pMobIndex->notes )
+            pMobIndex->notes=str_dup("");
+
         index_mobile ( pMobIndex );
     }
 
@@ -565,6 +571,7 @@ void load_mobbles( FILE *fp )
  */
 void load_objects( FILE *fp )
 {
+    extern int area_version;
     OBJ_INDEX_DATA *pObjIndex;
 
     if ( !area_last )   /* OLC */
@@ -597,7 +604,7 @@ void load_objects( FILE *fp )
             exit( 1 );
         }
 
-        pObjIndex                       = alloc_perm( sizeof(*pObjIndex) );
+        pObjIndex                       = alloc_OBJPROTO();
         pObjIndex->vnum                 = vnum;
         pObjIndex->area                 = area_last;            /* OLC */
         pObjIndex->reset_num		= 0;
@@ -656,13 +663,6 @@ void load_objects( FILE *fp )
                 pObjIndex->value[3]		= skill_lookup(fread_word(fp));
                 pObjIndex->value[4]		= skill_lookup(fread_word(fp));
                 break;
-            case ITEM_CIGARETTE:
-                pObjIndex->value[0]		= fread_number(fp);
-                pObjIndex->value[1]		= fread_number(fp);
-                pObjIndex->value[2]		= skill_lookup(fread_word(fp));
-                pObjIndex->value[3]		= skill_lookup(fread_word(fp));
-                pObjIndex->value[4]		= skill_lookup(fread_word(fp));
-                break;
             case ITEM_EXPLOSIVE:
                 pObjIndex->value[0]      = fread_number(fp);
                 pObjIndex->value[1]      = fread_number(fp);
@@ -681,9 +681,14 @@ void load_objects( FILE *fp )
         pObjIndex->level		= fread_number( fp );
         pObjIndex->weight               = fread_number( fp );
         pObjIndex->cost                 = fread_number( fp );
-        pObjIndex->durability		= fread_number( fp ); 
+        /*pObjIndex->durability		= fread_number( fp );*/
+        if ( area_version < VER_UPDATE_OBJ_FMT )
+        {
+            fread_number( fp ); /* read durability */
 
         /* condition */
+            fread_letter( fp ); /* read condition */
+        /*
         letter 				= fread_letter( fp );
         switch (letter)
         {
@@ -695,6 +700,8 @@ void load_objects( FILE *fp )
             case ('B') :		pObjIndex->condition =  10; break;
             case ('R') :		pObjIndex->condition =   0; break;
             default:			pObjIndex->condition = 100; break;
+        }*/
+
         }
 
         for ( ; ; )
@@ -814,34 +821,41 @@ void load_objects( FILE *fp )
         /* load obj progs if any */
         while (TRUE)
         {
-        letter = fread_letter( fp );
-        if ( letter == 'O' ) /* we have oprogs */
-        {
-            PROG_LIST *pOprog;
-            char *word;
-            int trigger = 0;
-
-            pOprog              = alloc_perm(sizeof(*pOprog));
-            word                = fread_word( fp );
-            if ( (trigger = flag_lookup( word, oprog_flags )) == NO_FLAG )
+            letter = fread_letter( fp );
+            if ( letter == 'O' ) /* we have oprogs */
             {
-                bugf("load_obj.O: invalid trigger '%s' for object %d.", word, vnum);
-                exit(1);
+                PROG_LIST *pOprog;
+                char *word;
+                int trigger = 0;
+
+                pOprog              = alloc_OTRIG();
+                word                = fread_word( fp );
+                if ( (trigger = flag_lookup( word, oprog_flags )) == NO_FLAG )
+                {
+                    bugf("load_obj.O: invalid trigger '%s' for object %d.", word, vnum);
+                    exit(1);
+                }
+                SET_BIT( pObjIndex->oprog_flags, trigger );
+                pOprog->trig_type   = trigger;
+                pOprog->vnum        = fread_number( fp );
+                pOprog->trig_phrase = fread_string( fp );
+                pOprog->next        = pObjIndex->oprogs;
+                pObjIndex->oprogs   = pOprog;
             }
-            SET_BIT( pObjIndex->oprog_flags, trigger );
-            pOprog->trig_type   = trigger;
-            pOprog->vnum        = fread_number( fp );
-            pOprog->trig_phrase = fread_string( fp );
-            pOprog->next        = pObjIndex->oprogs;
-            pObjIndex->oprogs   = pOprog;
-        }
-        else
-        {
-            ungetc( letter, fp );
-            break;
-        }
+            else if ( letter == 'N' )
+            {
+                pObjIndex->notes = fread_string( fp );
+            }
+            else
+            {
+                ungetc( letter, fp );
+                break;
+            }
         }
         
+        if ( !pObjIndex->notes )
+            pObjIndex->notes = str_dup( "" );
+
         iHash                   = vnum % MAX_KEY_HASH;
         pObjIndex->next         = obj_index_hash[iHash];
         obj_index_hash[iHash]   = pObjIndex;
@@ -869,9 +883,6 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
     int door; 
     AFFECT_DATA *paf;
     CHAR_DATA *mob;
-
-    /* open file */
-    fclose(fpReserve);
 
     /* start printing out mobile data */
     fp = fopen("../mob.txt","w");
@@ -1052,8 +1063,8 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
                     wear_bits_name(obj->wear_flags), extra_bits_name( obj->extra_flags ) );
             fprintf( fp, buf );
 
-            sprintf( buf, "Level: %d  Cost: %d  Condition: %d  Timer: %d\n",
-                    obj->level, obj->cost, obj->condition, obj->timer );
+            sprintf( buf, "Level: %d  Cost: %d  Timer: %d\n",
+                    obj->level, obj->cost, obj->timer );
             fprintf( fp, buf );
 
             sprintf( buf,
@@ -1337,8 +1348,6 @@ void do_new_dump( CHAR_DATA *ch, char *argument )
 
     /* close file */
     fclose(fp);
-
-    fpReserve = fopen( NULL_FILE, "r" );
 
     send_to_char( "Done writing files...\n\r", ch );
 }

@@ -253,7 +253,7 @@ void do_bash( CHAR_DATA *ch, char *argument )
     }
 
     /* deal damage */
-    dam = one_hit_damage(ch, gsn_bash, NULL) / 2;
+    dam = one_hit_damage(ch, victim, gsn_bash, NULL) / 2;
     if ( IS_SET(ch->parts, PART_TUSKS) )
 	full_dam(ch,victim, dam * 3/2, gsn_bash, DAM_PIERCE,TRUE);
     else
@@ -558,7 +558,7 @@ void do_headbutt( CHAR_DATA *ch, char *argument )
     if ( check_hit(ch, victim, gsn_headbutt, DAM_BASH, chance) )
     {
         int dam_type = DAM_BASH;
-        dam = one_hit_damage( ch, gsn_headbutt, NULL ) * 3;
+        dam = one_hit_damage( ch, victim, gsn_headbutt, NULL ) * 3;
 
         if( IS_SET(ch->parts, PART_HORNS) )
         {
@@ -690,7 +690,7 @@ void spray_attack( CHAR_DATA *ch, char *argument, int sn )
     {
         send_to_char("You shoot yourself in the foot!\n\r", ch);
         act( "$n shoots $mself in the foot!", ch, NULL, NULL, TO_ROOM);
-        damage(ch, ch, one_hit_damage(ch, sn, first), sn, get_weapon_damtype(first), TRUE);
+        damage(ch, ch, one_hit_damage(ch, ch, sn, first), sn, get_weapon_damtype(first), TRUE);
         check_improve(ch, sn, FALSE, 2);
         return;
     }
@@ -900,49 +900,60 @@ void do_aim( CHAR_DATA *ch, char *argument )
         
     if ( ( obj = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
     {    
-        send_to_char( "You need to wield a gun to aim.\n\r", ch );
+        send_to_char( "You need to wield a ranged weapon to aim.\n\r", ch );
         return;
     }
-                 
-    /* If first weapon is not a gun, MAY be able to aim with offhand gun */
-    if (get_weapon_sn_new(ch,FALSE) != gsn_gun )                                         
-    {   
-        /* Nope, offhand weapon is not a gun. */
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
+
+    if ( get_weapon_sn_new(ch,FALSE) == gsn_bow )
+    {
+        if ( get_eq_char(ch, WEAR_HOLD) == !ITEM_ARROWS )
         {
-            send_to_char( "You need a gun to aim.\n\r", ch);
+            send_to_char( "Without arrows that's not going to work.\n\r", ch );
             return;
-        }
-        else
-        {
-            secondgun = TRUE;
-            obj = get_eq_char(ch, WEAR_SECONDARY);
-            if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-            {
-                 send_to_char( "You can't aim with a jammed gun.\n\r", ch);
-                 return;
-            }
         }
     }
-    /* First weapon IS a gun, now check if it's jammed .. may have to use offhand gun */
-    else if (IS_SET(obj->extra_flags, ITEM_JAMMED))
+    else
     {
-        /* Nope, offhand weapon is not a gun. */
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            send_to_char( "You can't aim with a jammed gun.\n\r", ch);
-            return;
-        }
-        else 
+        /* If first weapon is not a gun, MAY be able to aim with offhand gun */
+        if (get_weapon_sn_new(ch,FALSE) != gsn_gun )                                         
         {   
-            secondgun = TRUE;
-            obj = get_eq_char(ch, WEAR_SECONDARY);
-            if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
+            /* Nope, offhand weapon is not a gun. */
+            if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
             {
-                 send_to_char( "Your guns are both jammed.\n\r", ch);
-                 return;
+                send_to_char( "You need a ranged weapon to aim.\n\r", ch);
+                return;
             }
-        }   
+            else
+            {
+                secondgun = TRUE;
+                obj = get_eq_char(ch, WEAR_SECONDARY);
+                if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
+                {
+                    send_to_char( "You can't aim with a jammed gun.\n\r", ch);
+                    return;
+                }
+            }
+        }
+        /* First weapon IS a gun, now check if it's jammed .. may have to use offhand gun */
+        else if (IS_SET(obj->extra_flags, ITEM_JAMMED))
+        {
+            /* Nope, offhand weapon is not a gun. */
+            if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
+            {
+                send_to_char( "You can't aim with a jammed gun.\n\r", ch);
+                return;
+            }
+            else 
+            {   
+                secondgun = TRUE;
+                obj = get_eq_char(ch, WEAR_SECONDARY);
+                if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
+                {
+                    send_to_char( "Your guns are both jammed.\n\r", ch);
+                    return;
+                }
+            }   
+        }
     }
 
     /* At this point, EITHER:
@@ -1522,7 +1533,7 @@ void do_kick( CHAR_DATA *ch, char *argument )
 
     if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
     {
-        dam = martial_damage( ch, gsn_kick );
+        dam = martial_damage( ch, victim, gsn_kick );
 
         full_dam(ch,victim, dam, gsn_kick,DAM_BASH,TRUE);
         check_improve(ch,gsn_kick,TRUE,3);
@@ -1963,7 +1974,7 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
     
     if ( number_percent( ) < chance) 
     {
-	dam = martial_damage( ch, gsn_uppercut );
+	dam = martial_damage( ch, victim, gsn_uppercut );
 	dam = number_range( dam, 3*dam );
 
 	check_improve(ch,gsn_uppercut,TRUE,1);
@@ -2439,7 +2450,7 @@ void do_chop( CHAR_DATA *ch, char *argument )
 
         if ( check_hit(ch, victim, gsn_chop, DAM_SLASH, chance) )
         {
-            dam = martial_damage( ch, gsn_chop );
+            dam = martial_damage( ch, victim, gsn_chop );
             full_dam(ch,victim, dam, gsn_chop,DAM_SLASH,TRUE);
             check_improve(ch,gsn_chop,TRUE,3);
         }
@@ -2477,7 +2488,7 @@ void do_bite( CHAR_DATA *ch, char *argument )
 
         if ( check_hit(ch, victim, gsn_bite, DAM_PIERCE, chance) )
         {
-            dam = martial_damage( ch, gsn_bite );
+            dam = martial_damage( ch, victim, gsn_bite );
             full_dam(ch,victim, dam, gsn_bite,DAM_PIERCE,TRUE);
             check_improve(ch,gsn_bite,TRUE,3);
 	    CHECK_RETURN(ch, victim);
@@ -2627,7 +2638,7 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
     }
     
     /* deal damage */
-    dam = one_hit_damage(ch, gsn_shield_bash, NULL);
+    dam = one_hit_damage(ch, victim, gsn_shield_bash, NULL);
     dam += dam * mastery_bonus(ch, gsn_shield_bash, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_shield_bash,DAM_BASH,TRUE);
     check_improve(ch,gsn_shield_bash,TRUE,1);
@@ -2731,7 +2742,7 @@ void do_charge( CHAR_DATA *ch, char *argument )
     }
     
     /* deal damage */
-    dam = one_hit_damage(ch, gsn_charge, NULL) * 2;
+    dam = one_hit_damage(ch, victim, gsn_charge, NULL) * 2;
     dam += dam * mastery_bonus(ch, gsn_charge, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_charge,DAM_BASH,TRUE);
     check_improve(ch,gsn_charge,TRUE,1);
@@ -2783,8 +2794,8 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
             act("You bury your weapons deep in $N, then rip them out sideways!", ch, NULL, victim, TO_CHAR);
             act("$n buries $s weapons deep in your body, then rips them out sideways!", ch, NULL, victim, TO_VICT);
             act("$n buries $s weapons deep in $N, then rips them out sideways!", ch, NULL, victim, TO_NOTVICT);
-            int dam = one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_WIELD))
-                    + one_hit_damage(ch, gsn_double_strike, get_eq_char(ch, WEAR_SECONDARY));
+            int dam = one_hit_damage(ch, victim, gsn_double_strike, get_eq_char(ch, WEAR_WIELD))
+                    + one_hit_damage(ch, victim, gsn_double_strike, get_eq_char(ch, WEAR_SECONDARY));
             int dt_rend = TYPE_HIT + 102; // see attack_table in const.c
             deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE);
         }
@@ -3016,7 +3027,7 @@ void do_roundhouse( CHAR_DATA *ch, char *argument )
    CHAR_DATA *vch_next;
    int skill, dam; 
 
-   dam = martial_damage( ch, gsn_roundhouse );
+   dam = martial_damage( ch, NULL, gsn_roundhouse );
 
    if ( (skill = get_skill(ch, gsn_roundhouse)) == 0 )
    {
@@ -3129,7 +3140,7 @@ void do_hurl( CHAR_DATA *ch, char *argument )
         act( "$n hurls $N across the room!",  ch, NULL, victim, TO_NOTVICT );
         check_improve(ch,gsn_hurl,TRUE,1);
         
-        dam = martial_damage( ch, gsn_hurl );
+        dam = martial_damage( ch, victim, gsn_hurl );
         
         DAZE_STATE( victim, 2*PULSE_VIOLENCE + victim->size - SIZE_MEDIUM );
         WAIT_STATE( victim, PULSE_VIOLENCE );
@@ -3212,7 +3223,7 @@ void do_mug( CHAR_DATA *ch, char *argument )
     
     if (number_percent() < skill)
     {
-        dam = martial_damage(ch, gsn_mug);
+        dam = martial_damage(ch, victim, gsn_mug);
         
         damage(ch,victim, dam, gsn_mug,DAM_PIERCE,TRUE);
         check_improve(ch,gsn_mug,TRUE,1);
@@ -3319,7 +3330,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
     if ( per_chance(chance) )
     {
         // initial punch to set up
-        int dam = martial_damage(ch, gsn_fatal_blow);
+        int dam = martial_damage(ch, victim, gsn_fatal_blow);
         full_dam(ch, victim, dam, gsn_fatal_blow, DAM_BASH, TRUE);
         CHECK_RETURN(ch, victim);
         // second blow for massive damage
@@ -3589,7 +3600,7 @@ void do_rake( CHAR_DATA *ch, char *argument )
     CHAR_DATA *vch_next;
     int skill, dam; 
 
-   dam = martial_damage( ch, gsn_razor_claws );
+   dam = martial_damage( ch, NULL, gsn_razor_claws );
 
    if ( (skill = get_skill(ch, gsn_razor_claws)) == 0 )
    {
@@ -3798,18 +3809,19 @@ void do_strafe( CHAR_DATA *ch, char *argument )
 
     WAIT_STATE( ch, skill_table[gsn_strafe].beats );
 
-    if ( number_percent() > (skill + 3))
+    if ( !per_chance(skill) )
     {
-	send_to_char( "You fumble your arrows.\n\r", ch );
-	check_improve( ch, gsn_strafe, FALSE, 3 );
+        send_to_char( "You fumble your arrows.\n\r", ch );
+        check_improve( ch, gsn_strafe, FALSE, 3 );
     }
     else
     {
-	act( "You strafe toward $N rapidly firing arrows!", ch, NULL, victim, TO_CHAR );
-	one_hit( ch, victim, gsn_strafe, FALSE );
-	one_hit( ch, victim, gsn_strafe, FALSE );
-	one_hit( ch, victim, gsn_strafe, FALSE );
-	check_improve( ch, gsn_strafe, TRUE, 3 );
+        act( "You strafe toward $N rapidly firing arrows!", ch, NULL, victim, TO_CHAR );
+        one_hit( ch, victim, gsn_strafe, FALSE );
+        one_hit( ch, victim, gsn_strafe, FALSE );
+        if ( per_chance(mastery_bonus(ch, gsn_strafe, 40, 50)) )
+            one_hit( ch, victim, gsn_strafe, FALSE );
+        check_improve( ch, gsn_strafe, TRUE, 3 );
     }
 }
 
@@ -4330,7 +4342,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         return;
     }
 
-    dam = one_hit_damage(ch, gsn_quivering_palm, NULL) * 3;
+    dam = one_hit_damage(ch, victim, gsn_quivering_palm, NULL) * 3;
 
     if ( number_bits(2))
     {

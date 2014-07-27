@@ -51,9 +51,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
 
   if (multi_target)
   {
-      /* more damage if no main target */
-      if ( victim != NULL )
-	  dam = dam * 3/4;
+    dam *= AREA_SPELL_FACTOR;
 
     /* effect to room */
     (*effect_fun)(ch->in_room, level, dam, TARGET_ROOM);
@@ -61,39 +59,21 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
     /* damage and effect to people in room */
     for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
     {
-      vch_next = vch->next_in_room;
+        vch_next = vch->next_in_room;
         
-      if (is_safe_spell(ch,vch, vch != victim)
-	  || (IS_NPC(vch) && IS_NPC(ch) 
-	      && ch->fighting != vch && vch->fighting != ch))
-	continue;
+        if ( is_safe_spell(ch,vch, vch != victim) || (IS_NPC(vch) && IS_NPC(ch) && ch->fighting != vch && vch->fighting != ch) )
+            continue;
         
-      if (vch == victim) /* full damage */
-      {
-	if (saves_spell(vch, ch, level, dam_type))
-	{
-	  (*effect_fun)(vch, level/2, dam/2, TARGET_CHAR);
-	  full_dam(ch, vch, dam/2, sn, dam_type, TRUE);
-	}
-	else
-	{
-	  (*effect_fun)(vch, level, dam, TARGET_CHAR);
-	  full_dam(ch, vch, dam, sn, dam_type, TRUE);
-	}
-      }
-      else /* half damage */
-      {
-	if (saves_spell(vch, ch, level, dam_type))
-	{
-	  (*effect_fun)(vch, level/2, dam/4, TARGET_CHAR);
-	  full_dam(ch, vch, dam/4, sn, dam_type, TRUE);
-	}
-	else
-	{
-	  (*effect_fun)(vch, level, dam/2, TARGET_CHAR);
-	  full_dam(ch, vch, dam/2, sn, dam_type, TRUE);
-	}
-      }
+        if (saves_spell(vch, ch, level, dam_type))
+        {
+            (*effect_fun)(vch, level/2, dam/2, TARGET_CHAR);
+            full_dam(ch, vch, dam/2, sn, dam_type, TRUE);
+        }
+        else
+        {
+            (*effect_fun)(vch, level, dam, TARGET_CHAR);
+            full_dam(ch, vch, dam, sn, dam_type, TRUE);
+        }
     }
   }
   else /* single target */

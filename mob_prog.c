@@ -41,6 +41,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <ctype.h>
+#include <lua.h>
 #include "merc.h"
 #include "tables.h"
 #include "lookup.h"
@@ -1393,7 +1394,7 @@ void program_flow(
 #endif
 
 	  /* savety-net against mob disappearing during execution */
-	  if ( IS_DEAD(mob) )
+	  if ( mob->must_extract || !mob->in_room )
 	      break;
        }
     }

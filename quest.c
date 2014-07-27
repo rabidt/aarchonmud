@@ -15,8 +15,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <lua.h>
 #include "merc.h"
 #include "special.h"
+#include "lua_arclib.h"
+#include "mudconfig.h"
 
 DECLARE_DO_FUN( do_say );
 DECLARE_DO_FUN( do_startwar );
@@ -110,6 +113,7 @@ char* list_quest_items()
     QUEST_ITEM *qi;
     OBJ_INDEX_DATA *obj;
     int i;
+    char * wloc;
     
     list_buf[0] = '\0';
     for ( i = 0; quest_item_table[i].vnum != 0; i++ )
@@ -117,7 +121,42 @@ char* list_quest_items()
 	qi = &(quest_item_table[i]);
 	if ( (obj = get_obj_index(qi->vnum)) == NULL || !strcmp(qi->name,"") )
 	    continue;
-	sprintf( buf, "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
+
+        if (IS_SET(obj->wear_flags, ITEM_WEAR_FINGER))
+            wloc = "<finger>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_NECK))
+            wloc = "<neck>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_TORSO))
+            wloc = "<torso>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_HEAD))
+            wloc = "<head>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_LEGS ))
+            wloc = "<legs>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_FEET ))
+            wloc = "<feet>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_HANDS ))
+            wloc = "<hands>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_ARMS ))
+            wloc = "<arms>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_SHIELD ))
+            wloc = "<shield>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_ABOUT ))
+            wloc = "<body>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_WAIST ))
+            wloc = "<waist>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_WRIST ))
+            wloc = "<wrist>";
+        else if (IS_SET(obj->wear_flags, ITEM_WIELD ))
+            wloc = "<weapon>";
+        else if (IS_SET(obj->wear_flags, ITEM_HOLD ))
+            wloc = "<held>";
+        else if (IS_SET(obj->wear_flags, ITEM_WEAR_FLOAT ))
+            wloc = "<floating>";
+        else
+            wloc = "<not defined>";
+
+//	sprintf( buf, "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
+	sprintf( buf, "%5dqp   %-10s    %s\n\r", qi->cost, wloc, obj->short_descr);
 	strcat( list_buf, buf );
     }
     return list_buf;
@@ -180,7 +219,7 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 	    return FALSE;
 	}
 	
-	if (!strcmp(qi->name,""))
+	if ( !strcmp(qi->name,"") || cfg_refund_qeq )
 	{
 	    qp_gain = qi->cost;//refund full cost on old items
             do_say( quest_man, "As you like, I can refund you the whole cost!" );
@@ -434,16 +473,19 @@ void do_quest(CHAR_DATA *ch, char *argument)
     {
         act( "$n asks $N for a list of quest items.", ch, NULL, questman, TO_ROOM); 
         act ("You ask $N for a list of quest items.",ch, NULL, questman, TO_CHAR);
-        sprintf(buf, "Current Quest Items available for Purchase:\n\r");
+/*        sprintf(buf, "Current Quest Items available for Purchase:\n\r"); */
+        sprintf(buf, "{w Cost   Wear Location   Name{x\n\r");
+        strcat(buf, "-------------------------------\n\r");
 	strcat( buf, list_quest_items() );
 /*      strcat(buf, "500qp...........100,000 gold\n\r");  */
-        strcat(buf, "  250qp..........50 practices\n\r");
-	strcat(buf, "  200qp..........Change name 'color'.\n\r");
-	strcat(buf, "  200qp..........Change pretitle (ptitle).\n\r");
-        strcat(buf, "  100qp..........Experience (1/4 exp per level)\n\r");
-	strcat(buf, "   50qp..........Warfare\n\r");
+        strcat(buf, "  250qp.................50 practices\n\r");
+	strcat(buf, "  200qp.................Change name 'color'.\n\r");
+	strcat(buf, "  200qp.................Change pretitle (ptitle).\n\r");
+        strcat(buf, "  100qp.................Experience (1/4 exp per level)\n\r");
+	strcat(buf, "   50qp.................Warfare\n\r");
+        strcat(buf, "\n\r");
         strcat(buf, "To buy an item, type 'QUEST BUY <item>'.\n\r");
-        strcat(buf, "To see a list of items, type 'HELP QUESTITEMS'\n\r");
+        strcat(buf, "To see a list of items, type '\t<send href='help questitems'>{whelp questitems{x\t</send>'\n\r");
         send_to_char(buf, ch);
         return;
       }
@@ -738,6 +780,9 @@ void do_quest(CHAR_DATA *ch, char *argument)
         int reward_silver = 0, reward_points = 0, reward_prac = 0, reward_exp = 0;
         int luck = ch_luc_quest(ch);
         CHAR_DATA *quest_obj = get_char_obj_vnum(ch, ch->pcdata->questobj);
+        int prac_chance = IS_SET(ch->act, PLR_QUESTORHARD) ? 20 : 15;
+        if ( IS_AFFECTED(ch, AFF_FORTUNE) )
+            prac_chance += 5;
 
         // kill mob quest (completed)
         if ( ch->pcdata->questmob == -1 )
@@ -746,7 +791,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( 15*ch->level, 50*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
-                if ( per_chance(20) )
+                if ( per_chance(prac_chance) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(50, 100+luck);
                 ch->pcdata->quest_hard_success++;
@@ -755,7 +800,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( 1, 12*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
-                if ( per_chance(15) )
+                if ( per_chance(prac_chance) )
                     reward_prac = number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
             }
@@ -771,7 +816,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( ch->level, 30*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
-                if ( per_chance(20) )
+                if ( per_chance(prac_chance) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
                 ch->pcdata->quest_hard_success++;
@@ -780,7 +825,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( 1, 12*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
-                if ( per_chance(15) )
+                if ( per_chance(prac_chance) )
                     reward_prac = number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
             }
@@ -792,12 +837,23 @@ void do_quest(CHAR_DATA *ch, char *argument)
             return;
         }
         
-        // general adjustments
-        reward_points += reward_points * get_religion_bonus(ch) / 100;
-
-        // notify of rewards
         sprintf(buf, "Congratulations on completing your quest!");
         do_say(questman, buf);
+        
+        // general adjustments
+        reward_points += reward_points * get_religion_bonus(ch) / 100;
+        if ( cfg_enable_qp_mult )
+        {
+            reward_points = (int)(reward_points * cfg_qp_mult );
+            if ( cfg_show_qp_mult )
+            {
+                sprintf(buf, "There's currently a qp bonus of %d%%!", (int)((cfg_qp_mult*100)-99.5));
+                do_say(questman, buf );
+            }
+
+        }
+
+        // notify of rewards
         sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.", reward_points, reward_silver);
         do_say(questman, buf);
         if ( reward_prac > 0 )
@@ -1500,6 +1556,36 @@ void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch )
     }
 }
 
+void show_luavals( CHAR_DATA *ch, CHAR_DATA *to_ch )
+{
+    char buf[MSL];
+    LUA_EXTRA_VAL *luaval;
+
+    if ( ch == NULL || to_ch == NULL )
+    {
+        bugf( "show_luavals: NULL pointer" );
+        return;
+    }
+
+    if ( !ch->luavals )
+    {
+        send_to_char( "No luavals.\n\r", to_ch );
+        return;
+    }
+
+    ptc( to_ch, "%-20s %-20s %s\n\r", "Name", "Value", "Persist" );
+    send_to_char( "=================================================\n\r", to_ch );
+
+    for ( luaval = ch->luavals ; luaval ; luaval = luaval->next )
+    {
+        ptc( to_ch, "%-20s %-20s %s\n\r",
+                luaval->name,
+                luaval->val,
+                luaval->persist ? "TRUE" : "FALSE" );
+    }
+    return;
+}
+
 bool color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
 {
   char arg2 [MAX_INPUT_LENGTH];
@@ -1637,7 +1723,6 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
 
   if (!strcmp(arg2, "list"))
   {
-    fclose(fpReserve);
     strcpy(buf, "../area/pre_titles.txt");
     if (!(fp = fopen(buf, "r")))
     {
@@ -1658,12 +1743,10 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
     }
     send_to_char("Use 'clear' argument to remove pretitle at no cost.\n\r",ch);
     fclose (fp);
-    fpReserve = fopen( NULL_FILE, "r" );
     return FALSE;
   }
 
 
-  fclose(fpReserve);
   strcpy(buf, "../area/pre_titles.txt");
   if (!(fp = fopen(buf, "r")))
   {
@@ -1687,7 +1770,9 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
       send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
     else
       send_to_char("Title not found. 'ptitle list' for titles,\n\r",ch);
-    return;
+
+    fclose(fp);
+    return FALSE;
   }
 
   cost = fread_number( fp );
@@ -1721,7 +1806,6 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
     }
   }
   fclose(fp);
-  fpReserve = fopen( NULL_FILE, "r" );
   return TRUE;
 }
 

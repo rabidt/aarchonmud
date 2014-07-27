@@ -30,9 +30,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <lua.h>
 #include "merc.h"
 #include "tables.h"
 #include "lua_scripting.h"
+#include "mudconfig.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_split     );
@@ -291,6 +293,10 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
 
     if ( obj->item_type == ITEM_MONEY)
     {
+        if ( cfg_enable_gold_mult && cfg_show_gold_mult && container && container->item_type == ITEM_CORPSE_NPC )
+        {
+            ptc(ch, "Creatures currently carry %d%% more gold!\n\r", (int)((cfg_gold_mult*100)-99.5));
+        }
         add_money( ch, obj->value[1], obj->value[0], NULL );
         if (IS_SET(ch->act,PLR_AUTOSPLIT))
         { /* AUTOSPLIT code */
@@ -1015,7 +1021,7 @@ void do_give( CHAR_DATA *ch, char *argument )
 
             else if (change < 1 && can_see(victim,ch))
             {
-                act("$n tells you 'I'm sorry, I cannot change that amount for you.'",victim,NULL,ch,TO_VICT);
+                act("{t$n tells you {T'I'm sorry, I cannot change that amount for you.'{x",victim,NULL,ch,TO_VICT);
                 //ch->reply = victim;
                 sprintf(buf,"%d %s %s", amount, silver ? "silver" : "gold",ch->name);
                 do_give(victim,buf);
@@ -1029,7 +1035,7 @@ void do_give( CHAR_DATA *ch, char *argument )
                     sprintf(buf,"%d silver %s", (95 * amount / 100 - change * 100),ch->name);
                     do_give(victim,buf);
                 }
-                act("$n tells you 'Thank you, come again.'", victim,NULL,ch,TO_VICT);
+                act("{t$n tells you {T'Thank you, come again.'{x", victim,NULL,ch,TO_VICT);
                 //ch->reply = victim;
             }
             else
@@ -1782,83 +1788,6 @@ void do_eat( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_smoke( CHAR_DATA *ch, char *argument )
-{
-    char arg[MAX_INPUT_LENGTH];
-    OBJ_DATA *obj;
-
-    one_argument( argument, arg );
-    if ( arg[0] == '\0' )
-    {
-        send_to_char( "Smoke what?\n\r", ch );
-        return;
-    }
-
-    if ( ( obj = get_obj_carry( ch, arg, ch ) ) == NULL )
-    {
-        send_to_char( "You do not have that item.\n\r", ch );
-        return;
-    }
-
-    if (obj->level>ch->level+5)
-    {
-        send_to_char("Its too hard to light.\n\r",ch);
-        return; 
-    }
-
-    if ( obj->item_type != ITEM_CIGARETTE )
-    {
-        send_to_char( "You cant smoke that.\n\r", ch );
-        return;
-    }
-
-    if ( !IS_NPC(ch) && ch->pcdata->condition[COND_SMOKE] > 40)
-    {   
-        send_to_char( "Your head is already swimming.\n\r", ch );
-        return;
-    }
-
-    if ( !can_use_obj(ch, obj) )
-    {
-        send_to_char("It wouldnt be a good idea to light that up.\n\r",ch);
-        return;
-    }
-
-    act( "You smoke $p.", ch, obj, NULL, TO_CHAR );
-    act( "$n smokes $p.",  ch, obj, NULL, TO_ROOM );
-
-    if ( !IS_NPC(ch) )
-    {
-        int c1, c2;
-
-        c1 = ch->pcdata->condition[COND_SMOKE];
-        gain_condition( ch, COND_SMOKE, c2=obj->value[0] );
-        c2+=c1;
-        if ( c1 < -2 && c2 >0 )
-            send_to_char( "Your hands stop shaking.\n\r", ch );
-        c1=c2-ch->pcdata->condition[COND_TOLERANCE];
-        if (c1>60)
-            send_to_char("You are violently sick.  You wretch all over.\n\r", ch);
-        else if (c1>40)
-            send_to_char("Your stomach turns somersaults.\n\r",ch);
-        else if (c1>20)
-            send_to_char("You turn green.\n\r",ch);
-        else if (c1>10)
-            send_to_char("You hack and wheeze violently.\n\r",ch);
-        else if (c1>2)
-            send_to_char("You cough.\n\r",ch);
-        if (c1>0)
-            ch->move-=(ch->move*c1)/100;
-    }
-
-    obj_cast_spell( obj->value[2], obj->value[1], ch, obj, "self" );
-    obj_cast_spell( obj->value[3], obj->value[1], ch, obj, "self" );
-    obj_cast_spell( obj->value[4], obj->value[1], ch, obj, "self" );
-
-    extract_obj( obj );
-    return;
-}
-
 /*
  * Remove an object.
  */
@@ -2339,7 +2268,14 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
 
     one_argument( argument, arg );
 
-    if (IS_REMORT(ch))
+
+    if ((obj = get_obj_list( ch, arg, ch->in_room->contents )) == NULL)
+    {
+        send_to_char("You don't see that here.\n\r",ch);
+        return;
+    }
+
+    if (IS_REMORT(ch) && obj->item_type != ITEM_CORPSE_NPC )
     {
         send_to_char("Not in remort, chucklehead.\n\r",ch);
         return;
@@ -2369,7 +2305,6 @@ void do_sacrifice( CHAR_DATA *ch, char *argument )
         return;
     }
 
-    obj = get_obj_list( ch, arg, ch->in_room->contents );
     if ( obj == NULL )
     {
         send_to_char( "You can't find it.\n\r", ch );
@@ -2536,6 +2471,9 @@ void do_quaff( CHAR_DATA *ch, char *argument )
         send_to_char("This liquid is too powerful for you to drink.\n\r",ch);
         return;
     }
+
+    if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_QUAFF) )
+        return;
 
     WAIT_STATE( ch, PULSE_VIOLENCE );
 
@@ -3666,6 +3604,12 @@ void do_sell( CHAR_DATA *ch, char *argument )
     if ( !can_drop_obj( ch, obj ) )
     {
         send_to_char( "You can't let go of it.\n\r", ch );
+        return;
+    }
+    
+    if ( obj->contains )
+    {
+        send_to_char( "You may want to empty it first.\n\r", ch );
         return;
     }
 

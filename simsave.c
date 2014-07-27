@@ -278,11 +278,9 @@ bool pfile_exists( char *name )
 	return FALSE;
 
     sprintf( filename, "%s%s", PLAYER_DIR, capitalize(name) );
-    fclose( fpReserve );
     fp = fopen( filename, "r" );
     if ( fp )
 	fclose( fp );
-    fpReserve = fopen( NULL_FILE, "r" );
     
     return fp != NULL;
 }
@@ -335,13 +333,11 @@ bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
 #if defined(SIM_DEBUG)
    log_string("load_char_obj: search temp player dir");
 #endif
-    fclose( fpReserve );
     sprintf( strsave, "%s%s", PLAYER_TEMP_DIR, filename );
     if ( ( fp = fopen( strsave, "r" ) ) != NULL )
     {
       buf = load_file_to_buffer( fp );
       fclose( fp );
-      fpReserve = fopen( NULL_FILE, "r" );
       if (buf == NULL)
       {
 	sprintf( bug_buf, "load_char_obj: error loading %s", strsave );
@@ -363,7 +359,6 @@ bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
     {
       buf = load_file_to_buffer( fp );
       fclose( fp );
-      fpReserve = fopen( NULL_FILE, "r" );
       if (buf == NULL)
       {
 	sprintf( bug_buf, "load_char_obj: error loading %s", strsave );
@@ -372,8 +367,6 @@ bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
       }
       mf = memfile_wrap_buffer( filename, buf );
     }
-    else
-      fpReserve = fopen( NULL_FILE, "r" );
   }
   
 #if defined(SIM_DEBUG)
@@ -439,13 +432,11 @@ bool load_storage_boxes(CHAR_DATA *ch )
 #if defined(SIM_DEBUG)
    log_string("load_storager_box: search temp player dir");
 #endif
-    fclose( fpReserve );
     sprintf( strsave, "%s%s", BOX_TEMP_DIR, filename );
     if ( ( fp = fopen( strsave, "r" ) ) != NULL )
     {
       buf = load_file_to_buffer( fp );
       fclose( fp );
-      fpReserve = fopen( NULL_FILE, "r" );
       if (buf == NULL)
       {
         sprintf( bug_buf, "load_storage_box: error loading %s", strsave );
@@ -467,7 +458,6 @@ bool load_storage_boxes(CHAR_DATA *ch )
     {
       buf = load_file_to_buffer( fp );
       fclose( fp );
-      fpReserve = fopen( NULL_FILE, "r" );
       if (buf == NULL)
       {
         sprintf( bug_buf, "load_storage_box: error loading %s", strsave );
@@ -476,8 +466,6 @@ bool load_storage_boxes(CHAR_DATA *ch )
       }
       mf = memfile_wrap_buffer( filename, buf );
     }
-    else
-      fpReserve = fopen( NULL_FILE, "r" );
   }
 
 #if defined(SIM_DEBUG)
@@ -715,6 +703,9 @@ void mem_sim_save_other()
 
     /* leaderboards */
     save_lboards();
+
+    /* playback */
+    save_comm_histories();
    /* mf = save_lboards();
     {
         mf->next = other_save_list;
@@ -727,6 +718,9 @@ void mem_sim_save_other()
         mf->next = other_save_list;
         other_save_list = mf;
     }*/
+
+    /* mudconfig */
+    save_mudconfig();
 
 #if defined(SIM_DEBUG)
    log_string("mem_sim_save_other: done");

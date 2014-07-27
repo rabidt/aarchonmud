@@ -260,18 +260,18 @@ int ch_dex_tohit(CHAR_DATA *ch)
 {
     int dex = get_curr_stat(ch, STAT_DEX);
     if ( dex < 60 )
-	return 0;
+        return 0;
     else
-	return (ch->level + 10) * (dex-60) / 200;
+        return (modified_level(ch) + 10) * (dex-60) / 200;
 };
 
 int ch_str_todam(CHAR_DATA *ch)
 {
     int str = get_curr_stat(ch, STAT_STR);
     if ( str < 60 )
-	return 0;
+        return 0;
     else
-	return (ch->level + 10) * (str-60) / 100;
+        return (modified_level(ch) + 10) * (str-60) / 100;
 };
 
 int ch_str_carry(CHAR_DATA *ch)
@@ -313,7 +313,7 @@ int ch_prac_gains(CHAR_DATA *ch, int for_level)
 
 int ch_agi_defensive(CHAR_DATA *ch)
 {
-    return (ch->level + 10) * agi_app_defensive(get_curr_stat(ch, STAT_AGI)) / 100;
+    return (modified_level(ch) + 10) * agi_app_defensive(get_curr_stat(ch, STAT_AGI)) / 100;
 };
 
 int ch_dex_extrahit(CHAR_DATA *ch)
@@ -360,6 +360,7 @@ int get_ac( CHAR_DATA *ch )
 {
     int ac = ch->armor;
     int defense_factor = 100;
+    int level = modified_level(ch);
     
     if ( IS_AWAKE(ch) )
         ac += ch_agi_defensive(ch);
@@ -369,7 +370,7 @@ int get_ac( CHAR_DATA *ch )
     ac -= get_curr_stat(ch, STAT_LUC) / 2;
 
     if ( IS_SET(ch->parts, PART_SCALES) )
-        ac -= ch->level / 2;
+        ac -= level / 2;
     
     // level-based bonus
     if ( IS_NPC(ch) )
@@ -383,7 +384,7 @@ int get_ac( CHAR_DATA *ch )
     {
         defense_factor = class_table[ch->class].defense_factor;
     }
-    ac -= (ch->level + 10) * defense_factor/20;
+    ac -= (level + 10) * defense_factor/20;
         
     return ac;
 }
@@ -405,7 +406,7 @@ int get_hitroll( CHAR_DATA *ch )
     {
         attack_factor = class_table[ch->class].attack_factor;
     }
-    hitroll += (ch->level + 10) * attack_factor/100;
+    hitroll += (modified_level(ch) + 10) * attack_factor/100;
 
     return hitroll;
 }
@@ -486,193 +487,135 @@ int construct_train_cost( int from, int to )
     return total;
 }
 
+void show_can_train( CHAR_DATA *ch )
+{
+    char buf[MAX_STRING_LENGTH];
+    char buf2[MAX_STRING_LENGTH];
+    int stat, inc;
+    
+    strcpy( buf, "You can train:" );
+    for ( stat = 0; stat < MAX_STATS; stat++ )
+        if ( (inc = train_stat_inc(ch, stat)) > 0 )
+        {
+            sprintf( buf2, " %s(+%d)", stat_table[stat].abbreviation, inc );
+            strcat( buf, buf2); 
+        }
+        
+    if ( train_stat(ch->pcdata->trained_hit, ch) )
+        strcat(buf, " hp");
+    if ( train_stat(ch->pcdata->trained_move, ch) )
+        strcat(buf, " move");
+    if ( train_stat(ch->pcdata->trained_mana, ch) )
+        strcat(buf, " mana");
+    
+    if ( buf[strlen(buf)-1] != ':' )
+    {
+        strcat( buf, ".\n\r" );
+        send_to_char( buf, ch );
+    }
+    else
+    {
+        act( "You have nothing left to train, you $T!", ch, NULL,
+            ch->sex == SEX_MALE   ? "big stud" :
+            ch->sex == SEX_FEMALE ? "hot babe" :
+            "wild thing",
+            TO_CHAR );
+    }
+}
+
 void do_train( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
+    char arg[MAX_STRING_LENGTH];
     CHAR_DATA *mob;
-    sh_int stat = - 1;
+    sh_int stat = -1;
     int cost, max, inc;
     
     if ( IS_NPC(ch) )
         return;
-    
-   /*
-    * Check for trainer.
-    */
-    for ( mob = ch->in_room->people; mob; mob = mob->next_in_room )
-    {
-        if ( IS_NPC(mob) && IS_SET(mob->act, ACT_TRAIN) )
-            break;
-    }
-    
-    if ( mob == NULL )
-    {
-        if (get_skill(ch, gsn_introspection) > 1)
-        {
-            act( "$n thinks over what $e has experienced recently.", ch, NULL, NULL, TO_ROOM );
-            if ((get_skill(ch,gsn_introspection)) > number_percent ()) 
-                check_improve(ch,gsn_introspection,TRUE,8);
-            else
-            {
-                send_to_char("You've learned nothing from your recent experiences.\n\r",ch);     
-                check_improve(ch,gsn_introspection,FALSE,8);
-                return;
-            }
-        }    
-        else
-        {
-            send_to_char( "You can't do that here.\n\r", ch );
-            return;
-        }
-    }
-    
-    if ( argument[0] == '\0' )
+
+    argument = one_argument( argument, arg );
+    if ( arg[0] == '\0' )
     {
         sprintf( buf, "You have %d training sessions.\n\r", ch->train );
         send_to_char( buf, ch );
-        argument = "foo";
-    }
-    
-    cost = 1;
-
-    if ( !str_cmp(argument, "hp" ) )
-        cost = 1;
-    
-    else if ( !str_cmp(argument, "mana" ) )
-        cost = 1;
-    
-    else if ( !str_cmp(argument, "move" ) )
-        cost = 1;
-    
-    else   
-        for (stat=0; stat<MAX_STATS; stat++)
-            if (!str_prefix(argument, stat_table[stat].name))
-            {
-                cost=1;
-                break;
-            } 
-            
-    if (stat==MAX_STATS)
-    {
-        strcpy( buf, "You can train:" );
-        for (stat=0; stat<MAX_STATS; stat++)
-            if ( (inc = train_stat_inc(ch, stat)) > 0 )
-            {
-		sprintf( buf2, " %s(+%d)", stat_table[stat].abbreviation, inc );
-                strcat( buf, buf2); 
-            }
-            
-            if (train_stat(ch->pcdata->trained_hit, ch)) strcat(buf, " hp");
-            if (train_stat(ch->pcdata->trained_move, ch)) strcat(buf, " move");
-            if (train_stat(ch->pcdata->trained_mana, ch)) strcat(buf, " mana");
-            
-            if ( buf[strlen(buf)-1] != ':' )
-            {
-                strcat( buf, ".\n\r" );
-                send_to_char( buf, ch );
-            }
-            else
-            {
-            /*
-            * This message dedicated to Jordan ... you big stud!
-                */
-                act( "You have nothing left to train, you $T!",
-                    ch, NULL,
-                    ch->sex == SEX_MALE   ? "big stud" :
-                ch->sex == SEX_FEMALE ? "hot babe" :
-                "wild thing",
-                    TO_CHAR );
-            }
-            
-            return;
-    }
-
-   /* Warning: Don't modify the amount of hp/mana/move training
-      without adjusting the death_penalty method in fight.c
-      a corresponding amount */    
-    if (!str_cmp("hp",argument))
-    {
-        if ( cost > ch->train )
-        {
-            send_to_char( "You don't have enough training sessions.\n\r", ch );
-            return;
-        }
-        
-        if (!train_stat(ch->pcdata->trained_hit, ch))
-        {
-            send_to_char( "You cant train any more hps you freak.\n\r", ch);
-            return;
-        }
-        
-        ch->pcdata->trained_hit++;
-        ch->train -= cost;
-
-        update_perm_hp_mana_move(ch);
-
-//        WAIT_STATE(ch, 2);
-        WAIT_STATE(ch, 1);
-        act( "Your durability increases!",ch,NULL,NULL,TO_CHAR);
-        act( "$n's durability increases!",ch,NULL,NULL,TO_ROOM);
+        show_can_train(ch);
         return;
     }
-
-   /* Warning: Don't modify the amount of hp/mana/move training
-      without adjusting the death_penalty method in fight.c
-      a corresponding amount */       
-    if (!str_cmp("mana",argument))
+    
+    bool introspect = TRUE;
+    CHAR_DATA *trainer = find_trainer(ch, ACT_TRAIN, &introspect);
+    if ( !trainer && !introspect )
+        return;
+    
+    if ( !str_cmp(arg, "hp") || !str_cmp(arg, "mana") || !str_cmp(arg, "move") )
     {
+        // second argument lets you increase hp/mana/move by multiple points at once
+        if ( (inc = atoi(argument)) < 1 )
+            inc = 1;
+        cost = inc;
+        max = max_hmm_train(ch->level);
+        
         if ( cost > ch->train )
         {
-            send_to_char( "You don't have enough training sessions.\n\r", ch );
+            send_to_char("You don't have enough training sessions.\n\r", ch);
             return;
         }
-        
-        if (!train_stat(ch->pcdata->trained_mana, ch))
+    
+        if ( !str_cmp("hp", arg) )
         {
-            send_to_char( "You have as much mana as you possibly can, you freak.\n\r", ch);
-            return;
+            if (ch->pcdata->trained_hit + inc > max )
+            {
+                send_to_char("You can't train that many hps you freak.\n\r", ch);
+                return;
+            }
+            ch->pcdata->trained_hit += inc;
+            ch->train -= cost;
+            act("Your durability increases!", ch, NULL, NULL, TO_CHAR);
+            act("$n's durability increases!", ch, NULL, NULL, TO_ROOM);
         }
-        
-
-        ch->pcdata->trained_mana++;
-        ch->train -= cost;
+        else if ( !str_cmp("mana", arg) )
+        {
+            if (ch->pcdata->trained_mana + inc > max )
+            {
+                send_to_char("You can't train that much mana you freak.\n\r", ch);
+                return;
+            }
+            ch->pcdata->trained_mana += inc;
+            ch->train -= cost;
+            act("Your power increases!", ch, NULL, NULL, TO_CHAR);
+            act("$n's power increases!", ch, NULL, NULL, TO_ROOM);
+        }
+        else if ( !str_cmp("move", arg) )
+        {
+            if (ch->pcdata->trained_move + inc > max )
+            {
+                send_to_char("You can't train that many moves you freak.\n\r", ch);
+                return;
+            }
+            ch->pcdata->trained_move += inc;
+            ch->train -= cost;
+            act("Your stamina increases!", ch, NULL, NULL, TO_CHAR);
+            act("$n's stamina increases!", ch, NULL, NULL, TO_ROOM);
+        }
         update_perm_hp_mana_move(ch);
-
-//        WAIT_STATE(ch, 2);
-        WAIT_STATE(ch, 1);
-        act( "Your power increases!",ch,NULL,NULL,TO_CHAR);
-        act( "$n's power increases!",ch,NULL,NULL,TO_ROOM);
         return;
     }
-
-   /* Warning: Don't modify the amount of hp/mana/move training
-      without adjusting the death_penalty method in fight.c
-      a corresponding amount */       
-    if (!str_cmp("move",argument))
+    
+    // check for valid argument & find stat
+    for ( stat = 0; stat < MAX_STATS; stat++ )
+        if ( !str_prefix(arg, stat_table[stat].name) )
+            break;
+    
+    if ( stat == MAX_STATS )
     {
-        if ( cost > ch->train )
-        {
-            send_to_char( "You don't have enough training sessions.\n\r", ch );
-            return;
-        }
-        
-        if (!train_stat(ch->pcdata->trained_move, ch))
-        {
-            send_to_char( "You have as much stamina as you possibly can, you freak.\n\r", ch);
-            return;
-        }
-        
-        ch->pcdata->trained_move++;
-        ch->train -= cost;
-        update_perm_hp_mana_move(ch);
-        
-//        WAIT_STATE(ch, 2);
-        WAIT_STATE(ch, 1);
-        act( "Your stamina increases!",ch,NULL,NULL,TO_CHAR);
-        act( "$n's stamina increases!",ch,NULL,NULL,TO_ROOM);
+        send_to_char("Syntax: train <str|...|luc>\n\r", ch);
+        send_to_char("        train <hp|mana|move> [amount]\n\r", ch);
         return;
     }
+    else
+        cost = 1;
     
     if ( ch->perm_stat[stat]  >= (max=get_max_train(ch,stat)) )
     {
@@ -701,33 +644,9 @@ void do_train( CHAR_DATA *ch, char *argument )
             stat_table[stat].name, cost);
         send_to_char(buf, ch);
         ch->gold -= cost;
-        
-	/*
-        max -= ch->perm_stat[stat];
-        cost = UMIN(3, max);
-	*/
     } else {
         ch->train -= cost;
-        
-	/*
-        max-=ch->perm_stat[stat];
-        
-        if (max>45)
-            cost=5;
-        else if (max>21)
-            cost=4;
-        else if (max>9)
-            cost=3;
-        else if (max>3)
-            cost=2;
-        else
-            cost=1;
-        cost=UMIN(1 + ch->perm_stat[stat]/15, cost);
-	*/
     }
-    
-//    WAIT_STATE(ch, 2);
-      WAIT_STATE(ch, 1);
     
     ch->perm_stat[stat] += train_stat_inc(ch, stat);
     update_perm_hp_mana_move(ch);
@@ -951,38 +870,38 @@ void do_etls( CHAR_DATA *ch, char *argument )
     char racebuf[5];
     int i, j, race;
     BUFFER *output;
+    int tier = -1;
     
     if (argument[0] == '\0')
     {
         output = new_buf();
 
-        add_buf(output,"\n\rThis table shows the number of experience points");
-        add_buf(output,"\n\rrequired to gain one level.");
-        add_buf(output,"\n\r\n\rTo get more information, type: HELP ETLS\n\r");
-        
-        add_buf(output, "Race");
-        for (i=0; i<MAX_CLASS; i++)
-        {
-            sprintf(buf, "  %3s", class_table[i].who_name);
-            add_buf(output, buf);
-        }
+        add_buf(output,"\n\rThis table shows the number of experience points required to gain one level.");
+        add_buf(output,"\n\rTo get more information, type: HELP ETLS");
         
         for (i=1; i<MAX_PC_RACE; i++)
         {
-            for (j=0; j<4 && pc_race_table[i].who_name[j]; j++)
-                racebuf[j]=pc_race_table[i].who_name[j];
-            racebuf[j]='\0';
-            
-            sprintf(buf, "\n\r%s", racebuf);
-            add_buf(output, buf);
+            if (pc_race_table[i].remorts > tier)          
+            {
+                tier = pc_race_table[i].remorts;
+                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++++\n\r",tier);
+                add_buf(output, buf);
+                add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
+                add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x");
+            }
+
+	    sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
+            add_buf(output,buf);
+
             for (j=0; j<MAX_CLASS; j++)
             {
-                sprintf(buf, " %3d0", pc_race_table[i].class_mult[j]);
-                add_buf(output, buf);
+                sprintf(buf, " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
+                add_buf(output,buf);
             }
+
+            add_buf(output, "{x");
+
         }
-        
-        
         
         page_to_char(buf_string(output),ch);
         free_buf(output);
@@ -1003,28 +922,27 @@ void do_etls( CHAR_DATA *ch, char *argument )
         }
         
         output = new_buf();
-        
-        add_buf(output, "Race");
-	for( i=0; i<MAX_CLASS; i++ )
-	{
-            sprintf(buf, "  %3s", class_table[i].who_name);
-            add_buf(output, buf);
-	}
 
         for( i=1; i<MAX_PC_RACE; i++ )
         {
             if( pc_race_table[i].remorts > r_num )
-                continue;
+                break;
+
+            if (pc_race_table[i].remorts > tier)
+            {
+                tier = pc_race_table[i].remorts;
+                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++++\n\r",tier);
+                add_buf(output, buf);
+                add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
+                add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x");
+            }
         
-            for (j=0; j<4 && pc_race_table[i].who_name[j]; j++)
-                racebuf[j]=pc_race_table[i].who_name[j];
-            racebuf[j]='\0';
-            sprintf(buf, "\n\r%s", racebuf);
+            sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
 
             for (j=0; j<MAX_CLASS; j++)
             {
-                sprintf(buf, " %3d0", pc_race_table[i].class_mult[j]);
+                sprintf(buf, " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
                 add_buf(output,buf);
             }
         }
@@ -1048,28 +966,23 @@ void do_etls( CHAR_DATA *ch, char *argument )
         }
         
         output = new_buf();
+        sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++ {CRemort %3d{x ++++++++++++++++++++++++++++++++++\n\r", r_num);
+        add_buf(output, buf);
+        add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
+        add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x");
          
-        add_buf(output, "Race");
-	for( i=0; i<MAX_CLASS; i++ )
-	{
-            sprintf(buf, "  %3s", class_table[i].who_name);
-            add_buf(output, buf);
-	}
         
         for( i=1; i<MAX_PC_RACE; i++ )
         {
             if( pc_race_table[i].remorts != r_num )
                 continue;
-
-            for (j=0; j<4 && pc_race_table[i].who_name[j]; j++)
-                racebuf[j]=pc_race_table[i].who_name[j];
-            racebuf[j]='\0';
-            sprintf(buf, "\n\r%s", racebuf);
+            sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
+
 
             for (j=0; j<MAX_CLASS; j++)
             {
-                sprintf(buf, " %3d0", pc_race_table[i].class_mult[j]);
+                sprintf(buf, " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
                 add_buf(output,buf);
             }
         }   
@@ -1584,6 +1497,14 @@ void show_dice(CHAR_DATA *ch)
     return;
 }
 
+// account for negative (or positive?) level affects
+int modified_level( CHAR_DATA *ch )
+{
+    int level = ch->level + ch->mod_level;
+    int max = IS_NPC(ch) ? 200 : IS_IMMORTAL(ch) ? MAX_LEVEL : LEVEL_HERO;
+    return URANGE(1, level, max);
+}
+
 /* Bobble: recalculate a PC's permanent hp/mana/move
  * and adjust his max hp/mana/move accordingly
  * must be called after each level- or stat change or train 
@@ -1598,27 +1519,29 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     
     /* PCs only */
     if (IS_NPC(ch) || ch->pcdata == NULL)
-	return;
+        return;
+    
+    int level = modified_level(ch);
 
     // "temporary" bonuses (eq/tattoos/affects with +hp/mana/move)
     hp_bonus = ch->max_hit - ch->pcdata->perm_hit - ch->pcdata->trained_hit_bonus;
     mana_bonus = ch->max_mana - ch->pcdata->perm_mana - ch->pcdata->trained_mana_bonus;
     move_bonus = ch->max_move - ch->pcdata->perm_move - ch->pcdata->trained_move_bonus;
     
-    hero_bonus = UMAX(0, ch->level - (LEVEL_HERO - 10));
+    hero_bonus = UMAX(0, level - (LEVEL_HERO - 10));
     hero_bonus = hero_bonus * (hero_bonus + 1) / 2;
-    level_factor = ch->level + hero_bonus;
+    level_factor = level + hero_bonus;
     train_factor = 100 + get_curr_stat(ch, STAT_DIS);
-    max_train = max_hmm_train( ch->level );
+    max_train = max_hmm_train(level);
     
     /* calculate hp */
     stat_factor = 100 + get_curr_stat(ch, STAT_CON);
     class_factor = class_table[ch->class].hp_gain;
     new_hp = 100 + level_factor * stat_factor * class_factor / 1000;
     /* size and form bonus */
-    new_hp += (ch->level + 10) * (ch->size - SIZE_MEDIUM);
+    new_hp += (level + 10) * (ch->size - SIZE_MEDIUM);
     if ( IS_SET(ch->form, FORM_TOUGH) )
-	new_hp += ch->level * 10;
+        new_hp += level * 10;
     /* train bonus */
     trained_hp_bonus = UMIN(max_train,ch->pcdata->trained_hit) * train_factor * class_factor / 2000;
     if ( IS_SET(ch->form, FORM_CONSTRUCT) )
@@ -1633,7 +1556,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     new_mana = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
     if ( IS_SET(ch->form, FORM_WISE) )
-	new_mana += ch->level * 10;
+        new_mana += level * 10;
     /* train bonus */
     trained_mana_bonus = UMIN(max_train,ch->pcdata->trained_mana) * train_factor * class_factor / 2000;
     softcap = (new_mana + mana_bonus) / 2;
@@ -1646,7 +1569,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     new_move = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
     if ( IS_SET(ch->form, FORM_AGILE) )
-	new_move += ch->level * 10;
+        new_move += level * 10;
     /* train bonus */
     trained_move_bonus = UMIN(max_train,ch->pcdata->trained_move) * train_factor * class_factor / 2000;
     if ( IS_SET(ch->form, FORM_CONSTRUCT) )
@@ -1696,6 +1619,68 @@ void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap )
     if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
         gain_per_train += 2000;
     *move_cap = base_move * 1000 / gain_per_train;
+
+    return;
+}
+
+/* set a mob race and update fields accordingly */
+void set_mob_race( CHAR_DATA *ch, int race )
+{
+    if ( !IS_NPC(ch) )
+    {
+        bugf("set_mob_race called on PC: %s", ch->name);
+        return;
+    }
+    int pc_race;
+    AFFECT_DATA *paf;
+    OBJ_DATA *obj;
+    struct race_type *race_en=&race_table[race];
+
+    /* set the race */
+    ch->race=race;
+
+    /* set size if it's a pc race, else mob's default */
+    if ( race_en->pc_race )
+    {
+        pc_race=pc_race_lookup( race_en->name );
+        if (pc_race==0)
+        {
+            bugf("set_mob_race: Couldn't find pc_race");
+            return;
+        }
+        
+        ch->size = pc_race_table[pc_race].size;
+    }
+    else
+    {
+        ch->size = ch->pIndexData->size;
+    }
+    
+    flag_copy( ch->form, race_en->form );
+    flag_copy( ch->parts, race_en->parts ); 
+
+    /* reset flags to racial defaults */
+    flag_copy( ch->affect_field, race_en->affect_field );
+    flag_copy( ch->imm_flags, race_en->imm );
+    flag_copy( ch->res_flags, race_en->res );
+    flag_copy( ch->vuln_flags, race_en->vuln );
+
+    /* add spell flags */
+    for ( paf = ch->affected; paf != NULL; paf = paf->next )
+    set_affect_flag( ch, paf );
+
+    /* add object flags */
+    for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
+    {
+    if (obj->wear_loc == -1)
+        continue;
+
+    for (paf = obj->pIndexData->affected; paf != NULL; paf = paf->next)
+        set_affect_flag( ch, paf );
+
+    for (paf = obj->affected; paf != NULL; paf = paf->next)
+        set_affect_flag( ch, paf );
+    }
 
     return;
 }
