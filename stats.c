@@ -356,9 +356,9 @@ int ch_luc_quest(CHAR_DATA *ch)
     return (get_curr_stat(ch, STAT_LUC)/6+2);
 }
 
-int get_ac( CHAR_DATA *ch, int type )
+int get_ac( CHAR_DATA *ch )
 {
-    int ac = ch->armor[type];
+    int ac = ch->armor;
     int defense_factor = 100;
     int level = modified_level(ch);
     

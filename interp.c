@@ -519,6 +519,11 @@ const   struct  cmd_type    cmd_table   [] =
     { "portal",     do_portal,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "reboo",      do_reboo,   POS_DEAD,   ML,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "reboot",     do_reboot,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+#ifdef TESTER
+    { "repeat",     do_repeat,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+#else
+    { "repeat",     do_repeat,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
+#endif
     { "reserve",    do_reserve, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "set",        do_set,     POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "setskill",   do_setskill,POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -603,7 +608,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "luahelp",    do_luahelp, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaconfig",  do_luaconfig, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaquery",   do_luaquery, POS_DEAD,  ML,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  },    { "mudconfig",  do_mudconfig, POS_DEAD, ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "mudconfig",  do_mudconfig, POS_DEAD, ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
 
     /*
     * OLC
@@ -677,6 +683,7 @@ bool can_order( char *command, CHAR_DATA *victim )
 	    if ( victim == NULL || IS_NPC(victim) )
 	    {
 		if ( cmd_table[cmd].do_fun == do_give
+            || cmd_table[cmd].do_fun == do_put
 		     || cmd_table[cmd].do_fun == do_drop )
 		    return TRUE;
 	    }

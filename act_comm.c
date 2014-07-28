@@ -1140,7 +1140,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
 	/* NPC's shouldn't be able to go AFK, but .. safety is worth the extra check! */
         if (!IS_NPC(victim))
         {
-            act("$E is AFK, and not receiving tells.",ch,NULL,victim,TO_CHAR);
+            act("$E is AFK, and may view your tell upon returning.",ch,NULL,victim,TO_CHAR);
 			victim->pcdata->new_tells=TRUE;
         }
     }
@@ -2065,7 +2065,9 @@ void die_follower( CHAR_DATA *ch, bool preservePets )
     
     for ( fch = char_list; fch != NULL; fch = fch->next )
     {
-        if ( fch->master == ch && (!preservePets || !IS_NPC(fch)))
+        if ( preservePets && IS_NPC(fch) && IS_AFFECTED(fch, AFF_CHARM) )
+            continue;
+        if ( fch->master == ch )
             stop_follower( fch );
         if ( fch->leader == ch )
             fch->leader = NULL;
@@ -2199,7 +2201,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         (gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
 
     sprintf( buf,
-        "[%3d %.3s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s%s %5d etl\n\r",
+        "[%3d %.3s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s%s%s %5d etl\n\r",
         gch->level,
         !IS_NPC(gch) ? class_table[gch->class].who_name : IS_AFFECTED(gch, AFF_CHARM) ? ch_name(gch->leader) : "Mob",
         ch_name(gch),
@@ -2208,12 +2210,13 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         mv_col, gch->move,  gch->max_move,
        /* Shows what spells you can help your group with */
         NPC_OFF(gch, OFF_RESCUE) || PLR_ACT(gch, PLR_AUTORESCUE) ? "{WR{x" : " ",
-        IS_AFFECTED(gch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
-        IS_AFFECTED(gch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
-        IS_AFFECTED(gch, AFF_HASTE) ? "{WH{x" : !IS_AFFECTED(gch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
-        is_affected(gch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
         is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? "{WB{x" : get_skill(ch, gsn_bless) > 1 ? "{Rb{x" : " ",
+        IS_AFFECTED(gch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
+        is_affected(gch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
+        IS_AFFECTED(gch, AFF_HASTE) ? "{WH{x" : !IS_AFFECTED(gch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
+        IS_AFFECTED(gch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
         is_affected(gch, gsn_war_cry) ? "{WW{x" : get_skill(ch, gsn_war_cry) > 1 ? "{Rw{x" : " ",
+        IS_AFFECTED(gch, AFF_BERSERK) ? "{WZ{x" : get_skill(ch, gsn_frenzy) > 1 ? "{Rz{x" : " ",
 
         (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1) * exp_per_level(gch) - gch->exp
     );

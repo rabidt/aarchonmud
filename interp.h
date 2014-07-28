@@ -360,6 +360,7 @@ DECLARE_DO_FUN( do_remember );
 DECLARE_DO_FUN( do_remort   );
 DECLARE_DO_FUN( do_remove   );
 DECLARE_DO_FUN( do_rent     );
+DECLARE_DO_FUN( do_repeat   );
 DECLARE_DO_FUN( do_replay   );
 DECLARE_DO_FUN( do_reply    );
 DECLARE_DO_FUN( do_report   );
@@ -571,6 +572,7 @@ DECLARE_DO_FUN( do_rforce       );
 
 DECLARE_DO_FUN( do_lboard);
 DECLARE_DO_FUN( do_lhistory);
+DECLARE_DO_FUN( do_cmotd);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif

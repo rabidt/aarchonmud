@@ -120,7 +120,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
     
         if ( to_room->clan )
         {
-            if ( ch->clan != to_room->clan )
+            if ( !IS_NPC(ch) && ch->clan != to_room->clan )
             {
                 if ( show )
                     printf_to_char(ch, "That area is for clan %s only.\n\r",
@@ -1443,9 +1443,8 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 	     );
     send_to_char( buf, ch );
 
-    sprintf( buf, "Armor: pierce: %d  bash: %d  slash: %d  magic: %d\n\r",
-	     GET_AC(victim,AC_PIERCE), GET_AC(victim,AC_BASH),
-	     GET_AC(victim,AC_SLASH),  GET_AC(victim,AC_EXOTIC)
+    sprintf( buf, "Armor: %d\n\r",
+	     GET_AC(victim)
 	     );
     send_to_char(buf,ch);
 
@@ -2852,7 +2851,7 @@ void do_morph(CHAR_DATA *ch, char *argument)
 	CHAR_DATA *victim;
 	char arg[MAX_INPUT_LENGTH];
 	char buf[MAX_STRING_LENGTH];
-	int race, cost;
+	int race;
 
 	one_argument(argument, arg);
 
@@ -2900,13 +2899,14 @@ void do_morph(CHAR_DATA *ch, char *argument)
 			return;
 		}
 
-        cost = (pc_race_table[race].remorts + 5) * (20 + ch->level);
-        if ( victim )
-            cost /= 2;
-		if ( (ch->mana < cost ) || (ch->move < 2*cost) )
+        int base_cost = (pc_race_table[race].remorts + 5) * (20 + ch->level) * (victim ? 1 : 2);
+        int mana_cost = base_cost * 0.4; // min mana factor for any class
+        int move_cost = base_cost * 0.7; // min move factor for any class
+        
+        if ( ch->mana < mana_cost || ch->move < move_cost )
 		{
 			sprintf(buf,"You need %d mana and %d move to morph into a %s.\n\r",
-					cost, 2*cost, race_table[race].name);
+                mana_cost, move_cost, race_table[race].name);
 			send_to_char(buf, ch);
 			return;
 		}
@@ -2915,8 +2915,8 @@ void do_morph(CHAR_DATA *ch, char *argument)
 			WAIT_STATE(ch, 2 * PULSE_VIOLENCE);
 			sprintf(buf, "You morph into a %s.\n\r", race_table[race].name);
 			send_to_char(buf, ch);
-			ch->move-=2*cost;
-			ch->mana-=cost;
+            ch->mana -= mana_cost;
+            ch->move -= move_cost;
 			ch->pcdata->morph_race = race;
 			ch->pcdata->morph_time = get_duration_by_type(DUR_EXTREME, ch->level);
 			morph_update( ch );
@@ -2931,18 +2931,12 @@ void do_morph(CHAR_DATA *ch, char *argument)
 		    ch->pcdata->morph_race = 0;
 		    ch->pcdata->morph_time = 0;
 		}
-		else if ( ch->move < (cost = 10) )
-		{
-		    send_to_char( "You are too exhausted to morph into humanoid form.\n\r", ch );
-		    return;
-		}
 		else
 		{
 		    WAIT_STATE(ch, PULSE_VIOLENCE);
 		    send_to_char("You morph into humanoid form.\n\r", ch);
 		    ch->pcdata->morph_race = race_naga;
 		    ch->pcdata->morph_time = 10;
-		    ch->move -= cost;
 		}
 		morph_update( ch );
 	}
@@ -2982,20 +2976,25 @@ void morph_update( CHAR_DATA *ch )
 void trap_damage( CHAR_DATA *ch, bool can_behead )
 {
     ROOM_INDEX_DATA *was_in_room = ch->in_room;
-    int dam, dam_type;
 
-    if ( can_behead && number_bits(4) == 0 )
+    int dam_type = number_range(DAM_BASH, DAM_POISON);
+    int dam = 100 + dice( ch->level, 20 );
+
+    if ( can_behead )
     {
-	act( "Your head is chopped right off!", ch, NULL, NULL, TO_CHAR );
-	act( "$n's head is chopped right off!", ch, NULL, NULL, TO_ROOM );
-	behead( ch, ch );
-	return;
+        // no beheading in remort - instead damage is increased
+        if ( ch->pcdata && IS_REMORT(ch) )
+            dam += dam * (ch->pcdata->remorts + 1) / 5;
+        else if ( number_bits(4) == 0 )
+        {
+            act( "Your head is chopped right off!", ch, NULL, NULL, TO_CHAR );
+            act( "$n's head is chopped right off!", ch, NULL, NULL, TO_ROOM );
+            behead( ch, ch );
+            return;
+        }
     }
-
-    /* damage */
-    dam_type = number_range(DAM_BASH, DAM_POISON);
-    dam = 100 + dice( ch->level, ch->level );
-    damage( ch, ch, dam, 0, dam_type, FALSE);
+    
+    full_dam( ch, ch, dam, 0, dam_type, FALSE);
     
     if ( ch->in_room != was_in_room )
 	return;
