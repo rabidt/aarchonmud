@@ -945,113 +945,115 @@ void do_autolist(CHAR_DATA *ch, char *argument)
     if (IS_NPC(ch))
         return;
     
-    send_to_char("{w  action       status{x\n\r",ch);
-    send_to_char("{w---------------------{x\n\r",ch);
+    send_to_char("{w  Command     Status     Description{x\n\r",ch);
+    send_to_char("{w-------------------------------------------------------------------------------{x\n\r",ch);
     
-    send_to_char("autoassist     ",ch);
     if (IS_SET(ch->act,PLR_AUTOASSIST))
-        send_to_char("ON\n\r",ch);
+        send_to_char("autoassist     ON     You will automatically assist your group in combat.\n\r",ch);
     else
-        send_to_char("OFF\n\r",ch); 
+        send_to_char("autoassist     OFF    You won't automatically assist your group in combat.\n\r",ch); 
     
-    send_to_char("autoexit       ",ch);
     if (IS_SET(ch->act,PLR_AUTOEXIT))
-        send_to_char("ON\n\r",ch);
+        send_to_char("autoexit       ON     You will automatically see visible exits in rooms.\n\r",ch);
     else
-        send_to_char("OFF\n\r",ch);
+        send_to_char("autoexit       OFF    You won't automatically see visible exits in rooms.\n\r",ch);
     
-    send_to_char("autogold       ",ch);
     if (IS_SET(ch->act,PLR_AUTOGOLD))
-        send_to_char("ON\n\r",ch);
+        send_to_char("autogold       ON     You will automatically loot gold from corpses.\n\r",ch);
     else
-        send_to_char("OFF\n\r",ch);
+        send_to_char("autogold       OFF    You won't automatically loot gold from corpses.\n\r",ch);
     
-    send_to_char("autoloot       ",ch);
     if (IS_SET(ch->act,PLR_AUTOLOOT))
-        send_to_char("ON\n\r",ch);
+        send_to_char("autoloot       ON     You will automatically loot equipment from corpses.\n\r",ch);
     else
-        send_to_char("OFF\n\r",ch);
-    
-    send_to_char("autosac        ",ch);
-    if (IS_SET(ch->act,PLR_AUTOSAC))
-        send_to_char("ON\n\r",ch);
-    else
-        send_to_char("OFF\n\r",ch);
-    
-    send_to_char("autosplit      ",ch);
-    if (IS_SET(ch->act,PLR_AUTOSPLIT))
-        send_to_char("ON\n\r",ch);
-    else
-        send_to_char("OFF\n\r",ch);
-    
-    send_to_char("autorescue     ",ch);
+        send_to_char("autoloot       OFF    You won't automatically loot equipment from corpses.\n\r",ch);
+
     if (IS_SET(ch->act,PLR_AUTORESCUE))
-        send_to_char("ON\n\r",ch);
+        send_to_char("autorescue     ON     You will automatically attempt to rescue group members.\n\r",ch);
     else
-        send_to_char("OFF\n\r",ch);
+        send_to_char("autorescue     OFF    You won't automatically attempt to rescue group members.\n\r",ch);
+    
+    if (IS_SET(ch->act,PLR_AUTOSAC))
+        send_to_char("autosac        ON     You will automatically sacrifice corpses when killing.\n\r",ch);
+    else
+        send_to_char("autosac        OFF    You won't automatically sacrifice corpses when killing.\n\r",ch);
+    
+    if (IS_SET(ch->act,PLR_AUTOSPLIT))
+        send_to_char("autosplit      ON     You will automatically share looted gold with your group.\n\r",ch);
+    else
+        send_to_char("autosplit      OFF    You won't automatically share looted gold with your group.\n\r",ch);
 
-    send_to_char("compact mode   ",ch);
-    if (IS_SET(ch->comm,COMM_COMPACT))
-        send_to_char("ON\n\r",ch);
-    else
-        send_to_char("OFF\n\r",ch);
-    
-    send_to_char("prompt         ",ch);
-    if (IS_SET(ch->comm,COMM_PROMPT))
-        send_to_char("ON\n\r",ch);
-    else
-        send_to_char("OFF\n\r",ch);
-    
-    send_to_char("combine items  ",ch);
-    if (IS_SET(ch->comm,COMM_COMBINE))
-        send_to_char("ON\n\r",ch);
-    else
-        send_to_char("OFF\n\r",ch);
-    
-    if (!IS_SET(ch->act,PLR_CANLOOT))
-        send_to_char("Items you own are safe from thieves.  (noloot)\n\r",ch);
-    else 
-        send_to_char("Items you own may be looted.          (noloot)\n\r",ch);
-    
-    if (IS_SET(ch->act,PLR_NOSUMMON))
-        send_to_char("You cannot be summoned.               (nosum)\n\r",ch);
-    else
-        send_to_char("You can be summoned.                  (nosum)\n\r",ch);
-    
-    if (IS_SET(ch->act,PLR_NOCANCEL))
-        send_to_char("You cannot be cancelled.              (nocan)\n\r",ch);
-    else
-        send_to_char("You can be cancelled.                 (nocan)\n\r",ch);
-    
-    if (IS_SET(ch->act,PLR_NOFOLLOW))
-        send_to_char("You do not welcome followers.         (nofol)\n\r",ch);
-    else
-        send_to_char("You accept followers.                 (nofol)\n\r",ch);
 
-    if (IS_SET(ch->act,PLR_NOLOCATE))
-        send_to_char("You do not wish to be located.        (noloc)\n\r",ch);
-    else
-        send_to_char("You wish to be located.               (noloc)\n\r",ch);
+    send_to_char("\n\r",ch);
+
 
     if (IS_SET(ch->act,PLR_NOACCEPT))
-        send_to_char("You do not accept items from players. (noacc)\n\r",ch);
+        send_to_char("noaccept       ON     Players cannot give items to you.\n\r",ch);
     else
-        send_to_char("You accept items from other players.  (noacc)\n\r",ch);
+        send_to_char("noaccept       OFF    Players can give items to you.\n\r",ch);
 
-    if (IS_SET(ch->act,PLR_NOSURR))
-        send_to_char("You do not accept surrenders.         (nosurr)\n\r",ch);
+    if (IS_SET(ch->act,PLR_NOCANCEL))
+        send_to_char("nocancel       ON     Players cannot cancel your spells.\n\r",ch);
     else
-        send_to_char("You accept surrenders from players.   (nosurr)\n\r",ch);
+        send_to_char("nocancel       OFF    Players can cancel your spells.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOEXP))
-        send_to_char("You do not wish to gain experience.   (noexp)\n\r",ch);
+        send_to_char("noexp          ON     You will gain experience points.\n\r",ch);
     else
-        send_to_char("You can gain experience.              (noexp)\n\r",ch);
+        send_to_char("noexp          OFF    You won't gain experience points.\n\r",ch);
+
+    if (IS_SET(ch->act,PLR_NOFOLLOW))
+        send_to_char("nofollow       ON     Players cannot follow you.\n\r",ch);
+    else
+        send_to_char("nofollow       OFF    Players can follow you.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOHELP))
-        send_to_char("You do not wish to see help messages. (nohelp)\n\r",ch);
+        send_to_char("nohelp         ON     You will receive help messages.\n\r",ch);
     else
-        send_to_char("You wish to receive help messages.    (nohelp)\n\r",ch);
+        send_to_char("nohelp         OFF    You won't receive help messages.\n\r",ch);
+
+    if (IS_SET(ch->act,PLR_NOLOCATE))
+        send_to_char("nolocate       ON     Players cannot locate you with hunt / farsight.\n\r",ch);
+    else
+        send_to_char("nolocate       OFF    Players can locate you with hunt / farsight.\n\r",ch);
+
+    if (!IS_SET(ch->act,PLR_CANLOOT))
+        send_to_char("noloot         ON     Players can loot items from corpses you own.\n\r",ch);
+    else 
+        send_to_char("noloot         OFF    Players cannot loot items from corpses you own.\n\r",ch);
+
+    if (IS_SET(ch->act,PLR_NOSUMMON))
+        send_to_char("nosummon       ON     Players cannot gate to or summon you.\n\r",ch);
+    else
+        send_to_char("nosummon       OFF    Players can gate to or summon you.\n\r",ch);
+
+    if (IS_SET(ch->act,PLR_NOSURR))
+        send_to_char("nosurrender    ON     Players cannot surrender to you.\n\r",ch);
+    else
+        send_to_char("nosurrender    OFF    Players can surrender to you.\n\r",ch);
+
+
+    send_to_char("\n\r",ch);   
+
+   
+    if (IS_SET(ch->comm,COMM_COMBINE))
+        send_to_char("combine        ON     Your inventory will display a compacted list of items.\n\r",ch);
+    else
+        send_to_char("combine        OFF    Your inventory will display a full list of items.\n\r",ch);
+
+    if (IS_SET(ch->comm,COMM_COMPACT))
+        send_to_char("compact mode   ON     The blank line above your prompt will be displayed.\n\r",ch);
+    else
+        send_to_char("compact mode   OFF    The blank line above your prompt won't be displayed.\n\r",ch);
+    
+    if (IS_SET(ch->comm,COMM_PROMPT))
+        send_to_char("prompt         ON     Your prompt will be displayed.\n\r",ch);
+    else
+        send_to_char("prompt         OFF    Your prompt will not be displayed.\n\r",ch);
+
+    send_to_char("\n\r",ch);
+    send_to_char("Use the 'show' command for additional configuration options.\n\r",ch);   
+   
 }
 
 void do_autoassist(CHAR_DATA *ch, char *argument)
@@ -1210,8 +1212,37 @@ void do_show(CHAR_DATA *ch, char *argument)
     
     if ( arg[0] == '\0' )
     {
-        send_to_char( "Show what in your score?\n\r"
-            "Syntax:  show <worth|attributes|percentages|affects>\n\r", ch );
+        send_to_char("{w  Command     Status     Description{x\n\r",ch);
+        send_to_char("{w-------------------------------------------------------------------------------{x\n\r",ch);
+
+        if (IS_SET(ch->comm,COMM_SHOW_AFFECTS))
+            send_to_char("affects        ON     Affects will be shown in score.\n\r", ch);
+        else
+            send_to_char("affects        OFF    Affects won't be shown in score.\n\r", ch);
+
+        if (IS_SET(ch->comm,COMM_SHOW_ATTRIB))
+            send_to_char("attributes     ON     Attributes will be shown in score.\n\r", ch);
+        else
+            send_to_char("attributes     OFF    Attributes won't be shown in score.\n\r", ch);
+
+        if ( IS_SET(ch->comm, COMM_SHOW_PERCENT) )
+            send_to_char("percentages    ON     Percentages will be shown in score.\n\r", ch);
+        else
+            send_to_char("percentages    OFF    Percentages won't be shown in score.\n\r", ch);
+
+        if ( IS_SET(ch->comm, COMM_SHOW_STATBARS) )
+            send_to_char("statbars       ON     Statbars will be shown for attributes in score.\n\r", ch);
+        else
+            send_to_char("statbars       OFF    Statbars won't be shown for attributes in score.\n\r", ch);
+
+        if (IS_SET(ch->comm,COMM_SHOW_WORTH))
+            send_to_char("worth          ON     Worth will be shown in score.\n\r", ch);
+        else
+            send_to_char("worth          OFF    Worth won't be shown in score.\n\r", ch);
+
+        send_to_char("\n\r",ch);
+        send_to_char("Syntax: show <affects|attributes|percentages|statbars|worth>\n\r",ch);
+
         return;
     }
     
@@ -1247,7 +1278,7 @@ void do_show(CHAR_DATA *ch, char *argument)
     {
         if (IS_SET(ch->comm,COMM_SHOW_ATTRIB))
         {
-            send_to_char("Attributes will no longer be shown in  score.\n\r",ch);
+            send_to_char("Attributes will no longer be shown in score.\n\r",ch);
             REMOVE_BIT(ch->comm,COMM_SHOW_ATTRIB);
         }
         else
@@ -1261,7 +1292,7 @@ void do_show(CHAR_DATA *ch, char *argument)
     {
         if ( IS_SET(ch->comm, COMM_SHOW_PERCENT) )
         {
-            send_to_char("Percentages will no longer be shown in  score.\n\r",ch);
+            send_to_char("Percentages will no longer be shown in score.\n\r",ch);
             REMOVE_BIT(ch->comm, COMM_SHOW_PERCENT);
         }
         else
@@ -1271,10 +1302,25 @@ void do_show(CHAR_DATA *ch, char *argument)
         }
         return;
     }
+    else if ( !str_cmp(arg, "stat") || !str_cmp(arg, "statbars") )
+    {
+        if ( IS_SET(ch->comm, COMM_SHOW_STATBARS) )
+        {
+            send_to_char("Statbars will no longer be shown for attributes in score.\n\r",ch);
+            REMOVE_BIT(ch->comm, COMM_SHOW_STATBARS);
+        }
+        else
+        {
+            send_to_char("Statbars will now be shown for attributes in score.\n\r",ch);
+            SET_BIT(ch->comm, COMM_SHOW_STATBARS);
+        }
+        return;
+    }
+
     else
     {
-        send_to_char( "Show worth, attributes, percentages or affects in your score?\n\r", ch );
-        send_to_char( "Syntax:  show <worth|att|per|aff>\n\r", ch );
+        send_to_char( "Show attributes, affects, percentages, statbars, or worth in your score?\n\r", ch);
+        send_to_char( "Syntax:  show <att|aff|per|stat|worth>\n\r", ch );
         return;
     }
 }
@@ -4555,71 +4601,69 @@ void do_survey( CHAR_DATA *ch, char *argument )
 /*  NEW do_score, do_attributes, and do_worth by Quirky in May 03 */
 void do_score( CHAR_DATA *ch, char *argument )
 {
-    char buf[MAX_STRING_LENGTH], flagsbuf[MAX_STRING_LENGTH/4];
-    char custombuf[MAX_STRING_LENGTH];
-    char alignbuf[MAX_STRING_LENGTH/2], positionbuf[MAX_STRING_LENGTH/4];
-    char remortbuf[MAX_STRING_LENGTH/4], temp[MAX_STRING_LENGTH];
+    char buf[MSL];
+    char flagsbuf[MSL/4];
+    char custombuf[MSL];
+    char alignbuf[MSL/2];
+    char positionbuf[MSL/4];
+    char remortbuf[MSL/4]; 
+    char temp[MSL];
+    char encumberbuf[MSL];
     BUFFER *output;
     RELIGION_DATA *religion = NULL;
-    int align, thirst, hunger, encumber;
+    int align;
+    int encumber;
+    int hunger;
+    int thirst;
+    int drunk;
     int LENGTH = 75;
+    int hp_cap, mana_cap, move_cap;
+    bool hungry = FALSE;
+    bool thirsty = FALSE;
+    bool drunken = FALSE;
 
-
-    /* Added by maedhros to toggle old score */
-
-    if (IS_SET(ch->togg, TOGG_OLDSCORE))
+    if (IS_NPC(ch))
     {
-      do_oldscore (ch, "oldscore");
-      return;
+        send_to_char("NPCs cannot use score.\n\r", ch);
+        return;
     }
-    else
-
     
-    /* setup */
+    /* These buffers help organize the output */
 
-    /* custombuf */
+    /* custombuf - specifically a 'pflag' set by an imm */
     if ( ch->pcdata != NULL && ch->pcdata->customflag[0] != '\0' )
         sprintf( custombuf, "(%s) ", ch->pcdata->customflag );
     else
         sprintf( custombuf, "" );
 
-    /* flagsbuf */
-    if ( !IS_NPC(ch) )
-    {
-        sprintf( flagsbuf, "%s%s%s%s%s",
-            IS_SET(ch->comm, COMM_AFK) ? "[AFK] " : "",
-            IS_SET(ch->act,PLR_HELPER) ? 
-                (!IS_SET(ch->act, PLR_INACTIVE_HELPER) ? "({GH{CE{cL{GP{CE{cR{G!{x) " : "{G*{x ") : "",
-            IS_SET(ch->act,PLR_RP) ? "[RP] " : "",
-            IS_SET(ch->act,PLR_KILLER) ? "(KILLER) " : "",
-            IS_SET(ch->act,PLR_THIEF) ? "(THIEF)" : "" );
-    }
-    else
-        sprintf( flagsbuf, "" );
+    /* flagsbuf - AFK, helper, rp, killer, thief, etc. */
+    sprintf( flagsbuf, "%s%s%s%s%s",
+        IS_SET(ch->comm, COMM_AFK) ? "[AFK] " : "",
+        IS_SET(ch->act,PLR_HELPER) ? 
+            (!IS_SET(ch->act, PLR_INACTIVE_HELPER) ? "({GH{CE{cL{GP{CE{cR{G!{x) " : "{G*{x ") : "",
+        IS_SET(ch->act,PLR_RP) ? "[RP] " : "",
+        IS_SET(ch->act,PLR_KILLER) ? "(KILLER) " : "",
+        IS_SET(ch->act,PLR_THIEF) ? "(THIEF)" : "" );
 
-    /* remortbuf */
-    if( ch->pcdata != NULL )
-    {
-        if( !IS_IMMORTAL(ch) )
-            sprintf( remortbuf, " (Remort %d)", ch->pcdata->remorts );
-        else if ( get_trust(ch) != ch->level )
-            sprintf( remortbuf, " (Trust %d)", get_trust(ch) );
-        else sprintf( remortbuf, "" );
-    } 
-    else
-        sprintf( remortbuf, "" );
+
+    /* remortbuf - display either remort or trust value*/
+    if( !IS_IMMORTAL(ch) )
+        sprintf( remortbuf, "(Remort %d)", ch->pcdata->remorts );
+    else if ( get_trust(ch) != ch->level || IS_IMMORTAL(ch))
+        sprintf( remortbuf, "(Trust %d)", get_trust(ch) );
+
 
     /* alignbuf */
     align = ch->alignment;
-    if( align > 900 )       sprintf( alignbuf, "{b%-5d (angelic){x ", align );
-    else if( align >  700 ) sprintf( alignbuf, "{b%-5d (saintly){x ", align );
-    else if( align >  350 ) sprintf( alignbuf, "{b%-5d (good){x    ", align );
-    else if( align >  100 ) sprintf( alignbuf, "{m%-5d (kind){x    ", align );
-    else if( align > -100 ) sprintf( alignbuf, "{m%-5d (neutral){x ", align );
-    else if( align > -350 ) sprintf( alignbuf, "{m%-5d (mean){x    ", align );
-    else if( align > -700 ) sprintf( alignbuf, "{r%-5d (evil){x    ", align );
-    else if( align > -900 ) sprintf( alignbuf, "{r%-5d (demonic){x ", align );
-    else                    sprintf( alignbuf, "{r%-5d (satanic){x ", align );
+    if( align > 900 )       sprintf( alignbuf, "{W%5d        (angelic){x ", align );
+    else if( align >  700 ) sprintf( alignbuf, "{c%5d        (saintly){x ", align );
+    else if( align >  350 ) sprintf( alignbuf, "{c%5d        (good){x    ", align );
+    else if( align >  100 ) sprintf( alignbuf, "{m%5d        (kind){x    ", align );
+    else if( align > -100 ) sprintf( alignbuf, "{m%5d        (neutral){x ", align );
+    else if( align > -350 ) sprintf( alignbuf, "{m%5d        (mean){x    ", align );
+    else if( align > -700 ) sprintf( alignbuf, "{r%5d        (evil){x    ", align );
+    else if( align > -900 ) sprintf( alignbuf, "{r%5d        (demonic){x ", align );
+    else                    sprintf( alignbuf, "{D%5d        (satanic){x ", align );
 
     /* positionbuf */
     switch( ch->position )
@@ -4635,134 +4679,112 @@ void do_score( CHAR_DATA *ch, char *argument )
     case POS_FIGHTING:	sprintf( positionbuf, "fighting" );  break;
     }
 
+    /* encumberbuf - how encumbered is the character */
+    if( (encumber = get_encumberance(ch)) > 0 )
+    {
+        if( encumber <= 25 )      sprintf( encumberbuf, "  {mmild{x" );
+        else if( encumber <= 50 ) sprintf( encumberbuf, "  {wfair{x" );
+        else if( encumber <= 75 ) sprintf( encumberbuf, "  {rhigh{x" );
+        else sprintf( encumberbuf, "{Rsevere{x" );
+    }
+    else
+        sprintf(encumberbuf, "  none");
 
     output = new_buf();
 
-    /******* THE NEW, IMPROVED SCORE SCREEN *******/
 
-    add_buf(output, "{D:===========================================================================:{x\n\r");
-    /* Changed to allow for pretitle -- Maedhros 11/12/11 */
-    /* sprintf(buf, "{D|{x %s%s%s%s{x%s", flagsbuf, custombuf,IS_NPC(ch) ? "" : ch->pcdata->title ); */
-    sprintf(buf, "{D|{x %s%s%s%s%s{x%s", flagsbuf, custombuf,IS_NPC(ch) ? "" : ch->pcdata->name_color, IS_NPC(ch)?"":ch->pcdata->pre_title, ch->name,IS_NPC(ch) ? "" : ch->pcdata->title);
-
-    /* Only add the ending {D|{x if the line is short enough, otherwise just go to newline */
-    if( strlen_color(buf) <= LENGTH )
-    {
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-    }
-    else strcat( buf, "\n\r" );
-    add_buf(output, buf );
-
-    /* Level, Remorts/Trust,  Clan Details */
-    sprintf(buf, "{D|{x Level: %d%s", ch->level, remortbuf );
-
-    if( !IS_NPC(ch) && clan_table[ch->clan].active )
-    {
-        for( ; strlen_color(buf) <= 24; strcat(buf, " ") );
-        sprintf(temp, "Clan: %s%s{x",
-            clan_table[ch->clan].who_color,
-            clan_table[ch->clan].who_name   );
-        for( ; strlen_color(temp) <= 19; strcat(temp, " ") );
-        strcat( buf, temp );
-        sprintf(temp, "Rank: %s%s{x",
-            clan_table[ch->clan].who_color,
-            capitalize(clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].name) );
-        strcat( buf, temp );
-    }
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf(output, buf );
-
-    /* Class, Race, Sex */
-    sprintf(buf, "{D|{x Class: %s", IS_NPC(ch) ? "mobile" : class_table[ch->class].name );
-    for( ; strlen_color(buf) <= 24; strcat(buf, " ") );
-    sprintf(temp, "Race: %s", race_table[ch->race].name );
-    for( ; strlen_color(temp) <= 19; strcat(temp, " ") );
-    strcat( buf, temp );
-    sprintf(temp, "Gender: %s",
-         ch->sex == 0 ? "{msexless{x" : ch->sex == 1 ? "{bmale{x" : "{rfemale{x" );
-    strcat( buf, temp );
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf(output, buf );
+    /******* THE NEW, IMPROVED SCORE SCREEN - July 2014 *******/
 
     add_buf(output, "{D:===========================================================================:{x\n\r");
 
-    /* Some players-only stuff */
-    if( !IS_NPC(ch) )
+    /* Show pflags, regular flags, name color, pre_title, name, title, etc. */
+    sprintf(buf, "{D|{x %s%s%s%s%s{x%s", 
+        flagsbuf, 
+        custombuf, 
+        ch->pcdata->name_color, 
+        ch->pcdata->pre_title, 
+        ch->name, 
+        ch->pcdata->title);
+
+    /* This line is used throughout to close each score line */
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Level, Remorts/Trust, Clan Name, Clan Rank */
+    sprintf(buf, "{D|{x Level: %3d %-11s    Clan: %s%13s{x       Rank: %s%12s  {x", 
+        ch->level, 
+        remortbuf,
+        clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
+        clan_table[ch->clan].active ? clan_table[ch->clan].who_name : "None",
+        clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
+        clan_table[ch->clan].active ? capitalize(clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].name) : "None");
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Class, Race, Gender */
+    sprintf(buf, "{D|{x Class: %11s        Race: %13s       Gender: %10s", 
+        class_table[ch->class].name, 
+        race_table[ch->race].name,
+        ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female" );
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Age, Hours Played, Married Status */
+    sprintf(buf, "{D|{x Age:   %5d years        Played:   %5d hrs       Married: %9s",
+        get_age(ch), 
+        (ch->played + (int)(current_time - ch->logon))/3600,
+        ch->pcdata->spouse ? ch->pcdata->spouse : "Single");
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+
+
+    /* Holy Light, Wizinvis and Incog Levels */
+    if( IS_IMMORTAL(ch) )
     {
-        /* Age, hours */
-        sprintf(buf, "{D|{x Age:  %d years  (Played: %d hours)",
-            get_age(ch), (ch->played + (int)(current_time - ch->logon))/3600 );
-        for( ; strlen_color(buf) <= 40; strcat(buf, " ") );
+        sprintf( buf, "{D|{x Holylight:     {W%3s{x        Wizinvis:     {W%3d{x         Incognito:     {W%3d{x",
+            IS_SET(ch->act, PLR_HOLYLIGHT) ? "ON" : "OFF", 
+            IS_WIZI(ch) ? ch->invis_level : 0, 
+            IS_INCOG(ch) ? ch->incog_level : 0 );
 
-        /* on same line as above, Marriage details */
-        if( ch->pcdata->spouse )
-            sprintf( temp, "You are married to %s.", ch->pcdata->spouse );
-        else
-            sprintf( temp, "You are single." );
-        strcat( buf, temp );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    }
 
-        /* Imm stuff */
-        if( IS_IMMORTAL(ch) )
-        {
-            sprintf( buf, "{D|{x Holylight:  %s   ", IS_SET(ch->act, PLR_HOLYLIGHT) ? "{WON{x" : "{WOFF{x" );
-            if( ch->invis_level )
-            {
-                sprintf( temp, "Wizinvis: level {W%d{x   ", ch->invis_level );
-                strcat( buf, temp );
-            }
-            if( ch->incog_level )
-            {
-                sprintf( temp, "Incognito: level {W%d{x", ch->incog_level );
-                strcat( buf, temp );
-            }
-            for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
+    add_buf(output, "{D:===========================================================================:{x\n\r");
 
-        /* Practices, trains */
-        if( !IS_HERO(ch) && ch->pcdata->highest_level <= ch->level )
-            sprintf( temp, "{c(Expect to gain about{x %.2f {cnext level.)", ch_prac_gains(ch, ch->level + 1)/100.0 );
-        else
-            sprintf( temp, "" );
 
-        sprintf( buf, "{D|{x Practices:  {C%-5d{x  %s", ch->practice, temp );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+    /* Practices, Trains */
+    if( !IS_HERO(ch) && ch->pcdata->highest_level <= ch->level )
+        sprintf( temp, "   {cExpect to gain about{x %.2f {cnext level.", ch_prac_gains(ch, ch->level + 1)/100.0 );
+    else
+        sprintf( temp, "" );
 
-        int hp_cap, mana_cap, move_cap;
-        get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
-        sprintf( buf, "{D|{x Trains:     {C%-5d {cSpent:{x %d/%d {chp,{x %d/%d {cmn,{x %d/%d {cmv  {c(MAX %d){x",
-            ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+    sprintf( buf, "{D|{x Practices:   {C%5d{x     %s", ch->practice, temp );
+    
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
-    }   /* end of "some players-only stuff" section */
 
-    sprintf( buf, "{D|{x Alignment:  %s ", alignbuf );
+    get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
+    sprintf( buf, "{D|{x Trains:      {C%5d        {cSpent:{x %d/%d {chp{x %d/%d {cmn{x %d/%d {cmv {cMAX %d{x",
+        ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, 
+        mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
 
-    /* Religion Stuff, same line as Align since they are related .. plus another line below */
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Call the alignbuf here to show alignment */
+    sprintf( buf, "{D|{x Alignment:   %s", alignbuf );
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Cleaned up this section below but leaving commented out - Astark
+
     if( ch->pcdata != NULL && (religion = get_religion(ch)) != NULL )
     {
-        /* Finishing the "Align" line with some Religion stuff */
-        for ( ; strlen_color(buf) <= 40; strcat( buf, " " ));
         sprintf( temp, "Your religion allows %d to %d.", religion->min_align, religion->max_align );
-        strcat( buf, temp );
 
-        /* Split the two Religion lines with the proper formatting stuff */
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
-
-        /* Second line of Religion Stuff */
         if( IS_IMMORTAL(ch) )
         {
             bool rel_at_altar = FALSE;
@@ -4770,9 +4792,7 @@ void do_score( CHAR_DATA *ch, char *argument )
                 rel_at_altar = TRUE;
 
             sprintf( buf, "{D|{x Faith Pool: {B%d{x", religion->god_power );
-            for( ; strlen_color(buf) <= 40; strcat(buf, " ") );
             sprintf( temp, "Relic: %s", !rel_at_altar ? "{Rmissing{x" : "safe" );
-            strcat( buf, temp );
         }
         else
         {
@@ -4784,170 +4804,119 @@ void do_score( CHAR_DATA *ch, char *argument )
                 religion->name );
         }
     }
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-    /* end of align and religion stuff */
 
-    /* More player-only stuff */
-    if( ch->pcdata != NULL )
+    */
+
+
+    /* Mob kills, mob deaths, beheads */
+    sprintf(buf, "{D|{x Mob Kills:  %6d        Mob Deaths:   %5d       Behead Count: %4d",
+        ch->pcdata->mob_kills, 
+        ch->pcdata->mob_deaths, 
+        ch->pcdata->behead_cnt);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Warfare grade, kills and points */
+    sprintf( buf, "{D|{x War Kills:  %6d        Warfare Grade:    %1s       Warfare Pts: %5d",
+        ch->pcdata->war_kills, 
+        pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
+        ch->pcdata->warpoints);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Pkills and Pkill Deaths */
+    sprintf( buf, "{D|{x PKills:     %6d        PKill Deaths: %5d",
+        ch->pcdata->pkill_count, 
+        ch->pcdata->pkill_deaths);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    add_buf(output, "{D:===========================================================================:{x\n\r");
+
+
+    /* Display pflag, but only if it exists */
+    if( custombuf[0] != '\0' )
     {
-        if( !IS_IMMORTAL(ch) )
-        {
-            sprintf( temp, "Mobkills:   %d kills, %d deaths",
-	        ch->pcdata->mob_kills, ch->pcdata->mob_deaths );
-	    for ( ; strlen_color(temp) <= 47; strcat( temp, " " ));
-                sprintf(buf, "{D| {x %s Beheads: %d",
-	        temp, ch->pcdata->behead_cnt );
-
-	    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " "));
-	    strcat( buf, "{D|{x\n\r" );
-	    add_buf(output, buf);
-
-	    /* Warfare grade and number of kills */
-	    sprintf( buf, "{D|{x   Warfare:  Grade {W<{x%s{W>{x (%d points from %d warkills)",
-		pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
-		ch->pcdata->warpoints, ch->pcdata->war_kills );
-	    for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-	    strcat( buf, "{D|{x\n\r" );
-	    add_buf( output, buf );
-
-        /* Pkill status */
-        /* This section has been moved from up above to make the PKill
-           count display below warfare grade. Astark Oct 2012 */
-        if( IS_SET(ch->act, PLR_PERM_PKILL) )
-        {
-			sprintf( buf, "{D|{x   %s:  Kills {W<{R%d{W>{x ",
-				IS_SET(ch->act, PLR_HARDCORE) ? "PK (HC)" : "  Pkill",
-				ch->pcdata->pkill_count);
-			for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
-
-            /* ** Pflag hours remaining ** */
-            if( custombuf[0] != '\0' )
-            {
-                sprintf( buf, "{D|{x Your %sflag has %d hours remaining. ", custombuf, ch->pcdata->customduration );
-                for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-                strcat( buf, "{D|{x\n\r" );
-                add_buf( output, buf );
-            }
-
-        } /* end of some mortal-only stuff */
-
-    } /* end of more players-only stuff */
-
-    /* ** Position, drunk, hunger, thirst, smoke ** */
-    sprintf( buf, "{D|{x You are %s", positionbuf );
-    if( ch->pcdata != NULL )
-    {
-        bool hungry = FALSE;
-        bool thirsty = FALSE;
-
-        if( ch->pcdata->condition[COND_DRUNK] > 10 )
-            strcat( buf, ", drunk" );
-        else if( ch->pcdata->condition[COND_DRUNK] > 20 )
-            strcat( buf, ", VERY drunk" );
-
-        thirst = ch->pcdata->condition[COND_THIRST];
-        hunger = ch->pcdata->condition[COND_HUNGER];
-
-        if( (hunger >= 0 && hunger < 20) )  hungry = TRUE;
-        if( (thirst >= 0 && thirst < 20) )  thirsty = TRUE;
-
-        if( hungry || thirsty ) strcat( buf, ", feeling " );
-
-        if( hungry )
-        {
-            if( hunger == 0 )
-                strcat( buf, "{rvery{x hungry" );
-            else if( (hunger > 0 && hunger < 20) )
-                strcat( buf, "hungry" );
-        }
-
-        if( thirsty )
-        {
-            if( hungry ) strcat( buf, " and " );
-
-            if( thirst == 0 )
-                strcat( buf, "{rvery{x thirsty" );
-            else if( (thirst > 0 && thirst < 20) )
-                strcat( buf, "thirsty" );
-        }
-    }
-    strcat( buf, "." );
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
-    /* ** Carry details ** */
-    sprintf( buf, "{D|{x Carrying: %d/%d items (%d/%d pounds).",
-        ch->carry_number, can_carry_n(ch), get_carry_weight(ch)/10, can_carry_w(ch)/10 );
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
-    /* ** Encumberance ** */
-    if( (encumber = get_encumberance(ch)) > 0 )
-    {
-        if( encumber <= 25 )      sprintf( buf, "{D|{x You are slightly encumbered." );
-        else if( encumber <= 50 ) sprintf( buf, "{D|{x You are seriously encumbered." );
-        else if( encumber <= 75 ) sprintf( buf, "{D|{x You are heavily encumbered." );
-        else   sprintf( buf, "{D|{x {RYou can hardly move under the weight you carry!{x" );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
+        sprintf( buf, "{D|{x Your %sflag has %d hours remaining. ", 
+            custombuf, 
+            ch->pcdata->customduration );
+        
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
 
-    /* ** More players-only stuff ** */
-    if( ch->pcdata != NULL )
+
+    /* Position and Stance */
+    sprintf(buf, "{D|{x Position: %8s        Stance: {G%11s{x",
+        positionbuf, 
+        capitalize(stances[ch->stance].name) );
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+    
+    /* Clean this part up some more, but will only show when booleans are true */
+    drunk  = ch->pcdata->condition[COND_DRUNK];
+    thirst = ch->pcdata->condition[COND_THIRST];
+    hunger = ch->pcdata->condition[COND_HUNGER];
+
+    if( (drunk  >= 10 )              )  drunken = TRUE;
+    if( (hunger >= 0 && hunger < 20) )  hungry  = TRUE;
+    if( (thirst >= 0 && thirst < 20) )  thirsty = TRUE;
+
+    if( drunken || hungry || thirsty )
     {
-        /* Morph info, and there's also room for STANCE details here */
-        if ( MULTI_MORPH(ch) )
-        {
-            if( ch->pcdata->morph_race > 0 )
-                sprintf( buf, "{D|{x Morph race: {G%s{x with {G%d{x hours remaining.   ",
-                    race_table[ch->pcdata->morph_race].name,  ch->pcdata->morph_time );
-            else
-                sprintf( buf, "{D|{x You are currently in {Gbasic form{x.   " );
+        sprintf(buf, "{D|{x Hungry:   %12s        Thirsty: %12s       Drunk: %11s",
+            hunger == 0 ? "{Rstarving{x" : hunger > 0 && hunger < 20 ? "yes" : "None",
+            thirst == 0 ? "{Rdessicated{x" : thirst > 0 && thirst < 20 ? "yes" : "None",
+            drunk > 20 ? "{Rintoxicated{x" : drunk > 10 && drunk < 20 ? "buzzed" : "None");
 
-            if( ch->stance != 0 )
-            {
-                sprintf( temp, "Stance: {G%s{x", capitalize(stances[ch->stance].name) );
-                strcat( buf, temp );
-            }
-
-            for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
-        else if( ch->race == race_naga )
-        {
-            if( ch->pcdata->morph_race == 0 )
-                sprintf( buf, "{D|{x You are currently in {Gserpent form{x.   " );
-            else
-                sprintf( buf, "{D|{x You are currently in humanoid form.   " );
-
-            if( ch->stance != 0 )
-            {
-                sprintf( temp, "Stance: {G%s{x", capitalize(stances[ch->stance].name) );
-                strcat( buf, temp );
-            }
-
-            for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
-        else if( ch->stance != 0 )
-        {
-            sprintf( buf, "{D|{x Stance: {G%s{x", capitalize(stances[ch->stance].name) );
-            for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
-            add_buf( output, buf );
-        }
-
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
+
+
+    /* Items carried, carry weight, encumbered */
+    sprintf( buf, "{D|{x Items:     %3d/%3d        Weight: %-5d/%5d       Encumbered: %s",
+        ch->carry_number, 
+        can_carry_n(ch), 
+        get_carry_weight(ch)/10, 
+        can_carry_w(ch)/10, 
+        encumberbuf);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
+
+    /* Morph information for races that utilize it */
+    if ( MULTI_MORPH(ch) )
+    {
+        if( ch->pcdata->morph_race > 0 )
+            sprintf( buf, "{D|{x Morph: {G%11s{x        Hours:  {G%d{x remaining",
+                race_table[ch->pcdata->morph_race].name,  ch->pcdata->morph_time );
+        else
+            sprintf( buf, "{D|{x Morph:  {Gbasic form{x" );
+        
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    }
+    else if( ch->race == race_naga )
+    {
+        if( ch->pcdata->morph_race == 0 )
+            sprintf( buf, "{D|{x Morph:     {Gserpent{x" );
+        else
+            sprintf( buf, "{D|{x Morph:    {Ghumanoid{x" );
+    
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    }
+
+
+    /* Show command currently actioned */
+    if ( ch->pcdata->combat_action == NULL )
+        sprintf( buf, "{D|{x Command Actioned:         {wNone{x");
+    else
+        sprintf( buf, "{D|{x Command Actioned:         {w%s{x", ch->pcdata->combat_action );
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+
 
     add_buf(output, "{D:===========================================================================:{x\n\r");
     page_to_char(buf_string(output),ch);
@@ -4976,7 +4945,6 @@ void do_worth( CHAR_DATA *ch, char *argument )
 {
     char buf[MAX_STRING_LENGTH], temp[MAX_STRING_LENGTH];
     int LENGTH = 75;
-    int level_soon = ch->level + ch->exp;
     int totalquests;
 
     if( !strcmp(argument,"for_score") )
@@ -4986,73 +4954,48 @@ void do_worth( CHAR_DATA *ch, char *argument )
     if ( !ch->pcdata )
     {
         sprintf(buf, "{D|{x You have {C%ld gold{x and {W%ld silver{x.", ch->gold, ch->silver );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
         send_to_char( buf, ch );
         send_to_char("{D:===========================================================================:{x\n\r", ch);
         return;
     }
   
-    /* *** MONEY *** */
 
-    /* First, some formatting ... want to make things line up :P */
-    sprintf( temp, "{Y%ld gold{x, {W%ld silver{x", ch->gold, ch->silver );
-    for ( ; strlen_color(temp) <= 35; strcat( temp, " " ));
+    /* Gold, Silver, Bank */ 
+    sprintf(buf, "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x       In Bank: {Y%9d{x",
+        ch->gold,
+        ch->silver,
+        ch->pcdata->bank);
 
-    sprintf( buf, "{D|{x Assets:     %s  Bank: %ld gold",
-        temp, ch->pcdata->bank );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    send_to_char( buf, ch );
-
-    /* *** EXPERIENCE *** */
-    sprintf( buf, "{D|{x Experience: %d real exp", ch->exp );
-    if( ch->pcdata->field > 0 )
-    {
-	sprintf( temp, " and %d field", ch->pcdata->field );
-        strcat( buf, temp );
-    }
-    if ( !IS_HERO(ch) )
-    {
-        sprintf( temp, " (%d exp to reach lvl %d)",
-            (ch->level + 1) * exp_per_level(ch) - ch->exp, ch->level + 1 );
-        strcat( buf, temp );
-    }
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    send_to_char( buf, ch );
-
-    /* ACHIEVEMENT POINTS  -- Astark Sep 2012 */
-
-    sprintf( buf, "{D|{x You have    {c%d{x achievement point%s",
-                ch->pcdata->achpoints, ch->pcdata->achpoints == 1 ? "" : "s" );
-    for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
-    /* *** QUESTING *** */
-    totalquests = ch->pcdata->quest_success + ch->pcdata->quest_failed;
+    /* ETL, Field, EXP */
+    sprintf( buf, "{D|{x EXP to Lvl:   %4d        Field EXP:   %6d       Total Exp: %7d",
+        (ch->level + 1) * exp_per_level(ch) - ch->exp,
+        ch->pcdata->field,
+        ch->exp);
 
-    /* Bit o formatting to match with the Assets line :P */
-    sprintf( temp, "You have {B%d{x quest point%s",
-                ch->pcdata->questpoints, ch->pcdata->questpoints == 1 ? "" : "s" );
-    for( ; strlen_color(temp) <= 35; strcat( temp, " " ));
-
-    sprintf( buf, "{D|{x Quests:     %s  %d/%d (%3.1f%%)", temp,
-                ch->pcdata->quest_success, totalquests, ch->pcdata->quest_success == 0 ? 0 :
-                (float)ch->pcdata->quest_success * 100 / (float)totalquests );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
+
+
+    /* Quest Points, Achievement Points, Storage Boxes */
+    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x        Achieve Pts: {c%6d{x       Storage Boxes:   %-2d",
+        ch->pcdata->questpoints,
+        ch->pcdata->achpoints,
+        ch->pcdata->storage_boxes);
+
+    for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
+    send_to_char( buf, ch );
+
+
 
     if ( ch->pcdata->bounty > 0 )
     {
-        sprintf( buf, "{D|{x There is a bounty of %d gold on your head.", ch->pcdata->bounty );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
+        sprintf( buf, "{D|{x There is a {Rbounty{x of {Y%d gold{x on your head.", ch->pcdata->bounty );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
         send_to_char( buf, ch );
     }
 
@@ -5099,26 +5042,41 @@ void do_attributes( CHAR_DATA *ch, char *argument )
     if( strcmp(argument,"for_score") )
         add_buf(output, "{D:===========================================================================:{x\n\r");
 
-    /* ** hp, mana, mv ** */
-    sprintf( buf, "{D|{x {CHp:{x {%c%d{x/%d  {CMana:{x {%c%d{x/%d  {CMoves:{x {%c%d{x/%d",
-        hp_col, ch->hit, ch->max_hit,
-        mn_col, ch->mana, ch->max_mana, mv_col, ch->move, ch->max_move );
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
 
-    /* ** Wimpy (way better on its own line) ** */
-    sprintf( buf, "{D|{x {cWimpy:{x %d%%  {cCalm:{x %d%%", ch->wimpy, ch->calm );
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
+    /* Hitpoints (HP), Mana (MN), Move (MV) */
+    sprintf( buf, "{D|{x {CHP:{x    {%c%5d{x/%5d        {CMana:{x   {%c%5d{x/%5d       {CMoves:{x {%c%5d{x/%5d",
+        hp_col, ch->hit, ch->max_hit,
+        mn_col, ch->mana, ch->max_mana, 
+        mv_col, ch->move, ch->max_move );
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+
+ 
+    /* Armor Class, Saves Magic, Saves Physical */
+    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d        {CSaves Magic{x:   %4d       {CSaves Phys{x:   %4d",
+        GET_AC(ch),
+        get_save(ch, FALSE),
+        get_save(ch, TRUE));
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+
+
+    /* Hitroll, Damroll, Wimpy, Calm */
+    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d       {cWimpy:{x %3d%% {cCalm:{x%3d%%",
+        GET_HITROLL(ch),
+        GET_DAMROLL(ch),
+        ch->wimpy,
+        ch->calm);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+
 
     /* ** Stats ** */
-    if (IS_SET(ch->togg, TOGG_STATBARS))
+    if (IS_SET(ch->comm, COMM_SHOW_STATBARS))
         print_stat_bars( ch, output );
     else
     {
-        sprintf( buf, "{D|{x {bStr:{x %3d(%3d)  {bCon:{x %3d(%3d)  {bVit:{x %3d(%3d)  {bAgi:{x %3d(%3d)  {bDex:{x %3d(%3d) {D|{x\n\r",
+        sprintf( buf, "{D|{x {cStr:{x %3d(%3d)  {cCon:{x %3d(%3d)  {cVit:{x %3d(%3d)  {cAgi:{x %3d(%3d)  {cDex:{x %3d(%3d) {D|{x\n\r",
             ch->perm_stat[STAT_STR], get_curr_stat(ch,STAT_STR),
             ch->perm_stat[STAT_CON], get_curr_stat(ch,STAT_CON),
             ch->perm_stat[STAT_VIT], get_curr_stat(ch,STAT_VIT),
@@ -5126,55 +5084,12 @@ void do_attributes( CHAR_DATA *ch, char *argument )
             ch->perm_stat[STAT_DEX], get_curr_stat(ch,STAT_DEX)  );
         add_buf( output, buf );
 
-        sprintf( buf, "{D|{x {bInt:{x %3d(%3d)  {bWis:{x %3d(%3d)  {bDis:{x %3d(%3d)  {bCha:{x %3d(%3d)  {bLuc:{x %3d(%3d) {D|{x\n\r",
+        sprintf( buf, "{D|{x {cInt:{x %3d(%3d)  {cWis:{x %3d(%3d)  {cDis:{x %3d(%3d)  {cCha:{x %3d(%3d)  {cLuc:{x %3d(%3d) {D|{x\n\r",
             ch->perm_stat[STAT_INT], get_curr_stat(ch,STAT_INT),
             ch->perm_stat[STAT_WIS], get_curr_stat(ch,STAT_WIS),
             ch->perm_stat[STAT_DIS], get_curr_stat(ch,STAT_DIS),
             ch->perm_stat[STAT_CHA], get_curr_stat(ch,STAT_CHA),
             ch->perm_stat[STAT_LUC], get_curr_stat(ch,STAT_LUC)  );
-        add_buf( output, buf );
-    }
-    /* ** Armor Class ** */
-    if( IS_NPC(ch) || ch->level >= 25 )
-    {
-        sprintf( buf, "{D|{x {CA{crmor {CC{class:{x %5d{x",
-            GET_AC(ch) );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
-
-        /* ** Hitroll, damroll ** */
-        sprintf( buf, "{D|{x {CHit{croll, {CDam{croll:{x %5d, %d     {CSaves, Physical:{x %5d, %d",
-            GET_HITROLL(ch),  GET_DAMROLL(ch), get_save(ch, FALSE), get_save(ch, TRUE) );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );
-    }
-    else
-    {
-        int i;
-        int ac = GET_AC(ch);
-        char rating[MAX_STRING_LENGTH/4];
-
-        if( ac >= 101 )        sprintf( rating, "shameful"  );
-            else if( ac >= 80 )    sprintf( rating, "terrible"  );
-            else if( ac >= 60 )    sprintf( rating, "very weak" );
-            else if( ac >= 40 )    sprintf( rating, "weak"      );
-            else if( ac >= 20 )    sprintf( rating, "so-so"     );
-            else if( ac >= 0 )     sprintf( rating, "passable"  );
-            else if( ac >= -20 )   sprintf( rating, "decent"    );
-            else if( ac >= -40 )   sprintf( rating, "good"      );
-            else if( ac >= -60 )   sprintf( rating, "great"     );
-            else if( ac >= -80 )   sprintf( rating, "superb"    );
-            else if( ac >= -100 )  sprintf( rating, "excellent" );
-            else if( ac >= -150 )  sprintf( rating, "amazing!"  );
-            else                             sprintf( rating, "fantastic!" );
-
-        sprintf( buf, "{D|{x {CA{crmor {CC{class :{x %d (%s)   {CHit{croll, {CDam{croll:{x %d, %d",
-            ac, rating, GET_HITROLL(ch), GET_DAMROLL(ch) );
-
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
     }
 
@@ -5223,7 +5138,7 @@ void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
         // terminate string
         bar_buf[bar_next++] = 0;
         // now send it to output
-        sprintf( buf, "{D|{x {b%s: {x%3d %s %3d => %3d  [{g%s{x]  {D|{x\n\r"
+        sprintf( buf, "{D|{x {c%s: {x%3d %s %3d => %3d  [{g%s{x]  {D|{x\n\r"
             , stat_table[si].abbreviation
             , ch->perm_stat[stat->stat]
             , ch->mod_stat[stat->stat] < 0 ? "-" : "+"
@@ -5743,388 +5658,7 @@ void do_count ( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_toggle( CHAR_DATA *ch, char *argument )
-{
-  char arg[MIL];
-  one_argument( argument, arg);
-  int ti, toggle;
 
-  if (argument[0] == '\0')
-  {
-    send_to_char("\n\r{cToggleable Commands{x / {cCurrent Setting{x\n\r",ch);
-    send_to_char("{c-------------------{x   {c----------------{x\n\r",ch);
-    for (ti=0; togg_flags[ti].name != NULL; ti++)
-    {
-        printf_to_char(ch, "{w%18s    %s{x\n\r",
-            togg_flags[ti].name
-            , IS_SET(ch->togg,togg_flags[ti].bit) ? "ON" : "OFF"
-        );
-    }
-    return;
-  }
-
-  toggle = flag_lookup(argument, togg_flags);
-  if (toggle == NO_FLAG)
-  {
-      printf_to_char(ch, "Unknown toggle '%s'. Type toggle without arguments for available toggles.", argument);
-      return;
-  }
-  
-  // all good, let's do it
-  TOGGLE_BIT(ch->togg, toggle);
-  printf_to_char(ch, "Toggled %s.\n\r", IS_SET(ch->togg,toggle) ? "ON" : "OFF");
-
-  return;
-}
-/* NEW worth function by Quirky: July 6, 1998 */
-void do_oldworth( CHAR_DATA *ch, char *argument )
-{
-    char buf[MAX_STRING_LENGTH];
-    BUFFER *output;
-    output = new_buf();
-
-    if (IS_NPC(ch))
-    {
-        sprintf(buf, "Gold: %d, Silver: %d.\n\r",ch->gold, ch->silver );
-        add_buf(output, buf);
-    }
-
-    sprintf(buf, "Gold: %d, Silver: %d.\n\r",ch->gold, ch->silver );
-    add_buf(output, buf);
-    sprintf(buf, "Bank: %d gold\n\r", ch->pcdata->bank);
-    add_buf(output, buf);
-    sprintf(buf, "Real Experience: %d\n\r", ch->exp);
-    add_buf(output, buf);
-    sprintf(buf, "Field Experience: %d\n\r", ch->pcdata->field);
-    add_buf(output, buf);
-    if ( !IS_NPC(ch) && !IS_HERO(ch) )
-    {
-        sprintf( buf, "Exp to level: %d\n\r",
-            (ch->level + 1) * exp_per_level(ch) - ch->exp);
-        add_buf(output, buf);
-    }
-    sprintf(buf, "Quest Points: %d\n\r", ch->pcdata->questpoints);
-    add_buf(output, buf);
-    if ( !IS_NPC(ch) && ch->pcdata->bounty > 0 )
-    {
-        sprintf( buf, "Bounty on you: %d gold\n\r", ch->pcdata->bounty);
-        add_buf(output, buf);
-    }
-
-
-    page_to_char(buf_string(output),ch);
-    free_buf(output);
-
-}
-
-
-
-void do_oldattributes(CHAR_DATA *ch, char *argument)
-{
-    char buf[MAX_STRING_LENGTH];
-    BUFFER *output;
-
-    output = new_buf();
-    
-    sprintf( buf,"{cHit{x: %d/%d  {cMana{x: %d/%d  {cMoves{x: %d/%d\n\r",
-        ch->hit,  ch->max_hit,
-        ch->mana, ch->max_mana,
-        ch->move, ch->max_move);    
-    add_buf(output, buf);
-    
-    sprintf( buf,
-        "{BStr{x: %3d(%3d)  {BCon{x: %3d(%3d)  {BVit{x: %3d(%3d)  {BAgi{x: %3d(%3d)  {BDex{x: %3d(%3d)\n\r",
-        ch->perm_stat[STAT_STR],
-        get_curr_stat(ch,STAT_STR),
-        ch->perm_stat[STAT_CON],
-        get_curr_stat(ch,STAT_CON),
-        ch->perm_stat[STAT_VIT],
-        get_curr_stat(ch,STAT_VIT),
-        ch->perm_stat[STAT_AGI],
-        get_curr_stat(ch,STAT_AGI),
-        ch->perm_stat[STAT_DEX],
-        get_curr_stat(ch,STAT_DEX) );
-    add_buf(output, buf);
-    
-    sprintf( buf,
-        "{BInt{x: %3d(%3d)  {BWis{x: %3d(%3d)  {BDis{x: %3d(%3d)  {BCha{x: %3d(%3d)  {BLuc{x: %3d(%3d)\n\r",
-        ch->perm_stat[STAT_INT],
-        get_curr_stat(ch,STAT_INT),
-        ch->perm_stat[STAT_WIS],
-        get_curr_stat(ch,STAT_WIS),
-        ch->perm_stat[STAT_DIS],
-        get_curr_stat(ch,STAT_DIS),
-        ch->perm_stat[STAT_CHA],
-        get_curr_stat(ch,STAT_CHA),
-        ch->perm_stat[STAT_LUC],
-        get_curr_stat(ch,STAT_LUC) );
-    add_buf(output, buf);
-    
-    sprintf( buf,"Armor : %d\n\r",
-            GET_AC(ch));
-    add_buf(output, buf);
-
-       
-    sprintf( buf, "Hitroll: %d , Damroll: %d\n\r",
-        GET_HITROLL(ch), GET_DAMROLL(ch) );
-    add_buf(output, buf);
-        
-    sprintf( buf, "Saves: %d , Physical: %d\n\r", get_save(ch, FALSE), get_save(ch, TRUE));
-    add_buf(output, buf);
-        
-
-    page_to_char(buf_string(output),ch);
-    free_buf(output);
-
-}
-
-/* NEW score function by Quirky, July 6 1998 */
-void do_oldscore( CHAR_DATA *ch, char *argument )
-{
-    char buf[MAX_STRING_LENGTH], custombuf[MAX_STRING_LENGTH];
-    BUFFER *output;
-    int trustlevel, thirst, hunger, encumber;
-
-    output = new_buf();
-
-    if (IS_NPC(ch))
-    {
-        do_oldscore( ch, "" );
-        return;
-    }
-
-    if (ch->pcdata->customflag[0]!='\0')
-        sprintf(custombuf, "(%s) ", ch->pcdata->customflag);
-    else
-        custombuf[0] = '\0';
-
-    sprintf( buf, "Name and Title: %s%s%s%s%s%s\n\r",
-        IS_SET(ch->comm,COMM_AFK) ? "[AFK] " : "",
-        custombuf,
-        IS_SET(ch->act, PLR_KILLER) ? "(KILLER) " : "",
-        IS_SET(ch->act, PLR_THIEF) ? "(THIEF) " : "",
-        ch->name, IS_NPC(ch) ? "" : ch->pcdata->title);
-    add_buf(output, buf);
-    sprintf( buf, "Level: {c%d{x\n\r", ch->level );
-    add_buf(output, buf);
-    sprintf( buf, "Sex: %s   Age: %d years (%d hours)\n\r",
-        ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female",
-        get_age(ch), ( ch->played + (int)(current_time - ch->logon) ) / 3600 );
-    add_buf(output, buf);
-    sprintf( buf, "Race: %s   Class: %s   Clan: %s%c%s\n\r",
-        race_table[ch->race].name,
-        IS_NPC(ch) ? "mobile" : class_table[ch->class].name,
-        (clan_table[ch->clan].active && !IS_NPC(ch)) ?  clan_table[ch->clan].who_name : "none",
-        clan_table[ch->clan].active ?  '-' : ' ',
-        (clan_table[ch->clan].active && !IS_NPC(ch)) ?  clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].who_name : "");
-    add_buf(output, buf);
-
-    if ( !IS_IMMORTAL(ch) && get_religion(ch) != NULL )
-    {
-        sprintf( buf, "God: %s   Rank: %s   Faith: %d\n\r",
-                 get_god_name(ch), get_ch_rank_name(ch), get_faith(ch) );
-        add_buf(output, buf);
-    }
-    sprintf(buf, "Trains: %d\n\r", ch->train);
-    add_buf(output, buf);
-    sprintf(buf, "Practices: %d\n\r", ch->practice);
-    add_buf(output, buf);
-    sprintf(buf, "Carrying: %d/%d items.\n\r", ch->carry_number, can_carry_n(ch) );
-    add_buf(output, buf);
-    sprintf( buf, "Weight: %d/%d pounds.\n\r", get_carry_weight(ch) / 10, can_carry_w(ch) / 10 );
-    add_buf(output, buf);
-    /* display trains spent --Bobble */
-    /* marker for astark , check trains */
-    sprintf( buf, "Trains spent:  hp: %d mana: %d move: %d max: %d\n\r",
-             ch->pcdata->trained_hit,
-             ch->pcdata->trained_mana,
-             ch->pcdata->trained_move,
-             max_hmm_train( ch->level ) );
-    add_buf(output, buf);
-    sprintf( buf, "Wimpy set to %d%% hit points.\n\r", ch->wimpy );
-    add_buf(output, buf);
-    sprintf( buf, "Calm set to %d%% moves.\n\r", ch->calm );
-    add_buf(output, buf);
-
-    switch ( ch->position )
-    {
-    case POS_DEAD:
-        sprintf(buf, "You are DEAD\n\r");
-        add_buf(output, buf);
-        break;
-    case POS_MORTAL:
-        sprintf(buf, "You are mortally wounded\n\r");
-        add_buf(output, buf);
-        break;
-    case POS_INCAP:
-        sprintf(buf, "You are incapacitated\n\r");
-        add_buf(output, buf);
-        break;
-    case POS_STUNNED:
-        sprintf(buf, "You are stunned\n\r");
-        add_buf(output, buf);
-        break;
-    case POS_SLEEPING:
-        sprintf(buf, "You are sleeping\n\r");
-        add_buf(output, buf);
-        break;
-    case POS_RESTING:
-        sprintf(buf, "You are resting\n\r");
-        add_buf(output, buf);
-        break;
-    case POS_SITTING:
-        sprintf(buf, "You are sitting\n\r");
-        add_buf(output, buf);
-        break;
-    case POS_STANDING:
-        sprintf(buf, "You are standing\n\r");
-        add_buf(output, buf);
-        break;
-    case POS_FIGHTING:
-        sprintf(buf, "You are fighting\n\r");
-        add_buf(output, buf);
-        break;
-    }
-
-    if ( ch->pcdata->condition[COND_DRUNK] > 10 )
-        sprintf(buf, "You are drunk\n\r");
-        add_buf(output, buf);
-
-    thirst = ch->pcdata->condition[COND_THIRST];
-    hunger = ch->pcdata->condition[COND_HUNGER];
-
-    if ( (thirst >= 0 && thirst<20) && (hunger >= 0 && hunger < 20))
-    {
-        sprintf(buf, "You are hungry and thirsty\n\r");
-        add_buf(output, buf);
-    }
-    else if ( thirst >= 0 && thirst<20)
-    {
-        sprintf(buf, "You are thirsty\n\r");
-        add_buf(output, buf);
-    }
-    else if ( hunger >= 0 && hunger < 20)
-    {
-        sprintf(buf, "You are hungry\n\r");
-        add_buf(output, buf);
-    }
-
-    /* encumberance */
-    if ( (encumber = get_encumberance(ch)) > 0 )
-    {
-        if ( encumber <= 25 )
-            sprintf(buf, "You are slightly encumbered.\n\r");
-        else if ( encumber <= 50 )
-            sprintf(buf, "You are seriously encumbered.\n\r");
-        else if ( encumber <= 75 )
-            sprintf(buf, "You are heavily encumbered.\n\r");
-        else
-            sprintf(buf, "You can hardly move under the weight you carry!\n\r");
-            
-        add_buf(output,buf);
-    }
-
-    if (ch->stance != 0)
-    {
-        sprintf(buf, "Stance: %s\n\r", stances[ch->stance].name );
-        add_buf(output,buf);
-    }
-
-    /* morphing info */
-    if ( MULTI_MORPH(ch) )
-    {
-        if ( ch->pcdata->morph_race > 0 )
-        {
-            sprintf(buf, "You have morphed into a %s for %d remaining hours.\n\r",
-                    race_table[ch->pcdata->morph_race].name,
-                    ch->pcdata->morph_time );
-            add_buf(output,buf);
-        }
-        else
-        {
-            sprintf(buf, "You are in basic form.\n\r");
-            add_buf(output,buf);
-        }
-    }
-    if ( ch->race == race_naga )
-    {
-        if ( ch->pcdata->morph_race == 0 )
-        {
-            sprintf(buf, "You are currently in serpent form.\n\r");
-            add_buf(output,buf);
-        }
-        else
-        {
-            sprintf(buf, "You are currently in humanoid form.\n\r");
-            add_buf(output,buf);
-        }
-    }
-
-    
-    int align;
-    align = ch->alignment;
-    if( align > 900 )       sprintf( buf, "Alignment: %-5d (angelic)\n\r", align );
-    else if( align >  700 ) sprintf( buf, "Alignment: %-5d (saintly)\n\r", align );
-    else if( align >  350 ) sprintf( buf, "Alignment: %-5d (good)\n\r", align );
-    else if( align >  100 ) sprintf( buf, "Alignment: %-5d (kind)\n\r", align );
-    else if( align > -100 ) sprintf( buf, "Alignment: %-5d (neutral)\n\r", align );
-    else if( align > -350 ) sprintf( buf, "Alignment: %-5d (mean)\n\r", align );
-    else if( align > -700 ) sprintf( buf, "Alignment: %-5d (evil)\n\r", align );
-    else if( align > -900 ) sprintf( buf, "Alignment: %-5d (demonic)\n\r", align );
-    else                    sprintf( buf, "Alignment: %-5d (satanic)\n\r", align );
-
-    add_buf(output, buf);
-    
-    if (IS_SET(ch->act, PLR_PERM_PKILL))
-    {
-        sprintf(buf, "You are a %s player killer, with %d kills.\n\r",
-            IS_SET(ch->act, PLR_HARDCORE) ? "hardcore" : "permanent",
-            ch->pcdata->pkill_count);
-        add_buf(output, buf);
-    }
-
-    /* Warfare grade and number of kills */
-    sprintf( buf, "{xWarfare:  Grade <%s> (%d points from %d warkills)\n\r",
-        pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
-	    ch->pcdata->warpoints, ch->pcdata->war_kills );
-    add_buf(output, buf);
-	   
-
-    if ( ch->pcdata->spouse )
-       sprintf(buf, "You are married to %s.\n\r", ch->pcdata->spouse);
-    else
-       sprintf(buf, "You are not married.\n\r");
-           
-    add_buf(output, buf);       
-           
-
-    if ( ch->pcdata->customflag[0] != '\0' )
-    {
-        sprintf( buf, "You are marked with a (%s) flag for %d hours.\n\r",
-           ch->pcdata->customflag, ch->pcdata->customduration );
-        add_buf(output, buf);
-    }
-
-    page_to_char(buf_string(output),ch);
-    free_buf(output);
-
-    if ( IS_SET(ch->comm,COMM_SHOW_WORTH) )
-       do_oldworth(ch, "");
-    else
-       send_to_char("Type {Wshow worth{x to include exp and money info in score.\n\r", ch );
-
-    if ( IS_SET(ch->comm,COMM_SHOW_ATTRIB))
-       do_oldattributes(ch, "");
-    else
-       send_to_char("Type {Wshow att{x to include hp,moves,mana,stats,armor,etc. in score\n\r", ch );
-
-    if ( IS_SET(ch->comm,COMM_SHOW_AFFECTS))
-       do_affects(ch, "");
-
-    if (!IS_NPC(ch) && ch->penalty)
-       show_penalties_by_player(ch, ch->name, TIME_PLAYED(ch), 2);
-
-}
 
 void do_classes( CHAR_DATA *ch, char *argument )
 {
