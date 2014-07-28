@@ -4655,15 +4655,15 @@ void do_score( CHAR_DATA *ch, char *argument )
 
     /* alignbuf */
     align = ch->alignment;
-    if( align > 900 )       sprintf( alignbuf, "{W%5d   (angelic){x ", align );
-    else if( align >  700 ) sprintf( alignbuf, "{c%5d   (saintly){x ", align );
-    else if( align >  350 ) sprintf( alignbuf, "{c%5d   (good){x    ", align );
-    else if( align >  100 ) sprintf( alignbuf, "{m%5d   (kind){x    ", align );
-    else if( align > -100 ) sprintf( alignbuf, "{m%5d   (neutral){x ", align );
-    else if( align > -350 ) sprintf( alignbuf, "{m%5d   (mean){x    ", align );
-    else if( align > -700 ) sprintf( alignbuf, "{r%5d   (evil){x    ", align );
-    else if( align > -900 ) sprintf( alignbuf, "{r%5d   (demonic){x ", align );
-    else                    sprintf( alignbuf, "{D%5d   (satanic){x ", align );
+    if( align > 900 )       sprintf( alignbuf, "{W%5d        (angelic){x ", align );
+    else if( align >  700 ) sprintf( alignbuf, "{c%5d        (saintly){x ", align );
+    else if( align >  350 ) sprintf( alignbuf, "{c%5d        (good){x    ", align );
+    else if( align >  100 ) sprintf( alignbuf, "{m%5d        (kind){x    ", align );
+    else if( align > -100 ) sprintf( alignbuf, "{m%5d        (neutral){x ", align );
+    else if( align > -350 ) sprintf( alignbuf, "{m%5d        (mean){x    ", align );
+    else if( align > -700 ) sprintf( alignbuf, "{r%5d        (evil){x    ", align );
+    else if( align > -900 ) sprintf( alignbuf, "{r%5d        (demonic){x ", align );
+    else                    sprintf( alignbuf, "{D%5d        (satanic){x ", align );
 
     /* positionbuf */
     switch( ch->position )
@@ -4682,13 +4682,13 @@ void do_score( CHAR_DATA *ch, char *argument )
     /* encumberbuf - how encumbered is the character */
     if( (encumber = get_encumberance(ch)) > 0 )
     {
-        if( encumber <= 25 )      sprintf( encumberbuf, "{mMild{x" );
-        else if( encumber <= 50 ) sprintf( encumberbuf, "{wModerate{x" );
-        else if( encumber <= 75 ) sprintf( encumberbuf, "{rSevere{x" );
-        else sprintf( encumberbuf, "{RExtreme{x" );
+        if( encumber <= 25 )      sprintf( encumberbuf, "  {mmild{x" );
+        else if( encumber <= 50 ) sprintf( encumberbuf, "  {wfair{x" );
+        else if( encumber <= 75 ) sprintf( encumberbuf, "  {rhigh{x" );
+        else sprintf( encumberbuf, "{Rsevere{x" );
     }
     else
-        sprintf(encumberbuf, "None");
+        sprintf(encumberbuf, "  none");
 
     output = new_buf();
 
@@ -4711,7 +4711,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Level, Remorts/Trust, Clan Name, Clan Rank */
-    sprintf(buf, "{D|{x Level: %3d %-11s Clan: %s%11s{x      Rank: %s%11s  {x", 
+    sprintf(buf, "{D|{x Level: %3d %-11s    Clan: %s%13s{x       Rank: %s%12s  {x", 
         ch->level, 
         remortbuf,
         clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
@@ -4723,7 +4723,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Class, Race, Gender */
-    sprintf(buf, "{D|{x Class: %11s      Race: %11s      Gender: %9s", 
+    sprintf(buf, "{D|{x Class: %11s        Race: %13s       Gender: %10s", 
         class_table[ch->class].name, 
         race_table[ch->race].name,
         ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female" );
@@ -4732,7 +4732,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Age, Hours Played, Married Status */
-    sprintf(buf, "{D|{x Age:   %5d years      Played: %-5d hrs      Married: %8s",
+    sprintf(buf, "{D|{x Age:   %5d years        Played:   %5d hrs       Married: %9s",
         get_age(ch), 
         (ch->played + (int)(current_time - ch->logon))/3600,
         ch->pcdata->spouse ? ch->pcdata->spouse : "Single");
@@ -4743,7 +4743,7 @@ void do_score( CHAR_DATA *ch, char *argument )
     /* Holy Light, Wizinvis and Incog Levels */
     if( IS_IMMORTAL(ch) )
     {
-        sprintf( buf, "{D|{x Holylight:     {W%3s{x      Wizinvis:     {W%3d{x      Incognito:    {W%3d{x",
+        sprintf( buf, "{D|{x Holylight:     {W%3s{x        Wizinvis:     {W%3d{x         Incognito:     {W%3d{x",
             IS_SET(ch->act, PLR_HOLYLIGHT) ? "ON" : "OFF", 
             IS_WIZI(ch) ? ch->invis_level : 0, 
             IS_INCOG(ch) ? ch->incog_level : 0 );
@@ -4756,17 +4756,17 @@ void do_score( CHAR_DATA *ch, char *argument )
 
     /* Practices, Trains */
     if( !IS_HERO(ch) && ch->pcdata->highest_level <= ch->level )
-        sprintf( temp, "{cExpect to gain about{x %.2f {cnext level.", ch_prac_gains(ch, ch->level + 1)/100.0 );
+        sprintf( temp, "   {cExpect to gain about{x %.2f {cnext level.", ch_prac_gains(ch, ch->level + 1)/100.0 );
     else
         sprintf( temp, "" );
 
-    sprintf( buf, "{D|{x Practices:   {C%5d{x   %s", ch->practice, temp );
+    sprintf( buf, "{D|{x Practices:   {C%5d{x     %s", ch->practice, temp );
     
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
-    sprintf( buf, "{D|{x Trains:      {C%5d   {cSpent:{x %d/%d {chp,{x %d/%d {cmn,{x %d/%d {cmv {c(MAX %d){x",
+    sprintf( buf, "{D|{x Trains:      {C%5d        {cSpent:{x %d/%d {chp{x %d/%d {cmn{x %d/%d {cmv {cMAX %d{x",
         ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, 
         mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
 
@@ -4809,7 +4809,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Mob kills, mob deaths, beheads */
-    sprintf(buf, "{D|{x Mob Kills:  %6d      Mob Deaths: %5d      Beheads:   %6d",
+    sprintf(buf, "{D|{x Mob Kills:  %6d        Mob Deaths:   %5d       Behead Count: %4d",
         ch->pcdata->mob_kills, 
         ch->pcdata->mob_deaths, 
         ch->pcdata->behead_cnt);
@@ -4818,7 +4818,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Warfare grade, kills and points */
-    sprintf( buf, "{D|{x War Kills:  %6d      War Grade:      %1s      War Points: %5d",
+    sprintf( buf, "{D|{x War Kills:  %6d        Warfare Grade:    %1s       Warfare Pts: %5d",
         ch->pcdata->war_kills, 
         pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
         ch->pcdata->warpoints);
@@ -4827,7 +4827,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Pkills and Pkill Deaths */
-    sprintf( buf, "{D|{x PKills:     %6d      PK Deaths:  %5d",
+    sprintf( buf, "{D|{x PKills:     %6d        PKill Deaths: %5d",
         ch->pcdata->pkill_count, 
         ch->pcdata->pkill_deaths);
 
@@ -4849,7 +4849,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
     /* Position and Stance */
-    sprintf(buf, "{D|{x Position: %8s      Stance: {G%s{x",
+    sprintf(buf, "{D|{x Position: %8s        Stance: {G%11s{x",
         positionbuf, 
         capitalize(stances[ch->stance].name) );
 
@@ -4867,17 +4867,17 @@ void do_score( CHAR_DATA *ch, char *argument )
 
     if( drunken || hungry || thirsty )
     {
-        sprintf(buf, "{D|{x Hungry:   %-12s  Thirsty: %-12s  Drunk: %-12s",
-            hunger == 0 ? "Very Hungry" : hunger > 0 && hunger < 20 ? "Hungry" : "None",
-            thirst == 0 ? "Very Thirsty" : thirst > 0 && thirst < 20 ? "Thirsty" : "None",
-            drunk > 20 ? "Very Drunk" : drunk > 10 && drunk < 20 ? "Drunk" : "None");
+        sprintf(buf, "{D|{x Hungry:   %12s        Thirsty: %12s       Drunk: %11s",
+            hunger == 0 ? "{Rstarving{x" : hunger > 0 && hunger < 20 ? "yes" : "None",
+            thirst == 0 ? "{Rdessicated{x" : thirst > 0 && thirst < 20 ? "yes" : "None",
+            drunk > 20 ? "{Rintoxicated{x" : drunk > 10 && drunk < 20 ? "buzzed" : "None");
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
 
 
     /* Items carried, carry weight, encumbered */
-    sprintf( buf, "{D|{x Items:     %3d/%3d      Weight: %-5d/%5d    Encumbrance: %s",
+    sprintf( buf, "{D|{x Items:     %3d/%3d        Weight: %-5d/%5d       Encumbered: %s",
         ch->carry_number, 
         can_carry_n(ch), 
         get_carry_weight(ch)/10, 
@@ -4891,19 +4891,19 @@ void do_score( CHAR_DATA *ch, char *argument )
     if ( MULTI_MORPH(ch) )
     {
         if( ch->pcdata->morph_race > 0 )
-            sprintf( buf, "{D|{x Morph Race: {G%-11s{x Hours:  {G%d{x remaining",
+            sprintf( buf, "{D|{x Morph: {G%11s{x        Hours:  {G%d{x remaining",
                 race_table[ch->pcdata->morph_race].name,  ch->pcdata->morph_time );
         else
-            sprintf( buf, "{D|{x Morph Race: {Gbasic form{x" );
+            sprintf( buf, "{D|{x Morph:  {Gbasic form{x" );
         
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
     else if( ch->race == race_naga )
     {
         if( ch->pcdata->morph_race == 0 )
-            sprintf( buf, "{D|{x Morph Form: {Gserpent{x" );
+            sprintf( buf, "{D|{x Morph:     {Gserpent{x" );
         else
-            sprintf( buf, "{D|{x Morph Form: {Ghumanoid{x" );
+            sprintf( buf, "{D|{x Morph:    {Ghumanoid{x" );
     
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
@@ -4911,9 +4911,9 @@ void do_score( CHAR_DATA *ch, char *argument )
 
     /* Show command currently actioned */
     if ( ch->pcdata->combat_action == NULL )
-        sprintf( buf, "{D|{x Command Actioned:       {wNone{x");
+        sprintf( buf, "{D|{x Command Actioned:         {wNone{x");
     else
-        sprintf( buf, "{D|{x Command Actioned:       {w%s{x", ch->pcdata->combat_action );
+        sprintf( buf, "{D|{x Command Actioned:         {w%s{x", ch->pcdata->combat_action );
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
@@ -4962,7 +4962,7 @@ void do_worth( CHAR_DATA *ch, char *argument )
   
 
     /* Gold, Silver, Bank */ 
-    sprintf(buf, "{D|{x Gold:    {Y%9d{x      Silver: {w%9d{x      Bank: {Y%11d{x",
+    sprintf(buf, "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x       In Bank: {Y%9d{x",
         ch->gold,
         ch->silver,
         ch->pcdata->bank);
@@ -4972,7 +4972,7 @@ void do_worth( CHAR_DATA *ch, char *argument )
 
 
     /* ETL, Field, EXP */
-    sprintf( buf, "{D|{x EXP to Lvl:   %4d      Field EXP:      %-4d   Total Exp: %-6d",
+    sprintf( buf, "{D|{x EXP to Lvl:   %4d        Field EXP:   %6d       Total Exp: %7d",
         (ch->level + 1) * exp_per_level(ch) - ch->exp,
         ch->pcdata->field,
         ch->exp);
@@ -4982,7 +4982,7 @@ void do_worth( CHAR_DATA *ch, char *argument )
 
 
     /* Quest Points, Achievement Points, Storage Boxes */
-    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x      Achieve Pts: {c%4d{x      Storage Boxes:  %-2d",
+    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x        Achieve Pts: {c%6d{x       Storage Boxes:   %-2d",
         ch->pcdata->questpoints,
         ch->pcdata->achpoints,
         ch->pcdata->storage_boxes);
@@ -5044,7 +5044,7 @@ void do_attributes( CHAR_DATA *ch, char *argument )
 
 
     /* Hitpoints (HP), Mana (MN), Move (MV) */
-    sprintf( buf, "{D|{x {CHP:{x    {%c%5d{x/%5d      {CMana:{x {%c%5d{x/%5d      {CMoves:{x   {%c%5d{x/%5d",
+    sprintf( buf, "{D|{x {CHP:{x    {%c%5d{x/%5d        {CMana:{x   {%c%5d{x/%5d       {CMoves:{x {%c%5d{x/%5d",
         hp_col, ch->hit, ch->max_hit,
         mn_col, ch->mana, ch->max_mana, 
         mv_col, ch->move, ch->max_move );
@@ -5053,7 +5053,7 @@ void do_attributes( CHAR_DATA *ch, char *argument )
 
  
     /* Armor Class, Saves Magic, Saves Physical */
-    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d      {CSaves Magic{x: %4d      {CSaves Physical{x: %4d",
+    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d        {CSaves Magic{x:   %4d       {CSaves Phys{x:   %4d",
         GET_AC(ch,AC_PIERCE),
         get_save(ch, FALSE),
         get_save(ch, TRUE));
@@ -5062,7 +5062,7 @@ void do_attributes( CHAR_DATA *ch, char *argument )
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
-    sprintf( buf, "{D|{x {CHit{croll:{x      %4d      {CDam{croll:{x     %4d      {cWimpy:{x %3d%%   {cCalm:{x %3d%%",
+    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d       {cWimpy:{x %3d%% {cCalm:{x%3d%%",
         GET_HITROLL(ch),
         GET_DAMROLL(ch),
         ch->wimpy,
