@@ -1142,6 +1142,7 @@ end
 --end mudconfig section
 
 -- perfmon section
+local lastpulse
 local pulsetbl={}
 local pulseind=1
 local sectbl={}
@@ -1151,6 +1152,7 @@ local minind=1
 local hourtbl={}
 local hourind=1
 function log_perf( val )
+    lastpulse=val
     pulsetbl[pulseind]=val
 
     if pulseind<4 then 
@@ -1222,11 +1224,13 @@ function do_perfmon( ch, argument )
     pagetochar( ch,
 ([[
 Averages
+  %3d Pulse:    %f
   %3d Pulses:   %f
   %3d Seconds:  %f
   %3d Minutes:  %f
   %3d Hours:    %f
-]]):format( #pulsetbl, avg(pulsetbl),
+]]):format( 1, lastpulse,
+            #pulsetbl, avg(pulsetbl),
             #sectbl, avg(sectbl),
             #mintbl, avg(mintbl),
             #hourtbl, avg(hourtbl) ) )
