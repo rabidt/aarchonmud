@@ -407,7 +407,6 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (ch->incog_level)
         bprintf(buf,"Inco %d\n",ch->incog_level);
     
-    bprintf( buf, "Togg %s\n", print_tflag(ch->togg));    
     bprintf( buf, "Pos  %d\n",   
         ch->position == POS_FIGHTING ? POS_STANDING : ch->position );
     
@@ -2238,7 +2237,6 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         break;
         
     case 'T':
-		KEYF( "Togg",	ch->togg	);
         KEY( "TrueSex",     ch->pcdata->true_sex,   bread_number( buf ) );
         KEY( "TSex",    ch->pcdata->true_sex,   bread_number( buf ) );
         KEY( "Trai",    ch->train,      bread_number( buf ) );
@@ -3032,15 +3030,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
     
     one_argument(argument,arg);
     
-    /* Added by Maedhros to toggle old version of finger */
-    if (IS_SET(ch->togg, TOGG_OLDFINGER))
-    {
-      do_oldfinger (ch, arg);
-      return;
-    }
-    else
-
-    /* end of toggle code */
     if (arg[0] == '\0')
     {
         send_to_char("You must provide a name.\n\r",ch);
@@ -3322,181 +3311,5 @@ void do_finger(CHAR_DATA *ch, char *argument)
     free_char(wch);
     free_descriptor(d);
     
-    return;
-}
-
-/* finger command by Smote, added to and made pretty by Quirky :P */
-void do_oldfinger(CHAR_DATA *ch, char *argument)
-{
-    char arg[MAX_INPUT_LENGTH];
-    BUFFER *output;
-    char buf[MAX_STRING_LENGTH];
-    char custombuf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    CHAR_DATA *wch;
-    RELIGION_DATA *rel;
-    int war;
-
-    one_argument(argument,arg);
-
-    if (arg[0] == '\0')
-    {
-        send_to_char("You must provide a name.\n\r",ch);
-        return;
-    }
-
-    d=new_descriptor();
-    
-    sprintf( last_debug, "do_oldfinger: 1" );
-    if (!load_char_obj(d, argument))
-    {
-        send_to_char("Character not found.\n\r", ch);
-        if (d->character)
-        {
-            free_char(d->character);
-            d->character=NULL;
-        }
-        free_descriptor(d);
-        sprintf( last_debug, "" );
-        return;
-    }
-    sprintf( last_debug, "do_oldfinger: 2" );
-    wch=d->character;
-    output = new_buf();
-
-    if (wch->pcdata->customflag[0]!='\0')
-        sprintf(custombuf, "(%s) ", wch->pcdata->customflag);
-    else
-        custombuf[0] = '\0';
-    
-    sprintf(buf, "Name and Title: %s%s%s%s%s%s%s%s{x%s\n\r",
-        IS_SET(wch->act,PLR_RP) ? "(RP) " : "",
-        IS_SET(wch->act,PLR_HELPER) ? "({GH{CE{cL{GP{CE{cR{x) " : "",
-        IS_SET(wch->act,PLR_KILLER) ? "(KILLER) " : "",
-        IS_SET(wch->act,PLR_THIEF) ? "(THIEF) " : "",
-        custombuf,
-	    IS_NPC(wch)?"":wch->pcdata->name_color,
-	    IS_NPC(wch)?"":wch->pcdata->pre_title,
-        wch->name, IS_NPC(wch) ? "" : wch->pcdata->title);
-    add_buf(output, buf );
-    sprintf(buf, "Level: %d\n\r", wch->level);
-    add_buf(output, buf);
-    sprintf(buf, "Gender: %s\n\r", wch->sex == 0 ? "sexless" : wch->sex == 1 ? "male" : "female");
-    add_buf(output, buf);
-    sprintf(buf, "Race: %s\n\r", wch->race < MAX_PC_RACE ? pc_race_table[wch->race].name : "     ");
-    add_buf(output, buf);
-    sprintf(buf, "Class: %s\n\r", class_table[wch->class].name);
-    add_buf(output, buf);
-    sprintf(buf, "Remorts: %d\n\r", wch->pcdata->remorts);
-    add_buf(output, buf);
-    if (clan_table[wch->clan].active)
-        sprintf(buf, "Clan and Rank: [%s-%s]\n\r", 
-        clan_table[wch->clan].who_name,
-        clan_table[wch->clan].rank_list[wch->pcdata->clan_rank].who_name);
-    else
-        sprintf(buf, "Clan and Rank: none\n\r");
-    add_buf(output, buf);
-    if ((rel = get_religion(wch)) != NULL)
-    {
-        sprintf(buf, "Religion God: %s\n\r", rel->god);
-        add_buf(output, buf);
-        sprintf(buf, "Religion Rank: %s\n\r", get_ch_rank_name(wch));
-        add_buf(output, buf);
-    }
-    else
-    {
-        sprintf(buf, "Religion God: none\n\r");
-        add_buf(output, buf);
-        sprintf(buf, "Religion Rank: none\n\r");
-        add_buf(output, buf);    
-    }
-    if( wch->pcdata && wch->pcdata->spouse )
-    {
-        sprintf( buf, "Spouse: %s\n\r", wch->pcdata->spouse );
-        add_buf(output, buf);
-    }
-    else
-    {
-        sprintf( buf, "Spouse: None\n\r" );
-        add_buf(output, buf);
-    }
-    sprintf(buf, "Date Last On: %s\n\r", time_format(fingertime, custombuf));
-    add_buf(output, buf);
-    sprintf(buf, "Date Created: %s\n\r", time_format(wch->id, custombuf));
-    add_buf(output, buf);
-    sprintf(buf, "Pkills: %d\n\r", wch->pcdata->pkill_count);
-    add_buf(output, buf);
-    sprintf(buf, "Mob Kills: %d\n\r", wch->pcdata->mob_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Beheads: %d\n\r", wch->pcdata->behead_cnt);
-    add_buf(output, buf);
-    sprintf(buf, "Quests Complete: %d\n\r", wch->pcdata->quest_success);
-    add_buf(output, buf);
-    sprintf(buf, "Hard Quests Complete: %d\n\r", wch->pcdata->quest_hard_success);
-    add_buf(output, buf);
-    sprintf(buf, "Quests Failed: %d\n\r", wch->pcdata->quest_failed);
-    add_buf(output, buf);
-    sprintf(buf, "Percent Success: %4.1f%%\n\r", wch->pcdata->quest_success == 0 ? 0 : (float)wch->pcdata->quest_success * 100 / (float)(wch->pcdata->quest_failed + wch->pcdata->quest_success));
-    add_buf(output, buf);
-    sprintf(buf, "Total Wars: %d\n\r", wch->pcdata->total_wars);
-    add_buf(output, buf);
-    sprintf(buf, "Total Wins: %d\n\r", wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won);
-    add_buf(output, buf);
-    sprintf(buf, "Total Losses: %d\n\r", wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Total Kills: %d\n\r", wch->pcdata->war_kills);
-    add_buf(output, buf);
-
-	if( wch->pcdata->warpoints == 0 )
-	    war = get_pkgrade_level(wch->pcdata->war_kills);
-	else
-	    war = get_pkgrade_level(wch->pcdata->warpoints);
-
-    sprintf(buf, "Warfare Grade: %s\n\r", pkgrade_table[war].grade);
-    add_buf(output, buf);
-    sprintf(buf, "Armageddon Wins: %d\n\r", wch->pcdata->armageddon_won);
-    add_buf(output, buf);
-    sprintf(buf, "Armageddon Losses: %d\n\r", wch->pcdata->armageddon_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Armageddon Kills: %d\n\r", wch->pcdata->armageddon_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Clan War Wins: %d\n\r", wch->pcdata->clan_won);
-    add_buf(output, buf);
-    sprintf(buf, "Clan War Losses: %d\n\r", wch->pcdata->clan_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Clan War Kills: %d\n\r", wch->pcdata->clan_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Class War Wins: %d\n\r", wch->pcdata->class_won);
-    add_buf(output, buf);
-    sprintf(buf, "Class War Losses: %d\n\r", wch->pcdata->class_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Class War Kills: %d\n\r", wch->pcdata->class_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Race War Wins: %d\n\r", wch->pcdata->race_won);
-    add_buf(output, buf);
-    sprintf(buf, "Race War Losses: %d\n\r", wch->pcdata->race_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Race War Kills: %d\n\r", wch->pcdata->race_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Religion War Wins: %d\n\r", wch->pcdata->religion_won);
-    add_buf(output, buf);
-    sprintf(buf, "Religion War Losses: %d\n\r", wch->pcdata->religion_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Religion War Kills: %d\n\r", wch->pcdata->religion_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Gender War Wins: %d\n\r", wch->pcdata->gender_won);
-    add_buf(output, buf);
-    sprintf(buf, "Gender War Losses: %d\n\r", wch->pcdata->gender_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Gender War Kills: %d\n\r", wch->pcdata->gender_kills);
-        
-    page_to_char(buf_string(output),ch);
-    free_buf(output);
-
-    nuke_pets(wch);
-    free_char(wch);
-    free_descriptor(d);
-
-    sprintf( last_debug, "" );
     return;
 }
