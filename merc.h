@@ -1628,10 +1628,6 @@ struct  kill_data
 #define SIZE_HUGE           4
 #define SIZE_GIANT          5
 
-/* toggle for old score and finger */
-#define TOGG_OLDSCORE       1
-#define TOGG_OLDFINGER      2
-#define TOGG_STATBARS       3
 
 /*
  * Well known object virtual numbers.
@@ -2233,6 +2229,8 @@ typedef int tattoo_list[MAX_WEAR];
 #define COMM_NONEWBIE    (ee)
 #define COMM_BUSY        (ff)
 #define COMM_SHOW_PERCENT (gg)
+#define COMM_SHOW_STATBARS (hh)
+
 
 
 /* WIZnet flags */
@@ -2526,7 +2524,6 @@ struct  char_data
     sh_int      calm;
         tflag       penalty;
         tflag       gag;  
-        tflag       togg;
 //        int         combo_points;   
 	/* stats */
 	sh_int      perm_stat[MAX_STATS];
