@@ -2523,7 +2523,8 @@ struct  char_data
 	sh_int      wimpy;
     sh_int      calm;
         tflag       penalty;
-        tflag       gag;  
+        tflag       gag; 
+        tflag       togg; 
 //        int         combo_points;   
 	/* stats */
 	sh_int      perm_stat[MAX_STATS];

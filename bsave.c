@@ -2237,6 +2237,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         break;
         
     case 'T':
+        KEYF( "Togg",	ch->togg	);
         KEY( "TrueSex",     ch->pcdata->true_sex,   bread_number( buf ) );
         KEY( "TSex",    ch->pcdata->true_sex,   bread_number( buf ) );
         KEY( "Trai",    ch->train,      bread_number( buf ) );

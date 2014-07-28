@@ -4743,7 +4743,7 @@ void do_score( CHAR_DATA *ch, char *argument )
     /* Holy Light, Wizinvis and Incog Levels */
     if( IS_IMMORTAL(ch) )
     {
-        sprintf( buf, "{D|{x Holylight:     {W%3s{x        Wizinvis:     {W%3d{x         Incognito:     {W%3d{x",
+        sprintf( buf, "{D|{x Holylight:     {W%3s{x        Wizinvis:       {W%3d{x       Incognito:     {W%3d{x",
             IS_SET(ch->act, PLR_HOLYLIGHT) ? "ON" : "OFF", 
             IS_WIZI(ch) ? ch->invis_level : 0, 
             IS_INCOG(ch) ? ch->incog_level : 0 );
@@ -5161,7 +5161,7 @@ void do_percentages( CHAR_DATA *ch, char *argument )
         add_buf(output, "{D:===========================================================================:{x\n\r");
 
     // secondary and two-handed weapons
-    add_buff_pad(output, LENGTH, "{D|{x {cOffhand Attacks:{x %3d%%   {cTwohand Bonus:{x %3d%%     {cFocus Bonus:{x %3d%%",
+    add_buff_pad(output, LENGTH, "{D|{x {cOffhand Attacks:{x %3d%%     {cTwohand Bonus:{x %3d%%       {cFocus Bonus:{x  %3d%%",
         offhand_attack_chance(ch, FALSE),
         get_twohand_bonus(ch, get_eq_char(ch, WEAR_WIELD), FALSE),
         get_focus_bonus(ch)
@@ -5169,7 +5169,7 @@ void do_percentages( CHAR_DATA *ch, char *argument )
     add_buf(output, "{D|{x\n\r");
 
     // dodge, parry, block
-    add_buff_pad(output, LENGTH, "{D|{x           {cDodge:{x %3d%%           {cParry:{x %3d%%           {cBlock:{x %3d%%",
+    add_buff_pad(output, LENGTH, "{D|{x           {cDodge:{x %3d%%             {cParry:{x %3d%%             {cBlock:{x  %3d%%",
         dodge_chance(ch, ch->fighting, FALSE),
         parry_chance(ch, ch->fighting, FALSE),
         shield_block_chance(ch, FALSE)
