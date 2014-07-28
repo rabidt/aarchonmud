@@ -19,6 +19,9 @@ extern bool cfg_refund_qeq;
 
 extern char *cfg_word_of_day;
 
+extern bool cfg_show_rolls;
+extern bool cfg_const_damroll;
+
 typedef struct config_data_entry
 {
     const char *name;
