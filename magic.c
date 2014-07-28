@@ -354,6 +354,9 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
 
+    if ( (victim->stance == STANCE_INQUISITION || victim->stance == STANCE_UNICORN) && per_chance(25) )
+        return TRUE;
+        
     if ( IS_AFFECTED(victim, AFF_PHASE) && per_chance(50) )
         return TRUE;
 
@@ -369,8 +372,6 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
     if ( ch && ch->stance == STANCE_INQUISITION )
         hit_roll += hit_roll / 3;
-    if ( victim->stance == STANCE_INQUISITION || victim->stance == STANCE_UNICORN )
-        save_roll += save_roll / 3;
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -382,9 +383,6 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
     int hit_roll, save_roll;
 
-    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
-        return TRUE;
-
     /* automatic saves/failures */
 
     switch(check_immune(victim,dam_type))
@@ -393,6 +391,9 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         case IS_RESISTANT:  if ( per_chance(20) ) return TRUE;  break;
         case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
+
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
+        return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_BERSERK) && per_chance(10) )
         return TRUE;
