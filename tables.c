@@ -488,7 +488,8 @@ const struct flag_type comm_flags[] =
 	{   "show_affects", COMM_SHOW_AFFECTS,  TRUE    },
 	{   "show_worth",   COMM_SHOW_WORTH,    TRUE    },  /*06/07/98*/
 	{   "show_attrib",  COMM_SHOW_ATTRIB,   TRUE    },  /*06/07/98*/
-    {   "show_percent", COMM_SHOW_PERCENT,  TRUE    },
+        {   "show_percent", COMM_SHOW_PERCENT,  TRUE    },
+        {   "show_statbars",COMM_SHOW_STATBARS, TRUE    },
 	{   "nogratz",      COMM_NOGRATZ,       TRUE    },  
 	{   "afk",          COMM_AFK,           TRUE    },
 	{   NULL,           0,          0   }
@@ -1510,13 +1511,6 @@ msl_string achievement_display [] =
 #define ACHV_EXPLORED   13
 #define ACHV_TATT       14
 */
-const struct flag_type togg_flags[] =
-{
-  { "oldscore",		TOGG_OLDSCORE,	TRUE },
-  { "oldfinger",	TOGG_OLDFINGER,	TRUE },
-  { "statbars",         TOGG_STATBARS,  TRUE },
-  { NULL,		0,		0    }
-};
 
 const CHANNEL public_channel_table[] =
 {

@@ -3434,7 +3434,6 @@ struct
     PRFLAG( portal_flags, ""),
     PRFLAG( furniture_flags, ""),
     PRFLAG( apply_types, ""),
-    PRFLAG( togg_flags, ""),
 
     { "item_table", print_item_table, item_table, "Item types." },
     { "attack_table", print_attack_table, attack_table, "Attack types."},

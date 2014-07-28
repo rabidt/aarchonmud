@@ -216,7 +216,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "rolldice",   do_rolldice,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "scroll",     do_scroll,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "title",      do_title,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
-	{ "toggle",	    do_toggle,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "unalias",    do_unalias, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "wimpy",      do_wimpy,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "noexp",      do_noexp,       POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
