@@ -866,7 +866,7 @@ int get_duration_by_type( int type, int level )
 
     switch ( type )
     {
-        case DUR_BRIEF:   duration = level / 6; break;
+        case DUR_BRIEF:   duration = (level + 20) / 8; break;
         case DUR_SHORT:   duration = (level + 20) / 4; break;
         case DUR_NORMAL:  duration = (level + 20) / 2; break;
         case DUR_LONG:    duration = (level + 20); break;
