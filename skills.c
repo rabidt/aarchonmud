@@ -1228,7 +1228,9 @@ void list_group_costs(CHAR_DATA *ch)
     
     col = 0;
     
-    sprintf(buf,"%-18s %-5s %-18s %-5s %-18s %-5s\n\r","group","cp","group","cp","group","cp");
+    sprintf(buf,"{c%-20s {w%3s   {c%-20s {w%3s   {c%-20s {w%3s{x\n\r","group","cp","group","cp","group","cp");
+    send_to_char(buf,ch);
+    sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
     send_to_char(buf,ch);
     
     for ( seq=0
@@ -1242,7 +1244,7 @@ void list_group_costs(CHAR_DATA *ch)
             &&  !ch->pcdata->group_known[gn]
             &&  group_table[gn].rating[ch->class] > 0)
         {
-            sprintf(buf,"%-18s %-5d ",group_table[gn].name,
+            sprintf(buf,"%-18s %5d   ",group_table[gn].name,
                 group_table[gn].rating[ch->class]);
             send_to_char(buf,ch);
             if (++col % 3 == 0)
@@ -1254,8 +1256,10 @@ void list_group_costs(CHAR_DATA *ch)
     send_to_char("\n\r",ch);
     
     col = 0;
-    
-    sprintf(buf,"%-16s%-6s    %-16s%-6s    %-16s%-6s\n\r","skill","lvl/cp","skill","lvl/cp","skill","lvl/cp");
+
+    sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r","skill","lvl/cp","skill","lvl/cp","skill","lvl/cp");
+    send_to_char(buf,ch);
+    sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
     send_to_char(buf,ch);
     
     for ( seq=0
@@ -1267,9 +1271,10 @@ void list_group_costs(CHAR_DATA *ch)
         
         if (!ch->gen_data->skill_chosen[sn]
             &&  ch->pcdata->learned[sn] == 0
+            &&  skill_table[sn].spell_fun == spell_null
             &&  can_gain_skill(ch, sn) )
         {
-            sprintf(buf,"%-16s %2d/%-5d ",
+            sprintf(buf,"%-17s %3d/%2d   ",
                 skill_table[sn].name,
                 skill_table[sn].skill_level[ch->class],
                 skill_table[sn].rating[ch->class]);
@@ -1278,6 +1283,40 @@ void list_group_costs(CHAR_DATA *ch)
                 send_to_char("\n\r",ch);
         }
     }
+    if ( col % 3 != 0 )
+        send_to_char( "\n\r", ch );
+    send_to_char("\n\r",ch);
+
+    col = 0;
+
+    sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r","spell","lvl/cp","spell","lvl/cp","spell","lvl/cp");
+    send_to_char(buf,ch);
+    sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
+    send_to_char(buf,ch);
+    
+    for ( seq=0
+            ; (sn=name_sorted_skill_table(seq)) != -1
+            ; seq++ )
+    {
+        if (skill_table[sn].name == NULL)
+            break;
+        
+        if (!ch->gen_data->skill_chosen[sn]
+            &&  ch->pcdata->learned[sn] == 0
+            &&  skill_table[sn].spell_fun != spell_null
+            &&  can_gain_skill(ch, sn) )
+        {
+            sprintf(buf,"%-17s %3d/%2d   ",
+                skill_table[sn].name,
+                skill_table[sn].skill_level[ch->class],
+                skill_table[sn].rating[ch->class]);
+            send_to_char(buf,ch);
+            if (++col % 3 == 0)
+                send_to_char("\n\r",ch);
+        }
+    }
+
+
     if ( col % 3 != 0 )
         send_to_char( "\n\r", ch );
     send_to_char("\n\r",ch);
@@ -1404,7 +1443,7 @@ bool parse_gen_groups(CHAR_DATA *ch,char *argument)
    {
 	  if (argument[0] == '\0')
 	  {
-		 do_help(ch,"group help");
+                 do_help(ch,"header group help");
 		 return TRUE;
 	  }
 	
