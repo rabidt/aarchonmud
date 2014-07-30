@@ -4412,6 +4412,7 @@ void    extract_obj args( ( OBJ_DATA *obj ) );
 void    char_list_insert( CHAR_DATA *ch );
 //CHAR_DATA* char_list_next( long current_id );
 CHAR_DATA* char_list_next_char( CHAR_DATA *ch );
+CHAR_DATA* char_list_find( char *name );
 void    char_from_char_list( CHAR_DATA *ch );
 bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
 bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
