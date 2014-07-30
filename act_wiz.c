@@ -2616,7 +2616,7 @@ void do_pload( CHAR_DATA *ch, char *argument )
     argument = one_argument(argument, name);
     
     /* Don't want to load a second copy of a player who's already online! */
-    if ( get_char_world( ch, name ) != NULL )
+    if ( char_list_find(name) != NULL )
     {
         send_to_char( "That person is already connected!\n\r", ch );
         return;
@@ -2687,7 +2687,7 @@ void do_punload( CHAR_DATA *ch, char *argument )
     }
 
 
-    if ( ( victim = get_char_world( ch, who ) ) == NULL )
+    if ( ( victim = char_list_find(who) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
