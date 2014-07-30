@@ -2381,6 +2381,14 @@ void char_from_char_list( CHAR_DATA *ch )
     }
 }
 
+CHAR_DATA* char_list_find( char *name )
+{
+    CHAR_DATA *ch = char_list;
+    while ( ch && !is_exact_name(name, ch->name) )
+        ch = ch->next;
+    return ch;
+}
+
 /*
  * Extract a char from the world. Returns true if removed from char_list (i.e., not delayed)
  */
