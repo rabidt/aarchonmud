@@ -947,18 +947,6 @@ const struct flag_type container_flags[] =
  ****************************************************************************/
 
 
-
-
-const struct flag_type ac_type[] =
-{
-	{   "pierce",        AC_PIERCE,            TRUE    },
-	{   "bash",          AC_BASH,              TRUE    },
-	{   "slash",         AC_SLASH,             TRUE    },
-	{   "exotic",        AC_EXOTIC,            TRUE    },
-	{   NULL,              0,                    0       }
-};
-
-
 const struct flag_type size_flags[] =
 {
 	{   "tiny",          SIZE_TINY,            TRUE    },

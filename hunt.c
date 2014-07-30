@@ -468,6 +468,12 @@ void do_hunt( CHAR_DATA *ch, char *argument )
         send_to_char("No-one around by that name.\n\r", ch );
         return;
     }
+
+    if ( !is_room_ingame(victim->in_room) && is_room_ingame(ch->in_room))
+    {
+        send_to_char("No-one around by that name.\n\r", ch);
+        return;
+    }
     
     if ( IS_NPC(victim) && IS_SET(victim->act, ACT_OBJ) )
     {

@@ -1173,9 +1173,9 @@ void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     }
     if ( ch != victim )
         factor += factor / 3;
-    else if ( was_wish_cast )
-        factor -= factor / 3;
     factor *= 100.0 / mastery_adjust_cost(100, get_mastery(ch, sn));
+    if ( was_wish_cast )
+        factor *= 100.0 / wish_cast_adjust_cost(ch, 100, sn, ch == victim);
 
     if ( ch->mana < heal/factor )
 	heal = ch->mana * factor;
@@ -2125,7 +2125,7 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
     
     chance = 100;
     snake_count = 0;
-    while ( (snake_count + 1) * mlevel < max_snake && number_percent() <= chance ) {
+    while ( (snake_count + 1) * mlevel <= max_snake && number_percent() <= chance ) {
         
         if ((mob = create_mobile(get_mob_index(MOB_VNUM_SNAKE)))==NULL)
             return;  
@@ -2892,7 +2892,6 @@ void spell_smotes_anachronism( int sn, int level, CHAR_DATA *ch, void *vo,int ta
     
     act("Smote appears suddenly and slows down time!",ch,NULL,NULL,TO_ROOM);
     send_to_char("Your prayers are answered as Smote slows down time!\n\r",ch);
-    ch->wait += PULSE_VIOLENCE;
     
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
         
@@ -2901,7 +2900,9 @@ void spell_smotes_anachronism( int sn, int level, CHAR_DATA *ch, void *vo,int ta
 	     || was_obj_cast && gch != ch )
             continue;
         
-        gch->wait = UMAX(gch->wait - PULSE_VIOLENCE, 0);
+        // timer reduction is limited to PULSE_VIOLENCE to limit stacking
+        if ( gch->wait > PULSE_VIOLENCE && gch != ch )
+            gch->wait = UMAX(gch->wait - PULSE_VIOLENCE, PULSE_VIOLENCE);
         gch->daze = UMAX(gch->daze - PULSE_VIOLENCE, 0);
         victim = gch->fighting;
         
