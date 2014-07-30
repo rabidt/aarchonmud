@@ -4450,8 +4450,8 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
 
   if ( number_bits(2) == 0 )
   {
-    act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
-    act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
+    act( "Your mind turns into jelly.", ch, NULL, victim, TO_VICT);
+    act( "$N's mind turns into jelly.", ch, NULL, victim, TO_CHAR);
     affect_join(victim,&af);
     if ( confuse )
     {
