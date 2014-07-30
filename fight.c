@@ -461,6 +461,7 @@ void special_affect_update(CHAR_DATA *ch)
 	 && !IS_AFFECTED(ch, AFF_SHELTER)
 	 // no linkdeads unless fighting
 	 && (IS_NPC(ch) || ch->desc != NULL || ch->fighting != NULL)
+        && !PLR_ACT(ch, PLR_WAR)
 	 && room_is_sunlit(ch->in_room) )
     {
 		int sunlight;
@@ -1013,8 +1014,12 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
 
 bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
 {
-    int ch_roll = (10+ch->level) + get_hitroll(ch)/2 + ch->size * 20;
-    int victim_roll = (10+victim->level) - get_save(victim, TRUE) + victim->size * 20;
+    // success chance ranges from 25% to 75%
+    if ( per_chance(50) )
+        return per_chance(50);
+    
+    int ch_roll = get_hitroll(ch) + ch->size * 20;
+    int victim_roll = -get_save(victim, TRUE) + victim->size * 20;
     return number_range(0, ch_roll) >= number_range(0, victim_roll);
 }
 
@@ -2160,13 +2165,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     else
 	ac_dam_type = FIRST_DAMAGE( dam_type );
 
-    switch( ac_dam_type )
-    {
-    case(DAM_PIERCE): victim_ac = GET_AC(victim,AC_PIERCE)/10;   break;
-    case(DAM_BASH):   victim_ac = GET_AC(victim,AC_BASH)/10;     break;
-    case(DAM_SLASH):  victim_ac = GET_AC(victim,AC_SLASH)/10;    break;
-    default:          victim_ac = GET_AC(victim,AC_EXOTIC)/10;   break;
-    }
+    victim_ac = GET_AC(victim)/10;
 
     /* basic values */
     ch_roll = GET_HITROLL(ch);
@@ -2632,8 +2631,8 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
 {
-    // guns can assassinate via aim or snipe
-    if ( wield == NULL || (wield->value[0] != WEAPON_DAGGER && wield->value[0] != WEAPON_GUN) )
+    // guns and bows can assassinate via aim or snipe
+    if ( wield == NULL || (wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield)) )
         return;
 
     // assassination mastery increases chance by up to factor 2, depending on victim's health
@@ -2643,7 +2642,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
 
     int base_chance = get_skill(ch, gsn_assassination);
     // aim head and snipe can behead without the skill
-    if ( wield->value[0] == WEAPON_GUN )
+    if ( is_ranged_weapon(wield) )
         base_chance = (100 + base_chance) / 2;
     
     int extra_chance = 50 + (get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 4;
@@ -2666,7 +2665,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
         }
         else
         {
-            if ( wield->value[0] == WEAPON_GUN )
+            if ( is_ranged_weapon(wield) )
             {
                 act("You blow $N's brains out!", ch, NULL, victim, TO_CHAR);
                 act("$n blows your brains out!", ch, NULL, victim, TO_VICT);
@@ -3106,35 +3105,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     /* iron maiden returns part of the damage */
     if ( IS_AFFECTED(ch, AFF_IRON_MAIDEN) && ch != victim )
     {
-	int iron_dam;
-        int dam_cap;
-
-    if ( IS_NPC(ch) )
-    {
-        if ( IS_NPC(victim) )
-        {
-            iron_dam = 0; /* NPC vs NPC hits don't cause iron maiden damage */
-        }
-        else
-        {
-            iron_dam = dam/2; /* PC -> NPC hit */
-        }
-    }
-    else
-    {
-        iron_dam = dam/4; /* NPC/PC -> PC hit */
-    }
-        
-              
-    if ( IS_NPC(victim) && IS_NPC(ch))
-        iron_dam = 0;
-    else if ( IS_NPC(ch) )
-	    iron_dam = dam/2;
-	else
-	    iron_dam = dam/4;
-
-        if (IS_NPC(ch))
-            iron_dam = URANGE(0, iron_dam, 100);
+        int iron_dam = dam/4;
 
 	/* if-check to lower spam */
 	if ( show || iron_dam > ch->level )
@@ -6179,6 +6150,7 @@ void do_flee( CHAR_DATA *ch, char *argument )
     if ( now_in == was_in )
     {
         send_to_char( "You get turned around and flee back into the room!\n\r", ch );
+        check_improve(ch, gsn_flee, FALSE, 4);
         return;
     }
 

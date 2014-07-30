@@ -219,7 +219,7 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 	    return FALSE;
 	}
 	
-	if (!strcmp(qi->name,""))
+	if ( !strcmp(qi->name,"") || cfg_refund_qeq )
 	{
 	    qp_gain = qi->cost;//refund full cost on old items
             do_say( quest_man, "As you like, I can refund you the whole cost!" );
@@ -780,6 +780,9 @@ void do_quest(CHAR_DATA *ch, char *argument)
         int reward_silver = 0, reward_points = 0, reward_prac = 0, reward_exp = 0;
         int luck = ch_luc_quest(ch);
         CHAR_DATA *quest_obj = get_char_obj_vnum(ch, ch->pcdata->questobj);
+        int prac_chance = IS_SET(ch->act, PLR_QUESTORHARD) ? 20 : 15;
+        if ( IS_AFFECTED(ch, AFF_FORTUNE) )
+            prac_chance += 5;
 
         // kill mob quest (completed)
         if ( ch->pcdata->questmob == -1 )
@@ -788,7 +791,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( 15*ch->level, 50*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
-                if ( per_chance(20) )
+                if ( per_chance(prac_chance) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(50, 100+luck);
                 ch->pcdata->quest_hard_success++;
@@ -797,7 +800,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( 1, 12*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
-                if ( per_chance(15) )
+                if ( per_chance(prac_chance) )
                     reward_prac = number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
             }
@@ -813,7 +816,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( ch->level, 30*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
-                if ( per_chance(20) )
+                if ( per_chance(prac_chance) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
                 ch->pcdata->quest_hard_success++;
@@ -822,7 +825,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( 1, 12*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
-                if ( per_chance(15) )
+                if ( per_chance(prac_chance) )
                     reward_prac = number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
             }
@@ -834,6 +837,9 @@ void do_quest(CHAR_DATA *ch, char *argument)
             return;
         }
         
+        sprintf(buf, "Congratulations on completing your quest!");
+        do_say(questman, buf);
+        
         // general adjustments
         reward_points += reward_points * get_religion_bonus(ch) / 100;
         if ( cfg_enable_qp_mult )
@@ -841,16 +847,13 @@ void do_quest(CHAR_DATA *ch, char *argument)
             reward_points = (int)(reward_points * cfg_qp_mult );
             if ( cfg_show_qp_mult )
             {
-                sprintf(buf, "There's currently a qp bonus of %d%%!",
-                    (int)((cfg_qp_mult*100)-100));
+                sprintf(buf, "There's currently a qp bonus of %d%%!", (int)((cfg_qp_mult*100)-99.5));
                 do_say(questman, buf );
             }
 
         }
 
         // notify of rewards
-        sprintf(buf, "Congratulations on completing your quest!");
-        do_say(questman, buf);
         sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.", reward_points, reward_silver);
         do_say(questman, buf);
         if ( reward_prac > 0 )
