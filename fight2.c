@@ -3113,12 +3113,6 @@ void do_hurl( CHAR_DATA *ch, char *argument )
     if (is_safe(ch, victim))
         return;
     
-    if( is_affected(ch, gsn_tumbling) )
-    {
-	send_to_char( "You can't do that while tumbling.\n\r", ch );
-	return;
-    }
-
     if ( IS_AFFECTED(victim, AFF_ROOTS) )
     {
 	act( "$N is rooted firmly to the ground.",
