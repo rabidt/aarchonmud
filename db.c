@@ -113,6 +113,7 @@ int             jail_room_list[MAX_JAIL_ROOM];
 bool            wait_for_auth = AUTH_STATUS_ENABLED;
 bool            exits_fixed = FALSE;
 
+sh_int  gsn_frenzy;
 sh_int  gsn_mindflay;
 sh_int  gsn_petrify;
 sh_int  gsn_backstab;
@@ -3153,8 +3154,7 @@ void clone_mobile(CHAR_DATA *parent, CHAR_DATA *clone)
     clone->default_pos  = parent->default_pos;
     clone->spec_fun = parent->spec_fun;
     
-    for (i = 0; i < 4; i++)
-        clone->armor[i] = parent->armor[i];
+    clone->armor = parent->armor;
     
     for (i = 0; i < MAX_STATS; i++)
     {
@@ -3419,8 +3419,7 @@ void clear_char( CHAR_DATA *ch )
     ch->prompt                  = &str_empty[0];
     ch->logon           = current_time;
     ch->lines           = PAGELEN;
-    for (i = 0; i < 4; i++)
-        ch->armor[i]        = 100;
+    ch->armor           = 100;
     ch->position        = POS_STANDING;
     ch->hit         = 20;
     ch->max_hit         = 20;
