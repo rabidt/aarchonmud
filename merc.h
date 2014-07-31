@@ -1363,8 +1363,9 @@ struct  kill_data
 #define ASSIST_PLAYERS          (S)
 #define ASSIST_GUARD            (T)
 #define ASSIST_VNUM             (U)
-#define OFF_DISTRACT	        (V)
-#define OFF_HUNT		(X)
+#define OFF_DISTRACT            (V)
+#define OFF_ENTRAP              (W)
+#define OFF_HUNT                (X)
 #define OFF_ARMED               (aa)
 #define OFF_CIRCLE              (bb)
 #define OFF_PETRIFY             (cc)
@@ -1614,12 +1615,6 @@ struct  kill_data
 #define SEX_MALE            1
 #define SEX_FEMALE          2
 #define SEX_BOTH            3
-
-/* AC types */
-#define AC_PIERCE           0
-#define AC_BASH             1
-#define AC_SLASH            2
-#define AC_EXOTIC           3
 
 /* dice */
 #define DICE_NUMBER         0
@@ -2363,7 +2358,7 @@ struct  mob_index_data_old
 	int         hit[3];
 	int         mana[3];
 	sh_int      damage[3];
-	sh_int      ac[4];
+	sh_int      ac;
 	sh_int      dam_type;
 	tflag        off_flags;
 	tflag        imm_flags;
@@ -2467,6 +2462,7 @@ struct  char_data
 	MOB_INDEX_DATA *    pIndexData;
 	DESCRIPTOR_DATA *   desc;
 	AFFECT_DATA *   affected;
+    AFFECT_DATA *   aff_stasis; // affects temporarily put into stasis
 	OBJ_DATA *      carrying;
 	OBJ_DATA *      on;
 	ROOM_INDEX_DATA *   in_room;
@@ -2524,7 +2520,7 @@ struct  char_data
 	sh_int      alignment;
 	sh_int      hitroll;
 	sh_int      damroll;
-	sh_int      armor[4];
+	sh_int      armor;
     sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
     sh_int      mod_level; // modifier to certain level-dependent calculations, 0 by default
 	sh_int      wimpy;
@@ -3234,6 +3230,7 @@ extern sh_int race_rakshasa;
 /*
  * These are skill_lookup return values for common skills and spells.
  */
+extern  sh_int  gsn_frenzy;
 extern  sh_int  gsn_mindflay;
 extern  sh_int  gsn_petrify;
 extern  sh_int  gsn_backstab;
@@ -3847,7 +3844,7 @@ struct achievement_entry
 #define IS_NEUTRAL(ch)      (!IS_GOOD(ch) && !IS_EVIL(ch))
 
 #define IS_AWAKE(ch)        (ch->position > POS_SLEEPING)
-#define GET_AC(ch,type) get_ac(ch,type)
+#define GET_AC(ch) get_ac(ch)
 #define GET_HITROLL(ch) get_hitroll(ch)
 #define GET_DAMROLL(ch) get_damroll(ch)
 
@@ -4161,7 +4158,7 @@ void    nuke_pets   args( ( CHAR_DATA *ch ) );
 void    die_follower    args( ( CHAR_DATA *ch, bool preservePets ) );
 bool    is_same_group   args( ( CHAR_DATA *ach, CHAR_DATA *bch ) );
 void    info_message  args( ( CHAR_DATA *ch, char *argument, bool show_to_char) );
-char    *makedrunk      args( (char *string ,CHAR_DATA *ch) );
+char    *makedrunk      args( (const char *string, CHAR_DATA *ch) );
 void    printf_to_char args( ( CHAR_DATA *ch, char *fmt, ...) );
 void    logpf args( (char * fmt, ...) );
 void    bugf args( (char * fmt, ...) );
@@ -4393,6 +4390,9 @@ void    affect_to_char  args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
 void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
+AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
+void    affect_freeze_sn( CHAR_DATA *ch, int sn );
+void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
@@ -4400,7 +4400,7 @@ void    char_from_room  args( ( CHAR_DATA *ch ) );
 void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
 void    obj_from_char   args( ( OBJ_DATA *obj ) );
-int apply_ac    args( ( OBJ_DATA *obj, int iWear, int type ) );
+int apply_ac    args( ( OBJ_DATA *obj, int iWear ) );
 OD *    get_eq_char args( ( CHAR_DATA *ch, int iWear ) );
 void    equip_char  args( ( CHAR_DATA *ch, OBJ_DATA *obj, int iWear ) );
 void    unequip_char    args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
@@ -4413,6 +4413,7 @@ void    extract_obj args( ( OBJ_DATA *obj ) );
 void    char_list_insert( CHAR_DATA *ch );
 //CHAR_DATA* char_list_next( long current_id );
 CHAR_DATA* char_list_next_char( CHAR_DATA *ch );
+CHAR_DATA* char_list_find( char *name );
 void    char_from_char_list( CHAR_DATA *ch );
 bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
 bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
@@ -4485,6 +4486,8 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
 bool has_focus_obj( CHAR_DATA *ch );
 void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
+int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base );
+int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );

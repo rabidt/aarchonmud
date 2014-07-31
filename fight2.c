@@ -900,49 +900,60 @@ void do_aim( CHAR_DATA *ch, char *argument )
         
     if ( ( obj = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
     {    
-        send_to_char( "You need to wield a gun to aim.\n\r", ch );
+        send_to_char( "You need to wield a ranged weapon to aim.\n\r", ch );
         return;
     }
-                 
-    /* If first weapon is not a gun, MAY be able to aim with offhand gun */
-    if (get_weapon_sn_new(ch,FALSE) != gsn_gun )                                         
-    {   
-        /* Nope, offhand weapon is not a gun. */
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
+
+    if ( get_weapon_sn_new(ch,FALSE) == gsn_bow )
+    {
+        if ( get_eq_char(ch, WEAR_HOLD) == !ITEM_ARROWS )
         {
-            send_to_char( "You need a gun to aim.\n\r", ch);
+            send_to_char( "Without arrows that's not going to work.\n\r", ch );
             return;
-        }
-        else
-        {
-            secondgun = TRUE;
-            obj = get_eq_char(ch, WEAR_SECONDARY);
-            if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-            {
-                 send_to_char( "You can't aim with a jammed gun.\n\r", ch);
-                 return;
-            }
         }
     }
-    /* First weapon IS a gun, now check if it's jammed .. may have to use offhand gun */
-    else if (IS_SET(obj->extra_flags, ITEM_JAMMED))
+    else
     {
-        /* Nope, offhand weapon is not a gun. */
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            send_to_char( "You can't aim with a jammed gun.\n\r", ch);
-            return;
-        }
-        else 
+        /* If first weapon is not a gun, MAY be able to aim with offhand gun */
+        if (get_weapon_sn_new(ch,FALSE) != gsn_gun )                                         
         {   
-            secondgun = TRUE;
-            obj = get_eq_char(ch, WEAR_SECONDARY);
-            if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
+            /* Nope, offhand weapon is not a gun. */
+            if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
             {
-                 send_to_char( "Your guns are both jammed.\n\r", ch);
-                 return;
+                send_to_char( "You need a ranged weapon to aim.\n\r", ch);
+                return;
             }
-        }   
+            else
+            {
+                secondgun = TRUE;
+                obj = get_eq_char(ch, WEAR_SECONDARY);
+                if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
+                {
+                    send_to_char( "You can't aim with a jammed gun.\n\r", ch);
+                    return;
+                }
+            }
+        }
+        /* First weapon IS a gun, now check if it's jammed .. may have to use offhand gun */
+        else if (IS_SET(obj->extra_flags, ITEM_JAMMED))
+        {
+            /* Nope, offhand weapon is not a gun. */
+            if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
+            {
+                send_to_char( "You can't aim with a jammed gun.\n\r", ch);
+                return;
+            }
+            else 
+            {   
+                secondgun = TRUE;
+                obj = get_eq_char(ch, WEAR_SECONDARY);
+                if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
+                {
+                    send_to_char( "Your guns are both jammed.\n\r", ch);
+                    return;
+                }
+            }   
+        }
     }
 
     /* At this point, EITHER:
@@ -3102,12 +3113,6 @@ void do_hurl( CHAR_DATA *ch, char *argument )
     if (is_safe(ch, victim))
         return;
     
-    if( is_affected(ch, gsn_tumbling) )
-    {
-	send_to_char( "You can't do that while tumbling.\n\r", ch );
-	return;
-    }
-
     if ( IS_AFFECTED(victim, AFF_ROOTS) )
     {
 	act( "$N is rooted firmly to the ground.",
@@ -3798,18 +3803,19 @@ void do_strafe( CHAR_DATA *ch, char *argument )
 
     WAIT_STATE( ch, skill_table[gsn_strafe].beats );
 
-    if ( number_percent() > (skill + 3))
+    if ( !per_chance(skill) )
     {
-	send_to_char( "You fumble your arrows.\n\r", ch );
-	check_improve( ch, gsn_strafe, FALSE, 3 );
+        send_to_char( "You fumble your arrows.\n\r", ch );
+        check_improve( ch, gsn_strafe, FALSE, 3 );
     }
     else
     {
-	act( "You strafe toward $N rapidly firing arrows!", ch, NULL, victim, TO_CHAR );
-	one_hit( ch, victim, gsn_strafe, FALSE );
-	one_hit( ch, victim, gsn_strafe, FALSE );
-	one_hit( ch, victim, gsn_strafe, FALSE );
-	check_improve( ch, gsn_strafe, TRUE, 3 );
+        act( "You strafe toward $N rapidly firing arrows!", ch, NULL, victim, TO_CHAR );
+        one_hit( ch, victim, gsn_strafe, FALSE );
+        one_hit( ch, victim, gsn_strafe, FALSE );
+        if ( per_chance(mastery_bonus(ch, gsn_strafe, 40, 50)) )
+            one_hit( ch, victim, gsn_strafe, FALSE );
+        check_improve( ch, gsn_strafe, TRUE, 3 );
     }
 }
 
@@ -4438,8 +4444,8 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
 
   if ( number_bits(2) == 0 )
   {
-    act( "Your mind turns into gelly.", ch, NULL, victim, TO_VICT);
-    act( "$N's mind turns into gelly.", ch, NULL, victim, TO_CHAR);
+    act( "Your mind turns into jelly.", ch, NULL, victim, TO_VICT);
+    act( "$N's mind turns into jelly.", ch, NULL, victim, TO_CHAR);
     affect_join(victim,&af);
     if ( confuse )
     {
