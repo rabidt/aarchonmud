@@ -359,7 +359,9 @@ const struct flag_type off_flags[] =
 	{   "assist_players",   S,  TRUE    },
 	{   "assist_guard",     T,  TRUE    },
 	{   "assist_vnum",      U,  TRUE    },
-	{   "hunt",		X,  TRUE    },
+    {   "distract",         V,  FALSE   },
+    {   "entrap",           W,  TRUE    },
+    {   "hunt",             X,  TRUE    },
 	{   "armed",            aa, TRUE    },
 	{   "circle",           bb, TRUE    },
     {   "petrify",          cc, TRUE    },
@@ -945,18 +947,6 @@ const struct flag_type container_flags[] =
 /*****************************************************************************
 					  ROM - specific tables:
  ****************************************************************************/
-
-
-
-
-const struct flag_type ac_type[] =
-{
-	{   "pierce",        AC_PIERCE,            TRUE    },
-	{   "bash",          AC_BASH,              TRUE    },
-	{   "slash",         AC_SLASH,             TRUE    },
-	{   "exotic",        AC_EXOTIC,            TRUE    },
-	{   NULL,              0,                    0       }
-};
 
 
 const struct flag_type size_flags[] =

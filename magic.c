@@ -344,9 +344,6 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
     int hit_roll, save_roll;
     
-    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
-        return TRUE;
-
     /* automatic saves/failures */
     switch(check_immune(victim,dam_type))
     {
@@ -355,9 +352,12 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
 
-    if ( (victim->stance == STANCE_UNICORN) && per_chance(25) )
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
 
+    if ( (victim->stance == STANCE_INQUISITION || victim->stance == STANCE_UNICORN) && per_chance(25) )
+        return TRUE;
+        
     if ( IS_AFFECTED(victim, AFF_PHASE) && per_chance(50) )
         return TRUE;
 
@@ -371,8 +371,8 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     else
         hit_roll = (level + 10) * 6/5;
 
-    if ( victim->fighting != NULL && victim->fighting->stance == STANCE_INQUISITION )
-        save_roll = save_roll * 2/3;
+    if ( ch && ch->stance == STANCE_INQUISITION )
+        hit_roll += hit_roll / 3;
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -400,9 +400,6 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
     int hit_roll, save_roll;
 
-    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
-        return TRUE;
-
     /* automatic saves/failures */
 
     switch(check_immune(victim,dam_type))
@@ -411,6 +408,9 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         case IS_RESISTANT:  if ( per_chance(20) ) return TRUE;  break;
         case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
+
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
+        return TRUE;
 
     if ( IS_AFFECTED(victim, AFF_BERSERK) && per_chance(10) )
         return TRUE;
@@ -899,7 +899,7 @@ int get_duration_by_type( int type, int level )
 
     switch ( type )
     {
-        case DUR_BRIEF:   duration = level / 6; break;
+        case DUR_BRIEF:   duration = (level + 20) / 8; break;
         case DUR_SHORT:   duration = (level + 20) / 4; break;
         case DUR_NORMAL:  duration = (level + 20) / 2; break;
         case DUR_LONG:    duration = (level + 20); break;
@@ -1272,9 +1272,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     mana = meta_magic_adjust_cost(ch, mana, TRUE);
     if ( overcharging )
         mana *= 2;
-    // granting wishes to yourself costs extra
-    if ( was_wish_cast && vo == ch )
-        mana += mana/2;
+    if ( was_wish_cast )
+        mana = wish_cast_adjust_cost(ch, mana, sn, vo == ch);
 
     if ( ch->mana < mana )
     {
@@ -1445,13 +1444,33 @@ int wish_level( int sn )
     return min_level;
 }
 
+// skill for wish-casting sn
+int wish_skill( CHAR_DATA *ch, int sn )
+{
+    int skill = get_skill(ch, gsn_wish);
+    if ( skill > 0 )
+        // bonus if spell is already known
+        skill += (100 - skill) * get_skill(ch, sn) / 100;
+    return skill;
+}
+
+// mana cost factor for wishcasting a spell
+int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self )
+{
+    // extra cost when casting on self
+    float factor = self ? 1.5 : 1.0;
+    // mana cost reduction to cast spell already known, in percent
+    float rebate = get_skill(ch, gsn_wish) * get_skill(ch, sn) / 30000.0;
+    return UMAX(1, mana * factor * (1-rebate));
+}
+
 void show_wishes( CHAR_DATA *ch )
 {
     BUFFER *buffer;
     char buf[MAX_STRING_LENGTH];
     char spell_list[LEVEL_HERO + 1][MAX_STRING_LENGTH];
     char spell_columns[LEVEL_HERO + 1];
-    int sn, level, skill, mana;
+    int sn, level;
 
     /* initialize data */
     for ( level = 0; level <= LEVEL_HERO; level++ )
@@ -1459,7 +1478,6 @@ void show_wishes( CHAR_DATA *ch )
         spell_columns[level] = 0;
         spell_list[level][0] = '\0';
     }
-    skill = get_skill(ch, gsn_wish);
     
     for ( sn = 0; sn < MAX_SKILL; sn++ )
     {
@@ -1470,8 +1488,10 @@ void show_wishes( CHAR_DATA *ch )
         if ( (level = wish_level(sn)) > LEVEL_HERO )
             continue;
         
-        mana = mana_cost(ch, sn, skill);
-        sprintf(buf, "  %-20s %3dm", skill_table[sn].name, mana);
+        int skill = wish_skill(ch, sn);
+        int mana = mana_cost(ch, sn, skill);
+        mana = wish_cast_adjust_cost(ch, mana, sn, FALSE);
+        sprintf(buf, "  %-20s %3dm %3d%%", skill_table[sn].name, mana, skill);
 
         if ( spell_list[level][0] == '\0' )
             sprintf(spell_list[level], "\n\rLevel %2d:%s", level, buf);
@@ -1484,7 +1504,6 @@ void show_wishes( CHAR_DATA *ch )
     }
 
     buffer = new_buf();
-    add_buff(buffer, "Your effective wish casting skill is %d%%.\n\r", skill);
     for ( level = 0; level <= LEVEL_HERO; level++ )
         if (spell_list[level][0] != '\0')
             add_buf(buffer, spell_list[level]);
@@ -1536,6 +1555,9 @@ void do_wish( CHAR_DATA *ch, char *argument )
         send_to_char( "This wish is beyond your power.\n\r", ch );
         return;
     }
+    
+    // increase effective skill level if character posesses skill already
+    chance = wish_skill(ch, sn);
     
     was_wish_cast = TRUE;
     cast_spell(ch, sn, chance);
@@ -3110,6 +3132,12 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
 
+    if (IS_SET(victim->imm_flags, IMM_MAGIC))
+    {
+        send_to_char( "Your victim is immune to magic.\n\r", ch);
+        return;
+    }
+
     if (saves_spell(victim, ch, level, DAM_OTHER))
     {     
         send_to_char( "You feel a brief tingling sensation.\n\r",victim);
@@ -4336,8 +4364,8 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
                     printf_to_char(ch, "%s\n\r", wear);
             }
             sprintf( buf, 
-                    "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic.\n\r", 
-                    obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+                    "Armor class is %d.\n\r", 
+                    obj->value[0]);
             send_to_char( buf, ch );
             break;
 

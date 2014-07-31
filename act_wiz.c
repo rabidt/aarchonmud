@@ -2616,7 +2616,7 @@ void do_pload( CHAR_DATA *ch, char *argument )
     argument = one_argument(argument, name);
     
     /* Don't want to load a second copy of a player who's already online! */
-    if ( get_char_world( ch, name ) != NULL )
+    if ( char_list_find(name) != NULL )
     {
         send_to_char( "That person is already connected!\n\r", ch );
         return;
@@ -2687,7 +2687,7 @@ void do_punload( CHAR_DATA *ch, char *argument )
     }
 
 
-    if ( ( victim = get_char_world( ch, who ) ) == NULL )
+    if ( ( victim = char_list_find(who) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
@@ -3427,7 +3427,6 @@ struct
     PRFLAG( apply_flags, ""),
     PRFLAG( wear_loc_strings, ""),
     PRFLAG( container_flags, ""),
-    PRFLAG( ac_type, ""),
     PRFLAG( size_flags, ""),
     PRFLAG( weapon_class, ""),
     PRFLAG( weapon_type2, ""),
@@ -3475,4 +3474,38 @@ void do_tables( CHAR_DATA *ch, const char *argument)
 
     do_tables( ch, "");
 
+}
+
+void do_repeat( CHAR_DATA *ch, const char *argument )
+{
+    char arg1[MIL];
+    int nr, i;
+    
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("Syntax: repeat <nr> command [arguments]\n\r", ch);
+        return;
+    }
+    
+    argument = one_argument(argument, arg1);
+    nr = atoi(arg1);
+    if ( nr < 1 || nr > 100 )
+    {
+        send_to_char("First argument must be a number between 1 and 100.\n\r", ch);
+        return;
+    }
+        
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("What command do you want to repeat?\n\r", ch);
+        return;
+    }
+    
+    for ( i = 0; i < nr; i++ )
+    {
+        interpret(ch, argument);
+        // saveguard against repeated quitting and other bright ideas
+        if ( !valid_CH(ch) || ch->must_extract )
+            return;
+    }
 }

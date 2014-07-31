@@ -3893,8 +3893,8 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
         }
 
         sprintf( buf, 
-            "It provides an armor class of %d pierce, %d bash, %d slash, and %d vs. magic.", 
-            obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+            "It provides an armor class of %d.", 
+            obj->value[0]);
         do_say(ch, buf);
             
         break;
@@ -4055,8 +4055,8 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         }
 
         sprintf( buf, 
-            "It provides an armor class of %d pierce, %d bash, %d slash, and %d vs. magic.", 
-            obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
+            "It provides an armor class of %d.", 
+            obj->value[0] );
         do_say(ch, buf);
             
             break;
@@ -5137,8 +5137,8 @@ void do_attributes( CHAR_DATA *ch, char *argument )
     /* ** Armor Class ** */
     if( IS_NPC(ch) || ch->level >= 25 )
     {
-        sprintf( buf, "{D|{x      {CA{crmor {CC{class:{x %5d, %d, %d, %d {c(pierce, bash, slash, magic){x",
-            GET_AC(ch,AC_PIERCE), GET_AC(ch,AC_BASH), GET_AC(ch,AC_SLASH), GET_AC(ch,AC_EXOTIC) );
+        sprintf( buf, "{D|{x {CA{crmor {CC{class:{x %5d{x",
+            GET_AC(ch) );
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
@@ -5153,27 +5153,25 @@ void do_attributes( CHAR_DATA *ch, char *argument )
     else
     {
         int i;
-        int avg = 0;
+        int ac = GET_AC(ch);
         char rating[MAX_STRING_LENGTH/4];
 
-        avg = (GET_AC(ch,0) + GET_AC(ch,1) + GET_AC(ch,2) + GET_AC(ch,3) )/4;
-
-        if( avg >= 101 )        sprintf( rating, "shameful"  );
-            else if( avg >= 80 )    sprintf( rating, "terrible"  );
-            else if( avg >= 60 )    sprintf( rating, "very weak" );
-            else if( avg >= 40 )    sprintf( rating, "weak"      );
-            else if( avg >= 20 )    sprintf( rating, "so-so"     );
-            else if( avg >= 0 )     sprintf( rating, "passable"  );
-            else if( avg >= -20 )   sprintf( rating, "decent"    );
-            else if( avg >= -40 )   sprintf( rating, "good"      );
-            else if( avg >= -60 )   sprintf( rating, "great"     );
-            else if( avg >= -80 )   sprintf( rating, "superb"    );
-            else if( avg >= -100 )  sprintf( rating, "excellent" );
-            else if( avg >= -150 )  sprintf( rating, "amazing!"  );
+        if( ac >= 101 )        sprintf( rating, "shameful"  );
+            else if( ac >= 80 )    sprintf( rating, "terrible"  );
+            else if( ac >= 60 )    sprintf( rating, "very weak" );
+            else if( ac >= 40 )    sprintf( rating, "weak"      );
+            else if( ac >= 20 )    sprintf( rating, "so-so"     );
+            else if( ac >= 0 )     sprintf( rating, "passable"  );
+            else if( ac >= -20 )   sprintf( rating, "decent"    );
+            else if( ac >= -40 )   sprintf( rating, "good"      );
+            else if( ac >= -60 )   sprintf( rating, "great"     );
+            else if( ac >= -80 )   sprintf( rating, "superb"    );
+            else if( ac >= -100 )  sprintf( rating, "excellent" );
+            else if( ac >= -150 )  sprintf( rating, "amazing!"  );
             else                             sprintf( rating, "fantastic!" );
 
-        sprintf( buf, "{D|{x {CA{crmor {CC{class (Avg):{x %d (%s)   {CHit{croll, {CDam{croll:{x %d, %d",
-            avg, rating, GET_HITROLL(ch), GET_DAMROLL(ch) );
+        sprintf( buf, "{D|{x {CA{crmor {CC{class :{x %d (%s)   {CHit{croll, {CDam{croll:{x %d, %d",
+            ac, rating, GET_HITROLL(ch), GET_DAMROLL(ch) );
 
         for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
@@ -5862,11 +5860,8 @@ void do_oldattributes(CHAR_DATA *ch, char *argument)
         get_curr_stat(ch,STAT_LUC) );
     add_buf(output, buf);
     
-    sprintf( buf,"Armor {cpierce{x: %d {cbash{x: %d {cslash{x: %d {cmagic{x: %d\n\r",
-            GET_AC(ch,AC_PIERCE),
-            GET_AC(ch,AC_BASH),
-            GET_AC(ch,AC_SLASH),
-            GET_AC(ch,AC_EXOTIC));
+    sprintf( buf,"Armor : %d\n\r",
+            GET_AC(ch));
     add_buf(output, buf);
 
        
