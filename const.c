@@ -1938,7 +1938,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	"illusionist", "Ilu",  STAT_LUC, {STAT_WIS, STAT_DEX},
         {60, 95, 95, 95, 100, 110, 110, 100, 100, 110},
 	OBJ_VNUM_SCHOOL_DAGGER, { 9618, 10300 },
-	75, 70, 90,  95,  110, 85,
+	75, 80, 90,  95,  110, 85,
 	"illusionist basics", "illusionist default"
 	},
 
