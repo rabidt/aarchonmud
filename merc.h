@@ -1363,8 +1363,9 @@ struct  kill_data
 #define ASSIST_PLAYERS          (S)
 #define ASSIST_GUARD            (T)
 #define ASSIST_VNUM             (U)
-#define OFF_DISTRACT	        (V)
-#define OFF_HUNT		(X)
+#define OFF_DISTRACT            (V)
+#define OFF_ENTRAP              (W)
+#define OFF_HUNT                (X)
 #define OFF_ARMED               (aa)
 #define OFF_CIRCLE              (bb)
 #define OFF_PETRIFY             (cc)
@@ -4412,6 +4413,7 @@ void    extract_obj args( ( OBJ_DATA *obj ) );
 void    char_list_insert( CHAR_DATA *ch );
 //CHAR_DATA* char_list_next( long current_id );
 CHAR_DATA* char_list_next_char( CHAR_DATA *ch );
+CHAR_DATA* char_list_find( char *name );
 void    char_from_char_list( CHAR_DATA *ch );
 bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
 bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );

@@ -2002,6 +2002,8 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 		|| IS_SET(ch->act, ACT_THIEF) || IS_SET(ch->act, ACT_WARRIOR));
     if (sn==gsn_bodyguard)
 	return IS_SET(ch->off_flags, OFF_RESCUE);
+    if (sn==gsn_entrapment)
+        return IS_SET(ch->off_flags, OFF_ENTRAP);
 
     // mobs that cast spells via spec_fun normally can do so even while charmed
     if ( skill_table[sn].spell_fun != spell_null )
