@@ -1700,8 +1700,8 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "rakshasa",   "Raksha",
           { 290, 290, 290, 280, 290, 290, 295, 290, 290, 290, 290, 280, 290, 290, 285 },
-          5, { "fireball", "lightning bolt", "acid blast", "meteor swarm", "focus" },
-          {10, 20, 30, 50, 70}, {100, 95, 90, 85, 60},
+          5, { "fireball", "lightning bolt", "acid blast", "dispel magic", "quicken spell" },
+          {10, 20, 30, 50, 70}, {100, 95, 90, 80, 75},
           {  60,  60,  60,  65,  65,      70,  70,  65,  70,  65 },
           { 140, 140, 140, 145, 145,     150, 150, 145, 150, 145 },
           {   3,   3,   3,   4,   4,       5,   5,   4,   5,   4 },
@@ -1903,7 +1903,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	},
 
 	{
-	"assassin", "Asn",  STAT_INT, {STAT_DEX, STAT_AGI},
+	"assassin", "Asn",  STAT_DEX, {STAT_DIS, STAT_AGI},
         {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
 	OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
 	75, 120, 100,  110, 70, 110,
@@ -1938,7 +1938,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	"illusionist", "Ilu",  STAT_LUC, {STAT_WIS, STAT_DEX},
         {60, 95, 95, 95, 100, 110, 110, 100, 100, 110},
 	OBJ_VNUM_SCHOOL_DAGGER, { 9618, 10300 },
-	75, 70, 90,  95,  110, 85,
+	75, 80, 90,  95,  110, 85,
 	"illusionist basics", "illusionist default"
 	},
 
@@ -3337,7 +3337,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_frenzy,           TAR_CHAR_DEFENSIVE,     POS_STANDING,
-	NULL,                         30,     24, DUR_SHORT,
+	&gsn_frenzy,                         30,     24, DUR_SHORT,
 	"",                     "Your rage ebbs.",  "", NULL
 	},
 
@@ -5329,7 +5329,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
 	{
 	"strafe",
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  96, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,

@@ -34,6 +34,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "lua_scripting.h"
+#include "mudconfig.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_split     );
@@ -292,6 +293,10 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
 
     if ( obj->item_type == ITEM_MONEY)
     {
+        if ( cfg_enable_gold_mult && cfg_show_gold_mult && container && container->item_type == ITEM_CORPSE_NPC )
+        {
+            ptc(ch, "Creatures currently carry %d%% more gold!\n\r", (int)((cfg_gold_mult*100)-99.5));
+        }
         add_money( ch, obj->value[1], obj->value[0], NULL );
         if (IS_SET(ch->act,PLR_AUTOSPLIT))
         { /* AUTOSPLIT code */
