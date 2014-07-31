@@ -2337,7 +2337,7 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             || (!sex_bonus && number_bits(1) == 0)
             || (!IS_NPC(victim) && number_bits(2)) )
     {
-        send_to_char("The spell has no effect.\n\r", ch );
+        send_to_char("The spell has failed to have an effect.\n\r", ch );
         return;
     }
 
@@ -4121,7 +4121,7 @@ void spell_heat_metal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     } 
     if (fail)
     {
-        send_to_char("Your spell had no effect.\n\r", ch);
+        send_to_char("Your spell failed to have an effect.\n\r", ch);
         send_to_char("You feel momentarily warmer.\n\r",victim);
     }
     else /* damage! */
@@ -5151,7 +5151,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
                 return;
             }
 
-            act("The curse on $p is beyond your power.",ch,obj,NULL,TO_CHAR);
+            act("You failed to remove the curse on $p.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return;
@@ -5174,7 +5174,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
     if ( is_affected(victim, gsn_curse) || is_affected(victim, gsn_tomb_rot) )
     {
-        act("The curse on $N is beyond your power.",ch,NULL,victim,TO_CHAR);
+        act("You failed to remove the curse on $N.",ch,NULL,victim,TO_CHAR);
         return;
     }
     for (obj = victim->carrying; obj != NULL; obj = obj->next_content)
@@ -5314,7 +5314,7 @@ void spell_sleep( int sn, int level, CHAR_DATA *ch, void *vo,int target)
             || (!IS_NPC(victim) && number_bits(1))
             || IS_IMMORTAL(victim) )
     {
-        send_to_char("Your spell has no effect.\n\r", ch );
+        send_to_char("Your spell failed to have an effect.\n\r", ch );
         return;
     }
 
