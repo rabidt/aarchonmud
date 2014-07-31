@@ -1412,7 +1412,7 @@ bool	gen_groups ( DESCRIPTOR_DATA *d, char *argument )
 	{
 		ch->gen_data = new_gen_data();
 		ch->gen_data->points_chosen = ch->pcdata->points;
-		do_help(ch,"header group");
+		do_help(ch,"header group list");
 		list_group_costs(ch);
         //write_to_buffer(d,"You already have the following skills:\n\r",0);
         //do_skills(ch,"");
