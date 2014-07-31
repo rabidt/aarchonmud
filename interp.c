@@ -607,7 +607,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "luahelp",    do_luahelp, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaconfig",  do_luaconfig, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaquery",   do_luaquery, POS_DEAD,  ML,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  },    { "mudconfig",  do_mudconfig, POS_DEAD, ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "mudconfig",  do_mudconfig, POS_DEAD, ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
 
     /*
     * OLC
