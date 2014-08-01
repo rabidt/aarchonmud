@@ -572,7 +572,8 @@ void do_train( CHAR_DATA *ch, char *argument )
             }
             ch->pcdata->trained_hit += inc;
             ch->train -= cost;
-            act("Your durability increases!", ch, NULL, NULL, TO_CHAR);
+            sprintf( buf, "Your durability increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
+            send_to_char( buf, ch );
             act("$n's durability increases!", ch, NULL, NULL, TO_ROOM);
         }
         else if ( !str_cmp("mana", arg) )
@@ -584,7 +585,8 @@ void do_train( CHAR_DATA *ch, char *argument )
             }
             ch->pcdata->trained_mana += inc;
             ch->train -= cost;
-            act("Your power increases!", ch, NULL, NULL, TO_CHAR);
+            sprintf( buf, "Your power increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
+            send_to_char( buf, ch );
             act("$n's power increases!", ch, NULL, NULL, TO_ROOM);
         }
         else if ( !str_cmp("move", arg) )
@@ -596,7 +598,8 @@ void do_train( CHAR_DATA *ch, char *argument )
             }
             ch->pcdata->trained_move += inc;
             ch->train -= cost;
-            act("Your stamina increases!", ch, NULL, NULL, TO_CHAR);
+            sprintf( buf, "Your stamina increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
+            send_to_char( buf, ch );
             act("$n's stamina increases!", ch, NULL, NULL, TO_ROOM);
         }
         update_perm_hp_mana_move(ch);
