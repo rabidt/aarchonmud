@@ -575,6 +575,7 @@ const struct flag_type aprog_flags[] =
     {   "recall",       ATRIG_RECALL,    TRUE    },
     {   "call",         ATRIG_CALL,      FALSE   },
     {   "timer",        ATRIG_TIMER,     TRUE    },
+    {   "death",        ATRIG_DEATH,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
