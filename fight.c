@@ -3610,6 +3610,13 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
             return;
     }
 
+    if ( !IS_NPC( victim ) )
+    {
+        ap_death_trigger( victim ); /* no return value */
+        if ( victim->must_extract )
+            return;
+    }
+
     remort_remove(victim, FALSE);
         
     if ( IS_NPC(victim) || !IS_SET( victim->act, PLR_WAR ) )

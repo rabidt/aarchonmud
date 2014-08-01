@@ -3181,6 +3181,7 @@ struct  mastery_group_type
 #define ATRIG_CALL  (K)
 #define ATRIG_TIMER (L)
 #define ATRIG_COMMAND (M)
+#define ATRIG_DEATH (N)
 
 
 /*
