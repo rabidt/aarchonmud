@@ -43,11 +43,12 @@ struct remort_chamber
 #define R6  32 // Astark added 12-21-12. Testing.
 #define R7  64 // Astark added 12-21-12. Testing.
 #define R8  128 // Astark added 12-22-12. Testing.
+#define R9  256 // Enabled August 1 2014
 
 
 /* Changed this from 15 to 16 to accommodate remort 7. We'll likely
    need to up it again when we start testing remort 8 - Astark 12-21-12 */
-#define MAX_CHAMBER 21
+#define MAX_CHAMBER 22
 
 const struct remort_chamber chambers[] =
 {
@@ -68,30 +69,16 @@ const struct remort_chamber chambers[] =
     assigned a weird vnum to the first room */
     {"Remort: Tribulations of Dakaria ",  31394,    R7, FALSE},
     {"Remort: Tribulations of Dakaria ",   4694,    R7, FALSE},
-    {"Remort: Tribulations of Dakaria ",   3444,    R7, FALSE},
     {"Remort: Tribulations of Dakaria ",   3344,    R7, TRUE},
     {"Remort: Urban Wasteland         ",   9000,    R8, FALSE},
     {"Remort: Urban Wasteland         ",  18500,    R8, FALSE},
-    {"Remort: Urban Wasteland         ",  18700,    R8, FALSE},
-    {"Remort: Urban Wasteland         ",  12800,    R8, FALSE},
+    {"Remort: Urban Wasteland         ",  18700,    R8, TRUE},
+    {"Remort: Curse of the Ages       ",    300,    R9, FALSE},
+    {"Remort: Curse of the Ages       ",   9800,    R9, FALSE},
+    {"Remort: Curse of the Ages       ",  13500,    R9, FALSE},
+    {"Remort: Curse of the Ages       ",  16500,    R9, FALSE},
     {NULL,			0, 0}
 };
-
-/* These entries were previously in the table above. I've left them in tact
-   to use as a reference, however I've moved them so that the above table
-   is easier to read - Astark 12-21-12 */
-    /*    
-    {"Remort: Afterlife        ",	22600, R3+R4, FALSE},
-    {"Remort: Afterlife        ",	22700, R3+R4, TRUE},
-    {"Remort: Afterlife        ",	22800, R3+R4, TRUE},
-    */
-    /*
-    {"Remort: Counterintuition ",	27600, R5, FALSE},
-    {"Remort: Counterintuition ",	27750, R5, FALSE},
-    {"Remort: Counterintuition ",	27900, R5, FALSE},
-    {"Remort: Counterintuition ",	28050, R5, TRUE},
-    {"Remort: Counterintuition ",	28200, R5, TRUE},
-    */
 
 
 REMORT_TABLE *chamber_list[MAX_CHAMBER];
