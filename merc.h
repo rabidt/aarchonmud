@@ -283,9 +283,9 @@ bool is_questeq( OBJ_DATA *obj );
 
 /* maximum current remort level - update when adding new remorts */
 #ifdef TESTER
-#define MAX_REMORT 8
+#define MAX_REMORT 9
 #else
-#define MAX_REMORT 8 
+#define MAX_REMORT 9 
 #endif
 /* version numbers for downward compatibility
  */
