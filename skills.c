@@ -251,19 +251,20 @@ void gain_skill(CHAR_DATA *ch, int sn, CHAR_DATA *trainer)
     ch->train -= cost;
 }
 
+
 /* used to get new skills */
 void do_gain(CHAR_DATA *ch, char *argument)
 {
-	char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH];
     char *argPtr;
-	char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
-	CHAR_DATA *trainer;
-	int gn = 0, sn = 0;
+    char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+    CHAR_DATA *trainer;
+    int gn = 0, sn = 0;
     int seq;
-	bool introspect = TRUE;
-	
-	if (IS_NPC(ch))
-		return;
+    bool introspect = TRUE;
+    
+    if (IS_NPC(ch))
+        return;
 
     trainer = find_trainer(ch, ACT_GAIN, &introspect);
     if ( !trainer && !introspect )
@@ -272,128 +273,170 @@ void do_gain(CHAR_DATA *ch, char *argument)
     argPtr = one_argument( argument, arg );
     argPtr = one_argument( argPtr, arg2 );
 
-		if (arg[0] == '\0')
-		{
-			if ( introspect )
-				send_to_char("See HELP GAIN.\n\r",ch);
-			else
-				do_say(trainer,"Pardon me?");
-			return;
-		}
-		else if (!str_prefix(arg,"list"))
-		{
-			int col;
-			col = 0;
-			sprintf(buf, "%-16s    %-5s %-16s    %-5s %-16s    %-5s\n\r",
-				"group","cost","group","cost","group","cost");
-			send_to_char(buf,ch);
+        if (arg[0] == '\0')
+        {
+            if ( introspect )
+                send_to_char("See HELP GAIN.\n\r",ch);
+            else
+                do_say(trainer,"Pardon me?");
+            return;
+        }
+        else if (!str_prefix(arg,"list"))
+        {
+            int col;
+            col = 0;
+            sprintf(buf,"{c%-20s {w%3s   {c%-20s {w%3s   {c%-20s {w%3s{x\n\r",
+                "group","cp","group","cp","group","cp");
+            send_to_char(buf,ch);
+            sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
+            send_to_char(buf,ch);
+
             for ( seq=0
                     ; (gn=name_sorted_group_table(seq)) != -1
                     ; seq++ )
             {
-				if (group_table[gn].name == NULL)
-					break;
-				if (!ch->pcdata->group_known[gn]
-				    &&  group_table[gn].rating[ch->class] > 0)
-				{
-                    sprintf(buf,"%-17s    %-5d ", group_table[gn].name, get_group_cost(ch, gn));
-					send_to_char(buf,ch);
-					if (++col % 3 == 0)
-						send_to_char("\n\r",ch);
-				}
-			}
-			if (col % 3 != 0)
-				send_to_char("\n\r",ch);
-			send_to_char("\n\r",ch);
-			col = 0;
-			sprintf(buf, "%-16slvl/%-5s %-16slvl/%-5s %-16slvl/%-5s\n\r",
-				"skill","cost","skill","cost","skill","cost");
-			send_to_char(buf,ch);
+                if (group_table[gn].name == NULL)
+                    break;
+                if (!ch->pcdata->group_known[gn] &&  group_table[gn].rating[ch->class] > 0)
+                {
+                    sprintf(buf,"%-18s %5d   ",group_table[gn].name, get_group_cost(ch, gn));
+                    send_to_char(buf,ch);
+                    if (++col % 3 == 0)
+                        send_to_char("\n\r",ch);
+                }
+            }
+            if (col % 3 != 0)
+                send_to_char("\n\r",ch);
+            send_to_char("\n\r",ch);
+            col = 0;
+            
+            sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r",
+                "skill","lvl/cp","skill","lvl/cp","skill","lvl/cp");
+            send_to_char(buf,ch);
+            sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
+            send_to_char(buf,ch);
+            
             for ( seq=0
                     ; (sn=name_sorted_skill_table(seq)) != -1
                     ; seq++ )
-			{
-				if (skill_table[sn].name == NULL)
-					break;
-				if ( !ch->pcdata->learned[sn] && can_gain_skill(ch, sn) )
-				{
-				    sprintf(buf,"%-17s%2d/%-5d ",
-					    skill_table[sn].name,
-					    skill_table[sn].skill_level[ch->class],
-					    skill_table[sn].rating[ch->class]);
-				    send_to_char(buf,ch);
-				    if (++col % 3 == 0)
-					send_to_char("\n\r",ch);
-				}
-			}
+            {
+                if (skill_table[sn].name == NULL)
+                    break;
+                if ( !ch->pcdata->learned[sn] 
+                    && can_gain_skill(ch, sn)
+                    &&  skill_table[sn].spell_fun == spell_null)
+                {
+                    sprintf(buf,"%-17s %3d/%2d   ",
+                        skill_table[sn].name,
+                        skill_table[sn].skill_level[ch->class],
+                        skill_table[sn].rating[ch->class]);
+                    send_to_char(buf,ch);
+                    if (++col % 3 == 0)
+                        send_to_char("\n\r",ch);
+                }
+            }
+            
+            if ( col % 3 != 0 )
+                send_to_char( "\n\r", ch );
+            send_to_char("\n\r",ch);
+
+            col = 0;
+
+            sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r",
+                "spell","lvl/cp","spell","lvl/cp","spell","lvl/cp");
+            send_to_char(buf,ch);
+            sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
+            send_to_char(buf,ch);
+    
+            for ( seq=0
+                ; (sn=name_sorted_skill_table(seq)) != -1
+                ; seq++ )
+            {
+                if (skill_table[sn].name == NULL)
+                    break;
+        
+                if ( !ch->pcdata->learned[sn]
+                    &&  skill_table[sn].spell_fun != spell_null
+                    &&  can_gain_skill(ch, sn) )
+                {
+                    sprintf(buf,"%-17s %3d/%2d   ",
+                        skill_table[sn].name,
+                        skill_table[sn].skill_level[ch->class],
+                        skill_table[sn].rating[ch->class]);
+                    send_to_char(buf,ch);
+                    if (++col % 3 == 0)
+                        send_to_char("\n\r",ch);
+                }
+            }
+    
             if (col % 3 != 0)
-				send_to_char("\n\r",ch);
-			sprintf( buf, "\n\rYou have %d training sessions left.\n\r",
-				 ch->train );
-			send_to_char( buf, ch );
-			return;
-		}
-		else if (!str_cmp(arg,"convert"))
-		{
-                    int train_count = 0;
-                    if ( strcmp(arg2, "") == 0 )
-                        train_count = 1;
-                    else if ( strcmp(arg2, "all") == 0 )
-                        train_count = ch->practice/10;
-                    else if ( is_number(arg2) )
-                        train_count = atoi(arg2);
-                    else
-                    {
-                        send_to_char("Syntax: convert <#|all>.\n\r",ch);
-                        return;
-                    }
-                    if (train_count < 0)
-                    {
-                        send_to_char("Use revert to to change trains back into practices.\n\r", ch);
-                        return;                        
-                    }
+                send_to_char("\n\r",ch);
+            sprintf( buf, "\n\rYou have %d training sessions left.\n\r",
+                 ch->train );
+            send_to_char( buf, ch );
+            return;
+        }
+        else if (!str_cmp(arg,"convert"))
+        {
+            int train_count = 0;
+            if ( strcmp(arg2, "") == 0 )
+                train_count = 1;
+            else if ( strcmp(arg2, "all") == 0 )
+                train_count = ch->practice/10;
+            else if ( is_number(arg2) )
+                 train_count = atoi(arg2);
+            else
+            {
+                send_to_char("Syntax: convert <#|all>.\n\r",ch);
+                return;
+            }
+            if (train_count < 0)
+            {
+                send_to_char("Use revert to to change trains back into practices.\n\r", ch);
+                return;
+            }
                     
-			if (ch->practice < 10 * train_count)
-			{
-				if ( introspect )
-					send_to_char("You are not ready.\n\r",ch);
-				else
-					act("$N tells you 'You are not yet ready.'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
-			if ( introspect )
-				send_to_char("You apply your practice to training.\n\r",ch);
-			else
-				act("$N helps you apply your practice to training.",
-				ch,NULL,trainer,TO_CHAR );                        
-			ch->practice -= 10 * train_count;
-			ch->train += train_count;
+            if (ch->practice < 10 * train_count)
+            {
+                if ( introspect )
+                    send_to_char("You are not ready.\n\r",ch);
+                else
+                    act("$N tells you 'You are not yet ready.'",
+                    ch,NULL,trainer,TO_CHAR );
+                return;
+            }
+            if ( introspect )
+                send_to_char("You apply your practice to training.\n\r",ch);
+            else
+                act("$N helps you apply your practice to training.",
+                ch,NULL,trainer,TO_CHAR );                        
+            ch->practice -= 10 * train_count;
+            ch->train += train_count;
                         printf_to_char(ch,"You gain %d train(s).\n\r", train_count);
-			return;
-		}
-		else if (!str_cmp(arg,"revert"))
-		{
-			if (ch->train < 1)
-			{
-				if ( introspect )
-					send_to_char("You are not ready.\n\r",ch);
-				else
-					act("$N tells you 'You are not yet ready.'",
-					ch,NULL,trainer,TO_CHAR);
-				return;
-			}
-			if ( introspect )
-				send_to_char("You apply your training to practices.\n\r",ch);   
-			else
-				act("$N helps you apply your training to practices.",
-				ch,NULL,trainer,TO_CHAR);
-			ch->train -=1 ;
-			ch->practice += 8;
-			return;
-		}
-		else if (!str_cmp(arg, "losehp"))
-		{
+            return;
+        }
+        else if (!str_cmp(arg,"revert"))
+        {
+            if (ch->train < 1)
+            {
+                if ( introspect )
+                    send_to_char("You are not ready.\n\r",ch);
+                else
+                    act("$N tells you 'You are not yet ready.'",
+                    ch,NULL,trainer,TO_CHAR);
+                return;
+            }
+            if ( introspect )
+                send_to_char("You apply your training to practices.\n\r",ch);   
+            else
+                act("$N helps you apply your training to practices.",
+                ch,NULL,trainer,TO_CHAR);
+            ch->train -=1 ;
+            ch->practice += 8;
+            return;
+        }
+        else if (!str_cmp(arg, "losehp"))
+        {
             if (ch->pcdata->trained_hit < 2)
             {
                 if ( introspect )
@@ -413,9 +456,9 @@ void do_gain(CHAR_DATA *ch, char *argument)
             update_perm_hp_mana_move(ch);
             return;
 
-		}
-		else if (!str_cmp(arg, "losemove"))
-		{
+        }
+        else if (!str_cmp(arg, "losemove"))
+        {
             if (ch->pcdata->trained_move < 2)
             {
                 if ( introspect )
@@ -434,9 +477,9 @@ void do_gain(CHAR_DATA *ch, char *argument)
             ch->train += 1;
             update_perm_hp_mana_move(ch);
             return;
-		}
-		else if (!str_cmp(arg, "losemana"))
-		{
+        }
+        else if (!str_cmp(arg, "losemana"))
+        {
             if (ch->pcdata->trained_mana < 2)
             {
                 if ( introspect )
@@ -455,64 +498,63 @@ void do_gain(CHAR_DATA *ch, char *argument)
             ch->train += 1;
             update_perm_hp_mana_move(ch);
             return;
-		}
+        }
         else if ( (sn = skill_lookup_exact(argument)) > 0 )
         {
             gain_skill(ch, sn, trainer);
             return;
         }
-		else if ( (gn = group_lookup(argument)) > 0)
-		{
-			if (ch->pcdata->group_known[gn])
-			{
-				if ( introspect )
-					send_to_char("You already know that group!\n\r",ch);
-				else
-					act( "$N tells you 'You already know that group!'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
-			if (group_table[gn].rating[ch->class] <= 0)
-			{
-				if ( introspect )
-					send_to_char("That group is beyond your powers.\n\r",ch);
-				else
-					act( "$N tells you 'That group is beyond your powers.'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
+        else if ( (gn = group_lookup(argument)) > 0)
+        {
+            if (ch->pcdata->group_known[gn])
+            {
+                if ( introspect )
+                    send_to_char("You already know that group!\n\r",ch);
+                else
+                    act( "$N tells you 'You already know that group!'",
+                    ch,NULL,trainer,TO_CHAR );
+                return;
+            }
+            if (group_table[gn].rating[ch->class] <= 0)
+            {
+                if ( introspect )
+                    send_to_char("That group is beyond your powers.\n\r",ch);
+                else
+                    act( "$N tells you 'That group is beyond your powers.'",
+                    ch,NULL,trainer,TO_CHAR );
+                return;
+            }
             int group_cost = get_group_cost(ch, gn);
             if (ch->train < group_cost)
-			{
-				if ( introspect )
-					send_to_char("You aren't ready for that group.\n\r",ch);
-				else
-					act ("$N tells you 'You are not yet ready for that group.'",
-					ch,NULL,trainer,TO_CHAR );
-				return;
-			}
-			gn_add(ch,gn);
-			if ( introspect )
-				act("You learn the art of $t",
-				ch,group_table[gn].name,NULL,TO_CHAR);
-			else
-				act("$N trains you in the art of $t",
-				ch,group_table[gn].name,trainer,TO_CHAR );
+            {
+                if ( introspect )
+                    send_to_char("You aren't ready for that group.\n\r",ch);
+                else
+                    act ("$N tells you 'You are not yet ready for that group.'",
+                    ch,NULL,trainer,TO_CHAR );
+                return;
+            }
+            gn_add(ch,gn);
+            if ( introspect )
+                act("You learn the art of $t",
+                ch,group_table[gn].name,NULL,TO_CHAR);
+            else
+                act("$N trains you in the art of $t",
+                ch,group_table[gn].name,trainer,TO_CHAR );
             ch->train -= group_cost;
-			return;
-		}
+            return;
+        }
         else if ( (sn = skill_lookup(argument)) > 0 )
         {
             gain_skill(ch, sn, trainer);
             return;
         }
-		if ( introspect )
-			send_to_char( "See HELP GAIN.\n\r", ch );
-		else
-			act("$N tells you 'I do not understand...'",ch,NULL,trainer,TO_CHAR);
-		
+        if ( introspect )
+            send_to_char( "See HELP GAIN.\n\r", ch );
+        else
+            act("$N tells you 'I do not understand...'",ch,NULL,trainer,TO_CHAR);
+        
 }
-
 int get_mastery( CHAR_DATA *ch, int sn )
 {
     return ch->pcdata ? ch->pcdata->mastered[sn] : 0;
@@ -1228,7 +1270,9 @@ void list_group_costs(CHAR_DATA *ch)
     
     col = 0;
     
-    sprintf(buf,"%-18s %-5s %-18s %-5s %-18s %-5s\n\r","group","cp","group","cp","group","cp");
+    sprintf(buf,"{c%-20s {w%3s   {c%-20s {w%3s   {c%-20s {w%3s{x\n\r","group","cp","group","cp","group","cp");
+    send_to_char(buf,ch);
+    sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
     send_to_char(buf,ch);
     
     for ( seq=0
@@ -1242,7 +1286,7 @@ void list_group_costs(CHAR_DATA *ch)
             &&  !ch->pcdata->group_known[gn]
             &&  group_table[gn].rating[ch->class] > 0)
         {
-            sprintf(buf,"%-18s %-5d ",group_table[gn].name,
+            sprintf(buf,"%-18s %5d   ",group_table[gn].name,
                 group_table[gn].rating[ch->class]);
             send_to_char(buf,ch);
             if (++col % 3 == 0)
@@ -1254,8 +1298,10 @@ void list_group_costs(CHAR_DATA *ch)
     send_to_char("\n\r",ch);
     
     col = 0;
-    
-    sprintf(buf,"%-16s%-6s    %-16s%-6s    %-16s%-6s\n\r","skill","lvl/cp","skill","lvl/cp","skill","lvl/cp");
+
+    sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r","skill","lvl/cp","skill","lvl/cp","skill","lvl/cp");
+    send_to_char(buf,ch);
+    sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
     send_to_char(buf,ch);
     
     for ( seq=0
@@ -1267,9 +1313,10 @@ void list_group_costs(CHAR_DATA *ch)
         
         if (!ch->gen_data->skill_chosen[sn]
             &&  ch->pcdata->learned[sn] == 0
+            &&  skill_table[sn].spell_fun == spell_null
             &&  can_gain_skill(ch, sn) )
         {
-            sprintf(buf,"%-16s %2d/%-5d ",
+            sprintf(buf,"%-17s %3d/%2d   ",
                 skill_table[sn].name,
                 skill_table[sn].skill_level[ch->class],
                 skill_table[sn].rating[ch->class]);
@@ -1278,6 +1325,40 @@ void list_group_costs(CHAR_DATA *ch)
                 send_to_char("\n\r",ch);
         }
     }
+    if ( col % 3 != 0 )
+        send_to_char( "\n\r", ch );
+    send_to_char("\n\r",ch);
+
+    col = 0;
+
+    sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r","spell","lvl/cp","spell","lvl/cp","spell","lvl/cp");
+    send_to_char(buf,ch);
+    sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
+    send_to_char(buf,ch);
+    
+    for ( seq=0
+            ; (sn=name_sorted_skill_table(seq)) != -1
+            ; seq++ )
+    {
+        if (skill_table[sn].name == NULL)
+            break;
+        
+        if (!ch->gen_data->skill_chosen[sn]
+            &&  ch->pcdata->learned[sn] == 0
+            &&  skill_table[sn].spell_fun != spell_null
+            &&  can_gain_skill(ch, sn) )
+        {
+            sprintf(buf,"%-17s %3d/%2d   ",
+                skill_table[sn].name,
+                skill_table[sn].skill_level[ch->class],
+                skill_table[sn].rating[ch->class]);
+            send_to_char(buf,ch);
+            if (++col % 3 == 0)
+                send_to_char("\n\r",ch);
+        }
+    }
+
+
     if ( col % 3 != 0 )
         send_to_char( "\n\r", ch );
     send_to_char("\n\r",ch);
@@ -1404,7 +1485,7 @@ bool parse_gen_groups(CHAR_DATA *ch,char *argument)
    {
 	  if (argument[0] == '\0')
 	  {
-		 do_help(ch,"group help");
+                 do_help(ch,"header group help");
 		 return TRUE;
 	  }
 	
@@ -1921,6 +2002,8 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 		|| IS_SET(ch->act, ACT_THIEF) || IS_SET(ch->act, ACT_WARRIOR));
     if (sn==gsn_bodyguard)
 	return IS_SET(ch->off_flags, OFF_RESCUE);
+    if (sn==gsn_entrapment)
+        return IS_SET(ch->off_flags, OFF_ENTRAP);
 
     // mobs that cast spells via spec_fun normally can do so even while charmed
     if ( skill_table[sn].spell_fun != spell_null )
