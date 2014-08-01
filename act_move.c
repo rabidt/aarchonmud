@@ -1756,6 +1756,14 @@ void do_pick( CHAR_DATA *ch, char *argument )
         send_to_char( "Pick what?\n\r", ch );
         return;
     }
+
+    skill = get_skill(ch,gsn_pick_lock) * (ch->level + get_curr_stat(ch, STAT_DEX) + 200)/500;
+
+    if (skill == 0)
+    {
+        send_to_char("You don't know how to pick locks.\n\r", ch );
+        return;
+    }
     
     if( !str_prefix(arg,"nort") )
         { do_pick(ch,"north"); return; }
@@ -1774,11 +1782,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
     if( !str_cmp(arg,"sw") )
         { do_pick(ch,"southwest"); return; }
     
-    WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
-    
-    
-    skill = get_skill(ch,gsn_pick_lock) * (ch->level + get_curr_stat(ch, STAT_DEX) + 200)/500;
-    
+   
     if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
     {
         /* portal stuff */
@@ -1788,7 +1792,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
             /* look for guards */
             for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
             {
-                if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
+                if ( IS_NPC(gch) && IS_AWAKE(gch) && !IS_AFFECTED(gch, AFF_CHARM) && ch->level + 5 < gch->level )
                 {
                     act( "$N is standing too close to the lock.", ch, NULL, gch, TO_CHAR );
                     return;
@@ -1838,6 +1842,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
             {
                 send_to_char( "You failed.\n\r", ch);
                 check_improve(ch,gsn_pick_lock,FALSE,2);
+                WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
                 return;
             }
             
@@ -1845,6 +1850,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
             act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
             act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
             check_improve(ch,gsn_pick_lock,TRUE,2);
+            WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
             return;
         }
         
@@ -1853,7 +1859,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
             /* look for guards */
             for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
             {
-                if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
+                if ( IS_NPC(gch) && IS_AWAKE(gch) && !IS_AFFECTED(gch, AFF_CHARM) && ch->level + 5 < gch->level )
                 {
                     act( "$N is standing too close to the lock.", ch, NULL, gch, TO_CHAR );
                     return;
@@ -1884,6 +1890,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
             {
                 send_to_char( "You failed.\n\r", ch);
                 check_improve(ch,gsn_pick_lock,FALSE,2);
+                WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
                 return;
             }
         }
@@ -1892,6 +1899,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
         act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
         act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
         check_improve(ch,gsn_pick_lock,TRUE,2);
+        WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
         return;
     }
     
@@ -1905,7 +1913,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
         /* look for guards */
         for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
         {
-            if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
+            if ( IS_NPC(gch) && IS_AWAKE(gch) && !IS_AFFECTED(gch, AFF_CHARM) && ch->level + 5 < gch->level )
             {
                 act( "$N is standing too close to the lock.",
                 ch, NULL, gch, TO_CHAR );
@@ -1936,12 +1944,14 @@ void do_pick( CHAR_DATA *ch, char *argument )
         {
             send_to_char( "You failed.\n\r", ch);
             check_improve(ch,gsn_pick_lock,FALSE,2);
+            WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
             return;
         }
         
         REMOVE_BIT(pexit->exit_info, EX_LOCKED);
         send_to_char( "*Click*\n\r", ch );
         act( "$n picks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
+        WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
         check_improve(ch,gsn_pick_lock,TRUE,2);
         
         /* pick the other side */
