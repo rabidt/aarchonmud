@@ -4426,7 +4426,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     STAT_CHA, STAT_WIS, STAT_LUC,
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_inspiring_song,  100, 24, DUR_BRIEF,
-    "", "Your no longer feel inspired.", "", NULL
+    "", "You no longer feel inspired.", "", NULL
     },
     
     {
