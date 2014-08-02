@@ -5044,7 +5044,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-		spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+		spell_null,     TAR_IGNORE, POS_FIGHTING,
 		&gsn_war_cry,                0, 24, DUR_BRIEF,
 		"",         "You calm down a bit.", "", NULL
 	},
