@@ -2122,7 +2122,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     AFFECT_DATA *reaping = affect_find(ch->affected, gsn_dark_reaping);
     if ( reaping && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
     {
-        dam = dice(1,8) + reaping->level/3;
+        dam = dice(1,8) + UMIN(reaping->level/3, ch->level);
         full_dam(ch, victim, dam, gsn_dark_reaping, DAM_NEGATIVE, TRUE);
         if ( stop_attack(ch, victim) )
             return TRUE;
@@ -3577,22 +3577,29 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	}
     }
 
-    if ( check_skill(ch, gsn_dark_reaping) && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
+    if ( !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) && victim->in_room )
     {
-        int power = victim->level;
-        AFFECT_DATA af;
+        CHAR_DATA *rch;
+        for ( rch = victim->in_room->people; rch != NULL; rch = rch->next_in_room )
+        {
+            if ( rch != victim && check_skill(rch, gsn_dark_reaping) )
+            {
+                int power = victim->level;
+                AFFECT_DATA af;
 
-        af.where    = TO_AFFECTS;
-        af.type     = gsn_dark_reaping;
-        af.level    = power;
-        af.duration = 1 + (power/60);
-        af.modifier = 0;
-        af.bitvector = 0;
-        af.location = APPLY_NONE;
-        affect_join(ch, &af);
+                af.where    = TO_AFFECTS;
+                af.type     = gsn_dark_reaping;
+                af.level    = power;
+                af.duration = 1 + rand_div(power, 60);
+                af.modifier = 0;
+                af.bitvector = 0;
+                af.location = APPLY_NONE;
+                affect_join(rch, &af);
 
-        send_to_char("{DA dark power fills you as you start to reap the living!{x\n\r", ch);
-        act("{D$n {Dis filled with a dark power!{x", ch, NULL, NULL, TO_ROOM);
+                send_to_char("{DA dark power fills you as you start to reap the living!{x\n\r", rch);
+                act("{D$n {Dis filled with a dark power!{x", rch, NULL, NULL, TO_ROOM);
+            }
+        }
     }
     
     /*
