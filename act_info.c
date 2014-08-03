@@ -4202,26 +4202,31 @@ void do_lore ( CHAR_DATA *ch, char *argument )
     /* Immortals and NPCs can finally lore random objs */
     if ( !IS_NPC(ch) && !IS_IMMORTAL(ch) )
     {
-    for ( paf = org_obj->affected; paf != NULL; paf = paf->next )
-      if ( paf->detect_level >= 0 )
-	if ( number_percent() <= chance - paf->detect_level )
-	  show_affect(ch, paf, TRUE);
-	else
-	  all_known = FALSE;
+        // half failure chance for each individual affect
+        chance = (chance + 100) / 2;
+        for ( paf = org_obj->affected; paf != NULL; paf = paf->next )
+        {
+            if ( paf->detect_level >= 0 )
+                if ( per_chance(chance - paf->detect_level) )
+                    show_affect(ch, paf, TRUE);
+                else
+                    all_known = FALSE;
+        }
+        if ( obj->affected )
+            do_say(ch, "There appear to be additional enchantments on it.\n\r");
     }
     else
     {
-    for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
-	    show_affect(ch, paf, TRUE);
-
-    for ( paf = obj->affected; paf != NULL; paf = paf->next )
-	    show_affect(ch, paf, TRUE);    
+        for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
+            show_affect(ch, paf, TRUE);
+        for ( paf = obj->affected; paf != NULL; paf = paf->next )
+            show_affect(ch, paf, TRUE);
     }
 
     if ( !all_known )
     {
-	send_to_char( "You have a feeling that there might be something else that you didn't remember.\n\r", ch );
-	act( "$n scratches $s chin in contemplation.", ch, NULL, NULL, TO_ROOM );
+        send_to_char( "You have a feeling that there might be something else that you didn't remember.\n\r", ch );
+        act( "$n scratches $s chin in contemplation.", ch, NULL, NULL, TO_ROOM );
     }
 
     /* now let's see if someone else learned something of it --Bobble */
