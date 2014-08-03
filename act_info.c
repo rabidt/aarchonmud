@@ -5138,7 +5138,7 @@ void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
         // terminate string
         bar_buf[bar_next++] = 0;
         // now send it to output
-        sprintf( buf, "{D|{x {c%s: {x%3d %s %3d => %3d  [{g%s{x]  {D|{x\n\r"
+        sprintf( buf, "{D|{x {c%s: {x%3d %s %3d => %3d   [{g%s{x]  {D|{x\n\r"
             , stat_table[si].abbreviation
             , ch->perm_stat[stat->stat]
             , ch->mod_stat[stat->stat] < 0 ? "-" : "+"
