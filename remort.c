@@ -569,7 +569,7 @@ void remort_update()
     int j;
     CHAR_DATA *ch = NULL;
     DESCRIPTOR_DATA *d;
-    bool used[20];
+    bool used[MAX_CHAMBER];
     
     for (j = 0; chambers[j].name != NULL; j++)
         if (chamber_list[j] != NULL &&
