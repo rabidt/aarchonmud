@@ -4331,6 +4331,7 @@ void    paralysis_effect args( (void *vo,int level, int dam, int target));
 
 /* enchant.c */
 int get_enchant_ops( OBJ_DATA *obj, int level );
+void enchant_obj( OBJ_DATA *obj, int ops, int rand_type );
 
 /* fight.c */
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
@@ -4390,6 +4391,7 @@ void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
 void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
 AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
+AFFECT_DATA* affect_find_location( AFFECT_DATA *paf, int location );
 void    affect_freeze_sn( CHAR_DATA *ch, int sn );
 void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
