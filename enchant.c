@@ -101,7 +101,8 @@ int get_enchant_ops( OBJ_DATA *obj, int level )
         ops_left -= 5;
 
     /* check for failure */
-    fail = 50 + UMAX(0, obj->level - level);
+    int level_diff = obj->level > level;
+    fail = 50 + (level_diff > 0 ? level_diff : level_diff / 4);
     fail -= 5 * ops_left;
     fail = URANGE(1, fail, 99);
     if ( chance(fail) )
@@ -134,25 +135,25 @@ void check_enchant_obj( OBJ_DATA *obj )
         switch ( number_range(1,4) )
         {
             case 1:
-                enchant_obj( obj, ops_left, ITEM_RANDOM_PHYSICAL );
+                enchant_obj( obj, ops_left, ITEM_RANDOM_PHYSICAL, AFFDUR_INFINITE );
                 break;
             case 2:
-                enchant_obj( obj, ops_left, ITEM_RANDOM_CASTER );
+                enchant_obj( obj, ops_left, ITEM_RANDOM_CASTER, AFFDUR_INFINITE );
                 break;
             default:
-                enchant_obj( obj, ops_left, ITEM_RANDOM );
+                enchant_obj( obj, ops_left, ITEM_RANDOM, AFFDUR_INFINITE );
                 break;
         }
     }
     else if (IS_OBJ_STAT(obj, ITEM_RANDOM_PHYSICAL))
     {
         REMOVE_BIT( obj->extra_flags, ITEM_RANDOM_PHYSICAL );
-        enchant_obj( obj, ops_left, ITEM_RANDOM_PHYSICAL );
+        enchant_obj( obj, ops_left, ITEM_RANDOM_PHYSICAL, AFFDUR_INFINITE );
     }
     else if (IS_OBJ_STAT(obj, ITEM_RANDOM_CASTER))
     {
         REMOVE_BIT( obj->extra_flags, ITEM_RANDOM_CASTER );
-        enchant_obj( obj, ops_left, ITEM_RANDOM_CASTER );
+        enchant_obj( obj, ops_left, ITEM_RANDOM_CASTER, AFFDUR_INFINITE );
     }
     else
         bugf("check_enchant_obj failed on obj : %d", obj->pIndexData->vnum);
@@ -173,7 +174,7 @@ int get_obj_stat_bonus( OBJ_DATA *obj, int stat )
             bonus += aff->modifier;    
 }
 
-void enchant_obj( OBJ_DATA *obj, int ops, int rand_type )
+void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration )
 {
     AFFECT_DATA af;
 
@@ -183,7 +184,7 @@ void enchant_obj( OBJ_DATA *obj, int ops, int rand_type )
     af.where        = TO_OBJECT;
     af.type         = 0;
     af.level        = 0;
-    af.duration     = -1;
+    af.duration     = duration;
     af.bitvector    = 0;
     af.detect_level = 0;
     
@@ -195,7 +196,7 @@ void enchant_obj( OBJ_DATA *obj, int ops, int rand_type )
         if ( is_affect_cap_hard(apply) && get_obj_stat_bonus(obj, apply) + delta > get_affect_cap(apply, obj->level) )
             continue;
         // find existing affect, chance to abort if none found => reduced spread
-        AFFECT_DATA *old_affect = affect_find_location(obj->affected, apply);
+        AFFECT_DATA *old_affect = affect_find_location(obj->affected, apply, duration);
         if ( !old_affect && number_bits(2) )
             continue;
         // add the apply
@@ -211,17 +212,53 @@ void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff )
     AFFECT_DATA *obj_aff;
 
     if ( obj == NULL || aff == NULL )
-	return;
+        return;
 
     /* search for matching affect already on object */
-    for ( obj_aff = obj->affected; obj_aff != NULL; obj_aff = obj_aff->next )
-	if ( obj_aff->location == aff->location
-	     && obj_aff->duration == aff->duration )
-	    break;
+    obj_aff = affect_find_location(obj->affected, aff->location, aff->duration);
 
     /* found matching affect on object? */
     if ( obj_aff != NULL )
-	obj_aff->modifier += aff->modifier;
+        obj_aff->modifier += aff->modifier;
     else
-	affect_to_obj( obj, aff );
+        affect_to_obj( obj, aff );
+}
+
+void disenchant_obj( OBJ_DATA *obj )
+{
+    AFFECT_DATA *paf = obj->affected, *paf_prev = NULL;
+    while ( paf )
+    {
+        if ( paf->duration == AFFDUR_DISENCHANTABLE )
+        {
+            if ( paf_prev )
+            {
+                paf_prev->next = paf->next;
+                free_affect(paf);
+                paf = paf_prev->next;
+            }
+            else // first affect
+            {
+                obj->affected = paf->next;
+                free_affect(paf);
+                paf = obj->affected;
+            }
+        }
+        else
+        {
+            paf_prev = paf;
+            paf = paf_prev->next;
+        }
+    }
+    if ( !SET_BIT(obj->pIndexData->extra_flags, ITEM_MAGIC) )
+        REMOVE_BIT(obj->extra_flags, ITEM_MAGIC);
+}
+
+// cost in gold of enchantment (for enchant weappn/armor spell)
+int get_enchant_cost( OBJ_DATA *obj )
+{
+    int current_ops = get_obj_ops(obj);
+    if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+        current_ops += get_translucency_spec_penalty(obj->level);
+    return 100 + current_ops * current_ops;
 }
