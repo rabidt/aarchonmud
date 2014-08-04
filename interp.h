@@ -218,6 +218,7 @@ DECLARE_DO_FUN( do_hide     );
 DECLARE_DO_FUN( do_holylight);
 DECLARE_DO_FUN( do_hpractice);
 DECLARE_DO_FUN( do_hunt     );
+DECLARE_DO_FUN( do_identify );
 DECLARE_DO_FUN( do_ignite   );
 DECLARE_DO_FUN( do_immflag  );
 DECLARE_DO_FUN( do_immtalk  );
