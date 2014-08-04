@@ -3236,17 +3236,17 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         if (IS_AFFECTED(victim, AFF_DEATHS_DOOR) )
         {
-            if ( number_percent() <= 25 )
+            if ( per_chance(25) )
             {
                 stop_fighting(victim, TRUE);
-                victim->hit = 100 + victim->level * 10;
-                victim->move  += 100;
+                int hp_gain = 100 + (10 + victim->pcdata->remorts) * get_pc_hitdice(victim->level);
+                victim->hit = UMIN(hp_gain, victim->max_hit);
+                victim->move = UMIN(victim->move + 100, victim->max_move);
                 send_to_char("The gods have protected you from dying!\n\r", victim);
-		act( "The gods resurrect $n.", victim, NULL, NULL, TO_ROOM );
+                act( "The gods resurrect $n.", victim, NULL, NULL, TO_ROOM );
             }
             else
                 send_to_char("Looks like you're outta luck!\n\r", victim);
-            /*REMOVE_BIT(victim->affect_field, AFF_DEATHS_DOOR);*/
             affect_strip(victim, gsn_deaths_door);
         }
     }   
