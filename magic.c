@@ -3372,7 +3372,7 @@ void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     /* now add the enchantments */ 
     SET_BIT( obj->extra_flags, ITEM_MAGIC );
-    enchant_obj( obj, result );
+    enchant_obj( obj, result, ITEM_RANDOM );
 }
 
 void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo,int target)
@@ -3442,7 +3442,7 @@ void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo,int target
 
     /* now add the enchantments */ 
     SET_BIT( obj->extra_flags, ITEM_MAGIC );
-    enchant_obj( obj, result );
+    enchant_obj( obj, result, ITEM_RANDOM );
 }
 
 /*
