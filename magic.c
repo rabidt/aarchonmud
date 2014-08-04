@@ -4234,8 +4234,8 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
 
     sprintf( buf,
-            "Object '%s' is type %s, extra flags %s.\n\rWeight is %d, level is %d.\n\r",
-            obj->name,
+            "Object %s is type %s, extra flags %s.\n\rWeight is %d, level is %d.\n\r",
+            obj->short_descr,
             item_name( obj->item_type ),        
             extra_bits_name( obj->extra_flags ),
             obj->weight / 10,
