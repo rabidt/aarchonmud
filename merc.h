@@ -283,9 +283,9 @@ bool is_questeq( OBJ_DATA *obj );
 
 /* maximum current remort level - update when adding new remorts */
 #ifdef TESTER
-#define MAX_REMORT 8
+#define MAX_REMORT 9
 #else
-#define MAX_REMORT 8 
+#define MAX_REMORT 9 
 #endif
 /* version numbers for downward compatibility
  */
@@ -1363,8 +1363,9 @@ struct  kill_data
 #define ASSIST_PLAYERS          (S)
 #define ASSIST_GUARD            (T)
 #define ASSIST_VNUM             (U)
-#define OFF_DISTRACT	        (V)
-#define OFF_HUNT		(X)
+#define OFF_DISTRACT            (V)
+#define OFF_ENTRAP              (W)
+#define OFF_HUNT                (X)
 #define OFF_ARMED               (aa)
 #define OFF_CIRCLE              (bb)
 #define OFF_PETRIFY             (cc)
@@ -3180,6 +3181,7 @@ struct  mastery_group_type
 #define ATRIG_CALL  (K)
 #define ATRIG_TIMER (L)
 #define ATRIG_COMMAND (M)
+#define ATRIG_DEATH (N)
 
 
 /*
@@ -4411,6 +4413,7 @@ void    extract_obj args( ( OBJ_DATA *obj ) );
 void    char_list_insert( CHAR_DATA *ch );
 //CHAR_DATA* char_list_next( long current_id );
 CHAR_DATA* char_list_next_char( CHAR_DATA *ch );
+CHAR_DATA* char_list_find( char *name );
 void    char_from_char_list( CHAR_DATA *ch );
 bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
 bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
@@ -4600,6 +4603,7 @@ int ch_luc_quest        args((CHAR_DATA *ch));
 void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
 int modified_level( CHAR_DATA *ch );
+int get_pc_hitdice( int level );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 
@@ -4620,7 +4624,8 @@ int    strlen_color   args( ( char * argument ) );
 char * center         args( ( char *argument, int width, char fill ) );
 char * lpad           args( ( char *argument, int width, char fill ) );
 char * rpad           args( ( char *argument, int width, char fill ) );
-char * ltrim          args( ( const char *s) );
+char * ltrim          args( ( const char *s ) );
+const char* aan       args( ( const char *s ) );
 
 /* teleport.c */
 RID *   room_by_name    args( ( char *target, int level, bool error) );

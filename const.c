@@ -1903,7 +1903,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	},
 
 	{
-	"assassin", "Asn",  STAT_INT, {STAT_DEX, STAT_AGI},
+	"assassin", "Asn",  STAT_DEX, {STAT_DIS, STAT_AGI},
         {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
 	OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
 	75, 120, 100,  110, 70, 110,
@@ -1938,7 +1938,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	"illusionist", "Ilu",  STAT_LUC, {STAT_WIS, STAT_DEX},
         {60, 95, 95, 95, 100, 110, 110, 100, 100, 110},
 	OBJ_VNUM_SCHOOL_DAGGER, { 9618, 10300 },
-	75, 70, 90,  95,  110, 85,
+	75, 80, 90,  95,  110, 85,
 	"illusionist basics", "illusionist default"
 	},
 
@@ -4426,7 +4426,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     STAT_CHA, STAT_WIS, STAT_LUC,
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_inspiring_song,  100, 24, DUR_BRIEF,
-    "", "Your no longer feel inspired.", "", NULL
+    "", "You no longer feel inspired.", "", NULL
     },
     
     {
@@ -5044,7 +5044,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-		spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+		spell_null,     TAR_IGNORE, POS_FIGHTING,
 		&gsn_war_cry,                0, 24, DUR_BRIEF,
 		"",         "You calm down a bit.", "", NULL
 	},

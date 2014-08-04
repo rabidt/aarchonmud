@@ -268,6 +268,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "give",       do_give,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "heal",       do_heal,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "hold",       do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE   },
+    { "identify",   do_identify,POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "list",       do_list,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "lock",       do_lock,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "merge",      do_merge,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },

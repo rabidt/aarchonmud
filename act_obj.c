@@ -3763,6 +3763,55 @@ void do_browse( CHAR_DATA *ch, char *argument )
         return;
     }
 
+    do_say(keeper, "Ah, excellent choice.");
+    describe_item(keeper, obj);
+}
+
+void do_identify( CHAR_DATA *ch, char *argument )
+{
+    char arg[MAX_INPUT_LENGTH], buf[MSL];
+    CHAR_DATA *keeper;
+    OBJ_DATA *obj;
+    AFFECT_DATA *paf;
+
+    one_argument( argument, arg );
+
+    if ( (keeper = find_keeper(ch)) == NULL )
+        return;
+
+    if ( arg[0] == '\0' )
+    {
+        send_to_char( "Identify what?\n\r", ch );
+        return;
+    }
+
+    if ( (obj = get_obj_carry(ch, arg, ch)) == NULL )
+    {
+        ptc(ch, "You don't have that item.\n\r");
+        return;
+    }
+    
+    if ( !can_see_obj(keeper, obj) )
+    {
+        act("$n can't see $p.", keeper, obj, ch, TO_VICT);
+        return;
+    }
+
+    // having an item identified costs 1% of it's worth
+    int cost = UMAX(1, obj->cost / 100);
+    int cost_gold = cost / 100;
+    int cost_silver = cost % 100;
+    
+    sprintf(buf, "$n says 'It costs %d gold and %d silver to identify $p.'", cost_gold, cost_silver);
+    act(buf, keeper, obj, NULL, TO_ROOM);
+
+    if ( (ch->silver + ch->gold * 100) < cost )
+        return;
+    else
+        do_say(keeper, "Pleasure doing business.");
+    
+    deduct_cost(ch, cost);
+    add_money(keeper, cost / 100, cost % 100, ch);
     describe_item(keeper, obj);
 }
 
@@ -3770,7 +3819,6 @@ void describe_item( CHAR_DATA *ch, OBJ_DATA* obj )
 {
     AFFECT_DATA *paf;
 
-    do_say( ch, "Ah, excellent choice." );
     say_basic_obj_data( ch, obj );
 
     for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )

@@ -2124,7 +2124,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     AFFECT_DATA *reaping = affect_find(ch->affected, gsn_dark_reaping);
     if ( reaping && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
     {
-        dam = dice(1,8) + reaping->level/3;
+        dam = dice(1,8) + UMIN(reaping->level/3, ch->level);
         full_dam(ch, victim, dam, gsn_dark_reaping, DAM_NEGATIVE, TRUE);
         if ( stop_attack(ch, victim) )
             return TRUE;
@@ -3238,17 +3238,17 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         if (IS_AFFECTED(victim, AFF_DEATHS_DOOR) )
         {
-            if ( number_percent() <= 25 )
+            if ( per_chance(25) )
             {
                 stop_fighting(victim, TRUE);
-                victim->hit = 100 + victim->level * 10;
-                victim->move  += 100;
+                int hp_gain = 100 + (10 + victim->pcdata->remorts) * get_pc_hitdice(victim->level);
+                victim->hit = UMIN(hp_gain, victim->max_hit);
+                victim->move = UMIN(victim->move + 100, victim->max_move);
                 send_to_char("The gods have protected you from dying!\n\r", victim);
-		act( "The gods resurrect $n.", victim, NULL, NULL, TO_ROOM );
+                act( "The gods resurrect $n.", victim, NULL, NULL, TO_ROOM );
             }
             else
                 send_to_char("Looks like you're outta luck!\n\r", victim);
-            /*REMOVE_BIT(victim->affect_field, AFF_DEATHS_DOOR);*/
             affect_strip(victim, gsn_deaths_door);
         }
     }   
@@ -3316,7 +3316,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             if (!IS_NPC(victim) && !IS_SET( victim->act, PLR_WAR)) 
             {
                 CHAR_DATA *killer = get_local_leader(ch);
-                if( IS_NPC(killer) )
+                if ( IS_NPC(killer) || killer == victim )
                     victim->pcdata->mob_deaths++;
                 else
                     victim->pcdata->pkill_deaths++;
@@ -3579,22 +3579,29 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 	}
     }
 
-    if ( check_skill(ch, gsn_dark_reaping) && !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) )
+    if ( !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) && victim->in_room )
     {
-        int power = victim->level;
-        AFFECT_DATA af;
+        CHAR_DATA *rch;
+        for ( rch = victim->in_room->people; rch != NULL; rch = rch->next_in_room )
+        {
+            if ( rch != victim && check_skill(rch, gsn_dark_reaping) )
+            {
+                int power = victim->level;
+                AFFECT_DATA af;
 
-        af.where    = TO_AFFECTS;
-        af.type     = gsn_dark_reaping;
-        af.level    = power;
-        af.duration = 1 + (power/60);
-        af.modifier = 0;
-        af.bitvector = 0;
-        af.location = APPLY_NONE;
-        affect_join(ch, &af);
+                af.where    = TO_AFFECTS;
+                af.type     = gsn_dark_reaping;
+                af.level    = power;
+                af.duration = 1 + rand_div(power, 60);
+                af.modifier = 0;
+                af.bitvector = 0;
+                af.location = APPLY_NONE;
+                affect_join(rch, &af);
 
-        send_to_char("{DA dark power fills you as you start to reap the living!{x\n\r", ch);
-        act("{D$n {Dis filled with a dark power!{x", ch, NULL, NULL, TO_ROOM);
+                send_to_char("{DA dark power fills you as you start to reap the living!{x\n\r", rch);
+                act("{D$n {Dis filled with a dark power!{x", rch, NULL, NULL, TO_ROOM);
+            }
+        }
     }
     
     /*
@@ -3608,6 +3615,13 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         mp_percent_trigger( victim, ch, NULL,0, NULL,0, TRIG_DEATH );
         victim->just_killed = TRUE;
         // guard against silly mprogs where mobs purge themselves on death
+        if ( victim->must_extract )
+            return;
+    }
+
+    if ( !IS_NPC( victim ) )
+    {
+        ap_death_trigger( victim ); /* no return value */
         if ( victim->must_extract )
             return;
     }
@@ -5588,6 +5602,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0,3*victim->size - 5) : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 5 : 0;
     base_exp += base_exp * off_bonus / 100;
 
     if (victim->pIndexData->spec_fun != NULL)
