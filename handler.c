@@ -897,14 +897,14 @@ AFFECT_DATA *affect_find_flag(AFFECT_DATA *paf, int flag)
     return NULL;
 }
 
-/* find an affect with location in an affect list */
-AFFECT_DATA* affect_find_location(AFFECT_DATA *paf, int location)
+/* find an affect with fixed location and duration in an affect list */
+AFFECT_DATA* affect_find_location(AFFECT_DATA *paf, int location, int duration)
 {
     AFFECT_DATA *paf_find;
     
     for ( paf_find = paf; paf_find != NULL; paf_find = paf_find->next )
     {
-        if ( paf_find->location == location )
+        if ( paf_find->location == location && paf_find->duration == duration )
             return paf_find;
     }
     
