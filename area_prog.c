@@ -35,6 +35,19 @@ bool ap_percent_trigger(
     return TRUE;
 }
 
+bool ap_death_trigger(CHAR_DATA *ch)
+{
+    if ( !ch->in_room)
+    {
+        bugf("ap_death_trigger: in_room NULL for %s", ch->name);
+        return TRUE;
+    }
+    if ( !HAS_ATRIG(ch->in_room->area, ATRIG_DEATH) )
+        return TRUE;
+
+    return ap_percent_trigger( ch->in_room->area, ch, ATRIG_DEATH);
+}
+
 bool ap_rexit_trigger(CHAR_DATA *ch)
 {
 	if ( !ch->in_room)

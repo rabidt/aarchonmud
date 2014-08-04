@@ -899,7 +899,7 @@ int get_duration_by_type( int type, int level )
 
     switch ( type )
     {
-        case DUR_BRIEF:   duration = level / 6; break;
+        case DUR_BRIEF:   duration = (level + 20) / 8; break;
         case DUR_SHORT:   duration = (level + 20) / 4; break;
         case DUR_NORMAL:  duration = (level + 20) / 2; break;
         case DUR_LONG:    duration = (level + 20); break;
@@ -2337,7 +2337,7 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             || (!sex_bonus && number_bits(1) == 0)
             || (!IS_NPC(victim) && number_bits(2)) )
     {
-        send_to_char("The spell has no effect.\n\r", ch );
+        send_to_char("The spell has failed to have an effect.\n\r", ch );
         return;
     }
 
@@ -4121,7 +4121,7 @@ void spell_heat_metal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     } 
     if (fail)
     {
-        send_to_char("Your spell had no effect.\n\r", ch);
+        send_to_char("Your spell failed to have an effect.\n\r", ch);
         send_to_char("You feel momentarily warmer.\n\r",victim);
     }
     else /* damage! */
@@ -4234,8 +4234,8 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     }
 
     sprintf( buf,
-            "Object '%s' is type %s, extra flags %s.\n\rWeight is %d, level is %d.\n\r",
-            obj->name,
+            "Object %s is type %s, extra flags %s.\n\rWeight is %d, level is %d.\n\r",
+            obj->short_descr,
             item_name( obj->item_type ),        
             extra_bits_name( obj->extra_flags ),
             obj->weight / 10,
@@ -5173,7 +5173,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
     if ( is_affected(victim, gsn_curse) || is_affected(victim, gsn_tomb_rot) )
     {
-        act("The curse on $N is beyond your power.",ch,NULL,victim,TO_CHAR);
+        act("You failed to remove the curse on $N.",ch,NULL,victim,TO_CHAR);
         return;
     }
     for (obj = victim->carrying; obj != NULL; obj = obj->next_content)
@@ -5313,7 +5313,7 @@ void spell_sleep( int sn, int level, CHAR_DATA *ch, void *vo,int target)
             || (!IS_NPC(victim) && number_bits(1))
             || IS_IMMORTAL(victim) )
     {
-        send_to_char("Your spell has no effect.\n\r", ch );
+        send_to_char("Your spell failed to have an effect.\n\r", ch );
         return;
     }
 

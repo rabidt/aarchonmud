@@ -572,7 +572,8 @@ void do_train( CHAR_DATA *ch, char *argument )
             }
             ch->pcdata->trained_hit += inc;
             ch->train -= cost;
-            act("Your durability increases!", ch, NULL, NULL, TO_CHAR);
+            sprintf( buf, "Your durability increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
+            send_to_char( buf, ch );
             act("$n's durability increases!", ch, NULL, NULL, TO_ROOM);
         }
         else if ( !str_cmp("mana", arg) )
@@ -584,7 +585,8 @@ void do_train( CHAR_DATA *ch, char *argument )
             }
             ch->pcdata->trained_mana += inc;
             ch->train -= cost;
-            act("Your power increases!", ch, NULL, NULL, TO_CHAR);
+            sprintf( buf, "Your power increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
+            send_to_char( buf, ch );
             act("$n's power increases!", ch, NULL, NULL, TO_ROOM);
         }
         else if ( !str_cmp("move", arg) )
@@ -596,7 +598,8 @@ void do_train( CHAR_DATA *ch, char *argument )
             }
             ch->pcdata->trained_move += inc;
             ch->train -= cost;
-            act("Your stamina increases!", ch, NULL, NULL, TO_CHAR);
+            sprintf( buf, "Your stamina increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
+            send_to_char( buf, ch );
             act("$n's stamina increases!", ch, NULL, NULL, TO_ROOM);
         }
         update_perm_hp_mana_move(ch);
@@ -1505,6 +1508,13 @@ int modified_level( CHAR_DATA *ch )
     return URANGE(1, level, max);
 }
 
+int get_pc_hitdice( int level )
+{
+    int hero_bonus = UMAX(0, level - (LEVEL_HERO - 10));
+    hero_bonus = hero_bonus * (hero_bonus + 1) / 2;
+    return level + hero_bonus;
+}
+
 /* Bobble: recalculate a PC's permanent hp/mana/move
  * and adjust his max hp/mana/move accordingly
  * must be called after each level- or stat change or train 
@@ -1528,9 +1538,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     mana_bonus = ch->max_mana - ch->pcdata->perm_mana - ch->pcdata->trained_mana_bonus;
     move_bonus = ch->max_move - ch->pcdata->perm_move - ch->pcdata->trained_move_bonus;
     
-    hero_bonus = UMAX(0, level - (LEVEL_HERO - 10));
-    hero_bonus = hero_bonus * (hero_bonus + 1) / 2;
-    level_factor = level + hero_bonus;
+    level_factor = get_pc_hitdice(level);
     train_factor = 100 + get_curr_stat(ch, STAT_DIS);
     max_train = max_hmm_train(level);
     

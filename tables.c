@@ -359,7 +359,9 @@ const struct flag_type off_flags[] =
 	{   "assist_players",   S,  TRUE    },
 	{   "assist_guard",     T,  TRUE    },
 	{   "assist_vnum",      U,  TRUE    },
-	{   "hunt",		X,  TRUE    },
+    {   "distract",         V,  FALSE   },
+    {   "entrap",           W,  TRUE    },
+    {   "hunt",             X,  TRUE    },
 	{   "armed",            aa, TRUE    },
 	{   "circle",           bb, TRUE    },
     {   "petrify",          cc, TRUE    },
@@ -573,6 +575,7 @@ const struct flag_type aprog_flags[] =
     {   "recall",       ATRIG_RECALL,    TRUE    },
     {   "call",         ATRIG_CALL,      FALSE   },
     {   "timer",        ATRIG_TIMER,     TRUE    },
+    {   "death",        ATRIG_DEATH,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 

@@ -1130,3 +1130,22 @@ char* ltrim(const char *s)
         s++;
     return s;
 }
+
+const char* aan(const char *s)
+{
+    switch (*s) {
+        case 'a':
+        case 'A':
+        case 'e':
+        case 'E':
+        case 'i':
+        case 'I':
+        case 'o':
+        case 'O':
+        case 'u':
+        case 'U':
+            return "an";
+        default:
+            return "a";
+    }
+}
