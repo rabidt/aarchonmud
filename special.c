@@ -76,13 +76,13 @@ const   struct  spec_type    spec_table[] =
 	{   "spec_temple_guard",    spec_temple_guard   },
 	{   NULL,               NULL            }
 };
-
+/*
 struct spell_type
 {
     char    *spell;
     sh_int  min_level;
     sh_int  max_level;
-};
+};*/
 
 #define NO_MAX 200
 const struct spell_type spell_list_cleric[] =
