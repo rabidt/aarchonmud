@@ -3301,18 +3301,30 @@ void spell_enchant_arrow( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     send_to_char( "Your arrows are now enchanted.\n\r", ch );
 }
 
-void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+int parse_random_type()
+{
+    char buf[MAX_STRING_LENGTH], *arg;
+    arg = one_argument(target_name, buf);
+    one_argument(arg, buf);
+    if ( !strcmp(buf, "physical") || !strcmp(buf, "fighter") )
+        return ITEM_RANDOM_PHYSICAL;
+    if ( !strcmp(buf, "mental") || !strcmp(buf, "caster") )
+        return ITEM_RANDOM_CASTER;
+    if ( !strcmp(buf, "random") || !strcmp(buf, "") )
+        return ITEM_RANDOM;
+    if ( !strcmp(buf, "disenchant") )
+        return -1;
+    return 0;
+}
+
+void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
-    int result;
-    //int mana;
-    //int skill;
+    int cost, result;
 
     if (obj->item_type != ITEM_ARMOR)
     {
         send_to_char("That isn't an armor.\n\r",ch);
-        //mana = (200-skill)*mana/1000;
-        //ch->mana += mana;
         return;
     }
 
@@ -3322,40 +3334,52 @@ void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         return;
     }
 
-    result = get_enchant_ops( obj, level );
-
-    /* the moment of truth */
-    if ( result < -1 )  /* item destroyed */
+    // get enchantment type, physical or mental
+    int rand_type = parse_random_type();
+    if ( !rand_type )
     {
-        act("$p flares blindingly... and evaporates!",ch,obj,NULL,TO_CHAR);
-        act("$p flares blindingly... and evaporates!",ch,obj,NULL,TO_ROOM);
-        extract_obj(obj);
+        ptc(ch, "That is not a valid enchantment type. Select physical, mental, random or disenchant.\n\r");
+        return;
+    }
+    
+    // wilfull disenchanting
+    if ( rand_type == -1 )
+    {
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_CHAR);
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_ROOM);
+        disenchant_obj(obj);
+        return;
+    }
+    
+    cost = get_enchant_cost(obj);
+    if ( (ch->gold + ch->silver/100) < cost )
+    {
+        ptc(ch, "Enchanting %s requires material components worth %d gold.\n\r", obj->short_descr, cost);
         return;
     }
 
-    if ( result == -1 ) /* item disenchanted */
-    {
-        AFFECT_DATA *paf, *paf_next;
-
-        act("$p glows brightly, then fades...oops.",ch,obj,NULL,TO_CHAR);
-        act("$p glows brightly, then fades.",ch,obj,NULL,TO_ROOM);
-
-        /* remove all affects */
-        for (paf = obj->affected; paf != NULL; paf = paf_next)
-        {
-            paf_next = paf->next; 
-            free_affect(paf);
-        }
-        obj->affected = NULL;
-
-        /* clear magic flags */
-        REMOVE_BIT(obj->extra_flags, ITEM_MAGIC);
-        return;
-    }
-
-    if ( result == 0 )  /* failed, no bad result */
+    result = get_enchant_ops(obj, level);
+    
+    if ( result == 0 )  /* failed, no bad result, no components used up */
     {
         send_to_char("Nothing seemed to happen.\n\r",ch);
+        return;
+    }
+    
+    ptc(ch, "You invest material components worth %d gold.\n\r", cost);
+    deduct_cost(ch, cost*100);
+
+    if ( result == -1 )  /* failed, components are consumed */
+    {
+        send_to_char("Your spell components are used up with no effect.\n\r",ch);
+        return;
+    }
+    
+    if ( result <= -2 ) /* item disenchanted */
+    {
+        act("$p glows brightly, then fades...oops.",ch,obj,NULL,TO_CHAR);
+        act("$p glows brightly, then fades.",ch,obj,NULL,TO_ROOM);
+        disenchant_obj(obj);
         return;
     }
 
@@ -3372,13 +3396,13 @@ void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
     /* now add the enchantments */ 
     SET_BIT( obj->extra_flags, ITEM_MAGIC );
-    enchant_obj( obj, result );
+    enchant_obj( obj, result, rand_type, AFFDUR_DISENCHANTABLE );
 }
 
-void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
-    int result;
+    int cost, result;
 
     if (obj->item_type != ITEM_WEAPON)
     {
@@ -3391,41 +3415,53 @@ void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo,int target
         send_to_char("The item must be carried to be enchanted.\n\r",ch);
         return;
     }
-
-    result = get_enchant_ops( obj, level );
-
-    /* the moment of truth */
-    if ( result < -1 )  /* item destroyed */
+    
+    // get enchantment type, physical or mental
+    int rand_type = parse_random_type();
+    if ( !rand_type )
     {
-        act("$p flares blindingly... and evaporates!",ch,obj,NULL,TO_CHAR);
-        act("$p flares blindingly... and evaporates!",ch,obj,NULL,TO_ROOM);
-        extract_obj(obj);
+        ptc(ch, "That is not a valid enchantment type. Select physical, mental, random or disenchant.\n\r");
+        return;
+    }
+    
+    // wilfull disenchanting
+    if ( rand_type == -1 )
+    {
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_CHAR);
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_ROOM);
+        disenchant_obj(obj);
+        return;
+    }
+    
+    cost = get_enchant_cost(obj);
+    if ( (ch->gold + ch->silver/100) < cost )
+    {
+        ptc(ch, "Enchanting %s requires material components worth %d gold.\n\r", obj->short_descr, cost);
         return;
     }
 
-    if ( result == -1 ) /* item disenchanted */
-    {
-        AFFECT_DATA *paf, *paf_next;
-
-        act("$p glows brightly, then fades...oops.",ch,obj,NULL,TO_CHAR);
-        act("$p glows brightly, then fades.",ch,obj,NULL,TO_ROOM);
-
-        /* remove all affects */
-        for (paf = obj->affected; paf != NULL; paf = paf_next)
-        {
-            paf_next = paf->next; 
-            free_affect(paf);
-        }
-        obj->affected = NULL;
-
-        /* clear magic flags */
-        REMOVE_BIT(obj->extra_flags, ITEM_MAGIC);
-        return;
-    }
-
-    if ( result == 0 )  /* failed, no bad result */
+    result = get_enchant_ops(obj, level);
+    
+    if ( result == 0 )  /* failed, no bad result, no components used up */
     {
         send_to_char("Nothing seemed to happen.\n\r",ch);
+        return;
+    }
+    
+    ptc(ch, "You invest material components worth %d gold.\n\r", cost);
+    deduct_cost(ch, cost*100);
+
+    if ( result == -1 )  /* failed, components are consumed */
+    {
+        send_to_char("Your spell components are used up with no effect.\n\r",ch);
+        return;
+    }
+    
+    if ( result <= -2 ) /* item disenchanted */
+    {
+        act("$p glows brightly, then fades...oops.",ch,obj,NULL,TO_CHAR);
+        act("$p glows brightly, then fades.",ch,obj,NULL,TO_ROOM);
+        disenchant_obj(obj);
         return;
     }
 
@@ -3442,7 +3478,7 @@ void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo,int target
 
     /* now add the enchantments */ 
     SET_BIT( obj->extra_flags, ITEM_MAGIC );
-    enchant_obj( obj, result );
+    enchant_obj( obj, result, ITEM_RANDOM, AFFDUR_DISENCHANTABLE );
 }
 
 /*
