@@ -3301,6 +3301,22 @@ void spell_enchant_arrow( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     send_to_char( "Your arrows are now enchanted.\n\r", ch );
 }
 
+int parse_random_type()
+{
+    char buf[MAX_STRING_LENGTH], *arg;
+    arg = one_argument(target_name, buf);
+    one_argument(arg, buf);
+    if ( !strcmp(buf, "physical") || !strcmp(buf, "fighter") )
+        return ITEM_RANDOM_PHYSICAL;
+    if ( !strcmp(buf, "mental") || !strcmp(buf, "caster") )
+        return ITEM_RANDOM_CASTER;
+    if ( !strcmp(buf, "random") || !strcmp(buf, "") )
+        return ITEM_RANDOM;
+    if ( !strcmp(buf, "disenchant") )
+        return -1;
+    return 0;
+}
+
 void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
@@ -3315,6 +3331,23 @@ void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target
     if (obj->wear_loc != -1)
     {
         send_to_char("The item must be carried to be enchanted.\n\r",ch);
+        return;
+    }
+
+    // get enchantment type, physical or mental
+    int rand_type = parse_random_type();
+    if ( !rand_type )
+    {
+        ptc(ch, "That is not a valid enchantment type. Select physical, mental, random or disenchant.\n\r");
+        return;
+    }
+    
+    // wilfull disenchanting
+    if ( rand_type == -1 )
+    {
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_CHAR);
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_ROOM);
+        disenchant_obj(obj);
         return;
     }
     
@@ -3363,7 +3396,7 @@ void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target
 
     /* now add the enchantments */ 
     SET_BIT( obj->extra_flags, ITEM_MAGIC );
-    enchant_obj( obj, result, ITEM_RANDOM, AFFDUR_DISENCHANTABLE );
+    enchant_obj( obj, result, rand_type, AFFDUR_DISENCHANTABLE );
 }
 
 void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo, int target )
@@ -3380,6 +3413,23 @@ void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo, int targe
     if (obj->wear_loc != -1)
     {
         send_to_char("The item must be carried to be enchanted.\n\r",ch);
+        return;
+    }
+    
+    // get enchantment type, physical or mental
+    int rand_type = parse_random_type();
+    if ( !rand_type )
+    {
+        ptc(ch, "That is not a valid enchantment type. Select physical, mental, random or disenchant.\n\r");
+        return;
+    }
+    
+    // wilfull disenchanting
+    if ( rand_type == -1 )
+    {
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_CHAR);
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_ROOM);
+        disenchant_obj(obj);
         return;
     }
     
