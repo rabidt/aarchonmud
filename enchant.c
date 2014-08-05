@@ -9,6 +9,7 @@
 #include "merc.h"
 
 void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
+bool is_affect_cap_hard( int location );
 
 struct enchantment_type
 {
@@ -45,6 +46,9 @@ int get_random_apply( int rand_type )
 {
     int i, total_chance = 0;
     int apply = APPLY_HIT; // just some default, should always get overwritten
+
+    if ( per_chance(75) )
+        return APPLY_STR;
     
     for ( i = 0; enchantment_table[i].apply; i++ )
     {
@@ -171,7 +175,8 @@ int get_obj_stat_bonus( OBJ_DATA *obj, int stat )
     // enchanted stats
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
         if ( aff->location == APPLY_STATS || aff->location == stat )
-            bonus += aff->modifier;    
+            bonus += aff->modifier;
+    return bonus;
 }
 
 void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration )
@@ -193,7 +198,7 @@ void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration )
         int apply = get_random_apply(rand_type);
         int delta = get_delta(apply);
         // ensure we don't exceed hardcaps
-        if ( is_affect_cap_hard(apply) && get_obj_stat_bonus(obj, apply) + delta > get_affect_cap(apply, obj->level) )
+        if ( is_affect_cap_hard(apply) && (get_obj_stat_bonus(obj, apply) + delta) > get_affect_cap(apply, obj->level) )
             continue;
         // find existing affect, chance to abort if none found => reduced spread
         AFFECT_DATA *old_affect = affect_find_location(obj->affected, apply, duration);
