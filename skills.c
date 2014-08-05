@@ -34,6 +34,7 @@
 #include "magic.h"
 #include "recycle.h"
 #include "tables.h"
+#include "special.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_groups    );
@@ -2008,12 +2009,12 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
     // mobs that cast spells via spec_fun normally can do so even while charmed
     if ( skill_table[sn].spell_fun != spell_null )
     {
-        char** spell_list = get_spell_list( ch );
+        struct spell_type *spell_list = get_spell_list( ch );
         if ( spell_list != NULL )
         {
             int spell;
-            for (spell = 0; spell_list[spell] != NULL; spell++)
-                if ( sn == skill_lookup(spell_list[spell]) )
+            for (spell = 0; spell_list[spell].spell != NULL; spell++)
+                if ( sn == skill_lookup(spell_list[spell].spell) )
                     return TRUE;
         }        
     }
