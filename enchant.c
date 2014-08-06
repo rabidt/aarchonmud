@@ -47,9 +47,6 @@ int get_random_apply( int rand_type )
     int i, total_chance = 0;
     int apply = APPLY_HIT; // just some default, should always get overwritten
 
-    if ( per_chance(75) )
-        return APPLY_STR;
-    
     for ( i = 0; enchantment_table[i].apply; i++ )
     {
         // get relative chance to select this apply
