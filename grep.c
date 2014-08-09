@@ -1508,6 +1508,23 @@ int get_obj_ops( OBJ_DATA *obj )
     return (int) (sum);
 }
 
+// used for enchanting items
+int get_obj_ops_by_duration( OBJ_DATA *obj, int duration )
+{
+    AFFECT_DATA *aff;
+    float sum = 0;
+
+    if ( obj == NULL )
+        return 0;
+
+    /* affects */
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
+        if ( aff->duration == duration )
+            sum += get_affect_ops( aff, obj->level );
+
+    return (int) (sum);
+}
+
 int get_translucency_spec_penalty( int level )
 {
     if ( level < 90 )
