@@ -3061,6 +3061,10 @@ struct  room_index_data
 #define DUR_LONG        5
 #define DUR_EXTREME     6
 
+// enchantment durations
+#define AFFDUR_INFINITE -1
+#define AFFDUR_DISENCHANTABLE -2
+
 // damage factor for area spells - easily adjustable here
 #define AREA_SPELL_FACTOR 0.6
 
@@ -4331,6 +4335,7 @@ void    paralysis_effect args( (void *vo,int level, int dam, int target));
 
 /* enchant.c */
 int get_enchant_ops( OBJ_DATA *obj, int level );
+void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration );
 
 /* fight.c */
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
@@ -4390,6 +4395,7 @@ void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
 void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
 AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
+AFFECT_DATA* affect_find_location( AFFECT_DATA *paf, int location, int duration );
 void    affect_freeze_sn( CHAR_DATA *ch, int sn );
 void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
