@@ -536,10 +536,9 @@ void spell_fear( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 	return;
     }
 
-    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
+    if ( IS_AFFECTED(victim, AFF_HEROISM) || saves_spell(victim, ch, level, DAM_MENTAL) )
     {
-	act( "$n tries to look scary but looks rather funny.",
-	     ch, NULL, victim, TO_VICT );
+        act( "$n tries to look scary but looks rather funny.", ch, NULL, victim, TO_VICT );
         send_to_char( "Apparently you aren't too scary.\n\r", ch );
         return;
     }
@@ -3426,7 +3425,6 @@ void spell_mirror_image( int sn, int level, CHAR_DATA *ch, void *vo, int target 
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_phantasmal_image );
 
     af.type      = sn;
     af.level     = level;
@@ -3960,7 +3958,6 @@ void spell_phantasmal_image( int sn, int level, CHAR_DATA *ch, void *vo, int tar
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_mirror_image );
 
     af.type      = sn;
     af.level     = level;

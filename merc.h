@@ -1304,8 +1304,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -4351,6 +4351,7 @@ void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+bool    is_ranged_weapon( OBJ_DATA *weapon );
 CD *    get_local_leader( CHAR_DATA *ch );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );
@@ -4608,6 +4609,7 @@ int ch_luc_quest        args((CHAR_DATA *ch));
 void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
 int modified_level( CHAR_DATA *ch );
+int get_pc_hitdice( int level );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 
