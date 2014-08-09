@@ -1220,7 +1220,7 @@ void spell_hand_of_siva( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
 
     arg2 = one_argument( arg, buf );
-    if ( buf[0] != '\0' && !str_prefix( buf, "twohands" ) )
+    if ( buf[0] != '\0' && !str_prefix( buf, "twohands" ) || !str_prefix( buf, "2h" ) )
     {
 	weapon_2hands = TRUE;
 	if( arg2[0] != '\0' )
