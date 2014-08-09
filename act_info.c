@@ -126,8 +126,21 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
         && IS_OBJ_STAT(obj, ITEM_EVIL)   )   strcat( buf, "(Red Aura) "  );
     if (IS_AFFECTED(ch, AFF_DETECT_GOOD)
         &&  IS_OBJ_STAT(obj,ITEM_BLESS))          strcat(buf,"(Blue Aura) " );
-    if ( IS_AFFECTED(ch, AFF_DETECT_MAGIC)
-        && IS_OBJ_STAT(obj, ITEM_MAGIC)  )   strcat( buf, "(Magical) "   );
+    if ( IS_OBJ_STAT(obj, ITEM_MAGIC) )
+    {
+        // show magic item flag based on number of enchantments
+        int ops = get_obj_ops_by_duration(obj, AFFDUR_DISENCHANTABLE);
+        if ( ops > 12 )
+            strcat(buf, "{M(Mythical){x ");
+        else if ( ops > 8 )
+            strcat(buf, "{G(Epic){x ");
+        else if ( ops > 4 )
+            strcat(buf, "{Y(Brilliant){x ");
+        else if ( ops > 0 )
+            strcat(buf, "{B(Magical){x ");
+        else if ( IS_AFFECTED(ch, AFF_DETECT_MAGIC) )
+            strcat(buf, "(Magical) ");
+    }
     if ( IS_OBJ_STAT(obj, ITEM_GLOW)      )   strcat( buf, "(Glowing) "   );
     if ( IS_OBJ_STAT(obj, ITEM_DARK)      )   strcat( buf, "(Dark) "   );
     if ( IS_OBJ_STAT(obj, ITEM_HUM)       )   strcat( buf, "(Humming) "   );
