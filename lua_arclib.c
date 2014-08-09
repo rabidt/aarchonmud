@@ -7079,7 +7079,7 @@ void type_init( lua_State *LS)
     int i;
     LUA_OBJ_TYPE *tp;
 
-    for ( i=0 ; type_list[i] ; i=i++ )
+    for ( i=0 ; type_list[i] ; i++ )
     {
         type_list[i]->reg( LS );
     }
