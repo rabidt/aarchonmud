@@ -5,8 +5,8 @@ MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
-C_FLAGS =  -ggdb -rdynamic -w -Wall $(PROF) $(NOCRYPT) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
-L_FLAGS =  $(PROF) -llua -ldl
+C_FLAGS =  -ggdb -rdynamic -m32 -w -Wall $(PROF) $(NOCRYPT) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+L_FLAGS =  $(PROF) -m32 -llua -ldl
 
 O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
      alchemy.o alias.o auth.o ban.o bit.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
