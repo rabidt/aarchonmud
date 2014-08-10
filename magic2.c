@@ -536,10 +536,9 @@ void spell_fear( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 	return;
     }
 
-    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
+    if ( IS_AFFECTED(victim, AFF_HEROISM) || saves_spell(victim, ch, level, DAM_MENTAL) )
     {
-	act( "$n tries to look scary but looks rather funny.",
-	     ch, NULL, victim, TO_VICT );
+        act( "$n tries to look scary but looks rather funny.", ch, NULL, victim, TO_VICT );
         send_to_char( "Apparently you aren't too scary.\n\r", ch );
         return;
     }
@@ -1220,7 +1219,7 @@ void spell_hand_of_siva( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
 
     arg2 = one_argument( arg, buf );
-    if ( buf[0] != '\0' && !str_prefix( buf, "twohands" ) )
+    if ( buf[0] != '\0' && !str_prefix( buf, "twohands" ) || !str_prefix( buf, "2h" ) )
     {
 	weapon_2hands = TRUE;
 	if( arg2[0] != '\0' )
