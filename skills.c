@@ -797,12 +797,12 @@ void do_master( CHAR_DATA *ch, char *argument )
 
         if ( (sn = skill_lookup(arg2)) <= 0 )
         {
-            act("$N tells you 'Hmm, I never heard of '$t'.'", ch, arg2, trainer, TO_CHAR);
+            act("$N {ttells you {T'Hmm, I'm not familiar with that mastery.'{x", ch, NULL, trainer, TO_CHAR);
             return;
         }
         if ( !ch->pcdata->mastered[sn] )
         {
-            act("$N tells you 'You godda give me something to work with here.'", ch, NULL, trainer, TO_CHAR);
+            act("$N {ttells you {T'You've gotta give me something to work with here.'{x", ch, NULL, trainer, TO_CHAR);
             return;
         }
         // work out reimbursement & cost
@@ -1754,62 +1754,66 @@ void do_groups(CHAR_DATA *ch, char *argument)
 /* checks for skill improvement */
 void check_improve( CHAR_DATA *ch, int sn, bool success, int multiplier )
 {
-	int chance;
-	char buf[100];
+    int chance;
+    char buf[100];
 
-	if (IS_NPC(ch))
-	return;
+    if (IS_NPC(ch))
+        return;
 
-	if (ch->level < skill_table[sn].skill_level[ch->class]
-	||  skill_table[sn].rating[ch->class] == 0
-	||  ch->pcdata->learned[sn] == 0
-	||  ch->pcdata->learned[sn] == 100)
-	return;  /* skill is not known */
+    if (ch->level < skill_table[sn].skill_level[ch->class]
+        ||  skill_table[sn].rating[ch->class] == 0
+        ||  ch->pcdata->learned[sn] == 0
+        ||  ch->pcdata->learned[sn] == 100)
+        return;  /* skill is not known */
 
-	if (multiplier > 0)
-	{
-	/* check to see if the character has a chance to learn */
-	chance = 5 * ch_int_learn(ch);
-	chance /= skill_table[sn].rating[ch->class];
-	chance += ch->level;
-	if ( IS_AFFECTED(ch, AFF_LEARN) )
-	    chance *= 3;
-	chance /= multiplier;
-	chance = UMAX(chance, 1);
+    if (multiplier > 0)
+    {
+    /* check to see if the character has a chance to learn */
+        chance = 15 * ch_int_learn(ch);
+        chance /= skill_table[sn].rating[ch->class];
+        chance += ch->level;
+        if ( IS_AFFECTED(ch, AFF_LEARN) )
+            chance *= 3;
+        chance /= multiplier;
+        chance = UMAX(chance, 1);
 
-	if (number_range(1,3000) > chance)
-	return;
-	}
+        if (number_range(1,3000) > chance)
+            return;
+    }
 
-	/* now that the character has a CHANCE to learn, see if they really have */
+    /* now that the character has a CHANCE to learn, see if they really have */
 
-	if (success)
-	{
-	chance = URANGE(2,100 - ch->pcdata->learned[sn], 98);
-	if (number_percent() < chance)
-	{
-		sprintf(buf,"You have become better at %s!\n\r",
-			skill_table[sn].name);
-		send_to_char(buf,ch);
-		ch->pcdata->learned[sn]++;
-		gain_exp(ch,2 * skill_table[sn].rating[ch->class]);
-	}
-	}
-
-	else
-	{
-	chance = URANGE(5,ch->pcdata->learned[sn]/2,30);
-	if (number_percent() < chance)
-	{
-		sprintf(buf,
-		"You learn from your mistakes, and your %s skill improves.\n\r",
-		skill_table[sn].name);
-		send_to_char(buf,ch);
-		ch->pcdata->learned[sn] += number_range(1,3);
-		ch->pcdata->learned[sn] = UMIN(ch->pcdata->learned[sn],100);
-		gain_exp(ch,2 * skill_table[sn].rating[ch->class]);
-	}
-	}
+    if (success)
+    {
+        chance = URANGE(2,100 - ch->pcdata->learned[sn], 98);
+        if (number_percent() < chance)
+        {
+            sprintf(buf,"You have become better at %s!\n\r",
+            skill_table[sn].name);
+            send_to_char(buf,ch);
+            ch->pcdata->learned[sn]++;
+            gain_exp(ch,2 * skill_table[sn].rating[ch->class]);
+        }
+    }
+    else
+    {
+        chance = URANGE(5,ch->pcdata->learned[sn]/2,30);
+        if (number_percent() < chance)
+        {
+            sprintf(buf,
+            "You learn from your mistakes, and your %s skill improves.\n\r",
+            skill_table[sn].name);
+            send_to_char(buf,ch);
+            ch->pcdata->learned[sn] += number_range(1,3);
+            ch->pcdata->learned[sn] = UMIN(ch->pcdata->learned[sn],100);
+            gain_exp(ch,2 * skill_table[sn].rating[ch->class]);
+        }
+    }
+    if (ch->pcdata->learned[sn] == 100)
+    {
+        sprintf(buf,"{RAfter extensive training, you reach maximum proficiency in %s!{x\n\r", skill_table[sn].name);
+        send_to_char(buf,ch);
+    }
 }
 
 /* returns a group index number given the name */
