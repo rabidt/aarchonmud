@@ -3725,7 +3725,11 @@ void spell_frenzy(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     af.location  = APPLY_AC;
     affect_to_char(victim,&af);
 
-    send_to_char("You are filled with holy wrath!\n\r",victim);
+    if (IS_GOOD(ch) || IS_NEUTRAL(ch))
+        send_to_char("You are filled with holy wrath!\n\r",victim);
+    else
+        send_to_char("You are filled with unholy wrath!\n\r",victim);
+
     act("$n gets a wild look in $s eyes!",victim,NULL,NULL,TO_ROOM);
 }
 
