@@ -2986,6 +2986,9 @@ CHAR_DATA *find_keeper( CHAR_DATA *ch )
     /*
      * Shop hours.
      */
+
+    /* By popular demand, we're no longer checking shop hours - 8-10-14
+
     if ( time_info.hour < pShop->open_hour && !IS_IMMORTAL(ch))
     {
         do_say( keeper, "Sorry, I am closed. Come back later." );
@@ -2997,6 +3000,8 @@ CHAR_DATA *find_keeper( CHAR_DATA *ch )
         do_say( keeper, "Sorry, I am closed. Come back tomorrow." );
         return NULL;
     }
+
+    */
 
     /*
      * Invisible or hidden people.
