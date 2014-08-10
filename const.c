@@ -1690,7 +1690,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           "genie",   "Genie ",
           { 290, 290, 285, 280, 290, 290, 290, 290, 290, 290, 285, 280, 290, 290, 285 },
           1, { "wish casting" },
-          {1}, {70},
+          {1}, {85},
           {  60,  60,  65,  70,  65,      70,  70,  60,  65,  65 },
           { 140, 140, 145, 150, 145,     150, 150, 140, 145, 145 },
           {   3,   3,   4,   5,   4,       5,   5,   3,   4,   4 },
@@ -1723,7 +1723,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           "gorgon",   "Gorgon",
           { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
           5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
-          {1, 10, 20, 30, 50}, {100, 100, 80, 50, 50},
+          {1, 10, 20, 30, 50}, {100, 100, 80, 80, 75},
           {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
           { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
           {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
@@ -4425,7 +4425,7 @@ struct  skill_type  skill_table [MAX_SKILL] =
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_WIS, STAT_LUC,
     spell_null, TAR_IGNORE, POS_FIGHTING,
-    &gsn_inspiring_song,  100, 24, DUR_BRIEF,
+    &gsn_inspiring_song,  100, 24, DUR_SHORT,
     "", "You no longer feel inspired.", "", NULL
     },
     
