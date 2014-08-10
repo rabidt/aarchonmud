@@ -3392,7 +3392,7 @@ void do_intimidate( CHAR_DATA *ch, char *argument )
 	level = ch->level;
 
     WAIT_STATE( ch, skill_table[gsn_intimidation].beats );
-    if ( !chance(skill) || saves_spell(victim, ch, level, DAM_MENTAL) )
+    if ( !chance(skill) || IS_AFFECTED(victim, AFF_HEROISM) || saves_spell(victim, ch, level, DAM_MENTAL) )
     {
         act( "You don't really intimidate $N.", ch, NULL, victim, TO_CHAR );
         act( "$n tried to intimidate you, but you won't take $s crap.",
