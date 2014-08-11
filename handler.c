@@ -1467,7 +1467,7 @@ void char_from_room( CHAR_DATA *ch )
         }
         
         if ( prev == NULL )
-            bug( "Char_from_room: ch not found.", 0 );
+            bugf("Char_from_room: %s not found in room %d", ch->name, ch->in_room->vnum);
     }
     
     ch->in_room      = NULL;
