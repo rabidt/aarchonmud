@@ -154,7 +154,7 @@ int mob_base_attacks( MOB_INDEX_DATA *pMobIndex, int level )
     if ( IS_SET(pMobIndex->affect_field, AFF_GUARD) )
         attacks -= 50;
     if ( IS_SET(pMobIndex->affect_field, AFF_HASTE) )
-        attacks += 100;    
+        attacks += 150;
     if ( IS_SET(pMobIndex->affect_field, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
     return attacks;

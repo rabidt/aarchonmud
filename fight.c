@@ -1365,12 +1365,17 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     int i,chance,number;
     int attacks;
     CHAR_DATA *vch, *vch_next;
+    OBJ_DATA *wield, *second, *shield;
     
     if (ch->stop>0)
     {
 	ch->stop--;
 	return;
     }
+    
+    wield = get_eq_char(ch, WEAR_WIELD);
+    second = get_eq_char(ch, WEAR_SECONDARY);
+    shield = get_eq_char(ch, WEAR_SHIELD);
 
     /* mobs must check their stances too */
     check_stance(ch);
@@ -1385,7 +1390,7 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     if ( IS_AFFECTED(ch, AFF_GUARD) )
         attacks -= 50;
     if ( IS_AFFECTED(ch, AFF_HASTE) )
-        attacks += 100;    
+        attacks += 150;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
     
@@ -1393,11 +1398,21 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     {
         if (number_percent() > attacks)
             continue;
-            
-	one_hit(ch,victim,dt,FALSE);
 
-	if (ch->fighting != victim)
-	    return;
+        // each attack has a chance to be off-hand
+        if ( per_chance(33) )
+        {
+            if ( wield && !second )
+                continue;
+            if ( shield && (!second || number_bits(1)) )
+                continue;
+            one_hit(ch,victim,dt,TRUE);
+        }
+        else
+            one_hit(ch,victim,dt,FALSE);
+
+        if (ch->fighting != victim)
+            return;
     }
 
     stance_hit(ch, victim, dt);
@@ -1414,20 +1429,6 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
                 one_hit(ch,vch,dt, FALSE);
         }
     }
-    
-    if ( get_eq_char(ch, WEAR_SECONDARY) )
-    {
-        one_hit(ch,victim,dt, TRUE);
-        if (ch->fighting != victim)
-            return;
-        // bonus off-hand attack for haste
-        if ( IS_AFFECTED(ch,AFF_HASTE) && number_bits(1) )
-        {
-            one_hit(ch,victim,dt, TRUE);
-            if (ch->fighting != victim)
-                return;            
-        }
-    }	
     
     /* oh boy!  Fun stuff! */
     
