@@ -816,6 +816,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
         }
         else
         {
+            logpf("close_socket: %s not playing", ch->name);
             /* can't do extract_char cause it's not on char list,
                but we still need to do a little cleanup*/
             CHAR_DATA *wch;

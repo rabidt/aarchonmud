@@ -1897,6 +1897,8 @@ void quit_char( CHAR_DATA *ch )
     extract_char( ch, TRUE );
     if ( d != NULL )
         close_socket( d );
+    else
+        logpf("quit_char: no descriptor for %s", ch->name);
     
     /* toast evil cheating bastards */
     for (d = descriptor_list; d != NULL; d = d_next)
@@ -1907,6 +1909,7 @@ void quit_char( CHAR_DATA *ch )
         tch = d->original ? d->original : d->character;
         if (tch && tch->id == id)
         {
+            bugf("quit_char: %s still referenced via descriptor", tch->name);
             extract_char(tch,TRUE);
             close_socket(d);
         }
