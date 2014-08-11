@@ -546,10 +546,11 @@ char* char_look_info( CHAR_DATA *ch )
 	return get_disguise_name( ch );
     */
 
-    sprintf( buf, "a %s %s %s %s",
+    sprintf( buf, "a %s %s %s %s%s",
 	     size == SIZE_MEDIUM ? "medium-sized" : size_table[size].name,
 	     appear_str[appearance],
-	     sex == 0 ? "sexless" : sex_table[sex].name, 
+	     sex == 0 ? "sexless" : sex_table[sex].name,
+         IS_AFFECTED(ch, AFF_FLYING) ? "flying " : "",
 	     race == 0 ? "being" : (check_shewolf ? "shewolf" : race_type->name) );
     
     return buf;
@@ -4222,7 +4223,7 @@ void do_lore ( CHAR_DATA *ch, char *argument )
                     all_known = FALSE;
         }
         if ( obj->affected )
-            do_say(ch, "There appear to be additional enchantments on it.\n\r");
+            do_say(ch, "There appear to be additional enchantments on it.");
     }
     else
     {
