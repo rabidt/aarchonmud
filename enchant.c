@@ -250,7 +250,7 @@ void disenchant_obj( OBJ_DATA *obj )
             paf = paf_prev->next;
         }
     }
-    if ( !SET_BIT(obj->pIndexData->extra_flags, ITEM_MAGIC) )
+    if ( !IS_SET(obj->pIndexData->extra_flags, ITEM_MAGIC) )
         REMOVE_BIT(obj->extra_flags, ITEM_MAGIC);
 }
 
