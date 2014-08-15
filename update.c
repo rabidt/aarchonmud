@@ -1870,15 +1870,7 @@ void affect_update( CHAR_DATA *ch )
         act("$n writhes in agony as plague sores erupt from $s skin.",
                 ch,NULL,NULL,TO_ROOM);
         send_to_char("You writhe in agony from the plague.\n\r",ch);
-        /*
-           for ( af = ch->affected; af != NULL; af = af->next )
-           {
-           if ((af->type == gsn_plague)||(af->type == gsn_necrosis))
-           break;
-           if (af->type == gsn_god_curse && af->bitvector == AFF_PLAGUE)
-           break;
-           }
-         */
+
         af = affect_find_flag( ch->affected, AFF_PLAGUE );
 
         if (af == NULL)
@@ -1895,29 +1887,23 @@ void affect_update( CHAR_DATA *ch )
             plague.where        = TO_AFFECTS;
             plague.type         = gsn_plague;
             plague.level        = af->level - 1; 
-            plague.duration     = number_range(1, 2 * plague.level);
+            plague.duration     = get_duration(gsn_plague, plague.level);
             plague.location     = APPLY_STR;
             plague.modifier     = -5;
             plague.bitvector    = AFF_PLAGUE;
 
             for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
             {
-                if (!saves_spell(vch, NULL, plague.level - 2, DAM_DISEASE)
+                if ( !saves_spell(vch, NULL, plague.level, DAM_DISEASE)
                         &&  !IS_IMMORTAL(vch)
                         &&  !(IS_NPC(vch) && IS_SET(vch->act, ACT_OBJ))
-                        &&  !IS_AFFECTED(vch,AFF_PLAGUE) && number_bits(4) == 0)
+                        &&  !IS_AFFECTED(vch,AFF_PLAGUE) && number_bits(4) == 0 )
                 {
                     send_to_char("You feel hot and feverish.\n\r",vch);
                     act("$n shivers and looks very ill.",vch,NULL,NULL,TO_ROOM);
                     affect_join(vch,&plague);
                 }
             }
-
-            /*
-               if (!IS_AFFECTED(ch, AFF_NECROSIS))
-               spread_affect( ch, af, DAM_DISEASE,
-               "You feel hot and feverish.\n\r" );
-             */
         }
 
         dam = UMIN(ch->level,af->level/5+1);
