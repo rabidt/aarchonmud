@@ -1230,19 +1230,23 @@ void spell_hand_of_siva( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 	weapon_level = UMIN( level, ch->level );
     else
     {
-	if ( !is_number(buf) )
-	{
-	    send_to_char( "Syntax:  cast 'hand of siva' <weapon_type>\n\r"
-			  "         cast 'hand of siva' <weapon_type> <level>\n\r"
-			  "         cast 'hand of siva' <weapon_type> twohands <level>\n\r", ch );
-	    return;
-	}
-	weapon_level = atoi( buf );
-	if ( weapon_level > level )
-	{
-	    send_to_char( "Weapon level can't be higher than spell level!\n\r", ch );
-	    weapon_level = level;
-	}
+        if ( !is_number(buf) )
+        {
+            send_to_char( "Syntax:  cast 'hand of siva' <weapon_type>\n\r"
+                "         cast 'hand of siva' <weapon_type> <level>\n\r"
+                "         cast 'hand of siva' <weapon_type> twohands <level>\n\r", ch );
+            return;
+        }
+        weapon_level = atoi( buf );
+        if ( weapon_level > level )
+        {
+            send_to_char( "Weapon level can't be higher than spell level!\n\r", ch );
+        }
+        else if ( weapon_level < 1 )
+        {
+            send_to_char( "Minimum weapon level is 1!\n\r", ch );
+        }
+        weapon_level = URANGE(1, weapon_level, level);
     }
 
     weapon = create_object( get_obj_index( OBJ_VNUM_SIVA_WEAPON ), 0 );
