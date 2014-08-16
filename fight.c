@@ -2605,7 +2605,7 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     if (IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT))
         return;
 
-    if (IS_SET(victim->act, ACT_NOBEHEAD))
+    if ( NPC_ACT(victim, ACT_NOBEHEAD) )
     {
         act("You try to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_CHAR);
         act("$n tries to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_ROOM);
