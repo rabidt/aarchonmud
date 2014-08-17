@@ -1567,7 +1567,7 @@ int get_twohand_penalty( CHAR_DATA *ch, bool improve )
     if ( !twohanded && offhand_occupied )
         return 0;
     
-    int skill = twohanded ? get_skill(ch, gsn_two_handed) : 100;
+    int skill = twohanded ? (100 + get_skill(ch, gsn_two_handed)) / 2 : 100;
     if ( improve && twohanded )
         check_improve(ch, gsn_two_handed, TRUE, 10);
     
