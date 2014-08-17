@@ -1271,7 +1271,7 @@ void spell_hand_of_siva( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     else
         I_REMOVE_BIT( weapon->value[4], WEAPON_TWO_HANDS );
     
-    set_weapon_dam( weapon, weapon_dam_spec(weapon_level, weapon_2hands) );
+    set_weapon_dam( weapon, weapon_dam_spec(weapon_level, weapon->value[0], weapon_2hands) );
 
     obj_to_room( weapon, ch->in_room );
     act( "$p suddenly appears!", ch, weapon, NULL, TO_ROOM );

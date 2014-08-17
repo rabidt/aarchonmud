@@ -1532,12 +1532,22 @@ int get_weapon_damtype( OBJ_DATA *wield )
 		       attack_table[wield->value[3]].damage );
 }
 
-int get_twohand_bonus( CHAR_DATA *ch, OBJ_DATA *wield, bool improve )
+bool is_wielding_twohanded( CHAR_DATA *ch, OBJ_DATA *weapon )
 {
-    if ( wield == NULL )
+    if ( IS_WEAPON_STAT(weapon, WEAPON_TWO_HANDS) || weapon->value[0] == WEAPON_BOW )
+        return TRUE;
+    // one handed weapon, may still be wielded in two hands
+    return !get_eq_char(ch, WEAR_SHIELD) && !get_eq_char(ch, WEAR_SECONDARY) && !get_eq_char(ch, WEAR_HOLD);
+}
+
+int get_twohand_penalty( CHAR_DATA *ch, bool improve )
+{
+    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
+    
+    if ( !wield )
         return 0;
     
-    bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    bool has_shield = get_eq_char(ch, WEAR_SHIELD);
     
     if ( wield->value[0] == WEAPON_BOW )
     {
@@ -1545,10 +1555,9 @@ int get_twohand_bonus( CHAR_DATA *ch, OBJ_DATA *wield, bool improve )
         {
             if ( improve )
                 check_improve(ch, gsn_wrist_shield, TRUE, 10);
-            return get_skill(ch, gsn_wrist_shield);
+            return get_skill(ch, gsn_wrist_shield) / 6 - 50;
         }
-        else
-            return 200;
+        return 0;
     }
 
     bool twohanded = IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS);
@@ -1558,24 +1567,19 @@ int get_twohand_bonus( CHAR_DATA *ch, OBJ_DATA *wield, bool improve )
     if ( !twohanded && offhand_occupied )
         return 0;
     
-    // one-handed in two hands gets +33% bonus, twohanders already deal 50% more damage
-    int bonus = twohanded ? 0 : 33;
-    
-    // skill bonus
-    bonus += get_skill(ch, gsn_two_handed) / 3;
-    if ( improve )
+    int skill = twohanded ? get_skill(ch, gsn_two_handed) : 100;
+    if ( improve && twohanded )
         check_improve(ch, gsn_two_handed, TRUE, 10);
     
     // wrist shield penalty
     if ( has_shield )
     {
-        // reduce effective bonus (including +50% built-in weapon damage) by 1/3 to 2/3
-        bonus = (bonus + 33) * (100 + get_skill(ch, gsn_wrist_shield)) / 300 - 33;
+        skill = skill * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
         if ( improve )
             check_improve(ch, gsn_wrist_shield, TRUE, 10); 
     }
     
-    return bonus;
+    return (skill-100) / 2;
 }
 
 /* returns the damage ch deals with one hit */
@@ -1593,14 +1597,13 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* weapon damage */
     if ( wield != NULL )
     {
-        int weapon_dam = get_weapon_damage( wield );
-        int bonus = get_twohand_bonus(ch, wield, TRUE);
-        if ( bonus )
+        // wielding a weapon twohanded (required or not) increases base damage
+        if ( is_wielding_twohanded(ch, wield) )
         {
-            weapon_dam += weapon_dam * get_twohand_bonus(ch, wield, TRUE) / 100;
-            weapon_dam += ch->level * mastery_bonus(ch, gsn_two_handed, 15, 25) / 100;
+            dam += dam / 2;
+            dam += ch->level * mastery_bonus(ch, gsn_two_handed, 15, 25) / 100;
         }
-        dam += weapon_dam;
+        dam += get_weapon_damage( wield );
     }
     else
     {
@@ -2228,9 +2231,13 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     if ( ch->position < POS_FIGHTING )
 	ch_roll = ch_roll * 3/4;
 
-    /* special stance */
-    if ( ch->stance == STANCE_DIMENSIONAL_BLADE && is_normal_hit(dt) )
-	 ch_roll *= 2;
+    if ( is_normal_hit(dt) )
+    {
+        ch_roll = ch_roll * (100 + get_twohand_penalty(ch, TRUE)) / 100;
+        /* special stance */
+        if ( ch->stance == STANCE_DIMENSIONAL_BLADE )
+            ch_roll *= 2;
+    }
 
     if ( ch_roll <= 0 )
         return FALSE;

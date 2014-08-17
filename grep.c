@@ -1593,27 +1593,36 @@ int get_obj_spec( OBJ_DATA *obj )
     return get_obj_index_spec(obj->pIndexData, obj->level);
 }
 
-int weapon_dam_spec( int level, bool twohanded )
+int weapon_dam_spec( int level, int weapon_class, bool twohanded )
 {
+    int spec = 0;
+    
     if ( level < 90 )
     {
         if ( twohanded )
-            return (level + 10) * 9/10;
+            spec = (level + 10) * 9/10;
         else
-            return (level + 10) * 6/10;
+            spec = (level + 10) * 6/10;
     }
     else
     {
         if ( twohanded )
-            return (level - 60) * 3;
+            spec = (level - 60) * 3;
         else
-            return (level - 60) * 2;
+            spec = (level - 60) * 2;
     }
+    
+    // bows are effectively two-handed and provoke counter-attacks
+    // this is compensated by dealing massive damage
+    if ( weapon_class == WEAPON_BOW )
+        spec *= 2.5;
+    
+    return spec;
 }
 
 int weapon_index_dam_spec( OBJ_INDEX_DATA *obj )
 {
-    return weapon_dam_spec(obj->level, IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS));
+    return weapon_dam_spec(obj->level, obj->value[0], IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS));
 }
 
 int average_weapon_dam( OBJ_DATA *obj )
