@@ -1774,8 +1774,8 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
     value = get_obj_index_ops( obj );
     // ignore objects with no bonuses at all
     if ( 0 < value && value < spec && !IS_SET(obj->extra_flags, ITEM_RANDOM) 
-      || !IS_SET(obj->extra_flags, ITEM_RANDOM_PHYSICAL) 
-      || !IS_SET(obj->extra_flags, ITEM_RANDOM_CASTER) )
+      && !IS_SET(obj->extra_flags, ITEM_RANDOM_PHYSICAL) 
+      && !IS_SET(obj->extra_flags, ITEM_RANDOM_CASTER) )
     {
         sprintf( msg, "ops=%d/%d", value, spec );
         return TRUE;
