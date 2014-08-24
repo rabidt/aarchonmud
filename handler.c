@@ -2488,6 +2488,25 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     return TRUE;
 }
 
+void desc_from_descriptor_list( DESCRIPTOR_DATA *desc )
+{
+    if ( desc == descriptor_list )
+    {
+        descriptor_list = descriptor_list->next;
+    }
+    else
+    {
+        DESCRIPTOR_DATA *d;
+
+        for ( d = descriptor_list; d && d->next != desc; d = d->next )
+            ;
+        if ( d != NULL )
+            d->next = desc->next;
+        else
+            bugf("desc_from_descriptor_list: descriptor not found.");
+    }
+}
+
 /*
  * Find a room by name
  */
