@@ -836,21 +836,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
     if ( d_next == dclose )
         d_next = d_next->next;   
 
-    if ( dclose == descriptor_list )
-    {
-        descriptor_list = descriptor_list->next;
-    }
-    else
-    {
-        DESCRIPTOR_DATA *d;
-
-        for ( d = descriptor_list; d && d->next != dclose; d = d->next )
-            ;
-        if ( d != NULL )
-            d->next = dclose->next;
-        else
-            bug( "Close_socket: dclose not found.", 0 );
-    }
+    desc_from_descriptor_list(dclose);
 
     set_con_state(dclose, CON_CLOSED);
 
