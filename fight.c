@@ -2920,13 +2920,14 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     /*
     * Stop up any residual loopholes.
     */
-    if ( dam > 2000 && dt >= TYPE_HIT && !IS_IMMORTAL(ch))
+    if ( dam > 1000 && dt >= TYPE_HIT && !IS_IMMORTAL(ch) )
     {
         OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
         OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
         int weapon_dam = weapon ? average_weapon_dam(weapon) : 0;
         int offhand_dam = offhand ? average_weapon_dam(offhand) : 0;
-        bugf("Excessive Damage: %d points (weapon avg = %d) from a regular hit by %s!", dam, UMAX(weapon_dam, offhand_dam), ch->name);
+        if ( weapon_dam > 200 || offhand_dam > 200 || dam > 50*ch->level )
+            bugf("Excessive Damage: %d points (weapon avg = %d) from a regular hit by %s!", dam, UMAX(weapon_dam, offhand_dam), ch->name);
     }
     
     if ( victim != ch )
