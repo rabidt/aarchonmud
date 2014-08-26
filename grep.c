@@ -1503,7 +1503,9 @@ int get_obj_ops( OBJ_DATA *obj )
 
     /* affects */
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
-        sum += get_affect_ops( aff, obj->level );
+        // only permanent affects count
+        if ( aff->duration < 0 )
+            sum += get_affect_ops( aff, obj->level );
 
     return (int) (sum);
 }

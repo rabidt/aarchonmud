@@ -196,7 +196,7 @@ void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration )
         if ( is_affect_cap_hard(apply) && (get_obj_stat_bonus(obj, apply) + delta) > get_affect_cap(apply, obj->level) )
             continue;
         // find existing affect, chance to abort if none found => reduced spread
-        AFFECT_DATA *old_affect = affect_find_location(obj->affected, apply, duration);
+        AFFECT_DATA *old_affect = affect_find_location(obj->affected, af.type, apply, duration);
         if ( !old_affect && number_bits(2) )
             continue;
         // add the apply
@@ -215,11 +215,15 @@ void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff )
         return;
 
     /* search for matching affect already on object */
-    obj_aff = affect_find_location(obj->affected, aff->location, aff->duration);
+    obj_aff = affect_find_location(obj->affected, aff->type, aff->location, aff->duration);
 
     /* found matching affect on object? */
     if ( obj_aff != NULL )
+    {
         obj_aff->modifier += aff->modifier;
+        // max duration in case of non-negative durations
+        obj_aff->duration = UMAX(obj_aff->duration, aff->duration);
+    }
     else
         affect_to_obj( obj, aff );
 }
