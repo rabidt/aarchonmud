@@ -2979,6 +2979,8 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    WAIT_STATE(ch,skill_table[gsn_choke_hold].beats);
+    
     /* base rolls */
     chance = skill / 2;
     chance += (get_curr_stat(ch,STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
@@ -2994,7 +2996,6 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
         act("$n grabs $N by the neck and begins to squeeze.",ch,NULL,victim,TO_NOTVICT);
         
         check_improve(ch,gsn_choke_hold,TRUE,1);
-        WAIT_STATE(ch,skill_table[gsn_choke_hold].beats);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_choke_hold;
@@ -3014,8 +3015,6 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
         act("You try to wring $N's neck but fail.",ch,NULL,victim,TO_CHAR);
         /*fail starts fight too -Vodur*/
         damage(ch,victim,0,gsn_choke_hold,DAM_NONE,FALSE);
-        
-        WAIT_STATE(ch,skill_table[gsn_choke_hold].beats*2/3);
         check_improve(ch,gsn_choke_hold,FALSE,1);
     }
 }
