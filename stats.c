@@ -52,28 +52,32 @@ int get_curr_stat( CHAR_DATA *ch, int stat )
     
     if ( !IS_NPC(ch) && MULTI_MORPH(ch) && (ch->pcdata->morph_race > 0) )
     {
-	int org_min, org_max, new_min, new_max,
-	    ch_class_bonus, stat_roll, new_base,
-        org_remort_bonus, remort_bonus;
-	struct pc_race_type *new_race_type;
-	/* adjust base stat for new race */
-	org_min = pc_race_table[ch->race].min_stats[stat];
-	org_max = pc_race_table[ch->race].max_stats[stat];
-	new_race_type = &pc_race_table[ch->pcdata->morph_race];
-	new_min = new_race_type->min_stats[stat];
-	new_max = new_race_type->max_stats[stat];
-	ch_class_bonus = class_bonus( ch->class, stat );
-    org_remort_bonus = (ch->pcdata->remorts - pc_race_table[ch->race].remorts) *
-        pc_race_table[ch->race].remort_bonus[stat];
-	stat_roll = ch->perm_stat[stat] - ch_class_bonus - org_remort_bonus - org_min;
-	new_base = new_min
-	    + (new_max - new_min) * stat_roll / (org_max - org_min)
-	    + ch_class_bonus;
-	/* remort bonus */
-	remort_bonus = (morph_power(ch) - new_race_type->remorts) *
-	    new_race_type->remort_bonus[stat];
-	/* sum it up */
-	bonus += new_base - ch->perm_stat[stat] + remort_bonus;
+        int ch_class_bonus = class_bonus( ch->class, stat );
+        /* adjust base stat for new race */
+        struct pc_race_type *new_race_type = &pc_race_table[ch->pcdata->morph_race];
+        int new_max = new_race_type->max_stats[stat];
+        int new_base;
+        if ( IS_SET(race_table[ch->pcdata->morph_race].form, FORM_CONSTRUCT) )
+        {
+            new_base = new_max + ch_class_bonus;
+        }
+        else
+        {
+            int org_min = pc_race_table[ch->race].min_stats[stat];
+            int org_max = pc_race_table[ch->race].max_stats[stat];
+            int new_min = new_race_type->min_stats[stat];
+            int org_remort_bonus = (ch->pcdata->remorts - pc_race_table[ch->race].remorts) *
+                pc_race_table[ch->race].remort_bonus[stat];
+            int stat_roll = ch->perm_stat[stat] - ch_class_bonus - org_remort_bonus - org_min;
+            new_base = new_min
+                + (new_max - new_min) * stat_roll / (org_max - org_min)
+                + ch_class_bonus;
+        }
+        /* remort bonus */
+        int remort_bonus = (morph_power(ch) - new_race_type->remorts) *
+            new_race_type->remort_bonus[stat];
+        /* sum it up */
+        bonus += new_base - ch->perm_stat[stat] + remort_bonus;
     }
     else if (!IS_NPC(ch) && ch->race == race_naga && ch->pcdata->morph_race != 0)
     {
