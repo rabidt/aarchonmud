@@ -2133,6 +2133,14 @@ MSETFUN( pkill )
     }
 }
 
+MSETFUN( pkill_deaths )
+{
+    ptc(ch, "Pkill deaths adjusted from %d to %d.\n\r", victim->pcdata->pkill_deaths, victim->pcdata->pkill_deaths + value);
+    victim->pcdata->pkill_deaths += value;
+    return TRUE;
+}
+
+
 MSETFUN( killer )
 {
     if ( IS_SET(victim->act, PLR_KILLER) )
@@ -2335,6 +2343,7 @@ struct
     {"move",      MSETANY,      mset_move},
     {"level",     MSETNPCONLY,  mset_level},
     {"pkill",     MSETPCONLY,   mset_pkill},
+    {"pk_deaths", MSETPCONLY,   mset_pkill_deaths},
     {"killer",    MSETPCONLY,   mset_killer},
     {"thief",     MSETPCONLY,   mset_thief},
     {"hardcore",  MSETPCONLY,   mset_hardcore},
