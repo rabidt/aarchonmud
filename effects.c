@@ -124,36 +124,15 @@ void acid_effect(void *vo, int level, int dam, int target)
 
 	if (obj->item_type == ITEM_ARMOR)  /* etch it */
 	{
-		AFFECT_DATA *paf;
-		bool af_found = FALSE;
-		int i;
-
-		for ( paf = obj->affected; paf != NULL; paf = paf->next)
-			{
-			    if ( paf->location == APPLY_AC)
-			    {
-				af_found = TRUE;
-				paf->type = -1;
-				paf->modifier += 1;
-				paf->level = UMAX(paf->level,level);
-				break;
-			    }
-			}
- 
-			if (!af_found)
-			/* needs a new affect */
-			{
-			    paf = new_affect();
- 
-			    paf->type       = -1;
-			    paf->level      = level;
-			    paf->duration   = -1;
-			    paf->location   = APPLY_AC;
-			    paf->modifier   =  1;
-			    paf->bitvector  = 0;
-			    paf->next       = obj->affected;
-			    obj->affected   = paf;
-			}
+        AFFECT_DATA af  = {};
+        af.where        = TO_OBJECT;
+        af.type         = gsn_acid_blast;
+        af.level        = level;
+        af.duration     = get_duration_by_type(DUR_LONG, level);
+        af.location     = APPLY_AC;
+        af.modifier     = dice(2,4);
+        
+        add_enchant_affect(obj, &af);
  
 			if (obj->carried_by != NULL && obj->wear_loc != WEAR_NONE)
 			    obj->carried_by->armor += 1;
