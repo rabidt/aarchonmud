@@ -5457,8 +5457,9 @@ void do_achievements( CHAR_DATA *ch, char *argument )
     /* if not self, need to free stuff */
     if ( d )
     {
+        nuke_pets( d->character );
         free_char( d->character );
-         free_descriptor( d );
+        free_descriptor( d );
     }
 }
 
