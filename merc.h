@@ -133,10 +133,11 @@ typedef struct mem_file_type MEMFILE;
 /*
  * Function types.
  */
-typedef void DO_FUN args( ( CHAR_DATA *ch, char *argument ) );
+typedef void DO_FUN args( ( CHAR_DATA *ch, const char *argument ) );
+#define DEF_DO_FUN(fun) void fun( CHAR_DATA *ch, const char *argument )
 typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
-typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo,
-				int target ) );
+typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int target ) );
+
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 
@@ -1043,6 +1044,8 @@ struct  kill_data
 	sh_int      killed;
 };
 
+// other header files to be generally included
+#include "buffer_util.h"
 
 
 /***************************************************************************
@@ -4161,7 +4164,7 @@ void    nuke_pets   args( ( CHAR_DATA *ch ) );
 void    die_follower    args( ( CHAR_DATA *ch, bool preservePets ) );
 bool    is_same_group   args( ( CHAR_DATA *ach, CHAR_DATA *bch ) );
 void    info_message  args( ( CHAR_DATA *ch, char *argument, bool show_to_char) );
-char    *makedrunk      args( (const char *string, CHAR_DATA *ch) );
+const char *makedrunk args( (const char *string, CHAR_DATA *ch) );
 void    printf_to_char args( ( CHAR_DATA *ch, char *fmt, ...) );
 void    logpf args( (char * fmt, ...) );
 void    bugf args( (char * fmt, ...) );
@@ -4202,6 +4205,8 @@ void copyover_recover args((void));
 /* alias.c */
 void    substitute_alias args( (DESCRIPTOR_DATA *d, char *input) );
 
+/* area_prog.c */
+void ap_quit_trigger( CHAR_DATA *ch );
 
 /* auth.c */
 void load_auth_list               args( ( void ) );
@@ -4258,6 +4263,10 @@ void    act_new_gag args( ( const char *format, CHAR_DATA *ch,
 				const void *arg1, const void *arg2, int type,
 				int min_pos, long gag_type, bool see_only) );
 int     write_to_descriptor args( ( int desc, char *txt, int length ) );
+void    nt_act( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type );
+void    act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type );
+char*   remove_color( const char *txt );
+bool    is_same_player( CHAR_DATA *ch1, CHAR_DATA *ch2 );
 
 /*
  * Colour stuff by Lope of Loping Through The MUD
@@ -4317,7 +4326,7 @@ bool    str_prefix  args( ( const char *astr, const char *bstr ) );
 bool    str_infix   args( ( const char *astr, const char *bstr ) );
 bool    str_suffix  args( ( const char *astr, const char *bstr ) );
 char *  capitalize  args( ( const char *str ) );
-void    append_file args( ( CHAR_DATA *ch, char *file, char *str ) );
+void    append_file args( ( CHAR_DATA *ch, const char *file, const char *str ) );
 void    bug     args( ( const char *str, int param ) );
 void    log_string  args( ( const char *str ) );
 void    log_trace();
@@ -4399,6 +4408,7 @@ AFFECT_DATA* affect_find_location( AFFECT_DATA *paf, int type, int location, int
 void    affect_freeze_sn( CHAR_DATA *ch, int sn );
 void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
+void    affect_strip_flag( CHAR_DATA *ch, int flag );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    char_from_room  args( ( CHAR_DATA *ch ) );
@@ -4423,20 +4433,20 @@ void    char_from_char_list( CHAR_DATA *ch );
 bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
 bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
 CHAR_DATA* get_player( char *name );
-CD *    get_char_room   args( ( CHAR_DATA *ch, char *argument ) );
-CD *    get_char_world  args( ( CHAR_DATA *ch, char *argument ) );
-CD *    get_char_area  args( ( CHAR_DATA *ch, char *argument ) );   
-CD *    get_char_group args( ( CHAR_DATA *ch, char *argument ) );
+CD *    get_char_room   args( ( CHAR_DATA *ch, const char *argument ) );
+CD *    get_char_world  args( ( CHAR_DATA *ch, const char *argument ) );
+CD *    get_char_area  args( ( CHAR_DATA *ch, const char *argument ) );   
+CD *    get_char_group args( ( CHAR_DATA *ch, const char *argument ) );
 OD *    get_obj_type    args( ( OBJ_INDEX_DATA *pObjIndexData ) );
 OD *    get_obj_by_type args( ( OBJ_DATA *contents, int item_type ) );
-OD *    get_obj_list    args( ( CHAR_DATA *ch, char *argument, OBJ_DATA *list ) );
-OD *    get_obj_carry   args( ( CHAR_DATA *ch, char *argument, CHAR_DATA *viewer ) );
-OD *    get_obj_wear    args( ( CHAR_DATA *ch, char *argument ) );
-OD *    get_obj_here    args( ( CHAR_DATA *ch, char *argument ) );
-OD *    get_obj_world   args( ( CHAR_DATA *ch, char *argument ) );
-OD *    get_obj_area    args( ( CHAR_DATA *ch, char *argument ) );
+OD *    get_obj_list    args( ( CHAR_DATA *ch, const char *argument, OBJ_DATA *list ) );
+OD *    get_obj_carry   args( ( CHAR_DATA *ch, const char *argument, CHAR_DATA *viewer ) );
+OD *    get_obj_wear    args( ( CHAR_DATA *ch, const char *argument ) );
+OD *    get_obj_here    args( ( CHAR_DATA *ch, const char *argument ) );
+OD *    get_obj_world   args( ( CHAR_DATA *ch, const char *argument ) );
+OD *    get_obj_area    args( ( CHAR_DATA *ch, const char *argument ) );
 RID *   get_obj_room    args( ( OBJ_DATA *obj ) );
-RID *   find_location   args( ( CHAR_DATA *ch, char *arg ) );
+RID *   find_location   args( ( CHAR_DATA *ch, const char *argument ) );
 OD *    create_money    args( ( int gold, int silver ) );
 int get_obj_number  args( ( OBJ_DATA *obj ) );
 int get_obj_weight  args( ( OBJ_DATA *obj ) );
@@ -4468,15 +4478,15 @@ char *  cont_bit_name   args( ( int cont_flags) );
  * Colour Config
  */ 
 void  default_colour  args( ( CHAR_DATA *ch ) );
-void  all_colour      args( ( CHAR_DATA *ch, char *argument ) );
+void  all_colour      args( ( CHAR_DATA *ch, const char *argument ) );
 
 /* interp.c */
-void    interpret   args( ( CHAR_DATA *ch, char *argument ) );
+void    interpret   args( ( CHAR_DATA *ch, const char *argument ) );
 bool    is_number   args( ( char *arg ) );
 int number_argument args( ( char *argument, char *arg ) );
 int mult_argument   args( ( char *argument, char *arg) );
-char *  one_argument    args( ( char *argument, char *arg_first ) );
-char *  one_argument_keep_case( char *argument, char *arg_first );
+const char * one_argument args( ( const char *argument, char *arg_first ) );
+const char * one_argument_keep_case( const char *argument, char *arg_first );
 void   load_disabled   args( ( void ) );
 void   save_disabled   args( ( void ) );
 
@@ -4502,10 +4512,8 @@ void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source,
                 const void *arg2, sh_int arg2type,
                 int trig_type,
                 int security) );
-bool    mp_act_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch,
-				const void *arg1, sh_int arg1type, 
-                const void *arg2, sh_int arg2type,
-                int type ) );
+bool    mp_act_trigger( const char *argument, CHAR_DATA *mob, CHAR_DATA *ch, 
+                const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type, int type );
 bool    mp_percent_trigger args( ( CHAR_DATA *mob, CHAR_DATA *ch,               
 				const void *arg1, sh_int arg1type,
                 const void *arg2, sh_int arg2type,
@@ -4516,8 +4524,9 @@ bool    mp_give_trigger   args( ( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 void    mp_greet_trigger  args( ( CHAR_DATA *ch ) );
 void    mp_hprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
-bool    mp_try_trigger    args( ( char *argument, CHAR_DATA *mob ) );
+bool    mp_try_trigger    args( ( const char *argument, CHAR_DATA *mob ) );
 bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch ) );
+bool    can_trigger( CHAR_DATA *mob, int trigger );
 
 /* mob_cmds.c */
 void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );
@@ -4526,6 +4535,10 @@ void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );
 bool    run_olc_editor    args( ( DESCRIPTOR_DATA *d ) );
 char    *olc_ed_name      args( ( CHAR_DATA *ch ) );
 char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
+
+/* obj_prog.c */
+void op_speech_trigger( const char *argument, CHAR_DATA *ch );
+bool op_try_trigger( const char* argument, CHAR_DATA *ch );
 
 /* penalty.c */
 void save_penalties args( ( void ) );
@@ -4546,6 +4559,10 @@ int creation_mode args( ( DESCRIPTOR_DATA *d ) );
 void set_con_state args((DESCRIPTOR_DATA *d, int cstate));
 void set_creation_state args((DESCRIPTOR_DATA *d, int cmode));
 
+/* playback.c */
+void log_chan( CHAR_DATA * ch, char * text , sh_int channel );
+void log_pers( PERS_HISTORY *history, char *text );
+
 /* remort.c */
 bool is_in_remort args( (CHAR_DATA *ch) );
 void remort_complete args( (CHAR_DATA *ch) );
@@ -4553,6 +4570,9 @@ void remort_update args( ( void) );
 void remort_load args( ( void) );
 void remort_remove args( (CHAR_DATA *ch, bool success) );
 void remort_begin args( (CHAR_DATA *ch) );
+
+/* room_prog.c */
+bool rp_try_trigger( const char *argument, CHAR_DATA *ch );
 
 /* save.c */
 void    save_char_obj   args( ( CHAR_DATA *ch ) );
@@ -4636,6 +4656,26 @@ const char* aan       args( ( const char *s ) );
 /* teleport.c */
 RID *   room_by_name    args( ( char *target, int level, bool error) );
 
+/* tflag.c */
+void flag_set( tflag f, int bit );
+void flag_remove( tflag f, int bit );
+bool flag_is_set( tflag f, int bit );
+void flag_toggle( tflag f, int bit );
+void flag_clear( tflag f );
+bool flag_is_empty( tflag f );
+bool flag_equal( tflag f1, tflag f2 );
+void flag_copy( tflag target, tflag source );
+void flag_set_field( tflag f, tflag f_set );
+void flag_remove_field( tflag f, tflag f_rem );
+void flag_set_vector( tflag f, long vector );
+void flag_remove_vector( tflag f, long vector );
+void flag_copy_vector( tflag f, long vector );
+void bit_list_to_tflag( tflag f );
+int flag_convert_old( long vector );
+char* print_tflag( tflag f );
+void fread_tflag( FILE *fp, tflag f );
+void bread_tflag( RBUFFER *rbuf, tflag f );
+
 /* hunt.c */
 void    hunt_victim     args( ( CHAR_DATA *ch ) );
 void	set_hunting		args((CHAR_DATA *ch, CHAR_DATA *victim));
@@ -4649,7 +4689,6 @@ int		check_anger		args((CHAR_DATA *ch, CHAR_DATA *victim));
 
 bool chance(int num);
 bool per_chance(int num);
-void do_quest args((CHAR_DATA *ch, char *argument)); 
 void quest_update   args(( void ));   
 
 /* update.c */

@@ -754,7 +754,7 @@ void send_position_message( CHAR_DATA *ch )
 * The main entry point for executing commands.
 * Can be recursively called from 'at', 'order', 'force'.
 */
-void interpret( CHAR_DATA *ch, char *argument )
+void interpret( CHAR_DATA *ch, const char *argument )
 {
     char command[MAX_INPUT_LENGTH];
     char logline[MAX_INPUT_LENGTH];
@@ -1188,7 +1188,7 @@ int mult_argument(char *argument, char *arg)
 * Pick off one argument from a string and return the rest.
 * Understands quotes.
 */
-char *one_argument( char *argument, char *arg_first )
+const char * one_argument( const char *argument, char *arg_first )
 {
     char cEnd;
     
@@ -1223,7 +1223,7 @@ char *one_argument( char *argument, char *arg_first )
 * Pick off one argument from a string and return the rest.
 * Understands quotes. Doesn't lower case.
 */
-char *one_argument_keep_case( char *argument, char *arg_first )
+const char * one_argument_keep_case( const char *argument, char *arg_first )
 {
     char cEnd;
     
@@ -1256,7 +1256,7 @@ char *one_argument_keep_case( char *argument, char *arg_first )
 /*
 * Contributed by Alander.
 */
-void do_commands( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_commands)
 {
     char buf[MAX_STRING_LENGTH];
     int cmd;
@@ -1282,7 +1282,7 @@ void do_commands( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_disable (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_disable)
 {
     int i;
     DISABLED_DATA *p,*q;

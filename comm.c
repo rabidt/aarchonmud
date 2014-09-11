@@ -1963,8 +1963,7 @@ void show_string(struct descriptor_data *d, char *input)
 
 
 /* non-trigger act */
-void nt_act ( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2,
-        int type )
+void nt_act( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type )
 {
     bool old_state = MOBtrigger;
     MOBtrigger = FALSE;
@@ -1998,8 +1997,7 @@ void act_gag(const char *format, CHAR_DATA *ch, const void *arg1,
     act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, gag_type, FALSE);
 }
 
-void act_see( const char *format, CHAR_DATA *ch, const void *arg1, 
-        const void *arg2, int type )
+void act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type )
 {
     act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, 0, TRUE);
 }

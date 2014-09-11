@@ -17,7 +17,7 @@
 void show_religion_syntax( CHAR_DATA *ch );
 void list_religions( CHAR_DATA *ch );
 void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch );
-void do_religion_set( CHAR_DATA *ch, char *argument );
+DECLARE_DO_FUN(do_religion_set);
 void free_prayer( CHAR_DATA *ch );
 //#define REL_DEBUG
 
@@ -1753,7 +1753,7 @@ double adjust_align_change( CHAR_DATA *ch, double change )
 
 /* the big user-interface */
 
-void do_religion( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_religion)
 {
     RELIGION_DATA *rel, *opp;
     CHAR_DATA *victim;
@@ -2307,7 +2307,7 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
 // 
 // }
 
-void do_religion_set( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_religion_set)
 {
     RELIGION_DATA *rel;
     char arg1[MIL], arg2[MIL], arg3[MIL];
@@ -2546,7 +2546,7 @@ void show_pray_syntax( CHAR_DATA *ch )
 
 }
 
-void do_god( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_god)
 {
     DESCRIPTOR_DATA *d;
     char arg1[MIL], arg2[MIL], arg3[MIL];
@@ -3160,7 +3160,7 @@ bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
 	    pray for curse/defy/etc on <player>
  -- by Quirky, July/Aug 2003 */
 
-void do_prayer( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_prayer)
 {
     char arg1[MIL], arg2[MIL], arg3[MIL];
     PRAYER_DATA *prayer;

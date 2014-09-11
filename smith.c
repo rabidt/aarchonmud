@@ -81,7 +81,7 @@ const struct smith_set_arg smith_set_table[] =
 
 
 /* new stuff starts here */
-void do_smith( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_smith)
 {
     if (IS_NPC(ch))
         return;

@@ -749,7 +749,7 @@ bool check_blind( CHAR_DATA *ch )
     return TRUE;
 }
 
-void do_peek( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_peek)
 {
     int chance;
     CHAR_DATA *victim;
@@ -796,7 +796,7 @@ void do_peek( CHAR_DATA *ch, char *argument )
 }
 
 /* changes your scroll */
-void do_scroll(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_scroll)
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[100];
@@ -844,7 +844,7 @@ void do_scroll(CHAR_DATA *ch, char *argument)
 }
 
 /* execute a social - useful if there's a command with same name --Bobble */
-void do_social(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_social)
 {
     char arg1[MIL];
 
@@ -866,7 +866,7 @@ void do_social(CHAR_DATA *ch, char *argument)
 
 /* RT does socials */
 /* old do_socials
-void do_socials(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_socials)
 {
 char buf[MAX_STRING_LENGTH];
 int iSocial;
@@ -887,7 +887,7 @@ int col;
       return;
 } */
 
-void do_socials(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_socials)
 {
     char buf[MAX_STRING_LENGTH];
     BUFFER *output;
@@ -918,33 +918,33 @@ void do_socials(CHAR_DATA *ch, char *argument)
 
 /* RT Commands to replace news, motd, imotd, etc from ROM */
 
-void do_motd(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_motd)
 {
     do_help(ch,"motd");
 }
 
-void do_imotd(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_imotd)
 {  
     do_help(ch,"imotd");
 }
 
-void do_rules(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rules)
 {
     do_help(ch,"rules");
 }
 
-void do_story(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_story)
 {
     do_help(ch,"story");
 }
 
-void do_dirs(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_dirs)
 {
     do_help(ch,"dirs");
 }
 
 /*
-void do_wizlist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_wizlist)
 {
 do_help(ch,"wizlist");
 }
@@ -953,7 +953,7 @@ do_help(ch,"wizlist");
 /* RT this following section holds all the auto commands from ROM, as well as
 replacements for config */
 
-void do_autolist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_autolist)
 {
     /* lists most player flags */
     if (IS_NPC(ch))
@@ -1070,7 +1070,7 @@ void do_autolist(CHAR_DATA *ch, char *argument)
    
 }
 
-void do_autoassist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_autoassist)
 {
     if (IS_NPC(ch))
         return;
@@ -1087,7 +1087,7 @@ void do_autoassist(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_autoexit(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_autoexit)
 {
     if (IS_NPC(ch))
         return;
@@ -1104,7 +1104,7 @@ void do_autoexit(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_autogold(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_autogold)
 {
     if (IS_NPC(ch))
         return;
@@ -1121,7 +1121,7 @@ void do_autogold(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_autoloot(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_autoloot)
 {
     if (IS_NPC(ch))
         return;
@@ -1138,7 +1138,7 @@ void do_autoloot(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_autosac(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_autosac)
 {
     if (IS_NPC(ch))
         return;
@@ -1155,7 +1155,7 @@ void do_autosac(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_autosplit(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_autosplit)
 {
     if (IS_NPC(ch))
         return;
@@ -1172,7 +1172,7 @@ void do_autosplit(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_autorescue(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_autorescue)
 {
     if (IS_NPC(ch))
         return;
@@ -1189,7 +1189,7 @@ void do_autorescue(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_brief(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_brief)
 {
     if (IS_SET(ch->comm,COMM_BRIEF))
     {
@@ -1203,7 +1203,7 @@ void do_brief(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_compact(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_compact)
 {
     if (IS_SET(ch->comm,COMM_COMPACT))
     {
@@ -1218,7 +1218,7 @@ void do_compact(CHAR_DATA *ch, char *argument)
 }
 
 /* new show by Quirky */
-void do_show(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_show)
 {
     char arg[MAX_STRING_LENGTH];
     
@@ -1340,7 +1340,7 @@ void do_show(CHAR_DATA *ch, char *argument)
 }
 
 #define MAX_PROMPT_LENGTH 110
-void do_prompt(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_prompt)
 {
     char buf[MAX_STRING_LENGTH];
     char *temp;
@@ -1365,9 +1365,10 @@ void do_prompt(CHAR_DATA *ch, char *argument)
         strcpy( buf, PROMPT_DEFAULT );     
     else
     {
-        if ( strlen_color(argument) > MAX_PROMPT_LENGTH )
+        strcpy( buf, argument );
+        if ( strlen_color(buf) > MAX_PROMPT_LENGTH )
         {
-            for( temp = argument; *temp != '/0'; temp++ )
+            for( temp = buf; *temp != '/0'; temp++ )
             {
                 chars++;
                 if( *temp == '{' )
@@ -1375,11 +1376,8 @@ void do_prompt(CHAR_DATA *ch, char *argument)
                 else noncol++;
                 if( noncol > MAX_PROMPT_LENGTH )  break;
             }
-            argument[chars] = '\0';
-
+            buf[chars] = '\0';
         }
-        
-        strcpy( buf, argument );
         smash_tilde( buf );
         if (str_suffix("%c",buf))
             strcat(buf," ");
@@ -1392,7 +1390,7 @@ void do_prompt(CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_combine(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_combine)
 {
     if (IS_SET(ch->comm,COMM_COMBINE))
     {
@@ -1406,7 +1404,7 @@ void do_combine(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_noloot(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_noloot)
 {
     if (IS_NPC(ch))
         return;
@@ -1423,7 +1421,7 @@ void do_noloot(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_nofollow(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_nofollow)
 {
     if (IS_NPC(ch))
         return;
@@ -1442,7 +1440,7 @@ void do_nofollow(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_nosummon(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_nosummon)
 {
     if (IS_NPC(ch))
     {
@@ -1472,7 +1470,7 @@ void do_nosummon(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_nocancel(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_nocancel)
 {
     if (IS_NPC(ch))
         return;
@@ -1491,7 +1489,7 @@ void do_nocancel(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_nolocate(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_nolocate)
 {
     if (IS_NPC(ch))
         return;
@@ -1510,7 +1508,7 @@ void do_nolocate(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_noaccept( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_noaccept)
 {
     if (IS_NPC(ch))
         return;
@@ -1529,7 +1527,7 @@ void do_noaccept( CHAR_DATA *ch, char *argument )
     }    
 }
 
-void do_nosurrender( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_nosurrender)
 {
     if (IS_NPC(ch))
         return;
@@ -1551,7 +1549,7 @@ void do_nosurrender( CHAR_DATA *ch, char *argument )
 /* Lets players disable exp gains so that they can stay
    at a constant level - Astark 2-18-13 */
 
-void do_noexp( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_noexp)
 {
     if (IS_NPC(ch))
         return;
@@ -1571,7 +1569,7 @@ void do_noexp( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_nohelp( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_nohelp)
 {
     if (IS_NPC(ch))
         return;
@@ -1591,7 +1589,7 @@ void do_nohelp( CHAR_DATA *ch, char *argument )
 }
 
 /* added due to popular demand --Bobble */
-void do_glance( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_glance)
 {
     CHAR_DATA *victim;
 
@@ -1692,7 +1690,7 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
     return NULL;
 }
 
-void do_look( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_look)
 {
     char buf  [MAX_STRING_LENGTH];
     char arg1 [MAX_INPUT_LENGTH];
@@ -1926,12 +1924,12 @@ void do_look( CHAR_DATA *ch, char *argument )
 }
 
 /* RT added back for the hell of it */
-void do_read (CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_read)
 {
     do_look(ch,argument);
 }
 
-void do_examine( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_examine)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -2076,7 +2074,7 @@ void do_examine( CHAR_DATA *ch, char *argument )
 /*
 * Thanks to Zrin for auto-exit part.
 */
-void do_exits( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_exits)
 {
     extern char * const dir_name[];
     char buf[MAX_STRING_LENGTH];
@@ -2213,7 +2211,7 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
     }
 }
 
-void do_affects( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_affects)
 {
     int leadership = get_leadership_bonus(ch, FALSE);
     
@@ -2233,7 +2231,7 @@ void do_affects( CHAR_DATA *ch, char *argument )
         );
 }
 
-void do_leadership( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_leadership)
 {
     CHAR_DATA *fol;
     bool found = FALSE;
@@ -2275,7 +2273,7 @@ char *  const   month_name  [] =
         "the Long Shadows", "the Ancient Darkness", "the Great Evil"
 };
 
-void do_time( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_time)
 {
     extern char str_boot_time[];
     char buf[MAX_STRING_LENGTH];
@@ -2309,7 +2307,7 @@ void do_time( CHAR_DATA *ch, char *argument )
 
 
 
-void do_weather( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_weather)
 {
     char buf[MAX_STRING_LENGTH];
     
@@ -2350,7 +2348,7 @@ bool is_command( char *arg )
 }
 
 #if 0
-void do_help( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_help)
 {
     HELP_DATA *pHelp;
     BUFFER *output;
@@ -2526,7 +2524,7 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, char *argument, BUFFER *output )
     return firstHelp;
 }
 
-void do_help( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_help)
 {
     HELP_DATA *firstHelp;
     BUFFER *output;
@@ -2634,7 +2632,7 @@ char get_pkflag( CHAR_DATA *ch, CHAR_DATA *wch )
 
 
 /* whois command */
-void do_whois (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_whois)
 {
     char arg[MAX_INPUT_LENGTH];
     BUFFER *output;
@@ -2740,7 +2738,7 @@ int create_who_array( CHAR_DATA **who_array )
 * New 'who' command originally by Alander of Rivers of Mud.
 * Reworked by Quirky!  in August of 2002.  Fixed more by Quirky!  in June of 2003.
 */
-void do_who( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_who)
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
@@ -3030,7 +3028,7 @@ void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
 }
 
 /*
-void do_count ( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_count)
 {
     int count;
     DESCRIPTOR_DATA *d;
@@ -3055,7 +3053,7 @@ void do_count ( CHAR_DATA *ch, char *argument )
 }
 */
 
-void do_inventory( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_inventory)
 {
     char buf[MSL];
 
@@ -3067,7 +3065,7 @@ void do_inventory( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_equipment( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_equipment)
 {
     OBJ_DATA *obj;
     int iWear;
@@ -3143,7 +3141,7 @@ void do_equipment( CHAR_DATA *ch, char *argument )
 
 
 
-void do_compare( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_compare)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -3239,7 +3237,7 @@ bool commen_wear_pos( tflag wear_flag1, tflag wear_flag2 )
     return FALSE;
 }
 
-void do_credits( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_credits)
 {
     do_help( ch, "diku" );
     return;
@@ -3254,7 +3252,7 @@ bool can_locate( CHAR_DATA *ch, CHAR_DATA *victim )
 	|| !is_always_safe( ch, victim );
 }
 
-void do_where( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_where)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -3318,7 +3316,7 @@ void do_where( CHAR_DATA *ch, char *argument )
 
 
 
-void do_consider( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_consider)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -3423,7 +3421,7 @@ void set_title( CHAR_DATA *ch, char *title )
 }
 
 
-void do_title( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_title)
 {
     char buf[MAX_STRING_LENGTH];
     char *temp;
@@ -3440,24 +3438,25 @@ void do_title( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    if ( strlen_color(argument) > 45 )
+    strcpy(buf, argument);
+    if ( strlen_color(buf) > 45 )
     {
-	for( temp = argument; *temp != '\0' ; temp++ )
-	{
-	    chars++;
-	    if( *temp == '{' )
-		noncol--;
-	    else noncol++;
-	    if( noncol > 45 )  break;
-	}
-	argument[chars] = '\0';
+        for( temp = buf; *temp != '\0' ; temp++ )
+        {
+            chars++;
+            if ( *temp == '{' )
+                noncol--;
+            else noncol++;
+            if ( noncol > 45 ) break;
+        }
+        buf[chars] = '\0';
     }
     
-    smash_beep_n_blink( argument );
-    smash_reserved_colcodes( argument );
-    smash_tilde( argument );
-    strcat (argument, " {x");
-    set_title( ch, argument );
+    smash_beep_n_blink( buf );
+    smash_reserved_colcodes( buf );
+    smash_tilde( buf );
+    strcat (buf, " {x");
+    set_title( ch, buf );
     SET_BIT(ch->act, PLR_TITLE);
     send_to_char( "Ok.\n\r", ch );
 }
@@ -3499,7 +3498,7 @@ void smash_reserved_colcodes( char *str )
 }
 
 
-void do_description( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_description)
 {
     char buf[MAX_STRING_LENGTH];
     
@@ -3577,7 +3576,7 @@ void do_description( CHAR_DATA *ch, char *argument )
 
 
 
-void do_report( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_report)
 {
     char buf[MAX_INPUT_LENGTH];
     
@@ -3606,7 +3605,7 @@ void do_report( CHAR_DATA *ch, char *argument )
 /*
 * 'Wimpy' originally by Dionysos.
 */
-void do_wimpy( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wimpy)
 {
     char arg[MAX_INPUT_LENGTH];
     int wimpy;
@@ -3634,7 +3633,7 @@ void do_wimpy( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_calm( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_calm)
 {
     char arg[MAX_INPUT_LENGTH];
     int calm;
@@ -3662,7 +3661,7 @@ void do_calm( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_password( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_password)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -4119,7 +4118,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
    }
 }
 
-void do_lore ( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_lore)
 {
     OBJ_DATA *obj;
     CHAR_DATA *rch;
@@ -4308,7 +4307,7 @@ void show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it )
     }
 } 
 
-void do_appraise ( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_appraise)
 {
     OBJ_DATA *obj;
     char buf[MAX_STRING_LENGTH], arg[MAX_INPUT_LENGTH];
@@ -4437,7 +4436,7 @@ void show_disguise_list( CHAR_DATA *ch )
 }
 
 /* disguise yourself to avoid killer/thief flag detection */
-void do_disguise( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_disguise)
 {
     AFFECT_DATA af;
     char buf[MSL], arg1[MIL];
@@ -4520,7 +4519,7 @@ void do_disguise( CHAR_DATA *ch, char *argument )
     check_improve( ch, gsn_disguise, TRUE, 1 );
 }
 
-void do_stance_list( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stance_list)
 {
     int i, skill, sn;
     char buf[MSL];
@@ -4546,7 +4545,7 @@ void do_stance_list( CHAR_DATA *ch, char *argument )
 }
 
 /* gather information about current room */
-void do_survey( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_survey)
 {
     ROOM_INDEX_DATA *room = ch->in_room;
     char buf[MSL], *buf2;
@@ -4614,7 +4613,7 @@ void do_survey( CHAR_DATA *ch, char *argument )
 
 
 /*  NEW do_score, do_attributes, and do_worth by Quirky in May 03 */
-void do_score( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_score)
 {
     char buf[MSL];
     char flagsbuf[MSL/4];
@@ -4956,7 +4955,7 @@ void do_score( CHAR_DATA *ch, char *argument )
 
 
 
-void do_worth( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_worth)
 {
     char buf[MAX_STRING_LENGTH], temp[MAX_STRING_LENGTH];
     int LENGTH = 76;
@@ -5021,7 +5020,7 @@ void do_worth( CHAR_DATA *ch, char *argument )
 
 
 
-void do_attributes( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_attributes)
 {
     /* Just a hack of score to give players a convenient way to view main attributes */
     /* Memnoch 02/98 */
@@ -5166,7 +5165,7 @@ void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
 }
 
 // show offhand attack and other percentages
-void do_percentages( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_percentages)
 {
     BUFFER *output;
     int LENGTH = 77;
@@ -5205,7 +5204,7 @@ void do_percentages( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_helper( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_helper)
 {
         CHAR_DATA *victim;
         char arg[MIL];
@@ -5319,7 +5318,7 @@ void print_affect( CHAR_DATA *ch, AFFECT_DATA *paf, FILE *fp )
 }
 
 /*
-void do_combo( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_combo)
 {
     char buf[MAX_STRING_LENGTH];
 
@@ -5360,7 +5359,7 @@ msl_string achievement_display [] =
 };
 
 
-void do_achievements( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_achievements)
 {
 	if ( IS_NPC(ch) )
 		return;
@@ -5626,7 +5625,7 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
 
 
 
-void do_count ( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_count)
 {
     int count, max;
     DESCRIPTOR_DATA *d;
@@ -5676,7 +5675,7 @@ void do_count ( CHAR_DATA *ch, char *argument )
 
 
 
-void do_classes( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_classes)
 {
     int class;
 
@@ -5712,7 +5711,7 @@ void do_classes( CHAR_DATA *ch, char *argument )
 }
 
 #ifdef LAG_FREE
-void do_lagfree( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_lagfree)
 {
     if (IS_NPC(ch))
         return;
@@ -5761,7 +5760,7 @@ const struct newbie_data eq_data[] =
     {  0, NULL                                                              }
 };
 
-void do_eqhelp( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_eqhelp)
 {
     OBJ_DATA *obj;
     bool wield = FALSE;

@@ -27,8 +27,9 @@ tester: C_FLAGS += -DTESTER
 builder: C_FLAGS += -DBUILDER
 remort: C_FLAGS += -DREMORT 
 remort_tester: C_FLAGS += -DREMORT -DTESTER
+warn: C_FLAGS = -ggdb -rdynamic -m32 -Wall $(PROF)
 
-aeaea tester builder remort remort_tester: $(O_FILES)
+aeaea tester builder remort remort_tester warn: $(O_FILES)
 	rm -f aeaea 
 	$(CC) -o aeaea $(O_FILES) $(L_FLAGS) -lcrypt -lm
 
