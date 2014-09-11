@@ -626,7 +626,7 @@ bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
     return TRUE;
 }
 
-void do_north( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_north)
 {
    move_char( ch, DIR_NORTH, FALSE );
    return;
@@ -634,7 +634,7 @@ void do_north( CHAR_DATA *ch, char *argument )
 
 
 
-void do_east( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_east)
 {
    move_char( ch, DIR_EAST, FALSE );
    return;
@@ -642,7 +642,7 @@ void do_east( CHAR_DATA *ch, char *argument )
 
 
 
-void do_south( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_south)
 {
    move_char( ch, DIR_SOUTH, FALSE );
    return;
@@ -650,7 +650,7 @@ void do_south( CHAR_DATA *ch, char *argument )
 
 
 
-void do_west( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_west)
 {
    move_char( ch, DIR_WEST, FALSE );
    return;
@@ -658,7 +658,7 @@ void do_west( CHAR_DATA *ch, char *argument )
 
 
 
-void do_up( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_up)
 {
    move_char( ch, DIR_UP, FALSE );
    return;
@@ -666,31 +666,31 @@ void do_up( CHAR_DATA *ch, char *argument )
 
 
 
-void do_down( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_down)
 {
    move_char( ch, DIR_DOWN, FALSE );
    return;
 }
 
-void do_northeast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_northeast)
 {
    move_char( ch, DIR_NORTHEAST, FALSE );
    return;
 }
 
-void do_southeast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_southeast)
 {
    move_char( ch, DIR_SOUTHEAST, FALSE );
    return;
 }
 
-void do_southwest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_southwest)
 {
    move_char( ch, DIR_SOUTHWEST, FALSE );
    return;
 }
 
-void do_northwest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_northwest)
 {
    move_char( ch, DIR_NORTHWEST, FALSE );
    return;
@@ -768,7 +768,7 @@ int find_door( CHAR_DATA *ch, char *arg )
 
 
 
-void do_open( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_open)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -895,7 +895,7 @@ void do_open( CHAR_DATA *ch, char *argument )
 
 
 
-void do_close( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_close)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -1029,7 +1029,7 @@ bool has_key( CHAR_DATA *ch, int key )
 
 
 
-void do_lock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_lock)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj, *key;
@@ -1184,7 +1184,7 @@ void do_lock( CHAR_DATA *ch, char *argument )
 
 
 
-void do_unlock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_unlock)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj, *key;
@@ -1334,7 +1334,7 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 
 #define NLRETURN if ( number_percent() > chance ) \
                  { send_to_char("\n\r", ch); return; }
-void do_estimate( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_estimate)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -1489,7 +1489,7 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 }
 #undef NLRETURN
 
-void do_shoot_lock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_shoot_lock)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *gch;
@@ -1592,7 +1592,7 @@ void do_shoot_lock( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_unjam(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_unjam)
 {
     OBJ_DATA *obj;
     int skill;
@@ -1665,7 +1665,7 @@ void do_unjam(CHAR_DATA *ch, char *argument)
     */
 }
 
-void do_set_snare ( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_set_snare)
 {
 
     int chance;
@@ -1702,7 +1702,7 @@ void do_set_snare ( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_peel ( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_peel)
 {
 
     int chance;
@@ -1741,7 +1741,7 @@ void do_peel ( CHAR_DATA *ch, char *argument)
 }
 
 
-void do_pick( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pick)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *gch;
@@ -1967,7 +1967,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_stand( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stand)
 {
    OBJ_DATA  *obj = NULL;
    CHAR_DATA *gch = NULL;
@@ -2096,7 +2096,7 @@ void do_stand( CHAR_DATA *ch, char *argument )
 
 
 
-void do_rest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rest)
 {
    OBJ_DATA *obj = NULL;
    CHAR_DATA *gch = NULL;
@@ -2252,7 +2252,7 @@ void do_rest( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sit (CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sit)
 {
    OBJ_DATA *obj = NULL;
    CHAR_DATA *gch = NULL;
@@ -2403,7 +2403,7 @@ void do_sit (CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sleep( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sleep)
 {
    OBJ_DATA *obj = NULL;
    
@@ -2480,7 +2480,7 @@ void do_sleep( CHAR_DATA *ch, char *argument )
 
 
 
-void do_wake( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wake)
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *victim;
@@ -2507,7 +2507,7 @@ void do_wake( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sneak( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sneak)
 {
     AFFECT_DATA af;
     
@@ -2561,7 +2561,7 @@ void do_sneak( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_hide( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hide)
 {
     AFFECT_DATA af;
     
@@ -2643,14 +2643,14 @@ void make_visible( CHAR_DATA *ch )
 /*
 * Contributed by Alander.
 */
-void do_visible( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_visible)
 {
     make_visible( ch );
     send_to_char( "Ok.\n\r", ch );
     return;
 }
 
-void do_recall( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_recall)
 {
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
@@ -2854,7 +2854,7 @@ int morph_power( CHAR_DATA *ch )
     return -1;
 }
 
-void do_morph(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_morph)
 {
     AFFECT_DATA *paf;
     OBJ_DATA *obj;
@@ -3105,7 +3105,7 @@ bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj )
     return TRUE;
 }
 
-void do_disarm_trap( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_disarm_trap)
 {
     int door, skill;
     EXIT_DATA *exit, *rev_exit;
@@ -3184,7 +3184,7 @@ void do_disarm_trap( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_root( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_root)
 {
     char arg[MIL];
     AFFECT_DATA af;
@@ -3384,7 +3384,7 @@ void check_explore( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
 #endif
 }
 
-void do_explored(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_explored)
 {	char buf[MAX_STRING_LENGTH];
 	sprintf(buf, "You have explored %d room%s!{x\r\n", ch->pcdata->explored->set, (ch->pcdata->explored->set == 1 ? "" : "s") );
 	send_to_char(buf,ch);
@@ -3404,7 +3404,7 @@ void do_explored(CHAR_DATA *ch, char *argument )
 }
 
 //RUN COMMAND by SIVA 2/14/04
-void do_run(CHAR_DATA * ch, char *argument)
+DEF_DO_FUN(do_run)
 {
 	//local variables
 	CHAR_DATA *wch;

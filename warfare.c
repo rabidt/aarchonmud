@@ -41,7 +41,7 @@ long last_war_time = 0;
 
 long auto_war_time = 0;
 
-void do_startwar( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_startwar)
 {
     proc_startwar( ch, argument, FALSE );
 }
@@ -267,7 +267,7 @@ void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
     return;
 }
 
-void do_stopwar( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stopwar)
 {
     if ( war.on == TRUE )
     {
@@ -284,7 +284,7 @@ void do_stopwar( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_combat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_combat)
 {
     ROOM_INDEX_DATA *location;
     char buf[MSL];
@@ -389,7 +389,7 @@ void return_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *default_room )
         char_to_room(ch, default_room);
 }
 
-void do_warstatus( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_warstatus)
 {
     char buf[MSL];
     BUFFER *output;
@@ -558,7 +558,7 @@ void warfare( char *argument )
     return;
 }
 
-void do_nowar( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_nowar)
 {
     if ( IS_SET( ch->comm, COMM_NOWAR ) )
     {
@@ -690,7 +690,7 @@ void add_war_kills( CHAR_DATA *ch )
     return;
 }
 
-void do_warsit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_warsit)
 {
     DESCRIPTOR_DATA *d;
     BUFFER *output;

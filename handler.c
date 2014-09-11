@@ -49,22 +49,19 @@ DECLARE_DO_FUN(do_return    );
  * Local functions.
  */
 void    affect_modify   args( ( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd ) );
-ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, char *argument, bool exact );
+ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argument, bool exact );
 bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat );
-OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact );
-OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, char *argument, bool exact );
-OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, char *arg,
-                            int *number, bool exact );
-OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, char *arg, CHAR_DATA *viewer,
-                             int *number, bool exact );
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list,
-                            int *number, bool exact );
-ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, char *arg, bool area );
-CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact );
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, char *argument, bool exact );
+OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
+OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact );
+OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool exact );
+OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer, int *number, bool exact );
+OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
+ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, const char *arg, bool area );
+CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact );
 char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype);
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list, int *number, bool exact );
+OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
 AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 
 /* friend stuff -- for NPC's mostly */
@@ -2511,7 +2508,6 @@ void desc_from_descriptor_list( DESCRIPTOR_DATA *desc )
 /*
  * Find a room by name
  */
-char* remove_color( const char *txt );
 
 ROOM_INDEX_DATA* get_room_area( AREA_DATA *area, char *argument )
 {
@@ -2531,7 +2527,7 @@ ROOM_INDEX_DATA* get_room_world( char *argument )
     return get_room_in_range( 1, top_vnum_room, argument, FALSE );
 }
 
-ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, char *argument, bool exact )
+ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     ROOM_INDEX_DATA *room;
@@ -2586,7 +2582,7 @@ CHAR_DATA* get_player( char *name )
 /*
  * Find a char in the room.
  */
-CHAR_DATA *get_char_room( CHAR_DATA *ch, char *argument )
+CHAR_DATA *get_char_room( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *rch;
 
@@ -2606,7 +2602,7 @@ bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
 	    || (!number_bits(2) && can_see(ch, victim));
 }
 
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, char *argument, bool exact )
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *rch;
@@ -2638,7 +2634,7 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, char *argument, bool exact )
 /*
  * Find a char in the world.
  */
-CHAR_DATA *get_char_world( CHAR_DATA *ch, char *argument )
+CHAR_DATA *get_char_world( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *wch;
 
@@ -2655,7 +2651,7 @@ CHAR_DATA *get_char_world( CHAR_DATA *ch, char *argument )
  *
  * (by Mikko Kilpikoski 09-Jun-94)
  */
-CHAR_DATA *get_char_area( CHAR_DATA *ch, char *argument )
+CHAR_DATA *get_char_area( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *ach;
 
@@ -2666,7 +2662,7 @@ CHAR_DATA *get_char_area( CHAR_DATA *ch, char *argument )
     return ach;
 }
 
-CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
+CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *target;
@@ -2726,7 +2722,7 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
     return NULL;
 }
 
-CHAR_DATA *get_char_group_new( CHAR_DATA *ch, char *argument, bool exact )
+CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *gch;
@@ -2761,7 +2757,7 @@ CHAR_DATA *get_char_group_new( CHAR_DATA *ch, char *argument, bool exact )
     return NULL;    
 }
 
-CHAR_DATA *get_char_group( CHAR_DATA *ch, char *argument )
+CHAR_DATA *get_char_group( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *gch;
 
@@ -2782,12 +2778,12 @@ CHAR_DATA* get_mob_vnum_world( int vnum )
     return NULL;
 }
 
-ROOM_INDEX_DATA *find_location( CHAR_DATA *ch, char *arg )
+ROOM_INDEX_DATA *find_location( CHAR_DATA *ch, const char *arg )
 {
     return find_location_new( ch, arg, FALSE );
 }
 
-ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, char *arg, bool area )
+ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, const char *arg, bool area )
 {
 	CHAR_DATA *victim;
 	OBJ_DATA *obj;
@@ -2866,7 +2862,7 @@ OBJ_DATA* get_obj_by_type( OBJ_DATA *contents, int item_type )
 /*
  * Find an obj in a list.
  */
-OBJ_DATA *get_obj_list( CHAR_DATA *ch, char *argument, OBJ_DATA *list )
+OBJ_DATA *get_obj_list( CHAR_DATA *ch, const char *argument, OBJ_DATA *list )
 {
     char arg[MAX_INPUT_LENGTH];
     int buf, number = number_argument( argument, arg );
@@ -2886,7 +2882,7 @@ OBJ_DATA *get_obj_list( CHAR_DATA *ch, char *argument, OBJ_DATA *list )
 /* number is reduced for each match found
  * exact specifies wether to look for exact name matching
  */
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list, 
+OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, 
 			    int *number, bool exact )
 {
     OBJ_DATA *obj;
@@ -2912,7 +2908,7 @@ OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list,
 /*
  * Find an obj in player's inventory.
  */
-OBJ_DATA *get_obj_carry( CHAR_DATA *ch, char *argument, CHAR_DATA *viewer )
+OBJ_DATA *get_obj_carry( CHAR_DATA *ch, const char *argument, CHAR_DATA *viewer )
 {
     char arg[MAX_INPUT_LENGTH];
     int buf, number = number_argument( argument, arg );
@@ -2929,7 +2925,7 @@ OBJ_DATA *get_obj_carry( CHAR_DATA *ch, char *argument, CHAR_DATA *viewer )
     return obj;
 }
 
-OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, char *arg, CHAR_DATA *viewer,
+OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer,
 			     int *number, bool exact )
 {
     OBJ_DATA *obj;
@@ -2957,7 +2953,7 @@ OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, char *arg, CHAR_DATA *viewer,
 /*
  * Find an obj in player's equipment.
  */
-OBJ_DATA *get_obj_wear( CHAR_DATA *ch, char *argument )
+OBJ_DATA *get_obj_wear( CHAR_DATA *ch, const char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
     int buf, number = number_argument( argument, arg );
@@ -2974,8 +2970,7 @@ OBJ_DATA *get_obj_wear( CHAR_DATA *ch, char *argument )
     return obj;
 }
 
-OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, char *arg,
-			    int *number, bool exact )
+OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool exact )
 {
     OBJ_DATA *obj;
     
@@ -3002,7 +2997,7 @@ OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, char *arg,
 /*
  * Find an obj in the room or in inventory.
  */
-OBJ_DATA *get_obj_here( CHAR_DATA *ch, char *argument )
+OBJ_DATA *get_obj_here( CHAR_DATA *ch, const char *argument )
 {
     OBJ_DATA *obj = get_obj_here_new( ch, argument, TRUE );
 
@@ -3012,7 +3007,7 @@ OBJ_DATA *get_obj_here( CHAR_DATA *ch, char *argument )
     return obj;
 }
 
-OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, char *argument, bool exact )
+OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
     OBJ_DATA *obj;
     char arg[MIL], arg1[MIL];
@@ -3044,7 +3039,7 @@ OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, char *argument, bool exact )
 /*
  * Find an obj in the world.
  */
-OBJ_DATA *get_obj_world( CHAR_DATA *ch, char *argument )
+OBJ_DATA *get_obj_world( CHAR_DATA *ch, const char *argument )
 {
     OBJ_DATA *obj = get_obj_new( ch, argument, FALSE, TRUE );
 
@@ -3054,7 +3049,7 @@ OBJ_DATA *get_obj_world( CHAR_DATA *ch, char *argument )
     return obj;    
 }
 
-OBJ_DATA *get_obj_area( CHAR_DATA *ch, char *argument )
+OBJ_DATA *get_obj_area( CHAR_DATA *ch, const char *argument )
 {
     OBJ_DATA *obj = get_obj_new( ch, argument, TRUE, TRUE );
 
@@ -3064,7 +3059,7 @@ OBJ_DATA *get_obj_area( CHAR_DATA *ch, char *argument )
     return obj;    
 }
 
-OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
+OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -4156,7 +4151,7 @@ void default_colour( CHAR_DATA *ch )
     return;
 }
 
-void all_colour( CHAR_DATA *ch, char *argument )
+void all_colour( CHAR_DATA *ch, const char *argument )
 {
     char buf[ 100 ];
     char buf2[ 100 ];

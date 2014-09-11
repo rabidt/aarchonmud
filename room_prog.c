@@ -103,7 +103,7 @@ bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
 
 
 /* returns whether a trigger was found */
-bool rp_try_trigger( char *argument, CHAR_DATA *ch )
+bool rp_try_trigger( const char *argument, CHAR_DATA *ch )
 {
     if ( !ch->in_room )
     {

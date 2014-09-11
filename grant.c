@@ -262,7 +262,7 @@ void do_login_grant(CHAR_DATA *ch)
     }
 }
 
-void do_grant( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_grant)
 {
     char buf[MAX_STRING_LENGTH];
     char arg1[MAX_INPUT_LENGTH];
@@ -454,7 +454,7 @@ void do_grant( CHAR_DATA *ch, char *argument )
         return;
 }
 
-void do_revoke( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_revoke)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -604,7 +604,7 @@ void do_revoke( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_gstat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_gstat)
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];

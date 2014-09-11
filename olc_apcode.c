@@ -100,7 +100,7 @@ void apedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_aprun( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_aprun)
 {
     if ( IS_NPC(ch) )
         return;
@@ -164,7 +164,7 @@ void do_aprun( CHAR_DATA *ch, char *argument)
 
 }
 
-void do_apedit(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_apedit)
 {
     PROG_CODE *pAcode;
     char command[MAX_INPUT_LENGTH];

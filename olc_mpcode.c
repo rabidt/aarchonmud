@@ -108,7 +108,7 @@ void mpedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_mprun(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_mprun)
 {
 
     if (IS_NPC(ch))
@@ -187,7 +187,7 @@ void do_mprun(CHAR_DATA *ch, char *argument)
 
 }
 
-void do_mpedit(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_mpedit)
 {
     PROG_CODE *pMcode;
     char command[MAX_INPUT_LENGTH];
