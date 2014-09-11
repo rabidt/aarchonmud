@@ -76,7 +76,7 @@ bool op_act_trigger(
             && ( ch2 ? !ch2->must_extract : TRUE ) );
 }
 
-bool op_try_trigger( char* argument, CHAR_DATA *ch )
+bool op_try_trigger( const char *argument, CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *next_obj;
@@ -113,7 +113,7 @@ bool op_try_trigger( char* argument, CHAR_DATA *ch )
     return found;
 }
 
-void op_speech_trigger( char *argument, CHAR_DATA *ch )
+void op_speech_trigger( const char *argument, CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *next_obj;

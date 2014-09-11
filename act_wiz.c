@@ -60,9 +60,8 @@ DECLARE_DO_FUN(do_revoke    );
 int   flag_value     args( ( const struct flag_type *flag_table, char *argument) );
 void  sort_reserved  args( ( RESERVED_DATA *pRes ) );
 void  raw_kill       args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
-void do_qset(CHAR_DATA *ch, char *argument);
 
-void do_wiznet( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wiznet)
 {
     int flag, col = 0;
     char buf[MAX_STRING_LENGTH];
@@ -172,7 +171,7 @@ void wiznet(char *string, CHAR_DATA *ch, OBJ_DATA *obj,
 
 
 /* equips a character */
-void do_outfit ( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_outfit)
 {
     OBJ_DATA *obj;
     int i,sn,vnum;
@@ -261,7 +260,7 @@ void do_outfit ( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_smote(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_smote)
 {
     CHAR_DATA *vch;
     char *letter,*name;
@@ -354,7 +353,7 @@ void do_smote(CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_bamfin( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_bamfin)
 {
     char buf[MAX_STRING_LENGTH];
     
@@ -386,7 +385,7 @@ void do_bamfin( CHAR_DATA *ch, char *argument )
 
 
 
-void do_bamfout( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_bamfout)
 {
     char buf[MAX_STRING_LENGTH];
     
@@ -418,7 +417,7 @@ void do_bamfout( CHAR_DATA *ch, char *argument )
 
 
 
-void do_echo( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_echo)
 {
     DESCRIPTOR_DATA *d;
     
@@ -444,7 +443,7 @@ void do_echo( CHAR_DATA *ch, char *argument )
 
 
 
-void do_recho( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_recho)
 {
     DESCRIPTOR_DATA *d;
     
@@ -470,7 +469,7 @@ void do_recho( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_zecho(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_zecho)
 {
     DESCRIPTOR_DATA *d;
     
@@ -494,7 +493,7 @@ void do_zecho(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_pecho( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pecho)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -524,7 +523,7 @@ void do_pecho( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_transfer( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_transfer)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -607,7 +606,7 @@ void do_transfer( CHAR_DATA *ch, char *argument )
 
 
 
-void do_at( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_at)
 {
     char arg[MAX_INPUT_LENGTH];
     ROOM_INDEX_DATA *location;
@@ -662,7 +661,7 @@ void do_at( CHAR_DATA *ch, char *argument )
 
 
 
-void do_goto( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_goto)
 {
     ROOM_INDEX_DATA *location;
     CHAR_DATA *rch;
@@ -727,19 +726,19 @@ void do_goto( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_copyove( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_copyove)
 {
     send_to_char( "If you want to COPYOVER, spell it out.\n\r", ch );
     return;
 }
 
-void do_reboo( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_reboo)
 {
     send_to_char( "If you want to REBOOT, spell it out.\n\r", ch );
     return;
 }
 
-void do_reboot( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_reboot)
 {
     char buf[MAX_STRING_LENGTH];
     extern bool merc_down;
@@ -765,7 +764,7 @@ void do_reboot( CHAR_DATA *ch, char *argument )
 
 
 
-void do_shutdow( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_shutdow)
 {
     send_to_char( "If you want to SHUTDOWN, spell it out.\n\r", ch );
     return;
@@ -773,7 +772,7 @@ void do_shutdow( CHAR_DATA *ch, char *argument )
 
 
 
-void do_shutdown( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_shutdown)
 {
     char buf[MAX_STRING_LENGTH];
     extern bool merc_down;
@@ -796,7 +795,7 @@ void do_shutdown( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_snoop( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_snoop)
 {
     char arg[MAX_INPUT_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -884,7 +883,7 @@ void do_snoop( CHAR_DATA *ch, char *argument )
 
 
 
-void do_switch( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_switch)
 {
     char arg[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
@@ -963,7 +962,7 @@ void do_switch( CHAR_DATA *ch, char *argument )
 
 
 
-void do_return( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_return)
 {
     char buf[MAX_STRING_LENGTH];
     
@@ -1029,7 +1028,7 @@ void recursive_clone(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *clone)
 }
 
 /* command that is similar to load */
-void do_clone(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_clone)
 {
     char arg[MAX_INPUT_LENGTH];
     char *rest;
@@ -1148,7 +1147,7 @@ void do_clone(CHAR_DATA *ch, char *argument )
 
 /* RT to replace the two load commands */
 
-void do_load(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_load)
 {
     char arg[MAX_INPUT_LENGTH];
     
@@ -1178,7 +1177,7 @@ void do_load(CHAR_DATA *ch, char *argument )
 }
 
 
-void do_mload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mload)
 {
     char arg[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -1233,7 +1232,7 @@ void do_mload( CHAR_DATA *ch, char *argument )
 
 
 
-void do_oload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_oload)
 {
     char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
     OBJ_INDEX_DATA *pObjIndex;
@@ -1287,7 +1286,7 @@ void do_oload( CHAR_DATA *ch, char *argument )
 
 
 
-void do_purge( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_purge)
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[100];
@@ -1373,7 +1372,7 @@ void do_purge( CHAR_DATA *ch, char *argument )
 
 
 
-void do_advance( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_advance)
 {
     char buf[MAX_STRING_LENGTH];
     char arg1[MAX_INPUT_LENGTH];
@@ -1497,7 +1496,7 @@ void do_advance( CHAR_DATA *ch, char *argument )
 
 
 
-void do_trust( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_trust)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -1545,7 +1544,7 @@ void restore_char( CHAR_DATA *victim )
     update_pos( victim );
 }
 
-void do_restore( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_restore)
 {
     char arg[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
@@ -1617,7 +1616,7 @@ void do_restore( CHAR_DATA *ch, char *argument )
 
 
 
-void do_log( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_log)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -1677,7 +1676,7 @@ void do_log( CHAR_DATA *ch, char *argument )
 
 
 
-void do_peace( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_peace)
 {
     CHAR_DATA *rch, *victim;
     char arg[MIL];
@@ -1714,7 +1713,7 @@ void do_peace( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_wizlock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wizlock)
 {
     extern bool wizlock;
     wizlock = !wizlock;
@@ -1735,7 +1734,7 @@ void do_wizlock( CHAR_DATA *ch, char *argument )
 
 /* RT anti-newbie code */
 
-void do_newlock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_newlock)
 {
     extern bool newlock;
     newlock = !newlock;
@@ -1754,7 +1753,7 @@ void do_newlock( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_ptitle( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_ptitle)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -1812,7 +1811,7 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
 	return;
 }
 
-void do_namecolor( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_namecolor)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -1843,7 +1842,7 @@ void do_namecolor( CHAR_DATA *ch, char *argument)
 
 
 
-void do_pflag( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_pflag)
 {
 	int i;
     char arg1 [MAX_INPUT_LENGTH];
@@ -1915,7 +1914,7 @@ void do_pflag( CHAR_DATA *ch, char *argument)
     return;	
 }
 
-void do_string( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_string)
 {
     char type [MAX_INPUT_LENGTH];
     char arg1 [MAX_INPUT_LENGTH];
@@ -2080,7 +2079,7 @@ void do_string( CHAR_DATA *ch, char *argument )
 /*
  * Thanks to Grodyn for pointing out bugs in this function.
  */
-void do_force( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_force)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -2227,7 +2226,7 @@ void do_force( CHAR_DATA *ch, char *argument )
 /*
 * New routines by Dionysos.
 */
-void do_invis( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_invis)
 {
     int level;
     char arg[MAX_STRING_LENGTH];
@@ -2272,7 +2271,7 @@ void do_invis( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_incognito( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_incognito)
 {
     int level;
     char arg[MAX_STRING_LENGTH];
@@ -2318,7 +2317,7 @@ void do_incognito( CHAR_DATA *ch, char *argument )
 
 
 
-void do_holylight( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_holylight)
 {
     if ( IS_NPC(ch) )
         return;
@@ -2339,13 +2338,13 @@ void do_holylight( CHAR_DATA *ch, char *argument )
 
 /* prefix command: it will put the string typed on each line typed */
 
-void do_prefi (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_prefi)
 {
     send_to_char("You cannot abbreviate the prefix command.\r\n",ch);
     return;
 }
 
-void do_prefix (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_prefix)
 {
     char buf[MAX_INPUT_LENGTH];
     
@@ -2377,7 +2376,7 @@ void do_prefix (CHAR_DATA *ch, char *argument)
 }
 
 
-void do_sla( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sla)
 {
     send_to_char( "If you want to SLAY, spell it out.\n\r", ch );
     return;
@@ -2385,7 +2384,7 @@ void do_sla( CHAR_DATA *ch, char *argument )
 
 
 
-void do_slay( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_slay)
 {
     CHAR_DATA *victim;
     char arg[MAX_INPUT_LENGTH];
@@ -2428,7 +2427,7 @@ void do_slay( CHAR_DATA *ch, char *argument )
 /* Omni wiz command by Prism <snazzy@ssnlink.net>. 
      Updated 12-8-13 by Astark to include functionality from sockets */
 
-void do_omni( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_omni)
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
@@ -2529,7 +2528,7 @@ void do_omni( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_as(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_as)
 {
     CHAR_DATA *victim ;
     DESCRIPTOR_DATA *original ;
@@ -2600,7 +2599,7 @@ void do_as(CHAR_DATA *ch, char *argument)
 * Update  : Characters returned to Original room by: Anthony Michael Tregre
 */
 
-void do_pload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pload)
 {
     DESCRIPTOR_DATA d={0};
     bool isChar = FALSE;
@@ -2612,8 +2611,8 @@ void do_pload( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    argument[0] = UPPER(argument[0]);
     argument = one_argument(argument, name);
+    name[0] = UPPER(name[0]);
     
     /* Don't want to load a second copy of a player who's already online! */
     if ( char_list_find(name) != NULL )
@@ -2673,7 +2672,7 @@ void do_pload( CHAR_DATA *ch, char *argument )
   * Author  : Gary McNickle <gary@dharvest.com>
   * Update  : Characters returned to Original room by: Anthony Michael Tregre
 */
-void do_punload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_punload)
 {
     CHAR_DATA *victim;
     char who[MAX_INPUT_LENGTH];
@@ -2755,7 +2754,7 @@ void save_reserved(void)
 }
 
 /* Reserved names, ported from Smaug 1.4 by Rimbol 3/99. */
-void do_reserve(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_reserve)
 {
     char arg[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -2858,7 +2857,7 @@ bool global_immediate_flush = FALSE;
 #endif
 
 /* toggle immediate descrictor flushing (debugging tool) */
-void do_flush(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_flush)
 {
   char arg[MAX_INPUT_LENGTH];
 
@@ -2902,7 +2901,7 @@ void do_flush(CHAR_DATA *ch, char *argument)
 }
 
 /* list quests for a character */
-void do_qlist( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_qlist)
 {
     CHAR_DATA *victim;
     char arg[MIL];
@@ -2955,7 +2954,7 @@ void check_sn_multiplay( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 }
 
 /* command that crashes the mud for testing purposes --Bobble */
-void do_crash( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_crash)
 {
     int i = 0, *p = NULL;
 
@@ -2986,7 +2985,7 @@ void do_crash( CHAR_DATA *ch, char *argument )
 }
 
 /* New Qset command */
-void do_qset( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_qset)
 {
     CHAR_DATA *victim;
     char arg[MAX_INPUT_LENGTH];
@@ -3156,7 +3155,7 @@ equipped. - Astark 6/12
   return;
 }
 
-void do_printlist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_printlist)
 {
     if (argument[0]=='\0')
     {
@@ -3205,7 +3204,7 @@ void do_printlist(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_mortlag(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_mortlag)
 {
   char arg[MAX_INPUT_LENGTH];
   char buf[MAX_STRING_LENGTH];
@@ -3261,7 +3260,7 @@ void do_mortlag(CHAR_DATA *ch, char *argument)
   }
 }
 
-void do_pgrep( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_pgrep)
 {
     if ( argument[0] == '\0' )
     {

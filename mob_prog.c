@@ -1420,10 +1420,8 @@ void program_flow(
  * A general purpose string trigger. Matches argument to a string trigger
  * phrase.
  */
-bool mp_act_trigger( 
-	char *argument, CHAR_DATA *mob, CHAR_DATA *ch, 
-	const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type,
-    int type )
+bool mp_act_trigger( const char *argument, CHAR_DATA *mob, CHAR_DATA *ch, 
+    const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type, int type )
 {
     PROG_LIST *prg;
 
@@ -1704,7 +1702,7 @@ bool mp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
     return FALSE;
 }
 
-bool mp_try_trigger( char* argument, CHAR_DATA *ch )
+bool mp_try_trigger( const char* argument, CHAR_DATA *ch )
 {
   CHAR_DATA *mob;
   CHAR_DATA *next_char;

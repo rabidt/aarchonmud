@@ -792,7 +792,7 @@ const struct editor_cmd_type editor_table[] =
 
 
 /* Entry point for all editors. */
-void do_olc( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_olc)
 {
    char command[MAX_INPUT_LENGTH];
    int  cmd;
@@ -826,7 +826,7 @@ void do_olc( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing area_data. */
-void do_aedit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_aedit)
 {
    AREA_DATA *pArea;
    int value;
@@ -876,7 +876,7 @@ void do_aedit( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing room_index_data. */
-void do_redit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_redit)
 {
     AREA_DATA *pArea;
     ROOM_INDEX_DATA *pRoom;
@@ -980,7 +980,7 @@ void do_redit( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing obj_index_data. */
-void do_oedit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_oedit)
 {
    OBJ_INDEX_DATA *pObj;
    AREA_DATA *pArea;
@@ -1078,7 +1078,7 @@ void do_oedit( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing mob_index_data. */
-void do_medit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_medit)
 {
    MOB_INDEX_DATA *pMob;
    AREA_DATA *pArea;
@@ -1493,7 +1493,7 @@ bool can_delete_reset_msg( CHAR_DATA *ch, RESET_DATA *reset )
 
 /* now the real stuff goes smoothly ;) */
 
-void do_resets( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_resets)
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -1798,7 +1798,7 @@ void hedit( CHAR_DATA *ch, char *argument)
 HELP_DATA* find_help_data( CHAR_DATA *ch, char *argument, BUFFER *output );
 
 /* Help Editor - kermit 1/98 */
-void do_hedit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hedit)
 {
    HELP_DATA *pHelp;
    BUFFER *output;

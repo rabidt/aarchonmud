@@ -3014,7 +3014,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 
 
 
-void do_finger(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_finger)
 {
     char arg[MAX_INPUT_LENGTH];
     BUFFER *output;
