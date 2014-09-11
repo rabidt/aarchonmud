@@ -49,7 +49,6 @@ DECLARE_DO_FUN(do_recall    );
  */
 void    say_spell   args( ( CHAR_DATA *ch, int sn ) );
 
-bool is_offensive( int sn );
 bool can_cast_transport( CHAR_DATA *ch );
 void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target );
 
@@ -3790,7 +3789,9 @@ void spell_cause_harm( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int harm = get_sn_damage(sn, level, ch);
     // scale with victim's health
-    harm *= (0.5 + (float)victim->hit / victim->max_hit) / 2;
+    harm *= (1 + 3.0 * victim->hit / victim->max_hit) / 4;
+    if ( IS_AFFECTED(victim, AFF_SANCTUARY) || saves_spell(victim, ch, level, DAM_HARM) )
+        harm /= 2;
     direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );

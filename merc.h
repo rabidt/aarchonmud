@@ -4493,6 +4493,7 @@ bool has_focus_obj( CHAR_DATA *ch );
 void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
 int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base );
 int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self );
+bool is_offensive( int sn );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
