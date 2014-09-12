@@ -113,6 +113,9 @@ void	free_pcdata args( (PC_DATA *pcdata) );
 #undef PD
 #undef CD
 
+/* portal recycling */
+PORTAL_DATA *new_portal( void );
+void free_portal( PORTAL_DATA *portal );
 
 /* mob id and memory procedures */
 #define MD MEM_DATA

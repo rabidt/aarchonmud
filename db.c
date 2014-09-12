@@ -79,7 +79,6 @@ void load_area_file( FILE *fp, bool clone );
 void arm_npc( CHAR_DATA *mob );
 void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description );
 void affect_spellup_mob( CHAR_DATA *mob );
-void log_error( const char *str );
 
 /*
 * Globals.
