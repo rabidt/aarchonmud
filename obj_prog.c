@@ -50,8 +50,7 @@ bool op_percent_trigger(
              && ( ch2 ? !ch2->must_extract : TRUE ) );
 }
 
-bool op_act_trigger(
-        OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
+bool op_act_trigger(OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
 {
     PROG_LIST *prg;
 

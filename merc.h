@@ -1045,8 +1045,9 @@ struct  kill_data
 };
 
 // other header files to be generally included
+#include "buffer.h"
 #include "buffer_util.h"
-
+#include "religion.h"
 
 /***************************************************************************
  *                                                                         *
@@ -4188,6 +4189,7 @@ bool explored_vnum args( (CHAR_DATA *, int ) );
 bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show );
 bool can_move_dir( CHAR_DATA *ch, int dir, bool show );
 int get_random_exit( CHAR_DATA *ch );
+bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
@@ -4206,7 +4208,21 @@ void copyover_recover args((void));
 void    substitute_alias args( (DESCRIPTOR_DATA *d, char *input) );
 
 /* area_prog.c */
-void ap_quit_trigger( CHAR_DATA *ch );
+bool ap_percent_trigger(AREA_DATA *area, CHAR_DATA *ch1, int type);
+bool ap_death_trigger(CHAR_DATA *ch);
+bool ap_rexit_trigger(CHAR_DATA *ch);
+bool ap_exit_trigger(CHAR_DATA *ch, AREA_DATA *to_area);
+bool ap_renter_trigger(CHAR_DATA *ch);
+bool ap_enter_trigger(CHAR_DATA *ch, AREA_DATA *from_area);
+void ap_boot_trigger();
+void ap_shutdown_trigger();
+void ap_quit_trigger(CHAR_DATA *ch);
+void ap_void_trigger(CHAR_DATA *ch);
+bool ap_unvoid_trigger(CHAR_DATA *ch);
+bool ap_recall_trigger(CHAR_DATA *ch);
+void ap_timer_trigger(AREA_DATA *area);
+void aprog_timer_init(AREA_DATA *area);
+void aprog_setup(AREA_DATA *area);
 
 /* auth.c */
 void load_auth_list               args( ( void ) );
@@ -4332,6 +4348,7 @@ void    log_string  args( ( const char *str ) );
 void    log_trace();
 void    tail_chain  args( ( void ) );
 const char *	bin_info_string;
+void    log_error( const char *str );
 
 /* effect.c */
 void    acid_effect args( (void *vo, int level, int dam, int target) );
@@ -4373,6 +4390,19 @@ bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 bool is_granted_name    args( ( CHAR_DATA *ch, char *argument ) );
 bool is_granted      args( ( CHAR_DATA *ch, DO_FUN *do_fun ) );
 
+/* grep.c */
+bool is_obj_ingame( OBJ_INDEX_DATA *obj );
+bool is_mob_ingame( MOB_INDEX_DATA *mob );
+bool is_room_ingame( ROOM_INDEX_DATA *room );
+bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg );
+bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg );
+bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg );
+bool has_oprog( OBJ_INDEX_DATA *obj, int vnum );
+bool has_mprog( MOB_INDEX_DATA *mob, int vnum );
+bool has_shop( MOB_INDEX_DATA *mob, int vnum );
+bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg );
+bool has_spell( OBJ_INDEX_DATA *obj, int ID );
+bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg );
 
 /* handler.c */
 AFFECT_DATA      *affect_find args( (AFFECT_DATA *paf, int sn));
@@ -4537,8 +4567,15 @@ char    *olc_ed_name      args( ( CHAR_DATA *ch ) );
 char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 
 /* obj_prog.c */
+bool op_act_trigger(OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type);
 void op_speech_trigger( const char *argument, CHAR_DATA *ch );
 bool op_try_trigger( const char* argument, CHAR_DATA *ch );
+void op_greet_trigger( CHAR_DATA *ch );
+void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
+bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage );
+void op_timer_trigger( OBJ_DATA *obj );
+void oprog_timer_init( OBJ_DATA *obj );
+void oprog_setup( OBJ_DATA *obj );
 
 /* penalty.c */
 void save_penalties args( ( void ) );
@@ -4572,7 +4609,20 @@ void remort_remove args( (CHAR_DATA *ch, bool success) );
 void remort_begin args( (CHAR_DATA *ch) );
 
 /* room_prog.c */
+bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument );
 bool rp_try_trigger( const char *argument, CHAR_DATA *ch );
+bool rp_enter_trigger( CHAR_DATA *ch );
+bool rp_exit_trigger( CHAR_DATA *ch );
+bool rp_look_ed_trigger( CHAR_DATA *ch, const char *ed );
+bool rp_look_trigger( CHAR_DATA *ch );
+bool rp_open_trigger( CHAR_DATA *ch, int door );
+bool rp_close_trigger( CHAR_DATA *ch, int door );
+bool rp_lock_trigger( CHAR_DATA *ch, int door );
+bool rp_unlock_trigger( CHAR_DATA *ch, int door );
+bool rp_move_trigger( CHAR_DATA *ch, int door );
+void rp_timer_trigger( ROOM_INDEX_DATA *room );
+void rprog_timer_init( ROOM_INDEX_DATA *room );
+void rprog_setup( ROOM_INDEX_DATA *room );
 
 /* save.c */
 void    save_char_obj   args( ( CHAR_DATA *ch ) );

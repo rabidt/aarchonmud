@@ -41,7 +41,6 @@ DECLARE_DO_FUN(do_recall    );
 DECLARE_DO_FUN(do_stand     );
 bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
-bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj );
 void morph_update( CHAR_DATA *ch );
 void check_bleed( CHAR_DATA *ch, int dir );
 
@@ -253,7 +252,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             return ch->in_room == to_room ? door : -1;
         if ( !rp_exit_trigger(ch) )
             return ch->in_room == to_room ? door : -1;
-        if ( to_room && !ap_rexit_trigger(ch, to_room->area) )
+        if ( to_room && !ap_rexit_trigger(ch) )
             return ch->in_room == to_room ? door : -1;
         if ( to_room && !ap_exit_trigger(ch, to_room->area) )
             return ch->in_room == to_room ? door : -1;

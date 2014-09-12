@@ -34,6 +34,7 @@
 #include "merc.h"
 #include "warfare.h"
 #include "lua_scripting.h"
+#include "recycle.h"
 
 ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnum);
 
@@ -104,7 +105,7 @@ ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnu
 }
 
 /* RT Enter portals */
-void do_enter( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_enter)
 {    
 	ROOM_INDEX_DATA *location; 
 	bool stay_area = FALSE;
@@ -163,7 +164,7 @@ void do_enter( CHAR_DATA *ch, char *argument)
 	if ( carries_relic(ch) )
 	{
 	    send_to_char( "Not with a relic!\n\r", ch );
-	    return FALSE;
+	    return;
 	}
 
 	stay_area = I_IS_SET(portal->value[2],GATE_STAY_AREA) != 0;
@@ -181,7 +182,7 @@ void do_enter( CHAR_DATA *ch, char *argument)
 		location = get_random_war_room(ch);
 		portal->value[3] = location->vnum; /* for record keeping :) */
 	}
-	else if ( I_IS_SET(portal->value[2],GATE_BUGGY) && (per_chance(5) || IS_AFFECTED(ch, AFF_CURSE) && per_chance(20)) )
+	else if ( I_IS_SET(portal->value[2],GATE_BUGGY) && (per_chance(5) || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(20))) )
 	{
 	    if ( stay_area )
 		location = get_random_room_area(ch);
@@ -407,7 +408,7 @@ ROOM_INDEX_DATA* get_portal_room( char *name )
     return NULL;
 }
 
-void do_portal( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_portal)
 {
     char buf[MSL],
 	arg1[MIL], arg2[MIL], arg3[MIL];
@@ -423,8 +424,8 @@ void do_portal( CHAR_DATA *ch, char *argument )
     if ( !strcmp(arg1, "list") )
     {
 	output = new_buf();
-	add_buf( output, "The following portal locations exist:\n\r", ch );
-	add_buf( output, "[ vnum area                ] name\n\r", ch );
+	add_buf( output, "The following portal locations exist:\n\r" );
+	add_buf( output, "[ vnum area                ] name\n\r" );
 	for ( portal = portal_list; portal != NULL; portal = portal->next )
 	{
 	    room = get_room_index( portal->vnum );
@@ -545,12 +546,11 @@ void show_portal_names( CHAR_DATA *ch )
     PORTAL_DATA *portal;
     BUFFER *output;
     char buf[MSL];
-    int vnum;
 
     output = new_buf();
-    add_buf( output, "The following portal locations exist:\n\r", ch );
-    add_buf( output, "{w Area Name                    Portal Name{x\n\r", ch );
-    add_buf( output, "{w-----------------------------------------{x\n\r", ch );
+    add_buf( output, "The following portal locations exist:\n\r" );
+    add_buf( output, "{w Area Name                    Portal Name{x\n\r" );
+    add_buf( output, "{w-----------------------------------------{x\n\r" );
     for ( portal = portal_list; portal != NULL; portal = portal->next )
     {
         room = get_room_index( portal->vnum );

@@ -13,18 +13,6 @@
 #include "lookup.h"
 #include "mob_stats.h"
 
-bool is_obj_ingame( OBJ_INDEX_DATA *obj );
-bool is_mob_ingame( MOB_INDEX_DATA *mob );
-bool is_room_ingame( ROOM_INDEX_DATA *room );
-bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg );
-bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg );
-bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg );
-bool has_oprog( OBJ_INDEX_DATA *obj, int vnum );
-bool has_mprog( MOB_INDEX_DATA *mob, int vnum );
-bool has_shop( MOB_INDEX_DATA *mob, int vnum );
-bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg );
-bool has_spell( OBJ_INDEX_DATA *obj, int ID );
-bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg );
 void show_grep_syntax( CHAR_DATA *ch );
 void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum );
 void grep_mob( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum );
