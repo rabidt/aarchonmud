@@ -4147,6 +4147,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #include "religion.h"
 #include "simsave.h"
 #include "tables.h"
+#include "lua_scripting.h"
 
 /*
  * Our function prototypes.
@@ -4181,7 +4182,7 @@ RID  *get_random_warfare_room args ( (CHAR_DATA *ch) );
 /* act_info.c */
 void    set_title   args( ( CHAR_DATA *ch, char *title ) );
 char    get_pkflag  args( ( CHAR_DATA *ch, CHAR_DATA *wch ) );
-
+char*   char_look_info( CHAR_DATA *ch );
 
 /* act_move.c */
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
@@ -4380,10 +4381,8 @@ bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
 void    violence_update args( ( void ) );
 bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 void    multi_hit   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
-bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
-					int dt, int class, bool show ) );
-/*bool    damage_old      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
-								int dt, int class, bool show ) );*/
+bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int class, bool show ) );
+bool    full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
 void    update_pos  args( ( CHAR_DATA *victim ) );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
@@ -4405,6 +4404,11 @@ int     dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
 int     parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
 int     shield_block_chance( CHAR_DATA *ch, bool improve );
 int     critical_chance( CHAR_DATA *ch, bool secondary );
+void    set_pos( CHAR_DATA *ch, int position );
+
+/* fight2.c */
+void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
+void behead(CHAR_DATA *ch, CHAR_DATA *victim);
 
 /* grant.c */
 bool is_granted_name    args( ( CHAR_DATA *ch, char *argument ) );
@@ -4462,8 +4466,9 @@ void    reset_char  args( ( CHAR_DATA *ch )  );
 int get_trust   args( ( CHAR_DATA *ch ) );
 int can_carry_n args( ( CHAR_DATA *ch ) );
 int can_carry_w args( ( CHAR_DATA *ch ) );
-bool    is_name     args( ( char *str, char *namelist ) );
-bool    is_exact_name   args( ( char *str, char *namelist ) );
+bool    is_name( const char *str, const char *namelist );
+bool    is_exact_name( const char *str, const char *namelist );
+bool    is_either_name( const char *str, const char *namelist, bool exact );
 bool    is_mimic( CHAR_DATA *ch );
 MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch );
 char*   get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker );
@@ -4581,6 +4586,7 @@ bool    check_social_new( CHAR_DATA *ch, const char *command, const char *argume
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
 int     mana_cost   (CHAR_DATA *ch, int sn, int skill);
 int get_duration( int sn, int level );
+int get_duration_by_type( int type, int level );
 int skill_lookup    args( ( const char *name ) );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
@@ -4596,6 +4602,7 @@ bool is_blindness( int sn );
 int cha_max_follow( CHAR_DATA *ch );
 int cha_cur_follow( CHAR_DATA *ch );
 int get_save(CHAR_DATA *ch, bool physical);
+ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int misgate_chance );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
@@ -4629,6 +4636,7 @@ char    *olc_ed_name      args( ( CHAR_DATA *ch ) );
 char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 
 /* obj_prog.c */
+bool op_percent_trigger( const char *trigger, OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type );
 bool op_act_trigger(OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type);
 void op_speech_trigger( const char *argument, CHAR_DATA *ch );
 bool op_try_trigger( const char* argument, CHAR_DATA *ch );
@@ -4651,6 +4659,7 @@ void   save_crime_list args( ( void ) );
 int race_lookup args( ( const char *name) );
 int item_lookup args( ( const char *name) );
 int liq_lookup  args( ( const char *name) );
+int pc_race_lookup( const char *name );
 
 /* nanny.c */
 int con_state args( ( DESCRIPTOR_DATA *d ) );
@@ -4740,7 +4749,9 @@ int stat_gain           args( (CHAR_DATA *ch, int stat) );
 int modified_level( CHAR_DATA *ch );
 int get_pc_hitdice( int level );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
+void update_flags( CHAR_DATA *ch );
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
+struct pc_race_type* get_morph_pc_race_type( CHAR_DATA *ch );
 int get_encumberance( CHAR_DATA *ch );
 void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap );
 int max_hmm_train( int level );
@@ -4816,6 +4827,7 @@ void    explode  args( ( OBJ_DATA *obj ) );
 void      update_bounty args( ( CHAR_DATA *ch ) );
 void      remove_bounty args( ( CHAR_DATA *ch ) );
 void    change_align    args( (CHAR_DATA *ch, int change_by) ); 
+void    update_room_fighting( ROOM_INDEX_DATA *room );
 
 /* wizlist.c */
 void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );     

@@ -184,7 +184,7 @@ int get_random_exit( CHAR_DATA *ch )
         return -1;
     
     for ( dir = 0; dir < MAX_DIR; dir++ )
-        if ( can_move[dir] = can_move_dir(ch, dir, FALSE) )
+        if ( (can_move[dir] = can_move_dir(ch, dir, FALSE)) )
             count++;
     
     if ( !count )
@@ -206,7 +206,7 @@ int get_random_exit( CHAR_DATA *ch )
 /*
 * Local functions.
 */
-int find_door   args( ( CHAR_DATA *ch, char *arg ) );
+int find_door( CHAR_DATA *ch, const char *arg );
 bool    has_key     args( ( CHAR_DATA *ch, int key ) );
 bool check_drown args((CHAR_DATA *ch));
 bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room );
@@ -696,7 +696,7 @@ DEF_DO_FUN(do_northwest)
 }
 
 
-int find_door( CHAR_DATA *ch, char *arg )
+int find_door( CHAR_DATA *ch, const char *arg )
 {
    EXIT_DATA *pexit;
    int door;
@@ -1491,7 +1491,6 @@ DEF_DO_FUN(do_estimate)
 DEF_DO_FUN(do_shoot_lock)
 {
     char arg[MAX_INPUT_LENGTH];
-    CHAR_DATA *gch;
     OBJ_DATA *obj;
     int door;
     int skill;
@@ -2700,7 +2699,7 @@ DEF_DO_FUN(do_recall)
     if ( carries_relic(ch) )
     {
         send_to_char( "Not with a relic!\n\r", ch );
-        return FALSE;
+        return;
     }
 
     if ( (god_name = get_god_name(ch)) == NULL )
@@ -2773,7 +2772,7 @@ DEF_DO_FUN(do_recall)
         
         skill = 50 + (get_curr_stat(ch, STAT_LUC) - get_curr_stat(victim, STAT_LUC)) / 5;
 
-		if (lose = get_skill(victim, gsn_entrapment))
+        if ( (lose = get_skill(victim, gsn_entrapment)) )
 		{
 			skill -= lose/3;
 			check_improve(victim, gsn_entrapment, TRUE, 10);
@@ -2855,8 +2854,6 @@ int morph_power( CHAR_DATA *ch )
 
 DEF_DO_FUN(do_morph)
 {
-    AFFECT_DATA *paf;
-    OBJ_DATA *obj;
 	CHAR_DATA *victim;
 	char arg[MAX_INPUT_LENGTH];
 	char buf[MAX_STRING_LENGTH];
@@ -3256,7 +3253,6 @@ void check_bleed( CHAR_DATA *ch, int dir )
 {
     OBJ_DATA *blood;
     char buf[MSL];
-    AFFECT_DATA *af;
 
     if ( ch == NULL || ch->in_room == NULL )
 	return;
@@ -3366,14 +3362,6 @@ void check_explore( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
 	send_to_char("check_explore: start\n\r",ch);
 #endif
 	
-	EXPLORE_HOLDER *pExp;
-#ifdef EXPLORE_DEBUG
-/*	for( pExp = ch->pcdata->explored->buckets ; pExp ; pExp = pExp->next )
-	{
-		printf_to_char( ch, "mask: %d\n\rbits: %u\n\r", pExp->mask, pExp->bits );
-	}
-	printf_to_char( ch, "vnum: %d\n\r", pRoom->vnum );*/
-#endif
 	if(explored_vnum(ch, pRoom->vnum) )
 		return;
 
@@ -3407,7 +3395,7 @@ DEF_DO_FUN(do_run)
 {
 	//local variables
 	CHAR_DATA *wch;
-	char *p;	//pointer to iterate argument
+	const char *p;	//pointer to iterate argument
 	int i; //counter for for loops
 	int last = 0; //holds last character of argument
 	int par_counter = 0; // for turning chars into ints	
