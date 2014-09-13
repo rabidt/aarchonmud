@@ -37,7 +37,7 @@ float get_tattoo_level( CHAR_DATA *ch, int loc, int level );
 
 /***************************** do_functions **************************/
 
-void do_tattoo( CHAR_DATA *ch, char *argument );
+DECLARE_DO_FUN(do_tattoo);
 
 #endif
 

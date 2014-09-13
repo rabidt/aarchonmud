@@ -34,9 +34,6 @@
 #include "merc.h"
 #include "interp.h"
 
-
-bool    check_social    args( ( CHAR_DATA *ch, char *command, char *argument ) );
-bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact );
 bool    check_disabled (const struct cmd_type *command);
 DISABLED_DATA *disabled_first;
 
@@ -931,12 +928,12 @@ void interpret( CHAR_DATA *ch, const char *argument )
 }
 
 
-bool check_social( CHAR_DATA *ch, char *command, char *argument )
+bool check_social( CHAR_DATA *ch, const char *command, const char *argument )
 {
     return check_social_new( ch, command, argument, FALSE );
 }
 
-bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact )
+bool check_social_new( CHAR_DATA *ch, const char *command, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -1109,7 +1106,7 @@ bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact 
 /*
 * Return true if an argument is completely numeric.
 */
-bool is_number ( char *arg )
+bool is_number ( const char *arg )
 {
     
     if ( *arg == '\0' )
@@ -1132,7 +1129,7 @@ bool is_number ( char *arg )
 /*
 * Given a string like 14.foo, return 14 and 'foo'
 */
-int number_argument( char *argument, char *arg )
+int number_argument( const char *argument, char *arg )
 {
     char *pdot;
     int number;
@@ -1161,7 +1158,7 @@ int number_argument( char *argument, char *arg )
 /*
 * Given a string like 14*foo, return 14 and 'foo'
 */
-int mult_argument(char *argument, char *arg)
+int mult_argument(const char *argument, char *arg)
 {
     char *pdot;
     int number;

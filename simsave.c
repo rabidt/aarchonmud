@@ -31,10 +31,7 @@ static int player_save_state = SAVE_STATE_SIMSAVE;
 static bool bootup_temp_clean_done = FALSE;
 bool ready_to_save( CHAR_DATA *ch );
 char* first_line( char* str );
-bool remove_from_quit_list( char *name );
-bool remove_from_save_list( char *name );
-bool remove_from_box_list( char *name  );
-MEMFILE *memfile_from_list( char *filename, MEMFILE *list );
+MEMFILE *memfile_from_list( const char *filename, MEMFILE *list );
 void sim_save_to_mem();
 void mem_sim_save_other();
 void sim_save_other();
@@ -269,7 +266,7 @@ bool ready_to_save( CHAR_DATA *ch )
 	return FALSE;
 }
 
-bool pfile_exists( char *name )
+bool pfile_exists( const char *name )
 {
     char filename[MIL];
     FILE *fp;
@@ -293,7 +290,7 @@ bool pfile_exists( char *name )
  * 3.) temp player directory
  * 4.) player directory
  */
-bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
+bool load_char_obj( DESCRIPTOR_DATA *d, const char *name )
 {
   MEMFILE *mf;
   DBUFFER *buf;
@@ -529,7 +526,7 @@ void quit_save_char_obj( CHAR_DATA *ch )
  * removes a file from a list;
  * returns wether file was found and removed
  */
-bool remove_from_list( char *name, MEMFILE **list )
+bool remove_from_list( const char *name, MEMFILE **list )
 {
   MEMFILE *mf, *last_mf;
   char filename[MAX_INPUT_LENGTH];
@@ -578,7 +575,7 @@ bool remove_from_list( char *name, MEMFILE **list )
  * removes a file from box_mf_list;
  * returns wether file was found and removed
  */
-bool remove_from_box_list( char *name )
+bool remove_from_box_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
@@ -593,7 +590,7 @@ bool remove_from_box_list( char *name )
  * returns wether file was found and removed
  */
 
-bool remove_from_quit_list( char *name )
+bool remove_from_quit_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
@@ -607,7 +604,7 @@ bool remove_from_quit_list( char *name )
  * removes a file from the player_save_list;
  * returns wether file was found and removed
  */
-bool remove_from_save_list( char *name )
+bool remove_from_save_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
@@ -619,7 +616,7 @@ bool remove_from_save_list( char *name )
 
 /* returns wether a file of name <filename> is in <list>
  */
-bool memfile_in_list( char *filename, MEMFILE *list )
+bool memfile_in_list( const char *filename, MEMFILE *list )
 {
   MEMFILE *mf;
 #if defined(SIM_DEBUG)
@@ -638,7 +635,7 @@ bool memfile_in_list( char *filename, MEMFILE *list )
   return FALSE;
 }
 
-MEMFILE *memfile_from_list( char *filename, MEMFILE *list )
+MEMFILE *memfile_from_list( const char *filename, MEMFILE *list )
 {
    MEMFILE *mf;
 #if defined(SIM_DEBUG)
@@ -747,7 +744,7 @@ void sim_save_other()
 #endif
 }
 
-int unlink_pfile( char *filename )
+int unlink_pfile( const char *filename )
 {
     char strsave[MIL];
     char buf[MIL];
