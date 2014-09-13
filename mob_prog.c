@@ -429,7 +429,7 @@ bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
 
 	    for( obj = container->contains; obj; obj=obj->next_content )
 	    {
-		if( vnum < 0 && is_either_name(obj_name, obj->name) )
+		if( vnum < 0 && is_name(obj_name, obj->name) )
 		    return TRUE;
 		if( vnum > 0 && obj->pIndexData->vnum == vnum )
 		    return TRUE;
@@ -449,7 +449,7 @@ bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
         if (obj->must_extract) 
             continue;
 
-	    if( vnum < 0 && is_either_name(obj_name, obj->name) )
+	    if( vnum < 0 && is_name(obj_name, obj->name) )
 		return TRUE;
 	    if( vnum > 0 && obj->pIndexData->vnum == vnum )
 		return TRUE;
