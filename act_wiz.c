@@ -57,7 +57,6 @@ DECLARE_DO_FUN(do_revoke    );
 /*
 * Local functions.
 */
-int   flag_value     args( ( const struct flag_type *flag_table, char *argument) );
 void  sort_reserved  args( ( RESERVED_DATA *pRes ) );
 void  raw_kill       args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
 

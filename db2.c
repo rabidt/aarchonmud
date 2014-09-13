@@ -40,10 +40,6 @@
 #include "mob_stats.h"
 
 
-int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
-char *flag_string( const struct flag_type *flag_table, tflag bits );
-char *flag_stat_string( const struct flag_type *flag_table, int bit );
-
 #define VER_ONE_AC_VAL    4
 #define FLAG_READ_SET(fp,flag,set_flag) fread_tflag(fp,flag); flag_set_field(flag,set_flag)
 

@@ -42,6 +42,7 @@
 #include "interp.h"
 #include "religion.h"
 #include "lua_scripting.h"
+#include "tattoo.h"
 
 bool commen_wear_pos( tflag wear_flag1, tflag wear_flag2 );
 void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all);
@@ -51,6 +52,8 @@ void smash_reserved_colcodes( char *str );
 void show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 void print_affect( CHAR_DATA *ch, AFFECT_DATA *paf, FILE *fp );
 void achievement_reward( CHAR_DATA *ch, int table_index);
+void print_ach_rewards(CHAR_DATA *ch);
+void print_stat_bars( CHAR_DATA *ch, BUFFER *output );
 
 /* command procedures needed */
 DECLARE_DO_FUN( do_exits    );
@@ -786,8 +789,7 @@ DEF_DO_FUN(do_peek)
 
     check_improve(ch,gsn_peek,TRUE,4);
     /* money */
-    sprintf( buf, "$N's wallet contains %d gold and %d silver coins.",
-	     victim->gold, victim->silver );
+    sprintf( buf, "$N's wallet contains %ld gold and %ld silver coins.", victim->gold, victim->silver );
     act( buf, ch, NULL, victim, TO_CHAR );
     /* inventory */
     act_see( "$n peeks at your inventory.", ch, NULL, victim, TO_VICT );
@@ -1368,7 +1370,7 @@ DEF_DO_FUN(do_prompt)
         strcpy( buf, argument );
         if ( strlen_color(buf) > MAX_PROMPT_LENGTH )
         {
-            for( temp = buf; *temp != '/0'; temp++ )
+            for( temp = buf; *temp != '\0'; temp++ )
             {
                 chars++;
                 if( *temp == '{' )
@@ -1621,6 +1623,7 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
         {  /* player can see object */
             pdesc = get_extra_descr( arg3, obj->extra_descr );
             if ( pdesc != NULL )
+            {
                 if (++count == number)
                 {
                     if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
@@ -1628,27 +1631,29 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
                     return obj;
                 }
                 else continue;
-                
-	    pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
-	    if ( pdesc != NULL )
-		if (++count == number)
-        {   
-            if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
-                send_to_char( pdesc, ch );
-            return obj;
-		}
-		else continue;
-	    
-	    if ( is_name( arg3, obj->name ) )
-		if (++count == number)
-		{
-            if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
-            {
-		        send_to_char( obj->description, ch );
-		        send_to_char( "\n\r",ch);
             }
-		    return obj;
-		}
+                
+            pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
+            if ( pdesc != NULL )
+            {
+                if (++count == number)
+                {   
+                    if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+                        send_to_char( pdesc, ch );
+                    return obj;
+                }
+                else continue;
+            }
+            
+            if ( is_name( arg3, obj->name ) && ++count == number )
+            {
+                if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+                {
+                    send_to_char( obj->description, ch );
+                    send_to_char( "\n\r",ch);
+                }
+                return obj;
+            }
         }
     }
     
@@ -2157,7 +2162,6 @@ DEF_DO_FUN(do_exits)
 void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all)
 {
     AFFECT_DATA *paf, *paf_last = NULL;
-    char buf[MAX_STRING_LENGTH];
     
     for ( paf = ch->affected; paf != NULL; paf = paf->next )
     {
@@ -2429,7 +2433,7 @@ DEF_DO_FUN(do_help)
 /* searches for a unique help_data
  * if not found or not unique prints info to output and returns NULL
  */
-HELP_DATA* find_help_data( CHAR_DATA *ch, char *argument, BUFFER *output )
+HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
 {
     HELP_DATA *pHelp, *firstHelp = NULL;
     char argall[MAX_INPUT_LENGTH], argone[MAX_INPUT_LENGTH], arg[MIL];
@@ -2570,53 +2574,34 @@ char get_pkflag( CHAR_DATA *ch, CHAR_DATA *wch )
         pkflag = 'N';
     else
     {
-	/* name compare for finger command */
-	bool is_safe = !is_exact_name(ch->name, wch->name) && is_always_safe(ch, wch);
+        /* name compare for finger command */
+        bool is_safe = !is_exact_name(ch->name, wch->name) && is_always_safe(ch, wch);
 
         pkflag = ' ';
-	if ( IS_SET(wch->act, PLR_RP) )
-	    if (is_safe)
-		pkflag = 'r';
-	    else 
-		pkflag = 'R';
-
-	if ( IS_SET(wch->act, PLR_PERM_PKILL) )
-	    if (is_safe)
-		pkflag = 'k';
-	    else 
-		pkflag = 'K';
-
-	if ( IS_SET(wch->act, PLR_HARDCORE) )
-	    if (is_safe)
-		pkflag = 'h';
-	    else 
-		pkflag = 'H';
+        if ( IS_SET(wch->act, PLR_RP) )
+            pkflag = is_safe ? 'r' : 'R';
         
-        /* Check if ch's clan has declared war on wch's clan, and
-        vice-versa */
-	if ((cw = clanwar_lookup(wch->clan, ch->clan)))
-	    if (cw->status == CLANWAR_WAR)
-		if (is_safe)
-		    pkflag = 'w';
-		else 
-		    pkflag = 'W';
-	    else if (cw->truce_timer > 0)
-		if (is_safe)
-		    pkflag = 't';
-		else
-		    pkflag = 'T';
-        if ((cw = clanwar_lookup(ch->clan, wch->clan)))
-            if (cw->status == CLANWAR_WAR)
-                if (is_safe)
-                    pkflag = 'w';
-                else 
-                    pkflag = 'W';
-                else if (cw->truce_timer > 0)
-                    if (is_safe)
-                        pkflag = 't';
-                    else
-                        pkflag = 'T';
+        if ( IS_SET(wch->act, PLR_PERM_PKILL) )
+            pkflag = is_safe ? 'k' : 'K';
 
+        if ( IS_SET(wch->act, PLR_HARDCORE) )
+            pkflag = is_safe ? 'h' : 'H';
+        
+        /* Check if ch's clan has declared war on wch's clan, and vice-versa */
+        if ((cw = clanwar_lookup(wch->clan, ch->clan)))
+        {
+            if (cw->status == CLANWAR_WAR)
+                pkflag = is_safe ? 'w' : 'W';
+            else if (cw->truce_timer > 0)
+                pkflag = is_safe ? 't' : 'T';
+        }
+        if ((cw = clanwar_lookup(ch->clan, wch->clan)))
+        {
+            if (cw->status == CLANWAR_WAR)
+                pkflag = is_safe ? 'w' : 'W';
+            else if (cw->truce_timer > 0)
+                pkflag = is_safe ? 't' : 'T';
+        }
 	/* religion war supercedes all else, and so its signs are posted last --
 	   NO! religion war made nonexistant due to too much similarity to clanwar :P
 	if ( is_religion_opp(ch,wch) )
@@ -2636,11 +2621,6 @@ DEF_DO_FUN(do_whois)
 {
     char arg[MAX_INPUT_LENGTH];
     BUFFER *output;
-    char buf[MAX_STRING_LENGTH];
-    char levelbuf[8];
-	char *racestr;
-    char clanbuf[MAX_STRING_LENGTH];
-    char custombuf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
     bool found = FALSE;
     
@@ -2740,13 +2720,7 @@ int create_who_array( CHAR_DATA **who_array )
 */
 DEF_DO_FUN(do_who)
 {
-    char buf[MAX_STRING_LENGTH];
-    char buf2[MAX_STRING_LENGTH];
-    char *racestr;
-    char clanbuf[MAX_STRING_LENGTH];
-    char levelbuf[8];
     BUFFER *output;
-    DESCRIPTOR_DATA *d;
     CHAR_DATA* who_array[MAX_WHO];
     int who_count, w;
     RELIGION_DATA *rel = NULL;
@@ -2760,7 +2734,6 @@ DEF_DO_FUN(do_who)
     bool rgfClass[MAX_CLASS];
     bool rgfRace[MAX_PC_RACE];
     bool rgfClan[MAX_CLAN];
-    char custombuf[MAX_STRING_LENGTH];
     bool fClassRestrict = FALSE;
     bool fClanRestrict = FALSE;
     bool fClan = FALSE;
@@ -2907,7 +2880,6 @@ DEF_DO_FUN(do_who)
     * Now show matching chars.
     */
     nMatch = 0;
-    buf[0] = '\0';
     output = new_buf();
 
     who_count = create_who_array( who_array );
@@ -2945,8 +2917,7 @@ DEF_DO_FUN(do_who)
         who_show_char( ch, wch, output );
     }
     
-    sprintf( buf2, "\n\rPlayers found: %d\n\r", nMatch );
-    add_buf(output,buf2);
+    add_buff(output, "\n\rPlayers found: %d\n\r", nMatch );
     page_to_char( buf_string(output), ch );
     free_buf(output);
     return;
@@ -2956,7 +2927,6 @@ DEF_DO_FUN(do_who)
 void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
 {
     char buf[MAX_STRING_LENGTH];
-    char buf2[MAX_STRING_LENGTH];
     char clanbuf[MAX_STRING_LENGTH];
     char custombuf[MAX_STRING_LENGTH];
     char levelbuf[8];
@@ -3321,7 +3291,7 @@ DEF_DO_FUN(do_consider)
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     char *msg;
-    int diff, armor, hp, dam, level;
+    int diff;
     
     one_argument( argument, arg );
     
@@ -3500,12 +3470,14 @@ void smash_reserved_colcodes( char *str )
 
 DEF_DO_FUN(do_description)
 {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH], arg_buf[MSL];
     
     if ( argument[0] != '\0' )
     {
         buf[0] = '\0';
-        smash_tilde( argument );
+        strcpy(arg_buf, argument);
+        smash_tilde(arg_buf);
+        argument = arg_buf;
         
         if (argument[0] == '-')
         {
@@ -3666,57 +3638,12 @@ DEF_DO_FUN(do_password)
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
     char arg3[MAX_INPUT_LENGTH];
-    char *pArg;
     char *pwdnew;
     char *p;
-    char cEnd;
     
     if ( IS_NPC(ch) )
         return;
     
-    /*
-     * Can't use one_argument here because it smashes case.
-     * So we just steal all its code.  Bleagh.
-     */
-    /*
-    pArg = arg1;
-    while ( isspace(*argument) )
-        argument++;
-    
-    cEnd = ' ';
-    if ( *argument == '\'' || *argument == '"' )
-        cEnd = *argument++;
-    
-    while ( *argument != '\0' )
-    {
-        if ( *argument == cEnd )
-        {
-            argument++;
-            break;
-        }
-        *pArg++ = *argument++;
-    }
-    *pArg = '\0';
-    
-    pArg = arg2;
-    while ( isspace(*argument) )
-        argument++;
-    
-    cEnd = ' ';
-    if ( *argument == '\'' || *argument == '"' )
-        cEnd = *argument++;
-    
-    while ( *argument != '\0' )
-    {
-        if ( *argument == cEnd )
-        {
-            argument++;
-            break;
-        }
-        *pArg++ = *argument++;
-    }
-    *pArg = '\0';
-    */
     argument = one_argument_keep_case( argument, arg1 );
     argument = one_argument_keep_case( argument, arg2 );
     argument = one_argument_keep_case( argument, arg3 );
@@ -3767,10 +3694,9 @@ DEF_DO_FUN(do_password)
     return;
 }
 
-char* wear_location_info( int pos )
+const char* wear_location_info( int pos )
 {
     static char buf[MAX_STRING_LENGTH] = "";
-    char *pos_name = wear_bit_name(pos);
     switch ( pos )
     {
         case ITEM_WEAR_SHIELD:
@@ -3787,13 +3713,13 @@ char* wear_location_info( int pos )
             return NULL;
         default:
             sprintf( buf, "It can be worn on the %s.", wear_bit_name(pos) );
-            return &buf;
+            return buf;
     }
 }
 
 void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 {
-    char buf[MAX_STRING_LENGTH], arg[MAX_INPUT_LENGTH];
+    char buf[MAX_STRING_LENGTH];
     int c, pos;
 
     sprintf( buf, "%s is %s %s with properties %s.", obj->short_descr,
@@ -3815,12 +3741,6 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-       /* Loring translucent objects while confused no longer crashes the MUD */
-       /*         /* Jan 13, 2006 - Elik */
-       /* 
-        *         do_say( ch, "It's translucent, allowing tattoos to shine through." );
-        *                 */
-
 	sprintf(buf, "It's translucent, allowing tattoos to shine through.");
 	do_say(ch, buf);
     }
@@ -3942,7 +3862,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
         {
             if( !IS_SET(obj->wear_flags, pos) )
                 continue;
-            char *wear = wear_location_info(pos);
+            const char *wear = wear_location_info(pos);
             if ( wear )
                 do_say(ch, wear);
         }
@@ -3959,7 +3879,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 /* same stupid thingy AGAIN.. */
 void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 {
-    char buf[MAX_STRING_LENGTH], arg[MAX_INPUT_LENGTH];
+    char buf[MAX_STRING_LENGTH];
     int c;
     int pos;
 
@@ -4104,7 +4024,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         {
             if( !IS_SET(obj->wear_flags, pos) )
                 continue;
-            char *wear = wear_location_info(pos);
+            const char *wear = wear_location_info(pos);
             if ( wear )
                 do_say(ch, wear);
         }
@@ -4123,11 +4043,11 @@ DEF_DO_FUN(do_lore)
     OBJ_DATA *obj;
     CHAR_DATA *rch;
     OBJ_INDEX_DATA *org_obj;
-    char buf[MAX_STRING_LENGTH], arg[MAX_INPUT_LENGTH];
+    char arg[MAX_INPUT_LENGTH];
     AFFECT_DATA *paf;
     int chance;
-    int sn, c;
-    int lore_skill, wlore_skill, mastery, wait;
+    int sn;
+    int lore_skill, wlore_skill, mastery;
     bool weapon, all_known;
     
     one_argument(argument,arg);
@@ -4155,6 +4075,7 @@ DEF_DO_FUN(do_lore)
     sn = (weapon && wlore_skill) ? gsn_weapons_lore : gsn_lore;
 
     if ( lore_skill == 0)
+    {
         if ( wlore_skill == 0)
         {
             send_to_char("You aren't versed in the lore of Aarchon.\n\r",ch);
@@ -4165,6 +4086,7 @@ DEF_DO_FUN(do_lore)
             send_to_char("You only know lore regarding weapons.\n\r",ch);
             return;
         }
+    }
     
     if ( weapon )
     {
@@ -4216,10 +4138,12 @@ DEF_DO_FUN(do_lore)
         for ( paf = org_obj->affected; paf != NULL; paf = paf->next )
         {
             if ( paf->detect_level >= 0 )
+            {
                 if ( per_chance(chance - paf->detect_level) )
                     show_affect(ch, paf, TRUE);
                 else
                     all_known = FALSE;
+            }
         }
         if ( obj->affected )
             do_say(ch, "There appear to be additional enchantments on it.");
@@ -4624,7 +4548,6 @@ DEF_DO_FUN(do_score)
     char temp[MSL];
     char encumberbuf[MSL];
     BUFFER *output;
-    RELIGION_DATA *religion = NULL;
     int align;
     int encumber;
     int hunger;
@@ -4648,7 +4571,7 @@ DEF_DO_FUN(do_score)
     if ( ch->pcdata != NULL && ch->pcdata->customflag[0] != '\0' )
         sprintf( custombuf, "(%s) ", ch->pcdata->customflag );
     else
-        sprintf( custombuf, "" );
+        custombuf[0] = '\0';
 
     /* flagsbuf - AFK, helper, rp, killer, thief, etc. */
     sprintf( flagsbuf, "%s%s%s%s%s",
@@ -4772,7 +4695,7 @@ DEF_DO_FUN(do_score)
     if( !IS_HERO(ch) && ch->pcdata->highest_level <= ch->level )
         sprintf( temp, "   {cExpect to gain about{x %.2f {cnext level.", ch_prac_gains(ch, ch->level + 1)/100.0 );
     else
-        sprintf( temp, "" );
+        temp[0] = '\0';
 
     sprintf( buf, "{D|{x Practices:   {C%5d{x     %s", ch->practice, temp );
     
@@ -4794,6 +4717,7 @@ DEF_DO_FUN(do_score)
 
 
     /* Cleaned up this section below but leaving commented out - Astark
+    RELIGION_DATA *religion = NULL;
 
     if( ch->pcdata != NULL && (religion = get_religion(ch)) != NULL )
     {
@@ -4865,7 +4789,7 @@ DEF_DO_FUN(do_score)
     /* Position and Stance */
     sprintf(buf, "{D|{x Position: %8s        Stance: {G%11s{x",
         positionbuf, 
-        ch->stance == NULL ? "None" : capitalize(stances[ch->stance].name) );
+        ch->stance == STANCE_DEFAULT ? "None" : capitalize(stances[ch->stance].name) );
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
@@ -4894,8 +4818,8 @@ DEF_DO_FUN(do_score)
     sprintf( buf, "{D|{x Items:     %3d/%3d        Weight: %-5d/%5d        Encumbered: %s",
         ch->carry_number, 
         can_carry_n(ch), 
-        get_carry_weight(ch)/10, 
-        can_carry_w(ch)/10, 
+        (int)get_carry_weight(ch)/10,
+        (int)can_carry_w(ch)/10,
         encumberbuf);
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
@@ -4957,9 +4881,8 @@ DEF_DO_FUN(do_score)
 
 DEF_DO_FUN(do_worth)
 {
-    char buf[MAX_STRING_LENGTH], temp[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH];
     int LENGTH = 76;
-    int totalquests;
 
     if( !strcmp(argument,"for_score") )
     ;
@@ -4977,9 +4900,9 @@ DEF_DO_FUN(do_worth)
 
     /* Gold, Silver, Bank */ 
     sprintf(buf, "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x        In Bank: {Y%9d{x",
-        ch->gold,
-        ch->silver,
-        ch->pcdata->bank);
+        (int)ch->gold,
+        (int)ch->silver,
+        (int)ch->pcdata->bank);
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
@@ -4987,9 +4910,9 @@ DEF_DO_FUN(do_worth)
 
     /* ETL, Field, EXP */
     sprintf( buf, "{D|{x EXP to Lvl:   %4d        Field EXP:   %6d        Total Exp: %7d",
-        (ch->level + 1) * exp_per_level(ch) - ch->exp,
-        ch->pcdata->field,
-        ch->exp);
+        (int)((ch->level + 1) * exp_per_level(ch) - ch->exp),
+        (int)ch->pcdata->field,
+        (int)ch->exp);
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
@@ -5018,15 +4941,13 @@ DEF_DO_FUN(do_worth)
     return;
 }
 
-
-
 DEF_DO_FUN(do_attributes)
 {
     /* Just a hack of score to give players a convenient way to view main attributes */
     /* Memnoch 02/98 */
     /* Updated spring 2004 by Quirky along with 'score' and 'worth' */
 
-    char buf[MAX_STRING_LENGTH], temp[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH];
     BUFFER *output;
     int LENGTH = 76;
     char hp_col, mn_col, mv_col;   /* Colours that vary depending on current hp/mana/mv */
@@ -5122,7 +5043,7 @@ void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
     int bar_next;
     int si, bonus, cost, partial, i;
     bool color_switched;
-    struct stat_type *stat;
+    const struct stat_type *stat;
     
     for (si = 0; si < MAX_STATS; si++)
     {
@@ -5370,9 +5291,7 @@ DEF_DO_FUN(do_achievements)
 		return;
 	}
 	
-    char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
-    char buf2[MSL];
     int i;
     CHAR_DATA *victim;
     DESCRIPTOR_DATA *d=NULL;
@@ -5465,8 +5384,7 @@ DEF_DO_FUN(do_achievements)
 void print_ach_rewards(CHAR_DATA *ch)
 {
 	BUFFER *output;
-	char buf[MSL];
-	char header[MSL];
+	char header[MSL], buf[MSL];
 	int i;
 	 
 	
@@ -5476,7 +5394,7 @@ void print_ach_rewards(CHAR_DATA *ch)
 
 	for (i = 0; achievement_table[i].bit_vector != 0; i++)
 	{
-		ACHIEVEMENT *entry=&achievement_table[i];
+		const ACHIEVEMENT *entry = &achievement_table[i];
 		
 		if ( entry->type != type )
 		{
@@ -5582,8 +5500,6 @@ void check_achievement( CHAR_DATA *ch )
 
 void achievement_reward( CHAR_DATA *ch, int table_index)
 {
-   char buf[MSL];
-
    /* This function gives people rewards based on what table_index is given*/
 
     if (ch == NULL)
@@ -5764,14 +5680,11 @@ DEF_DO_FUN(do_eqhelp)
 {
     OBJ_DATA *obj;
     bool wield = FALSE;
-    char buf[MSL];
     int curr_eq = 0;
     int sugg_eq;
-    int diff;
     int i;
     int curr_wield = 0;
     int sugg_wield;
-    int skill;
 
     /* First lets find where in the table the player is at */
     for ( i = 0 ; eq_data[i].area_name != NULL; i++ )
@@ -5790,10 +5703,12 @@ DEF_DO_FUN(do_eqhelp)
     for ( obj = ch->carrying; obj != NULL ; obj = obj->next_content )
     {
         if ( obj->wear_loc != WEAR_NONE)
+        {
             if (IS_SET(obj->extra_flags, ITEM_QUESTEQ) && obj->level <= 70)
                 curr_eq += 70; /* Current value of QEQ in terms of level power */
             else
                 curr_eq += obj->level;
+        }
 
         if ( obj->wear_loc == WEAR_WIELD)
         {
@@ -5810,11 +5725,11 @@ DEF_DO_FUN(do_eqhelp)
     
     /* Lets figure out the difference */
 
-    diff = sugg_eq - curr_eq;
     int diff_percent = (200 * curr_eq + 1) / (sugg_eq * 2);
     int diff_percent2 = 100 - diff_percent;
 
     /* This is a test function to confirm our information 
+    int diff = sugg_eq - curr_eq;
     sprintf(buf,"I_value=%d, Table_value=%d, curr_eq=%d, sugg_eq=%d, 
         difference=%d (%d%% of suggested, or %d%% weaker than suggested)\n\r\n\r", 
             i, eq_data[i].lvl, curr_eq, sugg_eq, diff, diff_percent, diff_percent2);
@@ -5828,7 +5743,7 @@ DEF_DO_FUN(do_eqhelp)
             "have equipment that suits your level.");
 
     printf_to_char(ch,"{yYour equipment is {R%d%%{y %s than expected for your level.{x\n\r", 
-        diff_percent2 < 0 ? diff_percent2 *= -1 : diff_percent2,
+        diff_percent2 < 0 ? diff_percent2 * -1 : diff_percent2,
         diff_percent2 < 0 ? "stronger" : "weaker" );
 
 

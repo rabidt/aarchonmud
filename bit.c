@@ -104,7 +104,7 @@ Name:		flag_value( table, flag )
 Purpose:	Returns the value of the flags entered.  Multi-flags accepted.
 Called by:	olc.c and olc_act.c.
 ****************************************************************************/
-int flag_value( const struct flag_type *flag_table, char *argument)
+int flag_value( const struct flag_type *flag_table, const char *argument )
 {
     char word[MAX_INPUT_LENGTH];
     int  bit;
@@ -153,7 +153,7 @@ Name:		flag_string( table, flags/stat )
 Purpose:	Returns string with name(s) of the flags or stat entered.
 Called by:	act_olc.c, olc.c, and olc_save.c.
 ****************************************************************************/
-char *flag_string( const struct flag_type *flag_table, tflag bits )
+const char *flag_string( const struct flag_type *flag_table, tflag bits )
 {
     static char buf[2][512];
     static int cnt = 0;
@@ -183,7 +183,7 @@ char *flag_string( const struct flag_type *flag_table, tflag bits )
 }
 
 /* with int parameter for integer flag-vector  --Bobble */
-char *i_flag_string( const struct flag_type *flag_table, long bits )
+const char *i_flag_string( const struct flag_type *flag_table, long bits )
 {
     static char buf[2][512];
     static int cnt = 0;
@@ -207,7 +207,7 @@ char *i_flag_string( const struct flag_type *flag_table, long bits )
 }
 
 /* with int parameter for single flag or stat --Bobble */
-char *flag_stat_string( const struct flag_type *flag_table, int bit )
+const char *flag_stat_string( const struct flag_type *flag_table, int bit )
 {
     int  flag;
 	

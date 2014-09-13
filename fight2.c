@@ -512,7 +512,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
         bool hit = one_hit(ch, victim, gsn_backstab, FALSE);
         CHECK_RETURN(ch, victim);
 
-        if ( offhand_attack_chance(ch) > 0 )
+        if ( offhand_attack_chance(ch, TRUE) > 0 )
         {
             hit = one_hit(ch, victim, gsn_backstab, TRUE) || hit;
             CHECK_RETURN(ch, victim);
@@ -1274,7 +1274,7 @@ DEF_DO_FUN(do_circle)
         bool hit = one_hit(ch, victim, gsn_circle, FALSE);
         CHECK_RETURN(ch, victim);
         
-        if ( offhand_attack_chance(ch) > 0 )
+        if ( offhand_attack_chance(ch, TRUE) > 0 )
         {
             hit = one_hit(ch, victim, gsn_circle, TRUE) || hit;
             CHECK_RETURN(ch, victim);
