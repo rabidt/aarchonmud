@@ -423,7 +423,7 @@ void show_tattoo_loc( CHAR_DATA *ch )
 	}
 }
 
-void do_tattoo( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_tattoo)
 {
     char arg1[MIL];
     char arg2[MIL];

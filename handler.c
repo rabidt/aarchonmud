@@ -657,38 +657,6 @@ bool is_ch_name( char *str, CHAR_DATA *ch, bool exact, CHAR_DATA *viewer )
     return FALSE;
 }
 
-/*
-
-char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker)
-{
-    if ( !can_see(looker, ch) )
-	return "someone";
-    
-    if ( IS_NPC(ch) )
-	return ch->short_descr;
-
-    if ( is_mimic(ch) )
-    {
-	MOB_INDEX_DATA *mimic = get_mimic( ch );
-
-	if ( mimic != NULL )
-	{
-	    if( PLR_ACT(looker, PLR_HOLYLIGHT) )
-	    {
-	        char buf[MAX_STRING_LENGTH];
-
-	        sprintf( buf, "(%s) %s", ch->name, mimic->short_descr );
-		return strdup(buf);
-	    }
-	    else
-	        return mimic->short_descr;
-	}
-    }
-    return ch->name;
-}
-*/
-
-
 char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker )
 {
     get_mimic_PERS_new( ch, looker, NULL);
@@ -3708,7 +3676,7 @@ bool can_drop_obj( CHAR_DATA *ch, OBJ_DATA *obj )
 /*
  * Return ascii name of an affect location.
  */
-char *affect_loc_name( int location )
+const char *affect_loc_name( int location )
 {
     switch ( location )
     {
@@ -3755,7 +3723,7 @@ char *affect_loc_name( int location )
 /* methods for retrieving the ascii name(s) of flags --Bobble */
 
 /* returns the name of a flag */
-char* flag_bit_name( struct flag_type flag_table[], int flag )
+const char* flag_bit_name( const struct flag_type flag_table[], int flag )
 {
     static char buf[100];
     int i;
@@ -3767,7 +3735,7 @@ char* flag_bit_name( struct flag_type flag_table[], int flag )
 }
 
 /* returns a string with the flag names in a field */
-char* flag_bits_name( struct flag_type flag_table[], tflag flag )
+const char* flag_bits_name( const struct flag_type flag_table[], tflag flag )
 {
     int i;
     /* make 'sure' different calls use different buffers */
@@ -3791,7 +3759,7 @@ char* flag_bits_name( struct flag_type flag_table[], tflag flag )
 }
 
 /* returns a string with the flag names in an integer-flag */
-char* i_flag_bits_name( struct flag_type flag_table[], long flag )
+const char* i_flag_bits_name( const struct flag_type flag_table[], long flag )
 {
     int i;
 
@@ -3815,27 +3783,27 @@ char* i_flag_bits_name( struct flag_type flag_table[], long flag )
 	return buf;
 }
 
-char* affect_bit_name( int flag )
+const char* affect_bit_name( int flag )
 {
     return flag_bit_name( affect_flags, flag );
 }
 
-char* affect_bits_name( tflag flag )
+const char* affect_bits_name( tflag flag )
 {
     return flag_bits_name( affect_flags, flag );
 }
 
-char* extra_bit_name( int flag )
+const char* extra_bit_name( int flag )
 {
     return flag_bit_name( extra_flags, flag );
 }
 
-char* extra_bits_name( tflag flag )
+const char* extra_bits_name( tflag flag )
 {
     return flag_bits_name( extra_flags, flag );
 }
 
-char* act_bits_name( tflag flag )
+const char* act_bits_name( tflag flag )
 {
     /* check for npc/player */
     if ( IS_SET( flag, ACT_IS_NPC) )
@@ -3844,17 +3812,17 @@ char* act_bits_name( tflag flag )
 	return flag_bits_name( plr_flags, flag );	
 }
 
-char* comm_bit_name( int flag )
+const char* comm_bit_name( int flag )
 {
     return flag_bit_name( comm_flags, flag );
 }
 
-char* comm_bits_name( tflag flag )
+const char* comm_bits_name( tflag flag )
 {
     return flag_bits_name( comm_flags, flag );
 }
 
-char *penalty_bits_name( tflag penalty_flags )
+const char *penalty_bits_name( tflag penalty_flags )
 {
     int i;
     static char buf[512];
@@ -3872,72 +3840,72 @@ char *penalty_bits_name( tflag penalty_flags )
     return ( buf[0] != '\0' ) ? buf+1 : "none";
 }
 
-char* imm_bit_name( int flag )
+const char* imm_bit_name( int flag )
 {
     return flag_bit_name( imm_flags, flag );
 }
 
-char* imm_bits_name( tflag flag )
+const char* imm_bits_name( tflag flag )
 {
     return flag_bits_name( imm_flags, flag );
 }
 
-char* wear_bit_name( int flag )
+const char* wear_bit_name( int flag )
 {
     return flag_bit_name( wear_flags, flag );
 }
 
-char* wear_bits_name( tflag flag )
+const char* wear_bits_name( tflag flag )
 {
     return flag_bits_name( wear_flags, flag );
 }
 
-char* form_bit_name( int flag )
+const char* form_bit_name( int flag )
 {
     return flag_bit_name( form_flags, flag );
 }
 
-char* form_bits_name( tflag flag )
+const char* form_bits_name( tflag flag )
 {
     return flag_bits_name( form_flags, flag );
 }
 
-char* part_bit_name( int flag )
+const char* part_bit_name( int flag )
 {
     return flag_bit_name( part_flags, flag );
 }
 
-char* part_bits_name( tflag flag )
+const char* part_bits_name( tflag flag )
 {
     return flag_bits_name( part_flags, flag );
 }
 
-char* weapon_bit_name( int flag )
+const char* weapon_bit_name( int flag )
 {
     return flag_bit_name( weapon_type2, flag );
 }
 
-char* weapon_bits_name( long flag )
+const char* weapon_bits_name( long flag )
 {
     return i_flag_bits_name( weapon_type2, flag );
 }
 
-char* cont_bits_name( long flag )
+const char* cont_bits_name( long flag )
 {
     return i_flag_bits_name( container_flags, flag );
 }
 
-char* off_bit_name( int flag )
+const char* off_bit_name( int flag )
 {
     return flag_bit_name( off_flags, flag );
 }
 
-char* off_bits_name( tflag flag )
+const char* off_bits_name( tflag flag )
 {
     return flag_bits_name( off_flags, flag );
 }
 
-char* to_bit_name( int where, int flag )
+const char* to_bit_name( int where, int flag )
 {
     char buf[MSL];
     
