@@ -554,10 +554,10 @@ int can_carry_w( CHAR_DATA *ch )
  * See if a string is one of the names of an object.
  */
 
-bool is_name ( char *str, char *namelist )
+bool is_name ( const char *str, const char *namelist )
 {
     char name[MAX_INPUT_LENGTH], part[MAX_INPUT_LENGTH];
-    char *list, *string;
+    const char *list, *string;
     
     /* fix crash on NULL namelist */
     if (namelist == NULL || namelist[0] == '\0')
@@ -595,7 +595,7 @@ bool is_name ( char *str, char *namelist )
     }
 }
 
-bool is_exact_name( char *str, char *namelist )
+bool is_exact_name( const char *str, const char *namelist )
 {
     char name[MAX_INPUT_LENGTH];
     
@@ -612,7 +612,7 @@ bool is_exact_name( char *str, char *namelist )
     }
 }
 
-bool is_either_name( char *str, char *namelist, bool exact )
+bool is_either_name( const char *str, const char *namelist, bool exact )
 {
     if ( exact )
 	return is_exact_name( str, namelist );
