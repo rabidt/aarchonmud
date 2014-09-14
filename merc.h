@@ -4149,6 +4149,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #include "tables.h"
 #include "lua_scripting.h"
 #include "tattoo.h"
+#include "recycle.h"
 
 /*
  * Our function prototypes.
@@ -4300,6 +4301,7 @@ char*   remove_color( const char *txt );
 bool    is_same_player( CHAR_DATA *ch1, CHAR_DATA *ch2 );
 bool    add_buff(BUFFER *buffer, char *fmt, ...);
 bool    add_buff_pad(BUFFER *buffer, int pad_length, char *fmt, ...);
+CHAR_DATA* original_char( CHAR_DATA *ch );
 
 /*
  * Colour stuff by Lope of Loping Through The MUD
@@ -4689,6 +4691,7 @@ int con_state args( ( DESCRIPTOR_DATA *d ) );
 int creation_mode args( ( DESCRIPTOR_DATA *d ) );
 void set_con_state args((DESCRIPTOR_DATA *d, int cstate));
 void set_creation_state args((DESCRIPTOR_DATA *d, int cmode));
+bool check_parse_name( const char *name, bool newchar );
 
 /* playback.c */
 void log_chan( CHAR_DATA * ch, char * text , sh_int channel );

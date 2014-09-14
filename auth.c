@@ -50,7 +50,6 @@
 
 
 /* Function declarations */
-bool check_parse_name	    args( ( char *name, bool newchar ) );
 CHAR_DATA *get_waiting_desc args( ( CHAR_DATA *ch, char *name ) );
 
 DECLARE_DO_FUN(do_quit);
@@ -277,13 +276,11 @@ void save_auth_list()
 void load_auth_list()
 {
     FILE *fp;
-    int x;
     
     first_auth_name = last_auth_name = NULL;
     
     if ( ( fp = fopen( AUTH_FILE, "r" ) ) != NULL )
     {
-        x = 0;
         for ( ;; )
         {
             char letter;

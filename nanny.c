@@ -30,7 +30,6 @@ extern bool            newlock;        /* Game is newlocked        */
 bool    check_reconnect     args( ( DESCRIPTOR_DATA *d, char *name,
 					bool fConn ) );
 bool    check_playing       args( ( DESCRIPTOR_DATA *d, char *name ) );
-bool check_parse_name( char *name, bool newchar );
 void show_races_to_d( DESCRIPTOR_DATA *d );
 
 void enter_game args((DESCRIPTOR_DATA *d));
@@ -311,7 +310,7 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 }
 
 
-bool is_reserved_name( char *name )
+bool is_reserved_name( const char *name )
 {
   RESERVED_DATA *res;
   
@@ -326,7 +325,7 @@ bool is_reserved_name( char *name )
 /*
  * Parse a name for acceptability.
  */
-bool check_parse_name( char *name, bool newchar )
+bool check_parse_name( const char *name, bool newchar )
 {
     char strsave[MAX_INPUT_LENGTH];
 
