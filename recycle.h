@@ -137,3 +137,6 @@ HELP_AREA  * new_had		  args( (void) );
 HELP_DATA  * new_help	  args( (void) );
 SORT_TABLE * new_sort     args( (void) );
 void		    free_sort    args( (SORT_TABLE * sort) );
+
+/* other public functions */
+bool add_buf(BUFFER *buffer, char *string);
