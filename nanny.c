@@ -64,12 +64,7 @@ bool	roll_stats			args( ( DESCRIPTOR_DATA *d, char *argument ) );
 /* It would be nice to have colour in creation!!  Added by Quirky, June 2003 */
 bool	get_colour		args( ( DESCRIPTOR_DATA *d, char *argument ) );
 
-void  handle_con_note_to      args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  handle_con_note_subject args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  handle_con_note_expire  args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  handle_con_note_text    args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  handle_con_note_finish  args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  do_board args( (CHAR_DATA *ch, char *argument) );
+DECLARE_DO_FUN( do_board );
 
 void  penalty_severity  args( (DESCRIPTOR_DATA *d, char * argument ) );
 void  penalty_confirm   args( (DESCRIPTOR_DATA *d, char * argument ) );

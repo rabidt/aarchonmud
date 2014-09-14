@@ -4264,6 +4264,11 @@ void load_boards args((void));
 void save_notes args((void));
 void free_note args((NOTE_DATA *note));
 int board_lookup args((const char *name));
+void handle_con_note_to (DESCRIPTOR_DATA *d, const char * argument);
+void handle_con_note_subject (DESCRIPTOR_DATA *d, const char * argument);
+void handle_con_note_expire(DESCRIPTOR_DATA *d, const char * argument);
+void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument);
+void handle_con_note_finish (DESCRIPTOR_DATA *d, const char * argument);
 
 /* clan.c */
 void check_clan_eq  args( ( CHAR_DATA *ch ) );
@@ -4793,7 +4798,7 @@ char * string_replace args( ( char * orig, char * old, char * new ) );
 char * string_replace_ext args( ( char * orig, char * old, char * new, char *xbuf, int xbuf_length) );
 void   string_add     args( ( CHAR_DATA *ch, char *argument ) );
 char * format_string  args( ( char *oldstring /*, bool fSpace */ ) );
-char * first_arg      args( ( char *argument, char *arg_first, bool fCase ) );
+const char *first_arg( const char *argument, char *arg_first, bool fCase );
 char * string_unpad   args( ( char * argument ) );
 char * string_proper  args( ( char * argument ) );
 char * del_last_line  args( ( char * string) );
