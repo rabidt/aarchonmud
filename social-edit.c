@@ -152,7 +152,7 @@ int social_lookup (const char *name)
  */
 
 #ifndef CONST_SOCIAL
-void do_sedit (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_sedit)
 {
 	char cmd[MAX_INPUT_LENGTH], social[MAX_INPUT_LENGTH];
 	char buf[MAX_STRING_LENGTH];

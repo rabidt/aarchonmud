@@ -60,7 +60,7 @@ char *penalty_status_name(int status)
 	return ( buf[0] != '\0' ) ? buf+1 : "none";
 }
 
-void do_penlist( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_penlist)
 {
     char arg[MIL];
 
@@ -75,47 +75,47 @@ void do_penlist( CHAR_DATA *ch, char *argument )
                      "         penlist cleanup   - Remove deleted chars from list\n\r",ch);
 }
 
-void do_nochannel( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_nochannel)
 {
     process_penalty(ch, argument, "nochannel");
 }
 
-void do_noemote( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_noemote)
 {
     process_penalty(ch, argument, "noemote");
 }
 
-void do_noshout( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_noshout)
 {
     process_penalty(ch, argument, "noshout");
 }
 
-void do_notell( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_notell)
 {
     process_penalty(ch, argument, "notell");
 }
 
-void do_freeze( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_freeze)
 {
     process_penalty(ch, argument, "freeze");
 }
 
-void do_jail( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_jail)
 {
     process_penalty(ch, argument, "jail");
 }
 
-void do_parole( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_parole)
 {
     process_penalty(ch, argument, "parole");
 }
 
-void do_pardon( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pardon)
 {
     process_penalty(ch, argument, "pardon");
 }
 
-void do_nonote( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_nonote)
 {
     process_penalty(ch, argument, "nonote");
 }
@@ -1358,7 +1358,7 @@ void load_crime_list(void)
 }
 
 
-void do_crimelist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_crimelist)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -1446,7 +1446,7 @@ int get_crime_count( CHAR_DATA *ch, char *crime_name, char *imm_name )
     return tally;
 }
 
-void do_review( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_review)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -1527,7 +1527,7 @@ void do_review( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_punish( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_punish)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -1610,7 +1610,7 @@ void do_punish( CHAR_DATA *ch, char *argument )
 
 
 
-void do_forgive( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_forgive)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];

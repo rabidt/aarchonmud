@@ -100,7 +100,6 @@ bool is_in_remort(CHAR_DATA *ch)
     return FALSE;
 }
 
-void do_remort args( (CHAR_DATA *ch, char *argument) );
 void remort_signup args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_cancel args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_status args( (CHAR_DATA *ch, CHAR_DATA *adept) );
@@ -109,7 +108,7 @@ void remort_speed args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_repeat args( (CHAR_DATA *ch, CHAR_DATA *adept, char *arg) );
 void remort_save args( ( void ) );
 
-void do_remort(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_remort)
 {
     CHAR_DATA *adept;
     char arg [MAX_INPUT_LENGTH];

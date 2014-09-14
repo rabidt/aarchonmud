@@ -2776,7 +2776,7 @@ bool add_buff_pad(BUFFER *buffer, int pad_length, char *fmt, ...)
  *  http://pip.dknet.dk/~pip1773
  *  Changed into a ROM patch after seeing the 100th request for it :)
  */
-void do_copyover (CHAR_DATA *ch, char * argument)
+DEF_DO_FUN(do_copyover)
 {
     FILE *fp;
     DESCRIPTOR_DATA *d, *d_next;

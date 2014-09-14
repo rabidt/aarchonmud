@@ -866,7 +866,7 @@ void load_objects( FILE *fp )
 /* 
  * new_dump written by Rahl (Daniel Anderson) of Broken Shadows
  */
-void do_new_dump( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_new_dump)
 {
     MOB_INDEX_DATA *pMobIndex;
     OBJ_INDEX_DATA *pObjIndex;
