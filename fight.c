@@ -48,7 +48,6 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void handle_death( CHAR_DATA *ch, CHAR_DATA *victim );
 void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger );
-void adjust_pkgrade( CHAR_DATA *killer, CHAR_DATA *victim, bool theft );
 void adjust_wargrade( CHAR_DATA *killer, CHAR_DATA *victim );
 
 /* command procedures needed */

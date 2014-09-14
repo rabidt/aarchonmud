@@ -49,7 +49,6 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
 void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output );
 void smash_beep_n_blink( char *str );
 void smash_reserved_colcodes( char *str );
-void show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 void print_affect( CHAR_DATA *ch, AFFECT_DATA *paf, FILE *fp );
 void achievement_reward( CHAR_DATA *ch, int table_index);
 void print_ach_rewards(CHAR_DATA *ch);
