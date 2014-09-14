@@ -4216,6 +4216,7 @@ void copyover_recover args((void));
 
 /* alias.c */
 void    substitute_alias args( (DESCRIPTOR_DATA *d, char *input) );
+void punish_spam();
 
 /* area_prog.c */
 bool ap_percent_trigger(AREA_DATA *area, CHAR_DATA *ch1, int type);
@@ -4287,7 +4288,9 @@ void    close_socket    args( ( DESCRIPTOR_DATA *dclose ) );
 void    write_to_buffer args( ( DESCRIPTOR_DATA *d, const char *txt,
 				int length ) );
 void    send_to_char    args( ( const char *txt, CHAR_DATA *ch ) );
+void    send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw );
 void    page_to_char    args( ( const char *txt, CHAR_DATA *ch ) );
+void    page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw );
 void    act     args( ( const char *format, CHAR_DATA *ch,
 				const void *arg1, const void *arg2, int type ) );
 void    act_new     args( ( const char *format, CHAR_DATA *ch, 
@@ -4369,6 +4372,7 @@ bool    str_suffix  args( ( const char *astr, const char *bstr ) );
 char *  capitalize  args( ( const char *str ) );
 void    append_file args( ( CHAR_DATA *ch, const char *file, const char *str ) );
 void    bug     args( ( const char *str, int param ) );
+void    bug_string( const char *str );
 void    log_string  args( ( const char *str ) );
 void    log_trace();
 void    tail_chain  args( ( void ) );
@@ -4423,6 +4427,8 @@ int     shield_block_chance( CHAR_DATA *ch, bool improve );
 int     critical_chance( CHAR_DATA *ch, bool secondary );
 void    set_pos( CHAR_DATA *ch, int position );
 void    adjust_pkgrade( CHAR_DATA *killer, CHAR_DATA *victim, bool theft );
+bool    check_fear( CHAR_DATA *ch );
+void    run_combat_action( DESCRIPTOR_DATA *d );
 
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4522,6 +4528,7 @@ void    extract_obj args( ( OBJ_DATA *obj ) );
 void    char_list_insert( CHAR_DATA *ch );
 void    add_money( CHAR_DATA *ch, int gold, int silver, CHAR_DATA *source );
 void    get_eq_corpse( CHAR_DATA *ch, OBJ_DATA *corpse );
+void    desc_from_descriptor_list( DESCRIPTOR_DATA *desc );
 //CHAR_DATA* char_list_next( long current_id );
 CHAR_DATA* char_list_next_char( CHAR_DATA *ch );
 CHAR_DATA* char_list_find( char *name );
@@ -4604,6 +4611,10 @@ void   load_disabled   args( ( void ) );
 void   save_disabled   args( ( void ) );
 bool    check_social( CHAR_DATA *ch, const char *command, const char *argument );
 bool    check_social_new( CHAR_DATA *ch, const char *command, const char *argument, bool exact );
+
+/* lua_main.c */
+void check_lua_stack();
+void lua_log_perf( double value );
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );

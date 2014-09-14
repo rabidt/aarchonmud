@@ -49,7 +49,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 #include <signal.h>
 #include "merc.h"
 #include "recycle.h"
@@ -241,7 +243,8 @@ int init_socket( u_short port )
     int x = 1;
     int fd;
 
-    system( "touch SHUTDOWN.TXT" );
+    if ( system("touch SHUTDOWN.TXT") == -1 )
+        log_error("init_socket: touch SHUTDOWN.TXT");
     if ( ( fd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
     {
         log_error( "Init_socket: socket" );
@@ -291,7 +294,8 @@ int init_socket( u_short port )
         exit(1);
     }
 
-    system( "rm SHUTDOWN.TXT" );
+    if ( system("rm SHUTDOWN.TXT") == -1 )
+        log_error("init_socket: rm SHUTDOWN.TXT");
 
     return fd;
 }
@@ -630,7 +634,7 @@ void init_descriptor( int control )
        struct hostent *from;
      */
     int desc;
-    int size;
+    unsigned int size;
 
     size = sizeof(sock);
     getsockname( control, (struct sockaddr *) &sock, &size );
@@ -1163,6 +1167,7 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
      * Bust a prompt.
      */
     if ( !d->pProtocol->WriteOOB && !merc_down && !d->last_msg_was_prompt )
+    {
         if ( d->showstr_point )
             write_to_buffer( d, "[Hit Return to continue]\n\r", 0 );
         else if ( fPrompt && (d->pString || d->lua.interpret) && (d->connected == CON_PLAYING || d->connected == CON_PENALTY_FINISH ))
@@ -1192,7 +1197,8 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
             if (IS_SET(ch->comm,COMM_TELNET_GA))
                 write_to_buffer(d,go_ahead_str,0);
         }
-
+    }
+    
     /*
      * Snoop-o-rama.
      */
@@ -1220,19 +1226,6 @@ bool flush_descriptor( DESCRIPTOR_DATA *d )
        to determin it's own string length */
     if (d->outtop == 0)
         return TRUE;
-
-    /* check for ';' smashing --Bobble */
-    if ( d->character != NULL )
-    {
-        CHAR_DATA *ch;
-
-        //ch = original_char( d->character );
-        if ( d->original != NULL )
-            ch = d->original;
-        else
-            ch = d->character;
-
-    }
 
     int written = write_to_descriptor(d->descriptor, d->outbuf, d->outtop);
     if ( !written )
@@ -1454,7 +1447,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                         (ch->level + 1) * exp_per_level(ch) - ch->exp);
                 i = buf2; break;
             case 'F' :
-                sprintf(buf2, "%d", IS_NPC(ch) ? 0 : ch->pcdata->field );
+                sprintf(buf2, "%ld", IS_NPC(ch) ? 0 : ch->pcdata->field );
                 i = buf2; break;
             case 'g' :
                 sprintf( buf2, "%ld", ch->gold);
@@ -1543,7 +1536,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                     else
                         sprintf( buf2, "humanoid" );
                 }
-                else sprintf( buf2, "" );
+                else strcpy(buf2, "");
                 i = buf2; break;
 
             case 'P' :
@@ -1554,7 +1547,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                     else
                         sprintf( buf2, "..." );
                 }
-                else sprintf( buf2, "" );
+                else strcpy(buf2, "");
                 i = buf2; break;
 
         }
@@ -1666,7 +1659,6 @@ int write_to_descriptor( int desc, char *txt, int length )
 {
     int iStart;
     int nWrite, nWritten = 0;
-    int blockNr = 0;
 
     if ( length <= 0 )
         length = strlen(txt);
@@ -2027,7 +2019,6 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     char       buffer[ MAX_STRING_LENGTH*2 ];
     char       buf[ MAX_STRING_LENGTH   ];
     char       fname[ MAX_INPUT_LENGTH  ];
-    bool       fColour = FALSE;
     CHAR_DATA      *next_char;
     bool act_wizi;
 
@@ -2092,7 +2083,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         {
             int chance = 50 + get_skill(to, gsn_alertness)/2;
 
-            if ( !check_see(to, ch) || !IS_NPC(ch) && number_percent() > chance )
+            if ( !check_see(to, ch) || (!IS_NPC(ch) && per_chance(chance)) )
                 continue;
         }
 
@@ -2105,7 +2096,6 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
                 *point++ = *str++;
                 continue;
             }
-            fColour = TRUE;
             ++str;
             i = " <@@@> ";
             if( !arg2 && *str >= 'A' && *str <= 'Z' )
@@ -2799,7 +2789,7 @@ DEF_DO_FUN(do_copyover)
     if ( argument[0] != '\0' )
         sprintf( buf, "\n\r%s", argument );
     else
-        sprintf( buf, "" );
+        strcpy( buf, "" );
 
     strcat (buf, "\n\r\n\rThe world slows down around you as it fades from your vision.\n\r");
     strcat (buf, "\n\rAs if in a bizarre waking dream, you lurch forward into the darkness...\n\r");
@@ -2885,7 +2875,9 @@ void copyover_recover ()
 
     for (;;)
     {
-        fscanf (fp, "%d %s %s %s\n", &desc, name, host, protocol );
+        int matched = fscanf (fp, "%d %s %s %s\n", &desc, name, host, protocol );
+        if ( matched < 4 )
+            logpf("copyover_recover: fscanf returned %d", matched);
 
         if (desc == -1)
             break;
