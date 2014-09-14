@@ -642,7 +642,7 @@ char *force_wrap( char *old_string )
  		percentages.
  Called by:	string_add(string.c)
  ****************************************************************************/
-char *first_arg( char *argument, char *arg_first, bool fCase )
+const char *first_arg( const char *argument, char *arg_first, bool fCase )
 {
     char cEnd;
 
