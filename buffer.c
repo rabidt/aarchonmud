@@ -212,7 +212,8 @@ char* escape_ws(const char *s) {
 char* reformat(const char *fmt, va_list va)
 {
     static char new_fmt[MSL];
-    char *next = fmt, *next_new = new_fmt;
+    const char *next = fmt;
+    char *next_new = new_fmt;
     bool format_mode = FALSE;
     // store for later use in debug
     va_list va_orig;
@@ -345,5 +346,5 @@ char* next_sr_buf( SR_BUF *sr_buf )
 	index = 0;
     }
 
-    return &sr_buf->buf[sr_buf->last_index = index];
+    return sr_buf->buf[sr_buf->last_index = index];
 }

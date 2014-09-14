@@ -85,22 +85,15 @@ static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num);
 int unread_notes (CHAR_DATA *ch, BOARD_DATA *board);
 static bool next_board (CHAR_DATA *ch);
 
-static void do_nwrite (CHAR_DATA *ch, char *argument);
-static void do_nread (CHAR_DATA *ch, char *argument);
-static void do_nremove (CHAR_DATA *ch, char *argument);
-static void do_nlist (CHAR_DATA *ch, char *argument);
-static void do_ncatchup (CHAR_DATA *ch, char *argument);
+static void do_nwrite (CHAR_DATA *ch, const char *argument);
+static void do_nread (CHAR_DATA *ch, const char *argument);
+static void do_nremove (CHAR_DATA *ch, const char *argument);
+static void do_nlist (CHAR_DATA *ch, const char *argument);
+static void do_ncatchup (CHAR_DATA *ch, const char *argument);
 static void do_ncatchup_all (CHAR_DATA *ch);
 
 DECLARE_DO_FUN(do_note);
 DECLARE_DO_FUN(do_board);
-
-void handle_con_note_to (DESCRIPTOR_DATA *d, char * argument);
-void handle_con_note_subject (DESCRIPTOR_DATA *d, char * argument);
-void handle_con_note_expire(DESCRIPTOR_DATA *d, char * argument);
-void handle_con_note_text (DESCRIPTOR_DATA *d, char * argument);
-void handle_con_note_finish (DESCRIPTOR_DATA *d, char * argument);
-
 
 /* External function declarations. */
 DECLARE_DO_FUN( do_help );
@@ -551,7 +544,7 @@ int unread_notes (CHAR_DATA *ch, BOARD_DATA *board)
  */
 
 /* Start writing a note */
-static void do_nwrite (CHAR_DATA *ch, char *argument)
+static void do_nwrite (CHAR_DATA *ch, const char *argument)
 {
    char *strtime;
    char buf[200];
@@ -651,7 +644,7 @@ static void do_nwrite (CHAR_DATA *ch, char *argument)
 
 
 /* Read next note in current group. If no more notes, go to next board */
-static void do_nread (CHAR_DATA *ch, char *argument)
+static void do_nread (CHAR_DATA *ch, const char *argument)
 {
    NOTE_DATA *p;
    int count = 0, number;
@@ -701,7 +694,7 @@ static void do_nread (CHAR_DATA *ch, char *argument)
 }
 
 /* Remove a note */
-static void do_nremove (CHAR_DATA *ch, char *argument)
+static void do_nremove (CHAR_DATA *ch, const char *argument)
 {
    NOTE_DATA *p;
    
@@ -734,7 +727,7 @@ static void do_nremove (CHAR_DATA *ch, char *argument)
 
 /* List all notes or if argument given, list N of the last notes */
 /* Shows REAL note numbers! */
-static void do_nlist (CHAR_DATA *ch, char *argument)
+static void do_nlist (CHAR_DATA *ch, const char *argument)
 {
    int count= 0, show = 0, num = 0, has_shown = 0;
    time_t last_note;
@@ -790,7 +783,7 @@ static void do_nlist (CHAR_DATA *ch, char *argument)
 }
 
 /* catch up with some notes */
-static void do_ncatchup (CHAR_DATA *ch, char *argument)
+static void do_ncatchup (CHAR_DATA *ch, const char *argument)
 {
     if (argument[0] != '\0')
     {
@@ -1073,7 +1066,7 @@ static bool next_board (CHAR_DATA *ch)
    }
 }
 
-void handle_con_note_to (DESCRIPTOR_DATA *d, char * argument)
+void handle_con_note_to (DESCRIPTOR_DATA *d, const char * argument)
 {
    char buf [MAX_INPUT_LENGTH];
    CHAR_DATA *ch = d->character;
@@ -1147,7 +1140,7 @@ void handle_con_note_to (DESCRIPTOR_DATA *d, char * argument)
    d->connected = CON_NOTE_SUBJECT;
 }
 
-void handle_con_note_subject (DESCRIPTOR_DATA *d, char * argument)
+void handle_con_note_subject (DESCRIPTOR_DATA *d, const char * argument)
 {
    char buf [MAX_INPUT_LENGTH];
    CHAR_DATA *ch = d->character;
@@ -1198,7 +1191,7 @@ void handle_con_note_subject (DESCRIPTOR_DATA *d, char * argument)
    }
 }
 
-void handle_con_note_expire(DESCRIPTOR_DATA *d, char * argument)
+void handle_con_note_expire(DESCRIPTOR_DATA *d, const char * argument)
 {
    CHAR_DATA *ch = d->character;
    char buf[MAX_STRING_LENGTH];
@@ -1248,7 +1241,7 @@ void handle_con_note_expire(DESCRIPTOR_DATA *d, char * argument)
 
 
 
-void handle_con_note_text (DESCRIPTOR_DATA *d, char * argument)
+void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument)
 {
    CHAR_DATA *ch = d->character;
    char buf[MAX_STRING_LENGTH];
@@ -1280,7 +1273,7 @@ void handle_con_note_text (DESCRIPTOR_DATA *d, char * argument)
       char arg1 [MAX_INPUT_LENGTH];
       char arg2 [MAX_INPUT_LENGTH];
       char arg3 [MAX_INPUT_LENGTH];
-      char *buffer;
+      const char *buffer;
       
       buffer = one_argument( buf, arg1 );
       buffer = first_arg( buffer, arg2, FALSE );
@@ -1384,7 +1377,7 @@ void handle_con_note_text (DESCRIPTOR_DATA *d, char * argument)
    ch->pcdata->in_progress->text = str_dup (letter);
 }
 
-void handle_con_note_finish (DESCRIPTOR_DATA *d, char * argument)
+void handle_con_note_finish (DESCRIPTOR_DATA *d, const char * argument)
 {
    
    CHAR_DATA *ch = d->character;
