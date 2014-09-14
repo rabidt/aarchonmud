@@ -260,9 +260,6 @@ void quest_update   args(( void ));
 bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
 bool chance     args(( int num ));
 
-bool  color_name( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
-void set_pre_title ( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
-
 /* Added for "hard" quest option -- Astark Feb2012 */
 void generate_quest_hard args(( CHAR_DATA *ch, CHAR_DATA *questman ));
 bool quest_level_diff_hard   args(( CHAR_DATA *ch, int mlevel));
@@ -1586,7 +1583,7 @@ void show_luavals( CHAR_DATA *ch, CHAR_DATA *to_ch )
     return;
 }
 
-bool color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
+bool color_name( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim )
 {
   char arg2 [MAX_INPUT_LENGTH];
   char buf [3] = "";
@@ -1685,7 +1682,7 @@ bool color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
   return TRUE;
 }
 
-void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
+void set_pre_title( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim )
 {
   char arg2 [MAX_STRING_LENGTH];
   char buf [MSL];

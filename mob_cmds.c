@@ -42,7 +42,6 @@
 #include "tables.h"
 
 DECLARE_DO_FUN( do_look );
-bool is_r_number( char *arg );
 
 /*
  * Command table.
@@ -255,13 +254,13 @@ ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, char *arg )
  */
 
 /* returns weather arg is a normal or relative vnum */
-bool is_r_number( char *arg )
+bool is_r_number( const char *arg )
 {
     char arg1[MIL];
 
     if ( arg == NULL || arg[0] == '\0' )
     {
-	bugf( "is_r_number: invalig argument" );
+        bugf( "is_r_number: invalid argument" );
     }
 
     if ( is_number(arg) )
@@ -272,7 +271,7 @@ bool is_r_number( char *arg )
 }
 
 /* converts normal or relative vnums */
-int r_atoi( CHAR_DATA *ch, char *arg )
+int r_atoi( CHAR_DATA *ch, const char *arg )
 {
     AREA_DATA *area;
     char arg1[MIL];
@@ -306,7 +305,7 @@ int r_atoi( CHAR_DATA *ch, char *arg )
     return area->min_vnum + nr;
 }
 
-int r_atoi_obj( OBJ_DATA *obj, char *arg )
+int r_atoi_obj( OBJ_DATA *obj, const char *arg )
 {
     AREA_DATA *area;
     char arg1[MIL];
@@ -2015,7 +2014,7 @@ void mpqadvance( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3 )
 
     int old_status = quest_status( victim, id );
     int timer = qset_timer(victim, id );
-    set_quest_status( victim, id, old_status + increment, timer );
+    set_quest_status( victim, id, old_status + increment, timer, 0 );
 }
 
 /* Syntax: mob qadvance $n [id] {increment} */

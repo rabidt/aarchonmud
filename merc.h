@@ -4148,6 +4148,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #include "simsave.h"
 #include "tables.h"
 #include "lua_scripting.h"
+#include "tattoo.h"
 
 /*
  * Our function prototypes.
@@ -4202,8 +4203,8 @@ void make_visible( CHAR_DATA *ch );
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
 void    wear_obj    args( (CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace) );
-void    get_obj         args( ( CHAR_DATA *ch, OBJ_DATA *obj,
-							OBJ_DATA *container ) );
+void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container );
+bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace );
 bool in_donation_room args((OBJ_DATA *obj));
 void describe_item      args( (CHAR_DATA *ch, OBJ_DATA *obj) );
 
@@ -4353,6 +4354,7 @@ long     number_mm       args( ( void ) );
 int dice        args( ( int number, int size ) );
 int interpolate args( ( int level, int value_00, int value_32 ) );
 void    smash_tilde args( ( char *str ) );
+const char* smash_tilde_cc( const char *str );
 bool    str_cmp     args( ( const char *astr, const char *bstr ) );
 bool    str_prefix  args( ( const char *astr, const char *bstr ) );
 bool    str_infix   args( ( const char *astr, const char *bstr ) );
@@ -4365,6 +4367,8 @@ void    log_trace();
 void    tail_chain  args( ( void ) );
 const char *	bin_info_string;
 void    log_error( const char *str );
+void    arm_npc( CHAR_DATA *mob );
+void    cheat_log( const char *str );
 
 /* effect.c */
 void    acid_effect args( (void *vo, int level, int dam, int target) );
@@ -4490,6 +4494,7 @@ void    affect_freeze_sn( CHAR_DATA *ch, int sn );
 void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
 void    affect_strip_flag( CHAR_DATA *ch, int flag );
+void    affect_strip_offensive( CHAR_DATA *ch );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    char_from_room  args( ( CHAR_DATA *ch ) );
@@ -4641,6 +4646,8 @@ bool    has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum );
 
 /* mob_cmds.c */
 void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );
+bool    is_r_number( const char *arg );
+int     r_atoi( CHAR_DATA *ch, const char *arg );
 
 /* olc.c */
 bool    run_olc_editor    args( ( DESCRIPTOR_DATA *d ) );
@@ -4827,10 +4834,14 @@ void	forget_attacks	args((CHAR_DATA *ch));
 int		check_anger		args((CHAR_DATA *ch, CHAR_DATA *victim));
 
 /* quest.c */
-
 bool chance(int num);
 bool per_chance(int num);
 void quest_update   args(( void ));   
+void set_pre_title( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim );
+bool color_name( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim );
+void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch );
+void show_luavals( CHAR_DATA *ch, CHAR_DATA *to_ch );
+void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit );
 
 /* update.c */
 void    war_update      args( ( void ) ); 

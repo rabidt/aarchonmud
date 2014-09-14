@@ -3469,14 +3469,12 @@ void smash_reserved_colcodes( char *str )
 
 DEF_DO_FUN(do_description)
 {
-    char buf[MAX_STRING_LENGTH], arg_buf[MSL];
+    char buf[MAX_STRING_LENGTH];
     
     if ( argument[0] != '\0' )
     {
         buf[0] = '\0';
-        strcpy(arg_buf, argument);
-        smash_tilde(arg_buf);
-        argument = arg_buf;
+        argument = smash_tilde_cc(argument);
         
         if (argument[0] == '-')
         {

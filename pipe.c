@@ -11,7 +11,7 @@ int 			pclose	args( ( FILE *stream ) );
 char		*	fgetf		args( ( char *s, int n, register FILE *iop ) );
 
 
-void do_pipe( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pipe)
 {
    char buf[5000];
    FILE *fp;

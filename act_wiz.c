@@ -52,6 +52,7 @@ DECLARE_DO_FUN(do_stand     );
 DECLARE_DO_FUN(do_help      );
 DECLARE_DO_FUN(do_grant     );
 DECLARE_DO_FUN(do_revoke    );
+DECLARE_DO_FUN( do_pipe     );
 
 
 /*
@@ -146,14 +147,11 @@ void wiznet(char *string, CHAR_DATA *ch, OBJ_DATA *obj,
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
-	    &&  d->character != ch
-	    && (flag == WIZ_AUTH && CAN_AUTH(d->character)
-		|| (IS_IMMORTAL(d->character) 
-		    && IS_SET(d->character->wiznet,WIZ_ON) 
-		    && (!flag || IS_SET(d->character->wiznet,flag))
-		    && (!flag_skip || !IS_SET(d->character->wiznet,flag_skip))
-		    && get_trust(d->character) >= min_level)))
+        bool playing = d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected);
+        bool auth_match = flag == WIZ_AUTH && CAN_AUTH(d->character);
+        bool imm_match = IS_IMMORTAL(d->character) && get_trust(d->character) >= min_level && IS_SET(d->character->wiznet,WIZ_ON) && (!flag || IS_SET(d->character->wiznet,flag));
+        bool skip_match = flag_skip && IS_SET(d->character->wiznet,flag_skip);
+        if ( playing && d->character != ch && (auth_match || (imm_match && !skip_match)) )
         {
             if (IS_SET(d->character->wiznet,WIZ_PREFIX))
                 send_to_char("{V--> ",d->character);
@@ -175,7 +173,7 @@ DEF_DO_FUN(do_outfit)
     OBJ_DATA *obj;
     int i,sn,vnum;
     
-    if ( !IS_IMMORTAL(ch) && ch->level > 5 || IS_NPC(ch) )
+    if ( (!IS_IMMORTAL(ch) && ch->level > 5) || IS_NPC(ch) )
     {
         send_to_char("Find it yourself!\n\r",ch);
         return;
@@ -358,7 +356,7 @@ DEF_DO_FUN(do_bamfin)
     
     if ( !IS_NPC(ch) )
     {
-        smash_tilde( argument );
+        argument = smash_tilde_cc(argument);
         
         if (argument[0] == '\0')
         {
@@ -390,7 +388,7 @@ DEF_DO_FUN(do_bamfout)
     
     if ( !IS_NPC(ch) )
     {
-        smash_tilde( argument );
+        argument = smash_tilde_cc(argument);
         
         if (argument[0] == '\0')
         {
@@ -742,7 +740,6 @@ DEF_DO_FUN(do_reboot)
     char buf[MAX_STRING_LENGTH];
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
-    CHAR_DATA *vch;
     
     if (ch->invis_level < LEVEL_HERO)
     {
@@ -776,7 +773,6 @@ DEF_DO_FUN(do_shutdown)
     char buf[MAX_STRING_LENGTH];
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
-    CHAR_DATA *vch;
     
     if (ch->invis_level < LEVEL_HERO)
         sprintf( buf, "Shutdown by %s.", ch->name );
@@ -1030,7 +1026,7 @@ void recursive_clone(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *clone)
 DEF_DO_FUN(do_clone)
 {
     char arg[MAX_INPUT_LENGTH];
-    char *rest;
+    const char *rest;
     CHAR_DATA *mob;
     OBJ_DATA  *obj;
     
@@ -1181,7 +1177,7 @@ DEF_DO_FUN(do_mload)
     char arg[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
     MOB_INDEX_DATA *pMobIndex;
-    CHAR_DATA *victim;
+    CHAR_DATA *victim = NULL;
     char buf[MAX_STRING_LENGTH];
     int i, ammount = 1;
     
@@ -1235,7 +1231,7 @@ DEF_DO_FUN(do_oload)
 {
     char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
     OBJ_INDEX_DATA *pObjIndex;
-    OBJ_DATA *obj;
+    OBJ_DATA *obj = NULL;
     int i, ammount = 1;
     
     argument = one_argument( argument, arg1 );
@@ -1755,10 +1751,9 @@ DEF_DO_FUN(do_newlock)
 DEF_DO_FUN(do_ptitle)
 {
     char arg1 [MAX_INPUT_LENGTH];
-    char arg2 [MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
 
-    smash_tilde( argument );
+    argument = smash_tilde_cc(argument);
     argument = one_argument( argument, arg1 );
 
     if ( arg1[0] == '\0')
@@ -1779,7 +1774,7 @@ DEF_DO_FUN(do_ptitle)
         if (!(fp = fopen(buf, "r")))
         {
             bug("Can't open pre_titles.txt.",0);
-            return FALSE;
+            return;
         }
 
         printf_to_char(ch,"%-15s %4s\n\r", "Title", "Cost");
@@ -1791,9 +1786,9 @@ DEF_DO_FUN(do_ptitle)
             cost =fread_number(fp);
             printf_to_char(ch, "%-15s %4d\n\r",word,cost);
         }
-        send_to_char("\n\r",victim);
+        send_to_char("\n\r", ch);
         fclose(fp);
-        return FALSE;
+        return;
     }
 
     if ( ( victim = get_char_world( ch, arg1 ) ) == NULL )
@@ -1813,7 +1808,6 @@ DEF_DO_FUN(do_ptitle)
 DEF_DO_FUN(do_namecolor)
 {
     char arg1 [MAX_INPUT_LENGTH];
-    char arg2 [MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
 
     argument = one_argument( argument, arg1 );
@@ -1850,7 +1844,7 @@ DEF_DO_FUN(do_pflag)
     sh_int duration;
     CHAR_DATA *victim;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strcpy( arg3, argument );
@@ -1922,7 +1916,7 @@ DEF_DO_FUN(do_string)
     CHAR_DATA *victim;
     OBJ_DATA *obj;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, type );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
@@ -2057,12 +2051,13 @@ DEF_DO_FUN(do_string)
                 return;
             }
             
-            strcat(argument,"\n\r");
+            char desc_buf[MSL];
+            sprintf(desc_buf, "%s\n\r", argument);
             
             ed = new_extra_descr();
             
             ed->keyword     = str_dup( arg3     );
-            ed->description = str_dup( argument );
+            ed->description = str_dup( desc_buf );
             ed->next        = obj->extra_descr;
             obj->extra_descr    = ed;
             return;
@@ -2757,12 +2752,8 @@ DEF_DO_FUN(do_reserve)
 {
     char arg[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
-    char buf[MAX_STRING_LENGTH];
-    BUFFER *buffer;
     RESERVED_DATA *res;
 
-    buffer = new_buf();
-    
     argument = one_argument(argument, arg);
     argument = one_argument(argument, arg2);
     
@@ -2770,7 +2761,9 @@ DEF_DO_FUN(do_reserve)
     if (!*arg)
     {
         int wid = 0;
-        
+        BUFFER *buffer = new_buf();
+        char buf[MAX_STRING_LENGTH];
+    
         sprintf( buf, "\n\r-- Reserved Names --\n\r" );
 	add_buf( buffer, buf );
         for (res = first_reserved; res; res = res->next)
@@ -2957,30 +2950,22 @@ DEF_DO_FUN(do_crash)
 {
     int i = 0, *p = NULL;
 
-    /*
-    if ( get_trust(ch) < ML )
-    {
-	send_to_char( "Only IMPs may crash the mud!\n\r", ch );
-	return;
-    }
-    */
-
     if ( !strcmp("null", argument) )
-	*p = 0;
+        *p = 0;
     else if ( !strcmp("div", argument) )
-	i = 1/0;
+        i = 1/i;
     else if ( !strcmp("exit", argument) )
-	exit(1);
+        exit(1);
     else
     {
-	send_to_char( "Syntax: crash [null|div|exit]\n\r", ch );
-	send_to_char( "Warning: THIS WILL CRASH THE MUD!!!\n\r", ch );
-	return;
+        send_to_char( "Syntax: crash [null|div|exit]\n\r", ch );
+        send_to_char( "Warning: THIS WILL CRASH THE MUD!!!\n\r", ch );
+        return;
     }
 
     /* prevent compiler optimizations.. */
     if ( i == 0 || *p == 0 )
-	send_to_char( "I smell fish.\n\r", ch );
+        send_to_char( "I smell fish.\n\r", ch );
 }
 
 /* New Qset command */
@@ -3050,14 +3035,14 @@ DEF_DO_FUN(do_qset)
 
 }
 
-void do_avatar( CHAR_DATA *ch, char *argument ) /* Procedure Avatar */
-{ /* Declaration */
-  char buf[MAX_STRING_LENGTH];    /* buf */
-  char arg1[MAX_INPUT_LENGTH];    /* arg1 */
-  OBJ_DATA *obj_next;     /* obj data which is a pointer */
-  OBJ_DATA *obj;      /* obj */
-  int level;        /* level */
-  int iLevel;       /* ilevel */
+DEF_DO_FUN(do_avatar)
+{
+  char buf[MAX_STRING_LENGTH];
+  char arg1[MAX_INPUT_LENGTH];
+  OBJ_DATA *obj_next;
+  OBJ_DATA *obj;
+  int level;
+  int iLevel;
 
   argument = one_argument ( argument, arg1 );
 
@@ -3387,13 +3372,13 @@ static void print_skill_table (CHAR_DATA *ch, const struct skill_type *tbl)
     }
 }
 
-#define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note}
+#define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note }
 
 struct
 {
     const char *name;
     void (*printfun)();
-    void *table;
+    const void *table;
     const char *note;
 } dotable_table[]=
 {

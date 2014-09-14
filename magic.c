@@ -53,8 +53,6 @@ bool can_cast_transport( CHAR_DATA *ch );
 void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target );
 
 /* imported functions */
-bool    remove_obj  args( ( CHAR_DATA *ch, int iWear, bool fReplace ) );
-void    wear_obj    args( ( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace ) );
 void    do_flee     args( ( CHAR_DATA *ch, char *argument ) );
 bool check_spell_disabled args( (const struct skill_type *command) );
 void    dam_message     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
