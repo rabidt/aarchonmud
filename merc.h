@@ -4174,6 +4174,7 @@ void    logpf args( (char * fmt, ...) );
 void    bugf args( (char * fmt, ...) );
 void    mail_notify   args( ( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board ) );
 void    printf_to_wiznet args((CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, int min_level, char *fmt, ...));
+void    act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
@@ -4183,6 +4184,9 @@ RID  *get_random_warfare_room args ( (CHAR_DATA *ch) );
 void    set_title   args( ( CHAR_DATA *ch, char *title ) );
 char    get_pkflag  args( ( CHAR_DATA *ch, CHAR_DATA *wch ) );
 char*   char_look_info( CHAR_DATA *ch );
+bool    is_disguised( CHAR_DATA *ch );
+void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
+void    show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 
 /* act_move.c */
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
@@ -4193,6 +4197,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show );
 bool can_move_dir( CHAR_DATA *ch, int dir, bool show );
 int get_random_exit( CHAR_DATA *ch );
 bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj );
+void make_visible( CHAR_DATA *ch );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
@@ -4373,6 +4378,7 @@ void    paralysis_effect args( (void *vo,int level, int dam, int target));
 /* enchant.c */
 int get_enchant_ops( OBJ_DATA *obj, int level );
 void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration );
+void check_enchant_obj( OBJ_DATA *obj );
 
 /* fight.c */
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
@@ -4405,6 +4411,7 @@ int     parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
 int     shield_block_chance( CHAR_DATA *ch, bool improve );
 int     critical_chance( CHAR_DATA *ch, bool secondary );
 void    set_pos( CHAR_DATA *ch, int position );
+void    adjust_pkgrade( CHAR_DATA *killer, CHAR_DATA *victim, bool theft );
 
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4500,6 +4507,8 @@ void    obj_to_obj  args( ( OBJ_DATA *obj, OBJ_DATA *obj_to ) );
 void    obj_from_obj    args( ( OBJ_DATA *obj ) );
 void    extract_obj args( ( OBJ_DATA *obj ) );
 void    char_list_insert( CHAR_DATA *ch );
+void    add_money( CHAR_DATA *ch, int gold, int silver, CHAR_DATA *source );
+void    get_eq_corpse( CHAR_DATA *ch, OBJ_DATA *corpse );
 //CHAR_DATA* char_list_next( long current_id );
 CHAR_DATA* char_list_next_char( CHAR_DATA *ch );
 CHAR_DATA* char_list_find( char *name );
@@ -4534,6 +4543,7 @@ bool    check_see   args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool    can_see_obj args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
 bool    can_see_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex) );
 bool    can_drop_obj    args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
+bool    contains_obj_recursive( OBJ_DATA *obj, OBJ_CHECK_FUN *obj_check );
 const char *  affect_loc_name args( ( int location ) );
 const char *  affect_bit_name args( ( int vector ) );
 const char *  affect_bits_name( tflag flag );
@@ -4590,7 +4600,7 @@ int get_duration_by_type( int type, int level );
 int skill_lookup    args( ( const char *name ) );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
-bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg );
+bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg );
 bool has_focus_obj( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4603,6 +4613,7 @@ int cha_max_follow( CHAR_DATA *ch );
 int cha_cur_follow( CHAR_DATA *ch );
 int get_save(CHAR_DATA *ch, bool physical);
 ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int misgate_chance );
+bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, int *target, CHAR_DATA **vo );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
@@ -4626,6 +4637,7 @@ void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 bool    mp_try_trigger    args( ( const char *argument, CHAR_DATA *mob ) );
 bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch ) );
 bool    can_trigger( CHAR_DATA *mob, int trigger );
+bool    has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum );
 
 /* mob_cmds.c */
 void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );
@@ -4634,6 +4646,9 @@ void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );
 bool    run_olc_editor    args( ( DESCRIPTOR_DATA *d ) );
 char    *olc_ed_name      args( ( CHAR_DATA *ch ) );
 char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
+
+/* olc_act.c */
+void set_mob_level( CHAR_DATA *mob, int level );
 
 /* obj_prog.c */
 bool op_percent_trigger( const char *trigger, OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type );

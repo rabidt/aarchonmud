@@ -466,7 +466,7 @@ void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
     char_to_room( ch, room );
     send_to_char("You step into a shimmering vortex and arrive in another dimension.\n\r",ch);
     do_look( ch, "auto" );
-    make_visible(ch, "");
+    make_visible( ch );
     affect_strip( ch, gsn_god_bless );
     affect_strip( ch, gsn_god_curse );
     die_follower(ch, FALSE);
@@ -549,7 +549,7 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
     char_to_room( ch, room );
     send_to_char("You step into a shimmering vortex and arrive in another dimension.\n\r",ch);
     do_look( ch, "auto" );
-    make_visible(ch, "");
+    make_visible( ch );
     affect_strip( ch, gsn_god_bless );
     affect_strip( ch, gsn_god_curse );
     die_follower(ch, FALSE);

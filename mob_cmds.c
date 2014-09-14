@@ -1434,8 +1434,6 @@ DEF_DO_FUN(do_mpvforce)
 
 /* imped in magic.c */
 extern char *target_name;
-bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
-		       int *target, CHAR_DATA **vo ); /* output */
 void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target );
 
 /*
