@@ -101,7 +101,7 @@ void rpedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_rprun( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rprun)
 {
     if ( IS_NPC(ch) )
         return;
@@ -163,7 +163,7 @@ void do_rprun( CHAR_DATA *ch, char *argument)
 
 }
 
-void do_rpedit(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rpedit)
 {
     PROG_CODE *pRcode;
     char command[MAX_INPUT_LENGTH];

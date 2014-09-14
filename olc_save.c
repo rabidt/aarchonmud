@@ -1203,7 +1203,7 @@ Name:		do_asave
 Purpose:	Entry point for saving area data.
 Called by:	interpreter(interp.c)
 ****************************************************************************/
-void do_asave( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_asave)
 {
     char arg1 [MAX_INPUT_LENGTH];
     AREA_DATA *pArea;

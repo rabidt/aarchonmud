@@ -11,7 +11,7 @@
 #include "merc.h"
 
 
-void do_forget(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_forget)
 {
     CHAR_DATA *rch;
     char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];
@@ -114,7 +114,7 @@ void do_forget(CHAR_DATA *ch, char *argument)
     printf_to_char(ch, "You are now deaf to %s.\n\r", capitalize(arg));
 }
 
-void do_remember(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_remember)
 {
     CHAR_DATA *rch;
     char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];

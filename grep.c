@@ -68,7 +68,7 @@ void free_grep_list( GREP_DATA *gd )
 #define GREP_MOB  1
 #define GREP_ROOM 2
 
-void do_grep( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_grep)
 {
     char arg1[MIL];
     char arg2[MIL];
