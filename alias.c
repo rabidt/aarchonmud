@@ -53,7 +53,7 @@ void substitute_alias(DESCRIPTOR_DATA *d, char *argument)
 {
     CHAR_DATA *ch;
     char buf[MAX_STRING_LENGTH],prefix[MAX_INPUT_LENGTH],name[MAX_INPUT_LENGTH];
-    char *point;
+    const char *point;
     int alias;
     
     ch = d->original ? d->original : d->character;
@@ -140,7 +140,7 @@ DEF_DO_FUN(do_alias)
     char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];
     int pos;
     
-    smash_tilde(argument);
+    argument = smash_tilde_cc(argument);
     
     if (ch->desc == NULL)
         rch = ch;
