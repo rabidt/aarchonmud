@@ -221,9 +221,6 @@ void clanwar_status(CHAR_DATA *ch, sh_int clan_number)
 void add_clanwar_node(CHAR_DATA *ch, sh_int other_clan, int status)
 {
    CLANWAR_DATA *p;
-   CLANWAR_DATA *q;
-
-   q = clanwar_lookup(ch->clan, other_clan);
    
    p = alloc_mem (sizeof(CLANWAR_DATA));
    p->clan_one = ch->clan;
