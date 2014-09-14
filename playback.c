@@ -205,7 +205,7 @@ void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
 		
 }
 
-void do_playback(CHAR_DATA *ch, char * argument)
+DEF_DO_FUN(do_playback)
 {
     
     if ( IS_NPC(ch) )

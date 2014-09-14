@@ -423,7 +423,7 @@ bool rank_available(int clan, int current_rank, int new_rank)
 /*
 * Promote / demote clan rankings, by Rimbol. (9/13/97)
 */
-void do_rank( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rank)
 {
     char arg_char[MAX_INPUT_LENGTH]; /* Character name */
     char arg_rank[MAX_INPUT_LENGTH]; /* Ranking desired */
@@ -609,7 +609,7 @@ void do_rank( CHAR_DATA *ch, char *argument )
 /*
 * Recruit command, by Rimbol.  (9/13/97)
 */
-void do_recruit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_recruit)
 {
     char arg1[MAX_INPUT_LENGTH]; /* Character name */
     int clan, i;
@@ -710,7 +710,7 @@ void do_recruit( CHAR_DATA *ch, char *argument )
 /*
 * Reject command, by Rimbol.  (9/13/97)
 */
-void do_reject( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_reject)
 {
     char arg1[MAX_INPUT_LENGTH]; /* Character name */
     int clan;
@@ -783,7 +783,7 @@ void do_reject( CHAR_DATA *ch, char *argument )
 
 
 /* Display current status of a given clan's setting. -Rim 1/2000*/
-void do_clanreport( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_clanreport)
 {
     char arg1[MIL];
     char arg2[MIL];
@@ -931,7 +931,7 @@ void do_clanreport( CHAR_DATA *ch, char *argument )
 }
 
 /* Invite another player to join your clan. -Rim 1/2000*/
-void do_invite(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_invite)
 {
     CHAR_DATA *victim ;
     char arg1[MAX_STRING_LENGTH] ;
@@ -1251,7 +1251,7 @@ void clan_update(void)
 */
 
 /* Set function to change clan settings. -Rim 1/2000 */
-void do_cset( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_cset)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -1615,7 +1615,7 @@ void do_cset( CHAR_DATA *ch, char *argument )
 }
 
 /*
-void do_clan_dump(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_clan_dump)
 {
     char arg[MIL];
     long vnum;
@@ -1661,7 +1661,7 @@ void do_clan_dump(CHAR_DATA *ch, char *argument)
 void clan_dump_obj(CHAR_DATA *ch, int clan);
 void clan_dump_room(CHAR_DATA *ch, int clan);
 
-void do_clan_dump(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_clan_dump)
 {
     char arg1[MIL];
     char arg2[MIL];
@@ -1750,7 +1750,7 @@ void clan_dump_room(CHAR_DATA *ch, int clan)
     }
 }
 
-void do_cmotd( CHAR_DATA *ch, char * argument )
+DEF_DO_FUN(do_cmotd)
 {
     if ( IS_NPC(ch) )
 	return;

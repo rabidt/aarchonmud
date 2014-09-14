@@ -92,8 +92,8 @@ static void do_nlist (CHAR_DATA *ch, char *argument);
 static void do_ncatchup (CHAR_DATA *ch, char *argument);
 static void do_ncatchup_all (CHAR_DATA *ch);
 
-void do_note (CHAR_DATA *ch, char *argument);
-void do_board (CHAR_DATA *ch, char *argument);
+DECLARE_DO_FUN(do_note);
+DECLARE_DO_FUN(do_board);
 
 void handle_con_note_to (DESCRIPTOR_DATA *d, char * argument);
 void handle_con_note_subject (DESCRIPTOR_DATA *d, char * argument);
@@ -835,7 +835,7 @@ static void do_ncatchup_all ( CHAR_DATA *ch)
 }
 
 /* Dispatch function for backwards compatibility */
-void do_note (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_note)
 {
    char arg[MAX_INPUT_LENGTH];
    
@@ -891,7 +891,7 @@ void do_note (CHAR_DATA *ch, char *argument)
 /* Show all accessible boards with their numbers of unread messages OR
    change board. New board name can be given as a number or as a name (e.g.
    board personal or board 4 */
-void do_board (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_board)
 {
    int i, count, number;
    char buf[200];

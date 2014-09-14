@@ -4429,6 +4429,7 @@ bool is_granted      args( ( CHAR_DATA *ch, DO_FUN *do_fun ) );
 bool is_obj_ingame( OBJ_INDEX_DATA *obj );
 bool is_mob_ingame( MOB_INDEX_DATA *mob );
 bool is_room_ingame( ROOM_INDEX_DATA *room );
+bool is_area_ingame( AREA_DATA *area );
 bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg );
 bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg );
 bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg );
@@ -4737,6 +4738,7 @@ int get_mastery( CHAR_DATA *ch, int sn );
 bool check_skill( CHAR_DATA *ch, int sn );
 CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect );
 int get_skill_prac(CHAR_DATA *ch, int sn);
+int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 
 /* social-edit.c */
 void load_social_table();

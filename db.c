@@ -4375,7 +4375,7 @@ void do_areas( CHAR_DATA *ch )
     return;
 } 
 
-void do_memory( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_memory)
 {
     ptc( ch, "          %-5s %s\n\r", "C", "Lua" );
     ptc( ch, "Affects   %5d %5d\n\r", top_affect, count_AFFECT()); 
@@ -5037,7 +5037,7 @@ void cheat_log( const char *str )
     fclose (fp);
 }
 
-void do_cheatlog( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_cheatlog)
 {
     FILE *fp;
     BUFFER *output;
