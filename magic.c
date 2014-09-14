@@ -593,7 +593,7 @@ int mana_cost (CHAR_DATA *ch, int sn, int skill)
 }
 
 /* returns wether a valid spell target was found */
-bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
+bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
         int *target, CHAR_DATA **vo ) /* output */
 {
     CHAR_DATA *victim;
@@ -1566,7 +1566,7 @@ void do_wish( CHAR_DATA *ch, char *argument )
 /*
  * Cast spells at targets using a magical object.
  */
-bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg )
+bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg )
 {
     CHAR_DATA *victim;
     void *vo;
