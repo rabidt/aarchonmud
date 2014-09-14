@@ -65,7 +65,6 @@ void    aggr_update args( ( void ) );
 void    quest_update    args( ( void ) ); /* Vassago - quest.c */
 void    sort_bounty   args( (SORT_TABLE *sort) );
 void  raw_kill      args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
-bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace );
 void penalty_update (CHAR_DATA *ch);
 ROOM_INDEX_DATA *find_jail_room(void);
 void    msdp_update args( ( void ) );

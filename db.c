@@ -76,7 +76,6 @@ static int HIGHEST_STR_DUP_STRINGS = 0;
 void format_init_flags( void );
 void format_race_flags( void );
 void load_area_file( FILE *fp, bool clone );
-void arm_npc( CHAR_DATA *mob );
 void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description );
 void affect_spellup_mob( CHAR_DATA *mob );
 
@@ -4608,10 +4607,27 @@ void smash_tilde( char *str )
         if ( *str == '~' )
             *str = '-';
     }
-    
-    return;
 }
 
+const char* smash_tilde_cc( const char *str )
+{
+    if ( strchr(str, '~') == NULL )
+        return str;
+        
+    static char buf[MSL];
+    char *next = buf;
+        
+    for ( ; *str != '\0'; str++, next++ )
+    {
+        if ( *str == '~' )
+            *next = '-';
+        else
+            *next = *str;
+    }
+    *next = '\0';
+    
+    return buf;
+}
 
 /*
 * Compare strings, case insensitive.
