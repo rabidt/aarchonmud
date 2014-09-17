@@ -34,24 +34,6 @@ int shift( int vnum )
 	return vnum;
 }
 
-/* returns weather an area already overlaps with given vnum range 
- * REQ: min_vnum <= max_vnum
- */
-bool range_is_free( int min_vnum, int max_vnum )
-{
-    AREA_DATA *pArea;
-    int i;
-
-    if ( min_vnum < 1 )
-	return FALSE;
-
-    for ( pArea = area_first; pArea; pArea = pArea->next )
-	if ( pArea->max_vnum >= min_vnum && pArea->min_vnum <= max_vnum )
-	    return FALSE;
-
-    return TRUE;
-}
-
 /* hash table updating */
 
 void hash_remove_room( ROOM_INDEX_DATA *target )
