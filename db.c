@@ -549,6 +549,9 @@ void    load_specials   args( ( FILE *fp ) );
 void    load_notes  args( ( void ) );
 void    load_bans   args( ( void ) );
 void    load_mobprogs   args( ( FILE *fp ) );
+void    load_objprogs( FILE *fp );
+void    load_areaprogs( FILE *fp );
+void    load_roomprogs( FILE *fp );
 void    load_wizlist    args( ( void ) );
 void    load_clans      args( ( void ) );
 void	load_skills();
@@ -556,6 +559,9 @@ void    count_stats();
 
 void    fix_exits   args( ( void ) );
 void    fix_mobprogs    args( ( void ) );
+void    fix_objprogs( void );
+void    fix_areaprogs( void );
+void    fix_roomprogs( void );
 
 void    reset_area  args( ( AREA_DATA * pArea ) );
 void    load_clanwars args ( ( void ) );
@@ -563,7 +569,10 @@ void    load_crime_list args ( ( void ) );
 void    load_penalties args ( ( void ) );
 void    load_reserved   args( ( void ) );
 void    sort_reserved   args( ( RESERVED_DATA *pRes ) );
-
+void    channel_init();
+void    reset_str_dup();
+int     random_attack_type();
+void    dump_str_dup();
 
 /*
 * Big mama top level function.
@@ -830,17 +839,13 @@ void boot_db()
 
 void channel_init()
 {
-        int sn=0;
-
-        for ( sn ; ; sn++ )
-        {
-            if ( public_channel_table[sn].psn == NULL )
-		break;
-            *public_channel_table[sn].psn = sn;
-        }
-
-
-
+    int sn;
+    for ( sn=0 ; ; sn++ )
+    {
+        if ( public_channel_table[sn].psn == NULL )
+            break;
+        *public_channel_table[sn].psn = sn;
+    }
 }
 
 /* format all flags correctly --Bobble */
@@ -1137,7 +1142,13 @@ void new_load_area( FILE *fp )
             SKEY( "Credits", pArea->credits );
             break;
         }
+        
+        if ( !fMatch )
+        {
+            // no nothing but avoid warning
+        }
     }
+    
 }
 
 /*
@@ -1148,11 +1159,12 @@ void assign_area_vnum( int vnum )
     if ( area_last->min_vnum == 0 || area_last->max_vnum == 0 )
         area_last->min_vnum = area_last->max_vnum = vnum;
     if ( vnum != URANGE( area_last->min_vnum, vnum, area_last->max_vnum ) )
+    {
         if ( vnum < area_last->min_vnum )
             area_last->min_vnum = vnum;
         else
             area_last->max_vnum = vnum;
-        return;
+    }
 }
 
 
@@ -1400,8 +1412,6 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
  void load_resets( FILE *fp )
  {
      RESET_DATA *pReset;
-     EXIT_DATA *pexit;
-     ROOM_INDEX_DATA *pRoomIndex;
      int rVnum = -1;
      
      if ( !area_last )
@@ -1790,7 +1800,6 @@ void load_specials( FILE *fp )
 
 void fix_exits( void )
 {
-    extern const sh_int rev_dir [];
     ROOM_INDEX_DATA *pRoomIndex;
     EXIT_DATA *pexit;
     RESET_DATA *pReset;
@@ -1804,7 +1813,6 @@ void fix_exits( void )
 	      pRoomIndex != NULL;
 	      pRoomIndex  = pRoomIndex->next )
         {
-            bool fexit;
             /*-----Added in Olc 1.81, may be buggy-----*/
             iLastRoom = iLastObj = NULL;
             
@@ -1865,7 +1873,6 @@ void fix_exits( void )
             } /* for */
             /*-----*/    
             
-            fexit = FALSE;
             for ( door = 0; door < MAX_DIR; door++ )
             {
                 if ( ( pexit = pRoomIndex->exit[door] ) != NULL )
@@ -1875,14 +1882,10 @@ void fix_exits( void )
                         pexit->u1.to_room = NULL;
                     else
                     {
-                        fexit = TRUE; 
                         pexit->u1.to_room = get_room_index_safe( pexit->u1.vnum );
                     }
                 }
             }
-            /*      if (!fexit)
-            SET_BIT(pRoomIndex->room_flags,ROOM_NO_MOB);
-            Removed because it made OLC difficult.  Still a good policy */
         }
     }
     
@@ -2312,7 +2315,6 @@ void fix_areaprogs( void )
     AREA_DATA *pArea;
     PROG_LIST        *list;
     PROG_CODE        *prog;
-    int iHash;
     int aprog_count = 0;
 
     for ( pArea   = area_first;
@@ -2646,9 +2648,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
             
             if ( LastMob->pIndexData->pShop )   /* Shop-keeper? */
             {
-                int olevel=0,i,j;
-                
-                pObj = create_object( pObjIndex, olevel );
+                pObj = create_object( pObjIndex, 0 );
                 SET_BIT( pObj->extra_flags, ITEM_INVENTORY );  /* ROM OLC */
                 
             }
@@ -2737,8 +2737,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
 void arm_npc( CHAR_DATA *mob )
 {
     OBJ_DATA *obj;
-    int i, dam, level;
-    char buf[MSL];
+    int dam, level;
 
     if ( mob == NULL || !IS_NPC(mob) || !IS_SET(mob->off_flags, OFF_ARMED) )
 	return;
@@ -2985,8 +2984,6 @@ void purge_area( AREA_DATA *pArea )
 CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
 {
     CHAR_DATA *mob;
-    int i;
-    AFFECT_DATA af;
     tflag mob_pen = {};/*{ PENALTY_NOCHANNEL, PENALTY_NOSHOUT, PENALTY_NOTELL };*/
     bit_list_to_tflag( mob_pen );
     
@@ -3732,7 +3729,6 @@ char *fread_string( FILE *fp )
 {
     char *plast;
     char c;
-    bool stripped = FALSE;
     
     plast = top_string + sizeof(char *);
     if ( plast > &string_space[MAX_STRING - MAX_STRING_LENGTH] )
@@ -3756,7 +3752,6 @@ char *fread_string( FILE *fp )
     if ( c == '^' )
     {
         c = getc(fp);
-        stripped = TRUE;
     }
 
     // strings are terminated by '~', we intern the empty string for efficiency
@@ -3807,11 +3802,6 @@ char *fread_string( FILE *fp )
                 char *pString;
                 
                 plast[-1] = '\0';
-                // log stripping for now to see how bad it'll be
-                /* No longer needed. Makes logs huge. --Astark 6-28-14
-                if ( stripped )
-                    logpf("String with leading '^' read: %s", top_string + sizeof(char *));
-                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
@@ -3877,8 +3867,8 @@ char *fread_string_eol( FILE *fp )
 
     if ( i == MSL )
     {
-	bug( "fread_string_eol: string too long", 0 );
-	buf[0] == '\0';
+        bug( "fread_string_eol: string too long", 0 );
+        buf[0] = '\0';
     }
 	
     return buf;
@@ -4193,7 +4183,7 @@ void *alloc_perm( int sMem )
 * Used for debugging memory leaks
 */
 #define MAX_STR_DUP_KEY 1009
-static char* str_dup_hash[MAX_STR_DUP_KEY];
+static const char* str_dup_hash[MAX_STR_DUP_KEY];
 static bool str_dup_ready = FALSE;
 
 void reset_str_dup()
@@ -4953,7 +4943,7 @@ void log_trace()
     int trace_size = backtrace (buffer, MAX_TRACE);
     char **trace_msg = backtrace_symbols (buffer, trace_size);
     char address_buf[MAX_STRING_LENGTH], cmd[MAX_STRING_LENGTH];
-    int i, addr_length;
+    int i;
     
     if (trace_msg == NULL || trace_size < 2)
         return;
@@ -4979,7 +4969,10 @@ void log_trace()
     //sprintf(cmd, "addr2line -pfs -e ../src/aeaea %s", address_buf);
     sprintf(cmd, "addr2line -fs -e ../src/aeaea %s", address_buf);
     log_string(cmd);
-    system(cmd);
+    if ( system(cmd) == -1 )
+    {
+        // ignore error
+    }
 
     return;
 }
@@ -5267,7 +5260,6 @@ char* bread_string( RBUFFER *rbuf )
 {
     char *plast;
     char c;
-    bool stripped = FALSE;
 #if defined(BREAD_DEBUG)
    log_string("bread_string: start");
 #endif
@@ -5294,7 +5286,6 @@ char* bread_string( RBUFFER *rbuf )
     if ( c == '^' )
     {
         c = bgetc(rbuf);
-        stripped = TRUE;
     }
 
     // strings are terminated by '~', we intern the empty string for efficiency
@@ -5345,11 +5336,6 @@ char* bread_string( RBUFFER *rbuf )
                 char *pString;
                 
                 plast[-1] = '\0';
-                // log stripping for now to see how bad it'll be
-                /* No longer needed. Makes logs huge. --Astark 6-28-14
-                if ( stripped )
-                    logpf("String with leading '^' read: %s", top_string + sizeof(char *));
-                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )

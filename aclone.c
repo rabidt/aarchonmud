@@ -29,9 +29,12 @@ bool range_is_free( int min_vnum, int max_vnum )
 {
     AREA_DATA *pArea;
     
+    if ( min_vnum < 1 )
+        return FALSE;
+    
     for ( pArea = area_first; pArea; pArea = pArea->next )
         if ( pArea->max_vnum >= min_vnum && pArea->min_vnum <= max_vnum )
-	    return FALSE;
+            return FALSE;
 
     return TRUE;
 }
