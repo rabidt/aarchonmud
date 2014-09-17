@@ -4162,6 +4162,9 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define RID ROOM_INDEX_DATA
 #define SF  SPEC_FUN
 
+/* aclone.c */
+bool range_is_free( int min_vnum, int max_vnum );
+
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
 void    add_follower    args( ( CHAR_DATA *ch, CHAR_DATA *master ) );
@@ -4181,6 +4184,7 @@ void    act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
 RID  *get_random_warfare_room args ( (CHAR_DATA *ch) );
+void load_portal_list();
 
 /* act_info.c */
 void    set_title   args( ( CHAR_DATA *ch, char *title ) );
@@ -4216,6 +4220,7 @@ void copyover_recover args((void));
 
 /* alchemy.c */
 OBJ_DATA* obj_on_char( CHAR_DATA *ch, int vnum );
+void reset_herbs_world();
 
 /* alias.c */
 void    substitute_alias args( (DESCRIPTOR_DATA *d, char *input) );
@@ -4384,6 +4389,9 @@ void    log_error( const char *str );
 void    arm_npc( CHAR_DATA *mob );
 void    cheat_log( const char *str );
 
+/* db2.c */
+void load_mobbles( FILE *fp );
+
 /* effect.c */
 void    acid_effect args( (void *vo, int level, int dam, int target) );
 void    cold_effect args( (void *vo, int level, int dam, int target) );
@@ -4432,6 +4440,7 @@ void    set_pos( CHAR_DATA *ch, int position );
 void    adjust_pkgrade( CHAR_DATA *killer, CHAR_DATA *victim, bool theft );
 bool    check_fear( CHAR_DATA *ch );
 void    run_combat_action( DESCRIPTOR_DATA *d );
+void    equip_new_arrows( CHAR_DATA *ch );
 
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4618,6 +4627,7 @@ bool    check_social_new( CHAR_DATA *ch, const char *command, const char *argume
 /* lua_main.c */
 void check_lua_stack();
 void lua_log_perf( double value );
+void load_mudconfig();
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
@@ -4625,6 +4635,7 @@ int     mana_cost   (CHAR_DATA *ch, int sn, int skill);
 int get_duration( int sn, int level );
 int get_duration_by_type( int type, int level );
 int skill_lookup    args( ( const char *name ) );
+int skill_lookup_exact( const char *name );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg );
@@ -4665,11 +4676,15 @@ bool    mp_try_trigger    args( ( const char *argument, CHAR_DATA *mob ) );
 bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch ) );
 bool    can_trigger( CHAR_DATA *mob, int trigger );
 bool    has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum );
+void    mprog_setup( CHAR_DATA *mob );
 
 /* mob_cmds.c */
 void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );
 bool    is_r_number( const char *arg );
 int     r_atoi( CHAR_DATA *ch, const char *arg );
+
+/* mudconfig.c */
+void mudconfig_init();
 
 /* olc.c */
 bool    run_olc_editor    args( ( DESCRIPTOR_DATA *d ) );
@@ -4715,6 +4730,7 @@ bool check_parse_name( const char *name, bool newchar );
 /* playback.c */
 void log_chan( CHAR_DATA * ch, char * text , sh_int channel );
 void log_pers( PERS_HISTORY *history, char *text );
+void load_comm_histories();
 
 /* remort.c */
 bool is_in_remort args( (CHAR_DATA *ch) );
@@ -4761,6 +4777,8 @@ bool check_skill( CHAR_DATA *ch, int sn );
 CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect );
 int get_skill_prac(CHAR_DATA *ch, int sn);
 int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
+void update_skill_costs();
+void update_group_costs();
 
 /* social-edit.c */
 void load_social_table();
@@ -4878,6 +4896,9 @@ void      update_bounty args( ( CHAR_DATA *ch ) );
 void      remove_bounty args( ( CHAR_DATA *ch ) );
 void    change_align    args( (CHAR_DATA *ch, int change_by) ); 
 void    update_room_fighting( ROOM_INDEX_DATA *room );
+
+/* vshift.c */
+void shift_area( AREA_DATA *area, int shift, bool area_only );
 
 /* wizlist.c */
 void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );     
