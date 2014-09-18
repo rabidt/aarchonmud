@@ -148,10 +148,12 @@ void wiznet(char *string, CHAR_DATA *ch, OBJ_DATA *obj,
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         bool playing = d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected);
+        if ( !playing || !d->character || d->character == ch )
+            continue;
         bool auth_match = flag == WIZ_AUTH && CAN_AUTH(d->character);
         bool imm_match = IS_IMMORTAL(d->character) && get_trust(d->character) >= min_level && IS_SET(d->character->wiznet,WIZ_ON) && (!flag || IS_SET(d->character->wiznet,flag));
         bool skip_match = flag_skip && IS_SET(d->character->wiznet,flag_skip);
-        if ( playing && d->character != ch && (auth_match || (imm_match && !skip_match)) )
+        if ( auth_match || (imm_match && !skip_match) )
         {
             if (IS_SET(d->character->wiznet,WIZ_PREFIX))
                 send_to_char("{V--> ",d->character);
