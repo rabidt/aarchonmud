@@ -1238,9 +1238,6 @@ bool is_room_ingame( ROOM_INDEX_DATA *room )
     && is_area_ingame(room->area);
 }
 
-int average_roll( int nr, int type, int bonus );
-int average_mob_hp( int level );
-
 bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
 {
     int spec, value, level;
