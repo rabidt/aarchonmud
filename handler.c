@@ -40,7 +40,6 @@
 
 void affect_modify_new( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd, bool drop );
 void check_drop_weapon( CHAR_DATA *ch );
-void extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc, OBJ_DATA *obj );
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_return    );
