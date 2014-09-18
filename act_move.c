@@ -41,7 +41,6 @@ DECLARE_DO_FUN(do_recall    );
 DECLARE_DO_FUN(do_stand     );
 bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
-void morph_update( CHAR_DATA *ch );
 void check_bleed( CHAR_DATA *ch, int dir );
 
 

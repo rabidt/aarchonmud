@@ -52,7 +52,6 @@ int fingertime;
 /*int rename(const char *oldfname, const char *newfname);*/
 void mem_save_storage_box( CHAR_DATA *ch );
 char *time_format args((time_t, char *));
-int get_pkgrade_level( int pts );
 void save_quest( CHAR_DATA *ch, DBUFFER *buf );
 
 char *print_flags(int flag)

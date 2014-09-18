@@ -68,8 +68,6 @@ DECLARE_DO_FUN(do_worth);
 DECLARE_DO_FUN(do_attributes);
 /* DECLARE_DO_FUN(do_combo); */
 
-int get_pkgrade_level( int pts );
-
 char *  const   where_name  [] =
 {
     "<used as light>     ",
