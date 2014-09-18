@@ -639,7 +639,6 @@ void paralysis_effect(void *vo,int level, int dam, int target)
 	if (target == TARGET_CHAR)   /* do the effect on a victim */
 	{
 	    CHAR_DATA *victim = (CHAR_DATA *) vo;
-	    OBJ_DATA *obj, *obj_next;
 	    
 	    /* chance of poisoning */
 	    if (!number_bits(1) && !saves_spell(victim, NULL, level / 4 + dam / 20, DAM_POISON))
