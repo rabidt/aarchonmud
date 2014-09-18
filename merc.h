@@ -4405,6 +4405,7 @@ void    paralysis_effect args( (void *vo,int level, int dam, int target));
 int get_enchant_ops( OBJ_DATA *obj, int level );
 void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration );
 void check_enchant_obj( OBJ_DATA *obj );
+void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
 
 /* fight.c */
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
