@@ -22,23 +22,6 @@
 static int vnum_shift = 0;
 static AREA_DATA *cloned_area = NULL;
 
-/* returns weather an area already overlaps with given vnum range 
- * REQ: min_vnum <= max_vnum
- */
-bool range_is_free( int min_vnum, int max_vnum )
-{
-    AREA_DATA *pArea;
-    
-    if ( min_vnum < 1 )
-        return FALSE;
-    
-    for ( pArea = area_first; pArea; pArea = pArea->next )
-        if ( pArea->max_vnum >= min_vnum && pArea->min_vnum <= max_vnum )
-            return FALSE;
-
-    return TRUE;
-}
-
 int clone_shift( int vnum )
 {
     if ( IS_BETWEEN(cloned_area->min_vnum, vnum, cloned_area->max_vnum) )
