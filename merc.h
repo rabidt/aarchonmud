@@ -4180,6 +4180,7 @@ void    bugf args( (char * fmt, ...) );
 void    mail_notify   args( ( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board ) );
 void    printf_to_wiznet args((CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, int min_level, char *fmt, ...));
 void    act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
+char*   ch_name(CHAR_DATA *ch);
 
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
@@ -4193,6 +4194,7 @@ char*   char_look_info( CHAR_DATA *ch );
 bool    is_disguised( CHAR_DATA *ch );
 void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
 void    show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
+void    check_achievement( CHAR_DATA *ch );
 
 /* act_move.c */
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
@@ -4204,6 +4206,7 @@ bool can_move_dir( CHAR_DATA *ch, int dir, bool show );
 int get_random_exit( CHAR_DATA *ch );
 bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj );
 void make_visible( CHAR_DATA *ch );
+void morph_update( CHAR_DATA *ch );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
@@ -4225,6 +4228,7 @@ void reset_herbs_world();
 /* alias.c */
 void    substitute_alias args( (DESCRIPTOR_DATA *d, char *input) );
 void punish_spam();
+void anti_spam_interpret( CHAR_DATA *ch, char *argument );
 
 /* area_prog.c */
 bool ap_percent_trigger(AREA_DATA *area, CHAR_DATA *ch1, int type);
@@ -4289,6 +4293,7 @@ bool rank_available args( ( int clan, int current_rank, int new_rank ) );
 /* clanwar.c */
 CLANWAR_DATA * clanwar_lookup args( (sh_int clan_one, sh_int clan_two) );
 void save_clanwars args( ( void ) );
+bool is_clanwar_opp( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* comm.c */
 void    show_string args( ( struct descriptor_data *d, char *input) );
@@ -4318,6 +4323,7 @@ bool    is_same_player( CHAR_DATA *ch1, CHAR_DATA *ch2 );
 bool    add_buff(BUFFER *buffer, char *fmt, ...);
 bool    add_buff_pad(BUFFER *buffer, int pad_length, char *fmt, ...);
 CHAR_DATA* original_char( CHAR_DATA *ch );
+bool is_command_pending( DESCRIPTOR_DATA *d );
 
 /*
  * Colour stuff by Lope of Loping Through The MUD
@@ -4442,6 +4448,8 @@ void    adjust_pkgrade( CHAR_DATA *killer, CHAR_DATA *victim, bool theft );
 bool    check_fear( CHAR_DATA *ch );
 void    run_combat_action( DESCRIPTOR_DATA *d );
 void    equip_new_arrows( CHAR_DATA *ch );
+int     martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
+int     get_pkgrade_level( int pts );
 
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4517,6 +4525,7 @@ void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
 AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 AFFECT_DATA* affect_find_location( AFFECT_DATA *paf, int type, int location, int duration );
+AFFECT_DATA* affect_find_flag( AFFECT_DATA *paf, int flag );
 AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 void    affect_freeze_sn( CHAR_DATA *ch, int sn );
 void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
@@ -4533,6 +4542,7 @@ int apply_ac    args( ( OBJ_DATA *obj, int iWear ) );
 OD *    get_eq_char args( ( CHAR_DATA *ch, int iWear ) );
 void    equip_char  args( ( CHAR_DATA *ch, OBJ_DATA *obj, int iWear ) );
 void    unequip_char    args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
+void    drop_eq( CHAR_DATA *ch );
 int count_obj_list  args( ( OBJ_INDEX_DATA *obj, OBJ_DATA *list ) );
 void    obj_from_room   args( ( OBJ_DATA *obj ) );
 void    obj_to_room args( ( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex ) );
@@ -4549,6 +4559,8 @@ CHAR_DATA* char_list_find( char *name );
 void    char_from_char_list( CHAR_DATA *ch );
 bool    extract_char    args( ( CHAR_DATA *ch, bool fPull ) );
 bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects ) );
+void    extract_char_eq( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc );
+void    extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc, OBJ_DATA *obj );
 CHAR_DATA* get_player( char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, const char *argument ) );
 CD *    get_char_world  args( ( CHAR_DATA *ch, const char *argument ) );
@@ -4570,10 +4582,13 @@ int get_obj_weight  args( ( OBJ_DATA *obj ) );
 int get_true_weight args( ( OBJ_DATA *obj ) );
 bool    room_is_dark    args( ( ROOM_INDEX_DATA *pRoomIndex ) );
 bool    room_is_dim( ROOM_INDEX_DATA *pRoomIndex );
+bool    room_is_sunlit( ROOM_INDEX_DATA *pRoomIndex );
 bool    is_room_owner   args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *room) );
 bool    room_is_private args( ( ROOM_INDEX_DATA *pRoomIndex ) );
 bool    can_see     args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+bool    can_see_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_see   args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
+bool    check_see_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_see_obj args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
 bool    can_see_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex) );
 bool    can_drop_obj    args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
@@ -4878,16 +4893,20 @@ void	remember_attack	args((CHAR_DATA *ch, CHAR_DATA *victim, int dam));
 void	update_memory	args((CHAR_DATA *ch));
 void	forget_attacks	args((CHAR_DATA *ch));
 int		check_anger		args((CHAR_DATA *ch, CHAR_DATA *victim));
+void    forget_attacker(CHAR_DATA *ch, CHAR_DATA *attacker);
+int     get_reaction( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* quest.c */
 bool chance(int num);
 bool per_chance(int num);
+int rand_div(int divident, int divisor);
 void quest_update   args(( void ));   
 void set_pre_title( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim );
 bool color_name( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim );
 void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch );
 void show_luavals( CHAR_DATA *ch, CHAR_DATA *to_ch );
 void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit );
+void check_kill_quest_completed( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* update.c */
 void    war_update      args( ( void ) ); 
@@ -4898,7 +4917,8 @@ void    update_handler  args( ( void ) );
 void    explode  args( ( OBJ_DATA *obj ) );
 void      update_bounty args( ( CHAR_DATA *ch ) );
 void      remove_bounty args( ( CHAR_DATA *ch ) );
-void    change_align    args( (CHAR_DATA *ch, int change_by) ); 
+void    change_align    args( (CHAR_DATA *ch, int change_by) );
+void    drop_align( CHAR_DATA *ch );
 void    update_room_fighting( ROOM_INDEX_DATA *room );
 
 /* vshift.c */
