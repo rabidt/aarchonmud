@@ -4516,6 +4516,7 @@ void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
 AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 AFFECT_DATA* affect_find_location( AFFECT_DATA *paf, int type, int location, int duration );
+AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 void    affect_freeze_sn( CHAR_DATA *ch, int sn );
 void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
@@ -4693,6 +4694,8 @@ char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 
 /* olc_act.c */
 void set_mob_level( CHAR_DATA *mob, int level );
+int average_roll( int nr, int type, int bonus );
+int average_mob_hp( int level );
 
 /* obj_prog.c */
 bool op_percent_trigger( const char *trigger, OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type );
@@ -4786,7 +4789,7 @@ void save_social_table();
 
 /* special.c */
 SF *    spec_lookup args( ( const char *name ) );
-char *  spec_name   args( ( SPEC_FUN *function ) );
+char *  spec_name_lookup( SPEC_FUN *function);
 
 /* stats.c */
 int get_curr_stat   args( ( CHAR_DATA *ch, int stat ) );

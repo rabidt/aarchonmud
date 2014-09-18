@@ -60,7 +60,6 @@ void load_mobiles( FILE *fp )
     {
         int vnum;
         char letter;
-        int iHash;
 
         letter                          = fread_letter( fp );
         if ( letter != '#' )
@@ -373,7 +372,6 @@ void load_mobbles( FILE *fp )
     {
         int vnum;
         char letter;
-        int iHash;
 
         letter                          = fread_letter( fp );
         if ( letter != '#' )
@@ -891,23 +889,19 @@ DEF_DO_FUN(do_new_dump)
         {
             nMatch++;
             mob = create_mobile( pMobIndex );
-            sprintf( buf, "Name: %s.\n",
-                    mob->name );
-            fprintf( fp, buf );
+            fprintf( fp, "Name: %s.\n", mob->name );
 
-            sprintf( buf, "Area: %s\n", mob->pIndexData->area->name );
-            fprintf( fp, buf );
+            fprintf( fp, "Area: %s\n", mob->pIndexData->area->name );
 
-            sprintf( buf, "Vnum: %d  Race: %s  Sex: %s  Room: %d  Count %d\n", 
+            fprintf( fp, "Vnum: %d  Race: %s  Sex: %s  Room: %d  Count %d\n", 
                     IS_NPC(mob) ? mob->pIndexData->vnum : 0,
                     race_table[mob->race].name,
                     mob->sex == SEX_MALE    ? "male"   :
                     mob->sex == SEX_FEMALE  ? "female" : "neutral",
                     mob->in_room == NULL    ?        0 : mob->in_room->vnum, 
                     mob->pIndexData->count );
-            fprintf( fp, buf );
 
-            sprintf( buf, 
+            fprintf( fp, 
                     "Str: %d(%d)  Con: %d(%d)  Vit: %d(%d)  Agi: %d(%d)  Dex: %d(%d)\n",
                     mob->perm_stat[STAT_STR],
                     get_curr_stat(mob,STAT_STR),
@@ -919,9 +913,8 @@ DEF_DO_FUN(do_new_dump)
                     get_curr_stat(mob,STAT_AGI),
                     mob->perm_stat[STAT_DEX],
                     get_curr_stat(mob,STAT_DEX));
-            fprintf( fp, buf );
 
-            sprintf( buf, 
+            fprintf( fp,
                     "Int: %d(%d)  Wis: %d(%d)  Dis: %d(%d)  Cha: %d(%d)  Luc: %d(%d)\n",
                     mob->perm_stat[STAT_INT],
                     get_curr_stat(mob,STAT_INT),
@@ -933,81 +926,65 @@ DEF_DO_FUN(do_new_dump)
                     get_curr_stat(mob,STAT_CHA),
                     mob->perm_stat[STAT_LUC],
                     get_curr_stat(mob,STAT_LUC) );
-            fprintf( fp, buf );
 
-
-            sprintf( buf, "Hp: %d  Mana: %d  Move: %d  Hit: %d  Dam: %d\n",
+            fprintf( fp, "Hp: %d  Mana: %d  Move: %d  Hit: %d  Dam: %d\n",
                     mob->max_hit,
                     mob->max_mana,
                     mob->max_move,
                     GET_HITROLL(mob), GET_DAMROLL(mob) );
-            fprintf( fp, buf );
 
-            sprintf( buf,
+            fprintf( fp,
                     "Lv: %d  Align: %d  Gold: %ld  Damage: %dd%d  Message: %s\n",
                     mob->level,                   
                     mob->alignment,
                     mob->gold,
                     mob->damage[DICE_NUMBER],mob->damage[DICE_TYPE],
                     attack_table[mob->dam_type].name);
-            fprintf( fp, buf );
 
-            sprintf(buf,"Armor: %d\n",
-                    GET_AC(mob));
-            fprintf( fp, buf );
+            fprintf(fp,"Armor: %d\n", GET_AC(mob));
 
-            sprintf(buf, "Act: %s\n",act_bits_name(mob->act));
-            fprintf( fp, buf );
+            fprintf(fp, "Act: %s\n", act_bits_name(mob->act));
 
             if (IS_NPC(mob) && mob->off_flags)
             {
-                sprintf(buf, "Offense: %s\n",off_bits_name(mob->off_flags));
-                fprintf( fp, buf );
+                fprintf(fp, "Offense: %s\n",off_bits_name(mob->off_flags));
             }
 
             if (mob->imm_flags)
             {
-                sprintf(buf, "Immune: %s\n",imm_bits_name(mob->imm_flags));
-                fprintf( fp, buf );
+                fprintf(fp, "Immune: %s\n",imm_bits_name(mob->imm_flags));
             }
 
             if (mob->res_flags)
             {
-                sprintf(buf, "Resist: %s\n", imm_bits_name(mob->res_flags));
-                fprintf( fp, buf );
+                fprintf(fp, "Resist: %s\n", imm_bits_name(mob->res_flags));
             }
 
             if (mob->vuln_flags)
             {
-                sprintf(buf, "Vulnerable: %s\n", imm_bits_name(mob->vuln_flags));
-                fprintf( fp, buf );
+                fprintf(fp, "Vulnerable: %s\n", imm_bits_name(mob->vuln_flags));
             }
 
-            sprintf(buf, "Form: %s\nParts: %s\n", 
+            fprintf(fp, "Form: %s\nParts: %s\n", 
                     form_bits_name(mob->form), part_bits_name(mob->parts));
-            fprintf( fp, buf );
 
             if (mob->affect_field)
             {
-                sprintf(buf, "Affected by %s\n", 
-                        affect_bits_name(mob->affect_field));
-                fprintf( fp, buf );
+                fprintf(fp, "Affected by %s\n", affect_bits_name(mob->affect_field));
             }
 
-            sprintf( buf, "Short description: %s\nLong description: %s",
+            fprintf( fp, "Short description: %s\nLong description: %s",
                     mob->short_descr,
                     mob->long_descr[0] != '\0' ? mob->long_descr : "(none)\n" );
-            fprintf( fp, buf );
 
             if ( IS_NPC(mob) && mob->spec_fun != 0 )
             {
-                sprintf( buf, "Special procedure: %s\n", spec_name_lookup( mob->spec_fun ) );
-                fprintf( fp, buf );
+                fprintf( fp, "Special procedure: %s\n", spec_name_lookup( mob->spec_fun ) );
             }
 
             for ( paf = mob->affected; paf != NULL; paf = paf->next )
             {
-                sprintf( buf,
+                fprintf( fp,
                         "Spell: '%s' modifies %s by %d for %d hours with bits %s, level %d.\n",
                         skill_table[(int) paf->type].name,
                         affect_loc_name( paf->location ),
@@ -1016,7 +993,6 @@ DEF_DO_FUN(do_new_dump)
                         affect_bit_name( paf->bitvector ),
                         paf->level
                        );
-                fprintf( fp, buf );
             }
             fprintf( fp, "\n" );
             extract_char( mob, FALSE );
@@ -1036,45 +1012,34 @@ DEF_DO_FUN(do_new_dump)
 
             obj = create_object( pObjIndex, 0 );
 
-            sprintf( buf, "Name(s): %s\n",
-                    obj->name );
-            fprintf( fp, buf );
+            fprintf( fp, "Name(s): %s\n", obj->name );
 
-            sprintf( buf, "Area: %s\n", obj->pIndexData->area->name );
-            fprintf( fp, buf );
+            fprintf( fp, "Area: %s\n", obj->pIndexData->area->name );
 
-            sprintf( buf, "Vnum: %d  Type: %s  Number: %d/%d  Weight: %d/%d\n",
+            fprintf( fp, "Vnum: %d  Type: %s  Number: %d/%d  Weight: %d/%d\n",
                     obj->pIndexData->vnum,
                     flag_stat_string(type_flags, obj->item_type), 1, get_obj_number( obj ),
                     obj->weight, get_obj_weight( obj ) );
-            fprintf( fp, buf );
 
             fprintf( fp, "Short description: %s\nLong description: %s\n",
                     obj->short_descr, obj->description );
-            /*sprintf( buf, "Short description: %s\nLong description: %s\n",
-              obj->short_descr, obj->description );*/
-            /*fprintf( fp, buf );*/
 
-            sprintf( buf, "Wear bits: %s\t\tExtra bits: %s\n",
+            fprintf( fp, "Wear bits: %s\t\tExtra bits: %s\n",
                     wear_bits_name(obj->wear_flags), extra_bits_name( obj->extra_flags ) );
-            fprintf( fp, buf );
 
-            sprintf( buf, "Level: %d  Cost: %d  Timer: %d\n",
+            fprintf( fp, "Level: %d  Cost: %d  Timer: %d\n",
                     obj->level, obj->cost, obj->timer );
-            fprintf( fp, buf );
 
-            sprintf( buf,
+            fprintf( fp,
                     "In room: %d  In object: %s  Carried by: %s  Wear_loc: %d\n",
                     obj->in_room    == NULL    ?        0 : obj->in_room->vnum,
                     obj->in_obj     == NULL    ? "(none)" : obj->in_obj->short_descr,
                     obj->carried_by == NULL    ? "(none)" : obj->carried_by->name,
                     obj->wear_loc );
-            fprintf( fp, buf );
 
-            sprintf( buf, "Values: %d %d %d %d %d\n",
+            fprintf( fp, "Values: %d %d %d %d %d\n",
                     obj->value[0], obj->value[1], obj->value[2], obj->value[3],
                     obj->value[4] );
-            fprintf( fp, buf );
 
             /* now give out vital statistics as per identify */
 
@@ -1083,28 +1048,21 @@ DEF_DO_FUN(do_new_dump)
                 case ITEM_SCROLL: 
                 case ITEM_POTION:
                 case ITEM_PILL:
-                    sprintf( buf, "Level %d spells of:", obj->value[0] );
-                    fprintf( fp, buf );
+                    fprintf( fp, "Level %d spells of:", obj->value[0] );
 
                     if ( obj->value[1] >= 0 && obj->value[1] < MAX_SKILL )
                     {
-                        fprintf( fp, " '" );
-                        fprintf( fp, skill_table[obj->value[1]].name );
-                        fprintf( fp, "'" );
+                        fprintf( fp, " '%s'", skill_table[obj->value[1]].name );
                     }
 
                     if ( obj->value[2] >= 0 && obj->value[2] < MAX_SKILL )
                     {
-                        fprintf( fp, " '" );
-                        fprintf( fp, skill_table[obj->value[2]].name );
-                        fprintf( fp, "'" );
+                        fprintf( fp, " '%s'", skill_table[obj->value[2]].name );
                     }
 
                     if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
                     {
-                        fprintf( fp, " '" );
-                        fprintf( fp, skill_table[obj->value[3]].name );
-                        fprintf( fp, "'" );
+                        fprintf( fp, " '%s'", skill_table[obj->value[3]].name );
                     }
 
                     fprintf( fp, ".\n" );
@@ -1112,15 +1070,12 @@ DEF_DO_FUN(do_new_dump)
 
                 case ITEM_WAND: 
                 case ITEM_STAFF: 
-                    sprintf( buf, "Has %d(%d) charges of level %d",
+                    fprintf( fp, "Has %d(%d) charges of level %d",
                             obj->value[1], obj->value[2], obj->value[0] );
-                    fprintf( fp, buf );
 
                     if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
                     {
-                        fprintf( fp, " '" );
-                        fprintf( fp, skill_table[obj->value[3]].name );
-                        fprintf( fp, "'" );
+                        fprintf( fp, " '%s'", skill_table[obj->value[3]].name );
                     }
 
                     fprintf( fp, ".\n" );
@@ -1143,113 +1098,91 @@ DEF_DO_FUN(do_new_dump)
                         case(WEAPON_POLEARM)    : fprintf(fp, "polearm\n"); break;
                         default         : fprintf(fp, "unknown\n"); break;
                     }
-                    sprintf(buf,"Damage is %dd%d (average %d)\n",
+                    fprintf(fp,"Damage is %dd%d (average %d)\n",
                             obj->value[1],obj->value[2],
                             (1 + obj->value[2]) * obj->value[1] / 2);
-                    fprintf( fp, buf );
 
                     if (obj->value[4])  /* weapon flags */
                     {
-                        sprintf(buf,"Weapons flags: %s\n",weapon_bits_name(obj->value[4]));
-                        fprintf(fp, buf);
+                        fprintf(fp,"Weapons flags: %s\n",weapon_bits_name(obj->value[4]));
                     }
                     break;
 
                 case ITEM_ARMOR:
-                    sprintf( buf, 
+                    fprintf( fp,
                             "Armor class is %d pierce, %d bash, %d slash, and %d vs. magic\n", 
                             obj->value[0], obj->value[1], obj->value[2], obj->value[3] );
-                    fprintf( fp, buf );
                     break;
             }  /* switch */
 
             for ( paf = obj->affected; paf != NULL; paf = paf->next )
             {
-                sprintf( buf, "Affects %s by %d, level %d",
+                fprintf( fp, "Affects %s by %d, level %d",
                         affect_loc_name( paf->location ), paf->modifier,paf->level );
-                fprintf( fp, buf );
                 /* added by Rahl */
                 if ( paf->duration > -1 )
-                    sprintf( buf, ", %d hours.\n", paf->duration );
+                    fprintf( fp, ", %d hours.\n", paf->duration );
                 else
-                    sprintf( buf, ".\n" );
-                fprintf( fp, buf );
+                    fprintf( fp, ".\n" );
                 if ( paf->bitvector )
                 {
                     switch ( paf->where )
                     {
                         case TO_AFFECTS:
-                            sprintf( buf, "Adds %s affect.\n", 
-                                    affect_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds %s affect.\n", affect_bit_name( paf->bitvector ) );
                             break;
                         case TO_WEAPON:
-                            sprintf( buf, "Adds %s weapon flags.\n",
-                                    weapon_bits_name( paf->bitvector ) );
+                            fprintf( fp, "Adds %s weapon flags.\n", weapon_bits_name( paf->bitvector ) );
                             break;
                         case TO_OBJECT:
-                            sprintf( buf, "Adds %s object flag.\n",
-                                    extra_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds %s object flag.\n", extra_bit_name( paf->bitvector ) );
                             break;
                         case TO_IMMUNE:
-                            sprintf( buf, "Adds immunity to %s.\n",
-                                    imm_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds immunity to %s.\n", imm_bit_name( paf->bitvector ) );
                             break;
                         case TO_RESIST:
-                            sprintf( buf, "Adds resistance to %s.\n",
-                                    imm_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds resistance to %s.\n", imm_bit_name( paf->bitvector ) );
                             break;
                         case TO_VULN:
-                            sprintf( buf, "Adds vulnerability to %s.\n",
-                                    imm_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds vulnerability to %s.\n", imm_bit_name( paf->bitvector ) );
                             break;
                         default:
-                            sprintf( buf, "Unknown bit %d %d\n",
-                                    paf->where, paf->bitvector );
+                            fprintf( fp, "Unknown bit %d %d\n", paf->where, paf->bitvector );
                             break;
                     }
-                    fprintf( fp, buf );
                 }  /* if */
             }  /* for */
 
             for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
             {
-                sprintf( buf, "Affects %s by %d, level %d.\n",
+                fprintf( fp, "Affects %s by %d, level %d.\n",
                         affect_loc_name( paf->location ), paf->modifier,paf->level );
-                fprintf( fp, buf );
                 if ( paf->bitvector )
                 {
                     switch ( paf->where )
                     {
                         case TO_AFFECTS:
-                            sprintf( buf, "Adds %s affect.\n", 
-                                    affect_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds %s affect.\n", affect_bit_name( paf->bitvector ) );
                             break;
                         case TO_WEAPON:
-                            sprintf( buf, "Adds %s weapon flags.\n",
-                                    weapon_bits_name( paf->bitvector ) );
+                            fprintf( fp, "Adds %s weapon flags.\n", weapon_bits_name( paf->bitvector ) );
                             break;
                         case TO_OBJECT:
-                            sprintf( buf, "Adds %s object flag.\n",
-                                    extra_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds %s object flag.\n", extra_bit_name( paf->bitvector ) );
                             break;
                         case TO_IMMUNE:
-                            sprintf( buf, "Adds immunity to %s.\n",
-                                    imm_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds immunity to %s.\n", imm_bit_name( paf->bitvector ) );
                             break;
                         case TO_RESIST:
-                            sprintf( buf, "Adds resistance to %s.\n",
-                                    imm_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds resistance to %s.\n", imm_bit_name( paf->bitvector ) );
                             break;
                         case TO_VULN:
-                            sprintf( buf, "Adds vulnerability to %s.\n",
-                                    imm_bit_name( paf->bitvector ) );
+                            fprintf( fp, "Adds vulnerability to %s.\n", imm_bit_name( paf->bitvector ) );
                             break;
                         default:
-                            sprintf( buf, "Unknown bit %d %d\n",
-                                    paf->where, paf->bitvector );
+                            fprintf( fp, "Unknown bit %d %d\n", paf->where, paf->bitvector );
                             break;
                     }      /* switch */
-                    fprintf( fp, buf );
                 }       /* if */
             }   /* for */
             fprintf( fp, "\n" );
@@ -1272,21 +1205,17 @@ DEF_DO_FUN(do_new_dump)
         if ((pRoomIndex = get_room_index(vnum)) != NULL)
         {
             nMatch++;
-            sprintf( buf, "\nName: '%s.'\nArea: '%s'.\n",
+            fprintf( fp, "\nName: '%s.'\nArea: '%s'.\n",
                     pRoomIndex->name,
                     pRoomIndex->area->name );
-            fprintf( fp, buf );
 
-            sprintf( buf,
+            fprintf( fp,
                     "Vnum: %d.  Sector: %d.  Light: %d.\n",
                     pRoomIndex->vnum,
                     pRoomIndex->sector_type,
                     pRoomIndex->light );
-            fprintf( fp, buf );
 
-            sprintf( buf, "Room flags: %d.\n", 
-                    pRoomIndex->room_flags);
-            fprintf( fp, buf );
+            fprintf( fp, "Room flags: %s.\n", print_tflag(pRoomIndex->room_flags));
 
             fprintf( fp, "Description:\n%s\n",
                     pRoomIndex->description );
@@ -1298,7 +1227,7 @@ DEF_DO_FUN(do_new_dump)
                 fprintf( fp, "Extra description keywords: '" );
                 for ( ed = pRoomIndex->extra_descr; ed; ed = ed->next )
                 {
-                    fprintf( fp, ed->keyword );
+                    fprintf( fp, "%s", ed->keyword );
                     if ( ed->next != NULL )
                         fprintf( fp, " " );
                 }
@@ -1308,17 +1237,15 @@ DEF_DO_FUN(do_new_dump)
             fprintf( fp, "Characters:" );
             for ( rch = pRoomIndex->people; rch; rch = rch->next_in_room )
             {
-                fprintf( fp, " " );
                 one_argument( rch->name, buf );
-                fprintf( fp, buf );
+                fprintf( fp, " %s", buf );
             }
 
             fprintf( fp, ".\nObjects:   " );
             for ( obj = pRoomIndex->contents; obj; obj = obj->next_content )
             {
-                fprintf( fp, " " );
                 one_argument( obj->name, buf );
-                fprintf( fp, buf );
+                fprintf( fp, " %s", buf );
             }
             fprintf( fp, ".\n" );
 
@@ -1328,7 +1255,7 @@ DEF_DO_FUN(do_new_dump)
 
                 if ( ( pexit = pRoomIndex->exit[door] ) != NULL )
                 {
-                    sprintf( buf,
+                    fprintf( fp,
                             "Door: %d.  To: %d.  Key: %d.  Exit flags: %s.\nKeyword: '%s'.  Description: %s",
                             door,
                             (pexit->u1.to_room == NULL ? -1 : pexit->u1.to_room->vnum),
@@ -1336,7 +1263,6 @@ DEF_DO_FUN(do_new_dump)
                             print_tflag( pexit->exit_info ),
                             pexit->keyword,
                             pexit->description[0] != '\0' ? pexit->description : "(none).\n" );
-                    fprintf( fp, buf );
                 }
             }
 
