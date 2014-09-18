@@ -4162,9 +4162,6 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define RID ROOM_INDEX_DATA
 #define SF  SPEC_FUN
 
-/* aclone.c */
-bool range_is_free( int min_vnum, int max_vnum );
-
 /* act_comm.c */
 void    check_sex   args( ( CHAR_DATA *ch) );
 void    add_follower    args( ( CHAR_DATA *ch, CHAR_DATA *master ) );
@@ -4923,6 +4920,7 @@ void    update_room_fighting( ROOM_INDEX_DATA *room );
 
 /* vshift.c */
 void shift_area( AREA_DATA *area, int shift, bool area_only );
+bool range_is_free( int min_vnum, int max_vnum );
 
 /* wizlist.c */
 void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );     
