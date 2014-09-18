@@ -62,7 +62,6 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool ex
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact );
 char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype);
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
-AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 
 /* friend stuff -- for NPC's mostly */
 bool is_friend(CHAR_DATA *ch,CHAR_DATA *victim)
