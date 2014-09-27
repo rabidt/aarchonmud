@@ -1485,6 +1485,14 @@ void mail_notify( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board )
 	  && !IS_SET(recip->comm,COMM_NOINFO)
 	  && !IS_SET(recip->comm,COMM_QUIET) )
 		 if (is_note_to( recip, pnote ))
+         {
 			act_new(buf, recip, NULL, NULL, TO_CHAR, POS_SLEEPING );
+            if ( recip->pcdata && recip->pcdata->guiconfig.chat_window )
+            {
+                ptc( recip, "\t<DEST Comm>" );
+                act_new(buf, recip, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                ptc( recip, "\t</DEST>" );
+            }
+         }
    }
 }

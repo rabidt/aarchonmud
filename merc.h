@@ -2747,6 +2747,11 @@ struct  pc_data
     int smc_mastered;
     int smc_grandmastered;
     int smc_retrained;
+
+    
+    struct {
+        bool chat_window;
+    } guiconfig;
 };
 
 /* Data for special quests */
