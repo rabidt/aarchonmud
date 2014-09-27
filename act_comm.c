@@ -2597,6 +2597,12 @@ void do_gtell( CHAR_DATA *ch, char *argument )
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers( ch->pcdata->gtell_history, buf);
+    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_tag( ch );
+        send_to_char( buf, ch );
+        close_chat_tag( ch );
+    }
     argument = makedrunk(argument,ch);
     
     for ( gch = char_list; gch != NULL; gch = char_list_next_char(gch) )
@@ -2611,6 +2617,13 @@ void do_gtell( CHAR_DATA *ch, char *argument )
 				send_to_char(buf, gch);
 				if ( !IS_NPC(gch) )
 					log_pers( gch->pcdata->gtell_history, buf);
+
+                if ( gch->pcdata && gch->pcdata->guiconfig.chat_window )
+                {
+                    open_chat_tag( gch );
+                    send_to_char( buf, gch );
+                    close_chat_tag( gch );
+                }
 			}
 		}
     }
@@ -3480,14 +3493,14 @@ void gui_login_setup( CHAR_DATA *ch )
 {
     const char *client= ch->desc ? ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString : "";
 
-    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    if ( ch->pcdata->guiconfig.chat_window )
     {
         open_chat_window( ch );
     }
-    else if ( ch->desc && 
-        strstr(client, "mudportal" ) )
+    else if ( strstr(client, "mudportal" ) )
     {
         // always use chatwindow in mudportal cause i said so
+        ch->pcdata->guiconfig.chat_window=TRUE;
         open_chat_window( ch );
         ptc( ch, "{CI see you're using mudportal. Chat window enabled.{x\n\r" );
     }
