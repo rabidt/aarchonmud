@@ -543,7 +543,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
             ch->pcdata->condition[3] );
 
     bprintf( buf, "Stance %d\n", ch->stance );
-        
+
+    bprintf( buf, "Gui %d\n", ch->pcdata->guiconfig.chat_window );
+
        /*
         * Write Colour Config Information.
         */
@@ -1933,6 +1935,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             fMatch = TRUE;
             break;
         }
+        KEY( "Gui", ch->pcdata->guiconfig.chat_window, bread_number( buf ) );
         break;
         
     case 'H':
