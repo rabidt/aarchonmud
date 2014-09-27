@@ -1952,7 +1952,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    info_message_new(ch, buf, FALSE, FALSE);
 	}
     MXPSendTag( d, "<VERSION>" );
-
+    gui_login_setup( d->character );
 	/* Prevents pkillers from immediately attacking upon login.
 	   Will annoy people who use their alts to watch for targets! Q, Nov 2002 */
 	if ( ch->pcdata != NULL )

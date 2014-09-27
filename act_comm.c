@@ -157,7 +157,7 @@ print_pub_chan( sh_int sn, CHAR_DATA *ch)
 /* RT code to display channel status */
 
 void do_channels( CHAR_DATA *ch, char *argument)
-{
+{   
     char buf[MAX_STRING_LENGTH];
 
     /* lists all channels and their status */
@@ -180,15 +180,15 @@ void do_channels( CHAR_DATA *ch, char *argument)
         else
             send_to_char("{2OFF{x\n\r",ch);
         
-	print_pub_chan(sn_gossip, ch);
-        print_pub_chan(sn_auction, ch);
-	print_pub_chan(sn_music, ch);
-	print_pub_chan(sn_question, ch);
-	print_pub_chan(sn_quote, ch);
-	print_pub_chan(sn_gratz, ch);
-	print_pub_chan(sn_gametalk, ch);
-	print_pub_chan(sn_bitch, ch);
-	print_pub_chan(sn_newbie, ch);
+    print_pub_chan(sn_gossip, ch);
+    print_pub_chan(sn_auction, ch);
+    print_pub_chan(sn_music, ch);
+    print_pub_chan(sn_question, ch);
+    print_pub_chan(sn_quote, ch);
+    print_pub_chan(sn_gratz, ch);
+    print_pub_chan(sn_gametalk, ch);
+    print_pub_chan(sn_bitch, ch);
+    print_pub_chan(sn_newbie, ch);
  
         if( ch->clan > 0 )
 	{
@@ -269,6 +269,9 @@ void do_channels( CHAR_DATA *ch, char *argument)
         else
             send_to_char("Scroll buffering is off.\n\r",ch);
     }
+
+    ptc( ch, "Your chat window is turned %s.\n\r",
+            ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
     
     if (ch->prompt != NULL)
     {
@@ -496,6 +499,12 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
         
         sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
         send_to_char( buf, ch );
+        if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+        {
+            open_chat_tag( ch );
+            send_to_char( buf, ch );
+            close_chat_tag( ch );
+        }
 
         argument = makedrunk(argument,ch);
 
@@ -532,9 +541,16 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
                     act_new_gag( buf,
                         ch,argument, d->character, TO_VICT,POS_SLEEPING,
                         GAG_NCOL_CHAN, FALSE );
-                    
+                    if ( d->character->pcdata && 
+                            d->character->pcdata->guiconfig.chat_window )
+                    {
+                        open_chat_tag( d->character );
+                        act_new_gag( buf,
+                            ch,argument, d->character, TO_VICT,POS_SLEEPING,
+                            GAG_NCOL_CHAN, FALSE ); 
+                        close_chat_tag( d->character );
+                    }
                 }
-
             }
         }
     }
@@ -612,6 +628,13 @@ void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char,
         {
             sprintf(buf, "{1[INFO]{2: %s\n{x", argument);
             act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+
+            if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+            {
+                open_chat_tag( victim );
+                act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                close_chat_tag( victim );
+            }
         }
     }
 }
@@ -877,6 +900,13 @@ void do_info( CHAR_DATA *ch, char *argument )
                 {
                     sprintf(buf, "{1[INFO]{2: %s\n{x", parse_url(argument));
                     act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                    
+                    if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+                    {
+                        open_chat_tag( victim );
+                        act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                        close_chat_tag( victim );
+                    }
                 }
             }
         }
@@ -1115,6 +1145,14 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
 	
 	sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
 	send_to_char( buf, ch );
+
+    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_tag( ch );
+        send_to_char( buf, ch );
+        close_chat_tag( ch );
+    }
+
 	if ( !IS_NPC(ch) )
 		log_pers(ch->pcdata->tell_history, buf);
 	argument = makedrunk(argument,ch);
@@ -1154,8 +1192,14 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     }
     else
     {
-	/* send as regular */
-	send_to_char(buf, victim);
+	    /* send as regular */
+	    send_to_char(buf, victim);
+        if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+        {
+            open_chat_tag( victim );
+            send_to_char( buf, victim );
+            close_chat_tag( victim );
+        }
     }   
 	
     
@@ -3420,4 +3464,74 @@ void do_noreply( CHAR_DATA *ch, char *argument )
 	send_to_char( "Character not found.\n\r", ch );
 	return;
     }
+}
+
+void open_chat_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Comm\" INTERNAL Align=\"right\">");
+}
+
+void close_chat_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Comm\" Action=\"CLOSE\">");
+} 
+
+void gui_login_setup( CHAR_DATA *ch )
+{
+    const char *client= ch->desc ? ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString : "";
+
+    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_window( ch );
+    }
+    else if ( ch->desc && 
+        strstr(client, "mudportal" ) )
+    {
+        // always use chatwindow in mudportal cause i said so
+        open_chat_window( ch );
+        ptc( ch, "{CI see you're using mudportal. Chat window enabled.{x\n\r" );
+    }
+
+    if ( strstr( client, "zmud") ||
+         strstr( client, "zMUD") ||
+         strstr( client, "cmud") ||
+         strstr( client, "CMUD") )
+    {
+        ptc( ch, "{CI see you're using %s. Type '\t(guiconfig\t)' to see some special options.{x\n\r", client);
+    }
+}
+
+void open_chat_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<DEST Comm>" );
+}
+
+void close_chat_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t</DEST>" );
+}
+
+void do_guiconfig( CHAR_DATA *ch, char *argument )
+{
+    if ( ch->pcdata && !strcmp( argument, "chat" ) )
+    {
+        ch->pcdata->guiconfig.chat_window = !ch->pcdata->guiconfig.chat_window;
+        ptc( ch, "Your chat window is turned %s.\n\r",
+                ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
+
+        if ( ch->pcdata->guiconfig.chat_window )
+        {
+            open_chat_window( ch );
+        }
+        else
+        {
+            close_chat_window( ch );
+        }
+        return;
+    }
+
+    ptc( ch, "Your chat window is turned %s.\n\r",
+        ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
+
+    ptc( ch, "'guiconfig chat' to toggle\n\r" );
 }
