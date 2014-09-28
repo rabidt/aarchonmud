@@ -498,13 +498,13 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
         argument=parse_url(argument);
         
         sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
-        send_to_char( buf, ch );
         if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
         {
             open_chat_tag( ch );
             send_to_char( buf, ch );
             close_chat_tag( ch );
         }
+        send_to_char( buf, ch );
 
         argument = makedrunk(argument,ch);
 
@@ -538,18 +538,18 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
                 if (!found)
                 {
 					sprintf(buf,"{%c$n{%c %s {%c'$t{%c'{x", chan->prime_color, chan->prime_color, chan->third_pers, chan->second_color, chan->second_color);
-                    act_new_gag( buf,
-                        ch,argument, d->character, TO_VICT,POS_SLEEPING,
-                        GAG_NCOL_CHAN, FALSE );
-                    if ( d->character->pcdata && 
+                    if ( d->character->pcdata &&
                             d->character->pcdata->guiconfig.chat_window )
                     {
                         open_chat_tag( d->character );
                         act_new_gag( buf,
                             ch,argument, d->character, TO_VICT,POS_SLEEPING,
-                            GAG_NCOL_CHAN, FALSE ); 
+                            GAG_NCOL_CHAN, FALSE );
                         close_chat_tag( d->character );
                     }
+                    act_new_gag( buf,
+                        ch,argument, d->character, TO_VICT,POS_SLEEPING,
+                        GAG_NCOL_CHAN, FALSE );
                 }
             }
         }
@@ -626,15 +626,14 @@ void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char,
             !IS_SET(victim->comm,COMM_NOINFO) &&
             !IS_SET(victim->comm,COMM_QUIET) )
         {
-            sprintf(buf, "{1[INFO]{2: %s\n{x", argument);
-            act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
-
+            sprintf(buf, "{1[INFO]{2: %s{x", argument);
             if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
             {
                 open_chat_tag( victim );
                 act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
                 close_chat_tag( victim );
             }
+            act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
         }
     }
 }
@@ -898,15 +897,14 @@ void do_info( CHAR_DATA *ch, char *argument )
                     !IS_SET(victim->comm,COMM_NOINFO) &&
                     !IS_SET(victim->comm,COMM_QUIET) )
                 {
-                    sprintf(buf, "{1[INFO]{2: %s\n{x", parse_url(argument));
-                    act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
-                    
+                    sprintf(buf, "{1[INFO]{2: %s{x", parse_url(argument));
                     if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
                     {
                         open_chat_tag( victim );
                         act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
                         close_chat_tag( victim );
                     }
+                    act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
                 }
             }
         }
@@ -1144,14 +1142,13 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
 
 	
 	sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
-	send_to_char( buf, ch );
-
     if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
     {
         open_chat_tag( ch );
         send_to_char( buf, ch );
         close_chat_tag( ch );
     }
+	send_to_char( buf, ch );
 
 	if ( !IS_NPC(ch) )
 		log_pers(ch->pcdata->tell_history, buf);
@@ -1193,13 +1190,13 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     else
     {
 	    /* send as regular */
-	    send_to_char(buf, victim);
         if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
         {
             open_chat_tag( victim );
             send_to_char( buf, victim );
             close_chat_tag( victim );
         }
+	    send_to_char(buf, victim);
     }   
 	
     
@@ -2594,15 +2591,15 @@ void do_gtell( CHAR_DATA *ch, char *argument )
         return;
     }
     sprintf( buf, "{3You tell the group, {4'%s'{x\n\r", parse_url(argument) );
-    send_to_char( buf, ch );
-	if ( !IS_NPC(ch) )
-		log_pers( ch->pcdata->gtell_history, buf);
     if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
     {
         open_chat_tag( ch );
         send_to_char( buf, ch );
         close_chat_tag( ch );
     }
+    send_to_char( buf, ch );
+	if ( !IS_NPC(ch) )
+		log_pers( ch->pcdata->gtell_history, buf);
     argument = makedrunk(argument,ch);
     
     for ( gch = char_list; gch != NULL; gch = char_list_next_char(gch) )
@@ -2614,16 +2611,16 @@ void do_gtell( CHAR_DATA *ch, char *argument )
 			sprintf(buf, "{3%s{3 tells the group {4'%s'{x\n\r", (IS_NPC(ch)?ch->short_descr:ch->name), parse_url(argument) );
 			if (gch != ch)
 			{
-				send_to_char(buf, gch);
-				if ( !IS_NPC(gch) )
-					log_pers( gch->pcdata->gtell_history, buf);
-
                 if ( gch->pcdata && gch->pcdata->guiconfig.chat_window )
                 {
                     open_chat_tag( gch );
                     send_to_char( buf, gch );
                     close_chat_tag( gch );
                 }
+				send_to_char(buf, gch);
+				if ( !IS_NPC(gch) )
+					log_pers( gch->pcdata->gtell_history, buf);
+
 			}
 		}
     }
