@@ -2751,6 +2751,8 @@ struct  pc_data
     
     struct {
         bool chat_window;
+        bool show_images;
+        bool image_window;
     } guiconfig;
 };
 

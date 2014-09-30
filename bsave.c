@@ -544,7 +544,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 
     bprintf( buf, "Stance %d\n", ch->stance );
 
-    bprintf( buf, "Gui %d\n", ch->pcdata->guiconfig.chat_window );
+    bprintf( buf, "GuiC %d %d %d\n", ch->pcdata->guiconfig.chat_window,
+                                     ch->pcdata->guiconfig.show_images,
+                                     ch->pcdata->guiconfig.image_window );
 
        /*
         * Write Colour Config Information.
@@ -1935,7 +1937,18 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             fMatch = TRUE;
             break;
         }
+        /* old */
         KEY( "Gui", ch->pcdata->guiconfig.chat_window, bread_number( buf ) );
+        /* new */
+        if ( !str_cmp( word, "GuiC" ) )
+        {
+            ch->pcdata->guiconfig.chat_window = bread_number( buf );
+            ch->pcdata->guiconfig.show_images = bread_number( buf );
+            ch->pcdata->guiconfig.image_window = bread_number( buf );
+            fMatch = TRUE;
+            break;
+        }
+
         break;
         
     case 'H':

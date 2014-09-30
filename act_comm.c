@@ -427,9 +427,6 @@ char *parse_url( char *argument)
     return rtn;
 }
 
-        
-
-
 /* RT chat replaced with ROM gossip */
 void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
 {
@@ -498,6 +495,7 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
         argument=parse_url(argument);
         
         sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
+        show_image_to_char( ch, buf );
         send_to_char( buf, ch );
         if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
         {
@@ -3489,6 +3487,16 @@ void close_chat_window( CHAR_DATA *ch )
     ptc( ch, "\t<FRAME Name=\"Comm\" Action=\"CLOSE\">");
 } 
 
+void open_image_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Images\" INTERNAL Align=\"top\">");
+}
+
+void close_image_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Images\" Action=\"CLOSE\">");
+}
+
 void gui_login_setup( CHAR_DATA *ch )
 {
     const char *client= ch->desc ? ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString : "";
@@ -3514,6 +3522,16 @@ void gui_login_setup( CHAR_DATA *ch )
     }
 }
 
+void open_imagewin_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<DEST Images>" );
+}
+
+void close_imagewin_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t</DEST>" );
+}
+
 void open_chat_tag( CHAR_DATA *ch )
 {
     ptc( ch, "\t<DEST Comm>" );
@@ -3526,11 +3544,14 @@ void close_chat_tag( CHAR_DATA *ch )
 
 void do_guiconfig( CHAR_DATA *ch, char *argument )
 {
-    if ( ch->pcdata && !strcmp( argument, "chat" ) )
+    if (IS_NPC(ch))
+        return;
+
+    if ( !strcmp( argument, "chat" ) )
     {
         ch->pcdata->guiconfig.chat_window = !ch->pcdata->guiconfig.chat_window;
         ptc( ch, "Your chat window is turned %s.\n\r",
-                ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
+                ch->pcdata->guiconfig.chat_window ? "ON" : "OFF" );
 
         if ( ch->pcdata->guiconfig.chat_window )
         {
@@ -3542,9 +3563,41 @@ void do_guiconfig( CHAR_DATA *ch, char *argument )
         }
         return;
     }
+    else if ( !strcmp( argument, "images" ) )
+    {
+        ch->pcdata->guiconfig.show_images = !ch->pcdata->guiconfig.show_images;
+        ptc( ch, "Display images is turned %s.\n\r",
+                ch->pcdata->guiconfig.show_images ? "ON" : "OFF" );
+        return; 
+    }
+    else if ( !strcmp( argument, "imagewin" ) )
+    {
+        
+        ch->pcdata->guiconfig.image_window = !ch->pcdata->guiconfig.image_window;
+        ptc( ch, "Your image window is turned %s.\n\r",
+                ch->pcdata->guiconfig.image_window ? "ON" : "OFF" );
+
+        if ( ch->pcdata->guiconfig.image_window )
+        {
+            open_image_window( ch );
+        }
+        else
+        {
+            close_image_window( ch );
+        }
+        return;
+    }
 
     ptc( ch, "Your chat window is turned %s.\n\r",
         ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
-
     ptc( ch, "'guiconfig chat' to toggle\n\r" );
+
+    ptc( ch, "Display images is %s.\n\r",
+        ( ch->pcdata && ch->pcdata->guiconfig.show_images ) ? "ON" : "OFF" );
+    ptc( ch, "'guiconfig images' to toggle\n\r" );
+
+    ptc( ch, "Image window is %s.\n\r",
+        ( ch->pcdata && ch->pcdata->guiconfig.image_window ) ? "ON" : "OFF" );
+    ptc( ch, "'guiconfig imagewin' to toggle\n\r" );
+
 }
