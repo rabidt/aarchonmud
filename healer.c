@@ -265,7 +265,7 @@ void do_heal(CHAR_DATA *ch, char *argument)
           argument);
     target_name=tname_buf;
             
-    spell(sn,100,mob,ch,TARGET_CHAR);
+    spell(sn,120,mob,ch,TARGET_CHAR);
 }
 
 typedef struct spell_cost SPELL_COST;
@@ -377,8 +377,8 @@ void do_spellup(CHAR_DATA *ch, char *argument)
 		bugf( "do_spellup: spell not found: %s", arcane_cost[spell].name );
 		return;
 	    }
-	    skill_table[sn].spell_fun(sn,50,mob,ch,TARGET_CHAR);
+	    skill_table[sn].spell_fun(sn,70,mob,ch,TARGET_CHAR);
 	}
     else
-	skill_table[sn].spell_fun(sn,60,mob,ch,TARGET_CHAR);
+	skill_table[sn].spell_fun(sn,80,mob,ch,TARGET_CHAR);
 }
