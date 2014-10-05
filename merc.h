@@ -4193,6 +4193,7 @@ bool    is_disguised( CHAR_DATA *ch );
 void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
 void    show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 void    check_achievement( CHAR_DATA *ch );
+bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* act_move.c */
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
@@ -4585,6 +4586,8 @@ OD *    get_obj_world   args( ( CHAR_DATA *ch, const char *argument ) );
 OD *    get_obj_area    args( ( CHAR_DATA *ch, const char *argument ) );
 RID *   get_obj_room    args( ( OBJ_DATA *obj ) );
 RID *   find_location   args( ( CHAR_DATA *ch, const char *argument ) );
+RID *   get_room_area( AREA_DATA *area, const char *argument );
+RID *   get_room_world( const char *argument );
 OD *    create_money    args( ( int gold, int silver ) );
 int get_obj_number  args( ( OBJ_DATA *obj ) );
 int get_obj_weight  args( ( OBJ_DATA *obj ) );
