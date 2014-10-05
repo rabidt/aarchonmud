@@ -43,6 +43,7 @@
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_recall    );
+DECLARE_DO_FUN(do_flee      );
 
 /*
  * Local functions.
@@ -53,10 +54,7 @@ bool can_cast_transport( CHAR_DATA *ch );
 void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target );
 
 /* imported functions */
-void    do_flee     args( ( CHAR_DATA *ch, char *argument ) );
 bool check_spell_disabled args( (const struct skill_type *command) );
-void    dam_message     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
-            int dt, bool immune ) );
 bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 RELIGION_DATA *get_religion args( ( CHAR_DATA *ch ) );
 char* wear_location_info( int pos );

@@ -121,7 +121,6 @@ DECLARE_SPEC_FUN(   spec_guard          );
 */
 bool check_critical  args( ( CHAR_DATA *ch, bool secondary ) );
 bool check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
-bool stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
@@ -130,13 +129,10 @@ bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool blind_penalty( CHAR_DATA *ch );
 void  check_assist  args( ( CHAR_DATA *ch ) );
-bool  check_dodge   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_killer  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_parry   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_shield_block  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  check_shield  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-void  dam_message   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
-						 int dt, bool immune ) );
 void  death_cry     args( ( CHAR_DATA *ch ) );
 void  group_gain    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 int   xp_compute    args( ( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align ) );
@@ -158,8 +154,6 @@ bool  check_mercy args( ( CHAR_DATA *ch ) );
 void  check_reset_stance args( ( CHAR_DATA *ch) );
 void  stance_hit    args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 bool is_normal_hit( int dt );
-bool full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
-bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
 bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -6899,7 +6893,7 @@ bool destance( CHAR_DATA *ch, int attack_mastery )
     return TRUE;
 }
 
-CHAR_DATA* get_combat_victim( CHAR_DATA *ch, char *argument )
+CHAR_DATA* get_combat_victim( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *victim;
 

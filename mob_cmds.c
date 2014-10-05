@@ -1548,11 +1548,11 @@ DEF_DO_FUN(do_mpdamage)
         {
 	        victim_next = victim->next_in_room;
 	        if ( victim != ch )
-                deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill, FALSE);
+                deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
         }
     }
     else
-        deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill, FALSE);
+        deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
     return;
 }
 

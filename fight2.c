@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -8,6 +9,8 @@ bool  check_lose_stance args( (CHAR_DATA *ch) );
 void  set_fighting  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  can_steal     args( ( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose ) );
 bool  check_jam( CHAR_DATA *ch, int odds, bool offhand );
+
+DECLARE_DO_FUN( do_disarm_trap );
 
 /*
 * Disarm a creature.
@@ -533,7 +536,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
 DEF_DO_FUN(do_headbutt)
 {
     CHAR_DATA *victim;
-    int chance, dam, dam_type;
+    int chance, dam;
     char arg[MAX_INPUT_LENGTH];
     
     one_argument(argument, arg);
@@ -654,12 +657,12 @@ DEF_DO_FUN(do_net)
 }
 
 // mama routine for burst, semi-auto and full-auto
-void spray_attack( CHAR_DATA *ch, char *argument, int sn )
+void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
 {
     CHAR_DATA *victim, *target, *next_target;
     OBJ_DATA *first, *second;
     bool secondgun = FALSE;
-    int targeted_attacks, area_attacks, jam_chance, skill;
+    int targeted_attacks, area_attacks, jam_chance;
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
@@ -835,7 +838,7 @@ DEF_DO_FUN(do_aim)
     OBJ_DATA *obj; 
     int i, chance;
     int aim_target = AIM_NORMAL;
-    bool secondgun = FALSE, hit = FALSE;
+    bool secondgun = FALSE;
 
     argument = one_argument( argument, arg );
         
@@ -1227,7 +1230,6 @@ DEF_DO_FUN(do_snipe)
 
 DEF_DO_FUN(do_circle)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance;
     
@@ -1406,8 +1408,6 @@ DEF_DO_FUN(do_rescue)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
-    CHAR_DATA *other;
-    CHAR_DATA *other_next;
     CHAR_DATA *fch;
     bool is_attacked = FALSE;
     int chance;
@@ -1495,7 +1495,6 @@ DEF_DO_FUN(do_rescue)
     act( "$n rescues $N!",  ch, NULL, victim, TO_NOTVICT );
     check_improve(ch,gsn_rescue,TRUE,1);
     
-    other = victim->fighting;
     /* removed to prevent kill-trigger to activate --Bobble
     stop_fighting( fch, FALSE );
     stop_fighting( victim, FALSE );
@@ -3702,25 +3701,18 @@ DEF_DO_FUN(do_puncture)
     check_improve(ch,gsn_puncture,TRUE,3);
 }
 
-int dice_argument (char *argument, char *arg)
+int dice_argument (const char *argument, char *arg)
 {
-    char *pdot;
-    int number;
- 
-    for (pdot = argument; *pdot != '\0'; pdot++)
+    const char *pdot = strchr(argument, 'd');
+    // invalic argument - expect 3d6 or similar
+    if ( pdot == NULL )
     {
-        if (*pdot == 'd')
-        {
-            *pdot = '\0';
-            number = atoi (argument);
-            *pdot = 'd';
-            strcpy (arg, pdot + 1);
-            return number;
-        }
+        strcpy(arg, argument);
+        return -1;
     }
- 
-    strcpy (arg, argument);
-    return -1;
+    // valid format - atoi converts initial part of string, which is just what we want
+    strcpy(arg, pdot+1);
+    return atoi(argument);
 }
  
 /*
@@ -3820,7 +3812,6 @@ DEF_DO_FUN(do_infectious_arrow)
 {
     AFFECT_DATA af;
     CHAR_DATA *victim;
-    OBJ_DATA *wield;
     int skill, dam;
 
     if ( get_weapon_sn(ch) != gsn_bow )
@@ -3893,8 +3884,7 @@ DEF_DO_FUN(do_paroxysm)
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    OBJ_DATA *second;
-    int chance, chance2;
+    int chance;
     
     if ((chance = get_skill(ch,gsn_paroxysm)) < 1)
     {
@@ -4000,7 +3990,6 @@ DEF_DO_FUN(do_paroxysm)
 
 DEF_DO_FUN(do_fervent_rage)
 {
-    int hp_percent;
     int cost = 250;
     int chance;
     
@@ -4062,8 +4051,7 @@ DEF_DO_FUN(do_rupture)
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    OBJ_DATA *second;
-    int chance, chance2;
+    int chance;
 
     
     if ((chance = get_skill(ch,gsn_rupture)) < 1)
@@ -4251,12 +4239,10 @@ DEF_DO_FUN(do_power_thrust)
 void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
 {
     CHAR_DATA *victim; 
-    OBJ_DATA *obj;
     int dam;
     int chance_hit, chance_stun, skill;
     char arg[MAX_INPUT_LENGTH];
     AFFECT_DATA af;
-    int sn;
     
     one_argument(argument, arg);
     
@@ -4483,7 +4469,7 @@ DEF_DO_FUN(do_smite)
         return;
     
     // chance to dispel if fighting opposing alignment
-    if ( (IS_GOOD(ch) && IS_EVIL(victim) || IS_EVIL(ch) && IS_GOOD(victim)) && !number_bits(2) )
+    if ( ((IS_GOOD(ch) && IS_EVIL(victim)) || (IS_EVIL(ch) && IS_GOOD(victim))) && !number_bits(2) )
     {
         int level = ch->level * skill / 100;
         act("Your smite disrupts $N's magic defenses!", ch, NULL, victim, TO_CHAR);
