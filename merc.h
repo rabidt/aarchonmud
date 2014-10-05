@@ -4705,6 +4705,7 @@ void    mp_hprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 void    mp_mprct_trigger  args( ( CHAR_DATA *mob, CHAR_DATA *ch ) );
 bool    mp_try_trigger    args( ( const char *argument, CHAR_DATA *mob ) );
 bool    mp_spell_trigger  args( ( char *argument, CHAR_DATA *mob, CHAR_DATA *ch ) );
+bool    mp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument );
 bool    can_trigger( CHAR_DATA *mob, int trigger );
 bool    has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum );
 void    mprog_setup( CHAR_DATA *mob );
