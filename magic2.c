@@ -35,17 +35,11 @@
 #include "tables.h"
 #include "religion.h"
 
-void do_flee     args( ( CHAR_DATA *ch, char *argument ) );
 bool check_spell_disabled args( (const struct skill_type *command) );
 
-bool saves_dispel args(( int dis_level, int spell_level, int duration));
-bool check_dispel args(( int dis_level, CHAR_DATA *victim, int sn));
-
-void dam_message  args(( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, bool immune ));
 int  hit_gain     args(( CHAR_DATA *ch ));
 int  mana_gain    args(( CHAR_DATA *ch ));
-int  move_gain    args(( CHAR_DATA *ch )) ;
-bool check_dispel( int dis_level, CHAR_DATA *victim, int sn);
+int  move_gain    args(( CHAR_DATA *ch ));
 
 RELIGION_DATA *get_religion args(( CHAR_DATA *ch ));
 
@@ -53,7 +47,8 @@ ROOM_INDEX_DATA* get_portal_room( char *name );
 
 DECLARE_DO_FUN(do_scan      );
 DECLARE_DO_FUN(do_look      );
-DECLARE_DO_FUN(do_where );
+DECLARE_DO_FUN(do_where     );
+DECLARE_DO_FUN(do_flee      );
 
 extern char *target_name;
 

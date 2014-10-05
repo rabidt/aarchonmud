@@ -4419,11 +4419,16 @@ bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secon
 void    multi_hit   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int class, bool show ) );
 bool    full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
+bool    deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
+void    dam_message( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, bool immune );
 void    update_pos  args( ( CHAR_DATA *victim ) );
+bool    stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+void    check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance );
 CD *    get_local_leader( CHAR_DATA *ch );
+CD *    get_combat_victim( CHAR_DATA *ch, const char *argument );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
@@ -4431,6 +4436,7 @@ bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery
 bool    check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
+bool    check_dodge( CHAR_DATA *ch, CHAR_DATA *victim );
 int     get_leadership_bonus( CHAR_DATA *ch, bool improve );
 int     level_power( CHAR_DATA *ch );
 int     stance_cost( CHAR_DATA *ch, int stance );
@@ -4445,8 +4451,10 @@ void    adjust_pkgrade( CHAR_DATA *killer, CHAR_DATA *victim, bool theft );
 bool    check_fear( CHAR_DATA *ch );
 void    run_combat_action( DESCRIPTOR_DATA *d );
 void    equip_new_arrows( CHAR_DATA *ch );
+int     one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield );
 int     martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 int     get_pkgrade_level( int pts );
+int     get_weapon_damtype( OBJ_DATA *wield );
 
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4666,6 +4674,8 @@ int cha_cur_follow( CHAR_DATA *ch );
 int get_save(CHAR_DATA *ch, bool physical);
 ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int misgate_chance );
 bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, int *target, CHAR_DATA **vo );
+bool check_dispel( int dis_level, CHAR_DATA *victim, int sn );
+bool check_dispel_magic( int level, CHAR_DATA *victim );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
