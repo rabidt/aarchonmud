@@ -4182,6 +4182,7 @@ char*   ch_name(CHAR_DATA *ch);
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
 RID  *get_random_warfare_room args ( (CHAR_DATA *ch) );
+RID  *get_random_room_area( CHAR_DATA *ch );
 void load_portal_list();
 
 /* act_info.c */
@@ -4459,6 +4460,9 @@ int     get_weapon_damtype( OBJ_DATA *wield );
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void behead(CHAR_DATA *ch, CHAR_DATA *victim);
+
+/* flags.c */
+void reset_pkill_expire( CHAR_DATA *ch );
 
 /* grant.c */
 bool is_granted_name    args( ( CHAR_DATA *ch, char *argument ) );
@@ -4806,6 +4810,9 @@ int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 void update_skill_costs();
 void update_group_costs();
 
+/* smith.c */
+void cancel_smith( CHAR_DATA *ch );
+
 /* social-edit.c */
 void load_social_table();
 void save_social_table();
@@ -4848,6 +4855,7 @@ int max_hmm_train( int level );
 int get_ac( CHAR_DATA *ch );
 int get_hitroll( CHAR_DATA *ch );
 int get_damroll( CHAR_DATA *ch );
+void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 
 /* string.c */
 void   string_edit    args( ( CHAR_DATA *ch, char **pString ) );

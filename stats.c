@@ -17,7 +17,6 @@ bool parse_roll_stats args((CHAR_DATA *ch,char *argument));
 void do_help args((CHAR_DATA *ch, char *argument));
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 void show_pc_race_ratings( CHAR_DATA *ch, int race );
-void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 
 // structure for storing stat values prior to finalizing them
 typedef struct min_max_rolled MIN_MAX_ROLLED;

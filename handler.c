@@ -37,6 +37,8 @@
 #include "recycle.h"
 #include "tables.h"
 #include "lua_scripting.h"
+#include "lookup.h"
+#include "simsave.h"
 
 void affect_modify_new( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd, bool drop );
 void check_drop_weapon( CHAR_DATA *ch );
@@ -59,7 +61,6 @@ OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int 
 ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, const char *arg, bool area );
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact );
-char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype);
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
 
 /* friend stuff -- for NPC's mostly */
@@ -415,7 +416,7 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
 /* used to de-screw characters */
 void reset_char(CHAR_DATA *ch)
 {
-    int loc,mod,stat;
+    int loc, stat;
     OBJ_DATA *obj;
     AFFECT_DATA *af;
     
@@ -657,7 +658,7 @@ bool is_ch_name( char *str, CHAR_DATA *ch, bool exact, CHAR_DATA *viewer )
 
 char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker )
 {
-    get_mimic_PERS_new( ch, looker, NULL);
+    return get_mimic_PERS_new( ch, looker, 0);
 }
 
 char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype)
@@ -734,7 +735,7 @@ void affect_modify( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd )
 
 void affect_modify_new( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd, bool drop )
 {
-    int mod,i;
+    int mod;
     
     mod = paf->modifier;
 
@@ -2754,21 +2755,25 @@ ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, const char *arg, bool area )
 	CHAR_DATA *victim;
 	OBJ_DATA *obj;
 
-	/* random target */
-	if ( !strcmp(arg, "random") )
-	    if ( area )
-		return get_random_room_area( ch );
-	    else
-		return get_random_room( ch );
+    /* random target */
+    if ( !strcmp(arg, "random") )
+    {
+        if ( area )
+            return get_random_room_area( ch );
+        else
+            return get_random_room( ch );
+    }
 
-	/* random target in the world
-	 * return NULL for area == TRUE to prevent remort bugs 
-	 */
-	if ( !strcmp(arg, "wrandom") )
-	    if ( area )
-		return NULL;
-	    else
-		return get_random_room( ch );
+    /* random target in the world
+     * return NULL for area == TRUE to prevent remort bugs 
+     */
+    if ( !strcmp(arg, "wrandom") )
+    {
+        if ( area )
+            return NULL;
+        else
+            return get_random_room( ch );
+    }
 
 	if ( is_number(arg) )
 	    return get_room_index( atoi( arg ) );
@@ -3121,20 +3126,20 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     if (ch->gold < 0)
     {
 /*        bug("deduct costs: gold %d < 0",ch->gold); */
-        sprintf(buf,"Deduct costs: gold %d < 0, player: %s, room %d",
-            ch->gold != NULL ? ch->gold : 0,
+        sprintf(buf,"Deduct costs: gold %ld < 0, player: %s, room %d",
+            ch->gold,
             ch->name != NULL ? ch->name : "Null",
-            ch->in_room->vnum != NULL ? ch->in_room->vnum : 0);
+            ch->in_room != NULL ? ch->in_room->vnum : 0);
         bug(buf,0);
         ch->gold = 0;
     }
     if (ch->silver < 0)
     {
 /*        bug("deduct costs: silver %d < 0",ch->silver); */
-        sprintf(buf,"Deduct costs: silver %d < 0, player: %s, room %d",
-            ch->silver != NULL ? ch->silver : 0,
+        sprintf(buf,"Deduct costs: silver %ld < 0, player: %s, room %d",
+            ch->silver,
             ch->name != NULL ? ch->name : "Null",
-            ch->in_room->vnum != NULL ? ch->in_room->vnum : 0);
+            ch->in_room != NULL ? ch->in_room->vnum : 0);
         bug(buf,0);
         ch->silver = 0;
     }
@@ -3905,7 +3910,7 @@ const char* off_bits_name( tflag flag )
 
 const char* to_bit_name( int where, int flag )
 {
-    char buf[MSL];
+    static char buf[MSL];
     
     switch( where )
     {
