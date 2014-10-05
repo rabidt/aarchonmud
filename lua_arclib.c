@@ -8,8 +8,6 @@
 #include "tables.h"
 #include "mudconfig.h"
 
-bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal, bool avoidable );
-
 /* for iterating */
 LUA_OBJ_TYPE *type_list [] =
 {
@@ -2514,7 +2512,7 @@ static int CH_damage (lua_State *LS)
     }
 
     lua_pushboolean( LS,
-            deal_damage( ud_ch, victim, dam, TYPE_UNDEFINED, damtype, FALSE, kill, FALSE ));
+            deal_damage(ud_ch, victim, dam, TYPE_UNDEFINED, damtype, FALSE, kill) );
     return 1;
 }
 
