@@ -2476,7 +2476,7 @@ void desc_from_descriptor_list( DESCRIPTOR_DATA *desc )
  * Find a room by name
  */
 
-ROOM_INDEX_DATA* get_room_area( AREA_DATA *area, char *argument )
+ROOM_INDEX_DATA* get_room_area( AREA_DATA *area, const char *argument )
 {
     ROOM_INDEX_DATA *room;
     room = get_room_in_range( area->min_vnum, area->max_vnum, argument, TRUE );
@@ -2485,7 +2485,7 @@ ROOM_INDEX_DATA* get_room_area( AREA_DATA *area, char *argument )
     return get_room_in_range( area->min_vnum, area->max_vnum, argument, FALSE );
 }
 
-ROOM_INDEX_DATA* get_room_world( char *argument )
+ROOM_INDEX_DATA* get_room_world( const char *argument )
 {
     ROOM_INDEX_DATA *room;
     room = get_room_in_range( 1, top_vnum_room, argument, TRUE );
