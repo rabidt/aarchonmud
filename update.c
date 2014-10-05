@@ -58,7 +58,6 @@ int mana_gain   args( ( CHAR_DATA *ch ) );
 int move_gain   args( ( CHAR_DATA *ch ) );
 void    mobile_update   args( ( void ) );
 void    mobile_timer_update args( ( void ) );
-void    weather_update  args( ( void ) );
 void    char_update args( ( void ) );
 void    obj_update  args( ( void ) );
 void    aggr_update args( ( void ) );

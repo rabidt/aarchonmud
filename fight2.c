@@ -6,7 +6,6 @@
 #include "merc.h"
 
 bool  check_lose_stance args( (CHAR_DATA *ch) );
-void  set_fighting  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  can_steal     args( ( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose ) );
 bool  check_jam( CHAR_DATA *ch, int odds, bool offhand );
 
