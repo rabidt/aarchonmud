@@ -258,7 +258,6 @@ DEF_DO_FUN(do_heal)
         break;
     }
    
-    extern char *target_name;
     static char tname_buf[MIL];
     sprintf( tname_buf, "%s %s",
           ch->name,

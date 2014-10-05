@@ -4064,6 +4064,7 @@ extern      char last_command [MSL];
 extern      char last_mprog [MSL];
 extern      char last_debug [MSL];
 
+extern      const char *target_name;
 extern      bool was_obj_cast;
 extern      bool was_wish_cast;
 extern      tflag meta_magic;
@@ -4219,6 +4220,8 @@ void describe_item      args( (CHAR_DATA *ch, OBJ_DATA *obj) );
 void wiznet     args( (char *string, CHAR_DATA *ch, OBJ_DATA *obj,
 				   long flag, long flag_skip, int min_level ) );
 void copyover_recover args((void));
+void check_sn_multiplay( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
+void restore_char( CHAR_DATA *victim );
 
 /* alchemy.c */
 OBJ_DATA* obj_on_char( CHAR_DATA *ch, int vnum );
@@ -4393,6 +4396,7 @@ const char *	bin_info_string;
 void    log_error( const char *str );
 void    arm_npc( CHAR_DATA *mob );
 void    cheat_log( const char *str );
+void    rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description );
 
 /* db2.c */
 void load_mobbles( FILE *fp );
@@ -4411,6 +4415,7 @@ int get_enchant_ops( OBJ_DATA *obj, int level );
 void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration );
 void check_enchant_obj( OBJ_DATA *obj );
 void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
+void spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg );
 
 /* fight.c */
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
@@ -4423,7 +4428,9 @@ bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, i
 bool    full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
 bool    deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
 void    dam_message( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, bool immune );
+void    direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn );
 void    update_pos  args( ( CHAR_DATA *victim ) );
+void    set_fighting( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
@@ -4457,6 +4464,7 @@ int     one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wiel
 int     martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 int     get_pkgrade_level( int pts );
 int     get_weapon_damtype( OBJ_DATA *wield );
+void    attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4542,6 +4550,7 @@ void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
 void    affect_strip_flag( CHAR_DATA *ch, int flag );
 void    affect_strip_offensive( CHAR_DATA *ch );
+void    affect_strip_obj( OBJ_DATA *obj, int sn );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    char_from_room  args( ( CHAR_DATA *ch ) );
@@ -4672,6 +4681,7 @@ bool has_focus_obj( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
 int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base );
+int mastery_adjust_cost( int cost, int mastery );
 int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self );
 bool is_offensive( int sn );
 bool is_mental( int sn );
@@ -4680,9 +4690,11 @@ int cha_max_follow( CHAR_DATA *ch );
 int cha_cur_follow( CHAR_DATA *ch );
 int get_save(CHAR_DATA *ch, bool physical);
 ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int misgate_chance );
-bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, int *target, CHAR_DATA **vo );
+bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, int *target, void **vo );
 bool check_dispel( int dis_level, CHAR_DATA *victim, int sn );
 bool check_dispel_magic( int level, CHAR_DATA *victim );
+void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target );
+int check_cha_follow( CHAR_DATA *ch, int required );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
@@ -4939,6 +4951,7 @@ void      remove_bounty args( ( CHAR_DATA *ch ) );
 void    change_align    args( (CHAR_DATA *ch, int change_by) );
 void    drop_align( CHAR_DATA *ch );
 void    update_room_fighting( ROOM_INDEX_DATA *room );
+void    weather_update( void );
 
 /* vshift.c */
 void shift_area( AREA_DATA *area, int shift, bool area_only );
