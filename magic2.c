@@ -50,8 +50,6 @@ DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_where     );
 DECLARE_DO_FUN(do_flee      );
 
-extern char *target_name;
-
 void spell_farsight( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     do_where(ch, target_name);

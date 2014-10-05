@@ -1431,10 +1431,6 @@ DEF_DO_FUN(do_mpvforce)
     return;
 }
 
-/* imped in magic.c */
-extern char *target_name;
-void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target );
-
 /*
  * Lets the mobile cast spells --
  * Beware: this does only crude checking on the target validity
