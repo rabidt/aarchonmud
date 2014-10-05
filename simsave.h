@@ -26,5 +26,7 @@ bool memfile_in_list( const char *filename, MEMFILE *list );
 void mem_sim_save_other();
 void sim_save_other();
 int unlink_pfile( const char *filename );
+bool load_storage_boxes( CHAR_DATA *ch );
+void unload_storage_boxes( CHAR_DATA *ch );
 
 #endif

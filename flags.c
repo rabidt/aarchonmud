@@ -35,6 +35,7 @@
 #include <time.h>
 
 int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
+void print_pkill_expire( CHAR_DATA *ch );
 
 DEF_DO_FUN(do_flag)
 {
@@ -288,7 +289,7 @@ void print_pkill_grades( CHAR_DATA *ch )
     send_to_char( buf, ch );
 }
 
-try_set_hardcore(CHAR_DATA *ch)
+void try_set_hardcore(CHAR_DATA *ch)
 {
     if ( !IS_SET(ch->act, PLR_PERM_PKILL) )
     {
@@ -311,7 +312,7 @@ try_set_hardcore(CHAR_DATA *ch)
 
 }
 
-pkill_confirm(CHAR_DATA *ch, char *arg)
+void pkill_confirm(CHAR_DATA *ch, const char *arg)
 {
     if (ch->pcdata->confirm_pkill)
     {
