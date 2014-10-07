@@ -397,7 +397,7 @@ void load_portal_list()
     }
 }
 
-ROOM_INDEX_DATA* get_portal_room( char *name )
+ROOM_INDEX_DATA* get_portal_room( const char *name )
 {
     PORTAL_DATA *portal;
 
