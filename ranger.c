@@ -14,9 +14,6 @@
 #include <stdlib.h>
 #include "merc.h"
 
-/* Command procedures needed */
-bool saves_dispel( int dis_level, int spell_level, int duration);
-
 /* Forage skill.  Rimbol, 7/97 */
 void do_forage(CHAR_DATA *ch)
 {

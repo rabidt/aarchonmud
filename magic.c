@@ -50,7 +50,6 @@ DECLARE_DO_FUN(do_cast      );
  * Local functions.
  */
 void    say_spell   args( ( CHAR_DATA *ch, int sn ) );
-bool can_cast_transport( CHAR_DATA *ch );
 int get_dagger_focus( CHAR_DATA *ch );
 
 /* imported functions */

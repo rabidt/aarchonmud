@@ -4184,7 +4184,9 @@ char*   ch_name(CHAR_DATA *ch);
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
 RID  *get_random_warfare_room args ( (CHAR_DATA *ch) );
 RID  *get_random_room_area( CHAR_DATA *ch );
+RID  *get_portal_room( const char *name );
 void load_portal_list();
+void show_portal_names( CHAR_DATA *ch );
 
 /* act_info.c */
 void    set_title   args( ( CHAR_DATA *ch, char *title ) );
@@ -4431,6 +4433,8 @@ void    dam_message( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, bool imm
 void    direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn );
 void    update_pos  args( ( CHAR_DATA *victim ) );
 void    set_fighting( CHAR_DATA *ch, CHAR_DATA *victim );
+void    set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger );
+bool    is_opponent( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
@@ -4676,9 +4680,12 @@ int skill_lookup    args( ( const char *name ) );
 int skill_lookup_exact( const char *name );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
+bool saves_dispel( int dis_level, int spell_level, int duration );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg );
 bool has_focus_obj( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
+int get_sn_damage( int sn, int level, CHAR_DATA *ch );
+int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
 void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
 int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base );
 int mastery_adjust_cost( int cost, int mastery );
@@ -4695,6 +4702,8 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn );
 bool check_dispel_magic( int level, CHAR_DATA *victim );
 void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target );
 int check_cha_follow( CHAR_DATA *ch, int required );
+bool can_cast_transport( CHAR_DATA *ch );
+void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int dam_type );
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
@@ -4737,6 +4746,7 @@ char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 
 /* olc_act.c */
 void set_mob_level( CHAR_DATA *mob, int level );
+void set_weapon_dam( OBJ_DATA *pObj, int dam );
 int average_roll( int nr, int type, int bonus );
 int average_mob_hp( int level );
 
@@ -4892,6 +4902,7 @@ char * lpad           args( ( char *argument, int width, char fill ) );
 char * rpad           args( ( char *argument, int width, char fill ) );
 char * ltrim          args( ( const char *s ) );
 const char* aan       args( ( const char *s ) );
+bool is_empty_string( char *s );
 
 /* teleport.c */
 RID *   room_by_name    args( ( char *target, int level, bool error) );

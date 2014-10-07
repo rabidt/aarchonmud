@@ -43,12 +43,11 @@ int  move_gain    args(( CHAR_DATA *ch ));
 
 RELIGION_DATA *get_religion args(( CHAR_DATA *ch ));
 
-ROOM_INDEX_DATA* get_portal_room( char *name );
-
 DECLARE_DO_FUN(do_scan      );
 DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_where     );
 DECLARE_DO_FUN(do_flee      );
+DECLARE_DO_FUN(do_wear      );
 
 void spell_farsight( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
@@ -211,7 +210,6 @@ void spell_call_sidekick( int sn, int level, CHAR_DATA *ch, void *vo,int target 
 {
     AFFECT_DATA af;
     CHAR_DATA *mob;
-    CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     
@@ -653,7 +651,6 @@ void spell_turn_undead( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
-    AFFECT_DATA af;
     int dam;
     
     act( "You call to the gods for aid against the undead.\n\r", ch, NULL, NULL, TO_CHAR );
@@ -736,7 +733,6 @@ void spell_necrosis ( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 void spell_dominate_soul( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int dam;
     int align_change;
     
     if ( ch == victim )
@@ -788,7 +784,6 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     AFFECT_DATA af;
     OBJ_DATA *cor;
     CHAR_DATA *mob;
-    CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     int puppet_skill = get_skill( ch, gsn_puppetry );
@@ -877,7 +872,7 @@ void spell_animate_dead( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     {
         send_to_char( "You raise a zombie and it turns on you!\n\r", ch );
         act( "$n raises a zombie which attacks!", ch, NULL, NULL, TO_ROOM );
-        mob_hit( mob, ch, TYPE_UNDEFINED );
+        set_fighting( mob, ch );
     } 
     else 
     {
@@ -1158,7 +1153,7 @@ void spell_restoration ( int sn, int level, CHAR_DATA *ch, void *vo, int target)
     if ( !was_obj_cast )
     {
         int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
-        factor += factor * get_skill(ch, gsn_anatomy) / 200;
+        factor += factor * skill / 200;
         check_improve(ch, gsn_anatomy, TRUE, 1);
     }
     if ( ch != victim )
@@ -1194,7 +1189,7 @@ void spell_hand_of_siva( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     OBJ_DATA *weapon;
     int i, weapon_level;
     char buf[MAX_STRING_LENGTH];
-    char *arg, *arg2;
+    const char *arg, *arg2;
     bool weapon_2hands = FALSE;
 
     arg = one_argument( target_name, buf ); // weapon name
@@ -1210,7 +1205,7 @@ void spell_hand_of_siva( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
 
     arg2 = one_argument( arg, buf );
-    if ( buf[0] != '\0' && !str_prefix( buf, "twohands" ) || !str_prefix( buf, "2h" ) )
+    if ( (buf[0] != '\0' && !str_prefix(buf, "twohands")) || !strcmp(buf, "2h") )
     {
 	weapon_2hands = TRUE;
 	if( arg2[0] != '\0' )
@@ -1889,10 +1884,8 @@ void spell_tree_golem( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     AFFECT_DATA af;
     CHAR_DATA *mob;
-    CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
-    int mlevel, mhp, chance;
-    int charmed, max;
+    int mlevel;
     int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     if ( ch->in_room->sector_type != SECT_FOREST)
@@ -2090,7 +2083,6 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
 {
     AFFECT_DATA af;
     CHAR_DATA *mob;
-    CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     int snake_count, max_snake;
@@ -2160,9 +2152,6 @@ void spell_sticks_to_snakes( int sn, int level, CHAR_DATA *ch, void *vo,int targ
 void spell_hand_of_god(int sn,int level,CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    CHAR_DATA *tmp_vict,*last_vict,*next_vict;
-    bool found;
-    int dam;
     RELIGION_DATA *rel;    
     
     /* first strike */
@@ -2847,12 +2836,7 @@ void spell_sivas_sacrifice( int sn, int level, CHAR_DATA *ch, void *vo,int targe
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int harm;
-    bool half_dam = FALSE;
     
-    /* reduce effect if opponent is sanced */
-    if ( IS_AFFECTED(victim, AFF_SANCTUARY) )
-	half_dam = TRUE;
-
     ch->mana += skill_table[sn].min_mana;
     harm = ch->mana;
     harm = UMIN( harm, victim->hit - victim->max_hit/8 );
@@ -2890,8 +2874,7 @@ void spell_smotes_anachronism( int sn, int level, CHAR_DATA *ch, void *vo,int ta
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
         
     {
-        if ( !is_same_group( gch, ch )
-	     || was_obj_cast && gch != ch )
+        if ( !is_same_group(gch, ch) || (was_obj_cast && gch != ch) )
             continue;
         
         // timer reduction is limited to PULSE_VIOLENCE to limit stacking
@@ -3288,8 +3271,8 @@ void spell_extinguish(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 void spell_renewal( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     AFFECT_DATA *aff;
-    int cost, type, last_type = 0, base_duration, max_duration;
-    bool last_renew, last_paid = FALSE, found = FALSE;
+    int cost, type, last_type = 0, base_duration = 0, max_duration = 0;
+    bool last_renew = FALSE, last_paid = FALSE, found = FALSE;
 
     for ( aff = ch->affected; aff != NULL; aff = aff->next )
     {
@@ -3583,7 +3566,7 @@ void spell_solar_flare( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     if ( weather_info.sky >= SKY_RAINING || !room_is_sunlit(ch->in_room) )
     {
         send_to_char( "There isn't enough sunshine out for that!\n\r", ch );
-        return FALSE;
+        return;
     }
     
     /* the better the weather, and the brighter the day more powerful */
@@ -3717,7 +3700,6 @@ void spell_shadow_shroud(int sn,int level,CHAR_DATA *ch,void *vo, int target)
 void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     CHAR_DATA *gch;
-    bool found = FALSE;
     int heal;
     int refr;
     int sn1;    
@@ -3740,11 +3722,8 @@ void spell_astarks_rejuvenation( int sn, int level, CHAR_DATA *ch, void *vo, int
 
         for (sn1 = 1; skill_table[sn1].name != NULL; sn1++)
         {
-            if (IS_SPELL(sn1)
-               && is_offensive(sn1)
-               && sn1 != gsn_charm_person
-               && check_dispel(level/2, gch, sn1) )
-            found = TRUE;
+            if ( IS_SPELL(sn1) && is_offensive(sn1) && sn1 != gsn_charm_person )
+                check_dispel(level/2, gch, sn1);
         }
 
     }
@@ -3780,7 +3759,6 @@ void spell_phase(int sn,int level,CHAR_DATA *ch,void *vo, int target)
 void spell_conviction (int sn, int level, CHAR_DATA *ch, void *vo, int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    char buf[MSL];
 
     if (victim == ch)
     {
@@ -3803,7 +3781,7 @@ void spell_conviction (int sn, int level, CHAR_DATA *ch, void *vo, int target)
     
     // opposite aligned targets get hurt
     int align_diff = abs(ch->alignment - victim->alignment);
-    int dam = get_sn_damage( sn, level, ch, victim );
+    int dam = get_sn_damage(sn, level, ch);
     if (IS_GOOD(ch))
         dam = dam * align_diff / 1000;
     else 
@@ -3822,10 +3800,8 @@ void spell_basic_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targ
 {
     AFFECT_DATA af;
     CHAR_DATA *mob;
-    CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
-    int mlevel, mhp, chance;
-    int charmed, max;
+    int mlevel, chance;
      
     if (IS_SET(ch->act, PLR_WAR))
     {
@@ -3884,10 +3860,8 @@ void spell_holy_apparition( int sn, int level, CHAR_DATA *ch, void *vo,int targe
 {
     AFFECT_DATA af;
     CHAR_DATA *mob;
-    CHAR_DATA *check;
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
-    int charmed, max;
       
     if (IS_SET(ch->act, PLR_WAR))
     {
