@@ -143,4 +143,7 @@ extern  const   struct  pkgrade_type    pkgrade_table[];
 
 extern const ACHIEVEMENT achievement_table [];
 
+/* functions */
+bool is_settable( int flag, const struct flag_type *flag_table );
+
 #endif

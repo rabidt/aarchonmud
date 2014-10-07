@@ -14,7 +14,6 @@ DECLARE_DO_FUN( do_look );
 DECLARE_DO_FUN( do_outfit );
 DECLARE_DO_FUN( do_quit );
 DECLARE_DO_FUN( do_visible );
-AREA_DATA *get_vnum_area( int );
 
 typedef struct remort_table REMORT_TABLE;
 
