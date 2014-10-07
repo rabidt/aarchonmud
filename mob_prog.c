@@ -1162,7 +1162,7 @@ bool is_mprog_running()
 }
 
 void program_flow( 
-    char *text,
+    const char *text,
     bool is_lua,
     int pvnum,  /* For diagnostic purposes */
     char *source,  /* the actual MOBprog code */

@@ -40,8 +40,10 @@
 #include "merc.h"
 #include "mob_cmds.h"
 #include "tables.h"
+#include "lua_main.h"
 
 DECLARE_DO_FUN( do_look );
+DECLARE_DO_FUN( do_peace );
 
 /*
  * Command table.
@@ -103,11 +105,11 @@ DEF_DO_FUN(do_mob)
  * Mob command interpreter. Implemented separately for security and speed
  * reasons. A trivial hack of interpret()
  */
-void mob_interpret( CHAR_DATA *ch, char *argument )
+void mob_interpret( CHAR_DATA *ch, const char *argument )
 {
     char buf[MAX_STRING_LENGTH], command[MAX_INPUT_LENGTH];
     int cmd;
-    char *org_arg = argument;
+    //const char *org_arg = argument;
 
     argument = one_argument( argument, command );
 
@@ -762,7 +764,7 @@ DEF_DO_FUN(do_mpjunk)
  * Syntax: mob echoaround [victim] [string]
  */
 
-void mpechoaround( CHAR_DATA *ch, CHAR_DATA *vic, char *txt )
+void mpechoaround( CHAR_DATA *ch, CHAR_DATA *vic, const char *txt )
 {
     act_non_wizi( txt, ch, NULL, vic, TO_NOTVICT );
 }
@@ -788,7 +790,7 @@ DEF_DO_FUN(do_mpechoaround)
  *
  * Syntax: mob echoat [victim] [string]
  */
-void mpechoat( CHAR_DATA *ch, CHAR_DATA *victim, char *argument)
+void mpechoat( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
 {
     act_non_wizi( argument, ch, NULL, victim, TO_VICT );
 }
@@ -826,7 +828,7 @@ DEF_DO_FUN(do_mpecho)
  *
  * Syntax: mob mload [vnum]
  */
-CHAR_DATA * mpmload( CHAR_DATA *ch, char *argument )
+CHAR_DATA * mpmload( CHAR_DATA *ch, const char *argument )
 {
     char            arg[ MAX_INPUT_LENGTH ];
     MOB_INDEX_DATA *pMobIndex;
@@ -1006,7 +1008,7 @@ DEF_DO_FUN(do_mppurge)
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
             sprintf( buf, "Mppurge - Bad argument from mob: %d, room: %d, argument: %s",
                 IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
-                ch->in_room->vnum != NULL ? ch->in_room->vnum : 0, 
+                ch->in_room != NULL ? ch->in_room->vnum : 0, 
                 arg != NULL ? arg : "null");
             bug( buf, 0 );
 	}
@@ -1132,7 +1134,7 @@ DEF_DO_FUN(do_mpat)
 	    break;
 	}
     }
-    sprintf( last_debug, "" );
+    strcpy( last_debug, "" );
 
     return;
 }
@@ -2020,13 +2022,10 @@ DEF_DO_FUN(do_mpqadvance)
     char arg[MAX_INPUT_LENGTH];
     char arg2[MIL];
     char arg3[MIL];
-    char arg4[MIL];
-    int id, increment, old_status, timer;
 
     argument = one_argument( argument, arg );
     argument = one_argument( argument, arg2 );
     argument = one_argument( argument, arg3 );
-    argument = one_argument( argument, arg4 );
 
     if ( arg[0] == 0 || arg2[0] == 0 )
     {
@@ -2112,8 +2111,7 @@ DEF_DO_FUN(do_mpreward)
     static char arg1[MIL];
     static char arg2[MIL];
     static char arg3[MIL];
-    static char buf[MSL];
-    int amount, reward;
+    int amount;
 
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
