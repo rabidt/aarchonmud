@@ -156,7 +156,7 @@ const struct size_type size_table[] =
 };
 
 
-bool is_settable( int flag, struct flag_type *flag_table )
+bool is_settable( int flag, const struct flag_type *flag_table )
 {
     int i;
 

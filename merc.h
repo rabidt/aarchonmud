@@ -4707,11 +4707,11 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
 
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
-void    program_flow    args( ( char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
-				const void *arg1, sh_int arg1type,
+void    program_flow( const char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
+                const void *arg1, sh_int arg1type,
                 const void *arg2, sh_int arg2type,
                 int trig_type,
-                int security) );
+                int security );
 bool    mp_act_trigger( const char *argument, CHAR_DATA *mob, CHAR_DATA *ch, 
                 const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type, int type );
 bool    mp_percent_trigger args( ( CHAR_DATA *mob, CHAR_DATA *ch,               
@@ -4732,7 +4732,10 @@ bool    has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum );
 void    mprog_setup( CHAR_DATA *mob );
 
 /* mob_cmds.c */
-void    mob_interpret   args( ( CHAR_DATA *ch, char *argument ) );
+void    mob_interpret( CHAR_DATA *ch, const char *argument );
+void    mpechoaround( CHAR_DATA *ch, CHAR_DATA *vic, const char *txt );
+void    mpechoat( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
+CD *    mpmload( CHAR_DATA *ch, const char *argument );
 bool    is_r_number( const char *arg );
 int     r_atoi( CHAR_DATA *ch, const char *arg );
 
@@ -4749,6 +4752,7 @@ void set_mob_level( CHAR_DATA *mob, int level );
 void set_weapon_dam( OBJ_DATA *pObj, int dam );
 int average_roll( int nr, int type, int bonus );
 int average_mob_hp( int level );
+AREA_DATA *get_vnum_area( int vnum );
 
 /* obj_prog.c */
 bool op_percent_trigger( const char *trigger, OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type );
@@ -4948,6 +4952,8 @@ bool color_name( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim );
 void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch );
 void show_luavals( CHAR_DATA *ch, CHAR_DATA *to_ch );
 void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit );
+int quest_status( CHAR_DATA *ch, int id );
+int qset_timer( CHAR_DATA *ch, int id );
 void check_kill_quest_completed( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* update.c */
