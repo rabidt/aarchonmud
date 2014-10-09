@@ -1103,9 +1103,9 @@ void do_lock( CHAR_DATA *ch, char *argument )
 		 act("$n locks $p.",ch,obj,NULL,TO_ROOM);
 		 if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 		 {
-		    obj_from_char(key);
 		    act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 		    act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+            extract_obj(key);
 		 }
 		 return;
 	  }
@@ -1130,9 +1130,9 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	  act( "$n locks $p.", ch, obj, NULL, TO_ROOM );
 	  if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 	  {
-	    obj_from_char(key);
 	    act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 	    act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+        extract_obj(key);
 	  }
 	  
 	  return;
@@ -1165,9 +1165,9 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	  act( "$n locks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
 	  if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 		{
-		obj_from_char(key);
 		act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 		act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+        extract_obj(key);
 		}
 	  
 	  /* lock the other side */
@@ -1248,9 +1248,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 		act("$n unlocks $p.",ch,obj,NULL,TO_ROOM);
 		if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 			{
-            extract_obj(key);
 			act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 			act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+            extract_obj(key);
 			}
 		
 		return;
@@ -1280,9 +1280,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	  act( "$n unlocks $p.", ch, obj, NULL, TO_ROOM );
 		if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 			{
-            extract_obj(key);
 			act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 			act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+            extract_obj(key);
 			}
 	  return;
    }
@@ -1316,9 +1316,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	  act( "$n unlocks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
 		if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 			{
-            extract_obj(key);     
 			act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 			act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+            extract_obj(key);
 			}
 	  /* unlock the other side */
 	  if ( ( to_room   = pexit->u1.to_room            ) != NULL
