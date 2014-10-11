@@ -3006,7 +3006,7 @@ static int CH_addaffect (lua_State *LS)
     af.type=skill_lookup( temp );
 
     if (af.type == -1)
-        luaL_error("Invalid skill: %s", temp);
+        luaL_error(LS, "Invalid skill: %s", temp);
 
     /* level */
     af.level=luaL_checkinteger(LS,arg_index++);
