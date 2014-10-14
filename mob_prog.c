@@ -55,7 +55,7 @@ OBJ_DATA* get_mp_obj( CHAR_DATA *ch, char *argument );
 ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, char *arg );
 
 bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name );
-int cmd_eval( int vnum, char *line, int check,
+int cmd_eval( int vnum, const char *line, int check,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, const void *arg2, CHAR_DATA *rch );
 
@@ -467,7 +467,7 @@ bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
     if (ch->in_room == NULL )
     {
         bugf( "get_mob_vnum_room: NULL room for ch %d", ch->pIndexData->vnum );
-        return NULL;
+        return FALSE;
     }
 
     for ( mob = ch->in_room->people; mob; mob = mob->next_in_room )
@@ -523,7 +523,7 @@ bool is_affected_parse( CHAR_DATA *ch, char *buf )
  *
  *----------------------------------------------------------------------
  */
-int cmd_eval( int vnum, char *line, int check,
+int cmd_eval( int vnum, const char *line, int check,
 	CHAR_DATA *mob, CHAR_DATA *ch, 
 	const void *arg1, const void *arg2, CHAR_DATA *rch )
 {
@@ -533,11 +533,11 @@ int cmd_eval( int vnum, char *line, int check,
     OBJ_DATA *obj2 = (OBJ_DATA  *) arg2;
     OBJ_DATA  *lval_obj = NULL;
 
-    char *original, buf[MAX_INPUT_LENGTH], code;
+    const char *original = line;
+    char buf[MAX_INPUT_LENGTH], code;
     int lval = 0, oper = 0, rval = -1;
     int xval = 0;
 
-    original = line;
     line = one_argument( line, buf );
     if ( buf[0] == '\0' || mob == NULL )
 	return FALSE;
@@ -1187,7 +1187,7 @@ void program_flow(
     }
 
     CHAR_DATA *rch = NULL;
-    char *code, *line;
+    const char *code, *line;
     char buf[MAX_STRING_LENGTH];
     char control[MAX_INPUT_LENGTH], data[MAX_STRING_LENGTH];
     
@@ -1530,7 +1530,8 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
 bool mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 {
 
-    char        buf[MAX_INPUT_LENGTH], *p;
+    char buf[MAX_INPUT_LENGTH];
+    const char *p;
     PROG_LIST  *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
