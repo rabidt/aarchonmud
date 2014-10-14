@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include "merc.h"
 #include "recycle.h"
@@ -23,15 +24,16 @@ DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_skills    );
 DECLARE_DO_FUN(do_outfit    );
 DECLARE_DO_FUN(do_unread    );
+DECLARE_DO_FUN(do_stats     );
+DECLARE_DO_FUN(do_etls      );
+DECLARE_DO_FUN(do_board     );
+DECLARE_DO_FUN(do_showrace  );
+DECLARE_DO_FUN(do_cmotd     );
 
 extern bool            wizlock;        /* Game is wizlocked        */
 extern bool            newlock;        /* Game is newlocked        */
 
-bool    check_reconnect     args( ( DESCRIPTOR_DATA *d, char *name,
-					bool fConn ) );
-bool    check_playing       args( ( DESCRIPTOR_DATA *d, char *name ) );
 void show_races_to_d( DESCRIPTOR_DATA *d );
-
 void enter_game args((DESCRIPTOR_DATA *d));
 void take_rom_basics args((DESCRIPTOR_DATA *d));
 void take_class_defaults args((DESCRIPTOR_DATA *d));
@@ -39,44 +41,34 @@ void take_default_weapon args((DESCRIPTOR_DATA *d));
 void newbie_alert args((DESCRIPTOR_DATA *d));
 void take_default_stats args((CHAR_DATA *ch));
 void auto_assign_stats args((CHAR_DATA *ch));
-bool parse_roll_stats args((CHAR_DATA *ch,char *argument));
-void do_stats args((CHAR_DATA *ch, char *argument));
-void do_etls args((CHAR_DATA *ch, char *argument));
 void skill_reimburse( CHAR_DATA *ch );
 
-bool	get_name			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_old_password		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	confirm_new_name		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_new_password		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	confirm_new_password	args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_new_race		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_new_sex			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_new_class		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_alignment		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	default_choice		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	gen_groups			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	pick_weapon			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	read_imotd			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	read_motd			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	break_connect		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_creation_mode		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	roll_stats			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-/* It would be nice to have colour in creation!!  Added by Quirky, June 2003 */
-bool	get_colour		args( ( DESCRIPTOR_DATA *d, char *argument ) );
+#define DECLARE_NANNY_FUN(func) bool func( DESCRIPTOR_DATA *d, const char *argument )
+#define DEF_NANNY_FUN(func) bool func( DESCRIPTOR_DATA *d, const char *argument )
 
-DECLARE_DO_FUN( do_board );
-
-void  penalty_severity  args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_confirm   args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_hours     args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_points    args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_penlist   args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_finish    args( (DESCRIPTOR_DATA *d, char * argument ) );
+DECLARE_NANNY_FUN(get_name);
+DECLARE_NANNY_FUN(get_old_password);
+DECLARE_NANNY_FUN(confirm_new_name);
+DECLARE_NANNY_FUN(get_new_password);
+DECLARE_NANNY_FUN(confirm_new_password);
+DECLARE_NANNY_FUN(get_new_race);
+DECLARE_NANNY_FUN(get_new_sex);
+DECLARE_NANNY_FUN(get_new_class);
+DECLARE_NANNY_FUN(get_alignment);
+DECLARE_NANNY_FUN(default_choice);
+DECLARE_NANNY_FUN(gen_groups);
+DECLARE_NANNY_FUN(pick_weapon);
+DECLARE_NANNY_FUN(read_imotd);
+DECLARE_NANNY_FUN(read_motd);
+DECLARE_NANNY_FUN(break_connect);
+DECLARE_NANNY_FUN(get_creation_mode);
+DECLARE_NANNY_FUN(roll_stats);
+DECLARE_NANNY_FUN(get_colour);
 
 /*
  * Deal with sockets that haven't logged in yet.
  */
-void nanny( DESCRIPTOR_DATA *d, char *argument )
+void nanny( DESCRIPTOR_DATA *d, const char *argument )
 {
       /* Delete leading spaces UNLESS character is writing a note */
       if (d->connected != CON_NOTE_TEXT)
@@ -351,7 +343,7 @@ bool check_parse_name( const char *name, bool newchar )
     * Lock out IllIll twits.
     */
     {
-        char *pc;
+        const char *pc;
         bool fIll,adjcaps = FALSE,cleancaps = FALSE;
         unsigned int total_caps = 0;
         
@@ -433,10 +425,9 @@ void set_creation_state(DESCRIPTOR_DATA *d, int cmode)
     return;
 }
 
-
-bool get_name ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_name)
 {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH], argbuf[MIL];
     bool fOld;
     
     if (con_state(d)!=CON_GET_NAME)
@@ -452,7 +443,10 @@ bool get_name ( DESCRIPTOR_DATA *d, char *argument )
         return FALSE;
     }
     
-    argument[0] = UPPER(argument[0]);
+    //argument[0] = UPPER(argument[0]);
+    strcpy(argbuf, argument);
+    argbuf[0] = UPPER(argument[0]);
+    argument = argbuf;
 
     fOld = load_char_obj( d, argument );
     if ( !check_parse_name( argument, (bool)(!fOld) ) )
@@ -531,7 +525,7 @@ bool get_name ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	get_old_password ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_old_password)
 {
 	CHAR_DATA *ch = d->character;
 	char buf[MAX_STRING_LENGTH];
@@ -575,7 +569,7 @@ bool	get_old_password ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	confirm_new_name ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(confirm_new_name)
 {
 	char buf[MAX_STRING_LENGTH];
 
@@ -608,7 +602,7 @@ bool	confirm_new_name ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	get_new_password ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_new_password)
 {
 	char *pwdnew;
 	char *p;
@@ -656,7 +650,7 @@ bool	get_new_password ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	confirm_new_password ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(confirm_new_password)
 {
 	CHAR_DATA *ch=d->character;
 
@@ -681,7 +675,7 @@ bool	confirm_new_password ( DESCRIPTOR_DATA *d, char *argument )
 }
 
 
-bool get_colour( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_colour)
 {
 	CHAR_DATA *ch = d->character;
 
@@ -705,7 +699,7 @@ bool get_colour( DESCRIPTOR_DATA *d, char *argument )
 	return FALSE;
 }
 
-bool get_creation_mode(DESCRIPTOR_DATA *d, char *argument)
+DEF_NANNY_FUN(get_creation_mode)
 {
 	char arg[MAX_STRING_LENGTH];
 	char msg[MAX_STRING_LENGTH];
@@ -758,7 +752,7 @@ bool get_creation_mode(DESCRIPTOR_DATA *d, char *argument)
 
 
 
-bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_new_race)
 {
     char arg[MAX_STRING_LENGTH];
     CHAR_DATA *ch = d->character;
@@ -766,8 +760,6 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
     char msg[MAX_STRING_LENGTH];
     char buffer[MAX_STRING_LENGTH*2];
     char *pbuff; 
-    char colour;
-    char racename[15];
     
     if (con_state(d) != CON_GET_NEW_RACE)
     {
@@ -903,7 +895,6 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
     }
 
     ch->race = race;
-    sprintf( racename, pc_race_table[race].name );
 
     /* strip affects */
     while ( ch->affected )
@@ -927,10 +918,8 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
     ch->pcdata->points =0;
     ch->size = pc_race_table[race].size;
     
-    sprintf( msg, "\n\r     {cFor your first incarnation, you have chosen to be a%s %s.{x\n\r\n\r",
-	(racename[0]=='a'||racename[0]=='e'||racename[0]=='i'
-	 ||racename[0]=='o'||racename[0]=='u'||racename[0]=='y') ? "n" : "",
-	racename ); 
+    sprintf( msg, "\n\r     {cFor your first incarnation, you have chosen to be %s %s.{x\n\r\n\r",
+        aan(pc_race_table[race].name), pc_race_table[race].name );
     pbuff = buffer;
     colourconv( pbuff, msg, d->character );
     write_to_buffer(d, buffer, 0);
@@ -982,7 +971,7 @@ void show_races_to_d( DESCRIPTOR_DATA *d )
 }
 
 
-bool	get_new_sex ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_new_sex)
 {
 	CHAR_DATA *ch = d->character;
 	char msg[MAX_STRING_LENGTH];
@@ -1023,14 +1012,13 @@ bool	get_new_sex ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_new_class)
 {
 	int i;
 	char buf[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH];
 	char *pbuff;
 	char arg[MAX_STRING_LENGTH];
-	char classname[20];
 	CHAR_DATA *ch = d->character;
 
 	if (con_state(d)!=CON_GET_NEW_CLASS)
@@ -1168,29 +1156,24 @@ bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
 	}
 
 	ch->class = i;
-	sprintf( classname, class_table[i].name );
 
-	sprintf( buf, "\n\r     {cYou have chosen to be a%s %s.{x\n\r\n\r",
-	    (classname[0]=='a'||classname[0]=='e'||classname[0]=='i'
-	     || classname[0]=='o'||classname[0]=='u'||classname[0]=='y') ? "n" : "",
-	     classname ); 
-	    pbuff = buffer;
-	    colourconv( pbuff, buf, d->character );
-	    write_to_buffer(d, buffer, 0);
+    sprintf( buf, "\n\r     {cYou have chosen to be %s %s.{x\n\r\n\r", aan(class_table[i].name), class_table[i].name );
+    pbuff = buffer;
+    colourconv( pbuff, buf, d->character );
+    write_to_buffer(d, buffer, 0);
 
 	return TRUE;
 }
 
 
 
-bool	get_alignment ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_alignment)
 {
 	CHAR_DATA *ch=d->character;
     char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2]="";
 	char *pbuff; 
 	char arg[MAX_STRING_LENGTH];
-        int align;
 
 	if (con_state(d)!= CON_GET_ALIGNMENT)
 	{
@@ -1356,7 +1339,7 @@ void newbie_alert(DESCRIPTOR_DATA *d)
 }
 
 
-bool	default_choice ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(default_choice)
 {
 	char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2];
@@ -1384,7 +1367,7 @@ bool	default_choice ( DESCRIPTOR_DATA *d, char *argument )
 		take_class_defaults(d); 
 		return TRUE;
 	default:
-		sprintf(msg,"{CPlease answer yes/no (Y/N)?{x ",0);
+		sprintf(msg, "{CPlease answer yes/no (Y/N)?{x ");
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character ); 
 		write_to_buffer(d, buffer ,0);
@@ -1397,7 +1380,7 @@ bool	default_choice ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	gen_groups ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(gen_groups)
 {
 	CHAR_DATA *ch=d->character;
 	char buf[MAX_STRING_LENGTH];
@@ -1437,12 +1420,11 @@ bool	gen_groups ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	pick_weapon ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(pick_weapon)
 {
 	int w, weapon;
 	CHAR_DATA *ch=d->character;
 	char msg[MAX_STRING_LENGTH];
-	char tmp[10];
 	char buffer[MAX_STRING_LENGTH*2];
         char *pbuff;    /* pointer to buff */
 
@@ -1542,7 +1524,7 @@ bool	pick_weapon ( DESCRIPTOR_DATA *d, char *argument )
 	return TRUE;
 }
 
-bool roll_stats ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(roll_stats)
 {
 	CHAR_DATA *ch=d->character;
 
@@ -1590,7 +1572,7 @@ bool roll_stats ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	read_imotd ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(read_imotd)
 {
     if (!is_granted_name(d->character,"imotd"))
 		return read_motd(d, argument);
@@ -1608,7 +1590,7 @@ bool	read_imotd ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	read_motd ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(read_motd)
 {
 	if (con_state(d) != CON_READ_MOTD)
 	{
@@ -1621,7 +1603,7 @@ bool	read_motd ( DESCRIPTOR_DATA *d, char *argument )
 }
 
 
-bool	break_connect ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(break_connect)
 {
 	DESCRIPTOR_DATA *d_old, *d_next;
 
@@ -1677,7 +1659,7 @@ bool	break_connect ( DESCRIPTOR_DATA *d, char *argument )
 /*
  * Look for link-dead player to reconnect.
  */
-bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
+bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn )
 {
     CHAR_DATA *ch;
     char buf[MAX_STRING_LENGTH];
@@ -1742,7 +1724,7 @@ bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
 /*
  * Check if already playing.
  */
-bool check_playing( DESCRIPTOR_DATA *d, char *name )
+bool check_playing( DESCRIPTOR_DATA *d, const char *name )
 {
 	DESCRIPTOR_DATA *dold;
 
@@ -1997,7 +1979,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
     if ( IS_IMMORTAL(ch))
     {
         // Refresh imm commands.
-        do_login_grant(ch);
+        login_grant(ch);
     }
 
     return;

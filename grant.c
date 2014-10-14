@@ -241,7 +241,7 @@ void revoke_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, bool removeOnly 
         return;
 }
 
-void do_login_grant(CHAR_DATA *ch)
+void login_grant( CHAR_DATA *ch )
 {
     char buf[MAX_STRING_LENGTH];
     int cmd;

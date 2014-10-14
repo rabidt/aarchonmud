@@ -46,7 +46,6 @@ DECLARE_DO_FUN(do_groups    );
 void war_remove( CHAR_DATA *ch, bool killed );
 bool can_order( char *command, CHAR_DATA *victim );
 void smash_beep_n_blink( char *str );
-void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char, bool check_visible );
 void quit_char( CHAR_DATA *ch );
 void add_auto_auth( char *name );
 void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim );
