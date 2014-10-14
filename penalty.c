@@ -25,7 +25,6 @@ void delete_penalty_node(PENALTY_DATA *node);
 PENALTY_DATA *new_penalty(CHAR_DATA *imm, CHAR_DATA *victim);
 int show_penalties_by_player(CHAR_DATA *imm, char *victim_name, int played, int format);
 void show_penalty_type(CHAR_DATA *ch, char *penname);
-void penalty_finish  ( DESCRIPTOR_DATA *d, char * argument );
 void check_penlist();
 void load_crime_list(void);
 void save_crime_list(void);
@@ -615,7 +614,7 @@ void delete_penalty_node(PENALTY_DATA *node)
 }
 
 /* Handle CON_PENALTY_SEVERITY state */
-void  penalty_severity( DESCRIPTOR_DATA *d, char * argument )
+void penalty_severity( DESCRIPTOR_DATA *d, const char *argument )
 {
    CHAR_DATA *ch = d->character;
    PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -681,7 +680,7 @@ void  penalty_severity( DESCRIPTOR_DATA *d, char * argument )
 }
 
 /* Handle CON_PENALTY_HOURS state */
-void penalty_hours ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_hours( DESCRIPTOR_DATA *d, const char *argument )
 {
     CHAR_DATA *ch = d->character;
     PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -737,7 +736,7 @@ void penalty_hours ( DESCRIPTOR_DATA *d, char * argument )
 }
 
 /* Handle CON_PENALTY_POINTS state */
-void  penalty_points  ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_points( DESCRIPTOR_DATA *d, const char *argument )
 {
    CHAR_DATA *ch = d->character;
    PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -785,7 +784,7 @@ void  penalty_points  ( DESCRIPTOR_DATA *d, char * argument )
 }
 
 /* Handle CON_PENALTY_CONFIRM state */
-void  penalty_confirm ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_confirm( DESCRIPTOR_DATA *d, const char *argument )
 {
    CHAR_DATA *ch = d->character;
    PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -831,7 +830,7 @@ bool can_remove_penalty( CHAR_DATA *ch, PENALTY_DATA *pen )
 /* Note: Coming into this function, p->duration contains victim->playing. 
          This is just a hack to pass a parameter. -Rim */
 /* Handle CON_PENALTY_PENLIST state (for pardon and parole) */
-void penalty_penlist ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_penlist( DESCRIPTOR_DATA *d, const char *argument )
 {
    CHAR_DATA *ch = d->character;
    PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -923,7 +922,7 @@ void penalty_penlist ( DESCRIPTOR_DATA *d, char * argument )
 
 
 /* Handle CON_PENALTY_FINISH state */
-void penalty_finish  ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
 {
     char buf[MSL], to_buf[MSL];   
 

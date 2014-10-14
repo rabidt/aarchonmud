@@ -29,8 +29,6 @@ char *string_lineadd( char *, char *, int );
 char *numlineas( char * );
 char *get_line( char *str, char *buf );
 
-/* Called by string_add() */
-void penalty_finish  ( DESCRIPTOR_DATA *d, char * argument );
 
 /*****************************************************************************
  Name:      del_last_line
