@@ -1471,7 +1471,7 @@ int exp_per_level(CHAR_DATA *ch)
 }
 
 /* this procedure handles the input parsing for the skill generator */
-bool parse_gen_groups(CHAR_DATA *ch,char *argument)
+bool parse_gen_groups( CHAR_DATA *ch, const char *argument )
 {
    char arg[MAX_INPUT_LENGTH];
    char buf[100];

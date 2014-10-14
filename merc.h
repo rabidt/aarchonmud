@@ -4171,6 +4171,7 @@ void    nuke_pets   args( ( CHAR_DATA *ch ) );
 void    die_follower    args( ( CHAR_DATA *ch, bool preservePets ) );
 bool    is_same_group   args( ( CHAR_DATA *ach, CHAR_DATA *bch ) );
 void    info_message  args( ( CHAR_DATA *ch, char *argument, bool show_to_char) );
+void    info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char, bool check_visible );
 const char *makedrunk args( (const char *string, CHAR_DATA *ch) );
 void    printf_to_char args( ( CHAR_DATA *ch, char *fmt, ...) );
 void    logpf args( (char * fmt, ...) );
@@ -4258,6 +4259,7 @@ int  get_auth_state               args( ( CHAR_DATA *ch ) );
 void add_to_auth                  args( ( CHAR_DATA *ch ) );
 void remove_from_auth             args( ( char *name ) );
 void check_auth_state             args( ( CHAR_DATA *ch ) );
+bool check_auto_auth( char *name );
 AUTH_LIST *get_auth_name          args( ( char *name ) ) ;
 void auth_update			      args( ( void ) );
 
@@ -4481,6 +4483,7 @@ void reset_pkill_expire( CHAR_DATA *ch );
 /* grant.c */
 bool is_granted_name    args( ( CHAR_DATA *ch, char *argument ) );
 bool is_granted      args( ( CHAR_DATA *ch, DO_FUN *do_fun ) );
+void login_grant( CHAR_DATA *ch );
 
 /* grep.c */
 bool is_obj_ingame( OBJ_INDEX_DATA *obj );
@@ -4706,6 +4709,9 @@ int check_cha_follow( CHAR_DATA *ch, int required );
 bool can_cast_transport( CHAR_DATA *ch );
 void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int dam_type );
 
+/* marry.c */
+void check_spouse( CHAR_DATA *ch );
+
 /* mob_prog.c */
 bool    is_mprog_running  args( (void) );
 void    program_flow( const char *text, bool is_lua, int vnum, char *source, CHAR_DATA *mob, CHAR_DATA *ch,
@@ -4774,6 +4780,12 @@ void delete_penalty_node args((PENALTY_DATA *node));
 void penalty_update args((CHAR_DATA *ch));
 void   load_crime_list args( ( void ) );
 void   save_crime_list args( ( void ) );
+void penalty_severity( DESCRIPTOR_DATA *d, const char *argument );
+void penalty_confirm( DESCRIPTOR_DATA *d, const char *argument );
+void penalty_hours( DESCRIPTOR_DATA *d, const char *argument );
+void penalty_points( DESCRIPTOR_DATA *d, const char *argument );
+void penalty_penlist( DESCRIPTOR_DATA *d, const char *argument );
+void penalty_finish( DESCRIPTOR_DATA *d, const char *argument );
 
 /* lookup.c */
 int race_lookup args( ( const char *name) );
@@ -4787,6 +4799,9 @@ int creation_mode args( ( DESCRIPTOR_DATA *d ) );
 void set_con_state args((DESCRIPTOR_DATA *d, int cstate));
 void set_creation_state args((DESCRIPTOR_DATA *d, int cmode));
 bool check_parse_name( const char *name, bool newchar );
+bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn );
+bool check_playing( DESCRIPTOR_DATA *d, const char *name );
+void nanny( DESCRIPTOR_DATA *d, const char *argument );
 
 /* playback.c */
 void log_chan( CHAR_DATA * ch, char * text , sh_int channel );
@@ -4818,7 +4833,7 @@ void rprog_timer_init( ROOM_INDEX_DATA *room );
 void rprog_setup( ROOM_INDEX_DATA *room );
 
 /* skills.c */
-bool    parse_gen_groups args( ( CHAR_DATA *ch,char *argument ) );
+bool parse_gen_groups( CHAR_DATA *ch, const char *argument );
 void    list_group_costs args( ( CHAR_DATA *ch ) );
 void    list_group_known args( ( CHAR_DATA *ch ) );
 int     exp_per_level   args( ( CHAR_DATA *ch ) );
@@ -4878,6 +4893,8 @@ int modified_level( CHAR_DATA *ch );
 int get_pc_hitdice( int level );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 void update_flags( CHAR_DATA *ch );
+void calc_stats( CHAR_DATA *ch );
+void show_dice( CHAR_DATA *ch );
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 struct pc_race_type* get_morph_pc_race_type( CHAR_DATA *ch );
 int get_encumberance( CHAR_DATA *ch );
@@ -4887,6 +4904,7 @@ int get_ac( CHAR_DATA *ch );
 int get_hitroll( CHAR_DATA *ch );
 int get_damroll( CHAR_DATA *ch );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
+bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 
 /* string.c */
 void   string_edit    args( ( CHAR_DATA *ch, char **pString ) );

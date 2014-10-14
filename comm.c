@@ -137,11 +137,7 @@ bool    read_from_descriptor    args( ( DESCRIPTOR_DATA *d ) );
 /*
  * Other local functions (OS-independent).
  */
-bool    check_reconnect     args( ( DESCRIPTOR_DATA *d, char *name,
-            bool fConn ) );
-bool    check_playing       args( ( DESCRIPTOR_DATA *d, char *name ) );
 int     main            args( ( int argc, char **argv ) );
-void    nanny           args( ( DESCRIPTOR_DATA *d, char *argument ) );
 bool    process_output      args( ( DESCRIPTOR_DATA *d, bool fPrompt ) );
 void    read_from_buffer    args( ( DESCRIPTOR_DATA *d ) );
 void    stop_idling     args( ( CHAR_DATA *ch ) );
