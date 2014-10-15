@@ -14,7 +14,7 @@
 #include "recycle.h"
 #include "lua_scripting.h"
 
-#define RPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
+#define RPEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
 const struct olc_cmd_type rpedit_table[] =
 {
@@ -30,7 +30,7 @@ const struct olc_cmd_type rpedit_table[] =
    {  NULL,       0              }
 };
 
-void rpedit( CHAR_DATA *ch, char *argument)
+void rpedit( CHAR_DATA *ch, const char *argument )
 {
     PROG_CODE *pRcode;
     char arg[MAX_INPUT_LENGTH];

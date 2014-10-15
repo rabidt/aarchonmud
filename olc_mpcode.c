@@ -16,7 +16,7 @@
 #include "lua_scripting.h"
 #include "lua_main.h"
 
-#define MPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
+#define MPEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
 const struct olc_cmd_type mpedit_table[] =
 {
@@ -35,7 +35,7 @@ const struct olc_cmd_type mpedit_table[] =
    {  NULL,       0              }
 };
 
-void mpedit( CHAR_DATA *ch, char *argument)
+void mpedit( CHAR_DATA *ch, const char *argument)
 {
     PROG_CODE *pMcode;
     char arg[MAX_INPUT_LENGTH];

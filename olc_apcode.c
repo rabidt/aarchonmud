@@ -14,7 +14,7 @@
 #include "recycle.h"
 #include "lua_scripting.h"
 
-#define APEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
+#define APEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
 const struct olc_cmd_type apedit_table[] =
 {
@@ -29,7 +29,7 @@ const struct olc_cmd_type apedit_table[] =
    {  NULL,       0              }
 };
 
-void apedit( CHAR_DATA *ch, char *argument)
+void apedit( CHAR_DATA *ch, const char *argument)
 {
     PROG_CODE *pAcode;
     char arg[MAX_INPUT_LENGTH];
