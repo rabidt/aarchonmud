@@ -14,7 +14,7 @@
 #include "recycle.h"
 #include "lua_scripting.h"
 
-#define OPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
+#define OPEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
 const struct olc_cmd_type opedit_table[] =
 {
@@ -30,7 +30,7 @@ const struct olc_cmd_type opedit_table[] =
    {  NULL,       0              }
 };
 
-void opedit( CHAR_DATA *ch, char *argument)
+void opedit( CHAR_DATA *ch, const char *argument )
 {
     PROG_CODE *pOcode;
     char arg[MAX_INPUT_LENGTH];

@@ -47,7 +47,7 @@ char * mprog_type_to_name ( int type );
 #define ALT_FLAGVALUE_TOGGLE( _blargh, _table, _arg ) \
     _blargh = alt_flagvalue_toggle( _blargh, _table, _arg )
 
-long alt_flagvalue( const struct flag_type *flag_table, char *argument )
+long alt_flagvalue( const struct flag_type *flag_table, const char *argument )
 {
     long buf = 0;
     int flag;
@@ -63,8 +63,7 @@ long alt_flagvalue( const struct flag_type *flag_table, char *argument )
     return buf;
 }
 
-long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table,
-			   char *argument )
+long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table, const char *argument )
 {
     long buf = old_flag;
     int flag;
@@ -81,15 +80,15 @@ long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table,
 }
 
 /* Return TRUE if area changed, FALSE if not. */
-#define REDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define OEDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define MEDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define AEDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define HEDIT( fun )    bool fun( CHAR_DATA *ch, char *argument )
+#define REDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define OEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define MEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define AEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define HEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
-#define RACEEDIT( fun )    bool fun( CHAR_DATA *ch, char *argument )
-#define SKILLEDIT( fun )   bool fun( CHAR_DATA *ch, char *argument )
-#define REMORTEDIT( fun )  bool fun( CHAR_DATA *ch, char *argument )
+#define RACEEDIT( fun )    bool fun( CHAR_DATA *ch, const char *argument )
+#define SKILLEDIT( fun )   bool fun( CHAR_DATA *ch, const char *argument )
+#define REMORTEDIT( fun )  bool fun( CHAR_DATA *ch, const char *argument )
 
 
 
@@ -104,7 +103,7 @@ struct olc_help_type
 
 
 
-bool show_version( CHAR_DATA *ch, char *argument )
+bool show_version( CHAR_DATA *ch, const char *argument )
 {
     send_to_char( VERSION, ch );
     send_to_char( "\n\r", ch );
@@ -278,7 +277,7 @@ Name:		show_help
 Purpose:	Displays help for many tables used in OLC.
 Called by:	olc interpreters.
 ****************************************************************************/
-bool show_help( CHAR_DATA *ch, char *argument )
+bool show_help( CHAR_DATA *ch, const char *argument )
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -1948,7 +1947,7 @@ EXIT_DATA* get_revers_exit( ROOM_INDEX_DATA *pRoom, int door, bool changed )
 }
 
 /* Local function. */
-bool change_exit( CHAR_DATA *ch, char *argument, int door )
+bool change_exit( CHAR_DATA *ch, const char *argument, int door )
 {
     ROOM_INDEX_DATA *pRoom;
     EXIT_DATA *rev_exit;
@@ -3318,7 +3317,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 
 
 
-bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *argument)
+bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const char *argument)
 {
     int value;
 
@@ -4303,7 +4302,7 @@ OEDIT( oedit_notes)
     return FALSE;
 }
 
-bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, char *argument, int value )
+bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, const char *argument, int value )
 {
     if ( argument[0] == '\0' )
     {
@@ -4324,7 +4323,7 @@ Name:		oedit_values
 Purpose:	Finds the object and sets its value.
 Called by:	The four valueX functions below. (now five -- Hugin )
 ****************************************************************************/
-bool oedit_values( CHAR_DATA *ch, char *argument, int value )
+bool oedit_values( CHAR_DATA *ch, const char *argument, int value )
 {
     OBJ_INDEX_DATA *pObj;
     
@@ -7117,7 +7116,7 @@ HEDIT( hedit_delete)
 /* percentage values */
 
 #define CMD(cmd) (strcmp(command, cmd)==0)
-bool medit_percent ( CHAR_DATA *ch, char *argument, char* command)
+bool medit_percent ( CHAR_DATA *ch, const char *argument, char* command)
 {
     MOB_INDEX_DATA *pMob;
     char arg[MAX_INPUT_LENGTH];
