@@ -4198,6 +4198,7 @@ void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
 void    show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 void    check_achievement( CHAR_DATA *ch );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
+HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
 
 /* act_move.c */
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
@@ -4288,6 +4289,9 @@ void handle_con_note_subject (DESCRIPTOR_DATA *d, const char * argument);
 void handle_con_note_expire(DESCRIPTOR_DATA *d, const char * argument);
 void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument);
 void handle_con_note_finish (DESCRIPTOR_DATA *d, const char * argument);
+
+/* buildutil.c */
+void clone_warning( CHAR_DATA *ch, AREA_DATA *area );
 
 /* clan.c */
 void check_clan_eq  args( ( CHAR_DATA *ch ) );
@@ -4772,6 +4776,9 @@ bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage
 void op_timer_trigger( OBJ_DATA *obj );
 void oprog_timer_init( OBJ_DATA *obj );
 void oprog_setup( OBJ_DATA *obj );
+
+/* olc_rpcode.c */
+void rpedit( CHAR_DATA *ch, const char *argument );
 
 /* penalty.c */
 void save_penalties args( ( void ) );
