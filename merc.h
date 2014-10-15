@@ -4686,6 +4686,7 @@ int get_duration( int sn, int level );
 int get_duration_by_type( int type, int level );
 int skill_lookup    args( ( const char *name ) );
 int skill_lookup_exact( const char *name );
+int spell_lookup( const char *name );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_dispel( int dis_level, int spell_level, int duration );
