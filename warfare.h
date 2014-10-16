@@ -34,6 +34,7 @@ void war_remove( CHAR_DATA *ch, bool killed );
 bool is_same_team( CHAR_DATA *ch1, CHAR_DATA *ch2 );
 void war_end( bool success );
 bool in_religion_war( CHAR_DATA *ch );
+void proc_startwar( CHAR_DATA *ch, const char *argument, bool pay );
 
 /* Warfare system definitions - Viper */
 #define ARMAGEDDON_WAR  0
