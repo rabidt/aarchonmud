@@ -58,6 +58,7 @@ extern LUA_OBJ_TYPE HELP_type;
 extern LUA_OBJ_TYPE DESCRIPTOR_type;
 
 void register_globals( lua_State *LS );
+void free_luaval( LUA_EXTRA_VAL *luaval );
 
 /* moved to merc.h cause what if a file calls 
    valid_CH without including lua_arclib.h?
