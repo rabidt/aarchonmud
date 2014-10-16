@@ -701,7 +701,6 @@ void do_fishing(CHAR_DATA *ch)
 {
 	OBJ_DATA *fish;
 	CHAR_DATA *mob;    
-	extern int top_obj_index;
 	int skill, chance, level;
 	
 	skill = get_skill(ch, gsn_fishing);
@@ -925,7 +924,6 @@ DEF_DO_FUN(do_treat_weapon)
 {
 	char arg[MAX_STRING_LENGTH];           
 	OBJ_DATA *obj, *herb;
-	AFFECT_DATA af;
 	int percent,skill;
 	int flag_bit;
 	
@@ -1024,6 +1022,7 @@ DEF_DO_FUN(do_treat_weapon)
 	if ( percent < skill - flag_add_malus(obj) )
 	{
 	    /*
+        AFFECT_DATA af;
 	    af.where     = TO_WEAPON;
 	    af.type      = gsn_poison;
 	    af.level     = ch->level * percent / 100;
