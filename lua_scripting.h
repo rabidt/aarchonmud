@@ -38,6 +38,7 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
 void save_lboards();
 void load_lboards();
 void check_lboard_reset();
+void check_mprog( lua_State *LS, int vnum, const char *code );
 DECLARE_DO_FUN(do_lua);
 bool run_lua_interpret( DESCRIPTOR_DATA *d );
 void lua_unregister_desc( DESCRIPTOR_DATA *d );

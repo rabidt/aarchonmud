@@ -4151,6 +4151,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #include "lua_scripting.h"
 #include "tattoo.h"
 #include "recycle.h"
+#include "lookup.h"
 
 /*
  * Our function prototypes.
@@ -4389,6 +4390,7 @@ int dice        args( ( int number, int size ) );
 int interpolate args( ( int level, int value_00, int value_32 ) );
 void    smash_tilde args( ( char *str ) );
 const char* smash_tilde_cc( const char *str );
+char*   smash_tilde_cpy( char *dest, const char *source );
 bool    str_cmp     args( ( const char *astr, const char *bstr ) );
 bool    str_prefix  args( ( const char *astr, const char *bstr ) );
 bool    str_infix   args( ( const char *astr, const char *bstr ) );
