@@ -15,16 +15,12 @@
 #include "recycle.h"
 
 
-/* Externals */
-bool exists_player( char *name );
-
 /* Local Prototypes */
-bool process_penalty( CHAR_DATA *ch, char *argument, char *pentype );
+bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype );
 char *penalty_status_name(int status);
 void delete_penalty_node(PENALTY_DATA *node);
 PENALTY_DATA *new_penalty(CHAR_DATA *imm, CHAR_DATA *victim);
-int show_penalties_by_player(CHAR_DATA *imm, char *victim_name, int played, int format);
-void show_penalty_type(CHAR_DATA *ch, char *penname);
+void show_penalty_type(CHAR_DATA *ch, const char *penname);
 void check_penlist();
 void load_crime_list(void);
 void save_crime_list(void);
@@ -122,7 +118,7 @@ DEF_DO_FUN(do_nonote)
 /* Check if another imm is already penalising victim to prevent
  * dealing out penalties twice --Bobble
  */
-bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, char *pentype )
+bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, const char *pentype )
 {
     DESCRIPTOR_DATA *d;
     CHAR_DATA *wch;
@@ -145,7 +141,7 @@ bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, char *pentype )
 
 /* Apply penalty to character.  
 If applied successfully return TRUE, else return FALSE. */
-bool process_penalty( CHAR_DATA *ch, char *argument, char *pentype )
+bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype )
 {
     sh_int pen;
     char arg[MIL];
@@ -338,7 +334,7 @@ bool process_penalty( CHAR_DATA *ch, char *argument, char *pentype )
 }
 
 /* Display info about a type of penalty */
-void show_penalty_type(CHAR_DATA *ch, char *penname)
+void show_penalty_type(CHAR_DATA *ch, const char *penname)
 {
     int i, pen;
 
@@ -376,7 +372,7 @@ void show_penalty_type(CHAR_DATA *ch, char *penname)
    Format 3 = show all penalties as a report (i.e. do_penlist),
    If no penalties are found for this player, return will be 0. */
 
-int show_penalties_by_player(CHAR_DATA *ch, char *victim_name, int victim_played, int format)
+int show_penalties_by_player(CHAR_DATA *ch, const char *victim_name, int victim_played, int format)
 {
     PENALTY_DATA *p;
     int i = 0, pen;
