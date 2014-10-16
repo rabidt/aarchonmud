@@ -4264,6 +4264,7 @@ void check_auth_state             args( ( CHAR_DATA *ch ) );
 bool check_auto_auth( char *name );
 AUTH_LIST *get_auth_name          args( ( char *name ) ) ;
 void auth_update			      args( ( void ) );
+bool exists_player( char *name );
 
 /* ban.c */
 bool    check_ban   args( ( char *site, int type) );
@@ -4785,7 +4786,7 @@ void rpedit( CHAR_DATA *ch, const char *argument );
 
 /* penalty.c */
 void save_penalties args( ( void ) );
-int  show_penalties_by_player(CHAR_DATA *ch, char *victim_name, int victim_played, int format);
+int  show_penalties_by_player(CHAR_DATA *ch, const char *victim_name, int victim_played, int format);
 void delete_penalty_node args((PENALTY_DATA *node));
 void penalty_update args((CHAR_DATA *ch));
 void   load_crime_list args( ( void ) );
