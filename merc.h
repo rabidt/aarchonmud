@@ -4220,6 +4220,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container );
 bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace );
 bool in_donation_room args((OBJ_DATA *obj));
 void describe_item      args( (CHAR_DATA *ch, OBJ_DATA *obj) );
+int flag_add_malus( OBJ_DATA *weapon );
 
 /* act_wiz.c */
 void wiznet     args( (char *string, CHAR_DATA *ch, OBJ_DATA *obj,
@@ -4822,6 +4823,8 @@ void nanny( DESCRIPTOR_DATA *d, const char *argument );
 void log_chan( CHAR_DATA * ch, char * text , sh_int channel );
 void log_pers( PERS_HISTORY *history, char *text );
 void load_comm_histories();
+PERS_HISTORY* pers_history_new();
+void pers_history_free( PERS_HISTORY *history );
 
 /* remort.c */
 bool is_in_remort args( (CHAR_DATA *ch) );
