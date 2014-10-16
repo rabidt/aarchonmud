@@ -4619,6 +4619,14 @@ const char* smash_tilde_cc( const char *str )
     return buf;
 }
 
+char* smash_tilde_cpy( char *dest, const char *source )
+{
+    strcpy(dest, source);
+    smash_tilde(dest);
+    return dest;
+}
+
+
 /*
 * Compare strings, case insensitive.
 * Return TRUE if different
