@@ -117,6 +117,10 @@ void	free_pcdata args( (PC_DATA *pcdata) );
 PORTAL_DATA *new_portal( void );
 void free_portal( PORTAL_DATA *portal );
 
+/* quest recycling */
+QUEST_DATA *new_quest( void );
+void free_quest( QUEST_DATA *quest );
+
 /* mob id and memory procedures */
 #define MD MEM_DATA
 long 	get_pc_id args( (void) );

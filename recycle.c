@@ -35,8 +35,6 @@
 #include "recycle.h"
 #include "lua_arclib.h"
 
-void free_quest(QUEST_DATA *quest);
-
 /* stuff for recyling notes */
 NOTE_DATA *note_free;
 

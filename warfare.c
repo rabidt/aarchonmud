@@ -20,8 +20,6 @@
 DECLARE_DO_FUN(do_restore);
 DECLARE_DO_FUN(do_look);
 
-void proc_startwar( CHAR_DATA *ch, char *argument, bool pay );
-
 char * war_list[] =
 {
     "{rArmageddon{6",
@@ -135,7 +133,7 @@ void auto_war(void)
     
 }
 
-void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
+void proc_startwar( CHAR_DATA *ch, const char *argument, bool pay )
 {
     char buf[MSL];
     char arg1[MIL], arg2[MIL], arg3[MIL];
