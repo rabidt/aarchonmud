@@ -140,8 +140,7 @@ DEF_DO_FUN(do_wiznet)
 
 
 
-void wiznet(char *string, CHAR_DATA *ch, OBJ_DATA *obj,
-            long flag, long flag_skip, int min_level) 
+void wiznet( const char *string, CHAR_DATA *ch, const void *arg1, long flag, long flag_skip, int min_level )
 {
     DESCRIPTOR_DATA *d;
     
@@ -159,7 +158,7 @@ void wiznet(char *string, CHAR_DATA *ch, OBJ_DATA *obj,
                 send_to_char("{V--> ",d->character);
             else
                 send_to_char("{V", d->character);
-            act_new(string,d->character,obj,ch,TO_CHAR,POS_DEAD);
+            act_new(string, d->character, arg1, ch, TO_CHAR, POS_DEAD);
             send_to_char("{x", d->character );
         }
     }
