@@ -54,7 +54,6 @@ int get_dagger_focus( CHAR_DATA *ch );
 
 /* imported functions */
 bool check_spell_disabled args( (const struct skill_type *command) );
-bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 RELIGION_DATA *get_religion args( ( CHAR_DATA *ch ) );
 char* wear_location_info( int pos );
 

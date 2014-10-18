@@ -56,7 +56,6 @@ DECLARE_DO_FUN(do_stand     );
 void affect_update( CHAR_DATA *ch );
 void qset_update( CHAR_DATA *ch );
 bool check_drown args((CHAR_DATA *ch));
-bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 int hit_gain    args( ( CHAR_DATA *ch ) );
 int mana_gain   args( ( CHAR_DATA *ch ) );
 int move_gain   args( ( CHAR_DATA *ch ) );

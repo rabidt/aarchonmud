@@ -271,7 +271,6 @@ DEF_DO_FUN(do_grant)
     CHAR_DATA *victim = NULL, *rch, *rvictim = NULL;
     int  dur,cmd,x;
     bool found = FALSE;
-    DESCRIPTOR_DATA *d;
     
     argument = one_argument(argument,arg1);
     argument = one_argument(argument,arg2);
@@ -286,23 +285,6 @@ DEF_DO_FUN(do_grant)
         return;
     }
     
-    /*
-    for (d = descriptor_list; d != NULL; d = d->next)
-    {
-        rvictim = d->original ? d->original : d->character;
-        
-        if (rvictim == NULL) 
-            continue;
-        
-        if (!str_cmp(rvictim->name,arg1))
-        {
-            victim = d->character;
-            break;
-        }
-    }
-    */    
-
-    /* Bobble: fix for linkdead victims */
     victim = get_char_world( rch, arg1 );
     if ( victim != NULL && IS_NPC(victim) )
     {
@@ -459,7 +441,6 @@ DEF_DO_FUN(do_revoke)
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
     CHAR_DATA *victim = NULL, *rvictim = NULL;
-    DESCRIPTOR_DATA *d;
     int cmd, x;
     bool had_return, found = FALSE;
     
@@ -472,23 +453,6 @@ DEF_DO_FUN(do_revoke)
         return;
     }
     
-    /*
-    for (d = descriptor_list; d != NULL; d = d->next)
-    {
-        rvictim = d->original ? d->original : d->character;
-        
-        if (rvictim == NULL) 
-            continue;
-        
-        if (!str_cmp(rvictim->name,arg1))
-        {
-            victim = d->character;
-            break;
-        }
-    }
-    */
-    
-    /* Bobble: fix for linkdead victims */
     victim = get_char_world( ch, arg1 );
     if ( victim != NULL && IS_NPC(victim) )
     {

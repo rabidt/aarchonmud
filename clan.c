@@ -1253,6 +1253,7 @@ void clan_update(void)
 /* Set function to change clan settings. -Rim 1/2000 */
 DEF_DO_FUN(do_cset)
 {
+    char arg_buf[MAX_INPUT_LENGTH];
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
     char arg3 [MAX_INPUT_LENGTH];
@@ -1260,7 +1261,7 @@ DEF_DO_FUN(do_cset)
     int clannum, value;
     bool found = FALSE;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cpy( arg_buf, argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strcpy( arg3, argument );
@@ -1727,10 +1728,7 @@ void clan_dump_room(CHAR_DATA *ch, int clan)
 {
     ROOM_INDEX_DATA *pRoomIndex;
 	int vnum;
-	int nMatch;
     
-	nMatch  = 0;
-
     printf_to_char(ch, "Rooms for clan %s:\n\r\n\r", capitalize(clan_table[clan].name));    
 
     for ( vnum = 0; vnum < top_vnum_room; vnum++ )

@@ -398,7 +398,7 @@ DEF_DO_FUN(do_warstatus)
 	send_to_char( "There is no war going on currently.\n\r", ch );
 	if( last_war_time > 0 )
 	{
-            sprintf( buf, "The last war started %d minutes ago.\n\r", (current_time - last_war_time)/60 );
+            sprintf( buf, "The last war started %ld minutes ago.\n\r", (current_time - last_war_time)/60 );
 	    send_to_char( buf, ch );
 	}
 	return;
@@ -428,7 +428,7 @@ DEF_DO_FUN(do_warstatus)
 
 	if( last_war_time > 0 )
 	{
-            sprintf( buf, "{RThe war began %d minutes ago.{x", (current_time - last_war_time)/60 );
+            sprintf( buf, "{RThe war began %ld minutes ago.{x", (current_time - last_war_time)/60 );
 	    add_buf( output, center(buf,65,' ') );
             add_buf( output, "\n\r" );
 	}
@@ -452,7 +452,6 @@ void war_update( void )
     char buf[MSL];
     DESCRIPTOR_DATA *d;
     ROOM_INDEX_DATA *random;
-    BUFFER *output;
     int count = 0;
     
     if (current_time > auto_war_time && war.on == FALSE)
@@ -461,7 +460,6 @@ void war_update( void )
     if (war.on == FALSE)
         return;
     
-    output = new_buf();
     if ( war.war_time_left > 0 )
     {
         sprintf( buf, "There %s %d tick%s left to join in the war.\n\r",
@@ -580,8 +578,8 @@ void war_end( bool success )
     int points;
     char buf[80];
     
-    if (points = war.reward/UMAX(war.combatants, 1))
-	sprintf(buf, "You are awarded %d quest points.\n\r", points);
+    if ( (points = war.reward/UMAX(war.combatants, 1)) )
+        sprintf(buf, "You are awarded %d quest points.\n\r", points);
 
     if ( success )
     {
