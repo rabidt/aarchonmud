@@ -4689,6 +4689,7 @@ void   load_disabled   args( ( void ) );
 void   save_disabled   args( ( void ) );
 bool    check_social( CHAR_DATA *ch, const char *command, const char *argument );
 bool    check_social_new( CHAR_DATA *ch, const char *command, const char *argument, bool exact );
+void send_position_message( CHAR_DATA *ch );
 
 /* lua_main.c */
 void check_lua_stack();
@@ -4696,6 +4697,8 @@ void lua_log_perf( double value );
 void load_mudconfig();
 const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );
+int name_sorted_group_table( int sequence );
+int name_sorted_skill_table( int sequence );
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
@@ -4904,6 +4907,7 @@ int ch_dex_tohit        args( (CHAR_DATA *ch) );
 int ch_str_todam        args( (CHAR_DATA *ch) );
 int ch_str_carry        args( (CHAR_DATA *ch) );
 int ch_str_wield        args( (CHAR_DATA *ch) );
+int int_app_learn(int x);
 int ch_int_learn        args( (CHAR_DATA *ch) );
 int ch_dis_practice args( (CHAR_DATA *ch) );
 int ch_prac_gains       args( (CHAR_DATA *ch, int for_level) );
