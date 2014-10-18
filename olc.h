@@ -442,3 +442,15 @@ void        free_rpcode     args ( ( PROG_CODE *pRcode));
 
 HELP_DATA *new_help args ( (void) );
 void free_help args ( ( HELP_DATA * pHelp));
+
+/* olc_mpcode.c */
+void fix_mprog_mobs( CHAR_DATA *ch, PROG_CODE *pMcode );
+
+/* olc_opcode.c */
+void fix_oprog_objs( CHAR_DATA *ch, PROG_CODE *pOcode );
+
+/* olc_apcode.c */
+void fix_aprog_areas( CHAR_DATA *ch, PROG_CODE *pAcode );
+
+/* olc_rpcode.c */
+void fix_rprog_rooms( CHAR_DATA *ch, PROG_CODE *pRcode );
