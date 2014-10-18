@@ -4549,6 +4549,7 @@ int can_carry_w args( ( CHAR_DATA *ch ) );
 bool    is_name( const char *str, const char *namelist );
 bool    is_exact_name( const char *str, const char *namelist );
 bool    is_either_name( const char *str, const char *namelist, bool exact );
+bool    is_in_room( CHAR_DATA *ch );
 bool    is_mimic( CHAR_DATA *ch );
 MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch );
 char*   get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker );
@@ -4993,6 +4994,7 @@ void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit )
 int quest_status( CHAR_DATA *ch, int id );
 int qset_timer( CHAR_DATA *ch, int id );
 void check_kill_quest_completed( CHAR_DATA *ch, CHAR_DATA *victim );
+void clear_area_quests( CHAR_DATA *ch, AREA_DATA *area );
 
 /* update.c */
 void    war_update      args( ( void ) ); 
