@@ -45,6 +45,10 @@ DECLARE_DO_FUN(do_skills);
 bool train_stat(int trained, CHAR_DATA *ch);
 void show_groups( int skill, BUFFER *buffer );
 void show_races( int skill, BUFFER *buffer );
+void show_class_skills( CHAR_DATA *ch, const char *argument );
+void show_skill_points( BUFFER *buffer );
+void show_mastery_groups( int skill, BUFFER *buffer );
+int get_injury_penalty( CHAR_DATA *ch );
 
 bool is_class_skill( int class, int sn )
 {
@@ -193,7 +197,7 @@ CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )
     int skill = get_skill(ch, gsn_introspection);
     if ( skill > 1 && *introspect )
     {
-        if ( *introspect = per_chance(skill) )
+        if ( (*introspect = per_chance(skill)) )
         {
             act("$n thinks over what $e has experienced recently.", ch, NULL, NULL, TO_ROOM);
             check_improve(ch, gsn_introspection, TRUE, 8);
@@ -257,7 +261,7 @@ void gain_skill(CHAR_DATA *ch, int sn, CHAR_DATA *trainer)
 DEF_DO_FUN(do_gain)
 {
     char buf[MAX_STRING_LENGTH];
-    char *argPtr;
+    const char *argPtr;
     char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
     CHAR_DATA *trainer;
     int gn = 0, sn = 0;
@@ -693,7 +697,7 @@ static void show_master_list( CHAR_DATA *ch )
     add_buf(buf, "{gYou have mastered the following skills:{x\n\r");
     add_buf(buf, "{WSkill/Spell            School               Rank            Cost{x\n\r");
     for ( sn = 1; sn < MAX_SKILL; sn++ )
-        if ( lvl = ch->pcdata->mastered[sn] )
+        if ( (lvl = ch->pcdata->mastered[sn]) > 0 )
         {
             int *groups = get_mastery_groups(sn);
             add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
@@ -709,7 +713,7 @@ static void show_master_list( CHAR_DATA *ch )
 
     add_buf(buf, "\n\r{gYou have mastered the following schools:{x\n\r");
     for ( gn = 1; mastery_group_table[gn].name; gn++ )
-        if ( lvl = get_group_mastery(ch, gn) )
+        if ( (lvl = get_group_mastery(ch, gn)) > 0 )
             add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
                 "",
                 mastery_group_table[gn].name,
@@ -742,7 +746,8 @@ static void show_master_list( CHAR_DATA *ch )
 
 DEF_DO_FUN(do_master)
 {
-    char arg[MAX_INPUT_LENGTH], *arg2;
+    char arg[MAX_INPUT_LENGTH];
+    const char *arg2;
     int sn;
     
     if (IS_NPC(ch))
@@ -910,7 +915,7 @@ DEF_DO_FUN(do_master)
 DEF_DO_FUN(do_skill)
 {
     char buf[MSL];
-    int sn, level, skill, mana;
+    int sn, level, skill;
     
     if (IS_NPC(ch))
 	return;
@@ -1229,7 +1234,7 @@ DEF_DO_FUN(do_skills)
 	free_buf(buffer);
 }
 
-void show_class_skills( CHAR_DATA *ch, char *argument )
+void show_class_skills( CHAR_DATA *ch, const char *argument )
 {
     int class = class_lookup( argument );
     if ( class == -1 )
@@ -2069,7 +2074,7 @@ int get_race_skill( CHAR_DATA *ch, int sn )
 
 int pc_skill_prac(CHAR_DATA *ch, int sn)
 {
-	int skill,race_skill,i;
+	int skill;
 
 	if (sn == -1) /* shorthand for level based skills */
 	{
@@ -2256,7 +2261,7 @@ DEF_DO_FUN(do_hpractice)
     bool introspect = TRUE;
     CHAR_DATA *trainer = find_trainer(ch, ACT_PRACTICE, &introspect);
 
-    if ( !trainer && !introspect || IS_NPC(ch) )
+    if ( (!trainer && !introspect) || IS_NPC(ch) )
         return;
     
     if ( !argument[0] )
@@ -3081,8 +3086,6 @@ void save_skills()
 
 void count_stat(FILE *f, int sn)
 {
-	int i;
-
 	fprintf(f, "\n%d %s, ",sn, skill_table[sn].name);
 	fprintf(f, "%d, %d, %d\n", skill_table[sn].stat_prime,
 			skill_table[sn].stat_second, skill_table[sn].stat_third);
@@ -3132,22 +3135,25 @@ void load_skill(FILE *f, int cnum, int version)
 		sn=0;
 	}
 
-    fscanf(f, "%hd %hd", &(skill_table[sn].beats), &(skill_table[sn].min_mana));
+    skill_table[sn].beats = fread_number(f);
+    skill_table[sn].min_mana = fread_number(f);
+    
     if ( version > 0 )
-        fscanf(f, "%hd", &(skill_table[sn].min_rating));
+        skill_table[sn].min_rating = fread_number(f);
 
 	for (i=0; i<cnum; i++)
-		fscanf(f, "%hd", &(skill_table[sn].skill_level[i]));
+        skill_table[sn].skill_level[i] = fread_number(f);
 
     if ( version == 0 )
         for (i=0; i<cnum; i++)
-            fscanf(f, "%hd", &(skill_table[sn].rating[i]));
+            skill_table[sn].rating[i] = fread_number(f);
 
 	for (i=0; i<cnum; i++)
-		fscanf(f, "%hd", &(skill_table[sn].cap[i]));
+        skill_table[sn].cap[i] = fread_number(f);
 
-	fscanf(f, "%hd %hd %hd", &(skill_table[sn].stat_prime),
-			&(skill_table[sn].stat_second), &(skill_table[sn].stat_third));
+    skill_table[sn].stat_prime = fread_number(f);
+    skill_table[sn].stat_second = fread_number(f);
+    skill_table[sn].stat_third = fread_number(f);
 }
 
 void load_skills()
@@ -3155,7 +3161,6 @@ void load_skills()
 	FILE *f;
 	int i, n, cnum;
     int version = 0;
-    char *word;
 
 	f = fopen(SKILL_FILE, "r");
 	if (f==NULL)
@@ -3170,7 +3175,8 @@ void load_skills()
     else
         rewind(f);
     
-	fscanf(f, "%d %d", &n, &cnum);
+    n = fread_number(f);
+    cnum = fread_number(f);
 
 	for (i=0; i<n; i++)
         load_skill(f, cnum, version);
