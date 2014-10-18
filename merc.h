@@ -4224,8 +4224,7 @@ void describe_item      args( (CHAR_DATA *ch, OBJ_DATA *obj) );
 int flag_add_malus( OBJ_DATA *weapon );
 
 /* act_wiz.c */
-void wiznet     args( (char *string, CHAR_DATA *ch, OBJ_DATA *obj,
-				   long flag, long flag_skip, int min_level ) );
+void wiznet( const char *string, CHAR_DATA *ch, const void *arg1, long flag, long flag_skip, int min_level );
 void copyover_recover args((void));
 void check_sn_multiplay( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 void restore_char( CHAR_DATA *victim );
@@ -4233,6 +4232,7 @@ void restore_char( CHAR_DATA *victim );
 /* alchemy.c */
 OBJ_DATA* obj_on_char( CHAR_DATA *ch, int vnum );
 void reset_herbs_world();
+void update_herb_reset();
 
 /* alias.c */
 void    substitute_alias args( (DESCRIPTOR_DATA *d, char *input) );
@@ -4442,6 +4442,7 @@ void spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg );
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
+bool    is_wimpy( CHAR_DATA *ch );
 void    violence_update args( ( void ) );
 bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 void    multi_hit   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
@@ -4460,6 +4461,7 @@ void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
 bool    check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 void    check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance );
+CD *    check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim );
 CD *    get_local_leader( CHAR_DATA *ch );
 CD *    get_combat_victim( CHAR_DATA *ch, const char *argument );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
@@ -4593,6 +4595,7 @@ void    obj_from_room   args( ( OBJ_DATA *obj ) );
 void    obj_to_room args( ( OBJ_DATA *obj, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_obj  args( ( OBJ_DATA *obj, OBJ_DATA *obj_to ) );
 void    obj_from_obj    args( ( OBJ_DATA *obj ) );
+void    obj_from_object_list( OBJ_DATA *obj );
 void    extract_obj args( ( OBJ_DATA *obj ) );
 void    char_list_insert( CHAR_DATA *ch );
 void    add_money( CHAR_DATA *ch, int gold, int silver, CHAR_DATA *source );
