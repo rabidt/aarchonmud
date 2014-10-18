@@ -44,7 +44,6 @@ void scan_char           args((CHAR_DATA *victim, CHAR_DATA *ch,
 
 void do_stare(CHAR_DATA *ch)
 {
-    extern char *const dir_name[];
     ROOM_INDEX_DATA *scan_room;
     EXIT_DATA *pExit;
     sh_int door, depth;

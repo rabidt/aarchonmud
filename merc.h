@@ -4410,6 +4410,13 @@ void    log_error( const char *str );
 void    arm_npc( CHAR_DATA *mob );
 void    cheat_log( const char *str );
 void    rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description );
+char    bread_letter( RBUFFER *rbuf );
+int     bread_number( RBUFFER *rbuf );
+long    bread_flag( RBUFFER *rbuf );
+char*   bread_string( RBUFFER *rbuf );
+char*   bread_string_eol( RBUFFER *rbuf );
+void    bread_to_eol( RBUFFER *rbuf );
+char*   bread_word( RBUFFER *rbuf );
 
 /* db2.c */
 void load_mobbles( FILE *fp );
@@ -4687,6 +4694,8 @@ bool    check_social_new( CHAR_DATA *ch, const char *command, const char *argume
 void check_lua_stack();
 void lua_log_perf( double value );
 void load_mudconfig();
+const char* save_luaconfig( CHAR_DATA *ch );
+void load_luaconfig( CHAR_DATA *ch, const char *text );
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
@@ -4874,6 +4883,7 @@ int get_skill_prac(CHAR_DATA *ch, int sn);
 int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 void update_skill_costs();
 void update_group_costs();
+void set_level_exp( CHAR_DATA *ch );
 
 /* smith.c */
 void cancel_smith( CHAR_DATA *ch );
