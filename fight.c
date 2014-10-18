@@ -125,7 +125,6 @@ bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
-bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 bool blind_penalty( CHAR_DATA *ch );
 void  check_assist  args( ( CHAR_DATA *ch ) );
 void  check_killer  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
