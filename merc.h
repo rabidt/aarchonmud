@@ -4212,6 +4212,7 @@ int get_random_exit( CHAR_DATA *ch );
 bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj );
 void make_visible( CHAR_DATA *ch );
 void morph_update( CHAR_DATA *ch );
+int morph_power( CHAR_DATA *ch );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
