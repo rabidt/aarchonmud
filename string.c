@@ -192,14 +192,14 @@ char * string_replace_ext( char * orig, char * old, char * new,
  Purpose:	Interpreter for string editing.
  Called by:	game_loop_xxxx(comm.c).
  ****************************************************************************/
-void string_add( CHAR_DATA *ch, char *argument )
+void string_add( CHAR_DATA *ch, const char *argument )
 {
-   char buf[MAX_STRING_LENGTH];
+   char buf[MAX_STRING_LENGTH], argbuf[MSL];
    
    /*
     * Thanks to James Seng
     */
-   smash_tilde( argument );
+   argument = smash_tilde_cpy( argbuf, argument );
 
    if ( !str_cmp(argument, ".q") || *argument == '~' || *argument == '@' )
    {
@@ -370,12 +370,6 @@ void string_add( CHAR_DATA *ch, char *argument )
       ch->desc->pString = NULL;
       return;
    }
-   
-   /*
-   * Ensure no tilde's inside string.
-   * --------------------------------
-   */
-   smash_tilde( argument );
    
    strcat( buf, argument );
    strcat( buf, "\n\r" );
@@ -865,7 +859,7 @@ char * string_proper( char * argument )
 
 /* truncate an optionally colored string to a certain length 
    */
-char *truncate_color_string( const char *argument, int limit )
+const char *truncate_color_string( const char *argument, int limit )
 {
     static SR_BUF sr_buf;
     char *rtn = next_sr_buf( &sr_buf );
@@ -901,7 +895,7 @@ char *truncate_color_string( const char *argument, int limit )
     return rtn;
 }
 
-char *format_color_string( const char *argument, int width )
+const char *format_color_string( const char *argument, int width )
 {
     static SR_BUF sr_buf;
     char *rtn = next_sr_buf( &sr_buf );
@@ -950,9 +944,9 @@ char *format_color_string( const char *argument, int width )
  * Original at http://http://dark.nrg.dtu.dk/~wreck/mud/code/color.txt
  *						Dennis Reed
  */
-int strlen_color( char *argument )
+int strlen_color( const char *argument )
 {
-    char *str;
+    const char *str;
     int  length;
     
     if ( argument == NULL || argument[0] == '\0' )
@@ -1122,7 +1116,7 @@ bool is_empty_string( char *s )
     return TRUE;
 }
 
-char* ltrim(const char *s)
+const char* ltrim(const char *s)
 {
     while ( isspace(*s) )
         s++;

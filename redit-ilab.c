@@ -506,7 +506,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'M': /* MOB */
 	{
 		MOB_INDEX_DATA *mob = get_mob_index (pReset->arg1);
-                char *sdesc=truncate_color_string( mob->short_descr, 35);
+        const char *sdesc = truncate_color_string(mob->short_descr, 35);
                 sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%ds  {x[%%s]",
                     35 + ( mob ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf( buf, buf2,
@@ -521,7 +521,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'O': /* Obj on the floor */
 	{
         OBJ_INDEX_DATA* obj = get_obj_index (pReset->arg1);
-        char *sdesc=truncate_color_string( obj->short_descr, 28);
+        const char *sdesc = truncate_color_string(obj->short_descr, 28);
 
                 sprintf (buf2, "%%2d> [%%5d]    <in room>           Lv%%3d %%-%ds {x(%%s)",
                     28 + ( obj ? strlen(sdesc)  - strlen_color(sdesc) : 0));
@@ -539,7 +539,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'P': /* Put inside */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-                char *sdesc=truncate_color_string( obj->short_descr, 28);
+        const char *sdesc = truncate_color_string(obj->short_descr, 28);
 		strcpy (spaces, "          "); /* fill spaces.. with spaces! */
 		spaces[nesting*2] = '\0'; /* spaces now has nesting*2 spaces */
                 sprintf (buf2, "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%ds {x(%%s)",
@@ -557,7 +557,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'G': /* Give to mob */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-                char *sdesc=truncate_color_string( obj->short_descr, 28);
+        const char *sdesc = truncate_color_string(obj->short_descr, 28);
                 sprintf (buf2, "%%2d>  ^[%%5d]  <inventory>         Lv%%3d %%-%ds {x(%%s)",
                     28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
@@ -573,7 +573,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'E': /* Equip mob */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-                char *sdesc=truncate_color_string( obj->short_descr, 28);
+        const char *sdesc = truncate_color_string(obj->short_descr, 28);
 		sprintf (buf2, "%%2d>  ^[%%5d]  %%sLv%%3d %%-%ds {x(%%s)",
                     28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
