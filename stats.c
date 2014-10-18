@@ -527,9 +527,7 @@ void show_can_train( CHAR_DATA *ch )
 DEF_DO_FUN(do_train)
 {
     char buf[MAX_STRING_LENGTH];
-    char buf2[MAX_STRING_LENGTH];
     char arg[MAX_STRING_LENGTH];
-    CHAR_DATA *mob;
     sh_int stat = -1;
     int cost, max, inc;
     
@@ -871,7 +869,6 @@ void show_remort_bonus( CHAR_DATA *ch, int race )
 DEF_DO_FUN(do_etls)
 {
     char buf[MAX_STRING_LENGTH];
-    char racebuf[5];
     int i, j, race;
     BUFFER *output;
     int tier = -1;
@@ -1173,7 +1170,7 @@ DEF_DO_FUN(do_racelist)
 void roll_dice (CHAR_DATA *ch, bool take_default)
 {
     int minimum_roll[15] = {85,85,85,85,85,80,80,75,70,60,50,40,30,15,0};
-    int i, j, swap, sum;
+    int i, j, swap;
     
     if ( take_default )
     {
@@ -1350,9 +1347,8 @@ bool parse_roll_stats (CHAR_DATA *ch, const char *argument)
     char arg[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
     char arg3[MAX_INPUT_LENGTH];
-    char buf[100], buf2[100], buf3[5];
+    char buf[100];
     int i,j,stat,die;
-    int curr, train, min, max, sum;
     
     argument = one_argument(argument,arg);
     argument = one_argument(argument,arg2);
@@ -1526,7 +1522,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     int trained_hp_bonus, trained_mana_bonus, trained_move_bonus;
     int hp_bonus, mana_bonus, move_bonus, softcap;
     int level_factor, train_factor, stat_factor, class_factor;
-    int hero_bonus, max_train;
+    int max_train;
     
     /* PCs only */
     if (IS_NPC(ch) || ch->pcdata == NULL)
@@ -1884,10 +1880,12 @@ bool class_can_use( int class, tflag extra_flags )
     {
         flag = ITEM_ALLOW_WARRIOR + group;
         if ( IS_SET(extra_flags, flag) )
+        {
             if ( class_group_table[class][group] )
                 return TRUE;
             else
                 allow_found = TRUE;
+        }
     }
 
     /* check class_ flags */
@@ -1895,10 +1893,12 @@ bool class_can_use( int class, tflag extra_flags )
     {
         flag = ITEM_CLASS_WARRIOR + group;
         if ( IS_SET(extra_flags, flag) )
+        {
             if ( class == group )
                 return TRUE;
             else
                 allow_found = TRUE;
+        }
     }
 
     /* if no allow flags found, all classes can use object */
