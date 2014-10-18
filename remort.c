@@ -104,7 +104,7 @@ void remort_cancel args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_status args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_enter args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_speed args( (CHAR_DATA *ch, CHAR_DATA *adept) );
-void remort_repeat args( (CHAR_DATA *ch, CHAR_DATA *adept, char *arg) );
+void remort_repeat args( (CHAR_DATA *ch, CHAR_DATA *adept, const char *arg) );
 void remort_save args( ( void ) );
 
 DEF_DO_FUN(do_remort)
@@ -142,6 +142,7 @@ DEF_DO_FUN(do_remort)
     }
     
     if (arg[0] != '\0')
+    {
         if (!strcmp(arg, "signup"))
         {
             remort_signup(ch, adept);
@@ -172,7 +173,8 @@ DEF_DO_FUN(do_remort)
             remort_repeat(ch, adept, argument);
             return;
         }
-        
+    }
+    
     send_to_char("Remort options: signup, cancel, status, enter, speed, repeat.\n\r", ch);
     send_to_char("For more information, type 'HELP REMORT'.\n\r", ch);
 }
@@ -573,8 +575,6 @@ void remort_update()
         if (chamber_list[j] != NULL &&
             (chamber_list[j]->limit < current_time))
         {
-            OBJ_DATA *obj;
-            OBJ_DATA *obj_next;
 	    char log_buf[MSL];
 
 	    sprintf( log_buf, "%s has run out of time for remort", chamber_list[j]->name );
@@ -595,19 +595,7 @@ void remort_update()
             if (found)
             {
                 send_to_char("You have run out of time to complete remort.\n\r",ch);
-		/*
-                for ( obj = ch->carrying; obj; obj = obj_next )
-                {
-                    obj_next = obj->next_content;
-                    if (IS_SET(obj->extra_flags, ITEM_REMORT))
-                    {
-                        obj_from_char( obj );
-                        extract_obj( obj );
-                    }
-                }
-		*/
-		extract_char_eq( ch, &is_remort_obj, -1 );
-		
+                extract_char_eq( ch, &is_remort_obj, -1 );
                 char_from_room( ch );
                 char_to_room( ch, get_room_index(ROOM_VNUM_RECALL) );
                 do_look( ch, "auto" );
@@ -620,19 +608,7 @@ void remort_update()
                 if (d->character != NULL)
                 {
                     d->character->in_room = get_room_index(ROOM_VNUM_RECALL);
-
-		    /*
-                    for ( obj = d->character->carrying; obj; obj = obj_next )
-                    {
-                        obj_next = obj->next_content;
-                        if (IS_SET(obj->extra_flags, ITEM_REMORT))
-                        {
-                            obj_from_char( obj );
-                            extract_obj( obj );
-                        }
-                    }
-		    */
-		    extract_char_eq( d->character, &is_remort_obj, -1 );
+                    extract_char_eq( d->character, &is_remort_obj, -1 );
                 }
                 quit_save_char_obj(d->character);
                 /* load_char_obj still loads "default" character
@@ -883,7 +859,7 @@ MEMFILE* remort_mem_save()
 
 void remort_begin(CHAR_DATA *ch)
 {
-    int i, j;
+    int i;
 
     remort_remove(ch, TRUE);
 
@@ -1010,7 +986,7 @@ void remort_complete(CHAR_DATA *ch)
     force_full_save();
 }
 
-void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, char *arg )
+void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
 {
     char buf[MSL];
 
