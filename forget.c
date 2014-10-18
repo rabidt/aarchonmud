@@ -27,9 +27,7 @@ DEF_DO_FUN(do_forget)
     if (IS_NPC(rch))
         return;
     
-    smash_tilde( argument );
-    
-    argument = one_argument(argument,arg);
+    one_argument(smash_tilde_cc(argument), arg);
     
     if (arg[0] == '\0')
     {
