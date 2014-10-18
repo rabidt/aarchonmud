@@ -2018,7 +2018,7 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
     // mobs that cast spells via spec_fun normally can do so even while charmed
     if ( skill_table[sn].spell_fun != spell_null )
     {
-        struct spell_type *spell_list = get_spell_list( ch );
+        const struct spell_type *spell_list = get_spell_list( ch );
         if ( spell_list != NULL )
         {
             int spell;
