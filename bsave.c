@@ -154,7 +154,7 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
 #endif
     
     /* alloc memory file */
-    sprintf(strsave, capitalize(ch->name));
+    strcpy(strsave, capitalize(ch->name));
     /* 16k should do for most players; 
        if not, the buffer will expand automatically */
     mf = memfile_new(strsave, 16*1024);
@@ -214,7 +214,7 @@ void mem_save_storage_box( CHAR_DATA *ch )
 #endif
 
     if ( IS_NPC(ch) )
-        return NULL;
+        return;
 
 
 /* If they don't have any storage boxes at all or none are loaded
@@ -253,7 +253,7 @@ void mem_save_storage_box( CHAR_DATA *ch )
     if (mf->buf->overflowed)
     {
       memfile_free(mf);
-      return NULL;
+      return;
     }
 
 #if defined(SIM_DEBUG)
@@ -1004,7 +1004,7 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     * Castrate storage characters.
     */
     if ( is_drop_obj(obj)
-	 || obj->item_type == ITEM_KEY && !is_remort_obj(obj)
+	 || (obj->item_type == ITEM_KEY && !is_remort_obj(obj))
 	 || obj->item_type == ITEM_TRASH )
         return;
     
@@ -1309,9 +1309,8 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
 
 void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
 {
-    int stat;
-    int i, iNest;
-    int box_number;
+    int iNest;
+    int box_number = 0;
     RBUFFER *buf;
     buf = read_wrap_buffer(mf->buf);
 
@@ -2026,7 +2025,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
         if ( !strcmp( word, "LuaCfg") )
         {
-            const char *temp=bread_string( buf );
+            char *temp = bread_string( buf );
             load_luaconfig( ch, temp );
             free_string( temp );
             fMatch=TRUE;
@@ -2146,8 +2145,6 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
 	if ( !str_cmp(word, "QStat") )
 	{
-            QUEST_DATA *qdata;
- 
  	    int id, status, timer;
             time_t limit;
 	    id = bread_number( buf );
@@ -3235,12 +3232,14 @@ DEF_DO_FUN(do_finger)
     
     if (wch->level <= LEVEL_HERO)
     {
-	int pk, war;
+        int war;
 
-	if( wch->pcdata->pkpoints == 0 )
-	    pk = get_pkgrade_level(wch->pcdata->pkill_count);
-	else
-	    pk = get_pkgrade_level(wch->pcdata->pkpoints);
+        /*
+        if( wch->pcdata->pkpoints == 0 )
+            pk = get_pkgrade_level(wch->pcdata->pkill_count);
+        else
+            pk = get_pkgrade_level(wch->pcdata->pkpoints);
+        */
 
 	if( wch->pcdata->warpoints == 0 )
 	    war = get_pkgrade_level(wch->pcdata->war_kills);
