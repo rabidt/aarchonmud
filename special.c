@@ -44,6 +44,9 @@ DECLARE_DO_FUN(do_say   );
 DECLARE_DO_FUN(do_backstab);
 DECLARE_DO_FUN(do_flee);
 DECLARE_DO_FUN(do_murder);
+DECLARE_DO_FUN(do_cast);
+DECLARE_DO_FUN(do_religion_talk);
+
 
 /* the function table */
 const   struct  spec_type    spec_table[] =
@@ -573,7 +576,7 @@ bool spec_cast_adept( CHAR_DATA *ch )
 	return FALSE;
 }
 
-struct spell_type* get_spell_list( CHAR_DATA *ch )
+const struct spell_type* get_spell_list( CHAR_DATA *ch )
 {
     SPEC_FUN *spec_fun = ch->pIndexData->spec_fun;
     
@@ -592,7 +595,7 @@ bool spec_cast_any( CHAR_DATA *ch )
     if ( ch->position != POS_FIGHTING )
         return FALSE;
 
-    struct spell_type* spell_list = get_spell_list( ch );
+    const struct spell_type* spell_list = get_spell_list( ch );
     if ( spell_list == NULL )
         return FALSE;
 
