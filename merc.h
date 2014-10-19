@@ -4675,6 +4675,7 @@ const char *  togg_bit_name	args( ( int togg_flags ) );
 const char *  penalty_bit_name args( (int penalty_flags) );
 const char *  penalty_bits_name( tflag penalty_flags );
 const char *  cont_bit_name   args( ( int cont_flags) );
+const char *  to_bit_name( int where, int flag );
 const char *  flag_bit_name( const struct flag_type flag_table[], int flag );
 const char *  flag_bits_name( const struct flag_type flag_table[], tflag flag );
 const char *  i_flag_bits_name( const struct flag_type flag_table[], long flag );

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -419,7 +420,7 @@ DEF_DO_FUN(do_openvlist)
 DEF_DO_FUN(do_stat)
 {
    char arg[MAX_INPUT_LENGTH];
-   char *string;
+   const char *string;
    OBJ_DATA *obj;
    ROOM_INDEX_DATA *location;
    CHAR_DATA *victim;
@@ -522,8 +523,8 @@ DEF_DO_FUN(do_rstat)
 	send_to_char( buf, ch );
 
 	sprintf( buf,
-	"Room flags: %d.\n\rDescription:\n\r%s",
-	location->room_flags,
+        "Room flags: %s.\n\rDescription:\n\r%s",
+        flag_bits_name(room_flags, location->room_flags),
 	location->description );
 	send_to_char( buf, ch );
 
@@ -569,12 +570,11 @@ DEF_DO_FUN(do_rstat)
 	if ( ( pexit = location->exit[door] ) != NULL )
 	{
 		sprintf( buf,
-		"Door: %d.  To: %d.  Key: %d.  Exit flags: %d.\n\rKeyword: '%s'.  Description: %s",
-
+            "Door: %d.  To: %d.  Key: %d.  Exit flags: %s.\n\rKeyword: '%s'.  Description: %s",
 		door,
 		(pexit->u1.to_room == NULL ? -1 : pexit->u1.to_room->vnum),
 			pexit->key,
-			pexit->exit_info,
+            flag_bits_name(exit_flags, pexit->exit_info),
 			pexit->keyword,
 			pexit->description[0] != '\0'
 			? pexit->description : "(none).\n\r" );
@@ -965,8 +965,6 @@ DEF_DO_FUN(do_mstat)
 
    if (!IS_NPC(victim) && victim->clan>0)
    {
-      RELIGION_DATA *rel;
-
       sprintf(buf, "Clan: %s  Rank: %s\n\r",
          clan_table[victim->clan].name, 
          clan_table[victim->clan].rank_list[victim->pcdata->clan_rank].name);
@@ -1245,7 +1243,7 @@ DEF_DO_FUN(do_mstat)
 DEF_DO_FUN(do_vnum)
 {
 	char arg[MAX_INPUT_LENGTH];
-	char *string;
+    const char *string;
 
 	string = one_argument(argument,arg);
  
@@ -1280,25 +1278,6 @@ DEF_DO_FUN(do_vnum)
 	do_ofind(ch,argument);
 }
 
-/* substring-check.. there's prolly a C standard function but which?!? */
-bool is_substr( char *sub, char *str )
-{
-    char *cmp;
-    char sub0;
-    int len;
-
-    if ( sub == NULL || str == NULL )
-	return FALSE;
-
-    len = strlen(sub);
-    sub0 = sub[0];
-    for ( cmp = str; *cmp != '\0'; cmp++ )
-	if ( *cmp == sub0 && !strncmp(sub, cmp, len) )
-	    return TRUE;
-
-    return FALSE;
-}
-
 /* find mprog with given substring */
 DEF_DO_FUN(do_mpfind)
 {
@@ -1320,7 +1299,7 @@ DEF_DO_FUN(do_mpfind)
 
     for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
 	if ( (mprog = get_mprog_index(i)) != NULL ) 
-	    if ( is_substr(argument, mprog->code) )
+	    if ( strstr(mprog->code, argument) )
 	    {
 		sprintf( buf, "[%5d] %s\n\r", mprog->vnum, first_line(mprog->code) );
 		send_to_char( buf, ch );
@@ -1805,11 +1784,10 @@ DEF_DO_FUN(do_sset)
 
 bool mset_stat( CHAR_DATA *ch, CHAR_DATA *victim, int stat, int value )
 {
-    int j;
-    if ( value < 1 || value > (j = pc_race_table[victim->race].max_stats[stat]+
-        class_bonus(victim->class, stat) ) )
+    int max_value = IS_IMMORTAL(victim) ? MAX_CURRSTAT : pc_race_table[victim->race].max_stats[stat] + class_bonus(victim->class, stat);
+    if ( value < 1 || value > max_value )
     {
-        ptc( ch, "%s range is 1 to %d.\n\r", stat_table[stat].name, j);
+        ptc( ch, "%s range is 1 to %d.\n\r", stat_table[stat].name, max_value);
         return FALSE;
     }
 
@@ -2365,11 +2343,10 @@ DEF_DO_FUN(do_mset)
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
     char arg3 [MAX_INPUT_LENGTH];
-    char buf[100];
     CHAR_DATA *victim;
-    int value, stat, j=0;
+    int value;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strcpy( arg3, argument );
@@ -2471,7 +2448,7 @@ DEF_DO_FUN(do_oset)
     OBJ_DATA *obj;
     int value;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strcpy( arg3, argument );
@@ -2612,7 +2589,7 @@ DEF_DO_FUN(do_rset)
     ROOM_INDEX_DATA *location;
     int value;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strcpy( arg3, argument );
