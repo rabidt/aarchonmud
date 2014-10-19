@@ -4582,6 +4582,8 @@ AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 AFFECT_DATA* affect_find_location( AFFECT_DATA *paf, int type, int location, int duration );
 AFFECT_DATA* affect_find_flag( AFFECT_DATA *paf, int flag );
 AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
+void    affect_modify_new( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd, bool drop );
+void    check_drop_weapon( CHAR_DATA *ch );
 void    affect_freeze_sn( CHAR_DATA *ch, int sn );
 void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );

@@ -17,6 +17,9 @@
 
 extern bool exits_fixed;
 
+/* local functions */
+void shift_prog_list( PROG_LIST *list );
+
 /* variables indicating the vnum shift and vnum range to be shifted
  */
 static int vnum_shift = 0;
@@ -441,7 +444,7 @@ DEF_DO_FUN(do_ashift)
 /* some stuff for changing absolute into relative vnums */
 
 /* replaces absolute vnums by relative vnums in given string */
-char* rel_string( char *str, int min_vnum, int max_vnum )
+char* rel_string( const char *str, int min_vnum, int max_vnum )
 {
     static char rel_str[MSL];
     char last_word[MIL], c;
@@ -475,7 +478,7 @@ char* rel_string( char *str, int min_vnum, int max_vnum )
 		    value = atoi( last_word );
 		    if ( IS_BETWEEN(min_vnum, value, max_vnum) )
 			sprintf( last_word, "r%d", value - min_vnum );
-		    for ( i = 0; last_word[i] != NULL; i++ )
+		    for ( i = 0; last_word[i] != '\0'; i++ )
 			rel_str[rel_index++] = last_word[i];
 		    lw_index = 0;
 		}
