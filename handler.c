@@ -55,7 +55,6 @@ OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact );
 OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool exact );
 OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer, int *number, bool exact );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
-ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, const char *arg, bool area );
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );

@@ -50,10 +50,6 @@
 
 extern int flag_lookup( const char *word, const struct flag_type *flag_table );
 
-CHAR_DATA* get_mp_char( CHAR_DATA *ch, char *argument );
-OBJ_DATA* get_mp_obj( CHAR_DATA *ch, char *argument );
-ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, char *arg );
-
 bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name );
 int cmd_eval( int vnum, const char *line, int check,
         CHAR_DATA *mob, CHAR_DATA *ch,

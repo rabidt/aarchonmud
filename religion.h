@@ -75,6 +75,23 @@ struct prayer_data
 
 typedef void RELIGION_FUN( RELIGION_DATA* religion );
 
+/* god functions */
+#define DECLARE_GOD_FUNCTION(name) bool name( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration );
+DECLARE_GOD_FUNCTION(god_bless)
+DECLARE_GOD_FUNCTION(god_curse)
+DECLARE_GOD_FUNCTION(god_heal)
+DECLARE_GOD_FUNCTION(god_cleanse)
+DECLARE_GOD_FUNCTION(god_defy)
+DECLARE_GOD_FUNCTION(god_speed)
+DECLARE_GOD_FUNCTION(god_slow)
+DECLARE_GOD_FUNCTION(god_enlighten)
+DECLARE_GOD_FUNCTION(god_protect)
+DECLARE_GOD_FUNCTION(god_fortune)
+DECLARE_GOD_FUNCTION(god_haunt)
+DECLARE_GOD_FUNCTION(god_plague)
+DECLARE_GOD_FUNCTION(god_confuse)
+#undef DECLARE_GOD_FUNCTION
+
 /* methods for religion_data */
 
 RELIGION_DATA* new_religion();

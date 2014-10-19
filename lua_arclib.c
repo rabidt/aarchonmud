@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include <lualib.h>
 #include <lauxlib.h>
 #include "merc.h"
@@ -7,6 +9,7 @@
 #include "olc.h"
 #include "tables.h"
 #include "mudconfig.h"
+#include "religion.h"
 
 /* for iterating */
 LUA_OBJ_TYPE *type_list [] =
@@ -204,8 +207,6 @@ static int godlib_bless (lua_State *LS)
             god_bless( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP_DURATION( bless );
-
 
 static int godlib_curse (lua_State *LS)
 {
@@ -215,7 +216,6 @@ static int godlib_curse (lua_State *LS)
             god_curse( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP_DURATION( curse );
 
 static int godlib_heal (lua_State *LS)
 {
@@ -226,7 +226,6 @@ static int godlib_heal (lua_State *LS)
             god_heal( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP_DURATION( heal );
 
 static int godlib_speed (lua_State *LS)
 {
@@ -236,7 +235,6 @@ static int godlib_speed (lua_State *LS)
             god_speed( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1; 
 }
-GODLIBHELP_DURATION( speed );
 
 static int godlib_slow (lua_State *LS)
 {
@@ -246,7 +244,6 @@ static int godlib_slow (lua_State *LS)
             god_slow( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1; 
 }
-GODLIBHELP_DURATION( slow );
 
 static int godlib_cleanse (lua_State *LS)
 {
@@ -256,7 +253,6 @@ static int godlib_cleanse (lua_State *LS)
             god_cleanse( NULL, ch, "", GOD_FUNC_DEFAULT_DURATION ));
     return 1; 
 }
-GODLIBHELP_INSTANT( cleanse );
 
 static int godlib_defy (lua_State *LS)
 {
@@ -266,7 +262,6 @@ static int godlib_defy (lua_State *LS)
             god_defy( NULL, ch, "", GOD_FUNC_DEFAULT_DURATION ));
     return 1; 
 }
-GODLIBHELP_INSTANT( defy );
 
 static int godlib_enlighten (lua_State *LS)
 {
@@ -276,7 +271,6 @@ static int godlib_enlighten (lua_State *LS)
             god_enlighten( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1; 
 }
-GODLIBHELP_DURATION( enlighten );
 
 static int godlib_protect (lua_State *LS)
 {
@@ -286,7 +280,6 @@ static int godlib_protect (lua_State *LS)
             god_protect( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP_DURATION( protect );
 
 static int godlib_fortune (lua_State *LS)
 {
@@ -296,7 +289,6 @@ static int godlib_fortune (lua_State *LS)
             god_fortune( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP_DURATION( fortune );
 
 static int godlib_haunt (lua_State *LS)
 {
@@ -306,7 +298,6 @@ static int godlib_haunt (lua_State *LS)
             god_haunt( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP_DURATION( haunt );
 
 static int godlib_plague (lua_State *LS)
 {
@@ -316,7 +307,6 @@ static int godlib_plague (lua_State *LS)
             god_plague( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP_DURATION( plague );
 
 static int godlib_confuse (lua_State *LS)
 {
@@ -328,7 +318,6 @@ static int godlib_confuse (lua_State *LS)
             god_confuse( NULL, ch, "", godlib_helper_get_duration(LS, 2) ));
     return 1;
 }
-GODLIBHELP_DURATION( confuse );
 
 static int glob_transfer (lua_State *LS)
 {
@@ -376,7 +365,7 @@ static int glob_gtransfer (lua_State *LS)
 static int glob_sendtochar (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
-    char *msg=check_fstring( LS, 2, MSL);
+    const char *msg=check_fstring( LS, 2, MSL);
 
     send_to_char(msg, ch);
     return 0;
@@ -385,7 +374,7 @@ static int glob_sendtochar (lua_State *LS)
 static int glob_echoat (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
-    char *msg=check_fstring( LS, 2, MSL);
+    const char *msg=check_fstring( LS, 2, MSL);
 
     send_to_char(msg, ch);
     send_to_char("\n\r",ch);
@@ -395,7 +384,7 @@ static int glob_echoat (lua_State *LS)
 static int glob_echoaround (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
-    char *msg=check_fstring( LS, 2, MSL);
+    const char *msg=check_fstring( LS, 2, MSL);
 
     CHAR_DATA *tochar, *next_char;
 
@@ -1109,7 +1098,7 @@ static int glob_arguments ( lua_State *LS)
         
 
 
-#define ENDGTABLE { NULL, NULL, 0, NULL, 0 }
+#define ENDGTABLE { NULL, NULL, NULL, 0, 0 }
 #define GFUN( fun, sec ) { NULL, #fun , glob_ ## fun , sec, STS_ACTIVE }
 #define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, STS_ACTIVE}
 #define GODF( fun ) LFUN( god, fun, 9 )
@@ -1216,7 +1205,6 @@ void register_globals( lua_State *LS )
     //if (1) return;
     int top=lua_gettop(LS); 
     int i;
-    int index;
 
     /* create script_globs */
     lua_newtable(LS);
