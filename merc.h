@@ -4294,6 +4294,12 @@ void handle_con_note_expire(DESCRIPTOR_DATA *d, const char * argument);
 void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument);
 void handle_con_note_finish (DESCRIPTOR_DATA *d, const char * argument);
 
+/* bsave.c */
+MEMFILE* mem_save_char_obj( CHAR_DATA *ch );
+void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf );
+void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf );
+MEMFILE* remort_mem_save();
+
 /* buildutil.c */
 void clone_warning( CHAR_DATA *ch, AREA_DATA *area );
 
@@ -4303,6 +4309,7 @@ void clan_update    args( ( void ) );
 void save_clan_file args( ( int clannum ) );
 void save_all_clans args( ( void ) );
 bool rank_available args( ( int clan, int current_rank, int new_rank ) );
+MEMFILE* mem_save_clan_file( int clannum );
 
 /* clanwar.c */
 CLANWAR_DATA * clanwar_lookup args( (sh_int clan_one, sh_int clan_two) );
@@ -4702,6 +4709,7 @@ void send_position_message( CHAR_DATA *ch );
 /* lua_main.c */
 void check_lua_stack();
 void lua_log_perf( double value );
+void save_mudconfig();
 void load_mudconfig();
 const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );
@@ -4846,6 +4854,7 @@ void log_pers( PERS_HISTORY *history, char *text );
 void load_comm_histories();
 PERS_HISTORY* pers_history_new();
 void pers_history_free( PERS_HISTORY *history );
+void save_comm_histories();
 
 /* remort.c */
 bool is_in_remort args( (CHAR_DATA *ch) );
