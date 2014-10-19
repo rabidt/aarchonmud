@@ -1659,7 +1659,7 @@ int L_delay (lua_State *LS)
     luaL_checktype( LS, 3, LUA_TFUNCTION);
     if (!lua_isnone( LS, 4 ) )
     {
-       tag=str_dup(check_string( LS, 4, MIL ));
+       tag=check_string( LS, 4, MIL );
     }
 
     lua_getglobal( LS, "delaytbl");

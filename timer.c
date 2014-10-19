@@ -4,14 +4,15 @@
    */
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
 #include "merc.h"
 #include "timer.h"
 
-#define TYPE_UNDEFINED 0
-#define TYPE_CH 1
-#define TYPE_OBJ 2
-#define TYPE_AREA 3
-#define TYPE_ROOM 4
+#define GO_TYPE_UNDEFINED 0
+#define GO_TYPE_CH 1
+#define GO_TYPE_OBJ 2
+#define GO_TYPE_AREA 3
+#define GO_TYPE_ROOM 4
 
 #define TM_UNDEFINED 0
 #define TM_PROG      1
@@ -20,7 +21,7 @@
 /* hide the struct implementation,
    we only want to manipulate nodes
    in this module */
-static struct timer_node
+struct timer_node
 {
     struct timer_node *next;
     struct timer_node *prev;
@@ -29,7 +30,7 @@ static struct timer_node
     int go_type;
     int current; /* current val that gets decremented each second */
     bool unregistered; /* to mark for deletion */
-    const char *tag; /* used for unique tags in lua */
+    char *tag; /* used for unique tags in lua */
 };
 
 
@@ -42,7 +43,7 @@ static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int max
 
 TIMER_NODE * register_lua_timer( int value, const char *tag)
 {
-    TIMER_NODE *tmr=new_timer_node( NULL , TYPE_UNDEFINED, TM_LUAFUNC, value, tag );
+    TIMER_NODE *tmr=new_timer_node( NULL , GO_TYPE_UNDEFINED, TM_LUAFUNC, value, tag );
     add_timer(tmr);
     
     return tmr;
@@ -98,7 +99,7 @@ TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)ch, TYPE_CH, TM_PROG, max, NULL);
+    TIMER_NODE *tmr=new_timer_node( (void *)ch, GO_TYPE_CH, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -118,7 +119,7 @@ TIMER_NODE * register_obj_timer( OBJ_DATA *obj, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)obj, TYPE_OBJ, TM_PROG, max, NULL);
+    TIMER_NODE *tmr=new_timer_node( (void *)obj, GO_TYPE_OBJ, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -138,7 +139,7 @@ TIMER_NODE * register_area_timer( AREA_DATA *area, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)area, TYPE_AREA, TM_PROG, max, NULL);
+    TIMER_NODE *tmr=new_timer_node( (void *)area, GO_TYPE_AREA, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -156,7 +157,7 @@ TIMER_NODE * register_room_timer( ROOM_INDEX_DATA *room, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)room, TYPE_ROOM, TM_PROG, max, NULL);
+    TIMER_NODE *tmr=new_timer_node( (void *)room, GO_TYPE_ROOM, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -232,7 +233,7 @@ static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int sec
     new->go_type=go_type;
     new->current=seconds;
     new->unregistered=FALSE;
-    new->tag=tag;
+    new->tag=str_dup(tag);
     return new;
 }
 
@@ -289,7 +290,7 @@ void timer_update()
                 case TM_PROG:
                     switch( tmr->go_type )
                     {
-                        case TYPE_CH: 
+                        case GO_TYPE_CH: 
                             ch=(CHAR_DATA *)(tmr->game_obj);
                             if (ch->must_extract)
                                 break;
@@ -309,7 +310,7 @@ void timer_update()
                             }
                             break;
 
-                        case TYPE_OBJ:
+                        case GO_TYPE_OBJ:
                             obj=(OBJ_DATA *)(tmr->game_obj);
                             if (!valid_OBJ( obj ) )
                             {
@@ -324,7 +325,7 @@ void timer_update()
                             }
                             break;
 
-                        case TYPE_AREA:
+                        case GO_TYPE_AREA:
                             /* no need for valid check on areas */
                             area=(AREA_DATA *)(tmr->game_obj);
                             ap_timer_trigger( area );
@@ -332,7 +333,7 @@ void timer_update()
                             aprog_timer_init( area );
                             break;
 
-                        case TYPE_ROOM:
+                        case GO_TYPE_ROOM:
                             room=(ROOM_INDEX_DATA *)(tmr->game_obj);
                             if (!valid_ROOM( room ))
                             {
@@ -379,10 +380,10 @@ char * print_timer_list()
         } 
         sprintf(buf, "%s\n\r%d %s %d %s", buf, i,
             tmr->tm_type == TM_LUAFUNC ? "luafunc" :
-            tmr->go_type == TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
-            tmr->go_type == TYPE_OBJ ? ((OBJ_DATA *)(tmr->game_obj))->name :
-            tmr->go_type == TYPE_AREA ? ((AREA_DATA *)(tmr->game_obj))->name :
-            tmr->go_type == TYPE_ROOM ? ((ROOM_INDEX_DATA *)(tmr->game_obj))->name :
+            tmr->go_type == GO_TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
+            tmr->go_type == GO_TYPE_OBJ ? ((OBJ_DATA *)(tmr->game_obj))->name :
+            tmr->go_type == GO_TYPE_AREA ? ((AREA_DATA *)(tmr->game_obj))->name :
+            tmr->go_type == GO_TYPE_ROOM ? ((ROOM_INDEX_DATA *)(tmr->game_obj))->name :
             "unknown",
             tmr->current,
             tmr->tag ? tmr->tag : "none");
