@@ -4730,6 +4730,8 @@ bool saves_dispel( int dis_level, int spell_level, int duration );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg );
 bool has_focus_obj( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
+int get_spell_damage( int mana, int lag, int level );
+int adjust_spell_damage( int dam, CHAR_DATA *ch );
 int get_sn_damage( int sn, int level, CHAR_DATA *ch );
 int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
 void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
