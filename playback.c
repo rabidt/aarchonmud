@@ -11,12 +11,18 @@ for Aarchon MUD
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include <lua.h>
 #include <lauxlib.h>
 #include "merc.h"
 #include "tables.h"
 #include "lua_main.h"
 
+
+/* local functions */
+void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history, sh_int entries );
+void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries );
+void playback_clear( COMM_HISTORY *history );
 
 #define MAX_COMM_HISTORY 300
 /* Default number of results, needs to  be <=MAX_COMM_HISTORY */
@@ -211,7 +217,6 @@ DEF_DO_FUN(do_playback)
     if ( IS_NPC(ch) )
 		return;
 	
-    BUFFER *output;
     char arg[MSL];
     sh_int arg_number;
     bool immortal=IS_IMMORTAL(ch);
@@ -578,7 +583,7 @@ void save_comm_histories()
     {
         bugf ( "Error with L_save_comm_histories:\n %s",
                 lua_tostring(g_mud_LS, -1));
-        return -1;
+        return;
     }
 }
 
@@ -589,7 +594,7 @@ void load_comm_histories()
     {
         bugf ( "Error with L_load_comm_histories:\n %s",
                 lua_tostring(g_mud_LS, -1));
-        return -1;
+        return;
     }
 }
 
