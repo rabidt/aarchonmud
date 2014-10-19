@@ -13,6 +13,7 @@
 #include "olc.h"
 #include "recycle.h"
 #include "lua_scripting.h"
+#include "lua_main.h"
 
 #define RPEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
@@ -108,7 +109,6 @@ DEF_DO_FUN(do_rprun)
     ROOM_INDEX_DATA *room;
     int vnum=0;
     char arg[MSL];
-    char arg2[MSL];
     PROG_CODE *pRcode;
     bool result=FALSE;
 
@@ -312,6 +312,7 @@ RPEDIT (rpedit_delete)
         }
         last=curr;
     }
+    return FALSE;
 }
 
 RPEDIT (rpedit_create)
@@ -403,35 +404,30 @@ RPEDIT(rpedit_security)
         else
         {
             ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
-            return;
+            return FALSE;
         }
     }
 
     if (newsec == pRcode->security)
     {
         ptc(ch, "Security is already at %d.\n\r", newsec );
-        return;
+        return FALSE;
     }
     else if (newsec > ch->pcdata->security )
     {
         ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
                 ch->pcdata->security, newsec);
-        return;
+        return FALSE;
     }
 
     pRcode->security=newsec;
     ptc(ch, "Security for %d updated to %d.\n\r",
             pRcode->vnum, pRcode->security);
-
+    return TRUE;
 }
 
 void fix_rprog_rooms( CHAR_DATA *ch, PROG_CODE *pRcode )
 {
-    PROG_LIST *rpl;
-    int hash;
-    char buf[MSL];
-    ROOM_INDEX_DATA *room;
-
     check_rprog( g_mud_LS, pRcode->vnum, pRcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pRcode->vnum);
 
