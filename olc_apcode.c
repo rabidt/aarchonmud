@@ -13,6 +13,7 @@
 #include "olc.h"
 #include "recycle.h"
 #include "lua_scripting.h"
+#include "lua_main.h"
 
 #define APEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
@@ -107,7 +108,6 @@ DEF_DO_FUN(do_aprun)
     AREA_DATA *area;
     int vnum=0;
     char arg[MSL];
-    char arg2[MSL];
     PROG_CODE *pAcode;
     bool result=FALSE;
 
@@ -308,6 +308,7 @@ APEDIT (apedit_delete)
         }
         last=curr;
     }
+    return FALSE;
 }
 
 APEDIT (apedit_create)
@@ -398,35 +399,30 @@ APEDIT(apedit_security)
         else
         {
             ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
-            return;
+            return FALSE;
         }
     }
 
     if (newsec == pAcode->security)
     {
         ptc(ch, "Security is already at %d.\n\r", newsec );
-        return;
+        return FALSE;
     }
     else if (newsec > ch->pcdata->security )
     {
         ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
                 ch->pcdata->security, newsec);
-        return;
+        return FALSE;
     }
 
     pAcode->security=newsec;
     ptc(ch, "Security for %d updated to %d.\n\r",
             pAcode->vnum, pAcode->security);
-
+    return TRUE;
 }
 
 void fix_aprog_areas( CHAR_DATA *ch, PROG_CODE *pAcode )
 {
-    PROG_LIST *apl;
-    int hash;
-    char buf[MSL];
-    AREA_DATA *area;
-
     check_aprog( g_mud_LS, pAcode->vnum, pAcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pAcode->vnum);
 
