@@ -138,7 +138,6 @@ bool  is_safe       args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  make_corpse   args( ( CHAR_DATA *ch, CHAR_DATA *killer, bool to_morgue ) );
 void  split_attack  args( ( CHAR_DATA *ch, int dt ) );
 void  mob_hit       args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
-void  raw_kill      args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
 bool  check_duck    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_stance  args( ( CHAR_DATA *ch ) );
 void  warfare       args( ( char *argument ) );
