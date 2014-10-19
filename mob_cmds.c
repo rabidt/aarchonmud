@@ -204,7 +204,7 @@ void act_non_wizi(const char *format, CHAR_DATA *ch,
 /*
  * Find a target char or object for an mprog - search in area first
  */
-CHAR_DATA* get_mp_char( CHAR_DATA *ch, char *argument )
+CHAR_DATA* get_mp_char( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *victim = get_char_area( ch, argument );
 
@@ -217,7 +217,7 @@ CHAR_DATA* get_mp_char( CHAR_DATA *ch, char *argument )
 	return get_char_world(ch, argument);
 }
 
-OBJ_DATA* get_mp_obj( CHAR_DATA *ch, char *argument )
+OBJ_DATA* get_mp_obj( CHAR_DATA *ch, const char *argument )
 {
     OBJ_DATA *victim = get_obj_area( ch, argument );
 
@@ -230,9 +230,7 @@ OBJ_DATA* get_mp_obj( CHAR_DATA *ch, char *argument )
 	return get_obj_world(ch, argument);
 }
 
-ROOM_INDEX_DATA* find_location_new( CHAR_DATA *ch, char *arg, bool area );
-
-ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, char *arg )
+ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, const char *arg )
 {
     ROOM_INDEX_DATA *room;
 
