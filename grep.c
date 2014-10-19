@@ -14,9 +14,9 @@
 #include "mob_stats.h"
 
 void show_grep_syntax( CHAR_DATA *ch );
-void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum );
-void grep_mob( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum );
-void grep_room( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum );
+void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
+void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
+void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
 
 typedef struct grep_data GREP_DATA;
 struct grep_data
@@ -28,7 +28,7 @@ struct grep_data
     bool negate;
 };
 
-GREP_DATA* new_grep_data( sh_int stat, int value, char *str_value, bool negate )
+GREP_DATA* new_grep_data( sh_int stat, int value, const char *str_value, bool negate )
 {
     GREP_DATA *gd = alloc_mem( sizeof(GREP_DATA) );
 
@@ -219,7 +219,7 @@ void show_grep_syntax( CHAR_DATA *ch )
 #define NO_SHORT_DESC "(no short description)"
 
 /* parses argument into a list of grep_data */
-GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
+GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
 {
     GREP_DATA *gd;
     char arg1[MIL] = "";
@@ -584,7 +584,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
     return match;
 }
 
-void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
+void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 {
     char buf[MSL], info[MSL];
     BUFFER *buffer;
@@ -657,7 +657,7 @@ void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
 #define GREP_MOB_ALIGN    15
 
 /* parses argument into a list of grep_data */
-GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
+GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
 {
     GREP_DATA *gd;
     char arg1[MIL] = "";
@@ -893,9 +893,9 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
         wealth = mob_base_wealth(mob);
 	match = (wealth >= gd->value);
 	if ( mob->pShop == NULL )
-	    sprintf( buf, "(%d gold)", wealth / 100 );
+	    sprintf( buf, "(%ld gold)", wealth / 100 );
 	else
-	    sprintf( buf, "(S %d gold)", wealth / 100 );
+	    sprintf( buf, "(S %ld gold)", wealth / 100 );
 	strcat( info, buf );
 	break;
     case GREP_MOB_AFF:
@@ -961,13 +961,12 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
     return match;
 }
 
-void grep_mob( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
+void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 {
     char buf[MSL], info[MSL];
     BUFFER *buffer;
 
     MOB_INDEX_DATA *mob;
-    SHOP_DATA *pShop;
     GREP_DATA *gd;
     int vnum,
 	nMatch = 0;
@@ -1026,7 +1025,7 @@ void grep_mob( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
 #define GREP_ROOM_NAME     4
 
 /* parses argument into a list of grep_data */
-GREP_DATA* parse_room_grep( CHAR_DATA *ch, char *argument )
+GREP_DATA* parse_room_grep( CHAR_DATA *ch, const char *argument )
 {
     GREP_DATA *gd;
     char arg1[MIL] = "";
@@ -1162,7 +1161,7 @@ bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info )
     return match;
 }
 
-void grep_room( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
+void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 {
     char buf[MSL], info[MSL];
     BUFFER *buffer;
@@ -1240,9 +1239,6 @@ bool is_room_ingame( ROOM_INDEX_DATA *room )
 
 bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
 {
-    int spec, value, level;
-    float factor;
-
     /* remort has no specs */
     if ( IS_SET(mob->area->area_flags, AREA_REMORT) )
 	return TRUE;
@@ -1258,28 +1254,28 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
 
     if ( mob->wealth_percent > 200 )
     {
-        sprintf( msg, "wealth=%d\%", mob->wealth_percent );
+        sprintf( msg, "wealth=%d%%", mob->wealth_percent );
         return FALSE;
     }
 
     /* check hp */
     if ( mob->hitpoint_percent != 100 )
     {
-        sprintf( msg, "hp=%d\%", mob->hitpoint_percent );
+        sprintf( msg, "hp=%d%%", mob->hitpoint_percent );
         return FALSE;
     }
 
     /* check damage */
     if ( mob->damage_percent != 100 )
     {
-        sprintf( msg, "damage=%d\%", mob->damage_percent );
+        sprintf( msg, "damage=%d%%", mob->damage_percent );
         return FALSE;
     }
 
     /* check hitroll */
     if ( mob->hitroll_percent != 100 )
     {
-        sprintf( msg, "hitroll=%d\%", mob->hitroll_percent );
+        sprintf( msg, "hitroll=%d%%", mob->hitroll_percent );
         return FALSE;
     }
 

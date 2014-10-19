@@ -4957,6 +4957,7 @@ int get_hitroll( CHAR_DATA *ch );
 int get_damroll( CHAR_DATA *ch );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
+int classes_can_use( tflag extra_flags );
 
 /* string.c */
 void   string_edit    args( ( CHAR_DATA *ch, char **pString ) );
