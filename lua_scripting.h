@@ -40,6 +40,8 @@ void load_lboards();
 void check_lboard_reset();
 void check_mprog( lua_State *LS, int vnum, const char *code );
 void check_oprog( lua_State *LS, int vnum, const char *code );
+void check_aprog( lua_State *LS, int vnum, const char *code );
+void check_rprog( lua_State *LS, int vnum, const char *code );
 DECLARE_DO_FUN(do_lua);
 bool run_lua_interpret( DESCRIPTOR_DATA *d );
 void lua_unregister_desc( DESCRIPTOR_DATA *d );
