@@ -50,7 +50,7 @@ bool op_percent_trigger(
              && ( ch2 ? !ch2->must_extract : TRUE ) );
 }
 
-bool op_act_trigger(OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
+bool op_act_trigger(OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, const char *trigger, int type)
 {
     PROG_LIST *prg;
 
@@ -84,7 +84,7 @@ bool op_try_trigger( const char *argument, CHAR_DATA *ch )
     if ( !ch->in_room )
     {
         bugf("op_try_trigger: ch->in_room NULL for %s", ch->name);
-        return;
+        return FALSE;
     }
 
     for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )

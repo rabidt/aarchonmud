@@ -13,6 +13,7 @@
 #include "olc.h"
 #include "recycle.h"
 #include "lua_scripting.h"
+#include "lua_main.h"
 
 #define OPEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
@@ -313,6 +314,7 @@ OPEDIT (opedit_delete)
         }
         last=curr;
     }
+    return FALSE;
 }
 
 OPEDIT (opedit_create)
@@ -403,35 +405,30 @@ OPEDIT(opedit_security)
         else
         {
             ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
-            return;
+            return FALSE;
         }
     }
 
     if (newsec == pOcode->security)
     {
         ptc(ch, "Security is already at %d.\n\r", newsec );
-        return;
+        return FALSE;
     }
     else if (newsec > ch->pcdata->security )
     {
         ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
                 ch->pcdata->security, newsec);
-        return;
+        return FALSE;
     }
 
     pOcode->security=newsec;
     ptc(ch, "Security for %d updated to %d.\n\r",
             pOcode->vnum, pOcode->security);
-
+    return TRUE;
 }
 
 void fix_oprog_objs( CHAR_DATA *ch, PROG_CODE *pOcode )
 {
-    PROG_LIST *mpl;
-    int hash;
-    char buf[MSL];
-    OBJ_INDEX_DATA *obj;
-
     check_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);
 
