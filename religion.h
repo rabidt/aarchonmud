@@ -84,7 +84,7 @@ void religion_save_to_buffer( RELIGION_DATA *religion, DBUFFER *fp );
 RELIGION_DATA* religion_load_from_file( FILE *fp );
 void religion_add_follower( RELIGION_DATA *religion, CHAR_DATA *ch );
 void religion_remove_follower( CHAR_DATA *ch );
-FOLLOWER_DATA* religion_get_follower( RELIGION_DATA *religion, char *name );
+FOLLOWER_DATA* religion_get_follower( RELIGION_DATA *religion, const char *name );
 
 void religion_check_priest_exist( RELIGION_DATA *religion );
 /* RELIGION_FUN functions - to be used with all_religions */
@@ -107,11 +107,11 @@ MEMFILE* save_religions();
 void load_religions();
 void add_religion( RELIGION_DATA *religion );
 void remove_religion( RELIGION_DATA *religion );
-RELIGION_DATA* get_religion_by_name( char *name );
+RELIGION_DATA* get_religion_by_name( const char *name );
 RELIGION_DATA* get_religion_by_ID( int ID );
 void update_relic_bonus();
 //void assign_religion_war_opp();
-FOLLOWER_DATA* get_religion_follower_data( char *name );
+FOLLOWER_DATA* get_religion_follower_data( const char *name );
 void all_religions( RELIGION_FUN *rel_fun );
 /*
 void update_priests();
@@ -154,6 +154,7 @@ int get_religion_bonus( CHAR_DATA *ch );
 void gain_faith( CHAR_DATA *ch, int gain );
 char* get_god_name( CHAR_DATA *ch );
 int get_faith( CHAR_DATA *ch );
+int get_favour( CHAR_DATA *ch );
 bool is_relic_obj( OBJ_DATA *obj );
 void free_relic( OBJ_DATA *obj );
 bool is_religion_member( CHAR_DATA *ch );
