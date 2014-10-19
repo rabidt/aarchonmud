@@ -4465,6 +4465,7 @@ bool    is_opponent( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    in_pkill_battle( CHAR_DATA *ch );
 bool    stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
+void    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
 bool    check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
@@ -4636,6 +4637,7 @@ OD *    get_obj_here    args( ( CHAR_DATA *ch, const char *argument ) );
 OD *    get_obj_world   args( ( CHAR_DATA *ch, const char *argument ) );
 OD *    get_obj_area    args( ( CHAR_DATA *ch, const char *argument ) );
 OD *    get_char_obj_vnum( CHAR_DATA *ch, int vnum );
+CD *    get_obj_char( OBJ_DATA *obj );
 RID *   get_obj_room    args( ( OBJ_DATA *obj ) );
 RID *   find_location   args( ( CHAR_DATA *ch, const char *argument ) );
 RID *   get_room_area( AREA_DATA *area, const char *argument );
@@ -5017,6 +5019,7 @@ void	forget_attacks	args((CHAR_DATA *ch));
 int		check_anger		args((CHAR_DATA *ch, CHAR_DATA *victim));
 void    forget_attacker(CHAR_DATA *ch, CHAR_DATA *attacker);
 int     get_reaction( CHAR_DATA *ch, CHAR_DATA *victim );
+int     find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth, int *distance );
 
 /* quest.c */
 bool chance(int num);

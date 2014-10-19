@@ -11,6 +11,8 @@
 #include "merc.h"
 #include "buffer_util.h"
 #include "religion.h"
+#include "simsave.h"
+#include "warfare.h"
 
 #define DEFINE_GOD_FUNCTION(name) bool name( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration );
 
@@ -30,8 +32,6 @@ static RELIGION_DATA *religion_list = NULL;
 #define MONTH (30*DAY)
 #define YEAR (365*DAY)
 */
-
-//extern bool in_religion_war( CHAR_DATA *ch );
 
 static RELIGION_RANK_DATA religion_ranks[RELIGION_MAX_RANK] =
 {
@@ -154,11 +154,13 @@ void religion_save_to_buffer( RELIGION_DATA *rel, DBUFFER *fp )
 
     bprintf( fp, "God %s~\n", rel->god );
     for ( i = 0; i < MAX_PRIEST; i++ )
-	if ( rel->priest[i] != NULL )
-	    if ( i == 0 )
-		bprintf( fp, "HPriest %s~\n", rel->priest[i] );
-	    else
-		bprintf( fp, "Priest %s~\n", rel->priest[i] );
+        if ( rel->priest[i] != NULL )
+        {
+            if ( i == 0 )
+                bprintf( fp, "HPriest %s~\n", rel->priest[i] );
+            else
+                bprintf( fp, "Priest %s~\n", rel->priest[i] );
+        }
 
     if ( rel->follower != NULL )
     {
@@ -323,7 +325,6 @@ void religion_remove_follower( CHAR_DATA *ch )
 {
     RELIGION_DATA *religion;
     FOLLOWER_DATA *fol, *next;
-    int i;
 
 #ifdef REL_DEBUG
     log_string( "religion_remove_follower: start" );
@@ -356,14 +357,6 @@ void religion_remove_follower( CHAR_DATA *ch )
     ch->pcdata->ch_rel = NULL;
 
     religion_check_priest_exist( religion );
-    /*
-    for ( i = 0; i < MAX_PRIEST; i++ )
-	if ( !strcmp(religion->priest[i], ch->name) )
-	{
-	    free_string( religion->priest[i] );
-	    religion->priest[i] = NULL;
-	}
-    */
 
 #ifdef REL_DEBUG
     log_string( "religion_remove_follower: done" );
@@ -371,7 +364,7 @@ void religion_remove_follower( CHAR_DATA *ch )
 
 }
 
-FOLLOWER_DATA* religion_get_follower( RELIGION_DATA *religion, char *name )
+FOLLOWER_DATA* religion_get_follower( RELIGION_DATA *religion, const char *name )
 {
     FOLLOWER_DATA *fol;
 
@@ -803,7 +796,6 @@ void load_religions()
     RELIGION_DATA *rel, *rel_last = NULL;
     FILE *fp;
     char *word;
-    bool fMatch;
 
 #ifdef REL_DEBUG
     log_string( "load_religions: start" );
@@ -910,7 +902,7 @@ void remove_religion( RELIGION_DATA *religion )
 
 }
 
-RELIGION_DATA* get_religion_by_name( char *name )
+RELIGION_DATA* get_religion_by_name( const char *name )
 {
     RELIGION_DATA *rel;
 
@@ -1005,7 +997,7 @@ void update_relic_bonus()
 //
 // }
 
-FOLLOWER_DATA* get_religion_follower_data( char *name )
+FOLLOWER_DATA* get_religion_follower_data( const char *name )
 {
     FOLLOWER_DATA *fol;
     RELIGION_DATA *rel;
@@ -1247,7 +1239,6 @@ FOLLOWER_DATA* new_follower( RELIGION_DATA *religion, char *name )
 
 void free_follower( FOLLOWER_DATA *fol )
 {
-    DESCRIPTOR_DATA *d;
     CHAR_DATA *ch;
 
 #ifdef REL_DEBUG
@@ -1755,7 +1746,7 @@ double adjust_align_change( CHAR_DATA *ch, double change )
 
 DEF_DO_FUN(do_religion)
 {
-    RELIGION_DATA *rel, *opp;
+    RELIGION_DATA *rel;
     CHAR_DATA *victim;
     int ID = 0;
     char arg1[MIL];
@@ -2404,11 +2395,6 @@ DEF_DO_FUN(do_religion_set)
 	    return;	    
 	}
 	value1 = atoi(arg2);
-	if ( rel->god_power != NULL )
-	{
-	    send_to_char( "That religion doesn't exist.\n\r", ch );
-	    return;
-	}
 	/* set it */
 	rel->god_power = value1;
 	send_to_char( "Power set.\n\r", ch );
@@ -2433,7 +2419,6 @@ DEF_DO_FUN(do_religion_set)
     }
     else if ( !strcmp(arg1, "conserve") )
     {
-	int at;
 	if( !is_number(arg2) )
 	{
 	    send_to_char( "Syntax:  religion set conserve <cutoff value for prayer granting>\n\r", ch );
@@ -2615,8 +2600,8 @@ DEF_DO_FUN(do_god)
 		continue;
 
 	    if ( world
-		 || all && get_religion(victim) == rel && is_religion_member(victim)
-		 || !all && is_name(arg2, victim->name) )
+		 || (all && get_religion(victim) == rel && is_religion_member(victim))
+		 || (!all && is_name(arg2, victim->name)) )
 	    {
 		/* check cost */
 		if ( god_table[i].cost > rel->god_power )
@@ -3162,14 +3147,14 @@ bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
 
 DEF_DO_FUN(do_prayer)
 {
-    char arg1[MIL], arg2[MIL], arg3[MIL];
+    char arg1[MIL], arg2[MIL];
     PRAYER_DATA *prayer;
     RELIGION_DATA *rel;
     RELIGION_DATA *vrel;
     char buf[MSL];
-    int i, j, chance = 0;
+    int i, chance = 0;
     CHAR_DATA *victim;
-    bool enlighten = FALSE, in_temple = FALSE, priest = FALSE;
+    bool enlighten = FALSE, in_temple = FALSE, ch_is_priest = FALSE;
     int ticks;
 
     if( IS_NPC(ch) || ch->pcdata == NULL )
@@ -3438,7 +3423,7 @@ DEF_DO_FUN(do_prayer)
 	if( !strcmp(god_table[i].name, "cleanse") && !is_affected(ch, gsn_god_curse) )
 	{
 	    send_to_char( "{0...but you are not cursed.{x\n\r", ch );
-	    sprintf( buf, "{0...but $N is not cursed.{x", ch );
+	    sprintf( buf, "{0...but $N is not cursed.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3502,7 +3487,7 @@ DEF_DO_FUN(do_prayer)
    	if( !str_cmp(god_table[i].name, "cleanse") && !is_affected(victim, gsn_god_curse) )
         {
             send_to_char( "{0...but that person is not affected by a divine curse.{x\n\r", ch );
-            sprintf( buf, "{0...but the target is not divinely cursed.{x", ch );
+            sprintf( buf, "{0...but the target is not divinely cursed.{x" );
             wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
             return;
         }
@@ -3512,7 +3497,7 @@ DEF_DO_FUN(do_prayer)
 
     vrel = get_religion(victim);
 
-    priest = is_priest(ch);
+    ch_is_priest = is_priest(ch);
 
     if( god_table[i].mean )
     {
@@ -3549,7 +3534,7 @@ DEF_DO_FUN(do_prayer)
 	if( in_temple )
 	    chance += 10;   /* Temple improves chances a bit. */
 
-	if( is_priest )
+	if( ch_is_priest )
 	    chance += 10;  /* Priests have a bit of extra success. */
 
 	/* Now see if the victim deserves the curse :P  If so, the odds are greatly raised. */
@@ -3558,19 +3543,20 @@ DEF_DO_FUN(do_prayer)
 	/* Is the victim on his way into the altar room, i.e. is he in the temple? */
 	if( rel->relic_obj->carried_by == victim || victim->in_room->vnum == rel->altar_room_vnum )
 	    chance += 50;
-	else if( find_path(victim->in_room->vnum, rel->altar_room_vnum, ch, -1000, TRUE) != -1 )
+	else if( find_path(victim->in_room->vnum, rel->altar_room_vnum, TRUE, 10, NULL) != -1 )
 	    chance += 45;
 
 	/* Is the victim a member of the religion which currently possesses ch's relic? */
 	/* Increased chance of success, but still the curse cannot be guaranteed. */
-	if( vrel != NULL && get_obj_room(rel->relic_obj) == vrel->altar_room_vnum )
+    ROOM_INDEX_DATA *rel_room = get_obj_room(rel->relic_obj);
+	if( vrel != NULL && rel_room != NULL && rel_room->vnum == vrel->altar_room_vnum )
 	    chance += 20;
     }
     else
     {
 	chance = 40;  /* Base chance of success for a benevolent prayer. */
 
-	if( is_priest && victim != ch && rel == vrel )
+	if( ch_is_priest && victim != ch && rel == vrel )
 	    chance += 25;
 
 	if( enlighten )
