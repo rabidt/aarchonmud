@@ -4457,6 +4457,7 @@ bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, i
 bool    full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
 bool    deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
 void    dam_message( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, bool immune );
+int     get_damage_messages( int dam, int dt, const char **vs, const char **vp, char *punct );
 void    direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn );
 void    update_pos  args( ( CHAR_DATA *victim ) );
 void    set_fighting( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4640,6 +4641,7 @@ OD *    get_char_obj_vnum( CHAR_DATA *ch, int vnum );
 CD *    get_obj_char( OBJ_DATA *obj );
 RID *   get_obj_room    args( ( OBJ_DATA *obj ) );
 RID *   find_location   args( ( CHAR_DATA *ch, const char *argument ) );
+RID *   find_location_new( CHAR_DATA *ch, const char *arg, bool area );
 RID *   get_room_area( AREA_DATA *area, const char *argument );
 RID *   get_room_world( const char *argument );
 OD *    create_money    args( ( int gold, int silver ) );
@@ -4795,6 +4797,14 @@ void    mpechoat( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 CD *    mpmload( CHAR_DATA *ch, const char *argument );
 bool    is_r_number( const char *arg );
 int     r_atoi( CHAR_DATA *ch, const char *arg );
+RID *   find_mp_location( CHAR_DATA *ch, const char *arg );
+CD *    get_mp_char( CHAR_DATA *ch, const char *argument );
+OD *    get_mp_obj( CHAR_DATA *ch, const char *argument );
+void    transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location );
+
+/* mt19937ar.c */
+void init_genrand( unsigned long s );
+void init_by_array( unsigned long init_key[], int key_length );
 
 /* mudconfig.c */
 void mudconfig_init();

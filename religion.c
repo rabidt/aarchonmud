@@ -14,8 +14,6 @@
 #include "simsave.h"
 #include "warfare.h"
 
-#define DEFINE_GOD_FUNCTION(name) bool name( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration );
-
 void show_religion_syntax( CHAR_DATA *ch );
 void list_religions( CHAR_DATA *ch );
 void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch );
@@ -2459,21 +2457,6 @@ struct god_action
     char *desc;
     bool mean;
 };
-
-/* god functions */
-DEFINE_GOD_FUNCTION(god_bless)
-DEFINE_GOD_FUNCTION(god_curse)
-DEFINE_GOD_FUNCTION(god_heal)
-DEFINE_GOD_FUNCTION(god_cleanse)
-DEFINE_GOD_FUNCTION(god_defy)
-DEFINE_GOD_FUNCTION(god_speed)
-DEFINE_GOD_FUNCTION(god_slow)
-DEFINE_GOD_FUNCTION(god_enlighten)
-DEFINE_GOD_FUNCTION(god_protect)
-DEFINE_GOD_FUNCTION(god_fortune)
-DEFINE_GOD_FUNCTION(god_haunt)
-DEFINE_GOD_FUNCTION(god_plague)
-DEFINE_GOD_FUNCTION(god_confuse)
 
 GOD_ACTION god_table[] =
 {
