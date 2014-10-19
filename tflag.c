@@ -157,11 +157,13 @@ int flag_convert_old( long vector )
     flag_set_vector( buf, vector );
 
     for ( i = 1; i < VSIZE; i++ )
-	if ( flag_is_set(buf, i) )
-	    if ( aff2_fix )
-		return i + 32;
-	    else
-		return i;
+        if ( flag_is_set(buf, i) )
+        {
+            if ( aff2_fix )
+                return i + 32;
+            else
+                return i;
+        }
 
     return 0;
 }
