@@ -66,7 +66,7 @@ static void set_group_skill_costs( int gn, int class, int *skill_costs )
     int i;
     for ( i = 0; i < MAX_IN_GROUP; i++ )
     {
-        char *name = group_table[gn].spells[i];
+        const char *name = group_table[gn].spells[i];
         if ( name == NULL )
             break;
         int sn = skill_lookup_exact(name);
@@ -92,7 +92,7 @@ static void filter_basic_skills( int class, int *skill_costs )
     int i, gn = group_lookup(class_table[class].base_group);
     for ( i = 0; i < MAX_IN_GROUP; i++ )
     {
-        char *name = group_table[gn].spells[i];
+        const char *name = group_table[gn].spells[i];
         if ( name == NULL )
             break;
         int sn = skill_lookup_exact(name);
@@ -2555,7 +2555,7 @@ DEF_DO_FUN(do_raceskills)
  ********************************************************/
 
 /* Color, group support, buffers and other tweaks by Rimbol, 10/99. */
-void show_skill(char *argument, BUFFER *buffer, CHAR_DATA *ch);
+void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch);
 void show_skill_all(BUFFER *buffer);
 DEF_DO_FUN(do_showskill)
 {
@@ -2716,7 +2716,7 @@ void show_races( int skill, BUFFER *buffer )
 	add_buf( buffer, "\n\r" );
 }
 
-void show_skill(char *argument, BUFFER *buffer, CHAR_DATA *ch)
+void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
 {
     int skill, cls = 0;
     int stance;

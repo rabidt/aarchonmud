@@ -153,7 +153,7 @@ int weapon_type (const char *name)
     return WEAPON_EXOTIC;
 }
 
-char *item_name(int item_type)
+const char *item_name(int item_type)
 {
     int type;
     
@@ -163,7 +163,7 @@ char *item_name(int item_type)
         return "none";
 }
 
-char *weapon_name( int weapon_type)
+const char *weapon_name( int weapon_type)
 {
     int type;
     
@@ -652,12 +652,12 @@ bool is_ch_name( char *str, CHAR_DATA *ch, bool exact, CHAR_DATA *viewer )
     return FALSE;
 }
 
-char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker )
+const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker )
 {
     return get_mimic_PERS_new( ch, looker, 0);
 }
 
-char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype)
+const char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype)
 {
     if ( !can_see(looker, ch) )
 	return "someone";
@@ -2513,7 +2513,7 @@ ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argu
     return NULL;
 }
 
-CHAR_DATA* get_player( char *name )
+CHAR_DATA* get_player( const char *name )
 {
     DESCRIPTOR_DATA *d;
     CHAR_DATA *ch;

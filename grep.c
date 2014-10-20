@@ -1816,7 +1816,7 @@ bool has_oprog( OBJ_INDEX_DATA *obj, int vnum )
 
 bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg )
 {
-    char *mob_spec_name = spec_name_lookup(mob->spec_fun);
+    const char *mob_spec_name = spec_name_lookup(mob->spec_fun);
 
     if ( mob_spec_name == NULL )
         return FALSE;

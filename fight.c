@@ -301,7 +301,7 @@ bool is_wimpy( CHAR_DATA *ch )
 /* execute a default combat action */
 void run_combat_action( DESCRIPTOR_DATA *d )
 {
-    char *command;
+    const char *command;
     CHAR_DATA *ch;
 
     if ( d == NULL || (ch = d->character) == NULL || ch->pcdata == NULL )
@@ -2868,7 +2868,7 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
         return FALSE;
     
     // touch spells and some others cannot be evaded
-    char *spell = skill_table[sn].name;
+    const char *spell = skill_table[sn].name;
     if ( !strcmp(spell, "burning hands")
         || !strcmp(spell, "chill touch")
         || !strcmp(spell, "shocking grasp")
@@ -4962,7 +4962,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     OBJ_DATA *corpse;
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
-    char *name, *desc;
+    const char *name, *desc;
     ROOM_INDEX_DATA *location;
     bool eqloot = TRUE;
     
@@ -5141,7 +5141,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
 void death_cry( CHAR_DATA *ch )
 {
     ROOM_INDEX_DATA *was_in_room;
-    char *msg;
+    const char *msg;
     int door;
     int vnum;
     
@@ -5206,7 +5206,7 @@ void death_cry( CHAR_DATA *ch )
     {
         char buf[MAX_STRING_LENGTH];
         OBJ_DATA *obj;
-        char *name;
+        const char *name;
         
         name        = IS_NPC(ch) ? ch->short_descr : ch->name;
         obj     = create_object( get_obj_index( vnum ), 0 );

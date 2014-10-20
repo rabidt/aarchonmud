@@ -170,7 +170,7 @@ void show_list_to_char( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fShowNo
 {
     char buf[MAX_STRING_LENGTH];
     BUFFER *output;
-    char **prgpstrShow;
+    const char **prgpstrShow;
     int *prgnShow;
     char *pstrShow;
     OBJ_DATA *obj;
@@ -1612,7 +1612,7 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
     int number = number_argument(argument, arg3);
     int count = 0;
     OBJ_DATA *obj;
-    char *pdesc;
+    const char *pdesc;
 
     for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
     {
@@ -1701,7 +1701,7 @@ DEF_DO_FUN(do_look)
     EXIT_DATA *pexit;
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char *pdesc;
+    const char *pdesc;
     int door;
     int number,count;
     sh_int num_items;
@@ -3362,7 +3362,7 @@ DEF_DO_FUN(do_consider)
 
 
 
-void set_title( CHAR_DATA *ch, char *title )
+void set_title( CHAR_DATA *ch, const char *title )
 {
     char buf[MAX_STRING_LENGTH];
     

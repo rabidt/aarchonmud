@@ -260,7 +260,7 @@ DEF_DO_FUN(do_outfit)
 DEF_DO_FUN(do_smote)
 {
     CHAR_DATA *vch;
-    char *letter,*name;
+    const char *letter, *name;
     char last[MAX_INPUT_LENGTH], temp[MAX_STRING_LENGTH];
     size_t matches = 0;
     
@@ -1766,7 +1766,7 @@ DEF_DO_FUN(do_ptitle)
     if (!strcmp(arg1, "list"))
     {
         FILE * fp;
-        char * word;
+        const char *word;
         char buf [MSL];
         int cost;
 

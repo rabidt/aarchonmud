@@ -2264,7 +2264,7 @@ DEF_DO_FUN(do_sacrifice)
     char buf[MAX_STRING_LENGTH];
     OBJ_DATA *obj;
     int silver, worth;
-    char *god_name;
+    const char *god_name;
 
     /* variables for AUTOSPLIT */
     CHAR_DATA *gch;

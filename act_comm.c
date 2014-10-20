@@ -44,10 +44,8 @@
 DECLARE_DO_FUN(do_quit  );
 DECLARE_DO_FUN(do_groups    );
 void war_remove( CHAR_DATA *ch, bool killed );
-bool can_order( char *command, CHAR_DATA *victim );
 void smash_beep_n_blink( char *str );
 void quit_char( CHAR_DATA *ch );
-void add_auto_auth( char *name );
 void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim );
 void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader );
 
@@ -571,15 +569,14 @@ DEF_DO_FUN(do_gametalk)
 }
 /* Function info_message is called in a fashion similar to wiznet to
 announce various events to players. -- Rimbol */
-void info_message( CHAR_DATA *ch, char *argument, bool show_to_char )
+void info_message( CHAR_DATA *ch, const char *argument, bool show_to_char )
 {
     info_message_new( ch, argument, show_to_char, FALSE );
 }
 
 /* extended version that can show message only to players who see
  * the character - needed for login info */
-void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char,
-		       bool check_visible )
+void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, bool check_visible )
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -1373,7 +1370,7 @@ DEF_DO_FUN(do_emote)
 DEF_DO_FUN(do_pmote)
 {
     CHAR_DATA *vch;
-    char *letter,*name;
+    const char *letter, *name;
     char last[MAX_INPUT_LENGTH], temp[MAX_STRING_LENGTH];
     size_t matches = 0;
     bool keep_space = (argument[0] != '\'');
@@ -2166,7 +2163,7 @@ DEF_DO_FUN(do_order)
     return;
 }
 
-char* ch_name(CHAR_DATA *ch)
+const char* ch_name( CHAR_DATA *ch )
 {
     if ( !ch )
         return "";

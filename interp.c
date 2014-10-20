@@ -669,7 +669,7 @@ const   struct  cmd_type    cmd_table   [] =
  * returns wether a command can be ordered to victim
  * if victim is NUll returns wether it can be ordered to some victims
  */
-bool can_order( char *command, CHAR_DATA *victim )
+bool can_order( const char *command, CHAR_DATA *victim )
 {
     int cmd;
     for ( cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
@@ -1457,7 +1457,7 @@ void load_disabled()
 {
     FILE *fp;
     DISABLED_DATA *p;
-    char *name;
+    const char *name;
     int i = 0;
     int spell;
     bool found;

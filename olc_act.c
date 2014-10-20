@@ -1386,7 +1386,7 @@ AEDIT( aedit_builder )
     if ( strstr( pArea->builders, name ) != '\0' )
     {
         pArea->builders = string_replace( pArea->builders, name, "\0" );
-        pArea->builders = string_unpad( pArea->builders );
+        pArea->builders = trim_realloc( pArea->builders );
         
         if ( pArea->builders[0] == '\0' )
         {
@@ -1402,7 +1402,7 @@ AEDIT( aedit_builder )
         if ( strstr( pArea->builders, "None" ) != '\0' )
         {
             pArea->builders = string_replace( pArea->builders, "None", "\0" );
-            pArea->builders = string_unpad( pArea->builders );
+            pArea->builders = trim_realloc( pArea->builders );
         }
         
         if (pArea->builders[0] != '\0' )
@@ -1412,7 +1412,7 @@ AEDIT( aedit_builder )
         }
         strcat( buf, name );
         free_string( pArea->builders );
-        pArea->builders = string_proper( str_dup( buf ) );
+        pArea->builders = str_dup(string_proper(buf));
         
         send_to_char( "Builder added.\n\r", ch );
         send_to_char( pArea->builders,ch);
@@ -4284,8 +4284,7 @@ OEDIT( oedit_long )
     }
     
     free_string( pObj->description );
-    pObj->description = str_dup( argument );
-    pObj->description[0] = UPPER( pObj->description[0] );
+    pObj->description = upper_realloc(str_dup(argument));
     
     send_to_char( "Long description set.\n\r", ch);
     return TRUE;
@@ -5990,8 +5989,7 @@ MEDIT( medit_long )
     }
     
     free_string( pMob->long_descr );
-    pMob->long_descr = str_dup( argument );
-    pMob->long_descr[0] = UPPER( pMob->long_descr[0]  );
+    pMob->long_descr = upper_realloc(str_dup(argument));
     
     send_to_char( "Long description set.\n\r", ch);
     return TRUE;
