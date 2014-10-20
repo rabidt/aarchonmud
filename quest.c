@@ -1657,7 +1657,7 @@ void set_pre_title( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim )
   char arg2 [MAX_STRING_LENGTH];
   char buf [MSL];
   FILE *fp;
-  char * word;
+  const char *word;
   int cost;
 
   if (victim == NULL)

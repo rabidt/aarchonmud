@@ -458,7 +458,7 @@ void load_penalties()
 {
     FILE *fp;
     PENALTY_DATA *p;
-    char *ctmp;
+    const char *ctmp;
     
     penalty_list = NULL;
     
@@ -1420,7 +1420,7 @@ DEF_DO_FUN(do_crimelist)
         "crimelist delete <name>               - Delete a type from the list.\n\r", ch );
 }
 
-int get_crime_count( CHAR_DATA *ch, char *crime_name, char *imm_name )
+int get_crime_count( CHAR_DATA *ch, const char *crime_name, const char *imm_name )
 {
     CRIME_DATA *cr;
     bool check_imm = imm_name[0] != '\0';

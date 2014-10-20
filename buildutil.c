@@ -27,7 +27,7 @@ DECLARE_DO_FUN(do_cset      );
 DECLARE_DO_FUN(do_mfind     );
 DECLARE_DO_FUN(do_ofind     );
 DECLARE_DO_FUN(do_slookup   );
-char* first_line( char* str );
+const char* first_line( const char *str );
 
 
 
@@ -333,7 +333,7 @@ DEF_DO_FUN(do_vlist)
 }
 
 /* returns the first line of given string */
-char* first_line( char* str )
+const char* first_line( const char* str )
 {
     static char buf[MIL];
     int i = 0;

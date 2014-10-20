@@ -99,7 +99,7 @@ PROG_CODE *    rprog_list;
 
 char            bug_buf     [2*MAX_INPUT_LENGTH];
 CHAR_DATA *     char_list;
-char *          help_greeting;
+const char *    help_greeting;
 char            log_buf     [2*MAX_INPUT_LENGTH];
 KILL_DATA       kill_table  [MAX_LEVEL];
 OBJ_DATA *      object_list;
@@ -895,7 +895,7 @@ void load_area_file( FILE *fp, bool clone )
 
     for ( ; ; )
     {
-	char *word;
+	const char *word;
                 
 	if ( fread_letter( fpArea ) != '#' )
 	{
@@ -1032,7 +1032,7 @@ void load_area( FILE *fp )
 void new_load_area( FILE *fp )
 {
     AREA_DATA *pArea;
-    char      *word;
+    const char *word;
     bool      fMatch;
     
     pArea               = alloc_AREA();
@@ -1066,7 +1066,7 @@ void new_load_area( FILE *fp )
             if (!str_cmp(word, "AProg") )
             {
                 PROG_LIST *pAprog;
-                char *word;
+                const char *word;
                 int trigger = 0;
 
                 pAprog              = alloc_ATRIG();
@@ -1257,7 +1257,7 @@ void load_helps( FILE *fp, char *fname )
 {
     HELP_DATA *pHelp;
     int level;
-    char *keyword;
+    const char *keyword;
     
     for ( ; ; )
     {
@@ -1673,7 +1673,7 @@ void load_rooms( FILE *fp )
             else if (letter == 'P')
             {
                 PROG_LIST *pRprog;
-                char *word;
+                const char *word;
                 int trigger=0;
 
                 pRprog = alloc_RTRIG();
@@ -1931,7 +1931,7 @@ void load_roomprogs( FILE *fp )
         pRprog      = alloc_PROG();
         pRprog->vnum    = vnum;
 
-        char *word;
+        const char *word;
         for ( ; ; )
         {
             word=fread_word(fp);
@@ -2013,7 +2013,7 @@ void load_areaprogs( FILE *fp )
         else
         {
             /* new code for new format */
-            char *word;
+            const char *word;
             for ( ; ; )
             {
                 word=fread_word(fp);
@@ -2098,7 +2098,7 @@ void load_objprogs( FILE *fp )
             /* new code for new format */
             for ( ; ; )
             {
-                char *word=fread_word(fp);
+                const char *word=fread_word(fp);
 
                 if (!strcmp(word, "CODE") )
                 {
@@ -2177,7 +2177,7 @@ void load_mobprogs( FILE *fp )
             /* old code for old format */
 
             /* some funko stuff when loading old files that don't have is_lua data*/
-            char * tempStr = fread_string( fp );
+            const char * tempStr = fread_string( fp );
             if ( !strcmp( tempStr, "IS_LUA" ) )
             {
                 pMprog->is_lua = TRUE;
@@ -2196,7 +2196,7 @@ void load_mobprogs( FILE *fp )
         else
         {
             /* new code for new format */
-            char *word;
+            const char *word;
             for ( ; ; )
             {
                 word=fread_word(fp);
@@ -3434,7 +3434,7 @@ void clear_char( CHAR_DATA *ch )
 /*
 * Get an extra description from a list.
 */
-char *get_extra_descr( const char *name, EXTRA_DESCR_DATA *ed )
+const char * get_extra_descr( const char *name, EXTRA_DESCR_DATA *ed )
 {
     for ( ; ed != NULL; ed = ed->next )
     {
@@ -3725,7 +3725,7 @@ long flag_convert(char letter )
 *   hash code is simply the string length.
 *   this function takes 40% to 50% of boot-up time.
 */
-char *fread_string( FILE *fp )
+const char *fread_string( FILE *fp )
 {
     char *plast;
     char c;
@@ -3839,7 +3839,7 @@ char *fread_string( FILE *fp )
 }
 
 /* new slightly different, simpler and working version by Bobble */
-char *fread_string_eol( FILE *fp )
+const char *fread_string_eol( FILE *fp )
 {
     static char buf[MSL];
     char c;
@@ -3874,8 +3874,8 @@ char *fread_string_eol( FILE *fp )
     return buf;
 }
 
-/* seems buggy.. */
-char *fread_string_eol_old( FILE *fp )
+/* seems buggy..*/
+const char *fread_string_eol_old( FILE *fp )
 {
     static bool char_special[256-EOF];
     char *plast;
@@ -4004,7 +4004,7 @@ void fread_to_eol( FILE *fp )
 /*
 * Read one word (into static buffer).
 */
-char *fread_word( FILE *fp )
+const char *fread_word( FILE *fp )
 {
     static char word[MAX_INPUT_LENGTH];
     char *pword;
@@ -4238,7 +4238,7 @@ void dump_str_dup()
 * Duplicate a string into dynamic memory.
 * Fread_strings are read-only and shared.
 */
-char *str_dup( const char *str )
+const char *str_dup( const char *str )
 {
     char *str_new;
     
@@ -4246,7 +4246,7 @@ char *str_dup( const char *str )
         return &str_empty[0];
     
     if ( str >= string_space && str < top_string )
-        return (char *) str;
+        return str;
     
     str_new = alloc_mem( strlen(str) + 1 );
     strcpy( str_new, str );
@@ -4259,16 +4259,64 @@ char *str_dup( const char *str )
 * Null is legal here to simplify callers.
 * Read-only shared strings are not touched.
 */
-void free_string( char *pstr )
+void free_string( const char *pstr )
 {
     if ( pstr == NULL
         ||   pstr == &str_empty[0]
         || ( pstr >= string_space && pstr < top_string ) )
         return;
     
+    // pstr is no shared, so we deallocate it, ignoring const
     forget_str_dup( pstr );
-    free_mem( pstr, strlen(pstr) + 1 );
+    free_mem( (char*)pstr, strlen(pstr) + 1 );
     return;
+}
+
+/*
+ * replaces a shared string with a capitalized version
+ * free_string(str) is called, so will fail on non-shared strings
+ */
+const char *upper_realloc( const char *str )
+{
+    char buf[MSL];
+    
+    if ( str[0] == UPPER(str[0]) )
+        return str;
+    
+    buf[0] = UPPER(str[0]);
+    strcpy(buf+1, str+1);
+    
+    free_string(str);
+    return str_dup(buf);
+}
+
+/*
+ * replaces a shared string with a trimmed version
+ * free_string(str) is called, so will fail on non-shared strings
+ */
+const char *trim_realloc( const char *str )
+{
+    if ( *str == '\0' )
+        return str;
+    
+    const char *first = ltrim(str);
+    if ( *first == '\0' )
+    {
+        free_string(str);
+        return str_empty;
+    }
+    
+    const char *last = str + strlen(str) - 1;
+    while ( last >= first && isspace(*last) )
+        last--;
+    
+    // copy substring
+    char buf[MSL];
+    strcpy(buf, first);
+    buf[1 + (last-first)] = '\0';
+    
+    free_string(str);
+    return str_dup(buf);
 }
 
 /* Erwins sample for sorting areas. Change the relational
@@ -5042,7 +5090,7 @@ DEF_DO_FUN(do_cheatlog)
 {
     FILE *fp;
     BUFFER *output;
-    char *buf;
+    const char *buf;
     bool is_eof = FALSE;
 
     if ( argument[0] == '\0' )
@@ -5264,7 +5312,7 @@ long bread_flag( RBUFFER *rbuf )
 *   hash code is simply the string length.
 *   this function takes 40% to 50% of boot-up time.
 */
-char* bread_string( RBUFFER *rbuf )
+const char* bread_string( RBUFFER *rbuf )
 {
     char *plast;
     char c;
@@ -5380,7 +5428,7 @@ char* bread_string( RBUFFER *rbuf )
     }
 }
 
-char* bread_string_eol( RBUFFER *rbuf )
+const char* bread_string_eol( RBUFFER *rbuf )
 {
     static bool char_special[256-EOF];
     char *plast;
@@ -5518,7 +5566,7 @@ void bread_to_eol( RBUFFER *rbuf )
 /*
 * Read one word (into static buffer).
 */
-char* bread_word( RBUFFER *rbuf )
+const char* bread_word( RBUFFER *rbuf )
 {
     static char word[MAX_INPUT_LENGTH];
     char *pword;

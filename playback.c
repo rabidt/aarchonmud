@@ -90,7 +90,7 @@ void pers_history_free(PERS_HISTORY *history)
 	free_mem(history, sizeof(PERS_HISTORY) );
 }
 
-void log_pers( PERS_HISTORY *history, char *text )
+void log_pers( PERS_HISTORY *history, const char *text )
 {
 	PERS_ENTRY *entry=pers_entry_new();
 	char time[MSL];
@@ -161,7 +161,7 @@ void add_to_comm_history ( COMM_HISTORY *history, COMM_ENTRY *entry )
     }
 }
 
-void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
+void log_chan( CHAR_DATA * ch, const char *text , sh_int channel )
 {
     char buf[MSL];
 
@@ -171,8 +171,6 @@ void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
     entry->text = str_dup(text) ;
     entry->channel = channel;
     entry->timestamp= str_dup(ctime( &current_time ));
-    /*have to add the EOL to timestamp or it won't have one, weird*/
-    entry->timestamp[strlen(entry->timestamp)-1] = '\0';
 
     if (!IS_NPC(ch))
       sprintf(buf,"%s%s", ch->pcdata->pre_title,ch->name);

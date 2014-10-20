@@ -2654,7 +2654,7 @@ DEF_DO_FUN(do_recall)
     int chance;
     int room=ROOM_VNUM_RECALL;
     int move_cost;
-    char *god_name;
+    const char *god_name;
     
     if (IS_REMORT(ch))
     {

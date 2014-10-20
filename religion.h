@@ -24,7 +24,7 @@
 struct religion_data
 {
     RELIGION_DATA *next;
-    char *name;
+    const char *name;
     int ID;
     int min_align, max_align;
     int altar_room_vnum;
@@ -35,8 +35,8 @@ struct religion_data
     int relic_bonus; /* current bonus the religion gets */
     int god_power; /* favor points */
 //    RELIGION_WAR_DATA *war_status;
-    char *god;
-    char *priest[MAX_PRIEST];
+    const char *god;
+    const char *priest[MAX_PRIEST];
     FOLLOWER_DATA *follower;
     int conserve_at; /* if god_power < conserve_at, no mortal prayers are answered */
 };
@@ -52,7 +52,7 @@ struct religion_data
 struct follower_data
 {
     FOLLOWER_DATA *next;
-    char *name;
+    const char *name;
     RELIGION_DATA *religion;
     time_t join_time;
     int faith;
@@ -63,7 +63,7 @@ struct religion_rank_data
 {
     int min_time;
     int min_faith;
-    char *name;
+    const char *name;
 };
 
 struct prayer_data
@@ -76,7 +76,7 @@ struct prayer_data
 typedef void RELIGION_FUN( RELIGION_DATA* religion );
 
 /* god functions */
-#define DECLARE_GOD_FUNCTION(name) bool name( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration );
+#define DECLARE_GOD_FUNCTION(name) bool name( CHAR_DATA *ch, CHAR_DATA *victim, const char *god_name, sh_int duration );
 DECLARE_GOD_FUNCTION(god_bless)
 DECLARE_GOD_FUNCTION(god_curse)
 DECLARE_GOD_FUNCTION(god_heal)
@@ -145,7 +145,7 @@ void create_relics();
 //RELIGION_WAR_DATA* religion_war_load_from_file( FILE *fp );
 
 /* methods for follower_data */
-FOLLOWER_DATA* new_follower( RELIGION_DATA *religion, char *name );
+FOLLOWER_DATA* new_follower( RELIGION_DATA *religion, const char *name );
 void free_follower( FOLLOWER_DATA *fol );
 void free_follower_list( FOLLOWER_DATA *list );
 //void follower_save_to_file( FOLLOWER_DATA *list, FILE *fp );
@@ -165,11 +165,11 @@ void check_religion_align( CHAR_DATA *ch );
 void remove_priest( CHAR_DATA *ch );
 RELIGION_DATA *get_religion_of_altar( ROOM_INDEX_DATA *room );
 RELIGION_DATA *get_religion_of_guard( CHAR_DATA *guard );
-char* get_religion_rank_name( int rank );
-char* get_ch_rank_name( CHAR_DATA *ch );
+const char* get_religion_rank_name( int rank );
+const char* get_ch_rank_name( CHAR_DATA *ch );
 int get_religion_bonus( CHAR_DATA *ch );
 void gain_faith( CHAR_DATA *ch, int gain );
-char* get_god_name( CHAR_DATA *ch );
+const char* get_god_name( CHAR_DATA *ch );
 int get_faith( CHAR_DATA *ch );
 int get_favour( CHAR_DATA *ch );
 bool is_relic_obj( OBJ_DATA *obj );

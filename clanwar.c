@@ -32,7 +32,7 @@ void load_clanwars()
 {
 	FILE *fp;
 	CLANWAR_DATA *p;
-	char *c1, *c2;
+    const char *c1, *c2;
     int i,j;
    
 	clanwar_table = NULL;

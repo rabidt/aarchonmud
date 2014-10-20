@@ -180,7 +180,7 @@ RELIGION_DATA* religion_load_from_file( FILE *fp )
 {
     RELIGION_DATA *religion;
     FOLLOWER_DATA *last_fol = NULL;
-    char *word;
+    const char *word;
     bool fMatch;
     int priest_nr = 1;
 
@@ -410,7 +410,7 @@ void religion_check_priest_exist( RELIGION_DATA *religion )
 void religion_update_priests( RELIGION_DATA *religion )
 {
     FOLLOWER_DATA *fol;
-    char *name;
+    const char *name;
     int i, priest_pos;
     int high_faith, priest_faith, faith;
 
@@ -793,7 +793,7 @@ void load_religions()
 {
     RELIGION_DATA *rel, *rel_last = NULL;
     FILE *fp;
-    char *word;
+    const char *word;
 
 #ifdef REL_DEBUG
     log_string( "load_religions: start" );
@@ -1211,7 +1211,7 @@ void create_relics()
 
 
 /* methods for follower_data */
-FOLLOWER_DATA* new_follower( RELIGION_DATA *religion, char *name )
+FOLLOWER_DATA* new_follower( RELIGION_DATA *religion, const char *name )
 {
     FOLLOWER_DATA *fol;
 
@@ -1303,7 +1303,7 @@ void follower_save_to_buffer( FOLLOWER_DATA *list, DBUFFER *fp )
 FOLLOWER_DATA* follower_load_from_file( RELIGION_DATA *religion, FILE *fp )
 {
     FOLLOWER_DATA *fol, *new_fol;
-    char *word;
+    const char *word;
 
 #ifdef REL_DEBUG
     log_string( "follower_load_from_file: start" );
@@ -1569,7 +1569,7 @@ RELIGION_DATA *get_religion_of_guard( CHAR_DATA *guard )
     return NULL;
 }
 
-char* get_religion_rank_name( int rank )
+const char* get_religion_rank_name( int rank )
 {
 #ifdef REL_DEBUG
     log_string( "get_religion_rank_name: start" );
@@ -1579,7 +1579,7 @@ char* get_religion_rank_name( int rank )
     return religion_ranks[rank].name;
 }
 
-char* get_ch_rank_name( CHAR_DATA *ch )
+const char* get_ch_rank_name( CHAR_DATA *ch )
 {
 #ifdef REL_DEBUG
     log_string( "get_ch_rank_name: start" );
@@ -1631,7 +1631,7 @@ void gain_faith( CHAR_DATA *ch, int gain )
 
 }
 
-char* get_god_name( CHAR_DATA *ch )
+const char* get_god_name( CHAR_DATA *ch )
 {
     RELIGION_DATA *rel;
 
@@ -1880,8 +1880,7 @@ DEF_DO_FUN(do_religion)
 	    ID++;
 	/* create the new religion */
 	rel = new_religion();
-	rel->name = str_dup( argument );
-	smash_tilde(rel->name);
+	rel->name = str_dup(smash_tilde_cc(argument));
 	rel->god = str_dup( ch->name );
 	rel->ID = ID;
 	rel->altar_room_vnum = ch->in_room->vnum;
@@ -2446,15 +2445,15 @@ DEF_DO_FUN(do_religion_set)
 
 /* curses and blessings */
 
-typedef bool GOD_FUN( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration );
+typedef bool GOD_FUN( CHAR_DATA *ch, CHAR_DATA *victim, const char *god_name, sh_int duration );
 typedef struct god_action GOD_ACTION;
 
 struct god_action
 {
-    char *name;
+    const char *name;
     sh_int cost;
     GOD_FUN *fun;
-    char *desc;
+    const char *desc;
     bool mean;
 };
 
@@ -2615,7 +2614,9 @@ DEF_DO_FUN(do_god)
 	send_to_char( "Not possible -- victim is either in remort, warfare, or is nonexistant.\n\r", ch );
 }
 
-bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+#define DEF_GOD_FUN(fun) bool fun( CHAR_DATA *ch, CHAR_DATA *victim, const char *god_name, sh_int duration )
+
+DEF_GOD_FUN( god_bless )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2658,7 +2659,7 @@ bool god_bless( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
     return TRUE;
 }
 
-bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_curse )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2699,7 +2700,7 @@ bool god_curse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
     return TRUE;
 }
 
-bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_heal )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2736,7 +2737,7 @@ bool god_heal( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration
     return TRUE;
 }
 
-bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_speed )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2779,7 +2780,7 @@ bool god_speed( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
     return TRUE;
 }
 
-bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_slow )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2823,7 +2824,7 @@ bool god_slow( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration
     return TRUE;
 }
 
-bool god_cleanse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_cleanse )
 {
     // duration is ignored
     char buf[MSL];
@@ -2854,7 +2855,7 @@ bool god_cleanse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
     return TRUE;
 }
 
-bool god_defy( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_defy )
 {
     // duration is ignored
     char buf[MSL];
@@ -2885,7 +2886,7 @@ bool god_defy( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration
     return TRUE;
 }
 
-bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration)
+DEF_GOD_FUN( god_enlighten )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2923,7 +2924,7 @@ bool god_enlighten( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int dur
     return TRUE;
 }
 
-bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_protect )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -2967,7 +2968,7 @@ bool god_protect( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
     return TRUE;
 }
 
-bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_fortune )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -3008,7 +3009,7 @@ bool god_fortune( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durat
     return TRUE;
 }
 
-bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_haunt )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -3046,7 +3047,7 @@ bool god_haunt( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duratio
     return TRUE;
 }
 
-bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_plague )
 {
     AFFECT_DATA af;
     char buf[MSL];
@@ -3084,7 +3085,7 @@ bool god_plague( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int durati
     return TRUE;
 }
 
-bool god_confuse( CHAR_DATA *ch, CHAR_DATA *victim, char *god_name, sh_int duration )
+DEF_GOD_FUN( god_confuse )
 {
     AFFECT_DATA af;
     char buf[MSL];

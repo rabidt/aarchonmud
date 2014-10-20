@@ -42,7 +42,7 @@ struct clan_data clan_table[MAX_CLAN];
 void load_clans( )
 {
     FILE *fpList;
-    char *filename;
+    const char *filename;
     int i,j;
     
     /* Initialize clan table */
@@ -127,7 +127,7 @@ void load_clan_file(const char *filename)
     for ( ; ; )
     {
         char letter;
-        char *word;
+        const char *word;
         
         letter = fread_letter( fp );
         if ( letter == '*' )
@@ -193,7 +193,7 @@ void load_clan_file(const char *filename)
 /* Read in a block of clan data from a clan file. -Rim 1/2000*/
 void fread_clan( FILE *fp, int clannum )
 {
-    char *word;
+    const char *word;
     bool fMatch;
     CLAN_DATA *clan;
     
@@ -290,7 +290,7 @@ void fread_clan( FILE *fp, int clannum )
 /* Read in a block of clan rank data from a clan file. -Rim 1/2000*/
 void fread_clan_rank( FILE *fp, int clannum, int ranknum )
 {
-    char *word;
+    const char *word;
     bool fMatch;
     CLAN_RANK_DATA *rank;
     

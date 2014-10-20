@@ -20,7 +20,7 @@ typedef struct remort_table REMORT_TABLE;
 struct remort_table
 {
     REMORT_TABLE *next;
-    char *name;
+    const char *name;
     int remorts;
     time_t signup;
     time_t limit;	
@@ -28,7 +28,7 @@ struct remort_table
 
 struct remort_chamber
 {
-    char *name;
+    const char *name;
     int vnum;
     int availability;
     bool speed;
@@ -717,7 +717,7 @@ void remort_load()
 {
     FILE *fp;
     REMORT_TABLE *p, *q = NULL;
-    char *s;
+    const char *s;
     int i;
     
     wait_list = NULL;
