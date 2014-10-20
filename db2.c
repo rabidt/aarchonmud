@@ -83,33 +83,16 @@ void load_mobiles( FILE *fp )
         pMobIndex->area                 = area_last;               /* OLC */
         pMobIndex->player_name          = fread_string( fp );
         pMobIndex->short_descr          = fread_string( fp );
-        pMobIndex->long_descr           = fread_string( fp );
+        pMobIndex->long_descr           = upper_realloc(fread_string(fp));
         extern int area_version;
         if ( area_version < VER_NEW_MOB_LDESC )
         {
             /* old format always had \n\r appended to the
                actual long_descr, let's kill that */
-
-            /* we'll double check the characters JUST IN CASE */
-            char *ldesc=pMobIndex->long_descr;
-            int len=strlen( ldesc );
-            if ( len > 1
-                    && ldesc[len-2] == '\n'
-                    && ldesc[len-1] == '\r' )
-            {
-                ldesc[len-2]='\0';
-            }
-            else
-            {
-                bugf("Old format long_descr doesn't have \\n\\r: %s",
-                        pMobIndex->long_descr);
-            }
+            pMobIndex->long_descr = trim_realloc(pMobIndex->long_descr);
         }
-        pMobIndex->description          = fread_string( fp );
+        pMobIndex->description          = upper_realloc(fread_string(fp));
         pMobIndex->race		 	= race_lookup(fread_string( fp ));
-
-        pMobIndex->long_descr[0]        = UPPER(pMobIndex->long_descr[0]);
-        pMobIndex->description[0]       = UPPER(pMobIndex->description[0]);
 
         FLAG_READ_SET( fp, pMobIndex->act, race_table[pMobIndex->race].act );
         SET_BIT( pMobIndex->act, ACT_IS_NPC );
@@ -185,7 +168,7 @@ void load_mobiles( FILE *fp )
 
             if (letter == 'F')
             {
-                char *word;
+                const char *word;
                 tflag vector;
 
                 word                    = fread_word(fp);
@@ -216,7 +199,7 @@ void load_mobiles( FILE *fp )
             else if ( letter == 'M' )
             {
                 PROG_LIST *pMprog;
-                char *word;
+                const char *word;
                 int trigger = 0;
 
                 pMprog              = alloc_MTRIG();
@@ -235,7 +218,7 @@ void load_mobiles( FILE *fp )
             }
             else if ( letter == 'S' )
             {
-                char *word = fread_word(fp);
+                const char *word = fread_word(fp);
                 if (!str_prefix(word, "stance"))
                 {
                     pMobIndex->stance = fread_number(fp);
@@ -412,7 +395,7 @@ void load_mobbles( FILE *fp )
         pMobIndex->stance               = STANCE_DEFAULT;
 
         // now read required and optional fields until END is encountered
-        char* key;
+        const char *key;
         while (TRUE) {
             key = fread_word(fp);
 
@@ -424,35 +407,19 @@ void load_mobbles( FILE *fp )
                 pMobIndex->short_descr = fread_string( fp );
             else if KEY("LDESC")
             {
-                pMobIndex->long_descr = fread_string( fp );
-                pMobIndex->long_descr[0] = UPPER(pMobIndex->long_descr[0]);
+                pMobIndex->long_descr = upper_realloc(fread_string(fp));
 
                 extern int area_version;
                 if ( area_version < VER_NEW_MOB_LDESC )
                 {
                     /* old format always had \n\r appended to the
                        actual long_descr, let's kill that */
-
-                    /* we'll double check the characters JUST IN CASE */
-                    char *ldesc=pMobIndex->long_descr;
-                    int len=strlen( ldesc );
-                    if ( len > 1 
-                            && ldesc[len-2] == '\n'
-                            && ldesc[len-1] == '\r' )
-                    {
-                        ldesc[len-2]='\0';
-                    }
-                    else
-                    {
-                        bugf("Old format long_descr doesn't have \\n\\r: %s",
-                                pMobIndex->long_descr);
-                    }
+                    pMobIndex->long_descr = trim_realloc(pMobIndex->long_descr);
                 }
             }
             else if KEY("DESC")
             {
-                pMobIndex->description = fread_string( fp );
-                pMobIndex->description[0] = UPPER(pMobIndex->description[0]);
+                pMobIndex->description = upper_realloc(fread_string(fp));
             }
             else if KEY("NOTES")
             {
@@ -524,7 +491,7 @@ void load_mobbles( FILE *fp )
             else if KEY("MPROG")
             {
                 PROG_LIST *pMprog;
-                char *word;
+                const char *word;
                 int trigger = 0;
 
                 pMprog              = alloc_MTRIG();
@@ -819,7 +786,7 @@ void load_objects( FILE *fp )
             if ( letter == 'O' ) /* we have oprogs */
             {
                 PROG_LIST *pOprog;
-                char *word;
+                const char *word;
                 int trigger = 0;
 
                 pOprog              = alloc_OTRIG();

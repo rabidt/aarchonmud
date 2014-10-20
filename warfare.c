@@ -712,7 +712,7 @@ DEF_DO_FUN(do_warsit)
     add_buf( output, buf );
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-	char *god_name;
+        const char *god_name;
 
         if ( !(d->connected == CON_PLAYING || IS_WRITING_NOTE( d->connected ))
             || d->character == NULL

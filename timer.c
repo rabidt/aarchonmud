@@ -30,7 +30,7 @@ struct timer_node
     int go_type;
     int current; /* current val that gets decremented each second */
     bool unregistered; /* to mark for deletion */
-    char *tag; /* used for unique tags in lua */
+    const char *tag; /* used for unique tags in lua */
 };
 
 

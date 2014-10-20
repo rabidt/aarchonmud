@@ -168,7 +168,7 @@ void say_spell( CHAR_DATA *ch, int sn )
     char buf  [MAX_STRING_LENGTH];
     char buf2 [MAX_STRING_LENGTH];
     CHAR_DATA *rch;
-    char *pName;
+    const char *pName;
     int iSyl;
     int length;
 
@@ -3046,7 +3046,7 @@ void spell_dispel_evil( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
-    char *god_name;
+    const char *god_name;
 
     /* Neutral victims are not affected. */
     if ( IS_NEUTRAL(victim) )
@@ -3079,7 +3079,7 @@ void spell_dispel_good( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
-    char *god_name;
+    const char *god_name;
 
     /* Neutral victims are not affected. */
     if ( IS_NEUTRAL(victim) )

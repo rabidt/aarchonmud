@@ -1161,7 +1161,7 @@ void program_flow(
     const char *text,
     bool is_lua,
     int pvnum,  /* For diagnostic purposes */
-    char *source,  /* the actual MOBprog code */
+    const char *source,  /* the actual MOBprog code */
     CHAR_DATA *mob, CHAR_DATA *ch, 
     const void *arg1, sh_int arg1type,
     const void *arg2, sh_int arg2type,
@@ -1648,7 +1648,7 @@ void mp_timer_trigger( CHAR_DATA *mob )
 }
 
 
-bool mp_spell_trigger( char* argument, CHAR_DATA *mob, CHAR_DATA *ch)
+bool mp_spell_trigger( const char *argument, CHAR_DATA *mob, CHAR_DATA *ch )
 {
     bool found = FALSE;
    
@@ -1741,7 +1741,7 @@ bool has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum )
     {
         if ( prg->trig_type == trigger )
         {
-            char *p = prg->trig_phrase;
+            const char *p = prg->trig_phrase;
             if ( is_r_number(p) && r_atoi(mob, p) == vnum )
                 return TRUE;
         }

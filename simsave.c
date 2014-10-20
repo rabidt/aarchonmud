@@ -30,7 +30,6 @@ MEMFILE *other_save_list = NULL;
 static int player_save_state = SAVE_STATE_SIMSAVE;
 static bool bootup_temp_clean_done = FALSE;
 bool ready_to_save( CHAR_DATA *ch );
-char* first_line( char* str );
 MEMFILE *memfile_from_list( const char *filename, MEMFILE *list );
 void sim_save_to_mem();
 void mem_sim_save_other();

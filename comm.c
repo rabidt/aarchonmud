@@ -2009,7 +2009,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     OBJ_DATA       *obj1 = ( OBJ_DATA  * ) arg1;
     OBJ_DATA       *obj2 = ( OBJ_DATA  * ) arg2;
     const  char    *str;
-    char       *i = NULL;
+    const char     *i = NULL;
     char       *point;
     char       *pbuff;
     char       buffer[ MAX_STRING_LENGTH*2 ];
@@ -2674,7 +2674,7 @@ char* remove_color( const char *txt )
     return buffer;
 }
 
-void logpf (char * fmt, ...)
+void logpf (const char * fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2686,7 +2686,7 @@ void logpf (char * fmt, ...)
 }
 
 /* source: EOD, by John Booth <???> */
-void printf_to_char (CHAR_DATA *ch, char *fmt, ...)
+void printf_to_char (CHAR_DATA *ch, const char *fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2699,7 +2699,7 @@ void printf_to_char (CHAR_DATA *ch, char *fmt, ...)
 
 /* bugf - a handy little thing - remember to #include stdarg.h */
 /* Source: Erwin S. Andreasen */
-void bugf (char * fmt, ...)
+void bugf (const char * fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2711,8 +2711,7 @@ void bugf (char * fmt, ...)
 }
 
 /* Rim 1/99 */
-void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj,
-        long flag, long flag_skip, int min_level, char *fmt, ...) 
+void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, int min_level, const char *fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2723,7 +2722,7 @@ void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj,
     wiznet (buf, ch, obj, flag, flag_skip, min_level);
 }
 
-bool add_buff(BUFFER *buffer, char *fmt, ...)
+bool add_buff(BUFFER *buffer, const char *fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2734,7 +2733,7 @@ bool add_buff(BUFFER *buffer, char *fmt, ...)
     return add_buf(buffer, buf);
 }
 
-bool add_buff_pad(BUFFER *buffer, int pad_length, char *fmt, ...)
+bool add_buff_pad(BUFFER *buffer, int pad_length, const char *fmt, ...)
 {
     char buf [2*MSL];
     int i;

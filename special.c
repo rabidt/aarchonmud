@@ -154,7 +154,7 @@ SPEC_FUN *spec_lookup( const char *name )
 	return 0;
 }
 
-char *spec_name_lookup( SPEC_FUN *function)
+const char* spec_name_lookup( SPEC_FUN *function )
 {
 	int i;
 

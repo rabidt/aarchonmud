@@ -775,7 +775,7 @@ void free_buf(BUFFER *buffer)
 }
 
 
-bool add_buf(BUFFER *buffer, char *string)
+bool add_buf(BUFFER *buffer, const char *string)
 {
 	int len;
 	char *oldstr;
