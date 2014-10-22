@@ -474,7 +474,7 @@ AREA_DATA *     current_area;
 
 char *  string_space;
 char *  top_string;
-char    str_empty   [1];
+char    str_empty[1] = "";
 
 int  top_affect;
 int  top_area;
@@ -4240,7 +4240,8 @@ void dump_str_dup()
 */
 const char *str_dup( const char *str )
 {
-    char *str_new;
+    if ( str == NULL )
+        return NULL;
     
     if ( str[0] == '\0' )
         return &str_empty[0];
@@ -4248,7 +4249,7 @@ const char *str_dup( const char *str )
     if ( str >= string_space && str < top_string )
         return str;
     
-    str_new = alloc_mem( strlen(str) + 1 );
+    char *str_new = alloc_mem( strlen(str) + 1 );
     strcpy( str_new, str );
     remember_str_dup( str_new );
     return str_new;
