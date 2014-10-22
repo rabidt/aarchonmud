@@ -50,7 +50,7 @@
 
 extern int flag_lookup( const char *word, const struct flag_type *flag_table );
 
-bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name );
+bool check_in_container( OBJ_DATA *container, int vnum, const char *obj_name );
 int cmd_eval( int vnum, const char *line, int check,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, const void *arg2, CHAR_DATA *rch );
@@ -408,7 +408,7 @@ bool has_item( CHAR_DATA *ch, int vnum, int item_type, bool fWear )
  * obj_name: string that is compared to the name of the item, or ""
  */
 
-bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
+bool has_item_in_container( CHAR_DATA *ch, int vnum, const char *obj_name )
 {
 	OBJ_DATA *container;
 	OBJ_DATA *obj;
@@ -434,7 +434,7 @@ bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
 	return FALSE;
 }
 
-bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
+bool check_in_container( OBJ_DATA *container, int vnum, const char *obj_name )
 {
 	OBJ_DATA *obj;
 
@@ -491,18 +491,18 @@ bool get_obj_vnum_room( CHAR_DATA *ch, int vnum )
     return FALSE;
 }
 
-bool is_affected_parse( CHAR_DATA *ch, char *buf )
+bool is_affected_parse( CHAR_DATA *ch, const char *arg )
 {
     int aff_flag;
 
     if ( ch == NULL )
 	return FALSE;
 
-    if ( (aff_flag = flag_lookup(buf, affect_flags)) != NO_FLAG )
+    if ( (aff_flag = flag_lookup(arg, affect_flags)) != NO_FLAG )
 	return IS_AFFECTED( ch, aff_flag );
 
     /* check for skill affect */
-    return is_affected( ch, skill_lookup(buf) );
+    return is_affected( ch, skill_lookup(arg) );
 }
 
 /* ---------------------------------------------------------------------
