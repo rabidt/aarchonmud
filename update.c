@@ -40,11 +40,15 @@
 #include "olc.h"
 #include "mob_stats.h"
 #include "lua_scripting.h"
+#include "lua_arclib.h"
 #include "mudconfig.h"
+#include "warfare.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
 DECLARE_DO_FUN(do_morph     );
+DECLARE_DO_FUN(do_flee      );
+DECLARE_DO_FUN(do_stand     );
 
 /*
  * Local functions.
@@ -52,24 +56,24 @@ DECLARE_DO_FUN(do_morph     );
 void affect_update( CHAR_DATA *ch );
 void qset_update( CHAR_DATA *ch );
 bool check_drown args((CHAR_DATA *ch));
-bool    check_social    args( ( CHAR_DATA *ch, char *command, char *argument ) );
-bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 int hit_gain    args( ( CHAR_DATA *ch ) );
 int mana_gain   args( ( CHAR_DATA *ch ) );
 int move_gain   args( ( CHAR_DATA *ch ) );
 void    mobile_update   args( ( void ) );
 void    mobile_timer_update args( ( void ) );
-void    weather_update  args( ( void ) );
 void    char_update args( ( void ) );
 void    obj_update  args( ( void ) );
 void    aggr_update args( ( void ) );
 void    quest_update    args( ( void ) ); /* Vassago - quest.c */
 void    sort_bounty   args( (SORT_TABLE *sort) );
-void  raw_kill      args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
-bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace );
 void penalty_update (CHAR_DATA *ch);
 ROOM_INDEX_DATA *find_jail_room(void);
 void    msdp_update args( ( void ) );
+void create_haunt( CHAR_DATA *ch );
+void check_beast_mastery( CHAR_DATA *ch );
+void validate_all();
+void check_clan_align( CHAR_DATA *gch );
+void check_equipment_align( CHAR_DATA *gch );
 
 
 /* used for saving */
@@ -164,7 +168,7 @@ void gain_exp( CHAR_DATA *ch, int gain_base)
     if ( IS_NPC(ch) || IS_HERO(ch) )
         return;
 
-    if ( IS_SET(ch->act,PLR_NOEXP) && gain > 0 )
+    if ( IS_SET(ch->act,PLR_NOEXP) && gain_base > 0 )
         return;
 
     if ( cfg_enable_exp_mult && gain_base > 0)
@@ -359,7 +363,6 @@ int hit_gain( CHAR_DATA *ch )
 {
     int gain;
     int ratio;
-    int bonus;
 
     if ( ch->in_room == NULL )
         return 0;
@@ -826,7 +829,6 @@ void mobile_special_update( void )
 {
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
-    bool success;
 
     /* only one last_mprog message for better performance */
     sprintf( last_mprog, "mobile_special_update" );
@@ -1269,12 +1271,7 @@ void char_update( void )
 {   
     static int curr_tick=0;
     CHAR_DATA *ch;
-    CHAR_DATA *ch_quit;
     bool healmessage;
-    char buf[MSL];
-    static bool hour_update = TRUE;
-
-    ch_quit = NULL;
 
     /* update save counter */
     save_number++;
@@ -1732,13 +1729,11 @@ send_to_char( msg, rch );
 
 void qset_update( CHAR_DATA *ch )
 {
-    QUEST_DATA *qdata, *last;
-
-    int id, status, timer;
+    QUEST_DATA *qdata;
 
     if ( ch == NULL )
     {
-        bug( "qset_update: NULL character given for quest %d", id );
+        bugf( "qset_update: NULL character given" );
         return;
     }
 
@@ -2055,7 +2050,7 @@ void obj_update( void )
         }
 
         CHAR_DATA *rch;
-        char *message;
+        const char *message = "";
 
         if (obj->must_extract)
             continue;
@@ -2608,6 +2603,7 @@ void update_handler( void )
         death_update();
         extract_update();
         cleanup_uds();
+        validate_all();
     }
 
     tail_chain( );
@@ -2702,7 +2698,7 @@ void explode(OBJ_DATA *obj)
 
     if ( obj->carried_by == NULL )
     {
-        if (obj && (room = get_obj_room(obj)))
+        if ( (room = get_obj_room(obj)) )
             to = room->people;
 
         if (to)
@@ -3196,4 +3192,106 @@ void msdp_update( void )
      * snippet simple.  Optimise as you see fit.
      */
     MSSPSetPlayers( PlayerCount );
+}
+
+// data consistency checks for detecting corruption early
+// extend as needed for debugging, but keep it fast
+void validate_all()
+{
+    CHAR_DATA *ch, *ch_next, *dch, *lch;
+    DESCRIPTOR_DATA *desc, *desc_next;
+    
+    // characters
+    for ( ch = char_list; ch; ch = ch_next )
+    {
+        ch_next = ch->next;
+        if ( !valid_CH(ch) )
+        {
+            logpf("validate_all: invalid ch in char_list (%s)", ch->name);
+            char_from_char_list(ch);
+            continue;
+        }
+        if ( ch->master && !valid_CH(ch->master) )
+        {
+            logpf("validate_all: invalid ch->master (%s)", ch->name);
+            wiznet("invalid ch->master ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+            ch->master = NULL;
+            continue;
+        }
+        if ( ch->leader && !valid_CH(ch->leader) )
+        {
+            logpf("validate_all: invalid ch->leader (%s)", ch->name);
+            wiznet("invalid ch->leader ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+            ch->leader = NULL;
+            continue;
+        }
+        if ( ch->pet )
+        {
+            if ( !valid_CH(ch->pet) )
+            {
+                logpf("validate_all: invalid ch->pet (%s)", ch->name);
+                wiznet("invalid ch->pet ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+                ch->pet = NULL;
+                continue;
+            }
+            lch = ch->pet->leader;
+            if ( ch != lch )
+            {
+                logpf("validate_all: ch != ch->pet->leader (%s != %s)", ch->name, !lch ? "NULL" : !valid_CH(lch) ? "invalid" : lch->name);
+                wiznet("ch != ch->pet->leader ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+                ch->pet->leader = NULL;
+                ch->pet = NULL;
+                continue;
+            }
+        }
+        if ( ch->desc )
+        {
+            if ( !valid_DESCRIPTOR(ch->desc) )
+            {
+                logpf("validate_all: invalid ch->desc (%s)", ch->name);
+                wiznet("invalid ch->desc ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+                ch->desc = NULL;
+                continue;
+            }
+            dch = ch->desc->character;
+            if ( ch != dch )
+            {
+                logpf("validate_all: ch != ch->desc->ch (%s != %s)", ch->name, !dch ? "NULL" : !valid_CH(dch) ? "invalid" : dch->name);
+                wiznet("ch != ch->desc->ch ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+                ch->desc->character = NULL;
+                ch->desc = NULL;
+                continue;
+            }
+        }
+    }
+    // descriptors
+    for ( desc = descriptor_list; desc; desc = desc_next )
+    {
+        desc_next = desc->next;
+        if ( !valid_DESCRIPTOR(desc) )
+        {
+            logpf("validate_all: invalid desc in descriptor_list (%s)", desc->host);
+            wiznet("invalid desc in descriptor_list ($T)", NULL, desc->host, WIZ_BUGS, 0, 0);
+            desc_from_descriptor_list(desc);
+            continue;
+        }
+        if ( (dch = desc->character) )
+        {
+            if ( !valid_CH(dch) )
+            {
+                logpf("validate_all: invalid desc->character (%s, %s)", desc->host, dch->name);
+                wiznet("invalid desc->character ($T, $N)", dch, desc->host, WIZ_BUGS, 0, 0);
+                desc->character = NULL;
+                continue;
+            }
+            if ( desc != dch->desc )
+            {
+                logpf("validate_all: desc != desc->character->desc (%s, %s != %s)", dch->name, desc->host, !dch->desc ? "NULL" : !valid_DESCRIPTOR(dch->desc) ? "invalid" : dch->desc->host);
+                wiznet("desc != desc->character->desc ($N)", dch, NULL, WIZ_BUGS, 0, 0);
+                desc->character->desc = NULL;
+                desc->character = NULL;
+                continue;
+            }
+        }
+    }
 }

@@ -19,12 +19,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
 #include "recycle.h"
 #include "lookup.h"
-#include <sys/stat.h>
+#include "mob_stats.h"
 
 char * mprog_type_to_name ( int type );
 
@@ -47,7 +48,7 @@ char * mprog_type_to_name ( int type );
 #define ALT_FLAGVALUE_TOGGLE( _blargh, _table, _arg ) \
     _blargh = alt_flagvalue_toggle( _blargh, _table, _arg )
 
-long alt_flagvalue( const struct flag_type *flag_table, char *argument )
+long alt_flagvalue( const struct flag_type *flag_table, const char *argument )
 {
     long buf = 0;
     int flag;
@@ -63,8 +64,7 @@ long alt_flagvalue( const struct flag_type *flag_table, char *argument )
     return buf;
 }
 
-long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table,
-			   char *argument )
+long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table, const char *argument )
 {
     long buf = old_flag;
     int flag;
@@ -81,15 +81,15 @@ long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table,
 }
 
 /* Return TRUE if area changed, FALSE if not. */
-#define REDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define OEDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define MEDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define AEDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define HEDIT( fun )    bool fun( CHAR_DATA *ch, char *argument )
+#define REDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define OEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define MEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define AEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define HEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
-#define RACEEDIT( fun )    bool fun( CHAR_DATA *ch, char *argument )
-#define SKILLEDIT( fun )   bool fun( CHAR_DATA *ch, char *argument )
-#define REMORTEDIT( fun )  bool fun( CHAR_DATA *ch, char *argument )
+#define RACEEDIT( fun )    bool fun( CHAR_DATA *ch, const char *argument )
+#define SKILLEDIT( fun )   bool fun( CHAR_DATA *ch, const char *argument )
+#define REMORTEDIT( fun )  bool fun( CHAR_DATA *ch, const char *argument )
 
 
 
@@ -104,7 +104,7 @@ struct olc_help_type
 
 
 
-bool show_version( CHAR_DATA *ch, char *argument )
+bool show_version( CHAR_DATA *ch, const char *argument )
 {
     send_to_char( VERSION, ch );
     send_to_char( "\n\r", ch );
@@ -278,7 +278,7 @@ Name:		show_help
 Purpose:	Displays help for many tables used in OLC.
 Called by:	olc interpreters.
 ****************************************************************************/
-bool show_help( CHAR_DATA *ch, char *argument )
+bool show_help( CHAR_DATA *ch, const char *argument )
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -1252,7 +1252,6 @@ AEDIT( aedit_minlevel )
 {
     AREA_DATA *pArea;
     char min[MAX_STRING_LENGTH];
-    char buf[MAX_STRING_LENGTH];
     int  value;
     
     EDIT_AREA(ch, pArea);
@@ -1275,7 +1274,6 @@ AEDIT( aedit_maxlevel )
 {
     AREA_DATA *pArea;
     char max[MAX_STRING_LENGTH];
-    char buf[MAX_STRING_LENGTH];
     int  value;
     
     EDIT_AREA(ch, pArea);
@@ -1298,7 +1296,6 @@ AEDIT( aedit_miniquests )
 {
     AREA_DATA *pArea;
     char quests[MAX_STRING_LENGTH];
-    char buf[MAX_STRING_LENGTH];
     int  value;
     
     EDIT_AREA(ch, pArea);
@@ -1389,7 +1386,7 @@ AEDIT( aedit_builder )
     if ( strstr( pArea->builders, name ) != '\0' )
     {
         pArea->builders = string_replace( pArea->builders, name, "\0" );
-        pArea->builders = string_unpad( pArea->builders );
+        pArea->builders = trim_realloc( pArea->builders );
         
         if ( pArea->builders[0] == '\0' )
         {
@@ -1405,7 +1402,7 @@ AEDIT( aedit_builder )
         if ( strstr( pArea->builders, "None" ) != '\0' )
         {
             pArea->builders = string_replace( pArea->builders, "None", "\0" );
-            pArea->builders = string_unpad( pArea->builders );
+            pArea->builders = trim_realloc( pArea->builders );
         }
         
         if (pArea->builders[0] != '\0' )
@@ -1415,7 +1412,7 @@ AEDIT( aedit_builder )
         }
         strcat( buf, name );
         free_string( pArea->builders );
-        pArea->builders = string_proper( str_dup( buf ) );
+        pArea->builders = str_dup(string_proper(buf));
         
         send_to_char( "Builder added.\n\r", ch );
         send_to_char( pArea->builders,ch);
@@ -1831,10 +1828,10 @@ REDIT( redit_show )
         
         if ( ( pexit = pRoom->exit[door] ) )
         {
-            char word[MAX_INPUT_LENGTH];
+            //char word[MAX_INPUT_LENGTH];
             char reset_state[MAX_STRING_LENGTH];
-            char *state;
-            int i, length;
+            //char *state;
+            //int i, length;
             
             sprintf( buf, "-%-5s to [%5d] Key: [%5d] ",
                 capitalize(dir_name[door]),
@@ -1948,7 +1945,7 @@ EXIT_DATA* get_revers_exit( ROOM_INDEX_DATA *pRoom, int door, bool changed )
 }
 
 /* Local function. */
-bool change_exit( CHAR_DATA *ch, char *argument, int door )
+bool change_exit( CHAR_DATA *ch, const char *argument, int door )
 {
     ROOM_INDEX_DATA *pRoom;
     EXIT_DATA *rev_exit;
@@ -2161,7 +2158,7 @@ bool change_exit( CHAR_DATA *ch, char *argument, int door )
         
         if ( arg[0] == '\0'
 	     || !is_number( arg )
-	     || strcmp(arg2, "") && strcmp(arg2, "oneway") )
+	     || (strcmp(arg2, "") && strcmp(arg2, "oneway")) )
         {
             send_to_char( "Syntax:  [direction] key [vnum]\n\r", ch );
             send_to_char( "         [direction] key [vnum] oneway\n\r", ch );
@@ -2617,6 +2614,8 @@ REDIT( redit_delete )
 
         last=curr;
     }
+    // should not be possible to reach this
+    return FALSE;    
 }
 
 
@@ -2903,6 +2902,7 @@ Purpose:	Returns the location of the bit that matches the count.
 1 = first match, 2 = second match etc.
 Called by:	oedit_reset(olc_act.c).
 ****************************************************************************/
+/*
 int wear_loc(int bits, int count)
 {
     int flag;
@@ -2915,7 +2915,7 @@ int wear_loc(int bits, int count)
     
     return NO_FLAG;
 }
-
+*/
 
 
 /*****************************************************************************
@@ -3318,7 +3318,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 
 
 
-bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *argument)
+bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const char *argument)
 {
     int value;
 
@@ -4031,13 +4031,15 @@ OEDIT( oedit_addaffect )
     }
     
     if ( det[0] != '\0' )
-	if ( is_number( det ) )
-	    detect_level = atoi( det );
-	else
-	{
-	    send_to_char( "Detect level must be an integer.\n\r", ch );
-	    return FALSE;
-	}
+    {
+        if ( is_number( det ) )
+            detect_level = atoi( det );
+        else
+        {
+            send_to_char( "Detect level must be an integer.\n\r", ch );
+            return FALSE;
+        }
+    }
     
     pAf             =   new_affect();
     pAf->location   =   value;
@@ -4056,7 +4058,7 @@ OEDIT( oedit_addaffect )
 
 OEDIT( oedit_addapply )
 {
-    int value,bv,typ;
+    int bv,typ;
     OBJ_INDEX_DATA *pObj;
     AFFECT_DATA *pAf;
     char type[MAX_STRING_LENGTH];
@@ -4106,13 +4108,15 @@ OEDIT( oedit_addapply )
     }
     
     if ( det[0] != '\0' )
-	if ( is_number( det ) )
-	    detect_level = atoi( det );
-	else
-	{
-	    send_to_char( "Detect level must be an integer.\n\r", ch );
-	    return FALSE;
-	}
+    {
+        if ( is_number( det ) )
+            detect_level = atoi( det );
+        else
+        {
+            send_to_char( "Detect level must be an integer.\n\r", ch );
+            return FALSE;
+        }
+    }
 
     pAf             =   new_affect();
     pAf->location   =   APPLY_NONE;
@@ -4280,8 +4284,7 @@ OEDIT( oedit_long )
     }
     
     free_string( pObj->description );
-    pObj->description = str_dup( argument );
-    pObj->description[0] = UPPER( pObj->description[0] );
+    pObj->description = upper_realloc(str_dup(argument));
     
     send_to_char( "Long description set.\n\r", ch);
     return TRUE;
@@ -4303,7 +4306,7 @@ OEDIT( oedit_notes)
     return FALSE;
 }
 
-bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, char *argument, int value )
+bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, const char *argument, int value )
 {
     if ( argument[0] == '\0' )
     {
@@ -4324,7 +4327,7 @@ Name:		oedit_values
 Purpose:	Finds the object and sets its value.
 Called by:	The four valueX functions below. (now five -- Hugin )
 ****************************************************************************/
-bool oedit_values( CHAR_DATA *ch, char *argument, int value )
+bool oedit_values( CHAR_DATA *ch, const char *argument, int value )
 {
     OBJ_INDEX_DATA *pObj;
     
@@ -4436,7 +4439,7 @@ OEDIT( oedit_combine )
     {
       send_to_char( "Syntax: combine [#vnum of resulting object]\n\r", ch );
       send_to_char( "        combine 0\n\r", ch );
-      return;
+      return FALSE;
     }
     
     vnum = atoi( buf );
@@ -4444,7 +4447,7 @@ OEDIT( oedit_combine )
     if (vnum != 0 && !get_obj_index(vnum))
     {
       send_to_char( "That vnum doesn't exist.\n\r", ch );
-      return;
+      return FALSE;
     }
 
     pObj->combine_vnum = vnum;
@@ -4452,6 +4455,8 @@ OEDIT( oedit_combine )
       send_to_char( "Combine removed.\n\r", ch );
     else
       send_to_char( "Combine set.\n\r", ch );
+    
+    return TRUE;
 }
 
 void show_ratings( CHAR_DATA *ch )
@@ -4471,7 +4476,7 @@ OEDIT( oedit_rating )
 {
     OBJ_INDEX_DATA *pObj;
     char buf[MIL];
-    int value, i;
+    int value;
 
     EDIT_OBJ(ch, pObj);
 
@@ -4480,26 +4485,27 @@ OEDIT( oedit_rating )
     if ( get_trust(ch) < L2 )
     {
 	send_to_char( "You must be level 108 to rate the object's difficulty.\n\r", ch );
-	return;
+	return FALSE;
     }
 
     if (buf[0] == '\0' || !is_number( buf ))
     {
 	send_to_char( "Syntax: rating [difficulty rating]\n\r", ch );
 	show_ratings( ch );
-	return;
+	return FALSE;
     }
     
     value = atoi( buf );
     if ( value < 0 || value >= MAX_RATING )
     {
 	show_ratings( ch );
-	return;
+	return FALSE;
     }
 
     /* set the rating */
     pObj->diff_rating = value;
     send_to_char( "Difficulty rating set.\n\r", ch );
+    return TRUE;
 }
 
 OEDIT( oedit_delete )
@@ -4602,7 +4608,8 @@ OEDIT( oedit_delete )
         
         last=curr;
     }
-
+    // should not reach this point
+    return FALSE;
 }
 
 OEDIT( oedit_create )
@@ -4757,8 +4764,6 @@ OEDIT( oedit_ed )
     
     if ( !str_cmp( command, "format" ) )
     {
-        EXTRA_DESCR_DATA *ped = NULL;
-        
         if ( keyword[0] == '\0' )
         {
             send_to_char( "Syntax:  ed format [keyword]\n\r", ch );
@@ -4769,7 +4774,6 @@ OEDIT( oedit_ed )
         {
             if ( is_name( keyword, ed->keyword ) )
                 break;
-            ped = ed;
         }
         
         if ( !ed )
@@ -5025,18 +5029,18 @@ static int obj_ovalue[][OBJ_STAT_NR] = {
 
 int* get_obj_ovalue( int level )
 {
-    static int ovalue[OBJ_STAT_NR] = { 15, 20, 150, 250 };
+    static int ovalue[OBJ_STAT_NR] = { };
     level = UMAX( 1, level );
 
     if ( level <= 100 )
-	return obj_ovalue[level-1];
+        return obj_ovalue[level-1];
     
     /* extrapolate */
-      ovalue[OBJ_STAT_AC] = 15 + (level-5);
-      ovalue[OBJ_STAT_DROP_COST] = 15 + (level-5);
-      ovalue[OBJ_STAT_SHOP_COST] = 15 + (level-5);
+    ovalue[OBJ_STAT_AC] = 15 + (level-5);
+    ovalue[OBJ_STAT_DROP_COST] = 15 + (level-5);
+    ovalue[OBJ_STAT_SHOP_COST] = 15 + (level-5);
 
-   return ovalue;
+    return ovalue;
 } 
 
 bool apply_obj_hardcaps( OBJ_INDEX_DATA *obj )
@@ -5181,7 +5185,7 @@ OEDIT( oedit_adjust )
     OBJ_INDEX_DATA *pObj;
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
-    int *ovalue, weight;
+    int *ovalue;
     bool set_drop = FALSE;
     bool set_shop = FALSE;
     
@@ -5291,7 +5295,7 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     sprintf( buf,
-        "Hitroll:     [%3d\%=%5d] Damage: [%3d\%=%5d] Dam Type: [%s]\n\r",
+        "Hitroll:     [%3d%%=%5d] Damage: [%3d%%=%5d] Dam Type: [%s]\n\r",
         pMob->hitroll_percent,
         mob_base_hitroll(pMob, pMob->level),
         pMob->damage_percent,
@@ -5300,7 +5304,7 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     sprintf( buf,
-        "Hitpoints:   [%3d\%=%5d]   Mana: [%3d\%=%5d]     Move: [%3d\%=%5d]\n\r",
+        "Hitpoints:   [%3d%%=%5d]   Mana: [%3d%%=%5d]     Move: [%3d%%=%5d]\n\r",
         pMob->hitpoint_percent,
         mob_base_hp(pMob, pMob->level),
         pMob->mana_percent,
@@ -5310,7 +5314,7 @@ MEDIT( medit_show )
     );
     send_to_char( buf, ch );
 
-    sprintf( buf, "Armor:       [%3d\%=%5d]  Saves: [%3d\%=%5d]\n\r",
+    sprintf( buf, "Armor:       [%3d%%=%5d]  Saves: [%3d%%=%5d]\n\r",
         pMob->ac_percent,
         mob_base_ac(pMob, pMob->level),
         pMob->saves_percent,
@@ -5368,9 +5372,9 @@ MEDIT( medit_show )
         flag_stat_string( position_flags, pMob->default_pos ) );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Wealth:      [%d\%=%d]\n\r",
+    sprintf( buf, "Wealth:      [%d%%=%ld]\n\r",
         pMob->wealth_percent,
-        mob_base_wealth(pMob, pMob->level)
+        mob_base_wealth(pMob)
     );
     send_to_char( buf, ch );
     
@@ -5550,7 +5554,8 @@ MEDIT( medit_delete )
         
         last=curr;
     }
-
+    // should not reach this point
+    return FALSE;
 }
 
 
@@ -5776,7 +5781,7 @@ static int level_stats[][LVL_STAT_NR] = {
 /* returns an array with the stats for that level */
 int* get_level_stats( int level )
 {
-    static int stats[LVL_STAT_NR] = { 65, 15, 27000, 12,  8, 56, -750, -380 };
+    static int stats[LVL_STAT_NR] = { 65, 15, 27000, 12,  8, 56, -750 };
 
     level = UMAX( 1, level );
 
@@ -5821,7 +5826,6 @@ void set_mob_level( CHAR_DATA *mob, int level )
 void set_mob_level( CHAR_DATA *mob, int level )
 {
     MOB_INDEX_DATA *pMobIndex = mob->pIndexData;
-    int i;
     
     level = URANGE(1, level, 200);
     mob->level = level;
@@ -5985,8 +5989,7 @@ MEDIT( medit_long )
     }
     
     free_string( pMob->long_descr );
-    pMob->long_descr = str_dup( argument );
-    pMob->long_descr[0] = UPPER( pMob->long_descr[0]  );
+    pMob->long_descr = upper_realloc(str_dup(argument));
     
     send_to_char( "Long description set.\n\r", ch);
     return TRUE;
@@ -6042,7 +6045,7 @@ MEDIT( medit_name )
 {
     MOB_INDEX_DATA *pMob;
     char arg [MAX_INPUT_LENGTH];
-    char *s;
+    const char *s;
     char buf[MAX_INPUT_LENGTH];
     struct stat fst;
     
@@ -6696,7 +6699,7 @@ static const char* basic_dam_names[MAX_DAM_TYPE] =
 };
 
 /* returns the name for the given damage type */
-char* basic_dam_name( int dam_type )
+const char* basic_dam_name( int dam_type )
 {
   if (dam_type < 0 || dam_type >= MAX_DAM_TYPE)
     return "?";
@@ -7117,7 +7120,7 @@ HEDIT( hedit_delete)
 /* percentage values */
 
 #define CMD(cmd) (strcmp(command, cmd)==0)
-bool medit_percent ( CHAR_DATA *ch, char *argument, char* command)
+bool medit_percent ( CHAR_DATA *ch, const char *argument, char* command)
 {
     MOB_INDEX_DATA *pMob;
     char arg[MAX_INPUT_LENGTH];

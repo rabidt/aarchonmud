@@ -462,7 +462,6 @@ Called by:	save_objects (below).
 ****************************************************************************/
 void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
 {
-    char letter;
     AFFECT_DATA *pAf;
     EXTRA_DESCR_DATA *pEd;
     char buf[MAX_STRING_LENGTH];
@@ -708,7 +707,7 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                     if ( ( pExit = pRoomIndex->exit[door] )
                         && pExit->u1.to_room )
                     {
-                        int locks = 0;
+                        //int locks = 0;
                         
                         /* HACK : TO PREVENT EX_LOCKED etc without EX_ISDOOR
                         to stop booting the mud */
@@ -1005,6 +1004,8 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
                         fprintf( fp, "O 0 %d 0 %d\n", 
                             pReset->arg1,
                             pReset->arg3 );
+                        // to avoid 'unused' warning when VERBOSE flag is not set
+                        pLastObj = pLastObj;
                         break;
                         
                     case 'P':
@@ -1203,24 +1204,13 @@ Name:		do_asave
 Purpose:	Entry point for saving area data.
 Called by:	interpreter(interp.c)
 ****************************************************************************/
-void do_asave( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_asave)
 {
     char arg1 [MAX_INPUT_LENGTH];
     AREA_DATA *pArea;
-    FILE *fp;
-    int value,sec;
+    int value;
     
-    fp = NULL;
-    
-    if ( !ch )       /* Do an autosave */
-        sec = 9;
-    else if ( !IS_NPC(ch) )
-        sec = ch->pcdata->security;
-    else
-        sec = 0;
-    
-    smash_tilde( argument );
-    strcpy( arg1, argument );
+    smash_tilde_cpy( arg1, argument );
     
     if ( arg1[0] == '\0' )
     {
@@ -1317,8 +1307,8 @@ void do_asave( CHAR_DATA *ch, char *argument )
             if ( ch && !IS_BUILDER( ch, pArea ) )
                 continue;
             
-	    if ( IS_SET(pArea->area_flags, AREA_CLONE) )
-		continue;
+            if ( IS_SET(pArea->area_flags, AREA_CLONE) )
+                continue;
 
             /* Save changed areas. */
             if ( IS_SET(pArea->area_flags, AREA_CHANGED) )
@@ -1337,11 +1327,13 @@ void do_asave( CHAR_DATA *ch, char *argument )
             }
         }
         if ( !str_cmp( buf, "None.\n\r" ) )
+        {
             if ( ch )
                 send_to_char( buf, ch );
             else
                 log_string( "None." );
-            return;
+        }
+        return;
     }
     
     /* Save the area.lst file. */

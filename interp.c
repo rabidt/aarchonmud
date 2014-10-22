@@ -34,9 +34,6 @@
 #include "merc.h"
 #include "interp.h"
 
-
-bool    check_social    args( ( CHAR_DATA *ch, char *command, char *argument ) );
-bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact );
 bool    check_disabled (const struct cmd_type *command);
 DISABLED_DATA *disabled_first;
 
@@ -103,7 +100,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "withdraw",   do_withdraw,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "channels",   do_channels,    POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "exits",      do_exits,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "explored",   do_explored,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "explored",   do_explored,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "get",        do_get,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "goto",       do_goto,        POS_DEAD,       IM,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "group",      do_group,       POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -139,7 +136,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "commands",   do_commands,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "compare",    do_compare, POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "consider",   do_consider,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "count",      do_count,   POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "count",      do_count,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "credits",    do_credits, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "dirs",       do_dirs,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "equipment",  do_equipment,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -213,7 +210,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "outfit",     do_outfit,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "password",   do_password,    POS_DEAD,    0,  LOG_NEVER,  1, FALSE, FALSE  },
     { "prompt",     do_prompt,  POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "rolldice",   do_rolldice,    POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "rolldice",   do_rolldice,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "scroll",     do_scroll,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "title",      do_title,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "unalias",    do_unalias, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -355,19 +352,19 @@ const   struct  cmd_type    cmd_table   [] =
     { "intimidate", do_intimidate, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "dowse",      do_dowsing, POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "rustle",     do_rustle_grub, POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
-    { "fledge",     do_fledge,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "fledge",     do_fledge,  POS_RESTING,  0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "rake",       do_rake,    POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "puncture",   do_puncture,POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
-    { "scribe",     do_scribe,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
-    { "brew",       do_brew,    POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "scribe",     do_scribe,  POS_RESTING,    0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "brew",       do_brew,    POS_RESTING,    0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "herbs",      do_herbs,   POS_DEAD,     0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "strafe",     do_strafe,  POS_FIGHTING,   0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "fervent",    do_fervent_rage,    POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "paroxysm",   do_paroxysm,POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "rupture",    do_rupture, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
 //    { "powerthrust",do_power_thrust, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
-    { "extract",    do_extract,    POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
-    { "supplies",   do_supplies,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "extract",    do_extract, POS_RESTING,    0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "supplies",   do_supplies,POS_DEAD,       0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "quiveringpalm",   do_quivering_palm,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "smite",      do_smite,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     
@@ -672,7 +669,7 @@ const   struct  cmd_type    cmd_table   [] =
  * returns wether a command can be ordered to victim
  * if victim is NUll returns wether it can be ordered to some victims
  */
-bool can_order( char *command, CHAR_DATA *victim )
+bool can_order( const char *command, CHAR_DATA *victim )
 {
     int cmd;
     for ( cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
@@ -694,12 +691,12 @@ bool can_order( char *command, CHAR_DATA *victim )
 	return TRUE;
 }
 
-bool is_either_str( char *prefix, char *str, bool exact )
+bool is_either_str( const char *prefix, const char *str, bool exact )
 {
     if ( exact )
-	return strcmp( prefix, str ) == 0;
+        return strcmp( prefix, str ) == 0;
     else
-	return !str_prefix( prefix, str );
+        return !str_prefix( prefix, str );
 }
 
 int find_command( CHAR_DATA *ch, char *command, bool exact )
@@ -754,20 +751,19 @@ void send_position_message( CHAR_DATA *ch )
 * The main entry point for executing commands.
 * Can be recursively called from 'at', 'order', 'force'.
 */
-void interpret( CHAR_DATA *ch, char *argument )
+void interpret( CHAR_DATA *ch, const char *argument )
 {
     char command[MAX_INPUT_LENGTH];
     char logline[MAX_INPUT_LENGTH];
+    char buf[MAX_STRING_LENGTH] ;
     int cmd;
-    int trust;
-    bool found;
     
-    /*memleak additions*/
+#if defined(MEMCHECK_ENABLE)
     int string_count = nAllocString ;
     int perm_count = nAllocPerm ;
     char cmd_copy[MAX_INPUT_LENGTH] ;
-    char buf[MAX_STRING_LENGTH] ;
     strcpy(cmd_copy, argument) ;
+#endif
     
     /*
     * Strip leading spaces.
@@ -931,12 +927,12 @@ void interpret( CHAR_DATA *ch, char *argument )
 }
 
 
-bool check_social( CHAR_DATA *ch, char *command, char *argument )
+bool check_social( CHAR_DATA *ch, const char *command, const char *argument )
 {
     return check_social_new( ch, command, argument, FALSE );
 }
 
-bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact )
+bool check_social_new( CHAR_DATA *ch, const char *command, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -1109,7 +1105,7 @@ bool check_social_new( CHAR_DATA *ch, char *command, char *argument, bool exact 
 /*
 * Return true if an argument is completely numeric.
 */
-bool is_number ( char *arg )
+bool is_number ( const char *arg )
 {
     
     if ( *arg == '\0' )
@@ -1127,68 +1123,49 @@ bool is_number ( char *arg )
     return TRUE;
 }
 
-
+int split_argument( const char *argument, char *arg, char split_char )
+{
+    const char *pdot = strchr(argument, split_char);
+    if ( pdot == NULL )
+    {
+        strcpy(arg, argument);
+        return 1;
+    }
+    
+    // valid number up till '.'?
+    char buf[MIL];
+    strncpy(buf, argument, pdot - argument);
+    if ( !is_number(buf) )
+    {
+        strcpy(arg, argument);
+        return 1;
+    }
+    
+    strcpy(arg, pdot+1);
+    return atoi(buf);
+}
 
 /*
 * Given a string like 14.foo, return 14 and 'foo'
 */
-int number_argument( char *argument, char *arg )
+int number_argument( const char *argument, char *arg )
 {
-    char *pdot;
-    int number;
-    
-    for ( pdot = argument; *pdot != '\0'; pdot++ )
-    {
-        if ( *pdot == '.' )
-        {
-            *pdot = '\0';
-	    if ( !is_number(argument) )
-	    {
-		*pdot = '.';
-		break;
-	    }
-	    number = atoi( argument );
-            *pdot = '.';
-            strcpy( arg, pdot+1 );
-            return number;
-        }
-    }
-    
-    strcpy( arg, argument );
-    return 1;
+    return split_argument(argument, arg, '.');
 }
 
 /*
 * Given a string like 14*foo, return 14 and 'foo'
 */
-int mult_argument(char *argument, char *arg)
+int mult_argument( const char *argument, char *arg )
 {
-    char *pdot;
-    int number;
-    
-    for ( pdot = argument; *pdot != '\0'; pdot++ )
-    {
-        if ( *pdot == '*' )
-        {
-            *pdot = '\0';
-            number = atoi( argument );
-            *pdot = '*';
-            strcpy( arg, pdot+1 );
-            return number;
-        }
-    }
-    
-    strcpy( arg, argument );
-    return 1;
+    return split_argument(argument, arg, '*');
 }
-
-
 
 /*
 * Pick off one argument from a string and return the rest.
 * Understands quotes.
 */
-char *one_argument( char *argument, char *arg_first )
+const char * one_argument( const char *argument, char *arg_first )
 {
     char cEnd;
     
@@ -1223,7 +1200,7 @@ char *one_argument( char *argument, char *arg_first )
 * Pick off one argument from a string and return the rest.
 * Understands quotes. Doesn't lower case.
 */
-char *one_argument_keep_case( char *argument, char *arg_first )
+const char * one_argument_keep_case( const char *argument, char *arg_first )
 {
     char cEnd;
     
@@ -1256,7 +1233,7 @@ char *one_argument_keep_case( char *argument, char *arg_first )
 /*
 * Contributed by Alander.
 */
-void do_commands( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_commands)
 {
     char buf[MAX_STRING_LENGTH];
     int cmd;
@@ -1282,7 +1259,7 @@ void do_commands( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_disable (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_disable)
 {
     int i;
     DISABLED_DATA *p,*q;
@@ -1480,7 +1457,7 @@ void load_disabled()
 {
     FILE *fp;
     DISABLED_DATA *p;
-    char *name;
+    const char *name;
     int i = 0;
     int spell;
     bool found;

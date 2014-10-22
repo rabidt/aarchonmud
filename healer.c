@@ -35,7 +35,7 @@
 
 /* 4 more 'heal's added in by Sraet */
 
-void do_heal(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_heal)
 {
     CHAR_DATA *mob;
     char arg[MAX_INPUT_LENGTH];
@@ -258,7 +258,6 @@ void do_heal(CHAR_DATA *ch, char *argument)
         break;
     }
    
-    extern char *target_name;
     static char tname_buf[MIL];
     sprintf( tname_buf, "%s %s",
           ch->name,
@@ -295,7 +294,7 @@ static SPELL_COST arcane_cost[] =
 
 
 /* added by Bobble */
-void do_spellup(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_spellup)
 {
     CHAR_DATA *mob;
     char arg[MAX_INPUT_LENGTH], buf[MSL];

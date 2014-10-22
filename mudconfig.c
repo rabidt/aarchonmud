@@ -48,8 +48,9 @@ CFG_DATA_ENTRY mudconfig_table[] =
     { "refund_tattoos",     CFG_BOOL,   &cfg_refund_tattoos,    &cfg_default_false },
     { "refund_qeq",         CFG_BOOL,   &cfg_refund_qeq,        &cfg_default_false },
     { "word_of_day",        CFG_STRING, &cfg_word_of_day,       &cfg_word_of_day_default},
-    { NULL, NULL, NULL, NULL }
+    { NULL, 0, NULL, NULL }
 };
+
 void mudconfig_init()
 {
     /* set defaults, especially important for strings, others can
@@ -83,7 +84,7 @@ void mudconfig_init()
                 }
                 case CFG_STRING:
                 {
-                    *((char **)(en->value))=str_dup( *((char **)(en->default_value)) );
+                    *((const char **)(en->value)) = str_dup((char *)en->default_value);
                     break;
                 }
             }
@@ -97,10 +98,10 @@ void mudconfig_init()
 
         if (en->type==CFG_STRING)
         {
-            if ( *((char **)(en->value)) == NULL )
+            if ( en->value == NULL )
             {
                 bugf("mudconfig_init: no default value for %s", en->name );
-                *((char **)(en->value))=str_dup("");
+                *((const char **)(en->value))=str_dup("");
             }
         }
     }

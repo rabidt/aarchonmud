@@ -11,12 +11,18 @@ for Aarchon MUD
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include <lua.h>
 #include <lauxlib.h>
 #include "merc.h"
 #include "tables.h"
 #include "lua_main.h"
 
+
+/* local functions */
+void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history, sh_int entries );
+void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries );
+void playback_clear( COMM_HISTORY *history );
 
 #define MAX_COMM_HISTORY 300
 /* Default number of results, needs to  be <=MAX_COMM_HISTORY */
@@ -84,7 +90,7 @@ void pers_history_free(PERS_HISTORY *history)
 	free_mem(history, sizeof(PERS_HISTORY) );
 }
 
-void log_pers( PERS_HISTORY *history, char *text )
+void log_pers( PERS_HISTORY *history, const char *text )
 {
 	PERS_ENTRY *entry=pers_entry_new();
 	char time[MSL];
@@ -155,7 +161,7 @@ void add_to_comm_history ( COMM_HISTORY *history, COMM_ENTRY *entry )
     }
 }
 
-void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
+void log_chan( CHAR_DATA * ch, const char *text , sh_int channel )
 {
     char buf[MSL];
 
@@ -165,8 +171,6 @@ void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
     entry->text = str_dup(text) ;
     entry->channel = channel;
     entry->timestamp= str_dup(ctime( &current_time ));
-    /*have to add the EOL to timestamp or it won't have one, weird*/
-    entry->timestamp[strlen(entry->timestamp)-1] = '\0';
 
     if (!IS_NPC(ch))
       sprintf(buf,"%s%s", ch->pcdata->pre_title,ch->name);
@@ -205,13 +209,12 @@ void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
 		
 }
 
-void do_playback(CHAR_DATA *ch, char * argument)
+DEF_DO_FUN(do_playback)
 {
     
     if ( IS_NPC(ch) )
 		return;
 	
-    BUFFER *output;
     char arg[MSL];
     sh_int arg_number;
     bool immortal=IS_IMMORTAL(ch);
@@ -578,7 +581,7 @@ void save_comm_histories()
     {
         bugf ( "Error with L_save_comm_histories:\n %s",
                 lua_tostring(g_mud_LS, -1));
-        return -1;
+        return;
     }
 }
 
@@ -589,7 +592,7 @@ void load_comm_histories()
     {
         bugf ( "Error with L_load_comm_histories:\n %s",
                 lua_tostring(g_mud_LS, -1));
-        return -1;
+        return;
     }
 }
 

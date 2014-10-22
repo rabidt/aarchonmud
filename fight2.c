@@ -1,15 +1,15 @@
 #include <sys/types.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include "merc.h"
 
 bool  check_lose_stance args( (CHAR_DATA *ch) );
-void  behead        args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-void  set_fighting  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  can_steal     args( ( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose ) );
-void  backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
 bool  check_jam( CHAR_DATA *ch, int odds, bool offhand );
+
+DECLARE_DO_FUN( do_disarm_trap );
 
 /*
 * Disarm a creature.
@@ -69,7 +69,7 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery )
     return TRUE;
 }
 
-void do_berserk( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_berserk)
 {
     int chance, hp_percent;
     int cost = 100;
@@ -153,7 +153,7 @@ void do_berserk( CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_bash( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_bash)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -261,7 +261,7 @@ void do_bash( CHAR_DATA *ch, char *argument )
     check_improve(ch,gsn_bash,TRUE,1);
 }
 
-void do_dirt( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_dirt)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -370,7 +370,7 @@ void do_dirt( CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_trip( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_trip)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -465,7 +465,7 @@ void do_trip( CHAR_DATA *ch, char *argument )
     } 
 }
 
-void do_backstab( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_backstab)
 {
     CHAR_DATA *victim;
 
@@ -512,7 +512,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
         bool hit = one_hit(ch, victim, gsn_backstab, FALSE);
         CHECK_RETURN(ch, victim);
 
-        if ( offhand_attack_chance(ch) > 0 )
+        if ( offhand_attack_chance(ch, TRUE) > 0 )
         {
             hit = one_hit(ch, victim, gsn_backstab, TRUE) || hit;
             CHECK_RETURN(ch, victim);
@@ -532,10 +532,10 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
     }
 }
 
-void do_headbutt( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_headbutt)
 {
     CHAR_DATA *victim;
-    int chance, dam, dam_type;
+    int chance, dam;
     char arg[MAX_INPUT_LENGTH];
     
     one_argument(argument, arg);
@@ -582,7 +582,7 @@ void do_headbutt( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_net( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_net)
 {
     CHAR_DATA *victim;
     int chance;
@@ -656,12 +656,12 @@ void do_net( CHAR_DATA *ch, char *argument )
 }
 
 // mama routine for burst, semi-auto and full-auto
-void spray_attack( CHAR_DATA *ch, char *argument, int sn )
+void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
 {
     CHAR_DATA *victim, *target, *next_target;
     OBJ_DATA *first, *second;
     bool secondgun = FALSE;
-    int targeted_attacks, area_attacks, jam_chance, skill;
+    int targeted_attacks, area_attacks, jam_chance;
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
@@ -734,22 +734,22 @@ void spray_attack( CHAR_DATA *ch, char *argument, int sn )
     }
 }
 
-void do_burst( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_burst)
 {
     spray_attack(ch, argument, gsn_burst);
 }
 
-void do_fullauto( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_fullauto)
 {
     spray_attack(ch, argument, gsn_fullauto);
 }
 
-void do_semiauto( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_semiauto)
 {
     spray_attack(ch, argument, gsn_semiauto);
 }
 
-void do_hogtie(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hogtie)
 {
     CHAR_DATA *victim;
     OBJ_DATA *rope;
@@ -830,14 +830,14 @@ const char* aim_targets[] = { "head", "hand", "foot", "" };
 #define AIM_HAND    1
 #define AIM_FOOT    2
 
-void do_aim( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_aim)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj; 
     int i, chance;
     int aim_target = AIM_NORMAL;
-    bool secondgun = FALSE, hit = FALSE;
+    bool secondgun = FALSE;
 
     argument = one_argument( argument, arg );
         
@@ -1015,7 +1015,7 @@ void do_aim( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_drunken_fury( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_drunken_fury)
 {
     int chance, hp_percent;
     int cost = 100;
@@ -1110,7 +1110,7 @@ void do_drunken_fury( CHAR_DATA *ch, char *argument)
 }
 
 
-void do_snipe( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_snipe)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -1227,9 +1227,8 @@ void do_snipe( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_circle( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_circle)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance;
     
@@ -1274,7 +1273,7 @@ void do_circle( CHAR_DATA *ch, char *argument )
         bool hit = one_hit(ch, victim, gsn_circle, FALSE);
         CHECK_RETURN(ch, victim);
         
-        if ( offhand_attack_chance(ch) > 0 )
+        if ( offhand_attack_chance(ch, TRUE) > 0 )
         {
             hit = one_hit(ch, victim, gsn_circle, TRUE) || hit;
             CHECK_RETURN(ch, victim);
@@ -1297,7 +1296,7 @@ void do_circle( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_slash_throat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_slash_throat)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -1404,12 +1403,10 @@ void do_slash_throat( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_rescue( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rescue)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
-    CHAR_DATA *other;
-    CHAR_DATA *other_next;
     CHAR_DATA *fch;
     bool is_attacked = FALSE;
     int chance;
@@ -1497,7 +1494,6 @@ void do_rescue( CHAR_DATA *ch, char *argument )
     act( "$n rescues $N!",  ch, NULL, victim, TO_NOTVICT );
     check_improve(ch,gsn_rescue,TRUE,1);
     
-    other = victim->fighting;
     /* removed to prevent kill-trigger to activate --Bobble
     stop_fighting( fch, FALSE );
     stop_fighting( victim, FALSE );
@@ -1518,7 +1514,7 @@ void mastery_adjusted_wait( CHAR_DATA *ch, int sn )
     WAIT_STATE( ch, rand_div(wait * (100 - bonus), 100) );
 }
 
-void do_kick( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_kick)
 {
     CHAR_DATA *victim;
     int dam, chance;
@@ -1547,7 +1543,7 @@ void do_kick( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_disarm( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_disarm)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -1658,7 +1654,7 @@ void do_disarm( CHAR_DATA *ch, char *argument )
         return;
 }
 
-void do_surrender( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_surrender)
 {
     CHAR_DATA *mob;
 
@@ -1787,7 +1783,7 @@ void split_attack ( CHAR_DATA *ch, int dt )
 
 
 
-void do_gouge( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_gouge)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -1876,7 +1872,7 @@ void do_gouge( CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_leg_sweep( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_leg_sweep)
 {
     int chance, tally = 0;
     CHAR_DATA *vch;
@@ -1951,7 +1947,7 @@ void do_leg_sweep( CHAR_DATA *ch, char *argument )
   
 }
 
-void do_uppercut(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_uppercut)
 {
     CHAR_DATA *victim;
     int chance, skill;
@@ -2004,7 +2000,7 @@ void do_uppercut(CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_war_cry( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_war_cry)
 {
     AFFECT_DATA af;
     CHAR_DATA *vch;
@@ -2080,7 +2076,7 @@ void do_war_cry( CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_guard( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_guard)
 {
     char arg[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
@@ -2169,7 +2165,7 @@ void do_guard( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_tumble( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_tumble)
 {
     int chance;
     char arg[MAX_INPUT_LENGTH];
@@ -2268,7 +2264,7 @@ void do_tumble( CHAR_DATA *ch, char *argument)
 
 
 
-void do_feint( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_feint)
 {
     CHAR_DATA *victim = NULL;
     CHAR_DATA *fch = NULL;
@@ -2341,7 +2337,7 @@ void do_feint( CHAR_DATA *ch, char *argument )
 
 
 
-void do_distract( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_distract)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -2428,7 +2424,7 @@ void do_distract( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_chop( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_chop)
 {
     CHAR_DATA *victim;
     int dam, chance;
@@ -2462,7 +2458,7 @@ void do_chop( CHAR_DATA *ch, char *argument )
         return;
 }
 
-void do_bite( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_bite)
 {
     CHAR_DATA *victim;
     int dam, chance;
@@ -2521,7 +2517,7 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim)
 {
 	char buf[MAX_STRING_LENGTH];
 	OBJ_DATA *obj;
-	char *name;
+    const char *name;
 	act( "$n's severed head plops on the ground.", victim, NULL, NULL, TO_ROOM );
 	damage(ch,victim, 0, gsn_beheading,0,TRUE);
         
@@ -2547,7 +2543,7 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim)
 	obj_to_room( obj, ch->in_room );
 }
 
-void do_shield_bash( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_shield_bash)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -2644,7 +2640,7 @@ void do_shield_bash( CHAR_DATA *ch, char *argument )
     check_improve(ch,gsn_shield_bash,TRUE,1);
 }
 
-void do_charge( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_charge)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -2748,7 +2744,7 @@ void do_charge( CHAR_DATA *ch, char *argument )
     check_improve(ch,gsn_charge,TRUE,1);
 }
 
-void do_double_strike( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_double_strike)
 {
     CHAR_DATA *victim;
     int skill;
@@ -2802,7 +2798,7 @@ void do_double_strike( CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_round_swing( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_round_swing)
 {
     CHAR_DATA *vch, *vch_next;
     OBJ_DATA *wield;
@@ -2843,7 +2839,7 @@ void do_round_swing( CHAR_DATA *ch, char *argument )
     check_improve( ch, gsn_round_swing, TRUE, 3 );
 }
 
-void do_spit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_spit)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -2932,7 +2928,7 @@ void do_spit( CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_choke_hold( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_choke_hold)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -2979,6 +2975,8 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    WAIT_STATE(ch,skill_table[gsn_choke_hold].beats);
+    
     /* base rolls */
     chance = skill / 2;
     chance += (get_curr_stat(ch,STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
@@ -2994,7 +2992,6 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
         act("$n grabs $N by the neck and begins to squeeze.",ch,NULL,victim,TO_NOTVICT);
         
         check_improve(ch,gsn_choke_hold,TRUE,1);
-        WAIT_STATE(ch,skill_table[gsn_choke_hold].beats);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_choke_hold;
@@ -3014,13 +3011,11 @@ void do_choke_hold( CHAR_DATA *ch, char *argument )
         act("You try to wring $N's neck but fail.",ch,NULL,victim,TO_CHAR);
         /*fail starts fight too -Vodur*/
         damage(ch,victim,0,gsn_choke_hold,DAM_NONE,FALSE);
-        
-        WAIT_STATE(ch,skill_table[gsn_choke_hold].beats*2/3);
         check_improve(ch,gsn_choke_hold,FALSE,1);
     }
 }
 
-void do_roundhouse( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_roundhouse)
 {
    int tally=0;
    CHAR_DATA *vch;
@@ -3068,7 +3063,7 @@ void do_roundhouse( CHAR_DATA *ch, char *argument )
    return;
 }
 
-void do_hurl( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hurl)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -3161,7 +3156,7 @@ void do_hurl( CHAR_DATA *ch, char *argument )
 }
 
 /* Mug attempted by Mephiston (his words), fixed by Siva 4/15/98*/
-void do_mug( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mug)
 {
     char buf  [MAX_STRING_LENGTH];
     char arg1 [MAX_INPUT_LENGTH];
@@ -3301,7 +3296,7 @@ void do_mug( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_fatal_blow( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_fatal_blow)
 {
     CHAR_DATA *victim;
     int skill, chance;
@@ -3355,7 +3350,7 @@ void do_fatal_blow( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_intimidate( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_intimidate)
 {
     CHAR_DATA *victim;
     int skill;
@@ -3417,7 +3412,7 @@ void do_intimidate( CHAR_DATA *ch, char *argument )
     full_dam( ch, victim, ch->level, gsn_intimidation, DAM_MENTAL, TRUE );
 }
 
-void do_crush( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_crush)
 {
     CHAR_DATA *victim;
     int dam, power;
@@ -3446,7 +3441,7 @@ void do_crush( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_blackjack( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_blackjack)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -3588,7 +3583,7 @@ void do_blackjack( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_rake( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rake)
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -3636,7 +3631,7 @@ void do_rake( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_puncture( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_puncture)
 {
     AFFECT_DATA af;
     CHAR_DATA *victim;
@@ -3705,31 +3700,24 @@ void do_puncture( CHAR_DATA *ch, char *argument )
     check_improve(ch,gsn_puncture,TRUE,3);
 }
 
-int dice_argument (char *argument, char *arg)
+int dice_argument (const char *argument, char *arg)
 {
-    char *pdot;
-    int number;
- 
-    for (pdot = argument; *pdot != '\0'; pdot++)
+    const char *pdot = strchr(argument, 'd');
+    // invalic argument - expect 3d6 or similar
+    if ( pdot == NULL )
     {
-        if (*pdot == 'd')
-        {
-            *pdot = '\0';
-            number = atoi (argument);
-            *pdot = 'd';
-            strcpy (arg, pdot + 1);
-            return number;
-        }
+        strcpy(arg, argument);
+        return -1;
     }
- 
-    strcpy (arg, argument);
-    return -1;
+    // valid format - atoi converts initial part of string, which is just what we want
+    strcpy(arg, pdot+1);
+    return atoi(argument);
 }
  
 /*
  * Simple dice rolling command that lets you specify number of die and sides.
  */
-void do_rolldice (CHAR_DATA * ch, char * argument)
+DEF_DO_FUN(do_rolldice)
 {
     char arg[MIL], buf[MSL];
     unsigned int result = 0;
@@ -3775,7 +3763,7 @@ void do_rolldice (CHAR_DATA * ch, char * argument)
     act (buf, ch, NULL, NULL, TO_ROOM);
 }
 
-void do_strafe( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_strafe)
 {
     CHAR_DATA *victim;
     int skill;
@@ -3819,11 +3807,10 @@ void do_strafe( CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_infectious_arrow( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_infectious_arrow)
 {
     AFFECT_DATA af;
     CHAR_DATA *victim;
-    OBJ_DATA *wield;
     int skill, dam;
 
     if ( get_weapon_sn(ch) != gsn_bow )
@@ -3891,13 +3878,12 @@ void do_infectious_arrow( CHAR_DATA *ch, char *argument )
     check_improve(ch,gsn_infectious_arrow,TRUE,3);
 }
 
-void do_paroxysm( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_paroxysm)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    OBJ_DATA *second;
-    int chance, chance2;
+    int chance;
     
     if ((chance = get_skill(ch,gsn_paroxysm)) < 1)
     {
@@ -4001,9 +3987,8 @@ void do_paroxysm( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_fervent_rage( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_fervent_rage)
 {
-    int hp_percent;
     int cost = 250;
     int chance;
     
@@ -4060,13 +4045,12 @@ void do_fervent_rage( CHAR_DATA *ch, char *argument )
     return;
 } 
 
-void do_rupture( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rupture)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    OBJ_DATA *second;
-    int chance, chance2;
+    int chance;
 
     
     if ((chance = get_skill(ch,gsn_rupture)) < 1)
@@ -4159,7 +4143,7 @@ void do_rupture( CHAR_DATA *ch, char *argument )
 }
 
 /*
-void do_power_thrust( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_power_thrust)
 {
     char arg[MAX_INPUT_LENGTH];
     char buf  [MAX_STRING_LENGTH];
@@ -4254,12 +4238,10 @@ void do_power_thrust( CHAR_DATA *ch, char *argument )
 void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
 {
     CHAR_DATA *victim; 
-    OBJ_DATA *obj;
     int dam;
     int chance_hit, chance_stun, skill;
     char arg[MAX_INPUT_LENGTH];
     AFFECT_DATA af;
-    int sn;
     
     one_argument(argument, arg);
     
@@ -4383,7 +4365,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
 }
 
 
-void do_mindflay( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mindflay)
 {
   AFFECT_DATA af;
   CHAR_DATA *victim;
@@ -4459,7 +4441,7 @@ void do_mindflay( CHAR_DATA *ch, char *argument )
 }
 
 // paladin smite good/evil attack
-void do_smite( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_smite)
 {
     CHAR_DATA *victim;
     int skill;
@@ -4486,7 +4468,7 @@ void do_smite( CHAR_DATA *ch, char *argument )
         return;
     
     // chance to dispel if fighting opposing alignment
-    if ( (IS_GOOD(ch) && IS_EVIL(victim) || IS_EVIL(ch) && IS_GOOD(victim)) && !number_bits(2) )
+    if ( ((IS_GOOD(ch) && IS_EVIL(victim)) || (IS_EVIL(ch) && IS_GOOD(victim))) && !number_bits(2) )
     {
         int level = ch->level * skill / 100;
         act("Your smite disrupts $N's magic defenses!", ch, NULL, victim, TO_CHAR);
@@ -4497,7 +4479,7 @@ void do_smite( CHAR_DATA *ch, char *argument )
     check_improve(ch, gsn_smite, TRUE, 2);
 }
 
-void do_inspire( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_inspire)
 {
     AFFECT_DATA af;
     CHAR_DATA *vch;
@@ -4565,7 +4547,7 @@ void do_inspire( CHAR_DATA *ch, char *argument )
     }
 }
 
-void do_gaze( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_gaze)
 {
     CHAR_DATA *victim;
     int skill = get_skill(ch, gsn_petrify);

@@ -34,12 +34,13 @@
 /*
  * New typedefs.
  */
-typedef	bool OLC_FUN		args( ( CHAR_DATA *ch, char *argument ) );
+typedef bool OLC_FUN ( CHAR_DATA *ch, const char *argument );
 #define DECLARE_OLC_FUN( fun )	OLC_FUN    fun
 
 
 /* Command procedures needed ROM OLC */
 DECLARE_DO_FUN(    do_help    );
+DECLARE_DO_FUN(    do_rlook   );
 DECLARE_SPELL_FUN( spell_null );
 
 
@@ -64,16 +65,14 @@ DECLARE_SPELL_FUN( spell_null );
 /*
  * Interpreter Prototypes
  */
-void    aedit           args( ( CHAR_DATA *ch, char *argument ) );
-void    redit           args( ( CHAR_DATA *ch, char *argument ) );
-void    medit           args( ( CHAR_DATA *ch, char *argument ) );
-void    oedit           args( ( CHAR_DATA *ch, char *argument ) );
-void	  mpedit		      args( ( CHAR_DATA *ch, char *argument ) );
-void    opedit          args( ( CHAR_DATA *ch, char *argument ) );
-void    apedit		    args( ( CHAR_DATA *ch, char *argument ) );
-void    hedit           args( ( CHAR_DATA *ch, char *argument ) );
-
-
+void aedit( CHAR_DATA *ch, const char *argument );
+void redit( CHAR_DATA *ch, const char *argument );
+void medit( CHAR_DATA *ch, const char *argument );
+void oedit( CHAR_DATA *ch, const char *argument );
+void mpedit( CHAR_DATA *ch, const char *argument );
+void opedit( CHAR_DATA *ch, const char *argument );
+void apedit( CHAR_DATA *ch, const char *argument );
+void hedit( CHAR_DATA *ch, const char *argument );
 
 /*
  * OLC Constants
@@ -109,10 +108,6 @@ struct	editor_cmd_type
  */
 AREA_DATA *get_vnum_area	args ( ( int vnum ) );
 AREA_DATA *get_area_data	args ( ( int vnum ) );
-int flag_value			args ( ( const struct flag_type *flag_table,
-				         char *argument) );
-char *flag_string		args ( ( const struct flag_type *flag_table,
-				         int bits ) );
 void add_reset			args ( ( ROOM_INDEX_DATA *room, 
 				         RESET_DATA *pReset, int index ) );
 
@@ -148,12 +143,11 @@ DECLARE_DO_FUN( do_hedit       );
 /*
  * General Functions
  */
-bool show_commands		args ( ( CHAR_DATA *ch, char *argument ) );
-bool show_help			args ( ( CHAR_DATA *ch, char *argument ) );
-bool edit_done			args ( ( CHAR_DATA *ch ) );
-bool show_version		args ( ( CHAR_DATA *ch, char *argument ) );
+DECLARE_OLC_FUN( show_commands  );
+DECLARE_OLC_FUN( show_help  );
+DECLARE_OLC_FUN( show_version  );
 
-
+bool edit_done( CHAR_DATA *ch );
 
 /*
  * Area Editor Prototypes
@@ -448,3 +442,15 @@ void        free_rpcode     args ( ( PROG_CODE *pRcode));
 
 HELP_DATA *new_help args ( (void) );
 void free_help args ( ( HELP_DATA * pHelp));
+
+/* olc_mpcode.c */
+void fix_mprog_mobs( CHAR_DATA *ch, PROG_CODE *pMcode );
+
+/* olc_opcode.c */
+void fix_oprog_objs( CHAR_DATA *ch, PROG_CODE *pOcode );
+
+/* olc_apcode.c */
+void fix_aprog_areas( CHAR_DATA *ch, PROG_CODE *pAcode );
+
+/* olc_rpcode.c */
+void fix_rprog_rooms( CHAR_DATA *ch, PROG_CODE *pRcode );

@@ -156,7 +156,7 @@ const struct size_type size_table[] =
 };
 
 
-bool is_settable( int flag, struct flag_type *flag_table )
+bool is_settable( int flag, const struct flag_type *flag_table )
 {
     int i;
 
@@ -1473,7 +1473,7 @@ const ACHIEVEMENT achievement_table [] =
     { ACHV_QHCOMP,    100,  50,  250,   250,    50,       0,   ACHIEVE_QHCOMP_4},
     { ACHV_QHCOMP,    250,  75,  500,   250,   100,       0,   ACHIEVE_QHCOMP_5},
     { ACHV_QHCOMP,    500, 100,  750,   250,   250,       0,   ACHIEVE_QHCOMP_6},
-    { NULL,             0,   0,    0,     0,     0,       0,                  0}
+    { 0,                0,   0,    0,     0,     0,       0,                  0}
 };
 /*          type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
 /* TOTAL FOR ALL ACHIEVE: 4821,39200,444660,      5220,  NA,               */
@@ -1530,5 +1530,5 @@ const CHANNEL public_channel_table[] =
 	{&sn_newbie,	"Newbie",	"[Newbie]:",	"[Newbie]:",	'n',	'N',	COMM_NONEWBIE,		0,	NULL},
 	{&sn_immtalk,	"Immtalk",	"immtalk",	"immtalks",	'i',	'I',	COMM_NOWIZ,		0,	check_immtalk},
 	{&sn_savantalk,	"Savantalk",	"savant",	"savants",	'7',	'8',	COMM_NOSAVANT,		0,	check_savant},
-	NULL,
+    {NULL}
 };

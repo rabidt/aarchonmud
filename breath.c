@@ -250,7 +250,6 @@ void plague_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   AFFECT_DATA af;
-  int chance;
 
   if (target != TARGET_CHAR)
     return;
@@ -278,7 +277,6 @@ void weak_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   AFFECT_DATA af;
-  int chance;
 
   if (target != TARGET_CHAR)
     return;
