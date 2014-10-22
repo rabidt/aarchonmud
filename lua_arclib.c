@@ -10,6 +10,8 @@
 #include "tables.h"
 #include "mudconfig.h"
 #include "religion.h"
+#include "mob_cmds.h"
+#include "interp.h"
 
 /* for iterating */
 LUA_OBJ_TYPE *type_list [] =
@@ -97,7 +99,7 @@ LUA_OBJ_TYPE *type_list [] =
 
 typedef struct lua_prop_type
 {
-    char *field;
+    const char *field;
     int  (*func)();
     int security;
     int status; 
@@ -112,8 +114,8 @@ typedef struct lua_prop_type
 #define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
-    char *lib;
-    char *name;
+    const char *lib;
+    const char *name;
     int (*func)();
     int security; /* if SEC_NOSCRIPT then not available in prog scripts */
     int status;
@@ -517,7 +519,7 @@ static int glob_mudconfig (lua_State *LS)
                 case CFG_STRING:
                     {
                         const char *newval=check_string(LS, 2, MIL);
-                        *((char **)(en->value))=str_dup(newval);
+                        *((const char **)(en->value))=str_dup(newval);
                         break;
                     }
                 case CFG_BOOL:
@@ -1064,10 +1066,12 @@ static int glob_getrandomroom ( lua_State *LS)
 
 }
 
+/* currently unused - commented out to avoid warning
 static int glob_cancel ( lua_State *LS)
 {
     return L_cancel(LS);
 }
+*/
 
 static int glob_arguments ( lua_State *LS)
 {   
@@ -1307,17 +1311,17 @@ static void push_luaval( lua_State *LS, LUA_EXTRA_VAL *luaval )
     {
         case LUA_TSTRING:
             lua_pushstring(LS, luaval->val);
-            return 1;
+            return;
 
         case LUA_TNUMBER:
             lua_getglobal( LS, "tonumber");
             lua_pushstring(LS, luaval->val);
             lua_call( LS, 1, 1 );
-            return 1;
+            return;
 
         case LUA_TBOOLEAN:
             lua_pushboolean( LS, !strcmp( luaval->val, "true" ) );
-            return 1;
+            return;
 
         default:
             luaL_error(LS, "Invalid type '%s'",
@@ -1375,6 +1379,8 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
     {
         case LUA_TNONE:
         case LUA_TNIL:
+            /* didn't exist yet, if nil then get out of here */
+            return 0;
             break;
 
         case LUA_TSTRING:
@@ -1390,7 +1396,7 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
             break;
 
         default:
-            luaL_error( LS, "Cannot set value type '%s'.",
+            return luaL_error( LS, "Cannot set value type '%s'.",
                     lua_typename( LS, type ) );
     }
 
@@ -1422,8 +1428,7 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
             }
             
             free_string( luaval->val );
-            luaval->val=str_dup( val );
-            smash_tilde(luaval->val);
+            luaval->val = str_dup(smash_tilde_cc(val));
             luaval->type = type;
             luaval->persist= persist;
             return 0;
@@ -1432,16 +1437,11 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
         prev=luaval;
     }
     
-    /* didn't exist yet, if nil then get out of here otherwise create and set */
-    if ( type==LUA_TNONE || type==LUA_TNIL )
-        return 0;
-
     luaval=new_luaval( 
             type, 
             str_dup( name ), 
-            str_dup( val ),
+            str_dup( smash_tilde_cc(val) ),
             persist );
-    smash_tilde(luaval->val);
     luaval->next = *luavals;
     *luavals     = luaval;
     return 0;
@@ -1594,7 +1594,7 @@ static int L_rundelay( lua_State *LS)
     {
         lua_mob_program( NULL, RUNDELAY_VNUM, NULL,
                 check_CH(LS, -2), NULL, 
-                NULL, NULL, 0, 0,
+                NULL, 0, NULL, 0,
                 TRIG_CALL, sec );
     }
     else if ( is_OBJ( LS, -2 ) )
@@ -2069,7 +2069,7 @@ static int CH_rvnum ( lua_State *LS)
     if (IS_NPC(ud_ch))
         return L_rvnum( LS, ud_ch->pIndexData->area );
     else if (!ud_ch->in_room)
-        luaL_error(LS, "%s not in a room.", ud_ch->name );
+        return luaL_error(LS, "%s not in a room.", ud_ch->name );
     else
         return L_rvnum( LS, ud_ch->in_room->area );
 }
@@ -2102,7 +2102,7 @@ static int CH_randchar (lua_State *LS)
 }
 
 /* analog of run_olc_editor in olc.c */
-static bool run_olc_editor_lua( CHAR_DATA *ch, char *argument )
+static bool run_olc_editor_lua( CHAR_DATA *ch, const char *argument )
 {
     if (IS_NPC(ch))
         return FALSE;
@@ -2231,7 +2231,7 @@ static int CH_loadfunction ( lua_State *LS )
 {
     lua_mob_program( NULL, RUNDELAY_VNUM, NULL,
                 check_CH(LS, -2), NULL,
-                NULL, NULL, 0, 0,
+                NULL, 0, NULL, 0,
                 TRIG_CALL, 0 );
     return 0;
 }
@@ -2379,7 +2379,7 @@ static int CH_purge (lua_State *LS)
 static int CH_goto (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
-    char *location=check_string(LS,2,MIL);
+    const char *location = check_string(LS,2,MIL);
     bool hidden=FALSE;
     if ( !lua_isnone(LS,3) )
     {
@@ -2800,7 +2800,7 @@ static int CH_setact (lua_State *LS)
         return set_flag( LS, "act[NPC]", act_flags, ud_ch->act );
     }
     else
-        luaL_error( LS, "'setact' for NPC only.");
+        return luaL_error( LS, "'setact' for NPC only." );
 
 }
 
@@ -2824,7 +2824,7 @@ static int CH_setimmune (lua_State *LS)
         return set_flag( LS, "immune", imm_flags, ud_ch->imm_flags );
     }
     else
-        luaL_error( LS, "'setimmune' for NPC only.");
+        return luaL_error( LS, "'setimmune' for NPC only.");
 
 }
 
@@ -2933,7 +2933,6 @@ static int CH_say (lua_State *LS)
 static int CH_describe (lua_State *LS)
 {
     bool cleanUp = false;
-    AFFECT_DATA *paf;
     CHAR_DATA * ud_ch = check_CH (LS, 1);
     OBJ_DATA * ud_obj;
 
@@ -2970,8 +2969,8 @@ static int CH_addaffect (lua_State *LS)
     int arg_index=1;
     CHAR_DATA * ud_ch = check_CH (LS, arg_index++);
     AFFECT_DATA af;
-    char *temp=NULL;
-    struct flag_type *flag_table;
+    const char *temp = NULL;
+    const struct flag_type *flag_table;
 
     /* where */
     temp=check_string(LS,arg_index++,MIL);
@@ -2992,7 +2991,7 @@ static int CH_addaffect (lua_State *LS)
     af.type=skill_lookup( temp );
 
     if (af.type == -1)
-        luaL_error("Invalid skill: %s", temp);
+        luaL_error(LS, "Invalid skill: %s", temp);
 
     /* level */
     af.level=luaL_checkinteger(LS,arg_index++);
@@ -3063,7 +3062,7 @@ static int CH_addaffect (lua_State *LS)
                 flag_table=vuln_flags;
                 break;
             default:
-                luaL_error(LS, "'where' not supported");
+                return luaL_error(LS, "'where' not supported");
         }
         af.bitvector=flag_lookup( temp, flag_table);
         if (af.bitvector==NO_FLAG)
@@ -3097,7 +3096,7 @@ static int CH_removeaffect (lua_State *LS)
     }
 
     /* remove by sn */
-    char *skill=check_string(LS,2,MIL);
+    const char *skill = check_string(LS, 2, MIL);
     int sn=skill_lookup( skill );
     if (sn==-1)
        luaL_error(LS, "Invalid skill: %s", skill);
@@ -3168,7 +3167,7 @@ static int CH_setvuln (lua_State *LS)
         return set_flag( LS, "vuln", vuln_flags, ud_ch->vuln_flags );
     }
     else
-        luaL_error( LS, "'setvuln' for NPC only.");
+        return luaL_error( LS, "'setvuln' for NPC only." );
 
 }
 
@@ -3199,8 +3198,7 @@ static int CH_setresist (lua_State *LS)
         return set_flag( LS, "resist", res_flags, ud_ch->res_flags );
     }
     else
-        luaL_error( LS, "'setresist' for NPC only.");
-
+        return luaL_error( LS, "'setresist' for NPC only.");
 }
 
 static int CH_skilled (lua_State *LS)
@@ -3337,6 +3335,7 @@ static int CH_set_attacktype (lua_State *LS)
     }
 
     luaL_error(LS, "No such attacktype: %s", arg );
+    return 1;
 }
 
 static int CH_get_damtype (lua_State *LS)
@@ -4531,7 +4530,7 @@ static int OBJ_wear( lua_State *LS)
 static int OBJ_echo( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
-    char *argument= check_fstring( LS, 2, MIL);
+    const char *argument = check_fstring(LS, 2, MIL);
 
     if (ud_obj->carried_by)
     {
@@ -4876,7 +4875,7 @@ static int OBJ_get_timer (lua_State *LS)
 
 static int OBJ_get_affects ( lua_State *LS)
 {
-    OBJ_DATA *ud_obj=check_OBJPROTO( LS, 1);
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
     AFFECT_DATA *af;
 
     int index=1;
@@ -5048,7 +5047,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
 /* AREA section */
 static int AREA_rvnum ( lua_State *LS)
 {
-    OBJ_DATA *ud_area=check_AREA(LS,1);
+    AREA_DATA *ud_area = check_AREA(LS, 1);
     lua_remove(LS,1);
 
     return L_rvnum( LS, ud_area );
@@ -6885,7 +6884,7 @@ static const LUA_PROP_TYPE PROG_method_table [] =
 /* TRIG section */
 static int TRIG_get_trigtype ( lua_State *LS )
 {
-    struct flag_type *tbl;
+    const struct flag_type *tbl;
 
     lua_getmetatable(LS,1);
     lua_getfield(LS, -1, "TYPE");
@@ -6909,9 +6908,7 @@ static int TRIG_get_trigtype ( lua_State *LS )
     }
     else
     {
-        luaL_error( LS,
-                "Invalid type: %s.",
-                type->type_name);
+        return luaL_error( LS, "Invalid type: %s.", type->type_name );
     }
 
     lua_pushstring( LS,
@@ -7063,7 +7060,6 @@ static const LUA_PROP_TYPE DESCRIPTOR_method_table [] =
 void type_init( lua_State *LS)
 {
     int i;
-    LUA_OBJ_TYPE *tp;
 
     for ( i=0 ; type_list[i] ; i++ )
     {
@@ -7078,9 +7074,9 @@ void cleanup_uds()
 } 
 
 /* all the valid checks do the same ATM, fix this if they ever don't */
-bool valid_UD( const char *ud )
+bool valid_UD( void *ud )
 {
-    return valid_CH( ud );
+    return valid_CH( (CHAR_DATA*)ud );
 }
 
 #define REF_FREED -1
@@ -7155,7 +7151,7 @@ CTYPE * alloc_ ## LTYPE ( void )\
     lua_pushboolean( g_mud_LS, TRUE );\
     lua_settable( g_mud_LS, -3 );\
     lua_pop( g_mud_LS, 1 );\
-    return wrap;\
+    return (CTYPE*)wrap;\
 }\
 \
 void free_ ## LTYPE ( CTYPE * ud )\
@@ -7165,7 +7161,7 @@ void free_ ## LTYPE ( CTYPE * ud )\
         bugf( "Invalid " #CTYPE " in free_" #LTYPE );\
         return;\
     }\
-    LTYPE ## _wrapper *wrap=ud;\
+    LTYPE ## _wrapper *wrap = (LTYPE ## _wrapper *)ud;\
     int ref=wrap->ref;\
     if ( ref == REF_FREED )\
     {\
@@ -7223,7 +7219,7 @@ int count_ ## LTYPE ( void )\
 \
 static int newindex_ ## LTYPE ( lua_State *LS )\
 {\
-    CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
+    CTYPE * gobj = (CTYPE*)check_ ## LTYPE ( LS, 1 );\
     const char *arg=check_string( LS, 2, MIL );\
     \
     if (! valid_ ## LTYPE ( gobj ) )\
@@ -7233,7 +7229,7 @@ static int newindex_ ## LTYPE ( lua_State *LS )\
     \
     lua_remove(LS, 2);\
     \
-    LUA_PROP_TYPE *set= & TPREFIX ## _set_table ;\
+    const LUA_PROP_TYPE *set = TPREFIX ## _set_table ;\
     \
     int i;\
     for (i=0 ; set[i].field ; i++ )\
@@ -7269,9 +7265,9 @@ static int newindex_ ## LTYPE ( lua_State *LS )\
 \
 static int index_ ## LTYPE ( lua_State *LS )\
 {\
-    CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
+    CTYPE * gobj = (CTYPE*)check_ ## LTYPE ( LS, 1 );\
     const char *arg=luaL_checkstring( LS, 2 );\
-    LUA_PROP_TYPE *get=& TPREFIX ## _get_table;\
+    const LUA_PROP_TYPE *get = TPREFIX ## _get_table;\
     \
     bool valid=valid_ ## LTYPE ( gobj );\
     if (!strcmp("valid", arg))\
@@ -7310,7 +7306,7 @@ static int index_ ## LTYPE ( lua_State *LS )\
         }\
     }\
     \
-    LUA_PROP_TYPE *method= & TPREFIX ## _method_table ;\
+    const LUA_PROP_TYPE *method= TPREFIX ## _method_table ;\
     \
     for (i=0; method[i].field; i++ )\
     {\
@@ -7351,10 +7347,10 @@ void reg_ ## LTYPE (lua_State *LS)\
 LUA_OBJ_TYPE LTYPE ## _type = { \
     .type_name= #LTYPE ,\
     .valid = valid_ ## LTYPE ,\
-    .check = check_ ## LTYPE ,\
+    .check = (void*(*)())check_ ## LTYPE ,\
     .is    = is_ ## LTYPE ,\
     .push  = push_ ## LTYPE ,\
-    .alloc = alloc_ ## LTYPE ,\
+    .alloc = (void*(*)())alloc_ ## LTYPE ,\
     .free  = free_ ## LTYPE ,\
     \
     .index = index_ ## LTYPE ,\

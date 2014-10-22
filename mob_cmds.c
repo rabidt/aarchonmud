@@ -1922,8 +1922,7 @@ DEF_DO_FUN(do_mpapplyb)
 
 /* stuff for special quests --Bobble */
 
-void mpqset(CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3,
-                int timer, int limit )
+void mpqset( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, const char *arg3, int timer, int limit )
 {
     if (IS_NPC(victim))
     {
@@ -1989,7 +1988,7 @@ DEF_DO_FUN(do_mpqset)
     mpqset( ch, victim, arg2, arg3, timer, limit );
 }
 
-void mpqadvance( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3 )
+void mpqadvance( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, const char *arg3 )
 {
     int increment;
 
@@ -2048,7 +2047,7 @@ DEF_DO_FUN(do_mpqadvance)
 #define REWARD_EXP     0
 #define REWARD_QP      1
 #define REWARD_GOLD    2 
-void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, int amount )
+void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount )
 {
     int reward;
     char buf[MSL];
