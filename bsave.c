@@ -52,7 +52,6 @@ int fingertime;
 /*int rename(const char *oldfname, const char *newfname);*/
 void mem_save_storage_box( CHAR_DATA *ch );
 char *time_format args((time_t, char *));
-int get_pkgrade_level( int pts );
 void save_quest( CHAR_DATA *ch, DBUFFER *buf );
 
 char *print_flags(int flag)
@@ -155,7 +154,7 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
 #endif
     
     /* alloc memory file */
-    sprintf(strsave, capitalize(ch->name));
+    strcpy(strsave, capitalize(ch->name));
     /* 16k should do for most players; 
        if not, the buffer will expand automatically */
     mf = memfile_new(strsave, 16*1024);
@@ -215,7 +214,7 @@ void mem_save_storage_box( CHAR_DATA *ch )
 #endif
 
     if ( IS_NPC(ch) )
-        return NULL;
+        return;
 
 
 /* If they don't have any storage boxes at all or none are loaded
@@ -254,7 +253,7 @@ void mem_save_storage_box( CHAR_DATA *ch )
     if (mf->buf->overflowed)
     {
       memfile_free(mf);
-      return NULL;
+      return;
     }
 
 #if defined(SIM_DEBUG)
@@ -1005,7 +1004,7 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     * Castrate storage characters.
     */
     if ( is_drop_obj(obj)
-	 || obj->item_type == ITEM_KEY && !is_remort_obj(obj)
+	 || (obj->item_type == ITEM_KEY && !is_remort_obj(obj))
 	 || obj->item_type == ITEM_TRASH )
         return;
     
@@ -1256,7 +1255,7 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
         for ( ; ; )
         {
             char letter;
-            char *word;
+            const char *word;
             
             letter = bread_letter( buf );
             if ( letter == '*' )
@@ -1310,9 +1309,8 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
 
 void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
 {
-    int stat;
-    int i, iNest;
-    int box_number;
+    int iNest;
+    int box_number = 0;
     RBUFFER *buf;
     buf = read_wrap_buffer(mf->buf);
 
@@ -1323,7 +1321,7 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
         for ( ; ; )
         {
             char letter;
-            char *word;
+            const char *word;
 
             letter = bread_letter( buf );
             if ( letter == '*' )
@@ -1381,7 +1379,7 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
 void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 {
     char str_buf[MAX_STRING_LENGTH];
-    char *word;
+    const char *word;
     bool fMatch;
     int count = 0;
     int lastlogoff = current_time;
@@ -1607,7 +1605,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         if (!str_cmp(word, "Boards" ))
         {
             int i,num = bread_number (buf); /* number of boards saved */
-            char *boardname;
+            const char *boardname;
             
             for (; num ; num-- ) /* for each of the board saved */
             {
@@ -1635,7 +1633,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Calm",    ch->calm,       bread_number( buf ) );
         if ( !str_cmp(word, "Clan") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             ch->clan=clan_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
@@ -1667,7 +1665,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEYF("Comm",     ch->comm ); 
         if (!str_cmp(word, "CRank") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             ch->pcdata->clan_rank=clan_rank_lookup(ch->clan, temp);
             free_string(temp);
             fMatch=TRUE;
@@ -1918,7 +1916,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         if ( !str_cmp( word, "Group" )  || !str_cmp(word,"Gr"))
         {
             int gn;
-            char *temp;
+            const char *temp;
             
             temp = bread_word( buf ) ;
             gn = group_lookup(temp);
@@ -2027,7 +2025,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
         if ( !strcmp( word, "LuaCfg") )
         {
-            const char *temp=bread_string( buf );
+            const char *temp = bread_string( buf );
             load_luaconfig( ch, temp );
             free_string( temp );
             fMatch=TRUE;
@@ -2038,8 +2036,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         {
             LUA_EXTRA_VAL *luaval;
             int type=bread_number( buf );
-            char *name= bread_string( buf );
-            char *val = bread_string( buf );
+            const const char *name= bread_string( buf );
+            const const char *val = bread_string( buf );
             luaval=new_luaval( type, name, val, TRUE );
 
             luaval->next=ch->luavals;
@@ -2055,7 +2053,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "MobDeaths",ch->pcdata->mob_deaths,         bread_number( buf ) );
 	if ( !str_cmp(word, "Morph") )
 	{
-        char *temp=bread_string(buf);
+        const char *temp=bread_string(buf);
 	    ch->pcdata->morph_race = race_lookup( temp );
         free_string(temp);
 	    ch->pcdata->morph_time = bread_number( buf );
@@ -2066,7 +2064,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         if ( !str_cmp(word, "Mastery") || !str_cmp(word,"Ma") )
         {
             int value = bread_number(buf);
-            char *temp = bread_word(buf);
+            const char *temp = bread_word(buf);
             int sn = skill_lookup(temp);
 
             if ( sn < 0 )
@@ -2147,8 +2145,6 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
 	if ( !str_cmp(word, "QStat") )
 	{
-            QUEST_DATA *qdata;
- 
  	    int id, status, timer;
             time_t limit;
 	    id = bread_number( buf );
@@ -2171,7 +2167,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'R':
         if (!str_cmp(word, "Race") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             ch->race=race_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
@@ -2206,7 +2202,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         {
             int sn;
             int value;
-            char *temp;
+            const char *temp;
             
             value = bread_number( buf );
             temp = bread_word( buf ) ;
@@ -2249,7 +2245,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             set_title(ch, temp);
             free_string(temp);
             fMatch = TRUE;
@@ -2330,7 +2326,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 /* load a pet from the forgotten reaches */
 void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
 {
-    char *word;
+    const char *word;
     CHAR_DATA *pet;
     bool fMatch;
     int lastlogoff = current_time;
@@ -2481,7 +2477,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
         case 'C':
             if (!str_cmp(word, "Clan") )
             {
-                char *temp=bread_string(buf);
+                const char *temp=bread_string(buf);
                 pet->clan=clan_lookup(temp);
                 free_string(temp);
                 fMatch=TRUE;
@@ -2569,7 +2565,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
         case 'R':
             if (!str_cmp(word, "Race") )
             {
-                char *temp=bread_string(buf);
+                const char *temp=bread_string(buf);
                 pet->race=race_lookup(temp);
                 free_string(temp);
                 fMatch=TRUE;
@@ -2599,7 +2595,7 @@ extern  OBJ_DATA    *obj_free;
 void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 {
     OBJ_DATA *obj;
-    char *word;
+    const char *word;
     int iNest;
     bool fMatch;
     bool fNest;
@@ -2760,7 +2756,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         }
         if (!str_cmp(word, "Clan") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             obj->clan=clan_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
@@ -2768,7 +2764,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         }
         if (!str_cmp(word, "CRank") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             obj->rank=clan_rank_lookup(obj->clan, temp);
             free_string(temp);
             fMatch=TRUE;
@@ -2880,8 +2876,8 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             {
                 LUA_EXTRA_VAL *luaval;
                 int type=bread_number( buf );
-                char *name=bread_string( buf );
-                char *val=bread_string( buf );
+                const char *name=bread_string( buf );
+                const char *val=bread_string( buf );
                 luaval=new_luaval( type, name, val, TRUE );
 
                 luaval->next=obj->luavals;
@@ -3014,7 +3010,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 
 
 
-void do_finger(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_finger)
 {
     char arg[MAX_INPUT_LENGTH];
     BUFFER *output;
@@ -3235,12 +3231,14 @@ void do_finger(CHAR_DATA *ch, char *argument)
     
     if (wch->level <= LEVEL_HERO)
     {
-	int pk, war;
+        int war;
 
-	if( wch->pcdata->pkpoints == 0 )
-	    pk = get_pkgrade_level(wch->pcdata->pkill_count);
-	else
-	    pk = get_pkgrade_level(wch->pcdata->pkpoints);
+        /*
+        if( wch->pcdata->pkpoints == 0 )
+            pk = get_pkgrade_level(wch->pcdata->pkill_count);
+        else
+            pk = get_pkgrade_level(wch->pcdata->pkpoints);
+        */
 
 	if( wch->pcdata->warpoints == 0 )
 	    war = get_pkgrade_level(wch->pcdata->war_kills);

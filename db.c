@@ -76,10 +76,8 @@ static int HIGHEST_STR_DUP_STRINGS = 0;
 void format_init_flags( void );
 void format_race_flags( void );
 void load_area_file( FILE *fp, bool clone );
-void arm_npc( CHAR_DATA *mob );
 void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description );
 void affect_spellup_mob( CHAR_DATA *mob );
-void log_error( const char *str );
 
 /*
 * Globals.
@@ -101,7 +99,7 @@ PROG_CODE *    rprog_list;
 
 char            bug_buf     [2*MAX_INPUT_LENGTH];
 CHAR_DATA *     char_list;
-char *          help_greeting;
+const char *    help_greeting;
 char            log_buf     [2*MAX_INPUT_LENGTH];
 KILL_DATA       kill_table  [MAX_LEVEL];
 OBJ_DATA *      object_list;
@@ -476,7 +474,7 @@ AREA_DATA *     current_area;
 
 char *  string_space;
 char *  top_string;
-char    str_empty   [1];
+char    str_empty[1] = "";
 
 int  top_affect;
 int  top_area;
@@ -551,6 +549,9 @@ void    load_specials   args( ( FILE *fp ) );
 void    load_notes  args( ( void ) );
 void    load_bans   args( ( void ) );
 void    load_mobprogs   args( ( FILE *fp ) );
+void    load_objprogs( FILE *fp );
+void    load_areaprogs( FILE *fp );
+void    load_roomprogs( FILE *fp );
 void    load_wizlist    args( ( void ) );
 void    load_clans      args( ( void ) );
 void	load_skills();
@@ -558,6 +559,9 @@ void    count_stats();
 
 void    fix_exits   args( ( void ) );
 void    fix_mobprogs    args( ( void ) );
+void    fix_objprogs( void );
+void    fix_areaprogs( void );
+void    fix_roomprogs( void );
 
 void    reset_area  args( ( AREA_DATA * pArea ) );
 void    load_clanwars args ( ( void ) );
@@ -565,7 +569,10 @@ void    load_crime_list args ( ( void ) );
 void    load_penalties args ( ( void ) );
 void    load_reserved   args( ( void ) );
 void    sort_reserved   args( ( RESERVED_DATA *pRes ) );
-
+void    channel_init();
+void    reset_str_dup();
+int     random_attack_type();
+void    dump_str_dup();
 
 /*
 * Big mama top level function.
@@ -832,17 +839,13 @@ void boot_db()
 
 void channel_init()
 {
-        int sn=0;
-
-        for ( sn ; ; sn++ )
-        {
-            if ( public_channel_table[sn].psn == NULL )
-		break;
-            *public_channel_table[sn].psn = sn;
-        }
-
-
-
+    int sn;
+    for ( sn=0 ; ; sn++ )
+    {
+        if ( public_channel_table[sn].psn == NULL )
+            break;
+        *public_channel_table[sn].psn = sn;
+    }
 }
 
 /* format all flags correctly --Bobble */
@@ -892,7 +895,7 @@ void load_area_file( FILE *fp, bool clone )
 
     for ( ; ; )
     {
-	char *word;
+	const char *word;
                 
 	if ( fread_letter( fpArea ) != '#' )
 	{
@@ -1029,7 +1032,7 @@ void load_area( FILE *fp )
 void new_load_area( FILE *fp )
 {
     AREA_DATA *pArea;
-    char      *word;
+    const char *word;
     bool      fMatch;
     
     pArea               = alloc_AREA();
@@ -1063,7 +1066,7 @@ void new_load_area( FILE *fp )
             if (!str_cmp(word, "AProg") )
             {
                 PROG_LIST *pAprog;
-                char *word;
+                const char *word;
                 int trigger = 0;
 
                 pAprog              = alloc_ATRIG();
@@ -1139,7 +1142,13 @@ void new_load_area( FILE *fp )
             SKEY( "Credits", pArea->credits );
             break;
         }
+        
+        if ( !fMatch )
+        {
+            // no nothing but avoid warning
+        }
     }
+    
 }
 
 /*
@@ -1150,11 +1159,12 @@ void assign_area_vnum( int vnum )
     if ( area_last->min_vnum == 0 || area_last->max_vnum == 0 )
         area_last->min_vnum = area_last->max_vnum = vnum;
     if ( vnum != URANGE( area_last->min_vnum, vnum, area_last->max_vnum ) )
+    {
         if ( vnum < area_last->min_vnum )
             area_last->min_vnum = vnum;
         else
             area_last->max_vnum = vnum;
-        return;
+    }
 }
 
 
@@ -1247,7 +1257,7 @@ void load_helps( FILE *fp, char *fname )
 {
     HELP_DATA *pHelp;
     int level;
-    char *keyword;
+    const char *keyword;
     
     for ( ; ; )
     {
@@ -1402,8 +1412,6 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
  void load_resets( FILE *fp )
  {
      RESET_DATA *pReset;
-     EXIT_DATA *pexit;
-     ROOM_INDEX_DATA *pRoomIndex;
      int rVnum = -1;
      
      if ( !area_last )
@@ -1665,7 +1673,7 @@ void load_rooms( FILE *fp )
             else if (letter == 'P')
             {
                 PROG_LIST *pRprog;
-                char *word;
+                const char *word;
                 int trigger=0;
 
                 pRprog = alloc_RTRIG();
@@ -1792,7 +1800,6 @@ void load_specials( FILE *fp )
 
 void fix_exits( void )
 {
-    extern const sh_int rev_dir [];
     ROOM_INDEX_DATA *pRoomIndex;
     EXIT_DATA *pexit;
     RESET_DATA *pReset;
@@ -1806,7 +1813,6 @@ void fix_exits( void )
 	      pRoomIndex != NULL;
 	      pRoomIndex  = pRoomIndex->next )
         {
-            bool fexit;
             /*-----Added in Olc 1.81, may be buggy-----*/
             iLastRoom = iLastObj = NULL;
             
@@ -1867,7 +1873,6 @@ void fix_exits( void )
             } /* for */
             /*-----*/    
             
-            fexit = FALSE;
             for ( door = 0; door < MAX_DIR; door++ )
             {
                 if ( ( pexit = pRoomIndex->exit[door] ) != NULL )
@@ -1877,14 +1882,10 @@ void fix_exits( void )
                         pexit->u1.to_room = NULL;
                     else
                     {
-                        fexit = TRUE; 
                         pexit->u1.to_room = get_room_index_safe( pexit->u1.vnum );
                     }
                 }
             }
-            /*      if (!fexit)
-            SET_BIT(pRoomIndex->room_flags,ROOM_NO_MOB);
-            Removed because it made OLC difficult.  Still a good policy */
         }
     }
     
@@ -1930,7 +1931,7 @@ void load_roomprogs( FILE *fp )
         pRprog      = alloc_PROG();
         pRprog->vnum    = vnum;
 
-        char *word;
+        const char *word;
         for ( ; ; )
         {
             word=fread_word(fp);
@@ -2012,7 +2013,7 @@ void load_areaprogs( FILE *fp )
         else
         {
             /* new code for new format */
-            char *word;
+            const char *word;
             for ( ; ; )
             {
                 word=fread_word(fp);
@@ -2097,7 +2098,7 @@ void load_objprogs( FILE *fp )
             /* new code for new format */
             for ( ; ; )
             {
-                char *word=fread_word(fp);
+                const char *word=fread_word(fp);
 
                 if (!strcmp(word, "CODE") )
                 {
@@ -2176,7 +2177,7 @@ void load_mobprogs( FILE *fp )
             /* old code for old format */
 
             /* some funko stuff when loading old files that don't have is_lua data*/
-            char * tempStr = fread_string( fp );
+            const char * tempStr = fread_string( fp );
             if ( !strcmp( tempStr, "IS_LUA" ) )
             {
                 pMprog->is_lua = TRUE;
@@ -2195,7 +2196,7 @@ void load_mobprogs( FILE *fp )
         else
         {
             /* new code for new format */
-            char *word;
+            const char *word;
             for ( ; ; )
             {
                 word=fread_word(fp);
@@ -2314,7 +2315,6 @@ void fix_areaprogs( void )
     AREA_DATA *pArea;
     PROG_LIST        *list;
     PROG_CODE        *prog;
-    int iHash;
     int aprog_count = 0;
 
     for ( pArea   = area_first;
@@ -2648,9 +2648,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
             
             if ( LastMob->pIndexData->pShop )   /* Shop-keeper? */
             {
-                int olevel=0,i,j;
-                
-                pObj = create_object( pObjIndex, olevel );
+                pObj = create_object( pObjIndex, 0 );
                 SET_BIT( pObj->extra_flags, ITEM_INVENTORY );  /* ROM OLC */
                 
             }
@@ -2739,8 +2737,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
 void arm_npc( CHAR_DATA *mob )
 {
     OBJ_DATA *obj;
-    int i, dam, level;
-    char buf[MSL];
+    int dam, level;
 
     if ( mob == NULL || !IS_NPC(mob) || !IS_SET(mob->off_flags, OFF_ARMED) )
 	return;
@@ -2987,8 +2984,6 @@ void purge_area( AREA_DATA *pArea )
 CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
 {
     CHAR_DATA *mob;
-    int i;
-    AFFECT_DATA af;
     tflag mob_pen = {};/*{ PENALTY_NOCHANNEL, PENALTY_NOSHOUT, PENALTY_NOTELL };*/
     bit_list_to_tflag( mob_pen );
     
@@ -3439,7 +3434,7 @@ void clear_char( CHAR_DATA *ch )
 /*
 * Get an extra description from a list.
 */
-char *get_extra_descr( const char *name, EXTRA_DESCR_DATA *ed )
+const char * get_extra_descr( const char *name, EXTRA_DESCR_DATA *ed )
 {
     for ( ; ed != NULL; ed = ed->next )
     {
@@ -3730,11 +3725,10 @@ long flag_convert(char letter )
 *   hash code is simply the string length.
 *   this function takes 40% to 50% of boot-up time.
 */
-char *fread_string( FILE *fp )
+const char *fread_string( FILE *fp )
 {
     char *plast;
     char c;
-    bool stripped = FALSE;
     
     plast = top_string + sizeof(char *);
     if ( plast > &string_space[MAX_STRING - MAX_STRING_LENGTH] )
@@ -3758,7 +3752,6 @@ char *fread_string( FILE *fp )
     if ( c == '^' )
     {
         c = getc(fp);
-        stripped = TRUE;
     }
 
     // strings are terminated by '~', we intern the empty string for efficiency
@@ -3809,11 +3802,6 @@ char *fread_string( FILE *fp )
                 char *pString;
                 
                 plast[-1] = '\0';
-                // log stripping for now to see how bad it'll be
-                /* No longer needed. Makes logs huge. --Astark 6-28-14
-                if ( stripped )
-                    logpf("String with leading '^' read: %s", top_string + sizeof(char *));
-                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
@@ -3851,7 +3839,7 @@ char *fread_string( FILE *fp )
 }
 
 /* new slightly different, simpler and working version by Bobble */
-char *fread_string_eol( FILE *fp )
+const char *fread_string_eol( FILE *fp )
 {
     static char buf[MSL];
     char c;
@@ -3879,15 +3867,15 @@ char *fread_string_eol( FILE *fp )
 
     if ( i == MSL )
     {
-	bug( "fread_string_eol: string too long", 0 );
-	buf[0] == '\0';
+        bug( "fread_string_eol: string too long", 0 );
+        buf[0] = '\0';
     }
 	
     return buf;
 }
 
-/* seems buggy.. */
-char *fread_string_eol_old( FILE *fp )
+/* seems buggy..*/
+const char *fread_string_eol_old( FILE *fp )
 {
     static bool char_special[256-EOF];
     char *plast;
@@ -4016,7 +4004,7 @@ void fread_to_eol( FILE *fp )
 /*
 * Read one word (into static buffer).
 */
-char *fread_word( FILE *fp )
+const char *fread_word( FILE *fp )
 {
     static char word[MAX_INPUT_LENGTH];
     char *pword;
@@ -4195,7 +4183,7 @@ void *alloc_perm( int sMem )
 * Used for debugging memory leaks
 */
 #define MAX_STR_DUP_KEY 1009
-static char* str_dup_hash[MAX_STR_DUP_KEY];
+static const char* str_dup_hash[MAX_STR_DUP_KEY];
 static bool str_dup_ready = FALSE;
 
 void reset_str_dup()
@@ -4250,17 +4238,18 @@ void dump_str_dup()
 * Duplicate a string into dynamic memory.
 * Fread_strings are read-only and shared.
 */
-char *str_dup( const char *str )
+const char *str_dup( const char *str )
 {
-    char *str_new;
+    if ( str == NULL )
+        return NULL;
     
     if ( str[0] == '\0' )
         return &str_empty[0];
     
     if ( str >= string_space && str < top_string )
-        return (char *) str;
+        return str;
     
-    str_new = alloc_mem( strlen(str) + 1 );
+    char *str_new = alloc_mem( strlen(str) + 1 );
     strcpy( str_new, str );
     remember_str_dup( str_new );
     return str_new;
@@ -4271,16 +4260,64 @@ char *str_dup( const char *str )
 * Null is legal here to simplify callers.
 * Read-only shared strings are not touched.
 */
-void free_string( char *pstr )
+void free_string( const char *pstr )
 {
     if ( pstr == NULL
         ||   pstr == &str_empty[0]
         || ( pstr >= string_space && pstr < top_string ) )
         return;
     
+    // pstr is no shared, so we deallocate it, ignoring const
     forget_str_dup( pstr );
-    free_mem( pstr, strlen(pstr) + 1 );
+    free_mem( (char*)pstr, strlen(pstr) + 1 );
     return;
+}
+
+/*
+ * replaces a shared string with a capitalized version
+ * free_string(str) is called, so will fail on non-shared strings
+ */
+const char *upper_realloc( const char *str )
+{
+    char buf[MSL];
+    
+    if ( str[0] == UPPER(str[0]) )
+        return str;
+    
+    buf[0] = UPPER(str[0]);
+    strcpy(buf+1, str+1);
+    
+    free_string(str);
+    return str_dup(buf);
+}
+
+/*
+ * replaces a shared string with a trimmed version
+ * free_string(str) is called, so will fail on non-shared strings
+ */
+const char *trim_realloc( const char *str )
+{
+    if ( *str == '\0' )
+        return str;
+    
+    const char *first = ltrim(str);
+    if ( *first == '\0' )
+    {
+        free_string(str);
+        return str_empty;
+    }
+    
+    const char *last = str + strlen(str) - 1;
+    while ( last >= first && isspace(*last) )
+        last--;
+    
+    // copy substring
+    char buf[MSL];
+    strcpy(buf, first);
+    buf[1 + (last-first)] = '\0';
+    
+    free_string(str);
+    return str_dup(buf);
 }
 
 /* Erwins sample for sorting areas. Change the relational
@@ -4377,7 +4414,7 @@ void do_areas( CHAR_DATA *ch )
     return;
 } 
 
-void do_memory( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_memory)
 {
     ptc( ch, "          %-5s %s\n\r", "C", "Lua" );
     ptc( ch, "Affects   %5d %5d\n\r", top_affect, count_AFFECT()); 
@@ -4609,8 +4646,33 @@ void smash_tilde( char *str )
         if ( *str == '~' )
             *str = '-';
     }
+}
+
+const char* smash_tilde_cc( const char *str )
+{
+    if ( strchr(str, '~') == NULL )
+        return str;
+        
+    static char buf[MSL];
+    char *next = buf;
+        
+    for ( ; *str != '\0'; str++, next++ )
+    {
+        if ( *str == '~' )
+            *next = '-';
+        else
+            *next = *str;
+    }
+    *next = '\0';
     
-    return;
+    return buf;
+}
+
+char* smash_tilde_cpy( char *dest, const char *source )
+{
+    strcpy(dest, source);
+    smash_tilde(dest);
+    return dest;
 }
 
 
@@ -4803,7 +4865,7 @@ char* cap_all( const char* str )
 /*
 * Append a string to a file.
 */
-void append_file( CHAR_DATA *ch, char *file, char *str )
+void append_file( CHAR_DATA *ch, const char *file, const char *str )
 {
     FILE *fp;
     /*  char cur_time[25];
@@ -4938,7 +5000,7 @@ void log_trace()
     int trace_size = backtrace (buffer, MAX_TRACE);
     char **trace_msg = backtrace_symbols (buffer, trace_size);
     char address_buf[MAX_STRING_LENGTH], cmd[MAX_STRING_LENGTH];
-    int i, addr_length;
+    int i;
     
     if (trace_msg == NULL || trace_size < 2)
         return;
@@ -4964,7 +5026,10 @@ void log_trace()
     //sprintf(cmd, "addr2line -pfs -e ../src/aeaea %s", address_buf);
     sprintf(cmd, "addr2line -fs -e ../src/aeaea %s", address_buf);
     log_string(cmd);
-    system(cmd);
+    if ( system(cmd) == -1 )
+    {
+        // ignore error
+    }
 
     return;
 }
@@ -5022,11 +5087,11 @@ void cheat_log( const char *str )
     fclose (fp);
 }
 
-void do_cheatlog( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_cheatlog)
 {
     FILE *fp;
     BUFFER *output;
-    char *buf;
+    const char *buf;
     bool is_eof = FALSE;
 
     if ( argument[0] == '\0' )
@@ -5248,11 +5313,10 @@ long bread_flag( RBUFFER *rbuf )
 *   hash code is simply the string length.
 *   this function takes 40% to 50% of boot-up time.
 */
-char* bread_string( RBUFFER *rbuf )
+const char* bread_string( RBUFFER *rbuf )
 {
     char *plast;
     char c;
-    bool stripped = FALSE;
 #if defined(BREAD_DEBUG)
    log_string("bread_string: start");
 #endif
@@ -5279,7 +5343,6 @@ char* bread_string( RBUFFER *rbuf )
     if ( c == '^' )
     {
         c = bgetc(rbuf);
-        stripped = TRUE;
     }
 
     // strings are terminated by '~', we intern the empty string for efficiency
@@ -5330,11 +5393,6 @@ char* bread_string( RBUFFER *rbuf )
                 char *pString;
                 
                 plast[-1] = '\0';
-                // log stripping for now to see how bad it'll be
-                /* No longer needed. Makes logs huge. --Astark 6-28-14
-                if ( stripped )
-                    logpf("String with leading '^' read: %s", top_string + sizeof(char *));
-                */
                 // intern string if possible to save memory
                 iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
                 for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
@@ -5371,7 +5429,7 @@ char* bread_string( RBUFFER *rbuf )
     }
 }
 
-char* bread_string_eol( RBUFFER *rbuf )
+const char* bread_string_eol( RBUFFER *rbuf )
 {
     static bool char_special[256-EOF];
     char *plast;
@@ -5509,7 +5567,7 @@ void bread_to_eol( RBUFFER *rbuf )
 /*
 * Read one word (into static buffer).
 */
-char* bread_word( RBUFFER *rbuf )
+const char* bread_word( RBUFFER *rbuf )
 {
     static char word[MAX_INPUT_LENGTH];
     char *pword;

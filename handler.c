@@ -37,10 +37,8 @@
 #include "recycle.h"
 #include "tables.h"
 #include "lua_scripting.h"
-
-void affect_modify_new( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd, bool drop );
-void check_drop_weapon( CHAR_DATA *ch );
-void extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc, OBJ_DATA *obj );
+#include "lookup.h"
+#include "simsave.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_return    );
@@ -49,23 +47,17 @@ DECLARE_DO_FUN(do_return    );
  * Local functions.
  */
 void    affect_modify   args( ( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd ) );
-ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, char *argument, bool exact );
+ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argument, bool exact );
 bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim );
 bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat );
-OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact );
-OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, char *argument, bool exact );
-OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, char *arg,
-                            int *number, bool exact );
-OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, char *arg, CHAR_DATA *viewer,
-                             int *number, bool exact );
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list,
-                            int *number, bool exact );
-ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, char *arg, bool area );
-CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact );
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, char *argument, bool exact );
-char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype);
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list, int *number, bool exact );
-AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
+OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
+OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact );
+OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool exact );
+OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer, int *number, bool exact );
+OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
+CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact );
+OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
 
 /* friend stuff -- for NPC's mostly */
 bool is_friend(CHAR_DATA *ch,CHAR_DATA *victim)
@@ -161,7 +153,7 @@ int weapon_type (const char *name)
     return WEAPON_EXOTIC;
 }
 
-char *item_name(int item_type)
+const char *item_name(int item_type)
 {
     int type;
     
@@ -171,7 +163,7 @@ char *item_name(int item_type)
         return "none";
 }
 
-char *weapon_name( int weapon_type)
+const char *weapon_name( int weapon_type)
 {
     int type;
     
@@ -420,7 +412,7 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
 /* used to de-screw characters */
 void reset_char(CHAR_DATA *ch)
 {
-    int loc,mod,stat;
+    int loc, stat;
     OBJ_DATA *obj;
     AFFECT_DATA *af;
     
@@ -557,10 +549,10 @@ int can_carry_w( CHAR_DATA *ch )
  * See if a string is one of the names of an object.
  */
 
-bool is_name ( char *str, char *namelist )
+bool is_name ( const char *str, const char *namelist )
 {
     char name[MAX_INPUT_LENGTH], part[MAX_INPUT_LENGTH];
-    char *list, *string;
+    const char *list, *string;
     
     /* fix crash on NULL namelist */
     if (namelist == NULL || namelist[0] == '\0')
@@ -598,7 +590,7 @@ bool is_name ( char *str, char *namelist )
     }
 }
 
-bool is_exact_name( char *str, char *namelist )
+bool is_exact_name( const char *str, const char *namelist )
 {
     char name[MAX_INPUT_LENGTH];
     
@@ -615,7 +607,7 @@ bool is_exact_name( char *str, char *namelist )
     }
 }
 
-bool is_either_name( char *str, char *namelist, bool exact )
+bool is_either_name( const char *str, const char *namelist, bool exact )
 {
     if ( exact )
 	return is_exact_name( str, namelist );
@@ -660,44 +652,12 @@ bool is_ch_name( char *str, CHAR_DATA *ch, bool exact, CHAR_DATA *viewer )
     return FALSE;
 }
 
-/*
-
-char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker)
+const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker )
 {
-    if ( !can_see(looker, ch) )
-	return "someone";
-    
-    if ( IS_NPC(ch) )
-	return ch->short_descr;
-
-    if ( is_mimic(ch) )
-    {
-	MOB_INDEX_DATA *mimic = get_mimic( ch );
-
-	if ( mimic != NULL )
-	{
-	    if( PLR_ACT(looker, PLR_HOLYLIGHT) )
-	    {
-	        char buf[MAX_STRING_LENGTH];
-
-	        sprintf( buf, "(%s) %s", ch->name, mimic->short_descr );
-		return strdup(buf);
-	    }
-	    else
-	        return mimic->short_descr;
-	}
-    }
-    return ch->name;
-}
-*/
-
-
-char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker )
-{
-    get_mimic_PERS_new( ch, looker, NULL);
+    return get_mimic_PERS_new( ch, looker, 0);
 }
 
-char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype)
+const char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype)
 {
     if ( !can_see(looker, ch) )
 	return "someone";
@@ -771,7 +731,7 @@ void affect_modify( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd )
 
 void affect_modify_new( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd, bool drop )
 {
-    int mod,i;
+    int mod;
     
     mod = paf->modifier;
 
@@ -898,13 +858,14 @@ AFFECT_DATA *affect_find_flag(AFFECT_DATA *paf, int flag)
 }
 
 /* find an affect with fixed location and duration in an affect list */
-AFFECT_DATA* affect_find_location(AFFECT_DATA *paf, int location, int duration)
+AFFECT_DATA* affect_find_location(AFFECT_DATA *paf, int type, int location, int duration)
 {
     AFFECT_DATA *paf_find;
     
     for ( paf_find = paf; paf_find != NULL; paf_find = paf_find->next )
     {
-        if ( paf_find->location == location && paf_find->duration == duration )
+        if ( paf_find->type == type && paf_find->location == location
+            && (paf_find->duration == duration || UMIN(paf_find->duration, duration) >= 0) )
             return paf_find;
     }
     
@@ -2488,12 +2449,30 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     return TRUE;
 }
 
+void desc_from_descriptor_list( DESCRIPTOR_DATA *desc )
+{
+    if ( desc == descriptor_list )
+    {
+        descriptor_list = descriptor_list->next;
+    }
+    else
+    {
+        DESCRIPTOR_DATA *d;
+
+        for ( d = descriptor_list; d && d->next != desc; d = d->next )
+            ;
+        if ( d != NULL )
+            d->next = desc->next;
+        else
+            bugf("desc_from_descriptor_list: descriptor not found.");
+    }
+}
+
 /*
  * Find a room by name
  */
-char* remove_color( const char *txt );
 
-ROOM_INDEX_DATA* get_room_area( AREA_DATA *area, char *argument )
+ROOM_INDEX_DATA* get_room_area( AREA_DATA *area, const char *argument )
 {
     ROOM_INDEX_DATA *room;
     room = get_room_in_range( area->min_vnum, area->max_vnum, argument, TRUE );
@@ -2502,7 +2481,7 @@ ROOM_INDEX_DATA* get_room_area( AREA_DATA *area, char *argument )
     return get_room_in_range( area->min_vnum, area->max_vnum, argument, FALSE );
 }
 
-ROOM_INDEX_DATA* get_room_world( char *argument )
+ROOM_INDEX_DATA* get_room_world( const char *argument )
 {
     ROOM_INDEX_DATA *room;
     room = get_room_in_range( 1, top_vnum_room, argument, TRUE );
@@ -2511,7 +2490,7 @@ ROOM_INDEX_DATA* get_room_world( char *argument )
     return get_room_in_range( 1, top_vnum_room, argument, FALSE );
 }
 
-ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, char *argument, bool exact )
+ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     ROOM_INDEX_DATA *room;
@@ -2534,7 +2513,7 @@ ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, char *argument, 
     return NULL;
 }
 
-CHAR_DATA* get_player( char *name )
+CHAR_DATA* get_player( const char *name )
 {
     DESCRIPTOR_DATA *d;
     CHAR_DATA *ch;
@@ -2566,7 +2545,7 @@ CHAR_DATA* get_player( char *name )
 /*
  * Find a char in the room.
  */
-CHAR_DATA *get_char_room( CHAR_DATA *ch, char *argument )
+CHAR_DATA *get_char_room( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *rch;
 
@@ -2586,7 +2565,7 @@ bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
 	    || (!number_bits(2) && can_see(ch, victim));
 }
 
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, char *argument, bool exact )
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *rch;
@@ -2618,7 +2597,7 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, char *argument, bool exact )
 /*
  * Find a char in the world.
  */
-CHAR_DATA *get_char_world( CHAR_DATA *ch, char *argument )
+CHAR_DATA *get_char_world( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *wch;
 
@@ -2635,7 +2614,7 @@ CHAR_DATA *get_char_world( CHAR_DATA *ch, char *argument )
  *
  * (by Mikko Kilpikoski 09-Jun-94)
  */
-CHAR_DATA *get_char_area( CHAR_DATA *ch, char *argument )
+CHAR_DATA *get_char_area( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *ach;
 
@@ -2646,7 +2625,7 @@ CHAR_DATA *get_char_area( CHAR_DATA *ch, char *argument )
     return ach;
 }
 
-CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
+CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *target;
@@ -2706,7 +2685,7 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
     return NULL;
 }
 
-CHAR_DATA *get_char_group_new( CHAR_DATA *ch, char *argument, bool exact )
+CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *gch;
@@ -2741,7 +2720,7 @@ CHAR_DATA *get_char_group_new( CHAR_DATA *ch, char *argument, bool exact )
     return NULL;    
 }
 
-CHAR_DATA *get_char_group( CHAR_DATA *ch, char *argument )
+CHAR_DATA *get_char_group( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *gch;
 
@@ -2762,31 +2741,35 @@ CHAR_DATA* get_mob_vnum_world( int vnum )
     return NULL;
 }
 
-ROOM_INDEX_DATA *find_location( CHAR_DATA *ch, char *arg )
+ROOM_INDEX_DATA *find_location( CHAR_DATA *ch, const char *arg )
 {
     return find_location_new( ch, arg, FALSE );
 }
 
-ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, char *arg, bool area )
+ROOM_INDEX_DATA *find_location_new( CHAR_DATA *ch, const char *arg, bool area )
 {
 	CHAR_DATA *victim;
 	OBJ_DATA *obj;
 
-	/* random target */
-	if ( !strcmp(arg, "random") )
-	    if ( area )
-		return get_random_room_area( ch );
-	    else
-		return get_random_room( ch );
+    /* random target */
+    if ( !strcmp(arg, "random") )
+    {
+        if ( area )
+            return get_random_room_area( ch );
+        else
+            return get_random_room( ch );
+    }
 
-	/* random target in the world
-	 * return NULL for area == TRUE to prevent remort bugs 
-	 */
-	if ( !strcmp(arg, "wrandom") )
-	    if ( area )
-		return NULL;
-	    else
-		return get_random_room( ch );
+    /* random target in the world
+     * return NULL for area == TRUE to prevent remort bugs 
+     */
+    if ( !strcmp(arg, "wrandom") )
+    {
+        if ( area )
+            return NULL;
+        else
+            return get_random_room( ch );
+    }
 
 	if ( is_number(arg) )
 	    return get_room_index( atoi( arg ) );
@@ -2846,7 +2829,7 @@ OBJ_DATA* get_obj_by_type( OBJ_DATA *contents, int item_type )
 /*
  * Find an obj in a list.
  */
-OBJ_DATA *get_obj_list( CHAR_DATA *ch, char *argument, OBJ_DATA *list )
+OBJ_DATA *get_obj_list( CHAR_DATA *ch, const char *argument, OBJ_DATA *list )
 {
     char arg[MAX_INPUT_LENGTH];
     int buf, number = number_argument( argument, arg );
@@ -2866,7 +2849,7 @@ OBJ_DATA *get_obj_list( CHAR_DATA *ch, char *argument, OBJ_DATA *list )
 /* number is reduced for each match found
  * exact specifies wether to look for exact name matching
  */
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list, 
+OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, 
 			    int *number, bool exact )
 {
     OBJ_DATA *obj;
@@ -2892,7 +2875,7 @@ OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, char *arg, OBJ_DATA *list,
 /*
  * Find an obj in player's inventory.
  */
-OBJ_DATA *get_obj_carry( CHAR_DATA *ch, char *argument, CHAR_DATA *viewer )
+OBJ_DATA *get_obj_carry( CHAR_DATA *ch, const char *argument, CHAR_DATA *viewer )
 {
     char arg[MAX_INPUT_LENGTH];
     int buf, number = number_argument( argument, arg );
@@ -2909,7 +2892,7 @@ OBJ_DATA *get_obj_carry( CHAR_DATA *ch, char *argument, CHAR_DATA *viewer )
     return obj;
 }
 
-OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, char *arg, CHAR_DATA *viewer,
+OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer,
 			     int *number, bool exact )
 {
     OBJ_DATA *obj;
@@ -2937,7 +2920,7 @@ OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, char *arg, CHAR_DATA *viewer,
 /*
  * Find an obj in player's equipment.
  */
-OBJ_DATA *get_obj_wear( CHAR_DATA *ch, char *argument )
+OBJ_DATA *get_obj_wear( CHAR_DATA *ch, const char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
     int buf, number = number_argument( argument, arg );
@@ -2954,8 +2937,7 @@ OBJ_DATA *get_obj_wear( CHAR_DATA *ch, char *argument )
     return obj;
 }
 
-OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, char *arg,
-			    int *number, bool exact )
+OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool exact )
 {
     OBJ_DATA *obj;
     
@@ -2982,7 +2964,7 @@ OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, char *arg,
 /*
  * Find an obj in the room or in inventory.
  */
-OBJ_DATA *get_obj_here( CHAR_DATA *ch, char *argument )
+OBJ_DATA *get_obj_here( CHAR_DATA *ch, const char *argument )
 {
     OBJ_DATA *obj = get_obj_here_new( ch, argument, TRUE );
 
@@ -2992,7 +2974,7 @@ OBJ_DATA *get_obj_here( CHAR_DATA *ch, char *argument )
     return obj;
 }
 
-OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, char *argument, bool exact )
+OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
     OBJ_DATA *obj;
     char arg[MIL], arg1[MIL];
@@ -3024,7 +3006,7 @@ OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, char *argument, bool exact )
 /*
  * Find an obj in the world.
  */
-OBJ_DATA *get_obj_world( CHAR_DATA *ch, char *argument )
+OBJ_DATA *get_obj_world( CHAR_DATA *ch, const char *argument )
 {
     OBJ_DATA *obj = get_obj_new( ch, argument, FALSE, TRUE );
 
@@ -3034,7 +3016,7 @@ OBJ_DATA *get_obj_world( CHAR_DATA *ch, char *argument )
     return obj;    
 }
 
-OBJ_DATA *get_obj_area( CHAR_DATA *ch, char *argument )
+OBJ_DATA *get_obj_area( CHAR_DATA *ch, const char *argument )
 {
     OBJ_DATA *obj = get_obj_new( ch, argument, TRUE, TRUE );
 
@@ -3044,7 +3026,7 @@ OBJ_DATA *get_obj_area( CHAR_DATA *ch, char *argument )
     return obj;    
 }
 
-OBJ_DATA *get_obj_new( CHAR_DATA *ch, char *argument, bool area, bool exact )
+OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -3140,20 +3122,20 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     if (ch->gold < 0)
     {
 /*        bug("deduct costs: gold %d < 0",ch->gold); */
-        sprintf(buf,"Deduct costs: gold %d < 0, player: %s, room %d",
-            ch->gold != NULL ? ch->gold : 0,
+        sprintf(buf,"Deduct costs: gold %ld < 0, player: %s, room %d",
+            ch->gold,
             ch->name != NULL ? ch->name : "Null",
-            ch->in_room->vnum != NULL ? ch->in_room->vnum : 0);
+            ch->in_room != NULL ? ch->in_room->vnum : 0);
         bug(buf,0);
         ch->gold = 0;
     }
     if (ch->silver < 0)
     {
 /*        bug("deduct costs: silver %d < 0",ch->silver); */
-        sprintf(buf,"Deduct costs: silver %d < 0, player: %s, room %d",
-            ch->silver != NULL ? ch->silver : 0,
+        sprintf(buf,"Deduct costs: silver %ld < 0, player: %s, room %d",
+            ch->silver,
             ch->name != NULL ? ch->name : "Null",
-            ch->in_room->vnum != NULL ? ch->in_room->vnum : 0);
+            ch->in_room != NULL ? ch->in_room->vnum : 0);
         bug(buf,0);
         ch->silver = 0;
     }
@@ -3693,7 +3675,7 @@ bool can_drop_obj( CHAR_DATA *ch, OBJ_DATA *obj )
 /*
  * Return ascii name of an affect location.
  */
-char *affect_loc_name( int location )
+const char *affect_loc_name( int location )
 {
     switch ( location )
     {
@@ -3740,7 +3722,7 @@ char *affect_loc_name( int location )
 /* methods for retrieving the ascii name(s) of flags --Bobble */
 
 /* returns the name of a flag */
-char* flag_bit_name( struct flag_type flag_table[], int flag )
+const char* flag_bit_name( const struct flag_type flag_table[], int flag )
 {
     static char buf[100];
     int i;
@@ -3752,7 +3734,7 @@ char* flag_bit_name( struct flag_type flag_table[], int flag )
 }
 
 /* returns a string with the flag names in a field */
-char* flag_bits_name( struct flag_type flag_table[], tflag flag )
+const char* flag_bits_name( const struct flag_type flag_table[], tflag flag )
 {
     int i;
     /* make 'sure' different calls use different buffers */
@@ -3776,7 +3758,7 @@ char* flag_bits_name( struct flag_type flag_table[], tflag flag )
 }
 
 /* returns a string with the flag names in an integer-flag */
-char* i_flag_bits_name( struct flag_type flag_table[], long flag )
+const char* i_flag_bits_name( const struct flag_type flag_table[], long flag )
 {
     int i;
 
@@ -3800,27 +3782,27 @@ char* i_flag_bits_name( struct flag_type flag_table[], long flag )
 	return buf;
 }
 
-char* affect_bit_name( int flag )
+const char* affect_bit_name( int flag )
 {
     return flag_bit_name( affect_flags, flag );
 }
 
-char* affect_bits_name( tflag flag )
+const char* affect_bits_name( tflag flag )
 {
     return flag_bits_name( affect_flags, flag );
 }
 
-char* extra_bit_name( int flag )
+const char* extra_bit_name( int flag )
 {
     return flag_bit_name( extra_flags, flag );
 }
 
-char* extra_bits_name( tflag flag )
+const char* extra_bits_name( tflag flag )
 {
     return flag_bits_name( extra_flags, flag );
 }
 
-char* act_bits_name( tflag flag )
+const char* act_bits_name( tflag flag )
 {
     /* check for npc/player */
     if ( IS_SET( flag, ACT_IS_NPC) )
@@ -3829,17 +3811,17 @@ char* act_bits_name( tflag flag )
 	return flag_bits_name( plr_flags, flag );	
 }
 
-char* comm_bit_name( int flag )
+const char* comm_bit_name( int flag )
 {
     return flag_bit_name( comm_flags, flag );
 }
 
-char* comm_bits_name( tflag flag )
+const char* comm_bits_name( tflag flag )
 {
     return flag_bits_name( comm_flags, flag );
 }
 
-char *penalty_bits_name( tflag penalty_flags )
+const char *penalty_bits_name( tflag penalty_flags )
 {
     int i;
     static char buf[512];
@@ -3857,74 +3839,74 @@ char *penalty_bits_name( tflag penalty_flags )
     return ( buf[0] != '\0' ) ? buf+1 : "none";
 }
 
-char* imm_bit_name( int flag )
+const char* imm_bit_name( int flag )
 {
     return flag_bit_name( imm_flags, flag );
 }
 
-char* imm_bits_name( tflag flag )
+const char* imm_bits_name( tflag flag )
 {
     return flag_bits_name( imm_flags, flag );
 }
 
-char* wear_bit_name( int flag )
+const char* wear_bit_name( int flag )
 {
     return flag_bit_name( wear_flags, flag );
 }
 
-char* wear_bits_name( tflag flag )
+const char* wear_bits_name( tflag flag )
 {
     return flag_bits_name( wear_flags, flag );
 }
 
-char* form_bit_name( int flag )
+const char* form_bit_name( int flag )
 {
     return flag_bit_name( form_flags, flag );
 }
 
-char* form_bits_name( tflag flag )
+const char* form_bits_name( tflag flag )
 {
     return flag_bits_name( form_flags, flag );
 }
 
-char* part_bit_name( int flag )
+const char* part_bit_name( int flag )
 {
     return flag_bit_name( part_flags, flag );
 }
 
-char* part_bits_name( tflag flag )
+const char* part_bits_name( tflag flag )
 {
     return flag_bits_name( part_flags, flag );
 }
 
-char* weapon_bit_name( int flag )
+const char* weapon_bit_name( int flag )
 {
     return flag_bit_name( weapon_type2, flag );
 }
 
-char* weapon_bits_name( long flag )
+const char* weapon_bits_name( long flag )
 {
     return i_flag_bits_name( weapon_type2, flag );
 }
 
-char* cont_bits_name( long flag )
+const char* cont_bits_name( long flag )
 {
     return i_flag_bits_name( container_flags, flag );
 }
 
-char* off_bit_name( int flag )
+const char* off_bit_name( int flag )
 {
     return flag_bit_name( off_flags, flag );
 }
 
-char* off_bits_name( tflag flag )
+const char* off_bits_name( tflag flag )
 {
     return flag_bits_name( off_flags, flag );
 }
 
-char* to_bit_name( int where, int flag )
+const char* to_bit_name( int where, int flag )
 {
-    char buf[MSL];
+    static char buf[MSL];
     
     switch( where )
     {
@@ -4136,7 +4118,7 @@ void default_colour( CHAR_DATA *ch )
     return;
 }
 
-void all_colour( CHAR_DATA *ch, char *argument )
+void all_colour( CHAR_DATA *ch, const char *argument )
 {
     char buf[ 100 ];
     char buf2[ 100 ];

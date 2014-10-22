@@ -16,7 +16,7 @@
 #include "lua_scripting.h"
 #include "lua_main.h"
 
-#define MPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
+#define MPEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
 const struct olc_cmd_type mpedit_table[] =
 {
@@ -35,7 +35,7 @@ const struct olc_cmd_type mpedit_table[] =
    {  NULL,       0              }
 };
 
-void mpedit( CHAR_DATA *ch, char *argument)
+void mpedit( CHAR_DATA *ch, const char *argument)
 {
     PROG_CODE *pMcode;
     char arg[MAX_INPUT_LENGTH];
@@ -43,9 +43,8 @@ void mpedit( CHAR_DATA *ch, char *argument)
     int cmd;
     AREA_DATA *ad;
 
-    smash_tilde(argument);
-    strcpy(arg, argument);
-    argument = one_argument( argument, command);
+    smash_tilde_cpy(arg, argument);
+    argument = one_argument(arg, command);
 
     EDIT_MPCODE(ch, pMcode);
     if (!pMcode)
@@ -108,7 +107,7 @@ void mpedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_mprun(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_mprun)
 {
 
     if (IS_NPC(ch))
@@ -187,7 +186,7 @@ void do_mprun(CHAR_DATA *ch, char *argument)
 
 }
 
-void do_mpedit(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_mpedit)
 {
     PROG_CODE *pMcode;
     char command[MAX_INPUT_LENGTH];
@@ -337,6 +336,7 @@ MPEDIT (mpedit_delete)
         }
         last=curr;
     }
+    return FALSE;
 }
 
 
@@ -397,7 +397,6 @@ MPEDIT (mpedit_create)
 MPEDIT(mpedit_show)
 {
     PROG_CODE *pMcode;
-    char buf[MAX_STRING_LENGTH];
     EDIT_MPCODE(ch,pMcode);
 
     ptc(ch,
@@ -418,23 +417,16 @@ MPEDIT(mpedit_show)
 
 void fix_mprog_mobs( CHAR_DATA *ch, PROG_CODE *pMcode )
 {
-    PROG_LIST *mpl;
-    int hash;
-    char buf[MSL];
-    MOB_INDEX_DATA *mob;
-
     if ( pMcode->is_lua )
     {
         check_mprog( g_mud_LS, pMcode->vnum, pMcode->code );
         ptc(ch, "Fixed lua script for %d.\n\r", pMcode->vnum );
     }
-
 }
 
 MPEDIT(mpedit_security)
 {
     PROG_CODE *pMcode;
-    PROG_LIST *mpl;
     EDIT_MPCODE(ch, pMcode);
     int newsec;
 
@@ -451,38 +443,34 @@ MPEDIT(mpedit_security)
         else
         {
             ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
-            return;
+            return FALSE;
         }
     }
 
     if (newsec == pMcode->security)
     {
         ptc(ch, "Security is already at %d.\n\r", newsec );
-        return;
+        return FALSE;
     }
     else if (newsec > ch->pcdata->security )
     {
         ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
                 ch->pcdata->security, newsec);
-        return;
+        return FALSE;
     }
     
     pMcode->security=newsec;
     ptc(ch, "Security for %d updated to %d.\n\r",
             pMcode->vnum, pMcode->security);
-
+    return TRUE;
 }
 
 
 MPEDIT(mpedit_lua)
 {
     PROG_CODE *pMcode;
-    PROG_LIST *mpl;
     EDIT_MPCODE(ch, pMcode);
     
-    int hash;
-    char buf[MSL];
-
     pMcode->is_lua = !pMcode->is_lua;
     ptc( ch, "LUA set to %s\n\r", pMcode->is_lua ? "TRUE" : "FALSE" );
     if ( pMcode->is_lua )
@@ -491,6 +479,7 @@ MPEDIT(mpedit_lua)
         lua_mprogs--;
 
     fix_mprog_mobs( ch, pMcode);
+    return TRUE;
 }
 
 /* Procedure to run when MPROG is changed and needs to be updated

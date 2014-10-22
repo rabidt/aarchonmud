@@ -33,7 +33,7 @@
 
 /* stuff to catch spammers --Bobble */
 static CHAR_DATA *active_char = NULL;
-void anti_spam_interpret( CHAR_DATA *ch, char *argument )
+void anti_spam_interpret( CHAR_DATA *ch, const char *argument )
 {
     active_char = original_char(ch);
     interpret( ch, argument );
@@ -49,11 +49,11 @@ void punish_spam()
 }
 
 /* does aliasing and other fun stuff */
-void substitute_alias(DESCRIPTOR_DATA *d, char *argument)
+void substitute_alias(DESCRIPTOR_DATA *d, const char *argument)
 {
     CHAR_DATA *ch;
     char buf[MAX_STRING_LENGTH],prefix[MAX_INPUT_LENGTH],name[MAX_INPUT_LENGTH];
-    char *point;
+    const char *point;
     int alias;
     
     ch = d->original ? d->original : d->character;
@@ -128,19 +128,19 @@ void substitute_alias(DESCRIPTOR_DATA *d, char *argument)
     anti_spam_interpret(d->character,buf);
 }
 
-void do_alia(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_alia)
 {
     send_to_char("I'm sorry, alias must be entered in full.\n\r",ch);
     return;
 }
 
-void do_alias(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_alias)
 {
     CHAR_DATA *rch;
     char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];
     int pos;
     
-    smash_tilde(argument);
+    argument = smash_tilde_cc(argument);
     
     if (ch->desc == NULL)
         rch = ch;
@@ -240,7 +240,7 @@ void do_alias(CHAR_DATA *ch, char *argument)
 }
 
 
-void do_unalias(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_unalias)
 {
     CHAR_DATA *rch;
     char arg[MAX_INPUT_LENGTH];

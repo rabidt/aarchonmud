@@ -12,12 +12,9 @@
 void take_default_stats args((CHAR_DATA *ch));
 void get_random_stats args((CHAR_DATA *ch));
 void roll_dice args((CHAR_DATA *ch, bool take_default));
-void calc_stats args((CHAR_DATA *ch));
-bool parse_roll_stats args((CHAR_DATA *ch,char *argument));
 void do_help args((CHAR_DATA *ch, char *argument));
 struct race_type* get_morph_race_type( CHAR_DATA *ch );
 void show_pc_race_ratings( CHAR_DATA *ch, int race );
-void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 
 // structure for storing stat values prior to finalizing them
 typedef struct min_max_rolled MIN_MAX_ROLLED;
@@ -52,28 +49,32 @@ int get_curr_stat( CHAR_DATA *ch, int stat )
     
     if ( !IS_NPC(ch) && MULTI_MORPH(ch) && (ch->pcdata->morph_race > 0) )
     {
-	int org_min, org_max, new_min, new_max,
-	    ch_class_bonus, stat_roll, new_base,
-        org_remort_bonus, remort_bonus;
-	struct pc_race_type *new_race_type;
-	/* adjust base stat for new race */
-	org_min = pc_race_table[ch->race].min_stats[stat];
-	org_max = pc_race_table[ch->race].max_stats[stat];
-	new_race_type = &pc_race_table[ch->pcdata->morph_race];
-	new_min = new_race_type->min_stats[stat];
-	new_max = new_race_type->max_stats[stat];
-	ch_class_bonus = class_bonus( ch->class, stat );
-    org_remort_bonus = (ch->pcdata->remorts - pc_race_table[ch->race].remorts) *
-        pc_race_table[ch->race].remort_bonus[stat];
-	stat_roll = ch->perm_stat[stat] - ch_class_bonus - org_remort_bonus - org_min;
-	new_base = new_min
-	    + (new_max - new_min) * stat_roll / (org_max - org_min)
-	    + ch_class_bonus;
-	/* remort bonus */
-	remort_bonus = (morph_power(ch) - new_race_type->remorts) *
-	    new_race_type->remort_bonus[stat];
-	/* sum it up */
-	bonus += new_base - ch->perm_stat[stat] + remort_bonus;
+        int ch_class_bonus = class_bonus( ch->class, stat );
+        /* adjust base stat for new race */
+        struct pc_race_type *new_race_type = &pc_race_table[ch->pcdata->morph_race];
+        int new_max = new_race_type->max_stats[stat];
+        int new_base;
+        if ( IS_SET(race_table[ch->pcdata->morph_race].form, FORM_CONSTRUCT) )
+        {
+            new_base = new_max + ch_class_bonus;
+        }
+        else
+        {
+            int org_min = pc_race_table[ch->race].min_stats[stat];
+            int org_max = pc_race_table[ch->race].max_stats[stat];
+            int new_min = new_race_type->min_stats[stat];
+            int org_remort_bonus = (ch->pcdata->remorts - pc_race_table[ch->race].remorts) *
+                pc_race_table[ch->race].remort_bonus[stat];
+            int stat_roll = ch->perm_stat[stat] - ch_class_bonus - org_remort_bonus - org_min;
+            new_base = new_min
+                + (new_max - new_min) * stat_roll / (org_max - org_min)
+                + ch_class_bonus;
+        }
+        /* remort bonus */
+        int remort_bonus = (morph_power(ch) - new_race_type->remorts) *
+            new_race_type->remort_bonus[stat];
+        /* sum it up */
+        bonus += new_base - ch->perm_stat[stat] + remort_bonus;
     }
     else if (!IS_NPC(ch) && ch->race == race_naga && ch->pcdata->morph_race != 0)
     {
@@ -523,12 +524,10 @@ void show_can_train( CHAR_DATA *ch )
     }
 }
 
-void do_train( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_train)
 {
     char buf[MAX_STRING_LENGTH];
-    char buf2[MAX_STRING_LENGTH];
     char arg[MAX_STRING_LENGTH];
-    CHAR_DATA *mob;
     sh_int stat = -1;
     int cost, max, inc;
     
@@ -708,7 +707,7 @@ void compute_mob_stats(CHAR_DATA *mob)
     return;
 }
 
-void do_stats( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stats)
 {
     char buf[MAX_STRING_LENGTH];
     int i, j, race;
@@ -867,10 +866,9 @@ void show_remort_bonus( CHAR_DATA *ch, int race )
     send_to_char( "\n\r", ch );
 }
 
-void do_etls( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_etls)
 {
     char buf[MAX_STRING_LENGTH];
-    char racebuf[5];
     int i, j, race;
     BUFFER *output;
     int tier = -1;
@@ -1016,7 +1014,7 @@ void do_etls( CHAR_DATA *ch, char *argument )
 
 
 DECLARE_DO_FUN( do_raceskills);
-void do_showrace(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_showrace)
 {
     char buf[MAX_STRING_LENGTH];
     int race, part;
@@ -1142,7 +1140,7 @@ void show_pc_race_ratings( CHAR_DATA *ch, int race )
     send_to_char( buf, ch );        
 }
 
-void do_racelist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_racelist)
 {
     char buf[MAX_STRING_LENGTH];
     int i, j=0, tier = -1;
@@ -1172,7 +1170,7 @@ void do_racelist(CHAR_DATA *ch, char *argument)
 void roll_dice (CHAR_DATA *ch, bool take_default)
 {
     int minimum_roll[15] = {85,85,85,85,85,80,80,75,70,60,50,40,30,15,0};
-    int i, j, swap, sum;
+    int i, j, swap;
     
     if ( take_default )
     {
@@ -1344,14 +1342,13 @@ void insert_die(CHAR_DATA *ch, int die)
         }
 }
 
-bool parse_roll_stats (CHAR_DATA *ch,char *argument)
+bool parse_roll_stats (CHAR_DATA *ch, const char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
     char arg3[MAX_INPUT_LENGTH];
-    char buf[100], buf2[100], buf3[5];
+    char buf[100];
     int i,j,stat,die;
-    int curr, train, min, max, sum;
     
     argument = one_argument(argument,arg);
     argument = one_argument(argument,arg2);
@@ -1525,7 +1522,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     int trained_hp_bonus, trained_mana_bonus, trained_move_bonus;
     int hp_bonus, mana_bonus, move_bonus, softcap;
     int level_factor, train_factor, stat_factor, class_factor;
-    int hero_bonus, max_train;
+    int max_train;
     
     /* PCs only */
     if (IS_NPC(ch) || ch->pcdata == NULL)
@@ -1883,10 +1880,12 @@ bool class_can_use( int class, tflag extra_flags )
     {
         flag = ITEM_ALLOW_WARRIOR + group;
         if ( IS_SET(extra_flags, flag) )
+        {
             if ( class_group_table[class][group] )
                 return TRUE;
             else
                 allow_found = TRUE;
+        }
     }
 
     /* check class_ flags */
@@ -1894,10 +1893,12 @@ bool class_can_use( int class, tflag extra_flags )
     {
         flag = ITEM_CLASS_WARRIOR + group;
         if ( IS_SET(extra_flags, flag) )
+        {
             if ( class == group )
                 return TRUE;
             else
                 allow_found = TRUE;
+        }
     }
 
     /* if no allow flags found, all classes can use object */

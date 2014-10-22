@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "merc.h"
@@ -39,8 +40,6 @@
 DECLARE_DO_FUN(do_open  );
 DECLARE_DO_FUN(do_say   );
 
-void bcopy(register char *s1,register char *s2,int len);
-void bzero(register char *sp,int len);
 void do_hunt_relic( CHAR_DATA *ch );
 
 
@@ -423,7 +422,7 @@ bool is_wilderness( int sector )
     */
 }
 
-void do_hunt( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hunt)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_STRING_LENGTH];
@@ -657,12 +656,12 @@ void do_hunt_relic( CHAR_DATA *ch )
 }
 
 /* 'hunts' for a room */
-void do_scout( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_scout)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_STRING_LENGTH];
     ROOM_INDEX_DATA *target;
-    int direction, chance;
+    int direction;
     int skill, sn;
     
     /*one_argument( argument, arg );*/
@@ -897,7 +896,7 @@ void hunt_victim( CHAR_DATA *ch )
     return;
 }
 
-void do_stalk( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stalk)
 {
     if ( IS_NPC(ch) )
         return;

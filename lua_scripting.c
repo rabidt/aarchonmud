@@ -337,7 +337,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
     } 
 
     /* CH_ARG */
-    if ( !(ch && push_CH( g_mud_LS,(void *) ch)))
+    if ( !(ch && push_CH( g_mud_LS, ch)))
         lua_pushnil(g_mud_LS);
 
     /* TRIG_ARG */
@@ -347,12 +347,12 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
 
     /* OBJ1_ARG */
     if ( !((arg1type== ACT_ARG_OBJ && arg1) 
-                && push_OBJ(g_mud_LS, arg1)))
+                && push_OBJ(g_mud_LS, (OBJ_DATA*)arg1)))
         lua_pushnil(g_mud_LS);
 
     /* OBJ2_ARG */
     if ( !((arg2type== ACT_ARG_OBJ && arg2)
-                && push_OBJ( g_mud_LS, arg2)))
+                && push_OBJ( g_mud_LS, (OBJ_DATA*)arg2)))
         lua_pushnil(g_mud_LS);
 
     /* TEXT1_ARG */
@@ -367,7 +367,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
 
     /* VICTIM_ARG */
     if ( !((arg2type== ACT_ARG_CHARACTER && arg2)
-                && push_CH( g_mud_LS, arg2)) )
+                && push_CH( g_mud_LS, (CHAR_DATA*)arg2)) )
         lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
@@ -414,7 +414,7 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     if (!push_OBJ( g_mud_LS, obj))
     {
         /* Most likely failed because the obj was destroyed */
-        return;
+        return FALSE;
     }
 
     if (lua_isnil(g_mud_LS, -1) )
@@ -434,7 +434,7 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     }
     else if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
     {
-        return;
+        return FALSE;
     }
 
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
@@ -508,7 +508,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
         bugf("Make_ud_table failed in lua_area_program. %s : %d",
                 area->name,
                 pvnum);
-        return;
+        return FALSE;
     }
 
     if (lua_isnil(g_mud_LS, -1) )
@@ -524,7 +524,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
     }
     else if ( !lua_load_aprog( g_mud_LS, pvnum, source) )
     {
-        return;
+        return FALSE;
     }
 
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
@@ -591,7 +591,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
         bugf("Make_ud_table failed in lua_room_program. %d : %d",
                 room->vnum,
                 pvnum);
-        return;
+        return FALSE;
     }
 
     if (lua_isnil(g_mud_LS, -1) )
@@ -607,7 +607,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
     }
     else if ( !lua_load_rprog( g_mud_LS, pvnum, source) )
     {
-        return;
+        return FALSE;
     }
 
     int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;

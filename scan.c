@@ -44,7 +44,6 @@ void scan_char           args((CHAR_DATA *victim, CHAR_DATA *ch,
 
 void do_stare(CHAR_DATA *ch)
 {
-    extern char *const dir_name[];
     ROOM_INDEX_DATA *scan_room;
     EXIT_DATA *pExit;
     sh_int door, depth;
@@ -93,7 +92,7 @@ void do_stare(CHAR_DATA *ch)
     return;
 }
 
-void do_scan(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_scan)
 {
     extern char *const dir_name[];
     char arg1[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];

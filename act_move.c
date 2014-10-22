@@ -39,10 +39,7 @@
 DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_recall    );
 DECLARE_DO_FUN(do_stand     );
-bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
-bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj );
-void morph_update( CHAR_DATA *ch );
 void check_bleed( CHAR_DATA *ch, int dir );
 
 
@@ -185,7 +182,7 @@ int get_random_exit( CHAR_DATA *ch )
         return -1;
     
     for ( dir = 0; dir < MAX_DIR; dir++ )
-        if ( can_move[dir] = can_move_dir(ch, dir, FALSE) )
+        if ( (can_move[dir] = can_move_dir(ch, dir, FALSE)) )
             count++;
     
     if ( !count )
@@ -207,7 +204,7 @@ int get_random_exit( CHAR_DATA *ch )
 /*
 * Local functions.
 */
-int find_door   args( ( CHAR_DATA *ch, char *arg ) );
+int find_door( CHAR_DATA *ch, const char *arg );
 bool    has_key     args( ( CHAR_DATA *ch, int key ) );
 bool check_drown args((CHAR_DATA *ch));
 bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room );
@@ -253,7 +250,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             return ch->in_room == to_room ? door : -1;
         if ( !rp_exit_trigger(ch) )
             return ch->in_room == to_room ? door : -1;
-        if ( to_room && !ap_rexit_trigger(ch, to_room->area) )
+        if ( to_room && !ap_rexit_trigger(ch) )
             return ch->in_room == to_room ? door : -1;
         if ( to_room && !ap_exit_trigger(ch, to_room->area) )
             return ch->in_room == to_room ? door : -1;
@@ -626,7 +623,7 @@ bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
     return TRUE;
 }
 
-void do_north( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_north)
 {
    move_char( ch, DIR_NORTH, FALSE );
    return;
@@ -634,7 +631,7 @@ void do_north( CHAR_DATA *ch, char *argument )
 
 
 
-void do_east( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_east)
 {
    move_char( ch, DIR_EAST, FALSE );
    return;
@@ -642,7 +639,7 @@ void do_east( CHAR_DATA *ch, char *argument )
 
 
 
-void do_south( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_south)
 {
    move_char( ch, DIR_SOUTH, FALSE );
    return;
@@ -650,7 +647,7 @@ void do_south( CHAR_DATA *ch, char *argument )
 
 
 
-void do_west( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_west)
 {
    move_char( ch, DIR_WEST, FALSE );
    return;
@@ -658,7 +655,7 @@ void do_west( CHAR_DATA *ch, char *argument )
 
 
 
-void do_up( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_up)
 {
    move_char( ch, DIR_UP, FALSE );
    return;
@@ -666,38 +663,38 @@ void do_up( CHAR_DATA *ch, char *argument )
 
 
 
-void do_down( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_down)
 {
    move_char( ch, DIR_DOWN, FALSE );
    return;
 }
 
-void do_northeast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_northeast)
 {
    move_char( ch, DIR_NORTHEAST, FALSE );
    return;
 }
 
-void do_southeast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_southeast)
 {
    move_char( ch, DIR_SOUTHEAST, FALSE );
    return;
 }
 
-void do_southwest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_southwest)
 {
    move_char( ch, DIR_SOUTHWEST, FALSE );
    return;
 }
 
-void do_northwest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_northwest)
 {
    move_char( ch, DIR_NORTHWEST, FALSE );
    return;
 }
 
 
-int find_door( CHAR_DATA *ch, char *arg )
+int find_door( CHAR_DATA *ch, const char *arg )
 {
    EXIT_DATA *pexit;
    int door;
@@ -768,7 +765,7 @@ int find_door( CHAR_DATA *ch, char *arg )
 
 
 
-void do_open( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_open)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -895,7 +892,7 @@ void do_open( CHAR_DATA *ch, char *argument )
 
 
 
-void do_close( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_close)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -1029,7 +1026,7 @@ bool has_key( CHAR_DATA *ch, int key )
 
 
 
-void do_lock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_lock)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj, *key;
@@ -1184,7 +1181,7 @@ void do_lock( CHAR_DATA *ch, char *argument )
 
 
 
-void do_unlock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_unlock)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj, *key;
@@ -1334,7 +1331,7 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 
 #define NLRETURN if ( number_percent() > chance ) \
                  { send_to_char("\n\r", ch); return; }
-void do_estimate( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_estimate)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -1489,10 +1486,9 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 }
 #undef NLRETURN
 
-void do_shoot_lock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_shoot_lock)
 {
     char arg[MAX_INPUT_LENGTH];
-    CHAR_DATA *gch;
     OBJ_DATA *obj;
     int door;
     int skill;
@@ -1592,7 +1588,7 @@ void do_shoot_lock( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_unjam(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_unjam)
 {
     OBJ_DATA *obj;
     int skill;
@@ -1665,7 +1661,7 @@ void do_unjam(CHAR_DATA *ch, char *argument)
     */
 }
 
-void do_set_snare ( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_set_snare)
 {
 
     int chance;
@@ -1702,7 +1698,7 @@ void do_set_snare ( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_peel ( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_peel)
 {
 
     int chance;
@@ -1741,7 +1737,7 @@ void do_peel ( CHAR_DATA *ch, char *argument)
 }
 
 
-void do_pick( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pick)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *gch;
@@ -1967,7 +1963,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_stand( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stand)
 {
    OBJ_DATA  *obj = NULL;
    CHAR_DATA *gch = NULL;
@@ -2096,7 +2092,7 @@ void do_stand( CHAR_DATA *ch, char *argument )
 
 
 
-void do_rest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rest)
 {
    OBJ_DATA *obj = NULL;
    CHAR_DATA *gch = NULL;
@@ -2252,7 +2248,7 @@ void do_rest( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sit (CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sit)
 {
    OBJ_DATA *obj = NULL;
    CHAR_DATA *gch = NULL;
@@ -2403,7 +2399,7 @@ void do_sit (CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sleep( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sleep)
 {
    OBJ_DATA *obj = NULL;
    
@@ -2480,7 +2476,7 @@ void do_sleep( CHAR_DATA *ch, char *argument )
 
 
 
-void do_wake( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wake)
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *victim;
@@ -2507,7 +2503,7 @@ void do_wake( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sneak( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sneak)
 {
     AFFECT_DATA af;
     
@@ -2561,7 +2557,7 @@ void do_sneak( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_hide( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hide)
 {
     AFFECT_DATA af;
     
@@ -2643,14 +2639,14 @@ void make_visible( CHAR_DATA *ch )
 /*
 * Contributed by Alander.
 */
-void do_visible( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_visible)
 {
     make_visible( ch );
     send_to_char( "Ok.\n\r", ch );
     return;
 }
 
-void do_recall( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_recall)
 {
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
@@ -2658,7 +2654,7 @@ void do_recall( CHAR_DATA *ch, char *argument )
     int chance;
     int room=ROOM_VNUM_RECALL;
     int move_cost;
-    char *god_name;
+    const char *god_name;
     
     if (IS_REMORT(ch))
     {
@@ -2701,7 +2697,7 @@ void do_recall( CHAR_DATA *ch, char *argument )
     if ( carries_relic(ch) )
     {
         send_to_char( "Not with a relic!\n\r", ch );
-        return FALSE;
+        return;
     }
 
     if ( (god_name = get_god_name(ch)) == NULL )
@@ -2774,7 +2770,7 @@ void do_recall( CHAR_DATA *ch, char *argument )
         
         skill = 50 + (get_curr_stat(ch, STAT_LUC) - get_curr_stat(victim, STAT_LUC)) / 5;
 
-		if (lose = get_skill(victim, gsn_entrapment))
+        if ( (lose = get_skill(victim, gsn_entrapment)) )
 		{
 			skill -= lose/3;
 			check_improve(victim, gsn_entrapment, TRUE, 10);
@@ -2854,10 +2850,8 @@ int morph_power( CHAR_DATA *ch )
     return -1;
 }
 
-void do_morph(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_morph)
 {
-    AFFECT_DATA *paf;
-    OBJ_DATA *obj;
 	CHAR_DATA *victim;
 	char arg[MAX_INPUT_LENGTH];
 	char buf[MAX_STRING_LENGTH];
@@ -3105,7 +3099,7 @@ bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj )
     return TRUE;
 }
 
-void do_disarm_trap( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_disarm_trap)
 {
     int door, skill;
     EXIT_DATA *exit, *rev_exit;
@@ -3184,7 +3178,7 @@ void do_disarm_trap( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_root( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_root)
 {
     char arg[MIL];
     AFFECT_DATA af;
@@ -3257,7 +3251,6 @@ void check_bleed( CHAR_DATA *ch, int dir )
 {
     OBJ_DATA *blood;
     char buf[MSL];
-    AFFECT_DATA *af;
 
     if ( ch == NULL || ch->in_room == NULL )
 	return;
@@ -3367,14 +3360,6 @@ void check_explore( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
 	send_to_char("check_explore: start\n\r",ch);
 #endif
 	
-	EXPLORE_HOLDER *pExp;
-#ifdef EXPLORE_DEBUG
-/*	for( pExp = ch->pcdata->explored->buckets ; pExp ; pExp = pExp->next )
-	{
-		printf_to_char( ch, "mask: %d\n\rbits: %u\n\r", pExp->mask, pExp->bits );
-	}
-	printf_to_char( ch, "vnum: %d\n\r", pRoom->vnum );*/
-#endif
 	if(explored_vnum(ch, pRoom->vnum) )
 		return;
 
@@ -3384,7 +3369,7 @@ void check_explore( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
 #endif
 }
 
-void do_explored(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_explored)
 {	char buf[MAX_STRING_LENGTH];
 	sprintf(buf, "You have explored %d room%s!{x\r\n", ch->pcdata->explored->set, (ch->pcdata->explored->set == 1 ? "" : "s") );
 	send_to_char(buf,ch);
@@ -3404,11 +3389,11 @@ void do_explored(CHAR_DATA *ch, char *argument )
 }
 
 //RUN COMMAND by SIVA 2/14/04
-void do_run(CHAR_DATA * ch, char *argument)
+DEF_DO_FUN(do_run)
 {
 	//local variables
 	CHAR_DATA *wch;
-	char *p;	//pointer to iterate argument
+	const char *p;	//pointer to iterate argument
 	int i; //counter for for loops
 	int last = 0; //holds last character of argument
 	int par_counter = 0; // for turning chars into ints	
