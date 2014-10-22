@@ -4175,6 +4175,7 @@ void    info_message( CHAR_DATA *ch, const char *argument, bool show_to_char );
 void    info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, bool check_visible );
 const char *makedrunk args( (const char *string, CHAR_DATA *ch) );
 void    mail_notify   args( ( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board ) );
+void    tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 void    act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 const char* ch_name( CHAR_DATA *ch );
 
@@ -4580,6 +4581,7 @@ MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch );
 const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker );
 const char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype );
 void    affect_to_char  args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
+void    affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf );
 void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
 void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
@@ -4595,6 +4597,7 @@ void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
 void    affect_strip_flag( CHAR_DATA *ch, int flag );
 void    affect_strip_offensive( CHAR_DATA *ch );
 void    affect_strip_obj( OBJ_DATA *obj, int sn );
+void    custom_affect_strip( CHAR_DATA *ch, const char *tag );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    char_from_room  args( ( CHAR_DATA *ch ) );
@@ -4793,11 +4796,24 @@ bool    can_trigger( CHAR_DATA *mob, int trigger );
 bool    has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum );
 void    mprog_setup( CHAR_DATA *mob );
 void    mprog_timer_init( CHAR_DATA *mob );
+CD *    get_random_char( CHAR_DATA *mob );
+bool    get_mob_vnum_room( CHAR_DATA *ch, int vnum );
+bool    get_obj_vnum_room( CHAR_DATA *ch, int vnum );
+bool    is_affected_parse( CHAR_DATA *ch, const char *arg );
+bool    has_item( CHAR_DATA *ch, int vnum, int item_type, bool fWear );
+bool    has_item_in_container( CHAR_DATA *ch, int vnum, const char *obj_name );
+int     count_people_room( CHAR_DATA *mob, int iFlag );
 
 /* mob_cmds.c */
 void    mob_interpret( CHAR_DATA *ch, const char *argument );
 void    mpechoaround( CHAR_DATA *ch, CHAR_DATA *vic, const char *txt );
 void    mpechoat( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
+void    mpkill( CHAR_DATA *ch, CHAR_DATA *victim );
+void    mpassist( CHAR_DATA *ch, CHAR_DATA *victim );
+void    mpremort( CHAR_DATA *ch, CHAR_DATA *victim );
+void    mpqset( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, const char *arg3, int timer, int limit );
+void    mpqadvance( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, const char *arg3 );
+void    mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount );
 CD *    mpmload( CHAR_DATA *ch, const char *argument );
 bool    is_r_number( const char *arg );
 int     r_atoi( CHAR_DATA *ch, const char *arg );
@@ -4821,6 +4837,7 @@ char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 /* olc_act.c */
 void set_mob_level( CHAR_DATA *mob, int level );
 void set_weapon_dam( OBJ_DATA *pObj, int dam );
+bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj );
 int average_roll( int nr, int type, int bonus );
 int average_mob_hp( int level );
 AREA_DATA *get_vnum_area( int vnum );
@@ -4978,6 +4995,7 @@ int get_damroll( CHAR_DATA *ch );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );
+void set_mob_race( CHAR_DATA *ch, int race );
 
 /* string.c */
 void string_edit( CHAR_DATA *ch, const char **pString );
@@ -5156,7 +5174,7 @@ void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
 #define ACT_ARG_TEXT 2
 #define ACT_ARG_CHARACTER 3
 
-bool valid_UD( const char *ud );
+bool valid_UD( void *ud );
 #define declf( ltype, ctype ) \
 ctype * check_ ## ltype ( lua_State *LS, int index ); \
 bool    is_ ## ltype ( lua_State *LS, int index ); \

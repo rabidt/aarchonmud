@@ -10,7 +10,7 @@ typedef struct lua_obj_type
     void *(*check)();
     bool (*is)();
     bool (*push)();
-    void *(*alloc);
+    void *(*alloc)();
     void (*free)();
 
     int (*index)();
@@ -18,9 +18,9 @@ typedef struct lua_obj_type
 
     void (*reg)();
 
-    struct lua_prop_type * const get_table;
-    struct lua_prop_type * const set_table;
-    struct lua_prop_type * const method_table;
+    const struct lua_prop_type * const get_table;
+    const struct lua_prop_type * const set_table;
+    const struct lua_prop_type * const method_table;
 
     int count;
 } LUA_OBJ_TYPE;
@@ -28,11 +28,11 @@ typedef struct lua_obj_type
 typedef struct lua_extra_val
 {
     struct lua_extra_val *next;
-    char *name;
+    const char *name;
 
     int type;
 
-    char *val;
+    const char *val;
     bool persist;
 
 } LUA_EXTRA_VAL;
