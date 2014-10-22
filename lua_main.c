@@ -1,6 +1,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 #include <time.h>
+#include <string.h>
+#include <stdlib.h>
 #include "merc.h"
 #include "timer.h"
 #include "lua_main.h"
@@ -8,6 +10,7 @@
 #include "interp.h"
 #include "mudconfig.h"
 
+void sorted_ctable_init( lua_State *LS );
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 bool       g_LuaScriptInProgress=FALSE;
@@ -261,6 +264,7 @@ void check_lboard_reset()
     }
 }
 
+/* currently unused - commented to avoid warning
 static int L_save_mudconfig(lua_State *LS)
 {
     int i;
@@ -304,6 +308,7 @@ static int L_save_mudconfig(lua_State *LS)
 
     return 1;
 }
+*/
 
 void save_mudconfig()
 {
@@ -467,7 +472,7 @@ DEF_DO_FUN(do_luai)
     }
 
     char arg1[MSL];
-    char *name;
+    const char *name;
 
     argument=one_argument(argument, arg1);
 
@@ -689,7 +694,7 @@ DEF_DO_FUN(do_scriptdump)
     }
 
 }
-static int L_wizhelp( LS )
+static int L_wizhelp( lua_State *LS )
 {
     CHAR_DATA *ud_ch=check_CH(LS, 1);
     
@@ -911,7 +916,6 @@ void load_luaconfig( CHAR_DATA *ch, const char *text )
         ptc (ch, "Error with load_luaconfig:\n %s",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
-        return NULL;
     }
 }
 
@@ -1179,7 +1183,8 @@ void sorted_ctable_init( lua_State *LS )
         lua_getfield( LS, -1, "sort" );
         lua_remove( LS, -2 ); /* remove "table" */
         lua_pushvalue(LS, -2 ); /* push the actual table */
-        luaL_dostring( LS, tbl->sortfun );
+        if ( luaL_dostring(LS, tbl->sortfun) )
+            luaL_error(LS, "sorted_ctable_init: sortfun error");
         lua_call( LS, 2, 0 );
 
         /* sorted table should be at -1 */
