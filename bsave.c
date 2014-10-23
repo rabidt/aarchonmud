@@ -542,7 +542,11 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
             ch->pcdata->condition[3] );
 
     bprintf( buf, "Stance %d\n", ch->stance );
-        
+
+    bprintf( buf, "GuiC %d %d %d\n", ch->pcdata->guiconfig.chat_window,
+                                     ch->pcdata->guiconfig.show_images,
+                                     ch->pcdata->guiconfig.image_window );
+
        /*
         * Write Colour Config Information.
         */
@@ -1931,6 +1935,18 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             fMatch = TRUE;
             break;
         }
+        /* old */
+        KEY( "Gui", ch->pcdata->guiconfig.chat_window, bread_number( buf ) );
+        /* new */
+        if ( !str_cmp( word, "GuiC" ) )
+        {
+            ch->pcdata->guiconfig.chat_window = bread_number( buf );
+            ch->pcdata->guiconfig.show_images = bread_number( buf );
+            ch->pcdata->guiconfig.image_window = bread_number( buf );
+            fMatch = TRUE;
+            break;
+        }
+
         break;
         
     case 'H':
@@ -2151,10 +2167,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 	    status = bread_number( buf );  
             timer = bread_number( buf ) ;
             if (timer > 0)
-                timer -= ((current_time - lastlogoff) / 60) ;  
+                /* This decrements the qset timer by 1 point for each hour that
+                   you have been logged off. - Astark */
+                timer -= ((current_time - lastlogoff) / 3600) ;  
             if (timer < 0)
                 timer = 0;
-            limit = current_time + 55;
+                /* This resets the limit to 1 hour from the time of login, so that
+                   it will start to decrement every 1 hour again. - Astark */
+            limit = current_time + 3600;
 
             set_quest_status( ch, id, status, timer, limit);
 	    fMatch = TRUE;

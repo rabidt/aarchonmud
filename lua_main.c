@@ -870,6 +870,37 @@ DEF_DO_FUN(do_charloadtest)
     return;
 }
 
+void show_image_to_char( CHAR_DATA *ch, const char *txt )
+{
+    logpf("%s  called ", ch->name);
+    if (IS_NPC(ch))
+        return;
+
+    if (!ch->pcdata->guiconfig.show_images)
+        return;
+
+    if (ch->pcdata->guiconfig.image_window)
+    {
+        open_imagewin_tag( ch );
+    }
+
+    lua_getglobal( g_mud_LS, "show_image_to_char" );
+    push_CH( g_mud_LS, ch );
+    lua_pushstring( g_mud_LS, txt );
+    
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        bugf ( "Error with show_image_to_char:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+
+    if (ch->pcdata->guiconfig.image_window)
+    {
+        close_imagewin_tag( ch );
+    }
+}
+
 const char *save_luaconfig( CHAR_DATA *ch )
 {
     if (!IS_IMMORTAL(ch))

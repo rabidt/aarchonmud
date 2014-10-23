@@ -2746,6 +2746,13 @@ struct  pc_data
     int smc_mastered;
     int smc_grandmastered;
     int smc_retrained;
+
+    
+    struct {
+        bool chat_window;
+        bool show_images;
+        bool image_window;
+    } guiconfig;
 };
 
 /* Data for special quests */
@@ -4178,6 +4185,9 @@ void    mail_notify   args( ( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board
 void    tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 void    act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 const char* ch_name( CHAR_DATA *ch );
+void    gui_login_setup( CHAR_DATA *ch );
+void    open_imagewin_tag( CHAR_DATA *ch );
+void    close_imagewin_tag( CHAR_DATA *ch );
 
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
@@ -4483,6 +4493,7 @@ bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
 bool    check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
+bool    check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_dodge( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4728,6 +4739,7 @@ const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );
 int name_sorted_group_table( int sequence );
 int name_sorted_skill_table( int sequence );
+void show_image_to_char( CHAR_DATA *ch, const char *txt );
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );

@@ -48,6 +48,8 @@ void smash_beep_n_blink( char *str );
 void quit_char( CHAR_DATA *ch );
 void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim );
 void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader );
+void open_chat_tag( CHAR_DATA *ch );
+void close_chat_tag( CHAR_DATA *ch );
 
 #define ALTER_COLOUR( type ) \
 if( !str_prefix( argument, "red" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = RED;} \
@@ -161,7 +163,7 @@ void print_pub_chan( sh_int sn, CHAR_DATA *ch )
 /* RT code to display channel status */
 
 DEF_DO_FUN(do_channels)
-{
+{   
     char buf[MAX_STRING_LENGTH];
 
     /* lists all channels and their status */
@@ -184,15 +186,15 @@ DEF_DO_FUN(do_channels)
         else
             send_to_char("{2OFF{x\n\r",ch);
         
-	print_pub_chan(sn_gossip, ch);
-        print_pub_chan(sn_auction, ch);
-	print_pub_chan(sn_music, ch);
-	print_pub_chan(sn_question, ch);
-	print_pub_chan(sn_quote, ch);
-	print_pub_chan(sn_gratz, ch);
-	print_pub_chan(sn_gametalk, ch);
-	print_pub_chan(sn_bitch, ch);
-	print_pub_chan(sn_newbie, ch);
+    print_pub_chan(sn_gossip, ch);
+    print_pub_chan(sn_auction, ch);
+    print_pub_chan(sn_music, ch);
+    print_pub_chan(sn_question, ch);
+    print_pub_chan(sn_quote, ch);
+    print_pub_chan(sn_gratz, ch);
+    print_pub_chan(sn_gametalk, ch);
+    print_pub_chan(sn_bitch, ch);
+    print_pub_chan(sn_newbie, ch);
  
         if( ch->clan > 0 )
 	{
@@ -273,6 +275,9 @@ DEF_DO_FUN(do_channels)
         else
             send_to_char("Scroll buffering is off.\n\r",ch);
     }
+
+    ptc( ch, "Your chat window is turned %s.\n\r",
+            ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
     
     if (ch->prompt != NULL)
     {
@@ -428,9 +433,6 @@ const char *parse_url( const char *argument )
     return rtn;
 }
 
-        
-
-
 /* RT chat replaced with ROM gossip */
 void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
 {
@@ -500,7 +502,14 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
         argument=parse_url(arg_buf);
         
         sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
+        show_image_to_char( ch, buf );
         send_to_char( buf, ch );
+        if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+        {
+            open_chat_tag( ch );
+            send_to_char( buf, ch );
+            close_chat_tag( ch );
+        }
 
         argument = makedrunk(argument,ch);
 
@@ -537,9 +546,16 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
                     act_new_gag( buf,
                         ch,argument, d->character, TO_VICT,POS_SLEEPING,
                         GAG_NCOL_CHAN, FALSE );
-                    
+                    if ( d->character->pcdata && 
+                            d->character->pcdata->guiconfig.chat_window )
+                    {
+                        open_chat_tag( d->character );
+                        act_new_gag( buf,
+                            ch,argument, d->character, TO_VICT,POS_SLEEPING,
+                            GAG_NCOL_CHAN, FALSE ); 
+                        close_chat_tag( d->character );
+                    }
                 }
-
             }
         }
     }
@@ -617,6 +633,13 @@ void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, b
         {
             sprintf(buf, "{1[INFO]{2: %s\n{x", argument);
             act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+
+            if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+            {
+                open_chat_tag( victim );
+                act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                close_chat_tag( victim );
+            }
         }
     }
 }
@@ -882,6 +905,13 @@ DEF_DO_FUN(do_info)
                 {
                     sprintf(buf, "{1[INFO]{2: %s\n{x", parse_url(argument));
                     act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                    
+                    if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+                    {
+                        open_chat_tag( victim );
+                        act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                        close_chat_tag( victim );
+                    }
                 }
             }
         }
@@ -1119,6 +1149,14 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
 	
 	sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
 	send_to_char( buf, ch );
+
+    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_tag( ch );
+        send_to_char( buf, ch );
+        close_chat_tag( ch );
+    }
+
 	if ( !IS_NPC(ch) )
 		log_pers(ch->pcdata->tell_history, buf);
 	argument = makedrunk(argument,ch);
@@ -1158,8 +1196,14 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
     }
     else
     {
-	/* send as regular */
-	send_to_char(buf, victim);
+	    /* send as regular */
+	    send_to_char(buf, victim);
+        if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+        {
+            open_chat_tag( victim );
+            send_to_char( buf, victim );
+            close_chat_tag( victim );
+        }
     }   
 	
     
@@ -2542,6 +2586,12 @@ DEF_DO_FUN(do_gtell)
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers( ch->pcdata->gtell_history, buf);
+    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_tag( ch );
+        send_to_char( buf, ch );
+        close_chat_tag( ch );
+    }
     argument = makedrunk(argument,ch);
     
     for ( gch = char_list; gch != NULL; gch = char_list_next_char(gch) )
@@ -2556,6 +2606,13 @@ DEF_DO_FUN(do_gtell)
 				send_to_char(buf, gch);
 				if ( !IS_NPC(gch) )
 					log_pers( gch->pcdata->gtell_history, buf);
+
+                if ( gch->pcdata && gch->pcdata->guiconfig.chat_window )
+                {
+                    open_chat_tag( gch );
+                    send_to_char( buf, gch );
+                    close_chat_tag( gch );
+                }
 			}
 		}
     }
@@ -3407,4 +3464,129 @@ DEF_DO_FUN(do_noreply)
 	send_to_char( "Character not found.\n\r", ch );
 	return;
     }
+}
+
+void open_chat_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Comm\" INTERNAL Align=\"right\">");
+}
+
+void close_chat_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Comm\" Action=\"CLOSE\">");
+} 
+
+void open_image_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Images\" INTERNAL Align=\"top\">");
+}
+
+void close_image_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Images\" Action=\"CLOSE\">");
+}
+
+void gui_login_setup( CHAR_DATA *ch )
+{
+    const char *client= ch->desc ? ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString : "";
+
+    if ( ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_window( ch );
+    }
+    else if ( strstr(client, "mudportal" ) )
+    {
+        // always use chatwindow in mudportal cause i said so
+        ch->pcdata->guiconfig.chat_window=TRUE;
+        open_chat_window( ch );
+        ptc( ch, "{CI see you're using mudportal. Chat window enabled.{x\n\r" );
+    }
+
+    if ( strstr( client, "zmud") ||
+         strstr( client, "zMUD") ||
+         strstr( client, "cmud") ||
+         strstr( client, "CMUD") )
+    {
+        ptc( ch, "{CI see you're using %s. Type '\t(guiconfig\t)' to see some special options.{x\n\r", client);
+    }
+}
+
+void open_imagewin_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<DEST Images>" );
+}
+
+void close_imagewin_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t</DEST>" );
+}
+
+void open_chat_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<DEST Comm>" );
+}
+
+void close_chat_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t</DEST>" );
+}
+
+DEF_DO_FUN(do_guiconfig)
+{
+    if (IS_NPC(ch))
+        return;
+
+    if ( !strcmp( argument, "chat" ) )
+    {
+        ch->pcdata->guiconfig.chat_window = !ch->pcdata->guiconfig.chat_window;
+        ptc( ch, "Your chat window is turned %s.\n\r",
+                ch->pcdata->guiconfig.chat_window ? "ON" : "OFF" );
+
+        if ( ch->pcdata->guiconfig.chat_window )
+        {
+            open_chat_window( ch );
+        }
+        else
+        {
+            close_chat_window( ch );
+        }
+        return;
+    }
+    else if ( !strcmp( argument, "images" ) )
+    {
+        ch->pcdata->guiconfig.show_images = !ch->pcdata->guiconfig.show_images;
+        ptc( ch, "Display images is turned %s.\n\r",
+                ch->pcdata->guiconfig.show_images ? "ON" : "OFF" );
+        return; 
+    }
+    else if ( !strcmp( argument, "imagewin" ) )
+    {
+        
+        ch->pcdata->guiconfig.image_window = !ch->pcdata->guiconfig.image_window;
+        ptc( ch, "Your image window is turned %s.\n\r",
+                ch->pcdata->guiconfig.image_window ? "ON" : "OFF" );
+
+        if ( ch->pcdata->guiconfig.image_window )
+        {
+            open_image_window( ch );
+        }
+        else
+        {
+            close_image_window( ch );
+        }
+        return;
+    }
+
+    ptc( ch, "Your chat window is turned %s.\n\r",
+        ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
+    ptc( ch, "'guiconfig chat' to toggle\n\r" );
+
+    ptc( ch, "Display images is %s.\n\r",
+        ( ch->pcdata && ch->pcdata->guiconfig.show_images ) ? "ON" : "OFF" );
+    ptc( ch, "'guiconfig images' to toggle\n\r" );
+
+    ptc( ch, "Image window is %s.\n\r",
+        ( ch->pcdata && ch->pcdata->guiconfig.image_window ) ? "ON" : "OFF" );
+    ptc( ch, "'guiconfig imagewin' to toggle\n\r" );
+
 }

@@ -2162,7 +2162,10 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         pbuff    = buffer;
         colourconv( pbuff, buf, to );
         if (to->desc && (to->desc->connected == CON_PLAYING || IS_WRITING_NOTE(to->desc->connected)))
+        {
+            show_image_to_char( to, buffer );
             write_to_buffer( to->desc, buffer, 0 );
+        }
         else
             if ( MOBtrigger )
                 mp_act_trigger( buf, to, ch, arg1, arg1_type, arg2, arg2_type, TRIG_ACT );

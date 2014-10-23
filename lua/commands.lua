@@ -1466,6 +1466,18 @@ local function CH_diag( ch, args )
 
     sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
 
+    sendtochar( ch, "\n\rCHAR_DATAs with no room:\n\r")
+    cnt=0
+    for k,v in pairs(getcharlist()) do
+        if not(v.room) then
+            sendtochar( ch, string.format(
+                        "%s %s\n\r",
+                        v.isnpc and ("["..v.vnum.."]") or "",
+                        v.name) )
+            cnt=cnt+1
+        end
+    end
+    sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
 end
 
 local function DESCRIPTOR_diag( ch, args )
@@ -1492,6 +1504,39 @@ local function DESCRIPTOR_diag( ch, args )
         cnt=cnt+1
     end
 
+    sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
+end
+
+local function OBJ_diag( ch, args )
+    local objs={}
+    local reg=debug.getregistry()
+    for k,v in pairs(reg) do
+        if tostring(v)=="OBJ" then
+            objs[v]=true
+        end
+    end
+
+    for k,v in pairs(getobjlist()) do
+        objs[v]=nil
+    end
+
+    sendtochar( ch, "Leaked OBJ_DATAs:\n\r")
+    local cnt=0
+    for k,v in pairs(objs) do
+        sendtochar( ch, ("[%5d] %s\n\r"):format( v.vnum, v.shortdescr) )
+        cnt=cnt+1
+    end
+
+    sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
+
+    sendtochar( ch, "\n\rOBJ_DATAs with no room:\n\r")
+    cnt=0
+    for k,v in pairs(getobjlist()) do
+        if not(v.room) and not(v.inobj) and not(v.carriedby) then
+            sendtochar( ch, ("[%5d] %s\n\r"):format( v.vnum, v.shortdescr )  )
+            cnt=cnt+1
+        end
+    end
     sendtochar(ch, "\n\rCount: "..cnt.."\n\r")
 end
 
@@ -1605,6 +1650,7 @@ local function diagnostic_usage( ch )
     pagetochar( ch, [[
 diagnostic ch   -- Run CHAR_DATA diagnostic
 diagnostic desc -- Run DESCRIPTOR_DATA diagnostic
+diagnostic obj  -- Run OBJ diagnostic.
 diagnostic rexit -- List rooms that have no link to them from room or portal
                     Optional arg 'ingame' to show only ingame rooms.
 diagnostic rexit here -- List all exits leading to current room.
@@ -1618,6 +1664,8 @@ function do_diagnostic( ch, argument )
         CH_diag( ch, args )
     elseif arg1=="desc" then
         DESCRIPTOR_diag( ch, args )
+    elseif arg1=="obj" then
+        OBJ_diag( ch, args )
     elseif arg1=="rexit" then
         if args[1]=="here" then
             rexit_diag_here( ch, args )
