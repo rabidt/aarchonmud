@@ -207,7 +207,7 @@ Name:      show_commands
 Purpose:   Display all olc commands.
 Called by:   olc interpreters.
 ****************************************************************************/
-bool show_commands( CHAR_DATA *ch, char *argument )
+bool show_commands( CHAR_DATA *ch, const char *argument )
 {
    switch (ch->desc->editor)
    {
@@ -492,7 +492,7 @@ bool edit_done( CHAR_DATA *ch )
 
 
 /* Area Interpreter, called by do_aedit. */
-void aedit( CHAR_DATA *ch, char *argument )
+void aedit( CHAR_DATA *ch, const char *argument )
 {
    AREA_DATA *pArea;
    char command[MAX_INPUT_LENGTH];
@@ -508,9 +508,8 @@ void aedit( CHAR_DATA *ch, char *argument )
       return;
    }
 
-   smash_tilde( argument );
-   strcpy( arg, argument );
-   argument = one_argument( argument, command );
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument( arg, command );
    
    if ( !IS_BUILDER( ch, pArea ) )
    {
@@ -573,7 +572,7 @@ void aedit( CHAR_DATA *ch, char *argument )
 
 
 /* Room Interpreter, called by do_redit. */
-void redit( CHAR_DATA *ch, char *argument )
+void redit( CHAR_DATA *ch, const char *argument )
 {
    AREA_DATA *pArea;
    ROOM_INDEX_DATA *pRoom;
@@ -590,9 +589,8 @@ void redit( CHAR_DATA *ch, char *argument )
     }
    pArea = pRoom->area;
    
-   smash_tilde( argument );
-   strcpy( arg, argument );
-   argument = one_argument( argument, command );
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument( arg, command );
    
    if ( !IS_BUILDER( ch, pArea ) )
    {
@@ -640,7 +638,7 @@ void redit( CHAR_DATA *ch, char *argument )
 
 
 /* Object Interpreter, called by do_oedit. */
-void oedit( CHAR_DATA *ch, char *argument )
+void oedit( CHAR_DATA *ch, const char *argument )
 {
    AREA_DATA *pArea;
    OBJ_INDEX_DATA *pObj;
@@ -648,9 +646,8 @@ void oedit( CHAR_DATA *ch, char *argument )
    char command[MAX_INPUT_LENGTH];
    int  cmd;
    
-   smash_tilde( argument );
-   strcpy( arg, argument );
-   argument = one_argument( argument, command );
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument( arg, command );
    
    EDIT_OBJ(ch, pObj);
    if (!pObj)
@@ -707,7 +704,7 @@ void oedit( CHAR_DATA *ch, char *argument )
 
 
 /* Mobile Interpreter, called by do_medit. */
-void medit( CHAR_DATA *ch, char *argument )
+void medit( CHAR_DATA *ch, const char *argument )
 {
    AREA_DATA *pArea;
    MOB_INDEX_DATA *pMob;
@@ -715,9 +712,8 @@ void medit( CHAR_DATA *ch, char *argument )
    char arg[MAX_STRING_LENGTH];
    int  cmd;
    
-   smash_tilde( argument );
-   strcpy( arg, argument );
-   argument = one_argument( argument, command );
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument( arg, command );
    
    EDIT_MOB(ch, pMob);
    if (!pMob)
@@ -792,7 +788,7 @@ const struct editor_cmd_type editor_table[] =
 
 
 /* Entry point for all editors. */
-void do_olc( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_olc)
 {
    char command[MAX_INPUT_LENGTH];
    int  cmd;
@@ -826,7 +822,7 @@ void do_olc( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing area_data. */
-void do_aedit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_aedit)
 {
    AREA_DATA *pArea;
    int value;
@@ -876,7 +872,7 @@ void do_aedit( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing room_index_data. */
-void do_redit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_redit)
 {
     AREA_DATA *pArea;
     ROOM_INDEX_DATA *pRoom;
@@ -980,7 +976,7 @@ void do_redit( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing obj_index_data. */
-void do_oedit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_oedit)
 {
    OBJ_INDEX_DATA *pObj;
    AREA_DATA *pArea;
@@ -1078,7 +1074,7 @@ void do_oedit( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing mob_index_data. */
-void do_medit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_medit)
 {
    MOB_INDEX_DATA *pMob;
    AREA_DATA *pArea;
@@ -1493,7 +1489,7 @@ bool can_delete_reset_msg( CHAR_DATA *ch, RESET_DATA *reset )
 
 /* now the real stuff goes smoothly ;) */
 
-void do_resets( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_resets)
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -1526,7 +1522,7 @@ void do_resets( CHAR_DATA *ch, char *argument )
    */
    if ( arg1[0] == '\0' )
    {
-       do_rlook(ch);
+       do_rlook(ch, "");
    }
    
    clone_warning( ch, ch->in_room->area );
@@ -1748,15 +1744,14 @@ void do_resets( CHAR_DATA *ch, char *argument )
 }
 
 /* Help Editor - kermit 1/98 */
-void hedit( CHAR_DATA *ch, char *argument)
+void hedit( CHAR_DATA *ch, const char *argument )
 {
    char command[MIL];
    char arg[MIL];
    int cmd;
    
-   smash_tilde(argument);
-   strcpy(arg, argument);
-   argument = one_argument( argument, command);
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument(arg, command);
    
    /* This was our bug. *bonk Kermit* -BC
    if (ch->pcdata->security < 9)
@@ -1794,11 +1789,8 @@ void hedit( CHAR_DATA *ch, char *argument)
    return;    
 }
 
-/* defined in act_info.c */
-HELP_DATA* find_help_data( CHAR_DATA *ch, char *argument, BUFFER *output );
-
 /* Help Editor - kermit 1/98 */
-void do_hedit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hedit)
 {
    HELP_DATA *pHelp;
    BUFFER *output;

@@ -27,6 +27,7 @@
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include "merc.h"
 #include "tables.h"

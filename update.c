@@ -40,11 +40,15 @@
 #include "olc.h"
 #include "mob_stats.h"
 #include "lua_scripting.h"
+#include "lua_arclib.h"
 #include "mudconfig.h"
+#include "warfare.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
 DECLARE_DO_FUN(do_morph     );
+DECLARE_DO_FUN(do_flee      );
+DECLARE_DO_FUN(do_stand     );
 
 /*
  * Local functions.
@@ -52,24 +56,24 @@ DECLARE_DO_FUN(do_morph     );
 void affect_update( CHAR_DATA *ch );
 void qset_update( CHAR_DATA *ch );
 bool check_drown args((CHAR_DATA *ch));
-bool    check_social    args( ( CHAR_DATA *ch, char *command, char *argument ) );
-bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 int hit_gain    args( ( CHAR_DATA *ch ) );
 int mana_gain   args( ( CHAR_DATA *ch ) );
 int move_gain   args( ( CHAR_DATA *ch ) );
 void    mobile_update   args( ( void ) );
 void    mobile_timer_update args( ( void ) );
-void    weather_update  args( ( void ) );
 void    char_update args( ( void ) );
 void    obj_update  args( ( void ) );
 void    aggr_update args( ( void ) );
 void    quest_update    args( ( void ) ); /* Vassago - quest.c */
 void    sort_bounty   args( (SORT_TABLE *sort) );
-void  raw_kill      args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
-bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace );
 void penalty_update (CHAR_DATA *ch);
 ROOM_INDEX_DATA *find_jail_room(void);
 void    msdp_update args( ( void ) );
+void create_haunt( CHAR_DATA *ch );
+void check_beast_mastery( CHAR_DATA *ch );
+void validate_all();
+void check_clan_align( CHAR_DATA *gch );
+void check_equipment_align( CHAR_DATA *gch );
 
 
 /* used for saving */
@@ -164,7 +168,7 @@ void gain_exp( CHAR_DATA *ch, int gain_base)
     if ( IS_NPC(ch) || IS_HERO(ch) )
         return;
 
-    if ( IS_SET(ch->act,PLR_NOEXP) && gain > 0 )
+    if ( IS_SET(ch->act,PLR_NOEXP) && gain_base > 0 )
         return;
 
     if ( cfg_enable_exp_mult && gain_base > 0)
@@ -359,7 +363,6 @@ int hit_gain( CHAR_DATA *ch )
 {
     int gain;
     int ratio;
-    int bonus;
 
     if ( ch->in_room == NULL )
         return 0;
@@ -826,7 +829,6 @@ void mobile_special_update( void )
 {
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
-    bool success;
 
     /* only one last_mprog message for better performance */
     sprintf( last_mprog, "mobile_special_update" );
@@ -1269,12 +1271,7 @@ void char_update( void )
 {   
     static int curr_tick=0;
     CHAR_DATA *ch;
-    CHAR_DATA *ch_quit;
     bool healmessage;
-    char buf[MSL];
-    static bool hour_update = TRUE;
-
-    ch_quit = NULL;
 
     /* update save counter */
     save_number++;
@@ -1732,13 +1729,11 @@ send_to_char( msg, rch );
 
 void qset_update( CHAR_DATA *ch )
 {
-    QUEST_DATA *qdata, *last;
-
-    int id, status, timer;
+    QUEST_DATA *qdata;
 
     if ( ch == NULL )
     {
-        bug( "qset_update: NULL character given for quest %d", id );
+        bugf( "qset_update: NULL character given" );
         return;
     }
 
@@ -2055,7 +2050,7 @@ void obj_update( void )
         }
 
         CHAR_DATA *rch;
-        char *message;
+        const char *message = "";
 
         if (obj->must_extract)
             continue;
@@ -2700,7 +2695,7 @@ void explode(OBJ_DATA *obj)
 
     if ( obj->carried_by == NULL )
     {
-        if (obj && (room = get_obj_room(obj)))
+        if ( (room = get_obj_room(obj)) )
             to = room->people;
 
         if (to)
@@ -3277,7 +3272,7 @@ void validate_all()
             desc_from_descriptor_list(desc);
             continue;
         }
-        if ( dch = desc->character )
+        if ( (dch = desc->character) )
         {
             if ( !valid_CH(dch) )
             {

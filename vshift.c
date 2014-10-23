@@ -17,6 +17,9 @@
 
 extern bool exits_fixed;
 
+/* local functions */
+void shift_prog_list( PROG_LIST *list );
+
 /* variables indicating the vnum shift and vnum range to be shifted
  */
 static int vnum_shift = 0;
@@ -40,14 +43,13 @@ int shift( int vnum )
 bool range_is_free( int min_vnum, int max_vnum )
 {
     AREA_DATA *pArea;
-    int i;
-
+    
     if ( min_vnum < 1 )
-	return FALSE;
-
+        return FALSE;
+    
     for ( pArea = area_first; pArea; pArea = pArea->next )
-	if ( pArea->max_vnum >= min_vnum && pArea->min_vnum <= max_vnum )
-	    return FALSE;
+        if ( pArea->max_vnum >= min_vnum && pArea->min_vnum <= max_vnum )
+            return FALSE;
 
     return TRUE;
 }
@@ -378,7 +380,7 @@ void shift_area( AREA_DATA *area, int shift, bool area_only )
         shift_prog_list( area->aprogs );
 }
 
-void do_ashift( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_ashift)
 {
     char buf[MSL];
     char arg1[MIL];
@@ -442,7 +444,7 @@ void do_ashift( CHAR_DATA *ch, char *argument )
 /* some stuff for changing absolute into relative vnums */
 
 /* replaces absolute vnums by relative vnums in given string */
-char* rel_string( char *str, int min_vnum, int max_vnum )
+char* rel_string( const char *str, int min_vnum, int max_vnum )
 {
     static char rel_str[MSL];
     char last_word[MIL], c;
@@ -476,7 +478,7 @@ char* rel_string( char *str, int min_vnum, int max_vnum )
 		    value = atoi( last_word );
 		    if ( IS_BETWEEN(min_vnum, value, max_vnum) )
 			sprintf( last_word, "r%d", value - min_vnum );
-		    for ( i = 0; last_word[i] != NULL; i++ )
+		    for ( i = 0; last_word[i] != '\0'; i++ )
 			rel_str[rel_index++] = last_word[i];
 		    lw_index = 0;
 		}
@@ -576,7 +578,7 @@ void rel_area( AREA_DATA *area )
     SET_BIT( area->area_flags, AREA_CHANGED );
 }
 
-void do_rvnum( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rvnum)
 {
     char buf[MSL];
     char arg1[MIL];

@@ -15,8 +15,7 @@
  * A general purpose percentage trigger. Checks if a random percentage
  * number is less than trigger phrase
  */
-bool ap_percent_trigger(
-        AREA_DATA *area, CHAR_DATA *ch1, int type)
+bool ap_percent_trigger(AREA_DATA *area, CHAR_DATA *ch1, int type)
 {
     if ( !HAS_ATRIG(area, type) )
         return TRUE;

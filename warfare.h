@@ -19,20 +19,22 @@ typedef struct war_data WAR_DATA;
 
 extern WAR_DATA war;
 
-void do_startwar( CHAR_DATA *ch, char *argument );
-void do_stopwar( CHAR_DATA *ch, char *argument );
-void do_combat( CHAR_DATA *ch, char *argument );
-void do_warstatus( CHAR_DATA *ch, char *argument );
+DECLARE_DO_FUN(do_startwar);
+DECLARE_DO_FUN(do_stopwar);
+DECLARE_DO_FUN(do_combat);
+DECLARE_DO_FUN(do_warstatus);
+DECLARE_DO_FUN(do_warsit);
+DECLARE_DO_FUN(do_nowar);
+
 void war_update( void );
 void warfare args( ( char *argument ) );
-void do_nowar( CHAR_DATA *ch, char *argument );
 void add_war_kills( CHAR_DATA *ch );
-void do_warsit( CHAR_DATA *ch, char *argument );
 void check_war_win( void );
 void war_remove( CHAR_DATA *ch, bool killed );
 bool is_same_team( CHAR_DATA *ch1, CHAR_DATA *ch2 );
 void war_end( bool success );
 bool in_religion_war( CHAR_DATA *ch );
+void proc_startwar( CHAR_DATA *ch, const char *argument, bool pay );
 
 /* Warfare system definitions - Viper */
 #define ARMAGEDDON_WAR  0

@@ -8,9 +8,6 @@
 #include <time.h>
 #include "merc.h"
 
-void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
-bool is_affect_cap_hard( int location );
-
 struct enchantment_type
 {
     int apply;
@@ -98,7 +95,6 @@ int get_enchant_chance( OBJ_DATA *obj, int level )
  */
 int get_enchant_ops( OBJ_DATA *obj, int level )
 {
-    AFFECT_DATA *aff;
     int ops_left, fail;
 
     /* check for failure */
@@ -120,7 +116,9 @@ int get_enchant_ops( OBJ_DATA *obj, int level )
 /* enchants 'random' flagged objects */
 void check_enchant_obj( OBJ_DATA *obj )
 {
-    if ( obj == NULL || !IS_OBJ_STAT(obj, ITEM_RANDOM) 
+    if ( obj == NULL )
+        return;
+    if ( !IS_OBJ_STAT(obj, ITEM_RANDOM) 
       && !IS_OBJ_STAT(obj, ITEM_RANDOM_PHYSICAL) 
       && !IS_OBJ_STAT(obj, ITEM_RANDOM_CASTER))
         return;

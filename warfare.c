@@ -20,8 +20,6 @@
 DECLARE_DO_FUN(do_restore);
 DECLARE_DO_FUN(do_look);
 
-void proc_startwar( CHAR_DATA *ch, char *argument, bool pay );
-
 char * war_list[] =
 {
     "{rArmageddon{6",
@@ -41,7 +39,7 @@ long last_war_time = 0;
 
 long auto_war_time = 0;
 
-void do_startwar( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_startwar)
 {
     proc_startwar( ch, argument, FALSE );
 }
@@ -135,7 +133,7 @@ void auto_war(void)
     
 }
 
-void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
+void proc_startwar( CHAR_DATA *ch, const char *argument, bool pay )
 {
     char buf[MSL];
     char arg1[MIL], arg2[MIL], arg3[MIL];
@@ -267,7 +265,7 @@ void proc_startwar( CHAR_DATA *ch, char *argument, bool pay )
     return;
 }
 
-void do_stopwar( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stopwar)
 {
     if ( war.on == TRUE )
     {
@@ -284,7 +282,7 @@ void do_stopwar( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_combat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_combat)
 {
     ROOM_INDEX_DATA *location;
     char buf[MSL];
@@ -389,7 +387,7 @@ void return_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *default_room )
         char_to_room(ch, default_room);
 }
 
-void do_warstatus( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_warstatus)
 {
     char buf[MSL];
     BUFFER *output;
@@ -400,7 +398,7 @@ void do_warstatus( CHAR_DATA *ch, char *argument )
 	send_to_char( "There is no war going on currently.\n\r", ch );
 	if( last_war_time > 0 )
 	{
-            sprintf( buf, "The last war started %d minutes ago.\n\r", (current_time - last_war_time)/60 );
+            sprintf( buf, "The last war started %ld minutes ago.\n\r", (current_time - last_war_time)/60 );
 	    send_to_char( buf, ch );
 	}
 	return;
@@ -430,7 +428,7 @@ void do_warstatus( CHAR_DATA *ch, char *argument )
 
 	if( last_war_time > 0 )
 	{
-            sprintf( buf, "{RThe war began %d minutes ago.{x", (current_time - last_war_time)/60 );
+            sprintf( buf, "{RThe war began %ld minutes ago.{x", (current_time - last_war_time)/60 );
 	    add_buf( output, center(buf,65,' ') );
             add_buf( output, "\n\r" );
 	}
@@ -454,7 +452,6 @@ void war_update( void )
     char buf[MSL];
     DESCRIPTOR_DATA *d;
     ROOM_INDEX_DATA *random;
-    BUFFER *output;
     int count = 0;
     
     if (current_time > auto_war_time && war.on == FALSE)
@@ -463,7 +460,6 @@ void war_update( void )
     if (war.on == FALSE)
         return;
     
-    output = new_buf();
     if ( war.war_time_left > 0 )
     {
         sprintf( buf, "There %s %d tick%s left to join in the war.\n\r",
@@ -558,7 +554,7 @@ void warfare( char *argument )
     return;
 }
 
-void do_nowar( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_nowar)
 {
     if ( IS_SET( ch->comm, COMM_NOWAR ) )
     {
@@ -582,8 +578,8 @@ void war_end( bool success )
     int points;
     char buf[80];
     
-    if (points = war.reward/UMAX(war.combatants, 1))
-	sprintf(buf, "You are awarded %d quest points.\n\r", points);
+    if ( (points = war.reward/UMAX(war.combatants, 1)) )
+        sprintf(buf, "You are awarded %d quest points.\n\r", points);
 
     if ( success )
     {
@@ -690,7 +686,7 @@ void add_war_kills( CHAR_DATA *ch )
     return;
 }
 
-void do_warsit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_warsit)
 {
     DESCRIPTOR_DATA *d;
     BUFFER *output;
@@ -716,7 +712,7 @@ void do_warsit( CHAR_DATA *ch, char *argument )
     add_buf( output, buf );
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-	char *god_name;
+        const char *god_name;
 
         if ( !(d->connected == CON_PLAYING || IS_WRITING_NOTE( d->connected ))
             || d->character == NULL

@@ -27,7 +27,7 @@ void flag_remove( tflag f, int bit )
 	f[bit / 8] &= ~(1 << (bit % 8));
 }
 
-bool flag_is_set( tflag f, int bit )
+bool flag_is_set( const tflag f, int bit )
 {
     if ( !BIT_IN_RANGE( bit ) )
     {
@@ -52,7 +52,7 @@ void flag_clear( tflag f )
 	f[i] = 0;
 }
 
-bool flag_is_empty( tflag f )
+bool flag_is_empty( const tflag f )
 {
     int i;
     for ( i = 0; i < FLAG_MAX_BYTE; i++ )
@@ -61,7 +61,7 @@ bool flag_is_empty( tflag f )
     return TRUE;
 }
 
-bool flag_equal( tflag f1, tflag f2 )
+bool flag_equal( const tflag f1, const tflag f2 )
 {
     int i;
     for ( i = 0; i < FLAG_MAX_BYTE; i++ )
@@ -70,21 +70,21 @@ bool flag_equal( tflag f1, tflag f2 )
     return TRUE;
 }
 
-void flag_copy( tflag target, tflag source )
+void flag_copy( tflag target, const tflag source )
 {
     int i;
     for ( i = 0; i < FLAG_MAX_BYTE; i++ )
 	target[i] = source[i];
 }
 
-void flag_set_field( tflag f, tflag f_set )
+void flag_set_field( tflag f, const tflag f_set )
 {
     int i;
     for ( i = 0; i < FLAG_MAX_BYTE; i++ )
 	f[i] |= f_set[i];
 } 
 
-void flag_remove_field( tflag f, tflag f_rem )
+void flag_remove_field( tflag f, const tflag f_rem )
 {
     int i;
     for ( i = 0; i < FLAG_MAX_BYTE; i++ )
@@ -157,16 +157,18 @@ int flag_convert_old( long vector )
     flag_set_vector( buf, vector );
 
     for ( i = 1; i < VSIZE; i++ )
-	if ( flag_is_set(buf, i) )
-	    if ( aff2_fix )
-		return i + 32;
-	    else
-		return i;
+        if ( flag_is_set(buf, i) )
+        {
+            if ( aff2_fix )
+                return i + 32;
+            else
+                return i;
+        }
 
     return 0;
 }
 
-char* print_tflag( tflag f )
+char* print_tflag( const tflag f )
 {
     static char buf[MSL];
     char nr_buf[10];
