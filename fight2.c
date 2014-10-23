@@ -4596,4 +4596,6 @@ DEF_DO_FUN(do_gaze)
 
     check_killer(ch, victim);
     start_combat(ch, victim);
+    if ( per_chance(skill) )
+        check_petrify(ch, victim);
 }
