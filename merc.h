@@ -4185,6 +4185,9 @@ void    mail_notify   args( ( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board
 void    tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 void    act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 const char* ch_name( CHAR_DATA *ch );
+void    gui_login_setup( CHAR_DATA *ch );
+void    open_imagewin_tag( CHAR_DATA *ch );
+void    close_imagewin_tag( CHAR_DATA *ch );
 
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
@@ -4735,6 +4738,7 @@ const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );
 int name_sorted_group_table( int sequence );
 int name_sorted_skill_table( int sequence );
+void show_image_to_char( CHAR_DATA *ch, const char *txt );
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
