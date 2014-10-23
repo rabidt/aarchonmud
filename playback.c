@@ -170,7 +170,7 @@ void log_chan( CHAR_DATA * ch, const char *text , sh_int channel )
 	
     entry->text = str_dup(text) ;
     entry->channel = channel;
-    entry->timestamp= str_dup(ctime( &current_time ));
+    entry->timestamp = trim_realloc(str_dup(ctime(&current_time)));
 
     if (!IS_NPC(ch))
       sprintf(buf,"%s%s", ch->pcdata->pre_title,ch->name);
