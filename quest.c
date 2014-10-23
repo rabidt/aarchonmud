@@ -1818,7 +1818,7 @@ void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit )
 	{
 	    qdata->status = status;
             qdata->timer = timer; /* Number of hours before it hits 0 */
-            qdata->limit = current_time + 55; /* 1 minute before timer will drop 1 point. */
+            qdata->limit = current_time + 3600; /* 1 hour before timer will drop 1 point. */
 	    return;
 	}
 

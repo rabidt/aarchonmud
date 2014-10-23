@@ -1105,6 +1105,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     if ( !can_attack(ch) )
         return;
     
+    check_killer( ch, victim );
     if ( !start_combat(ch, victim) )
         return;
     
@@ -1127,7 +1128,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     second = get_eq_char ( ch, WEAR_SECONDARY );
     
     check_stance(ch);
-    check_killer( ch, victim );
     
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
@@ -1841,7 +1841,7 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
 bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 {
     OBJ_DATA *wield;
-    int dam, dam_type, sn, skill, offence_cost;
+    int dam, dam_type, sn, skill, offence_cost = 0;
     bool result, arrow_used = FALSE, offence = FALSE;
     /* prevent attack chains through re-retributions */
     static bool is_retribute = FALSE;
@@ -4865,6 +4865,38 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
       set_pos( ch, POS_FIGHTING );
 }
 
+bool check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    int skill = get_skill(victim, gsn_quick_draw);
+    
+    if ( skill == 0 || !check_see_combat(victim, ch) )
+        return FALSE;
+
+    int chance = skill * 2/3;
+    chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_DEX)) / 6;
+    if ( get_weapon_sn(victim) != gsn_gun )
+        chance /= 2;
+    
+    if ( !per_chance(chance) )
+    {
+        check_improve(victim, gsn_quick_draw, FALSE, 1);
+        return FALSE;
+    }
+    
+    act("You get the quick draw on $n!", ch, NULL, victim, TO_VICT);
+    act("$N gets the quick draw on you!", ch, NULL, victim, TO_CHAR);
+    act("$N gets the quick draw on $n!", ch, NULL, victim, TO_NOTVICT);  
+    check_improve(victim, gsn_quick_draw, TRUE, 1);
+    
+    // make sure ch is fighting victim to avoid another quickdraw triggering
+    // e.g. when casting charm spell, we don't want to start a fight needlessly,
+    if ( !ch->fighting )
+        set_fighting_new(ch, victim, FALSE);
+    multi_hit(victim, ch, TYPE_UNDEFINED);
+    
+    return TRUE;
+}
+
 bool start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     attack_affect_strip(ch, victim);
@@ -4876,7 +4908,13 @@ bool start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
             return FALSE;
     }
     if ( !victim->fighting )
+    {
         set_fighting_new(victim, ch, FALSE);
+        check_quick_draw(ch, victim);
+        // ch may have died from quickdraw
+        if ( ch->fighting != victim )
+            return FALSE;
+    }
     return TRUE;
 }
 
@@ -6652,28 +6690,6 @@ DEF_DO_FUN(do_murder)
     if ( was_fighting || !ch->fighting )
         return;
     
-    if ((get_skill(victim, gsn_quick_draw)) != 0 && IS_AWAKE(victim))
-    {
-        chance = (2*get_skill(victim, gsn_quick_draw)/3);
-        chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_AGI)) / 6;
-	if (get_eq_char(ch, WEAR_WIELD)==NULL)
-	    chance = 0;
-        else if (get_weapon_sn(victim) != gsn_gun)
-	    chance /= 2;
-        if (number_percent() < chance)
-        {
-                act("You get the quick draw on $n!", ch, NULL, victim, TO_VICT);
-                act("$N gets the quick draw on you!", ch, NULL, victim, TO_CHAR);
-                act("$N gets the quick draw on $n!", ch, NULL, victim, TO_NOTVICT);  
-                check_improve(victim, gsn_quick_draw, TRUE, 1);
-		check_killer(ch, victim);
-                multi_hit(victim, ch, TYPE_UNDEFINED);
-		if (victim->fighting==ch)
-		    multi_hit(victim, ch, TYPE_UNDEFINED);
-		return;
-        } 
-    } 
-
     if ((chance= get_skill(victim, gsn_avoidance))!=0 && IS_AWAKE(victim))
     {
         chance += get_curr_stat(victim,STAT_AGI)/8;
