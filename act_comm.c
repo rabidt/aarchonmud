@@ -48,6 +48,8 @@ void smash_beep_n_blink( char *str );
 void quit_char( CHAR_DATA *ch );
 void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim );
 void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader );
+void open_chat_tag( CHAR_DATA *ch );
+void close_chat_tag( CHAR_DATA *ch );
 
 #define ALTER_COLOUR( type ) \
 if( !str_prefix( argument, "red" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = RED;} \
