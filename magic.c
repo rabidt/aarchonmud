@@ -1363,6 +1363,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             attack_affect_strip(ch, victim);
             if ( !ch->fighting && check_kill_trigger(ch, victim) )
                 return;
+            if ( check_quick_draw(ch, victim) && IS_DEAD(ch) )
+                return;
         }
 
         (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);

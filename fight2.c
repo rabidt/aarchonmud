@@ -1591,8 +1591,8 @@ DEF_DO_FUN(do_disarm)
         }
         
     // starting a fight if needed, regardless of success or failure
+    check_killer(ch, victim);
     start_combat(ch, victim);
-    check_killer(ch,victim);
 
         /* find weapon skills */
         ch_weapon = get_weapon_skill(ch,get_weapon_sn(ch));
