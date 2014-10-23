@@ -1126,23 +1126,25 @@ bool is_number ( const char *arg )
 
 int split_argument( const char *argument, char *arg, char split_char )
 {
-    const char *pdot = strchr(argument, split_char);
-    if ( pdot == NULL )
+    const char *psplit = strchr(argument, split_char);
+    if ( psplit == NULL )
     {
         strcpy(arg, argument);
         return 1;
     }
+    int split_idx = psplit - argument;
     
-    // valid number up till '.'?
+    // valid number up till split_char?
     char buf[MIL];
-    strncpy(buf, argument, pdot - argument);
+    strncpy(buf, argument, split_idx);
+    buf[split_idx] = '\0';
     if ( !is_number(buf) )
     {
         strcpy(arg, argument);
         return 1;
     }
     
-    strcpy(arg, pdot+1);
+    strcpy(arg, psplit+1);
     return atoi(buf);
 }
 
