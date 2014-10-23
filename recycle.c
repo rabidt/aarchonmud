@@ -35,8 +35,6 @@
 #include "recycle.h"
 #include "lua_arclib.h"
 
-void free_quest(QUEST_DATA *quest);
-
 /* stuff for recyling notes */
 NOTE_DATA *note_free;
 
@@ -777,7 +775,7 @@ void free_buf(BUFFER *buffer)
 }
 
 
-bool add_buf(BUFFER *buffer, char *string)
+bool add_buf(BUFFER *buffer, const char *string)
 {
 	int len;
 	char *oldstr;

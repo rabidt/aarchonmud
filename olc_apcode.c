@@ -13,8 +13,9 @@
 #include "olc.h"
 #include "recycle.h"
 #include "lua_scripting.h"
+#include "lua_main.h"
 
-#define APEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
+#define APEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
 const struct olc_cmd_type apedit_table[] =
 {
@@ -29,7 +30,7 @@ const struct olc_cmd_type apedit_table[] =
    {  NULL,       0              }
 };
 
-void apedit( CHAR_DATA *ch, char *argument)
+void apedit( CHAR_DATA *ch, const char *argument)
 {
     PROG_CODE *pAcode;
     char arg[MAX_INPUT_LENGTH];
@@ -37,9 +38,8 @@ void apedit( CHAR_DATA *ch, char *argument)
     int cmd;
     AREA_DATA *ad;
 
-    smash_tilde(argument);
-    strcpy(arg, argument);
-    argument = one_argument( argument, command);
+    smash_tilde_cpy(arg, argument);
+    argument = one_argument(arg, command);
 
     EDIT_APCODE(ch, pAcode);
     if (!pAcode)
@@ -100,7 +100,7 @@ void apedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_aprun( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_aprun)
 {
     if ( IS_NPC(ch) )
         return;
@@ -108,7 +108,6 @@ void do_aprun( CHAR_DATA *ch, char *argument)
     AREA_DATA *area;
     int vnum=0;
     char arg[MSL];
-    char arg2[MSL];
     PROG_CODE *pAcode;
     bool result=FALSE;
 
@@ -164,7 +163,7 @@ void do_aprun( CHAR_DATA *ch, char *argument)
 
 }
 
-void do_apedit(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_apedit)
 {
     PROG_CODE *pAcode;
     char command[MAX_INPUT_LENGTH];
@@ -309,6 +308,7 @@ APEDIT (apedit_delete)
         }
         last=curr;
     }
+    return FALSE;
 }
 
 APEDIT (apedit_create)
@@ -399,35 +399,30 @@ APEDIT(apedit_security)
         else
         {
             ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
-            return;
+            return FALSE;
         }
     }
 
     if (newsec == pAcode->security)
     {
         ptc(ch, "Security is already at %d.\n\r", newsec );
-        return;
+        return FALSE;
     }
     else if (newsec > ch->pcdata->security )
     {
         ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
                 ch->pcdata->security, newsec);
-        return;
+        return FALSE;
     }
 
     pAcode->security=newsec;
     ptc(ch, "Security for %d updated to %d.\n\r",
             pAcode->vnum, pAcode->security);
-
+    return TRUE;
 }
 
 void fix_aprog_areas( CHAR_DATA *ch, PROG_CODE *pAcode )
 {
-    PROG_LIST *apl;
-    int hash;
-    char buf[MSL];
-    AREA_DATA *area;
-
     check_aprog( g_mud_LS, pAcode->vnum, pAcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pAcode->vnum);
 

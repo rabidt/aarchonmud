@@ -43,23 +43,17 @@
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_recall    );
+DECLARE_DO_FUN(do_flee      );
+DECLARE_DO_FUN(do_cast      );
 
 /*
  * Local functions.
  */
 void    say_spell   args( ( CHAR_DATA *ch, int sn ) );
-
-bool can_cast_transport( CHAR_DATA *ch );
-void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target );
+int get_dagger_focus( CHAR_DATA *ch );
 
 /* imported functions */
-bool    remove_obj  args( ( CHAR_DATA *ch, int iWear, bool fReplace ) );
-void    wear_obj    args( ( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace ) );
-void    do_flee     args( ( CHAR_DATA *ch, char *argument ) );
 bool check_spell_disabled args( (const struct skill_type *command) );
-void    dam_message     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam,
-            int dt, bool immune ) );
-bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 RELIGION_DATA *get_religion args( ( CHAR_DATA *ch ) );
 char* wear_location_info( int pos );
 
@@ -174,7 +168,7 @@ void say_spell( CHAR_DATA *ch, int sn )
     char buf  [MAX_STRING_LENGTH];
     char buf2 [MAX_STRING_LENGTH];
     CHAR_DATA *rch;
-    char *pName;
+    const char *pName;
     int iSyl;
     int length;
 
@@ -450,8 +444,6 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
 bool saves_dispel( int dis_level, int spell_level, int duration )
 {
-    int save;
-
     /* very hard to dispel permanent effects */
     if ( duration == -1 && number_bits(1) )
         return TRUE;
@@ -582,19 +574,17 @@ bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 
 int mana_cost (CHAR_DATA *ch, int sn, int skill)
 {
-    int mana, min_level, max_level;
-
-    mana = skill_table[sn].min_mana;
-    mana = (200-skill)*mana/100;
+    int mana = skill_table[sn].min_mana;
     
+    mana = mana * (200-skill) / 100;
     mana = mastery_adjust_cost(mana, get_mastery(ch, sn));
 
     return mana;
 }
 
 /* returns wether a valid spell target was found */
-bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
-        int *target, CHAR_DATA **vo ) /* output */
+bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
+        int *target, void **vo ) /* output */
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -988,7 +978,7 @@ int meta_magic_sn( int meta )
 }
 
 // meta-magic casting functions
-void meta_magic_cast( CHAR_DATA *ch, char *meta_arg, char *argument )
+void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument )
 {
     tflag meta_flag;
     int i;
@@ -1029,7 +1019,7 @@ void meta_magic_cast( CHAR_DATA *ch, char *meta_arg, char *argument )
     flag_clear(meta_magic);
 }
 
-void do_mmcast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mmcast)
 {
     char arg1[MAX_INPUT_LENGTH];
 
@@ -1037,22 +1027,22 @@ void do_mmcast( CHAR_DATA *ch, char *argument )
     meta_magic_cast(ch, arg1, argument);
 }
 
-void do_ecast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_ecast)
 {
     meta_magic_cast(ch, "e", argument);
 }
 
-void do_pcast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pcast)
 {
     meta_magic_cast(ch, "p", argument);
 }
 
-void do_qcast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_qcast)
 {
     meta_magic_cast(ch, "q", argument);
 }
 
-void do_ccast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_ccast)
 {
     meta_magic_cast(ch, "c", argument);
 }
@@ -1170,7 +1160,7 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
          && victim->fighting == NULL && victim->position > POS_SLEEPING
          && !is_same_group(ch, victim) )
     {
-        set_fighting(victim, ch, FALSE);
+        set_fighting(victim, ch);
     }
 }
 
@@ -1202,8 +1192,8 @@ void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
         next_target = target->next_in_room;
         
         if ( target == victim
-            || offensive && is_safe_spell(ch, target, TRUE)
-            || must_see && !check_see(ch, target) )
+            || (offensive && is_safe_spell(ch, target, TRUE))
+            || (must_see && !check_see(ch, target)) )
             continue;
 
         if ( !offensive && !is_same_group(victim, target) )
@@ -1217,7 +1207,7 @@ void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 /*
  * The kludgy global is for spells who want more stuff from command line.
  */
-char *target_name = NULL;
+const char *target_name = NULL;
 bool was_obj_cast = FALSE;
 bool was_wish_cast = FALSE;
 
@@ -1332,9 +1322,9 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     }
     else if ( 2*number_percent() > (chance+100)
             || !meta_magic_concentration_check(ch)
-            || IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20)
-            || IS_AFFECTED(ch, AFF_CURSE) && per_chance(5)
-            || concentrate && !check_concentration(ch) )
+            || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
+            || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(5))
+            || (concentrate && !check_concentration(ch)) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
         check_improve(ch,sn,FALSE,2);
@@ -1388,7 +1378,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     return;
 }
 
-void do_cast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_cast)
 {
     char arg1[MAX_INPUT_LENGTH];
     int sn, chance;
@@ -1512,10 +1502,10 @@ void show_wishes( CHAR_DATA *ch )
 }
 
 // Djinn wish casting
-void do_wish( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wish)
 {
     char arg1[MAX_INPUT_LENGTH];
-    int sn, chance, class;
+    int sn, chance;
 
     target_name = one_argument( argument, arg1 );
 
@@ -1566,9 +1556,8 @@ void do_wish( CHAR_DATA *ch, char *argument )
 /*
  * Cast spells at targets using a magical object.
  */
-bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg )
+bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg )
 {
-    CHAR_DATA *victim;
     void *vo;
     int target;
     int levelmod;
@@ -1595,7 +1584,7 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg 
 
     if ( level > 1 )
     {
-        if ( levelmod = get_skill(ch, gsn_arcane_lore) )
+        if ( (levelmod = get_skill(ch, gsn_arcane_lore)) )
             check_improve(ch, gsn_arcane_lore, TRUE, 3);
         level = level * (900 + levelmod) / 1000;
     }
@@ -1649,7 +1638,7 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, char *arg 
     {
         attack_affect_strip(ch, (CHAR_DATA*)vo);
         if ( !ch->fighting && check_kill_trigger(ch, (CHAR_DATA*)vo) )
-            return;
+            return FALSE;
     }        
 
     was_obj_cast = TRUE;
@@ -2019,7 +2008,6 @@ bool is_violent( CHAR_DATA *vch, CHAR_DATA *ch )
 void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *vch;
-    CHAR_DATA *attacker;
     AFFECT_DATA af;
     bool conflict = FALSE;
 
@@ -2128,7 +2116,7 @@ void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
     /* we kill first arg (target), if there's more args then
        they're trying to cancel a certain spell*/
-    char *arg = one_argument( target_name, NULL);
+    const char *arg = one_argument( target_name, NULL);
     if ( arg[0] != '\0' )
     {
         int sn = skill_lookup(arg);
@@ -2173,7 +2161,6 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
 {
     CHAR_DATA *next_vict;
     int curr_dam, dam;
-    bool found = TRUE;
     int per = 100;
 
     dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
@@ -2288,7 +2275,6 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
-    CHAR_DATA *check;
     int mlevel;
     bool sex_bonus;
 
@@ -2368,7 +2354,6 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 void spell_chill_touch( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    AFFECT_DATA af;
     int dam;
 
     if ( check_hit(ch, victim, sn, DAM_COLD, 100) )
@@ -2484,8 +2469,7 @@ void spell_create_bomb( int sn, int level, CHAR_DATA *ch, void *vo, int target )
         act( "$n has created $p.", ch, bomb, NULL, TO_ROOM );
         act( "You create $p.", ch, bomb, NULL, TO_CHAR );
         bomb->timer = -1;
-        bomb->value[0] = 
-            bomb->value[0] = UMAX(1, level/10) + 3;
+        bomb->value[0] = UMAX(1, level/10) + 3;
         bomb->level = level;
         obj_to_char(bomb,ch);
     }
@@ -2866,7 +2850,7 @@ void spell_demonfire(int sn, int level, CHAR_DATA *ch, void *vo,int target)
 void spell_angel_smite(int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int dam, align;
+    int dam;
 
     if ( !IS_NPC(ch) && !IS_GOOD(ch) )
     {
@@ -3062,7 +3046,7 @@ void spell_dispel_evil( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
-    char *god_name;
+    const char *god_name;
 
     /* Neutral victims are not affected. */
     if ( IS_NEUTRAL(victim) )
@@ -3095,7 +3079,7 @@ void spell_dispel_good( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
-    char *god_name;
+    const char *god_name;
 
     /* Neutral victims are not affected. */
     if ( IS_NEUTRAL(victim) )
@@ -3129,7 +3113,6 @@ void spell_dispel_good( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    bool found = FALSE;
 
     if (IS_SET(victim->imm_flags, IMM_MAGIC))
     {
@@ -3197,7 +3180,7 @@ void spell_enchant_arrow( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     char buf[MAX_STRING_LENGTH];
-    char *arg;
+    const char *arg;
     int nr, mana;
     int type;
 
@@ -3303,7 +3286,8 @@ void spell_enchant_arrow( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
-    char buf[MAX_STRING_LENGTH], *arg;
+    char buf[MAX_STRING_LENGTH];
+    const char *arg;
     
     if (obj->item_type != ITEM_ARMOR)
     {
@@ -3320,7 +3304,8 @@ void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target
 void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
-    char buf[MAX_STRING_LENGTH], *arg;
+    char buf[MAX_STRING_LENGTH];
+    const char *arg;
     
     if (obj->item_type != ITEM_WEAPON)
     {
@@ -5354,7 +5339,7 @@ void spell_summon( int sn, int level, CHAR_DATA *ch, void *vo,int target )
         send_to_char( "Summon yourself?\n\r", ch );
         return;
     }
-    if ( !IS_NPC(ch) && IS_TAG(ch) 
+    if ( IS_TAG(ch)
             || IS_REMORT(ch)
             || !can_move_room(victim, ch->in_room, FALSE)
             || IS_SET(ch->in_room->room_flags, ROOM_NO_TELEPORT)
@@ -5714,7 +5699,7 @@ int check_cha_follow( CHAR_DATA *ch, int required )
     return UMAX(0, max - charmed);
 }
 
-void do_scribe( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_scribe)
 {
     int skill, sn, spell_skill, cost, level;
     char arg1[MSL], arg2[MSL], buf[MSL], buf2[MSL], buf3[MSL];

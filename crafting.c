@@ -25,6 +25,7 @@ void craft_obj_roll_physical( OBJ_DATA *obj, int ops );
 void add_craft_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
 void craft_obj_physical( OBJ_DATA *obj, int ops );
 void craft_obj_stat_physical( OBJ_DATA *obj, int ops );
+void craft_obj_caster( OBJ_DATA *obj, int ops );
 
 struct materials_type
 {
@@ -118,7 +119,7 @@ struct crafting_type crafting_table[] =
 
 
 
-void do_supplies( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_supplies)
 {
     int i;
     char buf[MSL], *rarity;
@@ -146,7 +147,7 @@ void do_supplies( CHAR_DATA *ch, char *argument )
 /* Updated November 2012 - Includes a second argument so players can specifiy
 whether or not they want Physical or Mental stats - Astark */
 
-void do_craft( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_craft)
 {
     int i, j, skill, craft, type;
     char buf[MSL];
@@ -272,11 +273,10 @@ void do_craft( CHAR_DATA *ch, char *argument )
 
 
 
-void do_extract( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_extract)
 {
-    int mtable, chance2, material, skill;
+    int mtable, material = 0, skill;
     OBJ_DATA *obj;
-    OBJ_INDEX_DATA *pObjIndex;
     OBJ_DATA *extracted;
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
@@ -337,16 +337,6 @@ void do_extract( CHAR_DATA *ch, char *argument)
         mtable += ((obj->level - 90) * 3);
         mtable += obj->pIndexData->diff_rating * 2;
     }
-
-    chance2 = rand() %100;
-
-    /* Used for verifying that the integers are working properly. Commented out on purpose 
-       sprintf( buf, "mtable = %d , chance2= %d.\n\r", mtable, chance2 ); 
-       send_to_char( buf, ch ); 
-
-     */
-
-
 
     /* Items level 90 and below can only make items rarity 0-1 */
     if (mtable <= 90)
@@ -442,7 +432,7 @@ void do_extract( CHAR_DATA *ch, char *argument)
 int get_craft_ops( OBJ_DATA *obj, int level )
 {
     AFFECT_DATA *aff;
-    int ops_left, fail, vnum;
+    int ops_left, fail;
 
     /* no enchanting of quest eq etc. */
     if ( obj == NULL
@@ -527,7 +517,6 @@ void add_craft_affect( OBJ_DATA *obj, AFFECT_DATA *aff )
 /* Section added for physical paramter */
 void craft_obj_physical( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA aff;
     int add;
 
     if ( obj == NULL || ops <= 0 )
@@ -548,7 +537,6 @@ void craft_obj_physical( OBJ_DATA *obj, int ops )
 void craft_obj_stat_physical( OBJ_DATA *obj, int ops )
 {
     AFFECT_DATA af;
-    AFFECT_DATA *aff;
     int add, total, max;
     
     af.where        = TO_OBJECT;
@@ -738,7 +726,6 @@ void add_craft_affect_physical( OBJ_DATA *obj, AFFECT_DATA *aff )
 /* Section added for caster parameter */
 void craft_obj_caster( OBJ_DATA *obj, int ops )
 {
-    AFFECT_DATA aff;
     int add;
 
     if ( obj == NULL || ops <= 0 )
@@ -760,7 +747,6 @@ void craft_obj_caster( OBJ_DATA *obj, int ops )
 void craft_obj_stat_caster( OBJ_DATA *obj, int ops )
 {
     AFFECT_DATA af;
-    AFFECT_DATA *aff;
     int add, total, max;
     
     af.where        = TO_OBJECT;

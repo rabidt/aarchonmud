@@ -25,6 +25,8 @@
 *	ROM license, in the file Rom24/doc/rom.license			   *
 ***************************************************************************/
 
+#ifndef TABLES_H
+#define TABLES_H
 
 /* other tables */
 extern const char* spell_target_names[];
@@ -140,3 +142,8 @@ extern  const   struct  penalty_type penalty_table[];
 extern  const   struct  pkgrade_type    pkgrade_table[];
 
 extern const ACHIEVEMENT achievement_table [];
+
+/* functions */
+bool is_settable( int flag, const struct flag_type *flag_table );
+
+#endif

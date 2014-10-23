@@ -34,4 +34,7 @@ struct spell_type
     sh_int  min_level;
     sh_int  max_level;
 };
+
+const struct spell_type* get_spell_list( CHAR_DATA *ch );
+
 #endif

@@ -182,7 +182,7 @@ OBJ_INDEX_DATA* tattoo_obj( int ID )
     return get_obj_index( tattoo_data_list[ID].vnum );
 }
 
-char* tattoo_desc( int ID )
+const char* tattoo_desc( int ID )
 {
     OBJ_INDEX_DATA *obj;
 
@@ -192,7 +192,7 @@ char* tattoo_desc( int ID )
 	return obj->short_descr;
 }
 
-char* tattoo_name( int ID )
+const char* tattoo_name( int ID )
 {
     OBJ_INDEX_DATA *obj;
 
@@ -213,7 +213,7 @@ int tattoo_cost( int ID )
     return tattoo_data_list[ID].cost;
 }
 
-int tattoo_id( char *name )
+int tattoo_id( const char *name )
 {
     OBJ_INDEX_DATA *obj;
     int ID;
@@ -423,7 +423,7 @@ void show_tattoo_loc( CHAR_DATA *ch )
 	}
 }
 
-void do_tattoo( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_tattoo)
 {
     char arg1[MIL];
     char arg2[MIL];
