@@ -2428,7 +2428,7 @@ DEF_DO_FUN(do_omni)
     BUFFER *output;
     DESCRIPTOR_DATA *d;
     int players = 0;
-    char *          state;
+    const char *state;
     char            login[100];
     char            idle[10];
     buf[0]    = '\0';
@@ -2445,54 +2445,51 @@ DEF_DO_FUN(do_omni)
     {
         CHAR_DATA *wch = ( d->original != NULL ) ? d->original : d->character;
         
-        if ( wch == NULL )
+        if ( wch == NULL || !can_see(ch, wch) )
             continue;
 
         players++;
                    
-        if ( wch && can_see( ch, wch ) )
+        /* NB: You may need to edit the CON_ values */
+        /* I updated to all current rom CON_ values -Silverhand */
+        switch( d->connected % MAX_CON_STATE)
         {
-            /* NB: You may need to edit the CON_ values */
-            /* I updated to all current rom CON_ values -Silverhand */
-            switch( d->connected % MAX_CON_STATE)
-            {
-            case CON_PLAYING:              state = "PLAYING ";    break;
-            case CON_GET_NAME:             state = "Get Name";    break;
-            case CON_GET_OLD_PASSWORD:     state = "Passwd  ";    break;
-            case CON_CONFIRM_NEW_NAME:     state = "New Nam ";    break;
-            case CON_GET_NEW_PASSWORD:     state = "New Pwd ";    break;
-            case CON_CONFIRM_NEW_PASSWORD: state = "Con Pwd ";    break;
-            case CON_GET_NEW_RACE:         state = "New Rac ";    break;
-            case CON_GET_NEW_SEX:          state = "New Sex ";    break;
-            case CON_GET_NEW_CLASS:        state = "New Cls ";    break;
-            case CON_GET_ALIGNMENT:        state = "New Aln ";    break;
-            case CON_DEFAULT_CHOICE:       state = "Default ";    break;
-            case CON_GET_CREATION_MODE:    state = "Cre Mod ";    break;
-            case CON_ROLL_STATS:           state = "Roll St ";    break;
-            case CON_GET_STAT_PRIORITY:    state = "Sta Pri ";    break;
-            case CON_NOTE_TO:              state = "Note To ";    break;
-            case CON_NOTE_SUBJECT:         state = "Note Sub";    break;
-            case CON_NOTE_EXPIRE:          state = "Note Exp";    break;
-            case CON_NOTE_TEXT:            state = "Note Txt";    break;
-            case CON_NOTE_FINISH:          state = "Note Fin";    break;
-            case CON_GEN_GROUPS:           state = " Custom ";    break;
-            case CON_PICK_WEAPON:          state = " Weapon ";    break;
-            case CON_READ_IMOTD:           state = " IMOTD  ";    break;
-            case CON_BREAK_CONNECT:        state = "LINKDEAD";    break;
-            case CON_READ_MOTD:            state = "  MOTD  ";    break;
-            case CON_GET_COLOUR:           state = " Colour?";    break;
-            default:                       state = "UNKNOWN!";    break;
-            }
-            
-            /* Format "login" value... */
-            strftime( login, 100, "%I:%M%p", localtime( &wch->logon ) );
-            
-            if ( wch->timer > 0 )
-                sprintf( idle, "%-4d", wch->timer );
-            else
-                sprintf( idle, "    " );
+        case CON_PLAYING:              state = "PLAYING ";    break;
+        case CON_GET_NAME:             state = "Get Name";    break;
+        case CON_GET_OLD_PASSWORD:     state = "Passwd  ";    break;
+        case CON_CONFIRM_NEW_NAME:     state = "New Nam ";    break;
+        case CON_GET_NEW_PASSWORD:     state = "New Pwd ";    break;
+        case CON_CONFIRM_NEW_PASSWORD: state = "Con Pwd ";    break;
+        case CON_GET_NEW_RACE:         state = "New Rac ";    break;
+        case CON_GET_NEW_SEX:          state = "New Sex ";    break;
+        case CON_GET_NEW_CLASS:        state = "New Cls ";    break;
+        case CON_GET_ALIGNMENT:        state = "New Aln ";    break;
+        case CON_DEFAULT_CHOICE:       state = "Default ";    break;
+        case CON_GET_CREATION_MODE:    state = "Cre Mod ";    break;
+        case CON_ROLL_STATS:           state = "Roll St ";    break;
+        case CON_GET_STAT_PRIORITY:    state = "Sta Pri ";    break;
+        case CON_NOTE_TO:              state = "Note To ";    break;
+        case CON_NOTE_SUBJECT:         state = "Note Sub";    break;
+        case CON_NOTE_EXPIRE:          state = "Note Exp";    break;
+        case CON_NOTE_TEXT:            state = "Note Txt";    break;
+        case CON_NOTE_FINISH:          state = "Note Fin";    break;
+        case CON_GEN_GROUPS:           state = " Custom ";    break;
+        case CON_PICK_WEAPON:          state = " Weapon ";    break;
+        case CON_READ_IMOTD:           state = " IMOTD  ";    break;
+        case CON_BREAK_CONNECT:        state = "LINKDEAD";    break;
+        case CON_READ_MOTD:            state = "  MOTD  ";    break;
+        case CON_GET_COLOUR:           state = " Colour?";    break;
+        default:                       state = "UNKNOWN!";    break;
         }
-          
+        
+        /* Format "login" value... */
+        strftime( login, 100, "%I:%M%p", localtime( &wch->logon ) );
+        
+        if ( wch->timer > 0 )
+            sprintf( idle, "%-4d", wch->timer );
+        else
+            sprintf( idle, "    " );
+        
         /* Added an extra  %s for the questing check below - Astark Oct 2012 */
         sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%-15s	</send> %s\n\r",
             d->descriptor,                          /* ID */

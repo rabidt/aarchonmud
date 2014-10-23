@@ -3101,8 +3101,8 @@ bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj )
 
 DEF_DO_FUN(do_disarm_trap)
 {
-    int door, skill;
-    EXIT_DATA *exit, *rev_exit;
+    int door = 0, skill;
+    EXIT_DATA *exit = NULL, *rev_exit;
     OBJ_DATA *obj;
     bool disarm_exit;
 
@@ -3121,35 +3121,35 @@ DEF_DO_FUN(do_disarm_trap)
     /* which item or exit are we disarming? */
     if ( (obj = get_obj_here(ch, argument)) == NULL )
     {
-	disarm_exit = TRUE;
+        disarm_exit = TRUE;
 
-	/* is argument a direction? */
-	door = find_door( ch, argument );
-	if ( door < 0 )
-	    return;
+        /* is argument a direction? */
+        door = find_door( ch, argument );
+        if ( door < 0 )
+            return;
 
-	if ( (exit = ch->in_room->exit[door]) == NULL )
-	{
-	    bugf( "do_disarm_trap: NULL exit %d in room %d",
-		  door, ch->in_room->vnum );
-	    return;
-	}
+        if ( (exit = ch->in_room->exit[door]) == NULL )
+        {
+            bugf( "do_disarm_trap: NULL exit %d in room %d",
+            door, ch->in_room->vnum );
+            return;
+        }
 
-	if ( !IS_SET(exit->exit_info, EX_TRAPPED) )
-	{
-	    send_to_char( "That exit isn't trapped.\n\r", ch );
-	    return;
-	}
+        if ( !IS_SET(exit->exit_info, EX_TRAPPED) )
+        {
+            send_to_char( "That exit isn't trapped.\n\r", ch );
+            return;
+        }
     }
     else
     {
-	disarm_exit = FALSE;
-	
-	if ( !IS_SET(obj->extra_flags, ITEM_TRAPPED) )
-	{
-	    act( "$p isn't trapped.", ch, obj, NULL, TO_CHAR );
-	    return;
-	}
+        disarm_exit = FALSE;
+        
+        if ( !IS_SET(obj->extra_flags, ITEM_TRAPPED) )
+        {
+            act( "$p isn't trapped.", ch, obj, NULL, TO_CHAR );
+            return;
+        }
     }
 
     /* ok, we have a trap to disarm */ 
