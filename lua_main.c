@@ -872,7 +872,6 @@ DEF_DO_FUN(do_charloadtest)
 
 void show_image_to_char( CHAR_DATA *ch, const char *txt )
 {
-    logpf("%s  called ", ch->name);
     if (IS_NPC(ch))
         return;
 
