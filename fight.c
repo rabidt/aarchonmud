@@ -888,6 +888,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	  || ch->stance==STANCE_AMBUSH
 	  || ch->stance==STANCE_RETRIBUTION
 	  || ch->stance==STANCE_PORCUPINE
+	  || ch->stance==STANCE_TARGET_PRACTICE
 	  || (ch->stance==STANCE_TEMPEST 
 	      && ch->in_room
 	      && ch->in_room->sector_type >= SECT_WATER_SHALLOW
@@ -4588,7 +4589,7 @@ bool check_jam( CHAR_DATA *ch, int odds, bool offhand )
 {
     OBJ_DATA *gun;
     
-    if ( ch->stance == STANCE_SHOWDOWN && number_bits(2) )
+    if ( ch->stance == STANCE_TARGET_PRACTICE && number_bits(2) )
         return FALSE;
 
     if ( odds < number_range(1, 1000) )
@@ -4726,6 +4727,7 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     int chance = 10 + (skill + opponent_adjust) / 4;
     
     if ( ch->stance==STANCE_TOAD
+        || ch->stance==STANCE_SHOWDOWN
         || ch->stance==STANCE_SWAYDES_MERCY
         || ch->stance==STANCE_AVERSION
         || ch->stance==STANCE_BUNNY)
