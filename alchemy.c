@@ -14,6 +14,8 @@
 void reset_herbs_area( AREA_DATA *pArea );
 void reset_herbs( ROOM_INDEX_DATA *room );
 
+DECLARE_SPELL_FUN( spell_blindness      );
+DECLARE_SPELL_FUN( spell_create_rose    );
 struct herb_type
 {
     int vnum;
@@ -112,7 +114,6 @@ void reset_herbs( ROOM_INDEX_DATA *room )
 int rot_herbs( int vnum )
 {
     OBJ_DATA *obj, *obj_next;
-    CHAR_DATA *ch;
     int nr = 0;
 
     for ( obj = object_list; obj != NULL; obj = obj_next )
@@ -152,7 +153,7 @@ void update_herb_reset()
     log_string( outbuf );
 }
 
-void do_herbs( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_herbs)
 {
     int i;
     char buf[MSL], *rarity;
@@ -239,7 +240,7 @@ OBJ_DATA* obj_on_char( CHAR_DATA *ch, int vnum )
     return NULL;
 }
 
-void do_brew( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_brew)
 {
     int i, j, skill, recipe;
     char buf[MSL];

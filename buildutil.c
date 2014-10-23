@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -26,14 +27,14 @@ DECLARE_DO_FUN(do_cset      );
 DECLARE_DO_FUN(do_mfind     );
 DECLARE_DO_FUN(do_ofind     );
 DECLARE_DO_FUN(do_slookup   );
-char* first_line( char* str );
+const char* first_line( const char *str );
 
 
 
 /* show a list of all used AreaVNUMS */
 /* By The Mage */
 /* Usage of buffers, page_to_char by Brian Castle. */
-void do_fvlist (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_fvlist)
 {
     int i,j;
     BUFFER *buffer;
@@ -166,7 +167,7 @@ void do_fvlist (CHAR_DATA *ch, char *argument)
 
 /* Show used vnums, with descriptions.  -Brian Castle 9/98.  
    Patterned after The Mage's fvlist command. */
-void do_vlist (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_vlist)
 {
     BUFFER *buffer;
     char buf[2*MAX_STRING_LENGTH];
@@ -332,7 +333,7 @@ void do_vlist (CHAR_DATA *ch, char *argument)
 }
 
 /* returns the first line of given string */
-char* first_line( char* str )
+const char* first_line( const char* str )
 {
     static char buf[MIL];
     int i = 0;
@@ -357,7 +358,7 @@ char* first_line( char* str )
  *   Syntax is simple:  openvlist
  *   Displays blocks of vnums not currently assigned to areas.
  */   
-void do_openvlist( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_openvlist)
 {
     char buf[MAX_STRING_LENGTH];
     BUFFER *buffer;
@@ -416,10 +417,10 @@ void do_openvlist( CHAR_DATA *ch, char *argument )
 
 /* RT to replace the 3 stat commands */
 
-void do_stat ( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stat)
 {
    char arg[MAX_INPUT_LENGTH];
-   char *string;
+   const char *string;
    OBJ_DATA *obj;
    ROOM_INDEX_DATA *location;
    CHAR_DATA *victim;
@@ -483,7 +484,7 @@ void do_stat ( CHAR_DATA *ch, char *argument )
 
 
 
-void do_rstat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rstat)
 {
 	char buf[MAX_STRING_LENGTH];
 	char arg[MAX_INPUT_LENGTH];
@@ -522,8 +523,8 @@ void do_rstat( CHAR_DATA *ch, char *argument )
 	send_to_char( buf, ch );
 
 	sprintf( buf,
-	"Room flags: %d.\n\rDescription:\n\r%s",
-	location->room_flags,
+        "Room flags: %s.\n\rDescription:\n\r%s",
+        flag_bits_name(room_flags, location->room_flags),
 	location->description );
 	send_to_char( buf, ch );
 
@@ -569,12 +570,11 @@ void do_rstat( CHAR_DATA *ch, char *argument )
 	if ( ( pexit = location->exit[door] ) != NULL )
 	{
 		sprintf( buf,
-		"Door: %d.  To: %d.  Key: %d.  Exit flags: %d.\n\rKeyword: '%s'.  Description: %s",
-
+            "Door: %d.  To: %d.  Key: %d.  Exit flags: %s.\n\rKeyword: '%s'.  Description: %s",
 		door,
 		(pexit->u1.to_room == NULL ? -1 : pexit->u1.to_room->vnum),
 			pexit->key,
-			pexit->exit_info,
+            flag_bits_name(exit_flags, pexit->exit_info),
 			pexit->keyword,
 			pexit->description[0] != '\0'
 			? pexit->description : "(none).\n\r" );
@@ -587,7 +587,7 @@ void do_rstat( CHAR_DATA *ch, char *argument )
 
 
 
-void do_ostat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_ostat)
 {
 	char buf[MAX_STRING_LENGTH];
 	char arg[MAX_INPUT_LENGTH];
@@ -922,7 +922,7 @@ void do_ostat( CHAR_DATA *ch, char *argument )
 
 
 
-void do_mstat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mstat)
 {
 	char buf[MAX_STRING_LENGTH];
 	char arg[MAX_INPUT_LENGTH];
@@ -965,8 +965,6 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 
    if (!IS_NPC(victim) && victim->clan>0)
    {
-      RELIGION_DATA *rel;
-
       sprintf(buf, "Clan: %s  Rank: %s\n\r",
          clan_table[victim->clan].name, 
          clan_table[victim->clan].rank_list[victim->pcdata->clan_rank].name);
@@ -1242,10 +1240,10 @@ void do_mstat( CHAR_DATA *ch, char *argument )
 
 /* ofind and mfind replaced with vnum, vnum skill also added */
 
-void do_vnum(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_vnum)
 {
 	char arg[MAX_INPUT_LENGTH];
-	char *string;
+    const char *string;
 
 	string = one_argument(argument,arg);
  
@@ -1280,27 +1278,8 @@ void do_vnum(CHAR_DATA *ch, char *argument)
 	do_ofind(ch,argument);
 }
 
-/* substring-check.. there's prolly a C standard function but which?!? */
-bool is_substr( char *sub, char *str )
-{
-    char *cmp;
-    char sub0;
-    int len;
-
-    if ( sub == NULL || str == NULL )
-	return FALSE;
-
-    len = strlen(sub);
-    sub0 = sub[0];
-    for ( cmp = str; *cmp != '\0'; cmp++ )
-	if ( *cmp == sub0 && !strncmp(sub, cmp, len) )
-	    return TRUE;
-
-    return FALSE;
-}
-
 /* find mprog with given substring */
-void do_mpfind( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpfind)
 {
     char buf[MAX_STRING_LENGTH];
     PROG_CODE *mprog;
@@ -1320,7 +1299,7 @@ void do_mpfind( CHAR_DATA *ch, char *argument )
 
     for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
 	if ( (mprog = get_mprog_index(i)) != NULL ) 
-	    if ( is_substr(argument, mprog->code) )
+	    if ( strstr(mprog->code, argument) )
 	    {
 		sprintf( buf, "[%5d] %s\n\r", mprog->vnum, first_line(mprog->code) );
 		send_to_char( buf, ch );
@@ -1328,7 +1307,7 @@ void do_mpfind( CHAR_DATA *ch, char *argument )
 }
 
 /* find links into or out of an area */
-void do_lfind( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_lfind)
 {
     char buf[MAX_STRING_LENGTH];
     BUFFER *buffer;
@@ -1425,7 +1404,7 @@ void do_lfind( CHAR_DATA *ch, char *argument )
     free_buf( buffer );
 }
 
-void do_mfind( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mfind)
 {
 	extern int top_mob_index;
 	char buf[MAX_STRING_LENGTH];
@@ -1476,7 +1455,7 @@ void do_mfind( CHAR_DATA *ch, char *argument )
 
 
 
-void do_ofind( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_ofind)
 {
 	extern int top_obj_index;
 	char buf[MAX_STRING_LENGTH];
@@ -1526,7 +1505,7 @@ void do_ofind( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_owhere(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_owhere)
 {
 	char buf[MAX_INPUT_LENGTH];
 	BUFFER *buffer;
@@ -1593,7 +1572,7 @@ void do_owhere(CHAR_DATA *ch, char *argument )
 }
 
 
-void do_mwhere( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mwhere)
 {
 	char buf[MAX_STRING_LENGTH];
 	BUFFER *buffer;
@@ -1668,7 +1647,7 @@ void do_mwhere( CHAR_DATA *ch, char *argument )
 
 /* RT set replaces sset, mset, oset, and rset */
 
-void do_set( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_set)
 {
     char arg[MAX_INPUT_LENGTH];
     
@@ -1721,7 +1700,7 @@ void do_set( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sset( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sset)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -1805,11 +1784,10 @@ void do_sset( CHAR_DATA *ch, char *argument )
 
 bool mset_stat( CHAR_DATA *ch, CHAR_DATA *victim, int stat, int value )
 {
-    int j;
-    if ( value < 1 || value > (j = pc_race_table[victim->race].max_stats[stat]+
-        class_bonus(victim->class, stat) ) )
+    int max_value = IS_IMMORTAL(victim) ? MAX_CURRSTAT : pc_race_table[victim->race].max_stats[stat] + class_bonus(victim->class, stat);
+    if ( value < 1 || value > max_value )
     {
-        ptc( ch, "%s range is 1 to %d.\n\r", stat_table[stat].name, j);
+        ptc( ch, "%s range is 1 to %d.\n\r", stat_table[stat].name, max_value);
         return FALSE;
     }
 
@@ -2357,7 +2335,7 @@ struct
 };
    
 
-void do_mset( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mset)
 {
     if (IS_NPC(ch))
         return;
@@ -2365,11 +2343,10 @@ void do_mset( CHAR_DATA *ch, char *argument )
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
     char arg3 [MAX_INPUT_LENGTH];
-    char buf[100];
     CHAR_DATA *victim;
-    int value, stat, j=0;
+    int value;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strcpy( arg3, argument );
@@ -2463,7 +2440,7 @@ void do_mset( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_oset( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_oset)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -2471,7 +2448,7 @@ void do_oset( CHAR_DATA *ch, char *argument )
     OBJ_DATA *obj;
     int value;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strcpy( arg3, argument );
@@ -2604,7 +2581,7 @@ void do_oset( CHAR_DATA *ch, char *argument )
 
 
 
-void do_rset( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rset)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -2612,7 +2589,7 @@ void do_rset( CHAR_DATA *ch, char *argument )
     ROOM_INDEX_DATA *location;
     int value;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strcpy( arg3, argument );
@@ -2682,7 +2659,7 @@ void clone_warning( CHAR_DATA *ch, AREA_DATA *area )
 }
 
 /* find 'foreign' resets and mprogs not belonging to area */
-void do_frfind( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_frfind)
 {
     char buf[MAX_STRING_LENGTH];
     ROOM_INDEX_DATA *room;

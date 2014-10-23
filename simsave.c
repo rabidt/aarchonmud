@@ -30,11 +30,7 @@ MEMFILE *other_save_list = NULL;
 static int player_save_state = SAVE_STATE_SIMSAVE;
 static bool bootup_temp_clean_done = FALSE;
 bool ready_to_save( CHAR_DATA *ch );
-char* first_line( char* str );
-bool remove_from_quit_list( char *name );
-bool remove_from_save_list( char *name );
-bool remove_from_box_list( char *name  );
-MEMFILE *memfile_from_list( char *filename, MEMFILE *list );
+MEMFILE *memfile_from_list( const char *filename, MEMFILE *list );
 void sim_save_to_mem();
 void mem_sim_save_other();
 void sim_save_other();
@@ -65,11 +61,19 @@ void handle_player_save()
       /* clear temp directory */
       if (!bootup_temp_clean_done)
       {
-	sprintf(command, "rm -f %s*", PLAYER_TEMP_DIR);
-	system(command);
-	sprintf(command, "rm -f %s*", BOX_TEMP_DIR);
-	system(command);
-	bootup_temp_clean_done = TRUE;
+        sprintf(command, "rm -f %s*", PLAYER_TEMP_DIR);
+        if ( system(command) == -1 )
+        {
+            bugf("handle_player_save: failed to execute command '%s'", command);
+            exit(1);
+        }
+        sprintf(command, "rm -f %s*", BOX_TEMP_DIR);
+        if ( system(command) == -1 )
+        {
+            bugf("handle_player_save: failed to execute command '%s'", command);
+            exit(1);
+        }
+        bootup_temp_clean_done = TRUE;
       }
     }
     break;
@@ -90,7 +94,7 @@ void handle_player_save()
        
        /* See if corresponding box in box_mf_list */
        sprintf(buf, "%s_box", mf->filename);
-       if ( box_mf = memfile_from_list(buf,box_mf_list) )
+       if ( (box_mf = memfile_from_list(buf,box_mf_list)) )
        {
 	   boxtemp = TRUE;
            if (!save_to_dir(box_mf, BOX_TEMP_DIR))
@@ -111,11 +115,19 @@ void handle_player_save()
 
   case SAVE_STATE_TEMPCOPY:
     sprintf(command, "mv %s* %s", PLAYER_TEMP_DIR, PLAYER_DIR);
-    system(command);
+    if ( system(command) == -1 )
+    {
+        bugf("handle_player_save: failed to execute command '%s'", command);
+        exit(1);
+    }
     if (boxtemp)
     {
       sprintf(command, "mv %s* %s", BOX_TEMP_DIR, BOX_DIR);
-      system(command);
+      if ( system(command) == -1 )
+      {
+          bugf("handle_player_save: failed to execute command '%s'", command);
+          exit(1);
+      }
       boxtemp=FALSE;
     }
 
@@ -147,7 +159,7 @@ void force_full_save()
    log_string("force_full_save: start");
 #endif
   if (nosave)
-    player_save_state == SAVE_STATE_SIMSAVE;
+    player_save_state = SAVE_STATE_SIMSAVE;
   else
     /* flush pending saves */
     while (player_save_state != SAVE_STATE_SIMSAVE)
@@ -192,10 +204,8 @@ void final_player_save()
 void sim_save_to_mem()
 {
   MEMFILE *mf;
-  MEMFILE *old_mf;
   //DESCRIPTOR_DATA *d;
   CHAR_DATA *ch;
-  char bug_buf[MSL];
 #if defined(SIM_DEBUG)
    log_string("sim_save_to_mem: start");
 #endif
@@ -224,13 +234,7 @@ void sim_save_to_mem()
 	  return;
       }
       
-      /* make sure player not already in save list */
-      if (remove_from_save_list(mf->filename))
-      {
-/*	  sprintf(bug_buf, "sim_save_to_mem: file <%s> already in player_save_list",
-		  mf->filename);
-	  bug(bug_buf, 0);*/
-      }//no longer a bug
+      remove_from_save_list(mf->filename);
       /* add pfile to player_save_list */
       mf->next = player_save_list;
       player_save_list = mf;
@@ -269,7 +273,7 @@ bool ready_to_save( CHAR_DATA *ch )
 	return FALSE;
 }
 
-bool pfile_exists( char *name )
+bool pfile_exists( const char *name )
 {
     char filename[MIL];
     FILE *fp;
@@ -293,7 +297,7 @@ bool pfile_exists( char *name )
  * 3.) temp player directory
  * 4.) player directory
  */
-bool load_char_obj( DESCRIPTOR_DATA *d, char *name )
+bool load_char_obj( DESCRIPTOR_DATA *d, const char *name )
 {
   MEMFILE *mf;
   DBUFFER *buf;
@@ -397,17 +401,16 @@ bool load_storage_boxes(CHAR_DATA *ch )
   char filename[MAX_INPUT_LENGTH];
   char bug_buf[MSL];
   bool found_in_mem;
-  OBJ_DATA *obj;
   sh_int i;
 
  if (IS_NPC(ch))
  {
      bugf("load_storage_boxes called on NPC",0);
-     return;
+     return FALSE;
  }
 
   if (ch->pcdata->storage_boxes<1)
-    return;
+    return FALSE;
 
   send_to_char("As you enter, an employee brings in your boxes and sets them before you.\n\r",ch);
   for (i=1;i<=ch->pcdata->storage_boxes;i++)
@@ -529,7 +532,7 @@ void quit_save_char_obj( CHAR_DATA *ch )
  * removes a file from a list;
  * returns wether file was found and removed
  */
-bool remove_from_list( char *name, MEMFILE **list )
+bool remove_from_list( const char *name, MEMFILE **list )
 {
   MEMFILE *mf, *last_mf;
   char filename[MAX_INPUT_LENGTH];
@@ -578,7 +581,7 @@ bool remove_from_list( char *name, MEMFILE **list )
  * removes a file from box_mf_list;
  * returns wether file was found and removed
  */
-bool remove_from_box_list( char *name )
+bool remove_from_box_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
@@ -593,7 +596,7 @@ bool remove_from_box_list( char *name )
  * returns wether file was found and removed
  */
 
-bool remove_from_quit_list( char *name )
+bool remove_from_quit_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
@@ -607,7 +610,7 @@ bool remove_from_quit_list( char *name )
  * removes a file from the player_save_list;
  * returns wether file was found and removed
  */
-bool remove_from_save_list( char *name )
+bool remove_from_save_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
@@ -619,7 +622,7 @@ bool remove_from_save_list( char *name )
 
 /* returns wether a file of name <filename> is in <list>
  */
-bool memfile_in_list( char *filename, MEMFILE *list )
+bool memfile_in_list( const char *filename, MEMFILE *list )
 {
   MEMFILE *mf;
 #if defined(SIM_DEBUG)
@@ -638,7 +641,7 @@ bool memfile_in_list( char *filename, MEMFILE *list )
   return FALSE;
 }
 
-MEMFILE *memfile_from_list( char *filename, MEMFILE *list )
+MEMFILE *memfile_from_list( const char *filename, MEMFILE *list )
 {
    MEMFILE *mf;
 #if defined(SIM_DEBUG)
@@ -747,7 +750,7 @@ void sim_save_other()
 #endif
 }
 
-int unlink_pfile( char *filename )
+int unlink_pfile( const char *filename )
 {
     char strsave[MIL];
     char buf[MIL];

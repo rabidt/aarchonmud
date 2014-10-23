@@ -14,9 +14,6 @@
 #include <stdlib.h>
 #include "merc.h"
 
-/* Command procedures needed */
-bool saves_dispel( int dis_level, int spell_level, int duration);
-
 /* Forage skill.  Rimbol, 7/97 */
 void do_forage(CHAR_DATA *ch)
 {
@@ -282,7 +279,7 @@ void do_shelter( CHAR_DATA *ch )
 
 
 /* First Aid skill.  --Rimbol, 7/97 */
-void do_firstaid( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_firstaid)
 {
 	CHAR_DATA *target;
 	char arg1 [MAX_INPUT_LENGTH];
@@ -377,7 +374,7 @@ void do_firstaid( CHAR_DATA *ch, char *argument )
 }
 
 /* Detoxify skill.  --Rimbol, 7/97 */
-void do_detoxify( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_detoxify)
 {
    OBJ_DATA *obj;
    AFFECT_DATA af;
@@ -494,7 +491,7 @@ void do_detoxify( CHAR_DATA *ch, char *argument )
 
 
 /* Tame animal/beast skill.  --Rimbol, 7/97 */
-void do_tame( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_tame)
 {
 	CHAR_DATA *victim;
 	AFFECT_DATA af;
@@ -704,7 +701,6 @@ void do_fishing(CHAR_DATA *ch)
 {
 	OBJ_DATA *fish;
 	CHAR_DATA *mob;    
-	extern int top_obj_index;
 	int skill, chance, level;
 	
 	skill = get_skill(ch, gsn_fishing);
@@ -854,7 +850,7 @@ void do_build_raft(CHAR_DATA *ch)
 	return;
 }
 
-void do_taxidermy(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_taxidermy)
 {
         OBJ_DATA *obj;
 	int skill;
@@ -924,11 +920,10 @@ void do_taxidermy(CHAR_DATA *ch, char *argument)
 	return;
 }
 
-void do_treat_weapon(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_treat_weapon)
 {
 	char arg[MAX_STRING_LENGTH];           
 	OBJ_DATA *obj, *herb;
-	AFFECT_DATA af;
 	int percent,skill;
 	int flag_bit;
 	
@@ -1027,6 +1022,7 @@ void do_treat_weapon(CHAR_DATA *ch, char *argument)
 	if ( percent < skill - flag_add_malus(obj) )
 	{
 	    /*
+        AFFECT_DATA af;
 	    af.where     = TO_WEAPON;
 	    af.type      = gsn_poison;
 	    af.level     = ch->level * percent / 100;
@@ -1058,7 +1054,7 @@ void do_treat_weapon(CHAR_DATA *ch, char *argument)
 	}
 }
 
-void do_dowsing( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_dowsing)
 {
     OBJ_DATA *spring, *stick;
     int skill;
@@ -1112,7 +1108,7 @@ void do_dowsing( CHAR_DATA *ch, char *argument )
     act( "$n has divined the location of a spring!", ch, spring, NULL, TO_ROOM );
 }
 
-void do_rustle_grub( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rustle_grub)
 {
     OBJ_DATA *mushroom;
     int skill;
@@ -1157,7 +1153,7 @@ void do_rustle_grub( CHAR_DATA *ch, char *argument )
     act( "$n rustles up some grub.", ch, mushroom, NULL, TO_ROOM );
 }
 
-void do_fledge( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_fledge)
 {
     OBJ_DATA *arrows;
     int skill;

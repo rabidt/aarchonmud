@@ -1,6 +1,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 #include <time.h>
+#include <string.h>
+#include <stdlib.h>
 #include "merc.h"
 #include "timer.h"
 #include "lua_main.h"
@@ -8,6 +10,7 @@
 #include "interp.h"
 #include "mudconfig.h"
 
+void sorted_ctable_init( lua_State *LS );
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 bool       g_LuaScriptInProgress=FALSE;
@@ -183,7 +186,7 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
     return error;
 }  /* end of CallLuaWithTraceBack  */
 
-void do_lboard( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_lboard)
 {
     lua_getglobal(g_mud_LS, "do_lboard");
     push_CH(g_mud_LS, ch);
@@ -196,7 +199,7 @@ void do_lboard( CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_lhistory( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_lhistory)
 {
     lua_getglobal(g_mud_LS, "do_lhistory");
     push_CH(g_mud_LS, ch);
@@ -261,6 +264,7 @@ void check_lboard_reset()
     }
 }
 
+/* currently unused - commented to avoid warning
 static int L_save_mudconfig(lua_State *LS)
 {
     int i;
@@ -304,6 +308,7 @@ static int L_save_mudconfig(lua_State *LS)
 
     return 1;
 }
+*/
 
 void save_mudconfig()
 {
@@ -455,7 +460,7 @@ void lua_unregister_desc (DESCRIPTOR_DATA *d)
     }
 }
 
-void do_luai( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_luai)
 {
     if IS_NPC(ch)
         return;
@@ -467,7 +472,7 @@ void do_luai( CHAR_DATA *ch, char *argument)
     }
 
     char arg1[MSL];
-    char *name;
+    const char *name;
 
     argument=one_argument(argument, arg1);
 
@@ -676,7 +681,7 @@ void open_lua ()
 
 }  /* end of open_lua */
 
-void do_scriptdump( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_scriptdump)
 {
     lua_getglobal(g_mud_LS, "do_scriptdump");
     push_CH(g_mud_LS, ch);
@@ -689,7 +694,7 @@ void do_scriptdump( CHAR_DATA *ch, char *argument )
     }
 
 }
-static int L_wizhelp( LS )
+static int L_wizhelp( lua_State *LS )
 {
     CHAR_DATA *ud_ch=check_CH(LS, 1);
     
@@ -723,7 +728,7 @@ static int L_wizhelp( LS )
     return 0;
 }
      
-void do_luaquery( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_luaquery)
 {
     lua_getglobal( g_mud_LS, "do_luaquery");
     push_CH(g_mud_LS, ch);
@@ -736,7 +741,7 @@ void do_luaquery( CHAR_DATA *ch, char *argument)
     }
 }    
 
-void do_wizhelp( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wizhelp)
 {
     lua_pushcfunction(g_mud_LS, L_wizhelp);
     push_CH(g_mud_LS, ch);
@@ -799,7 +804,7 @@ static int L_charloadtest( lua_State *LS )
 
 }
         
-void do_charloadtest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_charloadtest)
 {
     char arg1[MIL];
     char arg2[MIL];
@@ -942,11 +947,10 @@ void load_luaconfig( CHAR_DATA *ch, const char *text )
         ptc (ch, "Error with load_luaconfig:\n %s",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
-        return NULL;
     }
 }
 
-void do_luaconfig( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_luaconfig)
 {
     lua_getglobal(g_mud_LS, "do_luaconfig");
     push_CH(g_mud_LS, ch);
@@ -1006,7 +1010,7 @@ void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines)
     }
 }
 
-void do_luareset( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_luareset)
 {
     lua_getglobal(g_mud_LS, "do_luareset");
     push_CH(g_mud_LS, ch);
@@ -1019,7 +1023,7 @@ void do_luareset( CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_alist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_alist)
 {
     lua_getglobal(g_mud_LS, "do_alist");
     push_CH(g_mud_LS, ch);
@@ -1032,7 +1036,7 @@ void do_alist(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_mudconfig( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_mudconfig)
 {
     lua_getglobal(g_mud_LS, "do_mudconfig");
     push_CH(g_mud_LS, ch);
@@ -1045,7 +1049,7 @@ void do_mudconfig( CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_perfmon( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_perfmon)
 {
     lua_getglobal(g_mud_LS, "do_perfmon");
     push_CH(g_mud_LS, ch);
@@ -1065,7 +1069,7 @@ void lua_log_perf( double value )
     lua_call( g_mud_LS, 1, 0 );
 }
 
-void do_findreset( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_findreset)
 {
     lua_getglobal(g_mud_LS, "do_findreset");
     push_CH(g_mud_LS, ch);
@@ -1078,7 +1082,7 @@ void do_findreset( CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_diagnostic( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_diagnostic)
 {
     lua_getglobal(g_mud_LS, "do_diagnostic");
     push_CH(g_mud_LS, ch);
@@ -1101,7 +1105,7 @@ void check_lua_stack()
     }
 }
 
-void do_path( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_path)
 {
     lua_getglobal(g_mud_LS, "do_path");
     push_CH(g_mud_LS, ch);
@@ -1114,7 +1118,7 @@ void do_path( CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_luahelp( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_luahelp)
 {
     lua_getglobal(g_mud_LS, "do_luahelp");
     push_CH(g_mud_LS, ch);
@@ -1210,7 +1214,8 @@ void sorted_ctable_init( lua_State *LS )
         lua_getfield( LS, -1, "sort" );
         lua_remove( LS, -2 ); /* remove "table" */
         lua_pushvalue(LS, -2 ); /* push the actual table */
-        luaL_dostring( LS, tbl->sortfun );
+        if ( luaL_dostring(LS, tbl->sortfun) )
+            luaL_error(LS, "sorted_ctable_init: sortfun error");
         lua_call( LS, 2, 0 );
 
         /* sorted table should be at -1 */

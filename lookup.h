@@ -35,3 +35,4 @@ int   flag_lookup	args( (const char *, const struct flag_type *) );
 int   penalty_table_lookup args( (const char *name) );
 int   stance_lookup args( (const char *name) );
 char *name_lookup args( (const int bit, const struct flag_type *) );
+int index_lookup( const int bit, const struct flag_type *flag_table );

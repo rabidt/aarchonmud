@@ -13,8 +13,9 @@
 #include "olc.h"
 #include "recycle.h"
 #include "lua_scripting.h"
+#include "lua_main.h"
 
-#define OPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
+#define OPEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
 const struct olc_cmd_type opedit_table[] =
 {
@@ -30,7 +31,7 @@ const struct olc_cmd_type opedit_table[] =
    {  NULL,       0              }
 };
 
-void opedit( CHAR_DATA *ch, char *argument)
+void opedit( CHAR_DATA *ch, const char *argument )
 {
     PROG_CODE *pOcode;
     char arg[MAX_INPUT_LENGTH];
@@ -38,9 +39,8 @@ void opedit( CHAR_DATA *ch, char *argument)
     int cmd;
     AREA_DATA *ad;
 
-    smash_tilde(argument);
-    strcpy(arg, argument);
-    argument = one_argument( argument, command);
+    smash_tilde_cpy(arg, argument);
+    argument = one_argument(arg, command);
 
     EDIT_OPCODE(ch, pOcode);
     if (!pOcode)
@@ -101,7 +101,7 @@ void opedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_oprun(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_oprun)
 {
     if (IS_NPC(ch))
         return;
@@ -164,7 +164,7 @@ void do_oprun(CHAR_DATA *ch, char *argument)
 
     
 
-void do_opedit(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_opedit)
 {
     PROG_CODE *pOcode;
     char command[MAX_INPUT_LENGTH];
@@ -314,6 +314,7 @@ OPEDIT (opedit_delete)
         }
         last=curr;
     }
+    return FALSE;
 }
 
 OPEDIT (opedit_create)
@@ -404,35 +405,30 @@ OPEDIT(opedit_security)
         else
         {
             ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
-            return;
+            return FALSE;
         }
     }
 
     if (newsec == pOcode->security)
     {
         ptc(ch, "Security is already at %d.\n\r", newsec );
-        return;
+        return FALSE;
     }
     else if (newsec > ch->pcdata->security )
     {
         ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
                 ch->pcdata->security, newsec);
-        return;
+        return FALSE;
     }
 
     pOcode->security=newsec;
     ptc(ch, "Security for %d updated to %d.\n\r",
             pOcode->vnum, pOcode->security);
-
+    return TRUE;
 }
 
 void fix_oprog_objs( CHAR_DATA *ch, PROG_CODE *pOcode )
 {
-    PROG_LIST *mpl;
-    int hash;
-    char buf[MSL];
-    OBJ_INDEX_DATA *obj;
-
     check_oprog( g_mud_LS, pOcode->vnum, pOcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pOcode->vnum);
 
