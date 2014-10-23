@@ -1839,7 +1839,7 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
 bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 {
     OBJ_DATA *wield;
-    int dam, dam_type, sn, skill, offence_cost;
+    int dam, dam_type, sn, skill, offence_cost = 0;
     bool result, arrow_used = FALSE, offence = FALSE;
     /* prevent attack chains through re-retributions */
     static bool is_retribute = FALSE;
