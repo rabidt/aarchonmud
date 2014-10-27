@@ -2371,30 +2371,6 @@ void aggr_update( void )
             }
 
             victim = check_bodyguard(ch, victim);
-
-            if ((chance = get_skill(victim, gsn_quick_draw)) != 0)
-            {
-                chance = 2*chance/3;
-                chance += (get_curr_stat(victim, STAT_DEX)/6);
-                chance -= (get_curr_stat(ch, STAT_AGI)/6);
-                if (get_eq_char(ch, WEAR_WIELD)==NULL)
-                    chance = 0;
-                else if (get_weapon_sn(victim) != gsn_gun)
-                    chance /= 2;
-                if (number_percent() < chance)
-                {
-                    act("You get the quick draw on $n!", ch, NULL, victim, TO_VICT);
-                    act("$N gets the quick draw on you!", ch, NULL, victim, TO_CHAR);
-                    act("$N gets the quick draw on $n!", ch, NULL, victim, TO_NOTVICT);  
-                    check_improve(victim, gsn_quick_draw, TRUE, 1);
-                    check_killer(ch, victim);
-                    multi_hit (victim, ch, TYPE_UNDEFINED);
-                    if (victim->fighting == ch)
-                        multi_hit (victim, ch, TYPE_UNDEFINED);
-                    continue;
-                } 
-            } 
-
             multi_hit (ch, victim, TYPE_UNDEFINED); 
         }
     }
