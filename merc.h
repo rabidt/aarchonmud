@@ -4493,6 +4493,7 @@ bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
 bool    check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
+bool    check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_dodge( CHAR_DATA *ch, CHAR_DATA *victim );
