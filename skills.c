@@ -915,50 +915,79 @@ DEF_DO_FUN(do_master)
 DEF_DO_FUN(do_skill)
 {
     char buf[MSL];
-    int sn, level, skill;
+    int sn, level, skill, stance;
     
     if (IS_NPC(ch))
-	return;
+        return;
 
     /* For lazy players who want to access the 'skills' command easier :) */
     if ( argument[0] == '\0' )
     {
-	do_skills( ch, "" );
-	return;
+        do_skills( ch, "" );
+        return;
     }
 
     if ( !strcmp(argument, "all") )
     {
-	do_skills( ch, "all" );
-	return;
+        do_skills( ch, "all" );
+        return;
     }
 
     if ( (sn = skill_lookup(argument)) < 0 )
     {
-	send_to_char( "That skill doesn't exist.\n\r", ch );
-	return;
+        send_to_char( "That skill doesn't exist.\n\r", ch );
+        return;
     }
 
     level = skill_table[sn].skill_level[ch->class];
     skill = get_skill(ch,sn);
 
-  /* Now uses existing functions to display mana on spells - Astark 4-23-13 */
+    /* check if skill is a stance */
+    for (stance = 0; stances[stance].gsn != NULL; stance++)
+        if (stances[stance].gsn == skill_table[sn].pgsn)
+            break;
+ 
+   /* Now uses existing functions to display mana on spells - Astark 4-23-13 */
 
-    if (!IS_SPELL(sn))
+    if (stances[stance].cost != 0)
+    {
+        if ( level > 100 )
+        {
+            if ( skill > 0 )
+            {
+                sprintf(buf, "Proficiency for racestance %s:  %3d%% practiced  %3d%% effective  %3d move\n\r", 
+                    skill_table[sn].name, ch->pcdata->learned[sn], skill, stance_cost(ch, stance));
+            }
+            else
+            {
+                sprintf(buf, "You do not have the %s skill.\n\r", skill_table[sn].name);
+            }
+        }
+        else
+        {
+            sprintf(buf, "Proficiency for level %d stance %s:  %3d%% practiced  %3d%% effective  %3d move\n\r", 
+                level, skill_table[sn].name, ch->pcdata->learned[sn], skill, stance_cost(ch, stance));
+        }
+    }        
+    else if (!IS_SPELL(sn))
     {
         if( level > 100 )
         {
-	    if( skill > 0 )
+            if( skill > 0 )
             {
-                sprintf( buf, "Proficiency for raceskill %s:  %3d%% practiced  %3d%% effective\n\r",
+                sprintf( buf, "Proficiency for raceskill %s:  %3d%% practiced  %3d%% effective\n\r", 
                     skill_table[sn].name, ch->pcdata->learned[sn], skill );
             }
             else
+            {
                 sprintf( buf, "You do not have the %s skill.\n\r", skill_table[sn].name );
+            }
         }
         else
-	    sprintf( buf, "Proficiency for lvl %d skill %s:  %3d%% practiced  %3d%% effective\n\r",
+        {
+            sprintf( buf, "Proficiency for level %d skill %s:  %3d%% practiced  %3d%% effective\n\r", 
                 level, skill_table[sn].name, ch->pcdata->learned[sn], skill );
+        }
     }
     else
     {
@@ -970,11 +999,15 @@ DEF_DO_FUN(do_skill)
                     skill_table[sn].name, ch->pcdata->learned[sn], skill, mana_cost(ch, sn, skill));
             }
             else
+            {
                 sprintf( buf, "You do not have the %s skill.\n\r", skill_table[sn].name );
+            }
         }
         else
-            sprintf( buf, "Proficiency for lvl %d skill %s:  %3d%% practiced  %3d%% effective %3d mana\n\r",
+        {
+            sprintf( buf, "Proficiency for level %d skill %s:  %3d%% practiced  %3d%% effective %3d mana\n\r",
                 level, skill_table[sn].name, ch->pcdata->learned[sn], skill, mana_cost(ch, sn, skill));  
+        }
     }
 
     send_to_char( buf, ch );
