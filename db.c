@@ -1043,7 +1043,7 @@ void new_load_area( FILE *fp )
     pArea->vnum         = top_area;
     pArea->name         = str_dup( "New Area" );
     pArea->builders     = str_dup( "" );
-    pArea->notes        = str_dup( "" );
+    pArea->comments        = str_dup( "" );
     pArea->security     = 9;                    /* 9 -- Hugin */
     pArea->min_vnum        = 0;
     pArea->save         = TRUE;
@@ -1100,7 +1100,7 @@ void new_load_area( FILE *fp )
                 SET_BIT(pArea->area_flags,AREA_NOHIDE);
                 break;
             }
-            SKEY( "Notes", pArea->notes );
+            SKEY( "Comments", pArea->comments );
             break;
         case 'R':
             if ( !str_cmp(word, "Remort"))
@@ -1656,7 +1656,7 @@ void load_rooms( FILE *fp )
 
             else if (letter == 'N')
             {
-                pRoomIndex->notes = fread_string(fp);
+                pRoomIndex->comments = fread_string(fp);
             }
 
             else if (letter == 'O')
@@ -1700,8 +1700,8 @@ void load_rooms( FILE *fp )
             }
         }
 
-        if (!pRoomIndex->notes)
-            pRoomIndex->notes = str_dup( "" );
+        if (!pRoomIndex->comments)
+            pRoomIndex->comments = str_dup( "" );
 
         iHash           = vnum % MAX_KEY_HASH;
         pRoomIndex->next    = room_index_hash[iHash];
