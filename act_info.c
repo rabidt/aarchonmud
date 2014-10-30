@@ -144,6 +144,7 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
     if ( IS_OBJ_STAT(obj, ITEM_GLOW)      )   strcat( buf, "(Glowing) "   );
     if ( IS_OBJ_STAT(obj, ITEM_DARK)      )   strcat( buf, "(Dark) "   );
     if ( IS_OBJ_STAT(obj, ITEM_HUM)       )   strcat( buf, "(Humming) "   );
+    if ( obj->timer == -1                 )   strcat( buf, "(Preserved) " );
     
     if ( fShort )
     {
@@ -1960,10 +1961,12 @@ DEF_DO_FUN(do_examine)
     switch ( obj->item_type )
     {
     default:
+        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
+        send_to_char( buf, ch );
 	break;
-	
     case ITEM_ARROWS:
 	sprintf( buf, "There are %d arrows in this pack.\n\r", obj->value[0] );
+        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char( buf, ch );
 	break;
 
@@ -1994,6 +1997,11 @@ DEF_DO_FUN(do_examine)
 	break;
 	
         case ITEM_DRINK_CON:
+            sprintf(buf,"in %s",argument);
+            do_look( ch, buf );
+            sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
+            send_to_char( buf, ch );
+            break;
         case ITEM_CONTAINER:
         case ITEM_CORPSE_NPC:
         case ITEM_CORPSE_PC:
@@ -2027,10 +2035,11 @@ DEF_DO_FUN(do_examine)
 	 else strcat(buf, "and it is extremely heavy.\n\r");
         if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS))
            strcat(buf, "It requires two hands to wield.\n\r");
+        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
 	break;
 
-	case ITEM_ARMOR:
+        case ITEM_ARMOR:
 	strcpy(buf, "It looks like it could be ");
 
 	if( CAN_WEAR(obj,ITEM_WEAR_FINGER) )
@@ -2066,6 +2075,7 @@ DEF_DO_FUN(do_examine)
 	    strcat(buf, "held in the hand, to focus magic.\n\r");
 	else
 	    strcat(buf, "used as armor, but you can't figure out how.\n\r");
+        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
 	break;
     }
