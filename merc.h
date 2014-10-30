@@ -249,7 +249,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_AREA_CLONE     10
 #define MAX_LEVEL          110
 #define MAX_STORAGE_BOX	   5
-#define MAX_QUOTES         22 /* This must equal the # of quotes you have */
+#define MAX_QUOTES         50 /* This must equal the # of quotes you have */
 #define MAX_CP            100 // MAX_CP - creation points = trains new char starts with
 #define OPT_CP             80 // recommended ammount of creation points
 #define MAX_ARROWS 300
@@ -2393,7 +2393,7 @@ struct  mob_index_data
     const char* short_descr;
     const char* long_descr;
     const char* description;
-    const char* notes;
+    const char* comments;
     tflag       act;
     tflag       affect_field;
     sh_int      alignment;
@@ -2828,7 +2828,7 @@ struct  obj_index_data
     const char* name;
     const char* short_descr;
     const char* description;
-    const char* notes;
+    const char* comments;
 	int         vnum;
 	sh_int      reset_num;
     const char* material;
@@ -2951,7 +2951,7 @@ struct  area_data
     const char* file_name;
     const char* name;
     const char* credits;
-    const char* notes;
+    const char* comments;
 	sh_int      age;
 	sh_int      nplayer;
 	sh_int      reset_time;
@@ -2992,7 +2992,7 @@ struct  room_index_data
     RESET_DATA *   reset_first;    /* OLC */
     const char* name;
     const char* description;
-    const char* notes;
+    const char* comments;
     const char* owner;
     int      vnum;
     tflag       room_flags;
