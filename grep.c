@@ -185,6 +185,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           imm     <immunities>\n\r", ch );
     send_to_char( "           ingame\n\r", ch );
     send_to_char( "           shopmob <no arg - shows mobs with shops>\n\r", ch );
+    send_to_char( "           race    <race name>\n\r", ch );
     send_to_char( "room stats: heal   <min ratio>\n\r", ch );
     send_to_char( "           flag    <room flag>\n\r", ch );
     send_to_char( "           sector  <sector>\n\r", ch );
@@ -655,6 +656,7 @@ void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 #define GREP_MOB_SHOPMOB  13
 #define GREP_MOB_SPECFUN  14
 #define GREP_MOB_ALIGN    15
+#define GREP_MOB_RACE     16
 
 /* parses argument into a list of grep_data */
 GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
@@ -803,7 +805,7 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
 	    value = atoi(arg2);
 	    stat = GREP_MOB_MPROG;
 	}
-	else if ( !str_cmp(arg1, "vuln") || !str_cmp(arg1, "affect"))
+	else if ( !str_cmp(arg1, "vuln"))
 	{
 	    if ( arg2[0] == '\0' )
 	    {
@@ -817,7 +819,7 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
 	    }
 	    stat = GREP_MOB_VULN;
 	}
-        else if ( !str_cmp(arg1, "res") || !str_cmp(arg1, "affect"))
+        else if ( !str_cmp(arg1, "res"))
 	{
 	    if ( arg2[0] == '\0' )
 	    {
@@ -831,20 +833,35 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
 	    }
 	    stat = GREP_MOB_RES;
 	}
-        else if ( !str_cmp(arg1, "imm") || !str_cmp(arg1, "affect"))
+        else if ( !str_cmp(arg1, "imm"))
 	{
-	    if ( arg2[0] == '\0' )
+            if ( arg2[0] == '\0' )
 	    {
-		send_to_char( "What resist do you want to grep for?\n\r", ch );
-		return NULL;
+		 send_to_char( "What resist do you want to grep for?\n\r", ch );
+		 return NULL;
 	    }
 	    if ( (value = flag_lookup(arg2, imm_flags)) == NO_FLAG )
 	    {
-		send_to_char( "That immunity doesn't exist.\n\r", ch );
+ 		send_to_char( "That immunity doesn't exist.\n\r", ch );
 		return NULL;
 	    }
 	    stat = GREP_MOB_IMM;
 	}
+        else if ( !str_cmp(arg1, "race"))
+        {
+            if ( arg2[0] == '\0' )
+	    {
+		 send_to_char( "Which race do you want to grep for?\n\r", ch );
+		 return NULL;
+	    }
+            if ( (value = race_lookup(arg2)) < 0 )
+	    {
+ 		send_to_char( "That race doesn't exist.\n\r", ch );
+		return NULL;
+	    }
+            stat = GREP_MOB_RACE;
+	}
+
     else if ( !str_cmp(arg1, "specfun") )
     {
         if ( arg2[0] == '\0' )
@@ -942,6 +959,9 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
     case GREP_MOB_IMM:
 	match = IS_SET( mob->imm_flags, gd->value );
 	break;
+    case GREP_MOB_RACE:
+        match = (mob->race == gd->value );
+        break;
     default: 
 	break;
     case GREP_MOB_SPECFUN:
@@ -1863,4 +1883,5 @@ bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg )
 	}
     return FALSE;
 }
+
 
