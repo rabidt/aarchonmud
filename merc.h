@@ -248,7 +248,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_DAMAGE_MESSAGE 103
 #define MAX_AREA_CLONE     10
 #define MAX_LEVEL          110
-#define MAX_STORAGE_BOX	   5
+#define MAX_STORAGE_BOX	   9
 #define MAX_QUOTES         50 /* This must equal the # of quotes you have */
 #define MAX_CP            100 // MAX_CP - creation points = trains new char starts with
 #define OPT_CP             80 // recommended ammount of creation points
