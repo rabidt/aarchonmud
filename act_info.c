@@ -569,8 +569,6 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
     int percent;
     bool found;
     bool victim_is_obj = IS_NPC(victim) && IS_SET(victim->act, ACT_OBJ);
-    int opponents_stance;
-    int ch_stances, skill, sn;
 
     
     if (ch == victim)
@@ -602,23 +600,6 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
 	else
 	{
 	    act( "You see nothing special about $M.", ch, NULL, victim, TO_CHAR );
-        }
-    }
-
-    /* Looking at a mob tells you their stance, if you know it */
-    opponents_stance = victim->stance;
-
-    for (ch_stances = 1; stances[ch_stances].name != NULL; ch_stances++)
-    {
-        sn = *(stances[ch_stances].gsn);
-        skill = get_skill(ch, sn);
-        if ( skill == 0 )
-            continue;
-        else if ( stances[ch_stances].name == stances[opponents_stance].name)
-        {
-            sprintf(buf, "%s is in the %s stance.\n\r", PERS(victim, ch), stances[victim->stance].name); 
-            send_to_char( buf, ch );
-            break;
         }
     }
     
