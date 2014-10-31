@@ -547,12 +547,15 @@ char* char_look_info( CHAR_DATA *ch )
 	return get_disguise_name( ch );
     */
 
-    sprintf( buf, "a %s %s %s %s%s",
+    sprintf( buf, "a %s %s %s %s%s%s%s%s",
 	     size == SIZE_MEDIUM ? "medium-sized" : size_table[size].name,
 	     appear_str[appearance],
 	     sex == 0 ? "sexless" : sex_table[sex].name,
          IS_AFFECTED(ch, AFF_FLYING) ? "flying " : "",
-	     race == 0 ? "being" : (check_shewolf ? "shewolf" : race_type->name) );
+	     race == 0 ? "being" : (check_shewolf ? "shewolf" : race_type->name),
+             ch->stance == 0 ? "" : " in the ",
+             ch->stance == 0 ? "" : stances[ch->stance].name,
+             ch->stance == 0 ? "" : " stance" );
     
     return buf;
 }
@@ -566,29 +569,28 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
     int percent;
     bool found;
     bool victim_is_obj = IS_NPC(victim) && IS_SET(victim->act, ACT_OBJ);
+    int opponents_stance;
+    int ch_stances, skill, sn;
+
     
     if (ch == victim)
-	act_see( "$n looks at $mself.",ch,NULL,NULL,TO_ROOM);
+        act_see( "$n looks at $mself.",ch,NULL,NULL,TO_ROOM);
     else
     {
-	act_see( "$n looks at you.", ch, NULL, victim, TO_VICT    );
-	act_see( "$n looks at $N.",  ch, NULL, victim, TO_NOTVICT );
+        act_see( "$n looks at you.", ch, NULL, victim, TO_VICT    );
+        act_see( "$n looks at $N.",  ch, NULL, victim, TO_NOTVICT );
     }
 
     if ( !victim_is_obj )
     {
-	/*
-	if ( is_mimic(victim) )
-	    send_to_char( "=== All mimicry!!! ===\n\r", ch );
-	*/
-	sprintf( buf, "%s is %s.\n\r", PERS(victim, ch), char_look_info(victim) );
-	send_to_char( buf, ch );
+        sprintf( buf, "%s is %s.\n\r", PERS(victim, ch), char_look_info(victim) );
+        send_to_char( buf, ch );
     }
 
     if ( /*!is_disguised(victim) &&*/ !glance )
     {
-	if ( is_mimic(victim) )
-	{
+        if ( is_mimic(victim) )
+        {
 	    MOB_INDEX_DATA *mimic = get_mimic(victim);
 	    if ( mimic != NULL && mimic->description[0] != '\0' )
 		send_to_char( mimic->description, ch );
@@ -600,7 +602,24 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
 	else
 	{
 	    act( "You see nothing special about $M.", ch, NULL, victim, TO_CHAR );
-	}
+        }
+    }
+
+    /* Looking at a mob tells you their stance, if you know it */
+    opponents_stance = victim->stance;
+
+    for (ch_stances = 1; stances[ch_stances].name != NULL; ch_stances++)
+    {
+        sn = *(stances[ch_stances].gsn);
+        skill = get_skill(ch, sn);
+        if ( skill == 0 )
+            continue;
+        else if ( stances[ch_stances].name == stances[opponents_stance].name)
+        {
+            sprintf(buf, "%s is in the %s stance.\n\r", PERS(victim, ch), stances[victim->stance].name); 
+            send_to_char( buf, ch );
+            break;
+        }
     }
     
     /* objects don't have health condition etc. to detect */
