@@ -4911,8 +4911,8 @@ bool start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         set_fighting_new(victim, ch, FALSE);
         check_quick_draw(ch, victim);
-        // ch may have died from quickdraw
-        if ( ch->fighting != victim )
+        // ch or victim may have died from quickdraw
+        if ( !ch->fighting || !victim->fighting )
             return FALSE;
     }
     return TRUE;
