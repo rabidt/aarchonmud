@@ -4424,7 +4424,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	    chance /= 2;
     }
 
-    if ( !can_see_combat(ch,victim) && blind_penalty(victim) )
+    if ( !can_see_combat(victim, ch) && blind_penalty(victim) )
         chance /= 2;
     
     if ( !per_chance(chance) )
