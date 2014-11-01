@@ -662,6 +662,7 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
     OBJ_DATA *first, *second;
     bool secondgun = FALSE;
     int targeted_attacks, area_attacks, jam_chance;
+    int skill = get_skill(ch, sn);
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
@@ -686,7 +687,7 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
     // ok, we're ready for action
     WAIT_STATE( ch, skill_table[sn].beats );
 
-    if ( per_chance(50 - get_skill(ch,sn)/2) )
+    if ( !per_chance(skill) && per_chance(5) )
     {
         send_to_char("You shoot yourself in the foot!\n\r", ch);
         act( "$n shoots $mself in the foot!", ch, NULL, NULL, TO_ROOM);
