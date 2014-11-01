@@ -699,8 +699,8 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
     check_improve(ch, sn, TRUE, 2);
     
     // work out number of attacks & chance of jamming
-    targeted_attacks = (sn == gsn_fullauto ? 2 : number_range(2,4));
-    area_attacks = (sn == gsn_fullauto ? 2 : sn == gsn_semiauto ? 1 : 0);
+    targeted_attacks = number_range(2,4);
+    area_attacks = (sn == gsn_fullauto ? number_range(2,targeted_attacks) : sn == gsn_semiauto ? number_range(1,2) : 0);
     if ( per_chance(get_skill(ch, gsn_tight_grouping)) )
     {
         // plus 1/3 to number of attacks
