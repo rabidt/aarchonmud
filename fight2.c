@@ -960,11 +960,12 @@ DEF_DO_FUN(do_aim)
        obj is the main-hand gun, OR obj is second-hand gun and secondgun = TRUE */
 
     check_killer( ch, victim );
-    WAIT_STATE( ch, skill_table[gsn_aim].beats );
+    if ( aim_target == AIM_NORMAL )
+        WAIT_STATE( ch, skill_table[gsn_aim].beats * 2/3 );
+    else
+        WAIT_STATE( ch, skill_table[gsn_aim].beats );
     
     chance = 50 + get_skill(ch, gsn_aim) / 2;
-    if (aim_target != AIM_NORMAL)
-        chance -= 30;
 
     /* Offhand is naturally weaker, so...
        with 100% dual gun skill, chance is reduced by 10
