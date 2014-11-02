@@ -4202,6 +4202,7 @@ void    set_title( CHAR_DATA *ch, const char *title );
 char    get_pkflag  args( ( CHAR_DATA *ch, CHAR_DATA *wch ) );
 char*   char_look_info( CHAR_DATA *ch );
 bool    is_disguised( CHAR_DATA *ch );
+int     get_lore_level( CHAR_DATA *ch, int obj_level );
 void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
 void    show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 void    check_achievement( CHAR_DATA *ch );
