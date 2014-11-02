@@ -3746,8 +3746,9 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-	sprintf(buf, "It's translucent, allowing tattoos to shine through.");
-	do_say(ch, buf);
+        int tattoo_percent = (int)(tattoo_bonus_factor(obj->level) * 100);
+        sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
+        do_say(ch, buf);
     }
     
     switch ( obj->item_type )
@@ -3908,8 +3909,9 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-	sprintf( buf, "It's translucent, allowing tattoos to shine through."); 
-	do_say( ch, buf );
+        int tattoo_percent = (int)(tattoo_bonus_factor(obj->level) * 100);
+        sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
+        do_say(ch, buf);
     }
     
     switch ( obj->item_type )
