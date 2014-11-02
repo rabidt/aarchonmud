@@ -1254,6 +1254,7 @@ void bust_a_prompt( CHAR_DATA *ch )
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
+    char buf3[MSL];
     const char *str;
     const char *i;
     char *point;
@@ -1302,6 +1303,18 @@ void bust_a_prompt( CHAR_DATA *ch )
         {
             default :
                 i = " "; break;
+            case 'b':
+                sprintf( buf3, "%s%s%s%s%s%s%s%s" ,
+                NPC_OFF(ch, OFF_RESCUE) || PLR_ACT(ch, PLR_AUTORESCUE) ? "{WR{x" : " ",
+                is_affected(ch, gsn_bless) || is_affected(ch, gsn_prayer) ? "{WB{x" : get_skill(ch, gsn_bless) > 1 ? "{Rb{x" : " ",
+                IS_AFFECTED(ch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
+                is_affected(ch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
+                IS_AFFECTED(ch, AFF_HASTE) ? "{WH{x" : !IS_AFFECTED(ch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
+                IS_AFFECTED(ch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
+                is_affected(ch, gsn_war_cry) ? "{WW{x" : get_skill(ch, gsn_war_cry) > 1 ? "{Rw{x" : " ",
+                IS_AFFECTED(ch, AFF_BERSERK) ? "{WZ{x" : get_skill(ch, gsn_frenzy) > 1 ? "{Rz{x" : " ");
+                sprintf( buf2, "%s", buf3 );
+                i = buf2; break;
             case 'e':
                 found = FALSE;
                 doors[0] = '\0';
