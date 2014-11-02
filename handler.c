@@ -3217,7 +3217,8 @@ int get_obj_number( OBJ_DATA *obj )
     int number;
     
     if (obj->item_type == ITEM_CONTAINER || obj->item_type == ITEM_MONEY
-        ||  obj->item_type == ITEM_GEM || obj->item_type == ITEM_JEWELRY)
+        || obj->item_type == ITEM_GEM || obj->item_type == ITEM_JEWELRY
+        || is_remort_obj(obj) )
         number = 0;
     else
         number = 1;
