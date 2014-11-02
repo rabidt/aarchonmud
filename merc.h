@@ -137,6 +137,7 @@ typedef void DO_FUN args( ( CHAR_DATA *ch, const char *argument ) );
 #define DEF_DO_FUN(fun) void fun( CHAR_DATA *ch, const char *argument )
 typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
 typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int target ) );
+#define DEF_SPELL_FUN(fun) void fun( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );

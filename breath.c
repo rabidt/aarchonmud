@@ -98,7 +98,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
 
 /* draconian spells */
 
-void spell_acid_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_acid_breath)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n spits acid at $N.",ch,NULL,victim,TO_NOTVICT);
@@ -107,7 +107,7 @@ void spell_acid_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target)
   proto_spell_breath(sn, level, ch, victim, DAM_ACID, &acid_effect, FALSE);
 }
 
-void spell_fire_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_fire_breath)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n breathes forth a cone of fire.",ch,NULL,NULL,TO_ROOM);
@@ -115,7 +115,7 @@ void spell_fire_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
   proto_spell_breath(sn, level, ch, victim, DAM_FIRE, &fire_effect, TRUE);
 }
 
-void spell_frost_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_frost_breath)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n breathes out a freezing cone of frost!",ch,NULL,NULL,TO_ROOM);
@@ -123,7 +123,7 @@ void spell_frost_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
   proto_spell_breath(sn, level, ch, victim, DAM_COLD, &cold_effect, TRUE);
 }
 
-void spell_gas_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_gas_breath)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n breathes out a cloud of poisonous gas!",ch,NULL,NULL,TO_ROOM);
@@ -131,7 +131,7 @@ void spell_gas_breath( int sn, int level, CHAR_DATA *ch, void *vo,int target )
   proto_spell_breath(sn, level, ch, victim, DAM_POISON, &poison_effect, TRUE);
 }
 
-void spell_lightning_breath(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_lightning_breath)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n breathes a bolt of lightning at $N.",ch,NULL,victim,TO_NOTVICT);
@@ -142,7 +142,7 @@ void spell_lightning_breath(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
 /* Necromancer spells */
 
-void spell_cone_of_exhaustion( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_cone_of_exhaustion)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n breathes out a cone of sickly white.",ch,NULL,NULL,TO_ROOM);
@@ -150,7 +150,7 @@ void spell_cone_of_exhaustion( int sn, int level, CHAR_DATA *ch, void *vo, int t
   proto_spell_breath(sn, level, ch, victim, DAM_COLD, &slow_effect, TRUE);
 }    
     
-void spell_forboding_ooze(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_forboding_ooze)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n breathes a ball of ooze at $N.",ch,NULL,victim,TO_NOTVICT);
@@ -159,7 +159,7 @@ void spell_forboding_ooze(int sn,int level,CHAR_DATA *ch,void *vo,int target)
   proto_spell_breath(sn, level, ch, victim, DAM_ACID, &ooze_effect, FALSE);
 }
 
-void spell_tomb_stench(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_tomb_stench)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n breathes death at $N.",ch,NULL,victim,TO_NOTVICT);
@@ -168,7 +168,7 @@ void spell_tomb_stench(int sn,int level,CHAR_DATA *ch,void *vo,int target)
   proto_spell_breath(sn, level, ch, victim, DAM_DISEASE, &plague_effect, FALSE);
 }
 
-void spell_zombie_breath( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_zombie_breath)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n breathes out a putrid smelling cloud.",ch,NULL,NULL,TO_ROOM);
@@ -176,7 +176,7 @@ void spell_zombie_breath( int sn, int level, CHAR_DATA *ch, void *vo, int target
   proto_spell_breath(sn, level, ch, victim, DAM_HARM, &weak_effect, TRUE);
 }
 
-void spell_zone_of_damnation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_zone_of_damnation)
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   act("$n damns the area.",ch,NULL,NULL,TO_ROOM);
