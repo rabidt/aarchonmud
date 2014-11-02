@@ -316,25 +316,21 @@ int tattoo_bonus_ID( CHAR_DATA *ch, int loc )
     return TATTOO_ID(ch, loc);
 }
 
-float get_obj_tattoo_level( OBJ_DATA *obj, int level )
+float get_obj_tattoo_level( int obj_level, int level )
 {
-    // full level if no equipment worn over it
-    if ( obj == NULL )
-        return level;
-    
-    if ( !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-    {
-        bug( "get_obj_tattoo_level: non-translucent object (%d)", obj->pIndexData->vnum );
-        return 0;
-    }
     // average of level and object level for translucent equipment
-    return (level + obj->level) / 2.0;
+    return (level + obj_level) / 2.0;
 }
 
 float get_tattoo_level( CHAR_DATA *ch, int loc, int level )
 {
     OBJ_DATA *obj = get_eq_char(ch, loc);
-    return get_obj_tattoo_level(obj, level);
+    
+    // full level if no equipment worn over it
+    if ( !obj )
+        return level;
+    
+    return get_obj_tattoo_level(obj->level, level);
 }
 
 void tattoo_modify_level( CHAR_DATA *ch, int old_level, int new_level )

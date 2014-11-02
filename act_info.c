@@ -3722,6 +3722,21 @@ const char* wear_location_info( int pos )
     }
 }
 
+// target character level for which to lore an item
+// certain lore info (tattoo bonus) varies with level worn
+int get_lore_level( CHAR_DATA *ch, int obj_level )
+{
+    if ( !IS_NPC(ch) )
+        return UMAX(obj_level, ch->level);
+    if ( !ch->in_room )
+        return obj_level;
+    // find pc in room, if multiple we don't know and just pick first
+    for ( ch = ch->in_room->people; ch; ch = ch->next_in_room )
+        if ( !IS_NPC(ch) )
+            return UMAX(obj_level, ch->level);
+    return obj_level;
+}
+
 void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     char buf[MAX_STRING_LENGTH];
@@ -3746,7 +3761,8 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-        int tattoo_percent = (int)(tattoo_bonus_factor(obj->level) * 100);
+        int lore_level = get_lore_level(ch, obj->level);
+        int tattoo_percent = (int)(tattoo_bonus_factor(get_obj_tattoo_level(obj->level, lore_level)) * 100);
         sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
         do_say(ch, buf);
     }
@@ -3909,7 +3925,8 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-        int tattoo_percent = (int)(tattoo_bonus_factor(obj->level) * 100);
+        int lore_level = get_lore_level(ch, obj->level);
+        int tattoo_percent = (int)(tattoo_bonus_factor(get_obj_tattoo_level(obj->level, lore_level)) * 100);
         sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
         do_say(ch, buf);
     }
