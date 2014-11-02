@@ -235,8 +235,8 @@ DECLARE_SPELL_FUN( spell_minor_fade     );
  * that the spell was cast, not that it "worked" when there is a chance of failure
  * a return value of FALSE means that no mana or time is spent casting
  */
-#define SR_SYNTAX   FALSE   // syntax error
-#define SR_TARGET   FALSE   // targetting error not caught by general spell targeting
+#define SR_SYNTAX   FALSE   // syntax error in spell command (for spells parsing parameter strings)
+#define SR_TARGET   FALSE   // targeting error not caught by general spell targeting (e.g. wrong object type)
 #define SR_UNABLE   FALSE   // spell cannot be cast under current conditions (e.g. indoors, in warfare, inventory full)
 #define SR_IMMUNE   TRUE    // target is immune to the spell
 #define SR_AFFECTED TRUE    // target is already affected (or not affected in case of cure spells)
