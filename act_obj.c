@@ -3458,7 +3458,7 @@ DEF_DO_FUN(do_list)
         }
         do_say(banker, "The only thing you can buy here is a storage box.");
         do_say(banker, "The cost is 50,000 gold and 250 quest points, and don't bother trying to haggle!");
-        do_say(banker, "Each box can hold up to 100 items, and you can buy up to 5.");
+        do_say(banker, "Each box can hold up to 100 items, and you can buy up to 9.");
         do_say(banker, "Go ahead and 'buy box' if you're interested!");
         return;
 
