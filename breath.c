@@ -105,6 +105,7 @@ DEF_SPELL_FUN(spell_acid_breath)
   act("$n spits a stream of corrosive acid at you.",ch,NULL,victim,TO_VICT);
   act("You spit acid at $N.",ch,NULL,victim,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_ACID, &acid_effect, FALSE);
+  return TRUE;
 }
 
 DEF_SPELL_FUN(spell_fire_breath)
@@ -113,6 +114,7 @@ DEF_SPELL_FUN(spell_fire_breath)
   act("$n breathes forth a cone of fire.",ch,NULL,NULL,TO_ROOM);
   act("You breathe forth a cone of fire.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_FIRE, &fire_effect, TRUE);
+  return TRUE;
 }
 
 DEF_SPELL_FUN(spell_frost_breath)
@@ -121,6 +123,7 @@ DEF_SPELL_FUN(spell_frost_breath)
   act("$n breathes out a freezing cone of frost!",ch,NULL,NULL,TO_ROOM);
   act("You breathe out a cone of frost.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_COLD, &cold_effect, TRUE);
+  return TRUE;
 }
 
 DEF_SPELL_FUN(spell_gas_breath)
@@ -129,6 +132,7 @@ DEF_SPELL_FUN(spell_gas_breath)
   act("$n breathes out a cloud of poisonous gas!",ch,NULL,NULL,TO_ROOM);
   act("You breathe out a cloud of poisonous gas.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_POISON, &poison_effect, TRUE);
+  return TRUE;
 }
 
 DEF_SPELL_FUN(spell_lightning_breath)
@@ -138,6 +142,7 @@ DEF_SPELL_FUN(spell_lightning_breath)
   act("$n breathes a bolt of lightning at you!",ch,NULL,victim,TO_VICT);
   act("You breathe a bolt of lightning at $N.",ch,NULL,victim,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_LIGHTNING, &shock_effect, FALSE);
+  return TRUE;
 }
 
 /* Necromancer spells */
@@ -148,6 +153,7 @@ DEF_SPELL_FUN(spell_cone_of_exhaustion)
   act("$n breathes out a cone of sickly white.",ch,NULL,NULL,TO_ROOM);
   act("You breathe out a cone of sickly white.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_COLD, &slow_effect, TRUE);
+  return TRUE;
 }    
     
 DEF_SPELL_FUN(spell_forboding_ooze)
@@ -157,6 +163,7 @@ DEF_SPELL_FUN(spell_forboding_ooze)
   act("$n breathes a ball of ooze at you!",ch,NULL,victim,TO_VICT);
   act("You breathe a ball of ooze at $N.",ch,NULL,victim,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_ACID, &ooze_effect, FALSE);
+  return TRUE;
 }
 
 DEF_SPELL_FUN(spell_tomb_stench)
@@ -166,6 +173,7 @@ DEF_SPELL_FUN(spell_tomb_stench)
   act("$n breathes death at you!",ch,NULL,victim,TO_VICT);
   act("You breathe death at $N.",ch,NULL,victim,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_DISEASE, &plague_effect, FALSE);
+  return TRUE;
 }
 
 DEF_SPELL_FUN(spell_zombie_breath)
@@ -174,6 +182,7 @@ DEF_SPELL_FUN(spell_zombie_breath)
   act("$n breathes out a putrid smelling cloud.",ch,NULL,NULL,TO_ROOM);
   act("You breathe out a putrid smelling cloud.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_HARM, &weak_effect, TRUE);
+  return TRUE;
 }
 
 DEF_SPELL_FUN(spell_zone_of_damnation)
@@ -182,6 +191,7 @@ DEF_SPELL_FUN(spell_zone_of_damnation)
   act("$n damns the area.",ch,NULL,NULL,TO_ROOM);
   act("You damn the area.",ch,NULL,NULL,TO_CHAR);
   proto_spell_breath(sn, level, ch, victim, DAM_NEGATIVE, &curse_effect, TRUE);
+  return TRUE;
 }
 
 /* new effects for necromancer spells */
