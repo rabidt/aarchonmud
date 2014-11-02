@@ -228,3 +228,15 @@ DECLARE_SPELL_FUN( spell_holy_apparition);
 DECLARE_SPELL_FUN( spell_phantasmal_image );
 DECLARE_SPELL_FUN( spell_shroud_of_darkness );
 DECLARE_SPELL_FUN( spell_minor_fade     );  
+
+/**
+ * constants for easy changing of spell result "failure" handling
+ * each spell function returns wether it completed successfully, where success means
+ * that the spell was cast, not that it "worked" when there is a chance of failure
+ * a return value of FALSE means that no mana or time is spent casting
+ */
+#define SR_SYNTAX   FALSE   // syntax error
+#define SR_TARGET   FALSE   // targetting error not caught by general spell targeting
+#define SR_UNABLE   FALSE   // spell cannot be cast under current conditions (e.g. indoors, in warfare, inventory full)
+#define SR_IMMUNE   TRUE    // target is immune to the spell
+#define SR_AFFECTED TRUE    // target is already affected (or not affected in case of cure spells)
