@@ -1770,7 +1770,7 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 /*
  * Spell functions.
  */
-void spell_acid_blast( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_acid_blast)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -1783,7 +1783,7 @@ void spell_acid_blast( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     return;
 }
 
-void spell_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_armor)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -1813,7 +1813,7 @@ void spell_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
 
 
-void spell_bless( int sn, int level, CHAR_DATA *ch, void *vo, int target)
+DEF_SPELL_FUN(spell_bless)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -1906,7 +1906,7 @@ void spell_bless( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
 
 
-void spell_blindness( int sn, int level, CHAR_DATA *ch, void *vo, int target)
+DEF_SPELL_FUN(spell_blindness)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -1940,7 +1940,7 @@ void spell_blindness( int sn, int level, CHAR_DATA *ch, void *vo, int target)
 
 
 
-void spell_burning_hands(int sn,int level, CHAR_DATA *ch, void *vo, int target)
+DEF_SPELL_FUN(spell_burning_hands)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -1959,7 +1959,7 @@ void spell_burning_hands(int sn,int level, CHAR_DATA *ch, void *vo, int target)
     return;
 }
 
-void spell_call_lightning( int sn, int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_call_lightning)
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -2007,7 +2007,7 @@ bool is_violent( CHAR_DATA *vch, CHAR_DATA *ch )
     return !IS_AFFECTED(vch, AFF_CALM) && !is_same_group(vch, ch);
 }
 
-void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_calm)
 {
     CHAR_DATA *vch;
     AFFECT_DATA af;
@@ -2089,7 +2089,7 @@ void spell_calm( int sn, int level, CHAR_DATA *ch, void *vo,int target)
         send_to_char("... and world peace.\n\r", ch);
 }
 
-void spell_cancellation( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_cancellation)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
@@ -2212,7 +2212,7 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
     }
 }
 
-void spell_chain_lightning(int sn,int level,CHAR_DATA *ch, void *vo, int target)
+DEF_SPELL_FUN(spell_chain_lightning)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
@@ -2227,7 +2227,7 @@ void spell_chain_lightning(int sn,int level,CHAR_DATA *ch, void *vo, int target)
 }
 
 
-void spell_change_sex( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_change_sex)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -2273,7 +2273,7 @@ void spell_change_sex( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_charm_person)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -2353,7 +2353,7 @@ void spell_charm_person( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_chill_touch( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_chill_touch)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -2374,7 +2374,7 @@ void spell_chill_touch( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_colour_spray( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_colour_spray)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -2391,7 +2391,7 @@ void spell_colour_spray( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_continual_light(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_continual_light)
 {
     OBJ_DATA *light;
 
@@ -2432,7 +2432,7 @@ void spell_continual_light(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
 
 
-void spell_control_weather(int sn,int level,CHAR_DATA *ch,void *vo,int target) 
+DEF_SPELL_FUN(spell_control_weather)
 {
     if ( !str_cmp( target_name, "better" ) )
     {
@@ -2462,7 +2462,7 @@ void spell_control_weather(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 /* Added if check to make sure a player had room in there inventory for the item
  *  * before casting it. Assholes were using this to core the mud 
  *   */
-void spell_create_bomb( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_create_bomb)
 {
     OBJ_DATA *bomb;
     if ( ch->carry_number < can_carry_n(ch) )
@@ -2481,7 +2481,7 @@ void spell_create_bomb( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 }
 
 
-void spell_create_food( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_create_food)
 {
     OBJ_DATA *mushroom;
 
@@ -2494,7 +2494,7 @@ void spell_create_food( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     return;
 }
 
-void spell_create_rose( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_create_rose)
 {
     OBJ_DATA *rose;
     rose = create_object(get_obj_index(OBJ_VNUM_ROSE), 0);
@@ -2509,7 +2509,7 @@ void spell_create_rose( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     return;
 }
 
-void spell_create_spring(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_create_spring)
 {
     OBJ_DATA *spring;
 
@@ -2521,7 +2521,7 @@ void spell_create_spring(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-void spell_create_water( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_create_water)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     int water;
@@ -2567,7 +2567,7 @@ void spell_create_water( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     return;
 }
 
-void spell_cure_blindness(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_cure_blindness)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA *aff;
@@ -2663,7 +2663,7 @@ bool is_blindness( int sn )
         || sn == gsn_gouge;
 }
 
-void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target )
+DEF_SPELL_FUN(spell_cure_mental)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
@@ -2679,7 +2679,7 @@ void spell_cure_mental( int sn, int level, CHAR_DATA *ch,void *vo, int target )
 }
 
 /* RT added to cure plague */
-void spell_cure_disease( int sn, int level, CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_cure_disease)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
@@ -2703,7 +2703,7 @@ void spell_cure_disease( int sn, int level, CHAR_DATA *ch,void *vo,int target)
 }
 
 
-void spell_cure_poison( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_cure_poison)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
@@ -2726,7 +2726,7 @@ void spell_cure_poison( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 }
 
 
-void spell_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_curse)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -2817,7 +2817,7 @@ void spell_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 }
 
 /* RT replacement demonfire spell */
-void spell_demonfire(int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_demonfire)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -2849,7 +2849,7 @@ void spell_demonfire(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     full_dam( ch, victim, dam, sn, DAM_NEGATIVE ,TRUE);
 }
 
-void spell_angel_smite(int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_angel_smite)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -2879,7 +2879,7 @@ void spell_angel_smite(int sn, int level, CHAR_DATA *ch, void *vo,int target)
 }
 
 
-void spell_detect_evil( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_detect_evil)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -2907,7 +2907,7 @@ void spell_detect_evil( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 }
 
 
-void spell_detect_good( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_detect_good)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -2936,7 +2936,7 @@ void spell_detect_good( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_detect_hidden(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_detect_hidden)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -2965,7 +2965,7 @@ void spell_detect_hidden(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 
 
 
-void spell_detect_invis( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_detect_invis)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -2995,7 +2995,7 @@ void spell_detect_invis( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
 
 
-void spell_detect_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_detect_magic)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -3025,7 +3025,7 @@ void spell_detect_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_detect_poison( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_detect_poison)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
 
@@ -3044,7 +3044,7 @@ void spell_detect_poison( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     return;
 }
 
-void spell_dispel_evil( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_dispel_evil)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -3077,7 +3077,7 @@ void spell_dispel_evil( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 }
 
 
-void spell_dispel_good( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_dispel_good)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -3112,7 +3112,7 @@ void spell_dispel_good( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 /* modified for enhanced use */
 
-void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_dispel_magic)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
@@ -3136,7 +3136,7 @@ void spell_dispel_magic( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     return;
 }
 
-void spell_earthquake( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_earthquake)
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -3178,7 +3178,7 @@ void spell_earthquake( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     return;
 }
 
-void spell_enchant_arrow( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_enchant_arrow)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     char buf[MAX_STRING_LENGTH];
@@ -3285,7 +3285,7 @@ void spell_enchant_arrow( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     send_to_char( "Your arrows are now enchanted.\n\r", ch );
 }
 
-void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_enchant_armor)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     char buf[MAX_STRING_LENGTH];
@@ -3303,7 +3303,7 @@ void spell_enchant_armor( int sn, int level, CHAR_DATA *ch, void *vo, int target
     spell_enchant_obj(ch, obj, level, buf);
 }
 
-void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_enchant_weapon)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     char buf[MAX_STRING_LENGTH];
@@ -3324,7 +3324,7 @@ void spell_enchant_weapon( int sn, int level, CHAR_DATA *ch, void *vo, int targe
 /*
  * Drain mana and move and add percentage to caster.
  */
-void spell_energy_drain( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_energy_drain)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int drain, drain_mana, drain_move;
@@ -3361,7 +3361,7 @@ void spell_energy_drain( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_fireball( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_fireball)
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -3387,7 +3387,7 @@ void spell_fireball( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 }
 
 
-void spell_fireproof(int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_fireproof)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     AFFECT_DATA af;
@@ -3412,7 +3412,7 @@ void spell_fireproof(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     act("$p is surrounded by a protective aura.",ch,obj,NULL,TO_ROOM);
 }
 
-void spell_flamestrike( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_flamestrike)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -3424,7 +3424,7 @@ void spell_flamestrike( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     return;
 }
 
-void spell_faerie_fire( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_faerie_fire)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -3450,7 +3450,7 @@ void spell_faerie_fire( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_faerie_fog( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_faerie_fog)
 {
     CHAR_DATA *ich;
     OBJ_DATA *obj;
@@ -3508,7 +3508,7 @@ void spell_faerie_fog( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     return;
 }
 
-void spell_floating_disc( int sn, int level,CHAR_DATA *ch,void *vo,int target )
+DEF_SPELL_FUN(spell_floating_disc)
 {
     OBJ_DATA *disc, *floating;
 
@@ -3532,7 +3532,7 @@ void spell_floating_disc( int sn, int level,CHAR_DATA *ch,void *vo,int target )
 }
 
 
-void spell_fly( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_fly)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -3560,7 +3560,7 @@ void spell_fly( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 /* RT clerical berserking spell */
 
-void spell_frenzy(int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_frenzy)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -3633,7 +3633,7 @@ ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int
 }
 
 /* RT ROM-style gate */
-void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_gate)
 {
     CHAR_DATA *victim;
     bool gate_pet;
@@ -3729,7 +3729,7 @@ void spell_gate( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_giant_strength(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_giant_strength)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -3771,7 +3771,7 @@ void spell_giant_strength(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 }
 
 /* used for harm as well as cause X spells */
-void spell_cause_harm( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_cause_harm)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int harm = get_sn_damage(sn, level, ch);
@@ -3785,7 +3785,7 @@ void spell_cause_harm( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 }
 
 /* RT haste spell */
-void spell_haste( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_haste)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -3842,7 +3842,7 @@ void spell_haste( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     return;
 }
 
-void spell_heal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_heal)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int heal = get_sn_heal( sn, level, ch, victim );
@@ -3871,7 +3871,7 @@ void spell_heal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     return;
 }
 
-void spell_heat_metal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_heat_metal)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     OBJ_DATA *obj_lose, *obj_next;
@@ -4015,7 +4015,7 @@ void spell_heat_metal( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 }
 
 /* RT really nasty high-level attack spell */
-void spell_holy_word(int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_holy_word)
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -4101,7 +4101,7 @@ void spell_holy_word(int sn, int level, CHAR_DATA *ch, void *vo,int target)
     update_perm_hp_mana_move( ch );
 }
 
-void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_identify)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     char buf[MAX_STRING_LENGTH];
@@ -4282,7 +4282,7 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
             show_affect(ch, paf, FALSE);    
 }
 
-void spell_infravision( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_infravision)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -4312,7 +4312,7 @@ void spell_infravision( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_invis( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_invis)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -4403,7 +4403,7 @@ void spell_invis( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_know_alignment(int sn,int level,CHAR_DATA *ch,void *vo,int target )
+DEF_SPELL_FUN(spell_know_alignment)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     char *msg;
@@ -4423,7 +4423,7 @@ void spell_know_alignment(int sn,int level,CHAR_DATA *ch,void *vo,int target )
     return;
 }
 
-void spell_lightning_bolt(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_lightning_bolt)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -4435,7 +4435,7 @@ void spell_lightning_bolt(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-void spell_locate_object( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_locate_object)
 {
     char buf[MAX_INPUT_LENGTH];
     BUFFER *buffer;
@@ -4510,7 +4510,7 @@ void spell_locate_object( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
 
 
-void spell_magic_missile( int sn, int level, CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_magic_missile)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int missle;
@@ -4532,7 +4532,7 @@ void spell_magic_missile( int sn, int level, CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-void spell_mass_healing(int sn, int level, CHAR_DATA *ch, void *vo, int target)
+DEF_SPELL_FUN(spell_mass_healing)
 {
     CHAR_DATA *gch;
     int heal_num, refresh_num;
@@ -4556,7 +4556,7 @@ void spell_mass_healing(int sn, int level, CHAR_DATA *ch, void *vo, int target)
 }
 
 
-void spell_mass_invis( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_mass_invis)
 {
     AFFECT_DATA af;
     CHAR_DATA *gch;
@@ -4595,7 +4595,7 @@ void spell_mass_invis( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
 
 
-void spell_null( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_null)
 {
     send_to_char( "That's not a spell!\n\r", ch );
     return;
@@ -4603,7 +4603,7 @@ void spell_null( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
 
 
-void spell_pass_door( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_pass_door)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -4631,7 +4631,7 @@ void spell_pass_door( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 }
 
 /* RT plague spell, very nasty */
-void spell_plague( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_plague)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -4660,7 +4660,7 @@ void spell_plague( int sn, int level, CHAR_DATA *ch, void *vo, int target )
             victim,NULL,NULL,TO_ROOM);
 }
 
-void spell_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_confusion)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -4696,7 +4696,7 @@ void spell_confusion( int sn, int level, CHAR_DATA *ch, void *vo, int target )
             victim,NULL,NULL,TO_ROOM);
 }
 
-void spell_poison( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+DEF_SPELL_FUN(spell_poison)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -4787,7 +4787,7 @@ void spell_poison( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
 
 
-void spell_protection_evil(int sn,int level,CHAR_DATA *ch,void *vo, int target)
+DEF_SPELL_FUN(spell_protection_evil)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -4825,7 +4825,7 @@ void spell_protection_evil(int sn,int level,CHAR_DATA *ch,void *vo, int target)
     return;
 }
 
-void spell_protection_good(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_protection_good)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -4864,7 +4864,7 @@ void spell_protection_good(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 }
 
 
-void spell_ray_of_truth (int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_ray_of_truth)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -4904,7 +4904,7 @@ void spell_ray_of_truth (int sn, int level, CHAR_DATA *ch, void *vo,int target)
 }
 
 
-void spell_recharge( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_recharge)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     int chance, percent;
@@ -4981,7 +4981,7 @@ void spell_recharge( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     }
 }
 
-void spell_refresh( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_refresh)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int heal = get_sn_heal( sn, level, ch, victim );
@@ -5008,7 +5008,7 @@ void spell_refresh( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     return;
 }
 
-void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_remove_curse)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
@@ -5090,7 +5090,7 @@ void spell_remove_curse( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     return;
 } 
 
-void spell_sanctuary( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_sanctuary)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -5119,7 +5119,7 @@ void spell_sanctuary( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
 
 
-void spell_shield( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_shield)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -5148,7 +5148,7 @@ void spell_shield( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
 
 
-void spell_shocking_grasp(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_shocking_grasp)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -5168,7 +5168,7 @@ void spell_shocking_grasp(int sn,int level,CHAR_DATA *ch,void *vo,int target)
 }
 
 
-void spell_sleep( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_sleep)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -5226,7 +5226,7 @@ void spell_sleep( int sn, int level, CHAR_DATA *ch, void *vo,int target)
     return;
 }
 
-void spell_slow( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_slow)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -5279,7 +5279,7 @@ void spell_slow( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 }
 
 
-void spell_stone_skin( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_stone_skin)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -5327,7 +5327,7 @@ bool is_aggro_room( ROOM_INDEX_DATA *room, CHAR_DATA *victim )
 }
 
 
-void spell_summon( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_summon)
 {
     CHAR_DATA *victim;
 
@@ -5398,7 +5398,7 @@ void spell_summon( int sn, int level, CHAR_DATA *ch, void *vo,int target )
     return;
 }
 
-void spell_teleport( int sn, int level, CHAR_DATA *ch, void *vo,int target )
+DEF_SPELL_FUN(spell_teleport)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     ROOM_INDEX_DATA *pRoomIndex;
@@ -5466,7 +5466,7 @@ void spell_teleport( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
 
 
-void spell_ventriloquate( int sn, int level, CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_ventriloquate)
 {
     char speaker[MAX_INPUT_LENGTH];
     CHAR_DATA *vch;
@@ -5497,7 +5497,7 @@ void spell_ventriloquate( int sn, int level, CHAR_DATA *ch,void *vo,int target)
 
 
 
-void spell_weaken( int sn, int level, CHAR_DATA *ch, void *vo,int target)
+DEF_SPELL_FUN(spell_weaken)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
@@ -5548,7 +5548,7 @@ void spell_weaken( int sn, int level, CHAR_DATA *ch, void *vo,int target)
 
 
 /* RT recall spell is back */
-void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_word_of_recall)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     ROOM_INDEX_DATA *location;
@@ -5647,7 +5647,7 @@ void spell_word_of_recall( int sn, int level, CHAR_DATA *ch,void *vo,int target)
 /*
  * Spells for mega1.are from Glop/Erkenbrand.
  */
-void spell_general_purpose(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_general_purpose)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
@@ -5659,7 +5659,7 @@ void spell_general_purpose(int sn,int level,CHAR_DATA *ch,void *vo,int target)
     return;
 }
 
-void spell_high_explosive(int sn,int level,CHAR_DATA *ch,void *vo,int target)
+DEF_SPELL_FUN(spell_high_explosive)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
