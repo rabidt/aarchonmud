@@ -1199,9 +1199,20 @@ void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
         if ( !offensive && !is_same_group(victim, target) )
             continue;
 
-        (*skill_table[sn].spell_fun) (sn, level, ch, (void*)target, TARGET_CHAR);
+        bool success = (*skill_table[sn].spell_fun) (sn, level, ch, (void*)target, TARGET_CHAR);
+        if ( !success )
+            continue;
+        
         post_spell_process(sn, ch, target);
     }
+}
+
+void reduce_mana( CHAR_DATA *ch, int amount )
+{
+    ch->mana -= amount;
+#ifdef FSTAT 
+    ch->mana_used += amount;
+#endif
 }
 
 /*
@@ -1220,6 +1231,9 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     int target;
     bool concentrate = FALSE;
     bool overcharging = (IS_AFFECTED(ch, AFF_OVERCHARGE) && !ch->fighting);
+    int orig_mana = ch->mana;
+    int orig_wait = ch->wait;
+    int orig_stop = ch->stop;
 
     /* check to see if spell is disabled */
     if (check_spell_disabled (&skill_table[sn]))
@@ -1290,35 +1304,17 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         ch->stop += rounds_missed;
     }
 
-    /* mana burn */
-    if ( IS_AFFECTED(ch, AFF_MANA_BURN) )
-    {
-        direct_damage( ch, ch, 2*mana, skill_lookup("mana burn") );
-        if ( IS_DEAD(ch) )
-            return;
-    }
-    else if ( overcharging && number_bits(1) == 0 )
-    {
-        direct_damage( ch, ch, mana, skill_lookup("mana burn") );
-        if ( IS_DEAD(ch) )
-            return;
-    }
-
     if (is_affected(ch, gsn_choke_hold) && number_bits(3) == 0)
     {
         send_to_char( "You choke and your spell fumbles.\n\r", ch);
-        ch->mana -= mana / 2;
-#ifdef FSTAT 
-        ch->mana_used += mana / 2;
-#endif
+        reduce_mana(ch, mana/2);
+        return;
     }
     else if (is_affected(ch, gsn_slash_throat) && number_bits(2) == 0)
     {
         send_to_char( "You can't speak and your spell fails.\n\r", ch);
-        ch->mana -= mana / 2;
-#ifdef FSTAT
-        ch->mana_used += mana / 2;
-#endif
+        reduce_mana(ch, mana/2);
+        return;
     }
     else if ( 2*number_percent() > (chance+100)
             || !meta_magic_concentration_check(ch)
@@ -1328,18 +1324,13 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
         check_improve(ch,sn,FALSE,2);
-        ch->mana -= mana / 2;
-#ifdef FSTAT
-        ch->mana_used += mana / 2;
-#endif
+        reduce_mana(ch, mana/2);
+        return;
     }
 
     else
     {
-        ch->mana -= mana;
-#ifdef FSTAT
-        ch->mana_used += mana;
-#endif
+        reduce_mana(ch, mana);
 
         if ( target == TARGET_OBJ )
         {
@@ -1367,7 +1358,17 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
                 return;
         }
 
-        (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
+        bool success = (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
+        if ( !success )
+        {
+            // refund resources used for syntax errors or other issues that prevent the spell from being cast
+            // not ideal since we already did a bunch of checks assuming that the spell could be cast,
+            // but it's a compromise which avoids having a separate check-function for each spell
+            ch->mana = orig_mana;
+            ch->wait = orig_wait;
+            ch->stop = orig_stop;
+            return;
+        }
         check_improve(ch,sn,TRUE,3);
 
         if ( target == TARGET_CHAR )
@@ -1377,7 +1378,16 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
                 chain_spell(sn, level*3/4, ch, (CHAR_DATA*)vo);
         }
     }
-    return;
+    
+    /* mana burn */
+    if ( IS_AFFECTED(ch, AFF_MANA_BURN) )
+    {
+        direct_damage( ch, ch, 2*mana, skill_lookup("mana burn") );
+    }
+    else if ( overcharging && number_bits(1) == 0 )
+    {
+        direct_damage( ch, ch, mana, skill_lookup("mana burn") );
+    }
 }
 
 DEF_DO_FUN(do_cast)
@@ -1644,13 +1654,13 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
     }        
 
     was_obj_cast = TRUE;
-    (*skill_table[sn].spell_fun) ( sn, level, ch, vo, target);
+    bool success = (*skill_table[sn].spell_fun) ( sn, level, ch, vo, target);
     was_obj_cast = FALSE;
 
-    if ( target == TARGET_CHAR )
+    if ( success && target == TARGET_CHAR )
         post_spell_process(sn, ch, (CHAR_DATA*)vo);
     
-    return TRUE;
+    return success;
 }
 
 
