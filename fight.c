@@ -888,6 +888,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	  || ch->stance==STANCE_AMBUSH
 	  || ch->stance==STANCE_RETRIBUTION
 	  || ch->stance==STANCE_PORCUPINE
+	  || ch->stance==STANCE_TARGET_PRACTICE
 	  || (ch->stance==STANCE_TEMPEST 
 	      && ch->in_room
 	      && ch->in_room->sector_type >= SECT_WATER_SHALLOW
@@ -2205,7 +2206,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
         || dt == gsn_semiauto
         || dt == gsn_burst )
     {
-        ch_roll = ch_roll * (10 + mastery_bonus(ch, dt, 4, 5)) / 25;
+        ch_roll = ch_roll * (100 + get_skill(ch, dt) + mastery_bonus(ch, dt, 80, 100)) / 500;
     }    
     
     if ( victim->size > ch->size )
@@ -4425,7 +4426,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	    chance /= 2;
     }
 
-    if ( !can_see_combat(ch,victim) && blind_penalty(victim) )
+    if ( !can_see_combat(victim, ch) && blind_penalty(victim) )
         chance /= 2;
     
     if ( !per_chance(chance) )
@@ -4590,7 +4591,7 @@ bool check_jam( CHAR_DATA *ch, int odds, bool offhand )
 {
     OBJ_DATA *gun;
     
-    if ( ch->stance == STANCE_SHOWDOWN && number_bits(2) )
+    if ( ch->stance == STANCE_TARGET_PRACTICE && number_bits(2) )
         return FALSE;
 
     if ( odds < number_range(1, 1000) )
@@ -4728,6 +4729,7 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     int chance = 10 + (skill + opponent_adjust) / 4;
     
     if ( ch->stance==STANCE_TOAD
+        || ch->stance==STANCE_SHOWDOWN
         || ch->stance==STANCE_SWAYDES_MERCY
         || ch->stance==STANCE_AVERSION
         || ch->stance==STANCE_BUNNY)
@@ -4911,8 +4913,8 @@ bool start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         set_fighting_new(victim, ch, FALSE);
         check_quick_draw(ch, victim);
-        // ch may have died from quickdraw
-        if ( ch->fighting != victim )
+        // ch or victim may have died from quickdraw
+        if ( !ch->fighting || !victim->fighting )
             return FALSE;
     }
     return TRUE;

@@ -136,7 +136,8 @@ typedef struct mem_file_type MEMFILE;
 typedef void DO_FUN args( ( CHAR_DATA *ch, const char *argument ) );
 #define DEF_DO_FUN(fun) void fun( CHAR_DATA *ch, const char *argument )
 typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
-typedef void SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int target ) );
+typedef bool SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int target ) );
+#define DEF_SPELL_FUN(fun) bool fun( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
@@ -248,8 +249,8 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_DAMAGE_MESSAGE 103
 #define MAX_AREA_CLONE     10
 #define MAX_LEVEL          110
-#define MAX_STORAGE_BOX	   5
-#define MAX_QUOTES         22 /* This must equal the # of quotes you have */
+#define MAX_STORAGE_BOX	   9
+#define MAX_QUOTES         50 /* This must equal the # of quotes you have */
 #define MAX_CP            100 // MAX_CP - creation points = trains new char starts with
 #define OPT_CP             80 // recommended ammount of creation points
 #define MAX_ARROWS 300
@@ -2393,7 +2394,7 @@ struct  mob_index_data
     const char* short_descr;
     const char* long_descr;
     const char* description;
-    const char* notes;
+    const char* comments;
     tflag       act;
     tflag       affect_field;
     sh_int      alignment;
@@ -2828,7 +2829,7 @@ struct  obj_index_data
     const char* name;
     const char* short_descr;
     const char* description;
-    const char* notes;
+    const char* comments;
 	int         vnum;
 	sh_int      reset_num;
     const char* material;
@@ -2951,7 +2952,7 @@ struct  area_data
     const char* file_name;
     const char* name;
     const char* credits;
-    const char* notes;
+    const char* comments;
 	sh_int      age;
 	sh_int      nplayer;
 	sh_int      reset_time;
@@ -2992,7 +2993,7 @@ struct  room_index_data
     RESET_DATA *   reset_first;    /* OLC */
     const char* name;
     const char* description;
-    const char* notes;
+    const char* comments;
     const char* owner;
     int      vnum;
     tflag       room_flags;
@@ -4202,6 +4203,7 @@ void    set_title( CHAR_DATA *ch, const char *title );
 char    get_pkflag  args( ( CHAR_DATA *ch, CHAR_DATA *wch ) );
 char*   char_look_info( CHAR_DATA *ch );
 bool    is_disguised( CHAR_DATA *ch );
+int     get_lore_level( CHAR_DATA *ch, int obj_level );
 void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
 void    show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 void    check_achievement( CHAR_DATA *ch );
@@ -4457,7 +4459,7 @@ int get_enchant_ops( OBJ_DATA *obj, int level );
 void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration );
 void check_enchant_obj( OBJ_DATA *obj );
 void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
-void spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg );
+bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg );
 
 /* fight.c */
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );

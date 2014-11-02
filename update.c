@@ -3183,21 +3183,19 @@ void validate_all()
         ch_next = ch->next;
         if ( !valid_CH(ch) )
         {
-            logpf("validate_all: invalid ch in char_list (%s)", ch->name);
+            bugf("validate_all: invalid ch in char_list (%s)", ch->name);
             char_from_char_list(ch);
             continue;
         }
         if ( ch->master && !valid_CH(ch->master) )
         {
-            logpf("validate_all: invalid ch->master (%s)", ch->name);
-            wiznet("invalid ch->master ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+            bugf("validate_all: invalid ch->master (%s)", ch->name);
             ch->master = NULL;
             continue;
         }
         if ( ch->leader && !valid_CH(ch->leader) )
         {
-            logpf("validate_all: invalid ch->leader (%s)", ch->name);
-            wiznet("invalid ch->leader ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+            bugf("validate_all: invalid ch->leader (%s)", ch->name);
             ch->leader = NULL;
             continue;
         }
@@ -3205,16 +3203,14 @@ void validate_all()
         {
             if ( !valid_CH(ch->pet) )
             {
-                logpf("validate_all: invalid ch->pet (%s)", ch->name);
-                wiznet("invalid ch->pet ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+                bugf("validate_all: invalid ch->pet (%s)", ch->name);
                 ch->pet = NULL;
                 continue;
             }
             lch = ch->pet->leader;
             if ( ch != lch )
             {
-                logpf("validate_all: ch != ch->pet->leader (%s != %s)", ch->name, !lch ? "NULL" : !valid_CH(lch) ? "invalid" : lch->name);
-                wiznet("ch != ch->pet->leader ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+                bugf("validate_all: ch != ch->pet->leader (%s != %s)", ch->name, !lch ? "NULL" : !valid_CH(lch) ? "invalid" : lch->name);
                 ch->pet->leader = NULL;
                 ch->pet = NULL;
                 continue;
@@ -3224,16 +3220,14 @@ void validate_all()
         {
             if ( !valid_DESCRIPTOR(ch->desc) )
             {
-                logpf("validate_all: invalid ch->desc (%s)", ch->name);
-                wiznet("invalid ch->desc ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+                bugf("validate_all: invalid ch->desc (%s)", ch->name);
                 ch->desc = NULL;
                 continue;
             }
             dch = ch->desc->character;
             if ( ch != dch )
             {
-                logpf("validate_all: ch != ch->desc->ch (%s != %s)", ch->name, !dch ? "NULL" : !valid_CH(dch) ? "invalid" : dch->name);
-                wiznet("ch != ch->desc->ch ($N)", ch, NULL, WIZ_BUGS, 0, 0);
+                bugf("validate_all: ch != ch->desc->ch (%s != %s)", ch->name, !dch ? "NULL" : !valid_CH(dch) ? "invalid" : dch->name);
                 ch->desc->character = NULL;
                 ch->desc = NULL;
                 continue;
@@ -3246,8 +3240,7 @@ void validate_all()
         desc_next = desc->next;
         if ( !valid_DESCRIPTOR(desc) )
         {
-            logpf("validate_all: invalid desc in descriptor_list (%s)", desc->host);
-            wiznet("invalid desc in descriptor_list ($T)", NULL, desc->host, WIZ_BUGS, 0, 0);
+            bugf("validate_all: invalid desc in descriptor_list (%s)", desc->host);
             desc_from_descriptor_list(desc);
             continue;
         }
@@ -3255,15 +3248,13 @@ void validate_all()
         {
             if ( !valid_CH(dch) )
             {
-                logpf("validate_all: invalid desc->character (%s, %s)", desc->host, dch->name);
-                wiznet("invalid desc->character ($T, $N)", dch, desc->host, WIZ_BUGS, 0, 0);
+                bugf("validate_all: invalid desc->character (%s, %s)", desc->host, dch->name);
                 desc->character = NULL;
                 continue;
             }
             if ( desc != dch->desc )
             {
-                logpf("validate_all: desc != desc->character->desc (%s, %s != %s)", dch->name, desc->host, !dch->desc ? "NULL" : !valid_DESCRIPTOR(dch->desc) ? "invalid" : dch->desc->host);
-                wiznet("desc != desc->character->desc ($N)", dch, NULL, WIZ_BUGS, 0, 0);
+                bugf("validate_all: desc != desc->character->desc (%s, %s != %s)", dch->name, desc->host, !dch->desc ? "NULL" : !valid_DESCRIPTOR(dch->desc) ? "invalid" : dch->desc->host);
                 desc->character->desc = NULL;
                 desc->character = NULL;
                 continue;

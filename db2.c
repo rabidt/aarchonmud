@@ -423,7 +423,11 @@ void load_mobbles( FILE *fp )
             }
             else if KEY("NOTES")
             {
-                pMobIndex->notes = fread_string( fp );
+                pMobIndex->comments = fread_string( fp );
+            }
+            else if KEY("COMMENTS")
+            {
+                pMobIndex->comments = fread_string( fp );
             }
             else if KEY("RACE")
             {
@@ -517,8 +521,8 @@ void load_mobbles( FILE *fp )
 
         SET_BIT( pMobIndex->act, ACT_IS_NPC );
 
-        if ( !pMobIndex->notes )
-            pMobIndex->notes=str_dup("");
+        if ( !pMobIndex->comments )
+            pMobIndex->comments=str_dup("");
 
         index_mobile ( pMobIndex );
     }
@@ -805,7 +809,7 @@ void load_objects( FILE *fp )
             }
             else if ( letter == 'N' )
             {
-                pObjIndex->notes = fread_string( fp );
+                pObjIndex->comments = fread_string( fp );
             }
             else
             {
@@ -814,8 +818,8 @@ void load_objects( FILE *fp )
             }
         }
         
-        if ( !pObjIndex->notes )
-            pObjIndex->notes = str_dup( "" );
+        if ( !pObjIndex->comments )
+            pObjIndex->comments = str_dup( "" );
 
         iHash                   = vnum % MAX_KEY_HASH;
         pObjIndex->next         = obj_index_hash[iHash];

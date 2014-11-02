@@ -662,6 +662,7 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
     OBJ_DATA *first, *second;
     bool secondgun = FALSE;
     int targeted_attacks, area_attacks, jam_chance;
+    int skill = get_skill(ch, sn);
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
@@ -686,7 +687,7 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
     // ok, we're ready for action
     WAIT_STATE( ch, skill_table[sn].beats );
 
-    if ( per_chance(50 - get_skill(ch,sn)/2) )
+    if ( !per_chance(skill) && per_chance(5) )
     {
         send_to_char("You shoot yourself in the foot!\n\r", ch);
         act( "$n shoots $mself in the foot!", ch, NULL, NULL, TO_ROOM);
@@ -698,8 +699,8 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
     check_improve(ch, sn, TRUE, 2);
     
     // work out number of attacks & chance of jamming
-    targeted_attacks = (sn == gsn_fullauto ? 2 : number_range(2,4));
-    area_attacks = (sn == gsn_fullauto ? 2 : sn == gsn_semiauto ? 1 : 0);
+    targeted_attacks = number_range(2,4);
+    area_attacks = (sn == gsn_fullauto ? number_range(2,targeted_attacks) : sn == gsn_semiauto ? number_range(1,2) : 0);
     if ( per_chance(get_skill(ch, gsn_tight_grouping)) )
     {
         // plus 1/3 to number of attacks
@@ -960,11 +961,12 @@ DEF_DO_FUN(do_aim)
        obj is the main-hand gun, OR obj is second-hand gun and secondgun = TRUE */
 
     check_killer( ch, victim );
-    WAIT_STATE( ch, skill_table[gsn_aim].beats );
+    if ( aim_target == AIM_NORMAL )
+        WAIT_STATE( ch, skill_table[gsn_aim].beats * 2/3 );
+    else
+        WAIT_STATE( ch, skill_table[gsn_aim].beats );
     
     chance = 50 + get_skill(ch, gsn_aim) / 2;
-    if (aim_target != AIM_NORMAL)
-        chance -= 30;
 
     /* Offhand is naturally weaker, so...
        with 100% dual gun skill, chance is reduced by 10
@@ -4596,4 +4598,6 @@ DEF_DO_FUN(do_gaze)
 
     check_killer(ch, victim);
     start_combat(ch, victim);
+    if ( per_chance(skill) )
+        check_petrify(ch, victim);
 }
