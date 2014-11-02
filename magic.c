@@ -1780,7 +1780,7 @@ DEF_SPELL_FUN(spell_acid_blast)
         dam /= 2;
 
     full_dam( ch, victim, dam, sn,DAM_ACID,TRUE);
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_armor)
@@ -1794,7 +1794,7 @@ DEF_SPELL_FUN(spell_armor)
             send_to_char("You are already armored.\n\r",ch);
         else
             act("$N is already armored.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
     af.where     = TO_AFFECTS;
     af.type      = sn;
@@ -1807,7 +1807,7 @@ DEF_SPELL_FUN(spell_armor)
     send_to_char( "You feel someone protecting you.\n\r", victim );
     if ( ch != victim )
         act("$N is protected by your magic.",ch,NULL,victim,TO_CHAR);
-    return;
+    return TRUE;
 }
 
 
@@ -1833,7 +1833,7 @@ DEF_SPELL_FUN(spell_bless)
         if (IS_OBJ_STAT(obj,ITEM_BLESS))
         {
             act("$p is already blessed.",ch,obj,NULL,TO_CHAR);
-            return;
+            return SR_AFFECTED;
         }
 
         if (IS_OBJ_STAT(obj,ITEM_EVIL))
@@ -1847,13 +1847,13 @@ DEF_SPELL_FUN(spell_bless)
                     affect_remove_obj(obj,paf);
                 act("$p glows a pale blue.",ch,obj,NULL,TO_ALL);
                 REMOVE_BIT(obj->extra_flags,ITEM_EVIL);
-                return;
+                return TRUE;
             }
             else
             {
                 act("The evil of $p is too powerful for you to overcome.",
                         ch,obj,NULL,TO_CHAR);
-                return;
+                return TRUE;
             }
         }
 
@@ -1870,7 +1870,7 @@ DEF_SPELL_FUN(spell_bless)
 
         if (obj->wear_loc != WEAR_NONE)
             ch->saving_throw -= 1;
-        return;
+        return TRUE;
     }
 
     /* character target */
@@ -1883,7 +1883,7 @@ DEF_SPELL_FUN(spell_bless)
             send_to_char("You are already blessed.\n\r",ch);
         else
             act("$N is already blessed.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -1901,7 +1901,7 @@ DEF_SPELL_FUN(spell_bless)
     send_to_char( "You feel righteous.\n\r", victim );
     if ( ch != victim )
         act("You grant $N the favor of your god.",ch,NULL,victim,TO_CHAR);
-    return;
+    return TRUE;
 }
 
 
@@ -1914,7 +1914,7 @@ DEF_SPELL_FUN(spell_blindness)
     if ( IS_AFFECTED(victim, AFF_BLIND) )
     {
         send_to_char( "Your target is already blind!\n\r", ch );
-        return;
+        return SR_AFFECTED;
     }
 
     if ( saves_spell(victim, ch, level * 2/3, DAM_OTHER) )
@@ -1922,7 +1922,7 @@ DEF_SPELL_FUN(spell_blindness)
         if ( victim != ch )
             act( "$N blinks $S eyes, and the spell has no effect.", ch, NULL, victim, TO_CHAR );
         send_to_char( "Your eyes begin to water, causing you to blink several times.\n\r", victim );
-        return;
+        return TRUE;
     }
 
     af.where     = TO_AFFECTS;
@@ -1935,7 +1935,7 @@ DEF_SPELL_FUN(spell_blindness)
     affect_to_char( victim, &af );
     send_to_char( "You are blinded!\n\r", victim );
     act("$n appears to be blinded.",victim,NULL,NULL,TO_ROOM);
-    return;
+    return TRUE;
 }
 
 
@@ -1956,7 +1956,7 @@ DEF_SPELL_FUN(spell_burning_hands)
         dam = 0;
 
     full_dam( ch, victim, dam, sn, DAM_FIRE,TRUE);
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_call_lightning)
@@ -1968,13 +1968,13 @@ DEF_SPELL_FUN(spell_call_lightning)
     if ( !IS_OUTSIDE(ch) )
     {
         send_to_char( "You must be out of doors.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     if ( weather_info.sky < SKY_RAINING )
     {
         send_to_char( "The weather is MUCH too nice for that!\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * 1.5;
@@ -1994,7 +1994,7 @@ DEF_SPELL_FUN(spell_call_lightning)
             full_dam( ch, vch, dam, sn,DAM_LIGHTNING,TRUE);
     }
 
-    return;
+    return TRUE;
 }
 
 /**
@@ -2016,7 +2016,7 @@ DEF_SPELL_FUN(spell_calm)
     if( IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
     {
         send_to_char( "All is already calm in a safe room.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     /* try to calm all characters that need it */
@@ -2064,7 +2064,7 @@ DEF_SPELL_FUN(spell_calm)
     if ( !conflict )
     {
         send_to_char("Things seem pretty calm already.\n\r", ch);
-        return;
+        return SR_TARGET;
     }
     
     conflict = FALSE;
@@ -2087,6 +2087,8 @@ DEF_SPELL_FUN(spell_calm)
         send_to_char("Your environment continues to be hostile.\n\r", ch);
     else
         send_to_char("... and world peace.\n\r", ch);
+    
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_cancellation)
@@ -2104,13 +2106,13 @@ DEF_SPELL_FUN(spell_cancellation)
                 (IS_NPC(ch) && !IS_NPC(victim)) ) /* NPC casting on PC */
         {
             send_to_char("You failed, try dispel magic.\n\r",ch);
-            return;
+            return SR_IMMUNE;
         }
 
         if (!IS_NPC(victim) && IS_SET(victim->act, PLR_NOCANCEL) && ch != victim)
         {
             send_to_char("That player does not wish to be cancelled.\n\r",ch);
-            return;
+            return SR_IMMUNE;
         }
     }
 
@@ -2126,7 +2128,7 @@ DEF_SPELL_FUN(spell_cancellation)
         if ( sn == -1 )
         {
             send_to_char("Cancel which spell?\n\r",ch);
-            return;
+            return SR_SYNTAX;
         }
 
         if (can_dispel(sn) && check_dispel(level,victim,sn))
@@ -2147,6 +2149,7 @@ DEF_SPELL_FUN(spell_cancellation)
         else
             send_to_char("Spell failed.\n\r",ch);
     }
+    return TRUE;
 }
 
 CHAR_DATA* get_next_victim( CHAR_DATA *ch, CHAR_DATA *start_victim )
@@ -2224,6 +2227,7 @@ DEF_SPELL_FUN(spell_chain_lightning)
             ch,NULL,victim,TO_VICT);  
 
     deal_chain_damage( sn, level, ch, victim, DAM_LIGHTNING );
+    return TRUE;
 }
 
 
@@ -2235,7 +2239,7 @@ DEF_SPELL_FUN(spell_change_sex)
     if ( IS_SET( ch->act, PLR_WAR ) && war.type == GENDER_WAR )
     {
         send_to_char( "It won't work... sides in the war are decided by a person's real sex.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     if ( is_affected( victim, sn ))
@@ -2244,13 +2248,13 @@ DEF_SPELL_FUN(spell_change_sex)
             send_to_char("You've already been changed.\n\r",ch);
         else
             act("$N has already had $s(?) sex changed.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     if ( ch != victim && saves_spell(victim, ch, level, DAM_OTHER) )
     {
         act("Hmmm... nope, $E's still a $E.",ch,NULL,victim,TO_CHAR );
-        return;
+        return TRUE;
     }
 
     af.where     = TO_AFFECTS;
@@ -2268,7 +2272,7 @@ DEF_SPELL_FUN(spell_change_sex)
     send_to_char( "You feel different.\n\r", victim );
     act("$n doesn't look like $mself anymore...",victim,NULL,NULL,TO_ROOM);
     affect_to_char( victim, &af ); /* moved */
-    return;
+    return TRUE;
 }
 
 
@@ -2281,12 +2285,12 @@ DEF_SPELL_FUN(spell_charm_person)
     bool sex_bonus;
 
     if ( is_safe(ch,victim) )
-        return;
+        return SR_UNABLE;
 
     if ( victim == ch )
     {
         send_to_char( "You like yourself even better!\n\r", ch );
-        return;
+        return SR_TARGET;
     }
 
     if ( IS_AFFECTED(victim, AFF_CHARM)
@@ -2295,24 +2299,24 @@ DEF_SPELL_FUN(spell_charm_person)
             || IS_IMMORTAL(victim) )
     {
         act( "You can't charm $N.", ch, NULL, victim, TO_CHAR );
-        return;
+        return SR_IMMUNE;
     }
 
     if (IS_SET(victim->in_room->room_flags,ROOM_LAW))
     {
         send_to_char("Charming is not allowed here.\n\r",ch);
-        return;
+        return SR_UNABLE;
     }
 
     if ( !IS_NPC(ch) && IS_SET( ch->act, PLR_WAR ) )
     {
         act( "Don't charm $M, KILL $M!", ch, NULL, victim, TO_CHAR );
-        return;
+        return SR_UNABLE;
     }
 
     mlevel = victim->level;
     if ( check_cha_follow(ch, mlevel) < mlevel )
-        return;
+        return SR_UNABLE;
 
     sex_bonus =  
         (ch->sex == SEX_FEMALE && victim->sex == SEX_MALE)
@@ -2325,7 +2329,7 @@ DEF_SPELL_FUN(spell_charm_person)
             || (!IS_NPC(victim) && number_bits(2)) )
     {
         send_to_char("The spell has failed to have an effect.\n\r", ch );
-        return;
+        return TRUE;
     }
 
     if ( is_same_group(victim->fighting, ch) )
@@ -2348,7 +2352,7 @@ DEF_SPELL_FUN(spell_charm_person)
     if ( ch != victim )
         act("$N looks at you with adoring eyes.",ch,NULL,victim,TO_CHAR);
 
-    return;
+    return TRUE;
 }
 
 
@@ -2369,7 +2373,7 @@ DEF_SPELL_FUN(spell_chill_touch)
         dam = 0;
 
     full_dam( ch, victim, dam, sn, DAM_COLD,TRUE );
-    return;
+    return TRUE;
 }
 
 
@@ -2386,7 +2390,7 @@ DEF_SPELL_FUN(spell_colour_spray)
         spell_blindness( gsn_blindness, level/2, ch,(void *) victim,TARGET_CHAR );
 
     full_dam( ch, victim, dam, sn, DAM_LIGHT,TRUE );
-    return;
+    return TRUE;
 }
 
 
@@ -2402,32 +2406,32 @@ DEF_SPELL_FUN(spell_continual_light)
         if (light == NULL)
         {
             send_to_char("You don't see that here.\n\r",ch);
-            return;
+            return SR_TARGET;
         }
 
         if (IS_OBJ_STAT(light, ITEM_DARK))
         {
             REMOVE_BIT(light->extra_flags, ITEM_DARK);
             act("$p loses its dark aura.",ch,light,NULL,TO_ALL);
-            return;
+            return TRUE;
         }
 
         if (IS_OBJ_STAT(light,ITEM_GLOW))
         {
             act("$p is already glowing.",ch,light,NULL,TO_CHAR);
-            return;
+            return SR_AFFECTED;
         }
 
         SET_BIT(light->extra_flags,ITEM_GLOW);
         act("$p glows with a white light.",ch,light,NULL,TO_ALL);
-        return;
+        return TRUE;
     }
 
     light = create_object( get_obj_index( OBJ_VNUM_LIGHT_BALL ), 0 );
     obj_to_room( light, ch->in_room );
     act( "$n twiddles $s thumbs and $p appears.",   ch, light, NULL, TO_ROOM );
     act( "You twiddle your thumbs and $p appears.", ch, light, NULL, TO_CHAR );
-    return;
+    return TRUE;
 }
 
 
@@ -2455,7 +2459,7 @@ DEF_SPELL_FUN(spell_control_weather)
         send_to_char ("Do you want it to get better or worse?\n\r", ch );
 
     send_to_char( "Ok.\n\r", ch );
-    return;
+    return TRUE;
 }
 
 /* Explosives ala Rimbol.  Original idea from Wurm. */
@@ -2476,8 +2480,11 @@ DEF_SPELL_FUN(spell_create_bomb)
         obj_to_char(bomb,ch);
     }
     else
+    {
         send_to_char("You have no room in your inventory for that!\r\n", ch);
-    return;
+        return SR_UNABLE;
+    }
+    return TRUE;
 }
 
 
@@ -2491,7 +2498,7 @@ DEF_SPELL_FUN(spell_create_food)
     obj_to_room( mushroom, ch->in_room );
     act( "$p suddenly appears.", ch, mushroom, NULL, TO_ROOM );
     act( "$p suddenly appears.", ch, mushroom, NULL, TO_CHAR );
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_create_rose)
@@ -2505,8 +2512,11 @@ DEF_SPELL_FUN(spell_create_rose)
         obj_to_char(rose,ch);
     }
     else
+    {
         send_to_char("You have no room in your inventory for that!\n\r",ch);
-    return;
+        return SR_UNABLE;
+    }
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_create_spring)
@@ -2518,7 +2528,7 @@ DEF_SPELL_FUN(spell_create_spring)
     obj_to_room( spring, ch->in_room );
     act( "$p flows from the ground.", ch, spring, NULL, TO_ROOM );
     act( "$p flows from the ground.", ch, spring, NULL, TO_CHAR );
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_create_water)
@@ -2529,19 +2539,19 @@ DEF_SPELL_FUN(spell_create_water)
     if ( obj->item_type != ITEM_DRINK_CON )
     {
         send_to_char( "It is unable to hold water.\n\r", ch );
-        return;
+        return SR_TARGET;
     }
 
     if ( obj->value[2] != LIQ_WATER && obj->value[1] != 0 )
     {
         send_to_char( "It contains some other liquid.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     if ( obj->value[0] <= obj->value[1] )
     {
         send_to_char( "It is already full.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     water = UMIN(
@@ -2564,7 +2574,7 @@ DEF_SPELL_FUN(spell_create_water)
         act( "$p is filled.", ch, obj, NULL, TO_CHAR );
     }
 
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_cure_blindness)
@@ -2578,7 +2588,7 @@ DEF_SPELL_FUN(spell_cure_blindness)
             send_to_char("You aren't blind.\n\r",ch);
         else
             act("$N doesn't appear to be blinded.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     for ( aff = victim->affected; aff != NULL; aff = aff->next )
@@ -2590,7 +2600,7 @@ DEF_SPELL_FUN(spell_cure_blindness)
             else
                 if ( ch != victim )
                     act( "$N is no longer blinded.", ch, NULL, victim, TO_CHAR );
-            return;
+            return TRUE;
         }
     }
 
@@ -2600,45 +2610,7 @@ DEF_SPELL_FUN(spell_cure_blindness)
     else
         act( "$N's blindness cannot be cured.", ch, NULL, victim, TO_CHAR );
 
-    /*
-       if (is_affected(victim, gsn_blindness))
-       if (check_dispel(level,victim,gsn_blindness))
-       {
-       send_to_char( "You are no longer blinded!\n\r", victim );
-       act("$n is no longer blinded.",victim,NULL,NULL,TO_ROOM);
-       }
-       else
-       {
-       send_to_char("Spell failed.\n\r",ch);
-       return;
-       }
-
-       if (is_affected(victim, gsn_gouge))
-       if (check_dispel(level, victim, gsn_gouge))
-       {
-       send_to_char( "Your eyes have been restored to their sockets!\n\r", victim );
-       act("$n's empty eye sockets have been healed.",victim,NULL,NULL,TO_ROOM);
-       affect_strip(ch, gsn_gouge);
-       }
-       else
-       {
-       send_to_char("Spell failed.\n\r",ch);
-       return;
-       }
-
-       if (is_affected(victim, gsn_fire_breath))
-       if (check_dispel(level, victim, gsn_fire_breath))
-       {
-       send_to_char( "The smoke is removed from your eyes!\n\r", victim );
-       act("$n is no longer blinded by smoke.",victim,NULL,NULL,TO_ROOM);
-       affect_strip(ch, gsn_fire_breath);
-       }
-       else
-       {
-       send_to_char("Spell failed.\n\r",ch);
-       return;
-       }
-     */
+    return SR_IMMUNE;
 }
 
 bool is_mental( int sn )
@@ -2676,6 +2648,8 @@ DEF_SPELL_FUN(spell_cure_mental)
         send_to_char("Ok.\n\r",ch);
     else
         send_to_char("Spell failed.\n\r",ch);
+    
+    return TRUE;
 }
 
 /* RT added to cure plague */
@@ -2689,7 +2663,7 @@ DEF_SPELL_FUN(spell_cure_disease)
             send_to_char("You aren't ill.\n\r",ch);
         else
             act("$N doesn't appear to be diseased.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     if ( check_dispel(level,victim, gsn_plague) || 
@@ -2700,6 +2674,8 @@ DEF_SPELL_FUN(spell_cure_disease)
     }
     else
         send_to_char("Spell failed.\n\r",ch);
+    
+    return TRUE;
 }
 
 
@@ -2713,7 +2689,7 @@ DEF_SPELL_FUN(spell_cure_poison)
             send_to_char("You aren't poisoned.\n\r",ch);
         else
             act("$N doesn't appear to be poisoned.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     if (check_dispel(level,victim,gsn_poison))
@@ -2723,6 +2699,8 @@ DEF_SPELL_FUN(spell_cure_poison)
     }
     else
         send_to_char("Spell failed.\n\r",ch);
+    
+    return TRUE;
 }
 
 
@@ -2739,7 +2717,7 @@ DEF_SPELL_FUN(spell_curse)
         if (IS_OBJ_STAT(obj,ITEM_EVIL))
         {
             act("$p is already filled with evil.",ch,obj,NULL,TO_CHAR);
-            return;
+            return SR_AFFECTED;
         }
 
         if (IS_OBJ_STAT(obj,ITEM_BLESS))
@@ -2753,13 +2731,13 @@ DEF_SPELL_FUN(spell_curse)
                     affect_remove_obj(obj,paf);
                 act("$p glows with a red aura.",ch,obj,NULL,TO_ALL);
                 REMOVE_BIT(obj->extra_flags,ITEM_BLESS);
-                return;
+                return TRUE;
             }
             else
             {
                 act("The holy aura of $p is too powerful for you to overcome.",
                         ch,obj,NULL,TO_CHAR);
-                return;
+                return TRUE;
             }
         }
 
@@ -2776,25 +2754,25 @@ DEF_SPELL_FUN(spell_curse)
 
         if (obj->wear_loc != WEAR_NONE)
             ch->saving_throw += 1;
-        return;
+        return TRUE;
     }
 
     /* character curses */
     victim = (CHAR_DATA *) vo;
 
     if ( is_safe( ch, victim ) )
-        return;
+        return SR_UNABLE;
 
     if (IS_AFFECTED(victim,AFF_CURSE))
     {
         send_to_char("They are already cursed.\n\r",ch);
-        return;
+        return SR_AFFECTED;
     }
 
     if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
     {
         act("$N feels a shiver, but resists your curse.",ch,NULL,victim,TO_CHAR);
-        return;
+        return TRUE;
     }
 
     af.where     = TO_AFFECTS;
@@ -2813,7 +2791,7 @@ DEF_SPELL_FUN(spell_curse)
     send_to_char( "You feel unclean.\n\r", victim );
     if ( ch != victim )
         act("$N looks very uncomfortable.",ch,NULL,victim,TO_CHAR);
-    return;
+    return TRUE;
 }
 
 /* RT replacement demonfire spell */
@@ -2847,6 +2825,7 @@ DEF_SPELL_FUN(spell_demonfire)
     if ( IS_GOOD(victim) && !IS_AFFECTED(victim, AFF_CURSE) )
         spell_curse(gsn_curse, level/2, ch, (void *) victim,TARGET_CHAR);
     full_dam( ch, victim, dam, sn, DAM_NEGATIVE ,TRUE);
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_angel_smite)
@@ -2876,6 +2855,7 @@ DEF_SPELL_FUN(spell_angel_smite)
     if ( IS_EVIL(victim) && !IS_AFFECTED(victim, AFF_CURSE) )
         spell_curse(gsn_curse, level/2, ch, (void *) victim,TARGET_CHAR);
     full_dam( ch, victim, dam, sn, DAM_HOLY ,TRUE);
+    return TRUE;
 }
 
 
@@ -2890,7 +2870,7 @@ DEF_SPELL_FUN(spell_detect_evil)
             send_to_char("You can already sense evil.\n\r",ch);
         else
             act("$N can already detect evil.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
     af.where     = TO_AFFECTS;
     af.type      = sn;
@@ -2903,7 +2883,7 @@ DEF_SPELL_FUN(spell_detect_evil)
     send_to_char( "Your eyes tingle.\n\r", victim );
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
-    return;
+    return TRUE;
 }
 
 
@@ -2918,7 +2898,7 @@ DEF_SPELL_FUN(spell_detect_good)
             send_to_char("You can already sense good.\n\r",ch);
         else
             act("$N can already detect good.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
     af.where     = TO_AFFECTS;
     af.type      = sn;
@@ -2931,7 +2911,7 @@ DEF_SPELL_FUN(spell_detect_good)
     send_to_char( "Your eyes tingle.\n\r", victim );
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
-    return;
+    return TRUE;
 }
 
 
@@ -2947,7 +2927,7 @@ DEF_SPELL_FUN(spell_detect_hidden)
             send_to_char("You are already as alert as you can be. \n\r",ch);
         else
             act("$N can already sense hidden lifeforms.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
     af.where     = TO_AFFECTS;
     af.type      = sn;
@@ -2960,7 +2940,7 @@ DEF_SPELL_FUN(spell_detect_hidden)
     send_to_char( "Your awareness improves.\n\r", victim );
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
-    return;
+    return TRUE;
 }
 
 
@@ -2976,7 +2956,7 @@ DEF_SPELL_FUN(spell_detect_invis)
             send_to_char("You can already see invisible.\n\r",ch);
         else
             act("$N can already see invisible things.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -2990,7 +2970,7 @@ DEF_SPELL_FUN(spell_detect_invis)
     send_to_char( "Your eyes tingle.\n\r", victim );
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
-    return;
+    return TRUE;
 }
 
 
@@ -3006,7 +2986,7 @@ DEF_SPELL_FUN(spell_detect_magic)
             send_to_char("You can already sense magical auras.\n\r",ch);
         else
             act("$N can already detect magic.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -3020,7 +3000,7 @@ DEF_SPELL_FUN(spell_detect_magic)
     send_to_char( "Your eyes tingle.\n\r", victim );
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
-    return;
+    return TRUE;
 }
 
 
@@ -3041,7 +3021,7 @@ DEF_SPELL_FUN(spell_detect_poison)
         send_to_char( "It doesn't look poisoned.\n\r", ch );
     }
 
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_dispel_evil)
@@ -3054,7 +3034,7 @@ DEF_SPELL_FUN(spell_dispel_evil)
     if ( IS_NEUTRAL(victim) )
     {
         act( "$N does not seem to be affected.", ch, NULL, victim, TO_CHAR );
-        return;
+        return SR_IMMUNE;
     }
 
     /* Good victims are not affected either, and are protected by their god if they have one. */
@@ -3065,7 +3045,7 @@ DEF_SPELL_FUN(spell_dispel_evil)
 
         sprintf(log_buf, "%s protects $N.", god_name);
         act( log_buf, ch, NULL, victim, TO_CHAR );
-        return;
+        return SR_IMMUNE;
     }
 
     dam = get_sn_damage( sn, level, ch );
@@ -3073,7 +3053,7 @@ DEF_SPELL_FUN(spell_dispel_evil)
     if ( saves_spell(victim, ch, level, DAM_HOLY) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_HOLY, TRUE);
-    return;
+    return TRUE;
 }
 
 
@@ -3087,7 +3067,7 @@ DEF_SPELL_FUN(spell_dispel_good)
     if ( IS_NEUTRAL(victim) )
     {
         act( "$N does not seem to be affected.", ch, NULL, victim, TO_CHAR );
-        return;
+        return SR_IMMUNE;
     }
 
     /* Evil victims are not affected either, and are protected by their god if they have one. */
@@ -3098,7 +3078,7 @@ DEF_SPELL_FUN(spell_dispel_good)
 
         sprintf(log_buf, "%s protects $N.", god_name);
         act( log_buf, ch, NULL, victim, TO_CHAR );
-        return;
+        return SR_IMMUNE;
     }
 
     dam = get_sn_damage( sn, level, ch );
@@ -3106,7 +3086,7 @@ DEF_SPELL_FUN(spell_dispel_good)
     if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_NEGATIVE ,TRUE);
-    return;
+    return TRUE;
 }
 
 
@@ -3119,21 +3099,21 @@ DEF_SPELL_FUN(spell_dispel_magic)
     if (IS_SET(victim->imm_flags, IMM_MAGIC))
     {
         send_to_char( "Your victim is immune to magic.\n\r", ch);
-        return;
+        return SR_IMMUNE;
     }
 
     if (saves_spell(victim, ch, level, DAM_OTHER))
     {     
         send_to_char( "You feel a brief tingling sensation.\n\r",victim);
         send_to_char( "You failed.\n\r", ch);
-        return;
+        return TRUE;
     }
 
     if ( check_dispel_magic(level, victim) )
         send_to_char("Ok.\n\r",ch);
     else
         send_to_char("Spell failed.\n\r",ch);
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_earthquake)
@@ -3175,7 +3155,7 @@ DEF_SPELL_FUN(spell_earthquake)
             send_to_char( "The earth trembles and shivers.\n\r", vch );
     }
 
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_enchant_arrow)
@@ -3189,7 +3169,7 @@ DEF_SPELL_FUN(spell_enchant_arrow)
     if (obj == NULL || obj->item_type != ITEM_ARROWS)
     {
         send_to_char( "That isn't a pack of arrows.\n\r", ch);
-        return;
+        return SR_TARGET;
     }
 
     if ( (nr = obj->value[0]) <= 0 )
@@ -3197,7 +3177,7 @@ DEF_SPELL_FUN(spell_enchant_arrow)
         bugf( "spell_enchant_arrow: %d arrows", nr );
         extract_obj( obj );
         send_to_char( "There are no arrows to enchant.\n\r", ch );
-        return;
+        return SR_TARGET;
     }
 
     /* get enchantment type */
@@ -3217,14 +3197,14 @@ DEF_SPELL_FUN(spell_enchant_arrow)
     {
         send_to_char( "What type of enchantment do you want?\n\r", ch );
         send_to_char( "You can choose fire, cold, lightning, poison or acid.\n\r", ch );
-        return;
+        return SR_SYNTAX;
     }
 
     /* no re-enchanting */
     if ( obj->value[1] > 0 )
     {
         send_to_char( "The arrows are already enchanted.\n\r", ch );
-        return;
+        return SR_TARGET;
     }
 
     /* extra mana cost based on nr of arrows */
@@ -3233,7 +3213,7 @@ DEF_SPELL_FUN(spell_enchant_arrow)
     if ( number_range(1, nr) > mana )
     {
         send_to_char( "Your power is too low. The spell failed.\n\r", ch );
-        return;
+        return TRUE;
     }
 
     /* avoid trouble */
@@ -3283,6 +3263,7 @@ DEF_SPELL_FUN(spell_enchant_arrow)
     }
 
     send_to_char( "Your arrows are now enchanted.\n\r", ch );
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_enchant_armor)
@@ -3294,13 +3275,13 @@ DEF_SPELL_FUN(spell_enchant_armor)
     if (obj->item_type != ITEM_ARMOR)
     {
         send_to_char("That's not an armor.\n\r",ch);
-        return;
+        return SR_TARGET;
     }
     
     arg = one_argument(target_name, buf);
     one_argument(arg, buf);
     
-    spell_enchant_obj(ch, obj, level, buf);
+    return spell_enchant_obj(ch, obj, level, buf);
 }
 
 DEF_SPELL_FUN(spell_enchant_weapon)
@@ -3312,13 +3293,13 @@ DEF_SPELL_FUN(spell_enchant_weapon)
     if (obj->item_type != ITEM_WEAPON)
     {
         send_to_char("That's not a weapon.\n\r",ch);
-        return;
+        return SR_TARGET;
     }
     
     arg = one_argument(target_name, buf);
     one_argument(arg, buf);
     
-    spell_enchant_obj(ch, obj, level, buf);
+    return spell_enchant_obj(ch, obj, level, buf);
 }
 
 /*
@@ -3334,7 +3315,7 @@ DEF_SPELL_FUN(spell_energy_drain)
         act( "$N shivers slightly as the spell passes harmlessly over $S body.",
                 ch, NULL, victim, TO_CHAR );
         send_to_char("You feel a momentary chill.\n\r",victim);     
-        return;
+        return TRUE;
     }
 
     drop_align( ch );
@@ -3356,7 +3337,7 @@ DEF_SPELL_FUN(spell_energy_drain)
 
     dam_message( ch, victim, drain_mana + drain_move, sn, FALSE );
 
-    return;
+    return TRUE;
 }
 
 
@@ -3384,6 +3365,7 @@ DEF_SPELL_FUN(spell_fireball)
         else
             full_dam(ch,vch,dam,sn,DAM_FIRE,TRUE);
     }
+    return TRUE;
 }
 
 
@@ -3395,7 +3377,7 @@ DEF_SPELL_FUN(spell_fireproof)
     if (IS_OBJ_STAT(obj,ITEM_BURN_PROOF))
     {
         act("$p is already protected from burning.",ch,obj,NULL,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_OBJECT;
@@ -3410,6 +3392,7 @@ DEF_SPELL_FUN(spell_fireproof)
 
     act("You protect $p from fire.",ch,obj,NULL,TO_CHAR);
     act("$p is surrounded by a protective aura.",ch,obj,NULL,TO_ROOM);
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_flamestrike)
@@ -3421,7 +3404,7 @@ DEF_SPELL_FUN(spell_flamestrike)
     if ( saves_spell(victim, ch, level, DAM_FIRE) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_FIRE ,TRUE);
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_faerie_fire)
@@ -3432,7 +3415,7 @@ DEF_SPELL_FUN(spell_faerie_fire)
     if ( IS_AFFECTED(victim, AFF_FAERIE_FIRE) )
     {
         act( "$N is already affected by faerie fire.", ch, NULL, victim, TO_CHAR );
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -3445,7 +3428,7 @@ DEF_SPELL_FUN(spell_faerie_fire)
     affect_to_char( victim, &af );
     send_to_char( "You are surrounded by a pink outline.\n\r", victim );
     act( "$n is surrounded by a pink outline.", victim, NULL, NULL, TO_ROOM );
-    return;
+    return TRUE;
 }
 
 
@@ -3505,7 +3488,7 @@ DEF_SPELL_FUN(spell_faerie_fog)
         act("$p is revealed!",ch,obj,NULL,TO_CHAR);
     }
 
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_floating_disc)
@@ -3516,7 +3499,7 @@ DEF_SPELL_FUN(spell_floating_disc)
     if (floating != NULL && IS_OBJ_STAT(floating,ITEM_NOREMOVE))
     {
         act("You can't remove $p.",ch,floating,NULL,TO_CHAR);
-        return;
+        return SR_UNABLE;
     }
 
     disc = create_object(get_obj_index(OBJ_VNUM_DISC), 0);
@@ -3528,7 +3511,7 @@ DEF_SPELL_FUN(spell_floating_disc)
     send_to_char("You create a floating disc.\n\r",ch);
     obj_to_char(disc,ch);
     wear_obj(ch,disc,TRUE);
-    return;
+    return TRUE;
 }
 
 
@@ -3543,7 +3526,7 @@ DEF_SPELL_FUN(spell_fly)
             send_to_char("You are already airborne.\n\r",ch);
         else
             act("$N doesn't need your help to fly.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
     af.where     = TO_AFFECTS;
     af.type      = sn;
@@ -3555,7 +3538,7 @@ DEF_SPELL_FUN(spell_fly)
     affect_to_char( victim, &af );
     send_to_char( "Your feet rise off the ground.\n\r", victim );
     act( "$n's feet rise off the ground.", victim, NULL, NULL, TO_ROOM );
-    return;
+    return TRUE;
 }
 
 /* RT clerical berserking spell */
@@ -3571,7 +3554,7 @@ DEF_SPELL_FUN(spell_frenzy)
             send_to_char("You are already in a frenzy.\n\r",ch);
         else
             act("$N is already in a frenzy.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     if (is_affected(victim,skill_lookup("calm")))
@@ -3581,7 +3564,7 @@ DEF_SPELL_FUN(spell_frenzy)
         else
             act("$N doesn't look like $e wants to fight anymore.",
                     ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_UNABLE;
     }
 
     af.where     = TO_AFFECTS;
@@ -3607,6 +3590,7 @@ DEF_SPELL_FUN(spell_frenzy)
         send_to_char("You are filled with unholy wrath!\n\r",victim);
 
     act("$n gets a wild look in $s eyes!",victim,NULL,NULL,TO_ROOM);
+    return TRUE;
 }
 
 // returns original room unless a misgate occurs, in which case a random room is returned
@@ -3640,7 +3624,7 @@ DEF_SPELL_FUN(spell_gate)
     ROOM_INDEX_DATA *to_room;
 
     if ( !can_cast_transport(ch) )
-        return;
+        return SR_UNABLE;
 
     ignore_invisible = TRUE;
     if ( ( victim = get_char_world( ch, target_name ) ) == NULL 
@@ -3651,7 +3635,7 @@ DEF_SPELL_FUN(spell_gate)
             || (!IS_NPC(victim) && victim->level >= LEVEL_HERO) ) /*not trust*/
     {
         send_to_char( "You failed completely.\n\r", ch );
-        return;
+        return SR_TARGET;
     }
     ignore_invisible = FALSE;
 
@@ -3660,26 +3644,26 @@ DEF_SPELL_FUN(spell_gate)
             ||   IS_SET(victim->in_room->room_flags, ROOM_NO_TELEPORT) )
     {
         send_to_char( "Your powers can't get you there.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     if ( victim->level > level + 5 )
     {
         send_to_char( "Your powers aren't strong enough.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     if ( (IS_NPC(victim) && IS_SET(victim->imm_flags,IMM_SUMMON))
             ||   (!IS_NPC(victim) && IS_SET(victim->act,PLR_NOSUMMON)) )
     {
         send_to_char( "Your target refuses your company.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     if ( ch->in_room == victim->in_room )
     {
         send_to_char( "You're already there!\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     check_sn_multiplay( ch, victim, sn );
@@ -3693,9 +3677,9 @@ DEF_SPELL_FUN(spell_gate)
     if ( !IS_NPC(ch) )
     {
         if ( !ap_rexit_trigger(ch) )
-            return;
+            return TRUE;
         if ( !ap_exit_trigger(ch, victim->in_room->area) )
-            return;
+            return TRUE;
     }
 
     act("$n steps through a gate and vanishes.",ch,NULL,NULL,TO_ROOM);
@@ -3724,7 +3708,7 @@ DEF_SPELL_FUN(spell_gate)
         ap_renter_trigger(ch);
         rp_enter_trigger(ch);
     }
-    
+    return TRUE;
 }
 
 
@@ -3740,7 +3724,7 @@ DEF_SPELL_FUN(spell_giant_strength)
             send_to_char("You are already as strong as you can get!\n\r",ch);
         else
             act("$N can't get any stronger.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     if (IS_AFFECTED(victim,AFF_WEAKEN))
@@ -3750,7 +3734,7 @@ DEF_SPELL_FUN(spell_giant_strength)
             if (victim != ch)
 		        act( "Spell failed to grant $N with giant strength.\n\r", ch, NULL, victim, TO_CHAR );
             send_to_char("You feel momentarily stronger.\n\r",victim);
-            return;
+            return TRUE;
         }
         act("$n's muscles return to normal.",victim,NULL,NULL,TO_ROOM);
     }
@@ -3767,7 +3751,7 @@ DEF_SPELL_FUN(spell_giant_strength)
     act("$n's muscles surge with heightened power.",victim,NULL,NULL,TO_ROOM);
     if (ch != victim)
         send_to_char( "Ok.\n\r", ch);
-    return;
+    return TRUE;
 }
 
 /* used for harm as well as cause X spells */
@@ -3782,6 +3766,7 @@ DEF_SPELL_FUN(spell_cause_harm)
     direct_damage(ch, victim, harm, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
+    return TRUE;
 }
 
 /* RT haste spell */
@@ -3797,7 +3782,7 @@ DEF_SPELL_FUN(spell_haste)
         else
             act("$N is already moving as fast as $E can.",
                     ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     if (IS_AFFECTED(victim,AFF_SLOW))
@@ -3807,7 +3792,7 @@ DEF_SPELL_FUN(spell_haste)
             if (victim != ch)
                 send_to_char("Your haste spell failed.\n\r",ch);
             send_to_char("You feel momentarily faster.\n\r",victim);
-            return;
+            return TRUE;
         }
         act("$n is moving less slowly.",victim,NULL,NULL,TO_ROOM);
         //return;
@@ -3820,7 +3805,7 @@ DEF_SPELL_FUN(spell_haste)
             if (victim != ch)
                 send_to_char("Your haste spell failed.\n\r",ch);
             send_to_char("You feel momentarily faster.\n\r",victim);
-            return;
+            return TRUE;
         }
         act("With haste, $n escapes $s entaglement!",victim,NULL,NULL,TO_ROOM);
         //return;                       
@@ -3839,7 +3824,7 @@ DEF_SPELL_FUN(spell_haste)
     //printf_to_char(ch, "gsn: %d sn: %d", gsn_haste, sn);
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_heal)
@@ -3868,7 +3853,7 @@ DEF_SPELL_FUN(spell_heal)
         if ( ch != victim )
             act( "You heal $N.", ch, NULL, victim, TO_CHAR );
     }
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_heat_metal)
@@ -3881,7 +3866,7 @@ DEF_SPELL_FUN(spell_heat_metal)
     if ( IS_SET( ch->act, PLR_WAR ) )
     {
         send_to_char( "Play nice!\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     if (!saves_spell(victim, ch, level, DAM_FIRE) 
@@ -4012,6 +3997,7 @@ DEF_SPELL_FUN(spell_heat_metal)
             dam = 2 * dam / 3;
         full_dam(ch,victim,dam,sn,DAM_FIRE,TRUE);
     }
+    return TRUE;
 }
 
 /* RT really nasty high-level attack spell */
@@ -4038,7 +4024,7 @@ DEF_SPELL_FUN(spell_holy_word)
                 && ch->move > ch->max_move / 2) )
     {
         send_to_char( "The gods don't answer your call!\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     bless_num = skill_lookup("bless");
@@ -4099,6 +4085,7 @@ DEF_SPELL_FUN(spell_holy_word)
     ch->pcdata->trained_mana -= 2;
     ch->pcdata->trained_move -= 2;
     update_perm_hp_mana_move( ch );
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_identify)
@@ -4112,7 +4099,7 @@ DEF_SPELL_FUN(spell_identify)
     {
         sprintf( buf, "You must be at least level %d to identify %s{x.\n\r" , obj->level - 10, obj->short_descr);
         send_to_char(buf, ch);
-        return;
+        return SR_UNABLE;
     }
 
     sprintf( buf,
@@ -4279,7 +4266,9 @@ DEF_SPELL_FUN(spell_identify)
 
     for ( paf = obj->affected; paf != NULL; paf = paf->next )
         if ( paf->detect_level >= 0 && paf->detect_level <= level )
-            show_affect(ch, paf, FALSE);    
+            show_affect(ch, paf, FALSE);
+    
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_infravision)
@@ -4293,7 +4282,7 @@ DEF_SPELL_FUN(spell_infravision)
             send_to_char("You can already see in the dark.\n\r",ch);
         else
             act("$N can already see in the dark.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -4307,7 +4296,7 @@ DEF_SPELL_FUN(spell_infravision)
 
     send_to_char( "Your eyes glow red.\n\r", victim );
     act( "$n's eyes glow red.", victim, NULL, NULL, TO_ROOM );
-    return;
+    return TRUE;
 }
 
 
@@ -4334,7 +4323,7 @@ DEF_SPELL_FUN(spell_invis)
         if (IS_OBJ_STAT(obj,ITEM_INVIS))
         {
             act("$p is already invisible.",ch,obj,NULL,TO_CHAR);
-            return;
+            return SR_AFFECTED;
         }
 
         af.where    = TO_OBJECT;
@@ -4347,7 +4336,7 @@ DEF_SPELL_FUN(spell_invis)
         affect_to_obj(obj,&af);
 
         act("$p fades out of sight.",ch,obj,NULL,TO_ALL);
-        return;
+        return TRUE;
     }
 
     /* character invisibility */
@@ -4363,13 +4352,13 @@ DEF_SPELL_FUN(spell_invis)
     if (IS_NOHIDE(ch))
     {
         send_to_char("There is no place to hide.\n\r",ch);
-        return;
+        return SR_UNABLE;
     }
 
     if (IS_TAG(ch))
     {
         send_to_char("There is no place to hide in freeze tag.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     if ( IS_AFFECTED(victim, AFF_INVISIBLE) )
@@ -4378,13 +4367,13 @@ DEF_SPELL_FUN(spell_invis)
             send_to_char( "You are already invisible.\n\r", ch );
         else
             act( "$N is already invisible.", ch, NULL, victim, TO_CHAR );
-        return;
+        return SR_AFFECTED;
     }    
 
     if ( IS_AFFECTED(victim, AFF_ASTRAL) )
     {
         send_to_char("All is visible on the Astral plane.\n\r",ch);
-        return;
+        return SR_AFFECTED;
     }
 
     act( "$n fades out of existence.", victim, NULL, NULL, TO_ROOM );
@@ -4398,7 +4387,7 @@ DEF_SPELL_FUN(spell_invis)
     af.bitvector = AFF_INVISIBLE;
     affect_to_char( victim, &af );
     send_to_char( "You fade out of existence.\n\r", victim );
-    return;
+    return TRUE;
 }
 
 
@@ -4420,7 +4409,7 @@ DEF_SPELL_FUN(spell_know_alignment)
     else msg = "$N is the embodiment of pure evil!.";
 
     act( msg, ch, NULL, victim, TO_CHAR );
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_lightning_bolt)
@@ -4432,7 +4421,7 @@ DEF_SPELL_FUN(spell_lightning_bolt)
     if ( saves_spell(victim, ch, level, DAM_LIGHTNING) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_LIGHTNING ,TRUE);
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_locate_object)
@@ -4459,7 +4448,7 @@ DEF_SPELL_FUN(spell_locate_object)
     if ( target_name[0] == '\0' )
     {
         send_to_char( "Which object do you want to locate?\n\r", ch );
-        return;
+        return SR_SYNTAX;
     }
 
     for ( obj = object_list; obj != NULL; obj = obj->next )
@@ -4505,7 +4494,7 @@ DEF_SPELL_FUN(spell_locate_object)
 
     free_buf(buffer);
 
-    return;
+    return TRUE;
 }
 
 
@@ -4527,9 +4516,10 @@ DEF_SPELL_FUN(spell_magic_missile)
         if ( saves_spell(victim, ch, level, DAM_ENERGY) )
             dam /= 2;
         full_dam( ch, victim, dam, sn, DAM_ENERGY ,TRUE);
-        CHECK_RETURN(ch, victim);
+        if ( stop_attack(ch, victim) )
+            return TRUE;
     }
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_mass_healing)
@@ -4553,6 +4543,7 @@ DEF_SPELL_FUN(spell_mass_healing)
         spell_refresh(refresh_num, level, ch, (void *) gch, TARGET_CHAR);  
         check_sn_multiplay(ch, gch, sn);
     }
+    return TRUE;
 }
 
 
@@ -4564,7 +4555,7 @@ DEF_SPELL_FUN(spell_mass_invis)
     if (IS_NOHIDE(ch))
     {
         send_to_char("There is no place to hide.\n\r",ch);
-        return;
+        return SR_UNABLE;
     }
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
@@ -4590,7 +4581,7 @@ DEF_SPELL_FUN(spell_mass_invis)
     }
     send_to_char( "Ok.\n\r", ch );
 
-    return;
+    return TRUE;
 }
 
 
@@ -4598,7 +4589,7 @@ DEF_SPELL_FUN(spell_mass_invis)
 DEF_SPELL_FUN(spell_null)
 {
     send_to_char( "That's not a spell!\n\r", ch );
-    return;
+    return FALSE;
 }
 
 
@@ -4614,7 +4605,7 @@ DEF_SPELL_FUN(spell_pass_door)
             send_to_char("You are already out of phase.\n\r",ch);
         else
             act("$N is already shifted out of phase.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -4627,7 +4618,7 @@ DEF_SPELL_FUN(spell_pass_door)
     affect_to_char( victim, &af );
     act( "$n turns translucent.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "You turn translucent.\n\r", victim );
-    return;
+    return TRUE;
 }
 
 /* RT plague spell, very nasty */
@@ -4642,7 +4633,7 @@ DEF_SPELL_FUN(spell_plague)
             send_to_char("You feel momentarily ill, but it passes.\n\r",ch);
         else
             act("$N seems to be unaffected.",ch,NULL,victim,TO_CHAR);
-        return;
+        return TRUE;
     }
 
     af.where     = TO_AFFECTS;
@@ -4658,6 +4649,7 @@ DEF_SPELL_FUN(spell_plague)
         ("You scream in agony as plague sores erupt from your skin.\n\r",victim);
     act("$n screams in agony as plague sores erupt from $s skin.",
             victim,NULL,NULL,TO_ROOM);
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_confusion)
@@ -4668,7 +4660,7 @@ DEF_SPELL_FUN(spell_confusion)
     if ( IS_AFFECTED(ch, AFF_INSANE) )
     {
         act("$N is already confused.", ch, NULL, victim, TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
     
     if ( saves_spell(victim, ch, level*2/3, DAM_MENTAL) )
@@ -4678,7 +4670,7 @@ DEF_SPELL_FUN(spell_confusion)
             send_to_char("{xYou feel momentarily {Ms{yi{Gl{Cl{Ry{x, but it passes.\n\r",ch);
         else
             act("$N seems to keep $S sanity.",ch,NULL,victim,TO_CHAR);
-        return;
+        return TRUE;
     }
 
     af.where     = TO_AFFECTS;
@@ -4694,6 +4686,7 @@ DEF_SPELL_FUN(spell_confusion)
         ("{MY{bo{Cu{Gr {%{yw{Ro{mr{Bl{Cd{x {gi{Ys {%{ra{Ml{Bi{cv{Ge{x {yw{Ri{Mt{bh {%{wcolors{x{C?{x\n\r",victim);
     act("$n giggles like $e lost $s mind.",
             victim,NULL,NULL,TO_ROOM);
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_poison)
@@ -4711,11 +4704,11 @@ DEF_SPELL_FUN(spell_poison)
             if (IS_OBJ_STAT(obj,ITEM_BLESS) || IS_OBJ_STAT(obj,ITEM_BURN_PROOF))
             {
                 act("Your spell fails to corrupt $p.",ch,obj,NULL,TO_CHAR);
-                return;
+                return SR_IMMUNE;
             }
             obj->value[3] = 1;
             act("$p is infused with poisonous vapors.",ch,obj,NULL,TO_ALL);
-            return;
+            return TRUE;
         }
 
         if (obj->item_type == ITEM_WEAPON)
@@ -4740,7 +4733,7 @@ DEF_SPELL_FUN(spell_poison)
             if (IS_WEAPON_STAT(obj,WEAPON_POISON))
             {
                 act("$p is already envenomed.",ch,obj,NULL,TO_CHAR);
-                return;
+                return SR_AFFECTED;
             }
 
             af.where     = TO_WEAPON;
@@ -4753,23 +4746,23 @@ DEF_SPELL_FUN(spell_poison)
             affect_to_obj(obj,&af);
 
             act("$p is coated with deadly venom.",ch,obj,NULL,TO_ALL);
-            return;
+            return TRUE;
         }
 
         act("You can't poison $p.",ch,obj,NULL,TO_CHAR);
-        return;
+        return SR_TARGET;
     }
 
     victim = (CHAR_DATA *) vo;
 
     if ( is_safe( ch, victim ) )
-        return;
+        return SR_UNABLE;
 
     if ( saves_spell(victim, ch, level, DAM_POISON) )
     {
         act("$n turns slightly green, but it passes.",victim,NULL,NULL,TO_ROOM);
         send_to_char("You feel momentarily ill, but it passes.\n\r",victim);
-        return;
+        return TRUE;
     }
 
     af.where     = TO_AFFECTS;
@@ -4782,7 +4775,7 @@ DEF_SPELL_FUN(spell_poison)
     affect_join( victim, &af );
     send_to_char( "You feel very sick.\n\r", victim );
     act("$n looks very ill.",victim,NULL,NULL,TO_ROOM);
-    return;
+    return TRUE;
 }
 
 
@@ -4798,7 +4791,7 @@ DEF_SPELL_FUN(spell_protection_evil)
             send_to_char("You're not pure enough.\n\r",ch);
         else
             act("$N isn't pure enough.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_IMMUNE;
     }    
 
     if ( IS_AFFECTED(victim, AFF_PROTECT_EVIL) 
@@ -4808,7 +4801,7 @@ DEF_SPELL_FUN(spell_protection_evil)
             send_to_char("You are already protected.\n\r",ch);
         else
             act("$N is already protected.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -4822,7 +4815,7 @@ DEF_SPELL_FUN(spell_protection_evil)
     send_to_char( "You feel holy and pure.\n\r", victim );
     if ( ch != victim )
         act("$N is protected from evil.",ch,NULL,victim,TO_CHAR);
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_protection_good)
@@ -4836,7 +4829,7 @@ DEF_SPELL_FUN(spell_protection_good)
             send_to_char("You're not that evil.\n\r",ch);
         else
             act("$N isn't that evil.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_IMMUNE;
     }    
 
     if ( IS_AFFECTED(victim, AFF_PROTECT_GOOD) 
@@ -4846,7 +4839,7 @@ DEF_SPELL_FUN(spell_protection_good)
             send_to_char("You are already protected.\n\r",ch);
         else
             act("$N is already protected.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -4860,7 +4853,7 @@ DEF_SPELL_FUN(spell_protection_good)
     send_to_char( "You feel aligned with darkness.\n\r", victim );
     if ( ch != victim )
         act("$N is protected from good.",ch,NULL,victim,TO_CHAR);
-    return;
+    return TRUE;
 }
 
 
@@ -4888,7 +4881,7 @@ DEF_SPELL_FUN(spell_ray_of_truth)
     {
         act("$n seems unharmed by the light.",victim,NULL,victim,TO_ROOM);
         send_to_char("The light seems powerless to affect you.\n\r",victim);
-        return;
+        return SR_IMMUNE;
     }
 
     spell_blindness(gsn_blindness, level/2, ch, (void *) victim,TARGET_CHAR);
@@ -4900,7 +4893,7 @@ DEF_SPELL_FUN(spell_ray_of_truth)
         dam /= 2;
 
     full_dam( ch, victim, dam, sn, DAM_HOLY, TRUE);
-    CHECK_RETURN( ch, victim );
+    return TRUE;
 }
 
 
@@ -4912,19 +4905,19 @@ DEF_SPELL_FUN(spell_recharge)
     if (obj->item_type != ITEM_WAND && obj->item_type != ITEM_STAFF)
     {
         send_to_char("That item does not carry charges.\n\r",ch);
-        return;
+        return SR_TARGET;
     }
 
     if (obj->value[3] >= 3 * level / 2)
     {
         send_to_char("Your skills are not great enough for that.\n\r",ch);
-        return;
+        return SR_UNABLE;
     }
 
     if (obj->value[1] == 0)
     {
         send_to_char("That item has already been recharged once.\n\r",ch);
-        return;
+        return SR_UNABLE;
     }
 
     chance = 40 + 2 * level;
@@ -4943,9 +4936,7 @@ DEF_SPELL_FUN(spell_recharge)
         act("$p glows softly.",ch,obj,NULL,TO_ROOM);
         obj->value[2] = UMAX(obj->value[1],obj->value[2]);
         obj->value[1] = 0;
-        return;
     }
-
     else if (percent <= chance)
     {
         int chargeback,chargemax;
@@ -4962,23 +4953,20 @@ DEF_SPELL_FUN(spell_recharge)
 
         obj->value[2] += chargeback;
         obj->value[1] = 0;
-        return;
-    }   
-
+    }
     else if (percent <= UMIN(95, 3 * chance / 2))
     {
         send_to_char("Nothing seems to happen.\n\r",ch);
         if (obj->value[1] > 1)
             obj->value[1]--;
-        return;
     }
-
     else /* whoops! */
     {
         act("$p glows brightly and explodes!",ch,obj,NULL,TO_CHAR);
         act("$p glows brightly and explodes!",ch,obj,NULL,TO_ROOM);
         extract_obj(obj);
     }
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_refresh)
@@ -5005,7 +4993,7 @@ DEF_SPELL_FUN(spell_refresh)
             act( "You refresh $N.", ch, NULL, victim, TO_CHAR );
     }
 
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_remove_curse)
@@ -5024,7 +5012,7 @@ DEF_SPELL_FUN(spell_remove_curse)
             if (IS_OBJ_STAT(obj,ITEM_NOUNCURSE))
             {
                 act("The curse on $p cannot be removed.",ch,obj,NULL,TO_CHAR);
-                return;
+                return SR_IMMUNE;
             }
             
             if (!saves_dispel(level + 2,obj->level,0))
@@ -5032,18 +5020,18 @@ DEF_SPELL_FUN(spell_remove_curse)
                 REMOVE_BIT(obj->extra_flags,ITEM_NODROP);
                 REMOVE_BIT(obj->extra_flags,ITEM_NOREMOVE);
                 act("$p glows blue.",ch,obj,NULL,TO_ALL);
-                return;
+                return TRUE;
             }
 
             act("You failed to remove the curse on $p.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
-            return;
+            return TRUE;
         }
         else
         {
             act("There doesn't seem to be a curse on $p.",ch,obj,NULL,TO_CHAR);
-            return;
+            return SR_AFFECTED;
         }
     }
 
@@ -5054,12 +5042,12 @@ DEF_SPELL_FUN(spell_remove_curse)
     {
         send_to_char("You feel better.\n\r",victim);
         act("$n looks more relaxed.",victim,NULL,NULL,TO_ROOM);
-        return;
+        return TRUE;
     }
     if ( is_affected(victim, gsn_curse) || is_affected(victim, gsn_tomb_rot) )
     {
         act("You failed to remove the curse on $N.",ch,NULL,victim,TO_CHAR);
-        return;
+        return TRUE;
     }
     for (obj = victim->carrying; obj != NULL; obj = obj->next_content)
     {
@@ -5077,17 +5065,17 @@ DEF_SPELL_FUN(spell_remove_curse)
                 REMOVE_BIT(obj->extra_flags,ITEM_NOREMOVE);
                 act("Your $p glows blue.",victim,obj,NULL,TO_CHAR);
                 act("$n's $p glows blue.",victim,obj,NULL,TO_ROOM);
-                return;
+                return TRUE;
             }
 
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
-            return;
+            return TRUE;
         }
     }
 
     send_to_char( "There is nothing to uncurse.\n\r", ch );
-    return;
+    return SR_AFFECTED;
 } 
 
 DEF_SPELL_FUN(spell_sanctuary)
@@ -5101,7 +5089,7 @@ DEF_SPELL_FUN(spell_sanctuary)
             send_to_char("You are already in sanctuary.\n\r",ch);
         else
             act("$N is already in sanctuary.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -5114,7 +5102,7 @@ DEF_SPELL_FUN(spell_sanctuary)
     affect_to_char( victim, &af );
     act( "$n is surrounded by a white aura.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "You are surrounded by a white aura.\n\r", victim );
-    return;
+    return TRUE;
 }
 
 
@@ -5130,7 +5118,7 @@ DEF_SPELL_FUN(spell_shield)
             send_to_char("You are already shielded from harm.\n\r",ch);
         else
             act("$N is already protected by a shield.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -5143,7 +5131,7 @@ DEF_SPELL_FUN(spell_shield)
     affect_to_char( victim, &af );
     act( "$n is surrounded by a force shield.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "You are surrounded by a force shield.\n\r", victim );
-    return;
+    return TRUE;
 }
 
 
@@ -5164,7 +5152,7 @@ DEF_SPELL_FUN(spell_shocking_grasp)
         dam = 0;
 
     full_dam( ch, victim, dam, sn, DAM_LIGHTNING,TRUE);
-    return;
+    return TRUE;
 }
 
 
@@ -5184,13 +5172,13 @@ DEF_SPELL_FUN(spell_sleep)
     if ( IS_AFFECTED(victim, AFF_SLEEP) )
     {
         send_to_char("Your victim is already sleeping.\n\r", ch );
-        return;
+        return SR_AFFECTED;
     }
 
     if ( IS_UNDEAD(victim) )
     {
         send_to_char("The undead never sleep!\n\r", ch );
-        return;
+        return SR_IMMUNE;
     }
 
     if ( saves_spell(victim, ch, level, DAM_MENTAL)
@@ -5199,7 +5187,7 @@ DEF_SPELL_FUN(spell_sleep)
             || IS_IMMORTAL(victim) )
     {
         send_to_char("Your spell failed to have an effect.\n\r", ch );
-        return;
+        return TRUE;
     }
 
     if ( IS_AWAKE(victim) )
@@ -5223,7 +5211,7 @@ DEF_SPELL_FUN(spell_sleep)
     af.bitvector = AFF_SLEEP;
     affect_join( victim, &af );
 
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_slow)
@@ -5238,7 +5226,7 @@ DEF_SPELL_FUN(spell_slow)
         else
             act("$N can't get any slower than that.",
                     ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     if (saves_spell(victim, ch, level, DAM_OTHER) 
@@ -5247,7 +5235,7 @@ DEF_SPELL_FUN(spell_slow)
         if (victim != ch)
             act( "Spell failed to slow $N down.", ch, NULL, victim,TO_CHAR);
         send_to_char("You feel momentarily lethargic.\n\r",victim);
-        return;
+        return TRUE;
     }
 
     if (IS_AFFECTED(victim,AFF_HASTE))
@@ -5257,7 +5245,7 @@ DEF_SPELL_FUN(spell_slow)
             if (victim != ch)
 		        act( "Spell failed to reduce $N's speed.", ch, NULL, victim, TO_CHAR );
             send_to_char("You feel momentarily slower.\n\r",victim);
-            return;
+            return TRUE;
         }
 
         act("$n is moving less quickly.",victim,NULL,NULL,TO_ROOM);
@@ -5275,7 +5263,7 @@ DEF_SPELL_FUN(spell_slow)
     affect_to_char( victim, &af );
     send_to_char( "You feel yourself slowing d o w n...\n\r", victim );
     act("$n starts to move in slow motion.",victim,NULL,NULL,TO_ROOM);
-    return;
+    return TRUE;
 }
 
 
@@ -5290,7 +5278,7 @@ DEF_SPELL_FUN(spell_stone_skin)
             send_to_char("Your skin is already as hard as a rock.\n\r",ch); 
         else
             act("$N is already as hard as can be.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     af.where     = TO_AFFECTS;
@@ -5303,7 +5291,7 @@ DEF_SPELL_FUN(spell_stone_skin)
     affect_to_char( victim, &af );
     act( "$n's skin turns to stone.", victim, NULL, NULL, TO_ROOM );
     send_to_char( "Your skin turns to stone.\n\r", victim );
-    return;
+    return TRUE;
 }
 
 
@@ -5335,13 +5323,13 @@ DEF_SPELL_FUN(spell_summon)
     if ( (victim = get_char_world(ch, target_name)) == NULL)
     {
         send_to_char( "You failed completely.\n\r", ch );
-        return;
+        return SR_TARGET;
     }
     ignore_invisible = FALSE;
     if ( victim == ch )
     {
         send_to_char( "Summon yourself?\n\r", ch );
-        return;
+        return SR_TARGET;
     }
     if ( IS_TAG(ch)
             || IS_REMORT(ch)
@@ -5350,23 +5338,23 @@ DEF_SPELL_FUN(spell_summon)
             || IS_SET(ch->in_room->room_flags, ROOM_ARENA))
     {
         send_to_char( "You can't summon anyone here!\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
     if ( !can_see_room(victim, ch->in_room) )
     {
         send_to_char( "You can't summon that player here!\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
     if ( IS_NPC(victim) || IS_SET(victim->act, PLR_NOSUMMON)
             || IS_SET(victim->comm, COMM_AFK) )
     {
         send_to_char( "Your target does not wish to be summoned.\n\r", ch );
-        return;
+        return SR_IMMUNE;
     }
     if ( IS_IMMORTAL(victim) || victim->level > level + 5 )
     {
         send_to_char( "Your target is too powerful for you to summon.\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
     if ( IS_TAG(victim)
             || IS_REMORT(victim)
@@ -5374,7 +5362,7 @@ DEF_SPELL_FUN(spell_summon)
             || victim->fighting != NULL )
     {
         send_to_char( "Your target can't be summoned from its location!\n\r", ch );
-        return;
+        return SR_UNABLE;
     }
 
     check_sn_multiplay( ch, victim, sn );
@@ -5395,7 +5383,7 @@ DEF_SPELL_FUN(spell_summon)
     act( "$n arrives suddenly.", victim, NULL, NULL, TO_ROOM );
     act( "$n has summoned you!", ch, NULL, victim,   TO_VICT );
     do_look( victim, "auto" );
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_teleport)
@@ -5405,7 +5393,7 @@ DEF_SPELL_FUN(spell_teleport)
     OBJ_DATA *stone;
 
     if ( !can_cast_transport(ch) )
-        return;
+        return SR_UNABLE;
 
     if ( victim->in_room == NULL
             || IS_SET(victim->in_room->room_flags, ROOM_NO_RECALL)
@@ -5416,7 +5404,7 @@ DEF_SPELL_FUN(spell_teleport)
                 && ( saves_spell(victim, ch, level - 5, DAM_OTHER))))
     {
         send_to_char( "You failed.\n\r", ch );
-        return;
+        return TRUE;
     }
 
     stone = get_eq_char(ch,WEAR_HOLD);
@@ -5432,7 +5420,7 @@ DEF_SPELL_FUN(spell_teleport)
             || IS_SET(pRoomIndex->room_flags, ROOM_JAIL))
     {
         send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
-        return;
+        return TRUE;
     }
 
 
@@ -5449,7 +5437,7 @@ DEF_SPELL_FUN(spell_teleport)
         if( IS_SET(pRoomIndex->room_flags, ROOM_NO_RECALL) )
         {
             send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
-            return;
+            return TRUE;
         }
     }
 
@@ -5461,7 +5449,7 @@ DEF_SPELL_FUN(spell_teleport)
     char_to_room( victim, pRoomIndex );
     act( "$n abruptly appears from out of nowhere.", victim, NULL, NULL, TO_ROOM );
     do_look( victim, "auto" );
-    return;
+    return TRUE;
 }
 
 
@@ -5476,7 +5464,7 @@ DEF_SPELL_FUN(spell_ventriloquate)
     if ( ch == vo )
     {
         send_to_char( "If you want to say something, just do so.\n\r", ch );
-        return;
+        return SR_TARGET;
     }
 
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
@@ -5492,7 +5480,7 @@ DEF_SPELL_FUN(spell_ventriloquate)
         }
     }
 
-    return;
+    return TRUE;
 }
 
 
@@ -5508,14 +5496,14 @@ DEF_SPELL_FUN(spell_weaken)
             send_to_char("You can't get any weaker.\n\r",ch);
         else
             act("Weak as $E is, your spell had no effect.",ch,NULL,victim,TO_CHAR);
-        return;
+        return SR_AFFECTED;
     }
 
     if ( saves_spell(victim, ch, level, DAM_OTHER) )
     {
         send_to_char("Your weakening failed to have an effect.\n\r", ch );
         send_to_char("Your strength fails you for a moment.\n\r", victim );
-        return;
+        return TRUE;
     }
 
     if (IS_AFFECTED(victim,AFF_GIANT_STRENGTH))
@@ -5525,7 +5513,7 @@ DEF_SPELL_FUN(spell_weaken)
             if (victim != ch)
 		        act( "Spell failed to make $N weaker.\n\r", ch, NULL, victim, TO_CHAR );
             send_to_char("You feel momentarily weaker.\n\r",victim);
-            return;
+            return TRUE;
         }
 
         act("$n is looking much weaker.",victim,NULL,NULL,TO_ROOM);
@@ -5542,7 +5530,7 @@ DEF_SPELL_FUN(spell_weaken)
     affect_to_char( victim, &af );
     send_to_char( "You feel your strength slip away.\n\r", victim );
     act("$n looks tired and weak.",victim,NULL,NULL,TO_ROOM);
-    return;
+    return TRUE;
 }
 
 
@@ -5555,39 +5543,39 @@ DEF_SPELL_FUN(spell_word_of_recall)
     int chance;
 
     if (IS_NPC(victim))
-        return;
+        return SR_UNABLE;
 
     if ( !can_cast_transport(ch) )
-        return;
+        return SR_UNABLE;
 
     if ((location = get_room_index( ROOM_VNUM_TEMPLE)) == NULL)
     {
         send_to_char("You are completely lost.\n\r",victim);
-        return;
+        return SR_UNABLE;
     } 
 
     if (NOT_AUTHED(victim))
     {
         send_to_char("You cannot recall until your character is authorized by the Immortals.\n\r",victim);
-        return;
+        return SR_UNABLE;
     }
 
     if (IS_TAG(victim))
     {
         send_to_char("You cannot recall while playing Freeze Tag.\n\r",victim);
-        return;
+        return SR_UNABLE;
     }
 
     if (!IS_NPC(victim) && in_pkill_battle(victim))    
     {
         send_to_char("You cannot recall during a pkill battle!\n\r",victim);
-        return;
+        return SR_UNABLE;
     }
 
     if (ch->pcdata != NULL && ch->pcdata->pkill_timer > 0)
     {
         send_to_char("Adrenaline is pumping!\n\r", ch);
-        return;
+        return SR_UNABLE;
     }
 
     if (IS_AFFECTED(victim, AFF_ENTANGLE))
@@ -5596,7 +5584,7 @@ DEF_SPELL_FUN(spell_word_of_recall)
         if (  (chance) >  (get_curr_stat(victim, STAT_LUC)/10) )
         {
             send_to_char( "The plants entangling you hold you in place!\n\r", victim );
-            return;
+            return TRUE;
         }
     }
 
@@ -5612,7 +5600,7 @@ DEF_SPELL_FUN(spell_word_of_recall)
         {
             WAIT_STATE( victim, 4 );
             send_to_char( "Spell failed.\n\r", victim );
-            return;
+            return TRUE;
         }
 
         stop_fighting( victim, TRUE );
@@ -5640,6 +5628,8 @@ DEF_SPELL_FUN(spell_word_of_recall)
     /* -Rim 2/22/99 */
     if (victim->pet != NULL)
         do_recall(victim->pet,"");
+    
+    return TRUE;
 }
 
 /* Draconian & Necromancer spells are in breath.c --Bobble */
@@ -5656,7 +5646,7 @@ DEF_SPELL_FUN(spell_general_purpose)
     if ( saves_spell(victim, ch, level, DAM_PIERCE) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_PIERCE ,TRUE);
-    return;
+    return TRUE;
 }
 
 DEF_SPELL_FUN(spell_high_explosive)
@@ -5668,7 +5658,7 @@ DEF_SPELL_FUN(spell_high_explosive)
     if ( saves_spell(victim, ch, level, DAM_PIERCE) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_PIERCE ,TRUE);
-    return;
+    return TRUE;
 }
 
 int cha_max_follow( CHAR_DATA *ch )
