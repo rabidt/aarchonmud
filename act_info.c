@@ -144,6 +144,7 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
     if ( IS_OBJ_STAT(obj, ITEM_GLOW)      )   strcat( buf, "(Glowing) "   );
     if ( IS_OBJ_STAT(obj, ITEM_DARK)      )   strcat( buf, "(Dark) "   );
     if ( IS_OBJ_STAT(obj, ITEM_HUM)       )   strcat( buf, "(Humming) "   );
+    if ( obj->timer == -1                 )   strcat( buf, "(Preserved) " );
     
     if ( fShort )
     {
@@ -546,12 +547,15 @@ char* char_look_info( CHAR_DATA *ch )
 	return get_disguise_name( ch );
     */
 
-    sprintf( buf, "a %s %s %s %s%s",
+    sprintf( buf, "a %s %s %s %s%s%s%s%s",
 	     size == SIZE_MEDIUM ? "medium-sized" : size_table[size].name,
 	     appear_str[appearance],
 	     sex == 0 ? "sexless" : sex_table[sex].name,
          IS_AFFECTED(ch, AFF_FLYING) ? "flying " : "",
-	     race == 0 ? "being" : (check_shewolf ? "shewolf" : race_type->name) );
+	     race == 0 ? "being" : (check_shewolf ? "shewolf" : race_type->name),
+             ch->stance == 0 ? "" : " in the ",
+             ch->stance == 0 ? "" : stances[ch->stance].name,
+             ch->stance == 0 ? "" : " stance" );
     
     return buf;
 }
@@ -565,29 +569,26 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
     int percent;
     bool found;
     bool victim_is_obj = IS_NPC(victim) && IS_SET(victim->act, ACT_OBJ);
+
     
     if (ch == victim)
-	act_see( "$n looks at $mself.",ch,NULL,NULL,TO_ROOM);
+        act_see( "$n looks at $mself.",ch,NULL,NULL,TO_ROOM);
     else
     {
-	act_see( "$n looks at you.", ch, NULL, victim, TO_VICT    );
-	act_see( "$n looks at $N.",  ch, NULL, victim, TO_NOTVICT );
+        act_see( "$n looks at you.", ch, NULL, victim, TO_VICT    );
+        act_see( "$n looks at $N.",  ch, NULL, victim, TO_NOTVICT );
     }
 
     if ( !victim_is_obj )
     {
-	/*
-	if ( is_mimic(victim) )
-	    send_to_char( "=== All mimicry!!! ===\n\r", ch );
-	*/
-	sprintf( buf, "%s is %s.\n\r", PERS(victim, ch), char_look_info(victim) );
-	send_to_char( buf, ch );
+        sprintf( buf, "%s is %s.\n\r", PERS(victim, ch), char_look_info(victim) );
+        send_to_char( buf, ch );
     }
 
     if ( /*!is_disguised(victim) &&*/ !glance )
     {
-	if ( is_mimic(victim) )
-	{
+        if ( is_mimic(victim) )
+        {
 	    MOB_INDEX_DATA *mimic = get_mimic(victim);
 	    if ( mimic != NULL && mimic->description[0] != '\0' )
 		send_to_char( mimic->description, ch );
@@ -599,7 +600,7 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
 	else
 	{
 	    act( "You see nothing special about $M.", ch, NULL, victim, TO_CHAR );
-	}
+        }
     }
     
     /* objects don't have health condition etc. to detect */
@@ -1960,10 +1961,12 @@ DEF_DO_FUN(do_examine)
     switch ( obj->item_type )
     {
     default:
+        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
+        send_to_char( buf, ch );
 	break;
-	
     case ITEM_ARROWS:
 	sprintf( buf, "There are %d arrows in this pack.\n\r", obj->value[0] );
+        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char( buf, ch );
 	break;
 
@@ -1994,6 +1997,11 @@ DEF_DO_FUN(do_examine)
 	break;
 	
         case ITEM_DRINK_CON:
+            sprintf(buf,"in %s",argument);
+            do_look( ch, buf );
+            sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
+            send_to_char( buf, ch );
+            break;
         case ITEM_CONTAINER:
         case ITEM_CORPSE_NPC:
         case ITEM_CORPSE_PC:
@@ -2027,10 +2035,11 @@ DEF_DO_FUN(do_examine)
 	 else strcat(buf, "and it is extremely heavy.\n\r");
         if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS))
            strcat(buf, "It requires two hands to wield.\n\r");
+        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
 	break;
 
-	case ITEM_ARMOR:
+        case ITEM_ARMOR:
 	strcpy(buf, "It looks like it could be ");
 
 	if( CAN_WEAR(obj,ITEM_WEAR_FINGER) )
@@ -2066,6 +2075,7 @@ DEF_DO_FUN(do_examine)
 	    strcat(buf, "held in the hand, to focus magic.\n\r");
 	else
 	    strcat(buf, "used as armor, but you can't figure out how.\n\r");
+        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
 	break;
     }
@@ -3712,6 +3722,21 @@ const char* wear_location_info( int pos )
     }
 }
 
+// target character level for which to lore an item
+// certain lore info (tattoo bonus) varies with level worn
+int get_lore_level( CHAR_DATA *ch, int obj_level )
+{
+    if ( !IS_NPC(ch) )
+        return UMAX(obj_level, ch->level);
+    if ( !ch->in_room )
+        return obj_level;
+    // find pc in room, if multiple we don't know and just pick first
+    for ( ch = ch->in_room->people; ch; ch = ch->next_in_room )
+        if ( !IS_NPC(ch) )
+            return UMAX(obj_level, ch->level);
+    return obj_level;
+}
+
 void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     char buf[MAX_STRING_LENGTH];
@@ -3736,8 +3761,10 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-	sprintf(buf, "It's translucent, allowing tattoos to shine through.");
-	do_say(ch, buf);
+        int lore_level = get_lore_level(ch, obj->level);
+        int tattoo_percent = (int)(tattoo_bonus_factor(get_obj_tattoo_level(obj->level, lore_level)) * 100);
+        sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
+        do_say(ch, buf);
     }
     
     switch ( obj->item_type )
@@ -3898,8 +3925,10 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-	sprintf( buf, "It's translucent, allowing tattoos to shine through."); 
-	do_say( ch, buf );
+        int lore_level = get_lore_level(ch, obj->level);
+        int tattoo_percent = (int)(tattoo_bonus_factor(get_obj_tattoo_level(obj->level, lore_level)) * 100);
+        sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
+        do_say(ch, buf);
     }
     
     switch ( obj->item_type )

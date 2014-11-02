@@ -1752,27 +1752,37 @@ struct quote_type
 
 const struct quote_type quote_table[MAX_QUOTES] =
 {
-    { "{WYou will move slower when encumbered (Carrying too much weight).{x\n\r"                            }, /* 1 */
+    { "{WYou will move and regenerate slower while encumbered (carrying too much weight).{x\n\r"            }, /* 1 */
     { "{WMaledictions such as poison and plague will slow down your HP, mana, and move regeneration.{x\n\r" },
-    { "{WBeing affected by 'Fly' will reduces the moves used moving from room to room.{x\n\r"               },
+    { "{WBeing affected by 'fly' reduces movement points used, and moves you faster between rooms.{x\n\r"   },
     { "{WThe lemonade fountain 2N from Palace Square (recall) will satisfy thirst and hunger.{x\n\r"        },
     { "{WDon't forget to eat and drink. Being hungry or thirsty reduces your regeneration rates.{x\n\r"     }, /* 5 */
-    { "{WYou can heal faster by sleeping or resting at the fireplace in the Inne of the Last Home.{x\n\r"   },
+    { "{WYou can heal faster by sleeping or resting at the Palace Square or The Temple.{x\n\r"              },
     { "{WBe sure to practice your new skills and spells after leveling up.{x\n\r"                           },
-    { "{WYou can earn a lot of extra gold by selling items that you don't need or have outgrown.{x\n\r"     },
+    { "{WYou can earn extra gold by selling items that you don't need or have outgrown.{x\n\r"              },
     { "{WDeposit your gold at the bank NW,W from Palace Square. It will stay safe in the bank.{x\n\r"       },
     { "{WLenny the banker can exchange your silver for gold. (give <amount> silver lenny).{x\n\r"           }, /* 10 */
     { "{WMost storage containers will reduce the effective weight of the items in your inventory.{x\n\r"    },
     { "{WType AUTOLIST to see what commands you can automate (such as looting corpses with autoloot.{x\n\r" },
     { "{WYou can automate a single combat command using ACTION. Read 'help action' for more info.{x\n\r"    },
-    { "{WRead 'help train' to find out why training DISCIPLINE is so important.{x\n\r"                      },
     { "{WThe CONSIDER command will give you a -rough- idea of how hard a fight may be.{x\n\r"               }, /* 15 */
     { "{WThere are maps available on our website of many areas. http://www.aarchonmud.com{x "               }, 
     { "{WThe Wandering Sages that roam Bastion will lore any item for you. Just hand it to them!{x\n\r"     },
     { "{WIf you lose your newbie guide, you can buy another one at Herman the Gnome (SE,E){x\n\r"           },
     { "{WTake time to explore. There are many mini-quests throughout Aarchon.{x\n\r"                        }, /* 20 */
-    { "{WField experience is EXP that you absorb over time. Read 'help field xp' for more info.{x\n\r"      },
+    { "{WField experience is EXP that you absorb over time. Read 'help field' for more info.{x\n\r"         },
     { "{WDid you know, that if you type '!' it will repeat the last command you typed?{x\n\r"               },
+    { "{WTyping '&' will clear your command queue. Useful for when you spam too many commands!{x\n\r"       },
+    { "{WVisit the mystic NW of recall for a free god blessing. Read 'help god bless' for more info.{x\n\r" },
+    { "{WThe 'finger' command allows you to look up detailed information about players.{x\n\r"              },
+    { "{WWant to try out another class? You don't need to delete. Just make a second character!{x\n\r"      },
+    { "{WThe donation pit 'down' from recall often contains items you can use or sell for extra gold.{x\n\r"},
+    { "{WMercy the Healer at The Temple can spell you up for a fee. Type 'spellup' in her room for a list.{x\n\r"},
+    { "{WType 'identify <item name>' at any shop to have the shopkeeper lore the item for a nominal fee.{x\n\r"},
+    { "{WUse the 'gag' command to disable extraneous combat messages.{x\n\r"                                },
+    { "{WYou can disable these automated tips by typing 'nohelp', or see more by typing 'tips'.{x\n\r"      },
+    { "{WFind lights, containers, food, and drink at Herman's shop, SE, E from recall.{x\n\r"               },
+    { "{WThe 'dirs' command or 'help dirs' will give you a list of directions to all areas in the game.{x\n\r"}
 };
 
 

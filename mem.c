@@ -88,7 +88,7 @@ AREA_DATA *new_area( void )
     /* SET_BIT( pArea->area_flags, AREA_ADDED ); */
     pArea->security         =   1;
     pArea->builders         =   str_dup( "None" );
-    pArea->notes            =   str_dup( "" );
+    pArea->comments         =   str_dup( "" );
     pArea->min_vnum         =   0;
     pArea->max_vnum         =   0;
     pArea->age              =   0;
@@ -114,7 +114,7 @@ void free_area( AREA_DATA *pArea )
     free_string( pArea->file_name );
     free_string( pArea->builders );
     free_string( pArea->credits );
-    free_string( pArea->notes );
+    free_string( pArea->comments );
 
     pArea->next         =   NULL;
     free_AREA( pArea );
@@ -175,7 +175,7 @@ ROOM_INDEX_DATA *new_room_index( void )
 
     pRoom->name             =   &str_empty[0];
     pRoom->description      =   &str_empty[0];
-    pRoom->notes            =   &str_empty[0];
+    pRoom->comments            =   &str_empty[0];
     pRoom->owner	    =	&str_empty[0];
     pRoom->vnum             =   0;
     flag_clear( pRoom->room_flags );
@@ -199,7 +199,7 @@ void free_room_index( ROOM_INDEX_DATA *pRoom )
     free_string( pRoom->name );
     free_string( pRoom->description );
     free_string( pRoom->owner );
-    free_string( pRoom->notes );
+    free_string( pRoom->comments );
 
     for ( door = 0; door < MAX_DIR; door++ )
     {
@@ -270,7 +270,7 @@ OBJ_INDEX_DATA *new_obj_index( void )
     pObj->name          =   str_dup( "no name" );
     pObj->short_descr   =   str_dup( "(no short description)" );
     pObj->description   =   str_dup( "(no description)" );
-    pObj->notes         =   str_dup( "" );
+    pObj->comments         =   str_dup( "" );
     pObj->vnum          =   0;
     pObj->item_type     =   ITEM_TRASH;
     flag_clear( pObj->extra_flags );
@@ -301,7 +301,7 @@ void free_obj_index( OBJ_INDEX_DATA *pObj )
     free_string( pObj->name );
     free_string( pObj->short_descr );
     free_string( pObj->description );
-    free_string( pObj->notes );
+    free_string( pObj->comments );
 
     for ( pAf = pObj->affected; pAf; pAf = pAf->next )
     {
@@ -335,7 +335,7 @@ MOB_INDEX_DATA *new_mob_index( void )
     pMob->short_descr   =   str_dup( "(no short description)" );
     pMob->long_descr    =   str_dup( "(no long description)" );
     pMob->description   =   &str_empty[0];
-    pMob->notes         =   str_dup( "" );
+    pMob->comments         =   str_dup( "" );
     pMob->vnum          =   0;
     pMob->count         =   0;
     pMob->killed        =   0;
@@ -374,7 +374,7 @@ void free_mob_index( MOB_INDEX_DATA *pMob )
     free_string( pMob->short_descr );
     free_string( pMob->long_descr );
     free_string( pMob->description );
-    free_string( pMob->notes );
+    free_string( pMob->comments );
     free_mprog( pMob->mprogs );
 
     if ( pMob->pShop )

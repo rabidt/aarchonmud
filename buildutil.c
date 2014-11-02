@@ -216,7 +216,7 @@ DEF_DO_FUN(do_vlist)
                 sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
                         i, 
                         format_color_string(obj->short_descr, 30 ),
-                        format_color_string(( obj->notes ), 30 ) );
+                        format_color_string(( obj->comments ), 30 ) );
                 add_buf(buffer,buf);
             }
 
@@ -234,7 +234,7 @@ DEF_DO_FUN(do_vlist)
                 sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
                         i, 
                         format_color_string(mob->short_descr, 30 ),
-                        format_color_string(first_line( mob->notes ), 30 ) );
+                        format_color_string(first_line( mob->comments ), 30 ) );
                 add_buf(buffer,buf);
             }
 
@@ -253,7 +253,7 @@ DEF_DO_FUN(do_vlist)
                 sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
                         i, 
                         format_color_string(room->name, 30 ),
-                        format_color_string(first_line( room->notes ), 30 ) );
+                        format_color_string(first_line( room->comments ), 30 ) );
                 add_buf(buffer,buf);
             }
 
