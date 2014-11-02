@@ -2035,6 +2035,7 @@ DEF_DO_FUN(do_examine)
 	 else strcat(buf, "and it is extremely heavy.\n\r");
         if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS))
            strcat(buf, "It requires two hands to wield.\n\r");
+	send_to_char(buf,ch);
         sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
 	break;
@@ -2075,6 +2076,7 @@ DEF_DO_FUN(do_examine)
 	    strcat(buf, "held in the hand, to focus magic.\n\r");
 	else
 	    strcat(buf, "used as armor, but you can't figure out how.\n\r");
+	send_to_char(buf,ch);
         sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
 	break;
