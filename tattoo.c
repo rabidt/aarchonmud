@@ -229,6 +229,14 @@ int tattoo_id( const char *name )
 
 /***************************** general *******************************/ 
 
+float tattoo_bonus_factor( float level )
+{
+    if ( level < 90 )
+        return (level + 10) / 100;
+    else
+        return 1 + (level - 90) / 10;
+}
+
 AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, float level, bool basic )
 {
     static AFFECT_DATA taff;
@@ -246,14 +254,12 @@ AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, float level, bool basic )
     {
         if ( basic )
             factor = 0;
-        else if ( level < 90 )
-            factor = level + 10;
         else
-            factor = 100 + 10 * (level - 90);
+            factor = tattoo_bonus_factor(level);
     }
     memcpy( &taff, aff, sizeof(AFFECT_DATA) );
     taff.next = NULL;
-    taff.modifier = (int)(aff->modifier * factor/100);
+    taff.modifier = (int)(aff->modifier * factor);
 
     return &taff;
 }
@@ -310,24 +316,25 @@ int tattoo_bonus_ID( CHAR_DATA *ch, int loc )
     return TATTOO_ID(ch, loc);
 }
 
-float get_tattoo_level( CHAR_DATA *ch, int loc, int level )
+float get_obj_tattoo_level( OBJ_DATA *obj, int level )
 {
-    OBJ_DATA *obj;
-
-    if ( IS_NPC(ch) )
-        return 0;
-
     // full level if no equipment worn over it
-    if ( (obj = get_eq_char(ch, loc)) == NULL )
+    if ( obj == NULL )
         return level;
     
     if ( !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-        bug( "get_tattoo_level: non-translucent object (%d)", loc );
+        bug( "get_obj_tattoo_level: non-translucent object (%d)", obj->pIndexData->vnum );
         return 0;
     }
     // average of level and object level for translucent equipment
     return (level + obj->level) / 2.0;
+}
+
+float get_tattoo_level( CHAR_DATA *ch, int loc, int level )
+{
+    OBJ_DATA *obj = get_eq_char(ch, loc);
+    return get_obj_tattoo_level(obj, level);
 }
 
 void tattoo_modify_level( CHAR_DATA *ch, int old_level, int new_level )

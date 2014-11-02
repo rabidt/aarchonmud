@@ -4127,7 +4127,8 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-        send_to_char( "It is translucent so tattoos will shine through.\n\r", ch );
+        int tattoo_percent = (int)(tattoo_bonus_factor(obj->level) * 100);
+        printf_to_char(ch,  "It is translucent so tattoos will shine through (%d%% bonus).\n\r", tattoo_percent );
     }
 
     if (obj->owner != NULL)
