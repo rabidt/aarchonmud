@@ -30,6 +30,8 @@ int tattoo_bonus_ID( CHAR_DATA *ch, int loc );
 
 /***************************** general *******************************/ 
 
+float tattoo_bonus_factor( float level );
+float get_obj_tattoo_level( int obj_level, int level );
 void tattoo_modify_equip( CHAR_DATA *ch, int loc, bool fAdd, bool drop, bool basic );
 void tattoo_modify_level( CHAR_DATA *ch, int old_level, int new_level );
 void tattoo_modify_reset( CHAR_DATA *ch );

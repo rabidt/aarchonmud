@@ -2204,7 +2204,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
         || dt == gsn_semiauto
         || dt == gsn_burst )
     {
-        ch_roll = ch_roll * (10 + mastery_bonus(ch, dt, 4, 5)) / 25;
+        ch_roll = ch_roll * (100 + get_skill(ch, dt) + mastery_bonus(ch, dt, 80, 100)) / 500;
     }    
     
     if ( victim->size > ch->size )
@@ -4424,7 +4424,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 	    chance /= 2;
     }
 
-    if ( !can_see_combat(ch,victim) && blind_penalty(victim) )
+    if ( !can_see_combat(victim, ch) && blind_penalty(victim) )
         chance /= 2;
     
     if ( !per_chance(chance) )
@@ -4911,8 +4911,8 @@ bool start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         set_fighting_new(victim, ch, FALSE);
         check_quick_draw(ch, victim);
-        // ch may have died from quickdraw
-        if ( ch->fighting != victim )
+        // ch or victim may have died from quickdraw
+        if ( !ch->fighting || !victim->fighting )
             return FALSE;
     }
     return TRUE;
