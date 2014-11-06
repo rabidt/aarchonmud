@@ -1379,8 +1379,10 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
     {
         case LUA_TNONE:
         case LUA_TNIL:
-            /* didn't exist yet, if nil then get out of here */
-            return 0;
+            /* just break 
+               clear value lower down if it's already set,
+               otherwise do nothing 
+             */
             break;
 
         case LUA_TSTRING:
