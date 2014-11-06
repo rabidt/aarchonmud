@@ -35,7 +35,7 @@
 #include "magic.h"
 #include "recycle.h"
 #include "tables.h"
-
+#include "tattoo.h"
 #include "warfare.h"
 #include "religion.h"
 #include "mudconfig.h"
@@ -4127,7 +4127,9 @@ void spell_identify( int sn, int level, CHAR_DATA *ch, void *vo,int target )
 
     if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     {
-        send_to_char( "It is translucent so tattoos will shine through.\n\r", ch );
+        int lore_level = get_lore_level(ch, obj->level);
+        int tattoo_percent = (int)(tattoo_bonus_factor(get_obj_tattoo_level(obj->level, lore_level)) * 100);
+        printf_to_char(ch,  "It is translucent so tattoos will shine through (%d%% bonus).\n\r", tattoo_percent );
     }
 
     if (obj->owner != NULL)
