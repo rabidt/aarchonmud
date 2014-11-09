@@ -264,7 +264,7 @@ DEF_DO_FUN(do_heal)
           argument);
     target_name=tname_buf;
             
-    spell(sn,120,mob,ch,TARGET_CHAR);
+    spell(sn, 120, mob, ch, TARGET_CHAR, FALSE);
 }
 
 typedef struct spell_cost SPELL_COST;
@@ -368,16 +368,16 @@ DEF_DO_FUN(do_spellup)
     act("$n utters some arcane words.",mob,NULL,NULL,TO_ROOM);
     
     if ( sn == -1 )
-	for ( spell = 0; arcane_cost[spell].name != NULL; spell++ )
-	{
-	    sn = skill_lookup( arcane_cost[spell].name );
-	    if ( sn == -1 )
-	    {
-		bugf( "do_spellup: spell not found: %s", arcane_cost[spell].name );
-		return;
-	    }
-	    skill_table[sn].spell_fun(sn,70,mob,ch,TARGET_CHAR);
-	}
+        for ( spell = 0; arcane_cost[spell].name != NULL; spell++ )
+        {
+            sn = skill_lookup( arcane_cost[spell].name );
+            if ( sn == -1 )
+            {
+                bugf( "do_spellup: spell not found: %s", arcane_cost[spell].name );
+                return;
+            }
+            skill_table[sn].spell_fun(sn, 70, mob, ch, TARGET_CHAR, FALSE);
+        }
     else
-	skill_table[sn].spell_fun(sn,80,mob,ch,TARGET_CHAR);
+        skill_table[sn].spell_fun(sn, 80, mob, ch, TARGET_CHAR, FALSE);
 }
