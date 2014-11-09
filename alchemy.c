@@ -363,7 +363,7 @@ DEF_DO_FUN(do_brew)
            case 4:
                act("You blink in bewilderment as a potion explodes and envelopes your face in black smoke.",ch, NULL, NULL, TO_CHAR);
                act("$n blinks in bewilderment as a potion explodes and envelopes $s face in black smoke.",ch,NULL,NULL,TO_ROOM);
-               spell_blindness(gsn_blindness, 8, ch, (void *) ch,TARGET_CHAR);
+               spell_blindness(gsn_blindness, 8, ch, (void *) ch, TARGET_CHAR, FALSE);
                break;
            case 5:
                i = find_spell(ch,"change sex");
@@ -401,7 +401,7 @@ DEF_DO_FUN(do_brew)
            case 6:
                act("POOF! Your potion disappears in a flash of light, leaving a {Rrose{x in its place!",ch,NULL,NULL, TO_CHAR);
                act("POOF! $n's potion disappears in a flash of light, leaving a {Rrose{x in its place!", ch, NULL, NULL, TO_ROOM);
-               spell_create_rose( 0, 50, ch, NULL, 0);
+               spell_create_rose( 0, 50, ch, NULL, 0, FALSE);
                break;
 
            case 7:
