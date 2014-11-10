@@ -1199,7 +1199,7 @@ void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
         if ( !offensive && !is_same_group(victim, target) )
             continue;
 
-        bool success = (*skill_table[sn].spell_fun) (sn, level, ch, (void*)target, TARGET_CHAR);
+        bool success = (*skill_table[sn].spell_fun) (sn, level, ch, (void*)target, TARGET_CHAR, FALSE);
         if ( !success )
             continue;
         
@@ -1284,6 +1284,20 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         return;
     }
 
+    // calculate level - needed prior to casting check
+    level = ch->level;
+    level = (100+chance)*level/200;
+    level = URANGE(1, level, 200);
+    if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
+        level += UMAX(1, level/8);
+    level = mastery_adjust_level(level, get_mastery(ch, sn));
+    
+    // check if spell could be cast successfully
+    // that's done via a call to the spell function with check = TRUE
+    // sending appropriate failure message is job of the spell function
+    if ( !(*skill_table[sn].spell_fun)(sn, level, ch, vo, target, TRUE) )
+        return;
+
     if ( str_cmp( skill_table[sn].name, "ventriloquate" ) )
     {
         say_spell( ch, sn );
@@ -1338,13 +1352,6 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
                 return;
         }
 
-        level = ch->level;
-        level = (100+chance)*level/200;
-        level = URANGE(1, level, 200);
-        if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
-            level += UMAX(1, level/8);
-        level = mastery_adjust_level(level, get_mastery(ch, sn));
-
         vo = check_reflection( sn, level, ch, vo, target );
 
         victim = (CHAR_DATA*) vo;
@@ -1358,12 +1365,13 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
                 return;
         }
 
-        bool success = (*skill_table[sn].spell_fun) (sn, level, ch, vo, target);
+        bool success = (*skill_table[sn].spell_fun) (sn, level, ch, vo, target, FALSE);
         if ( !success )
         {
+            
             // refund resources used for syntax errors or other issues that prevent the spell from being cast
-            // not ideal since we already did a bunch of checks assuming that the spell could be cast,
-            // but it's a compromise which avoids having a separate check-function for each spell
+            // should not occur since we just already did a check for this earlier
+            bugf("cast_spell: spell function for '%s' failed during actual casting", skill_table[sn].name);
             ch->mana = orig_mana;
             ch->wait = orig_wait;
             ch->stop = orig_stop;
@@ -1654,7 +1662,7 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
     }        
 
     was_obj_cast = TRUE;
-    bool success = (*skill_table[sn].spell_fun) ( sn, level, ch, vo, target);
+    bool success = (*skill_table[sn].spell_fun) ( sn, level, ch, vo, target, FALSE );
     was_obj_cast = FALSE;
 
     if ( success && target == TARGET_CHAR )
@@ -1785,6 +1793,8 @@ DEF_SPELL_FUN(spell_acid_blast)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
+    SPELL_CHECK_RETURN
+    
     dam = get_sn_damage( sn, level, ch );
     if ( saves_spell(victim, ch, level, DAM_ACID ) )
         dam /= 2;
@@ -1798,6 +1808,8 @@ DEF_SPELL_FUN(spell_armor)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
+    SPELL_CHECK_RETURN
+    
     if ( is_affected( victim, sn ) )
     {
         if (victim == ch)
@@ -1830,7 +1842,8 @@ DEF_SPELL_FUN(spell_bless)
     AFFECT_DATA af;
     int bonus;
 
-
+    SPELL_CHECK_RETURN
+    
     if (get_skill(ch, gsn_bless) >= 95 )
         bonus = (ch->level/15);
     else
@@ -1921,6 +1934,8 @@ DEF_SPELL_FUN(spell_blindness)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
+    SPELL_CHECK_RETURN
+    
     if ( IS_AFFECTED(victim, AFF_BLIND) )
     {
         send_to_char( "Your target is already blind!\n\r", ch );
@@ -1955,6 +1970,8 @@ DEF_SPELL_FUN(spell_burning_hands)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
+    SPELL_CHECK_RETURN
+    
     if ( check_hit( ch, victim, sn, DAM_FIRE, 100 ) )
     {
         dam = get_sn_damage( sn, level, ch ) * 14/10;
@@ -1987,6 +2004,8 @@ DEF_SPELL_FUN(spell_call_lightning)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * 1.5;
 
     send_to_char( "Lightning leaps out of the sky to strike your foes!\n\r", ch );
@@ -2029,6 +2048,8 @@ DEF_SPELL_FUN(spell_calm)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     /* try to calm all characters that need it */
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
@@ -2116,13 +2137,13 @@ DEF_SPELL_FUN(spell_cancellation)
                 (IS_NPC(ch) && !IS_NPC(victim)) ) /* NPC casting on PC */
         {
             send_to_char("You failed, try dispel magic.\n\r",ch);
-            return SR_IMMUNE;
+            return SR_TARGET;
         }
 
         if (!IS_NPC(victim) && IS_SET(victim->act, PLR_NOCANCEL) && ch != victim)
         {
             send_to_char("That player does not wish to be cancelled.\n\r",ch);
-            return SR_IMMUNE;
+            return SR_TARGET;
         }
     }
 
@@ -2141,6 +2162,8 @@ DEF_SPELL_FUN(spell_cancellation)
             return SR_SYNTAX;
         }
 
+        SPELL_CHECK_RETURN
+        
         if (can_dispel(sn) && check_dispel(level,victim,sn))
             send_to_char( "Ok.\n\r", ch);
         else
@@ -2148,8 +2171,9 @@ DEF_SPELL_FUN(spell_cancellation)
     } 
     else
     {
+        SPELL_CHECK_RETURN
+        
         /* begin running through the spells */
-
         for (sn = 1; skill_table[sn].name != NULL; sn++)
             if (can_dispel(sn) && check_dispel(level,victim,sn))
                 found = TRUE;
@@ -2229,6 +2253,8 @@ DEF_SPELL_FUN(spell_chain_lightning)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
+    SPELL_CHECK_RETURN
+        
     act("A lightning bolt leaps from $n's hand and arcs to $N.",
             ch,NULL,victim,TO_ROOM);
     act("A lightning bolt leaps from your hand and arcs to $N.",
@@ -2251,6 +2277,8 @@ DEF_SPELL_FUN(spell_change_sex)
         send_to_char( "It won't work... sides in the war are decided by a person's real sex.\n\r", ch );
         return SR_UNABLE;
     }
+
+    SPELL_CHECK_RETURN
 
     if ( is_affected( victim, sn ))
     {
@@ -2303,15 +2331,6 @@ DEF_SPELL_FUN(spell_charm_person)
         return SR_TARGET;
     }
 
-    if ( IS_AFFECTED(victim, AFF_CHARM)
-            || IS_AFFECTED(ch, AFF_CHARM)
-            || IS_SET(victim->imm_flags, IMM_CHARM)
-            || IS_IMMORTAL(victim) )
-    {
-        act( "You can't charm $N.", ch, NULL, victim, TO_CHAR );
-        return SR_IMMUNE;
-    }
-
     if (IS_SET(victim->in_room->room_flags,ROOM_LAW))
     {
         send_to_char("Charming is not allowed here.\n\r",ch);
@@ -2328,6 +2347,17 @@ DEF_SPELL_FUN(spell_charm_person)
     if ( check_cha_follow(ch, mlevel) < mlevel )
         return SR_UNABLE;
 
+    SPELL_CHECK_RETURN
+    
+    if ( IS_AFFECTED(victim, AFF_CHARM)
+            || IS_AFFECTED(ch, AFF_CHARM)
+            || IS_SET(victim->imm_flags, IMM_CHARM)
+            || IS_IMMORTAL(victim) )
+    {
+        act( "You can't charm $N.", ch, NULL, victim, TO_CHAR );
+        return SR_IMMUNE;
+    }
+    
     sex_bonus =  
         (ch->sex == SEX_FEMALE && victim->sex == SEX_MALE)
         || (ch->sex == SEX_MALE && victim->sex == SEX_FEMALE);
@@ -2372,6 +2402,8 @@ DEF_SPELL_FUN(spell_chill_touch)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
+    SPELL_CHECK_RETURN
+    
     if ( check_hit(ch, victim, sn, DAM_COLD, 100) )
     {
         dam = get_sn_damage(sn, level, ch) * 14/10;
@@ -2393,11 +2425,13 @@ DEF_SPELL_FUN(spell_colour_spray)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
+    SPELL_CHECK_RETURN
+
     dam = get_sn_damage(sn, level, ch) * 3/4;
     if ( saves_spell(victim, ch, level, DAM_LIGHT) )
         dam /= 2;
     else 
-        spell_blindness( gsn_blindness, level/2, ch,(void *) victim,TARGET_CHAR );
+        spell_blindness(gsn_blindness, level/2, ch, (void*)victim, TARGET_CHAR, FALSE);
 
     full_dam( ch, victim, dam, sn, DAM_LIGHT,TRUE );
     return TRUE;
@@ -2418,6 +2452,8 @@ DEF_SPELL_FUN(spell_continual_light)
             send_to_char("You don't see that here.\n\r",ch);
             return SR_TARGET;
         }
+        
+        SPELL_CHECK_RETURN
 
         if (IS_OBJ_STAT(light, ITEM_DARK))
         {
@@ -2437,6 +2473,8 @@ DEF_SPELL_FUN(spell_continual_light)
         return TRUE;
     }
 
+    SPELL_CHECK_RETURN
+    
     light = create_object( get_obj_index( OBJ_VNUM_LIGHT_BALL ), 0 );
     obj_to_room( light, ch->in_room );
     act( "$n twiddles $s thumbs and $p appears.",   ch, light, NULL, TO_ROOM );
@@ -2448,6 +2486,8 @@ DEF_SPELL_FUN(spell_continual_light)
 
 DEF_SPELL_FUN(spell_control_weather)
 {
+    SPELL_CHECK_RETURN
+    
     if ( !str_cmp( target_name, "better" ) )
     {
         weather_info.change += dice( level/3 , 4 );
@@ -2479,30 +2519,32 @@ DEF_SPELL_FUN(spell_control_weather)
 DEF_SPELL_FUN(spell_create_bomb)
 {
     OBJ_DATA *bomb;
-    if ( ch->carry_number < can_carry_n(ch) )
-    {
-        bomb = create_object( get_obj_index( OBJ_VNUM_BOMB ), 0 );
-        act( "$n has created $p.", ch, bomb, NULL, TO_ROOM );
-        act( "You create $p.", ch, bomb, NULL, TO_CHAR );
-        bomb->timer = -1;
-        bomb->value[0] = UMAX(1, level/10) + 3;
-        bomb->level = level;
-        obj_to_char(bomb,ch);
-    }
-    else
+
+    if ( ch->carry_number >= can_carry_n(ch) )
     {
         send_to_char("You have no room in your inventory for that!\r\n", ch);
         return SR_UNABLE;
     }
+        
+    SPELL_CHECK_RETURN
+    
+    bomb = create_object( get_obj_index( OBJ_VNUM_BOMB ), 0 );
+    act( "$n has created $p.", ch, bomb, NULL, TO_ROOM );
+    act( "You create $p.", ch, bomb, NULL, TO_CHAR );
+    bomb->timer = -1;
+    bomb->value[0] = UMAX(1, level/10) + 3;
+    bomb->level = level;
+    obj_to_char(bomb,ch);
+    
     return TRUE;
 }
 
 
 DEF_SPELL_FUN(spell_create_food)
 {
-    OBJ_DATA *mushroom;
-
-    mushroom = create_object( get_obj_index( OBJ_VNUM_MUSHROOM ), 0 );
+    SPELL_CHECK_RETURN
+    
+    OBJ_DATA *mushroom = create_object( get_obj_index( OBJ_VNUM_MUSHROOM ), 0 );
     mushroom->value[0] = level / 2;
     mushroom->value[1] = level;
     obj_to_room( mushroom, ch->in_room );
@@ -2513,27 +2555,27 @@ DEF_SPELL_FUN(spell_create_food)
 
 DEF_SPELL_FUN(spell_create_rose)
 {
-    OBJ_DATA *rose;
-    rose = create_object(get_obj_index(OBJ_VNUM_ROSE), 0);
-    if ( ch->carry_number < can_carry_n(ch) )
-    {
-        act("$n has created a beautiful red rose.",ch,rose,NULL,TO_ROOM);
-        send_to_char("You create a beautiful red rose.\n\r",ch);
-        obj_to_char(rose,ch);
-    }
-    else
+    if ( ch->carry_number >= can_carry_n(ch) )
     {
         send_to_char("You have no room in your inventory for that!\n\r",ch);
         return SR_UNABLE;
     }
+    
+    SPELL_CHECK_RETURN
+    
+    OBJ_DATA *rose = create_object(get_obj_index(OBJ_VNUM_ROSE), 0);
+    act("$n has created a beautiful red rose.",ch,rose,NULL,TO_ROOM);
+    send_to_char("You create a beautiful red rose.\n\r",ch);
+    obj_to_char(rose,ch);
+        
     return TRUE;
 }
 
 DEF_SPELL_FUN(spell_create_spring)
 {
-    OBJ_DATA *spring;
-
-    spring = create_object( get_obj_index( OBJ_VNUM_SPRING ), 0 );
+    SPELL_CHECK_RETURN
+    
+    OBJ_DATA *spring = create_object( get_obj_index( OBJ_VNUM_SPRING ), 0 );
     spring->timer = get_duration(sn, level);
     obj_to_room( spring, ch->in_room );
     act( "$p flows from the ground.", ch, spring, NULL, TO_ROOM );
@@ -2564,6 +2606,8 @@ DEF_SPELL_FUN(spell_create_water)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     water = UMIN(
             level * (weather_info.sky >= SKY_RAINING ? 4 : 2),
             obj->value[0] - obj->value[1]
@@ -2589,6 +2633,8 @@ DEF_SPELL_FUN(spell_create_water)
 
 DEF_SPELL_FUN(spell_cure_blindness)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA *aff;
 
@@ -2647,6 +2693,8 @@ bool is_blindness( int sn )
 
 DEF_SPELL_FUN(spell_cure_mental)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     bool found = FALSE;
     int i;
@@ -2665,6 +2713,8 @@ DEF_SPELL_FUN(spell_cure_mental)
 /* RT added to cure plague */
 DEF_SPELL_FUN(spell_cure_disease)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
     if ( !is_affected( victim, gsn_plague ) && !is_affected(victim, gsn_necrosis))
@@ -2691,6 +2741,8 @@ DEF_SPELL_FUN(spell_cure_disease)
 
 DEF_SPELL_FUN(spell_cure_poison)
 {
+    SPELL_CHECK_RETURN
+
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
     if ( !is_affected( victim, gsn_poison ) )
@@ -2716,6 +2768,8 @@ DEF_SPELL_FUN(spell_cure_poison)
 
 DEF_SPELL_FUN(spell_curse)
 {
+    SPELL_CHECK_RETURN
+        
     CHAR_DATA *victim;
     OBJ_DATA *obj;
     AFFECT_DATA af;
@@ -2770,9 +2824,6 @@ DEF_SPELL_FUN(spell_curse)
     /* character curses */
     victim = (CHAR_DATA *) vo;
 
-    if ( is_safe( ch, victim ) )
-        return SR_UNABLE;
-
     if (IS_AFFECTED(victim,AFF_CURSE))
     {
         send_to_char("They are already cursed.\n\r",ch);
@@ -2807,6 +2858,8 @@ DEF_SPELL_FUN(spell_curse)
 /* RT replacement demonfire spell */
 DEF_SPELL_FUN(spell_demonfire)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
@@ -2833,13 +2886,15 @@ DEF_SPELL_FUN(spell_demonfire)
         dam /= 2;
 
     if ( IS_GOOD(victim) && !IS_AFFECTED(victim, AFF_CURSE) )
-        spell_curse(gsn_curse, level/2, ch, (void *) victim,TARGET_CHAR);
+        spell_curse(gsn_curse, level/2, ch, (void*)victim, TARGET_CHAR, FALSE);
     full_dam( ch, victim, dam, sn, DAM_NEGATIVE ,TRUE);
     return TRUE;
 }
 
 DEF_SPELL_FUN(spell_angel_smite)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
@@ -2863,7 +2918,7 @@ DEF_SPELL_FUN(spell_angel_smite)
         dam /= 2;
 
     if ( IS_EVIL(victim) && !IS_AFFECTED(victim, AFF_CURSE) )
-        spell_curse(gsn_curse, level/2, ch, (void *) victim,TARGET_CHAR);
+        spell_curse(gsn_curse, level/2, ch, (void*)victim, TARGET_CHAR, FALSE);
     full_dam( ch, victim, dam, sn, DAM_HOLY ,TRUE);
     return TRUE;
 }
@@ -2871,6 +2926,8 @@ DEF_SPELL_FUN(spell_angel_smite)
 
 DEF_SPELL_FUN(spell_detect_evil)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -2899,6 +2956,8 @@ DEF_SPELL_FUN(spell_detect_evil)
 
 DEF_SPELL_FUN(spell_detect_good)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -2928,6 +2987,8 @@ DEF_SPELL_FUN(spell_detect_good)
 
 DEF_SPELL_FUN(spell_detect_hidden)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -2957,6 +3018,8 @@ DEF_SPELL_FUN(spell_detect_hidden)
 
 DEF_SPELL_FUN(spell_detect_invis)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -2987,6 +3050,8 @@ DEF_SPELL_FUN(spell_detect_invis)
 
 DEF_SPELL_FUN(spell_detect_magic)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -3017,6 +3082,8 @@ DEF_SPELL_FUN(spell_detect_magic)
 
 DEF_SPELL_FUN(spell_detect_poison)
 {
+    SPELL_CHECK_RETURN
+    
     OBJ_DATA *obj = (OBJ_DATA *) vo;
 
     if ( obj->item_type == ITEM_DRINK_CON || obj->item_type == ITEM_FOOD )
@@ -3036,6 +3103,8 @@ DEF_SPELL_FUN(spell_detect_poison)
 
 DEF_SPELL_FUN(spell_dispel_evil)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
     const char *god_name;
@@ -3069,6 +3138,8 @@ DEF_SPELL_FUN(spell_dispel_evil)
 
 DEF_SPELL_FUN(spell_dispel_good)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
     const char *god_name;
@@ -3104,6 +3175,8 @@ DEF_SPELL_FUN(spell_dispel_good)
 
 DEF_SPELL_FUN(spell_dispel_magic)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
     if (IS_SET(victim->imm_flags, IMM_MAGIC))
@@ -3128,6 +3201,8 @@ DEF_SPELL_FUN(spell_dispel_magic)
 
 DEF_SPELL_FUN(spell_earthquake)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
     int dam;
@@ -3217,6 +3292,8 @@ DEF_SPELL_FUN(spell_enchant_arrow)
         return SR_TARGET;
     }
 
+    SPELL_CHECK_RETURN
+    
     /* extra mana cost based on nr of arrows */
     mana = UMIN(nr, ch->mana);
     ch->mana -= mana;
@@ -3291,7 +3368,7 @@ DEF_SPELL_FUN(spell_enchant_armor)
     arg = one_argument(target_name, buf);
     one_argument(arg, buf);
     
-    return spell_enchant_obj(ch, obj, level, buf);
+    return spell_enchant_obj(ch, obj, level, buf, check);
 }
 
 DEF_SPELL_FUN(spell_enchant_weapon)
@@ -3309,7 +3386,7 @@ DEF_SPELL_FUN(spell_enchant_weapon)
     arg = one_argument(target_name, buf);
     one_argument(arg, buf);
     
-    return spell_enchant_obj(ch, obj, level, buf);
+    return spell_enchant_obj(ch, obj, level, buf, check);
 }
 
 /*
@@ -3317,6 +3394,8 @@ DEF_SPELL_FUN(spell_enchant_weapon)
  */
 DEF_SPELL_FUN(spell_energy_drain)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int drain, drain_mana, drain_move;
 
@@ -3354,6 +3433,8 @@ DEF_SPELL_FUN(spell_energy_drain)
 
 DEF_SPELL_FUN(spell_fireball)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
     int dam;
@@ -3381,6 +3462,8 @@ DEF_SPELL_FUN(spell_fireball)
 
 DEF_SPELL_FUN(spell_fireproof)
 {
+    SPELL_CHECK_RETURN
+    
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     AFFECT_DATA af;
 
@@ -3407,6 +3490,8 @@ DEF_SPELL_FUN(spell_fireproof)
 
 DEF_SPELL_FUN(spell_flamestrike)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
@@ -3419,6 +3504,8 @@ DEF_SPELL_FUN(spell_flamestrike)
 
 DEF_SPELL_FUN(spell_faerie_fire)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -3445,6 +3532,8 @@ DEF_SPELL_FUN(spell_faerie_fire)
 
 DEF_SPELL_FUN(spell_faerie_fog)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *ich;
     OBJ_DATA *obj;
 
@@ -3512,6 +3601,8 @@ DEF_SPELL_FUN(spell_floating_disc)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     disc = create_object(get_obj_index(OBJ_VNUM_DISC), 0);
     disc->value[0]  = ch->level * 10; /* 10 pounds per level capacity */
     disc->value[3]  = ch->level * 5; /* 5 pounds per level max per item */
@@ -3527,6 +3618,8 @@ DEF_SPELL_FUN(spell_floating_disc)
 
 DEF_SPELL_FUN(spell_fly)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -3558,6 +3651,17 @@ DEF_SPELL_FUN(spell_frenzy)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
+    if ( is_affected(victim, skill_lookup("calm")) )
+    {
+        if (victim == ch)
+            send_to_char("Why don't you just relax for a while?\n\r", ch);
+        else
+            act("$N doesn't look like $e wants to fight anymore.", ch, NULL, victim, TO_CHAR);
+        return SR_UNABLE;
+    }
+
+    SPELL_CHECK_RETURN
+    
     if (is_affected(victim,sn) || IS_AFFECTED(victim,AFF_BERSERK))
     {
         if (victim == ch)
@@ -3565,16 +3669,6 @@ DEF_SPELL_FUN(spell_frenzy)
         else
             act("$N is already in a frenzy.",ch,NULL,victim,TO_CHAR);
         return SR_AFFECTED;
-    }
-
-    if (is_affected(victim,skill_lookup("calm")))
-    {
-        if (victim == ch)
-            send_to_char("Why don't you just relax for a while?\n\r",ch);
-        else
-            act("$N doesn't look like $e wants to fight anymore.",
-                    ch,NULL,victim,TO_CHAR);
-        return SR_UNABLE;
     }
 
     af.where     = TO_AFFECTS;
@@ -3676,6 +3770,8 @@ DEF_SPELL_FUN(spell_gate)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     check_sn_multiplay( ch, victim, sn );
 
     if (ch->pet != NULL && ch->in_room == ch->pet->in_room)
@@ -3725,6 +3821,8 @@ DEF_SPELL_FUN(spell_gate)
 
 DEF_SPELL_FUN(spell_giant_strength)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -3767,6 +3865,8 @@ DEF_SPELL_FUN(spell_giant_strength)
 /* used for harm as well as cause X spells */
 DEF_SPELL_FUN(spell_cause_harm)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int harm = get_sn_damage(sn, level, ch);
     // scale with victim's health
@@ -3782,6 +3882,8 @@ DEF_SPELL_FUN(spell_cause_harm)
 /* RT haste spell */
 DEF_SPELL_FUN(spell_haste)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -3839,6 +3941,8 @@ DEF_SPELL_FUN(spell_haste)
 
 DEF_SPELL_FUN(spell_heal)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int heal = get_sn_heal( sn, level, ch, victim );
 
@@ -3879,6 +3983,8 @@ DEF_SPELL_FUN(spell_heat_metal)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     if (!saves_spell(victim, ch, level, DAM_FIRE) 
             &&  !IS_SET(victim->imm_flags,IMM_FIRE))
     {
@@ -4019,9 +4125,6 @@ DEF_SPELL_FUN(spell_holy_word)
     int bless_num, curse_num, frenzy_num;
     bool same_align;
 
-    act("$n utters a word of divine power!",ch,NULL,NULL,TO_ROOM);
-    send_to_char("You utter a word of divine power.\n\r",ch);
-
     if ( IS_NPC(ch)
             || was_obj_cast
             || ch->pcdata->trained_hit < 2
@@ -4036,6 +4139,11 @@ DEF_SPELL_FUN(spell_holy_word)
         send_to_char( "The gods don't answer your call!\n\r", ch );
         return SR_UNABLE;
     }
+
+    SPELL_CHECK_RETURN
+    
+    act("$n utters a word of divine power!",ch,NULL,NULL,TO_ROOM);
+    send_to_char("You utter a word of divine power.\n\r",ch);
 
     bless_num = skill_lookup("bless");
     curse_num = skill_lookup("curse");
@@ -4065,11 +4173,11 @@ DEF_SPELL_FUN(spell_holy_word)
             restore_char( vch );
             /* little spellup */
             if ( !IS_AFFECTED(vch, AFF_SANCTUARY) )
-                spell_sanctuary(gsn_sanctuary,level,ch,(void *) vch,TARGET_CHAR);
+                spell_sanctuary(gsn_sanctuary, level, ch, (void*)vch, TARGET_CHAR, FALSE);
             if ( !is_affected(vch, gsn_prayer) && !is_affected(vch, gsn_bless) )
-                spell_bless(bless_num,level,ch,(void *) vch,TARGET_CHAR);
+                spell_bless(bless_num, level, ch, (void*)vch, TARGET_CHAR, FALSE);
             if ( same_align && !IS_AFFECTED(vch, AFF_BERSERK) )
-                spell_frenzy(frenzy_num,level,ch,(void *) vch,TARGET_CHAR);
+                spell_frenzy(frenzy_num, level, ch, (void*)vch, TARGET_CHAR, FALSE);
         }
 
         else if ( vch->fighting != NULL
@@ -4077,7 +4185,7 @@ DEF_SPELL_FUN(spell_holy_word)
                 && !is_safe_spell(ch,vch,TRUE)
                 && !same_align )
         {
-            spell_curse(curse_num,level,ch,(void *) vch,TARGET_CHAR);
+            spell_curse(curse_num, level, ch, (void*)vch, TARGET_CHAR, FALSE);
             send_to_char("You are struck down!\n\r",vch);
 
             curr_dam = dam;
@@ -4112,6 +4220,8 @@ DEF_SPELL_FUN(spell_identify)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     sprintf( buf,
             "Object %s is type %s, extra flags %s.\n\rWeight is %d, level is %d.\n\r",
             obj->short_descr,
@@ -4283,6 +4393,8 @@ DEF_SPELL_FUN(spell_identify)
 
 DEF_SPELL_FUN(spell_infravision)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -4328,6 +4440,8 @@ DEF_SPELL_FUN(spell_invis)
     /* object invisibility */
     if (target == TARGET_OBJ)
     {
+        SPELL_CHECK_RETURN
+        
         obj = (OBJ_DATA *) vo;  
 
         if (IS_OBJ_STAT(obj,ITEM_INVIS))
@@ -4371,6 +4485,8 @@ DEF_SPELL_FUN(spell_invis)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     if ( IS_AFFECTED(victim, AFF_INVISIBLE) )
     {
         if ( victim == ch )
@@ -4404,6 +4520,8 @@ DEF_SPELL_FUN(spell_invis)
 
 DEF_SPELL_FUN(spell_know_alignment)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     char *msg;
     int ap;
@@ -4424,6 +4542,8 @@ DEF_SPELL_FUN(spell_know_alignment)
 
 DEF_SPELL_FUN(spell_lightning_bolt)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
@@ -4461,6 +4581,8 @@ DEF_SPELL_FUN(spell_locate_object)
         return SR_SYNTAX;
     }
 
+    SPELL_CHECK_RETURN
+    
     for ( obj = object_list; obj != NULL; obj = obj->next )
     {
         if ( !can_see_obj( ch, obj ) || !is_name( target_name, obj->name ) 
@@ -4511,6 +4633,8 @@ DEF_SPELL_FUN(spell_locate_object)
 
 DEF_SPELL_FUN(spell_magic_missile)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int missle;
     int dam;
@@ -4534,6 +4658,8 @@ DEF_SPELL_FUN(spell_magic_missile)
 
 DEF_SPELL_FUN(spell_mass_healing)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *gch;
     int heal_num, refresh_num;
 
@@ -4549,8 +4675,8 @@ DEF_SPELL_FUN(spell_mass_healing)
         if ( IS_NPC(gch) && !IS_AFFECTED(gch, AFF_CHARM) && gch->fighting == NULL)
             continue;
 
-        spell_heal(heal_num, level, ch, (void *) gch, TARGET_CHAR);
-        spell_refresh(refresh_num, level, ch, (void *) gch, TARGET_CHAR);  
+        spell_heal(heal_num, level, ch, (void *) gch, TARGET_CHAR, FALSE);
+        spell_refresh(refresh_num, level, ch, (void *) gch, TARGET_CHAR, FALSE);
         check_sn_multiplay(ch, gch, sn);
     }
     return TRUE;
@@ -4568,6 +4694,8 @@ DEF_SPELL_FUN(spell_mass_invis)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( !is_same_group( gch, ch )
@@ -4606,6 +4734,8 @@ DEF_SPELL_FUN(spell_null)
 
 DEF_SPELL_FUN(spell_pass_door)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -4634,6 +4764,8 @@ DEF_SPELL_FUN(spell_pass_door)
 /* RT plague spell, very nasty */
 DEF_SPELL_FUN(spell_plague)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -4664,6 +4796,8 @@ DEF_SPELL_FUN(spell_plague)
 
 DEF_SPELL_FUN(spell_confusion)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -4701,6 +4835,8 @@ DEF_SPELL_FUN(spell_confusion)
 
 DEF_SPELL_FUN(spell_poison)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim;
     OBJ_DATA *obj;
     AFFECT_DATA af;
@@ -4765,9 +4901,6 @@ DEF_SPELL_FUN(spell_poison)
 
     victim = (CHAR_DATA *) vo;
 
-    if ( is_safe( ch, victim ) )
-        return SR_UNABLE;
-
     if ( saves_spell(victim, ch, level, DAM_POISON) )
     {
         act("$n turns slightly green, but it passes.",victim,NULL,NULL,TO_ROOM);
@@ -4792,6 +4925,8 @@ DEF_SPELL_FUN(spell_poison)
 
 DEF_SPELL_FUN(spell_protection_evil)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -4830,6 +4965,8 @@ DEF_SPELL_FUN(spell_protection_evil)
 
 DEF_SPELL_FUN(spell_protection_good)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -4869,6 +5006,8 @@ DEF_SPELL_FUN(spell_protection_good)
 
 DEF_SPELL_FUN(spell_ray_of_truth)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
@@ -4894,7 +5033,7 @@ DEF_SPELL_FUN(spell_ray_of_truth)
         return SR_IMMUNE;
     }
 
-    spell_blindness(gsn_blindness, level/2, ch, (void *) victim,TARGET_CHAR);
+    spell_blindness(gsn_blindness, level/2, ch, (void *)victim, TARGET_CHAR, FALSE);
 
     dam = get_sn_damage( sn, level, ch );
     dam = dam * ( 1000 - victim->alignment ) / 2000;
@@ -4930,6 +5069,8 @@ DEF_SPELL_FUN(spell_recharge)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     chance = 40 + 2 * level;
 
     chance -= obj->value[3]; /* harder to do high-level spells */
@@ -4981,6 +5122,8 @@ DEF_SPELL_FUN(spell_recharge)
 
 DEF_SPELL_FUN(spell_refresh)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int heal = get_sn_heal( sn, level, ch, victim );
     victim->move = UMIN( victim->move + heal, victim->max_move );
@@ -5008,6 +5151,8 @@ DEF_SPELL_FUN(spell_refresh)
 
 DEF_SPELL_FUN(spell_remove_curse)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim;
     OBJ_DATA *obj;
     char buf[MSL];
@@ -5089,6 +5234,8 @@ DEF_SPELL_FUN(spell_remove_curse)
 
 DEF_SPELL_FUN(spell_sanctuary)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -5118,6 +5265,8 @@ DEF_SPELL_FUN(spell_sanctuary)
 
 DEF_SPELL_FUN(spell_shield)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -5147,6 +5296,8 @@ DEF_SPELL_FUN(spell_shield)
 
 DEF_SPELL_FUN(spell_shocking_grasp)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
@@ -5167,6 +5318,8 @@ DEF_SPELL_FUN(spell_shocking_grasp)
 
 DEF_SPELL_FUN(spell_sleep)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -5225,6 +5378,8 @@ DEF_SPELL_FUN(spell_sleep)
 
 DEF_SPELL_FUN(spell_slow)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -5278,6 +5433,8 @@ DEF_SPELL_FUN(spell_slow)
 
 DEF_SPELL_FUN(spell_stone_skin)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -5358,12 +5515,15 @@ DEF_SPELL_FUN(spell_summon)
             || IS_SET(victim->comm, COMM_AFK) )
     {
         send_to_char( "Your target does not wish to be summoned.\n\r", ch );
-        return SR_IMMUNE;
+        return SR_TARGET;
     }
+    
+    SPELL_CHECK_RETURN
+    
     if ( IS_IMMORTAL(victim) || victim->level > level + 5 )
     {
         send_to_char( "Your target is too powerful for you to summon.\n\r", ch );
-        return SR_UNABLE;
+        return TRUE;
     }
     if ( IS_TAG(victim)
             || IS_REMORT(victim)
@@ -5371,7 +5531,7 @@ DEF_SPELL_FUN(spell_summon)
             || victim->fighting != NULL )
     {
         send_to_char( "Your target can't be summoned from its location!\n\r", ch );
-        return SR_UNABLE;
+        return TRUE;
     }
 
     check_sn_multiplay( ch, victim, sn );
@@ -5404,6 +5564,8 @@ DEF_SPELL_FUN(spell_teleport)
     if ( !can_cast_transport(ch) )
         return SR_UNABLE;
 
+    SPELL_CHECK_RETURN
+    
     if ( victim->in_room == NULL
             || IS_SET(victim->in_room->room_flags, ROOM_NO_RECALL)
             || IS_TAG(ch)
@@ -5476,6 +5638,8 @@ DEF_SPELL_FUN(spell_ventriloquate)
         return SR_TARGET;
     }
 
+    SPELL_CHECK_RETURN
+    
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
         if ( vch != vo && IS_AWAKE(vch))
@@ -5496,6 +5660,8 @@ DEF_SPELL_FUN(spell_ventriloquate)
 
 DEF_SPELL_FUN(spell_weaken)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
@@ -5587,6 +5753,8 @@ DEF_SPELL_FUN(spell_word_of_recall)
         return SR_UNABLE;
     }
 
+    SPELL_CHECK_RETURN
+    
     if (IS_AFFECTED(victim, AFF_ENTANGLE))
     {
         chance = (number_percent ());
@@ -5648,6 +5816,8 @@ DEF_SPELL_FUN(spell_word_of_recall)
  */
 DEF_SPELL_FUN(spell_general_purpose)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
@@ -5660,6 +5830,8 @@ DEF_SPELL_FUN(spell_general_purpose)
 
 DEF_SPELL_FUN(spell_high_explosive)
 {
+    SPELL_CHECK_RETURN
+    
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 

@@ -240,3 +240,6 @@ DECLARE_SPELL_FUN( spell_minor_fade     );
 #define SR_UNABLE   FALSE   // spell cannot be cast under current conditions (e.g. indoors, in warfare, inventory full)
 #define SR_IMMUNE   TRUE    // target is immune to the spell
 #define SR_AFFECTED TRUE    // target is already affected (or not affected in case of cure spells)
+
+// every spell function should return early (after any syntax/target/unable checks) if called for checking purposes only
+#define SPELL_CHECK_RETURN if (check) return TRUE;
