@@ -265,7 +265,7 @@ int get_enchant_cost( OBJ_DATA *obj )
     return 100 + current_ops * current_ops;
 }
 
-bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg )
+bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check )
 {
     int cost, result, rand_type;
 
@@ -284,6 +284,8 @@ bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg )
         rand_type = ITEM_RANDOM;
     else if ( !strcmp(arg, "analyze") )
     {
+        if ( check )
+            return TRUE;
         int ops = get_obj_ops_by_duration(obj, AFFDUR_DISENCHANTABLE);
         int chance = get_enchant_chance(obj, level);
         cost = get_enchant_cost(obj);
@@ -293,6 +295,8 @@ bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg )
     }
     else if ( !strcmp(arg, "disenchant") )
     {
+        if ( check )
+            return TRUE;
         act("$p glows brightly, then fades.", ch, obj, NULL,TO_CHAR);
         act("$p glows brightly, then fades.", ch, obj, NULL,TO_ROOM);
         disenchant_obj(obj);
@@ -311,6 +315,9 @@ bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg )
         return FALSE;
     }
 
+    if ( check )
+        return TRUE;
+    
     result = get_enchant_ops(obj, level);
     
     if ( result == 0 )  /* failed, no bad result, no components used up */

@@ -136,8 +136,8 @@ typedef struct mem_file_type MEMFILE;
 typedef void DO_FUN args( ( CHAR_DATA *ch, const char *argument ) );
 #define DEF_DO_FUN(fun) void fun( CHAR_DATA *ch, const char *argument )
 typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
-typedef bool SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int target ) );
-#define DEF_SPELL_FUN(fun) bool fun( int sn, int level, CHAR_DATA *ch, void *vo, int target )
+typedef bool SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int target, bool check ) );
+#define DEF_SPELL_FUN(fun) bool fun( int sn, int level, CHAR_DATA *ch, void *vo, int target, bool check )
 
 /* for object extracting in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
@@ -4459,7 +4459,7 @@ int get_enchant_ops( OBJ_DATA *obj, int level );
 void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration );
 void check_enchant_obj( OBJ_DATA *obj );
 void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
-bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg );
+bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check );
 
 /* fight.c */
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );

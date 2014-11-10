@@ -843,7 +843,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 if ( per_chance(get_skill(ch,skill)) )
                 {
                     ch->mana-=skill_table[skill].min_mana/2;
-                    spell_windwar( skill, ch->level,ch,victim,TARGET_CHAR);
+                    spell_windwar(skill, ch->level, ch, victim, TARGET_CHAR, FALSE);
                 }
                 break;
             case(2):
@@ -851,7 +851,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 if ( per_chance(get_skill(ch,skill)) )
                 {
                     ch->mana-=skill_table[skill].min_mana/2;
-                    spell_lightning_bolt( skill, ch->level,ch,victim,TARGET_CHAR);
+                    spell_lightning_bolt(skill, ch->level, ch, victim, TARGET_CHAR, FALSE);
                 }
                 break;
             case(3):
@@ -859,7 +859,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 if ( per_chance(get_skill(ch,skill)) )
                 {
                     ch->mana-=skill_table[skill].min_mana/2;
-                    spell_call_lightning( skill, ch->level,ch,victim,TARGET_CHAR);
+                    spell_call_lightning(skill, ch->level, ch,victim, TARGET_CHAR, FALSE);
                 }
                 break;
             case(4):
@@ -867,7 +867,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 if ( per_chance(get_skill(ch,skill)) )
                 {
                     ch->mana-=skill_table[skill].min_mana/2;
-                    spell_monsoon( skill, ch->level,ch,victim,TARGET_CHAR);
+                    spell_monsoon(skill, ch->level, ch, victim, TARGET_CHAR, FALSE);
                 }
                 break;
             }
@@ -2281,7 +2281,7 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
         if ( number_bits(2) == 0 )
         {
             int sn = per_chance(10) ? skill_lookup("confusion") : skill_lookup("laughing fit");
-            (*skill_table[sn].spell_fun) (sn, aff_level/2, victim, (void*)ch, TARGET_CHAR);
+            (*skill_table[sn].spell_fun) (sn, aff_level/2, victim, (void*)ch, TARGET_CHAR, FALSE);
         }
         full_dam(victim, ch, aff_level/2, gsn_quirkys_insanity, DAM_MENTAL, TRUE);
         return;

@@ -1474,7 +1474,7 @@ DEF_DO_FUN(do_mpcast)
 	return;
     victim = check_reflection( sn, ch->level, ch, victim, target_type );
 
-    (*skill_table[sn].spell_fun)( sn, ch->level, ch, victim, target_type );
+    (*skill_table[sn].spell_fun)( sn, ch->level, ch, victim, target_type, FALSE );
     return;
 }
 
