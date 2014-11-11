@@ -1323,7 +1323,7 @@ DEF_DO_FUN(do_cset)
 	if ( !strcmp(arg1, "minlevel") )
 	{
 	    int value = atoi(arg2);
-	    if ( !IS_BETWEEN(10, value, MAX_LEVEL) )
+	    if ( !IS_BETWEEN(1, value, MAX_LEVEL) )
 	    {
 		send_to_char( "Invalid level.\n\r", ch );
 		return;
