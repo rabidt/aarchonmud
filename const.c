@@ -791,7 +791,7 @@ struct align_type align_table [] =
 /* NPC RACES */
 {
 	"bat",          FALSE,
-	{},      {AFF_FLYING,AFF_DARK_VISION, OFF_DODGE,OFF_FAST},
+	{},      {AFF_FLYING,AFF_DARK_VISION}, {OFF_DODGE,OFF_FAST},
 	{},      {},      {VULN_LIGHT},
 	    {A,G,V},      {A,C,D,E,F,H,J,K,P}
 	},
@@ -980,6 +980,20 @@ struct align_type align_table [] =
 	{},      {},   {},
 	{},      {RES_HOLY}, {VULN_NEGATIVE},
 	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K,W}
+	},
+
+	{
+	"dragon",    FALSE,
+	{},    {AFF_FLYING, AFF_REGENERATION},    {},
+	{},    {RES_FIRE, RES_CHARM, RES_MENTAL}, {},
+	{C, G, Z, cc},    {A, D, L, P, Q, V, X}
+	},
+
+	{
+	"robot",    FALSE,
+	{},    {},    {},
+	{},    {RES_MENTAL, RES_POISON}, {VULN_DROWNING, VULN_ACID},
+	{},    {}
 	},
 
 	{
