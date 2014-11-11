@@ -243,3 +243,4 @@ DECLARE_SPELL_FUN( spell_minor_fade     );
 
 // every spell function should return early (after any syntax/target/unable checks) if called for checking purposes only
 #define SPELL_CHECK_RETURN if (check) return TRUE;
+
