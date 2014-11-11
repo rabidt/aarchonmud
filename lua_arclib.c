@@ -1383,6 +1383,7 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
                clear value lower down if it's already set,
                otherwise do nothing 
              */
+            val = NULL;
             break;
 
         case LUA_TSTRING:
