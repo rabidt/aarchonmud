@@ -2654,11 +2654,17 @@ DEF_SPELL_FUN(spell_mephistons_scrutiny)
 
 DEF_SPELL_FUN(spell_rimbols_invocation)
 {
-    SPELL_CHECK_RETURN
-    
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
     int dam, main_dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR / 4;
+    
+    if ( !ch->fighting )
+    {
+        send_to_char("You should initiate combat first.\n\r", ch);
+        return SR_UNABLE;
+    }
+    
+    SPELL_CHECK_RETURN
     
     act("Rimbol channels the power of earth to form an avalanche!",ch,NULL,NULL,TO_ROOM);
     send_to_char("Rimbol answers your prayers by bringing forth Earth's power!\n\r",ch);
