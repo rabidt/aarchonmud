@@ -3661,7 +3661,7 @@ DEF_DO_FUN(do_password)
         return;
     }
     
-    if ( strcmp( crypt( arg1, ch->pcdata->pwd ), ch->pcdata->pwd ) )
+    if ( !check_password(arg1, ch->pcdata->pwd) )
     {
         WAIT_STATE( ch, 40 );
         send_to_char( "Wrong password.  Wait 10 seconds.\n\r", ch );
