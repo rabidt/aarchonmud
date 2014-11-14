@@ -4901,6 +4901,7 @@ bool check_parse_name( const char *name, bool newchar );
 bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn );
 bool check_playing( DESCRIPTOR_DATA *d, const char *name );
 void nanny( DESCRIPTOR_DATA *d, const char *argument );
+bool check_password( const char *argument, const char *pwd );
 
 /* playback.c */
 void log_chan( CHAR_DATA * ch, const char *text , sh_int channel );

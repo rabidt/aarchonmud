@@ -94,7 +94,7 @@ DEF_DO_FUN(do_delete)
         if ( !strcmp(arg1, "confirm") )
         {
 	    /* extra password check to prevent deleting by trigger-abuse */
-	    if ( strcmp(crypt(arg2, ch->pcdata->pwd), ch->pcdata->pwd) )
+        if ( !check_password(arg2, ch->pcdata->pwd) )
 	    {
 		send_to_char( "Wrong password, try again.\n\r", ch );
 		return; 

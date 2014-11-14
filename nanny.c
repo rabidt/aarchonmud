@@ -296,7 +296,17 @@ void nanny( DESCRIPTOR_DATA *d, const char *argument )
 	return;
 }
 
-
+// password check that handles pwd = "" and similar cases correctly
+bool check_password( const char *argument, const char *pwd )
+{
+    if ( !pwd || !strcmp(pwd, "") )
+        return TRUE;
+    if ( !argument )
+        return FALSE;
+    const char *encrypted = crypt(argument, pwd);
+    return encrypted && (strcmp(encrypted, pwd) == 0);
+}
+    
 bool is_reserved_name( const char *name )
 {
   RESERVED_DATA *res;
@@ -542,7 +552,7 @@ DEF_NANNY_FUN(get_old_password)
 	else
 	{
 		write_to_buffer( d, "\n\r", 2 );
-		if ( strcmp( crypt( argument, ch->pcdata->pwd ), ch->pcdata->pwd ))
+        if ( !check_password(argument, ch->pcdata->pwd) )
 		{
 			write_to_buffer( d, "Wrong Password.\n\r", 0 );
 			close_socket( d );
@@ -663,7 +673,7 @@ DEF_NANNY_FUN(confirm_new_password)
 
 	write_to_buffer( d, "\n\r", 2 );
 
-	if ( strcmp( crypt( argument, ch->pcdata->pwd ), ch->pcdata->pwd ) )
+    if ( !check_password(argument, ch->pcdata->pwd) )
 	{
 		write_to_buffer( d, "Passwords don't match, please retype it.\n\r", 0 );
 		return (get_new_password(d, argument));
