@@ -246,6 +246,7 @@ const struct flag_type plr_flags[] =
     {   "nocancel",     PLR_NOCANCEL,   FALSE   },
     {   "nolocate",     PLR_NOLOCATE,   FALSE   },
     {   "noaccept",     PLR_NOACCEPT,   FALSE   },
+    {   "nosurrender",  PLR_NOSURR,     FALSE   },
     {   "roleplay",     PLR_RP,         TRUE    },
     {   "inactive_helper", PLR_INACTIVE_HELPER, TRUE },
     {   "noexp",        PLR_NOEXP,      FALSE   },
