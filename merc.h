@@ -3767,7 +3767,8 @@ struct achievement_entry
  */
 #define IS_VALID(data)      ((data) != NULL && (data)->valid)
 #define VALIDATE(data)      ((data)->valid = TRUE)
-#define INVALIDATE(data)    ((data)->valid = FALSE)
+//#define INVALIDATE(data)    ((data)->valid = FALSE)
+#define INVALIDATE(data)    memset(data, 0, sizeof(*data))
 #define UMIN(a, b)      ((a) < (b) ? (a) : (b))
 #define UMAX(a, b)      ((a) > (b) ? (a) : (b))
 #define URANGE(a, b, c)     ((b) < (a) ? (a) : ((b) > (c) ? (c) : (b)))
