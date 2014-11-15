@@ -17,7 +17,7 @@ void handle_player_save();
 void force_full_save();
 void final_player_save();
 void sim_save_to_mem();
-bool load_char_obj( DESCRIPTOR_DATA *d, const char *name );
+bool load_char_obj( DESCRIPTOR_DATA *d, const char *name, bool char_only );
 void quit_save_char_obj( CHAR_DATA *ch );
 bool remove_from_quit_list( const char *name );
 bool remove_from_save_list( const char *name );

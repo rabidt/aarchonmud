@@ -458,7 +458,7 @@ DEF_NANNY_FUN(get_name)
     argbuf[0] = UPPER(argument[0]);
     argument = argbuf;
 
-    fOld = load_char_obj( d, argument );
+    fOld = load_char_obj( d, argument, FALSE );
     if ( !check_parse_name( argument, (bool)(!fOld) ) )
     {
         write_to_buffer( d, "Illegal name, try another.\n\rName: ", 0 );

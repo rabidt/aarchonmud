@@ -4307,7 +4307,7 @@ void handle_con_note_finish (DESCRIPTOR_DATA *d, const char * argument);
 
 /* bsave.c */
 MEMFILE* mem_save_char_obj( CHAR_DATA *ch );
-void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf );
+void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only );
 void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf );
 MEMFILE* remort_mem_save();
 
