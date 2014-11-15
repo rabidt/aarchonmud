@@ -186,7 +186,7 @@ bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype )
     if ( ( victim = get_char_world( ch, arg ) ) == NULL )
     {
         d = new_descriptor();
-        if (!load_char_obj(d, arg))
+        if ( !load_char_obj(d, arg, TRUE) )
         {
             send_to_char("Character not found.\n\r", ch);
             free_char(d->character);

@@ -1161,7 +1161,7 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
 /*
  * Load a char and inventory into a new ch structure.
  */
-void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
+void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
 {
     CHAR_DATA *ch;
     int stat;
@@ -1276,7 +1276,12 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
             
             word = bread_word( buf );
             if      ( !str_cmp( word, "VER"    ) ) pfile_version = bread_number ( buf );
-            else if ( !str_cmp( word, "PLAYER" ) ) bread_char ( ch, buf );
+            else if ( !str_cmp( word, "PLAYER" ) )
+            {
+                bread_char(ch, buf);
+                if ( char_only )
+                    break;
+            }
             else if ( !str_cmp( word, "OBJECT" ) ) bread_obj  ( ch->pet ? ch->pet : ch, buf, NULL );
             else if ( !str_cmp( word, "O"      ) ) bread_obj  ( ch->pet ? ch->pet : ch, buf, NULL );
             else if ( !str_cmp( word, "PET"    ) ) bread_pet  ( ch, buf );
@@ -3055,7 +3060,7 @@ DEF_DO_FUN(do_finger)
     
     d = new_descriptor();
     
-    if (!load_char_obj(d, argument))
+    if ( !load_char_obj(d, argument, TRUE) )
     {
         send_to_char("Character not found.\n\r", ch);
         /* load_char_obj still loads "default" character

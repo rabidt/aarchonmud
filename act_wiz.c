@@ -2612,7 +2612,7 @@ DEF_DO_FUN(do_pload)
         return;
     }
     
-    isChar = load_char_obj(&d, name); /* char pfile exists? */
+    isChar = load_char_obj(&d, name, FALSE); /* char pfile exists? */
     
     if (!isChar) 
     {
