@@ -5339,7 +5339,7 @@ DEF_DO_FUN(do_achievements)
     {
     	d = new_descriptor();
     
-        if (!load_char_obj(d, argument))
+        if ( !load_char_obj(d, argument, TRUE) )
         {
             send_to_char("Character not found.\n\r", ch);
             /* load_char_obj still loads "default" character

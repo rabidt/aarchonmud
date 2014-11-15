@@ -297,7 +297,7 @@ bool pfile_exists( const char *name )
  * 3.) temp player directory
  * 4.) player directory
  */
-bool load_char_obj( DESCRIPTOR_DATA *d, const char *name )
+bool load_char_obj( DESCRIPTOR_DATA *d, const char *name, bool char_only )
 {
   MEMFILE *mf;
   DBUFFER *buf;
@@ -380,13 +380,13 @@ bool load_char_obj( DESCRIPTOR_DATA *d, const char *name )
   {
     /* load default character */
     mf = memfile_wrap_buffer( filename, NULL );
-    mem_load_char_obj( d, mf );
+    mem_load_char_obj( d, mf, char_only );
     memfile_wrap_free( mf );
     return FALSE;
   }
 
   /* player file found, now try to load player from it */
-  mem_load_char_obj( d, mf );
+  mem_load_char_obj( d, mf, char_only );
   if (!found_in_mem)
     memfile_free( mf );
   return TRUE;

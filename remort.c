@@ -603,7 +603,7 @@ void remort_update()
             else
             {
                 d = new_descriptor();
-                load_char_obj(d, chamber_list[j]->name);
+                load_char_obj(d, chamber_list[j]->name, FALSE);
 
                 if (d->character != NULL)
                 {
@@ -615,6 +615,7 @@ void remort_update()
                    even if player not found, so need to free it */
                 if (d->character)
                 {
+                    nuke_pets(d->character);
                     free_char(d->character);
                     d->character=NULL;
                 }

@@ -2916,7 +2916,7 @@ void copyover_recover ()
 
         /* Now, find the pfile */
 
-        fOld = load_char_obj (d, name);
+        fOld = load_char_obj (d, name, FALSE);
 
         if (!fOld) /* Player file not found?! */
         {

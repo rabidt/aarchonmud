@@ -221,7 +221,7 @@ void check_spouse( CHAR_DATA *ch )
     if ( (spouse = get_player(ch->pcdata->spouse)) == NULL )
     {
 	d=new_descriptor();
-	if ( !load_char_obj(d, ch->pcdata->spouse) )
+	if ( !load_char_obj(d, ch->pcdata->spouse, TRUE) )
 	{
 	    send_to_char( "Your spouse has vanished. You're single again.\n\r", ch );
 	    free_string( ch->pcdata->spouse );
