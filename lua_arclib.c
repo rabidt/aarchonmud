@@ -1440,13 +1440,16 @@ static int set_luaval( lua_State *LS, LUA_EXTRA_VAL **luavals )
         prev=luaval;
     }
     
-    luaval=new_luaval( 
-            type, 
-            str_dup( name ), 
-            str_dup( smash_tilde_cc(val) ),
-            persist );
-    luaval->next = *luavals;
-    *luavals     = luaval;
+    if ( type != LUA_TNONE && type != LUA_TNIL )
+    {        
+        luaval=new_luaval( 
+                type, 
+                str_dup( name ), 
+                str_dup( smash_tilde_cc(val) ),
+                persist );
+        luaval->next = *luavals;
+        *luavals     = luaval;
+    }
     return 0;
 }
 
