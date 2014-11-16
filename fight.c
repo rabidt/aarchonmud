@@ -3430,10 +3430,13 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     }
     else if (!IS_NPC(ch) && !IS_NPC(victim))
     {
-	clan_table[ch->clan].pkills++;
-	clan_table[ch->clan].changed = TRUE;
-	clan_table[victim->clan].pdeaths++;
-	clan_table[victim->clan].changed = TRUE;
+        if ( !PLR_ACT(ch, PLR_WAR) && !PLR_ACT(victim, PLR_WAR) )
+        {
+            clan_table[ch->clan].pkills++;
+            clan_table[ch->clan].changed = TRUE;
+            clan_table[victim->clan].pdeaths++;
+            clan_table[victim->clan].changed = TRUE;
+        }
     }
 
     if ( IS_NPC(ch) )
