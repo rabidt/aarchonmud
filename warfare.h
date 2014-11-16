@@ -9,7 +9,6 @@ struct war_data
    int max_level;
    int war_time_left;
    int combatants;
-   int reward;
    long owner;
    CHAR_DATA *first_combatant;
    int total_combatants;
