@@ -31,13 +31,27 @@ char * war_list[] =
 };
 
 WAR_DATA war;
+
 long last_war_time = 0;
-
-
-
-/* Added for the automated warfares - Astark Nov 2012 */
-
 long auto_war_time = 0;
+
+
+int get_warfare_reward( bool win )
+{
+    int base = UMIN(10, 4 + war.total_combatants);
+    
+    // auto-warfares give double reward
+    if ( war.owner == 0 )
+        base *= 2;
+    
+    // small base reward for participation
+    if ( !win )
+        return base;
+    
+    // bonus pool of base d6 split amongst winners
+    return base + dice(base, 6) / UMAX(1, war.combatants);
+}
+
 
 DEF_DO_FUN(do_startwar)
 {
@@ -114,9 +128,8 @@ void auto_war(void)
     war.on = TRUE;
     war.started = FALSE;
     war.combatants = 0;
-    war.war_time_left = 4;
+    war.war_time_left = 9;
     war.first_combatant = NULL;
-    war.reward = 4;
     war.owner = 0;
 
     if ( war.type == ARMAGEDDON_WAR )
@@ -231,13 +244,11 @@ void proc_startwar( CHAR_DATA *ch, const char *argument, bool pay )
 
     if ( !pay )
     {
-	war.reward = 0;
 	war.owner = 0;
     }
     else
     {
 	war.owner = ch->id;
-	war.reward = 12;
 	ch->pcdata->questpoints -= 50;
     }
 
@@ -340,7 +351,7 @@ DEF_DO_FUN(do_combat)
         return;
     }
     
-    if ( IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL) || IS_AFFECTED(ch, AFF_CURSE) || ch->was_in_room )
+    if ( /*IS_SET(ch->in_room->room_flags, ROOM_NO_RECALL) || IS_AFFECTED(ch, AFF_CURSE) ||*/ ch->was_in_room )
     {
         send_to_char("You have been forsaken and cannot join the war.\n\r", ch );
         return;
@@ -455,13 +466,19 @@ void war_update( void )
     int count = 0;
     
     if (current_time > auto_war_time && war.on == FALSE)
+    {
         auto_war();
+        return;
+    }
     
     if (war.on == FALSE)
         return;
     
     if ( war.war_time_left > 0 )
     {
+        sprintf( buf, "There is a level %d to %d %s war going on.\n\r",
+            war.min_level, war.max_level, war_list[war.type] );
+        warfare( buf );
         sprintf( buf, "There %s %d tick%s left to join in the war.\n\r",
             war.war_time_left == 1 ? "is" : "are", war.war_time_left, war.war_time_left == 1 ? "" : "s" );
         warfare( buf );
@@ -473,6 +490,8 @@ void war_update( void )
     }
     if ( war.war_time_left == 0 && war.started == FALSE )
     {
+        war.total_combatants = war.combatants;
+        
         if ( war.combatants == 0 || war.combatants == 1 )
         {
             sprintf( buf, "Not enough combatants in the war; war cancelled.\n\r" );
@@ -510,14 +529,8 @@ void war_update( void )
         
 	last_war_time = current_time;
 
-	war.reward += war.combatants*12;
-        // limit to 50 to prevent exploit via quest buy warfare
-	war.reward = UMIN(50 - 4*(war.combatants-1), war.reward);
-    war.reward = UMAX(war.reward, 8);
-
         sprintf( buf, "The battle begins with %d combatants in the war!\n\r", war.combatants );
         warfare( buf );
-        war.total_combatants = war.combatants;
         war.started = TRUE;
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
@@ -578,35 +591,54 @@ void war_end( bool success )
     int points;
     char buf[80];
     
-    if ( (points = war.reward/UMAX(war.combatants, 1)) )
-        sprintf(buf, "You are awarded %d quest points.\n\r", points);
-
-    if ( success )
+    // bought warfares give refund to owner if canceled
+    // auto/imm warfares give fail reward to any who joined
+    if ( !success && war.owner )
     {
-        for ( d = descriptor_list; d != NULL; d = d->next )
-        {
-            if ( (d->connected != CON_PLAYING && !IS_WRITING_NOTE( d->connected ))
-                || d->character == NULL || IS_NPC(d->character)
-                || !IS_SET( d->character->act, PLR_WAR ) )
-                continue;
+        // refund owner
+        for ( rch = char_list; rch; rch=rch->next )
+            if ( !IS_NPC(rch) && rch->id == war.owner )
+            {
+                send_to_char("You are refunded your 50 qp fee.\n\r", rch);
+                rch->pcdata->questpoints += 50;
+                break;
+            }
+        // no award for anyone - that would be an exploit
+        points = 0;
+    }
+    else
+    {
+        points = get_warfare_reward(success);
+        sprintf(buf, "You are awarded %d quest points.\n\r", points);
+    }
+    
+    for ( d = descriptor_list; d != NULL; d = d->next )
+    {
+        if ( (d->connected != CON_PLAYING && !IS_WRITING_NOTE( d->connected ))
+            || d->character == NULL || IS_NPC(d->character)
+            || !IS_SET( d->character->act, PLR_WAR ) )
+            continue;
 
-	    if (points)
-	    {
-		send_to_char(buf, d->character);
-		d->character->pcdata->questpoints += points;
-	    }
-            
-	    stop_fighting( d->character, TRUE );
-            char_from_room( d->character );
-            return_to_room( d->character, get_room_index( WAR_ROOM_WINNER ) );
-            REMOVE_BIT( d->character->act, PLR_WAR );
-            affect_strip(d->character, 0);
-            affect_unfreeze_sn(d->character, 0);
-	    d->character->hit= UMAX(1, d->character->pcdata->warfare_hp);
-	    d->character->move=d->character->pcdata->warfare_move;
-	    d->character->mana=d->character->pcdata->warfare_mana;
-            update_pos( d->character );
-            do_look( d->character, "" );
+        if ( points )
+        {
+            send_to_char(buf, d->character);
+            d->character->pcdata->questpoints += points;
+        }
+        
+        stop_fighting( d->character, TRUE );
+        char_from_room( d->character );
+        return_to_room( d->character, get_room_index(success ? WAR_ROOM_WINNER : ROOM_VNUM_TEMPLE) );
+        REMOVE_BIT( d->character->act, PLR_WAR );
+        affect_strip(d->character, 0);
+        affect_unfreeze_sn(d->character, 0);
+        d->character->hit = UMAX(1, d->character->pcdata->warfare_hp);
+        d->character->move = d->character->pcdata->warfare_move;
+        d->character->mana = d->character->pcdata->warfare_mana;
+        update_pos( d->character );
+        do_look( d->character, "" );
+        
+        if ( success )
+        {
             if ( war.type == ARMAGEDDON_WAR )
                 d->character->pcdata->armageddon_won++;
             else if ( war.type == CLAN_WAR )
@@ -620,32 +652,8 @@ void war_end( bool success )
             else if ( war.type == RELIGION_WAR )
                 d->character->pcdata->religion_won++;
         }
-    }
-    else
-    {
-	for (rch = char_list; rch; rch=rch->next)
-	    if (!IS_NPC(rch) && rch->id==war.owner)
-	    {
-		send_to_char("You are refunded your 50 qp fee.\n\r", rch);
-		rch->pcdata->questpoints += 50;
-	    }
-
-        for ( d = descriptor_list; d != NULL; d = d->next )
+        else
         {
-            if ( !(d->connected == CON_PLAYING || IS_WRITING_NOTE( d->connected ))
-                || d->character == NULL || IS_NPC(d->character)
-                || !IS_SET( d->character->act, PLR_WAR ) )
-                continue;
-            REMOVE_BIT( d->character->act, PLR_WAR );
-            affect_strip(d->character, 0);
-            affect_unfreeze_sn(d->character, 0);
-	    d->character->hit= UMAX(1, d->character->pcdata->warfare_hp);
-	    d->character->move=d->character->pcdata->warfare_move;
-	    d->character->mana=d->character->pcdata->warfare_mana;
-	    stop_fighting( d->character, TRUE );
-            char_from_room( d->character );
-            return_to_room( d->character, get_room_index( ROOM_VNUM_TEMPLE ) );
-            do_look( d->character, "" );
             d->character->pcdata->total_wars--;
         }
     }
@@ -744,7 +752,6 @@ void war_remove( CHAR_DATA *ch, bool killed )
 {
     DESCRIPTOR_DATA *d;
     char buf[MSL];
-    int joinbonus;
     
     if (IS_NPC(ch) || !IS_SET( ch->act, PLR_WAR ) )
         return;
@@ -791,18 +798,16 @@ void war_remove( CHAR_DATA *ch, bool killed )
     }
     do_look( ch, "" );
     
-    /* Small reward for participation - Astark 5-24-13 */
-    joinbonus = 4;
-
-    sprintf( buf, "You are awarded %d quest points for your bravery!\n\r", joinbonus);
-    send_to_char(buf,ch);
- 
-    ch->pcdata->questpoints += joinbonus;
-
-    if (!killed)
+    if ( !killed )
     {
-	sprintf( buf, "%s has been kicked out of the war!\n\r", ch->name );
-	warfare( buf );
+        sprintf( buf, "%s has been kicked out of the war!\n\r", ch->name );
+        warfare( buf );
+    }
+    else
+    {
+        int joinbonus = get_warfare_reward(FALSE);
+        ptc(ch, "You are awarded %d quest points for your bravery!\n\r", joinbonus); 
+        ch->pcdata->questpoints += joinbonus;
     }
     
     /* decrememnt the combatant counter */
