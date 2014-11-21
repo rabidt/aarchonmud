@@ -2250,152 +2250,133 @@ DEF_DO_FUN(do_rest)
 
 DEF_DO_FUN(do_sit)
 {
-   OBJ_DATA *obj = NULL;
-   CHAR_DATA *gch = NULL;
+    OBJ_DATA *obj = NULL;
+    CHAR_DATA *gch = NULL;
    
-   if (ch->position == POS_FIGHTING)
-   {
-	  send_to_char("Maybe you should finish this fight first?\n\r",ch);
-	  return;
-   }
+    if ( ch->position == POS_FIGHTING )
+    {
+        send_to_char("Maybe you should finish this fight first?\n\r",ch);
+        return;
+    }
    
-   /* okay, now that we know we can sit, find an object to sit on */
-   if (argument[0] != '\0')
-   {
-	  obj = get_obj_list(ch,argument,ch->in_room->contents);
-	  if (obj == NULL)
-	  {
-		 send_to_char("You don't see that here.\n\r",ch);
-		 return;
-	  }
-   }
-   else obj = ch->on;
+    /* okay, now that we know we can sit, find an object to sit on */
+    if ( argument[0] != '\0' )
+    {
+        obj = get_obj_list(ch, argument, ch->in_room->contents);
+        if (obj == NULL)
+        {
+            send_to_char("You don't see that here.\n\r", ch);
+            return;
+        }
+    }
+    else
+        obj = ch->on;
    
-   if (obj != NULL)                                                              
-   {
-	  if (obj->item_type != ITEM_FURNITURE
-		 ||  (!I_IS_SET(obj->value[2],SIT_ON)
-		 &&   !I_IS_SET(obj->value[2],SIT_IN)
-		 &&   !I_IS_SET(obj->value[2],SIT_AT)))
-	  {
-		 send_to_char("You can't sit on that.\n\r",ch);
-		 return;
-	  }
-	  
-	  if (obj != NULL && ch->on != obj && count_users(obj) >= obj->value[0])
-	  {
-		 act_new("There's no more room on $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
-		 return;
-	  }
-	  
-	  ch->on = obj;
-   }
-   switch (ch->position)
-   {
-   case POS_SLEEPING:
-	  if (IS_AFFECTED(ch,AFF_SLEEP))
-	  {
-		 send_to_char("You can't wake up!\n\r",ch);
-		 return;
-	  }
-	  
-	  if (obj == NULL)
-	  {
-		 send_to_char( "You wake and sit up.\n\r", ch );
-		 act( "$n wakes and sits up.", ch, NULL, NULL, TO_ROOM );
-	  }
-      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
-      {
-         return;
-      }
-	  else if (I_IS_SET(obj->value[2],SIT_AT))
-	  {
-		 act_new("You wake and sit at $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
-		 act("$n wakes and sits at $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  else if (I_IS_SET(obj->value[2],SIT_ON))
-	  {
-		 act_new("You wake and sit on $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
-		 act("$n wakes and sits at $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  else
-	  {
-		 act_new("You wake and sit in $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
-		 act("$n wakes and sits in $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  
-         if ( IS_AFFECTED(ch, AFF_SHELTER) )
-                 for (gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
-                         if (is_same_group( gch, ch ))
-                         {
-                                 affect_strip ( gch, gsn_shelter    );
-                                 REMOVE_AFFECT ( gch, AFF_SHELTER );
-				 set_pos(gch, POS_STANDING);
-                                 if (gch == ch)
-                                         send_to_char("You have revealed the shelter!\n",ch);
-                                 else
-                                         act_new("The group's shelter was revealed by $N.", gch, NULL, ch, TO_CHAR, POS_STANDING);
-                         }
-	  ch->position = POS_SITTING;
-          if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-	  break;
-   case POS_RESTING:
-	  if (obj == NULL)
-		 send_to_char("You stop resting.\n\r",ch);
-      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
-      {
-         return;
-      }
-	  else if (I_IS_SET(obj->value[2],SIT_AT))
-	  {
-		 act("You sit at $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits at $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  
-	  else if (I_IS_SET(obj->value[2],SIT_ON))
-	  {
-		 act("You sit on $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits on $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  ch->position = POS_SITTING;
-          if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-	  break;
-   case POS_SITTING:
-	  send_to_char("You are already sitting down.\n\r",ch);
-	  break;
-   case POS_STANDING:
-	  if (obj == NULL)
-	  {
-		 send_to_char("You sit down.\n\r",ch);
-		 act("$n sits down on the ground.",ch,NULL,NULL,TO_ROOM);
-	  }
-      else if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
-      {
-         return;
-      }
-	  else if (I_IS_SET(obj->value[2],SIT_AT))
-	  {
-		 act("You sit down at $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits down at $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  else if (I_IS_SET(obj->value[2],SIT_ON))
-	  {
-		 act("You sit on $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits on $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  else
-	  {
-		 act("You sit down in $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits down in $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  ch->position = POS_SITTING;
-          if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-	  break;
-   }
-   return;
+    /* check if we can sit down */
+    if ( ch->position == POS_SITTING && ch->on == obj )
+    {
+        if ( obj )
+            act_new("You are already sitting on $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+        else
+            send_to_char("You are already sitting down.\n\r", ch);
+        return;
+    }
+   
+    if ( ch->position == POS_SLEEPING && IS_AFFECTED(ch, AFF_SLEEP) )
+    {
+        send_to_char("You can't wake up!\n\r",ch);
+        return;       
+    }
+   
+    if ( obj != NULL )
+    {
+        if ( obj->item_type != ITEM_FURNITURE
+            || (!I_IS_SET(obj->value[2], SIT_ON)
+            &&  !I_IS_SET(obj->value[2], SIT_IN)
+            &&  !I_IS_SET(obj->value[2], SIT_AT)) )
+        {
+            send_to_char("You can't sit on that.\n\r", ch);
+            return;
+        }
+        
+        if ( obj != NULL && ch->on != obj && count_users(obj) >= obj->value[0] )
+        {
+            act_new("There's no more room on $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+            return;
+        }
+        
+        if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+            return;
+        
+        ch->on = obj;
+    }
+    
+    int old_pos = ch->position;
+    ch->position = POS_SITTING;
+   
+    /* ok, we already sat down, now just send feedback */
+    if ( old_pos == POS_SLEEPING )
+    {
+        if ( obj == NULL )
+        {
+            send_to_char( "You wake and sit up.\n\r", ch );
+            act( "$n wakes and sits up.", ch, NULL, NULL, TO_ROOM );
+        }
+        else if ( I_IS_SET(obj->value[2], SIT_AT) )
+        {
+            act_new("You wake and sit at $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+            act("$n wakes and sits at $p.", ch, obj, NULL, TO_ROOM);
+        }
+        else if ( I_IS_SET(obj->value[2],SIT_ON) )
+        {
+            act_new("You wake and sit on $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+            act("$n wakes and sits at $p.", ch, obj, NULL, TO_ROOM);
+        }
+        else
+        {
+            act_new("You wake and sit in $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+            act("$n wakes and sits in $p.", ch, obj, NULL, TO_ROOM);
+        }
+        
+        if ( IS_AFFECTED(ch, AFF_SHELTER) )
+            for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+                if ( is_same_group(gch, ch) )
+                {
+                    affect_strip(gch, gsn_shelter);
+                    REMOVE_AFFECT(gch, AFF_SHELTER);
+                    if ( gch == ch )
+                        send_to_char("You have revealed the shelter!\n", ch);
+                    else
+                        act_new("The group's shelter was revealed by $N.", gch, NULL, ch, TO_CHAR, POS_RESTING);
+                }
+        
+        if ( !IS_NPC(ch) )
+            ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+    }
+    else
+    {
+        if ( obj == NULL )
+        {
+            act("$n sits down on the ground.", ch, NULL, NULL, TO_ROOM);
+            send_to_char("You sit down.\n\r", ch);
+        }
+        else if ( I_IS_SET(obj->value[2], SIT_AT) )
+        {
+            act("You sit at $p.", ch, obj, NULL, TO_CHAR);
+            act("$n sits at $p.", ch, obj, NULL, TO_ROOM);
+        }
+        else if ( I_IS_SET(obj->value[2], SIT_ON) )
+        {
+            act("You sit on $p.", ch, obj, NULL, TO_CHAR);
+            act("$n sits on $p.", ch, obj, NULL, TO_ROOM);
+        }
+        else
+        {
+            act("You sit down in $p.", ch, obj, NULL, TO_CHAR);
+            act("$n sits down in $p.", ch, obj, NULL, TO_ROOM);
+        }
+    }
+    return;
 }
 
 
