@@ -51,33 +51,34 @@ DECLARE_DO_FUN(do_religion_talk);
 /* the function table */
 const   struct  spec_type    spec_table[] =
 {
-	{   "spec_breath_any",      spec_breath_any     },
-	{   "spec_breath_acid",     spec_breath_acid    },
-	{   "spec_breath_fire",     spec_breath_fire    },
-	{   "spec_breath_frost",        spec_breath_frost   },
-	{   "spec_breath_gas",      spec_breath_gas     },
-	{   "spec_breath_lightning",    spec_breath_lightning   },  
-	{   "spec_cast_adept",      spec_cast_adept     },
-	{   "spec_cast_cleric",     spec_cast_cleric    },
-	{   "spec_cast_judge",      spec_cast_judge     },
-	{   "spec_cast_mage",       spec_cast_mage      },
-	{   "spec_cast_undead",     spec_cast_undead    },
-	{   "spec_executioner",     spec_executioner    },
-	{   "spec_fido",            spec_fido       },
-	{   "spec_guard",           spec_guard      },
-	{   "spec_janitor",         spec_janitor        },
-	{   "spec_mayor",           spec_mayor      },
-	{   "spec_poison",          spec_poison     },
-	{   "spec_thief",           spec_thief      },
-	{   "spec_nasty",           spec_nasty      },
-	{   "spec_troll_member",    spec_troll_member   },
-	{   "spec_ogre_member",     spec_ogre_member    },
-	{   "spec_patrolman",       spec_patrolman      },
-	{   "spec_questmaster",     spec_questmaster    }, /* Vassago */ 
-	{   "spec_bounty_hunter",   spec_bounty_hunter  },
-	{   "spec_remort",	    spec_remort },
-	{   "spec_temple_guard",    spec_temple_guard   },
-	{   NULL,               NULL            }
+    {   "spec_breath_any",      spec_breath_any,    FALSE   },
+    {   "spec_breath_acid",     spec_breath_acid,   FALSE   },
+    {   "spec_breath_fire",     spec_breath_fire,   FALSE   },
+    {   "spec_breath_frost",    spec_breath_frost,  FALSE   },
+    {   "spec_breath_gas",      spec_breath_gas,    FALSE   },
+    {   "spec_breath_lightning",spec_breath_lightning,FALSE },  
+    {   "spec_cast_adept",      spec_cast_adept,    FALSE   },
+    {   "spec_cast_cleric",     spec_cast_cleric,   FALSE   },
+    {   "spec_cast_judge",      spec_cast_judge,    FALSE   },
+    {   "spec_cast_mage",       spec_cast_mage,     FALSE   },
+    {   "spec_cast_draconic",   spec_cast_draconic, TRUE    },
+    {   "spec_cast_undead",     spec_cast_undead,   FALSE   },
+    {   "spec_executioner",     spec_executioner,   FALSE   },
+    {   "spec_fido",            spec_fido,          FALSE   },
+    {   "spec_guard",           spec_guard,         FALSE   },
+    {   "spec_janitor",         spec_janitor,       FALSE   },
+    {   "spec_mayor",           spec_mayor,         FALSE   },
+    {   "spec_poison",          spec_poison,        FALSE   },
+    {   "spec_thief",           spec_thief,         FALSE   },
+    {   "spec_nasty",           spec_nasty,         FALSE   },
+    {   "spec_troll_member",    spec_troll_member,  FALSE   },
+    {   "spec_ogre_member",     spec_ogre_member,   FALSE   },
+    {   "spec_patrolman",       spec_patrolman,     FALSE   },
+    {   "spec_questmaster",     spec_questmaster,   FALSE   }, /* Vassago */ 
+    {   "spec_bounty_hunter",   spec_bounty_hunter, FALSE   },
+    {   "spec_remort",          spec_remort,        FALSE   },
+    {   "spec_temple_guard",    spec_temple_guard,  TRUE    },
+    {   NULL,                   NULL,               FALSE   }
 };
 /*
 struct spell_type
@@ -116,6 +117,15 @@ const struct spell_type spell_list_mage[] = {
     { "acid blast", 40, NO_MAX },
     { "energy drain", 40, NO_MAX },
     { "stop", 80, NO_MAX },
+    { NULL, 0, 0 }
+};
+
+const struct spell_type spell_list_draconic[] = {
+    { "acid breath", 1, NO_MAX },
+    { "lightning breath", 1, NO_MAX },
+    { "fire breath", 1, NO_MAX },
+    { "frost breath", 1, NO_MAX },
+    { "gas breath", 1, NO_MAX },
     { NULL, 0, 0 }
 };
 
@@ -165,6 +175,19 @@ const char* spec_name_lookup( SPEC_FUN *function )
 	}
 
 	return NULL;
+}
+
+bool is_wait_based( SPEC_FUN *function )
+{
+    int i;
+
+    for ( i = 0; spec_table[i].function != NULL; i++ )
+    {
+        if ( function == spec_table[i].function )
+            return spec_table[i].wait_based;
+    }
+    
+    return FALSE;
 }
 
 bool spec_troll_member( CHAR_DATA *ch)
@@ -580,6 +603,8 @@ const struct spell_type* get_spell_list( CHAR_DATA *ch )
         return spell_list_cleric;
     if ( spec_fun == spec_cast_mage )
         return spell_list_mage;
+    if ( spec_fun == spec_cast_draconic )
+        return spell_list_draconic;
     if ( spec_fun == spec_cast_undead )
         return spell_list_undead;
     
@@ -629,6 +654,13 @@ bool spec_cast_judge( CHAR_DATA *ch )
 
 bool spec_cast_mage( CHAR_DATA *ch )
 {
+    return spec_cast_any( ch );
+}
+
+bool spec_cast_draconic( CHAR_DATA *ch )
+{
+    if ( ch->wait > 0 )
+        return FALSE;
     return spec_cast_any( ch );
 }
 

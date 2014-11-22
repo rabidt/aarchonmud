@@ -43,6 +43,7 @@
 #include "lua_arclib.h"
 #include "mudconfig.h"
 #include "warfare.h"
+#include "special.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -821,7 +822,6 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
     return;
 }
 
-DECLARE_SPEC_FUN(   spec_temple_guard   );
 /* some mobiles need to update more often
  * could be cpu intensive..
  */
@@ -838,11 +838,11 @@ void mobile_special_update( void )
     {
         ch_next = ch->next;
 
-        if ( !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch, AFF_CHARM) || IS_AFFECTED(ch, AFF_PETRIFIED) )
+        if ( ch->spec_fun == NULL || !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch, AFF_CHARM) || IS_AFFECTED(ch, AFF_PETRIFIED) )
             continue;
 
         /* Examine call for special procedure */
-        if ( ch->spec_fun == &spec_temple_guard )
+        if ( is_wait_based(ch->spec_fun) && ch->wait == 0 )
         {
             (*ch->spec_fun)( ch );
         }
@@ -886,7 +886,7 @@ void mobile_update( void )
                     do_flee(ch, "");
                 continue;
             }
-            else if ( ch->spec_fun != 0 )
+            else if ( ch->spec_fun != NULL && !is_wait_based(ch->spec_fun) )
             {
                 /* update the last_mprog log */
                 sprintf( last_mprog, "mob %d at %d %s",
@@ -2452,11 +2452,9 @@ void update_handler( void )
         if ( --pulse_mobile <= 0 )
         {
             pulse_mobile         = PULSE_MOBILE;
-            pulse_mobile_special = PULSE_MOBILE_SPECIAL;
             mobile_update   ( );
         }
-        /* only run special update if normal update not run */
-        else if ( --pulse_mobile_special   <= 0 )
+        if ( --pulse_mobile_special <= 0 )
         {
             pulse_mobile_special = PULSE_MOBILE_SPECIAL;
             mobile_special_update   ( );
