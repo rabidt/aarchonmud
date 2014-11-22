@@ -950,6 +950,7 @@ struct spec_type
 {
     const char* name;           /* special function name */
 	SPEC_FUN *  function;       /* the function */
+    bool wait_based;            /* execute as soon as wait == 0 */
 };
 
 
@@ -4975,6 +4976,7 @@ void save_social_table();
 /* special.c */
 SF *    spec_lookup args( ( const char *name ) );
 const char* spec_name_lookup( SPEC_FUN *function );
+bool is_wait_based( SPEC_FUN *function );
 
 /* stats.c */
 int get_curr_stat   args( ( CHAR_DATA *ch, int stat ) );
