@@ -3069,7 +3069,7 @@ DEF_SPELL_FUN(spell_decompose)
     if ( saves_spell(victim, ch, level, DAM_HARM) )
     {
         send_to_char( "A wave of malvolent energy passes over your body.\n\r", victim );
-        act( "$N resists the inevitable decay of $S body and mind.\n\r", ch, NULL, victim, TO_CHAR );
+        act( "$N resists the inevitable decay of $S body and mind.", ch, NULL, victim, TO_CHAR );
         return TRUE;
     }
     
