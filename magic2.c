@@ -3066,45 +3066,99 @@ DEF_SPELL_FUN(spell_decompose)
     int dam;
     AFFECT_DATA af;
     
+    if ( saves_spell(victim, ch, level, DAM_HARM) )
+    {
+        send_to_char( "A wave of malvolent energy passes over your body.\n\r", victim );
+        act( "$N resists the inevitable decay of $S body and mind.\n\r", ch, NULL, victim, TO_CHAR );
+        return TRUE;
+    }
+    
     if ( is_affected(victim, sn) )
     {
-	send_to_char( "Your victim is already decomposing!\n\r", ch );
-	return SR_AFFECTED;
+        // if already affected, additional casting accelerates decomposition and renews duration
+        decompose_update(victim, level);
+    }
+    else
+    {    
+        send_to_char("You feel an intense pain in your body.\n\r",victim);
+        act("$n jerks in sudden pain.",victim,0,0,TO_ROOM);
+        
+        af.where = TO_AFFECTS;
+        af.level = level;
+        af.duration = get_duration(sn, level);
+        af.type = sn;
+        af.bitvector = 0;
+        af.modifier = -10;
+
+        /* start out with -10 on all 4 stats */
+        /* affects will get worse over time, handled in special_affect_update */
+        af.location = APPLY_STR;
+        affect_to_char(victim,&af);
+        af.location = APPLY_AGI;
+        affect_to_char(victim,&af);
+        af.location = APPLY_DEX;
+        affect_to_char(victim,&af);
+        af.location = APPLY_INT;
+        affect_to_char(victim,&af);
     }
     
-    if ( saves_spell(victim, ch, level, DAM_HARM) || saves_physical(victim, NULL, level, DAM_HARM) )
-    {
-	send_to_char( "A wave of malvolent energy passes over your body.\n\r", victim );
-	send_to_char( "Spell failed to start decomposing.\n\r", ch );
-	return TRUE;
-    }
-    
-    /* good, we hit 'em :) */
-    send_to_char("You feel an intense pain in your body.\n\r",victim);
-    act("$n jerks in sudden pain.",victim,0,0,TO_ROOM);
-
-    af.where = TO_AFFECTS;
-    af.level = level;
-    af.duration = get_duration(sn, level);
-    af.type = sn;
-    af.bitvector = 0;
-    af.modifier = -1;
-
-    /* start out with -1 on all 4 stats */
-    /* affects will get worse over time, handled in special_affect_update */
-    af.location = APPLY_STR;
-    affect_to_char(victim,&af);
-    af.location = APPLY_AGI;
-    affect_to_char(victim,&af);
-    af.location = APPLY_DEX;
-    affect_to_char(victim,&af);
-    af.location = APPLY_INT;
-    affect_to_char(victim,&af);
-
     /* a bit damage won't harm anyone ;) */
     dam = get_sn_damage( sn, level, ch );
     full_dam( ch, victim, dam, sn, DAM_HARM, TRUE );
     return TRUE;
+}
+
+void decompose_update( CHAR_DATA *ch, int level )
+{
+    AFFECT_DATA af, *old_af = affect_find( ch->affected, gsn_decompose );
+    
+    if ( old_af == NULL )
+    {
+        bug( "decompose_update: decompose affect not found", 0 );
+        return;
+    }
+    
+    int part = number_range( 0, 3 );
+    switch ( part )
+    {
+        case 0: 
+            af.location = APPLY_STR; /* body */
+            send_to_char("You feel an intense pain as your body gives out and decomposes!\n\r",ch);
+            act("$n's body suddenly seems to crumple up and decompose!",ch,0,0,TO_ROOM);
+            break;
+        case 1: 
+            af.location = APPLY_AGI; /* legs */
+            send_to_char("You feel a sudden intense pain as your legs begin to decompose!\n\r",ch);
+            act("$n screams in agony as $s legs crumple beneath $m!",ch,0,0,TO_ROOM);
+            break;
+        case 2: 
+            af.location = APPLY_DEX; /* arms */
+            send_to_char("You feel a sudden intense pain as your arms decompose!\n\r",ch);
+            act("$n screams in agony as $s arms seem to shrivel up!",ch,0,0,TO_ROOM);
+            break;
+        case 3: 
+            af.location = APPLY_INT; /* head */
+            send_to_char("Your head ruptures and then shrivels as it undergoes a sudden decomposition!\n\r",ch);
+            act("$n's skull seems to just decompose and shrivel up!",ch,0,0,TO_ROOM);
+            break;
+        default:
+            bug( "special_affect_update: invalid decompose part %d", part );
+            return;
+    }
+    
+    af.where = TO_AFFECTS;
+    af.level = level;
+    af.duration = 0;
+    af.type = gsn_decompose;
+    af.bitvector = 0;
+    af.modifier = - dice(3, 6);
+
+    int cap = -(20 + UMAX(level, old_af->level)) / 2;
+    affect_join_capped( ch, &af, cap );
+    
+    // renew affects when recast, but not on regular update
+    if ( level > 0 )
+        affect_renew(ch, gsn_decompose, level, get_duration(gsn_decompose, level));
 }
 
 DEF_SPELL_FUN(spell_heal_mind)
