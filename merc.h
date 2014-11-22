@@ -4599,6 +4599,7 @@ void    affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf );
 void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
 void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
+void    affect_renew( CHAR_DATA *ch, int sn, int level, int duration );
 AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 AFFECT_DATA* affect_find_location( AFFECT_DATA *paf, int type, int location, int duration );
 AFFECT_DATA* affect_find_flag( AFFECT_DATA *paf, int flag );
@@ -4614,6 +4615,7 @@ void    affect_strip_obj( OBJ_DATA *obj, int sn );
 void    custom_affect_strip( CHAR_DATA *ch, const char *tag );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
+void    affect_join_capped( CHAR_DATA *ch, AFFECT_DATA *paf, int cap );
 void    char_from_room  args( ( CHAR_DATA *ch ) );
 void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
@@ -4780,6 +4782,9 @@ void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 int check_cha_follow( CHAR_DATA *ch, int required );
 bool can_cast_transport( CHAR_DATA *ch );
 void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int dam_type );
+
+/* magic2.c */
+void decompose_update( CHAR_DATA *ch, int min_duration );
 
 /* marry.c */
 void check_spouse( CHAR_DATA *ch );

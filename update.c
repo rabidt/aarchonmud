@@ -1754,7 +1754,6 @@ void qset_update( CHAR_DATA *ch )
 }
 
 
-
 /* update the affects on a character */
 void affect_update( CHAR_DATA *ch )
 {
@@ -1806,49 +1805,7 @@ void affect_update( CHAR_DATA *ch )
 
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
-    {
-        AFFECT_DATA af, *old_af = affect_find( ch->affected, gsn_decompose );
-        int level, part = number_range( 0, 3 );
-        if ( old_af == NULL )
-        {
-            bug( "affect_update: decompose affect not found", 0 );
-            return;
-        }
-        level = old_af->level;
-        switch ( part )
-        {
-            case 0: 
-                af.location = APPLY_STR; /* body */
-                send_to_char("You feel an intense pain as your body gives out and decomposes!\n\r",ch);
-                act("$n's body suddenly seems to crumple up and decompose!",ch,0,0,TO_ROOM);
-                break;
-            case 1: 
-                af.location = APPLY_AGI; /* legs */
-                send_to_char("You feel a sudden intense pain as your legs begin to decompose!\n\r",ch);
-                act("$n screams in agony as $s legs crumple beneath $m!",ch,0,0,TO_ROOM);
-                break;
-            case 2: 
-                af.location = APPLY_DEX; /* arms */
-                send_to_char("You feel a sudden intense pain as your arms decompose!\n\r",ch);
-                act("$n screams in agony as $s arms seem to shrivel up!",ch,0,0,TO_ROOM);
-                break;
-            case 3: 
-                af.location = APPLY_INT; /* head */
-                send_to_char("Your head ruptures and then shrivels as it undergoes a sudden decomposition!\n\r",ch);
-                act("$n's skull seems to just decompose and shrivel up!",ch,0,0,TO_ROOM);
-                break;
-            default:
-                bug( "special_affect_update: invalid decompose part %d", part );
-                return;
-        }
-        af.where = TO_AFFECTS;
-        af.level = 1;
-        af.duration = 0;
-        af.type = gsn_decompose;
-        af.bitvector = 0;
-        af.modifier = - dice( 1, level/2 );
-        affect_join( ch, &af );
-    }
+        decompose_update(ch, 0);
 
     /*
      *   Careful with the damages here,
