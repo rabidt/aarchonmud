@@ -11,6 +11,7 @@ DECLARE_SPEC_FUN( spec_cast_adept       );
 DECLARE_SPEC_FUN( spec_cast_cleric      );
 DECLARE_SPEC_FUN( spec_cast_judge       );
 DECLARE_SPEC_FUN( spec_cast_mage        );
+DECLARE_SPEC_FUN( spec_cast_draconic    );
 DECLARE_SPEC_FUN( spec_cast_undead      );
 DECLARE_SPEC_FUN( spec_executioner      );
 DECLARE_SPEC_FUN( spec_fido             );
