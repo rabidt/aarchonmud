@@ -1253,8 +1253,6 @@ bool is_affected( CHAR_DATA *ch, int sn )
     return FALSE;
 }
 
-
-
 /*
  * Add or enhance an affect.
  */
@@ -1277,6 +1275,44 @@ void affect_join( CHAR_DATA *ch, AFFECT_DATA *paf )
     
     affect_to_char( ch, paf );
     return;
+}
+
+/*
+ * Add or enhance an affect.
+ */
+void affect_join_capped( CHAR_DATA *ch, AFFECT_DATA *paf, int cap )
+{
+    AFFECT_DATA *paf_old;
+    
+    for ( paf_old = ch->affected; paf_old != NULL; paf_old = paf_old->next )
+    {
+        if ( paf_old->type == paf->type && paf_old->location == paf->location )
+        {
+            paf->level = UMAX( paf->level, paf_old->level );
+            paf->duration = UMAX( paf->duration, paf_old->duration );
+            // negative cap indicates a lower bound
+            if ( cap < 0 )
+                paf->modifier = UMAX(UMIN(cap, paf_old->modifier), paf->modifier + paf_old->modifier);
+            else
+                paf->modifier = UMIN(UMAX(cap, paf_old->modifier), paf->modifier + paf_old->modifier);
+            affect_remove( ch, paf_old );
+            break;
+        }
+    }
+    
+    affect_to_char( ch, paf );
+    return;
+}
+
+void affect_renew( CHAR_DATA *ch, int sn, int level, int duration )
+{
+    AFFECT_DATA *paf;
+    for ( paf = ch->affected; paf != NULL; paf = paf->next )
+        if ( paf->type == sn )
+        {
+            paf->level = UMAX(paf->level, level);
+            paf->duration = UMAX(paf->duration, duration);
+        }
 }
 
 /*
