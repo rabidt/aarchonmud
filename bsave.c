@@ -83,6 +83,16 @@ char *print_flags(int flag)
     return buf;
 }
 
+static int count_objects( OBJ_DATA *obj_list )
+{
+    int count = 0;
+    while ( obj_list )
+    {
+        count += 1 + count_objects(obj_list->contains);
+        obj_list = obj_list->next_content;
+    }
+    return count;
+}
 
 /*
  * Array of containers read for proper re-nesting of objects.
@@ -165,6 +175,10 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
       bug(msg, 0);
       return NULL;
     }
+
+    /* record obj count to track vanishing eq bug */
+    if ( ch->carrying == NULL )
+        logpf("mem_save_char_obj: %s carries no objects", ch->name);
 
     /* now save to memory file */
     bprintf( mf->buf, "#VER %d\n", CURR_PFILE_VERSION );
@@ -1293,6 +1307,10 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
             }
         }
 
+    /* record obj count to track vanishing eq bug */
+    if ( !char_only )
+        logpf("mem_load_char_obj: %s carries %d objects", ch->name, count_objects(ch->carrying));
+        
     /* initialize race */
     if (ch->race == 0)
         ch->race = race_lookup("human");
