@@ -260,6 +260,12 @@ bool ready_to_save( CHAR_DATA *ch )
 	return FALSE;
     }
 
+    /* player may have quit and is waiting for delayed extraction
+     * Note: when last player quits, extraction is delayed until someone logs in
+     */
+    if ( ch->must_extract )
+        return FALSE;
+    
     /* chars without desc are playing or note-writing, else they would have been
      * removed at link-closing time
      */
