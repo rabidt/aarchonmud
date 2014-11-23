@@ -5670,6 +5670,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         // casters
         else if ( spec == spec_cast_cleric
             || spec == spec_cast_mage
+            || spec == spec_cast_draconic
             || spec == spec_cast_undead )
             base_exp += base_exp / 2;
         // other
