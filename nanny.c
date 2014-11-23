@@ -1676,6 +1676,9 @@ bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn )
     
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
+        if ( ch->must_extract )
+            continue;
+        
         if ( !IS_NPC(ch)
             &&   (!fConn || ch->desc == NULL)
             &&   !str_cmp( d->character->name, ch->name ) )

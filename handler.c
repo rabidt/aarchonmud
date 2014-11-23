@@ -2401,7 +2401,7 @@ CHAR_DATA* char_list_find( char *name )
 }
 
 /*
- * Extract a char from the world. Returns true if removed from char_list (i.e., not delayed)
+ * Extract a char from the world. Returns true if successful.
  */
 bool extract_char( CHAR_DATA *ch, bool fPull )
 {
