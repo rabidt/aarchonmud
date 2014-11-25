@@ -904,9 +904,14 @@ DEF_DO_FUN(do_taxidermy)
 
 	if (number_percent() < skill)  /* success! */
 	{
+        char buf[MSL];
 		act("$n preserves $p for all time.",ch,obj,NULL,TO_ROOM);
 		act("You preserve $p for all time.",ch,obj,NULL,TO_CHAR);
 		obj->timer = -1;
+        // add preserved keyword
+        sprintf(buf, "%s preserved", obj->name);
+        free_string(obj->name);
+        obj->name = str_dup(buf);
 		check_improve(ch,gsn_taxidermy,TRUE,4);
 		WAIT_STATE(ch,skill_table[gsn_taxidermy].beats);
 		return;
