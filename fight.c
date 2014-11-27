@@ -5036,16 +5036,13 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
             {
                 if (IS_AFFECTED(killer, AFF_FORTUNE))
                 {
-                    obj_to_obj( create_money( victim->gold*3/2, victim->silver*3/2 ), corpse );
-                    victim->gold = 0;
-                    victim->silver = 0;
+                    int bonus = mob_base_wealth(victim->pIndexData) / 2;
+                    victim->gold += bonus / 100;
+                    victim->silver += bonus % 100;
                 }
-                else
-                {
-                    obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
-                    victim->gold = 0;
-                    victim->silver = 0;
-                }
+                obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
+                victim->gold = 0;
+                victim->silver = 0;
             }
         }
         corpse->cost = 0;
