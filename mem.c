@@ -88,6 +88,7 @@ AREA_DATA *new_area( void )
     /* SET_BIT( pArea->area_flags, AREA_ADDED ); */
     pArea->security         =   1;
     pArea->builders         =   str_dup( "None" );
+    pArea->credits          =   str_dup( "" );
     pArea->comments         =   str_dup( "" );
     pArea->min_vnum         =   0;
     pArea->max_vnum         =   0;
