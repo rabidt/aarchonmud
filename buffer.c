@@ -227,7 +227,7 @@ char* reformat(const char *fmt, va_list va)
             // special treatment of "%s~", this is where the magic happens
             if ( format_mode && *(next+1) == 's' && *(next+2) == '~' )
             {
-                char *sarg = va_arg(va, char*);
+                const char *sarg = va_arg(va, const char*);
                 if ( *sarg == '^' || isspace(*sarg) )
                     *(next_new++) = '^';
                 // already consumed the argument, so make sure we don't do it again
@@ -318,6 +318,22 @@ int rfprintf(FILE *f, const char *fmt, ...)
 
     va_start (va, fmt);
     int res = vfprintf (f, new_fmt, va);
+    va_end (va);
+    
+    return res;
+}
+
+// sprintf with reformat
+int rsprintf(char *buf, const char *fmt, ...)
+{
+    va_list va;
+    
+    va_start (va, fmt);
+    char *new_fmt = reformat(fmt, va);
+    va_end (va);
+
+    va_start (va, fmt);
+    int res = vsprintf (buf, new_fmt, va);
     va_end (va);
     
     return res;
