@@ -6136,6 +6136,12 @@ DEF_DO_FUN(do_flee)
         exit_count = get_exit_count(ch);
     }
     
+    if ( ch->move <= 0 )
+    {
+        send_to_char("You are too exhausted to run!\n\r", ch);
+        return;
+    }
+    
     // we now have a chance to escape, so lag is given now, regardless of success
     int wait = rand_div(PULSE_VIOLENCE * (10 - mastery_bonus(ch, gsn_flee, 4, 5)), 10);
     if ( IS_AFFECTED(ch, AFF_HASTE) )
