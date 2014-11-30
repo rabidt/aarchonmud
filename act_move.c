@@ -290,7 +290,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
         return -1;
 
     // movement cost and lag
-    if ( !IS_NPC(ch) )
+    if ( !NPC_ACT(ch, ACT_OBJ) )
     {
         int move = ( movement_loss[UMIN(SECT_MAX-1, in_room->sector_type)] + movement_loss[UMIN(SECT_MAX-1, to_room->sector_type)] ) / 2;
 
