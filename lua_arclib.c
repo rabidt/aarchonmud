@@ -3286,11 +3286,35 @@ static int CH_get_hitroll (lua_State *LS)
     return 1;
 }
 
-static int CH_set_hitroll (lua_State *LS)
+static int CH_get_hitrollbase (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH( LS, 1 ))->hitroll );
+    return 1;
+}
+
+static int CH_set_hitrollbase (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH( LS, 1);
     if (!IS_NPC(ud_ch))
-        luaL_error(LS, "Can't set hitroll on PCs.");
+        luaL_error(LS, "Can't set hitrollbase on PCs.");
+
+    int val=luaL_checkinteger( LS, 2 );
+
+    if ( val < 0 || val > 1000 )
+    {
+        return luaL_error( LS, "Value must be between 0 and 1000." );
+    } 
+    ud_ch->hitroll=val;
+
+    return 0;
+}
+
+static int CH_set_hrpcnt (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set hrpcnt on PCs.");
 
     /* analogous to mob_base_hitroll */
     ud_ch->hitroll= ud_ch->level * luaL_checkinteger( LS, 2 ) / 100 ; 
@@ -3304,11 +3328,36 @@ static int CH_get_damroll (lua_State *LS)
     return 1;
 }
 
-static int CH_set_damroll (lua_State *LS)
+static int CH_get_damrollbase (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH( LS, 1 ))->damroll );
+    return 1;
+}
+
+static int CH_set_damrollbase (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH( LS, 1);
     if (!IS_NPC(ud_ch))
-        luaL_error(LS, "Can't set damroll on PCs.");
+        luaL_error(LS, "Can't set damrollbase on PCs.");
+
+    int val=luaL_checkinteger( LS, 2 );
+
+    if ( val < 0 || val > 1000 )
+    {
+        return luaL_error( LS, "Value must be between 0 and 1000." );
+    }
+    ud_ch->damroll=val;
+
+    return 0;
+}
+
+
+static int CH_set_drpcnt (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set drpcnt on PCs.");
 
     /* analogous to mob_base_damroll */
     ud_ch->damroll= ud_ch->level * luaL_checkinteger( LS, 2 ) / 100 ;
@@ -4148,7 +4197,9 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(dis, 0),
     CHGET(cha, 0),
     CHGET(hitroll, 0),
+    CHGET(hitrollbase, 0),
     CHGET(damroll, 0),
+    CHGET(damrollbase, 0),
     CHGET(attacktype, 0),
     CHGET(damnoun, 0),
     CHGET(damtype, 0),
@@ -4224,8 +4275,10 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(dis, 5),
     CHSET(cha, 5),
     CHSET(luc, 5),
-    CHSET(hitroll, 5),
-    CHSET(damroll, 5),
+    CHSET(hrpcnt, 5),
+    CHSET(hitrollbase, 5),
+    CHSET(drpcnt, 5),
+    CHSET(damrollbase, 5),
     CHSET(attacktype, 5),
     CHSET(race, 5),
     CHSET(shortdescr, 5),
