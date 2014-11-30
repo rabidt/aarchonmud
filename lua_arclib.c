@@ -3279,6 +3279,48 @@ static int CH_cancel (lua_State *LS)
     return L_cancel( LS );
 }
 
+static int CH_get_ac (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            GET_AC( check_CH( LS, 1 ) ) );
+    return 1;
+}
+
+static int CH_get_acbase (lua_State *LS)
+{
+    lua_pushinteger( LS,
+            (check_CH( LS, 1 ))->armor );
+    return 1;
+}
+
+static int CH_set_acbase (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set acbase on PCs.");
+
+    int val=luaL_checkinteger( LS, 2 );
+
+    if ( val < -10000 || val > 10000 )
+    {
+        return luaL_error( LS, "Value must be between -10000 and 10000." );
+    }
+    ud_ch->armor=val;
+
+    return 0;
+}
+
+static int CH_set_acpcnt (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set acpcnt on PCs.");
+
+    /* analogous to mob_base_ac */
+    ud_ch->armor = 100 + ( ud_ch->level * -6 ) * luaL_checkinteger( LS, 2 ) / 100;
+    return 0;
+}
+
 static int CH_get_hitroll (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -4196,6 +4238,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(wis, 0),
     CHGET(dis, 0),
     CHGET(cha, 0),
+    CHGET(ac, 0),
+    CHGET(acbase, 0),
     CHGET(hitroll, 0),
     CHGET(hitrollbase, 0),
     CHGET(damroll, 0),
@@ -4275,6 +4319,8 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(dis, 5),
     CHSET(cha, 5),
     CHSET(luc, 5),
+    CHSET(acpcnt, 5),
+    CHSET(acbase, 5),
     CHSET(hrpcnt, 5),
     CHSET(hitrollbase, 5),
     CHSET(drpcnt, 5),
