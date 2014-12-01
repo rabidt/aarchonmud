@@ -2053,6 +2053,12 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         int skill = get_skill(ch, gsn_smite);
         dam += dam * align_diff / 2000 * skill / 100;
     }
+    if ( dt == gsn_power_attack )
+    {
+        int skill = get_skill(ch, gsn_power_attack);
+        dam += dam * skill / 100;
+        dam += dam * mastery_bonus(ch, gsn_power_attack, 20, 25) / 100;
+    }
 
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
         dam -= dam / 10;
