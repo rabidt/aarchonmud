@@ -3761,8 +3761,9 @@ DEF_SPELL_FUN(spell_gate)
         return SR_UNABLE;
     }
 
-    if ( (IS_NPC(victim) && IS_SET(victim->imm_flags,IMM_SUMMON))
-            ||   (!IS_NPC(victim) && IS_SET(victim->act,PLR_NOSUMMON)) )
+    if ( !is_same_group(ch, victim) &&
+        ((IS_NPC(victim) && IS_SET(victim->imm_flags, IMM_SUMMON))
+         || (!IS_NPC(victim) && IS_SET(victim->act, PLR_NOSUMMON))) )
     {
         send_to_char( "Your target refuses your company.\n\r", ch );
         return SR_UNABLE;
