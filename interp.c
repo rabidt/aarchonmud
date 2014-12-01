@@ -363,6 +363,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "paroxysm",   do_paroxysm,POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "rupture",    do_rupture, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
 //    { "powerthrust",do_power_thrust, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
+    { "powerattack",do_power_attack, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
     { "extract",    do_extract, POS_RESTING,    0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "supplies",   do_supplies,POS_DEAD,       0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "quiveringpalm",   do_quivering_palm,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
