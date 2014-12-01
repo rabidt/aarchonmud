@@ -4481,6 +4481,33 @@ DEF_DO_FUN(do_smite)
     check_improve(ch, gsn_smite, TRUE, 2);
 }
 
+DEF_DO_FUN(do_power_attack)
+{
+    CHAR_DATA *victim;
+    int skill;
+
+    if ( (skill = get_skill(ch, gsn_power_attack)) < 1 )
+    {
+        send_to_char("You don't know how to power attack.\n\r",ch);
+        return;
+    }
+    
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+    
+    if ( victim == ch )
+    {
+        send_to_char("This isn't fight club.\n\r", ch);
+        return;
+    }
+    
+    WAIT_STATE(ch, skill_table[gsn_power_attack].beats);
+
+    // bonus damage is calculated in one_hit
+    one_hit(ch, victim, gsn_power_attack, FALSE);
+    check_improve(ch, gsn_power_attack, TRUE, 3);
+}
+
 DEF_DO_FUN(do_inspire)
 {
     AFFECT_DATA af;

@@ -5459,6 +5459,7 @@ struct  skill_type
         },
 */
 
+/*
 	{
 	"power thrust",
 	{ 60, 102, 102, 102, 55, 102, 102, 102, 102, 30, 102, 102, 102, 102, 102 },
@@ -5469,6 +5470,18 @@ struct  skill_type
 	&gsn_power_thrust,               0, 12, DUR_NONE,
 	"power thrust",         "!power thrust!",   ""
 	},
+*/
+
+    {
+        "power attack",
+        {  10, 102, 102, 102,   8,  10,  15, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 3,
+        {  95, 100, 100, 100, 100,  95,  90, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_VIT, STAT_CON,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+        &gsn_power_attack, 0, 24, DUR_NONE,
+        "power attack", "!power attack!", ""
+    },
 
 	{
 	"quivering palm",
