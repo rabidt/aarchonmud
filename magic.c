@@ -5504,20 +5504,19 @@ DEF_SPELL_FUN(spell_summon)
     }
     if ( IS_TAG(ch)
             || IS_REMORT(ch)
-            || !can_move_room(victim, ch->in_room, FALSE)
             || IS_SET(ch->in_room->room_flags, ROOM_NO_TELEPORT)
             || IS_SET(ch->in_room->room_flags, ROOM_ARENA))
     {
         send_to_char( "You can't summon anyone here!\n\r", ch );
         return SR_UNABLE;
     }
-    if ( !can_see_room(victim, ch->in_room) )
+    if ( !can_move_room(victim, ch->in_room, FALSE) )
     {
-        send_to_char( "You can't summon that player here!\n\r", ch );
+        send_to_char( "You can't summon that character here!\n\r", ch );
         return SR_UNABLE;
     }
-    if ( IS_NPC(victim) || IS_SET(victim->act, PLR_NOSUMMON)
-            || IS_SET(victim->comm, COMM_AFK) )
+    if ( !is_same_group(ch, victim) &&
+        (IS_NPC(victim) || IS_SET(victim->act, PLR_NOSUMMON) || IS_SET(victim->comm, COMM_AFK)) )
     {
         send_to_char( "Your target does not wish to be summoned.\n\r", ch );
         return SR_TARGET;
