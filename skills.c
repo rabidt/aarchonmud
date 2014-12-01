@@ -2022,7 +2022,10 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
     if ((sn==gsn_duck) || (sn==gsn_burst))
 	return IS_SET(ch->act, ACT_GUN);
     
-
+    // all mobs know meta-magic skills
+    if ( sn==gsn_extend_spell || sn==gsn_empower_spell || sn==gsn_quicken_spell || sn==gsn_chain_spell )
+        return TRUE;
+    
     /* skills by offensive flags */
     if (sn==gsn_dodge)
 	return IS_SET(ch->off_flags, OFF_DODGE);
