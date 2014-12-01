@@ -458,9 +458,7 @@ DEF_DO_FUN(do_hunt)
     /* invisible victims leave tracks as well */
     ignore_invisible = TRUE;
 
-    victim = get_char_area( ch, arg );
-    if ( !victim )
-        victim = get_char_world( ch, arg );
+    victim = get_char_world( ch, arg );
     
     if ( victim == NULL || !can_locate(ch, victim) )
     {
