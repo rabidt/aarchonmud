@@ -58,6 +58,7 @@ OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int 
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
+CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact );
 
 /* friend stuff -- for NPC's mostly */
 bool is_friend(CHAR_DATA *ch,CHAR_DATA *victim)
@@ -2661,6 +2662,24 @@ CHAR_DATA *get_char_area( CHAR_DATA *ch, const char *argument )
     return ach;
 }
 
+// allow targeting via w.name (world), a.name (area), g.name (group)
+// returns 'w', 'a', 'g' or 'x' as default
+static char target_location(const char *argument, const char **nextarg)
+{
+    if ( argument == NULL || strlen(argument) < 2 || argument[1] != '.' )
+    {
+        *nextarg = argument;
+        return 'x';
+    }
+    if ( argument[0] == 'w' || argument[0] == 'a' || argument[0] == 'g' )
+    {
+        *nextarg = argument + 2;
+        return argument[0];
+    }
+    *nextarg = argument;
+    return 'x';    
+}
+
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
@@ -2675,40 +2694,56 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool ex
         return ch;
     if ( !str_cmp(argument, "opponent") )
         return ch->fighting;
-    
+
+    char location = target_location(argument, &argument);
     number = number_argument( argument, arg );
     count = 0;
+
+    // area flag restricts locations
+    if ( area && (location == 'g' || location == 'w') )
+        location = 'x';
+    
+    if ( location == 'g' )
+        return get_char_group_new(ch, argument, exact);
     
     // search in room first, keeping count
-    for ( target = ch->in_room->people; target != NULL; target = target->next_in_room )
-    {
-        if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
-            continue;
+    if ( location == 'x' )
+        for ( target = ch->in_room->people; target != NULL; target = target->next_in_room )
+        {
+            if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
+                continue;
 
-        if ( ++count == number )
-            return target;
-    }
+            if ( ++count == number )
+                return target;
+        }
     
     // then in area, excluding room
-    for ( target = char_list; target != NULL ; target = target->next )
-    {
-        if ( target->in_room == ch->in_room || target->in_room == NULL || target->in_room->area != ch->in_room->area )
-            continue;
-        
-        if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
-            continue;
+    if ( location == 'x' || location == 'a' )
+        for ( target = char_list; target != NULL ; target = target->next )
+        {
+            if ( target->in_room == NULL || target->in_room->area != ch->in_room->area )
+                continue;
+            
+            if ( location == 'x' && target->in_room == ch->in_room )
+                continue;
+            
+            if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
+                continue;
 
-        if ( ++count == number )
-            return target;
-    }
+            if ( ++count == number )
+                return target;
+        }
     
-    if ( area )
+    if ( area || location == 'a' )
         return NULL;
     
     // finally in world
     for ( target = char_list; target != NULL ; target = target->next )
     {
-        if ( target->in_room == NULL || target->in_room->area == ch->in_room->area )
+        if ( target->in_room == NULL )
+            continue;
+         
+        if ( location == 'x' && target->in_room->area == ch->in_room->area )
             continue;
         
         if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
