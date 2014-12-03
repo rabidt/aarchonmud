@@ -2609,7 +2609,7 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact )
     int number = 0;
     int count = 0;
     
-    if ( argument == NULL || argument[0] == '\0' )
+    if ( argument == NULL || argument[0] == '\0' || ch->in_room == NULL )
 	return NULL;
 
     number = number_argument( argument, arg );
