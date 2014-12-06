@@ -2046,8 +2046,8 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
     if (sn==gsn_disarm)
 	return (IS_SET(ch->off_flags, OFF_DISARM)
 		|| IS_SET(ch->act, ACT_THIEF) || IS_SET(ch->act, ACT_WARRIOR));
-    if (sn==gsn_bodyguard)
-	return IS_SET(ch->off_flags, OFF_RESCUE);
+    // if (sn==gsn_bodyguard)
+    //    return IS_SET(ch->off_flags, OFF_RESCUE);
     if (sn==gsn_entrapment)
         return IS_SET(ch->off_flags, OFF_ENTRAP);
 
