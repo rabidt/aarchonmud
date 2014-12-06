@@ -1477,6 +1477,7 @@ DEF_DO_FUN(do_rescue)
     }
 
     chance = 25 + get_skill(ch, gsn_rescue)/2 + get_skill(ch, gsn_bodyguard)/4;
+    chance += (ch->level - victim->level) / 4;
     if (number_percent() < get_skill(fch, gsn_entrapment))
     {
       chance /= 5;
