@@ -161,7 +161,7 @@ void proc_startwar( CHAR_DATA *ch, const char *argument, bool pay )
     if ((arg1[0]=='\0') || (arg2[0]=='\0') || ((arg3[0]=='\0') && (ch->level>100)))
     {
 	if ( !pay )
-	    send_to_char("Syntax: startwar <type> <min level> <max level>\n\r", ch);
+	    send_to_char("Syntax: startwar <type> <max level> <min level>\n\r", ch);
 	else
 	    send_to_char("Syntax: quest buy warfare <type> <max level>\n\r", ch);
         return;
