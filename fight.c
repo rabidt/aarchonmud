@@ -4851,6 +4851,10 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
     if ( ch == victim )
         return;
 
+    // avoid repeated kills - e.g. when teleporting both parties into the same room after warfare
+    if ( ch->just_killed || victim->just_killed )
+        return;
+    
     if ( IS_AFFECTED( ch, AFF_OVERCHARGE))
     {
 	affect_strip_flag( ch, AFF_OVERCHARGE );
