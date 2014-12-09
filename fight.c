@@ -569,6 +569,13 @@ void special_affect_update(CHAR_DATA *ch)
         deal_damage( ch, ch, damage, gsn_paralysis_poison, DAM_POISON, TRUE, FALSE );
     }
     
+    /* Iron maiden - Reset damage dealt, stored in modifier */
+    if ( IS_AFFECTED(ch, AFF_IRON_MAIDEN) )
+    {
+        af = affect_find(ch->affected, gsn_iron_maiden);
+        if ( af != NULL )
+            af->modifier = 0;
+    }
 }
 
 /* check wether a char succumbs to his fears and tries to flee */
@@ -3163,14 +3170,25 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         int iron_dam = dam/4;
 
-	/* if-check to lower spam */
-	if ( show || iron_dam > ch->level )
-	    direct_damage( ch, ch, iron_dam, skill_lookup("iron maiden") );
-	else
-	    direct_damage( ch, ch, iron_dam, 0 );
+        // cap damage per round
+        AFFECT_DATA *aff = affect_find(ch->affected, gsn_iron_maiden);
+        if ( aff != NULL )
+        {
+            int max_dpr = (20 + aff->level) * 2;
+            // aff->modifier stores damage taken from iron maiden this round so far
+            iron_dam = URANGE(0, iron_dam, max_dpr - aff->modifier);
+            aff->modifier += iron_dam;
+        }
+        
+        if ( iron_dam > 0 )
+        {
+            /* if-check to lower spam */
+            if ( show || iron_dam > ch->level )
+                direct_damage( ch, ch, iron_dam, skill_lookup("iron maiden") );
+            else
+                direct_damage( ch, ch, iron_dam, 0 );
+        }
     }
-
-
 
     /*
      * Hurt the victim.
