@@ -5043,6 +5043,11 @@ int* get_obj_ovalue( int level )
     return ovalue;
 } 
 
+int armor_class_by_level( int level )
+{
+    return get_obj_ovalue(level)[OBJ_STAT_AC];
+}
+
 bool apply_obj_hardcaps( OBJ_INDEX_DATA *obj )
 {
     AFFECT_DATA *aff;
