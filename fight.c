@@ -338,6 +338,14 @@ void check_rescue( CHAR_DATA *ch )
     if ( !wants_to_rescue(ch) || !can_attack(ch) )
         return;
 
+    // NPCs only have a *chance* to try a rescue
+    if ( IS_NPC(ch) )
+    {
+        int hp_percent = 100 * ch->hit / UMAX(1, ch->max_hit);
+        if ( number_bits(1) || !per_chance(hp_percent) )
+            return;
+    }
+    
     // get target
     for ( attacker = ch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
     {
