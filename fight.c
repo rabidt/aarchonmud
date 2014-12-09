@@ -5683,7 +5683,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 2 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0,3*victim->size - 5) : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 5 : 0;

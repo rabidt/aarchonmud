@@ -1675,6 +1675,7 @@ struct  kill_data
 #define OBJ_VNUM_ROSE           45
 #define OBJ_VNUM_MOB_WEAPON     46
 #define OBJ_VNUM_BLOOD          47
+#define OBJ_VNUM_MOB_SHIELD     49
 #define OBJ_VNUM_PIT           3010
 
 #define OBJ_VNUM_SCHOOL_MACE       18400
@@ -4861,6 +4862,7 @@ char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 void set_mob_level( CHAR_DATA *mob, int level );
 void set_weapon_dam( OBJ_DATA *pObj, int dam );
 bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj );
+int armor_class_by_level( int level );
 int average_roll( int nr, int type, int bonus );
 int average_mob_hp( int level );
 AREA_DATA *get_vnum_area( int vnum );
