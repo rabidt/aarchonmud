@@ -788,6 +788,13 @@ struct align_type align_table [] =
 	{A,H,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K,U,V}
 	},
 
+    {
+    "draconal", TRUE,
+    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL}, {},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+    
 /* NPC RACES */
 {
 	"bat",          FALSE,
@@ -1766,8 +1773,18 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 165, 155, 155, 150, 150,     140, 140, 150, 150, 150 },  
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
           SIZE_HUGE, SEX_BOTH, 10
-        }
+        },
 
+        { 
+          "draconal",   "Dracon",
+          { 310, 315, 310, 305, 310, 310, 310, 315, 315, 310, 310, 310, 310, 310, 315 },
+          2, { "regeneration", "draconic breath" },
+          {1,30},{100,100},
+          {  75,  70,  70,  65,  65,      70,  70,  70,  75,  70 },
+          { 155, 150, 150, 145, 145,     150, 150, 150, 155, 150 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_LARGE, SEX_BOTH, 10
+        }
 };
 
 /* special race_types and pc_race_types for morphing --Bobble */
@@ -7283,6 +7300,17 @@ struct  skill_type
 	"charge",         "!charge!",  ""
 	},
 
+    {
+    "draconic breath",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_VIT, STAT_CON, STAT_INT,
+    spell_null,    TAR_IGNORE,     POS_STANDING,
+    &gsn_draconic_breath, 0, 12, DUR_NONE,
+    "dragon breath", "Your breath attack is ready for use again.",  ""
+    },    
+    
     {
     "custom_affect",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
