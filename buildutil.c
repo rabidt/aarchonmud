@@ -1861,8 +1861,10 @@ MSETFUN( race )
     {
         victim->pcdata->morph_race = 0;
         victim->pcdata->morph_time = 0;
+        morph_update(victim);
     }
-    morph_update(victim);
+    reset_char(victim);
+    
     return TRUE;
 }
 

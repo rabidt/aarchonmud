@@ -2573,7 +2573,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_acid_breath,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-	NULL,              18,    4, DUR_NONE,
+	&gsn_acid_breath, 18, 4, DUR_NONE,
 	"blast of acid",    "!Acid Breath!",    ""
 	},
 
@@ -3434,7 +3434,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_frost_breath, TAR_IGNORE_OFF, POS_FIGHTING,
-	NULL,             14,    4, DUR_NONE,
+	&gsn_frost_breath, 14, 4, DUR_NONE,
 	"blast of frost",   "!Frost Breath!",   ""
 	},
 
@@ -3445,7 +3445,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_gas_breath,   TAR_IGNORE_OFF,     POS_FIGHTING,
-	NULL,             20,    4, DUR_NONE,
+	&gsn_gas_breath, 20, 4, DUR_NONE,
 	"blast of gas",     "!Gas Breath!",     ""
 	},
 
@@ -3702,7 +3702,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_lightning_breath, TAR_VIS_CHAR_OFF, POS_FIGHTING,
-	NULL,             16,    4, DUR_NONE,
+	&gsn_lightning_breath, 16, 4, DUR_NONE,
 	"blast of lightning",   "!Lightning Breath!",   ""
 	},
 
