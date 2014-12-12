@@ -215,6 +215,9 @@ void violence_update( void )
 
 	/* handle affects that do things each round */
 	special_affect_update(ch);
+    
+        if ( !IS_NPC(ch) )
+            check_draconic_breath(ch);
         
         /*
         * Hunting mobs. 

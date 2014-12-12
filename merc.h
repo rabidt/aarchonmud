@@ -3333,8 +3333,12 @@ extern sh_int  gsn_wrist_shield;
 extern sh_int  gsn_spear;
 extern sh_int  gsn_sword;
 extern sh_int  gsn_whip;
+extern sh_int  gsn_acid_breath;
 extern sh_int  gsn_fire_breath;
- 
+extern sh_int  gsn_frost_breath;
+extern sh_int  gsn_gas_breath;
+extern sh_int  gsn_lightning_breath;
+
 extern sh_int  gsn_craft;
 extern sh_int  gsn_crush;
 extern sh_int  gsn_bash;
@@ -4320,6 +4324,9 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch );
 void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only );
 void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf );
 MEMFILE* remort_mem_save();
+
+/* breath.c */
+void check_draconic_breath( CHAR_DATA *ch );
 
 /* buildutil.c */
 void clone_warning( CHAR_DATA *ch, AREA_DATA *area );
