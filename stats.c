@@ -1802,6 +1802,9 @@ struct race_type* get_morph_race_type( CHAR_DATA *ch )
 	    return &morph_race_table[MORPH_WOLFMAN];
     }
     
+    if ( ch->race == race_draconal && ch->pcdata->morph_race > 0 )
+        return &morph_race_table[ch->pcdata->morph_race];
+    
     return &race_table[ch->race];
 }
 

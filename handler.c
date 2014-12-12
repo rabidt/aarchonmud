@@ -481,6 +481,16 @@ void reset_char(CHAR_DATA *ch)
     // wimpy & calm percentages
     ch->wimpy = URANGE(0, ch->wimpy, 100);
     ch->calm = URANGE(0, ch->calm, 100);
+    
+    // ensure draconials have a bloodline
+    if ( ch->race == race_draconal && ch->pcdata->morph_race == 0 )
+    {
+        int morph_race = number_range(MORPH_DRACONAL_RED, MORPH_DRACONAL_WHITE);
+        logpf("resetting morph race for %s to %s", ch->name, morph_race_table[morph_race].name);
+        ch->pcdata->morph_race = morph_race;
+        ch->pcdata->morph_time = -1;
+        morph_update(ch);
+    }
 }
 
 

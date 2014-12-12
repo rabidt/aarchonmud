@@ -3238,6 +3238,7 @@ extern sh_int race_naga;
 extern sh_int race_doppelganger;
 extern sh_int race_vampire;
 extern sh_int race_rakshasa;
+extern sh_int race_draconal;
 
 /*
  * These are skill_lookup return values for common skills and spells.
@@ -3995,10 +3996,14 @@ struct stance_type
 #define STANCE_SERPENT 46
 
 /* morph race constants */
-#define MAX_MORPH_RACE     3
 #define MORPH_NAGA_SERPENT 0
 #define MORPH_NAGA_HUMAN   1
 #define MORPH_WOLFMAN      2
+#define MORPH_DRACONAL_RED      3
+#define MORPH_DRACONAL_GREEN    4
+#define MORPH_DRACONAL_BLUE     5
+#define MORPH_DRACONAL_BLACK    6
+#define MORPH_DRACONAL_WHITE    7
 
 /*
  * Global constants.
