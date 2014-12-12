@@ -1811,6 +1811,41 @@ struct race_type morph_race_table[] =
 	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
 
+    {
+    "red draconal", TRUE,
+    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_FIRE}, {VULN_COLD},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "green draconal", TRUE,
+    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_POISON}, {VULN_DISEASE},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "blue draconal", TRUE,
+    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_LIGHTNING}, {VULN_ACID},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "black draconal", TRUE,
+    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_ACID}, {VULN_LIGHTNING},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "white draconal", TRUE,
+    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_COLD}, {VULN_FIRE},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
 	{
 	  NULL, TRUE, {}, {}, {}, {}, {}, {}, {}, {}
 	}
@@ -1849,7 +1884,9 @@ struct pc_race_type morph_pc_race_table[] =
 	{ },
 	{ },
 	SIZE_MEDIUM, SEX_BOTH, 4
-    }
+    },
+    
+    { NULL }
 };
 
 
