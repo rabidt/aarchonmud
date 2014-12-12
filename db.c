@@ -446,6 +446,7 @@ sh_int race_doppelganger;
 sh_int race_naga;
 sh_int race_vampire;
 sh_int race_rakshasa;
+sh_int race_draconal;
 
 
 /* channel slot numbers */
@@ -655,6 +656,7 @@ void boot_db()
     race_naga = race_lookup("naga");
     race_vampire = race_lookup("vampire");
     race_rakshasa = race_lookup("rakshasa");
+    race_draconal = race_lookup("draconal");
     
     /*
     * Assign gsn's for skills which have them.
@@ -678,7 +680,7 @@ void boot_db()
                 pc_race_table[i].skill_gsns[j] = sn;
             }
 	/* morph races */
-        for ( i = 0; i < MAX_MORPH_RACE; i++)
+        for ( i = 0; morph_pc_race_table[i].name; i++)
             for (j=0; j < morph_pc_race_table[i].num_skills; j++)
             {
                 sn = skill_lookup_exact(morph_pc_race_table[i].skills[j]);
