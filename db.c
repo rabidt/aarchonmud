@@ -143,6 +143,7 @@ sh_int  gsn_leg_sweep;
 sh_int  gsn_endurance;
 sh_int  gsn_uppercut;
 sh_int  gsn_war_cry;
+sh_int  gsn_draconic_breath;
 sh_int  gsn_dual_wield;
 sh_int  gsn_dual_dagger;
 sh_int  gsn_dual_sword;
