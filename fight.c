@@ -5118,6 +5118,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     corpse->level = victim->level;
     
     sprintf( buf, corpse->name, name );
+    sprintf( buf, "%s fresh", buf);
     free_string( corpse->name );
     corpse->name = str_dup( buf );
 
