@@ -207,10 +207,11 @@ const struct flag_type act_flags[] =
 	{   "noexp",       ACT_NOEXP,      TRUE    },
 	{   "nomimic",      ACT_NOMIMIC,     TRUE    },
 	{   "hard_quest",   ACT_HARD_QUEST,    TRUE    },
-        {   "staggered",    ACT_STAGGERED,   TRUE    },
-        {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
-        {   "noweapon",     ACT_NOWEAPON,    TRUE    },
-        {   "traveller",    ACT_TRAVELLER,   TRUE    },
+    {   "staggered",    ACT_STAGGERED,   TRUE    },
+    {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
+    {   "noweapon",     ACT_NOWEAPON,    TRUE    },
+    {   "traveller",    ACT_TRAVELLER,   TRUE    },
+    {   "achievement",  ACT_ACHIEVEMENT, TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 

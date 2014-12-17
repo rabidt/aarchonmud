@@ -1311,6 +1311,7 @@ struct  kill_data
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
 #define ACT_TRAVELLER   (oo)    /* doesn't wander home if out of area */
+#define ACT_ACHIEVEMENT (pp)
 
 /* damage classes */
 #define DAM_NONE                0
