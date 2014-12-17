@@ -447,6 +447,7 @@ PC_DATA *new_pcdata(void)
     }
     
 //    pcdata->buffer = new_buf();
+    pcdata->boss_achievements         = NULL;
     pcdata->pkill_count = 0;
     pcdata->pkill_deaths = 0;
     pcdata->pkpoints = 0;
@@ -538,6 +539,13 @@ void free_pcdata(PC_DATA *pcdata)
         {    e_next = pExp->next;
              free(pExp);
         }
+    }
+
+    struct boss_achieve_record * rec, * rec_next;
+    for ( rec = pcdata->boss_achievements ; rec ; rec=rec_next )
+    {
+        rec_next=rec->next;
+        free_mem( rec, sizeof(struct boss_achieve_record) );
     }
 
     pers_history_free(pcdata->gtell_history);

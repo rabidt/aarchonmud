@@ -2593,6 +2593,8 @@ struct  pc_data
     int      perm_mana;
     int      perm_move;
 
+    struct boss_achieve_record *boss_achievements;
+
 	PERS_HISTORY *gtell_history;
 	PERS_HISTORY *tell_history;
 	PERS_HISTORY *clan_history;
@@ -3604,6 +3606,13 @@ struct boss_achieve_entry
     int ach_reward;
 };
 
+struct boss_achieve_record
+{
+    struct boss_achieve_record *next;
+    int vnum;
+    time_t timestamp;
+};
+
 /*Achievement types*/
 /*if you change these, you need to update
   achievement_display*/
@@ -4223,6 +4232,7 @@ int     get_lore_level( CHAR_DATA *ch, int obj_level );
 void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
 void    show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 void    check_achievement( CHAR_DATA *ch );
+void    check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
 
