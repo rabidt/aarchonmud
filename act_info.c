@@ -5438,6 +5438,49 @@ void print_ach_rewards(CHAR_DATA *ch)
 }
 
 
+void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( IS_NPC( ch ) || !IS_NPC( victim ) )
+        return;
+
+    BOSSACHV *ach = victim->pIndexData->boss_achieve;
+    if ( !ach )
+        return;
+
+    struct boss_achieve_record *rec;
+
+    for ( rec = ch->pcdata->boss_achievements; rec; rec=rec->next )
+    {
+        if ( rec->vnum == victim->pIndexData->vnum )
+            return;
+    }
+
+    rec = alloc_mem( sizeof(struct boss_achieve_record) );
+    rec->vnum = victim->pIndexData->vnum;
+    rec->timestamp = current_time; 
+
+    rec->next = ch->pcdata->boss_achievements;
+    ch->pcdata->boss_achievements = rec;
+
+    /* do the rewards */
+    ch->pcdata->questpoints += ach->quest_reward;
+    ch->pcdata->bank += ach->gold_reward;
+    gain_exp(ch, ach->exp_reward);
+    ch->pcdata->achpoints += ach->ach_reward;
+
+    printf_to_char(ch, "--------------------------------------\n\r");
+    printf_to_char(ch, "{wBoss Achievement unlocked{x.\n\r");
+    send_to_char( "{wYour reward{x:\n\r",ch);
+    if ( ach->gold_reward>0)
+        printf_to_char(ch, "%6d gold\n\r", ach->gold_reward );
+    if ( ach->quest_reward>0)
+        printf_to_char(ch, "%6d quest points\n\r", ach->quest_reward);
+    if (ach->exp_reward>0)
+        printf_to_char(ch, "%6d experience points\n\r", ach->exp_reward);
+    if (ach->ach_reward>0)
+        printf_to_char(ch, "%6d achievement points\n\r", ach->ach_reward );
+
+}
 
 /* For achievement rewards... This gets called at certain times (level up, quest complete, etc. )--Vodur / Astark 3/19/12 */
 
