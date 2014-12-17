@@ -254,6 +254,24 @@ void free_shop( SHOP_DATA *pShop )
     return;
 }
 
+BOSSACHV *new_boss_achieve( void )
+{
+    BOSSACHV *pBoss;
+
+    pBoss = alloc_BOSSACHV();
+
+    pBoss->quest_reward = 0;
+    pBoss->exp_reward = 0;
+    pBoss->gold_reward = 0;
+    pBoss->ach_reward = 0;
+
+    return pBoss;
+}
+
+void free_boss_achieve( BOSSACHV *pBoss )
+{
+    free_BOSSACHV( pBoss );
+} 
 
 
 OBJ_INDEX_DATA *new_obj_index( void )
@@ -331,6 +349,7 @@ MOB_INDEX_DATA *new_mob_index( void )
     pMob->next          =   NULL;
     pMob->spec_fun      =   NULL;
     pMob->pShop         =   NULL;
+    pMob->boss_achieve  =   NULL;
     pMob->area          =   NULL;
     pMob->player_name   =   str_dup( "no name" );
     pMob->short_descr   =   str_dup( "(no short description)" );

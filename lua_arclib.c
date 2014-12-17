@@ -33,6 +33,7 @@ LUA_OBJ_TYPE *type_list [] =
     &RTRIG_type,
     &HELP_type,
     &DESCRIPTOR_type,
+    &BOSSACHV_type,
     NULL
 };
 
@@ -7161,6 +7162,23 @@ static const LUA_PROP_TYPE DESCRIPTOR_method_table [] =
 };
 /* end DESCRIPTOR section */
 
+/* BOSSACHV section */
+static const LUA_PROP_TYPE BOSSACHV_get_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSACHV_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSACHV_method_table [] =
+{
+    ENDPTABLE
+};
+/* end BOSSACHV section */
+
 
 void type_init( lua_State *LS)
 {
@@ -7484,6 +7502,7 @@ DECLARETYPE( MOBPROTO, MOB_INDEX_DATA );
 DECLARETYPE( SHOP, SHOP_DATA );
 DECLARETYPE( AFFECT, AFFECT_DATA );
 DECLARETYPE( PROG, PROG_CODE );
+
 DECLARETRIG( MTRIG, PROG_LIST );
 DECLARETRIG( OTRIG, PROG_LIST );
 DECLARETRIG( ATRIG, PROG_LIST );
@@ -7491,3 +7510,4 @@ DECLARETRIG( RTRIG, PROG_LIST );
 
 DECLARETYPE( HELP, HELP_DATA );
 DECLARETYPE( DESCRIPTOR, DESCRIPTOR_DATA );
+DECLARETYPE( BOSSACHV, BOSSACHV );
