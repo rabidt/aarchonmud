@@ -3671,6 +3671,10 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
             return;
     }
 
+    /* check for boss achievement */
+    check_boss_achieve( ch, victim );
+
+
     remort_remove(victim, FALSE);
         
     if ( IS_NPC(victim) || !IS_SET( victim->act, PLR_WAR ) )

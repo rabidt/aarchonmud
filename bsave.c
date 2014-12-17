@@ -726,6 +726,13 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 		bprintf(buf, "-1 -1\n" );
 	}
 
+    /* boss achievements */
+    struct boss_achieve_record *rec;
+    for ( rec = ch->pcdata->boss_achievements ; rec; rec=rec->next )
+    {
+        bprintf( buf, "BAch %d %d\n", rec->vnum, rec->timestamp );
+    }
+
 
         /* write alias */
         for (pos = 0; pos < MAX_ALIAS; pos++)
@@ -1619,6 +1626,16 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             break;
             
     case 'B':
+        if (!str_cmp(word, "BAch" ) )
+        {
+            struct boss_achieve_record * rec = alloc_mem(sizeof(struct boss_achieve_record));
+            rec->vnum=bread_number(buf);
+            rec->timestamp=bread_number(buf);
+
+            rec->next = ch->pcdata->boss_achievements;
+            ch->pcdata->boss_achievements = rec;
+        }
+
         KEYS( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
         KEYS( "Bamfout", ch->pcdata->bamfout,    bread_string( buf ) );
         KEY( "Bank",    ch->pcdata->bank,       bread_number( buf ) );       
