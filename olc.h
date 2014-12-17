@@ -267,6 +267,7 @@ DECLARE_OLC_FUN( medit_name		);
 DECLARE_OLC_FUN( medit_short		);
 DECLARE_OLC_FUN( medit_long		);
 DECLARE_OLC_FUN( medit_shop		);
+DECLARE_OLC_FUN( medit_bossachieve);
 DECLARE_OLC_FUN( medit_desc		);
 DECLARE_OLC_FUN( medit_comments    );
 DECLARE_OLC_FUN( medit_level		);
@@ -413,6 +414,8 @@ OBJ_INDEX_DATA	*new_obj_index		args ( ( void ) );
 void		free_obj_index		args ( ( OBJ_INDEX_DATA *pObj ) );
 MOB_INDEX_DATA	*new_mob_index		args ( ( void ) );
 void		free_mob_index		args ( ( MOB_INDEX_DATA *pMob ) );
+BOSSACHV    *new_boss_achieve       args ( ( void ) );
+void        free_boss_achieve   args ( ( BOSSACHV *pBoss ) );
 #undef	ED
 
 void		show_liqlist		args ( ( CHAR_DATA *ch ) );

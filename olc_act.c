@@ -5436,6 +5436,16 @@ MEDIT( medit_show )
             }
         }
     }
+
+    if ( pMob->boss_achieve )
+    {
+        send_to_char( "\n\rBOSS ACHIEVEMENT\n\r", ch );
+        ptc( ch, "QP reward:   %d\n\r", pMob->boss_achieve->quest_reward);
+        ptc( ch, "EXP reward:  %d\n\r", pMob->boss_achieve->exp_reward);
+        ptc( ch, "Gold reward: %d\n\r", pMob->boss_achieve->gold_reward);
+        ptc( ch, "AchP reward: %d\n\r", pMob->boss_achieve->ach_reward);
+        
+    }
     
     if ( pMob->mprogs )
     {
@@ -6083,7 +6093,104 @@ MEDIT( medit_name )
     return TRUE;
 }
 
+MEDIT( medit_bossachieve )
+{
+    MOB_INDEX_DATA *pMob;
+    char command[MIL];
+    //char arg1[MIL];
 
+    argument = one_argument( argument, command );
+    //argument = one_argument( argument, arg1 );
+
+    EDIT_MOB(ch, pMob);
+    
+    if ( command[0] == '\0' )
+    {
+        send_to_char( "Syntax: \n\r", ch );
+        send_to_char( "  bossachieve assign   -- Turn on achievement\n\r"
+                      "  bossachieve remove   -- Turn off achievement\n\r"
+                      "  bossachieve exp   [#value]\n\r"
+                      "  bossachieve gold  [#value]\n\r"
+                      "  bossachieve qp    [#value]\n\r"
+                      "  bossachieve ach   [#value]\n\r",
+                      ch);
+        return FALSE;
+    }
+
+    if ( !str_cmp( command, "assign" ) )
+    {
+        if ( pMob->boss_achieve )
+        {
+            send_to_char( "Mob already has boss achieve assigned.\n\r", ch);
+            return FALSE;
+        }
+        if (ch->pcdata->security < 9)
+        {
+            send_to_char( "Must be security 9 to add boss achievements.\n\r", ch);
+            return FALSE;
+        }
+
+        pMob->boss_achieve = new_boss_achieve();
+
+        send_to_char( "Boss achievement turned on.\n\r", ch);
+        return TRUE;
+    }
+
+    if (!pMob->boss_achieve)
+    {
+        send_to_char( "Boss achievement not turned on\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !str_cmp( command, "remove" ) )
+    {
+        free_boss_achieve( pMob->boss_achieve );
+        pMob->boss_achieve = NULL;
+
+        send_to_char( "Boss achievement removed.\n\r", ch );
+        return TRUE;
+    }
+
+    if ( argument[0] == '\0' || !is_number( argument ) )
+    {
+        ptc( ch, "Usage: bossachieve %s [#value]\n\r", command);
+        return FALSE;
+    }
+
+
+    int value=atoi(argument);
+    if ( value < 0 )
+    {
+        ptc( ch, "Value must be 0 or greater.\n\r");
+        return FALSE;
+    }
+
+    if (!str_cmp( command, "qp" ) )
+    {
+        pMob->boss_achieve->quest_reward = value;
+        return TRUE;
+    }
+    if (!str_cmp( command, "gold" ) )
+    {
+        pMob->boss_achieve->gold_reward = value;
+        return TRUE;
+    }
+    if (!str_cmp( command, "exp" ) )
+    {
+        pMob->boss_achieve->exp_reward = value;
+        return TRUE;
+    }
+    if (!str_cmp( command, "ach" ) )
+    {
+        pMob->boss_achieve->ach_reward = value;
+        return TRUE;
+    }
+
+
+    medit_bossachieve( ch, "" );
+    return FALSE;
+
+}
 
 MEDIT( medit_shop )
 {

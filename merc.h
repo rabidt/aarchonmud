@@ -121,6 +121,7 @@ typedef struct  clan_data        CLAN_DATA;
 typedef struct  quest_data       QUEST_DATA;
 typedef struct  portal_data      PORTAL_DATA;
 typedef struct  achievement_entry ACHIEVEMENT;
+typedef struct  boss_achieve_entry BOSSACHV;
 /* religion */
 typedef struct religion_data RELIGION_DATA;
 /* typedef struct religion_war_data RELIGION_WAR_DATA; */
@@ -2387,6 +2388,7 @@ struct  mob_index_data
     MOB_INDEX_DATA* next;
     SPEC_FUN*   spec_fun;
     SHOP_DATA*  pShop;
+    BOSSACHV * boss_achieve;
     PROG_LIST* mprogs;
     AREA_DATA*  area;
     int         vnum;
@@ -3592,6 +3594,14 @@ struct achievement_entry
    int ach_reward; 
    int obj_reward;   
    int bit_vector;
+};
+
+struct boss_achieve_entry
+{
+    int quest_reward;
+    int exp_reward;
+    int gold_reward;
+    int ach_reward;
 };
 
 /*Achievement types*/
@@ -5229,4 +5239,5 @@ declf(SHOP, SHOP_DATA)
 declf(AFFECT, AFFECT_DATA)
 declf(HELP, HELP_DATA)
 declf(DESCRIPTOR, DESCRIPTOR_DATA)
+declf(BOSSACHV, BOSSACHV)
 #undef declf
