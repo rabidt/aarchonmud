@@ -545,7 +545,7 @@ void free_pcdata(PC_DATA *pcdata)
     for ( rec = pcdata->boss_achievements ; rec ; rec=rec_next )
     {
         rec_next=rec->next;
-        free_mem( rec, sizeof(struct boss_achieve_record) );
+        free_BOSSREC( rec );
     }
 
     pers_history_free(pcdata->gtell_history);

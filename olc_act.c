@@ -6131,7 +6131,7 @@ MEDIT( medit_bossachieve )
         }
 
         pMob->boss_achieve = new_boss_achieve();
-
+        update_bossachv_table();
         send_to_char( "Boss achievement turned on.\n\r", ch);
         return TRUE;
     }
@@ -6147,6 +6147,7 @@ MEDIT( medit_bossachieve )
         free_boss_achieve( pMob->boss_achieve );
         pMob->boss_achieve = NULL;
 
+        update_bossachv_table();
         send_to_char( "Boss achievement removed.\n\r", ch );
         return TRUE;
     }

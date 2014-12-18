@@ -1094,6 +1094,31 @@ DEF_DO_FUN(do_diagnostic)
     }
 }
 
+DEF_DO_FUN(do_achievements_boss)
+{
+    lua_getglobal(g_mud_LS, "do_achievements_boss");
+    push_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        bugf( "Error with do_achievements_boss:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+void update_bossachv_table()
+{
+    lua_getglobal(g_mud_LS, "update_bossachv_table" );
+    
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    {
+        bugf( "Error with update_bossachv_table:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
 void check_lua_stack()
 {
     int top=lua_gettop( g_mud_LS );

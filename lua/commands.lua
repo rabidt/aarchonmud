@@ -1959,3 +1959,59 @@ function do_luahelp( ch, argument )
 end
 
 -- end luahelp section
+
+-- do_achievements_boss section
+local boss_table
+
+function update_bossachv_table()
+    boss_table={}
+    for _,area in pairs(getarealist()) do
+        for _,mp in pairs(area.mobprotos) do
+            if mp.bossachv then
+                table.insert(boss_table, mp)
+            end
+        end
+    end
+
+    table.sort( boss_table, function(a,b) return a.vnum<b.vnum end )
+end
+
+function do_achievements_boss( ch, argument)
+    args=arguments(argument)
+    if args[1]=="boss" then
+        table.remove(args,1)
+    end
+
+    local plr={}
+    for k,v in pairs(ch.bossachvs) do
+        print("blah")
+        plr[v.vnum] = v.timestamp
+    end
+
+    if not(boss_table) then update_bossachv_table() end
+
+    local columns={}
+    local nummobs=#boss_table
+    local numrows=math.ceil(nummobs/2)
+    
+    for i,v in pairs(boss_table) do
+        local row
+        row=i%numrows
+        if row==0 then row=numrows end
+
+        columns[row]=columns[row] or "{G|{x"
+        columns[row]=string.format("%s%4s %s %s{G|{x",
+                columns[row],
+                i..".",
+                util.format_color_string(getmobproto(v.vnum).shortdescr, 20),
+                util.format_color_string(
+                    (plr[v.vnum] and os.date("{y%x{x", plr[v.vnum]) or "{DLocked{x"),
+                    9))
+        
+
+    end
+
+    pagetochar( ch, table.concat( columns, "\n\r").."\n\r" )
+end
+
+-- end do_achievements_boss section

@@ -5305,7 +5305,6 @@ msl_string achievement_display [] =
         "Hard Qsts"
 };
 
-
 DEF_DO_FUN(do_achievements)
 {
 	if ( IS_NPC(ch) )
@@ -5316,6 +5315,11 @@ DEF_DO_FUN(do_achievements)
 		print_ach_rewards(ch);
 		return;
 	}
+    else if (!strcmp( argument, "boss") )
+    {
+        do_achievements_boss(ch, argument);
+        return;
+    }
 	
     char buf[MAX_STRING_LENGTH];
     int i;
@@ -5395,6 +5399,7 @@ DEF_DO_FUN(do_achievements)
     sprintf( buf, "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
     add_buf(output,buf);
 	add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
+    add_buf(output, "(Use 'achievement boss' to see boss achievements.)\n\r");
     page_to_char(buf_string(output),ch);
     free_buf(output);
 
@@ -5447,7 +5452,7 @@ void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !ach )
         return;
 
-    struct boss_achieve_record *rec;
+    BOSSREC *rec;
 
     for ( rec = ch->pcdata->boss_achievements; rec; rec=rec->next )
     {
@@ -5455,7 +5460,7 @@ void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
             return;
     }
 
-    rec = alloc_mem( sizeof(struct boss_achieve_record) );
+    rec = alloc_BOSSREC();
     rec->vnum = victim->pIndexData->vnum;
     rec->timestamp = current_time; 
 
