@@ -61,6 +61,7 @@ extern  const   struct  cmd_type    cmd_table   [];
  */
 DECLARE_DO_FUN( do_action   );
 DECLARE_DO_FUN( do_achievements  );
+DECLARE_DO_FUN( do_achievements_boss);
 DECLARE_DO_FUN( do_advance  );
 DECLARE_DO_FUN( do_affects  );
 DECLARE_DO_FUN( do_afk      );
