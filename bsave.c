@@ -1628,7 +1628,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'B':
         if (!str_cmp(word, "BAch" ) )
         {
-            struct boss_achieve_record * rec = alloc_mem(sizeof(struct boss_achieve_record));
+            BOSSREC * rec = alloc_BOSSREC();
             rec->vnum=bread_number(buf);
             rec->timestamp=bread_number(buf);
 

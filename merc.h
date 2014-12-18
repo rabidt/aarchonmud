@@ -122,6 +122,7 @@ typedef struct  quest_data       QUEST_DATA;
 typedef struct  portal_data      PORTAL_DATA;
 typedef struct  achievement_entry ACHIEVEMENT;
 typedef struct  boss_achieve_entry BOSSACHV;
+typedef struct  boss_achieve_record BOSSREC;
 /* religion */
 typedef struct religion_data RELIGION_DATA;
 /* typedef struct religion_war_data RELIGION_WAR_DATA; */
@@ -2593,7 +2594,7 @@ struct  pc_data
     int      perm_mana;
     int      perm_move;
 
-    struct boss_achieve_record *boss_achievements;
+    BOSSREC *boss_achievements;
 
 	PERS_HISTORY *gtell_history;
 	PERS_HISTORY *tell_history;
@@ -4762,6 +4763,7 @@ bool can_order( const char *command, CHAR_DATA *victim );
 
 /* lua_main.c */
 void check_lua_stack();
+void update_bossachv_table();
 void lua_log_perf( double value );
 void save_mudconfig();
 void load_mudconfig();
@@ -5250,4 +5252,5 @@ declf(AFFECT, AFFECT_DATA)
 declf(HELP, HELP_DATA)
 declf(DESCRIPTOR, DESCRIPTOR_DATA)
 declf(BOSSACHV, BOSSACHV)
+declf(BOSSREC, BOSSREC)
 #undef declf
