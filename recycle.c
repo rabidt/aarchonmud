@@ -541,7 +541,7 @@ void free_pcdata(PC_DATA *pcdata)
         }
     }
 
-    struct boss_achieve_record * rec, * rec_next;
+    BOSSREC * rec, * rec_next;
     for ( rec = pcdata->boss_achievements ; rec ; rec=rec_next )
     {
         rec_next=rec->next;
