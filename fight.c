@@ -3260,7 +3260,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         victim->hit = UMAX(1, victim->hit - dam);
     
     // finally, all absorbtion checked - now check for cursed wound
-    if ( check_skill(ch, gsn_cursed_wound) && !saves_spell(victim, ch, ch->level, DAM_NEGATIVE) )
+    if ( victim != ch && check_skill(ch, gsn_cursed_wound) && !saves_spell(victim, ch, ch->level, DAM_NEGATIVE) )
     {
         AFFECT_DATA af;
         af.where     = TO_AFFECTS;
