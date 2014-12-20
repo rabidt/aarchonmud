@@ -7349,6 +7349,17 @@ struct  skill_type
     },    
     
     {
+    "cursed wound",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_INT, STAT_DEX, STAT_STR,
+    spell_null,    TAR_IGNORE_OFF,     POS_STANDING,
+    &gsn_cursed_wound, 0, 0, DUR_SHORT,
+    "cursed wound", "Your wounds can be healed again.",  ""
+    },    
+    
+    {
     "custom_affect",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,

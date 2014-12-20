@@ -3205,40 +3205,28 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
      * Hurt the victim.
      * Inform the victim of his new state.
      */
+
+    // track mana loss for cursed wound penalty
+    int mana_loss = 0;
     
     if ( dt != gsn_beheading && !IS_AFFECTED(victim, AFF_MANA_BURN) )
     {
-	if ( victim->stance == STANCE_PHOENIX )
-	{
-	    if (victim->mana < dam / 2)
-	    {
-		dam -= victim->mana * 2;
-		victim->mana = 0;
-	    }
-	    else
-	    {
-		victim->mana -= dam/2;
 
-		/* Tweak to make phoenix less uberpowerful:
-		 *	it works as it once did, if you are below 25% of your max hp,
-		 *	but it works like mana shield, if you are at full hp,
-		 *	with a gradual gradient between the two extremes.
-		 */
-		if( victim->hit < victim->max_hit/4 ) dam = 0;
-		//else dam -= (victim->hit/victim->max_hit - .25) * 2/3; Quirky, Quirky.. :P
-		else dam = dam * victim->hit/victim->max_hit * 2/3 - dam/6;
-	    }
-	}
-
-	if ( is_affected(victim, gsn_mana_shield) )
-	{
-	    int mana_loss = UMIN(dam / 2, victim->mana);
-	    victim->mana -= mana_loss;
-	    dam -= mana_loss;
-	}
+        if ( victim->stance == STANCE_PHOENIX )
+        {
+            mana_loss = UMIN(dam / 3, victim->mana);
+            dam -= 2 * mana_loss;
+        }
+        else if ( is_affected(victim, gsn_mana_shield) )
+        {
+            mana_loss = UMIN(dam / 2, victim->mana);
+            dam -= mana_loss;
+        }
+        victim->mana -= mana_loss;
     }
-
+    
     int grit = get_skill(victim, gsn_true_grit);
+    int move_loss = 0;
     if ( grit > 0 && dam > 0 && lethal && dt != gsn_beheading && victim->move > 0 )
     {
         // absorb only damage that would drop victim below 1 hp
@@ -3255,7 +3243,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             if ( grit_roll > absorb_roll )
             {
                 victim->move -= absorb;
-                victim->hit += absorb;
+                dam -= absorb;
+                move_loss = absorb;
                 if ( show && !IS_SET(victim->gag, GAG_BLEED) )
                     send_to_char("You cling to life, showing true grit!\n\r", victim);
                 check_improve(victim, gsn_true_grit, TRUE, 1);
@@ -3269,7 +3258,37 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         victim->hit -= dam;
     else if (victim->hit > 0)
         victim->hit = UMAX(1, victim->hit - dam);
+    
+    // finally, all absorbtion checked - now check for cursed wound
+    if ( check_skill(ch, gsn_cursed_wound) && !saves_spell(victim, ch, ch->level, DAM_NEGATIVE) )
+    {
+        AFFECT_DATA af;
+        af.where     = TO_AFFECTS;
+        af.type      = gsn_cursed_wound;
+        af.level     = ch->level;
+        af.duration  = get_duration(gsn_cursed_wound, ch->level);
+        af.bitvector = AFF_CURSE;
         
+        if ( dam > 0 )
+        {
+            af.location  = APPLY_HIT;
+            af.modifier  = -dam;
+            affect_join( victim, &af );
+        }
+        if ( mana_loss > 0 )
+        {
+            af.location  = APPLY_MANA;
+            af.modifier  = -mana_loss;
+            affect_join( victim, &af );
+        }
+        if ( move_loss > 0 )
+        {
+            af.location  = APPLY_MOVE;
+            af.modifier  = -move_loss;
+            affect_join( victim, &af );
+        }
+    }
+
     #ifdef FSTAT 
     victim->damage_taken += dam;
     ch->damage_dealt += dam;
