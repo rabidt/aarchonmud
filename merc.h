@@ -4598,6 +4598,7 @@ bool    is_mimic( CHAR_DATA *ch );
 MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch );
 const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker );
 const char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype );
+const char* affect_name( AFFECT_DATA *paf );
 void    affect_to_char  args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf );
 void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );

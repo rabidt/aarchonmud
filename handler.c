@@ -1316,11 +1316,27 @@ void affect_renew( CHAR_DATA *ch, int sn, int level, int duration )
         }
 }
 
+const char* affect_name( AFFECT_DATA *paf )
+{
+    if ( paf->type == gsn_custom_affect )
+        return paf->tag;
+    else
+        return skill_table[paf->type].name;
+}
+
 /*
  * Return -1, 0 or 1 depending on ordering of af1, af2
  */
 int aff_cmp( AFFECT_DATA *af1, AFFECT_DATA *af2 )
 {
+    // only use name for skill-based or custom affects
+    // but not, e.g. for object affects (type = -1)
+    if ( af1->type > 0 && af2->type > 0 )
+    {
+        int name_cmp = strcmp(affect_name(af1), affect_name(af2));
+        if ( name_cmp != 0 )
+            return name_cmp;
+    }
 #define affcmp(X) if (af1->X != af2->X) return (af1->X < af2->X) ? -1 : 1
     affcmp(type);
     affcmp(where);
