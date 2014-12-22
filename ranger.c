@@ -918,10 +918,8 @@ DEF_DO_FUN(do_taxidermy)
             }
             else
             {
-                // get rid of the fresh keyword on corpses
-                sprintf(buf, "preserved corpse");
-                free_string(obj->name);
-                obj->name = str_dup(buf);
+                // replace the fresh keyword on corpses
+                obj->name = string_replace(obj->name, "fresh", "preserved");
             }
 	    
             check_improve(ch,gsn_taxidermy,TRUE,4);
