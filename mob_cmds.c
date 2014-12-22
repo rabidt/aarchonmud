@@ -1160,6 +1160,7 @@ void transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location )
         ap_renter_trigger(victim);
         rp_enter_trigger(victim);
         op_greet_trigger(victim);
+        mp_greet_trigger(victim);
     }
 }
 
