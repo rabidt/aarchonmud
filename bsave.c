@@ -1537,10 +1537,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 paf->modifier   = bread_number( buf );
                 paf->location   = bread_number( buf );
                 paf->bitvector  = bread_number( buf );
-		if ( pfile_version < VER_FLAG_CHANGE )
-		    FLAG_CONVERT( paf->bitvector );
-                paf->next       = ch->affected;
-                ch->affected    = paf;
+                if ( pfile_version < VER_FLAG_CHANGE )
+                    FLAG_CONVERT( paf->bitvector );
+                ch->affected = affect_insert(ch->affected, paf);
                 fMatch = TRUE;
                 break;
             }
