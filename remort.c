@@ -861,12 +861,16 @@ MEMFILE* remort_mem_save()
 void remort_begin(CHAR_DATA *ch)
 {
     int i;
+    bool reconnect = IS_SET(ch->act, PLR_REMORT_ROLL);
 
     remort_remove(ch, TRUE);
 
     // mark as rolling stats in case we loose connection
-    SET_BIT(ch->act, PLR_REMORT_ROLL);
-    quit_save_char_obj(ch);
+    if ( !reconnect )
+    {
+        SET_BIT(ch->act, PLR_REMORT_ROLL);
+        quit_save_char_obj(ch);
+    }
     
     if (ch->desc != NULL)
         ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
@@ -876,19 +880,22 @@ void remort_begin(CHAR_DATA *ch)
         return;
     }
     
-    char_from_char_list(ch);
-    
-    if ( is_in_room(ch) )
-        char_from_room(ch);
-    
-    /* need to do a little cleanup*/
-    CHAR_DATA *wch;
-    for ( wch = char_list; wch != NULL; wch = wch->next )
+    if ( !reconnect )
     {
-        if ( wch->reply == ch )
-            wch->reply = NULL;
-        if ( ch->mprog_target == wch )
-            wch->mprog_target = NULL;
+        char_from_char_list(ch);
+    
+        if ( is_in_room(ch) )
+            char_from_room(ch);
+        
+        /* need to do a little cleanup*/
+        CHAR_DATA *wch;
+        for ( wch = char_list; wch != NULL; wch = wch->next )
+        {
+            if ( wch->reply == ch )
+                wch->reply = NULL;
+            if ( ch->mprog_target == wch )
+                wch->mprog_target = NULL;
+        }
     }
 
     for (i = 0; i < MAX_STATS; i++)
