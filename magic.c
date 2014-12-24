@@ -5349,6 +5349,24 @@ DEF_SPELL_FUN(spell_sleep)
         return SR_IMMUNE;
     }
 
+    if ( IS_SET(victim->imm_flags,IMM_SLEEP))
+    {
+        send_to_char("Your victim is immune to sleep!\n\r", ch);
+        return SR_IMMUNE;
+    }
+
+    if ( victim->in_room == NULL
+            || IS_SET(victim->in_room->room_flags, ROOM_NO_RECALL)
+            || IS_TAG(ch)
+            || ( victim != ch && IS_SET(victim->imm_flags,IMM_SUMMON))
+            || ( !IS_NPC(ch) && victim->fighting != NULL )
+            || ( victim != ch
+                && ( saves_spell(victim, ch, level - 5, DAM_OTHER))))
+    {
+        send_to_char( "You failed.\n\r", ch );
+        return TRUE;
+    }
+
     if ( saves_spell(victim, ch, level, DAM_MENTAL)
             || number_bits(1)
             || (!IS_NPC(victim) && number_bits(1))
