@@ -536,6 +536,7 @@ const struct flag_type oprog_flags[] =
     {   "give",         OTRIG_GIVE,      TRUE    },
     {   "drop",         OTRIG_DROP,      TRUE    },
     {   "eat",          OTRIG_EAT,       TRUE    },
+    {   "drink",        OTRIG_DRINK,     TRUE    },
     {   "sacrifice",    OTRIG_SACRIFICE, TRUE    },
     {   "wear",         OTRIG_WEAR,      TRUE    },
     {   "remove",       OTRIG_REMOVE,    TRUE    },
