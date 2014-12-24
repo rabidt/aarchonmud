@@ -315,6 +315,7 @@ protocol_t *ProtocolCreate( void )
    pProtocol->ScreenHeight = 0;
    pProtocol->pMXPVersion = AllocString("Unknown");
    pProtocol->pLastTTYPE = NULL;
+   pProtocol->verbatim = false;
    pProtocol->pVariables = malloc(sizeof(MSDP_t*)*eMSDP_MAX);
 
    for ( i = eMSDP_NONE+1; i < eMSDP_MAX; ++i )
