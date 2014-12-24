@@ -4608,6 +4608,12 @@ DEF_DO_FUN(do_gaze)
         send_to_char("They cannot see you.\n\r", ch);
         return;
     }
+
+    if ( IS_SET(victim->imm_flags, IMM_GAZE) )
+    {
+        act( "As dreamy as your gaze is, $N is unaffected.", ch, NULL, victim, TO_CHAR );
+        return;
+    }
     
     if ( IS_AFFECTED(victim, AFF_PETRIFIED) )
     {
