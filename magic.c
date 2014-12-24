@@ -2356,6 +2356,7 @@ DEF_SPELL_FUN(spell_charm_person)
     if ( IS_AFFECTED(victim, AFF_CHARM)
             || IS_AFFECTED(ch, AFF_CHARM)
             || IS_SET(victim->imm_flags, IMM_CHARM)
+            || IS_SET(victim->imm_flags, IMM_CHARMPERSON)
             || IS_IMMORTAL(victim) )
     {
         act( "You can't charm $N.", ch, NULL, victim, TO_CHAR );
@@ -5346,6 +5347,12 @@ DEF_SPELL_FUN(spell_sleep)
     if ( IS_UNDEAD(victim) )
     {
         send_to_char("The undead never sleep!\n\r", ch );
+        return SR_IMMUNE;
+    }
+
+    if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
+    {
+        act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
         return SR_IMMUNE;
     }
 
