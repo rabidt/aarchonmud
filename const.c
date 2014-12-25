@@ -789,8 +789,8 @@ struct align_type align_table [] =
 	},
 
     {
-    "draconal", TRUE,
-    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    "dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
     {}, {RES_PIERCE,RES_CHARM,RES_MENTAL}, {},
     {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
     },
@@ -1776,7 +1776,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         { 
-          "draconal",   "Dracon",
+          "dragonborn",   "Dragon",
           { 310, 315, 310, 305, 310, 310, 310, 315, 315, 310, 310, 310, 310, 310, 315 },
           2, { "regeneration", "draconic breath" },
           {1,30},{100,100},
@@ -1812,36 +1812,36 @@ struct race_type morph_race_table[] =
 	},
 
     {
-    "red draconal", TRUE,
-    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    "red dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
     {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_FIRE}, {VULN_COLD},
     {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
     },
 
     {
-    "green draconal", TRUE,
-    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    "green dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
     {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_POISON}, {VULN_DISEASE},
     {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
     },
 
     {
-    "blue draconal", TRUE,
-    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    "blue dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
     {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_LIGHTNING}, {VULN_ACID},
     {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
     },
 
     {
-    "black draconal", TRUE,
-    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    "black dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
     {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_ACID}, {VULN_LIGHTNING},
     {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
     },
 
     {
-    "white draconal", TRUE,
-    {}, {AFF_FLYING, AFF_DETECT_MAGIC}, {},
+    "white dragonborn", TRUE,
+    {}, { AFF_DETECT_MAGIC}, {},
     {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_COLD}, {VULN_FIRE},
     {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
     },

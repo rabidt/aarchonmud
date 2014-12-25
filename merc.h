@@ -3238,7 +3238,7 @@ extern sh_int race_naga;
 extern sh_int race_doppelganger;
 extern sh_int race_vampire;
 extern sh_int race_rakshasa;
-extern sh_int race_draconal;
+extern sh_int race_dragonborn;
 
 /*
  * These are skill_lookup return values for common skills and spells.
@@ -4004,11 +4004,11 @@ struct stance_type
 #define MORPH_NAGA_SERPENT 0
 #define MORPH_NAGA_HUMAN   1
 #define MORPH_WOLFMAN      2
-#define MORPH_DRACONAL_RED      3
-#define MORPH_DRACONAL_GREEN    4
-#define MORPH_DRACONAL_BLUE     5
-#define MORPH_DRACONAL_BLACK    6
-#define MORPH_DRACONAL_WHITE    7
+#define MORPH_DRAGON_RED      3
+#define MORPH_DRAGON_GREEN    4
+#define MORPH_DRAGON_BLUE     5
+#define MORPH_DRAGON_BLACK    6
+#define MORPH_DRAGON_WHITE    7
 
 /*
  * Global constants.
