@@ -350,7 +350,7 @@ void curse_effect( void *vo, int level, int dam, int target )
 }
 
 
-/******** draconic breath for draconals - similar but different **********/
+/******** draconic breath for PC races - similar but different **********/
 
 static int deduct_draconic_breath_cost( CHAR_DATA *ch )
 {
@@ -457,29 +457,29 @@ void check_draconic_breath( CHAR_DATA *ch )
     switch ( ch->pcdata->morph_race )
     {
         default:
-        case MORPH_DRACONAL_RED:
+        case MORPH_DRAGON_RED:
             act("$n breathes forth a cone of fire.", ch, NULL, NULL, TO_ROOM);
             act("You breathe forth a cone of fire.", ch, NULL, NULL, TO_CHAR);
             proto_draconic_breath(gsn_fire_breath, cost, ch, victim, DAM_FIRE, &fire_effect, TRUE);
             break;
-        case MORPH_DRACONAL_GREEN:
+        case MORPH_DRAGON_GREEN:
             act("$n breathes out a cloud of poisonous gas!", ch, NULL, NULL, TO_ROOM);
             act("You breathe out a cloud of poisonous gas.", ch, NULL, NULL, TO_CHAR);
             proto_draconic_breath(gsn_gas_breath, cost, ch, victim, DAM_POISON, &poison_effect, TRUE);
             break;
-        case MORPH_DRACONAL_BLUE:
+        case MORPH_DRAGON_BLUE:
             act("$n breathes a blast of lightning at $N.", ch, NULL, victim, TO_NOTVICT);
             act("$n breathes a blast of lightning at you!", ch, NULL, victim, TO_VICT);
             act("You breathe a blast of lightning at $N.", ch, NULL, victim, TO_CHAR);
             proto_draconic_breath(gsn_lightning_breath, cost, ch, victim, DAM_LIGHTNING, &shock_effect, FALSE);
             break;
-        case MORPH_DRACONAL_BLACK:
+        case MORPH_DRAGON_BLACK:
             act("$n spits acid at $N.", ch, NULL, victim, TO_NOTVICT);
             act("$n spits a stream of corrosive acid at you.", ch, NULL, victim, TO_VICT);
             act("You spit acid at $N.", ch, NULL, victim, TO_CHAR);
             proto_draconic_breath(gsn_acid_breath, cost, ch, victim, DAM_ACID, &acid_effect, FALSE);
             break;
-        case MORPH_DRACONAL_WHITE:
+        case MORPH_DRAGON_WHITE:
             act("$n breathes out a freezing cone of frost!", ch, NULL, NULL, TO_ROOM);
             act("You breathe out a cone of frost.", ch, NULL, NULL, TO_CHAR);
             proto_draconic_breath(gsn_frost_breath, cost, ch, victim, DAM_POISON, &cold_effect, TRUE);
