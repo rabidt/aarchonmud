@@ -2732,12 +2732,14 @@ DEF_DO_FUN(do_recall)
     /* This vnum specification is for Bastion. Cheaper to recall from Bastion
        than other areas. Added to help newbies who get lost in our huge city. */
 
-    if (ch->in_room->area->min_vnum == 10200)
+    if ( IS_NPC(ch) )
+        move_cost = 0;
+    else if ( ch->in_room->area->min_vnum == 10200 )
         move_cost = ch->level * 5/2;
     else
         move_cost = ch->level * 5;
 
-    if ( !IS_NPC(ch) && ch->move < move_cost)
+    if ( ch->move < move_cost )
     {
 	send_to_char("You are too tired to recall.\n\r", ch);
 	return;
