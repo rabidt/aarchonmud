@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         435
+#define MAX_SKILL         436
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3297,6 +3297,7 @@ extern sh_int  gsn_ignite;
 extern sh_int  gsn_assassination;
 extern sh_int  gsn_brutal_damage;
 extern sh_int  gsn_razor_claws;
+extern sh_int  gsn_rake;
 
 extern sh_int  gsn_blindness;
 extern sh_int  gsn_charm_person;
@@ -4541,6 +4542,7 @@ void    attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim );
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void behead(CHAR_DATA *ch, CHAR_DATA *victim);
+void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* flags.c */
 void reset_pkill_expire( CHAR_DATA *ch );

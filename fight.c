@@ -1305,6 +1305,13 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	if ( ch->fighting != victim )
 	    return;
     }
+
+    if ( !IS_NPC(ch) && per_chance(get_skill(ch, gsn_rake)) )
+    {
+        rake_char(ch, victim);
+        if ( ch->fighting != victim )
+            return;
+    }
     
     chance = get_skill(ch,gsn_second_attack) * 2/3 +  ch_dex_extrahit(ch);
     
@@ -1700,7 +1707,7 @@ int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
             return dam * 3/4;
     }
 
-    if ( sn == gsn_razor_claws )
+    if ( sn == gsn_rake )
     {
         if ( IS_SET(ch->parts, PART_CLAWS) )
             return dam;
@@ -2639,9 +2646,8 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
     if ( wield == NULL )
     {
-        /* razor claw is active AND passive skill => mobs have it */
-        int skill = IS_NPC(ch) ? 0 : get_skill(ch, gsn_razor_claws);
-        if ( (per_chance(skill) && number_bits(1)) || ch->stance == STANCE_SHADOWCLAW )
+        int skill = get_skill(ch, gsn_razor_claws);
+        if ( (ch->stance == STANCE_DEFAULT && per_chance(skill)) || ch->stance == STANCE_SHADOWCLAW )
         {
             act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
             act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
@@ -5907,7 +5913,7 @@ int get_damage_messages( int dam, int dt, const char **vs, const char **vp, char
             if ( dam < 1 )
             { 
                 *vs = "miss"; *vp = "misses";
-                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick )
+                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick || dt == gsn_rake )
                     gag_type = GAG_MISS;
             }
             else if ( dam <   2 ) { *vs = "{mbother{ ";  *vp = "{mbothers{ "; }

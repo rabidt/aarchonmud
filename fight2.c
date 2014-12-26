@@ -3590,49 +3590,56 @@ DEF_DO_FUN(do_rake)
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
-    int skill, dam; 
 
-   dam = martial_damage( ch, NULL, gsn_razor_claws );
-
-   if ( (skill = get_skill(ch, gsn_razor_claws)) == 0 )
-   {
-       if ( IS_SET(ch->parts, PART_CLAWS) )
-	   send_to_char( "Your claws aren't sharp enough!\n\r", ch );
-       else
-	   send_to_char( "You lack the claws for that!\n\r", ch );
+    if ( get_skill(ch, gsn_rake) == 0 && !IS_SET(ch->parts, PART_CLAWS) )
+    {
+       send_to_char( "You lack the claws for that!\n\r", ch );
        return;
-   }
-
-   for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
-   {
-       vch_next = vch->next_in_room;
-       if ( vch != ch && !is_safe_spell(ch,vch,TRUE) )
-       {
-	   /* now the attack */
-	   if ( check_hit(ch, vch, gsn_razor_claws, DAM_SLASH, skill) )
-	   {
-	       check_killer(ch, vch);
-	       if ( number_bits(8) == 0 || IS_IMMORTAL(ch) )
-	       {
-		   /* behead */
-		   act("In a mighty strike, your claws separate $N's neck.",
-		       ch,NULL,vch,TO_CHAR);
-		   act("In a mighty strike, $n's claws separate $N's neck.",
-		       ch,NULL,vch,TO_NOTVICT);
-		   act("$n slashes $s claws through your neck.",ch,NULL,vch,TO_VICT);
-		   behead(ch, vch);
-	       }
-	       else
-		   full_dam(ch,vch,dam,gsn_razor_claws, DAM_SLASH, TRUE);
-	   }
+    }
+        
+    WAIT_STATE( ch, skill_table[gsn_rake].beats );
+    
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
+    {
+        vch_next = vch->next_in_room;
+        if ( vch != ch && !is_safe_spell(ch, vch, TRUE) )
+        {
+            check_killer(ch, vch);
+            rake_char(ch, vch);
        }
-   }
-
-   WAIT_STATE( ch, skill_table[gsn_razor_claws].beats );
-   check_improve( ch, gsn_razor_claws, TRUE, 3 );
-
+    }
 }
 
+// make one rake attack
+void rake_char( CHAR_DATA *ch, CHAR_DATA *victim)
+{
+    int skill = get_skill(ch, gsn_rake);
+    
+    if ( IS_SET(ch->parts, PART_CLAWS) )
+    {
+        skill = (100 + skill) / 2;
+    }
+    
+    if ( check_hit(ch, victim, gsn_rake, DAM_SLASH, skill) )
+    {
+        int razor_skill = get_skill(ch, gsn_razor_claws);
+        if ( per_chance(razor_skill) && number_bits(8) == 0 )
+        {
+            /* behead */
+            act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
+            act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
+            act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
+            behead(ch, victim);
+        }
+        else
+        {
+            int dam = martial_damage(ch, victim, gsn_rake);
+            full_dam(ch, victim, dam, gsn_rake, DAM_SLASH, TRUE);
+        }
+    }
+    else
+        full_dam(ch, victim, 0, gsn_rake, DAM_SLASH, TRUE);
+}
 
 DEF_DO_FUN(do_puncture)
 {
