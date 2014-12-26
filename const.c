@@ -785,7 +785,7 @@ struct align_type align_table [] =
 	"behemoth",        TRUE,
 	{},      {AFF_DARK_VISION},   {},
 	{},      {RES_COLD}, {VULN_MENTAL},
-	{A,H,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K,U,V}
+	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K,U,V}
 	},
 
     {
@@ -1767,8 +1767,8 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "behemoth",   "Behemo",
           { 305, 305, 315, 315, 305, 310, 310, 305, 305, 315, 310, 315, 305, 305, 315 },
-          4, { "razor claws", "berserk", "brutal damage", "hunt" },
-          {1,10,60,80},{100,100,100,80},
+          4, { "razor claws", "rake", "brutal damage", "hunt" },
+          {1,1,40,80},{100,100,100,80},
           {  95,  95,  95,  90,  90,      30,  30,  50,  50,  50 },
           { 165, 155, 155, 150, 150,     140, 140, 150, 150, 150 },  
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
@@ -4988,17 +4988,28 @@ struct  skill_type
 		"",                     "!Brutal Damage!",    ""
 	},
 
-	{
-	"razor claws", 
-	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {
+    "razor claws", 
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-	STAT_NONE, STAT_NONE, STAT_NONE,
-		spell_null,             TAR_IGNORE,             POS_FIGHTING,
-		&gsn_razor_claws,           0,     0, DUR_NONE,
-		"rake",                     "!Razor Claws!",    ""
-	},
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_STR, STAT_VIT, STAT_DEX,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_razor_claws, 0, 0, DUR_NONE,
+    "", "!Razor Claws!", ""
+    },
 
+    {
+    "rake", 
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_DEX, STAT_STR, STAT_VIT,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_rake, 0, 18, DUR_NONE,
+    "rake", "!Rake!",    ""
+    },
+    
 	{
 	"dual wield",
 	{  5, 102, 102, 102,  1,  5, 102, 37, 102, 102, 102, 102, 102, 10, 102 },

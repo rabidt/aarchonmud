@@ -281,6 +281,7 @@ sh_int  gsn_assassination;
 sh_int  gsn_fatal_blow;
 sh_int  gsn_brutal_damage;
 sh_int  gsn_razor_claws;
+sh_int  gsn_rake;
 sh_int  gsn_fervent_rage;
 sh_int  gsn_fervent_rage_cooldown;
 sh_int  gsn_paroxysm;
