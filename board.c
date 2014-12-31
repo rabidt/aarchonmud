@@ -1413,6 +1413,7 @@ void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument)
                 free_string(ch->pcdata->in_progress->text);
                 ch->pcdata->in_progress->text = NULL;
                 ptc( ch, "Note cleared.\n\r");
+                continue; /*for*/
             }
         }
 
