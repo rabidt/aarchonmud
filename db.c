@@ -214,7 +214,8 @@ sh_int  gsn_peel;
 sh_int  gsn_two_handed;
 sh_int  gsn_infectious_arrow;
 sh_int  gsn_critical;
-sh_int  gsn_power_thrust;
+//sh_int  gsn_power_thrust;
+sh_int  gsn_power_attack;
 sh_int  gsn_natural_resistance;
 sh_int  gsn_quivering_palm;
 sh_int  gsn_basic_apparition;
@@ -245,6 +246,7 @@ sh_int  gsn_feeblemind;
 sh_int  gsn_haste;
 sh_int  gsn_giant_strength;
 sh_int  gsn_slow;
+sh_int  gsn_iron_maiden;
 
 /* new gsns */
 
@@ -2737,7 +2739,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
 void arm_npc( CHAR_DATA *mob )
 {
     OBJ_DATA *obj;
-    int dam, level;
+    int level;
 
     if ( mob == NULL || !IS_NPC(mob) || !IS_SET(mob->off_flags, OFF_ARMED) )
 	return;
@@ -2749,16 +2751,16 @@ void arm_npc( CHAR_DATA *mob )
 	return;
 
     /* adjust to level */
-    level = mob->level;
-    level = number_range( 1+level/3, UMIN(100, level*2/3) );
-    if ( level <= 90 )
-	dam = level * 2/3;
+    if ( mob->level <= 100 )
+        level = number_range(mob->level * 6/10, mob->level * 9/10);
     else
-	dam = 2 * level - 120;
-    obj->level = level;
-    obj->value[1] = 2;
-    obj->value[2] = UMAX(1, dam-1);
-
+    {
+        int min_level = UMIN(90, mob->level * 6/10);
+        int max_level = 80 + mob->level/10;
+        level = number_range(min_level, max_level);
+    }
+    obj->level = URANGE(1, level, 100);
+    
     /* determin weapon type */
     if ( IS_SET(mob->act, ACT_GUN) )
 	obj->value[0] = WEAPON_GUN;
@@ -2863,16 +2865,9 @@ void arm_npc( CHAR_DATA *mob )
     obj->weight *= 10;
     obj->weight += number_range( -10, 10 );
 
-    /* make two-handed? */
-    if ( obj->value[0] == WEAPON_POLEARM
-	 || (number_bits(3) == 0
-	     && obj->value[0] != WEAPON_DAGGER
-	     && obj->value[0] != WEAPON_WHIP) )
-    {
-	I_SET_BIT( obj->value[4], WEAPON_TWO_HANDS );
-	obj->weight = obj->weight * 3/2;
-    }
-
+    // set weapon damage based on level and type
+    set_weapon_dam(obj, weapon_dam_spec(level, obj->value[0], FALSE));
+    
     /* override damtype with mob's setting? */
     if (mob->pIndexData->dam_type != DAM_NONE)
     {
@@ -2882,6 +2877,39 @@ void arm_npc( CHAR_DATA *mob )
     /* equip weapon */
     obj_to_char( obj, mob );
     equip_char( mob, obj, WEAR_WIELD );
+
+    // mobs may dual-wield, have a two-handed weapon, or weapon + shield
+    bool can_twohand = obj->value[0] != WEAPON_DAGGER && obj->value[0] != WEAPON_WHIP;
+    bool can_dual = !IS_SET(mob->act, ACT_CLERIC) && !IS_SET(mob->act, ACT_MAGE);
+    bool can_shield = !IS_SET(mob->act, ACT_THIEF) && !IS_SET(mob->act, ACT_MAGE) && !IS_SET(mob->act, ACT_GUN);
+    
+    if ( can_twohand && (obj->value[0] == WEAPON_POLEARM || per_chance(25)) )
+    {
+        I_SET_BIT( obj->value[4], WEAPON_TWO_HANDS );
+        obj->weight = obj->weight * 3/2;
+        set_weapon_dam(obj, weapon_dam_spec(level, obj->value[0], TRUE));
+    }
+    else if ( can_dual && per_chance(obj->value[0] == WEAPON_DAGGER || obj->value[0] == WEAPON_GUN ? 66 : 33) )
+    {
+        OBJ_DATA *secondary = create_object(get_obj_index(OBJ_VNUM_MOB_WEAPON), 0);
+        if ( secondary != NULL )
+        {
+            clone_object(obj, secondary);
+            obj_to_char(secondary, mob);
+            equip_char(mob, secondary, WEAR_SECONDARY);
+        }
+    }
+    else if ( can_shield && (IS_SET(mob->act, ACT_WARRIOR) || per_chance(50)) )
+    {
+        OBJ_DATA *shield = create_object(get_obj_index(OBJ_VNUM_MOB_SHIELD), 0);
+        if ( shield != NULL )
+        {
+            shield->level = obj->level;
+            shield->value[0] = armor_class_by_level(obj->level);
+            obj_to_char(shield, mob);
+            equip_char(mob, shield, WEAR_SHIELD);
+        }
+    }
 }
 
 void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description )
@@ -3037,6 +3065,10 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     flag_copy( mob->form, pMobIndex->form );
     flag_copy( mob->parts, pMobIndex->parts );
     mob->size           = pMobIndex->size;
+    
+    // set calm threshold to prevent mobs exhausting themselves completely
+    // mainly for summons, but also to allow fleeing, stancing, etc.
+    mob->calm = 10;
 
     // money money money
     long wealth = mob_base_wealth( pMobIndex );

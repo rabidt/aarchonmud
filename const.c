@@ -791,7 +791,7 @@ struct align_type align_table [] =
 /* NPC RACES */
 {
 	"bat",          FALSE,
-	{},      {AFF_FLYING,AFF_DARK_VISION, OFF_DODGE,OFF_FAST},
+	{},      {AFF_FLYING,AFF_DARK_VISION}, {OFF_DODGE,OFF_FAST},
 	{},      {},      {VULN_LIGHT},
 	    {A,G,V},      {A,C,D,E,F,H,J,K,P}
 	},
@@ -980,6 +980,20 @@ struct align_type align_table [] =
 	{},      {},   {},
 	{},      {RES_HOLY}, {VULN_NEGATIVE},
 	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K,W}
+	},
+
+	{
+	"dragon",    FALSE,
+	{},    {AFF_FLYING, AFF_REGENERATION},    {},
+	{},    {RES_FIRE, RES_CHARM, RES_MENTAL}, {},
+	{C, G, Z, cc},    {A, D, L, P, Q, V, X}
+	},
+
+	{
+	"robot",    FALSE,
+	{},    {},    {},
+	{},    {RES_MENTAL, RES_POISON}, {VULN_DROWNING, VULN_ACID},
+	{},    {}
 	},
 
 	{
@@ -3601,7 +3615,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_iron_maiden,   TAR_VIS_CHAR_OFF,      POS_FIGHTING,
-	NULL,              60, 12, DUR_BRIEF,
+	&gsn_iron_maiden, 60, 12, DUR_BRIEF,
 	"self-torture",         "Your torture ends.",  ""
 	},
 
@@ -5445,6 +5459,7 @@ struct  skill_type
         },
 */
 
+/*
 	{
 	"power thrust",
 	{ 60, 102, 102, 102, 55, 102, 102, 102, 102, 30, 102, 102, 102, 102, 102 },
@@ -5455,6 +5470,18 @@ struct  skill_type
 	&gsn_power_thrust,               0, 12, DUR_NONE,
 	"power thrust",         "!power thrust!",   ""
 	},
+*/
+
+    {
+        "power attack",
+        {  10, 102, 102, 102,   8,  10,  15, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 3,
+        {  95, 100, 100, 100, 100,  95,  90, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_VIT, STAT_CON,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+        &gsn_power_attack, 0, 24, DUR_NONE,
+        "power attack", "!power attack!", ""
+    },
 
 	{
 	"quivering palm",

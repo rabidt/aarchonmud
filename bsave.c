@@ -83,6 +83,16 @@ char *print_flags(int flag)
     return buf;
 }
 
+static int count_objects( OBJ_DATA *obj_list )
+{
+    int count = 0;
+    while ( obj_list )
+    {
+        count += 1 + count_objects(obj_list->contains);
+        obj_list = obj_list->next_content;
+    }
+    return count;
+}
 
 /*
  * Array of containers read for proper re-nesting of objects.
@@ -165,6 +175,10 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
       bug(msg, 0);
       return NULL;
     }
+
+    /* record obj count to track vanishing eq bug */
+    if ( ch->carrying == NULL )
+        logpf("mem_save_char_obj: %s carries no objects", ch->name);
 
     /* now save to memory file */
     bprintf( mf->buf, "#VER %d\n", CURR_PFILE_VERSION );
@@ -1161,7 +1175,7 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
 /*
  * Load a char and inventory into a new ch structure.
  */
-void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
+void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
 {
     CHAR_DATA *ch;
     int stat;
@@ -1276,7 +1290,12 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
             
             word = bread_word( buf );
             if      ( !str_cmp( word, "VER"    ) ) pfile_version = bread_number ( buf );
-            else if ( !str_cmp( word, "PLAYER" ) ) bread_char ( ch, buf );
+            else if ( !str_cmp( word, "PLAYER" ) )
+            {
+                bread_char(ch, buf);
+                if ( char_only )
+                    break;
+            }
             else if ( !str_cmp( word, "OBJECT" ) ) bread_obj  ( ch->pet ? ch->pet : ch, buf, NULL );
             else if ( !str_cmp( word, "O"      ) ) bread_obj  ( ch->pet ? ch->pet : ch, buf, NULL );
             else if ( !str_cmp( word, "PET"    ) ) bread_pet  ( ch, buf );
@@ -1288,6 +1307,10 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
             }
         }
 
+    /* record obj count to track vanishing eq bug */
+    if ( !char_only )
+        logpf("mem_load_char_obj: %s carries %d objects", ch->name, count_objects(ch->carrying));
+        
     /* initialize race */
     if (ch->race == 0)
         ch->race = race_lookup("human");
@@ -3055,7 +3078,7 @@ DEF_DO_FUN(do_finger)
     
     d = new_descriptor();
     
-    if (!load_char_obj(d, argument))
+    if ( !load_char_obj(d, argument, TRUE) )
     {
         send_to_char("Character not found.\n\r", ch);
         /* load_char_obj still loads "default" character

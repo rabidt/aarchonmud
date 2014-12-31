@@ -338,6 +338,14 @@ void check_rescue( CHAR_DATA *ch )
     if ( !wants_to_rescue(ch) || !can_attack(ch) )
         return;
 
+    // NPCs only have a *chance* to try a rescue
+    if ( IS_NPC(ch) )
+    {
+        int hp_percent = 100 * ch->hit / UMAX(1, ch->max_hit);
+        if ( number_bits(1) || !per_chance(hp_percent) )
+            return;
+    }
+    
     // get target
     for ( attacker = ch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
     {
@@ -569,6 +577,13 @@ void special_affect_update(CHAR_DATA *ch)
         deal_damage( ch, ch, damage, gsn_paralysis_poison, DAM_POISON, TRUE, FALSE );
     }
     
+    /* Iron maiden - Reset damage dealt, stored in modifier */
+    if ( IS_AFFECTED(ch, AFF_IRON_MAIDEN) )
+    {
+        af = affect_find(ch->affected, gsn_iron_maiden);
+        if ( af != NULL )
+            af->modifier = 0;
+    }
 }
 
 /* check wether a char succumbs to his fears and tries to flee */
@@ -2055,6 +2070,12 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         int skill = get_skill(ch, gsn_smite);
         dam += dam * align_diff / 2000 * skill / 100;
     }
+    if ( dt == gsn_power_attack )
+    {
+        int skill = get_skill(ch, gsn_power_attack);
+        dam += dam * skill / 100;
+        dam += dam * mastery_bonus(ch, gsn_power_attack, 20, 25) / 100;
+    }
 
     if ( IS_AFFECTED(ch, AFF_WEAKEN) )
         dam -= dam / 10;
@@ -3159,14 +3180,25 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         int iron_dam = dam/4;
 
-	/* if-check to lower spam */
-	if ( show || iron_dam > ch->level )
-	    direct_damage( ch, ch, iron_dam, skill_lookup("iron maiden") );
-	else
-	    direct_damage( ch, ch, iron_dam, 0 );
+        // cap damage per round
+        AFFECT_DATA *aff = affect_find(ch->affected, gsn_iron_maiden);
+        if ( aff != NULL )
+        {
+            int max_dpr = (20 + aff->level) * 2;
+            // aff->modifier stores damage taken from iron maiden this round so far
+            iron_dam = URANGE(0, iron_dam, max_dpr - aff->modifier);
+            aff->modifier += iron_dam;
+        }
+        
+        if ( iron_dam > 0 )
+        {
+            /* if-check to lower spam */
+            if ( show || iron_dam > ch->level )
+                direct_damage( ch, ch, iron_dam, skill_lookup("iron maiden") );
+            else
+                direct_damage( ch, ch, iron_dam, 0 );
+        }
     }
-
-
 
     /*
      * Hurt the victim.
@@ -3432,10 +3464,13 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     }
     else if (!IS_NPC(ch) && !IS_NPC(victim))
     {
-	clan_table[ch->clan].pkills++;
-	clan_table[ch->clan].changed = TRUE;
-	clan_table[victim->clan].pdeaths++;
-	clan_table[victim->clan].changed = TRUE;
+        if ( !PLR_ACT(ch, PLR_WAR) && !PLR_ACT(victim, PLR_WAR) )
+        {
+            clan_table[ch->clan].pkills++;
+            clan_table[ch->clan].changed = TRUE;
+            clan_table[victim->clan].pdeaths++;
+            clan_table[victim->clan].changed = TRUE;
+        }
     }
 
     if ( IS_NPC(ch) )
@@ -4844,6 +4879,10 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
     if ( ch == victim )
         return;
 
+    // avoid repeated kills - e.g. when teleporting both parties into the same room after warfare
+    if ( ch->just_killed || victim->just_killed )
+        return;
+    
     if ( IS_AFFECTED( ch, AFF_OVERCHARGE))
     {
 	affect_strip_flag( ch, AFF_OVERCHARGE );
@@ -5035,16 +5074,13 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
             {
                 if (IS_AFFECTED(killer, AFF_FORTUNE))
                 {
-                    obj_to_obj( create_money( victim->gold*3/2, victim->silver*3/2 ), corpse );
-                    victim->gold = 0;
-                    victim->silver = 0;
+                    int bonus = mob_base_wealth(victim->pIndexData) / 2;
+                    victim->gold += bonus / 100;
+                    victim->silver += bonus % 100;
                 }
-                else
-                {
-                    obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
-                    victim->gold = 0;
-                    victim->silver = 0;
-                }
+                obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
+                victim->gold = 0;
+                victim->silver = 0;
             }
         }
         corpse->cost = 0;
@@ -5084,6 +5120,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     corpse->level = victim->level;
     
     sprintf( buf, corpse->name, name );
+    sprintf( buf, "%s fresh", buf);
     free_string( corpse->name );
     corpse->name = str_dup( buf );
 
@@ -5649,7 +5686,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 2 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0,3*victim->size - 5) : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 5 : 0;
@@ -5669,6 +5706,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         // casters
         else if ( spec == spec_cast_cleric
             || spec == spec_cast_mage
+            || spec == spec_cast_draconic
             || spec == spec_cast_undead )
             base_exp += base_exp / 2;
         // other
@@ -6135,6 +6173,12 @@ DEF_DO_FUN(do_flee)
             return;
         }
         exit_count = get_exit_count(ch);
+    }
+    
+    if ( ch->move <= 0 )
+    {
+        send_to_char("You are too exhausted to run!\n\r", ch);
+        return;
     }
     
     // we now have a chance to escape, so lag is given now, regardless of success

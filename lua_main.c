@@ -778,7 +778,7 @@ static int L_charloadtest( lua_State *LS )
             lua_pop( LS, 1 );
             break;
         }
-        if (!load_char_obj( &d, check_string( LS, -1, MIL ) ) )
+        if ( !load_char_obj(&d, check_string(LS, -1, MIL), TRUE) )
         {
             lua_pop( LS, 1 );
             continue;

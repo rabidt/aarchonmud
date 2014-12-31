@@ -950,6 +950,7 @@ struct spec_type
 {
     const char* name;           /* special function name */
 	SPEC_FUN *  function;       /* the function */
+    bool wait_based;            /* execute as soon as wait == 0 */
 };
 
 
@@ -1674,6 +1675,7 @@ struct  kill_data
 #define OBJ_VNUM_ROSE           45
 #define OBJ_VNUM_MOB_WEAPON     46
 #define OBJ_VNUM_BLOOD          47
+#define OBJ_VNUM_MOB_SHIELD     49
 #define OBJ_VNUM_PIT           3010
 
 #define OBJ_VNUM_SCHOOL_MACE       18400
@@ -3314,6 +3316,7 @@ extern sh_int  gsn_mass_confusion;
 extern sh_int  gsn_haste;
 extern sh_int  gsn_giant_strength;
 extern sh_int  gsn_slow;
+extern sh_int  gsn_iron_maiden;
 
 /* new gsns */
 extern sh_int  gsn_axe;
@@ -3534,7 +3537,8 @@ extern sh_int  gsn_unearth;
 extern sh_int  gsn_magic_missile;
 extern sh_int  gsn_acid_blast;
 extern sh_int  gsn_armor;
-extern sh_int  gsn_power_thrust;
+//extern sh_int  gsn_power_thrust;
+extern sh_int  gsn_power_attack;
 extern sh_int  gsn_natural_resistance;
 extern sh_int  gsn_quivering_palm;
 extern sh_int  gsn_bless;
@@ -3767,7 +3771,8 @@ struct achievement_entry
  */
 #define IS_VALID(data)      ((data) != NULL && (data)->valid)
 #define VALIDATE(data)      ((data)->valid = TRUE)
-#define INVALIDATE(data)    ((data)->valid = FALSE)
+//#define INVALIDATE(data)    ((data)->valid = FALSE)
+#define INVALIDATE(data)    memset(data, 0, sizeof(*data))
 #define UMIN(a, b)      ((a) < (b) ? (a) : (b))
 #define UMAX(a, b)      ((a) > (b) ? (a) : (b))
 #define URANGE(a, b, c)     ((b) < (a) ? (a) : ((b) > (c) ? (c) : (b)))
@@ -4306,7 +4311,7 @@ void handle_con_note_finish (DESCRIPTOR_DATA *d, const char * argument);
 
 /* bsave.c */
 MEMFILE* mem_save_char_obj( CHAR_DATA *ch );
-void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf );
+void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only );
 void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf );
 MEMFILE* remort_mem_save();
 
@@ -4598,6 +4603,7 @@ void    affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf );
 void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
 void    affect_remove   args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_remove_obj args( (OBJ_DATA *obj, AFFECT_DATA *paf ) );
+void    affect_renew( CHAR_DATA *ch, int sn, int level, int duration );
 AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
 AFFECT_DATA* affect_find_location( AFFECT_DATA *paf, int type, int location, int duration );
 AFFECT_DATA* affect_find_flag( AFFECT_DATA *paf, int flag );
@@ -4613,6 +4619,7 @@ void    affect_strip_obj( OBJ_DATA *obj, int sn );
 void    custom_affect_strip( CHAR_DATA *ch, const char *tag );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
+void    affect_join_capped( CHAR_DATA *ch, AFFECT_DATA *paf, int cap );
 void    char_from_room  args( ( CHAR_DATA *ch ) );
 void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
@@ -4780,6 +4787,9 @@ int check_cha_follow( CHAR_DATA *ch, int required );
 bool can_cast_transport( CHAR_DATA *ch );
 void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int dam_type );
 
+/* magic2.c */
+void decompose_update( CHAR_DATA *ch, int min_duration );
+
 /* marry.c */
 void check_spouse( CHAR_DATA *ch );
 
@@ -4852,6 +4862,7 @@ char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 void set_mob_level( CHAR_DATA *mob, int level );
 void set_weapon_dam( OBJ_DATA *pObj, int dam );
 bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj );
+int armor_class_by_level( int level );
 int average_roll( int nr, int type, int bonus );
 int average_mob_hp( int level );
 AREA_DATA *get_vnum_area( int vnum );
@@ -4900,6 +4911,7 @@ bool check_parse_name( const char *name, bool newchar );
 bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn );
 bool check_playing( DESCRIPTOR_DATA *d, const char *name );
 void nanny( DESCRIPTOR_DATA *d, const char *argument );
+bool check_password( const char *argument, const char *pwd );
 
 /* playback.c */
 void log_chan( CHAR_DATA * ch, const char *text , sh_int channel );
@@ -4968,6 +4980,7 @@ void save_social_table();
 /* special.c */
 SF *    spec_lookup args( ( const char *name ) );
 const char* spec_name_lookup( SPEC_FUN *function );
+bool is_wait_based( SPEC_FUN *function );
 
 /* stats.c */
 int get_curr_stat   args( ( CHAR_DATA *ch, int stat ) );
