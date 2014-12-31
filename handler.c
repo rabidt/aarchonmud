@@ -58,6 +58,7 @@ OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int 
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
+CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact );
 
 /* friend stuff -- for NPC's mostly */
 bool is_friend(CHAR_DATA *ch,CHAR_DATA *victim)
@@ -1253,8 +1254,6 @@ bool is_affected( CHAR_DATA *ch, int sn )
     return FALSE;
 }
 
-
-
 /*
  * Add or enhance an affect.
  */
@@ -1277,6 +1276,44 @@ void affect_join( CHAR_DATA *ch, AFFECT_DATA *paf )
     
     affect_to_char( ch, paf );
     return;
+}
+
+/*
+ * Add or enhance an affect.
+ */
+void affect_join_capped( CHAR_DATA *ch, AFFECT_DATA *paf, int cap )
+{
+    AFFECT_DATA *paf_old;
+    
+    for ( paf_old = ch->affected; paf_old != NULL; paf_old = paf_old->next )
+    {
+        if ( paf_old->type == paf->type && paf_old->location == paf->location )
+        {
+            paf->level = UMAX( paf->level, paf_old->level );
+            paf->duration = UMAX( paf->duration, paf_old->duration );
+            // negative cap indicates a lower bound
+            if ( cap < 0 )
+                paf->modifier = UMAX(UMIN(cap, paf_old->modifier), paf->modifier + paf_old->modifier);
+            else
+                paf->modifier = UMIN(UMAX(cap, paf_old->modifier), paf->modifier + paf_old->modifier);
+            affect_remove( ch, paf_old );
+            break;
+        }
+    }
+    
+    affect_to_char( ch, paf );
+    return;
+}
+
+void affect_renew( CHAR_DATA *ch, int sn, int level, int duration )
+{
+    AFFECT_DATA *paf;
+    for ( paf = ch->affected; paf != NULL; paf = paf->next )
+        if ( paf->type == sn )
+        {
+            paf->level = UMAX(paf->level, level);
+            paf->duration = UMAX(paf->duration, duration);
+        }
 }
 
 /*
@@ -2365,7 +2402,7 @@ CHAR_DATA* char_list_find( char *name )
 }
 
 /*
- * Extract a char from the world. Returns true if removed from char_list (i.e., not delayed)
+ * Extract a char from the world. Returns true if successful.
  */
 bool extract_char( CHAR_DATA *ch, bool fPull )
 {
@@ -2572,7 +2609,7 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact )
     int number = 0;
     int count = 0;
     
-    if ( argument == NULL || argument[0] == '\0' )
+    if ( argument == NULL || argument[0] == '\0' || ch->in_room == NULL )
 	return NULL;
 
     number = number_argument( argument, arg );
@@ -2625,6 +2662,24 @@ CHAR_DATA *get_char_area( CHAR_DATA *ch, const char *argument )
     return ach;
 }
 
+// allow targeting via w.name (world), a.name (area), g.name (group)
+// returns 'w', 'a', 'g' or 'x' as default
+static char target_location(const char *argument, const char **nextarg)
+{
+    if ( argument == NULL || strlen(argument) < 2 || argument[1] != '.' )
+    {
+        *nextarg = argument;
+        return 'x';
+    }
+    if ( argument[0] == 'w' || argument[0] == 'a' || argument[0] == 'g' )
+    {
+        *nextarg = argument + 2;
+        return argument[0];
+    }
+    *nextarg = argument;
+    return 'x';    
+}
+
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
@@ -2639,40 +2694,56 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool ex
         return ch;
     if ( !str_cmp(argument, "opponent") )
         return ch->fighting;
-    
+
+    char location = target_location(argument, &argument);
     number = number_argument( argument, arg );
     count = 0;
+
+    // area flag restricts locations
+    if ( area && (location == 'g' || location == 'w') )
+        location = 'x';
+    
+    if ( location == 'g' )
+        return get_char_group_new(ch, argument, exact);
     
     // search in room first, keeping count
-    for ( target = ch->in_room->people; target != NULL; target = target->next_in_room )
-    {
-        if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
-            continue;
+    if ( location == 'x' )
+        for ( target = ch->in_room->people; target != NULL; target = target->next_in_room )
+        {
+            if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
+                continue;
 
-        if ( ++count == number )
-            return target;
-    }
+            if ( ++count == number )
+                return target;
+        }
     
     // then in area, excluding room
-    for ( target = char_list; target != NULL ; target = target->next )
-    {
-        if ( target->in_room == ch->in_room || target->in_room == NULL || target->in_room->area != ch->in_room->area )
-            continue;
-        
-        if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
-            continue;
+    if ( location == 'x' || location == 'a' )
+        for ( target = char_list; target != NULL ; target = target->next )
+        {
+            if ( target->in_room == NULL || target->in_room->area != ch->in_room->area )
+                continue;
+            
+            if ( location == 'x' && target->in_room == ch->in_room )
+                continue;
+            
+            if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
+                continue;
 
-        if ( ++count == number )
-            return target;
-    }
+            if ( ++count == number )
+                return target;
+        }
     
-    if ( area )
+    if ( area || location == 'a' )
         return NULL;
     
     // finally in world
     for ( target = char_list; target != NULL ; target = target->next )
     {
-        if ( target->in_room == NULL || target->in_room->area == ch->in_room->area )
+        if ( target->in_room == NULL )
+            continue;
+         
+        if ( location == 'x' && target->in_room->area == ch->in_room->area )
             continue;
         
         if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )

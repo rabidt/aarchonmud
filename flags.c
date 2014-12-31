@@ -317,7 +317,7 @@ void pkill_confirm(CHAR_DATA *ch, const char *arg)
     if (ch->pcdata->confirm_pkill)
     {
         /* extra password check to prevent pkill by trigger-abuse */
-        if ( strcmp(crypt(arg, ch->pcdata->pwd), ch->pcdata->pwd) )
+        if ( !check_password(arg, ch->pcdata->pwd) )
         {
             send_to_char( "Wrong password, try again.\n\r", ch );
             return; 
