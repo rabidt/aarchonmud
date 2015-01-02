@@ -1492,6 +1492,31 @@ static int set_flag( lua_State *LS,
     return 0;
 }
 
+static int set_iflag( lua_State *LS,
+        const char *funcname,
+        const struct flag_type *flagtbl,
+        int *intvar)
+{
+    const char *argument = check_string( LS, 2, MIL);
+    bool set = TRUE;
+    if (!lua_isnone( LS, 3 ) )
+    {
+        set=lua_toboolean(LS,3);
+    }
+
+    int flag=flag_lookup( argument, flagtbl);
+    if ( flag == NO_FLAG )
+        return luaL_error(LS, "'%s' invalid flag for %s", argument, funcname);
+
+    if ( set )
+        I_SET_BIT( *intvar, flag);
+    else
+        I_REMOVE_BIT( *intvar, flag);
+
+    return 0;
+}
+        
+
 static int check_tflag_iflag( lua_State *LS, 
         const char *funcname, 
         const struct flag_type *flagtbl, 
@@ -4420,6 +4445,17 @@ static const LUA_PROP_TYPE CH_method_table [] =
 /* end CH section */
 
 /* OBJ section */
+static int OBJ_setexitflag( lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_PORTAL)
+        return luaL_error(LS, "setexitflag for portal only");
+
+    return set_iflag( LS, "exit_flags", exit_flags, &ud_obj->value[1] );
+}
+    
+
 static int OBJ_rvnum ( lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
@@ -5133,6 +5169,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     
     /* portal only */
     OBJMETH(exitflag, 0),
+    OBJMETH(setexitflag, 1),
     OBJMETH(portalflag, 0),
 
     /* furniture only */
