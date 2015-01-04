@@ -1308,7 +1308,8 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
         }
 
     // copy verbatim settings from char to descriptor
-    d->pProtocol->verbatim = IS_SET(ch->act, PLR_COLOUR_VERBATIM);
+    if ( d->pProtocol )
+        d->pProtocol->verbatim = IS_SET(ch->act, PLR_COLOUR_VERBATIM);
         
     /* record obj count to track vanishing eq bug */
     if ( !char_only )
