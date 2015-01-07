@@ -3216,6 +3216,7 @@ struct  mastery_group_type
 #define RTRIG_LOOK  (J)
 #define RTRIG_TRY   (K)
 #define RTRIG_COMMAND (L)
+#define RTRIG_CONNECT (M)
 
 struct prog_list
 {
@@ -4947,6 +4948,7 @@ bool rp_close_trigger( CHAR_DATA *ch, int door );
 bool rp_lock_trigger( CHAR_DATA *ch, int door );
 bool rp_unlock_trigger( CHAR_DATA *ch, int door );
 bool rp_move_trigger( CHAR_DATA *ch, int door );
+void rp_connect_trigger( CHAR_DATA *ch );
 void rp_timer_trigger( ROOM_INDEX_DATA *room );
 void rprog_timer_init( ROOM_INDEX_DATA *room );
 void rprog_setup( ROOM_INDEX_DATA *room );
