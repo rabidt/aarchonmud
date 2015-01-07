@@ -3199,7 +3199,7 @@ struct  mastery_group_type
 #define ATRIG_TIMER (L)
 #define ATRIG_COMMAND (M)
 #define ATRIG_DEATH (N)
-
+#define ATRIG_CONNECT (O)
 
 /*
  * ROOMprog definitions
@@ -4267,6 +4267,7 @@ bool ap_enter_trigger(CHAR_DATA *ch, AREA_DATA *from_area);
 void ap_boot_trigger();
 void ap_shutdown_trigger();
 void ap_quit_trigger(CHAR_DATA *ch);
+void ap_connect_trigger(CHAR_DATA *ch);
 void ap_void_trigger(CHAR_DATA *ch);
 bool ap_unvoid_trigger(CHAR_DATA *ch);
 bool ap_recall_trigger(CHAR_DATA *ch);
