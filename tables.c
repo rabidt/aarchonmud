@@ -599,6 +599,7 @@ const struct flag_type rprog_flags[] =
     {   "look",         RTRIG_LOOK,      TRUE    },
     {   "try",          RTRIG_TRY,       TRUE    },
     {   "command",      RTRIG_COMMAND,   TRUE    },
+    {   "connect",      RTRIG_CONNECT,   TRUE    },
     {   NULL,           0,          TRUE    }
 };
 

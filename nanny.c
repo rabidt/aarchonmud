@@ -2005,7 +2005,8 @@ void enter_game ( DESCRIPTOR_DATA *d )
         login_grant(ch);
     }
 
-    /* and finally, run area connect trigger if any */
+    /* and finally, run connect triggers if any */
     ap_connect_trigger(ch);
+    rp_connect_trigger(ch);
     return;
 }
