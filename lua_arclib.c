@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 #include <string.h>
 #include <lualib.h>
 #include <lauxlib.h>
@@ -680,6 +680,15 @@ static int glob_hour (lua_State *LS)
     return 1;
 }
 
+static int glob_time (lua_State *LS)
+{
+    struct timeval t;
+    gettimeofday( &t, NULL);
+    lua_pushinteger( LS, t.tv_sec );
+    lua_pushinteger( LS, t.tv_usec );
+    return 2;
+}
+
 static int glob_getroom (lua_State *LS)
 {
     // do some if is number thing here eventually
@@ -1112,6 +1121,7 @@ static int glob_arguments ( lua_State *LS)
 GLOB_TYPE glob_table[] =
 {
     GFUN(hour,          0),
+    GFUN(time,          0),
     GFUN(getroom,       0),
     GFUN(randnum,       0),
     GFUN(rand,          0),
