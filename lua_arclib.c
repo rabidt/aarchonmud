@@ -680,7 +680,7 @@ static int glob_hour (lua_State *LS)
     return 1;
 }
 
-static int glob_time (lua_State *LS)
+static int glob_gettime (lua_State *LS)
 {
     char buf[MSL];
     struct timeval t;
@@ -689,7 +689,7 @@ static int glob_time (lua_State *LS)
     sprintf(buf, "%ld.%ld", (long)t.tv_sec, (long)t.tv_usec);
     lua_pushstring( LS, buf);
     if ( lua_tonumber( LS, -1 ) == 0 )
-        return luaL_error( LS, "glob_time error!");
+        return luaL_error( LS, "glob_gettime error!");
     return 1;
 }
 
@@ -1125,7 +1125,7 @@ static int glob_arguments ( lua_State *LS)
 GLOB_TYPE glob_table[] =
 {
     GFUN(hour,          0),
-    GFUN(time,          0),
+    GFUN(gettime,       0),
     GFUN(getroom,       0),
     GFUN(randnum,       0),
     GFUN(rand,          0),
