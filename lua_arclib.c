@@ -682,11 +682,15 @@ static int glob_hour (lua_State *LS)
 
 static int glob_time (lua_State *LS)
 {
+    char buf[MSL];
     struct timeval t;
     gettimeofday( &t, NULL);
-    lua_pushinteger( LS, t.tv_sec );
-    lua_pushinteger( LS, t.tv_usec );
-    return 2;
+
+    sprintf(buf, "%ld.%ld", (long)t.tv_sec, (long)t.tv_usec);
+    lua_pushstring( LS, buf);
+    if ( lua_tonumber( LS, -1 ) == 0 )
+        return luaL_error( LS, "glob_time error!");
+    return 1;
 }
 
 static int glob_getroom (lua_State *LS)
