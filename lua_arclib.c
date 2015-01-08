@@ -688,8 +688,8 @@ static int glob_gettime (lua_State *LS)
 
     sprintf(buf, "%ld.%ld", (long)t.tv_sec, (long)t.tv_usec);
     lua_pushstring( LS, buf);
-    if ( lua_tonumber( LS, -1 ) == 0 )
-        return luaL_error( LS, "glob_gettime error!");
+   
+    lua_pushnumber( LS, lua_tonumber( LS, -1 ) );
     return 1;
 }
 
