@@ -1976,15 +1976,9 @@ function update_bossachv_table()
     table.sort( boss_table, function(a,b) return a.vnum<b.vnum end )
 end
 
-function do_achievements_boss( ch, argument)
-    args=arguments(argument)
-    if args[1]=="boss" then
-        table.remove(args,1)
-    end
-
+function do_achievements_boss( ch, victim)
     local plr={}
-    for k,v in pairs(ch.bossachvs) do
-        print("blah")
+    for k,v in pairs(victim.bossachvs) do
         plr[v.vnum] = v.timestamp
     end
 
@@ -2011,7 +2005,9 @@ function do_achievements_boss( ch, argument)
 
     end
 
-    pagetochar( ch, table.concat( columns, "\n\r").."\n\r" )
+    pagetochar( ch, "BOSS ACHIEVEMENTS for "..victim.name.."\n\r\n\r"..
+            table.concat( columns, "\n\r").."\n\r"..
+            "\n\rTotal: "..#boss_table.."  Unlocked: "..#victim.bossachvs.."\n\r")
 end
 
 -- end do_achievements_boss section
