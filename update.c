@@ -803,7 +803,7 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
                 break;
 
             case COND_THIRST:
-                send_to_char( "You are dessicated.\n\r", ch );
+                send_to_char( "You are desiccated.\n\r", ch );
                 break;
 
             case COND_DRUNK:
