@@ -4833,7 +4833,7 @@ DEF_DO_FUN(do_score)
     {
         sprintf(buf, "{D|{x Hungry:   %s        Thirsty: %s        Drunk: %s",
             hunger == 0 ? "{Rstarving{x" : hunger > 0 && hunger < 20 ? "     yes" : "    None",
-            thirst == 0 ? "{Rdessicated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
+            thirst == 0 ? "{Rdesiccated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
             drunk > 20 ? "{Rintoxicated{x" : drunk > 10 && drunk <= 20 ? "     buzzed" : "       None");
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
