@@ -435,7 +435,8 @@ void game_loop_unix( int control )
             if ( d->character != NULL && check_fear(d->character) )
                 continue;
 
-            read_from_buffer( d );
+            if (d->connected != CON_NOTE_TEXT)
+                read_from_buffer( d );
             if ( d->incomm[0] != '\0' )
             {
 #ifdef LAG_FREE
@@ -508,6 +509,11 @@ void game_loop_unix( int control )
                 if ( d->outtop == 0 )
                     d->last_msg_was_prompt = FALSE;
             }                              /* if ( d->incomm[0] != '\0' ) */
+            /* special handling for note editor */
+            else if (d->connected == CON_NOTE_TEXT && d->inbuf[0] != '\0' )
+            {
+                handle_con_note_text( d, "" );
+            }
             else
             {
                 linecnt=0;
