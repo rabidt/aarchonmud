@@ -5307,20 +5307,15 @@ msl_string achievement_display [] =
 
 DEF_DO_FUN(do_achievements)
 {
-	if ( IS_NPC(ch) )
-		return;
+    if ( IS_NPC(ch) )
+        return;
 
-	if (!strcmp( argument, "rewards") )
-	{
-		print_ach_rewards(ch);
-		return;
-	}
-    else if (!strcmp( argument, "boss") )
+    if (!strcmp( argument, "rewards") )
     {
-        do_achievements_boss(ch, argument);
+        print_ach_rewards(ch);
         return;
     }
-	
+
     char buf[MAX_STRING_LENGTH];
     int i;
     CHAR_DATA *victim;
@@ -5331,19 +5326,42 @@ DEF_DO_FUN(do_achievements)
     int ltotal = 0;
     int utotal = 0;
 
+    bool boss=FALSE;
+
     col = 0;
 
     output = new_buf();
 
-    if (argument[0] == '\0')
+    if (argument[0] == '\0' )
     {
-	victim = ch;
+        victim = ch;
+    }
+    else if (!str_cmp(argument, "boss"))
+    {
+        do_achievements_boss( ch, ch );
+        return;
     }
     else
     {
-    	d = new_descriptor();
-    
-        if ( !load_char_obj(d, argument, TRUE) )
+        char arg1[MIL];
+        char arg2[MIL];
+        char *vicarg;
+
+        argument=one_argument( argument, arg1);
+        argument=one_argument( argument, arg2);
+        if (!str_cmp(arg1, "boss"))
+        {
+            boss=TRUE;
+            vicarg=arg2;
+        }
+        else
+        {
+            vicarg=arg1;
+        }
+
+        d = new_descriptor();
+
+        if ( !load_char_obj(d, vicarg, TRUE) )
         {
             send_to_char("Character not found.\n\r", ch);
             /* load_char_obj still loads "default" character
@@ -5365,43 +5383,50 @@ DEF_DO_FUN(do_achievements)
         return;
     }
 
-    sprintf(buf, "\n\r");
-    add_buf(output,buf);
-    sprintf(buf, "{WAchievements for %s\n\r", victim->name);
-    add_buf(output,buf);
-    add_buf(output,"{w----------------------------\n\r");
-    for (i = 0; achievement_table[i].bit_vector != 0; i++)
+    if (boss)
     {
-  	sprintf(buf, "{w%-10s %6d: ", achievement_display[achievement_table[i].type], achievement_table[i].limit);
-	add_buf(output, buf);
-        totalach += 1;
-
-	if (IS_SET(victim->pcdata->achievements, achievement_table[i].bit_vector))
-        {
-            add_buf(output,"{yAchvd{x");
-            utotal += 1;
-        }
-        else
-        {
-            add_buf(output,"{DLockd{x");
-            ltotal += 1;
-        }
-	col +=1;
-	if ( col % 3 == 0 )
-    	  add_buf(output, "\n\r");
-	else
-	  add_buf(output, " | ");
-
+        do_achievements_boss( ch, victim);
     }
-    if ( col % 3 != 0 )
-      add_buf(output, "\n\r");
+    else
+    {
+        sprintf(buf, "\n\r");
+        add_buf(output,buf);
+        sprintf(buf, "{WAchievements for %s\n\r", victim->name);
+        add_buf(output,buf);
+        add_buf(output,"{w----------------------------\n\r");
+        for (i = 0; achievement_table[i].bit_vector != 0; i++)
+        {
+            sprintf(buf, "{w%-10s %6d: ", achievement_display[achievement_table[i].type], achievement_table[i].limit);
+            add_buf(output, buf);
+            totalach += 1;
 
-    sprintf( buf, "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
-    add_buf(output,buf);
-	add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
-    add_buf(output, "(Use 'achievement boss' to see boss achievements.)\n\r");
-    page_to_char(buf_string(output),ch);
-    free_buf(output);
+            if (IS_SET(victim->pcdata->achievements, achievement_table[i].bit_vector))
+            {
+                add_buf(output,"{yAchvd{x");
+                utotal += 1;
+            }
+            else
+            {
+                add_buf(output,"{DLockd{x");
+                ltotal += 1;
+            }
+            col +=1;
+            if ( col % 3 == 0 )
+                add_buf(output, "\n\r");
+            else
+                add_buf(output, " | ");
+
+        }
+        if ( col % 3 != 0 )
+            add_buf(output, "\n\r");
+
+        sprintf( buf, "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
+        add_buf(output,buf);
+        add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
+        add_buf(output, "(Use 'achievement boss' to see boss achievements.)\n\r");
+        page_to_char(buf_string(output),ch);
+        free_buf(output);
+    }
 
     /* if not self, need to free stuff */
     if ( d )

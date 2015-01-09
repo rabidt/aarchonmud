@@ -1094,11 +1094,11 @@ DEF_DO_FUN(do_diagnostic)
     }
 }
 
-DEF_DO_FUN(do_achievements_boss)
+void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic )
 {
     lua_getglobal(g_mud_LS, "do_achievements_boss");
     push_CH(g_mud_LS, ch);
-    lua_pushstring(g_mud_LS, argument);
+    push_CH(g_mud_LS, vic);
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         bugf( "Error with do_achievements_boss:\n %s\n\r",
