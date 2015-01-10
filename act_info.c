@@ -5467,10 +5467,11 @@ void print_ach_rewards(CHAR_DATA *ch)
 
 }
 
-
+/* Give achievement to all PC group members in the room.
+   Final hit may be from NPC */
 void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    if ( IS_NPC( ch ) || !IS_NPC( victim ) )
+    if ( !IS_NPC( victim ) )
         return;
 
     BOSSACHV *ach = victim->pIndexData->boss_achieve;
@@ -5478,38 +5479,58 @@ void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
         return;
 
     BOSSREC *rec;
+    CHAR_DATA *plr, *plr_next;
 
-    for ( rec = ch->pcdata->boss_achievements; rec; rec=rec->next )
+
+    /* achievement for all PC group members in the room */
+    for ( plr=ch->in_room->people; plr; plr=plr_next )
     {
-        if ( rec->vnum == victim->pIndexData->vnum )
-            return;
+        plr_next=plr->next_in_room;
+
+        if ( IS_NPC(plr) || !is_same_group( plr, ch ) )
+            continue;
+
+        /* check if already has it */
+        bool found=FALSE;
+        for ( rec = plr->pcdata->boss_achievements; rec; rec=rec->next )
+        {
+            if ( rec->vnum == victim->pIndexData->vnum )
+            {
+                found=TRUE;
+                break;
+            }
+        }
+        if ( found )
+            continue;
+
+        /* give the achievement */
+        rec = alloc_BOSSREC();
+        rec->vnum = victim->pIndexData->vnum;
+        rec->timestamp = current_time; 
+
+        rec->next = plr->pcdata->boss_achievements;
+        plr->pcdata->boss_achievements = rec;
+
+        /* do the rewards */
+        plr->pcdata->questpoints += ach->quest_reward;
+        plr->pcdata->bank += ach->gold_reward;
+        gain_exp(plr, ach->exp_reward);
+        plr->pcdata->achpoints += ach->ach_reward;
+
+        printf_to_char(plr, "--------------------------------------\n\r");
+        printf_to_char(plr, "{wBoss Achievement unlocked{x.\n\r");
+        send_to_char( "{wYour reward{x:\n\r",plr);
+        if ( ach->gold_reward>0)
+            printf_to_char(plr, "%6d gold\n\r", ach->gold_reward );
+        if ( ach->quest_reward>0)
+            printf_to_char(plr, "%6d quest points\n\r", ach->quest_reward);
+        if (ach->exp_reward>0)
+            printf_to_char(plr, "%6d experience points\n\r", ach->exp_reward);
+        if (ach->ach_reward>0)
+            printf_to_char(plr, "%6d achievement points\n\r", ach->ach_reward );
     }
 
-    rec = alloc_BOSSREC();
-    rec->vnum = victim->pIndexData->vnum;
-    rec->timestamp = current_time; 
-
-    rec->next = ch->pcdata->boss_achievements;
-    ch->pcdata->boss_achievements = rec;
-
-    /* do the rewards */
-    ch->pcdata->questpoints += ach->quest_reward;
-    ch->pcdata->bank += ach->gold_reward;
-    gain_exp(ch, ach->exp_reward);
-    ch->pcdata->achpoints += ach->ach_reward;
-
-    printf_to_char(ch, "--------------------------------------\n\r");
-    printf_to_char(ch, "{wBoss Achievement unlocked{x.\n\r");
-    send_to_char( "{wYour reward{x:\n\r",ch);
-    if ( ach->gold_reward>0)
-        printf_to_char(ch, "%6d gold\n\r", ach->gold_reward );
-    if ( ach->quest_reward>0)
-        printf_to_char(ch, "%6d quest points\n\r", ach->quest_reward);
-    if (ach->exp_reward>0)
-        printf_to_char(ch, "%6d experience points\n\r", ach->exp_reward);
-    if (ach->ach_reward>0)
-        printf_to_char(ch, "%6d achievement points\n\r", ach->ach_reward );
-
+    return;
 }
 
 /* For achievement rewards... This gets called at certain times (level up, quest complete, etc. )--Vodur / Astark 3/19/12 */
