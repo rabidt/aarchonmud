@@ -1637,6 +1637,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
             rec->next = ch->pcdata->boss_achievements;
             ch->pcdata->boss_achievements = rec;
+            fMatch = TRUE;
+            break;
         }
 
         KEYS( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
