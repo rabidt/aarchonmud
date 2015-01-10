@@ -2700,6 +2700,7 @@ DEF_DO_FUN(do_colour)
     
     if (!str_cmp( arg, "verbatim" ) )
     {
+        ch->desc->pProtocol->verbatim = !ch->desc->pProtocol->verbatim;
         TOGGLE_BIT( ch->act, PLR_COLOUR_VERBATIM );
         if ( IS_SET( ch->act, PLR_COLOUR_VERBATIM ) )
             send_to_char( "Color codes are now displayed {rverbatim{x.\n\r", ch );

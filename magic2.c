@@ -664,10 +664,19 @@ DEF_SPELL_FUN(spell_necrosis)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
     
-    if (IS_AFFECTED(victim, AFF_NECROSIS) 
-	|| IS_AFFECTED(victim, AFF_PLAGUE)
-	|| saves_spell(victim, ch, level, DAM_DISEASE)
-	|| (IS_NPC(victim) && IS_SET(victim->act,ACT_UNDEAD)))
+    if ( IS_UNDEAD(victim) )
+    {
+        act("Necrosis has no effect on the undead.", ch, NULL, victim, TO_CHAR);
+        return TRUE;
+    }
+    
+    if ( IS_AFFECTED(victim, AFF_NECROSIS) )
+    {
+        act("$N is already being ravished by disease.", ch, NULL, victim, TO_CHAR);
+        return TRUE;
+    }
+
+    if ( saves_spell(victim, ch, level, DAM_DISEASE) )
     {
         if (ch == victim)
             send_to_char("You stave off illness.\n\r",ch);

@@ -1126,7 +1126,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         return;
     
     // chance to get petrified if not averting gaze
-    if ( per_chance(20) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) )
+    if ( per_chance(20) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) && !IS_SET(ch->imm_flags,IMM_GAZE) )
     {
         act("You accidentally catch $N's gaze.", ch, NULL, victim, TO_CHAR);
         act("You catch $n with your gaze.", ch, NULL, victim, TO_VICT);
