@@ -1401,6 +1401,9 @@ struct  kill_data
 #define IMM_DROWNING            (R)
 #define IMM_LIGHT               (S)
 #define IMM_SOUND               (T)
+#define IMM_SLEEP               (U)
+#define IMM_CHARMPERSON         (V)
+#define IMM_GAZE                (W)
 #define IMM_WOOD                (X)
 #define IMM_SILVER              (Y)
 #define IMM_IRON                (Z)
@@ -3183,6 +3186,7 @@ struct  mastery_group_type
 #define OTRIG_UNLOCK (Z)
 #define OTRIG_SIT   (aa)
 #define OTRIG_WAKE  (bb)
+#define OTRIG_DRINK (cc)
 
 /*
  * AREAprog definitions
@@ -3201,7 +3205,7 @@ struct  mastery_group_type
 #define ATRIG_TIMER (L)
 #define ATRIG_COMMAND (M)
 #define ATRIG_DEATH (N)
-
+#define ATRIG_CONNECT (O)
 
 /*
  * ROOMprog definitions
@@ -3218,6 +3222,7 @@ struct  mastery_group_type
 #define RTRIG_LOOK  (J)
 #define RTRIG_TRY   (K)
 #define RTRIG_COMMAND (L)
+#define RTRIG_CONNECT (M)
 
 struct prog_list
 {
@@ -4285,6 +4290,7 @@ bool ap_enter_trigger(CHAR_DATA *ch, AREA_DATA *from_area);
 void ap_boot_trigger();
 void ap_shutdown_trigger();
 void ap_quit_trigger(CHAR_DATA *ch);
+void ap_connect_trigger(CHAR_DATA *ch);
 void ap_void_trigger(CHAR_DATA *ch);
 bool ap_unvoid_trigger(CHAR_DATA *ch);
 bool ap_recall_trigger(CHAR_DATA *ch);
@@ -4620,6 +4626,7 @@ bool    is_mimic( CHAR_DATA *ch );
 MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch );
 const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker );
 const char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype );
+const char* affect_name( AFFECT_DATA *paf );
 void    affect_to_char  args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf );
 void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
@@ -4965,6 +4972,7 @@ bool rp_close_trigger( CHAR_DATA *ch, int door );
 bool rp_lock_trigger( CHAR_DATA *ch, int door );
 bool rp_unlock_trigger( CHAR_DATA *ch, int door );
 bool rp_move_trigger( CHAR_DATA *ch, int door );
+void rp_connect_trigger( CHAR_DATA *ch );
 void rp_timer_trigger( ROOM_INDEX_DATA *room );
 void rprog_timer_init( ROOM_INDEX_DATA *room );
 void rprog_setup( ROOM_INDEX_DATA *room );
@@ -5124,6 +5132,7 @@ void clear_area_quests( CHAR_DATA *ch, AREA_DATA *area );
 void    war_update      args( ( void ) ); 
 void    advance_level   args( ( CHAR_DATA *ch, bool hide ) );
 void    gain_exp    args( ( CHAR_DATA *ch, int gain ) );
+bool    starvation_immune( CHAR_DATA *ch );
 void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );
 void    update_handler  args( ( void ) );
 void    explode  args( ( OBJ_DATA *obj ) );

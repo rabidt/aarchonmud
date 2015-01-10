@@ -392,6 +392,9 @@ const struct flag_type imm_flags[] =
 	{   "disease",      Q,  TRUE    },
 	{   "drowning",     R,  TRUE    },
 	{   "sound",        T,  TRUE    },
+        {   "sleep",        U,  TRUE    },
+        {   "charmperson",  V,  TRUE    },
+        {   "gaze",         W,  TRUE    },
 	{   "wood",         X,  TRUE    },
 	{   "silver",       Y,  TRUE    },
 	{   "iron",         Z,  TRUE    },
@@ -537,6 +540,7 @@ const struct flag_type oprog_flags[] =
     {   "give",         OTRIG_GIVE,      TRUE    },
     {   "drop",         OTRIG_DROP,      TRUE    },
     {   "eat",          OTRIG_EAT,       TRUE    },
+    {   "drink",        OTRIG_DRINK,     TRUE    },
     {   "sacrifice",    OTRIG_SACRIFICE, TRUE    },
     {   "wear",         OTRIG_WEAR,      TRUE    },
     {   "remove",       OTRIG_REMOVE,    TRUE    },
@@ -578,6 +582,7 @@ const struct flag_type aprog_flags[] =
     {   "call",         ATRIG_CALL,      FALSE   },
     {   "timer",        ATRIG_TIMER,     TRUE    },
     {   "death",        ATRIG_DEATH,     TRUE    },
+    {   "connect",      ATRIG_CONNECT,   TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -595,6 +600,7 @@ const struct flag_type rprog_flags[] =
     {   "look",         RTRIG_LOOK,      TRUE    },
     {   "try",          RTRIG_TRY,       TRUE    },
     {   "command",      RTRIG_COMMAND,   TRUE    },
+    {   "connect",      RTRIG_CONNECT,   TRUE    },
     {   NULL,           0,          TRUE    }
 };
 

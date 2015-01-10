@@ -774,19 +774,26 @@ int move_gain( CHAR_DATA *ch )
 }
 */
 
+bool starvation_immune( CHAR_DATA *ch )
+{
+    return IS_NPC(ch) || NOT_AUTHED(ch) || IS_HERO(ch) || IS_SET(ch->form, FORM_CONSTRUCT) || IS_AFFECTED(ch, AFF_ROOTS);
+}
+
 void gain_condition( CHAR_DATA *ch, int iCond, int value )
 {
     int condition;
 
-    if ( value == 0 || IS_NPC(ch) || (IS_HERO(ch) && iCond!=COND_DRUNK)
-            || NOT_AUTHED(ch) || IS_SET(ch->form, FORM_CONSTRUCT))
+    if ( value == 0 || IS_NPC(ch) )
         return;
 
-    condition               = ch->pcdata->condition[iCond];
-    if (condition == -1)
+    if ( (condition = ch->pcdata->condition[iCond]) < 0 )
         return;
-    ch->pcdata->condition[iCond]    = URANGE( 0, condition + value, 72 );
 
+    ch->pcdata->condition[iCond] = URANGE( 0, condition + value, 72 );
+    
+    if ( starvation_immune(ch) && (iCond == COND_HUNGER || iCond == COND_THIRST) )
+        return;
+    
     if ( ch->pcdata->condition[iCond] == 0 )
     {
         switch ( iCond )
@@ -796,7 +803,7 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
                 break;
 
             case COND_THIRST:
-                send_to_char( "You are dessicated.\n\r", ch );
+                send_to_char( "You are desiccated.\n\r", ch );
                 break;
 
             case COND_DRUNK:
@@ -1471,7 +1478,7 @@ void char_update( void )
                 send_to_char("You fall into a deeper sleep.\n\r",ch);
             }
             else if (ch->position != POS_SLEEPING)
-                gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
+                ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
         }
 
         if ( !IS_NPC(ch) && ch->level < LEVEL_IMMORTAL )
@@ -1542,7 +1549,7 @@ void char_update( void )
                 gain_condition( ch, COND_FULL, (ch->size > SIZE_MEDIUM) ? -2 : -1 );
                 gain_condition( ch, COND_DRUNK,  -1 );
 
-                if ( !IS_AFFECTED(ch, AFF_ROOTS) )
+                if ( !starvation_immune(ch) )
                 {
                     gain_condition( ch, COND_THIRST, 
                             IS_AFFECTED(ch, AFF_BREATHE_WATER) ? 
@@ -1590,13 +1597,14 @@ void char_update( void )
                         }
                     }
 
-                    if( ch->pcdata->prayer_request )
-                    {
-                        ch->pcdata->prayer_request->ticks--;
-                        if( ch->pcdata->prayer_request->ticks == 0 )
-                            grant_prayer(ch);
-                    }
                 }
+            }
+            
+            if ( ch->pcdata->prayer_request )
+            {
+                ch->pcdata->prayer_request->ticks--;
+                if ( ch->pcdata->prayer_request->ticks == 0 )
+                    grant_prayer(ch);
             }
         }
 
