@@ -101,6 +101,22 @@ bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
     return TRUE;
 }
 
+void rp_connect_trigger( CHAR_DATA *ch )
+{
+    ROOM_INDEX_DATA *room;
+
+    room=ch->in_room;
+
+    if (!room)
+    {
+        bugf("rp_connect_trigger: in_room NULL for %s", ch->name);
+        return;
+    }
+    if ( !HAS_RTRIG(room, RTRIG_CONNECT) )
+        return;
+
+    rp_percent_trigger( room, ch, NULL, NULL, NULL, NULL, RTRIG_CONNECT);
+} 
 
 /* returns whether a trigger was found */
 bool rp_try_trigger( const char *argument, CHAR_DATA *ch )

@@ -1153,6 +1153,15 @@ void transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location )
     char_to_room( victim, location );
 
     do_look( victim, "auto" );
+    
+    if ( !IS_NPC(victim) )
+    {
+        ap_enter_trigger(victim, location->area);
+        ap_renter_trigger(victim);
+        rp_enter_trigger(victim);
+        op_greet_trigger(victim);
+        mp_greet_trigger(victim);
+    }
 }
 
 /*
