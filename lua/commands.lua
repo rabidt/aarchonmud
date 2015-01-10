@@ -1973,7 +1973,9 @@ function update_bossachv_table()
         end
     end
 
-    table.sort( boss_table, function(a,b) return a.vnum<b.vnum end )
+    table.sort( boss_table, function(a,b) 
+            return a.area.minlevel < b.area.minlevel 
+    end )
 end
 
 function do_achievements_boss( ch, victim)
@@ -1994,7 +1996,7 @@ function do_achievements_boss( ch, victim)
         if row==0 then row=numrows end
 
         columns[row]=columns[row] or "{G|{x"
-        columns[row]=string.format("%s%4s %s %s{G|{x",
+        columns[row]=string.format("%s{w%4s %s %s{G|{x",
                 columns[row],
                 i..".",
                 util.format_color_string(getmobproto(v.vnum).shortdescr, 20),
@@ -2005,9 +2007,13 @@ function do_achievements_boss( ch, victim)
 
     end
 
-    pagetochar( ch, "BOSS ACHIEVEMENTS for "..victim.name.."\n\r\n\r"..
+    local total=#boss_table
+    local unlocked=#victim.bossachvs
+    local locked=total-unlocked
+    pagetochar( ch, "{WBoss Achievements for "..victim.name..
+            "\n\r{w----------------------------\n\r"..
             table.concat( columns, "\n\r").."\n\r"..
-            "\n\rTotal: "..#boss_table.."  Unlocked: "..#victim.bossachvs.."\n\r")
+            "\n\r{wTotal Achievements: "..total..", Total Unlocked: "..unlocked..", Total Locked: "..locked.."\n\r")
 end
 
 -- end do_achievements_boss section
