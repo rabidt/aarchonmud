@@ -4271,6 +4271,21 @@ static int CH_get_affects ( lua_State *LS )
     return 1;
 }
 
+static int CH_get_descriptor( lua_State *LS )
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if (ud_ch->desc)
+    {
+        if ( push_DESCRIPTOR(LS, ud_ch->desc) )
+            return 1;
+        else
+            return 0;
+    }
+    else
+        return 0;
+}
+
 static const LUA_PROP_TYPE CH_get_table [] =
 {
     CHGET(name, 0),
@@ -4344,6 +4359,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(bank, 0),
     CHGET(mobkills, 0),
     CHGET(mobdeaths, 0),
+    CHGET(descriptor, 0),
     CHGET(bossachvs, 0),
     /* NPC only */
     CHGET(vnum, 0),
@@ -7231,14 +7247,71 @@ static int DESCRIPTOR_get_character( lua_State *LS )
         return 0;
 }
 
+static int DESCRIPTOR_get_constate( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+
+    int state=con_state(ud_d);
+
+    const char *name = name_lookup( state, con_states );
+
+    if (!name)
+    {
+        bugf( "Unrecognized con state: %d", state );
+        lua_pushstring( LS, "ERROR" );
+    }
+    else
+    {
+        lua_pushstring( LS, name );
+    }
+    return 1;
+}
+
+static int DESCRIPTOR_set_constate( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+    const char *name=check_string(LS, 2, MIL);
+
+    int state=flag_lookup( name, con_states );
+
+    if ( state == -1 )
+        return luaL_error( LS, "No such constate: %s", name );
+
+    if (!is_settable(state, con_states))
+        return luaL_error( LS, "constate cannot be set to %s", name );
+
+    set_con_state( ud_d, state );
+    return 0;
+}
+
+static int DESCRIPTOR_get_inbuf( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+    lua_pushstring( LS, ud_d->inbuf);
+    return 1;
+}
+
+static int DESCRIPTOR_set_inbuf( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+    const char *arg=check_string( LS, 2, MAX_PROTOCOL_BUFFER );
+
+    strcpy( ud_d->inbuf, arg );
+    return 0;
+}
+
 static const LUA_PROP_TYPE DESCRIPTOR_get_table [] =
 {
     GETP( DESCRIPTOR, character, 0 ),
+    GETP( DESCRIPTOR, constate, SEC_NOSCRIPT ),
+    GETP( DESCRIPTOR, inbuf, SEC_NOSCRIPT ),
     ENDPTABLE
 };
 
 static const LUA_PROP_TYPE DESCRIPTOR_set_table [] =
 {
+    SETP( DESCRIPTOR, constate, SEC_NOSCRIPT),
+    SETP( DESCRIPTOR, inbuf, SEC_NOSCRIPT),
     ENDPTABLE
 };
 
