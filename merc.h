@@ -719,6 +719,7 @@ struct penalty_data
 #define CON_FTP_DATA            17
 #define CON_FTP_AUTH            18
 */
+#define CON_LUA_HANDLER         16
 #define CON_GET_CREATION_MODE   19
 #define CON_ROLL_STATS          20
 #define CON_GET_STAT_PRIORITY   21
