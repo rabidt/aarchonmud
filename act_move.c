@@ -56,7 +56,7 @@ const   sh_int  rev_dir     []      =
 
 const   sh_int  movement_loss   [SECT_MAX]  =
 {
-   1, 2, 2, 3, 4, 6, 4, 1, 6, 10, 6
+   1, 2, 2, 3, 4, 6, 4, 1, 6, 10, 6, 4
 };
 
 bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
