@@ -7248,8 +7248,38 @@ static const LUA_PROP_TYPE DESCRIPTOR_method_table [] =
 /* end DESCRIPTOR section */
 
 /* BOSSACHV section */
+static int BOSSACHV_get_qp( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_BOSSACHV( LS, 1 )->quest_reward);
+    return 1;
+}
+
+static int BOSSACHV_get_exp( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_BOSSACHV( LS, 1 )->exp_reward);
+    return 1;
+}
+static int BOSSACHV_get_gold( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_BOSSACHV( LS, 1 )->gold_reward);
+    return 1;
+}
+static int BOSSACHV_get_achp( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_BOSSACHV( LS, 1 )->ach_reward);
+    return 1;
+}
+
 static const LUA_PROP_TYPE BOSSACHV_get_table [] =
 {
+    GETP( BOSSACHV, qp, SEC_NOSCRIPT ),
+    GETP( BOSSACHV, exp, SEC_NOSCRIPT ),
+    GETP( BOSSACHV, gold, SEC_NOSCRIPT ),
+    GETP( BOSSACHV, achp, SEC_NOSCRIPT ), 
     ENDPTABLE
 };
 

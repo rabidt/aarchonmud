@@ -5353,6 +5353,12 @@ DEF_DO_FUN(do_achievements)
         {
             boss=TRUE;
             vicarg=arg2;
+
+            if (!str_cmp( arg2, "rewards"))
+            {
+                do_achievements_boss_reward( ch );
+                return;
+            }
         }
         else
         {
