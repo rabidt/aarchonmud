@@ -113,7 +113,6 @@ typedef struct lua_prop_type
 #define ENDPTABLE {NULL, NULL, 0, 0}
 
 /* global section */
-#define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
     const char *lib;
