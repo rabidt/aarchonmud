@@ -4780,6 +4780,7 @@ int name_sorted_group_table( int sequence );
 int name_sorted_skill_table( int sequence );
 void show_image_to_char( CHAR_DATA *ch, const char *txt );
 void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
+void do_achievements_boss_reward( CHAR_DATA *ch );
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );

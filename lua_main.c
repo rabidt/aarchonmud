@@ -1106,6 +1106,17 @@ void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic )
         lua_pop( g_mud_LS, 1);
     }
 }
+void do_achievements_boss_reward( CHAR_DATA *ch )
+{
+    lua_getglobal(g_mud_LS, "do_achievements_boss_reward");
+    push_CH(g_mud_LS, ch);
+    if (CallLuaWithTraceBack( g_mud_LS, 1, 0) )
+    {
+        bugf( "Error with do_achievements_boss_reward:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
 
 void update_bossachv_table()
 {

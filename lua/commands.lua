@@ -1996,7 +1996,7 @@ function do_achievements_boss( ch, victim)
         if row==0 then row=numrows end
 
         columns[row]=columns[row] or "{G|{x"
-        columns[row]=string.format("%s{w%4s %s %s{G|{x",
+        columns[row]=string.format("%s{w%4s %s{x %s{G|{x",
                 columns[row],
                 i..".",
                 util.format_color_string(getmobproto(v.vnum).shortdescr, 20),
@@ -2013,7 +2013,25 @@ function do_achievements_boss( ch, victim)
     pagetochar( ch, "{WBoss Achievements for "..victim.name..
             "\n\r{w----------------------------\n\r"..
             table.concat( columns, "\n\r").."\n\r"..
-            "\n\r{wTotal Achievements: "..total..", Total Unlocked: "..unlocked..", Total Locked: "..locked.."\n\r")
+            "\n\r{wTotal Achievements: "..total..", Total Unlocked: "..unlocked..", Total Locked: "..locked.."\n\r"..
+            "{x(Use 'achievement boss rewards' to see rewards table.)\n\r"
+    )
 end
 
+function do_achievements_boss_reward( ch )
+    if not(boss_table) then update_bossachv_table() end
+
+    sendtochar( ch, ("{w%-40s {W%5s{G| {W%5s{G| {W%5s{G| {W%5s{x\n\r"):format(
+                "Boss", "QP", "Exp", "Gold", "AchP"))
+    sendtochar( ch, ("-"):rep(80).."\n\r")
+    for i,v in ipairs(boss_table) do
+        sendtochar(ch, ("{w%s {y%5d{G| {c%5d{G| {y%5d{G| {c%5d{x\n\r"):format(
+                    util.format_color_string(v.shortdescr, 40),
+                    v.bossachv.qp,
+                    v.bossachv.exp,
+                    v.bossachv.gold,
+                    v.bossachv.achp))
+    end 
+        
+end
 -- end do_achievements_boss section
