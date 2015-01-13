@@ -14,7 +14,7 @@ void sorted_ctable_init( lua_State *LS );
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 bool       g_LuaScriptInProgress=FALSE;
-int        g_ScriptSecurity=0;
+int        g_ScriptSecurity=SEC_NOSCRIPT;
 int        g_LoopCheckCounter;
 
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
@@ -440,7 +440,7 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         }
     }
 
-    g_ScriptSecurity = 0;
+    g_ScriptSecurity = SEC_NOSCRIPT;
     g_LuaScriptInProgress=FALSE;
 
     lua_settop( g_mud_LS, 0);
