@@ -397,7 +397,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
     {
         g_LuaScriptInProgress=FALSE;
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
-        g_ScriptSecurity=0; /*just in case*/
+        g_ScriptSecurity=SEC_NOSCRIPT; /*just in case*/
     }
 }
 
@@ -489,7 +489,7 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     {
         g_LuaScriptInProgress=FALSE;
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
-        g_ScriptSecurity=0; /* just in case */
+        g_ScriptSecurity=SEC_NOSCRIPT; /* just in case */
     }
     return result;
 }
@@ -569,7 +569,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
     if (!nest)
     {
         g_LuaScriptInProgress=FALSE;
-        g_ScriptSecurity=0; /* just in case */
+        g_ScriptSecurity=SEC_NOSCRIPT; /* just in case */
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     }
     return result;
@@ -670,7 +670,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
     if (!nest)
     {
         g_LuaScriptInProgress=FALSE;
-        g_ScriptSecurity=0; /* just in case */
+        g_ScriptSecurity=SEC_NOSCRIPT; /* just in case */
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     }
     return result;

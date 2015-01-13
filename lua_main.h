@@ -13,6 +13,7 @@
 #define RUNDELAY_VNUM -1
 #define LOADSCRIPT_VNUM 0
 #define MAX_LUA_SECURITY 9
+#define SEC_NOSCRIPT 99
 double genrand(void);
 
 int L_delay( lua_State *LS);
