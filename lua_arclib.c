@@ -550,7 +550,7 @@ static int glob_getglobals (lua_State *LS)
 
     for ( i=0 ; glob_table[i].name ; i++ )
     {
-        if ( glob_table[i].status == STS_ACTIVE && glob_table[i].security != SEC_NOSCRIPT )
+        if ( glob_table[i].status == STS_ACTIVE )
         {
             lua_newtable( LS );
             
