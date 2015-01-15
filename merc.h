@@ -4404,6 +4404,7 @@ void   page_to_char_bw args( ( const char *txt, CHAR_DATA *ch ) );
 /* db.c */
 void    reset_area  args( ( AREA_DATA * pArea ) );        /* OLC */
 void    purge_area  args( ( AREA_DATA * pArea ) );
+void    purge_room  args( ( ROOM_INDEX_DATA *pRoom ) );
 void    reset_room  args( ( ROOM_INDEX_DATA *pRoom ) );  /* OLC */
 char *  print_flags args( ( int flag ));
 void    boot_db     args( ( void ) );

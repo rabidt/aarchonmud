@@ -5326,6 +5326,19 @@ static int AREA_flag( lua_State *LS)
     return check_flag( LS, "area", area_flags, ud_area->area_flags );
 }
 
+static int AREA_reset( lua_State *LS)
+{
+    AREA_DATA *ud_area = check_AREA(LS,1);
+    reset_area(ud_area);
+    return 0;
+}
+
+static int AREA_purge( lua_State *LS)
+{
+    purge_area( check_AREA(LS,1) );
+    return 0;
+}
+
 static int AREA_echo( lua_State *LS)
 {
     AREA_DATA *ud_area = check_AREA(LS, 1);
@@ -5678,6 +5691,8 @@ static const LUA_PROP_TYPE AREA_method_table [] =
 {
     AREAMETH(flag, 0),
     AREAMETH(echo, 1),
+    AREAMETH(reset, 5),
+    AREAMETH(purge, 5),
     AREAMETH(loadprog, 1),
     AREAMETH(loadscript, 1),
     AREAMETH(loadstring, 1),
@@ -5755,6 +5770,18 @@ static int ROOM_flag( lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
     return check_flag( LS, "room", room_flags, ud_room->room_flags );
+}
+
+static int ROOM_reset( lua_State *LS)
+{
+    reset_room( check_ROOM(LS,1) );
+    return 0;
+}
+
+static int ROOM_purge( lua_State *LS)
+{
+    purge_room( check_ROOM(LS,1) );
+    return 0;
 }
 
 static int ROOM_echo( lua_State *LS)
@@ -6120,6 +6147,8 @@ static const LUA_PROP_TYPE ROOM_set_table [] =
 static const LUA_PROP_TYPE ROOM_method_table [] =
 {
     ROOMMETH(flag, 0),
+    ROOMMETH(reset, 5),
+    ROOMMETH(purge, 5),
     ROOMMETH(oload, 1),
     ROOMMETH(mload, 1),
     ROOMMETH(echo, 1),
