@@ -1777,6 +1777,7 @@ local function luahelp_usage( ch )
 Syntax: 
     luahelp <section>
     luahelp <section> <get|set|meth>
+    luahelp dump <section> -- Dump for pasting to dokuwiki
 
 Examples:
     luahelp ch
@@ -1793,6 +1794,8 @@ local function nextrowcolor()
     return rowtoggle and 'w' or 'D'
 end
 
+local SEC_NOSCRIPT=99
+
 local function luahelp_dump( ch, args )
     if args[1]=="glob" or args[1]=="global" then
         local out={}
@@ -1801,10 +1804,10 @@ local function luahelp_dump( ch, args )
         table.insert( out, "^Function^Security^\n\r")
         for i,v in ipairs(g) do
             table.insert( out, string.format(
-                        "| [[.%s|%s]] | %d |\n\r",
+                        "| [[.%s|%s]] | %s |\n\r",
                         v.lib and (v.lib..":"..v.name) or v.name,
                         v.lib and (v.lib.."."..v.name) or v.name,
-                        v.security)
+                        v.security == SEC_NOSCRIPT and 'X' or v.security)
             )
         end
 
@@ -1822,11 +1825,11 @@ local function luahelp_dump( ch, args )
         local props={}
         for k,v in pairs(t.get) do
             props[v.field]=props[v.field] or {}
-            props[v.field].get=v.security
+            props[v.field].get=v.security == SEC_NOSCRIPT and 'X' or v.security
         end
         for k,v in pairs(t.set) do
             props[v.field]=props[v.field] or {}
-            props[v.field].set=v.security
+            props[v.field].set=v.security == SEC_NOSCRIPT and 'X' or v.security
         end
         local out={}
 
@@ -1850,10 +1853,10 @@ local function luahelp_dump( ch, args )
         table.insert( out, "^Method^Security^\n\r")
         for k,v in pairs(t.method) do
             table.insert( out, string.format(
-                        "| [[.%s|%s]] | %d |\n\r",
+                        "| [[.%s|%s]] | %s |\n\r",
                         v.field,
                         v.field,
-                        v.security)
+                        v.security == SEC_NOSCRIPT and 'X' or v.security)
             )
         end
         table.insert( out, "</sortable>\n\r")
@@ -1883,19 +1886,22 @@ function do_luahelp( ch, argument )
     end
 
     if args[1] == "global" or args[1] == "glob" then
+        local show_all= (args[2]=="all")
         local out={}
         
         table.insert(out, "GLOBAL functions\n\r" )
         local g=getglobals()
         for i,v in ipairs(g) do
+            if not(v.security==SEC_NOSCRIPT) or show_all then
             table.insert( out, string.format(
-                    "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                    "{%s[%s] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                     nextrowcolor(),
                     v.security,
                     v.lib and (v.lib.."."..v.name) or v.name,
                     "global",
                     v.lib and (v.lib..":"..v.name) or v.name)
             )
+            end
         end
 
         pagetochar( ch, table.concat(out) ) 
@@ -1909,11 +1915,23 @@ function do_luahelp( ch, argument )
             return
         end
         
-        local subsect=args[2]
+        local subsect
+        local show_all
+
+        if args[2] then
+            if args[2]=="all" then
+                -- no subsect
+                show_all=true
+            else
+                subsect=args[2]
+                show_all=(args[3]=="all")
+            end
+        end
 
         if not(subsect) or subsect=="get" then
             table.insert( out, "\n\rGET properties\n\r")
             for i,v in ipairs(t.get) do
+                if not(v.security==SEC_NOSCRIPT) or show_all then
                 table.insert( out, string.format(
                             "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
@@ -1922,12 +1940,14 @@ function do_luahelp( ch, argument )
                             args[1],
                             v.field)
                 )
+                end
             end
         end            
 
         if not(subsect) or subsect=="set" then
             table.insert( out, "\n\rSET properties\n\r")
             for i,v in ipairs(t.set) do
+                if not(v.security==SEC_NOSCRIPT) or show_all then
                 table.insert( out, string.format(
                             "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
@@ -1936,12 +1956,14 @@ function do_luahelp( ch, argument )
                             args[1],
                             v.field)
                 )
+                end
             end
         end
 
         if not(subsect) or subsect=="meth" then
             table.insert( out, "\n\rMETHODS\n\r")
             for i,v in ipairs(t.method) do
+                if not(v.security==SEC_NOSCRIPT) or show_all then
                 table.insert( out, string.format(
                             "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
@@ -1950,6 +1972,7 @@ function do_luahelp( ch, argument )
                             args[1],
                             v.field)
                 )
+                end
             end
         end
  
