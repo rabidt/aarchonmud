@@ -365,6 +365,25 @@ static int glob_gtransfer (lua_State *LS)
     return 1;
 }
 
+static int glob_gecho (lua_State *LS)
+{
+    DESCRIPTOR_DATA *d;
+    const char *argument=check_fstring( LS, 1, MIL );
+
+    for ( d=descriptor_list; d; d=d->next )
+    {
+        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+        {
+            if ( IS_IMMORTAL(d->character) )
+                send_to_char( "gecho> ", d->character );
+            send_to_char( argument, d->character );
+            send_to_char( "\n\r", d->character );
+        }
+    }
+
+    return 0;
+}
+
 static int glob_sendtochar (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
@@ -1142,6 +1161,7 @@ GLOB_TYPE glob_table[] =
     GFUN(sendtochar,    0),
     GFUN(echoat,        0),
     GFUN(echoaround,    0),
+    GFUN(gecho,         0),
     GFUN(pagetochar,    0),
     GFUN(log,           0),
     GFUN(getcharlist,   9),
@@ -2322,12 +2342,6 @@ static int CH_asound (lua_State *LS)
 {
     do_mpasound( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     return 0; 
-}
-
-static int CH_gecho (lua_State *LS)
-{
-    do_mpgecho( check_CH(LS, 1), check_fstring( LS, 2, MIL));
-    return 0;
 }
 
 static int CH_zecho (lua_State *LS)
@@ -4446,7 +4460,6 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(mdo, 1),
     CHMETH(tell, 1),
     CHMETH(asound, 1),
-    CHMETH(gecho, 1),
     CHMETH(zecho, 1),
     CHMETH(kill, 1),
     CHMETH(assist, 1),
