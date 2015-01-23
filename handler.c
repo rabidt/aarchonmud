@@ -481,6 +481,13 @@ void reset_char(CHAR_DATA *ch)
     // wimpy & calm percentages
     ch->wimpy = URANGE(0, ch->wimpy, 100);
     ch->calm = URANGE(0, ch->calm, 100);
+    
+    // we have heroes turning up with positive hunger/thirst, somehow
+    if ( IS_HERO(ch) )
+    {
+        ch->pcdata->condition[COND_THIRST] = -1;
+        ch->pcdata->condition[COND_HUNGER] = -1;
+    }
 }
 
 
