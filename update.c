@@ -789,10 +789,10 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
     if ( (condition = ch->pcdata->condition[iCond]) < 0 )
         return;
 
-    ch->pcdata->condition[iCond] = URANGE( 0, condition + value, 72 );
-    
-    if ( starvation_immune(ch) && (iCond == COND_HUNGER || iCond == COND_THIRST) )
+    if ( starvation_immune(ch) && (iCond == COND_HUNGER || iCond == COND_THIRST) && value < 0 )
         return;
+    
+    ch->pcdata->condition[iCond] = URANGE( 0, condition + value, 72 );
     
     if ( ch->pcdata->condition[iCond] == 0 )
     {
