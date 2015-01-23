@@ -615,8 +615,8 @@ DEF_SPELL_FUN(spell_turn_undead)
     CHAR_DATA *vch_next;
     int dam;
     
-    act( "You call to the gods for aid against the undead.\n\r", ch, NULL, NULL, TO_CHAR );
-    act( "$n calls to the gods for aid against the undead.\n\r", ch, NULL, NULL, TO_ROOM );
+    act( "You call to the gods for aid against the undead.", ch, NULL, NULL, TO_CHAR );
+    act( "$n calls to the gods for aid against the undead.", ch, NULL, NULL, TO_ROOM );
 
     dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * (1000 + ch->alignment) / 1000;
     
