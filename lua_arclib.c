@@ -4209,6 +4209,28 @@ static int CH_get_pet (lua_State *LS)
         return 0;
 }
 
+static int CH_get_master (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if ( IS_AFFECTED(ud_ch, AFF_CHARM) 
+            && ud_ch->master 
+            && push_CH(LS, ud_ch->master) )
+        return 1;
+    else
+        return 0;
+}
+
+static int CH_get_leader (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if ( ud_ch->leader && push_CH(LS, ud_ch->leader) )
+        return 1;
+    else
+        return 0;
+}
+
 static int CH_set_pet (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4328,6 +4350,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(stance, 0),
     CHGET(description, 0),
     CHGET(pet, 0),
+    CHGET(master, 0),
+    CHGET(leader, 0),
     CHGET(affects, 0),
     CHGET(scroll, 0),
     CHGET(id, 0 ),
