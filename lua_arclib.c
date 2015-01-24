@@ -5101,6 +5101,25 @@ static int OBJ_get_affects ( lua_State *LS)
     return 1;
 }
 
+static int OBJ_set_attacktype ( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+    const char *attack_arg = check_string(LS, 2, MIL);
+    int attack; 
+
+    if (ud_obj->item_type != ITEM_WEAPON )
+        return luaL_error(LS, "attacktype for weapon only.");
+
+    attack=attack_exact_lookup(attack_arg);
+    if ( attack == -1 )
+        return luaL_error(LS, "No such attack type '%s'",
+                attack_arg );
+
+    ud_obj->value[3]=attack;
+
+    return 0;
+}
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -5211,6 +5230,7 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
     OBJSET(weight, 5),
     OBJSET(room, 5),
     OBJSET(carriedby, 5),
+    OBJSET(attacktype, 5),
        
     ENDPTABLE
 };
