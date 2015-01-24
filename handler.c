@@ -174,6 +174,19 @@ const char *weapon_name( int weapon_type)
         return "exotic";
 }
 
+int attack_exact_lookup  (const char *name)
+{
+    int att;
+    
+    for ( att = 0; attack_table[att].name != NULL; att++)
+    {
+        if (!strcmp(name, attack_table[att].name))
+            return att;
+    }
+    
+    return 0;
+}
+
 int attack_lookup  (const char *name)
 {
     int att;

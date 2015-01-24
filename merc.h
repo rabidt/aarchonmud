@@ -4607,6 +4607,7 @@ int weapon_type args( ( const char *name) );
 const char* weapon_name( int weapon_Type );
 const char* item_name( int item_type ); 
 int attack_lookup   args( ( const char *name) );
+int attack_exact_lookup args( ( const char *noun) );
 long    wiznet_lookup   args( ( const char *name) );
 int class_lookup    args( ( const char *name) );
 bool    is_clan     args( (CHAR_DATA *ch) );
