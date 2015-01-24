@@ -986,10 +986,13 @@ local function alist_usage( ch )
 [[
 Syntax:  alist
          alist [column name] <ingame>
+         alist unused
          alist find [text]
 
 
 'alist' with no argument shows all areas, sorted by area vnum.
+
+'alist unused' shows which vnum ranges are unused.
 
 With a column name argument, the list is sorted by the given column name.
 'ingame' is used as an optional 3rd argument to show only in game areas.
@@ -1026,6 +1029,27 @@ function do_alist( ch, argument )
             end
             return false
         end
+    elseif args[1]=="unused" then
+        local alist=getarealist()
+        table.sort(alist, function(a,b) return a.minvnum<b.minvnum end)
+
+        -- assume no gap at the beginning (vnum 1)
+        sendtochar(ch, " Min   -  Max   [    count   ]\n\r")
+        sendtochar(ch, ("-"):rep(80).."\n\r")
+        for i,area in ipairs(alist) do
+            local area_next=alist[i+1]
+            if not(area_next) then break end
+
+            local gap=area_next.minvnum-area.maxvnum-1
+            if gap>0 then
+                sendtochar(ch, string.format("%6s - %6s [%6s vnums]\n\r",
+                            area.maxvnum+1,
+                            area_next.minvnum-1,
+                            gap))
+            end
+        end
+
+        return
     else
         for k,v in pairs(alist_col) do
             if v==args[1] then
