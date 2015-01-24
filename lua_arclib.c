@@ -4785,6 +4785,16 @@ static int OBJ_tprint ( lua_State *LS)
 
 }
 
+static int OBJ_setweaponflag( lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    
+    if (ud_obj->item_type != ITEM_WEAPON)
+        return luaL_error(LS, "setweaponflag for weapon only");
+
+    return set_iflag( LS, "weapon_type2", weapon_type2, &ud_obj->value[4]);
+}
+
 static int OBJ_get_name (lua_State *LS)
 {
     lua_pushstring( LS,
@@ -5268,6 +5278,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     
     /* weapon only */
     OBJMETH(weaponflag, 0),
+    OBJMETH(setweaponflag, 5),
     
     /* container only */
     OBJMETH(containerflag, 0),
