@@ -754,6 +754,19 @@ DEF_DO_FUN(do_wizhelp)
     }
 }
 
+DEF_DO_FUN(do_qset)
+{
+    lua_getglobal( g_mud_LS, "do_qset");
+    push_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        ptc (ch, "Error with do_qset:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
 static CHAR_DATA *clt_list;
 static int L_charloadtest( lua_State *LS )
 {
