@@ -2082,3 +2082,71 @@ function do_achievements_boss_reward( ch )
         
 end
 -- end do_achievements_boss section
+
+-- do_qset section
+local function do_qset_usage( ch )
+    sendtochar( ch, [[
+Syntax:
+  For regular qsets:
+    qset [player] [id] [value] [timer] [limit]
+
+    Example:
+    qset astark 31404 3
+
+  For lua setval:
+    qset [player] [setval] [value]
+
+    Use value of 'nil' to clear.
+
+    Examples:
+    qset astark blah123 true
+    qset astark blah123 nil
+]])
+    return
+end
+
+function do_qset(ch, argument)
+    local args=arguments(argument)
+
+    if #args<3 then
+        do_qset_usage(ch)
+        return
+    end 
+        
+    local vic=getpc(args[1])
+    if not vic then
+        sendtochar( ch, "No such player: "..args[1].."\n\r")
+        return
+    end
+
+    -- if arg2 is number, it's a qset, otherwise it's setval
+    if tonumber(args[2]) then
+        ch:qset(vic, unpack(args,2))
+        sendtochar( ch, "You have successfully changed "..vic.name.."'s qstatus.\n\r")
+        return
+    else
+        -- make sure we save the right types
+        local val
+
+        if tonumber(args[3]) then
+            val=tonumber(args[3])
+        elseif args[3]=="true" then
+            val=true
+        elseif args[3]=="false" then
+            val=false
+        elseif args[3]=="nil" then
+            val=nil
+        else
+            val=args[3]
+        end
+
+        vic:setval(args[2], val, true)
+
+        sendtochar( ch, string.format("Setval complete on %s.\n\r%s set to %s (type %s)\n\r", 
+                    vic.name, 
+                    args[2], 
+                    tostring(vic:getval(args[2])), 
+                    type(vic:getval(args[2]))))
+    end
+end
+-- end do_qset section
