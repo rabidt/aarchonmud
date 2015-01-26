@@ -7300,11 +7300,34 @@ static int DESCRIPTOR_set_inbuf( lua_State *LS )
     return 0;
 }
 
+static int DESCRIPTOR_get_conhandler( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+
+    if (!is_set_ref(ud_d->conhandler))
+        return 0;
+
+    push_ref( LS, ud_d->conhandler); 
+    return 1;
+}
+
+static int DESCRIPTOR_set_conhandler( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+
+    if (is_set_ref(ud_d->conhandler))
+        release_ref( LS, &ud_d->conhandler);
+
+    save_ref( LS, 2, &ud_d->conhandler);
+    return 0;
+}
+
 static const LUA_PROP_TYPE DESCRIPTOR_get_table [] =
 {
     GETP( DESCRIPTOR, character, 0 ),
     GETP( DESCRIPTOR, constate, SEC_NOSCRIPT ),
     GETP( DESCRIPTOR, inbuf, SEC_NOSCRIPT ),
+    GETP( DESCRIPTOR, conhandler, SEC_NOSCRIPT ),
     ENDPTABLE
 };
 
@@ -7312,6 +7335,7 @@ static const LUA_PROP_TYPE DESCRIPTOR_set_table [] =
 {
     SETP( DESCRIPTOR, constate, SEC_NOSCRIPT),
     SETP( DESCRIPTOR, inbuf, SEC_NOSCRIPT),
+    SETP( DESCRIPTOR, conhandler, SEC_NOSCRIPT),
     ENDPTABLE
 };
 
