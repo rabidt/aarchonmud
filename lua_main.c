@@ -1179,7 +1179,6 @@ DEF_DO_FUN(do_luahelp)
     }
 }
 
-
 /* sorted ctable section */
 void make_skill_table( lua_State *LS )
 {
@@ -1325,3 +1324,72 @@ int name_sorted_group_table( int sequence )
 }
 
 /* end sorted ctable section */
+
+/* LUAREF section */
+
+/* called as constructor */
+void new_ref( LUAREF *ref )
+{
+    *ref=LUA_NOREF;
+}
+
+/* called as destructor
+   only call this when the LUAREF's lifetime is ending,
+   otherwise use release_ref to release values */
+void free_ref( LUAREF *ref )
+{
+    if (*ref!=LUA_NOREF)
+    {
+        luaL_unref( g_mud_LS, LUA_GLOBALSINDEX, *ref );
+        *ref=LUA_NOREF;
+    }
+
+}
+
+void save_ref( lua_State *LS, int index, LUAREF *ref )
+{
+    if ( *ref!=LUA_NOREF )
+    {
+        bugf( "Tried to save over existing ref.");
+        return;
+    }
+    lua_pushvalue(LS, index);
+    *ref = luaL_ref( LS, LUA_GLOBALSINDEX );
+}
+
+void release_ref( lua_State *LS,  LUAREF *ref )
+{
+    if ( *ref==LUA_NOREF )
+    {
+        bugf( "Tried to release bad ref.");
+        return;
+    }
+    luaL_unref( LS, LUA_GLOBALSINDEX, *ref ); 
+    *ref=LUA_NOREF;
+}
+
+void push_ref( lua_State *LS, LUAREF ref )
+{
+    lua_rawgeti( LS, LUA_GLOBALSINDEX, ref );
+}
+
+bool is_set_ref( LUAREF ref )
+{
+    return !(ref==LUA_NOREF);
+}
+
+/* end LUAREF section */
+
+void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument )
+{
+    lua_getglobal( g_mud_LS, "lua_con_handler" );
+    push_DESCRIPTOR( g_mud_LS, d);
+    lua_pushstring( g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        bugf("Error with lua_con_handler:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+
+}
