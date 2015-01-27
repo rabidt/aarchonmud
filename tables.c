@@ -1163,7 +1163,7 @@ const   struct  bit_type    bitvector_type  []  =
 
 const struct flag_type con_states [] =
 {
-    { "playing",              CON_PLAYING,              FALSE },
+    { "playing",              CON_PLAYING,              TRUE },
     { "get_name",             CON_GET_NAME,             FALSE },
     { "get_old_password",     CON_GET_OLD_PASSWORD,     FALSE },
     { "confirm_new_name",     CON_CONFIRM_NEW_NAME,     FALSE },
@@ -1193,6 +1193,7 @@ const struct flag_type con_states [] =
     { "penalty_penlist",      CON_PENALTY_PENLIST,      FALSE },
     { "penalty_finish",       CON_PENALTY_FINISH,       FALSE },
     { "get_colour",           CON_GET_COLOUR,           FALSE },
+    { "lua_handler",          CON_LUA_HANDLER,          TRUE  },
     { "closed",               CON_CLOSED,               FALSE },
     { NULL, 0, TRUE }
 };

@@ -47,15 +47,11 @@ end
 -- end luareset section
 
 -- luaquery section
-local query_results={}
-
 local function luaquery_usage( ch )
     pagetochar( ch,
 [[
 {Cluaquery <type> <selection> [filter] [sort] [width] [limit]
-    {xExecute a query and show first page of results.
-{Cluaquery next
-    {xShow the next page of results.
+    {xExecute a query and show results.
 
 Types:
     area    - AREAs (area_list)
@@ -336,39 +332,43 @@ local lqtbl={
 
 }
 
-local function show_next_results( ch )
-    if not(query_results[ch.name]) then return end
-
-    local res=query_results[ch.name]
-
-    local ind=res.index
+local function luaq_results_con( ch, argument, header, result )
+    local ind=1
     local scroll=(ch.scroll == 0 ) and 100 or ch.scroll
-    local toind=math.min(ind+scroll-4, res.total ) -- -2 is normal, -3 for extra line at bottom, -4 for query at top
+    local total=#result
 
-    local out={}
-    table.insert(out, "Query: "..res.query)
-    table.insert(out, res.header)
-    for i=ind,toind do
-        table.insert(out, res.results[i] )
+    sendtochar(ch, "Query: "..argument)
+    while true do
+        local toind=math.min(ind+scroll-3, total ) -- -2 is normal, -3 for extra line at bottom, -4 for query at top
+        local out={}
+        table.insert(out, header)
+        for i=ind,toind do
+            table.insert(out, result[i] )
+        end
+
+        table.insert( out, ("Results %d through %d (of %d)."):format( ind, toind, total) )
+
+        sendtochar( ch, table.concat( out, "\n\r").."\n\r")
+        
+        if toind==total then
+            return
+        end
+        
+        while true do
+            sendtochar( ch, "[n]ext, [q]uit: ")
+            local cmd=coroutine.yield()
+            
+            if cmd=="n" then
+                ind=toind+1
+                break
+            elseif cmd=="q" then
+                return
+            else 
+                sendtochar( ch, "\n\rInvalid: "..cmd.."\n\r")
+            end
+        end
     end
-
-    table.insert( out, ("Results %d through %d (of %d)."):format( ind, toind, res.total) )
-
-    if toind==res.total then
-        query_results[ch.name]=nil
-    else
-        res.index=toind+1
-    end
-
-    pagetochar( ch, table.concat( out, "\n\r").."\n\r")
 end
-
-local luaq_nav=
-{
-    ["next"]=function( ch )
-        show_next_results( ch )
-    end
-}
 
 function do_luaquery( ch, argument)
     -- arg checking stuff
@@ -376,11 +376,6 @@ function do_luaquery( ch, argument)
     
     if not(args[1]) then
         luaquery_usage(ch)
-        return
-    end
-
-    if luaq_nav[args[1]] then
-        luaq_nav[args[1]]( ch )
         return
     end
 
@@ -602,17 +597,11 @@ function do_luaquery( ch, argument)
                 "|"..ln.."|")
     end
 
-    -- stick in in query_results table for browsing
-    query_results[ch.name]=
-    {
-        query=argument,
-        index=1,
-        total=#printing,
-        header=hdr,
-        results=printing
-    }
-
-    show_next_results( ch )
+    start_con_handler( ch.descriptor, luaq_results_con, 
+            ch,
+            argument, 
+            hdr,
+            printing)
 
 end
 -- end luaquery section

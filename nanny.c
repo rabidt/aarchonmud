@@ -184,6 +184,10 @@ void nanny( DESCRIPTOR_DATA *d, const char *argument )
 	    case CON_PENALTY_FINISH:
 		penalty_finish(d, argument);
 		break;
+
+        case CON_LUA_HANDLER:
+        lua_con_handler(d, argument);
+        break;
 	    }	
 	    break;
 	    

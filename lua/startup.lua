@@ -496,3 +496,29 @@ function show_image_to_char( ch, txt )
     local snd=string.format( '\n\r\t<image %s url="%s">\n\r', filename, path)
     sendtochar( ch, snd )
 end
+
+function start_con_handler( d, fun, ... )
+    d.constate="lua_handler"
+    d.conhandler=coroutine.create( fun )
+
+    lua_con_handler( d, unpack(arg) )
+end
+
+function lua_con_handler( d, ...)
+    if not d.conhandler then
+        error("No conhandler for "..d.character.name)
+    end
+
+    local res,err=coroutine.resume(d.conhandler, unpack(arg))
+    if res == false then
+        d.conhandler=nil
+        d.constate="playing"
+        error(err)
+    end
+
+    if coroutine.status(d.conhandler)=="dead" then
+        d.conhandler=nil
+        d.constate="playing"
+    end
+    
+end
