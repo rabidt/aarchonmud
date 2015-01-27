@@ -523,7 +523,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
             
             victim = d->original ? d->original : d->character;
             
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) || d->connected == CON_LUA_HANDLER) &&
                 d->character != ch &&
                 !IS_SET(victim->comm,chan->offbit) &&
                 !IS_SET(victim->comm,COMM_QUIET) &&
