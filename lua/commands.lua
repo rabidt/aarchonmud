@@ -337,7 +337,7 @@ local function luaq_results_con( ch, argument, header, result )
     local scroll=(ch.scroll == 0 ) and 100 or ch.scroll
     local total=#result
 
-    sendtochar(ch, "Query: "..argument)
+    sendtochar(ch, "Query: "..argument.."\n\r")
     while true do
         local toind=math.min(ind+scroll-3, total ) -- -2 is normal, -3 for extra line at bottom, -4 for query at top
         local out={}
