@@ -4787,8 +4787,6 @@ int name_sorted_skill_table( int sequence );
 void show_image_to_char( CHAR_DATA *ch, const char *txt );
 void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
 void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument );
-void save_changelog();
-void load_changelog();
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
