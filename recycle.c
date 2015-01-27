@@ -33,6 +33,7 @@
 #include <lua.h>
 #include "merc.h"
 #include "recycle.h"
+#include "lua_main.h"
 #include "lua_arclib.h"
 
 /* stuff for recyling notes */
@@ -137,6 +138,8 @@ DESCRIPTOR_DATA *new_descriptor(void)
 	d->outbuf   = alloc_mem( d->outsize );
     d->pProtocol= ProtocolCreate();
 
+    new_ref(&d->conhandler);
+
     d->lua.interpret=FALSE;
     d->lua.incmpl=FALSE;
 
@@ -158,6 +161,9 @@ void free_descriptor(DESCRIPTOR_DATA *d)
     ProtocolDestroy( d->pProtocol );
 	INVALIDATE(d);
 	d->next = NULL;
+
+    free_ref( &d->conhandler );
+
     free_DESCRIPTOR( d );
 }
 
