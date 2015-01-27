@@ -5,6 +5,7 @@ require "serialize"
 glob_util=require "utilities"
 require "leaderboard"
 require "commands"
+require "changelog"
 Queue = require "Queue"
 
 envtbl={} -- game object script environments
