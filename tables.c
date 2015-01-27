@@ -1161,6 +1161,43 @@ const   struct  bit_type    bitvector_type  []  =
 	{   weapon_type2,   "weapon"    }
 };
 
+const struct flag_type con_states [] =
+{
+    { "playing",              CON_PLAYING,              TRUE },
+    { "get_name",             CON_GET_NAME,             FALSE },
+    { "get_old_password",     CON_GET_OLD_PASSWORD,     FALSE },
+    { "confirm_new_name",     CON_CONFIRM_NEW_NAME,     FALSE },
+    { "confirm_new_password", CON_CONFIRM_NEW_PASSWORD, FALSE },
+    { "get_new_race",         CON_GET_NEW_RACE,         FALSE },
+    { "get_new_sex",          CON_GET_NEW_SEX,          FALSE },
+    { "get_new_class",        CON_GET_NEW_CLASS,        FALSE },
+    { "get_alignment",        CON_GET_ALIGNMENT,        FALSE },
+    { "default_choice",       CON_DEFAULT_CHOICE,       FALSE },
+    { "gen_groups",           CON_GEN_GROUPS,           FALSE },
+    { "pick_weapon",          CON_PICK_WEAPON,          FALSE },
+    { "read_imotd",           CON_READ_IMOTD,           FALSE },
+    { "break_connect",        CON_BREAK_CONNECT,        FALSE },
+    { "get_creation_mode",    CON_GET_CREATION_MODE,    FALSE },
+    { "roll_stats",           CON_ROLL_STATS,           FALSE },
+    { "get_stat_priority",    CON_GET_STAT_PRIORITY,    FALSE },
+    { "copyover_recover",     CON_COPYOVER_RECOVER,     FALSE },
+    { "note_to",              CON_NOTE_TO,              FALSE },
+    { "note_subject",         CON_NOTE_SUBJECT,         FALSE },
+    { "note_expire",          CON_NOTE_EXPIRE,          FALSE },
+    { "note_text",            CON_NOTE_TEXT,            FALSE },
+    { "note_finish",          CON_NOTE_FINISH,          FALSE },
+    { "penalty_severity",     CON_PENALTY_SEVERITY,     FALSE },
+    { "penalty_confirm",      CON_PENALTY_CONFIRM,      FALSE },
+    { "penalty_hours",        CON_PENALTY_HOURS,        FALSE },
+    { "penalty_points",       CON_PENALTY_POINTS,       FALSE },
+    { "penalty_penlist",      CON_PENALTY_PENLIST,      FALSE },
+    { "penalty_finish",       CON_PENALTY_FINISH,       FALSE },
+    { "get_colour",           CON_GET_COLOUR,           FALSE },
+    { "lua_handler",          CON_LUA_HANDLER,          TRUE  },
+    { "closed",               CON_CLOSED,               FALSE },
+    { NULL, 0, TRUE }
+};
+
 const struct stance_type stances [] =
 {
 	{ "default",          STANCE_DEFAULT,             DAM_BASH,      "punch",
