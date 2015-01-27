@@ -132,6 +132,8 @@ typedef struct prayer_data PRAYER_DATA;
 /* from buffer_util.h, moved here: */
 typedef struct mem_file_type MEMFILE;
 
+typedef int LUAREF;
+
 /*
  * Function types.
  */
@@ -772,6 +774,9 @@ struct  descriptor_data
 	void *              pEdit;      /* OLC */
     const char** pString;   /* OLC */
 	int         editor;     /* OLC */
+
+    LUAREF      conhandler;
+
     /* lua interpreter */
     struct
     {
@@ -3907,7 +3912,7 @@ struct boss_achieve_record
 #define IS_WRITING_NOTE(con)  (( (con >= CON_NOTE_TO && con <= CON_NOTE_FINISH) \
             || (con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH) \
             ) ? TRUE : FALSE)
-#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con))
+#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con) || con == CON_LUA_HANDLER)
 #define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
 
 #define NOT_AUTHED(ch)   (!IS_NPC(ch) && get_auth_state( ch ) != AUTH_AUTHED && IS_SET(ch->act, PLR_UNAUTHED) )
@@ -4781,6 +4786,9 @@ int name_sorted_group_table( int sequence );
 int name_sorted_skill_table( int sequence );
 void show_image_to_char( CHAR_DATA *ch, const char *txt );
 void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
+void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument );
+void save_changelog();
+void load_changelog();
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
