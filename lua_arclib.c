@@ -561,6 +561,16 @@ static int glob_mudconfig (lua_State *LS)
     return 0;
 }
 
+static int glob_start_con_handler( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "start_con_handler");
+    lua_insert( LS, 1);
+    lua_call( LS, top, LUA_MULTRET );
+    
+    return lua_gettop(LS);
+}
+
 static int glob_getglobals (lua_State *LS)
 {
     int i;
@@ -589,6 +599,59 @@ static int glob_getglobals (lua_State *LS)
         }
     }
     return 1;
+}
+
+static int glob_forceget (lua_State *LS)
+{
+    lua_getmetatable( LS, 1);
+    lua_getfield( LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_pop( LS, 2 );
+    const char *arg=check_string( LS, 2, MIL);
+    lua_remove( LS, 2 );
+
+    
+    const LUA_PROP_TYPE *get=type->get_table;
+    int i;
+
+    for (i=0 ; get[i].field ; i++ )
+    {
+        if ( !strcmp(get[i].field, arg) )
+        {
+            return (get[i].func)(LS);
+        }
+    }
+
+    luaL_error( LS, "Can't get field '%s' for type %s.", arg, type->type_name);
+    return 0;
+}
+
+static int glob_forceset (lua_State *LS)
+{
+    lua_getmetatable( LS, 1);
+    lua_getfield( LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_pop( LS, 2 );
+    const char *arg=check_string( LS, 2, MIL);
+    lua_remove( LS, 2 );
+
+    
+    const LUA_PROP_TYPE *set=type->set_table;
+    int i;
+
+    for (i=0 ; set[i].field ; i++ )
+    {
+        if ( !strcmp(set[i].field, arg) )
+        {
+            lua_pushcfunction( LS, set[i].func );
+            lua_insert( LS, 1 );
+            lua_call(LS, 2, 0);
+            return 0;
+        }
+    }
+
+    luaL_error( LS, "Can't set field '%s' for type %s.", arg, type->type_name);
+    return 0;
 }
 
 static int glob_getluatype (lua_State *LS)
@@ -1175,6 +1238,9 @@ GLOB_TYPE glob_table[] =
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
     GFUN(mudconfig,     9),
+    GFUN(start_con_handler, 9),
+    GFUN(forceget,      SEC_NOSCRIPT),
+    GFUN(forceset,      SEC_NOSCRIPT),
     GFUN(getluatype,    SEC_NOSCRIPT),
     GFUN(getglobals,    SEC_NOSCRIPT),
 #ifdef TESTER
