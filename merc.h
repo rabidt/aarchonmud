@@ -440,11 +440,8 @@ struct struckdrunk
 
 struct buf_type
 {
-	BUFFER *    next;
-	bool        valid;
-	sh_int      state;  /* error state of the buffer */
-	sh_int      size;   /* size in k */
-	char *      string; /* buffer's string */
+    LUAREF table;
+    LUAREF string;
 };
 
 /* Erwin's dynamic buffer system. */
@@ -4790,6 +4787,11 @@ void show_image_to_char( CHAR_DATA *ch, const char *txt );
 void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
 void do_achievements_boss_reward( CHAR_DATA *ch );
 void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument );
+BUFFER *new_buf();
+void free_buf(BUFFER *buffer);
+bool add_buf(BUFFER *buffer, const char *string );
+void clear_buf(BUFFER *buffer);
+const char *buf_string(BUFFER *buffer);
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
