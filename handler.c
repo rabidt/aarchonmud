@@ -2457,10 +2457,11 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
 
     unregister_ch_timer( ch );
 
-    nuke_pets(ch);
-
     if ( fPull )
+    {
+        nuke_pets(ch);
         die_follower( ch, false );
+    }
 
     stop_fighting( ch, TRUE );
 
