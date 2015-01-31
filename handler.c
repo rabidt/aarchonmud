@@ -2510,7 +2510,7 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     {
         if ( wch->reply == ch )
             wch->reply = NULL;
-        if ( ch->mprog_target == wch )
+        if ( wch->mprog_target == ch )
             wch->mprog_target = NULL;
     }
 
