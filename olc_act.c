@@ -5534,6 +5534,13 @@ MEDIT( medit_delete )
         }
     }
 
+    /* check for mprog triggers */
+    if ( pMob->mprogs )
+    {
+        send_to_char( "MEdit:  Can't delete, mprog triggers exist.\n\r", ch );
+        return FALSE;
+    }
+
     CHAR_DATA *m;
     for ( m=char_list ; m ; m=m->next )
     {
