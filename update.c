@@ -1080,7 +1080,7 @@ void weather_update( void )
             weather_info.sunlight = SUN_LIGHT;
             for (d=descriptor_list; d!=NULL; d=d->next)
                 if (d->character && (d->character->race == race_werewolf)
-                        && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
+                        && (IS_PLAYING(d->connected)))
                 {
                     if (d->connected == CON_PLAYING)
                     {
@@ -1098,7 +1098,7 @@ void weather_update( void )
             weather_info.sunlight = SUN_SET;
             for (d=descriptor_list; d!=NULL; d=d->next)
                 if (d->character && (d->character->race == race_werewolf)
-                        && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
+                        && (IS_PLAYING(d->connected)))
                 {
                     if ( d->connected == CON_PLAYING )
                     {
@@ -3010,7 +3010,7 @@ void msdp_update( void )
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-    if ( d->character && d->connected == CON_PLAYING && !IS_NPC(d->character) )
+    if ( d->character && IS_PLAYING(d->connected) && !IS_NPC(d->character) )
         {
             char buf[MAX_STRING_LENGTH];
             CHAR_DATA *pOpponent = d->character->fighting;

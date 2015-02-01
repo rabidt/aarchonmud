@@ -1554,7 +1554,7 @@ void mail_notify( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board )
               continue;
       }
 
-	  if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+	  if ((IS_PLAYING(d->connected) )
       && !NOT_AUTHED(recip)
 	  && !IS_SET(recip->comm,COMM_NOINFO)
 	  && !IS_SET(recip->comm,COMM_QUIET) )

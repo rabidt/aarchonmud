@@ -1901,7 +1901,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 		bool found = FALSE;
 
 		for ( desc = descriptor_list; desc; desc = desc->next )
-		    if ( (desc->connected == CON_PLAYING || IS_WRITING_NOTE(desc->connected))
+		    if ( (IS_PLAYING(desc->connected) )
 			 && desc->character
 			 && IS_IMMORTAL(desc->character))
 			found = TRUE;

@@ -145,7 +145,7 @@ void wiznet( const char *string, CHAR_DATA *ch, const void *arg1, long flag, lon
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        bool playing = d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected);
+        bool playing = IS_PLAYING(d->connected);
         if ( !playing || !d->character || d->character == ch )
             continue;
         bool auth_match = flag == WIZ_AUTH && CAN_AUTH(d->character);
@@ -426,7 +426,7 @@ DEF_DO_FUN(do_echo)
     
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) ) 
+        if ( IS_PLAYING(d->connected) ) 
         {
             if (get_trust(d->character) >= get_trust(ch))
                 send_to_char( "global> ",d->character);
@@ -453,7 +453,7 @@ DEF_DO_FUN(do_recho)
     
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+        if ( (IS_PLAYING(d->connected) ) 
             &&   d->character->in_room == ch->in_room )
         {
             if (get_trust(d->character) >= get_trust(ch))
@@ -478,7 +478,7 @@ DEF_DO_FUN(do_zecho)
     
     for (d = descriptor_list; d; d = d->next)
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+        if ( (IS_PLAYING(d->connected) ) 
             &&  d->character->in_room != NULL && ch->in_room != NULL
             &&  d->character->in_room->area == ch->in_room->area)
         {
@@ -541,7 +541,7 @@ DEF_DO_FUN(do_transfer)
     {
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+            if ( (IS_PLAYING(d->connected)) 
                 &&   d->character != ch
                 &&   d->character->in_room != NULL
                 &&   can_see( ch, d->character ) )
