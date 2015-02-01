@@ -372,7 +372,7 @@ static int glob_gecho (lua_State *LS)
 
     for ( d=descriptor_list; d; d=d->next )
     {
-        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+        if ( IS_PLAYING(d->connected ) )
         {
             if ( IS_IMMORTAL(d->character) )
                 send_to_char( "gecho> ", d->character );
@@ -5497,7 +5497,7 @@ static int AREA_echo( lua_State *LS)
 
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+        if ( IS_PLAYING(d->connected) )
         {
             if ( !d->character->in_room )
                 continue;

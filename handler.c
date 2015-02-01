@@ -2594,7 +2594,7 @@ CHAR_DATA* get_player( const char *name )
 
     /* match exact name */
     for ( d = descriptor_list; d != NULL; d = d->next )
-	if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+	if ( IS_PLAYING(d->connected) )
 	{
 	    ch = original_char( d->character );
 

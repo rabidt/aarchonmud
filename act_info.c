@@ -2522,8 +2522,7 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
 		
 		/* small hack :) */
 		if (ch->desc != NULL
-		    && ch->desc->connected != CON_PLAYING 
-		    && !IS_WRITING_NOTE(ch->desc->connected) 
+		    && !(IS_PLAYING(ch->desc->connected)) 
 		    && ch->desc->connected != CON_GEN_GROUPS)
 		    break;
 	    }
@@ -2648,7 +2647,7 @@ DEF_DO_FUN(do_whois)
     {
         CHAR_DATA *wch;
         
-        if ( !(d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) )
+        if ( !(IS_PLAYING(d->connected)) )
             continue;
         
         wch = ( d->original != NULL ) ? d->original : d->character;
@@ -3247,7 +3246,7 @@ DEF_DO_FUN(do_where)
         found = FALSE;
         for ( d = descriptor_list; d; d = d->next )
         {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+            if ( (IS_PLAYING(d->connected))
 		 && ( victim = d->character ) != NULL
 		 &&   !IS_NPC(victim)
 		 &&   victim->in_room != NULL
@@ -5679,7 +5678,7 @@ DEF_DO_FUN(do_count)
     	return;
 
     for ( d = descriptor_list; d != NULL; d = d->next )
-        if ( d->connected == CON_PLAYING && can_see( ch, d->character ) )
+        if ( IS_PLAYING(d->connected) && can_see( ch, d->character ) )
 	    count++;
 
     max_on = UMAX(count,max_on);

@@ -559,7 +559,7 @@ DEF_DO_FUN(do_mpgecho)
 
     for ( d = descriptor_list; d; d = d->next )
     {
-	if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+	if ( IS_PLAYING(d->connected) )
  	{
 	    if ( IS_IMMORTAL(d->character) )
 		send_to_char( "Mob echo> ", d->character );
@@ -590,7 +590,7 @@ DEF_DO_FUN(do_mpzecho)
 
     for ( d = descriptor_list; d; d = d->next )
     {
-	if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+	if ( (IS_PLAYING(d->connected))
 	&&   d->character->in_room != NULL 
 	&&   d->character->in_room->area == ch->in_room->area )
  	{
@@ -1229,7 +1229,7 @@ DEF_DO_FUN(do_mptransfer)
         for ( d = descriptor_list; d; d = d->next )
         {
             if (   !d->character 
-                || (d->connected != CON_PLAYING && !IS_WRITING_NOTE(d->connected))
+                || !(IS_PLAYING(d->connected))
                 || !can_see(ch, d->character)
                 || ch->in_room->area != d->character->in_room->area 
                 || d->character->level == 1 )

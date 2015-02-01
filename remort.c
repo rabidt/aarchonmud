@@ -583,8 +583,7 @@ void remort_update()
             for ( d = descriptor_list; d != NULL; d = d->next )
             {
                 ch = d->original ? d->original : d->character;
-                if ((d->connected == CON_PLAYING
-                    || IS_WRITING_NOTE(d->connected))
+                if ((IS_PLAYING(d->connected)) 
                     && !str_cmp(ch->name, chamber_list[j]->name))
                 {
                     found = TRUE;

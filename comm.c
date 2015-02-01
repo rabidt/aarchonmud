@@ -1700,7 +1700,7 @@ void stop_idling( CHAR_DATA *ch )
 {
 
     if ( ch == NULL || ch->desc == NULL
-            || (ch->desc->connected != CON_PLAYING && !IS_WRITING_NOTE(ch->desc->connected)) )
+            || (!IS_PLAYING(ch->desc->connected)) )
         return;
 
     /* Removed before implementation because the testers didn't like it...
@@ -2180,7 +2180,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         buf[0]   = UPPER(buf[0]);
         pbuff    = buffer;
         colourconv( pbuff, buf, to );
-        if (to->desc && (to->desc->connected == CON_PLAYING || IS_WRITING_NOTE(to->desc->connected)))
+        if (to->desc && (IS_PLAYING(to->desc->connected )))
         {
             show_image_to_char( to, buffer );
             write_to_buffer( to->desc, buffer, 0 );
@@ -2833,7 +2833,7 @@ DEF_DO_FUN(do_copyover)
         CHAR_DATA * och = CH (d);
         d_next = d->next; /* We delete from the list , so need to save this */
 
-        if (!d->character || (d->connected > CON_PLAYING && !IS_WRITING_NOTE(d->connected))) /* drop those logging on */
+        if (!d->character || (!IS_PLAYING(d->connected) )) /* drop those logging on */
         {
             write_to_descriptor (d->descriptor, "\n\rSorry, we are rebooting. Come back in a few minutes.\n\r", 0);
             close_socket (d); /* throw'em out */
