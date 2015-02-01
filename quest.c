@@ -1330,7 +1330,7 @@ void quest_update(void)
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         if (d->character != NULL && !IS_NPC(d->character)
-            && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
+            && (IS_PLAYING(d->connected)))
         {
             
             ch = d->character;

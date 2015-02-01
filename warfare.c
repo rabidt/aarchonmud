@@ -503,7 +503,7 @@ void war_update( void )
         
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
-            if ( !(d->connected == CON_PLAYING || IS_WRITING_NOTE( d->connected ))
+            if ( !(IS_PLAYING(d->connected))
                 || d->character == NULL
                 || !IS_SET( d->character->act, PLR_WAR ) )
                 continue;
@@ -558,7 +558,7 @@ void warfare( char *argument )
     sprintf( buf, "{5WARFARE: {6%s{x", argument );
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+        if ( (IS_PLAYING(d->connected))
             && d->character != NULL
             && !IS_SET( d->character->comm, COMM_NOWAR )
             && !IS_SET( d->character->comm, COMM_QUIET ) )
@@ -614,7 +614,7 @@ void war_end( bool success )
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ( (d->connected != CON_PLAYING && !IS_WRITING_NOTE( d->connected ))
+        if ( (!IS_PLAYING(d->connected))
             || d->character == NULL || IS_NPC(d->character)
             || !IS_SET( d->character->act, PLR_WAR ) )
             continue;
@@ -722,7 +722,7 @@ DEF_DO_FUN(do_warsit)
     {
         const char *god_name;
 
-        if ( !(d->connected == CON_PLAYING || IS_WRITING_NOTE( d->connected ))
+        if ( !(IS_PLAYING(d->connected))
             || d->character == NULL
             || !IS_SET( d->character->act, PLR_WAR ) )
             continue;
@@ -862,7 +862,7 @@ void check_war_win( void )
     {
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
-            if ( !( d->connected == CON_PLAYING || IS_WRITING_NOTE( d->connected ) )
+            if ( !(IS_PLAYING(d->connected) )
                 || d->character == NULL
                 || !IS_SET( d->character->act, PLR_WAR )
                 || d->character == ch )

@@ -1590,7 +1590,7 @@ DEF_DO_FUN(do_mwhere)
 	for (d = descriptor_list; d != NULL; d = d->next)
 	{
 		if (d->character != NULL 
-                && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+                && (IS_PLAYING(d->connected))
 		&&  d->character->in_room != NULL && can_see(ch,d->character)
 		&&  can_see_room(ch,d->character->in_room))
 		{
