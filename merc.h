@@ -4223,6 +4223,7 @@ const char* ch_name( CHAR_DATA *ch );
 void    gui_login_setup( CHAR_DATA *ch );
 void    open_imagewin_tag( CHAR_DATA *ch );
 void    close_imagewin_tag( CHAR_DATA *ch );
+const char *parse_url( const char *txt );
 
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
