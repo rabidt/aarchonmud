@@ -392,7 +392,7 @@ const char *parse_url( const char *argument )
              || ( url=strstr(argument, "www."    ) ) ) )
     return argument;
     
-    static char rtn[MSL*2];
+    static char rtn[MSL*10];
     int rtnIndex;
 
     for ( rtnIndex=0 ; ; argument++)
@@ -403,7 +403,7 @@ const char *parse_url( const char *argument )
             rtnIndex+=strlen(open);
 
             char *cptr;
-            for (cptr=url; *cptr != ' ' && *cptr !='\0' ; cptr++)
+            for (cptr=url; *cptr != ' ' && *cptr !='\0' && *cptr !='\n' && *cptr !='\r'; cptr++)
             {
                 rtn[rtnIndex++]=*cptr;
             }

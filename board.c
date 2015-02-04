@@ -309,7 +309,7 @@ void finish_note (BOARD_DATA *board, NOTE_DATA *note)
 /* Show one note to a character */
 static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num)
 {
-   char buf[4*MAX_STRING_LENGTH];
+   char buf[10*MAX_STRING_LENGTH];
    BUFFER *output;
    
    output = new_buf();
@@ -325,7 +325,7 @@ static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num)
       num, note->sender, note->subject,
       note->date,
       note->to_list,
-      note->text);
+      parse_url(note->text));
 
     add_buf(output, buf);
   
