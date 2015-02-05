@@ -1226,6 +1226,7 @@ GLOB_TYPE glob_table[] =
     GFUN(echoaround,    0),
     GFUN(gecho,         0),
     GFUN(pagetochar,    0),
+    GFUN( arguments,    0),
     GFUN(log,           0),
     GFUN(getcharlist,   9),
     GFUN(getobjlist,    9),
@@ -1282,7 +1283,6 @@ GLOB_TYPE glob_table[] =
     LFUN( mud, luadir,      SEC_NOSCRIPT ),
     LFUN( mud, userdir,     SEC_NOSCRIPT ),
     
-    GFUN( arguments,        SEC_NOSCRIPT ),
     ENDGTABLE
 };
 
