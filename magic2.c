@@ -1871,6 +1871,7 @@ DEF_SPELL_FUN(spell_entangle)
         return TRUE;
     }
     
+    af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
