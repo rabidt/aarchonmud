@@ -106,11 +106,11 @@ DEF_DO_FUN(do_berserk)
     if (ch->position == POS_FIGHTING)
         chance += 10;
     
-    /* damage -- below 50% of hp helps, above hurts */
+    /* damage -- being hurt helps */
     hp_percent = 100 * ch->hit/ch->max_hit;
-    chance += 25 - hp_percent/2;
+    chance += (100 - hp_percent) / 5;
     
-    if (number_percent() < chance)
+    if ( per_chance(chance) )
     {
         AFFECT_DATA af;
         
@@ -1062,11 +1062,11 @@ DEF_DO_FUN(do_drunken_fury)
     
     /* fighting */
     if (ch->position == POS_FIGHTING)
-        chance += 20;
+        chance += 10;
     
-    /* damage -- below 50% of hp helps, above hurts */
+    /* damage -- being hurt helps */
     hp_percent = 100 * ch->hit/ch->max_hit;
-    chance += 25 - hp_percent/2;
+    chance += (100 - hp_percent) / 5;
     
     if (number_percent() < chance)
     {
