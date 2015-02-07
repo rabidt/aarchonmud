@@ -5566,6 +5566,14 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         xp = number_range( xp * 9/10, xp * 11/10 );
         xp *= group_factor * ch_factor;
 
+        if ( cfg_enable_exp_mult )
+        {
+            xp *= cfg_exp_mult;
+            if ( cfg_show_exp_mult )
+            {
+                ptc( gch, "There's currently an exp bonus of %d%%!\n\r", (int)((cfg_exp_mult*100)-99.5));
+            }
+        }
 /* Removed since we are allowing certain people to play from same IP
  *	-Vodur 12/11/2011 
 	  if ( ch != gch && is_same_player(ch, gch) )
