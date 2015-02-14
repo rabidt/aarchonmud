@@ -795,6 +795,13 @@ struct align_type align_table [] =
     {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
     },
     
+    {
+    "hag", TRUE,
+    {}, {}, {},
+    {}, {RES_POISON,RES_DISEASE,RES_DROWNING}, {VULN_HOLY},
+    {A,H,M,V,jj}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
 /* NPC RACES */
 {
 	"bat",          FALSE,
@@ -1784,6 +1791,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 155, 150, 150, 145, 145,     150, 150, 150, 155, 150 },
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
           SIZE_LARGE, SEX_BOTH, 10
+        },
+        
+        { 
+          "hag", "Hag   ",
+          { 315, 310, 310, 300, 315, 315, 310, 305, 310, 305, 310, 300, 310, 305, 300 },
+          5, { "cursed wound", "mimic", "alchemy", "soreness", "heal" },
+          {1, 10, 20, 30, 40}, {100, 100, 95, 90, 80},
+          {  75,  75,  75,  70,  70,      95,  95,  90,  90,  90 },
+          { 145, 145, 145, 140, 140,     155, 155, 150, 150, 150 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_MEDIUM, SEX_FEMALE, 10
         }
 };
 
