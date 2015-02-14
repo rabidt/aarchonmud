@@ -2647,7 +2647,7 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     if ( wield == NULL )
     {
         int skill = get_skill(ch, gsn_razor_claws);
-        if ( (ch->stance == STANCE_DEFAULT && per_chance(skill)) || ch->stance == STANCE_SHADOWCLAW )
+        if ( (ch->stance == STANCE_DEFAULT && per_chance(skill/2)) || ch->stance == STANCE_SHADOWCLAW )
         {
             act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
             act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
