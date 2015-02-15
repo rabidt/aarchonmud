@@ -785,9 +785,44 @@ struct align_type align_table [] =
 	"behemoth",        TRUE,
 	{},      {AFF_DARK_VISION},   {},
 	{},      {RES_COLD}, {VULN_MENTAL},
-	{A,H,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K,U,V}
+	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K,U,V}
 	},
 
+    {
+    "dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL}, {},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+    
+    {
+    "hag", TRUE,
+    {}, {}, {},
+    {}, {RES_POISON,RES_DISEASE,RES_DROWNING}, {VULN_HOLY},
+    {A,H,M,V,jj}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
+    {
+    "inevitable", TRUE,
+    {}, {AFF_PROTECT_MAGIC,AFF_DETECT_HIDDEN,AFF_DETECT_INVIS}, {},
+    {}, {RES_CHARM,RES_HOLY}, {},
+    {H,J,M,cc,nn},   {A,B,C,G,H,I,J,K}
+    },
+    
+    {
+    "archon", TRUE,
+    {}, {AFF_FLYING,AFF_PROTECT_EVIL}, {},
+    {}, {RES_HOLY}, {VULN_NEGATIVE},
+    {A,H,M,V}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
+    {
+    "quickling", TRUE,
+    {}, {AFF_HASTE,AFF_INVISIBLE}, {},
+    {}, {}, {VULN_BASH},
+    {A,C,H,M,N}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
 /* NPC RACES */
 {
 	"bat",          FALSE,
@@ -1760,14 +1795,68 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "behemoth",   "Behemo",
           { 305, 305, 315, 315, 305, 310, 310, 305, 305, 315, 310, 315, 305, 305, 315 },
-          4, { "razor claws", "berserk", "brutal damage", "hunt" },
-          {1,10,60,80},{100,100,100,80},
+          4, { "rake", "razor claws", "brutal damage", "hunt" },
+          {1,20,40,80},{100,100,100,80},
           {  95,  95,  95,  90,  90,      30,  30,  50,  50,  50 },
           { 165, 155, 155, 150, 150,     140, 140, 150, 150, 150 },  
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
           SIZE_HUGE, SEX_BOTH, 10
-        }
+        },
 
+        { 
+          "dragonborn",   "Dragon",
+          { 310, 315, 310, 305, 310, 310, 310, 315, 315, 310, 310, 310, 310, 310, 315 },
+          2, { "regeneration", "draconic breath" },
+          {1,30},{100,100},
+          {  75,  70,  70,  65,  65,      70,  70,  70,  75,  70 },
+          { 155, 150, 150, 145, 145,     150, 150, 150, 155, 150 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_LARGE, SEX_BOTH, 10
+        },
+        
+        { 
+          "hag", "Hag   ",
+          { 315, 310, 310, 300, 315, 315, 310, 305, 310, 305, 310, 300, 310, 305, 300 },
+          5, { "cursed wound", "mimic", "alchemy", "soreness", "heal" },
+          {1, 10, 20, 30, 40}, {100, 100, 95, 90, 80},
+          {  75,  75,  75,  70,  70,      95,  95,  90,  90,  90 },
+          { 145, 145, 145, 140, 140,     155, 155, 150, 150, 150 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_MEDIUM, SEX_FEMALE, 10
+        },
+        
+        { 
+          "inevitable", "Inevit",
+          { 310, 310, 310, 305, 315, 305, 305, 305, 305, 310, 305, 305, 305, 305, 315 },
+          5, { "regeneration", "ray of truth", "hunt", "stalk", "farsight" },
+          {1, 10, 20, 30, 50}, {100, 100, 95, 95, 90},
+          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
+          { 140, 140, 140, 140, 140,     140, 140, 150, 135, 135 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_LARGE, SEX_BOTH, 10
+        },
+        
+        { 
+          "archon", "Archon",
+          { 310, 315, 300, 305, 310, 310, 300, 315, 310, 300, 300, 305, 310, 305, 310 },
+          4, { "bless", "smite", "sanctuary", "aura of menace" },
+          {1, 10, 30, 50}, {100, 100, 100, 100},
+          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
+          { 150, 150, 150, 150, 150,     150, 155, 150, 155, 150 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_MEDIUM, SEX_BOTH, 10
+        },
+        
+        { 
+          "quickling", "Quickl",
+          { 305, 300, 310, 315, 305, 305, 310, 305, 305, 310, 310, 310, 305, 305, 315 },
+          5, { "quick draw", "wendigo", "flanking", "second attack", "third attack" },
+          {10, 20, 30, 40, 50}, {100, 90, 50, 50, 50},
+          {  40,  50,  80,  90,  90,      70,  70,  50,  70,  90 },
+          { 135, 140, 155, 160, 160,     150, 150, 140, 150, 160 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_SMALL, SEX_BOTH, 10
+        }
 };
 
 /* special race_types and pc_race_types for morphing --Bobble */
@@ -1793,6 +1882,41 @@ struct race_type morph_race_table[] =
 	{},      {},      {},
 	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
+
+    {
+    "red dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_FIRE}, {VULN_COLD},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "green dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_POISON}, {VULN_DISEASE},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "blue dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_LIGHTNING}, {VULN_ACID},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "black dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_ACID}, {VULN_LIGHTNING},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "white dragonborn", TRUE,
+    {}, { AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_COLD}, {VULN_FIRE},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
 
 	{
 	  NULL, TRUE, {}, {}, {}, {}, {}, {}, {}, {}
@@ -1832,7 +1956,9 @@ struct pc_race_type morph_pc_race_table[] =
 	{ },
 	{ },
 	SIZE_MEDIUM, SEX_BOTH, 4
-    }
+    },
+    
+    { NULL }
 };
 
 
@@ -2519,7 +2645,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_acid_breath,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-	NULL,              18,    4, DUR_NONE,
+	&gsn_acid_breath, 18, 4, DUR_NONE,
 	"blast of acid",    "!Acid Breath!",    ""
 	},
 
@@ -3380,7 +3506,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_frost_breath, TAR_IGNORE_OFF, POS_FIGHTING,
-	NULL,             14,    4, DUR_NONE,
+	&gsn_frost_breath, 14, 4, DUR_NONE,
 	"blast of frost",   "!Frost Breath!",   ""
 	},
 
@@ -3391,7 +3517,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_gas_breath,   TAR_IGNORE_OFF,     POS_FIGHTING,
-	NULL,             20,    4, DUR_NONE,
+	&gsn_gas_breath, 20, 4, DUR_NONE,
 	"blast of gas",     "!Gas Breath!",     ""
 	},
 
@@ -3648,7 +3774,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_lightning_breath, TAR_VIS_CHAR_OFF, POS_FIGHTING,
-	NULL,             16,    4, DUR_NONE,
+	&gsn_lightning_breath, 16, 4, DUR_NONE,
 	"blast of lightning",   "!Lightning Breath!",   ""
 	},
 
@@ -4481,6 +4607,17 @@ struct  skill_type
     "", "!ambidextrous!", ""
     },
 
+    {
+    "aura of menace",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_aura_of_menace,  0, 0, DUR_NONE,
+    "", "!aura of menace!", ""
+    },
+
 /*
  * Spells for mega1.are from Glop/Erkenbrand.
  */
@@ -4934,17 +5071,28 @@ struct  skill_type
 		"",                     "!Brutal Damage!",    ""
 	},
 
-	{
-	"razor claws", 
-	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {
+    "razor claws", 
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-	STAT_NONE, STAT_NONE, STAT_NONE,
-		spell_null,             TAR_IGNORE,             POS_FIGHTING,
-		&gsn_razor_claws,           0,     0, DUR_NONE,
-		"rake",                     "!Razor Claws!",    ""
-	},
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_STR, STAT_VIT, STAT_DEX,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_razor_claws, 0, 0, DUR_NONE,
+    "", "!Razor Claws!", ""
+    },
 
+    {
+    "rake", 
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_DEX, STAT_STR, STAT_VIT,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_rake, 0, 18, DUR_NONE,
+    "rake", "!Rake!",    ""
+    },
+    
 	{
 	"dual wield",
 	{  5, 102, 102, 102,  1,  5, 102, 37, 102, 102, 102, 102, 102, 10, 102 },
@@ -7283,6 +7431,28 @@ struct  skill_type
 	"charge",         "!charge!",  ""
 	},
 
+    {
+    "draconic breath",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_VIT, STAT_CON, STAT_INT,
+    spell_null,    TAR_IGNORE,     POS_STANDING,
+    &gsn_draconic_breath, 0, 12, DUR_NONE,
+    "dragon breath", "Your breath attack is ready for use again.",  ""
+    },    
+    
+    {
+    "cursed wound",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_INT, STAT_DEX, STAT_STR,
+    spell_null,    TAR_IGNORE_OFF,     POS_STANDING,
+    &gsn_cursed_wound, 0, 0, DUR_SHORT,
+    "cursed wound", "Your wounds can be healed again.",  ""
+    },    
+    
     {
     "custom_affect",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },

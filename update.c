@@ -1396,6 +1396,12 @@ void char_update( void )
                         && IS_SET(ch->pIndexData->affect_field, AFF_HIDE) )
                     SET_AFFECT( ch, AFF_HIDE );
             }
+            
+            if ( ch->fighting == NULL && IS_SET(race_table[ch->race].affect_field, AFF_INVISIBLE) && !IS_AFFECTED(ch, AFF_INVISIBLE))
+            {
+                SET_AFFECT(ch, AFF_INVISIBLE);
+                send_to_char("You turn invisible once more.\n\r", ch);
+            }
 
             if (!IS_NPC(ch) && ch->desc == NULL) /* Linkdead PC */
                 ; /* Skip updates */

@@ -215,6 +215,9 @@ void violence_update( void )
 
 	/* handle affects that do things each round */
 	special_affect_update(ch);
+    
+        if ( !IS_NPC(ch) )
+            check_draconic_breath(ch);
         
         /*
         * Hunting mobs. 
@@ -1302,6 +1305,13 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	if ( ch->fighting != victim )
 	    return;
     }
+
+    if ( !IS_NPC(ch) && per_chance(get_skill(ch, gsn_rake)) )
+    {
+        rake_char(ch, victim);
+        if ( ch->fighting != victim )
+            return;
+    }
     
     chance = get_skill(ch,gsn_second_attack) * 2/3 +  ch_dex_extrahit(ch);
     
@@ -1699,7 +1709,7 @@ int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
             return dam * 3/4;
     }
 
-    if ( sn == gsn_razor_claws )
+    if ( sn == gsn_rake )
     {
         if ( IS_SET(ch->parts, PART_CLAWS) )
             return dam;
@@ -2187,6 +2197,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
 bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill )
 {
+    CHAR_DATA *opp;
     int ch_roll, victim_roll;
     int victim_ac;
 
@@ -2200,6 +2211,11 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     if ( number_percent() <= 3 * (ch->size - victim->size) )
 	return FALSE;
 
+    /* aura of menace */
+    for ( opp = ch->in_room->people; opp; opp = opp->next_in_room )
+        if ( opp != ch && is_same_group(opp, victim) && check_skill(opp, gsn_aura_of_menace) && per_chance(20) )
+            return FALSE;
+    
     /* automatic chance-to-hit */
     if ( number_bits(3) == 0 )
 	return TRUE;
@@ -2638,9 +2654,8 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
     if ( wield == NULL )
     {
-        /* razor claw is active AND passive skill => mobs have it */
-        int skill = IS_NPC(ch) ? 0 : get_skill(ch, gsn_razor_claws);
-        if ( (per_chance(skill) && number_bits(1)) || ch->stance == STANCE_SHADOWCLAW )
+        int skill = get_skill(ch, gsn_razor_claws);
+        if ( (ch->stance == STANCE_DEFAULT && per_chance(skill/2)) || ch->stance == STANCE_SHADOWCLAW )
         {
             act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
             act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
@@ -3204,40 +3219,28 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
      * Hurt the victim.
      * Inform the victim of his new state.
      */
+
+    // track mana loss for cursed wound penalty
+    int mana_loss = 0;
     
     if ( dt != gsn_beheading && !IS_AFFECTED(victim, AFF_MANA_BURN) )
     {
-	if ( victim->stance == STANCE_PHOENIX )
-	{
-	    if (victim->mana < dam / 2)
-	    {
-		dam -= victim->mana * 2;
-		victim->mana = 0;
-	    }
-	    else
-	    {
-		victim->mana -= dam/2;
 
-		/* Tweak to make phoenix less uberpowerful:
-		 *	it works as it once did, if you are below 25% of your max hp,
-		 *	but it works like mana shield, if you are at full hp,
-		 *	with a gradual gradient between the two extremes.
-		 */
-		if( victim->hit < victim->max_hit/4 ) dam = 0;
-		//else dam -= (victim->hit/victim->max_hit - .25) * 2/3; Quirky, Quirky.. :P
-		else dam = dam * victim->hit/victim->max_hit * 2/3 - dam/6;
-	    }
-	}
-
-	if ( is_affected(victim, gsn_mana_shield) )
-	{
-	    int mana_loss = UMIN(dam / 2, victim->mana);
-	    victim->mana -= mana_loss;
-	    dam -= mana_loss;
-	}
+        if ( victim->stance == STANCE_PHOENIX )
+        {
+            mana_loss = UMIN(dam / 3, victim->mana);
+            dam -= 2 * mana_loss;
+        }
+        else if ( is_affected(victim, gsn_mana_shield) )
+        {
+            mana_loss = UMIN(dam / 2, victim->mana);
+            dam -= mana_loss;
+        }
+        victim->mana -= mana_loss;
     }
-
+    
     int grit = get_skill(victim, gsn_true_grit);
+    int move_loss = 0;
     if ( grit > 0 && dam > 0 && lethal && dt != gsn_beheading && victim->move > 0 )
     {
         // absorb only damage that would drop victim below 1 hp
@@ -3254,7 +3257,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             if ( grit_roll > absorb_roll )
             {
                 victim->move -= absorb;
-                victim->hit += absorb;
+                dam -= absorb;
+                move_loss = absorb;
                 if ( show && !IS_SET(victim->gag, GAG_BLEED) )
                     send_to_char("You cling to life, showing true grit!\n\r", victim);
                 check_improve(victim, gsn_true_grit, TRUE, 1);
@@ -3268,7 +3272,37 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         victim->hit -= dam;
     else if (victim->hit > 0)
         victim->hit = UMAX(1, victim->hit - dam);
+    
+    // finally, all absorption checked - now check for cursed wound
+    if ( victim != ch && check_skill(ch, gsn_cursed_wound) && !saves_spell(victim, ch, ch->level, DAM_NEGATIVE) )
+    {
+        AFFECT_DATA af;
+        af.where     = TO_AFFECTS;
+        af.type      = gsn_cursed_wound;
+        af.level     = ch->level;
+        af.duration  = get_duration(gsn_cursed_wound, ch->level);
+        af.bitvector = AFF_CURSE;
         
+        if ( dam > 0 )
+        {
+            af.location  = APPLY_HIT;
+            af.modifier  = -dam;
+            affect_join( victim, &af );
+        }
+        if ( mana_loss > 0 )
+        {
+            af.location  = APPLY_MANA;
+            af.modifier  = -mana_loss;
+            affect_join( victim, &af );
+        }
+        if ( move_loss > 0 )
+        {
+            af.location  = APPLY_MOVE;
+            af.modifier  = -move_loss;
+            affect_join( victim, &af );
+        }
+    }
+
     #ifdef FSTAT 
     victim->damage_taken += dam;
     ch->damage_dealt += dam;
@@ -5892,7 +5926,7 @@ int get_damage_messages( int dam, int dt, const char **vs, const char **vp, char
             if ( dam < 1 )
             { 
                 *vs = "miss"; *vp = "misses";
-                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick )
+                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick || dt == gsn_rake )
                     gag_type = GAG_MISS;
             }
             else if ( dam <   2 ) { *vs = "{mbother{ ";  *vp = "{mbothers{ "; }
