@@ -809,6 +809,13 @@ struct align_type align_table [] =
     {H,J,M,cc,nn},   {A,B,C,G,H,I,J,K}
     },
     
+    {
+    "archon", TRUE,
+    {}, {AFF_FLYING,AFF_PROTECT_EVIL}, {},
+    {}, {RES_HOLY}, {VULN_NEGATIVE},
+    {A,H,M,V}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
 /* NPC RACES */
 {
 	"bat",          FALSE,
@@ -1820,6 +1827,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 140, 140, 140, 140, 140,     140, 140, 150, 135, 135 },
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
           SIZE_LARGE, SEX_BOTH, 10
+        },
+        
+        { 
+          "archon", "Archon",
+          { 310, 315, 300, 305, 310, 310, 300, 315, 310, 300, 300, 305, 310, 305, 310 },
+          4, { "bless", "smite", "sanctuary", "aura of menace" },
+          {1, 10, 30, 50}, {100, 100, 100, 100},
+          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
+          { 150, 150, 150, 150, 150,     150, 155, 150, 155, 150 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_MEDIUM, SEX_BOTH, 10
         }
 };
 
@@ -4569,6 +4587,17 @@ struct  skill_type
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_ambidextrous,  0, 0, DUR_NONE,
     "", "!ambidextrous!", ""
+    },
+
+    {
+    "aura of menace",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_aura_of_menace,  0, 0, DUR_NONE,
+    "", "!aura of menace!", ""
     },
 
 /*

@@ -2195,6 +2195,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
 bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill )
 {
+    CHAR_DATA *opp;
     int ch_roll, victim_roll;
     int victim_ac;
 
@@ -2208,6 +2209,11 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     if ( number_percent() <= 3 * (ch->size - victim->size) )
 	return FALSE;
 
+    /* aura of menace */
+    for ( opp = ch->in_room->people; opp; opp = opp->next_in_room )
+        if ( opp != ch && is_same_group(opp, victim) && check_skill(opp, gsn_aura_of_menace) && per_chance(20) )
+            return FALSE;
+    
     /* automatic chance-to-hit */
     if ( number_bits(3) == 0 )
 	return TRUE;
