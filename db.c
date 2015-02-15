@@ -134,7 +134,11 @@ sh_int  gsn_kick;
 sh_int  gsn_gouge;
 sh_int  gsn_chop;
 sh_int  gsn_bite;
+sh_int  gsn_acid_breath;
 sh_int  gsn_fire_breath;
+sh_int  gsn_frost_breath;
+sh_int  gsn_gas_breath;
+sh_int  gsn_lightning_breath;
 sh_int  gsn_melee;
 sh_int  gsn_brawl;
 sh_int  gsn_guard;
@@ -143,6 +147,7 @@ sh_int  gsn_leg_sweep;
 sh_int  gsn_endurance;
 sh_int  gsn_uppercut;
 sh_int  gsn_war_cry;
+sh_int  gsn_draconic_breath;
 sh_int  gsn_dual_wield;
 sh_int  gsn_dual_dagger;
 sh_int  gsn_dual_sword;
@@ -265,6 +270,7 @@ sh_int  gsn_whip;
 
 sh_int  gsn_crush;
 sh_int  gsn_craft;
+sh_int  gsn_cursed_wound;
 sh_int  gsn_bash;
 sh_int  gsn_beheading;
 sh_int  gsn_berserk;
@@ -275,6 +281,7 @@ sh_int  gsn_assassination;
 sh_int  gsn_fatal_blow;
 sh_int  gsn_brutal_damage;
 sh_int  gsn_razor_claws;
+sh_int  gsn_rake;
 sh_int  gsn_fervent_rage;
 sh_int  gsn_fervent_rage_cooldown;
 sh_int  gsn_paroxysm;
@@ -403,6 +410,7 @@ sh_int  gsn_shan_ya;
 sh_int  gsn_dark_reaping;
 sh_int  gsn_inspiring_song;
 sh_int  gsn_ambidextrous;
+sh_int  gsn_aura_of_menace;
 sh_int  gsn_aversion;
 sh_int  gsn_strafe;
 /* sh_int  gsn_combo_attack; */
@@ -445,6 +453,7 @@ sh_int race_doppelganger;
 sh_int race_naga;
 sh_int race_vampire;
 sh_int race_rakshasa;
+sh_int race_dragonborn;
 
 
 /* channel slot numbers */
@@ -655,6 +664,7 @@ void boot_db()
     race_naga = race_lookup("naga");
     race_vampire = race_lookup("vampire");
     race_rakshasa = race_lookup("rakshasa");
+    race_dragonborn = race_lookup("dragonborn");
     
     /*
     * Assign gsn's for skills which have them.
@@ -678,7 +688,7 @@ void boot_db()
                 pc_race_table[i].skill_gsns[j] = sn;
             }
 	/* morph races */
-        for ( i = 0; i < MAX_MORPH_RACE; i++)
+        for ( i = 0; morph_pc_race_table[i].name; i++)
             for (j=0; j < morph_pc_race_table[i].num_skills; j++)
             {
                 sn = skill_lookup_exact(morph_pc_race_table[i].skills[j]);

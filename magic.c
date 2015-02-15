@@ -464,7 +464,8 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
     /* some affects are hard to dispel */
     if ( (sn == gsn_prot_magic && number_bits(1))
             || (sn == gsn_reflection && number_bits(1))
-            || (sn == gsn_deaths_door && number_bits(2)) )
+            || (sn == gsn_deaths_door && number_bits(2))
+            || (sn == gsn_cursed_wound && number_bits(2)) )
         return FALSE;
 
     /* tomb rot makes negative effects harder to dispel */
@@ -5197,13 +5198,16 @@ DEF_SPELL_FUN(spell_remove_curse)
     /* characters */
     victim = (CHAR_DATA *) vo;
    
-    if ( check_dispel(level,victim,gsn_curse) || check_dispel(level,victim,gsn_tomb_rot) )
+    bool success = check_dispel(level, victim, gsn_curse)
+        || check_dispel(level, victim, gsn_tomb_rot)
+        || check_dispel(level, victim, gsn_cursed_wound);
+    if ( success )
     {
         send_to_char("You feel better.\n\r",victim);
         act("$n looks more relaxed.",victim,NULL,NULL,TO_ROOM);
         return TRUE;
     }
-    if ( is_affected(victim, gsn_curse) || is_affected(victim, gsn_tomb_rot) )
+    if ( is_affected(victim, gsn_curse) || is_affected(victim, gsn_tomb_rot) || is_affected(victim, gsn_cursed_wound) )
     {
         act("You failed to remove the curse on $N.",ch,NULL,victim,TO_CHAR);
         return TRUE;

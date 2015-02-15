@@ -234,13 +234,13 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         433
+#define MAX_SKILL         437
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
 #define MAX_CLASS          15
-#define MAX_PC_RACE        71 /*accurate feb 2014 */
+#define MAX_PC_RACE        76
 #define MAX_BOARD          12
 #define MAX_CLAN           12
 #define MAX_CLAN_RANK      13
@@ -1498,6 +1498,7 @@ struct  kill_data
 #define FORM_CONDUCTIVE         (kk) //electric aura
 #define FORM_CONSTRICT          (ll) //constriction attack
 #define FORM_MULTI_HEADED       (mm) //beheading resistance
+#define FORM_ARMORED            (nn) //-10 ac per level
 
 /* body parts */
 #define PART_HEAD               (A)
@@ -3244,6 +3245,7 @@ extern sh_int race_naga;
 extern sh_int race_doppelganger;
 extern sh_int race_vampire;
 extern sh_int race_rakshasa;
+extern sh_int race_dragonborn;
 
 /*
  * These are skill_lookup return values for common skills and spells.
@@ -3280,6 +3282,7 @@ extern sh_int  gsn_leg_sweep;
 extern sh_int  gsn_endurance;
 extern sh_int  gsn_uppercut;
 extern sh_int  gsn_war_cry;
+extern sh_int  gsn_draconic_breath;
 extern sh_int  gsn_dual_wield;
 extern sh_int  gsn_dual_dagger;
 extern sh_int  gsn_dual_sword;
@@ -3301,6 +3304,7 @@ extern sh_int  gsn_ignite;
 extern sh_int  gsn_assassination;
 extern sh_int  gsn_brutal_damage;
 extern sh_int  gsn_razor_claws;
+extern sh_int  gsn_rake;
 
 extern sh_int  gsn_blindness;
 extern sh_int  gsn_charm_person;
@@ -3337,10 +3341,15 @@ extern sh_int  gsn_wrist_shield;
 extern sh_int  gsn_spear;
 extern sh_int  gsn_sword;
 extern sh_int  gsn_whip;
+extern sh_int  gsn_acid_breath;
 extern sh_int  gsn_fire_breath;
- 
+extern sh_int  gsn_frost_breath;
+extern sh_int  gsn_gas_breath;
+extern sh_int  gsn_lightning_breath;
+
 extern sh_int  gsn_craft;
 extern sh_int  gsn_crush;
+extern sh_int  gsn_cursed_wound;
 extern sh_int  gsn_bash;
 extern sh_int  gsn_berserk;
 extern sh_int  gsn_dirt;
@@ -3531,6 +3540,7 @@ extern sh_int  gsn_shan_ya;
 extern sh_int  gsn_dark_reaping;
 extern sh_int  gsn_inspiring_song;
 extern sh_int  gsn_ambidextrous;
+extern sh_int  gsn_aura_of_menace;
 
 /* astark stuff */
 
@@ -4015,10 +4025,14 @@ struct stance_type
 #define STANCE_SERPENT 46
 
 /* morph race constants */
-#define MAX_MORPH_RACE     3
 #define MORPH_NAGA_SERPENT 0
 #define MORPH_NAGA_HUMAN   1
 #define MORPH_WOLFMAN      2
+#define MORPH_DRAGON_RED      3
+#define MORPH_DRAGON_GREEN    4
+#define MORPH_DRAGON_BLUE     5
+#define MORPH_DRAGON_BLACK    6
+#define MORPH_DRAGON_WHITE    7
 
 /*
  * Global constants.
@@ -4337,6 +4351,9 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only );
 void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf );
 MEMFILE* remort_mem_save();
 
+/* breath.c */
+void check_draconic_breath( CHAR_DATA *ch );
+
 /* buildutil.c */
 void clone_warning( CHAR_DATA *ch, AREA_DATA *area );
 
@@ -4549,6 +4566,7 @@ void    attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim );
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void behead(CHAR_DATA *ch, CHAR_DATA *victim);
+void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* flags.c */
 void reset_pkill_expire( CHAR_DATA *ch );
