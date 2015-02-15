@@ -372,6 +372,8 @@ int get_ac( CHAR_DATA *ch )
 
     if ( IS_SET(ch->parts, PART_SCALES) )
         ac -= level / 2;
+    if ( IS_SET(ch->form, FORM_ARMORED) )
+        ac -= level * 10;
     
     // level-based bonus
     if ( IS_NPC(ch) )
@@ -1084,6 +1086,7 @@ DEF_DO_FUN(do_showrace)
     SFORM( FORM_CONDUCTIVE );
     SFORM( FORM_CONSTRICT );
     SFORM( FORM_MULTI_HEADED );
+    SFORM( FORM_ARMORED );
 #undef SFORM
 
     if ( !flag_is_empty(special_forms) )

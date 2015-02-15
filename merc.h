@@ -238,7 +238,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
 #define MAX_CLASS          15
-#define MAX_PC_RACE        73 /*accurate feb 2014 */
+#define MAX_PC_RACE        74
 #define MAX_BOARD          12
 #define MAX_CLAN           12
 #define MAX_CLAN_RANK      13
@@ -1495,6 +1495,7 @@ struct  kill_data
 #define FORM_CONDUCTIVE         (kk) //electric aura
 #define FORM_CONSTRICT          (ll) //constriction attack
 #define FORM_MULTI_HEADED       (mm) //beheading resistance
+#define FORM_ARMORED            (nn) //-10 ac per level
 
 /* body parts */
 #define PART_HEAD               (A)
