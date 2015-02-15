@@ -816,6 +816,13 @@ struct align_type align_table [] =
     {A,H,M,V}, {A,B,C,D,E,F,G,H,I,J,K}
     },
     
+    {
+    "quickling", TRUE,
+    {}, {AFF_HASTE,AFF_INVISIBLE}, {},
+    {}, {}, {VULN_BASH},
+    {A,C,H,M,N}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
 /* NPC RACES */
 {
 	"bat",          FALSE,
@@ -1838,6 +1845,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 150, 150, 150, 150, 150,     150, 155, 150, 155, 150 },
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
           SIZE_MEDIUM, SEX_BOTH, 10
+        },
+        
+        { 
+          "quickling", "Quickl",
+          { 305, 300, 310, 315, 305, 305, 310, 305, 305, 310, 310, 310, 305, 305, 315 },
+          5, { "quick draw", "wendigo", "flanking", "second attack", "third attack" },
+          {10, 20, 30, 40, 50}, {100, 90, 50, 50, 50},
+          {  40,  50,  80,  90,  90,      70,  70,  50,  70,  90 },
+          { 135, 140, 155, 160, 160,     150, 150, 140, 150, 160 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_SMALL, SEX_BOTH, 10
         }
 };
 
