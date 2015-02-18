@@ -34,7 +34,7 @@ struct timer_node
 };
 
 
-TIMER_NODE *first_timer=NULL;
+static TIMER_NODE *first_timer=NULL;
 
 static void add_timer( TIMER_NODE *tmr);
 static void remove_timer( TIMER_NODE *tmr );
@@ -58,12 +58,12 @@ bool unregister_lua_timer( TIMER_NODE *tmr, const char *tag )
         {
             return FALSE;
         }
-        remove_timer(tmr);
+        tmr->unregistered=TRUE;
         return TRUE;
     }
     else if (!strcmp(tag, "*"))
     {
-        remove_timer(tmr);
+        tmr->unregistered=TRUE;
         return TRUE;
     }
     else if ( !tmr->tag )
@@ -72,7 +72,7 @@ bool unregister_lua_timer( TIMER_NODE *tmr, const char *tag )
     }
     else if ( !strcmp( tag, tmr->tag) )
     {
-        remove_timer(tmr);
+        tmr->unregistered=TRUE;
         return TRUE;
     }
 
@@ -80,7 +80,7 @@ bool unregister_lua_timer( TIMER_NODE *tmr, const char *tag )
 }
 
 /* register on the list and also return a pointer to the node
-   in the form of void */
+*/
 TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
 {
     if (!valid_CH( ch ))
@@ -110,7 +110,7 @@ TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
 }
 
 /* register on the list and also return a pointer to the node
-   in the form of void */
+*/
 TIMER_NODE * register_obj_timer( OBJ_DATA *obj, int max )
 {
     if ( obj->otrig_timer)
@@ -130,7 +130,7 @@ TIMER_NODE * register_obj_timer( OBJ_DATA *obj, int max )
 }
 
 /* register on the list and also return a pointer to the node
-   in the form of void */
+*/
 TIMER_NODE * register_area_timer( AREA_DATA *area, int max )
 {
     if ( area->atrig_timer)
@@ -235,6 +235,50 @@ static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int sec
     new->unregistered=FALSE;
     new->tag=str_dup(tag);
     return new;
+}
+
+/* see if everything that should have a running timer does have a running timer */
+static void timer_debug()
+{
+    CHAR_DATA *ch;
+    OBJ_DATA *obj;
+    AREA_DATA *area;
+    //ROOM_INDEX_DATA *room;
+
+    for ( ch=char_list ; ch ; ch=ch->next )
+    {
+        if (!IS_NPC(ch))
+            continue;
+
+        if (HAS_TRIGGER(ch, TRIG_TIMER) && !ch->must_extract && !ch->trig_timer)
+        {
+            bugf("timer_debug: no timer running for mob %d, re-initializing", 
+                    ch->pIndexData->vnum ); 
+            mprog_timer_init(ch);
+        }
+    }
+
+    for ( obj=object_list ; obj ; obj=obj->next )
+    {
+        if (HAS_OTRIG(obj, OTRIG_TIMER) && !obj->must_extract && !obj->otrig_timer)
+        {
+            bugf("timer_debug: no timer running for obj %d, re-initializing",
+                    obj->pIndexData->vnum );
+            oprog_timer_init(obj);
+        }
+    }
+
+    for ( area=area_first ; area ; area=area->next )
+    {
+        if (HAS_ATRIG(area, ATRIG_TIMER) && !area->atrig_timer)
+        {
+            bugf("timer_debug: no timer running for area %s, re-initializing",
+                    area->name );
+            aprog_timer_init(area);
+        }
+    }
+
+    /* let's not do rooms for now */
 }
 
 /* Should be called every second */
@@ -363,6 +407,10 @@ void timer_update()
             remove_timer( tmr );
         }
     }
+
+    /* DEBUGGGGGG */
+    timer_debug();
+    /* DEBUGGGGGG */
 }
 
 char * print_timer_list()
