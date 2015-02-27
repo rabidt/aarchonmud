@@ -290,8 +290,8 @@ DEF_DO_FUN(do_gain)
         {
             int col;
             col = 0;
-            sprintf(buf,"{c%-20s {w%3s   {c%-20s {w%3s   {c%-20s {w%3s{x\n\r",
-                "group","cp","group","cp","group","cp");
+            sprintf(buf,"{c%-10s {w%13s   {c%-10s {w%13s   {c%-10s {w%13s{x\n\r",
+                "group","trains","group","trains","group","trains");
             send_to_char(buf,ch);
             sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
             send_to_char(buf,ch);
@@ -315,8 +315,8 @@ DEF_DO_FUN(do_gain)
             send_to_char("\n\r",ch);
             col = 0;
             
-            sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r",
-                "skill","lvl/cp","skill","lvl/cp","skill","lvl/cp");
+            sprintf(buf,"{c%-10s {w%13s   {c%-10s {w%13s   {c%-10s {w%13s{x\n\r",
+                "skill","lvl/tr","skill","lvl/tr","skill","lvl/tr");
             send_to_char(buf,ch);
             sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
             send_to_char(buf,ch);
@@ -347,8 +347,8 @@ DEF_DO_FUN(do_gain)
 
             col = 0;
 
-            sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r",
-                "spell","lvl/cp","spell","lvl/cp","spell","lvl/cp");
+            sprintf(buf,"{c%-10s {w%13s   {c%-10s {w%13s   {c%-10s {w%13s{x\n\r",
+                "spell","lvl/tr","spell","lvl/tr","spell","lvl/tr");
             send_to_char(buf,ch);
             sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
             send_to_char(buf,ch);
