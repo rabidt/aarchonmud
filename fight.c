@@ -4524,10 +4524,10 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
     if (skill == 0)
         return FALSE;
 
-    // mastery allows you to duck any attack
-    int mastery = mastery_bonus(victim, gsn_duck, 6, 10);
-
-    if ( get_weapon_sn(ch) != gsn_gun && get_weapon_sn(ch) != gsn_bow && !per_chance(mastery) )
+    // mastery improves both chance to duck and chance to duck in melee
+    int mastery = mastery_bonus(victim, gsn_duck, 3, 5);
+    bool ranged = get_weapon_sn(ch) == gsn_gun || get_weapon_sn(ch) == gsn_bow;
+    if ( !ranged && !per_chance(50 + 2 * mastery) )
         return FALSE;
     
     int level_diff = victim->level - ch->level;
