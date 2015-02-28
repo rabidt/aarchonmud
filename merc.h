@@ -4793,6 +4793,11 @@ void free_buf(BUFFER *buffer);
 bool add_buf(BUFFER *buffer, const char *string );
 void clear_buf(BUFFER *buffer);
 const char *buf_string(BUFFER *buffer);
+void confirm_yes_no( DESCRIPTOR_DATA *d,
+        DO_FUN yes_callback,
+        const char *yes_argument,
+        DO_FUN no_callback,
+        const char *no_argument);
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );

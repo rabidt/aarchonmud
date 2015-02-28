@@ -741,6 +741,19 @@ DEF_DO_FUN(do_reboot)
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
     
+    if (strcmp(argument, "confirm"))
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to reboot?\n\r",
+                bin_info_string);
+
+        confirm_yes_no( ch->desc,
+                do_reboot,
+                "confirm",
+                NULL,
+                NULL);
+        return;
+    }
+
     if (ch->invis_level < LEVEL_HERO)
     {
         sprintf( buf, "Reboot by %s.", ch->name );
@@ -773,7 +786,20 @@ DEF_DO_FUN(do_shutdown)
     char buf[MAX_STRING_LENGTH];
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
-    
+   
+    if (strcmp(argument, "confirm"))
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to shutdown?\n\r",
+                bin_info_string);
+
+        confirm_yes_no( ch->desc,
+                do_shutdown,
+                "confirm",
+                NULL,
+                NULL);
+        return;
+    }
+ 
     if (ch->invis_level < LEVEL_HERO)
         sprintf( buf, "Shutdown by %s.", ch->name );
     append_file( ch, SHUTDOWN_FILE, buf );

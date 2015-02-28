@@ -1481,3 +1481,111 @@ void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument )
     }
 
 }
+
+static int L_DO_FUN_caller( lua_State *LS )
+{
+    DO_FUN *fun=lua_touserdata( LS, 1 );
+    CHAR_DATA *ch=check_CH( LS, 2 );
+    const char *arg=check_string( LS, 3, MIL );
+    fun(ch, arg);
+    return 0;
+}
+
+/*  confirm_yes_no
+
+    Have the player confirm an action.
+    
+    If provided, yes/no callbacks are called upon selection of Y or n by
+    the player.  These callbacks must have DO_FUN signature.
+
+    If yes_argument/no_argument are provided, they are used as the 'argument'
+    parameter to the respective callback, otherwise an empty string is used.
+    
+    Example using original do_fun as callback:
+
+    DEF_DO_FUN( test1 )
+    {
+        if (!strcmp(argument, "confirm"))
+        {
+            send_to_char( "Are you sure you want to do it?\n\r", ch);
+            confirm_yes_no( ch->desc, do_test1, "confirm", NULL, NULL);
+            return;
+        }
+
+        send_to_char( ch, "You did it!\n\r");
+    }
+
+
+    Example using separate callback function:
+
+    DEF_DO_FUN( test1_confirm )
+    {
+        ptc( ch, "You did it!\n\rHere's your argument: %s\n\r", argument);
+        return;
+    }
+
+    DEF_DO_FUN( test1 )
+    {
+        send_to_char( "Are you sure you want to do it?\n\r", ch);
+        // forward original argument onto the callback
+        confirm_yes_no( ch->desc, do_test1_confirm, argument, NULL, NULL);
+        return;
+    }
+
+*/
+void confirm_yes_no( DESCRIPTOR_DATA *d,
+        DO_FUN yes_callback, 
+        const char *yes_argument,
+        DO_FUN no_callback,
+        const char *no_argument)
+{
+    lua_getglobal( g_mud_LS, "confirm_yes_no");
+
+    lua_pushcfunction( g_mud_LS, L_DO_FUN_caller);
+
+    push_DESCRIPTOR( g_mud_LS, d );
+
+    if (yes_callback)
+    {
+        lua_pushlightuserdata( g_mud_LS, yes_callback);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS);
+    }
+
+    if (yes_argument)
+    {
+        lua_pushstring( g_mud_LS, yes_argument);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS);
+    }
+
+    if (no_callback)
+    {
+        lua_pushlightuserdata( g_mud_LS, no_callback);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS);
+    }
+
+    if (no_argument)
+    {
+        lua_pushstring( g_mud_LS, no_argument);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS);
+    }
+
+    if (CallLuaWithTraceBack( g_mud_LS, 6, 0) )
+    {
+        bugf("Error with confirm_yes_no:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+    return;
+}
