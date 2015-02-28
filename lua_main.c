@@ -1491,7 +1491,7 @@ static int L_DO_FUN_caller( lua_State *LS )
     return 0;
 }
 
-/*  confirm_yes_no
+/*  confirm_yes_no()
 
     Have the player confirm an action.
     
@@ -1505,7 +1505,7 @@ static int L_DO_FUN_caller( lua_State *LS )
 
     DEF_DO_FUN( test1 )
     {
-        if (!strcmp(argument, "confirm"))
+        if (strcmp(argument, "confirm"))
         {
             send_to_char( "Are you sure you want to do it?\n\r", ch);
             confirm_yes_no( ch->desc, do_test1, "confirm", NULL, NULL);
