@@ -2791,6 +2791,19 @@ DEF_DO_FUN(do_copyover)
     char arg0[50], arg1[10], arg2[10], arg3[10];
     extern int control; /* db.c */
 
+    if (strcmp(argument, "confirm"))
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to copyover?\n\r",
+                bin_info_string);
+
+        confirm_yes_no( ch->desc,
+                do_copyover,
+                "confirm",
+                NULL,
+                NULL);
+        return;
+    }
+
     fp = fopen (COPYOVER_FILE, "w");
 
     if (!fp)
@@ -2803,10 +2816,11 @@ DEF_DO_FUN(do_copyover)
 
     //do_asave (NULL, ""); /* autosave changed areas */
 
-    if ( argument[0] != '\0' )
+/*    if ( argument[0] != '\0' )
         sprintf( buf, "\n\r%s", argument );
     else
-        strcpy( buf, "" );
+*/
+    strcpy( buf, "" );
 
     strcat (buf, "\n\r\n\rThe world slows down around you as it fades from your vision.\n\r");
     strcat (buf, "\n\rAs if in a bizarre waking dream, you lurch forward into the darkness...\n\r");
