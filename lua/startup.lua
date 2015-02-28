@@ -522,3 +522,33 @@ function lua_con_handler( d, ...)
     end
     
 end
+
+function confirm_yes_no( DO_FUN_caller, d,
+        yes_callback, yes_arg, 
+        no_callback, no_arg )
+
+    local function confirm_handler()
+        while true do
+            sendtochar( d.character, "Enter Y or n: ")
+
+            local cmd=coroutine.yield()
+            
+            if cmd=="Y" then
+                if yes_callback then
+                    DO_FUN_caller( yes_callback, d.character, yes_arg and yes_arg or "" )
+                end
+                return
+            elseif cmd=="n" then
+                if no_callback then
+                    DO_FUN_cllaer( no_callback, d.character, no_arg and no-arg or "" )
+                end
+                return
+            else
+                sendtochar( d.character, "Invalid response!\n\r")
+            end
+        end
+    end
+
+    start_con_handler( d, confirm_handler)
+
+end
