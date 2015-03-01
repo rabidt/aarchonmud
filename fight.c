@@ -5484,7 +5484,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     int members;
     int power, max_power, min_power, base_exp, min_base_exp, xp;
     int high_align, low_align;
-    float group_factor, leadership, ch_factor;
+    float group_factor, ch_factor;
     int total_dam, group_dam;
 
     /*
@@ -5541,10 +5541,21 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 
     // group penalty for large group, high/low align and level range
     leader = ch->leader ? ch->leader : ch;
-    leadership = (get_curr_stat(leader,STAT_CHA) + get_skill(leader, gsn_leadership)) / 300.0;
+    float leadership = 0;
+    int mastery = 0;
+    if ( ch->in_room == leader->in_room )
+    {
+        leadership = (get_curr_stat(leader,STAT_CHA) + get_skill(leader, gsn_leadership)) / 300.0;
+        mastery = get_mastery(leader, gsn_leadership);
+    }
     group_factor = 1 - (high_align - low_align) / 4000.0 * (1 - leadership);
     group_factor *= 1 - (max_power - min_power) / 200.0 * (1 - leadership);
-    group_factor *= 1.0/3 + 2.0/(3*members);
+    switch ( mastery )
+    {
+        default: group_factor *= 1.0/3 + 2.0/(3*members); break;
+        case 1: group_factor *= 4.0/9 + 5.0/(9*members); break;
+        case 2: group_factor *= 1.0/2 + 1.0/(2*members); break;
+    }
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
