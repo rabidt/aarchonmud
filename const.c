@@ -803,9 +803,9 @@ struct align_type align_table [] =
     },
     
     {
-    "inevitable", TRUE,
-    {}, {AFF_PROTECT_MAGIC,AFF_DETECT_HIDDEN,AFF_DETECT_INVIS}, {},
-    {}, {RES_CHARM,RES_HOLY}, {},
+    "warforged", TRUE,
+    {}, {}, {},
+    {}, {RES_WEAPON}, {},
     {H,J,M,cc,nn},   {A,B,C,G,H,I,J,K}
     },
     
@@ -1826,10 +1826,10 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
         
         { 
-          "inevitable", "Inevit",
-          { 310, 310, 310, 305, 315, 305, 305, 305, 305, 310, 305, 305, 305, 305, 315 },
-          5, { "regeneration", "ray of truth", "hunt", "stalk", "farsight" },
-          {1, 10, 20, 30, 50}, {100, 100, 95, 95, 90},
+          "warforged", "Warfor",
+          { 300, 310, 310, 315, 300, 305, 305, 310, 310, 310, 310, 315, 310, 310, 315 },
+          5, { "endurance", "shield block", "shield bash", "charge", "wrist shield" },
+          {1, 10, 20, 30, 50}, {100, 100, 100, 100, 80},
           {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
           { 140, 140, 140, 140, 140,     140, 140, 150, 135, 135 },
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
