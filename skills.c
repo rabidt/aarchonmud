@@ -816,11 +816,11 @@ DEF_DO_FUN(do_master)
         int points_after = mastery_points(ch);
         int points_diff = (points_before - points_after);
         int reclaim = rand_div(points_diff * 9, 10);
-        int cost = points_diff * 1000;
+        int cost = points_diff * 5000;
         if ( (ch->silver/100 + ch->gold) < cost)
         {
             char buf[MSL];
-            sprintf(buf, "I don't work for free, you know. Come back when you got %d gold.", cost);
+            sprintf(buf, "I don't work for free, you know. Come back when you have %d gold.", cost);
             do_say(trainer, buf);
             ch->pcdata->mastered[sn]++;
             return;
