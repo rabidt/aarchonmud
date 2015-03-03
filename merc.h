@@ -121,6 +121,8 @@ typedef struct  clan_data        CLAN_DATA;
 typedef struct  quest_data       QUEST_DATA;
 typedef struct  portal_data      PORTAL_DATA;
 typedef struct  achievement_entry ACHIEVEMENT;
+typedef struct  boss_achieve_entry BOSSACHV;
+typedef struct  boss_achieve_record BOSSREC;
 /* religion */
 typedef struct religion_data RELIGION_DATA;
 /* typedef struct religion_war_data RELIGION_WAR_DATA; */
@@ -1305,12 +1307,13 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
 #define ACT_TRAVELLER   (oo)    /* doesn't wander home if out of area */
+#define ACT_ACHIEVEMENT (pp)
 
 /* damage classes */
 #define DAM_NONE                0
@@ -2387,6 +2390,7 @@ struct  mob_index_data
     MOB_INDEX_DATA* next;
     SPEC_FUN*   spec_fun;
     SHOP_DATA*  pShop;
+    BOSSACHV * boss_achieve;
     PROG_LIST* mprogs;
     AREA_DATA*  area;
     int         vnum;
@@ -2590,6 +2594,8 @@ struct  pc_data
     int      perm_hit;
     int      perm_mana;
     int      perm_move;
+
+    BOSSREC *boss_achievements;
 
 	PERS_HISTORY *gtell_history;
 	PERS_HISTORY *tell_history;
@@ -3603,6 +3609,21 @@ struct achievement_entry
    int bit_vector;
 };
 
+struct boss_achieve_entry
+{
+    int quest_reward;
+    int exp_reward;
+    int gold_reward;
+    int ach_reward;
+};
+
+struct boss_achieve_record
+{
+    struct boss_achieve_record *next;
+    int vnum;
+    time_t timestamp;
+};
+
 /*Achievement types*/
 /*if you change these, you need to update
   achievement_display*/
@@ -4226,6 +4247,7 @@ int     get_lore_level( CHAR_DATA *ch, int obj_level );
 void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
 void    show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 void    check_achievement( CHAR_DATA *ch );
+void    check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
 
@@ -4759,6 +4781,7 @@ bool can_order( const char *command, CHAR_DATA *victim );
 
 /* lua_main.c */
 void check_lua_stack();
+void update_bossachv_table();
 void lua_log_perf( double value );
 void save_mudconfig();
 void load_mudconfig();
@@ -4767,6 +4790,7 @@ void load_luaconfig( CHAR_DATA *ch, const char *text );
 int name_sorted_group_table( int sequence );
 int name_sorted_skill_table( int sequence );
 void show_image_to_char( CHAR_DATA *ch, const char *txt );
+void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
@@ -5246,4 +5270,6 @@ declf(SHOP, SHOP_DATA)
 declf(AFFECT, AFFECT_DATA)
 declf(HELP, HELP_DATA)
 declf(DESCRIPTOR, DESCRIPTOR_DATA)
+declf(BOSSACHV, BOSSACHV)
+declf(BOSSREC, BOSSREC)
 #undef declf

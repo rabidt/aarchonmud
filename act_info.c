@@ -4189,13 +4189,26 @@ DEF_DO_FUN(do_lore)
     }
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )
             continue;
         check_improve( rch, gsn_lore, 2, TRUE );
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
         if ( weapon )
             check_improve( rch, gsn_weapons_lore, 2, TRUE );
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+        }
     }
 }
 
@@ -5305,18 +5318,17 @@ msl_string achievement_display [] =
         "Hard Qsts"
 };
 
-
 DEF_DO_FUN(do_achievements)
 {
-	if ( IS_NPC(ch) )
-		return;
+    if ( IS_NPC(ch) )
+        return;
 
-	if (!strcmp( argument, "rewards") )
-	{
-		print_ach_rewards(ch);
-		return;
-	}
-	
+    if (!strcmp( argument, "rewards") )
+    {
+        print_ach_rewards(ch);
+        return;
+    }
+
     char buf[MAX_STRING_LENGTH];
     int i;
     CHAR_DATA *victim;
@@ -5327,19 +5339,42 @@ DEF_DO_FUN(do_achievements)
     int ltotal = 0;
     int utotal = 0;
 
+    bool boss=FALSE;
+
     col = 0;
 
     output = new_buf();
 
-    if (argument[0] == '\0')
+    if (argument[0] == '\0' )
     {
-	victim = ch;
+        victim = ch;
+    }
+    else if (!str_cmp(argument, "boss"))
+    {
+        do_achievements_boss( ch, ch );
+        return;
     }
     else
     {
-    	d = new_descriptor();
-    
-        if ( !load_char_obj(d, argument, TRUE) )
+        char arg1[MIL];
+        char arg2[MIL];
+        char *vicarg;
+
+        argument=one_argument( argument, arg1);
+        argument=one_argument( argument, arg2);
+        if (!str_cmp(arg1, "boss"))
+        {
+            boss=TRUE;
+            vicarg=arg2;
+        }
+        else
+        {
+            vicarg=arg1;
+        }
+
+        d = new_descriptor();
+
+        if ( !load_char_obj(d, vicarg, TRUE) )
         {
             send_to_char("Character not found.\n\r", ch);
             /* load_char_obj still loads "default" character
@@ -5361,42 +5396,50 @@ DEF_DO_FUN(do_achievements)
         return;
     }
 
-    sprintf(buf, "\n\r");
-    add_buf(output,buf);
-    sprintf(buf, "{WAchievements for %s\n\r", victim->name);
-    add_buf(output,buf);
-    add_buf(output,"{w----------------------------\n\r");
-    for (i = 0; achievement_table[i].bit_vector != 0; i++)
+    if (boss)
     {
-  	sprintf(buf, "{w%-10s %6d: ", achievement_display[achievement_table[i].type], achievement_table[i].limit);
-	add_buf(output, buf);
-        totalach += 1;
-
-	if (IS_SET(victim->pcdata->achievements, achievement_table[i].bit_vector))
-        {
-            add_buf(output,"{yAchvd{x");
-            utotal += 1;
-        }
-        else
-        {
-            add_buf(output,"{DLockd{x");
-            ltotal += 1;
-        }
-	col +=1;
-	if ( col % 3 == 0 )
-    	  add_buf(output, "\n\r");
-	else
-	  add_buf(output, " | ");
-
+        do_achievements_boss( ch, victim);
     }
-    if ( col % 3 != 0 )
-      add_buf(output, "\n\r");
+    else
+    {
+        sprintf(buf, "\n\r");
+        add_buf(output,buf);
+        sprintf(buf, "{WAchievements for %s\n\r", victim->name);
+        add_buf(output,buf);
+        add_buf(output,"{w----------------------------\n\r");
+        for (i = 0; achievement_table[i].bit_vector != 0; i++)
+        {
+            sprintf(buf, "{w%-10s %6d: ", achievement_display[achievement_table[i].type], achievement_table[i].limit);
+            add_buf(output, buf);
+            totalach += 1;
 
-    sprintf( buf, "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
-    add_buf(output,buf);
-	add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
-    page_to_char(buf_string(output),ch);
-    free_buf(output);
+            if (IS_SET(victim->pcdata->achievements, achievement_table[i].bit_vector))
+            {
+                add_buf(output,"{yAchvd{x");
+                utotal += 1;
+            }
+            else
+            {
+                add_buf(output,"{DLockd{x");
+                ltotal += 1;
+            }
+            col +=1;
+            if ( col % 3 == 0 )
+                add_buf(output, "\n\r");
+            else
+                add_buf(output, " | ");
+
+        }
+        if ( col % 3 != 0 )
+            add_buf(output, "\n\r");
+
+        sprintf( buf, "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
+        add_buf(output,buf);
+        add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
+        add_buf(output, "(Use 'achievement boss' to see boss achievements.)\n\r");
+        page_to_char(buf_string(output),ch);
+        free_buf(output);
+    }
 
     /* if not self, need to free stuff */
     if ( d )
@@ -5438,6 +5481,49 @@ void print_ach_rewards(CHAR_DATA *ch)
 }
 
 
+void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( IS_NPC( ch ) || !IS_NPC( victim ) )
+        return;
+
+    BOSSACHV *ach = victim->pIndexData->boss_achieve;
+    if ( !ach )
+        return;
+
+    BOSSREC *rec;
+
+    for ( rec = ch->pcdata->boss_achievements; rec; rec=rec->next )
+    {
+        if ( rec->vnum == victim->pIndexData->vnum )
+            return;
+    }
+
+    rec = alloc_BOSSREC();
+    rec->vnum = victim->pIndexData->vnum;
+    rec->timestamp = current_time; 
+
+    rec->next = ch->pcdata->boss_achievements;
+    ch->pcdata->boss_achievements = rec;
+
+    /* do the rewards */
+    ch->pcdata->questpoints += ach->quest_reward;
+    ch->pcdata->bank += ach->gold_reward;
+    gain_exp(ch, ach->exp_reward);
+    ch->pcdata->achpoints += ach->ach_reward;
+
+    printf_to_char(ch, "--------------------------------------\n\r");
+    printf_to_char(ch, "{wBoss Achievement unlocked{x.\n\r");
+    send_to_char( "{wYour reward{x:\n\r",ch);
+    if ( ach->gold_reward>0)
+        printf_to_char(ch, "%6d gold\n\r", ach->gold_reward );
+    if ( ach->quest_reward>0)
+        printf_to_char(ch, "%6d quest points\n\r", ach->quest_reward);
+    if (ach->exp_reward>0)
+        printf_to_char(ch, "%6d experience points\n\r", ach->exp_reward);
+    if (ach->ach_reward>0)
+        printf_to_char(ch, "%6d achievement points\n\r", ach->ach_reward );
+
+}
 
 /* For achievement rewards... This gets called at certain times (level up, quest complete, etc. )--Vodur / Astark 3/19/12 */
 

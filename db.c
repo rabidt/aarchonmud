@@ -556,6 +556,7 @@ void    load_objects    args( ( FILE *fp ) );
 void    load_resets args( ( FILE *fp ) );
 void    load_rooms  args( ( FILE *fp ) );
 void    load_shops  args( ( FILE *fp ) );
+void    load_bossachievements args( ( FILE *fp ) );
 void    load_specials   args( ( FILE *fp ) );
 void    load_notes  args( ( void ) );
 void    load_bans   args( ( void ) );
@@ -931,6 +932,7 @@ void load_area_file( FILE *fp, bool clone )
 	else if ( !str_cmp( word, "RESETS"   ) ) load_resets  (fpArea);
 	else if ( !str_cmp( word, "ROOMS"    ) ) load_rooms   (fpArea);
 	else if ( !str_cmp( word, "SHOPS"    ) ) load_shops   (fpArea);
+    else if ( !str_cmp( word, "BOSSACHV" ) ) load_bossachievements(fpArea);
 	else if ( !str_cmp( word, "SPECIALS" ) ) load_specials(fpArea);
 	else if ( !str_cmp( word, "VER"      ) ) 
 	    area_version = fread_number ( fpArea );
@@ -1726,7 +1728,31 @@ void load_rooms( FILE *fp )
     return;
 }
 
+void load_bossachievements( FILE *fp )
+{
+    BOSSACHV *pBoss=NULL;
 
+    for ( ; ; )
+    {
+        MOB_INDEX_DATA *pMobIndex;
+        int vnum=fread_number(fp);
+
+        if ( vnum==0 ) /* end of section */
+            break;
+
+        pBoss = alloc_BOSSACHV();
+        
+        pBoss->exp_reward = fread_number(fp);
+        pBoss->gold_reward = fread_number(fp);
+        pBoss->quest_reward = fread_number(fp);
+        pBoss->ach_reward = fread_number(fp);
+
+        pMobIndex=get_mob_index(vnum);
+        pMobIndex->boss_achieve = pBoss;
+    }
+
+    return;
+}
 
 /*
 * Snarf a shop section.

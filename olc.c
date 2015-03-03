@@ -422,6 +422,8 @@ const struct olc_cmd_type medit_table[] =
    {   "addmprog",     medit_addmprog  },  /* ROM */
    {   "delmprog",     medit_delmprog  },  /* ROM */
    {   "stance",       medit_stance    },
+
+   {   "bossachieve",  medit_bossachieve },
    
    {   "?",            show_help       },
    {   "version",      show_version    },

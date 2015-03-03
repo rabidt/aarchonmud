@@ -56,6 +56,8 @@ extern LUA_OBJ_TYPE RTRIG_type;
 extern LUA_OBJ_TYPE AFFECT_type;
 extern LUA_OBJ_TYPE HELP_type;
 extern LUA_OBJ_TYPE DESCRIPTOR_type;
+extern LUA_OBJ_TYPE BOSSACHV_type;
+extern LUA_OBJ_TYPE BOSSREC_type;
 
 void register_globals( lua_State *LS );
 LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool persist );

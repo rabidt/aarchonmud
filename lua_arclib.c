@@ -33,6 +33,8 @@ LUA_OBJ_TYPE *type_list [] =
     &RTRIG_type,
     &HELP_type,
     &DESCRIPTOR_type,
+    &BOSSACHV_type,
+    &BOSSREC_type,
     NULL
 };
 
@@ -4030,6 +4032,24 @@ static int CH_get_mobdeaths( lua_State *LS)
     return 1;
 }
 
+static int CH_get_bossachvs( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get bossachvs on NPCs.");
+
+    BOSSREC *rec;
+    int index=1;
+    lua_newtable(LS);
+
+    for ( rec=ud_ch->pcdata->boss_achievements ; rec; rec=rec->next)
+    {
+        if (push_BOSSREC(LS, rec))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+
 static int CH_get_vnum( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4285,6 +4305,7 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(bank, 0),
     CHGET(mobkills, 0),
     CHGET(mobdeaths, 0),
+    CHGET(bossachvs, 0),
     /* NPC only */
     CHGET(vnum, 0),
     CHGET(proto,0),
@@ -6657,6 +6678,20 @@ static int MOBPROTO_get_shop ( lua_State *LS)
     else
         return 0;
 }
+
+static int MOBPROTO_get_bossachv ( lua_State *LS)
+{
+    MOB_INDEX_DATA *ud_mid=check_MOBPROTO( LS, 1);
+    if ( ud_mid->boss_achieve )
+    {
+        if ( push_BOSSACHV(LS, ud_mid->boss_achieve) )
+            return 1;
+        else
+            return 0;
+    }
+    else
+        return 0;
+}
     
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
@@ -6686,6 +6721,7 @@ static const LUA_PROP_TYPE MOBPROTO_get_table [] =
     MPGET( ingame, 0),
     MPGET( mtrigs, 0),
     MPGET( shop, 0),
+    MPGET( bossachv, 0),
     MPGET( count,0),
     ENDPTABLE
 };
@@ -7161,6 +7197,54 @@ static const LUA_PROP_TYPE DESCRIPTOR_method_table [] =
 };
 /* end DESCRIPTOR section */
 
+/* BOSSACHV section */
+static const LUA_PROP_TYPE BOSSACHV_get_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSACHV_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSACHV_method_table [] =
+{
+    ENDPTABLE
+};
+/* end BOSSACHV section */
+
+/* BOSSREC section */
+
+static int BOSSREC_get_vnum( lua_State *LS )
+{
+    lua_pushinteger( LS, check_BOSSREC(LS,1)->vnum);
+    return 1;
+} 
+
+static int BOSSREC_get_timestamp( lua_State *LS )
+{
+    lua_pushinteger( LS, check_BOSSREC(LS,1)->timestamp);
+    return 1;
+}
+
+static const LUA_PROP_TYPE BOSSREC_get_table [] =
+{
+    GETP( BOSSREC, vnum, 0),
+    GETP( BOSSREC, timestamp, 0),
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSREC_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSREC_method_table [] =
+{
+    ENDPTABLE
+};
+/* end BOSSREC section */
 
 void type_init( lua_State *LS)
 {
@@ -7484,6 +7568,7 @@ DECLARETYPE( MOBPROTO, MOB_INDEX_DATA );
 DECLARETYPE( SHOP, SHOP_DATA );
 DECLARETYPE( AFFECT, AFFECT_DATA );
 DECLARETYPE( PROG, PROG_CODE );
+
 DECLARETRIG( MTRIG, PROG_LIST );
 DECLARETRIG( OTRIG, PROG_LIST );
 DECLARETRIG( ATRIG, PROG_LIST );
@@ -7491,3 +7576,5 @@ DECLARETRIG( RTRIG, PROG_LIST );
 
 DECLARETYPE( HELP, HELP_DATA );
 DECLARETYPE( DESCRIPTOR, DESCRIPTOR_DATA );
+DECLARETYPE( BOSSACHV, BOSSACHV );
+DECLARETYPE( BOSSREC, BOSSREC );
