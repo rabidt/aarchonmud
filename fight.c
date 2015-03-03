@@ -2210,9 +2210,13 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	return FALSE;
 
     /* aura of menace */
-    for ( opp = ch->in_room->people; opp; opp = opp->next_in_room )
-        if ( opp != ch && is_same_group(opp, victim) && check_skill(opp, gsn_aura_of_menace) && per_chance(20) )
-            return FALSE;
+    if ( per_chance(50) )
+    {
+        // chance with one aura is 20%, multiple auras converge towards 50%
+        for ( opp = ch->in_room->people; opp; opp = opp->next_in_room )
+            if ( opp != ch && is_same_group(opp, victim) && check_skill(opp, gsn_aura_of_menace) && per_chance(40) )
+                return FALSE;
+    }
     
     /* automatic chance-to-hit */
     if ( number_bits(3) == 0 )
