@@ -1414,6 +1414,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 150;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -3709,6 +3711,10 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
             return;
     }
 
+    /* check for boss achievement */
+    check_boss_achieve( ch, victim );
+
+
     remort_remove(victim, FALSE);
         
     if ( IS_NPC(victim) || !IS_SET( victim->act, PLR_WAR ) )
@@ -5156,6 +5162,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     corpse->level = victim->level;
     
     sprintf( buf, corpse->name, name );
+    sprintf( buf, "%s fresh", buf);
     free_string( corpse->name );
     corpse->name = str_dup( buf );
 

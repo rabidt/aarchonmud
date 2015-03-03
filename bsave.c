@@ -726,6 +726,13 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 		bprintf(buf, "-1 -1\n" );
 	}
 
+    /* boss achievements */
+    struct boss_achieve_record *rec;
+    for ( rec = ch->pcdata->boss_achievements ; rec; rec=rec->next )
+    {
+        bprintf( buf, "BAch %d %d\n", rec->vnum, rec->timestamp );
+    }
+
 
         /* write alias */
         for (pos = 0; pos < MAX_ALIAS; pos++)
@@ -1619,6 +1626,16 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             break;
             
     case 'B':
+        if (!str_cmp(word, "BAch" ) )
+        {
+            BOSSREC * rec = alloc_BOSSREC();
+            rec->vnum=bread_number(buf);
+            rec->timestamp=bread_number(buf);
+
+            rec->next = ch->pcdata->boss_achievements;
+            ch->pcdata->boss_achievements = rec;
+        }
+
         KEYS( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
         KEYS( "Bamfout", ch->pcdata->bamfout,    bread_string( buf ) );
         KEY( "Bank",    ch->pcdata->bank,       bread_number( buf ) );       
@@ -3177,8 +3194,7 @@ DEF_DO_FUN(do_finger)
         else if (IS_IMMORTAL(ch))
             sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
-            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
-        
+            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );       
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
         else
@@ -3250,13 +3266,6 @@ DEF_DO_FUN(do_finger)
         }
     }
 	
-    /* Date Created */
-    sprintf(buf, "{D|{x Date Created: %s   ",
-	    time_format(wch->id, custombuf));
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
@@ -3271,6 +3280,13 @@ DEF_DO_FUN(do_finger)
             add_buf( output, buf );
         }
     }
+
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     
     if (wch->level <= LEVEL_HERO)

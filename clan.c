@@ -1764,7 +1764,7 @@ DEF_DO_FUN(do_cmotd)
 	if ( !strcmp( clan_table[ch->clan].motd , "" ) )
 	    return;
 
-	send_to_char("\n",ch);
+	send_to_char("\n\r",ch);
     	send_to_char("{D***********************************{yClan MOTD{D************************************{x\n\r",ch);
     	send_to_char(clan_table[ch->clan].motd,ch);
     	send_to_char("{x\n\r",ch);
