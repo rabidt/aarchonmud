@@ -4115,7 +4115,8 @@ DEF_DO_FUN(do_rupture)
 
         check_improve(ch,gsn_rupture,TRUE,3);
 
-        one_hit( ch, victim, gsn_rupture, FALSE);
+        if ( !one_hit( ch, victim, gsn_rupture, FALSE) )
+            return;
 	CHECK_RETURN(ch, victim);
 
 	check_assassinate( ch, victim, obj, 6 );
