@@ -5144,6 +5144,7 @@ void clear_area_quests( CHAR_DATA *ch, AREA_DATA *area );
 void    war_update      args( ( void ) ); 
 void    advance_level   args( ( CHAR_DATA *ch, bool hide ) );
 void    gain_exp    args( ( CHAR_DATA *ch, int gain ) );
+void    update_pc_level( CHAR_DATA *ch );
 bool    starvation_immune( CHAR_DATA *ch );
 void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );
 void    update_handler  args( ( void ) );
