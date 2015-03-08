@@ -989,7 +989,7 @@ DEF_DO_FUN(do_new_dump)
 
             fprintf( fp, "Vnum: %d  Type: %s  Number: %d/%d  Weight: %d/%d\n",
                     obj->pIndexData->vnum,
-                    flag_stat_string(type_flags, obj->item_type), 1, get_obj_number( obj ),
+                    flag_bit_name(type_flags, obj->item_type), 1, get_obj_number( obj ),
                     obj->weight, get_obj_weight( obj ) );
 
             fprintf( fp, "Short description: %s\nLong description: %s\n",

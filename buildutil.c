@@ -642,7 +642,7 @@ DEF_DO_FUN(do_ostat)
 		can_see(ch,obj->carried_by) ? obj->carried_by->name
 					: "someone",
 	obj->wear_loc,
-    flag_stat_string( wear_loc_flags, obj->wear_loc)  );
+    flag_bit_name(wear_loc_flags, obj->wear_loc) );
 	send_to_char( buf, ch );
 
     sprintf( buf, "Clan: %s ClanRank: %d\n\r", 

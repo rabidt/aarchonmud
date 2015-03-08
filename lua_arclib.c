@@ -1898,7 +1898,7 @@ OBJVGETINT( arrowcount, ITEM_ARROWS, 0 )
 OBJVGETINT( arrowdamage, ITEM_ARROWS, 1 )
 
 OBJVGETSTR( arrowdamtype, ITEM_ARROWS, 
-        flag_stat_string(damage_type, ud_obj->value[2]) )
+        flag_bit_name(damage_type, ud_obj->value[2]) )
 
 OBJVGT( spelllevel,  
     switch(ud_obj->item_type)
@@ -2023,7 +2023,7 @@ OBJVGT( spells,
 OBJVGETINT( ac, ITEM_ARMOR, 0 )
 
 OBJVGETSTR( weapontype, ITEM_WEAPON,
-        flag_stat_string( weapon_class, ud_obj->value[0] ) )
+        flag_bit_name(weapon_class, ud_obj->value[0]) )
 
 OBJVGETINT( numdice, ITEM_WEAPON, 1 )
 
@@ -2032,7 +2032,7 @@ OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
 OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
 
 OBJVGETSTR( damtype, ITEM_WEAPON, 
-        flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) )
+        flag_bit_name(damage_type, attack_table[ud_obj->value[3]].damage) )
 
 OBJVGETSTR( damnoun, ITEM_WEAPON, attack_table[ud_obj->value[3]].noun )
 
@@ -2170,7 +2170,7 @@ OBJVM( apply,
     for (pAf=ud_obj->affected ; pAf ; pAf=pAf->next)
     {
         if ( !strcmp(
-                flag_stat_string( apply_flags, pAf->location ),
+                flag_bit_name(apply_flags, pAf->location),
                 type ) )
         {
             lua_pushinteger( LS, pAf->modifier );
@@ -3559,7 +3559,7 @@ static int CH_get_damtype (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH( LS, 1);
     lua_pushstring( LS,
-            flag_stat_string( damage_type, attack_table[ud_ch->dam_type].damage) );
+            flag_bit_name(damage_type, attack_table[ud_ch->dam_type].damage) );
     return 1;
 }
 
@@ -5031,7 +5031,7 @@ static int OBJ_set_weight (lua_State *LS)
 static int OBJ_get_wearlocation (lua_State *LS)
 {
     lua_pushstring( LS,
-            flag_stat_string(wear_loc_flags,(check_OBJ(LS,1))->wear_loc) );
+            flag_bit_name(wear_loc_flags,(check_OBJ(LS,1))->wear_loc) );
     return 1;
 }
 
@@ -6854,8 +6854,8 @@ MPGETINT( drpcnt, ud_mobp->damage_percent,"" ,"");
 MPGETINT( acpcnt, ud_mobp->ac_percent,"" ,"");
 MPGETINT( savepcnt, ud_mobp->saves_percent,"" ,"");
 MPGETSTR( damtype, attack_table[ud_mobp->dam_type].name,"" ,"");
-MPGETSTR( startpos, flag_stat_string( position_flags, ud_mobp->start_pos ),"" ,"");
-MPGETSTR( defaultpos, flag_stat_string( position_flags, ud_mobp->default_pos ),"" ,"");
+MPGETSTR( startpos, flag_bit_name(position_flags, ud_mobp->start_pos),"" ,"");
+MPGETSTR( defaultpos, flag_bit_name(position_flags, ud_mobp->default_pos),"" ,"");
 MPGETSTR( sex,
     ud_mobp->sex == SEX_NEUTRAL ? "neutral" :
     ud_mobp->sex == SEX_MALE    ? "male" :
@@ -6864,7 +6864,7 @@ MPGETSTR( sex,
     NULL,"" ,"");
 MPGETSTR( race, race_table[ud_mobp->race].name,"" ,"");
 MPGETINT( wealthpcnt, ud_mobp->wealth_percent,"" ,"");
-MPGETSTR( size, flag_stat_string( size_flags, ud_mobp->size ),"" ,"");
+MPGETSTR( size, flag_bit_name(size_flags, ud_mobp->size),"" ,"");
 MPGETSTR( stance, stances[ud_mobp->stance].name,
     "Mob's default stance." ,
     "See 'stances' table.");
@@ -7001,7 +7001,7 @@ static int SHOP_buytype ( lua_State *LS )
             if (ud_shop->buy_type[i] != 0)
             {
                 lua_pushstring( LS,
-                        flag_stat_string( type_flags, ud_shop->buy_type[i]));
+                        flag_bit_name(type_flags, ud_shop->buy_type[i]));
                 lua_rawseti( LS, -2, index++);
             }
         }
@@ -7057,7 +7057,7 @@ static int AFFECT_get_where ( lua_State *LS )
     AFFECT_DATA *ud_af=check_AFFECT(LS,1);
 
     lua_pushstring( LS,
-            flag_stat_string( apply_types, ud_af->where ) );
+            flag_bit_name(apply_types, ud_af->where) );
     return 1;
 }
 
@@ -7083,7 +7083,7 @@ static int AFFECT_get_location ( lua_State *LS )
     AFFECT_DATA *ud_af=check_AFFECT(LS,1);
 
     lua_pushstring( LS,
-            flag_stat_string( apply_flags, ud_af->location ) );
+            flag_bit_name(apply_flags, ud_af->location) );
     return 1;
 }
 
@@ -7282,7 +7282,7 @@ static int TRIG_get_trigtype ( lua_State *LS )
     }
 
     lua_pushstring( LS,
-            flag_stat_string(
+            flag_bit_name(
                 tbl,
                 ((PROG_LIST *) type->check( LS, 1 ) )->trig_type ) );
     return 1;
