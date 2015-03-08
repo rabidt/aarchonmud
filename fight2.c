@@ -1667,6 +1667,7 @@ DEF_DO_FUN(do_surrender)
         return;
     }
 
+    WAIT_STATE(ch, PULSE_VIOLENCE);
     act( "You surrender to $N!", ch, NULL, mob, TO_CHAR );
     act( "$n surrenders to you!", ch, NULL, mob, TO_VICT );
     act( "$n tries to surrender to $N!", ch, NULL, mob, TO_NOTVICT );
@@ -1684,7 +1685,6 @@ DEF_DO_FUN(do_surrender)
     else
     {
 	forget_attacks(mob);
-	WAIT_STATE(ch, PULSE_VIOLENCE);
     }
 }
 
