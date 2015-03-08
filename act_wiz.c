@@ -145,7 +145,7 @@ void wiznet( const char *string, CHAR_DATA *ch, const void *arg1, long flag, lon
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        bool playing = d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected);
+        bool playing = IS_PLAYING(d->connected);
         if ( !playing || !d->character || d->character == ch )
             continue;
         bool auth_match = flag == WIZ_AUTH && CAN_AUTH(d->character);
@@ -426,7 +426,7 @@ DEF_DO_FUN(do_echo)
     
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) ) 
+        if ( IS_PLAYING(d->connected) ) 
         {
             if (get_trust(d->character) >= get_trust(ch))
                 send_to_char( "global> ",d->character);
@@ -453,7 +453,7 @@ DEF_DO_FUN(do_recho)
     
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+        if ( (IS_PLAYING(d->connected) ) 
             &&   d->character->in_room == ch->in_room )
         {
             if (get_trust(d->character) >= get_trust(ch))
@@ -478,7 +478,7 @@ DEF_DO_FUN(do_zecho)
     
     for (d = descriptor_list; d; d = d->next)
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+        if ( (IS_PLAYING(d->connected) ) 
             &&  d->character->in_room != NULL && ch->in_room != NULL
             &&  d->character->in_room->area == ch->in_room->area)
         {
@@ -541,7 +541,7 @@ DEF_DO_FUN(do_transfer)
     {
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+            if ( (IS_PLAYING(d->connected)) 
                 &&   d->character != ch
                 &&   d->character->in_room != NULL
                 &&   can_see( ch, d->character ) )
@@ -741,6 +741,19 @@ DEF_DO_FUN(do_reboot)
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
     
+    if (strcmp(argument, "confirm"))
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to reboot?\n\r",
+                bin_info_string);
+
+        confirm_yes_no( ch->desc,
+                do_reboot,
+                "confirm",
+                NULL,
+                NULL);
+        return;
+    }
+
     if (ch->invis_level < LEVEL_HERO)
     {
         sprintf( buf, "Reboot by %s.", ch->name );
@@ -773,7 +786,20 @@ DEF_DO_FUN(do_shutdown)
     char buf[MAX_STRING_LENGTH];
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
-    
+   
+    if (strcmp(argument, "confirm"))
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to shutdown?\n\r",
+                bin_info_string);
+
+        confirm_yes_no( ch->desc,
+                do_shutdown,
+                "confirm",
+                NULL,
+                NULL);
+        return;
+    }
+ 
     if (ch->invis_level < LEVEL_HERO)
         sprintf( buf, "Shutdown by %s.", ch->name );
     append_file( ch, SHUTDOWN_FILE, buf );
@@ -2965,73 +2991,6 @@ DEF_DO_FUN(do_crash)
         send_to_char( "I smell fish.\n\r", ch );
 }
 
-/* New Qset command */
-DEF_DO_FUN(do_qset)
-{
-    CHAR_DATA *victim;
-    char arg[MAX_INPUT_LENGTH];
-    char arg2[MIL];
-    char arg3[MIL];
-    char arg4[MIL];
-    char arg5[MIL];
-    int timer;
-    int limit;
-
-    argument = one_argument( argument, arg );
-    argument = one_argument( argument, arg2 );
-    argument = one_argument( argument, arg3 );
-    argument = one_argument( argument, arg4 );
-    argument = one_argument( argument, arg5 );
-
-    if ( arg[0] == '\0' )
-    {
-	send_to_char( "Syntax: qset [name] [id] [value] [time limit]\n\r", ch );
-	return;
-    }
-
-    victim = get_char_world( ch, arg );
-    if ( victim == NULL )
-    {
-	send_to_char( "Character not found.\n\r", ch );
-	return;
-    }
-
-    if ( IS_NPC(victim) )
-    {
-	send_to_char( "NPCs don't have a quest status.\n\r", ch );
-	return;
-    }
-
-    if ( !is_r_number(arg2) || !is_number(arg3) )
-    {
-	send_to_char("Invalid arguments.\n\r", ch) ;
-	return;
-    }
-
-    /* This is a timer so that we can have expirable qsets to allow
-       players to repeat quests without abusing them - Astark Oct 2012 */
-    
-    if ( !is_number(arg4) )
-        timer = 0;
-    else    
-        timer = atoi(arg4);
-
-    /* This is the counter that reduces the above timer. For example, if
-       the timer is 5, and this number is 24, it will be 24 hours before
-       the timer hits 0 - Astark Oct 2012 */
-
-    if ( !is_number(arg5) )
-        limit = 0;
-    else    
-        limit = atoi(arg5);
-
-    /* new function used to set timer on qstatus -Astark Oct 2012 */
-    set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
-    act( "You have successfully changed $N's qstatus.", ch, NULL, victim, TO_CHAR );
-    return;
-
-}
-
 DEF_DO_FUN(do_avatar)
 {
   char buf[MAX_STRING_LENGTH];
@@ -3309,7 +3268,7 @@ static void print_attack_table( CHAR_DATA *ch, const struct attack_type *tbl)
         ptc(ch, "%-20s %-20s %-20s\n\r",
                 tbl[i].name,
                 tbl[i].noun,
-                flag_stat_string( damage_type, tbl[i].damage) );
+                flag_bit_name(damage_type, tbl[i].damage) );
     }
 }
 
@@ -3348,7 +3307,7 @@ static void print_stances( CHAR_DATA *ch, const struct stance_type *tbl)
     {
         ptc( ch, "%-18s %-10s %-16s %-3s %-3s %4d\n\r",
                 tbl[i].name,
-                flag_stat_string( damage_type, tbl[i].type),
+                flag_bit_name(damage_type, tbl[i].type),
                 tbl[i].verb,
                 tbl[i].martial ? "YES" : "no",
                 tbl[i].weapon ? "YES" : "no",

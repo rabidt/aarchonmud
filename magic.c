@@ -2357,6 +2357,7 @@ DEF_SPELL_FUN(spell_charm_person)
     if ( IS_AFFECTED(victim, AFF_CHARM)
             || IS_AFFECTED(ch, AFF_CHARM)
             || IS_SET(victim->imm_flags, IMM_CHARM)
+            || IS_SET(victim->imm_flags, IMM_CHARMPERSON)
             || IS_IMMORTAL(victim) )
     {
         act( "You can't charm $N.", ch, NULL, victim, TO_CHAR );
@@ -5352,6 +5353,12 @@ DEF_SPELL_FUN(spell_sleep)
         return SR_IMMUNE;
     }
 
+    if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
+    {
+        act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
+        return SR_IMMUNE;
+    }
+
     if ( saves_spell(victim, ch, level, DAM_MENTAL)
             || number_bits(1)
             || (!IS_NPC(victim) && number_bits(1))
@@ -5722,6 +5729,7 @@ DEF_SPELL_FUN(spell_weaken)
 DEF_SPELL_FUN(spell_word_of_recall)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
+    CHAR_DATA *pet = victim->pet;
     ROOM_INDEX_DATA *location;
     int chance;
 
@@ -5802,17 +5810,22 @@ DEF_SPELL_FUN(spell_word_of_recall)
     }
 
     // misgate chance when cursed but not normally
-    location = room_with_misgate(victim, location, 0);
+    ROOM_INDEX_DATA *victim_location = room_with_misgate(victim, location, 0);
     
     act("$n disappears.",victim,NULL,NULL,TO_ROOM);
     char_from_room(victim);
-    char_to_room(victim,location);
+    char_to_room(victim, victim_location);
     act("$n appears in the room.",victim,NULL,NULL,TO_ROOM);
     do_look(victim,"auto");
 
-    /* -Rim 2/22/99 */
-    if (victim->pet != NULL)
-        do_recall(victim->pet,"");
+    if ( pet != NULL && can_cast_transport(pet) )
+    {
+        ROOM_INDEX_DATA *pet_location = room_with_misgate(pet, location, 0);
+        act("$n disappears.", pet, NULL, NULL, TO_ROOM);
+        char_from_room(pet);
+        char_to_room(pet, pet_location);
+        act("$n appears in the room.", pet, NULL, NULL, TO_ROOM);
+    }
     
     return TRUE;
 }
@@ -5853,7 +5866,7 @@ DEF_SPELL_FUN(spell_high_explosive)
 int cha_max_follow( CHAR_DATA *ch )
 {
     int cha = get_curr_stat(ch, STAT_CHA) + mastery_bonus(ch, gsn_puppetry, 30, 50);
-    return ch->level * cha / 40;
+    return ch->level * (200 + cha) / 100;
 }
 
 int cha_cur_follow( CHAR_DATA *ch )

@@ -967,7 +967,7 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
                             pReset->arg1,
                             pReset->arg3,
                             capitalize(get_obj_index( pReset->arg1 )->short_descr),
-                            flag_stat_string( wear_loc_strings, pReset->arg3 ),
+                            flag_bit_name(wear_loc_strings, pReset->arg3),
                             pLastMob ? pLastMob->short_descr : "!NO_MOB!" );
                         if ( !pLastMob )
                         {

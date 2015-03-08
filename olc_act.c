@@ -32,13 +32,13 @@ char * mprog_type_to_name ( int type );
 /*
 #define ALT_FLAGVALUE_SET( _blargh, _table, _arg )		\
 {							\
-    int blah = flag_value( _table, _arg );		\
+    int blah = flag_lookup(_arg, _table);		\
     _blargh = (blah == NO_FLAG) ? 0 : blah;		\
 }
 
 #define ALT_FLAGVALUE_TOGGLE( _blargh, _table, _arg )		\
 {							\
-    int blah = flag_value( _table, _arg );		\
+    int blah = flag_lookup(_arg, _table);		\
     _blargh ^= (blah == NO_FLAG) ? 0 : blah;	\
 }
 */
@@ -55,7 +55,7 @@ long alt_flagvalue( const struct flag_type *flag_table, const char *argument )
 #ifdef FLAG_DEBUG
     log_string( "alt_flagvalue: start" );
 #endif
-    flag = flag_value( flag_table, argument );
+    flag = flag_lookup(argument, flag_table);
     if ( flag != NO_FLAG )
 	I_SET_BIT( buf, flag );
 #ifdef FLAG_DEBUG
@@ -71,7 +71,7 @@ long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table, co
 #ifdef FLAG_DEBUG
     log_string( "alt_flagvalue_toggle: start" );
 #endif
-    flag = flag_value( flag_table, argument );
+    flag = flag_lookup(argument, flag_table );
     if ( flag != NO_FLAG )
 	I_TOGGLE_BIT( buf, flag );
 #ifdef FLAG_DEBUG
@@ -511,7 +511,7 @@ REDIT( redit_olist )
         if ( ( pObjIndex = get_obj_index( vnum ) ) )
         {
             if ( fAll || is_name( arg, pObjIndex->name )
-                || flag_value( type_flags, arg ) == pObjIndex->item_type )
+                || flag_lookup(arg, type_flags) == pObjIndex->item_type )
             {
                 found = TRUE;
                 sprintf( buf, "[%5d] %-17.16s",
@@ -752,7 +752,7 @@ AEDIT ( aedit_addaprog )
         return FALSE;
     }
 
-    if ( (value = flag_value (aprog_flags, trigger) ) == NO_FLAG)
+    if ( (value = flag_lookup(trigger, aprog_flags)) == NO_FLAG )
     {
         send_to_char("Valid flags are:\n\r",ch);
         show_help( ch, "aprog");
@@ -845,7 +845,7 @@ AEDIT( aedit_show )
     sprintf( buf, "Credits:    [%s]\n\r", pArea->credits );
     send_to_char_bw( buf, ch );
     
-    sprintf( buf, "Flags:      [%s]\n\r", flag_string( area_flags, pArea->area_flags ) );
+    sprintf( buf, "Flags:      [%s]\n\r", flag_bits_name(area_flags, pArea->area_flags) );
     send_to_char( buf, ch );
 
     sprintf( buf, "Comments:\n\r%s", pArea->comments );
@@ -1671,7 +1671,7 @@ REDIT ( redit_addrprog )
         return FALSE;
     }
 
-    if ( (value = flag_value (rprog_flags, trigger) ) == NO_FLAG)
+    if ( (value = flag_lookup(trigger, rprog_flags)) == NO_FLAG )
     {
         send_to_char("Valid flags are:\n\r",ch);
         show_help( ch, "rprog");
@@ -1727,11 +1727,11 @@ REDIT( redit_show )
     strcat( buf1, buf );
     
     sprintf( buf, "Vnum:       [%5d]\n\rSector:     [%s]\n\r",
-        pRoom->vnum, flag_stat_string( sector_flags, pRoom->sector_type ) );
+        pRoom->vnum, flag_bit_name(sector_flags, pRoom->sector_type) );
     strcat( buf1, buf );
     
     sprintf( buf, "Room flags: [%s]\n\r",
-        flag_string( room_flags, pRoom->room_flags ) );
+        flag_bits_name(room_flags, pRoom->room_flags) );
     strcat( buf1, buf );
     
     if ( pRoom->heal_rate != 100 || pRoom->mana_rate != 100 )
@@ -1844,37 +1844,9 @@ REDIT( redit_show )
             * Capitalize all flags that are not part of the reset info.
             */
 	    sprintf( reset_state, " Exit flags: [%s] [%s]\n\r", 
-		     flag_string(exit_flags, pexit->rs_flags),
-		     flag_string(exit_flags, pexit->exit_info));
+            flag_bits_name(exit_flags, pexit->rs_flags),
+            flag_bits_name(exit_flags, pexit->exit_info));
 	    strcat( buf1, reset_state );
-	    /* was hiding reset flags --Bobble
-            strcpy( reset_state, flag_string( exit_flags, pexit->rs_flags ) );
-	    state = flag_string( exit_flags, pexit->exit_info );
-            strcat( buf1, " Exit flags: [" );
-            for (; ;)
-            {
-                state = one_argument( state, word );
-                
-                if ( word[0] == '\0' )
-                {
-                    int end;
-                    
-                    end = strlen(buf1) - 1;
-                    buf1[end] = ']';
-                    strcat( buf1, "\n\r" );
-                    break;
-                }
-                
-                if ( str_infix( word, reset_state ) )
-                {
-                    length = strlen(word);
-                    for (i = 0; i < length; i++)
-                        word[i] = UPPER(word[i]);
-                }
-                strcat( buf1, word );
-                strcat( buf1, " " );
-            }
-	    */
             
             if ( pexit->keyword && pexit->keyword[0] != '\0' )
             {
@@ -1959,7 +1931,7 @@ bool change_exit( CHAR_DATA *ch, const char *argument, int door )
     * Set the exit flags, needs full argument.
     * ----------------------------------------
     */
-    if ( ( value = flag_value( exit_flags, argument ) ) != NO_FLAG )
+    if ( (value = flag_lookup(argument, exit_flags)) != NO_FLAG )
     {
         if ( !pRoom->exit[door] )
         {
@@ -3037,7 +3009,7 @@ REDIT( redit_oreset )
         /*
         * Make sure the location on mobile is valid.
         */
-        if ( (wear_loc = flag_value( wear_loc_flags, argument )) == NO_FLAG )
+        if ( (wear_loc = flag_lookup(argument, wear_loc_flags)) == NO_FLAG )
         {
             send_to_char( "REdit: Invalid wear_loc.  '? wear-loc'\n\r", ch );
             return FALSE;
@@ -3052,7 +3024,7 @@ REDIT( redit_oreset )
                 "%s (%d) has wear flags: [%s]\n\r",
                 capitalize( pObjIndex->short_descr ),
                 pObjIndex->vnum,
-                flag_string( wear_flags, pObjIndex->wear_flags ) );
+                wear_bits_name(pObjIndex->wear_flags) );
             send_to_char( output, ch );
             return FALSE;
         }
@@ -3113,7 +3085,7 @@ REDIT( redit_oreset )
             "%s of %s (%d) and added to resets.\n\r",
             capitalize( pObjIndex->short_descr ),
             pObjIndex->vnum,
-            flag_stat_string( wear_loc_strings, pReset->arg3 ),
+            flag_bit_name(wear_loc_strings, pReset->arg3),
             to_mob->short_descr,
             to_mob->pIndexData->vnum );
         send_to_char( output, ch );
@@ -3157,7 +3129,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 		 "[v2] Damage Type:    %s\n\r",
 		 obj->value[0],
 		 obj->value[1],
-		 flag_stat_string(damage_type, obj->value[2]) );
+		 flag_bit_name(damage_type, obj->value[2]) );
         send_to_char( buf, ch );
         break;
         
@@ -3183,8 +3155,8 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             "[v2] Portal Flags:   %s\n\r"
             "[v3] Goes to (vnum): [%d]\n\r",
             obj->value[0],
-            i_flag_string( exit_flags, obj->value[1]),
-            i_flag_string( portal_flags, obj->value[2]),
+            i_flag_bits_name(exit_flags, obj->value[1]),
+            i_flag_bits_name(portal_flags, obj->value[2]),
             obj->value[3] );
         send_to_char( buf, ch);
         break;
@@ -3198,7 +3170,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             "[v4] Mana bonus:      [%d]\n\r",
             obj->value[0],
             obj->value[1],
-            i_flag_string( furniture_flags, obj->value[2]),
+            i_flag_bits_name(furniture_flags, obj->value[2]),
             obj->value[3],
             obj->value[4] );
         send_to_char( buf, ch );
@@ -3238,7 +3210,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         /* It somehow fixed a bug in showing scroll/pill/potions too ?! */
     case ITEM_WEAPON:
         sprintf( buf, "[v0] Weapon class:   %s\n\r",
-	    flag_stat_string( weapon_class, obj->value[0] ) );
+	    flag_bit_name(weapon_class, obj->value[0]) );
         send_to_char( buf, ch );
         sprintf( buf, "[v1] Number of dice: [%d]\n\r", obj->value[1] );
         send_to_char( buf, ch );
@@ -3248,7 +3220,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             attack_table[obj->value[3]].name );
         send_to_char( buf, ch );
         sprintf( buf, "[v4] Special type:   %s\n\r",
-            i_flag_string( weapon_type2,  obj->value[4] ) );
+            i_flag_bits_name(weapon_type2, obj->value[4]) );
         send_to_char( buf, ch );
         break;
         
@@ -3260,7 +3232,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             "[v3] Item Capacity    [%d]\n\r"
             "[v4] Weight Mult(%%)   [%d]\n\r",
             obj->value[0],
-            i_flag_string( container_flags, obj->value[1] ),
+            i_flag_bits_name(container_flags, obj->value[1]),
             get_obj_index(obj->value[2])
             ? get_obj_index(obj->value[2])->short_descr
             : "none",
@@ -3355,7 +3327,7 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const c
 	    pObj->value[1] = atoi( argument );
 	    break;
 	case 2:
-	    if ( (value = flag_value(damage_type, argument)) != NO_FLAG )
+	    if ( (value = flag_lookup(argument, damage_type)) != NO_FLAG )
 	    {
 		send_to_char( "DAMAGE TYPE SET.\n\r\n\r", ch );
 		pObj->value[2] = value;
@@ -3444,7 +3416,7 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const c
 	    do_help( ch, "ITEM_WEAPON" );
 	    return FALSE;
 	case 0:
-	    if ( (value = flag_value(weapon_class, argument)) != NO_FLAG )
+	    if ( (value = flag_lookup(argument, weapon_class)) != NO_FLAG )
 		{
 		    send_to_char( "WEAPON CLASS SET.\n\r\n\r", ch );
 		    pObj->value[0] = value;
@@ -3538,7 +3510,7 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const c
 		pObj->value[0] = atoi( argument );
 		break;
 	    case 1:
-		if ( ( value = flag_value( container_flags, argument ) ) != NO_FLAG )
+		if ( (value = flag_lookup(argument, container_flags)) != NO_FLAG )
 		    I_TOGGLE_BIT(pObj->value[1], value);
 		else
 		    {
@@ -3788,7 +3760,7 @@ OEDIT ( oedit_addoprog )
         return FALSE;
     }
 
-    if ( (value = flag_value (oprog_flags, trigger) ) == NO_FLAG)
+    if ( (value = flag_lookup(trigger, oprog_flags)) == NO_FLAG )
     {
         send_to_char("Valid flags are:\n\r",ch);
         show_help( ch, "oprog");
@@ -3839,18 +3811,18 @@ OEDIT( oedit_show )
     
     sprintf( buf, "Vnum:        [%5d]\n\rType:        [%s]\n\r",
         pObj->vnum,
-        flag_stat_string( type_flags, pObj->item_type ) );
+        flag_bit_name(type_flags, pObj->item_type) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Level:       [%5d]\n\r", pObj->level );
     send_to_char( buf, ch );
     
     sprintf( buf, "Wear flags:  [%s]\n\r",
-        flag_string( wear_flags, pObj->wear_flags ) );
+        wear_bits_name(pObj->wear_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Extra flags: [%s]\n\r",
-        flag_string( extra_flags, pObj->extra_flags ) );
+        extra_bits_name(pObj->extra_flags) );
     send_to_char( buf, ch );
     
     if (pObj->clan>0 || pObj->rank>0)
@@ -3922,7 +3894,7 @@ OEDIT( oedit_show )
 
         sprintf( buf, "[%4d] %-8d %s", cnt,
             paf->modifier,
-            flag_stat_string( apply_flags, paf->location ) );
+            flag_bit_name(apply_flags, paf->location) );
         send_to_char( buf, ch );
 
 	if (paf->bitvector)
@@ -4023,7 +3995,7 @@ OEDIT( oedit_addaffect )
         return FALSE;
     }
 
-    if ( ( value = flag_value( apply_flags, loc ) ) == NO_FLAG ) /* Hugin */
+    if ( (value = flag_lookup(loc, apply_flags)) == NO_FLAG ) /* Hugin */
     {
         send_to_char( "Valid affects are:\n\r", ch );
         show_help( ch, "apply" );
@@ -4086,7 +4058,7 @@ OEDIT( oedit_addapply )
       return FALSE;
     }
     
-    if ( ( typ = flag_value( apply_types, type ) ) == NO_FLAG )
+    if ( (typ = flag_lookup(type, apply_types)) == NO_FLAG )
     {
         send_to_char( "Invalid apply type. Valid apply types are:\n\r", ch);
         show_help( ch, "apptype" );
@@ -4099,7 +4071,7 @@ OEDIT( oedit_addapply )
     }
     
     if ( bvector[0] == '\0' || 
-	 ( bv = flag_value( bitvector_type[typ].table, bvector ) ) == NO_FLAG )
+	 (bv = flag_lookup(bvector, bitvector_type[typ].table)) == NO_FLAG )
     {
         send_to_char( "Invalid bitvector type.\n\r", ch );
         send_to_char( "Valid bitvector types are:\n\r", ch );
@@ -4807,7 +4779,7 @@ OEDIT( oedit_extra )      /* Moved out of oedit() due to naming conflicts -- Hug
     {
         EDIT_OBJ(ch, pObj);
         
-        if ( ( value = flag_value( extra_flags, argument ) ) != NO_FLAG )
+        if ( (value = flag_lookup(argument, extra_flags)) != NO_FLAG )
         {
             TOGGLE_BIT(pObj->extra_flags, value);
             
@@ -4831,7 +4803,7 @@ OEDIT( oedit_wear )      /* Moved out of oedit() due to naming conflicts -- Hugi
     {
         EDIT_OBJ(ch, pObj);
         
-        if ( ( value = flag_value( wear_flags, argument ) ) != NO_FLAG )
+        if ( (value = flag_lookup(argument, wear_flags)) != NO_FLAG )
         {
             TOGGLE_BIT(pObj->wear_flags, value);
             
@@ -4855,7 +4827,7 @@ OEDIT( oedit_type )      /* Moved out of oedit() due to naming conflicts -- Hugi
     {
         EDIT_OBJ(ch, pObj);
         
-        if ( ( value = flag_value( type_flags, argument ) ) != NO_FLAG )
+        if ( (value = flag_lookup(argument, type_flags)) != NO_FLAG )
         {
             pObj->item_type = value;
             
@@ -5281,7 +5253,7 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     sprintf( buf, "Act:         [%s]\n\r",
-        flag_string( act_flags, pMob->act ) );
+        act_bits_name(pMob->act) );
     send_to_char( buf, ch );
     
     sprintf( buf,
@@ -5342,39 +5314,39 @@ MEDIT( medit_show )
     /* ROM values: */
     
     sprintf( buf, "Form:        [%s]\n\r",
-        flag_string( form_flags, pMob->form ) );
+        form_bits_name(pMob->form) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Parts:       [%s]\n\r",
-        flag_string( part_flags, pMob->parts ) );
+        part_bits_name(pMob->parts) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Imm:         [%s]\n\r",
-        flag_string( imm_flags, pMob->imm_flags ) );
+        imm_bits_name(pMob->imm_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Res:         [%s]\n\r",
-        flag_string( res_flags, pMob->res_flags ) );
+        imm_bits_name(pMob->res_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Vuln:        [%s]\n\r",
-        flag_string( vuln_flags, pMob->vuln_flags ) );
+        imm_bits_name(pMob->vuln_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Off:         [%s]\n\r",
-        flag_string( off_flags,  pMob->off_flags ) );
+        off_bits_name(pMob->off_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Size:        [%s]\n\r",
-        flag_stat_string( size_flags, pMob->size ) );
+        flag_bit_name(size_flags, pMob->size) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Start pos.   [%s]\n\r",
-        flag_stat_string( position_flags, pMob->start_pos ) );
+        flag_bit_name(position_flags, pMob->start_pos) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Default pos  [%s]\n\r",
-        flag_stat_string( position_flags, pMob->default_pos ) );
+        flag_bit_name(position_flags, pMob->default_pos) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Wealth:      [%d%%=%ld]\n\r",
@@ -5431,7 +5403,7 @@ MEDIT( medit_show )
                     send_to_char( "  ------ -----------\n\r", ch );
                 }
                 sprintf( buf, "  [%4d] %s\n\r", iTrade,
-                    flag_stat_string( type_flags, pShop->buy_type[iTrade] ) );
+                    flag_bit_name(type_flags, pShop->buy_type[iTrade]) );
                 send_to_char( buf, ch );
             }
         }
@@ -5532,6 +5504,13 @@ MEDIT( medit_delete )
                 return FALSE;
             } 
         }
+    }
+
+    /* check for mprog triggers */
+    if ( pMob->mprogs )
+    {
+        send_to_char( "MEdit:  Can't delete, mprog triggers exist.\n\r", ch );
+        return FALSE;
     }
 
     CHAR_DATA *m;
@@ -6286,7 +6265,7 @@ MEDIT( medit_shop )
             return FALSE;
         }
         
-        if ( ( value = flag_value( type_flags, argument ) ) == NO_FLAG )
+        if ( (value = flag_lookup(argument, type_flags)) == NO_FLAG )
         {
             send_to_char( "MEdit:  That type of item is not known.\n\r", ch );
             return FALSE;
@@ -6380,7 +6359,7 @@ MEDIT( medit_sex )          /* Moved out of medit() due to naming conflicts -- H
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( sex_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, sex_flags) ) != NO_FLAG )
         {
             pMob->sex = value;
             
@@ -6404,7 +6383,7 @@ MEDIT( medit_act )          /* Moved out of medit() due to naming conflicts -- H
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( act_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, act_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->act, value );
             SET_BIT( pMob->act, ACT_IS_NPC );
@@ -6429,7 +6408,7 @@ MEDIT( medit_affect )      /* Moved out of medit() due to naming conflicts -- Hu
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( affect_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, affect_flags) ) != NO_FLAG )
         {
             /*SET_BIT(pMob->affect_field, value); -Rim (for Quirky) 4/12/98*/
             
@@ -6458,7 +6437,7 @@ MEDIT( medit_form )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( form_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, form_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->form, value );
             send_to_char( "Form toggled.\n\r", ch );
@@ -6480,7 +6459,7 @@ MEDIT( medit_part )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( part_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, part_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->parts, value );
             send_to_char( "Parts toggled.\n\r", ch );
@@ -6502,7 +6481,7 @@ MEDIT( medit_imm )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( imm_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, imm_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->imm_flags, value );
             send_to_char( "Immunity toggled.\n\r", ch );
@@ -6524,7 +6503,7 @@ MEDIT( medit_res )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( res_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, res_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->res_flags, value );
             send_to_char( "Resistance toggled.\n\r", ch );
@@ -6546,7 +6525,7 @@ MEDIT( medit_vuln )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( vuln_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, vuln_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->vuln_flags, value );
             send_to_char( "Vulnerability toggled.\n\r", ch );
@@ -6589,7 +6568,7 @@ MEDIT( medit_off )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( off_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, off_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->off_flags, value );
             send_to_char( "Offensive behaviour toggled.\n\r", ch );
@@ -6611,7 +6590,7 @@ MEDIT( medit_size )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( size_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, size_flags) ) != NO_FLAG )
         {
             pMob->size = value;
             send_to_char( "Size set.\n\r", ch );
@@ -6699,7 +6678,7 @@ MEDIT( medit_position )
         if ( str_prefix( arg, "start" ) )
             break;
         
-        if ( ( value = flag_value( position_flags, argument ) ) == NO_FLAG )
+        if ( ( value = flag_lookup(argument, position_flags) ) == NO_FLAG )
             break;
         
         EDIT_MOB( ch, pMob );
@@ -6713,7 +6692,7 @@ MEDIT( medit_position )
         if ( str_prefix( arg, "default" ) )
             break;
         
-        if ( ( value = flag_value( position_flags, argument ) ) == NO_FLAG )
+        if ( ( value = flag_lookup(argument, position_flags) ) == NO_FLAG )
             break;
         
         EDIT_MOB( ch, pMob );
@@ -6950,7 +6929,7 @@ MEDIT ( medit_addmprog )
         return FALSE;
     }
     
-    if ( (value = flag_value (mprog_flags, trigger) ) == NO_FLAG)
+    if ( (value = flag_lookup(trigger, mprog_flags)) == NO_FLAG )
     {
         send_to_char("Valid flags are:\n\r",ch);
         show_help( ch, "mprog");
@@ -7068,7 +7047,7 @@ REDIT( redit_room )
     
     EDIT_ROOM(ch, room);
     
-    if ( (value = flag_value( room_flags, argument )) == NO_FLAG )
+    if ( (value = flag_lookup(argument, room_flags)) == NO_FLAG )
     {
         send_to_char( "Syntax: room [flags]\n\r", ch );
         return FALSE;
@@ -7086,7 +7065,7 @@ REDIT( redit_sector )
     
     EDIT_ROOM(ch, room);
     
-    if ( (value = flag_value( sector_flags, argument )) == NO_FLAG) 
+    if ( (value = flag_lookup(argument, sector_flags)) == NO_FLAG )
     {
         if (str_prefix(argument, "inside"))
         {

@@ -1314,6 +1314,10 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
             }
         }
 
+    // copy verbatim settings from char to descriptor
+    if ( d->pProtocol )
+        d->pProtocol->verbatim = IS_SET(ch->act, PLR_COLOUR_VERBATIM);
+        
     /* record obj count to track vanishing eq bug */
     if ( !char_only )
         logpf("mem_load_char_obj: %s carries %d objects", ch->name, count_objects(ch->carrying));
@@ -1544,10 +1548,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 paf->modifier   = bread_number( buf );
                 paf->location   = bread_number( buf );
                 paf->bitvector  = bread_number( buf );
-		if ( pfile_version < VER_FLAG_CHANGE )
-		    FLAG_CONVERT( paf->bitvector );
-                paf->next       = ch->affected;
-                ch->affected    = paf;
+                if ( pfile_version < VER_FLAG_CHANGE )
+                    FLAG_CONVERT( paf->bitvector );
+                ch->affected = affect_insert(ch->affected, paf);
                 fMatch = TRUE;
                 break;
             }
@@ -1634,6 +1637,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
             rec->next = ch->pcdata->boss_achievements;
             ch->pcdata->boss_achievements = rec;
+            fMatch = TRUE;
+            break;
         }
 
         KEYS( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
