@@ -7449,7 +7449,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_INT, STAT_DEX, STAT_STR,
     spell_null,    TAR_IGNORE_OFF,     POS_STANDING,
-    &gsn_cursed_wound, 0, 0, DUR_SHORT,
+    &gsn_cursed_wound, 0, 0, DUR_NONE,
     "cursed wound", "Your wounds can be healed again.",  ""
     },    
     
