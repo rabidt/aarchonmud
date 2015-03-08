@@ -190,7 +190,14 @@ void gain_exp( CHAR_DATA *ch, int gain)
     }
 
     ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
+    update_pc_level(ch);
+}
 
+
+void update_pc_level( CHAR_DATA *ch )
+{
+    char buf[MAX_STRING_LENGTH];
+    
     if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1)
             && ch->level >= LEVEL_UNAUTHED )
     {
