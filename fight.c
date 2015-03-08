@@ -1979,6 +1979,10 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( !start_combat(ch, victim) )
         return FALSE;
     
+    // Check for parry, dodge, etc. and fade
+    if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+        return FALSE;
+        
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
         /* Miss. */
@@ -1992,10 +1996,6 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         return FALSE;
     }
     
-    // Check for parry, dodge, etc. and fade
-    if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
-        return FALSE;
-        
     if (sn != -1)
 	check_improve( ch, sn, TRUE, 10 );
 
