@@ -2979,6 +2979,16 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
    /*
     * Damage modifiers.
     */
+   
+    if ( dam > 1 && is_normal_hit(dt) )
+    {
+        int armor = 100 - get_ac(victim);
+        // expected reduction of 1 damage per 100 AC
+        int armor_absorb = number_range(0, armor/50);
+        if ( armor_absorb > dam/2 )
+            armor_absorb = dam/2;
+        dam -= armor_absorb;
+    }
     
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
         dam = 9 * dam / 10;
