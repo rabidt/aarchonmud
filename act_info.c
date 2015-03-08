@@ -2522,8 +2522,7 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
 		
 		/* small hack :) */
 		if (ch->desc != NULL
-		    && ch->desc->connected != CON_PLAYING 
-		    && !IS_WRITING_NOTE(ch->desc->connected) 
+		    && !(IS_PLAYING(ch->desc->connected)) 
 		    && ch->desc->connected != CON_GEN_GROUPS)
 		    break;
 	    }
@@ -2648,7 +2647,7 @@ DEF_DO_FUN(do_whois)
     {
         CHAR_DATA *wch;
         
-        if ( !(d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) )
+        if ( !(IS_PLAYING(d->connected)) )
             continue;
         
         wch = ( d->original != NULL ) ? d->original : d->character;
@@ -3247,7 +3246,7 @@ DEF_DO_FUN(do_where)
         found = FALSE;
         for ( d = descriptor_list; d; d = d->next )
         {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+            if ( (IS_PLAYING(d->connected))
 		 && ( victim = d->character ) != NULL
 		 &&   !IS_NPC(victim)
 		 &&   victim->in_room != NULL
@@ -4502,7 +4501,7 @@ DEF_DO_FUN(do_stance_list)
                 stance_cost(ch, i),
                 stances[i].weapon ? "w" : " ",
                 stances[i].martial ? "m" : " ",
-                flag_stat_string(damage_type, stances[i].type));
+                flag_bit_name(damage_type, stances[i].type));
         send_to_char( buf, ch );
     }
 }
@@ -4846,7 +4845,7 @@ DEF_DO_FUN(do_score)
     {
         sprintf(buf, "{D|{x Hungry:   %s        Thirsty: %s        Drunk: %s",
             hunger == 0 ? "{Rstarving{x" : hunger > 0 && hunger < 20 ? "     yes" : "    None",
-            thirst == 0 ? "{Rdessicated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
+            thirst == 0 ? "{Rdesiccated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
             drunk > 20 ? "{Rintoxicated{x" : drunk > 10 && drunk <= 20 ? "     buzzed" : "       None");
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
@@ -5366,6 +5365,12 @@ DEF_DO_FUN(do_achievements)
         {
             boss=TRUE;
             vicarg=arg2;
+
+            if (!str_cmp( arg2, "rewards"))
+            {
+                do_achievements_boss_reward( ch );
+                return;
+            }
         }
         else
         {
@@ -5480,10 +5485,11 @@ void print_ach_rewards(CHAR_DATA *ch)
 
 }
 
-
+/* Give achievement to all PC group members in the room.
+   Final hit may be from NPC */
 void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    if ( IS_NPC( ch ) || !IS_NPC( victim ) )
+    if ( !IS_NPC( victim ) )
         return;
 
     BOSSACHV *ach = victim->pIndexData->boss_achieve;
@@ -5491,38 +5497,58 @@ void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
         return;
 
     BOSSREC *rec;
+    CHAR_DATA *plr, *plr_next;
 
-    for ( rec = ch->pcdata->boss_achievements; rec; rec=rec->next )
+
+    /* achievement for all PC group members in the room */
+    for ( plr=ch->in_room->people; plr; plr=plr_next )
     {
-        if ( rec->vnum == victim->pIndexData->vnum )
-            return;
+        plr_next=plr->next_in_room;
+
+        if ( IS_NPC(plr) || !is_same_group( plr, ch ) )
+            continue;
+
+        /* check if already has it */
+        bool found=FALSE;
+        for ( rec = plr->pcdata->boss_achievements; rec; rec=rec->next )
+        {
+            if ( rec->vnum == victim->pIndexData->vnum )
+            {
+                found=TRUE;
+                break;
+            }
+        }
+        if ( found )
+            continue;
+
+        /* give the achievement */
+        rec = alloc_BOSSREC();
+        rec->vnum = victim->pIndexData->vnum;
+        rec->timestamp = current_time; 
+
+        rec->next = plr->pcdata->boss_achievements;
+        plr->pcdata->boss_achievements = rec;
+
+        /* do the rewards */
+        plr->pcdata->questpoints += ach->quest_reward;
+        plr->pcdata->bank += ach->gold_reward;
+        gain_exp(plr, ach->exp_reward);
+        plr->pcdata->achpoints += ach->ach_reward;
+
+        printf_to_char(plr, "--------------------------------------\n\r");
+        printf_to_char(plr, "{wBoss Achievement unlocked{x.\n\r");
+        send_to_char( "{wYour reward{x:\n\r",plr);
+        if ( ach->gold_reward>0)
+            printf_to_char(plr, "%6d gold\n\r", ach->gold_reward );
+        if ( ach->quest_reward>0)
+            printf_to_char(plr, "%6d quest points\n\r", ach->quest_reward);
+        if (ach->exp_reward>0)
+            printf_to_char(plr, "%6d experience points\n\r", ach->exp_reward);
+        if (ach->ach_reward>0)
+            printf_to_char(plr, "%6d achievement points\n\r", ach->ach_reward );
     }
 
-    rec = alloc_BOSSREC();
-    rec->vnum = victim->pIndexData->vnum;
-    rec->timestamp = current_time; 
-
-    rec->next = ch->pcdata->boss_achievements;
-    ch->pcdata->boss_achievements = rec;
-
-    /* do the rewards */
-    ch->pcdata->questpoints += ach->quest_reward;
-    ch->pcdata->bank += ach->gold_reward;
-    gain_exp(ch, ach->exp_reward);
-    ch->pcdata->achpoints += ach->ach_reward;
-
-    printf_to_char(ch, "--------------------------------------\n\r");
-    printf_to_char(ch, "{wBoss Achievement unlocked{x.\n\r");
-    send_to_char( "{wYour reward{x:\n\r",ch);
-    if ( ach->gold_reward>0)
-        printf_to_char(ch, "%6d gold\n\r", ach->gold_reward );
-    if ( ach->quest_reward>0)
-        printf_to_char(ch, "%6d quest points\n\r", ach->quest_reward);
-    if (ach->exp_reward>0)
-        printf_to_char(ch, "%6d experience points\n\r", ach->exp_reward);
-    if (ach->ach_reward>0)
-        printf_to_char(ch, "%6d achievement points\n\r", ach->ach_reward );
-
+    return;
 }
 
 /* For achievement rewards... This gets called at certain times (level up, quest complete, etc. )--Vodur / Astark 3/19/12 */
@@ -5665,7 +5691,7 @@ DEF_DO_FUN(do_count)
     	return;
 
     for ( d = descriptor_list; d != NULL; d = d->next )
-        if ( d->connected == CON_PLAYING && can_see( ch, d->character ) )
+        if ( IS_PLAYING(d->connected) && can_see( ch, d->character ) )
 	    count++;
 
     max_on = UMAX(count,max_on);

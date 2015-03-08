@@ -309,7 +309,7 @@ void finish_note (BOARD_DATA *board, NOTE_DATA *note)
 /* Show one note to a character */
 static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num)
 {
-   char buf[4*MAX_STRING_LENGTH];
+   char buf[10*MAX_STRING_LENGTH];
    BUFFER *output;
    
    output = new_buf();
@@ -325,7 +325,7 @@ static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num)
       num, note->sender, note->subject,
       note->date,
       note->to_list,
-      note->text);
+      parse_url(note->text));
 
     add_buf(output, buf);
   
@@ -1554,7 +1554,7 @@ void mail_notify( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board )
               continue;
       }
 
-	  if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+	  if ((IS_PLAYING(d->connected) )
       && !NOT_AUTHED(recip)
 	  && !IS_SET(recip->comm,COMM_NOINFO)
 	  && !IS_SET(recip->comm,COMM_QUIET) )
