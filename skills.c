@@ -2432,6 +2432,11 @@ DEF_DO_FUN(do_practice)
 
 	if (!str_cmp("field",argument))
 	{
+            if ( IS_SET(ch->act, PLR_NOEXP) )
+            {
+                send_to_char("You cannot gain experience right now.\n\r", ch);
+                return;
+            }
             /* no more burning practices when you don't have field */
             if (ch->pcdata->field < 100)
             {
