@@ -1736,7 +1736,7 @@ DEF_DO_FUN(do_mpremove)
 	bug ( "MpRemove: Invalid object from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	*/
-	int loc = flag_value(wear_loc_flags, arg);
+	int loc = flag_lookup(arg, wear_loc_flags);
 	if ( loc == NO_FLAG )
 	{
 	    bug ( "MpRemove: Invalid wear-location from vnum %d.", 
@@ -2183,7 +2183,7 @@ DEF_DO_FUN(do_mpact)
 	one_argument( argument, arg1 );
     }
 
-    if ( (value = flag_value(act_flags, arg1)) == NO_FLAG )
+    if ( (value = flag_lookup(arg1, act_flags)) == NO_FLAG )
     {
 	bugf( "do_mpact: unknown flag <%s> from mob %d",
 	      argument, ch->pIndexData->vnum );

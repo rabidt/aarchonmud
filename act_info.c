@@ -4488,7 +4488,7 @@ DEF_DO_FUN(do_stance_list)
                 stance_cost(ch, i),
                 stances[i].weapon ? "w" : " ",
                 stances[i].martial ? "m" : " ",
-                flag_stat_string(damage_type, stances[i].type));
+                flag_bit_name(damage_type, stances[i].type));
         send_to_char( buf, ch );
     }
 }

@@ -3268,7 +3268,7 @@ static void print_attack_table( CHAR_DATA *ch, const struct attack_type *tbl)
         ptc(ch, "%-20s %-20s %-20s\n\r",
                 tbl[i].name,
                 tbl[i].noun,
-                flag_stat_string( damage_type, tbl[i].damage) );
+                flag_bit_name(damage_type, tbl[i].damage) );
     }
 }
 
@@ -3307,7 +3307,7 @@ static void print_stances( CHAR_DATA *ch, const struct stance_type *tbl)
     {
         ptc( ch, "%-18s %-10s %-16s %-3s %-3s %4d\n\r",
                 tbl[i].name,
-                flag_stat_string( damage_type, tbl[i].type),
+                flag_bit_name(damage_type, tbl[i].type),
                 tbl[i].verb,
                 tbl[i].martial ? "YES" : "no",
                 tbl[i].weapon ? "YES" : "no",
