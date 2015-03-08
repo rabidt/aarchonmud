@@ -4318,12 +4318,6 @@ bool exists_player( const char *name );
 /* ban.c */
 bool check_ban( const char *site, int type );
 
-/* bit.c */
-int flag_value( const struct flag_type *flag_table, const char *argument );
-const char *flag_stat_string( const struct flag_type *flag_table, int bit );
-const char *flag_string( const struct flag_type *flag_table, tflag bits );
-const char *i_flag_string( const struct flag_type *flag_table, long bits );
-
 /* board.c */
 void make_note args((const char* board_name, const char *sender,
    const char *to, const char *subject, const int expire_days, const char *text));

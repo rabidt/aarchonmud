@@ -552,7 +552,7 @@ void aedit( CHAR_DATA *ch, const char *argument )
    }
    
    /* search for area flag to be toggled */
-   if ( ( value = flag_value( area_flags, command ) ) != NO_FLAG )
+   if ( (value = flag_lookup(command, area_flags)) != NO_FLAG )
    {
        if ( !is_settable(value, area_flags) )
        {
@@ -1332,9 +1332,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
             "O[%5d] %-13.13s %-19.19s M[%5d]       %-15.15s\n\r",
             pReset->arg1,
             pObj->short_descr,
-            (pReset->command == 'G') ?
-            flag_stat_string( wear_loc_strings, WEAR_NONE )
-            : flag_stat_string( wear_loc_strings, pReset->arg3 ),
+            flag_bit_name(wear_loc_strings, (pReset->command == 'G') ? WEAR_NONE : pReset->arg3),
             pMob->vnum,
             pMob->short_descr );
          strcat( final, buf );
@@ -1352,7 +1350,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
             pReset->arg1,
             capitalize( dir_name[ pReset->arg2 ] ),
             pRoomIndex->name,
-            flag_stat_string( door_resets, pReset->arg3 ) );
+            flag_bit_name(door_resets, pReset->arg3) );
          strcat( final, buf );
          
          break;
@@ -1690,7 +1688,7 @@ DEF_DO_FUN(do_resets)
             * --------------------------
             */
             {
-               if ( flag_value( wear_loc_flags, arg4 ) == NO_FLAG )
+               if ( flag_lookup(arg4, wear_loc_flags) == NO_FLAG )
                {
 		  send_to_char( "Syntax:  reset <number> obj <vnum> <wear-loc>\n\n", ch );
                   send_to_char( "For wear locations, type '? wear-loc'\n\r", ch );
@@ -1704,7 +1702,7 @@ DEF_DO_FUN(do_resets)
                }
 
                pReset->arg1 = vnum;
-               pReset->arg3 = flag_value( wear_loc_flags, arg4 );
+               pReset->arg3 = flag_lookup(arg4, wear_loc_flags);
                if ( pReset->arg3 == WEAR_NONE )
                   pReset->command = 'G';
                else
