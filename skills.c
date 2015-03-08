@@ -2432,7 +2432,7 @@ DEF_DO_FUN(do_practice)
 
 	if (!str_cmp("field",argument))
 	{
-            if ( IS_SET(ch->act, PLR_NOEXP) )
+            if ( IS_SET(ch->act, PLR_NOEXP) || IS_HERO(ch) )
             {
                 send_to_char("You cannot gain experience right now.\n\r", ch);
                 return;
@@ -2445,11 +2445,13 @@ DEF_DO_FUN(do_practice)
             }
             else
             {
-		ch->practice--;
-		sn = number_range(ch->pcdata->field/2, ch->pcdata->field);
-		ch->pcdata->field-=sn;
-		gain_exp(ch, sn);
-		return;
+                int convert = number_range(ch->pcdata->field/3, ch->pcdata->field*2/3);
+                ptc(ch, "Your practice converts %d field experience into real experience.\n\r", convert);
+                ch->practice--;
+                ch->pcdata->field -= convert;
+                ch->exp += convert;
+                update_pc_level(ch);
+                return;
             }
 	}
 	
