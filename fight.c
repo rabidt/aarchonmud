@@ -3282,7 +3282,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         af.where     = TO_AFFECTS;
         af.type      = gsn_cursed_wound;
         af.level     = ch->level;
-        af.duration  = get_duration(gsn_cursed_wound, ch->level);
+        af.duration  = -1;
         af.bitvector = AFF_CURSE;
         
         if ( dam > 0 )
