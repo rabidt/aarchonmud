@@ -174,6 +174,19 @@ const char *weapon_name( int weapon_type)
         return "exotic";
 }
 
+int attack_exact_lookup  (const char *name)
+{
+    int att;
+    
+    for ( att = 0; attack_table[att].name != NULL; att++)
+    {
+        if (!strcmp(name, attack_table[att].name))
+            return att;
+    }
+    
+    return 0;
+}
+
 int attack_lookup  (const char *name)
 {
     int att;
@@ -481,6 +494,13 @@ void reset_char(CHAR_DATA *ch)
     // wimpy & calm percentages
     ch->wimpy = URANGE(0, ch->wimpy, 100);
     ch->calm = URANGE(0, ch->calm, 100);
+    
+    // we have heroes turning up with positive hunger/thirst, somehow
+    if ( IS_HERO(ch) )
+    {
+        ch->pcdata->condition[COND_THIRST] = -1;
+        ch->pcdata->condition[COND_HUNGER] = -1;
+    }
     
     // ensure dragonborn have a bloodline
     if ( ch->race == race_dragonborn && ch->pcdata->morph_race == 0 )
@@ -1326,11 +1346,27 @@ void affect_renew( CHAR_DATA *ch, int sn, int level, int duration )
         }
 }
 
+const char* affect_name( AFFECT_DATA *paf )
+{
+    if ( paf->type == gsn_custom_affect )
+        return paf->tag;
+    else
+        return skill_table[paf->type].name;
+}
+
 /*
  * Return -1, 0 or 1 depending on ordering of af1, af2
  */
 int aff_cmp( AFFECT_DATA *af1, AFFECT_DATA *af2 )
 {
+    // only use name for skill-based or custom affects
+    // but not, e.g. for object affects (type = -1)
+    if ( af1->type > 0 && af2->type > 0 )
+    {
+        int name_cmp = strcmp(affect_name(af1), affect_name(af2));
+        if ( name_cmp != 0 )
+            return name_cmp;
+    }
 #define affcmp(X) if (af1->X != af2->X) return (af1->X < af2->X) ? -1 : 1
     affcmp(type);
     affcmp(where);
@@ -2431,10 +2467,11 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
 
     unregister_ch_timer( ch );
 
-    nuke_pets(ch);
-
     if ( fPull )
+    {
+        nuke_pets(ch);
         die_follower( ch, false );
+    }
 
     stop_fighting( ch, TRUE );
 
@@ -2484,7 +2521,7 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     {
         if ( wch->reply == ch )
             wch->reply = NULL;
-        if ( ch->mprog_target == wch )
+        if ( wch->mprog_target == ch )
             wch->mprog_target = NULL;
     }
 
@@ -2567,7 +2604,7 @@ CHAR_DATA* get_player( const char *name )
 
     /* match exact name */
     for ( d = descriptor_list; d != NULL; d = d->next )
-	if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+	if ( IS_PLAYING(d->connected) )
 	{
 	    ch = original_char( d->character );
 

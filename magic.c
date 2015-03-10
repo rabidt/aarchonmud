@@ -2357,6 +2357,7 @@ DEF_SPELL_FUN(spell_charm_person)
     if ( IS_AFFECTED(victim, AFF_CHARM)
             || IS_AFFECTED(ch, AFF_CHARM)
             || IS_SET(victim->imm_flags, IMM_CHARM)
+            || IS_SET(victim->imm_flags, IMM_CHARMPERSON)
             || IS_IMMORTAL(victim) )
     {
         act( "You can't charm $N.", ch, NULL, victim, TO_CHAR );
@@ -5353,6 +5354,12 @@ DEF_SPELL_FUN(spell_sleep)
         return SR_IMMUNE;
     }
 
+    if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
+    {
+        act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
+        return SR_IMMUNE;
+    }
+
     if ( saves_spell(victim, ch, level, DAM_MENTAL)
             || number_bits(1)
             || (!IS_NPC(victim) && number_bits(1))
@@ -5566,43 +5573,49 @@ DEF_SPELL_FUN(spell_summon)
 
 DEF_SPELL_FUN(spell_teleport)
 {
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
     ROOM_INDEX_DATA *pRoomIndex;
     OBJ_DATA *stone;
 
     if ( !can_cast_transport(ch) )
         return SR_UNABLE;
 
-    SPELL_CHECK_RETURN
-    
-    if ( victim->in_room == NULL
-            || IS_SET(victim->in_room->room_flags, ROOM_NO_RECALL)
-            || IS_TAG(ch)
-            || ( victim != ch && IS_SET(victim->imm_flags,IMM_SUMMON))
-            || ( !IS_NPC(ch) && victim->fighting != NULL )
-            || ( victim != ch
-                && ( saves_spell(victim, ch, level - 5, DAM_OTHER))))
+    if ( !strcmp(target_name, "locate") )
     {
-        send_to_char( "You failed.\n\r", ch );
+        SPELL_CHECK_RETURN
+        show_portal_names(ch);
         return TRUE;
     }
 
-    stone = get_eq_char(ch,WEAR_HOLD);
-
-    pRoomIndex = get_random_room(victim);
-
-    if ( pRoomIndex == NULL 
+    if ( target_name[0] == '\0' )
+    {
+        SPELL_CHECK_RETURN
+        pRoomIndex = get_random_room(ch);
+        
+        if ( pRoomIndex == NULL 
             || !is_room_ingame(pRoomIndex)
-            || !can_see_room(ch,pRoomIndex) 
+            || !can_see_room(ch, pRoomIndex) 
             /* Teleport wasn't working because the IS_SET check was missing - Astark 1-7-13 */
-            || !can_move_room(victim, pRoomIndex, FALSE)
+            || !can_move_room(ch, pRoomIndex, FALSE)
             || IS_SET(pRoomIndex->room_flags, ROOM_NO_TELEPORT)
             || IS_SET(pRoomIndex->room_flags, ROOM_JAIL))
-    {
-        send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
-        return TRUE;
+        {
+            send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
+            return TRUE;
+        }
     }
-
+    else
+    {
+        if ( (pRoomIndex = get_portal_room(target_name)) == NULL
+            || !can_see_room(ch, pRoomIndex)
+            || !is_room_ingame(pRoomIndex) )
+        {
+            send_to_char( "Teleport destination unknown.\n\r", ch );
+            return SR_TARGET;
+        }
+        SPELL_CHECK_RETURN
+    }    
+    
+    stone = get_eq_char(ch,WEAR_HOLD);
 
     if (stone != NULL && stone->item_type == ITEM_WARP_STONE)
     {
@@ -5621,14 +5634,22 @@ DEF_SPELL_FUN(spell_teleport)
         }
     }
 
-    if (victim != ch)
-        send_to_char("You have been teleported!\n\r",victim);
+    act("$n vanishes!", ch, NULL, NULL, TO_ROOM);
+    char_from_room(ch);
+    char_to_room(ch, pRoomIndex);
+    act("$n abruptly appears from out of nowhere.", ch, NULL, NULL, TO_ROOM);
+    do_look(ch, "auto");
 
-    act( "$n vanishes!", victim, NULL, NULL, TO_ROOM );
-    char_from_room( victim );
-    char_to_room( victim, pRoomIndex );
-    act( "$n abruptly appears from out of nowhere.", victim, NULL, NULL, TO_ROOM );
-    do_look( victim, "auto" );
+    CHAR_DATA *pet = ch->pet;
+    if ( pet != NULL && can_cast_transport(pet) )
+    {
+        ROOM_INDEX_DATA *pet_location = room_with_misgate(pet, pRoomIndex, 0);
+        act("$n disappears.", pet, NULL, NULL, TO_ROOM);
+        char_from_room(pet);
+        char_to_room(pet, pet_location);
+        act("$n appears in the room.", pet, NULL, NULL, TO_ROOM);
+    }
+    
     return TRUE;
 }
 
@@ -5723,6 +5744,7 @@ DEF_SPELL_FUN(spell_weaken)
 DEF_SPELL_FUN(spell_word_of_recall)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
+    CHAR_DATA *pet = victim->pet;
     ROOM_INDEX_DATA *location;
     int chance;
 
@@ -5803,17 +5825,22 @@ DEF_SPELL_FUN(spell_word_of_recall)
     }
 
     // misgate chance when cursed but not normally
-    location = room_with_misgate(victim, location, 0);
+    ROOM_INDEX_DATA *victim_location = room_with_misgate(victim, location, 0);
     
     act("$n disappears.",victim,NULL,NULL,TO_ROOM);
     char_from_room(victim);
-    char_to_room(victim,location);
+    char_to_room(victim, victim_location);
     act("$n appears in the room.",victim,NULL,NULL,TO_ROOM);
     do_look(victim,"auto");
 
-    /* -Rim 2/22/99 */
-    if (victim->pet != NULL)
-        do_recall(victim->pet,"");
+    if ( pet != NULL && can_cast_transport(pet) )
+    {
+        ROOM_INDEX_DATA *pet_location = room_with_misgate(pet, location, 0);
+        act("$n disappears.", pet, NULL, NULL, TO_ROOM);
+        char_from_room(pet);
+        char_to_room(pet, pet_location);
+        act("$n appears in the room.", pet, NULL, NULL, TO_ROOM);
+    }
     
     return TRUE;
 }
@@ -5854,7 +5881,7 @@ DEF_SPELL_FUN(spell_high_explosive)
 int cha_max_follow( CHAR_DATA *ch )
 {
     int cha = get_curr_stat(ch, STAT_CHA) + mastery_bonus(ch, gsn_puppetry, 30, 50);
-    return ch->level * cha / 40;
+    return ch->level * (200 + cha) / 100;
 }
 
 int cha_cur_follow( CHAR_DATA *ch )

@@ -1642,6 +1642,9 @@ DEF_DO_FUN(do_drink)
         return;
     }
 
+    if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_DRINK) )
+        return;
+
     act( "You drink $T from $p.",
             ch, obj, liq_table[liquid].liq_name, TO_CHAR );
     act( "$n drinks $T from $p.",

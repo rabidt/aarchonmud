@@ -184,6 +184,10 @@ void nanny( DESCRIPTOR_DATA *d, const char *argument )
 	    case CON_PENALTY_FINISH:
 		penalty_finish(d, argument);
 		break;
+
+        case CON_LUA_HANDLER:
+        lua_con_handler(d, argument);
+        break;
 	    }	
 	    break;
 	    
@@ -1897,7 +1901,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 		bool found = FALSE;
 
 		for ( desc = descriptor_list; desc; desc = desc->next )
-		    if ( (desc->connected == CON_PLAYING || IS_WRITING_NOTE(desc->connected))
+		    if ( (IS_PLAYING(desc->connected) )
 			 && desc->character
 			 && IS_IMMORTAL(desc->character))
 			found = TRUE;
@@ -2005,5 +2009,8 @@ void enter_game ( DESCRIPTOR_DATA *d )
         login_grant(ch);
     }
 
+    /* and finally, run connect triggers if any */
+    ap_connect_trigger(ch);
+    rp_connect_trigger(ch);
     return;
 }
