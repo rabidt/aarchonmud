@@ -392,7 +392,7 @@ const char *parse_url( const char *argument )
              || ( url=strstr(argument, "www."    ) ) ) )
     return argument;
     
-    static char rtn[MSL*2];
+    static char rtn[MSL*10];
     int rtnIndex;
 
     for ( rtnIndex=0 ; ; argument++)
@@ -403,7 +403,7 @@ const char *parse_url( const char *argument )
             rtnIndex+=strlen(open);
 
             char *cptr;
-            for (cptr=url; *cptr != ' ' && *cptr !='\0' ; cptr++)
+            for (cptr=url; *cptr != ' ' && *cptr !='\0' && *cptr !='\n' && *cptr !='\r'; cptr++)
             {
                 rtn[rtnIndex++]=*cptr;
             }
@@ -523,7 +523,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
             
             victim = d->original ? d->original : d->character;
             
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+            if ( (IS_PLAYING(d->connected)) &&
                 d->character != ch &&
                 !IS_SET(victim->comm,chan->offbit) &&
                 !IS_SET(victim->comm,COMM_QUIET) &&
@@ -627,7 +627,7 @@ void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, b
         if (ch && !NOT_AUTHED(ch) && NOT_AUTHED(victim))
             continue;
         
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ( (IS_PLAYING(d->connected)) &&
             !IS_SET(victim->comm,COMM_NOINFO) &&
             !IS_SET(victim->comm,COMM_QUIET) )
         {
@@ -734,7 +734,7 @@ DEF_DO_FUN(do_clantalk)
     sprintf(buf,"{l%s {lclans {L'%s{L'{x\n\r",ch->name,argument);
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ( (IS_PLAYING(d->connected)) &&
             d->character != ch && !IS_NPC(d->character) &&
             is_same_clan(ch,d->character) &&
             clan_table[d->character->clan].rank_list[d->character->pcdata->clan_rank].can_use_clantalk &&
@@ -831,7 +831,7 @@ DEF_DO_FUN(do_religion_talk)
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ( (IS_PLAYING(d->connected)) &&
 	     d->character != ch && !IS_NPC(d->character) &&
 	     get_religion(d->character) == rel &&
 	     is_religion_member(d->character) &&
@@ -899,7 +899,7 @@ DEF_DO_FUN(do_info)
             {
                 victim = d->original ? d->original : d->character;
                 
-                if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+                if ((IS_PLAYING(d->connected)) &&
                     !IS_SET(victim->comm,COMM_NOINFO) &&
                     !IS_SET(victim->comm,COMM_QUIET) )
                 {
@@ -1080,7 +1080,7 @@ DEF_DO_FUN(do_shout)
         
         victim = d->original ? d->original : d->character;
         
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ((IS_PLAYING(d->connected)) &&
             d->character != ch &&
             !IS_SET(victim->comm, COMM_SHOUTSOFF) &&
             !IS_SET(victim->comm, COMM_QUIET) &&
@@ -1349,7 +1349,7 @@ DEF_DO_FUN(do_yell)
     nt_act("{uYou yell {U'$t{U'{x",ch,argument,NULL,TO_CHAR);
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+        if ((IS_PLAYING(d->connected))
             &&   d->character != ch
             &&   d->character->in_room != NULL
             &&   d->character->in_room->area == ch->in_room->area
@@ -2700,6 +2700,7 @@ DEF_DO_FUN(do_colour)
     
     if (!str_cmp( arg, "verbatim" ) )
     {
+        ch->desc->pProtocol->verbatim = !ch->desc->pProtocol->verbatim;
         TOGGLE_BIT( ch->act, PLR_COLOUR_VERBATIM );
         if ( IS_SET( ch->act, PLR_COLOUR_VERBATIM ) )
             send_to_char( "Color codes are now displayed {rverbatim{x.\n\r", ch );

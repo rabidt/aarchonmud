@@ -121,6 +121,8 @@ typedef struct  clan_data        CLAN_DATA;
 typedef struct  quest_data       QUEST_DATA;
 typedef struct  portal_data      PORTAL_DATA;
 typedef struct  achievement_entry ACHIEVEMENT;
+typedef struct  boss_achieve_entry BOSSACHV;
+typedef struct  boss_achieve_record BOSSREC;
 /* religion */
 typedef struct religion_data RELIGION_DATA;
 /* typedef struct religion_war_data RELIGION_WAR_DATA; */
@@ -129,6 +131,8 @@ typedef struct religion_rank_data RELIGION_RANK_DATA;
 typedef struct prayer_data PRAYER_DATA;
 /* from buffer_util.h, moved here: */
 typedef struct mem_file_type MEMFILE;
+
+typedef int LUAREF;
 
 /*
  * Function types.
@@ -436,11 +440,8 @@ struct struckdrunk
 
 struct buf_type
 {
-	BUFFER *    next;
-	bool        valid;
-	sh_int      state;  /* error state of the buffer */
-	sh_int      size;   /* size in k */
-	char *      string; /* buffer's string */
+    LUAREF table;
+    LUAREF string;
 };
 
 /* Erwin's dynamic buffer system. */
@@ -717,6 +718,7 @@ struct penalty_data
 #define CON_FTP_DATA            17
 #define CON_FTP_AUTH            18
 */
+#define CON_LUA_HANDLER         16
 #define CON_GET_CREATION_MODE   19
 #define CON_ROLL_STATS          20
 #define CON_GET_STAT_PRIORITY   21
@@ -769,6 +771,9 @@ struct  descriptor_data
 	void *              pEdit;      /* OLC */
     const char** pString;   /* OLC */
 	int         editor;     /* OLC */
+
+    LUAREF      conhandler;
+
     /* lua interpreter */
     struct
     {
@@ -1311,6 +1316,7 @@ struct  kill_data
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
 #define ACT_TRAVELLER   (oo)    /* doesn't wander home if out of area */
+#define ACT_ACHIEVEMENT (pp)
 
 /* damage classes */
 #define DAM_NONE                0
@@ -1398,6 +1404,9 @@ struct  kill_data
 #define IMM_DROWNING            (R)
 #define IMM_LIGHT               (S)
 #define IMM_SOUND               (T)
+#define IMM_SLEEP               (U)
+#define IMM_CHARMPERSON         (V)
+#define IMM_GAZE                (W)
 #define IMM_WOOD                (X)
 #define IMM_SILVER              (Y)
 #define IMM_IRON                (Z)
@@ -2387,6 +2396,7 @@ struct  mob_index_data
     MOB_INDEX_DATA* next;
     SPEC_FUN*   spec_fun;
     SHOP_DATA*  pShop;
+    BOSSACHV * boss_achieve;
     PROG_LIST* mprogs;
     AREA_DATA*  area;
     int         vnum;
@@ -2590,6 +2600,8 @@ struct  pc_data
     int      perm_hit;
     int      perm_mana;
     int      perm_move;
+
+    BOSSREC *boss_achievements;
 
 	PERS_HISTORY *gtell_history;
 	PERS_HISTORY *tell_history;
@@ -3178,6 +3190,7 @@ struct  mastery_group_type
 #define OTRIG_UNLOCK (Z)
 #define OTRIG_SIT   (aa)
 #define OTRIG_WAKE  (bb)
+#define OTRIG_DRINK (cc)
 
 /*
  * AREAprog definitions
@@ -3196,7 +3209,7 @@ struct  mastery_group_type
 #define ATRIG_TIMER (L)
 #define ATRIG_COMMAND (M)
 #define ATRIG_DEATH (N)
-
+#define ATRIG_CONNECT (O)
 
 /*
  * ROOMprog definitions
@@ -3213,6 +3226,7 @@ struct  mastery_group_type
 #define RTRIG_LOOK  (J)
 #define RTRIG_TRY   (K)
 #define RTRIG_COMMAND (L)
+#define RTRIG_CONNECT (M)
 
 struct prog_list
 {
@@ -3603,6 +3617,21 @@ struct achievement_entry
    int bit_vector;
 };
 
+struct boss_achieve_entry
+{
+    int quest_reward;
+    int exp_reward;
+    int gold_reward;
+    int ach_reward;
+};
+
+struct boss_achieve_record
+{
+    struct boss_achieve_record *next;
+    int vnum;
+    time_t timestamp;
+};
+
 /*Achievement types*/
 /*if you change these, you need to update
   achievement_display*/
@@ -3890,7 +3919,7 @@ struct achievement_entry
 #define IS_WRITING_NOTE(con)  (( (con >= CON_NOTE_TO && con <= CON_NOTE_FINISH) \
             || (con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH) \
             ) ? TRUE : FALSE)
-#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con))
+#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con) || con == CON_LUA_HANDLER)
 #define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
 
 #define NOT_AUTHED(ch)   (!IS_NPC(ch) && get_auth_state( ch ) != AUTH_AUTHED && IS_SET(ch->act, PLR_UNAUTHED) )
@@ -4208,6 +4237,7 @@ const char* ch_name( CHAR_DATA *ch );
 void    gui_login_setup( CHAR_DATA *ch );
 void    open_imagewin_tag( CHAR_DATA *ch );
 void    close_imagewin_tag( CHAR_DATA *ch );
+const char *parse_url( const char *txt );
 
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
@@ -4226,6 +4256,7 @@ int     get_lore_level( CHAR_DATA *ch, int obj_level );
 void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
 void    show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it );
 void    check_achievement( CHAR_DATA *ch );
+void    check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
 
@@ -4277,6 +4308,7 @@ bool ap_enter_trigger(CHAR_DATA *ch, AREA_DATA *from_area);
 void ap_boot_trigger();
 void ap_shutdown_trigger();
 void ap_quit_trigger(CHAR_DATA *ch);
+void ap_connect_trigger(CHAR_DATA *ch);
 void ap_void_trigger(CHAR_DATA *ch);
 bool ap_unvoid_trigger(CHAR_DATA *ch);
 bool ap_recall_trigger(CHAR_DATA *ch);
@@ -4299,12 +4331,6 @@ bool exists_player( const char *name );
 
 /* ban.c */
 bool check_ban( const char *site, int type );
-
-/* bit.c */
-int flag_value( const struct flag_type *flag_table, const char *argument );
-const char *flag_stat_string( const struct flag_type *flag_table, int bit );
-const char *flag_string( const struct flag_type *flag_table, tflag bits );
-const char *i_flag_string( const struct flag_type *flag_table, long bits );
 
 /* board.c */
 void make_note args((const char* board_name, const char *sender,
@@ -4393,6 +4419,7 @@ void   page_to_char_bw args( ( const char *txt, CHAR_DATA *ch ) );
 /* db.c */
 void    reset_area  args( ( AREA_DATA * pArea ) );        /* OLC */
 void    purge_area  args( ( AREA_DATA * pArea ) );
+void    purge_room  args( ( ROOM_INDEX_DATA *pRoom ) );
 void    reset_room  args( ( ROOM_INDEX_DATA *pRoom ) );  /* OLC */
 char *  print_flags args( ( int flag ));
 void    boot_db     args( ( void ) );
@@ -4596,6 +4623,7 @@ int weapon_type args( ( const char *name) );
 const char* weapon_name( int weapon_Type );
 const char* item_name( int item_type ); 
 int attack_lookup   args( ( const char *name) );
+int attack_exact_lookup args( ( const char *noun) );
 long    wiznet_lookup   args( ( const char *name) );
 int class_lookup    args( ( const char *name) );
 bool    is_clan     args( (CHAR_DATA *ch) );
@@ -4616,6 +4644,7 @@ bool    is_mimic( CHAR_DATA *ch );
 MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch );
 const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker );
 const char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype );
+const char* affect_name( AFFECT_DATA *paf );
 void    affect_to_char  args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf );
 void    affect_to_obj   args( ( OBJ_DATA *obj, AFFECT_DATA *paf ) );
@@ -4759,6 +4788,7 @@ bool can_order( const char *command, CHAR_DATA *victim );
 
 /* lua_main.c */
 void check_lua_stack();
+void update_bossachv_table();
 void lua_log_perf( double value );
 void save_mudconfig();
 void load_mudconfig();
@@ -4767,6 +4797,19 @@ void load_luaconfig( CHAR_DATA *ch, const char *text );
 int name_sorted_group_table( int sequence );
 int name_sorted_skill_table( int sequence );
 void show_image_to_char( CHAR_DATA *ch, const char *txt );
+void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
+void do_achievements_boss_reward( CHAR_DATA *ch );
+void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument );
+BUFFER *new_buf();
+void free_buf(BUFFER *buffer);
+bool add_buf(BUFFER *buffer, const char *string );
+void clear_buf(BUFFER *buffer);
+const char *buf_string(BUFFER *buffer);
+void confirm_yes_no( DESCRIPTOR_DATA *d,
+        DO_FUN yes_callback,
+        const char *yes_argument,
+        DO_FUN no_callback,
+        const char *no_argument);
 
 /* magic.c */
 int find_spell  args( ( CHAR_DATA *ch, const char *name) );
@@ -4959,6 +5002,7 @@ bool rp_close_trigger( CHAR_DATA *ch, int door );
 bool rp_lock_trigger( CHAR_DATA *ch, int door );
 bool rp_unlock_trigger( CHAR_DATA *ch, int door );
 bool rp_move_trigger( CHAR_DATA *ch, int door );
+void rp_connect_trigger( CHAR_DATA *ch );
 void rp_timer_trigger( ROOM_INDEX_DATA *room );
 void rprog_timer_init( ROOM_INDEX_DATA *room );
 void rprog_setup( ROOM_INDEX_DATA *room );
@@ -5118,6 +5162,8 @@ void clear_area_quests( CHAR_DATA *ch, AREA_DATA *area );
 void    war_update      args( ( void ) ); 
 void    advance_level   args( ( CHAR_DATA *ch, bool hide ) );
 void    gain_exp    args( ( CHAR_DATA *ch, int gain ) );
+void    update_pc_level( CHAR_DATA *ch );
+bool    starvation_immune( CHAR_DATA *ch );
 void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );
 void    update_handler  args( ( void ) );
 void    explode  args( ( OBJ_DATA *obj ) );
@@ -5246,4 +5292,6 @@ declf(SHOP, SHOP_DATA)
 declf(AFFECT, AFFECT_DATA)
 declf(HELP, HELP_DATA)
 declf(DESCRIPTOR, DESCRIPTOR_DATA)
+declf(BOSSACHV, BOSSACHV)
+declf(BOSSREC, BOSSREC)
 #undef declf

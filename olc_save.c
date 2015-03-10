@@ -967,7 +967,7 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
                             pReset->arg1,
                             pReset->arg3,
                             capitalize(get_obj_index( pReset->arg1 )->short_descr),
-                            flag_stat_string( wear_loc_strings, pReset->arg3 ),
+                            flag_bit_name(wear_loc_strings, pReset->arg3),
                             pLastMob ? pLastMob->short_descr : "!NO_MOB!" );
                         if ( !pLastMob )
                         {
@@ -1058,6 +1058,35 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
     return;
 }
 
+void save_bossachievements( FILE *fp, AREA_DATA *pArea )
+{
+    BOSSACHV *pBoss;
+    MOB_INDEX_DATA *pMobIndex;
+    int iHash;
+    
+    fprintf( fp, "#BOSSACHV\n" );
+    
+    for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
+    {
+        for( pMobIndex = mob_index_hash[iHash]; pMobIndex; pMobIndex = pMobIndex->next )
+        {
+            if ( pMobIndex && pMobIndex->area == pArea && pMobIndex->boss_achieve )
+            {
+                pBoss = pMobIndex->boss_achieve;
+                
+                fprintf( fp, "%d ", pMobIndex->vnum);
+                fprintf( fp, "%d %d %d %d\n",
+                        pBoss->exp_reward,
+                        pBoss->gold_reward,
+                        pBoss->quest_reward,
+                        pBoss->ach_reward);
+            }
+        }
+    }
+    
+    fprintf( fp, "0\n\n\n\n" );
+    return;
+}
 
 
 /*****************************************************************************
@@ -1184,6 +1213,7 @@ void save_area( AREA_DATA *pArea )
     save_specials( fp, pArea );
     save_resets( fp, pArea );
     save_shops( fp, pArea );
+    save_bossachievements( fp, pArea );
     save_mobprogs( fp, pArea );
     save_objprogs( fp, pArea );
 	save_areaprogs( fp, pArea );

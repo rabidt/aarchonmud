@@ -155,6 +155,23 @@ void ap_quit_trigger(CHAR_DATA *ch)
 	ap_percent_trigger( room->area, ch, ATRIG_QUIT);
 }
 
+void ap_connect_trigger(CHAR_DATA *ch)
+{
+    ROOM_INDEX_DATA *room;
+
+    room=ch->in_room;
+
+    if (!room)
+    {
+        bugf("ap_connect_trigger: in_room NULL for %s", ch->name);
+        return;
+    }
+    if ( !HAS_ATRIG(room->area, ATRIG_CONNECT) )
+        return;
+
+    ap_percent_trigger( room->area, ch, ATRIG_CONNECT);
+}
+
 void ap_void_trigger(CHAR_DATA *ch)
 {
 
