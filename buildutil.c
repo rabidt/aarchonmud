@@ -642,7 +642,7 @@ DEF_DO_FUN(do_ostat)
 		can_see(ch,obj->carried_by) ? obj->carried_by->name
 					: "someone",
 	obj->wear_loc,
-    flag_stat_string( wear_loc_flags, obj->wear_loc)  );
+    flag_bit_name(wear_loc_flags, obj->wear_loc) );
 	send_to_char( buf, ch );
 
     sprintf( buf, "Clan: %s ClanRank: %d\n\r", 
@@ -1590,7 +1590,7 @@ DEF_DO_FUN(do_mwhere)
 	for (d = descriptor_list; d != NULL; d = d->next)
 	{
 		if (d->character != NULL 
-                && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+                && (IS_PLAYING(d->connected))
 		&&  d->character->in_room != NULL && can_see(ch,d->character)
 		&&  can_see_room(ch,d->character->in_room))
 		{

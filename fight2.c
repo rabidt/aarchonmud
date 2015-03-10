@@ -106,11 +106,11 @@ DEF_DO_FUN(do_berserk)
     if (ch->position == POS_FIGHTING)
         chance += 10;
     
-    /* damage -- below 50% of hp helps, above hurts */
+    /* damage -- being hurt helps */
     hp_percent = 100 * ch->hit/ch->max_hit;
-    chance += 25 - hp_percent/2;
+    chance += (100 - hp_percent) / 5;
     
-    if (number_percent() < chance)
+    if ( per_chance(chance) )
     {
         AFFECT_DATA af;
         
@@ -1062,11 +1062,11 @@ DEF_DO_FUN(do_drunken_fury)
     
     /* fighting */
     if (ch->position == POS_FIGHTING)
-        chance += 20;
+        chance += 10;
     
-    /* damage -- below 50% of hp helps, above hurts */
+    /* damage -- being hurt helps */
     hp_percent = 100 * ch->hit/ch->max_hit;
-    chance += 25 - hp_percent/2;
+    chance += (100 - hp_percent) / 5;
     
     if (number_percent() < chance)
     {
@@ -1667,6 +1667,7 @@ DEF_DO_FUN(do_surrender)
         return;
     }
 
+    WAIT_STATE(ch, PULSE_VIOLENCE);
     act( "You surrender to $N!", ch, NULL, mob, TO_CHAR );
     act( "$n surrenders to you!", ch, NULL, mob, TO_VICT );
     act( "$n tries to surrender to $N!", ch, NULL, mob, TO_NOTVICT );
@@ -1684,7 +1685,6 @@ DEF_DO_FUN(do_surrender)
     else
     {
 	forget_attacks(mob);
-	WAIT_STATE(ch, PULSE_VIOLENCE);
     }
 }
 
@@ -4122,7 +4122,8 @@ DEF_DO_FUN(do_rupture)
 
         check_improve(ch,gsn_rupture,TRUE,3);
 
-        one_hit( ch, victim, gsn_rupture, FALSE);
+        if ( !one_hit( ch, victim, gsn_rupture, FALSE) )
+            return;
 	CHECK_RETURN(ch, victim);
 
 	check_assassinate( ch, victim, obj, 6 );
@@ -4613,6 +4614,12 @@ DEF_DO_FUN(do_gaze)
     if ( !can_see_combat(victim, ch) )
     {
         send_to_char("They cannot see you.\n\r", ch);
+        return;
+    }
+
+    if ( IS_SET(victim->imm_flags, IMM_GAZE) )
+    {
+        act( "As dreamy as your gaze is, $N is unaffected.", ch, NULL, victim, TO_CHAR );
         return;
     }
     
