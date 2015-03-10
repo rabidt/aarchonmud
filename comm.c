@@ -2890,19 +2890,29 @@ void handle_copyover_timer()
     }  
   
     int delay;
-    if (copyover_countdown <= 10)
+    if (copyover_countdown <= 3)
     {
         delay = 1;
+    }
+    else if (copyover_countdown <=10)
+    {
+        /* target 3 seconds */
+        delay = copyover_countdown-3;
     }
     else if (copyover_countdown <= 30)
     {
         /* target 10 seconds */
         delay = copyover_countdown-10;
     }
-    else if (copyover_countdown <= 120)
+    else if (copyover_countdown <= 60)
     {
         /* target 30 seconds */
         delay = copyover_countdown-30;
+    }
+    else if (copyover_countdown <= 120)
+    {
+        /* target 60 seconds */
+        delay = copyover_countdown-60;
     }
     else
     {
