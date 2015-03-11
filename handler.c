@@ -449,6 +449,7 @@ void reset_char(CHAR_DATA *ch)
     ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
     
     ch->armor       = 100;
+    ch->heavy_armor = 0;
     
     ch->hitroll     = 0;
     ch->damroll     = 0;
@@ -462,6 +463,7 @@ void reset_char(CHAR_DATA *ch)
         if (obj == NULL)
             continue;
         ch->armor -= apply_ac( obj, loc );
+        ch->heavy_armor += apply_heavy_armor(obj, loc);
         
             for ( af = obj->pIndexData->affected; af != NULL; af = af->next )
                 add_apply(ch, af->modifier, af->location);
@@ -1785,7 +1787,30 @@ int apply_ac( OBJ_DATA *obj, int iWear )
     return 0;
 }
 
-
+int apply_heavy_armor( OBJ_DATA *obj, int iWear )
+{
+    if ( !IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
+        return 0;
+    
+    switch ( iWear )
+    {
+        default:            return 0;
+        case WEAR_TORSO:    return 4;
+        case WEAR_HEAD:     return 2;
+        case WEAR_LEGS:     return 2;
+        case WEAR_FEET:     return 1;
+        case WEAR_HANDS:    return 1;
+        case WEAR_ARMS:     return 2;
+        case WEAR_NECK_1:   return 1;
+        case WEAR_NECK_2:   return 1;
+        case WEAR_ABOUT:    return 1;
+        case WEAR_WAIST:    return 1;
+        case WEAR_WRIST_L:  return 1;
+        case WEAR_WRIST_R:  return 1;
+        case WEAR_FINGER_L: return 1;
+        case WEAR_FINGER_R: return 1;
+    }
+}
 
 /*
  * Find a piece of eq on a character.
@@ -1863,6 +1888,7 @@ void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
     
     // add item armor / affects
     ch->armor -= apply_ac( obj, iWear );
+    ch->heavy_armor += apply_heavy_armor(obj, iWear);
     
     for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
         if ( paf->location != APPLY_SPELL_AFFECT )
@@ -1917,6 +1943,7 @@ void unequip_char( CHAR_DATA *ch, OBJ_DATA *obj )
 
     // add item armor / affects
     ch->armor += apply_ac( obj, iWear );
+    ch->heavy_armor -= apply_heavy_armor(obj, iWear);
     
     for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
         if ( paf->location == APPLY_SPELL_AFFECT )
