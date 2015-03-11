@@ -5137,9 +5137,15 @@ DEF_DO_FUN(do_percentages)
     add_buf(output, "{D|{x\n\r");
     
     int crit = critical_chance(ch, FALSE);
-    if ( crit )
+    int heavy_bonus = get_heavy_armor_bonus(ch);
+    if ( crit || heavy_bonus )
     {
-        add_buff_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%", crit / 20.0);
+        int heavy_penalty = get_heavy_armor_penalty(ch);
+        add_buff_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%     {cHeavy Armor:{x %3d%%      {cHeavy Penalty:{x  %3d%%",
+            crit / 20.0,
+            heavy_bonus,
+            get_heavy_armor_penalty(ch)
+        );
         add_buf(output, "{D|{x\n\r");
     }
     
