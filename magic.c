@@ -2100,7 +2100,7 @@ DEF_SPELL_FUN(spell_calm)
     if ( !conflict )
     {
         send_to_char("Things seem pretty calm already.\n\r", ch);
-        return SR_TARGET;
+        return TRUE;
     }
     
     conflict = FALSE;
