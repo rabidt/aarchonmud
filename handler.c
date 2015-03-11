@@ -1780,7 +1780,7 @@ int wear_to_itemwear( int iWear )
     }
 }
 
-static int itemwear_factor( int itemWear )
+int itemwear_ac_factor( int itemWear )
 {
     // total of 25
     switch ( itemWear )
@@ -1800,12 +1800,24 @@ static int itemwear_factor( int itemWear )
     }
 }
 
+int first_itemwear( OBJ_DATA *obj )
+{
+    int pos;
+    for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
+    {
+        if( !IS_SET(obj->wear_flags, pos) || pos == ITEM_TAKE || pos == ITEM_TRANSLUCENT || pos == ITEM_NO_SAC )
+            continue;
+        return pos;
+    }
+    return 0;
+}
+
 int predict_obj_ac( OBJ_DATA *obj, int itemWear )
 {
     if ( obj->item_type != ITEM_ARMOR )
         return 0;
     
-    int ac = obj->value[0] * itemwear_factor(itemWear);
+    int ac = obj->value[0] * itemwear_ac_factor(itemWear);
     
     if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
         ac *= 2;
@@ -1818,7 +1830,7 @@ int predict_obj_index_ac( OBJ_INDEX_DATA *obj, int itemWear )
     if ( obj->item_type != ITEM_ARMOR )
         return 0;
     
-    int ac = obj->value[0] * itemwear_factor(itemWear);
+    int ac = obj->value[0] * itemwear_ac_factor(itemWear);
     
     if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
         ac *= 2;
@@ -1837,7 +1849,7 @@ int apply_ac( OBJ_DATA *obj, int iWear )
 int apply_heavy_armor( OBJ_DATA *obj, int iWear )
 {
     if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
-        return itemwear_factor(wear_to_itemwear(iWear));
+        return itemwear_ac_factor(wear_to_itemwear(iWear));
     else
         return 0;
 }
