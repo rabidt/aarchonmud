@@ -4677,6 +4677,8 @@ void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
 void    obj_from_char   args( ( OBJ_DATA *obj ) );
 int wear_to_itemwear( int iWear );
+int first_itemwear( OBJ_DATA *obj );
+int itemwear_ac_factor( int itemWear );
 int predict_obj_ac( OBJ_DATA *obj, int itemWear );
 int predict_obj_index_ac( OBJ_INDEX_DATA *obj, int itemWear );
 int apply_ac( OBJ_DATA *obj, int iWear );
