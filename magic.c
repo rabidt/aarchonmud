@@ -4220,6 +4220,7 @@ DEF_SPELL_FUN(spell_identify)
     char buf[MAX_STRING_LENGTH];
     AFFECT_DATA *paf;
     int pos;
+    int ac = 0;
 
     if ( (ch->level+10) < obj->level)
     {
@@ -4360,12 +4361,13 @@ DEF_SPELL_FUN(spell_identify)
                     continue;
                 char *wear = wear_location_info(pos);
                 if ( wear )
+                {
                     printf_to_char(ch, "%s\n\r", wear);
+                    ac = predict_obj_ac(obj, pos);
+                }
             }
-            sprintf( buf, 
-                    "Armor class is %d.\n\r", 
-                    obj->value[0]);
-            send_to_char( buf, ch );
+            if ( ac )
+                printf_to_char(ch, "Armor class is %d.\n\r", ac );
             break;
 
         case ITEM_LIGHT:
