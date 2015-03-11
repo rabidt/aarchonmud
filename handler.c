@@ -1821,10 +1821,10 @@ int get_heavy_armor_bonus( CHAR_DATA *ch )
 // returns heavy armor penalty as percentage of max
 int get_heavy_armor_penalty( CHAR_DATA *ch )
 {
-    int skill = get_skill(ch, gsn_heavy_armor) + mastery_bonus(ch, gsn_heavy_armor, 15, 25);
+    int skill = get_skill(ch, gsn_heavy_armor) + mastery_bonus(ch, gsn_heavy_armor, 30, 50);
     if ( IS_SET(ch->form, FORM_ARMORED) )
-        skill += 25;
-    return get_heavy_armor_bonus(ch) * (250 - skill) / 250;
+        skill += 30;
+    return get_heavy_armor_bonus(ch) * (300 - skill) / 300;
 }
 
 /*
@@ -3714,6 +3714,10 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     if ( is_same_group(ch, victim) )
 	return TRUE;
 
+    // heavy armor penalty grants auto-chance to be spotted
+    if ( per_chance(get_heavy_armor_penalty(victim)/2) )
+        return TRUE;
+    
     /* victim is hidden, check if char spots it, resisted roll */
     
     roll_ch = (ch->level + 
