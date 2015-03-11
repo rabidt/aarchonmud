@@ -1799,6 +1799,7 @@ struct  kill_data
 #define ITEM_QUESTEQ        (hh)
 #define ITEM_RANDOM_PHYSICAL (ii)
 #define ITEM_RANDOM_CASTER  (jj)
+#define ITEM_HEAVY_ARMOR    (kk)
 
 
 /* class restriction flags */
