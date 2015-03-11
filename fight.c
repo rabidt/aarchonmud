@@ -6315,6 +6315,7 @@ DEF_DO_FUN(do_flee)
     }
     
     int ch_base = (100 + ch->level) * (100 + get_skill(ch, gsn_flee)) / 100;
+    ch_base = ch_base * (200 - get_heavy_armor_penalty(ch)) / 200;
     int ch_roll = number_range(0, ch_base);
 
     if ( ch->slow_move > 0 )
