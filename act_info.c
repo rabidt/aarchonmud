@@ -3742,6 +3742,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     char buf[MAX_STRING_LENGTH];
     int c, pos;
+    int ac = 0;
 
     sprintf( buf, "%s is %s %s with properties %s.", obj->short_descr,
         aan(item_name(obj->item_type)), item_name(obj->item_type), extra_bits_name(obj->extra_flags) );
@@ -3887,14 +3888,16 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
                 continue;
             const char *wear = wear_location_info(pos);
             if ( wear )
+            {
                 do_say(ch, wear);
+                ac = predict_obj_ac(obj, pos);
+            }
         }
-
-        sprintf( buf, 
-            "It provides an armor class of %d.", 
-            obj->value[0]);
-        do_say(ch, buf);
-            
+        if ( ac > 0 )
+        {
+            sprintf( buf, "It provides an armor class of %d.", ac );
+            do_say(ch, buf);
+        }
         break;
    }
 }
@@ -3905,6 +3908,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     char buf[MAX_STRING_LENGTH];
     int c;
     int pos;
+    int ac = 0;
 
     sprintf( buf, "The %s is %s.",
 	     item_name(obj->item_type),
@@ -4051,15 +4055,17 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
                 continue;
             const char *wear = wear_location_info(pos);
             if ( wear )
+            {
                 do_say(ch, wear);
+                ac = predict_obj_index_ac(obj, pos);
+            }
         }
-
-        sprintf( buf, 
-            "It provides an armor class of %d.", 
-            obj->value[0] );
-        do_say(ch, buf);
-            
-            break;
+        if ( ac > 0 )
+        {
+            sprintf( buf, "It provides an armor class of %d.", ac );
+            do_say(ch, buf);
+        }
+        break;
    }
 }
 
@@ -5140,7 +5146,6 @@ DEF_DO_FUN(do_percentages)
     int heavy_bonus = get_heavy_armor_bonus(ch);
     if ( crit || heavy_bonus )
     {
-        int heavy_penalty = get_heavy_armor_penalty(ch);
         add_buff_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%     {cHeavy Armor:{x %3d%%      {cHeavy Penalty:{x  %3d%%",
             crit / 20.0,
             heavy_bonus,
