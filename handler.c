@@ -1795,18 +1795,18 @@ int apply_heavy_armor( OBJ_DATA *obj, int iWear )
     switch ( iWear )
     {
         default:            return 0;
-        case WEAR_TORSO:    return 4;
+        case WEAR_TORSO:    return 3;
         case WEAR_HEAD:     return 2;
         case WEAR_LEGS:     return 2;
-        case WEAR_FEET:     return 1;
-        case WEAR_HANDS:    return 1;
+        case WEAR_FEET:     return 2;
+        case WEAR_HANDS:    return 2;
         case WEAR_ARMS:     return 2;
         case WEAR_NECK_1:   return 1;
         case WEAR_NECK_2:   return 1;
-        case WEAR_ABOUT:    return 1;
-        case WEAR_WAIST:    return 1;
-        case WEAR_WRIST_L:  return 1;
-        case WEAR_WRIST_R:  return 1;
+        case WEAR_ABOUT:    return 2;
+        case WEAR_WAIST:    return 2;
+        case WEAR_WRIST_L:  return 2;
+        case WEAR_WRIST_R:  return 2;
         case WEAR_FINGER_L: return 1;
         case WEAR_FINGER_R: return 1;
     }
@@ -1815,16 +1815,16 @@ int apply_heavy_armor( OBJ_DATA *obj, int iWear )
 // returns heavy armor bonus as percentage of max
 int get_heavy_armor_bonus( CHAR_DATA *ch )
 {
-    return ch->heavy_armor * 5;
+    return ch->heavy_armor * 4;
 }
 
 // returns heavy armor penalty as percentage of max
 int get_heavy_armor_penalty( CHAR_DATA *ch )
 {
-    int skill = get_skill(ch, gsn_heavy_armor) + mastery_bonus(ch, gsn_heavy_armor, 12, 20);
+    int skill = get_skill(ch, gsn_heavy_armor) + mastery_bonus(ch, gsn_heavy_armor, 15, 25);
     if ( IS_SET(ch->form, FORM_ARMORED) )
-        skill += 20;
-    return ch->heavy_armor * (200 - skill) / 40;
+        skill += 25;
+    return get_heavy_armor_bonus(ch) * (250 - skill) / 250;
 }
 
 /*
