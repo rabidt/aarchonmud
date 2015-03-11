@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         437
+#define MAX_SKILL         438
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3388,6 +3388,7 @@ extern sh_int  gsn_evasion;
 extern sh_int  gsn_evasive;
 extern sh_int  gsn_fatal_blow;
 extern sh_int  gsn_two_handed;
+extern sh_int  gsn_heavy_armor;
  
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -4638,6 +4639,8 @@ void    reset_char  args( ( CHAR_DATA *ch )  );
 int get_trust   args( ( CHAR_DATA *ch ) );
 int can_carry_n args( ( CHAR_DATA *ch ) );
 int can_carry_w args( ( CHAR_DATA *ch ) );
+int get_heavy_armor_bonus( CHAR_DATA *ch );
+int get_heavy_armor_penalty( CHAR_DATA *ch );
 bool    is_name( const char *str, const char *namelist );
 bool    is_exact_name( const char *str, const char *namelist );
 bool    is_either_name( const char *str, const char *namelist, bool exact );
@@ -4674,6 +4677,7 @@ void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
 void    obj_from_char   args( ( OBJ_DATA *obj ) );
 int apply_ac    args( ( OBJ_DATA *obj, int iWear ) );
+int apply_heavy_armor( OBJ_DATA *obj, int iWear );
 OD *    get_eq_char args( ( CHAR_DATA *ch, int iWear ) );
 void    equip_char  args( ( CHAR_DATA *ch, OBJ_DATA *obj, int iWear ) );
 void    unequip_char    args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );

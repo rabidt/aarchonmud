@@ -1812,6 +1812,21 @@ int apply_heavy_armor( OBJ_DATA *obj, int iWear )
     }
 }
 
+// returns heavy armor bonus as percentage of max
+int get_heavy_armor_bonus( CHAR_DATA *ch )
+{
+    return ch->heavy_armor * 5;
+}
+
+// returns heavy armor penalty as percentage of max
+int get_heavy_armor_penalty( CHAR_DATA *ch )
+{
+    int skill = get_skill(ch, gsn_heavy_armor) + mastery_bonus(ch, gsn_heavy_armor, 12, 20);
+    if ( IS_SET(ch->form, FORM_ARMORED) )
+        skill += 20;
+    return ch->heavy_armor * (200 - skill) / 40;
+}
+
 /*
  * Find a piece of eq on a character.
  */
