@@ -1377,6 +1377,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         full_dam(ch, victim, dam, gsn_boa, DAM_BASH, TRUE);
     }
     
+    if ( per_chance(get_heavy_armor_bonus(ch)) )
+        check_improve(ch, gsn_heavy_armor, TRUE, 3);
+    
     return;
 }
 
