@@ -1335,6 +1335,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             || !meta_magic_concentration_check(ch)
             || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
             || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(5))
+            || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2))
             || (concentrate && !check_concentration(ch)) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
