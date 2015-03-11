@@ -2041,6 +2041,7 @@ DEF_DO_FUN(do_examine)
 	break;
 
         case ITEM_ARMOR:
+            ptc(ch, "It is %s armor.\n\r", IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) ? "heavy" : "light");
 	strcpy(buf, "It looks like it could be ");
 
 	if( CAN_WEAR(obj,ITEM_WEAR_FINGER) )
