@@ -2533,6 +2533,7 @@ struct  char_data
 	sh_int      hitroll;
 	sh_int      damroll;
 	sh_int      armor;
+    sh_int      heavy_armor;
     sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
     sh_int      mod_level; // modifier to certain level-dependent calculations, 0 by default
 	sh_int      wimpy;
