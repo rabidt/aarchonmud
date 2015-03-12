@@ -4329,7 +4329,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_teleport,     TAR_CHAR_SELF,      POS_FIGHTING,
+	spell_teleport,     TAR_IGNORE,      POS_FIGHTING,
 	NULL,              35, 12, DUR_NONE,
 	"",         "!Teleport!",       ""
 	},
@@ -5490,6 +5490,17 @@ struct  skill_type
         spell_null,             TAR_IGNORE,             POS_FIGHTING,
         &gsn_two_handed,                  0,      0, DUR_NONE,
         "",                     "!Twohanded weapons!",   ""
+    },
+
+    {
+        "heavy armor",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 6,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_CON, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_heavy_armor, 0, 0, DUR_NONE,
+        "", "!Heavy Armor!", ""
     },
 
     {
@@ -7449,7 +7460,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_INT, STAT_DEX, STAT_STR,
     spell_null,    TAR_IGNORE_OFF,     POS_STANDING,
-    &gsn_cursed_wound, 0, 0, DUR_SHORT,
+    &gsn_cursed_wound, 0, 0, DUR_NONE,
     "cursed wound", "Your wounds can be healed again.",  ""
     },    
     
