@@ -1377,6 +1377,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         full_dam(ch, victim, dam, gsn_boa, DAM_BASH, TRUE);
     }
     
+    if ( per_chance(get_heavy_armor_bonus(ch)) )
+        check_improve(ch, gsn_heavy_armor, TRUE, 3);
+    
     return;
 }
 
@@ -2259,6 +2262,9 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 
     /* skill-based chance-to-miss */
     ch_roll = ch_roll * skill/100;
+    
+    /* heavy armor penalty */
+    ch_roll = ch_roll * (400 - get_heavy_armor_penalty(ch)) / 400;
 
     /* blind attacks */
     if ( !can_see_combat( ch, victim ) && blind_penalty(ch) )
@@ -3011,6 +3017,12 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         dam -= armor_absorb;
     }
     
+    if ( dam > 1 )
+    {
+        // heavy armor reduces all damage taken by up to 25%
+        dam -= dam * get_heavy_armor_bonus(victim) / 400;
+    }
+    
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
         dam = 9 * dam / 10;
     
@@ -3294,7 +3306,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         af.where     = TO_AFFECTS;
         af.type      = gsn_cursed_wound;
         af.level     = ch->level;
-        af.duration  = get_duration(gsn_cursed_wound, ch->level);
+        af.duration  = -1;
         af.bitvector = AFF_CURSE;
         
         if ( dam > 0 )
@@ -4830,6 +4842,8 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     
     chance += mastery_bonus(ch, gsn_dodge, 3, 5);
     
+    chance = chance * (200 - get_heavy_armor_penalty(ch)) / 200;
+    
     return URANGE(0, chance, 75);
 }
 
@@ -6306,6 +6320,7 @@ DEF_DO_FUN(do_flee)
     }
     
     int ch_base = (100 + ch->level) * (100 + get_skill(ch, gsn_flee)) / 100;
+    ch_base = ch_base * (200 - get_heavy_armor_penalty(ch)) / 200;
     int ch_roll = number_range(0, ch_base);
 
     if ( ch->slow_move > 0 )

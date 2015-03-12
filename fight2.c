@@ -1264,6 +1264,8 @@ DEF_DO_FUN(do_circle)
     if ( IS_AFFECTED(victim, AFF_HASTE) )
         chance -= 25;
     chance += mastery_bonus(ch, gsn_circle, 12, 15);
+    // heavy armor penalty for both attacker and victim
+    chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 4;
     
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_circle].beats );
@@ -1363,6 +1365,8 @@ DEF_DO_FUN(do_slash_throat)
             chance += 25;
         if ( IS_AFFECTED(victim, AFF_HASTE) )
             chance -= 25;
+        // heavy armor penalty for both attacker and victim
+        chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 4;
     }
     
     check_killer( ch, victim );
@@ -3950,6 +3954,8 @@ DEF_DO_FUN(do_paroxysm)
 	    chance += 25;
 	if ( IS_AFFECTED(victim, AFF_HASTE) )
 	    chance -= 25;
+        // heavy armor penalty for both attacker and victim
+        chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 4;
     }
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_paroxysm].beats );
@@ -4112,6 +4118,8 @@ DEF_DO_FUN(do_rupture)
 	    chance += 25;
 	if ( IS_AFFECTED(victim, AFF_HASTE) )
 	    chance -= 25;
+        // heavy armor penalty for both attacker and victim
+        chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 4;
     }
     
     check_killer( ch, victim );
