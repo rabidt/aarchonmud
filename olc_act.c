@@ -3050,7 +3050,6 @@ REDIT( redit_oreset )
         add_reset( pRoom, pReset, 0/* Last slot*/ );
         
         olevel  = URANGE( 0, to_mob->level - 2, LEVEL_HERO );
-        newobj = create_object( pObjIndex, number_fuzzy( olevel ) );
         
         if ( to_mob->pIndexData->pShop )	/* Shop-keeper? */
         {
