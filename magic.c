@@ -4290,8 +4290,8 @@ DEF_SPELL_FUN(spell_identify)
 
         case ITEM_WAND: 
         case ITEM_STAFF: 
-            sprintf( buf, "Has %d charges of level %d",
-                    obj->value[2], obj->value[0] );
+            sprintf( buf, "Has %d/%d charges of level %d",
+                    obj->value[2], obj->value[1], obj->value[0] );
             send_to_char( buf, ch );
 
             if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
@@ -5056,7 +5056,7 @@ DEF_SPELL_FUN(spell_ray_of_truth)
 DEF_SPELL_FUN(spell_recharge)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
-    int chance, percent;
+    int charges, cost;
 
     if (obj->item_type != ITEM_WAND && obj->item_type != ITEM_STAFF)
     {
@@ -5064,66 +5064,42 @@ DEF_SPELL_FUN(spell_recharge)
         return SR_TARGET;
     }
 
-    if (obj->value[3] >= 3 * level / 2)
+    if (obj->value[0] >= level)
     {
         send_to_char("Your skills are not great enough for that.\n\r",ch);
         return SR_UNABLE;
     }
 
-    if (obj->value[1] == 0)
+    if (obj->value[1] <= 1)
     {
-        send_to_char("That item has already been recharged once.\n\r",ch);
+        send_to_char("That item cannot be recharged anymore.\n\r", ch);
         return SR_UNABLE;
     }
 
-    SPELL_CHECK_RETURN
+    charges = (obj->value[1] - 1) - obj->value[2];
+
+    if ( charges < 1 )
+    {
+        send_to_char("That item cannot be recharged further.\n\r", ch);
+        return SR_UNABLE;
+    }
     
-    chance = 40 + 2 * level;
-
-    chance -= obj->value[3]; /* harder to do high-level spells */
-    chance -= (obj->value[1] - obj->value[2]) *
-        (obj->value[1] - obj->value[2]);
-
-    chance = UMAX(level/2,chance);
-
-    percent = number_percent();
-
-    if (percent < chance / 2)
+    cost = spell_obj_cost(obj->value[0], spell_base_cost(obj->value[3])) * charges / (obj->item_type == ITEM_WAND ? 8 : 16);
+    if ( !has_money(ch, cost) )
     {
-        act("$p glows softly.",ch,obj,NULL,TO_CHAR);
-        act("$p glows softly.",ch,obj,NULL,TO_ROOM);
-        obj->value[2] = UMAX(obj->value[1],obj->value[2]);
-        obj->value[1] = 0;
+        ptc(ch, "It costs %.2f gold to recharge %s.\n\r", cost/100.0, obj->short_descr);
+        return SR_UNABLE;
     }
-    else if (percent <= chance)
-    {
-        int chargeback,chargemax;
+    
+    SPELL_CHECK_RETURN
 
-        act("$p glows softly.",ch,obj,NULL,TO_CHAR);
-        act("$p glows softly.",ch,obj,NULL,TO_CHAR);
-
-        chargemax = obj->value[1] - obj->value[2];
-
-        if (chargemax > 0)
-            chargeback = UMAX(1,chargemax * percent / 100);
-        else
-            chargeback = 0;
-
-        obj->value[2] += chargeback;
-        obj->value[1] = 0;
-    }
-    else if (percent <= UMIN(95, 3 * chance / 2))
-    {
-        send_to_char("Nothing seems to happen.\n\r",ch);
-        if (obj->value[1] > 1)
-            obj->value[1]--;
-    }
-    else /* whoops! */
-    {
-        act("$p glows brightly and explodes!",ch,obj,NULL,TO_CHAR);
-        act("$p glows brightly and explodes!",ch,obj,NULL,TO_ROOM);
-        extract_obj(obj);
-    }
+    deduct_cost(ch, cost);
+    ptc(ch, "You use up materials worth %.2f gold to restore %d charge%s to %s.\n\r",
+        cost/100.0, charges, charges == 1 ? "" : "s", obj->short_descr);
+    act("$p glows softly.", ch, obj, NULL, TO_ROOM);
+    obj->value[2] += charges;
+    // max number of charges is reduced by 1 with each recharge
+    obj->value[1] -= 1;
     return TRUE;
 }
 
