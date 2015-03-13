@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         437
+#define MAX_SKILL         438
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1310,8 +1310,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -1799,6 +1799,7 @@ struct  kill_data
 #define ITEM_QUESTEQ        (hh)
 #define ITEM_RANDOM_PHYSICAL (ii)
 #define ITEM_RANDOM_CASTER  (jj)
+#define ITEM_HEAVY_ARMOR    (kk)
 
 
 /* class restriction flags */
@@ -2532,6 +2533,7 @@ struct  char_data
 	sh_int      hitroll;
 	sh_int      damroll;
 	sh_int      armor;
+    sh_int      heavy_armor;
     sh_int      mod_skills; // modifier to all skills, -100 to +100, 0 by default
     sh_int      mod_level; // modifier to certain level-dependent calculations, 0 by default
 	sh_int      wimpy;
@@ -3386,6 +3388,7 @@ extern sh_int  gsn_evasion;
 extern sh_int  gsn_evasive;
 extern sh_int  gsn_fatal_blow;
 extern sh_int  gsn_two_handed;
+extern sh_int  gsn_heavy_armor;
  
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -4639,6 +4642,8 @@ void    reset_char  args( ( CHAR_DATA *ch )  );
 int get_trust   args( ( CHAR_DATA *ch ) );
 int can_carry_n args( ( CHAR_DATA *ch ) );
 int can_carry_w args( ( CHAR_DATA *ch ) );
+int get_heavy_armor_bonus( CHAR_DATA *ch );
+int get_heavy_armor_penalty( CHAR_DATA *ch );
 bool    is_name( const char *str, const char *namelist );
 bool    is_exact_name( const char *str, const char *namelist );
 bool    is_either_name( const char *str, const char *namelist, bool exact );
@@ -4674,7 +4679,13 @@ void    char_from_room  args( ( CHAR_DATA *ch ) );
 void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
 void    obj_from_char   args( ( OBJ_DATA *obj ) );
-int apply_ac    args( ( OBJ_DATA *obj, int iWear ) );
+int wear_to_itemwear( int iWear );
+int first_itemwear( OBJ_DATA *obj );
+int itemwear_ac_factor( int itemWear );
+int predict_obj_ac( OBJ_DATA *obj, int itemWear );
+int predict_obj_index_ac( OBJ_INDEX_DATA *obj, int itemWear );
+int apply_ac( OBJ_DATA *obj, int iWear );
+int apply_heavy_armor( OBJ_DATA *obj, int iWear );
 OD *    get_eq_char args( ( CHAR_DATA *ch, int iWear ) );
 void    equip_char  args( ( CHAR_DATA *ch, OBJ_DATA *obj, int iWear ) );
 void    unequip_char    args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
