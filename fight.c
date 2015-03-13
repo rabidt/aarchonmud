@@ -726,7 +726,7 @@ void check_assist(CHAR_DATA *ch)
                     
                     target = NULL;
                     number = 0;
-                    for (vch = ch->in_room->people; vch; vch = vch->next)
+                    for ( vch = ch->in_room->people; vch; vch = vch->next_in_room )
                     {
                         if (can_see_combat(rch,vch)
                             && is_same_group(vch,victim)
@@ -1445,7 +1445,7 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     {
         for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
         {
-            vch_next = vch->next;
+            vch_next = vch->next_in_room;
             if (((vch != victim) && vch->fighting == ch))
                 one_hit(ch,vch,dt, FALSE);
         }
