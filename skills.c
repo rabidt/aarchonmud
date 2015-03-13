@@ -2162,17 +2162,13 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	if ( race_skill > 0 )
 	    skill = skill * (100 - race_skill) / 100 + race_skill * 10;
 
+    // adjustment for stats below max
 	if (skill)
 	{
 		i = 3 * get_curr_stat(ch, skill_table[sn].stat_prime);
 		i+= 2 * get_curr_stat(ch, skill_table[sn].stat_second);
 		i+= get_curr_stat(ch, skill_table[sn].stat_third);
-		skill += i/6-100;
-
-		if (skill>1000)
-			skill = skill/2+450;
-		else if (skill>750)
-			skill = 4*skill/5 + 150;
+		skill *= (i/6 + 800) / 1000.0;
 
 		if (skill<10)
 			skill = 10;
