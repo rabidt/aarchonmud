@@ -3246,6 +3246,9 @@ int spell_base_cost( int sn )
 
     if ( skill_table[sn].minimum_position < POS_STANDING )
 	power /= 2;
+    
+    if ( skill_table[sn].target == TAR_CHAR_SELF )
+        power *= 5;
 
     return (int)sqrt( power );
 }
@@ -3366,10 +3369,11 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
 	{
 	    int base = spell_base_cost( obj->value[3] );
 	    obj->cost = spell_obj_cost( obj->value[0], base );
+        obj->cost *= (obj->value[1] + obj->value[2]) / 2.0;
 	    if ( obj->item_type == ITEM_WAND )
-		obj->cost /= 2;
-	    if ( obj->item_type == ITEM_STAFF )
 		obj->cost /= 4;
+	    if ( obj->item_type == ITEM_STAFF )
+		obj->cost /= 8;
 	}
         break;
         
@@ -3398,6 +3402,8 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
 		base += spell_base_cost(obj->value[i]);
 	    }
 	    obj->cost = spell_obj_cost( obj->value[0], base );
+        if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
+            obj->cost *= 1.5;
 	    if ( obj->item_type == ITEM_POTION )
 		obj->cost /= 2;
 	    else if ( obj->item_type == ITEM_SCROLL )
