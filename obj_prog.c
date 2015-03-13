@@ -93,8 +93,7 @@ bool op_try_trigger( const char *argument, CHAR_DATA *ch )
 
         if ( HAS_OTRIG(obj, OTRIG_TRY) )
         {
-            op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
-            found = TRUE;
+            found = op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY) || found;
         }
     }
 
@@ -104,8 +103,7 @@ bool op_try_trigger( const char *argument, CHAR_DATA *ch )
 
         if ( HAS_OTRIG(obj, OTRIG_TRY) )
         {
-            op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
-            found = TRUE;
+            found = op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY) || found;
         }
     }
 
