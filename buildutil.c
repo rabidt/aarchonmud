@@ -1055,9 +1055,7 @@ DEF_DO_FUN(do_mstat)
 	victim->gold, victim->silver, victim->exp );
 	send_to_char( buf, ch );
 
-	sprintf(buf,"Armor: %d\n\r",
-		GET_AC(victim));
-	send_to_char(buf,ch);
+    ptc(ch, "Armor: %d  Heavy Armor: %d\n\r", GET_AC(victim), victim->heavy_armor);
 
 	sprintf( buf, 
 	"Hit: %d  Dam: %d  Saves: %d  Physical: %d  Size: %s  Position: %s\n\r",
