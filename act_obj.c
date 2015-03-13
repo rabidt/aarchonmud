@@ -2570,7 +2570,7 @@ DEF_DO_FUN(do_recite)
         }
     }
 
-    WAIT_STATE( ch, skill_table[gsn_scrolls].beats );
+    WAIT_STATE( ch, 2*PULSE_VIOLENCE );
     return;
 }
 
