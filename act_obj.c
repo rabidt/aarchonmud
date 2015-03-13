@@ -2603,6 +2603,12 @@ DEF_DO_FUN(do_brandish)
         return;
     }
 
+    if ( staff->value[2] <= 0 )
+    {
+        act( "$p has no more charges remaining.", ch, staff, NULL, TO_CHAR );
+        return;
+    }
+    
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2627,10 +2633,11 @@ DEF_DO_FUN(do_brandish)
             if ( !obj_cast_spell(staff->value[3], staff->value[0], ch, staff, argument) )
                 return;
             check_improve(ch,gsn_staves,TRUE,2);
+            --staff->value[2];
         }
     }
 
-    if ( --staff->value[2] <= 0 )
+    if ( staff->value[2] <= 0 && staff->value[1] <= 1 )
     {
         act( "$n's $p blazes bright and is gone.", ch, staff, NULL, TO_ROOM );
         act( "Your $p blazes bright and is gone.", ch, staff, NULL, TO_CHAR );
@@ -2670,6 +2677,12 @@ DEF_DO_FUN(do_zap)
         return;
     }
 
+    if ( wand->value[2] <= 0 )
+    {
+        act( "$p has no more charges remaining.", ch, wand, NULL, TO_CHAR );
+        return;
+    }
+    
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2697,10 +2710,11 @@ DEF_DO_FUN(do_zap)
             if ( !obj_cast_spell(wand->value[3], wand->value[0], ch, wand, argument) )
                 return;
             check_improve(ch,gsn_wands,TRUE,2);
+            --wand->value[2];
         }
     }
 
-    if ( --wand->value[2] <= 0 )
+    if ( wand->value[2] <= 0 && wand->value[1] <= 1 )
     {
         act( "$n's $p explodes into fragments.", ch, wand, NULL, TO_ROOM );
         act( "Your $p explodes into fragments.", ch, wand, NULL, TO_CHAR );
