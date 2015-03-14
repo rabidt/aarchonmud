@@ -3807,8 +3807,8 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
             
     case ITEM_WAND: 
     case ITEM_STAFF: 
-        sprintf( buf, "It has %d charges of level %d",
-            obj->value[2], obj->value[0] );
+        sprintf( buf, "It can hold %d charges of level %d",
+            obj->value[1], obj->value[0] );
         
         if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
         {
@@ -3971,8 +3971,8 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             
     case ITEM_WAND: 
     case ITEM_STAFF: 
-        sprintf( buf, "It has %d charges of level %d",
-            obj->value[2], obj->value[0] );
+        sprintf( buf, "It can hold %d charges of level %d",
+            obj->value[1], obj->value[0] );
         
         if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
         {

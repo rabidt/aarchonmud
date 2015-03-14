@@ -3369,9 +3369,12 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
 	{
 	    int base = spell_base_cost( obj->value[3] );
 	    obj->cost = spell_obj_cost( obj->value[0], base );
+        // -1 charges means random amount up to max
+        if ( obj->value[2] < 0 )
+            obj->value[2] = number_range(0, obj->value[1]);
         obj->cost *= (obj->value[1] + obj->value[2]) / 2.0;
         if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
-            obj->cost *= 1.25;
+            obj->cost *= 1.5;
 	    if ( obj->item_type == ITEM_WAND )
 		obj->cost /= 4;
 	    if ( obj->item_type == ITEM_STAFF )
