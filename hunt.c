@@ -819,12 +819,18 @@ void hunt_victim( CHAR_DATA *ch )
 	    return;
 	}
 
-	act( "$n glares at $N and says, 'Ye shall DIE!'",
-	     ch, NULL, victim, TO_NOTVICT );
-	act( "$n glares at you and says, 'Ye shall DIE!'",
-	     ch, NULL, victim, TO_VICT );
-	act( "You glare at $N and say, 'Ye shall DIE!",
-	     ch, NULL, victim, TO_CHAR);
+        if ( IS_SET(ch->form, FORM_SENTIENT) )
+        {
+            act( "$n glares at $N and says, 'Ye shall DIE!'", ch, NULL, victim, TO_NOTVICT );
+            act( "$n glares at you and says, 'Ye shall DIE!'", ch, NULL, victim, TO_VICT );
+            act( "You glare at $N and say, 'Ye shall DIE!", ch, NULL, victim, TO_CHAR);
+        }
+        else
+        {
+            act( "$n growls at $N and attacks!'", ch, NULL, victim, TO_NOTVICT );
+            act( "$n growls at you and attacks!'", ch, NULL, victim, TO_VICT );
+            act( "You growl at $N and attack!", ch, NULL, victim, TO_CHAR);
+        }
 	multi_hit( ch, victim, TYPE_UNDEFINED );
 	stop_hunting(ch);
 	return;
