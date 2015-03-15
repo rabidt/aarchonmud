@@ -3108,7 +3108,7 @@ DEF_DO_FUN(do_equipment)
     if ( !found && !all_slots )
         send_to_char( "Nothing.\n\r", ch );
 
-    if (!IS_SET(ch->act, PLR_NOHELP) && ch->level <= 90)
+    if ( !IS_SET(ch->act, PLR_NOHELP) )
     {
         send_to_char("\n\r", ch);
         do_eqhelp(ch,"");
