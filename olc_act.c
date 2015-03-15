@@ -4828,19 +4828,23 @@ OEDIT( oedit_type )      /* Moved out of oedit() due to naming conflicts -- Hugi
         
         if ( (value = flag_lookup(argument, type_flags)) != NO_FLAG )
         {
-            pObj->item_type = value;
-            
             send_to_char( "Type set.\n\r", ch);
-            
-            /*
-            * Clear the values.
-            */
-            pObj->value[0] = 0;
-            pObj->value[1] = 0;
-            pObj->value[2] = 0;
-            pObj->value[3] = 0;
-            pObj->value[4] = 0;     /* ROM */
-            
+
+            if ( pObj->item_type != value )
+            {
+                pObj->item_type = value;
+                pObj->value[0] = 0;
+                pObj->value[1] = 0;
+                pObj->value[2] = 0;
+                pObj->value[3] = 0;
+                pObj->value[4] = 0;     /* ROM */
+            }
+            if ( value == ITEM_WAND || value == ITEM_STAFF )
+            {
+                // default of 50 charges for wands and staffs
+                pObj->value[1] = 50;
+                pObj->value[2] = 50;
+            }
             return TRUE;
         }
     }
