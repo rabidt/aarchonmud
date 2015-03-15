@@ -365,6 +365,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
         send_to_char( "You come out of hiding.\n\r", ch );
     }
    
+    int sneak_skill = get_skill(ch, gsn_sneak) * (200 - get_heavy_armor_penalty(ch)) / 200;
     if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
     {
         if ( !IS_AFFECTED(ch, AFF_SNEAK) )
@@ -375,7 +376,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             for ( fch = in_room->people; fch != NULL; fch = fch_next )
             {
                 fch_next = fch->next_in_room;
-                chance = get_skill(ch, gsn_sneak) - get_skill(fch, gsn_alertness) / 3;
+                chance = sneak_skill - get_skill(fch, gsn_alertness) / 3;
                 if ( !per_chance(chance) )
                     act( buf, ch, NULL, fch, TO_VICT );
             }
@@ -402,7 +403,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             for ( fch = to_room->people; fch != NULL; fch = fch_next )
             {
                 fch_next = fch->next_in_room;
-                chance = get_skill(ch, gsn_sneak) - get_skill(fch, gsn_alertness) / 3;
+                chance = sneak_skill - get_skill(fch, gsn_alertness) / 3;
                 if ( !per_chance(chance) )
                     act( "$n has arrived.", ch, NULL, fch, TO_VICT );
                 }
