@@ -227,7 +227,7 @@ DEF_DO_FUN(do_craft)
         deduct_cost(ch, cost);
         if ( !per_chance(skill) )
         {
-            ptc(ch, "You attempt to %s %s fails, wasting %.2f gold worth of materials.\n\r",
+            ptc(ch, "Your attempt to %s %s fails, wasting %.2f gold worth of materials.\n\r",
                 strengthen ? "strengthen" : "lighten",
                 crafting->short_descr,
                 cost * 0.01
