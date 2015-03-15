@@ -144,6 +144,7 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
     if ( IS_OBJ_STAT(obj, ITEM_GLOW)      )   strcat( buf, "(Glowing) "   );
     if ( IS_OBJ_STAT(obj, ITEM_DARK)      )   strcat( buf, "(Dark) "   );
     if ( IS_OBJ_STAT(obj, ITEM_HUM)       )   strcat( buf, "(Humming) "   );
+    if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR))  strcat( buf, "(Heavy) "     );
     if ( obj->timer == -1                 )   strcat( buf, "(Preserved) " );
     
     if ( fShort )
