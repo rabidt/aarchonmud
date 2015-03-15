@@ -1377,6 +1377,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         full_dam(ch, victim, dam, gsn_boa, DAM_BASH, TRUE);
     }
     
+    if ( per_chance(get_heavy_armor_bonus(ch)) )
+        check_improve(ch, gsn_heavy_armor, TRUE, 3);
+    
     return;
 }
 
@@ -2257,6 +2260,9 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 
     /* skill-based chance-to-miss */
     ch_roll = ch_roll * skill/100;
+    
+    /* heavy armor penalty */
+    ch_roll = ch_roll * (400 - get_heavy_armor_penalty(ch)) / 400;
 
     /* blind attacks */
     if ( !can_see_combat( ch, victim ) && blind_penalty(ch) )
@@ -3007,6 +3013,12 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         if ( armor_absorb > dam/2 )
             armor_absorb = dam/2;
         dam -= armor_absorb;
+    }
+    
+    if ( dam > 1 )
+    {
+        // heavy armor reduces all damage taken by up to 25%
+        dam -= dam * get_heavy_armor_bonus(victim) / 400;
     }
     
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
@@ -4589,6 +4601,8 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( IS_AFFECTED(victim, AFF_SORE) )
         chance -= 10;
 
+    chance = chance * (200 - get_heavy_armor_penalty(ch)) / 200;
+    
     chance = URANGE(0, chance, 75);
     
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
@@ -4827,6 +4841,8 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
         chance -= 10;
     
     chance += mastery_bonus(ch, gsn_dodge, 3, 5);
+    
+    chance = chance * (200 - get_heavy_armor_penalty(ch)) / 200;
     
     return URANGE(0, chance, 75);
 }
