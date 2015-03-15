@@ -1012,9 +1012,9 @@ DEF_DO_FUN(do_autolist)
         send_to_char("nocancel       OFF    Players can cancel your spells.\n\r",ch);
 
     if (!IS_SET(ch->act,PLR_NOEXP))
-        send_to_char("noexp          ON     You will gain experience points.\n\r",ch);
+        send_to_char("noexp          ON     You won't gain experience points.\n\r",ch);
     else
-        send_to_char("noexp          OFF    You won't gain experience points.\n\r",ch);
+        send_to_char("noexp          OFF    You will gain experience points.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOFOLLOW))
         send_to_char("nofollow       ON     Players cannot follow you.\n\r",ch);
@@ -1022,9 +1022,9 @@ DEF_DO_FUN(do_autolist)
         send_to_char("nofollow       OFF    Players can follow you.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOHELP))
-        send_to_char("nohelp         ON     You will receive help messages.\n\r",ch);
+        send_to_char("nohelp         ON     You won't receive help messages.\n\r",ch);
     else
-        send_to_char("nohelp         OFF    You won't receive help messages.\n\r",ch);
+        send_to_char("nohelp         OFF    You will receive help messages.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOLOCATE))
         send_to_char("nolocate       ON     Players cannot locate you with hunt / farsight.\n\r",ch);
@@ -1032,9 +1032,9 @@ DEF_DO_FUN(do_autolist)
         send_to_char("nolocate       OFF    Players can locate you with hunt / farsight.\n\r",ch);
 
     if (!IS_SET(ch->act,PLR_CANLOOT))
-        send_to_char("noloot         ON     Players can loot items from corpses you own.\n\r",ch);
+        send_to_char("noloot         OFF    Players can loot items from corpses you own.\n\r",ch);
     else 
-        send_to_char("noloot         OFF    Players cannot loot items from corpses you own.\n\r",ch);
+        send_to_char("noloot         ON     Players cannot loot items from corpses you own.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOSUMMON))
         send_to_char("nosummon       ON     Players cannot gate to or summon you.\n\r",ch);
