@@ -2261,9 +2261,6 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     /* skill-based chance-to-miss */
     ch_roll = ch_roll * skill/100;
     
-    /* heavy armor penalty */
-    ch_roll = ch_roll * (400 - get_heavy_armor_penalty(ch)) / 400;
-
     /* blind attacks */
     if ( !can_see_combat( ch, victim ) && blind_penalty(ch) )
 	ch_roll = ch_roll * 3/4;
