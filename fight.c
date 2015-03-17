@@ -3415,7 +3415,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             act( "$n is DEAD!!", victim, 0, 0, TO_ROOM );
             send_to_char( "You have been KILLED!!\n\r\n\r", victim );
             
-            if (!IS_NPC(victim) && !IS_SET( victim->act, PLR_WAR)) 
+            if (!IS_NPC(victim) 
+                    && !IS_SET( victim->act, PLR_WAR)
+                    && !IS_SET( victim->in_room->room_flags, ROOM_ARENA)) 
             {
                 CHAR_DATA *killer = get_local_leader(ch);
                 if ( IS_NPC(killer) || killer == victim )
@@ -3507,22 +3509,25 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     }
     victim->just_killed = TRUE;
 
+
     /* Clan counters */
     if ( (IS_NPC(ch) && IS_NPC(victim)) || ch == victim )
-	; /* No counter */
+        ; /* No counter */
     else if (IS_NPC(ch) && !IS_NPC(victim))
     {
-	clan_table[victim->clan].mobdeaths++;
-	clan_table[victim->clan].changed = TRUE;
+        clan_table[victim->clan].mobdeaths++;
+        clan_table[victim->clan].changed = TRUE;
     }
     else if (!IS_NPC(ch) && IS_NPC(victim))
     {
-	clan_table[ch->clan].mobkills++;
-	clan_table[ch->clan].changed = TRUE;
+        clan_table[ch->clan].mobkills++;
+        clan_table[ch->clan].changed = TRUE;
     }
     else if (!IS_NPC(ch) && !IS_NPC(victim))
     {
-        if ( !PLR_ACT(ch, PLR_WAR) && !PLR_ACT(victim, PLR_WAR) )
+        if ( !PLR_ACT(ch, PLR_WAR) 
+                && !PLR_ACT(victim, PLR_WAR) 
+                && !IS_SET(ch->in_room->room_flags, ROOM_ARENA) )
         {
             clan_table[ch->clan].pkills++;
             clan_table[ch->clan].changed = TRUE;
@@ -3537,151 +3542,152 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         if ( ch->hunting && !str_cmp(ch->hunting, victim->name) )
             stop_hunting(ch);
     }
-        
+
     if ( !PLR_ACT(ch, PLR_WAR) )
-	group_gain( ch, victim );
+        group_gain( ch, victim );
 
     if ( !IS_NPC(ch) && IS_NPC(victim) )
     {
-	ch->pcdata->mob_kills++;
-	update_lboard( LBOARD_MKILL, ch, ch->pcdata->mob_kills, 1);
+        ch->pcdata->mob_kills++;
+        update_lboard( LBOARD_MKILL, ch, ch->pcdata->mob_kills, 1);
         check_achievement(ch);
     }
 
     /*
-    if (!IS_NPC(ch) && !IS_SET(ch->act, PLR_WAR))
-    {
-	group_gain( ch, victim );
-	if (IS_NPC(victim))   
-	    ch->pcdata->mob_kills++;
-    }
-    */
-    
+       if (!IS_NPC(ch) && !IS_SET(ch->act, PLR_WAR))
+       {
+       group_gain( ch, victim );
+       if (IS_NPC(victim))   
+       ch->pcdata->mob_kills++;
+       }
+     */
+
     check_kill_quest_completed( ch, victim );
-        
+
     if (!IS_NPC(victim))
     {
-	sprintf( log_buf, "%s killed by %s at %d",
-		 victim->name,
-		 (IS_NPC(ch) ? ch->short_descr : ch->name),
-		 ch->in_room->vnum );
-	log_string( log_buf );
-	
-	if ( IS_SET( victim->act, PLR_WAR ) && IS_SET( ch->act, PLR_WAR ) )
-        {
-	    sprintf( buf, "%s has been slain by %s!\n\r", victim->name, ch->name );
-	    warfare( buf );
-	    
-	    if ( victim != ch )
-	    {
-		add_war_kills( ch );
-		adjust_wargrade( ch, victim );
-	    }
-	    
-	    killed_in_war = TRUE;
-	    
-	    do_restore(victim, victim->name);
-	}
-            
-	if (IS_NPC(ch))
-        {                
-	    sprintf(log_buf, "%s has been killed by %s!", victim->name, ch->short_descr);
-	    info_message(victim, log_buf, TRUE);            
-	}
-	else if (ch != victim)
-        {
-	    if (!IS_SET(victim->act, PLR_WAR)) 
-            {
-		ch->pcdata->pkill_count++;
-		update_lboard( LBOARD_PKILL, ch, ch->pcdata->pkill_count, 1);
-		adjust_pkgrade( ch, victim, FALSE );
-		
-		if (!clan_table[ch->clan].active)
-                {
-		    sprintf(log_buf, "%s has been pkilled by %s!",victim->name, ch->name);
-		    info_message(victim, log_buf, TRUE);         
-		}
-		else
-                {
-		    CLANWAR_DATA *p;
-		    
-		    if ( clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].clanwar_pkill == TRUE
-			 && clan_table[victim->clan].rank_list[victim->pcdata->clan_rank].clanwar_pkill == TRUE
-			 && (p = clanwar_lookup(ch->clan, victim->clan)) 
-			 && p->status == CLANWAR_WAR)
-                    {
-			p->pkills++;
-                            
-			sprintf(log_buf, "%s has been pkilled by %s of clan %s!",
-				victim->name, ch->name, capitalize(clan_table[ch->clan].name));
-			info_message(victim, log_buf, TRUE);
+        sprintf( log_buf, "%s killed by %s at %d",
+                victim->name,
+                (IS_NPC(ch) ? ch->short_descr : ch->name),
+                ch->in_room->vnum );
+        log_string( log_buf );
 
-			sprintf(log_buf, "Clan %s has now killed %d %s during the current war!",
+        if ( IS_SET( victim->act, PLR_WAR ) && IS_SET( ch->act, PLR_WAR ) )
+        {
+            sprintf( buf, "%s has been slain by %s!\n\r", victim->name, ch->name );
+            warfare( buf );
+
+            if ( victim != ch )
+            {
+                add_war_kills( ch );
+                adjust_wargrade( ch, victim );
+            }
+
+            killed_in_war = TRUE;
+
+            do_restore(victim, victim->name);
+        }
+
+        if (IS_NPC(ch))
+        {                
+            sprintf(log_buf, "%s has been killed by %s!", victim->name, ch->short_descr);
+            info_message(victim, log_buf, TRUE);            
+        }
+        else if (ch != victim)
+        {
+            if (!IS_SET(victim->act, PLR_WAR) 
+                    && !IS_SET(ch->in_room->room_flags, ROOM_ARENA)) 
+            {
+                ch->pcdata->pkill_count++;
+                update_lboard( LBOARD_PKILL, ch, ch->pcdata->pkill_count, 1);
+                adjust_pkgrade( ch, victim, FALSE );
+
+                if (!clan_table[ch->clan].active)
+                {
+                    sprintf(log_buf, "%s has been pkilled by %s!",victim->name, ch->name);
+                    info_message(victim, log_buf, TRUE);         
+                }
+                else
+                {
+                    CLANWAR_DATA *p;
+
+                    if ( clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].clanwar_pkill == TRUE
+                            && clan_table[victim->clan].rank_list[victim->pcdata->clan_rank].clanwar_pkill == TRUE
+                            && (p = clanwar_lookup(ch->clan, victim->clan)) 
+                            && p->status == CLANWAR_WAR)
+                    {
+                        p->pkills++;
+
+                        sprintf(log_buf, "%s has been pkilled by %s of clan %s!",
+                                victim->name, ch->name, capitalize(clan_table[ch->clan].name));
+                        info_message(victim, log_buf, TRUE);
+
+                        sprintf(log_buf, "Clan %s has now killed %d %s during the current war!",
                                 capitalize(clan_table[ch->clan].name),
                                 p->pkills,
                                 capitalize(clan_table[victim->clan].name));
-			info_message(NULL, log_buf, TRUE);
-			save_clanwars();
-		    }
-		    else   // kill did not contribute to clanwar pkills, so don't mention clan (good for religion!)
-		    {
-			sprintf(log_buf, "%s has been pkilled by %s!",victim->name, ch->name);
-			info_message(victim, log_buf, TRUE);
-		    }
-		}
-	    }/*end is_set(plr) war check*/
-	}
-	else 
+                        info_message(NULL, log_buf, TRUE);
+                        save_clanwars();
+                    }
+                    else   // kill did not contribute to clanwar pkills, so don't mention clan (good for religion!)
+                    {
+                        sprintf(log_buf, "%s has been pkilled by %s!",victim->name, ch->name);
+                        info_message(victim, log_buf, TRUE);
+                    }
+                }
+            }/*end is_set(plr) war check*/
+        }
+        else 
         {
-	    if ( !IS_SET( victim->act, PLR_WAR ) )
+            if ( !IS_SET( victim->act, PLR_WAR ) )
             {
-		sprintf(log_buf, "%s has carelessly gotten killed.", victim->name);
-		info_message(NULL, log_buf, TRUE);
-	    }
-	}
+                sprintf(log_buf, "%s has carelessly gotten killed.", victim->name);
+                info_message(NULL, log_buf, TRUE);
+            }
+        }
     }
-    
-        
+
+
     sprintf( log_buf, "%s got toasted by %s at %s [room %d]",
-	     (IS_NPC(victim) ? victim->short_descr : victim->name),
-	     (IS_NPC(ch) ? ch->short_descr : ch->name),
-	     ch->in_room->name, ch->in_room->vnum);
-    
+            (IS_NPC(victim) ? victim->short_descr : victim->name),
+            (IS_NPC(ch) ? ch->short_descr : ch->name),
+            ch->in_room->name, ch->in_room->vnum);
+
     if (IS_NPC(victim))
-	wiznet(log_buf,NULL,NULL,WIZ_MOBDEATHS,0,0);
+        wiznet(log_buf,NULL,NULL,WIZ_MOBDEATHS,0,0);
     else
-	wiznet(log_buf,NULL,NULL,WIZ_DEATHS,0,0);
-    
+        wiznet(log_buf,NULL,NULL,WIZ_DEATHS,0,0);
+
     if (!IS_NPC(victim)
-	&& victim->pcdata->bounty > 0
-	&& ch != victim
-	&& !IS_SET( victim->act, PLR_WAR ))
+            && victim->pcdata->bounty > 0
+            && ch != victim
+            && !IS_SET( victim->act, PLR_WAR ))
     {
-	if (!IS_NPC(ch))
+        if (!IS_NPC(ch))
         {
-	    sprintf(buf,"You receive a %d gold bounty, for killing %s.\n\r",
+            sprintf(buf,"You receive a %d gold bounty, for killing %s.\n\r",
                     victim->pcdata->bounty, victim->name);
-	    send_to_char(buf, ch);
-	    ch->gold += victim->pcdata->bounty;
-	    victim->pcdata->bounty = 0;
-	    update_bounty(victim);
-	}
-	/* If a non-pkill player is killed by an NPC bounty hunter */
-	else if (IS_NPC(ch) && (ch->spec_fun == spec_bounty_hunter)
-		 && (!IS_SET(victim->act, PLR_PERM_PKILL)) )
+            send_to_char(buf, ch);
+            ch->gold += victim->pcdata->bounty;
+            victim->pcdata->bounty = 0;
+            update_bounty(victim);
+        }
+        /* If a non-pkill player is killed by an NPC bounty hunter */
+        else if (IS_NPC(ch) && (ch->spec_fun == spec_bounty_hunter)
+                && (!IS_SET(victim->act, PLR_PERM_PKILL)) )
         {
-	    int amount;
-	    amount = UMAX(victim->pcdata->bounty / 5 + 10, victim->pcdata->bounty);
-	    victim->pcdata->bounty -= amount;
-	    ch->gold += amount;
-	    amount = victim->gold / 10;
-	    ch->gold += amount;
-	    victim->gold -= amount;
-	    amount = victim->silver / 10;
-	    ch->silver += amount;
-	    victim->silver -= amount;
-	    update_bounty(victim);      
-	}
+            int amount;
+            amount = UMAX(victim->pcdata->bounty / 5 + 10, victim->pcdata->bounty);
+            victim->pcdata->bounty -= amount;
+            ch->gold += amount;
+            amount = victim->gold / 10;
+            ch->gold += amount;
+            victim->gold -= amount;
+            amount = victim->silver / 10;
+            ch->silver += amount;
+            victim->silver -= amount;
+            update_bounty(victim);      
+        }
     }
 
     if ( !IS_UNDEAD(victim) && !IS_SET(victim->form, FORM_CONSTRUCT) && victim->in_room )
@@ -3708,7 +3714,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
             }
         }
     }
-    
+
     /*
      * Death trigger
      */
@@ -3736,47 +3742,47 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
 
     remort_remove(victim, FALSE);
-        
+
     if ( IS_NPC(victim) || !IS_SET( victim->act, PLR_WAR ) )
     {
-	morgue = (bool) (!IS_NPC(victim) && (IS_NPC(ch) || (ch==victim) ));
+        morgue = (bool) (!IS_NPC(victim) && (IS_NPC(ch) || (ch==victim) ));
 
 
-	raw_kill( victim, ch, morgue );
-	
-	/* dump the flags */
-	if (ch != victim && !is_same_clan(ch,victim))
-	{
-	    REMOVE_BIT(victim->act,PLR_KILLER);
-	    REMOVE_BIT(victim->act,PLR_THIEF);
-	}
+        raw_kill( victim, ch, morgue );
+
+        /* dump the flags */
+        if (ch != victim && !is_same_clan(ch,victim))
+        {
+            REMOVE_BIT(victim->act,PLR_KILLER);
+            REMOVE_BIT(victim->act,PLR_THIEF);
+        }
     }
-    
+
     if ( killed_in_war )
-	war_remove( victim, TRUE );
-        
+        war_remove( victim, TRUE );
+
     /* RT new auto commands */
-    
+
     if ( !IS_NPC(ch)
-        && (corpse = get_obj_list(ch,"corpse",ch->in_room->contents)) != NULL
-        && corpse->item_type == ITEM_CORPSE_NPC
-        && can_see_obj(ch,corpse)
-        && !IS_SET(ch->act, PLR_WAR) )
+            && (corpse = get_obj_list(ch,"corpse",ch->in_room->contents)) != NULL
+            && corpse->item_type == ITEM_CORPSE_NPC
+            && can_see_obj(ch,corpse)
+            && !IS_SET(ch->act, PLR_WAR) )
     {
         OBJ_DATA *coins;
-        
+
         corpse = get_obj_list( ch, "corpse", ch->in_room->contents ); 
-        
+
         if ( IS_SET(ch->act, PLR_AUTOLOOT) && corpse && corpse->contains) /* exists and not empty */
             do_get( ch, "all room.corpse" );
-        
+
         if ( IS_SET(ch->act,PLR_AUTOGOLD) && corpse && corpse->contains /* exists and not empty */
-            && !IS_SET(ch->act,PLR_AUTOLOOT) )
+                && !IS_SET(ch->act,PLR_AUTOLOOT) )
         {
             if ( (coins = get_obj_list(ch,"gcash",corpse->contains)) != NULL )
                 do_get(ch, "all.gcash room.corpse");
         }
-        
+
         if ( IS_SET(ch->act, PLR_AUTOSAC) )
         {
             if ( IS_SET(ch->act,PLR_AUTOLOOT) && corpse && corpse->contains)
@@ -3788,8 +3794,8 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( victim->pcdata != NULL && victim->pcdata->remorts==0 && morgue )
     {
-	send_to_char( "HINT: You can retrieve lost money from your corpse at the morgue.\n\r", victim );
-	send_to_char( "      Check 'help corpse' for details.\n\r", victim );
+        send_to_char( "HINT: You can retrieve lost money from your corpse at the morgue.\n\r", victim );
+        send_to_char( "      Check 'help corpse' for details.\n\r", victim );
     }
 
 }
