@@ -2740,6 +2740,9 @@ struct  pc_data
 	int                 clan_won;
 	int                 clan_lost;
 	int                 clan_kills;
+    int                 duel_won;
+    int                 duel_lost;
+    int                 duel_kills;
 	int                 mob_kills;
 	int                 mob_deaths;
 	int                 quest_failed;
