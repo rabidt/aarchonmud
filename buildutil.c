@@ -1047,13 +1047,13 @@ DEF_DO_FUN(do_mstat)
 	    send_to_char( buf, ch );
 	}
 
-	sprintf( buf,
-	"Lv: %d  Class: %s  Align: %d  Gold: %ld  Silver: %ld  Exp: %d\n\r",
-	victim->level,       
-	IS_NPC(victim) ? "mobile" : class_table[victim->class].name,            
-	victim->alignment,
-	victim->gold, victim->silver, victim->exp );
-	send_to_char( buf, ch );
+    ptc(ch, "Lvl: %d  Class: %s  Subclass: %s  Exp: %d\n\r",
+        victim->level,       
+        IS_NPC(victim) ? "mobile" : class_table[victim->class].name,
+        IS_NPC(victim) ? "None" : subclass_table[victim->pcdata->subclass].name);
+
+    ptc(ch, "Align: %d  Gold: %ld  Silver: %ld\n\r",
+        victim->alignment, victim->gold, victim->silver, victim->exp );
 
     ptc(ch, "Armor: %d  Heavy Armor: %d\n\r", GET_AC(victim), victim->heavy_armor);
 
@@ -1836,6 +1836,38 @@ MSETFUN ( class )
 }
 
 
+MSETFUN ( subclass )
+{
+    if ( !str_prefix(arg3, "None") )
+    {
+        victim->pcdata->subclass = 0;
+        return TRUE;
+    }
+    
+    int subclass = subclass_lookup(arg3);
+    
+    if ( subclass == 0 )
+    {
+        char buf[MAX_STRING_LENGTH];
+       
+        strcpy( buf, "Possible subclasses are: " );
+        for ( subclass = 0; subclass_table[subclass].name != NULL; subclass++ )
+        {
+            if ( subclass > 0 )
+                strcat( buf, " " );
+            strcat( buf, subclass_table[subclass].name );
+        }
+        strcat(buf, ".\n\r");
+       
+        send_to_char(buf, ch);
+        return FALSE;
+    }
+   
+    victim->pcdata->subclass = subclass;
+    return TRUE;
+}
+
+
 MSETFUN( race )
 {
     int race;
@@ -2306,6 +2338,7 @@ struct
     {"cha",       MSETANY,      mset_cha},
     {"luc",       MSETANY,      mset_luc},
     {"class",     MSETPCONLY,   mset_class},
+    {"subclass",  MSETPCONLY,   mset_subclass},
     {"race",      MSETPCONLY,   mset_race},
     {"sex",       MSETANY,      mset_sex},
     {"group",     MSETNPCONLY,  mset_group},
