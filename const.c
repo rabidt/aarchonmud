@@ -2107,7 +2107,41 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	}
 };
 
+/* class constants */
+#define CLASS_WARRIOR        0
+#define CLASS_THIEF          1
+#define CLASS_CLERIC         2
+#define CLASS_MAGE           3
+#define CLASS_GLADIATOR      4
+#define CLASS_SAMURAI        5
+#define CLASS_PALADIN        6
+#define CLASS_ASSASSIN       7
+#define CLASS_NINJA          8
+#define CLASS_MONK           9
+#define CLASS_TEMPLAR        10
+#define CLASS_ILLUSIONIST    11
+#define CLASS_GUNSLINGER     12
+#define CLASS_RANGER         13
+#define CLASS_NECROMANCER    14
 
+const struct subclass_type subclass_table[] =
+{
+    /*
+    const char* name;
+    sh_int base_class;
+    const char* skills[5];
+    sh_int skill_level[5];
+    sh_int skill_percent[5];
+    */
+    { "None" }, // subclass=0 means no subclass
+    { 
+        "Juggernaut", CLASS_WARRIOR, 
+        { "true grit", "bulwark" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    { NULL }
+};
 
 /*
  * Titles.
