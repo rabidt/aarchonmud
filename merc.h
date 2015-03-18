@@ -884,6 +884,15 @@ struct  class_type
     const char* default_group;  /* default skills gained    */
 };
 
+struct subclass_type
+{
+    const char* name;
+    sh_int base_class;
+    const char* skills[5];
+    sh_int skill_level[5];
+    sh_int skill_percent[5];
+};
+
 struct item_type
 {
 	int     type;
@@ -2642,6 +2651,8 @@ struct  pc_data
     sh_int      customduration;
     const char* customflag;
     sh_int      remorts;
+    sh_int      ascents;
+    sh_int      subclass;
     sh_int      original_stats[MAX_STATS];
     sh_int      history_stats[MAX_STATS];
     long        field;
@@ -4052,6 +4063,7 @@ struct stance_type
 /* warfare.c */
 extern const struct stance_type   stances[];
 extern  const   struct  class_type  class_table [MAX_CLASS];
+extern  const   struct  subclass_type subclass_table[];
 extern  const   struct  weapon_type weapon_table    [];
 extern  const   struct  item_type   item_table  [];
 extern  const   struct  wiznet_type wiznet_table    [];
