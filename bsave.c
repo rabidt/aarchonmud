@@ -515,7 +515,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
         bprintf( buf, "Remort %d\n",  ch->pcdata->remorts);
         bprintf( buf, "Ascent %d\n",  ch->pcdata->ascents);
         if ( ch->pcdata->subclass )
-            bprintf( buf, "Subclass %s\n", subclass_table[ch->pcdata->subclass].name );
+            bprintf( buf, "Subclass %s~\n", subclass_table[ch->pcdata->subclass].name );
         
         if (ch->pcdata->bamfin[0] != '\0')
             bprintf( buf, "Bin  %s~\n",  ch->pcdata->bamfin);
