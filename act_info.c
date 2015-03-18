@@ -4700,6 +4700,14 @@ DEF_DO_FUN(do_score)
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
+    /* Remort, Ascent, Subclass */
+    sprintf(buf, "{D|{x Sub: %13s        Ascent: %11d        Remort: %10d",
+        subclass_table[ch->pcdata->subclass].name,
+        ch->pcdata->ascents,
+        ch->pcdata->remorts);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    
 
     /* Age, Hours Played, Married Status */
     sprintf(buf, "{D|{x Age:   %5d years        Played:   %5d hrs        Married: %9s",
