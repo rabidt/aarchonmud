@@ -154,6 +154,12 @@ void proc_startduel( CHAR_DATA *ch, const char *argument)
     char buf[MSL];
     char arg1[MIL];
 
+    if ( war.on == TRUE )
+    {
+        send_to_char("There is already a war running!\n\r", ch );
+        return;
+    }
+
     argument = one_argument( argument, arg1 );
 
     vic = get_char_world( ch, arg1 );
