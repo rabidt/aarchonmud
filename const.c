@@ -2135,7 +2135,7 @@ const struct subclass_type subclass_table[] =
     */
     { "None" }, // subclass=0 means no subclass
     { 
-        "Juggernaut", CLASS_WARRIOR, 
+        "juggernaut", CLASS_WARRIOR,
         { "true grit", "bulwark" },
         { 10, 30 },
         { 100, 100 }
