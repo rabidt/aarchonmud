@@ -2109,6 +2109,25 @@ int get_race_skill( CHAR_DATA *ch, int sn )
     return 0;
 }
 
+int get_subclass_skill( CHAR_DATA *ch, int sn )
+{
+    if ( IS_NPC(ch) || !ch->pcdata->subclass )
+        return 0;
+    
+    const struct subclass_type *sc = &subclass_table[ch->pcdata->subclass];
+
+    int i;
+    for ( i = 0; i < 5; i++ )
+    {
+        if ( sc->skills[i] == NULL )
+            return 0;
+        if ( !strcmp(sc->skills[i], skill_table[sn].name) )
+            return ch->level >= sc->skill_level[i] ? sc->skill_percent[i] : 0;
+    }
+
+    return 0;
+}
+
 int pc_skill_prac(CHAR_DATA *ch, int sn)
 {
 	int skill;
@@ -2161,6 +2180,9 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	race_skill = get_race_skill( ch, sn );
 	if ( race_skill > 0 )
 	    skill = skill * (100 - race_skill) / 100 + race_skill * 10;
+    int subclass_skill = get_subclass_skill(ch, sn);
+    if ( subclass_skill > 0 )
+        skill = skill * (100 - subclass_skill) / 100 + subclass_skill * 10;
 
     // adjustment for stats below max
 	if (skill)
