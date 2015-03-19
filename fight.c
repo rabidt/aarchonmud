@@ -3972,8 +3972,8 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
         {
             bool clanwar_valid;
             int level_offset = PKILL_RANGE;
-            int ch_power = ch->level + 2 * ch->pcdata->remorts;
-            int victim_power = victim->level + 2 * victim->pcdata->remorts;
+            int ch_power = ch->level + 2 * ch->pcdata->remorts + (ch->pcdata->ascents ? 6 : 0);
+            int victim_power = victim->level + 2 * victim->pcdata->remorts + (victim->pcdata->ascents ? 6 : 0);
             
             clanwar_valid = is_clanwar_opp(ch, victim);
             /* || is_religion_opp(ch, victim); */
@@ -5671,18 +5671,19 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 /* returns the 'effective strength' of a char */
 int level_power( CHAR_DATA *ch )
 {
-    int pow;
     if ( IS_NPC(ch) )
-	return ch->level;
-    else
-    {
-	pow = ch->level;
-        // remort adjustment
-        pow += ch->pcdata->remorts * (ch->level + 30) / 60;
-	if ( ch->level > 90 )
-	    pow += (ch->level - 90);
-	return pow;
-    }
+        return ch->level;
+    
+    int pow = ch->level + UMAX(0, ch->level - 90);
+    // level adjustment scales with actual level
+    float la_factor = ch->level >= 90 ? 1.0 : (ch->level + 30) / 120.0;
+    // remort adjustment
+    pow += 2 * ch->pcdata->remorts * la_factor;
+    // ascent adjustment
+    if ( ch->pcdata->ascents > 0 )
+        pow += 6 * la_factor;
+    
+    return pow;
 }
 
 // compute baseline xp for character of given level_power killing victim
