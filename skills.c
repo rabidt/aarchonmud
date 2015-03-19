@@ -639,7 +639,10 @@ static int mastery_points( CHAR_DATA *ch )
 
 static int max_mastery_points( CHAR_DATA *ch )
 {
-    return 30 + 2 * ch->pcdata->remorts;
+    if ( ch->pcdata->ascents > 0 )
+        return 40 + 10 * UMIN(5, ch->pcdata->ascents) + ch->pcdata->remorts;
+    else
+        return 30 + 2 * ch->pcdata->remorts;
 }
 
 static const char* mastery_title( int level )
@@ -1490,7 +1493,7 @@ void set_level_exp( CHAR_DATA *ch )
 
 int exp_per_level(CHAR_DATA *ch)
 {
-    int rem_add,race_factor;
+    int rem_add,race_factor,asc_add;
 
     if (IS_NPC(ch))
         return 1000;
@@ -1505,7 +1508,9 @@ int exp_per_level(CHAR_DATA *ch)
     race_factor = pc_race_table[ch->race].class_mult[ch->class] +
         rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
 
-    return 10 * (race_factor);
+    asc_add = ch->pcdata->ascents ? 100 * (ch->pcdata->ascents + 5) : 0;
+    
+    return 10 * (race_factor) + asc_add;
 }
 
 /* this procedure handles the input parsing for the skill generator */
