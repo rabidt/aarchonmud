@@ -3572,7 +3572,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         if ( IS_SET( victim->act, PLR_WAR ) && IS_SET( ch->act, PLR_WAR ) )
         {
             sprintf( buf, "%s has been slain by %s!\n\r", victim->name, ch->name );
-            warfare( buf );
+            warfare_to_all( buf );
 
             if ( victim != ch )
             {

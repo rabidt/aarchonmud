@@ -848,6 +848,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     bprintf( buf, "WarReligionKills %d\n", ch->pcdata->religion_kills );
     bprintf( buf, "WarReligionWon %d\n", ch->pcdata->religion_won );
     bprintf( buf, "WarReligionLost %d\n", ch->pcdata->religion_lost );
+    bprintf( buf, "WarDuelKills %d\n", ch->pcdata->duel_kills );
+    bprintf( buf, "WarDuelWon %d\n", ch->pcdata->duel_won );
+    bprintf( buf, "WarDuelLost %d\n", ch->pcdata->duel_lost );
     bprintf( buf, "MobKills %d\n", ch->pcdata->mob_kills );
     bprintf( buf, "MobDeaths %d\n", ch->pcdata->mob_deaths );
     bprintf( buf, "QuestsFailed %d\n", ch->pcdata->quest_failed );
@@ -2361,6 +2364,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "WarReligionKills",ch->pcdata->religion_kills, bread_number( buf ) );
         KEY( "WarReligionWon",ch->pcdata->religion_won,     bread_number( buf ) );
         KEY( "WarReligionLost",ch->pcdata->religion_lost,   bread_number( buf ) );
+        KEY( "WarDuelKills", ch->pcdata->duel_kills,        bread_number( buf ) );
+        KEY( "WarDuelWon", ch->pcdata->duel_won,            bread_number( buf ) );
+        KEY( "WarDuelLost", ch->pcdata->duel_lost,          bread_number( buf ) );
 
 	if ( !str_cmp( word, "WarTotalKills" ) )
 	{
@@ -3353,6 +3359,11 @@ DEF_DO_FUN(do_finger)
 	    "{D|{x   Quests Failed:  %5d {D|{x      {mG{Dender {mW{Dars:{x {D|{x {m%4d{x {D|{x {m%4d{x {D|{x {m%5d{x {D|{x\n\r",
 		wch->pcdata->quest_failed, wch->pcdata->gender_won, wch->pcdata->gender_lost, wch->pcdata->gender_kills );
 	add_buf( output, buf );
+
+    sprintf( buf,
+        "{D|{x                         {D|{x        {DDuel Wars: | %4d | %4d | %5d |{x\n\r",
+        wch->pcdata->duel_won, wch->pcdata->duel_lost, wch->pcdata->duel_kills);
+    add_buf( output, buf );
 
 	sprintf(buf,
 	    "{D|{x Percent Success: %5.1f%% {D|{x           TOTALS:{x {D|{x%5d{x {D|{x%5d{x {D|{x%6d{x {D|{x\n\r",
