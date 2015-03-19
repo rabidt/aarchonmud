@@ -540,8 +540,9 @@ void war_update( void )
             DESCRIPTOR_DATA *d;
             for ( d=descriptor_list ; d ; d=d->next)
             {
-                if ( d->character->id == war.owner
-                        || d->character->id == war.duel_target )
+                if ( d->character && 
+                        (  d->character->id == war.owner
+                        || d->character->id == war.duel_target ) )
                 {
                     sprintf( buf, "You are challenged to a {DDuel{6.\n\r");
                     warfare_to_char( d->character, buf );
