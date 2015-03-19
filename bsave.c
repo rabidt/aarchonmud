@@ -3369,8 +3369,8 @@ DEF_DO_FUN(do_finger)
 	    "{D|{x Percent Success: %5.1f%% {D|{x           TOTALS:{x {D|{x%5d{x {D|{x%5d{x {D|{x%6d{x {D|{x\n\r",
             wch->pcdata->quest_success == 0 ? 0 : (float)wch->pcdata->quest_success * 100 /
             (float)(wch->pcdata->quest_failed + wch->pcdata->quest_success),
-	    wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won,
-	    wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost,
+	    wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won + wch->pcdata->duel_won,
+	    wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost + wch->pcdata->duel_lost,
 	    wch->pcdata->war_kills );
         add_buf( output, buf );
         
