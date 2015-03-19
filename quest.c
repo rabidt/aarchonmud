@@ -481,6 +481,7 @@ DEF_DO_FUN(do_quest)
 	strcat(buf, "  200qp.................Change pretitle (ptitle).\n\r");
         strcat(buf, "  100qp.................Experience (1/4 exp per level)\n\r");
 	strcat(buf, "   50qp.................Warfare\n\r");
+    strcat(buf, "   10qp.................Duel\n\r");
         strcat(buf, "\n\r");
         strcat(buf, "To buy an item, type 'QUEST BUY <item>'.\n\r");
         strcat(buf, "To see a list of items, type '\t<send href='help questitems'>{whelp questitems{x\t</send>'\n\r");
@@ -612,6 +613,18 @@ DEF_DO_FUN(do_quest)
 	    }
 	    return;
 	}
+    else if (is_name(arg2, "duel"))
+    {
+        if (ch->pcdata->questpoints >= 10)
+            proc_startduel(ch, argument);
+        else
+        {
+            sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.", ch->name);
+            do_say(questman,buf);
+        }
+        return;
+    }
+            
 
 		/* Added for Vodurs ptitle and color name 11/25/11 -- Maedhros */
 
