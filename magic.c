@@ -5141,7 +5141,7 @@ DEF_SPELL_FUN(spell_remove_curse)
     
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -5164,7 +5164,6 @@ DEF_SPELL_FUN(spell_remove_curse)
                 return TRUE;
             }
 
-            act("You failed to remove the curse on $p.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return TRUE;
