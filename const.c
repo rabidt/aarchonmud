@@ -739,10 +739,10 @@ struct align_type align_table [] =
 
 //9
     {
-    "revenant",        TRUE,
-    {},      {AFF_DARK_VISION, AFF_DEATHS_DOOR},   {},
-    {},      {RES_NEGATIVE,RES_POISON,RES_DISEASE}, {VULN_HOLY},
-    {A,H,I,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K}
+    "ettin",        TRUE,
+    {},      {},   {},
+    {},      {RES_MENTAL}, {},
+    {A,C,H,M,mm},    {A,B,C,D,E,F,G,H,I,J,K}
     },
 
     {
@@ -753,10 +753,10 @@ struct align_type align_table [] =
     },
 
     {
-    "rakshasa",        TRUE,
-    {},      {AFF_PROTECT_MAGIC},   {},
-    {},      {RES_WEAPON,RES_MAGIC}, {VULN_PIERCE,VULN_HOLY},
-    {A,C,H,M},      {A,B,C,D,E,F,G,H,I,J,K,U,V}
+    "gorgon",        TRUE,
+    {},      {},   {},
+    {},      {}, {},
+    {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
     },
 
     {
@@ -767,26 +767,33 @@ struct align_type align_table [] =
     },
 
     {
-    "gorgon",        TRUE,
-    {},      {},   {},
-    {},      {}, {},
-    {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
+    "rakshasa",        TRUE,
+    {},      {AFF_PROTECT_MAGIC},   {},
+    {},      {RES_WEAPON,RES_MAGIC}, {VULN_PIERCE,VULN_HOLY},
+    {A,C,H,M},      {A,B,C,D,E,F,G,H,I,J,K,U,V}
     },
 
     {
-    "ettin",        TRUE,
-    {},      {},   {},
-    {},      {RES_MENTAL}, {},
-    {A,C,H,M,mm},    {A,B,C,D,E,F,G,H,I,J,K}
+    "revenant",        TRUE,
+    {},      {AFF_DARK_VISION, AFF_DEATHS_DOOR},   {},
+    {},      {RES_NEGATIVE,RES_POISON,RES_DISEASE}, {VULN_HOLY},
+    {A,H,I,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K}
     },
 
 //10
-	{
-	"behemoth",        TRUE,
-	{},      {AFF_DARK_VISION},   {},
-	{},      {RES_COLD}, {VULN_MENTAL},
-	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K,U,V}
-	},
+    {
+    "archon", TRUE,
+    {}, {AFF_FLYING,AFF_PROTECT_EVIL}, {},
+    {}, {RES_HOLY}, {VULN_NEGATIVE},
+    {A,H,M,V}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
+    {
+    "behemoth", TRUE,
+    {}, {AFF_DARK_VISION}, {},
+    {}, {RES_COLD}, {VULN_MENTAL},
+    {A,H,M,V}, {A,B,C,D,E,F,G,H,I,J,K,U,V}
+    },
 
     {
     "dragonborn", TRUE,
@@ -803,24 +810,17 @@ struct align_type align_table [] =
     },
     
     {
-    "warforged", TRUE,
-    {}, {}, {},
-    {}, {RES_WEAPON}, {},
-    {H,J,M,cc,nn},   {A,B,C,G,H,I,J,K}
-    },
-    
-    {
-    "archon", TRUE,
-    {}, {AFF_FLYING,AFF_PROTECT_EVIL}, {},
-    {}, {RES_HOLY}, {VULN_NEGATIVE},
-    {A,H,M,V}, {A,B,C,D,E,F,G,H,I,J,K}
-    },
-    
-    {
     "quickling", TRUE,
     {}, {AFF_HASTE,AFF_INVISIBLE}, {},
     {}, {}, {VULN_BASH},
     {A,C,H,M,N}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
+    {
+    "warforged", TRUE,
+    {}, {}, {},
+    {}, {RES_WEAPON}, {},
+    {H,J,M,cc,nn},   {A,B,C,G,H,I,J,K}
     },
     
 /* NPC RACES */
@@ -1724,15 +1724,15 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
    
 // R9
          /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
-        { 
-          "revenant",   "Revena",
-          { 290, 290, 285, 285, 285, 290, 290, 290, 290, 290, 285, 290, 285, 290, 280 },
-          4, { "fast healing", "dark reaping", "true grit", "animate dead" },
-          {1, 10, 30, 50}, {100, 100, 80, 60},
-          {  75,  85,  65,  55,  65,      55,  65,  80,  50,  55 },
-          { 150, 155, 145, 140, 145,     140, 145, 150, 140, 140 },
-          {   4,   5,   4,   4,   4,       4,   4,   4,   3,   4 },
-          SIZE_MEDIUM, SEX_BOTH, 9
+        {
+          "ettin",   "Ettin ",
+          { 285, 290, 290, 290, 285, 285, 290, 290, 290, 290, 290, 290, 290, 285, 290 },
+          4, { "ambidextrous", "double strike", "second attack", "third attack" },
+          {10, 20, 40, 60}, {100, 100, 33, 33},
+          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
+          { 155, 150, 145, 140, 150,     145, 145, 140, 135, 145 },
+          {   5,   5,   4,   3,   5,       4,   4,   3,   3,   4 },
+          SIZE_HUGE, SEX_BOTH, 9
         },
 
         { 
@@ -1743,6 +1743,28 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           {  60,  60,  65,  70,  65,      70,  70,  60,  65,  65 },
           { 140, 140, 145, 150, 145,     150, 150, 140, 145, 145 },
           {   3,   3,   4,   5,   4,       5,   5,   3,   4,   4 },
+          SIZE_LARGE, SEX_BOTH, 9
+        },
+
+        {
+          "gorgon",   "Gorgon",
+          { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
+          5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
+          {1, 10, 20, 30, 50}, {100, 100, 80, 80, 75},
+          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
+          { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
+          {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
+          SIZE_MEDIUM, SEX_FEMALE, 9
+        },
+
+        { 
+          "lillend",   "Lillen",
+          { 290, 285, 285, 285, 290, 290, 290, 290, 285, 290, 285, 285, 290, 285, 290 },
+          3, { "inspiring song", "charm person", "cure serious" },
+          {10, 20, 30}, {100, 90, 80},
+          {  60,  60,  60,  60,  60,      60,  60,  60,  60,  60 },
+          { 145, 145, 150, 145, 145,     145, 145, 140, 155, 145 },
+          {   4,   4,   4,   4,   4,       4,   4,   3,   5,   4 },
           SIZE_LARGE, SEX_BOTH, 9
         },
 
@@ -1758,40 +1780,29 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         { 
-          "lillend",   "Lillen",
-          { 290, 285, 285, 285, 290, 290, 290, 290, 285, 290, 285, 285, 290, 285, 290 },
-          3, { "inspiring song", "charm person", "cure serious" },
-          {10, 20, 30}, {100, 90, 80},
-          {  60,  60,  60,  60,  60,      60,  60,  60,  60,  60 },
-          { 145, 145, 150, 145, 145,     145, 145, 140, 155, 145 },
-          {   4,   4,   4,   4,   4,       4,   4,   3,   5,   4 },
-          SIZE_LARGE, SEX_BOTH, 9
-        },
-
-        {
-          "gorgon",   "Gorgon",
-          { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
-          5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
-          {1, 10, 20, 30, 50}, {100, 100, 80, 80, 75},
-          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
-          { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
-          {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
-          SIZE_MEDIUM, SEX_FEMALE, 9
-        },
-
-        {
-          "ettin",   "Ettin ",
-          { 285, 290, 290, 290, 285, 285, 290, 290, 290, 290, 290, 290, 290, 285, 290 },
-          4, { "ambidextrous", "double strike", "second attack", "third attack" },
-          {10, 20, 40, 60}, {100, 100, 33, 33},
-          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
-          { 155, 150, 145, 140, 150,     145, 145, 140, 135, 145 },
-          {   5,   5,   4,   3,   5,       4,   4,   3,   3,   4 },
-          SIZE_HUGE, SEX_BOTH, 9
+          "revenant",   "Revena",
+          { 290, 290, 285, 285, 285, 290, 290, 290, 290, 290, 285, 290, 285, 290, 280 },
+          4, { "fast healing", "dark reaping", "true grit", "animate dead" },
+          {1, 10, 30, 50}, {100, 100, 80, 60},
+          {  75,  85,  65,  55,  65,      55,  65,  80,  50,  55 },
+          { 150, 155, 145, 140, 145,     140, 145, 150, 140, 140 },
+          {   4,   5,   4,   4,   4,       4,   4,   4,   3,   4 },
+          SIZE_MEDIUM, SEX_BOTH, 9
         },
 
 // R10
          /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
+        {
+          "archon", "Archon",
+          { 310, 315, 300, 305, 310, 310, 300, 315, 310, 300, 300, 305, 310, 305, 310 },
+          4, { "bless", "smite", "sanctuary", "aura of menace" },
+          {1, 10, 30, 50}, {100, 100, 100, 100},
+          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
+          { 150, 150, 150, 150, 150,     150, 155, 150, 155, 150 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_MEDIUM, SEX_BOTH, 10
+        },
+        
         { 
           "behemoth",   "Behemo",
           { 305, 305, 315, 315, 305, 310, 310, 305, 305, 315, 310, 315, 305, 305, 315 },
@@ -1826,28 +1837,6 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
         
         { 
-          "warforged", "Warfor",
-          { 300, 310, 310, 315, 300, 305, 305, 310, 310, 310, 310, 315, 310, 310, 315 },
-          5, { "endurance", "shield block", "shield bash", "charge", "wrist shield" },
-          {1, 10, 20, 30, 50}, {100, 100, 100, 100, 80},
-          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
-          { 145, 145, 140, 140, 140,     135, 135, 150, 135, 135 },
-          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
-          SIZE_LARGE, SEX_BOTH, 10
-        },
-        
-        { 
-          "archon", "Archon",
-          { 310, 315, 300, 305, 310, 310, 300, 315, 310, 300, 300, 305, 310, 305, 310 },
-          4, { "bless", "smite", "sanctuary", "aura of menace" },
-          {1, 10, 30, 50}, {100, 100, 100, 100},
-          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
-          { 150, 150, 150, 150, 150,     150, 155, 150, 155, 150 },
-          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
-          SIZE_MEDIUM, SEX_BOTH, 10
-        },
-        
-        { 
           "quickling", "Quickl",
           { 305, 300, 310, 315, 305, 305, 310, 305, 305, 310, 310, 310, 305, 305, 315 },
           5, { "quick draw", "wendigo", "flanking", "second attack", "third attack" },
@@ -1856,6 +1845,17 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           { 135, 140, 155, 160, 160,     150, 150, 140, 150, 160 },
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
           SIZE_SMALL, SEX_BOTH, 10
+        },
+        
+        { 
+          "warforged", "Warfor",
+          { 300, 310, 310, 315, 300, 305, 305, 310, 310, 310, 310, 315, 310, 310, 315 },
+          5, { "endurance", "shield block", "shield bash", "charge", "wrist shield" },
+          {1, 10, 20, 30, 50}, {100, 100, 100, 100, 80},
+          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
+          { 145, 145, 140, 140, 140,     135, 135, 150, 135, 135 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_LARGE, SEX_BOTH, 10
         }
 };
 
