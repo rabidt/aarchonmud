@@ -1397,7 +1397,8 @@ void char_update( void )
                     SET_AFFECT( ch, AFF_HIDE );
             }
             
-            if ( ch->fighting == NULL && IS_SET(race_table[ch->race].affect_field, AFF_INVISIBLE) && !IS_AFFECTED(ch, AFF_INVISIBLE))
+            if ( ch->fighting == NULL && IS_SET(race_table[ch->race].affect_field, AFF_INVISIBLE)
+                && !IS_AFFECTED(ch, AFF_INVISIBLE) && IS_AFFECTED(ch, AFF_SNEAK) )
             {
                 SET_AFFECT(ch, AFF_INVISIBLE);
                 send_to_char("You turn invisible once more.\n\r", ch);
