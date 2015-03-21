@@ -639,7 +639,10 @@ static int mastery_points( CHAR_DATA *ch )
 
 static int max_mastery_points( CHAR_DATA *ch )
 {
-    return 30 + 2 * ch->pcdata->remorts;
+    if ( ch->pcdata->ascents > 0 )
+        return 40 + 10 * UMIN(5, ch->pcdata->ascents) + ch->pcdata->remorts;
+    else
+        return 30 + 2 * ch->pcdata->remorts;
 }
 
 static const char* mastery_title( int level )
@@ -1490,7 +1493,7 @@ void set_level_exp( CHAR_DATA *ch )
 
 int exp_per_level(CHAR_DATA *ch)
 {
-    int rem_add,race_factor;
+    int rem_add,race_factor,asc_add;
 
     if (IS_NPC(ch))
         return 1000;
@@ -1505,7 +1508,9 @@ int exp_per_level(CHAR_DATA *ch)
     race_factor = pc_race_table[ch->race].class_mult[ch->class] +
         rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
 
-    return 10 * (race_factor);
+    asc_add = ch->pcdata->ascents ? 100 * (ch->pcdata->ascents + 5) : 0;
+    
+    return 10 * (race_factor) + asc_add;
 }
 
 /* this procedure handles the input parsing for the skill generator */
@@ -2109,6 +2114,25 @@ int get_race_skill( CHAR_DATA *ch, int sn )
     return 0;
 }
 
+int get_subclass_skill( CHAR_DATA *ch, int sn )
+{
+    if ( IS_NPC(ch) || !ch->pcdata->subclass )
+        return 0;
+    
+    const struct subclass_type *sc = &subclass_table[ch->pcdata->subclass];
+
+    int i;
+    for ( i = 0; i < 5; i++ )
+    {
+        if ( sc->skills[i] == NULL )
+            return 0;
+        if ( !strcmp(sc->skills[i], skill_table[sn].name) )
+            return ch->level >= sc->skill_level[i] ? sc->skill_percent[i] : 0;
+    }
+
+    return 0;
+}
+
 int pc_skill_prac(CHAR_DATA *ch, int sn)
 {
 	int skill;
@@ -2161,6 +2185,9 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	race_skill = get_race_skill( ch, sn );
 	if ( race_skill > 0 )
 	    skill = skill * (100 - race_skill) / 100 + race_skill * 10;
+    int subclass_skill = get_subclass_skill(ch, sn);
+    if ( subclass_skill > 0 )
+        skill = skill * (100 - subclass_skill) / 100 + subclass_skill * 10;
 
     // adjustment for stats below max
 	if (skill)

@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         438
+#define MAX_SKILL         440
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -719,6 +719,7 @@ struct penalty_data
 #define CON_FTP_AUTH            18
 */
 #define CON_LUA_HANDLER         16
+#define CON_GET_NEW_SUBCLASS    17
 #define CON_GET_CREATION_MODE   19
 #define CON_ROLL_STATS          20
 #define CON_GET_STAT_PRIORITY   21
@@ -882,6 +883,15 @@ struct  class_type
     sh_int  move_gain;
     const char* base_group;     /* base skills gained       */
     const char* default_group;  /* default skills gained    */
+};
+
+struct subclass_type
+{
+    const char* name;
+    sh_int base_class;
+    const char* skills[5];
+    sh_int skill_level[5];
+    sh_int skill_percent[5];
 };
 
 struct item_type
@@ -2642,6 +2652,8 @@ struct  pc_data
     sh_int      customduration;
     const char* customflag;
     sh_int      remorts;
+    sh_int      ascents;
+    sh_int      subclass;
     sh_int      original_stats[MAX_STATS];
     sh_int      history_stats[MAX_STATS];
     long        field;
@@ -3392,6 +3404,8 @@ extern sh_int  gsn_evasive;
 extern sh_int  gsn_fatal_blow;
 extern sh_int  gsn_two_handed;
 extern sh_int  gsn_heavy_armor;
+extern sh_int  gsn_bulwark;
+extern sh_int  gsn_riposte;
  
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -4055,6 +4069,7 @@ struct stance_type
 /* warfare.c */
 extern const struct stance_type   stances[];
 extern  const   struct  class_type  class_table [MAX_CLASS];
+extern  const   struct  subclass_type subclass_table[];
 extern  const   struct  weapon_type weapon_table    [];
 extern  const   struct  item_type   item_table  [];
 extern  const   struct  wiznet_type wiznet_table    [];
@@ -4265,6 +4280,7 @@ void    check_achievement( CHAR_DATA *ch );
 void    check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
+bool    can_take_subclass( int class, int subclass );
 
 /* act_move.c */
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );

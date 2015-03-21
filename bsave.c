@@ -513,6 +513,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "PKExpire %ld\n",  ch->pcdata->pkill_expire);
 
         bprintf( buf, "Remort %d\n",  ch->pcdata->remorts);
+        bprintf( buf, "Ascent %d\n",  ch->pcdata->ascents);
+        if ( ch->pcdata->subclass )
+            bprintf( buf, "Subclass %s~\n", subclass_table[ch->pcdata->subclass].name );
         
         if (ch->pcdata->bamfin[0] != '\0')
             bprintf( buf, "Bin  %s~\n",  ch->pcdata->bamfin);
@@ -1629,6 +1632,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 break;
             }
             
+            KEY( "Ascent", ch->pcdata->ascents, bread_number(buf) );
+            
             break;
             
     case 'B':
@@ -2297,6 +2302,15 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         }
 
         KEY( "Stance",  ch->stance, bread_number( buf ) );
+        
+        if ( !str_cmp(word, "Subclass") )
+        {
+            const char *temp = bread_string(buf);
+            ch->pcdata->subclass = subclass_lookup(temp);
+            free_string(temp);
+            fMatch = TRUE;
+            break;
+        }
         
         break;
         

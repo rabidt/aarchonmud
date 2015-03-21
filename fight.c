@@ -1864,6 +1864,18 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
     return TRUE;
 }
 
+void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit )
+{
+    CHECK_RETURN( ch, victim );
+    
+    // riposte - 25% chance regardless of hit or miss
+    if ( per_chance(get_skill(victim, gsn_riposte)) && per_chance(25) )
+    {
+        one_hit(victim, ch, gsn_riposte, FALSE);
+        CHECK_RETURN( ch, victim );
+    }
+}
+
 /*
 * Hit one guy once.
 */
@@ -1996,7 +2008,10 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     // Check for parry, dodge, etc. and fade
     if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+    {
+        after_attack(ch, victim, dt, FALSE);
         return FALSE;
+    }
         
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
@@ -2007,6 +2022,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         damage( ch, victim, 0, dt, dam_type, TRUE );
         if ( arrow_used )
             handle_arrow_shot( ch, victim, FALSE );
+        after_attack(ch, victim, dt, FALSE);
         tail_chain( );
         return FALSE;
     }
@@ -2135,9 +2151,13 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( stop_attack(ch, victim) )
         return result != 0;
 
+    
     /* if not hit => no follow-up effects.. --Bobble */
     if ( !result )
+    {
+        after_attack(ch, victim, dt, FALSE);
         return FALSE;
+    }
     
     /* funky weapons */
     weapon_flag_hit( ch, victim, wield );
@@ -2169,6 +2189,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             return TRUE;
     }
 
+    after_attack(ch, victim, dt, TRUE);
+    
     /* retribution */
     if ( (victim->stance == STANCE_PORCUPINE 
 	  || victim->stance == STANCE_RETRIBUTION)
@@ -2179,7 +2201,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
 	is_retribute = FALSE;
     }
-    
+
     /* kung fu mastery */
     if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
     {
@@ -2806,6 +2828,7 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
 bool is_normal_hit( int dt )
 {
     return (dt >= TYPE_HIT)
+     || (dt == gsn_riposte)
      || (dt == gsn_double_strike)
      || (dt == gsn_strafe)
      || (dt == gsn_round_swing)
@@ -2944,6 +2967,15 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
     return success;
 }
 
+static int get_bulwark_reduction( CHAR_DATA *ch )
+{
+    int skill = get_skill(ch, gsn_bulwark);
+    if ( !skill || !is_calm(ch) )
+        return 0;
+    // reduction is 2/3 of shield block chance
+    return shield_block_chance(ch, FALSE) * skill / 150;
+}
+
 /*
 * Inflict full damage from a hit.
 */
@@ -3023,6 +3055,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         // heavy armor reduces all damage taken by up to 25%
         dam -= dam * get_heavy_armor_bonus(victim) / 400;
+    }
+    
+    // bulwark skill
+    if ( dam > 1 )
+    {
+        // bulwark reduces both damage taken and damage dealt
+        int ch_bw = get_bulwark_reduction(ch) / 2;
+        int victim_bw = get_bulwark_reduction(victim);
+        dam -= dam * (victim_bw + (100 - victim_bw) * ch_bw / 100) / 100;
     }
     
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
@@ -3979,8 +4020,8 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
         {
             bool clanwar_valid;
             int level_offset = PKILL_RANGE;
-            int ch_power = ch->level + 2 * ch->pcdata->remorts;
-            int victim_power = victim->level + 2 * victim->pcdata->remorts;
+            int ch_power = ch->level + 2 * ch->pcdata->remorts + (ch->pcdata->ascents ? 6 : 0);
+            int victim_power = victim->level + 2 * victim->pcdata->remorts + (victim->pcdata->ascents ? 6 : 0);
             
             clanwar_valid = is_clanwar_opp(ch, victim);
             /* || is_religion_opp(ch, victim); */
@@ -5678,18 +5719,19 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 /* returns the 'effective strength' of a char */
 int level_power( CHAR_DATA *ch )
 {
-    int pow;
     if ( IS_NPC(ch) )
-	return ch->level;
-    else
-    {
-	pow = ch->level;
-        // remort adjustment
-        pow += ch->pcdata->remorts * (ch->level + 30) / 60;
-	if ( ch->level > 90 )
-	    pow += (ch->level - 90);
-	return pow;
-    }
+        return ch->level;
+    
+    int pow = ch->level + UMAX(0, ch->level - 90);
+    // level adjustment scales with actual level
+    float la_factor = ch->level >= 90 ? 1.0 : (ch->level + 30) / 120.0;
+    // remort adjustment
+    pow += 2 * ch->pcdata->remorts * la_factor;
+    // ascent adjustment
+    if ( ch->pcdata->ascents > 0 )
+        pow += 6 * la_factor;
+    
+    return pow;
 }
 
 // compute baseline xp for character of given level_power killing victim
