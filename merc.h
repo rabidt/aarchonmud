@@ -719,6 +719,7 @@ struct penalty_data
 #define CON_FTP_AUTH            18
 */
 #define CON_LUA_HANDLER         16
+#define CON_GET_NEW_SUBCLASS    17
 #define CON_GET_CREATION_MODE   19
 #define CON_ROLL_STATS          20
 #define CON_GET_STAT_PRIORITY   21
@@ -4274,6 +4275,7 @@ void    check_achievement( CHAR_DATA *ch );
 void    check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
+bool    can_take_subclass( int class, int subclass );
 
 /* act_move.c */
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );

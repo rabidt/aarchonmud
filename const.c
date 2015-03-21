@@ -2134,11 +2134,17 @@ const struct subclass_type subclass_table[] =
     sh_int skill_percent[5];
     */
     { "None" }, // subclass=0 means no subclass
-    { 
+    {
         "juggernaut", CLASS_WARRIOR,
         { "true grit", "bulwark" },
         { 10, 30 },
         { 100, 100 }
+    },
+    {
+        "beastmaster", CLASS_RANGER,
+        { "beast mastery", "sticks to snakes", "tree golem", "water elemental" },
+        { 10, 20, 40, 50 },
+        { 100, 100, 100, 100 }
     },
     { NULL }
 };
