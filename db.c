@@ -357,6 +357,7 @@ sh_int  gsn_alertness;
 sh_int  gsn_evasion;
 sh_int  gsn_evasive;
 sh_int  gsn_heavy_armor;
+sh_int  gsn_bulwark;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;
