@@ -1866,8 +1866,8 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit )
 {
     CHECK_RETURN( ch, victim );
     
-    // riposte - 20% chance regardless of hit or miss
-    if ( per_chance(get_skill(victim, gsn_riposte)) && per_chance(20) )
+    // riposte - 25% chance regardless of hit or miss
+    if ( per_chance(get_skill(victim, gsn_riposte)) && per_chance(25) )
     {
         one_hit(victim, ch, gsn_riposte, FALSE);
         CHECK_RETURN( ch, victim );
@@ -2963,16 +2963,10 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
 static int get_bulwark_reduction( CHAR_DATA *ch )
 {
     int skill = get_skill(ch, gsn_bulwark);
-    if ( !skill )
+    if ( !skill || !is_calm(ch) )
         return 0;
-    
-    // bulwark only activated if hp are below calm
-    // using calm allows bulwark without triggering flee
-    int hp_percent = 100 * ch->hit / ch->max_hit;
-    if ( !is_wimpy(ch) && hp_percent > ch->calm )
-        return 0;
-    
-    return shield_block_chance(ch, FALSE) * skill / 100;
+    // reduction is 2/3 of shield block chance
+    return shield_block_chance(ch, FALSE) * skill / 150;
 }
 
 /*
@@ -3060,7 +3054,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( dam > 1 )
     {
         // bulwark reduces both damage taken and damage dealt
-        int ch_bw = get_bulwark_reduction(ch);
+        int ch_bw = get_bulwark_reduction(ch) / 2;
         int victim_bw = get_bulwark_reduction(victim);
         dam -= dam * (victim_bw + (100 - victim_bw) * ch_bw / 100) / 100;
     }
