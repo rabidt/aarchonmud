@@ -2320,6 +2320,12 @@ MSETFUN( remorts )
     return TRUE;
 }
 
+MSETFUN( ascents )
+{
+    victim->pcdata->ascents = UMAX(0, value);
+    return TRUE;
+}
+
 struct
 {
     const char *field;
@@ -2369,6 +2375,7 @@ struct
     {"ptitle",    MSETPCONLY,   mset_ptitle},
     {"namecolor", MSETPCONLY,   mset_namecolor},
     {"remorts",   MSETPCONLY,   mset_remorts},
+    {"ascents",   MSETPCONLY,   mset_ascents},
     {NULL,        MSETNONE,     NULL}
 };
    
