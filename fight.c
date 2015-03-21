@@ -2937,6 +2937,23 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
     return success;
 }
 
+static int get_bulwark_reduction( CHAR_DATA *ch )
+{
+    int skill = get_skill(ch, gsn_bulwark);
+    if ( !skill )
+        return 0;
+    
+    // bulwark only activated if hp are below calm
+    // using calm allows bulwark without triggering flee
+    int hp_percent = 100 * ch->hit / ch->max_hit;
+    if ( !is_wimpy(ch) && hp_percent > ch->calm )
+        return 0;
+    
+    int shield_block = shield_block_chance(ch, FALSE);
+    int max_reduction = shield_block * skill / 100;
+    return max_reduction * (100 - hp_percent) / 100;
+}
+
 /*
 * Inflict full damage from a hit.
 */
@@ -3016,6 +3033,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         // heavy armor reduces all damage taken by up to 25%
         dam -= dam * get_heavy_armor_bonus(victim) / 400;
+    }
+    
+    // bulwark skill
+    if ( dam > 1 )
+    {
+        // bulwark reduces both damage taken and damage dealt
+        int ch_bw = get_bulwark_reduction(ch);
+        int victim_bw = get_bulwark_reduction(victim);
+        dam -= dam * (victim_bw + (100 - victim_bw) * ch_bw / 100) / 100;
     }
     
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
