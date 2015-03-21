@@ -410,7 +410,7 @@ const   struct  cmd_type    cmd_table   [] =
     * Miscellaneous commands.
     */
     { "achievements",     do_achievements,  POS_DEAD,   0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "ascent",     do_ascent,  POS_STANDING,    1,  LOG_ALWAYS, 1, FALSE, FALSE },
+    { "ascend",     do_ascend,  POS_STANDING,    1,  LOG_ALWAYS, 1, FALSE, FALSE },
     { "board",      do_board,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "clanwar",    do_clanwar, POS_DEAD,    1,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "consent",    do_consent, POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
