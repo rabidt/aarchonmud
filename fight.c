@@ -2949,9 +2949,7 @@ static int get_bulwark_reduction( CHAR_DATA *ch )
     if ( !is_wimpy(ch) && hp_percent > ch->calm )
         return 0;
     
-    int shield_block = shield_block_chance(ch, FALSE);
-    int max_reduction = shield_block * skill / 100;
-    return max_reduction * (100 - hp_percent) / 100;
+    return shield_block_chance(ch, FALSE) * skill / 100;
 }
 
 /*
