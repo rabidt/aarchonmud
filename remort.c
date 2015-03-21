@@ -1056,20 +1056,20 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
     remort_begin(ch);
 } 
 
-DEF_DO_FUN(do_ascent)
+DEF_DO_FUN(do_ascend)
 {
     if ( IS_NPC(ch) )
         return;
     
     if ( ch->level < LEVEL_HERO || ch->pcdata->remorts < MAX_REMORT )
     {
-        ptc(ch, "You need to reach level %d before you can ascent.\n\r", LEVEL_HERO);
+        ptc(ch, "You need to reach level %d before you can ascend.\n\r", LEVEL_HERO);
         return;
     }
     
     if ( strcmp(argument, "confirm") )
     {
-        send_to_char("To ascent, type <ascent confirm>.\n\r", ch);
+        send_to_char("To ascend, type <ascend confirm>.\n\r", ch);
         send_to_char("WARNING: Doing so will cause you to be reborn as a remort 0 character!\n\r", ch);
         return;
     }

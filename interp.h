@@ -71,7 +71,7 @@ DECLARE_DO_FUN( do_answer   );
 DECLARE_DO_FUN( do_appraise );
 DECLARE_DO_FUN( do_areas    );
 DECLARE_DO_FUN( do_as       );
-DECLARE_DO_FUN( do_ascent   );
+DECLARE_DO_FUN( do_ascend   );
 DECLARE_DO_FUN( do_ashift   );
 DECLARE_DO_FUN( do_at       );
 DECLARE_DO_FUN( do_attributes);
