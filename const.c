@@ -2141,10 +2141,16 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "blademaster", CLASS_WARRIOR,
+        { "riposte" },
+        { 30 },
+        { 100 }
+    },
+    {
         "beastmaster", CLASS_RANGER,
-        { "beast mastery", "sticks to snakes", "tree golem", "water elemental" },
-        { 10, 20, 40, 50 },
-        { 100, 100, 100, 100 }
+        { "beast mastery", "water elemental" },
+        { 10, 90 },
+        { 100, 90 }
     },
     { NULL }
 };
@@ -5552,6 +5558,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_bulwark, 0, 0, DUR_NONE,
         "", "!bulwark!", ""
+    },
+
+    {
+        "riposte",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_riposte, 0, 0, DUR_NONE,
+        "riposte", "!riposte!", ""
     },
 
     {

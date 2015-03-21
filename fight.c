@@ -1862,6 +1862,18 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
     return TRUE;
 }
 
+void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit )
+{
+    CHECK_RETURN( ch, victim );
+    
+    // riposte - 20% chance regardless of hit or miss
+    if ( per_chance(get_skill(victim, gsn_riposte)) && per_chance(20) )
+    {
+        one_hit(victim, ch, gsn_riposte, FALSE);
+        CHECK_RETURN( ch, victim );
+    }
+}
+
 /*
 * Hit one guy once.
 */
@@ -1994,7 +2006,10 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     // Check for parry, dodge, etc. and fade
     if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+    {
+        after_attack(ch, victim, dt, FALSE);
         return FALSE;
+    }
         
     if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
@@ -2005,6 +2020,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         damage( ch, victim, 0, dt, dam_type, TRUE );
         if ( arrow_used )
             handle_arrow_shot( ch, victim, FALSE );
+        after_attack(ch, victim, dt, FALSE);
         tail_chain( );
         return FALSE;
     }
@@ -2133,9 +2149,13 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( stop_attack(ch, victim) )
         return result != 0;
 
+    
     /* if not hit => no follow-up effects.. --Bobble */
     if ( !result )
+    {
+        after_attack(ch, victim, dt, FALSE);
         return FALSE;
+    }
     
     /* funky weapons */
     weapon_flag_hit( ch, victim, wield );
@@ -2167,6 +2187,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             return TRUE;
     }
 
+    after_attack(ch, victim, dt, TRUE);
+    
     /* retribution */
     if ( (victim->stance == STANCE_PORCUPINE 
 	  || victim->stance == STANCE_RETRIBUTION)
@@ -2177,7 +2199,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
 	is_retribute = FALSE;
     }
-    
+
     /* kung fu mastery */
     if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
     {
@@ -2799,6 +2821,7 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
 bool is_normal_hit( int dt )
 {
     return (dt >= TYPE_HIT)
+     || (dt == gsn_riposte)
      || (dt == gsn_double_strike)
      || (dt == gsn_strafe)
      || (dt == gsn_round_swing)
