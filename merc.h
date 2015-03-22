@@ -1406,7 +1406,7 @@ struct  kill_data
 #define IMM_SOUND               (T)
 #define IMM_SLEEP               (U)
 #define IMM_CHARMPERSON         (V)
-#define IMM_GAZE                (W)
+#define IMM_PETRIFY             (W)
 #define IMM_WOOD                (X)
 #define IMM_SILVER              (Y)
 #define IMM_IRON                (Z)

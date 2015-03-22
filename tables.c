@@ -394,7 +394,7 @@ const struct flag_type imm_flags[] =
 	{   "sound",        T,  TRUE    },
         {   "sleep",        U,  TRUE    },
         {   "charmperson",  V,  TRUE    },
-        {   "gaze",         W,  TRUE    },
+        {   "petrify",      W,  TRUE    },
 	{   "wood",         X,  TRUE    },
 	{   "silver",       Y,  TRUE    },
 	{   "iron",         Z,  TRUE    },
