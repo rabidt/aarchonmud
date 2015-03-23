@@ -888,7 +888,7 @@ struct  class_type
 struct subclass_type
 {
     const char* name;
-    sh_int base_class;
+    unsigned long base_classes;
     const char* skills[5];
     sh_int skill_level[5];
     sh_int skill_percent[5];
