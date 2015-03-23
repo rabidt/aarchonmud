@@ -2107,47 +2107,47 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	}
 };
 
-/* class constants */
-#define CLASS_WARRIOR        0
-#define CLASS_THIEF          1
-#define CLASS_CLERIC         2
-#define CLASS_MAGE           3
-#define CLASS_GLADIATOR      4
-#define CLASS_SAMURAI        5
-#define CLASS_PALADIN        6
-#define CLASS_ASSASSIN       7
-#define CLASS_NINJA          8
-#define CLASS_MONK           9
-#define CLASS_TEMPLAR        10
-#define CLASS_ILLUSIONIST    11
-#define CLASS_GUNSLINGER     12
-#define CLASS_RANGER         13
-#define CLASS_NECROMANCER    14
+/* class constants for subclass table */
+#define WARRIOR     (1<<0)
+#define THIEF       (1<<1)
+#define CLERIC      (1<<2)
+#define MAGE        (1<<3)
+#define GLADIATOR   (1<<4)
+#define SAMURAI     (1<<5)
+#define PALADIN     (1<<6)
+#define ASSASSIN    (1<<7)
+#define NINJA       (1<<8)
+#define MONK        (1<<9)
+#define TEMPLAR     (1<<10)
+#define ILLUSIONIST (1<<11)
+#define GUNSLINGER  (1<<12)
+#define RANGER      (1<<13)
+#define NECROMANCER (1<<14)
 
 const struct subclass_type subclass_table[] =
 {
     /*
     const char* name;
-    sh_int base_class;
+    unsigned long base_classes;
     const char* skills[5];
     sh_int skill_level[5];
     sh_int skill_percent[5];
     */
     { "None" }, // subclass=0 means no subclass
     {
-        "juggernaut", CLASS_WARRIOR,
+        "juggernaut", WARRIOR,
         { "true grit", "bulwark" },
         { 10, 30 },
         { 100, 100 }
     },
     {
-        "blademaster", CLASS_WARRIOR,
+        "blademaster", WARRIOR|GLADIATOR|SAMURAI|PALADIN,
         { "riposte" },
         { 30 },
         { 100 }
     },
     {
-        "beastmaster", CLASS_RANGER,
+        "beastmaster", RANGER,
         { "beast mastery", "water elemental" },
         { 10, 90 },
         { 100, 90 }

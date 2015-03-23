@@ -5934,7 +5934,7 @@ DEF_DO_FUN(do_eqhelp)
 
 bool can_take_subclass( int class, int subclass )
 {
-    return subclass_table[subclass].base_class == class;
+    return (subclass_table[subclass].base_classes & (1<<class)) != 0;
 }
 
 static void show_subclass( CHAR_DATA *ch, int sc )
