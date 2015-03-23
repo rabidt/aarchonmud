@@ -2147,6 +2147,12 @@ const struct subclass_type subclass_table[] =
         { 100 }
     },
     {
+        "warmage", MAGE|ILLUSIONIST|NECROMANCER,
+        { "combat casting", "second attack", "dimensional blade" },
+        { 10, 50, 90 },
+        { 100, 80, 80 }
+    },
+    {
         "beastmaster", RANGER,
         { "beast mastery", "water elemental" },
         { 10, 90 },
@@ -5569,6 +5575,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_riposte, 0, 0, DUR_NONE,
         "riposte", "!riposte!", ""
+    },
+
+    {
+        "combat casting",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DIS, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_combat_casting, 0, 0, DUR_NONE,
+        "", "!combat_casting!", ""
     },
 
     {
