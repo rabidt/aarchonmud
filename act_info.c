@@ -5597,7 +5597,7 @@ void check_achievement( CHAR_DATA *ch )
 		current = ch->pcdata->war_kills;
 		break;
 	    case ACHV_WWIN:
-		current = ch->pcdata->armageddon_won + ch->pcdata->clan_won + ch->pcdata->class_won + ch->pcdata->race_won + ch->pcdata->religion_won + ch->pcdata->gender_won;
+		current = ch->pcdata->armageddon_won + ch->pcdata->clan_won + ch->pcdata->class_won + ch->pcdata->race_won + ch->pcdata->religion_won + ch->pcdata->gender_won + ch->pcdata->duel_won;
 		break;
 	    case ACHV_BEHEAD:
 		current = ch->pcdata->behead_cnt;

@@ -1087,7 +1087,7 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     affect_strip(victim, gsn_petrify);
 
     // second saving throw to reduce effect to slow
-    if ( saves_physical(victim, NULL, ch->level, DAM_HARM) )
+    if ( IS_SET(victim->imm_flags, IMM_PETRIFY) || saves_physical(victim, NULL, ch->level, DAM_HARM) )
     {
         apply_petrify(victim, FALSE);
         act("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR);
@@ -1129,7 +1129,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         return;
     
     // chance to get petrified if not averting gaze
-    if ( per_chance(20) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) && !IS_SET(ch->imm_flags,IMM_GAZE) )
+    if ( per_chance(20) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) )
     {
         act("You accidentally catch $N's gaze.", ch, NULL, victim, TO_CHAR);
         act("You catch $n with your gaze.", ch, NULL, victim, TO_VICT);
@@ -3664,7 +3664,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         if ( IS_SET( victim->act, PLR_WAR ) && IS_SET( ch->act, PLR_WAR ) )
         {
             sprintf( buf, "%s has been slain by %s!\n\r", victim->name, ch->name );
-            warfare( buf );
+            warfare_to_all( buf );
 
             if ( victim != ch )
             {
