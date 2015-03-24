@@ -1862,9 +1862,58 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
     return TRUE;
 }
 
+// used by after_attack and stance_after_hit
+static bool check_elemental_strike( CHAR_DATA *ch, OBJ_DATA *wield )
+{
+    if ( !per_chance(get_skill(ch, gsn_elemental_strike)) )
+        return FALSE;
+    
+    int strike_chance = 15;
+    if ( wield != NULL )
+    {
+        if ( wield->value[0] == WEAPON_BOW )
+            strike_chance = 25;
+        else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
+            strike_chance = 20;
+    }
+    return per_chance(strike_chance);
+}
+
 void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit )
 {
     CHECK_RETURN( ch, victim );
+    
+    // elemental strike - separate handling if in elemental blade stance
+    if ( hit && ch->mana > 1 && ch->stance != STANCE_ELEMENTAL_BLADE )
+    {
+        OBJ_DATA *wield = get_eq_char(victim, WEAR_WIELD);
+        if ( check_elemental_strike(ch, wield) )
+        {
+            // additional mana cost
+            ch->mana--;
+            int dam = 10 + number_range(ch->level, ch->level*2);
+            // random damtype unless shield is active
+            int strike_dt = -1;
+            if ( IS_AFFECTED(ch, AFF_ELEMENTAL_SHIELD) )
+            {
+                if ( is_affected(ch, gsn_immolation) )
+                    strike_dt = DAM_FIRE;
+                else if ( is_affected(ch, gsn_absolute_zero) )
+                    strike_dt = DAM_COLD;
+                else if ( is_affected(ch, gsn_electrocution) )
+                    strike_dt = DAM_LIGHTNING;
+            }
+            if ( strike_dt == -1 )
+                switch( number_range(0,2) )
+                {
+                    case 0: strike_dt = DAM_FIRE; break;
+                    case 1: strike_dt = DAM_COLD; break;
+                    case 2: strike_dt = DAM_LIGHTNING; break;
+                }
+            full_dam(ch, victim, dam, gsn_elemental_strike, strike_dt, TRUE);
+            CHECK_RETURN( ch, victim );
+        }
+    }
     
     // riposte - 25% chance regardless of hit or miss
     if ( per_chance(get_skill(victim, gsn_riposte)) && per_chance(25) )
@@ -2456,6 +2505,8 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	    break;
 	else
 	    ch->mana -= 1;
+    if ( check_elemental_strike(ch, wield) )
+        dam *= 2;
 	/* if weapon damage can be matched.. */
 	if ( wield != NULL )
 	{

@@ -360,6 +360,7 @@ sh_int  gsn_heavy_armor;
 sh_int  gsn_bulwark;
 sh_int  gsn_riposte;
 sh_int  gsn_combat_casting;
+sh_int  gsn_elemental_strike;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;

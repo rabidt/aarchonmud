@@ -2153,6 +2153,12 @@ const struct subclass_type subclass_table[] =
         { 100, 80, 80 }
     },
     {
+        "stormlord", SAMURAI|RANGER,
+        { "elemental strike", "immolation", "electrocution", "absolute zero" },
+        { 10, 40, 41, 42 },
+        { 100, 80, 80, 80 }
+    },
+    {
         "beastmaster", RANGER,
         { "beast mastery", "water elemental" },
         { 10, 90 },
@@ -5586,6 +5592,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_combat_casting, 0, 0, DUR_NONE,
         "", "!combat_casting!", ""
+    },
+
+    {
+        "elemental strike",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_INT, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_elemental_strike, 0, 0, DUR_NONE,
+        "elemental strike", "!elemental strike!", ""
     },
 
     {
