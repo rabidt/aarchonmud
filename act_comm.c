@@ -3323,16 +3323,21 @@ DEF_DO_FUN(do_gag)
 
 DEF_DO_FUN(do_try)
 {
-  if (IS_NPC(ch))
-      return;
+    if (IS_NPC(ch))
+        return;
 
-  if (argument[0] == '\0')
-    send_to_char("Try to do what?\n\r", ch);
-  else
-    if (!mp_try_trigger(argument, ch) 
-            && !op_try_trigger(argument, ch)
-            && !rp_try_trigger(argument, ch) )
-      send_to_char("That didn't work.\n\r", ch);
+    if (argument[0] == '\0')
+        send_to_char("Try to do what?\n\r", ch);
+    else
+    {
+        bool found=FALSE;
+        found = mp_try_trigger(argument, ch);
+        found = op_try_trigger(argument, ch) | found;
+        found = rp_try_trigger(argument, ch) | found;
+
+        if (!found)
+            send_to_char("That didn't work.\n\r", ch);
+    }
 
 }
 
