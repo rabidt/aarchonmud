@@ -3271,6 +3271,19 @@ DEF_DO_FUN(do_finger)
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
     
+    /* ascent and subclass */
+    if ( wch->level <= LEVEL_HERO && wch->pcdata->ascents > 0 )
+    {
+        sprintf(buf, "{D|{x ");
+        sprintf(buf2, "Ascents: {c%-2d{x     Subclass: %s",
+            wch->pcdata->ascents,
+            subclass_table[wch->pcdata->subclass].name);
+        strcat( buf, buf2 );
+        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+        strcat( buf, "{D|{x\n\r" );
+        add_buf( output, buf );        
+    }
+    
     /* Last on */
     if ( wch->level < LEVEL_IMMORTAL || IS_IMMORTAL(ch) )
     {
