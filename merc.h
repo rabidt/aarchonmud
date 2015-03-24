@@ -885,13 +885,14 @@ struct  class_type
     const char* default_group;  /* default skills gained    */
 };
 
+#define MAX_SUBCLASS_SKILL 5
 struct subclass_type
 {
     const char* name;
     unsigned long base_classes;
-    const char* skills[5];
-    sh_int skill_level[5];
-    sh_int skill_percent[5];
+    const char* skills[MAX_SUBCLASS_SKILL];
+    sh_int skill_level[MAX_SUBCLASS_SKILL];
+    sh_int skill_percent[MAX_SUBCLASS_SKILL];
 };
 
 struct item_type

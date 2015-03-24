@@ -1148,6 +1148,41 @@ DEF_DO_FUN(do_spells)
         }
     }
 
+    // subclass skills
+    if ( ch->pcdata->subclass > 0 )
+    {
+        const struct subclass_type *subclass = &subclass_table[ch->pcdata->subclass];
+        for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+        {
+            if ( subclass->skills[i] == NULL )
+                break;
+            
+            sn = skill_lookup_exact(subclass->skills[i]);
+            level = subclass->skill_level[i];
+            prac = subclass->skill_percent[i];
+            
+            if ( (fAll || level <= ch->level)
+                && level >= min_lev && level <= max_lev
+                && skill_table[sn].spell_fun != spell_null )
+            {
+                found = TRUE;
+                skill = get_skill(ch, sn);
+                mana = mana_cost(ch, sn, skill);
+                sprintf(buf, "{B%-16s %3dm %3d%%(%3d%%){x ",
+                    skill_table[sn].name, mana, prac, skill);
+
+                if ( spell_list[level][0] == '\0' )
+                    sprintf(spell_list[level], "\n\rLevel %2d: %s", level, buf);
+                else /* append */
+                {
+                    if ( ++spell_columns[level] % 2 == 0 )
+                        strcat(spell_list[level], "\n\r          ");
+                    strcat(spell_list[level], buf);
+                }
+            }
+        }
+    }
+    
 	/* return results */
 
 	if (!found)
@@ -1299,6 +1334,37 @@ DEF_DO_FUN(do_skills)
         }
     }
 
+    // subclass skills
+    if ( ch->pcdata->subclass > 0 )
+    {
+        const struct subclass_type *subclass = &subclass_table[ch->pcdata->subclass];
+        for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+        {
+            if ( subclass->skills[i] == NULL )
+                break;
+            
+            sn = skill_lookup_exact(subclass->skills[i]);
+            level = subclass->skill_level[i];
+            prac = subclass->skill_percent[i];
+            
+            if ( (fAll || level <= ch->level)
+                && level >= min_lev && level <= max_lev
+                && skill_table[sn].spell_fun == spell_null )
+            {
+                found = TRUE;
+                sprintf(buf, "{B%-21s %3d%%(%3d%%){x ", skill_table[sn].name, prac, get_skill(ch, sn));
+                if ( skill_list[level][0] == '\0' )
+                    sprintf(skill_list[level], "\n\rLevel %2d: %s", level, buf);
+                else /* append */
+                {
+                    if ( ++skill_columns[level] % 2 == 0 )
+                        strcat(skill_list[level], "\n\r          ");
+                    strcat(skill_list[level], buf);
+                }
+            }
+        }
+    }
+    
 	/* return results */
 
 	if (!found)
@@ -2176,7 +2242,7 @@ int get_subclass_skill( CHAR_DATA *ch, int sn )
     const struct subclass_type *sc = &subclass_table[ch->pcdata->subclass];
 
     int i;
-    for ( i = 0; i < 5; i++ )
+    for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
     {
         if ( sc->skills[i] == NULL )
             return 0;
