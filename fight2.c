@@ -155,11 +155,8 @@ DEF_DO_FUN(do_berserk)
 
 DEF_DO_FUN(do_bash)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance_hit, chance_stun, dam, skill;
-    
-    one_argument(argument,arg);
     
     if ( get_skill(ch,gsn_bash) == 0 )
     {   
@@ -167,21 +164,8 @@ DEF_DO_FUN(do_bash)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if (victim->position < POS_FIGHTING)
     {
@@ -263,11 +247,8 @@ DEF_DO_FUN(do_bash)
 
 DEF_DO_FUN(do_dirt)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance;
-    
-    one_argument(argument,arg);
     
     if ( (chance = get_skill(ch,gsn_dirt)) == 0
         ||   (IS_NPC(ch) && !IS_SET(ch->off_flags,OFF_KICK_DIRT)))
@@ -276,22 +257,9 @@ DEF_DO_FUN(do_dirt)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't in combat!\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
+
     if (IS_AFFECTED(victim,AFF_BLIND))
     {
         act("$E's already been blinded.",ch,NULL,victim,TO_CHAR);
@@ -372,11 +340,8 @@ DEF_DO_FUN(do_dirt)
 
 DEF_DO_FUN(do_trip)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance;
-    
-    one_argument(argument,arg);
     
     if ( (chance = get_skill(ch,gsn_trip)) == 0
         ||   (IS_NPC(ch) && !IS_SET(ch->off_flags,OFF_TRIP)))
@@ -385,22 +350,8 @@ DEF_DO_FUN(do_trip)
         return;
     }
     
-    
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( is_safe(ch,victim) )
         return;
@@ -868,21 +819,8 @@ DEF_DO_FUN(do_aim)
                         break;
                 }
 
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("Who are you aiming at?\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, arg)) == NULL )
         return;
-    }
         
     if (victim == ch)
     {
@@ -1140,7 +1078,7 @@ DEF_DO_FUN(do_snipe)
         return;
     } 
      
-    else if ((victim = get_char_room(ch,arg)) == NULL)
+    else if ((victim = get_victim_room(ch,arg)) == NULL)
     {
         send_to_char("They aren't here.\n\r",ch);
         return;
@@ -1562,7 +1500,7 @@ DEF_DO_FUN(do_disarm)
     hth = 0;
     
     // allow disarm as a shortcut for tdisarm while out-of-combat
-    if ( !ch->fighting && !get_char_room(ch, arg) && get_skill(ch, gsn_disarm_trap) > 0 )
+    if ( !ch->fighting && !get_victim_room(ch, arg) && get_skill(ch, gsn_disarm_trap) > 0 )
     {
         do_disarm_trap( ch, argument );
         return;
@@ -1792,11 +1730,8 @@ void split_attack ( CHAR_DATA *ch, int dt )
 
 DEF_DO_FUN(do_gouge)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance;
-    
-    one_argument(argument,arg);
     
     if ( (chance = get_skill(ch,gsn_gouge)) == 0)
     {
@@ -1804,20 +1739,8 @@ DEF_DO_FUN(do_gouge)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't in combat!\n\r",ch);
-            return;
-        }
-    }   
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( !can_see_combat( ch, victim) )
     {
@@ -2085,11 +2008,8 @@ DEF_DO_FUN(do_war_cry)
 
 DEF_DO_FUN(do_guard)
 {
-    char arg[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
     int chance;
-    
-    one_argument( argument, arg );
     
     if ( (chance = get_skill(ch,gsn_guard)) == 0)
     {
@@ -2097,20 +2017,8 @@ DEF_DO_FUN(do_guard)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( !can_see_combat( ch, victim ) )
     {
@@ -2346,7 +2254,6 @@ DEF_DO_FUN(do_feint)
 
 DEF_DO_FUN(do_distract)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -2358,22 +2265,8 @@ DEF_DO_FUN(do_distract)
         return;
     }
     
-    one_argument( argument, arg );
-
-    if ( arg[0] == '\0' )
-    {
-        victim = ch->fighting;
-        if (victim ==NULL)
-        {
-            send_to_char ( "Distract who?\n\r", ch);
-            return;
-        }
-    } 
-    else if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( victim == ch )
     {
@@ -2669,7 +2562,7 @@ DEF_DO_FUN(do_charge)
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
 	send_to_char( "They aren't here.\n\r", ch );
 	return;
@@ -2848,11 +2741,8 @@ DEF_DO_FUN(do_round_swing)
 
 DEF_DO_FUN(do_spit)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance, dam;
-    
-    one_argument(argument,arg);
     
     if ( (chance = get_skill(ch,gsn_spit)) == 0 )
     {
@@ -2861,22 +2751,8 @@ DEF_DO_FUN(do_spit)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("You spit in utter disgust!!\n\r",ch);
-	    act( "$n spits in utter disgust!!", ch, NULL, NULL, TO_ROOM );
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if (IS_AFFECTED(victim,AFF_BLIND))
     {
@@ -2937,11 +2813,8 @@ DEF_DO_FUN(do_spit)
 
 DEF_DO_FUN(do_choke_hold)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int dam, skill, chance;
-    
-    one_argument(argument,arg);
     
     if ( (skill = get_skill(ch,gsn_choke_hold)) == 0)
     {
@@ -2949,27 +2822,9 @@ DEF_DO_FUN(do_choke_hold)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
-    if (is_safe(ch,victim))
-    {
-        send_to_char( "You can't choke your opponent in a safe room.\n\r", ch);
-        return;
-    }
- 
     if (ch == victim)
     {
         send_to_char( "You try to choke yourself but just end up looking like a fool.\n\r", ch);
@@ -3072,7 +2927,6 @@ DEF_DO_FUN(do_roundhouse)
 
 DEF_DO_FUN(do_hurl)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -3084,21 +2938,8 @@ DEF_DO_FUN(do_hurl)
         return;
     }
     
-    one_argument( argument, arg );
-    if ( arg[0] == '\0' )
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char ( "Hurl who?\n\r", ch);
-            return;
-        }
-    } 
-    else if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( victim == ch )
     {
@@ -3166,7 +3007,6 @@ DEF_DO_FUN(do_hurl)
 DEF_DO_FUN(do_mug)
 {
     char buf  [MAX_STRING_LENGTH];
-    char arg1 [MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int skill;
     int dam;
@@ -3183,21 +3023,8 @@ DEF_DO_FUN(do_mug)
         return;
     }
 
-    argument = one_argument( argument, arg1 );
-    
-    if ( arg1[0] == '\0' )
-    {
-        if ( ( victim = ch->fighting ) == NULL )
-        {
-            send_to_char( "Mug who?\n\r", ch );
-            return;
-        }
-    }
-    else if ( ( victim = get_char_room( ch, arg1 ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
 
     if ( victim == ch )
     {
@@ -3450,28 +3277,12 @@ DEF_DO_FUN(do_crush)
 
 DEF_DO_FUN(do_blackjack)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     AFFECT_DATA af;
     int chance, dam, chance_stun;
 
-    one_argument( argument, arg );
-    
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( victim == ch )
     {
@@ -4271,7 +4082,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
     }
 
   
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
 	send_to_char( "They aren't here.\n\r", ch );
 	return;
