@@ -4840,7 +4840,7 @@ int spell_lookup( const char *name );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_dispel( int dis_level, int spell_level, int duration );
-bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg );
+bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg, bool check );
 bool has_focus_obj( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );
