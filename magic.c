@@ -678,7 +678,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             break;
 
         case TAR_CHAR_SELF:
-            if ( arg[0] != '\0' && !is_name( arg, ch->name ) )
+            if ( arg[0] != '\0' && strcmp(arg, "self") && !is_name( arg, ch->name ) )
             {
                 send_to_char( "You cannot cast this spell on another.\n\r", ch );
                 return FALSE;
