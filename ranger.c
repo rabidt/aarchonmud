@@ -514,7 +514,7 @@ DEF_DO_FUN(do_tame)
 	   return;
 	}
 
-	if ( ( victim = get_char_room( ch, arg1 ) ) == NULL )
+	if ( ( victim = get_victim_room( ch, arg1 ) ) == NULL )
 	{
 	   send_to_char( "They aren't here.\n\r", ch );
 	   return;

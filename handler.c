@@ -56,7 +56,7 @@ OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool ex
 OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer, int *number, bool exact );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact );
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
 CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact );
 
@@ -2717,9 +2717,20 @@ CHAR_DATA *get_char_room( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *rch;
 
-    rch = get_char_room_new( ch, argument, TRUE );
+    rch = get_char_room_new( ch, argument, TRUE, FALSE );
     if ( rch == NULL )
-	rch = get_char_room_new( ch, argument, FALSE );
+	rch = get_char_room_new( ch, argument, FALSE, FALSE );
+
+    return rch;
+}
+
+CHAR_DATA *get_victim_room( CHAR_DATA *ch, const char *argument )
+{
+    CHAR_DATA *rch;
+
+    rch = get_char_room_new( ch, argument, TRUE, TRUE );
+    if ( rch == NULL )
+        rch = get_char_room_new( ch, argument, FALSE, TRUE );
 
     return rch;
 }
@@ -2733,7 +2744,7 @@ bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
 	    || (!number_bits(2) && can_see(ch, victim));
 }
 
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact )
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *rch;
@@ -2752,6 +2763,7 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact )
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( /*!can_see( ch, rch )*/ !check_see_target( ch, rch )
+            || (as_victim && is_same_group(ch, rch))
 	     || !is_ch_name(arg, rch, exact, ch) )
             continue;
 

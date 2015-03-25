@@ -631,7 +631,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             }
             else
             {
-                if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+                if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
                 {
                     send_to_char( "They aren't here.\n\r", ch );
                     return FALSE;
@@ -738,7 +738,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
 
                 *target = TARGET_CHAR;
             }
-            else if ((victim = get_char_room(ch,arg)) != NULL)
+            else if ((victim = get_victim_room(ch,arg)) != NULL)
             {
                 *target = TARGET_CHAR;
             }
