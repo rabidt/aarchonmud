@@ -6636,7 +6636,7 @@ DEF_DO_FUN(do_kill)
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
@@ -6784,7 +6784,7 @@ DEF_DO_FUN(do_murder)
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
@@ -7055,7 +7055,7 @@ CHAR_DATA* get_combat_victim( CHAR_DATA *ch, const char *argument )
 	return ch->fighting;
     }
 
-    victim = get_char_room( ch, argument ); 
+    victim = get_victim_room( ch, argument );
 
     if ( victim == NULL )
     {
