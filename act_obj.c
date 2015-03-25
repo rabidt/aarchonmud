@@ -1785,10 +1785,10 @@ DEF_DO_FUN(do_eat)
             break;
 
         case ITEM_PILL:
-            obj_cast_spell( obj->value[1], obj->value[0], ch, obj, "self" );
-            obj_cast_spell( obj->value[2], obj->value[0], ch, obj, "self" );
-            obj_cast_spell( obj->value[3], obj->value[0], ch, obj, "self" );
-            obj_cast_spell( obj->value[4], obj->value[0], ch, obj, "self" );
+            obj_cast_spell( obj->value[1], obj->value[0], ch, obj, "self", FALSE );
+            obj_cast_spell( obj->value[2], obj->value[0], ch, obj, "self", FALSE );
+            obj_cast_spell( obj->value[3], obj->value[0], ch, obj, "self", FALSE );
+            obj_cast_spell( obj->value[4], obj->value[0], ch, obj, "self", FALSE );
             break;
     }
 
@@ -2488,10 +2488,10 @@ DEF_DO_FUN(do_quaff)
     act( "$n quaffs $p.", ch, obj, NULL, TO_ROOM );
     act( "You quaff $p.", ch, obj, NULL ,TO_CHAR );
 
-    obj_cast_spell( obj->value[1], obj->value[0], ch, obj, "self" );
-    obj_cast_spell( obj->value[2], obj->value[0], ch, obj, "self" );
-    obj_cast_spell( obj->value[3], obj->value[0], ch, obj, "self" );
-    obj_cast_spell( obj->value[4], obj->value[0], ch, obj, "self" );
+    obj_cast_spell( obj->value[1], obj->value[0], ch, obj, "self", FALSE );
+    obj_cast_spell( obj->value[2], obj->value[0], ch, obj, "self", FALSE );
+    obj_cast_spell( obj->value[3], obj->value[0], ch, obj, "self", FALSE );
+    obj_cast_spell( obj->value[4], obj->value[0], ch, obj, "self", FALSE );
 
     extract_obj( obj );
     return;
@@ -2501,6 +2501,7 @@ DEF_DO_FUN(do_recite)
 {
     char arg1[MAX_INPUT_LENGTH];
     OBJ_DATA *scroll;
+    int i;
 
     argument = one_argument( argument, arg1 );
 
@@ -2541,6 +2542,13 @@ DEF_DO_FUN(do_recite)
         send_to_char( "You come out of hiding.\n\r", ch );
     }
 
+    // we only fire the scroll if all of the spells would be valid casts
+    for ( i = 1; i < 5; i++ )
+    {
+        if ( scroll->value[i] > 0 && !obj_cast_spell(scroll->value[i], scroll->value[0], ch, scroll, argument, TRUE) )
+            return;
+    }
+    
     act( "$n recites $p.", ch, scroll, NULL, TO_ROOM );
     act( "You recite $p.", ch, scroll, NULL, TO_CHAR );
 
@@ -2552,22 +2560,13 @@ DEF_DO_FUN(do_recite)
     }
     else
     {
-        bool success=FALSE;
-        if ( obj_cast_spell( scroll->value[1], scroll->value[0], ch, scroll, argument ) )
-            success=TRUE;
-        if ( obj_cast_spell( scroll->value[2], scroll->value[0], ch, scroll, argument ) )
-            success=TRUE;
-        if ( obj_cast_spell( scroll->value[3], scroll->value[0], ch, scroll, argument ) )
-            success=TRUE;
-        if ( obj_cast_spell( scroll->value[4], scroll->value[0], ch, scroll, argument ) )
-            success=TRUE;
-        /*if it didn't go, probably typoed the target argument, no reason to
-          kill the scroll or to check_improve -Vodur*/
-        if ( success )
+        for ( i = 1; i < 5; i++ )
         {
-            extract_obj( scroll );
-            check_improve(ch,gsn_scrolls,TRUE,2);
+            if ( scroll->value[i] > 0 )
+                obj_cast_spell(scroll->value[i], scroll->value[0], ch, scroll, argument, FALSE);
         }
+        extract_obj(scroll);
+        check_improve(ch, gsn_scrolls, TRUE, 2);
     }
 
     WAIT_STATE( ch, 2*PULSE_VIOLENCE );
@@ -2609,6 +2608,9 @@ DEF_DO_FUN(do_brandish)
         return;
     }
     
+    if ( !obj_cast_spell(staff->value[3], staff->value[0], ch, staff, argument, TRUE) )
+        return;
+    
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2630,7 +2632,7 @@ DEF_DO_FUN(do_brandish)
         else 
         {
             // unsuccessful cast (e.g. invalid target) does not use up charge
-            if ( !obj_cast_spell(staff->value[3], staff->value[0], ch, staff, argument) )
+            if ( !obj_cast_spell(staff->value[3], staff->value[0], ch, staff, argument, FALSE) )
                 return;
             check_improve(ch,gsn_staves,TRUE,2);
             --staff->value[2];
@@ -2683,6 +2685,9 @@ DEF_DO_FUN(do_zap)
         return;
     }
     
+    if ( !obj_cast_spell(wand->value[3], wand->value[0], ch, wand, argument, TRUE) )
+        return;
+    
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2707,7 +2712,7 @@ DEF_DO_FUN(do_zap)
         else
         {
             // unsuccessful cast (e.g. invalid target) does not use up charge
-            if ( !obj_cast_spell(wand->value[3], wand->value[0], ch, wand, argument) )
+            if ( !obj_cast_spell(wand->value[3], wand->value[0], ch, wand, argument, FALSE) )
                 return;
             check_improve(ch,gsn_wands,TRUE,2);
             --wand->value[2];
