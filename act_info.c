@@ -5941,7 +5941,7 @@ static void show_subclass( CHAR_DATA *ch, int sc )
 {
     int class, i;
     
-    ptc(ch, "{WSubclass: %s{x (", subclass_table[sc].name);
+    ptc(ch, "{BSubclass: %s{x (", subclass_table[sc].name);
     for ( class = 0; class < MAX_CLASS; class++ )
         if ( can_take_subclass(class, sc) )
             ptc(ch, " %s", class_table[class].name);

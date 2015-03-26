@@ -1618,6 +1618,21 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     else
         dam = level + dice( 2, 4 );
 
+    /* greater frenzy */
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && !is_calm(ch) )
+    {
+        int skill = get_skill(ch, gsn_greater_frenzy);
+        if ( skill > 0 )
+        {
+            // greater frenzy is impacted by shield and heavy armor
+            if ( get_eq_char(ch, WEAR_SHIELD) )
+                skill = skill * 2/3;
+            skill = skill * (200 - get_heavy_armor_penalty(ch)) / 200;
+            // base damage is doubled at 100% skill
+            dam += dam * skill / 100;
+        }
+    }
+    
     /* weapon damage */
     if ( wield != NULL )
     {
