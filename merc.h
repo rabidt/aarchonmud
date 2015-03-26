@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         442
+#define MAX_SKILL         443
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3409,6 +3409,7 @@ extern sh_int  gsn_bulwark;
 extern sh_int  gsn_riposte;
 extern sh_int  gsn_combat_casting;
 extern sh_int  gsn_elemental_strike;
+extern sh_int  gsn_greater_frenzy;
  
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -4542,6 +4543,7 @@ bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    is_wimpy( CHAR_DATA *ch );
+bool    is_calm( CHAR_DATA *ch );
 void    violence_update args( ( void ) );
 bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 void    multi_hit   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );

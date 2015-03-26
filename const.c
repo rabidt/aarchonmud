@@ -2153,6 +2153,12 @@ const struct subclass_type subclass_table[] =
         { 100, 80, 80 }
     },
     {
+        "berserker", GLADIATOR,
+        { "greater frenzy" },
+        { 30 },
+        { 100 }
+    },
+    {
         "stormlord", SAMURAI|RANGER,
         { "elemental strike", "immolation", "electrocution", "absolute zero" },
         { 10, 40, 41, 42 },
@@ -5603,6 +5609,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_elemental_strike, 0, 0, DUR_NONE,
         "elemental strike", "!elemental strike!", ""
+    },
+
+    {
+        "greater frenzy",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_VIT, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_greater_frenzy, 0, 0, DUR_NONE,
+        "", "!greater frenzy!", ""
     },
 
     {
