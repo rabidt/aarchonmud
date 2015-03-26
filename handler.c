@@ -3486,6 +3486,30 @@ bool room_is_dark( ROOM_INDEX_DATA *pRoomIndex )
     return FALSE;
 }
 
+bool room_is_dim( ROOM_INDEX_DATA *pRoomIndex )
+{
+    if (!pRoomIndex)
+        return FALSE;
+    
+    if ( IS_SET(pRoomIndex->room_flags, ROOM_DARK) )
+        return TRUE;
+    
+    if ( pRoomIndex->sector_type == SECT_INSIDE
+        || pRoomIndex->sector_type == SECT_CITY )
+        return FALSE;
+    
+    if ( IS_SET(pRoomIndex->room_flags, ROOM_INDOORS)
+        || pRoomIndex->sector_type == SECT_UNDERGROUND
+        || pRoomIndex->sector_type == SECT_UNDERWATER )
+        return TRUE;
+    
+    // we are outdoors in natural surroundings
+    if ( weather_info.sunlight == SUN_LIGHT )
+        return FALSE;
+    
+    return TRUE;
+}
+
 bool room_is_sunlit( ROOM_INDEX_DATA *pRoomIndex )
 {
     if (!pRoomIndex)
@@ -3683,17 +3707,6 @@ bool can_see( CHAR_DATA *ch, CHAR_DATA *victim )
 bool can_see_combat( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     return can_see_new(ch, victim, TRUE) != SEE_CANT;
-}
-
-/* True if room would be dark if lights were removed */
-bool room_is_dim( ROOM_INDEX_DATA *pRoomIndex )
-{
-    bool is_dim;
-    int buf = pRoomIndex->light;
-    pRoomIndex->light = 0;
-    is_dim = room_is_dark(pRoomIndex);
-    pRoomIndex->light = buf;
-    return is_dim;
 }
 
 #define LIGHT_DARK     0
