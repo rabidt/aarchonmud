@@ -3767,7 +3767,7 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     if (see_state == SEE_CANT)
         return FALSE;
     
-    if (!IS_AFFECTED(victim, AFF_HIDE) || victim->fighting != NULL)
+    if ( !IS_AFFECTED(victim, AFF_HIDE) )
         return TRUE;
     
     if ( is_same_group(ch, victim) )
