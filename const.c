@@ -1839,7 +1839,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         { 
           "quickling", "Quickl",
           { 305, 300, 310, 315, 305, 305, 310, 305, 305, 310, 310, 310, 305, 305, 315 },
-          5, { "quick draw", "goblin cleaver", "flanking", "second attack", "third attack" },
+          5, { "quick draw", "goblincleaver", "flanking", "second attack", "third attack" },
           {10, 20, 30, 40, 50}, {100, 90, 60, 60, 60},
           {  40,  50,  80,  90,  90,      70,  70,  50,  70,  90 },
           { 135, 140, 155, 160, 160,     150, 150, 140, 150, 160 },
