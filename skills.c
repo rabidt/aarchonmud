@@ -290,8 +290,8 @@ DEF_DO_FUN(do_gain)
         {
             int col;
             col = 0;
-            sprintf(buf,"{c%-20s {w%3s   {c%-20s {w%3s   {c%-20s {w%3s{x\n\r",
-                "group","cp","group","cp","group","cp");
+            sprintf(buf,"{c%-10s {w%13s   {c%-10s {w%13s   {c%-10s {w%13s{x\n\r",
+                "group","trains","group","trains","group","trains");
             send_to_char(buf,ch);
             sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
             send_to_char(buf,ch);
@@ -315,8 +315,8 @@ DEF_DO_FUN(do_gain)
             send_to_char("\n\r",ch);
             col = 0;
             
-            sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r",
-                "skill","lvl/cp","skill","lvl/cp","skill","lvl/cp");
+            sprintf(buf,"{c%-10s {w%13s   {c%-10s {w%13s   {c%-10s {w%13s{x\n\r",
+                "skill","lvl/tr","skill","lvl/tr","skill","lvl/tr");
             send_to_char(buf,ch);
             sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
             send_to_char(buf,ch);
@@ -347,8 +347,8 @@ DEF_DO_FUN(do_gain)
 
             col = 0;
 
-            sprintf(buf,"{c%-17s {w%6s   {c%-17s {w%6s   {c%-17s {w%6s{x\n\r",
-                "spell","lvl/cp","spell","lvl/cp","spell","lvl/cp");
+            sprintf(buf,"{c%-10s {w%13s   {c%-10s {w%13s   {c%-10s {w%13s{x\n\r",
+                "spell","lvl/tr","spell","lvl/tr","spell","lvl/tr");
             send_to_char(buf,ch);
             sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
             send_to_char(buf,ch);
@@ -639,7 +639,10 @@ static int mastery_points( CHAR_DATA *ch )
 
 static int max_mastery_points( CHAR_DATA *ch )
 {
-    return 30 + 2 * ch->pcdata->remorts;
+    if ( ch->pcdata->ascents > 0 )
+        return 40 + 10 * UMIN(5, ch->pcdata->ascents) + ch->pcdata->remorts;
+    else
+        return 30 + 2 * ch->pcdata->remorts;
 }
 
 static const char* mastery_title( int level )
@@ -816,11 +819,11 @@ DEF_DO_FUN(do_master)
         int points_after = mastery_points(ch);
         int points_diff = (points_before - points_after);
         int reclaim = rand_div(points_diff * 9, 10);
-        int cost = points_diff * 1000;
+        int cost = points_diff * 5000;
         if ( (ch->silver/100 + ch->gold) < cost)
         {
             char buf[MSL];
-            sprintf(buf, "I don't work for free, you know. Come back when you got %d gold.", cost);
+            sprintf(buf, "I don't work for free, you know. Come back when you have %d gold.", cost);
             do_say(trainer, buf);
             ch->pcdata->mastered[sn]++;
             return;
@@ -1490,7 +1493,7 @@ void set_level_exp( CHAR_DATA *ch )
 
 int exp_per_level(CHAR_DATA *ch)
 {
-    int rem_add,race_factor;
+    int rem_add,race_factor,asc_add;
 
     if (IS_NPC(ch))
         return 1000;
@@ -1505,7 +1508,9 @@ int exp_per_level(CHAR_DATA *ch)
     race_factor = pc_race_table[ch->race].class_mult[ch->class] +
         rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
 
-    return 10 * (race_factor);
+    asc_add = ch->pcdata->ascents ? 100 * (ch->pcdata->ascents + 5) : 0;
+    
+    return 10 * (race_factor) + asc_add;
 }
 
 /* this procedure handles the input parsing for the skill generator */
@@ -2001,6 +2006,7 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 	 || (sn==gsn_wrist_shield)
 	 || (sn==gsn_dual_wield)
 	 || (sn==gsn_two_handed)
+     || (sn==gsn_hand_to_hand)
 	 || (sn==gsn_rescue)
 	 || (sn==gsn_flee)
 	 || (sn==gsn_sneak)
@@ -2108,6 +2114,25 @@ int get_race_skill( CHAR_DATA *ch, int sn )
     return 0;
 }
 
+int get_subclass_skill( CHAR_DATA *ch, int sn )
+{
+    if ( IS_NPC(ch) || !ch->pcdata->subclass )
+        return 0;
+    
+    const struct subclass_type *sc = &subclass_table[ch->pcdata->subclass];
+
+    int i;
+    for ( i = 0; i < 5; i++ )
+    {
+        if ( sc->skills[i] == NULL )
+            return 0;
+        if ( !strcmp(sc->skills[i], skill_table[sn].name) )
+            return ch->level >= sc->skill_level[i] ? sc->skill_percent[i] : 0;
+    }
+
+    return 0;
+}
+
 int pc_skill_prac(CHAR_DATA *ch, int sn)
 {
 	int skill;
@@ -2160,18 +2185,17 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	race_skill = get_race_skill( ch, sn );
 	if ( race_skill > 0 )
 	    skill = skill * (100 - race_skill) / 100 + race_skill * 10;
+    int subclass_skill = get_subclass_skill(ch, sn);
+    if ( subclass_skill > 0 )
+        skill = skill * (100 - subclass_skill) / 100 + subclass_skill * 10;
 
+    // adjustment for stats below max
 	if (skill)
 	{
 		i = 3 * get_curr_stat(ch, skill_table[sn].stat_prime);
 		i+= 2 * get_curr_stat(ch, skill_table[sn].stat_second);
 		i+= get_curr_stat(ch, skill_table[sn].stat_third);
-		skill += i/6-100;
-
-		if (skill>1000)
-			skill = skill/2+450;
-		else if (skill>750)
-			skill = 4*skill/5 + 150;
+		skill *= (i/6 + 800) / 1000.0;
 
 		if (skill<10)
 			skill = 10;
@@ -2431,6 +2455,11 @@ DEF_DO_FUN(do_practice)
 
 	if (!str_cmp("field",argument))
 	{
+            if ( IS_SET(ch->act, PLR_NOEXP) || IS_HERO(ch) )
+            {
+                send_to_char("You cannot gain experience right now.\n\r", ch);
+                return;
+            }
             /* no more burning practices when you don't have field */
             if (ch->pcdata->field < 100)
             {
@@ -2439,11 +2468,13 @@ DEF_DO_FUN(do_practice)
             }
             else
             {
-		ch->practice--;
-		sn = number_range(ch->pcdata->field/2, ch->pcdata->field);
-		ch->pcdata->field-=sn;
-		gain_exp(ch, sn);
-		return;
+                int convert = number_range(ch->pcdata->field/3, ch->pcdata->field*2/3);
+                ptc(ch, "Your practice converts %d field experience into real experience.\n\r", convert);
+                ch->practice--;
+                ch->pcdata->field -= convert;
+                ch->exp += convert;
+                update_pc_level(ch);
+                return;
             }
 	}
 	

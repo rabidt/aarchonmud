@@ -47,15 +47,11 @@ end
 -- end luareset section
 
 -- luaquery section
-local query_results={}
-
 local function luaquery_usage( ch )
     pagetochar( ch,
 [[
 {Cluaquery <type> <selection> [filter] [sort] [width] [limit]
-    {xExecute a query and show first page of results.
-{Cluaquery next
-    {xShow the next page of results.
+    {xExecute a query and show results.
 
 Types:
     area    - AREAs (area_list)
@@ -336,39 +332,43 @@ local lqtbl={
 
 }
 
-local function show_next_results( ch )
-    if not(query_results[ch.name]) then return end
-
-    local res=query_results[ch.name]
-
-    local ind=res.index
+local function luaq_results_con( ch, argument, header, result )
+    local ind=1
     local scroll=(ch.scroll == 0 ) and 100 or ch.scroll
-    local toind=math.min(ind+scroll-4, res.total ) -- -2 is normal, -3 for extra line at bottom, -4 for query at top
+    local total=#result
 
-    local out={}
-    table.insert(out, "Query: "..res.query)
-    table.insert(out, res.header)
-    for i=ind,toind do
-        table.insert(out, res.results[i] )
+    sendtochar(ch, "Query: "..argument.."\n\r")
+    while true do
+        local toind=math.min(ind+scroll-3, total ) -- -2 is normal, -3 for extra line at bottom, -4 for query at top
+        local out={}
+        table.insert(out, header)
+        for i=ind,toind do
+            table.insert(out, result[i] )
+        end
+
+        table.insert( out, ("Results %d through %d (of %d)."):format( ind, toind, total) )
+
+        sendtochar( ch, table.concat( out, "\n\r").."\n\r")
+        
+        if toind==total then
+            return
+        end
+        
+        while true do
+            sendtochar( ch, "[n]ext, [q]uit: ")
+            local cmd=coroutine.yield()
+            
+            if cmd=="n" then
+                ind=toind+1
+                break
+            elseif cmd=="q" then
+                return
+            else 
+                sendtochar( ch, "\n\rInvalid: "..cmd.."\n\r")
+            end
+        end
     end
-
-    table.insert( out, ("Results %d through %d (of %d)."):format( ind, toind, res.total) )
-
-    if toind==res.total then
-        query_results[ch.name]=nil
-    else
-        res.index=toind+1
-    end
-
-    pagetochar( ch, table.concat( out, "\n\r").."\n\r")
 end
-
-local luaq_nav=
-{
-    ["next"]=function( ch )
-        show_next_results( ch )
-    end
-}
 
 function do_luaquery( ch, argument)
     -- arg checking stuff
@@ -376,11 +376,6 @@ function do_luaquery( ch, argument)
     
     if not(args[1]) then
         luaquery_usage(ch)
-        return
-    end
-
-    if luaq_nav[args[1]] then
-        luaq_nav[args[1]]( ch )
         return
     end
 
@@ -602,17 +597,11 @@ function do_luaquery( ch, argument)
                 "|"..ln.."|")
     end
 
-    -- stick in in query_results table for browsing
-    query_results[ch.name]=
-    {
-        query=argument,
-        index=1,
-        total=#printing,
-        header=hdr,
-        results=printing
-    }
-
-    show_next_results( ch )
+    start_con_handler( ch.descriptor, luaq_results_con, 
+            ch,
+            argument, 
+            hdr,
+            printing)
 
 end
 -- end luaquery section
@@ -986,10 +975,13 @@ local function alist_usage( ch )
 [[
 Syntax:  alist
          alist [column name] <ingame>
+         alist unused
          alist find [text]
 
 
 'alist' with no argument shows all areas, sorted by area vnum.
+
+'alist unused' shows which vnum ranges are unused.
 
 With a column name argument, the list is sorted by the given column name.
 'ingame' is used as an optional 3rd argument to show only in game areas.
@@ -1026,6 +1018,27 @@ function do_alist( ch, argument )
             end
             return false
         end
+    elseif args[1]=="unused" then
+        local alist=getarealist()
+        table.sort(alist, function(a,b) return a.minvnum<b.minvnum end)
+
+        -- assume no gap at the beginning (vnum 1)
+        sendtochar(ch, " Min   -  Max   [    count   ]\n\r")
+        sendtochar(ch, ("-"):rep(80).."\n\r")
+        for i,area in ipairs(alist) do
+            local area_next=alist[i+1]
+            if not(area_next) then break end
+
+            local gap=area_next.minvnum-area.maxvnum-1
+            if gap>0 then
+                sendtochar(ch, string.format("%6s - %6s [%6s vnums]\n\r",
+                            area.maxvnum+1,
+                            area_next.minvnum-1,
+                            gap))
+            end
+        end
+
+        return
     else
         for k,v in pairs(alist_col) do
             if v==args[1] then
@@ -1777,6 +1790,7 @@ local function luahelp_usage( ch )
 Syntax: 
     luahelp <section>
     luahelp <section> <get|set|meth>
+    luahelp dump <section> -- Dump for pasting to dokuwiki
 
 Examples:
     luahelp ch
@@ -1793,6 +1807,8 @@ local function nextrowcolor()
     return rowtoggle and 'w' or 'D'
 end
 
+local SEC_NOSCRIPT=99
+
 local function luahelp_dump( ch, args )
     if args[1]=="glob" or args[1]=="global" then
         local out={}
@@ -1801,10 +1817,10 @@ local function luahelp_dump( ch, args )
         table.insert( out, "^Function^Security^\n\r")
         for i,v in ipairs(g) do
             table.insert( out, string.format(
-                        "| [[.%s|%s]] | %d |\n\r",
+                        "| [[.%s|%s]] | %s |\n\r",
                         v.lib and (v.lib..":"..v.name) or v.name,
                         v.lib and (v.lib.."."..v.name) or v.name,
-                        v.security)
+                        v.security == SEC_NOSCRIPT and 'X' or v.security)
             )
         end
 
@@ -1822,11 +1838,11 @@ local function luahelp_dump( ch, args )
         local props={}
         for k,v in pairs(t.get) do
             props[v.field]=props[v.field] or {}
-            props[v.field].get=v.security
+            props[v.field].get=v.security == SEC_NOSCRIPT and 'X' or v.security
         end
         for k,v in pairs(t.set) do
             props[v.field]=props[v.field] or {}
-            props[v.field].set=v.security
+            props[v.field].set=v.security == SEC_NOSCRIPT and 'X' or v.security
         end
         local out={}
 
@@ -1850,10 +1866,10 @@ local function luahelp_dump( ch, args )
         table.insert( out, "^Method^Security^\n\r")
         for k,v in pairs(t.method) do
             table.insert( out, string.format(
-                        "| [[.%s|%s]] | %d |\n\r",
+                        "| [[.%s|%s]] | %s |\n\r",
                         v.field,
                         v.field,
-                        v.security)
+                        v.security == SEC_NOSCRIPT and 'X' or v.security)
             )
         end
         table.insert( out, "</sortable>\n\r")
@@ -1883,19 +1899,22 @@ function do_luahelp( ch, argument )
     end
 
     if args[1] == "global" or args[1] == "glob" then
+        local show_all= (args[2]=="all")
         local out={}
         
         table.insert(out, "GLOBAL functions\n\r" )
         local g=getglobals()
         for i,v in ipairs(g) do
+            if not(v.security==SEC_NOSCRIPT) or show_all then
             table.insert( out, string.format(
-                    "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                    "{%s[%s] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                     nextrowcolor(),
                     v.security,
                     v.lib and (v.lib.."."..v.name) or v.name,
                     "global",
                     v.lib and (v.lib..":"..v.name) or v.name)
             )
+            end
         end
 
         pagetochar( ch, table.concat(out) ) 
@@ -1909,11 +1928,23 @@ function do_luahelp( ch, argument )
             return
         end
         
-        local subsect=args[2]
+        local subsect
+        local show_all
+
+        if args[2] then
+            if args[2]=="all" then
+                -- no subsect
+                show_all=true
+            else
+                subsect=args[2]
+                show_all=(args[3]=="all")
+            end
+        end
 
         if not(subsect) or subsect=="get" then
             table.insert( out, "\n\rGET properties\n\r")
             for i,v in ipairs(t.get) do
+                if not(v.security==SEC_NOSCRIPT) or show_all then
                 table.insert( out, string.format(
                             "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
@@ -1922,12 +1953,14 @@ function do_luahelp( ch, argument )
                             args[1],
                             v.field)
                 )
+                end
             end
         end            
 
         if not(subsect) or subsect=="set" then
             table.insert( out, "\n\rSET properties\n\r")
             for i,v in ipairs(t.set) do
+                if not(v.security==SEC_NOSCRIPT) or show_all then
                 table.insert( out, string.format(
                             "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
@@ -1936,12 +1969,14 @@ function do_luahelp( ch, argument )
                             args[1],
                             v.field)
                 )
+                end
             end
         end
 
         if not(subsect) or subsect=="meth" then
             table.insert( out, "\n\rMETHODS\n\r")
             for i,v in ipairs(t.method) do
+                if not(v.security==SEC_NOSCRIPT) or show_all then
                 table.insert( out, string.format(
                             "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
@@ -1950,6 +1985,7 @@ function do_luahelp( ch, argument )
                             args[1],
                             v.field)
                 )
+                end
             end
         end
  
@@ -1959,3 +1995,147 @@ function do_luahelp( ch, argument )
 end
 
 -- end luahelp section
+
+-- do_achievements_boss section
+local boss_table
+
+function update_bossachv_table()
+    boss_table={}
+    for _,area in pairs(getarealist()) do
+        for _,mp in pairs(area.mobprotos) do
+            if mp.bossachv then
+                table.insert(boss_table, mp)
+            end
+        end
+    end
+
+    table.sort( boss_table, function(a,b) 
+            return a.area.minlevel < b.area.minlevel 
+    end )
+end
+
+function do_achievements_boss( ch, victim)
+    local plr={}
+    for k,v in pairs(victim.bossachvs) do
+        plr[v.vnum] = v.timestamp
+    end
+
+    if not(boss_table) then update_bossachv_table() end
+
+    local columns={}
+    local nummobs=#boss_table
+    local numrows=math.ceil(nummobs/2)
+    
+    for i,v in pairs(boss_table) do
+        local row
+        row=i%numrows
+        if row==0 then row=numrows end
+
+        columns[row]=columns[row] or "{G|{x"
+        columns[row]=string.format("%s{w%4s %s{x %s{G|{x",
+                columns[row],
+                i..".",
+                util.format_color_string(getmobproto(v.vnum).shortdescr, 20),
+                util.format_color_string(
+                    (plr[v.vnum] and os.date("{y%x{x", plr[v.vnum]) or "{DLocked{x"),
+                    9))
+        
+
+    end
+
+    local total=#boss_table
+    local unlocked=#victim.bossachvs
+    local locked=total-unlocked
+    pagetochar( ch, "{WBoss Achievements for "..victim.name..
+            "\n\r{w----------------------------\n\r"..
+            table.concat( columns, "\n\r").."\n\r"..
+            "\n\r{wTotal Achievements: "..total..", Total Unlocked: "..unlocked..", Total Locked: "..locked.."\n\r"..
+            "{x(Use 'achievement boss rewards' to see rewards table.)\n\r"
+    )
+end
+
+function do_achievements_boss_reward( ch )
+    if not(boss_table) then update_bossachv_table() end
+
+    sendtochar( ch, ("{w%-40s {W%5s{G| {W%5s{G| {W%5s{G| {W%5s{x\n\r"):format(
+                "Boss", "QP", "Exp", "Gold", "AchP"))
+    sendtochar( ch, ("-"):rep(80).."\n\r")
+    for i,v in ipairs(boss_table) do
+        sendtochar(ch, ("{w%s {y%5d{G| {c%5d{G| {y%5d{G| {c%5d{x\n\r"):format(
+                    util.format_color_string(v.shortdescr, 40),
+                    v.bossachv.qp,
+                    v.bossachv.exp,
+                    v.bossachv.gold,
+                    v.bossachv.achp))
+    end 
+        
+end
+-- end do_achievements_boss section
+
+-- do_qset section
+local function do_qset_usage( ch )
+    sendtochar( ch, [[
+Syntax:
+  For regular qsets:
+    qset [player] [id] [value] [timer] [limit]
+
+    Example:
+    qset astark 31404 3
+
+  For lua setval:
+    qset [player] [setval] [value]
+
+    Use value of 'nil' to clear.
+
+    Examples:
+    qset astark blah123 true
+    qset astark blah123 nil
+]])
+    return
+end
+
+function do_qset(ch, argument)
+    local args=arguments(argument)
+
+    if #args<3 then
+        do_qset_usage(ch)
+        return
+    end 
+        
+    local vic=getpc(args[1])
+    if not vic then
+        sendtochar( ch, "No such player: "..args[1].."\n\r")
+        return
+    end
+
+    -- if arg2 is number, it's a qset, otherwise it's setval
+    if tonumber(args[2]) then
+        ch:qset(vic, unpack(args,2))
+        sendtochar( ch, "You have successfully changed "..vic.name.."'s qstatus.\n\r")
+        return
+    else
+        -- make sure we save the right types
+        local val
+
+        if tonumber(args[3]) then
+            val=tonumber(args[3])
+        elseif args[3]=="true" then
+            val=true
+        elseif args[3]=="false" then
+            val=false
+        elseif args[3]=="nil" then
+            val=nil
+        else
+            val=args[3]
+        end
+
+        vic:setval(args[2], val, true)
+
+        sendtochar( ch, string.format("Setval complete on %s.\n\r%s set to %s (type %s)\n\r", 
+                    vic.name, 
+                    args[2], 
+                    tostring(vic:getval(args[2])), 
+                    type(vic:getval(args[2]))))
+    end
+end
+-- end do_qset section

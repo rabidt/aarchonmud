@@ -583,8 +583,7 @@ void remort_update()
             for ( d = descriptor_list; d != NULL; d = d->next )
             {
                 ch = d->original ? d->original : d->character;
-                if ((d->connected == CON_PLAYING
-                    || IS_WRITING_NOTE(d->connected))
+                if ((IS_PLAYING(d->connected)) 
                     && !str_cmp(ch->name, chamber_list[j]->name))
                 {
                     found = TRUE;
@@ -861,34 +860,46 @@ MEMFILE* remort_mem_save()
 void remort_begin(CHAR_DATA *ch)
 {
     int i;
+    bool reconnect = IS_SET(ch->act, PLR_REMORT_ROLL);
 
     remort_remove(ch, TRUE);
 
     // mark as rolling stats in case we loose connection
-    SET_BIT(ch->act, PLR_REMORT_ROLL);
-    quit_save_char_obj(ch);
+    if ( !reconnect )
+    {
+        SET_BIT(ch->act, PLR_REMORT_ROLL);
+        quit_save_char_obj(ch);
+    }
     
     if (ch->desc != NULL)
-        ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
+    {
+        if ( ch->pcdata->ascents > 0 )
+            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_SUBCLASS;
+        else
+            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
+    }
     else
     {
         do_quit(ch, "");
         return;
     }
     
-    char_from_char_list(ch);
-    
-    if ( is_in_room(ch) )
-        char_from_room(ch);
-    
-    /* need to do a little cleanup*/
-    CHAR_DATA *wch;
-    for ( wch = char_list; wch != NULL; wch = wch->next )
+    if ( !reconnect )
     {
-        if ( wch->reply == ch )
-            wch->reply = NULL;
-        if ( ch->mprog_target == wch )
-            wch->mprog_target = NULL;
+        char_from_char_list(ch);
+    
+        if ( is_in_room(ch) )
+            char_from_room(ch);
+        
+        /* need to do a little cleanup*/
+        CHAR_DATA *wch;
+        for ( wch = char_list; wch != NULL; wch = wch->next )
+        {
+            if ( wch->reply == ch )
+                wch->reply = NULL;
+            if ( ch->mprog_target == wch )
+                wch->mprog_target = NULL;
+        }
     }
 
     for (i = 0; i < MAX_STATS; i++)
@@ -1045,5 +1056,33 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
     remort_begin(ch);
 } 
 
+DEF_DO_FUN(do_ascend)
+{
+    if ( IS_NPC(ch) )
+        return;
+    
+    if ( ch->level < LEVEL_HERO || ch->pcdata->remorts < MAX_REMORT )
+    {
+        ptc(ch, "You need to reach level %d before you can ascend.\n\r", LEVEL_HERO);
+        return;
+    }
+    
+    if ( strcmp(argument, "confirm") )
+    {
+        send_to_char("To ascend, type <ascend confirm>.\n\r", ch);
+        send_to_char("WARNING: Doing so will cause you to be reborn as a remort 0 character!\n\r", ch);
+        return;
+    }
 
-
+    if ( ch->carrying != NULL )
+    {
+        send_to_char("You must leave all posessions behind.\n\r", ch);
+        return;
+    }
+    
+    logpf("Ascending %s.", ch->name);
+    ch->pcdata->remorts = 0;
+    ch->pcdata->ascents += 1;
+    
+    remort_begin(ch);
+}

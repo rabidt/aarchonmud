@@ -160,30 +160,16 @@ void advance_level( CHAR_DATA *ch, bool hide )
 }   
 
 
-void gain_exp( CHAR_DATA *ch, int gain_base)
+void gain_exp( CHAR_DATA *ch, int gain)
 {
     char buf[MAX_STRING_LENGTH];
-    int gain;
     long field, max;
 
     if ( IS_NPC(ch) || IS_HERO(ch) )
         return;
 
-    if ( IS_SET(ch->act,PLR_NOEXP) && gain_base > 0 )
+    if ( IS_SET(ch->act,PLR_NOEXP) && gain > 0 )
         return;
-
-    if ( cfg_enable_exp_mult && gain_base > 0)
-    {
-        gain=(int)(gain_base * cfg_exp_mult);
-        if ( cfg_show_exp_mult  )
-        {
-            ptc(ch, "There's currently an exp bonus of %d%%!\n\r", (int)((cfg_exp_mult*100)-99.5));
-        }
-    }
-    else
-    {
-        gain=gain_base;
-    }
 
     field = UMAX((ch_wis_field(ch)*gain)/100,0);
     gain-=field;
@@ -204,7 +190,14 @@ void gain_exp( CHAR_DATA *ch, int gain_base)
     }
 
     ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
+    update_pc_level(ch);
+}
 
+
+void update_pc_level( CHAR_DATA *ch )
+{
+    char buf[MAX_STRING_LENGTH];
+    
     if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1)
             && ch->level >= LEVEL_UNAUTHED )
     {
@@ -774,19 +767,26 @@ int move_gain( CHAR_DATA *ch )
 }
 */
 
+bool starvation_immune( CHAR_DATA *ch )
+{
+    return IS_NPC(ch) || NOT_AUTHED(ch) || IS_HERO(ch) || IS_SET(ch->form, FORM_CONSTRUCT) || IS_AFFECTED(ch, AFF_ROOTS);
+}
+
 void gain_condition( CHAR_DATA *ch, int iCond, int value )
 {
     int condition;
 
-    if ( value == 0 || IS_NPC(ch) || (IS_HERO(ch) && iCond!=COND_DRUNK)
-            || NOT_AUTHED(ch) || IS_SET(ch->form, FORM_CONSTRUCT))
+    if ( value == 0 || IS_NPC(ch) )
         return;
 
-    condition               = ch->pcdata->condition[iCond];
-    if (condition == -1)
+    if ( (condition = ch->pcdata->condition[iCond]) < 0 )
         return;
-    ch->pcdata->condition[iCond]    = URANGE( 0, condition + value, 72 );
 
+    if ( starvation_immune(ch) && (iCond == COND_HUNGER || iCond == COND_THIRST) && value < 0 )
+        return;
+    
+    ch->pcdata->condition[iCond] = URANGE( 0, condition + value, 72 );
+    
     if ( ch->pcdata->condition[iCond] == 0 )
     {
         switch ( iCond )
@@ -796,7 +796,7 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
                 break;
 
             case COND_THIRST:
-                send_to_char( "You are dessicated.\n\r", ch );
+                send_to_char( "You are desiccated.\n\r", ch );
                 break;
 
             case COND_DRUNK:
@@ -1028,7 +1028,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -1073,7 +1073,7 @@ void weather_update( void )
             weather_info.sunlight = SUN_LIGHT;
             for (d=descriptor_list; d!=NULL; d=d->next)
                 if (d->character && (d->character->race == race_werewolf)
-                        && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
+                        && (IS_PLAYING(d->connected)))
                 {
                     if (d->connected == CON_PLAYING)
                     {
@@ -1091,7 +1091,7 @@ void weather_update( void )
             weather_info.sunlight = SUN_SET;
             for (d=descriptor_list; d!=NULL; d=d->next)
                 if (d->character && (d->character->race == race_werewolf)
-                        && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
+                        && (IS_PLAYING(d->connected)))
                 {
                     if ( d->connected == CON_PLAYING )
                     {
@@ -1478,7 +1478,7 @@ void char_update( void )
                 send_to_char("You fall into a deeper sleep.\n\r",ch);
             }
             else if (ch->position != POS_SLEEPING)
-                gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
+                ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
         }
 
         if ( !IS_NPC(ch) && ch->level < LEVEL_IMMORTAL )
@@ -1549,7 +1549,7 @@ void char_update( void )
                 gain_condition( ch, COND_FULL, (ch->size > SIZE_MEDIUM) ? -2 : -1 );
                 gain_condition( ch, COND_DRUNK,  -1 );
 
-                if ( !IS_AFFECTED(ch, AFF_ROOTS) )
+                if ( !starvation_immune(ch) )
                 {
                     gain_condition( ch, COND_THIRST, 
                             IS_AFFECTED(ch, AFF_BREATHE_WATER) ? 
@@ -1597,13 +1597,14 @@ void char_update( void )
                         }
                     }
 
-                    if( ch->pcdata->prayer_request )
-                    {
-                        ch->pcdata->prayer_request->ticks--;
-                        if( ch->pcdata->prayer_request->ticks == 0 )
-                            grant_prayer(ch);
-                    }
                 }
+            }
+            
+            if ( ch->pcdata->prayer_request )
+            {
+                ch->pcdata->prayer_request->ticks--;
+                if ( ch->pcdata->prayer_request->ticks == 0 )
+                    grant_prayer(ch);
             }
         }
 
@@ -2512,6 +2513,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */
@@ -3009,7 +3013,7 @@ void msdp_update( void )
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-    if ( d->character && d->connected == CON_PLAYING && !IS_NPC(d->character) )
+    if ( d->character && IS_PLAYING(d->connected) && !IS_NPC(d->character) )
         {
             char buf[MAX_STRING_LENGTH];
             CHAR_DATA *pOpponent = d->character->fighting;

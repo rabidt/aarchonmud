@@ -207,10 +207,11 @@ const struct flag_type act_flags[] =
 	{   "noexp",       ACT_NOEXP,      TRUE    },
 	{   "nomimic",      ACT_NOMIMIC,     TRUE    },
 	{   "hard_quest",   ACT_HARD_QUEST,    TRUE    },
-        {   "staggered",    ACT_STAGGERED,   TRUE    },
-        {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
-        {   "noweapon",     ACT_NOWEAPON,    TRUE    },
-        {   "traveller",    ACT_TRAVELLER,   TRUE    },
+    {   "staggered",    ACT_STAGGERED,   TRUE    },
+    {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
+    {   "noweapon",     ACT_NOWEAPON,    TRUE    },
+    {   "traveller",    ACT_TRAVELLER,   TRUE    },
+    {   "achievement",  ACT_ACHIEVEMENT, TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 
@@ -391,6 +392,9 @@ const struct flag_type imm_flags[] =
 	{   "disease",      Q,  TRUE    },
 	{   "drowning",     R,  TRUE    },
 	{   "sound",        T,  TRUE    },
+        {   "sleep",        U,  TRUE    },
+        {   "charmperson",  V,  TRUE    },
+        {   "gaze",         W,  TRUE    },
 	{   "wood",         X,  TRUE    },
 	{   "silver",       Y,  TRUE    },
 	{   "iron",         Z,  TRUE    },
@@ -537,6 +541,7 @@ const struct flag_type oprog_flags[] =
     {   "give",         OTRIG_GIVE,      TRUE    },
     {   "drop",         OTRIG_DROP,      TRUE    },
     {   "eat",          OTRIG_EAT,       TRUE    },
+    {   "drink",        OTRIG_DRINK,     TRUE    },
     {   "sacrifice",    OTRIG_SACRIFICE, TRUE    },
     {   "wear",         OTRIG_WEAR,      TRUE    },
     {   "remove",       OTRIG_REMOVE,    TRUE    },
@@ -578,6 +583,7 @@ const struct flag_type aprog_flags[] =
     {   "call",         ATRIG_CALL,      FALSE   },
     {   "timer",        ATRIG_TIMER,     TRUE    },
     {   "death",        ATRIG_DEATH,     TRUE    },
+    {   "connect",      ATRIG_CONNECT,   TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -595,6 +601,7 @@ const struct flag_type rprog_flags[] =
     {   "look",         RTRIG_LOOK,      TRUE    },
     {   "try",          RTRIG_TRY,       TRUE    },
     {   "command",      RTRIG_COMMAND,   TRUE    },
+    {   "connect",      RTRIG_CONNECT,   TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -678,7 +685,7 @@ const struct flag_type room_flags[] =
     {   "donation",     ROOM_DONATION,      TRUE    },
     {   "nowhere",      ROOM_NOWHERE,       TRUE    },
     {   "snare",        ROOM_SNARE,         FALSE   },   
-    {   "blacksmith",   ROOM_BLACKSMITH,    TRUE    },   
+    {   "blacksmith",   ROOM_BLACKSMITH,    FALSE   },   
     {   "peel",         ROOM_PEEL,          FALSE   },   
     {   "jail",         ROOM_JAIL,          TRUE    },   
     {   "no_quest",     ROOM_NO_QUEST,      TRUE    },   
@@ -787,6 +794,7 @@ const struct flag_type extra_flags[] =
 	{   "remort",       ITEM_REMORT,        TRUE    }, 
 	{   "trapped",      ITEM_TRAPPED,       TRUE    },
 	{   "easy_drop",    ITEM_EASY_DROP,     TRUE    },
+    {   "heavy",        ITEM_HEAVY_ARMOR,   TRUE    },
 	{   "allow_warrior",       ITEM_ALLOW_WARRIOR        , TRUE },
 	{   "allow_thief",         ITEM_ALLOW_THIEF          , TRUE },
 	{   "allow_cleric",        ITEM_ALLOW_CLERIC         , TRUE },
@@ -1155,6 +1163,43 @@ const   struct  bit_type    bitvector_type  []  =
 	{   weapon_type2,   "weapon"    }
 };
 
+const struct flag_type con_states [] =
+{
+    { "playing",              CON_PLAYING,              TRUE },
+    { "get_name",             CON_GET_NAME,             FALSE },
+    { "get_old_password",     CON_GET_OLD_PASSWORD,     FALSE },
+    { "confirm_new_name",     CON_CONFIRM_NEW_NAME,     FALSE },
+    { "confirm_new_password", CON_CONFIRM_NEW_PASSWORD, FALSE },
+    { "get_new_race",         CON_GET_NEW_RACE,         FALSE },
+    { "get_new_sex",          CON_GET_NEW_SEX,          FALSE },
+    { "get_new_class",        CON_GET_NEW_CLASS,        FALSE },
+    { "get_alignment",        CON_GET_ALIGNMENT,        FALSE },
+    { "default_choice",       CON_DEFAULT_CHOICE,       FALSE },
+    { "gen_groups",           CON_GEN_GROUPS,           FALSE },
+    { "pick_weapon",          CON_PICK_WEAPON,          FALSE },
+    { "read_imotd",           CON_READ_IMOTD,           FALSE },
+    { "break_connect",        CON_BREAK_CONNECT,        FALSE },
+    { "get_creation_mode",    CON_GET_CREATION_MODE,    FALSE },
+    { "roll_stats",           CON_ROLL_STATS,           FALSE },
+    { "get_stat_priority",    CON_GET_STAT_PRIORITY,    FALSE },
+    { "copyover_recover",     CON_COPYOVER_RECOVER,     FALSE },
+    { "note_to",              CON_NOTE_TO,              FALSE },
+    { "note_subject",         CON_NOTE_SUBJECT,         FALSE },
+    { "note_expire",          CON_NOTE_EXPIRE,          FALSE },
+    { "note_text",            CON_NOTE_TEXT,            FALSE },
+    { "note_finish",          CON_NOTE_FINISH,          FALSE },
+    { "penalty_severity",     CON_PENALTY_SEVERITY,     FALSE },
+    { "penalty_confirm",      CON_PENALTY_CONFIRM,      FALSE },
+    { "penalty_hours",        CON_PENALTY_HOURS,        FALSE },
+    { "penalty_points",       CON_PENALTY_POINTS,       FALSE },
+    { "penalty_penlist",      CON_PENALTY_PENLIST,      FALSE },
+    { "penalty_finish",       CON_PENALTY_FINISH,       FALSE },
+    { "get_colour",           CON_GET_COLOUR,           FALSE },
+    { "lua_handler",          CON_LUA_HANDLER,          TRUE  },
+    { "closed",               CON_CLOSED,               FALSE },
+    { NULL, 0, TRUE }
+};
+
 const struct stance_type stances [] =
 {
 	{ "default",          STANCE_DEFAULT,             DAM_BASH,      "punch",
@@ -1210,7 +1255,7 @@ const struct stance_type stances [] =
 	{ "kamikaze",         STANCE_KAMIKAZE,            0,             "", 
 		&gsn_kamikaze,             FALSE, TRUE,  25 },
 	{ "showdown",         STANCE_SHOWDOWN,            0,             "", 
-		&gsn_showdown,             FALSE, TRUE,  4  },
+		&gsn_showdown,             FALSE, TRUE,  6  },
 	{ "target practice",  STANCE_TARGET_PRACTICE,     0,             "", 
 		&gsn_target_practice,      FALSE, TRUE,  15 },
 	{ "jihad",            STANCE_JIHAD,               0,             "", 

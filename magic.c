@@ -1335,6 +1335,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             || !meta_magic_concentration_check(ch)
             || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
             || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(5))
+            || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2))
             || (concentrate && !check_concentration(ch)) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
@@ -2100,7 +2101,7 @@ DEF_SPELL_FUN(spell_calm)
     if ( !conflict )
     {
         send_to_char("Things seem pretty calm already.\n\r", ch);
-        return SR_TARGET;
+        return TRUE;
     }
     
     conflict = FALSE;
@@ -2357,6 +2358,7 @@ DEF_SPELL_FUN(spell_charm_person)
     if ( IS_AFFECTED(victim, AFF_CHARM)
             || IS_AFFECTED(ch, AFF_CHARM)
             || IS_SET(victim->imm_flags, IMM_CHARM)
+            || IS_SET(victim->imm_flags, IMM_CHARMPERSON)
             || IS_IMMORTAL(victim) )
     {
         act( "You can't charm $N.", ch, NULL, victim, TO_CHAR );
@@ -4218,6 +4220,7 @@ DEF_SPELL_FUN(spell_identify)
     char buf[MAX_STRING_LENGTH];
     AFFECT_DATA *paf;
     int pos;
+    int ac = 0;
 
     if ( (ch->level+10) < obj->level)
     {
@@ -4289,8 +4292,8 @@ DEF_SPELL_FUN(spell_identify)
 
         case ITEM_WAND: 
         case ITEM_STAFF: 
-            sprintf( buf, "Has %d charges of level %d",
-                    obj->value[2], obj->value[0] );
+            sprintf( buf, "Has %d/%d charges of level %d",
+                    obj->value[2], obj->value[1], obj->value[0] );
             send_to_char( buf, ch );
 
             if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
@@ -4358,12 +4361,13 @@ DEF_SPELL_FUN(spell_identify)
                     continue;
                 char *wear = wear_location_info(pos);
                 if ( wear )
+                {
                     printf_to_char(ch, "%s\n\r", wear);
+                    ac = predict_obj_ac(obj, pos);
+                }
             }
-            sprintf( buf, 
-                    "Armor class is %d.\n\r", 
-                    obj->value[0]);
-            send_to_char( buf, ch );
+            if ( ac )
+                printf_to_char(ch, "Armor class is %d.\n\r", ac );
             break;
 
         case ITEM_LIGHT:
@@ -5055,7 +5059,7 @@ DEF_SPELL_FUN(spell_ray_of_truth)
 DEF_SPELL_FUN(spell_recharge)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
-    int chance, percent;
+    int charges, cost;
 
     if (obj->item_type != ITEM_WAND && obj->item_type != ITEM_STAFF)
     {
@@ -5063,66 +5067,42 @@ DEF_SPELL_FUN(spell_recharge)
         return SR_TARGET;
     }
 
-    if (obj->value[3] >= 3 * level / 2)
+    if (obj->value[0] >= level)
     {
         send_to_char("Your skills are not great enough for that.\n\r",ch);
         return SR_UNABLE;
     }
 
-    if (obj->value[1] == 0)
+    if (obj->value[1] <= 1)
     {
-        send_to_char("That item has already been recharged once.\n\r",ch);
+        send_to_char("That item cannot be recharged anymore.\n\r", ch);
         return SR_UNABLE;
     }
 
-    SPELL_CHECK_RETURN
+    charges = (obj->value[1] - 1) - obj->value[2];
+
+    if ( charges < 1 )
+    {
+        send_to_char("That item cannot be recharged further.\n\r", ch);
+        return SR_UNABLE;
+    }
     
-    chance = 40 + 2 * level;
-
-    chance -= obj->value[3]; /* harder to do high-level spells */
-    chance -= (obj->value[1] - obj->value[2]) *
-        (obj->value[1] - obj->value[2]);
-
-    chance = UMAX(level/2,chance);
-
-    percent = number_percent();
-
-    if (percent < chance / 2)
+    cost = spell_obj_cost(obj->value[0], spell_base_cost(obj->value[3])) * charges / (obj->item_type == ITEM_WAND ? 8 : 16);
+    if ( !has_money(ch, cost) )
     {
-        act("$p glows softly.",ch,obj,NULL,TO_CHAR);
-        act("$p glows softly.",ch,obj,NULL,TO_ROOM);
-        obj->value[2] = UMAX(obj->value[1],obj->value[2]);
-        obj->value[1] = 0;
+        ptc(ch, "It costs %.2f gold to recharge %s.\n\r", cost/100.0, obj->short_descr);
+        return SR_UNABLE;
     }
-    else if (percent <= chance)
-    {
-        int chargeback,chargemax;
+    
+    SPELL_CHECK_RETURN
 
-        act("$p glows softly.",ch,obj,NULL,TO_CHAR);
-        act("$p glows softly.",ch,obj,NULL,TO_CHAR);
-
-        chargemax = obj->value[1] - obj->value[2];
-
-        if (chargemax > 0)
-            chargeback = UMAX(1,chargemax * percent / 100);
-        else
-            chargeback = 0;
-
-        obj->value[2] += chargeback;
-        obj->value[1] = 0;
-    }
-    else if (percent <= UMIN(95, 3 * chance / 2))
-    {
-        send_to_char("Nothing seems to happen.\n\r",ch);
-        if (obj->value[1] > 1)
-            obj->value[1]--;
-    }
-    else /* whoops! */
-    {
-        act("$p glows brightly and explodes!",ch,obj,NULL,TO_CHAR);
-        act("$p glows brightly and explodes!",ch,obj,NULL,TO_ROOM);
-        extract_obj(obj);
-    }
+    deduct_cost(ch, cost);
+    ptc(ch, "You use up materials worth %.2f gold to restore %d charge%s to %s.\n\r",
+        cost/100.0, charges, charges == 1 ? "" : "s", obj->short_descr);
+    act("$p glows softly.", ch, obj, NULL, TO_ROOM);
+    obj->value[2] += charges;
+    // max number of charges is reduced by 1 with each recharge
+    obj->value[1] -= 1;
     return TRUE;
 }
 
@@ -5161,7 +5141,7 @@ DEF_SPELL_FUN(spell_remove_curse)
     
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -5184,7 +5164,6 @@ DEF_SPELL_FUN(spell_remove_curse)
                 return TRUE;
             }
 
-            act("You failed to remove the curse on $p.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return TRUE;
@@ -5350,6 +5329,12 @@ DEF_SPELL_FUN(spell_sleep)
     if ( IS_UNDEAD(victim) )
     {
         send_to_char("The undead never sleep!\n\r", ch );
+        return SR_IMMUNE;
+    }
+
+    if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
+    {
+        act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
         return SR_IMMUNE;
     }
 
@@ -5566,43 +5551,49 @@ DEF_SPELL_FUN(spell_summon)
 
 DEF_SPELL_FUN(spell_teleport)
 {
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
     ROOM_INDEX_DATA *pRoomIndex;
     OBJ_DATA *stone;
 
     if ( !can_cast_transport(ch) )
         return SR_UNABLE;
 
-    SPELL_CHECK_RETURN
-    
-    if ( victim->in_room == NULL
-            || IS_SET(victim->in_room->room_flags, ROOM_NO_RECALL)
-            || IS_TAG(ch)
-            || ( victim != ch && IS_SET(victim->imm_flags,IMM_SUMMON))
-            || ( !IS_NPC(ch) && victim->fighting != NULL )
-            || ( victim != ch
-                && ( saves_spell(victim, ch, level - 5, DAM_OTHER))))
+    if ( !strcmp(target_name, "locate") )
     {
-        send_to_char( "You failed.\n\r", ch );
+        SPELL_CHECK_RETURN
+        show_portal_names(ch);
         return TRUE;
     }
 
-    stone = get_eq_char(ch,WEAR_HOLD);
-
-    pRoomIndex = get_random_room(victim);
-
-    if ( pRoomIndex == NULL 
+    if ( target_name[0] == '\0' )
+    {
+        SPELL_CHECK_RETURN
+        pRoomIndex = get_random_room(ch);
+        
+        if ( pRoomIndex == NULL 
             || !is_room_ingame(pRoomIndex)
-            || !can_see_room(ch,pRoomIndex) 
+            || !can_see_room(ch, pRoomIndex) 
             /* Teleport wasn't working because the IS_SET check was missing - Astark 1-7-13 */
-            || !can_move_room(victim, pRoomIndex, FALSE)
+            || !can_move_room(ch, pRoomIndex, FALSE)
             || IS_SET(pRoomIndex->room_flags, ROOM_NO_TELEPORT)
             || IS_SET(pRoomIndex->room_flags, ROOM_JAIL))
-    {
-        send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
-        return TRUE;
+        {
+            send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
+            return TRUE;
+        }
     }
-
+    else
+    {
+        if ( (pRoomIndex = get_portal_room(target_name)) == NULL
+            || !can_see_room(ch, pRoomIndex)
+            || !is_room_ingame(pRoomIndex) )
+        {
+            send_to_char( "Teleport destination unknown.\n\r", ch );
+            return SR_TARGET;
+        }
+        SPELL_CHECK_RETURN
+    }    
+    
+    stone = get_eq_char(ch,WEAR_HOLD);
 
     if (stone != NULL && stone->item_type == ITEM_WARP_STONE)
     {
@@ -5621,14 +5612,22 @@ DEF_SPELL_FUN(spell_teleport)
         }
     }
 
-    if (victim != ch)
-        send_to_char("You have been teleported!\n\r",victim);
+    act("$n vanishes!", ch, NULL, NULL, TO_ROOM);
+    char_from_room(ch);
+    char_to_room(ch, pRoomIndex);
+    act("$n abruptly appears from out of nowhere.", ch, NULL, NULL, TO_ROOM);
+    do_look(ch, "auto");
 
-    act( "$n vanishes!", victim, NULL, NULL, TO_ROOM );
-    char_from_room( victim );
-    char_to_room( victim, pRoomIndex );
-    act( "$n abruptly appears from out of nowhere.", victim, NULL, NULL, TO_ROOM );
-    do_look( victim, "auto" );
+    CHAR_DATA *pet = ch->pet;
+    if ( pet != NULL && can_cast_transport(pet) )
+    {
+        ROOM_INDEX_DATA *pet_location = room_with_misgate(pet, pRoomIndex, 0);
+        act("$n disappears.", pet, NULL, NULL, TO_ROOM);
+        char_from_room(pet);
+        char_to_room(pet, pet_location);
+        act("$n appears in the room.", pet, NULL, NULL, TO_ROOM);
+    }
+    
     return TRUE;
 }
 
@@ -5723,6 +5722,7 @@ DEF_SPELL_FUN(spell_weaken)
 DEF_SPELL_FUN(spell_word_of_recall)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
+    CHAR_DATA *pet = victim->pet;
     ROOM_INDEX_DATA *location;
     int chance;
 
@@ -5803,17 +5803,22 @@ DEF_SPELL_FUN(spell_word_of_recall)
     }
 
     // misgate chance when cursed but not normally
-    location = room_with_misgate(victim, location, 0);
+    ROOM_INDEX_DATA *victim_location = room_with_misgate(victim, location, 0);
     
     act("$n disappears.",victim,NULL,NULL,TO_ROOM);
     char_from_room(victim);
-    char_to_room(victim,location);
+    char_to_room(victim, victim_location);
     act("$n appears in the room.",victim,NULL,NULL,TO_ROOM);
     do_look(victim,"auto");
 
-    /* -Rim 2/22/99 */
-    if (victim->pet != NULL)
-        do_recall(victim->pet,"");
+    if ( pet != NULL && can_cast_transport(pet) )
+    {
+        ROOM_INDEX_DATA *pet_location = room_with_misgate(pet, location, 0);
+        act("$n disappears.", pet, NULL, NULL, TO_ROOM);
+        char_from_room(pet);
+        char_to_room(pet, pet_location);
+        act("$n appears in the room.", pet, NULL, NULL, TO_ROOM);
+    }
     
     return TRUE;
 }
@@ -5854,7 +5859,7 @@ DEF_SPELL_FUN(spell_high_explosive)
 int cha_max_follow( CHAR_DATA *ch )
 {
     int cha = get_curr_stat(ch, STAT_CHA) + mastery_bonus(ch, gsn_puppetry, 30, 50);
-    return ch->level * cha / 40;
+    return ch->level * (200 + cha) / 100;
 }
 
 int cha_cur_follow( CHAR_DATA *ch )

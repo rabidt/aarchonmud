@@ -615,8 +615,8 @@ DEF_SPELL_FUN(spell_turn_undead)
     CHAR_DATA *vch_next;
     int dam;
     
-    act( "You call to the gods for aid against the undead.\n\r", ch, NULL, NULL, TO_CHAR );
-    act( "$n calls to the gods for aid against the undead.\n\r", ch, NULL, NULL, TO_ROOM );
+    act( "You call to the gods for aid against the undead.", ch, NULL, NULL, TO_CHAR );
+    act( "$n calls to the gods for aid against the undead.", ch, NULL, NULL, TO_ROOM );
 
     dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * (1000 + ch->alignment) / 1000;
     
@@ -664,10 +664,19 @@ DEF_SPELL_FUN(spell_necrosis)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
     
-    if (IS_AFFECTED(victim, AFF_NECROSIS) 
-	|| IS_AFFECTED(victim, AFF_PLAGUE)
-	|| saves_spell(victim, ch, level, DAM_DISEASE)
-	|| (IS_NPC(victim) && IS_SET(victim->act,ACT_UNDEAD)))
+    if ( IS_UNDEAD(victim) )
+    {
+        act("Necrosis has no effect on the undead.", ch, NULL, victim, TO_CHAR);
+        return TRUE;
+    }
+    
+    if ( IS_AFFECTED(victim, AFF_NECROSIS) )
+    {
+        act("$N is already being ravished by disease.", ch, NULL, victim, TO_CHAR);
+        return TRUE;
+    }
+
+    if ( saves_spell(victim, ch, level, DAM_DISEASE) )
     {
         if (ch == victim)
             send_to_char("You stave off illness.\n\r",ch);
@@ -1862,6 +1871,7 @@ DEF_SPELL_FUN(spell_entangle)
         return TRUE;
     }
     
+    af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
@@ -1973,6 +1983,7 @@ DEF_SPELL_FUN(spell_water_elemental)
     char liquid_name[MAX_STRING_LENGTH];
     int mlevel;
     int sector = ch->in_room->sector_type;
+    int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     mlevel = URANGE(1, level * 3/4, ch->level);
     sprintf(liquid_name, "water");
@@ -2001,6 +2012,8 @@ DEF_SPELL_FUN(spell_water_elemental)
         send_to_char( "This war does not concern the elemental spirits.\n\r", ch );
         return SR_UNABLE;
     }
+
+    mlevel += beast_skill / 8;
     
     /* Check number of charmees against cha*/ 
     if ( check_cha_follow(ch, mlevel) < mlevel )
@@ -3482,7 +3495,6 @@ DEF_SPELL_FUN(spell_mirror_image)
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_phantasmal_image );
 
     af.type      = sn;
     af.level     = level;
@@ -4043,7 +4055,6 @@ DEF_SPELL_FUN(spell_phantasmal_image)
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_mirror_image );
 
     af.type      = sn;
     af.level     = level;
