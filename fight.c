@@ -201,6 +201,9 @@ void violence_update( void )
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
         ch_next = ch->next;
+        
+        if ( ch->must_extract || ch->in_room == NULL )
+            continue;
 
         // people assisting ch
         check_assist(ch);
