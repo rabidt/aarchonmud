@@ -362,6 +362,7 @@ sh_int  gsn_riposte;
 sh_int  gsn_combat_casting;
 sh_int  gsn_elemental_strike;
 sh_int  gsn_greater_frenzy;
+sh_int  gsn_hips;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;
