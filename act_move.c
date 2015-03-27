@@ -2602,7 +2602,7 @@ DEF_DO_FUN(do_hide)
         {
             CHAR_DATA *opp;
             for ( opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room )
-                if ( opp->fighting == ch && check_see(opp, ch) )
+                if ( opp->fighting == ch && check_see_combat(opp, ch) )
                 {
                     act("$N spots you and your attempt to hide fails.", ch, NULL, opp, TO_CHAR);
                     affect_strip(ch, gsn_hide);
