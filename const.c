@@ -2147,6 +2147,12 @@ const struct subclass_type subclass_table[] =
         { 100 }
     },
     {
+        "shadowdancer", THIEF|ASSASSIN|NINJA,
+        { "hide in plain sight", "shadow jump", "shadow companion" },
+        { 10, 20, 30 },
+        { 100, 100, 100 }
+    },
+    {
         "warmage", MAGE|ILLUSIONIST|NECROMANCER,
         { "combat casting", "second attack", "dimensional blade" },
         { 10, 50, 90 },
@@ -5962,6 +5968,17 @@ struct  skill_type
 		&gsn_hide,          0, 12, DUR_SPECIAL,
 		"",         "You come out of hiding.",       ""
 	},
+
+    {
+        "hide in plain sight",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_AGI, STAT_LUC, STAT_DIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_hips, 0, 0, DUR_NONE,
+        "", "!hide in plain sight!", ""
+    },
 
 	{
 	"sneak",  
