@@ -778,8 +778,7 @@ DEF_DO_FUN(do_scout)
 void hunt_victim( CHAR_DATA *ch )
 {
     int       dir, chance;
-    bool      found;
-    CHAR_DATA *tmp;
+    bool      found = FALSE;
     CHAR_DATA *victim;
 
     if( ch == NULL || ch->hunting == NULL || !IS_NPC(ch) || IS_AFFECTED(ch, AFF_CHARM))
@@ -788,15 +787,17 @@ void hunt_victim( CHAR_DATA *ch )
    /*
     * Make sure the victim still exists.
     */
-    for( found = 0, tmp = char_list; tmp; tmp = tmp->next )
-        if (!str_cmp(ch->hunting, tmp->name))
-	{
-            found = 1;
-	    break;
-	}
+    for( victim = char_list; victim != NULL; victim = victim->next )
+    {
+        if ( victim->must_extract || victim->in_room == NULL )
+            continue;
+        if ( !str_cmp(ch->hunting, victim->name) )
+        {
+            found = TRUE;
+            break;
+        }
+    }
 
-    victim = tmp;
-        
     ignore_invisible = TRUE;
     if ( !found || !can_see( ch, victim ))
     {
