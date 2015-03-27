@@ -155,6 +155,7 @@ DEF_DO_FUN(do_craft)
     {
         send_to_char("Craft what? Please specify what you will be crafting.\n\r", ch);
         send_to_char("Syntax: craft <item_name> [physical|mental]\n\r", ch);
+        send_to_char("        craft <item_name> [strengthen|lighten]\n\r", ch);
         for ( i = 0; crafting_table[i].name != NULL; i++ )
 	{
 	    if ( (materials = get_obj_index(crafting_table[i].materials_vnum[0])) == NULL )
@@ -185,6 +186,70 @@ DEF_DO_FUN(do_craft)
 	return;
     }
 
+    // craft usage to toggle heavy_armor flag
+    bool strengthen = !strcmp(arg2, "strengthen");
+    bool weaken = !strcmp(arg2, "lighten");
+    if ( strengthen || weaken )
+    {
+        if ( !(crafting = get_obj_carry(ch, arg1, ch)) )
+        {
+            send_to_char("You do not carry that item.\n\r", ch);
+            return;
+        }
+        int ac_factor = itemwear_ac_factor(first_itemwear(crafting));
+        if ( ac_factor == 0 )
+        {
+            ptc(ch, "%s cannot be strengthened or lightened.\n\r", crafting->short_descr);
+            return;
+        }
+        if ( strengthen && IS_OBJ_STAT(crafting, ITEM_HEAVY_ARMOR) )
+        {
+            ptc(ch, "%s is as strong as you can make it.\n\r", crafting->short_descr);
+            return;
+        }
+        if ( weaken && !IS_OBJ_STAT(crafting, ITEM_HEAVY_ARMOR) )
+        {
+            ptc(ch, "%s is as light as you can make it.\n\r", crafting->short_descr);
+            return;
+        }
+        int cost_level = 10 + crafting->level + UMAX(0, crafting->level - 90) * 9;
+        int cost = cost_level * cost_level * ac_factor;
+        if ( ch->silver + ch->gold * 100 < cost )
+        {
+            ptc(ch, "It costs %.2f gold to %s %s.\n\r",
+                cost * 0.01,
+                strengthen ? "strengthen" : "lighten",
+                crafting->short_descr
+            );
+            return;
+        }
+        WAIT_STATE( ch, skill_table[gsn_craft].beats );
+        deduct_cost(ch, cost);
+        if ( !per_chance(skill) )
+        {
+            ptc(ch, "Your attempt to %s %s fails, wasting %.2f gold worth of materials.\n\r",
+                strengthen ? "strengthen" : "lighten",
+                crafting->short_descr,
+                cost * 0.01
+            );
+            check_improve(ch, gsn_craft, FALSE, 1);
+        }
+        else
+        {
+            ptc(ch, "You %s %s, using up %.2f gold worth of materials.\n\r",
+                strengthen ? "strengthen" : "lighten",
+                crafting->short_descr,
+                cost * 0.01
+            );
+            if ( strengthen )
+                SET_BIT(crafting->extra_flags, ITEM_HEAVY_ARMOR);
+            else
+                REMOVE_BIT(crafting->extra_flags, ITEM_HEAVY_ARMOR);
+            check_improve(ch, gsn_craft, TRUE, 1);
+        }
+        return;
+    }
+    
     /* Check which item is crafted */
     craft = -1;
     for ( i = 0; crafting_table[i].name != NULL; i++ )

@@ -2107,7 +2107,53 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	}
 };
 
+/* class constants */
+#define CLASS_WARRIOR        0
+#define CLASS_THIEF          1
+#define CLASS_CLERIC         2
+#define CLASS_MAGE           3
+#define CLASS_GLADIATOR      4
+#define CLASS_SAMURAI        5
+#define CLASS_PALADIN        6
+#define CLASS_ASSASSIN       7
+#define CLASS_NINJA          8
+#define CLASS_MONK           9
+#define CLASS_TEMPLAR        10
+#define CLASS_ILLUSIONIST    11
+#define CLASS_GUNSLINGER     12
+#define CLASS_RANGER         13
+#define CLASS_NECROMANCER    14
 
+const struct subclass_type subclass_table[] =
+{
+    /*
+    const char* name;
+    sh_int base_class;
+    const char* skills[5];
+    sh_int skill_level[5];
+    sh_int skill_percent[5];
+    */
+    { "None" }, // subclass=0 means no subclass
+    {
+        "juggernaut", CLASS_WARRIOR,
+        { "true grit", "bulwark" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "blademaster", CLASS_WARRIOR,
+        { "riposte" },
+        { 30 },
+        { 100 }
+    },
+    {
+        "beastmaster", CLASS_RANGER,
+        { "beast mastery", "water elemental" },
+        { 10, 90 },
+        { 100, 90 }
+    },
+    { NULL }
+};
 
 /*
  * Titles.
@@ -4329,7 +4375,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_teleport,     TAR_CHAR_SELF,      POS_FIGHTING,
+	spell_teleport,     TAR_IGNORE,      POS_FIGHTING,
 	NULL,              35, 12, DUR_NONE,
 	"",         "!Teleport!",       ""
 	},
@@ -5493,9 +5539,42 @@ struct  skill_type
     },
 
     {
+        "heavy armor",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 6,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_CON, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_heavy_armor, 0, 0, DUR_NONE,
+        "", "!Heavy Armor!", ""
+    },
+
+    {
+        "bulwark",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_CON, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_bulwark, 0, 0, DUR_NONE,
+        "", "!bulwark!", ""
+    },
+
+    {
+        "riposte",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_riposte, 0, 0, DUR_NONE,
+        "riposte", "!riposte!", ""
+    },
+
+    {
         "leadership",  
         {  30, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 0,
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 4,
         { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
         STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,             TAR_IGNORE,             POS_FIGHTING,

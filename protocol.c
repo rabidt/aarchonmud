@@ -315,6 +315,7 @@ protocol_t *ProtocolCreate( void )
    pProtocol->ScreenHeight = 0;
    pProtocol->pMXPVersion = AllocString("Unknown");
    pProtocol->pLastTTYPE = NULL;
+   pProtocol->verbatim = false;
    pProtocol->pVariables = malloc(sizeof(MSDP_t*)*eMSDP_MAX);
 
    for ( i = eMSDP_NONE+1; i < eMSDP_MAX; ++i )
@@ -550,273 +551,279 @@ const char *ProtocolOutput( descriptor_t *apDescriptor, const char *apData, int 
       if ( apData[j] == '\t' )
       {
          const char *pCopyFrom = NULL;
-
-         switch ( apData[++j] )
+         if ( pProtocol->verbatim )
          {
-            case '\t': /* Two tabs in a row will display an actual tab */
-               pCopyFrom = Tab;
-               break;
-            case 'n':
-               pCopyFrom = s_Clean;
-               break;
-            case 'r': /* dark red */
-               pCopyFrom = ColourRGB(apDescriptor, "F200");
-               break;
-            case 'R': /* light red */
-               pCopyFrom = ColourRGB(apDescriptor, "F500");
-               break;
-            case 'g': /* dark green */
-               pCopyFrom = ColourRGB(apDescriptor, "F020");
-               break;
-            case 'G': /* light green */
-               pCopyFrom = ColourRGB(apDescriptor, "F050");
-               break;
-            case 'y': /* dark yellow */
-               pCopyFrom = ColourRGB(apDescriptor, "F220");
-               break;
-            case 'Y': /* light yellow */
-               pCopyFrom = ColourRGB(apDescriptor, "F550");
-               break;
-            case 'b': /* dark blue */
-               pCopyFrom = ColourRGB(apDescriptor, "F002");
-               break;
-            case 'B': /* light blue */
-               pCopyFrom = ColourRGB(apDescriptor, "F005");
-               break;
-            case 'm': /* dark magenta */
-               pCopyFrom = ColourRGB(apDescriptor, "F202");
-               break;
-            case 'M': /* light magenta */
-               pCopyFrom = ColourRGB(apDescriptor, "F505");
-               break;
-            case 'c': /* dark cyan */
-               pCopyFrom = ColourRGB(apDescriptor, "F022");
-               break;
-            case 'C': /* light cyan */
-               pCopyFrom = ColourRGB(apDescriptor, "F055");
-               break;
-            case 'w': /* dark white */
-               pCopyFrom = ColourRGB(apDescriptor, "F222");
-               break;
-            case 'W': /* light white */
-               pCopyFrom = ColourRGB(apDescriptor, "F555");
-               break;
-            case 'a': /* dark azure */
-               pCopyFrom = ColourRGB(apDescriptor, "F014");
-               break;
-            case 'A': /* light azure */
-               pCopyFrom = ColourRGB(apDescriptor, "F025");
-               break;
-            case 'j': /* dark jade */
-               pCopyFrom = ColourRGB(apDescriptor, "F031");
-               break;
-            case 'J': /* light jade */
-               pCopyFrom = ColourRGB(apDescriptor, "F052");
-               break;
-            case 'l': /* dark lime */
-               pCopyFrom = ColourRGB(apDescriptor, "F140");
-               break;
-            case 'L': /* light lime */
-               pCopyFrom = ColourRGB(apDescriptor, "F250");
-               break;
-            case 'o': /* dark orange */
-               pCopyFrom = ColourRGB(apDescriptor, "F520");
-               break;
-            case 'O': /* light orange */
-               pCopyFrom = ColourRGB(apDescriptor, "F530");
-               break;
-            case 'p': /* dark pink */
-               pCopyFrom = ColourRGB(apDescriptor, "F301");
-               break;
-            case 'P': /* light pink */
-               pCopyFrom = ColourRGB(apDescriptor, "F502");
-               break;
-            case 't': /* dark tan */
-               pCopyFrom = ColourRGB(apDescriptor, "F210");
-               break;
-            case 'T': /* light tan */
-               pCopyFrom = ColourRGB(apDescriptor, "F321");
-               break;
-            case 'v': /* dark violet */
-               pCopyFrom = ColourRGB(apDescriptor, "F104");
-               break;
-            case 'V': /* light violet */
-               pCopyFrom = ColourRGB(apDescriptor, "F205");
-               break;
-            case '(': /* MXP link */
-               if ( !pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt )
-                  pCopyFrom = LinkStart;
-               break;
-            case ')': /* MXP link */
-               if ( !pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt )
-                  pCopyFrom = LinkStop;
-               pProtocol->bBlockMXP = false;
-               break;
-            case '<':
-               if ( !pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt )
-               {
-                  pCopyFrom = MXPStart;
-                  bUseMXP = true;
-               }
-               else /* No MXP support, so just strip it out */
-               {
-                  while ( apData[j] != '\0' && apData[j] != '>' )
-                     ++j;
-               }
-               pProtocol->bBlockMXP = false;
-               break;
-            case '[':
-               if ( tolower(apData[++j]) == 'u' )
-               {
-                  char Buffer[8] = {'\0'}, BugString[256];
-                  int Index = 0;
-                  int Number = 0;
-                  bool_t bDone = false, bValid = true;
-
-                  while ( isdigit(apData[++j]) )
-                  {
-                     Number *= 10;
-                     Number += (apData[j])-'0';
-                  }
-
-                  if ( apData[j] == '/' )
-                     ++j;
-
-                  while ( apData[j] != '\0' && !bDone )
-                  {
-                     if ( apData[j] == ']' )
-                        bDone = true;
-                     else if ( Index < 7 )
-                        Buffer[Index++] = apData[j++];
-                     else /* It's too long, so ignore the rest and note the problem */
-                     {
-                        j++;
-                        bValid = false;
-                     }
-                  }
-
-                  if ( !bDone )
-                  {
-                     sprintf( BugString, "BUG: Unicode substitute '%s' wasn't terminated with ']'.\n", Buffer );
-                     ReportBug( BugString );
-                  }
-                  else if ( !bValid )
-                  {
-                     sprintf( BugString, "BUG: Unicode substitute '%s' truncated.  Missing ']'?\n", Buffer );
-                     ReportBug( BugString );
-                  }
-                  else if ( pProtocol->pVariables[eMSDP_UTF_8]->ValueInt )
-                  {
-                     pCopyFrom = UnicodeGet(Number);
-                  }
-                  else /* Display the substitute string */
-                  {
-                     pCopyFrom = Buffer;
-                  }
-
-                  /* Terminate if we've reached the end of the string */
-                  bTerminate = !bDone;
-               }
-               else if ( tolower(apData[j]) == 'f' || tolower(apData[j]) == 'b' )
-               {
-                  char Buffer[8] = {'\0'}, BugString[256];
-                  int Index = 0;
-                  bool_t bDone = false, bValid = true;
-
-                  /* Copy the 'f' (foreground) or 'b' (background) */
-                  Buffer[Index++] = apData[j++];
-
-                  while ( apData[j] != '\0' && !bDone && bValid )
-                  {
-                     if ( apData[j] == ']' )
-                        bDone = true;
-                     else if ( Index < 4 )
-                        Buffer[Index++] = apData[j++];
-                     else /* It's too long, so drop out - the colour code may still be valid */
-                        bValid = false;
-                  }
-
-                  if ( !bDone || !bValid )
-                  {
-                     sprintf( BugString, "BUG: RGB %sground colour '%s' wasn't terminated with ']'.\n", 
-                        (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1] );
-                     ReportBug( BugString );
-                  }
-                  else if ( !IsValidColour(Buffer) )
-                  {
-                     sprintf( BugString, "BUG: RGB %sground colour '%s' invalid (each digit must be in the range 0-5).\n", 
-                        (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1] );
-                     ReportBug( BugString );
-                  }
-                  else /* Success */
-                  {
-                     pCopyFrom = ColourRGB(apDescriptor, Buffer);
-                  }
-               }
-               else if ( tolower(apData[j]) == 'x' )
-               {
-                  char Buffer[8] = {'\0'}, BugString[256];
-                  int Index = 0;
-                  bool_t bDone = false, bValid = true;
-
-                  ++j; /* Skip the 'x' */
-
-                  while ( apData[j] != '\0' && !bDone )
-                  {
-                     if ( apData[j] == ']' )
-                        bDone = true;
-                     else if ( Index < 7 )
-                        Buffer[Index++] = apData[j++];
-                     else /* It's too long, so ignore the rest and note the problem */
-                     {
-                        j++;
-                        bValid = false;
-                     }
-                  }
-
-                  if ( !bDone )
-                  {
-                     sprintf( BugString, "BUG: Required MXP version '%s' wasn't terminated with ']'.\n", Buffer );
-                     ReportBug( BugString );
-                  }
-                  else if ( !bValid )
-                  {
-                     sprintf( BugString, "BUG: Required MXP version '%s' too long.  Missing ']'?\n", Buffer );
-                     ReportBug( BugString );
-                  }
-                  else if ( !strcmp(pProtocol->pMXPVersion, "Unknown") || 
-                     strcmp(pProtocol->pMXPVersion, Buffer) < 0 )
-                  {
-                     /* Their version of MXP isn't high enough */
-                     pProtocol->bBlockMXP = true;
-                  }
-                  else /* MXP is sufficient for this tag */
-                  {
-                     pProtocol->bBlockMXP = false;
-                  }
-
-                  /* Terminate if we've reached the end of the string */
-                  bTerminate = !bDone;
-               }
-               break;
-            case '!': /* Used for in-band MSP sound triggers */
-               pCopyFrom = MSP;
-               break;
-#ifdef COLOUR_CHAR
-            case '+':
-               bColourOn = true;
-               break;
-            case '-':
-               bColourOn = false;
-               break;
-#endif /* COLOUR_CHAR */
-            case '\0':
-               bTerminate = true;
-               break;
-            default:
-               break;
+             pCopyFrom = "~";
          }
+         else
+         {
+             switch ( apData[++j] )
+             {
+                case '\t': /* Two tabs in a row will display an actual tab */
+                   pCopyFrom = Tab;
+                   break;
+                case 'n':
+                   pCopyFrom = s_Clean;
+                   break;
+                case 'r': /* dark red */
+                   pCopyFrom = ColourRGB(apDescriptor, "F200");
+                   break;
+                case 'R': /* light red */
+                   pCopyFrom = ColourRGB(apDescriptor, "F500");
+                   break;
+                case 'g': /* dark green */
+                   pCopyFrom = ColourRGB(apDescriptor, "F020");
+                   break;
+                case 'G': /* light green */
+                   pCopyFrom = ColourRGB(apDescriptor, "F050");
+                   break;
+                case 'y': /* dark yellow */
+                   pCopyFrom = ColourRGB(apDescriptor, "F220");
+                   break;
+                case 'Y': /* light yellow */
+                   pCopyFrom = ColourRGB(apDescriptor, "F550");
+                   break;
+                case 'b': /* dark blue */
+                   pCopyFrom = ColourRGB(apDescriptor, "F002");
+                   break;
+                case 'B': /* light blue */
+                   pCopyFrom = ColourRGB(apDescriptor, "F005");
+                   break;
+                case 'm': /* dark magenta */
+                   pCopyFrom = ColourRGB(apDescriptor, "F202");
+                   break;
+                case 'M': /* light magenta */
+                   pCopyFrom = ColourRGB(apDescriptor, "F505");
+                   break;
+                case 'c': /* dark cyan */
+                   pCopyFrom = ColourRGB(apDescriptor, "F022");
+                   break;
+                case 'C': /* light cyan */
+                   pCopyFrom = ColourRGB(apDescriptor, "F055");
+                   break;
+                case 'w': /* dark white */
+                   pCopyFrom = ColourRGB(apDescriptor, "F222");
+                   break;
+                case 'W': /* light white */
+                   pCopyFrom = ColourRGB(apDescriptor, "F555");
+                   break;
+                case 'a': /* dark azure */
+                   pCopyFrom = ColourRGB(apDescriptor, "F014");
+                   break;
+                case 'A': /* light azure */
+                   pCopyFrom = ColourRGB(apDescriptor, "F025");
+                   break;
+                case 'j': /* dark jade */
+                   pCopyFrom = ColourRGB(apDescriptor, "F031");
+                   break;
+                case 'J': /* light jade */
+                   pCopyFrom = ColourRGB(apDescriptor, "F052");
+                   break;
+                case 'l': /* dark lime */
+                   pCopyFrom = ColourRGB(apDescriptor, "F140");
+                   break;
+                case 'L': /* light lime */
+                   pCopyFrom = ColourRGB(apDescriptor, "F250");
+                   break;
+                case 'o': /* dark orange */
+                   pCopyFrom = ColourRGB(apDescriptor, "F520");
+                   break;
+                case 'O': /* light orange */
+                   pCopyFrom = ColourRGB(apDescriptor, "F530");
+                   break;
+                case 'p': /* dark pink */
+                   pCopyFrom = ColourRGB(apDescriptor, "F301");
+                   break;
+                case 'P': /* light pink */
+                   pCopyFrom = ColourRGB(apDescriptor, "F502");
+                   break;
+                case 't': /* dark tan */
+                   pCopyFrom = ColourRGB(apDescriptor, "F210");
+                   break;
+                case 'T': /* light tan */
+                   pCopyFrom = ColourRGB(apDescriptor, "F321");
+                   break;
+                case 'v': /* dark violet */
+                   pCopyFrom = ColourRGB(apDescriptor, "F104");
+                   break;
+                case 'V': /* light violet */
+                   pCopyFrom = ColourRGB(apDescriptor, "F205");
+                   break;
+                case '(': /* MXP link */
+                   if ( !pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt )
+                      pCopyFrom = LinkStart;
+                   break;
+                case ')': /* MXP link */
+                   if ( !pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt )
+                      pCopyFrom = LinkStop;
+                   pProtocol->bBlockMXP = false;
+                   break;
+                case '<':
+                   if ( !pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt )
+                   {
+                      pCopyFrom = MXPStart;
+                      bUseMXP = true;
+                   }
+                   else /* No MXP support, so just strip it out */
+                   {
+                      while ( apData[j] != '\0' && apData[j] != '>' )
+                         ++j;
+                   }
+                   pProtocol->bBlockMXP = false;
+                   break;
+                case '[':
+                   if ( tolower(apData[++j]) == 'u' )
+                   {
+                      char Buffer[8] = {'\0'}, BugString[256];
+                      int Index = 0;
+                      int Number = 0;
+                      bool_t bDone = false, bValid = true;
 
+                      while ( isdigit(apData[++j]) )
+                      {
+                         Number *= 10;
+                         Number += (apData[j])-'0';
+                      }
+
+                      if ( apData[j] == '/' )
+                         ++j;
+
+                      while ( apData[j] != '\0' && !bDone )
+                      {
+                         if ( apData[j] == ']' )
+                            bDone = true;
+                         else if ( Index < 7 )
+                            Buffer[Index++] = apData[j++];
+                         else /* It's too long, so ignore the rest and note the problem */
+                         {
+                            j++;
+                            bValid = false;
+                         }
+                      }
+
+                      if ( !bDone )
+                      {
+                         sprintf( BugString, "BUG: Unicode substitute '%s' wasn't terminated with ']'.\n", Buffer );
+                         ReportBug( BugString );
+                      }
+                      else if ( !bValid )
+                      {
+                         sprintf( BugString, "BUG: Unicode substitute '%s' truncated.  Missing ']'?\n", Buffer );
+                         ReportBug( BugString );
+                      }
+                      else if ( pProtocol->pVariables[eMSDP_UTF_8]->ValueInt )
+                      {
+                         pCopyFrom = UnicodeGet(Number);
+                      }
+                      else /* Display the substitute string */
+                      {
+                         pCopyFrom = Buffer;
+                      }
+
+                      /* Terminate if we've reached the end of the string */
+                      bTerminate = !bDone;
+                   }
+                   else if ( tolower(apData[j]) == 'f' || tolower(apData[j]) == 'b' )
+                   {
+                      char Buffer[8] = {'\0'}, BugString[256];
+                      int Index = 0;
+                      bool_t bDone = false, bValid = true;
+
+                      /* Copy the 'f' (foreground) or 'b' (background) */
+                      Buffer[Index++] = apData[j++];
+
+                      while ( apData[j] != '\0' && !bDone && bValid )
+                      {
+                         if ( apData[j] == ']' )
+                            bDone = true;
+                         else if ( Index < 4 )
+                            Buffer[Index++] = apData[j++];
+                         else /* It's too long, so drop out - the colour code may still be valid */
+                            bValid = false;
+                      }
+
+                      if ( !bDone || !bValid )
+                      {
+                         sprintf( BugString, "BUG: RGB %sground colour '%s' wasn't terminated with ']'.\n", 
+                            (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1] );
+                         ReportBug( BugString );
+                      }
+                      else if ( !IsValidColour(Buffer) )
+                      {
+                         sprintf( BugString, "BUG: RGB %sground colour '%s' invalid (each digit must be in the range 0-5).\n", 
+                            (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1] );
+                         ReportBug( BugString );
+                      }
+                      else /* Success */
+                      {
+                         pCopyFrom = ColourRGB(apDescriptor, Buffer);
+                      }
+                   }
+                   else if ( tolower(apData[j]) == 'x' )
+                   {
+                      char Buffer[8] = {'\0'}, BugString[256];
+                      int Index = 0;
+                      bool_t bDone = false, bValid = true;
+
+                      ++j; /* Skip the 'x' */
+
+                      while ( apData[j] != '\0' && !bDone )
+                      {
+                         if ( apData[j] == ']' )
+                            bDone = true;
+                         else if ( Index < 7 )
+                            Buffer[Index++] = apData[j++];
+                         else /* It's too long, so ignore the rest and note the problem */
+                         {
+                            j++;
+                            bValid = false;
+                         }
+                      }
+
+                      if ( !bDone )
+                      {
+                         sprintf( BugString, "BUG: Required MXP version '%s' wasn't terminated with ']'.\n", Buffer );
+                         ReportBug( BugString );
+                      }
+                      else if ( !bValid )
+                      {
+                         sprintf( BugString, "BUG: Required MXP version '%s' too long.  Missing ']'?\n", Buffer );
+                         ReportBug( BugString );
+                      }
+                      else if ( !strcmp(pProtocol->pMXPVersion, "Unknown") || 
+                         strcmp(pProtocol->pMXPVersion, Buffer) < 0 )
+                      {
+                         /* Their version of MXP isn't high enough */
+                         pProtocol->bBlockMXP = true;
+                      }
+                      else /* MXP is sufficient for this tag */
+                      {
+                         pProtocol->bBlockMXP = false;
+                      }
+
+                      /* Terminate if we've reached the end of the string */
+                      bTerminate = !bDone;
+                   }
+                   break;
+                case '!': /* Used for in-band MSP sound triggers */
+                   pCopyFrom = MSP;
+                   break;
+#ifdef COLOUR_CHAR
+                case '+':
+                   bColourOn = true;
+                   break;
+                case '-':
+                   bColourOn = false;
+                   break;
+#endif /* COLOUR_CHAR */
+                case '\0':
+                   bTerminate = true;
+                   break;
+                default:
+                   break;
+             }
+
+         } /* end else */ 
          /* Copy the colour code, if any. */
          if ( pCopyFrom != NULL )
          {
