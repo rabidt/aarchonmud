@@ -72,6 +72,7 @@ ROOM_INDEX_DATA *find_jail_room(void);
 void    msdp_update args( ( void ) );
 void create_haunt( CHAR_DATA *ch );
 void check_beast_mastery( CHAR_DATA *ch );
+void check_shadow_companion( CHAR_DATA *ch );
 void validate_all();
 void check_clan_align( CHAR_DATA *gch );
 void check_equipment_align( CHAR_DATA *gch );
@@ -1663,8 +1664,10 @@ void char_update( void )
         if ( IS_AFFECTED(ch, AFF_HAUNTED) )
             create_haunt( ch );
         if ( !IS_NPC(ch) )
+        {
             check_beast_mastery( ch );
-
+            check_shadow_companion(ch);
+        }
     }
 
     return;
@@ -2990,6 +2993,73 @@ void check_beast_mastery( CHAR_DATA *ch )
     mob->leader = ch;
     af.where     = TO_AFFECTS;
     af.type      = gsn_beast_mastery;
+    af.level     = ch->level;
+    af.duration  = -1;
+    af.location  = 0;
+    af.modifier  = 0;
+    af.bitvector = AFF_CHARM;
+    affect_to_char( mob, &af );
+    SET_BIT(mob->act, ACT_PET);
+    ch->pet = mob;
+
+    return;
+}
+
+// chance to summon shadow companion pet
+void check_shadow_companion( CHAR_DATA *ch )
+{
+    AFFECT_DATA af;
+    CHAR_DATA *mob;
+    MOB_INDEX_DATA *mobIndex;
+    char buf[MAX_STRING_LENGTH];
+    int mlevel;
+    int skill = get_skill(ch, gsn_shadow_companion);
+
+    if ( !per_chance(skill) )
+        return;
+
+    // safety net
+    if ( ch->in_room == NULL )
+        return;
+
+    // must be in shadowy area for this to work
+    if ( !room_is_dim(ch->in_room) )
+        return;
+
+    // must be playing and not in warfare
+    if ( IS_SET(ch->act, PLR_WAR) || ch->desc == NULL || !IS_PLAYING(ch->desc->connected) )
+        return;
+
+    // only a chance to happen each tick, less likely during combat
+    if ( number_bits(2) || (ch->fighting != NULL && number_bits(2)) )
+        return;
+
+    // must not have a pet already, and must accept them
+    if ( ch->pet != NULL || IS_SET(ch->act, PLR_NOFOLLOW) )
+        return;
+
+    if ( (mobIndex = get_mob_index(MOB_VNUM_SHADOW)) == NULL )
+        return;
+
+    mob = create_mobile(mobIndex);
+
+    mlevel = dice(1,3) + ch->level * (80 + skill) / 200;
+    mlevel = URANGE(1, mlevel, ch->level);
+    set_mob_level( mob, mlevel );
+
+    sprintf(buf,"This shadow follows %s.\n\r", ch->name);
+    free_string(mob->description);
+    mob->description = str_dup(buf);
+
+    char_to_room( mob, ch->in_room );
+
+    send_to_char( "A shadow materializes and starts following you around.\n\r", ch );
+    act( "A shadow materializes and follows $n.", ch, NULL, NULL, TO_ROOM );
+
+    add_follower( mob, ch );
+    mob->leader = ch;
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_shadow_companion;
     af.level     = ch->level;
     af.duration  = -1;
     af.location  = 0;
