@@ -161,16 +161,18 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
         return 0;
     int weapon_sn = get_weapon_sn_new(ch, secondary);
-    return get_skill(ch, gsn_critical) + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
+    return get_skill(ch, gsn_critical) + get_skill(ch, gsn_piercing_blade)
+        + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
 }
 
 bool check_critical(CHAR_DATA *ch, bool secondary)
 {
     // max chance is 5% critical skill + 5% critical mastery + 5% weapon mastery = max 15%
-    if ( per_chance(85) )
+    // plus 5% for kensai with piercing blade makes max 20%
+    if ( per_chance(80) )
         return FALSE;
     
-    int chance = critical_chance(ch, secondary) / 3;
+    int chance = critical_chance(ch, secondary) / 4;
     return per_chance(chance);
 }
 

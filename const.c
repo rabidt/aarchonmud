@@ -2148,9 +2148,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "shadowdancer", THIEF|ASSASSIN|NINJA,
-        { "hide in plain sight", "shadow jump", "shadow companion" },
-        { 10, 20, 30 },
-        { 100, 100, 100 }
+        { "hide in plain sight", "shadow companion" },
+        { 10, 30 },
+        { 100, 100 }
     },
     {
         "warmage", MAGE|ILLUSIONIST|NECROMANCER,
@@ -2163,6 +2163,12 @@ const struct subclass_type subclass_table[] =
         { "greater frenzy" },
         { 30 },
         { 100 }
+    },
+    {
+        "kensai", SAMURAI,
+        { "piercing blade", "beheading" },
+        { 10, 30 },
+        { 100, 100 }
     },
     {
         "stormlord", SAMURAI|RANGER,
@@ -5637,6 +5643,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_shadow_companion, 0, 0, DUR_NONE,
         "", "shadow companion", ""
+    },
+
+    {
+        "piercing blade",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_piercing_blade, 0, 0, DUR_NONE,
+        "", "!piercing blade!", ""
     },
 
     {
