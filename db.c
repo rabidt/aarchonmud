@@ -365,6 +365,8 @@ sh_int  gsn_greater_frenzy;
 sh_int  gsn_hips;
 sh_int  gsn_shadow_companion;
 sh_int  gsn_piercing_blade;
+sh_int  gsn_lethal_hands;
+sh_int  gsn_unarmed_parry;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;

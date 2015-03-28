@@ -1650,6 +1650,8 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
         /* level 90+ bonus */
         if ( !IS_NPC(ch) && level > (LEVEL_HERO - 10) )
             dam += level - (LEVEL_HERO - 10);
+        // lethal hands increase base damage by 20%
+        dam += dam * get_skill(ch, gsn_lethal_hands) / 500;
     }
 
     /* damage roll */
@@ -1700,7 +1702,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* anatomy */
     if ( (dt == gsn_backstab || dt == gsn_back_leap || dt == gsn_circle || dt == gsn_slash_throat) && chance(get_skill(ch, gsn_anatomy)) )
     {
-        if ( wield != NULL && wield->value[0] == WEAPON_DAGGER )
+        if ( (wield && wield->value[0] == WEAPON_DAGGER) || (!wield && per_chance(get_skill(ch, gsn_lethal_hands))) )
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 200;
         else
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 400;
@@ -2789,24 +2791,32 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
 {
-    // guns and bows can assassinate via aim or snipe
-    if ( wield == NULL || (wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield)) )
+    // lethal hands skill allows unarmed assassination
+    int skill_unarmed = get_skill(ch, gsn_lethal_hands);
+    if ( !wield && !skill_unarmed )
         return;
-
+    
+    // guns and bows can assassinate via aim or snipe
+    if ( wield && wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield) )
+        return;
+    
     // assassination mastery increases chance by up to factor 2, depending on victim's health
     int dam_taken = (victim->max_hit - victim->hit) * 100 / victim->max_hit;
     if ( per_chance(dam_taken) && per_chance(mastery_bonus(ch, gsn_assassination, 60, 100)) )
         chance = UMAX(0, chance - 1);
 
     int base_chance = get_skill(ch, gsn_assassination);
+    if ( !wield )
+        base_chance += (100 - base_chance) * skill_unarmed / 100;
+    
     // aim head and snipe can behead without the skill
-    if ( is_ranged_weapon(wield) )
+    if ( wield && is_ranged_weapon(wield) )
         base_chance = (100 + base_chance) / 2;
     
     int extra_chance = 50 + (get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 4;
-    if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
+    if ( wield && IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
         chance += 2;
-    if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
+    if ( wield && IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
         extra_chance += 10;
 
     if ( number_bits(chance) == 0
@@ -2823,7 +2833,13 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
         }
         else
         {
-            if ( is_ranged_weapon(wield) )
+            if ( !wield )
+            {
+                act("You sneak up behind $N, and snap $S neck!", ch, NULL, victim, TO_CHAR);
+                act("$n sneaks up behind you and snaps your neck!", ch, NULL, victim, TO_VICT);
+                act("$n sneaks up behind $N, and snaps $S neck!", ch, NULL, victim, TO_NOTVICT);
+            }
+            else if ( is_ranged_weapon(wield) )
             {
                 act("You blow $N's brains out!", ch, NULL, victim, TO_CHAR);
                 act("$n blows your brains out!", ch, NULL, victim, TO_VICT);
@@ -4562,11 +4578,13 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
+    int skill = get_skill(ch, gsn_parry);
 
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
     if ( gsn_weapon == gsn_hand_to_hand && !(IS_NPC(ch) && IS_SET(ch->off_flags, OFF_PARRY)) )
-        return 0;
+        if ( (skill = get_skill(ch, gsn_unarmed_parry)) == 0 )
+            return 0;
 
     int opponent_adjust = 0;
     if ( opp )
@@ -4575,7 +4593,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
         int stat_diff = get_curr_stat(ch, STAT_DEX) - get_curr_stat(opp, STAT_DEX);
         opponent_adjust = (level_diff + stat_diff/4) / 2;
     }
-    int chance = 10 + (get_skill(ch, gsn_parry) + opponent_adjust) / 4;
+    int chance = 10 + (skill + opponent_adjust) / 4;
     
     /* some weapons are better for parrying, some are worse */
     if ( gsn_weapon == gsn_sword )

@@ -2165,7 +2165,7 @@ const struct subclass_type subclass_table[] =
         { 100 }
     },
     {
-        "kensai", SAMURAI,
+        "kensai", SAMURAI|NINJA,
         { "piercing blade", "beheading" },
         { 10, 30 },
         { 100, 100 }
@@ -2175,6 +2175,12 @@ const struct subclass_type subclass_table[] =
         { "elemental strike", "immolation", "electrocution", "absolute zero" },
         { 10, 40, 41, 42 },
         { 100, 80, 80, 80 }
+    },
+    {
+        "shaolin", NINJA|MONK,
+        { "lethal hands", "unarmed parry" },
+        { 10, 30 },
+        { 100, 100 }
     },
     {
         "beastmaster", RANGER,
@@ -5654,6 +5660,28 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_piercing_blade, 0, 0, DUR_NONE,
         "", "!piercing blade!", ""
+    },
+
+    {
+        "lethal hands",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DIS, STAT_STR, STAT_DEX,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_lethal_hands, 0, 0, DUR_NONE,
+        "", "!lethal hands!", ""
+    },
+
+    {
+        "unarmed parry",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DIS, STAT_STR, STAT_DEX,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_unarmed_parry, 0, 0, DUR_NONE,
+        "", "!unarmed parry!", ""
     },
 
     {
