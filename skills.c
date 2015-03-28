@@ -1157,7 +1157,8 @@ DEF_DO_FUN(do_spells)
             if ( subclass->skills[i] == NULL )
                 break;
             
-            sn = skill_lookup_exact(subclass->skills[i]);
+            if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
+                continue;
             level = subclass->skill_level[i];
             prac = subclass->skill_percent[i];
             
@@ -1343,7 +1344,8 @@ DEF_DO_FUN(do_skills)
             if ( subclass->skills[i] == NULL )
                 break;
             
-            sn = skill_lookup_exact(subclass->skills[i]);
+            if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
+                continue;
             level = subclass->skill_level[i];
             prac = subclass->skill_percent[i];
             

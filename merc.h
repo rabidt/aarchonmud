@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         444
+#define MAX_SKILL         445
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1090,6 +1090,7 @@ struct  kill_data
 #define MOB_VNUM_HOLY_APPARITION 12
 #define MOB_VNUM_WATER_ELEMENTAL 13
 #define MOB_VNUM_BEAST           14
+#define MOB_VNUM_SHADOW          15
 
 /* RT ASCII conversions -- used so we can have letters in this file */
 
@@ -3411,6 +3412,7 @@ extern sh_int  gsn_combat_casting;
 extern sh_int  gsn_elemental_strike;
 extern sh_int  gsn_greater_frenzy;
 extern sh_int  gsn_hips;
+extern sh_int  gsn_shadow_companion;
  
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;

@@ -462,7 +462,6 @@ void special_affect_update(CHAR_DATA *ch)
 
     /* vampire sunburn */
     if ( IS_SET(ch->form, FORM_SUNBURN)
-	 && (!IS_NPC(ch) || ch->pIndexData->vnum == MOB_VNUM_VAMPIRE)
 	 && !IS_AFFECTED(ch, AFF_SHELTER)
 	 // no linkdeads unless fighting
 	 && (IS_NPC(ch) || ch->desc != NULL || ch->fighting != NULL)
