@@ -2142,9 +2142,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "blademaster", WARRIOR|GLADIATOR|SAMURAI|PALADIN,
-        { "riposte" },
-        { 30 },
-        { 100 }
+        { "riposte", "blade barrier" },
+        { 30, 50 },
+        { 100, 100 }
     },
     {
         "shadowdancer", THIEF|ASSASSIN|NINJA,
@@ -5623,6 +5623,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_riposte, 0, 0, DUR_NONE,
         "riposte", "!riposte!", ""
+    },
+
+    {
+        "blade barrier",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_STR,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_blade_barrier, 0, 0, DUR_NONE,
+        "", "!blade barrier!", ""
     },
 
     {
