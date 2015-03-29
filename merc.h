@@ -3411,7 +3411,7 @@ extern sh_int  gsn_riposte;
 extern sh_int  gsn_blade_barrier;
 extern sh_int  gsn_combat_casting;
 extern sh_int  gsn_elemental_strike;
-extern sh_int  gsn_greater_frenzy;
+extern sh_int  gsn_savage_frenzy;
 extern sh_int  gsn_hips;
 extern sh_int  gsn_shadow_companion;
 extern sh_int  gsn_piercing_blade;

@@ -2166,7 +2166,7 @@ const struct subclass_type subclass_table[] =
     },
     {
         "berserker", GLADIATOR,
-        { "greater frenzy" },
+        { "savage frenzy" },
         { 30 },
         { 100 }
     },
@@ -5659,14 +5659,14 @@ struct  skill_type
     },
 
     {
-        "greater frenzy",
+        "savage frenzy",
         { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
         {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
         { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
         STAT_STR, STAT_VIT, STAT_CON,
         spell_null, TAR_IGNORE, POS_FIGHTING,
-        &gsn_greater_frenzy, 0, 0, DUR_NONE,
-        "", "!greater frenzy!", ""
+        &gsn_savage_frenzy, 0, 0, DUR_NONE,
+        "", "!savage frenzy!", ""
     },
 
     {
