@@ -1166,6 +1166,37 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
     {
         set_fighting(victim, ch);
     }
+    
+    // mystic infusion heals or harms
+    if ( !was_obj_cast && per_chance(get_skill(ch, gsn_mystic_infusion)) )
+    {
+        if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
+            && victim->position > POS_SLEEPING && !is_same_group(ch, victim)
+            && has_focus_obj(ch) )
+        {
+            int dam = get_sn_damage(sn, ch->level, ch) / 10;
+            if ( saves_spell(victim, ch, ch->level, DAM_HOLY) )
+                dam /= 2;
+            deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HOLY, TRUE, TRUE);
+        }
+        else if ( skill_table[sn].target == TAR_CHAR_DEFENSIVE
+                || skill_table[sn].target == TAR_OBJ_CHAR_DEF
+                || skill_table[sn].target == TAR_CHAR_SELF )
+        {
+            int heal = get_sn_heal(sn, ch->level, ch, victim) / 10;
+            if ( victim->hit < victim->max_hit )
+            {
+                if ( ch == victim )
+                    ptc(ch, "Your mystic infusion restores some of your health.\n\r");
+                else
+                {
+                    act("Your mystic infusion restores some of $N's health.", ch, NULL, victim, TO_CHAR);
+                    act("$n's mystic infusion restores some of your health.", ch, NULL, victim, TO_VICT);
+                }
+                victim->hit += UMIN(victim->max_hit - victim->hit, heal);
+            }
+        }
+    }
 }
 
 int mastery_adjust_cost( int cost, int mastery )
