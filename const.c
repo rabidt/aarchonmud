@@ -2189,6 +2189,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "machinegunner", GUNSLINGER,
+        { "rapid fire", "third attack" },
+        { 10, 50 },
+        { 100, 80 }
+    },
+    {
         "beastmaster", RANGER,
         { "beast mastery", "water elemental" },
         { 10, 90 },
@@ -5699,6 +5705,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_mystic_infusion, 0, 0, DUR_NONE,
         "mystic infusion", "!mystic infusion!", ""
+    },
+
+    {
+        "rapid fire",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_LUC, STAT_DEX, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_rapid_fire, 0, 0, DUR_NONE,
+        "", "!rapid fire!", ""
     },
 
     {
