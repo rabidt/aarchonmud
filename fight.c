@@ -1668,7 +1668,8 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* enhanced damage */
     if ( is_ranged_weapon(wield) )
     {
-        int chance = get_skill(ch, gsn_sharp_shooting) / 2 + mastery_bonus(ch, gsn_sharp_shooting, 15, 25);
+        int chance = get_skill(ch, gsn_sharp_shooting) / 2 + mastery_bonus(ch, gsn_sharp_shooting, 15, 25)
+            + get_skill(ch, gsn_precise_shot) / 4;
         if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto
             && !number_bits(2) && per_chance(chance) )
         {
@@ -1942,7 +1943,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     }
     
     // rapid fire - 10% chance of additional follow-up attack
-    if ( is_normal_hit(dt) && wield && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED)
+    if ( is_normal_hit(dt) && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED)
         && per_chance(10) && per_chance(get_skill(ch, gsn_rapid_fire)) )
     {
         one_hit(ch, victim, dt, secondary);
@@ -2053,6 +2054,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     check_killer( ch, victim );
 
+    bool is_spray_attack = (dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto);
+    
     // deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
@@ -2069,7 +2072,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
                 offence_cost = 3;
         }
         // reduced cost for burst/semi-/full-auto
-        if ( dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto )
+        if ( is_spray_attack )
             offence_cost = 2;
         // half cost while not berserking (but less damage later)
         if ( !IS_AFFECTED(ch, AFF_BERSERK) )
@@ -2080,14 +2083,23 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( !start_combat(ch, victim) )
         return FALSE;
     
+    // precise shot offers auto-hit chance
+    bool precise_shot = is_ranged_weapon(wield) && !is_spray_attack
+        && number_bits(3) == 0 && per_chance(get_skill(ch, gsn_precise_shot));
+    
+    if ( precise_shot )
+    {
+        act_gag("You aim precisely at $N, ignoring $S defenses.", ch, NULL, victim, TO_CHAR, GAG_MISS);
+    }
+    
     // Check for parry, dodge, etc. and fade
-    if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+    if ( !precise_shot && is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
     {
         after_attack(ch, victim, dt, FALSE, secondary);
         return FALSE;
     }
         
-    if ( !check_hit(ch, victim, dt, dam_type, skill) )
+    if ( !precise_shot && !check_hit(ch, victim, dt, dam_type, skill) )
     {
         /* Miss. */
         if (wield != NULL)
