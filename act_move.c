@@ -534,7 +534,10 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             && (!strcmp(fch->hunting, "all") || is_name(fch->hunting, ch->name)) )
         {
             check_improve(fch, gsn_ambush, TRUE, 2);
-            backstab_char( fch, ch );
+            if ( is_ranged_weapon(get_eq_char(fch, WEAR_WIELD)) )
+                snipe_char(fch, ch);
+            else
+                backstab_char(fch, ch);
             if ( fch->fighting == ch )
                 multi_hit(fch, ch, TYPE_UNDEFINED);
             return door;

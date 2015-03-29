@@ -2195,6 +2195,12 @@ const struct subclass_type subclass_table[] =
         { 100, 80 }
     },
     {
+        "sniper", GUNSLINGER|RANGER,
+        { "precise shot", "ambush" },
+        { 10, 60 },
+        { 100, 100 }
+    },
+    {
         "beastmaster", RANGER,
         { "beast mastery", "water elemental" },
         { 10, 90 },
@@ -5716,6 +5722,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_rapid_fire, 0, 0, DUR_NONE,
         "", "!rapid fire!", ""
+    },
+
+    {
+        "precise shot",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_WIS, STAT_DIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_precise_shot, 0, 0, DUR_NONE,
+        "", "!precise shot!", ""
     },
 
     {
