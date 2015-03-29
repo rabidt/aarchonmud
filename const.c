@@ -2153,6 +2153,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "mystic theurge", CLERIC|TEMPLAR,
+        { "mystic infusion", "focus", "quicken spell" },
+        { 10, 30, 50 },
+        { 100, 75, 75 }
+    },
+    {
         "warmage", MAGE|ILLUSIONIST|NECROMANCER,
         { "combat casting", "second attack", "dimensional blade" },
         { 10, 50, 90 },
@@ -5682,6 +5688,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_unarmed_parry, 0, 0, DUR_NONE,
         "", "!unarmed parry!", ""
+    },
+
+    {
+        "mystic infusion",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_WIS, STAT_INT, STAT_CHA,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_mystic_infusion, 0, 0, DUR_NONE,
+        "mystic infusion", "!mystic infusion!", ""
     },
 
     {
