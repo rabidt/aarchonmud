@@ -564,6 +564,8 @@ const struct flag_type oprog_flags[] =
     {   "open",         OTRIG_OPEN,      TRUE    },
     {   "unlock",       OTRIG_UNLOCK,    TRUE    },
     {   "sit",          OTRIG_SIT,       TRUE    },
+    {   "rest",         OTRIG_REST,      TRUE    },
+    {   "sleep",        OTRIG_SLEEP,     TRUE    },
     {   "wake",         OTRIG_WAKE,      TRUE    },
     {   NULL,           0,          TRUE    }
 };
